@@ -1,0 +1,393 @@
+\chapter{Marco teórico}\label{cap:marco}
+
+El presente capítulo expone los fundamentos teóricos que sustentan el trabajo. Los temas abordados fueron seleccionados en función de los dos dominios que convergen en la problemática: el jurídico-procesal, que define qué se gestiona y bajo qué restricciones legales; y el criptográfico-técnico, que determina cómo se garantiza la validez probatoria de la información gestionada. El capítulo se organiza en cuatro bloques. El primero aborda el contexto procesal: el sistema acusatorio oral establecido por la reforma constitucional de 2008, la estructura del proceso penal conforme al CNPP ---etapas, sujetos procesales, audiencias y plazos fatales--- y los conceptos de expediente digital y cadena de custodia que determinan los requisitos del modelo de datos. El segundo describe el marco legal mexicano aplicable: la NOM-151-SCFI-2016, el Código de Comercio y la LFPDPPP, cuyo cumplimiento condiciona la validez probatoria de los documentos gestionados. El tercer bloque desarrolla los fundamentos criptográficos pertinentes: integridad mediante funciones hash (SHA-256, Estándar Federal de Procesamiento de Información (FIPS) 180-4 \cite{nist2015fips1804}) y cifrado autenticado (AES-256-GCM, FIPS 197 \cite{nist2001fips197}); no repudio mediante firma digital con certificados X.509 y sellado de tiempo conforme al protocolo RFC 3161 \cite{adams2001}; y autenticación y control de acceso mediante certificados digitales, MFA y RBAC. El cuarto bloque cubre la arquitectura de almacenamiento híbrida y la metodología XP. Las referencias de cada sección se indican en el texto para quien desee profundizar en los temas tratados.
+
+\section{Seguridad de la Información en el Ámbito Jurídico}\label{sec:seguridad-juridica}
+
+La seguridad de la información constituye la arquitectura sobre la cual se construye la confianza en el entorno digital. En la práctica jurídica, la transición del expediente físico al electrónico exige que las propiedades del documento en papel ---dificultad de alteración, firma autógrafa, sello notarial--- sean replicadas y superadas mediante herramientas criptográficas.
+
+La tríada clásica de la seguridad (Confidencialidad, Integridad y Disponibilidad) \cite{stallings2017} resulta insuficiente en el contexto del derecho, donde el concepto central es el valor probatorio: la capacidad de un documento electrónico de ser presentado como prueba legítima en un procedimiento legal. Stallings \cite{stallings2017} señala que la seguridad no es un componente que se añade a un sistema, sino un proceso continuo orientado a garantizar que los activos de información estén protegidos contra amenazas que comprometan su veracidad.
+
+En el ámbito jurídico digital, la seguridad se materializa en tres dimensiones verificables: que el contenido de los expedientes no haya sido alterado (integridad), que el autor de una operación ---particularmente la firma de un contrato--- no pueda negar haberla realizado (no repudio) y que solo las partes autorizadas accedan al contenido de los documentos almacenados (confidencialidad).
+
+\section{Sistema Legal Mexicano}\label{sec:sistema-legal}
+
+\subsection{El Sistema Acusatorio Oral en México}\label{sec:acusatorio-oral}
+
+La reforma constitucional del 18 de junio de 2008 al artículo 20 de la Constitución Política de los Estados Unidos Mexicanos transformó estructuralmente el sistema de justicia penal, sustituyendo el modelo mixto-inquisitivo por un sistema de corte acusatorio y oral. Este cambio de paradigma no es meramente procedimental; representa una transformación en la ontología del derecho penal mexicano: el proceso abandona la secrecía de las oficinas judiciales para trasladarse a la audiencia pública, y el expediente de papel deja de ser el receptáculo de la verdad jurídica para convertirse en un registro auxiliar de lo que las partes producen de manera contradictoria ante el juez \cite{cnpp2021,agepuebla2020}.
+
+El modelo inquisitivo anterior se sustentaba en la desconfianza: el juez delegaba sus funciones en secretarios, la \emph{``verdad''} era aquello que quedaba plasmado en el papel, frecuentemente sin que el juzgador hubiera tenido contacto directo con las partes o las pruebas, y la prisión preventiva operaba como regla general. La doctrina procesal contemporánea, impulsada por figuras como Miguel Carbonell y Alberto Binder, sostiene que el sistema acusatorio busca equilibrar la eficacia en la persecución del delito con el respeto irrestricto a las garantías individuales \cite{iejcdmx2018}, situando al imputado como sujeto de derechos y no como objeto de persecución penal. La \cref{tab:inquisitivo-acusatorio} sintetiza las diferencias estructurales entre ambos modelos.
+
+\begin{table}[H]
+  \centering
+  \caption{Comparación entre el sistema inquisitivo y el sistema acusatorio oral.}
+  \label{tab:inquisitivo-acusatorio}
+  \begin{tabular}{@{}L{0.22\linewidth}L{0.36\linewidth}L{0.36\linewidth}@{}}
+    \toprule
+    \textbf{Característica} & \textbf{Sistema Inquisitivo (tradicional)} & \textbf{Sistema Acusatorio (vigente)} \\
+    \midrule
+    \textbf{Forma del proceso} & Predominantemente escrito y secreto \cite{agepuebla2020}. & Oral, público y transparente \cite{agepuebla2020}. \\
+    \addlinespace
+    \textbf{Rol del juez} & Investiga, acusa y juzga; delega funciones en secretarios \cite{lasalle2015}. & Tercero imparcial; presencia obligatoria en todas las audiencias \cite{lasalle2015}. \\
+    \addlinespace
+    \textbf{Valor de la confesión} & Prueba reina; frecuentemente obtenida bajo coacción \cite{agepuebla2020}. & Solo tiene valor si se rinde voluntariamente ante el juez con defensa técnica \cite{cnpp2021}. \\
+    \addlinespace
+    \textbf{Prisión preventiva} & Regla general para la mayoría de los delitos \cite{agepuebla2020}. & Medida cautelar excepcional y proporcional; opera la presunción de inocencia \cite{cnpp2021}. \\
+    \addlinespace
+    \textbf{El expediente} & ``Lo que no está en autos no está en el mundo''; centro de la verdad jurídica \cite{lasalle2015}. & Registro auxiliar; la prueba se produce en la audiencia viva ante el juez \cite{lasalle2015}. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsubsection{Los Principios Rectores del Artículo 4 del CNPP como Base del Modelado Digital}
+
+El artículo 4 del CNPP no es un catálogo de aspiraciones, sino la estructura normativa que define la validez de todo acto procesal \cite{cnpp2021}. Cada principio impone exigencias técnicas concretas que cualquier herramienta de gestión procesal digital debe satisfacer \cite{oaj2023ejusticia}.
+
+\begin{itemize}
+  \item \textbf{Publicidad.} Las audiencias son abiertas al público salvo excepciones taxativas. En la abstracción digital este principio implica un control de acceso diferenciado por rol: el estado del proceso debe ser consultable por las partes legitimadas, mientras los documentos reservados permanecen cifrados para terceros no autorizados \cite{cnpp2021}.
+
+  \item \textbf{Contradicción.} Las partes tienen derecho a conocer, controvertir y confrontar los medios de prueba de la contraparte. En el ámbito digital, esto se traduce en descubrimiento probatorio: todas las partes deben tener acceso oportuno y completo a las evidencias digitales, con trazabilidad de quién las consultó y cuándo \cite{cnpp2021}.
+
+  \item \textbf{Concentración.} El mayor número de actos procesales posible debe realizarse en una sola audiencia o en el menor número de días consecutivos. En la práctica, este principio exige una gestión eficiente de la agenda que evite fragmentaciones innecesarias y anticipe riesgos a la continuidad de las audiencias \cite{cnpp2021}.
+
+  \item \textbf{Continuidad.} Las audiencias deben desarrollarse de forma sucesiva y secuencial hasta su conclusión. Este principio exige una bitácora de actividad inmutable (append-only) que registre el flujo cronológico del proceso, impidiendo saltos lógicos o alteraciones en el orden de las actuaciones \cite{cnpp2021}.
+
+  \item \textbf{Inmediación.} El juez debe estar presente físicamente en todas las audiencias y percibir de manera directa las pruebas y alegatos. En contextos de videoconferencia, los certificados digitales permiten verificar que quien firma una resolución es efectivamente el juzgador que presidió la sesión \cite{cnpp2021}.
+
+  \item \textbf{Igualdad entre las partes.} Tanto la defensa como el Ministerio Público deben tener las mismas oportunidades de acceso a la información procesal. Un esquema de control de acceso basado en roles debe reflejar esta paridad, sin conferir ventajas informacionales a ninguna de las partes \cite{cnpp2021}.
+\end{itemize}
+
+\subsection{Estructura del Proceso Penal conforme al CNPP}\label{sec:estructura-proceso}
+
+El artículo 211 del CNPP estructura el procedimiento ordinario en etapas secuenciales con finalidades, actuaciones, plazos y sujetos diferenciados \cite{cnpp2021}. Cada etapa habilita actuaciones específicas y activa plazos que deben monitorearse. La transición de una etapa a la siguiente solo es posible mediante el documento procesal habilitante correspondiente, lo que impide saltos lógicos que comprometerían la validez del expediente.
+
+\subsubsection{Etapa de Investigación}
+
+La investigación se subdivide en dos fases. La \textbf{investigación inicial} comienza con la noticia criminal ---denuncia, querella o detención en flagrancia--- y concluye cuando el imputado queda a disposición del juez de control. Su instrumento documental es la \textbf{Carpeta de Investigación}, que es el registro administrativo del Ministerio Público y contiene indicios y datos de prueba aún no validados judicialmente \cite{cnpp2021,garciaramirez2015}.
+
+La \textbf{investigación complementaria} inicia con la formulación de cargos en la audiencia inicial y concluye con el escrito de acusación. El artículo 321 del CNPP fija plazos máximos de dos meses ---cuando la pena máxima no supera los dos años--- y seis meses para los demás casos, salvo prórroga autorizada judicialmente. El cumplimiento de estos plazos es crítico, y la fase incluye actos de investigación complejos como peritajes, entrevistas a testigos e inspecciones de lugar \cite{cnpp2021,garciaramirez2015}.
+
+\subsubsection{Etapa Intermedia}
+
+La etapa intermedia, también denominada de preparación del juicio oral, tiene por objeto la depuración de los hechos controvertidos y la admisión de los medios de prueba \cite{cnpp2021}. Comprende una \textbf{fase escrita} ---activada con la presentación del escrito de acusación--- y una \textbf{fase oral} desarrollada en la audiencia intermedia, donde las partes debaten la pertinencia y licitud de las pruebas ofrecidas. Esta etapa culmina con el \textbf{auto de apertura a juicio oral}, que determina los hechos acusados, las pruebas admitidas, los acuerdos probatorios y el tribunal competente \cite{cnpp2021}. El auto de apertura constituye el documento de transferencia de estado que habilita la etapa de juicio oral.
+
+\subsubsection{Etapa de Juicio Oral}
+
+El juicio oral es la fase de decisión de las cuestiones esenciales del proceso y se rige por la aplicación estricta de los seis principios del artículo 4 del CNPP \cite{cnpp2021}. En esta etapa la prueba se desahoga ante el tribunal de enjuiciamiento con plena contradicción; los registros audiovisuales de las audiencias constituyen el \emph{``acta''} del juicio. La integridad de estos registros es prioritaria, y el fallo debe documentarse con firma digital del tribunal inmediatamente tras su pronunciamiento para garantizar su autenticidad \cite{oaj2023ejusticia}.
+
+\subsubsection{Recursos, Impugnación y Ejecución}
+
+El proceso no finaliza con la sentencia de primer grado. El CNPP prevé \textbf{recursos de apelación} ante un Tribunal de Alzada dentro de los plazos del artículo 471 del CNPP, y posteriormente el seguimiento de la ejecución de la sentencia firme ante el Juez de Ejecución de Sanciones. En esta fase los registros del expediente original adquieren especial relevancia probatoria, dado que los tribunales revisores basan su análisis exclusivamente en las constancias documentadas \cite{cnpp2021}.
+
+\subsection{Sujetos Procesales}\label{sec:sujetos-procesales}
+
+El artículo 105 del CNPP define el catálogo de sujetos procesales con roles y atribuciones específicas que condicionan su interacción con el expediente digital \cite{cnpp2021}. La correcta representación de cada sujeto no es solo una cuestión de nomenclatura: determina la lógica del control de acceso basado en roles (RBAC). Un mismo individuo puede desempeñar roles distintos en procedimientos diferentes, por lo que la identidad del usuario debe vincularse con su rol procesal a nivel de caso, no de manera global \cite{pjguanajuato2015,gobmx2022}.
+
+\begin{table}[H]
+  \centering
+  \caption{Sujetos procesales del CNPP y sus implicaciones en la gestión digital del expediente.}
+  \label{tab:sujetos-procesales}
+  \begin{tabularx}{\linewidth}{@{}L{0.20\linewidth}L{0.38\linewidth}X@{}}
+    \toprule
+    \textbf{Sujeto procesal} & \textbf{Atributos para el directorio (RF-07)} & \textbf{Implicaciones en la gestión digital} \\
+    \midrule
+    \textbf{Ministerio Público} & Identificador de Fiscalía, Unidad de Adscripción, Cédula Profesional \cite{pjguanajuato2015}. & Carga la acusación, solicita medidas cautelares y registra actos de investigación en la Carpeta. \\
+    \addlinespace
+    \textbf{Imputado} & CURP, datos generales, estatus de libertad o detención \cite{cnpp2021}. & Acceso restringido a la carpeta digital para consulta de pruebas y recepción de notificaciones. \\
+    \addlinespace
+    \textbf{Defensor} & Cédula Profesional validada ante el PJ, firma electrónica, modalidad (particular o público) \cite{pjguanajuato2015}. & Presenta promociones, contesta la acusación, ofrece pruebas e interpone recursos. \\
+    \addlinespace
+    \textbf{Víctima u ofendido} & Datos de contacto seguro, medidas de protección activas \cite{cnpp2021}. & Consulta el estado del proceso y solicita reparación del daño mediante el portal restringido. \\
+    \addlinespace
+    \textbf{Asesor jurídico de la víctima} & Datos de institución o despacho, cédula profesional \cite{pjguanajuato2015}. & Coadyuva con el Ministerio Público en la oferta de pruebas y en la presentación de alegatos. \\
+    \addlinespace
+    \textbf{Juez de control} & Órgano jurisdiccional, Firma Electrónica del Poder Judicial de la Federación (FIREL) \cite{cjf_expediente2020}. & Dicta resoluciones, autoriza actos de investigación y preside la audiencia intermedia \cite{cnpp2021}. \\
+    \addlinespace
+    \textbf{Tribunal de enjuiciamiento} & Composición (unitario o colegiado), distrito judicial \cite{pjguanajuato2015}. & Emite el fallo y la sentencia basándose exclusivamente en los registros del juicio oral \cite{cnpp2021}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Actuaciones Procesales y el Expediente Digital}\label{sec:actuaciones-expediente}
+
+El proceso penal acusatorio genera dos conjuntos documentales estructuralmente distintos: la Carpeta de Investigación y el Expediente Judicial. Ambos difieren en origen, custodia y nivel de validación probatoria, lo que condiciona su modelado en cualquier herramienta digital.
+
+\subsubsection{Carpeta de Investigación versus Expediente Judicial}
+
+La \textbf{Carpeta de Investigación} es el registro del Ministerio Público. Contiene indicios, datos de prueba e información de gestión que aún no han sido validados judicialmente ni sometidos al contradictorio. Digitalmente, constituye un repositorio dinámico que se alimenta de reportes policiales, dictámenes periciales y actas ministeriales. Su acceso está restringido a los actores de la investigación y, en los términos del artículo 218 del CNPP, a la defensa en la medida necesaria para el ejercicio de sus derechos \cite{cnpp2021}.
+
+El \textbf{Expediente Judicial} reside en el Poder Judicial y contiene exclusivamente las actuaciones presentadas ante el juez y los registros de audiencias celebradas. El Acuerdo General 12/2020 del Consejo de la Judicatura Federal establece que el expediente electrónico se integra cronológicamente con documentos digitalizados y generados electrónicamente, los cuales tienen el mismo valor probatorio que los físicos siempre que cuenten con firma electrónica y sello de tiempo (marca temporal criptográfica emitida por un tercero de confianza; véase \S2.3.3.4) que acrediten su autenticidad e integridad \cite{cjf_expediente2020}.
+
+\subsubsection{Identificación Única: el NUC y la Carpeta Judicial}
+
+La trazabilidad entre instancias es el fundamento técnico de la cadena de custodia digital y se articula sobre dos identificadores complementarios:
+
+\begin{itemize}
+  \item \textbf{Número Único de Caso (NUC).} Identificador nacional que permite rastrear un asunto desde que se denuncia hasta sentencia firme. Constituye la clave que garantiza la interoperabilidad entre fiscalías y tribunales \cite{cnpp2021}.
+
+  \item \textbf{Carpeta Judicial.} Número interno asignado por el juzgado al iniciar el proceso en sede jurisdiccional. La vinculación bidireccional NUC--Carpeta Judicial es necesaria para que el abogado pueda rastrear sus casos con independencia del identificador que utilice la autoridad en cada comunicación oficial \cite{pjcdmx2023}.
+\end{itemize}
+
+\subsubsection{La Cadena de Custodia Digital y su Valor Probatorio}
+
+La cadena de custodia, definida en el artículo 227 del CNPP como el sistema de control y registro que se aplica a los indicios desde su localización hasta que la autoridad ordena su conclusión \cite{cnpp2021}, es el mecanismo jurídico que dota de valor probatorio a la evidencia digital. Su traslado al entorno digital exige tratar cada actuación procesal como una evidencia sujeta a tres garantías técnicas:
+
+\begin{itemize}
+  \item \textbf{Integridad.} Hash SHA-256 calculado al momento de la carga y verificado en cada consulta posterior. Cualquier discrepancia evidencia modificación no autorizada.
+
+  \item \textbf{Trazabilidad.} Registro de auditoría inmutable (append-only) que documenta por cada operación: el identificador del usuario, el tipo de operación, la marca de tiempo y el estado del documento afectado.
+
+  \item \textbf{No repudio.} Firma digital con certificados X.509 y sellado de tiempo de un PSC autorizado conforme a la NOM-151-SCFI-2016, generando evidencia criptográfica verificable de forma independiente sobre la autoría y el momento de cada operación \cite{cnpp2021,nom151_2016}.
+\end{itemize}
+
+\subsection{Plazos y Términos Constitucionales}\label{sec:plazos-terminos}
+
+El proceso penal acusatorio está estructurado sobre plazos fatales cuyo vencimiento genera consecuencias jurídicas irreversibles, incluyendo la libertad del imputado o la preclusión de derechos procesales. El error en el cómputo de un plazo constitucional es una contingencia que ningún mecanismo criptográfico puede subsanar a posteriori, lo que convierte la gestión de plazos en una función de alta criticidad operativa.
+
+\subsubsection{Reglas de Cómputo según el Artículo 94 del CNPP}
+
+El artículo 94 del CNPP establece las siguientes reglas de cómputo \cite{cnpp2021}:
+
+\begin{itemize}
+  \item \textbf{Plazos en horas:} Corren de momento a momento, sin interrupción por días inhábiles. Aplican a los plazos constitucionales más críticos, como las 72 horas para la vinculación a proceso.
+
+  \item \textbf{Plazos en días:} Comienzan a contarse a partir de que surte efectos la notificación. No se contabilizan sábados, domingos ni días feriados del calendario del Poder Judicial, salvo tratándose de detención y medidas precautorias, donde todos los días y horas son hábiles \cite{cnpp2021}.
+
+  \item \textbf{Calendario configurable:} La correcta aplicación de estas reglas requiere un calendario de días inhábiles diferenciado por entidad federativa y por fuero, dado que los periodos de receso judicial varían entre jurisdicciones.
+\end{itemize}
+
+\subsubsection{Términos Fatales del Proceso Penal}
+
+\begin{table}[H]
+  \centering
+  \caption{Términos fatales del proceso penal y su implicación para el módulo de alertas (RF-09, RF-10).}
+  \label{tab:terminos-fatales}
+  \begin{tabularx}{\linewidth}{@{}L{0.24\linewidth}L{0.12\linewidth}L{0.22\linewidth}X@{}}
+    \toprule
+    \textbf{Actuación / plazo} & \textbf{Término legal} & \textbf{Fundamento} & \textbf{Implicación para la gestión digital} \\
+    \midrule
+    Retención por el Ministerio Público & 48 horas & Art. 16 Constitucional & Alerta roja al vencer sin judicialización del detenido. \\
+    \addlinespace
+    Vinculación a proceso & 72 / 144 horas & Art. 19 Constitucional; Art. 308 CNPP \cite{cnpp2021} & Agendar audiencia de continuación con prioridad máxima; alerta a las 48 h. \\
+    \addlinespace
+    Investigación complementaria & 2 o 6 meses & Art. 321 CNPP \cite{cnpp2021} & Recordatorio para solicitar prórroga o presentar cierre de investigación. \\
+    \addlinespace
+    Presentación de acusación & 15 días & Art. 324 CNPP \cite{cnpp2021} & Plazo tras el cierre; su vencimiento activa el sobreseimiento. \\
+    \addlinespace
+    Recurso de apelación de sentencia & 10 días & Art. 471 CNPP \cite{cnpp2021} & Plazo fatal desde la notificación; su pérdida cierra la vía impugnativa ordinaria. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Audiencias Tipificadas conforme al CNPP}\label{sec:audiencias-tipificadas}
+
+El proceso acusatorio oral se articula en torno a audiencias formales cuya tipificación no puede reducirse a una etiqueta descriptiva: cada tipo activa validaciones procesales distintas y desencadena el cómputo de plazos derivados. Un catálogo de tipos de audiencia con semántica procesal explícita es necesario para garantizar la coherencia del expediente \cite{cnpp2021,oaj2023guiacnpp}.
+
+\begin{itemize}
+  \item \textbf{Audiencia inicial (Arts. 307--313 CNPP).} Primera comparecencia del imputado ante el juez de control. En ella se realizan, en orden procesal definido: control de detención, formulación de cargos, oportunidad de declarar del imputado, resolución sobre medidas cautelares y vinculación o no vinculación a proceso con apertura del plazo de investigación complementaria. Cada hito debe registrarse de forma independiente, ya que cada uno puede generar plazos y recursos propios \cite{cnpp2021}.
+
+  \item \textbf{Audiencia de medidas cautelares.} Puede solicitarse en cualquier momento de la investigación, de manera autónoma o como parte de la audiencia inicial. Las medidas impuestas ---prisión preventiva, brazalete electrónico, firma periódica--- requieren un historial con fechas de inicio, vigencia y condiciones de cumplimiento \cite{cnpp2021}.
+
+  \item \textbf{Audiencia intermedia (Arts. 334--347 CNPP).} Tiene por objeto depurar los hechos controvertidos y resolver sobre la admisión de medios de prueba. La gestión probatoria implica distinguir qué pruebas fueron admitidas, cuáles excluidas y los motivos de exclusión; esta etapa culmina con el auto de apertura a juicio oral como documento de transición de estado \cite{cnpp2021}.
+
+  \item \textbf{Audiencias de juicio oral (Arts. 348--395 CNPP).} Comprenden los alegatos de apertura, el desahogo de pruebas con interrogatorio y contrainterrogatorio, los alegatos de clausura y la deliberación del tribunal. Las incidencias de cada sesión deben vincularse a la marca de tiempo del video de sala, y el fallo debe documentarse con firma digital del tribunal inmediatamente tras su pronunciamiento \cite{cnpp2021}.
+
+  \item \textbf{Audiencia de individualización de sanciones y reparación del daño (Arts. 399--403 CNPP).} Realizada tras un fallo condenatorio para debatir la pena y la reparación del daño. La sentencia exacta y los montos de reparación deben vincularse al expediente con mecanismos de no repudio, dado que este documento constituye el título ejecutivo de la condena \cite{cnpp2021}.
+\end{itemize}
+
+\subsection{Normatividad Mexicana de Firma Electrónica y Datos}\label{sec:normatividad-firma}
+
+Para que los servicios criptográficos tengan validez en el contexto jurídico mexicano, deben alinearse con la legislación que otorga reconocimiento legal a las operaciones electrónicas. A continuación, se describen los ordenamientos aplicables.
+
+\subsubsection{NOM-151-SCFI-2016}
+
+La NOM-151-SCFI-2016 es la norma técnica que establece los requisitos para la conservación de mensajes de datos y la digitalización de documentos. Su disposición central establece que la integridad de un mensaje de datos se presume si este ha permanecido íntegro y sin alteraciones desde el momento en que se generó en su forma definitiva, lo cual se acredita mediante la constancia de conservación emitida por un Prestador de Servicios de Certificación autorizado. En la práctica, esto se traduce en la obtención de sellos de tiempo de un PSC autorizado para cada operación que requiera preservación probatoria.
+
+\subsubsection{Código de Comercio: Equivalencia Funcional}
+
+El Título Segundo del Código de Comercio (artículos 89 a 114) \cite{ccom2018} establece el marco jurídico que otorga reconocimiento legal a las transacciones electrónicas en México. El artículo 89 define la firma electrónica como los datos en forma electrónica consignados en un mensaje de datos, o adjuntados o lógicamente asociados al mismo, que pueden ser utilizados para identificar al firmante en relación con el mensaje de datos e indicar que el firmante aprueba la información contenida en el mismo. Esta definición ---denominada firma electrónica simple--- no exige la intervención de un Prestador de Servicios de Certificación y produce los mismos efectos jurídicos que la firma autógrafa, siendo admisible como prueba en juicio. Complementariamente, el artículo 89 bis consagra el principio de no discriminación: no se negarán efectos jurídicos, validez o fuerza obligatoria a cualquier tipo de información por la sola razón de que esté contenida en un mensaje de datos.
+
+El artículo 93 establece que cuando la ley exija forma escrita para un acto jurídico, dicho requisito se cumple con un mensaje de datos siempre que la información en él contenida se mantenga íntegra y sea accesible para su ulterior consulta. A su vez, el artículo 93 bis dispone que cuando se requiera que un documento se conserve y presente en su forma original, tal requisito se satisface si el mensaje de datos se ha mantenido íntegro e inalterado a partir del momento en que se generó por primera vez en su forma definitiva, conforme a la NOM-151-SCFI-2016. Este artículo es la base legal que dota al sello de tiempo emitido por un PSC autorizado de su eficacia como constancia de conservación.
+
+El artículo 97 establece los requisitos para que una firma electrónica sea considerada avanzada o fiable: (1) que los datos de creación de la firma correspondan exclusivamente al firmante, (2) que dichos datos estuvieran bajo su exclusivo control al momento de firmar, (3) que sea posible detectar cualquier alteración de la firma posterior a su creación, (4) que sea posible detectar cualquier alteración del mensaje de datos firmado y (5) que los datos de creación de la firma estén vinculados a un certificado emitido por un PSC autorizado. La ausencia de este último requisito es lo que distingue a la firma simple de la avanzada. No obstante, el artículo 100 introduce una cláusula de equivalencia funcional: una firma electrónica se considerará avanzada o fiable si, por cualquier otro medio, se demuestra que el método utilizado es confiable y apropiado para los fines para los cuales se utilizó el mensaje de datos \cite{ccom2018}. Esta disposición permite argumentar la fiabilidad de una firma basada en algoritmos reconocidos internacionalmente, como RSA (Rivest-Shamir-Adleman) con SHA-256 conforme a NIST (National Institute of Standards and Technology) SP 800-57 \cite{barker2020}, aunque el certificado no provenga de un PSC autorizado.
+
+La distinción fundamental entre ambos tipos de firma no radica en la admisibilidad ---ambas son admisibles como prueba conforme al artículo 89---, sino en la carga de la prueba. La firma electrónica avanzada goza de una presunción legal de fiabilidad: quien la impugna debe demostrar que no es confiable. La firma electrónica simple, en cambio, no goza de tal presunción: quien la invoca como prueba debe acreditar la fiabilidad del método empleado. Esta diferencia procesal es relevante para cualquier herramienta de gestión jurídica digital que pretenda sustentar el valor probatorio de sus documentos ante una instancia judicial. Adicionalmente, el artículo 33 del mismo Código obliga a los comerciantes a mantener registros mercantiles por un periodo mínimo de diez años, lo cual fundamenta los requisitos de retención y conservación de datos \cite{ccom2018}.
+
+El valor probatorio de los documentos electrónicos en sede judicial se sustenta en disposiciones complementarias. El artículo 210-A del Código Federal de Procedimientos Civiles \cite{cfpc2023} reconoce como prueba la información generada o comunicada que conste en medios electrónicos, ópticos o en cualquier otra tecnología; el juzgador valora dicha información atendiendo a tres criterios: (1) la fiabilidad del método en que haya sido generada, comunicada, recibida o archivada, (2) la posibilidad de atribuir a las personas obligadas el contenido de la información, y (3) la posibilidad de determinar el momento en que fue generada, comunicada o archivada. Una firma digital basada en RSA con SHA-256 satisface el criterio de atribución, la función hash garantiza la integridad exigida por el criterio de fiabilidad, y un sello de tiempo emitido por un PSC autorizado provee la certeza temporal.
+
+En materia penal, el artículo 356 del CNPP establece que el Tribunal de enjuiciamiento valora la prueba de manera libre y lógica (sistema de sana crítica), sin reglas tasadas de valor probatorio \cite{cnpp2021}. Esto significa que un documento firmado electrónicamente con criptografía robusta y respaldado por un sello NOM-151 puede alcanzar valor probatorio pleno si se acreditan integridad, autenticidad y cadena de custodia ante el juzgador. Complementariamente, el artículo 380 del CNPP dispone que podrá incorporarse al juicio todo documento o instrumento con contenido probatorio, incluyendo registros electrónicos \cite{cnpp2021}. Finalmente, es pertinente señalar que la Ley de Firma Electrónica Avanzada (LFEA) \cite{lfea2012}, en sus artículos 1 y 2, circunscribe su ámbito de aplicación a las dependencias y entidades de la Administración Pública Federal y a los particulares cuando se relacionen con dichas dependencias; en consecuencia, las transacciones entre particulares ---como es el caso de un despacho jurídico privado--- se regulan exclusivamente por el Código de Comercio.
+
+\subsubsection{Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP)}
+
+Dado que un despacho jurídico gestiona información personal de sus clientes, debe cumplir con la LFPDPPP. El artículo 19 de esta ley exige que el responsable del tratamiento de datos implemente medidas de seguridad administrativas, técnicas y físicas para proteger los datos personales contra daño, pérdida, alteración, destrucción, o acceso y tratamiento no autorizados. Servicios como el cifrado autenticado, el control de acceso basado en roles y la gestión segura de credenciales constituyen medidas técnicas orientadas al cumplimiento de esta obligación.
+
+\subsubsection{Prestadores de Servicios de Certificación en México}
+
+La NOM-151-SCFI-2016 y el Código de Comercio no otorgan a cualquier entidad la facultad de emitir constancias de conservación con valor legal; esta capacidad está reservada exclusivamente a los \textbf{Prestadores de Servicios de Certificación (PSC)}, entidades acreditadas y auditadas por la Secretaría de Economía a través de la Dirección General de Normatividad Mercantil, conforme al artículo 95 bis 6 del Código de Comercio \cite{economia2026}. La obtención de esta acreditación representa una barrera de entrada formidable: las instituciones privadas, notarías públicas o dependencias gubernamentales deben demostrar capacidades tecnológicas, procedimentales y financieras excepcionales para operar como terceros de confianza legalmente reconocidos \cite{economia2026}.
+
+En términos técnicos, el PSC nunca almacena el documento original del cliente ---lo que vulneraría principios elementales de privacidad---, sino que opera sobre el principio de la abstracción criptográfica unidireccional \cite{mifiel2024}: el sistema cliente calcula el hash SHA-256 del documento y transmite únicamente esa huella a la infraestructura del PSC, la cual activa su Autoridad de Sellado de Tiempo (TSA). La TSA concatena el hash con una marca de tiempo sincronizada con el Centro Nacional de Metrología (CENAM) y aplica su propia firma electrónica avanzada sobre ese conjunto de datos, generando el Sello Digital de Tiempo (SDT) conforme al protocolo RFC 3161 \cite{mifiel2024}. El documento resultante ---comúnmente en formato .asn1 o .tsr--- constituye la evidencia matemática irrefutable de la existencia e integridad del documento en ese momento específico \cite{mifiel2024}.
+
+La infraestructura de clave pública (PKI) mexicana se organiza jerárquicamente bajo la Autoridad Certificadora Raíz Segunda de la Secretaría de Economía (ACR2-SE). Conforme a su Política de Certificados \cite{economia_acr2se}, los certificados digitales emitidos bajo esta jerarquía deben contener claves públicas RSA con longitud mínima de 4096 bits para la raíz y Autoridades Certificadoras (ACs) subordinadas, y de 2048 bits para los certificados de usuario final. El algoritmo de firma obligatorio es sha256WithRSAEncryption (RSA + SHA-256); la política no contempla curvas elípticas (ECDSA). Los módulos criptográficos de las ACs deben cumplir al menos FIPS 140-2 nivel 3. Esta restricción algorítmica condiciona cualquier integración con certificados legalmente reconocidos en México, ya que la interoperabilidad con la jerarquía ACR2-SE exige el uso exclusivo de RSA.
+
+Cada PSC es responsable de mantener mecanismos de revocación de certificados conforme al numeral 75, fracción V, de las Reglas Generales a las que deberán sujetarse los PSC \cite{regccompsc}. En la práctica, los principales PSC mexicanos implementan Listas de Certificados Revocados (CRL, conforme a RFC 5280 \cite{cooper2008}) y, en la mayoría de los casos, responders del Protocolo de Estado de Certificado en Línea (OCSP). SeguriData \cite{seguridata} publica CRLs cada 24 horas y expone un servicio OCSP público. CECOBAN \cite{cecoban} mantiene CRLs y un servicio OCSP con latencia de publicación de 15 minutos. La e.firma del SAT (Servicio de Administración Tributaria) opera un responder OCSP semi-público, aunque no publica CRLs en formato X.509 estándar. La propia ACR2-SE publica su CRL mensualmente o al revocar un certificado, y mantiene un servicio OCSP v1. Las URLs específicas de cada PSC se encuentran embebidas en los campos Authority Information Access (AIA) y CRL Distribution Points de los certificados que emiten.
+
+\paragraph{Ecosistema de PSC acreditados por la Secretaría de Economía}
+
+La Secretaría de Economía mantiene un directorio público de entidades que han superado las evaluaciones de cumplimiento para operar como PSC \cite{economia2026}. Es fundamental distinguir que las acreditaciones son específicas por servicio: una entidad puede estar autorizada para emitir certificados digitales, pero no necesariamente para emitir constancias de conservación NOM-151 \cite{economia2026}. La \cref{tab:psc-acreditados} sintetiza los principales PSC acreditados relevantes para el contexto del prototipo:
+
+\begin{table}[H]
+  \centering
+  \caption{Principales PSC acreditados por la Secretaría de Economía relevantes para el prototipo.}
+  \label{tab:psc-acreditados}
+  \begin{tabularx}{\linewidth}{@{}L{0.16\linewidth}L{0.22\linewidth}X L{0.16\linewidth}@{}}
+    \toprule
+    \textbf{PSC Acreditado} & \textbf{Servicios acreditados relevantes} & \textbf{Perfil tecnológico} & \textbf{Acreditación (Diario Oficial de la Federación, DOF)} \\
+    \midrule
+    \textbf{CECOBAN, S.A. de C.V.} & NOM-151, sellos de tiempo, digitalización. & Infraestructura bancaria sistémica; rigor metrológico con sincronización CENAM. Orientado a transacciones financieras de alta frecuencia \cite{economia2026}. & 2008, 2010, 2021 \\
+    \addlinespace
+    \textbf{EDICOM (Edicomunicaciones México)} & NOM-151, sellos de tiempo, digitalización, certificados digitales. & Plataforma global de intercambio electrónico de datos (EDI); integración con eIDAS europeo y Dropbox Sign. Orientado a corporativos multinacionales \cite{economia2026}. & 2009, 2010, 2018 \\
+    \addlinespace
+    \textbf{SeguriData Privada, S.A. de C.V.} & NOM-151, sellos de tiempo, digitalización, certificados digitales. & Legado en seguridad informática corporativa; infraestructura de respaldo para plataformas de firma como Mifiel mediante API RESTful \cite{economia2026}. & 2011, 2019 \\
+    \addlinespace
+    \textbf{Legalex GS, S.A. de C.V.} & NOM-151, sellos de tiempo. & Plataforma propietaria ``Covenant'' para gestión de contratos digitales con NOM-151 integrada \cite{economia2026}. & 2019, 2020 \\
+    \addlinespace
+    \textbf{Interfactura, S.A.P.I. de C.V.} & NOM-151, sellos de tiempo. & Origen en certificación de facturas fiscales (PAC); herramientas de verificación pública de constancias .tsr mediante interfaz web \cite{economia2026}. & 2021 \\
+    \addlinespace
+    \textbf{PSC World, S.A. de C.V.} & NOM-151, sellos de tiempo, certificados digitales. & Integración nativa con Zoho Sign; entrega sellos en formato ASN.1 descontados como créditos de la plataforma \cite{economia2026}. & 2005, 2020 \\
+    \addlinespace
+    \textbf{INCODE PSC, S. de R.L. de C.V.} & NOM-151, sellos de tiempo. & Convergencia de verificación biométrica de identidad (IDV/KYC) con emisión criptográfica; API RESTful con validación contra INE \cite{economia2026}. & 2024 \\
+    \addlinespace
+    \textbf{Cincel Certificadora Digital S.A.P.I. de C.V.} & NOM-151, sellos de tiempo. & Primer PSC nativo de nube en México y América Latina; infraestructura AWS con modelo Zero Trust; API-first con sandbox gratuito; precios transparentes desde \$0.029 USD/transacción \cite{economia2026,comparasoftware2026}. & 2023 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Criterios de selección del PSC para el prototipo}
+
+La selección del PSC para el prototipo no es una decisión operativa sino una decisión de diseño con implicaciones jurídicas, técnicas y de viabilidad de implementación. Los criterios evaluados son cuatro:
+
+\begin{itemize}
+  \item \textbf{Acreditación formal ante la Secretaría de Economía.} Requisito excluyente: únicamente los PSC del directorio oficial pueden emitir constancias con valor legal conforme a la NOM-151 \cite{economia2026}.
+
+  \item \textbf{Accesibilidad para integración mediante API.} El prototipo requiere un flujo de sellado automatizado en el backend (capa lógica del servidor); un PSC sin Interfaz de Programación de Aplicaciones (API, Application Programming Interface) REST (Representational State Transfer) documentada o con acceso condicionado a contratos corporativos prolongados no es viable en el contexto de un prototipo académico.
+
+  \item \textbf{Disponibilidad de entorno de pruebas (sandbox).} Indispensable para implementar y validar el flujo criptográfico durante el ciclo de desarrollo sin incurrir en costos por cada transacción de prueba.
+
+  \item \textbf{Compatibilidad con el protocolo RFC 3161.} El sello debe adherirse al estándar internacional de sellado de tiempo para garantizar la verificabilidad independiente de las constancias generadas \cite{adams2001}.
+\end{itemize}
+
+Del análisis del ecosistema de PSC conforme a estos criterios, \textbf{Cincel} es el proveedor seleccionado para el prototipo por las siguientes razones técnicas y operativas:
+
+\begin{itemize}
+  \item \textbf{Único PSC nativo de nube en México y América Latina acreditado por la Secretaría de Economía.} Su infraestructura está desplegada sobre Amazon Web Services (AWS) bajo el modelo de Seguridad de Confianza Cero (Zero Trust), lo que garantiza alta disponibilidad y resiliencia sin dependencia de centros de datos físicos propios del proveedor \cite{comparasoftware2026}.
+
+  \item \textbf{Arquitectura API-first con sandbox gratuito.} Cincel expone su infraestructura a desarrolladores de forma inmediata, proporcionando colecciones públicas de Postman para pruebas de concepto instantáneas y un entorno de sandbox sin costo, lo que es determinante para la fase de desarrollo del prototipo \cite{comparasoftware2026}.
+
+  \item \textbf{Modelo de consumo por transacción (pay-as-you-go).} Con un costo de aproximadamente \$0.029 USD por sello sin mínimos mensuales \cite{comparasoftware2026}, el esquema es compatible con el volumen reducido de transacciones de un prototipo de validación, a diferencia de los modelos de contrato corporativo de los PSC legados.
+
+  \item \textbf{Cumplimiento nativo de RFC 3161 y NOM-151-SCFI-2016.} Los sellos digitales de tiempo emitidos por Cincel se adhieren estrictamente al protocolo RFC 3161 \cite{adams2001} y a los requisitos de sincronización metrológica con el CENAM, garantizando que las constancias generadas en el prototipo sean verificables de forma independiente ante cualquier instancia judicial.
+
+  \item \textbf{Autorización de la Comisión Nacional Bancaria y de Valores (CNBV).} Cincel cuenta con autorización de la CNBV para prestar servicios al sector financiero mexicano \cite{comparasoftware2026}, lo que respalda adicionalmente la solidez de su infraestructura de seguridad para el manejo de documentos con valor probatorio.
+\end{itemize}
+
+Es importante señalar que la selección de Cincel como PSC del prototipo no implica exclusividad arquitectónica: el módulo de sellado de tiempo del sistema está diseñado para abstraer al proveedor detrás de una interfaz interna, de modo que el despacho pueda sustituir el PSC por cualquier otro del directorio de la Secretaría de Economía ---como SeguriData o CECOBAN--- sin modificar la lógica central del sistema, siempre que el proveedor alternativo implemente el protocolo RFC 3161. Esta decisión de diseño garantiza la soberanía tecnológica del despacho sobre su cadena de custodia digital.
+
+\section{Primitivas y Servicios Criptográficos}\label{sec:primitivas-cripto}
+
+\subsection{Integridad}\label{sec:integridad}
+
+La integridad es el servicio de seguridad que garantiza que la información se mantiene exacta, completa y sin modificaciones no autorizadas desde el momento de su creación. En un expediente legal, donde la alteración de una fecha, un monto o una cláusula puede modificar el curso de un procedimiento judicial, la integridad es un requisito fundamental \cite{stallings2017}.
+
+\subsubsection{Funciones Hash Criptográficas}
+
+El mecanismo técnico para verificar la integridad de un documento es la función hash criptográfica. Una función hash H toma una entrada de longitud arbitraria y produce una salida de longitud fija, denominada digest o huella digital. Para ser criptográficamente segura, debe cumplir tres propiedades fundamentales: resistencia a la preimagen (dado un hash, es computacionalmente inviable encontrar el mensaje original), resistencia a la segunda preimagen (dado un mensaje, es inviable encontrar otro mensaje con el mismo hash) y resistencia a colisiones (es inviable encontrar dos mensajes distintos que produzcan el mismo hash) \cite{paar2010,nist2015fips1804}.
+
+\subsubsection{SHA-256}
+
+SHA-256 (Secure Hash Algorithm) pertenece a la familia SHA-2 estandarizada por el Instituto Nacional de Estándares y Tecnología (NIST, National Institute of Standards and Technology) en FIPS 180-4 \cite{nist2015fips1804}. Produce un digest de 256 bits (32 bytes) y es el estándar de facto para aplicaciones que requieren verificación de integridad, incluyendo firmas digitales, certificados X.509 y sellos de tiempo. Su resistencia a colisiones se considera computacionalmente segura con la capacidad de cómputo actual \cite{menezes1996}.
+
+En un flujo típico de verificación de integridad, al almacenar un documento se calcula su hash SHA-256 y se conserva como referencia. En cada consulta posterior se recalcula el hash del documento almacenado y se compara con el valor de referencia. Cualquier discrepancia indica que el documento ha sido modificado.
+
+La elección de SHA-256 se enmarca en la recomendación de niveles de fortaleza de seguridad del NIST SP 800-57 Part 1 Rev 5 \cite{barker2020}. Este documento define la fortaleza de seguridad (security strength) como el número de operaciones necesarias para romper un algoritmo criptográfico. SHA-256 proporciona 128 bits de fortaleza contra colisiones, lo que significa que se requieren aproximadamente $2^{128}$ operaciones para encontrar una colisión ---un umbral considerado seguro al menos hasta 2030 para aplicaciones de uso general. El nivel de 128 bits sirve como guía para la selección coherente de todos los primitivos criptográficos de una arquitectura: AES-256 proporciona 256 bits de fortaleza, y RSA con claves de 3072 bits proporciona aproximadamente 128 bits, garantizando que ningún eslabón de la cadena criptográfica sea más débil que el nivel objetivo.
+
+\subsection{Confidencialidad e Integridad mediante Cifrado Autenticado}\label{sec:cifrado-autenticado}
+
+Mientras que el hash permite detectar modificaciones, no protege el contenido contra accesos no autorizados. Para expedientes y documentos almacenados se requiere un mecanismo que provea simultáneamente confidencialidad (que solo las partes autorizadas accedan al contenido) e integridad (que cualquier modificación no autorizada sea detectada). Este doble servicio lo provee el cifrado autenticado \cite{stallings2017}.
+
+\subsubsection{Cifrado Simétrico y el Estándar AES}
+
+El cifrado simétrico utiliza una misma clave para cifrar y descifrar. El Estándar de Cifrado Avanzado (AES, Advanced Encryption Standard) es un algoritmo de cifrado por bloques adoptado por el NIST (FIPS 197) \cite{nist2001fips197} que opera sobre bloques de 128 bits con claves de 128, 192 o 256 bits. AES-256 es resistente a ataques de fuerza bruta con la capacidad computacional actual y es el estándar empleado tanto por las plataformas analizadas en el estado del arte como por agencias gubernamentales para la protección de información clasificada \cite{paar2010}.
+
+\subsubsection{Modos de Operación y Cifrado Autenticado (AES-GCM)}
+
+Un algoritmo de cifrado por bloques como AES no se aplica directamente a mensajes de longitud arbitraria; requiere un modo de operación que defina cómo se procesan los bloques sucesivos. Los modos clásicos como el Encadenamiento de Bloques de Cifrado (CBC, Cipher Block Chaining) proveen confidencialidad, pero no integridad: un atacante puede modificar el texto cifrado sin que el destinatario detecte la alteración al momento del descifrado \cite{dworkin2001a}.
+
+El modo GCM (Galois/Counter Mode) resuelve esta limitación al combinar el cifrado en modo Contador (CTR, Counter) con una función de autenticación basada en aritmética de campos de Galois. AES-GCM produce, además del texto cifrado, una etiqueta de autenticación (authentication tag) que permite verificar tanto la integridad del texto cifrado como la de datos adicionales no cifrados (AAD, Additional Authenticated Data, datos adicionales autenticados), tales como metadatos del expediente. Si un atacante modifica cualquier bit del texto cifrado o de los datos autenticados, la verificación de la etiqueta falla y el descifrado es rechazado \cite{stallings2017,dworkin2007}.
+
+AES-256-GCM es el modo recomendado para el cifrado de expedientes y documentos almacenados. Cada operación de cifrado requiere un Vector de Inicialización (IV, Initialization Vector) único generado aleatoriamente, lo cual es un requisito crítico de GCM: la reutilización de un IV con la misma clave compromete tanto la confidencialidad como la autenticidad del esquema \cite{dworkin2007}. El modo GCM está especificado formalmente en NIST SP 800-38D y constituye una instancia de Cifrado Autenticado con Datos Asociados (AEAD, Authenticated Encryption with Associated Data), concepto formalizado en RFC 5116 \cite{mcgrew2008}.
+
+En escenarios donde se gestionan múltiples documentos, el uso de una única clave para todo el repositorio concentra el riesgo: su compromiso expone la totalidad de la información. La arquitectura de cifrado por envolvente (envelope encryption) mitiga este riesgo mediante dos niveles de claves. Una Clave de Cifrado de Clave (KEK, Key Encryption Key), almacenada de forma segura, se utiliza exclusivamente para envolver (cifrar) las Claves de Cifrado de Datos (DEK, Data Encryption Key) individuales, cada una generada aleatoriamente para un documento específico. El mecanismo de envolvimiento de claves está formalizado en NIST SP 800-38F \cite{dworkin2012} (Key Wrapping). Esta separación permite rotar la KEK re-cifrando únicamente las DEKs envueltas, sin necesidad de re-cifrar todos los documentos del repositorio.
+
+\subsection{No Repudio}\label{sec:no-repudio}
+
+El no repudio es el servicio de seguridad que impide que una entidad niegue haber realizado una operación, mediante la generación de evidencia criptográfica verificable sobre la autoría y el momento de su ejecución. A diferencia de la integridad (que protege al dato), el no repudio protege la autoría y se sustenta en dos pilares técnicos: la criptografía asimétrica y el sellado de tiempo \cite{stallings2017}.
+
+\subsubsection{Criptografía Asimétrica}
+
+La criptografía asimétrica emplea un par de claves matemáticamente vinculadas: una clave privada (conocida exclusivamente por su titular) y una clave pública (distribuida abiertamente). La propiedad fundamental es que lo cifrado con una clave solo puede descifrarse con la otra, y a partir de la clave pública es computacionalmente inviable derivar la clave privada. Los algoritmos de criptografía asimétrica más utilizados en el contexto de firma digital incluyen RSA (Rivest-Shamir-Adleman), basado en la dificultad de factorizar números enteros grandes, y ECDSA (Elliptic Curve Digital Signature Algorithm), basado en la dificultad del problema del logaritmo discreto sobre curvas elípticas \cite{menezes1996,nist2023fips186}. RSA define dos esquemas de firma principales en el estándar PKCS\#1: la versión 1.5, ampliamente desplegada e interoperable con la infraestructura PKI existente, y PSS (Probabilistic Signature Scheme), que introduce aleatorización en el proceso de firma y ofrece una prueba de seguridad más robusta. Conforme a NIST SP 800-57 \cite{barker2020}, una clave RSA de 3072 bits provee aproximadamente 128 bits de fortaleza de seguridad, equivalente a la de SHA-256 y AES-128.
+
+\subsubsection{Firma Digital}
+
+La firma digital es un esquema criptográfico que vincula la identidad del firmante con el contenido de un documento. El proceso opera en dos fases: en la generación, se calcula el hash del documento y se cifra con la clave privada del firmante, produciendo la firma; en la verificación, cualquier tercero puede descifrar la firma con la clave pública del firmante y comparar el resultado con el hash del documento. Si coinciden, se confirma que el documento no ha sido alterado y que fue firmado por el titular de la clave privada.
+
+Este mecanismo provee simultáneamente integridad (cualquier modificación del documento invalida la firma) y no repudio de origen (solo el titular de la clave privada pudo haber generado la firma). La firma digital se distingue de la firma electrónica simple en que su validez no depende de la confianza en un proveedor de servicios, sino de propiedades matemáticas verificables de forma independiente \cite{stallings2017,nist2023fips186}.
+
+\subsubsection{Certificados Digitales X.509}
+
+Para que una firma digital tenga valor probatorio, es necesario vincular la clave pública del firmante con su identidad legal. El estándar del Sector de Normalización de las Telecomunicaciones de la Unión Internacional de Telecomunicaciones (ITU-T) X.509 define el formato de los certificados digitales que establecen esta vinculación. Un certificado X.509 es una estructura de datos firmada por una Autoridad de Certificación (CA, Certificate Authority) que asocia una clave pública con un nombre distintivo (Distinguished Name), el cual puede incluir atributos como nombre legal, Registro Federal de Contribuyentes (RFC) o Clave Única de Registro de Población (CURP) en el contexto mexicano \cite{itu2019}.
+
+La cadena de confianza opera jerárquicamente: la CA raíz firma certificados de CAs intermedias, que a su vez emiten certificados a los usuarios finales. La verificación de una firma digital implica validar toda la cadena hasta una CA raíz de confianza, verificar que el certificado no haya sido revocado y confirmar su vigencia temporal \cite{itu2019}. El estándar RFC 5280 \cite{cooper2008} (Internet X.509 PKI Certificate and CRL Profile) define el perfil de certificados y los dos mecanismos principales de revocación. Las Listas de Certificados Revocados (CRL, Certificate Revocation List) son documentos firmados por la CA que enumeran los certificados revocados antes de su fecha de expiración; se publican periódicamente y los verificadores las descargan para consulta local. El Protocolo de Estado de Certificado en Línea (OCSP, Online Certificate Status Protocol) permite consultar en tiempo real el estado de un certificado individual ante un responder autorizado. La elección entre ambos mecanismos depende de factores como la latencia aceptable, el volumen de certificados emitidos y la infraestructura disponible.
+
+\subsubsection{Sellado de Tiempo (RFC 3161)}
+
+La firma digital demuestra quién firmó un documento, pero no cuándo lo hizo. El sellado de tiempo complementa la firma al proveer evidencia criptográfica del momento en que se realizó la operación. El protocolo estándar para este servicio es RFC 3161 \cite{adams2001} (Internet X.509 PKI Time-Stamp Protocol), que define la interacción entre un cliente y una Autoridad de Sellado de Tiempo (TSA, Time-Stamp Authority).
+
+El flujo opera de la siguiente manera: el cliente calcula el hash del documento y lo envía a la TSA en una solicitud de sello de tiempo (TimeStampReq). La TSA genera un token de sello de tiempo (TimeStampToken) que contiene el hash recibido, la fecha y hora precisa del sello, y la firma digital de la propia TSA sobre estos datos. El token resultante constituye prueba de que el documento existía en esa forma exacta en ese momento específico, sin que la TSA necesite conocer el contenido del documento.
+
+En el contexto mexicano, la NOM-151-SCFI-2016 establece que la constancia de conservación debe ser emitida por un Prestador de Servicios de Certificación (PSC) autorizado, que en la práctica opera como TSA conforme al protocolo RFC 3161. La integración de este servicio en un flujo de firma digital provee evidencia temporal con validez legal.
+
+\subsection{Autenticación y Control de Acceso}\label{sec:autenticacion-acceso}
+
+La autenticación es el proceso de verificar la identidad de un usuario antes de permitirle el acceso a un recurso. El control de acceso determina, una vez autenticado, qué operaciones puede realizar. Ambos servicios son complementarios y su implementación adecuada es requisito para la validez de los servicios criptográficos: una firma digital carece de valor probatorio si el acceso a la clave privada del firmante no está debidamente protegido \cite{stallings2017}.
+
+\subsubsection{Autenticación Basada en Certificados Digitales}
+
+La autenticación mediante certificados digitales X.509 se basa en un esquema en que el usuario demuestra posesión de su clave privada firmando un desafío criptográfico generado por el servidor (challenge-response). Este mecanismo provee un nivel de aseguramiento superior a las contraseñas, ya que la clave privada nunca se transmite por la red y su compromiso requeriría acceso físico al dispositivo del usuario o la vulneración de su almacén de claves \cite{nist2017sp80063b}.
+
+\subsubsection{Autenticación por Múltiples Factores (MFA)}
+
+La Autenticación por Múltiples Factores (MFA) requiere la presentación de al menos dos categorías de evidencia de identidad: algo que el usuario sabe (contraseña), algo que posee (dispositivo que genera códigos temporales) o algo que es (biometría). La combinación de factores reduce significativamente el riesgo de acceso no autorizado, ya que el compromiso de un solo factor resulta insuficiente para suplantar la identidad del usuario \cite{nist2017sp80063b}. El NIST SP 800-63B Rev 4 \cite{nist2024} (Digital Identity Guidelines: Authentication and Lifecycle Management) define tres Niveles de Aseguramiento de Autenticación (AAL): AAL1 (factor único), AAL2 (dos factores, uno de los cuales puede ser software) y AAL3 (dos factores con al menos uno basado en hardware criptográfico). El mecanismo TOTP (Time-Based One-Time Password), especificado en RFC 6238 \cite{mraihi2011}, genera códigos temporales a partir de un secreto compartido y la hora actual, utilizando HMAC-SHA1 (Código de Autenticación de Mensajes basado en Hash con SHA-1, cuya seguridad para esta aplicación está avalada por NIST SP 800-107 Rev 1 \cite{dang2012}) como función base. TOTP se construye sobre HOTP (HMAC-Based One-Time Password, RFC 4226 \cite{mraihi2005}), reemplazando el contador por una marca temporal truncada. Ambos protocolos son interoperables con aplicaciones autenticadoras ampliamente adoptadas como Google Authenticator y Microsoft Authenticator.
+
+\subsubsection{Hashing de Contraseñas}
+
+El almacenamiento seguro de contraseñas requiere funciones de hashing especializadas, distintas de las funciones hash criptográficas de propósito general como SHA-256. Mientras que SHA-256 está diseñada para ser rápida (lo cual es deseable para verificar integridad de documentos), una función de hashing de contraseñas debe ser deliberadamente lenta y consumir recursos significativos de memoria, de modo que un atacante que obtenga la base de datos no pueda probar combinaciones masivamente \cite{stallings2017}.
+
+Argon2, ganador de la Password Hashing Competition en 2015 y estandarizado en RFC 9106 \cite{biryukov2015,biryukov2021}, fue diseñado específicamente para ser resistente a ataques con hardware especializado (GPUs y ASICs). Su propiedad distintiva es la dureza de memoria (memory-hardness): el algoritmo requiere una cantidad configurable de memoria durante su ejecución, lo que encarece proporcionalmente la construcción de hardware de ataque masivo. Argon2 define tres variantes: Argon2d (resistente a ataques de compromiso tiempo-memoria), Argon2i (resistente a ataques de canal lateral) y Argon2id (híbrido que combina las ventajas de ambas, recomendado por la OWASP (Open Worldwide Application Security Project, Proyecto Abierto de Seguridad de Aplicaciones Web) \cite{owasp_pwstorage2024} para almacenamiento de contraseñas). Los tres parámetros de costo configurables son: memoria requerida (m), número de iteraciones (t) y grado de paralelismo (p). El NIST SP 800-63B Rev 4 \cite{nist2024} recomienda el uso de funciones de hashing de contraseñas con dureza de memoria, citando explícitamente a Argon2id como opción preferente para nuevas implementaciones. Una alternativa ampliamente utilizada es bcrypt, que incorpora un factor de costo ajustable y un salt aleatorio por contraseña, aunque carece de dureza de memoria configurable \cite{menezes1996}.
+
+\subsubsection{Control de Acceso Basado en Roles (RBAC)}
+
+El Control de Acceso Basado en Roles (RBAC, Role-Based Access Control) es un modelo de autorización en el que los permisos no se asignan directamente a los usuarios, sino a roles que representan funciones dentro de la organización. Cada usuario hereda los permisos del rol o roles que tiene asignados. En el contexto del despacho, los roles típicos incluyen socio (acceso completo y capacidad de firma), abogado asociado (gestión de expedientes asignados), asistente (consulta y carga de documentos) y cliente (acceso limitado a su propio expediente mediante el portal de comunicación). Este modelo simplifica la administración de permisos y facilita el cumplimiento del principio de mínimo privilegio \cite{nist2020sp80053}.
+
+\section{Gestión de Datos Híbrida}\label{sec:gestion-datos}
+
+Una arquitectura de almacenamiento híbrida que combine almacenamiento relacional (SQL) y no relacional (NoSQL) se justifica por la diversidad de los datos manejados en el ámbito jurídico y las obligaciones legales de retención.
+
+\subsection{Almacenamiento Relacional (SQL)}\label{sec:almacenamiento-sql}
+
+El modelo relacional se utiliza para la gestión de datos estructurados con relaciones definidas: catálogo de clientes, asignación de casos, roles de acceso y registros de contratos. La integridad referencial que provee el modelo relacional ---mediante restricciones de clave primaria, clave foránea y restricciones de dominio--- garantiza la coherencia de los registros administrativos y procesales. Además, el modelo relacional facilita la implementación de RBAC a nivel de base de datos, asegurando que las políticas de acceso se apliquen de forma consistente.
+
+\subsection{Almacenamiento No Relacional (NoSQL)}\label{sec:almacenamiento-nosql}
+
+Los expedientes legales contienen información de estructura variable: documentos PDF (Portable Document Format), evidencias multimedia, transcripciones de audiencias y metadatos que difieren entre tipos de caso. Un esquema NoSQL (Not Only SQL) orientado a documentos permite almacenar esta información sin la rigidez de un esquema tabular fijo, adaptando la estructura de cada registro a la naturaleza del contenido.
+
+Desde la perspectiva de trazabilidad, el almacenamiento NoSQL se emplea para construir un registro de auditoría: cada operación sobre un documento (carga, modificación, firma, consulta) genera un registro que incluye el hash del estado del documento, el identificador del usuario, la marca de tiempo y, en su caso, el sello de tiempo de la TSA. Este registro, diseñado como estructura de solo inserción (append-only), conforma una cadena de custodia digital que permite reconstruir el historial completo de un expediente ante una auditoría o procedimiento judicial.

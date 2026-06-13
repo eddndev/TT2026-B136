@@ -1,0 +1,158 @@
+% =====================================================================
+%  preamble.tex — Configuración global del documento
+%  Trabajo Terminal 2026-B136 — ESCOM / IPN
+%  Motor recomendado: LuaLaTeX  (lualatex / latexmk -lualatex)
+% =====================================================================
+
+% ---------- Idioma y codificación -----------------------------------
+\usepackage[spanish,es-tabla,es-noindentfirst,es-nosectiondot]{babel}
+\usepackage{csquotes}
+
+% ---------- Tipografía (fontspec, LuaLaTeX) -------------------------
+% Times New Roman en TODO el documento (cuerpo, títulos, portada,
+% encabezados), igual que el documento Word original. Solo el código
+% conserva una fuente monoespaciada (legibilidad/alineación).
+\usepackage{fontspec}
+\setmainfont{Times New Roman}      % cuerpo
+\setsansfont{Times New Roman}      % títulos y encabezados (todo Times)
+\setmonofont[Scale=0.88]{DejaVu Sans Mono} % solo bloques de código
+\usepackage{microtype}             % refinamiento tipográfico
+
+% ---------- Geometría y espaciado -----------------------------------
+\usepackage[letterpaper,top=2.3cm,bottom=2.3cm,left=2.5cm,right=2.3cm]{geometry}
+\usepackage{setspace}
+\singlespacing                     % interlineado sencillo (igual que el Word)
+\usepackage{ragged2e}
+\usepackage[hyphens]{url}
+
+% ---------- Matemáticas ---------------------------------------------
+\usepackage{amsmath,amssymb,mathtools}
+
+% ---------- Glifos Unicode ausentes en TeX Gyre (super/subíndices,
+%            flechas) → se componen en modo matemático ---------------
+\usepackage{newunicodechar}
+\newunicodechar{⁰}{\ensuremath{^{0}}}\newunicodechar{¹}{\ensuremath{^{1}}}
+\newunicodechar{²}{\ensuremath{^{2}}}\newunicodechar{³}{\ensuremath{^{3}}}
+\newunicodechar{⁴}{\ensuremath{^{4}}}\newunicodechar{⁵}{\ensuremath{^{5}}}
+\newunicodechar{⁶}{\ensuremath{^{6}}}\newunicodechar{⁷}{\ensuremath{^{7}}}
+\newunicodechar{⁸}{\ensuremath{^{8}}}\newunicodechar{⁹}{\ensuremath{^{9}}}
+\newunicodechar{⁺}{\ensuremath{^{+}}}\newunicodechar{⁻}{\ensuremath{^{-}}}
+\newunicodechar{ⁿ}{\ensuremath{^{n}}}
+\newunicodechar{₀}{\ensuremath{_{0}}}\newunicodechar{₁}{\ensuremath{_{1}}}
+\newunicodechar{₂}{\ensuremath{_{2}}}\newunicodechar{₃}{\ensuremath{_{3}}}
+\newunicodechar{₄}{\ensuremath{_{4}}}\newunicodechar{₅}{\ensuremath{_{5}}}
+\newunicodechar{₆}{\ensuremath{_{6}}}\newunicodechar{₇}{\ensuremath{_{7}}}
+\newunicodechar{₈}{\ensuremath{_{8}}}\newunicodechar{₉}{\ensuremath{_{9}}}
+\newunicodechar{₊}{\ensuremath{_{+}}}\newunicodechar{₋}{\ensuremath{_{-}}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}\newunicodechar{⇔}{\ensuremath{\Leftrightarrow}}
+\newunicodechar{≤}{\ensuremath{\leq}}\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{×}{\ensuremath{\times}}\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{‖}{\ensuremath{\Vert}}\newunicodechar{∥}{\ensuremath{\Vert}}
+
+% ---------- Gráficos y figuras --------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage[font=small,labelfont=bf,margin=1cm]{caption}
+
+% ---------- Tablas ---------------------------------------------------
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{makecell}
+\renewcommand{\arraystretch}{1.15}
+% Columnas tipo X con alineaciones
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ---------- Listas ---------------------------------------------------
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+
+% ---------- Código ---------------------------------------------------
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codebg}{HTML}{F6F8FA}
+\definecolor{codekw}{HTML}{0F62FE}
+\definecolor{codecmt}{HTML}{6A737D}
+\definecolor{codestr}{HTML}{0A7D33}
+\definecolor{ipnvino}{HTML}{6B1E3C}   % guinda IPN
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecmt}\itshape,
+  stringstyle=\color{codestr},
+  numberstyle=\tiny\color{codecmt},
+  numbers=left,numbersep=8pt,
+  frame=single,rulecolor=\color{codecmt!30},
+  breaklines=true,showstringspaces=false,
+  tabsize=2,captionpos=b,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+           {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
+           {Ú}{{\'U}}1 {Ñ}{{\~N}}1
+}
+
+% ---------- Estilo de títulos (titlesec) ----------------------------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\sffamily\huge\bfseries\color{ipnvino}}
+  {\sffamily\Large\bfseries\color{ipnvino!70}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{10pt}{30pt}
+\titleformat{\section}{\sffamily\Large\bfseries\color{ipnvino}}{\thesection}{1em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\sffamily\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% ---------- Encabezados y pies (fancyhdr) ---------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}
+\fancyhead[R]{\sffamily\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\sffamily\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- Bibliografía (biblatex / biber, estilo IEEE) -------------
+\usepackage[backend=biber,style=ieee,sorting=none,maxbibnames=6,giveninits=true]{biblatex}
+\addbibresource{references.bib}
+% Permitir el corte de URLs largas (hashes, rutas) para evitar desbordes
+\setcounter{biburlnumpenalty}{9000}
+\setcounter{biburlucpenalty}{9000}
+\setcounter{biburllcpenalty}{9000}
+
+% ---------- Glosario / Acrónimos ------------------------------------
+\usepackage[toc,nonumberlist,nogroupskip,nopostdot]{glossaries}
+\makeglossaries
+
+% ---------- Hipervínculos y referencias cruzadas --------------------
+\usepackage[hidelinks,bookmarksnumbered,unicode]{hyperref}
+\hypersetup{
+  pdftitle={Prototipo de un sistema web para la gestión de expedientes digitales y actividad procesal de un despacho legal},
+  pdfauthor={Eduardo Alonso Sánchez; Hatziry Vitales Herrera},
+  colorlinks=true,linkcolor=ipnvino,citecolor=ipnvino,urlcolor=ipnvino,
+}
+\usepackage[nameinlink,spanish]{cleveref}
+% cleveref en español nombra las secciones «apartado»; usamos «sección»
+\crefname{section}{sección}{secciones}
+\Crefname{section}{Sección}{Secciones}
+\crefname{subsection}{sección}{secciones}
+\Crefname{subsection}{Sección}{Secciones}
+\crefname{table}{tabla}{tablas}
+\Crefname{table}{Tabla}{Tablas}
+\crefname{figure}{figura}{figuras}
+\Crefname{figure}{Figura}{Figuras}
+
+% ---------- Atajos útiles -------------------------------------------
+\newcommand{\figura}[4][\textwidth]{% [width]{file}{caption}{label}
+  \begin{figure}[H]\centering
+    \includegraphics[width=#1]{#2}
+    \caption{#3}\label{#4}
+  \end{figure}}

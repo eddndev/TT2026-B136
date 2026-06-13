@@ -1,0 +1,25 @@
+\chapter{Diagramas detallados de arquitectura}\label{anexo:A}
+
+Este anexo presenta las versiones detalladas de los diagramas arquitectónicos cuya densidad de información requiere la orientación apaisada para mantener la legibilidad de todas sus etiquetas. Las figuras de este anexo se referencian desde las subsecciones correspondientes del cuerpo del Capítulo 3.
+
+\section{Vista detallada de Fronteras de Confianza}\label{sec:fronteras-confianza}
+
+Modelo completo de defensa en profundidad: cuatro zonas de confianza (red pública, perímetro de aplicación, núcleo aplicativo, datos persistentes y secretos), tres fronteras con sus respectivos controles de seguridad (TLS 1.3, Rate Limiting, WAF/CORS, Autenticación JWT, Validación de input, Autorización RBAC, Conexiones TLS internas, Consultas parametrizadas vía sqlx, Cifrado en reposo mediante envelope encryption), y los servicios externos (Cincel PSC, Proveedor SMTP) ubicados en la zona no confiable con sus canales seguros explícitos.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{image29.png}
+  \caption{Modelo de defensa en profundidad por capas y controles aplicados a cada cruce de frontera.}
+  \label{fig:fronteras-confianza}
+\end{figure}
+
+\section{Arquitectura Hexagonal completa con puertos y adaptadores nombrados}\label{sec:hexagonal-completa}
+
+Implementación detallada de la arquitectura hexagonal del prototipo: todos los puertos driving del sistema (RestApiPort sobre Axum, CommandLinePort sobre Clap, WebSocketPort sobre Axum WebSocket), todos los puertos driven (CaseRepository, DocumentRepository, DocumentSigner, TimestampService, NotificationDispatcher, AuditLogger, SessionStore) y sus adaptadores concretos correspondientes. Cada puerto se materializa como un trait de Rust en el crate domain, y cada adaptador como una struct con bloque impl en el crate infrastructure.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{image30.png}
+  \caption{Arquitectura hexagonal completa: cada puerto es un trait de Rust en el crate domain; cada adaptador es una struct en el crate infrastructure.}
+  \label{fig:hexagonal-completa}
+\end{figure}

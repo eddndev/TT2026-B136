@@ -1,0 +1,61 @@
+% =====================================================================
+%  Trabajo Terminal 2026-B136 — ESCOM / IPN
+%  "Prototipo de un sistema web para la gestión de expedientes
+%   digitales y actividad procesal de un despacho legal,
+%   con servicios de integridad y no repudio."
+%
+%  Autores : Eduardo Alonso Sánchez · Hatziry Vitales Herrera
+%  Directora: Sandra Díaz Santiago
+%
+%  Compilar con LuaLaTeX:
+%      latexmk -lualatex main.tex      (recomendado)
+%  o manualmente:
+%      lualatex main → biber main → makeglossaries main → lualatex×2
+% =====================================================================
+\documentclass[12pt,letterpaper,oneside]{report}
+
+\input{config/preamble}
+\input{config/glossary}      % definiciones de acrónimos y términos
+
+\begin{document}
+
+% ---------------- Portada ----------------
+\input{frontmatter/portada}
+
+% ---------------- Material preliminar (numeración romana) ----------
+\pagenumbering{roman}
+\input{frontmatter/resumen}
+
+\cleardoublepage
+\setcounter{tocdepth}{1}   % índice solo con capítulos (1) y secciones (2)
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+\listoftables
+
+% ---------------- Cuerpo (numeración arábiga) ----------------------
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{chapters/01-introduccion}
+\input{chapters/02-marco-teorico}
+\input{chapters/03-analisis-diseno}
+\input{chapters/04-conclusiones}
+
+% ---------------- Referencias --------------------------------------
+\cleardoublepage
+\addcontentsline{toc}{chapter}{Referencias}
+\printbibliography[title={Referencias}]
+
+% ---------------- Glosario -----------------------------------------
+\cleardoublepage
+\glsaddall
+\printglossary[title={Glosario de Términos},toctitle={Glosario de Términos}]
+
+% ---------------- Anexos -------------------------------------------
+\cleardoublepage
+\appendix
+\input{chapters/anexos}
+
+\end{document}

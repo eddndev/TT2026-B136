@@ -1,0 +1,163 @@
+\chapter{Introducción}\label{cap:introduccion}
+
+\section{Problemática}\label{sec:problematica}
+
+La reforma constitucional del 18 de junio de 2008 transformó el sistema de justicia penal en México, sustituyendo el modelo inquisitivo por un sistema acusatorio y oral. El Código Nacional de Procedimientos Penales (CNPP), publicado en marzo de 2014 \cite{cnpp2021}, unificó los procedimientos penales bajo un marco normativo único para todas las entidades federativas y la Federación, entrando en operación gradual hasta quedar implementado en todos los estados de la República en 2016 \cite{justia2024}. Este modelo, sustentado en los principios de publicidad, contradicción, concentración, continuidad e inmediación (Art. 4, CNPP) \cite{cnpp2021}, genera un volumen significativo de actuaciones documentales: carpetas de investigación, carpetas administrativas, registros de audiencia, evidencias y resoluciones judiciales que conforman el expediente de cada caso. Un aspecto central del CNPP es la cadena de custodia, definida en su artículo 227 como el sistema de control y registro que se aplica a la evidencia desde su localización hasta que la autoridad competente ordena su conclusión, considerando factores como identidad, estado original, condiciones de recolección, preservación y el registro de todas las personas que hayan tenido contacto con los elementos \cite{cnpp2021}. El artículo 228 establece que cuando durante el procedimiento de cadena de custodia los indicios se alteren, no perderán su valor probatorio a menos que se verifique que han sido modificados de tal forma que hayan perdido su eficacia probatoria \cite{cnpp2021}. Garantizar la integridad y trazabilidad de estos elementos es, por tanto, un requisito legal para la validez del proceso penal.
+
+Con la modernización del sistema judicial ---y de manera acelerada por la contingencia sanitaria de 2020--- las instituciones del Poder Judicial iniciaron una transición hacia el expediente electrónico. El Consejo de la Judicatura Federal reformó sus disposiciones para incorporar medios electrónicos y soluciones digitales como ejes rectores del trabajo jurisdiccional, definiendo el expediente electrónico como el conjunto de documentos electrónicos y digitalizados que integran la totalidad de actuaciones judiciales \cite{cjf_expediente2020}. A nivel local, el Poder Judicial de la Ciudad de México reporta contar con 15 millones de expedientes digitalizados con valor legal, resultado de un proceso iniciado hace más de una década y respaldado por la reforma de 2021 \cite{pjcdmx2023}, mientras que entidades como el Estado de México han adoptado modelos de ``cero papel'' orientados a que escritos, acuerdos, resoluciones y notificaciones se manejen de manera completamente electrónica \cite{heraldo2026}. Esta transición responde a problemas estructurales del modelo en papel: rezago judicial, extravío de documentos y dificultades de acceso. Como señala la literatura sobre justicia digital en México, el rezago existente en los tribunales ha constituido una violación sistemática al derecho de acceso a la justicia y a la tutela judicial efectiva \cite{bello2022}, y la digitalización ofrece beneficios concretos en reducción de tiempos procesales, acceso remoto y menor riesgo de deterioro o pérdida física.
+
+No obstante, la digitalización de expedientes y la coordinación de procesos jurídicos mediante plataformas digitales introduce riesgos que no existían en el entorno físico. Cuando la migración al entorno digital se realiza sin mecanismos de seguridad adecuados, la información no solo queda expuesta a accesos no autorizados, sino que pierde las propiedades que le otorgan valor probatorio ante un tribunal. El panorama de ciberseguridad en América Latina evidencia la magnitud de este riesgo: según el ESET Security Report 2025, basado en encuestas a más de 3,000 profesionales de TI en más de 15 países de la región, el 27 \% de las organizaciones latinoamericanas sufrió al menos un ciberataque durante 2024, mientras que un 32 \% adicional reconoció no contar con herramientas para confirmar si fueron atacadas o no \cite{eset2025}. El ransomware ocupa un lugar central en este panorama, con el 95 \% de los encuestados ubicándolo entre sus principales amenazas y un 22 \% que sufrió un incidente de este tipo en los últimos dos años \cite{eset2025}. En cuanto a la distribución geográfica, la telemetría de ESET para el primer semestre de 2024 posiciona a México como el segundo país con mayor número de amenazas detectadas en Latinoamérica \cite{eset2024}.
+
+El sector jurídico es particularmente vulnerable a estas amenazas. Los despachos legales gestionan información confidencial de múltiples clientes en repositorios centralizados, lo que los convierte en objetivos de alto valor para ciberdelincuentes que pueden obtener información de diversas fuentes en un solo ataque \cite{lexlatin2023}. El ABA Legal Technology Survey Report 2023, publicado por la American Bar Association, reporta que el 29 \% de los despachos de abogados ha experimentado alguna forma de brecha de seguridad \cite{aba2023}, y el costo promedio de una brecha de datos para organizaciones de servicios profesionales ---incluyendo firmas legales--- alcanzó los 5.08 millones de dólares en 2024, un incremento del 10 \% respecto al año anterior según el IBM Cost of a Data Breach Report 2024 \cite{ibm2024}. Estas cifras no se limitan a grandes corporaciones: los despachos pequeños y medianos son a menudo atacados precisamente porque sus defensas tienden a ser más débiles \cite{enthec2025}.
+
+Las consecuencias de esta vulnerabilidad trascienden lo económico y operativo, pues en el ámbito jurídico el problema central es que la evidencia digital almacenada sin garantías de integridad criptográfica resulta legalmente impugnable. La legislación mexicana establece requisitos específicos para que un documento electrónico tenga valor probatorio pleno: el Código de Comercio, en su artículo 89, reconoce la equivalencia funcional de los documentos electrónicos con los físicos siempre que los datos de creación de la firma correspondan exclusivamente al firmante, estuvieran bajo su control exclusivo al momento de la firma, y sea posible detectar cualquier alteración posterior \cite{ccom2018}; la NOM-151-SCFI-2016 complementa este marco al establecer que la integridad de un mensaje de datos se presume cuando ha permanecido íntegro e inalterado desde su generación, lo cual se acredita mediante una constancia de conservación emitida por un Prestador de Servicios de Certificación autorizado \cite{nom151_2016}. Cuando estos requisitos se cumplen, los documentos electrónicos gozan de presunción legal de atribución y garantía de integridad, con una fuerza probatoria que incluso supera a la del documento en papel \cite{mifiel_prueba2025}; en contraste, cuando un despacho almacena sus expedientes y contratos en plataformas que no implementan estos mecanismos, sus documentos carecen de dichas presunciones y quedan expuestos a impugnación por falta de integridad y autenticidad. Un juez puede restar valor probatorio o rechazar evidencia digital cuando la cadena de custodia presenta inconsistencias, como discrepancias en los valores hash \cite{ubt2025}, y la propia guía del Poder Judicial de la Federación para la valoración de prueba pericial en materia digital reconoce el hash como pieza clave en la cadena de custodia del contenido digital \cite{pjf_video}. Adicionalmente, la gestión de datos personales de clientes por parte de los despachos está sujeta a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP), cuyo artículo 19 exige implementar medidas de seguridad técnicas para proteger los datos contra daño, pérdida, alteración o acceso no autorizado \cite{lfpdppp2018}, con sanciones administrativas significativas en caso de incumplimiento.
+
+En síntesis, la digitalización del entorno jurídico es una transición necesaria e irreversible, pero cuando se implementa sin protocolos criptográficos que provean los servicios de integridad y no repudio, se carece de los mecanismos técnicos para validar la inalterabilidad de los documentos en operaciones críticas. Esta ausencia de controles específicos compromete la certeza sobre la información y el valor probatorio de la evidencia digital en la gestión de expedientes de un despacho de la CDMX. Esta brecha entre la digitalización operativa y la disponibilidad de servicios de seguridad criptográfica constituye el problema que motiva el presente trabajo terminal.
+
+\section{Propuesta de solución}\label{sec:propuesta-solucion}
+
+Se propone un prototipo de sistema web para la gestión de expedientes digitales y la actividad procesal de un despacho legal, que incorpora servicios criptográficos orientados a cerrar las brechas identificadas en el manejo digital de información jurídica.
+
+Para garantizar que cualquier modificación no autorizada sobre un expediente sea detectable, el sistema implementa integridad criptográfica sobre cada documento almacenado, de modo que cualquier alteración ---por mínima que sea--- quede evidenciada en la siguiente consulta.
+
+Para asegurar que el contenido de los expedientes sea accesible únicamente por las partes autorizadas, el sistema aplica confidencialidad sobre el material almacenado, de forma que un acceso indebido al repositorio no sea suficiente para comprometer la información.
+
+Para impedir que un firmante niegue haber suscrito un contrato, el sistema genera evidencia criptográfica verificable de forma independiente sobre la autoría y el momento exacto de cada firma, proveyendo así no repudio en el flujo contractual del despacho.
+
+Finalmente, para que los tres servicios anteriores tengan validez, el sistema controla que cada operación sea ejecutada únicamente por la identidad que le corresponde, mediante mecanismos de autenticación diferenciados por perfil de usuario.
+
+\section{Objetivo}\label{sec:objetivo}
+
+Desarrollar un prototipo de sistema web para la gestión de expedientes digitales y la actividad procesal de un despacho legal, que brinde los servicios criptográficos de integridad y no repudio para el manejo de contratos; así como mecanismos de autenticación para accesos y gestión de credenciales.
+
+\textbf{Objetivos Específicos}
+
+\begin{itemize}
+  \item Realizar el análisis de requerimientos, el diseño funcional y técnico del sistema para la gestión de expedientes, contratos, casos y documentos legales. Para tener el flujo de funcionalidades con los que el usuario pueda interactuar y gestionar sus procedimientos y expedientes.
+
+  \item Implementar los módulos de gestión de expedientes penales, etapas procesales, audiencias, plazos y directorio de participantes conforme a la estructura y terminología del CNPP, incluyendo operaciones CRUD y un calendario jurídico integrado que permita al despacho administrar su actividad procesal desde el prototipo.
+
+  \item Implementar el servicio de no repudio para el flujo de firma de contratos mediante firma digital (véase §2.3.3) con certificados X.509 (véase §2.3.3.3) y sellado de tiempo (véase §2.3.3.4) emitido por un Prestador de Servicios de Certificación autorizado conforme a la NOM-151-SCFI-2016 (véase §2.2.7) y al protocolo RFC (Request for Comments) 3161, generando evidencia criptográfica verificable sobre la autoría y el momento de cada firma.
+
+  \item Implementar el servicio de integridad mediante dos mecanismos complementarios: verificación por hash SHA-256 (Secure Hash Algorithm de 256 bits; véase §2.3.1) para detectar modificaciones no autorizadas en los documentos almacenados, y cifrado autenticado AES-256-GCM (Estándar de Cifrado Avanzado en modo Galois/Counter; véase §2.3.2) para proveer simultáneamente confidencialidad y detección de alteraciones en los expedientes.
+
+  \item Implementar mecanismos de autenticación diferenciados por rol (basada en certificados digitales para los socios del despacho y por múltiples factores (MFA) para clientes) con control de acceso basado en roles (RBAC) y gestión segura de credenciales mediante funciones de hashing resistentes a ataques de fuerza bruta.
+
+  \item Validar el correcto funcionamiento de los servicios criptográficos y los módulos de gestión procesal mediante pruebas funcionales que verifiquen la detección de alteraciones, la validez de las firmas digitales y los sellos de tiempo, y la integridad del flujo de extremo a extremo; complementadas con pruebas de usabilidad con usuarios del despacho.
+\end{itemize}
+
+La siguiente tabla sintetiza, para cada objetivo específico, el criterio de éxito verificable que permitirá declarar cumplido el objetivo al concluir el desarrollo del prototipo.
+
+\begin{table}[H]
+  \centering
+  \caption{Criterios de éxito por objetivo específico.}
+  \label{tab:criterios-exito}
+  \begin{tabularx}{\linewidth}{@{}l L{0.30\linewidth} X@{}}
+    \toprule
+    \textbf{OE} & \textbf{Objetivo específico (resumen)} & \textbf{Criterio de éxito medible} \\
+    \midrule
+    OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 18 casos de uso derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
+    OE-2 & Módulos de gestión procesal penal (CNPP) & CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las cuatro etapas del CNPP (investigación, intermedia, juicio oral y recursos); cómputo automático de términos conforme al artículo 94 del CNPP. \\
+    OE-3 & No repudio con sello RFC 3161 & Firma digital RSA-3072 con SHA-256 verificable de forma independiente sobre el 100 \% de los contratos firmados; sello de tiempo RFC 3161 vinculado al hash del documento; tasa de verificación exitosa $\geq$ 99 \% sobre sellos emitidos por el sandbox de Cincel. \\
+    OE-4 & Integridad y confidencialidad & Detección del 100 \% de alteraciones de un byte en documentos firmados mediante pruebas de mutación; cifrado AES-256-GCM con nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados; envelope encryption con DEK por documento. \\
+    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 300--500 ms por intento en el hardware de despliegue (m=46 MiB, t=1, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
+    OE-6 & Validación del prototipo & Cobertura de pruebas $\geq$ 80 \% en los módulos criptográficos; al menos 15 pruebas end-to-end que cubran los flujos de firma y verificación; matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Justificación}\label{sec:justificacion}
+
+Los despachos jurídicos requieren infraestructura que provea evidencia técnica con valor probatorio, integridad verificable y mecanismos de no repudio en contratos que aseguren la trazabilidad de la autoría. La legislación mexicana establece requisitos específicos para que un documento electrónico goce de presunción legal de integridad y atribución: el Código de Comercio (art. 89) exige que la firma sea fiable y que cualquier alteración posterior sea detectable \cite{ccom2018}; la NOM-151-SCFI-2016 requiere constancias de conservación emitidas por un Prestador de Servicios de Certificación autorizado para acreditar la inalterabilidad del documento \cite{nom151_2016}; y la LFPDPPP (art. 19) obliga a implementar medidas de seguridad técnicas para proteger los datos personales contra alteración y acceso no autorizado \cite{lfpdppp2018}. Estos requisitos no son opcionales: su incumplimiento expone los expedientes a impugnación por falta de integridad y autenticidad, y al despacho a sanciones administrativas.
+
+Las soluciones comerciales analizadas en el estado del arte priorizan la operatividad sobre estos requisitos normativos, presentando brechas técnicas que comprometen el valor probatorio de la información gestionada:
+
+Dependencia de terceros sin verificación independiente. Las plataformas obligan a los despachos a confiar en certificaciones externas (Service Organization Control 2 (SOC 2) Tipo II e ISO 27001 \cite{iso27001}) sin proporcionar mecanismos para que el propio despacho verifique, de forma independiente y criptográfica, la integridad de sus archivos.
+
+Ausencia de sellado de tiempo conforme a la normativa mexicana. Las plataformas delegan la firma en servicios externos (DocuSign, Adobe Sign) que no implementan sellado de tiempo mediante un PSC autorizado conforme a la NOM-151-SCFI-2016, lo que impide acreditar la existencia del documento en una forma determinada en un momento específico ante la legislación mexicana.
+
+Controles de acceso sin vinculación criptográfica. Si bien existen mecanismos de autenticación, su implementación suele ser inconsistente, careciendo de una vinculación criptográfica entre la identidad del usuario y las operaciones realizadas sobre los documentos.
+
+El prototipo propuesto aborda estas brechas al proveer servicios criptográficos orientados a la generación de evidencia técnica verificable de forma independiente:
+
+No repudio con evidencia temporal. Implementación de firma digital mediante certificados X.509 y sellado de tiempo conforme al protocolo RFC 3161, vinculando criptográficamente la autoría del firmante con el contenido del contrato y una marca temporal emitida por un PSC autorizado.
+
+Integridad y confidencialidad mediante cifrado autenticado. Uso de AES-256-GCM en el almacenamiento de expedientes y documentos, proveyendo simultáneamente protección contra accesos no autorizados y detección de modificaciones, de modo que la seguridad de la información dependa de protocolos criptográficos y no únicamente de políticas de acceso administrativo.
+
+Autenticación robusta y gestión segura de credenciales. Control de acceso mediante certificados digitales para socios y autenticación por múltiples factores (MFA) para clientes, complementado con almacenamiento de contraseñas bajo funciones hash resistentes (Argon2 o bcrypt), mitigando riesgos de suplantación de identidad.
+
+A diferencia de las soluciones del mercado, este prototipo otorga al despacho soberanía sobre su cadena de custodia digital, proveyendo la evidencia criptográfica necesaria para sustentar el valor probatorio de sus documentos y la trazabilidad de su actividad procesal ante cualquier instancia judicial. El alcance del prototipo se acota a la gestión procesal penal conforme al CNPP, validándose con un despacho de la Ciudad de México como caso de estudio.
+
+\section{Revisión de Plataformas de Gestión Legal}\label{sec:revision-plataformas}
+
+El mercado de software de gestión para despachos legales (Legal Practice Management Software) cuenta con plataformas maduras que cubren funcionalidades operativas como administración de casos, gestión documental y comunicación con clientes. Con el fin de identificar las capacidades y limitaciones de las soluciones existentes en materia de seguridad criptográfica, se analizaron tres plataformas representativas del segmento: Clio \cite{clio2025}, MyCase \cite{mycase2025} y PracticePanther \cite{practicepanther2025}. Los criterios de selección fueron su presencia consolidada en el mercado hispanohablante, la disponibilidad pública de documentación técnica sobre sus mecanismos de seguridad, y su orientación a despachos de tamaño pequeño y mediano, perfil equivalente al caso de estudio de este trabajo. La \cref{tab:comparacion-plataformas} sintetiza la comparación en términos de funcionalidad, servicios de seguridad y mecanismos criptográficos reportados.
+
+\begin{table}[H]
+  \centering
+  \caption{Resumen ampliado de productos similares (función, servicios y criptografía).}
+  \label{tab:comparacion-plataformas}
+  \begin{tabularx}{\linewidth}{@{}l X X C{0.10\linewidth} C{0.10\linewidth} X@{}}
+    \toprule
+    \textbf{Software} & \textbf{Funcionalidad principal} & \textbf{Cifrado a nivel documento} & \textbf{Firma digital} & \textbf{Sellado de tiempo (TSA)} & \textbf{Cumplimiento normativo MX} \\
+    \midrule
+    Clio & Gestión de casos, facturación, portal de clientes & No (solo en reposo a nivel infraestructura) & No & No & No reportado \\
+    MyCase & Comunicación cliente--abogado, cobros, apps móviles & No (solo en reposo a nivel infraestructura) & No & No & No reportado \\
+    PracticePanther & Plantillas, automatizaciones, registro de tiempo & No (solo en reposo a nivel infraestructura) & No & No & No reportado \\
+    \textbf{Propuesta} & Expedientes contratos y documentos legales & AES-256-GCM (cifrado autenticado) & X.509 (ECDSA/RSA) & NOM-151 vía PSC & NOM-151, Código de Comercio Art. 89 bis \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Mecanismos Criptográficos y Brechas Identificadas}\label{sec:mecanismos-brechas}
+
+Las tres plataformas convergen en un conjunto reducido de controles criptográficos: cifrado simétrico AES-256 en reposo para confidencialidad de los datos almacenados \cite{paar2010}, Seguridad de la Capa de Transporte (TLS, Transport Layer Security) para la protección del canal de comunicación y mecanismos de autenticación basados en Autenticación por Múltiples Factores (MFA) y Control de Acceso Basado en Roles (RBAC). Clio se distingue al ser la única con certificaciones independientes (Service Organization Control 2 (SOC 2) Tipo II e ISO 27001) \cite{iso27001} y transparencia operativa verificable, lo que le otorga un perfil de riesgo bajo. MyCase \cite{mycase2025} y PracticePanther \cite{practicepanther2025} presentan un perfil de riesgo moderado, derivado de la ausencia de auditorías verificables y políticas de retención de datos ambiguas que dificultan la portabilidad de información.
+
+Sin embargo, estos mecanismos son controles de prevención de acceso y confidencialidad, no de evidencia. Controlan quién puede acceder a los datos, pero no generan prueba criptográfica de quién realizó una operación ni cuándo la realizó. Del análisis se identifican tres mecanismos ausentes que son relevantes para escenarios con valor probatorio:
+
+Firma digital con certificados X.509. Las plataformas delegan la firma en servicios externos (DocuSign, Adobe Sign), pero no implementan un flujo nativo de firma digital basada en criptografía asimétrica que vincule criptográficamente la identidad del firmante con el documento de forma verificable de manera independiente.
+
+Sellado de tiempo conforme a la NOM-151-SCFI-2016. Ninguna plataforma implementa sellado de tiempo mediante un Prestador de Servicios de Certificación autorizado \cite{nom151_2016}, mecanismo necesario para acreditar que un documento existía en una forma determinada en un momento específico ante la legislación mexicana.
+
+Cifrado autenticado. Si bien todas reportan AES-256, no se documenta el uso de modos de cifrado autenticado (como AES-GCM) que provean simultáneamente confidencialidad e integridad en un solo mecanismo, permitiendo detectar cualquier modificación no autorizada del contenido cifrado.
+
+En síntesis, las plataformas existentes han alcanzado madurez en funcionalidades operativas y controles de seguridad estándar, pero presentan una brecha consistente en servicios criptográficos orientados a evidencia. La propuesta de este trabajo terminal se posiciona en esa brecha: no busca competir en amplitud de funcionalidades, sino proveer los servicios de no repudio, integridad y confidencialidad que estas plataformas no ofrecen, orientados a escenarios donde el valor probatorio de la información digital es un requisito.
+
+\section{Alcances y Delimitaciones}\label{sec:alcances}
+
+Para acotar el esfuerzo de investigación y desarrollo del prototipo, se establecen a priori los siguientes alcances y delimitaciones. Aquellos aspectos no listados expresamente como alcance del prototipo se consideran fuera del objeto del Trabajo Terminal.
+
+\begin{itemize}
+  \item El prototipo opera bajo una arquitectura de inquilino único (single-tenant): cada instancia atiende a un solo despacho, simplificando el modelo de aislamiento y los mecanismos de cifrado por organización.
+
+  \item La gestión procesal se limita a la materia penal conforme al CNPP; otras materias (civil, mercantil, laboral o administrativa) quedan fuera del alcance por requerir esquemas procesales y de valoración probatoria distintos.
+
+  \item El caso de estudio corresponde a un despacho con sede en la Ciudad de México. La adaptación a particularidades procesales de otras entidades federativas no forma parte del prototipo.
+
+  \item El sistema se ofrece como aplicación web accesible desde navegadores modernos; no se desarrolla una aplicación móvil nativa ni cliente de escritorio.
+
+  \item El ámbito jurídico es estrictamente privado (Código de Comercio); no se contempla la integración con la Ley de Firma Electrónica Avanzada (LFEA), cuyo ámbito es la Administración Pública Federal.
+
+  \item La firma digital emitida por el prototipo es firma electrónica simple en los términos del artículo 89 del Código de Comercio. Al no provenir de un Prestador de Servicios de Certificación autorizado, no alcanza la presunción de firma avanzada establecida en el artículo 97 del mismo ordenamiento. El respaldo probatorio se sustenta en el sello de tiempo conforme a la NOM-151-SCFI-2016.
+
+  \item La integración con el PSC Cincel se realiza contra su entorno de sandbox para los fines del Trabajo Terminal. El despliegue en producción requeriría contratación comercial de la API y queda fuera del alcance.
+\end{itemize}
+
+\section{Supuestos del Proyecto}\label{sec:supuestos}
+
+El desarrollo del prototipo parte de los siguientes supuestos. La falsación de cualquiera de ellos durante la ejecución del Trabajo Terminal motivaría la activación de los planes de mitigación descritos en el análisis de riesgos (§3.6).
+
+\begin{itemize}
+  \item El servicio de sellado de tiempo de Cincel (API v3, entorno sandbox) se mantiene disponible durante el ciclo de desarrollo y pruebas del prototipo.
+
+  \item El hardware de despliegue dispone de al menos 46 MiB de memoria por proceso de autenticación, condición necesaria para ejecutar Argon2id con los parámetros seleccionados sin degradar el tiempo de respuesta del inicio de sesión.
+
+  \item Existe conectividad estable a internet para consultar listas de revocación (CRL) y servicios OCSP de los PSCs mexicanos, así como la autoridad de sellado de tiempo de Cincel.
+
+  \item Los usuarios acceden al sistema mediante navegadores modernos con soporte para ECMAScript 2020, Web Crypto API y TLS 1.2 o superior.
+
+  \item El equipo de dos integrantes mantiene disponibilidad continua durante las diez semanas del cronograma XP, con cuatro jornadas efectivas por semana dedicadas al proyecto.
+
+  \item La directora del Trabajo Terminal provee retroalimentación al final de cada iteración semanal, totalizando cinco entregas intermedias en la Fase I y cinco en la Fase II.
+
+  \item Los socios del despacho caso de estudio están dispuestos a participar en pruebas de usabilidad de los flujos de firma y verificación.
+\end{itemize}
