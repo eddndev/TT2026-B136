@@ -26,7 +26,9 @@ getrandom.workspace = true
 time = { workspace = true, features = ["parsing"] }
 totp-rs.workspace = true
 # Cross-process advisory file locking that serializes concurrent appends
-# to the file audit log so the hash chain cannot fork.
+# to the file audit log so the hash chain cannot fork, and the local
+# timestamp authority's reply step, whose serial file openssl updates
+# with a non-atomic read-increment-write.
 fs2.workspace = true
 # X.509 parsing for certificate chain validation and signer certificates;
 # see docs/adr/0004-certificate-validation-implementation.md.
@@ -42,8 +44,11 @@ x509-tsp.workspace = true
 reqwest.workspace = true
 base64.workspace = true
 zeroize.workspace = true
+# Private scratch directories for staging openssl subprocess inputs, so
+# the staging paths are unpredictable and unreadable by other local
+# users and are removed even when a check aborts early.
+tempfile.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
-tempfile.workspace = true
 uuid.workspace = true

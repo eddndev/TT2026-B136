@@ -29,7 +29,10 @@ static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(0);
 /// sets on the subprocesses it spawns.
 ///
 /// Each request writes a query file and a reply file inside the working
-/// directory and removes both before returning.
+/// directory and removes both before returning. The reply step is
+/// serialized across threads and processes with an advisory lock on
+/// `serial.lock` inside the working directory, because openssl advances
+/// the authority's serial file with a non-atomic read-increment-write.
 #[derive(Debug, Clone)]
 pub struct LocalOpensslTsa {
     config_path: PathBuf,
@@ -89,6 +92,13 @@ impl LocalOpensslTsa {
             .arg(query_path);
         run_step("openssl ts -query", &mut query)?;
 
+        // openssl updates the authority's serial file with a non-atomic
+        // read-increment-write, so unserialized concurrent replies can
+        // mint duplicate serial numbers. An exclusive cross-process
+        // advisory lock over the reply step prevents that; it is
+        // released when the guard drops, after the reply file is read.
+        let _serial_guard = SerialLock::acquire(&self.tsa_dir)?;
+
         let mut reply = Command::new("openssl");
         reply
             .args(["ts", "-reply", "-config"])
@@ -115,6 +125,38 @@ impl LocalOpensslTsa {
 impl TimestampService for LocalOpensslTsa {
     fn request(&self, digest: &Sha256Digest) -> Result<Vec<u8>, DomainError> {
         Ok(self.obtain(digest)?)
+    }
+}
+
+/// Exclusive cross-process advisory lock on `serial.lock` inside the
+/// TSA working directory, held while `openssl ts -reply` updates the
+/// authority's serial file. Dropping the guard closes the file, which
+/// releases the lock.
+struct SerialLock {
+    _file: fs::File,
+}
+
+impl SerialLock {
+    fn acquire(tsa_dir: &Path) -> Result<Self, TsaError> {
+        let path = tsa_dir.join("serial.lock");
+        let file = fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(false)
+            .open(&path)
+            .map_err(|err| {
+                TsaError::Unreachable(format!(
+                    "cannot open the serial lock file {}: {err}",
+                    path.display()
+                ))
+            })?;
+        fs2::FileExt::lock_exclusive(&file).map_err(|err| {
+            TsaError::Unreachable(format!(
+                "cannot lock the serial lock file {}: {err}",
+                path.display()
+            ))
+        })?;
+        Ok(Self { _file: file })
     }
 }
 

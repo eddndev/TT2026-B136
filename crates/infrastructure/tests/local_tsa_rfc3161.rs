@@ -104,6 +104,70 @@ fn consecutive_requests_yield_distinct_tokens() {
     assert_ne!(first, second);
 }
 
+/// Reads the serial number line of a token's reply text through the
+/// openssl tool.
+fn token_serial(fixture: &TsaFixture, index: usize, token: &[u8]) -> String {
+    let path = fixture.scratch_path(&format!("serial-{index}.tsr"));
+    fs::write(&path, token).unwrap();
+    let output = Command::new("openssl")
+        .args(["ts", "-reply", "-text", "-in"])
+        .arg(&path)
+        .output()
+        .expect("openssl is runnable");
+    assert!(
+        output.status.success(),
+        "openssl ts -reply -text failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .find(|line| line.trim_start().starts_with("Serial number:"))
+        .expect("the reply text must carry a serial number")
+        .trim()
+        .to_string()
+}
+
+#[test]
+fn concurrent_requests_yield_distinct_serial_numbers() {
+    let fixture = TsaFixture::build();
+    let adapter = fixture.adapter();
+    let digest = sample_digest();
+
+    // Simultaneous requests race over the authority's serial file; the
+    // adapter must serialize the reply step so every token still gets
+    // its own serial number.
+    const REQUESTS: usize = 8;
+    let barrier = std::sync::Barrier::new(REQUESTS);
+    let tokens: Vec<Vec<u8>> = std::thread::scope(|scope| {
+        let checks: Vec<_> = (0..REQUESTS)
+            .map(|_| {
+                let adapter = adapter.clone();
+                let barrier = &barrier;
+                scope.spawn(move || {
+                    barrier.wait();
+                    adapter.request(&digest).unwrap()
+                })
+            })
+            .collect();
+        checks
+            .into_iter()
+            .map(|check| check.join().unwrap())
+            .collect()
+    });
+
+    let serials: Vec<String> = tokens
+        .iter()
+        .enumerate()
+        .map(|(index, token)| token_serial(&fixture, index, token))
+        .collect();
+    let distinct: std::collections::BTreeSet<&String> = serials.iter().collect();
+    assert_eq!(
+        distinct.len(),
+        serials.len(),
+        "duplicate serial numbers were minted: {serials:?}"
+    );
+}
+
 #[test]
 fn request_leaves_no_scratch_files_in_the_tsa_directory() {
     let fixture = TsaFixture::build();
@@ -157,6 +221,36 @@ fn a_requested_token_verifies_as_valid_with_a_plausible_time() {
         }
         other => panic!("expected a valid outcome, got {other:?}"),
     }
+}
+
+#[test]
+fn concurrent_verifications_do_not_disturb_each_other() {
+    let fixture = TsaFixture::build();
+    let digest = sample_digest();
+    let token = fixture.adapter().request(&digest).unwrap();
+    let anchor = fs::read(fixture.root_certificate_path()).unwrap();
+
+    // Each verification stages its scratch files in its own private
+    // directory, so simultaneous checks of the same token must all
+    // reach the same valid outcome.
+    std::thread::scope(|scope| {
+        let checks: Vec<_> = (0..4)
+            .map(|_| {
+                scope.spawn(|| {
+                    Rfc3161Verifier::new()
+                        .verify(&token, &digest, &anchor)
+                        .unwrap()
+                })
+            })
+            .collect();
+        for check in checks {
+            let outcome = check.join().unwrap();
+            assert!(
+                matches!(outcome, TimestampVerification::Valid { .. }),
+                "expected a valid outcome, got {outcome:?}"
+            );
+        }
+    });
 }
 
 #[test]

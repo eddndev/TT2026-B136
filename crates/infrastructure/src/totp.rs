@@ -109,6 +109,14 @@ impl TotpProvider for TotpRsProvider {
         })
     }
 
+    /// Checks a code statelessly: nothing records the last accepted time
+    /// step, so an already-accepted code stays acceptable for the rest of
+    /// its window (the matching step plus one step of skew on each side,
+    /// about ninety seconds). RFC 6238 section 5.2 requires rejecting the
+    /// reuse of an accepted code; that single-use enforcement belongs to
+    /// the caller once a persistent store can track the last consumed
+    /// time step per secret. See
+    /// docs/adr/0008-totp-single-use-enforcement.md.
     fn verify(
         &self,
         secret: &[u8],

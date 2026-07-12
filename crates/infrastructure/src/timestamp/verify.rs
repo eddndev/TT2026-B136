@@ -8,9 +8,7 @@
 //! docs/adr/0005-rfc3161-verification-strategy.md.
 
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command;
-use std::sync::atomic::{AtomicU64, Ordering};
 
 use cms::content_info::ContentInfo;
 use cms::signed_data::SignedData;
@@ -30,10 +28,6 @@ use super::stderr_fragment;
 
 /// Object identifier of the SHA-256 digest algorithm (id-sha256).
 const ID_SHA256: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.2.1");
-
-/// Distinguishes the scratch files of concurrent verifications within
-/// one process; the process id distinguishes across processes.
-static VERIFY_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// [`TimestampVerifier`] for RFC 3161 tokens: native parsing and imprint
 /// comparison, with the cryptographic check delegated to the openssl
@@ -182,43 +176,37 @@ fn check_with_openssl(
     trust_anchor_pem: &[u8],
     bare_token: bool,
 ) -> Result<Option<String>, DomainError> {
-    let base = std::env::temp_dir().join(format!(
-        "rfc3161-verify-{}-{}",
-        std::process::id(),
-        VERIFY_COUNTER.fetch_add(1, Ordering::Relaxed)
-    ));
-    let token_path = path_with_suffix(&base, ".token.der");
-    let anchor_path = path_with_suffix(&base, ".anchor.pem");
+    // The scratch files live in a freshly created private directory
+    // (mode 0700 on unix) with an unpredictable name, so no other local
+    // user can pre-plant a symlink at the staging paths or swap the
+    // files between the write and the openssl read. The directory and
+    // its contents are removed when the guard drops, on every return
+    // path.
+    let scratch = tempfile::Builder::new()
+        .prefix("rfc3161-verify-")
+        .tempdir()
+        .map_err(|err| backend(format!("cannot create scratch directory: {err}")))?;
+    let token_path = scratch.path().join("token.der");
+    let anchor_path = scratch.path().join("anchor.pem");
     fs::write(&token_path, token).map_err(|err| backend(format!("cannot stage token: {err}")))?;
-    let staged = fs::write(&anchor_path, trust_anchor_pem)
-        .map_err(|err| backend(format!("cannot stage trust anchor: {err}")));
-    let result = staged.and_then(|()| {
-        let mut command = Command::new("openssl");
-        command
-            .args(["ts", "-verify", "-digest", &expected.to_hex(), "-in"])
-            .arg(&token_path);
-        if bare_token {
-            command.arg("-token_in");
-        }
-        command.arg("-CAfile").arg(&anchor_path);
-        let output = command
-            .output()
-            .map_err(|err| backend(format!("cannot run openssl ts -verify: {err}")))?;
-        if output.status.success() {
-            Ok(None)
-        } else {
-            Ok(Some(stderr_fragment(&output.stderr)))
-        }
-    });
-    let _ = fs::remove_file(&token_path);
-    let _ = fs::remove_file(&anchor_path);
-    result
-}
-
-fn path_with_suffix(base: &std::path::Path, suffix: &str) -> PathBuf {
-    let mut name = base.as_os_str().to_owned();
-    name.push(suffix);
-    PathBuf::from(name)
+    fs::write(&anchor_path, trust_anchor_pem)
+        .map_err(|err| backend(format!("cannot stage trust anchor: {err}")))?;
+    let mut command = Command::new("openssl");
+    command
+        .args(["ts", "-verify", "-digest", &expected.to_hex(), "-in"])
+        .arg(&token_path);
+    if bare_token {
+        command.arg("-token_in");
+    }
+    command.arg("-CAfile").arg(&anchor_path);
+    let output = command
+        .output()
+        .map_err(|err| backend(format!("cannot run openssl ts -verify: {err}")))?;
+    if output.status.success() {
+        Ok(None)
+    } else {
+        Ok(Some(stderr_fragment(&output.stderr)))
+    }
 }
 
 fn backend(message: String) -> DomainError {
