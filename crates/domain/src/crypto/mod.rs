@@ -5,6 +5,7 @@
 //! holds the immutable values those operations exchange (content digests,
 //! document identity, sealed payloads) and the port definitions themselves.
 
+pub mod archive;
 pub mod certificate;
 pub mod cipher;
 pub mod digest;
@@ -17,6 +18,7 @@ pub mod signature;
 pub mod timestamp;
 pub mod totp;
 
+pub use archive::{ArchiveEntry, ArchiveWriter};
 pub use certificate::{
     CertificateAuthority, CertificateSummary, CertificateValidation, CertificateValidator,
     IssuedCertificate,

@@ -112,4 +112,17 @@ pub enum DomainError {
     /// response.
     #[error("timestamp authority failure: {0}")]
     TimestampAuthorityFailure(String),
+
+    /// An archive entry name fell outside the safe set that keeps names
+    /// usable in file systems, shell command lines, and the verification
+    /// instructions shipped inside the archive.
+    #[error(
+        "archive entry name is not usable: {name:?} (ascii letters, digits, \
+         dot, dash, and underscore only, starting with a letter or digit)"
+    )]
+    InvalidArchiveEntryName { name: String },
+
+    /// The archive writer could not represent the entries in its format.
+    #[error("archive writing failed: {0}")]
+    ArchiveWriteFailure(String),
 }

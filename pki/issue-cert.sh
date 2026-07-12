@@ -80,9 +80,17 @@ SUBJECT="$SUBJECT/O=Despacho Juridico Demo/OU=Personal del Despacho/CN=$CN"
 openssl req -config "$OPENSSL_CNF" -new -sha256 \
     -key "$KEY_FILE" -subj "$SUBJECT" -out "$CSR_FILE"
 
+# Backdate the start of validity by a few minutes, as public authorities
+# commonly do, so the certificate is immediately usable even when the
+# issuing and the relying machine disagree slightly on the time (clock
+# skew). Without this, a validation performed in the same second as the
+# issuance can land before notBefore and report the certificate as not
+# yet valid.
+START_DATE="$(date -u -d '5 minutes ago' +%Y%m%d%H%M%SZ)"
+
 # Sign the request with the CA using the end-entity extensions.
 openssl ca -config "$OPENSSL_CNF" -batch -notext -md sha256 \
-    -days "$CERT_DAYS" -extensions v3_end_entity \
+    -startdate "$START_DATE" -days "$CERT_DAYS" -extensions v3_end_entity \
     -in "$CSR_FILE" -out "$CERT_FILE"
 
 printf '\nCertificate issued successfully.\n'

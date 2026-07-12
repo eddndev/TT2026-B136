@@ -202,7 +202,39 @@ pub struct TimestampArgs {
 pub struct VerifyArgs {
     /// Path to the original document.
     pub file: PathBuf,
-    /// Path to the signature.
+    /// Path to the detached signature.
+    #[arg(long)]
+    pub sig: PathBuf,
+    /// Path to the signer certificate.
+    #[arg(long)]
+    pub cert: PathBuf,
+    /// Path to the certificate of the issuing authority.
+    #[arg(long)]
+    pub ca: PathBuf,
+    /// Path to the timestamp token. Without it the token-dependent
+    /// components of the report are skipped and say so.
+    #[arg(long)]
+    pub tsr: Option<PathBuf>,
+    /// Path to the certificate revocation list. Without it revocation
+    /// is not checked and the report says so.
+    #[arg(long)]
+    pub crl: Option<PathBuf>,
+    /// Trust anchor for the timestamp token check; defaults to the
+    /// --ca certificate, which anchors the internal authorities.
+    #[arg(long)]
+    pub tsa_cert: Option<PathBuf>,
+    /// Evaluate the certificate status at this RFC 3339 instant
+    /// instead of the current time.
+    #[arg(long)]
+    pub at: Option<String>,
+}
+
+/// Arguments for `package export`.
+#[derive(Debug, clap::Args)]
+pub struct PackageExportArgs {
+    /// Path to the original document.
+    pub file: PathBuf,
+    /// Path to the detached signature.
     #[arg(long)]
     pub sig: PathBuf,
     /// Path to the timestamp token.
@@ -211,17 +243,27 @@ pub struct VerifyArgs {
     /// Path to the signer certificate.
     #[arg(long)]
     pub cert: PathBuf,
+    /// Path to the certificate of the issuing authority.
+    #[arg(long)]
+    pub ca: PathBuf,
+    /// Path to the certificate revocation list to include, so the
+    /// package supports an independent revocation check.
+    #[arg(long)]
+    pub crl: PathBuf,
+    /// Path to the timestamp authority certificate chain to include,
+    /// when available.
+    #[arg(long)]
+    pub tsa_chain: Option<PathBuf>,
+    /// Output path for the package archive.
+    #[arg(long)]
+    pub out: PathBuf,
 }
 
 /// Evidence-package subcommands.
 #[derive(Debug, Subcommand)]
 pub enum PackageAction {
     /// Export an independent verification package.
-    Export {
-        /// Output path for the package archive.
-        #[arg(long)]
-        out: PathBuf,
-    },
+    Export(PackageExportArgs),
 }
 
 /// Authentication subcommands.

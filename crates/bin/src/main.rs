@@ -10,11 +10,13 @@ mod auth_cmd;
 mod cli;
 mod config;
 mod handlers;
+mod package_cmd;
 mod pki_cmd;
 mod sign_cmd;
 mod telemetry;
 mod timestamp_cmd;
 mod vault_cmd;
+mod verify_cmd;
 
 use clap::Parser;
 
@@ -49,8 +51,9 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         } => pki_cmd::run(&scripts_dir, action, cli.json),
         Command::Sign(args) => sign_cmd::run(&args, cli.json),
         Command::Timestamp(args) => timestamp_cmd::run(&args, cli.json),
+        Command::Verify(args) => verify_cmd::run(&args, cli.json),
+        Command::Package { action } => package_cmd::run(action, cli.json),
         Command::Auth { action } => auth_cmd::run(action),
         Command::Audit { action } => audit_cmd::run(action, cli.json),
-        _ => anyhow::bail!("command '{name}' is not implemented yet"),
     }
 }

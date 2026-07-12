@@ -23,7 +23,10 @@ tracing-subscriber.workspace = true
 dotenvy.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
-time.workspace = true
+# The verify command accepts an explicit evaluation instant in RFC 3339
+# form, which needs the parsing feature on top of the workspace-wide
+# formatting selection.
+time = { workspace = true, features = ["parsing"] }
 
 [dev-dependencies]
 tempfile.workspace = true
