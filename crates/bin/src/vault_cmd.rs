@@ -29,25 +29,27 @@ const KEK_VAR: &str = "KEK_BASE64";
 /// Environment variable holding the replacement key during a rotation.
 const NEW_KEK_VAR: &str = "NEW_KEK_BASE64";
 
-/// Dispatches a `vault` subcommand to its handler.
-pub fn run(action: VaultAction) -> anyhow::Result<()> {
+/// Dispatches a `vault` subcommand to its handler. With `json` set, each
+/// handler prints one JSON object instead of its human-readable line.
+pub fn run(action: VaultAction, json: bool) -> anyhow::Result<()> {
     match action {
         VaultAction::Encrypt {
             file,
             doc_id,
             version,
-        } => encrypt(&file, &doc_id, version),
+        } => encrypt(&file, &doc_id, version, json),
         VaultAction::Decrypt {
             package,
             doc_id,
             version,
             out,
-        } => decrypt(&package, &doc_id, version, out.as_deref()),
-        VaultAction::RotateKek { file } => rotate_kek(&file),
+        } => decrypt(&package, &doc_id, version, out.as_deref(), json),
+        VaultAction::RotateKek { file } => rotate_kek(&file, json),
     }
 }
 
-fn encrypt(file: &Path, doc_id: &str, version: u32) -> anyhow::Result<()> {
+// JSON shape: {"package_path": <string>}.
+fn encrypt(file: &Path, doc_id: &str, version: u32, json: bool) -> anyhow::Result<()> {
     let id = parse_doc_id(doc_id)?;
     let version = DocumentVersion::new(version)?;
     let kek = load_kek(KEK_VAR)?;
@@ -62,11 +64,26 @@ fn encrypt(file: &Path, doc_id: &str, version: u32) -> anyhow::Result<()> {
     let out_path = path_with_enc_suffix(file);
     fs::write(&out_path, &vault_bytes)
         .with_context(|| format!("cannot write {}", out_path.display()))?;
-    println!("wrote {}", out_path.display());
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({ "package_path": out_path.display().to_string() })
+        );
+    } else {
+        println!("wrote {}", out_path.display());
+    }
     Ok(())
 }
 
-fn decrypt(package: &Path, doc_id: &str, version: u32, out: Option<&Path>) -> anyhow::Result<()> {
+// JSON shape with --out: {"out": <string>}. Without --out the plaintext
+// itself goes to standard output, so no JSON wraps it.
+fn decrypt(
+    package: &Path,
+    doc_id: &str,
+    version: u32,
+    out: Option<&Path>,
+    json: bool,
+) -> anyhow::Result<()> {
     let id = parse_doc_id(doc_id)?;
     let version = DocumentVersion::new(version)?;
     let kek = load_kek(KEK_VAR)?;
@@ -82,7 +99,14 @@ fn decrypt(package: &Path, doc_id: &str, version: u32, out: Option<&Path>) -> an
         Some(path) => {
             fs::write(path, &plaintext)
                 .with_context(|| format!("cannot write {}", path.display()))?;
-            println!("wrote {}", path.display());
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({ "out": path.display().to_string() })
+                );
+            } else {
+                println!("wrote {}", path.display());
+            }
         }
         None => std::io::stdout()
             .write_all(&plaintext)
@@ -91,7 +115,8 @@ fn decrypt(package: &Path, doc_id: &str, version: u32, out: Option<&Path>) -> an
     Ok(())
 }
 
-fn rotate_kek(file: &Path) -> anyhow::Result<()> {
+// JSON shape: {"rewritten": <string>}.
+fn rotate_kek(file: &Path, json: bool) -> anyhow::Result<()> {
     let old_kek = load_kek(KEK_VAR)?;
     let new_kek = load_kek(NEW_KEK_VAR)?;
     let vault_bytes = fs::read(file).with_context(|| format!("cannot read {}", file.display()))?;
@@ -113,7 +138,14 @@ fn rotate_kek(file: &Path) -> anyhow::Result<()> {
             temp_path.display()
         )
     })?;
-    println!("rewrapped the data key in {}", file.display());
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({ "rewritten": file.display().to_string() })
+        );
+    } else {
+        println!("rewrapped the data key in {}", file.display());
+    }
     Ok(())
 }
 

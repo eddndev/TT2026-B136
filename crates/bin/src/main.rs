@@ -2,8 +2,8 @@
 //!
 //! This binary parses the command tree, initializes logging from the
 //! environment, and is the single place where adapters and use cases are wired
-//! together. Wiring is added as each use case lands; for now the tree parses
-//! and reports which command was requested.
+//! together: `run` dispatches each command group to a handler module that
+//! builds its use case from the concrete adapters.
 
 mod audit_cmd;
 mod auth_cmd;
@@ -44,7 +44,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Crypto {
             action: CryptoAction::Hash { file },
         } => handlers::hash_file(&file, cli.json),
-        Command::Vault { action } => vault_cmd::run(action),
+        Command::Vault { action } => vault_cmd::run(action, cli.json),
         Command::Pki {
             scripts_dir,
             action,
@@ -53,7 +53,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Timestamp(args) => timestamp_cmd::run(&args, cli.json),
         Command::Verify(args) => verify_cmd::run(&args, cli.json),
         Command::Package { action } => package_cmd::run(action, cli.json),
-        Command::Auth { action } => auth_cmd::run(action),
+        Command::Auth { action } => auth_cmd::run(action, cli.json),
         Command::Audit { action } => audit_cmd::run(action, cli.json),
     }
 }

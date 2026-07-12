@@ -154,6 +154,80 @@ fn decrypting_a_corrupted_package_fails_with_an_authentication_error() {
 }
 
 #[test]
+fn vault_commands_emit_json_objects() {
+    let dir = ScratchDir::new("json");
+    let kek = base64_of(&KEK);
+    let new_kek = base64_of(&NEW_KEK);
+    let plain_path = dir.path("document.bin");
+    fs::write(&plain_path, sample_plaintext()).expect("plaintext is writable");
+
+    let output = run_cli(
+        &[
+            "--json",
+            "vault",
+            "encrypt",
+            plain_path.to_str().unwrap(),
+            "--doc-id",
+            DOC_ID,
+            "--version",
+            "3",
+        ],
+        &[("KEK_BASE64", kek.clone())],
+    );
+    assert_success(&output, "vault encrypt --json");
+    let body: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("encrypt --json emits one JSON object");
+    let enc_path = dir.path("document.bin.enc");
+    assert_eq!(
+        body["package_path"]
+            .as_str()
+            .expect("package_path is a string"),
+        enc_path.to_str().unwrap()
+    );
+
+    // Decrypt to a file names the file; decrypt to standard output stays
+    // raw plaintext so pipes keep working.
+    let out_path = dir.path("restored.bin");
+    let mut args = decrypt_args(&enc_path, "3");
+    args.insert(0, "--json");
+    args.push("--out");
+    args.push(out_path.to_str().unwrap());
+    let output = run_cli(&args, &[("KEK_BASE64", kek.clone())]);
+    assert_success(&output, "vault decrypt --json --out");
+    let body: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("decrypt --json emits one JSON object");
+    assert_eq!(
+        body["out"].as_str().expect("out is a string"),
+        out_path.to_str().unwrap()
+    );
+    assert_eq!(fs::read(&out_path).unwrap(), sample_plaintext());
+
+    let mut args = decrypt_args(&enc_path, "3");
+    args.insert(0, "--json");
+    let output = run_cli(&args, &[("KEK_BASE64", kek.clone())]);
+    assert_success(&output, "vault decrypt --json to stdout");
+    assert_eq!(output.stdout, sample_plaintext());
+
+    let output = run_cli(
+        &[
+            "--json",
+            "vault",
+            "rotate-kek",
+            "--file",
+            enc_path.to_str().unwrap(),
+        ],
+        &[("KEK_BASE64", kek), ("NEW_KEK_BASE64", new_kek)],
+    );
+    assert_success(&output, "vault rotate-kek --json");
+    let body: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("rotate-kek --json emits one JSON object");
+    assert_eq!(
+        body["rewritten"].as_str().expect("rewritten is a string"),
+        enc_path.to_str().unwrap()
+    );
+}
+
+#[test]
 fn rotating_the_kek_keeps_the_package_decryptable_only_under_the_new_kek() {
     let dir = ScratchDir::new("rotation");
     let old_kek = base64_of(&KEK);

@@ -27,15 +27,16 @@ use crate::cli::{AuthAction, TotpAction};
 /// Number of hash operations measured by `auth calibrate`.
 const CALIBRATION_RUNS: u32 = 5;
 
-/// Dispatches one `auth` subcommand.
-pub fn run(action: AuthAction) -> anyhow::Result<()> {
+/// Dispatches one `auth` subcommand. With `json` set, each handler
+/// prints one JSON object instead of its human-readable lines.
+pub fn run(action: AuthAction, json: bool) -> anyhow::Result<()> {
     match action {
-        AuthAction::Calibrate => calibrate(),
-        AuthAction::HashPassword => hash_password(),
-        AuthAction::VerifyPassword { hash } => verify_password(&hash),
+        AuthAction::Calibrate => calibrate(json),
+        AuthAction::HashPassword => hash_password(json),
+        AuthAction::VerifyPassword { hash } => verify_password(&hash, json),
         AuthAction::Totp { action } => match action {
-            TotpAction::Enroll { user, secret_out } => totp_enroll(&user, &secret_out),
-            TotpAction::Verify { code, secret_file } => totp_verify(&code, &secret_file),
+            TotpAction::Enroll { user, secret_out } => totp_enroll(&user, &secret_out, json),
+            TotpAction::Verify { code, secret_file } => totp_verify(&code, &secret_file, json),
         },
     }
 }
@@ -54,23 +55,40 @@ fn read_password_from_stdin() -> anyhow::Result<Zeroizing<String>> {
     Ok(buffer)
 }
 
-fn hash_password() -> anyhow::Result<()> {
+// JSON shape: {"phc": <string>}.
+fn hash_password(json: bool) -> anyhow::Result<()> {
     let password = read_password_from_stdin()?;
     let phc = HashPassword::new(Argon2idHasher::new()).execute(&password)?;
-    println!("{phc}");
-    Ok(())
-}
-
-fn verify_password(stored_phc: &str) -> anyhow::Result<()> {
-    let password = read_password_from_stdin()?;
-    match VerifyPassword::new(Argon2idHasher::new()).execute(&password, stored_phc)? {
-        PasswordVerification::Match => println!("match"),
-        PasswordVerification::Mismatch => println!("mismatch"),
+    if json {
+        println!("{}", serde_json::json!({ "phc": phc }));
+    } else {
+        println!("{phc}");
     }
     Ok(())
 }
 
-fn calibrate() -> anyhow::Result<()> {
+// JSON shape: {"match": <bool>}.
+fn verify_password(stored_phc: &str, json: bool) -> anyhow::Result<()> {
+    let password = read_password_from_stdin()?;
+    let outcome = VerifyPassword::new(Argon2idHasher::new()).execute(&password, stored_phc)?;
+    let matched = outcome == PasswordVerification::Match;
+    if json {
+        println!("{}", serde_json::json!({ "match": matched }));
+    } else if matched {
+        println!("match");
+    } else {
+        println!("mismatch");
+    }
+    if !matched {
+        // The process exits nonzero on a mismatch, so scripts can
+        // branch on the outcome directly.
+        anyhow::bail!("the password does not match the stored hash");
+    }
+    Ok(())
+}
+
+// JSON shape: {"runs", "mean_ms", "band_min_ms", "band_max_ms", "verdict"}.
+fn calibrate(json: bool) -> anyhow::Result<()> {
     let runs = NonZeroU32::new(CALIBRATION_RUNS).expect("the run count is a nonzero constant");
     let report = CalibratePasswordHashing::new(Argon2idHasher::new()).execute(
         runs,
@@ -82,14 +100,28 @@ fn calibrate() -> anyhow::Result<()> {
         CalibrationVerdict::InBand => "inside",
         CalibrationVerdict::AboveBand => "above",
     };
-    println!(
-        "mean over {} runs: {:.1} ms ({} the {}-{} ms target band)",
-        report.runs, report.mean_ms, position, report.band_min_ms, report.band_max_ms
-    );
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "runs": report.runs,
+                "mean_ms": report.mean_ms,
+                "band_min_ms": report.band_min_ms,
+                "band_max_ms": report.band_max_ms,
+                "verdict": position,
+            })
+        );
+    } else {
+        println!(
+            "mean over {} runs: {:.1} ms ({} the {}-{} ms target band)",
+            report.runs, report.mean_ms, position, report.band_min_ms, report.band_max_ms
+        );
+    }
     Ok(())
 }
 
-fn totp_enroll(user: &str, secret_out: &Path) -> anyhow::Result<()> {
+// JSON shape: {"otpauth_uri", "secret_base32", "recovery_codes": [..], "secret_path"}.
+fn totp_enroll(user: &str, secret_out: &Path, json: bool) -> anyhow::Result<()> {
     let use_case = EnrollTotp::new(
         TotpRsProvider::new(),
         RandomRecoveryCodeGenerator,
@@ -97,6 +129,23 @@ fn totp_enroll(user: &str, secret_out: &Path) -> anyhow::Result<()> {
     );
     let bundle = use_case.execute(user)?;
     write_secret_file(secret_out, &bundle.enrollment.secret_base32)?;
+    if json {
+        let codes: Vec<&str> = bundle
+            .plain_recovery_codes
+            .iter()
+            .map(|code| code.as_str())
+            .collect();
+        println!(
+            "{}",
+            serde_json::json!({
+                "otpauth_uri": bundle.enrollment.otpauth_uri.as_str(),
+                "secret_base32": bundle.enrollment.secret_base32.as_str(),
+                "recovery_codes": codes,
+                "secret_path": secret_out.display().to_string(),
+            })
+        );
+        return Ok(());
+    }
     println!("otpauth-uri: {}", bundle.enrollment.otpauth_uri.as_str());
     println!(
         "secret-base32: {}",
@@ -125,13 +174,24 @@ fn write_secret_file(path: &Path, secret_base32: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn totp_verify(code: &str, secret_file: &Path) -> anyhow::Result<()> {
+// JSON shape: {"accepted": <bool>}.
+fn totp_verify(code: &str, secret_file: &Path, json: bool) -> anyhow::Result<()> {
     let stored = Zeroizing::new(fs::read_to_string(secret_file)?);
     let secret = decode_base32_secret(&stored)?;
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-    match VerifyTotp::new(TotpRsProvider::new()).execute(&secret, code.trim(), now)? {
-        TotpVerification::Accepted => println!("accepted"),
-        TotpVerification::Rejected => println!("rejected"),
+    let outcome = VerifyTotp::new(TotpRsProvider::new()).execute(&secret, code.trim(), now)?;
+    let accepted = outcome == TotpVerification::Accepted;
+    if json {
+        println!("{}", serde_json::json!({ "accepted": accepted }));
+    } else if accepted {
+        println!("accepted");
+    } else {
+        println!("rejected");
+    }
+    if !accepted {
+        // The process exits nonzero on a rejection, so scripts can
+        // branch on the outcome directly.
+        anyhow::bail!("the one-time-password code was rejected");
     }
     Ok(())
 }
