@@ -1,0 +1,54 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/domain",
+    "crates/application",
+    "crates/infrastructure",
+    "crates/web",
+    "crates/bin",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+license = "MIT"
+repository = "https://github.com/eddndev/TT2026-B136"
+
+[workspace.dependencies]
+# Cross-cutting crates shared by workspace members. Members opt in with
+# `dep.workspace = true`. Versions are declared here so the whole workspace
+# stays on one compatible set.
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+time = { version = "0.3", features = ["formatting", "macros"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+async-trait = "0.1"
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+config = { version = "0.14", default-features = false, features = ["toml"] }
+dotenvy = "0.15"
+anyhow = "1"
+mockall = "0.13"
+
+# Cryptographic crates. Pinned to versions that build on rust-version 1.78:
+# the der 0.7 family is required because x509-cert 0.3 and rsa 0.10 raise the
+# minimum toolchain. Rationale: docs/adr/0001-msrv-and-dependency-pinning.md.
+# These are declared for the workspace but not yet consumed by any member.
+ring = "0.17.12"
+rsa = "0.9"
+sha2 = "0.10"
+der = "0.7"
+x509-cert = "0.2"
+cms = "0.2"
+x509-tsp = "0.1"
+argon2 = "0.5"
+totp-rs = "5"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+zeroize = { version = "1", features = ["zeroize_derive"] }
+subtle = "2"
+
+[profile.release]
+strip = true
+lto = true

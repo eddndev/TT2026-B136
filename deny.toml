@@ -1,0 +1,45 @@
+# cargo-deny configuration: dependency advisories, licenses, bans and
+# sources for the whole workspace. Run locally with: cargo deny check
+
+[graph]
+# Analyze the graph with every feature enabled so optional dependencies are
+# covered by the checks too.
+all-features = true
+
+[advisories]
+yanked = "warn"
+ignore = [
+    # Timing side channel in private-key operations of the rsa crate.
+    # Accepted risk; rationale is recorded in
+    # docs/adr/0002-rsa-signing-crate-and-advisory.md.
+    "RUSTSEC-2023-0071",
+]
+
+[licenses]
+# Permissive licenses only. Extend this list deliberately, never to silence
+# a failing check without reading the license in question.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.8
+
+[bans]
+# Duplicate versions of one crate are reported but do not fail the check:
+# transitive dependencies commonly lag behind for a while.
+multiple-versions = "warn"
+# Workspace members reference each other by path without a version
+# requirement, which cargo-deny counts as a wildcard, so wildcards only warn.
+wildcards = "warn"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

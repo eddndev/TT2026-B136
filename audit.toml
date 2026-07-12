@@ -1,0 +1,11 @@
+# cargo-audit configuration (RustSec advisory scanner). cargo-audit reads
+# its configuration from .cargo/audit.toml; copy or symlink this file there,
+# and keep this versioned copy as the source of truth.
+
+[advisories]
+ignore = [
+    # Timing side channel in private-key operations of the rsa crate.
+    # Accepted risk; rationale is recorded in
+    # docs/adr/0002-rsa-signing-crate-and-advisory.md.
+    "RUSTSEC-2023-0071",
+]

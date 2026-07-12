@@ -1,0 +1,91 @@
+# OpenSSL configuration for the internal certificate authority (CA)
+# used by the scripts in this directory: init-ca.sh, issue-cert.sh,
+# revoke.sh and gen-crl.sh.
+#
+# The CA working directory is read from the PKI_CA_DIR environment
+# variable. Every script in this directory exports PKI_CA_DIR before
+# invoking openssl, so this file is not meant to be used standalone.
+# The CA working directory holds private keys and the CA database and
+# must never be committed to version control.
+
+[ ca ]
+default_ca = internal_ca
+
+[ internal_ca ]
+# Layout of the runtime CA working directory.
+dir               = $ENV::PKI_CA_DIR
+certs             = $dir/certs
+new_certs_dir     = $dir/newcerts
+database          = $dir/index.txt
+serial            = $dir/serial
+private_key       = $dir/private/ca.key.pem
+certificate       = $dir/ca.crt.pem
+
+# Certificate revocation list (CRL) settings.
+crlnumber         = $dir/crlnumber
+crl               = $dir/crl/crl.pem
+crl_extensions    = crl_ext
+default_crl_days  = 7
+
+# Signing defaults for issued certificates.
+default_md        = sha256
+default_days      = 365
+x509_extensions   = v3_end_entity
+preserve          = no
+policy            = policy_internal
+# Do not copy extensions from the request; only the extensions
+# defined in this file are applied to issued certificates.
+copy_extensions   = none
+# Allow issuing a new certificate for a subject whose previous
+# certificate was revoked (same distinguished name may repeat).
+unique_subject    = no
+
+[ policy_internal ]
+# Issued certificates must share country and organization with the CA;
+# the common name is mandatory, everything else is optional.
+countryName             = match
+stateOrProvinceName     = optional
+localityName            = optional
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+default_bits        = 3072
+default_md          = sha256
+string_mask         = utf8only
+prompt              = no
+distinguished_name  = dn_defaults
+
+[ dn_defaults ]
+# Default subject, used as-is for the self-signed root certificate.
+# The values are a prototype identity for a Mexican law office.
+# issue-cert.sh overrides the subject on the command line but keeps
+# the same country (C) and organization (O) so that policy_internal
+# above is satisfied.
+C  = MX
+ST = Ciudad de Mexico
+L  = Ciudad de Mexico
+O  = Despacho Juridico Demo
+OU = Autoridad Certificadora Interna
+CN = CA Raiz Interna Despacho Juridico Demo
+
+[ v3_root_ca ]
+# Extensions for the self-signed root CA certificate.
+basicConstraints      = critical, CA:true
+keyUsage              = critical, keyCertSign, cRLSign
+subjectKeyIdentifier  = hash
+
+[ v3_end_entity ]
+# Extensions for issued end-entity certificates: people or services
+# that sign documents and authenticate against internal systems.
+basicConstraints        = critical, CA:false
+keyUsage                = critical, digitalSignature, nonRepudiation
+extendedKeyUsage        = clientAuth, emailProtection
+authorityKeyIdentifier  = keyid:always
+subjectKeyIdentifier    = hash
+
+[ crl_ext ]
+# Extensions attached to every generated CRL.
+authorityKeyIdentifier  = keyid:always

@@ -1,0 +1,25 @@
+# Rust build artifacts
+/target
+**/*.rs.bk
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Private key material and generated crypto artifacts (never commit)
+pki/**/*.key
+pki/**/*.pem
+!pki/**/ca-chain.example.pem
+*.tsr
+*.enc
+*.sig
+
+# Node / frontend
+node_modules
+frontend/dist
+frontend/.astro
+
+# Editor and OS noise
+.DS_Store
+*.swp
