@@ -65,4 +65,18 @@ pub enum DomainError {
     /// A recovery code set was built from the wrong number of hashes.
     #[error("recovery code set must hold {expected} codes, got {actual}")]
     InvalidRecoveryCodeCount { expected: usize, actual: usize },
+
+    /// An audit event timestamp could not be rendered as an RFC 3339 string.
+    #[error("audit timestamp cannot be rendered as rfc 3339: {0}")]
+    TimestampNotRepresentable(String),
+
+    /// An audit event field did not fit the 4-byte length prefix of the
+    /// canonical encoding.
+    #[error("audit field length exceeds {max} bytes")]
+    AuditFieldTooLong { max: usize },
+
+    /// Reading or writing audit log storage failed, or a stored entry could
+    /// not be decoded.
+    #[error("audit log storage failure: {0}")]
+    AuditStorageFailure(String),
 }

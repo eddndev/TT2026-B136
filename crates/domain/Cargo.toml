@@ -9,6 +9,7 @@ repository.workspace = true
 [dependencies]
 serde.workspace = true
 thiserror.workspace = true
+time.workspace = true
 uuid.workspace = true
 # Rationale for allowing zeroize in the domain:
 # docs/adr/0003-zeroize-secret-material-in-domain.md

@@ -10,9 +10,15 @@ repository.workspace = true
 domain = { path = "../domain" }
 application = { path = "../application" }
 ring.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 argon2.workspace = true
 getrandom.workspace = true
+# The audit log file adapter parses stored RFC 3339 timestamps back into
+# datetime values, which needs the parsing feature on top of the
+# workspace-wide selection.
+time = { workspace = true, features = ["parsing"] }
 totp-rs.workspace = true
 zeroize.workspace = true
 

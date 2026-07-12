@@ -5,6 +5,8 @@
 //! alongside their ports and tests. Backend errors are defined here and mapped
 //! into [`application::ApplicationError`] at the call site.
 
+pub mod audit;
+pub mod clock;
 pub mod encryption;
 pub mod envelope;
 pub mod error;
@@ -13,6 +15,8 @@ pub mod password;
 pub mod recovery;
 pub mod totp;
 
+pub use audit::{FileAuditLog, InMemoryAuditLog};
+pub use clock::SystemClock;
 pub use encryption::RingAesGcmCipher;
 pub use envelope::EnvelopeKeyManager;
 pub use error::{CryptoError, TsaError};
