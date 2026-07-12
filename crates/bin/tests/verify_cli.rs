@@ -8,7 +8,35 @@ mod verify_fixture;
 use std::fs;
 use std::process::Command;
 
+use time::format_description::well_known::Rfc3339;
+use time::{Duration, OffsetDateTime};
 use verify_fixture::{exe, path_with_suffix, pki_dir, run_checked, stdout_of, Fixture};
+
+/// Validity window of the fixture certificate, read through
+/// `pki show --json`, so instants relative to it stay meaningful no
+/// matter when the certificate was issued or for how long.
+fn certificate_window(fixture: &Fixture) -> (OffsetDateTime, OffsetDateTime) {
+    let output = run_checked(
+        Command::new(exe())
+            .args(["pki", "--scripts-dir"])
+            .arg(pki_dir())
+            .arg("show")
+            .arg(&fixture.certificate)
+            .arg("--json"),
+        "pki show",
+    );
+    let body: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("pki show --json prints one object");
+    let instant = |key: &str| {
+        OffsetDateTime::parse(body[key].as_str().unwrap(), &Rfc3339)
+            .expect("pki show prints rfc 3339 instants")
+    };
+    (instant("not_before"), instant("not_after"))
+}
+
+fn rfc3339(instant: OffsetDateTime) -> String {
+    instant.format(&Rfc3339).expect("the instant formats")
+}
 
 #[test]
 fn an_intact_document_verifies_valid_on_every_component() {
@@ -90,7 +118,9 @@ fn a_flipped_document_byte_fails_the_signature_component_with_its_cause() {
 #[test]
 fn an_evaluation_time_after_expiry_reports_the_expired_status() {
     let fixture = Fixture::build();
-    let output = fixture.verify(&fixture.document, true, &["--at", "2029-01-01T00:00:00Z"]);
+    let (_, not_after) = certificate_window(&fixture);
+    let after_expiry = rfc3339(not_after + Duration::days(1));
+    let output = fixture.verify(&fixture.document, true, &["--at", &after_expiry]);
     assert!(!output.status.success());
     let text = stdout_of(&output);
     assert!(
@@ -110,7 +140,9 @@ fn an_evaluation_time_after_expiry_reports_the_expired_status() {
 #[test]
 fn an_evaluation_time_before_issuance_reports_not_yet_valid() {
     let fixture = Fixture::build();
-    let output = fixture.verify(&fixture.document, true, &["--at", "2020-01-01T00:00:00Z"]);
+    let (not_before, _) = certificate_window(&fixture);
+    let before_issuance = rfc3339(not_before - Duration::days(1));
+    let output = fixture.verify(&fixture.document, true, &["--at", &before_issuance]);
     assert!(!output.status.success());
     let text = stdout_of(&output);
     assert!(

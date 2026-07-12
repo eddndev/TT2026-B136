@@ -64,9 +64,10 @@ evidencia.
 ## 4. Sello de tiempo
 
 Verifique que el sello de tiempo cubre este documento y que fue firmado
-por una autoridad de sellado que encadena a la raíz incluida:
+por una autoridad de sellado que encadena al ancla de confianza
+`{{ANCLA_SELLO}}` incluida en el paquete:
 
-    openssl ts -verify -data {{DOCUMENTO}} -in {{SELLO}} -CAfile ca.pem
+    openssl ts -verify -data {{DOCUMENTO}} -in {{SELLO}} -CAfile {{ANCLA_SELLO}}
 
 La salida esperada comienza con `Verification: OK`. Para inspeccionar la
 fecha y hora aseveradas por la autoridad de sellado:

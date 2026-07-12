@@ -159,6 +159,47 @@ fn the_instructions_fill_every_placeholder() {
 }
 
 #[test]
+fn with_a_tsa_chain_the_token_check_anchors_on_the_bundled_chain() {
+    let seen: SeenEntries = Arc::new(Mutex::new(Vec::new()));
+    let use_case = ExportEvidencePackage::new(document_hasher(), recording_archiver(seen));
+
+    let package = use_case.execute(&request(Some(b"tsa chain pem"))).unwrap();
+    let text = &package.instructions;
+
+    assert!(
+        text.contains("openssl ts -verify -data acta.txt -in acta.txt.tsr -CAfile tsa-chain.pem"),
+        "the token check must anchor on the bundled tsa chain: {text}"
+    );
+    assert!(
+        !text.contains("openssl ts -verify -data acta.txt -in acta.txt.tsr -CAfile ca.pem"),
+        "the token check must not anchor on the issuer root when a chain travels: {text}"
+    );
+    // The other documented commands keep their fixed anchors.
+    assert!(
+        text.contains("openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem"),
+        "the certificate check keeps the issuer root as anchor: {text}"
+    );
+}
+
+#[test]
+fn without_a_tsa_chain_the_token_check_anchors_on_the_issuer_root() {
+    let seen: SeenEntries = Arc::new(Mutex::new(Vec::new()));
+    let use_case = ExportEvidencePackage::new(document_hasher(), recording_archiver(seen));
+
+    let package = use_case.execute(&request(None)).unwrap();
+    let text = &package.instructions;
+
+    assert!(
+        text.contains("openssl ts -verify -data acta.txt -in acta.txt.tsr -CAfile ca.pem"),
+        "the token check must anchor on the issuer root: {text}"
+    );
+    assert!(
+        !text.contains("-CAfile tsa-chain.pem"),
+        "no command may reference an absent chain file: {text}"
+    );
+}
+
+#[test]
 fn a_document_name_unusable_as_an_entry_name_is_rejected() {
     let mut hasher = MockHasher::new();
     hasher.expect_hash_bytes().times(1).returning(|_| digest());

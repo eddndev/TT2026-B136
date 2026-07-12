@@ -2,14 +2,26 @@
 //!
 //! The export handler wires the SHA-256 hasher and the stored ZIP
 //! writer into the evidence export use case: every artifact is read,
-//! the instruction file is generated with the local openssl version,
-//! and the archive is written to the requested path.
+//! verified against the others, the instruction file is generated with
+//! the local openssl version, and the archive is written to the
+//! requested path. Artifacts that do not verify against each other are
+//! refused, so an exported package can never fail the checks its own
+//! instructions document.
 
 use std::fs;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Context;
 use application::evidence::{EvidenceRequest, ExportEvidencePackage};
-use infrastructure::{openssl_version, RingSha256Hasher, StoredZipWriter};
+use application::verification::{
+    ComponentReport, ComponentStatus, TimestampEvidence, Verdict, VerifyDocument,
+    VerifyDocumentRequest,
+};
+use domain::crypto::Signature;
+use infrastructure::{
+    openssl_version, Rfc3161Verifier, RingSha256Hasher, RsaPkcs1Verifier, StoredZipWriter,
+    X509ChainValidator,
+};
 
 use crate::cli::{PackageAction, PackageExportArgs};
 
@@ -21,6 +33,10 @@ pub fn run(action: PackageAction, json: bool) -> anyhow::Result<()> {
 }
 
 /// Builds the evidence package and writes it to `--out`.
+///
+/// The artifacts are verified against each other first; when the
+/// verdict is not valid the export is refused, no archive is written,
+/// and the error names every failing component.
 ///
 /// Human-readable output is the document digest and the package path.
 /// With `json` set, the output is one object carrying the digest, the
@@ -43,6 +59,16 @@ fn export(args: &PackageExportArgs, json: bool) -> anyhow::Result<()> {
         .as_ref()
         .map(|path| fs::read(path).with_context(|| format!("cannot read {}", path.display())))
         .transpose()?;
+
+    verify_artifacts(
+        &document,
+        &signature,
+        &certificate,
+        &issuer,
+        &crl,
+        &token,
+        tsa_chain.as_deref(),
+    )?;
 
     let document_name = args
         .file
@@ -85,4 +111,78 @@ fn export(args: &PackageExportArgs, json: bool) -> anyhow::Result<()> {
         );
     }
     Ok(())
+}
+
+/// Runs the same verification the `verify` command performs over the
+/// artifacts about to be bundled and rejects any set whose verdict is
+/// not valid, naming every failing component.
+///
+/// Without this gate the tool could produce a package that fails the
+/// very openssl checks its generated instructions document, for
+/// example when the revocation list comes from a different authority
+/// than the issuer certificate.
+fn verify_artifacts(
+    document: &[u8],
+    signature_bytes: &[u8],
+    signer_certificate_pem: &[u8],
+    issuer_certificate_pem: &[u8],
+    crl_pem: &[u8],
+    token: &[u8],
+    tsa_chain_pem: Option<&[u8]>,
+) -> anyhow::Result<()> {
+    let signature = Signature::from_bytes(signature_bytes.to_vec())
+        .context("the supplied signature file does not hold a signature")?;
+    let request = VerifyDocumentRequest {
+        signature: &signature,
+        signer_certificate_pem,
+        issuer_certificate_pem,
+        crl_pem: Some(crl_pem),
+        timestamp: Some(TimestampEvidence {
+            token,
+            // The instructions anchor the token check on the bundled
+            // TSA chain when one travels in the package and on the
+            // issuer root otherwise; the pre-export check must judge
+            // the token against the same anchor.
+            trust_anchor_pem: tsa_chain_pem.unwrap_or(issuer_certificate_pem),
+        }),
+        evaluation_unix: now_unix()?,
+    };
+
+    let use_case = VerifyDocument::new(
+        RingSha256Hasher::new(),
+        RsaPkcs1Verifier::new(),
+        X509ChainValidator::new(),
+        Rfc3161Verifier::new(),
+    );
+    let report = use_case
+        .execute(&mut &document[..], &request)
+        .context("the artifacts could not be verified before export")?;
+    if report.verdict != Verdict::Valid {
+        let components = [
+            ("integrity", &report.integrity),
+            ("signature", &report.signature),
+            ("certificate", &report.certificate),
+            ("timestamp", &report.timestamp),
+        ];
+        let failures: Vec<String> = components
+            .iter()
+            .filter(|(_, component)| component.status == ComponentStatus::Failed)
+            .map(|(name, component): &(&str, &ComponentReport)| {
+                format!("{name} ({})", component.detail)
+            })
+            .collect();
+        anyhow::bail!(
+            "refusing to export: the package would fail its own verification \
+             instructions; failing component(s): {}",
+            failures.join("; ")
+        );
+    }
+    Ok(())
+}
+
+fn now_unix() -> anyhow::Result<i64> {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .context("system clock is before the unix epoch")?;
+    Ok(now.as_secs() as i64)
 }

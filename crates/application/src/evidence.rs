@@ -101,11 +101,23 @@ impl<H: DocumentHasher, A: ArchiveWriter> ExportEvidencePackage<H, A> {
         let signature_name = format!("{}.sig", request.document_name);
         let token_name = format!("{}.tsr", request.document_name);
 
+        // The token check anchors on the timestamp authority's own
+        // chain when one travels in the package: a token issued by an
+        // authority that does not root at the internal CA can only be
+        // verified against that chain. Without one, the issuer root
+        // anchors the check, as it does for the internal authority.
+        let token_anchor = if request.tsa_chain_pem.is_some() {
+            TSA_CHAIN_ENTRY_NAME
+        } else {
+            ISSUER_CERTIFICATE_ENTRY_NAME
+        };
+
         let instructions = INSTRUCTIONS_TEMPLATE
             .replace("{{DOCUMENTO}}", request.document_name)
             .replace("{{FIRMA}}", &signature_name)
             .replace("{{SELLO}}", &token_name)
             .replace("{{DIGEST_SHA256}}", &digest_hex)
+            .replace("{{ANCLA_SELLO}}", token_anchor)
             .replace("{{OPENSSL_VERSION}}", request.openssl_version);
 
         let mut entries = vec![
