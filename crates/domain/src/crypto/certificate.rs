@@ -38,7 +38,9 @@ pub enum CertificateValidation {
     },
     /// The certificate does not chain to the presented issuer: the issuer
     /// name does not match the issuer's subject, or the signature over the
-    /// certificate body failed to verify with the issuer's public key.
+    /// certificate body failed to verify with the issuer's public key, or
+    /// the evaluation time falls outside the issuer's own validity window,
+    /// so the issuer cannot anchor trust at that time.
     UntrustedIssuer,
 }
 

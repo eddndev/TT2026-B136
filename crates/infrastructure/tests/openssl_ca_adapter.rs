@@ -46,12 +46,15 @@ fn issued_certificates_chain_to_the_root() {
     let summary = validator.inspect(&issued.certificate_pem).unwrap();
     assert!(summary.subject.contains("Ana Prueba"));
 
+    // One hour into the certificate's window: the issuing script backdates
+    // the certificate's notBefore by five minutes, so an instant that close
+    // to it would precede the root's own notBefore and fail validation.
     let outcome = validator
         .validate(
             &issued.certificate_pem,
             &root,
             None,
-            summary.not_before_unix + 60,
+            summary.not_before_unix + 3_600,
         )
         .unwrap();
     assert_eq!(outcome, CertificateValidation::Valid);
@@ -72,12 +75,15 @@ fn revoke_then_generate_crl_marks_the_certificate_revoked() {
 
     let validator = X509ChainValidator::new();
     let summary = validator.inspect(&issued.certificate_pem).unwrap();
+    // One hour into the certificate's window, inside the root's window as
+    // well despite the five-minute backdating of the certificate's
+    // notBefore, and well within the revocation list's seven-day period.
     let outcome = validator
         .validate(
             &issued.certificate_pem,
             &root,
             Some(&crl),
-            summary.not_before_unix + 60,
+            summary.not_before_unix + 3_600,
         )
         .unwrap();
     assert_eq!(

@@ -30,8 +30,9 @@ const SHA256_WITH_RSA_ENCRYPTION: ObjectIdentifier =
 /// the presented issuer and is reported as an untrusted issuer.
 ///
 /// Checks run in a fixed order and the first failing one is reported:
-/// issuer trust (name match plus signature), then the validity window,
-/// then revocation against the optional list.
+/// issuer trust (name match plus signature), then the certificate's
+/// validity window, then the issuer's own validity window, then
+/// revocation against the optional list.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct X509ChainValidator;
 
@@ -63,6 +64,20 @@ impl CertificateValidator for X509ChainValidator {
         }
         if unix_seconds > time_to_unix(&validity.not_after) {
             return Ok(CertificateValidation::Expired);
+        }
+
+        // An issuer outside its own validity window cannot anchor trust at
+        // the evaluation time, neither for the certificate nor for any
+        // revocation list it signed, so this check must precede the
+        // revocation step below. The verdict is UntrustedIssuer rather
+        // than Expired or NotYetValid because those two report the
+        // validated certificate's own window; `openssl verify -attime`
+        // rejects the same chain with a validity error at depth 1.
+        let issuer_validity = &issuer_cert.tbs_certificate.validity;
+        if unix_seconds < time_to_unix(&issuer_validity.not_before)
+            || unix_seconds > time_to_unix(&issuer_validity.not_after)
+        {
+            return Ok(CertificateValidation::UntrustedIssuer);
         }
 
         if let Some(crl_bytes) = crl {
@@ -139,7 +154,9 @@ fn verify_rsa_sha256(
 ///
 /// The list must parse, be signed by the presented issuer, and still be
 /// within its scheduled update period at the evaluation time; each failed
-/// requirement is a distinct hard error.
+/// requirement is a distinct hard error. The caller has already confirmed
+/// that the issuer itself is inside its own validity window, so the list's
+/// signature is only ever trusted under a currently valid issuer.
 fn revoked_serial(
     crl_bytes: &[u8],
     cert: &Certificate,

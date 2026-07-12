@@ -30,6 +30,9 @@ struct Fixture {
     revoked_serial: String,
     crl_pem: Vec<u8>,
     foreign_cert_pem: Vec<u8>,
+    /// Revocation list issued by the second authority; it carries the same
+    /// issuer name and algorithm as the main one but a foreign signature.
+    foreign_crl_pem: Vec<u8>,
     /// Root certificate and revocation list concatenated, as
     /// `openssl verify -crl_check -CAfile` expects.
     ca_bundle_path: PathBuf,
@@ -80,6 +83,7 @@ fn fixture() -> &'static Fixture {
         let foreign_ca_dir = dir.path().join("foreign-ca");
         run_script("init-ca.sh", &foreign_ca_dir, &[]);
         run_script("issue-cert.sh", &foreign_ca_dir, &["Firmante Ajeno"]);
+        run_script("gen-crl.sh", &foreign_ca_dir, &[]);
 
         let root_pem = fs::read(ca_dir.join("ca.crt.pem")).unwrap();
         let crl_pem = fs::read(ca_dir.join("crl/crl.pem")).unwrap();
@@ -98,6 +102,7 @@ fn fixture() -> &'static Fixture {
             valid_cert_der: pem_to_der(&valid_cert_path),
             foreign_cert_pem: fs::read(foreign_ca_dir.join("certs/firmante-ajeno.crt.pem"))
                 .unwrap(),
+            foreign_crl_pem: fs::read(foreign_ca_dir.join("crl/crl.pem")).unwrap(),
             _dir: dir,
             root_pem,
             valid_cert_pem,
@@ -196,6 +201,37 @@ fn certificate_from_an_independent_authority_is_untrusted() {
         )
         .unwrap();
     assert_eq!(outcome, CertificateValidation::UntrustedIssuer);
+}
+
+#[test]
+fn crl_from_an_independent_authority_is_untrusted() {
+    let fx = fixture();
+    // Both authorities share the issuer name fixed in pki/openssl.cnf and
+    // both lists are signed with sha256WithRSAEncryption, so of the three
+    // requirements on a supplied list only the signature check under the
+    // main root's key can tell the foreign list apart.
+    let err = X509ChainValidator::new()
+        .validate(
+            &fx.valid_cert_pem,
+            &fx.root_pem,
+            Some(&fx.foreign_crl_pem),
+            inside_window(fx),
+        )
+        .unwrap_err();
+    assert_eq!(err, DomainError::UntrustedCrl);
+
+    // Companion positive case: the same call with the main authority's
+    // list succeeds, pinning the rejection above to the list's signature
+    // rather than to the certificate, the issuer, or the instant.
+    let outcome = X509ChainValidator::new()
+        .validate(
+            &fx.valid_cert_pem,
+            &fx.root_pem,
+            Some(&fx.crl_pem),
+            inside_window(fx),
+        )
+        .unwrap();
+    assert_eq!(outcome, CertificateValidation::Valid);
 }
 
 #[test]
