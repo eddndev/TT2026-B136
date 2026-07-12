@@ -41,4 +41,28 @@ pub enum DomainError {
     /// authentication check.
     #[error("cryptographic backend failure: {0}")]
     CryptoBackendFailure(String),
+
+    /// A stored password hash could not be parsed as a PHC string.
+    #[error("stored password hash is not a valid phc string")]
+    MalformedPasswordHash,
+
+    /// The hashing backend failed while deriving a credential hash.
+    #[error("password hashing failed: {0}")]
+    PasswordHashingFailed(String),
+
+    /// A one-time-password secret was shorter than the backend allows.
+    #[error("totp secret must be at least {minimum} bytes, got {actual}")]
+    TotpSecretTooShort { minimum: usize, actual: usize },
+
+    /// The one-time-password backend failed.
+    #[error("totp backend failure: {0}")]
+    TotpBackendFailed(String),
+
+    /// The operating system's random generator failed.
+    #[error("random generation failed: {0}")]
+    RandomnessFailed(String),
+
+    /// A recovery code set was built from the wrong number of hashes.
+    #[error("recovery code set must hold {expected} codes, got {actual}")]
+    InvalidRecoveryCodeCount { expected: usize, actual: usize },
 }

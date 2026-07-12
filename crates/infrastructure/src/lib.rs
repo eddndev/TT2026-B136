@@ -9,8 +9,14 @@ pub mod encryption;
 pub mod envelope;
 pub mod error;
 pub mod hashing;
+pub mod password;
+pub mod recovery;
+pub mod totp;
 
 pub use encryption::RingAesGcmCipher;
 pub use envelope::EnvelopeKeyManager;
 pub use error::{CryptoError, TsaError};
 pub use hashing::RingSha256Hasher;
+pub use password::Argon2idHasher;
+pub use recovery::RandomRecoveryCodeGenerator;
+pub use totp::{decode_base32_secret, TotpRsProvider};

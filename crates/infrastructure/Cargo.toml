@@ -11,6 +11,9 @@ domain = { path = "../domain" }
 application = { path = "../application" }
 ring.workspace = true
 thiserror.workspace = true
+argon2.workspace = true
+getrandom.workspace = true
+totp-rs.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]

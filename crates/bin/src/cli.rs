@@ -214,8 +214,12 @@ pub enum AuthAction {
     Calibrate,
     /// Hash a password read from standard input.
     HashPassword,
-    /// Verify a password against a stored hash.
-    VerifyPassword,
+    /// Verify a password read from standard input against a stored hash.
+    VerifyPassword {
+        /// Stored hash to check against, in PHC string format.
+        #[arg(long)]
+        hash: String,
+    },
     /// One-time-password subcommands.
     Totp {
         #[command(subcommand)]
@@ -231,12 +235,18 @@ pub enum TotpAction {
         /// User identifier (email) to enroll.
         #[arg(long)]
         user: String,
+        /// File that receives the base32 secret for later verification.
+        #[arg(long)]
+        secret_out: PathBuf,
     },
     /// Verify a one-time-password code.
     Verify {
         /// The code to verify.
         #[arg(long)]
         code: String,
+        /// File holding the base32 secret written at enrollment.
+        #[arg(long)]
+        secret_file: PathBuf,
     },
 }
 

@@ -5,6 +5,7 @@
 //! together. Wiring is added as each use case lands; for now the tree parses
 //! and reports which command was requested.
 
+mod auth_cmd;
 mod cli;
 mod config;
 mod handlers;
@@ -38,6 +39,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
             action: CryptoAction::Hash { file },
         } => handlers::hash_file(&file, cli.json),
         Command::Vault { action } => vault_cmd::run(action),
+        Command::Auth { action } => auth_cmd::run(action),
         _ => anyhow::bail!("command '{name}' is not implemented yet"),
     }
 }

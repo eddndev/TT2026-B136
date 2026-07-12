@@ -52,11 +52,23 @@ x509-cert = "0.2"
 cms = "0.2"
 x509-tsp = "0.1"
 argon2 = "0.5"
-totp-rs = "5"
+# otpauth adds provisioning-URI generation; zeroize wipes the secret held
+# inside the library's TOTP value when it drops.
+totp-rs = { version = "5", features = ["otpauth", "zeroize"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 zeroize = { version = "1", features = ["zeroize_derive"] }
 subtle = "2"
+getrandom = "0.2"
 
 [profile.release]
 strip = true
 lto = true
+
+# Argon2id is memory-hard by design, so an unoptimized build of its kernel
+# makes every hash take seconds and the test suite take minutes. Optimize
+# only the hashing kernels; the workspace itself keeps full debug info.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3
