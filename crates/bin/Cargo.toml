@@ -23,6 +23,7 @@ tracing-subscriber.workspace = true
 dotenvy.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
+time.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -8,6 +8,7 @@ pub mod audit;
 pub mod auth;
 pub mod error;
 pub mod hashing;
+pub mod pki;
 pub mod vault;
 
 pub use error::ApplicationError;

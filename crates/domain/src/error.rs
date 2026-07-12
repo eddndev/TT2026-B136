@@ -79,4 +79,27 @@ pub enum DomainError {
     /// not be decoded.
     #[error("audit log storage failure: {0}")]
     AuditStorageFailure(String),
+
+    /// Certificate or issuer bytes could not be parsed as X.509 data.
+    #[error("certificate cannot be parsed: {0}")]
+    MalformedCertificate(String),
+
+    /// Revocation-list bytes could not be parsed as an X.509 CRL.
+    #[error("certificate revocation list cannot be parsed: {0}")]
+    MalformedCrl(String),
+
+    /// The revocation list's next scheduled update is already in the past
+    /// at the evaluation time, so its revocation data cannot be relied on.
+    #[error(
+        "certificate revocation list is stale: next update was due at unix time {next_update_unix}"
+    )]
+    StaleCrl { next_update_unix: i64 },
+
+    /// The revocation list is not signed by the presented issuer.
+    #[error("certificate revocation list is not signed by the issuer")]
+    UntrustedCrl,
+
+    /// A certificate-authority operation failed.
+    #[error("certificate authority operation failed: {0}")]
+    CertificateAuthorityFailure(String),
 }

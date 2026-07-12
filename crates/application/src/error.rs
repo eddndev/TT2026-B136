@@ -22,4 +22,10 @@ pub enum ApplicationError {
     /// documented in the `vault` module.
     #[error("malformed vault file: {0}")]
     MalformedVaultFile(String),
+
+    /// A freshly issued certificate failed the validation that runs
+    /// before issuance is reported as successful; the message carries the
+    /// validation outcome.
+    #[error("issued certificate failed post-issuance validation: {0}")]
+    IssuedCertificateInvalid(String),
 }

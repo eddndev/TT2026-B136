@@ -38,6 +38,10 @@ pub enum Command {
     },
     /// Manage the internal certificate authority.
     Pki {
+        /// Directory holding the certificate-authority scripts
+        /// (init-ca.sh, issue-cert.sh, revoke.sh, gen-crl.sh).
+        #[arg(long, default_value = "pki")]
+        scripts_dir: PathBuf,
         #[command(subcommand)]
         action: PkiAction,
     },
@@ -144,9 +148,10 @@ pub enum PkiAction {
     },
     /// Revoke a certificate by serial number.
     Revoke {
-        /// Serial number of the certificate to revoke.
+        /// Serial number of the certificate to revoke, in hex as printed
+        /// by `pki issue` and `pki show`.
         #[arg(long)]
-        serial: u64,
+        serial: String,
     },
     /// Generate the certificate revocation list.
     GenCrl,

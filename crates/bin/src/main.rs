@@ -10,6 +10,7 @@ mod auth_cmd;
 mod cli;
 mod config;
 mod handlers;
+mod pki_cmd;
 mod telemetry;
 mod vault_cmd;
 
@@ -40,6 +41,10 @@ fn run(cli: Cli) -> anyhow::Result<()> {
             action: CryptoAction::Hash { file },
         } => handlers::hash_file(&file, cli.json),
         Command::Vault { action } => vault_cmd::run(action),
+        Command::Pki {
+            scripts_dir,
+            action,
+        } => pki_cmd::run(&scripts_dir, action, cli.json),
         Command::Auth { action } => auth_cmd::run(action),
         Command::Audit { action } => audit_cmd::run(action, cli.json),
         _ => anyhow::bail!("command '{name}' is not implemented yet"),

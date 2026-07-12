@@ -6,6 +6,7 @@
 //! into [`application::ApplicationError`] at the call site.
 
 pub mod audit;
+pub mod certificates;
 pub mod clock;
 pub mod encryption;
 pub mod envelope;
@@ -16,6 +17,7 @@ pub mod recovery;
 pub mod totp;
 
 pub use audit::{FileAuditLog, InMemoryAuditLog};
+pub use certificates::{OpensslCaAdapter, X509ChainValidator};
 pub use clock::SystemClock;
 pub use encryption::RingAesGcmCipher;
 pub use envelope::EnvelopeKeyManager;

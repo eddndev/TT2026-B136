@@ -21,6 +21,14 @@ getrandom.workspace = true
 time = { workspace = true, features = ["parsing"] }
 totp-rs.workspace = true
 zeroize.workspace = true
+# X.509 parsing and RSA signature verification for certificate chain
+# validation; see docs/adr/0004-certificate-validation-implementation.md.
+der = { workspace = true, features = ["pem"] }
+rsa.workspace = true
+# The oid feature ties the SHA-256 type to its DigestInfo identifier, as
+# PKCS#1 v1.5 signature verification requires.
+sha2 = { workspace = true, features = ["oid"] }
+x509-cert.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
