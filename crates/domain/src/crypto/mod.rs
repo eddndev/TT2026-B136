@@ -14,6 +14,7 @@ pub mod keys;
 pub mod password;
 pub mod recovery;
 pub mod signature;
+pub mod timestamp;
 pub mod totp;
 
 pub use certificate::{
@@ -32,4 +33,5 @@ pub use recovery::{
 pub use signature::{
     DocumentSigner, Signature, SignatureRejection, SignatureVerification, SignatureVerifier,
 };
+pub use timestamp::{TimestampService, TimestampVerification, TimestampVerifier};
 pub use totp::{TotpEnrollment, TotpProvider, TotpVerification};

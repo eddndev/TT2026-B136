@@ -29,6 +29,15 @@ totp-rs.workspace = true
 # see docs/adr/0004-certificate-validation-implementation.md.
 der = { workspace = true, features = ["pem"] }
 x509-cert.workspace = true
+# RFC 3161 timestamp token parsing (imprint and generation time); the
+# cryptographic check is delegated to an openssl subprocess, see
+# docs/adr/0005-rfc3161-verification-strategy.md.
+cms.workspace = true
+x509-tsp.workspace = true
+# Blocking http client and token transport encoding for the remote
+# timestamping provider adapter.
+reqwest.workspace = true
+base64.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]

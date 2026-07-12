@@ -11,6 +11,11 @@
 pki/**/*.key
 pki/**/*.pem
 !pki/**/ca-chain.example.pem
+# Runtime working directories of the internal CA and the local TSA
+# (created by pki/init-ca.sh and pki/issue-tsa-cert.sh when run from
+# the repository root with default paths).
+pki-ca/
+pki-tsa/
 *.tsr
 *.enc
 *.sig

@@ -13,6 +13,7 @@ mod handlers;
 mod pki_cmd;
 mod sign_cmd;
 mod telemetry;
+mod timestamp_cmd;
 mod vault_cmd;
 
 use clap::Parser;
@@ -47,6 +48,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
             action,
         } => pki_cmd::run(&scripts_dir, action, cli.json),
         Command::Sign(args) => sign_cmd::run(&args, cli.json),
+        Command::Timestamp(args) => timestamp_cmd::run(&args, cli.json),
         Command::Auth { action } => auth_cmd::run(action),
         Command::Audit { action } => audit_cmd::run(action, cli.json),
         _ => anyhow::bail!("command '{name}' is not implemented yet"),

@@ -180,9 +180,21 @@ pub struct SignArgs {
 pub struct TimestampArgs {
     /// Path to the signature or hash to timestamp.
     pub input: PathBuf,
-    /// Use a local mock authority instead of the real one.
+    /// Use the local OpenSSL authority instead of the remote provider.
+    ///
+    /// The authority working directory is read from the TSA_DIR
+    /// environment variable and defaults to "pki-tsa" next to the CA
+    /// working directory (PKI_CA_DIR, itself defaulting to "pki-ca").
+    /// Prepare it with pki/init-ca.sh and pki/issue-tsa-cert.sh.
     #[arg(long)]
     pub mock: bool,
+    /// Write the timestamp token to this path instead of `<input>.tsr`.
+    #[arg(long)]
+    pub out: Option<PathBuf>,
+    /// Directory holding the timestamp authority configuration
+    /// (tsa.cnf), used with --mock.
+    #[arg(long, default_value = "pki")]
+    pub pki_dir: PathBuf,
 }
 
 /// Arguments for `verify`.

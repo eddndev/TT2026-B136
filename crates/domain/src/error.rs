@@ -106,4 +106,10 @@ pub enum DomainError {
     /// A signature value was built from an empty byte sequence.
     #[error("signature must not be empty")]
     EmptySignature,
+
+    /// A timestamp authority request failed: the authority was
+    /// unreachable, rejected the request, or returned an unusable
+    /// response.
+    #[error("timestamp authority failure: {0}")]
+    TimestampAuthorityFailure(String),
 }

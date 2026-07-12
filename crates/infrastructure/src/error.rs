@@ -64,3 +64,12 @@ impl From<TsaError> for ApplicationError {
         ApplicationError::Port(err.to_string())
     }
 }
+
+/// Timestamp adapters implement the domain timestamping port, so their
+/// failures must surface as domain errors; the adapter's diagnosis is
+/// carried in the message.
+impl From<TsaError> for DomainError {
+    fn from(err: TsaError) -> Self {
+        DomainError::TimestampAuthorityFailure(err.to_string())
+    }
+}
