@@ -33,10 +33,16 @@ config = { version = "0.14", default-features = false, features = ["toml"] }
 dotenvy = "0.15"
 anyhow = "1"
 mockall = "0.13"
+# Cross-process advisory file locking for append-only logs and the local
+# timestamp authority's serial file, held to a release that builds on
+# rust-version 1.78 (the standard library gained file locking only in a
+# newer toolchain). See docs/adr/0001-msrv-and-dependency-pinning.md.
+fs2 = "0.4"
 
-# Test-only crates: property-based testing and temporary files. proptest is
-# held to the 1.8 line because newer releases require a toolchain above
-# rust-version 1.78; see docs/adr/0001-msrv-and-dependency-pinning.md.
+# Temporary files and directories, used by adapters that stage inputs for
+# openssl subprocesses and by tests. proptest is held to the 1.8 line
+# because newer releases require a toolchain above rust-version 1.78; see
+# docs/adr/0001-msrv-and-dependency-pinning.md.
 proptest = "~1.8"
 tempfile = "3"
 
