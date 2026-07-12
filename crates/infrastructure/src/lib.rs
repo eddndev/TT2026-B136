@@ -6,5 +6,7 @@
 //! into [`application::ApplicationError`] at the call site.
 
 pub mod error;
+pub mod hashing;
 
 pub use error::{CryptoError, TsaError};
+pub use hashing::RingSha256Hasher;

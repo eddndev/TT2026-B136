@@ -20,6 +20,7 @@ repository = "https://github.com/eddndev/TT2026-B136"
 # `dep.workspace = true`. Versions are declared here so the whole workspace
 # stays on one compatible set.
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 thiserror = "1"
 time = { version = "0.3", features = ["formatting", "macros"] }
 uuid = { version = "1", features = ["v4", "serde"] }
@@ -31,6 +32,12 @@ config = { version = "0.14", default-features = false, features = ["toml"] }
 dotenvy = "0.15"
 anyhow = "1"
 mockall = "0.13"
+
+# Test-only crates: property-based testing and temporary files. proptest is
+# held to the 1.8 line because newer releases require a toolchain above
+# rust-version 1.78; see docs/adr/0001-msrv-and-dependency-pinning.md.
+proptest = "~1.8"
+tempfile = "3"
 
 # Cryptographic crates. Pinned to versions that build on rust-version 1.78:
 # the der 0.7 family is required because x509-cert 0.3 and rsa 0.10 raise the

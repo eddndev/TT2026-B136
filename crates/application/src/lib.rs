@@ -5,5 +5,7 @@
 //! use cases are added together with their tests.
 
 pub mod error;
+pub mod hashing;
 
 pub use error::ApplicationError;
+pub use hashing::HashDocument;

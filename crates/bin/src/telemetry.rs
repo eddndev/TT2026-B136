@@ -12,10 +12,16 @@ use tracing_subscriber::EnvFilter;
 ///
 /// `RUST_LOG` overrides `directive` when set; otherwise `directive` is used,
 /// falling back to `info` if it cannot be parsed. Safe to call once at start.
+///
+/// Logs go to standard error so that standard output stays reserved for
+/// command results, which scripts consume directly or as JSON.
 pub fn init(directive: &str) {
     let filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new(directive))
         .unwrap_or_else(|_| EnvFilter::new("info"));
 
-    tracing_subscriber::fmt().with_env_filter(filter).init();
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_writer(std::io::stderr)
+        .init();
 }

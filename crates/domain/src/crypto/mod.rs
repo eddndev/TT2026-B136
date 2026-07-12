@@ -6,6 +6,8 @@
 
 pub mod digest;
 pub mod document;
+pub mod hasher;
 
 pub use digest::Sha256Digest;
 pub use document::{DocumentId, DocumentVersion};
+pub use hasher::DocumentHasher;

@@ -7,11 +7,12 @@
 
 mod cli;
 mod config;
+mod handlers;
 mod telemetry;
 
 use clap::Parser;
 
-use crate::cli::Cli;
+use crate::cli::{Cli, Command, CryptoAction};
 use crate::config::AppConfig;
 
 fn main() -> anyhow::Result<()> {
@@ -31,5 +32,10 @@ fn main() -> anyhow::Result<()> {
 fn run(cli: Cli) -> anyhow::Result<()> {
     let name = cli.command.name();
     tracing::info!(command = name, json = cli.json, "command received");
-    anyhow::bail!("command '{name}' is not implemented yet")
+    match cli.command {
+        Command::Crypto {
+            action: CryptoAction::Hash { file },
+        } => handlers::hash_file(&file, cli.json),
+        _ => anyhow::bail!("command '{name}' is not implemented yet"),
+    }
 }

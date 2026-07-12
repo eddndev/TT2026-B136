@@ -10,3 +10,8 @@ repository.workspace = true
 domain = { path = "../domain" }
 application = { path = "../application" }
 thiserror.workspace = true
+ring.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile.workspace = true

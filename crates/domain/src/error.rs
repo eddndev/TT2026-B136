@@ -19,4 +19,8 @@ pub enum DomainError {
     /// A document version was outside the allowed range (versions start at 1).
     #[error("document version must be 1 or greater")]
     InvalidDocumentVersion,
+
+    /// Reading from an input stream failed while digesting its content.
+    #[error("failed to read input stream: {message}")]
+    StreamRead { message: String },
 }
