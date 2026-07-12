@@ -7,17 +7,22 @@ use std::path::PathBuf;
 use domain::audit::{chain_digest, AuditEvent, AuditLog, ChainedEvent, GENESIS_PREVIOUS};
 use domain::crypto::{DocumentHasher, Sha256Digest};
 use domain::DomainError;
+use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 
 /// [`AuditLog`] stored as one JSON object per line in a file.
 ///
-/// Appending opens the file in append mode and reads only the last line to
-/// link the new entry; nothing is recomputed or verified on append, so a
-/// tampered file is only detected by a later full-chain verification.
-/// Loading streams the file line by line. A missing file is an empty log
-/// and is created by the first append.
+/// Appending reads only the last line to link the new entry, then writes
+/// the new line in append mode; nothing is recomputed or verified on
+/// append, so a tampered file is only detected by a later full-chain
+/// verification. That read-then-write step runs under an exclusive
+/// advisory lock on a sibling `<log>.lock` file, so concurrent appenders
+/// (threads or processes) serialize instead of linking to the same
+/// previous entry and forking the chain. Loading streams the file line by
+/// line and takes no lock. A missing file is an empty log and is created
+/// by the first append.
 pub struct FileAuditLog<H> {
     path: PathBuf,
     hasher: H,
@@ -109,6 +114,31 @@ impl<H: DocumentHasher> FileAuditLog<H> {
         }
     }
 
+    /// Takes the exclusive advisory lock that guards appends.
+    ///
+    /// The lock lives in a sibling file named after the log with a `.lock`
+    /// suffix, so the log itself can be read without contending with
+    /// writers. Advisory file locks are released when the file handle is
+    /// dropped, so the returned handle is the guard: holding it delimits
+    /// the critical section that reads the last link and writes the next
+    /// line.
+    fn acquire_append_lock(&self) -> Result<File, DomainError> {
+        let mut lock_path = self.path.clone().into_os_string();
+        lock_path.push(".lock");
+        // The lock file's content is never used, only its lock state, so
+        // an existing file is left as it is (no truncation).
+        let lock_file = OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .write(true)
+            .open(PathBuf::from(lock_path))
+            .map_err(|err| self.storage_failure(&err))?;
+        lock_file
+            .lock_exclusive()
+            .map_err(|err| self.storage_failure(&err))?;
+        Ok(lock_file)
+    }
+
     fn storage_failure(&self, err: &dyn std::fmt::Display) -> DomainError {
         DomainError::AuditStorageFailure(format!("{}: {err}", self.path.display()))
     }
@@ -129,6 +159,11 @@ impl<H: DocumentHasher> AuditLog for FileAuditLog<H> {
         resource: &str,
         timestamp: OffsetDateTime,
     ) -> Result<ChainedEvent, DomainError> {
+        // The last link must be read under the same lock that guards the
+        // write, so a racing appender's entry is observed and the new
+        // entry links to it instead of forking the chain. The lock is
+        // released when this guard is dropped at the end of the method.
+        let _append_lock = self.acquire_append_lock()?;
         let (sequence, previous) = match self.last_link()? {
             Some((last_sequence, last_chain)) => (last_sequence + 1, last_chain),
             None => (0, GENESIS_PREVIOUS),

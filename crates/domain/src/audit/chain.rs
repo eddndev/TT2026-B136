@@ -5,8 +5,14 @@
 //! concatenation and `canonical_bytes` is the encoding documented on
 //! [`AuditEvent::canonical_bytes`]. For the first entry the previous chain
 //! value is [`GENESIS_PREVIOUS`], 32 zero bytes. Because every chain value
-//! covers the full history before it, altering, inserting, deleting, or
-//! reordering any past entry changes the recomputed value at that position.
+//! covers the full history before it, altering an entry, inserting one, or
+//! deleting or reordering entries anywhere before the last one changes the
+//! recomputed value at the first affected position. Removing entries from
+//! the tail is NOT detected: verification recomputes from the fixed genesis
+//! value, so every prefix of a valid chain is itself a valid chain.
+//! Detecting truncation needs the newest chain value anchored outside the
+//! log, which is left to the persistence layer; see
+//! docs/adr/0007-audit-chain-anchoring.md.
 
 use crate::audit::event::{AuditEvent, ChainedEvent};
 use crate::crypto::digest::{Sha256Digest, SHA256_LEN};
@@ -57,9 +63,12 @@ pub enum ChainVerification {
 /// Recomputes every link of `entries` and compares it to the stored value.
 ///
 /// The recomputation starts from [`GENESIS_PREVIOUS`] and applies the chain
-/// rule documented at the top of this module, so alteration, insertion,
-/// deletion, and reordering of past entries are all detected. The result
-/// reports the first index that does not match; an empty slice is valid.
+/// rule documented at the top of this module, so alteration, insertion, and
+/// interior deletion or reordering are detected. Truncation of the tail is
+/// not: any prefix of a valid chain verifies as valid, and only a chain
+/// head anchored outside the log can rule that out (see
+/// docs/adr/0007-audit-chain-anchoring.md). The result reports the first
+/// index that does not match; an empty slice is valid.
 ///
 /// # Errors
 ///
@@ -213,6 +222,21 @@ mod tests {
             ChainVerification::Broken {
                 first_broken_index: 2,
             }
+        );
+    }
+
+    /// Pins the documented limitation, not a guarantee: a chain whose
+    /// newest entries were removed is a prefix of the original and still
+    /// verifies from the same genesis value. Only an externally anchored
+    /// chain head can expose this; see
+    /// docs/adr/0007-audit-chain-anchoring.md.
+    #[test]
+    fn truncating_the_tail_is_not_detected_by_verification_alone() {
+        let mut entries = build_chain(5);
+        entries.truncate(3);
+        assert_eq!(
+            verify_chain(&FnvLaneHasher, &entries).unwrap(),
+            ChainVerification::Valid { entries: 3 }
         );
     }
 

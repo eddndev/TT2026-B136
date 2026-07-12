@@ -25,6 +25,9 @@ getrandom.workspace = true
 # workspace-wide selection.
 time = { workspace = true, features = ["parsing"] }
 totp-rs.workspace = true
+# Cross-process advisory file locking that serializes concurrent appends
+# to the file audit log so the hash chain cannot fork.
+fs2.workspace = true
 # X.509 parsing for certificate chain validation and signer certificates;
 # see docs/adr/0004-certificate-validation-implementation.md.
 der = { workspace = true, features = ["pem"] }

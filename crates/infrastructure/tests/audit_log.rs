@@ -43,6 +43,54 @@ fn appends_from_separate_adapter_instances_keep_one_valid_chain() {
 }
 
 #[test]
+fn concurrent_appends_serialize_into_one_valid_chain() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("audit.jsonl");
+
+    // Several adapter instances append to the same file at the same time,
+    // as concurrent process runs would. Each append must observe the entry
+    // a racing writer just added, so the sequence numbers stay unique and
+    // every entry links to the actual previous chain value.
+    const WRITERS: usize = 8;
+    const APPENDS_PER_WRITER: usize = 4;
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(WRITERS));
+    let handles: Vec<_> = (0..WRITERS)
+        .map(|writer| {
+            let path = path.clone();
+            let barrier = std::sync::Arc::clone(&barrier);
+            std::thread::spawn(move || {
+                let mut log = FileAuditLog::new(&path, RingSha256Hasher::new());
+                barrier.wait();
+                for round in 0..APPENDS_PER_WRITER {
+                    log.append(
+                        "ana",
+                        "open",
+                        &format!("case-{writer}-{round}"),
+                        timestamp((writer * APPENDS_PER_WRITER + round) as i64),
+                    )
+                    .unwrap();
+                }
+            })
+        })
+        .collect();
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let entries = FileAuditLog::new(&path, RingSha256Hasher::new())
+        .load_all()
+        .unwrap();
+    let total = WRITERS * APPENDS_PER_WRITER;
+    let sequences: Vec<u64> = entries.iter().map(|e| e.event.sequence).collect();
+    let expected: Vec<u64> = (0..total as u64).collect();
+    assert_eq!(sequences, expected);
+    assert_eq!(
+        verify_chain(&RingSha256Hasher::new(), &entries).unwrap(),
+        ChainVerification::Valid { entries: total }
+    );
+}
+
+#[test]
 fn a_hand_corrupted_line_breaks_verification_at_its_index() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("audit.jsonl");

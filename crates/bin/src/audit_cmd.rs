@@ -27,17 +27,42 @@ const ACTOR_VAR: &str = "USER";
 const UNKNOWN_ACTOR: &str = "unknown";
 
 /// Dispatches an `audit` subcommand to its handler.
+///
+/// The read-only subcommands refuse to run against a log file that does
+/// not exist: reporting a mistyped path or a deleted log as a valid empty
+/// chain would defeat the point of verification. Only `append` may create
+/// the file, on first use.
 pub fn run(action: AuditAction, json: bool) -> anyhow::Result<()> {
-    let log = FileAuditLog::new(log_path(), RingSha256Hasher::new());
+    let path = log_path();
+    let log = FileAuditLog::new(path.as_str(), RingSha256Hasher::new());
     match action {
         AuditAction::Append { action, resource } => append(log, &action, &resource, json),
-        AuditAction::VerifyChain => verify_chain(log, json),
-        AuditAction::Show => show(log, json),
+        AuditAction::VerifyChain => {
+            require_existing_log(&path)?;
+            verify_chain(log, json)
+        }
+        AuditAction::Show => {
+            require_existing_log(&path)?;
+            show(log, json)
+        }
     }
 }
 
 fn log_path() -> String {
     env::var(LOG_PATH_VAR).unwrap_or_else(|_| DEFAULT_LOG_PATH.to_string())
+}
+
+/// Fails when no file exists at `path`, naming the path.
+///
+/// An existing empty file is fine: it is a valid empty log. Only the
+/// complete absence of the file is rejected here, so the distinction
+/// between "nothing was ever logged" and "the log is not where the
+/// configuration points" stays visible to the operator.
+fn require_existing_log(path: &str) -> anyhow::Result<()> {
+    if !std::path::Path::new(path).exists() {
+        anyhow::bail!("audit log not found at {path}");
+    }
+    Ok(())
 }
 
 fn append(

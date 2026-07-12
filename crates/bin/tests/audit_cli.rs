@@ -57,11 +57,48 @@ fn appending_twice_yields_a_valid_chain() {
 }
 
 #[test]
-fn verifying_a_missing_log_reports_an_empty_valid_chain() {
+fn verifying_a_missing_log_fails_naming_the_path() {
     let dir = tempfile::tempdir().unwrap();
-    let output = run_binary(&log_path(&dir), &["--json", "audit", "verify-chain"]);
+    let log = log_path(&dir);
+    let output = run_binary(&log, &["audit", "verify-chain"]);
 
-    assert!(output.status.success());
+    // A missing file must not be reported as a valid empty chain: it means
+    // the path is wrong or the log was deleted outright.
+    assert!(!output.status.success());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        stderr.contains(log.to_str().unwrap()),
+        "stderr must name the missing log path: {stderr}"
+    );
+}
+
+#[test]
+fn showing_a_missing_log_fails_naming_the_path() {
+    let dir = tempfile::tempdir().unwrap();
+    let log = log_path(&dir);
+    let output = run_binary(&log, &["audit", "show"]);
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        stderr.contains(log.to_str().unwrap()),
+        "stderr must name the missing log path: {stderr}"
+    );
+}
+
+#[test]
+fn verifying_an_existing_empty_file_reports_an_empty_valid_chain() {
+    let dir = tempfile::tempdir().unwrap();
+    let log = log_path(&dir);
+    std::fs::write(&log, "").unwrap();
+
+    let output = run_binary(&log, &["--json", "audit", "verify-chain"]);
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8(output.stdout).unwrap();
     let report: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
     assert_eq!(report["valid"], true);
