@@ -11,6 +11,7 @@ mod cli;
 mod config;
 mod handlers;
 mod pki_cmd;
+mod sign_cmd;
 mod telemetry;
 mod vault_cmd;
 
@@ -45,6 +46,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
             scripts_dir,
             action,
         } => pki_cmd::run(&scripts_dir, action, cli.json),
+        Command::Sign(args) => sign_cmd::run(&args, cli.json),
         Command::Auth { action } => auth_cmd::run(action),
         Command::Audit { action } => audit_cmd::run(action, cli.json),
         _ => anyhow::bail!("command '{name}' is not implemented yet"),

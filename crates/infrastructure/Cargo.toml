@@ -12,6 +12,11 @@ application = { path = "../application" }
 ring.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+rsa.workspace = true
+# The oid feature ties the SHA-256 digest to its DigestInfo object
+# identifier, which PKCS#1 v1.5 signing and verification embed in the
+# padded message.
+sha2 = { workspace = true, features = ["oid"] }
 thiserror.workspace = true
 argon2.workspace = true
 getrandom.workspace = true
@@ -20,15 +25,11 @@ getrandom.workspace = true
 # workspace-wide selection.
 time = { workspace = true, features = ["parsing"] }
 totp-rs.workspace = true
-zeroize.workspace = true
-# X.509 parsing and RSA signature verification for certificate chain
-# validation; see docs/adr/0004-certificate-validation-implementation.md.
+# X.509 parsing for certificate chain validation and signer certificates;
+# see docs/adr/0004-certificate-validation-implementation.md.
 der = { workspace = true, features = ["pem"] }
-rsa.workspace = true
-# The oid feature ties the SHA-256 type to its DigestInfo identifier, as
-# PKCS#1 v1.5 signature verification requires.
-sha2 = { workspace = true, features = ["oid"] }
 x509-cert.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

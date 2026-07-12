@@ -9,6 +9,7 @@ pub mod auth;
 pub mod error;
 pub mod hashing;
 pub mod pki;
+pub mod signing;
 pub mod vault;
 
 pub use error::ApplicationError;

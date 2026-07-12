@@ -14,6 +14,7 @@ pub mod error;
 pub mod hashing;
 pub mod password;
 pub mod recovery;
+pub mod signing;
 pub mod totp;
 
 pub use audit::{FileAuditLog, InMemoryAuditLog};
@@ -25,4 +26,5 @@ pub use error::{CryptoError, TsaError};
 pub use hashing::RingSha256Hasher;
 pub use password::Argon2idHasher;
 pub use recovery::RandomRecoveryCodeGenerator;
+pub use signing::{certificate_subject, RsaPkcs1Signer, RsaPkcs1Verifier};
 pub use totp::{decode_base32_secret, TotpRsProvider};

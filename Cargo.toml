@@ -72,3 +72,12 @@ opt-level = 3
 
 [profile.dev.package.blake2]
 opt-level = 3
+
+# RSA-3072 private-key operations run big-integer modular exponentiation;
+# unoptimized builds make every signature take seconds and the test suite
+# crawl. Optimize only the big-integer kernel the rsa crate relies on.
+[profile.dev.package.num-bigint-dig]
+opt-level = 3
+
+[profile.dev.package.rsa]
+opt-level = 3

@@ -13,6 +13,7 @@ pub mod hasher;
 pub mod keys;
 pub mod password;
 pub mod recovery;
+pub mod signature;
 pub mod totp;
 
 pub use certificate::{
@@ -27,5 +28,8 @@ pub use keys::{KeyManager, WrappedDek};
 pub use password::{PasswordHasher, PasswordVerification};
 pub use recovery::{
     RecoveryCodeGenerator, RecoveryCodeOutcome, RecoveryCodeSet, RECOVERY_CODE_COUNT,
+};
+pub use signature::{
+    DocumentSigner, Signature, SignatureRejection, SignatureVerification, SignatureVerifier,
 };
 pub use totp::{TotpEnrollment, TotpProvider, TotpVerification};

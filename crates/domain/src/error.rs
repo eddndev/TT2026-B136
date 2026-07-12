@@ -102,4 +102,8 @@ pub enum DomainError {
     /// A certificate-authority operation failed.
     #[error("certificate authority operation failed: {0}")]
     CertificateAuthorityFailure(String),
+
+    /// A signature value was built from an empty byte sequence.
+    #[error("signature must not be empty")]
+    EmptySignature,
 }
