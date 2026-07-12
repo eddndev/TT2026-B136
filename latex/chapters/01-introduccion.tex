@@ -56,11 +56,11 @@ La siguiente tabla sintetiza, para cada objetivo específico, el criterio de éx
     \toprule
     \textbf{OE} & \textbf{Objetivo específico (resumen)} & \textbf{Criterio de éxito medible} \\
     \midrule
-    OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 18 casos de uso derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
+    OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 17 casos de uso derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
     OE-2 & Módulos de gestión procesal penal (CNPP) & CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las cuatro etapas del CNPP (investigación, intermedia, juicio oral y recursos); cómputo automático de términos conforme al artículo 94 del CNPP. \\
     OE-3 & No repudio con sello RFC 3161 & Firma digital RSA-3072 con SHA-256 verificable de forma independiente sobre el 100 \% de los contratos firmados; sello de tiempo RFC 3161 vinculado al hash del documento; tasa de verificación exitosa $\geq$ 99 \% sobre sellos emitidos por el sandbox de Cincel. \\
     OE-4 & Integridad y confidencialidad & Detección del 100 \% de alteraciones de un byte en documentos firmados mediante pruebas de mutación; cifrado AES-256-GCM con nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados; envelope encryption con DEK por documento. \\
-    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 300--500 ms por intento en el hardware de despliegue (m=46 MiB, t=1, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
+    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de despliegue (m=46 MiB, t=1, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
     OE-6 & Validación del prototipo & Cobertura de pruebas $\geq$ 80 \% en los módulos criptográficos; al menos 15 pruebas end-to-end que cubran los flujos de firma y verificación; matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. \\
     \bottomrule
   \end{tabularx}

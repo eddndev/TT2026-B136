@@ -178,9 +178,9 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Actor principal & Socio fundador \\
     Actores secundarios & Sistema de correo transaccional \\
     Precondiciones & El usuario no posee una cuenta activa en el sistema. \\
-    Flujo principal & 1. El usuario accede al formulario de registro. 2. Ingresa los datos del despacho (nombre de la firma, domicilio fiscal, datos de contacto). 3. Selecciona un plan de servicio (Starter o Professional). 4. Establece sus credenciales de acceso (correo y contraseña). 5. El sistema valida los datos ingresados y crea un tenant aislado con el plan seleccionado. 6. El sistema envía un correo de confirmación al socio fundador. 7. El socio fundador confirma su correo electrónico mediante el enlace recibido. 8. El sistema activa la cuenta y redirige al tablero de control del despacho. \\
+    Flujo principal & 1. El usuario accede al formulario de registro. 2. Ingresa los datos del despacho (nombre de la firma, domicilio fiscal, datos de contacto). 3. Selecciona un plan de servicio (Starter o Professional). 4. Establece sus credenciales de acceso (correo y contraseña). 5. El sistema valida los datos ingresados y aprovisiona el espacio de trabajo del despacho con el plan seleccionado. 6. El sistema envía un correo de confirmación al socio fundador. 7. El socio fundador confirma su correo electrónico mediante el enlace recibido. 8. El sistema activa la cuenta y redirige al tablero de control del despacho. \\
     Flujos alternos & 4a. La contraseña no cumple las políticas de complejidad → el sistema indica los requisitos faltantes. 5a. El correo electrónico ya está registrado → el sistema informa que la cuenta existe y ofrece la opción de recuperación. 7a. El enlace de confirmación ha expirado → el sistema permite reenviar el correo de confirmación. \\
-    Postcondiciones & El tenant queda creado con aislamiento lógico, el plan activo y el socio fundador autenticado con rol Owner. Las credenciales se almacenan mediante funciones de hashing resistentes. \\
+    Postcondiciones & El despacho queda registrado con su espacio de datos inicializado, el plan activo y el socio fundador autenticado con rol Owner. Las credenciales se almacenan mediante funciones de hashing resistentes. \\
     Derivado de & HU-01, HU-02 \\
     RF relacionados & RF-01, RF-02 \\
     RNF relacionados & RNF-01, RNF-02 \\
@@ -209,12 +209,12 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Actor principal & Owner \\
     Actores secundarios & Colaborador invitado, sistema de correo transaccional \\
     Precondiciones & El Owner tiene sesión activa. \\
-    Flujo principal (alta) & 1. El Owner accede al módulo de gestión de equipo. 2. Ingresa el correo electrónico del nuevo miembro y selecciona el perfil a asignar (Litigante o Paralegal). 3. El sistema verifica que el tenant no ha alcanzado el límite de usuarios del plan contratado. 4. El sistema genera un enlace de invitación con vigencia limitada y lo envía por correo. 5. El colaborador invitado accede al enlace, completa su registro con sus datos personales y establece su contraseña. 6. El sistema valida los datos, crea la cuenta asociada al tenant con el perfil indicado y registra la operación en la bitácora. 7. El nuevo miembro accede al sistema con las funciones habilitadas según su perfil. \\
+    Flujo principal (alta) & 1. El Owner accede al módulo de gestión de equipo. 2. Ingresa el correo electrónico del nuevo miembro y selecciona el perfil a asignar (Litigante o Paralegal). 3. El sistema verifica que el despacho no ha alcanzado el límite de usuarios del plan contratado. 4. El sistema genera un enlace de invitación con vigencia limitada y lo envía por correo. 5. El colaborador invitado accede al enlace, completa su registro con sus datos personales y establece su contraseña. 6. El sistema valida los datos, crea la cuenta asociada al despacho con el perfil indicado y registra la operación en la bitácora. 7. El nuevo miembro accede al sistema con las funciones habilitadas según su perfil. \\
     Flujo principal (baja) & 1. El Owner accede al módulo de gestión de equipo. 2. Selecciona al miembro que desea dar de baja. 3. El sistema solicita confirmación de la acción. 4. El Owner confirma la baja. 5. El sistema revoca de inmediato el acceso del colaborador, invalida sus sesiones activas y registra la operación en la bitácora. 6. Los expedientes y documentos asociados al colaborador permanecen en el sistema sin modificación; únicamente se revoca el acceso. \\
-    Flujos alternos & 2a. (Alta) El correo ya pertenece a un miembro activo del despacho → el sistema rechaza la invitación e informa el motivo. 3a. (Alta) El tenant ha alcanzado el límite de usuarios → el sistema bloquea la invitación e indica la necesidad de actualizar el plan. 5a. (Alta) El enlace de invitación ha expirado → el sistema muestra un mensaje informativo; el Owner debe reenviar la invitación. 2b. (Baja) El Owner intenta darse de baja a sí mismo → el sistema rechaza la operación, ya que el tenant requiere al menos un Owner activo. \\
-    Postcondiciones & (Alta) El colaborador queda registrado en el tenant con el perfil asignado. (Baja) El acceso del colaborador queda revocado de inmediato. En ambos casos, la operación se registra en la bitácora de actividad. \\
+    Flujos alternos & 2a. (Alta) El correo ya pertenece a un miembro activo del despacho → el sistema rechaza la invitación e informa el motivo. 3a. (Alta) El despacho ha alcanzado el límite de usuarios → el sistema bloquea la invitación e indica la necesidad de actualizar el plan. 5a. (Alta) El enlace de invitación ha expirado → el sistema muestra un mensaje informativo; el Owner debe reenviar la invitación. 2b. (Baja) El Owner intenta darse de baja a sí mismo → el sistema rechaza la operación, ya que el despacho requiere al menos un Owner activo. \\
+    Postcondiciones & (Alta) El colaborador queda registrado en el despacho con el perfil asignado. (Baja) El acceso del colaborador queda revocado de inmediato. En ambos casos, la operación se registra en la bitácora de actividad. \\
     Derivado de & HU-03, HU-04, HU-11 \\
-    RF relacionados & RF-04 \\
+    RF relacionados & RF-03 \\
     RNF relacionados & RNF-01, RNF-02 \\
     \bottomrule
   \end{tabularx}
@@ -245,7 +245,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 3a. Las credenciales son incorrectas → el sistema informa el error sin revelar cuál campo es inválido. 3b. El usuario es Owner y elige autenticarse con certificado digital → el sistema genera un desafío criptográfico; el usuario firma con su clave privada; el sistema verifica la firma contra el certificado registrado. 1a. El usuario selecciona la opción de recuperación de contraseña → el sistema solicita el correo electrónico asociado a la cuenta → envía un enlace de restablecimiento con vigencia limitada → el usuario accede al enlace y establece una nueva contraseña → el sistema la almacena mediante funciones de hashing resistentes, invalida las sesiones activas previas y confirma el restablecimiento. 5a. El código temporal es inválido o ha expirado → el sistema rechaza el acceso y permite reintentar. 6a. La sesión permanece inactiva por el tiempo configurado → el sistema la invalida y requiere nueva autenticación, preservando los datos no guardados. \\
     Postcondiciones & El usuario queda autenticado con una sesión activa. El inicio de sesión, incluyendo método de autenticación utilizado y dirección IP, se registra en la bitácora. \\
     Derivado de & HU-05, HU-06, HU-07, HU-08, HU-09 \\
-    RF relacionados & RF-01, RF-03 \\
+    RF relacionados & RF-01, RF-02 \\
     RNF relacionados & RNF-02, RNF-05 \\
     \bottomrule
   \end{tabularx}
@@ -273,10 +273,10 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Actores secundarios & --- \\
     Precondiciones & El usuario tiene sesión activa. \\
     Flujo principal & 1. El usuario solicita acceso a un módulo o recurso del sistema. 2. El sistema evalúa el perfil del usuario contra la matriz de permisos del módulo solicitado. 3. Si el perfil tiene permiso, el sistema concede el acceso y presenta la interfaz correspondiente. \\
-    Flujos alternos & 3a. El perfil no tiene permiso sobre el módulo solicitado → el sistema deniega el acceso con un mensaje explicativo y registra el intento en la bitácora. 3b. El usuario intenta acceder a un expediente de un tenant diferente al suyo → el sistema devuelve un error de autorización sin revelar la existencia del recurso. \\
+    Flujos alternos & 3a. El perfil no tiene permiso sobre el módulo solicitado → el sistema deniega el acceso con un mensaje explicativo y registra el intento en la bitácora. 3b. El usuario intenta acceder a un recurso fuera de su ámbito de autorización (por ejemplo, manipulando identificadores de expedientes no asignados) → el sistema devuelve un error de autorización sin revelar la existencia del recurso. \\
     Postcondiciones & El acceso queda concedido o denegado. Cada intento de acceso, exitoso o fallido, se registra en la bitácora. \\
     Derivado de & HU-10 \\
-    RF relacionados & RF-03 \\
+    RF relacionados & RF-02 \\
     RNF relacionados & RNF-01, RNF-05 \\
     \bottomrule
   \end{tabularx}
@@ -304,12 +304,12 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Nombre & Registro y administración de expediente penal \\
     Actor principal & Litigante \\
     Actores secundarios & Paralegal (consulta) \\
-    Precondiciones & El Litigante tiene sesión activa y pertenece al tenant. \\
-    Flujo principal & 1. El Litigante accede al módulo de gestión procesal y selecciona la opción de nuevo expediente. 2. Ingresa los identificadores oficiales: Número Único de Caso (NUC) y Carpeta Judicial. 3. Registra el tipo de delito, los datos generales del asunto y los metadatos asociados. 4. El sistema valida que los campos obligatorios estén completos y que los identificadores no estén duplicados dentro del tenant. 5. El sistema persiste el expediente con estado inicial “Investigación”, genera la marca de tiempo de creación y registra la operación en la bitácora. \\
-    Flujos alternos & 4a. Faltan campos obligatorios (NUC o Carpeta Judicial) → el sistema rechaza el registro e indica los campos faltantes. 4b. El NUC ya existe en el tenant → el sistema informa la duplicidad. \\
-    Postcondiciones & El expediente queda registrado con estado “Investigación”, disponible para los usuarios autorizados del tenant. \\
+    Precondiciones & El Litigante tiene sesión activa y pertenece al despacho. \\
+    Flujo principal & 1. El Litigante accede al módulo de gestión procesal y selecciona la opción de nuevo expediente. 2. Ingresa los identificadores oficiales: Número Único de Caso (NUC) y Carpeta Judicial. 3. Registra el tipo de delito, los datos generales del asunto y los metadatos asociados. 4. El sistema valida que los campos obligatorios estén completos y que los identificadores no estén duplicados dentro del despacho. 5. El sistema persiste el expediente con estado inicial “Investigación”, genera la marca de tiempo de creación y registra la operación en la bitácora. \\
+    Flujos alternos & 4a. Faltan campos obligatorios (NUC o Carpeta Judicial) → el sistema rechaza el registro e indica los campos faltantes. 4b. El NUC ya existe en el despacho → el sistema informa la duplicidad. \\
+    Postcondiciones & El expediente queda registrado con estado “Investigación”, disponible para los usuarios autorizados del despacho. \\
     Derivado de & HU-12, HU-17, HU-18 \\
-    RF relacionados & RF-05 \\
+    RF relacionados & RF-04 \\
     RNF relacionados & RNF-04, RNF-10 \\
     \bottomrule
   \end{tabularx}
@@ -340,7 +340,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 3a. Para un juez de control, no se proporciona el órgano jurisdiccional ni la FIREL → el sistema rechaza el registro e indica los campos faltantes. 4a. El participante ya existe en el directorio del caso con el mismo rol → el sistema informa la duplicidad. \\
     Postcondiciones & El participante queda vinculado al expediente con su rol procesal. Un mismo individuo puede tener roles distintos en expedientes diferentes. \\
     Derivado de & HU-13 \\
-    RF relacionados & RF-07 \\
+    RF relacionados & RF-06 \\
     RNF relacionados & RNF-10 \\
     \bottomrule
   \end{tabularx}
@@ -371,7 +371,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 2a. El Litigante intenta avanzar de etapa sin cargar el documento habilitante → el sistema rechaza la transición e indica el documento requerido. 3a. El documento cargado no corresponde al formato admitido → el sistema rechaza la carga. \\
     Postcondiciones & El expediente se encuentra en la nueva etapa procesal. La transición queda registrada de forma inmutable en el historial del expediente y no puede revertirse. \\
     Derivado de & HU-14, HU-15, HU-16 \\
-    RF relacionados & RF-06 \\
+    RF relacionados & RF-05 \\
     RNF relacionados & RNF-04, RNF-10 \\
     \bottomrule
   \end{tabularx}
@@ -404,7 +404,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 4a. El tipo de audiencia no corresponde a la etapa procesal vigente → el sistema rechaza la programación. 6a. El resultado de la audiencia no genera plazos derivados → el sistema registra el resultado sin activar cómputos adicionales. \\
     Postcondiciones & La audiencia queda registrada y visible en el calendario del despacho. Los plazos derivados, si los hay, quedan activos con sus fechas de vencimiento calculadas y las alertas preventivas programadas. \\
     Derivado de & HU-19, HU-20, HU-21 \\
-    RF relacionados & RF-08, RF-09 \\
+    RF relacionados & RF-07, RF-08 \\
     RNF relacionados & RNF-10 \\
     \bottomrule
   \end{tabularx}
@@ -433,9 +433,9 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Precondiciones & El Owner tiene sesión activa. \\
     Flujo principal & 1. El Owner accede al módulo de configuración del despacho. 2. Selecciona la entidad federativa y el fuero para los cuales configurará los días inhábiles. 3. Registra los periodos de receso judicial, días feriados y días inhábiles específicos de la jurisdicción. 4. El sistema almacena la configuración y recalcula los plazos activos que dependan de ese calendario. \\
     Flujos alternos & 3a. Se registra un día inhábil que afecta un plazo con vencimiento inminente (menos de 48 horas) → el sistema recalcula la fecha y emite una alerta al Litigante responsable. \\
-    Postcondiciones & El calendario judicial del tenant queda actualizado. Todos los cómputos de plazos futuros utilizan la configuración vigente. \\
+    Postcondiciones & El calendario judicial del despacho queda actualizado. Todos los cómputos de plazos futuros utilizan la configuración vigente. \\
     Derivado de & HU-22 \\
-    RF relacionados & RF-09 \\
+    RF relacionados & RF-08 \\
     RNF relacionados & RNF-10 \\
     \bottomrule
   \end{tabularx}
@@ -466,7 +466,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 2a. El plazo ya venció sin que se registrara la actuación correspondiente → el sistema emite una alerta de nivel crítico. \\
     Postcondiciones & El Litigante ha sido notificado de la proximidad del vencimiento. El envío queda registrado en la bitácora. \\
     Derivado de & HU-23, HU-24 \\
-    RF relacionados & RF-10, RF-11 \\
+    RF relacionados & RF-09, RF-10 \\
     RNF relacionados & RNF-06 \\
     \bottomrule
   \end{tabularx}
@@ -499,7 +499,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 2a. El formato del archivo no está admitido → el sistema rechaza la carga e informa los formatos permitidos. 2b. El archivo excede el tamaño máximo admitido → el sistema rechaza la carga. \\
     Postcondiciones & El documento queda almacenado cifrado, indexado con su huella digital y disponible para consulta por los perfiles autorizados. La operación queda registrada en la cadena de custodia. \\
     Derivado de & HU-25, HU-26, HU-28, HU-30, HU-32 \\
-    RF relacionados & RF-13, RF-14, RF-15 \\
+    RF relacionados & RF-12, RF-13, RF-14 \\
     RNF relacionados & RNF-03, RNF-04 \\
     \bottomrule
   \end{tabularx}
@@ -530,7 +530,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 3a. El usuario no tiene permiso sobre el expediente → el sistema deniega el acceso. 4a. La verificación de la etiqueta de autenticación del cifrado falla (el contenido cifrado fue manipulado en el almacenamiento) → el sistema rechaza el descifrado, notifica al usuario y al Owner, y registra el incidente como alerta de seguridad. 5a. La huella digital recalculada no coincide con la referencia → el sistema alerta al usuario de que el documento fue modificado, bloquea la entrega y registra la discrepancia. \\
     Postcondiciones & El usuario recibe el documento íntegro, o recibe una alerta explícita de alteración. La consulta y su resultado quedan registrados en la cadena de custodia. \\
     Derivado de & HU-27, HU-29, HU-31, HU-33 \\
-    RF relacionados & RF-12, RF-13, RF-14, RF-15 \\
+    RF relacionados & RF-11, RF-12, RF-13, RF-14 \\
     RNF relacionados & RNF-03, RNF-04 \\
     \bottomrule
   \end{tabularx}
@@ -563,7 +563,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 2a. El certificado del firmante ha expirado o está revocado → el sistema informa la situación e impide la firma. 6a. El PSC no responde dentro del tiempo límite → el sistema encola la solicitud para reintento automático y notifica al Litigante del retraso en la constancia. 7a. El token recibido no supera la validación de formato → el sistema rechaza el sello, registra el error y reintenta con el PSC. \\
     Postcondiciones & El contrato queda firmado con evidencia criptográfica verificable de la identidad del firmante y del momento exacto de la firma. La constancia tiene validez conforme a la NOM-151-SCFI-2016. \\
     Derivado de & HU-34, HU-35 \\
-    RF relacionados & RF-16, RF-17 \\
+    RF relacionados & RF-15, RF-16 \\
     RNF relacionados & RNF-03, RNF-11 \\
     \bottomrule
   \end{tabularx}
@@ -594,7 +594,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 3a. La huella digital recalculada no coincide con la contenida en la firma → el sistema reporta que el documento fue modificado después de firmado e indica la causa de la invalidación. 4a. El certificado del firmante ha expirado o fue revocado → el sistema lo indica en el reporte sin invalidar necesariamente la firma (la firma era válida al momento del sellado). 5a. El token de sello de tiempo no supera la validación → el sistema reporta que la constancia de fecha no es verificable. \\
     Postcondiciones & El usuario dispone de un reporte de verificación con el estado de cada componente: validez de la firma, estado del certificado, validez del sello de tiempo e integridad del documento. \\
     Derivado de & HU-36, HU-37 \\
-    RF relacionados & RF-18 \\
+    RF relacionados & RF-17 \\
     RNF relacionados & RNF-11 \\
     \bottomrule
   \end{tabularx}
@@ -623,11 +623,11 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Actor principal & Owner o Litigante \\
     Actores secundarios & --- \\
     Precondiciones & El usuario tiene sesión activa. \\
-    Flujo principal & 1. El usuario accede al tablero de control del despacho. 2. El sistema consulta los indicadores operativos del tenant: casos activos, plazos por vencer en 48 h y 7 días, contratos pendientes de firma y carga de trabajo por abogado. 3. El sistema presenta los indicadores con diferenciación visual por nivel de urgencia. \\
+    Flujo principal & 1. El usuario accede al tablero de control del despacho. 2. El sistema consulta los indicadores operativos del despacho: casos activos, plazos por vencer en 48 h y 7 días, contratos pendientes de firma y carga de trabajo por abogado. 3. El sistema presenta los indicadores con diferenciación visual por nivel de urgencia. \\
     Flujos alternos & 2a. Existen plazos fatales por vencer en menos de 48 horas → el sistema los destaca con indicador de alerta de nivel crítico, diferenciado visualmente del resto de elementos. \\
     Postcondiciones & El usuario visualiza el estado actual del despacho. \\
     Derivado de & HU-38 \\
-    RF relacionados & RF-19 \\
+    RF relacionados & RF-18 \\
     RNF relacionados & RNF-07 \\
     \bottomrule
   \end{tabularx}
@@ -658,7 +658,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujos alternos & 3a. El volumen de datos supera el umbral de procesamiento inmediato → el sistema informa el tiempo estimado y envía notificación por correo cuando el reporte esté listo. \\
     Postcondiciones & El informe queda disponible para descarga. La interfaz permanece responsiva durante el procesamiento. \\
     Derivado de & HU-39 \\
-    RF relacionados & RF-20 \\
+    RF relacionados & RF-19 \\
     RNF relacionados & RNF-06, RNF-07 \\
     \bottomrule
   \end{tabularx}
@@ -688,8 +688,8 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Flujo principal & 1. El Owner accede al módulo de bitácora de actividad. 2. Aplica filtros de búsqueda (rango de fechas, usuario, tipo de operación, recurso afectado). 3. El sistema presenta los registros cronológicamente, mostrando para cada entrada: identificador del usuario, tipo de operación, recurso afectado, marca de tiempo y dirección IP. \\
     Flujos alternos & --- (la bitácora es de solo lectura; no existen operaciones de modificación o eliminación). \\
     Postcondiciones & El Owner visualiza los registros solicitados. Los registros de la bitácora no pueden modificarse ni eliminarse por ningún usuario del sistema, incluido el Owner. \\
-    Derivado de & HU-41 \\
-    RF relacionados & RF-22 \\
+    Derivado de & HU-40 \\
+    RF relacionados & RF-20 \\
     RNF relacionados & RNF-04 \\
     \bottomrule
   \end{tabularx}
@@ -725,7 +725,7 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \textbf{Descripción} & El sistema debe proveer mecanismos seguros de inicio de sesión, recuperación de contraseñas, expiración de sesiones por inactividad y protección contra fijación de sesión. \\
     \textbf{Entrada} & Credenciales del usuario (usuario/contraseña o certificado digital); solicitud de recuperación de contraseña. \\
     \textbf{Salida} & Sesión autenticada con token de acceso; notificación de expiración; redireccionamiento al inicio de sesión tras inactividad sin pérdida de datos no guardados. \\
-    \textbf{Actores involucrados} & Todos los roles (Owner, Litigante, Paralegal); sistema de gestión de sesiones. \\
+    \textbf{Actores involucrados} & Todos los roles (Owner, Litigante, Paralegal, Cliente); sistema de gestión de sesiones. \\
     \textbf{Criterio de aceptación} & Dado un usuario inactivo por el tiempo configurado, cuando vence la sesión, entonces el sistema la invalida automáticamente y requiere nueva autenticación sin pérdida de datos no guardados. \\
     \bottomrule
   \end{tabularx}
@@ -740,7 +740,7 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \textbf{ID} & RF-02 \\
     \midrule
     \textbf{Nombre} & Control de acceso basado en roles (RBAC) \\
-    \textbf{Descripción} & El sistema debe asignar permisos de forma granular a través de roles predefinidos (Owner, Litigante, Paralegal) para restringir el acceso a módulos y operaciones sensibles. \\
+    \textbf{Descripción} & El sistema debe asignar permisos de forma granular a través de roles predefinidos (Owner, Litigante, Paralegal, Cliente) para restringir el acceso a módulos y operaciones sensibles. \\
     \textbf{Entrada} & Rol asignado al usuario; recurso o módulo al que se intenta acceder. \\
     \textbf{Salida} & Permiso concedido o denegado; registro en bitácora del intento de acceso. \\
     \textbf{Actores involucrados} & Owner (configuración de roles); todos los usuarios como sujetos de control; sistema de autorización. \\
@@ -760,7 +760,7 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \textbf{Nombre} & Gestión de equipos colaborativos \\
     \textbf{Descripción} & El sistema debe permitir invitar nuevos miembros al despacho mediante correo electrónico, gestionar la aceptación de invitaciones y administrar el alta y baja de usuarios en el equipo. \\
     \textbf{Entrada} & Correo electrónico del nuevo miembro; rol a asignar; acción de aceptación del invitado. \\
-    \textbf{Salida} & Invitación enviada; usuario creado y asociado al tenant; acceso habilitado según el rol asignado. \\
+    \textbf{Salida} & Invitación enviada; usuario creado y asociado al despacho; acceso habilitado según el rol asignado. \\
     \textbf{Actores involucrados} & Owner (invita y da de baja); usuario invitado; sistema de correo transaccional. \\
     \textbf{Criterio de aceptación} & Dado un Owner que envía una invitación, cuando el invitado la acepta dentro del periodo de validez del enlace, entonces queda registrado con el rol indicado; si el enlace vence, la invitación queda inactiva automáticamente. \\
     \bottomrule
@@ -963,7 +963,7 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \midrule
     \textbf{Nombre} & Cifrado autenticado de expedientes y documentos \\
     \textbf{Descripción} & El sistema debe cifrar los documentos y expedientes almacenados mediante AES-256-GCM (véase §2.3.2), proveyendo simultáneamente confidencialidad e integridad. Cada operación de cifrado debe emplear un vector de inicialización (IV) único generado aleatoriamente. \\
-    \textbf{Entrada} & Documento o expediente a cifrar; clave maestra del tenant; IV generado aleatoriamente por operación. \\
+    \textbf{Entrada} & Documento o expediente a cifrar; clave maestra del despacho; IV generado aleatoriamente por operación. \\
     \textbf{Salida} & Contenido cifrado con AES-256-GCM almacenado en el repositorio; IV almacenado de forma separada de los datos cifrados. \\
     \textbf{Actores involucrados} & Sistema de cifrado (backend); módulo de gestión de claves. \\
     \textbf{Criterio de aceptación} & Dado un documento cifrado almacenado, cuando se modifica 1 byte del texto cifrado directamente en el almacenamiento, entonces la verificación de la etiqueta de autenticación GCM falla y el sistema rechaza el descifrado; cada operación debe utilizar un IV único, verificable mediante pruebas TDD. \\
@@ -1002,7 +1002,7 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \textbf{Entrada} & Hash SHA-256 del contrato firmado; solicitud al PSC autorizado (Cincel) mediante API RFC 3161. \\
     \textbf{Salida} & Token de sello de tiempo (TimeStampToken) en formato ASN.1/.tsr almacenado y vinculado al contrato; constancia de conservación NOM-151 emitida. \\
     \textbf{Actores involucrados} & Sistema backend (cliente TSA); PSC autorizado (Cincel como TSA); módulo de firma digital. \\
-    \textbf{Criterio de aceptación} & Dado un contrato firmado, cuando se solicita el sello al PSC, entonces el sistema recibe y almacena un token RFC 3161 válido en menos de 10 segundos; el token debe ser verificable de forma independiente con OpenSSL sin requerir acceso al sistema. \\
+    \textbf{Criterio de aceptación} & Dado un contrato firmado, cuando se solicita el sello al PSC, entonces el sistema recibe confirmación de aceptación de la solicitud en menos de 10 segundos y almacena el token RFC 3161 válido en cuanto el PSC lo emite ---de forma inmediata o tras el ciclo de reintento descrito en §3.11.3---; el token debe ser verificable de forma independiente con OpenSSL sin requerir acceso al sistema. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1037,7 +1037,7 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \midrule
     \textbf{Nombre} & Dashboard ejecutivo \\
     \textbf{Descripción} & El sistema debe proveer un tablero de control que visualice indicadores operativos clave: casos activos, plazos próximos y carga de trabajo por abogado. \\
-    \textbf{Entrada} & Datos de casos activos, plazos próximos y asignación de carga del tenant activo. \\
+    \textbf{Entrada} & Datos de casos activos, plazos próximos y asignación de carga del despacho. \\
     \textbf{Salida} & Tablero visual con indicadores actualizados: número de casos activos, plazos por vencer en 48 h/7 días, contratos pendientes de firma. \\
     \textbf{Actores involucrados} & Owner, Litigante; sistema de consulta de datos agregados. \\
     \textbf{Criterio de aceptación} & Dado un Owner que accede al dashboard, cuando existen plazos fatales por vencer en menos de 48 horas, entonces el sistema los destaca visualmente con indicador de alerta roja diferenciado del resto de elementos del tablero. \\
@@ -1089,18 +1089,18 @@ Los requerimientos no funcionales describen las restricciones y atributos de cal
 
 \begin{table}[H]
   \centering
-  \caption{RNF-01: Aislamiento lógico multi-tenant}
+  \caption{RNF-01: Aislamiento lógico de la información del despacho}
   \label{tab:rnf-01}
   \begin{tabularx}{\linewidth}{@{}L{3.2cm}X@{}}
     \toprule
     \textbf{ID} & RNF-01 \\
     \midrule
-    \textbf{Nombre} & Aislamiento lógico multi-tenant \\
-    \textbf{Descripción} & El sistema debe garantizar la segregación estricta de datos entre despachos, impidiendo que cualquier consulta, operación o error de lógica exponga información de un tenant a otro. \\
+    \textbf{Nombre} & Aislamiento lógico de la información del despacho \\
+    \textbf{Descripción} & El sistema debe garantizar la segregación estricta de la información del despacho: cada instancia (single-tenant) atiende a un solo despacho con su propia base de datos y material criptográfico, y dentro de la instancia ninguna consulta, operación o error de lógica debe exponer información a usuarios sin autorización sobre el recurso. \\
     \textbf{Entrada} & Consulta o operación de cualquier usuario autenticado sobre cualquier recurso del sistema. \\
-    \textbf{Salida} & Respuesta que contiene únicamente datos del tenant al que pertenece el usuario autenticado. \\
-    \textbf{Actores involucrados} & Todos los usuarios; capa de middleware de aislamiento; base de datos relacional. \\
-    \textbf{Criterio de aceptación} & Dado un usuario de tenant A, cuando realiza cualquier consulta (incluso manipulando parámetros), entonces el sistema nunca devuelve datos de tenant B; verificable mediante pruebas automatizadas que simulen inyección de \texttt{tenant\_id} ajeno. \\
+    \textbf{Salida} & Respuesta que contiene únicamente datos que el rol y las asignaciones del usuario autenticado le permiten consultar. \\
+    \textbf{Actores involucrados} & Todos los usuarios; capa de middleware de autorización; base de datos relacional. \\
+    \textbf{Criterio de aceptación} & Dado un usuario autenticado, cuando realiza cualquier consulta (incluso manipulando parámetros e identificadores de recursos), entonces el sistema nunca devuelve datos fuera de su ámbito de autorización; verificable mediante pruebas automatizadas que simulen manipulación de identificadores de recursos ajenos. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1161,18 +1161,18 @@ Los requerimientos no funcionales describen las restricciones y atributos de cal
 
 \begin{table}[H]
   \centering
-  \caption{RNF-05: Privacidad entre despachos}
+  \caption{RNF-05: Privacidad de la información del despacho}
   \label{tab:rnf-05}
   \begin{tabularx}{\linewidth}{@{}L{3.2cm}X@{}}
     \toprule
     \textbf{ID} & RNF-05 \\
     \midrule
-    \textbf{Nombre} & Privacidad entre despachos \\
-    \textbf{Descripción} & El sistema debe prohibir cualquier fuga de información inter-tenant, verificable mediante pruebas automatizadas de aislamiento. \\
-    \textbf{Entrada} & Consultas con parámetros manipulados que incluyan identificadores de tenant ajeno. \\
-    \textbf{Salida} & Respuesta vacía o error de autorización; nunca datos de otro tenant. \\
-    \textbf{Actores involucrados} & Middleware de aislamiento; capa de acceso a datos; equipo de QA. \\
-    \textbf{Criterio de aceptación} & Dado un conjunto de pruebas automatizadas de aislamiento ejecutadas contra el entorno de staging, entonces el 100 \% de los intentos de acceso a datos de otro tenant deben resultar en error de autorización. \\
+    \textbf{Nombre} & Privacidad de la información del despacho \\
+    \textbf{Descripción} & El sistema debe prohibir cualquier fuga de información hacia usuarios sin autorización o hacia el exterior de la instancia del despacho, verificable mediante pruebas automatizadas de aislamiento. \\
+    \textbf{Entrada} & Consultas con parámetros manipulados que incluyan identificadores de recursos fuera del ámbito del usuario. \\
+    \textbf{Salida} & Respuesta vacía o error de autorización; nunca datos fuera del ámbito autorizado. \\
+    \textbf{Actores involucrados} & Middleware de autorización; capa de acceso a datos; equipo de QA. \\
+    \textbf{Criterio de aceptación} & Dado un conjunto de pruebas automatizadas de aislamiento ejecutadas contra el entorno de staging, entonces el 100 \% de los intentos de acceso a datos fuera del ámbito de autorización deben resultar en error de autorización. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1611,7 +1611,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Cat. & Técnico \\
     Sev. & 3 -- Moderado \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que los expedientes cifrados se vuelvan irrecuperables de forma permanente}, debido a \textbf{la ausencia de un procedimiento formal de resguardo, rotación y recuperación de la clave maestra AES del tenant}, lo que podría resultar en \textbf{la pérdida total e irreversible de la información cifrada de todos los clientes del despacho, sin posibilidad de restauración}.} \\
+    Declaración & \emph{Existe el riesgo de \textbf{que los expedientes cifrados se vuelvan irrecuperables de forma permanente}, debido a \textbf{la ausencia de un procedimiento formal de resguardo, rotación y recuperación de la clave maestra AES del despacho}, lo que podría resultar en \textbf{la pérdida total e irreversible de la información cifrada de todos los clientes del despacho, sin posibilidad de restauración}.} \\
     Mitigación & Definir desde la Iteración 4 el procedimiento de resguardo de claves con almacenamiento separado de los datos cifrados (ej. variable de entorno o servicio de gestión de secretos). \\
     Impacto & 3 -- Alto ($>$40 h) \\
     VME & \$7,031.25 MXN \\
@@ -1684,17 +1684,17 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
 
 \begin{table}[H]
   \centering
-  \caption{Ficha del riesgo RLC-03: Fuga de datos inter-tenant (LFPDPPP).}
+  \caption{Ficha del riesgo RLC-03: Fuga de datos personales por fallas de autorización (LFPDPPP).}
   \label{tab:rlc-03}
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
     \toprule
     ID & RLC-03 \\
-    Nombre & Fuga de datos inter-tenant (LFPDPPP) \\
+    Nombre & Fuga de datos personales por fallas de autorización (LFPDPPP) \\
     Cat. & Legal \\
     Sev. & 3 -- Moderado \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que datos confidenciales de un despacho sean accesibles por usuarios de otro tenant}, debido a \textbf{una falla en el middleware de aislamiento lógico multi-tenant que permita consultas sin restricción de \texttt{tenant\_id}}, lo que podría resultar en \textbf{una brecha de datos personales que viola el artículo 19 de la LFPDPPP, con exposición a sanciones administrativas y daño reputacional irreversible para el despacho}.} \\
-    Mitigación & Inyectar restricción obligatoria de tenant en toda consulta relacional y verificar el aislamiento mediante pruebas automatizadas en cada iteración. \\
+    Declaración & \emph{Existe el riesgo de \textbf{que datos confidenciales del despacho sean accesibles por usuarios sin autorización}, debido a \textbf{una falla en el middleware de autorización que permita consultas sin restricción de rol o de ámbito del usuario}, lo que podría resultar en \textbf{una brecha de datos personales que viola el artículo 19 de la LFPDPPP, con exposición a sanciones administrativas y daño reputacional irreversible para el despacho}.} \\
+    Mitigación & Inyectar restricción obligatoria de autorización (rol y ámbito del usuario) en toda consulta relacional y verificar el aislamiento mediante pruebas automatizadas en cada iteración. \\
     Impacto & 3 -- Alto (50 h) \\
     VME & \$1,562.50 MXN \\
     Contingencia & Activar modo de mantenimiento, purgar registros expuestos, rotar credenciales comprometidas y refactorizar los middlewares de aislamiento antes de restaurar el servicio. \\
@@ -1802,7 +1802,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     \textbf{RTC-05} & Expiración de certificado X.509 en producción & 2 Medio (40\,\%) & 2 Medio (20 h) & \textbf{4 -- Significativo} & \$3,125.00 MXN \\
     \textbf{RLC-01} & Discrepancia de hashes SHA-256 (NOM-151) & 2 Medio (50\,\%) & 3 Alto (48 h) & \textbf{6 -- Grave} & \$7,500.00 MXN \\
     \textbf{RLC-02} & Mutabilidad en registros de auditoría (CNPP) & 1 Bajo (15\,\%) & 2 Medio (24 h) & \textbf{2 -- Menor} & \$1,125.00 MXN \\
-    \textbf{RLC-03} & Fuga de datos inter-tenant (LFPDPPP) & 1 Bajo (10\,\%) & 3 Alto (50 h) & \textbf{3 -- Moderado} & \$1,562.50 MXN \\
+    \textbf{RLC-03} & Fuga de datos personales por fallas de autorización (LFPDPPP) & 1 Bajo (10\,\%) & 3 Alto (50 h) & \textbf{3 -- Moderado} & \$1,562.50 MXN \\
     \textbf{RLC-04} & Indisponibilidad del PSC (Cincel) & 2 Medio (30\,\%) & 2 Medio (20 h) & \textbf{4 -- Significativo} & \$3,125.00 MXN \\
     \textbf{ROP-01} & Curva de aprendizaje TDD en módulos criptográficos & 2 Medio (50\,\%) & 2 Medio (35 h) & \textbf{4 -- Significativo} & \$5,468.75 MXN \\
     \textbf{ROP-02} & Scope creep en interfaces gráficas & 2 Medio (50\,\%) & 2 Medio (20 h) & \textbf{4 -- Significativo} & \$3,125.00 MXN \\
@@ -1834,7 +1834,7 @@ La siguiente tabla relaciona cada riesgo identificado en las secciones \ref{sec:
     RTC-05 & Expiración de certificado X.509 en producción & OE-3, OE-5 \\
     RLC-01 & Discrepancia de hashes SHA-256 (NOM-151) & OE-3, OE-4 \\
     RLC-02 & Mutabilidad en registros de auditoría (CNPP) & OE-2, OE-6 \\
-    RLC-03 & Fuga de datos inter-tenant (LFPDPPP) & OE-4 (residual en single-tenant) \\
+    RLC-03 & Fuga de datos personales por fallas de autorización (LFPDPPP) & OE-4, OE-5 \\
     RLC-04 & Indisponibilidad del PSC (Cincel) & OE-3 \\
     ROP-01 & Curva de aprendizaje TDD en módulos criptográficos & OE-3, OE-4, OE-5 \\
     ROP-02 & Scope creep en interfaces gráficas & OE-1, OE-2 \\
@@ -1852,9 +1852,9 @@ Esta sección documenta las decisiones arquitectónicas que estructuran el proto
 
 La arquitectura del sistema no se selecciona por adherencia a una moda tecnológica sino por su capacidad para satisfacer un conjunto explícito de atributos de calidad derivados de los requerimientos no funcionales del §3.4.2. La norma ISO/IEC 25010:2011 \cite{iso25010} clasifica los atributos de calidad de software en ocho características principales (adecuación funcional, eficiencia de desempeño, compatibilidad, usabilidad, fiabilidad, seguridad, mantenibilidad y portabilidad), de las cuales se priorizan aquellas que tienen mayor impacto sobre el dominio jurídico-criptográfico que aborda el prototipo.
 
-El primer atributo prioritario es la seguridad, condicionada por los requerimientos RNF-01 (aislamiento lógico), RNF-02 (gestión segura de credenciales), RNF-03 (gestión de material criptográfico) y RNF-09 (autenticación robusta). La seguridad no se concibe como una capa añadida al final del diseño sino como una propiedad transversal que la arquitectura debe garantizar desde sus fundamentos. La adopción de Rust como lenguaje del backend, la separación estricta de material criptográfico mediante el patrón envelope encryption (véase §3.11.4), y el aislamiento de los puertos criptográficos mediante traits intercambiables son decisiones arquitectónicas que materializan este atributo.
+El primer atributo prioritario es la seguridad, condicionada por los requerimientos RNF-01 (aislamiento lógico), RNF-02 (gestión segura de credenciales) y RNF-03 (gestión de material criptográfico). La seguridad no se concibe como una capa añadida al final del diseño sino como una propiedad transversal que la arquitectura debe garantizar desde sus fundamentos. La adopción de Rust como lenguaje del backend, la separación estricta de material criptográfico mediante el patrón envelope encryption (véase §3.11.4), y el aislamiento de los puertos criptográficos mediante traits intercambiables son decisiones arquitectónicas que materializan este atributo.
 
-El segundo atributo prioritario es la integridad y trazabilidad, condicionada por RNF-04 (inmutabilidad de registros críticos) y RNF-08 (auditabilidad). Los documentos gestionados por el sistema poseen valor probatorio bajo los Artículos 33 del Código de Comercio y 89-bis del mismo ordenamiento, así como bajo la NOM-151-SCFI-2016. Esto exige que la arquitectura garantice la imposibilidad de modificación retroactiva de la bitácora de auditoría —implementada mediante el encadenamiento SHA-256 descrito en §3.8.1—, así como la conservación criptográficamente verificable de los hashes y sellos de tiempo de cada documento.
+El segundo atributo prioritario es la integridad y trazabilidad, condicionada por RNF-04 (inmutabilidad de registros críticos) y RNF-11 (conformidad con la NOM-151). Los documentos gestionados por el sistema poseen valor probatorio bajo los Artículos 33 del Código de Comercio y 89-bis del mismo ordenamiento, así como bajo la NOM-151-SCFI-2016. Esto exige que la arquitectura garantice la imposibilidad de modificación retroactiva de la bitácora de auditoría —implementada mediante el encadenamiento SHA-256 descrito en §3.8.1—, así como la conservación criptográficamente verificable de los hashes y sellos de tiempo de cada documento.
 
 El tercer atributo es la evolvabilidad, definida por Ford, Parsons y Kua como la capacidad de un sistema para cambiar guiado \cite{ford2023}. El prototipo se diseña para que la sustitución de cualquier sistema externo —el Prestador de Servicios de Certificación (Cincel por SeguriData o CECOBAN), el motor de base de datos, el proveedor de correo— requiera únicamente la implementación de un nuevo adaptador, sin modificación del dominio. Esta propiedad se garantiza mediante la regla de dependencias de la arquitectura hexagonal, formalizada en §3.7.4.
 
@@ -1872,8 +1872,8 @@ La \cref{tab:atributos-calidad} formaliza la priorización adoptada y su mapeo a
     \toprule
     \textbf{Prioridad} & \textbf{Atributo de calidad} & \textbf{RNFs que lo motivan} \\
     \midrule
-    1 (más alta) & Seguridad & RNF-01, RNF-02, RNF-03, RNF-09 \\
-    2 & Integridad y trazabilidad & RNF-04, RNF-08 \\
+    1 (más alta) & Seguridad & RNF-01, RNF-02, RNF-03 \\
+    2 & Integridad y trazabilidad & RNF-04, RNF-11 \\
     3 & Evolvabilidad & Sustitución de PSC, BD, SMTP \\
     4 & Testabilidad & XP/TDD (§3.6) \\
     5 & Mantenibilidad & Bajo acoplamiento, alta cohesión \\
@@ -1928,7 +1928,7 @@ La \cref{tab:comparativa-estilos} sintetiza la comparativa entre las seis altern
 
 La arquitectura hexagonal, propuesta originalmente por Alistair Cockburn en 2005 \cite{cockburn2005} y refinada por Vernon \cite{vernon2013} en el contexto del Domain-Driven Design \cite{evans2003}, organiza una aplicación de software en tres capas concéntricas: el dominio en el centro, la aplicación en la capa intermedia, y los adaptadores en la capa exterior.
 
-El dominio contiene los conceptos centrales del problema modelado: entidades (Case, Document, User, Signature, Hearing, AuditEvent, Certificate), value objects (Nuc, ProcessStage, DocumentHash) y servicios de dominio (lógica de negocio que no pertenece naturalmente a una entidad específica). La regla fundamental que gobierna esta capa es que su código no importa absolutamente nada de las capas externas: depende exclusivamente de la biblioteca estándar de Rust y de un conjunto mínimo de crates de bajo nivel (serde para serialización, thiserror para errores tipados, time para manejo de fechas).
+El dominio contiene los conceptos centrales del problema modelado: entidades (Case, Document, User, Signature, Hearing, AuditEvent, Certificate), value objects (Nuc, ProcessStage, DocumentHash) y servicios de dominio (lógica de negocio que no pertenece naturalmente a una entidad específica). La regla fundamental que gobierna esta capa es que su código no importa absolutamente nada de las capas externas: depende exclusivamente de la biblioteca estándar de Rust y de un conjunto mínimo de crates de bajo nivel (serde para serialización, thiserror para errores tipados, time para manejo de fechas, uuid para identificadores únicos).
 
 La capa de aplicación contiene los casos de uso del sistema: SignContract, RegisterCase, ScheduleHearing, VerifySignature, TransitionCaseStage, QueryAuditLog, entre otros. Cada caso de uso orquesta las entidades del dominio para satisfacer una intención específica del usuario, y declara las dependencias que requiere del exterior mediante traits (los puertos). La aplicación depende exclusivamente del dominio.
 
@@ -1985,7 +1985,7 @@ El mapeo entre cada bounded context, los casos de uso que implementa y el crate 
 
 El proyecto se organiza como un workspace de Cargo —el sistema de compilación y gestión de paquetes de Rust— compuesto por cinco crates miembros con responsabilidades estrictamente delimitadas y dependencias permitidas que enforce mecánicamente la regla de la arquitectura hexagonal. Esta estructura se documenta en el \texttt{Cargo.toml} raíz del proyecto y se valida en cada compilación.
 
-Los cinco crates son: domain (entidades, value objects, traits/puertos y errores de dominio; sus únicas dependencias externas son serde, thiserror y time), application (casos de uso, comandos y consultas; depende exclusivamente de domain y de async-trait), infrastructure (adaptadores driven que implementan los traits del dominio; depende de domain y application), web (adaptadores driving HTTP construidos con Axum, middleware Tower, DTOs y serialización HTTP; depende de application y domain), y bin (composition root que instancia los adaptadores concretos y los inyecta en los casos de uso; depende de todos los anteriores). La \cref{fig:workspace} representa esta estructura y las dependencias que el grafo de Cargo permite o prohíbe.
+Los cinco crates son: domain (entidades, value objects, traits/puertos y errores de dominio; sus únicas dependencias externas son serde, thiserror, time y uuid), application (casos de uso, comandos y consultas; depende exclusivamente de domain y de async-trait), infrastructure (adaptadores driven que implementan los traits del dominio; depende de domain y application), web (adaptadores driving HTTP construidos con Axum, middleware Tower, DTOs y serialización HTTP; depende de application y domain), y bin (composition root que instancia los adaptadores concretos y los inyecta en los casos de uso; depende de todos los anteriores). La \cref{fig:workspace} representa esta estructura y las dependencias que el grafo de Cargo permite o prohíbe.
 
 \begin{figure}[H]
   \centering
@@ -2094,7 +2094,7 @@ Las operaciones que pueden quedar bloqueadas indefinidamente (invocaciones HTTP 
 
 \subsubsection{Inyección de dependencias por composición}\label{sec:inyeccion-dependencias}
 
-La inyección de dependencias se realiza por composición explícita en el composition root —el archivo \texttt{bin/main.rs}—, sin recurrir a un contenedor de DI en runtime. Los casos de uso reciben sus dependencias como parámetros genéricos restringidos por traits (\texttt{impl Trait}) o como trait objects (\texttt{Arc<dyn Trait>}). Por ejemplo, el caso de uso SignContract se define como \texttt{SignContract<R, S, T>} donde R: CaseRepository, S: DocumentSigner, T: TimestampService; \texttt{main.rs} construye PostgresCaseRepository, RingRsaSigner y CincelTsaAdapter, los inyecta en SignContract, y registra el resultado en el router de Axum. Esta estrategia es completamente verificable en tiempo de compilación —si un adaptador no satisface el contrato del puerto, el programa no compila— y elimina la categoría de errores característicos de los frameworks DI (dependencias no resueltas, ciclos detectados solo en runtime, configuraciones mal escritas).
+La inyección de dependencias se realiza por composición explícita en el composition root —el archivo \texttt{bin/main.rs}—, sin recurrir a un contenedor de DI en runtime. Los casos de uso reciben sus dependencias como parámetros genéricos restringidos por traits (\texttt{impl Trait}) o como trait objects (\texttt{Arc<dyn Trait>}). Por ejemplo, el caso de uso SignContract se define como \texttt{SignContract<R, S, T>} donde R: CaseRepository, S: DocumentSigner, T: TimestampService; \texttt{main.rs} construye PostgresCaseRepository, RsaPkcs1Signer y CincelTsaAdapter, los inyecta en SignContract, y registra el resultado en el router de Axum. Esta estrategia es completamente verificable en tiempo de compilación —si un adaptador no satisface el contrato del puerto, el programa no compila— y elimina la categoría de errores característicos de los frameworks DI (dependencias no resueltas, ciclos detectados solo en runtime, configuraciones mal escritas).
 
 \subsubsection{Observabilidad estructurada}\label{sec:observabilidad}
 
@@ -2148,7 +2148,7 @@ Contexto: el sistema maneja tanto datos con valor probatorio (que requieren pers
 
 \subsection{Trazabilidad Arquitectura ↔ Requerimientos}\label{sec:trazabilidad}
 
-Esta subsección presenta la matriz de trazabilidad que cierra el Capítulo 3 demostrando que cada requerimiento funcional y no funcional cuenta con un componente arquitectónico responsable, y que ningún componente arquitectónico carece de justificación en un requerimiento. La \cref{tab:trazabilidad} sintetiza este mapeo en una vista de alto nivel; la matriz completa con cada uno de los veintidós casos de uso (CU-01 a CU-18 y RNF-01 a RNF-09 de §3.4) se desarrolla en §3.7.11.1 (matriz extendida) que se entrega como anexo electrónico complementario al documento.
+Esta subsección presenta la matriz de trazabilidad que cierra el Capítulo 3 demostrando que cada requerimiento funcional y no funcional cuenta con un componente arquitectónico responsable, y que ningún componente arquitectónico carece de justificación en un requerimiento. La \cref{tab:trazabilidad} sintetiza este mapeo en una vista de alto nivel; la matriz completa, con los diecisiete casos de uso (CU-01 a CU-17) y los catorce requerimientos no funcionales (RNF-01 a RNF-14 de §3.4), se entrega como anexo electrónico complementario al documento.
 
 \begin{table}[H]
   \centering
@@ -2158,18 +2158,18 @@ Esta subsección presenta la matriz de trazabilidad que cierra el Capítulo 3 de
     \toprule
     \textbf{Componente arquitectónico} & \textbf{Requerimientos atendidos} \\
     \midrule
-    Bounded Context «Identidad y Acceso» & CU-01..04, RNF-01, RNF-02, RNF-09 \\
+    Bounded Context «Identidad y Acceso» & CU-01..04, RNF-01, RNF-02 \\
     Bounded Context «Gestión de Casos» & CU-05..07, RNF-04 (parcial) \\
     Bounded Context «Calendario y Plazos» & CU-08..10 \\
     Bounded Context «Documentos y Custodia» & CU-11..12, RNF-03, RNF-04 \\
     Bounded Context «Servicios Criptográficos» & CU-11..14, RNF-03 \\
     Bounded Context «Firma de Contratos» & CU-13..14 \\
-    Bounded Context «Operaciones y Auditoría» & CU-15..17, RNF-04, RNF-08 \\
+    Bounded Context «Operaciones y Auditoría» & CU-15..17, RNF-04, RF-20 \\
     Crate \texttt{domain} con traits (puertos) & Soporta evolvabilidad transversal \\
     Workspace de Cargo con regla de dependencias & Mantenibilidad transversal \\
-    Pipeline Tower middleware & RNF-09 (autenticación), seguridad cross-cutting \\
-    Modelo de fronteras de confianza (§3.7.9) & RNF-01, RNF-02, RNF-03, RNF-09 \\
-    Subsistema observabilidad (tracing) & RNF-08 \\
+    Pipeline Tower middleware & RF-01 (autenticación y sesiones), seguridad cross-cutting \\
+    Modelo de fronteras de confianza (§3.7.9) & RNF-01, RNF-02, RNF-03 \\
+    Subsistema observabilidad (tracing) & RF-20 (bitácora de actividad) \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -2183,17 +2183,17 @@ Las fitness functions implementadas para el prototipo son: (1) verificación de 
 
 \section{Modelado de Base de Datos Híbrida}\label{sec:bd-hibrida}
 
-El sistema emplea un modelo de persistencia híbrido que combina \textbf{PostgreSQL} (base de datos relacional) con \textbf{Redis} (almacén clave-valor en memoria), con responsabilidades estrictamente delimitadas. Esta decisión responde a los requisitos funcionales y no funcionales identificados en el protocolo, particularmente RF-22 (bitácora de auditoría), RNF-04 (integridad append-only) y la necesidad de notificaciones en tiempo real.
+El sistema emplea un modelo de persistencia híbrido que combina \textbf{PostgreSQL} (base de datos relacional) con \textbf{Redis} (almacén clave-valor en memoria), con responsabilidades estrictamente delimitadas. Esta decisión responde a los requisitos funcionales y no funcionales identificados en el protocolo, particularmente RF-20 (bitácora de actividad), RNF-04 (integridad append-only) y la necesidad de notificaciones en tiempo real.
 
 \subsection{PostgreSQL: Datos Persistentes con Valor Probatorio}\label{sec:postgresql}
 
 PostgreSQL se selecciona como motor relacional principal por las siguientes razones: (1) soporte nativo de \textbf{JSONB} para metadatos variables de expedientes, lo que permite modelar la diversidad del sistema acusatorio oral mexicano (CNPP, Art. 211-215) sin sacrificar la integridad referencial; (2) \textbf{RULE} para enforce de append-only en la bitácora de auditoría, impidiendo operaciones UPDATE y DELETE a nivel de motor; (3) extensiones criptográficas nativas (pgcrypto); (4) tipo de dato INET para registro de direcciones IP en la bitácora.
 
-La bitácora de auditoría (audit\_log) implementa un mecanismo de \textbf{encadenamiento SHA-256}: cada registro incluye un campo sha256\_chain que contiene el hash (véase §2.3.1) del registro anterior concatenado con los datos del registro actual. Esto crea una cadena verificable de integridad que permite detectar cualquier manipulación retroactiva, cumpliendo con el Art. 33 del Código de Comercio (retención mínima de 10 años).
+La bitácora de auditoría (audit\_log) implementa un mecanismo de \textbf{encadenamiento SHA-256}: cada registro incluye un campo sha256\_chain calculado como el hash SHA-256 (véase §2.3.1) del valor sha256\_chain del registro anterior concatenado con los datos del registro actual, es decir, $\mathrm{sha256\_chain}(n) = \mathrm{SHA\text{-}256}(\mathrm{sha256\_chain}(n-1) \,\|\, \mathrm{registro}(n))$. Esto crea una cadena verificable de integridad que permite detectar cualquier manipulación retroactiva, cumpliendo con el Art. 33 del Código de Comercio (retención mínima de 10 años).
 
 \subsubsection{Decisión de diseño: Single-Tenant}
 
-El sistema se diseña para un solo despacho legal (single-tenant), eliminando la complejidad de aislamiento multi-tenant descrita en RNF-01 y RNF-05 del protocolo original. Esta simplificación es coherente con el alcance del prototipo y reduce significativamente la superficie de ataque.
+El sistema se diseña para un solo despacho legal (single-tenant), eliminando la complejidad de aislamiento multi-tenant contemplada en el protocolo original (cuyos requerimientos se reformulan en RNF-01 y RNF-05 como aislamiento y privacidad de la información del despacho dentro de su instancia). Esta simplificación es coherente con el alcance del prototipo y reduce significativamente la superficie de ataque.
 
 \subsection{Redis: Datos Volátiles y Comunicación en Tiempo Real}\label{sec:redis}
 
