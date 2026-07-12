@@ -9,6 +9,8 @@ repository.workspace = true
 [dependencies]
 domain = { path = "../domain" }
 thiserror.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 mockall.workspace = true
+uuid.workspace = true

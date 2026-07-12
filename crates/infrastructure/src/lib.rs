@@ -5,8 +5,12 @@
 //! alongside their ports and tests. Backend errors are defined here and mapped
 //! into [`application::ApplicationError`] at the call site.
 
+pub mod encryption;
+pub mod envelope;
 pub mod error;
 pub mod hashing;
 
+pub use encryption::RingAesGcmCipher;
+pub use envelope::EnvelopeKeyManager;
 pub use error::{CryptoError, TsaError};
 pub use hashing::RingSha256Hasher;

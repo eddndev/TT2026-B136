@@ -20,6 +20,8 @@ pub fn init(directive: &str) {
         .or_else(|_| EnvFilter::try_new(directive))
         .unwrap_or_else(|_| EnvFilter::new("info"));
 
+    // Diagnostics go to standard error so command output on standard
+    // output (for example decrypted plaintext) stays clean for piping.
     tracing_subscriber::fmt()
         .with_env_filter(filter)
         .with_writer(std::io::stderr)

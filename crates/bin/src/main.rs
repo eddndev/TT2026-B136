@@ -9,6 +9,7 @@ mod cli;
 mod config;
 mod handlers;
 mod telemetry;
+mod vault_cmd;
 
 use clap::Parser;
 
@@ -36,6 +37,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Crypto {
             action: CryptoAction::Hash { file },
         } => handlers::hash_file(&file, cli.json),
+        Command::Vault { action } => vault_cmd::run(action),
         _ => anyhow::bail!("command '{name}' is not implemented yet"),
     }
 }

@@ -112,9 +112,23 @@ pub enum VaultAction {
         /// Document identity (UUID) expected inside the package.
         #[arg(long)]
         doc_id: String,
+        /// Document version expected inside the package.
+        #[arg(long, default_value_t = 1)]
+        version: u32,
+        /// Write the plaintext to this path instead of standard output.
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
-    /// Rotate the key-encrypting key, rewrapping stored data keys.
-    RotateKek,
+    /// Rotate the key-encrypting key of an encrypted package in place.
+    ///
+    /// Reads the current key from the KEK_BASE64 environment variable and
+    /// its replacement from NEW_KEK_BASE64, then rewraps the stored data
+    /// key; the encrypted document itself is not touched.
+    RotateKek {
+        /// Path to the encrypted package to rewrap.
+        #[arg(long)]
+        file: PathBuf,
+    },
 }
 
 /// Certificate-authority subcommands.

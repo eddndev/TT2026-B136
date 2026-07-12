@@ -6,6 +6,7 @@
 
 pub mod error;
 pub mod hashing;
+pub mod vault;
 
 pub use error::ApplicationError;
 pub use hashing::HashDocument;

@@ -17,4 +17,9 @@ pub enum ApplicationError {
     /// An outbound port reported a failure.
     #[error("port failure: {0}")]
     Port(String),
+
+    /// Bytes presented as a vault file did not match the vault file format
+    /// documented in the `vault` module.
+    #[error("malformed vault file: {0}")]
+    MalformedVaultFile(String),
 }

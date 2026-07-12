@@ -1,6 +1,7 @@
 //! Backend errors raised by adapters.
 
 use application::ApplicationError;
+use domain::DomainError;
 use thiserror::Error;
 
 /// Failure of a cryptographic adapter.
@@ -42,6 +43,19 @@ pub enum TsaError {
 impl From<CryptoError> for ApplicationError {
     fn from(err: CryptoError) -> Self {
         ApplicationError::Port(err.to_string())
+    }
+}
+
+/// Adapters implement domain ports, so their backend failures must surface
+/// as domain errors. The decryption case maps onto the deliberately opaque
+/// [`DomainError::AuthenticationFailed`].
+impl From<CryptoError> for DomainError {
+    fn from(err: CryptoError) -> Self {
+        match err {
+            CryptoError::DecryptionFailed => DomainError::AuthenticationFailed,
+            CryptoError::InvalidKeyMaterial(msg) => DomainError::InvalidKeyMaterial(msg),
+            CryptoError::Backend(msg) => DomainError::CryptoBackendFailure(msg),
+        }
     }
 }
 
