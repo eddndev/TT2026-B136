@@ -342,3 +342,24 @@ fn certificate_subject_reports_the_common_name() {
         "subject must carry the common name: {subject}"
     );
 }
+
+#[test]
+fn the_signer_debug_form_withholds_the_private_key() {
+    let dir = tempfile::tempdir().unwrap();
+    let key = generate_key(dir.path(), "signer.key.pem", 3072);
+    let signer = load_signer(&key).unwrap();
+
+    let shown = format!("{signer:?}");
+    assert!(
+        shown.contains("private key pem withheld"),
+        "the debug form must state the key is withheld: {shown}"
+    );
+    // No substantial line of the actual PEM may appear in the debug output.
+    let pem = std::fs::read_to_string(&key).unwrap();
+    for line in pem.lines().filter(|line| line.len() > 20) {
+        assert!(
+            !shown.contains(line),
+            "the debug form must not leak key material: {shown}"
+        );
+    }
+}

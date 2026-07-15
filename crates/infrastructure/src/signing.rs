@@ -217,6 +217,13 @@ mod tests {
         assert!(message.contains("pkcs#8"), "unexpected message: {message}");
     }
 
+    #[test]
+    fn constructor_rejects_a_corrupt_pkcs1_block() {
+        let pem = "-----BEGIN RSA PRIVATE KEY-----\nAAAA\n-----END RSA PRIVATE KEY-----\n";
+        let message = constructor_error(pem.as_bytes());
+        assert!(message.contains("pkcs#1"), "unexpected message: {message}");
+    }
+
     fn rejection_of(material: &[u8]) -> SignatureRejection {
         let digest = Sha256Digest::from_array([0u8; 32]);
         let signature = Signature::from_bytes(vec![0u8; 384]).unwrap();

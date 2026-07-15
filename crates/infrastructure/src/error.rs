@@ -73,3 +73,32 @@ impl From<TsaError> for DomainError {
         DomainError::TimestampAuthorityFailure(err.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_crypto_error_becomes_an_application_port_error() {
+        let err: ApplicationError = CryptoError::Backend("openssl absent".to_string()).into();
+        assert!(
+            matches!(err, ApplicationError::Port(ref message) if message.contains("openssl absent")),
+            "a crypto error must map to an application port error"
+        );
+    }
+
+    #[test]
+    fn a_crypto_backend_error_becomes_a_domain_backend_failure() {
+        let err: DomainError = CryptoError::Backend("boom".to_string()).into();
+        assert_eq!(err, DomainError::CryptoBackendFailure("boom".to_string()));
+    }
+
+    #[test]
+    fn a_tsa_error_becomes_an_application_port_error() {
+        let err: ApplicationError = TsaError::Unreachable("host down".to_string()).into();
+        assert!(
+            matches!(err, ApplicationError::Port(ref message) if message.contains("host down")),
+            "a tsa error must map to an application port error"
+        );
+    }
+}
