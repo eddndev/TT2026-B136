@@ -5,7 +5,8 @@
 #   lint         - clippy with warnings denied
 #   test         - full workspace test suite
 #   msrv         - build check on the minimum supported Rust version (1.78)
-#   coverage     - line coverage report via cargo-llvm-cov
+#   coverage     - line coverage via cargo-llvm-cov, gated at 90 percent
+#                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
 #   binary-size  - release binary of despacho-cli must stay under 25 MB
 
@@ -79,12 +80,12 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@cargo-llvm-cov
-      # No failing coverage threshold is enforced yet: most crates are still
-      # skeletons. The intended target is 90 percent line coverage on the
-      # cryptographic crates once that code exists; add --fail-under-lines
-      # here at that point.
-      - name: Measure and print line coverage
-        run: cargo llvm-cov --workspace
+      - name: Measure line coverage
+        run: |
+          cargo llvm-cov --workspace --json --summary-only \
+            --output-path coverage.json
+      - name: Enforce the per-crate gate on the cryptographic crates
+        run: scripts/coverage-gate.sh coverage.json
 
   deny:
     name: Dependency policy
