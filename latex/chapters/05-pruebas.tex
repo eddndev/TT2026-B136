@@ -1,0 +1,333 @@
+% =====================================================================
+%  05-pruebas.tex - Capitulo 5: Pruebas y resultados
+% =====================================================================
+
+\chapter{Pruebas y resultados}\label{cap:pruebas}
+
+Este capítulo reporta la validación del prototipo cuya implementación documentó el Capítulo~\ref{cap:implementacion}. La estrategia de pruebas es la que fijó la metodología del Capítulo~\ref{cap:analisis}: desarrollo guiado por pruebas \cite{beck2004}, con la regla ---registrada en \texttt{CONTRIBUTING.md}--- de que la lógica criptográfica y de dominio llega acompañada de sus pruebas en el mismo cambio, y de que los vectores de prueba oficiales de cada estándar son las primeras pruebas cuando existen. Sobre esa base, la suite se organiza como una pirámide de cinco niveles. En la base, las pruebas unitarias del crate \texttt{domain} ejercitan tipos de valor y puertos con dobles de prueba deterministas escritos a mano, sin ninguna biblioteca criptográfica; las del crate \texttt{application} verifican la orquestación de los casos de uso con mocks generados con \texttt{mockall}; y las del crate \texttt{infrastructure} ejecutan la criptografía real, comenzando por los vectores oficiales de FIPS 180-4, del modo GCM, de RFC 6238 y de RFC 4226. El segundo nivel son las pruebas de propiedades, que verifican invariantes sobre entradas generadas aleatoriamente \cite{claessen2000}. El tercero son las pruebas de integración de infraestructura, que usan como fixtures los mismos scripts versionados de \texttt{pki/} que opera producción, con instantes de evaluación derivados de las ventanas de vigencia parseadas ---nunca de esperas de reloj---, de modo que son deterministas. El cuarto son las pruebas de extremo a extremo del crate \texttt{bin}, que ejecutan el binario compilado \texttt{despacho-cli} como subproceso y observan salidas, archivos y códigos de terminación. El quinto son las fitness functions FF-1 a FF-5 (\cref{tab:impl-fitness}) \cite{ford2023}, que protegen propiedades arquitectónicas en cada integración.
+
+El resultado global de la suite es de 365 pruebas en verde, cero fallos y una prueba ignorada: la prueba de humo contra el sandbox del proveedor externo de sellado, que requiere credenciales vivas y se ejecuta manualmente (\cref{sec:impl-spike-tsa}). La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral en integración continua (job \texttt{coverage}, \cref{tab:impl-ci}): al menos 90\,\% de líneas por cada uno de los tres crates con lógica criptográfica ---\texttt{domain}, \texttt{application} e \texttt{infrastructure}---, conforme al requerimiento RNF-13. El capítulo se organiza en cuatro secciones: la matriz de pruebas por servicio criptográfico (\cref{sec:pruebas-matriz}), los resultados criptográficos específicos ---vectores oficiales, frescura de nonces, mutaciones, propiedades y calibración--- (\cref{sec:pruebas-cripto}), la verificación independiente con herramientas ajenas al prototipo (\cref{sec:pruebas-interop}), y la cobertura alcanzada junto con el balance contra los criterios de éxito del Capítulo~\ref{cap:introduccion} (\cref{sec:pruebas-cobertura}).
+
+\section{Matriz de pruebas}\label{sec:pruebas-matriz}
+
+La suite consta de 366 funciones de prueba distribuidas como muestra la \cref{tab:pruebas-conteo}: 197 unitarias embebidas en \texttt{src} y 169 de integración en los directorios \texttt{tests/} de cada crate. La única función que no se ejecuta en la corrida ordinaria es \texttt{the\_real\_sandbox\_issues\_a\_token}, marcada como ignorada por requerir credenciales del proveedor externo. El crate \texttt{web} no aporta pruebas porque compila deliberadamente vacío (\cref{sec:impl-workspace}).
+
+\begin{table}[H]
+  \centering
+  \caption{Distribución de las funciones de prueba por crate del workspace.}
+  \label{tab:pruebas-conteo}
+  \begin{tabularx}{\linewidth}{@{}l X R{2.6cm} R{2.9cm} R{2.0cm}@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Dobles de prueba empleados} & \textbf{Unitarias} & \textbf{Integración} & \textbf{Total} \\
+    \midrule
+    \texttt{domain} & hashers falsos deterministas, sin criptografía real & 69 & --- & 69 \\
+    \texttt{application} & mocks \texttt{mockall} de los puertos & 39 & 36 & 75 \\
+    \texttt{infrastructure} & criptografía real y herramientas del sistema & 86 & 81\textsuperscript{a} & 167 \\
+    \texttt{bin} & el binario compilado como subproceso & 3 & 52 & 55 \\
+    \texttt{web} & (sin pruebas: crate vacío) & 0 & 0 & 0 \\
+    \midrule
+    \textbf{Total} & & \textbf{197} & \textbf{169} & \textbf{366} \\
+    \bottomrule
+  \end{tabularx}
+
+  \raggedright\small \textsuperscript{a}~Incluye la prueba ignorada contra el sandbox del proveedor de sellado.
+\end{table}
+
+La \cref{tab:pruebas-matriz} presenta la matriz de pruebas por servicio criptográfico, usando la misma identificación S1 a S10 del catálogo de servicios implementados (\cref{tab:impl-servicios}). Cada función de prueba se adscribe al servicio cuyo puerto, caso de uso, adaptador o subcomando ejercita; 355 funciones quedan adscritas a los diez servicios y las 11 restantes son transversales: la validez del árbol completo de la interfaz de línea de comandos, las conversiones de error entre capas, la lectura de la versión local de OpenSSL que se incrusta en el instructivo del paquete de evidencia, y las fitness functions de arquitectura, de cobertura de puertos y de no fuga de secretos en los diagnósticos. La columna de tipos señala qué categorías especiales de prueba posee cada servicio, además de las unitarias y de integración clásicas que todos tienen: \textbf{V}~=~vectores oficiales del estándar, \textbf{P}~=~propiedades sobre entradas generadas aleatoriamente, \textbf{M}~=~mutación de artefactos (detección de alteraciones), \textbf{I}~=~interoperabilidad con herramientas independientes, \textbf{E}~=~extremo a extremo sobre el binario compilado.
+
+\begin{table}[H]
+  \centering
+  \caption{Matriz de pruebas por servicio criptográfico: número de funciones de prueba adscritas y tipos presentes.}
+  \label{tab:pruebas-matriz}
+  \begin{tabularx}{\linewidth}{@{}l X C{2.2cm} C{3.2cm}@{}}
+    \toprule
+    \textbf{Id} & \textbf{Servicio} & \textbf{Pruebas} & \textbf{Tipos} \\
+    \midrule
+    S1  & Hash de documentos (SHA-256)                        & 24 & V, P, M, I, E \\
+    S2  & Cifrado autenticado y envelope encryption           & 54 & V, P, M, E \\
+    S3  & PKI interna: emisión, revocación y validación       & 51 & M, I, E \\
+    S4  & Firma digital RSA-3072                              & 36 & M, I, E \\
+    S5  & Sellado de tiempo RFC 3161                          & 50\textsuperscript{a} & M, I, E \\
+    S6  & Verificación integral de cuatro componentes         & 22 & M, E \\
+    S7  & Hash de contraseñas (Argon2id)                      & 15 & E \\
+    S8  & Segundo factor TOTP y códigos de recuperación       & 23 & V, I, E \\
+    S9  & Cadena de auditoría                                 & 52 & P, M, E \\
+    S10 & Paquete de evidencia                                & 28 & V, M, I, E \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textbf{Subtotal adscrito a servicios}} & \textbf{355} & \\
+    \multicolumn{2}{@{}l}{Pruebas transversales (CLI, errores, fitness functions)} & 11 & \\
+    \bottomrule
+  \end{tabularx}
+
+  \raggedright\small \textsuperscript{a}~Incluye la prueba ignorada del sandbox del proveedor; las 49 restantes se ejecutan en cada corrida.
+\end{table}
+
+El criterio del objetivo OE-6 exige que la matriz contenga, por lo menos, un caso positivo y uno negativo por caso de uso. La \cref{tab:pruebas-casos} nombra un caso representativo de cada signo por servicio; como documenta el inventario, todos los servicios poseen varios casos negativos adicionales ---el patrón general de la suite es que cada camino de rechazo tipado del dominio tiene al menos una prueba que lo provoca---. El inventario completo de las 366 funciones de prueba, función por función y con la descripción de lo que cada una fija, se entrega en el Anexo~\ref{anexo:matriz}.
+
+\begin{longtable}{@{}l L{0.45\linewidth} L{0.45\linewidth}@{}}
+  \caption{Caso positivo y caso negativo representativos por servicio criptográfico.}
+  \label{tab:pruebas-casos} \\
+  \toprule
+  \textbf{Id} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Id} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  S1 & Los cuatro vectores de FIPS 180-4 se reproducen, y el digest calculado por flujo con cortes irregulares coincide con el calculado en memoria. & Un fallo de lectura del flujo se reporta como error con diagnóstico; un archivo inexistente termina el proceso con código distinto de cero. \\
+  \addlinespace
+  S2 & El ciclo cifrar--descifrar restaura el documento byte a byte, por propiedad y de extremo a extremo; tras rotar la KEK, el documento solo se descifra bajo la llave nueva. & Cualquier byte alterado del paquete cifrado, una KEK equivocada, la versión desplazada en uno o el identificador de otro documento producen el mismo rechazo opaco. \\
+  \addlinespace
+  S3 & Ciclo completo por el binario real: el certificado emitido encadena a la raíz y, tras revocar y regenerar la CRL, se reporta revocado con su número de serie. & Una CRL de una autoridad ajena se rechaza como no confiable; una CRL vencida en su \texttt{nextUpdate} es un error duro, nunca un pase permisivo. \\
+  \addlinespace
+  S4 & Firmar y verificar es válido tanto con el certificado como con la clave pública SPKI; las codificaciones PKCS\#1 y PKCS\#8 de una misma clave firman idéntico. & Una clave de 2\,048 bits se rechaza en construcción; un byte alterado del documento o de la firma produce el rechazo tipado de no correspondencia. \\
+  \addlinespace
+  S5 & Un token recién emitido verifica como válido con hora plausible, igual que el token CMS desnudo extraído de la respuesta. & Un token sobre otro digest es discrepancia de huella, detectada sin lanzar subprocesos; bytes aleatorios o DER truncado son token malformado; un ancla ajena deja el token como no confiable. \\
+  \addlinespace
+  S6 & Con los cuatro componentes aprobados el veredicto es válido; la evidencia no aportada se reporta omitida con su razón y no envenena el veredicto. & Cada componente se hace fallar por separado ---firma rechazada, certificado expirado o revocado, emisor no confiable, huella discrepante--- y el veredicto pasa a no válido nombrando la causa. \\
+  \addlinespace
+  S7 & La cadena PHC emitida registra los parámetros fijados por el diseño y la contraseña correcta verifica como coincidencia. & La contraseña incorrecta termina con código distinto de cero; un hash almacenado corrupto es un error, nunca una simple no coincidencia. \\
+  \addlinespace
+  S8 & Los dieciséis vectores oficiales se reproducen y un código vigente derivado del secreto enrolado se acepta de extremo a extremo. & Un código a dos pasos de distancia se rechaza, igual que un secreto demasiado corto o una codificación base32 inválida; cada código de recuperación funciona exactamente una vez y su reuso se rechaza. \\
+  \addlinespace
+  S9 & Treinta y dos anexados concurrentes desde ocho hilos se serializan en una sola cadena válida con secuencias únicas. & Editar un campo de una línea rompe la verificación exactamente en su índice; una bitácora ausente es un error, no una cadena vacía válida. \\
+  \addlinespace
+  S10 & Los comandos del instructivo del paquete, extraídos y ejecutados literalmente, aceptan el documento, la firma, el certificado y el token. & La exportación se rehúsa ante una firma alterada o una CRL ajena, sin escribir el ZIP; un byte volteado en un miembro extraído lo detectan los propios comandos y el CRC del formato. \\
+\end{longtable}
+
+Una convención del inventario merece mención explícita porque determina cómo se lee: cada función de prueba se nombra como una oración conductual que enuncia la garantía comprobada, de modo que el inventario del Anexo~\ref{anexo:matriz} funciona como una especificación ejecutable del comportamiento del sistema ---el nombre declara la garantía y la función la comprueba---. Dos ejemplos: \texttt{version\_rejects\_zero} y \texttt{an\_empty\_log\_verifies\_as\_valid}.
+
+\section{Resultados criptográficos}\label{sec:pruebas-cripto}
+
+\subsection{Vectores oficiales}\label{sec:pruebas-vectores}
+
+Todos los vectores oficiales adoptados están en verde. La \cref{tab:pruebas-vectores} los resume. Para SHA-256 se reproducen los cuatro vectores de ejemplo de FIPS 180-4 \cite{nist2015fips1804}: la cadena vacía, el mensaje «abc», el mensaje de dos bloques y un millón de caracteres «a» ---este último consumido por flujo, lo que ejercita a la vez la interfaz de streaming del adaptador---. El vector «abc» se reutiliza además de extremo a extremo: la prueba del subcomando \texttt{crypto hash} verifica que el binario imprime exactamente \texttt{ba7816bf}\ldots{} ante ese contenido. Para AES-256-GCM se adoptaron los casos de prueba TC13 a TC16 de la especificación del modo GCM de McGrew y Viega \cite{mcgrewviega2004}, la base de NIST SP 800-38D \cite{dworkin2007}; los mismos valores figuran en las suites del programa de validación CAVP del NIST. El adaptador expone una operación de sellado con nonce inyectable exclusivamente para reproducir los vectores; las cuatro pruebas de cifrado exigen el criptograma y el tag exactos, dos de descifrado exigen la autenticación y el texto claro exactos, y una prueba de respuesta conocida negativa voltea el último byte del tag y exige el rechazo autenticado.
+
+\begin{table}[H]
+  \centering
+  \caption{Vectores oficiales reproducidos por la suite de pruebas.}
+  \label{tab:pruebas-vectores}
+  \begin{tabularx}{\linewidth}{@{}L{4.4cm} X C{1.9cm}@{}}
+    \toprule
+    \textbf{Estándar y fuente} & \textbf{Vectores reproducidos} & \textbf{Pruebas} \\
+    \midrule
+    FIPS 180-4, SHA-256 \cite{nist2015fips1804} & Cadena vacía (\texttt{e3b0c442}\ldots), «abc» (\texttt{ba7816bf}\ldots), mensaje de dos bloques (\texttt{248d6a61}\ldots) y un millón de «a» por flujo (\texttt{cdc76e5c}\ldots). & 4 \\
+    \addlinespace
+    Casos TC13--TC16 del modo GCM \cite{mcgrewviega2004,dworkin2007} & AES-256-GCM: cifrado de los cuatro casos con criptograma y tag exactos; descifrado autenticado de TC14 y TC16; caso negativo con el último byte del tag volteado. & 7 \\
+    \addlinespace
+    RFC 6238, apéndice B \cite{mraihi2011} & Los seis vectores TOTP SHA-1 de ocho dígitos ($T$ desde 59 hasta 20\,000\,000\,000, secreto ASCII de referencia). & 1 (6 vectores) \\
+    \addlinespace
+    RFC 4226, apéndice D \cite{mraihi2005} & Los diez vectores HOTP de seis dígitos (contadores 0 a 9), como verificación cruzada del conteo de dígitos de producción. & 1 (10 vectores) \\
+    \addlinespace
+    CRC-32 del formato ZIP & Valor de comprobación estándar: \texttt{crc32} de \texttt{"123456789"} igual a \texttt{0xCBF43926}, y \texttt{crc32} de la cadena vacía igual a 0. & 1 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Para la autenticación multifactor se reproducen íntegros los dos apéndices normativos: los seis vectores TOTP de RFC 6238 con SHA-1 y ocho dígitos, y los diez vectores HOTP de RFC 4226, que cruzan el conteo de seis dígitos usado en producción. Para la firma digital RSA-3072 con padding PKCS\#1 v1.5 no se adoptaron vectores oficiales ---los publicados fijan claves de otros tamaños---; su lugar lo ocupan dos verificaciones equivalentes: el determinismo del esquema, fijado por la prueba de que las codificaciones PKCS\#1 y PKCS\#8 de una misma clave producen firmas byte a byte idénticas, y la interoperabilidad bidireccional con OpenSSL que documenta la \cref{sec:pruebas-interop}.
+
+\subsection{Frescura de nonces}\label{sec:pruebas-nonces}
+
+El criterio del objetivo OE-4 exige cero reutilizaciones de nonce en una suite de 10\,000 cifrados. La prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} ejecuta 10\,000 operaciones de sellado consecutivas sobre el cifrador real y registra el nonce de 96 bits de cada una en un conjunto: la prueba falla si algún nonce se repite. El resultado es de 10\,000 nonces distintos en 10\,000 operaciones, consistente con la generación por CSPRNG fresco en cada sellado que estableció el diseño (\cref{sec:cifrado-reposo}). La misma familia de garantías de frescura está fijada por pruebas en el resto del sistema: dos DEK generadas nunca coinciden, dos enrolamientos TOTP extraen secretos distintos, cada hash de contraseña usa una sal aleatoria nueva ---dos hashes de la misma contraseña difieren y ambos verifican---, los ocho códigos de recuperación de un lote no se repiten, y ocho solicitudes concurrentes a la autoridad de sellado local producen ocho números de serie distintos.
+
+\subsection{Detección de mutaciones}\label{sec:pruebas-mutacion}
+
+Las pruebas de mutación alteran un artefacto criptográfico real ---un byte o un bit a la vez--- y exigen el rechazo. El resultado global es la detección del 100\,\% de las mutaciones ensayadas, en todos los servicios donde se aplicaron. La pieza central es la prueba exhaustiva del cifrado autenticado, \texttt{any\_single\_byte\_flip\_breaks\_authentication}: recorre en bucle \emph{cada} byte del payload sellado ---nonce, criptograma y tag, uno por uno--- y verifica que voltear cualquiera de ellos hace fallar la apertura con el error opaco de autenticación; para este servicio la afirmación de detección total no es muestral sino exhaustiva sobre todas las posiciones del artefacto. Alrededor de ese núcleo, la suite ensaya mutaciones sobre cada tipo de evidencia:
+
+\begin{itemize}
+  \item \textbf{Firma digital:} un byte alterado del documento firmado, o un byte alterado de la firma, produce el rechazo tipado de no correspondencia; el mismo caso se ensaya de extremo a extremo, donde el componente de firma de la verificación integral falla con su causa y el veredicto pasa a no válido.
+  \item \textbf{Certificado:} corromper el último byte DER de un certificado ---su firma--- hace que el validador reporte emisor no confiable aunque la estructura siga parseando; la prueba fija que la confianza depende de la verificación criptográfica y no del parseo.
+  \item \textbf{Token de sellado:} un token DER truncado o sustituido por bytes aleatorios se diagnostica como malformado; un token legítimo evaluado contra un ancla ajena queda como no confiable, conservando el diagnóstico de la herramienta.
+  \item \textbf{Cadena de auditoría:} \texttt{any\_single\_corruption\_is\_detected\_at\_its\_index} corrompe un bit de un byte de cualquier campo ---valor de cadena, secuencia, actor, acción o recurso--- de cualquier entrada de bitácoras generadas aleatoriamente, y exige que la verificación se rompa exactamente en el índice alterado; el mismo comportamiento se fija a mano sobre el archivo JSONL y de extremo a extremo por el subcomando \texttt{audit verify-chain}.
+  \item \textbf{Paquete cifrado y paquete de evidencia:} un byte alterado del archivo \texttt{DVLT1} produce el rechazo autenticado en el subcomando \texttt{vault decrypt}; un byte alterado de un miembro del ZIP lo detecta la herramienta independiente \texttt{unzip} por el CRC; un documento corrompido dentro del paquete extraído es rechazado por los comandos \texttt{openssl} del propio instructivo; y la exportación se rehúsa a escribir un paquete cuya firma fue alterada, nombrando el componente fallido.
+\end{itemize}
+
+Este conjunto satisface el criterio de detección del 100\,\% de alteraciones de un byte del objetivo OE-4 y materializa la mitigación comprometida en el análisis de riesgos para el compromiso del esquema de cifrado (RTC-02, \cref{tab:rtc-02}).
+
+\subsection{Propiedades verificadas por generación aleatoria de casos}\label{sec:pruebas-propiedades}
+
+Cinco invariantes se verifican con \texttt{proptest} sobre cientos de entradas generadas aleatoriamente por corrida, en la tradición de las herramientas de property-based testing \cite{claessen2000}:
+
+\begin{enumerate}
+  \item \textbf{Round-trip del cifrado autenticado:} para toda llave de 32 bytes, todo AAD de hasta 63 bytes y todo texto claro de hasta 1\,023 bytes, abrir lo sellado devuelve el texto claro original.
+  \item \textbf{Determinismo de SHA-256:} para entradas arbitrarias de hasta 4\,095 bytes, el digest es idéntico entre corridas y entre la interfaz de bloque y la de flujo.
+  \item \textbf{Sensibilidad de SHA-256:} voltear cualquier bit de cualquier byte de la entrada cambia el digest.
+  \item \textbf{Validez de la cadena de auditoría:} cualquier secuencia aleatoria de 0 a 11 eventos anexados produce una cadena que verifica como válida.
+  \item \textbf{Detección puntual de corrupción:} una corrupción de un bit en cualquier campo de cualquier entrada de la bitácora se detecta exactamente en su índice.
+\end{enumerate}
+
+Las dos últimas propiedades son el complemento probabilístico de las pruebas de mutación de la \cref{sec:pruebas-mutacion}: no fijan un caso concreto sino el invariante completo del que esos casos son instancias.
+
+\subsection{Concurrencia}\label{sec:pruebas-concurrencia}
+
+Los dos adaptadores que comparten recursos del sistema de archivos entre procesos ---la bitácora encadenada y la autoridad de sellado local--- se probaron bajo concurrencia real, no simulada. Ocho hilos que anexan cuatro eventos cada uno sobre el mismo archivo de bitácora, liberados simultáneamente con una barrera, producen 32 entradas con secuencias únicas y una sola cadena que verifica como válida: el lock exclusivo entre procesos serializa los escritores en lugar de permitir que bifurquen la cadena, y la misma garantía se fija para instancias del adaptador en procesos separados que escriben por turnos. En la autoridad de sellado, ocho solicitudes simultáneas producen ocho tokens con números de serie todos distintos ---la condición de carrera sobre el archivo de serie de OpenSSL que el adaptador debe serializar (\cref{sec:impl-s5-sellado})---, cuatro verificaciones simultáneas del mismo token concluyen todas válidas gracias al directorio de trabajo privado de cada una, y ninguna operación deja archivos de trabajo residuales en el directorio de la autoridad.
+
+\subsection{Calibración de Argon2id}\label{sec:pruebas-argon2}
+
+El diseño fijó los parámetros de Argon2id en $m = 46$~MiB, $t = 1$, $p = 1$ ---la configuración de primera elección publicada por OWASP y segunda recomendación de RFC 9106 \cite{biryukov2021,owasp_pwstorage2024}--- y exigió verificar empíricamente que el costo por intento quede entre 0.5 y 1.0 segundos en el hardware de despliegue (\cref{sec:autenticacion}). El caso de uso de calibración implementado para ese fin (subcomando \texttt{auth calibrate}) promedia cinco corridas de hash sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva. Ejecutado en el hardware de desarrollo, reportó una media de 37.8 milisegundos sobre las cinco corridas ---la corrida capturada en la transcripción de la demostración---, es decir, un veredicto por debajo de la banda.
+
+La lectura honesta de este resultado es la siguiente. La banda de 0.5 a 1.0 segundos está definida para el hardware de despliegue, no para la máquina de desarrollo en que se midió; el resultado no acredita ni desacredita el criterio del objetivo OE-5, sino que demuestra que el instrumento de medición funciona y que los parámetros mínimos recomendados por OWASP son insuficientes en hardware moderno rápido si se desea alcanzar la banda. En el despliegue deberá repetirse la calibración con el mismo comando y elevarse los parámetros ---iteraciones o memoria--- hasta que la media entre en banda; los parámetros están declarados como constantes en un único punto del adaptador precisamente para que ese ajuste sea localizado. El resto del servicio no depende de la banda: el formato PHC con los parámetros registrados, la coincidencia y no coincidencia de contraseñas, el tratamiento del hash corrupto como error y la ausencia de la contraseña en los diagnósticos están fijados por pruebas que pasan en cualquier hardware.
+
+\section{Verificación independiente}\label{sec:pruebas-interop}
+
+Un principio transversal de la suite es que ningún resultado criptográfico se acepta únicamente porque el software propio lo apruebe: cada artefacto que el prototipo produce se verifica también con herramientas independientes, y cada artefacto que las herramientas independientes producen se verifica con el software propio. La herramienta de referencia es OpenSSL, en la versión 3.5.7 (9 de junio de 2026) del entorno de pruebas; la versión queda registrada en tres lugares: en las pruebas ---que la leen con \texttt{openssl version}---, en el instructivo de cada paquete de evidencia exportado, y en la transcripción de la demostración. Este cruce sistemático materializa la mitigación comprometida en el análisis de riesgos para la discrepancia de digests ante el sellado de tiempo (RLC-01, \cref{tab:rlc-01}), que exigía auditar los resúmenes generados en Rust contra herramientas certificadas de línea de comandos. La \cref{tab:pruebas-interop} resume las comprobaciones cruzadas que la suite ejecuta como subprocesos en cada corrida.
+
+\begin{table}[H]
+  \centering
+  \caption{Comprobaciones de interoperabilidad ejecutadas por la suite con herramientas independientes.}
+  \label{tab:pruebas-interop}
+  \begin{tabularx}{\linewidth}{@{}L{3.6cm} X@{}}
+    \toprule
+    \textbf{Artefacto} & \textbf{Comprobación cruzada} \\
+    \midrule
+    Resumen SHA-256 & El digest del hasher propio coincide con la salida de \texttt{sha256sum} del sistema sobre un archivo de 123\,457 bytes. \\
+    \addlinespace
+    Firma propia & \texttt{openssl dgst -sha256 -verify} acepta las firmas del prototipo (\texttt{Verified OK}); se ensaya en integración, de extremo a extremo tras \texttt{sign}, y sobre el paquete de evidencia. \\
+    \addlinespace
+    Firma ajena & Una firma generada con \texttt{openssl dgst -sha256 -sign} es aceptada por el verificador propio: la interoperabilidad es bidireccional. \\
+    \addlinespace
+    Certificados y CRL & \texttt{openssl verify -crl\_check} concuerda con el validador propio en el certificado vigente y en el revocado; \texttt{openssl verify -attime} concuerda en la cadena vigente y en el emisor expirado. \\
+    \addlinespace
+    Sellos de tiempo & \texttt{openssl ts -verify} acepta los tokens de la autoridad local, verificados por digest y por documento; \texttt{openssl ts -reply -text} se usa para leer los números de serie emitidos. \\
+    \addlinespace
+    Paquete ZIP & \texttt{unzip -t} acepta el paquete y la extracción restaura cada byte, incluida una entrada con los 256 valores de byte; con un byte alterado, \texttt{unzip -t} falla nombrando el CRC. \\
+    \addlinespace
+    Código TOTP & En la demostración, el código se recomputa con \texttt{base32}, \texttt{od} y \texttt{openssl dgst -sha1 -mac HMAC} ---sin el software propio--- y el verificador del prototipo lo acepta. \\
+    \addlinespace
+    Instructivo del paquete & La prueba de extremo a extremo del paquete extrae los comandos de \texttt{INSTRUCCIONES.md} y los ejecuta literalmente: las tres comprobaciones pasan sobre el paquete íntegro y rechazan el miembro corrompido. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La evidencia operativa de este enfoque es la demostración de extremo a extremo \texttt{scripts/\allowbreak demo.sh} (\cref{sec:impl-cli}), cuya transcripción íntegra ---capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7 y re-ejecutada sin errores con posterioridad--- está versionada en \texttt{docs/demo-transcript.md}. La demostración no es una vitrina: cada caso negativo se ejecuta bajo un auxiliar que aborta el guion si el comando \emph{no} es rechazado, de modo que los rechazos esperados son verificaciones reales. Los extractos siguientes reproducen tres momentos de esa transcripción; se abrevian las rutas del directorio temporal y del binario, sin alterar ninguna salida. El primero es el reporte de la verificación integral con los cuatro componentes en verde:
+
+\begin{lstlisting}[language={},numbers=none,caption={Verificación integral con evidencia íntegra (extracto de \texttt{docs/demo-transcript.md}).},label={lst:pruebas-verify}]
++ despacho-cli verify document.txt --sig document.txt.sig
+    --tsr document.txt.tsr --cert socia-demo.crt.pem
+    --ca ca.crt.pem --crl crl.pem
+document:    document.txt
+digest:      fb5c0a6097be9246860fa82c89db3576e8a4ba7e...
+integrity:   passed: recomputed digest matches the digest
+             the timestamp token attests
+signature:   passed: signature verifies over the document
+             digest with the signer certificate
+certificate: passed: status at the evaluation time: valid
+             (revocation checked against the supplied list)
+timestamp:   passed: token accepted under the trust anchor;
+             generated at 2026-07-12T10:19:41Z
+verdict:     valid
+\end{lstlisting}
+
+El segundo es la verificación del paquete de evidencia exportado usando únicamente OpenSSL, sin el software que lo generó ---el mismo procedimiento que seguiría un perito o la contraparte procesal, reproducido paso a paso en el Anexo~\ref{anexo:verificacion}---:
+
+\begin{lstlisting}[language={},numbers=none,caption={Verificación del paquete de evidencia con solo OpenSSL (extracto de \texttt{docs/demo-transcript.md}).},label={lst:pruebas-openssl}]
++ openssl dgst -sha256 document.txt
+SHA2-256(document.txt)= fb5c0a6097be9246860fa82c89db3576...
++ openssl x509 -in certificado.pem -pubkey -noout
+    -out firmante.pub.pem
++ openssl dgst -sha256 -verify firmante.pub.pem
+    -signature document.txt.sig document.txt
+Verified OK
++ openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
+certificado.pem: OK
++ openssl ts -verify -data document.txt -in document.txt.tsr
+    -CAfile ca.pem
+Using configuration from /etc/pki/tls/openssl.cnf
+Verification: OK
+\end{lstlisting}
+
+El tercero es la manipulación de la bitácora encadenada: la sustitución de una acción por otra de la misma longitud ---de modo que solo el encadenamiento criptográfico puede notarlo--- y su detección en el índice exacto:
+
+\begin{lstlisting}[language={},numbers=none,caption={Detección de la manipulación de la bitácora (extracto de \texttt{docs/demo-transcript.md}).},label={lst:pruebas-audit}]
++ despacho-cli audit verify-chain
+audit chain valid (2 entries)
++ sed -i s/demo.sello/demo.XXXXX/ audit-log.jsonl
++ (expected to fail) despacho-cli audit verify-chain
+Error: audit chain broken at index 1
+OK: command was rejected, as expected
+\end{lstlisting}
+
+La misma transcripción registra la revocación del certificado del firmante y su efecto sobre la verificación: el componente de certificado falla reportando \texttt{revoked (serial 1000)} y el reporte añade que ese estado habla solo del instante de evaluación y no invalida por sí mismo una firma producida durante la vigencia ---la lectura jurídica cuidadosa que el diseño exigió y que las pruebas fijan textualmente en tres niveles: caso de uso, interfaz de línea de comandos y demostración---.
+
+\section{Cobertura y criterios de éxito}\label{sec:pruebas-cobertura}
+
+La \cref{tab:pruebas-cobertura} presenta la cobertura de líneas final por crate, medida con \texttt{cargo-llvm-cov} sobre la suite completa. El umbral del 90\,\% que exige el requerimiento RNF-13 se aplica en integración continua a los tres crates con lógica criptográfica mediante \texttt{scripts/coverage-gate.sh}, y los tres lo superan. El crate \texttt{bin} se reporta sin umbral: es la interfaz de línea de comandos y la raíz de composición, cuyas líneas no cubiertas corresponden mayormente al formateo de salidas y a ramas de error del arranque; aun así queda en 88.5\,\%. Parte del margen sobre el umbral proviene de pruebas dedicadas a rutas de error de los adaptadores ---una bitácora cuya ruta es un directorio, una línea almacenada con timestamp imparseable, respuestas del proveedor de sellado sin token o con base64 inválido, material PEM corrupto en el firmador y el verificador---, de modo que los caminos de fallo están tan ejercitados como los de éxito.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} y umbral aplicado en integración continua.}
+  \label{tab:pruebas-cobertura}
+  \begin{tabularx}{\linewidth}{@{}l R{3.0cm} R{3.4cm} R{2.4cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 934   & 974   & 95.9\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 1\,137 & 1\,182 & 96.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 1\,881 & 2\,012 & 93.5\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 837   & 946   & 88.5\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{4\,789} & \textbf{5\,114} & \textbf{93.6\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo OE-6 pide cobertura de al menos 80\,\% en los módulos criptográficos, mientras que el requerimiento RNF-13 pide 90\,\%. La integración continua aplica el más estricto de los dos, y los resultados superan ambos. El requerimiento RNF-14 ---que el 100\,\% de las pruebas de los módulos criptográficos pase antes de considerar completado un incremento--- se cumple por construcción: el job de pruebas de integración continua bloquea la rama principal ante cualquier fallo, y la suite cierra con 365 de 365 pruebas ejecutadas en verde.
+
+La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de éxito verificables que el Capítulo~\ref{cap:introduccion} fijó para los objetivos específicos validables en esta fase (OE-3 a OE-6, \cref{tab:criterios-exito}), desglosados por subcriterio y con un estado explícito: cumplido, parcial o diferido.
+
+\begin{longtable}{@{}l L{0.40\linewidth} L{0.36\linewidth} L{0.10\linewidth}@{}}
+  \caption{Resultados contra los criterios de éxito de los objetivos OE-3 a OE-6.}
+  \label{tab:pruebas-criterios} \\
+  \toprule
+  \textbf{OE} & \textbf{Criterio de éxito} & \textbf{Resultado medido} & \textbf{Estado} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{OE} & \textbf{Criterio de éxito} & \textbf{Resultado medido} & \textbf{Estado} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{4}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  OE-3 & Firma RSA-3072 con SHA-256 verificable de forma independiente sobre el 100\,\% de los contratos firmados. & Toda firma se verifica antes de escribirse; interoperabilidad bidireccional con OpenSSL; paquete de evidencia verificable sin el software propio. & Cumplido \\
+  \addlinespace
+  OE-3 & Sello de tiempo RFC 3161 vinculado al hash del documento. & Tokens emitidos sobre el digest SHA-256, verificados en dos etapas y aceptados por \texttt{openssl ts -verify}; el binario comprueba que el token cubre el digest antes de almacenarlo. & Cumplido \\
+  \addlinespace
+  OE-3 & Tasa de verificación exitosa $\geq$ 99\,\% sobre sellos emitidos por el sandbox de Cincel. & No medible aún: la campaña de $N \geq 100$ sellos contra el sandbox del PSC está pendiente de credenciales; la prueba de humo está escrita y lista para ejecutarse. & Diferido \\
+  \addlinespace
+  OE-4 & Detección del 100\,\% de alteraciones de un byte mediante pruebas de mutación. & Todas las mutaciones ensayadas fueron detectadas; para el cifrado autenticado la verificación es exhaustiva sobre cada byte del payload (\cref{sec:pruebas-mutacion}). & Cumplido \\
+  \addlinespace
+  OE-4 & Nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados. & 10\,000 sellados consecutivos sin repetición del nonce de 96 bits (\cref{sec:pruebas-nonces}). & Cumplido \\
+  \addlinespace
+  OE-4 & Envelope encryption con DEK por documento. & DEK aleatoria de 32 bytes por documento envuelta bajo la KEK; rotación de KEK sin recifrar el documento, fijada por prueba. & Cumplido \\
+  \addlinespace
+  OE-5 & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de despliegue ($m = 46$~MiB, $t = 1$, $p = 1$). & Parámetros fijados por prueba y mecanismo de calibración operativo; en el hardware de desarrollo la media fue de 37.8 ms, fuera de banda; la calibración en el hardware de despliegue queda pendiente (\cref{sec:pruebas-argon2}). & Parcial \\
+  \addlinespace
+  OE-5 & MFA basado en TOTP con ventana de tolerancia $\pm 1$ período. & Vectores oficiales de RFC 6238 y RFC 4226 en verde; desfase de $\pm 1$ paso aceptado y $\pm 2$ rechazado; enrolamiento y verificación de extremo a extremo. & Cumplido \\
+  \addlinespace
+  OE-5 & Control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). & Diferido junto con la capa web: no existe aún superficie multiusuario que autorizar. & Diferido \\
+  \addlinespace
+  OE-6 & Cobertura de pruebas $\geq$ 80\,\% en los módulos criptográficos. & Entre 93.5 y 96.2\,\% por crate criptográfico; el umbral aplicado en CI es el 90\,\% de RNF-13, más estricto que el criterio. & Cumplido \\
+  \addlinespace
+  OE-6 & Al menos 15 pruebas de extremo a extremo que cubran los flujos de firma y verificación. & 22 pruebas ejecutan el binario real sobre esos flujos (\texttt{sign}, \texttt{timestamp}, \texttt{verify} y \texttt{package export}), además de la demostración íntegra. & Cumplido \\
+  \addlinespace
+  OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & \Cref{tab:pruebas-casos} por servicio; inventario completo, función por función, en el Anexo~\ref{anexo:matriz}. & Cumplido \\
+\end{longtable}
+
+El balance debe leerse con la misma franqueza con que se construyó la tabla. Los objetivos OE-4 y OE-6 se cumplen en todos sus subcriterios. Los objetivos OE-3 y OE-5 quedan parcialmente cumplidos, cada uno con un pendiente preciso y acotado:
+
+\begin{itemize}
+  \item \textbf{Campaña contra el sandbox del PSC (OE-3).} La autoridad de sellado local demuestra el flujo RFC 3161 completo ---solicitud, emisión, token DER, verificación en dos etapas y aceptación por herramientas independientes---, pero el criterio de tasa de verificación $\geq$ 99\,\% se enuncia sobre sellos del sandbox de Cincel y, sin credenciales del proveedor, no es medible todavía. El pendiente está acotado arquitectónicamente (\cref{sec:impl-spike-tsa}): el adaptador remoto existe y está probado contra un stub que ejercita su contrato completo, la prueba de humo contra el sandbox real está escrita ---es la única prueba ignorada de la suite---, y la campaña de $N \geq 100$ sellos con registro de la tasa es la primera actividad programada al obtener las credenciales.
+  \item \textbf{RBAC de cuatro roles (OE-5).} El control de acceso por roles pertenece a la superficie web multiusuario, cuya construcción quedó diferida a la siguiente fase junto con el crate \texttt{web} (\cref{sec:impl-workspace}); en la interfaz administrativa de línea de comandos entregada no hay sesiones ni roles que diferenciar. Los cimientos de autenticación sobre los que se montará ---hash de contraseñas, segundo factor y códigos de recuperación--- están implementados y probados; la exigencia de un solo uso por código TOTP y la limitación de intentos, que requieren un almacén de estado por cuenta, quedaron registradas como diferidas en el mismo movimiento (\cref{sec:impl-divergencias}).
+  \item \textbf{Banda de calibración de Argon2id (OE-5).} La banda de 0.5 a 1.0 segundos no aplica al hardware de desarrollo, donde la media medida fue de 37.8 ms; el criterio solo podrá declararse cumplido tras recalibrar en el hardware de despliegue elevando los parámetros hasta entrar en banda, con el instrumento ya implementado y ejercitado para ese propósito (\cref{sec:pruebas-argon2}).
+\end{itemize}
+
+En síntesis, la validación de esta fase deja los servicios criptográficos del prototipo respaldados por 365 pruebas en verde con una cobertura del 93.6\,\% del workspace, vectores oficiales reproducidos para cada primitivo que los publica, detección total en las campañas de mutación, y verificación independiente bidireccional con OpenSSL 3.5.7 documentada en una transcripción versionada; y deja explícitos, con su causa y su vía de cierre, los tres pendientes que la siguiente fase debe saldar. Las conclusiones generales del trabajo se presentan en el Capítulo~\ref{cap:conclusiones}.

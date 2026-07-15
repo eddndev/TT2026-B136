@@ -1,0 +1,299 @@
+% =====================================================================
+%  anexo-e-matriz.tex — Matriz de pruebas y evidencia de ejecución
+% =====================================================================
+\chapter{Matriz de pruebas y evidencia de ejecución}\label{anexo:matriz}
+
+Este anexo cataloga la suite completa de pruebas automatizadas del prototipo y documenta la evidencia de su ejecución. La matriz responde al criterio de éxito del objetivo OE-6 ---una matriz de pruebas funcionales con al menos un caso positivo y uno negativo por caso de uso--- y al requerimiento RNF-13, que exige una cobertura igual o mayor al 90\,\% en los módulos criptográficos. El anexo se organiza en tres partes: una nota metodológica que explica cómo leer la matriz, la matriz misma con una fila por archivo o módulo de prueba, y la evidencia de ejecución (resumen de la corrida, cobertura por crate, calibración de Argon2id, transcripción de la demostración y re-ejecución en integración continua).
+
+\section{Nota metodológica}\label{sec:matriz-nota}
+
+El workspace contiene \textbf{366 funciones de prueba}: 365 se ejecutan en verde en cada corrida y una se declara ignorada (\texttt{\#[ignore]}) porque es una prueba de humo contra el sandbox del proveedor externo de sellado de tiempo y requiere credenciales vivas del proveedor (variables \texttt{CINCEL\_BASE\_URL} y \texttt{CINCEL\_API\_KEY}); se ejecuta manualmente cuando esas credenciales están disponibles. El resto del adaptador correspondiente se prueba contra un stub HTTP local, de modo que la suite regular no depende de ningún servicio de red.
+
+Los nombres de las funciones de prueba son frases completas en \texttt{snake\_case} (en inglés, como todo identificador del código fuente) que describen el comportamiento verificado: por ejemplo, \texttt{a\_code\_is\_accepted\_once\_and\_rejected\_on\_reuse} documenta por sí misma la regla de un solo uso de los códigos de recuperación. Este estilo convierte al inventario de pruebas en la \emph{especificación ejecutable} del prototipo: la lectura de los nombres de una suite enumera las obligaciones de comportamiento del módulo correspondiente, y la corrida en verde certifica que todas se cumplen. Por esa razón la matriz no parafrasea cada prueba: agrupa las 366 funciones por crate y por archivo o módulo, indica su tipo y cita dos o tres nombres representativos por fila. El inventario íntegro se reproduce con \texttt{cargo test --workspace} sobre el repositorio.
+
+La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las pruebas usan dobles deterministas escritos a mano (el crate no depende de ninguna biblioteca criptográfica); en \texttt{application} usan mocks de los puertos del dominio generados con \texttt{mockall}, para probar la orquestación de los casos de uso y la propagación de errores; en \texttt{infrastructure} ejercitan los adaptadores con criptografía real y herramientas del sistema; y en \texttt{bin} ejecutan el binario compilado \texttt{despacho-cli} como subproceso. La \cref{tab:matriz-tipos} define la taxonomía de tipos empleada en la matriz y sus abreviaturas.
+
+\begin{table}[H]
+  \centering
+  \caption{Taxonomía de tipos de prueba empleada en la matriz y abreviaturas usadas.}
+  \label{tab:matriz-tipos}
+  \begin{tabularx}{\linewidth}{@{}L{3.4cm} X@{}}
+    \toprule
+    \textbf{Tipo (abrev.)} & \textbf{Descripción} \\
+    \midrule
+    Unitaria (Unit.) & Prueba de una unidad en aislamiento: tipos de valor, reglas de dominio, orquestación de casos de uso con mocks, o rutas de error de un adaptador. \\
+    Vectores (Vect.) & Prueba de respuesta conocida (\emph{known-answer test}) contra vectores publicados en estándares: FIPS 180-4 para SHA-256 \cite{nist2015fips1804}, los casos 13--16 de la especificación de GCM en que se basa NIST SP 800-38D \cite{dworkin2007}, RFC 6238 \cite{mraihi2011}, RFC 4226 \cite{mraihi2005} y el valor de comprobación de CRC-32. \\
+    Propiedad (Prop.) & Prueba basada en propiedades con \texttt{proptest}: la propiedad debe sostenerse para entradas generadas aleatoriamente. \\
+    Mutación (Mut.) & Alteración deliberada de un byte o un bit de un artefacto (documento, firma, certificado, payload cifrado, línea de bitácora) para comprobar que la verificación lo rechaza y señala el punto exacto. \\
+    Interoperabilidad (Interop.) & Verificación cruzada con software independiente del propio: \texttt{openssl}, \texttt{sha256sum} y \texttt{unzip}. \\
+    Integración (Integr.) & Adaptador real contra recursos locales: archivos compartidos, subprocesos, hilos concurrentes o un stub HTTP en \texttt{127.0.0.1}. \\
+    E2E & Extremo a extremo: la prueba ejecuta el binario compilado como subproceso y examina salidas, archivos producidos y códigos de salida. \\
+    Arquitectura (Arq.) & \emph{Fitness function} que fija una regla estructural del sistema \cite{ford2023}: dependencias del dominio (FF-1), no fuga de secretos en logs (FF-2) y cobertura de puertos con adaptador y mock (FF-3). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Matriz de pruebas}\label{sec:matriz-tabla}
+
+La \cref{tab:matriz-resumen} resume la distribución de las 366 funciones por crate y la \cref{tab:matriz-pruebas} presenta la matriz completa: una fila por archivo o módulo de prueba, agrupadas por crate. La columna \textbf{N} indica el número de funciones de prueba del archivo; la suma de la columna es 366. Las rutas se abrevian respecto de la raíz de cada crate: \texttt{src/} señala pruebas unitarias embebidas en el módulo (\texttt{\#[cfg(test)]}) y \texttt{tests/} señala binarios de prueba de integración. En la fila del stub del proveedor de sellado, la anotación $(+1)$ corresponde a la única prueba ignorada.
+
+\begin{table}[H]
+  \centering
+  \caption{Distribución de las 366 funciones de prueba por crate. El conteo de integración de \texttt{infrastructure} incluye la prueba ignorada.}
+  \label{tab:matriz-resumen}
+  \begin{tabularx}{\linewidth}{@{}X R{3.4cm} R{3.8cm} R{2.0cm}@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Unitarias (\texttt{src/})} & \textbf{Integración (\texttt{tests/})} & \textbf{Total} \\
+    \midrule
+    \texttt{domain} & 69 & 0 & 69 \\
+    \texttt{application} & 39 & 36 & 75 \\
+    \texttt{infrastructure} & 86 & 81 & 167 \\
+    \texttt{bin} & 3 & 52 & 55 \\
+    \texttt{web} & 0 & 0 & 0 \\
+    \midrule
+    Total & 197 & 169 & 366 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begingroup
+\renewcommand{\_}{\textunderscore\allowbreak}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}L{0.27\linewidth}C{0.05\linewidth}L{0.13\linewidth}L{0.45\linewidth}@{}}
+  \caption[Matriz de pruebas del prototipo, una fila por archivo o módulo de prueba]{Matriz de pruebas del prototipo: una fila por archivo o módulo de prueba, con el número de funciones (N), el tipo conforme a la \cref{tab:matriz-tipos} y casos representativos.}
+  \label{tab:matriz-pruebas} \\
+  \toprule
+  \textbf{Módulo / archivo} & \textbf{N} & \textbf{Tipo} & \textbf{Casos representativos} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Módulo / archivo} & \textbf{N} & \textbf{Tipo} & \textbf{Casos representativos} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{4}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}} --- 69 pruebas unitarias en \texttt{src/}} \\
+  \midrule
+  \texttt{src/audit/chain.rs} & 10 & Unit. & \texttt{an\_intact\_chain\_verifies\_as\_valid}\newline
+    \texttt{truncating\_the\_tail\_is\_not\_detected\_by\_verification\_alone} \\
+  \texttt{src/audit/event.rs} & 6 & Unit. & \texttt{canonical\_bytes\_follow\_the\_documented\_layout}\newline
+    \texttt{a\_non\_utc\_timestamp\_is\_normalized\_to\_utc} \\
+  \texttt{src/audit/port.rs} & 1 & Unit. & \texttt{port\_is\_object\_safe\_and\_round\_trips\_an\_entry} \\
+  \texttt{src/clock.rs} & 1 & Unit. & \texttt{port\_is\_object\_safe\_and\_returns\_the\_configured\_instant} \\
+  \texttt{src/crypto/\allowbreak{}archive.rs} & 7 & Unit. & \texttt{names\_with\_path\_separators\_are\_rejected}\newline
+    \texttt{ordinary\_file\_names\_are\_accepted} \\
+  \texttt{src/crypto/\allowbreak{}certificate.rs} & 5 & Unit. & \texttt{stale\_crl\_error\_carries\_the\_missed\_update\_time}\newline
+    \texttt{summary\_reports\_the\_validity\_window} \\
+  \texttt{src/crypto/\allowbreak{}cipher.rs} & 6 & Unit. & \texttt{sealed\_payload\_rejects\_bytes\_shorter\_than\_nonce\_and\_tag}\newline
+    \texttt{document\_aad\_changes\_with\_the\_version} \\
+  \texttt{src/crypto/\allowbreak{}digest.rs} & 6 & Unit. & \texttt{from\_bytes\_rejects\_wrong\_length}\newline
+    \texttt{hex\_round\_trip\_is\_stable} \\
+  \texttt{src/crypto/\allowbreak{}document.rs} & 5 & Unit. & \texttt{version\_rejects\_zero}\newline
+    \texttt{next\_increments\_version} \\
+  \texttt{src/crypto/\allowbreak{}hasher.rs} & 4 & Unit. & \texttt{hash\_stream\_reports\_matching\_digest\_for\_same\_input}\newline
+    \texttt{hash\_stream\_surfaces\_read\_failures} \\
+  \texttt{src/crypto/\allowbreak{}keys.rs} & 3 & Unit. & \texttt{wrapped\_dek\_round\_trips\_its\_bytes}\newline
+    \texttt{wrapped\_dek\_rejects\_bytes\_shorter\_than\_a\_sealed\_payload} \\
+  \texttt{src/crypto/\allowbreak{}recovery.rs} & 6 & Unit. & \texttt{a\_code\_is\_accepted\_once\_and\_rejected\_on\_reuse}\newline
+    \texttt{each\_code\_works\_exactly\_once\_until\_the\_set\_is\_exhausted} \\
+  \texttt{src/crypto/\allowbreak{}signature.rs} & 6 & Unit. & \texttt{signature\_debug\_hides\_the\_bytes}\newline
+    \texttt{ports\_are\_object\_safe\_and\_round\_trip} \\
+  \texttt{src/crypto/\allowbreak{}timestamp.rs} & 3 & Unit. & \texttt{each\_rejection\_cause\_is\_reported\_explicitly}\newline
+    \texttt{ports\_are\_object\_safe\_and\_round\_trip} \\
+  \midrule
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}} --- 39 unitarias en \texttt{src/} y 36 en \texttt{tests/}, todas con mocks de los puertos} \\
+  \midrule
+  \texttt{src/audit.rs} & 8 & Unit. & \texttt{append\_takes\_the\_timestamp\_from\_the\_clock\_and\_returns\_the\_stored\_entry}\newline
+    \texttt{verify\_reports\_the\_first\_index\_whose\_chain\_does\_not\_match} \\
+  \texttt{src/auth/\allowbreak{}password.rs} & 6 & Unit. & \texttt{calibration\_with\_an\_instant\_hasher\_reports\_below\_band}\newline
+    \texttt{band\_edges\_are\_inclusive} \\
+  \texttt{src/auth/totp.rs} & 4 & Unit. & \texttt{enrollment\_bundles\_provisioning\_material\_and\_eight\_recovery\_codes}\newline
+    \texttt{verify\_totp\_surfaces\_backend\_errors} \\
+  \texttt{src/hashing.rs} & 2 & Unit. & \texttt{streams\_the\_reader\_through\_the\_port\_and\_returns\_its\_digest} \\
+  \texttt{src/signing.rs} & 7 & Unit. & \texttt{sign\_document\_signs\_the\_digest\_of\_the\_streamed\_content}\newline
+    \texttt{verify\_signature\_passes\_a\_rejection\_through\_unchanged} \\
+  \texttt{src/timestamping.rs} & 5 & Unit. & \texttt{timestamp\_document\_requests\_a\_token\_over\_the\_streamed\_digest}\newline
+    \texttt{verify\_timestamp\_checks\_the\_token\_over\_the\_recomputed\_digest} \\
+  \texttt{src/vault.rs} & 7 & Unit. & \texttt{serialized\_layout\_starts\_with\_magic\_and\_length}\newline
+    \texttt{parse\_rejects\_a\_wrapped\_key\_length\_beyond\_the\_file} \\
+  \texttt{tests/evidence\_package.rs} & 7 & Unit. & \texttt{the\_package\_holds\_every\_artifact\_in\_order\_under\_the\_documented\_names}\newline
+    \texttt{the\_instructions\_fill\_every\_placeholder} \\
+  \texttt{tests/pki\_use\_cases.rs} & 10 & Unit. & \texttt{issue\_reports\_success\_only\_after\_the\_certificate\_chains\_to\_the\_root}\newline
+    \texttt{validate\_propagates\_a\_stale\_crl\_error} \\
+  \texttt{tests/vault\_use\_cases.rs} & 6 & Unit. & \texttt{encrypt\_seals\_with\_a\_fresh\_dek\_and\_the\_document\_aad}\newline
+    \texttt{rotate\_rewraps\_the\_dek\_and\_copies\_the\_sealed\_document\_through} \\
+  \texttt{tests/verify\_document.rs} & 6 & Unit. & \texttt{all\_supplied\_components\_passing\_yield\_a\_valid\_verdict}\newline
+    \texttt{without\_a\_token\_integrity\_and\_timestamp\_are\_skipped\_with\_reasons} \\
+  \texttt{tests/verify\_document\_failures.rs} & 7 & Unit. & \texttt{an\_imprint\_mismatch\_fails\_integrity\_and\_timestamp}\newline
+    \texttt{a\_revoked\_certificate\_reports\_the\_matched\_serial} \\
+  \midrule
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}} --- 86 unitarias en \texttt{src/} y 81 de integración en \texttt{tests/} (una ignorada)} \\
+  \midrule
+  \texttt{src/archive.rs} & 6 & Unit., vect. & \texttt{crc32\_matches\_the\_standard\_check\_value}\newline
+    \texttt{output\_is\_deterministic} \\
+  \texttt{src/audit/file.rs} & 6 & Unit. & \texttt{stored\_lines\_are\_json\_objects\_with\_an\_rfc3339\_utc\_timestamp}\newline
+    \texttt{a\_line\_that\_is\_not\_json\_surfaces\_as\_a\_storage\_failure} \\
+  \texttt{src/audit/\allowbreak{}memory.rs} & 4 & Unit. & \texttt{appended\_entries\_get\_consecutive\_sequences\_and\_verify}\newline
+    \texttt{the\_first\_entry\_links\_to\_the\_genesis\_value} \\
+  \texttt{src/certificates/\allowbreak{}authority.rs} & 6 & Unit. & \texttt{revoking\_an\_unissued\_serial\_is\_rejected}\newline
+    \texttt{serials\_normalize\_to\_uppercase} \\
+  \texttt{src/certificates/\allowbreak{}parse.rs} & 7 & Unit. & \texttt{a\_pem\_block\_with\_the\_wrong\_label\_is\_rejected}\newline
+    \texttt{serial\_hex\_strips\_the\_der\_sign\_padding\_byte} \\
+  \texttt{src/certificates/\allowbreak{}validator.rs} & 2 & Unit. & \texttt{unparseable\_certificate\_bytes\_are\_a\_hard\_error}\newline
+    \texttt{inspect\_rejects\_unparseable\_bytes} \\
+  \texttt{src/clock.rs} & 1 & Unit. & \texttt{now\_is\_utc\_and\_does\_not\_go\_backwards} \\
+  \texttt{src/encryption.rs} & 3 & Unit. & \texttt{seal\_then\_open\_round\_trips}\newline
+    \texttt{seal\_rejects\_a\_short\_key} \\
+  \texttt{src/envelope.rs} & 6 & Unit. & \texttt{unwrap\_with\_the\_wrong\_kek\_fails\_opaquely}\newline
+    \texttt{rewrap\_moves\_the\_dek\_to\_the\_new\_kek} \\
+  \texttt{src/error.rs} & 3 & Unit. & \texttt{a\_crypto\_error\_becomes\_an\_application\_port\_error}\newline
+    \texttt{a\_tsa\_error\_becomes\_an\_application\_port\_error} \\
+  \texttt{src/hashing.rs} & 9 & Vect., prop., interop. & \texttt{hashes\_one\_million\_a\_bytes\_streamed}\newline
+    \texttt{flipping\_one\_bit\_changes\_the\_digest}\newline
+    \texttt{digest\_matches\_sha256sum\_output} \\
+  \texttt{src/password.rs} & 4 & Unit. & \texttt{phc\_string\_records\_the\_fixed\_argon2id\_parameters}\newline
+    \texttt{malformed\_stored\_hash\_is\_an\_error\_not\_a\_mismatch} \\
+  \texttt{src/recovery.rs} & 3 & Unit. & \texttt{codes\_have\_the\_grouped\_human\_typeable\_shape}\newline
+    \texttt{codes\_within\_a\_batch\_are\_distinct} \\
+  \texttt{src/signing.rs} & 8 & Unit. & \texttt{constructor\_rejects\_a\_corrupt\_pkcs1\_block}\newline
+    \texttt{verifier\_rejects\_non\_utf8\_material} \\
+  \texttt{src/timestamp/\allowbreak{}cincel.rs} & 2 & Unit. & \texttt{the\_debug\_form\_redacts\_the\_api\_key}\newline
+    \texttt{trailing\_slashes\_in\_the\_base\_url\_are\_trimmed} \\
+  \texttt{src/timestamp/\allowbreak{}local.rs} & 4 & Unit. & \texttt{nonzero\_exits\_map\_to\_rejected\_with\_the\_step\_name}\newline
+    \texttt{a\_serial\_lock\_whose\_directory\_is\_absent\_is\_unreachable} \\
+  \texttt{src/timestamp/\allowbreak{}verify.rs} & 4 & Unit. & \texttt{truncated\_der\_is\_a\_malformed\_token\_with\_a\_diagnosis}\newline
+    \texttt{token\_info\_rejects\_undecodable\_bytes} \\
+  \texttt{src/tools.rs} & 1 & Interop. & \texttt{the\_local\_openssl\_reports\_a\_version\_line} \\
+  \texttt{src/totp.rs} & 7 & Vect. & \texttt{eight\_digit\_codes\_match\_the\_rfc6238\_appendix\_b\_sha1\_vectors}\newline
+    \texttt{verification\_accepts\_exactly\_one\_step\_of\_skew\_on\_each\_side} \\
+  \texttt{tests/aead\_properties.rs} & 6 & Prop., mut. & \texttt{any\_single\_byte\_flip\_breaks\_authentication}\newline
+    \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} \\
+  \texttt{tests/aes\_gcm\_vectors.rs} & 7 & Vect. & \texttt{encrypt\_vector\_tc16\_with\_aad}\newline
+    \texttt{decrypt\_vector\_tc14\_with\_wrong\_tag\_fails} \\
+  \texttt{tests/audit\_log.rs} & 8 & Integr., prop., mut. & \texttt{concurrent\_appends\_serialize\_into\_one\_valid\_chain}\newline
+    \texttt{any\_single\_corruption\_is\_detected\_at\_its\_index} \\
+  \texttt{tests/certificate\_validation.rs} & 11 & Interop., mut. & \texttt{openssl\_verify\_agrees\_on\_the\_valid\_and\_revoked\_cases}\newline
+    \texttt{corrupting\_one\_signature\_byte\_makes\_the\_issuer\_untrusted} \\
+  \texttt{tests/cincel\_stub.rs} & 13 $(+1)$ & Integr. & \texttt{a\_processing\_submission\_is\_polled\_until\_the\_token\_arrives}\newline
+    \texttt{the\_api\_key\_travels\_in\_the\_header\_and\_never\_into\_errors}\newline
+    ignorada: \texttt{the\_real\_sandbox\_issues\_a\_token} \\
+  \texttt{tests/issuer\_validity\_window.rs} & 2 & Interop. & \texttt{expired\_issuer\_is\_rejected\_and\_openssl\_agrees}\newline
+    \texttt{chain\_is\_valid\_while\_both\_windows\_are\_open\_and\_openssl\_agrees} \\
+  \texttt{tests/local\_tsa\_rfc3161.rs} & 13 & Integr., interop. & \texttt{a\_requested\_token\_is\_accepted\_by\_openssl\_ts\_verify}\newline
+    \texttt{concurrent\_requests\_yield\_distinct\_serial\_numbers} \\
+  \texttt{tests/openssl\_ca\_adapter.rs} & 5 & Integr. & \texttt{init\_ca\_creates\_the\_root\_and\_is\_idempotent}\newline
+    \texttt{revoke\_then\_generate\_crl\_marks\_the\_certificate\_revoked} \\
+  \texttt{tests/password\_hashing.rs} & 2 & Unit. & \texttt{the\_default\_hasher\_produces\_the\_fixed\_argon2id\_parameters}\newline
+    \texttt{a\_stored\_hash\_with\_out\_of\_range\_parameters\_is\_malformed\_not\_a\_mismatch} \\
+  \texttt{tests/rsa\_signing.rs} & 11 & Interop., mut. & \texttt{signer\_output\_verifies\_with\_the\_openssl\_command\_line}\newline
+    \texttt{an\_openssl\_signature\_verifies\_as\_valid}\newline
+    \texttt{the\_signer\_debug\_form\_withholds\_the\_private\_key} \\
+  \texttt{tests/zip\_archive.rs} & 2 & Interop., mut. & \texttt{unzip\_accepts\_the\_archive\_and\_extraction\_restores\_every\_byte}\newline
+    \texttt{unzip\_detects\_a\_flipped\_byte\_through\_the\_crc} \\
+  \midrule
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{bin} (\texttt{despacho-cli})} --- 3 unitarias en \texttt{src/} y 52 E2E en \texttt{tests/} sobre el binario compilado} \\
+  \midrule
+  \texttt{src/cli.rs} & 1 & Unit. & \texttt{command\_tree\_is\_valid} \\
+  \texttt{src/timestamp\_cmd.rs} & 2 & Unit. & \texttt{the\_token\_suffix\_keeps\_the\_original\_extension}\newline
+    \texttt{the\_default\_tsa\_directory\_sits\_next\_to\_the\_ca\_directory} \\
+  \texttt{tests/architecture.rs} & 1 & Arq. & \texttt{domain\_has\_no\_workspace\_dependencies} \\
+  \texttt{tests/audit\_cli.rs} & 7 & E2E & \texttt{a\_corrupted\_line\_makes\_verify\_chain\_fail\_naming\_the\_index}\newline
+    \texttt{verifying\_a\_missing\_log\_fails\_naming\_the\_path} \\
+  \texttt{tests/auth\_cli.rs} & 6 & E2E & \texttt{hash\_password\_then\_verify\_password\_round\_trip}\newline
+    \texttt{totp\_enroll\_writes\_the\_secret\_and\_a\_current\_code\_verifies} \\
+  \texttt{tests/crypto\_hash.rs} & 3 & E2E, vect. & \texttt{prints\_the\_lowercase\_hex\_digest}\newline
+    \texttt{fails\_when\_the\_file\_does\_not\_exist} \\
+  \texttt{tests/help.rs} & 1 & E2E & \texttt{help\_succeeds\_and\_names\_the\_binary} \\
+  \texttt{tests/log\_redaction.rs} & 3 & Arq. & \texttt{vault\_encrypt\_never\_logs\_the\_kek}\newline
+    \texttt{hash\_password\_never\_logs\_the\_password} \\
+  \texttt{tests/package\_cli.rs} & 6 & E2E, interop., mut. & \texttt{the\_documented\_openssl\_commands\_verify\_the\_extracted\_package}\newline
+    \texttt{export\_refuses\_a\_tampered\_signature\_naming\_the\_component} \\
+  \texttt{tests/pki\_cli.rs} & 3 & E2E & \texttt{init\_issue\_show\_revoke\_and\_gen\_crl\_work\_end\_to\_end}\newline
+    \texttt{revoking\_an\_unknown\_serial\_fails} \\
+  \texttt{tests/port\_coverage.rs} & 1 & Arq. & \texttt{every\_domain\_port\_has\_an\_infrastructure\_adapter\_and\_a\_mock} \\
+  \texttt{tests/sign\_cli.rs} & 4 & E2E, interop. & \texttt{sign\_writes\_a\_signature\_that\_openssl\_verifies}\newline
+    \texttt{sign\_rejects\_a\_key\_that\_does\_not\_match\_the\_certificate} \\
+  \texttt{tests/timestamp\_cli.rs} & 3 & E2E, interop. & \texttt{timestamp\_with\_mock\_writes\_a\_verifiable\_token\_next\_to\_the\_input}\newline
+    \texttt{timestamp\_without\_provider\_settings\_suggests\_the\_mock\_authority} \\
+  \texttt{tests/vault\_roundtrip.rs} & 5 & E2E, mut. & \texttt{encrypt\_then\_decrypt\_round\_trips\_byte\_identical}\newline
+    \texttt{decrypting\_a\_corrupted\_package\_fails\_with\_an\_authentication\_error} \\
+  \texttt{tests/verify\_cli.rs} & 9 & E2E, mut. & \texttt{an\_intact\_document\_verifies\_valid\_on\_every\_component}\newline
+    \texttt{a\_revoked\_certificate\_reports\_its\_serial\_from\_the\_fresh\_crl} \\
+\end{longtable}
+\endgroup
+
+El crate \texttt{web} no aporta pruebas: es un esqueleto cuya funcionalidad corresponde a la fase de construcción posterior del sistema completo, y por la misma razón la fitness function del diseño que exigía un span de trazabilidad por handler HTTP ---sustituida en la numeración implementada por el umbral de cobertura--- queda diferida hasta que ese crate contenga lógica.
+
+Dos lecturas transversales de la matriz merecen mención. Primera, todo servicio criptográfico cuenta con al menos un caso positivo y al menos un caso negativo, como exige el criterio de éxito de OE-6; los casos negativos dominan numéricamente porque el valor probatorio del sistema depende de que los rechazos sean correctos y diagnósticos. Segunda, las pruebas de mutación de un byte materializan el criterio de OE-4 (detección del 100\,\% de alteraciones de un byte): la suite altera deliberadamente documentos firmados, firmas, certificados, payloads cifrados, miembros del paquete de evidencia y líneas de la bitácora, y en todos los casos verifica el rechazo; la prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} cubre además la exigencia de cero reutilizaciones de nonce en una suite de 10\,000 cifrados.
+
+\section{Evidencia de ejecución}\label{sec:matriz-evidencia}
+
+\subsection{Resumen de la corrida}\label{sec:matriz-corrida}
+
+La ejecución de \texttt{cargo test --workspace} reporta \textbf{365 pruebas en verde, 0 fallos y 1 ignorada}, distribuidas en 34 binarios de prueba (14 de ellos con las suites unitarias y de integración del crate \texttt{bin}). Sobre un árbol ya compilado, el tiempo neto de ejecución de la suite completa es del orden de siete segundos: ninguna suite individual supera 1.2 segundos, y las más costosas son las que ejecutan subprocesos reales de \texttt{openssl} y del binario propio (el paquete de evidencia, la validación de certificados con fixtures reales y la verificación integral, alrededor de un segundo cada una). Este costo bajo es deliberado: los instantes de evaluación de los certificados se derivan de la ventana de validez parseada del propio certificado y no de esperas de reloj, de modo que la suite es determinista y puede correrse en cada cambio sin fricción.
+
+Los conteos y la cobertura de este anexo se reproducen con tres comandos sobre la raíz del repositorio, los mismos que ejecuta el flujo de integración continua:
+
+\begin{lstlisting}[numbers=none]
+cargo test --workspace
+cargo llvm-cov --workspace --json --summary-only \
+    --output-path coverage.json
+scripts/coverage-gate.sh coverage.json
+\end{lstlisting}
+
+\subsection{Cobertura de líneas por crate}\label{sec:matriz-cobertura}
+
+La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). El crate \texttt{bin} se reporta sin umbral por tratarse de la interfaz de línea de comandos y la raíz de composición, cuyo valor se verifica mediante las pruebas E2E de la matriz y no mediante cobertura de líneas. La \cref{tab:matriz-cobertura} presenta la salida del gate.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} y umbral aplicado en integración continua.}
+  \label{tab:matriz-cobertura}
+  \begin{tabularx}{\linewidth}{@{}l R{2.6cm} R{2.2cm} R{2.4cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas totales} & \textbf{Cobertura} & \textbf{Umbral} \\
+    \midrule
+    \texttt{domain} & 934 & 974 & 95.9\,\% & $\geq$ 90\,\% \\
+    \texttt{application} & 1\,137 & 1\,182 & 96.2\,\% & $\geq$ 90\,\% \\
+    \texttt{infrastructure} & 1\,881 & 2\,012 & 93.5\,\% & $\geq$ 90\,\% \\
+    \texttt{bin} & 837 & 946 & 88.5\,\% & sin umbral (informativo) \\
+    \midrule
+    Total del workspace & 4\,789 & 5\,114 & 93.6\,\% & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Calibración de Argon2id en el hardware de desarrollo}\label{sec:matriz-argon}
+
+El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=46$ MiB, $t=1$, $p=1$; véase §3.11.5) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de desarrollo la calibración reportó una \textbf{media de 37.8 ms sobre cinco corridas} (transcripción de la demostración), muy por debajo de la banda objetivo: el equipo de desarrollo es sustancialmente más rápido que el perfil de servidor para el que se eligieron los parámetros de referencia. El resultado se documenta con honestidad como un hallazgo y no como un defecto: la banda debe alcanzarse en el hardware de despliegue, donde la calibración deberá repetirse elevando los parámetros de memoria o de iteraciones hasta que el tiempo medio caiga dentro de 0.5--1.0 segundos. Precisamente para eso existe el comando de calibración y para eso la suite fija los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
+
+\subsection{Transcripción de la demostración}\label{sec:matriz-demo}
+
+La evidencia de ejecución de cara al usuario final es el guion \texttt{scripts/demo.sh}, que recorre el ciclo de vida completo de la evidencia (creación de la autoridad, hash, cifrado con corrupción y rechazo, firma, sellado, verificación integral, alteración detectada, paquete de evidencia verificado sólo con \texttt{openssl}, revocación, calibración, TOTP recomputado con herramientas independientes y bitácora encadenada con manipulación detectada). Cada caso negativo del guion es un punto de verificación real: el guion aborta si un comando que debía ser rechazado no lo es. La transcripción íntegra de una ejecución real, capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7 (9 Jun 2026), está versionada en \texttt{docs/demo-transcript.md}; el guion se re-ejecutó posteriormente sin errores. El Anexo~\ref{anexo:verificacion} reproduce y explica la porción de esa transcripción dedicada a la verificación independiente del paquete de evidencia.
+
+\subsection{Re-ejecución continua}\label{sec:matriz-ci}
+
+Toda la evidencia anterior se regenera automáticamente en cada cambio: el flujo de integración continua del repositorio (\texttt{.github/workflows/ci.yml}) ejecuta siete jobs sobre cada push y cada pull request, y el fallo de cualquiera de ellos ---salvo el job \texttt{msrv}, hoy informativo--- bloquea la integración del cambio. La \cref{tab:matriz-ci} los enumera. De este modo, la matriz de este anexo no describe una fotografía única sino un invariante mantenido: las 365 pruebas en verde, los umbrales de cobertura y las fitness functions se verifican en cada modificación del código.
+
+\begin{table}[H]
+  \centering
+  \caption{Jobs del flujo de integración continua que re-ejecutan la evidencia en cada cambio.}
+  \label{tab:matriz-ci}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Job} & \textbf{Verificación} \\
+    \midrule
+    \texttt{format} & Formato canónico del código con \texttt{rustfmt}. \\
+    \texttt{lint} & \texttt{clippy} con advertencias promovidas a error (\texttt{-D warnings}). \\
+    \texttt{test} & La suite completa de este anexo: \texttt{cargo test --workspace}. \\
+    \texttt{msrv} & Compilación con la versión mínima soportada del compilador (Rust 1.78); informativo. \\
+    \texttt{coverage} & Cobertura con \texttt{cargo-llvm-cov} y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:matriz-cobertura}). \\
+    \texttt{deny} & \texttt{cargo-deny}: avisos de seguridad de dependencias, licencias, duplicados y fuentes permitidas. \\
+    \texttt{binary-size} & Tamaño del binario de release acotado a 25 MB (fitness function FF-5). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}

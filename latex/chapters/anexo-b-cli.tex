@@ -1,0 +1,357 @@
+% =====================================================================
+%  anexo-b-cli.tex — Manual de la interfaz de línea de comandos
+% =====================================================================
+\chapter{Manual de la interfaz de línea de comandos}\label{anexo:cli}
+
+Este anexo es el manual de referencia de \texttt{despacho-cli}, la interfaz de línea de comandos del prototipo. El binario lo produce el crate \texttt{bin} del workspace de Cargo, que opera como raíz de composición de la arquitectura hexagonal: cada subcomando corresponde a exactamente un caso de uso de la capa de aplicación, y su manejador instancia los adaptadores concretos de infraestructura y los inyecta en dicho caso de uso. El árbol de mandos está definido en \texttt{crates/bin/src/cli.rs}. Las salidas que acompañan a los ejemplos son reales: provienen de la transcripción versionada \texttt{docs/demo-transcript.md}, capturada el 12 de julio de 2026 con \texttt{despacho-cli} 0.1.0 y OpenSSL 3.5.7; en ellas, \texttt{\$REPO} abrevia la raíz del repositorio y \texttt{\$WORK} el directorio temporal de trabajo de aquella ejecución.
+
+\section{Convenciones generales}\label{sec:cli-convenciones}
+
+El árbol completo de subcomandos es el siguiente; los corchetes denotan elementos opcionales y los ángulos, valores que aporta el usuario:
+
+\begin{lstlisting}[numbers=none]
+despacho-cli [--json]
+  crypto hash <FILE>
+  vault encrypt <FILE> --doc-id <UUID> [--version <N>]
+  vault decrypt <PACKAGE> --doc-id <UUID> [--version <N>] [--out <PATH>]
+  vault rotate-kek --file <PATH>
+  pki [--scripts-dir <DIR>] {init-ca | issue --cn <CN> |
+      revoke --serial <HEX> | gen-crl | show <CERT>}
+  sign <FILE> --cert <PATH> --key <PATH>
+  timestamp <INPUT> [--mock] [--out <PATH>] [--pki-dir <DIR>]
+  verify <FILE> --sig <PATH> --cert <PATH> --ca <PATH> [--tsr <PATH>]
+      [--crl <PATH>] [--tsa-cert <PATH>] [--at <RFC3339>]
+  package export <FILE> --sig <PATH> --tsr <PATH> --cert <PATH>
+      --ca <PATH> --crl <PATH> [--tsa-chain <PATH>] --out <PATH>
+  auth {calibrate | hash-password | verify-password --hash <PHC>}
+  auth totp enroll --user <EMAIL> --secret-out <PATH>
+  auth totp verify --code <CODE> --secret-file <PATH>
+  audit {append --action <STRING> --resource <STRING> |
+      verify-chain | show}
+\end{lstlisting}
+
+Tres convenciones gobiernan a todos los subcomandos. Primera, la separación de flujos: los resultados se escriben en la salida estándar (\texttt{stdout}) y los diagnósticos en el flujo de error (\texttt{stderr}), de modo que la salida pueda encadenarse en tuberías sin contaminación; el nivel de diagnóstico se controla con la variable de entorno \texttt{RUST\_LOG}. Segunda, la bandera global \texttt{--json}: cuando está activa, cada subcomando imprime exactamente un objeto JSON legible por máquina en lugar del texto para humanos; la única excepción es \texttt{vault decrypt} sin \texttt{--out}, cuyo texto claro se escribe crudo a \texttt{stdout} precisamente para poder canalizarlo. Tercera, los códigos de salida: el proceso termina con código distinto de cero ante cualquier error y también ---de forma deliberada, para que los scripts puedan bifurcar directamente--- cuando un resultado criptográfico es un rechazo: un veredicto de verificación no válido, una contraseña que no coincide, un código TOTP rechazado, una cadena de auditoría rota o un paquete de evidencia que no verifica antes de exportarse. La bandera \texttt{--help} está disponible en todos los niveles; \texttt{--version}, en el mando raíz.
+
+El binario carga un archivo \texttt{.env} del directorio de trabajo cuando existe (nunca se versiona; la plantilla comentada es \texttt{.env.example}). La \cref{tab:cli-variables-entorno} resume las variables reconocidas; de ellas solo se registra en el diagnóstico su presencia, jamás su valor.
+
+\begin{table}[H]
+  \centering
+  \caption{Variables de entorno leídas por \texttt{despacho-cli}. En las variables del proveedor remoto de sellado, un valor en blanco cuenta como ausente.}
+  \label{tab:cli-variables-entorno}
+  \begin{tabularx}{\linewidth}{@{}l X l@{}}
+    \toprule
+    \textbf{Variable} & \textbf{Propósito} & \textbf{Default} \\
+    \midrule
+    \texttt{RUST\_LOG} & Filtro del diagnóstico emitido por \texttt{stderr}. & \texttt{info} \\
+    \texttt{KEK\_BASE64} & Llave de cifrado de llaves: 32 bytes aleatorios codificados en base64; la leen los subcomandos \texttt{vault}. & --- \\
+    \texttt{NEW\_KEK\_BASE64} & Llave de reemplazo; la lee solo \texttt{vault rotate-kek}. & --- \\
+    \texttt{PKI\_CA\_DIR} & Directorio de trabajo de la CA interna. & \texttt{pki-ca} \\
+    \texttt{TSA\_DIR} & Directorio de trabajo de la TSA local, junto al de la CA. & \texttt{pki-tsa} \\
+    \texttt{CINCEL\_BASE\_URL} & URL base del proveedor remoto de sellado de tiempo. & --- \\
+    \texttt{CINCEL\_API\_KEY} & Credencial del proveedor remoto (secreto). & --- \\
+    \texttt{AUDIT\_LOG\_PATH} & Archivo de la bitácora de auditoría. & \texttt{audit-log.jsonl} \\
+    \texttt{USER} & Actor que registra \texttt{audit append}. & \texttt{unknown} \\
+    \texttt{DATABASE\_URL} & Cadena de conexión a base de datos, reservada para la persistencia futura; solo se registra su presencia en el diagnóstico. & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Grupo crypto: integridad de contenido}\label{sec:cli-crypto}
+
+\subsection{crypto hash}
+
+\begin{lstlisting}[numbers=none]
+despacho-cli [--json] crypto hash <FILE>
+\end{lstlisting}
+
+Calcula el resumen SHA-256 del archivo indicado y lo imprime en hexadecimal en minúsculas. El único argumento, \texttt{<FILE>} (posicional, ruta, obligatorio), se consume como flujo en bloques de 64 KiB, por lo que el uso de memoria es constante sin importar el tamaño de la entrada. Un archivo inexistente termina el proceso con código distinto de cero.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli crypto hash document.txt
+fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+\end{lstlisting}
+
+Con \texttt{--json}, la salida es un objeto con los campos \texttt{algorithm} (siempre \texttt{"sha-256"}), \texttt{digest} y \texttt{file}.
+
+\section{Grupo vault: cifrado en reposo}\label{sec:cli-vault}
+
+Los tres subcomandos de \texttt{vault} materializan el cifrado autenticado en reposo con AES-256-GCM y envelope encryption: cada documento se cifra con una llave de datos (DEK) fresca, que a su vez se almacena envuelta bajo la llave de cifrado de llaves (KEK) leída de la variable \texttt{KEK\_BASE64}. El criptograma queda ligado a la identidad y versión del documento mediante los datos adicionales autenticados (AAD), de modo que descifrar con un identificador o versión distintos falla igual que un criptograma alterado. La \cref{tab:cli-vault-opciones} lista las opciones.
+
+\begin{table}[H]
+  \centering
+  \caption{Opciones de los subcomandos del grupo \texttt{vault}.}
+  \label{tab:cli-vault-opciones}
+  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+    \toprule
+    \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{vault encrypt}} \\
+    \texttt{<FILE>} & ruta & obligatorio & Archivo en claro; el resultado se escribe en \texttt{<FILE>.enc}. \\
+    \texttt{--doc-id} & cadena (UUID) & obligatorio & Identidad del documento a la que se liga el criptograma. \\
+    \texttt{--version} & entero & \texttt{1} & Versión del documento ligada al criptograma. \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{vault decrypt}} \\
+    \texttt{<PACKAGE>} & ruta & obligatorio & Paquete cifrado producido por \texttt{encrypt}. \\
+    \texttt{--doc-id} & cadena (UUID) & obligatorio & Identidad esperada dentro del paquete. \\
+    \texttt{--version} & entero & \texttt{1} & Versión esperada dentro del paquete. \\
+    \texttt{--out} & ruta & \texttt{stdout} & Destino del texto claro. \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{vault rotate-kek}} \\
+    \texttt{--file} & ruta & obligatorio & Paquete cuya DEK se re-envuelve in situ. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\texttt{vault rotate-kek} lee la KEK vigente de \texttt{KEK\_BASE64} y su reemplazo de \texttt{NEW\_KEK\_BASE64}, re-envuelve únicamente la llave de datos y copia intactos los bytes del documento sellado, por lo que su costo criptográfico es independiente del tamaño del documento (la E/S de copiar el paquete sí crece con él); la escritura ocurre sobre un archivo temporal que después se renombra, de modo que un fallo a la mitad deja el original intacto. El ejemplo siguiente muestra el ciclo con detección de alteraciones: se cifra el documento, se corrompe un byte del paquete, el descifrado se rechaza con el error opaco de autenticación, se restaura el byte y se rota la KEK.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli vault encrypt document.txt --doc-id 00000000-0000-4000-8000-000000000001 --version 1
+wrote document.txt.enc
++ $REPO/scripts/flip-byte.sh document.txt.enc 512
+flipped byte at offset 512 of document.txt.enc: 0x45 -> 0xba (size 3678 bytes, unchanged)
++ (expected to fail) $REPO/target/debug/despacho-cli vault decrypt document.txt.enc --doc-id 00000000-0000-4000-8000-000000000001 --out rechazado.txt
+Error: decryption of document.txt.enc failed
+
+Caused by:
+    authenticated decryption failed
++ $REPO/scripts/flip-byte.sh document.txt.enc 512
+flipped byte at offset 512 of document.txt.enc: 0xba -> 0x45 (size 3678 bytes, unchanged)
++ $REPO/target/debug/despacho-cli vault rotate-kek --file document.txt.enc
+rewrapped the data key in document.txt.enc
+\end{lstlisting}
+
+Con \texttt{--json}: \texttt{encrypt} emite \texttt{package\_path}; \texttt{decrypt} con \texttt{--out} emite \texttt{out}; \texttt{rotate-kek} emite \texttt{rewritten}. \texttt{decrypt} sin \texttt{--out} escribe el texto claro crudo a \texttt{stdout} incluso bajo \texttt{--json}.
+
+\section{Grupo pki: autoridad certificadora interna}\label{sec:cli-pki}
+
+El grupo \texttt{pki} administra la autoridad certificadora interna ejecutando como subprocesos los scripts versionados del directorio \texttt{pki/} (detallados en el Anexo~\ref{anexo:pki}). La opción de grupo \texttt{--scripts-dir} (ruta, default \texttt{pki}) indica dónde viven los scripts; el directorio de trabajo de la CA se toma de \texttt{PKI\_CA\_DIR} (default \texttt{pki-ca} bajo el directorio actual). La \cref{tab:cli-pki-opciones} lista las opciones.
+
+\begin{table}[H]
+  \centering
+  \caption{Opciones de los subcomandos del grupo \texttt{pki}.}
+  \label{tab:cli-pki-opciones}
+  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+    \toprule
+    \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
+    \midrule
+    \texttt{--scripts-dir} & ruta & \texttt{pki} & Directorio con los scripts de la autoridad (opción del grupo). \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{pki init-ca} (sin opciones propias)} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{pki issue}} \\
+    \texttt{--cn} & cadena & obligatorio & Common name del sujeto del certificado. \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{pki revoke}} \\
+    \texttt{--serial} & cadena (hex) & obligatorio & Serial del certificado, tal como lo imprimen \texttt{issue} y \texttt{show}. \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{pki gen-crl} (sin opciones propias)} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{pki show}} \\
+    \texttt{<CERT>} & ruta & obligatorio & Certificado a inspeccionar. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\texttt{init-ca} crea la raíz autofirmada y es idempotente: re-ejecutarlo sobre una CA existente no la reemplaza. \texttt{issue} emite un certificado de entidad final y rehúsa reportar éxito hasta validar el certificado fresco contra la raíz. \texttt{revoke} marca el serial en la base de datos de la CA; la revocación solo se vuelve visible para terceros tras regenerar la lista con \texttt{gen-crl}. \texttt{show} imprime sujeto, emisor, serial y ventana de vigencia de cualquier certificado.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli pki --scripts-dir $REPO/pki init-ca
+certificate authority ready at $WORK/pki-ca
+root certificate: $WORK/pki-ca/ca.crt.pem
++ $REPO/target/debug/despacho-cli pki --scripts-dir $REPO/pki issue --cn "Socia Demo"
+issued certificate serial 1000
+  certificate: $WORK/pki-ca/certs/socia-demo.crt.pem
+  private key: $WORK/pki-ca/private/socia-demo.key.pem (keep secret, never commit)
++ $REPO/target/debug/despacho-cli pki --scripts-dir $REPO/pki revoke --serial 1000
+revoked certificate serial 1000
+run 'pki gen-crl' to publish an updated revocation list
++ $REPO/target/debug/despacho-cli pki --scripts-dir $REPO/pki gen-crl
+wrote $WORK/pki-ca/crl/crl.pem
+\end{lstlisting}
+
+Con la bandera \texttt{--json}: \texttt{init-ca} emite \texttt{ca\_dir} y \texttt{root\_certificate}; \texttt{issue} emite \texttt{serial}, \texttt{certificate} y \texttt{private\_key}; \texttt{revoke} emite \texttt{revoked\_serial}; \texttt{gen-crl} emite \texttt{crl}; \texttt{show} emite \texttt{subject}, \texttt{issuer}, \texttt{serial}, \texttt{not\_before} y \texttt{not\_after}.
+
+\section{Comando sign: firma digital}\label{sec:cli-sign}
+
+\begin{lstlisting}[numbers=none]
+despacho-cli [--json] sign <FILE> --cert <PATH> --key <PATH>
+\end{lstlisting}
+
+Firma el resumen SHA-256 del documento con RSA PKCS\#1 v1.5 y escribe la firma separada en \texttt{<FILE>.sig}. \texttt{<FILE>} (posicional, ruta) es el documento a firmar; \texttt{--cert} (ruta, obligatoria) es el certificado del firmante y \texttt{--key} (ruta, obligatoria) su llave privada en PEM, en codificación PKCS\#8 o PKCS\#1; llaves con módulo menor a 3\,072 bits se rechazan al construir el firmador. Antes de escribir el archivo de firma, el comando verifica la firma recién producida contra el certificado presentado: una llave que no corresponde al certificado falla en ese punto en lugar de producir una firma inverificable.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli sign document.txt --cert $WORK/pki-ca/certs/socia-demo.crt.pem --key $WORK/pki-ca/private/socia-demo.key.pem
+digest: fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+signature: document.txt.sig
+\end{lstlisting}
+
+Con \texttt{--json}, la salida contiene \texttt{digest}, \texttt{signature\_path} y \texttt{certificate\_subject}.
+
+\section{Comando timestamp: sellado de tiempo}\label{sec:cli-timestamp}
+
+\begin{lstlisting}[numbers=none]
+despacho-cli [--json] timestamp <INPUT> [--mock] [--out <PATH>]
+    [--pki-dir <DIR>]
+\end{lstlisting}
+
+Solicita un sello de tiempo RFC 3161 sobre el resumen SHA-256 del archivo \texttt{<INPUT>} (posicional, ruta) y escribe el token DER en \texttt{<INPUT>.tsr}, o en la ruta dada con \texttt{--out}. Con la bandera \texttt{--mock} (booleana), la autoridad es la TSA local de OpenSSL: su directorio de trabajo se lee de \texttt{TSA\_DIR} (default \texttt{pki-tsa}, junto al directorio de la CA) y la configuración \texttt{tsa.cnf} se busca en \texttt{--pki-dir} (ruta, default \texttt{pki}). Sin \texttt{--mock}, se usa el proveedor remoto: el comando exige \texttt{CINCEL\_BASE\_URL} y \texttt{CINCEL\_API\_KEY} no vacías en el entorno, con tiempo límite de 15 segundos por solicitud y hasta cinco sondeos cada dos segundos cuando el proveedor difiere la emisión; si faltan, aborta indicando que se configuren esas variables o se use \texttt{--mock}. En ambos casos, tras obtener el token el comando lo relee y exige que cubra exactamente el resumen calculado antes de escribir archivo alguno: una autoridad que respondiera con un token inutilizable falla aquí sin dejar un archivo espurio.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli timestamp document.txt --mock --pki-dir $REPO/pki
+digest: fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+token: document.txt.tsr
+generated at: 2026-07-12T10:19:41Z
+\end{lstlisting}
+
+Con \texttt{--json}, la salida contiene \texttt{digest}, \texttt{token\_path} y \texttt{generated\_at}.
+
+\section{Comando verify: verificación integral}\label{sec:cli-verify}
+
+\begin{lstlisting}[numbers=none]
+despacho-cli [--json] verify <FILE> --sig <PATH> --cert <PATH>
+    --ca <PATH> [--tsr <PATH>] [--crl <PATH>] [--tsa-cert <PATH>]
+    [--at <RFC3339>]
+\end{lstlisting}
+
+Produce un reporte de cuatro componentes sobre el documento: integridad (el resumen recomputado contra el que atestigua el token de sello), firma, estado del certificado del firmante y sello de tiempo. La \cref{tab:cli-verify-opciones} lista las opciones.
+
+\begin{table}[H]
+  \centering
+  \caption{Opciones del comando \texttt{verify}.}
+  \label{tab:cli-verify-opciones}
+  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+    \toprule
+    \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
+    \midrule
+    \texttt{<FILE>} & ruta & obligatorio & Documento original. \\
+    \texttt{--sig} & ruta & obligatorio & Firma separada. \\
+    \texttt{--cert} & ruta & obligatorio & Certificado del firmante. \\
+    \texttt{--ca} & ruta & obligatorio & Certificado de la autoridad emisora. \\
+    \texttt{--tsr} & ruta & --- & Token de sello de tiempo; sin él, los componentes que dependen del token se reportan omitidos con su razón. \\
+    \texttt{--crl} & ruta & --- & Lista de revocación; sin ella no se comprueba revocación y el reporte lo dice. \\
+    \texttt{--tsa-cert} & ruta & \texttt{--ca} & Ancla de confianza para el token; por defecto el propio emisor, que ancla a las autoridades internas. \\
+    \texttt{--at} & instante RFC 3339 & ahora & Instante de evaluación del estado del certificado. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La semántica del veredicto es estricta: un componente cuya evidencia no se aportó se reporta omitido (\texttt{skipped}) con su razón y no cuenta contra el veredicto; el veredicto es \texttt{not valid} si cualquier componente ejercitado falló, y en ese caso el proceso termina con código distinto de cero. El estado del certificado habla únicamente del instante de evaluación: el propio reporte aclara que un certificado hoy expirado o revocado no invalida por sí mismo una firma efectuada mientras era válido, lectura que corresponde a quien valora la evidencia. El primer ejemplo muestra una verificación íntegra; el segundo, la misma evidencia después de revocar el certificado y regenerar la CRL.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli verify document.txt --sig document.txt.sig --tsr document.txt.tsr --cert $WORK/pki-ca/certs/socia-demo.crt.pem --ca $WORK/pki-ca/ca.crt.pem --crl $WORK/pki-ca/crl/crl.pem
+document:    document.txt
+digest:      fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+integrity:   passed: recomputed digest matches the digest the timestamp token attests
+signature:   passed: signature verifies over the document digest with the signer certificate
+certificate: passed: status at the evaluation time: valid (revocation checked against the supplied list)
+timestamp:   passed: token accepted under the trust anchor; generated at 2026-07-12T10:19:41Z
+verdict:     valid
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none]
++ (expected to fail) $REPO/target/debug/despacho-cli verify document.txt --sig document.txt.sig --tsr document.txt.tsr --cert $WORK/pki-ca/certs/socia-demo.crt.pem --ca $WORK/pki-ca/ca.crt.pem --crl $WORK/pki-ca/crl/crl.pem
+document:    document.txt
+digest:      fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+integrity:   passed: recomputed digest matches the digest the timestamp token attests
+signature:   passed: signature verifies over the document digest with the signer certificate
+certificate: failed: status at the evaluation time: revoked (serial 1000); this status speaks for the evaluation time only and does not by itself invalidate a signature made while the certificate was valid
+timestamp:   passed: token accepted under the trust anchor; generated at 2026-07-12T10:19:41Z
+verdict:     not valid
+Error: the verification verdict is not valid
+\end{lstlisting}
+
+Con \texttt{--json}, la salida contiene \texttt{document}, \texttt{digest}, un objeto \texttt{\{status, detail\}} por cada uno de los componentes \texttt{integrity}, \texttt{signature}, \texttt{certificate} y \texttt{timestamp}, y el campo \texttt{verdict}.
+
+\section{Grupo package: paquete de evidencia}\label{sec:cli-package}
+
+\begin{lstlisting}[numbers=none]
+despacho-cli [--json] package export <FILE> --sig <PATH> --tsr <PATH>
+    --cert <PATH> --ca <PATH> --crl <PATH> [--tsa-chain <PATH>]
+    --out <PATH>
+\end{lstlisting}
+
+Construye el paquete de evidencia autocontenido: un archivo ZIP con el documento, su firma, su sello de tiempo, los certificados, la lista de revocación y el instructivo \texttt{INSTRUCCIONES.md} de verificación independiente (la guía completa se reproduce en el Anexo~\ref{anexo:verificacion}). Todas las opciones son rutas obligatorias salvo \texttt{--tsa-chain} (ruta, opcional), que incluye la cadena de certificados de la autoridad de sellado cuando está disponible; si viaja, las instrucciones anclan la comprobación del token en esa cadena, y si no, en el certificado del emisor. Antes de escribir el ZIP, el comando ejecuta la misma verificación integral de \texttt{verify} sobre los artefactos, incluidos CRL y token, y rehúsa exportar si el veredicto no es válido, nombrando cada componente fallido: el paquete nunca puede fallar sus propias instrucciones.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli package export document.txt --sig document.txt.sig --tsr document.txt.tsr --cert $WORK/pki-ca/certs/socia-demo.crt.pem --ca $WORK/pki-ca/ca.crt.pem --crl $WORK/pki-ca/crl/crl.pem --tsa-chain $WORK/pki-tsa/tsa-chain.pem --out evidencia.zip
+digest:  fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+package: evidencia.zip
+instructions inside the package: INSTRUCCIONES.md
+\end{lstlisting}
+
+Con \texttt{--json}, la salida contiene \texttt{digest}, \texttt{package} e \texttt{instructions}.
+
+\section{Grupo auth: credenciales y segundo factor}\label{sec:cli-auth}
+
+El grupo \texttt{auth} cubre el hashing de contraseñas con Argon2id, su calibración empírica y el segundo factor TOTP con códigos de recuperación. Las contraseñas nunca viajan como argumentos: se leen de la entrada estándar hacia búferes que se borran de memoria al liberarse. La \cref{tab:cli-auth-opciones} lista las opciones.
+
+\begin{table}[H]
+  \centering
+  \caption{Opciones de los subcomandos del grupo \texttt{auth}.}
+  \label{tab:cli-auth-opciones}
+  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+    \toprule
+    \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{auth calibrate} (sin opciones; no lee contraseña)} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{auth hash-password} (contraseña por \texttt{stdin})} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{auth verify-password} (contraseña por \texttt{stdin})} \\
+    \texttt{--hash} & cadena (PHC) & obligatorio & Hash almacenado contra el que se verifica. \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{auth totp enroll}} \\
+    \texttt{--user} & cadena (correo) & obligatorio & Identificador de la cuenta que se inscribe. \\
+    \texttt{--secret-out} & ruta & obligatorio & Archivo que recibe el secreto base32 (modo 0600). \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textbf{auth totp verify}} \\
+    \texttt{--code} & cadena & obligatorio & Código de un solo uso a verificar. \\
+    \texttt{--secret-file} & ruta & obligatorio & Archivo con el secreto base32 escrito al inscribir. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\texttt{calibrate} mide el costo real del hash en el hardware local: ejecuta cinco corridas de Argon2id sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva de 500 a 1\,000 milisegundos, con veredicto por debajo, dentro o por encima de la banda. \texttt{hash-password} emite la cadena PHC resultante, que registra los parámetros fijos del adaptador (\texttt{\$argon2id\$v=19\$m=47104,t=1,p=1\$\ldots}). \texttt{verify-password} responde \texttt{match} o \texttt{mismatch} ---con código de salida distinto de cero en el segundo caso---, y un hash almacenado ilegible es un error, nunca un \texttt{mismatch}. \texttt{totp enroll} genera el secreto compartido, imprime el URI de aprovisionamiento \texttt{otpauth} y los ocho códigos de recuperación de un solo uso, y escribe el secreto base32 en el archivo indicado. \texttt{totp verify} acepta un desfase de un paso de 30 segundos a cada lado; la verificación es sin estado y el rechazo de reutilización dentro de la ventana se difiere a la capa de persistencia, según consta en \texttt{docs/adr/0008-totp-single-use-enforcement.md}.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli auth calibrate
+mean over 5 runs: 37.8 ms (below the 500-1000 ms target band)
++ $REPO/target/debug/despacho-cli auth totp enroll --user demo@example.com --secret-out totp-secret.b32
+otpauth-uri: otpauth://totp/despacho:demo%40example.com?secret=IGAPAF2O2XDMIG6QGFZU2YITPDCD44P3&issuer=despacho
+secret-base32: IGAPAF2O2XDMIG6QGFZU2YITPDCD44P3
+recovery codes (each works exactly once):
+  GQVMH-DCWJS
+  9QBY1-NXNJ3
+  MY4P3-CX4HZ
+  0CE8T-KBNSS
+  31D0P-GDAD8
+  B6B6N-DBGAJ
+  ZV2T3-B35JJ
+  C329Q-TTBEE
+secret written to totp-secret.b32
++ despacho-cli auth totp verify --code (computed with openssl)
+accepted
+\end{lstlisting}
+
+Con \texttt{--json}: \texttt{calibrate} emite \texttt{runs}, \texttt{mean\_ms}, \texttt{band\_min\_ms}, \texttt{band\_max\_ms} y \texttt{verdict}; \texttt{hash-password} emite \texttt{phc}; \texttt{verify-password} emite \texttt{match}; \texttt{totp enroll} emite \texttt{otpauth\_uri}, \texttt{secret\_base32}, el arreglo \texttt{recovery\_codes} y \texttt{secret\_path}; \texttt{totp verify} emite \texttt{accepted}.
+
+\section{Grupo audit: bitácora encadenada}\label{sec:cli-audit}
+
+El grupo \texttt{audit} opera la bitácora de auditoría de solo anexado: un archivo JSON Lines cuya ruta se toma de \texttt{AUDIT\_LOG\_PATH}, donde cada entrada almacena, además de sus campos, un valor de cadena SHA-256 que la enlaza con la anterior desde un génesis fijo. \texttt{append} registra un evento con las opciones \texttt{--action} y \texttt{--resource} (cadenas, obligatorias); el actor se toma de la variable \texttt{USER} y el instante del reloj del sistema, e imprime la secuencia y el valor de cadena asignados, de modo que la terminal del operador retenga un registro informal de la cabeza de la cadena. \texttt{verify-chain} recomputa cada eslabón desde el génesis y nombra el índice del primer eslabón roto; \texttt{show} lista las entradas en orden de inserción. Los subcomandos de lectura rehúsan operar sobre una bitácora inexistente ---reportar una ruta equivocada o un archivo borrado como cadena vacía válida frustraría la verificación---; solo \texttt{append} crea el archivo. La verificación no detecta el truncado de la cola, limitación documentada en \texttt{docs/adr/0007-audit-chain-anchoring.md}.
+
+\begin{lstlisting}[numbers=none]
++ $REPO/target/debug/despacho-cli audit append --action demo.firma --resource document.txt.sig
+appended entry 0 with chain e8b3fefc3966e47a695260f2b098dd73eff0f7da9e9b4692314df873b1e083fa
++ $REPO/target/debug/despacho-cli audit append --action demo.sello --resource document.txt.tsr
+appended entry 1 with chain ffc1a151ecc7e5976d24b0bbfaaaed4c9230a8ed597938e24e6c228b2a0a5581
++ $REPO/target/debug/despacho-cli audit verify-chain
+audit chain valid (2 entries)
++ $REPO/target/debug/despacho-cli audit show
+0 2026-07-12T10:19:42.272903635Z eddndev demo.firma document.txt.sig e8b3fefc3966e47a695260f2b098dd73eff0f7da9e9b4692314df873b1e083fa
+1 2026-07-12T10:19:42.275499975Z eddndev demo.sello document.txt.tsr ffc1a151ecc7e5976d24b0bbfaaaed4c9230a8ed597938e24e6c228b2a0a5581
++ sed -i s/demo.sello/demo.XXXXX/ $WORK/audit-log.jsonl
++ (expected to fail) $REPO/target/debug/despacho-cli audit verify-chain
+Error: audit chain broken at index 1
+\end{lstlisting}
+
+Con \texttt{--json}: \texttt{append} emite \texttt{sequence}, \texttt{timestamp}, \texttt{actor}, \texttt{action}, \texttt{resource} y \texttt{chain}; \texttt{show} emite un arreglo de objetos con esos mismos campos; \texttt{verify-chain} emite \texttt{\{valid, entries\}} cuando la cadena es válida o \texttt{\{valid: false, first\_broken\_index\}} ---impreso antes de terminar con código distinto de cero--- cuando está rota.

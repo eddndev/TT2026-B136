@@ -99,6 +99,24 @@
            {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
            {Ú}{{\'U}}1 {Ñ}{{\~N}}1
 }
+\renewcommand{\lstlistingname}{Listado}
+
+% Lenguaje Rust para listings (el paquete no trae lexer propio).
+\lstdefinelanguage{Rust}{
+  morekeywords={as,break,const,continue,crate,dyn,else,enum,extern,false,
+    fn,for,if,impl,in,let,loop,match,mod,move,mut,pub,ref,return,self,
+    Self,static,struct,super,trait,true,type,unsafe,use,where,while},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+}
+
+% Ruta de archivo del repositorio en tipografía monoespaciada con puntos de
+% quiebre de línea en /, -, . y _ (evita desbordes con rutas largas). Usa el
+% comando \path del paquete url, ya cargado. No emplear en argumentos
+% móviles (captions).
+\newcommand{\rutarepo}[1]{{\def\UrlBreaks{\do\/\do\-\do\.\do\_}\path{#1}}}
 
 % ---------- Estilo de títulos (titlesec) ----------------------------
 \usepackage{titlesec}
@@ -113,6 +131,9 @@
 
 % ---------- Encabezados y pies (fancyhdr) ---------------------------
 \usepackage{fancyhdr}
+% fancyhdr exige al menos 13.6pt de alto de encabezado con esta fuente.
+\setlength{\headheight}{13.6pt}
+\addtolength{\topmargin}{-1.6pt}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}
