@@ -31,16 +31,16 @@ Para abordar la complejidad del sistema, el proyecto estará segmentado en dos f
   \item \textbf{Iteración 5 (Semana 5) - Estrategia de Calidad y Cierre Documental:} Creación de la matriz de pruebas (funcionales, de integración y criptográficas). Cierre y validación documental del diseño técnico para la conclusión de la primera fase.
 \end{itemize}
 
-\textbf{Fase II: Construcción, Pruebas y Refactorización}. Una vez validado el diseño, el desarrollo entra en un ciclo estricto de codificación iterativa mediante XP, utilizando programación en pares, Desarrollo Guiado por Pruebas (TDD) y entregas continuas.
+\textbf{Fase II: Construcción, Pruebas y Refactorización}. Una vez validado el diseño, el desarrollo entra en un ciclo estricto de codificación iterativa mediante XP, utilizando programación en pares, Desarrollo Guiado por Pruebas (TDD) y entregas continuas. El orden de las iteraciones antepone el núcleo criptográfico a la construcción de vistas: el análisis de riesgos (sección~\ref{sec:riesgos}) prescribe resolver primero los riesgos criptográficos graves y recomienda no avanzar hacia el desarrollo de vistas web hasta haber comprobado técnicamente la validez del sellado de tiempo.
 
 \begin{itemize}
-  \item \textbf{Iteración 6 (Semana 6) - Base del Sistema y Control de Acceso:} Configuración del entorno de producción e implementación del esquema de base de datos híbrida. Desarrollo de la API de negocio básica y el sistema de control de acceso basado en roles (RBAC).
+  \item \textbf{Iteración 6 (Semana 6) - Andamiaje del Workspace y Núcleo Criptográfico Base:} Configuración del workspace de Cargo con sus cinco crates y del pipeline de integración continua (formato, análisis estático, pruebas y política de dependencias). Implementación del servicio de hash SHA-256 y del cifrado autenticado AES-256-GCM con envelope encryption, proporcionando integridad y confidencialidad en reposo. Primer contacto con el sellado de tiempo mediante el Spike de consumo y parseo del token RFC 3161.
 
-  \item \textbf{Iteración 7 (Semana 7) - Gestión Procesal y Documental:} Desarrollo de la interfaz de usuario (UI). Implementación de los módulos CRUD para expedientes, casos, contratos y documentos. Habilitación de la carga y visualización de documentos legales.
+  \item \textbf{Iteración 7 (Semana 7) - PKI Interna y Firma Digital:} Implementación de la infraestructura de llave pública interna: CA raíz, emisión de certificados X.509 y lista de certificados revocados (CRL). Integración de la firma digital RSA-3072 con SHA-256 sobre los certificados emitidos. Inicio del flujo de sellado de tiempo conforme a RFC 3161.
 
-  \item \textbf{Iteración 8 (Semana 8) - Implementación de Confidencialidad e Integridad:} Integración de cifrado autenticado en el almacenamiento de expedientes y documentos, proporcionando confidencialidad (protección contra accesos no autorizados) e integridad (detección de modificaciones no autorizadas). Implementación de algoritmos de huella digital (Hashing) para verificación independiente de integridad en flujos que no requieran confidencialidad.
+  \item \textbf{Iteración 8 (Semana 8) - Sellado de Tiempo, Autenticación y Auditoría:} Conclusión del flujo de sellado de tiempo RFC 3161. Implementación de la autenticación (hashing de contraseñas con Argon2id y segundo factor TOTP) y de la cadena de auditoría con encadenamiento de hashes. Verificación integral de la evidencia y demostración por línea de comandos, hito de criptografía demostrada de extremo a extremo.
 
-  \item \textbf{Iteración 9 (Semana 9) - Implementación del No Repudio (Contratos):} Integración de la firma digital (X.509) en el flujo de aceptación de contratos. Vinculación con los servicios de Autoridad de Sellado de Tiempo para el cumplimiento de la NOM-151.
+  \item \textbf{Iteración 9 (Semana 9) - Persistencia, Control de Acceso y Gestión Procesal:} Implementación de la persistencia híbrida PostgreSQL/Redis y del control de acceso basado en roles (RBAC) con JWT. Desarrollo de la gestión procesal y documental —módulos CRUD para expedientes, casos, contratos y documentos— integrando los servicios criptográficos ya probados. Desarrollo de una interfaz web mínima.
 
   \item \textbf{Iteración 10 (Semana 10) - Pruebas Finales y Cierre:} Ejecución de la matriz de pruebas diseñada en la Fase I. Pruebas de usabilidad con usuarios representativos. Corrección de errores, refactorización final de código y elaboración de los manuales técnicos y de usuario.
 \end{itemize}
@@ -1552,7 +1552,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Sev. & 6 -- Grave \\
     \midrule
     Declaración & \emph{Existe el riesgo de \textbf{que la integración con la API del PSC (Cincel) falle durante el flujo de sellado de tiempo}, debido a \textbf{incompatibilidades en el parseo del token ASN.1 o restricciones de red en el entorno de desarrollo}, lo que podría resultar en \textbf{la imposibilidad de emitir constancias NOM-151 válidas, bloqueando la validación completa del módulo de no repudio}.} \\
-    Mitigación & Asignar las iteraciones iniciales a un Spike Arquitectónico para validar credenciales, red y parseo del token ASN.1 con el sandbox del PSC. \\
+    Mitigación & Asignar la Iteración 6, primera de la Fase II, a un Spike Arquitectónico para validar credenciales, red y parseo del token ASN.1 con el sandbox del PSC. \\
     Impacto & 2 -- Medio (30 h) \\
     VME & \$6,562.50 MXN \\
     Contingencia & Implementar un servicio Mock en Rust que simule las respuestas de la TSA, permitiendo avanzar con el desarrollo funcional mientras se estabiliza la conexión real. \\
@@ -1735,7 +1735,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Cat. & Operativo \\
     Sev. & 4 -- Significativo \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que el desarrollo de los módulos criptográficos supere el tiempo planificado de forma significativa}, debido a \textbf{la dificultad adicional de formular pruebas unitarias para operaciones criptográficas cuyo comportamiento correcto no siempre es intuitivo (verificación de IV, validación de cadenas de certificados)}, lo que podría resultar en \textbf{el consumo del margen de contingencia del cronograma de la Fase II, poniendo en riesgo la entrega del módulo de no repudio en la Iteración 9}.} \\
+    Declaración & \emph{Existe el riesgo de \textbf{que el desarrollo de los módulos criptográficos supere el tiempo planificado de forma significativa}, debido a \textbf{la dificultad adicional de formular pruebas unitarias para operaciones criptográficas cuyo comportamiento correcto no siempre es intuitivo (verificación de IV, validación de cadenas de certificados)}, lo que podría resultar en \textbf{el consumo del margen de contingencia del cronograma de la Fase II, poniendo en riesgo la entrega del módulo de no repudio en las Iteraciones 7 y 8}.} \\
     Mitigación & Aplicar TDD estricto solo en los flujos criptográficos core (hash, cifrado AES, validación X.509) y relajarlo para CRUDs básicos que no comprometan la seguridad. \\
     Impacto & 2 -- Medio (35 h) \\
     VME & \$5,468.75 MXN \\
@@ -1755,11 +1755,11 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Cat. & Operativo \\
     Sev. & 4 -- Significativo \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que el esfuerzo dedicado a interfaces gráficas consuma tiempo crítico de las semanas 8 y 9}, debido a \textbf{la tendencia a invertir iteraciones en refinamiento visual más allá de lo planificado, en detrimento de los módulos de seguridad de mayor criticidad}, lo que podría resultar en \textbf{el desplazamiento de las Iteraciones 8 y 9 (cifrado autenticado y no repudio) hacia fuera del cronograma, comprometiendo los entregables criptográficos centrales del prototipo}.} \\
-    Mitigación & Congelar las historias de usuario visuales y utilizar bibliotecas de componentes preconstruidas para la interfaz, prohibiendo el diseño a medida en la Fase II. \\
+    Declaración & \emph{Existe el riesgo de \textbf{que el esfuerzo dedicado a interfaces gráficas consuma tiempo crítico de las semanas 9 y 10}, debido a \textbf{la tendencia a invertir iteraciones en refinamiento visual más allá de lo planificado, en detrimento de las historias de gestión procesal y documental que comparten la Iteración 9}, lo que podría resultar en \textbf{el desplazamiento de dichas historias y de las pruebas finales de la Iteración 10 hacia fuera del cronograma, comprometiendo el objetivo de gestión procesal del prototipo}.} \\
+    Mitigación & Congelar las historias de usuario visuales y utilizar bibliotecas de componentes preconstruidas para la interfaz, prohibiendo el diseño a medida en la Fase II. La mitigación se refuerza estructuralmente porque el desarrollo de interfaz se traslada a la Iteración 9, posterior al hito criptográfico de la Iteración 8; el riesgo residual se concentra en el objetivo de gestión procesal (OE-2) por la compresión de esas historias en una sola iteración. \\
     Impacto & 2 -- Medio (20 h) \\
     VME & \$3,125.00 MXN \\
-    Contingencia & Recortar características no críticas (RF-19 Dashboard Ejecutivo o reportes visuales) para canalizar el esfuerzo íntegramente a los módulos de no repudio y cifrado. \\
+    Contingencia & Recortar características no críticas (RF-19 Dashboard Ejecutivo o reportes visuales) para canalizar el esfuerzo íntegramente a las historias de gestión procesal y documental de la Iteración 9. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1858,7 +1858,7 @@ El segundo atributo prioritario es la integridad y trazabilidad, condicionada po
 
 El tercer atributo es la evolvabilidad, definida por Ford, Parsons y Kua como la capacidad de un sistema para cambiar guiado \cite{ford2023}. El prototipo se diseña para que la sustitución de cualquier sistema externo —el Prestador de Servicios de Certificación (Cincel por SeguriData o CECOBAN), el motor de base de datos, el proveedor de correo— requiera únicamente la implementación de un nuevo adaptador, sin modificación del dominio. Esta propiedad se garantiza mediante la regla de dependencias de la arquitectura hexagonal, formalizada en §3.7.4.
 
-El cuarto atributo es la testabilidad, condicionada por la metodología Extreme Programming adoptada en §3.6, que prescribe Test-Driven Development como práctica central. Una arquitectura es testeable cuando permite ejercitar la lógica de dominio sin requerir infraestructura real (bases de datos, servicios de red, sistemas externos). La separación explícita del dominio respecto a sus dependencias mediante puertos permite inyectar adaptadores de prueba (mocks o stubs) durante la ejecución de la suite de pruebas, manteniendo el dominio agnóstico respecto a la infraestructura.
+El cuarto atributo es la testabilidad, condicionada por la metodología Extreme Programming adoptada en §3.1, que prescribe Test-Driven Development como práctica central. Una arquitectura es testeable cuando permite ejercitar la lógica de dominio sin requerir infraestructura real (bases de datos, servicios de red, sistemas externos). La separación explícita del dominio respecto a sus dependencias mediante puertos permite inyectar adaptadores de prueba (mocks o stubs) durante la ejecución de la suite de pruebas, manteniendo el dominio agnóstico respecto a la infraestructura.
 
 El quinto atributo es la mantenibilidad —entendida como bajo acoplamiento y alta cohesión—, y el sexto es la observabilidad, esencial para la operación del sistema en producción. Atributos de menor prioridad, pero considerados son la performance (en tanto el sistema deba responder a consultas interactivas en menos de 200 ms), y la portabilidad (limitada al despliegue en sistemas Linux POSIX-compliant).
 
@@ -1875,7 +1875,7 @@ La \cref{tab:atributos-calidad} formaliza la priorización adoptada y su mapeo a
     1 (más alta) & Seguridad & RNF-01, RNF-02, RNF-03 \\
     2 & Integridad y trazabilidad & RNF-04, RNF-11 \\
     3 & Evolvabilidad & Sustitución de PSC, BD, SMTP \\
-    4 & Testabilidad & XP/TDD (§3.6) \\
+    4 & Testabilidad & XP/TDD (§3.1) \\
     5 & Mantenibilidad & Bajo acoplamiento, alta cohesión \\
     6 (más baja) & Observabilidad y performance & Operación productiva \\
     \bottomrule
@@ -1928,7 +1928,7 @@ La \cref{tab:comparativa-estilos} sintetiza la comparativa entre las seis altern
 
 La arquitectura hexagonal, propuesta originalmente por Alistair Cockburn en 2005 \cite{cockburn2005} y refinada por Vernon \cite{vernon2013} en el contexto del Domain-Driven Design \cite{evans2003}, organiza una aplicación de software en tres capas concéntricas: el dominio en el centro, la aplicación en la capa intermedia, y los adaptadores en la capa exterior.
 
-El dominio contiene los conceptos centrales del problema modelado: entidades (Case, Document, User, Signature, Hearing, AuditEvent, Certificate), value objects (Nuc, ProcessStage, DocumentHash) y servicios de dominio (lógica de negocio que no pertenece naturalmente a una entidad específica). La regla fundamental que gobierna esta capa es que su código no importa absolutamente nada de las capas externas: depende exclusivamente de la biblioteca estándar de Rust y de un conjunto mínimo de crates de bajo nivel (serde para serialización, thiserror para errores tipados, time para manejo de fechas, uuid para identificadores únicos).
+El dominio contiene los conceptos centrales del problema modelado: entidades (Case, Document, User, Signature, Hearing, AuditEvent, Certificate), value objects (Nuc, ProcessStage, DocumentHash) y servicios de dominio (lógica de negocio que no pertenece naturalmente a una entidad específica). La regla fundamental que gobierna esta capa es que su código no importa absolutamente nada de las capas externas: depende exclusivamente de la biblioteca estándar de Rust y de un conjunto mínimo de crates de bajo nivel (serde para serialización, thiserror para errores tipados, time para manejo de fechas, uuid para identificadores únicos, y zeroize para el borrado garantizado del material secreto en memoria al liberarlo).
 
 La capa de aplicación contiene los casos de uso del sistema: SignContract, RegisterCase, ScheduleHearing, VerifySignature, TransitionCaseStage, QueryAuditLog, entre otros. Cada caso de uso orquesta las entidades del dominio para satisfacer una intención específica del usuario, y declara las dependencias que requiere del exterior mediante traits (los puertos). La aplicación depende exclusivamente del dominio.
 
@@ -1985,7 +1985,7 @@ El mapeo entre cada bounded context, los casos de uso que implementa y el crate 
 
 El proyecto se organiza como un workspace de Cargo —el sistema de compilación y gestión de paquetes de Rust— compuesto por cinco crates miembros con responsabilidades estrictamente delimitadas y dependencias permitidas que enforce mecánicamente la regla de la arquitectura hexagonal. Esta estructura se documenta en el \texttt{Cargo.toml} raíz del proyecto y se valida en cada compilación.
 
-Los cinco crates son: domain (entidades, value objects, traits/puertos y errores de dominio; sus únicas dependencias externas son serde, thiserror, time y uuid), application (casos de uso, comandos y consultas; depende exclusivamente de domain y de async-trait), infrastructure (adaptadores driven que implementan los traits del dominio; depende de domain y application), web (adaptadores driving HTTP construidos con Axum, middleware Tower, DTOs y serialización HTTP; depende de application y domain), y bin (composition root que instancia los adaptadores concretos y los inyecta en los casos de uso; depende de todos los anteriores). La \cref{fig:workspace} representa esta estructura y las dependencias que el grafo de Cargo permite o prohíbe.
+Los cinco crates son: domain (entidades, value objects, traits/puertos y errores de dominio; sus únicas dependencias externas son serde, thiserror, time, uuid y zeroize), application (casos de uso, comandos y consultas; depende exclusivamente de domain y de async-trait), infrastructure (adaptadores driven que implementan los traits del dominio; depende de domain y application), web (adaptadores driving HTTP construidos con Axum, middleware Tower, DTOs y serialización HTTP; depende de application y domain), y bin (composition root que instancia los adaptadores concretos y los inyecta en los casos de uso; depende de todos los anteriores). La \cref{fig:workspace} representa esta estructura y las dependencias que el grafo de Cargo permite o prohíbe.
 
 \begin{figure}[H]
   \centering
@@ -2056,19 +2056,23 @@ El proyecto utiliza un conjunto curado de crates externos del ecosistema Rust, t
   Dominio & thiserror & Errores tipados por capa \\
   Dominio & time & Manejo de fechas con zona horaria \\
   Dominio & uuid & Identificadores únicos universales \\
+  Dominio & zeroize & Borrado de material secreto en memoria al liberar (higiene de memoria) \\
   Aplicación & async-trait & Traits asíncronos \\
   Infraestructura cripto & ring & Hash, AES-GCM, HMAC (auditado) \\
   Infraestructura cripto & x509-cert + der & Manejo de certificados X.509 RFC 5280 \\
   Infraestructura cripto & rsa & Firma digital RSA-3072 PKCS\#1 v1.5 \\
   Infraestructura cripto & argon2 & Hashing de contraseñas (RFC 9106) \\
   Infraestructura cripto & totp-rs & Autenticación multifactor TOTP (RFC 6238) \\
+  Infraestructura cripto & cms + x509-tsp & Parseo del token de sellado de tiempo RFC 3161 (CMS SignedData y TSTInfo) \\
   Infraestructura datos & sqlx & Cliente PostgreSQL con verificación en compile-time \\
   Infraestructura datos & fred & Cliente Redis asíncrono con pub/sub \\
+  Infraestructura datos & fs2 & Bloqueo advisory de archivos compartidos entre procesos \\
   Infraestructura red & reqwest & Cliente HTTP asíncrono (Cincel TSA) \\
   Infraestructura red & lettre & Cliente SMTP con TLS y SASL \\
   Web/HTTP & axum & Framework web sobre tokio/tower/hyper \\
   Web/HTTP & tower / tower-http & Middleware composable \\
   Web/HTTP & tokio & Runtime asíncrono multi-thread \\
+  Interfaz de línea de comandos & clap & Análisis declarativo de argumentos y subcomandos \\
   Observabilidad & tracing + tracing-subscriber & Logs estructurados con spans \\
   Validación & validator & Validación de DTOs HTTP \\
   Configuración & config + dotenvy & Carga de configuración desde entorno \\
@@ -2259,7 +2263,7 @@ La coherencia entre primitivos se verifica de la siguiente manera: SHA-256 propo
 
 \subsection{Firma Digital}\label{sec:firma-digital}
 
-El esquema de firma digital emplea RSA-3072 con SHA-256 y padding PKCS\#1 v1.5 (OID sha256WithRSAEncryption). Se descartó ECDSA P-256 tras verificar que la Política de Certificados de la ACR2-SE \cite{economia_acr2se} establece que los certificados emitidos bajo la jerarquía PKI mexicana deben contener claves públicas RSA con sha256WithRSAEncryption como algoritmo de firma; ECDSA no está contemplado para certificados legalmente reconocidos bajo PSC mexicano. La elección de PKCS\#1 v1.5 sobre PSS se justifica por la alineación con el esquema que usa la PKI mexicana real (ACR2-SE y e.firma), lo que facilita la migración futura a certificados emitidos por un PSC sin rediseñar el verificador.
+El esquema de firma digital emplea RSA-3072 con SHA-256 y padding PKCS\#1 v1.5, con sha256\-With\-RSA\-Encryption como OID del algoritmo de firma. Se descartó ECDSA P-256 tras verificar que la Política de Certificados de la ACR2-SE \cite{economia_acr2se} establece que los certificados emitidos bajo la jerarquía PKI mexicana deben contener claves públicas RSA con sha256WithRSAEncryption como algoritmo de firma; ECDSA no está contemplado para certificados legalmente reconocidos bajo PSC mexicano. La elección de PKCS\#1 v1.5 sobre PSS se justifica por la alineación con el esquema que usa la PKI mexicana real (ACR2-SE y e.firma), lo que facilita la migración futura a certificados emitidos por un PSC sin rediseñar el verificador.
 
 Los certificados X.509 v3 de los socios del despacho son emitidos por una Autoridad Certificadora (CA) interna del prototipo, implementada con OpenSSL scriptado en una topología de una sola capa: un certificado raíz autofirmado con vigencia de cinco años firma directamente los certificados de los socios con vigencia de un año. Esta elección expone al equipo al ciclo de vida completo de una PKI —generación de la clave raíz, emisión de CSRs (Certificate Signing Request, solicitudes de firma de certificado), firma de certificados, validación de cadena y revocación— que una integración con la e.firma del SAT o un PSC comercial ocultaría detrás de una API. El módulo de firma acepta cualquier certificado X.509 RSA + SHA-256, de modo que en un despliegue productivo la CA interna podría sustituirse por la e.firma o un PSC autorizado sin modificar la lógica de verificación.
 
