@@ -257,7 +257,7 @@ La Secretaría de Economía mantiene un directorio público de entidades que han
     \addlinespace
     \textbf{INCODE PSC, S. de R.L. de C.V.} & NOM-151, sellos de tiempo. & Convergencia de verificación biométrica de identidad (IDV/KYC) con emisión criptográfica; API RESTful con validación contra INE \cite{economia2026}. & 2024 \\
     \addlinespace
-    \textbf{Cincel Certificadora Digital S.A.P.I. de C.V.} & NOM-151, sellos de tiempo. & Primer PSC nativo de nube en México y América Latina; infraestructura AWS con modelo Zero Trust; API-first con sandbox gratuito; precios transparentes desde \$0.029 USD/transacción \cite{economia2026,comparasoftware2026}. & 2023 \\
+    \textbf{Cincel Certificadora Digital S.A.P.I. de C.V.} & NOM-151, sellos de tiempo. & Primer PSC nativo de nube en México y América Latina; infraestructura AWS con modelo Zero Trust; integración orientada a API y entorno de sandbox sujeto a contratación. La información pública disponible no fue suficiente para presupuestar una campaña reproducible \cite{economia2026,comparasoftware2026}. & 2023 \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -271,26 +271,26 @@ La selección del PSC para el prototipo no es una decisión operativa sino una d
 
   \item \textbf{Accesibilidad para integración mediante API.} El prototipo requiere un flujo de sellado automatizado en el backend (capa lógica del servidor); un PSC sin Interfaz de Programación de Aplicaciones (API, Application Programming Interface) REST (Representational State Transfer) documentada o con acceso condicionado a contratos corporativos prolongados no es viable en el contexto de un prototipo académico.
 
-  \item \textbf{Disponibilidad de entorno de pruebas (sandbox).} Indispensable para implementar y validar el flujo criptográfico durante el ciclo de desarrollo sin incurrir en costos por cada transacción de prueba.
+  \item \textbf{Disponibilidad y costo del entorno de pruebas (sandbox).} El entorno debe permitir validar el flujo criptográfico durante el desarrollo con condiciones operativas y costos conocidos; si cada solicitud tiene costo, la campaña debe presupuestarse y separarse de la suite automatizada.
 
   \item \textbf{Compatibilidad con el protocolo RFC 3161.} El sello debe adherirse al estándar internacional de sellado de tiempo para garantizar la verificabilidad independiente de las constancias generadas \cite{adams2001}.
 \end{itemize}
 
-Del análisis del ecosistema de PSC conforme a estos criterios, \textbf{Cincel} es el proveedor seleccionado para el prototipo por las siguientes razones técnicas y operativas:
+El análisis identificó a \textbf{Cincel} como candidato inicial, pero la evidencia de integración modificó la decisión de entrega. La selección de un PSC externo queda fuera del alcance actual; el diseño conserva un adaptador intercambiable y utiliza una TSA local para la demostración técnica:
 
 \begin{itemize}
-  \item \textbf{Único PSC nativo de nube en México y América Latina acreditado por la Secretaría de Economía.} Su infraestructura está desplegada sobre Amazon Web Services (AWS) bajo el modelo de Seguridad de Confianza Cero (Zero Trust), lo que garantiza alta disponibilidad y resiliencia sin dependencia de centros de datos físicos propios del proveedor \cite{comparasoftware2026}.
+  \item \textbf{Candidato técnicamente compatible.} La documentación y el adaptador construido permiten modelar una integración RFC 3161 detrás del puerto \texttt{TimestampService}; esto no equivale a haber validado la disponibilidad operativa del servicio.
 
-  \item \textbf{Arquitectura API-first con sandbox gratuito.} Cincel expone su infraestructura a desarrolladores de forma inmediata, proporcionando colecciones públicas de Postman para pruebas de concepto instantáneas y un entorno de sandbox sin costo, lo que es determinante para la fase de desarrollo del prototipo \cite{comparasoftware2026}.
+  \item \textbf{Restricción observada en la integración.} El registro pudo completarse, pero la API no mostró respuesta y estabilidad suficientes para una campaña automatizada y repetible. El sandbox requiere pago y no ofrece una cotización pública verificable para definir el costo de una muestra.
 
-  \item \textbf{Modelo de consumo por transacción (pay-as-you-go).} Con un costo de aproximadamente \$0.029 USD por sello sin mínimos mensuales \cite{comparasoftware2026}, el esquema es compatible con el volumen reducido de transacciones de un prototipo de validación, a diferencia de los modelos de contrato corporativo de los PSC legados.
+  \item \textbf{Evidencia externa no contratada.} Sin respuestas reproducibles ni condiciones comerciales verificables, no es técnicamente responsable usar Cincel como criterio de aceptación, campaña de medición o dependencia de la suite.
 
-  \item \textbf{Cumplimiento nativo de RFC 3161 y NOM-151-SCFI-2016.} Los sellos digitales de tiempo emitidos por Cincel se adhieren estrictamente al protocolo RFC 3161 \cite{adams2001} y a los requisitos de sincronización metrológica con el CENAM, garantizando que las constancias generadas en el prototipo sean verificables de forma independiente ante cualquier instancia judicial.
+  \item \textbf{Separación de protocolo y confianza.} RFC 3161 define el formato e intercambio técnico, pero la independencia de tercero y los efectos de una constancia NOM-151 requieren un PSC contratado y verificable. La TSA local solo demuestra el flujo técnico.
 
-  \item \textbf{Autorización de la Comisión Nacional Bancaria y de Valores (CNBV).} Cincel cuenta con autorización de la CNBV para prestar servicios al sector financiero mexicano \cite{comparasoftware2026}, lo que respalda adicionalmente la solidez de su infraestructura de seguridad para el manejo de documentos con valor probatorio.
+  \item \textbf{Ruta futura.} La contratación de Cincel, la evaluación de otro PSC o la exclusión explícita de evidencia externa son decisiones de alcance y presupuesto; ninguna debe resolverse por una conmutación implícita en el software.
 \end{itemize}
 
-Es importante señalar que la selección de Cincel como PSC del prototipo no implica exclusividad arquitectónica: el módulo de sellado de tiempo del sistema está diseñado para abstraer al proveedor detrás de una interfaz interna, de modo que el despacho pueda sustituir el PSC por cualquier otro del directorio de la Secretaría de Economía ---como SeguriData o CECOBAN--- sin modificar la lógica central del sistema, siempre que el proveedor alternativo implemente el protocolo RFC 3161. Esta decisión de diseño garantiza la soberanía tecnológica del despacho sobre su cadena de custodia digital.
+La decisión vigente es conservar la TSA local basada en OpenSSL como autoridad de demostración y dejar la evidencia externa fuera del alcance de esta entrega. El módulo de sellado abstrae al emisor detrás de una interfaz interna, de modo que el despacho pueda sustituirlo por Cincel, SeguriData, CECOBAN u otro PSC del directorio de la Secretaría de Economía sin modificar la lógica central, siempre que el proveedor alternativo implemente RFC 3161 y se verifiquen por separado su contrato, disponibilidad, cadena de confianza y precios. Esta separación preserva la soberanía tecnológica sin atribuir a la TSA local efectos jurídicos que no tiene.
 
 \section{Primitivas y Servicios Criptográficos}\label{sec:primitivas-cripto}
 

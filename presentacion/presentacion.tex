@@ -1,0 +1,286 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\input{theme}
+\graphicspath{{figures/}}
+
+\title[TT2026-B136 | Avance criptográfico]{Avance del núcleo criptográfico}
+\subtitle{Servicios de integridad y no repudio para expedientes digitales}
+\author{Eduardo Alonso Sánchez \and Hatziry Vitales Herrera}
+\institute{Escuela Superior de Cómputo | Instituto Politécnico Nacional}
+\date{19 de julio de 2026}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[ipnvino] (current page.north west) rectangle ([yshift=-0.14cm]current page.north east);
+    \fill[verde] (current page.south west) rectangle ([yshift=0.10cm]current page.south east);
+  \end{tikzpicture}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.16\textwidth}
+      \includegraphics[height=1.05cm]{ipn.png}
+    \end{column}
+    \begin{column}{0.68\textwidth}
+      \centering
+      {\small\bfseries INSTITUTO POLITÉCNICO NACIONAL}\par
+      {\small ESCUELA SUPERIOR DE CÓMPUTO}
+    \end{column}
+    \begin{column}{0.16\textwidth}
+      \raggedleft\includegraphics[height=0.82cm]{escom.png}
+    \end{column}
+  \end{columns}
+
+  \vfill
+  {\color{ipnvino}\bfseries\small TRABAJO TERMINAL TT2026-B136}\par
+  \vspace{0.28cm}
+  {\usebeamerfont{title}\color{tinta}\inserttitle\par}
+  \vspace{0.18cm}
+  {\usebeamerfont{subtitle}\color{verde}\insertsubtitle\par}
+  \vspace{0.45cm}
+  {\color{gris}Arquitectura hexagonal en Rust, validación automatizada y evidencia independiente.}
+
+  \vfill
+  \begin{columns}[b,onlytextwidth]
+    \begin{column}{0.62\textwidth}
+      {\small\bfseries Alonso Sánchez Eduardo \quad | \quad Vitales Herrera Hatziry}\par
+      {\scriptsize\color{gris}Directora: Sandra Díaz Santiago}
+    \end{column}
+    \begin{column}{0.38\textwidth}
+      \raggedleft{\small\bfseries Julio de 2026}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Qué demuestra este corte}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.24\textwidth}\metricbox{Pruebas aprobadas}{366}{tinta}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Cobertura global}{93.6\%}{verde}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Nonces distintos}{10,000}{tinta}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Fallos}{0}{verde}\end{column}
+  \end{columns}
+
+  \vspace{0.48cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.53\textwidth}
+      \textbf{Alcance construido}
+      \begin{itemize}
+        \item Diez capacidades criptográficas ejercitables desde la CLI.
+        \item Separación entre dominio, casos de uso y adaptadores reales.
+        \item Pruebas negativas, propiedades e interoperabilidad externa.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \textbf{Criterio de lectura}
+      \begin{itemize}
+        \item ``Verificado'' significa reproducido localmente.
+        \item ``Parcial'' señala una dependencia externa u operativa.
+        \item La capa web no forma parte de este corte.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Arquitectura comprobable}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.27\textwidth}
+      \footnotesize
+      \textbf{Lectura del grafo}
+      \begin{itemize}
+        \item Núcleo: \texttt{domain} y \texttt{application}.
+        \item Adaptadores en \texttt{infra}; composición en \texttt{bin}.
+        \item \texttt{web} permanece como reserva.
+      \end{itemize}
+      \vspace{0.12cm}
+      {\color{gris}Flecha sólida: permitida.\par Línea roja: prohibida.}
+    \end{column}
+    \begin{column}{0.70\textwidth}
+      \centering
+      \includegraphics[
+        height=0.68\textheight,
+        trim=0 500 0 400,
+        clip
+      ]{workspace.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Capacidades criptográficas | primera parte}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash\bfseries}p{0.22\textwidth} Y C{0.18\textwidth}}
+    \toprule
+    Capacidad & Evidencia principal & Estado \\
+    \midrule
+    Integridad SHA-256 & Hash por bytes y streaming; vectores oficiales y contraste con \texttt{sha256sum}. & \verified \\
+    Cifrado autenticado & AES-256-GCM, DEK por documento, KEK envolvente, AAD y rotación. & \verified \\
+    PKI interna & CA raíz, certificados RSA-3072, revocación y CRL mediante OpenSSL. & \verified \\
+    Firma digital & RSA-3072 con SHA-256 y PKCS\#1 v1.5; interoperabilidad bidireccional. & \verified \\
+    Sellado RFC 3161 & TSA local real; adaptador remoto cubierto por stub, sin dependencia de Cincel en la entrega. & \operational \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+\begin{frame}{Capacidades criptográficas | segunda parte}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash\bfseries}p{0.22\textwidth} Y C{0.18\textwidth}}
+    \toprule
+    Capacidad & Evidencia principal & Estado \\
+    \midrule
+    Verificación integral & Reporte de integridad, firma, certificado y sello con causas explícitas. & \verified \\
+    Credenciales Argon2id & Formato PHC; $m=256$ MiB, $t=4$, $p=1$ y media de 607.8 ms en el host de referencia. & \verified \\
+    Segundo factor TOTP & Vectores RFC 6238, ventana de un periodo y códigos de recuperación. & \verified \\
+    Auditoría encadenada & Cadena SHA-256 persistida en JSONL y detección del índice alterado. & \verified \\
+    Paquete de evidencia & ZIP autocontenido con instrucciones para OpenSSL y \texttt{unzip}. & \verified \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+\begin{frame}{Estrategia de validación}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.23\textwidth}
+      \begin{block}{Vectores}
+        \small FIPS 180-4, GCM, RFC 6238 y RFC 4226.
+      \end{block}
+    \end{column}
+    \begin{column}{0.23\textwidth}
+      \begin{block}{Propiedades}
+        \small Entradas generadas, nonces y consistencia de ida y vuelta.
+      \end{block}
+    \end{column}
+    \begin{column}{0.23\textwidth}
+      \begin{block}{Mutaciones}
+        \small Documento, firma, token, CRL, paquete y bitácora alterados.
+      \end{block}
+    \end{column}
+    \begin{column}{0.23\textwidth}
+      \begin{block}{Herramientas}
+        \small OpenSSL, \texttt{sha256sum}, \texttt{unzip} y CLI real.
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.6cm}
+  \begin{center}
+    \begin{tikzpicture}[node distance=0.25cm]
+      \node[draw=linea,fill=white,minimum width=3.0cm,minimum height=0.9cm] (domain) {Dominio};
+      \node[draw=linea,fill=white,minimum width=3.0cm,minimum height=0.9cm,right=of domain] (application) {Aplicación};
+      \node[draw=linea,fill=white,minimum width=3.0cm,minimum height=0.9cm,right=of application] (infra) {Infraestructura};
+      \node[draw=verde,very thick,fill=verde!8,minimum width=3.0cm,minimum height=0.9cm,right=of infra] (e2e) {Extremo a extremo};
+      \draw[->,thick,gris] (domain) -- (application);
+      \draw[->,thick,gris] (application) -- (infra);
+      \draw[->,thick,gris] (infra) -- (e2e);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{0.2cm}
+  \centering{\small\color{gris}La prueba observa tanto primitivas aisladas como su composición en un proceso real.}
+\end{frame}
+
+\begin{frame}{Resultados de pruebas y cobertura}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.63\textwidth}
+      \coveragebar{domain}{95.9}{934 / 974 líneas}
+      \coveragebar{application}{96.2}{1,137 / 1,182 líneas}
+      \coveragebar{infrastructure}{93.5}{1,881 / 2,012 líneas}
+      \coveragebar{bin}{88.1}{833 / 946 líneas; valor informativo}
+    \end{column}
+    \begin{column}{0.33\textwidth}
+      \begin{block}{Suite completa}
+        \centering
+        {\fontsize{28}{30}\selectfont\bfseries 367}\par
+        {\small funciones descubiertas}\par
+        \vspace{0.3cm}
+        {\color{verde}\bfseries 366 aprobadas}\par
+        {\color{tinta}0 fallidas}\par
+        {\color{advertencia}1 ignorada}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.2cm}
+  {\scriptsize\color{gris}El umbral del 90\% aplica a los tres crates con lógica criptográfica. La prueba ignorada conserva la sonda del sandbox externo, que no forma parte de la evidencia actual por su inestabilidad y costo no transparente.}
+\end{frame}
+
+\begin{frame}[fragile]{Demostración integral reproducida}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \small
+      \begin{enumerate}
+        \item Crear la CA, el firmante y la TSA local.
+        \item Calcular el hash y cifrar con una DEK fresca.
+        \item Alterar un byte y comprobar el rechazo autenticado.
+        \item Firmar, sellar y verificar los cuatro componentes.
+        \item Exportar el ZIP y validarlo con herramientas externas.
+        \item Revocar el certificado y ejercitar Argon2id, TOTP y auditoría encadenada.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{lstlisting}[style=terminal]
+$ bash scripts/demo.sh
+
+integrity:   passed
+signature:   passed
+certificate: passed
+timestamp:   passed
+verdict:     valid
+
+Verified OK
+certificado.pem: OK
+Verification: OK
+
+All stages finished.
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\input{risk-slides}
+
+\begin{frame}{Límites abiertos del corte}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Proveedor de sellado}
+        \small La evidencia externa queda fuera del alcance actual. Un PSC futuro requerirá contrato, estabilidad y precios verificables.
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Calibración Argon2id}
+        \small $m=256$ MiB, $t=4$, $p=1$: 607.8 ms en el host de referencia, dentro de banda. Repetir si cambia el hardware.
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Web y persistencia}
+        \small Implementar API, sesiones, roles, PostgreSQL y Redis sobre los puertos existentes.
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.3cm}
+  \begin{alertblock}{Interpretación}
+    \small El núcleo criptográfico está implementado y probado. La TSA local cierra la demostración técnica y Argon2id ya está calibrado en el host de referencia; el frente restante es la integración funcional.
+  \end{alertblock}
+\end{frame}
+
+\begin{frame}{Resultado del avance}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.60\textwidth}
+      {\fontsize{19}{23}\selectfont\bfseries\color{tinta}
+        El núcleo está listo para integrarse sin trasladar criptografía ni reglas de dominio a la capa web.\par}
+      \vspace{0.35cm}
+      {\normalsize\color{verde}\bfseries Implementación, evidencia y documentación coinciden en el mismo corte.}
+    \end{column}
+    \begin{column}{0.36\textwidth}
+      \begin{block}{Entregables}
+        \small
+        \begin{itemize}
+          \item Reporte LaTeX actualizado.
+          \item Informe de verificación local.
+          \item Transcripción de demostración.
+          \item PDF de esta presentación.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.42cm}
+  \centering{\scriptsize\color{gris}\texttt{docs/verification-report.md} \quad | \quad \texttt{scripts/demo.sh}}
+\end{frame}
+
+\end{document}

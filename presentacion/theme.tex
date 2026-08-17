@@ -1,0 +1,109 @@
+% Visual system for the TT2026-B136 progress presentation.
+
+\usepackage[spanish,es-noindentfirst]{babel}
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\setsansfont{TeX Gyre Heros}
+\setmonofont[Scale=0.88]{DejaVu Sans Mono}
+
+\definecolor{ipnvino}{HTML}{6B1E3C}
+\definecolor{verde}{HTML}{246B57}
+\definecolor{tinta}{HTML}{1C201E}
+\definecolor{gris}{HTML}{5D645F}
+\definecolor{linea}{HTML}{CBD1CC}
+\definecolor{papel}{HTML}{F7F9F6}
+\definecolor{advertencia}{HTML}{9A4D2E}
+\definecolor{terminal}{HTML}{202522}
+
+\usetheme[progressbar=frametitle,numbering=none]{metropolis}
+\metroset{block=fill,sectionpage=none}
+
+\setbeamercolor{normal text}{fg=tinta,bg=papel}
+\setbeamercolor{alerted text}{fg=advertencia}
+\setbeamercolor{example text}{fg=verde}
+\setbeamercolor{frametitle}{fg=white,bg=ipnvino}
+\setbeamercolor{progress bar}{fg=verde,bg=linea}
+\setbeamercolor{progress bar in head/foot}{fg=verde,bg=linea}
+\setbeamercolor{title separator}{fg=verde}
+\setbeamercolor{itemize item}{fg=verde}
+\setbeamercolor{itemize subitem}{fg=verde}
+\setbeamercolor{enumerate item}{fg=verde}
+\setbeamercolor{block title}{fg=white,bg=ipnvino}
+\setbeamercolor{block body}{fg=tinta,bg=ipnvino!7}
+\setbeamercolor{metric}{fg=tinta,bg=white}
+\setbeamercolor{metric rule}{fg=verde,bg=verde}
+\setbeamercolor{author in head/foot}{fg=gris,bg=papel}
+\setbeamercolor{date in head/foot}{fg=gris,bg=papel}
+
+\setbeamerfont{title}{size=\fontsize{27}{31},series=\bfseries}
+\setbeamerfont{subtitle}{size=\large,series=\bfseries}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{footline}{size=\scriptsize}
+\setbeamerfont{block title}{size=\normalsize,series=\bfseries}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\raise0.15ex\hbox{\color{verde}\rule{0.55ex}{0.55ex}}}
+\setbeamertemplate{itemize subitem}{\raise0.15ex\hbox{\color{ipnvino}\rule{0.45ex}{0.45ex}}}
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.72\paperwidth,ht=2.8ex,dp=1.15ex,leftskip=1.2em]{author in head/foot}%
+      \color{gris}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.28\paperwidth,ht=2.8ex,dp=1.15ex,rightskip=1.2em plus1fil]{date in head/foot}%
+      \hfill\color{gris}\insertframenumber\,/\,\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\setlength{\leftmargini}{1.2em}
+\setlength{\leftmarginii}{1.0em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.28}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\newcommand{\verified}{\textcolor{verde}{\scriptsize\bfseries VERIFICADO}}
+\newcommand{\external}{\textcolor{advertencia}{\scriptsize\bfseries PARCIAL EXTERNO}}
+\newcommand{\operational}{\textcolor{advertencia}{\scriptsize\bfseries PARCIAL OPERATIVO}}
+
+\newcommand{\metricbox}[3]{%
+  \begin{beamercolorbox}[wd=\linewidth,ht=1.78cm,dp=0.12cm,sep=0.30cm]{metric}
+    {\scriptsize\bfseries\color{gris}\MakeUppercase{#1}}\par
+    \vspace{0.10cm}
+    {\LARGE\bfseries\color{#3}#2}
+  \end{beamercolorbox}%
+}
+
+\newcommand{\coveragebar}[3]{%
+  \begin{tikzpicture}[x=0.01\linewidth,y=1cm,baseline]
+    \node[anchor=west,font=\small\bfseries] at (0,0.20) {#1};
+    \fill[linea] (27,0.08) rectangle (82,0.34);
+    \fill[verde] (27,0.08) rectangle ({27 + 0.55*#2},0.34);
+    \node[anchor=west,font=\small\bfseries] at (85,0.20) {#2\%};
+    \node[anchor=west,font=\scriptsize,text=gris] at (27,-0.18) {#3};
+  \end{tikzpicture}\par\vspace{0.18cm}%
+}
+
+\lstdefinestyle{terminal}{
+  basicstyle=\ttfamily\scriptsize\color{white},
+  backgroundcolor=\color{terminal},
+  frame=none,
+  rulecolor=\color{terminal},
+  breaklines=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  xleftmargin=0.4cm,
+  xrightmargin=0.4cm,
+  aboveskip=0pt,
+  belowskip=0pt
+}

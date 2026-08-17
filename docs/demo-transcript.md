@@ -17,6 +17,11 @@ Los secretos que aparecen (llaves, secreto TOTP, códigos de
 recuperación) se generaron dentro del directorio temporal de esta
 ejecución y se destruyeron al terminar; no protegen nada.
 
+Esta transcripción es histórica: fue capturada antes de la calibración final
+de Argon2id y conserva la salida correspondiente a los parámetros anteriores.
+La corrida de cierre y los parámetros vigentes están documentados en
+`docs/verification-report.md`.
+
 ```text
 =====================================================================
 == Build the binary once
