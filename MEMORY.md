@@ -10,9 +10,9 @@ de verdad.
 ## Estado de Git
 
 - Rama activa: `docs/avance-cripto-beamer`.
-- Commit base: `f80706b`.
-- Los cambios de cierre se versionarán en commits separados para código,
-  documentación y presentación, con staging explícito.
+- El cierre está versionado en tres commits: documentación/presentación,
+  calibración de Argon2id y adaptador HTTP inicial.
+- El árbol de trabajo queda limpio al cerrar esta sesión.
 - `frontend/` no tiene cambios y debe permanecer intacto.
 - El antiguo sitio Astro de presentación fue eliminado por completo. La
   presentación vigente se genera exclusivamente con LaTeX Beamer.
@@ -20,17 +20,7 @@ de verdad.
 Estado esperado de archivos:
 
 ```text
- M latex/chapters/02-marco-teorico.tex
- M latex/chapters/03-analisis-diseno.tex
- M latex/chapters/04-implementacion.tex
- M latex/chapters/05-pruebas.tex
- M latex/chapters/06-conclusiones.tex
- M latex/chapters/anexo-e-matriz.tex
- M latex/main.pdf
-?? AGENTS.md
-?? MEMORY.md
-?? docs/verification-report.md
-?? presentacion/
+ clean
 ```
 
 ## Convenciones y restricciones
@@ -142,8 +132,8 @@ Resultados:
 - La evidencia externa de un PSC autorizado queda fuera del alcance actual;
   solo se reabrirá si existe un proveedor con contrato, estabilidad y precios
   verificables.
-- El cierre requiere conservar los commits de código, documentación y
-  presentación, además de confirmar que `frontend/` permanece intacto.
+- El cierre está documentado y versionado; el siguiente trabajo puede comenzar
+  sobre el adaptador HTTP sin depender de Cincel.
 
 ## Primeros pasos para retomar
 
