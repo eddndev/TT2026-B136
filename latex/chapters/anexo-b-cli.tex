@@ -54,7 +54,8 @@ El binario carga un archivo \texttt{.env} del directorio de trabajo cuando exist
     \texttt{CINCEL\_API\_KEY} & Credencial del proveedor remoto (secreto). & --- \\
     \texttt{AUDIT\_LOG\_PATH} & Archivo de la bitácora de auditoría. & \texttt{audit-log.jsonl} \\
     \texttt{USER} & Actor que registra \texttt{audit append}. & \texttt{unknown} \\
-    \texttt{DATABASE\_URL} & Cadena de conexión a base de datos, reservada para la persistencia futura; solo se registra su presencia en el diagnóstico. & --- \\
+    \texttt{DATABASE\_URL} & Cadena PostgreSQL obligatoria para usuarios y migraciones al ejecutar \texttt{serve}. & --- \\
+    \texttt{REDIS\_URL} & Cadena Redis obligatoria para sesiones, desafíos y límites al ejecutar \texttt{serve}. & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -67,14 +68,14 @@ despacho-cli serve --signer-cert <PATH> --signer-key <PATH>
     [--crl <PATH>] [--tsa-config <PATH>] [--tsa-dir <DIR>]
 \end{lstlisting}
 
-El comando compone el workflow documental con persistencia local cifrada,
-bitácora encadenada y la TSA OpenSSL. Escucha por defecto en
-\texttt{127.0.0.1:3000}, almacena bajo \texttt{runtime-data} y exige el
-certificado y la llave privada del firmante. Las rutas permiten cargar, sellar,
-verificar y exportar evidencia, además de comprobar la auditoría; su contrato,
-cabeceras y errores se documentan en \texttt{docs/http-api.md}. La composición
-no consulta Cincel. \texttt{X-Actor} solo etiqueta la bitácora y no reemplaza
-autenticación ni RBAC.
+El comando compone identidad multiusuario y el workflow documental: usuarios
+en PostgreSQL, sesiones y desafíos en Redis, persistencia documental cifrada,
+bitácora encadenada y TSA OpenSSL. Escucha por defecto en
+\texttt{127.0.0.1:3000}; exige \texttt{DATABASE\_URL}, \texttt{REDIS\_URL},
+\texttt{KEK\_BASE64}, certificado y llave del firmante. Las rutas permiten
+bootstrap, login, TOTP o recovery, logout, creación de usuarios y operaciones
+documentales protegidas por RBAC. La composición no consulta Cincel y
+\texttt{X-Actor} ya no forma parte del contrato.
 
 \section{Grupo crypto: integridad de contenido}\label{sec:cli-crypto}
 
@@ -331,11 +332,11 @@ El grupo \texttt{auth} cubre el hashing de contraseñas con Argon2id, su calibra
   \end{tabularx}
 \end{table}
 
-\texttt{calibrate} mide el costo real del hash en el hardware local: ejecuta cinco corridas de Argon2id sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva de 500 a 1\,000 milisegundos, con veredicto por debajo, dentro o por encima de la banda. En el hardware de referencia la configuración vigente es $m=262144$, $t=4$, $p=1$ y la media observada fue 607.8 ms. \texttt{hash-password} emite la cadena PHC resultante, que registra esos parámetros (\texttt{\$argon2id\$v=19\$m=262144,t=4,p=1\$\ldots}). \texttt{verify-password} responde \texttt{match} o \texttt{mismatch} ---con código de salida distinto de cero en el segundo caso---, y un hash almacenado ilegible es un error, nunca un \texttt{mismatch}. \texttt{totp enroll} genera el secreto compartido, imprime el URI de aprovisionamiento \texttt{otpauth} y los ocho códigos de recuperación de un solo uso, y escribe el secreto base32 en el archivo indicado. \texttt{totp verify} acepta un desfase de un paso de 30 segundos a cada lado; la verificación es sin estado y el rechazo de reutilización dentro de la ventana se difiere a la capa de persistencia, según consta en \texttt{docs/adr/0008-totp-single-use-enforcement.md}.
+\texttt{calibrate} mide el costo real del hash en el hardware local: ejecuta cinco corridas de Argon2id sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva de 500 a 1\,000 milisegundos, con veredicto por debajo, dentro o por encima de la banda. En el hardware de referencia la configuración vigente es $m=262144$, $t=2$, $p=1$ y la media observada fue 529.4 ms. \texttt{hash-password} emite la cadena PHC resultante, que registra esos parámetros (\texttt{\$argon2id\$v=19\$m=262144,t=2,p=1\$\ldots}). \texttt{verify-password} responde \texttt{match} o \texttt{mismatch} ---con código de salida distinto de cero en el segundo caso---, y un hash almacenado ilegible es un error, nunca un \texttt{mismatch}. \texttt{totp enroll} genera el secreto compartido, imprime el URI de aprovisionamiento \texttt{otpauth} y los ocho códigos de recuperación de un solo uso, y escribe el secreto base32 en el archivo indicado. \texttt{totp verify} acepta un desfase de un paso de 30 segundos a cada lado; la CLI conserva verificación sin estado, mientras la API rechaza la reutilización mediante un reclamo atómico en Redis.
 
 \begin{lstlisting}[numbers=none]
 + $REPO/target/debug/despacho-cli auth calibrate
-mean over 5 runs: 607.8 ms (inside the 500-1000 ms target band)
+mean over 5 runs: 529.4 ms (inside the 500-1000 ms target band)
 + $REPO/target/debug/despacho-cli auth totp enroll --user demo@example.com --secret-out totp-secret.b32
 otpauth-uri: otpauth://totp/despacho:demo%40example.com?secret=IGAPAF2O2XDMIG6QGFZU2YITPDCD44P3&issuer=despacho
 secret-base32: IGAPAF2O2XDMIG6QGFZU2YITPDCD44P3

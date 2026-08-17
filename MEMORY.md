@@ -10,9 +10,9 @@ de verdad.
 ## Estado de Git
 
 - Rama activa: `docs/avance-cripto-beamer`.
-- El cierre anterior está versionado en documentación/presentación, calibración
-  de Argon2id y fundamento HTTP; el corte actual añade el workflow documental,
-  persistencia local cifrada, API y demostración integral.
+- El cierre anterior está versionado; el corte actual añade identidad
+  multiusuario, PostgreSQL, Redis, sesiones revocables y RBAC al workflow
+  documental local.
 - El árbol de trabajo queda limpio al cerrar esta sesión.
 - `frontend/` no tiene cambios y debe permanecer intacto.
 - El antiguo sitio Astro de presentación fue eliminado por completo. La
@@ -40,38 +40,44 @@ Estado esperado de archivos:
 
 ### Verificación del núcleo criptográfico
 
-- `cargo test --workspace`: 383 pruebas descubiertas, 382 aprobadas y una
+- `cargo test --workspace`: 395 pruebas descubiertas, 394 aprobadas y una
   ignorada.
 - La prueba ignorada es el humo contra el sandbox real de Cincel.
-- Cobertura total: 91.9 %.
-- Cobertura por crate: `domain` 96.2 %, `application` 95.3 %,
-  `infrastructure` 93.4 %, `bin` 82.6 % y `web` 75.3 %. El gate bloqueante del
+- Cobertura total: 90.1 %.
+- Cobertura por crate: `domain` 96.1 %, `application` 92.8 %,
+  `infrastructure` 92.7 %, `bin` 80.7 % y `web` 73.2 %. El gate bloqueante del
   90 % se conserva sobre los tres crates con lógica criptográfica.
 - `bash scripts/demo.sh` terminó correctamente.
 - `bash scripts/api-demo.sh` terminó correctamente sin variables de Cincel y
   verificó el ZIP descargado con OpenSSL y `unzip`.
 - La evidencia resumida está en `docs/verification-report.md`.
 
-### Aplicación HTTP local
+### Aplicación HTTP autenticada
 
 - `despacho-cli serve` compone el workflow con `LocalOpensslTsa`, sin leer ni
   consultar Cincel.
 - La API carga documentos, los persiste cifrados, los firma y sella, verifica
   los cuatro componentes, exporta el paquete de evidencia y comprueba la
   cadena de auditoría.
-- El contrato vive en `docs/http-api.md` y la decisión en
-  `docs/adr/0011-local-document-workflow.md`.
-- `X-Actor` es solo una etiqueta de auditoría, no autenticación ni
-  autorización. El bind predeterminado es `127.0.0.1:3000`.
-- El repositorio demostrativo escribe un JSON por UUID mediante reemplazo
-  atómico y no persiste el texto claro; PostgreSQL y Redis siguen pendientes
-  para producción.
+- El contrato vive en `docs/http-api.md`; las decisiones están en ADR-0011 y
+  ADR-0012.
+- PostgreSQL persiste usuarios, hashes Argon2id, roles, estado activo, secretos
+  TOTP cifrados y códigos recovery hasheados. Redis conserva desafíos,
+  sesiones opacas revocables, límites de login y reclamos TOTP con TTL.
+- `X-Actor` fue retirado. El actor se deriva del bearer token y cada petición
+  protegida recarga rol y estado desde PostgreSQL.
+- Los roles Owner, Litigante, Paralegal y Cliente aplican una matriz
+  conservadora. Cliente no accede a documentos hasta persistir pertenencia a
+  casos.
+- El repositorio documental continúa como un JSON cifrado por UUID; migrar
+  documentos y auditoría a PostgreSQL sigue pendiente.
 
 ### Documentación LaTeX
 
-Se actualizaron implementación, pruebas, conclusiones y el anexo de pruebas
-para documentar la rebanada HTTP, la persistencia local cifrada y los nuevos
-resultados. `latex/main.pdf` contiene 229 páginas.
+Se actualizaron implementación, pruebas, conclusiones y anexos para documentar
+la identidad multiusuario y la persistencia híbrida aplicada. `latex/main.pdf`
+compila con 232 páginas; las 232 se renderizaron y las páginas nuevas de
+implementación, pruebas, conclusiones y anexos se inspeccionaron ampliadas.
 
 La actualización de riesgos debe conservar esta formulación:
 
@@ -112,17 +118,18 @@ La presentación se encuentra en `presentacion/`:
 - Fuente principal: `presentacion/presentacion.tex`.
 - Diapositivas de riesgo: `presentacion/risk-slides.tex`.
 - Tema: `presentacion/theme.tex`.
-- Resultado: `presentacion/presentacion.pdf`, 13 diapositivas.
+- Resultado: `presentacion/presentacion.pdf`, 14 diapositivas en formato 16:9.
 
-Las diapositivas 9 a 11 explican:
+Las diapositivas 10 a 12 explican:
 
 1. La materialización de la dependencia inestable del PSC.
 2. La mitigación mediante una TSA interna intercambiable.
 3. El alcance técnico y el riesgo residual, sin atribuir equivalencia legal.
 
 La imagen de la estructura del workspace ya fue ampliada y revisada. Las tres
-diapositivas de riesgos también fueron revisadas como imágenes renderizadas. El
-log final de Beamer no contiene advertencias `Overfull`, `Underfull` ni
+diapositivas de riesgos y la nueva diapositiva de identidad también fueron
+revisadas como imágenes renderizadas. Las 14 diapositivas se inspeccionaron y
+el log final de Beamer no contiene advertencias `Overfull`, `Underfull` ni
 `LaTeX Warning`.
 
 ## Verificación ejecutada al cierre
@@ -134,24 +141,35 @@ cargo fmt --all -- --check
 cargo build --workspace
 cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
+cargo build --release --bin despacho-cli
+cargo llvm-cov --workspace --json --summary-only \
+  --output-path /tmp/tt2026-coverage.json
+bash scripts/coverage-gate.sh /tmp/tt2026-coverage.json
 bash scripts/demo.sh
 bash scripts/api-demo.sh
 git diff --check
 git diff --exit-code -- frontend
 ```
 
-Todos los comandos anteriores terminaron con código cero el 17 de agosto de
-2026. La corrida de demostración midió Argon2id en 623.7 ms con los parámetros
-calibrados, dentro de la banda de 500 a 1 000 ms. `git diff --check`, la regla
-ASCII del código fuente y el límite de 400 líneas por archivo también pasaron;
-el archivo de lógica más largo quedó en 379 líneas.
+La recalibración de Argon2id del 17 de agosto de 2026 sobre AMD Ryzen 7 7730U
+fijó `m=262144,t=2,p=1`: cinco corridas promediaron 529.4 ms, dentro de la banda
+de 500 a 1 000 ms. Todos los comandos anteriores terminaron correctamente. La
+cobertura se midió con PostgreSQL y Redis locales activos para ejercitar los
+adaptadores reales; los jobs `test` y `coverage` de CI levantan esos mismos
+servicios. El binario release mide 7 886 552 bytes frente al límite de 25 MiB.
+Cargo conserva un aviso de compatibilidad futura de
+`redis 0.25.4`; esa versión está fijada para mantener Rust 1.78 y no produce
+advertencias de Clippy ni fallos actuales.
 
 ## Pendientes reales
 
-- La API documental local está implementada; faltan autenticación de sesiones,
-  JWT, RBAC, consultas adicionales y versionado documental más allá de la
-  versión inicial.
-- Sustituir el repositorio JSON local por PostgreSQL/Redis y construir la UI.
+- Persistir expedientes, documentos y auditoría en PostgreSQL con transacciones
+  apropiadas; hoy solo los usuarios son relacionales.
+- Modelar pertenencia a casos y alcance por recurso antes de habilitar al rol
+  Cliente.
+- Añadir consultas, versionado documental más allá de la versión inicial y UI.
+- Evaluar TLS interno y un cliente/pool asíncrono antes de despliegue público;
+  el corte local aísla los clientes síncronos en el pool bloqueante de Tokio.
 - La evidencia externa de un PSC autorizado queda fuera del alcance actual;
   solo se reabrirá si existe un proveedor con contrato, estabilidad y precios
   verificables.

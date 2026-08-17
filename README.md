@@ -69,7 +69,7 @@ como un objeto JSON en lugar de texto legible.
 
 | Comando | Descripción |
 | --- | --- |
-| `serve --signer-cert C --signer-key K [--bind IP:PUERTO] [--data-dir DIR]` | Inicia la API local de documentos, firma y sella con la TSA OpenSSL y persiste únicamente paquetes cifrados. |
+| `serve --signer-cert C --signer-key K [--bind IP:PUERTO] [--data-dir DIR]` | Inicia la API autenticada, conecta PostgreSQL/Redis, firma y sella con la TSA OpenSSL y persiste documentos cifrados. |
 | `crypto hash <archivo>` | Imprime el resumen SHA-256 del archivo. |
 | `vault encrypt <archivo> --doc-id <uuid> [--version N]` | Cifra el archivo (AES-256-GCM con envoltura de llaves) y escribe `<archivo>.enc`. |
 | `vault decrypt <paquete> --doc-id <uuid> [--version N] [--out RUTA]` | Descifra un paquete y rechaza cualquier alteración. |
@@ -107,7 +107,8 @@ Se cargan del entorno o de un archivo `.env` local (ver
 | `PKI_CA_DIR` | Directorio de trabajo de la autoridad certificadora (por defecto `pki-ca` bajo el directorio actual). |
 | `TSA_DIR` | Directorio de trabajo de la autoridad de sellado local (por defecto `pki-tsa` junto a `PKI_CA_DIR`). |
 | `RUST_LOG` | Filtro de diagnóstico (`error`, `warn`, `info`, `debug`, `trace`); los diagnósticos van a `stderr`. |
-| `DATABASE_URL` | Cadena de conexión a Postgres, reservada para la capa de persistencia. |
+| `DATABASE_URL` | Cadena de conexión a PostgreSQL para usuarios persistidos y migraciones. |
+| `REDIS_URL` | Cadena de conexión a Redis para desafíos, sesiones revocables, límites y replay TOTP. |
 
 ### Demostración de extremo a extremo
 
@@ -130,25 +131,25 @@ La demostración de la aplicación HTTP se ejecuta por separado:
 bash scripts/api-demo.sh
 ```
 
-Este segundo guion levanta el servidor sobre un puerto efímero, carga un
-documento, comprueba que el repositorio no contiene el texto claro, lo firma y
-sella con la TSA local, verifica los cuatro componentes, exporta el ZIP y valida
-su firma, certificado, CRL y sello con OpenSSL. También verifica la cadena de
-auditoría. No configura ni consulta Cincel. El contrato completo está en
+Este segundo guion levanta PostgreSQL, Redis y el servidor sobre puertos
+efímeros; crea un owner y un paralegal, completa TOTP, comprueba autorización,
+logout y recuperación de un solo uso, carga un documento, verifica que no se
+persista texto claro, lo firma y sella con la TSA local, y valida el ZIP con
+OpenSSL. No configura ni consulta Cincel. El contrato completo está en
 [`docs/http-api.md`](docs/http-api.md).
 
 ### Aplicación HTTP local
 
-La API entrega una primera rebanada vertical de la aplicación sobre
-`/api/v1`: carga y persistencia cifrada de documentos, sellado local,
-verificación, exportación de evidencia y comprobación de auditoría. El comando
-`serve` requiere una CA, CRL, certificado y llave del firmante, una TSA local
-inicializada y `KEK_BASE64`; consulta la guía de la API para la preparación y
-los ejemplos de uso.
+La API entrega una rebanada multiusuario sobre `/api/v1`: usuarios en
+PostgreSQL, login Argon2id con TOTP o recuperación, sesiones opacas revocables
+en Redis, cuatro roles RBAC, carga y persistencia cifrada de documentos,
+sellado local, verificación, exportación y auditoría. `X-Actor` fue retirado: el
+actor y los permisos proceden de `Authorization: Bearer` y del usuario vigente.
 
-`X-Actor` identifica al responsable registrado en la bitácora, pero no es una
-credencial ni reemplaza autenticación o autorización. Las sesiones, JWT, RBAC,
-PostgreSQL, Redis y la UI siguen fuera de este corte.
+El comando `serve` requiere `DATABASE_URL`, `REDIS_URL`, `KEK_BASE64`, una CA,
+CRL, certificado y llave del firmante, y una TSA local inicializada. Para
+desarrollo se incluyen `compose.yaml` y la guía completa de la API. La UI y el
+modelado de pertenencia de clientes a casos permanecen pendientes.
 
 ### Frontend web
 

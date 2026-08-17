@@ -7,9 +7,9 @@ Este anexo cataloga la suite completa de pruebas automatizadas del prototipo y d
 
 \section{Nota metodológica}\label{sec:matriz-nota}
 
-El workspace contiene \textbf{383 funciones de prueba}: 382 se ejecutan en verde en cada corrida y una se declara ignorada (\texttt{\#[ignore]}) porque es una prueba de humo contra el sandbox del proveedor externo de sellado de tiempo. El registro se completó, pero la API observada no ofrece estabilidad suficiente para una prueba determinista y el sandbox requiere pago; por ello, la prueba ignorada se conserva como referencia del adaptador y no se agenda como campaña de entrega. El resto del adaptador correspondiente se prueba contra un stub HTTP local, de modo que la suite regular no depende de ningún servicio de red ni incurre en costo externo.
+El workspace contiene \textbf{395 funciones de prueba}: 394 se ejecutan en verde en cada corrida y una se declara ignorada (\texttt{\#[ignore]}) porque es una prueba de humo contra el sandbox del proveedor externo de sellado de tiempo. El registro se completó, pero la API observada no ofrece estabilidad suficiente para una prueba determinista y el sandbox requiere pago; por ello, la prueba ignorada se conserva como referencia del adaptador y no se agenda como campaña de entrega. El resto del adaptador correspondiente se prueba contra un stub HTTP local, de modo que la suite regular no depende de ningún servicio de red ni incurre en costo externo.
 
-Los nombres de las funciones de prueba son frases completas en \texttt{snake\_case} (en inglés, como todo identificador del código fuente) que describen el comportamiento verificado: por ejemplo, \texttt{a\_code\_is\_accepted\_once\_and\_rejected\_on\_reuse} documenta por sí misma la regla de un solo uso de los códigos de recuperación. Este estilo convierte al inventario de pruebas en la \emph{especificación ejecutable} del prototipo: la lectura de los nombres de una suite enumera las obligaciones de comportamiento del módulo correspondiente, y la corrida en verde certifica que todas se cumplen. Por esa razón la matriz no parafrasea cada prueba: agrupa las 383 funciones por crate y por archivo o módulo, indica su tipo y cita dos o tres nombres representativos por fila. El inventario íntegro se reproduce con \texttt{cargo test --workspace} sobre el repositorio.
+Los nombres de las funciones de prueba son frases completas en \texttt{snake\_case} (en inglés, como todo identificador del código fuente) que describen el comportamiento verificado: por ejemplo, \texttt{a\_code\_is\_accepted\_once\_and\_rejected\_on\_reuse} documenta por sí misma la regla de un solo uso de los códigos de recuperación. Este estilo convierte al inventario de pruebas en la \emph{especificación ejecutable} del prototipo: la lectura de los nombres de una suite enumera las obligaciones de comportamiento del módulo correspondiente, y la corrida en verde certifica que todas se cumplen. Por esa razón la matriz no parafrasea cada prueba: agrupa las 395 funciones por crate y por archivo o módulo, indica su tipo y cita dos o tres nombres representativos por fila. El inventario íntegro se reproduce con \texttt{cargo test --workspace} sobre el repositorio.
 
 La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las pruebas usan dobles deterministas escritos a mano (el crate no depende de ninguna biblioteca criptográfica); en \texttt{application} usan mocks o fakes de los puertos para probar la orquestación y la propagación de errores; en \texttt{infrastructure} ejercitan los adaptadores con criptografía real y herramientas del sistema; en \texttt{web} verifican el contrato HTTP sobre un workflow inyectado; y en \texttt{bin} ejecutan el binario compilado \texttt{despacho-cli} como subproceso. La \cref{tab:matriz-tipos} define la taxonomía de tipos empleada en la matriz y sus abreviaturas.
 
@@ -35,23 +35,23 @@ La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las p
 
 \section{Matriz de pruebas}\label{sec:matriz-tabla}
 
-La \cref{tab:matriz-resumen} resume la distribución de las 383 funciones por crate y la \cref{tab:matriz-pruebas} presenta la matriz completa: una fila por archivo o módulo de prueba, agrupadas por crate. La columna \textbf{N} indica el número de funciones de prueba del archivo; la suma de la columna es 383. Las rutas se abrevian respecto de la raíz de cada crate: \texttt{src/} señala pruebas unitarias embebidas en el módulo (\texttt{\#[cfg(test)]}) y \texttt{tests/} señala binarios de prueba de integración. En la fila del stub del proveedor de sellado, la anotación $(+1)$ corresponde a la única prueba ignorada.
+La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por crate y la \cref{tab:matriz-pruebas} presenta la matriz completa: una fila por archivo o módulo de prueba, agrupadas por crate. La columna \textbf{N} indica el número de funciones de prueba del archivo; la suma de la columna es 395. Las rutas se abrevian respecto de la raíz de cada crate: \texttt{src/} señala pruebas unitarias embebidas en el módulo (\texttt{\#[cfg(test)]}) y \texttt{tests/} señala binarios de prueba de integración. En la fila del stub del proveedor de sellado, la anotación $(+1)$ corresponde a la única prueba ignorada.
 
 \begin{table}[H]
   \centering
-  \caption{Distribución de las 383 funciones de prueba por crate. El conteo de integración de \texttt{infrastructure} incluye la prueba ignorada.}
+  \caption{Distribución de las 395 funciones de prueba por crate. El conteo de integración de \texttt{infrastructure} incluye la prueba ignorada.}
   \label{tab:matriz-resumen}
   \begin{tabularx}{\linewidth}{@{}X R{3.4cm} R{3.8cm} R{2.0cm}@{}}
     \toprule
     \textbf{Crate} & \textbf{Unitarias (\texttt{src/})} & \textbf{Integración (\texttt{tests/})} & \textbf{Total} \\
     \midrule
-    \texttt{domain} & 69 & 0 & 69 \\
-    \texttt{application} & 39 & 43 & 82 \\
-    \texttt{infrastructure} & 86 & 87 & 173 \\
+    \texttt{domain} & 69 & 3 & 72 \\
+    \texttt{application} & 39 & 46 & 85 \\
+    \texttt{infrastructure} & 86 & 91 & 177 \\
     \texttt{bin} & 3 & 52 & 55 \\
-    \texttt{web} & 1 & 3 & 4 \\
+    \texttt{web} & 1 & 5 & 6 \\
     \midrule
-    Total & 198 & 185 & 383 \\
+    Total & 198 & 197 & 395 \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -76,7 +76,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 383 funciones por cr
   \endfoot
   \bottomrule
   \endlastfoot
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}} --- 69 pruebas unitarias en \texttt{src/}} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}} --- 69 pruebas unitarias en \texttt{src/} y 3 de integración} \\
   \midrule
   \texttt{src/audit/chain.rs} & 10 & Unit. & \texttt{an\_intact\_chain\_verifies\_as\_valid}\newline
     \texttt{truncating\_the\_tail\_is\_not\_detected\_by\_verification\_alone} \\
@@ -104,8 +104,10 @@ La \cref{tab:matriz-resumen} resume la distribución de las 383 funciones por cr
     \texttt{ports\_are\_object\_safe\_and\_round\_trip} \\
   \texttt{src/crypto/\allowbreak{}timestamp.rs} & 3 & Unit. & \texttt{each\_rejection\_cause\_is\_reported\_explicitly}\newline
     \texttt{ports\_are\_object\_safe\_and\_round\_trip} \\
+  \texttt{tests/identity.rs} & 3 & Integr. & \texttt{roles\_have\_stable\_storage\_names}\newline
+    \texttt{role\_permissions\_follow\_the\_conservative\_matrix} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}} --- 39 unitarias en \texttt{src/} y 43 en \texttt{tests/}, con dobles de los puertos} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}} --- 39 unitarias en \texttt{src/} y 46 en \texttt{tests/}, con dobles de los puertos} \\
   \midrule
   \texttt{src/audit.rs} & 8 & Unit. & \texttt{append\_takes\_the\_timestamp\_from\_the\_clock\_and\_returns\_the\_stored\_entry}\newline
     \texttt{verify\_reports\_the\_first\_index\_whose\_chain\_does\_not\_match} \\
@@ -135,8 +137,10 @@ La \cref{tab:matriz-resumen} resume la distribución de las 383 funciones por cr
     \texttt{without\_a\_token\_integrity\_and\_timestamp\_are\_skipped\_with\_reasons} \\
   \texttt{tests/verify\_document\_failures.rs} & 7 & Unit. & \texttt{an\_imprint\_mismatch\_fails\_integrity\_and\_timestamp}\newline
     \texttt{a\_revoked\_certificate\_reports\_the\_matched\_serial} \\
+  \texttt{tests/identity\_workflow.rs} & 3 & Integr. & \texttt{owner\_bootstrap\_login\_totp\_authorization\_and\_logout\_form\_one\_flow}\newline
+    \texttt{repeated\_bad\_passwords\_lock\_the\_login\_window} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}} --- 86 unitarias en \texttt{src/} y 87 de integración en \texttt{tests/} (una ignorada)} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}} --- 86 unitarias en \texttt{src/} y 91 de integración en \texttt{tests/} (una ignorada)} \\
   \midrule
   \texttt{src/archive.rs} & 6 & Unit., vect. & \texttt{crc32\_matches\_the\_standard\_check\_value}\newline
     \texttt{output\_is\_deterministic} \\
@@ -188,6 +192,10 @@ La \cref{tab:matriz-resumen} resume la distribución de las 383 funciones por cr
     ignorada: \texttt{the\_real\_sandbox\_issues\_a\_token} \\
   \texttt{tests/file\_document\_repository.rs} & 6 & Integr. & \texttt{insert\_and\_find\_round\_trip\_a\_pending\_record}\newline
     \texttt{stored\_identity\_must\_match\_the\_requested\_path} \\
+  \texttt{tests/identity\_backends.rs} & 2 & Integr. & \texttt{postgres\_persists\_users\_and\_closes\_bootstrap\_atomically}\newline
+    \texttt{redis\_sessions\_are\_opaque\_replay\_safe\_and\_revocable} \\
+  \texttt{tests/identity\_secret.rs} & 2 & Integr. & \texttt{protected\_totp\_secret\_round\_trips\_only\_for\_the\_bound\_user}\newline
+    \texttt{protector\_rejects\_a\_non\_aes256\_key} \\
   \texttt{tests/issuer\_validity\_window.rs} & 2 & Interop. & \texttt{expired\_issuer\_is\_rejected\_and\_openssl\_agrees}\newline
     \texttt{chain\_is\_valid\_while\_both\_windows\_are\_open\_and\_openssl\_agrees} \\
   \texttt{tests/local\_tsa\_rfc3161.rs} & 13 & Integr., interop. & \texttt{a\_requested\_token\_is\_accepted\_by\_openssl\_ts\_verify}\newline
@@ -231,16 +239,18 @@ La \cref{tab:matriz-resumen} resume la distribución de las 383 funciones por cr
   \texttt{tests/verify\_cli.rs} & 9 & E2E, mut. & \texttt{an\_intact\_document\_verifies\_valid\_on\_every\_component}\newline
     \texttt{a\_revoked\_certificate\_reports\_its\_serial\_from\_the\_fresh\_crl} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{web}} --- 1 unitaria en \texttt{src/} y 3 de contrato en \texttt{tests/}} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{web}} --- 1 unitaria en \texttt{src/} y 5 de contrato en \texttt{tests/}} \\
   \midrule
   \texttt{src/lib.rs} & 1 & Unit. & \texttt{health\_endpoint\_reports\_ready} \\
+  \texttt{tests/auth\_api.rs} & 2 & Integr. & \texttt{enrollment\_login\_totp\_me\_and\_logout\_have\_stable\_contracts}\newline
+    \texttt{invalid\_login\_and\_client\_authorization\_have\_distinct\_statuses} \\
   \texttt{tests/document\_api.rs} & 3 & Integr. & \texttt{the\_document\_routes\_expose\_the\_complete\_workflow}\newline
-    \texttt{upload\_requires\_actor\_and\_document\_name\_headers}\newline
+    \texttt{upload\_requires\_bearer\_token\_and\_document\_name\_header}\newline
     \texttt{an\_unknown\_document\_maps\_to\_not\_found} \\
 \end{longtable}
 \endgroup
 
-El crate \texttt{web} conserva la prueba de \texttt{/healthz} y añade tres pruebas de contrato sobre el workflow inyectado. Sesiones, RBAC y persistencia PostgreSQL/Redis permanecen fuera de este corte; el repositorio local cifrado se prueba en \texttt{infrastructure}.
+El crate \texttt{web} conserva la prueba de \texttt{/healthz}, tres pruebas del workflow documental protegido y dos del contrato de identidad. Los casos de uso se prueban en memoria y los adaptadores PostgreSQL/Redis contra procesos locales reales; \texttt{scripts/api-demo.sh} integra ambas capas con la TSA local.
 
 Dos lecturas transversales de la matriz merecen mención. Primera, todo servicio criptográfico cuenta con al menos un caso positivo y al menos un caso negativo, como exige el criterio de éxito de OE-6; los casos negativos dominan numéricamente porque el valor probatorio del sistema depende de que los rechazos sean correctos y diagnósticos. Segunda, las pruebas de mutación de un byte materializan el criterio de OE-4 (detección del 100\,\% de alteraciones de un byte): la suite altera deliberadamente documentos firmados, firmas, certificados, payloads cifrados, miembros del paquete de evidencia y líneas de la bitácora, y en todos los casos verifica el rechazo; la prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} cubre además la exigencia de cero reutilizaciones de nonce en una suite de 10\,000 cifrados.
 
@@ -248,7 +258,7 @@ Dos lecturas transversales de la matriz merecen mención. Primera, todo servicio
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
-La ejecución de \texttt{cargo test --workspace} reporta \textbf{382 pruebas en verde, 0 fallos y 1 ignorada}, distribuidas en 39 binarios de prueba. Sobre un árbol ya compilado, la suite completa termina en segundos; las pruebas más costosas son las que ejecutan subprocesos reales de \texttt{openssl} y del binario propio. Este costo bajo es deliberado: los instantes de evaluación de los certificados se derivan de la ventana de validez parseada del propio certificado y no de esperas de reloj, de modo que la suite es determinista y puede correrse en cada cambio sin fricción.
+La ejecución de \texttt{cargo test --workspace} reporta \textbf{394 pruebas en verde, 0 fallos y 1 ignorada}, distribuidas en 44 binarios de prueba. Sobre un árbol ya compilado, la suite completa termina en segundos; las pruebas más costosas son las que ejecutan subprocesos reales de \texttt{openssl} y del binario propio. Este costo bajo es deliberado: los instantes de evaluación de los certificados se derivan de la ventana de validez parseada del propio certificado y no de esperas de reloj, de modo que la suite es determinista y puede correrse en cada cambio sin fricción.
 
 Los conteos y la cobertura de este anexo se reproducen con tres comandos sobre la raíz del repositorio, los mismos que ejecuta el flujo de integración continua:
 
@@ -271,20 +281,20 @@ La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umb
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas totales} & \textbf{Cobertura} & \textbf{Umbral} \\
     \midrule
-    \texttt{domain} & 937 & 974 & 96.2\,\% & $\geq$ 90\,\% \\
-    \texttt{application} & 1\,488 & 1\,561 & 95.3\,\% & $\geq$ 90\,\% \\
-    \texttt{infrastructure} & 2\,009 & 2\,151 & 93.4\,\% & $\geq$ 90\,\% \\
-    \texttt{bin} & 833 & 1\,008 & 82.6\,\% & sin umbral (informativo) \\
-    \texttt{web} & 168 & 223 & 75.3\,\% & sin umbral (informativo) \\
+    \texttt{domain} & 973 & 1\,013 & 96.1\,\% & $\geq$ 90\,\% \\
+    \texttt{application} & 1\,749 & 1\,885 & 92.8\,\% & $\geq$ 90\,\% \\
+    \texttt{infrastructure} & 2\,257 & 2\,436 & 92.7\,\% & $\geq$ 90\,\% \\
+    \texttt{bin} & 834 & 1\,034 & 80.7\,\% & sin umbral (informativo) \\
+    \texttt{web} & 319 & 436 & 73.2\,\% & sin umbral (informativo) \\
     \midrule
-    Total del workspace & 5\,435 & 5\,917 & 91.9\,\% & --- \\
+    Total del workspace & 6\,132 & 6\,804 & 90.1\,\% & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
-El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=256$ MiB, $t=4$, $p=1$; véase §3.11.5) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de referencia AMD Ryzen 7 7730U la calibración de la demostración de cierre del 17 de agosto de 2026 reportó una \textbf{media de 607.8 ms sobre cinco corridas}, dentro de la banda objetivo, y fijó los parámetros en el adaptador. Si el hardware de despliegue difiere, la calibración debe repetirse; la suite conserva los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
+El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=256$ MiB, $t=2$, $p=1$; véase §3.11.5) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de referencia AMD Ryzen 7 7730U la calibración de la demostración de cierre del 17 de agosto de 2026 reportó una \textbf{media de 529.4 ms sobre cinco corridas}, dentro de la banda objetivo, y fijó los parámetros en el adaptador. Si el hardware de despliegue difiere, la calibración debe repetirse; la suite conserva los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
 
 \subsection{Transcripción de la demostración}\label{sec:matriz-demo}
 
@@ -292,7 +302,7 @@ La evidencia de ejecución de cara al usuario final comprende dos guiones. \text
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
-Toda la evidencia anterior se regenera automáticamente en cada cambio: el flujo de integración continua del repositorio (\texttt{.github/workflows/ci.yml}) ejecuta siete jobs sobre cada push y cada pull request, y el fallo de cualquiera de ellos ---salvo el job \texttt{msrv}, hoy informativo--- bloquea la integración del cambio. La \cref{tab:matriz-ci} los enumera. De este modo, la matriz de este anexo no describe una fotografía única sino un invariante mantenido: las 382 pruebas en verde, los umbrales de cobertura y las fitness functions se verifican en cada modificación del código.
+Toda la evidencia anterior se regenera automáticamente en cada cambio: el flujo de integración continua del repositorio (\texttt{.github/workflows/ci.yml}) ejecuta siete jobs sobre cada push y cada pull request, y el fallo de cualquiera de ellos ---salvo el job \texttt{msrv}, hoy informativo--- bloquea la integración del cambio. La \cref{tab:matriz-ci} los enumera. De este modo, la matriz de este anexo no describe una fotografía única sino un invariante mantenido: las 394 pruebas en verde, los umbrales de cobertura y las fitness functions se verifican en cada modificación del código.
 
 \begin{table}[H]
   \centering

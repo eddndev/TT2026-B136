@@ -21,8 +21,8 @@ cargo test --workspace
 Resultado:
 
 ```text
-383 funciones de prueba descubiertas
-382 aprobadas
+395 funciones de prueba descubiertas
+394 aprobadas
 0 fallidas
 1 ignorada
 ```
@@ -34,6 +34,12 @@ precios no transparentes. Los otros 13 casos del
 adaptador remoto se ejecutaron contra el stub HTTP local y aprobaron,
 incluidos token inmediato, procesamiento diferido, rechazo, errores HTTP y
 redacción de la credencial.
+
+`cargo fmt --all -- --check`, `cargo build --workspace` y
+`cargo clippy --workspace --all-targets -- -D warnings` terminaron con código
+cero. El binario release mide 7 886 552 bytes, por debajo del límite de 25 MiB.
+El workflow de CI quedó configurado para levantar PostgreSQL y Redis tanto en
+el job de pruebas como en el de cobertura, y su YAML se parseó localmente.
 
 ## Cobertura
 
@@ -48,15 +54,18 @@ bash scripts/coverage-gate.sh /tmp/tt2026-coverage.json
 Resultado:
 
 ```text
-domain             937/  974 lines   96%  (gate: >=90%)
-application       1488/ 1561 lines   95%  (gate: >=90%)
-infrastructure    2009/ 2151 lines   93%  (gate: >=90%)
-bin                833/ 1008 lines   82%  (gate: none)
-web                168/  223 lines   75%  (gate: none)
+domain             973/ 1013 lines   96%  (gate: >=90%)
+application       1749/ 1885 lines   92%  (gate: >=90%)
+infrastructure    2257/ 2436 lines   92%  (gate: >=90%)
+bin                834/ 1034 lines   80%  (gate: none)
+web                319/  436 lines   73%  (gate: none)
 ```
 
-Las proporciones sin truncar son 96.2 %, 95.3 %, 93.4 %, 82.6 % y 75.3 %,
-respectivamente. El total del workspace es 5 435 de 5 917 líneas, 91.9 %.
+Las proporciones sin truncar son 96.1 %, 92.8 %, 92.7 %, 80.7 % y 73.2 %,
+respectivamente. El total del workspace es 6 132 de 6 804 líneas, 90.1 %.
+La corrida de cobertura levantó PostgreSQL y Redis reales para no contabilizar
+como cubiertos adaptadores que las pruebas omiten cuando esos servicios no
+están disponibles.
 
 ## Demostración integral
 
@@ -92,17 +101,28 @@ bash scripts/api-demo.sh
 ```
 
 La ejecución terminó con código cero y, sin variables de Cincel, levantó el
-servidor en un puerto efímero; cargó y persistió un documento cifrado; comprobó
-que el texto claro no aparece en el repositorio; lo firmó y selló mediante la
-TSA local; verificó los cuatro componentes; exportó el ZIP; y comprobó firma,
-certificado, CRL y sello con `openssl`. La cadena de auditoría terminó válida
-con cuatro eventos. El contrato y sus límites se documentan en
+servidor en un puerto efímero; creó usuarios persistidos; completó TOTP;
+comprobó `401`, RBAC, logout y recuperación de un solo uso; cargó y persistió
+un documento cifrado; comprobó que el texto claro no aparece en el repositorio;
+lo firmó y selló mediante la TSA local; verificó los cuatro componentes;
+exportó el ZIP; y comprobó firma, certificado, CRL y sello con `openssl`. La
+cadena de auditoría terminó válida con al menos diez eventos. El contrato y sus
+límites se documentan en
 [`docs/http-api.md`](http-api.md).
 
 La suite incluye además una prueba que renombra deliberadamente un registro
 JSON bajo el UUID de otro documento. El repositorio detecta que la identidad
 interna no coincide con la ruta solicitada y rechaza el registro como
 inconsistente.
+
+## Entregables documentales
+
+`make -C latex` generó `latex/main.pdf` con 232 páginas en tamaño carta y
+`make -C presentacion` generó `presentacion/presentacion.pdf` con 14
+diapositivas 16:9. Se renderizaron las 232 páginas de la tesis y las 14
+diapositivas; se inspeccionaron ampliadas las páginas modificadas de
+implementación, pruebas, conclusiones y anexos. El log final de Beamer no
+contiene advertencias `Overfull`, `Underfull` ni `LaTeX Warning`.
 
 ## Decisión sobre el proveedor de sellado
 
@@ -134,15 +154,15 @@ por un PSC autorizado.
   disponibilidad y precios verificables; no se presenta la TSA local como
   sustituto jurídico de una constancia NOM-151.
 - Argon2id quedó calibrado en el hardware de referencia (AMD Ryzen 7 7730U,
-  16 hilos lógicos) con `m=262144,t=4,p=1`: cinco corridas promediaron 607.8 ms,
+  16 hilos lógicos) con `m=262144,t=2,p=1`: cinco corridas promediaron 529.4 ms,
   dentro de la banda objetivo de 500 a 1 000 ms. Si el hardware de despliegue
   difiere, la medición debe repetirse.
-- La API local ya entrega carga, persistencia cifrada en JSON, sellado,
-  verificación, exportación de evidencia y auditoría. `X-Actor` solo etiqueta
-  eventos y no autentica: sesiones, JWT y RBAC siguen pendientes.
-- PostgreSQL y Redis siguen siendo la ruta de persistencia de producción; el
-  repositorio local es deliberadamente una implementación demostrativa. La UI
-  también permanece pendiente.
+- La API local ya entrega identidad multiusuario, sesiones revocables, RBAC,
+  carga, persistencia cifrada en JSON, sellado, verificación, exportación y
+  auditoría. La identidad procede del bearer token; `X-Actor` fue retirado.
+- PostgreSQL persiste usuarios y Redis conserva el estado efímero de identidad.
+  Documentos y auditoría siguen en archivos locales sin una transacción común;
+  la pertenencia a casos, las consultas ampliadas y la UI permanecen pendientes.
 
 La transcripción extensa de una corrida anterior se conserva en
 [`docs/demo-transcript.md`](demo-transcript.md).

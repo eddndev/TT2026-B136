@@ -54,8 +54,8 @@
 
 \begin{frame}{Qué demuestra este corte}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.24\textwidth}\metricbox{Pruebas aprobadas}{382}{tinta}\end{column}
-    \begin{column}{0.24\textwidth}\metricbox{Cobertura global}{91.9\%}{verde}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Pruebas aprobadas}{394}{tinta}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Cobertura global}{90.1\%}{verde}\end{column}
     \begin{column}{0.24\textwidth}\metricbox{Nonces distintos}{10,000}{tinta}\end{column}
     \begin{column}{0.24\textwidth}\metricbox{Fallos}{0}{verde}\end{column}
   \end{columns}
@@ -63,21 +63,21 @@
   \vspace{0.18cm}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.53\textwidth}
-      \small
+      \footnotesize
       \textbf{Alcance construido}
       \begin{itemize}
         \item Diez capacidades criptográficas ejercitables desde CLI y HTTP.
         \item Separación entre dominio, casos de uso y adaptadores reales.
-        \item Persistencia local cifrada y evidencia interoperable.
+        \item Identidad persistida, RBAC y evidencia interoperable.
       \end{itemize}
     \end{column}
     \begin{column}{0.43\textwidth}
-      \small
+      \footnotesize
       \textbf{Criterio de lectura}
       \begin{itemize}
         \item ``Verificado'' significa reproducido localmente.
         \item ``Parcial'' señala una dependencia externa u operativa.
-        \item Sesiones, RBAC, persistencia productiva y UI siguen pendientes.
+        \item Identidad y RBAC ya se prueban; gestión procesal, alcance por caso y UI siguen pendientes.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -129,7 +129,7 @@
     Capacidad & Evidencia principal & Estado \\
     \midrule
     Verificación integral & Reporte de integridad, firma, certificado y sello con causas explícitas. & \verified \\
-    Credenciales Argon2id & Formato PHC; $m=256$ MiB, $t=4$, $p=1$ y media de 607.8 ms en el host de referencia. & \verified \\
+    Credenciales Argon2id & Formato PHC; $m=256$ MiB, $t=2$, $p=1$ y media de 529.4 ms en el host de referencia. & \verified \\
     Segundo factor TOTP & Vectores RFC 6238, ventana de un periodo y códigos de recuperación. & \verified \\
     Auditoría encadenada & Cadena SHA-256 persistida en JSONL y detección del índice alterado. & \verified \\
     Paquete de evidencia & ZIP autocontenido con instrucciones para OpenSSL y \texttt{unzip}. & \verified \\
@@ -180,25 +180,25 @@
 \begin{frame}{Resultados de pruebas y cobertura}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.63\textwidth}
-      \coveragebar{domain}{96.2}{937 / 974 líneas}
-      \coveragebar{application}{95.3}{1,488 / 1,561 líneas}
-      \coveragebar{infrastructure}{93.4}{2,009 / 2,151 líneas}
-      \coveragebar{bin}{82.6}{833 / 1,008 líneas; informativo}
+      \coveragebar{domain}{96.1}{973 / 1,013 líneas}
+      \coveragebar{application}{92.8}{1,749 / 1,885 líneas}
+      \coveragebar{infrastructure}{92.7}{2,257 / 2,436 líneas}
+      \coveragebar{bin}{80.7}{834 / 1,034 líneas; informativo}
     \end{column}
     \begin{column}{0.33\textwidth}
       \begin{block}{Suite completa}
         \centering
-        {\fontsize{28}{30}\selectfont\bfseries 383}\par
+        {\fontsize{28}{30}\selectfont\bfseries 395}\par
         {\small funciones descubiertas}\par
         \vspace{0.3cm}
-        {\color{verde}\bfseries 382 aprobadas}\par
+        {\color{verde}\bfseries 394 aprobadas}\par
         {\color{tinta}0 fallidas}\par
         {\color{advertencia}1 ignorada}
       \end{block}
     \end{column}
   \end{columns}
   \vspace{0.2cm}
-  {\scriptsize\color{gris}El umbral del 90\% aplica a los tres crates con lógica criptográfica; \texttt{web} reporta 75.3\% informativo. La prueba ignorada conserva la sonda externa, fuera de la evidencia actual por inestabilidad y costo no transparente.}
+  {\scriptsize\color{gris}El umbral del 90\% aplica a los tres crates con lógica criptográfica; \texttt{web} reporta 73.2\% informativo. La prueba ignorada conserva la sonda externa, fuera de la evidencia actual por inestabilidad y costo no transparente.}
 \end{frame}
 
 \begin{frame}[fragile]{Demostraciones integrales reproducidas}
@@ -208,10 +208,10 @@
       \begin{enumerate}
         \item Crear la CA, el firmante y la TSA local.
         \item Recorrer por CLI criptografía, revocación y autenticación.
-        \item Levantar la aplicación HTTP en un puerto efímero.
+        \item Levantar PostgreSQL, Redis y la aplicación HTTP.
+        \item Crear usuarios; completar TOTP y comprobar RBAC.
         \item Cargar y persistir el documento únicamente cifrado.
-        \item Firmar, sellar y verificar los cuatro componentes.
-        \item Exportar el ZIP y validarlo con herramientas externas.
+        \item Firmar, sellar, verificar y exportar la evidencia.
       \end{enumerate}
     \end{column}
     \begin{column}{0.44\textwidth}
@@ -229,10 +229,41 @@ Verified OK
 certificado.pem: OK
 Verification: OK
 
-API demo passed.
+Authenticated API demo passed.
       \end{lstlisting}
     \end{column}
   \end{columns}
+\end{frame}
+
+\begin{frame}{Identidad y autorización atraviesan la API}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Estado duradero | PostgreSQL}
+        \footnotesize
+        \begin{itemize}
+          \item Cuenta, Argon2id, rol y estado activo.
+          \item TOTP cifrado y recovery hasheado.
+          \item Bootstrap atómico y revisión optimista.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Estado efímero | Redis}
+        \footnotesize
+        \begin{itemize}
+          \item Sesiones opacas revocables con TTL.
+          \item Desafíos MFA de un intento por 5 minutos.
+          \item Bloqueo de login y rechazo de replay TOTP.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \begin{alertblock}{RBAC conservador}
+    \footnotesize Owner administra y sella; Litigante opera documentos; Paralegal crea,
+    verifica y exporta; Cliente queda cerrado hasta persistir pertenencia a casos.
+  \end{alertblock}
+  \centering{\scriptsize\color{gris}\texttt{Authorization: Bearer} determina actor y permisos; \texttt{X-Actor} fue retirado.}
 \end{frame}
 
 \input{risk-slides}
@@ -246,44 +277,43 @@ API demo passed.
     \end{column}
     \begin{column}{0.31\textwidth}
       \begin{block}{Calibración Argon2id}
-        \small $m=256$ MiB, $t=4$, $p=1$: 607.8 ms en el host de referencia, dentro de banda. Repetir si cambia el hardware.
+        \small $m=256$ MiB, $t=2$, $p=1$: 529.4 ms en el host de referencia, dentro de banda. Repetir si cambia el hardware.
       \end{block}
     \end{column}
     \begin{column}{0.31\textwidth}
       \begin{block}{Web y persistencia}
-        \small API y persistencia local cifrada entregadas. Faltan sesiones, roles, PostgreSQL/Redis y UI.
+        \small Identidad y RBAC entregados. Faltan alcance por caso, persistencia documental transaccional, consultas y UI.
       \end{block}
     \end{column}
   \end{columns}
 
   \vspace{0.3cm}
   \begin{alertblock}{Interpretación}
-    \small El núcleo y el flujo HTTP local están implementados y probados. La TSA local cierra la demostración técnica; el frente restante es identidad, autorización, persistencia productiva y UI.
+    \small El núcleo y la aplicación multiusuario local están implementados y probados. La TSA local cierra la demostración técnica; el frente restante es gestión procesal, autorización por recurso, persistencia documental y UI.
   \end{alertblock}
 \end{frame}
 
 \begin{frame}{Resultado del avance}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.60\textwidth}
-      {\fontsize{19}{23}\selectfont\bfseries\color{tinta}
-        La aplicación ya integra el núcleo sin trasladar criptografía ni reglas de dominio a la capa web.\par}
-      \vspace{0.35cm}
+      {\fontsize{18}{21}\selectfont\bfseries\color{tinta}
+        La aplicación multiusuario ya integra el núcleo sin trasladar criptografía ni reglas de dominio a la capa web.\par}
+      \vspace{0.2cm}
       {\normalsize\color{verde}\bfseries Implementación, evidencia y documentación coinciden en el mismo corte.}
     \end{column}
     \begin{column}{0.36\textwidth}
       \begin{block}{Entregables}
-        \small
+        \footnotesize
         \begin{itemize}
-          \item Reporte LaTeX actualizado.
+          \item Reporte y presentación actualizados.
           \item Informe de verificación local.
           \item Transcripción de demostración.
-          \item PDF de esta presentación.
         \end{itemize}
       \end{block}
     \end{column}
   \end{columns}
-  \vspace{0.42cm}
-  \centering{\scriptsize\color{gris}\texttt{docs/verification-report.md} \quad | \quad \texttt{scripts/demo.sh} \quad | \quad \texttt{scripts/api-demo.sh}}
+  \vspace{0.2cm}
+  \centering{\scriptsize\color{gris}\texttt{docs/verification-report.md}}
 \end{frame}
 
 \end{document}
