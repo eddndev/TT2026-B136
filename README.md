@@ -69,6 +69,7 @@ como un objeto JSON en lugar de texto legible.
 
 | Comando | Descripción |
 | --- | --- |
+| `serve --signer-cert C --signer-key K [--bind IP:PUERTO] [--data-dir DIR]` | Inicia la API local de documentos, firma y sella con la TSA OpenSSL y persiste únicamente paquetes cifrados. |
 | `crypto hash <archivo>` | Imprime el resumen SHA-256 del archivo. |
 | `vault encrypt <archivo> --doc-id <uuid> [--version N]` | Cifra el archivo (AES-256-GCM con envoltura de llaves) y escribe `<archivo>.enc`. |
 | `vault decrypt <paquete> --doc-id <uuid> [--version N] [--out RUTA]` | Descifra un paquete y rechaza cualquier alteración. |
@@ -122,6 +123,32 @@ solo con `openssl` y `unzip`, revocación, autenticación y bitácora.
 Requiere `cargo`, `openssl`, `unzip` y utilerías estándar. Una
 transcripción real recortada está en
 [`docs/demo-transcript.md`](docs/demo-transcript.md).
+
+La demostración de la aplicación HTTP se ejecuta por separado:
+
+```bash
+bash scripts/api-demo.sh
+```
+
+Este segundo guion levanta el servidor sobre un puerto efímero, carga un
+documento, comprueba que el repositorio no contiene el texto claro, lo firma y
+sella con la TSA local, verifica los cuatro componentes, exporta el ZIP y valida
+su firma, certificado, CRL y sello con OpenSSL. También verifica la cadena de
+auditoría. No configura ni consulta Cincel. El contrato completo está en
+[`docs/http-api.md`](docs/http-api.md).
+
+### Aplicación HTTP local
+
+La API entrega una primera rebanada vertical de la aplicación sobre
+`/api/v1`: carga y persistencia cifrada de documentos, sellado local,
+verificación, exportación de evidencia y comprobación de auditoría. El comando
+`serve` requiere una CA, CRL, certificado y llave del firmante, una TSA local
+inicializada y `KEK_BASE64`; consulta la guía de la API para la preparación y
+los ejemplos de uso.
+
+`X-Actor` identifica al responsable registrado en la bitácora, pero no es una
+credencial ni reemplaza autenticación o autorización. Las sesiones, JWT, RBAC,
+PostgreSQL, Redis y la UI siguen fuera de este corte.
 
 ### Frontend web
 

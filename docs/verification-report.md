@@ -4,8 +4,8 @@
 
 - Fecha local: 17 de agosto de 2026 (`America/Mexico_City`).
 - Fecha observada en la salida UTC de la demostración: 17 de agosto de 2026.
-- Revisión verificada: cierre de la rama `docs/avance-cripto-beamer` antes de
-  versionar los cambios.
+- Revisión verificada: rebanada vertical HTTP local en la rama
+  `docs/avance-cripto-beamer`.
 - Rust: `rustc 1.94.0` y `cargo 1.94.0`.
 - OpenSSL: `3.5.7` del 9 de junio de 2026.
 - Cobertura: `cargo-llvm-cov 0.8.7`.
@@ -21,8 +21,8 @@ cargo test --workspace
 Resultado:
 
 ```text
-367 funciones de prueba descubiertas
-366 aprobadas
+383 funciones de prueba descubiertas
+382 aprobadas
 0 fallidas
 1 ignorada
 ```
@@ -48,14 +48,15 @@ bash scripts/coverage-gate.sh /tmp/tt2026-coverage.json
 Resultado:
 
 ```text
-domain             934/  974 lines   95%  (gate: >=90%)
-application       1137/ 1182 lines   96%  (gate: >=90%)
-infrastructure    1881/ 2012 lines   93%  (gate: >=90%)
-bin                833/  946 lines   88%  (gate: none)
+domain             937/  974 lines   96%  (gate: >=90%)
+application       1488/ 1561 lines   95%  (gate: >=90%)
+infrastructure    2009/ 2151 lines   93%  (gate: >=90%)
+bin                833/ 1008 lines   82%  (gate: none)
+web                168/  223 lines   75%  (gate: none)
 ```
 
-Las proporciones sin truncar son 95.9 %, 96.2 %, 93.5 % y 88.1 %,
-respectivamente. El total del workspace es 4 808 de 5 137 líneas, 93.6 %.
+Las proporciones sin truncar son 96.2 %, 95.3 %, 93.4 %, 82.6 % y 75.3 %,
+respectivamente. El total del workspace es 5 435 de 5 917 líneas, 91.9 %.
 
 ## Demostración integral
 
@@ -81,6 +82,27 @@ La ejecución terminó con código cero y reprodujo:
 La verificación independiente produjo `Verified OK`, `certificado.pem: OK` y
 `Verification: OK`. Los archivos temporales y secretos de demostración fueron
 eliminados automáticamente al terminar.
+
+## Demostración de la aplicación HTTP
+
+Comando:
+
+```bash
+bash scripts/api-demo.sh
+```
+
+La ejecución terminó con código cero y, sin variables de Cincel, levantó el
+servidor en un puerto efímero; cargó y persistió un documento cifrado; comprobó
+que el texto claro no aparece en el repositorio; lo firmó y selló mediante la
+TSA local; verificó los cuatro componentes; exportó el ZIP; y comprobó firma,
+certificado, CRL y sello con `openssl`. La cadena de auditoría terminó válida
+con cuatro eventos. El contrato y sus límites se documentan en
+[`docs/http-api.md`](http-api.md).
+
+La suite incluye además una prueba que renombra deliberadamente un registro
+JSON bajo el UUID de otro documento. El repositorio detecta que la identidad
+interna no coincide con la ruta solicitada y rechaza el registro como
+inconsistente.
 
 ## Decisión sobre el proveedor de sellado
 
@@ -115,8 +137,12 @@ por un PSC autorizado.
   16 hilos lógicos) con `m=262144,t=4,p=1`: cinco corridas promediaron 607.8 ms,
   dentro de la banda objetivo de 500 a 1 000 ms. Si el hardware de despliegue
   difiere, la medición debe repetirse.
-- La API ya tiene un primer adaptador HTTP con `/healthz`; las sesiones, el
-  control de acceso, la persistencia y la UI siguen siendo el trabajo inmediato.
+- La API local ya entrega carga, persistencia cifrada en JSON, sellado,
+  verificación, exportación de evidencia y auditoría. `X-Actor` solo etiqueta
+  eventos y no autentica: sesiones, JWT y RBAC siguen pendientes.
+- PostgreSQL y Redis siguen siendo la ruta de persistencia de producción; el
+  repositorio local es deliberadamente una implementación demostrativa. La UI
+  también permanece pendiente.
 
 La transcripción extensa de una corrida anterior se conserva en
 [`docs/demo-transcript.md`](demo-transcript.md).

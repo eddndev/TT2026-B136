@@ -4,13 +4,13 @@
 
 \chapter{Implementación del prototipo}\label{cap:implementacion}
 
-Este capítulo documenta la implementación del prototipo cuyo análisis y diseño se presentó en el Capítulo~\ref{cap:analisis}. La materialización sigue fielmente las decisiones estructurales de ese capítulo: el sistema se construyó como un workspace de Cargo de cinco crates con la regla de dependencias de la arquitectura hexagonal impuesta por el grafo de compilación (\cref{sec:workspace-cargo}), y cada uno de los servicios criptográficos especificados en el diseño criptográfico (\cref{sec:diseno-cripto}) se materializó como un par puerto--adaptador: un trait en el crate \texttt{domain} y una struct concreta en el crate \texttt{infrastructure}, tal como anticipó la definición de la arquitectura hexagonal (\cref{sec:hexagonal-definicion}). El capítulo se organiza en cinco secciones. La primera describe la estructura real del workspace y el andamiaje de calidad que lo rodea: perfil de compilación, configuración, telemetría, integración continua y política de dependencias. La segunda recorre los diez servicios criptográficos implementados, identificando para cada uno su puerto, su adaptador, los crates empleadas y las decisiones técnicas registradas. La tercera presenta la interfaz de línea de comandos que expone los casos de uso. La cuarta reporta los resultados de la exploración del sellado de tiempo, el componente que el análisis de riesgos señaló como el de mayor exposición (\cref{sec:riesgos-tecnicos}). La quinta registra las divergencias respecto al diseño del Capítulo~\ref{cap:analisis} y las decisiones de arquitectura documentadas durante la construcción.
+Este capítulo documenta la implementación del prototipo cuyo análisis y diseño se presentó en el Capítulo~\ref{cap:analisis}. La materialización sigue fielmente las decisiones estructurales de ese capítulo: el sistema se construyó como un workspace de Cargo de cinco crates con la regla de dependencias de la arquitectura hexagonal impuesta por el grafo de compilación (\cref{sec:workspace-cargo}), y cada uno de los servicios criptográficos especificados en el diseño criptográfico (\cref{sec:diseno-cripto}) se materializó como un par puerto--adaptador: un trait en el crate \texttt{domain} y una struct concreta en el crate \texttt{infrastructure}, tal como anticipó la definición de la arquitectura hexagonal (\cref{sec:hexagonal-definicion}). El capítulo se organiza en seis secciones. La primera describe la estructura real del workspace y el andamiaje de calidad que lo rodea: perfil de compilación, configuración, telemetría, integración continua y política de dependencias. La segunda recorre los diez servicios criptográficos implementados, identificando para cada uno su puerto, su adaptador, los crates empleadas y las decisiones técnicas registradas. La tercera presenta la interfaz de línea de comandos que expone los casos de uso. La cuarta documenta la aplicación HTTP y su persistencia local cifrada. La quinta reporta los resultados de la exploración del sellado de tiempo, el componente que el análisis de riesgos señaló como el de mayor exposición (\cref{sec:riesgos-tecnicos}). La sexta registra las divergencias respecto al diseño del Capítulo~\ref{cap:analisis} y las decisiones de arquitectura documentadas durante la construcción.
 
 \section{Estructura del workspace y andamiaje}\label{sec:impl-workspace}
 
-\textbf{Actualización al cierre (17 de agosto de 2026).} El crate \texttt{web} ya no es un archivo vacío: expone un router Axum con \texttt{/healthz}, cubierto por una prueba de contrato sin red. Las rutas de negocio, sesiones, persistencia y RBAC siguen pendientes.
+\textbf{Actualización al cierre (17 de agosto de 2026).} El crate \texttt{web} expone una rebanada vertical Axum: carga y persistencia cifrada de documentos, firma y sellado con la TSA local, verificación, exportación del paquete de evidencia y comprobación de la bitácora. Las sesiones, RBAC, PostgreSQL, Redis y la interfaz de usuario permanecen pendientes.
 
-{\emergencystretch=2em El prototipo es un workspace de Cargo con cinco crates miembros bajo el directorio \rutarepo{crates/}, exactamente los cinco que definió la estructura del workspace en el diseño (\cref{sec:workspace-cargo}): \texttt{domain}, \texttt{application}, \texttt{infrastructure}, \texttt{web} y \texttt{bin}. La dirección de dependencias apunta siempre hacia el dominio: \texttt{domain} no depende de ningún otro crate del workspace; \texttt{application} depende solo de \texttt{domain}; \texttt{infrastructure} depende de \texttt{domain} y \texttt{application}; \texttt{web} puede depender únicamente de \texttt{application} y \texttt{domain}; y \texttt{bin} ---la raíz de composición, que produce el binario \texttt{despacho-cli}--- depende de todos los anteriores y es el único crate autorizado a usar \texttt{anyhow} para errores polimórficos en la frontera del proceso. El crate \texttt{web} ya expone el router HTTP inicial y su prueba de contrato para \texttt{/healthz}; las rutas de negocio se agregarán cuando los casos de uso que invocan lo requieran. La \cref{tab:impl-crates} resume el tamaño de cada crate; ningún archivo del workspace supera las 400 líneas de código ---regla de diseño registrada en \texttt{CONTRIBUTING.md}---, siendo los mayores \rutarepo{crates/infrastructure/tests/local_tsa_rfc3161.rs} (381 líneas) y, bajo \texttt{src}, \rutarepo{crates/bin/src/cli.rs} (339 líneas).\par}
+{\emergencystretch=2em El prototipo es un workspace de Cargo con cinco crates miembros bajo el directorio \rutarepo{crates/}, exactamente los cinco que definió la estructura del workspace en el diseño (\cref{sec:workspace-cargo}): \texttt{domain}, \texttt{application}, \texttt{infrastructure}, \texttt{web} y \texttt{bin}. La dirección de dependencias apunta siempre hacia el dominio: \texttt{domain} no depende de ningún otro crate del workspace; \texttt{application} depende solo de \texttt{domain}; \texttt{infrastructure} depende de \texttt{domain} y \texttt{application}; \texttt{web} puede depender únicamente de \texttt{application} y \texttt{domain}; y \texttt{bin} ---la raíz de composición, que produce el binario \texttt{despacho-cli}--- depende de todos los anteriores y es el único crate autorizado a usar \texttt{anyhow} para errores polimórficos en la frontera del proceso. El crate \texttt{web} adapta HTTP al puerto \texttt{DocumentWorkflow}, sin conocer los adaptadores criptográficos ni el repositorio concretos. La \cref{tab:impl-crates} resume el tamaño de cada crate; ningún archivo del workspace supera las 400 líneas de código ---regla de diseño registrada en \texttt{CONTRIBUTING.md}---, siendo uno de los mayores \rutarepo{crates/infrastructure/tests/local_tsa_rfc3161.rs} (381 líneas).\par}
 
 \begin{table}[H]
   \centering
@@ -21,10 +21,10 @@ Este capítulo documenta la implementación del prototipo cuyo análisis y dise�
     \textbf{Crate} & \textbf{Responsabilidad} & \textbf{Líneas en \texttt{src}} & \textbf{Líneas en \rutarepo{tests/}} \\
     \midrule
     \texttt{domain} & Valores, puertos (traits) y errores; sin E/S ni crates criptográficos & 2\,625 & --- \\
-    \texttt{application} & Casos de uso genéricos sobre los puertos & 2\,370 & 1\,245 \\
-    \texttt{infrastructure} & Adaptadores driven concretos & 3\,578 & 2\,484 \\
-    \texttt{web} & Adaptador driving HTTP (\texttt{/healthz}) & 41 & 0 \\
-    \texttt{bin} & Raíz de composición y CLI \texttt{despacho-cli} & 1\,776 & 2\,831 \\
+    \texttt{application} & Casos de uso genéricos sobre los puertos & 2\,969 & 1\,694 \\
+    \texttt{infrastructure} & Adaptadores driven concretos & 3\,770 & 2\,570 \\
+    \texttt{web} & Adaptador driving HTTP y DTO de contrato & 367 & 212 \\
+    \texttt{bin} & Raíz de composición, CLI y servidor HTTP & 1\,892 & 2\,835 \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -79,7 +79,7 @@ La integración continua ejecuta siete jobs sobre cada push y cada pull request 
   \end{tabularx}
 \end{table}
 
-El diseño comprometió cinco fitness functions como verificaciones automatizadas de los atributos de calidad (\cref{sec:fitness-functions}) \cite{ford2023}. La \cref{tab:impl-fitness} muestra dónde vive cada una en el repositorio. Cuatro de las cinco diseñadas se implementaron directamente; la función que exigía un span de \texttt{tracing} por handler HTTP queda diferida junto con el crate \texttt{web}, al no existir aún handlers que verificar, y en su lugar se incorporó el umbral de cobertura por crate como función de aptitud adicional.
+El diseño comprometió cinco fitness functions como verificaciones automatizadas de los atributos de calidad (\cref{sec:fitness-functions}) \cite{ford2023}. La \cref{tab:impl-fitness} muestra dónde vive cada una en el repositorio. Cuatro de las cinco diseñadas se implementaron directamente; la función que exige un span de \texttt{tracing} por handler HTTP sigue pendiente aun cuando los handlers ya existen, y en su lugar se incorporó el umbral de cobertura por crate como función de aptitud adicional.
 
 \begin{table}[H]
   \centering
@@ -313,16 +313,19 @@ El puerto \texttt{ArchiveWriter} lo implementa \texttt{StoredZipWriter} (\rutare
 
 \section{La interfaz de línea de comandos}\label{sec:impl-cli}
 
-El adaptador driving entregado por el prototipo es la interfaz de línea de comandos \texttt{despacho-cli}, construida con \texttt{clap}~4 en modo derive (\rutarepo{crates/bin/src/cli.rs}). El diseño anticipó un adaptador de línea de comandos para tareas administrativas junto a los adaptadores REST y WebSocket (\cref{sec:vista-componentes}); el orden de construcción privilegió la CLI porque ejercita todos los casos de uso criptográficos de extremo a extremo sin arrastrar la superficie HTTP. La bandera global \texttt{-{}-json} conmuta toda salida a un objeto JSON legible por máquina. La \cref{tab:impl-cli-catalogo} presenta el catálogo completo de subcomandos con sus banderas reales, y la \cref{tab:impl-cli-casos} el cableado de cada grupo hacia los casos de uso de \texttt{application} y los adaptadores concretos que la raíz de composición inyecta.
+El primer adaptador driving entregado por el prototipo es la interfaz de línea de comandos \texttt{despacho-cli}, construida con \texttt{clap}~4 en modo derive (\rutarepo{crates/bin/src/cli.rs}). El diseño anticipó un adaptador de línea de comandos para tareas administrativas junto a los adaptadores REST y WebSocket (\cref{sec:vista-componentes}); el orden de construcción privilegió la CLI porque permitió ejercitar primero los servicios criptográficos de extremo a extremo y después reutilizarlos desde HTTP. La bandera global \texttt{-{}-json} conmuta las operaciones administrativas a un objeto JSON legible por máquina. La \cref{tab:impl-cli-catalogo} presenta el catálogo completo de subcomandos con sus banderas reales, y la \cref{tab:impl-cli-casos} el cableado de cada grupo hacia los casos de uso de \texttt{application} y los adaptadores concretos que la raíz de composición inyecta.
 
 \begin{table}[htbp]
   \centering
   \caption{Catálogo de subcomandos de \texttt{despacho-cli}. La bandera global \texttt{-{}-json} aplica a todos.}
   \label{tab:impl-cli-catalogo}
-  \renewcommand{\arraystretch}{0.94}
+  \footnotesize
+  \renewcommand{\arraystretch}{0.90}
   \begin{tabularx}{\linewidth}{@{}L{7.2cm} X@{}}
     \toprule
     \textbf{Comando y banderas} & \textbf{Efecto} \\
+    \midrule
+    \texttt{serve -{}-signer-cert <CERT> -{}-signer-key <KEY> [-{}-bind <ADDR>] [-{}-data-dir <DIR>]} & Inicia la aplicación HTTP local con persistencia cifrada y TSA OpenSSL. \\
     \midrule
     \texttt{crypto hash <FILE>} & Resumen SHA-256 del archivo. \\
     \midrule
@@ -358,10 +361,11 @@ El adaptador driving entregado por el prototipo es la interfaz de línea de coma
   \centering
   \caption{Correspondencia entre comandos, casos de uso de \texttt{application} y adaptadores inyectados por la raíz de composición.}
   \label{tab:impl-cli-casos}
-  \begin{tabularx}{\linewidth}{@{}L{3.4cm} L{5.2cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}L{3.4cm} L{5.2cm} >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Comando} & \textbf{Caso(s) de uso} & \textbf{Adaptadores inyectados} \\
     \midrule
+    \texttt{serve} & \texttt{LocalDocumentWorkflow} & repositorio JSON local, bitácora, cifrado, firma, validación, TSA local y ZIP \\
     \texttt{crypto hash} & \texttt{HashDocument} & \texttt{RingSha256Hasher} \\
     \texttt{vault *} & \texttt{EncryptDocument}, \texttt{DecryptDocument}, \texttt{RotateKek} & \texttt{RingAesGcmCipher}, \texttt{EnvelopeKeyManager} \\
     \texttt{pki *} & \texttt{InitializeCa}, \texttt{IssueCertificate}, \texttt{RevokeCertificate}, \texttt{GenerateCrl}, \texttt{InspectCertificate} & \texttt{OpensslCaAdapter}, \texttt{X509ChainValidator} \\
@@ -369,7 +373,7 @@ El adaptador driving entregado por el prototipo es la interfaz de línea de coma
     \texttt{timestamp} & \texttt{TimestampDocument} & \texttt{LocalOpensslTsa} o \texttt{CincelTsaAdapter} \\
     \texttt{verify} & \texttt{VerifyDocument} & \texttt{RingSha256Hasher}, \texttt{RsaPkcs1Verifier}, \texttt{X509ChainValidator}, \texttt{Rfc3161Verifier} \\
     \texttt{package export} & \texttt{VerifyDocument} + \texttt{ExportEvidencePackage} & los cuatro anteriores más \texttt{StoredZipWriter} \\
-    \texttt{auth calibrate}, \texttt{hash-password}, \texttt{verify-password} & \texttt{CalibratePasswordHashing}, \texttt{HashPassword}, \texttt{VerifyPassword} & \texttt{Argon2idHasher} \\
+    \texttt{auth calibrate}, \texttt{hash-password}, \texttt{verify-password} & \texttt{CalibratePassword\allowbreak Hashing}, \texttt{HashPassword}, \texttt{VerifyPassword} & \texttt{Argon2idHasher} \\
     \texttt{auth totp *} & \texttt{EnrollTotp}, \texttt{VerifyTotp} & \texttt{TotpRsProvider}, \texttt{RandomRecoveryCodeGenerator}, \texttt{Argon2idHasher} \\
     \texttt{audit *} & \texttt{AppendAuditEvent}, \texttt{VerifyAuditChain}, \texttt{ShowAuditLog} & \texttt{FileAuditLog}, \texttt{RingSha256Hasher}, \texttt{SystemClock} \\
     \bottomrule
@@ -380,7 +384,37 @@ Con \texttt{-{}-json}, cada handler imprime exactamente un objeto JSON en la sal
 
 La raíz de composición (\rutarepo{crates/bin/src/main.rs}) es el único lugar del sistema donde los adaptadores concretos se instancian e inyectan en los casos de uso, y el único crate que usa \texttt{anyhow}, tal como estableció el patrón de inyección de dependencias por composición del diseño (\cref{sec:inyeccion-dependencias}). Ahí ---y no en los adaptadores, que quedan libres de acceso al entorno--- se leen los secretos: la KEK de \texttt{KEK\_BASE64} a un buffer \texttt{Zeroizing}, la clave privada del firmante desde su archivo PEM, la credencial del proveedor de sellado. La raíz concentra también salvaguardas operativas que no pertenecen a ningún servicio individual: \texttt{sign} verifica la firma recién producida contra el certificado \emph{antes} de escribir \texttt{<FILE>.sig}, de modo que una clave que no corresponde al certificado falla ahí y no produce una firma inverificable; \texttt{timestamp} relee el token recibido y comprueba que cubra el digest calculado antes de escribir el archivo \texttt{.tsr}; \texttt{vault rotate-kek} escribe a un archivo temporal y renombra encima, de modo que un fallo a la mitad deja el original intacto; y \texttt{package export} somete los artefactos al mismo caso de uso \texttt{VerifyDocument} de la verificación integral ---CRL y token incluidos--- y rehúsa exportar si el veredicto no es válido, nombrando cada componente fallido, porque un paquete que fallaría sus propias instrucciones de verificación no debe existir.
 
-La integración de todos los servicios se demuestra con el guion \rutarepo{scripts/demo.sh}, que compila el binario y recorre el ciclo completo de evidencia en un directorio temporal: creación de la autoridad interna, del firmante y de la autoridad de sellado; hash del documento de muestra; cifrado en reposo con corrupción deliberada de un byte y observación del rechazo; firma y obtención del sello de tiempo; verificación integral con los cuatro componentes válidos; alteración de una copia del documento con el consecuente fallo del componente de firma; exportación del paquete de evidencia y su verificación con solo \texttt{openssl} y \texttt{unzip}; revocación del certificado y su detección; calibración de autenticación y códigos de un solo uso; y bitácora encadenada con anexado, verificación, manipulación y nueva verificación. La transcripción íntegra de una ejecución real, capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7, está versionada en \rutarepo{docs/demo-transcript.md}. Una segunda corrida de control, realizada el 19 de julio en la zona horaria de la Ciudad de México ---20 de julio en las marcas UTC emitidas por el proceso---, reprodujo el guion completo con código de salida cero; el entorno, los comandos y el resumen de resultados quedaron asentados en \rutarepo{docs/verification-report.md}.
+La integración de todos los servicios se demuestra con el guion \rutarepo{scripts/demo.sh}, que compila el binario y recorre el ciclo completo de evidencia en un directorio temporal: creación de la autoridad interna, del firmante y de la autoridad de sellado; hash del documento de muestra; cifrado en reposo con corrupción deliberada de un byte y observación del rechazo; firma y obtención del sello de tiempo; verificación integral con los cuatro componentes válidos; alteración de una copia del documento con el consecuente fallo del componente de firma; exportación del paquete de evidencia y su verificación con solo \texttt{openssl} y \texttt{unzip}; revocación del certificado y su detección; calibración de autenticación y códigos de un solo uso; y bitácora encadenada con anexado, verificación, manipulación y nueva verificación. La transcripción íntegra de una ejecución real, capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7, está versionada en \rutarepo{docs/demo-transcript.md}. Una segunda demostración, \rutarepo{scripts/api-demo.sh}, recorre el mismo núcleo a través de HTTP y se describe en la sección siguiente. El entorno, los comandos y el resumen de ambos recorridos quedaron asentados en \rutarepo{docs/verification-report.md}.
+
+\section{Aplicación HTTP y persistencia local}\label{sec:impl-http}
+
+La superficie HTTP se construyó como un adaptador driving en \texttt{crates/web}: sus handlers convierten cabeceras, UUID, cuerpos binarios y respuestas JSON, pero solo conocen el puerto \texttt{Document\allowbreak Workflow} de \texttt{application}. La implementación \texttt{LocalDocument\allowbreak Workflow} orquesta los puertos ya probados de hash, cifrado, envoltura de claves, firma, validación X.509, sellado RFC 3161, verificación, archivo ZIP, reloj y auditoría. La raíz de composición del comando \texttt{serve} selecciona explícitamente \texttt{LocalOpensslTsa}; por ello, el camino de ejecución de la aplicación no lee la configuración de Cincel ni puede degradarse silenciosamente hacia un proveedor externo.
+
+El flujo comienza con \texttt{POST /api/v1/documents}. El cuerpo es el documento binario, limitado a 16~MiB; las cabeceras \texttt{X-Document-Name} y \texttt{X-Actor} aportan el nombre seguro para archivo y la etiqueta de auditoría. La aplicación crea un UUID y la versión uno, calcula SHA-256, cifra mediante el formato \texttt{DVLT1} ligado al par identidad--versión y persiste el registro. \texttt{X-Actor} no es una credencial ni una autorización: únicamente atribuye el evento, por lo que la escucha predeterminada se limita a \texttt{127.0.0.1} y la exposición multiusuario queda condicionada a sesiones y RBAC.
+
+El repositorio \texttt{FileDocument\allowbreak Repository} escribe un JSON por UUID bajo \texttt{runtime-data/\allowbreak documents}; los campos binarios se codifican en base64 y el contenido documental se conserva exclusivamente dentro del paquete cifrado. Cada actualización se prepara en un archivo temporal y se publica por reemplazo atómico, mientras un lock advisory evita carreras entre escritores. La bitácora encadenada se mantiene en \texttt{runtime-data/\allowbreak audit.jsonl}. Esta persistencia permite demostrar reinicio y consistencia local sin afirmar equivalencia con PostgreSQL y Redis, que siguen siendo los adaptadores previstos para producción.
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato de la aplicación HTTP local.}
+  \label{tab:impl-http-rutas}
+  \begin{tabularx}{\linewidth}{@{}L{6.2cm} X@{}}
+    \toprule
+    \textbf{Ruta} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{GET /healthz} & Diagnóstico del proceso. \\
+    \texttt{POST /api/v1/documents} & Carga, cifra y persiste la versión inicial; responde \texttt{201}. \\
+    \texttt{POST /api/v1/\allowbreak documents/<id>/seal} & Firma el digest, obtiene un token de la TSA local, lo verifica y almacena evidencia inmutable. \\
+    \texttt{POST /api/v1/\allowbreak documents/<id>/verify} & Descifra y reporta integridad, firma, certificado/CRL, sello y veredicto. \\
+    \texttt{GET /api/v1/\allowbreak documents/<id>/evidence} & Exporta el ZIP interoperable tras una verificación satisfactoria. \\
+    \texttt{GET /api/v1/audit/verify} & Verifica el encadenamiento y reporta el primer índice roto. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Sellar es una transición de una sola vez: antes de guardar, el workflow descifra el paquete, comprueba que coincide con el digest almacenado, firma, verifica que la llave corresponde al certificado, solicita el token local y lo verifica contra la cadena de la TSA. Verificar reutiliza el reporte de cuatro componentes del caso de uso existente. Exportar vuelve a verificar y materializa el texto claro solamente en la respuesta ZIP, junto con firma, certificado, CA, CRL, token y cadena de la TSA. Los errores se traducen a una envoltura JSON estable: entrada inválida en \texttt{400} o \texttt{422}, ausencia en \texttt{404}, transición incompatible en \texttt{409} y fallos internos redactados en \texttt{500}.
+
+El guion \rutarepo{scripts/api-demo.sh} genera una PKI temporal, desactiva expresamente las variables de Cincel, inicia \texttt{serve} sobre un puerto efímero y recorre carga, comprobación de ausencia del texto claro en el repositorio, sellado, verificación, descarga del ZIP y auditoría. Después extrae la evidencia y verifica con herramientas ajenas a la aplicación la igualdad del documento, la firma, el certificado con CRL y el sello RFC 3161. El contrato operativo completo se entrega en \rutarepo{docs/http-api.md} y la decisión arquitectónica en \rutarepo{docs/adr/0011-local-document-workflow.md}.
 
 \section{Resultados de la exploración del sellado de tiempo}\label{sec:impl-spike-tsa}
 
@@ -394,7 +428,7 @@ El balance honesto de la exploración es entonces el siguiente. El acceso al pro
 
 \section{Divergencias respecto al diseño y decisiones registradas}\label{sec:impl-divergencias}
 
-Durante la construcción, las decisiones con consecuencias arquitectónicas se registraron como Architecture Decision Records versionados en el directorio \rutarepo{docs/adr/} del repositorio, en el formato de Nygard \cite{nygard2011} ---contexto, decisión, estatus y consecuencias---. Estos ocho registros son distintos y complementarios de los ADR de diseño presentados en \cref{sec:adrs}: aquellos capturaron las decisiones de arquitectura previas a la construcción; estos capturan las decisiones tomadas al materializarla, y el código y la configuración los citan por su ruta. La \cref{tab:impl-adrs} los resume.
+Durante la construcción, las decisiones con consecuencias arquitectónicas se registraron como Architecture Decision Records versionados en el directorio \rutarepo{docs/adr/} del repositorio, en el formato de Nygard \cite{nygard2011} ---contexto, decisión, estatus y consecuencias---. Estos once registros son distintos y complementarios de los ADR de diseño presentados en \cref{sec:adrs}: aquellos capturaron las decisiones de arquitectura previas a la construcción; estos capturan las decisiones tomadas al materializarla, y el código y la configuración los citan por su ruta. La \cref{tab:impl-adrs} los resume.
 
 \begin{table}[H]
   \centering
@@ -412,6 +446,9 @@ Durante la construcción, las decisiones con consecuencias arquitectónicas se r
     \rutarepo{0006-evidence-package-format.md} & Escribir el paquete de evidencia con un writer ZIP propio de entradas almacenadas, determinista y sin dependencia nueva. \\
     \rutarepo{0007-audit-chain-anchoring.md} & Mantener la regla de cadena y documentar que el truncamiento de cola no es detectable; el anclaje de la cabeza se delega a la capa de persistencia. \\
     \rutarepo{0008-totp-single-use-enforcement.md} & Mantener la verificación TOTP sin estado; la exigencia de un solo uso pertenece al llamador cuando exista un almacén persistente. \\
+    \rutarepo{0009-local-timestamp-authority.md} & Excluir la campaña externa no reproducible y demostrar RFC 3161 con una TSA OpenSSL local, sin atribuirle equivalencia jurídica. \\
+    \rutarepo{0010-http-adapter-foundation.md} & Introducir Axum como adaptador driving, conservar la dirección de dependencias y comenzar por el contrato de salud. \\
+    \rutarepo{0011-local-document-workflow.md} & Orquestar el flujo documental detrás de un puerto, persistir solo contenido cifrado y seleccionar explícitamente la TSA local en la aplicación. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -424,8 +461,8 @@ Las divergencias sustantivas entre lo diseñado en el Capítulo~\ref{cap:analisi
   \item \textbf{Dependencias del dominio.} El diseño declaró que el dominio dependería exclusivamente de \texttt{serde}, \texttt{thiserror}, \texttt{time} y \texttt{uuid} (\cref{sec:hexagonal-definicion}); la implementación añadió \texttt{zeroize}, aceptado porque es un crate utilitario sin E/S ni superficie de framework que codifica una propiedad de seguridad del dominio ---este valor se borra al liberarse--- y no un detalle de infraestructura (\rutarepo{docs/adr/0003}).
   \item \textbf{Verificación de firmas X.509.} El diseño asumió el manejo de certificados con \texttt{x509-cert} y \texttt{der} (\cref{sec:inventario-crates}) sin anticipar que esas crates no verifican firmas; la verificación se implementó por re-codificación manual de la estructura to-be-signed (\rutarepo{docs/adr/0004}), aceptando únicamente sha256WithRSAEncryption.
   \item \textbf{Escritura del paquete ZIP.} El diseño previó un paquete ZIP descargable sin fijar el mecanismo; se implementó un writer propio del subconjunto de entradas almacenadas en lugar de depender del crate \texttt{zip}, cuya línea vigente rompería la MSRV (\rutarepo{docs/adr/0006}).
-  \item \textbf{Superficie driving y persistencia.} De los tres adaptadores driving previstos (\cref{sec:vista-componentes}), el prototipo entrega primero el de línea de comandos y un router HTTP con \texttt{/healthz}; el frontend Astro es un andamiaje mínimo intencional. Análogamente, la persistencia PostgreSQL y Redis del diseño (\cref{sec:bd-hibrida}) no se ejercita aún: la bitácora persiste en un archivo JSON Lines con encadenamiento criptográfico y \texttt{DATABASE\_URL} queda reservada; los casos de uso, sesiones y repositorios se agregarán sobre el adaptador HTTP.
-  \item \textbf{Fitness functions.} De las cinco funciones de aptitud diseñadas (\cref{sec:fitness-functions}), la que exigía un span de \texttt{tracing} por handler HTTP queda diferida junto con el crate \texttt{web}; en su lugar se incorporó el umbral de cobertura del 90\,\% por crate criptográfico (FF-4, \cref{tab:impl-fitness}).
+  \item \textbf{Superficie driving y persistencia.} De los tres adaptadores driving previstos (\cref{sec:vista-componentes}), el prototipo entrega la línea de comandos y una rebanada HTTP completa del flujo de evidencia; el frontend Astro sigue como andamiaje mínimo intencional. La persistencia PostgreSQL y Redis del diseño (\cref{sec:bd-hibrida}) aún no se ejercita: los documentos se almacenan cifrados en JSON con reemplazo atómico y la bitácora en JSON Lines encadenado. El repositorio local demuestra el puerto y la continuidad entre reinicios, pero no se presenta como almacenamiento de producción.
+  \item \textbf{Fitness functions.} De las cinco funciones de aptitud diseñadas (\cref{sec:fitness-functions}), la que exige un span de \texttt{tracing} por handler HTTP sigue diferida aunque los handlers ya están implementados; en su lugar se incorporó el umbral de cobertura del 90\,\% por crate criptográfico (FF-4, \cref{tab:impl-fitness}).
   \item \textbf{Controles de autenticación diferidos.} La exigencia de un solo uso por código TOTP y los controles de limitación de intentos descritos en \cref{sec:autenticacion} pertenecen al llamador del puerto y quedan diferidos hasta que exista el almacén persistente de estado de autenticación por cuenta (\rutarepo{docs/adr/0008}); el riesgo residual ---la reproducción de un código observado durante el resto de su ventana de unos 90 segundos--- queda documentado en el propio registro.
 \end{itemize}
 

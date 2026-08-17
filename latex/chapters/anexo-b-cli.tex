@@ -11,6 +11,9 @@ El árbol completo de subcomandos es el siguiente; los corchetes denotan element
 
 \begin{lstlisting}[numbers=none]
 despacho-cli [--json]
+  serve --signer-cert <PATH> --signer-key <PATH>
+      [--bind <ADDR>] [--data-dir <DIR>] [--ca-cert <PATH>]
+      [--crl <PATH>] [--tsa-config <PATH>] [--tsa-dir <DIR>]
   crypto hash <FILE>
   vault encrypt <FILE> --doc-id <UUID> [--version <N>]
   vault decrypt <PACKAGE> --doc-id <UUID> [--version <N>] [--out <PATH>]
@@ -30,7 +33,7 @@ despacho-cli [--json]
       verify-chain | show}
 \end{lstlisting}
 
-Tres convenciones gobiernan a todos los subcomandos. Primera, la separación de flujos: los resultados se escriben en la salida estándar (\texttt{stdout}) y los diagnósticos en el flujo de error (\texttt{stderr}), de modo que la salida pueda encadenarse en tuberías sin contaminación; el nivel de diagnóstico se controla con la variable de entorno \texttt{RUST\_LOG}. Segunda, la bandera global \texttt{--json}: cuando está activa, cada subcomando imprime exactamente un objeto JSON legible por máquina en lugar del texto para humanos; la única excepción es \texttt{vault decrypt} sin \texttt{--out}, cuyo texto claro se escribe crudo a \texttt{stdout} precisamente para poder canalizarlo. Tercera, los códigos de salida: el proceso termina con código distinto de cero ante cualquier error y también ---de forma deliberada, para que los scripts puedan bifurcar directamente--- cuando un resultado criptográfico es un rechazo: un veredicto de verificación no válido, una contraseña que no coincide, un código TOTP rechazado, una cadena de auditoría rota o un paquete de evidencia que no verifica antes de exportarse. La bandera \texttt{--help} está disponible en todos los niveles; \texttt{--version}, en el mando raíz.
+Tres convenciones gobiernan a los subcomandos administrativos. Primera, la separación de flujos: los resultados se escriben en la salida estándar (\texttt{stdout}) y los diagnósticos en el flujo de error (\texttt{stderr}), de modo que la salida pueda encadenarse en tuberías sin contaminación; el nivel de diagnóstico se controla con la variable de entorno \texttt{RUST\_LOG}. Segunda, la bandera global \texttt{--json}: cuando está activa, cada operación finita imprime un objeto JSON legible por máquina en lugar del texto para humanos; \texttt{vault decrypt} sin \texttt{--out} escribe el claro crudo y \texttt{serve} es un proceso persistente cuyo contrato se consume por HTTP. Tercera, los códigos de salida: el proceso termina con código distinto de cero ante cualquier error y también ---de forma deliberada, para que los scripts puedan bifurcar directamente--- cuando un resultado criptográfico es un rechazo: un veredicto de verificación no válido, una contraseña que no coincide, un código TOTP rechazado, una cadena de auditoría rota o un paquete de evidencia que no verifica antes de exportarse. La bandera \texttt{--help} está disponible en todos los niveles; \texttt{--version}, en el mando raíz.
 
 El binario carga un archivo \texttt{.env} del directorio de trabajo cuando existe (nunca se versiona; la plantilla comentada es \texttt{.env.example}). La \cref{tab:cli-variables-entorno} resume las variables reconocidas; de ellas solo se registra en el diagnóstico su presencia, jamás su valor.
 
@@ -43,7 +46,7 @@ El binario carga un archivo \texttt{.env} del directorio de trabajo cuando exist
     \textbf{Variable} & \textbf{Propósito} & \textbf{Default} \\
     \midrule
     \texttt{RUST\_LOG} & Filtro del diagnóstico emitido por \texttt{stderr}. & \texttt{info} \\
-    \texttt{KEK\_BASE64} & Llave de cifrado de llaves: 32 bytes aleatorios codificados en base64; la leen los subcomandos \texttt{vault}. & --- \\
+    \texttt{KEK\_BASE64} & Llave de cifrado de llaves: 32 bytes aleatorios codificados en base64; la leen \texttt{vault} y \texttt{serve}. & --- \\
     \texttt{NEW\_KEK\_BASE64} & Llave de reemplazo; la lee solo \texttt{vault rotate-kek}. & --- \\
     \texttt{PKI\_CA\_DIR} & Directorio de trabajo de la CA interna. & \texttt{pki-ca} \\
     \texttt{TSA\_DIR} & Directorio de trabajo de la TSA local, junto al de la CA. & \texttt{pki-tsa} \\
@@ -55,6 +58,23 @@ El binario carga un archivo \texttt{.env} del directorio de trabajo cuando exist
     \bottomrule
   \end{tabularx}
 \end{table}
+
+\section{Comando serve: aplicación HTTP local}\label{sec:cli-serve}
+
+\begin{lstlisting}[numbers=none]
+despacho-cli serve --signer-cert <PATH> --signer-key <PATH>
+    [--bind <ADDR>] [--data-dir <DIR>] [--ca-cert <PATH>]
+    [--crl <PATH>] [--tsa-config <PATH>] [--tsa-dir <DIR>]
+\end{lstlisting}
+
+El comando compone el workflow documental con persistencia local cifrada,
+bitácora encadenada y la TSA OpenSSL. Escucha por defecto en
+\texttt{127.0.0.1:3000}, almacena bajo \texttt{runtime-data} y exige el
+certificado y la llave privada del firmante. Las rutas permiten cargar, sellar,
+verificar y exportar evidencia, además de comprobar la auditoría; su contrato,
+cabeceras y errores se documentan en \texttt{docs/http-api.md}. La composición
+no consulta Cincel. \texttt{X-Actor} solo etiqueta la bitácora y no reemplaza
+autenticación ni RBAC.
 
 \section{Grupo crypto: integridad de contenido}\label{sec:cli-crypto}
 

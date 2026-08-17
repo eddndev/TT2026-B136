@@ -10,8 +10,9 @@ de verdad.
 ## Estado de Git
 
 - Rama activa: `docs/avance-cripto-beamer`.
-- El cierre está versionado en tres commits: documentación/presentación,
-  calibración de Argon2id y adaptador HTTP inicial.
+- El cierre anterior está versionado en documentación/presentación, calibración
+  de Argon2id y fundamento HTTP; el corte actual añade el workflow documental,
+  persistencia local cifrada, API y demostración integral.
 - El árbol de trabajo queda limpio al cerrar esta sesión.
 - `frontend/` no tiene cambios y debe permanecer intacto.
 - El antiguo sitio Astro de presentación fue eliminado por completo. La
@@ -39,21 +40,38 @@ Estado esperado de archivos:
 
 ### Verificación del núcleo criptográfico
 
-- `cargo test --workspace`: 367 pruebas descubiertas, 366 aprobadas y una
+- `cargo test --workspace`: 383 pruebas descubiertas, 382 aprobadas y una
   ignorada.
 - La prueba ignorada es el humo contra el sandbox real de Cincel.
-- Cobertura total: 93.6 %.
-- Cobertura por crate: `domain` 95.9 %, `application` 96.2 %, `infrastructure`
-  93.5 % y `bin` 88.1 %; el nuevo crate `web` queda cubierto en su ruta de
-  salud.
+- Cobertura total: 91.9 %.
+- Cobertura por crate: `domain` 96.2 %, `application` 95.3 %,
+  `infrastructure` 93.4 %, `bin` 82.6 % y `web` 75.3 %. El gate bloqueante del
+  90 % se conserva sobre los tres crates con lógica criptográfica.
 - `bash scripts/demo.sh` terminó correctamente.
+- `bash scripts/api-demo.sh` terminó correctamente sin variables de Cincel y
+  verificó el ZIP descargado con OpenSSL y `unzip`.
 - La evidencia resumida está en `docs/verification-report.md`.
+
+### Aplicación HTTP local
+
+- `despacho-cli serve` compone el workflow con `LocalOpensslTsa`, sin leer ni
+  consultar Cincel.
+- La API carga documentos, los persiste cifrados, los firma y sella, verifica
+  los cuatro componentes, exporta el paquete de evidencia y comprueba la
+  cadena de auditoría.
+- El contrato vive en `docs/http-api.md` y la decisión en
+  `docs/adr/0011-local-document-workflow.md`.
+- `X-Actor` es solo una etiqueta de auditoría, no autenticación ni
+  autorización. El bind predeterminado es `127.0.0.1:3000`.
+- El repositorio demostrativo escribe un JSON por UUID mediante reemplazo
+  atómico y no persiste el texto claro; PostgreSQL y Redis siguen pendientes
+  para producción.
 
 ### Documentación LaTeX
 
-Se actualizaron el marco teórico, análisis y diseño, implementación, pruebas,
-conclusiones y el anexo de pruebas. `latex/main.pdf` compila correctamente y
-tiene 227 páginas.
+Se actualizaron implementación, pruebas, conclusiones y el anexo de pruebas
+para documentar la rebanada HTTP, la persistencia local cifrada y los nuevos
+resultados. `latex/main.pdf` contiene 229 páginas.
 
 La actualización de riesgos debe conservar esta formulación:
 
@@ -94,7 +112,7 @@ La presentación se encuentra en `presentacion/`:
 - Fuente principal: `presentacion/presentacion.tex`.
 - Diapositivas de riesgo: `presentacion/risk-slides.tex`.
 - Tema: `presentacion/theme.tex`.
-- Resultado: `presentacion/presentacion.pdf` con 13 diapositivas.
+- Resultado: `presentacion/presentacion.pdf`, 13 diapositivas.
 
 Las diapositivas 9 a 11 explican:
 
@@ -107,33 +125,38 @@ diapositivas de riesgos también fueron revisadas como imágenes renderizadas. E
 log final de Beamer no contiene advertencias `Overfull`, `Underfull` ni
 `LaTeX Warning`.
 
-## Verificación realizada al cierre
+## Verificación ejecutada al cierre
 
 ```bash
 cd latex && make
 cd ../presentacion && make
+cargo fmt --all -- --check
+cargo build --workspace
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+bash scripts/demo.sh
+bash scripts/api-demo.sh
 git diff --check
 git diff --exit-code -- frontend
 ```
 
-Resultados:
-
-- `latex/main.pdf`: 227 páginas, compilación exitosa.
-- `presentacion/presentacion.pdf`: 13 páginas, compilación exitosa.
-- `git diff --check`: sin errores.
-- `frontend/`: sin diferencias.
-- La tabla extensa de comandos de la CLI se compactó para eliminar la
-  advertencia `Float too large`.
+Todos los comandos anteriores terminaron con código cero el 17 de agosto de
+2026. La corrida de demostración midió Argon2id en 623.7 ms con los parámetros
+calibrados, dentro de la banda de 500 a 1 000 ms. `git diff --check`, la regla
+ASCII del código fuente y el límite de 400 líneas por archivo también pasaron;
+el archivo de lógica más largo quedó en 379 líneas.
 
 ## Pendientes reales
 
-- El adaptador HTTP inicial ya está implementado en `crates/web` y cubierto por
-  una prueba de contrato para `/healthz`.
+- La API documental local está implementada; faltan autenticación de sesiones,
+  JWT, RBAC, consultas adicionales y versionado documental más allá de la
+  versión inicial.
+- Sustituir el repositorio JSON local por PostgreSQL/Redis y construir la UI.
 - La evidencia externa de un PSC autorizado queda fuera del alcance actual;
   solo se reabrirá si existe un proveedor con contrato, estabilidad y precios
   verificables.
-- El cierre está documentado y versionado; el siguiente trabajo puede comenzar
-  sobre el adaptador HTTP sin depender de Cincel.
+- La aplicación puede continuar sin depender de Cincel porque su composición
+  selecciona explícitamente la TSA local.
 
 ## Primeros pasos para retomar
 

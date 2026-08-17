@@ -3,11 +3,11 @@
 \input{theme}
 \graphicspath{{figures/}}
 
-\title[TT2026-B136 | Avance criptográfico]{Avance del núcleo criptográfico}
-\subtitle{Servicios de integridad y no repudio para expedientes digitales}
+\title[TT2026-B136 | Aplicación local]{Núcleo criptográfico y aplicación local}
+\subtitle{Evidencia documental verificable por CLI y HTTP}
 \author{Eduardo Alonso Sánchez \and Hatziry Vitales Herrera}
 \institute{Escuela Superior de Cómputo | Instituto Politécnico Nacional}
-\date{19 de julio de 2026}
+\date{17 de agosto de 2026}
 
 \begin{document}
 
@@ -47,35 +47,37 @@
       {\scriptsize\color{gris}Directora: Sandra Díaz Santiago}
     \end{column}
     \begin{column}{0.38\textwidth}
-      \raggedleft{\small\bfseries Julio de 2026}
+      \raggedleft{\small\bfseries Agosto de 2026}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Qué demuestra este corte}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.24\textwidth}\metricbox{Pruebas aprobadas}{366}{tinta}\end{column}
-    \begin{column}{0.24\textwidth}\metricbox{Cobertura global}{93.6\%}{verde}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Pruebas aprobadas}{382}{tinta}\end{column}
+    \begin{column}{0.24\textwidth}\metricbox{Cobertura global}{91.9\%}{verde}\end{column}
     \begin{column}{0.24\textwidth}\metricbox{Nonces distintos}{10,000}{tinta}\end{column}
     \begin{column}{0.24\textwidth}\metricbox{Fallos}{0}{verde}\end{column}
   \end{columns}
 
-  \vspace{0.48cm}
+  \vspace{0.18cm}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.53\textwidth}
+      \small
       \textbf{Alcance construido}
       \begin{itemize}
-        \item Diez capacidades criptográficas ejercitables desde la CLI.
+        \item Diez capacidades criptográficas ejercitables desde CLI y HTTP.
         \item Separación entre dominio, casos de uso y adaptadores reales.
-        \item Pruebas negativas, propiedades e interoperabilidad externa.
+        \item Persistencia local cifrada y evidencia interoperable.
       \end{itemize}
     \end{column}
     \begin{column}{0.43\textwidth}
+      \small
       \textbf{Criterio de lectura}
       \begin{itemize}
         \item ``Verificado'' significa reproducido localmente.
         \item ``Parcial'' señala una dependencia externa u operativa.
-        \item La capa web no forma parte de este corte.
+        \item Sesiones, RBAC, persistencia productiva y UI siguen pendientes.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -89,7 +91,7 @@
       \begin{itemize}
         \item Núcleo: \texttt{domain} y \texttt{application}.
         \item Adaptadores en \texttt{infra}; composición en \texttt{bin}.
-        \item \texttt{web} permanece como reserva.
+        \item \texttt{web} conduce el puerto \texttt{DocumentWorkflow}.
       \end{itemize}
       \vspace{0.12cm}
       {\color{gris}Flecha sólida: permitida.\par Línea roja: prohibida.}
@@ -178,43 +180,44 @@
 \begin{frame}{Resultados de pruebas y cobertura}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.63\textwidth}
-      \coveragebar{domain}{95.9}{934 / 974 líneas}
-      \coveragebar{application}{96.2}{1,137 / 1,182 líneas}
-      \coveragebar{infrastructure}{93.5}{1,881 / 2,012 líneas}
-      \coveragebar{bin}{88.1}{833 / 946 líneas; valor informativo}
+      \coveragebar{domain}{96.2}{937 / 974 líneas}
+      \coveragebar{application}{95.3}{1,488 / 1,561 líneas}
+      \coveragebar{infrastructure}{93.4}{2,009 / 2,151 líneas}
+      \coveragebar{bin}{82.6}{833 / 1,008 líneas; informativo}
     \end{column}
     \begin{column}{0.33\textwidth}
       \begin{block}{Suite completa}
         \centering
-        {\fontsize{28}{30}\selectfont\bfseries 367}\par
+        {\fontsize{28}{30}\selectfont\bfseries 383}\par
         {\small funciones descubiertas}\par
         \vspace{0.3cm}
-        {\color{verde}\bfseries 366 aprobadas}\par
+        {\color{verde}\bfseries 382 aprobadas}\par
         {\color{tinta}0 fallidas}\par
         {\color{advertencia}1 ignorada}
       \end{block}
     \end{column}
   \end{columns}
   \vspace{0.2cm}
-  {\scriptsize\color{gris}El umbral del 90\% aplica a los tres crates con lógica criptográfica. La prueba ignorada conserva la sonda del sandbox externo, que no forma parte de la evidencia actual por su inestabilidad y costo no transparente.}
+  {\scriptsize\color{gris}El umbral del 90\% aplica a los tres crates con lógica criptográfica; \texttt{web} reporta 75.3\% informativo. La prueba ignorada conserva la sonda externa, fuera de la evidencia actual por inestabilidad y costo no transparente.}
 \end{frame}
 
-\begin{frame}[fragile]{Demostración integral reproducida}
+\begin{frame}[fragile]{Demostraciones integrales reproducidas}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.52\textwidth}
       \small
       \begin{enumerate}
         \item Crear la CA, el firmante y la TSA local.
-        \item Calcular el hash y cifrar con una DEK fresca.
-        \item Alterar un byte y comprobar el rechazo autenticado.
+        \item Recorrer por CLI criptografía, revocación y autenticación.
+        \item Levantar la aplicación HTTP en un puerto efímero.
+        \item Cargar y persistir el documento únicamente cifrado.
         \item Firmar, sellar y verificar los cuatro componentes.
         \item Exportar el ZIP y validarlo con herramientas externas.
-        \item Revocar el certificado y ejercitar Argon2id, TOTP y auditoría encadenada.
       \end{enumerate}
     \end{column}
     \begin{column}{0.44\textwidth}
       \begin{lstlisting}[style=terminal]
 $ bash scripts/demo.sh
+$ bash scripts/api-demo.sh
 
 integrity:   passed
 signature:   passed
@@ -226,7 +229,7 @@ Verified OK
 certificado.pem: OK
 Verification: OK
 
-All stages finished.
+API demo passed.
       \end{lstlisting}
     \end{column}
   \end{columns}
@@ -248,14 +251,14 @@ All stages finished.
     \end{column}
     \begin{column}{0.31\textwidth}
       \begin{block}{Web y persistencia}
-        \small Implementar API, sesiones, roles, PostgreSQL y Redis sobre los puertos existentes.
+        \small API y persistencia local cifrada entregadas. Faltan sesiones, roles, PostgreSQL/Redis y UI.
       \end{block}
     \end{column}
   \end{columns}
 
   \vspace{0.3cm}
   \begin{alertblock}{Interpretación}
-    \small El núcleo criptográfico está implementado y probado. La TSA local cierra la demostración técnica y Argon2id ya está calibrado en el host de referencia; el frente restante es la integración funcional.
+    \small El núcleo y el flujo HTTP local están implementados y probados. La TSA local cierra la demostración técnica; el frente restante es identidad, autorización, persistencia productiva y UI.
   \end{alertblock}
 \end{frame}
 
@@ -263,7 +266,7 @@ All stages finished.
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.60\textwidth}
       {\fontsize{19}{23}\selectfont\bfseries\color{tinta}
-        El núcleo está listo para integrarse sin trasladar criptografía ni reglas de dominio a la capa web.\par}
+        La aplicación ya integra el núcleo sin trasladar criptografía ni reglas de dominio a la capa web.\par}
       \vspace{0.35cm}
       {\normalsize\color{verde}\bfseries Implementación, evidencia y documentación coinciden en el mismo corte.}
     \end{column}
@@ -280,7 +283,7 @@ All stages finished.
     \end{column}
   \end{columns}
   \vspace{0.42cm}
-  \centering{\scriptsize\color{gris}\texttt{docs/verification-report.md} \quad | \quad \texttt{scripts/demo.sh}}
+  \centering{\scriptsize\color{gris}\texttt{docs/verification-report.md} \quad | \quad \texttt{scripts/demo.sh} \quad | \quad \texttt{scripts/api-demo.sh}}
 \end{frame}
 
 \end{document}
