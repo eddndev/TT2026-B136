@@ -17,4 +17,8 @@ fn help_succeeds_and_names_the_binary() {
         stdout.contains("despacho-cli"),
         "usage text should name the binary"
     );
+    assert!(
+        stdout.contains("serve"),
+        "usage text should expose the local http application"
+    );
 }

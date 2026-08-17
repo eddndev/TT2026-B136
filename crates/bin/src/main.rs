@@ -12,6 +12,7 @@ mod config;
 mod handlers;
 mod package_cmd;
 mod pki_cmd;
+mod serve_cmd;
 mod sign_cmd;
 mod telemetry;
 mod timestamp_cmd;
@@ -41,6 +42,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
     let name = cli.command.name();
     tracing::info!(command = name, json = cli.json, "command received");
     match cli.command {
+        Command::Serve(args) => serve_cmd::run(&args),
         Command::Crypto {
             action: CryptoAction::Hash { file },
         } => handlers::hash_file(&file, cli.json),

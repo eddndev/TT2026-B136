@@ -14,6 +14,8 @@ path = "src/main.rs"
 domain = { path = "../domain" }
 application = { path = "../application" }
 infrastructure = { path = "../infrastructure" }
+web = { path = "../web" }
+axum.workspace = true
 clap.workspace = true
 serde_json.workspace = true
 anyhow.workspace = true
@@ -27,6 +29,7 @@ zeroize.workspace = true
 # form, which needs the parsing feature on top of the workspace-wide
 # formatting selection.
 time = { workspace = true, features = ["parsing"] }
+tokio = { workspace = true, features = ["net"] }
 
 [dev-dependencies]
 tempfile.workspace = true

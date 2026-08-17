@@ -428,6 +428,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "application",
+ "axum",
  "base64",
  "clap",
  "domain",
@@ -436,9 +437,11 @@ dependencies = [
  "serde_json",
  "tempfile",
  "time",
+ "tokio",
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "web",
  "zeroize",
 ]
 
@@ -2291,9 +2294,14 @@ dependencies = [
 name = "web"
 version = "0.1.0"
 dependencies = [
+ "application",
  "axum",
+ "domain",
+ "serde",
+ "serde_json",
  "tokio",
  "tower",
+ "uuid",
 ]
 
 [[package]]

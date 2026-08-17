@@ -7,8 +7,13 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+application = { path = "../application" }
 axum.workspace = true
+domain = { path = "../domain" }
+serde.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
+serde_json.workspace = true
 tower = { version = "0.5", features = ["util"] }
 tokio.workspace = true

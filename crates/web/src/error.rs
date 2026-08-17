@@ -1,0 +1,105 @@
+//! Stable HTTP error mapping for application failures.
+
+use application::ApplicationError;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use domain::DomainError;
+use serde::Serialize;
+
+pub struct ApiError {
+    status: StatusCode,
+    code: &'static str,
+    message: String,
+}
+
+#[derive(Serialize)]
+struct ErrorEnvelope {
+    error: ErrorBody,
+}
+
+#[derive(Serialize)]
+struct ErrorBody {
+    code: &'static str,
+    message: String,
+}
+
+impl ApiError {
+    pub fn invalid_header(name: &'static str) -> Self {
+        Self {
+            status: StatusCode::UNPROCESSABLE_ENTITY,
+            code: "missing_header",
+            message: format!("required header is missing or invalid: {name}"),
+        }
+    }
+
+    pub fn invalid_document_id() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "invalid_document_id",
+            message: "document id must be a uuid".to_string(),
+        }
+    }
+
+    pub fn invalid_response_header() -> Self {
+        Self::internal()
+    }
+
+    fn internal() -> Self {
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            code: "internal_error",
+            message: "internal application error".to_string(),
+        }
+    }
+}
+
+impl From<ApplicationError> for ApiError {
+    fn from(error: ApplicationError) -> Self {
+        match error {
+            ApplicationError::DocumentNotFound(message) => Self {
+                status: StatusCode::NOT_FOUND,
+                code: "document_not_found",
+                message,
+            },
+            ApplicationError::DocumentAlreadyExists(message) => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_already_exists",
+                message,
+            },
+            ApplicationError::DocumentAlreadySealed(message) => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_already_sealed",
+                message,
+            },
+            ApplicationError::DocumentNotSealed(message) => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_not_sealed",
+                message,
+            },
+            ApplicationError::InvalidInput(message) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_input",
+                message,
+            },
+            ApplicationError::Domain(DomainError::InvalidArchiveEntryName { name }) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_document_name",
+                message: format!("document name is not archive safe: {name}"),
+            },
+            _ => Self::internal(),
+        }
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let body = ErrorEnvelope {
+            error: ErrorBody {
+                code: self.code,
+                message: self.message,
+            },
+        };
+        (self.status, Json(body)).into_response()
+    }
+}

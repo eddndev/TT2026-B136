@@ -1,15 +1,26 @@
 //! Inbound HTTP adapter.
 //!
-//! The router is deliberately small until the application services and
-//! persistence ports are wired. The health contract gives deployment and
-//! integration tests a stable entry point without coupling the web adapter to
-//! an external timestamp provider.
+//! Health and document routes adapt HTTP to an injected application workflow.
+//! Cryptography, persistence, and timestamps remain behind application ports,
+//! so this adapter does not depend on an external timestamp provider.
 
+use std::sync::Arc;
+
+use application::documents::DocumentWorkflow;
 use axum::{routing::get, Router};
+
+mod dto;
+mod error;
+mod routes;
 
 /// Builds the inbound HTTP router.
 pub fn router() -> Router {
     Router::new().route("/healthz", get(health))
+}
+
+/// Builds the versioned application API over an injected workflow.
+pub fn application_router(workflow: Arc<dyn DocumentWorkflow>) -> Router {
+    routes::router(workflow).route("/healthz", get(health))
 }
 
 async fn health() -> &'static str {
