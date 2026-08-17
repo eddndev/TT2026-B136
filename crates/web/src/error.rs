@@ -45,7 +45,7 @@ impl ApiError {
         Self::internal()
     }
 
-    fn internal() -> Self {
+    pub(crate) fn internal() -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,
             code: "internal_error",
@@ -57,6 +57,46 @@ impl ApiError {
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
         match error {
+            ApplicationError::BootstrapClosed => Self {
+                status: StatusCode::CONFLICT,
+                code: "bootstrap_closed",
+                message: error.to_string(),
+            },
+            ApplicationError::UserAlreadyExists => Self {
+                status: StatusCode::CONFLICT,
+                code: "user_already_exists",
+                message: error.to_string(),
+            },
+            ApplicationError::InvalidCredentials => Self {
+                status: StatusCode::UNAUTHORIZED,
+                code: "invalid_credentials",
+                message: error.to_string(),
+            },
+            ApplicationError::AccountLocked => Self {
+                status: StatusCode::TOO_MANY_REQUESTS,
+                code: "account_locked",
+                message: error.to_string(),
+            },
+            ApplicationError::MfaRejected => Self {
+                status: StatusCode::UNAUTHORIZED,
+                code: "mfa_rejected",
+                message: error.to_string(),
+            },
+            ApplicationError::InvalidSession => Self {
+                status: StatusCode::UNAUTHORIZED,
+                code: "invalid_session",
+                message: error.to_string(),
+            },
+            ApplicationError::PermissionDenied => Self {
+                status: StatusCode::FORBIDDEN,
+                code: "permission_denied",
+                message: error.to_string(),
+            },
+            ApplicationError::ConcurrentModification => Self {
+                status: StatusCode::CONFLICT,
+                code: "concurrent_modification",
+                message: error.to_string(),
+            },
             ApplicationError::DocumentNotFound(message) => Self {
                 status: StatusCode::NOT_FOUND,
                 code: "document_not_found",

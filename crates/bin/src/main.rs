@@ -31,6 +31,7 @@ fn main() -> anyhow::Result<()> {
     tracing::debug!(
         timestamp_authority = settings.cincel_base_url.is_some(),
         database = settings.database_url.is_some(),
+        redis = settings.redis_url.is_some(),
         "settings loaded"
     );
 

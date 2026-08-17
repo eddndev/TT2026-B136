@@ -7,6 +7,7 @@
 use std::sync::Arc;
 
 use application::documents::DocumentWorkflow;
+use application::identity::IdentityWorkflow;
 use axum::{routing::get, Router};
 
 mod dto;
@@ -19,8 +20,11 @@ pub fn router() -> Router {
 }
 
 /// Builds the versioned application API over an injected workflow.
-pub fn application_router(workflow: Arc<dyn DocumentWorkflow>) -> Router {
-    routes::router(workflow).route("/healthz", get(health))
+pub fn application_router(
+    workflow: Arc<dyn DocumentWorkflow>,
+    identity: Arc<dyn IdentityWorkflow>,
+) -> Router {
+    routes::router(workflow, identity).route("/healthz", get(health))
 }
 
 async fn health() -> &'static str {

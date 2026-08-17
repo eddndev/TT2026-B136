@@ -67,6 +67,12 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 zeroize = { version = "1", features = ["zeroize_derive"] }
 subtle = "2"
 getrandom = "0.2"
+# Synchronous database clients are pinned to releases compatible with the
+# workspace's Rust 1.78 floor. See
+# docs/adr/0012-revocable-sessions-and-rbac.md for the blocking-I/O tradeoff.
+postgres = { version = "=0.19.10", features = ["with-serde_json-1", "with-uuid-1"] }
+tokio-postgres = "=0.7.13"
+redis = "=0.25.4"
 
 [profile.release]
 strip = true

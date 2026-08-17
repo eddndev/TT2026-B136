@@ -12,8 +12,9 @@ axum.workspace = true
 domain = { path = "../domain" }
 serde.workspace = true
 uuid.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
 tower = { version = "0.5", features = ["util"] }
-tokio.workspace = true
+zeroize.workspace = true

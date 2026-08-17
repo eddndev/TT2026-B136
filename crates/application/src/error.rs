@@ -10,6 +10,42 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    /// Bootstrap was requested after the first user had already been stored.
+    #[error("initial owner has already been created")]
+    BootstrapClosed,
+
+    /// A user email is already registered.
+    #[error("user already exists")]
+    UserAlreadyExists,
+
+    /// A requested user does not exist.
+    #[error("user not found")]
+    UserNotFound,
+
+    /// A password or account identifier was rejected.
+    #[error("invalid credentials")]
+    InvalidCredentials,
+
+    /// The login window is temporarily locked after repeated failures.
+    #[error("account temporarily locked")]
+    AccountLocked,
+
+    /// A second-factor or recovery code was rejected.
+    #[error("second factor rejected")]
+    MfaRejected,
+
+    /// A bearer token is absent, expired, revoked, or otherwise invalid.
+    #[error("invalid session")]
+    InvalidSession,
+
+    /// The authenticated role does not grant the requested action.
+    #[error("permission denied")]
+    PermissionDenied,
+
+    /// An optimistic update lost a race with another request.
+    #[error("concurrent modification")]
+    ConcurrentModification,
+
     /// A domain invariant was violated.
     #[error(transparent)]
     Domain(#[from] DomainError),

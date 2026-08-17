@@ -5,10 +5,12 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use application::documents::{DocumentWorkflowPorts, EvidenceMaterial, LocalDocumentWorkflow};
+use application::identity::{IdentityPorts, IdentityService};
 use infrastructure::{
-    openssl_version, EnvelopeKeyManager, FileAuditLog, FileDocumentRepository, LocalOpensslTsa,
-    Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier,
-    StoredZipWriter, SystemClock, X509ChainValidator,
+    openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, FileAuditLog,
+    FileDocumentRepository, LocalOpensslTsa, PostgresUserRepository, RandomRecoveryCodeGenerator,
+    RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer,
+    RsaPkcs1Verifier, StoredZipWriter, SystemClock, TotpRsProvider, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -26,6 +28,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     let tsa_chain_path = args.tsa_dir.join("tsa-chain.pem");
     let tsa_chain = read(&tsa_chain_path, "timestamp authority chain")?;
     let kek = load_kek(KEK_VAR)?;
+    let database_url = required_env("DATABASE_URL")?;
+    let redis_url = required_env("REDIS_URL")?;
 
     let repository = Arc::new(
         FileDocumentRepository::new(args.data_dir.join("documents"))
@@ -54,9 +58,31 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         tsa_chain_pem: Some(tsa_chain),
         openssl_version: openssl_version().context("cannot inspect openssl version")?,
     };
+    let identity = IdentityService::new(IdentityPorts {
+        users: Arc::new(
+            PostgresUserRepository::connect(&database_url)
+                .context("cannot initialize PostgreSQL user repository")?,
+        ),
+        sessions: Arc::new(
+            RedisSessionStore::connect(&redis_url)
+                .context("cannot initialize Redis session store")?,
+        ),
+        passwords: Arc::new(Argon2idHasher::new()),
+        totp: Arc::new(TotpRsProvider::new()),
+        recovery: Arc::new(RandomRecoveryCodeGenerator),
+        secrets: Arc::new(
+            AesGcmSecretProtector::new(kek.clone())
+                .context("cannot initialize TOTP secret protection")?,
+        ),
+        clock: Arc::new(SystemClock::new()),
+        audit_log: Box::new(FileAuditLog::new(
+            args.data_dir.join("audit.jsonl"),
+            RingSha256Hasher::new(),
+        )),
+    });
     let workflow = LocalDocumentWorkflow::new(ports, material, kek)
         .context("cannot initialize document workflow")?;
-    let router = web::application_router(Arc::new(workflow));
+    let router = web::application_router(Arc::new(workflow), Arc::new(identity));
 
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -79,4 +105,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
 
 fn read(path: &std::path::Path, label: &str) -> anyhow::Result<Vec<u8>> {
     fs::read(path).with_context(|| format!("cannot read {label} at {}", path.display()))
+}
+
+fn required_env(name: &str) -> anyhow::Result<String> {
+    std::env::var(name).with_context(|| format!("{name} must be set for the HTTP application"))
 }

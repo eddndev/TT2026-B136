@@ -48,7 +48,10 @@ zeroize.workspace = true
 # the staging paths are unpredictable and unreadable by other local
 # users and are removed even when a check aborts early.
 tempfile.workspace = true
+postgres.workspace = true
+tokio-postgres.workspace = true
+redis.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
-uuid.workspace = true

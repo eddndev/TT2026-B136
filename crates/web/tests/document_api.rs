@@ -1,12 +1,16 @@
 use std::sync::Arc;
 
 use application::documents::{DocumentSummary, DocumentWorkflow, EvidenceExport};
+use application::identity::{
+    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+};
 use application::verification::{ComponentReport, ComponentStatus, Verdict, VerificationReport};
 use application::ApplicationError;
 use axum::body::{to_bytes, Body};
 use axum::http::{Request, StatusCode};
 use domain::audit::ChainVerification;
 use domain::crypto::{DocumentId, DocumentVersion};
+use domain::identity::{Permission, Role, UserId};
 use serde_json::Value;
 use tower::ServiceExt;
 use uuid::Uuid;
@@ -47,20 +51,20 @@ impl DocumentWorkflow for StubWorkflow {
         name: &str,
         document: &[u8],
     ) -> Result<DocumentSummary, ApplicationError> {
-        assert_eq!(actor, "ana");
+        assert_eq!(actor, "ana@example.com");
         assert_eq!(name, "acta.txt");
         assert_eq!(document, b"case document");
         Ok(Self::summary(false))
     }
 
     fn seal(&self, actor: &str, id: DocumentId) -> Result<DocumentSummary, ApplicationError> {
-        assert_eq!(actor, "ana");
+        assert_eq!(actor, "ana@example.com");
         Self::ensure_id(id)?;
         Ok(Self::summary(true))
     }
 
     fn verify(&self, actor: &str, id: DocumentId) -> Result<VerificationReport, ApplicationError> {
-        assert_eq!(actor, "ana");
+        assert_eq!(actor, "ana@example.com");
         Self::ensure_id(id)?;
         let passed = || ComponentReport {
             status: ComponentStatus::Passed,
@@ -81,7 +85,7 @@ impl DocumentWorkflow for StubWorkflow {
         actor: &str,
         id: DocumentId,
     ) -> Result<EvidenceExport, ApplicationError> {
-        assert_eq!(actor, "ana");
+        assert_eq!(actor, "ana@example.com");
         Self::ensure_id(id)?;
         Ok(EvidenceExport {
             archive: b"zip bytes".to_vec(),
@@ -95,8 +99,89 @@ impl DocumentWorkflow for StubWorkflow {
     }
 }
 
+struct StubIdentity;
+
+impl StubIdentity {
+    fn principal() -> Principal {
+        Principal {
+            id: UserId::from_uuid(Uuid::from_u128(7)),
+            email: "ana@example.com".to_string(),
+            role: Role::Owner,
+        }
+    }
+}
+
+impl IdentityWorkflow for StubIdentity {
+    fn bootstrap_owner(
+        &self,
+        _email: &str,
+        _password: &str,
+    ) -> Result<EnrollmentResult, ApplicationError> {
+        Err(ApplicationError::BootstrapClosed)
+    }
+
+    fn create_user(
+        &self,
+        _actor: &Principal,
+        _email: &str,
+        _password: &str,
+        _role: Role,
+    ) -> Result<EnrollmentResult, ApplicationError> {
+        Err(ApplicationError::InvalidInput("unused".to_string()))
+    }
+
+    fn start_login(
+        &self,
+        _email: &str,
+        _password: &str,
+    ) -> Result<LoginChallenge, ApplicationError> {
+        Err(ApplicationError::InvalidCredentials)
+    }
+
+    fn complete_totp(
+        &self,
+        _challenge_token: &str,
+        _code: &str,
+    ) -> Result<SessionResult, ApplicationError> {
+        Err(ApplicationError::MfaRejected)
+    }
+
+    fn complete_recovery(
+        &self,
+        _challenge_token: &str,
+        _code: &str,
+    ) -> Result<SessionResult, ApplicationError> {
+        Err(ApplicationError::MfaRejected)
+    }
+
+    fn authenticate(&self, token: &str) -> Result<Principal, ApplicationError> {
+        if token == "owner-token" {
+            Ok(Self::principal())
+        } else {
+            Err(ApplicationError::InvalidSession)
+        }
+    }
+
+    fn authorize(
+        &self,
+        token: &str,
+        permission: Permission,
+    ) -> Result<Principal, ApplicationError> {
+        let principal = self.authenticate(token)?;
+        if principal.role.allows(permission) {
+            Ok(principal)
+        } else {
+            Err(ApplicationError::PermissionDenied)
+        }
+    }
+
+    fn logout(&self, _access_token: &str) -> Result<(), ApplicationError> {
+        Ok(())
+    }
+}
+
 fn router() -> axum::Router {
-    application_router(Arc::new(StubWorkflow))
+    application_router(Arc::new(StubWorkflow), Arc::new(StubIdentity))
 }
 
 async fn json(response: axum::response::Response) -> Value {
@@ -109,7 +194,7 @@ async fn the_document_routes_expose_the_complete_workflow() {
     let upload = router()
         .oneshot(
             Request::post("/api/v1/documents")
-                .header("x-actor", "ana")
+                .header("authorization", "Bearer owner-token")
                 .header("x-document-name", "acta.txt")
                 .body(Body::from("case document"))
                 .unwrap(),
@@ -124,7 +209,7 @@ async fn the_document_routes_expose_the_complete_workflow() {
     let seal = router()
         .oneshot(
             Request::post(format!("/api/v1/documents/{DOCUMENT_UUID}/seal"))
-                .header("x-actor", "ana")
+                .header("authorization", "Bearer owner-token")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -136,7 +221,7 @@ async fn the_document_routes_expose_the_complete_workflow() {
     let verify = router()
         .oneshot(
             Request::post(format!("/api/v1/documents/{DOCUMENT_UUID}/verify"))
-                .header("x-actor", "ana")
+                .header("authorization", "Bearer owner-token")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -150,7 +235,7 @@ async fn the_document_routes_expose_the_complete_workflow() {
     let evidence = router()
         .oneshot(
             Request::get(format!("/api/v1/documents/{DOCUMENT_UUID}/evidence"))
-                .header("x-actor", "ana")
+                .header("authorization", "Bearer owner-token")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -170,6 +255,7 @@ async fn the_document_routes_expose_the_complete_workflow() {
     let audit = router()
         .oneshot(
             Request::get("/api/v1/audit/verify")
+                .header("authorization", "Bearer owner-token")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -180,7 +266,7 @@ async fn the_document_routes_expose_the_complete_workflow() {
 }
 
 #[tokio::test]
-async fn upload_requires_actor_and_document_name_headers() {
+async fn upload_requires_bearer_token_and_document_name_header() {
     let response = router()
         .oneshot(
             Request::post("/api/v1/documents")
@@ -190,8 +276,8 @@ async fn upload_requires_actor_and_document_name_headers() {
         .await
         .unwrap();
 
-    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
-    assert_eq!(json(response).await["error"]["code"], "missing_header");
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json(response).await["error"]["code"], "invalid_session");
 }
 
 #[tokio::test]
@@ -200,7 +286,7 @@ async fn an_unknown_document_maps_to_not_found() {
     let response = router()
         .oneshot(
             Request::post(format!("/api/v1/documents/{missing}/seal"))
-                .header("x-actor", "ana")
+                .header("authorization", "Bearer owner-token")
                 .body(Body::empty())
                 .unwrap(),
         )
