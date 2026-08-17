@@ -112,15 +112,7 @@ impl<C: AuthenticatedCipher, K: KeyManager> EncryptDocument<C, K> {
         id: DocumentId,
         version: DocumentVersion,
     ) -> Result<Vec<u8>, ApplicationError> {
-        let dek = Zeroizing::new(self.keys.generate_dek()?);
-        let wrapped_dek = self.keys.wrap_dek(kek, &dek)?;
-        let aad = document_aad(id, version);
-        let sealed_document = self.cipher.seal(&dek, &aad, plaintext)?;
-        VaultFile {
-            wrapped_dek,
-            sealed_document,
-        }
-        .to_bytes()
+        encrypt_with_ports(&self.cipher, &self.keys, kek, plaintext, id, version)
     }
 }
 
@@ -145,11 +137,51 @@ impl<C: AuthenticatedCipher, K: KeyManager> DecryptDocument<C, K> {
         id: DocumentId,
         version: DocumentVersion,
     ) -> Result<Vec<u8>, ApplicationError> {
-        let vault = VaultFile::parse(vault_bytes)?;
-        let dek = Zeroizing::new(self.keys.unwrap_dek(kek, &vault.wrapped_dek)?);
-        let aad = document_aad(id, version);
-        Ok(self.cipher.open(&dek, &aad, &vault.sealed_document)?)
+        decrypt_with_ports(&self.cipher, &self.keys, kek, vault_bytes, id, version)
     }
+}
+
+/// Encrypts one document through borrowed cipher and key-manager ports.
+pub fn encrypt_with_ports<C, K>(
+    cipher: &C,
+    keys: &K,
+    kek: &[u8],
+    plaintext: &[u8],
+    id: DocumentId,
+    version: DocumentVersion,
+) -> Result<Vec<u8>, ApplicationError>
+where
+    C: AuthenticatedCipher + ?Sized,
+    K: KeyManager + ?Sized,
+{
+    let dek = Zeroizing::new(keys.generate_dek()?);
+    let wrapped_dek = keys.wrap_dek(kek, &dek)?;
+    let aad = document_aad(id, version);
+    let sealed_document = cipher.seal(&dek, &aad, plaintext)?;
+    VaultFile {
+        wrapped_dek,
+        sealed_document,
+    }
+    .to_bytes()
+}
+
+/// Decrypts one vault through borrowed cipher and key-manager ports.
+pub fn decrypt_with_ports<C, K>(
+    cipher: &C,
+    keys: &K,
+    kek: &[u8],
+    vault_bytes: &[u8],
+    id: DocumentId,
+    version: DocumentVersion,
+) -> Result<Vec<u8>, ApplicationError>
+where
+    C: AuthenticatedCipher + ?Sized,
+    K: KeyManager + ?Sized,
+{
+    let vault = VaultFile::parse(vault_bytes)?;
+    let dek = Zeroizing::new(keys.unwrap_dek(kek, &vault.wrapped_dek)?);
+    let aad = document_aad(id, version);
+    Ok(cipher.open(&dek, &aad, &vault.sealed_document)?)
 }
 
 /// Rotates the key encryption key of a vault file.

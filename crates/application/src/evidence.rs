@@ -97,56 +97,64 @@ impl<H: DocumentHasher, A: ArchiveWriter> ExportEvidencePackage<H, A> {
         &self,
         request: &EvidenceRequest<'_>,
     ) -> Result<EvidencePackage, ApplicationError> {
-        let digest_hex = self.hasher.hash_bytes(request.document).to_hex();
-        let signature_name = format!("{}.sig", request.document_name);
-        let token_name = format!("{}.tsr", request.document_name);
-
-        // The token check anchors on the timestamp authority's own
-        // chain when one travels in the package: a token issued by an
-        // authority that does not root at the internal CA can only be
-        // verified against that chain. Without one, the issuer root
-        // anchors the check, as it does for the internal authority.
-        let token_anchor = if request.tsa_chain_pem.is_some() {
-            TSA_CHAIN_ENTRY_NAME
-        } else {
-            ISSUER_CERTIFICATE_ENTRY_NAME
-        };
-
-        let instructions = INSTRUCTIONS_TEMPLATE
-            .replace("{{DOCUMENTO}}", request.document_name)
-            .replace("{{FIRMA}}", &signature_name)
-            .replace("{{SELLO}}", &token_name)
-            .replace("{{DIGEST_SHA256}}", &digest_hex)
-            .replace("{{ANCLA_SELLO}}", token_anchor)
-            .replace("{{OPENSSL_VERSION}}", request.openssl_version);
-
-        let mut entries = vec![
-            ArchiveEntry::new(request.document_name, request.document.to_vec())?,
-            ArchiveEntry::new(signature_name, request.signature.to_vec())?,
-            ArchiveEntry::new(token_name, request.timestamp_token.to_vec())?,
-            ArchiveEntry::new(
-                SIGNER_CERTIFICATE_ENTRY_NAME,
-                request.signer_certificate_pem.to_vec(),
-            )?,
-            ArchiveEntry::new(
-                ISSUER_CERTIFICATE_ENTRY_NAME,
-                request.issuer_certificate_pem.to_vec(),
-            )?,
-            ArchiveEntry::new(CRL_ENTRY_NAME, request.crl_pem.to_vec())?,
-        ];
-        if let Some(chain) = request.tsa_chain_pem {
-            entries.push(ArchiveEntry::new(TSA_CHAIN_ENTRY_NAME, chain.to_vec())?);
-        }
-        entries.push(ArchiveEntry::new(
-            INSTRUCTIONS_ENTRY_NAME,
-            instructions.clone().into_bytes(),
-        )?);
-
-        let archive = self.archiver.write_archive(&entries)?;
-        Ok(EvidencePackage {
-            archive,
-            document_digest_hex: digest_hex,
-            instructions,
-        })
+        export_with_ports(&self.hasher, &self.archiver, request)
     }
+}
+
+/// Builds an evidence package through borrowed hashing and archive ports.
+pub fn export_with_ports<H, A>(
+    hasher: &H,
+    archiver: &A,
+    request: &EvidenceRequest<'_>,
+) -> Result<EvidencePackage, ApplicationError>
+where
+    H: DocumentHasher + ?Sized,
+    A: ArchiveWriter + ?Sized,
+{
+    let digest_hex = hasher.hash_bytes(request.document).to_hex();
+    let signature_name = format!("{}.sig", request.document_name);
+    let token_name = format!("{}.tsr", request.document_name);
+
+    let token_anchor = if request.tsa_chain_pem.is_some() {
+        TSA_CHAIN_ENTRY_NAME
+    } else {
+        ISSUER_CERTIFICATE_ENTRY_NAME
+    };
+
+    let instructions = INSTRUCTIONS_TEMPLATE
+        .replace("{{DOCUMENTO}}", request.document_name)
+        .replace("{{FIRMA}}", &signature_name)
+        .replace("{{SELLO}}", &token_name)
+        .replace("{{DIGEST_SHA256}}", &digest_hex)
+        .replace("{{ANCLA_SELLO}}", token_anchor)
+        .replace("{{OPENSSL_VERSION}}", request.openssl_version);
+
+    let mut entries = vec![
+        ArchiveEntry::new(request.document_name, request.document.to_vec())?,
+        ArchiveEntry::new(signature_name, request.signature.to_vec())?,
+        ArchiveEntry::new(token_name, request.timestamp_token.to_vec())?,
+        ArchiveEntry::new(
+            SIGNER_CERTIFICATE_ENTRY_NAME,
+            request.signer_certificate_pem.to_vec(),
+        )?,
+        ArchiveEntry::new(
+            ISSUER_CERTIFICATE_ENTRY_NAME,
+            request.issuer_certificate_pem.to_vec(),
+        )?,
+        ArchiveEntry::new(CRL_ENTRY_NAME, request.crl_pem.to_vec())?,
+    ];
+    if let Some(chain) = request.tsa_chain_pem {
+        entries.push(ArchiveEntry::new(TSA_CHAIN_ENTRY_NAME, chain.to_vec())?);
+    }
+    entries.push(ArchiveEntry::new(
+        INSTRUCTIONS_ENTRY_NAME,
+        instructions.clone().into_bytes(),
+    )?);
+
+    let archive = archiver.write_archive(&entries)?;
+    Ok(EvidencePackage {
+        archive,
+        document_digest_hex: digest_hex,
+        instructions,
+    })
 }

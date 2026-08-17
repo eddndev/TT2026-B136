@@ -6,6 +6,7 @@
 
 pub mod audit;
 pub mod auth;
+pub mod documents;
 pub mod error;
 pub mod evidence;
 pub mod hashing;

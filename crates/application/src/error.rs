@@ -28,4 +28,36 @@ pub enum ApplicationError {
     /// validation outcome.
     #[error("issued certificate failed post-issuance validation: {0}")]
     IssuedCertificateInvalid(String),
+
+    /// A requested document identity has no stored record.
+    #[error("document not found: {0}")]
+    DocumentNotFound(String),
+
+    /// A repository already contains the identity being inserted.
+    #[error("document already exists: {0}")]
+    DocumentAlreadyExists(String),
+
+    /// A document already has immutable signature and timestamp evidence.
+    #[error("document is already sealed: {0}")]
+    DocumentAlreadySealed(String),
+
+    /// An operation requires evidence that has not been created yet.
+    #[error("document is not sealed: {0}")]
+    DocumentNotSealed(String),
+
+    /// Stored metadata contradicts the encrypted document content.
+    #[error("stored document is inconsistent: {0}")]
+    StoredDocumentInconsistent(String),
+
+    /// Runtime material cannot satisfy the workflow's fixed contracts.
+    #[error("invalid application configuration: {0}")]
+    InvalidConfiguration(String),
+
+    /// Freshly produced evidence failed its immediate integrity check.
+    #[error("timestamp evidence was rejected: {0}")]
+    TimestampEvidenceRejected(String),
+
+    /// A caller supplied an unusable application-level value.
+    #[error("invalid input: {0}")]
+    InvalidInput(String),
 }
