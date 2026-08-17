@@ -10,7 +10,7 @@ use infrastructure::Argon2idHasher;
 fn the_default_hasher_produces_the_fixed_argon2id_parameters() {
     let phc = Argon2idHasher::default().hash("correct horse").unwrap();
     assert!(phc.starts_with("$argon2id$v=19$"), "got: {phc}");
-    assert!(phc.contains("m=262144,t=4,p=1"), "got: {phc}");
+    assert!(phc.contains("m=262144,t=2,p=1"), "got: {phc}");
 }
 
 #[test]

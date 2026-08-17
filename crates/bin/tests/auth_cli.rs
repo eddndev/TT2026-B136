@@ -43,7 +43,7 @@ fn hash_password_then_verify_password_round_trip() {
     assert!(ok, "hash-password failed: {stderr}");
     let phc = stdout.trim().to_string();
     assert!(
-        phc.starts_with("$argon2id$v=19$m=262144,t=4,p=1$"),
+        phc.starts_with("$argon2id$v=19$m=262144,t=2,p=1$"),
         "got: {phc}"
     );
 
