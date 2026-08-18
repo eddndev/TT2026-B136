@@ -4,7 +4,7 @@
 #   format       - rustfmt check
 #   lint         - clippy with warnings denied
 #   test         - full workspace test suite
-#   msrv         - build check on the minimum supported Rust version (1.78)
+#   msrv         - build check on the minimum supported Rust version (1.88)
 #   coverage     - line coverage via cargo-llvm-cov, gated at 90 percent
 #                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
@@ -78,18 +78,13 @@ jobs:
         run: cargo test --workspace
 
   msrv:
-    name: MSRV check (Rust 1.78)
+    name: MSRV check (Rust 1.88)
     runs-on: ubuntu-24.04
-    # Informational until the dependency set is frozen: if a transitive
-    # dependency raises its minimum supported Rust version, this job surfaces
-    # the breakage without blocking the pipeline. Remove continue-on-error
-    # once the dependency set is stable, to make the MSRV guarantee binding.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.78"
+          toolchain: "1.88"
       - uses: Swatinem/rust-cache@v2
       - name: Build check on the minimum supported Rust version
         run: cargo check --workspace

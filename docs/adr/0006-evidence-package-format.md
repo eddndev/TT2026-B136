@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Accepted. The original MSRV constraint was superseded by
+`docs/adr/0013-raise-msrv-for-security-fixes.md`; the dependency-surface
+rationale remains in force.
 
 ## Context
 
@@ -15,10 +17,10 @@ tools every recipient already has, which in practice means ZIP.
 
 Two ways of producing ZIP were considered:
 
-1. Depend on the `zip` crate. The workspace declares
-   `rust-version = 1.78` and pins the der 0.7 crate family for that
-   reason (docs/adr/0001-msrv-and-dependency-pinning.md). At the time
-   of this decision the current `zip` release (8.x) requires rustc
+1. Depend on the `zip` crate. At the time of this decision the workspace
+   declared `rust-version = 1.78` and pinned the der 0.7 crate family for
+   that reason (docs/adr/0001-msrv-and-dependency-pinning.md). The current
+   `zip` release at that time (8.x) required rustc
    1.88; the newest release that accepts rustc 1.78 is `zip` 4.2.0,
    several major versions behind and therefore outside the range where
    fixes land. Its default build also pulls a large tree of
@@ -56,9 +58,8 @@ byte through the stored CRC-32
 
 ## Consequences
 
-- No new dependency; `cargo deny check` keeps its current scope and
-  the MSRV pin of docs/adr/0001-msrv-and-dependency-pinning.md is not
-  challenged.
+- No new dependency; `cargo deny check` keeps its current scope. The later
+  MSRV increase does not by itself justify replacing the reviewed writer.
 - Packages are slightly larger than compressed ones would be, which is
   irrelevant at evidence sizes.
 - The writer cannot read archives and does not implement ZIP64,

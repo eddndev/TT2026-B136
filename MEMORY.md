@@ -157,9 +157,9 @@ de 500 a 1 000 ms. Todos los comandos anteriores terminaron correctamente. La
 cobertura se midió con PostgreSQL y Redis locales activos para ejercitar los
 adaptadores reales; los jobs `test` y `coverage` de CI levantan esos mismos
 servicios. El binario release mide 7 886 552 bytes frente al límite de 25 MiB.
-Cargo conserva un aviso de compatibilidad futura de
-`redis 0.25.4`; esa versión está fijada para mantener Rust 1.78 y no produce
-advertencias de Clippy ni fallos actuales.
+Cargo conserva un aviso de compatibilidad futura de `redis 0.25.4`; esa
+versión permanece fijada para evitar una migración no relacionada del cliente
+y no produce advertencias de Clippy ni fallos actuales.
 
 ## Pendientes reales
 

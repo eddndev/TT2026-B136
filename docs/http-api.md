@@ -151,8 +151,8 @@ son archivos separados sin una transacción común; migrarlos a PostgreSQL y
 añadir pertenencia a casos son incrementos posteriores.
 
 Los clientes PostgreSQL y Redis son síncronos para conservar una integración
-pequeña y compatible con Rust 1.78. La frontera HTTP ejecuta los casos de uso en
-el pool bloqueante de Tokio para no detener los workers asíncronos.
+pequeña. La frontera HTTP ejecuta los casos de uso en el pool bloqueante de
+Tokio para no detener los workers asíncronos.
 
 ## Errores
 
