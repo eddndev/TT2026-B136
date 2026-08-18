@@ -8,6 +8,10 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    /// A persisted role name is not part of the authorization vocabulary.
+    #[error("unknown role: {0}")]
+    InvalidRole(String),
+
     /// A digest was built from a byte slice of the wrong length.
     #[error("digest must be {expected} bytes, got {actual}")]
     InvalidDigestLength { expected: usize, actual: usize },

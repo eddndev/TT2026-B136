@@ -10,6 +10,42 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    /// Bootstrap was requested after the first user had already been stored.
+    #[error("initial owner has already been created")]
+    BootstrapClosed,
+
+    /// A user email is already registered.
+    #[error("user already exists")]
+    UserAlreadyExists,
+
+    /// A requested user does not exist.
+    #[error("user not found")]
+    UserNotFound,
+
+    /// A password or account identifier was rejected.
+    #[error("invalid credentials")]
+    InvalidCredentials,
+
+    /// The login window is temporarily locked after repeated failures.
+    #[error("account temporarily locked")]
+    AccountLocked,
+
+    /// A second-factor or recovery code was rejected.
+    #[error("second factor rejected")]
+    MfaRejected,
+
+    /// A bearer token is absent, expired, revoked, or otherwise invalid.
+    #[error("invalid session")]
+    InvalidSession,
+
+    /// The authenticated role does not grant the requested action.
+    #[error("permission denied")]
+    PermissionDenied,
+
+    /// An optimistic update lost a race with another request.
+    #[error("concurrent modification")]
+    ConcurrentModification,
+
     /// A domain invariant was violated.
     #[error(transparent)]
     Domain(#[from] DomainError),
@@ -28,4 +64,36 @@ pub enum ApplicationError {
     /// validation outcome.
     #[error("issued certificate failed post-issuance validation: {0}")]
     IssuedCertificateInvalid(String),
+
+    /// A requested document identity has no stored record.
+    #[error("document not found: {0}")]
+    DocumentNotFound(String),
+
+    /// A repository already contains the identity being inserted.
+    #[error("document already exists: {0}")]
+    DocumentAlreadyExists(String),
+
+    /// A document already has immutable signature and timestamp evidence.
+    #[error("document is already sealed: {0}")]
+    DocumentAlreadySealed(String),
+
+    /// An operation requires evidence that has not been created yet.
+    #[error("document is not sealed: {0}")]
+    DocumentNotSealed(String),
+
+    /// Stored metadata contradicts the encrypted document content.
+    #[error("stored document is inconsistent: {0}")]
+    StoredDocumentInconsistent(String),
+
+    /// Runtime material cannot satisfy the workflow's fixed contracts.
+    #[error("invalid application configuration: {0}")]
+    InvalidConfiguration(String),
+
+    /// Freshly produced evidence failed its immediate integrity check.
+    #[error("timestamp evidence was rejected: {0}")]
+    TimestampEvidenceRejected(String),
+
+    /// A caller supplied an unusable application-level value.
+    #[error("invalid input: {0}")]
+    InvalidInput(String),
 }

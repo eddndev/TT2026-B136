@@ -1,0 +1,4 @@
+# Keep dependency updates within the workspace's declared Rust version.
+# Rationale: docs/adr/0013-raise-msrv-for-security-fixes.md.
+[resolver]
+incompatible-rust-versions = "fallback"

@@ -5,15 +5,18 @@
 \addcontentsline{toc}{chapter}{Resumen}
 \markboth{Resumen}{Resumen}
 
-El presente protocolo plantea un prototipo de sistema web para la gestión
-de expedientes digitales y la actividad procesal de un despacho legal. El
-prototipo implementa los servicios criptográficos de \emph{integridad},
-orientado a detectar cualquier modificación no autorizada en los
-expedientes, y de \emph{no repudio}, que impide que las partes
-involucradas nieguen su participación en la firma de contratos mediante
-evidencia criptográfica verificable. El prototipo se validará mediante
-pruebas funcionales y de usabilidad para verificar el correcto
-funcionamiento de los módulos y flujos principales.
+El presente Trabajo Terminal desarrolla un prototipo de sistema web para
+la gestión de expedientes digitales y la actividad procesal de un
+despacho legal. El prototipo implementa los servicios criptográficos de
+\emph{integridad}, orientado a detectar cualquier modificación no
+autorizada en los expedientes, y de \emph{no repudio}, que impide que
+las partes involucradas nieguen su participación en la firma de
+contratos mediante evidencia criptográfica verificable. La fase de
+implementación del núcleo criptográfico está concluida y demostrada:
+diez servicios criptográficos construidos en Rust sobre una arquitectura
+hexagonal, verificables de forma independiente con OpenSSL y respaldados
+por una suite de más de trescientas pruebas automatizadas que valida el
+correcto funcionamiento de los módulos y flujos principales.
 
 \vspace{1em}
 \noindent\textbf{Palabras clave:} expedientes digitales, integridad,

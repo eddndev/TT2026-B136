@@ -213,4 +213,16 @@ mod tests {
             )
         );
     }
+
+    #[test]
+    fn a_serial_lock_whose_directory_is_absent_is_unreachable() {
+        // The lock file cannot be created when its parent directory is
+        // missing, and that surfaces as an unreachable authority naming
+        // the serial lock file.
+        let result = SerialLock::acquire(Path::new("/nonexistent-tsa-parent/inside"));
+        assert!(
+            matches!(result, Err(TsaError::Unreachable(ref message)) if message.contains("serial lock")),
+            "a missing lock directory should surface as unreachable"
+        );
+    }
 }

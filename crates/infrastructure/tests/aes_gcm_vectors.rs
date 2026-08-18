@@ -12,7 +12,7 @@ use infrastructure::RingAesGcmCipher;
 
 /// Decodes a lower-case hex string; test vectors are given in hex.
 fn hex(text: &str) -> Vec<u8> {
-    assert!(text.len() % 2 == 0, "hex strings have even length");
+    assert!(text.len().is_multiple_of(2), "hex strings have even length");
     (0..text.len() / 2)
         .map(|i| u8::from_str_radix(&text[i * 2..i * 2 + 2], 16).expect("valid hex"))
         .collect()

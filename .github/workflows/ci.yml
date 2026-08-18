@@ -4,8 +4,9 @@
 #   format       - rustfmt check
 #   lint         - clippy with warnings denied
 #   test         - full workspace test suite
-#   msrv         - build check on the minimum supported Rust version (1.78)
-#   coverage     - line coverage report via cargo-llvm-cov
+#   msrv         - build check on the minimum supported Rust version (1.88)
+#   coverage     - line coverage via cargo-llvm-cov, gated at 90 percent
+#                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
 #   binary-size  - release binary of despacho-cli must stay under 25 MB
 
@@ -45,6 +46,30 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      IDENTITY_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      IDENTITY_TEST_REDIS_URL: redis://127.0.0.1:6379/
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -53,18 +78,13 @@ jobs:
         run: cargo test --workspace
 
   msrv:
-    name: MSRV check (Rust 1.78)
+    name: MSRV check (Rust 1.88)
     runs-on: ubuntu-24.04
-    # Informational until the dependency set is frozen: if a transitive
-    # dependency raises its minimum supported Rust version, this job surfaces
-    # the breakage without blocking the pipeline. Remove continue-on-error
-    # once the dependency set is stable, to make the MSRV guarantee binding.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.78"
+          toolchain: "1.88"
       - uses: Swatinem/rust-cache@v2
       - name: Build check on the minimum supported Rust version
         run: cargo check --workspace
@@ -72,6 +92,30 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      IDENTITY_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      IDENTITY_TEST_REDIS_URL: redis://127.0.0.1:6379/
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -79,12 +123,12 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@cargo-llvm-cov
-      # No failing coverage threshold is enforced yet: most crates are still
-      # skeletons. The intended target is 90 percent line coverage on the
-      # cryptographic crates once that code exists; add --fail-under-lines
-      # here at that point.
-      - name: Measure and print line coverage
-        run: cargo llvm-cov --workspace
+      - name: Measure line coverage
+        run: |
+          cargo llvm-cov --workspace --json --summary-only \
+            --output-path coverage.json
+      - name: Enforce the per-crate gate on the cryptographic crates
+        run: scripts/coverage-gate.sh coverage.json
 
   deny:
     name: Dependency policy

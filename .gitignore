@@ -16,6 +16,7 @@ pki/**/*.pem
 # the repository root with default paths).
 pki-ca/
 pki-tsa/
+runtime-data/
 *.tsr
 *.enc
 *.sig

@@ -1,0 +1,494 @@
+% =====================================================================
+%  04-implementacion.tex — Capitulo 4: Implementacion del prototipo
+% =====================================================================
+
+\chapter{Implementación del prototipo}\label{cap:implementacion}
+
+Este capítulo documenta la implementación del prototipo cuyo análisis y diseño se presentó en el Capítulo~\ref{cap:analisis}. La materialización sigue fielmente las decisiones estructurales de ese capítulo: el sistema se construyó como un workspace de Cargo de cinco crates con la regla de dependencias de la arquitectura hexagonal impuesta por el grafo de compilación (\cref{sec:workspace-cargo}), y cada uno de los servicios criptográficos especificados en el diseño criptográfico (\cref{sec:diseno-cripto}) se materializó como un par puerto--adaptador: un trait en el crate \texttt{domain} y una struct concreta en el crate \texttt{infrastructure}, tal como anticipó la definición de la arquitectura hexagonal (\cref{sec:hexagonal-definicion}). El capítulo se organiza en seis secciones. La primera describe la estructura real del workspace y el andamiaje de calidad que lo rodea: perfil de compilación, configuración, telemetría, integración continua y política de dependencias. La segunda recorre los diez servicios criptográficos implementados, identificando para cada uno su puerto, su adaptador, los crates empleadas y las decisiones técnicas registradas. La tercera presenta la interfaz de línea de comandos que expone los casos de uso. La cuarta documenta la aplicación HTTP autenticada, PostgreSQL, Redis y la persistencia documental cifrada. La quinta reporta los resultados de la exploración del sellado de tiempo, el componente que el análisis de riesgos señaló como el de mayor exposición (\cref{sec:riesgos-tecnicos}). La sexta registra las divergencias respecto al diseño del Capítulo~\ref{cap:analisis} y las decisiones de arquitectura documentadas durante la construcción.
+
+\section{Estructura del workspace y andamiaje}\label{sec:impl-workspace}
+
+\textbf{Actualización al cierre (17 de agosto de 2026).} El crate \texttt{web} expone una rebanada vertical Axum multiusuario: alta inicial, login Argon2id, TOTP o recuperación, sesiones revocables, RBAC, carga y persistencia cifrada de documentos, firma y sellado con la TSA local, verificación, exportación del paquete de evidencia y comprobación de la bitácora. PostgreSQL persiste usuarios y Redis conserva el estado efímero de autenticación. La persistencia relacional de expedientes y documentos y la interfaz de usuario permanecen pendientes.
+
+{\emergencystretch=2em El prototipo es un workspace de Cargo con cinco crates miembros bajo el directorio \rutarepo{crates/}, exactamente los cinco que definió la estructura del workspace en el diseño (\cref{sec:workspace-cargo}): \texttt{domain}, \texttt{application}, \texttt{infrastructure}, \texttt{web} y \texttt{bin}. La dirección de dependencias apunta siempre hacia el dominio: \texttt{domain} no depende de ningún otro crate del workspace; \texttt{application} depende solo de \texttt{domain}; \texttt{infrastructure} depende de \texttt{domain} y \texttt{application}; \texttt{web} puede depender únicamente de \texttt{application} y \texttt{domain}; y \texttt{bin} ---la raíz de composición, que produce el binario \texttt{despacho-cli}--- depende de todos los anteriores y es el único crate autorizado a usar \texttt{anyhow} para errores polimórficos en la frontera del proceso. El crate \texttt{web} adapta HTTP al puerto \texttt{DocumentWorkflow}, sin conocer los adaptadores criptográficos ni el repositorio concretos. La \cref{tab:impl-crates} resume el tamaño de cada crate; ningún archivo del workspace supera las 400 líneas de código ---regla de diseño registrada en \texttt{CONTRIBUTING.md}---, siendo uno de los mayores \rutarepo{crates/infrastructure/tests/local_tsa_rfc3161.rs} (381 líneas).\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Tamaño de los crates del workspace en líneas de código. Los tests unitarios viven embebidos en \texttt{src}; los de integración, en el directorio \texttt{tests/} de cada crate.}
+  \label{tab:impl-crates}
+  \begin{tabularx}{\linewidth}{@{}l X R{3.2cm} R{3.2cm}@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Responsabilidad} & \textbf{Líneas en \texttt{src}} & \textbf{Líneas en \rutarepo{tests/}} \\
+    \midrule
+    \texttt{domain} & Valores, puertos (traits) y errores; sin E/S ni crates criptográficos & 2\,625 & --- \\
+    \texttt{application} & Casos de uso genéricos sobre los puertos & 2\,969 & 1\,694 \\
+    \texttt{infrastructure} & Adaptadores driven concretos & 3\,770 & 2\,570 \\
+    \texttt{web} & Adaptador driving HTTP y DTO de contrato & 367 & 212 \\
+    \texttt{bin} & Raíz de composición, CLI y servidor HTTP & 1\,892 & 2\,835 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La regla de dependencias no descansa en la disciplina del equipo sino en dos mecanismos verificables. El primero es el propio grafo de Cargo: como se argumentó en el diseño (\cref{sec:workspace-cargo}), una importación prohibida produce un error de compilación, no una advertencia de revisión. El segundo es una prueba de arquitectura, \rutarepo{crates/bin/tests/architecture.rs}, que lee el manifiesto del crate \texttt{domain} y falla si este declara dependencia alguna de \texttt{application}, \texttt{infrastructure} o \texttt{web}; esta prueba protege contra la degradación gradual del manifiesto, que el compilador no reportaría mientras los símbolos prohibidos no se usen. Una segunda prueba estructural, \rutarepo{crates/bin/tests/port_coverage.rs}, recorre el workspace y exige que cada \texttt{pub trait} del dominio ---cada puerto--- tenga al menos un adaptador (\texttt{impl <Trait> for}) en \texttt{infrastructure} y al menos un mock generado con \texttt{mockall} en los tests; para detectar un escáner degradado, la prueba usa puertos centinela (\texttt{AuditLog}, \texttt{DocumentHasher}, \texttt{KeyManager}) cuya ausencia delataría un análisis roto.
+
+La versión mínima soportada del compilador es Rust 1.78, declarada con el campo \texttt{rust-version} en el \texttt{Cargo.toml} raíz y verificada en integración continua, no fijando el toolchain local. Esta MSRV condiciona el conjunto de crates criptográficos: como registra el ADR \rutarepo{docs/adr/0001-msrv-and-dependency-pinning.md}, los crates de certificados y sellado se fijan a la familia construida alrededor de \texttt{der}~0.7 ---\texttt{x509-cert}~0.2, \texttt{cms}~0.2, \texttt{x509-tsp}~0.1 y \texttt{rsa}~0.9---, porque las líneas mayores siguientes (\texttt{x509-cert}~0.3, \texttt{rsa}~0.10) exigen un compilador más nuevo; \texttt{ring} se fija a 0.17.12 o posterior, la primera versión que corrige el aviso RUSTSEC-2025-0009. Los pines viven en \texttt{[workspace.dependencies]} del manifiesto raíz, de modo que todos los crates miembros reciben el mismo conjunto compatible. El perfil de release aplica \texttt{strip = true} y \texttt{lto = true}, y los perfiles de desarrollo elevan \texttt{opt-level = 3} solo para los núcleos criptográficos (\texttt{argon2}, \texttt{blake2}, \texttt{num-bigint-dig}, \texttt{rsa}) para que la suite de pruebas siga siendo viable sin optimizar todo el árbol.
+
+La configuración se carga desde variables de entorno con \texttt{dotenvy} (archivo \texttt{.env} local, nunca versionado; la plantilla comentada \texttt{.env.example} sí lo está). La \cref{tab:impl-env} lista las variables. Dos decisiones de manejo de secretos son transversales: la carga de configuración registra en la bitácora únicamente la \emph{presencia} de cada variable, jamás su valor; y todo material secreto leído del entorno o de la entrada estándar (la KEK, la credencial del proveedor de sellado, las contraseñas) aterriza en buffers \texttt{Zeroizing} que sobrescriben su contenido al liberarse, conforme al ADR \rutarepo{docs/adr/0003-zeroize-secret-material-in-domain.md}.
+
+\begin{table}[H]
+  \centering
+  \caption{Variables de entorno del prototipo (plantilla \texttt{.env.example}).}
+  \label{tab:impl-env}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Variable} & \textbf{Propósito} \\
+    \midrule
+    \texttt{RUST\_LOG} & Filtro de severidad de la telemetría (por defecto \texttt{info}). \\
+    \texttt{CINCEL\_BASE\_URL} & URL base del proveedor remoto de sellado de tiempo. \\
+    \texttt{CINCEL\_API\_KEY} & Credencial del proveedor de sellado (secreto; se llena localmente). \\
+    \texttt{DATABASE\_URL} & Cadena de conexión PostgreSQL para usuarios y migraciones. \\
+    \texttt{REDIS\_URL} & Cadena de conexión Redis para sesiones, desafíos y límites. \\
+    \texttt{KEK\_BASE64} & Clave de cifrado de claves: 32 bytes aleatorios en base64 (secreto). \\
+    \texttt{NEW\_KEK\_BASE64} & KEK de reemplazo; la lee únicamente \texttt{vault rotate-kek}. \\
+    \texttt{AUDIT\_LOG\_PATH} & Ruta de la bitácora encadenada (por defecto \texttt{audit-log.jsonl}). \\
+    \texttt{PKI\_CA\_DIR} & Directorio de trabajo de la CA interna (por defecto \texttt{pki-ca}). \\
+    \texttt{TSA\_DIR} & Directorio de trabajo de la TSA local (por defecto \texttt{pki-tsa}). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La telemetría usa \texttt{tracing} y \texttt{tracing-subscriber} con filtro por entorno, materializando la observabilidad estructurada prevista en el diseño (\cref{sec:observabilidad}). Todos los diagnósticos se emiten por la salida de error estándar, de modo que la salida estándar queda limpia para resultados y tuberías de shell. La promesa de que ningún secreto aparece en los diagnósticos no es una convención: la prueba \rutarepo{crates/bin/tests/log_redaction.rs} ejecuta los flujos con el nivel de log más verboso e inspecciona lo emitido, fallando si algún material secreto conocido aparece en la salida de error.
+
+La integración continua ejecuta siete jobs sobre cada push y cada pull request (\cref{tab:impl-ci}). El job de MSRV es hoy informativo (\texttt{continue-on-error}): su comentario en el workflow explica que, mientras el conjunto de dependencias no esté congelado, una dependencia transitiva que eleve su versión mínima de compilador debe hacerse visible sin bloquear la tubería, y que la marca debe retirarse cuando el conjunto se estabilice para volver vinculante la garantía. El umbral de cobertura lo impone \rutarepo{scripts/coverage-gate.sh}: 90\,\% de líneas por crate sobre \texttt{domain}, \texttt{application} e \texttt{infrastructure} ---los crates con lógica criptográfica, en línea con el requerimiento RNF-13---, mientras que \texttt{bin} se reporta sin bloquear.
+
+\begin{table}[H]
+  \centering
+  \caption{Jobs del workflow de integración continua.}
+  \label{tab:impl-ci}
+  \begin{tabularx}{\linewidth}{@{}l l X@{}}
+    \toprule
+    \textbf{Job} & \textbf{Herramienta} & \textbf{Criterio de aprobación} \\
+    \midrule
+    format & \texttt{cargo fmt} & Formato canónico en todo el workspace. \\
+    lint & \texttt{cargo clippy} & Cero advertencias (\texttt{-D warnings}). \\
+    test & \texttt{cargo test} & Suite completa del workspace en verde. \\
+    msrv & \texttt{cargo check} & Compila con Rust 1.78 (informativo). \\
+    coverage & \texttt{cargo-llvm-cov} & $\geq$ 90\,\% de líneas por crate criptográfico. \\
+    deny & \texttt{cargo-deny} & Avisos, licencias, duplicados y fuentes en regla. \\
+    binary-size & \texttt{cargo build -{}-release} & \texttt{despacho-cli} $\leq$ 25~MB. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El diseño comprometió cinco fitness functions como verificaciones automatizadas de los atributos de calidad (\cref{sec:fitness-functions}) \cite{ford2023}. La \cref{tab:impl-fitness} muestra dónde vive cada una en el repositorio. Cuatro de las cinco diseñadas se implementaron directamente; la función que exige un span de \texttt{tracing} por handler HTTP sigue pendiente aun cuando los handlers ya existen, y en su lugar se incorporó el umbral de cobertura por crate como función de aptitud adicional.
+
+\begin{table}[H]
+  \centering
+  \caption{Fitness functions implementadas y su ubicación en el repositorio.}
+  \label{tab:impl-fitness}
+  \begin{tabularx}{\linewidth}{@{}l L{6.4cm} X@{}}
+    \toprule
+    \textbf{Id} & \textbf{Propiedad verificada} & \textbf{Verificación implementada} \\
+    \midrule
+    FF-1 & El dominio no depende de capas externas & Grafo de Cargo en cada build y \rutarepo{crates/bin/tests/architecture.rs}. \\
+    FF-2 & Ningún log contiene material secreto & \rutarepo{crates/bin/tests/log_redaction.rs} al nivel de log más verboso. \\
+    FF-3 & Todo puerto tiene adaptador y mock & \rutarepo{crates/bin/tests/port_coverage.rs} con puertos centinela. \\
+    FF-4 & Cobertura $\geq$ 90\,\% en crates criptográficos & \rutarepo{scripts/coverage-gate.sh} sobre el reporte de \texttt{cargo-llvm-cov}. \\
+    FF-5 & Binario release $\leq$ 25~MB & Job \texttt{binary-size} del workflow de integración continua. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La política de dependencias se aplica con \texttt{cargo-deny} (configuración versionada en \texttt{deny.toml}) y \texttt{cargo-audit} (\texttt{audit.toml}): el grafo se analiza con todas las features activas; solo se admiten licencias permisivas de una lista explícita; las versiones duplicadas se reportan sin bloquear; y la única fuente de crates permitida es el índice de \texttt{crates.io}. Existe exactamente una excepción de seguridad declarada en el repositorio: el aviso RUSTSEC-2023-0071 \cite{rustsec2023_0071}, un canal lateral de temporización en las operaciones de clave privada del crate \texttt{rsa}, aceptado bajo el modelo de amenaza del prototipo ---la firma corre localmente por línea de comandos y no existe un oráculo de temporización observable por red--- con el razonamiento completo registrado en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}, al que apuntan de vuelta ambos archivos de configuración.
+
+\section{Servicios criptográficos}\label{sec:impl-servicios}
+
+El diseño criptográfico del Capítulo~\ref{cap:analisis} (\cref{sec:diseno-cripto}) especificó los servicios de integridad, confidencialidad, no repudio y autenticación del prototipo. Esta sección los recorre como diez servicios implementados, S1 a S10, cada uno con la misma anatomía: un puerto (trait) en \texttt{domain}, un adaptador en \texttt{infrastructure} y un caso de uso en \texttt{application} que los orquesta. La \cref{tab:impl-servicios} presenta el mapa completo. Dos convenciones atraviesan todos los servicios. Primera: los rechazos criptográficos son \emph{resultados} tipados (enumeraciones como \texttt{SignatureVerification} o \texttt{CertificateValidation}), nunca errores; el camino de error queda reservado a fallos del backend o a evidencia inevaluable, lo que permite construir políticas futuras ---por ejemplo, bloqueo de cuenta--- sin confundir un intento fallido con una falla del sistema. Segunda: la delegación a la herramienta \texttt{openssl} como subproceso ocurre en exactamente tres puntos ---la CA interna, la TSA local y la etapa criptográfica del verificador RFC 3161---; todo lo demás es Rust nativo sobre \texttt{ring}, \texttt{rsa}, \texttt{sha2}, \texttt{x509-cert}, \texttt{cms}, \texttt{x509-tsp}, \texttt{argon2} y \texttt{totp-rs}.
+
+El manejo de errores materializa el patrón de errores tipados por capa que el diseño estableció (\cref{sec:manejo-errores}). El crate de dominio define \texttt{DomainError} (\rutarepo{crates/domain/src/error.rs}) con 26 variantes tipadas mediante \texttt{thiserror}, una por condición de fallo con significado propio ---longitud de digest inválida, payload sellado malformado, CRL vencida, nombre de entrada de archivo inutilizable---. Una variante merece mención explícita: \texttt{AuthenticationFailed}, el rechazo de un descifrado autenticado, es deliberadamente opaca y no revela si falló la clave, el tag o los datos, negando a un adversario la retroalimentación que distingue esos casos. Los errores de los backends de infraestructura (\texttt{CryptoError}, \texttt{TsaError}) se convierten hacia el dominio mediante conversiones \texttt{From}, y la capa de aplicación añade en \texttt{ApplicationError} solo lo que le es propio: el fallo genérico de un puerto, un archivo vault malformado y un certificado recién emitido que no supera su validación posterior a la emisión.
+
+\begin{table}[H]
+  \centering
+  \caption{Servicios criptográficos implementados: puertos del dominio y adaptadores de infraestructura.}
+  \label{tab:impl-servicios}
+  \begin{tabularx}{\linewidth}{@{}l L{3.4cm} L{4.6cm} X@{}}
+    \toprule
+    \textbf{Id} & \textbf{Servicio} & \textbf{Puerto(s) del dominio} & \textbf{Adaptador(es)} \\
+    \midrule
+    S1 & Hash de documentos & \texttt{DocumentHasher} & \texttt{RingSha256Hasher} \\
+    S2 & Cifrado autenticado y envelope encryption & \texttt{AuthenticatedCipher}, \texttt{KeyManager} & \texttt{RingAesGcmCipher}, \texttt{EnvelopeKeyManager} \\
+    S3 & PKI interna & \texttt{CertificateAuthority}, \texttt{CertificateValidator} & \texttt{OpensslCaAdapter}, \texttt{X509ChainValidator} \\
+    S4 & Firma digital & \texttt{DocumentSigner}, \texttt{SignatureVerifier} & \texttt{RsaPkcs1Signer}, \texttt{RsaPkcs1Verifier} \\
+    S5 & Sellado de tiempo & \texttt{TimestampService}, \texttt{TimestampVerifier} & \texttt{LocalOpensslTsa}, \texttt{CincelTsaAdapter}, \texttt{Rfc3161Verifier} \\
+    S6 & Verificación integral & (compone los de S1, S3, S4 y S5) & caso de uso \texttt{VerifyDocument} \\
+    S7 & Hash de contraseñas & \texttt{PasswordHasher} & \texttt{Argon2idHasher} \\
+    S8 & Segundo factor TOTP & \texttt{TotpProvider}, \texttt{RecoveryCodeGenerator} & \texttt{TotpRsProvider}, \texttt{RandomRecoveryCodeGenerator} \\
+    S9 & Cadena de auditoría & \texttt{AuditLog}, \texttt{Clock} & \texttt{FileAuditLog}, \texttt{InMemoryAuditLog}, \texttt{SystemClock} \\
+    S10 & Paquete de evidencia & \texttt{ArchiveWriter} & \texttt{StoredZipWriter} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{S1. Hash de documentos con SHA-256}\label{sec:impl-s1-hash}
+
+El puerto \texttt{DocumentHasher} (\rutarepo{crates/domain/src/crypto/hasher.rs}) es el más simple del sistema y sirve para ilustrar el patrón que repiten todos los demás: un trait del dominio que declara el contrato criptográfico sin nombrar backend alguno. El Listado~\ref{lst:impl-puerto-hasher} lo reproduce íntegro.
+
+\begin{lstlisting}[language=Rust,caption={Puerto de hashing del dominio (\texttt{crates/domain/src/crypto/hasher.rs}).},label={lst:impl-puerto-hasher}]
+/// Computes SHA-256 digests of document content.
+///
+/// Adapters implement this port with a concrete cryptographic backend. Both
+/// operations must produce the same digest for the same input bytes.
+pub trait DocumentHasher {
+    /// Hashes a byte slice already held in memory.
+    fn hash_bytes(&self, data: &[u8]) -> Sha256Digest;
+
+    /// Hashes a stream by consuming it in fixed-size blocks, so inputs of
+    /// any length are digested without loading them fully into memory.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainError::StreamRead`] when reading from `reader` fails.
+    fn hash_stream(&self, reader: &mut dyn Read) -> Result<Sha256Digest, DomainError>;
+}
+\end{lstlisting}
+
+El adaptador \texttt{RingSha256Hasher} (\rutarepo{crates/infrastructure/src/hashing.rs}) lo implementa con el crate \texttt{ring}~0.17. La variante de flujo consume la entrada en bloques de 64~KiB, de modo que el consumo de memoria es plano para entradas de cualquier tamaño, y reintenta las lecturas interrumpidas por señales del sistema operativo. El resultado es el value object \texttt{Sha256Digest}, un arreglo fijo de 32 bytes con constructores que rechazan longitudes o codificaciones hexadecimales inválidas. Siguiendo la práctica de desarrollo guiado por pruebas del proyecto, los primeros tests del adaptador son los vectores oficiales de FIPS 180-4 \cite{nist2015fips1804}, complementados con una verificación de interoperabilidad contra \texttt{sha256sum} y con propiedades verificadas por generación aleatoria de casos. El caso de uso \texttt{HashDocument} expone el servicio a la interfaz de usuario.
+
+\subsection{S2. Cifrado autenticado y envelope encryption}\label{sec:impl-s2-cifrado}
+
+{\emergencystretch=2em La confidencialidad en reposo diseñada en \cref{sec:cifrado-reposo} se implementa con dos puertos. El primero, \texttt{AuthenticatedCipher} (\rutarepo{crates/domain/src/crypto/cipher.rs}), declara las operaciones de sellado y apertura autenticados; el material de clave cruza la interfaz como slices de bytes para que el crate de dominio permanezca libre de dependencias criptográficas, mientras los buffers propietarios viven en contenedores \texttt{Zeroizing} del lado del llamador. Su adaptador, \texttt{RingAesGcmCipher} (\rutarepo{crates/infrastructure/src/encryption.rs}), implementa AES-256-GCM con \texttt{ring} \cite{dworkin2007,mcgrew2008}: en cada operación de sellado se extrae un nonce fresco de 96 bits del CSPRNG del sistema, y la salida adopta el formato fijo nonce~(12~bytes)~$\Vert$~criptograma~$\Vert$~tag~(16~bytes), representado por el value object \texttt{SealedPayload}, que rechaza cualquier secuencia menor a 28 bytes. Todo rechazo de descifrado se colapsa deliberadamente en el error opaco \texttt{AuthenticationFailed}, que no revela si falló la clave, el tag o los datos.\par}
+
+Los datos adicionales autenticados ligan cada criptograma a la identidad y versión del documento, tal como exigió el diseño para prevenir ataques de intercambio y de reversión. La función de dominio \texttt{document\_aad} (Listado~\ref{lst:impl-document-aad}) construye ese vínculo: 16 bytes crudos del UUID del documento seguidos de la versión como 4 bytes big-endian.
+
+\begin{lstlisting}[language=Rust,caption={Construcción del AAD que liga el criptograma a su documento (\texttt{crates/domain/src/crypto/cipher.rs}).},label={lst:impl-document-aad}]
+/// Builds the additional authenticated data that binds a sealed document to
+/// its identity: the 16 raw bytes of the document id UUID followed by the
+/// document version as 4 big-endian bytes.
+///
+/// Sealing a document with this AAD makes decryption fail unless the caller
+/// asks for exactly the same document and version. That prevents
+/// substituting one document's ciphertext for another's (the id would
+/// differ) and replaying an older version of the same document (the version
+/// would differ).
+pub fn document_aad(id: DocumentId, version: DocumentVersion) -> [u8; DOCUMENT_AAD_LEN] {
+    let mut aad = [0u8; DOCUMENT_AAD_LEN];
+    aad[..16].copy_from_slice(id.as_uuid().as_bytes());
+    aad[16..].copy_from_slice(&version.get().to_be_bytes());
+    aad
+}
+\end{lstlisting}
+
+El segundo puerto, \texttt{KeyManager} (\rutarepo{crates/domain/src/crypto/keys.rs}), gobierna el esquema de envelope encryption \cite{dworkin2012}: generar una DEK, envolverla bajo la KEK, desenvolverla y re-envolverla bajo una KEK nueva. Su adaptador \texttt{EnvelopeKeyManager} genera una DEK aleatoria de 32 bytes por documento y la sella con el mismo cifrador AES-256-GCM, pero con AAD \emph{vacío}: la decisión, documentada en el propio código, es que la DEK envuelta ya queda ligada a su documento por el archivo que la transporta, y mantener la envoltura independiente de la identidad permite rotar la KEK re-envolviendo todas las claves sin necesidad de saber a qué documento pertenece cada una. El caso de uso \texttt{EncryptDocument} serializa el resultado en el formato de archivo \texttt{DVLT1} (\cref{tab:impl-vault}), definido normativamente en \rutarepo{crates/application/src/vault.rs}; \texttt{DecryptDocument} reconstruye el AAD con la identidad y versión que el llamador afirma, de modo que un identificador o versión incorrectos fallan exactamente igual que un criptograma alterado; y \texttt{RotateKek} re-envuelve únicamente la DEK, copiando intactos los bytes del documento sellado, con un costo independiente del tamaño del documento ---la propiedad de rotación que el diseño exigió en \cref{sec:cifrado-reposo}.
+
+\begin{table}[H]
+  \centering
+  \caption[Formato del archivo vault \texttt{DVLT1}]{Formato del archivo vault \texttt{DVLT1} (definición normativa en \texttt{crates/application/src/vault.rs}).}
+  \label{tab:impl-vault}
+  \begin{tabularx}{\linewidth}{@{}l l X@{}}
+    \toprule
+    \textbf{Desplazamiento} & \textbf{Tamaño} & \textbf{Campo} \\
+    \midrule
+    0 & 5 & Bytes mágicos ASCII \texttt{DVLT1}. \\
+    5 & 4 & Longitud $N$ (big-endian) de la DEK envuelta. \\
+    9 & $N$ & DEK envuelta: nonce~$\Vert$~criptograma~$\Vert$~tag, sellada bajo la KEK con AAD vacío. \\
+    $9+N$ & resto & Documento sellado: nonce~$\Vert$~criptograma~$\Vert$~tag, sellado bajo la DEK con AAD = identificador del documento (16 bytes UUID)~$\Vert$~versión (4 bytes big-endian). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{S3. Infraestructura de clave pública interna}\label{sec:impl-s3-pki}
+
+La CA interna de una sola capa especificada en \cref{sec:firma-digital} se implementó como un conjunto de scripts versionados bajo \rutarepo{pki/} ---\texttt{init-ca.sh}, \texttt{issue-cert.sh}, \texttt{revoke.sh}, \texttt{gen-crl.sh}--- que operan la herramienta OpenSSL con configuración declarativa (\texttt{openssl.cnf}). Los parámetros coinciden con el diseño: claves RSA de 3\,072 bits, firma sha256WithRSAEncryption en todos los casos, certificado raíz autofirmado con vigencia de 1\,825 días (cinco años), certificados de entidad final con vigencia de 365 días y CRL con vigencia de siete días conforme a RFC 5280 \cite{cooper2008}. La política de emisión obliga a que país y organización del certificado emitido coincidan con los de la CA, ignora las extensiones solicitadas en el CSR (\texttt{copy\_extensions = none}) y aplica un retroceso deliberado de cinco minutos al inicio de vigencia ---práctica común de las autoridades públicas--- para que un certificado sea utilizable de inmediato aun con desfase de reloj entre máquinas. El puerto \texttt{CertificateAuthority} se implementa en \texttt{OpensslCaAdapter} (\rutarepo{crates/infrastructure/src/certificates/authority.rs}), que ejecuta esos scripts como subprocesos con el directorio de trabajo inyectado vía \texttt{PKI\_CA\_DIR} y normaliza los números de serie a hexadecimal en mayúsculas antes de invocar subproceso alguno. El caso de uso \texttt{IssueCertificate} rehúsa reportar éxito hasta validar el certificado recién emitido contra la raíz, de modo que una CA mal inicializada falla en la emisión y no en el primer uso. Los scripts operan con disciplina defensiva ---\texttt{set -euo pipefail}, verificación previa de que \texttt{openssl} está disponible, inicialización idempotente que rehúsa sobrescribir una CA existente--- y el material de claves privadas jamás se versiona: vive únicamente en el directorio de trabajo en tiempo de ejecución, con el \texttt{.gitignore} del repositorio como red de seguridad adicional; el \texttt{README.md} del directorio documenta el orden de uso, los comandos de verificación independiente y la versión de OpenSSL (3.5.7) con la que fueron probados.
+
+La validación es el puerto \texttt{CertificateValidator}, implementado por \texttt{X509ChainValidator} (\rutarepo{crates/infrastructure/src/certificates/validator.rs}). Las crates \texttt{x509-cert}~0.2 y \texttt{der}~0.7 solo \emph{parsean} X.509 y deliberadamente no verifican firmas, así que la verificación criptográfica se implementó re-codificando a DER la estructura to-be-signed parseada y comprobando la firma PKCS\#1 v1.5 con \texttt{rsa} y \texttt{sha2} contra la clave pública del emisor ---la misma técnica para la firma de la CRL sobre su \texttt{tbsCertList}---, decisión registrada en \rutarepo{docs/adr/0004-certificate-validation-implementation.md} y correcta porque DER es una codificación canónica: decodificar y re-codificar entrada DER válida reproduce los bytes firmados. El validador ejecuta sus comprobaciones en orden fijo y reporta exactamente el primer fallo: (1) confianza del emisor ---nombre, algoritmo y firma---; (2) ventana de vigencia del certificado; (3) ventana de vigencia \emph{del emisor}, porque un emisor fuera de su propia vigencia no ancla confianza en ese instante; y (4) revocación contra la CRL opcional. El contrato de revocación es estricto: si se presenta una CRL, cualquier defecto de la lista ---ilegible, no firmada por el emisor, o vencida en su \texttt{nextUpdate}--- es un error duro y nunca un pase permisivo; omitir la CRL es una decisión explícita del llamador que el reporte de verificación hace visible. El instante de evaluación siempre es un timestamp explícito, lo que permite a las pruebas controlar el reloj.
+
+\subsection{S4. Firma digital RSA-3072}\label{sec:impl-s4-firma}
+
+El esquema de firma es el diseñado en \cref{sec:firma-digital}: RSA-3072 con SHA-256 y padding PKCS\#1 v1.5. Los puertos son \texttt{DocumentSigner} y \texttt{SignatureVerifier} (\rutarepo{crates/domain/src/crypto/signature.rs}); nunca se firma el documento sino su digest SHA-256, calculado por el puerto de hashing, y el rechazo de una verificación es un resultado tipado, no un error. Los adaptadores \texttt{RsaPkcs1Signer} y \texttt{RsaPkcs1Verifier} (\rutarepo{crates/infrastructure/src/signing.rs}) usan los crates \texttt{rsa}~0.9 y \texttt{sha2}~0.10 con la feature \texttt{oid}, que liga SHA-256 a su identificador en la estructura DigestInfo del padding, de modo que los 32 bytes ya calculados se firman sin hashear dos veces. El firmador rechaza en construcción cualquier módulo menor a 3\,072 bits; acepta la clave privada en PEM PKCS\#8 o PKCS\#1, la retiene en un buffer \texttt{Zeroizing}, la parsea únicamente durante la operación de firma y la descarta al salir del ámbito, y su representación de depuración omite el material (\texttt{private key pem withheld}). El verificador acepta como material de clave tanto un certificado X.509 ---del que extrae el SubjectPublicKeyInfo--- como una clave pública SPKI en PEM; una firma cuya longitud no coincide con el tamaño de la clave se rechaza como malformada, y cualquier comprobación fallida se colapsa en \texttt{MismatchedDocumentOrKey}, porque un fallo de verificación no distingue un documento alterado de una clave ajena. La elección del crate \texttt{rsa} ---con el aviso RUSTSEC-2023-0071 aceptado y un plan de contingencia hacia \texttt{ring} si el riesgo se volviera inaceptable--- está registrada en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}.
+
+\subsection{S5. Sellado de tiempo RFC 3161}\label{sec:impl-s5-sellado}
+
+El sellado de tiempo conserva el contrato del diseño (\cref{sec:sellado-tiempo}): el puerto \texttt{TimestampService} recibe un digest SHA-256 y devuelve el token como bytes DER opacos, y el puerto \texttt{TimestampVerifier} verifica un token contra el digest esperado y un ancla de confianza en PEM \cite{adams2001}. Existen dos adaptadores emisores, intercambiables sin tocar el dominio. \texttt{LocalOpensslTsa} (\rutarepo{crates/infrastructure/src/timestamp/local.rs}) es una autoridad de sellado local de desarrollo y demostración que ejecuta \texttt{openssl ts -query} y \texttt{openssl ts -reply} como subprocesos contra el directorio de trabajo preparado por \rutarepo{pki/issue-tsa-cert.sh}; el paso de respuesta se serializa entre hilos y procesos con un lock advisory exclusivo sobre el archivo \texttt{serial.lock} (crate \texttt{fs2}), porque OpenSSL avanza el archivo de serie con una secuencia leer-incrementar-escribir no atómica que, sin serialización, acuñaría números de serie duplicados. \texttt{CincelTsaAdapter} (\rutarepo{crates/infrastructure/src/timestamp/cincel.rs}) es el camino remoto hacia el sandbox del PSC \cite{cincel2024}, implementado con \texttt{reqwest}~0.12 en modo bloqueante sobre \texttt{rustls}; envía el digest por \texttt{POST} a \rutarepo{/api/v1/timestamps} con la credencial en el header \texttt{X-Api-Key}, maneja las respuestas de token inmediato, procesamiento diferido con sondeo (\texttt{RetryPolicy} configurable) y rechazo, y mantiene la credencial en un buffer \texttt{Zeroizing} excluido de la depuración y de todo mensaje de error. Los resultados de la exploración con ambos emisores se reportan en \cref{sec:impl-spike-tsa}.
+
+La verificación, \texttt{Rfc3161Verifier} (\rutarepo{crates/infrastructure/src/timestamp/verify.rs}), opera en dos etapas conforme a \rutarepo{docs/adr/0005-rfc3161-verification-strategy.md}. La etapa nativa decodifica el DER con \texttt{cms}~0.2 y \texttt{x509-tsp}~0.1 ---aceptando una respuesta \texttt{TimeStampResp} completa o un token CMS desnudo---, extrae el \texttt{TSTInfo}, compara el message imprint contra el digest esperado exigiendo tanto el OID id-sha256 (2.16.840.1.101.3.4.2.1) como la igualdad de bytes, y lee el tiempo de generación en formato RFC 3339; las entradas indecodificables y los desajustes de imprint se diagnostican aquí, con causas precisas y sin lanzar subproceso alguno. La etapa delegada encarga la comprobación de la firma CMS y de la cadena de certificados a \texttt{openssl ts -verify}, montando los archivos en un directorio temporal privado (modo 0700, nombre impredecible) que se elimina en todo camino de retorno; la aceptación produce \texttt{Valid} con el instante de generación, y un rechazo produce \texttt{UntrustedToken} con el diagnóstico de la herramienta. Implementar a mano la verificación CMS ---atributos firmados, comprobaciones de tipo de contenido, construcción de cadena--- habría añadido una superficie criptográfica sustancial que el prototipo no debe poseer, mientras que la dependencia de la herramienta \texttt{openssl} ya existía para la CA interna.
+
+\subsection{S6. Verificación integral}\label{sec:impl-s6-verificacion}
+
+{\emergencystretch=2em El caso de uso \texttt{VerifyDocument} (\rutarepo{crates/application/src/verification.rs}) compone cuatro puertos ---\texttt{DocumentHasher}, \texttt{SignatureVerifier}, \texttt{CertificateValidator} y \texttt{TimestampVerifier}--- en un único reporte sobre un flujo de entrada, materializando el flujo de verificación en cuatro pasos que el diseño describió en \cref{sec:sellado-tiempo}. El reporte contiene cuatro componentes (integridad, firma, certificado y sello de tiempo), cada uno con estado \texttt{Passed}, \texttt{Failed} o \texttt{Skipped} y una causa legible. La semántica es deliberadamente conservadora: los componentes cuya evidencia no se aportó se reportan omitidos \emph{con su razón}, nunca desaparecen en silencio, y no cuentan contra el veredicto; el veredicto es \texttt{NotValid} si cualquier componente ejercitado falló (Listado~\ref{lst:impl-verdict}). La integridad compara el digest recomputado contra el que atestigua el token de sellado ---sin token no existe referencia independiente y el componente se omite---, y el verificador revisa el imprint \emph{antes} que la cadena de confianza, de modo que un token no confiable aún puede confirmar que el digest coincide (integridad aprobada con sello fallido). El estado del certificado habla únicamente del instante de evaluación: que esté hoy expirado o revocado no invalida por sí mismo una firma producida cuando era válido, y el texto del reporte lo hace explícito, dejando la lectura jurídica al operador. Los errores ---flujo ilegible, PEM imparseable, CRL no confiable o vencida--- no son resultados: abortan la verificación.\par}
+
+\begin{lstlisting}[language=Rust,caption={Veredicto de la verificación integral sobre los cuatro componentes (\texttt{crates/application/src/verification.rs}).},label={lst:impl-verdict}]
+    let components = [&integrity, &signature, &certificate, &timestamp];
+    let verdict = if components
+        .iter()
+        .any(|component| component.status == ComponentStatus::Failed)
+    {
+        Verdict::NotValid
+    } else {
+        Verdict::Valid
+    };
+
+    Ok(VerificationReport {
+        document_digest_hex: digest.to_hex(),
+        integrity,
+        signature,
+        certificate,
+        timestamp,
+        verdict,
+    })
+}
+\end{lstlisting}
+
+\subsection{S7. Hash de contraseñas con Argon2id}\label{sec:impl-s7-argon2}
+
+El puerto \texttt{PasswordHasher} (\rutarepo{crates/domain/src/crypto/password.rs}) declara el contrato del almacenamiento de contraseñas: cada hash usa una sal aleatoria fresca y produce una cadena en formato PHC, y una cadena almacenada ilegible es un error (\texttt{MalformedPasswordHash}) que jamás se confunde con un intento de acceso fallido. El adaptador \texttt{Argon2idHasher} (\rutarepo{crates/infrastructure/src/password.rs}) lo implementa con el crate \texttt{argon2}~0.5 y sales de \texttt{getrandom}, con los parámetros calibrados que fijó el diseño en \cref{sec:autenticacion} declarados como constantes (Listado~\ref{lst:impl-argon2}): 262\,144~KiB de memoria (256~MiB), dos iteraciones, un carril, sal de 16 bytes y salida de 32 bytes. El PHC resultante inicia con \texttt{\$argon2id\$v=19\$} y contiene \texttt{m=262144,t=2,p=1}, propiedad fijada por prueba. En la demostración de cierre, el hardware de referencia promedió 529.4 ms sobre cinco corridas, dentro de la banda objetivo inclusiva de 500 a 1\,000 milisegundos, y emite un veredicto \texttt{BelowBand}, \texttt{InBand} o \texttt{AboveBand}. Si el hardware de despliegue difiere, la medición debe repetirse.
+
+\begin{lstlisting}[language=Rust,caption={Parámetros de Argon2id declarados como constantes (\texttt{crates/infrastructure/src/password.rs}).},label={lst:impl-argon2}]
+/// Memory cost in KiB (256 MiB), calibrated on the reference host.
+const MEMORY_KIB: u32 = 262144;
+
+/// Number of passes over the memory.
+const ITERATIONS: u32 = 2;
+
+/// Degree of parallelism (lanes).
+const PARALLELISM: u32 = 1;
+
+/// Length in bytes of the derived hash.
+const OUTPUT_LEN: usize = 32;
+
+/// Length in bytes of the random salt drawn for every hash.
+const SALT_LEN: usize = 16;
+\end{lstlisting}
+
+\subsection{S8. Segundo factor TOTP y códigos de recuperación}\label{sec:impl-s8-totp}
+
+El puerto \texttt{TotpProvider} (\rutarepo{crates/domain/src/crypto/totp.rs}) declara el enrolamiento y la verificación del segundo factor; su adaptador \texttt{TotpRsProvider} (\rutarepo{crates/infrastructure/src/totp.rs}) usa el crate \texttt{totp-rs}~5 con las features \texttt{otpauth} y \texttt{zeroize}, configurada con los parámetros del diseño (\cref{sec:autenticacion}): HMAC-SHA1, códigos de seis dígitos, paso de 30 segundos, desfase aceptado de un paso a cada lado (ventana efectiva de unos 90 segundos) y secreto de 20 bytes ---igual a la salida de HMAC-SHA1, como recomienda RFC 4226 \cite{mraihi2005}--- con un mínimo aceptado de 16 bytes \cite{mraihi2011}. El URI de aprovisionamiento \texttt{otpauth://} embebe el secreto codificado en base32 sin relleno \cite{josefsson2006}; por ello, el value object \texttt{TotpEnrollment} guarda sus tres campos ---secreto crudo, secreto en base32 y URI--- en buffers \texttt{Zeroizing}. La comparación de códigos ya es de tiempo constante dentro de \texttt{totp-rs}. El puerto aislado sigue siendo deliberadamente sin estado; en la aplicación HTTP, \texttt{RedisSessionStore} materializa la decisión de \rutarepo{docs/adr/0008-totp-single-use-enforcement.md}: reclama atómicamente una huella del código aceptado con TTL de 90 segundos, por lo que una reproducción dentro de la ventana se rechaza.
+
+{\emergencystretch=2em El enrolamiento completo lo orquesta el caso de uso \texttt{EnrollTotp}, que además emite los ocho códigos de recuperación de un solo uso previstos por el diseño. El generador \texttt{RandomRecoveryCodeGenerator} produce códigos de diez símbolos en la forma \texttt{XXXXX-XXXXX} sobre un alfabeto de 32 símbolos que excluye los caracteres confundibles I, L, O y U; cada símbolo aporta cinco bits extraídos sin sesgo de módulo, para un total de 50 bits de entropía por código. Los códigos en claro se muestran una única vez (viajan como \texttt{Zeroizing}); lo que se almacena es el value object \texttt{RecoveryCodeSet}: ocho ranuras con hashes PHC producidos por el mismo puerto \texttt{PasswordHasher} de S7, cuya operación \texttt{consume} verifica un código contra las ranuras no usadas y consume la que coincide.\par}
+
+\subsection{S9. Cadena de auditoría}\label{sec:impl-s9-auditoria}
+
+La bitácora de auditoría es lógica de dominio pura (\rutarepo{crates/domain/src/audit/}). Cada evento registra secuencia, timestamp, actor, acción y recurso, y la cadena se define por la regla
+\[
+  \mathit{chain}(n) = \text{SHA-256}\bigl(\mathit{chain}(n-1) \,\Vert\, \text{bytes canónicos}(n)\bigr),
+\]
+con un valor génesis fijo de 32 bytes cero para la primera entrada. La codificación canónica serializa la secuencia como 8 bytes big-endian y cada campo variable con un prefijo de longitud de 4 bytes big-endian, de modo que dos eventos distintos jamás producen los mismos bytes; el timestamp se normaliza siempre a UTC y su forma RFC 3339 es la única representación textual que cubre la cadena. El Listado~\ref{lst:impl-chain} muestra el cálculo del eslabón. El hashing pasa por el puerto \texttt{DocumentHasher}, así que ningún backend criptográfico entra al crate de dominio.
+
+\begin{lstlisting}[language=Rust,caption={Regla de encadenamiento de la bitácora (\texttt{crates/domain/src/audit/chain.rs}).},label={lst:impl-chain}]
+pub const GENESIS_PREVIOUS: Sha256Digest = Sha256Digest::from_array([0u8; SHA256_LEN]);
+
+/// Computes the chain value of an event given the previous chain value.
+///
+/// # Errors
+///
+/// Propagates the canonical-encoding failures of
+/// [`AuditEvent::canonical_bytes`].
+pub fn chain_digest(
+    hasher: &dyn DocumentHasher,
+    previous: &Sha256Digest,
+    event: &AuditEvent,
+) -> Result<Sha256Digest, DomainError> {
+    let canonical = event.canonical_bytes()?;
+    let mut linked = Vec::with_capacity(SHA256_LEN + canonical.len());
+    linked.extend_from_slice(previous.as_bytes());
+    linked.extend_from_slice(&canonical);
+    Ok(hasher.hash_bytes(&linked))
+}
+\end{lstlisting}
+
+La verificación recomputa cada eslabón desde el génesis y devuelve la cadena como válida o rota, señalando el índice del primer eslabón que no coincide. Esta construcción detecta la alteración de cualquier campo, la inserción de un evento forjado y el borrado o reordenamiento en cualquier posición interior. Su garantía tiene un límite documentado y fijado por prueba: el truncamiento de la cola \emph{no} se detecta, porque todo prefijo de una cadena válida es a su vez una cadena válida desde el mismo génesis; detectarlo exige anclar el valor de cadena más reciente fuera del log, responsabilidad que se delega deliberadamente a la capa de persistencia conforme a \rutarepo{docs/adr/0007-audit-chain-anchoring.md}. El adaptador persistente, \texttt{FileAuditLog} (\rutarepo{crates/infrastructure/src/audit/file.rs}), almacena un objeto JSON por línea con los campos del evento y el valor de cadena en hexadecimal; el append lee solo la última línea para enlazar y escribe en modo de anexado, con la secuencia leer-luego-escribir protegida por un lock advisory exclusivo (\texttt{fs2}) sobre un archivo hermano, de modo que escritores concurrentes ---hilos o procesos--- se serializan en lugar de bifurcar la cadena. Un adaptador en memoria, \texttt{InMemoryAuditLog}, aplica la misma regla para pruebas y procesos efímeros, y el puerto \texttt{Clock} (\texttt{SystemClock} en infraestructura) suministra el tiempo, lo que permite a las pruebas controlarlo.
+
+\subsection{S10. Paquete de evidencia}\label{sec:impl-s10-evidencia}
+
+El caso de uso \texttt{ExportEvidencePackage} (\rutarepo{crates/application/src/evidence.rs}) construye el paquete autocontenido que el diseño prometió en \cref{sec:sellado-tiempo}: un archivo ZIP con el documento, su firma separada (\texttt{<doc>.sig}), su sello de tiempo (\texttt{<doc>.tsr}), el certificado del firmante (\texttt{certificado.pem}), la raíz emisora (\texttt{ca.pem}), la CRL vigente (\texttt{crl.pem}), opcionalmente la cadena de la autoridad de sellado (\texttt{tsa-chain.pem}) y un archivo \texttt{INSTRUCCIONES.md} generado desde una plantilla versionada, que documenta la verificación independiente completa en cuatro pasos con comandos literales de \texttt{openssl} ---incluida la versión local de la herramienta con que se redactaron---. La regla del ancla del sello es explícita: si \texttt{tsa-chain.pem} viaja en el paquete, la comprobación del token se ancla en esa cadena; en caso contrario, en \texttt{ca.pem}, pues la autoridad interna de sellado encadena a la misma raíz.
+
+Los cuatro pasos de las instrucciones reproducen, con herramientas ajenas al prototipo, la verificación integral de S6:
+
+\begin{itemize}
+  \item \textbf{Integridad}: \texttt{openssl dgst -sha256} sobre el documento, comparado carácter por carácter con el resumen registrado en las propias instrucciones.
+  \item \textbf{Firma}: extracción de la clave pública del certificado del firmante (\texttt{openssl x509 -pubkey}) y verificación de la firma separada con \texttt{openssl dgst -sha256 -verify}.
+  \item \textbf{Certificado}: concatenación de \texttt{ca.pem} y \texttt{crl.pem}, seguida de \texttt{openssl verify -crl\_check}, con la advertencia de que la CRL refleja el estado al momento de exportar y de que un certificado hoy expirado o revocado no invalida por sí solo una firma producida cuando era válido.
+  \item \textbf{Sello de tiempo}: \texttt{openssl ts -verify} contra el ancla resuelta por la regla anterior, con la inspección del token disponible vía \texttt{openssl ts -reply -in <sello> -text}.
+\end{itemize}
+
+El puerto \texttt{ArchiveWriter} lo implementa \texttt{StoredZipWriter} (\rutarepo{crates/infrastructure/src/archive.rs}), una implementación propia del subconjunto mínimo del formato ZIP \cite{pkware2022}: entradas almacenadas sin compresión (método 0), un encabezado local por entrada, directorio central y registro de fin de directorio, con CRC-32 calculado bit a bit (polinomio reflejado \texttt{0xEDB88320}, verificado contra el valor de comprobación estándar \texttt{0xCBF43926}). La salida es determinista ---orden de entradas del llamador y timestamps fijos a la época DOS---, de modo que archivar dos veces el mismo contenido produce bytes idénticos. La alternativa de depender del crate \texttt{zip} se descartó en \rutarepo{docs/adr/0006-evidence-package-format.md}: su línea vigente exige un compilador más nuevo que la MSRV y su build por defecto arrastra backends de compresión y criptografía innecesarios, mientras que aquí la compresión no aporta nada ---los miembros pesan pocos kilobytes y la fidelidad byte a byte importa más que el tamaño---. La seguridad de extracción se garantiza en el dominio: el value object \texttt{ArchiveEntry} restringe los nombres a un subconjunto ASCII conservador sin separadores de ruta, así que un archivo extraído jamás escribe fuera de su directorio destino.
+
+\section{La interfaz de línea de comandos}\label{sec:impl-cli}
+
+El primer adaptador driving entregado por el prototipo es la interfaz de línea de comandos \texttt{despacho-cli}, construida con \texttt{clap}~4 en modo derive (\rutarepo{crates/bin/src/cli.rs}). El diseño anticipó un adaptador de línea de comandos para tareas administrativas junto a los adaptadores REST y WebSocket (\cref{sec:vista-componentes}); el orden de construcción privilegió la CLI porque permitió ejercitar primero los servicios criptográficos de extremo a extremo y después reutilizarlos desde HTTP. La bandera global \texttt{-{}-json} conmuta las operaciones administrativas a un objeto JSON legible por máquina. La \cref{tab:impl-cli-catalogo} presenta el catálogo completo de subcomandos con sus banderas reales, y la \cref{tab:impl-cli-casos} el cableado de cada grupo hacia los casos de uso de \texttt{application} y los adaptadores concretos que la raíz de composición inyecta.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Catálogo de subcomandos de \texttt{despacho-cli}. La bandera global \texttt{-{}-json} aplica a todos.}
+  \label{tab:impl-cli-catalogo}
+  \footnotesize
+  \renewcommand{\arraystretch}{0.90}
+  \begin{tabularx}{\linewidth}{@{}L{7.2cm} X@{}}
+    \toprule
+    \textbf{Comando y banderas} & \textbf{Efecto} \\
+    \midrule
+    \texttt{serve -{}-signer-cert <CERT> -{}-signer-key <KEY> [-{}-bind <ADDR>] [-{}-data-dir <DIR>]} & Inicia la aplicación HTTP autenticada con PostgreSQL, Redis, documentos cifrados y TSA OpenSSL. \\
+    \midrule
+    \texttt{crypto hash <FILE>} & Resumen SHA-256 del archivo. \\
+    \midrule
+    \texttt{vault encrypt <FILE> -{}-doc-id <UUID> [-{}-version <N>]} & Cifra con envelope encryption; escribe \texttt{<FILE>.enc}. \\
+    \texttt{vault decrypt <PACKAGE> -{}-doc-id <UUID> [-{}-version <N>] [-{}-out <PATH>]} & Descifra un archivo \texttt{DVLT1}; sin \texttt{-{}-out} escribe el claro a la salida estándar. \\
+    \texttt{vault rotate-kek -{}-file <PATH>} & Re-envuelve la DEK bajo la KEK de \texttt{NEW\_KEK\_BASE64}. \\
+    \midrule
+    \texttt{pki [-{}-scripts-dir <DIR>] init-ca} & Crea la CA raíz interna (idempotente). \\
+    \texttt{pki issue -{}-cn <CN>} & Emite un certificado de entidad final. \\
+    \texttt{pki revoke -{}-serial <HEX>} & Revoca por número de serie. \\
+    \texttt{pki gen-crl} & Genera la CRL en PEM. \\
+    \texttt{pki show <CERT>} & Inspecciona sujeto, emisor, serie y vigencia. \\
+    \midrule
+    \texttt{sign <FILE> -{}-cert <PATH> -{}-key <PATH>} & Firma el digest del archivo; escribe \texttt{<FILE>.sig}. \\
+    \texttt{timestamp <INPUT> [-{}-mock] [-{}-out <PATH>] [-{}-pki-dir <DIR>]} & Solicita un sello RFC 3161; escribe \texttt{<INPUT>.tsr}. Con \texttt{-{}-mock} usa la TSA local; sin ella, el proveedor remoto. \\
+    \texttt{verify <FILE> -{}-sig <PATH> -{}-cert <PATH> -{}-ca <PATH> [-{}-tsr] [-{}-crl] [-{}-tsa-cert] [-{}-at <RFC3339>]} & Verificación integral de cuatro componentes; \texttt{-{}-at} evalúa el certificado a un instante dado. \\
+    \texttt{package export <FILE> -{}-sig -{}-tsr -{}-cert -{}-ca -{}-crl [-{}-tsa-chain] -{}-out <PATH>} & Exporta el paquete de evidencia, previa verificación de los artefactos. \\
+    \midrule
+    \texttt{auth calibrate} & Mide el costo real de Argon2id contra la banda de 500--1\,000 ms. \\
+    \texttt{auth hash-password} & Hash PHC de una contraseña leída de la entrada estándar. \\
+    \texttt{auth verify-password -{}-hash <PHC>} & Verifica una contraseña contra un PHC almacenado. \\
+    \texttt{auth totp enroll -{}-user <EMAIL> -{}-secret-out <PATH>} & Enrola el segundo factor y emite los códigos de recuperación. \\
+    \texttt{auth totp verify -{}-code <CODE> -{}-secret-file <PATH>} & Verifica un código TOTP. \\
+    \midrule
+    \texttt{audit append -{}-action <STRING> -{}-resource <STRING>} & Anexa un evento encadenado a la bitácora. \\
+    \texttt{audit verify-chain} & Verifica la cadena completa desde el génesis. \\
+    \texttt{audit show} & Lista los eventos en orden de inserción. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Correspondencia entre comandos, casos de uso de \texttt{application} y adaptadores inyectados por la raíz de composición.}
+  \label{tab:impl-cli-casos}
+  \begin{tabularx}{\linewidth}{@{}L{3.4cm} L{5.2cm} >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Comando} & \textbf{Caso(s) de uso} & \textbf{Adaptadores inyectados} \\
+    \midrule
+    \texttt{serve} & \texttt{IdentityService} + \texttt{LocalDocumentWorkflow} & PostgreSQL, Redis, Argon2id, TOTP, repositorio JSON cifrado, bitácora, firma, TSA local y ZIP \\
+    \texttt{crypto hash} & \texttt{HashDocument} & \texttt{RingSha256Hasher} \\
+    \texttt{vault *} & \texttt{EncryptDocument}, \texttt{DecryptDocument}, \texttt{RotateKek} & \texttt{RingAesGcmCipher}, \texttt{EnvelopeKeyManager} \\
+    \texttt{pki *} & \texttt{InitializeCa}, \texttt{IssueCertificate}, \texttt{RevokeCertificate}, \texttt{GenerateCrl}, \texttt{InspectCertificate} & \texttt{OpensslCaAdapter}, \texttt{X509ChainValidator} \\
+    \texttt{sign} & \texttt{SignDocument} + \texttt{VerifySignature} & \texttt{RsaPkcs1Signer}, \texttt{RsaPkcs1Verifier} \\
+    \texttt{timestamp} & \texttt{TimestampDocument} & \texttt{LocalOpensslTsa} o \texttt{CincelTsaAdapter} \\
+    \texttt{verify} & \texttt{VerifyDocument} & \texttt{RingSha256Hasher}, \texttt{RsaPkcs1Verifier}, \texttt{X509ChainValidator}, \texttt{Rfc3161Verifier} \\
+    \texttt{package export} & \texttt{VerifyDocument} + \texttt{ExportEvidencePackage} & los cuatro anteriores más \texttt{StoredZipWriter} \\
+    \texttt{auth calibrate}, \texttt{hash-password}, \texttt{verify-password} & \texttt{CalibratePassword\allowbreak Hashing}, \texttt{HashPassword}, \texttt{VerifyPassword} & \texttt{Argon2idHasher} \\
+    \texttt{auth totp *} & \texttt{EnrollTotp}, \texttt{VerifyTotp} & \texttt{TotpRsProvider}, \texttt{RandomRecoveryCodeGenerator}, \texttt{Argon2idHasher} \\
+    \texttt{audit *} & \texttt{AppendAuditEvent}, \texttt{VerifyAuditChain}, \texttt{ShowAuditLog} & \texttt{FileAuditLog}, \texttt{RingSha256Hasher}, \texttt{SystemClock} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Con \texttt{-{}-json}, cada handler imprime exactamente un objeto JSON en la salida estándar ---por ejemplo, \texttt{crypto hash} emite \texttt{\{algorithm, digest, file\}} y \texttt{verify} emite el reporte completo con los cuatro componentes y el veredicto---, mientras los diagnósticos van siempre a la salida de error. Los códigos de salida están pensados para que los scripts bifurquen directamente: el proceso termina con código distinto de cero cuando \texttt{verify} produce un veredicto no válido, cuando \texttt{auth verify-password} reporta una contraseña que no coincide, cuando \texttt{auth totp verify} rechaza el código, cuando \texttt{audit verify-chain} encuentra la cadena rota ---imprimiendo antes el JSON de fallo con el índice del primer eslabón roto--- y cuando \texttt{package export} rehúsa exportar. Los subcomandos de lectura de la bitácora (\texttt{verify-chain}, \texttt{show}) rehúsan operar sobre un archivo inexistente: reportar una ruta equivocada o un log borrado como una cadena vacía válida frustraría el propósito de la verificación.
+
+La raíz de composición (\rutarepo{crates/bin/src/main.rs}) es el único lugar del sistema donde los adaptadores concretos se instancian e inyectan en los casos de uso, y el único crate que usa \texttt{anyhow}, tal como estableció el patrón de inyección de dependencias por composición del diseño (\cref{sec:inyeccion-dependencias}). Ahí ---y no en los adaptadores, que quedan libres de acceso al entorno--- se leen los secretos: la KEK de \texttt{KEK\_BASE64} a un buffer \texttt{Zeroizing}, la clave privada del firmante desde su archivo PEM, la credencial del proveedor de sellado. La raíz concentra también salvaguardas operativas que no pertenecen a ningún servicio individual: \texttt{sign} verifica la firma recién producida contra el certificado \emph{antes} de escribir \texttt{<FILE>.sig}, de modo que una clave que no corresponde al certificado falla ahí y no produce una firma inverificable; \texttt{timestamp} relee el token recibido y comprueba que cubra el digest calculado antes de escribir el archivo \texttt{.tsr}; \texttt{vault rotate-kek} escribe a un archivo temporal y renombra encima, de modo que un fallo a la mitad deja el original intacto; y \texttt{package export} somete los artefactos al mismo caso de uso \texttt{VerifyDocument} de la verificación integral ---CRL y token incluidos--- y rehúsa exportar si el veredicto no es válido, nombrando cada componente fallido, porque un paquete que fallaría sus propias instrucciones de verificación no debe existir.
+
+La integración de todos los servicios se demuestra con el guion \rutarepo{scripts/demo.sh}, que compila el binario y recorre el ciclo completo de evidencia en un directorio temporal: creación de la autoridad interna, del firmante y de la autoridad de sellado; hash del documento de muestra; cifrado en reposo con corrupción deliberada de un byte y observación del rechazo; firma y obtención del sello de tiempo; verificación integral con los cuatro componentes válidos; alteración de una copia del documento con el consecuente fallo del componente de firma; exportación del paquete de evidencia y su verificación con solo \texttt{openssl} y \texttt{unzip}; revocación del certificado y su detección; calibración de autenticación y códigos de un solo uso; y bitácora encadenada con anexado, verificación, manipulación y nueva verificación. La transcripción íntegra de una ejecución real, capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7, está versionada en \rutarepo{docs/demo-transcript.md}. Una segunda demostración, \rutarepo{scripts/api-demo.sh}, recorre el mismo núcleo a través de HTTP y se describe en la sección siguiente. El entorno, los comandos y el resumen de ambos recorridos quedaron asentados en \rutarepo{docs/verification-report.md}.
+
+\section{Aplicación HTTP autenticada y persistencia híbrida}\label{sec:impl-http}
+
+La superficie HTTP se construyó como un adaptador driving en \texttt{crates/web}: sus handlers convierten cabeceras, UUID, cuerpos binarios y respuestas JSON, pero solo conocen los puertos \texttt{IdentityWorkflow} y \texttt{Document\allowbreak Workflow} de \texttt{application}. La implementación \texttt{IdentityService} orquesta usuarios, credenciales, segundo factor, sesiones y auditoría; \texttt{LocalDocument\allowbreak Workflow} orquesta hash, cifrado, envoltura de claves, firma, validación X.509, sellado RFC 3161, verificación y archivo ZIP. Como ambos conjuntos de adaptadores realizan trabajo síncrono, los handlers trasladan cada caso de uso al pool bloqueante de Tokio: esta separación evita el fallo de runtime anidado que una primera prueba integral detectó al invocar el cliente PostgreSQL desde un worker asíncrono. La raíz de composición selecciona explícitamente \texttt{LocalOpensslTsa}; el camino de ejecución no lee la configuración de Cincel ni puede degradarse silenciosamente hacia un proveedor externo.
+
+El flujo de identidad comienza en \texttt{POST /api/v1/auth/bootstrap}: solo funciona mientras PostgreSQL no contenga usuarios y una transacción con bloqueo exclusivo de la tabla hace atómica la creación del primer Owner. El correo se normaliza, la contraseña se almacena como PHC Argon2id y el enrolamiento devuelve una sola vez el secreto TOTP y ocho códigos de recuperación. \texttt{POST /api/v1/auth/login} verifica la contraseña y crea en Redis un desafío de cinco minutos; TOTP o un código de recuperación consumido completan la autenticación y emiten un bearer token opaco de 256 bits con TTL de 24 horas. Redis nunca usa el token en claro como clave: deriva su índice con SHA-256. Logout elimina ese índice de inmediato. Cinco contraseñas rechazadas bloquean por 15 minutos la clave derivada del correo, sin distinguir por error si la cuenta existe; un segundo factor rechazado consume su desafío.
+
+La tabla \texttt{users} de PostgreSQL conserva UUID, correo único, PHC, rol, estado activo, secreto TOTP protegido, códigos de recuperación hasheados y una revisión para actualización optimista. \texttt{AesGcmSecretProtector} cifra el secreto TOTP con la misma KEK de runtime y lo liga al UUID mediante datos autenticados. Cada petición protegida resuelve la sesión en Redis y relee rol y estado desde PostgreSQL, por lo que una desactivación o cambio de rol no queda congelado durante las 24 horas del token. Los cuatro roles son Owner, Litigante, Paralegal y Cliente. El Cliente permanece sin permisos documentales hasta que la pertenencia a casos sea un atributo durable; así se evita convertir el conocimiento de un UUID en autorización transversal.
+
+El flujo documental comienza con \texttt{POST /api/v1/documents}. El cuerpo binario se limita a 16~MiB y \texttt{X-Document-Name} aporta el nombre seguro. \texttt{X-Actor} fue eliminado: el actor de auditoría procede exclusivamente del bearer token y la acción se contrasta con la matriz RBAC antes de invocar el workflow. La aplicación crea un UUID y la versión uno, calcula SHA-256, cifra mediante \texttt{DVLT1} ligado al par identidad--versión y persiste el registro. \texttt{FileDocument\allowbreak Repository} escribe un JSON cifrado por UUID bajo \texttt{runtime-data/\allowbreak documents}; la bitácora encadenada se mantiene en \texttt{runtime-data/\allowbreak audit.jsonl}. Usuarios y autenticación ya ejercitan PostgreSQL y Redis; la migración relacional de documentos y auditoría permanece como límite explícito.
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato HTTP de identidad.}
+  \label{tab:impl-http-identidad}
+  \begin{tabularx}{\linewidth}{@{}L{6.2cm} X@{}}
+    \toprule
+    \textbf{Ruta} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{POST /api/v1/auth/bootstrap} & Crea atómicamente el primer Owner y entrega material de enrolamiento; responde \texttt{201}. \\
+    \texttt{POST /api/v1/auth/login} & Verifica la contraseña y entrega un desafío MFA de cinco minutos. \\
+    \texttt{POST /api/v1/auth/mfa/totp} & Verifica y reclama un TOTP; crea una sesión revocable. \\
+    \texttt{POST /api/v1/auth/mfa/recovery} & Consume un código recovery con actualización optimista; crea una sesión. \\
+    \texttt{GET /api/v1/auth/me} & Devuelve identidad y rol vigentes de la sesión. \\
+    \texttt{POST /api/v1/auth/logout} & Revoca la sesión; responde \texttt{204}. \\
+    \texttt{POST /api/v1/users} & Permite al Owner crear otra cuenta y enrolar su segundo factor. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato HTTP documental protegido por RBAC.}
+  \label{tab:impl-http-rutas}
+  \begin{tabularx}{\linewidth}{@{}L{6.2cm} X@{}}
+    \toprule
+    \textbf{Ruta} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{GET /healthz} & Diagnóstico del proceso. \\
+    \texttt{POST /api/v1/documents} & Owner, Litigante o Paralegal cargan, cifran y persisten la versión inicial; responde \texttt{201}. \\
+    \texttt{POST /api/v1/\allowbreak documents/<id>/seal} & Owner o Litigante firman el digest y almacenan evidencia inmutable con sello local verificado. \\
+    \texttt{POST /api/v1/\allowbreak documents/<id>/verify} & Owner, Litigante o Paralegal verifican los cuatro componentes. \\
+    \texttt{GET /api/v1/\allowbreak documents/<id>/evidence} & Owner, Litigante o Paralegal exportan el ZIP interoperable. \\
+    \texttt{GET /api/v1/audit/verify} & Solo Owner verifica la cadena completa y el primer índice roto. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Sellar es una transición de una sola vez: antes de guardar, el workflow descifra el paquete, comprueba que coincide con el digest almacenado, firma, verifica que la llave corresponde al certificado, solicita el token local y lo verifica contra la cadena de la TSA. Verificar reutiliza el reporte de cuatro componentes. Exportar vuelve a verificar y materializa el texto claro solamente en la respuesta ZIP. Los errores se traducen a una envoltura JSON estable: credenciales, MFA o sesión en \texttt{401}; permiso insuficiente en \texttt{403}; entrada inválida en \texttt{400} o \texttt{422}; ausencia en \texttt{404}; conflicto en \texttt{409}; bloqueo en \texttt{429}; y fallos internos redactados en \texttt{500}.
+
+El guion \rutarepo{scripts/api-demo.sh} levanta PostgreSQL y Redis en puertos efímeros, genera una PKI temporal, desactiva Cincel e inicia \texttt{serve}. Crea un Owner y un Paralegal, calcula TOTP desde un cliente independiente, comprueba un \texttt{401} sin sesión y un \texttt{403} al intentar sellar como Paralegal, recorre el workflow documental, revoca por logout y demuestra que un recovery code se acepta una sola vez. También busca la contraseña en PostgreSQL, el token en las claves Redis y el texto claro en documentos persistidos. Finalmente verifica el ZIP con OpenSSL. El contrato está en \rutarepo{docs/http-api.md}; las decisiones, en \rutarepo{docs/adr/0011-local-document-workflow.md} y \rutarepo{docs/adr/0012-revocable-sessions-and-rbac.md}.
+
+\section{Resultados de la exploración del sellado de tiempo}\label{sec:impl-spike-tsa}
+
+El análisis de riesgos identificó la integración con la API del PSC como el riesgo técnico de mayor exposición (RTC-01, \cref{tab:rtc-01}), y previó como contingencia un servicio sustituto que simulara las respuestas de la TSA para no bloquear el desarrollo. El registro en el entorno de Cincel pudo completarse, pero el riesgo se materializó durante el consumo: la API no mostró estabilidad suficiente para sostener una campaña repetible y el sandbox requiere pago, por lo que no es una dependencia determinista ni económicamente neutra para la suite o la demostración (\cref{sec:riesgo-psc-materializado}). La respuesta de implementación fue más fuerte que la contingencia prevista: en lugar de un simulador, se construyó una \emph{autoridad de sellado real} operada localmente con OpenSSL, que emite tokens RFC 3161 auténticos, criptográficamente completos y verificables con herramientas independientes.
+
+La autoridad local se prepara con el script \rutarepo{pki/issue-tsa-cert.sh}: la CA interna emite un certificado de TSA RSA-3072 con vigencia de 365 días cuya extensión \texttt{extendedKeyUsage} es crítica y contiene únicamente \texttt{timeStamping}, como exige RFC 3161 \cite{adams2001}. La configuración \rutarepo{pki/tsa.cnf} fija los parámetros de operación: digests de solicitud y de firma SHA-256, exactitud declarada de un segundo (\texttt{accuracy = secs:1}), sin garantía de orden entre tokens, números de serie desde 1000, y una política de emisión identificada por el OID 1.3.6.1.4.1.13762.3 ---un arco privado del árbol de empresas de IANA, declarado explícitamente como política de demostración y no como política de producción registrada; las solicitudes que pidan cualquier otra política se rehúsan---. El adaptador \texttt{LocalOpensslTsa} ejercita esta autoridad vía el comando \texttt{timestamp -{}-mock}, y las pruebas de integración \rutarepo{crates/infrastructure/tests/local_tsa_rfc3161.rs} recorren el ciclo completo contra los scripts reales en directorios temporales, cotejando los tokens emitidos con la línea de comandos de \texttt{openssl}; ninguna de esas pruebas está marcada como ignorada. La demostración de extremo a extremo del prototipo emite sus sellos con esta autoridad, y la verificación independiente del paquete de evidencia (\texttt{openssl ts -verify -data documento -in documento.tsr -CAfile ca.pem}) los acepta.
+
+El camino remoto hacia el PSC no se eliminó: permanece como una integración explícita del comando \texttt{timestamp} cuando no se pasa \texttt{-{}-mock}. En ese modo, el binario exige \texttt{CINCEL\_BASE\_URL} y \texttt{CINCEL\_API\_KEY} no vacías en el entorno ---los valores en blanco de la plantilla no configuran nada--- y construye el \texttt{CincelTsaAdapter} con un tiempo límite de 15 segundos por solicitud y una política de reintento de cinco sondeos cada dos segundos. Debe decirse con precisión qué estatus tiene ese adaptador: su contrato HTTP ---envío del digest por \texttt{POST}, estados \texttt{completed}, \texttt{processing} y \texttt{rejected}, sondeo del recurso diferido--- es un contrato asumido por el adaptador y cubierto por un stub local, no un contrato confirmado por una campaña externa. El stub (\rutarepo{crates/infrastructure/tests/cincel_stub.rs}) cubre el token inmediato, el procesamiento diferido, los rechazos con detalle, los estados HTTP de error, los cuerpos indecodificables, la autoridad inalcanzable y la promesa de que la credencial jamás se filtra a los mensajes de error. La prueba de humo contra el sandbox real, \rutarepo{the_real_sandbox_issues_a_token}, permanece ignorada: la API no ofreció garantía operativa suficiente y el sandbox requiere pago con precios no transparentes, por lo que no forma parte de la evidencia de esta entrega.
+
+El balance honesto de la exploración es entonces el siguiente. El acceso al proveedor no produjo una ejecución suficientemente estable y repetible para declarar confirmado su contrato HTTP ni para medir el criterio de éxito de OE-3; tampoco existe un precio transparente que permita autorizar una campaña. Por decisión del proyecto, la confirmación empírica del algoritmo de firma de la TSA comercial y la tasa externa quedan fuera del alcance actual. La limitación quedó \emph{acotada arquitectónicamente}: el flujo RFC 3161 completo ---solicitud, emisión, almacenamiento del token DER y verificación en dos etapas--- está demostrado de extremo a extremo con una autoridad real, el verificador \texttt{Rfc3161Verifier} es agnóstico de la autoridad emisora porque verifica cualquier token contra el ancla de confianza suministrada, y el intercambio de emisor sigue siendo una sustitución explícita detrás del puerto \texttt{TimestampService}, sin tocar el dominio ni la lógica de verificación. Esta portabilidad no equipara las garantías: un token de la TSA interna prueba el funcionamiento técnico bajo la CA del prototipo, pero no constituye una constancia independiente emitida por un PSC autorizado.
+
+\section{Divergencias respecto al diseño y decisiones registradas}\label{sec:impl-divergencias}
+
+Durante la construcción, las decisiones con consecuencias arquitectónicas se registraron como Architecture Decision Records versionados en el directorio \rutarepo{docs/adr/} del repositorio, en el formato de Nygard \cite{nygard2011} ---contexto, decisión, estatus y consecuencias---. Estos doce registros son distintos y complementarios de los ADR de diseño presentados en \cref{sec:adrs}: aquellos capturaron las decisiones de arquitectura previas a la construcción; estos capturan las decisiones tomadas al materializarla, y el código y la configuración los citan por su ruta. La \cref{tab:impl-adrs} los resume.
+
+\begin{table}[H]
+  \centering
+  \caption{Architecture Decision Records registrados en \texttt{docs/adr/} durante la implementación.}
+  \label{tab:impl-adrs}
+  \begin{tabularx}{\linewidth}{@{}L{6.2cm} X@{}}
+    \toprule
+    \textbf{Archivo} & \textbf{Decisión} \\
+    \midrule
+    \rutarepo{0001-msrv-and-dependency-pinning.md} & MSRV Rust 1.78 y pin de los crates criptográficos a la familia \texttt{der}~0.7 (\texttt{x509-cert}~0.2, \texttt{cms}~0.2, \texttt{x509-tsp}~0.1, \texttt{rsa}~0.9; \texttt{ring} $\geq$ 0.17.12). \\
+    \rutarepo{0002-rsa-signing-crate-and-advisory.md} & Firmar con el crate \texttt{rsa}; aviso RUSTSEC-2023-0071 aceptado bajo el modelo de amenaza local y registrado en \texttt{deny.toml} y \texttt{audit.toml}. \\
+    \rutarepo{0003-zeroize-secret-material-in-domain.md} & Admitir \texttt{zeroize} en el dominio y declarar todo campo portador de secretos como buffer \texttt{Zeroizing}. \\
+    \rutarepo{0004-certificate-validation-implementation.md} & Validar X.509 re-codificando a DER la estructura to-be-signed parseada y verificando la firma con \texttt{rsa} y \texttt{sha2}. \\
+    \rutarepo{0005-rfc3161-verification-strategy.md} & Verificar tokens RFC 3161 en dos etapas: decodificación e imprint nativos; firma CMS y cadena delegadas a \texttt{openssl ts -verify}. \\
+    \rutarepo{0006-evidence-package-format.md} & Escribir el paquete de evidencia con un writer ZIP propio de entradas almacenadas, determinista y sin dependencia nueva. \\
+    \rutarepo{0007-audit-chain-anchoring.md} & Mantener la regla de cadena y documentar que el truncamiento de cola no es detectable; el anclaje de la cabeza se delega a la capa de persistencia. \\
+    \rutarepo{0008-totp-single-use-enforcement.md} & Mantener el puerto TOTP sin estado y exigir un solo uso en el llamador mediante persistencia por cuenta. \\
+    \rutarepo{0009-local-timestamp-authority.md} & Excluir la campaña externa no reproducible y demostrar RFC 3161 con una TSA OpenSSL local, sin atribuirle equivalencia jurídica. \\
+    \rutarepo{0010-http-adapter-foundation.md} & Introducir Axum como adaptador driving, conservar la dirección de dependencias y comenzar por el contrato de salud. \\
+    \rutarepo{0011-local-document-workflow.md} & Orquestar el flujo documental detrás de un puerto, persistir solo contenido cifrado y seleccionar explícitamente la TSA local en la aplicación. \\
+    \rutarepo{0012-revocable-sessions-and-rbac.md} & Usar tokens opacos revocables, usuarios PostgreSQL, estado efímero Redis y RBAC conservador sin depender de Cincel. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las divergencias sustantivas entre lo diseñado en el Capítulo~\ref{cap:analisis} y lo construido son las siguientes; se listan de forma explícita porque un documento que las omitiera daría una imagen más limpia pero menos útil del proceso de ingeniería.
+
+\begin{itemize}
+  \item \textbf{Biblioteca de firma.} El diseño situó los servicios criptográficos, de manera general, sobre la biblioteca \texttt{ring} (\cref{sec:hexagonal-definicion}). En la implementación, \texttt{ring} quedó a cargo de SHA-256 y AES-256-GCM, pero la firma se materializó con el crate \texttt{rsa} ---el adaptador conserva el nombre \texttt{RsaPkcs1Signer} que el diseño ya anticipaba en \cref{sec:inyeccion-dependencias}--- porque interopera directamente con las claves y certificados PEM que produce la CA interna vía \texttt{x509-cert} y \texttt{sha2}. El costo fue aceptar el aviso RUSTSEC-2023-0071 \cite{rustsec2023_0071}, con plan de contingencia de regresar la firma a \texttt{ring} si el riesgo se volviera inaceptable (\rutarepo{docs/adr/0002}).
+  \item \textbf{Autoridad de sellado demostrada.} El diseño delegó el sellado de tiempo en el sandbox de Cincel (\cref{sec:sellado-tiempo}); la vía demostrada de extremo a extremo es la TSA local con OpenSSL. El adaptador remoto está implementado y probado contra stub, pero la inestabilidad observada de la API y el costo del sandbox impidieron una campaña externa reproducible, como detalla \cref{sec:impl-spike-tsa}.
+  \item \textbf{Dependencias del dominio.} El diseño declaró que el dominio dependería exclusivamente de \texttt{serde}, \texttt{thiserror}, \texttt{time} y \texttt{uuid} (\cref{sec:hexagonal-definicion}); la implementación añadió \texttt{zeroize}, aceptado porque es un crate utilitario sin E/S ni superficie de framework que codifica una propiedad de seguridad del dominio ---este valor se borra al liberarse--- y no un detalle de infraestructura (\rutarepo{docs/adr/0003}).
+  \item \textbf{Verificación de firmas X.509.} El diseño asumió el manejo de certificados con \texttt{x509-cert} y \texttt{der} (\cref{sec:inventario-crates}) sin anticipar que esas crates no verifican firmas; la verificación se implementó por re-codificación manual de la estructura to-be-signed (\rutarepo{docs/adr/0004}), aceptando únicamente sha256WithRSAEncryption.
+  \item \textbf{Escritura del paquete ZIP.} El diseño previó un paquete ZIP descargable sin fijar el mecanismo; se implementó un writer propio del subconjunto de entradas almacenadas en lugar de depender del crate \texttt{zip}, cuya línea vigente rompería la MSRV (\rutarepo{docs/adr/0006}).
+  \item \textbf{Superficie driving y persistencia.} De los tres adaptadores driving previstos (\cref{sec:vista-componentes}), el prototipo entrega la línea de comandos y una rebanada HTTP multiusuario; el frontend Astro sigue como andamiaje mínimo intencional. PostgreSQL ya persiste usuarios y Redis el estado efímero de autenticación. Los documentos continúan cifrados en JSON y la bitácora en JSON Lines encadenado; esa porción local demuestra los puertos y la continuidad entre reinicios, pero no se presenta como almacenamiento transaccional de producción.
+  \item \textbf{Sesiones opacas en lugar de JWT.} El diseño nombró JWT para la frontera autenticada. La implementación usa tokens aleatorios opacos porque la revocación inmediata ya exige consultar Redis y porque duplicar el rol dentro de un JWT permitiría que la autorización quedara obsoleta. Cada petición recarga estado activo y rol desde PostgreSQL; la sustitución permanece detrás del puerto \texttt{SessionStore} (\rutarepo{docs/adr/0012}).
+  \item \textbf{Clientes de datos síncronos.} El diseño eligió \texttt{sqlx} y \texttt{fred}; el corte compatible con Rust 1.78 usa los clientes síncronos \texttt{postgres} y \texttt{redis}, fijados a versiones compatibles con la MSRV. La frontera HTTP aísla los casos de uso en el pool bloqueante de Tokio. Antes de despliegue público deberán evaluarse pooling, TLS interno y clientes asíncronos.
+  \item \textbf{Fitness functions.} De las cinco funciones de aptitud diseñadas (\cref{sec:fitness-functions}), la que exige un span de \texttt{tracing} por handler HTTP sigue diferida aunque los handlers ya están implementados; en su lugar se incorporó el umbral de cobertura del 90\,\% por crate criptográfico (FF-4, \cref{tab:impl-fitness}).
+  \item \textbf{Alcance por recurso diferido.} El RBAC global está implementado, incluido el reclamo atómico de TOTP y el límite de cinco contraseñas fallidas en 15 minutos. El rol Cliente se mantiene sin acceso documental hasta persistir la relación entre usuario, expediente y caso; conceder acceso por UUID sin ese atributo violaría el aislamiento entre clientes.
+\end{itemize}
+
+Ninguna de estas divergencias contradice la arquitectura del Capítulo~\ref{cap:analisis}; todas se resolvieron dentro de sus reglas ---detrás de un puerto, registradas en un ADR versionado y verificadas por el andamiaje de la \cref{sec:impl-workspace}---, lo que constituye en sí mismo una validación empírica de la propiedad de evolvabilidad que motivó la elección de la arquitectura hexagonal \cite{cockburn2005}.

@@ -6,9 +6,11 @@
 
 pub mod audit;
 pub mod auth;
+pub mod documents;
 pub mod error;
 pub mod evidence;
 pub mod hashing;
+pub mod identity;
 pub mod pki;
 pub mod signing;
 pub mod timestamping;

@@ -15,6 +15,8 @@ pub struct AppConfig {
     pub cincel_base_url: Option<String>,
     /// Database connection string, when configured.
     pub database_url: Option<String>,
+    /// Redis connection string, when configured.
+    pub redis_url: Option<String>,
 }
 
 impl AppConfig {
@@ -25,6 +27,7 @@ impl AppConfig {
             rust_log: env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string()),
             cincel_base_url: env::var("CINCEL_BASE_URL").ok(),
             database_url: env::var("DATABASE_URL").ok(),
+            redis_url: env::var("REDIS_URL").ok(),
         }
     }
 }

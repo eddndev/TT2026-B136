@@ -11,7 +11,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.88"
 license = "MIT"
 repository = "https://github.com/eddndev/TT2026-B136"
 
@@ -22,9 +22,11 @@ repository = "https://github.com/eddndev/TT2026-B136"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
-time = { version = "0.3", features = ["formatting", "macros"] }
+time = { version = "0.3.47", features = ["formatting", "macros"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
+axum = "0.7"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 base64 = "0.22"
 clap = { version = "4", features = ["derive"] }
 tracing = "0.1"
@@ -34,21 +36,19 @@ dotenvy = "0.15"
 anyhow = "1"
 mockall = "0.13"
 # Cross-process advisory file locking for append-only logs and the local
-# timestamp authority's serial file, held to a release that builds on
-# rust-version 1.78 (the standard library gained file locking only in a
-# newer toolchain). See docs/adr/0001-msrv-and-dependency-pinning.md.
+# timestamp authority's serial file. The adapter keeps one portable locking
+# API across every supported platform.
 fs2 = "0.4"
 
 # Temporary files and directories, used by adapters that stage inputs for
-# openssl subprocesses and by tests. proptest is held to the 1.8 line
-# because newer releases require a toolchain above rust-version 1.78; see
-# docs/adr/0001-msrv-and-dependency-pinning.md.
+# openssl subprocesses and by tests. proptest stays on the reviewed 1.8 line
+# so this dependency security update does not also change generated inputs.
 proptest = "~1.8"
 tempfile = "3"
 
-# Cryptographic crates. Pinned to versions that build on rust-version 1.78:
-# the der 0.7 family is required because x509-cert 0.3 and rsa 0.10 raise the
-# minimum toolchain. Rationale: docs/adr/0001-msrv-and-dependency-pinning.md.
+# Cryptographic crates. The der 0.7 family remains pinned because moving to
+# x509-cert 0.3 and rsa 0.10 requires a coordinated API migration. Rationale:
+# docs/adr/0001-msrv-and-dependency-pinning.md.
 # These are declared for the workspace but not yet consumed by any member.
 ring = "0.17.12"
 rsa = "0.9"
@@ -65,6 +65,12 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 zeroize = { version = "1", features = ["zeroize_derive"] }
 subtle = "2"
 getrandom = "0.2"
+# Synchronous database clients are pinned to security-fixed releases. See
+# docs/adr/0012-revocable-sessions-and-rbac.md for the blocking-I/O tradeoff
+# and docs/adr/0013-raise-msrv-for-security-fixes.md for the version floor.
+postgres = { version = "=0.19.14", features = ["with-serde_json-1", "with-uuid-1"] }
+tokio-postgres = "=0.7.18"
+redis = "=0.25.4"
 
 [profile.release]
 strip = true

@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted.
+Accepted. The Rust 1.78 floor is superseded by
+`docs/adr/0013-raise-msrv-for-security-fixes.md`; the cryptographic family
+pinning remains in force.
 
 ## Context
 

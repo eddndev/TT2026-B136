@@ -243,4 +243,12 @@ mod tests {
         let err = token_info(&[0x01, 0x02]).unwrap_err();
         assert!(matches!(err, TsaError::InvalidToken(_)));
     }
+
+    #[test]
+    fn the_backend_helper_reports_a_crypto_backend_failure() {
+        assert_eq!(
+            backend("cannot stage token".to_string()),
+            DomainError::CryptoBackendFailure("cannot stage token".to_string())
+        );
+    }
 }

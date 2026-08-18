@@ -1,0 +1,266 @@
+use std::sync::Arc;
+
+use application::documents::{DocumentSummary, DocumentWorkflow, EvidenceExport};
+use application::identity::{
+    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+};
+use application::verification::VerificationReport;
+use application::ApplicationError;
+use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use domain::audit::ChainVerification;
+use domain::crypto::DocumentId;
+use domain::identity::{Permission, Role, UserId};
+use serde_json::Value;
+use tower::ServiceExt;
+use uuid::Uuid;
+use web::application_router;
+use zeroize::Zeroizing;
+
+struct UnusedDocuments;
+
+impl DocumentWorkflow for UnusedDocuments {
+    fn upload(
+        &self,
+        _actor: &str,
+        _name: &str,
+        _document: &[u8],
+    ) -> Result<DocumentSummary, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+
+    fn seal(&self, _actor: &str, _id: DocumentId) -> Result<DocumentSummary, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+
+    fn verify(
+        &self,
+        _actor: &str,
+        _id: DocumentId,
+    ) -> Result<VerificationReport, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+
+    fn export_evidence(
+        &self,
+        _actor: &str,
+        _id: DocumentId,
+    ) -> Result<EvidenceExport, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+
+    fn verify_audit(&self) -> Result<ChainVerification, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+}
+
+struct StubIdentity;
+
+impl StubIdentity {
+    fn principal(role: Role) -> Principal {
+        Principal {
+            id: UserId::from_uuid(Uuid::from_u128(9)),
+            email: "owner@example.com".to_string(),
+            role,
+        }
+    }
+
+    fn enrollment(role: Role) -> EnrollmentResult {
+        EnrollmentResult {
+            principal: Self::principal(role),
+            totp_secret_base32: Zeroizing::new("BASE32SECRET".to_string()),
+            otpauth_uri: Zeroizing::new("otpauth://totp/app:owner".to_string()),
+            recovery_codes: vec![Zeroizing::new("RECOVERY-0".to_string())],
+        }
+    }
+}
+
+impl IdentityWorkflow for StubIdentity {
+    fn bootstrap_owner(
+        &self,
+        email: &str,
+        password: &str,
+    ) -> Result<EnrollmentResult, ApplicationError> {
+        assert_eq!(email, "owner@example.com");
+        assert_eq!(password, "correct horse battery");
+        Ok(Self::enrollment(Role::Owner))
+    }
+
+    fn create_user(
+        &self,
+        actor: &Principal,
+        _email: &str,
+        _password: &str,
+        role: Role,
+    ) -> Result<EnrollmentResult, ApplicationError> {
+        assert_eq!(actor, &Self::principal(Role::Owner));
+        Ok(Self::enrollment(role))
+    }
+
+    fn start_login(&self, email: &str, password: &str) -> Result<LoginChallenge, ApplicationError> {
+        if email != "owner@example.com" || password != "correct horse battery" {
+            return Err(ApplicationError::InvalidCredentials);
+        }
+        Ok(LoginChallenge {
+            challenge_token: "challenge-token".to_string(),
+            expires_in_seconds: 300,
+        })
+    }
+
+    fn complete_totp(
+        &self,
+        challenge_token: &str,
+        code: &str,
+    ) -> Result<SessionResult, ApplicationError> {
+        if challenge_token != "challenge-token" || code != "123456" {
+            return Err(ApplicationError::MfaRejected);
+        }
+        Ok(SessionResult {
+            access_token: "owner-token".to_string(),
+            expires_in_seconds: 86_400,
+            principal: Self::principal(Role::Owner),
+        })
+    }
+
+    fn complete_recovery(
+        &self,
+        _challenge_token: &str,
+        _code: &str,
+    ) -> Result<SessionResult, ApplicationError> {
+        Err(ApplicationError::MfaRejected)
+    }
+
+    fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
+        match access_token {
+            "owner-token" => Ok(Self::principal(Role::Owner)),
+            "client-token" => Ok(Self::principal(Role::Client)),
+            _ => Err(ApplicationError::InvalidSession),
+        }
+    }
+
+    fn authorize(
+        &self,
+        token: &str,
+        permission: Permission,
+    ) -> Result<Principal, ApplicationError> {
+        let principal = self.authenticate(token)?;
+        if principal.role.allows(permission) {
+            Ok(principal)
+        } else {
+            Err(ApplicationError::PermissionDenied)
+        }
+    }
+
+    fn logout(&self, access_token: &str) -> Result<(), ApplicationError> {
+        self.authenticate(access_token).map(|_| ())
+    }
+}
+
+fn router() -> axum::Router {
+    application_router(Arc::new(UnusedDocuments), Arc::new(StubIdentity))
+}
+
+async fn json(response: axum::response::Response) -> Value {
+    let body = to_bytes(response.into_body(), 1024 * 1024).await.unwrap();
+    serde_json::from_slice(&body).unwrap()
+}
+
+#[tokio::test]
+async fn enrollment_login_totp_me_and_logout_have_stable_contracts() {
+    let bootstrap = router()
+        .oneshot(
+            Request::post("/api/v1/auth/bootstrap")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"email":"owner@example.com","password":"correct horse battery"}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(bootstrap.status(), StatusCode::CREATED);
+    let enrollment = json(bootstrap).await;
+    assert_eq!(enrollment["user"]["role"], "owner");
+    assert_eq!(enrollment["totp_secret_base32"], "BASE32SECRET");
+    assert_eq!(enrollment["recovery_codes"][0], "RECOVERY-0");
+
+    let login = router()
+        .oneshot(
+            Request::post("/api/v1/auth/login")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"email":"owner@example.com","password":"correct horse battery"}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(json(login).await["challenge_token"], "challenge-token");
+
+    let totp = router()
+        .oneshot(
+            Request::post("/api/v1/auth/mfa/totp")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"challenge_token":"challenge-token","code":"123456"}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let session = json(totp).await;
+    assert_eq!(session["token_type"], "Bearer");
+    assert_eq!(session["access_token"], "owner-token");
+
+    let me = router()
+        .oneshot(
+            Request::get("/api/v1/auth/me")
+                .header("authorization", "Bearer owner-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(json(me).await["email"], "owner@example.com");
+
+    let logout = router()
+        .oneshot(
+            Request::post("/api/v1/auth/logout")
+                .header("authorization", "Bearer owner-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(logout.status(), StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn invalid_login_and_client_authorization_have_distinct_statuses() {
+    let login = router()
+        .oneshot(
+            Request::post("/api/v1/auth/login")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"email":"nobody@example.com","password":"wrong"}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(login.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json(login).await["error"]["code"], "invalid_credentials");
+
+    let denied = router()
+        .oneshot(
+            Request::post("/api/v1/documents")
+                .header("authorization", "Bearer client-token")
+                .header("x-document-name", "acta.txt")
+                .body(Body::from("content"))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(denied.status(), StatusCode::FORBIDDEN);
+    assert_eq!(json(denied).await["error"]["code"], "permission_denied");
+}

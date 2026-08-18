@@ -1,0 +1,98 @@
+\begin{frame}{Riesgo materializado: dependencia del PSC}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{exampleblock}{Acceso}
+        \small El registro en el entorno del proveedor pudo completarse.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{Operación}
+        \small La API no mostró estabilidad suficiente para una campaña repetible.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{Costo}
+        \small El sandbox requiere pago y no ofrece precios transparentes para presupuestar una campaña.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.3cm}
+  \textbf{La materialización no ocurrió en el registro, sino durante el consumo.}
+  \begin{itemize}\scriptsize\setlength{\itemsep}{0cm}
+    \item Una falla externa puede confundirse con una regresión del adaptador.
+    \item La suite y la demostración perderían reproducibilidad.
+    \item Los reintentos y la campaña de tokens introducen costo variable.
+  \end{itemize}
+  \vspace{0.05cm}
+  {\scriptsize\color{gris}Estado: TSA local para la evidencia; adaptador remoto opcional y sin contrato externo confirmado.}
+\end{frame}
+
+\begin{frame}{Mitigación: TSA interna intercambiable}
+  \centering
+  \begin{tikzpicture}[
+    every node/.style={font=\small,align=center},
+    box/.style={draw=linea,fill=white,minimum width=3.1cm,minimum height=0.85cm},
+    local/.style={draw=verde,very thick,fill=verde!8,minimum width=3.7cm,minimum height=0.85cm},
+    remote/.style={draw=advertencia,very thick,fill=advertencia!8,minimum width=3.7cm,minimum height=0.85cm}
+  ]
+    \node[box] (usecase) at (0,0) {Caso de uso\\\texttt{TimestampDocument}};
+    \node[box] (port) at (4.3,0) {Puerto\\\texttt{TimestampService}};
+    \node[local] (local) at (9.2,0.7) {TSA local: OpenSSL + CA interna};
+    \node[remote] (remote) at (9.2,-0.7) {PSC externo: Cincel u otro};
+    \draw[->,thick,gris] (usecase) -- (port);
+    \draw[->,thick,verde] (port) -- (local);
+    \draw[->,thick,advertencia] (port) -- (remote);
+  \end{tikzpicture}
+
+  \vspace{0.1cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.55\textwidth}
+      \small
+      \begin{itemize}
+        \item Certificado RSA-3072 exclusivo para \texttt{timeStamping}.
+        \item Tokens RFC 3161 reales, no respuestas simuladas.
+        \item Verificación independiente con OpenSSL.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \begin{alertblock}{Regla operativa}
+        \small Sin conmutación silenciosa: el emisor y su ancla de confianza quedan identificados en cada flujo.
+      \end{alertblock}
+      {\small\color{gris}Pruebas reproducibles sin red ni costo externo.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Alcance de la mitigación y riesgo residual}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \begin{exampleblock}{La TSA interna sí demuestra}
+        \small
+        \begin{itemize}
+          \item Solicitud y emisión conforme a RFC 3161.
+          \item Vinculación del token con el digest.
+          \item Firma, cadena y almacenamiento DER.
+          \item Interoperabilidad del flujo completo.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{alertblock}{La TSA interna no sustituye}
+        \small
+        \begin{itemize}
+          \item La independencia de un tercero.
+          \item La estabilidad contractual de un PSC.
+          \item Una constancia NOM-151 externa.
+          \item Una constancia externa que se decida contratar posteriormente.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.15cm}
+  \centering
+  {\small\bfseries\color{tinta}Continuidad técnica demostrada; evidencia externa fuera del alcance actual.}\par
+  \vspace{0.08cm}
+  {\scriptsize\color{gris}La arquitectura permite sustituir el adaptador sin modificar dominio ni casos de uso.}
+\end{frame}

@@ -31,16 +31,16 @@ Para abordar la complejidad del sistema, el proyecto estará segmentado en dos f
   \item \textbf{Iteración 5 (Semana 5) - Estrategia de Calidad y Cierre Documental:} Creación de la matriz de pruebas (funcionales, de integración y criptográficas). Cierre y validación documental del diseño técnico para la conclusión de la primera fase.
 \end{itemize}
 
-\textbf{Fase II: Construcción, Pruebas y Refactorización}. Una vez validado el diseño, el desarrollo entra en un ciclo estricto de codificación iterativa mediante XP, utilizando programación en pares, Desarrollo Guiado por Pruebas (TDD) y entregas continuas.
+\textbf{Fase II: Construcción, Pruebas y Refactorización}. Una vez validado el diseño, el desarrollo entra en un ciclo estricto de codificación iterativa mediante XP, utilizando programación en pares, Desarrollo Guiado por Pruebas (TDD) y entregas continuas. El orden de las iteraciones antepone el núcleo criptográfico a la construcción de vistas: el análisis de riesgos (sección~\ref{sec:riesgos}) prescribe resolver primero los riesgos criptográficos graves y recomienda no avanzar hacia el desarrollo de vistas web hasta haber comprobado técnicamente la validez del sellado de tiempo.
 
 \begin{itemize}
-  \item \textbf{Iteración 6 (Semana 6) - Base del Sistema y Control de Acceso:} Configuración del entorno de producción e implementación del esquema de base de datos híbrida. Desarrollo de la API de negocio básica y el sistema de control de acceso basado en roles (RBAC).
+  \item \textbf{Iteración 6 (Semana 6) - Andamiaje del Workspace y Núcleo Criptográfico Base:} Configuración del workspace de Cargo con sus cinco crates y del pipeline de integración continua (formato, análisis estático, pruebas y política de dependencias). Implementación del servicio de hash SHA-256 y del cifrado autenticado AES-256-GCM con envelope encryption, proporcionando integridad y confidencialidad en reposo. Primer contacto con el sellado de tiempo mediante el Spike de consumo y parseo del token RFC 3161.
 
-  \item \textbf{Iteración 7 (Semana 7) - Gestión Procesal y Documental:} Desarrollo de la interfaz de usuario (UI). Implementación de los módulos CRUD para expedientes, casos, contratos y documentos. Habilitación de la carga y visualización de documentos legales.
+  \item \textbf{Iteración 7 (Semana 7) - PKI Interna y Firma Digital:} Implementación de la infraestructura de llave pública interna: CA raíz, emisión de certificados X.509 y lista de certificados revocados (CRL). Integración de la firma digital RSA-3072 con SHA-256 sobre los certificados emitidos. Inicio del flujo de sellado de tiempo conforme a RFC 3161.
 
-  \item \textbf{Iteración 8 (Semana 8) - Implementación de Confidencialidad e Integridad:} Integración de cifrado autenticado en el almacenamiento de expedientes y documentos, proporcionando confidencialidad (protección contra accesos no autorizados) e integridad (detección de modificaciones no autorizadas). Implementación de algoritmos de huella digital (Hashing) para verificación independiente de integridad en flujos que no requieran confidencialidad.
+  \item \textbf{Iteración 8 (Semana 8) - Sellado de Tiempo, Autenticación y Auditoría:} Conclusión del flujo de sellado de tiempo RFC 3161. Implementación de la autenticación (hashing de contraseñas con Argon2id y segundo factor TOTP) y de la cadena de auditoría con encadenamiento de hashes. Verificación integral de la evidencia y demostración por línea de comandos, hito de criptografía demostrada de extremo a extremo.
 
-  \item \textbf{Iteración 9 (Semana 9) - Implementación del No Repudio (Contratos):} Integración de la firma digital (X.509) en el flujo de aceptación de contratos. Vinculación con los servicios de Autoridad de Sellado de Tiempo para el cumplimiento de la NOM-151.
+  \item \textbf{Iteración 9 (Semana 9) - Persistencia, Control de Acceso y Gestión Procesal:} Implementación de la persistencia híbrida PostgreSQL/Redis y del control de acceso basado en roles (RBAC) con JWT. Desarrollo de la gestión procesal y documental —módulos CRUD para expedientes, casos, contratos y documentos— integrando los servicios criptográficos ya probados. Desarrollo de una interfaz web mínima.
 
   \item \textbf{Iteración 10 (Semana 10) - Pruebas Finales y Cierre:} Ejecución de la matriz de pruebas diseñada en la Fase I. Pruebas de usabilidad con usuarios representativos. Corrección de errores, refactorización final de código y elaboración de los manuales técnicos y de usuario.
 \end{itemize}
@@ -557,11 +557,11 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     \midrule
     Nombre & Firma digital de contrato con sellado de tiempo \\
     Actor principal & Litigante (firmante) \\
-    Actores secundarios & PSC autorizado (Cincel, como Autoridad de Sellado de Tiempo) \\
+    Actores secundarios & TSA configurada (autoridad local en la demostración; PSC autorizado solo en una integración futura) \\
     Precondiciones & El contrato existe en el repositorio en formato PDF y está listo para firma. El firmante tiene un certificado digital X.509 vigente registrado en el sistema. \\
-    Flujo principal & 1. El Litigante accede al contrato y selecciona la opción de firma digital. 2. El sistema presenta el contenido del contrato y solicita confirmación explícita de la acción de firma. 3. El Litigante confirma la firma. 4. El sistema calcula la huella digital del contrato. 5. El sistema firma la huella digital con la clave privada del certificado X.509 del firmante, vinculando criptográficamente su identidad con el contenido del documento. 6. El sistema envía la huella digital al PSC autorizado mediante el protocolo de sellado de tiempo. 7. El PSC retorna el token de sello de tiempo que acredita la fecha y hora exacta de la operación. 8. El sistema almacena el contrato firmado junto con la firma digital, los metadatos del certificado y el token de sello de tiempo. 9. La operación se registra en la bitácora de actividad y en la cadena de custodia del expediente. \\
-    Flujos alternos & 2a. El certificado del firmante ha expirado o está revocado → el sistema informa la situación e impide la firma. 6a. El PSC no responde dentro del tiempo límite → el sistema encola la solicitud para reintento automático y notifica al Litigante del retraso en la constancia. 7a. El token recibido no supera la validación de formato → el sistema rechaza el sello, registra el error y reintenta con el PSC. \\
-    Postcondiciones & El contrato queda firmado con evidencia criptográfica verificable de la identidad del firmante y del momento exacto de la firma. La constancia tiene validez conforme a la NOM-151-SCFI-2016. \\
+    Flujo principal & 1. El Litigante accede al contrato y selecciona la opción de firma digital. 2. El sistema presenta el contenido del contrato y solicita confirmación explícita de la acción de firma. 3. El Litigante confirma la firma. 4. El sistema calcula la huella digital del contrato. 5. El sistema firma la huella digital con la clave privada del certificado X.509 del firmante, vinculando criptográficamente su identidad con el contenido del documento. 6. El sistema envía la huella digital a la TSA configurada mediante el protocolo de sellado de tiempo. 7. La TSA retorna el token RFC 3161 que acredita criptográficamente el digest y su tiempo de generación. 8. El sistema almacena el contrato firmado junto con la firma digital, los metadatos del certificado y el token de sello de tiempo. 9. La operación se registra en la bitácora de actividad y en la cadena de custodia del expediente. \\
+    Flujos alternos & 2a. El certificado del firmante ha expirado o está revocado → el sistema informa la situación e impide la firma. 6a. La TSA no responde dentro del tiempo límite → el sistema informa o encola la solicitud según la política explícita del emisor; no conmuta silenciosamente a otra autoridad. 7a. El token recibido no supera la validación de formato → el sistema rechaza el sello y registra el error. \\
+    Postcondiciones & El contrato queda firmado con evidencia criptográfica verificable de la identidad del firmante y del momento de la firma. Si la autoridad es la TSA local, el resultado acredita el flujo técnico RFC 3161, pero no constituye por sí mismo una constancia NOM-151 de un PSC autorizado. \\
     Derivado de & HU-34, HU-35 \\
     RF relacionados & RF-15, RF-16 \\
     RNF relacionados & RNF-03, RNF-11 \\
@@ -998,11 +998,11 @@ Los requerimientos funcionales especifican los servicios que el sistema debe pro
     \textbf{ID} & RF-16 \\
     \midrule
     \textbf{Nombre} & Sellado de tiempo (NOM-151) \\
-    \textbf{Descripción} & El sistema debe obtener una constancia de conservación mediante un PSC autorizado para cada contrato firmado, conforme al protocolo RFC 3161 (véase §2.3.3.4), acreditando la existencia del documento en un momento determinado. \\
-    \textbf{Entrada} & Hash SHA-256 del contrato firmado; solicitud al PSC autorizado (Cincel) mediante API RFC 3161. \\
-    \textbf{Salida} & Token de sello de tiempo (TimeStampToken) en formato ASN.1/.tsr almacenado y vinculado al contrato; constancia de conservación NOM-151 emitida. \\
-    \textbf{Actores involucrados} & Sistema backend (cliente TSA); PSC autorizado (Cincel como TSA); módulo de firma digital. \\
-    \textbf{Criterio de aceptación} & Dado un contrato firmado, cuando se solicita el sello al PSC, entonces el sistema recibe confirmación de aceptación de la solicitud en menos de 10 segundos y almacena el token RFC 3161 válido en cuanto el PSC lo emite ---de forma inmediata o tras el ciclo de reintento descrito en §3.11.3---; el token debe ser verificable de forma independiente con OpenSSL sin requerir acceso al sistema. \\
+    \textbf{Descripción} & El sistema debe obtener un token RFC 3161 para cada contrato firmado mediante la TSA configurada, acreditando criptográficamente la existencia del digest en un momento determinado. La constancia NOM-151 de un PSC autorizado no se afirma para la TSA local. \\
+    \textbf{Entrada} & Hash SHA-256 del contrato firmado y solicitud al adaptador de TSA configurado. \\
+    \textbf{Salida} & Token de sello de tiempo (TimeStampToken) en formato ASN.1/.tsr almacenado y vinculado al contrato; la naturaleza técnica o regulada del emisor queda identificada en el paquete. \\
+    \textbf{Actores involucrados} & Sistema backend (cliente TSA); TSA local de demostración o PSC autorizado futuro; módulo de firma digital. \\
+    \textbf{Criterio de aceptación} & Dado un contrato firmado, cuando se solicita el sello a la TSA configurada, el sistema almacena un token RFC 3161 que cubre el digest y puede verificarse de forma independiente con OpenSSL sin requerir acceso al sistema. La campaña de estabilidad de un PSC externo queda fuera del alcance actual. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1284,9 +1284,9 @@ Los requerimientos no funcionales describen las restricciones y atributos de cal
     \textbf{Nombre} & Conformidad con la NOM-151 \\
     \textbf{Descripción} & Los mecanismos de sellado de tiempo y conservación de mensajes de datos deben cumplir con los requisitos de la NOM-151-SCFI-2016 y el protocolo RFC 3161. \\
     \textbf{Entrada} & Solicitud de sellado de tiempo de un contrato firmado. \\
-    \textbf{Salida} & Token RFC 3161 válido emitido por PSC autorizado, verificable de forma independiente. \\
-    \textbf{Actores involucrados} & Sistema backend; PSC Cincel; equipo legal. \\
-    \textbf{Criterio de aceptación} & Dado un token emitido por el sistema, cuando se verifica con OpenSSL usando el certificado público de la TSA de Cincel, entonces la verificación resulta exitosa y el timestamp corresponde a una fuente sincronizada con CENAM. \\
+    \textbf{Salida} & Token RFC 3161 válido y verificable de forma independiente; la constancia de un PSC autorizado es una condición de despliegue regulado, no de la TSA local de demostración. \\
+    \textbf{Actores involucrados} & Sistema backend; TSA configurada; equipo legal. \\
+    \textbf{Criterio de aceptación} & Dado un token emitido por el sistema, cuando se verifica con OpenSSL usando el ancla de confianza correspondiente, la verificación resulta exitosa. Si el emisor es local, el resultado se reporta como evidencia técnica sin atribuir una fuente externa sincronizada con CENAM. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1447,13 +1447,13 @@ La siguiente tabla presenta el desglose completo de costos del proyecto en su fa
     \textbf{Rubro} & \textbf{Proveedor / Herramienta} & \textbf{Costo en Fase Prototipo} & \textbf{Justificación} \\
     \midrule
     Recurso humano (2 desarrolladores) & Costo de oportunidad & \$37,500.00 MXN & 240 hrs-persona $\times$ \$156.25/hr. Escenario Más Probable. \\
-    Sellado de tiempo NOM-151 (PSC) & Cincel PSC -- Plan Start & \$0.00 MXN & Plan gratuito: 10 Certificados Smart (constancia NOM-151 + sello de tiempo + huella de auditoría). API Sandbox gratuita para desarrollo. \\
+    Sellado de tiempo externo (PSC) & Cincel PSC -- Sandbox & No contratado & La API no ofreció garantía operativa suficiente y el sandbox requiere pago con precios no transparentes. La evidencia de esta entrega utiliza la TSA local; no se presupone un costo externo. \\
     Infraestructura de servidor & VPS preexistente (aportación del equipo) & \$0.00 MXN & Infraestructura personal aportada por el equipo. No genera costo incremental para el proyecto. \\
     Correo transaccional & Resend -- Plan gratuito & \$0.00 MXN & Plan gratuito suficiente para el volumen de notificaciones del prototipo. \\
     Framework y herramientas de desarrollo & Rust, Axum, Astro, Svelte, Git (open source) & \$0.00 MXN & Stack completamente open source. Sin licencias comerciales requeridas. \\
     Base de datos & MySQL + almacenamiento NoSQL (open source) & \$0.00 MXN & Motores de base de datos open source desplegados en el VPS del equipo. \\
     Certificados SSL/TLS & Let's Encrypt & \$0.00 MXN & Autoridad de certificación gratuita y automatizada. \\
-    Reserva de contingencia & Derivada del análisis de riesgos (sección \ref{sec:riesgos}) & \$35,578.13 MXN & VME total calculado en el análisis de riesgos. Representa el costo esperado ponderado por probabilidad de materialización. \\
+    Reserva de contingencia & Derivada del análisis de riesgos (sección \ref{sec:riesgos}) & \$45,578.13 MXN & VME total de línea base. Representa el costo esperado ponderado antes de actualizar el estado de materialización. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1469,17 +1469,18 @@ La siguiente tabla presenta el desglose completo de costos del proyecto en su fa
     \textbf{Concepto} & \textbf{Monto} \\
     \midrule
     Costo base del proyecto (recurso humano) & \$37,500.00 MXN \\
-    Costos de infraestructura y servicios & \$0.00 MXN \\
-    Costo total sin contingencia & \$37,500.00 MXN \\
-    Reserva de contingencia (VME total) & \$35,578.13 MXN \\
-    Presupuesto total estimado & \$73,078.13 MXN \\
+    Costos conocidos de infraestructura y servicios & \$0.00 MXN \\
+    Sandbox del PSC & No incorporado \\
+    Costo total conocido sin contingencia & \$37,500.00 MXN \\
+    Reserva de contingencia (VME total de línea base) & \$45,578.13 MXN \\
+    Presupuesto conocido, sin sandbox del PSC & \$83,078.13 MXN \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-La reserva de contingencia representa el 94.9\,\% del costo base, lo cual refleja el alto riesgo técnico inherente a la integración de servicios criptográficos con tolerancia cero a fallos en un cronograma de 5 semanas de codificación. Este porcentaje es consistente con las recomendaciones del PMI para proyectos con incertidumbre técnica elevada.
+La reserva de contingencia de línea base representa el 121.5\,\% del costo base, lo cual refleja el alto riesgo técnico inherente a la integración de servicios criptográficos con tolerancia cero a fallos en un cronograma de 5 semanas de codificación. Este porcentaje es consistente con las recomendaciones del PMI para proyectos con incertidumbre técnica elevada. El presupuesto es una cota inferior: el costo del sandbox del PSC permanece separado hasta definir el tamaño de la campaña y contar con una tarifa verificable.
 
-Es importante señalar que los costos de infraestructura y servicios son cero exclusivamente en la fase de prototipo. Un despliegue en producción requeriría la contratación del plan Business de Cincel PSC para sellado de tiempo con volumen, infraestructura cloud dedicada con respaldos, y licencias de dominio y certificados de producción, rubros que quedan fuera del alcance de la presente estimación.
+Es importante señalar que los costos conocidos de infraestructura y servicios son cero exclusivamente en la fase de prototipo y no incluyen el sandbox de pago del PSC. Un despliegue en producción requeriría contratar un servicio de sellado con volumen y estabilidad verificables, infraestructura cloud dedicada con respaldos, y licencias de dominio y certificados de producción, rubros que quedan fuera del alcance de la presente estimación.
 
 \section{Análisis de Riesgos}\label{sec:riesgos}
 
@@ -1542,20 +1543,21 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
 
 \begin{table}[H]
   \centering
-  \caption{Ficha del riesgo RTC-01: Falla en integración con PSC (RFC 3161).}
+  \caption{Ficha del riesgo RTC-01: Inestabilidad en la integración con el PSC (RFC 3161).}
   \label{tab:rtc-01}
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
     \toprule
     ID & RTC-01 \\
-    Nombre & Falla en integración con PSC (RFC 3161) \\
+    Nombre & Inestabilidad en la integración con el PSC (RFC 3161) \\
     Cat. & Técnico \\
     Sev. & 6 -- Grave \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que la integración con la API del PSC (Cincel) falle durante el flujo de sellado de tiempo}, debido a \textbf{incompatibilidades en el parseo del token ASN.1 o restricciones de red en el entorno de desarrollo}, lo que podría resultar en \textbf{la imposibilidad de emitir constancias NOM-151 válidas, bloqueando la validación completa del módulo de no repudio}.} \\
-    Mitigación & Asignar las iteraciones iniciales a un Spike Arquitectónico para validar credenciales, red y parseo del token ASN.1 con el sandbox del PSC. \\
+    Declaración & \emph{Existe el riesgo de \textbf{que la integración con la API del PSC (Cincel) no sea suficientemente estable durante el flujo de sellado de tiempo}, debido a \textbf{respuestas externas no deterministas, disponibilidad fuera del control del equipo y acceso de pago al sandbox}, lo que podría resultar en \textbf{pruebas no reproducibles, costo variable de reintentos y bloqueo temporal de la emisión de constancias externas}.} \\
+    Mitigación & Validar el contrato remoto mediante un Spike, aislarlo detrás del puerto \texttt{TimestampService}, cubrir sus estados con un stub HTTP y mantener una TSA RFC 3161 local para pruebas y demostraciones deterministas. \\
     Impacto & 2 -- Medio (30 h) \\
     VME & \$6,562.50 MXN \\
-    Contingencia & Implementar un servicio Mock en Rust que simule las respuestas de la TSA, permitiendo avanzar con el desarrollo funcional mientras se estabiliza la conexión real. \\
+    Estado al corte & Materializado. El registro se completó, pero la API observada no ofreció estabilidad suficiente para una campaña repetible y el sandbox requiere pago. \\
+    Contingencia & Emitir tokens RFC 3161 con una TSA local cuyo certificado deriva de la CA interna. Esta vía conserva el flujo técnico, pero se etiqueta como evidencia interna y no sustituye la confianza independiente de un PSC autorizado. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1704,20 +1706,21 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
 
 \begin{table}[H]
   \centering
-  \caption{Ficha del riesgo RLC-04: Indisponibilidad del PSC (Cincel).}
+  \caption{Ficha del riesgo RLC-04: Indisponibilidad o degradación del PSC (Cincel).}
   \label{tab:rlc-04}
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
     \toprule
     ID & RLC-04 \\
-    Nombre & Indisponibilidad del PSC (Cincel) \\
+    Nombre & Indisponibilidad o degradación del PSC (Cincel) \\
     Cat. & Legal \\
     Sev. & 4 -- Significativo \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que el módulo de sellado de tiempo quede fuera de servicio durante ventanas críticas de firma}, debido a \textbf{una interrupción no planificada en la infraestructura del Prestador de Servicios de Certificación seleccionado}, lo que podría resultar en \textbf{el incumplimiento de plazos procesales del CNPP que dependen de la emisión oportuna de la constancia NOM-151, con potencial afectación al valor probatorio de los documentos}.} \\
-    Mitigación & Diseñar el módulo de sellado con una interfaz abstracta que permita configurar un PSC alternativo (SeguriData, CECOBAN) sin modificar la lógica central del sistema. \\
+    Declaración & \emph{Existe el riesgo de \textbf{que el módulo de sellado externo quede indisponible o opere de forma degradada durante ventanas críticas de firma}, debido a \textbf{interrupciones o inestabilidad en la infraestructura del Prestador de Servicios de Certificación seleccionado}, lo que podría resultar en \textbf{retrasos en la obtención de la constancia NOM-151 y afectación al flujo operativo}.} \\
+    Mitigación & Mantener una interfaz abstracta que permita configurar otro PSC sin modificar la lógica central y separar las pruebas deterministas de la disponibilidad del proveedor comercial. \\
     Impacto & 2 -- Medio (20 h) \\
     VME & \$3,125.00 MXN \\
-    Contingencia & Encolar las solicitudes de sellado fallidas y reintentar automáticamente al restablecerse el servicio; notificar al Litigante responsable sobre el retraso en la constancia. \\
+    Estado al corte & Materializado parcialmente como degradación e inestabilidad de la API, no como una interrupción total del registro o del servicio. \\
+    Contingencia & Encolar las solicitudes externas y reintentar con límites explícitos; para continuidad técnica usar la TSA interna, sin conmutación silenciosa y sin presentar sus tokens como constancias emitidas por un tercero. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1735,7 +1738,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Cat. & Operativo \\
     Sev. & 4 -- Significativo \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que el desarrollo de los módulos criptográficos supere el tiempo planificado de forma significativa}, debido a \textbf{la dificultad adicional de formular pruebas unitarias para operaciones criptográficas cuyo comportamiento correcto no siempre es intuitivo (verificación de IV, validación de cadenas de certificados)}, lo que podría resultar en \textbf{el consumo del margen de contingencia del cronograma de la Fase II, poniendo en riesgo la entrega del módulo de no repudio en la Iteración 9}.} \\
+    Declaración & \emph{Existe el riesgo de \textbf{que el desarrollo de los módulos criptográficos supere el tiempo planificado de forma significativa}, debido a \textbf{la dificultad adicional de formular pruebas unitarias para operaciones criptográficas cuyo comportamiento correcto no siempre es intuitivo (verificación de IV, validación de cadenas de certificados)}, lo que podría resultar en \textbf{el consumo del margen de contingencia del cronograma de la Fase II, poniendo en riesgo la entrega del módulo de no repudio en las Iteraciones 7 y 8}.} \\
     Mitigación & Aplicar TDD estricto solo en los flujos criptográficos core (hash, cifrado AES, validación X.509) y relajarlo para CRUDs básicos que no comprometan la seguridad. \\
     Impacto & 2 -- Medio (35 h) \\
     VME & \$5,468.75 MXN \\
@@ -1755,11 +1758,11 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Cat. & Operativo \\
     Sev. & 4 -- Significativo \\
     \midrule
-    Declaración & \emph{Existe el riesgo de \textbf{que el esfuerzo dedicado a interfaces gráficas consuma tiempo crítico de las semanas 8 y 9}, debido a \textbf{la tendencia a invertir iteraciones en refinamiento visual más allá de lo planificado, en detrimento de los módulos de seguridad de mayor criticidad}, lo que podría resultar en \textbf{el desplazamiento de las Iteraciones 8 y 9 (cifrado autenticado y no repudio) hacia fuera del cronograma, comprometiendo los entregables criptográficos centrales del prototipo}.} \\
-    Mitigación & Congelar las historias de usuario visuales y utilizar bibliotecas de componentes preconstruidas para la interfaz, prohibiendo el diseño a medida en la Fase II. \\
+    Declaración & \emph{Existe el riesgo de \textbf{que el esfuerzo dedicado a interfaces gráficas consuma tiempo crítico de las semanas 9 y 10}, debido a \textbf{la tendencia a invertir iteraciones en refinamiento visual más allá de lo planificado, en detrimento de las historias de gestión procesal y documental que comparten la Iteración 9}, lo que podría resultar en \textbf{el desplazamiento de dichas historias y de las pruebas finales de la Iteración 10 hacia fuera del cronograma, comprometiendo el objetivo de gestión procesal del prototipo}.} \\
+    Mitigación & Congelar las historias de usuario visuales y utilizar bibliotecas de componentes preconstruidas para la interfaz, prohibiendo el diseño a medida en la Fase II. La mitigación se refuerza estructuralmente porque el desarrollo de interfaz se traslada a la Iteración 9, posterior al hito criptográfico de la Iteración 8; el riesgo residual se concentra en el objetivo de gestión procesal (OE-2) por la compresión de esas historias en una sola iteración. \\
     Impacto & 2 -- Medio (20 h) \\
     VME & \$3,125.00 MXN \\
-    Contingencia & Recortar características no críticas (RF-19 Dashboard Ejecutivo o reportes visuales) para canalizar el esfuerzo íntegramente a los módulos de no repudio y cifrado. \\
+    Contingencia & Recortar características no críticas (RF-19 Dashboard Ejecutivo o reportes visuales) para canalizar el esfuerzo íntegramente a las historias de gestión procesal y documental de la Iteración 9. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1795,7 +1798,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     \toprule
     \textbf{ID} & \textbf{Nombre} & \textbf{Prob.} & \textbf{Impacto} & \textbf{Severidad} & \textbf{VME (MXN)} \\
     \midrule
-    \textbf{RTC-01} & Falla en integración con PSC (RFC 3161) & 3 Alto (70\,\%) & 2 Medio (30 h) & \textbf{6 -- Grave} & \$6,562.50 MXN \\
+    \textbf{RTC-01} & Inestabilidad en integración con PSC (RFC 3161) & 3 Alto (70\,\%) & 2 Medio (30 h) & \textbf{6 -- Grave} & \$6,562.50 MXN \\
     \textbf{RTC-02} & Implementación insegura de AES-256-GCM & 2 Medio (40\,\%) & 3 Alto (45 h) & \textbf{6 -- Grave} & \$5,625.00 MXN \\
     \textbf{RTC-03} & Mala configuración de infraestructura & 2 Medio (30\,\%) & 1 Bajo (15 h) & \textbf{2 -- Menor} & \$703.13 MXN \\
     \textbf{RTC-04} & Pérdida de clave maestra de cifrado & 1 Bajo (15\,\%) & 3 Alto ($>$40 h) & \textbf{3 -- Moderado} & \$7,031.25 MXN \\
@@ -1803,7 +1806,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     \textbf{RLC-01} & Discrepancia de hashes SHA-256 (NOM-151) & 2 Medio (50\,\%) & 3 Alto (48 h) & \textbf{6 -- Grave} & \$7,500.00 MXN \\
     \textbf{RLC-02} & Mutabilidad en registros de auditoría (CNPP) & 1 Bajo (15\,\%) & 2 Medio (24 h) & \textbf{2 -- Menor} & \$1,125.00 MXN \\
     \textbf{RLC-03} & Fuga de datos personales por fallas de autorización (LFPDPPP) & 1 Bajo (10\,\%) & 3 Alto (50 h) & \textbf{3 -- Moderado} & \$1,562.50 MXN \\
-    \textbf{RLC-04} & Indisponibilidad del PSC (Cincel) & 2 Medio (30\,\%) & 2 Medio (20 h) & \textbf{4 -- Significativo} & \$3,125.00 MXN \\
+    \textbf{RLC-04} & Indisponibilidad o degradación del PSC (Cincel) & 2 Medio (30\,\%) & 2 Medio (20 h) & \textbf{4 -- Significativo} & \$3,125.00 MXN \\
     \textbf{ROP-01} & Curva de aprendizaje TDD en módulos criptográficos & 2 Medio (50\,\%) & 2 Medio (35 h) & \textbf{4 -- Significativo} & \$5,468.75 MXN \\
     \textbf{ROP-02} & Scope creep en interfaces gráficas & 2 Medio (50\,\%) & 2 Medio (20 h) & \textbf{4 -- Significativo} & \$3,125.00 MXN \\
     \textbf{ROP-03} & Ruptura de cadencia de Pair Programming & 2 Medio (25\,\%) & 1 Bajo (16 h) & \textbf{2 -- Menor} & \$625.00 MXN \\
@@ -1813,7 +1816,15 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
 
 \textbf{VME total del proyecto: \$45,578.13 MXN.} Si llegaran a materializarse simultáneamente los riesgos de mayor severidad (RTC-01, RLC-01 y ROP-01), el retraso combinado sería de 113 horas de reloj, equivalente a 2.35 semanas (113 $\div$ 48 horas-equipo/semana), lo que consumiría el 47\,\% del cronograma de codificación de 5 semanas. En términos de presupuesto, el impacto conjunto asciende a 226 horas-persona (113 $\times$ 2 desarrolladores), equivalente al 94\,\% de la capacidad total disponible.
 
-\textbf{Recomendación:} El éxito del prototipo radica en su validez como evidencia técnica, no en su amplitud estética ni de reportes. Todo el esfuerzo de exploración de la Fase I (semanas 1 a 5) debe destinarse a resolver los Spikes correspondientes al consumo de la API del PSC y al cifrado bidireccional de AES-256-GCM. Se recomienda no avanzar hacia el desarrollo de vistas web hasta haber comprobado técnicamente la validez del sellado de tiempo de prueba.
+\subsection{Actualización del riesgo del proveedor al cierre del núcleo criptográfico}\label{sec:riesgo-psc-materializado}
+
+El registro en el entorno de Cincel pudo completarse; por tanto, el problema observado no fue una imposibilidad de alta. El riesgo se materializó durante el consumo del servicio: la API no ofreció respuesta y estabilidad suficientes para convertirla en una dependencia determinista de la suite, de la integración continua o de la demostración, y el sandbox requiere pago con precios no transparentes. La combinación introduce fallos ajenos al código propio, costo variable al repetir solicitudes y una dependencia operacional que el equipo no controla. En consecuencia, la prueba de humo se conserva como referencia técnica ignorada y la evidencia externa de Cincel queda fuera del alcance de esta entrega.
+
+En términos de gestión, RTC-01 cambia de amenaza a incidencia materializada. Su probabilidad de 70\,\% y su VME de \$6,562.50 MXN se conservan como valores de la línea base previa para mantener trazabilidad, no como medición del costo ya incurrido. El impacto efectivo permanece sin cuantificar porque no se autoriza una campaña de pago; el riesgo residual se traslada a cualquier despliegue futuro que requiera confianza externa y deberá resolverse mediante un PSC con contrato y disponibilidad verificables.
+
+La respuesta aplicada supera la contingencia de simulación prevista originalmente. La CA interna emite un certificado exclusivo de TSA y \texttt{LocalOpensslTsa} produce tokens RFC 3161 reales, verificables con \texttt{openssl ts -verify}, detrás del mismo puerto que utiliza el adaptador de Cincel. Esto permite reproducir el flujo criptográfico completo sin acoplar las pruebas a la disponibilidad o al costo del proveedor. La procedencia del token debe conservarse explícita: la TSA interna aporta continuidad y evidencia técnica, pero no independencia de tercero ni una constancia NOM-151 emitida por un PSC autorizado. En producción no debe existir una conmutación silenciosa entre ambos emisores; una falla externa debe encolarse o exponerse al usuario, y la selección de otra TSA regulada debe realizarse como sustitución consciente del adaptador y de su ancla de confianza.
+
+\textbf{Recomendación:} El éxito del prototipo radica en su validez como evidencia técnica, no en su amplitud estética ni de reportes. El flujo RFC 3161 local ya fue comprobado de extremo a extremo y permite avanzar hacia la API, la persistencia y la interfaz web sin depender de Cincel. La integración con un PSC externo queda como sustitución futura y consciente del adaptador, no como condición para continuar el desarrollo.
 
 \subsection{Trazabilidad Riesgo--Objetivo}\label{sec:riesgos-trazabilidad}
 
@@ -1827,7 +1838,7 @@ La siguiente tabla relaciona cada riesgo identificado en las secciones \ref{sec:
     \toprule
     \textbf{ID} & \textbf{Descripción} & \textbf{Objetivo(s) afectado(s)} \\
     \midrule
-    RTC-01 & Falla en integración con PSC (RFC 3161) & OE-3 \\
+    RTC-01 & Inestabilidad en integración con PSC (RFC 3161) & OE-3 \\
     RTC-02 & Implementación insegura de AES-256-GCM & OE-4 \\
     RTC-03 & Mala configuración de infraestructura & OE-1, OE-6 \\
     RTC-04 & Pérdida de clave maestra de cifrado & OE-4 \\
@@ -1835,7 +1846,7 @@ La siguiente tabla relaciona cada riesgo identificado en las secciones \ref{sec:
     RLC-01 & Discrepancia de hashes SHA-256 (NOM-151) & OE-3, OE-4 \\
     RLC-02 & Mutabilidad en registros de auditoría (CNPP) & OE-2, OE-6 \\
     RLC-03 & Fuga de datos personales por fallas de autorización (LFPDPPP) & OE-4, OE-5 \\
-    RLC-04 & Indisponibilidad del PSC (Cincel) & OE-3 \\
+    RLC-04 & Indisponibilidad o degradación del PSC (Cincel) & OE-3 \\
     ROP-01 & Curva de aprendizaje TDD en módulos criptográficos & OE-3, OE-4, OE-5 \\
     ROP-02 & Scope creep en interfaces gráficas & OE-1, OE-2 \\
     ROP-03 & Ruptura de cadencia de Pair Programming & Transversal (OE-1 a OE-6) \\
@@ -1858,7 +1869,7 @@ El segundo atributo prioritario es la integridad y trazabilidad, condicionada po
 
 El tercer atributo es la evolvabilidad, definida por Ford, Parsons y Kua como la capacidad de un sistema para cambiar guiado \cite{ford2023}. El prototipo se diseña para que la sustitución de cualquier sistema externo —el Prestador de Servicios de Certificación (Cincel por SeguriData o CECOBAN), el motor de base de datos, el proveedor de correo— requiera únicamente la implementación de un nuevo adaptador, sin modificación del dominio. Esta propiedad se garantiza mediante la regla de dependencias de la arquitectura hexagonal, formalizada en §3.7.4.
 
-El cuarto atributo es la testabilidad, condicionada por la metodología Extreme Programming adoptada en §3.6, que prescribe Test-Driven Development como práctica central. Una arquitectura es testeable cuando permite ejercitar la lógica de dominio sin requerir infraestructura real (bases de datos, servicios de red, sistemas externos). La separación explícita del dominio respecto a sus dependencias mediante puertos permite inyectar adaptadores de prueba (mocks o stubs) durante la ejecución de la suite de pruebas, manteniendo el dominio agnóstico respecto a la infraestructura.
+El cuarto atributo es la testabilidad, condicionada por la metodología Extreme Programming adoptada en §3.1, que prescribe Test-Driven Development como práctica central. Una arquitectura es testeable cuando permite ejercitar la lógica de dominio sin requerir infraestructura real (bases de datos, servicios de red, sistemas externos). La separación explícita del dominio respecto a sus dependencias mediante puertos permite inyectar adaptadores de prueba (mocks o stubs) durante la ejecución de la suite de pruebas, manteniendo el dominio agnóstico respecto a la infraestructura.
 
 El quinto atributo es la mantenibilidad —entendida como bajo acoplamiento y alta cohesión—, y el sexto es la observabilidad, esencial para la operación del sistema en producción. Atributos de menor prioridad, pero considerados son la performance (en tanto el sistema deba responder a consultas interactivas en menos de 200 ms), y la portabilidad (limitada al despliegue en sistemas Linux POSIX-compliant).
 
@@ -1875,7 +1886,7 @@ La \cref{tab:atributos-calidad} formaliza la priorización adoptada y su mapeo a
     1 (más alta) & Seguridad & RNF-01, RNF-02, RNF-03 \\
     2 & Integridad y trazabilidad & RNF-04, RNF-11 \\
     3 & Evolvabilidad & Sustitución de PSC, BD, SMTP \\
-    4 & Testabilidad & XP/TDD (§3.6) \\
+    4 & Testabilidad & XP/TDD (§3.1) \\
     5 & Mantenibilidad & Bajo acoplamiento, alta cohesión \\
     6 (más baja) & Observabilidad y performance & Operación productiva \\
     \bottomrule
@@ -1928,7 +1939,7 @@ La \cref{tab:comparativa-estilos} sintetiza la comparativa entre las seis altern
 
 La arquitectura hexagonal, propuesta originalmente por Alistair Cockburn en 2005 \cite{cockburn2005} y refinada por Vernon \cite{vernon2013} en el contexto del Domain-Driven Design \cite{evans2003}, organiza una aplicación de software en tres capas concéntricas: el dominio en el centro, la aplicación en la capa intermedia, y los adaptadores en la capa exterior.
 
-El dominio contiene los conceptos centrales del problema modelado: entidades (Case, Document, User, Signature, Hearing, AuditEvent, Certificate), value objects (Nuc, ProcessStage, DocumentHash) y servicios de dominio (lógica de negocio que no pertenece naturalmente a una entidad específica). La regla fundamental que gobierna esta capa es que su código no importa absolutamente nada de las capas externas: depende exclusivamente de la biblioteca estándar de Rust y de un conjunto mínimo de crates de bajo nivel (serde para serialización, thiserror para errores tipados, time para manejo de fechas, uuid para identificadores únicos).
+El dominio contiene los conceptos centrales del problema modelado: entidades (Case, Document, User, Signature, Hearing, AuditEvent, Certificate), value objects (Nuc, ProcessStage, DocumentHash) y servicios de dominio (lógica de negocio que no pertenece naturalmente a una entidad específica). La regla fundamental que gobierna esta capa es que su código no importa absolutamente nada de las capas externas: depende exclusivamente de la biblioteca estándar de Rust y de un conjunto mínimo de crates de bajo nivel (serde para serialización, thiserror para errores tipados, time para manejo de fechas, uuid para identificadores únicos, y zeroize para el borrado garantizado del material secreto en memoria al liberarlo).
 
 La capa de aplicación contiene los casos de uso del sistema: SignContract, RegisterCase, ScheduleHearing, VerifySignature, TransitionCaseStage, QueryAuditLog, entre otros. Cada caso de uso orquesta las entidades del dominio para satisfacer una intención específica del usuario, y declara las dependencias que requiere del exterior mediante traits (los puertos). La aplicación depende exclusivamente del dominio.
 
@@ -1985,7 +1996,7 @@ El mapeo entre cada bounded context, los casos de uso que implementa y el crate 
 
 El proyecto se organiza como un workspace de Cargo —el sistema de compilación y gestión de paquetes de Rust— compuesto por cinco crates miembros con responsabilidades estrictamente delimitadas y dependencias permitidas que enforce mecánicamente la regla de la arquitectura hexagonal. Esta estructura se documenta en el \texttt{Cargo.toml} raíz del proyecto y se valida en cada compilación.
 
-Los cinco crates son: domain (entidades, value objects, traits/puertos y errores de dominio; sus únicas dependencias externas son serde, thiserror, time y uuid), application (casos de uso, comandos y consultas; depende exclusivamente de domain y de async-trait), infrastructure (adaptadores driven que implementan los traits del dominio; depende de domain y application), web (adaptadores driving HTTP construidos con Axum, middleware Tower, DTOs y serialización HTTP; depende de application y domain), y bin (composition root que instancia los adaptadores concretos y los inyecta en los casos de uso; depende de todos los anteriores). La \cref{fig:workspace} representa esta estructura y las dependencias que el grafo de Cargo permite o prohíbe.
+Los cinco crates son: domain (entidades, value objects, traits/puertos y errores de dominio; sus únicas dependencias externas son serde, thiserror, time, uuid y zeroize), application (casos de uso, comandos y consultas; depende exclusivamente de domain y de async-trait), infrastructure (adaptadores driven que implementan los traits del dominio; depende de domain y application), web (adaptadores driving HTTP construidos con Axum, middleware Tower, DTOs y serialización HTTP; depende de application y domain), y bin (composition root que instancia los adaptadores concretos y los inyecta en los casos de uso; depende de todos los anteriores). La \cref{fig:workspace} representa esta estructura y las dependencias que el grafo de Cargo permite o prohíbe.
 
 \begin{figure}[H]
   \centering
@@ -2056,19 +2067,23 @@ El proyecto utiliza un conjunto curado de crates externos del ecosistema Rust, t
   Dominio & thiserror & Errores tipados por capa \\
   Dominio & time & Manejo de fechas con zona horaria \\
   Dominio & uuid & Identificadores únicos universales \\
+  Dominio & zeroize & Borrado de material secreto en memoria al liberar (higiene de memoria) \\
   Aplicación & async-trait & Traits asíncronos \\
   Infraestructura cripto & ring & Hash, AES-GCM, HMAC (auditado) \\
   Infraestructura cripto & x509-cert + der & Manejo de certificados X.509 RFC 5280 \\
   Infraestructura cripto & rsa & Firma digital RSA-3072 PKCS\#1 v1.5 \\
   Infraestructura cripto & argon2 & Hashing de contraseñas (RFC 9106) \\
   Infraestructura cripto & totp-rs & Autenticación multifactor TOTP (RFC 6238) \\
+  Infraestructura cripto & cms + x509-tsp & Parseo del token de sellado de tiempo RFC 3161 (CMS SignedData y TSTInfo) \\
   Infraestructura datos & sqlx & Cliente PostgreSQL con verificación en compile-time \\
   Infraestructura datos & fred & Cliente Redis asíncrono con pub/sub \\
+  Infraestructura datos & fs2 & Bloqueo advisory de archivos compartidos entre procesos \\
   Infraestructura red & reqwest & Cliente HTTP asíncrono (Cincel TSA) \\
   Infraestructura red & lettre & Cliente SMTP con TLS y SASL \\
   Web/HTTP & axum & Framework web sobre tokio/tower/hyper \\
   Web/HTTP & tower / tower-http & Middleware composable \\
   Web/HTTP & tokio & Runtime asíncrono multi-thread \\
+  Interfaz de línea de comandos & clap & Análisis declarativo de argumentos y subcomandos \\
   Observabilidad & tracing + tracing-subscriber & Logs estructurados con spans \\
   Validación & validator & Validación de DTOs HTTP \\
   Configuración & config + dotenvy & Carga de configuración desde entorno \\
@@ -2114,7 +2129,7 @@ El cruce de la segunda frontera —del perímetro al núcleo aplicativo— se co
 
 El cruce de la tercera frontera —del núcleo aplicativo a datos persistentes y secretos— se controla mediante conexiones TLS internas entre el binario Rust y los motores de PostgreSQL y Redis; uso obligatorio de consultas parametrizadas mediante sqlx (que verifica en compile-time la conformidad de cada query con el esquema, eliminando la posibilidad de inyección SQL); y cifrado en reposo de todos los documentos mediante el patrón envelope encryption con KEK protegida por el módulo de gestión de claves (cuyo diseño detallado se documenta en §3.11.4).
 
-Los servicios externos se modelan como entidades de la zona no confiable a las que el sistema invoca explícitamente con canales seguros: la integración con Cincel PSC para sellado de tiempo (RFC 3161) utiliza TLS mutuo más verificación de la firma del sello recibido; la integración con el proveedor SMTP utiliza TLS más autenticación SASL. En ningún caso se confía en estos servicios para operaciones de seguridad sin verificación local del resultado: por ejemplo, el sello de tiempo recibido de Cincel se verifica criptográficamente contra la cadena de certificados del PSC antes de ser aceptado e incorporado al expediente del documento firmado.
+Los servicios externos se modelan como entidades de la zona no confiable a las que el sistema invoca explícitamente con canales seguros: un PSC externo futuro para sellado de tiempo (RFC 3161) utilizará TLS y verificación de la firma del sello recibido; la TSA local de demostración opera sin salir del perímetro del prototipo; la integración con el proveedor SMTP utiliza TLS más autenticación SASL. En ningún caso se confía en estos servicios para operaciones de seguridad sin verificación local del resultado: un sello recibido se verifica criptográficamente contra la cadena de certificados del emisor antes de ser aceptado e incorporado al expediente.
 
 El modelo de amenazas STRIDE de Shostack \cite{shostack2014} se aplicó como herramienta de revisión sistemática durante el diseño para verificar que cada una de las seis categorías de amenazas (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) tuviese al menos un control asignado. La matriz resultante demuestra que la combinación de los controles enumerados ofrece cobertura para todas las categorías, con énfasis particular en Tampering (mediante el encadenamiento SHA-256 de la bitácora) y Repudiation (mediante el sellado de tiempo independiente del PSC).
 
@@ -2259,13 +2274,13 @@ La coherencia entre primitivos se verifica de la siguiente manera: SHA-256 propo
 
 \subsection{Firma Digital}\label{sec:firma-digital}
 
-El esquema de firma digital emplea RSA-3072 con SHA-256 y padding PKCS\#1 v1.5 (OID sha256WithRSAEncryption). Se descartó ECDSA P-256 tras verificar que la Política de Certificados de la ACR2-SE \cite{economia_acr2se} establece que los certificados emitidos bajo la jerarquía PKI mexicana deben contener claves públicas RSA con sha256WithRSAEncryption como algoritmo de firma; ECDSA no está contemplado para certificados legalmente reconocidos bajo PSC mexicano. La elección de PKCS\#1 v1.5 sobre PSS se justifica por la alineación con el esquema que usa la PKI mexicana real (ACR2-SE y e.firma), lo que facilita la migración futura a certificados emitidos por un PSC sin rediseñar el verificador.
+El esquema de firma digital emplea RSA-3072 con SHA-256 y padding PKCS\#1 v1.5, con sha256\-With\-RSA\-Encryption como OID del algoritmo de firma. Se descartó ECDSA P-256 tras verificar que la Política de Certificados de la ACR2-SE \cite{economia_acr2se} establece que los certificados emitidos bajo la jerarquía PKI mexicana deben contener claves públicas RSA con sha256WithRSAEncryption como algoritmo de firma; ECDSA no está contemplado para certificados legalmente reconocidos bajo PSC mexicano. La elección de PKCS\#1 v1.5 sobre PSS se justifica por la alineación con el esquema que usa la PKI mexicana real (ACR2-SE y e.firma), lo que facilita la migración futura a certificados emitidos por un PSC sin rediseñar el verificador.
 
 Los certificados X.509 v3 de los socios del despacho son emitidos por una Autoridad Certificadora (CA) interna del prototipo, implementada con OpenSSL scriptado en una topología de una sola capa: un certificado raíz autofirmado con vigencia de cinco años firma directamente los certificados de los socios con vigencia de un año. Esta elección expone al equipo al ciclo de vida completo de una PKI —generación de la clave raíz, emisión de CSRs (Certificate Signing Request, solicitudes de firma de certificado), firma de certificados, validación de cadena y revocación— que una integración con la e.firma del SAT o un PSC comercial ocultaría detrás de una API. El módulo de firma acepta cualquier certificado X.509 RSA + SHA-256, de modo que en un despliegue productivo la CA interna podría sustituirse por la e.firma o un PSC autorizado sin modificar la lógica de verificación.
 
 La validación del estado de revocación se realiza mediante una Lista de Certificados Revocados (CRL) conforme a RFC 5280 \cite{cooper2008}, publicada como archivo PEM en el endpoint GET /pki/crl.pem con vigencia de siete días. La CRL se regenera bajo demanda tras cada revocación y periódicamente antes de su expiración. Se descartó OCSP por la escala reducida del prototipo (\textasciitilde{}2--5 certificados), donde la CRL es de tamaño despreciable y no requiere un servicio persistente adicional.
 
-La elección de una CA interna sobre la e.firma del SAT o un PSC comercial responde a múltiples consideraciones. En primer lugar, las firmas generadas con certificados de la CA interna son matemáticamente idénticas a las generadas con certificados de la e.firma o de un PSC: mismo algoritmo (RSA-3072 + SHA-256), misma estructura X.509 v3, mismo proceso de verificación. Lo único que cambia es el emisor del certificado. La demostración de los servicios de integridad, autoría y no repudio es, por tanto, completamente válida con esta elección. En segundo lugar, el valor probatorio del flujo de firma se sostiene sobre el sello de tiempo RFC 3161 \cite{adams2001} emitido por Cincel bajo NOM-151 \cite{nom151_2016}, no sobre la cadena de confianza del certificado del firmante; el sello acredita de forma independiente la existencia e integridad del documento en un momento específico, que es el elemento probatorio más difícil de sustituir.
+La elección de una CA interna sobre la e.firma del SAT o un PSC comercial responde a múltiples consideraciones. En primer lugar, las firmas generadas con certificados de la CA interna emplean los mismos mecanismos técnicos que las generadas con certificados de la e.firma o de un PSC: RSA-3072 con SHA-256, estructura X.509 v3 y verificación de cadena. Lo que cambia es el emisor y, con él, el nivel de confianza jurídica atribuible al certificado. Esta elección permite demostrar integridad y autoría dentro del alcance académico, pero no debe presentarse como equivalente a una firma avanzada. En segundo lugar, un sello RFC 3161 emitido por un PSC autorizado puede aportar la independencia temporal prevista por la NOM-151 \cite{adams2001,nom151_2016}; un sello emitido por la TSA interna conserva el mismo flujo criptográfico, pero permanece dentro de la frontera de confianza del prototipo.
 
 En tercer lugar, usar la e.firma habría obligado a que el socio subiera su archivo .key y su contraseña al prototipo, o a implementar firma del lado del cliente parseando el formato propietario del SAT. Ambas rutas introducen un problema de custodia de claves que contradice el objetivo declarado de no repudio: si el servidor custodia la clave privada del firmante, la firma pierde su propiedad vinculante porque no puede atribuirse exclusivamente a su titular. Con la CA interna, el ciclo de vida de las claves queda bajo control del prototipo y es auditable. Finalmente, montar la CA internamente expone al equipo al ciclo de vida completo de una PKI —generación de la clave raíz, emisión de CSRs, firma de certificados con extensiones X.509 v3, construcción de la cadena de confianza, validación y revocación— que una integración con la e.firma o un PSC comercial ocultaría detrás de una API externa. Este aprendizaje es parte del valor formativo declarado del Trabajo Terminal.
 
@@ -2273,15 +2288,15 @@ La implementación de la CA se realiza con OpenSSL scriptado en lugar de herrami
 
 \subsection{Sellado de Tiempo}\label{sec:sellado-tiempo}
 
-El sellado de tiempo se delega en Cincel, PSC autorizado por la Secretaría de Economía para la emisión de Sellos Digitales de Tiempo y constancias de conservación conforme a la NOM-151-SCFI-2016 \cite{comparasoftware2026}. El flujo opera conforme al protocolo RFC 3161 \cite{adams2001}: se calcula el hash SHA-256 del documento firmado, se envía a la API REST de Cincel \cite{cincel2024}, y se recibe una respuesta TimeStampResp en formato ASN.1 DER que se almacena como artefacto independiente (.tsr) vinculado al documento en la base de datos. El módulo de sellado abstrae al proveedor detrás de una interfaz interna, permitiendo sustituir Cincel por SeguriData o CECOBAN sin modificar la lógica central, siempre que el proveedor alternativo implemente RFC 3161.
+El sellado de tiempo se diseña detrás del puerto \texttt{TimestampService}, con \texttt{LocalOpensslTsa} como adaptador actual de demostración y un adaptador de PSC externo como sustitución futura. En ambos casos el flujo opera conforme al protocolo RFC 3161 \cite{adams2001}: se calcula el hash SHA-256 del documento firmado, se solicita el sello al emisor configurado y se almacena la respuesta \texttt{TimeStampResp} en formato ASN.1 DER como artefacto independiente (.tsr). Esta abstracción permite sustituir la TSA local por Cincel, SeguriData, CECOBAN u otra TSA compatible sin modificar la lógica central. La equivalencia es de protocolo, no de confianza: únicamente el camino hacia un PSC autorizado y contratado puede producir la constancia externa prevista por la NOM-151-SCFI-2016.
 
 Para facilitar la verificación independiente por un tercero (tribunal, contraparte, perito), el prototipo genera un paquete ZIP descargable que contiene el documento original, la firma RSA del socio, el sello de tiempo .tsr, los certificados del firmante y de la CA raíz, e instrucciones con comandos OpenSSL para la verificación completa. Este diseño garantiza que la verificación no dependa de la disponibilidad de la plataforma.
 
-La selección de Cincel como proveedor de sellado de tiempo obedece a tres factores. Primero, Cincel es un PSC acreditado por la Secretaría de Economía para la emisión de Sellos Digitales de Tiempo (SDT) y constancias de conservación de mensajes de datos (CCMD), con acreditación publicada en el Diario Oficial de la Federación el 24 de noviembre de 2023 \cite{comparasoftware2026}. Segundo, Cincel expone un entorno de sandbox sin costo que permite obtener sellos de prueba durante la fase de desarrollo sin contratar un plan comercial, lo que es determinante para el cronograma de diez semanas del prototipo. Tercero, su API REST v3 \cite{cincel2024} proporciona una interfaz moderna basada en JSON: se envía el hash SHA-256 del documento en formato hexadecimal y se recibe un enlace al archivo ASN.1 (NOM-151) en formato DER conforme a RFC 3161 \cite{adams2001}. Si el PSC tarda más de 100 milisegundos en generar el sello, Cincel lo procesa de forma asíncrona y recomienda reintentar tras aproximadamente un minuto, lo que el prototipo maneja con un mecanismo de reintento configurable.
+La selección inicial de Cincel como proveedor de sellado de tiempo obedeció a tres factores. Primero, Cincel es un PSC acreditado por la Secretaría de Economía para la emisión de Sellos Digitales de Tiempo (SDT) y constancias de conservación de mensajes de datos (CCMD), con acreditación publicada en el Diario Oficial de la Federación el 24 de noviembre de 2023 \cite{comparasoftware2026}. Segundo, ofrece un entorno de sandbox y recursos de integración. Tercero, la interfaz documentada permite enviar el hash SHA-256 y recuperar el artefacto ASN.1 DER conforme a RFC 3161 \cite{cincel2024,adams2001}, incluidos estados de procesamiento diferido que el prototipo maneja mediante reintentos configurables. La experiencia de integración corrigió la segunda premisa: aunque el registro se completó, el sandbox requiere pago con precios no transparentes y la API no ofreció respuesta y estabilidad suficientes para una campaña repetible. En consecuencia, Cincel no se utiliza como evidencia de esta entrega; permanece únicamente como adaptador externo opcional, mientras la TSA interna verifica el flujo completo sin convertir la disponibilidad comercial en requisito de desarrollo.
 
-El sello de tiempo se almacena como la respuesta cruda TimeStampResp en formato ASN.1 DER (extensión .tsr) en lugar de empaquetarlo en una estructura CAdES-T o embebido en un PDF (PAdES-T). Esta decisión se justifica por tres razones. Primera, con artefactos independientes cada componente del flujo criptográfico —documento, firma, sello, certificado— puede inspeccionarse y verificarse por separado con herramientas estándar; el comando openssl ts -verify opera directamente sobre archivos .tsr sin necesidad de parsear contenedores CMS ni estructuras PDF. Segunda, CAdES-T requeriría construir estructuras CMS con atributos no firmados y PAdES-T requeriría manipular los mecanismos internos del formato PDF (ByteRange, signature dictionaries, incremental saves), tareas de ingeniería de formatos que consumirían tiempo del cronograma sin aportar al objetivo criptográfico del Trabajo Terminal. Tercera, el valor legal es idéntico independientemente del contenedor: el sello de tiempo que aporta valor probatorio bajo la NOM-151 \cite{nom151_2016} es el TimeStampToken RFC 3161 emitido por Cincel, y ese token es criptográficamente el mismo ya sea almacenado como .tsr, embebido en CAdES-T o dentro de PAdES-T. La norma no prescribe un formato de contenedor específico.
+El sello de tiempo se almacena como la respuesta cruda \texttt{TimeStampResp} en formato ASN.1 DER (extensión .tsr) en lugar de empaquetarlo en una estructura CAdES-T o embebido en un PDF (PAdES-T). Esta decisión se justifica por tres razones. Primera, con artefactos independientes cada componente del flujo criptográfico —documento, firma, sello, certificado— puede inspeccionarse y verificarse por separado con herramientas estándar; el comando \texttt{openssl ts -verify} opera directamente sobre archivos .tsr sin necesidad de parsear contenedores CMS ni estructuras PDF. Segunda, CAdES-T requeriría construir estructuras CMS con atributos no firmados y PAdES-T requeriría manipular los mecanismos internos del formato PDF (\texttt{ByteRange}, diccionarios de firma y guardados incrementales), tareas de ingeniería de formatos que consumirían tiempo del cronograma sin aportar al objetivo criptográfico del Trabajo Terminal. Tercera, el contenedor no altera el token RFC 3161 subyacente ni la identidad de su emisor: el alcance jurídico depende de la autoridad y su cadena de confianza, no de almacenar el token como .tsr, CAdES-T o PAdES-T \cite{nom151_2016}.
 
-El flujo de verificación completo del sello de tiempo procede en cuatro pasos: (1) se parsea el TimeStampResp para extraer el TimeStampToken; (2) se verifica que el campo messageImprint.hashedMessage coincida con el hash SHA-256 recalculado del documento original; (3) se verifica la firma de la TSA de Cincel sobre el token; y (4) se verifica el certificado de la TSA contra la cadena de confianza del PSC emisor hasta la ACR2-SE \cite{economia_acr2se}. Con OpenSSL, este proceso completo se ejecuta con un solo comando: openssl ts -verify -data documento.pdf -in sello.tsr -CAfile cincel\_ca.pem. Un despliegue productivo podría migrar a CAdES-T o PAdES-T para ofrecer un paquete autocontenido más conveniente para el usuario final, sin cambiar el token subyacente ni el flujo de obtención del sello, dado que el TimeStampToken es el mismo objeto ASN.1 en cualquier contenedor.
+El flujo de verificación completo del sello de tiempo procede en cuatro pasos: (1) se parsea la \texttt{TimeStampResp} para extraer el \texttt{TimeStampToken}; (2) se verifica que \texttt{messageImprint.\allowbreak{}hashedMessage} coincida con el hash SHA-256 recalculado del documento original; (3) se verifica la firma de la TSA sobre el token; y (4) se valida su certificado contra el ancla de confianza correspondiente. Para la TSA interna, esa ancla es la CA del prototipo; para una constancia externa, debe ser la cadena del PSC emisor hasta la ACR2-SE \cite{economia_acr2se}. Con OpenSSL, el proceso se ejecuta con \texttt{openssl ts -verify -data documento.pdf -in sello.tsr -CAfile ancla.pem}. Un despliegue productivo podría migrar a CAdES-T o PAdES-T sin cambiar el token subyacente ni el flujo de obtención.
 
 \subsection{Cifrado en Reposo}\label{sec:cifrado-reposo}
 
@@ -2297,13 +2312,13 @@ La rotación de la KEK es una operación ligera que no requiere re-cifrar ningú
 
 \subsection{Autenticación y Control de Acceso}\label{sec:autenticacion}
 
-Las contraseñas de los usuarios se almacenan hasheadas con Argon2id (RFC 9106) \cite{biryukov2015,biryukov2021}, la variante híbrida recomendada por OWASP \cite{owasp_pwstorage2024} y NIST SP 800-63B Rev 4 \cite{nist2024} para nuevas implementaciones. Los parámetros adoptados son: memoria m = 46 MiB, iteraciones t = 1, paralelismo p = 1, sal de 16 bytes y hash de salida de 32 bytes, correspondientes a la configuración recomendada de OWASP, calibrada para producir un tiempo de hash de 0.5--1.0 segundo por intento legítimo. Estos parámetros deben verificarse empíricamente en el hardware de despliegue antes de la puesta en producción.
+Las contraseñas de los usuarios se almacenan hasheadas con Argon2id (RFC 9106) \cite{biryukov2015,biryukov2021}, la variante híbrida recomendada por OWASP \cite{owasp_pwstorage2024} y NIST SP 800-63B Rev 4 \cite{nist2024} para nuevas implementaciones. Los parámetros adoptados son: memoria m = 256 MiB (262\,144 KiB), iteraciones t = 2, paralelismo p = 1, sal de 16 bytes y hash de salida de 32 bytes. En el hardware de referencia (AMD Ryzen 7 7730U, 16 hilos lógicos) cinco corridas promediaron 529.4 ms, dentro de la banda objetivo de 0.5--1.0 segundo por intento legítimo. Si el hardware de despliegue difiere, la medición debe repetirse antes de la puesta en producción.
 
 Los clientes del despacho cuentan adicionalmente con autenticación de doble factor mediante TOTP (RFC 6238) \cite{mraihi2011,owasp_mfa2024} con HMAC-SHA1, códigos de 6 dígitos, período de 30 segundos y secreto de 20 bytes, alcanzando el nivel AAL2 de NIST SP 800-63B \cite{nist2024}. Se descartó WebAuthn/FIDO2 (AAL3) por la barrera de adopción que representa para clientes de un despacho legal que requiere solo un smartphone con una app autenticadora estándar. Los socios, por su parte, se autentican mediante certificados digitales X.509 emitidos por la CA interna (\cref{sec:firma-digital}), lo que provee un nivel de aseguramiento equivalente a AAL3 sin hardware dedicado adicional.
 
-La selección de Argon2id sobre bcrypt se fundamenta en la propiedad de dureza de memoria (memory-hardness). bcrypt, diseñado en 1999, es resistente a fuerza bruta en CPU gracias a su costo iterativo, pero utiliza únicamente aproximadamente 4 KiB de memoria por invocación, lo que permite a un atacante con GPUs o ASICs ejecutar miles de instancias en paralelo a bajo costo por unidad de intento. Argon2id obliga a reservar decenas de megabytes por cada intento de hash (46 MiB en la configuración adoptada), lo que hace que escalar el ataque con hardware masivo sea prohibitivamente caro porque la memoria DRAM es el recurso que peor escala en paralelo. Argon2 fue el ganador de la Password Hashing Competition (PHC) en julio de 2015 \cite{biryukov2015}, una competencia abierta de dos años con 24 candidatos evaluados por un panel de criptógrafos. Esta validación pública es análoga a la que AES recibió del concurso NIST en 2001 y aporta confianza en que el diseño ha sido ampliamente escrutado.
+La selección de Argon2id sobre bcrypt se fundamenta en la propiedad de dureza de memoria (memory-hardness). bcrypt, diseñado en 1999, es resistente a fuerza bruta en CPU gracias a su costo iterativo, pero utiliza únicamente aproximadamente 4 KiB de memoria por invocación, lo que permite a un atacante con GPUs o ASICs ejecutar miles de instancias en paralelo a bajo costo por unidad de intento. Argon2id obliga a reservar 256 MiB por cada intento de hash en la configuración calibrada, lo que hace que escalar el ataque con hardware masivo sea prohibitivamente caro porque la memoria DRAM es el recurso que peor escala en paralelo. Argon2 fue el ganador de la Password Hashing Competition (PHC) en julio de 2015 \cite{biryukov2015}, una competencia abierta de dos años con 24 candidatos evaluados por un panel de criptógrafos. Esta validación pública es análoga a la que AES recibió del concurso NIST en 2001 y aporta confianza en que el diseño ha sido ampliamente escrutado.
 
-Argon2 define tres variantes que difieren en su resistencia a distintos vectores de ataque. Argon2d maximiza la resistencia a ataques con GPU y ASIC, pero es vulnerable a ataques de canal lateral si el atacante puede observar los patrones de acceso a memoria del proceso. Argon2i es resistente a ataques de canal lateral al usar un patrón de acceso independiente de los datos, pero ofrece ligeramente menos resistencia a hardware especializado. Argon2id es la variante híbrida: ejecuta Argon2i en el primer pase para proteger contra canal lateral, y Argon2d en los pases subsiguientes para maximizar la resistencia a GPU. RFC 9106 \cite{biryukov2021} §4 recomienda explícitamente Argon2id para hashing de contraseñas por esta combinación de protecciones. Los parámetros adoptados (m = 46 MiB, t = 1, p = 1, sal de 16 bytes, hash de 32 bytes) corresponden a la configuración recomendada de OWASP \cite{owasp_pwstorage2024}, que a su vez se basa en las configuraciones de referencia de RFC 9106. La sal de 128 bits excede el mínimo de 64 bits de RFC 9106 y es el valor recomendado por OWASP.
+Argon2 define tres variantes que difieren en su resistencia a distintos vectores de ataque. Argon2d maximiza la resistencia a ataques con GPU y ASIC, pero es vulnerable a ataques de canal lateral si el atacante puede observar los patrones de acceso a memoria del proceso. Argon2i es resistente a ataques de canal lateral al usar un patrón de acceso independiente de los datos, pero ofrece ligeramente menos resistencia a hardware especializado. Argon2id es la variante híbrida: ejecuta Argon2i en el primer pase para proteger contra canal lateral, y Argon2d en los pases subsiguientes para maximizar la resistencia a GPU. RFC 9106 \cite{biryukov2021} §4 recomienda explícitamente Argon2id para hashing de contraseñas por esta combinación de protecciones. Los parámetros adoptados (m = 256 MiB, t = 2, p = 1, sal de 16 bytes, hash de 32 bytes) fueron seleccionados por calibración del hardware de referencia; la sal de 128 bits excede el mínimo de 64 bits de RFC 9106 y es el valor recomendado por OWASP.
 
 La selección de HMAC-SHA1 como función base del TOTP merece una justificación explícita dado que SHA-1 está desaconsejado para firmas digitales desde 2017 por la demostración práctica de colisiones. Sin embargo, la seguridad de HMAC no depende de la resistencia a colisiones de la función hash subyacente, sino de la pseudoaleatoriedad de su función de compresión interna. NIST SP 800-107 Rev 1 \cite{dang2012} confirma que HMAC-SHA-1 sigue siendo aceptable para autenticación de mensajes y generación de códigos. Adicionalmente, HMAC-SHA1 es el único algoritmo soportado universalmente por todas las aplicaciones autenticadoras del mercado; Google Authenticator históricamente solo soporta SHA-1, lo que haría que la adopción de HMAC-SHA256 o HMAC-SHA512 excluyera a una parte significativa de los dispositivos de los clientes del despacho.
 
@@ -2311,6 +2326,6 @@ El flujo de registro (enrollment) del segundo factor procede de la siguiente man
 
 \subsection{Postura Legal del Prototipo}\label{sec:postura-legal}
 
-La firma generada por el prototipo constituye una firma electrónica simple conforme al artículo 89 del Código de Comercio \cite{ccom2018}, dado que los certificados no provienen de un PSC autorizado (artículo 97, requisito 5). No obstante, su valor probatorio se sustenta en tres pilares: (1) la admisibilidad de la firma simple como prueba, ya que el artículo 89 no condiciona la admisibilidad a la intervención de un PSC; (2) la cláusula de equivalencia funcional del artículo 100, que permite argumentar la fiabilidad del método basándose en la robustez de estándares reconocidos internacionalmente (RSA-3072 conforme a NIST SP 800-57 \cite{barker2020}, SHA-256 conforme a FIPS 180-4 \cite{nist2015fips1804}); y (3) el sello de tiempo NOM-151 de Cincel, que proporciona fecha cierta, integridad verificada por un tercero de confianza autorizado y cumplimiento del artículo 93 bis. La distinción práctica respecto de una firma avanzada radica en la carga de la prueba: quien invoca la firma simple debe acreditar la fiabilidad del método, mientras que la firma avanzada goza de presunción legal. En un despliegue productivo, la sustitución de la CA interna por un PSC autorizado convertiría la firma en avanzada sin cambios arquitectónicos, dado que el módulo de firma acepta cualquier certificado X.509 RSA + SHA-256.
+La firma generada por el prototipo constituye una firma electrónica simple conforme al artículo 89 del Código de Comercio \cite{ccom2018}, dado que los certificados no provienen de un PSC autorizado (artículo 97, requisito 5). Su argumentación probatoria se apoya en: (1) la admisibilidad de la firma simple como prueba, ya que el artículo 89 no condiciona la admisibilidad a la intervención de un PSC; y (2) la cláusula de equivalencia funcional del artículo 100, que permite argumentar la fiabilidad del método con base en estándares reconocidos internacionalmente (RSA-3072 conforme a NIST SP 800-57 \cite{barker2020} y SHA-256 conforme a FIPS 180-4 \cite{nist2015fips1804}). Un sello emitido por un PSC autorizado añadiría fecha cierta e independencia de tercero conforme al marco de la NOM-151; el token de la TSA interna demuestra el mecanismo RFC 3161, pero no añade esa garantía externa. La distinción práctica respecto de una firma avanzada radica en la carga de la prueba: quien invoca la firma simple debe acreditar la fiabilidad del método, mientras que la firma avanzada goza de presunción legal. En un despliegue productivo, la sustitución de la CA interna por un PSC autorizado convertiría la firma en avanzada sin cambios arquitectónicos, dado que el módulo de firma acepta cualquier certificado X.509 RSA + SHA-256.
 
 La arquitectura del prototipo está diseñada para que la transición de firma simple a firma avanzada sea una operación de configuración, no de rediseño. El módulo de firma define una interfaz abstracta que acepta cualquier certificado X.509 con clave RSA y algoritmo sha256WithRSAEncryption. En un despliegue productivo, el despacho podría sustituir la CA interna por certificados emitidos por un PSC autorizado como SeguriData \cite{seguridata} o CECOBAN \cite{cecoban}, convirtiendo la firma en avanzada conforme al artículo 97 del Código de Comercio \cite{ccom2018}; o bien integrar la e.firma del SAT si los socios ya disponen de ella, sin modificar la lógica de verificación. De forma análoga, el módulo de sellado de tiempo define una interfaz abstracta que permite sustituir Cincel por cualquier TSA que implemente RFC 3161 \cite{adams2001}. Esta portabilidad del emisor es un acierto arquitectónico deliberado: el prototipo demuestra la corrección de los mecanismos criptográficos con una infraestructura soberana del despacho, mientras que la producción puede adoptar la infraestructura regulada sin tocar el código de verificación.

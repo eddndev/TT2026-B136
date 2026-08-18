@@ -179,66 +179,88 @@ where
         reader: &mut dyn Read,
         request: &VerifyDocumentRequest<'_>,
     ) -> Result<VerificationReport, ApplicationError> {
-        let digest = self.hasher.hash_stream(reader)?;
-
-        let signature = match self.signature_verifier.verify(
-            &digest,
-            request.signature,
-            request.signer_certificate_pem,
-        )? {
-            SignatureVerification::Valid => ComponentReport::passed(
-                "signature verifies over the document digest with the signer certificate",
-            ),
-            SignatureVerification::Invalid(cause) => {
-                ComponentReport::failed(format!("signature rejected: {cause}"))
-            }
-        };
-
-        let status = self.certificate_validator.validate(
-            request.signer_certificate_pem,
-            request.issuer_certificate_pem,
-            request.crl_pem,
-            request.evaluation_unix,
-        )?;
-        let certificate = certificate_component(&status, request.crl_pem.is_some());
-
-        let (integrity, timestamp) = match request.timestamp {
-            None => (
-                ComponentReport::skipped(
-                    "digest recomputed from the document, but without a timestamp \
-                     token there is no independent reference to compare it against",
-                ),
-                ComponentReport::skipped("no timestamp token supplied"),
-            ),
-            Some(evidence) => {
-                let outcome = self.timestamp_verifier.verify(
-                    evidence.token,
-                    &digest,
-                    evidence.trust_anchor_pem,
-                )?;
-                token_components(&outcome)
-            }
-        };
-
-        let components = [&integrity, &signature, &certificate, &timestamp];
-        let verdict = if components
-            .iter()
-            .any(|component| component.status == ComponentStatus::Failed)
-        {
-            Verdict::NotValid
-        } else {
-            Verdict::Valid
-        };
-
-        Ok(VerificationReport {
-            document_digest_hex: digest.to_hex(),
-            integrity,
-            signature,
-            certificate,
-            timestamp,
-            verdict,
-        })
+        verify_with_ports(
+            &self.hasher,
+            &self.signature_verifier,
+            &self.certificate_validator,
+            &self.timestamp_verifier,
+            reader,
+            request,
+        )
     }
+}
+
+/// Verifies one document through borrowed cryptographic ports.
+pub fn verify_with_ports<H, S, C, T>(
+    hasher: &H,
+    signature_verifier: &S,
+    certificate_validator: &C,
+    timestamp_verifier: &T,
+    reader: &mut dyn Read,
+    request: &VerifyDocumentRequest<'_>,
+) -> Result<VerificationReport, ApplicationError>
+where
+    H: DocumentHasher + ?Sized,
+    S: SignatureVerifier + ?Sized,
+    C: CertificateValidator + ?Sized,
+    T: TimestampVerifier + ?Sized,
+{
+    let digest = hasher.hash_stream(reader)?;
+
+    let signature = match signature_verifier.verify(
+        &digest,
+        request.signature,
+        request.signer_certificate_pem,
+    )? {
+        SignatureVerification::Valid => ComponentReport::passed(
+            "signature verifies over the document digest with the signer certificate",
+        ),
+        SignatureVerification::Invalid(cause) => {
+            ComponentReport::failed(format!("signature rejected: {cause}"))
+        }
+    };
+
+    let status = certificate_validator.validate(
+        request.signer_certificate_pem,
+        request.issuer_certificate_pem,
+        request.crl_pem,
+        request.evaluation_unix,
+    )?;
+    let certificate = certificate_component(&status, request.crl_pem.is_some());
+
+    let (integrity, timestamp) = match request.timestamp {
+        None => (
+            ComponentReport::skipped(
+                "digest recomputed from the document, but without a timestamp \
+                 token there is no independent reference to compare it against",
+            ),
+            ComponentReport::skipped("no timestamp token supplied"),
+        ),
+        Some(evidence) => {
+            let outcome =
+                timestamp_verifier.verify(evidence.token, &digest, evidence.trust_anchor_pem)?;
+            token_components(&outcome)
+        }
+    };
+
+    let components = [&integrity, &signature, &certificate, &timestamp];
+    let verdict = if components
+        .iter()
+        .any(|component| component.status == ComponentStatus::Failed)
+    {
+        Verdict::NotValid
+    } else {
+        Verdict::Valid
+    };
+
+    Ok(VerificationReport {
+        document_digest_hex: digest.to_hex(),
+        integrity,
+        signature,
+        certificate,
+        timestamp,
+        verdict,
+    })
 }
 
 /// Renders the certificate component from the validation outcome.

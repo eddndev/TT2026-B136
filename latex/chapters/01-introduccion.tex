@@ -37,7 +37,7 @@ Desarrollar un prototipo de sistema web para la gestión de expedientes digitale
 
   \item Implementar los módulos de gestión de expedientes penales, etapas procesales, audiencias, plazos y directorio de participantes conforme a la estructura y terminología del CNPP, incluyendo operaciones CRUD y un calendario jurídico integrado que permita al despacho administrar su actividad procesal desde el prototipo.
 
-  \item Implementar el servicio de no repudio para el flujo de firma de contratos mediante firma digital (véase §2.3.3) con certificados X.509 (véase §2.3.3.3) y sellado de tiempo (véase §2.3.3.4) emitido por un Prestador de Servicios de Certificación autorizado conforme a la NOM-151-SCFI-2016 (véase §2.2.7) y al protocolo RFC (Request for Comments) 3161, generando evidencia criptográfica verificable sobre la autoría y el momento de cada firma.
+  \item Implementar el servicio de no repudio para el flujo de firma de contratos mediante firma digital (véase §2.3.3) con certificados X.509 (véase §2.3.3.3) y sellado de tiempo (véase §2.3.3.4) conforme al protocolo RFC (Request for Comments) 3161, detrás de un adaptador de autoridad intercambiable. La demostración actual utiliza una TSA local; la integración con un Prestador de Servicios de Certificación autorizado conforme a la NOM-151-SCFI-2016 (véase §2.2.7) queda como extensión posterior.
 
   \item Implementar el servicio de integridad mediante dos mecanismos complementarios: verificación por hash SHA-256 (Secure Hash Algorithm de 256 bits; véase §2.3.1) para detectar modificaciones no autorizadas en los documentos almacenados, y cifrado autenticado AES-256-GCM (Estándar de Cifrado Avanzado en modo Galois/Counter; véase §2.3.2) para proveer simultáneamente confidencialidad y detección de alteraciones en los expedientes.
 
@@ -58,9 +58,9 @@ La siguiente tabla sintetiza, para cada objetivo específico, el criterio de éx
     \midrule
     OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 17 casos de uso derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
     OE-2 & Módulos de gestión procesal penal (CNPP) & CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las cuatro etapas del CNPP (investigación, intermedia, juicio oral y recursos); cómputo automático de términos conforme al artículo 94 del CNPP. \\
-    OE-3 & No repudio con sello RFC 3161 & Firma digital RSA-3072 con SHA-256 verificable de forma independiente sobre el 100 \% de los contratos firmados; sello de tiempo RFC 3161 vinculado al hash del documento; tasa de verificación exitosa $\geq$ 99 \% sobre sellos emitidos por el sandbox de Cincel. \\
+    OE-3 & No repudio con sello RFC 3161 & Firma digital RSA-3072 con SHA-256 verificable de forma independiente sobre el 100 \% de los contratos firmados; sello de tiempo RFC 3161 local vinculado al hash del documento y verificable con OpenSSL. La tasa sobre un PSC externo queda fuera del alcance actual por la inestabilidad y el costo no transparente del sandbox evaluado. \\
     OE-4 & Integridad y confidencialidad & Detección del 100 \% de alteraciones de un byte en documentos firmados mediante pruebas de mutación; cifrado AES-256-GCM con nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados; envelope encryption con DEK por documento. \\
-    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de despliegue (m=46 MiB, t=1, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
+    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de referencia (m=256 MiB, t=2, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
     OE-6 & Validación del prototipo & Cobertura de pruebas $\geq$ 80 \% en los módulos criptográficos; al menos 15 pruebas end-to-end que cubran los flujos de firma y verificación; matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. \\
     \bottomrule
   \end{tabularx}
@@ -80,7 +80,7 @@ Controles de acceso sin vinculación criptográfica. Si bien existen mecanismos 
 
 El prototipo propuesto aborda estas brechas al proveer servicios criptográficos orientados a la generación de evidencia técnica verificable de forma independiente:
 
-No repudio con evidencia temporal. Implementación de firma digital mediante certificados X.509 y sellado de tiempo conforme al protocolo RFC 3161, vinculando criptográficamente la autoría del firmante con el contenido del contrato y una marca temporal emitida por un PSC autorizado.
+No repudio con evidencia temporal. Implementación de firma digital mediante certificados X.509 y sellado de tiempo conforme al protocolo RFC 3161, vinculando criptográficamente la autoría del firmante con el contenido del contrato y una marca temporal emitida por la TSA configurada. En la demostración, la autoridad es local; un PSC autorizado queda reservado para una integración posterior con garantías contractuales verificables.
 
 Integridad y confidencialidad mediante cifrado autenticado. Uso de AES-256-GCM en el almacenamiento de expedientes y documentos, proveyendo simultáneamente protección contra accesos no autorizados y detección de modificaciones, de modo que la seguridad de la información dependa de protocolos criptográficos y no únicamente de políticas de acceso administrativo.
 
@@ -137,9 +137,9 @@ Para acotar el esfuerzo de investigación y desarrollo del prototipo, se estable
 
   \item El ámbito jurídico es estrictamente privado (Código de Comercio); no se contempla la integración con la Ley de Firma Electrónica Avanzada (LFEA), cuyo ámbito es la Administración Pública Federal.
 
-  \item La firma digital emitida por el prototipo es firma electrónica simple en los términos del artículo 89 del Código de Comercio. Al no provenir de un Prestador de Servicios de Certificación autorizado, no alcanza la presunción de firma avanzada establecida en el artículo 97 del mismo ordenamiento. El respaldo probatorio se sustenta en el sello de tiempo conforme a la NOM-151-SCFI-2016.
+  \item La firma digital emitida por el prototipo es firma electrónica simple en los términos del artículo 89 del Código de Comercio. Al no provenir de un Prestador de Servicios de Certificación autorizado, no alcanza la presunción de firma avanzada establecida en el artículo 97 del mismo ordenamiento. La TSA local aporta evidencia técnica RFC 3161, pero no una constancia NOM-151 ni la independencia de un tercero autorizado.
 
-  \item La integración con el PSC Cincel se realiza contra su entorno de sandbox para los fines del Trabajo Terminal. El despliegue en producción requeriría contratación comercial de la API y queda fuera del alcance.
+  \item La integración con el PSC Cincel fue evaluada como adaptador opcional, pero la falta de respuesta y estabilidad de la API, junto con el costo no transparente del sandbox, impide usarla como evidencia de esta entrega. El prototipo demuestra el sellado con una TSA local; un despliegue productivo requeriría seleccionar y contratar conscientemente un PSC autorizado.
 \end{itemize}
 
 \section{Supuestos del Proyecto}\label{sec:supuestos}
@@ -147,11 +147,11 @@ Para acotar el esfuerzo de investigación y desarrollo del prototipo, se estable
 El desarrollo del prototipo parte de los siguientes supuestos. La falsación de cualquiera de ellos durante la ejecución del Trabajo Terminal motivaría la activación de los planes de mitigación descritos en el análisis de riesgos (§3.6).
 
 \begin{itemize}
-  \item El servicio de sellado de tiempo de Cincel (API v3, entorno sandbox) se mantiene disponible durante el ciclo de desarrollo y pruebas del prototipo.
+  \item La TSA local de OpenSSL y sus scripts de preparación se mantienen disponibles durante el ciclo de desarrollo y pruebas. La disponibilidad de un PSC externo no se asume.
 
-  \item El hardware de despliegue dispone de al menos 46 MiB de memoria por proceso de autenticación, condición necesaria para ejecutar Argon2id con los parámetros seleccionados sin degradar el tiempo de respuesta del inicio de sesión.
+  \item El hardware de referencia dispone de memoria suficiente para ejecutar Argon2id con 256 MiB por proceso de autenticación sin degradar el tiempo de respuesta del inicio de sesión. Si el hardware final difiere, la calibración debe repetirse antes del despliegue.
 
-  \item Existe conectividad estable a internet para consultar listas de revocación (CRL) y servicios OCSP de los PSCs mexicanos, así como la autoridad de sellado de tiempo de Cincel.
+  \item Existe conectividad estable a internet para consultar listas de revocación (CRL) y servicios OCSP cuando el despliegue los requiera. El flujo de demostración no depende de la conectividad con Cincel.
 
   \item Los usuarios acceden al sistema mediante navegadores modernos con soporte para ECMAScript 2020, Web Crypto API y TLS 1.2 o superior.
 

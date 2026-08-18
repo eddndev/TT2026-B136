@@ -1,0 +1,194 @@
+% =====================================================================
+%  anexo-c-verificacion.tex — Guía de verificación independiente
+% =====================================================================
+\chapter[Guía de verificación independiente con OpenSSL]{Guía de verificación independiente\\ con OpenSSL}\label{anexo:verificacion}
+
+Cada paquete de evidencia exportado por el prototipo (comando \texttt{package export}, véase el Anexo~\ref{anexo:cli}) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero ---un perito, la contraparte procesal o un tribunal--- verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. El instructivo se genera a partir de la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al momento de exportar con los datos concretos del paquete (\cref{tab:verificacion-marcadores}). Este anexo reproduce esa guía paso a paso y explica qué demuestra cada comando; con ello se materializa el criterio de verificabilidad independiente del objetivo OE-3. Las salidas mostradas provienen de la ejecución real registrada en \texttt{docs/demo-transcript.md}.
+
+\begin{table}[H]
+  \centering
+  \caption{Marcadores de la plantilla del instructivo y valor con que se rellenan al exportar.}
+  \label{tab:verificacion-marcadores}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Marcador} & \textbf{Valor al exportar} \\
+    \midrule
+    \texttt{\{\{DOCUMENTO\}\}} & Nombre base del documento original. \\
+    \texttt{\{\{FIRMA\}\}} & Nombre del archivo de firma separada (\texttt{<documento>.sig}). \\
+    \texttt{\{\{SELLO\}\}} & Nombre del archivo del sello de tiempo (\texttt{<documento>.tsr}). \\
+    \texttt{\{\{DIGEST\_SHA256\}\}} & Resumen SHA-256 del documento, registrado al momento de exportar. \\
+    \texttt{\{\{ANCLA\_SELLO\}\}} & Ancla de confianza del token: \texttt{tsa-chain.pem} si viaja en el paquete, \texttt{ca.pem} en caso contrario. \\
+    \texttt{\{\{OPENSSL\_VERSION\}\}} & Línea de versión de la herramienta \texttt{openssl} de la máquina exportadora. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Requisitos y versión de referencia}\label{sec:verificacion-requisitos}
+
+La verificación requiere únicamente dos herramientas presentes en prácticamente cualquier sistema operativo de escritorio o servidor: \texttt{unzip} (o cualquier extractor de archivos ZIP) para abrir el paquete, y \texttt{openssl} \cite{openssl_docs} para ejecutar las cuatro comprobaciones. La versión de referencia es \textbf{OpenSSL 3.5.7}: con ella se probaron los scripts de la autoridad interna (Anexo~\ref{anexo:pki}) y sobre ella se capturó la transcripción de la demostración. El propio instructivo cita la línea de versión exacta de la máquina exportadora ---en la ejecución de referencia, \texttt{OpenSSL 3.5.7 9 Jun 2026}---, de modo que el lector sepa contra qué herramienta se redactaron los comandos y pueda atribuir a la versión cualquier diferencia menor en el formato de las salidas. Todos los comandos se ejecutan dentro del directorio donde se extrajo el paquete.
+
+La verificación tampoco requiere acceso a la red: las anclas de confianza (el certificado de la autoridad emisora y, cuando viaja, la cadena de la autoridad de sellado) y la lista de revocación están contenidas en el propio paquete. La contraparte de esa autosuficiencia es temporal y el instructivo la hace explícita: la lista de revocación incluida refleja el estado al momento de exportar, de modo que quien necesite el estado actual del certificado debe solicitar una lista vigente a la autoridad emisora.
+
+\section{Estructura del paquete}\label{sec:verificacion-estructura}
+
+El paquete es un archivo ZIP con entradas planas, sin directorios, escrito en el subconjunto almacenado del formato ZIP \cite{pkware2022}: método 0 (sin compresión), sumas CRC-32 correctas por entrada y salida determinista, con nombres restringidos a un subconjunto ASCII sin separadores de ruta, de modo que la extracción jamás escribe fuera del directorio destino. Las razones de esta implementación propia y mínima constan en \texttt{docs/adr/0006-evidence-package-format.md}. La \cref{tab:verificacion-contenido} describe cada entrada; el nombre del documento conserva su nombre base original y define los nombres de la firma y del sello.
+
+\begin{table}[H]
+  \centering
+  \caption{Contenido del paquete de evidencia. El documento de la ejecución de referencia se llama \texttt{document.txt}.}
+  \label{tab:verificacion-contenido}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Entrada} & \textbf{Contenido} \\
+    \midrule
+    \texttt{<documento>} & El documento original, byte a byte. \\
+    \texttt{<documento>.sig} & La firma digital separada: RSA PKCS\#1 v1.5 sobre el resumen SHA-256 del documento. \\
+    \texttt{<documento>.tsr} & El sello de tiempo RFC 3161 emitido sobre el resumen SHA-256 del documento. \\
+    \texttt{certificado.pem} & El certificado X.509 del firmante. \\
+    \texttt{ca.pem} & El certificado de la autoridad emisora, raíz de la confianza del paquete. \\
+    \texttt{crl.pem} & La lista de revocación publicada por la autoridad al momento de exportar. \\
+    \texttt{tsa-chain.pem} & La cadena de certificados de la autoridad de sellado de tiempo (presente solo cuando estaba disponible al exportar). \\
+    \texttt{INSTRUCCIONES.md} & El instructivo de verificación con los comandos de este anexo ya instanciados. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La extracción con cualquier herramienta ZIP estándar restaura los miembros byte a byte:
+
+\begin{lstlisting}[numbers=none]
++ unzip -o evidencia.zip -d evidencia
+Archive:  evidencia.zip
+ extracting: evidencia/document.txt
+ extracting: evidencia/document.txt.sig
+ extracting: evidencia/document.txt.tsr
+ extracting: evidencia/certificado.pem
+ extracting: evidencia/ca.pem
+ extracting: evidencia/crl.pem
+ extracting: evidencia/tsa-chain.pem
+ extracting: evidencia/INSTRUCCIONES.md
+\end{lstlisting}
+
+El encabezado del instructivo extraído en la ejecución de referencia ilustra cómo quedan instanciados los marcadores:
+
+\begin{lstlisting}[numbers=none]
+# Instrucciones de verificación independiente
+
+Este paquete de evidencia permite verificar el documento `document.txt`
+sin el software que lo generó. Todos los comandos usan únicamente la
+herramienta de línea de órdenes `openssl`; el paquete se generó en una
+máquina con `OpenSSL 3.5.7 9 Jun 2026 (Library: OpenSSL 3.5.7 9 Jun
+2026)`. Ejecute los comandos dentro del directorio donde extrajo el
+paquete.
+\end{lstlisting}
+
+\section{Paso 1: integridad del documento}\label{sec:verificacion-integridad}
+
+El primer paso recalcula el resumen SHA-256 \cite{nist2015fips1804} del documento extraído:
+
+\begin{lstlisting}[numbers=none]
+openssl dgst -sha256 document.txt
+\end{lstlisting}
+
+La salida debe coincidir carácter por carácter con el resumen registrado en el instructivo al momento de exportar. En la ejecución de referencia:
+
+\begin{lstlisting}[numbers=none]
++ openssl dgst -sha256 document.txt
+SHA2-256(document.txt)= fb5c0a6097be9246860fa82c89db3576e8a4ba7e554f3954f148f8bdfdd27ad9
+\end{lstlisting}
+
+\textbf{Qué demuestra.} Que el documento contenido en el paquete es, bit a bit, el mismo sobre el que se registró el resumen: cualquier alteración posterior a la exportación ---por mínima que sea--- produce un resumen distinto. Este paso establece la referencia sobre la que descansan los tres siguientes, pues tanto la firma como el sello de tiempo se emitieron sobre ese mismo resumen.
+
+\section{Paso 2: firma digital}\label{sec:verificacion-firma}
+
+El segundo paso extrae la clave pública del certificado del firmante y verifica la firma separada sobre el documento:
+
+\begin{lstlisting}[numbers=none]
+openssl x509 -in certificado.pem -pubkey -noout > firmante.pub.pem
+openssl dgst -sha256 -verify firmante.pub.pem \
+    -signature document.txt.sig document.txt
+\end{lstlisting}
+
+La salida esperada es \texttt{Verified OK}; cualquier otra salida significa que la firma no corresponde al documento y a la clave del certificado. En la ejecución de referencia:
+
+\begin{lstlisting}[numbers=none]
++ openssl x509 -in certificado.pem -pubkey -noout -out firmante.pub.pem
++ openssl dgst -sha256 -verify firmante.pub.pem -signature document.txt.sig document.txt
+Verified OK
+\end{lstlisting}
+
+\textbf{Qué demuestra.} Que la firma fue producida con la clave privada correspondiente a la clave pública contenida en \texttt{certificado.pem}, y que cubre exactamente este documento. Junto con el paso 1, esto vincula el contenido íntegro del documento con la identidad declarada en el certificado: es la base técnica del no repudio, porque solo quien posee la clave privada pudo generar esa firma.
+
+\section{Paso 3: certificado del firmante y revocación}\label{sec:verificacion-certificado}
+
+El tercer paso comprueba que el certificado del firmante encadena a la autoridad emisora incluida y consulta su estado de revocación contra la lista incluida, conforme a RFC 5280 \cite{cooper2008}:
+
+\begin{lstlisting}[numbers=none]
+cat ca.pem crl.pem > ca-y-crl.pem
+openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
+\end{lstlisting}
+
+La salida esperada es \texttt{certificado.pem: OK}. En la ejecución de referencia:
+
+\begin{lstlisting}[numbers=none]
++ openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
+certificado.pem: OK
+\end{lstlisting}
+
+\textbf{Qué demuestra.} Que el certificado del firmante fue efectivamente emitido por la autoridad raíz del paquete (la firma de la autoridad sobre el certificado se sostiene), que se encuentra dentro de su ventana de vigencia y que no aparece listado en la lista de revocación incluida. El propio instructivo advierte dos matices que el verificador debe tener presentes: la lista de revocación refleja el estado \emph{al momento de la exportación} y tiene fecha de caducidad, por lo que para conocer el estado actual debe solicitarse una lista vigente a la autoridad emisora; y un certificado hoy expirado o revocado no invalida por sí solo una firma efectuada mientras el certificado era válido ---esa lectura corresponde a quien valora la evidencia.
+
+\section{Paso 4: sello de tiempo}\label{sec:verificacion-sello}
+
+El cuarto paso verifica el sello de tiempo RFC 3161 \cite{adams2001}: que el token cubre este documento y que fue firmado por una autoridad de sellado que encadena al ancla de confianza incluida en el paquete. El ancla es \texttt{tsa-chain.pem} cuando esa entrada viaja en el paquete; en su ausencia, el instructivo ancla en \texttt{ca.pem}, pues las autoridades internas del prototipo encadenan a la misma raíz:
+
+\begin{lstlisting}[numbers=none]
+openssl ts -verify -data document.txt -in document.txt.tsr \
+    -CAfile tsa-chain.pem
+\end{lstlisting}
+
+La salida esperada termina en \texttt{Verification: OK}. En la ejecución de referencia el ancla empleada fue \texttt{ca.pem}; ambas invocaciones son equivalentes en ese caso porque la cadena de la TSA local es una copia del certificado raíz:
+
+\begin{lstlisting}[numbers=none]
++ openssl ts -verify -data document.txt -in document.txt.tsr -CAfile ca.pem
+Using configuration from /etc/pki/tls/openssl.cnf
+Verification: OK
+\end{lstlisting}
+
+Para inspeccionar el contenido aseverado por la autoridad de sellado:
+
+\begin{lstlisting}[numbers=none]
+openssl ts -reply -in document.txt.tsr -text
+\end{lstlisting}
+
+Esta lectura muestra, en texto plano, los campos de la estructura \texttt{TSTInfo} que el token protege bajo la firma de la autoridad: el identificador de la política de sellado, el algoritmo y el valor del \emph{message imprint} ---que debe coincidir con el resumen del paso 1---, el número de serie del token y el instante de generación (\texttt{genTime}). En los sellos emitidos por la autoridad local del prototipo, la política es el OID de demostración \texttt{1.3.6.1.4.1.13762.3} y la exactitud aseverada es de un segundo (véase el Anexo~\ref{anexo:pki}).
+
+\textbf{Qué demuestra.} Que una autoridad de sellado de tiempo, cuya cadena de certificados se sostiene hasta el ancla de confianza del paquete, dio fe de que el resumen SHA-256 del documento existía en el instante aseverado dentro del token. Combinado con el paso 1, esto otorga fecha cierta al contenido exacto del documento: el documento no pudo haberse creado ni modificado después de ese instante sin invalidar el sello.
+
+\section{Resumen: qué demuestra cada comprobación}\label{sec:verificacion-resumen}
+
+\begin{table}[H]
+  \centering
+  \caption{Correspondencia entre cada paso de la guía, su salida esperada y la propiedad que demuestra.}
+  \label{tab:verificacion-resumen}
+  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+    \toprule
+    \textbf{Paso} & \textbf{Comando central} & \textbf{Salida esperada} & \textbf{Propiedad demostrada} \\
+    \midrule
+    1 & \texttt{openssl dgst -sha256} & resumen idéntico al registrado & Integridad: el documento no fue alterado después de la exportación. \\
+    2 & \texttt{openssl dgst -verify} & \texttt{Verified OK} & Autenticidad y no repudio: la firma corresponde a este documento y a la clave del certificado incluido. \\
+    3 & \texttt{openssl verify -crl\_check} & \texttt{certificado.pem: OK} & Confianza y vigencia: el certificado encadena a la autoridad emisora y no está revocado según la lista incluida. \\
+    4 & \texttt{openssl ts -verify} & \texttt{Verification: OK} & Fecha cierta: una autoridad de sellado atestiguó la existencia del documento en el instante aseverado. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Comportamiento ante evidencia alterada}\label{sec:verificacion-alterada}
+
+Los cuatro pasos no son ceremonias: cada uno rechaza activamente la evidencia manipulada. Si se altera un solo byte del documento extraído, el paso 1 produce un resumen distinto del registrado, el paso 2 responde con un fallo de verificación en lugar de \texttt{Verified OK} y el paso 4 rechaza el token porque el \emph{message imprint} ya no corresponde al documento presentado; la suite de pruebas del proyecto fija exactamente este comportamiento alterando un byte de un miembro extraído y comprobando que los comandos documentados lo rechazan (\texttt{crates/bin/tests/package\_cli.rs}). La corrupción del propio archivo ZIP se detecta antes, en la extracción, mediante la suma CRC-32 almacenada por entrada, que \texttt{unzip} comprueba con \texttt{unzip -t}.
+
+La transcripción de la demostración ilustra el efecto sobre el resumen: tras voltear el byte en el desplazamiento 100 de una copia del documento, el resumen recomputado cambió de \texttt{fb5c0a60\ldots} a \texttt{19914d87\ldots}, y la verificación reportó fallidos los componentes de integridad, firma y sello, conservando aprobado únicamente el estado del certificado ---que no depende del contenido del documento---.
+
+\section{Autonomía respecto del sistema}\label{sec:verificacion-autonomia}
+
+La verificación descrita no requiere el prototipo en ningún punto: ni el binario \texttt{despacho-cli}, ni la base de datos, ni la disponibilidad de la plataforma que exportó el paquete. Todo lo necesario ---documento, firma, sello, certificados, lista de revocación e instructivo--- viaja dentro del ZIP, y las cuatro comprobaciones se ejecutan con herramientas de terceros ampliamente auditadas. Esta autonomía es deliberada: el valor probatorio de la evidencia no puede depender de que el sistema que la produjo siga existiendo u operando al momento de valorarla.
+
+Dos salvaguardas respaldan la garantía. Primera, el comando \texttt{package export} ejecuta la verificación integral completa sobre los artefactos antes de escribir el ZIP y rehúsa exportar un paquete cuyo veredicto no sea válido, de modo que ningún paquete emitido puede fallar sus propias instrucciones. Segunda, la suite de pruebas del proyecto extrae un paquete real, toma los comandos de \texttt{INSTRUCCIONES.md} y los ejecuta literalmente contra los archivos extraídos (\texttt{crates/bin/tests/\allowbreak package\_cli.rs}), comprobando además que la corrupción de un solo byte del documento extraído es detectada por los comandos documentados; la etapa novena de la transcripción \texttt{docs/demo-transcript.md} reproduce el mismo recorrido de extremo a extremo.

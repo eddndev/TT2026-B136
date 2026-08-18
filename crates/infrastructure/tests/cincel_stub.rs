@@ -297,6 +297,62 @@ fn the_api_key_travels_in_the_header_and_never_into_errors() {
     );
 }
 
+/// Serves `body` as a single 200 response and returns the domain-level
+/// failure message the adapter raises for it.
+fn failure_for_body(body: &str) -> String {
+    let (base_url, _seen) = stub_server(vec![json_response("200 OK", body)]);
+    failure_message(
+        adapter_for(&base_url, "clave-de-api")
+            .request(&sample_digest())
+            .unwrap_err(),
+    )
+}
+
+#[test]
+fn a_completed_response_without_a_token_is_an_invalid_token() {
+    let message = failure_for_body(r#"{"status":"completed"}"#);
+    assert!(
+        message.contains("carries no token"),
+        "a completed response must name the missing token, got: {message}"
+    );
+}
+
+#[test]
+fn a_token_that_is_not_base64_is_an_invalid_token() {
+    let message = failure_for_body(r#"{"status":"completed","token_base64":"not base64 !!!"}"#);
+    assert!(
+        message.contains("base64"),
+        "an undecodable token must name the encoding, got: {message}"
+    );
+}
+
+#[test]
+fn a_completed_response_carrying_an_empty_token_is_rejected() {
+    let message = failure_for_body(r#"{"status":"completed","token_base64":""}"#);
+    assert!(
+        message.contains("empty"),
+        "a decoded empty token must be rejected as empty, got: {message}"
+    );
+}
+
+#[test]
+fn a_processing_response_without_an_id_is_an_invalid_token() {
+    let message = failure_for_body(r#"{"status":"processing"}"#);
+    assert!(
+        message.contains("no id"),
+        "a processing response must name the missing id, got: {message}"
+    );
+}
+
+#[test]
+fn an_unrecognized_status_is_an_invalid_token() {
+    let message = failure_for_body(r#"{"status":"minted-somehow"}"#);
+    assert!(
+        message.contains("unknown provider status"),
+        "an unrecognized status must be reported, got: {message}"
+    );
+}
+
 /// Smoke test against the provider's real sandbox. Ignored because it
 /// needs live credentials: run it manually with CINCEL_BASE_URL and
 /// CINCEL_API_KEY set in the environment.

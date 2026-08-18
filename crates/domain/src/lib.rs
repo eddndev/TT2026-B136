@@ -8,5 +8,6 @@ pub mod audit;
 pub mod clock;
 pub mod crypto;
 pub mod error;
+pub mod identity;
 
 pub use error::DomainError;

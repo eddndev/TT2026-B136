@@ -4,6 +4,7 @@
 
 use domain::audit::{verify_chain, AuditLog, ChainVerification};
 use domain::crypto::Sha256Digest;
+use domain::DomainError;
 use infrastructure::{FileAuditLog, InMemoryAuditLog, RingSha256Hasher};
 use proptest::prelude::*;
 use time::OffsetDateTime;
@@ -124,6 +125,66 @@ fn a_hand_corrupted_line_breaks_verification_at_its_index() {
             first_broken_index: 1,
         }
     );
+}
+
+#[test]
+fn a_stored_line_with_an_unparsable_timestamp_is_a_storage_failure() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("audit.jsonl");
+    // A structurally valid stored entry whose timestamp is not RFC 3339:
+    // the chain value is well formed, so the timestamp is what fails.
+    let line = concat!(
+        r#"{"sequence":0,"timestamp":"not-a-date","actor":"ana","action":"open","#,
+        r#""resource":"case-1","#,
+        r#""chain":"0000000000000000000000000000000000000000000000000000000000000000"}"#
+    );
+    std::fs::write(&path, format!("{line}\n")).unwrap();
+
+    let err = FileAuditLog::new(&path, RingSha256Hasher::new())
+        .load_all()
+        .unwrap_err();
+    match err {
+        DomainError::AuditStorageFailure(message) => {
+            assert!(message.contains("rfc 3339"), "message: {message}");
+        }
+        other => panic!("expected a storage failure, got: {other}"),
+    }
+}
+
+#[test]
+fn a_log_path_that_is_a_directory_is_a_storage_failure() {
+    let dir = tempfile::tempdir().unwrap();
+    let as_dir = dir.path().join("audit.jsonl");
+    std::fs::create_dir(&as_dir).unwrap();
+
+    // Reading a directory as if it were the log file cannot yield entries,
+    // so the adapter reports a storage failure naming the path.
+    let err = FileAuditLog::new(&as_dir, RingSha256Hasher::new())
+        .load_all()
+        .unwrap_err();
+    match err {
+        DomainError::AuditStorageFailure(message) => {
+            assert!(
+                message.contains(&as_dir.display().to_string()),
+                "message: {message}"
+            );
+        }
+        other => panic!("expected a storage failure, got: {other}"),
+    }
+}
+
+#[test]
+fn blank_lines_are_ignored_on_load_and_the_next_append_starts_the_chain() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("audit.jsonl");
+    // A file of only blank lines is an empty log: load skips them and the
+    // next append links to the genesis value as if the file were absent.
+    std::fs::write(&path, "\n   \n\n").unwrap();
+    let mut log = FileAuditLog::new(&path, RingSha256Hasher::new());
+
+    assert_eq!(log.load_all().unwrap(), vec![]);
+    let entry = log.append("ana", "open", "case-1", timestamp(0)).unwrap();
+    assert_eq!(entry.event.sequence, 0);
 }
 
 /// One event's worth of test data.

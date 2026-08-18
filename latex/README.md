@@ -27,7 +27,7 @@ o manualmente: `latexmk -lualatex main.tex`. El motor **debe ser LuaLaTeX**
 main.tex                 Archivo maestro (orden del documento)
 config/
   preamble.tex           Paquetes, fuentes, estilos, biblatex, glossaries
-  glossary.tex           65 entradas de glosario (\newglossaryentry)
+  glossary.tex           84 entradas de glosario (\newglossaryentry)
 frontmatter/
   portada.tex            Portada institucional IPN/ESCOM
   resumen.tex            Resumen + palabras clave
@@ -35,9 +35,15 @@ chapters/
   01-introduccion.tex    Cap. 1
   02-marco-teorico.tex   Cap. 2
   03-analisis-diseno.tex Cap. 3 (incl. 3.7 Arquitectura, 3.11 Criptografía)
-  04-conclusiones.tex    Cap. 4
+  04-implementacion.tex  Cap. 4 Implementación del prototipo
+  05-pruebas.tex         Cap. 5 Pruebas y resultados
+  06-conclusiones.tex    Cap. 6 Conclusiones
   anexos.tex             Anexo A
-references.bib           82 referencias (biblatex, estilo IEEE)
+  anexo-b-cli.tex        Anexo B Manual de la CLI
+  anexo-c-verificacion.tex Anexo C Verificación independiente con OpenSSL
+  anexo-d-pki.tex        Anexo D Scripts de la CA interna
+  anexo-e-matriz.tex     Anexo E Matriz de pruebas y evidencia
+references.bib           88 referencias (biblatex, estilo IEEE)
 figures/                 Imágenes (image*.png)
 ```
 

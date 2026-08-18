@@ -151,7 +151,7 @@ fn rotate_kek(file: &Path, json: bool) -> anyhow::Result<()> {
 
 /// Reads a 32-byte key from a base64-encoded environment variable into a
 /// zeroizing buffer.
-fn load_kek(var: &str) -> anyhow::Result<Zeroizing<Vec<u8>>> {
+pub(crate) fn load_kek(var: &str) -> anyhow::Result<Zeroizing<Vec<u8>>> {
     let encoded =
         env::var(var).with_context(|| format!("environment variable {var} is not set"))?;
     let decoded = Zeroizing::new(
