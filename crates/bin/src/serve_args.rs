@@ -14,7 +14,7 @@ pub struct ServeArgs {
     /// Maximum concurrent blocking application operations.
     #[arg(long, default_value_t = web::HttpLimits::default().max_blocking_operations)]
     pub max_blocking_operations: std::num::NonZeroUsize,
-    /// Directory for encrypted documents and the audit log.
+    /// Legacy storage directory checked for a completed import before startup.
     #[arg(long, default_value = "runtime-data")]
     pub data_dir: PathBuf,
     /// PEM certificate corresponding to the signing private key.

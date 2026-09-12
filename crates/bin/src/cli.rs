@@ -5,6 +5,7 @@
 
 use std::path::PathBuf;
 
+pub use crate::database_args::DatabaseAction;
 use clap::{Parser, Subcommand};
 
 /// Top-level command line.
@@ -28,6 +29,11 @@ pub struct Cli {
 pub enum Command {
     /// Run the local HTTP document application.
     Serve(ServeArgs),
+    /// Prepare database privileges or import legacy encrypted storage.
+    Database {
+        #[command(subcommand)]
+        action: DatabaseAction,
+    },
     /// Content-integrity operations.
     Crypto {
         #[command(subcommand)]
@@ -75,6 +81,7 @@ impl Command {
     pub fn name(&self) -> &'static str {
         match self {
             Command::Serve(_) => "serve",
+            Command::Database { .. } => "database",
             Command::Crypto { .. } => "crypto",
             Command::Vault { .. } => "vault",
             Command::Pki { .. } => "pki",
