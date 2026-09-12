@@ -92,6 +92,68 @@ fn concurrent_appends_serialize_into_one_valid_chain() {
 }
 
 #[test]
+fn loading_waits_for_an_in_progress_append_to_finish_its_json_line() {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+    use std::sync::mpsc::{self, RecvTimeoutError};
+    use std::time::Duration;
+
+    use fs2::FileExt;
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("audit.jsonl");
+    let mut log = FileAuditLog::new(&path, RingSha256Hasher::new());
+    let first = log.append("ana", "open", "case-1", timestamp(0)).unwrap();
+    let second = log.append("ana", "close", "case-1", timestamp(1)).unwrap();
+    let complete = std::fs::read(&path).unwrap();
+    let split = complete.len() - 16;
+    let lock = OpenOptions::new()
+        .write(true)
+        .open(dir.path().join("audit.jsonl.lock"))
+        .unwrap();
+    lock.lock_exclusive().unwrap();
+    std::fs::write(&path, &complete[..split]).unwrap();
+
+    let (started_tx, started_rx) = mpsc::channel();
+    let (result_tx, result_rx) = mpsc::channel();
+    let reader_path = path.clone();
+    let reader = std::thread::spawn(move || {
+        let reader = FileAuditLog::new(reader_path, RingSha256Hasher::new());
+        started_tx.send(()).unwrap();
+        result_tx.send(reader.load_all()).unwrap();
+    });
+    started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    let while_writing = result_rx.recv_timeout(Duration::from_millis(100));
+    OpenOptions::new()
+        .append(true)
+        .open(&path)
+        .unwrap()
+        .write_all(&complete[split..])
+        .unwrap();
+    FileExt::unlock(&lock).unwrap();
+    reader.join().unwrap();
+
+    assert!(matches!(while_writing, Err(RecvTimeoutError::Timeout)));
+    assert_eq!(
+        result_rx
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap(),
+        vec![first, second]
+    );
+}
+
+#[test]
+fn loading_a_missing_log_does_not_create_the_log_or_its_parent() {
+    let dir = tempfile::tempdir().unwrap();
+    let parent = dir.path().join("absent");
+    let path = parent.join("audit.jsonl");
+    let log = FileAuditLog::new(&path, RingSha256Hasher::new());
+    assert!(log.load_all().unwrap().is_empty());
+    assert!(!parent.exists());
+}
+
+#[test]
 fn a_hand_corrupted_line_breaks_verification_at_its_index() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("audit.jsonl");

@@ -20,9 +20,9 @@ use time::OffsetDateTime;
 /// verification. That read-then-write step runs under an exclusive
 /// advisory lock on a sibling `<log>.lock` file, so concurrent appenders
 /// (threads or processes) serialize instead of linking to the same
-/// previous entry and forking the chain. Loading streams the file line by
-/// line and takes no lock. A missing file is an empty log and is created
-/// by the first append.
+/// previous entry and forking the chain. Loading holds a shared lock while
+/// streaming the file so it never observes a partially appended JSON line.
+/// A missing file is an empty log and is created by the first append.
 pub struct FileAuditLog<H> {
     path: PathBuf,
     hasher: H,
@@ -114,28 +114,34 @@ impl<H: DocumentHasher> FileAuditLog<H> {
         }
     }
 
-    /// Takes the exclusive advisory lock that guards appends.
-    ///
-    /// The lock lives in a sibling file named after the log with a `.lock`
-    /// suffix, so the log itself can be read without contending with
-    /// writers. Advisory file locks are released when the file handle is
-    /// dropped, so the returned handle is the guard: holding it delimits
-    /// the critical section that reads the last link and writes the next
-    /// line.
-    fn acquire_append_lock(&self) -> Result<File, DomainError> {
+    /// Opens the sibling lock file shared by readers and appenders.
+    fn open_lock_file(&self) -> Result<File, DomainError> {
         let mut lock_path = self.path.clone().into_os_string();
         lock_path.push(".lock");
         // The lock file's content is never used, only its lock state, so
         // an existing file is left as it is (no truncation).
-        let lock_file = OpenOptions::new()
+        OpenOptions::new()
             .create(true)
             .truncate(false)
+            .read(true)
             .write(true)
             .open(PathBuf::from(lock_path))
-            .map_err(|err| self.storage_failure(&err))?;
+            .map_err(|err| self.storage_failure(&err))
+    }
+
+    /// Holds exclusive access until the returned file handle is dropped.
+    fn acquire_append_lock(&self) -> Result<File, DomainError> {
+        let lock_file = self.open_lock_file()?;
         lock_file
             .lock_exclusive()
             .map_err(|err| self.storage_failure(&err))?;
+        Ok(lock_file)
+    }
+
+    /// Shares a stable read with other readers and excludes partial appends.
+    fn acquire_read_lock(&self) -> Result<File, DomainError> {
+        let lock_file = self.open_lock_file()?;
+        FileExt::lock_shared(&lock_file).map_err(|err| self.storage_failure(&err))?;
         Ok(lock_file)
     }
 
@@ -191,6 +197,7 @@ impl<H: DocumentHasher> AuditLog for FileAuditLog<H> {
             Err(err) if err.kind() == ErrorKind::NotFound => return Ok(Vec::new()),
             Err(err) => return Err(self.storage_failure(&err)),
         };
+        let _read_lock = self.acquire_read_lock()?;
         let mut entries = Vec::new();
         for (index, line) in BufReader::new(file).lines().enumerate() {
             let line = line.map_err(|err| self.storage_failure(&err))?;
