@@ -1,122 +1,39 @@
 % =====================================================================
-%  06-conclusiones.tex
+%  06-conclusiones.tex — Conclusiones
 % =====================================================================
 \chapter{Conclusiones}\label{cap:conclusiones}
 
-Este capítulo presenta las conclusiones del corte técnico del 12 de septiembre
-de 2026, sustentadas en la implementación y las pruebas de los
-\cref{cap:implementacion,cap:pruebas}. El avance permite evaluar el núcleo
-criptográfico y el flujo documental autenticado, pero no declarar terminado
-el conjunto de objetivos funcionales del Trabajo Terminal. La gestión procesal
-y la evaluación con usuarios conservan trabajo pendiente.
+\noindent\textbf{Marcador general para edición.}
+Este capítulo se completará cuando se cierre la implementación, la validación y la revisión del documento de TT.
 
 \section{Resultados obtenidos}\label{sec:resultados-obtenidos}
 
-El prototipo integra cálculo de resúmenes, cifrado autenticado, firma digital,
-validación de certificados y revocación, sellado temporal y exportación de
-paquetes de evidencia. La comprobación con OpenSSL permite examinar documento,
-firma, certificado y sello sin depender de la aplicación que los produjo.
-La autoridad temporal utilizada es local: demuestra la interoperabilidad del
-protocolo RFC 3161 bajo las anclas del ensayo, sin sustituir una autoridad
-independiente ni acreditar por sí misma los efectos jurídicos de la evidencia.
+\noindent\textbf{Contenido pendiente.}
+Aquí se resumirán los resultados finales y la evidencia que los respalda.
 
-El flujo HTTP incorpora expedientes y asignaciones persistidas. Cada operación
-documental comprueba la sesión y revalida el rol activo, la pertenencia vigente
-y la asociación entre documento y expediente al confirmar su acceso.
-Owner conserva acceso global a expedientes; Litigante y Paralegal requieren
-asignación, Paralegal no puede sellar y Cliente mantiene denegadas las
-operaciones documentales. El conocimiento de un identificador no basta para
-acceder al recurso.
-
-La persistencia PostgreSQL resuelve la separación entre cambio documental y
-registro de éxito: ambos se confirman o revierten dentro de la misma
-transacción. Expedientes, asignaciones y mutaciones de identidad prolongan
-la misma cadena de auditoría. El trabajo criptográfico y la comunicación con
-la TSA se preparan fuera de esa transacción; los commits se ordenan mediante
-un bloqueo compartido por los escritores. La asociación documental y la
-evidencia ya sellada permanecen inmutables.
-
-La evaluación reproducida aprobó 519 pruebas, sin fallos y con una prueba
-externa ignorada; la cobertura fue de 8026 de 8845 líneas, equivalente al
-90.7\,\%. El ensayo de dos servidores produjo un sellado aceptado y un
-conflicto, con un único evento y paquetes ZIP idénticos. La migración y
-restauración utilizaron cuatro documentos, tres sellados, y conservaron las
-46 entradas históricas de auditoría y sus hashes. La comparación del estado
-restaurado y de los paquetes, junto con la verificación OpenSSL, aporta evidencia
-de recuperación para ese conjunto controlado. Los datos fueron desechables;
-no se trató de una migración de expedientes reales del despacho.
+\medskip
+\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.}
 
 \section{Contribuciones}\label{sec:contribuciones}
 
-La primera contribución es una separación verificable entre reglas de dominio,
-casos de uso y adaptadores. Los puertos permiten compartir la preparación
-criptográfica entre la CLI y el flujo HTTP sin introducir persistencia ni
-llamadas externas dentro del dominio. La extracción de esta preparación
-facilita probar autorización y fallos de almacenamiento sin regenerar evidencia.
+\noindent\textbf{Contenido pendiente.}
+Aquí se describirán las contribuciones técnicas, documentales y metodológicas del Trabajo Terminal.
 
-La segunda contribución es una frontera transaccional que conecta autorización,
-mutación e historia. Las pruebas de revocación y concurrencia hacen explícito
-cuándo una operación puede confirmarse, mientras que los permisos del rol
-operativo restringen la reescritura de documentos y eventos. Este resultado
-acota una propiedad concreta del backend; no presupone que un administrador
-de la base de datos quede fuera de la base de confianza.
-
-La tercera contribución es un procedimiento de migración que conserva los
-bytes criptográficos y reconcilia las fuentes con el destino. La inspección sin
-escrituras, el mapa explícito de asociaciones, las barreras de escritura y los
-recibos permiten distinguir fallos anteriores y posteriores al commit. La guía
-operativa y el ensayo de restauración complementan las pruebas funcionales con
-un procedimiento reproducible de recuperación.
+\medskip
+\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.}
 
 \section{Limitaciones}\label{sec:limitaciones}
 
-La validación corresponde a un entorno controlado. No se midieron carga de
-producción, disponibilidad prolongada ni usabilidad con personal del despacho.
-Siguen pendientes TLS, administración de conexiones, plazos operativos,
-apagado ordenado y revisión del modelo de amenaza de la firma RSA expuesta
-por HTTP. El bloqueo global simplifica el orden de la auditoría a costa de
-serializar las confirmaciones; su costo debe medirse antes de aumentar la carga.
+\noindent\textbf{Contenido pendiente.}
+Aquí se delimitará qué demuestra el prototipo, qué queda fuera de su alcance y bajo qué condiciones deben interpretarse los resultados.
 
-Redis no participa en una transacción distribuida con PostgreSQL. Ante un fallo
-de auditoría se intenta retirar el desafío o la sesión recién creados y no se
-entrega su token; si también falla la limpieza, la clave puede permanecer hasta
-su expiración. Asimismo, una respuesta cuyo acceso ya se confirmó puede terminar
-de transmitirse después de una revocación posterior. Las pruebas fijan ese orden;
-no afirman la cancelación retroactiva de respuestas.
-
-Una cadena de hashes válida permite detectar alteraciones interiores, pero no
-prueba por sí sola que su extremo no haya sido truncado. El anclaje externo de
-la cabeza sigue pendiente. La migración comprueba cadena y CRL del firmante en
-el instante del sello; la validación de confianza de la TSA mantiene la política
-actual de OpenSSL y puede rechazar una autoridad expirada al verificarla.
-Preservar la evidencia permite examinarla posteriormente, pero no garantiza su
-aceptación indefinida ni una decisión jurídica determinada.
-
-La carga crea únicamente la versión uno. No existen todavía consultas de
-listado, búsqueda e historial documental, ni cambio de contenido o reasignación
-del documento a otro expediente. Las asignaciones de usuarios representan
-acceso al sistema, no participantes procesales. Tampoco se han implementado
-las audiencias, plazos, alertas o la interfaz de usuario completa.
+\medskip
+\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.}
 
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 
-La siguiente ampliación debe ofrecer listado, detalle, búsqueda e historial
-documental con autorización por expediente. Cada versión deberá preservar su
-identidad, contenido cifrado y evidencia histórica, con pruebas tanto de acceso
-permitido como de rechazo. La política documental de Cliente requiere un diseño
-y validación explícitos antes de ampliar sus permisos.
+\noindent\textbf{Contenido pendiente.}
+Aquí se ordenarán las tareas posteriores al cierre, diferenciando mejoras inmediatas, extensiones técnicas y posibles líneas de continuidad.
 
-Sobre esa base corresponde modelar participantes procesales, audiencias y plazos,
-sin confundirlos con las asignaciones de acceso ya existentes. Después se debe
-integrar la interfaz de login y MFA, navegación, carga, sellado, verificación y
-descarga contra el contrato HTTP, y evaluar los flujos con usuarios del despacho.
-El cronograma de diseño conserva su carácter de planificación; estos resultados
-no permiten dar por cumplidas sus actividades de usabilidad y gestión procesal.
-
-Antes de un despliegue público se deben ensayar los límites operativos señalados,
-restauraciones con volúmenes representativos y fallos de servicios externos. La
-contratación y validación de un prestador autorizado y el anclaje independiente
-de auditoría son extensiones distintas de la demostración local. Cada avance
-funcional deberá actualizar el contrato, las decisiones, las mediciones y los
-apartados correspondientes de este reporte, manteniendo separados los resultados
-reproducidos, las hipótesis y el trabajo pendiente.
+\medskip
+\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.}

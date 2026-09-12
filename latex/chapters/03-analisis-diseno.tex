@@ -1,12 +1,5 @@
 \chapter{Análisis y diseño}\label{cap:analisis}
 
-\paragraph{Alcance del diseño y corte de implementación: 12 de septiembre de 2026.}
-Este capítulo conserva las historias de usuario, los casos de uso y el cronograma como especificación del producto previsto; su presencia no acredita que cada función esté implementada. El corte revisado incorpora un backend HTTP autenticado, expedientes con título, referencia y asignaciones de usuarios, operaciones documentales vinculadas al expediente y auditoría transaccional en PostgreSQL. La interfaz de producto, los participantes procesales, las audiencias, los plazos y las transiciones de etapa permanecen pendientes. Tampoco existen todavía listado, búsqueda ni historial de versiones documentales; cada carga crea la versión 1.
-
-La autenticación vigente utiliza correo y contraseña con segundo factor, y sesiones opacas revocables en Redis. La autorización combina el rol actual con la asignación al expediente; Cliente puede leer metadatos de expedientes asignados, pero conserva denegadas todas las operaciones documentales. La persistencia HTTP de documentos cifrados y auditoría es PostgreSQL; los archivos JSON y JSONL se mantienen para el flujo fuera de línea y como origen de una importación controlada. La transacción de PostgreSQL no abarca las sesiones ni los desafíos de Redis.
-
-Este corte se contrasta con el contrato versionado \texttt{docs/http-api.md}, las migraciones SQL y las decisiones de \texttt{docs/adr/}: sesiones revocables (0012), pertenencia a expedientes (0014), límites e invariantes del backend (0015) y documentos con auditoría transaccional (0016). Los apartados siguientes distinguen esos mecanismos de las vistas y servicios todavía propuestos. La TSA de la demostración es local; esta implementación no acredita cumplimiento de la NOM-151 ni disponibilidad de un PSC externo.
-
 \section{Metodología}\label{sec:metodologia}
 
 Extreme Programming (XP) es una metodología ágil de desarrollo de software propuesta por Beck y Andres \cite{beck2004}, orientada a equipos pequeños que trabajan con requisitos técnicos complejos o inciertos. Sus prácticas centrales incluyen programación en pares, desarrollo guiado por pruebas (TDD), spikes arquitectónicos para resolver incertidumbre técnica, e integración continua con propiedad colectiva del código.
@@ -47,12 +40,10 @@ Para abordar la complejidad del sistema, el proyecto estará segmentado en dos f
 
   \item \textbf{Iteración 8 (Semana 8) - Sellado de Tiempo, Autenticación y Auditoría:} Conclusión del flujo de sellado de tiempo RFC 3161. Implementación de la autenticación (hashing de contraseñas con Argon2id y segundo factor TOTP) y de la cadena de auditoría con encadenamiento de hashes. Verificación integral de la evidencia y demostración por línea de comandos, hito de criptografía demostrada de extremo a extremo.
 
-  \item \textbf{Iteración 9 (Semana 9) - Persistencia, Control de Acceso y Gestión Procesal:} Implementación de la persistencia híbrida PostgreSQL/Redis y del control de acceso basado en roles (RBAC) y asignación al expediente. La alternativa inicial JWT se sustituyó por sesiones opacas revocables. Desarrollo de la gestión procesal y documental —módulos CRUD para expedientes, casos, contratos y documentos— integrando los servicios criptográficos ya probados. Desarrollo de una interfaz web mínima.
+  \item \textbf{Iteración 9 (Semana 9) - Persistencia, Control de Acceso y Gestión Procesal:} Implementación de la persistencia híbrida PostgreSQL/Redis y del control de acceso mediante sesiones opacas revocables, roles (RBAC) y asignación al expediente. Desarrollo de la gestión procesal y documental —módulos CRUD para expedientes, casos, contratos y documentos— integrando los servicios criptográficos ya probados. Desarrollo de una interfaz web mínima.
 
   \item \textbf{Iteración 10 (Semana 10) - Pruebas Finales y Cierre:} Ejecución de la matriz de pruebas diseñada en la Fase I. Pruebas de usabilidad con usuarios representativos. Corrección de errores, refactorización final de código y elaboración de los manuales técnicos y de usuario.
 \end{itemize}
-
-La numeración semanal expresa el orden del plan original, no semanas ya concluidas. Al corte indicado, la persistencia, las asignaciones y el flujo documental transaccional representan un avance parcial de la iteración 9; no se declara terminado el CRUD procesal ni la interfaz mínima. Las pruebas de usabilidad y el cierre de la iteración 10 requieren completar y evaluar esas funciones.
 
 \section{Historias de Usuario}\label{sec:historias-usuario}
 
@@ -1565,7 +1556,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Mitigación & Validar el contrato remoto mediante un Spike, aislarlo detrás del puerto \texttt{TimestampService}, cubrir sus estados con un stub HTTP y mantener una TSA RFC 3161 local para pruebas y demostraciones deterministas. \\
     Impacto & 2 -- Medio (30 h) \\
     VME & \$6,562.50 MXN \\
-    Estado al corte & Materializado. El registro se completó, pero la API observada no ofreció estabilidad suficiente para una campaña repetible y el sandbox requiere pago. \\
+    Estado & Materializado. El registro se completó, pero la API observada no ofreció estabilidad suficiente para una campaña repetible y el sandbox requiere pago. \\
     Contingencia & Emitir tokens RFC 3161 con una TSA local cuyo certificado deriva de la CA interna. Esta vía conserva el flujo técnico, pero se etiqueta como evidencia interna y no sustituye la confianza independiente de un PSC autorizado. \\
     \bottomrule
   \end{tabularx}
@@ -1728,7 +1719,7 @@ Clasificación por rango de severidad: 1--2 (Verde): Aceptar y monitorear sin ac
     Mitigación & Mantener una interfaz abstracta que permita configurar otro PSC sin modificar la lógica central y separar las pruebas deterministas de la disponibilidad del proveedor comercial. \\
     Impacto & 2 -- Medio (20 h) \\
     VME & \$3,125.00 MXN \\
-    Estado al corte & Materializado parcialmente como degradación e inestabilidad de la API, no como una interrupción total del registro o del servicio. \\
+    Estado & Materializado parcialmente como degradación e inestabilidad de la API, no como una interrupción total del registro o del servicio. \\
     Contingencia & Encolar las solicitudes externas y reintentar con límites explícitos; para continuidad técnica usar la TSA interna, sin conmutación silenciosa y sin presentar sus tokens como constancias emitidas por un tercero. \\
     \bottomrule
   \end{tabularx}
@@ -1874,7 +1865,7 @@ La arquitectura del sistema no se selecciona por adherencia a una moda tecnológ
 
 El primer atributo prioritario es la seguridad, condicionada por los requerimientos RNF-01 (aislamiento lógico), RNF-02 (gestión segura de credenciales) y RNF-03 (gestión de material criptográfico). La seguridad no se concibe como una capa añadida al final del diseño sino como una propiedad transversal que la arquitectura debe garantizar desde sus fundamentos. La adopción de Rust como lenguaje del backend, la separación estricta de material criptográfico mediante el patrón envelope encryption (véase §3.11.4), y el aislamiento de los puertos criptográficos mediante traits intercambiables son decisiones arquitectónicas que materializan este atributo.
 
-El segundo atributo prioritario es la integridad y trazabilidad, motivado por RNF-04 y por el objetivo normativo de RNF-11. En la implementación revisada, las mutaciones persistentes y sus eventos se confirman conjuntamente en PostgreSQL; el rol operativo carece de permisos para modificar o eliminar auditoría, y la cadena SHA-256 permite detectar inconsistencias. Estas medidas no hacen imposible la intervención de un administrador de base de datos ni prueban por sí mismas la ausencia de truncamiento final: el anclaje externo de la cabeza sigue pendiente. El alcance técnico se detalla en \cref{sec:postgresql}, sin equipararlo con cumplimiento normativo.
+El segundo atributo prioritario es la integridad y trazabilidad, motivado por RNF-04 y por el objetivo normativo de RNF-11. Las mutaciones persistentes y sus eventos se confirman conjuntamente en PostgreSQL; los privilegios del rol operativo protegen la bitácora y la cadena SHA-256 permite comprobar su coherencia. El modelo de confianza incluye a los administradores de la base de datos y contempla el anclaje externo de la cabeza como protección adicional frente al truncamiento final. La frontera transaccional y las responsabilidades de almacenamiento se detallan en \cref{sec:postgresql}.
 
 El tercer atributo es la evolvabilidad, definida por Ford, Parsons y Kua como la capacidad de un sistema para cambiar guiado \cite{ford2023}. El prototipo se diseña para que la sustitución de cualquier sistema externo —el Prestador de Servicios de Certificación (Cincel por SeguriData o CECOBAN), el motor de base de datos, el proveedor de correo— requiera únicamente la implementación de un nuevo adaptador, sin modificación del dominio. Esta propiedad se garantiza mediante la regla de dependencias de la arquitectura hexagonal, formalizada en §3.7.4.
 
@@ -1906,9 +1897,7 @@ La \cref{tab:atributos-calidad} formaliza la priorización adoptada y su mapeo a
 
 La vista de contexto, correspondiente al primer nivel del modelo C4 de Brown \cite{brown2024}, representa al sistema como una caja negra que interactúa con actores humanos y sistemas externos. Su propósito es establecer las fronteras del alcance del prototipo y los protocolos de integración antes de descender a los detalles internos.
 
-La vista de contexto prevista contempla actores del despacho y del cliente, navegadores, un proveedor de sellado de tiempo externo y correo SMTP para notificaciones. Al corte de implementación, la API distingue Owner, Litigante, Paralegal y Cliente, y utiliza una TSA local. El correo, las notificaciones y la interfaz de navegador descritos en esta vista son componentes futuros; no se presenta una integración productiva con Cincel.
-
-\emph{Figura 4. Vista de contexto del sistema: actores humanos y sistemas externos con sus protocolos de integración.}
+La vista de contexto distingue cuatro perfiles humanos: Owner, Litigante, Paralegal y Cliente. Estos acceden a los servicios del backend mediante una API HTTP autenticada. El sellado utiliza una TSA local, conectada a través de un puerto que permite integrar un emisor externo. El diseño de la interfaz propone navegación desde el navegador y notificaciones por correo SMTP para acompañar los flujos de gestión documental y procesal.
 
 El sistema queda explícitamente fuera del alcance respecto a la firma criptográfica realizada por entidades distintas a las partes contractuales (por ejemplo, no se integra con el SAT para emisión de e.firma; las razones se discuten en §3.11.2). Las integraciones con sistemas judiciales públicos (Tribunales, Fiscalías) tampoco están en alcance del prototipo, aunque la arquitectura permite añadirlas en el futuro como adaptadores driving adicionales sin modificar el dominio.
 
@@ -1948,7 +1937,7 @@ La \cref{tab:comparativa-estilos} sintetiza la comparativa entre las seis altern
 
 La arquitectura hexagonal, propuesta originalmente por Alistair Cockburn en 2005 \cite{cockburn2005} y refinada por Vernon \cite{vernon2013} en el contexto del Domain-Driven Design \cite{evans2003}, organiza una aplicación de software en tres capas concéntricas: el dominio en el centro, la aplicación en la capa intermedia, y los adaptadores en la capa exterior.
 
-El dominio define identidades y permisos, metadatos de expediente, documentos y sus versiones, evidencia criptográfica y eventos de auditoría. El diseño jurídico añade participantes, audiencias y etapas procesales como conceptos previstos, todavía sin implementación. La regla fundamental es que el dominio no importa ninguna otra capa del workspace; utiliza bibliotecas de bajo nivel para tipos, serialización, fechas, errores y manejo de secretos.
+El dominio define identidades y permisos, metadatos de expediente, documentos y sus versiones, evidencia criptográfica y eventos de auditoría. Su extensión para la gestión procesal prevé participantes, audiencias y etapas. La regla fundamental es que el dominio no importa ninguna otra capa del workspace; utiliza bibliotecas de bajo nivel para tipos, serialización, fechas, errores y manejo de secretos.
 
 {\emergencystretch=2em La capa de aplicación implementa \texttt{Identity\allowbreak Service}, \texttt{Case\allowbreak Service} y \texttt{Case\allowbreak Document\allowbreak Service}, además de los servicios criptográficos y del flujo documental fuera de línea. Sus puertos expresan las dependencias externas, incluida la frontera transaccional \texttt{Case\allowbreak Document\allowbreak Store}. La programación de audiencias y la transición de etapas son casos de uso previstos. La aplicación depende del dominio y no de los adaptadores.\par}
 
@@ -1980,11 +1969,11 @@ El sistema se descompone en siete bounded contexts: Identidad y Acceso (autentic
   \label{fig:componentes}
 \end{figure}
 
-La \cref{tab:bounded-contexts} conserva el reparto conceptual de responsabilidades y los nombres de módulos propuestos; no es un inventario de módulos compilados ni una declaración de cumplimiento de todos sus casos de uso. El código actual agrupa identidad, expedientes, documentos y criptografía dentro de cada capa hexagonal; un contexto puede atravesar varios crates. Calendario, contratos como módulo independiente y tableros siguen pendientes.
+La \cref{tab:bounded-contexts} organiza los contextos y sus responsabilidades en los módulos propuestos para el sistema. Cada contexto distribuye sus tipos, casos de uso y adaptadores entre las capas hexagonales. Identidad, expedientes, documentos y criptografía proporcionan la base sobre la que se propone desarrollar calendario, gestión contractual y tableros de operación.
 
 \begin{table}[H]
   \centering
-  \caption{Asignación prevista de contextos, casos de uso y módulos; no expresa estado de implementación.}
+  \caption{Organización modular propuesta para los contextos y sus casos de uso.}
   \label{tab:bounded-contexts}
   \begin{tabularx}{\linewidth}{@{}L{0.30\linewidth}C{0.18\linewidth}X@{}}
     \toprule
@@ -2016,7 +2005,7 @@ Los cinco crates son: \texttt{domain} (tipos, invariantes, puertos criptográfic
 
 La consecuencia técnica de esta organización es que las dependencias prohibidas no son una convención que el equipo deba recordar respetar: son una imposibilidad mecánica. Si un módulo del crate domain intenta importar un símbolo del crate infrastructure mediante una declaración \texttt{use infrastructure::PostgresCaseRepository}, el compilador emite el error «unresolved import» porque el \texttt{Cargo.toml} de domain no incluye infrastructure entre sus dependencias. La regla de dependencias se verifica mecánicamente por el compilador en cada build.
 
-La selección de adaptadores se realiza explícitamente en la raíz de composición. El comando \texttt{serve} instancia la TSA local y los repositorios PostgreSQL; no se implementaron las features \texttt{cincel-tsa} y \texttt{seguridata-tsa} contempladas inicialmente. Los puertos permiten una sustitución posterior sin modificar el dominio, pero esa posibilidad no prueba la operación de un proveedor externo.
+La selección de adaptadores se realiza en la raíz de composición. El comando \texttt{serve} instancia la TSA local, los repositorios PostgreSQL y las sesiones Redis, y los conecta con los servicios de aplicación. Esta composición mantiene las decisiones de infraestructura fuera del dominio y permite sustituir un adaptador mediante otra implementación del mismo puerto.
 
 \subsection{Stack Tecnológico}\label{sec:stack-tecnologico}
 
@@ -2030,7 +2019,7 @@ Frente a Go, Rust ofrece tipos algebraicos (Result, Option, enums con datos asoc
 
 Frente a Java o Kotlin con Spring, Rust evita el costo del runtime JVM —tiempo de arranque del orden de segundos, huella de memoria elevada, dependencia de un intérprete de bytecode— que es desproporcionado para un prototipo desarrollado en un equipo de desarrollo individual. Frente a Node.js con TypeScript, Rust proporciona tipado estático verificado en compilación (TypeScript es type erasure: los tipos desaparecen en runtime y no protegen contra errores reales del mundo) y rendimiento criptográfico sustancialmente superior, esencial para un sistema cuyo eje son las operaciones de firma, hash y cifrado intensivo. Frente a Python con FastAPI, Rust elimina el Global Interpreter Lock que limita la concurrencia real de Python, y ofrece un ecosistema criptográfico que ha sido sometido a auditorías formales independientes (particularmente la biblioteca ring, que utilizamos para las primitivas).
 
-El programa Rust se distribuye como ejecutable nativo, sin requerir un intérprete del lenguaje. Esto no elimina las dependencias de operación: la demostración necesita PostgreSQL, Redis, OpenSSL, configuración y material de la PKI. El tamaño del ejecutable depende del perfil y de las bibliotecas incluidas; no se utiliza una estimación inicial como medición de esta entrega.
+El programa Rust se distribuye como ejecutable nativo, sin requerir un intérprete del lenguaje. Su operación se apoya en PostgreSQL, Redis, OpenSSL, los archivos de configuración y el material de la PKI. El tamaño del ejecutable depende del perfil de compilación y de las bibliotecas incluidas, por lo que forma parte de las mediciones de distribución.
 
 \subsubsection{Backend: Axum sobre el ecosistema tokio, tower y hyper}\label{sec:axum}
 
@@ -2038,11 +2027,11 @@ Como framework web se selecciona Axum, desarrollado por el equipo de tokio. Axum
 
 Axum se distingue de alternativas como actix-web o rocket por no ser opinado respecto a la organización del código de la aplicación, lo que facilita la implementación del estilo arquitectónico hexagonal seleccionado en §3.7.3 sin tener que combatir las convenciones del framework. Los handlers de Axum reciben sus dependencias mediante extractores tipados (extractors), permitiendo inyectar los casos de uso de la capa de aplicación de manera explícita y verificable en compilación.
 
-El router actual comparte límites de admisión entre identidad, expedientes y documentos, valida cuerpos y cabeceras y responde con \texttt{Cache-Control: no-store}. El bearer opaco se autentica en la aplicación mediante Redis y la cuenta actual en PostgreSQL; la autorización documental se revalida en la transacción. El pipeline más amplio previsto con CORS, trazas de petición y controles de despliegue no se presenta como una implementación completa. La auditoría durable se produce en los casos de uso y adaptadores transaccionales, no como un log genérico del middleware.
+El router comparte límites de admisión entre identidad, expedientes y documentos, valida cuerpos y cabeceras y responde con \texttt{Cache-Control: no-store}. La aplicación autentica el bearer opaco mediante Redis y consulta la cuenta en PostgreSQL. Para cada operación documental, el almacén transaccional revalida el rol, la pertenencia y la asociación con el expediente. La auditoría durable se confirma con la operación; el diseño del perímetro incorpora además control de orígenes y trazas de petición.
 
 \subsubsection{Frontend: Astro con Svelte Islands}\label{sec:frontend-astro}
 
-El frontend previsto combina Astro como meta-framework y Svelte para componentes interactivos, siguiendo Islands Architecture \cite{sylormiller2019}. La base tecnológica existe, pero las páginas actuales son placeholders sin integración con la API. El calendario, el tablero y las vistas de firma y verificación aquí descritos representan el diseño de interfaz pendiente, no pantallas disponibles.
+Para la interfaz se propone Astro como meta-framework y Svelte para los componentes interactivos, siguiendo Islands Architecture \cite{sylormiller2019}. Las páginas informativas se renderizarán como HTML, mientras el calendario, el tablero y las vistas de firma y verificación se organizarán como islas reactivas conectadas con la API. Esta separación permite desarrollar los flujos de navegador sobre los servicios de identidad, expedientes y documentos del backend.
 
 Frente a Next.js con React, Astro y Svelte tienen tres ventajas específicas para el alcance del prototipo. Primero, Svelte compila a JavaScript imperativo sin Virtual DOM ni runtime de framework, produciendo bundles considerablemente más ligeros que React. Segundo, la reactividad de Svelte es sintáctica —se declara con \texttt{\$:} y asignaciones a variables— lo que reduce el boilerplate frente al modelo de hooks de React. Tercero, Astro está diseñado desde su concepción para emitir el mínimo JavaScript posible, mientras que Next.js parte del modelo de SPA hidratada completa y solo recientemente ha introducido los Server Components para mitigar ese problema.
 
@@ -2050,14 +2039,17 @@ Frente a SvelteKit puro, Astro se elige porque las páginas mayoritariamente inf
 
 \subsubsection{Persistencia híbrida}\label{sec:persistencia-hibrida}
 
-La implementación combina PostgreSQL para usuarios, expedientes, asignaciones, documentos cifrados y auditoría, con Redis para sesiones y controles efímeros de autenticación. Los clientes son \texttt{postgres} y \texttt{redis}, ambos síncronos. La elección inicial de \texttt{sqlx}/\texttt{fred} y las notificaciones pub/sub permanecen como alternativas de evolución; no hay verificación de consultas SQL en compilación ni notificaciones en tiempo real implementadas. La frontera de persistencia se describe en \cref{sec:bd-hibrida}.
+La persistencia combina PostgreSQL para usuarios, expedientes, asignaciones, documentos cifrados y auditoría, con Redis para sesiones y controles efímeros de autenticación. Los clientes \texttt{postgres} y \texttt{redis} se ejecutan de forma síncrona detrás de puertos de aplicación; la capa HTTP los invoca mediante trabajo bloqueante acotado. La separación permite que las mutaciones documentales compartan una transacción con sus eventos y que el estado de sesión tenga una duración limitada. El modelo se desarrolla en \cref{sec:bd-hibrida}.
 
-\subsubsection{Inventario completo de crates}\label{sec:inventario-crates}
+\subsubsection{Bibliotecas del workspace}\label{sec:inventario-crates}
 
-La \cref{tab:inventario-crates} distingue las bibliotecas utilizadas de las alternativas aún previstas. Los manifiestos \texttt{Cargo.toml} declaran dependencias y \texttt{Cargo.lock} fija su resolución. El MSRV vigente es Rust 1.88; el listado no implica que una biblioteca declarada en el workspace sea consumida por todos sus miembros.
+La \cref{tab:inventario-crates} agrupa las principales bibliotecas por su responsabilidad arquitectónica. Los manifiestos \texttt{Cargo.toml} declaran las dependencias de cada crate y \texttt{Cargo.lock} fija su resolución. El workspace establece Rust 1.88 como versión mínima soportada.
 
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.05}
 \begin{longtable}{@{}L{0.22\linewidth}L{0.22\linewidth}L{0.46\linewidth}@{}}
-  \caption{Bibliotecas utilizadas y alternativas previstas, agrupadas por capa arquitectónica.}
+  \caption{Bibliotecas principales del workspace por capa arquitectónica.}
   \label{tab:inventario-crates} \\
   \toprule
   \textbf{Capa} & \textbf{Crate} & \textbf{Función} \\
@@ -2077,7 +2069,6 @@ La \cref{tab:inventario-crates} distingue las bibliotecas utilizadas de las alte
   Dominio & time & Manejo de fechas con zona horaria \\
   Dominio & uuid & Identificadores únicos universales \\
   Dominio & zeroize & Borrado de material secreto en memoria al liberar (higiene de memoria) \\
-  Aplicación (previsto) & async-trait & No consumido por los puertos síncronos actuales \\
   Infraestructura cripto & ring & Hash, AES-GCM, HMAC (auditado) \\
   Infraestructura cripto & x509-cert + der & Manejo de certificados X.509 RFC 5280 \\
   Infraestructura cripto & rsa & Firma digital RSA-3072 PKCS\#1 v1.5 \\
@@ -2088,17 +2079,16 @@ La \cref{tab:inventario-crates} distingue las bibliotecas utilizadas de las alte
   Infraestructura datos & redis & Cliente Redis síncrono para sesiones y autenticación \\
   Infraestructura datos & fs2 & Bloqueo advisory de archivos compartidos entre procesos \\
   Infraestructura red & reqwest & Cliente HTTP bloqueante (adaptador remoto opcional) \\
-  Infraestructura red (previsto) & lettre & Integración SMTP pendiente \\
   Web/HTTP & axum & Framework web sobre tokio/tower/hyper \\
   Web/HTTP & tower / tower-http & Middleware composable \\
   Web/HTTP & tokio & Runtime asíncrono multi-thread \\
   Interfaz de línea de comandos & clap & Análisis declarativo de argumentos y subcomandos \\
   Observabilidad & tracing + tracing-subscriber & Logs estructurados con spans \\
-  Validación (previsto) & validator & La validación actual usa tipos y reglas propias \\
   Configuración & config + dotenvy & Carga de configuración desde entorno \\
   Errores (boundaries) & anyhow & Errores en la raíz de composición del crate \texttt{bin} \\
-  Testing & mockall, proptest, tempfile & Dobles, propiedades y fixtures; rstest y wiremock no se utilizan \\
+  Testing & mockall, proptest, tempfile & Dobles de prueba, propiedades y directorios temporales \\
 \end{longtable}
+\endgroup
 
 \subsection{Patrones Arquitectónicos Transversales}\label{sec:patrones-transversales}
 
@@ -2106,15 +2096,15 @@ Esta subsección documenta cuatro patrones que atraviesan transversalmente todas
 
 \subsubsection{Manejo de errores}\label{sec:manejo-errores}
 
-{\emergencystretch=2em El sistema adopta errores tipados con \texttt{thiserror}: \texttt{Domain\allowbreak Error} expresa invariantes, \texttt{Application\allowbreak Error} representa fallos de casos de uso y puertos, y \texttt{Api\allowbreak Error} traduce resultados al contrato HTTP. Los adaptadores convierten los errores de almacenamiento en errores del puerto; no existe un módulo SMTP implementado. La respuesta HTTP evita exponer detalles internos y secretos.\par}
+{\emergencystretch=2em El sistema adopta errores tipados con \texttt{thiserror}: \texttt{Domain\allowbreak Error} expresa invariantes, \texttt{Application\allowbreak Error} representa fallos de casos de uso y puertos, y \texttt{Api\allowbreak Error} traduce resultados al contrato HTTP. Los adaptadores convierten los errores de almacenamiento en errores del puerto. La respuesta HTTP comunica el resultado sin exponer detalles internos ni secretos.\par}
 
 La dependencia \texttt{anyhow} queda restringida al crate \texttt{bin}, que compone la aplicación y presenta errores operativos. Dominio, aplicación, infraestructura y web conservan contratos de error propios.
 
 \subsubsection{Modelo de concurrencia asíncrona}\label{sec:concurrencia-asincrona}
 
-Tokio atiende el transporte HTTP asíncrono, mientras los puertos de aplicación, PostgreSQL, Redis y la preparación criptográfica ejecutan trabajo síncrono mediante \texttt{spawn\_blocking}. El servidor admite por defecto ocho peticiones y dos operaciones bloqueantes simultáneas; al saturarse responde \texttt{503 server\_busy} sin una cola indefinida. Son presupuestos configurables que deben medirse en el hardware de despliegue, no una garantía de concurrencia ilimitada.
+Tokio atiende el transporte HTTP asíncrono, mientras los puertos de aplicación, PostgreSQL, Redis y la preparación criptográfica ejecutan trabajo síncrono mediante \texttt{spawn\_blocking}. El servidor admite por defecto ocho peticiones y dos operaciones bloqueantes simultáneas; al saturarse responde \texttt{503 server\_busy} sin una cola indefinida. Ambos presupuestos son configurables y su dimensionamiento depende de la memoria, el costo criptográfico y la capacidad del hardware de despliegue.
 
-La cancelación de una petición HTTP no detiene automáticamente el trabajo bloqueante ni revierte una mutación. Su permiso permanece ocupado hasta que termina la operación. No existe un timeout global que garantice cancelar todo el flujo: Redis acota conexión TCP y E/S posterior al handshake a cinco segundos, pero el handshake del cliente actual queda fuera de ese límite. Pooling, transporte protegido, plazos completos y apagado ordenado permanecen como trabajo de despliegue.
+El permiso de trabajo bloqueante permanece ocupado hasta que termina la operación, incluso si el cliente cancela su petición HTTP. De esta forma, la admisión sigue contabilizando el trabajo que puede confirmar una mutación. Redis acota a cinco segundos la conexión TCP y la E/S posterior al handshake; la duración del handshake requiere un control adicional. El diseño operativo deberá completar los plazos de ejecución, el pooling, el transporte protegido y el apagado ordenado.
 
 \subsubsection{Inyección de dependencias por composición}\label{sec:inyeccion-dependencias}
 
@@ -2122,7 +2112,7 @@ La inyección de dependencias se realiza explícitamente en el crate \texttt{bin
 
 \subsubsection{Observabilidad estructurada}\label{sec:observabilidad}
 
-La observabilidad propuesta utiliza el ecosistema \texttt{tracing} y contempla spans, correlación de peticiones y exportación a agregadores. La disponibilidad de estas bibliotecas no acredita un pipeline completo por petición, un filtro de secretos mediante expresiones regulares ni reconfiguración en caliente. La trazabilidad durable implementada es la cadena PostgreSQL de eventos del dominio; debe distinguirse de los logs operativos. El diseño de observabilidad productiva sigue requiriendo validación específica.
+El diseño de observabilidad utiliza el ecosistema \texttt{tracing} para organizar logs operativos y propone spans por petición, identificadores de correlación y exportación a agregadores. Su desarrollo incluye una política de tratamiento de secretos y controles sobre los campos emitidos. La auditoría cumple otra responsabilidad: conserva en PostgreSQL los eventos del dominio y su encadenamiento, de modo que el registro durable de una operación no dependa de los logs del proceso.
 
 \subsection{Vista de Seguridad: Fronteras de Confianza}\label{sec:vista-seguridad}
 
@@ -2132,15 +2122,15 @@ El modelo adoptado sigue el principio de defensa en profundidad formalizado por 
 
 El sistema se modela como cuatro zonas de confianza separadas por tres fronteras explícitas. La primera zona, la red pública, comprende todo aquello que no está bajo control directo del sistema: el navegador del usuario final, los actores adversarios potenciales, y los servicios externos como Cincel PSC y los proveedores SMTP que aunque sean legítimos no operan dentro del perímetro de seguridad del prototipo. La segunda zona, el perímetro de aplicación, contiene el reverse proxy con terminación TLS y la API pública expuesta. La tercera zona, el núcleo aplicativo, contiene el binario Rust con sus tres módulos internos (web, application, domain). La cuarta y más confiable zona, datos persistentes y secretos, contiene PostgreSQL, Redis y el subsistema de gestión de claves criptográficas.
 
-Para el cruce de la red pública al perímetro se prevén terminación TLS, control de orígenes y límites de transporte. Estos controles de despliegue no están certificados por la demostración local. El backend sí aplica los límites compartidos de peticiones, trabajo bloqueante y tamaño de cuerpo descritos en \cref{sec:concurrencia-asincrona}; no se afirma que implemente un WAF ni una ventana deslizante general de protección de la API.
+El diseño del cruce entre la red pública y el perímetro contempla terminación TLS, control de orígenes y límites de transporte. Dentro de la API, los presupuestos compartidos de peticiones, trabajo bloqueante y tamaño de cuerpo acotan el consumo de recursos según \cref{sec:concurrencia-asincrona}. La protección del despliegue deberá complementar esos presupuestos con límites de conexiones y tiempos de recepción.
 
-El cruce del perímetro al núcleo utiliza sesiones opacas revocables, validación de entradas y permisos por rol. El usuario activo y su rol se recargan desde PostgreSQL; los documentos requieren además pertenencia vigente y coincidencia exacta con el expediente solicitado. La identidad no procede de un JWT ni de una cabecera libre con el actor. Una denegación no implica que toda petición rechazada genere un evento durable: el registro corresponde a las operaciones instrumentadas por la aplicación.
+El cruce del perímetro al núcleo utiliza sesiones opacas revocables, validación de entradas y permisos por rol. La identidad se obtiene de la sesión y se recargan de PostgreSQL el usuario activo y su rol. Los documentos requieren además pertenencia vigente y coincidencia exacta con el expediente solicitado. Los casos de uso determinan los eventos de auditoría asociados a sus operaciones y las respuestas de rechazo que debe recibir el solicitante.
 
-El cruce hacia datos persistentes utiliza consultas parametrizadas y cifrado de documentos mediante envelope encryption. La cuenta operativa de PostgreSQL está separada de la cuenta migradora: el servicio abre el esquema existente sin DDL y rechaza privilegios que permitan reescribir auditoría o evidencia protegida. Las conexiones actuales de demostración no acreditan TLS interno; incorporarlo forma parte del despliegue pendiente. Los propietarios y administradores de la base siguen dentro de la base de confianza.
+El cruce hacia datos persistentes utiliza consultas parametrizadas y cifrado de documentos mediante envelope encryption. La cuenta operativa de PostgreSQL está separada de la cuenta migradora: el servicio abre el esquema existente sin DDL y rechaza privilegios que permitan reescribir auditoría o evidencia protegida. Los propietarios y administradores forman parte de la base de confianza. Para un despliegue público se requiere incorporar TLS a las conexiones internas y proteger la configuración y los respaldos.
 
 Los servicios externos se modelan como entidades de la zona no confiable a las que el sistema invoca explícitamente con canales seguros: un PSC externo futuro para sellado de tiempo (RFC 3161) utilizará TLS y verificación de la firma del sello recibido; la TSA local de demostración opera sin salir del perímetro del prototipo; la integración SMTP prevista requeriría protección del transporte y autenticación. En ningún caso se confía en estos servicios para operaciones de seguridad sin verificación local del resultado: un sello recibido se verifica criptográficamente contra la cadena de certificados del emisor antes de ser aceptado e incorporado al expediente.
 
-El modelo STRIDE de Shostack \cite{shostack2014} organiza la revisión prevista de amenazas y los controles asignados a cada frontera. Una matriz de diseño no demuestra por sí sola cobertura efectiva. Persisten limitaciones relevantes: anclaje externo de auditoría, transporte, carga y revisión de la firma RSA expuesta por HTTP. La TSA local tampoco aporta la independencia del tercero externo considerado por el diseño.
+El modelo STRIDE de Shostack \cite{shostack2014} organiza la revisión de amenazas y la asignación de controles a cada frontera. El encadenamiento de auditoría atiende la detección de alteraciones; su anclaje externo se propone para proteger también la cabeza de la historia. La revisión de disponibilidad comprende transporte y carga, mientras que la exposición de firma RSA por HTTP requiere evaluar el manejo de claves y los canales laterales. La confianza temporal se establece sobre la TSA local y deberá ampliarse al incorporar una autoridad externa.
 
 \subsection{Decisiones Arquitectónicas Significativas (ADRs)}\label{sec:adrs}
 
@@ -2202,7 +2192,7 @@ Esta subsección presenta la matriz de trazabilidad que cierra el Capítulo 3 de
 
 Siguiendo el enfoque de arquitecturas evolutivas formalizado por Ford, Parsons y Kua \cite{ford2023}, la coherencia entre la arquitectura prescrita y la arquitectura efectiva del código se verifica mediante un conjunto de fitness functions: pruebas automatizadas que comprueban propiedades arquitectónicas que no podrían verificarse mediante pruebas funcionales tradicionales. Estas fitness functions se ejecutan como parte del pipeline de Integración Continua y, en caso de fallo, bloquean la integración del cambio en la rama principal.
 
-La compilación comprueba el grafo de dependencias entre crates, y CI ejecuta formato, compilación, pruebas y análisis estático. Las comprobaciones propuestas de spans en cada handler, saneamiento de logs, inventario automático de implementaciones de puertos y tamaño máximo del binario no deben darse por ejecutadas: no corresponden a verificaciones implementadas en el pipeline revisado. Los resultados reproducidos y su alcance se presentan en el capítulo de pruebas.
+La compilación comprueba el grafo de dependencias entre crates, y CI ejecuta formato, compilación, pruebas y análisis estático. Estas verificaciones sostienen las reglas de separación de capas y los contratos de sus puertos. Como ampliación del diseño de calidad se proponen comprobaciones automáticas de trazas por petición, tratamiento de secretos en logs e inventario de adaptadores. Cada nueva comprobación deberá incorporarse al pipeline junto con sus pruebas.
 
 
 \section{Modelado de Base de Datos Híbrida}\label{sec:bd-hibrida}
@@ -2211,13 +2201,13 @@ El sistema emplea un modelo de persistencia híbrido que combina \textbf{Postgre
 
 \subsection{PostgreSQL: Datos Persistentes con Valor Probatorio}\label{sec:postgresql}
 
-PostgreSQL proporciona las transacciones y claves foráneas necesarias para relacionar usuarios, expedientes, asignaciones y documentos. El esquema implementado consta de \rutarepo{users}, \rutarepo{cases}, \rutarepo{case_memberships}, \rutarepo{documents}, \rutarepo{audit_events} y \rutarepo{migration_receipts}. El contenido documental cifrado se guarda como bytes y la evidencia capturada como JSONB. Los metadatos variables de proceso, el uso de \texttt{pgcrypto} y las direcciones IP de la bitácora pertenecen al diseño previsto y no son columnas o mecanismos actuales.
+PostgreSQL proporciona las transacciones y claves foráneas necesarias para relacionar usuarios, expedientes, asignaciones y documentos. El esquema consta de \rutarepo{users}, \rutarepo{cases}, \rutarepo{case_memberships}, \rutarepo{documents}, \rutarepo{audit_events} y \rutarepo{migration_receipts}. El contenido documental cifrado se guarda como bytes y la evidencia capturada como JSONB. El modelo de expediente representa título, referencia y creador; las asignaciones relacionan a los usuarios que pueden acceder a él. La gestión procesal ampliará este modelo con atributos, participantes y relaciones propias de cada procedimiento.
 
-La bitácora \rutarepo{audit_events} conserva secuencia, marca temporal canónica, actor, acción, recurso y hash encadenado. Un bloqueo consultivo común ordena las transacciones mutantes de documentos, expedientes e identidad y el cálculo de la siguiente entrada. La mutación y su evento se confirman o se revierten juntos en PostgreSQL; la criptografía y las solicitudes a la TSA se preparan fuera de esa transacción. Verificación y exportación revalidan acceso y confirman su evento antes de entregar resultados. Esta atomicidad no se extiende a Redis ni permite interpretar una pérdida de respuesta de red como prueba de rollback.
+La bitácora \rutarepo{audit_events} conserva secuencia, marca temporal canónica, actor, acción, recurso y hash encadenado. Un bloqueo consultivo común ordena las transacciones mutantes de documentos, expedientes e identidad y el cálculo de la siguiente entrada. La mutación y su evento se confirman o se revierten juntos en PostgreSQL; la criptografía y las solicitudes a la TSA se preparan fuera de esa transacción. Verificación y exportación revalidan acceso y confirman su evento antes de entregar resultados. La atomicidad se limita a PostgreSQL, mientras Redis mantiene el estado efímero de autenticación por separado. Si se pierde la respuesta de una confirmación, la recuperación debe comprobar el estado persistido antes de repetir la operación.
 
-El rol operativo puede insertar y leer eventos, pero no actualizarlos, eliminarlos ni truncarlos. La protección utiliza privilegios de PostgreSQL; no la regla \texttt{RULE} del diseño inicial. La evidencia sellada y la asociación del documento al expediente se preservan mediante permisos por columna, un trigger e invariantes de aplicación. La cadena SHA-256 permite comprobar la coherencia de los eventos conservados, pero sin un anclaje externo no demuestra la ausencia de truncamiento al final. Las tareas administrativas y los respaldos siguen requiriendo controles independientes.
+Los privilegios de PostgreSQL permiten al rol operativo insertar y leer eventos y le impiden actualizarlos, eliminarlos o truncarlos. La evidencia sellada y la asociación del documento al expediente se preservan mediante permisos por columna, un trigger e invariantes de aplicación. La cadena SHA-256 comprueba la coherencia de los eventos conservados. Para detectar el truncamiento de su extremo se propone anclar externamente la cabeza; las tareas administrativas y los respaldos requieren, además, controles independientes.
 
-Los documentos JSON y la auditoría JSONL del flujo fuera de línea pueden importarse con los escritores detenidos y un mapa completo a expedientes existentes. La importación preserva cifrado, firmas, sellos y hashes históricos, y registra un recibo en la misma transacción. No se reemite evidencia para migrarla. El procedimiento se documenta en \texttt{docs/database-operations.md}.
+El flujo fuera de línea conserva documentos JSON y auditoría JSONL. Su incorporación a PostgreSQL requiere detener a los escritores y proporcionar un mapa completo de documentos a expedientes existentes. La importación preserva cifrado, firmas, sellos y hashes históricos, y registra un recibo en la misma transacción. El recibo permite reconciliar el resultado y repetir la importación sin duplicarlo, conforme al procedimiento de \texttt{docs/database-operations.md}.
 
 \subsubsection{Decisión de diseño: Single-Tenant}
 
@@ -2225,29 +2215,29 @@ El sistema se diseña para un solo despacho legal (single-tenant), eliminando la
 
 \subsection{Redis: Datos Volátiles y Comunicación en Tiempo Real}\label{sec:redis}
 
-En el backend actual, Redis mantiene estado efímero de autenticación, con las siguientes responsabilidades:
+Redis mantiene el estado efímero de autenticación, con las siguientes responsabilidades:
 
 \begin{itemize}
-  \item \textbf{Sesiones opacas}: tokens aleatorios cuya representación persistida no contiene el token en claro, con duración de 24 horas y revocación explícita. La duración es fija desde la emisión, no una política de inactividad deslizante.
+  \item \textbf{Sesiones opacas}: tokens aleatorios representados en almacenamiento mediante su hash, con duración fija de 24 horas desde la emisión y revocación explícita.
   \item \textbf{Desafíos MFA}: duración de cinco minutos y consumo atómico antes de comprobar un único intento de segundo factor.
   \item \textbf{Prevención de reutilización TOTP}: reclamación atómica por usuario y código aceptado dentro de la ventana temporal, con expiración de 90 segundos.
   \item \textbf{Límite de contraseña}: cinco fallos consecutivos provocan bloqueo durante la ventana de 15 minutos. El contador y su expiración se actualizan atómicamente, preservando la ventana existente.
 \end{itemize}
 
-No se cachean permisos ni pertenencias en Redis: una petición consulta el estado actual en PostgreSQL. Caché, notificaciones pub/sub, WebSocket y recuperación de contraseña por correo son capacidades previstas. La pérdida de Redis puede interrumpir sesiones y controles efímeros; su persistencia y operación deben evaluarse antes del despliegue.
+La autorización consulta en PostgreSQL el rol y la pertenencia de cada usuario, de modo que una revocación se refleje en peticiones posteriores con la misma sesión. Para notificaciones se propone utilizar pub/sub de Redis y un adaptador WebSocket que entregue los eventos al navegador. La operación de Redis deberá contemplar recuperación y disponibilidad, porque su pérdida interrumpe las sesiones y los controles efímeros que dependen de él.
 
 \subsection{Diagrama del Modelo de Datos}\label{sec:diagrama-datos}
 
-La \cref{fig:modelo-datos} conserva el modelo conceptual propuesto; sus tablas y TTL no constituyen un volcado del esquema implementado. Para el corte actual prevalecen las tres migraciones SQL y las responsabilidades de PostgreSQL y Redis descritas en las subsecciones anteriores.
+La \cref{fig:modelo-datos} presenta el diseño conceptual de la persistencia híbrida: PostgreSQL concentra entidades y relaciones durables, y Redis agrupa las estructuras volátiles. Esta separación vincula las reglas de integridad referencial con la duración y revocación del estado de autenticación.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{image27.png}
-  \caption{Modelo híbrido previsto; el esquema y los TTL implementados se precisan en el texto.}
+  \caption{Diseño conceptual de la persistencia híbrida PostgreSQL y Redis.}
   \label{fig:modelo-datos}
 \end{figure}
 
-Los nombres \texttt{audit\_log}, \texttt{sha256\_chain}, la regla \texttt{RULE} y \texttt{cases.metadata} de la figura corresponden al diseño inicial. El esquema vigente usa \texttt{audit\_events.chain}, privilegios de solo inserción para el rol operativo y expedientes con título y referencia; las asignaciones de acceso no equivalen a participantes procesales.
+En PostgreSQL, las claves foráneas vinculan cada documento con su expediente y cada asignación con un usuario. La columna \texttt{audit\_events.chain} enlaza los eventos de auditoría, y los privilegios del rol operativo protegen su carácter de solo inserción. Las asignaciones administran acceso a la información; el directorio de participantes procesales se propone como una relación distinta dentro del modelo jurídico.
 
 \section{Diagrama de Despliegue y Stack Tecnológico}\label{sec:despliegue}
 
@@ -2255,24 +2245,24 @@ La \cref{fig:despliegue} presenta la vista de despliegue del sistema, ilustrando
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\linewidth]{image28.png}
-  \caption{Despliegue previsto: Astro+Svelte, API Rust, PostgreSQL, Redis y servicios externos; la demostración actual usa API y TSA locales.}
+  \resizebox{\linewidth}{!}{\input{figures/despliegue}}
+  \caption{Diseño de despliegue con Astro+Svelte, API Rust, PostgreSQL, Redis y servicios externos.}
   \label{fig:despliegue}
 \end{figure}
 
-El backend compila a un ejecutable nativo que concentra la composición de los adaptadores. Para operarlo también se requieren PostgreSQL, Redis, OpenSSL y el material criptográfico configurado. La distribución del binario no constituye por sí sola un despliegue completo ni evidencia de disponibilidad productiva.
+El backend compila a un ejecutable nativo que concentra la composición de los adaptadores. Su entorno de operación reúne PostgreSQL, Redis, OpenSSL, la configuración y el material criptográfico. El diseño del despliegue debe coordinar el arranque de estos componentes, sus permisos y la recuperación de datos.
 
-El flujo implementado admite la petición con los límites compartidos, extrae y valida su entrada y ejecuta el caso de uso en trabajo bloqueante. La aplicación autentica la sesión opaca y el almacén documental revalida autorización dentro de PostgreSQL. CORS, proxy TLS y observabilidad ampliada del diagrama son componentes de despliegue previstos.
+El flujo HTTP admite la petición con los límites compartidos, extrae y valida su entrada y ejecuta el caso de uso en trabajo bloqueante. La aplicación autentica la sesión opaca y el almacén documental revalida autorización dentro de PostgreSQL. Para la interfaz de navegador se propone integrar control de orígenes, proxy TLS y correlación de trazas a lo largo de ese recorrido.
 
-El comando \texttt{serve} selecciona explícitamente \texttt{LocalOpensslTsa}. El adaptador remoto mediante \texttt{reqwest} permanece disponible como integración opcional, pero una campaña con PSC externo no forma parte de la demostración. El puerto \texttt{TimestampService} permite sustituir la implementación del emisor sin modificar el dominio.
+El comando \texttt{serve} selecciona \texttt{LocalOpensslTsa} para obtener los sellos de tiempo. El puerto \texttt{TimestampService} separa el protocolo de la implementación del emisor y permite conectar un proveedor remoto mediante \texttt{reqwest}. La integración con un PSC externo requiere configurar su acceso, establecer las anclas de confianza y verificar sus respuestas.
 
-Las conexiones PostgreSQL y Redis usan clientes síncronos detrás de puertos de aplicación. El arranque operativo requiere migraciones previas y un rol restringido; no instala ni modifica tablas. El pooling, clientes asíncronos y TLS son tareas posteriores, no propiedades inferidas de la presencia de Tokio en el transporte HTTP.
+Las conexiones PostgreSQL y Redis usan clientes síncronos detrás de puertos de aplicación. La preparación del esquema corresponde a la cuenta migradora y precede al arranque con el rol operativo restringido. El diseño de operación contempla incorporar pooling, clientes asíncronos y TLS para ampliar la capacidad y protección del transporte.
 
 \section{Modelo de Datos Jurídico-Técnico}\label{sec:modelo-juridico}
 
 La fundamentación del proceso penal expuesta en el marco teórico tiene una consecuencia directa sobre el diseño del prototipo: la base de datos no puede ser un conjunto de tablas genéricas, sino que debe reflejar fielmente las dependencias y restricciones que el CNPP impone. Esta sección articula los vínculos explícitos entre la teoría jurídica y los requerimientos funcionales.
 
-En el modelo jurídico previsto, el caso evoluciona entre etapas procesales \cite{cnpp2021}, con documentos habilitantes e historial de transiciones. El corte implementado solo representa título, referencia, creador y asignaciones de usuarios. La vinculación documental ya existe, pero no impone todavía estados procesales ni valida escritos de acusación o autos de apertura. Participantes, audiencias y plazos deben modelarse como funciones distintas de las asignaciones que hoy autorizan el acceso.
+El expediente se identifica mediante un título, una referencia y su creador, y se relaciona con documentos y asignaciones de usuarios. La extensión procesal propuesta incorpora las etapas del CNPP \cite{cnpp2021} y sus documentos habilitantes: el escrito de acusación para el paso a Intermedia y el auto de apertura para el paso a Juicio Oral. El historial de transiciones, los participantes, las audiencias y los plazos se modelarán como entidades y relaciones propias. La gestión documental deberá añadir consultas de listado, detalle, búsqueda e historial de versiones sobre la carga de versión 1, preservando la evidencia de cada versión.
 
 \section{Diseño Criptográfico del Prototipo}\label{sec:diseno-cripto}
 
@@ -2328,7 +2318,7 @@ La rotación de la KEK es una operación ligera que no requiere re-cifrar ningú
 
 Las contraseñas de los usuarios se almacenan hasheadas con Argon2id (RFC 9106) \cite{biryukov2015,biryukov2021}, la variante híbrida recomendada por OWASP \cite{owasp_pwstorage2024} y NIST SP 800-63B Rev 4 \cite{nist2024} para nuevas implementaciones. Los parámetros adoptados son: memoria m = 256 MiB (262\,144 KiB), iteraciones t = 2, paralelismo p = 1, sal de 16 bytes y hash de salida de 32 bytes. En el hardware de referencia (AMD Ryzen 7 7730U, 16 hilos lógicos) cinco corridas promediaron 529.4 ms, dentro de la banda objetivo de 0.5--1.0 segundo por intento legítimo. Si el hardware de despliegue difiere, la medición debe repetirse antes de la puesta en producción.
 
-Todos los roles del backend actual utilizan contraseña seguida de TOTP (RFC 6238) \cite{mraihi2011} o de un código de recuperación de un solo uso. El TOTP usa HMAC-SHA1, seis dígitos, períodos de 30 segundos y secreto de 20 bytes. La autenticación de socios mediante certificado X.509 permanece como requisito futuro; los certificados de firma no son credenciales de inicio de sesión en esta implementación. La selección de mecanismos no se presenta como una evaluación de conformidad AAL2 o AAL3.
+La autenticación utiliza correo y contraseña seguida de TOTP (RFC 6238) \cite{mraihi2011} o de un código de recuperación de un solo uso. El TOTP usa HMAC-SHA1, seis dígitos, períodos de 30 segundos y secreto de 20 bytes. El inicio de sesión emite un bearer opaco revocable, mientras los certificados X.509 vinculan la firma con su clave pública. Como ampliación del acceso de los socios se propone autenticación por certificado, que requerirá su propio desafío y política de validación.
 
 La selección de Argon2id sobre bcrypt se fundamenta en la propiedad de dureza de memoria (memory-hardness). bcrypt, diseñado en 1999, es resistente a fuerza bruta en CPU gracias a su costo iterativo, pero utiliza únicamente aproximadamente 4 KiB de memoria por invocación, lo que permite a un atacante con GPUs o ASICs ejecutar miles de instancias en paralelo a bajo costo por unidad de intento. Argon2id obliga a reservar 256 MiB por cada intento de hash en la configuración calibrada, lo que hace que escalar el ataque con hardware masivo sea prohibitivamente caro porque la memoria DRAM es el recurso que peor escala en paralelo. Argon2 fue el ganador de la Password Hashing Competition (PHC) en julio de 2015 \cite{biryukov2015}, una competencia abierta de dos años con 24 candidatos evaluados por un panel de criptógrafos. Esta validación pública es análoga a la que AES recibió del concurso NIST en 2001 y aporta confianza en que el diseño ha sido ampliamente escrutado.
 
@@ -2336,15 +2326,15 @@ Argon2 define tres variantes que difieren en su resistencia a distintos vectores
 
 La selección de HMAC-SHA1 como función base del TOTP merece una justificación explícita dado que SHA-1 está desaconsejado para firmas digitales desde 2017 por la demostración práctica de colisiones. Sin embargo, la seguridad de HMAC no depende de la resistencia a colisiones de la función hash subyacente, sino de la pseudoaleatoriedad de su función de compresión interna. NIST SP 800-107 Rev 1 \cite{dang2012} confirma que HMAC-SHA-1 sigue siendo aceptable para autenticación de mensajes y generación de códigos. Adicionalmente, HMAC-SHA1 es el único algoritmo soportado universalmente por todas las aplicaciones autenticadoras del mercado; Google Authenticator históricamente solo soporta SHA-1, lo que haría que la adopción de HMAC-SHA256 o HMAC-SHA512 excluyera a una parte significativa de los dispositivos de los clientes del despacho.
 
-El alta inicial crea al primer Owner únicamente mientras no existan usuarios; las altas posteriores requieren un Owner autenticado. Al crear la cuenta, la API devuelve una sola vez el secreto TOTP, su URI \texttt{otpauth} y ocho códigos de recuperación; no hay todavía interfaz QR ni confirmación de enrolamiento separada. El secreto se conserva cifrado con AES-256-GCM y vinculado al UUID del usuario, y los códigos se almacenan mediante Argon2id. La pérdida de esa respuesta requiere resolver la entrega de enrolamiento: no se presume un mecanismo de reenvío implementado.
+El alta inicial crea al primer Owner únicamente mientras no existan usuarios; las altas posteriores requieren un Owner autenticado. Al crear la cuenta, la API devuelve una sola vez el secreto TOTP, su URI \texttt{otpauth} y ocho códigos de recuperación. El secreto se conserva cifrado con AES-256-GCM y vinculado al UUID del usuario, y los códigos se almacenan mediante Argon2id. Para la interfaz de enrolamiento se propone presentar la URI como QR y confirmar la configuración con un código generado por el dispositivo; el diseño de entrega deberá resolver también la pérdida de la respuesta inicial.
 
-Tras validar la contraseña se emite un desafío de cinco minutos. Cada intento TOTP o de recuperación consume ese desafío atómicamente; si falla, se necesita otro inicio con contraseña. El primitivo TOTP acepta la tolerancia de un período a cada lado del instante actual; el flujo HTTP añade una reclamación Redis que impide reutilizar el código aceptado. El límite de cinco fallos y 15 minutos corresponde a contraseñas, no a reintentos ilimitados del mismo desafío MFA.
+Tras validar la contraseña se emite un desafío de cinco minutos. Cada intento TOTP o de recuperación consume ese desafío atómicamente; si falla, se necesita otro inicio con contraseña. El primitivo TOTP acepta la tolerancia de un período a cada lado del instante actual, y una reclamación atómica en Redis impide reutilizar el código aceptado. Los fallos consecutivos de contraseña se contabilizan por separado: al alcanzar cinco se bloquea el acceso durante el tiempo restante de la ventana de 15 minutos.
 
 La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos los expedientes; los demás roles solo leen metadatos de los asignados. Para documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente permanece denegado incluso asignado. Se comprueba la asociación exacta documento/expediente también para Owner. Una revocación confirmada antes de la transacción documental impide que esta se confirme; si la operación obtuvo primero el bloqueo, confirma antes y la revocación espera. Una respuesta ya confirmada puede terminar de transmitirse después de esa revocación.
 
 \begin{table}[H]
   \centering
-  \caption{Permisos documentales implementados al 12 de septiembre de 2026.}
+  \caption{Permisos de acceso a las operaciones documentales.}
   \label{tab:permisos-implementados}
   \begin{tabularx}{\linewidth}{@{}X C{0.12\linewidth} C{0.14\linewidth} C{0.14\linewidth} C{0.12\linewidth}@{}}
     \toprule
@@ -2363,4 +2353,4 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
 
 La firma generada por el prototipo constituye una firma electrónica simple conforme al artículo 89 del Código de Comercio \cite{ccom2018}, dado que los certificados no provienen de un PSC autorizado (artículo 97, requisito 5). Su argumentación probatoria se apoya en: (1) la admisibilidad de la firma simple como prueba, ya que el artículo 89 no condiciona la admisibilidad a la intervención de un PSC; y (2) la cláusula de equivalencia funcional del artículo 100, que permite argumentar la fiabilidad del método con base en estándares reconocidos internacionalmente (RSA-3072 conforme a NIST SP 800-57 \cite{barker2020} y SHA-256 conforme a FIPS 180-4 \cite{nist2015fips1804}). Un sello emitido por un PSC autorizado añadiría fecha cierta e independencia de tercero conforme al marco de la NOM-151; el token de la TSA interna demuestra el mecanismo RFC 3161, pero no añade esa garantía externa. La distinción práctica respecto de una firma avanzada radica en la carga de la prueba: quien invoca la firma simple debe acreditar la fiabilidad del método, mientras que la firma avanzada goza de presunción legal. La sustitución de la CA interna requiere evaluar identidad, custodia de claves, políticas y verificación del emisor; no se infiere una categoría jurídica distinta únicamente de cambiar el certificado.
 
-Los puertos criptográficos permiten estudiar posteriormente certificados y autoridades externas compatibles, manteniendo separados el formato de evidencia y la implementación del emisor. Esa posibilidad técnica no acredita por sí misma la confianza del proveedor ni el cumplimiento del flujo completo. La demostración evaluada utiliza certificados y TSA locales; cualquier adopción de infraestructura regulada deberá verificarse expresamente, sin presentar el cambio de configuración como validación jurídica automática.
+Los puertos criptográficos separan el formato de evidencia de la implementación del emisor. Esta organización permite integrar certificados y autoridades externas compatibles mediante adaptadores específicos. La adopción de infraestructura regulada requiere evaluar la identidad y custodia de las claves, la confianza en el proveedor y las condiciones del flujo completo, junto con la verificación técnica de las firmas y los sellos.

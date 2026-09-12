@@ -313,7 +313,7 @@ La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umb
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
-El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=256$ MiB, $t=2$, $p=1$; véase \cref{sec:autenticacion}) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de referencia AMD Ryzen 7 7730U la calibración de la demostración de cierre del 17 de agosto de 2026 reportó una \textbf{media de 529.4 ms sobre cinco corridas}, dentro de la banda objetivo, y fijó los parámetros en el adaptador. La media citada conserva su fecha histórica; no se atribuye al corte de septiembre una nueva media que no figure en el informe versionado. Para caracterizar el entorno de despliegue debe repetirse; la suite conserva los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
+El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=256$ MiB, $t=2$, $p=1$; véase \cref{sec:autenticacion}) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de referencia AMD Ryzen 7 7730U la calibración de la demostración de cierre del 17 de agosto de 2026 reportó una \textbf{media de 529.4 ms sobre cinco corridas}, dentro de la banda objetivo, y fijó los parámetros en el adaptador. Para caracterizar el entorno de despliegue debe repetirse; la suite conserva los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
 
 \subsection{Demostraciones y límites de la evidencia}\label{sec:matriz-demo}
 
@@ -325,7 +325,7 @@ La batería también fija el orden entre revocación y commit, rollback de docum
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
-El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cada push y solicitud de integración. Los jobs de pruebas y cobertura crean PostgreSQL y Redis reales y configuran las cuatro variables del entorno aislado. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} describe lo que ejecuta ese flujo; las demostraciones y sus transcripciones se reportan por separado y no se suponen regeneradas por todos los jobs. El total de 519 pruebas aprobadas es el resultado del corte citado, no un número que la integración continua deba mantener fijo frente a futuras incorporaciones.
+El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cada push y solicitud de integración. Los jobs de pruebas y cobertura crean PostgreSQL y Redis reales y configuran las cuatro variables del entorno aislado. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
 
 \begin{table}[H]
   \centering

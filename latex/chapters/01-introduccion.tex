@@ -142,23 +142,19 @@ Para acotar el esfuerzo de investigación y desarrollo del prototipo, se estable
   \item La integración con el PSC Cincel fue evaluada como adaptador opcional, pero la falta de respuesta y estabilidad de la API, junto con el costo no transparente del sandbox, impide usarla como evidencia de esta entrega. El prototipo demuestra el sellado con una TSA local; un despliegue productivo requeriría seleccionar y contratar conscientemente un PSC autorizado.
 \end{itemize}
 
-\subsection{Estado de implementación evaluado}\label{sec:alcance-implementado}
+La implementación comprende una CLI y una API HTTP para autenticación,
+expedientes, asignaciones y operaciones documentales autorizadas por
+pertenencia vigente. Las credenciales combinan contraseña y segundo factor;
+las sesiones son opacas y revocables. La PKI se utiliza para firmar y verificar
+evidencia, sin intervenir en el inicio de sesión. PostgreSQL conserva los
+documentos cifrados y su auditoría bajo una misma frontera transaccional,
+mientras Redis administra el estado efímero de autenticación.
 
-Los alcances y criterios anteriores describen el producto propuesto. El corte
-evaluado del 12 de septiembre de 2026 comprende la CLI, el núcleo criptográfico
-y una API HTTP con autenticación por contraseña y segundo factor, sesiones
-opacas revocables, expedientes, asignaciones y operaciones documentales
-protegidas por pertenencia vigente. La PKI interviene en la firma y verificación
-de evidencia; no se ha implementado un login mediante certificado de usuario.
-PostgreSQL conserva documentos cifrados y auditoría bajo una misma frontera
-transaccional; Redis mantiene el estado efímero de autenticación.
-
-La interfaz de navegador sigue sin implementar los flujos del producto.
-El historial documental, participantes procesales, audiencias, plazos y calendario,
-así como las pruebas de usabilidad, son actividades pendientes. Los
-\cref{cap:implementacion,cap:pruebas,cap:conclusiones} delimitan qué objetivos
-cuentan con evidencia técnica y cuáles requieren desarrollo o evaluación
-posterior; no se deduce su cumplimiento del número total de pruebas.
+La interfaz de navegador, el historial documental, los participantes procesales,
+las audiencias, los plazos y el calendario forman parte del desarrollo pendiente.
+Su integración permitirá realizar las pruebas de usabilidad previstas con
+personal del despacho. La evaluación técnica del flujo implementado se presenta
+en los \cref{cap:implementacion,cap:pruebas}.
 
 \section{Supuestos del Proyecto}\label{sec:supuestos}
 

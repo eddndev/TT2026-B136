@@ -7,7 +7,7 @@ en [el informe de verificación](verification-report.md), las decisiones en
 [la guía de base de datos](database-operations.md).
 
 La entrega de software se integró mediante la [PR #6](https://github.com/eddndev/TT2026-B136/pull/6).
-La actualización de diseño, implementación, pruebas y conclusiones académicas
+La actualización de diseño, implementación, pruebas y anexos académicos
 se registra en [la revisión del reporte](academic-report-verification.md).
 
 ## Objetivo
