@@ -59,7 +59,8 @@ externas conocen a las internas, nunca al revés.
 
 ```bash
 cargo build --workspace                  # compila todos los crates
-cargo test --workspace                   # ejecuta todas las pruebas
+cargo test --workspace                   # pruebas; servicios externos requieren variables
+bash scripts/test-backends.sh            # suite con PostgreSQL y Redis desechables
 cargo run --bin despacho-cli -- --help   # ayuda del binario
 ```
 
@@ -115,7 +116,7 @@ Se cargan del entorno o de un archivo `.env` local (ver
 | `PKI_CA_DIR` | Directorio de trabajo de la autoridad certificadora (por defecto `pki-ca` bajo el directorio actual). |
 | `TSA_DIR` | Directorio de trabajo de la autoridad de sellado local (por defecto `pki-tsa` junto a `PKI_CA_DIR`). |
 | `RUST_LOG` | Filtro de diagnóstico (`error`, `warn`, `info`, `debug`, `trace`); los diagnósticos van a `stderr`. |
-| `DATABASE_URL` | Cadena de conexión a PostgreSQL para usuarios persistidos y migraciones. |
+| `DATABASE_URL` | Cadena de conexión a PostgreSQL para usuarios, expedientes, asignaciones y migraciones. |
 | `REDIS_URL` | Cadena de conexión a Redis para desafíos, sesiones revocables, límites y replay TOTP. |
 
 ### Demostración de extremo a extremo
@@ -140,24 +141,28 @@ bash scripts/api-demo.sh
 ```
 
 Este segundo guion levanta PostgreSQL, Redis y el servidor sobre puertos
-efímeros; crea un owner y un paralegal, completa TOTP, comprueba autorización,
+efímeros; crea usuarios de los cuatro roles, completa TOTP, comprueba autorización,
 logout y recuperación de un solo uso, carga un documento, verifica que no se
 persista texto claro, lo firma y sella con la TSA local, y valida el ZIP con
-OpenSSL. No configura ni consulta Cincel. El contrato completo está en
+OpenSSL. También crea expedientes, comprueba listados filtrados, asignaciones,
+revocación con la misma sesión y las restricciones documentales del Cliente.
+No configura ni consulta Cincel. El contrato completo está en
 [`docs/http-api.md`](docs/http-api.md).
 
 ### Aplicación HTTP local
 
 La API entrega una rebanada multiusuario sobre `/api/v1`: usuarios en
 PostgreSQL, login Argon2id con TOTP o recuperación, sesiones opacas revocables
-en Redis, cuatro roles RBAC, carga y persistencia cifrada de documentos,
+en Redis, cuatro roles RBAC, expedientes con asignaciones y consultas filtradas,
+carga y persistencia cifrada de documentos,
 sellado local, verificación, exportación y auditoría. `X-Actor` fue retirado: el
 actor y los permisos proceden de `Authorization: Bearer` y del usuario vigente.
 
 El comando `serve` requiere `DATABASE_URL`, `REDIS_URL`, `KEK_BASE64`, una CA,
 CRL, certificado y llave del firmante, y una TSA local inicializada. Para
 desarrollo se incluyen `compose.yaml` y la guía completa de la API. La UI y el
-modelado de pertenencia de clientes a casos permanecen pendientes.
+vínculo entre documentos y expedientes permanecen pendientes. Cliente puede
+consultar metadatos de expedientes asignados, pero sigue sin acceso documental.
 
 ### Frontend web
 

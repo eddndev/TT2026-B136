@@ -104,6 +104,11 @@ toolchain locally. Before committing Rust changes, run:
   `crates/infrastructure/tests/identity_backends.rs` return early when these
   variables are absent, so an ordinary green test run does not prove those
   adapters were exercised. The PostgreSQL test expects an empty user table.
+- For case integration tests, set `CASE_TEST_DATABASE_URL` to a separate,
+  disposable PostgreSQL database. Do not reuse the identity test database:
+  its bootstrap test requires an empty user table. `scripts/test-backends.sh`
+  provisions both databases and Redis and runs the workspace suite; missing
+  variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
   `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
@@ -127,9 +132,18 @@ is still unfinished.
   revocable opaque sessions, challenges, login limits, and TOTP replay claims.
   These are not JWT sessions. See
   `docs/adr/0012-revocable-sessions-and-rbac.md`.
-- Owner, Litigator, and Paralegal have role-based permissions. Client document
-  access is denied until case membership and authorization per resource are
-  persisted. See `crates/domain/src/identity.rs`.
+- `migrations/0002_cases.sql` persists case metadata and current assignments.
+  `crates/application/src/cases/` authenticates every operation; the PostgreSQL
+  adapter filters detail and paginated lists by membership. Owners see all
+  cases and manage assignments; litigators may create cases and are assigned
+  automatically. Other roles read assigned metadata only. Creation and the
+  creator assignment share a transaction. See
+  `docs/adr/0014-case-membership-and-isolation.md` and
+  `crates/web/src/cases.rs`.
+- Owner, Litigator, and Paralegal have global document permissions. Client
+  document access remains denied even when assigned to a case: document/case
+  associations and resource authorization are still pending. See
+  `crates/domain/src/identity.rs`.
 - Documents remain encrypted local JSON records; audit events remain a
   separate file. Their writes do not share a transaction. The document
   workflow creates version 1 and has no listing, search, or version-history
@@ -152,16 +166,19 @@ is still unfinished.
 
 ## Next work, in dependency order
 
-1. Define cases, participants, and assignments in the domain and application
-   layers, with repository ports and PostgreSQL migrations. Specify and test
-   membership and cross-case isolation before enabling Client access.
+1. Associate every document with a persisted case and enforce current
+   membership in every document use case, including evidence export. Test
+   cross-case denial and same-session revocation before enabling Client
+   document access. Define migration of existing encrypted local records.
 2. Move document persistence and audit writes behind an explicit transaction
-   boundary. Add failure and concurrency tests proving that a rejected
-   mutation does not leave document state and audit history inconsistent.
-   Preserve encryption and captured signature/timestamp evidence.
-3. Add authorized listing, detail, search, and document version history.
+   boundary, including durable case mutation history. Add failure and
+   concurrency tests proving that rejected mutations do not leave document
+   state and audit history inconsistent. Preserve captured signature and
+   timestamp evidence and authenticated encryption context.
+3. Add authorized document listing, detail, search, and version history.
    Define immutable historical evidence and bind each encrypted version to
-   its document identity. Test access denial as well as successful queries.
+   its document identity. Model procedural participants, hearings, and
+   deadlines separately from the existing user access assignments.
 4. In a requested frontend task, implement login/MFA, case navigation, upload,
    sealing, verification, and evidence download against `docs/http-api.md`.
    Keep business rules and cryptography behind the application ports.

@@ -96,6 +96,11 @@ check` against `deny.toml`), and a release binary size guard. See
   `crates/infrastructure/tests/identity_backends.rs` return early when these
   variables are absent, so an ordinary green test run does not prove those
   adapters were exercised. The PostgreSQL test expects an empty user table.
+- For case integration tests, set `CASE_TEST_DATABASE_URL` to a separate,
+  disposable PostgreSQL database. Do not reuse the identity test database:
+  its bootstrap test requires an empty user table. `scripts/test-backends.sh`
+  provisions both databases and Redis and runs the workspace suite; missing
+  variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
   `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
