@@ -22,7 +22,8 @@
     error = '';
     try {
       if (challenge) {
-        if (Date.now() >= deadline) throw new Error('El desafio vencio. Inicia sesion otra vez.');
+        if (Date.now() >= deadline)
+          throw new Error('La solicitud de acceso venci\u00f3. Inicia sesi\u00f3n de nuevo.');
         const session = await api.mfa(
           challenge.challenge_token,
           code.trim(),
@@ -65,7 +66,7 @@
             <span class="benefit-icon"><Icon name="upload" size={20} /></span>
             <div>
               <strong>Documentos bajo resguardo</strong>
-              <p>Carga tus archivos y conservalos cifrados.</p>
+              <p>Carga tus archivos y cons&eacute;rvalos cifrados.</p>
             </div>
           </li>
           <li>
@@ -106,7 +107,7 @@
           >
           <h2>
             {challenge
-              ? 'Un paso mas.'
+              ? 'Un paso m\u00e1s.'
               : bootstrap
                 ? 'Configura tu despacho.'
                 : 'Accede a tu despacho.'}
@@ -122,7 +123,9 @@
           <form class="stack" onsubmit={submit}>
             {#if challenge}
               <label
-                >{recovery ? 'Codigo de recuperacion' : 'Codigo de 6 digitos'}<input
+                >{recovery
+                  ? 'C\u00f3digo de recuperaci\u00f3n'
+                  : 'C\u00f3digo de 6 d\u00edgitos'}<input
                   autofocus
                   autocomplete="one-time-code"
                   inputmode={recovery ? 'text' : 'numeric'}
@@ -132,8 +135,8 @@
                 /></label
               >
               <small
-                >El desafio dura {Math.round(challenge.expires_in_seconds / 60)} minutos. Un rechazo requiere
-                iniciar sesion de nuevo.</small
+                >Tienes {Math.round(challenge.expires_in_seconds / 60)} minutos para completar este paso.
+                Si se rechaza el c&oacute;digo, inicia sesi&oacute;n de nuevo.</small
               >
               <button class="primary" disabled={busy}
                 >{busy ? 'Verificando...' : 'Verificar y entrar'}<Icon
@@ -148,7 +151,10 @@
                 onclick={() => {
                   recovery = !recovery;
                   code = '';
-                }}>{recovery ? 'Usar app de autenticacion' : 'Usar codigo de recuperacion'}</button
+                }}
+                >{recovery
+                  ? 'Usar app de autenticaci\u00f3n'
+                  : 'Usar c\u00f3digo de recuperaci\u00f3n'}</button
               >
               <button
                 class="text-button"
@@ -157,11 +163,11 @@
                 onclick={() => {
                   challenge = null;
                   code = '';
-                }}>Volver al inicio de sesion</button
+                }}>Volver al inicio de sesi&oacute;n</button
               >
             {:else}
               <label
-                >Correo electronico<input
+                >Correo electr&oacute;nico<input
                   type="email"
                   autocomplete="username"
                   placeholder="tu@despacho.com"
@@ -170,7 +176,7 @@
                 /></label
               >
               <div class="password-field">
-                <label for="auth-password">Contrasena</label>
+                <label for="auth-password">Contrase&ntilde;a</label>
                 <div class="password-control">
                   <input
                     id="auth-password"
@@ -182,7 +188,9 @@
                   /><button
                     type="button"
                     class="password-toggle"
-                    aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                    aria-label={showPassword
+                      ? 'Ocultar contrase\u00f1a'
+                      : 'Mostrar contrase\u00f1a'}
                     aria-pressed={showPassword}
                     aria-controls="auth-password"
                     onclick={() => {
@@ -191,7 +199,8 @@
                   >
                 </div>
               </div>
-              {#if bootstrap}<small>Usa al menos 12 caracteres (maximo 1024 bytes).</small>{/if}
+              {#if bootstrap}<small>Usa al menos 12 caracteres (m&aacute;ximo 1024 bytes).</small
+                >{/if}
               <button class="primary" disabled={busy}
                 >{busy ? 'Conectando...' : bootstrap ? 'Crear administrador' : 'Continuar'}<Icon
                   name="arrow"
@@ -199,7 +208,9 @@
                 /></button
               >
               <div class="auth-switch">
-                {bootstrap ? 'Ya tienes una cuenta?' : 'Primera vez en el despacho?'}<button
+                {bootstrap
+                  ? '\u00bfYa tienes una cuenta?'
+                  : '\u00bfPrimera vez en el despacho?'}<button
                   class="text-button"
                   type="button"
                   disabled={busy}
@@ -208,13 +219,15 @@
                     error = '';
                     password = '';
                     showPassword = false;
-                  }}>{bootstrap ? 'Iniciar sesion' : 'Configurar acceso inicial'}</button
+                  }}>{bootstrap ? 'Iniciar sesi\u00f3n' : 'Configurar acceso inicial'}</button
                 >
               </div>
             {/if}
           </form>
           <div class="auth-assurance">
-            <Icon name="shield" size={17} /><span>Acceso con contrasena y segundo factor.</span>
+            <Icon name="shield" size={17} /><span
+              >Acceso con contrase&ntilde;a y segundo factor.</span
+            >
           </div>
         {/if}
       </div>

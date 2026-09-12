@@ -39,6 +39,6 @@ export const viewLabels = {
   overview: 'Inicio',
   documents: 'Documentos',
   team: 'Equipo',
-  audit: 'Auditoria',
-  guide: 'Guia de uso',
+  audit: 'Auditor\u00eda',
+  guide: 'Gu\u00eda de uso',
 };

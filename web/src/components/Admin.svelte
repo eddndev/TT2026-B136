@@ -31,12 +31,12 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">ADMINISTRACION DEL DESPACHO</span>
+    <span class="eyebrow">ADMINISTRACI&Oacute;N DEL DESPACHO</span>
     <h1>{view === 'users' ? 'Tu equipo, conectado' : 'Una historia verificable'}</h1>
     <p>
       {view === 'users'
         ? 'Crea accesos con los permisos adecuados.'
-        : 'Comprueba la continuidad de la bitacora del despacho.'}
+        : 'Comprueba la continuidad de la bit\u00e1cora del despacho.'}
     </p>
   </div>
 </div>
@@ -52,8 +52,8 @@
     {:else}<span class="tile-icon"><Icon name="users" size={26} /></span>
       <h2>Nuevo integrante</h2>
       <p>
-        El material de segundo factor se mostrara una sola vez. Entregalo de forma segura a su
-        titular.
+        La clave y los c&oacute;digos de recuperaci&oacute;n se mostrar&aacute;n una sola vez.
+        Entr&eacute;galos de forma segura al nuevo integrante.
       </p>
       <form class="stack" onsubmit={submit}>
         <label
@@ -64,7 +64,7 @@
             bind:value={email}
           /></label
         ><label
-          >Contrasena temporal<input
+          >Contrase&ntilde;a inicial<input
             type="password"
             minlength="12"
             required
@@ -72,7 +72,8 @@
             bind:value={password}
           /></label
         ><small
-          >Minimo 12 caracteres. La API actual no ofrece cambio de contrasena desde la interfaz.</small
+          >M&iacute;nimo 12 caracteres. Por ahora, la contrase&ntilde;a no se puede cambiar desde
+          esta interfaz.</small
         ><label
           >Rol<select bind:value={role}
             ><option value="paralegal">Asistente legal</option><option value="litigator"
@@ -83,17 +84,17 @@
         >
         <p class="notice">
           {role === 'owner'
-            ? 'Acceso a documentos, sellado, auditoria y alta de usuarios.'
+            ? 'Acceso a documentos, sellado, auditor\u00eda y alta de usuarios.'
             : role === 'litigator'
               ? 'Puede cargar, sellar, verificar y exportar documentos.'
               : role === 'paralegal'
                 ? 'Puede cargar, verificar y exportar documentos. No puede sellar.'
-                : 'Sin acceso documental hasta contar con asignacion a expedientes.'}
+                : 'El rol cliente no tiene acceso documental en esta interfaz.'}
         </p>
         <button class="primary" disabled={busy}>{busy ? 'Creando...' : 'Crear usuario'}</button>
       </form>{/if}
   {:else}<span class="tile-icon"><Icon name="shield" size={28} /></span>
-    <h2>Integridad de la bitacora</h2>
+    <h2>Integridad de la bit&aacute;cora</h2>
     <p>
       Verifica la cadena completa de eventos registrados por el servidor y detecta el primer enlace
       roto.
@@ -107,15 +108,18 @@
         class:error={!audit.valid}
         role="status"
       >
-        <h3>{audit.valid ? 'Cadena integra' : 'Alteracion detectada'}</h3>
+        <h3>{audit.valid ? 'Cadena \u00edntegra' : 'Alteraci\u00f3n detectada'}</h3>
         <p>
           {audit.valid
-            ? `${audit.entries} eventos verificados`
-            : `Primer indice roto: ${audit.first_broken_index}`}
+            ? audit.entries === 1
+              ? '1 evento verificado'
+              : `${audit.entries} eventos verificados`
+            : `Primer \u00edndice roto: ${audit.first_broken_index}`}
         </p>
       </div>{/if}
     <p class="hint">
-      La verificacion comprueba la cadena local; no certifica un anclaje externo de la bitacora.
+      La verificaci&oacute;n comprueba la cadena local; no certifica un anclaje externo de la
+      bit&aacute;cora.
     </p>
   {/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}

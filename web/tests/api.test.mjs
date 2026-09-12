@@ -42,7 +42,7 @@ test('protected 401 clears session and notifies application', async () => {
     async () => Response.json({ error: { code: 'invalid_session' } }, { status: 401 }),
     () => expired++,
   );
-  await assert.rejects(api.me(), /sesion/i);
+  await assert.rejects(api.me(), /sesi\u00f3n/i);
   assert.equal(expired, 1);
 });
 
@@ -76,7 +76,7 @@ test('API preserves stable error codes and explains pending documents and duplic
   await assert.rejects(pending.verify('document'), (error) => {
     assert.equal(error.code, 'document_not_sealed');
     assert.equal(error.status, 409);
-    assert.match(error.message, /verificar|verificacion/);
+    assert.match(error.message, /verificar|verificaci\u00f3n/);
     assert.match(error.message, /evidencia/);
     return true;
   });

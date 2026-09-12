@@ -31,7 +31,7 @@ for (const status of [200, 401]) {
         { status },
       ),
     );
-    await assert.rejects(pending, /La sesion de esta solicitud termino/);
+    await assert.rejects(pending, /La sesi\u00f3n de esta solicitud termin\u00f3/);
     assert.equal(expired, 0);
     assert.equal((await api.me()).bearer, 'Bearer token-2');
   });

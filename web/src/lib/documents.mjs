@@ -51,12 +51,12 @@ export function safeFilename(value) {
 
 export function validateUpload(file, name) {
   if (!file) return 'Selecciona un archivo.';
-  if (file.size > 16 * 1024 * 1024) return 'El archivo supera el limite de 16 MiB.';
+  if (file.size > 16 * 1024 * 1024) return 'El archivo supera el l\u00edmite de 16 MiB.';
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name) || name.length > MAX_DOCUMENT_NAME) {
-    return 'Usa hasta 124 caracteres: letras sin acentos, numeros, puntos, guiones o guiones bajos. Empieza con una letra o numero.';
+    return 'Usa hasta 124 caracteres: letras sin acentos, n\u00fameros, puntos, guiones o guiones bajos. Empieza con una letra o un n\u00famero.';
   }
   if (reservedNames.has(name.toLowerCase()))
-    return 'Este nombre esta reservado para la evidencia. Usa otro nombre para el documento.';
+    return 'Este nombre est\u00e1 reservado para la evidencia. Usa otro nombre para el documento.';
   return '';
 }
 

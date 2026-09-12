@@ -28,7 +28,7 @@
     history.replaceState(null, '', '#overview');
   }
   const api = createApi(globalThis.fetch, () =>
-    reset('Tu sesion termino. Vuelve a iniciar sesion.'),
+    reset('Tu sesi\u00f3n termin\u00f3. Vuelve a iniciar sesi\u00f3n.'),
   );
   async function logout() {
     logoutBusy = true;
@@ -98,7 +98,7 @@
         <div class="topbar-location">
           <button
             class="icon-button menu-toggle"
-            aria-label="Abrir menu"
+            aria-label="Abrir men&#250;"
             onclick={() => sidebar.open()}><Icon name="menu" /></button
           ><span>Mi despacho<span class="breadcrumb">/ {viewLabels[view]}</span></span>
         </div>

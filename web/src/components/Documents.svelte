@@ -37,7 +37,7 @@
     error = '';
     const id = reference.trim().toLowerCase();
     if (!validId(id)) {
-      error = 'Ingresa un identificador UUID valido.';
+      error = 'Ingresa un identificador UUID v\u00e1lido.';
       return;
     }
     busy = true;
@@ -94,8 +94,8 @@
     <Icon name="lock" size={40} />
     <h2>Acceso documental pendiente</h2>
     <p>
-      El acceso de clientes estara disponible cuando se habilite la asignacion de expedientes.
-      Contacta al administrador del despacho.
+      Tu cuenta de cliente a&uacute;n no tiene acceso a documentos en esta interfaz. Contacta al
+      administrador del despacho.
     </p>
   </section>
 {:else}
@@ -112,15 +112,15 @@
       <div>
         <h2>Mi mesa documental <span class="count">{documents.length}</span></h2>
         <p class="hint">
-          Documentos abiertos en esta sesion. Conserva sus identificadores antes de salir.
+          Documentos abiertos en esta sesi&#243;n. Conserva sus identificadores antes de salir.
         </p>
       </div>
-      <span class="badge neutral">Sesion actual</span>
+      <span class="badge neutral">Sesi&#243;n actual</span>
     </div>
     <div class="list-toolbar">
       <label class="search-field"
         ><Icon name="search" size={18} /><input
-          aria-label="Buscar en esta sesion"
+          aria-label="Buscar en esta sesi&#243;n"
           placeholder="Buscar por nombre o identificador..."
           bind:value={search}
         /></label
@@ -130,7 +130,7 @@
         ><option value="sealed">Sellados</option><option value="verified">Verificados</option
         ><option value="failed">Revisar evidencia</option></select
       >
-      <div class="view-switch" aria-label="Presentacion del listado">
+      <div class="view-switch" aria-label="Presentaci&#243;n del listado">
         <button
           class:active={layout === 'list'}
           class="icon-button"
@@ -160,7 +160,7 @@
         </h3>
         <p>
           {documents.length
-            ? 'Cambia la busqueda o el estado para ver otros documentos.'
+            ? 'Cambia la b\u00fasqueda o el estado para ver otros documentos.'
             : 'Carga un archivo nuevo o recupera uno existente con su identificador.'}
         </p>
         {#if documents.length}<button
@@ -174,9 +174,10 @@
           >{/if}
       </div>{/if}
     <div class="list-footer">
-      <span>{visible.length} de {documents.length} documentos</span><span
-        >Los archivos permanecen guardados al cerrar sesion.</span
-      >
+      <span
+        >{visible.length} de {documents.length}
+        {documents.length === 1 ? 'documento' : 'documentos'}</span
+      ><span>Los archivos permanecen guardados al cerrar sesi&#243;n.</span>
     </div>
   </section>
   <section class="card reference-panel">
@@ -198,7 +199,7 @@
         >{busy ? 'Consultando...' : 'Abrir documento'}<Icon name="arrow" size={16} /></button
       >
     </form>
-    <p class="hint">Al abrir un documento sellado tambien se comprueba su integridad.</p>
+    <p class="hint">Al abrir un documento sellado tambi&#233;n se comprueba su integridad.</p>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   </section>
   {#if selected}<div class="document-focus" tabindex="-1" bind:this={detail}>

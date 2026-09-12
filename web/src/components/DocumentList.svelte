@@ -18,7 +18,7 @@
           >
         </div>
         <strong>{item.name}</strong><small
-          >{item.version ? `Version ${item.version}` : 'Referencia por identificador'}</small
+          >{item.version ? `Versi\u00f3n ${item.version}` : 'Referencia por identificador'}</small
         >
         <div class="document-card-footer">
           <code>{item.id.slice(0, 8)}</code><span>Abrir<Icon name="arrow" size={15} /></span>
@@ -29,7 +29,7 @@
     <table class="document-table">
       <thead
         ><tr
-          ><th>Documento</th><th>Estado</th><th>Version</th><th
+          ><th>Documento</th><th>Estado</th><th>Versi&#243;n</th><th
             ><span class="sr-only">Acciones</span></th
           ></tr
         ></thead

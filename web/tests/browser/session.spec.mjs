@@ -23,10 +23,10 @@ async function prepare(page) {
 }
 
 async function enter(page) {
-  await page.getByLabel('Correo electronico').fill('person@example.com');
-  await page.getByLabel('Contrasena', { exact: true }).fill('long-test-password');
+  await page.getByLabel('Correo electr\u00f3nico').fill('person@example.com');
+  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('long-test-password');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  await page.getByLabel('Codigo de 6 digitos').fill('123456');
+  await page.getByLabel('C\u00f3digo de 6 d\u00edgitos').fill('123456');
   await page.getByRole('button', { name: 'Verificar y entrar' }).click();
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
 }
@@ -52,7 +52,7 @@ test('a document response after logout does not enter the next session', async (
   await page.getByLabel('Identificador del documento').fill(id);
   await page.getByRole('button', { name: 'Abrir documento' }).click();
   await expect.poll(() => typeof release).toBe('function');
-  await page.getByRole('button', { name: 'Cerrar sesion' }).click();
+  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
   await enter(page);
   const finished = page.waitForEvent('requestfinished', (request) =>
     request.url().endsWith('/verify'),

@@ -15,7 +15,7 @@
   $: report = document.report || null;
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: 'file' },
-    { id: 'verification', label: 'Verificacion', icon: 'shield' },
+    { id: 'verification', label: 'Verificaci\u00f3n', icon: 'shield' },
     { id: 'evidence', label: 'Evidencia', icon: 'download' },
   ];
   const checks = [
@@ -27,17 +27,17 @@
     {
       key: 'signature',
       label: 'Firma digital',
-      passed: 'La firma del documento paso la comprobacion.',
+      passed: 'La firma del documento pas\u00f3 la comprobaci\u00f3n.',
     },
     {
       key: 'certificate',
-      label: 'Certificado y revocacion',
-      passed: 'El certificado y su estado de revocacion fueron comprobados.',
+      label: 'Certificado y revocaci\u00f3n',
+      passed: 'El certificado y su estado de revocaci\u00f3n fueron comprobados.',
     },
     {
       key: 'timestamp',
       label: 'Sello de tiempo',
-      passed: 'El sello de tiempo local paso la comprobacion.',
+      passed: 'El sello de tiempo local pas\u00f3 la comprobaci\u00f3n.',
     },
   ];
   const statusLabels = { passed: 'Correcto', failed: 'Revisar', skipped: 'Sin evaluar' };
@@ -60,7 +60,7 @@
       await navigator.clipboard.writeText(document.id);
       copyMessage = 'Identificador copiado.';
     } catch {
-      copyMessage = 'No se pudo copiar. Selecciona el identificador y copialo manualmente.';
+      copyMessage = 'No se pudo copiar. Selecciona el identificador y c\u00f3pialo manualmente.';
     }
   }
   async function run(action) {
@@ -124,7 +124,7 @@
       <h2 id="document-title">{document.name}</h2>
       <p>
         {document.version
-          ? `Version ${document.version}`
+          ? `Versi\u00f3n ${document.version}`
           : 'Documento recuperado por identificador'}
       </p>
     </div>
@@ -155,15 +155,15 @@
   {#if document.sealed === false}<p class="detail-next-step">
       <Icon name="info" size={16} /><span
         >{can(user.role, 'seal')
-          ? 'Sella el documento para habilitar su verificacion y descarga de evidencia.'
+          ? 'Sella el documento para habilitar su verificaci\u00f3n y descarga de evidencia.'
           : 'Solicita al administrador o a un litigante que selle el documento para continuar.'}</span
       >
     </p>{/if}
   {#if confirmSeal}<div class="notice stack seal-confirmation">
-      <strong>Firmar y sellar este documento?</strong>
+      <strong>&#191;Firmar y sellar este documento?</strong>
       <p>
-        Se registrara la operacion con tu identidad y se generara evidencia con la autoridad de
-        sellado local. Esta accion no se puede deshacer desde la interfaz.
+        Se registrar&#225; la operaci&#243;n con tu identidad y se generar&#225; evidencia con la
+        autoridad de sellado local. Esta acci&#243;n no se puede deshacer desde la interfaz.
       </p>
       <div class="action-row">
         <button class="primary" disabled={!!busy} onclick={() => run('seal')}
@@ -175,7 +175,7 @@
     </div>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if message}<p class="notice success" role="status">{message}</p>{/if}
-  <div class="detail-tabs" role="tablist" aria-label="Informacion del documento">
+  <div class="detail-tabs" role="tablist" aria-label="Informaci&#243;n del documento">
     {#each tabs as tab, index}<button
         id={`document-tab-${tab.id}`}
         role="tab"
@@ -224,11 +224,11 @@
             >{#if report?.verdict === 'valid'}<Icon name="check" size={16} />{:else}3{/if}</span
           >
           <div>
-            <strong>Verificacion</strong><small
+            <strong>Verificaci&#243;n</strong><small
               >{report
                 ? report.verdict === 'valid'
                   ? 'Comprobada'
-                  : 'Requiere revision'
+                  : 'Requiere revisi\u00f3n'
                 : 'Sin resultado vigente'}</small
             >
           </div>
@@ -244,7 +244,8 @@
           >
         </div>
         <p class="hint">
-          Conservalo para abrir el archivo en otra sesion o compartir su referencia con tu equipo.
+          Cons&#233;rvalo para abrir el archivo en otra sesi&#243;n o compartir su referencia con tu
+          equipo.
         </p>
         <span class="copy-feedback" role="status" aria-live="polite">{copyMessage}</span>
       </div>
@@ -259,14 +260,16 @@
       {#if report}
         <div class="verification-heading">
           <div>
-            <h3>Resultado de verificacion</h3>
+            <h3>Resultado de verificaci&#243;n</h3>
             <p>Comprobaciones realizadas sobre la evidencia del documento.</p>
           </div>
           <span
             class="badge"
             class:success={report.verdict === 'valid'}
             class:danger={report.verdict !== 'valid'}
-            >{report.verdict === 'valid' ? 'Verificacion valida' : 'Verificacion no valida'}</span
+            >{report.verdict === 'valid'
+              ? 'Verificaci\u00f3n v\u00e1lida'
+              : 'Verificaci\u00f3n no v\u00e1lida'}</span
           >
         </div>
         <div class="verification-checks">
@@ -286,8 +289,8 @@
                   {report[check.key]?.status === 'passed'
                     ? check.passed
                     : report[check.key]?.status === 'failed'
-                      ? 'La comprobacion detecto un problema. Revisa el detalle tecnico antes de utilizar esta evidencia.'
-                      : 'Esta comprobacion no tiene un resultado disponible.'}
+                      ? 'La comprobaci\u00f3n detect\u00f3 un problema. Revisa el detalle t\u00e9cnico antes de utilizar esta evidencia.'
+                      : 'Esta comprobaci\u00f3n no tiene un resultado disponible.'}
                 </p>
               </div>
               <span
@@ -299,9 +302,8 @@
             </div>{/each}
         </div>
         <details class="technical-detail">
-          <summary>Ver detalles tecnicos de la verificacion</summary>{#each checks as check}<div
-              class="technical-check"
-            >
+          <summary>Ver detalles t&#233;cnicos de la verificaci&#243;n</summary
+          >{#each checks as check}<div class="technical-check">
               <strong>{check.label}</strong>
               <p>{report[check.key]?.detail || 'Sin detalle disponible.'}</p>
             </div>{/each}{#if report.document_digest}<span class="eyebrow">RESUMEN SHA-256</span
@@ -309,12 +311,14 @@
         </details>
       {:else}<div class="detail-empty">
           <span class="tile-icon"><Icon name="shield" size={26} /></span>
-          <h3>{busy === 'verify' ? 'Comprobando el documento' : 'Sin verificacion vigente'}</h3>
+          <h3>
+            {busy === 'verify' ? 'Comprobando el documento' : 'Sin verificaci\u00f3n vigente'}
+          </h3>
           <p>
             {busy === 'verify'
               ? 'Espera mientras se revisan la integridad, la firma y el sello de tiempo.'
               : document.sealed === false
-                ? 'Primero se necesita el sello. Despues podras comprobar la integridad del archivo.'
+                ? 'Primero se necesita el sello. Despu\u00e9s podr\u00e1s comprobar la integridad del archivo.'
                 : 'Usa Verificar integridad para obtener un resultado actualizado de este documento.'}
           </p>
         </div>{/if}
@@ -338,13 +342,13 @@
       </ul>
       <p class="evidence-guidance">
         {document.sealed === false
-          ? 'La descarga estara disponible despues de sellar el documento.'
-          : 'Usa Descargar evidencia en las acciones de esta ficha. Conserva el ZIP completo para su verificacion.'}
+          ? 'La descarga estar\u00e1 disponible despu\u00e9s de sellar el documento.'
+          : 'Usa Descargar evidencia en las acciones de esta ficha. Conserva el ZIP completo para su verificaci\u00f3n.'}
       </p>
     {/if}
   </div>
   <p class="hint local-tsa">
-    El sellado local es evidencia tecnica del prototipo; no es una constancia NOM-151 emitida por un
-    PSC autorizado.
+    El sellado local es evidencia t&#233;cnica del prototipo; no es una constancia NOM-151 emitida
+    por un PSC autorizado.
   </p>
 </section>

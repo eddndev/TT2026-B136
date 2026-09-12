@@ -59,19 +59,22 @@ async function setup(page, role = 'owner') {
 }
 
 async function navigate(page, name) {
-  if (await page.getByRole('button', { name: 'Abrir menu', exact: true }).isVisible()) {
-    await page.getByRole('button', { name: 'Abrir menu', exact: true }).click();
+  if (await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).isVisible()) {
+    await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).click();
   }
   await page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
 }
 
 async function login(page, recovery = false, openDocuments = true) {
-  await page.getByLabel('Correo electronico').fill('hatz@example.com');
-  await page.getByLabel('Contrasena', { exact: true }).fill('a-long-password');
+  await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
+  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('a-long-password');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  if (recovery) await page.getByRole('button', { name: 'Usar codigo de recuperacion' }).click();
+  if (recovery)
+    await page.getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n' }).click();
   await page
-    .getByLabel(recovery ? 'Codigo de recuperacion' : 'Codigo de 6 digitos', { exact: true })
+    .getByLabel(recovery ? 'C\u00f3digo de recuperaci\u00f3n' : 'C\u00f3digo de 6 d\u00edgitos', {
+      exact: true,
+    })
     .fill(recovery ? 'recovery-one' : '123456');
   await page.getByRole('button', { name: 'Verificar y entrar' }).click();
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
@@ -83,7 +86,7 @@ test('overview uses session counts and browser navigation without losing the ses
 }) => {
   await setup(page);
   await login(page, false, false);
-  await expect(page.getByRole('region', { name: 'Resumen de esta sesion' })).toContainText(
+  await expect(page.getByRole('region', { name: 'Resumen de esta sesi\u00f3n' })).toContainText(
     'Documentos abiertos',
   );
   await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
@@ -91,7 +94,7 @@ test('overview uses session counts and browser navigation without losing the ses
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
-  await page.getByRole('button', { name: 'Como funciona' }).click();
+  await page.getByRole('button', { name: 'C\u00f3mo funciona' }).click();
   await expect(
     page.getByRole('heading', { name: 'Un recorrido claro, de principio a fin' }),
   ).toBeVisible();
@@ -142,15 +145,15 @@ test('upload normalizes the filename and cards, filters and overview reflect the
 test('mobile menu supports Escape and password visibility is explicit', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
-  await page.getByRole('button', { name: 'Mostrar contrasena' }).click();
-  await expect(page.getByLabel('Contrasena', { exact: true })).toHaveAttribute('type', 'text');
-  await page.getByRole('button', { name: 'Ocultar contrasena' }).click();
+  await page.getByRole('button', { name: 'Mostrar contrase\u00f1a' }).click();
+  await expect(page.getByLabel('Contrase\u00f1a', { exact: true })).toHaveAttribute('type', 'text');
+  await page.getByRole('button', { name: 'Ocultar contrase\u00f1a' }).click();
   await login(page, false, false);
-  await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await expect(page.getByRole('dialog', { name: 'Menu del despacho' })).toBeVisible();
+  await page.getByRole('button', { name: 'Abrir men\u00fa' }).click();
+  await expect(page.getByRole('dialog', { name: 'Men\u00fa del despacho' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Menu del despacho' })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Abrir menu' })).toBeFocused();
+  await expect(page.getByRole('dialog', { name: 'Men\u00fa del despacho' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Abrir men\u00fa' })).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/overview-mobile.png', fullPage: true });
 });
@@ -158,11 +161,11 @@ test('mobile menu supports Escape and password visibility is explicit', async ({
 test('initial enrollment is acknowledged before returning to login', async ({ page }) => {
   await setup(page);
   await page.getByRole('button', { name: 'Configurar acceso inicial' }).click();
-  await page.getByLabel('Correo electronico').fill('hatz@example.com');
-  await page.getByLabel('Contrasena', { exact: true }).fill('long-test-password');
+  await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
+  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('long-test-password');
   await page.getByRole('button', { name: 'Crear administrador' }).click();
   await expect(page.getByRole('button', { name: 'Finalizar' })).toBeDisabled();
-  await page.getByLabel('Ya guarde el secreto y los codigos').check();
+  await page.getByLabel('Ya guard\u00e9 la clave y los c\u00f3digos').check();
   await page.getByRole('button', { name: 'Finalizar' }).click();
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   expect(await page.evaluate(() => document.body.textContent.includes('TESTSECRET'))).toBe(false);
@@ -173,13 +176,13 @@ test('a failed verification never leaves a prior successful verdict visible', as
   await login(page);
   await page.getByLabel('Identificador del documento').fill(id);
   await page.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByText('Verificacion valida', { exact: true })).toBeVisible();
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
   await page.route('**/documents/*/verify', (route) =>
     route.fulfill({ status: 500, json: { error: { code: 'internal' } } }),
   );
   await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByRole('alert')).toContainText('servidor');
-  await expect(page.getByText('Verificacion valida', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
 });
 
 test('reopening the same UUID replaces its previous verification verdict', async ({ page }) => {
@@ -188,7 +191,7 @@ test('reopening the same UUID replaces its previous verification verdict', async
   const reference = page.locator('.reference-panel');
   await reference.getByLabel('Identificador del documento').fill(id);
   await reference.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByText('Verificacion valida', { exact: true })).toBeVisible();
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
   await page.route('**/documents/*/verify', (route) =>
     route.fulfill({
       json: {
@@ -202,16 +205,16 @@ test('reopening the same UUID replaces its previous verification verdict', async
     }),
   );
   await reference.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByText('Verificacion no valida', { exact: true })).toBeVisible();
-  await expect(page.getByText('Verificacion valida', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Verificaci\u00f3n no v\u00e1lida', { exact: true })).toBeVisible();
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
   await page.route('**/documents/*/verify', (route) =>
     route.fulfill({ status: 500, json: { error: { code: 'internal_error' } } }),
   );
   await reference.getByRole('button', { name: 'Abrir documento' }).click();
   await expect(reference.getByRole('alert')).toContainText('servidor');
-  await expect(page.getByText('Verificacion no valida', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Verificacion valida', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Sin verificacion vigente', { exact: true })).toBeVisible();
+  await expect(page.getByText('Verificaci\u00f3n no v\u00e1lida', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Sin verificaci\u00f3n vigente', { exact: true })).toBeVisible();
 });
 
 test('a broken audit shows index zero and clears the verdict when a recheck fails', async ({
@@ -219,16 +222,16 @@ test('a broken audit shows index zero and clears the verdict when a recheck fail
 }) => {
   await setup(page);
   await login(page);
-  await page.getByRole('button', { name: 'Auditoria', exact: true }).click();
+  await page.getByRole('button', { name: 'Auditor\u00eda', exact: true }).click();
   await page.route('**/audit/verify', (route) =>
     route.fulfill({ json: { valid: false, entries: null, first_broken_index: 0 } }),
   );
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
-  await expect(page.getByText('Primer indice roto: 0')).toBeVisible();
+  await expect(page.getByText('Primer \u00edndice roto: 0')).toBeVisible();
   await page.route('**/audit/verify', (route) => route.fulfill({ status: 502 }));
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
   await expect(page.getByRole('alert')).toContainText('servidor');
-  await expect(page.getByText('Primer indice roto: 0')).toHaveCount(0);
+  await expect(page.getByText('Primer \u00edndice roto: 0')).toHaveCount(0);
 });
 
 test('login, upload, seal, verify, download and logout follow the HTTP contract', async ({
@@ -248,7 +251,7 @@ test('login, upload, seal, verify, download and logout follow the HTTP contract'
   await page.getByRole('button', { name: 'Confirmar sellado' }).click();
   await expect(page.getByText('Documento sellado correctamente.')).toBeVisible();
   await page.getByRole('button', { name: 'Verificar integridad' }).click();
-  await expect(page.getByText('Verificacion valida', { exact: true })).toBeVisible();
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
   const downloaded = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Descargar evidencia' }).click();
   expect((await downloaded).suggestedFilename()).toBe(`evidencia-${id}.zip`);
@@ -258,7 +261,7 @@ test('login, upload, seal, verify, download and logout follow the HTTP contract'
   expect(upload.body).toBe('document bytes');
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: 'test-results/document-desktop.png', fullPage: true });
-  await page.getByRole('button', { name: 'Cerrar sesion' }).click();
+  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
 });
@@ -270,7 +273,7 @@ test('paralegal cannot seal; client cannot access document controls', async ({ p
   await page.getByRole('button', { name: 'Abrir documento' }).click();
   await expect(page.getByRole('button', { name: 'Sellar documento', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Equipo', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Cerrar sesion' }).click();
+  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
   await page.unrouteAll();
   await setup(page, 'client');
   await login(page);
@@ -285,13 +288,13 @@ test('rejected MFA requires new credentials; expired session clears private cont
   await page.route('**/auth/mfa/totp', (route) =>
     route.fulfill({ status: 401, json: { error: { code: 'mfa_rejected' } } }),
   );
-  await page.getByLabel('Correo electronico').fill('hatz@example.com');
-  await page.getByLabel('Contrasena', { exact: true }).fill('a-long-password');
+  await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
+  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('a-long-password');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  await page.getByLabel('Codigo de 6 digitos', { exact: true }).fill('123456');
+  await page.getByLabel('C\u00f3digo de 6 d\u00edgitos', { exact: true }).fill('123456');
   await page.getByRole('button', { name: 'Verificar y entrar' }).click();
   await expect(page.getByRole('alert')).toContainText('rechazado');
-  await expect(page.getByLabel('Contrasena', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Contrase\u00f1a', { exact: true })).toBeVisible();
   await page.unroute('**/auth/mfa/totp');
   await login(page);
   await page.route('**/documents/*/verify', (route) =>
@@ -309,12 +312,12 @@ test('owner enrollment and audit work; mobile navigation fits the viewport', asy
   await login(page);
   await navigate(page, 'Equipo');
   await page.getByLabel('Correo del nuevo usuario').fill('new@example.com');
-  await page.getByLabel('Contrasena temporal').fill('long-test-password');
+  await page.getByLabel('Contrase\u00f1a inicial').fill('long-test-password');
   await page.getByRole('button', { name: 'Crear usuario' }).click();
   await expect(page.getByText('TESTSECRET', { exact: true })).toBeVisible();
-  await page.getByLabel('Ya guarde el secreto y los codigos').check();
+  await page.getByLabel('Ya guard\u00e9 la clave y los c\u00f3digos').check();
   await page.getByRole('button', { name: 'Finalizar' }).click();
-  await navigate(page, 'Auditoria');
+  await navigate(page, 'Auditor\u00eda');
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
   await expect(page.getByText('12 eventos verificados')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

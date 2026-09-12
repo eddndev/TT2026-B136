@@ -72,7 +72,7 @@
       class="file-drop"
       class:dragging
       role="region"
-      aria-label="Area para arrastrar archivo"
+      aria-label="&#193;rea para arrastrar archivo"
       ondragover={(event) => {
         event.preventDefault();
         dragging = true;
@@ -85,10 +85,10 @@
       }}
     >
       <span class="tile-icon"><Icon name="upload" size={28} /></span><strong
-        >{file ? file.name : 'Arrastra tu archivo aqui'}</strong
+        >{file ? file.name : 'Arrastra tu archivo aqu\u00ed'}</strong
       ><span
         >{file
-          ? `${(file.size / 1024).toFixed(1)} KB seleccionados`
+          ? `${(file.size / 1024).toFixed(1)} KiB seleccionados`
           : 'o selecciona uno desde tu equipo'}</span
       ><label
         >Archivo<input
@@ -97,7 +97,7 @@
           disabled={busy}
           onchange={(event) => choose(event.currentTarget.files[0])}
         /></label
-      ><small>Cualquier formato. Maximo 16 MiB por documento.</small>
+      ><small>Cualquier formato. M&#225;ximo: 16 MiB por documento.</small>
     </div>
     <label
       >Nombre del documento<input
@@ -109,7 +109,7 @@
       /></label
     >
     <p class="hint">
-      Te sugerimos un nombre compatible para que puedas descargar su evidencia despues. Puedes
+      Te sugerimos un nombre compatible para que puedas descargar su evidencia despu&#233;s. Puedes
       editarlo antes de cargar.
     </p>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}

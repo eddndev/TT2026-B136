@@ -1,17 +1,17 @@
 const messages = {
-  invalid_credentials: 'Correo o contrasena incorrectos.',
-  mfa_rejected: 'El codigo fue rechazado o vencio. Inicia sesion otra vez.',
-  invalid_session: 'Tu sesion termino. Vuelve a iniciar sesion.',
-  permission_denied: 'No tienes permiso para realizar esta accion.',
-  account_locked: 'Demasiados intentos. Espera 15 minutos antes de volver a intentar.',
-  document_not_found: 'No se encontro un documento con ese identificador.',
-  document_already_sealed: 'Este documento ya esta sellado.',
+  invalid_credentials: 'Correo o contrase\u00f1a incorrectos.',
+  mfa_rejected: 'El c\u00f3digo fue rechazado o venci\u00f3. Vuelve a iniciar sesi\u00f3n.',
+  invalid_session: 'Tu sesi\u00f3n termin\u00f3. Vuelve a iniciar sesi\u00f3n.',
+  permission_denied: 'No tienes permiso para realizar esta acci\u00f3n.',
+  account_locked: 'Demasiados intentos. Espera 15 minutos antes de volver a intentarlo.',
+  document_not_found: 'No se encontr\u00f3 un documento con ese identificador.',
+  document_already_sealed: 'Este documento ya est\u00e1 sellado.',
   document_not_sealed: 'Primero sella el documento para verificarlo o descargar su evidencia.',
   user_already_exists:
     'Ya existe una cuenta con ese correo. Usa otro correo para el nuevo integrante.',
-  bootstrap_closed: 'El despacho ya tiene un administrador. Usa el inicio de sesion.',
-  invalid_input: 'Revisa los datos ingresados y los limites de cada campo.',
-  invalid_document_name: 'El nombre del documento no es valido.',
+  bootstrap_closed: 'El despacho ya tiene un administrador. Inicia sesi\u00f3n con tu cuenta.',
+  invalid_input: 'Revisa los datos ingresados y los l\u00edmites de cada campo.',
+  invalid_document_name: 'El nombre del documento no es v\u00e1lido.',
 };
 
 export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
@@ -24,7 +24,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     const requestVersion = sessionVersion;
     const assertCurrentSession = () => {
       if (protectedRoute && requestVersion !== sessionVersion) {
-        throw new Error('La sesion de esta solicitud termino.');
+        throw new Error('La sesi\u00f3n de esta solicitud termin\u00f3.');
       }
     };
     const requestHeaders = { ...headers };
@@ -41,7 +41,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         redirect: 'error',
       });
     } catch {
-      throw new Error('No se pudo conectar con la API. Comprueba que el servidor este disponible.');
+      throw new Error('No se pudo conectar con el servidor. Comprueba que est\u00e9 disponible.');
     }
     assertCurrentSession();
     if (!response.ok) {
@@ -54,12 +54,12 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       }
       const fallback =
         response.status === 409
-          ? 'La operacion entra en conflicto con el estado actual. Actualiza o revisa los datos.'
+          ? 'No se pudo completar la operaci\u00f3n con el estado actual. Revisa los datos e int\u00e9ntalo de nuevo.'
           : response.status === 413
-            ? 'El documento supera el limite de 16 MiB.'
+            ? 'El documento supera el l\u00edmite de 16 MiB.'
             : response.status >= 500
-              ? 'El servidor no pudo completar la operacion. Intenta mas tarde.'
-              : `No se pudo completar la operacion (HTTP ${response.status}).`;
+              ? 'El servidor no pudo completar la operaci\u00f3n. Vuelve a intentarlo m\u00e1s tarde.'
+              : `No se pudo completar la operaci\u00f3n (HTTP ${response.status}).`;
       const error = new Error(messages[payload.error?.code] || fallback);
       error.status = response.status;
       error.code = payload.error?.code;
@@ -79,7 +79,8 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     login: (email, password) => post('/auth/login', { email, password }, false),
     bootstrap: (email, password) => post('/auth/bootstrap', { email, password }, false),
     async mfa(challenge_token, code, mode) {
-      if (!['totp', 'recovery'].includes(mode)) throw new Error('Metodo MFA no valido.');
+      if (!['totp', 'recovery'].includes(mode))
+        throw new Error('M\u00e9todo de verificaci\u00f3n no v\u00e1lido.');
       const session = await post(`/auth/mfa/${mode}`, { challenge_token, code }, false);
       token = session.access_token;
       sessionVersion++;
