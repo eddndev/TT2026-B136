@@ -34,6 +34,7 @@ pub struct FileAuditLog<H> {
 /// string the canonical encoding hashes, so reading it back reproduces
 /// the same chain input.
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct StoredEntry {
     sequence: u64,
     timestamp: String,
@@ -170,6 +171,13 @@ impl<H: DocumentHasher> AuditLog for FileAuditLog<H> {
         // entry links to it instead of forking the chain. The lock is
         // released when this guard is dropped at the end of the method.
         let _append_lock = self.acquire_append_lock()?;
+        let mut marker = self.path.clone().into_os_string();
+        marker.push(".migrated");
+        let mut pending = self.path.clone().into_os_string();
+        pending.push(".migration-pending");
+        if PathBuf::from(marker).exists() || PathBuf::from(pending).exists() {
+            return Err(self.storage_failure(&"audit log is fenced for migration and is read-only"));
+        }
         let (sequence, previous) = match self.last_link()? {
             Some((last_sequence, last_chain)) => (last_sequence + 1, last_chain),
             None => (0, GENESIS_PREVIOUS),
@@ -208,6 +216,19 @@ impl<H: DocumentHasher> AuditLog for FileAuditLog<H> {
         }
         Ok(entries)
     }
+}
+
+/// Parses a stopped legacy writer's snapshot without creating lock files.
+pub fn decode_audit_snapshot(bytes: &[u8]) -> Result<Vec<ChainedEvent>, DomainError> {
+    BufReader::new(bytes)
+        .lines()
+        .enumerate()
+        .filter_map(|(index, line)| match line {
+            Ok(line) if line.trim().is_empty() => None,
+            Ok(line) => Some(parse_line(&line, index + 1)),
+            Err(error) => Some(Err(DomainError::AuditStorageFailure(error.to_string()))),
+        })
+        .collect()
 }
 
 #[cfg(test)]

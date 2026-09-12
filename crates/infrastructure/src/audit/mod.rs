@@ -8,5 +8,5 @@
 mod file;
 mod memory;
 
-pub use file::FileAuditLog;
+pub use file::{decode_audit_snapshot, FileAuditLog};
 pub use memory::InMemoryAuditLog;

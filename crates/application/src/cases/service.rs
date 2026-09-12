@@ -31,12 +31,12 @@ impl CaseService {
         }
     }
 
-    fn require_membership_manager(&self, token: &str) -> Result<(), ApplicationError> {
+    fn require_membership_manager(&self, token: &str) -> Result<UserId, ApplicationError> {
         let actor = self.identity.authenticate(token)?;
         if !can_manage_members(actor.role) {
             return Err(ApplicationError::PermissionDenied);
         }
-        Ok(())
+        Ok(actor.id)
     }
 }
 
@@ -85,12 +85,12 @@ impl CaseWorkflow for CaseService {
     }
 
     fn assign(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError> {
-        self.require_membership_manager(token)?;
-        self.repository.add_member(id, user_id)
+        let actor = self.require_membership_manager(token)?;
+        self.repository.add_member(id, user_id, actor)
     }
 
     fn remove(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError> {
-        self.require_membership_manager(token)?;
-        self.repository.remove_member(id, user_id)
+        let actor = self.require_membership_manager(token)?;
+        self.repository.remove_member(id, user_id, actor)
     }
 }

@@ -27,8 +27,8 @@ mock! {
         fn insert(&self, record: CaseRecord) -> Result<(), ApplicationError>;
         fn list(&self, access: CaseAccess, limit: u32, offset: u32) -> Result<Vec<CaseRecord>, ApplicationError>;
         fn find(&self, id: CaseId, access: CaseAccess) -> Result<Option<CaseRecord>, ApplicationError>;
-        fn add_member(&self, id: CaseId, user_id: UserId) -> Result<(), ApplicationError>;
-        fn remove_member(&self, id: CaseId, user_id: UserId) -> Result<(), ApplicationError>;
+        fn add_member(&self, id: CaseId, user_id: UserId, actor: UserId) -> Result<(), ApplicationError>;
+        fn remove_member(&self, id: CaseId, user_id: UserId, actor: UserId) -> Result<(), ApplicationError>;
     }
 }
 

@@ -6,7 +6,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PKI_SCRIPTS="$REPO_ROOT/pki"
 
-for command in cargo curl initdb jq openssl pg_ctl psql python3 redis-cli redis-server rg unzip stdbuf; do
+for command in cargo curl initdb jq openssl pg_ctl pg_dump pg_restore psql python3 redis-cli redis-server rg unzip stdbuf; do
   command -v "$command" >/dev/null 2>&1 || {
     printf 'api-demo.sh: required command not found: %s\n' "$command" >&2
     exit 1
@@ -17,6 +17,7 @@ cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
 CLI="$REPO_ROOT/target/debug/despacho-cli"
 WORK_DIR="$(mktemp -d)"
 SERVER_PID=""
+SECOND_SERVER_PID=""
 POSTGRES_STARTED="false"
 REDIS_PID=""
 PG_DATA="$WORK_DIR/postgres"
@@ -32,6 +33,10 @@ cleanup() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
+  fi
+  if [ -n "$SECOND_SERVER_PID" ] && kill -0 "$SECOND_SERVER_PID" 2>/dev/null; then
+    kill "$SECOND_SERVER_PID" 2>/dev/null || true
+    wait "$SECOND_SERVER_PID" 2>/dev/null || true
   fi
   if [ "$POSTGRES_STARTED" = "true" ]; then
     pg_ctl -D "$PG_DATA" -m fast stop >/dev/null 2>&1 || true
@@ -52,12 +57,17 @@ export TSA_DIR="$WORK_DIR/pki-tsa"
 export KEK_BASE64
 KEK_BASE64="$(openssl rand -base64 32)"
 unset CINCEL_BASE_URL CINCEL_API_KEY
-export DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/postgres"
+DATABASE_ADMIN_URL="postgresql://127.0.0.1:$PG_PORT/postgres"
+export DATABASE_URL="$DATABASE_ADMIN_URL"
 export REDIS_URL="redis://127.0.0.1:$REDIS_PORT/"
 
 initdb -D "$PG_DATA" --auth=trust --no-locale --encoding=UTF8 >/dev/null
 pg_ctl -D "$PG_DATA" -o "-p $PG_PORT -k $WORK_DIR" -w start >/dev/null
 POSTGRES_STARTED="true"
+psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c \
+  'CREATE ROLE tt_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT' >/dev/null
+"$CLI" database migrate --runtime-role tt_runtime >/dev/null
+export DATABASE_URL="postgresql://tt_runtime@127.0.0.1:$PG_PORT/postgres"
 redis-server --port "$REDIS_PORT" --bind 127.0.0.1 --save "" \
   --appendonly no --daemonize no --dir "$WORK_DIR" >"$WORK_DIR/redis.log" 2>&1 &
 REDIS_PID=$!
@@ -148,7 +158,7 @@ OWNER_TOKEN="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/mfa/totp" \
   | jq -er '.access_token')"
 
 UNAUTHORIZED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
-  "$BASE_URL/api/v1/documents" -H 'X-Document-Name: document.txt' \
+  "$BASE_URL/api/v1/cases/00000000-0000-0000-0000-000000000001/documents" -H 'X-Document-Name: document.txt' \
   --data-binary "@$WORK_DIR/document.txt")"
 [ "$UNAUTHORIZED_STATUS" = "401" ]
 
@@ -166,57 +176,6 @@ PARALEGAL_TOKEN="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/mfa/totp" \
   -H 'Content-Type: application/json' \
   --data "{\"challenge_token\":\"$PARALEGAL_CHALLENGE\",\"code\":\"$PARALEGAL_CODE\"}" \
   | jq -er '.access_token')"
-
-UPLOAD="$(curl -fsS -X POST "$BASE_URL/api/v1/documents" \
-  -H "Authorization: Bearer $OWNER_TOKEN" \
-  -H 'X-Document-Name: document.txt' \
-  --data-binary "@$WORK_DIR/document.txt")"
-DOCUMENT_ID="$(jq -er '.id' <<<"$UPLOAD")"
-jq -e '.version == 1 and .sealed == false' <<<"$UPLOAD" >/dev/null
-
-if rg -F 'Expediente API local verificable.' "$DATA_DIR/documents" >/dev/null; then
-  printf 'api-demo.sh: plaintext leaked into document storage\n' >&2
-  exit 1
-fi
-
-DENIED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
-  "$BASE_URL/api/v1/documents/$DOCUMENT_ID/seal" \
-  -H "Authorization: Bearer $PARALEGAL_TOKEN")"
-[ "$DENIED_STATUS" = "403" ]
-
-SEAL="$(curl -fsS -X POST \
-  "$BASE_URL/api/v1/documents/$DOCUMENT_ID/seal" \
-  -H "Authorization: Bearer $OWNER_TOKEN")"
-jq -e '.sealed == true' <<<"$SEAL" >/dev/null
-
-VERIFY="$(curl -fsS -X POST \
-  "$BASE_URL/api/v1/documents/$DOCUMENT_ID/verify" \
-  -H "Authorization: Bearer $OWNER_TOKEN")"
-jq -e '
-  .verdict == "valid" and
-  .integrity.status == "passed" and
-  .signature.status == "passed" and
-  .certificate.status == "passed" and
-  .timestamp.status == "passed"
-' <<<"$VERIFY" >/dev/null
-
-EVIDENCE="$WORK_DIR/evidence.zip"
-curl -fsS "$BASE_URL/api/v1/documents/$DOCUMENT_ID/evidence" \
-  -H "Authorization: Bearer $OWNER_TOKEN" -o "$EVIDENCE"
-unzip -t "$EVIDENCE" >/dev/null
-unzip -q "$EVIDENCE" -d "$WORK_DIR/evidence"
-cmp "$WORK_DIR/document.txt" "$WORK_DIR/evidence/document.txt"
-
-(
-  cd "$WORK_DIR/evidence"
-  openssl x509 -in certificado.pem -pubkey -noout -out signer.pub.pem
-  openssl dgst -sha256 -verify signer.pub.pem \
-    -signature document.txt.sig document.txt >/dev/null
-  cat ca.pem crl.pem >ca-and-crl.pem
-  openssl verify -crl_check -CAfile ca-and-crl.pem certificado.pem >/dev/null
-  openssl ts -verify -data document.txt -in document.txt.tsr \
-    -CAfile tsa-chain.pem >/dev/null
-)
 
 # shellcheck source=scripts/api-case-demo.sh
 source "$REPO_ROOT/scripts/api-case-demo.sh"
@@ -258,5 +217,11 @@ if redis-cli -p "$REDIS_PORT" keys '*' | rg -F "$RECOVERY_TOKEN" >/dev/null; the
   printf 'api-demo.sh: raw session token leaked into Redis keys\n' >&2
   exit 1
 fi
+
+# shellcheck source=scripts/api-concurrency-demo.sh
+source "$REPO_ROOT/scripts/api-concurrency-demo.sh"
+
+# shellcheck source=scripts/api-migration-demo.sh
+source "$REPO_ROOT/scripts/api-migration-demo.sh"
 
 printf 'Authenticated API demo passed: %s\n' "$DOCUMENT_ID"

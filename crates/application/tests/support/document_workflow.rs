@@ -3,8 +3,8 @@ use std::io::Read;
 use std::sync::{Arc, Mutex};
 
 use application::documents::{
-    DocumentRecord, DocumentRepository, DocumentWorkflowPorts, EvidenceMaterial,
-    LocalDocumentWorkflow,
+    DocumentProcessor, DocumentProcessorPorts, DocumentRecord, DocumentRepository,
+    DocumentWorkflowPorts, EvidenceMaterial, LocalDocumentWorkflow,
 };
 use application::ApplicationError;
 use domain::audit::{chain_digest, AuditEvent, AuditLog, ChainedEvent, GENESIS_PREVIOUS};
@@ -239,7 +239,7 @@ impl AuditLog for TestAuditLog {
     }
 }
 
-struct TestClock;
+pub struct TestClock;
 
 impl Clock for TestClock {
     fn now(&self) -> OffsetDateTime {
@@ -247,13 +247,8 @@ impl Clock for TestClock {
     }
 }
 
-pub fn workflow() -> LocalDocumentWorkflow {
-    let ports = DocumentWorkflowPorts {
-        repository: Arc::new(MemoryRepository::default()),
-        audit_log: Box::new(TestAuditLog {
-            entries: Vec::new(),
-        }),
-        clock: Box::new(TestClock),
+pub fn processor_ports() -> DocumentProcessorPorts {
+    DocumentProcessorPorts {
         hasher: Box::new(TestHasher),
         cipher: Box::new(TestCipher),
         keys: Box::new(TestKeys),
@@ -263,13 +258,45 @@ pub fn workflow() -> LocalDocumentWorkflow {
         certificate_validator: Box::new(TestCertificateValidator),
         timestamp_verifier: Box::new(TestTimestamp),
         archiver: Box::new(TestArchiver),
-    };
-    let material = EvidenceMaterial {
+    }
+}
+
+pub fn evidence_material() -> EvidenceMaterial {
+    EvidenceMaterial {
         signer_certificate_pem: b"signer pem".to_vec(),
         issuer_certificate_pem: b"issuer pem".to_vec(),
         crl_pem: b"crl pem".to_vec(),
         tsa_chain_pem: Some(b"tsa chain".to_vec()),
         openssl_version: "OpenSSL test".to_string(),
+    }
+}
+
+pub fn processor() -> DocumentProcessor {
+    DocumentProcessor::new(
+        processor_ports(),
+        evidence_material(),
+        Zeroizing::new(vec![0x44; 32]),
+    )
+    .unwrap()
+}
+
+pub fn workflow() -> LocalDocumentWorkflow {
+    let crypto = processor_ports();
+    let ports = DocumentWorkflowPorts {
+        repository: Arc::new(MemoryRepository::default()),
+        audit_log: Box::new(TestAuditLog {
+            entries: Vec::new(),
+        }),
+        clock: Box::new(TestClock),
+        hasher: crypto.hasher,
+        cipher: crypto.cipher,
+        keys: crypto.keys,
+        signer: crypto.signer,
+        timestamp_service: crypto.timestamp_service,
+        signature_verifier: crypto.signature_verifier,
+        certificate_validator: crypto.certificate_validator,
+        timestamp_verifier: crypto.timestamp_verifier,
+        archiver: crypto.archiver,
     };
-    LocalDocumentWorkflow::new(ports, material, Zeroizing::new(vec![0x44; 32])).unwrap()
+    LocalDocumentWorkflow::new(ports, evidence_material(), Zeroizing::new(vec![0x44; 32])).unwrap()
 }

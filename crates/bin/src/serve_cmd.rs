@@ -5,11 +5,13 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use application::cases::CaseService;
-use application::documents::{DocumentWorkflowPorts, EvidenceMaterial, LocalDocumentWorkflow};
+use application::documents::{
+    CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
+};
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
 use infrastructure::{
-    openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, FileAuditLog,
-    FileDocumentRepository, LocalOpensslTsa, PostgresCaseRepository, PostgresUserRepository,
+    openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
+    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresUserRepository,
     RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
     RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
     TotpRsProvider, X509ChainValidator,
@@ -33,16 +35,14 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     let database_url = required_env("DATABASE_URL")?;
     let redis_url = required_env("REDIS_URL")?;
 
+    infrastructure::legacy::require_completed_import(&args.data_dir, &database_url)
+        .context("legacy storage has not completed database cutover")?;
     let repository = Arc::new(
-        FileDocumentRepository::new(args.data_dir.join("documents"))
-            .context("cannot initialize document repository")?,
+        PostgresCaseDocumentStore::open(&database_url)
+            .context("cannot open PostgreSQL document store")?,
     );
-    let audit_log = FileAuditLog::new(args.data_dir.join("audit.jsonl"), RingSha256Hasher::new());
     let signer = RsaPkcs1Signer::new(signer_key).context("cannot load signer private key")?;
-    let ports = DocumentWorkflowPorts {
-        repository,
-        audit_log: Box::new(audit_log),
-        clock: Box::new(SystemClock::new()),
+    let ports = DocumentProcessorPorts {
         hasher: Box::new(RingSha256Hasher::new()),
         cipher: Box::new(RingAesGcmCipher::new()),
         keys: Box::new(EnvelopeKeyManager::new()),
@@ -61,12 +61,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         openssl_version: openssl_version().context("cannot inspect openssl version")?,
     };
     let case_repository = Arc::new(
-        PostgresCaseRepository::connect(&database_url)
+        PostgresCaseRepository::open(&database_url)
             .context("cannot initialize PostgreSQL case repository")?,
     );
     let identity: Arc<dyn IdentityWorkflow> = Arc::new(IdentityService::new(IdentityPorts {
         users: Arc::new(
-            PostgresUserRepository::connect(&database_url)
+            PostgresUserRepository::open(&database_url)
                 .context("cannot initialize PostgreSQL user repository")?,
         ),
         sessions: Arc::new(
@@ -81,14 +81,19 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 .context("cannot initialize TOTP secret protection")?,
         ),
         clock: Arc::new(SystemClock::new()),
-        audit_log: Box::new(FileAuditLog::new(
-            args.data_dir.join("audit.jsonl"),
-            RingSha256Hasher::new(),
-        )),
+        audit_log: Box::new(
+            PostgresAuditLog::open(&database_url).context("cannot open PostgreSQL audit log")?,
+        ),
     }));
     let cases = CaseService::new(case_repository, identity.clone());
-    let workflow = LocalDocumentWorkflow::new(ports, material, kek)
-        .context("cannot initialize document workflow")?;
+    let processor = DocumentProcessor::new(ports, material, kek)
+        .context("cannot initialize document cryptography")?;
+    let workflow = CaseDocumentService::new(
+        repository,
+        identity.clone(),
+        processor,
+        Arc::new(SystemClock::new()),
+    );
     let router = web::api_router(
         Arc::new(workflow),
         identity,

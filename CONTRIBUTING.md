@@ -99,7 +99,8 @@ check` against `deny.toml`), and a release binary size guard. See
 - For case integration tests, set `CASE_TEST_DATABASE_URL` to a separate,
   disposable PostgreSQL database. Do not reuse the identity test database:
   its bootstrap test requires an empty user table. `scripts/test-backends.sh`
-  provisions both databases and Redis and runs the workspace suite; missing
+  provisions isolated identity, case and document databases plus Redis and runs
+  the workspace suite. Document tests use `DOCUMENT_TEST_DATABASE_URL`; missing
   variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and

@@ -1,5 +1,68 @@
 # Informe de verificación local
 
+## Corte reproducido: documentos por expediente y auditoría transaccional
+
+- Fecha local: 12 de septiembre de 2026 (`America/Mexico_City`).
+- Base: `f5d6716`; rama: `feat/document-case-authorization`.
+- Alcance y decisiones: [criterios de entrega](next-goal.md),
+  [ADR-0016](adr/0016-case-document-transactions.md) y
+  [operación y restauración](database-operations.md).
+
+### Verificación del estado final
+
+```bash
+cargo fmt --all
+cargo build --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+bash scripts/test-backends.sh
+bash scripts/demo.sh
+bash scripts/api-demo.sh
+bash scripts/test-backends.sh cargo llvm-cov --workspace --json --summary-only --output-path /tmp/tt-case-doc-coverage.json
+bash scripts/coverage-gate.sh /tmp/tt-case-doc-coverage.json
+```
+
+La suite completa final, ejecutada durante cobertura, aprobó **519 pruebas**,
+sin fallos y con una ignorada del proveedor externo: 58 pruebas netas más que
+el barrido anterior. PostgreSQL y Redis fueron reales y desechables, con bases
+separadas de identidad, expedientes y documentos. Formato, build, Clippy,
+demostraciones y umbrales terminaron con código cero. CI configura también
+`DOCUMENT_TEST_DATABASE_URL`; no se cuentan retornos por variables ausentes
+como ejercicio de esos adaptadores.
+
+La demo HTTP reproduce cuatro roles, dos expedientes y revocación con la misma
+sesión. Dos procesos del servidor compiten por sellar: uno obtiene `200`, otro
+`409`, queda un evento de sellado y ambos entregan ZIP idénticos verificables
+con OpenSSL. El ensayo posterior importa cuatro documentos (tres sellados),
+conserva exactamente 46 entradas históricas, repite sin duplicación y restaura
+un respaldo `pg_dump`/`pg_restore`; compara estado SQL y evidencia byte por byte
+y verifica nuevamente firma, certificado/CRL y sello con OpenSSL.
+
+Las regresiones incluyen rollback por fallo de inserción y commit, revocación
+ordenada, escritores de auditoría concurrentes, barreras durables antes del
+import, fallos de marcadores después del commit, restauraciones parciales,
+recibos alterados y permisos PostgreSQL por propiedad, columna, esquema y roles
+asumibles. Identidad retira desafíos/sesiones ante fallo de auditoría y conserva
+revocaciones; no se afirma atomicidad distribuida con Redis. La validación de
+cadena/CRL del firmante usa el instante del sello; TSA conserva la política
+OpenSSL actual y puede rechazar una autoridad expirada hoy.
+
+### Cobertura final
+
+| Crate | Líneas cubiertas | Cobertura |
+| --- | --- | --- |
+| `domain` | 1045/1079 | 96.8 % |
+| `application` | 2073/2212 | 93.7 % |
+| `infrastructure` | 3496/3785 | 92.4 % |
+| `bin` | 834/1086 | 76.8 % |
+| `web` | 578/683 | 84.6 % |
+
+Total: **8026/8845 líneas (90.7 %)**. Pasan los tres umbrales obligatorios del
+90 %. No se ensayó despliegue público ni carga de producción. Se conservaron
+los 19 archivos locales protegidos del reporte, presentación y entregables;
+no había un `runtime-data` local que migrar. Los ensayos usan sus propias fuentes.
+
+Los cortes siguientes son históricos y conservan sus mediciones originales.
+
 ## Corte reproducido: barrido del backend
 
 - Fecha local: 11 de septiembre de 2026 (`America/Mexico_City`).

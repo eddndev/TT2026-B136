@@ -11,6 +11,7 @@ domain = { path = "../domain" }
 thiserror.workspace = true
 zeroize.workspace = true
 serde.workspace = true
+time = { workspace = true, features = ["parsing"] }
 
 [dev-dependencies]
 mockall.workspace = true

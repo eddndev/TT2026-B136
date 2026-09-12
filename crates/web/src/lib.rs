@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use application::cases::CaseWorkflow;
-use application::documents::DocumentWorkflow;
+use application::documents::CaseDocumentWorkflow;
 use application::identity::IdentityWorkflow;
 use axum::{routing::get, Router};
 
@@ -27,7 +27,7 @@ pub fn router() -> Router {
 
 /// Builds the versioned application API over an injected workflow.
 pub fn application_router(
-    workflow: Arc<dyn DocumentWorkflow>,
+    workflow: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
 ) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -43,7 +43,7 @@ pub fn case_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
 
 /// Builds all API routes with one shared admission and blocking-work budget.
 pub fn api_router(
-    documents: Arc<dyn DocumentWorkflow>,
+    documents: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     cases: Arc<dyn CaseWorkflow>,
     limits: HttpLimits,

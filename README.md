@@ -78,7 +78,9 @@ como un objeto JSON en lugar de texto legible.
 
 | Comando | Descripción |
 | --- | --- |
-| `serve --signer-cert C --signer-key K [--bind IP:PUERTO] [--data-dir DIR]` | Inicia la API autenticada, conecta PostgreSQL/Redis, firma y sella con la TSA OpenSSL y persiste documentos cifrados. |
+| `serve --signer-cert C --signer-key K [--bind IP:PUERTO] [--data-dir DIR]` | Inicia la API por expediente con PostgreSQL/Redis y TSA OpenSSL; `--data-dir` identifica el origen local cuyo corte se comprueba. |
+| `database migrate --runtime-role ROL` | Aplica esquema y permisos con una conexión administrativa para un rol operativo existente. |
+| `database import --data-dir DIR --mapping MAPA [--apply]` | Inspecciona documentos locales y el destino sin escribir; `--apply` importa con mapa explícito y reconciliación. |
 | `crypto hash <archivo>` | Imprime el resumen SHA-256 del archivo. |
 | `vault encrypt <archivo> --doc-id <uuid> [--version N]` | Cifra el archivo (AES-256-GCM con envoltura de llaves) y escribe `<archivo>.enc`. |
 | `vault decrypt <paquete> --doc-id <uuid> [--version N] [--out RUTA]` | Descifra un paquete y rechaza cualquier alteración. |
@@ -97,9 +99,9 @@ como un objeto JSON en lugar de texto legible.
 | `auth verify-password --hash <phc>` | Verifica una contraseña contra un hash almacenado. |
 | `auth totp enroll --user <correo> --secret-out RUTA` | Enrola un segundo factor TOTP e imprime la URI de aprovisionamiento y códigos de recuperación. |
 | `auth totp verify --code <código> --secret-file RUTA` | Verifica un código TOTP de seis dígitos. |
-| `audit append --action <acción> --resource <recurso>` | Agrega un evento a la bitácora encadenada por hash. |
-| `audit verify-chain` | Verifica la cadena completa; nombra el índice roto si hay alteración. |
-| `audit show` | Imprime la bitácora completa. |
+| `audit append --action <acción> --resource <recurso>` | Agrega un evento a la bitácora de archivo del flujo offline; rechaza un origen ya migrado. |
+| `audit verify-chain` | Verifica la cadena del archivo offline; nombra el índice roto si hay alteración. |
+| `audit show` | Imprime la bitácora de archivo del flujo offline. |
 
 ### Variables de entorno
 
@@ -112,11 +114,11 @@ Se cargan del entorno o de un archivo `.env` local (ver
 | `NEW_KEK_BASE64` | Llave de reemplazo, leída solo por `vault rotate-kek`. |
 | `CINCEL_BASE_URL` | URL base del proveedor remoto de sellos de tiempo. |
 | `CINCEL_API_KEY` | Credencial del proveedor remoto (secreto). |
-| `AUDIT_LOG_PATH` | Ruta del archivo de bitácora (por defecto `audit-log.jsonl` en el directorio actual). |
+| `AUDIT_LOG_PATH` | Ruta de bitácora offline (por defecto `audit-log.jsonl`); la API usa la cadena PostgreSQL. |
 | `PKI_CA_DIR` | Directorio de trabajo de la autoridad certificadora (por defecto `pki-ca` bajo el directorio actual). |
 | `TSA_DIR` | Directorio de trabajo de la autoridad de sellado local (por defecto `pki-tsa` junto a `PKI_CA_DIR`). |
 | `RUST_LOG` | Filtro de diagnóstico (`error`, `warn`, `info`, `debug`, `trace`); los diagnósticos van a `stderr`. |
-| `DATABASE_URL` | Cadena de conexión a PostgreSQL para usuarios, expedientes, asignaciones y migraciones. |
+| `DATABASE_URL` | PostgreSQL para usuarios, expedientes, documentos y auditoría: rol restringido en `serve`, administrativo en los comandos `database`. |
 | `REDIS_URL` | Cadena de conexión a Redis para desafíos, sesiones revocables, límites y replay TOTP. |
 
 ### Demostración de extremo a extremo
@@ -145,30 +147,44 @@ efímeros; crea usuarios de los cuatro roles, completa TOTP, comprueba autorizac
 logout y recuperación de un solo uso, carga un documento, verifica que no se
 persista texto claro, lo firma y sella con la TSA local, y valida el ZIP con
 OpenSSL. También crea expedientes, comprueba listados filtrados, asignaciones,
-revocación con la misma sesión y las restricciones documentales del Cliente.
+revocación con la misma sesión, aislamiento documental entre expedientes y
+las restricciones documentales del Cliente. Ensaya además importación y
+restauración con evidencia sellada en servicios desechables.
 No configura ni consulta Cincel. El contrato completo está en
 [`docs/http-api.md`](docs/http-api.md).
 
 ### Aplicación HTTP local
 
-La API entrega una rebanada multiusuario sobre `/api/v1`: usuarios en
-PostgreSQL, login Argon2id con TOTP o recuperación, sesiones opacas revocables
-en Redis, cuatro roles RBAC, expedientes con asignaciones y consultas filtradas,
-carga y persistencia cifrada de documentos,
-sellado local, verificación, exportación y auditoría. `X-Actor` fue retirado: el
-actor y los permisos proceden de `Authorization: Bearer` y del usuario vigente.
+La API ofrece usuarios, expedientes, asignaciones, documentos cifrados y una
+cadena de auditoría compartida en PostgreSQL. Login usa Argon2id con TOTP o
+recuperación y sesiones opacas revocables en Redis. Las operaciones documentales
+usan `/api/v1/cases/{case_id}/documents`: el actor procede del bearer vigente y
+la confirmación revalida rol, pertenencia y asociación exacta. Owner accede a
+todos los expedientes; Litigante y Paralegal requieren asignación, y Paralegal no
+sella. Cliente puede consultar metadatos asignados, pero no documentos.
 
-El comando `serve` requiere `DATABASE_URL`, `REDIS_URL`, `KEK_BASE64`, una CA,
-CRL, certificado y llave del firmante, y una TSA local inicializada. Para
-desarrollo se incluyen `compose.yaml` y la guía completa de la API. La UI y el
-vínculo entre documentos y expedientes permanecen pendientes. Cliente puede
-consultar metadatos de expedientes asignados, pero sigue sin acceso documental.
+Las mutaciones PostgreSQL y sus eventos de auditoría comparten transacción.
+La evidencia sellada es inmutable; verificación y exportación confirman acceso
+y auditoría antes de devolver el resultado. Los desafíos y sesiones Redis se
+compensan si falla la auditoría, sin una transacción distribuida ni garantía de
+limpieza inmediata si también falla Redis. La decisión y los límites están en
+[ADR-0016](docs/adr/0016-case-document-transactions.md).
 
-La configuración de límites HTTP y las restricciones operativas están en
-[el contrato](docs/http-api.md). El [barrido del backend](docs/backend-review.md)
-distingue correcciones verificadas y trabajo pendiente antes de producción;
-[el siguiente objetivo](docs/next-goal.md) define la asociación documental,
-auditoría transaccional y migración recuperable.
+Antes de iniciar `serve`, aplicar `database migrate --runtime-role` con una
+conexión administrativa y configurar `DATABASE_URL` con el rol operativo
+restringido. El arranque no ejecuta DDL. También requiere `REDIS_URL`,
+`KEK_BASE64`, CA, CRL, certificado y llave del firmante, y TSA local inicializada.
+Conservar la KEK original al migrar: una llave nueva no descifra los datos
+existentes. La [guía de base de datos](docs/database-operations.md) detalla
+preparación, importación explícita, conservación del origen y restauración.
+Los comandos criptográficos offline permanecen disponibles.
+
+El [contrato HTTP](docs/http-api.md) describe rutas, límites y errores. El
+[barrido del backend](docs/backend-review.md) conserva la revisión anterior;
+ADR-0016 actualiza sus límites sobre asociación documental y transacciones.
+Los [criterios de esta entrega](docs/next-goal.md) se contrastan con resultados
+actuales antes de cerrar la integración. Siguen pendientes consultas y versiones
+documentales, actividad procesal y la interfaz de producto.
 
 ### Frontend web
 

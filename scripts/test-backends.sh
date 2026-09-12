@@ -49,9 +49,10 @@ done
 
 export IDENTITY_TEST_DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/postgres"
 export CASE_TEST_DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/case_tests"
+export DOCUMENT_TEST_DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/document_tests"
 export IDENTITY_TEST_REDIS_URL="redis://127.0.0.1:$REDIS_PORT/"
 psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 \
-  -c 'CREATE DATABASE case_tests' >/dev/null
+  -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests' >/dev/null
 [ "$(redis-cli -p "$REDIS_PORT" ping)" = PONG ]
 
 cd "$REPO_ROOT"

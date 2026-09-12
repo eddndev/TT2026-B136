@@ -1,3 +1,4 @@
+use domain::clock::OffsetDateTime;
 use std::env;
 
 use application::identity::{Principal, SessionStore, UserRecord, UserRepository};
@@ -33,10 +34,15 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
     let owner = user("owner@example.com", Role::Owner);
 
     assert!(!repository.has_users().unwrap());
-    assert!(repository.insert_initial_owner(owner.clone()).unwrap());
+    assert!(repository
+        .insert_initial_owner(owner.clone(), OffsetDateTime::now_utc())
+        .unwrap());
     assert!(repository.has_users().unwrap());
     assert!(!repository
-        .insert_initial_owner(user("other@example.com", Role::Owner))
+        .insert_initial_owner(
+            user("other@example.com", Role::Owner),
+            OffsetDateTime::now_utc()
+        )
         .unwrap());
     let stored = repository
         .find_by_email("owner@example.com")
@@ -51,13 +57,15 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
     );
 
     let paralegal = user("helper@example.com", Role::Paralegal);
-    repository.insert(paralegal.clone()).unwrap();
+    repository
+        .insert(paralegal.clone(), owner.id, OffsetDateTime::now_utc())
+        .unwrap();
     assert_eq!(
         repository.find_by_id(paralegal.id).unwrap().unwrap().email,
         paralegal.email
     );
     assert!(matches!(
-        repository.insert(paralegal.clone()),
+        repository.insert(paralegal.clone(), owner.id, OffsetDateTime::now_utc()),
         Err(ApplicationError::UserAlreadyExists)
     ));
 
@@ -68,7 +76,7 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
     )
     .unwrap();
     repository
-        .replace_recovery_codes(paralegal.id, 0, replacement)
+        .replace_recovery_codes(paralegal.id, 0, replacement, OffsetDateTime::now_utc())
         .unwrap();
     assert_eq!(
         repository
@@ -79,7 +87,12 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
         1
     );
     assert!(matches!(
-        repository.replace_recovery_codes(paralegal.id, 0, paralegal.recovery_codes),
+        repository.replace_recovery_codes(
+            paralegal.id,
+            0,
+            paralegal.recovery_codes,
+            OffsetDateTime::now_utc()
+        ),
         Err(ApplicationError::ConcurrentModification)
     ));
 }

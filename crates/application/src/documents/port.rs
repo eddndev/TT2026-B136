@@ -19,7 +19,7 @@ pub trait DocumentRepository: Send + Sync {
     fn find(&self, id: DocumentId) -> Result<Option<DocumentRecord>, ApplicationError>;
 }
 
-/// Inbound application boundary consumed by the HTTP adapter.
+/// Offline workflow boundary; HTTP uses the authenticated CaseDocumentWorkflow.
 pub trait DocumentWorkflow: Send + Sync {
     fn upload(
         &self,

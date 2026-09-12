@@ -1,7 +1,6 @@
 use std::{env, sync::Arc, thread};
 
 use application::cases::{CaseAccess, CaseRecord, CaseRepository};
-use application::identity::{UserRecord, UserRepository};
 use application::ApplicationError;
 use domain::cases::CaseId;
 use domain::crypto::{RecoveryCodeSet, RECOVERY_CODE_COUNT};
@@ -19,24 +18,17 @@ fn database_url() -> Option<String> {
 
 fn user(database_url: &str, active: bool) -> UserId {
     let id = UserId::new();
-    PostgresUserRepository::connect(database_url)
-        .unwrap()
-        .insert(UserRecord {
-            id,
-            email: format!("{id}@example.com"),
-            password_hash: "$argon2id$test".into(),
-            role: Role::Litigator,
-            active,
-            protected_totp_secret: vec![7; 48],
-            recovery_codes: RecoveryCodeSet::from_hashes(
-                (0..RECOVERY_CODE_COUNT)
-                    .map(|index| format!("$argon2id$recovery-{index}"))
-                    .collect(),
-            )
-            .unwrap(),
-            revision: 0,
-        })
-        .unwrap();
+    PostgresUserRepository::connect(database_url).unwrap();
+    let codes = RecoveryCodeSet::from_hashes(
+        (0..RECOVERY_CODE_COUNT)
+            .map(|index| format!("$recovery-{index}"))
+            .collect(),
+    )
+    .unwrap();
+    Client::connect(database_url, NoTls).unwrap().execute(
+        "INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes) VALUES($1,$2,$3,$4,$5,$6,$7)",
+        &[&id.as_uuid(), &format!("{id}@example.com"), &"$argon2id$test", &Role::Owner.as_str(), &active, &vec![7u8;48], &serde_json::to_value(codes).unwrap()],
+    ).unwrap();
     id
 }
 
@@ -49,8 +41,12 @@ fn record(created_by: UserId) -> CaseRecord {
     }
 }
 
+// Fixtures install temporary constraints or triggers on shared database tables.
+static DATABASE_FIXTURES: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 #[test]
 fn postgres_persists_cases_and_filters_membership_after_reconnection() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -83,6 +79,7 @@ fn postgres_persists_cases_and_filters_membership_after_reconnection() {
 
 #[test]
 fn postgres_filters_before_applying_stable_pagination() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -112,6 +109,7 @@ fn postgres_filters_before_applying_stable_pagination() {
 
 #[test]
 fn postgres_revokes_membership_on_the_next_read_and_allows_idempotent_changes() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -120,8 +118,8 @@ fn postgres_revokes_membership_on_the_next_read_and_allows_idempotent_changes() 
     let member = user(&url, true);
     let case = record(creator);
     repository.insert(case.clone()).unwrap();
-    repository.add_member(case.id, member).unwrap();
-    repository.add_member(case.id, member).unwrap();
+    repository.add_member(case.id, member, creator).unwrap();
+    repository.add_member(case.id, member, creator).unwrap();
     assert_eq!(
         repository
             .list(CaseAccess::Assigned(member), 10, 0)
@@ -133,8 +131,8 @@ fn postgres_revokes_membership_on_the_next_read_and_allows_idempotent_changes() 
         .find(case.id, CaseAccess::Assigned(member))
         .unwrap()
         .is_some());
-    repository.remove_member(case.id, member).unwrap();
-    repository.remove_member(case.id, member).unwrap();
+    repository.remove_member(case.id, member, creator).unwrap();
+    repository.remove_member(case.id, member, creator).unwrap();
     assert!(repository
         .find(case.id, CaseAccess::Assigned(member))
         .unwrap()
@@ -148,6 +146,7 @@ fn postgres_revokes_membership_on_the_next_read_and_allows_idempotent_changes() 
 
 #[test]
 fn postgres_rolls_back_cases_without_a_valid_creator() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -164,6 +163,7 @@ fn postgres_rolls_back_cases_without_a_valid_creator() {
 
 #[test]
 fn postgres_rolls_back_case_creation_when_creator_membership_cannot_be_stored() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -195,6 +195,7 @@ fn postgres_rolls_back_case_creation_when_creator_membership_cannot_be_stored() 
 
 #[test]
 fn postgres_rejects_invalid_assignments_without_partial_memberships() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -204,7 +205,7 @@ fn postgres_rejects_invalid_assignments_without_partial_memberships() {
     repository.insert(case.clone()).unwrap();
     for target in [UserId::new(), user(&url, false)] {
         assert!(matches!(
-            repository.add_member(case.id, target),
+            repository.add_member(case.id, target, creator),
             Err(ApplicationError::UserNotFound)
         ));
         assert!(repository
@@ -213,17 +214,18 @@ fn postgres_rejects_invalid_assignments_without_partial_memberships() {
             .is_none());
     }
     assert!(matches!(
-        repository.add_member(CaseId::new(), creator),
+        repository.add_member(CaseId::new(), creator, creator),
         Err(ApplicationError::CaseNotFound)
     ));
     assert!(matches!(
-        repository.remove_member(CaseId::new(), creator),
+        repository.remove_member(CaseId::new(), creator, creator),
         Err(ApplicationError::CaseNotFound)
     ));
 }
 
 #[test]
 fn postgres_concurrent_assignments_preserve_one_membership() {
+    let _guard = DATABASE_FIXTURES.lock().unwrap();
     let Some(url) = database_url() else {
         return;
     };
@@ -240,7 +242,7 @@ fn postgres_concurrent_assignments_preserve_one_membership() {
             let id = case.id;
             thread::spawn(move || {
                 barrier.wait();
-                adapter.add_member(id, member).unwrap();
+                adapter.add_member(id, member, creator).unwrap();
             })
         })
         .collect();

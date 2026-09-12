@@ -1,7 +1,7 @@
 //! Versioned identity and document route composition.
 
 use crate::runtime::HttpRuntime;
-use application::{documents::DocumentWorkflow, identity::IdentityWorkflow};
+use application::{documents::CaseDocumentWorkflow, identity::IdentityWorkflow};
 use axum::{
     extract::DefaultBodyLimit,
     routing::{get, post},
@@ -21,13 +21,13 @@ const MAX_DOCUMENT_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Clone)]
 struct AppState {
-    workflow: Arc<dyn DocumentWorkflow>,
+    workflow: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     runtime: HttpRuntime,
 }
 
 pub fn router(
-    workflow: Arc<dyn DocumentWorkflow>,
+    workflow: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     runtime: HttpRuntime,
 ) -> Router {
@@ -42,10 +42,19 @@ pub fn router(
         .layer(DefaultBodyLimit::max(16 * 1024));
     Router::new()
         .merge(identity_routes)
-        .route("/api/v1/documents", post(upload_document))
-        .route("/api/v1/documents/:id/seal", post(seal_document))
-        .route("/api/v1/documents/:id/verify", post(verify_document))
-        .route("/api/v1/documents/:id/evidence", get(export_evidence))
+        .route("/api/v1/cases/:case_id/documents", post(upload_document))
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/seal",
+            post(seal_document),
+        )
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/verify",
+            post(verify_document),
+        )
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/evidence",
+            get(export_evidence),
+        )
         .route("/api/v1/audit/verify", get(verify_audit))
         .layer(DefaultBodyLimit::max(MAX_DOCUMENT_BYTES))
         .with_state(AppState {
