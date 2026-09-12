@@ -14,3 +14,6 @@ uuid.workspace = true
 # Rationale for allowing zeroize in the domain:
 # docs/adr/0003-zeroize-secret-material-in-domain.md
 zeroize.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
