@@ -21,6 +21,31 @@ make purge      # borra auxiliares y el PDF
 o manualmente: `latexmk -lualatex main.tex`. El motor **debe ser LuaLaTeX**
 (se usa `fontspec`, fuentes Unicode y `\newunicodechar`).
 
+## PDF en GitHub Releases
+
+`main.pdf` es un resultado local ignorado por Git. Las fuentes LaTeX, las
+figuras y la bibliografía siguen versionadas. El workflow
+[`Documents`](../.github/workflows/documents.yml) instala TeX Live, biber,
+glosarios, Times New Roman y DejaVu Sans Mono en Ubuntu 24.04.
+
+- En PR y cambios de documentos en `main`, compila y conserva el artefacto
+  `report-pdf` durante 14 días para revisión.
+- Al publicar una release, compila la revisión de su etiqueta y adjunta
+  `TT2026-B136-reporte.pdf`, `SHA256SUMS` y
+  `SOURCE_COMMIT`. Las prereleases también ejecutan este flujo.
+- Para repetir la publicación en una release existente, ejecutar `Documents`
+  manualmente desde Actions e indicar su etiqueta en `release_tag`. La
+  compilación usa esa etiqueta; los adjuntos del mismo nombre se reemplazan.
+  No crea etiquetas ni releases automáticamente y requiere adjuntos editables.
+
+La publicación usa el `GITHUB_TOKEN` del job de subida con permiso
+`contents: write`; la compilación solo tiene acceso de lectura. Las fuentes
+Times New Roman se instalan mediante `ttf-mscorefonts-installer` y no se copian
+al repositorio. Si falta la fuente o falla LaTeX, no se publican los PDF.
+
+Quitar los PDF del seguimiento evita incorporar nuevos binarios. Los commits
+históricos que ya los contienen no se reescriben.
+
 ## Estructura
 
 ```

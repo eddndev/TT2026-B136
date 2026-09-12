@@ -25,6 +25,14 @@ make          # genera latex/main.pdf con LuaLaTeX
 
 Requiere TeX Live (LuaLaTeX, biber, makeglossaries) y la fuente Times New Roman.
 
+El PDF del reporte se genera a partir de las fuentes y se distribuye en
+[Releases](https://github.com/eddndev/TT2026-B136/releases), fuera del historial
+de archivos de las nuevas revisiones. El workflow
+[Documents](.github/workflows/documents.yml) compila el reporte al publicar
+una release, y adjunta el PDF, su suma SHA-256 y el commit de origen.
+También comprueba la compilación en las PR que
+cambian los documentos. Ver [la guía de distribución](latex/README.md).
+
 ## Desarrollo
 
 ### Workspace de Rust

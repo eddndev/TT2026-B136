@@ -48,6 +48,9 @@ by its file path (for example `docs/adr/0001-msrv-and-dependency-pinning.md`).
   tree may contain unrelated uncommitted work.
 - Work on a branch, never directly on `main`. Branches merge into `main`
   with squash merge.
+- Name new branches `feat/<description>` for implementation or
+  `progress/<description>` for project documentation and coordination. Use
+  descriptive names for the change and integrate through a pull request.
 
 ## Architecture: dependency direction
 
@@ -75,3 +78,24 @@ Continuous integration runs the same checks, plus a minimum-supported-Rust-
 version check, coverage measurement, a dependency policy check (`cargo deny
 check` against `deny.toml`), and a release binary size guard. See
 `.github/workflows/ci.yml`.
+
+## Resuming work and comparing checkouts
+
+- Recheck the active branch, working tree, and remote branch tips before using
+  a historical status report. Code, migrations, and current test results take
+  precedence over summaries and planned schedules.
+- Before retiring a duplicate checkout, compare branch and tag tips, stashes,
+  changed tracked files, untracked sources, and ignored runtime data. Equal
+  HEAD commits alone do not prove that either directory can be discarded.
+- Preserve existing document edits and generated deliverables when changing
+  assistant guidance. Treat frontend implementation as a separate requested
+  task; the current placeholder does not imply permission to redesign it.
+- For identity integration tests, set `IDENTITY_TEST_DATABASE_URL` and
+  `IDENTITY_TEST_REDIS_URL` to isolated, disposable PostgreSQL and Redis
+  instances. The tests in
+  `crates/infrastructure/tests/identity_backends.rs` return early when these
+  variables are absent, so an ordinary green test run does not prove those
+  adapters were exercised. The PostgreSQL test expects an empty user table.
+- Report freshly executed checks separately from historical measurements in
+  `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
+  `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
