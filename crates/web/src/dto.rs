@@ -1,4 +1,4 @@
-//! JSON response types for the document API.
+//! Request and response values for the identity and document API.
 
 use application::documents::DocumentSummary;
 use application::identity::{EnrollmentResult, LoginChallenge, Principal, SessionResult};
@@ -7,18 +7,21 @@ use domain::audit::ChainVerification;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CredentialsRequest {
     pub email: String,
     pub password: String,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ChallengeCodeRequest {
     pub challenge_token: String,
     pub code: String,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateUserRequest {
     pub email: String,
     pub password: String,

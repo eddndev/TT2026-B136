@@ -7,6 +7,7 @@ use axum::Json;
 use domain::DomainError;
 use serde::Serialize;
 
+#[derive(Debug)]
 pub struct ApiError {
     status: StatusCode,
     code: &'static str,
@@ -59,6 +60,14 @@ impl ApiError {
 
     pub fn invalid_response_header() -> Self {
         Self::internal()
+    }
+
+    pub(crate) fn busy() -> Self {
+        Self {
+            status: StatusCode::SERVICE_UNAVAILABLE,
+            code: "server_busy",
+            message: "server is at capacity; retry later".to_string(),
+        }
     }
 
     pub(crate) fn internal() -> Self {

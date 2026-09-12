@@ -1,6 +1,6 @@
 //! Inbound HTTP adapter.
 //!
-//! Health and document routes adapt HTTP to an injected application workflow.
+//! Routes adapt HTTP to injected identity, document, and case workflows.
 //! Cryptography, persistence, and timestamps remain behind application ports,
 //! so this adapter does not depend on an external timestamp provider.
 
@@ -14,7 +14,11 @@ use axum::{routing::get, Router};
 mod cases;
 mod dto;
 mod error;
+mod request;
 mod routes;
+mod runtime;
+pub use runtime::HttpLimits;
+use runtime::{protect, HttpRuntime};
 
 /// Builds the inbound HTTP router.
 pub fn router() -> Router {
@@ -26,12 +30,28 @@ pub fn application_router(
     workflow: Arc<dyn DocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
 ) -> Router {
-    routes::router(workflow, identity).route("/healthz", get(health))
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(routes::router(workflow, identity, runtime.clone()), runtime)
+        .route("/healthz", get(health))
 }
 
 /// Builds case routes whose workflow authenticates and authorizes each request.
 pub fn case_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
-    cases::router(workflow)
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(cases::router(workflow, runtime.clone()), runtime)
+}
+
+/// Builds all API routes with one shared admission and blocking-work budget.
+pub fn api_router(
+    documents: Arc<dyn DocumentWorkflow>,
+    identity: Arc<dyn IdentityWorkflow>,
+    cases: Arc<dyn CaseWorkflow>,
+    limits: HttpLimits,
+) -> Router {
+    let runtime = HttpRuntime::new(limits);
+    let routes = routes::router(documents, identity, runtime.clone())
+        .merge(cases::router(cases, runtime.clone()));
+    protect(routes, runtime).route("/healthz", get(health))
 }
 
 async fn health() -> &'static str {

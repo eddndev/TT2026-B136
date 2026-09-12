@@ -88,12 +88,12 @@ impl IdentityWorkflow for StubIdentity {
 
     fn create_user(
         &self,
-        actor: &Principal,
+        token: &str,
         _email: &str,
         _password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
-        assert_eq!(actor, &Self::principal(Role::Owner));
+        self.authorize(token, Permission::CreateUser)?;
         Ok(Self::enrollment(role))
     }
 
@@ -263,4 +263,41 @@ async fn invalid_login_and_client_authorization_have_distinct_statuses() {
         .unwrap();
     assert_eq!(denied.status(), StatusCode::FORBIDDEN);
     assert_eq!(json(denied).await["error"]["code"], "permission_denied");
+}
+
+#[tokio::test]
+async fn identity_json_has_a_small_body_limit_and_rejects_spoofed_fields() {
+    for (body, expected) in [
+        (serde_json::json!({"email":"owner@example.com","password":"x".repeat(17*1024)}).to_string(), StatusCode::PAYLOAD_TOO_LARGE),
+        (serde_json::json!({"email":"owner@example.com","password":"correct horse battery","role":"owner"}).to_string(), StatusCode::UNPROCESSABLE_ENTITY),
+    ] {
+        let response=router().oneshot(Request::post("/api/v1/auth/login").header("content-type","application/json").body(Body::from(body)).unwrap()).await.unwrap();
+        assert_eq!(response.status(),expected);
+    }
+}
+
+#[tokio::test]
+async fn bearer_headers_reject_ambiguity_and_accept_case_insensitive_scheme() {
+    let response = router()
+        .oneshot(
+            Request::get("/api/v1/auth/me")
+                .header("authorization", "Bearer owner-token")
+                .header("authorization", "Bearer client-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    let response = router()
+        .oneshot(
+            Request::get("/api/v1/auth/me")
+                .header("authorization", "bearer owner-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()["cache-control"], "no-store");
 }

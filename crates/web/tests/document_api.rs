@@ -122,7 +122,7 @@ impl IdentityWorkflow for StubIdentity {
 
     fn create_user(
         &self,
-        _actor: &Principal,
+        _token: &str,
         _email: &str,
         _password: &str,
         _role: Role,
