@@ -54,7 +54,7 @@ async function setup(page, role = 'owner') {
     return route.fulfill({ json: body });
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Bienvenida a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   return requests;
 }
 
@@ -164,7 +164,7 @@ test('initial enrollment is acknowledged before returning to login', async ({ pa
   await expect(page.getByRole('button', { name: 'Finalizar' })).toBeDisabled();
   await page.getByLabel('Ya guarde el secreto y los codigos').check();
   await page.getByRole('button', { name: 'Finalizar' }).click();
-  await expect(page.getByRole('heading', { name: 'Bienvenida a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   expect(await page.evaluate(() => document.body.textContent.includes('TESTSECRET'))).toBe(false);
 });
 
@@ -259,7 +259,7 @@ test('login, upload, seal, verify, download and logout follow the HTTP contract'
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: 'test-results/document-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Cerrar sesion' }).click();
-  await expect(page.getByRole('heading', { name: 'Bienvenida a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
 });
 
@@ -299,7 +299,7 @@ test('rejected MFA requires new credentials; expired session clears private cont
   );
   await page.getByLabel('Identificador del documento').fill(id);
   await page.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByRole('heading', { name: 'Bienvenida a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
 });
 
 test('owner enrollment and audit work; mobile navigation fits the viewport', async ({ page }) => {

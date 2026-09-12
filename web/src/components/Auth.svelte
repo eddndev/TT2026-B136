@@ -109,7 +109,7 @@
               ? 'Un paso mas.'
               : bootstrap
                 ? 'Configura tu despacho.'
-                : 'Bienvenida a tu despacho.'}
+                : 'Accede a tu despacho.'}
           </h2>
           <p>
             {challenge
