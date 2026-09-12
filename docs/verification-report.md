@@ -1,5 +1,69 @@
 # Informe de verificación local
 
+## Corte reproducido: barrido del backend
+
+- Fecha local: 11 de septiembre de 2026 (`America/Mexico_City`).
+- Base: `0cc6921`; rama de revisión: `feat/backend-hardening`.
+- Alcance: defectos concurrentes, invariantes persistidos y claridad de las
+  fronteras de identidad, almacenamiento y HTTP. Ver
+  [el barrido](backend-review.md) y [ADR-0015](adr/0015-backend-concurrency-and-invariants.md).
+
+### Verificaciones ejecutadas sobre el estado final
+
+```bash
+cargo fmt --all
+cargo build --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+bash scripts/test-backends.sh
+bash scripts/demo.sh
+bash scripts/api-demo.sh
+```
+
+La suite completa aprobó **461 pruebas**, sin fallos y con una ignorada del
+proveedor de sellado externo. Son 35 pruebas netas adicionales frente al corte
+de expedientes. Se usaron PostgreSQL y Redis desechables y bases separadas;
+las pruebas de backends no se omitieron por ausencia de variables. Compilación,
+formato, Clippy y ambas demostraciones terminaron con código cero.
+
+Se reprodujeron fallos antes de corregir consumo concurrente de MFA, permisos
+basados en identidades caducadas, controles en correo, deserialización inválida,
+desbordamiento de versión, sobrescritura de evidencia, lectura parcial de la
+bitácora y coordinación de migraciones. Las pruebas Redis cubren también un
+contador heredado ya bloqueado sin TTL, ventanas que no se amplían y cuentas
+sin contador que no crean claves al consultarse.
+
+Las pruebas HTTP comprueban rechazo por saturación antes de leer el cuerpo,
+permisos de trabajo retenidos después de cancelar la petición, recuperación de
+capacidad tras fallo o cancelación y cabeceras/body de identidad estrictos.
+La demostración integrada mantiene los cuatro roles, sesiones, expedientes,
+revocación, evidencia documental y comprobación independiente con OpenSSL.
+
+### Cobertura reproducida del barrido
+
+```bash
+bash scripts/test-backends.sh cargo llvm-cov --workspace --json --summary-only --output-path /tmp/tt-hardening-coverage.json
+bash scripts/coverage-gate.sh /tmp/tt-hardening-coverage.json
+```
+
+| Crate | Líneas cubiertas | Cobertura |
+| --- | --- | --- |
+| `domain` | 1039/1079 | 96.3 % |
+| `application` | 1820/1950 | 93.3 % |
+| `infrastructure` | 2467/2643 | 93.3 % |
+| `bin` | 834/1045 | 79.8 % |
+| `web` | 554/675 | 82.1 % |
+
+Total: 6714/7392 líneas (90.8 %); los tres umbrales
+obligatorios del 90 % aprobaron con PostgreSQL y Redis reales.
+
+No se hizo una prueba de carga de producción ni se resolvieron TLS, pooling,
+handshake Redis, transacción entre documento y bitácora, asociación documental
+por expediente ni la amenaza de firma HTTP. Esos límites siguen explícitos en
+[backend-review.md](backend-review.md) y [next-goal.md](next-goal.md).
+
+Las fuentes y entregables locales del reporte y presentación se conservaron.
+Los cortes que siguen son evidencia anterior y mantienen sus propios conteos.
+
 ## Corte reproducido: expedientes y asignaciones
 
 - Fecha local: 11 de septiembre de 2026 (`America/Mexico_City`).

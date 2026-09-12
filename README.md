@@ -164,6 +164,12 @@ desarrollo se incluyen `compose.yaml` y la guía completa de la API. La UI y el
 vínculo entre documentos y expedientes permanecen pendientes. Cliente puede
 consultar metadatos de expedientes asignados, pero sigue sin acceso documental.
 
+La configuración de límites HTTP y las restricciones operativas están en
+[el contrato](docs/http-api.md). El [barrido del backend](docs/backend-review.md)
+distingue correcciones verificadas y trabajo pendiente antes de producción;
+[el siguiente objetivo](docs/next-goal.md) define la asociación documental,
+auditoría transaccional y migración recuperable.
+
 ### Frontend web
 
 - [`frontend/`](frontend/) - placeholder de la interfaz web, construido con

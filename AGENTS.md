@@ -140,12 +140,19 @@ is still unfinished.
   creator assignment share a transaction. See
   `docs/adr/0014-case-membership-and-isolation.md` and
   `crates/web/src/cases.rs`.
+- Identity challenges are consumed atomically before MFA verification; user
+  creation authenticates the bearer token inside the application use case.
+  `crates/web/src/runtime.rs` shares request and blocking-operation limits
+  across the full API, retaining worker permits after request cancellation.
+  See `docs/adr/0015-backend-concurrency-and-invariants.md` and
+  `docs/backend-review.md` for the reviewed behavior and deployment limits.
 - Owner, Litigator, and Paralegal have global document permissions. Client
   document access remains denied even when assigned to a case: document/case
   associations and resource authorization are still pending. See
   `crates/domain/src/identity.rs`.
 - Documents remain encrypted local JSON records; audit events remain a
-  separate file. Their writes do not share a transaction. The document
+  separate file. Per-document locks preserve existing sealed evidence, and
+  audit readers coordinate with writers. Their writes do not share a transaction. The document
   workflow creates version 1 and has no listing, search, or version-history
   API. See `crates/application/src/documents/port.rs`,
   `crates/infrastructure/src/documents.rs`, and
@@ -166,6 +173,8 @@ is still unfinished.
 
 ## Next work, in dependency order
 
+The next objective and proposed sequence are in `docs/next-goal.md`.
+
 1. Associate every document with a persisted case and enforce current
    membership in every document use case, including evidence export. Test
    cross-case denial and same-session revocation before enabling Client
@@ -183,7 +192,7 @@ is still unfinished.
    sealing, verification, and evidence download against `docs/http-api.md`.
    Keep business rules and cryptography behind the application ports.
 5. Before public deployment, review TLS, database pooling and asynchronous
-   clients, request concurrency limits, backup/restore, and the RSA threat
+   clients, load-tested request budgets, transport limits, backup/restore, and the RSA threat
    model in `docs/adr/0002-rsa-signing-crate-and-advisory.md`: that record
    assumes CLI-only signing, while the current router also exposes sealing.
    External audit-head anchoring remains an open limitation documented in
