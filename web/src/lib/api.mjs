@@ -16,10 +16,17 @@ const messages = {
 
 export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   let token = '';
+  let sessionVersion = 0;
   async function request(
     path,
     { method = 'GET', data, body, headers = {}, protectedRoute = true, binary = false } = {},
   ) {
+    const requestVersion = sessionVersion;
+    const assertCurrentSession = () => {
+      if (protectedRoute && requestVersion !== sessionVersion) {
+        throw new Error('La sesion de esta solicitud termino.');
+      }
+    };
     const requestHeaders = { ...headers };
     if (protectedRoute && token) requestHeaders.Authorization = `Bearer ${token}`;
     if (data !== undefined) requestHeaders['Content-Type'] = 'application/json';
@@ -36,10 +43,13 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     } catch {
       throw new Error('No se pudo conectar con la API. Comprueba que el servidor este disponible.');
     }
+    assertCurrentSession();
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
+      assertCurrentSession();
       if (response.status === 401 && protectedRoute) {
         token = '';
+        sessionVersion++;
         onExpired();
       }
       const fallback =
@@ -55,9 +65,13 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       error.code = payload.error?.code;
       throw error;
     }
-    if (binary)
-      return { blob: await response.blob(), digest: response.headers.get('X-Document-Digest') };
-    return response.status === 204 ? null : response.json();
+    const result = binary
+      ? { blob: await response.blob(), digest: response.headers.get('X-Document-Digest') }
+      : response.status === 204
+        ? null
+        : await response.json();
+    assertCurrentSession();
+    return result;
   }
   const post = (path, data, protectedRoute = true) =>
     request(path, { method: 'POST', data, protectedRoute });
@@ -68,12 +82,14 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       if (!['totp', 'recovery'].includes(mode)) throw new Error('Metodo MFA no valido.');
       const session = await post(`/auth/mfa/${mode}`, { challenge_token, code }, false);
       token = session.access_token;
+      sessionVersion++;
       return session;
     },
     me: () => request('/auth/me'),
     async logout() {
       await post('/auth/logout');
       token = '';
+      sessionVersion++;
     },
     createUser: (email, password, role) => post('/users', { email, password, role }),
     upload: (file, name) =>
