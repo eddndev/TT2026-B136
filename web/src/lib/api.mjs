@@ -6,7 +6,9 @@ const messages = {
   account_locked: 'Demasiados intentos. Espera 15 minutos antes de volver a intentar.',
   document_not_found: 'No se encontro un documento con ese identificador.',
   document_already_sealed: 'Este documento ya esta sellado.',
-  document_not_sealed: 'Primero sella el documento para exportar su evidencia.',
+  document_not_sealed: 'Primero sella el documento para verificarlo o descargar su evidencia.',
+  user_already_exists:
+    'Ya existe una cuenta con ese correo. Usa otro correo para el nuevo integrante.',
   bootstrap_closed: 'El despacho ya tiene un administrador. Usa el inicio de sesion.',
   invalid_input: 'Revisa los datos ingresados y los limites de cada campo.',
   invalid_document_name: 'El nombre del documento no es valido.',
@@ -50,6 +52,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
               : `No se pudo completar la operacion (HTTP ${response.status}).`;
       const error = new Error(messages[payload.error?.code] || fallback);
       error.status = response.status;
+      error.code = payload.error?.code;
       throw error;
     }
     if (binary)

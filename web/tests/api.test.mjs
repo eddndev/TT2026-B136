@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApi } from '../src/lib/api.mjs';
-import { can, validateUpload, validId, upsertDocument } from '../src/lib/documents.mjs';
+import {
+  can,
+  safeFilename,
+  validateUpload,
+  validId,
+  upsertDocument,
+} from '../src/lib/documents.mjs';
 
 test('login has JSON credentials and no bearer; MFA establishes memory-only session', async () => {
   const requests = [];
@@ -63,6 +69,27 @@ test('API translates permission errors and handles non-JSON gateway failures', a
   await assert.rejects(offline.audit(), /servidor/i);
 });
 
+test('API preserves stable error codes and explains pending documents and duplicate users', async () => {
+  const pending = createApi(async () =>
+    Response.json({ error: { code: 'document_not_sealed' } }, { status: 409 }),
+  );
+  await assert.rejects(pending.verify('document'), (error) => {
+    assert.equal(error.code, 'document_not_sealed');
+    assert.equal(error.status, 409);
+    assert.match(error.message, /verificar|verificacion/);
+    assert.match(error.message, /evidencia/);
+    return true;
+  });
+  const duplicate = createApi(async () =>
+    Response.json({ error: { code: 'user_already_exists' } }, { status: 409 }),
+  );
+  await assert.rejects(duplicate.createUser('a@example.com', 'password', 'client'), (error) => {
+    assert.equal(error.code, 'user_already_exists');
+    assert.match(error.message, /cuenta.*correo/);
+    return true;
+  });
+});
+
 test('evidence returns a ZIP blob and the digest header', async () => {
   const api = createApi(
     async () => new Response('zip', { headers: { 'X-Document-Digest': 'abc' } }),
@@ -81,11 +108,64 @@ test('roles mirror backend permissions, including denied unknown roles', () => {
   assert.equal(can('unknown', 'documents'), false);
 });
 
-test('reject oversized uploads and names incompatible with the HTTP header', () => {
+test('reject oversized uploads and names incompatible with evidence archive entries', () => {
   assert.equal(validateUpload({ size: 16 * 1024 * 1024 }, 'file.pdf'), '');
   assert.match(validateUpload({ size: 16 * 1024 * 1024 + 1 }, 'file.pdf'), /16 MiB/);
-  for (const name of ['', '../file', 'a\\b', 'a\nheader', 'caf\u00e9.pdf']) {
+  for (const name of [
+    '',
+    '../file',
+    'a\\b',
+    'a\nheader',
+    'caf\u00e9.pdf',
+    'file name.pdf',
+    'file(1).pdf',
+    '.hidden',
+    '-flag.txt',
+    '_document.pdf',
+    'a'.repeat(125),
+  ]) {
     assert.ok(validateUpload({ size: 1 }, name));
+  }
+  assert.equal(validateUpload({ size: 1 }, 'a'.repeat(124)), '');
+  for (const name of [
+    'INSTRUCCIONES.md',
+    'certificado.pem',
+    'ca.pem',
+    'crl.pem',
+    'tsa-chain.pem',
+  ]) {
+    assert.match(validateUpload({ size: 1 }, name), /reservado/);
+  }
+});
+
+test('filename suggestions preserve useful names and normalize accents and paths', () => {
+  assert.equal(safeFilename('contrato_01.pdf'), 'contrato_01.pdf');
+  assert.equal(safeFilename('Resoluci\u00f3n final (2).pdf'), 'Resolucion-final-2.pdf');
+  assert.equal(safeFilename('C:\\fakepath\\acta.pdf'), 'acta.pdf');
+  assert.equal(safeFilename('../informe final.txt'), 'informe-final.txt');
+  assert.equal(safeFilename('.hidden'), 'hidden');
+  assert.equal(safeFilename(''), 'documento');
+  assert.equal(safeFilename('\u6587\u6863'), 'documento');
+  assert.equal(safeFilename('\u6587\u6863.pdf'), 'documento.pdf');
+});
+
+test('filename suggestions leave room for evidence suffixes and avoid reserved archive names', () => {
+  const long = safeFilename(`${'a'.repeat(160)}.pdf`);
+  assert.equal(long.length, 124);
+  assert.ok(long.endsWith('.pdf'));
+  for (const input of [
+    'INSTRUCCIONES.md',
+    'certificado.pem',
+    'ca.pem',
+    'crl.pem',
+    'tsa-chain.pem',
+    'CA.PEM',
+    'a'.repeat(180),
+    '--.txt',
+  ]) {
+    const name = safeFilename(input);
+    assert.equal(validateUpload({ size: 1 }, name), '', name);
+    assert.notEqual(name.toLowerCase(), input.toLowerCase());
   }
 });
 
