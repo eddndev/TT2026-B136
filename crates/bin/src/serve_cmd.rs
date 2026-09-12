@@ -89,8 +89,15 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     let cases = CaseService::new(case_repository, identity.clone());
     let workflow = LocalDocumentWorkflow::new(ports, material, kek)
         .context("cannot initialize document workflow")?;
-    let router = web::application_router(Arc::new(workflow), identity)
-        .merge(web::case_router(Arc::new(cases)));
+    let router = web::api_router(
+        Arc::new(workflow),
+        identity,
+        Arc::new(cases),
+        web::HttpLimits {
+            max_requests: args.max_in_flight_requests,
+            max_blocking_operations: args.max_blocking_operations,
+        },
+    );
 
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()

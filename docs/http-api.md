@@ -69,6 +69,7 @@ se aplican de forma idempotente al conectar. El servidor escucha solamente en `1
 Todas las rutas usan `/api/v1`, salvo `/healthz`. El alta inicial se permite
 solo mientras PostgreSQL no contiene usuarios; la inserción del primer owner se
 protege con un bloqueo de tabla para conservar esa condición ante concurrencia.
+El alta de otros usuarios verifica sesión, estado y rol dentro del caso de uso.
 
 | Método y ruta | Acceso | Resultado |
 | --- | --- | --- |
@@ -108,9 +109,14 @@ persistir el token en claro. Cada petición protegida recarga desde PostgreSQL e
 estado activo y el rol actual del usuario.
 
 Cinco contraseñas rechazadas bloquean la clave normalizada del correo durante
-15 minutos. Los errores de credenciales no revelan si la cuenta existe. Un
+15 minutos. Incremento y expiración son atómicos; la lectura repara contadores
+heredados sin caducidad sin ampliar una ventana vigente. Los errores de
+credenciales no revelan si la cuenta existe. Un
 código TOTP válido se reclama atómicamente en Redis y no puede reutilizarse en
-la ventana aceptada; cualquier segundo factor rechazado consume el desafío.
+la ventana aceptada; el desafío se consume atómicamente antes de verificar el segundo factor. Dos
+intentos simultáneos no pueden emitir dos sesiones con el mismo desafío; un
+intento rechazado también lo consume. Redis requiere la operación `GETDEL`
+(disponible desde Redis 6.2; el entorno incluido usa Redis 7).
 
 ## Expedientes y asignaciones
 
@@ -194,9 +200,36 @@ asociar documentos a expedientes son incrementos posteriores. Los metadatos y
 asignaciones de expedientes ya viven en PostgreSQL; sus mutaciones todavía no
 se registran en la bitácora de archivo.
 
-Los clientes PostgreSQL y Redis son síncronos para conservar una integración
-pequeña. La frontera HTTP ejecuta los casos de uso en el pool bloqueante de
-Tokio para no detener los workers asíncronos.
+Los clientes PostgreSQL y Redis son síncronos. Ambos adaptadores PostgreSQL
+aplican las migraciones mediante el mismo bloqueo de inicialización. Redis
+usa plazos de cinco segundos para conexión TCP y E/S después del handshake;
+el handshake del driver actual todavía no tiene ese límite.
+
+Las escrituras de documentos se serializan por UUID entre procesos; un registro
+sellado no puede sobrescribirse, y el reemplazo conserva los metadatos y el
+vault cifrado. Lecturas y escrituras de bitácora comparten un bloqueo para no
+observar registros parciales. Esto no crea una transacción entre los archivos.
+
+## Límites HTTP y sobrecarga
+
+El servidor comparte un presupuesto entre identidad, documentos y expedientes:
+como máximo ocho peticiones admitidas y dos operaciones bloqueantes concurrentes
+por defecto. Puede configurarlos con `--max-in-flight-requests` y
+`--max-blocking-operations`; ambos requieren enteros positivos. Cada hash Argon2id
+utiliza 256 MiB, por lo que aumentar el segundo valor requiere medir capacidad.
+
+Si no hay cupo se responde `503 server_busy`, sin encolar trabajo indefinido.
+El permiso del trabajo bloqueante permanece ocupado hasta que este termina,
+aunque el cliente cancele su petición. La respuesta no implica cancelación de
+una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
+
+Los cuerpos JSON de identidad y expedientes tienen límite de 16 KiB y rechazan
+campos desconocidos. Los documentos mantienen 16 MiB. Se rechazan cabeceras
+Authorization múltiples o tokens con espacios; el esquema Bearer no distingue
+mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
+
+Estos límites acotan cuerpo y ejecución, pero aún hacen falta límites de
+conexiones, cuerpos lentos, TLS y apagado ordenado antes de despliegue público.
 
 ## Errores
 
@@ -216,11 +249,13 @@ La envoltura es estable:
   página o cabecera inválidos.
 - `429`: ventana de login bloqueada.
 - `500`: fallo interno sin exponer detalles del backend ni secretos.
+- `503`: presupuesto de peticiones u operaciones bloqueantes agotado (`server_busy`).
 
 Las decisiones se registran en
 [`ADR-0011`](adr/0011-local-document-workflow.md) y
 [`ADR-0012`](adr/0012-revocable-sessions-and-rbac.md) y
-[`ADR-0014`](adr/0014-case-membership-and-isolation.md).
+[`ADR-0014`](adr/0014-case-membership-and-isolation.md) y
+[`ADR-0015`](adr/0015-backend-concurrency-and-invariants.md).
 
 ## Pruebas con persistencia real
 

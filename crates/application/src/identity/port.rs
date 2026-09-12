@@ -16,7 +16,7 @@ pub trait IdentityWorkflow: Send + Sync {
     ) -> Result<EnrollmentResult, ApplicationError>;
     fn create_user(
         &self,
-        actor: &Principal,
+        access_token: &str,
         email: &str,
         password: &str,
         role: Role,
@@ -60,12 +60,15 @@ pub trait UserRepository: Send + Sync {
 /// Ephemeral challenges, sessions, throttling counters, and TOTP replay keys.
 pub trait SessionStore: Send + Sync {
     fn create_challenge(&self, user_id: UserId, ttl: u64) -> Result<String, ApplicationError>;
-    fn resolve_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError>;
-    fn consume_challenge(&self, token: &str) -> Result<(), ApplicationError>;
+    /// Atomically removes and returns a live challenge before any MFA attempt.
+    /// Missing, expired, and already claimed challenges all return None.
+    fn take_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError>;
     fn create_session(&self, principal: &Principal, ttl: u64) -> Result<String, ApplicationError>;
     fn find_session(&self, token: &str) -> Result<Option<Principal>, ApplicationError>;
     fn revoke_session(&self, token: &str) -> Result<(), ApplicationError>;
-    fn failed_password_attempts(&self, email: &str) -> Result<u32, ApplicationError>;
+    /// Reads the failure count and repairs missing expiration using the supplied window.
+    /// Existing expirations are preserved; absent counters remain absent.
+    fn failed_password_attempts(&self, email: &str, ttl: u64) -> Result<u32, ApplicationError>;
     fn record_password_failure(&self, email: &str, ttl: u64) -> Result<u32, ApplicationError>;
     fn clear_password_failures(&self, email: &str) -> Result<(), ApplicationError>;
     /// Claims a valid code once. Implementations persist only a fingerprint.

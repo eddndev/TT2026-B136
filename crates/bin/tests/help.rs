@@ -22,3 +22,30 @@ fn help_succeeds_and_names_the_binary() {
         "usage text should expose the local http application"
     );
 }
+
+#[test]
+fn serve_exposes_nonzero_resource_limits() {
+    let exe = env!("CARGO_BIN_EXE_despacho-cli");
+    let help = Command::new(exe)
+        .args(["serve", "--help"])
+        .output()
+        .unwrap();
+    let help = String::from_utf8(help.stdout).unwrap();
+    for flag in ["--max-in-flight-requests", "--max-blocking-operations"] {
+        assert!(help.contains(flag), "missing limit {flag}");
+        let rejected = Command::new(exe)
+            .args([
+                "serve",
+                flag,
+                "0",
+                "--signer-cert",
+                "unused",
+                "--signer-key",
+                "unused",
+            ])
+            .output()
+            .unwrap();
+        assert!(!rejected.status.success());
+        assert!(String::from_utf8_lossy(&rejected.stderr).contains("zero"));
+    }
+}

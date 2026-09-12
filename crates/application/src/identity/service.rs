@@ -98,14 +98,12 @@ impl IdentityService {
 
     pub fn create_user(
         &self,
-        actor: &Principal,
+        access_token: &str,
         email: &str,
         password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
-        if !actor.role.allows(Permission::CreateUser) {
-            return Err(ApplicationError::PermissionDenied);
-        }
+        let actor = self.authorize(access_token, Permission::CreateUser)?;
         let email = normalize_email(email)?;
         validate_password(password)?;
         let (record, enrollment) = self.enroll(&email, password, role)?;
@@ -120,7 +118,12 @@ impl IdentityService {
         password: &str,
     ) -> Result<LoginChallenge, ApplicationError> {
         let email = normalize_email(email)?;
-        if self.ports.sessions.failed_password_attempts(&email)? >= MAX_PASSWORD_FAILURES {
+        if self
+            .ports
+            .sessions
+            .failed_password_attempts(&email, FAILURE_WINDOW_SECONDS)?
+            >= MAX_PASSWORD_FAILURES
+        {
             return Err(ApplicationError::AccountLocked);
         }
         let Some(user) = self.ports.users.find_by_email(&email)? else {
@@ -152,7 +155,7 @@ impl IdentityService {
         challenge_token: &str,
         code: &str,
     ) -> Result<SessionResult, ApplicationError> {
-        let user = self.challenge_user(challenge_token)?;
+        let user = self.take_challenge_user(challenge_token)?;
         let secret = self
             .ports
             .secrets
@@ -164,10 +167,9 @@ impl IdentityService {
                 .sessions
                 .claim_totp(user.id, code, TOTP_REPLAY_TTL_SECONDS)?;
         if !accepted {
-            self.ports.sessions.consume_challenge(challenge_token)?;
             return Err(ApplicationError::MfaRejected);
         }
-        self.finish_challenge(challenge_token, &user, "identity.totp_accepted")
+        self.issue_session(&user, "identity.totp_accepted")
     }
 
     pub fn complete_recovery(
@@ -175,14 +177,13 @@ impl IdentityService {
         challenge_token: &str,
         code: &str,
     ) -> Result<SessionResult, ApplicationError> {
-        let mut user = self.challenge_user(challenge_token)?;
+        let mut user = self.take_challenge_user(challenge_token)?;
         let expected_revision = user.revision;
         if user
             .recovery_codes
             .consume(code, self.ports.passwords.as_ref())?
             != RecoveryCodeOutcome::Accepted
         {
-            self.ports.sessions.consume_challenge(challenge_token)?;
             return Err(ApplicationError::MfaRejected);
         }
         self.ports.users.replace_recovery_codes(
@@ -190,7 +191,7 @@ impl IdentityService {
             expected_revision,
             user.recovery_codes.clone(),
         )?;
-        self.finish_challenge(challenge_token, &user, "identity.recovery_accepted")
+        self.issue_session(&user, "identity.recovery_accepted")
     }
 
     pub fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
@@ -272,11 +273,11 @@ impl IdentityService {
         Ok((record, result))
     }
 
-    fn challenge_user(&self, token: &str) -> Result<UserRecord, ApplicationError> {
+    fn take_challenge_user(&self, token: &str) -> Result<UserRecord, ApplicationError> {
         let id = self
             .ports
             .sessions
-            .resolve_challenge(token)?
+            .take_challenge(token)?
             .ok_or(ApplicationError::MfaRejected)?;
         self.ports
             .users
@@ -285,9 +286,8 @@ impl IdentityService {
             .ok_or(ApplicationError::MfaRejected)
     }
 
-    fn finish_challenge(
+    fn issue_session(
         &self,
-        token: &str,
         user: &UserRecord,
         action: &str,
     ) -> Result<SessionResult, ApplicationError> {
@@ -296,7 +296,6 @@ impl IdentityService {
             .ports
             .sessions
             .create_session(&principal, SESSION_TTL_SECONDS)?;
-        self.ports.sessions.consume_challenge(token)?;
         self.audit(&principal.email, action, &principal.id.to_string())?;
         Ok(SessionResult {
             access_token,
@@ -324,7 +323,8 @@ impl IdentityService {
 fn normalize_email(value: &str) -> Result<String, ApplicationError> {
     let normalized = value.trim().to_ascii_lowercase();
     let mut parts = normalized.split('@');
-    let valid = normalized.is_ascii()
+    let valid = !value.bytes().any(|byte| byte.is_ascii_control())
+        && normalized.is_ascii()
         && normalized.len() <= 254
         && !normalized.contains(char::is_whitespace)
         && parts.next().is_some_and(|part| !part.is_empty())

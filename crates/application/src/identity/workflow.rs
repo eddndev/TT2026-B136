@@ -18,12 +18,12 @@ impl IdentityWorkflow for IdentityService {
 
     fn create_user(
         &self,
-        actor: &Principal,
+        access_token: &str,
         email: &str,
         password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
-        Self::create_user(self, actor, email, password, role)
+        Self::create_user(self, access_token, email, password, role)
     }
 
     fn start_login(&self, email: &str, password: &str) -> Result<LoginChallenge, ApplicationError> {

@@ -52,6 +52,7 @@ impl fmt::Debug for DocumentId {
 
 /// Monotonic version counter for a document, starting at 1.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(try_from = "u32")]
 pub struct DocumentVersion(u32);
 
 impl DocumentVersion {
@@ -73,9 +74,20 @@ impl DocumentVersion {
         self.0
     }
 
-    /// Returns the next version.
-    pub fn next(&self) -> Self {
-        Self(self.0 + 1)
+    /// Returns the next version, rejecting an exhausted counter.
+    pub fn next(&self) -> Result<Self, DomainError> {
+        self.0
+            .checked_add(1)
+            .map(Self)
+            .ok_or(DomainError::DocumentVersionExhausted)
+    }
+}
+
+impl TryFrom<u32> for DocumentVersion {
+    type Error = DomainError;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Self::new(value)
     }
 }
 
@@ -122,6 +134,6 @@ mod tests {
     #[test]
     fn next_increments_version() {
         let version = DocumentVersion::new(3).unwrap();
-        assert_eq!(version.next().get(), 4);
+        assert_eq!(version.next().unwrap().get(), 4);
     }
 }

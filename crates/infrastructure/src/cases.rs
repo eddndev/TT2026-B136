@@ -6,11 +6,8 @@ use application::cases::{CaseAccess, CaseRecord, CaseRepository};
 use application::ApplicationError;
 use domain::cases::{CaseId, CaseMetadata};
 use domain::identity::UserId;
-use postgres::{Client, NoTls, Row, Transaction};
+use postgres::{Client, Row, Transaction};
 use uuid::Uuid;
-
-const IDENTITY_MIGRATION: &str = include_str!("../../../migrations/0001_identity.sql");
-const CASE_MIGRATION: &str = include_str!("../../../migrations/0002_cases.sql");
 
 /// Persists case creation and the creator's membership in one transaction.
 pub struct PostgresCaseRepository {
@@ -20,20 +17,8 @@ pub struct PostgresCaseRepository {
 impl PostgresCaseRepository {
     /// Initializes identity prerequisites and case tables before serving queries.
     pub fn connect(database_url: &str) -> Result<Self, ApplicationError> {
-        let mut client = Client::connect(database_url, NoTls).map_err(port_error)?;
-        let mut transaction = client.transaction().map_err(port_error)?;
-        transaction
-            .query_one("SELECT pg_advisory_xact_lock($1)", &[&0x4341534553_i64])
-            .map_err(port_error)?;
-        transaction
-            .batch_execute(IDENTITY_MIGRATION)
-            .map_err(port_error)?;
-        transaction
-            .batch_execute(CASE_MIGRATION)
-            .map_err(port_error)?;
-        transaction.commit().map_err(port_error)?;
         Ok(Self {
-            client: Mutex::new(client),
+            client: Mutex::new(crate::postgres::connect(database_url)?),
         })
     }
 

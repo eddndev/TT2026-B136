@@ -12,6 +12,7 @@ mod config;
 mod handlers;
 mod package_cmd;
 mod pki_cmd;
+mod serve_args;
 mod serve_cmd;
 mod sign_cmd;
 mod telemetry;

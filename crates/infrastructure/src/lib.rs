@@ -17,6 +17,7 @@ pub mod error;
 pub mod hashing;
 pub mod identity;
 pub mod password;
+mod postgres;
 pub mod recovery;
 pub mod signing;
 pub mod timestamp;

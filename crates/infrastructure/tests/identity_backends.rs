@@ -99,18 +99,22 @@ fn redis_sessions_are_opaque_replay_safe_and_revocable() {
     let challenge = store.create_challenge(principal.id, 60).unwrap();
     assert_ne!(challenge, principal.id.to_string());
     assert_eq!(
-        store.resolve_challenge(&challenge).unwrap(),
+        store.take_challenge(&challenge).unwrap(),
         Some(principal.id)
     );
-    store.consume_challenge(&challenge).unwrap();
-    assert_eq!(store.resolve_challenge(&challenge).unwrap(), None);
+    assert_eq!(store.take_challenge(&challenge).unwrap(), None);
 
     let token = store.create_session(&principal, 60).unwrap();
     assert_eq!(store.find_session(&token).unwrap(), Some(principal.clone()));
     store.revoke_session(&token).unwrap();
     assert_eq!(store.find_session(&token).unwrap(), None);
 
-    assert_eq!(store.failed_password_attempts(&principal.email).unwrap(), 0);
+    assert_eq!(
+        store
+            .failed_password_attempts(&principal.email, 60)
+            .unwrap(),
+        0
+    );
     assert_eq!(
         store.record_password_failure(&principal.email, 60).unwrap(),
         1
@@ -119,9 +123,19 @@ fn redis_sessions_are_opaque_replay_safe_and_revocable() {
         store.record_password_failure(&principal.email, 60).unwrap(),
         2
     );
-    assert_eq!(store.failed_password_attempts(&principal.email).unwrap(), 2);
+    assert_eq!(
+        store
+            .failed_password_attempts(&principal.email, 60)
+            .unwrap(),
+        2
+    );
     store.clear_password_failures(&principal.email).unwrap();
-    assert_eq!(store.failed_password_attempts(&principal.email).unwrap(), 0);
+    assert_eq!(
+        store
+            .failed_password_attempts(&principal.email, 60)
+            .unwrap(),
+        0
+    );
 
     assert!(store.claim_totp(principal.id, "123456", 60).unwrap());
     assert!(!store.claim_totp(principal.id, "123456", 60).unwrap());

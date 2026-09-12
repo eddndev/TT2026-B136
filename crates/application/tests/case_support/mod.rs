@@ -11,7 +11,7 @@ mock! {
     pub Identity {}
     impl IdentityWorkflow for Identity {
         fn bootstrap_owner(&self, email: &str, password: &str) -> Result<EnrollmentResult, ApplicationError>;
-        fn create_user(&self, actor: &Principal, email: &str, password: &str, role: Role) -> Result<EnrollmentResult, ApplicationError>;
+        fn create_user(&self, access_token: &str, email: &str, password: &str, role: Role) -> Result<EnrollmentResult, ApplicationError>;
         fn start_login(&self, email: &str, password: &str) -> Result<LoginChallenge, ApplicationError>;
         fn complete_totp(&self, token: &str, code: &str) -> Result<SessionResult, ApplicationError>;
         fn complete_recovery(&self, token: &str, code: &str) -> Result<SessionResult, ApplicationError>;
