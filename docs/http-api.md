@@ -1,7 +1,7 @@
 # API HTTP local autenticada
 
 La aplicación integra identidad persistida, sesiones revocables y el flujo de
-evidencia documental. PostgreSQL conserva usuarios; Redis conserva desafíos,
+evidencia documental. PostgreSQL conserva usuarios, expedientes y asignaciones; Redis conserva desafíos,
 sesiones, límites de intentos y reclamos de códigos TOTP; los documentos siguen
 en el repositorio local cifrado. La TSA OpenSSL local emite sellos RFC 3161 y la
 ejecución no consulta Cincel.
@@ -25,6 +25,9 @@ El guion comprueba, entre otras condiciones, que:
 - una petición sin sesión recibe `401`;
 - el primer usuario es `owner` y enrola TOTP más ocho códigos de recuperación;
 - un `paralegal` puede cargar y verificar, pero no sellar;
+- los listados y detalles de expedientes excluyen los no asignados;
+- retirar una asignación surte efecto usando la misma sesión;
+- asignar un Cliente permite consultar metadatos, pero no documentos;
 - logout invalida el token de inmediato;
 - un código de recuperación funciona una sola vez;
 - PostgreSQL no contiene la contraseña en claro;
@@ -58,8 +61,8 @@ cargo run --bin despacho-cli -- serve \
   --tsa-dir ruta/pki-tsa
 ```
 
-La migración `migrations/0001_identity.sql` se aplica de forma idempotente al
-conectar. El servidor escucha solamente en `127.0.0.1:3000` por defecto.
+Las migraciones `migrations/0001_identity.sql` y `migrations/0002_cases.sql`
+se aplican de forma idempotente al conectar. El servidor escucha solamente en `127.0.0.1:3000` por defecto.
 
 ## Autenticación
 
@@ -109,6 +112,43 @@ Cinco contraseñas rechazadas bloquean la clave normalizada del correo durante
 código TOTP válido se reclama atómicamente en Redis y no puede reutilizarse en
 la ventana aceptada; cualquier segundo factor rechazado consume el desafío.
 
+## Expedientes y asignaciones
+
+| Método y ruta | Acceso | Resultado |
+| --- | --- | --- |
+| `POST /api/v1/cases` | Owner o Litigante | Crea expediente y asigna al creador atómicamente; `201`. |
+| `GET /api/v1/cases?limit=50&offset=0` | Bearer | Array de metadatos visibles, ordenado por UUID; `200`. |
+| `GET /api/v1/cases/{uuid}` | Owner o miembro vigente | Metadatos del expediente; `200`. |
+| `PUT /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Asigna un usuario activo; idempotente; `204`. |
+| `DELETE /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Retira la asignación; idempotente; `204`. |
+
+La creación recibe JSON con `title` y `reference`, ambos obligatorios. Se
+recortan espacios externos y se rechazan caracteres de control; los límites
+son 200 y 100 caracteres Unicode, respectivamente. `reference` es una etiqueta
+libre, no única. No se aceptan campos adicionales de actor, rol ni creador.
+Las respuestas de creación y detalle tienen esta forma:
+
+```json
+{"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","title":"Defensa inicial","reference":"NUC-123","created_by":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}
+```
+
+Owner ve todos los expedientes. Litigante, Paralegal y Cliente solo ven los que
+tienen asignados. Un litigante creador queda asignado automáticamente, pero no
+puede gestionar miembros. Solo Owner asigna y retira usuarios. Si se retira al
+creador litigante, también pierde acceso. El detalle de un UUID ajeno responde
+igual que uno inexistente: `404 case_not_found`.
+
+La pertenencia se consulta en PostgreSQL en cada lectura y antes de paginar;
+no se conserva en el token. Tras retirar una asignación, la siguiente petición
+con la misma sesión ya no ve el expediente. Las lecturas concurrentes que ya
+habían comenzado pueden finalizar con su instantánea anterior. El listado
+admite `limit` entre 1 y 100 y `offset` entero no negativo; no ofrece una
+instantánea entre páginas si otros usuarios cambian los datos.
+
+PUT y DELETE no necesitan cuerpo. Asignar un usuario desconocido o inactivo
+produce `404 user_not_found`; un expediente desconocido produce `404
+case_not_found`. El cuerpo de creación tiene límite de 16 KiB.
+
 ## Documentos y permisos
 
 Los documentos se reciben como cuerpo binario, con límite de 16 MiB. El actor
@@ -133,9 +173,11 @@ La matriz aplicada es conservadora:
 | Verificar auditoría completa | sí | no | no | no |
 | Crear usuario | sí | no | no | no |
 
-El cliente permanece sin acceso documental hasta que la pertenencia a casos o
-expedientes sea un atributo persistido. Conceder acceso solo por conocer un UUID
-permitiría exposición cruzada entre clientes.
+El cliente permanece sin acceso documental aunque tenga expedientes asignados.
+Antes de habilitarlo, cada documento debe asociarse a un expediente y todas las
+operaciones deben comprobar pertenencia. Las rutas documentales actuales del
+personal todavía aplican permisos globales; conocer un UUID no concede acceso
+documental al Cliente.
 
 ## Persistencia y límites
 
@@ -148,7 +190,9 @@ Cada documento vive en `DATA_DIR/documents/<uuid>.json`. Los campos binarios se
 codifican en base64 y el texto claro permanece dentro del paquete cifrado
 `DVLT1`. La bitácora vive en `DATA_DIR/audit.jsonl`. Documentos y auditoría aún
 son archivos separados sin una transacción común; migrarlos a PostgreSQL y
-añadir pertenencia a casos son incrementos posteriores.
+asociar documentos a expedientes son incrementos posteriores. Los metadatos y
+asignaciones de expedientes ya viven en PostgreSQL; sus mutaciones todavía no
+se registran en la bitácora de archivo.
 
 Los clientes PostgreSQL y Redis son síncronos para conservar una integración
 pequeña. La frontera HTTP ejecuta los casos de uso en el pool bloqueante de
@@ -165,13 +209,28 @@ La envoltura es estable:
 - `400`: UUID inválido.
 - `401`: credenciales, segundo factor o sesión inválidos.
 - `403`: rol autenticado sin permiso.
-- `404`: documento inexistente.
+- `404`: documento, usuario o expediente inexistente; también expediente ajeno.
 - `409`: bootstrap cerrado, usuario duplicado, carrera optimista o transición
   documental incompatible.
-- `422`: correo, contraseña, rol, nombre o cabecera inválidos.
+- `422`: correo, contraseña, rol, nombre, metadatos de expediente, límite de
+  página o cabecera inválidos.
 - `429`: ventana de login bloqueada.
 - `500`: fallo interno sin exponer detalles del backend ni secretos.
 
 Las decisiones se registran en
 [`ADR-0011`](adr/0011-local-document-workflow.md) y
-[`ADR-0012`](adr/0012-revocable-sessions-and-rbac.md).
+[`ADR-0012`](adr/0012-revocable-sessions-and-rbac.md) y
+[`ADR-0014`](adr/0014-case-membership-and-isolation.md).
+
+## Pruebas con persistencia real
+
+```bash
+bash scripts/test-backends.sh
+```
+
+El guion crea PostgreSQL y Redis temporales, usa bases distintas para identidad
+y expedientes y elimina los servicios al terminar. También admite un comando,
+por ejemplo `bash scripts/test-backends.sh cargo test -p infrastructure --test
+case_backends`. Una ejecución directa de Cargo sin
+`IDENTITY_TEST_DATABASE_URL`, `IDENTITY_TEST_REDIS_URL` y
+`CASE_TEST_DATABASE_URL` omite las pruebas de esos servicios.

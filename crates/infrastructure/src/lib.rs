@@ -7,6 +7,7 @@
 
 pub mod archive;
 pub mod audit;
+pub mod cases;
 pub mod certificates;
 pub mod clock;
 pub mod documents;
@@ -24,6 +25,7 @@ pub mod totp;
 
 pub use archive::StoredZipWriter;
 pub use audit::{FileAuditLog, InMemoryAuditLog};
+pub use cases::PostgresCaseRepository;
 pub use certificates::{OpensslCaAdapter, X509ChainValidator};
 pub use clock::SystemClock;
 pub use documents::FileDocumentRepository;

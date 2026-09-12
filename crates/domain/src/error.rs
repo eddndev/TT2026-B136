@@ -8,6 +8,13 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    /// Case metadata is missing, contains controls, or exceeds its size limit.
+    #[error("invalid case {field}: {reason}")]
+    InvalidCaseMetadata {
+        field: &'static str,
+        reason: &'static str,
+    },
+
     /// A persisted role name is not part of the authorization vocabulary.
     #[error("unknown role: {0}")]
     InvalidRole(String),

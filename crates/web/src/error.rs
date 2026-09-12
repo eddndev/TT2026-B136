@@ -41,6 +41,22 @@ impl ApiError {
         }
     }
 
+    pub fn invalid_case_id() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "invalid_case_id",
+            message: "case id must be a uuid".to_string(),
+        }
+    }
+
+    pub fn invalid_user_id() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "invalid_user_id",
+            message: "user id must be a uuid".to_string(),
+        }
+    }
+
     pub fn invalid_response_header() -> Self {
         Self::internal()
     }
@@ -97,6 +113,16 @@ impl From<ApplicationError> for ApiError {
                 code: "concurrent_modification",
                 message: error.to_string(),
             },
+            ApplicationError::CaseNotFound => Self {
+                status: StatusCode::NOT_FOUND,
+                code: "case_not_found",
+                message: error.to_string(),
+            },
+            ApplicationError::UserNotFound => Self {
+                status: StatusCode::NOT_FOUND,
+                code: "user_not_found",
+                message: error.to_string(),
+            },
             ApplicationError::DocumentNotFound(message) => Self {
                 status: StatusCode::NOT_FOUND,
                 code: "document_not_found",
@@ -126,6 +152,11 @@ impl From<ApplicationError> for ApiError {
                 status: StatusCode::UNPROCESSABLE_ENTITY,
                 code: "invalid_document_name",
                 message: format!("document name is not archive safe: {name}"),
+            },
+            ApplicationError::Domain(DomainError::InvalidCaseMetadata { field, reason }) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_case_metadata",
+                message: format!("invalid case {field}: {reason}"),
             },
             _ => Self::internal(),
         }

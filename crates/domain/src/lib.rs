@@ -5,6 +5,7 @@
 //! defined elsewhere; the domain stays free of I/O and framework concerns.
 
 pub mod audit;
+pub mod cases;
 pub mod clock;
 pub mod crypto;
 pub mod error;

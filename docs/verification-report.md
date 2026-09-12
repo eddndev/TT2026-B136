@@ -1,6 +1,89 @@
 # Informe de verificación local
 
-## Corte reproducido
+## Corte reproducido: expedientes y asignaciones
+
+- Fecha local: 11 de septiembre de 2026 (`America/Mexico_City`).
+- Fecha UTC observada en las demostraciones: 12 de septiembre de 2026.
+- Rama: `feat/case-membership`, basada en `cb1f79c` de `main`.
+- Alcance: metadatos de expedientes, asignaciones y autorización por pertenencia.
+  La decisión está en [ADR-0014](adr/0014-case-membership-and-isolation.md).
+
+### Verificaciones ejecutadas
+
+```bash
+cargo fmt --all
+cargo build --workspace
+bash scripts/test-backends.sh
+cargo clippy --workspace --all-targets -- -D warnings
+bash scripts/demo.sh
+bash scripts/api-demo.sh
+```
+
+La suite completa ejecutada por `test-backends.sh` aprobó **426 pruebas**, sin
+fallos y con una ignorada del proveedor externo de sellado. PostgreSQL y Redis
+estuvieron disponibles: se ejecutaron las dos pruebas de identidad y las siete
+de expedientes. Se añadieron siete pruebas de dominio, diez de casos de uso,
+siete de persistencia y ocho HTTP, con fallo inicial antes de implementar.
+Formato, compilación, Clippy y ambas demostraciones terminaron con código cero.
+El workflow de CI se validó con `actionlint`; las nuevas pruebas usan una base
+separada para no alterar la precondición del bootstrap de identidad.
+
+Las pruebas reales de persistencia cubren reconexión, filtrado antes de paginar,
+revocación, usuarios inexistentes o inactivos, asignaciones concurrentes sin
+duplicados y rollback si falla la inserción de la membresía del creador. La
+demostración HTTP cubre los cuatro roles y muestra que:
+
+- Owner consulta todos los expedientes y administra las asignaciones.
+- Litigante crea un expediente y obtiene automáticamente su asignación.
+- Un UUID ajeno y uno inexistente tienen el mismo error `case_not_found`.
+- Retirar la asignación elimina el acceso en la siguiente petición con la misma
+  sesión, tanto de detalle como de listado.
+- Cliente asignado consulta metadatos, pero carga, sellado, verificación y
+  descarga documental responden `403`.
+- Cambiar el rol o desactivar una cuenta afecta a su sesión ya emitida.
+- El flujo documental mantiene cifrado, sello local y ZIP verificable con OpenSSL.
+
+Los servicios temporales se detuvieron y sus datos se eliminaron al terminar.
+El script de pruebas también permite reproducir la cobertura con servicios
+reales mediante un comando Cargo como argumento.
+
+### Cobertura reproducida
+
+```bash
+bash scripts/test-backends.sh cargo llvm-cov --workspace --json --summary-only --output-path /tmp/tt-cases-coverage.json
+bash scripts/coverage-gate.sh /tmp/tt-cases-coverage.json
+```
+
+| Crate | Líneas cubiertas | Cobertura |
+| --- | --- | --- |
+| `domain` | 1029/1069 | 96.3 % |
+| `application` | 1815/1951 | 93.0 % |
+| `infrastructure` | 2393/2573 | 93.0 % |
+| `bin` | 834/1039 | 80.3 % |
+| `web` | 470/579 | 81.2 % |
+
+Total: 6541/7211 líneas (90.7 %). Los tres crates con
+umbral obligatorio superaron el 90 %.
+
+### Límites del avance
+
+Los expedientes guardan título y referencia; las asignaciones controlan acceso
+de usuarios. Participantes procesales, audiencias y plazos siguen pendientes.
+Los documentos aún no pertenecen a expedientes y el personal conserva permisos
+documentales globales; Cliente sigue denegado. Documentos y bitácora permanecen
+en archivos separados, y las mutaciones de expedientes todavía no tienen
+historial de auditoría. La UI continúa como placeholder.
+
+Este avance no recompiló el reporte ni la presentación: sus fuentes y cambios
+locales se conservaron. Las medidas documentales, de rendimiento y del binario
+que siguen son históricas, no resultados nuevos de esta corrida.
+
+## Evidencia histórica: 17 de agosto de 2026
+
+Esta sección conserva el corte anterior para comparación. Sus conteos,
+cobertura, tiempos, tamaños y pendientes describen aquella revisión.
+
+### Corte reproducido
 
 - Fecha local: 17 de agosto de 2026 (`America/Mexico_City`).
 - Fecha observada en la salida UTC de la demostración: 17 de agosto de 2026.
@@ -10,7 +93,7 @@
 - OpenSSL: `3.5.7` del 9 de junio de 2026.
 - Cobertura: `cargo-llvm-cov 0.8.7`.
 
-## Suite automatizada
+### Suite automatizada
 
 Comando:
 
@@ -41,7 +124,7 @@ cero. El binario release mide 7 886 552 bytes, por debajo del límite de 25 MiB.
 El workflow de CI quedó configurado para levantar PostgreSQL y Redis tanto en
 el job de pruebas como en el de cobertura, y su YAML se parseó localmente.
 
-## Cobertura
+### Cobertura
 
 Comandos:
 
@@ -67,7 +150,7 @@ La corrida de cobertura levantó PostgreSQL y Redis reales para no contabilizar
 como cubiertos adaptadores que las pruebas omiten cuando esos servicios no
 están disponibles.
 
-## Demostración integral
+### Demostración integral
 
 Comando:
 
@@ -92,7 +175,7 @@ La verificación independiente produjo `Verified OK`, `certificado.pem: OK` y
 `Verification: OK`. Los archivos temporales y secretos de demostración fueron
 eliminados automáticamente al terminar.
 
-## Demostración de la aplicación HTTP
+### Demostración de la aplicación HTTP
 
 Comando:
 
@@ -115,7 +198,7 @@ JSON bajo el UUID de otro documento. El repositorio detecta que la identidad
 interna no coincide con la ruta solicitada y rechaza el registro como
 inconsistente.
 
-## Entregables documentales
+### Entregables documentales
 
 `make -C latex` generó `latex/main.pdf` con 232 páginas en tamaño carta y
 `make -C presentacion` generó `presentacion/presentacion.pdf` con 14
@@ -124,7 +207,7 @@ diapositivas; se inspeccionaron ampliadas las páginas modificadas de
 implementación, pruebas, conclusiones y anexos. El log final de Beamer no
 contiene advertencias `Overfull`, `Underfull` ni `LaTeX Warning`.
 
-## Decisión sobre el proveedor de sellado
+### Decisión sobre el proveedor de sellado
 
 El registro en el entorno de Cincel pudo completarse, pero eso no garantiza la
 operación del servicio. Durante el consumo, la API no ofreció respuestas y
@@ -147,7 +230,7 @@ aceptados por `openssl ts -verify`. Esta vía demuestra continuidad técnica;
 no aporta independencia de tercero ni sustituye una constancia NOM-151 emitida
 por un PSC autorizado.
 
-## Límites abiertos
+### Límites abiertos
 
 - La evidencia externa de un PSC autorizado queda fuera del alcance de esta
   entrega. Una integración futura requerirá elegir un proveedor con contrato,

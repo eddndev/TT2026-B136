@@ -22,6 +22,10 @@ pub enum ApplicationError {
     #[error("user not found")]
     UserNotFound,
 
+    /// A case is absent or not visible to the authenticated user.
+    #[error("case not found")]
+    CaseNotFound,
+
     /// A password or account identifier was rejected.
     #[error("invalid credentials")]
     InvalidCredentials,

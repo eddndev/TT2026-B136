@@ -6,10 +6,12 @@
 
 use std::sync::Arc;
 
+use application::cases::CaseWorkflow;
 use application::documents::DocumentWorkflow;
 use application::identity::IdentityWorkflow;
 use axum::{routing::get, Router};
 
+mod cases;
 mod dto;
 mod error;
 mod routes;
@@ -25,6 +27,11 @@ pub fn application_router(
     identity: Arc<dyn IdentityWorkflow>,
 ) -> Router {
     routes::router(workflow, identity).route("/healthz", get(health))
+}
+
+/// Builds case routes whose workflow authenticates and authorizes each request.
+pub fn case_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
+    cases::router(workflow)
 }
 
 async fn health() -> &'static str {
