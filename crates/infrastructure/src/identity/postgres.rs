@@ -1,4 +1,4 @@
-//! PostgreSQL user repository and schema migration runner.
+//! Durable PostgreSQL user repository.
 
 use std::str::FromStr;
 use std::sync::Mutex;
@@ -8,9 +8,8 @@ use application::ApplicationError;
 use domain::crypto::RecoveryCodeSet;
 use domain::identity::{Role, UserId};
 use postgres::error::SqlState;
-use postgres::{Client, NoTls, Row};
+use postgres::{Client, Row};
 
-const MIGRATION: &str = include_str!("../../../../migrations/0001_identity.sql");
 const USER_COLUMNS: &str = "id, email, password_hash, role, active, \
     protected_totp_secret, recovery_codes, revision";
 
@@ -22,10 +21,8 @@ pub struct PostgresUserRepository {
 impl PostgresUserRepository {
     /// Connects and applies idempotent schema migrations.
     pub fn connect(database_url: &str) -> Result<Self, ApplicationError> {
-        let mut client = Client::connect(database_url, NoTls).map_err(port_error)?;
-        client.batch_execute(MIGRATION).map_err(port_error)?;
         Ok(Self {
-            client: Mutex::new(client),
+            client: Mutex::new(crate::postgres::connect(database_url)?),
         })
     }
 
