@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Automated end-to-end smoke test for the local HTTP document workflow.
+# Automated end-to-end smoke test for the authenticated case and document API.
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ CLI="$REPO_ROOT/target/debug/despacho-cli"
 WORK_DIR="$(mktemp -d)"
 SERVER_PID=""
 POSTGRES_STARTED="false"
-REDIS_STARTED="false"
+REDIS_PID=""
 PG_DATA="$WORK_DIR/postgres"
 PG_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 REDIS_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
@@ -36,8 +36,9 @@ cleanup() {
   if [ "$POSTGRES_STARTED" = "true" ]; then
     pg_ctl -D "$PG_DATA" -m fast stop >/dev/null 2>&1 || true
   fi
-  if [ "$REDIS_STARTED" = "true" ]; then
-    redis-cli -p "$REDIS_PORT" shutdown nosave >/dev/null 2>&1 || true
+  if [ -n "$REDIS_PID" ]; then
+    kill "$REDIS_PID" 2>/dev/null || true
+    wait "$REDIS_PID" 2>/dev/null || true
   fi
   if [ -d "$WORK_DIR" ] && [[ "$WORK_DIR" == /tmp/* ]]; then
     rm -rf -- "$WORK_DIR"
@@ -54,12 +55,18 @@ unset CINCEL_BASE_URL CINCEL_API_KEY
 export DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/postgres"
 export REDIS_URL="redis://127.0.0.1:$REDIS_PORT/"
 
-initdb -D "$PG_DATA" --auth=trust --no-locale >/dev/null
+initdb -D "$PG_DATA" --auth=trust --no-locale --encoding=UTF8 >/dev/null
 pg_ctl -D "$PG_DATA" -o "-p $PG_PORT -k $WORK_DIR" -w start >/dev/null
 POSTGRES_STARTED="true"
 redis-server --port "$REDIS_PORT" --bind 127.0.0.1 --save "" \
-  --appendonly no --daemonize yes
-REDIS_STARTED="true"
+  --appendonly no --daemonize no --dir "$WORK_DIR" >"$WORK_DIR/redis.log" 2>&1 &
+REDIS_PID=$!
+for _ in $(seq 1 50); do
+  sleep 0.1
+  kill -0 "$REDIS_PID" 2>/dev/null || { cat "$WORK_DIR/redis.log" >&2; exit 1; }
+  if [ "$(redis-cli -p "$REDIS_PORT" ping 2>/dev/null || true)" = PONG ]; then break; fi
+done
+[ "$(redis-cli -p "$REDIS_PORT" ping)" = PONG ]
 
 "$CLI" pki --scripts-dir "$PKI_SCRIPTS" init-ca >/dev/null
 "$CLI" pki --scripts-dir "$PKI_SCRIPTS" issue --cn "API Demo" >/dev/null
@@ -210,6 +217,9 @@ cmp "$WORK_DIR/document.txt" "$WORK_DIR/evidence/document.txt"
   openssl ts -verify -data document.txt -in document.txt.tsr \
     -CAfile tsa-chain.pem >/dev/null
 )
+
+# shellcheck source=scripts/api-case-demo.sh
+source "$REPO_ROOT/scripts/api-case-demo.sh"
 
 curl -fsS -X POST "$BASE_URL/api/v1/auth/logout" \
   -H "Authorization: Bearer $OWNER_TOKEN" >/dev/null
