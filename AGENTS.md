@@ -87,20 +87,52 @@ toolchain locally. Before committing Rust changes, run:
     cargo test --workspace
     cargo clippy --workspace --all-targets -- -D warnings
 
+## Documentation maintenance
+
+Documentation is part of each functional delivery and belongs in the same
+pull request as the behavior it describes. Update the affected documents:
+
+- Keep `docs/http-api.md` aligned with routes, permissions, request and response
+  formats, errors and examples. Update operational instructions in
+  `docs/database-operations.md` and the relevant README when setup, migration,
+  configuration, recovery or commands change.
+- Record architectural rationale in `docs/adr/`. Preserve the context of older
+  decisions and identify their replacements when behavior supersedes them.
+- Record executed checks, environment, results and limitations in
+  `docs/verification-report.md`. Distinguish fresh runs from historical evidence;
+  do not refresh dates, counts or coverage without rerunning the corresponding
+  checks. A skipped backend test is not evidence that the adapter was exercised.
+- Keep project-state summaries and plans consistent with integrated behavior.
+  Identify completed work and historical estimates before selecting subsequent
+  work; do not treat a proposed schedule as proof of implementation.
+- Keep the enforceable policies in `AGENTS.md` and `CONTRIBUTING.md` consistent.
+  Preserve unrelated edits and deliverables when updating guidance.
+- Keep local handoff records outside Git tracking. They may inform subsequent
+  work, but versioned documentation, code and commits must not depend on them.
+
 ## Academic report maintenance
 
-Every functional delivery must update the affected implementation, testing
-and annex sections under `latex/` alongside the API contract, ADRs and
-verification report. Integrate necessary design corrections into the relevant
-academic prose, without editorial notes about previous versions or revisions.
-Preserve the approved abstract, objectives and state of the art unless their
-revision is explicitly requested. Keep conclusions pending until the project
-is complete. Describe implemented behavior, reproduced evidence and remaining
-limitations; do not present planned features or historical measurements as
-current results. Preserve and reconcile existing document edits. Build changed
-report sources with the commands in `latex/README.md`, inspect the rendered
-PDF, and keep the generated report PDF untracked. Documentation updates are
-part of completion, not a deferred task after integration.
+- Update affected implementation, testing and annex sections under `latex/`
+  alongside functional changes. Describe implemented behavior, reproduced
+  evidence and remaining limitations without claiming planned features are done.
+- Preserve the approved abstract in `latex/frontmatter/resumen.tex`, objectives
+  and state of the art unless their revision is explicitly requested.
+- Integrate necessary technical corrections into the introduction and design
+  as continuous academic prose. Do not append editorial notes about earlier
+  versions, revision dates or a previous design. Keep diagrams, tables, captions
+  and cross-references consistent with that prose. Dates identifying actual
+  experiments and historical measurements remain part of the evidence.
+- Keep `latex/chapters/06-conclusiones.tex` pending until the project is complete.
+  Do not infer final conclusions from an intermediate backend delivery.
+- Build changed report sources using `latex/README.md` and inspect the rendered
+  PDF for legibility, pagination, unresolved references and missing glyphs.
+  Record documentary checks in `docs/academic-report-verification.md` separately
+  from software verification. Guidance-only edits do not require manuscript
+  changes or a new report build when its sources are unchanged.
+- Keep generated report PDFs untracked and publish them through the document
+  workflow as artifacts and release assets. Preserve existing local deliverables
+  before replacing them. The presentation is a separate deliverable and is
+  updated only when included in the requested scope.
 
 ## Resuming work and comparing checkouts
 
@@ -210,9 +242,11 @@ is still unfinished.
 
 ## Next work, in dependency order
 
-`docs/next-goal.md` records the acceptance criteria for the current delivery;
-its closure requires fresh verification and integration through a pull request.
-Subsequent work follows these dependencies:
+`docs/next-goal.md` records the completed case-document delivery and retains
+its original proposed schedule. Its reproduced evidence is in
+`docs/verification-report.md`; the academic update is documented in
+`docs/academic-report-verification.md`. Reassess historical estimates against
+current code before planning subsequent work in this dependency order:
 
 1. Add authorized document listing, detail, search and version history.
    Define immutable historical evidence and bind every encrypted version to
