@@ -5,5 +5,6 @@ const proxy = { '/api': { target: process.env.API_PROXY_TARGET || 'http://127.0.
 
 export default defineConfig({
   integrations: [svelte()],
+  devToolbar: { enabled: false },
   vite: { server: { proxy }, preview: { proxy } },
 });

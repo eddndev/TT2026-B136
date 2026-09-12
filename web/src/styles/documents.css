@@ -1,0 +1,244 @@
+.workspace-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  background: #e9eddf;
+  border: 1px solid #dde3d3;
+  border-radius: 10px;
+  padding: 28px 30px;
+  margin-bottom: 28px;
+}
+.workspace-banner .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #647257;
+}
+.workspace-banner h2 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 27px;
+  color: #344637;
+  margin: 10px 0 7px;
+}
+.workspace-banner p {
+  font-size: 12px;
+  color: #65745e;
+}
+.process-steps {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.process-steps > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  color: #4e654b;
+}
+.process-steps svg {
+  box-sizing: content-box;
+  padding: 13px;
+  background: #f6f8ef;
+  border: 1px solid #d6ddcb;
+  border-radius: 50%;
+}
+.process-steps i {
+  width: 18px;
+  height: 1px;
+  background: #bdc7ad;
+  margin-bottom: 22px;
+}
+.card,
+.detail-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 25px;
+}
+.document-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 22px;
+  align-items: start;
+}
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.section-heading h2 {
+  font-size: 16px;
+  letter-spacing: -0.3px;
+}
+.count {
+  background: #f1f3f6;
+  padding: 3px 7px;
+  margin-left: 6px;
+  font-size: 10px;
+  border-radius: 4px;
+  color: #718093;
+  vertical-align: middle;
+}
+.hint {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #788390;
+}
+.list-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+.search-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dce1e7;
+  border-radius: 6px;
+  padding-left: 10px;
+  flex: 1;
+  color: #7c8998;
+}
+.search-field input {
+  border: 0;
+  background: none;
+  padding: 10px 5px;
+  font-size: 11px;
+}
+.list-toolbar select {
+  width: 140px;
+  font-size: 10px;
+  padding: 9px;
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 49px 20px 42px;
+  gap: 13px;
+}
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #f5f6f8;
+  color: #8494a7;
+  margin-bottom: 7px;
+}
+.empty-state h3 {
+  font-size: 14px;
+}
+.empty-state p {
+  max-width: 430px;
+  font-size: 12px;
+}
+.reference-panel h2 {
+  font-size: 16px;
+  margin: 16px 0 10px;
+}
+.reference-panel p {
+  font-size: 12px;
+  margin-bottom: 19px;
+}
+.reference-panel .hint {
+  font-size: 10px;
+  margin: 17px 0 0;
+}
+.reference-panel label {
+  font-size: 11px;
+}
+.reference-panel input {
+  font-size: 10px;
+}
+.reference-panel .secondary {
+  font-size: 11px;
+  justify-content: space-between;
+}
+.tile-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border: 1px solid #dce3ec;
+  background: #f3f6fb;
+  color: #526c92;
+  border-radius: 10px;
+}
+.document-rows {
+  margin-top: 16px;
+}
+.document-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 9px;
+  border: 0;
+  border-top: 1px solid #edf0f3;
+  width: 100%;
+  background: white;
+  text-align: left;
+  color: var(--navy);
+}
+.document-row:hover,
+.document-row.selected {
+  background: #f3f6fc;
+}
+.file-icon {
+  background: #eef2f9;
+  color: #6680a5;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 45px;
+  border-radius: 6px;
+}
+.document-name {
+  flex: 1;
+  min-width: 0;
+}
+.document-name strong {
+  font-size: 12px;
+  display: block;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.document-name small {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.upload-panel {
+  margin-bottom: 24px;
+  max-width: 680px;
+}
+.upload-panel form > .primary {
+  align-self: flex-start;
+}
+.file-drop {
+  padding: 26px;
+  text-align: center;
+  align-items: center;
+  gap: 12px;
+  border: 1px dashed #a8b8d1;
+  background: #f7f9fe;
+  border-radius: 8px;
+  color: #58749e;
+}
+.file-drop span {
+  font-size: 12px;
+  font-weight: 400;
+}
+.file-drop input {
+  background: #fff;
+  max-width: 350px;
+}

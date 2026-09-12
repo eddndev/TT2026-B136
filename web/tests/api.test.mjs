@@ -32,8 +32,10 @@ test('upload sends bytes and an ASCII name header without multipart encoding', a
 
 test('protected 401 clears session and notifies application', async () => {
   let expired = 0;
-  const api = createApi(async () => Response.json(
-    { error: { code: 'invalid_session' } }, { status: 401 }), () => expired++);
+  const api = createApi(
+    async () => Response.json({ error: { code: 'invalid_session' } }, { status: 401 }),
+    () => expired++,
+  );
   await assert.rejects(api.me(), /sesion/i);
   assert.equal(expired, 1);
 });
@@ -53,14 +55,18 @@ test('logout accepts an empty 204 and removes the bearer', async () => {
 });
 
 test('API translates permission errors and handles non-JSON gateway failures', async () => {
-  const denied = createApi(async () => Response.json({ error: { code: 'permission_denied' } }, { status: 403 }));
+  const denied = createApi(async () =>
+    Response.json({ error: { code: 'permission_denied' } }, { status: 403 }),
+  );
   await assert.rejects(denied.audit(), /permiso/i);
   const offline = createApi(async () => new Response('Bad gateway', { status: 502 }));
   await assert.rejects(offline.audit(), /servidor/i);
 });
 
 test('evidence returns a ZIP blob and the digest header', async () => {
-  const api = createApi(async () => new Response('zip', { headers: { 'X-Document-Digest': 'abc' } }));
+  const api = createApi(
+    async () => new Response('zip', { headers: { 'X-Document-Digest': 'abc' } }),
+  );
   const result = await api.evidence('123');
   assert.equal(await result.blob.text(), 'zip');
   assert.equal(result.digest, 'abc');
@@ -86,5 +92,7 @@ test('reject oversized uploads and names incompatible with the HTTP header', () 
 test('document references require UUIDs and repeated upload responses replace metadata', () => {
   assert.equal(validId('78ac67b1-ab36-49ea-9b08-f951f341f081'), true);
   assert.equal(validId('../auth/me'), false);
-  assert.deepEqual(upsertDocument([{ id: 'a', sealed: false }], { id: 'a', sealed: true }), [{ id: 'a', sealed: true }]);
+  assert.deepEqual(upsertDocument([{ id: 'a', sealed: false }], { id: 'a', sealed: true }), [
+    { id: 'a', sealed: true },
+  ]);
 });

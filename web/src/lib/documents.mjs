@@ -1,4 +1,9 @@
-export const roles = { owner: 'Administrador', litigator: 'Litigante', paralegal: 'Asistente legal', client: 'Cliente' };
+export const roles = {
+  owner: 'Administrador',
+  litigator: 'Litigante',
+  paralegal: 'Asistente legal',
+  client: 'Cliente',
+};
 
 export function can(role, action) {
   if (action === 'documents') return ['owner', 'litigator', 'paralegal'].includes(role);
@@ -14,7 +19,13 @@ export function validId(value) {
 export function validateUpload(file, name) {
   if (!file) return 'Selecciona un archivo.';
   if (file.size > 16 * 1024 * 1024) return 'El archivo supera el limite de 16 MiB.';
-  if (!name.trim() || !/^[\x20-\x7e]+$/.test(name) || /[\\/]/.test(name) || name === '.' || name === '..') {
+  if (
+    !name.trim() ||
+    !/^[\x20-\x7e]+$/.test(name) ||
+    /[\\/]/.test(name) ||
+    name === '.' ||
+    name === '..'
+  ) {
     return 'Usa un nombre sin acentos, saltos de linea ni separadores de carpetas.';
   }
   return '';

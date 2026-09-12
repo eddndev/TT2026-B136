@@ -1,0 +1,262 @@
+@media (min-width: 1500px) {
+  #main-content {
+    padding: 45px 55px;
+  }
+  .document-layout {
+    grid-template-columns: minmax(0, 1fr) 325px;
+  }
+}
+@media (max-width: 1150px) {
+  .sidebar {
+    width: 205px;
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+  .app-content {
+    margin-left: 205px;
+    width: calc(100% - 205px);
+  }
+  #main-content {
+    padding: 28px 24px;
+  }
+  .topbar {
+    padding: 0 24px;
+  }
+  .document-layout {
+    grid-template-columns: 1fr;
+  }
+  .reference-panel {
+    display: block;
+  }
+  .reference-panel form {
+    flex-direction: row;
+    align-items: end;
+  }
+  .reference-panel label {
+    flex: 1;
+  }
+  .reference-panel input {
+    font-size: 12px;
+  }
+  .workspace-banner {
+    padding: 24px;
+  }
+  .process-steps {
+    gap: 9px;
+  }
+  .process-steps i {
+    width: 9px;
+  }
+}
+@media (max-width: 760px) {
+  .app-layout {
+    display: block;
+  }
+  .sidebar {
+    position: static;
+    width: 100%;
+    padding: 15px 18px;
+    overflow: visible;
+  }
+  .sidebar > .brand {
+    font-size: 27px;
+    padding-left: 0;
+  }
+  .brand-mark {
+    width: 29px;
+    height: 32px;
+    font-size: 26px;
+  }
+  .workspace-label,
+  .nav-label,
+  .private-space {
+    display: none;
+  }
+  .sidebar nav {
+    flex-direction: row;
+    gap: 3px;
+    margin-top: 17px;
+    flex-wrap: wrap;
+  }
+  .sidebar nav button {
+    font-size: 11px;
+    padding: 10px;
+    gap: 7px;
+    min-height: 39px;
+  }
+  .sidebar nav svg {
+    width: 16px;
+  }
+  .nav-soon {
+    display: none;
+  }
+  .sidebar-bottom {
+    padding: 0;
+    margin: 0;
+  }
+  .profile {
+    position: absolute;
+    top: 15px;
+    right: 18px;
+    padding: 0;
+    border: 0;
+  }
+  .profile > div {
+    display: none;
+  }
+  .avatar {
+    width: 30px;
+    height: 30px;
+  }
+  .logout {
+    position: absolute;
+    top: 20px;
+    right: 61px;
+    padding: 0;
+    font-size: 10px;
+  }
+  .app-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  .topbar {
+    height: 52px;
+    padding: 0 20px;
+    font-size: 10px;
+  }
+  .topbar .badge {
+    font-size: 9px;
+  }
+  .breadcrumb {
+    margin-left: 5px;
+  }
+  #main-content {
+    padding: 26px 18px;
+  }
+  .page-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 23px;
+  }
+  h1 {
+    font-size: 28px;
+  }
+  .page-heading p {
+    font-size: 12px;
+  }
+  .page-heading > .primary {
+    width: 100%;
+  }
+  .workspace-banner {
+    flex-direction: column;
+    align-items: start;
+    padding: 22px;
+    gap: 25px;
+  }
+  .workspace-banner h2 {
+    font-size: 25px;
+  }
+  .process-steps {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .process-steps i {
+    width: 25px;
+  }
+  .card,
+  .detail-panel {
+    padding: 19px;
+  }
+  .document-layout {
+    gap: 17px;
+  }
+  .list-toolbar {
+    flex-direction: column;
+  }
+  .list-toolbar select {
+    width: 100%;
+  }
+  .empty-state {
+    padding: 33px 0;
+  }
+  .reference-panel form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reference-panel input {
+    font-size: 10px;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+  }
+  .section-heading h2 {
+    font-size: 15px;
+  }
+  .document-row {
+    gap: 8px;
+    padding: 14px 0;
+  }
+  .document-row > .file-icon {
+    width: 28px;
+    height: 34px;
+  }
+  .document-row > svg {
+    display: none;
+  }
+  .document-row .badge {
+    font-size: 8px;
+    padding: 4px;
+  }
+  .detail-title h2 {
+    font-size: 19px;
+  }
+  .action-row {
+    flex-direction: column;
+  }
+  .action-row button {
+    width: 100%;
+  }
+  .check-row {
+    gap: 8px;
+  }
+  .check-row > .badge {
+    font-size: 8px;
+  }
+  .workspace-footer {
+    font-size: 9px;
+    align-items: start;
+    line-height: 1.6;
+  }
+  .workspace-footer > span:last-child {
+    text-align: right;
+  }
+  .footer-separator {
+    margin: 0 3px;
+  }
+  .recovery-codes {
+    grid-template-columns: 1fr;
+  }
+  .case-placeholder {
+    padding: 40px 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 800px) {
+  .sidebar-bottom {
+    padding-top: 16px;
+  }
+  .private-space {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .workspace-label {
+    margin: 24px 0;
+  }
+}
