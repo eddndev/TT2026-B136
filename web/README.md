@@ -50,12 +50,27 @@ consultar o detener ese proceso.
    secreto TOTP y los codigos de recuperacion antes de cerrar el enrolamiento.
 2. Iniciar sesion con correo, contrasena y TOTP o codigo de recuperacion.
    Un rechazo MFA consume el desafio: la pantalla vuelve a pedir credenciales.
-3. Cargar un archivo de hasta 16 MiB con nombre ASCII compatible con la
-   cabecera `X-Document-Name`. Se transmite su cuerpo binario, sin multipart.
-4. Conservar el UUID recibido. Abrir por UUID ejecuta una verificacion real.
-5. Sellar con confirmacion, verificar los cuatro componentes y descargar el
-   ZIP de evidencia. Los resultados proceden del servidor.
-6. Como administrador, crear integrantes y verificar la cadena de auditoria.
+3. Consultar el inicio con el resumen de documentos abiertos, pendientes de
+   sello y verificados en esta sesion. Cada contador abre su filtro documental.
+4. Subir un archivo de hasta 16 MiB desde el selector o arrastrandolo al dialogo.
+   Se sugiere un nombre ASCII de hasta 124 caracteres, compatible con la
+   cabecera `X-Document-Name` y el ZIP de evidencia. Puede editarse antes de
+   enviarlo. Se transmite el cuerpo binario, sin multipart.
+5. Conservar el UUID recibido. Abrir por UUID consulta la verificacion del
+   servidor; si responde `document_not_sealed`, abre una referencia pendiente
+   para poder sellarla. La API no devuelve el nombre en esa respuesta.
+6. Consultar las pestanas Resumen, Verificacion y Evidencia. Sellar con
+   confirmacion, verificar los cuatro componentes y descargar el ZIP.
+   Verificar y descargar se habilitan cuando el documento tiene sello.
+7. Como administrador, crear integrantes y verificar la cadena de auditoria.
+
+La barra lateral permite moverse entre Inicio, Documentos y Guia de uso;
+Equipo y Auditoria aparecen para administradores. En movil se abre como un
+menu plegable con cierre mediante Escape. Las rutas usan fragmentos de URL y
+respetan los botones atras y adelante del navegador sin recargar la sesion.
+La mesa documental permite buscar, filtrar por estado y alternar entre lista
+y tarjetas. Los resultados de verificacion anteriores se descartan si una
+nueva comprobacion falla.
 
 Los controles respetan la matriz de roles del backend. El servidor conserva
 la autoridad sobre permisos, reglas de negocio y criptografia. No se firma,
@@ -73,8 +88,9 @@ cifra ni verifica evidencia en el navegador.
   recargar o salir, mientras los documentos permanecen en el backend.
 - La busqueda y los filtros solo abarcan esas referencias. No existen
   endpoints para listar, buscar globalmente ni consultar historial de versiones.
-- Expedientes muestra un estado pendiente: no simula casos, participantes ni
-  asignaciones. El rol cliente sigue sin acceso documental.
+- Esta interfaz no ofrece gestion de expedientes, participantes ni
+  asignaciones. La guia explica ese limite y el rol cliente sigue sin acceso
+  documental conforme al backend de esta rama.
 - La TSA local produce evidencia tecnica, no una constancia NOM-151 de un PSC.
 - La API no ofrece cambio de contrasena, restablecimiento ni listado de usuarios.
 
@@ -91,11 +107,15 @@ npm audit
 
 Las pruebas de navegador interceptan `/api/v1` con respuestas deterministas
 basadas en los DTO de Rust. Comprueban formularios, solicitudes binarias,
-cabeceras, MFA, permisos visibles, errores, descarga y adaptacion movil.
+cabeceras, MFA, permisos visibles, errores, descarga, navegacion, filtros,
+estadisticas de sesion y adaptacion movil.
 No demuestran una ejecucion con PostgreSQL, Redis, OpenSSL o la API real.
 Para verificar el backend por separado usa `scripts/api-demo.sh` desde la
 raiz con sus dependencias. Las capturas de navegador quedan en
 `web/test-results/` y no se versionan.
+
+La verificacion local mas reciente se registra por separado de las pruebas
+historicas del backend en [`docs/verification-report.md`](../docs/verification-report.md).
 
 El formato se mantiene con `npm run format`. Los componentes, modulos y hojas
 de estilo se dividen en archivos pequenos; `package-lock.json` es generado

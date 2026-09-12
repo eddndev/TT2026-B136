@@ -174,17 +174,26 @@ Comprobaciones ejecutadas el 11 de septiembre de 2026 en Windows, con
 Node.js 24.21.0 y npm 11.19.0. Estos resultados corresponden a `web/` y no
 actualizan las mediciones historicas de Rust o criptografia anteriores.
 
-- `npm test`: 9 pruebas aprobadas del cliente HTTP, errores, sesiones,
-  descarga binaria, nombres y tamano de documentos, UUID y permisos visibles.
-- `npm run test:e2e`: 7 pruebas aprobadas en Chromium con Playwright. Cubren
+- `npm test`: 18 pruebas aprobadas del cliente HTTP, errores, sesiones,
+  descarga binaria, nombres compatibles con el ZIP, tamano de documentos,
+  UUID, permisos visibles, estados documentales, filtros y rutas por rol.
+  Incluyen respuestas tardias que no deben afectar una sesion posterior.
+- `npm run test:e2e -- --workers=1`: 14 pruebas aprobadas en Chromium con
+  Playwright. Cubren
   alta inicial, MFA con TOTP o recuperacion, carga, sellado, verificacion,
   descarga, logout, roles, rechazo MFA, sesion vencida, alta de integrantes,
-  auditoria, resultados obsoletos y una pantalla de 390 px de ancho.
+  auditoria, resultados obsoletos, recuperacion de documentos pendientes de
+  sello, resumen de sesion, filtros, vista de tarjetas, historial del navegador,
+  visibilidad de contrasena y menu accesible en una pantalla de 390 px de ancho.
+  Las regresiones cubren consultar otra vez el mismo documento, recibir una
+  respuesta despues de cerrar sesion y consumir las acciones de navegacion.
+  Los 12 flujos de `workflow.spec.mjs` no emitieron errores de JavaScript.
 - `npm run build`: compilacion estatica completada con Astro 7 y Svelte 5.
 - `npm run format:check`: sin diferencias de formato.
-- `npm audit`: cero vulnerabilidades reportadas en las dependencias de `web/`.
-- Revision visual de capturas de acceso movil, detalle documental de
-  escritorio y auditoria movil, generadas por las pruebas de navegador.
+- `npm audit`: la comprobacion anterior del mismo dia reporto cero
+  vulnerabilidades. Esta revision de interfaz no modifica las dependencias.
+- Revision visual de capturas de inicio en escritorio y movil, acceso movil
+  y detalle documental de escritorio, generadas por las pruebas de navegador.
 
 Las pruebas interceptan las rutas HTTP con respuestas de prueba; no se
 ejecutaron la API Rust, PostgreSQL, Redis ni la TSA en esta comprobacion.
