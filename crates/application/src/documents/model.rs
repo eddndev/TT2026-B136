@@ -1,11 +1,12 @@
-//! Application records persisted for the local document workflow.
+//! Encrypted records and captured evidence shared by document storage adapters.
 
 use domain::crypto::{ArchiveEntry, DocumentId, DocumentVersion, Sha256Digest};
+use serde::{Deserialize, Serialize};
 
 use crate::ApplicationError;
 
 /// Cryptographic material captured when a document is sealed.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SealedEvidence {
     pub signature: Vec<u8>,
     pub timestamp_token: Vec<u8>,

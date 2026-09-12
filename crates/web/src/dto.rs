@@ -1,6 +1,6 @@
 //! Request and response values for the identity and document API.
 
-use application::documents::DocumentSummary;
+use application::documents::CaseDocumentSummary;
 use application::identity::{EnrollmentResult, LoginChallenge, Principal, SessionResult};
 use application::verification::{ComponentReport, ComponentStatus, Verdict, VerificationReport};
 use domain::audit::ChainVerification;
@@ -104,6 +104,7 @@ impl From<SessionResult> for SessionResponse {
 
 #[derive(Serialize)]
 pub struct DocumentResponse {
+    case_id: String,
     id: String,
     version: u32,
     name: String,
@@ -111,9 +112,11 @@ pub struct DocumentResponse {
     sealed: bool,
 }
 
-impl From<DocumentSummary> for DocumentResponse {
-    fn from(summary: DocumentSummary) -> Self {
+impl From<CaseDocumentSummary> for DocumentResponse {
+    fn from(scoped: CaseDocumentSummary) -> Self {
+        let summary = scoped.document;
         Self {
+            case_id: scoped.case_id.to_string(),
             id: summary.id.to_string(),
             version: summary.version.get(),
             name: summary.name,

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use application::documents::{DocumentSummary, DocumentWorkflow, EvidenceExport};
+use application::documents::{CaseDocumentSummary, CaseDocumentWorkflow, EvidenceExport};
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
 };
@@ -9,6 +9,7 @@ use application::ApplicationError;
 use axum::body::{to_bytes, Body};
 use axum::http::{Request, StatusCode};
 use domain::audit::ChainVerification;
+use domain::cases::CaseId;
 use domain::crypto::DocumentId;
 use domain::identity::{Permission, Role, UserId};
 use serde_json::Value;
@@ -19,23 +20,33 @@ use zeroize::Zeroizing;
 
 struct UnusedDocuments;
 
-impl DocumentWorkflow for UnusedDocuments {
+impl CaseDocumentWorkflow for UnusedDocuments {
     fn upload(
         &self,
-        _actor: &str,
+        _token: &str,
+        _case_id: CaseId,
         _name: &str,
         _document: &[u8],
-    ) -> Result<DocumentSummary, ApplicationError> {
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        if _token == "client-token" {
+            return Err(ApplicationError::PermissionDenied);
+        }
         Err(ApplicationError::Port("unused".to_string()))
     }
 
-    fn seal(&self, _actor: &str, _id: DocumentId) -> Result<DocumentSummary, ApplicationError> {
+    fn seal(
+        &self,
+        _token: &str,
+        _case_id: CaseId,
+        _id: DocumentId,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
         Err(ApplicationError::Port("unused".to_string()))
     }
 
     fn verify(
         &self,
-        _actor: &str,
+        _token: &str,
+        _case_id: CaseId,
         _id: DocumentId,
     ) -> Result<VerificationReport, ApplicationError> {
         Err(ApplicationError::Port("unused".to_string()))
@@ -43,13 +54,14 @@ impl DocumentWorkflow for UnusedDocuments {
 
     fn export_evidence(
         &self,
-        _actor: &str,
+        _token: &str,
+        _case_id: CaseId,
         _id: DocumentId,
     ) -> Result<EvidenceExport, ApplicationError> {
         Err(ApplicationError::Port("unused".to_string()))
     }
 
-    fn verify_audit(&self) -> Result<ChainVerification, ApplicationError> {
+    fn verify_audit(&self, _token: &str) -> Result<ChainVerification, ApplicationError> {
         Err(ApplicationError::Port("unused".to_string()))
     }
 }
@@ -253,7 +265,7 @@ async fn invalid_login_and_client_authorization_have_distinct_statuses() {
 
     let denied = router()
         .oneshot(
-            Request::post("/api/v1/documents")
+            Request::post("/api/v1/cases/00000000-0000-0000-0000-000000000001/documents")
                 .header("authorization", "Bearer client-token")
                 .header("x-document-name", "acta.txt")
                 .body(Body::from("content"))

@@ -1,9 +1,17 @@
-//! Stored-document model, outbound repository port, and application workflow.
+//! Offline cryptographic workflows and authenticated case-scoped documents.
 
+mod case_port;
+mod case_service;
 mod model;
 mod port;
+mod processor;
 mod service;
+mod validation;
 
+pub use case_port::{CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction};
+pub use case_service::CaseDocumentService;
 pub use model::{DocumentRecord, DocumentSummary, EvidenceExport, SealedEvidence};
 pub use port::{DocumentRepository, DocumentWorkflow};
-pub use service::{DocumentWorkflowPorts, EvidenceMaterial, LocalDocumentWorkflow};
+pub use processor::{DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial};
+pub use service::{DocumentWorkflowPorts, LocalDocumentWorkflow};
+pub use validation::{validate_record_with_ports, DocumentValidationPorts};

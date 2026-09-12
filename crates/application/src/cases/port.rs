@@ -49,7 +49,17 @@ pub trait CaseRepository: Send + Sync {
     /// Returns None for both missing cases and cases outside the given scope.
     fn find(&self, id: CaseId, access: CaseAccess) -> Result<Option<CaseRecord>, ApplicationError>;
     /// Idempotently assigns an existing active user to an existing case.
-    fn add_member(&self, id: CaseId, user_id: UserId) -> Result<(), ApplicationError>;
+    fn add_member(
+        &self,
+        id: CaseId,
+        user_id: UserId,
+        actor: UserId,
+    ) -> Result<(), ApplicationError>;
     /// Idempotently removes an assignment; fails if the case does not exist.
-    fn remove_member(&self, id: CaseId, user_id: UserId) -> Result<(), ApplicationError>;
+    fn remove_member(
+        &self,
+        id: CaseId,
+        user_id: UserId,
+        actor: UserId,
+    ) -> Result<(), ApplicationError>;
 }

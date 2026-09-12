@@ -75,6 +75,7 @@ dependencies = [
  "mockall",
  "serde",
  "thiserror 1.0.69",
+ "time",
  "uuid",
  "zeroize",
 ]

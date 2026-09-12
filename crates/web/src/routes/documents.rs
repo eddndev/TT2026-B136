@@ -1,4 +1,4 @@
-//! Document and audit endpoints preserve the local workflow contract.
+//! Case-scoped document and audit endpoints delegate authorization to use cases.
 
 use super::AppState;
 use crate::dto::{AuditResponse, DocumentResponse, VerificationResponse};
@@ -13,67 +13,72 @@ use axum::{
     response::Response,
     Json,
 };
-use domain::{crypto::DocumentId, identity::Permission};
+use domain::{cases::CaseId, crypto::DocumentId};
 use uuid::Uuid;
 
 const DOCUMENT_NAME_HEADER: &str = "x-document-name";
 
 pub(super) async fn upload_document(
     State(state): State<AppState>,
+    Path(case_id): Path<String>,
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<(StatusCode, Json<DocumentResponse>), ApiError> {
-    let actor = authorize(&state, &headers, Permission::CreateDocument).await?;
+    let token = bearer_token(&headers)?;
+    let case_id = parse_case_id(&case_id)?;
     let name = required_header(&headers, DOCUMENT_NAME_HEADER)?.to_string();
     let workflow = state.workflow.clone();
     let summary = state
         .runtime
-        .run(move || workflow.upload(&actor.email, &name, &body))
+        .run(move || workflow.upload(&token, case_id, &name, &body))
         .await?;
     Ok((StatusCode::CREATED, Json(summary.into())))
 }
 
 pub(super) async fn seal_document(
     State(state): State<AppState>,
-    Path(id): Path<String>,
+    Path((case_id, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Result<Json<DocumentResponse>, ApiError> {
-    let actor = authorize(&state, &headers, Permission::SealDocument).await?;
+    let token = bearer_token(&headers)?;
+    let case_id = parse_case_id(&case_id)?;
     let id = parse_id(&id)?;
     let workflow = state.workflow.clone();
     let summary = state
         .runtime
-        .run(move || workflow.seal(&actor.email, id))
+        .run(move || workflow.seal(&token, case_id, id))
         .await?;
     Ok(Json(summary.into()))
 }
 
 pub(super) async fn verify_document(
     State(state): State<AppState>,
-    Path(id): Path<String>,
+    Path((case_id, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Result<Json<VerificationResponse>, ApiError> {
-    let actor = authorize(&state, &headers, Permission::VerifyDocument).await?;
+    let token = bearer_token(&headers)?;
+    let case_id = parse_case_id(&case_id)?;
     let id = parse_id(&id)?;
     let workflow = state.workflow.clone();
     let report = state
         .runtime
-        .run(move || workflow.verify(&actor.email, id))
+        .run(move || workflow.verify(&token, case_id, id))
         .await?;
     Ok(Json(report.into()))
 }
 
 pub(super) async fn export_evidence(
     State(state): State<AppState>,
-    Path(id): Path<String>,
+    Path((case_id, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Result<Response, ApiError> {
-    let actor = authorize(&state, &headers, Permission::ExportEvidence).await?;
+    let token = bearer_token(&headers)?;
+    let case_id = parse_case_id(&case_id)?;
     let id = parse_id(&id)?;
     let workflow = state.workflow.clone();
     let export = state
         .runtime
-        .run(move || workflow.export_evidence(&actor.email, id))
+        .run(move || workflow.export_evidence(&token, case_id, id))
         .await?;
     let disposition = format!("attachment; filename=\"{}\"", export.file_name);
     let mut response = Response::new(Body::from(export.archive));
@@ -96,34 +101,24 @@ pub(super) async fn verify_audit(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Json<AuditResponse>, ApiError> {
-    authorize(&state, &headers, Permission::VerifyAudit).await?;
+    let token = bearer_token(&headers)?;
     let workflow = state.workflow.clone();
     Ok(Json(
         state
             .runtime
-            .run(move || workflow.verify_audit())
+            .run(move || workflow.verify_audit(&token))
             .await?
             .into(),
     ))
 }
 
-async fn authorize(
-    state: &AppState,
-    headers: &HeaderMap,
-    permission: Permission,
-) -> Result<application::identity::Principal, ApiError> {
-    let token = bearer_token(headers)?;
-    let identity = state.identity.clone();
-    state
-        .runtime
-        .run(move || identity.authorize(&token, permission))
-        .await
-}
-
 fn required_header<'a>(headers: &'a HeaderMap, name: &'static str) -> Result<&'a str, ApiError> {
-    let value = headers
-        .get(name)
-        .and_then(|value| value.to_str().ok())
+    let mut values = headers.get_all(name).iter();
+    let value = values.next().and_then(|value| value.to_str().ok());
+    if values.next().is_some() {
+        return Err(ApiError::invalid_header(name));
+    }
+    let value = value
         .filter(|value| !value.trim().is_empty())
         .ok_or_else(|| ApiError::invalid_header(name))?;
     Ok(value)
@@ -133,4 +128,10 @@ fn parse_id(value: &str) -> Result<DocumentId, ApiError> {
     Uuid::parse_str(value)
         .map(DocumentId::from_uuid)
         .map_err(|_| ApiError::invalid_document_id())
+}
+
+fn parse_case_id(value: &str) -> Result<CaseId, ApiError> {
+    Uuid::parse_str(value)
+        .map(CaseId::from_uuid)
+        .map_err(|_| ApiError::invalid_case_id())
 }

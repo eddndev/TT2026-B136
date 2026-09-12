@@ -157,20 +157,20 @@ fn every_operation_rejects_invalid_sessions_before_repository_access() {
 
 #[test]
 fn owner_assigns_and_removes_exact_resource_and_target() {
-    let (auth, _) = identity(Role::Owner, 2);
+    let (auth, actor) = identity(Role::Owner, 2);
     let id = CaseId::new();
     let user = UserId::new();
     let mut repository = MockCases::new();
     repository
         .expect_add_member()
         .times(1)
-        .withf(move |c, u| *c == id && *u == user)
-        .returning(|_, _| Ok(()));
+        .withf(move |c, u, a| *c == id && *u == user && *a == actor.id)
+        .returning(|_, _, _| Ok(()));
     repository
         .expect_remove_member()
         .times(1)
-        .withf(move |c, u| *c == id && *u == user)
-        .returning(|_, _| Ok(()));
+        .withf(move |c, u, a| *c == id && *u == user && *a == actor.id)
+        .returning(|_, _, _| Ok(()));
     let service = CaseService::new(Arc::new(repository), Arc::new(auth));
     service.assign("session", id, user).unwrap();
     service.remove("session", id, user).unwrap();
@@ -217,7 +217,7 @@ fn current_role_is_reloaded_before_each_membership_mutation() {
     repository
         .expect_add_member()
         .times(1)
-        .returning(|_, _| Ok(()));
+        .returning(|_, _, _| Ok(()));
     let service = CaseService::new(Arc::new(repository), Arc::new(auth));
     let case_id = CaseId::new();
     service.assign("session", case_id, id).unwrap();
