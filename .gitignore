@@ -26,6 +26,9 @@ node_modules
 frontend/dist
 frontend/.astro
 
+# Generated document delivery packages
+/output/
+
 # Editor and OS noise
 .DS_Store
 *.swp
