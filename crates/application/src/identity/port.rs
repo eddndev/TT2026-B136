@@ -1,5 +1,6 @@
 //! Outbound persistence and secret-protection ports for identity use cases.
 
+use domain::clock::OffsetDateTime;
 use domain::crypto::RecoveryCodeSet;
 use domain::identity::{Permission, Role, UserId};
 use zeroize::Zeroizing;
@@ -41,12 +42,22 @@ pub trait IdentityWorkflow: Send + Sync {
     fn logout(&self, access_token: &str) -> Result<(), ApplicationError>;
 }
 
-/// Durable user persistence.
+/// Durable user persistence. Each mutation commits its audit event atomically.
 pub trait UserRepository: Send + Sync {
     fn has_users(&self) -> Result<bool, ApplicationError>;
     /// Atomically inserts the first owner, or returns false if any user exists.
-    fn insert_initial_owner(&self, user: UserRecord) -> Result<bool, ApplicationError>;
-    fn insert(&self, user: UserRecord) -> Result<(), ApplicationError>;
+    fn insert_initial_owner(
+        &self,
+        user: UserRecord,
+        at: OffsetDateTime,
+    ) -> Result<bool, ApplicationError>;
+    /// Rechecks the active owner under the same transaction as user creation.
+    fn insert(
+        &self,
+        user: UserRecord,
+        actor: UserId,
+        at: OffsetDateTime,
+    ) -> Result<(), ApplicationError>;
     fn find_by_email(&self, email: &str) -> Result<Option<UserRecord>, ApplicationError>;
     fn find_by_id(&self, id: UserId) -> Result<Option<UserRecord>, ApplicationError>;
     fn replace_recovery_codes(
@@ -54,6 +65,7 @@ pub trait UserRepository: Send + Sync {
         id: UserId,
         expected_revision: u64,
         codes: RecoveryCodeSet,
+        at: OffsetDateTime,
     ) -> Result<(), ApplicationError>;
 }
 

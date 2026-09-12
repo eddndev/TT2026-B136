@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use application::identity::{IdentityService, UserRecord, UserRepository};
 use application::ApplicationError;
+use domain::clock::OffsetDateTime;
 use domain::crypto::{PasswordHasher, PasswordVerification, RecoveryCodeSet};
 use domain::identity::UserId;
 use domain::DomainError;
@@ -31,11 +32,15 @@ impl UserRepository for GuardedUsers {
         panic!("invalid email must not reach a repository lookup")
     }
 
-    fn insert_initial_owner(&self, _: UserRecord) -> Result<bool, ApplicationError> {
+    fn insert_initial_owner(
+        &self,
+        _: UserRecord,
+        _: OffsetDateTime,
+    ) -> Result<bool, ApplicationError> {
         panic!("invalid email must not create the initial owner")
     }
 
-    fn insert(&self, _: UserRecord) -> Result<(), ApplicationError> {
+    fn insert(&self, _: UserRecord, _: UserId, _: OffsetDateTime) -> Result<(), ApplicationError> {
         panic!("invalid email must not create a user")
     }
 
@@ -44,6 +49,7 @@ impl UserRepository for GuardedUsers {
         _: UserId,
         _: u64,
         _: RecoveryCodeSet,
+        _: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
         panic!("invalid email must not modify recovery codes")
     }

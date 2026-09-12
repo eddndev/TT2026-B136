@@ -89,10 +89,13 @@ impl IdentityService {
         let email = normalize_email(email)?;
         validate_password(password)?;
         let (record, enrollment) = self.enroll(&email, password, Role::Owner)?;
-        if !self.ports.users.insert_initial_owner(record)? {
+        if !self
+            .ports
+            .users
+            .insert_initial_owner(record, self.ports.clock.now())?
+        {
             return Err(ApplicationError::BootstrapClosed);
         }
-        self.audit("system", "identity.owner_bootstrapped", &email)?;
         Ok(enrollment)
     }
 
@@ -107,8 +110,13 @@ impl IdentityService {
         let email = normalize_email(email)?;
         validate_password(password)?;
         let (record, enrollment) = self.enroll(&email, password, role)?;
-        self.ports.users.insert(record)?;
-        self.audit(&actor.email, "identity.user_created", &email)?;
+        let current = self.authorize(access_token, Permission::CreateUser)?;
+        if current.id != actor.id {
+            return Err(ApplicationError::InvalidSession);
+        }
+        self.ports
+            .users
+            .insert(record, current.id, self.ports.clock.now())?;
         Ok(enrollment)
     }
 
@@ -143,7 +151,15 @@ impl IdentityService {
             .ports
             .sessions
             .create_challenge(user.id, CHALLENGE_TTL_SECONDS)?;
-        self.audit(&email, "identity.password_accepted", &user.id.to_string())?;
+        if let Err(error) = self.audit(&email, "identity.password_accepted", &user.id.to_string()) {
+            self.ports
+                .sessions
+                .take_challenge(&challenge_token)
+                .map_err(|_| {
+                    ApplicationError::Port("challenge cleanup failed after audit failure".into())
+                })?;
+            return Err(error);
+        }
         Ok(LoginChallenge {
             challenge_token,
             expires_in_seconds: CHALLENGE_TTL_SECONDS,
@@ -190,6 +206,7 @@ impl IdentityService {
             user.id,
             expected_revision,
             user.recovery_codes.clone(),
+            self.ports.clock.now(),
         )?;
         self.issue_session(&user, "identity.recovery_accepted")
     }
@@ -291,12 +308,26 @@ impl IdentityService {
         user: &UserRecord,
         action: &str,
     ) -> Result<SessionResult, ApplicationError> {
-        let principal = Principal::from(user);
+        let current = self
+            .ports
+            .users
+            .find_by_id(user.id)?
+            .filter(|user| user.active)
+            .ok_or(ApplicationError::MfaRejected)?;
+        let principal = Principal::from(&current);
         let access_token = self
             .ports
             .sessions
             .create_session(&principal, SESSION_TTL_SECONDS)?;
-        self.audit(&principal.email, action, &principal.id.to_string())?;
+        if let Err(error) = self.audit(&principal.email, action, &principal.id.to_string()) {
+            self.ports
+                .sessions
+                .revoke_session(&access_token)
+                .map_err(|_| {
+                    ApplicationError::Port("session cleanup failed after audit failure".into())
+                })?;
+            return Err(error);
+        }
         Ok(SessionResult {
             access_token,
             expires_in_seconds: SESSION_TTL_SECONDS,

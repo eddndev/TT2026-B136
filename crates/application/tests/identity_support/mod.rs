@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{
-    atomic::{AtomicUsize, Ordering},
+    atomic::{AtomicBool, AtomicUsize, Ordering},
     Arc, Mutex,
 };
 
@@ -27,7 +27,11 @@ impl UserRepository for MemoryUsers {
         Ok(!self.0.lock().unwrap().is_empty())
     }
 
-    fn insert_initial_owner(&self, user: UserRecord) -> Result<bool, ApplicationError> {
+    fn insert_initial_owner(
+        &self,
+        user: UserRecord,
+        _at: OffsetDateTime,
+    ) -> Result<bool, ApplicationError> {
         let mut users = self.0.lock().unwrap();
         if !users.is_empty() {
             return Ok(false);
@@ -36,7 +40,12 @@ impl UserRepository for MemoryUsers {
         Ok(true)
     }
 
-    fn insert(&self, user: UserRecord) -> Result<(), ApplicationError> {
+    fn insert(
+        &self,
+        user: UserRecord,
+        _actor: UserId,
+        _at: OffsetDateTime,
+    ) -> Result<(), ApplicationError> {
         let mut users = self.0.lock().unwrap();
         if users.values().any(|stored| stored.email == user.email) {
             return Err(ApplicationError::UserAlreadyExists);
@@ -64,6 +73,7 @@ impl UserRepository for MemoryUsers {
         id: UserId,
         expected_revision: u64,
         codes: domain::crypto::RecoveryCodeSet,
+        _at: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
         let mut users = self.0.lock().unwrap();
         let user = users.get_mut(&id).ok_or(ApplicationError::UserNotFound)?;
@@ -79,6 +89,8 @@ impl UserRepository for MemoryUsers {
 #[derive(Default)]
 pub struct MemorySessions {
     issued_sessions: AtomicUsize,
+    fail_challenge_cleanup: AtomicBool,
+    fail_session_cleanup: AtomicBool,
     challenges: Mutex<HashMap<String, UserId>>,
     sessions: Mutex<HashMap<String, Principal>>,
     failures: Mutex<HashMap<String, u32>>,
@@ -96,6 +108,11 @@ impl SessionStore for MemorySessions {
     }
 
     fn take_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError> {
+        if self.fail_challenge_cleanup.load(Ordering::SeqCst) {
+            return Err(ApplicationError::Port(format!(
+                "cleanup failed for {token}"
+            )));
+        }
         Ok(self.challenges.lock().unwrap().remove(token))
     }
 
@@ -114,6 +131,11 @@ impl SessionStore for MemorySessions {
     }
 
     fn revoke_session(&self, token: &str) -> Result<(), ApplicationError> {
+        if self.fail_session_cleanup.load(Ordering::SeqCst) {
+            return Err(ApplicationError::Port(format!(
+                "cleanup failed for {token}"
+            )));
+        }
         self.sessions.lock().unwrap().remove(token);
         Ok(())
     }
@@ -279,6 +301,14 @@ impl MemorySessions {
     pub fn issued_session_count(&self) -> usize {
         self.issued_sessions.load(Ordering::SeqCst)
     }
+
+    fn active_challenge_count(&self) -> usize {
+        self.challenges.lock().unwrap().len()
+    }
+
+    fn active_session_count(&self) -> usize {
+        self.sessions.lock().unwrap().len()
+    }
 }
 
 impl MemoryUsers {
@@ -290,4 +320,5 @@ impl MemoryUsers {
         self.0.lock().unwrap().get_mut(&id).unwrap().active = false;
     }
 }
+mod failure_tests;
 pub mod invalid_email;
