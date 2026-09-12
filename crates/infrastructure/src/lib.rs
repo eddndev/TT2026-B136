@@ -7,17 +7,21 @@
 
 pub mod archive;
 pub mod audit;
+mod audit_postgres;
 pub mod cases;
 pub mod certificates;
 pub mod clock;
+pub mod document_postgres;
 pub mod documents;
 pub mod encryption;
 pub mod envelope;
 pub mod error;
 pub mod hashing;
 pub mod identity;
+pub mod legacy;
 pub mod password;
 mod postgres;
+mod postgres_actor;
 pub mod recovery;
 pub mod signing;
 pub mod timestamp;
@@ -41,3 +45,8 @@ pub use signing::{certificate_subject, RsaPkcs1Signer, RsaPkcs1Verifier};
 pub use timestamp::{CincelTsaAdapter, LocalOpensslTsa, Rfc3161Verifier};
 pub use tools::openssl_version;
 pub use totp::{decode_base32_secret, TotpRsProvider};
+
+pub use audit_postgres::PostgresAuditLog;
+pub use document_postgres::PostgresCaseDocumentStore;
+pub use legacy::{ImportReport, LegacyImport};
+pub use postgres::initialize_database;

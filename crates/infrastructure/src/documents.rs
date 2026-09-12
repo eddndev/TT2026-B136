@@ -19,6 +19,7 @@ pub struct FileDocumentRepository {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct StoredRecord {
     id: DocumentId,
     version: DocumentVersion,
@@ -29,6 +30,7 @@ struct StoredRecord {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct StoredEvidence {
     signature_base64: String,
     timestamp_token_base64: String,
@@ -51,7 +53,21 @@ impl FileDocumentRepository {
         self.root.join(format!("{id}.json"))
     }
 
-    fn acquire_write_lock(&self, id: DocumentId) -> Result<File, ApplicationError> {
+    fn acquire_write_lock(&self, id: DocumentId) -> Result<(File, File), ApplicationError> {
+        let migration_path = self.root.join(".migration.lock");
+        let migration = OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .read(true)
+            .write(true)
+            .open(&migration_path)
+            .map_err(|error| storage_error(&migration_path, error))?;
+        FileExt::lock_shared(&migration).map_err(|error| storage_error(&migration_path, error))?;
+        if self.root.join(".migrated").exists() || self.root.join(".migration-pending").exists() {
+            return Err(ApplicationError::InvalidConfiguration(
+                "document store is fenced for migration and is read-only".into(),
+            ));
+        }
         let path = self.root.join(format!(".{id}.lock"));
         let file = OpenOptions::new()
             .create(true)
@@ -61,7 +77,7 @@ impl FileDocumentRepository {
             .map_err(|error| storage_error(&path, error))?;
         file.lock_exclusive()
             .map_err(|error| storage_error(&path, error))?;
-        Ok(file)
+        Ok((migration, file))
     }
 
     fn write_atomic(&self, record: &DocumentRecord) -> Result<(), ApplicationError> {
@@ -209,4 +225,32 @@ fn decode(value: &str) -> Result<Vec<u8>, ApplicationError> {
 
 fn storage_error(path: &Path, error: impl std::fmt::Display) -> ApplicationError {
     ApplicationError::Port(format!("document storage {}: {error}", path.display()))
+}
+
+/// Decodes the legacy storage format without touching the filesystem.
+pub fn decode_document_record(bytes: &[u8]) -> Result<DocumentRecord, ApplicationError> {
+    let stored: StoredRecord = serde_json::from_slice(bytes)
+        .map_err(|error| ApplicationError::StoredDocumentInconsistent(error.to_string()))?;
+    stored.into_record()
+}
+
+/// Encodes a record without changing its encrypted bytes or captured evidence.
+pub fn encode_document_record(record: &DocumentRecord) -> Result<Vec<u8>, ApplicationError> {
+    serde_json::to_vec(&StoredRecord::from(record))
+        .map_err(|error| ApplicationError::Port(error.to_string()))
+}
+
+pub(crate) fn encode_evidence(
+    evidence: &SealedEvidence,
+) -> Result<serde_json::Value, ApplicationError> {
+    serde_json::to_value(StoredEvidence::from(evidence))
+        .map_err(|error| ApplicationError::Port(error.to_string()))
+}
+
+pub(crate) fn decode_evidence(
+    value: serde_json::Value,
+) -> Result<SealedEvidence, ApplicationError> {
+    serde_json::from_value::<StoredEvidence>(value)
+        .map_err(|error| ApplicationError::StoredDocumentInconsistent(error.to_string()))?
+        .into_evidence()
 }
