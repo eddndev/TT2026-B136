@@ -51,8 +51,8 @@ impl FileDocumentRepository {
         self.root.join(format!("{id}.json"))
     }
 
-    fn acquire_write_lock(&self) -> Result<File, ApplicationError> {
-        let path = self.root.join(".documents.lock");
+    fn acquire_write_lock(&self, id: DocumentId) -> Result<File, ApplicationError> {
+        let path = self.root.join(format!(".{id}.lock"));
         let file = OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -88,7 +88,7 @@ impl FileDocumentRepository {
 
 impl DocumentRepository for FileDocumentRepository {
     fn insert(&self, record: DocumentRecord) -> Result<(), ApplicationError> {
-        let _lock = self.acquire_write_lock()?;
+        let _lock = self.acquire_write_lock(record.id)?;
         let path = self.record_path(record.id);
         if path.exists() {
             return Err(ApplicationError::DocumentAlreadyExists(
@@ -99,10 +99,24 @@ impl DocumentRepository for FileDocumentRepository {
     }
 
     fn replace(&self, record: DocumentRecord) -> Result<(), ApplicationError> {
-        let _lock = self.acquire_write_lock()?;
-        let path = self.record_path(record.id);
-        if !path.exists() {
-            return Err(ApplicationError::DocumentNotFound(record.id.to_string()));
+        let _lock = self.acquire_write_lock(record.id)?;
+        let stored = self
+            .find(record.id)?
+            .ok_or_else(|| ApplicationError::DocumentNotFound(record.id.to_string()))?;
+        if stored.is_sealed() {
+            return Err(ApplicationError::DocumentAlreadySealed(
+                record.id.to_string(),
+            ));
+        }
+        if stored.version != record.version
+            || stored.name != record.name
+            || stored.digest != record.digest
+            || stored.vault != record.vault
+        {
+            return Err(ApplicationError::StoredDocumentInconsistent(format!(
+                "replacement changed immutable document fields for {}",
+                record.id
+            )));
         }
         self.write_atomic(&record)
     }
