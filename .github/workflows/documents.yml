@@ -47,7 +47,7 @@ jobs:
             sudo debconf-set-selections
           sudo --preserve-env=DEBIAN_FRONTEND apt-get install -y --no-install-recommends \
             latexmk texlive-luatex texlive-latex-extra texlive-lang-spanish \
-            texlive-bibtex-extra texlive-fonts-recommended biber \
+            texlive-bibtex-extra texlive-fonts-recommended texlive-plain-generic biber \
             fonts-dejavu-core fonts-texgyre ttf-mscorefonts-installer poppler-utils
           fc-cache -f
           test "$(fc-match --format '%{family}' 'Times New Roman')" = 'Times New Roman'
