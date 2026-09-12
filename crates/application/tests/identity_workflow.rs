@@ -1,265 +1,15 @@
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+mod identity_support;
 
-use application::identity::{
-    IdentityPorts, IdentityService, Principal, SecretProtector, SessionStore, UserRecord,
-    UserRepository,
-};
+use std::sync::{mpsc, Arc, Mutex};
+use std::time::Duration;
+
+use application::identity::{EnrollmentResult, IdentityService, SessionStore};
 use application::ApplicationError;
-use domain::audit::{AuditEvent, AuditLog, ChainedEvent};
-use domain::clock::{Clock, OffsetDateTime};
-use domain::crypto::{
-    PasswordHasher, PasswordVerification, RecoveryCodeGenerator, Sha256Digest, TotpEnrollment,
-    TotpProvider, TotpVerification,
-};
-use domain::identity::{Permission, Role, UserId};
+use domain::crypto::{TotpEnrollment, TotpProvider, TotpVerification};
+use domain::identity::{Permission, Role};
 use domain::DomainError;
-use zeroize::Zeroizing;
-
-#[derive(Default)]
-struct MemoryUsers(Mutex<HashMap<UserId, UserRecord>>);
-
-impl UserRepository for MemoryUsers {
-    fn has_users(&self) -> Result<bool, ApplicationError> {
-        Ok(!self.0.lock().unwrap().is_empty())
-    }
-
-    fn insert_initial_owner(&self, user: UserRecord) -> Result<bool, ApplicationError> {
-        let mut users = self.0.lock().unwrap();
-        if !users.is_empty() {
-            return Ok(false);
-        }
-        users.insert(user.id, user);
-        Ok(true)
-    }
-
-    fn insert(&self, user: UserRecord) -> Result<(), ApplicationError> {
-        let mut users = self.0.lock().unwrap();
-        if users.values().any(|stored| stored.email == user.email) {
-            return Err(ApplicationError::UserAlreadyExists);
-        }
-        users.insert(user.id, user);
-        Ok(())
-    }
-
-    fn find_by_email(&self, email: &str) -> Result<Option<UserRecord>, ApplicationError> {
-        Ok(self
-            .0
-            .lock()
-            .unwrap()
-            .values()
-            .find(|user| user.email == email)
-            .cloned())
-    }
-
-    fn find_by_id(&self, id: UserId) -> Result<Option<UserRecord>, ApplicationError> {
-        Ok(self.0.lock().unwrap().get(&id).cloned())
-    }
-
-    fn replace_recovery_codes(
-        &self,
-        id: UserId,
-        expected_revision: u64,
-        codes: domain::crypto::RecoveryCodeSet,
-    ) -> Result<(), ApplicationError> {
-        let mut users = self.0.lock().unwrap();
-        let user = users.get_mut(&id).ok_or(ApplicationError::UserNotFound)?;
-        if user.revision != expected_revision {
-            return Err(ApplicationError::ConcurrentModification);
-        }
-        user.recovery_codes = codes;
-        user.revision += 1;
-        Ok(())
-    }
-}
-
-#[derive(Default)]
-struct MemorySessions {
-    challenges: Mutex<HashMap<String, UserId>>,
-    sessions: Mutex<HashMap<String, Principal>>,
-    failures: Mutex<HashMap<String, u32>>,
-    used_totp: Mutex<Vec<(UserId, String)>>,
-}
-
-impl SessionStore for MemorySessions {
-    fn create_challenge(&self, user_id: UserId, _ttl: u64) -> Result<String, ApplicationError> {
-        let token = format!("challenge-{user_id}");
-        self.challenges
-            .lock()
-            .unwrap()
-            .insert(token.clone(), user_id);
-        Ok(token)
-    }
-
-    fn resolve_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError> {
-        Ok(self.challenges.lock().unwrap().get(token).copied())
-    }
-
-    fn consume_challenge(&self, token: &str) -> Result<(), ApplicationError> {
-        self.challenges.lock().unwrap().remove(token);
-        Ok(())
-    }
-
-    fn create_session(&self, principal: &Principal, _ttl: u64) -> Result<String, ApplicationError> {
-        let token = format!("session-{}", principal.id);
-        self.sessions
-            .lock()
-            .unwrap()
-            .insert(token.clone(), principal.clone());
-        Ok(token)
-    }
-
-    fn find_session(&self, token: &str) -> Result<Option<Principal>, ApplicationError> {
-        Ok(self.sessions.lock().unwrap().get(token).cloned())
-    }
-
-    fn revoke_session(&self, token: &str) -> Result<(), ApplicationError> {
-        self.sessions.lock().unwrap().remove(token);
-        Ok(())
-    }
-
-    fn failed_password_attempts(&self, email: &str) -> Result<u32, ApplicationError> {
-        Ok(*self.failures.lock().unwrap().get(email).unwrap_or(&0))
-    }
-
-    fn record_password_failure(&self, email: &str, _ttl: u64) -> Result<u32, ApplicationError> {
-        let mut failures = self.failures.lock().unwrap();
-        let count = failures.entry(email.to_string()).or_default();
-        *count += 1;
-        Ok(*count)
-    }
-
-    fn clear_password_failures(&self, email: &str) -> Result<(), ApplicationError> {
-        self.failures.lock().unwrap().remove(email);
-        Ok(())
-    }
-
-    fn claim_totp(
-        &self,
-        user_id: UserId,
-        code_fingerprint: &str,
-        _ttl: u64,
-    ) -> Result<bool, ApplicationError> {
-        let key = (user_id, code_fingerprint.to_string());
-        let mut used = self.used_totp.lock().unwrap();
-        if used.contains(&key) {
-            return Ok(false);
-        }
-        used.push(key);
-        Ok(true)
-    }
-}
-
-struct FakeHasher;
-
-impl PasswordHasher for FakeHasher {
-    fn hash(&self, value: &str) -> Result<String, DomainError> {
-        Ok(format!("fake:{value}"))
-    }
-
-    fn verify(&self, value: &str, stored: &str) -> Result<PasswordVerification, DomainError> {
-        Ok(if stored == format!("fake:{value}") {
-            PasswordVerification::Match
-        } else {
-            PasswordVerification::Mismatch
-        })
-    }
-}
-
-struct FakeTotp;
-
-impl TotpProvider for FakeTotp {
-    fn enroll(&self, email: &str) -> Result<TotpEnrollment, DomainError> {
-        Ok(TotpEnrollment {
-            secret: Zeroizing::new(vec![7; 20]),
-            secret_base32: Zeroizing::new("A7A7A7A7".to_string()),
-            otpauth_uri: Zeroizing::new(format!("otpauth://totp/app:{email}")),
-        })
-    }
-
-    fn verify(&self, secret: &[u8], code: &str, _at: u64) -> Result<TotpVerification, DomainError> {
-        Ok(if secret == [7; 20] && code == "123456" {
-            TotpVerification::Accepted
-        } else {
-            TotpVerification::Rejected
-        })
-    }
-
-    fn current_code(&self, _secret: &[u8], _at: u64) -> Result<String, DomainError> {
-        Ok("123456".to_string())
-    }
-}
-
-struct FakeRecovery;
-
-impl RecoveryCodeGenerator for FakeRecovery {
-    fn generate(&self, count: usize) -> Result<Vec<Zeroizing<String>>, DomainError> {
-        Ok((0..count)
-            .map(|index| Zeroizing::new(format!("RECOVERY-{index}")))
-            .collect())
-    }
-}
-
-struct FakeProtector;
-
-impl SecretProtector for FakeProtector {
-    fn protect(&self, _id: UserId, secret: &[u8]) -> Result<Vec<u8>, ApplicationError> {
-        Ok(secret.to_vec())
-    }
-
-    fn expose(
-        &self,
-        _id: UserId,
-        protected: &[u8],
-    ) -> Result<Zeroizing<Vec<u8>>, ApplicationError> {
-        Ok(Zeroizing::new(protected.to_vec()))
-    }
-}
-
-struct FrozenClock;
-
-impl Clock for FrozenClock {
-    fn now(&self) -> OffsetDateTime {
-        OffsetDateTime::from_unix_timestamp(1_735_689_600).unwrap()
-    }
-}
-
-#[derive(Default)]
-struct MemoryAudit(Vec<ChainedEvent>);
-
-impl AuditLog for MemoryAudit {
-    fn append(
-        &mut self,
-        actor: &str,
-        action: &str,
-        resource: &str,
-        timestamp: OffsetDateTime,
-    ) -> Result<ChainedEvent, DomainError> {
-        let event = ChainedEvent {
-            event: AuditEvent::new(self.0.len() as u64, timestamp, actor, action, resource),
-            chain: Sha256Digest::from_array([0; 32]),
-        };
-        self.0.push(event.clone());
-        Ok(event)
-    }
-
-    fn load_all(&self) -> Result<Vec<ChainedEvent>, DomainError> {
-        Ok(self.0.clone())
-    }
-}
-
-fn service(users: Arc<MemoryUsers>, sessions: Arc<MemorySessions>) -> IdentityService {
-    IdentityService::new(IdentityPorts {
-        users,
-        sessions,
-        passwords: Arc::new(FakeHasher),
-        totp: Arc::new(FakeTotp),
-        recovery: Arc::new(FakeRecovery),
-        secrets: Arc::new(FakeProtector),
-        clock: Arc::new(FrozenClock),
-        audit_log: Box::new(MemoryAudit::default()),
-    })
-}
+use identity_support::invalid_email::guarded_service;
+use identity_support::{service, service_with_totp, FakeTotp, MemorySessions, MemoryUsers};
 
 #[test]
 fn owner_bootstrap_login_totp_authorization_and_logout_form_one_flow() {
@@ -301,9 +51,10 @@ fn recovery_codes_are_single_use_and_non_owner_creation_is_denied() {
     let owner = service
         .bootstrap_owner("owner@example.com", "correct horse battery")
         .unwrap();
+    let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
     let paralegal = service
         .create_user(
-            &owner.principal,
+            &owner_token,
             "helper@example.com",
             "another safe password",
             Role::Paralegal,
@@ -312,7 +63,7 @@ fn recovery_codes_are_single_use_and_non_owner_creation_is_denied() {
     let challenge = service
         .start_login("helper@example.com", "another safe password")
         .unwrap();
-    service
+    let paralegal_session = service
         .complete_recovery(&challenge.challenge_token, &paralegal.recovery_codes[0])
         .unwrap();
 
@@ -328,13 +79,13 @@ fn recovery_codes_are_single_use_and_non_owner_creation_is_denied() {
     ));
     assert_eq!(
         sessions
-            .resolve_challenge(&second_challenge.challenge_token)
+            .take_challenge(&second_challenge.challenge_token)
             .unwrap(),
         None
     );
     assert!(matches!(
         service.create_user(
-            &paralegal.principal,
+            &paralegal_session.access_token,
             "forbidden@example.com",
             "another safe password",
             Role::Client,
@@ -362,4 +113,212 @@ fn repeated_bad_passwords_lock_the_login_window() {
         service.start_login("owner@example.com", "correct horse battery"),
         Err(ApplicationError::AccountLocked)
     ));
+}
+
+struct PausedTotp {
+    entered: mpsc::Sender<()>,
+    resume: Mutex<mpsc::Receiver<()>>,
+}
+
+impl TotpProvider for PausedTotp {
+    fn enroll(&self, email: &str) -> Result<TotpEnrollment, DomainError> {
+        FakeTotp.enroll(email)
+    }
+
+    fn verify(&self, secret: &[u8], code: &str, at: u64) -> Result<TotpVerification, DomainError> {
+        self.entered.send(()).unwrap();
+        self.resume
+            .lock()
+            .unwrap()
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap();
+        FakeTotp.verify(secret, code, at)
+    }
+
+    fn current_code(&self, secret: &[u8], at: u64) -> Result<String, DomainError> {
+        FakeTotp.current_code(secret, at)
+    }
+}
+
+fn assert_shared_challenge_is_consumed_once(totp_code: &str, totp_should_succeed: bool) {
+    let users = Arc::new(MemoryUsers::default());
+    let sessions = Arc::new(MemorySessions::default());
+    let (entered_tx, entered_rx) = mpsc::channel();
+    let (resume_tx, resume_rx) = mpsc::channel();
+    let service = service_with_totp(
+        users,
+        sessions.clone(),
+        Arc::new(PausedTotp {
+            entered: entered_tx,
+            resume: Mutex::new(resume_rx),
+        }),
+    );
+    let owner = service
+        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .unwrap();
+    let challenge = service
+        .start_login("owner@example.com", "correct horse battery")
+        .unwrap();
+
+    let (totp, recovery) = std::thread::scope(|scope| {
+        let attempt = scope.spawn(|| service.complete_totp(&challenge.challenge_token, totp_code));
+        entered_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+        let recovery =
+            service.complete_recovery(&challenge.challenge_token, &owner.recovery_codes[0]);
+        resume_tx.send(()).unwrap();
+        (attempt.join().unwrap(), recovery)
+    });
+
+    assert!(matches!(recovery, Err(ApplicationError::MfaRejected)));
+    assert_eq!(totp.is_ok(), totp_should_succeed);
+    assert_eq!(
+        sessions.issued_session_count(),
+        usize::from(totp_should_succeed)
+    );
+
+    // Losing the challenge must not consume the competing recovery credential.
+    let retry = service
+        .start_login("owner@example.com", "correct horse battery")
+        .unwrap();
+    assert!(service
+        .complete_recovery(&retry.challenge_token, &owner.recovery_codes[0])
+        .is_ok());
+}
+
+#[test]
+fn concurrent_totp_and_recovery_cannot_issue_two_sessions_for_one_challenge() {
+    assert_shared_challenge_is_consumed_once("123456", true);
+}
+
+#[test]
+fn concurrent_recovery_cannot_reuse_a_challenge_claimed_by_a_rejected_totp() {
+    assert_shared_challenge_is_consumed_once("000000", false);
+}
+
+#[test]
+fn create_user_rejects_an_owner_after_role_downgrade() {
+    let users = Arc::new(MemoryUsers::default());
+    let service = service(users.clone(), Arc::new(MemorySessions::default()));
+    let owner = service
+        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .unwrap();
+    let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
+    users.set_role(owner.principal.id, Role::Paralegal);
+
+    assert!(matches!(
+        service.create_user(
+            &owner_token,
+            "forbidden@example.com",
+            "another safe password",
+            Role::Client
+        ),
+        Err(ApplicationError::PermissionDenied)
+    ));
+}
+
+#[test]
+fn create_user_rejects_an_inactive_owner() {
+    let users = Arc::new(MemoryUsers::default());
+    let service = service(users.clone(), Arc::new(MemorySessions::default()));
+    let owner = service
+        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .unwrap();
+    let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
+    users.deactivate(owner.principal.id);
+
+    assert!(matches!(
+        service.create_user(
+            &owner_token,
+            "forbidden@example.com",
+            "another safe password",
+            Role::Client
+        ),
+        Err(ApplicationError::InvalidSession)
+    ));
+}
+
+#[test]
+fn create_user_requires_a_live_session() {
+    let service = service(
+        Arc::new(MemoryUsers::default()),
+        Arc::new(MemorySessions::default()),
+    );
+    let owner = service
+        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .unwrap();
+    let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
+    service.logout(&owner_token).unwrap();
+
+    for token in ["", "not-a-session", &owner_token] {
+        assert!(matches!(
+            service.create_user(
+                token,
+                "forbidden@example.com",
+                "another safe password",
+                Role::Client
+            ),
+            Err(ApplicationError::InvalidSession)
+        ));
+    }
+}
+
+fn login_with_recovery(
+    service: &IdentityService,
+    enrollment: &EnrollmentResult,
+    password: &str,
+) -> String {
+    let challenge = service
+        .start_login(&enrollment.principal.email, password)
+        .unwrap();
+    service
+        .complete_recovery(&challenge.challenge_token, &enrollment.recovery_codes[0])
+        .unwrap()
+        .access_token
+}
+
+#[test]
+fn bootstrap_rejects_control_bytes_before_enrollment() {
+    let service = guarded_service(
+        Arc::new(MemoryUsers::default()),
+        Arc::new(MemorySessions::default()),
+    );
+    for email in [
+        "own\0er@example.com",
+        "owner@\x7fexample.com",
+        "\nowner@example.com",
+        "owner@example.com\t",
+    ] {
+        assert!(matches!(
+            service.bootstrap_owner(email, "correct horse battery"),
+            Err(ApplicationError::InvalidInput(_))
+        ));
+    }
+}
+
+#[test]
+fn login_and_user_creation_reject_control_bytes_before_email_io() {
+    let users = Arc::new(MemoryUsers::default());
+    let sessions = Arc::new(MemorySessions::default());
+    let enrollment_service = service(users.clone(), sessions.clone());
+    let owner = enrollment_service
+        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .unwrap();
+    let owner_token = login_with_recovery(&enrollment_service, &owner, "correct horse battery");
+    let service = guarded_service(users, sessions);
+
+    for email in [
+        "own\0er@example.com",
+        "owner@\x7fexample.com",
+        "\nowner@example.com",
+        "owner@example.com\t",
+    ] {
+        assert!(matches!(
+            service.start_login(email, "correct horse battery"),
+            Err(ApplicationError::InvalidInput(_))
+        ));
+        assert!(matches!(
+            service.create_user(&owner_token, email, "correct horse battery", Role::Client),
+            Err(ApplicationError::InvalidInput(_))
+        ));
+    }
 }

@@ -1,5 +1,7 @@
 //! Redis-backed challenges, revocable sessions, and login limits.
 
+use std::time::Duration;
+
 use application::identity::{Principal, SessionStore};
 use application::ApplicationError;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -10,22 +12,57 @@ use redis::Commands;
 
 use crate::RingSha256Hasher;
 
+const DEFAULT_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+const DEFAULT_IO_TIMEOUT: Duration = Duration::from_secs(5);
+
 /// Ephemeral identity state stored in Redis under SHA-256-derived keys.
 pub struct RedisSessionStore {
     client: redis::Client,
     hasher: RingSha256Hasher,
+    connect_timeout: Duration,
+    io_timeout: Duration,
 }
 
 impl RedisSessionStore {
     pub fn connect(redis_url: &str) -> Result<Self, ApplicationError> {
+        Self::connect_with_timeouts(redis_url, DEFAULT_CONNECT_TIMEOUT, DEFAULT_IO_TIMEOUT)
+    }
+
+    /// Configures TCP connection and established-socket I/O timeouts.
+    ///
+    /// The synchronous Redis driver completes authentication, database
+    /// selection, and client identification before socket I/O deadlines can
+    /// be set. Those handshake reads are not bounded by these settings.
+    pub fn connect_with_timeouts(
+        redis_url: &str,
+        connect_timeout: Duration,
+        io_timeout: Duration,
+    ) -> Result<Self, ApplicationError> {
+        if connect_timeout.is_zero() || io_timeout.is_zero() {
+            return Err(ApplicationError::InvalidConfiguration(
+                "Redis timeouts must be positive".into(),
+            ));
+        }
         Ok(Self {
             client: redis::Client::open(redis_url).map_err(port_error)?,
             hasher: RingSha256Hasher::new(),
+            connect_timeout,
+            io_timeout,
         })
     }
 
     fn connection(&self) -> Result<redis::Connection, ApplicationError> {
-        self.client.get_connection().map_err(port_error)
+        let connection = self
+            .client
+            .get_connection_with_timeout(self.connect_timeout)
+            .map_err(port_error)?;
+        connection
+            .set_read_timeout(Some(self.io_timeout))
+            .map_err(port_error)?;
+        connection
+            .set_write_timeout(Some(self.io_timeout))
+            .map_err(port_error)?;
+        Ok(connection)
     }
 
     fn digest_key(&self, namespace: &str, value: &[u8]) -> String {
@@ -54,9 +91,12 @@ impl SessionStore for RedisSessionStore {
         Ok(token)
     }
 
-    fn resolve_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError> {
+    fn take_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError> {
         let key = self.digest_key("challenge", token.as_bytes());
-        let value: Option<String> = self.connection()?.get(key).map_err(port_error)?;
+        let value: Option<String> = redis::cmd("GETDEL")
+            .arg(key)
+            .query(&mut self.connection()?)
+            .map_err(port_error)?;
         value
             .map(|raw| {
                 uuid::Uuid::parse_str(&raw)
@@ -66,11 +106,6 @@ impl SessionStore for RedisSessionStore {
                     })
             })
             .transpose()
-    }
-
-    fn consume_challenge(&self, token: &str) -> Result<(), ApplicationError> {
-        let key = self.digest_key("challenge", token.as_bytes());
-        self.connection()?.del::<_, ()>(key).map_err(port_error)
     }
 
     fn create_session(&self, principal: &Principal, ttl: u64) -> Result<String, ApplicationError> {
@@ -102,24 +137,37 @@ impl SessionStore for RedisSessionStore {
         self.connection()?.del::<_, ()>(key).map_err(port_error)
     }
 
-    fn failed_password_attempts(&self, email: &str) -> Result<u32, ApplicationError> {
+    fn failed_password_attempts(&self, email: &str, ttl: u64) -> Result<u32, ApplicationError> {
+        let ttl = failure_window(ttl)?;
         let key = self.digest_key("password-failures", email.as_bytes());
-        self.connection()?
-            .get::<_, Option<u32>>(key)
-            .map(|count| count.unwrap_or(0))
-            .map_err(port_error)
+        redis::Script::new(
+            "local count = redis.call('GET', KEYS[1])
+             if not count then return 0 end
+             if redis.call('TTL', KEYS[1]) == -1 then
+                 redis.call('EXPIRE', KEYS[1], ARGV[1])
+             end
+             return count",
+        )
+        .key(key)
+        .arg(ttl)
+        .invoke(&mut self.connection()?)
+        .map_err(port_error)
     }
 
     fn record_password_failure(&self, email: &str, ttl: u64) -> Result<u32, ApplicationError> {
+        let ttl = failure_window(ttl)?;
         let key = self.digest_key("password-failures", email.as_bytes());
-        let mut connection = self.connection()?;
-        let count: u32 = connection.incr(&key, 1).map_err(port_error)?;
-        if count == 1 {
-            connection
-                .expire::<_, ()>(&key, ttl as i64)
-                .map_err(port_error)?;
-        }
-        Ok(count)
+        redis::Script::new(
+            "local count = redis.call('INCR', KEYS[1])
+             if redis.call('TTL', KEYS[1]) < 0 then
+                 redis.call('EXPIRE', KEYS[1], ARGV[1])
+             end
+             return count",
+        )
+        .key(key)
+        .arg(ttl)
+        .invoke(&mut self.connection()?)
+        .map_err(port_error)
     }
 
     fn clear_password_failures(&self, email: &str) -> Result<(), ApplicationError> {
@@ -141,6 +189,13 @@ impl SessionStore for RedisSessionStore {
             .map_err(port_error)?;
         Ok(response.is_some())
     }
+}
+
+fn failure_window(ttl: u64) -> Result<u32, ApplicationError> {
+    u32::try_from(ttl)
+        .ok()
+        .filter(|ttl| *ttl > 0)
+        .ok_or_else(|| ApplicationError::InvalidInput("invalid failure window".into()))
 }
 
 fn port_error(error: redis::RedisError) -> ApplicationError {
