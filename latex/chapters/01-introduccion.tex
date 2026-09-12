@@ -22,7 +22,7 @@ Para garantizar que cualquier modificación no autorizada sobre un expediente se
 
 Para asegurar que el contenido de los expedientes sea accesible únicamente por las partes autorizadas, el sistema aplica confidencialidad sobre el material almacenado, de forma que un acceso indebido al repositorio no sea suficiente para comprometer la información.
 
-Para impedir que un firmante niegue haber suscrito un contrato, el sistema genera evidencia criptográfica verificable de forma independiente sobre la autoría y el momento exacto de cada firma, proveyendo así no repudio en el flujo contractual del despacho.
+Para aportar evidencia técnica ante una controversia sobre un contrato, el sistema vincula el documento con una firma verificable y una marca temporal emitida por la autoridad configurada. La interpretación de esa evidencia depende de la confianza en las claves y la autoridad; la demostración local no equivale a una validación jurídica automática.
 
 Finalmente, para que los tres servicios anteriores tengan validez, el sistema controla que cada operación sea ejecutada únicamente por la identidad que le corresponde, mediante mecanismos de autenticación diferenciados por perfil de usuario.
 
@@ -84,7 +84,7 @@ No repudio con evidencia temporal. Implementación de firma digital mediante cer
 
 Integridad y confidencialidad mediante cifrado autenticado. Uso de AES-256-GCM en el almacenamiento de expedientes y documentos, proveyendo simultáneamente protección contra accesos no autorizados y detección de modificaciones, de modo que la seguridad de la información dependa de protocolos criptográficos y no únicamente de políticas de acceso administrativo.
 
-Autenticación robusta y gestión segura de credenciales. Control de acceso mediante certificados digitales para socios y autenticación por múltiples factores (MFA) para clientes, complementado con almacenamiento de contraseñas bajo funciones hash resistentes (Argon2 o bcrypt), mitigando riesgos de suplantación de identidad.
+Autenticación robusta y gestión segura de credenciales. La implementación autentica mediante contraseña protegida con Argon2id y un segundo factor TOTP o código de recuperación. Aplica permisos por rol y pertenencia vigente al expediente mediante sesiones opacas revocables; los certificados de la PKI se utilizan en la evidencia de firma y no como credencial de login.
 
 A diferencia de las soluciones del mercado, este prototipo otorga al despacho soberanía sobre su cadena de custodia digital, proveyendo la evidencia criptográfica necesaria para sustentar el valor probatorio de sus documentos y la trazabilidad de su actividad procesal ante cualquier instancia judicial. El alcance del prototipo se acota a la gestión procesal penal conforme al CNPP, validándose con un despacho de la Ciudad de México como caso de estudio.
 
@@ -141,6 +141,24 @@ Para acotar el esfuerzo de investigación y desarrollo del prototipo, se estable
 
   \item La integración con el PSC Cincel fue evaluada como adaptador opcional, pero la falta de respuesta y estabilidad de la API, junto con el costo no transparente del sandbox, impide usarla como evidencia de esta entrega. El prototipo demuestra el sellado con una TSA local; un despliegue productivo requeriría seleccionar y contratar conscientemente un PSC autorizado.
 \end{itemize}
+
+\subsection{Estado de implementación evaluado}\label{sec:alcance-implementado}
+
+Los alcances y criterios anteriores describen el producto propuesto. El corte
+evaluado del 12 de septiembre de 2026 comprende la CLI, el núcleo criptográfico
+y una API HTTP con autenticación por contraseña y segundo factor, sesiones
+opacas revocables, expedientes, asignaciones y operaciones documentales
+protegidas por pertenencia vigente. La PKI interviene en la firma y verificación
+de evidencia; no se ha implementado un login mediante certificado de usuario.
+PostgreSQL conserva documentos cifrados y auditoría bajo una misma frontera
+transaccional; Redis mantiene el estado efímero de autenticación.
+
+La interfaz de navegador sigue sin implementar los flujos del producto.
+El historial documental, participantes procesales, audiencias, plazos y calendario,
+así como las pruebas de usabilidad, son actividades pendientes. Los
+\cref{cap:implementacion,cap:pruebas,cap:conclusiones} delimitan qué objetivos
+cuentan con evidencia técnica y cuáles requieren desarrollo o evaluación
+posterior; no se deduce su cumplimiento del número total de pruebas.
 
 \section{Supuestos del Proyecto}\label{sec:supuestos}
 

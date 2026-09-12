@@ -1,23 +1,37 @@
 % =====================================================================
-%  resumen.tex — Resumen / Abstract
+%  resumen.tex
 % =====================================================================
 \chapter*{Resumen}
 \addcontentsline{toc}{chapter}{Resumen}
 \markboth{Resumen}{Resumen}
 
-El presente Trabajo Terminal desarrolla un prototipo de sistema web para
-la gestión de expedientes digitales y la actividad procesal de un
-despacho legal. El prototipo implementa los servicios criptográficos de
-\emph{integridad}, orientado a detectar cualquier modificación no
-autorizada en los expedientes, y de \emph{no repudio}, que impide que
-las partes involucradas nieguen su participación en la firma de
-contratos mediante evidencia criptográfica verificable. La fase de
-implementación del núcleo criptográfico está concluida y demostrada:
-diez servicios criptográficos construidos en Rust sobre una arquitectura
-hexagonal, verificables de forma independiente con OpenSSL y respaldados
-por una suite de más de trescientas pruebas automatizadas que valida el
-correcto funcionamiento de los módulos y flujos principales.
+El presente Trabajo Terminal desarrolla un prototipo para la gestión de
+expedientes digitales y actividad procesal de un despacho legal, con
+servicios de integridad y evidencia criptográfica de firma y tiempo.
+El corte de implementación del 12 de septiembre de 2026 comprende un
+backend en Rust con arquitectura hexagonal, una interfaz de línea de
+comandos y una API HTTP autenticada. Integra SHA-256, cifrado
+AES-256-GCM, firma RSA-3072, certificados X.509, sellos RFC 3161 de una
+autoridad local y exportación de evidencia verificable con OpenSSL.
+
+El acceso documental depende del rol y de la asignación vigente al
+expediente. PostgreSQL conserva los documentos cifrados y confirma sus
+mutaciones junto con una bitácora encadenada; Redis administra sesiones
+opacas revocables y el estado efímero de autenticación. La importación de
+registros locales preserva identidad, cifrado y evidencia capturada, con
+inspección previa, reconciliación y recuperación ante fallos.
+
+La evaluación reproducida aprobó 519 pruebas automatizadas, sin fallos y
+con una prueba del proveedor externo ignorada, y obtuvo una cobertura
+global de líneas del 90.7\,\%. Los ensayos con PostgreSQL y Redis reales
+comprueban aislamiento entre expedientes, revocación, sellado concurrente,
+migración y restauración de respaldo con evidencia idéntica. Estos
+resultados demuestran el comportamiento técnico evaluado; no constituyen
+una validación de producción ni una constancia de un prestador autorizado.
+La interfaz de usuario, el historial documental, los participantes
+procesales, las audiencias, los plazos y las pruebas de usabilidad siguen
+pendientes para completar el producto propuesto.
 
 \vspace{1em}
 \noindent\textbf{Palabras clave:} expedientes digitales, integridad,
-no repudio, firma digital, criptografía aplicada, gestión legal, CNPP.
+no repudio, firma digital, autorización, auditoría transaccional.

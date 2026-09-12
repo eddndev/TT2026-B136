@@ -1,59 +1,122 @@
 % =====================================================================
-%  06-conclusiones.tex — Conclusiones
+%  06-conclusiones.tex
 % =====================================================================
 \chapter{Conclusiones}\label{cap:conclusiones}
 
-Este capítulo cierra el documento: contrasta los resultados de la fase de implementación, documentada en los Capítulos \ref{cap:implementacion} y \ref{cap:pruebas}, con los objetivos y criterios de éxito planteados en el Capítulo~\ref{cap:introduccion}; enuncia las contribuciones del trabajo; delimita con honestidad lo que el prototipo todavía no demuestra; y organiza el trabajo futuro en horizontes de corto, mediano y largo plazo.
+Este capítulo presenta las conclusiones del corte técnico del 12 de septiembre
+de 2026, sustentadas en la implementación y las pruebas de los
+\cref{cap:implementacion,cap:pruebas}. El avance permite evaluar el núcleo
+criptográfico y el flujo documental autenticado, pero no declarar terminado
+el conjunto de objetivos funcionales del Trabajo Terminal. La gestión procesal
+y la evaluación con usuarios conservan trabajo pendiente.
 
 \section{Resultados obtenidos}\label{sec:resultados-obtenidos}
 
-El presente Trabajo Terminal diseñó la arquitectura de un sistema de gestión de expedientes penales para despachos jurídicos mexicanos e implementó y demostró su núcleo criptográfico completo junto con una rebanada vertical de aplicación HTTP. Los diez servicios criptográficos cuya construcción se documenta en el Capítulo~\ref{cap:implementacion} quedaron codificados en Rust sobre la arquitectura hexagonal diseñada en el Capítulo~\ref{cap:analisis}, materializada en un workspace de Cargo de cinco crates cuya regla de dependencias verifica mecánicamente el compilador en cada compilación (véase §3.7.6):
+El prototipo integra cálculo de resúmenes, cifrado autenticado, firma digital,
+validación de certificados y revocación, sellado temporal y exportación de
+paquetes de evidencia. La comprobación con OpenSSL permite examinar documento,
+firma, certificado y sello sin depender de la aplicación que los produjo.
+La autoridad temporal utilizada es local: demuestra la interoperabilidad del
+protocolo RFC 3161 bajo las anclas del ensayo, sin sustituir una autoridad
+independiente ni acreditar por sí misma los efectos jurídicos de la evidencia.
 
-\begin{itemize}
-  \item integridad de documentos mediante SHA-256 \cite{nist2015fips1804};
-  \item confidencialidad en reposo mediante AES-256-GCM \cite{dworkin2007} con envelope encryption \cite{dworkin2012} y rotación de la clave maestra sin recifrado de documentos;
-  \item firma digital RSA-3072 con SHA-256 sobre certificados X.509;
-  \item sellado de tiempo conforme a RFC 3161 \cite{adams2001};
-  \item operación de una CA interna: emisión, revocación y validación de certificados con CRL conforme a RFC 5280 \cite{cooper2008};
-  \item verificación integral de cuatro componentes (integridad, firma, estado del certificado y sello de tiempo);
-  \item exportación de paquetes de evidencia verificables por terceros sin el software del prototipo;
-  \item hashing de contraseñas mediante Argon2id \cite{biryukov2021};
-  \item segundo factor TOTP \cite{mraihi2011} con códigos de recuperación de un solo uso;
-  \item bitácora de auditoría encadenada criptográficamente.
-\end{itemize}
+El flujo HTTP incorpora expedientes y asignaciones persistidas. Cada operación
+documental comprueba la sesión y revalida el rol activo, la pertenencia vigente
+y la asociación entre documento y expediente al confirmar su acceso.
+Owner conserva acceso global a expedientes; Litigante y Paralegal requieren
+asignación, Paralegal no puede sellar y Cliente mantiene denegadas las
+operaciones documentales. El conocimiento de un identificador no basta para
+acceder al recurso.
 
-El funcionamiento de estos servicios no se afirma: se demuestra con la evidencia presentada en el Capítulo~\ref{cap:pruebas}. La suite de 395 pruebas automatizadas (198 unitarias y 197 de integración) se ejecuta en verde ---394 en cada corrida y una ignorada que conserva la sonda del sandbox externo, sin formar parte del requisito de entrega--- e incorpora, como primeras pruebas de cada primitivo, los vectores oficiales correspondientes: los de FIPS 180-4 \cite{nist2015fips1804} para SHA-256, los casos conocidos de AES-256-GCM que subyacen a NIST SP 800-38D \cite{dworkin2007}, y los apéndices de vectores de RFC 6238 \cite{mraihi2011} y RFC 4226 \cite{mraihi2005}. La cobertura de líneas se mantiene igual o superior al 90\,\% en los tres crates criptográficos (\texttt{domain}, \texttt{application} e \texttt{infrastructure}), umbral que la integración continua impone en cada cambio y que excede el criterio de éxito del 80\,\% fijado para OE-6 (\cref{tab:criterios-exito}). Las pruebas de mutación detectaron el 100\,\% de las alteraciones de un byte ---incluido un barrido exhaustivo que voltea uno a uno cada byte del criptograma sellado--- y una suite de 10\,000 cifrados consecutivos no registró repetición alguna de nonce, con lo que se satisface el criterio de éxito de OE-4. Finalmente, dos demostraciones de extremo a extremo, ejecutadas sobre OpenSSL 3.5.7, recorren el ciclo de vida completo por CLI y HTTP ---creación de la autoridad interna, identidad persistida, autorización, persistencia cifrada, firma, sellado, verificación, exportación y bitácora--- y culminan verificando el paquete de evidencia exportado utilizando exclusivamente \texttt{openssl} y \texttt{unzip}.
+La persistencia PostgreSQL resuelve la separación entre cambio documental y
+registro de éxito: ambos se confirman o revierten dentro de la misma
+transacción. Expedientes, asignaciones y mutaciones de identidad prolongan
+la misma cadena de auditoría. El trabajo criptográfico y la comunicación con
+la TSA se preparan fuera de esa transacción; los commits se ordenan mediante
+un bloqueo compartido por los escritores. La asociación documental y la
+evidencia ya sellada permanecen inmutables.
 
-El diseño se fundamentó en un análisis riguroso del marco legal mexicano aplicable a las transacciones entre particulares: el Código de Comercio \cite{ccom2018} (artículos 89, 89 bis, 93, 93 bis, 97 y 100), el Código Federal de Procedimientos Civiles \cite{cfpc2023} (artículo 210-A), el Código Nacional de Procedimientos Penales \cite{cnpp2021} (artículos 356 y 380) y la NOM-151-SCFI-2016 \cite{nom151_2016}. Este análisis permitió establecer que la firma electrónica simple, respaldada por un sello de tiempo de un PSC autorizado, constituye una estrategia probatoria válida y defendible en sede judicial, conforme a la cláusula de equivalencia funcional del artículo 100 del Código de Comercio.
-
-La arquitectura hexagonal dejó de ser una intención de diseño para convertirse en una propiedad verificada del código: cada puerto se materializa como un trait de Rust, cada adaptador como una struct intercambiable, y dos de las fitness functions definidas en §3.7.11 vigilan en cada integración que el dominio no dependa de ninguna otra capa y que todo puerto cuente con un adaptador concreto y un doble de pruebas. La separación se manifiesta en dos hechos comprobados: el módulo de firma acepta cualquier certificado X.509 RSA + SHA-256 con independencia de su emisor, y el verificador de sellos de tiempo valida cualquier token RFC 3161 contra el ancla de confianza que se le presente. Ambas propiedades permiten sustituir la infraestructura criptográfica del prototipo (CA interna, TSA local) por infraestructura regulada (e.firma del SAT, PSC comercial) sin modificar la lógica de verificación.
+La evaluación reproducida aprobó 519 pruebas, sin fallos y con una prueba
+externa ignorada; la cobertura fue de 8026 de 8845 líneas, equivalente al
+90.7\,\%. El ensayo de dos servidores produjo un sellado aceptado y un
+conflicto, con un único evento y paquetes ZIP idénticos. La migración y
+restauración utilizaron cuatro documentos, tres sellados, y conservaron las
+46 entradas históricas de auditoría y sus hashes. La comparación del estado
+restaurado y de los paquetes, junto con la verificación OpenSSL, aporta evidencia
+de recuperación para ese conjunto controlado. Los datos fueron desechables;
+no se trató de una migración de expedientes reales del despacho.
 
 \section{Contribuciones}\label{sec:contribuciones}
 
-La contribución principal de este trabajo es un puente documentado ---y ahora ejecutable--- entre la teoría criptográfica contemporánea (NIST SP 800-57 \cite{barker2020}, RFC 9106 \cite{biryukov2021}, RFC 6238 \cite{mraihi2011}) y los requisitos específicos del marco legal mexicano para documentos electrónicos con valor probatorio. Cada decisión de diseño criptográfico se justificó con referencia tanto a los estándares internacionales que la sustentan como a los artículos del Código de Comercio y el CNPP que determinan su admisibilidad en sede judicial, y las decisiones tomadas durante la implementación quedaron registradas en registros de decisiones de arquitectura versionados junto al código, en el directorio \texttt{docs/adr/} del repositorio, de modo que el racional de cada compromiso técnico es auditable con el solo repositorio.
+La primera contribución es una separación verificable entre reglas de dominio,
+casos de uso y adaptadores. Los puertos permiten compartir la preparación
+criptográfica entre la CLI y el flujo HTTP sin introducir persistencia ni
+llamadas externas dentro del dominio. La extracción de esta preparación
+facilita probar autorización y fallos de almacenamiento sin regenerar evidencia.
 
-Como contribución adicional, el trabajo establece que la distinción entre firma electrónica simple y avanzada en el derecho mexicano no es de admisibilidad ---ambas son admisibles conforme al artículo 89 del Código de Comercio--- sino de carga de la prueba. Esta precisión, documentada con referencia a los artículos 97 y 100, permite argumentar que un prototipo académico con CA interna genera evidencia criptográfica válida sin necesidad de contratar un PSC para la emisión de certificados de firmante, siempre que el sello de tiempo provenga de un PSC autorizado.
+La segunda contribución es una frontera transaccional que conecta autorización,
+mutación e historia. Las pruebas de revocación y concurrencia hacen explícito
+cuándo una operación puede confirmarse, mientras que los permisos del rol
+operativo restringen la reescritura de documentos y eventos. Este resultado
+acota una propiedad concreta del backend; no presupone que un administrador
+de la base de datos quede fuera de la base de confianza.
 
-Una tercera contribución es metodológica: la exigencia de que toda salida criptográfica del sistema sea verificable con herramientas independientes se tradujo en pruebas de interoperabilidad que acompañan a cada servicio ---las firmas se validan con \texttt{openssl dgst}, los certificados con \texttt{openssl verify}, los sellos con \texttt{openssl ts -verify} y los paquetes con \texttt{unzip}--- y en un paquete de evidencia cuyas instrucciones de verificación la propia suite de pruebas ejecuta literalmente antes de darlas por buenas.
+La tercera contribución es un procedimiento de migración que conserva los
+bytes criptográficos y reconcilia las fuentes con el destino. La inspección sin
+escrituras, el mapa explícito de asociaciones, las barreras de escritura y los
+recibos permiten distinguir fallos anteriores y posteriores al commit. La guía
+operativa y el ensayo de restauración complementan las pruebas funcionales con
+un procedimiento reproducible de recuperación.
 
 \section{Limitaciones}\label{sec:limitaciones}
 
-El prototipo presenta las siguientes limitaciones que deben considerarse al interpretar sus resultados. En primer lugar, opera bajo una arquitectura de inquilino único (single-tenant): cada instancia sirve a un solo despacho, y un despliegue comercial requeriría aislamiento de datos y de claves entre despachos. En segundo lugar, la CA interna emite certificados que constituyen firma electrónica simple, no avanzada; esto es suficiente para la demostración académica, pero un despliegue productivo debería evaluar la migración a certificados emitidos por un PSC autorizado para obtener la presunción legal del artículo 97 \cite{ccom2018}.
+La validación corresponde a un entorno controlado. No se midieron carga de
+producción, disponibilidad prolongada ni usabilidad con personal del despacho.
+Siguen pendientes TLS, administración de conexiones, plazos operativos,
+apagado ordenado y revisión del modelo de amenaza de la firma RSA expuesta
+por HTTP. El bloqueo global simplifica el orden de la auditoría a costa de
+serializar las confirmaciones; su costo debe medirse antes de aumentar la carga.
 
-En tercer lugar, el registro en el sandbox de Cincel se completó, pero la API no ofreció respuesta y estabilidad suficientes para ejecutar de forma repetible la prueba de humo y la campaña externa; además, el uso del sandbox requiere pago con precios no transparentes. Por ello el algoritmo de firma de su TSA comercial y la tasa de verificación sobre una muestra controlada no se miden y quedan fuera del alcance de esta entrega. El adaptador remoto implementa un contrato HTTP documentado en el propio código y se prueba contra un stub HTTP local que lo ejercita tal como está escrito. Entre tanto, la TSA local basada en OpenSSL demuestra el flujo RFC 3161 completo ---solicitud, emisión, verificación e interoperabilidad con \texttt{openssl ts -verify}--- bajo un certificado de sellado emitido por la CA interna. Este resultado acredita el funcionamiento técnico, pero no aporta independencia de tercero ni sustituye una constancia NOM-151 emitida por un PSC autorizado.
+Redis no participa en una transacción distribuida con PostgreSQL. Ante un fallo
+de auditoría se intenta retirar el desafío o la sesión recién creados y no se
+entrega su token; si también falla la limpieza, la clave puede permanecer hasta
+su expiración. Asimismo, una respuesta cuyo acceso ya se confirmó puede terminar
+de transmitirse después de una revocación posterior. Las pruebas fijan ese orden;
+no afirman la cancelación retroactiva de respuestas.
 
-En cuarto lugar, la calibración empírica de Argon2id en el hardware de referencia fijó $m = 256$~MiB, $t = 2$, $p = 1$ y arrojó una media de 529.4 milisegundos por intento sobre cinco corridas, dentro de la banda objetivo de 0.5--1.0 segundos definida en §3.11.5. El resultado cierra la calibración para este perfil de hardware; si el despliegue final utiliza otra máquina, debe repetirse con el mismo comando antes de la puesta en producción.
+Una cadena de hashes válida permite detectar alteraciones interiores, pero no
+prueba por sí sola que su extremo no haya sido truncado. El anclaje externo de
+la cabeza sigue pendiente. La migración comprueba cadena y CRL del firmante en
+el instante del sello; la validación de confianza de la TSA mantiene la política
+actual de OpenSSL y puede rechazar una autoridad expirada al verificarla.
+Preservar la evidencia permite examinarla posteriormente, pero no garantiza su
+aceptación indefinida ni una decisión jurídica determinada.
 
-En quinto lugar, la aplicación HTTP ya es multiusuario: PostgreSQL persiste las cuentas, Redis conserva sesiones opacas revocables y controles efímeros, y cuatro roles RBAC protegen el workflow documental. \texttt{X-Actor} fue eliminado y cada petición recarga rol y estado activo desde PostgreSQL. El rol Cliente permanece sin acceso a documentos hasta persistir pertenencia a casos, y los documentos y la bitácora continúan en archivos locales separados; por ello todavía no existe una transacción común entre mutación documental y auditoría. También permanece la limitación del anclaje externo de la cabeza de la cadena, sin el cual no puede detectarse el truncamiento de las entradas más recientes (\texttt{docs/adr/0007-audit-chain-anchoring.md}).
-
-Finalmente, la CRL del prototipo tiene una vigencia de siete días, lo que introduce una ventana teórica de exposición entre la revocación de un certificado y su detección por los verificadores; en un entorno productivo esta ventana podría reducirse complementando la CRL con un responder OCSP. Asimismo, el aviso de seguridad RUSTSEC-2023-0071 ---un canal lateral de temporización en las operaciones de clave privada de la biblioteca de firma RSA--- se aceptó de forma explícita bajo el modelo de amenaza del prototipo, donde la firma se ejecuta localmente y no existe un oráculo de temporización observable por red; el razonamiento completo queda registrado en \texttt{docs/adr/0002-rsa-signing-crate-and-advisory.md}.
+La carga crea únicamente la versión uno. No existen todavía consultas de
+listado, búsqueda e historial documental, ni cambio de contenido o reasignación
+del documento a otro expediente. Las asignaciones de usuarios representan
+acceso al sistema, no participantes procesales. Tampoco se han implementado
+las audiencias, plazos, alertas o la interfaz de usuario completa.
 
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 
-Las líneas de trabajo futuro se organizan en tres horizontes. En el corto plazo: (1) migrar expedientes, documentos y auditoría a PostgreSQL con límites transaccionales explícitos; (2) persistir la pertenencia de usuarios a casos y aplicar autorización por recurso antes de abrir el rol Cliente; y (3) ampliar consultas y versionado documental y desarrollar la interfaz web con Astro y Svelte. La integración con un PSC externo queda como sustitución futura condicionada a contrato estable y precios verificables, no como requisito para continuar. La calibración Argon2id queda cerrada para el hardware de referencia y se repetirá únicamente si cambia el perfil de despliegue. Antes de exposición pública también deberán evaluarse TLS interno, pooling y clientes asíncronos para PostgreSQL y Redis.
+La siguiente ampliación debe ofrecer listado, detalle, búsqueda e historial
+documental con autorización por expediente. Cada versión deberá preservar su
+identidad, contenido cifrado y evidencia histórica, con pruebas tanto de acceso
+permitido como de rechazo. La política documental de Cliente requiere un diseño
+y validación explícitos antes de ampliar sus permisos.
 
-En el mediano plazo, orientado a fortalecer la postura de seguridad del sistema: (1) integrar un módulo de seguridad de hardware (HSM) o un servicio de gestión de claves en la nube (KMS) para el almacenamiento de la KEK, eliminando la dependencia de variables de entorno; (2) implementar un responder OCSP que complemente la CRL para reducir la ventana de exposición ante revocaciones; (3) evaluar la migración del formato de sello de tiempo de .tsr independiente a CAdES-T o PAdES-T para ofrecer paquetes de verificación autocontenidos; y (4) incorporar WebAuthn/FIDO2 como opción progresiva de MFA para clientes con dispositivos compatibles, alcanzando el nivel AAL3 de NIST SP 800-63B \cite{nist2024}.
+Sobre esa base corresponde modelar participantes procesales, audiencias y plazos,
+sin confundirlos con las asignaciones de acceso ya existentes. Después se debe
+integrar la interfaz de login y MFA, navegación, carga, sellado, verificación y
+descarga contra el contrato HTTP, y evaluar los flujos con usuarios del despacho.
+El cronograma de diseño conserva su carácter de planificación; estos resultados
+no permiten dar por cumplidas sus actividades de usabilidad y gestión procesal.
 
-En el largo plazo, orientado a la viabilidad comercial: (1) rediseñar la arquitectura para soportar múltiples inquilinos (multi-tenant) con aislamiento criptográfico por despacho, donde cada tenant disponga de su propia KEK y su propio espacio de certificados; (2) migrar los certificados de firmante de la CA interna a un PSC autorizado como SeguriData \cite{seguridata} o CECOBAN \cite{cecoban} para convertir la firma en avanzada conforme al artículo 97 del Código de Comercio \cite{ccom2018}, beneficiándose de la portabilidad demostrada por la arquitectura de puertos y adaptadores; y (3) extender la bitácora encadenada ya implementada con anclajes periódicos de su cabeza ---replicación a almacenamiento independiente o contrafirma mediante sellos de tiempo--- para cerrar la brecha de truncamiento documentada y fortalecer la cadena de custodia digital ante instancias judiciales.
-
-La fase concluida deja, en suma, un núcleo criptográfico cuyos resultados puede reproducir y verificar cualquier tercero con herramientas estándar, y una aplicación local multiusuario que consume los mismos puertos desde la CLI y HTTP. La siguiente ampliación puede concentrarse en gestión procesal, autorización por recurso, persistencia documental transaccional e interfaz de usuario sin trasladar criptografía ni reglas de negocio a la frontera web.
+Antes de un despliegue público se deben ensayar los límites operativos señalados,
+restauraciones con volúmenes representativos y fallos de servicios externos. La
+contratación y validación de un prestador autorizado y el anclaje independiente
+de auditoría son extensiones distintas de la demostración local. Cada avance
+funcional deberá actualizar el contrato, las decisiones, las mediciones y los
+apartados correspondientes de este reporte, manteniendo separados los resultados
+reproducidos, las hipótesis y el trabajo pendiente.

@@ -46,6 +46,29 @@ al repositorio. Si falta la fuente o falla LaTeX, no se publican los PDF.
 Quitar los PDF del seguimiento evita incorporar nuevos binarios. Los commits
 históricos que ya los contienen no se reescriben.
 
+## Actualización académica por entrega
+
+El reporte debe acompañar los avances funcionales. Cada entrega actualiza los
+apartados afectados de diseño, implementación, pruebas, conclusiones y anexos,
+además del contrato HTTP, las decisiones de arquitectura y el informe técnico.
+Los objetivos originales se conservan y su cumplimiento se contrasta con
+resultados reproducidos; las funciones futuras y las mediciones históricas se
+identifican como tales.
+
+El corte técnico del 12 de septiembre de 2026 incluye autorización documental
+por expediente, documentos y auditoría transaccionales, migración y restauración.
+Las cifras de 519 pruebas aprobadas y cobertura global del 90.7 % proceden de
+[`docs/verification-report.md`](../docs/verification-report.md).
+La interfaz y la gestión procesal completa siguen pendientes.
+La revisión del reporte se registra en
+[`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
+
+Antes de integrar cambios, compilar desde las fuentes y revisar el PDF: tablas,
+rutas y listados legibles, referencias resueltas, paginación y conclusiones
+coherentes con la evidencia. Conservar los cambios locales de otros autores y
+no añadir el PDF generado al índice de Git. La presentación es un entregable
+separado; actualizar el reporte no implica que aquella haya sido revisada.
+
 ## Estructura
 
 ```

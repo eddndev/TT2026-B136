@@ -3,7 +3,7 @@
 % =====================================================================
 \chapter[Guía de verificación independiente con OpenSSL]{Guía de verificación independiente\\ con OpenSSL}\label{anexo:verificacion}
 
-Cada paquete de evidencia exportado por el prototipo (comando \texttt{package export}, véase el Anexo~\ref{anexo:cli}) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero ---un perito, la contraparte procesal o un tribunal--- verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. El instructivo se genera a partir de la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al momento de exportar con los datos concretos del paquete (\cref{tab:verificacion-marcadores}). Este anexo reproduce esa guía paso a paso y explica qué demuestra cada comando; con ello se materializa el criterio de verificabilidad independiente del objetivo OE-3. Las salidas mostradas provienen de la ejecución real registrada en \texttt{docs/demo-transcript.md}.
+Cada paquete de evidencia exportado por el prototipo (mediante la CLI o la descarga HTTP autorizada por expediente) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero ---un perito, la contraparte procesal o un tribunal--- verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. El instructivo se genera a partir de la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al momento de exportar con los datos concretos del paquete (\cref{tab:verificacion-marcadores}). Este anexo reproduce esa guía paso a paso y explica qué demuestra cada comando; con ello se materializa el criterio de verificabilidad independiente del objetivo OE-3. Las salidas mostradas son transcripciones históricas de \rutarepo{docs/demo-transcript.md}. El ensayo del 12 de septiembre de 2026 añadió la comparación de paquetes obtenidos desde dos servidores y después de migrar y restaurar los documentos, según el \cref{cap:pruebas}.
 
 \begin{table}[H]
   \centering
@@ -27,7 +27,7 @@ Cada paquete de evidencia exportado por el prototipo (comando \texttt{package ex
 
 La verificación requiere únicamente dos herramientas presentes en prácticamente cualquier sistema operativo de escritorio o servidor: \texttt{unzip} (o cualquier extractor de archivos ZIP) para abrir el paquete, y \texttt{openssl} \cite{openssl_docs} para ejecutar las cuatro comprobaciones. La versión de referencia es \textbf{OpenSSL 3.5.7}: con ella se probaron los scripts de la autoridad interna (Anexo~\ref{anexo:pki}) y sobre ella se capturó la transcripción de la demostración. El propio instructivo cita la línea de versión exacta de la máquina exportadora ---en la ejecución de referencia, \texttt{OpenSSL 3.5.7 9 Jun 2026}---, de modo que el lector sepa contra qué herramienta se redactaron los comandos y pueda atribuir a la versión cualquier diferencia menor en el formato de las salidas. Todos los comandos se ejecutan dentro del directorio donde se extrajo el paquete.
 
-La verificación tampoco requiere acceso a la red: las anclas de confianza (el certificado de la autoridad emisora y, cuando viaja, la cadena de la autoridad de sellado) y la lista de revocación están contenidas en el propio paquete. La contraparte de esa autosuficiencia es temporal y el instructivo la hace explícita: la lista de revocación incluida refleja el estado al momento de exportar, de modo que quien necesite el estado actual del certificado debe solicitar una lista vigente a la autoridad emisora.
+La verificación tampoco requiere acceso a la red: las anclas de confianza (el certificado de la autoridad emisora y, cuando viaja, la cadena de la autoridad de sellado) y la lista de revocación están contenidas en el propio paquete. La contraparte de esa autosuficiencia es temporal y el instructivo la hace explícita: la lista de revocación incluida refleja el estado que publicó su emisor al generarla, de modo que quien necesite el estado actual del certificado debe solicitar una lista vigente a la autoridad emisora.
 
 \section{Estructura del paquete}\label{sec:verificacion-estructura}
 
@@ -46,8 +46,8 @@ El paquete es un archivo ZIP con entradas planas, sin directorios, escrito en el
     \texttt{<documento>.tsr} & El sello de tiempo RFC 3161 emitido sobre el resumen SHA-256 del documento. \\
     \texttt{certificado.pem} & El certificado X.509 del firmante. \\
     \texttt{ca.pem} & El certificado de la autoridad emisora, raíz de la confianza del paquete. \\
-    \texttt{crl.pem} & La lista de revocación publicada por la autoridad al momento de exportar. \\
-    \texttt{tsa-chain.pem} & La cadena de certificados de la autoridad de sellado de tiempo (presente solo cuando estaba disponible al exportar). \\
+    \texttt{crl.pem} & La lista de revocación capturada con la evidencia; su vigencia se evalúa según sus fechas. \\
+    \texttt{tsa-chain.pem} & La cadena de certificados de la autoridad de sellado capturada con el token, cuando se suministró. \\
     \texttt{INSTRUCCIONES.md} & El instructivo de verificación con los comandos de este anexo ya instanciados. \\
     \bottomrule
   \end{tabularx}
@@ -134,7 +134,7 @@ La salida esperada es \texttt{certificado.pem: OK}. En la ejecución de referenc
 certificado.pem: OK
 \end{lstlisting}
 
-\textbf{Qué demuestra.} Que el certificado del firmante fue efectivamente emitido por la autoridad raíz del paquete (la firma de la autoridad sobre el certificado se sostiene), que se encuentra dentro de su ventana de vigencia y que no aparece listado en la lista de revocación incluida. El propio instructivo advierte dos matices que el verificador debe tener presentes: la lista de revocación refleja el estado \emph{al momento de la exportación} y tiene fecha de caducidad, por lo que para conocer el estado actual debe solicitarse una lista vigente a la autoridad emisora; y un certificado hoy expirado o revocado no invalida por sí solo una firma efectuada mientras el certificado era válido ---esa lectura corresponde a quien valora la evidencia.
+\textbf{Qué demuestra.} Que el certificado del firmante fue efectivamente emitido por la autoridad raíz del paquete (la firma de la autoridad sobre el certificado se sostiene), que se encuentra dentro de su ventana de vigencia y que no aparece listado en la lista de revocación incluida. El propio instructivo advierte dos matices que el verificador debe tener presentes: la lista de revocación refleja el estado publicado en su fecha de emisión y tiene fecha de caducidad, por lo que para conocer el estado actual debe solicitarse una lista vigente a la autoridad emisora; y un certificado hoy expirado o revocado no invalida por sí solo una firma efectuada mientras el certificado era válido ---esa lectura corresponde a quien valora la evidencia.
 
 \section{Paso 4: sello de tiempo}\label{sec:verificacion-sello}
 
@@ -161,7 +161,7 @@ openssl ts -reply -in document.txt.tsr -text
 
 Esta lectura muestra, en texto plano, los campos de la estructura \texttt{TSTInfo} que el token protege bajo la firma de la autoridad: el identificador de la política de sellado, el algoritmo y el valor del \emph{message imprint} ---que debe coincidir con el resumen del paso 1---, el número de serie del token y el instante de generación (\texttt{genTime}). En los sellos emitidos por la autoridad local del prototipo, la política es el OID de demostración \texttt{1.3.6.1.4.1.13762.3} y la exactitud aseverada es de un segundo (véase el Anexo~\ref{anexo:pki}).
 
-\textbf{Qué demuestra.} Que una autoridad de sellado de tiempo, cuya cadena de certificados se sostiene hasta el ancla de confianza del paquete, dio fe de que el resumen SHA-256 del documento existía en el instante aseverado dentro del token. Combinado con el paso 1, esto otorga fecha cierta al contenido exacto del documento: el documento no pudo haberse creado ni modificado después de ese instante sin invalidar el sello.
+\textbf{Qué demuestra.} Que el token contiene una aseveración temporal firmada sobre el resumen del documento y que su firma se verifica bajo el ancla suministrada. Modificar el documento rompe la correspondencia con ese resumen. La confianza en la fecha depende de la autoridad y de su reloj; una TSA local controlada por el operador no aporta por sí misma independencia ni una constancia de un prestador autorizado.
 
 \section{Resumen: qué demuestra cada comprobación}\label{sec:verificacion-resumen}
 
@@ -176,7 +176,7 @@ Esta lectura muestra, en texto plano, los campos de la estructura \texttt{TSTInf
     1 & \texttt{openssl dgst -sha256} & resumen idéntico al registrado & Integridad: el documento no fue alterado después de la exportación. \\
     2 & \texttt{openssl dgst -verify} & \texttt{Verified OK} & Autenticidad y no repudio: la firma corresponde a este documento y a la clave del certificado incluido. \\
     3 & \texttt{openssl verify -crl\_check} & \texttt{certificado.pem: OK} & Confianza y vigencia: el certificado encadena a la autoridad emisora y no está revocado según la lista incluida. \\
-    4 & \texttt{openssl ts -verify} & \texttt{Verification: OK} & Fecha cierta: una autoridad de sellado atestiguó la existencia del documento en el instante aseverado. \\
+    4 & \texttt{openssl ts -verify} & \texttt{Verification: OK} & Evidencia temporal: la TSA firmó una aseveración sobre el resumen y el instante indicado, bajo el ancla suministrada. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -191,4 +191,29 @@ La transcripción de la demostración ilustra el efecto sobre el resumen: tras v
 
 La verificación descrita no requiere el prototipo en ningún punto: ni el binario \texttt{despacho-cli}, ni la base de datos, ni la disponibilidad de la plataforma que exportó el paquete. Todo lo necesario ---documento, firma, sello, certificados, lista de revocación e instructivo--- viaja dentro del ZIP, y las cuatro comprobaciones se ejecutan con herramientas de terceros ampliamente auditadas. Esta autonomía es deliberada: el valor probatorio de la evidencia no puede depender de que el sistema que la produjo siga existiendo u operando al momento de valorarla.
 
-Dos salvaguardas respaldan la garantía. Primera, el comando \texttt{package export} ejecuta la verificación integral completa sobre los artefactos antes de escribir el ZIP y rehúsa exportar un paquete cuyo veredicto no sea válido, de modo que ningún paquete emitido puede fallar sus propias instrucciones. Segunda, la suite de pruebas del proyecto extrae un paquete real, toma los comandos de \texttt{INSTRUCCIONES.md} y los ejecuta literalmente contra los archivos extraídos (\texttt{crates/bin/tests/\allowbreak package\_cli.rs}), comprobando además que la corrupción de un solo byte del documento extraído es detectada por los comandos documentados; la etapa novena de la transcripción \texttt{docs/demo-transcript.md} reproduce el mismo recorrido de extremo a extremo.
+La CLI y la descarga HTTP tienen controles diferentes. El comando
+\texttt{package export} comprueba integralmente los artefactos antes de escribir
+el ZIP. La descarga HTTP descifra el registro, conserva el material capturado y
+confirma autorización y auditoría antes de devolverlo; esa exportación no ejecuta
+una nueva validación de firma, certificado y TSA. La operación HTTP de verificación
+está separada. Por ello, disponer de un ZIP no reemplaza ejecutar las comprobaciones
+independientes ni establecer la confianza en sus anclas.
+
+La suite extrae paquetes reales y ejecuta los comandos del instructivo, incluida
+la detección de un byte alterado, en
+\rutarepo{crates/bin/tests/package_cli.rs}. El ensayo de migración y restauración
+compara los ZIP byte por byte y vuelve a comprobar firma, certificado, CRL y sello
+con OpenSSL. Su éxito demuestra interoperabilidad y conservación en las condiciones
+del ensayo, no que toda verificación futura deba producir el mismo resultado.
+
+\section{Evidencia histórica y momento de evaluación}\label{sec:verificacion-historica}
+
+El registro HTTP conserva certificados, CRL y token capturados al sellar.
+Exportar no actualiza la CRL; su vigencia depende de sus fechas de emisión y
+expiración.
+
+\texttt{openssl verify} evalúa por defecto al ejecutarse. El importador comprueba
+cadena y CRL del firmante en el instante autenticado del sello, sin regenerar
+evidencia. La TSA conserva la política actual de OpenSSL y puede ser rechazada
+si expiró. Deben registrarse instante y política de evaluación; preservar bytes
+no garantiza aceptación posterior.

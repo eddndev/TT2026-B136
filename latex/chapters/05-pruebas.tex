@@ -4,65 +4,62 @@
 
 \chapter{Pruebas y resultados}\label{cap:pruebas}
 
-Este capítulo reporta la validación del prototipo cuya implementación documentó el Capítulo~\ref{cap:implementacion}. La estrategia de pruebas es la que fijó la metodología del Capítulo~\ref{cap:analisis}: desarrollo guiado por pruebas \cite{beck2004}, con la regla ---registrada en \texttt{CONTRIBUTING.md}--- de que la lógica criptográfica y de dominio llega acompañada de sus pruebas en el mismo cambio, y de que los vectores de prueba oficiales de cada estándar son las primeras pruebas cuando existen. Sobre esa base, la suite se organiza como una pirámide de cinco niveles. En la base, las pruebas unitarias del crate \texttt{domain} ejercitan tipos de valor y puertos con dobles de prueba deterministas escritos a mano, sin ninguna biblioteca criptográfica; las del crate \texttt{application} verifican la orquestación de los casos de uso con mocks generados con \texttt{mockall}; y las del crate \texttt{infrastructure} ejecutan la criptografía real, comenzando por los vectores oficiales de FIPS 180-4, del modo GCM, de RFC 6238 y de RFC 4226. El segundo nivel son las pruebas de propiedades, que verifican invariantes sobre entradas generadas aleatoriamente \cite{claessen2000}. El tercero son las pruebas de integración de infraestructura, que usan como fixtures los mismos scripts versionados de \texttt{pki/} que opera producción, con instantes de evaluación derivados de las ventanas de vigencia parseadas ---nunca de esperas de reloj---, de modo que son deterministas. El cuarto son las pruebas de extremo a extremo del crate \texttt{bin}, que ejecutan el binario compilado \texttt{despacho-cli} como subproceso y observan salidas, archivos y códigos de terminación. El quinto son las fitness functions FF-1 a FF-5 (\cref{tab:impl-fitness}) \cite{ford2023}, que protegen propiedades arquitectónicas en cada integración.
+Este capítulo reporta la validación del prototipo cuya implementación documentó el Capítulo~\ref{cap:implementacion}. La estrategia de pruebas es la que fijó la metodología del Capítulo~\ref{cap:analisis}: desarrollo guiado por pruebas \cite{beck2004}, con la regla ---registrada en \texttt{CONTRIBUTING.md}--- de que la lógica criptográfica y de dominio llega acompañada de sus pruebas en el mismo cambio, y de que los vectores de prueba oficiales de cada estándar son las primeras pruebas cuando existen. Sobre esa base, la suite se organiza como una pirámide de cinco niveles. En la base, las pruebas unitarias del crate \texttt{domain} ejercitan tipos de valor y puertos con dobles de prueba deterministas escritos a mano, sin ninguna biblioteca criptográfica; las del crate \texttt{application} verifican la orquestación de los casos de uso con mocks generados con \texttt{mockall}; y las del crate \texttt{infrastructure} ejecutan la criptografía real, comenzando por los vectores oficiales de FIPS 180-4, del modo GCM, de RFC 6238 y de RFC 4226. El segundo nivel son las pruebas de propiedades, que verifican invariantes sobre entradas generadas aleatoriamente \cite{claessen2000}. El tercero son las pruebas de integración de infraestructura, que usan como fixtures los scripts versionados de \texttt{pki/} empleados por el prototipo, con instantes de evaluación derivados de las ventanas de vigencia parseadas ---nunca de esperas de reloj---, de modo que son deterministas. El cuarto son las pruebas de extremo a extremo del crate \texttt{bin}, que ejecutan el binario compilado \texttt{despacho-cli} como subproceso y observan salidas, archivos y códigos de terminación. El quinto son las fitness functions FF-1 a FF-5 (\cref{tab:impl-fitness}) \cite{ford2023}, que protegen propiedades arquitectónicas en cada integración.
 
-El resultado global de la suite es de 394 pruebas en verde, cero fallos y una prueba ignorada: la prueba de humo contra el sandbox del proveedor externo de sellado. Se conserva para documentar el adaptador, pero no se ejecuta como requisito de la entrega porque la API no ofreció estabilidad suficiente y el sandbox es de pago con precios no transparentes (\cref{sec:impl-spike-tsa}). Las demostraciones reproducibles utilizan la TSA local y no dependen de red ni de un proveedor comercial. Las pruebas nuevas fijan identidad, RBAC, sesiones, adaptadores PostgreSQL y Redis, cifrado TOTP y los contratos documentales protegidos; la orquestación se prueba además en memoria. Este resultado se reprodujo el 17 de agosto de 2026; el corte de herramientas, comandos y resultados está versionado en \rutarepo{docs/verification-report.md}. La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral en integración continua (job \texttt{coverage}, \cref{tab:impl-ci}): al menos 90\,\% de líneas por cada uno de los tres crates con lógica criptográfica ---\texttt{domain}, \texttt{application} e \texttt{infrastructure}---, conforme al requerimiento RNF-13. El capítulo se organiza en cuatro secciones: la matriz de pruebas por servicio criptográfico (\cref{sec:pruebas-matriz}), los resultados criptográficos específicos ---vectores oficiales, frescura de nonces, mutaciones, propiedades y calibración--- (\cref{sec:pruebas-cripto}), la verificación independiente con herramientas ajenas al prototipo (\cref{sec:pruebas-interop}), y la cobertura alcanzada junto con el balance contra los criterios de éxito del Capítulo~\ref{cap:introduccion} (\cref{sec:pruebas-cobertura}).
+El corte reproducido del 12 de septiembre de 2026 aprobó \textbf{519 pruebas, sin fallos y con una ignorada}, según el informe versionado \rutarepo{docs/verification-report.md}. La prueba ignorada corresponde al proveedor externo de sellado; las ejecuciones ordinarias emplean un sustituto HTTP local y la TSA OpenSSL del prototipo, sin consumir el servicio comercial. El resultado incorpora autorización documental por expediente, persistencia y auditoría transaccionales, migración de archivos cifrados y restauración. PostgreSQL y Redis fueron procesos reales y desechables, con bases separadas para identidad, expedientes y documentos. Los porcentajes de cobertura de este capítulo corresponden a esa ejecución; la calibración de Argon2id y los extractos de una transcripción anterior se identifican como evidencia histórica.
+
+La cobertura se mide con \texttt{cargo-llvm-cov}. El umbral de integración continua exige al menos 90\,\% de líneas en cada uno de los crates \texttt{domain}, \texttt{application} e \texttt{infrastructure}, conforme a RNF-13. El capítulo presenta la matriz de pruebas (\cref{sec:pruebas-matriz}), los resultados criptográficos (\cref{sec:pruebas-cripto}), los ensayos de autorización y persistencia (\cref{sec:pruebas-transacciones}), la verificación independiente (\cref{sec:pruebas-interop}) y el balance de cobertura y criterios de éxito (\cref{sec:pruebas-cobertura}).
 
 \section{Matriz de pruebas}\label{sec:pruebas-matriz}
 
-La suite consta de 395 funciones de prueba distribuidas como muestra la \cref{tab:pruebas-conteo}: 198 unitarias embebidas en \texttt{src} y 197 de integración en los directorios \texttt{tests/} de cada crate. La única función que no se ejecuta en la corrida ordinaria es \texttt{the\_real\_sandbox\_issues\_a\_token}, marcada como ignorada porque consume el sandbox externo inestable y de pago; permanece disponible para una ejecución manual controlada. Las pruebas nuevas fijan roles y permisos, bootstrap, login, TOTP, recovery, revocación, bloqueo, persistencia y contratos HTTP con respuestas 401 y 403.
+El inventario contiene 520 funciones de prueba: 203 embebidas en \texttt{src/} y 317 en los directorios \texttt{tests/}, incluidos sus módulos auxiliares. La \cref{tab:pruebas-conteo} desglosa este conteo, que incluye la única prueba ignorada, \texttt{the\_real\_sandbox\_issues\_a\_token}. Las 519 funciones restantes se ejecutaron en el corte citado. Las pruebas de contrato HTTP usan workflows inyectados; su complemento contra los adaptadores reales es la demostración integrada.
 
 \begin{table}[H]
   \centering
   \caption{Distribución de las funciones de prueba por crate del workspace.}
   \label{tab:pruebas-conteo}
-  \begin{tabularx}{\linewidth}{@{}l X R{2.6cm} R{2.9cm} R{2.0cm}@{}}
+  \begin{tabularx}{\linewidth}{@{}l X R{1.8cm} R{2.1cm} R{1.2cm}@{}}
     \toprule
     \textbf{Crate} & \textbf{Dobles de prueba empleados} & \textbf{Unitarias} & \textbf{Integración} & \textbf{Total} \\
     \midrule
-    \texttt{domain} & hashers falsos deterministas, sin criptografía real & 69 & 3 & 72 \\
-    \texttt{application} & mocks y adaptadores en memoria de los puertos & 39 & 46 & 85 \\
-    \texttt{infrastructure} & criptografía real, PostgreSQL/Redis y herramientas del sistema & 86 & 91\textsuperscript{a} & 177 \\
-    \texttt{bin} & el binario compilado como subproceso & 3 & 52 & 55 \\
-    \texttt{web} & contratos HTTP con workflows inyectados & 1 & 5 & 6 \\
+    \texttt{domain} & hashers falsos deterministas, sin criptografía real & 69 & 16 & 85 \\
+    \texttt{application} & mocks y adaptadores en memoria de los puertos & 39 & 85 & 124 \\
+    \texttt{infrastructure} & criptografía real, PostgreSQL/Redis y herramientas del sistema & 86 & 143\textsuperscript{a} & 229 \\
+    \texttt{bin} & el binario compilado como subproceso & 3 & 53 & 56 \\
+    \texttt{web} & contratos HTTP con workflows inyectados & 6 & 20 & 26 \\
     \midrule
-    \textbf{Total} & & \textbf{198} & \textbf{197} & \textbf{395} \\
+    \textbf{Total} & & \textbf{203} & \textbf{317} & \textbf{520} \\
     \bottomrule
   \end{tabularx}
 
   \raggedright\small \textsuperscript{a}~Incluye la prueba ignorada contra el sandbox del proveedor de sellado.
 \end{table}
 
-La \cref{tab:pruebas-matriz} presenta la matriz de pruebas por servicio criptográfico, usando la misma identificación S1 a S10 del catálogo de servicios implementados (\cref{tab:impl-servicios}). Cada función de prueba se adscribe al servicio cuyo puerto, caso de uso, adaptador o subcomando ejercita; 355 funciones quedan adscritas a los diez servicios y las 40 restantes son transversales: identidad y RBAC, workflow documental, persistencia, contratos HTTP, CLI y fitness functions. La columna de tipos señala qué categorías especiales de prueba posee cada servicio, además de las unitarias y de integración clásicas que todos tienen: \textbf{V}~=~vectores oficiales del estándar, \textbf{P}~=~propiedades sobre entradas generadas aleatoriamente, \textbf{M}~=~mutación de artefactos (detección de alteraciones), \textbf{I}~=~interoperabilidad con herramientas independientes, \textbf{E}~=~extremo a extremo sobre el binario compilado.
+La \cref{tab:pruebas-matriz} agrupa los controles criptográficos con la identificación S1 a S10 del catálogo de servicios (\cref{tab:impl-servicios}). Una prueba transversal puede cubrir varios servicios, por lo que los conteos se presentan por crate. Los tipos especiales son: \textbf{V}~=~vectores oficiales, \textbf{P}~=~propiedades sobre entradas generadas, \textbf{M}~=~mutación de artefactos, \textbf{I}~=~interoperabilidad y \textbf{E}~=~extremo a extremo sobre el binario. Las pruebas de autorización, transacción, migración y fronteras HTTP complementan estos controles.
 
 \begin{table}[H]
   \centering
-  \caption{Matriz de pruebas por servicio criptográfico: número de funciones de prueba adscritas y tipos presentes.}
+  \caption{Tipos de prueba presentes por servicio criptográfico, además de pruebas unitarias y de integración.}
   \label{tab:pruebas-matriz}
-  \begin{tabularx}{\linewidth}{@{}l X C{2.2cm} C{3.2cm}@{}}
+  \begin{tabularx}{\linewidth}{@{}l X C{3.2cm}@{}}
     \toprule
-    \textbf{Id} & \textbf{Servicio} & \textbf{Pruebas} & \textbf{Tipos} \\
+    \textbf{Id} & \textbf{Servicio} & \textbf{Tipos} \\
     \midrule
-    S1  & Hash de documentos (SHA-256)                        & 24 & V, P, M, I, E \\
-    S2  & Cifrado autenticado y envelope encryption           & 54 & V, P, M, E \\
-    S3  & PKI interna: emisión, revocación y validación       & 51 & M, I, E \\
-    S4  & Firma digital RSA-3072                              & 36 & M, I, E \\
-    S5  & Sellado de tiempo RFC 3161                          & 50\textsuperscript{a} & M, I, E \\
-    S6  & Verificación integral de cuatro componentes         & 22 & M, E \\
-    S7  & Hash de contraseñas (Argon2id)                      & 15 & E \\
-    S8  & Segundo factor TOTP y códigos de recuperación       & 23 & V, I, E \\
-    S9  & Cadena de auditoría                                 & 52 & P, M, E \\
-    S10 & Paquete de evidencia                                & 28 & V, M, I, E \\
-    \midrule
-    \multicolumn{2}{@{}l}{\textbf{Subtotal adscrito a servicios}} & \textbf{355} & \\
-    \multicolumn{2}{@{}l}{Transversales (identidad, workflow, HTTP, CLI y fitness)} & 40 & \\
+    S1 & Hash de documentos (SHA-256) & V, P, M, I, E \\
+    S2 & Cifrado autenticado y envelope encryption & V, P, M, E \\
+    S3 & PKI interna: emisión, revocación y validación & M, I, E \\
+    S4 & Firma digital RSA-3072 & M, I, E \\
+    S5 & Sellado de tiempo RFC 3161 & M, I, E \\
+    S6 & Verificación integral de cuatro componentes & M, E \\
+    S7 & Hash de contraseñas (Argon2id) & E \\
+    S8 & TOTP y códigos de recuperación & V, I, E \\
+    S9 & Cadena de auditoría & P, M, E \\
+    S10 & Paquete de evidencia & V, M, I, E \\
     \bottomrule
   \end{tabularx}
-
-  \raggedright\small \textsuperscript{a}~Incluye la prueba ignorada del sandbox del proveedor; las 49 restantes se ejecutan en cada corrida.
 \end{table}
 
-El criterio del objetivo OE-6 exige que la matriz contenga, por lo menos, un caso positivo y uno negativo por caso de uso. La \cref{tab:pruebas-casos} nombra un caso representativo de cada signo por servicio; como documenta el inventario, todos los servicios poseen varios casos negativos adicionales ---el patrón general de la suite es que cada camino de rechazo tipado del dominio tiene al menos una prueba que lo provoca---. El inventario completo de las 395 funciones de prueba, función por función y con la descripción de lo que cada una fija, se entrega en el Anexo~\ref{anexo:matriz}.
+El criterio del objetivo OE-6 exige que la matriz contenga, por lo menos, un caso positivo y uno negativo por caso de uso. La \cref{tab:pruebas-casos} nombra un caso representativo de cada signo por servicio; como documenta el inventario, todos los servicios poseen varios casos negativos adicionales ---la suite incluye rechazos tipados por evidencia inválida, falta de permisos y fallos de persistencia---. El inventario de las 520 funciones, agrupadas por archivo con casos representativos, se entrega en el Anexo~\ref{anexo:matriz}.
 
 \begin{longtable}{@{}l L{0.45\linewidth} L{0.45\linewidth}@{}}
   \caption{Caso positivo y caso negativo representativos por servicio criptográfico.}
@@ -96,7 +93,7 @@ El criterio del objetivo OE-6 exige que la matriz contenga, por lo menos, un cas
   \addlinespace
   S8 & Los dieciséis vectores oficiales se reproducen y un código vigente derivado del secreto enrolado se acepta de extremo a extremo. & Un código a dos pasos de distancia se rechaza, igual que un secreto demasiado corto o una codificación base32 inválida; cada código de recuperación funciona exactamente una vez y su reuso se rechaza. \\
   \addlinespace
-  S9 & Treinta y dos anexados concurrentes desde ocho hilos se serializan en una sola cadena válida con secuencias únicas. & Editar un campo de una línea rompe la verificación exactamente en su índice; una bitácora ausente es un error, no una cadena vacía válida. \\
+  S9 & Treinta y dos anexados concurrentes desde ocho hilos se serializan en una sola cadena válida con secuencias únicas. & Editar un campo de una línea rompe la verificación exactamente en su índice; la CLI rechaza la verificación de una bitácora ausente. \\
   \addlinespace
   S10 & Los comandos del instructivo del paquete, extraídos y ejecutados literalmente, aceptan el documento, la firma, el certificado y el token. & La exportación se rehúsa ante una firma alterada o una CRL ajena, sin escribir el ZIP; un byte volteado en un miembro extraído lo detectan los propios comandos y el CRC del formato. \\
 \end{longtable}
@@ -134,7 +131,7 @@ Para la autenticación multifactor se reproducen íntegros los dos apéndices no
 
 \subsection{Frescura de nonces}\label{sec:pruebas-nonces}
 
-El criterio del objetivo OE-4 exige cero reutilizaciones de nonce en una suite de 10\,000 cifrados. La prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} ejecuta 10\,000 operaciones de sellado consecutivas sobre el cifrador real y registra el nonce de 96 bits de cada una en un conjunto: la prueba falla si algún nonce se repite. El resultado es de 10\,000 nonces distintos en 10\,000 operaciones, consistente con la generación por CSPRNG fresco en cada sellado que estableció el diseño (\cref{sec:cifrado-reposo}). La misma familia de garantías de frescura está fijada por pruebas en el resto del sistema: dos DEK generadas nunca coinciden, dos enrolamientos TOTP extraen secretos distintos, cada hash de contraseña usa una sal aleatoria nueva ---dos hashes de la misma contraseña difieren y ambos verifican---, los ocho códigos de recuperación de un lote no se repiten, y ocho solicitudes concurrentes a la autoridad de sellado local producen ocho números de serie distintos.
+El criterio del objetivo OE-4 exige cero reutilizaciones de nonce en una suite de 10\,000 cifrados. La prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} ejecuta 10\,000 operaciones de sellado consecutivas sobre el cifrador real y registra el nonce de 96 bits de cada una en un conjunto: la prueba falla si algún nonce se repite. El resultado es de 10\,000 nonces distintos en 10\,000 operaciones, consistente con la generación por CSPRNG fresco en cada sellado que estableció el diseño (\cref{sec:cifrado-reposo}). La misma familia de garantías de frescura está fijada por pruebas en el resto del sistema: las dos DEK generadas en la prueba son distintas, dos enrolamientos TOTP extraen secretos distintos, cada hash de contraseña usa una sal aleatoria nueva ---dos hashes de la misma contraseña difieren y ambos verifican---, los ocho códigos de recuperación de un lote no se repiten, y ocho solicitudes concurrentes a la autoridad de sellado local producen ocho números de serie distintos.
 
 \subsection{Detección de mutaciones}\label{sec:pruebas-mutacion}
 
@@ -148,7 +145,7 @@ Las pruebas de mutación alteran un artefacto criptográfico real ---un byte o u
   \item \textbf{Paquete cifrado y paquete de evidencia:} un byte alterado del archivo \texttt{DVLT1} produce el rechazo autenticado en el subcomando \texttt{vault decrypt}; un byte alterado de un miembro del ZIP lo detecta la herramienta independiente \texttt{unzip} por el CRC; un documento corrompido dentro del paquete extraído es rechazado por los comandos \texttt{openssl} del propio instructivo; y la exportación se rehúsa a escribir un paquete cuya firma fue alterada, nombrando el componente fallido.
 \end{itemize}
 
-Este conjunto satisface el criterio de detección del 100\,\% de alteraciones de un byte del objetivo OE-4 y materializa la mitigación comprometida en el análisis de riesgos para el compromiso del esquema de cifrado (RTC-02, \cref{tab:rtc-02}).
+Este conjunto aporta evidencia del criterio de detección del objetivo OE-4 para las mutaciones y artefactos ensayados y materializa la mitigación comprometida en el análisis de riesgos para el compromiso del esquema de cifrado (RTC-02, \cref{tab:rtc-02}).
 
 \subsection{Propiedades verificadas por generación aleatoria de casos}\label{sec:pruebas-propiedades}
 
@@ -170,13 +167,41 @@ Los dos adaptadores que comparten recursos del sistema de archivos entre proceso
 
 \subsection{Calibración de Argon2id}\label{sec:pruebas-argon2}
 
-El diseño exige que el costo por intento de Argon2id quede entre 0.5 y 1.0 segundos en el hardware de despliegue (\cref{sec:autenticacion}). El caso de uso de calibración (subcomando \texttt{auth calibrate}) promedia cinco corridas de hash sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva. En el hardware de referencia (AMD Ryzen 7 7730U, 16 hilos lógicos), la calibración de la demostración de cierre del 17 de agosto de 2026 fijó $m = 256$~MiB, $t = 2$, $p = 1$ y reportó 529.4 milisegundos, es decir, un veredicto dentro de la banda. Si el hardware final difiere, la misma medición debe repetirse.
+El diseño exige que el costo por intento de Argon2id quede entre 0.5 y 1.0 segundos en el hardware de despliegue (\cref{sec:autenticacion}). El caso de uso de calibración (subcomando \texttt{auth calibrate}) promedia cinco corridas de hash sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva. En el hardware de referencia (AMD Ryzen 7 7730U, 16 hilos lógicos), la calibración de la demostración de cierre del 17 de agosto de 2026 fijó $m = 256$~MiB, $t = 2$, $p = 1$ y reportó 529.4 milisegundos, es decir, un veredicto dentro de la banda. Esta media es una medición histórica del 17 de agosto; no se presenta como una nueva medición del 12 de septiembre. La calibración debe repetirse para valorar el hardware y la carga del despliegue.
 
-La lectura operativa de este resultado es que el criterio queda cubierto para el hardware de referencia y que el ajuste está localizado en un único punto del adaptador. El hardware final debe verificarse por separado porque la memoria y el tiempo por hash cambian con el perfil de despliegue. El resto del servicio no depende de la banda: el formato PHC con los parámetros registrados, la coincidencia y no coincidencia de contraseñas, el tratamiento del hash corrupto como error y la ausencia de la contraseña en los diagnósticos están fijados por pruebas que pasan en cualquier hardware.
+La lectura operativa de esa medición histórica es que el criterio se alcanzó en aquella ejecución sobre el hardware de referencia y que el ajuste está localizado en un único punto del adaptador. El hardware final debe verificarse por separado porque la memoria y el tiempo por hash cambian con el perfil de despliegue. El resto del servicio no depende de la banda: el formato PHC con los parámetros registrados, la coincidencia y no coincidencia de contraseñas, el tratamiento del hash corrupto como error y la ausencia de la contraseña en los diagnósticos están fijados por pruebas que pasan en cualquier hardware.
+
+\section{Autorización, transacciones y recuperación}\label{sec:pruebas-transacciones}
+
+\subsection{Entorno reproducible y aislamiento}\label{sec:pruebas-backends}
+
+La ejecución completa usa \rutarepo{scripts/test-backends.sh}, que crea PostgreSQL y Redis desechables y configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}. La prueba de alta inicial necesita una tabla de usuarios vacía; por ello, no comparte base con las pruebas de expedientes ni documentos. Algunas pruebas de adaptadores retornan anticipadamente cuando falta su variable de entorno: una corrida ordinaria en verde sin estas variables no demuestra que se haya ejercitado PostgreSQL o Redis. El corte del 12 de septiembre sí los ejercitó. Cada ensayo usa datos generados y no modifica expedientes del usuario.
+
+\subsection{Permisos por recurso y revocación}\label{sec:pruebas-permisos}
+
+La demostración HTTP recorre cuatro roles y dos expedientes. Owner accede a todos; Litigante y Paralegal necesitan asignación vigente, y Paralegal no puede sellar. Cliente puede leer los metadatos del expediente asignado, pero conserva denegadas todas las operaciones documentales. Carga, sellado, verificación y exportación comprueban el expediente explícito y el documento; cambiar el expediente de la URL no permite acceder al documento, incluso como Owner. Las rutas documentales globales retiradas responden \texttt{404} y no invocan el workflow. Las pruebas también rechazan cabeceras ambiguas, campos que intentan suplantar actor o rol y cuerpos que exceden sus límites.
+
+Retirar una asignación impide la siguiente operación con la misma sesión. Las pruebas separan dos órdenes concurrentes: una revocación confirmada impide el commit posterior; si la operación ya obtuvo los bloqueos que protegen la autorización, puede confirmar primero y la revocación espera. Asimismo, la revocación de sesión durante la preparación impide publicar el resultado. Una respuesta cuya autorización y auditoría se confirmaron antes de revocar puede terminar de transmitirse después; el ensayo no promete cancelar bytes ya autorizados.
+
+\subsection{Atomicidad y sellado concurrente}\label{sec:pruebas-atomicidad}
+
+Las pruebas de PostgreSQL inyectan fallos al insertar auditoría y al confirmar la transacción. Verifican que no quede un documento, asignación, usuario o consumo de recuperación confirmado sin su evento correspondiente. Escritores de documentos, expedientes e identidad extienden una sola cadena con secuencias únicas. La preparación criptográfica ocurre fuera de la transacción; el commit vuelve a comprobar identidad activa, rol, pertenencia y estado documental.
+
+El ensayo de \rutarepo{scripts/api-concurrency-demo.sh}, invocado por la demostración HTTP, enfrenta dos procesos reales del servidor al sellado de una misma versión. Uno obtiene \texttt{200} y otro \texttt{409}; PostgreSQL conserva un solo evento de sellado y ambos servidores exportan un ZIP idéntico. La firma, el certificado con su CRL y el sello del paquete ganador se verifican con OpenSSL. Se prueba así la preservación de la evidencia ganadora, sin afirmar que dos preparaciones concurrentes realicen una única solicitud a la TSA.
+
+La revisión de privilegios prueba roles operativos que pueden ejecutar el flujo permitido y rechaza capacidad de reescribir auditoría, modificar campos documentales inmutables, alterar recibos o asumir roles con esos permisos. Incluye propiedad de tablas y de la función protectora, privilegios por columna y esquemas modificables en la ruta de búsqueda. Estas pruebas no eliminan la confianza depositada en los administradores de PostgreSQL.
+
+\subsection{Migración y restauración}\label{sec:pruebas-migracion}
+
+El ensayo \rutarepo{scripts/api-migration-demo.sh} reconstruye el formato local a partir de cuatro documentos reales de la demostración, tres de ellos sellados. La inspección comprueba un mapa completo hacia expedientes existentes, los bytes cifrados y la evidencia capturada. La aplicación conserva exactamente las 46 entradas históricas, incluidas sus marcas de tiempo y hashes, y añade su propio evento de importación. Un segundo intento no duplica documentos ni eventos. El respaldo con \texttt{pg\_dump} se restaura con \texttt{pg\_restore} en otra base: se comparan los datos SQL y los ZIP byte por byte, se reinicia el servidor con el rol restringido y se repite la verificación independiente.
+
+Las regresiones cubren asociaciones ausentes, fuentes o mapas modificados tras inspeccionar, fallos de auditoría, barreras durables previas al commit, errores al escribir marcadores posteriores al commit y reintentos de reconciliación. El arranque rechaza una restauración parcial aunque conserve el recibo, así como cambios en documentos, asociaciones, prefijo de auditoría o marcadores. El origen se conserva para comparación y los adaptadores nuevos bloquean sus escrituras; las versiones antiguas del ejecutable deben permanecer detenidas durante el corte.
+
+La validación histórica de cadena y CRL del firmante usa el instante del sello. La comprobación de la autoridad TSA conserva la política actual de OpenSSL y puede rechazar hoy una autoridad expirada. Redis no comparte transacción con PostgreSQL: ante un fallo de auditoría, identidad intenta retirar desafíos o sesiones recién creados y no entrega sus tokens; si también falla esa limpieza, su caducidad limita la permanencia. Logout conserva la revocación aunque falle la auditoría posterior.
 
 \section{Verificación independiente}\label{sec:pruebas-interop}
 
-Un principio transversal de la suite es que ningún resultado criptográfico se acepta únicamente porque el software propio lo apruebe: cada artefacto que el prototipo produce se verifica también con herramientas independientes, y cada artefacto que las herramientas independientes producen se verifica con el software propio. La herramienta de referencia es OpenSSL, en la versión 3.5.7 (9 de junio de 2026) del entorno de pruebas; la versión queda registrada en tres lugares: en las pruebas ---que la leen con \texttt{openssl version}---, en el instructivo de cada paquete de evidencia exportado, y en la transcripción de la demostración. Este cruce sistemático materializa la mitigación comprometida en el análisis de riesgos para la discrepancia de digests ante el sellado de tiempo (RLC-01, \cref{tab:rlc-01}), que exigía auditar los resúmenes generados en Rust contra herramientas certificadas de línea de comandos. La \cref{tab:pruebas-interop} resume las comprobaciones cruzadas que la suite ejecuta como subprocesos en cada corrida.
+Un principio transversal de la suite es que ningún resultado criptográfico se acepta únicamente porque el software propio lo apruebe: cada artefacto que el prototipo produce se verifica también con herramientas independientes, y cada artefacto que las herramientas independientes producen se verifica con el software propio. La herramienta de referencia es OpenSSL, en la versión 3.5.7 (9 de junio de 2026) del entorno de pruebas; la versión queda registrada en tres lugares: en las pruebas ---que la leen con \texttt{openssl version}---, en el instructivo de cada paquete de evidencia exportado, y en la transcripción de la demostración. Este cruce sistemático materializa la mitigación comprometida en el análisis de riesgos para la discrepancia de digests ante el sellado de tiempo (RLC-01, \cref{tab:rlc-01}), que exigía auditar los resúmenes generados en Rust contra herramientas independientes de línea de comandos. La \cref{tab:pruebas-interop} resume las comprobaciones cruzadas que la suite ejecuta como subprocesos en cada corrida.
 
 \begin{table}[H]
   \centering
@@ -205,7 +230,7 @@ Un principio transversal de la suite es que ningún resultado criptográfico se 
   \end{tabularx}
 \end{table}
 
-La evidencia operativa de este enfoque comprende dos demostraciones de extremo a extremo. \texttt{scripts/\allowbreak demo.sh} (\cref{sec:impl-cli}), cuya transcripción íntegra ---capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7 y re-ejecutada sin errores con posterioridad--- está versionada en \texttt{docs/demo-transcript.md}, recorre la CLI. \texttt{scripts/\allowbreak api-demo.sh} levanta PostgreSQL, Redis y la aplicación en puertos efímeros; prueba TOTP, RBAC, revocación, recovery de un solo uso, carga, sellado, verificación, exportación y auditoría; además comprueba que los secretos y el texto claro no se persisten y valida el ZIP con OpenSSL y \texttt{unzip}; las variables de Cincel se eliminan expresamente del entorno. Las demostraciones no son vitrinas: cada condición esperada aborta el guion si no se cumple. Los extractos siguientes reproducen tres momentos de la primera transcripción; se abrevian las rutas del directorio temporal y del binario, sin alterar ninguna salida. El primero es el reporte de la verificación integral con los cuatro componentes en verde:
+La evidencia operativa de este enfoque comprende dos demostraciones de extremo a extremo. \texttt{scripts/\allowbreak demo.sh} (\cref{sec:impl-cli}), cuya transcripción íntegra ---capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7 y re-ejecutada sin errores con posterioridad--- está versionada en \texttt{docs/demo-transcript.md}, recorre la CLI. \texttt{scripts/\allowbreak api-demo.sh} levanta PostgreSQL, Redis y la aplicación en puertos efímeros; prueba TOTP, RBAC, revocación, recovery de un solo uso, carga, sellado, verificación, exportación y auditoría; además comprueba que la contraseña y el token no se almacenan en claro y que el vault no contiene el texto original y valida el ZIP con OpenSSL y \texttt{unzip}; las variables de Cincel se eliminan expresamente del entorno. Ambos guiones terminaron con código cero en el corte del 12 de septiembre; las condiciones de autorización, concurrencia y restauración se detallan en la \cref{sec:pruebas-transacciones}. Cada condición inesperada aborta la ejecución. Los extractos siguientes son evidencia histórica de la primera transcripción y no salidas nuevas de ese corte; se abrevian las rutas del directorio temporal y del binario, sin alterar ninguna salida. El primero es el reporte de la verificación integral con los cuatro componentes en verde:
 
 \begin{lstlisting}[language={},numbers=none,caption={Verificación integral con evidencia íntegra (extracto de \texttt{docs/demo-transcript.md}).},label={lst:pruebas-verify}]
 + despacho-cli verify document.txt --sig document.txt.sig
@@ -257,28 +282,28 @@ La misma transcripción registra la revocación del certificado del firmante y s
 
 \section{Cobertura y criterios de éxito}\label{sec:pruebas-cobertura}
 
-La \cref{tab:pruebas-cobertura} presenta la cobertura de líneas final por crate, medida con \texttt{cargo-llvm-cov} sobre la suite completa y reproducida en el corte del 17 de agosto de 2026. El umbral del 90\,\% que exige el requerimiento RNF-13 se aplica en integración continua a los tres crates con lógica criptográfica mediante \texttt{scripts/coverage-gate.sh}, y los tres lo superan. Los crates \texttt{bin} y \texttt{web} se reportan sin umbral: son fronteras de entrada y composición cuyo valor se complementa con pruebas de contrato y guiones E2E. Parte del margen sobre el umbral proviene de pruebas dedicadas a rutas de error de los adaptadores ---una bitácora cuya ruta es un directorio, una línea almacenada con timestamp imparseable, respuestas del proveedor de sellado sin token o con base64 inválido, material PEM corrupto en el firmador y el verificador---, de modo que los caminos de fallo están tan ejercitados como los de éxito.
+La \cref{tab:pruebas-cobertura} presenta la cobertura de líneas final por crate, medida con \texttt{cargo-llvm-cov} sobre la suite completa y reproducida en el corte del 12 de septiembre de 2026 con PostgreSQL y Redis reales. El umbral del 90\,\% que exige el requerimiento RNF-13 se aplica en integración continua a los tres crates con lógica criptográfica mediante \texttt{scripts/coverage-gate.sh}, y los tres lo superan. Los crates \texttt{bin} y \texttt{web} se reportan sin umbral: son fronteras de entrada y composición cuyo valor se complementa con pruebas de contrato y guiones E2E. Parte del margen sobre el umbral proviene de pruebas dedicadas a rutas de error de los adaptadores ---una bitácora cuya ruta es un directorio, una línea almacenada con timestamp imparseable, respuestas del proveedor de sellado sin token o con base64 inválido, material PEM corrupto en el firmador y el verificador---, de modo que los caminos de fallo están tan ejercitados como los de éxito.
 
 \begin{table}[H]
   \centering
   \caption{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} y umbral aplicado en integración continua.}
   \label{tab:pruebas-cobertura}
-  \begin{tabularx}{\linewidth}{@{}l R{3.0cm} R{3.4cm} R{2.4cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
-    \texttt{domain}         & 973   & 1\,013 & 96.1\,\% & 90\,\% (bloqueante) \\
-    \texttt{application}    & 1\,749 & 1\,885 & 92.8\,\% & 90\,\% (bloqueante) \\
-    \texttt{infrastructure} & 2\,257 & 2\,436 & 92.7\,\% & 90\,\% (bloqueante) \\
-    \texttt{bin}            & 834   & 1\,034 & 80.7\,\% & informativo \\
-    \texttt{web}            & 319   & 436   & 73.2\,\% & informativo \\
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,073 & 2\,212 & 93.7\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,496 & 3\,785 & 92.4\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 578 & 683 & 84.6\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{6\,132} & \textbf{6\,804} & \textbf{90.1\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{8\,026} & \textbf{8\,845} & \textbf{90.7\,\%} & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo OE-6 pide cobertura de al menos 80\,\% en los módulos criptográficos, mientras que el requerimiento RNF-13 pide 90\,\%. La integración continua aplica el más estricto de los dos, y los resultados superan ambos. El requerimiento RNF-14 ---que el 100\,\% de las pruebas de los módulos criptográficos pase antes de considerar completado un incremento--- se cumple por construcción: el job de pruebas de integración continua bloquea la rama principal ante cualquier fallo, y la suite cierra con 394 de 394 pruebas ejecutadas en verde, más una prueba externa ignorada.
+Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo OE-6 pide cobertura de al menos 80\,\% en los módulos criptográficos, mientras que el requerimiento RNF-13 pide 90\,\%. La integración continua aplica el más estricto de los dos, y los resultados superan ambos. El requerimiento RNF-14 ---que el 100\,\% de las pruebas de los módulos criptográficos pase antes de considerar completado un incremento--- se verificó en el corte: el job de pruebas reporta error si falla una prueba y la ejecución registrada cierra con 519 de 519 pruebas ejecutadas en verde, más una prueba externa ignorada.
 
 La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de éxito verificables que el Capítulo~\ref{cap:introduccion} fijó para los objetivos específicos validables en esta fase (OE-3 a OE-6, \cref{tab:criterios-exito}), desglosados por subcriterio y con un estado explícito: cumplido, parcial o diferido.
 
@@ -310,25 +335,25 @@ La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de é
   \addlinespace
   OE-4 & Envelope encryption con DEK por documento. & DEK aleatoria de 32 bytes por documento envuelta bajo la KEK; rotación de KEK sin recifrar el documento, fijada por prueba. & Cumplido \\
   \addlinespace
-  OE-5 & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de referencia ($m = 256$~MiB, $t = 2$, $p = 1$). & Cinco corridas en AMD Ryzen 7 7730U promediaron 529.4 ms y emitieron veredicto dentro de la banda; repetir si cambia el hardware de despliegue (\cref{sec:pruebas-argon2}). & Cumplido* \\
+  OE-5 & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de referencia ($m = 256$~MiB, $t = 2$, $p = 1$). & La medición histórica del 17 de agosto en AMD Ryzen 7 7730U promedió 529.4 ms en cinco corridas, dentro de la banda; repetir si cambia el hardware de despliegue (\cref{sec:pruebas-argon2}). & Cumplido* \\
   \addlinespace
   OE-5 & MFA basado en TOTP con ventana de tolerancia $\pm 1$ período. & Vectores oficiales de RFC 6238 y RFC 4226 en verde; desfase de $\pm 1$ paso aceptado y $\pm 2$ rechazado; enrolamiento y verificación de extremo a extremo. & Cumplido \\
   \addlinespace
-  OE-5 & Control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). & Sesiones opacas revocables en Redis; rol y estado vigentes en PostgreSQL; matriz aplicada antes del workflow. Cliente cerrado hasta persistir pertenencia a casos. & Cumplido* \\
+  OE-5 & Control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). & Sesiones opacas revocables en Redis; rol y estado vigentes en PostgreSQL; matriz y asignación revalidadas por operación y en el commit. Cliente conserva denegadas las operaciones documentales aun estando asignado. & Cumplido* \\
   \addlinespace
-  OE-6 & Cobertura de pruebas $\geq$ 80\,\% en los módulos criptográficos. & Entre 92.7 y 96.1\,\% por crate criptográfico; el umbral aplicado en CI es el 90\,\% de RNF-13, más estricto que el criterio. & Cumplido \\
+  OE-6 & Cobertura de pruebas $\geq$ 80\,\% en los módulos criptográficos. & Entre 92.4 y 96.8\,\% por crate criptográfico; el umbral aplicado en CI es el 90\,\% de RNF-13, más estricto que el criterio. & Cumplido \\
   \addlinespace
   OE-6 & Al menos 15 pruebas de extremo a extremo que cubran los flujos de firma y verificación. & 22 pruebas ejecutan el binario real sobre esos flujos (\texttt{sign}, \texttt{timestamp}, \texttt{verify} y \texttt{package export}), además de la demostración íntegra. & Cumplido \\
   \addlinespace
-  OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & \Cref{tab:pruebas-casos} por servicio; inventario completo, función por función, en el Anexo~\ref{anexo:matriz}. & Cumplido \\
+  OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & \Cref{tab:pruebas-casos} por servicio; inventario por archivo y casos representativos en el Anexo~\ref{anexo:matriz}. & Cumplido \\
 \end{longtable}
 
 El balance debe leerse con la misma franqueza con que se construyó la tabla. Los objetivos OE-4 y OE-6 se cumplen en todos sus subcriterios. OE-3 queda parcialmente cumplido porque su criterio externo fue excluido de esta entrega; OE-5 queda implementado en su alcance global, con dos condiciones operativas explícitas:
 
 \begin{itemize}
   \item \textbf{Evidencia externa de PSC (OE-3).} La autoridad de sellado local demuestra el flujo RFC 3161 completo ---solicitud, emisión, token DER, verificación en dos etapas y aceptación por herramientas independientes---. La tasa de verificación externa no se mide porque la API de Cincel no ofreció garantía operativa y el sandbox requiere un pago no transparente. El adaptador remoto queda probado contra un stub y disponible para una futura sustitución consciente, pero no bloquea el desarrollo ni se presenta como evidencia de esta entrega.
-  \item \textbf{RBAC de cuatro roles (OE-5).} \texttt{X-Actor} fue eliminado. La API exige sesiones opacas revocables, recarga rol y estado desde PostgreSQL y aplica permisos antes de invocar el workflow. Redis impone cinco rechazos de contraseña por 15 minutos, reclama TOTP de forma atómica y conserva desafíos de un solo intento. El asterisco recuerda que el rol Cliente permanece cerrado hasta modelar pertenencia a casos (\cref{sec:impl-divergencias}).
-  \item \textbf{Banda de calibración de Argon2id (OE-5).} El hardware de referencia quedó dentro de banda con $m = 256$~MiB, $t = 2$, $p = 1$ y una media de 529.4 ms. El asterisco de la tabla recuerda que un hardware de despliegue distinto exige repetir la medición (\cref{sec:pruebas-argon2}).
+  \item \textbf{RBAC de cuatro roles (OE-5).} \texttt{X-Actor} fue eliminado. La API exige sesiones opacas revocables, recarga rol y estado desde PostgreSQL y revalida permisos y pertenencia en los casos de uso y la transacción. Redis impone cinco rechazos de contraseña por 15 minutos, reclama TOTP de forma atómica y conserva desafíos de un solo intento. El asterisco recuerda que la pertenencia ya se persiste, pero habilitar acceso documental a Cliente requiere ampliar y probar expresamente la política (\cref{sec:impl-divergencias}).
+  \item \textbf{Banda de calibración de Argon2id (OE-5).} La medición histórica situó al hardware de referencia dentro de banda con $m = 256$~MiB, $t = 2$, $p = 1$ y una media de 529.4 ms. El asterisco de la tabla recuerda que un hardware de despliegue distinto exige repetir la medición (\cref{sec:pruebas-argon2}).
 \end{itemize}
 
-En síntesis, la validación deja los servicios criptográficos y la rebanada HTTP multiusuario respaldados por 394 pruebas en verde, vectores oficiales reproducidos, detección total en las campañas de mutación y verificación independiente con OpenSSL 3.5.7. También deja explícito que la evidencia externa de un PSC no forma parte de esta entrega y que la TSA local no se presenta como equivalente jurídico. Los pendientes técnicos son persistir expedientes/documentos y auditoría en PostgreSQL, modelar pertenencia a casos, añadir consultas y versionado, y construir la interfaz de usuario; ya no incluyen identidad, sesiones, RBAC ni el contrato HTTP documental. Las conclusiones generales se presentan en el Capítulo~\ref{cap:conclusiones}.
+El corte respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. Quedan pendientes consultas y versiones documentales, participantes procesales, interfaz de usuario, TLS, pooling, apagado ordenado y revisión de la firma RSA expuesta por HTTP. La cabeza de auditoría carece de anclaje externo; una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado. Las conclusiones generales se presentan en el Capítulo~\ref{cap:conclusiones}.
