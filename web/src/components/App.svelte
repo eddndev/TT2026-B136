@@ -1,42 +1,65 @@
 <script>
+  import { onMount, tick } from 'svelte';
   import Auth from './Auth.svelte';
+  import Sidebar from './Sidebar.svelte';
+  import Overview from './Overview.svelte';
+  import Guide from './Guide.svelte';
   import Icon from './Icon.svelte';
   import Documents from './Documents.svelte';
   import Admin from './Admin.svelte';
   import { createApi } from '../lib/api.mjs';
-  import { roles, can } from '../lib/documents.mjs';
+  import { roles } from '../lib/documents.mjs';
+  import { normalizeView, viewLabels } from '../lib/workspace.mjs';
   let user = null;
   let documents = [];
-  let view = 'documents';
+  let view = 'overview';
+  let documentIntent = null;
   let notice = '';
   let logoutBusy = false;
   let error = '';
-  const api = createApi(globalThis.fetch, () => {
+  let sidebar;
+  let main;
+  function reset(message = '') {
     user = null;
     documents = [];
-    view = 'documents';
-    notice = 'Tu sesion termino. Vuelve a iniciar sesion.';
-  });
+    documentIntent = null;
+    view = 'overview';
+    notice = message;
+    history.replaceState(null, '', '#overview');
+  }
+  const api = createApi(globalThis.fetch, () =>
+    reset('Tu sesion termino. Vuelve a iniciar sesion.'),
+  );
   async function logout() {
     logoutBusy = true;
     error = '';
     try {
       await api.logout();
-      user = null;
-      documents = [];
-      view = 'documents';
+      reset();
     } catch (failure) {
       error = failure.message;
     } finally {
       logoutBusy = false;
     }
   }
-  const navigation = [
-    { id: 'documents', label: 'Documentos', icon: 'file' },
-    { id: 'cases', label: 'Expedientes', icon: 'folder' },
-    { id: 'audit', label: 'Auditoria', icon: 'shield', permission: 'audit' },
-    { id: 'users', label: 'Equipo', icon: 'users', permission: 'users' },
-  ];
+  async function go(destination) {
+    view = normalizeView(destination, user?.role);
+    if (location.hash !== `#${view}`) location.hash = view;
+    await tick();
+    main?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+  function openDocument(intent) {
+    documentIntent = intent;
+    go('documents');
+  }
+  onMount(() => {
+    const onHash = () => {
+      if (user) go(location.hash);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  });
 </script>
 
 {#if !user}<Auth
@@ -46,81 +69,69 @@
       user = principal;
       notice = '';
       error = '';
+      go(location.hash);
     }}
   />
 {:else}
+  <a
+    class="skip-link"
+    href="#main-content"
+    onclick={(event) => {
+      event.preventDefault();
+      main?.focus();
+    }}>Saltar al contenido</a
+  >
   <div class="app-layout">
-    <aside class="sidebar">
-      <a class="brand" href="/" aria-label="Folio, inicio"
-        ><span class="brand-mark">f.</span> folio<span class="brand-dot">.</span></a
-      >
-      <div class="workspace-label">
-        <span class="workspace-monogram">D</span>
-        <div><strong>Mi despacho</strong><small>Espacio de trabajo</small></div>
-      </div>
-      <span class="eyebrow nav-label">PRINCIPAL</span>
-      <nav aria-label="Navegacion principal">
-        {#each navigation as item}{#if !item.permission || can(user.role, item.permission)}<button
-              class:active={view === item.id}
-              aria-current={view === item.id ? 'page' : undefined}
-              onclick={() => (view = item.id)}
-              ><Icon name={item.icon} />{item.label}{#if item.id === 'cases'}<span class="nav-soon"
-                  >Pronto</span
-                >{/if}</button
-            >{/if}{/each}
-      </nav>
-      <div class="sidebar-bottom">
-        <div class="private-space">
-          <Icon name="shield" /><strong>Tu trabajo, protegido</strong>
-          <p>Cifrado y evidencia documental desde el servidor.</p>
-        </div>
-        <div class="profile">
-          <span class="avatar">{user.email.slice(0, 2).toUpperCase()}</span>
-          <div><strong>{user.email}</strong><small>{roles[user.role] || user.role}</small></div>
-        </div>
-        <button class="logout" disabled={logoutBusy} onclick={logout}
-          ><Icon name="logout" size={17} />{logoutBusy ? 'Cerrando...' : 'Cerrar sesion'}</button
-        >
-      </div>
-    </aside>
+    <Sidebar
+      bind:this={sidebar}
+      {user}
+      {view}
+      onnavigate={(next) => {
+        documentIntent = null;
+        go(next);
+      }}
+      onlogout={logout}
+      busy={logoutBusy}
+    />
     <div class="app-content">
       <header class="topbar">
-        <span
-          >Mi despacho <span class="breadcrumb"
-            >/ {navigation.find((item) => item.id === view)?.label}</span
-          ></span
-        ><span class="badge neutral"><span class="status-dot"></span>Entorno local</span>
+        <div class="topbar-location">
+          <button
+            class="icon-button menu-toggle"
+            aria-label="Abrir menu"
+            onclick={() => sidebar.open()}><Icon name="menu" /></button
+          ><span>Mi despacho<span class="breadcrumb">/ {viewLabels[view]}</span></span>
+        </div>
+        <div class="topbar-identity">
+          <span class="badge info"><Icon name="shield" size={13} />Acceso con MFA</span><span
+            class="role-label">{roles[user.role] || user.role}</span
+          ><span class="avatar" title={user.email}>{user.email.slice(0, 2).toUpperCase()}</span>
+        </div>
       </header>
-      <main id="main-content">
+      <main id="main-content" tabindex="-1" bind:this={main}>
         {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-        {#if view === 'documents'}<Documents
+        {#if view === 'overview'}<Overview
+            {user}
+            {documents}
+            onnavigate={go}
+            ondocument={openDocument}
+          />
+        {:else if view === 'documents'}<Documents
             {api}
             {user}
             {documents}
+            intent={documentIntent}
+            onintent={() => (documentIntent = null)}
             ondocuments={(next) => (documents = next)}
           />
-        {:else if view === 'cases'}<div class="page-heading">
-            <div>
-              <span class="eyebrow">ORGANIZACION DEL DESPACHO</span>
-              <h1>Un lugar para cada expediente</h1>
-              <p>La siguiente pieza de tu espacio de trabajo.</p>
-            </div>
-          </div>
-          <section class="card empty-state case-placeholder">
-            <Icon name="folder" size={48} /><span class="badge">Proximamente</span>
-            <h2>Expedientes en preparacion</h2>
-            <p>
-              La creacion de casos, participantes y asignaciones aun no esta disponible. Mientras
-              tanto, puedes trabajar con documentos y conservar sus identificadores.
-            </p>
-            <button class="primary" onclick={() => (view = 'documents')}
-              >Ir a documentos<Icon name="arrow" size={17} /></button
-            >
-          </section>
-        {:else if can(user.role, view)}{#key view}<Admin {api} {view} />{/key}{/if}
+        {:else if view === 'guide'}<Guide onnavigate={go} />
+        {:else if user.role === 'owner'}{#key view}<Admin
+              {api}
+              view={view === 'team' ? 'users' : 'audit'}
+            />{/key}{/if}
         <footer class="workspace-footer">
           <span>Folio / Despacho digital</span><span
-            >TT2026-B136 <span class="footer-separator">/</span> ESCOM - IPN</span
+            >Entorno local <span class="footer-separator">/</span> TT2026-B136</span
           >
         </footer>
       </main>

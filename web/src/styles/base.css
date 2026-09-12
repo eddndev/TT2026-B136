@@ -1,13 +1,13 @@
 :root {
   font-family: Inter, 'Segoe UI', sans-serif;
-  color: #202d3c;
-  background: #f5f6f8;
+  color: #0f172a;
+  background: #f8fafc;
   font-synthesis: none;
-  --navy: #192736;
-  --blue: #2858cf;
-  --muted: #687382;
-  --line: #e4e8ed;
-  --green: #d6e4a8;
+  --navy: #111344;
+  --blue: #1e40af;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --green: #2f855a;
 }
 * {
   box-sizing: border-box;
@@ -34,7 +34,7 @@ button {
 }
 button:disabled {
   opacity: 0.55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 button:focus-visible,
 a:focus-visible,
@@ -57,7 +57,8 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: 34px;
+  color: var(--navy);
+  font-size: 30px;
   letter-spacing: -1.1px;
   line-height: 1.2;
   font-weight: 600;
@@ -154,6 +155,10 @@ input[type='checkbox'] {
   background: #f1f4f9;
 }
 .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   border: 0;
   background: none;
   color: var(--blue);
@@ -186,18 +191,26 @@ input[type='checkbox'] {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border-radius: 5px;
+  border-radius: 20px;
   background: #f0f2f6;
   padding: 5px 9px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #667381;
   white-space: nowrap;
   line-height: 1.5;
 }
 .badge.success {
-  background: #e9f2e9;
-  color: #3a6946;
+  background: #ecfdf5;
+  color: #276749;
+}
+.badge.info {
+  background: #eef2ff;
+  color: #1e40af;
+}
+.badge.warning {
+  background: #fffbeb;
+  color: #92400e;
 }
 .badge.danger {
   background: #fbe9e7;

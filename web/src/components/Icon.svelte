@@ -2,6 +2,17 @@
   export let name = 'file';
   export let size = 20;
   const paths = {
+    info: 'M12 11v6m0-10h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+    menu: 'M4 6h16M4 12h16M4 18h16',
+    plus: 'M12 5v14M5 12h14',
+    grid: 'M3 3h7v7H3ZM14 3h7v7h-7ZM3 14h7v7H3ZM14 14h7v7h-7Z',
+    list: 'M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1',
+    calendar: 'M4 5h16v16H4ZM4 10h16M8 3v4M16 3v4',
+    clock: 'M12 8v5l3 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+    checklist: 'm3 6 2 2 3-4m3 3h10M3 13h3m5 0h10M3 19h3m5 0h10',
+    briefcase: 'M3 7h18v14H3ZM8 7V3h8v4M3 12h18M10 12v3h4v-3',
+    help: 'M9 9a3 3 0 1 1 5 2c-2 1-2 2-2 3m0 3h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+    copy: 'M9 8h12v14H9ZM15 8V2H3v14h6',
     home: 'M3 10 12 3l9 7v11h-6v-7H9v7H3Z',
     file: 'M14 2H5v20h14V7Zm0 0v6h5M8 12h8M8 16h6',
     folder: 'M3 6h7l2 3h9v11H3Zm0 0V4h7l2 2h7v3',
