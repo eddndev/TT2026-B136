@@ -3,13 +3,13 @@
 % =====================================================================
 \chapter{Matriz de pruebas y evidencia de ejecución}\label{anexo:matriz}
 
-Este anexo cataloga la suite completa de pruebas automatizadas del prototipo y documenta la evidencia de su ejecución. La matriz responde al criterio de éxito del objetivo OE-6 ---una matriz de pruebas funcionales con al menos un caso positivo y uno negativo por caso de uso--- y al requerimiento RNF-13, que exige una cobertura igual o mayor al 90\,\% en los módulos criptográficos. El anexo se organiza en tres partes: una nota metodológica que explica cómo leer la matriz, la matriz misma con una fila por archivo o módulo de prueba, y la evidencia de ejecución (resumen de la corrida, cobertura por crate, calibración de Argon2id, transcripción de la demostración y re-ejecución en integración continua).
+Este anexo presenta el inventario de pruebas del prototipo y la evidencia reproducida el 12 de septiembre de 2026, documentada en \rutarepo{docs/verification-report.md}. La matriz relaciona casos positivos y negativos con los archivos que los implementan y complementa los resultados del Capítulo~\ref{cap:pruebas}. Los conteos y la cobertura pertenecen a ese corte; la calibración de Argon2id y la transcripción CLI anterior conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
 
 \section{Nota metodológica}\label{sec:matriz-nota}
 
-El workspace contiene \textbf{395 funciones de prueba}: 394 se ejecutan en verde en cada corrida y una se declara ignorada (\texttt{\#[ignore]}) porque es una prueba de humo contra el sandbox del proveedor externo de sellado de tiempo. El registro se completó, pero la API observada no ofrece estabilidad suficiente para una prueba determinista y el sandbox requiere pago; por ello, la prueba ignorada se conserva como referencia del adaptador y no se agenda como campaña de entrega. El resto del adaptador correspondiente se prueba contra un stub HTTP local, de modo que la suite regular no depende de ningún servicio de red ni incurre en costo externo.
+El workspace contiene \textbf{520 funciones de prueba}: el corte ejecutó 519 satisfactoriamente, sin fallos, y mantuvo una ignorada (\texttt{\#[ignore]}) correspondiente al proveedor externo de sellado. El adaptador externo se ejercita contra un sustituto HTTP local; la prueba del servicio comercial no forma parte de la evidencia reproducida. La suite también utiliza PostgreSQL y Redis locales reales en entornos desechables.
 
-Los nombres de las funciones de prueba son frases completas en \texttt{snake\_case} (en inglés, como todo identificador del código fuente) que describen el comportamiento verificado: por ejemplo, \texttt{a\_code\_is\_accepted\_once\_and\_rejected\_on\_reuse} documenta por sí misma la regla de un solo uso de los códigos de recuperación. Este estilo convierte al inventario de pruebas en la \emph{especificación ejecutable} del prototipo: la lectura de los nombres de una suite enumera las obligaciones de comportamiento del módulo correspondiente, y la corrida en verde certifica que todas se cumplen. Por esa razón la matriz no parafrasea cada prueba: agrupa las 395 funciones por crate y por archivo o módulo, indica su tipo y cita dos o tres nombres representativos por fila. El inventario íntegro se reproduce con \texttt{cargo test --workspace} sobre el repositorio.
+Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
 
 La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las pruebas usan dobles deterministas escritos a mano (el crate no depende de ninguna biblioteca criptográfica); en \texttt{application} usan mocks o fakes de los puertos para probar la orquestación y la propagación de errores; en \texttt{infrastructure} ejercitan los adaptadores con criptografía real y herramientas del sistema; en \texttt{web} verifican el contrato HTTP sobre un workflow inyectado; y en \texttt{bin} ejecutan el binario compilado \texttt{despacho-cli} como subproceso. La \cref{tab:matriz-tipos} define la taxonomía de tipos empleada en la matriz y sus abreviaturas.
 
@@ -26,7 +26,7 @@ La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las p
     Propiedad (Prop.) & Prueba basada en propiedades con \texttt{proptest}: la propiedad debe sostenerse para entradas generadas aleatoriamente. \\
     Mutación (Mut.) & Alteración deliberada de un byte o un bit de un artefacto (documento, firma, certificado, payload cifrado, línea de bitácora) para comprobar que la verificación lo rechaza y señala el punto exacto. \\
     Interoperabilidad (Interop.) & Verificación cruzada con software independiente del propio: \texttt{openssl}, \texttt{sha256sum} y \texttt{unzip}. \\
-    Integración (Integr.) & Adaptador real contra recursos locales: archivos compartidos, subprocesos, hilos concurrentes o un stub HTTP en \texttt{127.0.0.1}. \\
+    Integración (Integr.) & Integración de componentes o adaptadores con recursos locales: PostgreSQL, Redis, archivos, subprocesos, hilos concurrentes o un stub HTTP en \texttt{127.0.0.1}. \\
     E2E & Extremo a extremo: la prueba ejecuta el binario compilado como subproceso y examina salidas, archivos producidos y códigos de salida. \\
     Arquitectura (Arq.) & \emph{Fitness function} que fija una regla estructural del sistema \cite{ford2023}: dependencias del dominio (FF-1), no fuga de secretos en logs (FF-2) y cobertura de puertos con adaptador y mock (FF-3). \\
     \bottomrule
@@ -35,23 +35,23 @@ La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las p
 
 \section{Matriz de pruebas}\label{sec:matriz-tabla}
 
-La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por crate y la \cref{tab:matriz-pruebas} presenta la matriz completa: una fila por archivo o módulo de prueba, agrupadas por crate. La columna \textbf{N} indica el número de funciones de prueba del archivo; la suma de la columna es 395. Las rutas se abrevian respecto de la raíz de cada crate: \texttt{src/} señala pruebas unitarias embebidas en el módulo (\texttt{\#[cfg(test)]}) y \texttt{tests/} señala binarios de prueba de integración. En la fila del stub del proveedor de sellado, la anotación $(+1)$ corresponde a la única prueba ignorada.
+La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por crate y la \cref{tab:matriz-pruebas} presenta la matriz completa: una fila por archivo o módulo de prueba, agrupadas por crate. La columna \textbf{N} indica el número de funciones de prueba del archivo; la suma de la columna es 520. Las rutas se abrevian respecto de la raíz de cada crate: \texttt{src/} señala pruebas unitarias embebidas en el módulo (\texttt{\#[cfg(test)]}) y \texttt{tests/} señala binarios de prueba de integración. En la fila del stub del proveedor de sellado, la anotación $(+1)$ corresponde a la única prueba ignorada.
 
 \begin{table}[H]
   \centering
-  \caption{Distribución de las 395 funciones de prueba por crate. El conteo de integración de \texttt{infrastructure} incluye la prueba ignorada.}
+  \caption{Distribución de las 520 funciones de prueba por crate. El conteo de integración de \texttt{infrastructure} incluye la prueba ignorada.}
   \label{tab:matriz-resumen}
   \begin{tabularx}{\linewidth}{@{}X R{3.4cm} R{3.8cm} R{2.0cm}@{}}
     \toprule
     \textbf{Crate} & \textbf{Unitarias (\texttt{src/})} & \textbf{Integración (\texttt{tests/})} & \textbf{Total} \\
     \midrule
-    \texttt{domain} & 69 & 3 & 72 \\
-    \texttt{application} & 39 & 46 & 85 \\
-    \texttt{infrastructure} & 86 & 91 & 177 \\
-    \texttt{bin} & 3 & 52 & 55 \\
-    \texttt{web} & 1 & 5 & 6 \\
+    \texttt{domain} & 69 & 16 & 85 \\
+    \texttt{application} & 39 & 85 & 124 \\
+    \texttt{infrastructure} & 86 & 143 & 229 \\
+    \texttt{bin} & 3 & 53 & 56 \\
+    \texttt{web} & 6 & 20 & 26 \\
     \midrule
-    Total & 198 & 197 & 395 \\
+    Total & 203 & 317 & 520 \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -76,7 +76,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
   \endfoot
   \bottomrule
   \endlastfoot
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}} --- 69 pruebas unitarias en \texttt{src/} y 3 de integración} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}} --- 69 funciones en \texttt{src/} y 16 en \texttt{tests/}} \\
   \midrule
   \texttt{src/audit/chain.rs} & 10 & Unit. & \texttt{an\_intact\_chain\_verifies\_as\_valid}\newline
     \texttt{truncating\_the\_tail\_is\_not\_detected\_by\_verification\_alone} \\
@@ -106,8 +106,10 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
     \texttt{ports\_are\_object\_safe\_and\_round\_trip} \\
   \texttt{tests/identity.rs} & 3 & Integr. & \texttt{roles\_have\_stable\_storage\_names}\newline
     \texttt{role\_permissions\_follow\_the\_conservative\_matrix} \\
+  \texttt{tests/\allowbreak{}cases.rs} & 7 & Unit., Integr. & \texttt{case\_policy\_covers\_every\_role\_and\_membership\_state}\newline\texttt{client\_case\_visibility\_does\_not\_grant\_document\_permissions} \\
+  \texttt{tests/\allowbreak{}persisted\_invariants.rs} & 6 & Unit. & \texttt{maximum\_document\_version\_returns\_an\_error\_without\_wrapping}\newline\texttt{persisted\_recovery\_sets\_require\_exactly\_the\_issued\_slot\_count} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}} --- 39 unitarias en \texttt{src/} y 46 en \texttt{tests/}, con dobles de los puertos} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}} --- 39 funciones en \texttt{src/} y 85 en \texttt{tests/}, con dobles de los puertos} \\
   \midrule
   \texttt{src/audit.rs} & 8 & Unit. & \texttt{append\_takes\_the\_timestamp\_from\_the\_clock\_and\_returns\_the\_stored\_entry}\newline
     \texttt{verify\_reports\_the\_first\_index\_whose\_chain\_does\_not\_match} \\
@@ -125,7 +127,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
   \texttt{tests/document\_record.rs} & 2 & Unit. & \texttt{a\_pending\_record\_becomes\_sealed\_once}\newline
     \texttt{a\_record\_rejects\_a\_name\_that\_cannot\_enter\_an\_evidence\_archive} \\
   \texttt{tests/document\_repository\_port.rs} & 1 & Unit. & \texttt{the\_repository\_port\_is\_object\_safe\_and\_round\_trips\_a\_record} \\
-  \texttt{tests/document\_workflow.rs} & 4 & Integr. & \texttt{upload\_seal\_verify\_export\_and\_audit\_form\_one\_workflow}\newline
+  \texttt{tests/document\_workflow.rs} & 10 & Integr. & \texttt{upload\_seal\_verify\_export\_and\_audit\_form\_one\_workflow}\newline
     \texttt{a\_document\_cannot\_be\_sealed\_twice} \\
   \texttt{tests/evidence\_package.rs} & 7 & Unit. & \texttt{the\_package\_holds\_every\_artifact\_in\_order\_under\_the\_documented\_names}\newline
     \texttt{the\_instructions\_fill\_every\_placeholder} \\
@@ -137,10 +139,13 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
     \texttt{without\_a\_token\_integrity\_and\_timestamp\_are\_skipped\_with\_reasons} \\
   \texttt{tests/verify\_document\_failures.rs} & 7 & Unit. & \texttt{an\_imprint\_mismatch\_fails\_integrity\_and\_timestamp}\newline
     \texttt{a\_revoked\_certificate\_reports\_the\_matched\_serial} \\
-  \texttt{tests/identity\_workflow.rs} & 3 & Integr. & \texttt{owner\_bootstrap\_login\_totp\_authorization\_and\_logout\_form\_one\_flow}\newline
+  \texttt{tests/identity\_workflow.rs} & 10 & Integr. & \texttt{owner\_bootstrap\_login\_totp\_authorization\_and\_logout\_form\_one\_flow}\newline
     \texttt{repeated\_bad\_passwords\_lock\_the\_login\_window} \\
+  \texttt{tests/\allowbreak{}case\_workflow.rs} & 10 & Integr. & \texttt{revoked\_membership\_is\_observed\_on\_next\_request\_with\_same\_session}\newline\texttt{unknown\_and\_foreign\_cases\_have\_the\_same\_error} \\
+  \texttt{tests/\allowbreak{}case\_document\_workflow.rs} & 10 & Integr. & \texttt{session\_revocation\_during\_preparation\_prevents\_every\_commit}\newline\texttt{wrong\_case\_errors\_from\_storage\_are\_preserved\_even\_for\_owner} \\
+  \texttt{tests/\allowbreak{}identity\_support/\allowbreak{}failure\_tests.rs} & 6 & Integr. & \texttt{audit\_failure\_discards\_sessions\_created\_by\_either\_second\_factor}\newline\texttt{logout\_audit\_failure\_keeps\_the\_session\_revoked} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}} --- 86 unitarias en \texttt{src/} y 91 de integración en \texttt{tests/} (una ignorada)} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}} --- 86 funciones en \texttt{src/} y 143 en \texttt{tests/} (una ignorada)} \\
   \midrule
   \texttt{src/archive.rs} & 6 & Unit., vect. & \texttt{crc32\_matches\_the\_standard\_check\_value}\newline
     \texttt{output\_is\_deterministic} \\
@@ -183,14 +188,14 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
     \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} \\
   \texttt{tests/aes\_gcm\_vectors.rs} & 7 & Vect. & \texttt{encrypt\_vector\_tc16\_with\_aad}\newline
     \texttt{decrypt\_vector\_tc14\_with\_wrong\_tag\_fails} \\
-  \texttt{tests/audit\_log.rs} & 8 & Integr., prop., mut. & \texttt{concurrent\_appends\_serialize\_into\_one\_valid\_chain}\newline
+  \texttt{tests/audit\_log.rs} & 10 & Integr., prop., mut. & \texttt{concurrent\_appends\_serialize\_into\_one\_valid\_chain}\newline
     \texttt{any\_single\_corruption\_is\_detected\_at\_its\_index} \\
   \texttt{tests/certificate\_validation.rs} & 11 & Interop., mut. & \texttt{openssl\_verify\_agrees\_on\_the\_valid\_and\_revoked\_cases}\newline
     \texttt{corrupting\_one\_signature\_byte\_makes\_the\_issuer\_untrusted} \\
   \texttt{tests/cincel\_stub.rs} & 13 $(+1)$ & Integr. & \texttt{a\_processing\_submission\_is\_polled\_until\_the\_token\_arrives}\newline
     \texttt{the\_api\_key\_travels\_in\_the\_header\_and\_never\_into\_errors}\newline
     ignorada: \texttt{the\_real\_sandbox\_issues\_a\_token} \\
-  \texttt{tests/file\_document\_repository.rs} & 6 & Integr. & \texttt{insert\_and\_find\_round\_trip\_a\_pending\_record}\newline
+  \texttt{tests/file\_document\_repository.rs} & 9 & Integr. & \texttt{insert\_and\_find\_round\_trip\_a\_pending\_record}\newline
     \texttt{stored\_identity\_must\_match\_the\_requested\_path} \\
   \texttt{tests/identity\_backends.rs} & 2 & Integr. & \texttt{postgres\_persists\_users\_and\_closes\_bootstrap\_atomically}\newline
     \texttt{redis\_sessions\_are\_opaque\_replay\_safe\_and\_revocable} \\
@@ -209,8 +214,20 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
     \texttt{the\_signer\_debug\_form\_withholds\_the\_private\_key} \\
   \texttt{tests/zip\_archive.rs} & 2 & Interop., mut. & \texttt{unzip\_accepts\_the\_archive\_and\_extraction\_restores\_every\_byte}\newline
     \texttt{unzip\_detects\_a\_flipped\_byte\_through\_the\_crc} \\
+  \texttt{tests/\allowbreak{}case\_backends.rs} & 7 & Integr. & \texttt{postgres\_filters\_before\_applying\_stable\_pagination}\newline\texttt{postgres\_rolls\_back\_case\_creation\_when\_creator\_membership\_cannot\_be\_stored} \\
+  \texttt{tests/\allowbreak{}identity\_transactions.rs} & 3 & Integr. & \texttt{an\_audit\_failure\_rolls\_back\_bootstrap\_and\_preserves\_retry}\newline\texttt{user\_creation\_and\_recovery\_updates\_roll\_back\_when\_audit\_commit\_fails} \\
+  \texttt{tests/\allowbreak{}legacy\_import.rs} & 3 & Integr., Mut. & \texttt{inspection\_preserves\_source\_bytes\_and\_includes\_nanosecond\_audit\_history}\newline\texttt{inspection\_rejects\_wrong\_key\_changed\_metadata\_and\_broken\_history} \\
+  \texttt{tests/\allowbreak{}legacy\_database\_import.rs} & 9 & Integr., Mut. & \texttt{import\_preserves\_encrypted\_bytes\_and\_exact\_nanosecond\_audit\_prefix}\newline\texttt{startup\_rejects\_missing\_or\_corrupted\_import\_data\_despite\_a\_matching\_receipt} \\
+  \texttt{tests/\allowbreak{}legacy\_fences.rs} & 2 & Integr. & \texttt{failed\_database\_commit\_keeps\_a\_durable\_source\_fence\_until\_retry\_completes}\newline\texttt{a\_postcommit\_marker\_failure\_reports\_committed\_state\_and\_preserves\_source\_fences} \\
+  \texttt{tests/\allowbreak{}postgres\_documents.rs} & 4 & Integr. & \texttt{audit\_insert\_failure\_rolls\_back\_document\_creation}\newline\texttt{competing\_seals\_capture\_one\_evidence\_value\_and\_one\_success\_event} \\
+  \texttt{tests/\allowbreak{}postgres\_document\_failures.rs} & 2 & Integr. & \texttt{a\_deferred\_commit\_failure\_rolls\_back\_both\_document\_and\_success\_event}\newline\texttt{an\_audit\_failure\_preserves\_both\_prior\_evidence\_state\_and\_membership} \\
+  \texttt{tests/\allowbreak{}postgres\_document\_concurrency.rs} & 2 & Integr. & \texttt{revocation\_waits\_for\_an\_authorized\_commit\_and\_blocks\_the\_next\_commit}\newline\texttt{independent\_document\_case\_and\_identity\_audit\_writers\_extend\_one\_chain} \\
+  \texttt{tests/\allowbreak{}postgres\_runtime\_permissions.rs} & 6 & Integr. & \texttt{runtime\_rejects\_ownership\_of\_document\_protection\_and\_import\_receipts}\newline\texttt{runtime\_rejects\_a\_write\_role\_it\_can\_assume\_without\_inheriting} \\
+  \texttt{tests/\allowbreak{}postgres\_startup.rs} & 1 & Integr. & \texttt{user\_and\_case\_adapters\_share\_the\_migration\_lock\_and\_initialize\_a\_fresh\_schema} \\
+  \texttt{tests/\allowbreak{}redis\_session\_atomicity.rs} & 6 & Integr. & \texttt{concurrent\_callers\_can\_take\_a\_challenge\_exactly\_once}\newline\texttt{reading\_a\_locked\_legacy\_counter\_repairs\_its\_missing\_expiration} \\
+  \texttt{tests/\allowbreak{}redis\_timeouts.rs} & 2 & Integr. & \texttt{an\_established\_connection\_times\_out\_when\_a\_command\_never\_receives\_a\_reply}\newline\texttt{zero\_connection\_or\_io\_timeouts\_are\_rejected} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{bin} (\texttt{despacho-cli})} --- 3 unitarias en \texttt{src/} y 52 E2E en \texttt{tests/} sobre el binario compilado} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{bin} (\texttt{despacho-cli})} --- 3 funciones en \texttt{src/} y 53 en \texttt{tests/}} \\
   \midrule
   \texttt{src/cli.rs} & 1 & Unit. & \texttt{command\_tree\_is\_valid} \\
   \texttt{src/timestamp\_cmd.rs} & 2 & Unit. & \texttt{the\_token\_suffix\_keeps\_the\_original\_extension}\newline
@@ -222,7 +239,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
     \texttt{totp\_enroll\_writes\_the\_secret\_and\_a\_current\_code\_verifies} \\
   \texttt{tests/crypto\_hash.rs} & 3 & E2E, vect. & \texttt{prints\_the\_lowercase\_hex\_digest}\newline
     \texttt{fails\_when\_the\_file\_does\_not\_exist} \\
-  \texttt{tests/help.rs} & 1 & E2E & \texttt{help\_succeeds\_and\_names\_the\_binary} \\
+  \texttt{tests/help.rs} & 2 & E2E & \texttt{help\_succeeds\_and\_names\_the\_binary} \\
   \texttt{tests/log\_redaction.rs} & 3 & Arq. & \texttt{vault\_encrypt\_never\_logs\_the\_kek}\newline
     \texttt{hash\_password\_never\_logs\_the\_password} \\
   \texttt{tests/package\_cli.rs} & 6 & E2E, interop., mut. & \texttt{the\_documented\_openssl\_commands\_verify\_the\_extracted\_package}\newline
@@ -239,39 +256,41 @@ La \cref{tab:matriz-resumen} resume la distribución de las 395 funciones por cr
   \texttt{tests/verify\_cli.rs} & 9 & E2E, mut. & \texttt{an\_intact\_document\_verifies\_valid\_on\_every\_component}\newline
     \texttt{a\_revoked\_certificate\_reports\_its\_serial\_from\_the\_fresh\_crl} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{web}} --- 1 unitaria en \texttt{src/} y 5 de contrato en \texttt{tests/}} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{web}} --- 6 funciones en \texttt{src/} y 20 en \texttt{tests/}} \\
   \midrule
-  \texttt{src/lib.rs} & 1 & Unit. & \texttt{health\_endpoint\_reports\_ready} \\
-  \texttt{tests/auth\_api.rs} & 2 & Integr. & \texttt{enrollment\_login\_totp\_me\_and\_logout\_have\_stable\_contracts}\newline
-    \texttt{invalid\_login\_and\_client\_authorization\_have\_distinct\_statuses} \\
-  \texttt{tests/document\_api.rs} & 3 & Integr. & \texttt{the\_document\_routes\_expose\_the\_complete\_workflow}\newline
-    \texttt{upload\_requires\_bearer\_token\_and\_document\_name\_header}\newline
-    \texttt{an\_unknown\_document\_maps\_to\_not\_found} \\
+  \texttt{src/\allowbreak{}lib.rs} & 1 & Unit. & \texttt{health\_endpoint\_reports\_ready} \\
+  \texttt{src/\allowbreak{}runtime/\allowbreak{}tests.rs} & 5 & Integr. & \texttt{cancelling\_http\_future\_does\_not\_release\_running\_blocking\_work}\newline\texttt{admission\_rejects\_before\_reading\_an\_extra\_request\_body\_and\_recovers} \\
+  \texttt{tests/\allowbreak{}auth\_api.rs} & 4 & Integr. & \texttt{identity\_json\_has\_a\_small\_body\_limit\_and\_rejects\_spoofed\_fields}\newline\texttt{bearer\_headers\_reject\_ambiguity\_and\_accept\_case\_insensitive\_scheme} \\
+  \texttt{tests/\allowbreak{}case\_api.rs} & 8 & Integr. & \texttt{cases\_route\_methods\_pass\_the\_bearer\_token\_and\_return\_the\_contract}\newline\texttt{create\_rejects\_spoofed\_identity\_fields\_and\_oversized\_bodies} \\
+  \texttt{tests/\allowbreak{}document\_api.rs} & 8 & Integr. & \texttt{legacy\_document\_routes\_are\_absent\_and\_never\_invoke\_a\_workflow}\newline\texttt{foreign\_and\_unknown\_documents\_have\_identical\_not\_found\_responses} \\
 \end{longtable}
 \endgroup
 
-El crate \texttt{web} conserva la prueba de \texttt{/healthz}, tres pruebas del workflow documental protegido y dos del contrato de identidad. Los casos de uso se prueban en memoria y los adaptadores PostgreSQL/Redis contra procesos locales reales; \texttt{scripts/api-demo.sh} integra ambas capas con la TSA local.
+La matriz incorpora pruebas de autorización vigente, atomicidad, migración y privilegios además del núcleo criptográfico. En particular, las pruebas de PostgreSQL fuerzan fallos de inserción y commit; las de importación conservan bytes y marcas de tiempo, rechazan fuentes alteradas y restauraciones parciales, y ensayan errores de marcadores posteriores al commit. Las funciones de permisos cubren propiedad, columnas, esquemas y roles asumibles. Las fronteras HTTP rechazan suplantación, ambigüedad de cabeceras, acceso cruzado y rutas documentales retiradas.
 
-Dos lecturas transversales de la matriz merecen mención. Primera, todo servicio criptográfico cuenta con al menos un caso positivo y al menos un caso negativo, como exige el criterio de éxito de OE-6; los casos negativos dominan numéricamente porque el valor probatorio del sistema depende de que los rechazos sean correctos y diagnósticos. Segunda, las pruebas de mutación de un byte materializan el criterio de OE-4 (detección del 100\,\% de alteraciones de un byte): la suite altera deliberadamente documentos firmados, firmas, certificados, payloads cifrados, miembros del paquete de evidencia y líneas de la bitácora, y en todos los casos verifica el rechazo; la prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} cubre además la exigencia de cero reutilizaciones de nonce en una suite de 10\,000 cifrados.
+Los casos de mutación incluyen documentos, firmas, certificados, paquetes cifrados, ZIP y auditoría. Su rechazo demuestra el comportamiento sobre los artefactos y alteraciones ensayados; no equivale a probar todas las entradas posibles. De igual modo, 10\,000 nonces distintos en la prueba correspondiente son evidencia sobre esa muestra, no una garantía matemática de ausencia de colisiones futuras.
 
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
-La ejecución de \texttt{cargo test --workspace} reporta \textbf{394 pruebas en verde, 0 fallos y 1 ignorada}, distribuidas en 44 binarios de prueba. Sobre un árbol ya compilado, la suite completa termina en segundos; las pruebas más costosas son las que ejecutan subprocesos reales de \texttt{openssl} y del binario propio. Este costo bajo es deliberado: los instantes de evaluación de los certificados se derivan de la ventana de validez parseada del propio certificado y no de esperas de reloj, de modo que la suite es determinista y puede correrse en cada cambio sin fricción.
+El informe del 12 de septiembre registra \textbf{519 pruebas aprobadas, 0 fallos y 1 ignorada}; la ejecución completa durante la medición de cobertura confirma ese resultado. Formato, compilación, Clippy, umbrales y demostraciones terminaron con código cero. No se atribuye al corte una duración total ni una medición de carga que no fueron registradas.
 
-Los conteos y la cobertura de este anexo se reproducen con tres comandos sobre la raíz del repositorio, los mismos que ejecuta el flujo de integración continua:
+\rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:
 
 \begin{lstlisting}[numbers=none]
-cargo test --workspace
-cargo llvm-cov --workspace --json --summary-only \
+bash scripts/test-backends.sh
+bash scripts/test-backends.sh cargo llvm-cov \
+    --workspace --json --summary-only \
     --output-path coverage.json
-scripts/coverage-gate.sh coverage.json
+bash scripts/coverage-gate.sh coverage.json
+bash scripts/demo.sh
+bash scripts/api-demo.sh
 \end{lstlisting}
 
 \subsection{Cobertura de líneas por crate}\label{sec:matriz-cobertura}
 
-La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. La \cref{tab:matriz-cobertura} presenta la salida del gate.
+La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. La \cref{tab:matriz-cobertura} presenta la medición del 12 de septiembre: 8\,026 de 8\,845 líneas, equivalentes a 90.7\,\% global. Los tres umbrales obligatorios aprobaron.
 
 \begin{table}[H]
   \centering
@@ -281,28 +300,32 @@ La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umb
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas totales} & \textbf{Cobertura} & \textbf{Umbral} \\
     \midrule
-    \texttt{domain} & 973 & 1\,013 & 96.1\,\% & $\geq$ 90\,\% \\
-    \texttt{application} & 1\,749 & 1\,885 & 92.8\,\% & $\geq$ 90\,\% \\
-    \texttt{infrastructure} & 2\,257 & 2\,436 & 92.7\,\% & $\geq$ 90\,\% \\
-    \texttt{bin} & 834 & 1\,034 & 80.7\,\% & sin umbral (informativo) \\
-    \texttt{web} & 319 & 436 & 73.2\,\% & sin umbral (informativo) \\
+    \texttt{domain} & 1\,045 & 1\,079 & 96.8\,\% & $\geq$ 90\,\% \\
+    \texttt{application} & 2\,073 & 2\,212 & 93.7\,\% & $\geq$ 90\,\% \\
+    \texttt{infrastructure} & 3\,496 & 3\,785 & 92.4\,\% & $\geq$ 90\,\% \\
+    \texttt{bin} & 834 & 1\,086 & 76.8\,\% & sin umbral (informativo) \\
+    \texttt{web} & 578 & 683 & 84.6\,\% & sin umbral (informativo) \\
     \midrule
-    Total del workspace & 6\,132 & 6\,804 & 90.1\,\% & --- \\
+    Total del workspace & 8\,026 & 8\,845 & 90.7\,\% & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
-El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=256$ MiB, $t=2$, $p=1$; véase §3.11.5) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de referencia AMD Ryzen 7 7730U la calibración de la demostración de cierre del 17 de agosto de 2026 reportó una \textbf{media de 529.4 ms sobre cinco corridas}, dentro de la banda objetivo, y fijó los parámetros en el adaptador. Si el hardware de despliegue difiere, la calibración debe repetirse; la suite conserva los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
+El comando \texttt{auth calibrate} mide el costo real del hash de contraseñas con los parámetros fijos del prototipo (Argon2id con $m=256$ MiB, $t=2$, $p=1$; véase \cref{sec:autenticacion}) contra la banda objetivo de 0.5--1.0 segundos por intento \cite{owasp_pwstorage2024,biryukov2021}. En el hardware de referencia AMD Ryzen 7 7730U la calibración de la demostración de cierre del 17 de agosto de 2026 reportó una \textbf{media de 529.4 ms sobre cinco corridas}, dentro de la banda objetivo, y fijó los parámetros en el adaptador. Para caracterizar el entorno de despliegue debe repetirse; la suite conserva los bordes inclusivos de la banda (\texttt{band\_edges\_are\_inclusive}).
 
-\subsection{Transcripción de la demostración}\label{sec:matriz-demo}
+\subsection{Demostraciones y límites de la evidencia}\label{sec:matriz-demo}
 
-La evidencia de ejecución de cara al usuario final comprende dos guiones. \texttt{scripts/demo.sh} recorre por CLI el ciclo de vida completo de la evidencia, autenticación y bitácora; su transcripción íntegra, capturada sobre OpenSSL 3.5.7, está versionada en \texttt{docs/demo-transcript.md}. \texttt{scripts/api-demo.sh} genera una PKI temporal, arranca la aplicación sobre un puerto efímero y recorre carga, persistencia cifrada, sellado, verificación, exportación y auditoría a través de HTTP; después comprueba el ZIP con \texttt{openssl} y \texttt{unzip}. Cada condición de ambos guiones es un punto de verificación real y cualquiera aborta ante un resultado inesperado. El Anexo~\ref{anexo:verificacion} reproduce y explica la porción de la primera transcripción dedicada a la verificación independiente del paquete de evidencia.
+\texttt{scripts/demo.sh} recorre la CLI; su transcripción versionada en \texttt{docs/demo-transcript.md} conserva las salidas históricas explicadas en el Anexo~\ref{anexo:verificacion}. El guion volvió a terminar sin errores el 12 de septiembre. \texttt{scripts/api-demo.sh} prepara PKI, TSA, PostgreSQL y Redis temporales; comprueba cuatro roles, dos expedientes, acceso por asignación, denegación documental de Cliente y revocación usando la misma sesión. Los UUID ajenos e inexistentes tienen respuestas equivalentes y las rutas globales retiradas no ofrecen un camino alterno.
+
+El mismo guion invoca \rutarepo{scripts/api-concurrency-demo.sh}: dos procesos del servidor compiten por sellar la misma versión, obtienen \texttt{200} y \texttt{409}, conservan un único evento de sellado y entregan ZIP idénticos. Después, \rutarepo{scripts/api-migration-demo.sh} importa cuatro documentos, tres sellados, preserva exactamente 46 entradas históricas, repite la importación sin duplicación y restaura una copia de \texttt{pg\_dump} con \texttt{pg\_restore}. Compara el estado SQL y la evidencia byte por byte; reinicia sobre la base restaurada y verifica con OpenSSL firma, certificado/CRL y sello. Estas ejecuciones emplean datos generados, no documentación del usuario.
+
+La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Los límites persisten: una respuesta confirmada antes de revocar puede terminar de transmitirse; PostgreSQL y Redis no forman una transacción distribuida; la limpieza de credenciales ante fallos depende de su caducidad si Redis tampoco responde. La validación histórica del firmante usa el instante del sello, mientras que la TSA mantiene la política actual de OpenSSL. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
-Toda la evidencia anterior se regenera automáticamente en cada cambio: el flujo de integración continua del repositorio (\texttt{.github/workflows/ci.yml}) ejecuta siete jobs sobre cada push y cada pull request, y el fallo de cualquiera de ellos ---salvo el job \texttt{msrv}, hoy informativo--- bloquea la integración del cambio. La \cref{tab:matriz-ci} los enumera. De este modo, la matriz de este anexo no describe una fotografía única sino un invariante mantenido: las 394 pruebas en verde, los umbrales de cobertura y las fitness functions se verifican en cada modificación del código.
+El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cada push y solicitud de integración. Los jobs de pruebas y cobertura crean PostgreSQL y Redis reales y configuran las cuatro variables del entorno aislado. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
 
 \begin{table}[H]
   \centering
@@ -314,8 +337,8 @@ Toda la evidencia anterior se regenera automáticamente en cada cambio: el flujo
     \midrule
     \texttt{format} & Formato canónico del código con \texttt{rustfmt}. \\
     \texttt{lint} & \texttt{clippy} con advertencias promovidas a error (\texttt{-D warnings}). \\
-    \texttt{test} & La suite completa de este anexo: \texttt{cargo test --workspace}. \\
-    \texttt{msrv} & Compilación con la versión mínima soportada del compilador (Rust 1.78); informativo. \\
+    \texttt{test} & \texttt{cargo test --workspace} con PostgreSQL, Redis y bases aisladas configuradas. \\
+    \texttt{msrv} & Comprobación del workspace con la versión mínima soportada del compilador (Rust 1.88); obligatoria. \\
     \texttt{coverage} & Cobertura con \texttt{cargo-llvm-cov} y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:matriz-cobertura}). \\
     \texttt{deny} & \texttt{cargo-deny}: avisos de seguridad de dependencias, licencias, duplicados y fuentes permitidas. \\
     \texttt{binary-size} & Tamaño del binario de release acotado a 25 MB (fitness function FF-5). \\

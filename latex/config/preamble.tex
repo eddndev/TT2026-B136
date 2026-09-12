@@ -54,6 +54,8 @@
 
 % ---------- Gráficos y figuras --------------------------------------
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,babel}
 \graphicspath{{figures/}}
 \usepackage{float}
 \usepackage{subcaption}
@@ -131,9 +133,9 @@
 
 % ---------- Encabezados y pies (fancyhdr) ---------------------------
 \usepackage{fancyhdr}
-% fancyhdr exige al menos 13.6pt de alto de encabezado con esta fuente.
-\setlength{\headheight}{13.6pt}
-\addtolength{\topmargin}{-1.6pt}
+% Reserve enough height for the measured Times New Roman header.
+\setlength{\headheight}{14pt}
+\addtolength{\topmargin}{-2pt}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}

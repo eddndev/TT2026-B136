@@ -79,6 +79,21 @@ version check, coverage measurement, a dependency policy check (`cargo deny
 check` against `deny.toml`), and a release binary size guard. See
 `.github/workflows/ci.yml`.
 
+## Academic report maintenance
+
+Every functional delivery must update the affected implementation, testing
+and annex sections under `latex/` alongside the API contract, ADRs and
+verification report. Integrate necessary design corrections into the relevant
+academic prose, without editorial notes about previous versions or revisions.
+Preserve the approved abstract, objectives and state of the art unless their
+revision is explicitly requested. Keep conclusions pending until the project
+is complete. Describe implemented behavior, reproduced evidence and remaining
+limitations; do not present planned features or historical measurements as
+current results. Preserve and reconcile existing document edits. Build changed
+report sources with the commands in `latex/README.md`, inspect the rendered
+PDF, and keep the generated report PDF untracked. Documentation updates are
+part of completion, not a deferred task after integration.
+
 ## Resuming work and comparing checkouts
 
 - Recheck the active branch, working tree, and remote branch tips before using

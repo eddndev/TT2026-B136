@@ -1,0 +1,66 @@
+\begin{tikzpicture}[
+  x=1pt, y=1pt,
+  font=\fontsize{10}{12}\selectfont,
+  box/.style={draw=ipnvino!65, fill=white, rounded corners=3pt,
+    line width=0.7pt, align=center, inner sep=4pt},
+  flow/.style={-{Latex[length=4pt,width=3pt]}, draw=ipnvino!85,
+    line width=0.8pt},
+  service/.style={box, fill=codebg, text width=77pt, minimum height=65pt,
+    font=\fontsize{9.5}{11.5}\selectfont},
+  proposed/.style={service, dashed, draw=codecmt},
+]
+  \path[use as bounding box] (0,0) rectangle (470,350);
+
+  \node[box, fill=ipnvino!6, text width=342pt, minimum height=38pt]
+    (browser) at (235,325)
+    {\textbf{Interfaz de navegador propuesta}\\Astro + Svelte};
+
+  \draw[draw=ipnvino!65, fill=ipnvino!3, rounded corners=5pt,
+    line width=0.8pt] (15,107) rectangle (455,280);
+  \node[font=\bfseries\fontsize{11}{13}\selectfont, text=ipnvino]
+    at (235,265) {API HTTP \textemdash{} Rust / Axum};
+  \draw[flow] (browser.south) -- (235,281)
+    node[midway, right, font=\fontsize{9}{11}\selectfont]
+    {HTTP / bearer opaco};
+
+  \node[box, text width=111pt, minimum height=42pt]
+    (admission) at (85,226) {Admisión\\y límites};
+  \node[box, text width=111pt, minimum height=42pt]
+    (validation) at (235,226) {Validación\\de solicitudes};
+  \node[box, text width=111pt, minimum height=42pt]
+    (auth) at (385,226)
+    {Autenticación\\Sesión opaca\\y autorización};
+  \draw[flow] (admission.east) -- (validation.west);
+  \draw[flow] (validation.east) -- (auth.west);
+
+  \node[box, text width=108pt, minimum height=32pt]
+    (handlers) at (135,167) {\textbf{Handlers HTTP}};
+  \node[box, text width=177pt, minimum height=44pt]
+    (usecases) at (327,167)
+    {\textbf{Casos de uso}\\Identidad, expedientes y documentos};
+  \draw[flow] (auth.south) -- (385,196) -- (135,196) -- (handlers.north);
+  \draw[flow] (handlers.east) -- (usecases.west);
+  \node[box, fill=ipnvino!6, text width=398pt, minimum height=18pt,
+    inner sep=2pt, font=\fontsize{9.5}{11.5}\selectfont]
+    (ports) at (235,122) {Puertos de persistencia y criptografía};
+  \draw[flow] (usecases.south) -- (327,132);
+
+  \node[service] (postgres) at (47,50)
+    {\textbf{PostgreSQL}\\Usuarios, casos,\\documentos\\y auditoría};
+  \node[service] (redis) at (141,50)
+    {\textbf{Redis}\\Sesiones y MFA\\Límites y replay};
+  \node[service] (tsa) at (235,50)
+    {\textbf{OpenSSL}\\TSA local\\RFC 3161};
+  \node[proposed] (psc) at (329,50)
+    {\textbf{PSC externo}\\Adaptador\\opcional};
+  \node[proposed] (smtp) at (423,50)
+    {\textbf{SMTP}\\Notificaciones\\propuestas};
+  \draw[draw=ipnvino!85, line width=0.8pt]
+    (ports.south) -- (235,96) -- (47,96);
+  \draw[flow] (47,96) -- (postgres.north);
+  \draw[flow] (141,96) -- (redis.north);
+  \draw[flow] (235,96) -- (tsa.north);
+  \draw[draw=codecmt, dashed, line width=0.8pt] (235,96) -- (423,96);
+  \draw[flow, dashed, draw=codecmt] (329,96) -- (psc.north);
+  \draw[flow, dashed, draw=codecmt] (423,96) -- (smtp.north);
+\end{tikzpicture}

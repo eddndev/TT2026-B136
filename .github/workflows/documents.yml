@@ -43,12 +43,25 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          printf '%s\n' 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' |
-            sudo debconf-set-selections
           sudo --preserve-env=DEBIAN_FRONTEND apt-get install -y --no-install-recommends \
             latexmk texlive-luatex texlive-latex-extra texlive-lang-spanish \
             texlive-bibtex-extra texlive-fonts-recommended texlive-plain-generic biber \
-            fonts-dejavu-core fonts-texgyre ttf-mscorefonts-installer poppler-utils
+            fonts-dejavu-core fonts-texgyre fontconfig poppler-utils curl cabextract
+      - name: Install verified Times New Roman fonts
+        env:
+          TIMES_ARCHIVE_SHA256: db56595ec6ef5d3de5c24994f001f03b2a13e37cee27bc25c58f6f43e8f807ab
+        run: |
+          # Archive provenance and installation policy: docs/adr/0017-report-font-installation.md.
+          font_archive="$RUNNER_TEMP/times32.exe"
+          font_directory="$HOME/.local/share/fonts/report-times"
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --connect-timeout 10 --max-time 60 --retry 3 --retry-max-time 240 \
+            --output "$font_archive" \
+            'https://downloads.sourceforge.net/project/corefonts/the%20fonts/final/times32.exe'
+          printf '%s  %s\n' "$TIMES_ARCHIVE_SHA256" "$font_archive" | sha256sum --check --strict
+          mkdir -p "$font_directory"
+          cabextract --quiet --directory "$font_directory" --filter '*.TTF' "$font_archive"
+          test "$(find "$font_directory" -maxdepth 1 -name '*.TTF' | wc -l)" -eq 4
           fc-cache -f
           test "$(fc-match --format '%{family}' 'Times New Roman')" = 'Times New Roman'
       - name: Compile from the selected revision

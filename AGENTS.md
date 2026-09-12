@@ -87,6 +87,21 @@ toolchain locally. Before committing Rust changes, run:
     cargo test --workspace
     cargo clippy --workspace --all-targets -- -D warnings
 
+## Academic report maintenance
+
+Every functional delivery must update the affected implementation, testing
+and annex sections under `latex/` alongside the API contract, ADRs and
+verification report. Integrate necessary design corrections into the relevant
+academic prose, without editorial notes about previous versions or revisions.
+Preserve the approved abstract, objectives and state of the art unless their
+revision is explicitly requested. Keep conclusions pending until the project
+is complete. Describe implemented behavior, reproduced evidence and remaining
+limitations; do not present planned features or historical measurements as
+current results. Preserve and reconcile existing document edits. Build changed
+report sources with the commands in `latex/README.md`, inspect the rendered
+PDF, and keep the generated report PDF untracked. Documentation updates are
+part of completion, not a deferred task after integration.
+
 ## Resuming work and comparing checkouts
 
 - Recheck the active branch, working tree, and remote branch tips before using
@@ -186,8 +201,10 @@ is still unfinished.
   `frontend/src/components/Hello.svelte` are placeholders, without a product
   interface or an API integration.
 - `latex/main.tex` includes implementation, testing, conclusions, and annexes.
-  Inspect `latex/chapters/06-conclusiones.tex` before describing the document
-  as complete: the reviewed working copy contains pending-content markers.
+  Its implementation and testing distinguish the reproduced backend delivery
+  from pending product and usability work. The approved abstract is preserved;
+  conclusions remain pending until the project is complete. Update affected
+  implementation, testing and annex sections as evidence changes.
   The versioned Beamer presentation starts at
   `presentacion/presentacion.tex`.
 
@@ -213,10 +230,11 @@ Subsequent work follows these dependencies:
    the RSA threat model in `docs/adr/0002-rsa-signing-crate-and-advisory.md`,
    whose CLI-only assumption predates HTTP sealing. External audit-head
    anchoring remains open in `docs/adr/0007-audit-chain-anchoring.md`.
-5. Complete conclusions from reproduced results, reconcile design and
-   presentation text with implemented behavior, and refresh the verification
-   report after functional changes. Rebuild and visually inspect any changed
-   document or presentation using its versioned README instructions.
+5. Keep implementation, testing and annexes aligned with reproduced results,
+   integrate design corrections into academic prose, and refresh the
+   verification report after functional changes. Complete conclusions when
+   the project is finished. Rebuild and visually inspect any changed document
+   or presentation using its versioned README instructions.
 
 For documentation maintenance, distinguish the stateless TOTP primitive in
 `docs/adr/0008-totp-single-use-enforcement.md` from the Redis-backed replay

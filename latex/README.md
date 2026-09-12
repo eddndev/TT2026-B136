@@ -40,11 +40,40 @@ glosarios, Times New Roman y DejaVu Sans Mono en Ubuntu 24.04.
 
 La publicación usa el `GITHUB_TOKEN` del job de subida con permiso
 `contents: write`; la compilación solo tiene acceso de lectura. Las fuentes
-Times New Roman se instalan mediante `ttf-mscorefonts-installer` y no se copian
-al repositorio. Si falta la fuente o falla LaTeX, no se publican los PDF.
+Times New Roman se extraen del archivo original `times32.exe`, descargado por
+HTTPS y comprobado contra un SHA-256 fijo antes de extraer sus cuatro estilos.
+La procedencia y el procedimiento se documentan en
+[ADR-0017](../docs/adr/0017-report-font-installation.md). Las fuentes no se copian
+al repositorio. Si la descarga, su verificación o LaTeX fallan, no se publica
+el PDF.
 
 Quitar los PDF del seguimiento evita incorporar nuevos binarios. Los commits
 históricos que ya los contienen no se reescriben.
+
+## Actualización académica por entrega
+
+El reporte debe acompañar los avances funcionales. Cada entrega actualiza los
+apartados afectados de implementación, pruebas y anexos, además del contrato
+HTTP, las decisiones de arquitectura y el informe técnico. Las correcciones
+necesarias de diseño se integran en sus apartados, como prosa académica continua,
+sin notas editoriales sobre versiones anteriores. El resumen aprobado, los
+objetivos y el estado del arte se conservan salvo solicitud expresa de revisión.
+Las conclusiones permanecen pendientes hasta completar el proyecto. Las funciones
+futuras y las mediciones históricas se identifican como tales.
+
+El corte técnico del 12 de septiembre de 2026 incluye autorización documental
+por expediente, documentos y auditoría transaccionales, migración y restauración.
+Las cifras de 519 pruebas aprobadas y cobertura global del 90.7 % proceden de
+[`docs/verification-report.md`](../docs/verification-report.md).
+La interfaz y la gestión procesal completa siguen pendientes.
+La revisión del reporte se registra en
+[`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
+
+Antes de integrar cambios, compilar desde las fuentes y revisar el PDF: tablas,
+rutas y listados legibles, referencias resueltas, paginación y afirmaciones
+coherentes con la evidencia. Conservar los cambios locales de otros autores y
+no añadir el PDF generado al índice de Git. La presentación es un entregable
+separado; actualizar el reporte no implica que aquella haya sido revisada.
 
 ## Estructura
 
@@ -69,7 +98,7 @@ chapters/
   anexo-d-pki.tex        Anexo D Scripts de la CA interna
   anexo-e-matriz.tex     Anexo E Matriz de pruebas y evidencia
 references.bib           88 referencias (biblatex, estilo IEEE)
-figures/                 Imágenes (image*.png)
+figures/                 Imágenes (image*.png) y diagrama TikZ (despliegue.tex)
 ```
 
 ## Convenciones (mantenibilidad)

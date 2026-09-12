@@ -1,5 +1,9 @@
 # Informe de verificación local
 
+La actualización académica posterior de estos resultados y la comprobación del
+PDF se documentan en [la revisión del reporte](academic-report-verification.md).
+Esa revisión documental no constituye una nueva ejecución de la suite Rust.
+
 ## Corte reproducido: documentos por expediente y auditoría transaccional
 
 - Fecha local: 12 de septiembre de 2026 (`America/Mexico_City`).
