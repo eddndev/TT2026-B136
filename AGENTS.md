@@ -65,6 +65,9 @@ architecture. The dependency direction is enforced by the crate graph:
   may have unrelated uncommitted work in the same tree.
 - Work on a branch, never directly on `main`. Branches merge into `main` with
   squash merge.
+- Name new branches `feat/<description>` for implementation or
+  `progress/<description>` for project documentation and coordination. Use
+  descriptive names for the change and integrate through a pull request.
 
 ## Where rationale lives
 
@@ -83,3 +86,99 @@ toolchain locally. Before committing Rust changes, run:
     cargo build --workspace
     cargo test --workspace
     cargo clippy --workspace --all-targets -- -D warnings
+
+## Resuming work and comparing checkouts
+
+- Recheck the active branch, working tree, and remote branch tips before using
+  a historical status report. Code, migrations, and current test results take
+  precedence over summaries and planned schedules.
+- Before retiring a duplicate checkout, compare branch and tag tips, stashes,
+  changed tracked files, untracked sources, and ignored runtime data. Equal
+  HEAD commits alone do not prove that either directory can be discarded.
+- Preserve existing document edits and generated deliverables when changing
+  assistant guidance. Treat frontend implementation as a separate requested
+  task; the current placeholder does not imply permission to redesign it.
+- For identity integration tests, set `IDENTITY_TEST_DATABASE_URL` and
+  `IDENTITY_TEST_REDIS_URL` to isolated, disposable PostgreSQL and Redis
+  instances. The tests in
+  `crates/infrastructure/tests/identity_backends.rs` return early when these
+  variables are absent, so an ordinary green test run does not prove those
+  adapters were exercised. The PostgreSQL test expects an empty user table.
+- Report freshly executed checks separately from historical measurements in
+  `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
+  `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
+
+## Implemented project state
+
+Reviewed on 2026-09-11. This is a starting map, not a replacement for inspecting
+the working tree. The prototype has a working cryptographic backend and an
+authenticated local HTTP workflow; the complete case-management web product
+is still unfinished.
+
+- The CLI and application services implement SHA-256, AES-256-GCM envelope
+  encryption and KEK rotation, internal PKI and CRLs, RSA-3072 signatures,
+  RFC 3161 timestamps, integral verification, evidence ZIP export, Argon2id,
+  TOTP, recovery codes, and a hash-chained audit log. Entry points are
+  `crates/bin/src/cli.rs` and `crates/application/src/lib.rs`.
+- `crates/web/src/routes.rs` exposes bootstrap, login, MFA, logout, current
+  identity, user creation, document upload, sealing, verification, evidence
+  download, and audit verification. The contract is in `docs/http-api.md`.
+- `migrations/0001_identity.sql` persists users in PostgreSQL. Redis stores
+  revocable opaque sessions, challenges, login limits, and TOTP replay claims.
+  These are not JWT sessions. See
+  `docs/adr/0012-revocable-sessions-and-rbac.md`.
+- Owner, Litigator, and Paralegal have role-based permissions. Client document
+  access is denied until case membership and authorization per resource are
+  persisted. See `crates/domain/src/identity.rs`.
+- Documents remain encrypted local JSON records; audit events remain a
+  separate file. Their writes do not share a transaction. The document
+  workflow creates version 1 and has no listing, search, or version-history
+  API. See `crates/application/src/documents/port.rs`,
+  `crates/infrastructure/src/documents.rs`, and
+  `docs/adr/0011-local-document-workflow.md`.
+- `crates/bin/src/serve_cmd.rs` explicitly selects the local OpenSSL TSA.
+  The external provider adapter and local stub remain available, but a live
+  provider campaign is outside the current delivery. The local TSA is
+  technical demonstration evidence, not an authorized PSC's NOM-151
+  attestation. See `docs/adr/0009-local-timestamp-authority.md`.
+- `frontend/src/pages/index.astro` and
+  `frontend/src/components/Hello.svelte` are placeholders, without a product
+  interface or an API integration.
+- `latex/main.tex` includes implementation, testing, conclusions, and annexes.
+  Inspect `latex/chapters/06-conclusiones.tex` before describing the document
+  as complete: the reviewed working copy contains pending-content markers.
+  The versioned Beamer presentation starts at
+  `presentacion/presentacion.tex`.
+
+## Next work, in dependency order
+
+1. Define cases, participants, and assignments in the domain and application
+   layers, with repository ports and PostgreSQL migrations. Specify and test
+   membership and cross-case isolation before enabling Client access.
+2. Move document persistence and audit writes behind an explicit transaction
+   boundary. Add failure and concurrency tests proving that a rejected
+   mutation does not leave document state and audit history inconsistent.
+   Preserve encryption and captured signature/timestamp evidence.
+3. Add authorized listing, detail, search, and document version history.
+   Define immutable historical evidence and bind each encrypted version to
+   its document identity. Test access denial as well as successful queries.
+4. In a requested frontend task, implement login/MFA, case navigation, upload,
+   sealing, verification, and evidence download against `docs/http-api.md`.
+   Keep business rules and cryptography behind the application ports.
+5. Before public deployment, review TLS, database pooling and asynchronous
+   clients, request concurrency limits, backup/restore, and the RSA threat
+   model in `docs/adr/0002-rsa-signing-crate-and-advisory.md`: that record
+   assumes CLI-only signing, while the current router also exposes sealing.
+   External audit-head anchoring remains an open limitation documented in
+   `docs/adr/0007-audit-chain-anchoring.md`.
+6. Complete conclusions from reproduced results, reconcile design and
+   presentation text with implemented behavior, and refresh the verification
+   report after functional changes. Rebuild and visually inspect any changed
+   document or presentation using its versioned README instructions.
+
+For documentation maintenance, distinguish the stateless TOTP primitive in
+`docs/adr/0008-totp-single-use-enforcement.md` from the Redis-backed replay
+protection already implemented by the HTTP identity workflow. Likewise,
+`X-Actor` in the historical document-workflow ADR was superseded by bearer
+identity in `docs/adr/0012-revocable-sessions-and-rbac.md`; neither item is an
+unimplemented HTTP authentication feature.
