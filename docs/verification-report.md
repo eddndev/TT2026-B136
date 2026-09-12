@@ -163,61 +163,80 @@ por un PSC autorizado.
 - PostgreSQL persiste usuarios y Redis conserva el estado efímero de identidad.
   Documentos y auditoría siguen en archivos locales sin una transacción común;
   la pertenencia a casos y las consultas ampliadas permanecen pendientes.
-  La interfaz documental de `web/` se verifica por separado a continuacion.
+  La interfaz documental de `web/` se verifica por separado a continuación.
 
 La transcripción extensa de una corrida anterior se conserva en
 [`docs/demo-transcript.md`](demo-transcript.md).
 
-## Verificacion de la interfaz web
+## Verificación de la interfaz web
 
 Comprobaciones ejecutadas el 11 de septiembre de 2026 en Windows, con
 Node.js 24.21.0 y npm 11.19.0. Estos resultados corresponden a `web/` y no
-actualizan las mediciones historicas de Rust o criptografia anteriores.
+actualizan las mediciones históricas de Rust o criptografía anteriores.
 
 - `npm test`: 18 pruebas aprobadas del cliente HTTP, errores, sesiones,
-  descarga binaria, nombres compatibles con el ZIP, tamano de documentos,
+  descarga binaria, nombres compatibles con el ZIP, tamaño de documentos,
   UUID, permisos visibles, estados documentales, filtros y rutas por rol.
-  Incluyen respuestas tardias que no deben afectar una sesion posterior.
+  Incluyen respuestas tardías que no deben afectar una sesión posterior.
 - `npm run test:e2e -- --workers=1`: 14 pruebas aprobadas en Chromium con
   Playwright. Cubren
-  alta inicial, MFA con TOTP o recuperacion, carga, sellado, verificacion,
-  descarga, logout, roles, rechazo MFA, sesion vencida, alta de integrantes,
-  auditoria, resultados obsoletos, recuperacion de documentos pendientes de
-  sello, resumen de sesion, filtros, vista de tarjetas, historial del navegador,
-  visibilidad de contrasena y menu accesible en una pantalla de 390 px de ancho.
+  alta inicial, MFA con TOTP o recuperación, carga, sellado, verificación,
+  descarga, logout, roles, rechazo MFA, sesión vencida, alta de integrantes,
+  auditoría, resultados obsoletos, recuperación de documentos pendientes de
+  sello, resumen de sesión, filtros, vista de tarjetas, historial del navegador,
+  visibilidad de contraseña y menú accesible en una pantalla de 390 px de ancho.
   Las regresiones cubren consultar otra vez el mismo documento, recibir una
-  respuesta despues de cerrar sesion y consumir las acciones de navegacion.
+  respuesta después de cerrar sesión y consumir las acciones de navegación.
   Los 12 flujos de `workflow.spec.mjs` no emitieron errores de JavaScript.
-- `npm run build`: compilacion estatica completada con Astro 7 y Svelte 5.
+- `npm run build`: compilación estática completada con Astro 7 y Svelte 5.
 - `npm run format:check`: sin diferencias de formato.
-- `npm audit`: la comprobacion anterior del mismo dia reporto cero
-  vulnerabilidades. Esta revision de interfaz no modifica las dependencias.
-- Revision visual de capturas de inicio en escritorio y movil, acceso movil
+- `npm audit`: la comprobación anterior del mismo día reportó cero
+  vulnerabilidades. Esta revisión de interfaz no modifica las dependencias.
+- Revisión visual de capturas de inicio en escritorio y móvil, acceso móvil
   y detalle documental de escritorio, generadas por las pruebas de navegador.
 
 Las pruebas interceptan las rutas HTTP con respuestas de prueba; no se
-ejecutaron la API Rust, PostgreSQL, Redis ni la TSA en esta comprobacion.
+ejecutaron la API Rust, PostgreSQL, Redis ni la TSA en esta comprobación.
 Tampoco se repitieron `scripts/api-demo.sh`, `scripts/demo.sh` ni las pruebas
-de Cargo. No se modifico codigo Rust. La integracion completa con servicios
+de Cargo. No se modificó código Rust. La integración completa con servicios
 reales requiere el entorno descrito en `docs/http-api.md`.
 
-La nueva automatizacion `.github/workflows/web.yml` ejecuta formato,
-pruebas, compilacion y pruebas de navegador en Linux. Este informe no afirma
+La nueva automatización `.github/workflows/web.yml` ejecuta formato,
+pruebas, compilación y pruebas de navegador en Linux. Este informe no afirma
 una corrida remota de ese workflow.
 
-### Integracion de marca Qadra
+### Integración de marca Qadra
 
-Comprobaciones ejecutadas el 12 de septiembre de 2026, despues de incorporar
+Comprobaciones ejecutadas el 12 de septiembre de 2026, después de incorporar
 el nombre y los assets originales de Qadra en `web/`:
 
 - `npm run format:check` y `npm run build`: completados correctamente.
 - `npm run test:e2e -- --workers=1`: 14 pruebas aprobadas en Chromium con las
   mismas respuestas HTTP simuladas. No se repitieron las pruebas unitarias
-  porque esta correccion no modifica la logica del cliente.
+  porque esta corrección no modifica la lógica del cliente.
 - Los SHA-256 del logo SVG, favicon SVG, logo PNG y licencia coinciden con
   los archivos originales. Su procedencia se conserva en
   `web/public/brand/qadra/README.md`.
-- Revision del nombre, carga local de imagenes y marca en acceso de
-  escritorio y movil, y en la navegacion del espacio documental.
+- Revisión del nombre, carga local de imágenes y marca en acceso de
+  escritorio y móvil, y en la navegación del espacio documental.
 
-Esta comprobacion tampoco ejecuta los servicios reales del backend.
+Esta comprobación tampoco ejecuta los servicios reales del backend.
+
+### Revisión de español de México
+
+El 12 de septiembre de 2026 se revisaron los textos de acceso, navegación,
+documentos, administración, ayuda y errores, así como las guías de `web/`.
+Se corrigieron tildes, signos de apertura y concordancia; el documento HTML
+declara `es-MX`. Las entidades HTML y los escapes Unicode permiten mostrar
+los caracteres correctos y conservar los archivos de código en ASCII.
+
+- `npm test`: 18 pruebas aprobadas con las expectativas de texto actualizadas.
+- `npm run test:e2e -- --workers=1 --max-failures=2`: 14 pruebas aprobadas en
+  la ejecución final. Una ejecución anterior agotó los 30 segundos de espera
+  durante el acceso simulado; la repetición completa pasó con el mismo límite.
+- `npm run format:check` y `npm run build`: completados correctamente.
+- Revisión visual del acceso móvil, inicio móvil y detalle documental de
+  escritorio: acentos legibles y sin desbordamiento por los textos corregidos.
+
+Las comprobaciones de navegador mantienen la API simulada; no se probaron
+los servicios reales del backend en esta revisión.
