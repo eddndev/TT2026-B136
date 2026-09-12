@@ -107,7 +107,8 @@ toolchain locally. Before committing Rust changes, run:
 - For case integration tests, set `CASE_TEST_DATABASE_URL` to a separate,
   disposable PostgreSQL database. Do not reuse the identity test database:
   its bootstrap test requires an empty user table. `scripts/test-backends.sh`
-  provisions both databases and Redis and runs the workspace suite; missing
+  provisions isolated identity, case and document databases plus Redis and runs
+  the workspace suite. Document tests use `DOCUMENT_TEST_DATABASE_URL`; missing
   variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
@@ -115,7 +116,7 @@ toolchain locally. Before committing Rust changes, run:
 
 ## Implemented project state
 
-Reviewed on 2026-09-11. This is a starting map, not a replacement for inspecting
+Reviewed on 2026-09-12. This is a starting map, not a replacement for inspecting
 the working tree. The prototype has a working cryptographic backend and an
 authenticated local HTTP workflow; the complete case-management web product
 is still unfinished.
@@ -127,7 +128,9 @@ is still unfinished.
   `crates/bin/src/cli.rs` and `crates/application/src/lib.rs`.
 - `crates/web/src/routes.rs` exposes bootstrap, login, MFA, logout, current
   identity, user creation, document upload, sealing, verification, evidence
-  download, and audit verification. The contract is in `docs/http-api.md`.
+  download, and audit verification. Document routes require a case UUID; the
+  retired global document routes return 404. The contract is in
+  `docs/http-api.md`.
 - `migrations/0001_identity.sql` persists users in PostgreSQL. Redis stores
   revocable opaque sessions, challenges, login limits, and TOTP replay claims.
   These are not JWT sessions. See
@@ -137,7 +140,8 @@ is still unfinished.
   adapter filters detail and paginated lists by membership. Owners see all
   cases and manage assignments; litigators may create cases and are assigned
   automatically. Other roles read assigned metadata only. Creation and the
-  creator assignment share a transaction. See
+  creator assignment share a transaction with their audit event. Membership
+  changes revalidate the actor and commit their audit in the same transaction. See
   `docs/adr/0014-case-membership-and-isolation.md` and
   `crates/web/src/cases.rs`.
 - Identity challenges are consumed atomically before MFA verification; user
@@ -146,17 +150,33 @@ is still unfinished.
   across the full API, retaining worker permits after request cancellation.
   See `docs/adr/0015-backend-concurrency-and-invariants.md` and
   `docs/backend-review.md` for the reviewed behavior and deployment limits.
-- Owner, Litigator, and Paralegal have global document permissions. Client
-  document access remains denied even when assigned to a case: document/case
-  associations and resource authorization are still pending. See
-  `crates/domain/src/identity.rs`.
-- Documents remain encrypted local JSON records; audit events remain a
-  separate file. Per-document locks preserve existing sealed evidence, and
-  audit readers coordinate with writers. Their writes do not share a transaction. The document
-  workflow creates version 1 and has no listing, search, or version-history
-  API. See `crates/application/src/documents/port.rs`,
-  `crates/infrastructure/src/documents.rs`, and
-  `docs/adr/0011-local-document-workflow.md`.
+- `CaseDocumentService` authenticates before preparation and again before
+  committing. PostgreSQL revalidates the active role, membership and exact
+  document/case association inside the transaction. Owner can access every
+  case; Litigator and Paralegal need current membership, and Paralegal cannot
+  seal. Client document access remains denied even when assigned. See
+  `crates/application/src/documents/case_service.rs` and
+  `docs/adr/0016-case-document-transactions.md`.
+- `migrations/0003_case_documents_audit.sql` persists encrypted documents and
+  a shared audit chain for document, case and identity events. Document
+  mutations and their audit commit together; verification and export confirm
+  access and audit before returning results. Sealed evidence and the document's
+  case association are immutable. Upload still creates version 1; document
+  listing, detail, search and version-history APIs remain absent.
+- User creation and recovery-code consumption also commit their PostgreSQL
+  audit atomically. Redis challenges and sessions do not participate in that
+  transaction. Failed audit writes trigger best-effort removal of newly
+  created credentials without returning their tokens; failed cleanup relies
+  on Redis expiry. Logout never restores a revoked session after audit fails.
+- `database migrate --runtime-role` applies schema and grants using an
+  administrative connection. `serve` uses an existing restricted role without
+  DDL. `database import` inspects legacy files by default; `--apply` requires
+  a complete document/case map and preserves ciphertext, captured evidence and
+  historical audit hashes. `serve --data-dir` checks the preserved legacy
+  source for a completed cutover. Offline file adapters remain separate from
+  HTTP persistence. Follow `docs/database-operations.md` for migration,
+  reconciliation and restoration, and `scripts/test-backends.sh` for isolated
+  identity, case and document database tests.
 - `crates/bin/src/serve_cmd.rs` explicitly selects the local OpenSSL TSA.
   The external provider adapter and local stub remain available, but a live
   provider campaign is outside the current delivery. The local TSA is
@@ -173,31 +193,27 @@ is still unfinished.
 
 ## Next work, in dependency order
 
-The next objective and proposed sequence are in `docs/next-goal.md`.
+`docs/next-goal.md` records the acceptance criteria for the current delivery;
+its closure requires fresh verification and integration through a pull request.
+Subsequent work follows these dependencies:
 
-1. Associate every document with a persisted case and enforce current
-   membership in every document use case, including evidence export. Test
-   cross-case denial and same-session revocation before enabling Client
-   document access. Define migration of existing encrypted local records.
-2. Move document persistence and audit writes behind an explicit transaction
-   boundary, including durable case mutation history. Add failure and
-   concurrency tests proving that rejected mutations do not leave document
-   state and audit history inconsistent. Preserve captured signature and
-   timestamp evidence and authenticated encryption context.
-3. Add authorized document listing, detail, search, and version history.
-   Define immutable historical evidence and bind each encrypted version to
-   its document identity. Model procedural participants, hearings, and
-   deadlines separately from the existing user access assignments.
-4. In a requested frontend task, implement login/MFA, case navigation, upload,
-   sealing, verification, and evidence download against `docs/http-api.md`.
-   Keep business rules and cryptography behind the application ports.
-5. Before public deployment, review TLS, database pooling and asynchronous
-   clients, load-tested request budgets, transport limits, backup/restore, and the RSA threat
-   model in `docs/adr/0002-rsa-signing-crate-and-advisory.md`: that record
-   assumes CLI-only signing, while the current router also exposes sealing.
-   External audit-head anchoring remains an open limitation documented in
-   `docs/adr/0007-audit-chain-anchoring.md`.
-6. Complete conclusions from reproduced results, reconcile design and
+1. Add authorized document listing, detail, search and version history.
+   Define immutable historical evidence and bind every encrypted version to
+   its document identity. Keep current case isolation and Client denial unless
+   a separate access policy is explicitly designed and tested.
+2. Model procedural participants, hearings and deadlines separately from
+   existing user access assignments, with authorization and audit contracts.
+3. In a requested frontend task, implement login/MFA, case navigation, upload,
+   sealing, verification and evidence download against `docs/http-api.md`.
+   Keep business rules and cryptography behind application ports.
+4. Before public deployment, measure database pooling and asynchronous clients,
+   request budgets, transport limits, TLS and graceful shutdown. Exercise
+   backup/restore and Redis outages; design recoverable enrollment delivery
+   and the remaining identity lifecycle across PostgreSQL and Redis. Review
+   the RSA threat model in `docs/adr/0002-rsa-signing-crate-and-advisory.md`,
+   whose CLI-only assumption predates HTTP sealing. External audit-head
+   anchoring remains open in `docs/adr/0007-audit-chain-anchoring.md`.
+5. Complete conclusions from reproduced results, reconcile design and
    presentation text with implemented behavior, and refresh the verification
    report after functional changes. Rebuild and visually inspect any changed
    document or presentation using its versioned README instructions.
@@ -207,4 +223,7 @@ For documentation maintenance, distinguish the stateless TOTP primitive in
 protection already implemented by the HTTP identity workflow. Likewise,
 `X-Actor` in the historical document-workflow ADR was superseded by bearer
 identity in `docs/adr/0012-revocable-sessions-and-rbac.md`; neither item is an
-unimplemented HTTP authentication feature.
+unimplemented HTTP authentication feature. The global document authorization
+and separate online file writes described by the older ADRs are superseded by
+`docs/adr/0016-case-document-transactions.md`; their offline behavior is not the
+current HTTP persistence model.

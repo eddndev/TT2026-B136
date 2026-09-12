@@ -1,4 +1,10 @@
-# Siguiente objetivo: documentos por expediente y auditoría transaccional
+# Entrega: documentos por expediente y auditoría transaccional
+
+Implementación y ensayos locales del 12 de septiembre de 2026. Este documento
+conserva el alcance y los criterios de la entrega; la evidencia reproducida está
+en [el informe de verificación](verification-report.md), las decisiones en
+[ADR-0016](adr/0016-case-document-transactions.md) y la operación en
+[la guía de base de datos](database-operations.md).
 
 ## Objetivo
 

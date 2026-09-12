@@ -1,6 +1,9 @@
 # Barrido del backend
 
-Revisión del 11 de septiembre de 2026 sobre la base `0cc6921`.
+Revisión histórica del 11 de septiembre de 2026 sobre la base `0cc6921`.
+La autorización documental, las transacciones y el corte recuperable se abordan
+en [ADR-0016](adr/0016-case-document-transactions.md). Consultar
+[el informe vigente](verification-report.md) para el estado posterior.
 
 ## Plan de barrido
 
