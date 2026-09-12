@@ -1,16 +1,18 @@
-//! Composition root for the local HTTP document application.
+//! Composition root for the local HTTP case and document application.
 
 use std::fs;
 use std::sync::Arc;
 
 use anyhow::Context;
+use application::cases::CaseService;
 use application::documents::{DocumentWorkflowPorts, EvidenceMaterial, LocalDocumentWorkflow};
-use application::identity::{IdentityPorts, IdentityService};
+use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, FileAuditLog,
-    FileDocumentRepository, LocalOpensslTsa, PostgresUserRepository, RandomRecoveryCodeGenerator,
-    RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer,
-    RsaPkcs1Verifier, StoredZipWriter, SystemClock, TotpRsProvider, X509ChainValidator,
+    FileDocumentRepository, LocalOpensslTsa, PostgresCaseRepository, PostgresUserRepository,
+    RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
+    RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
+    TotpRsProvider, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -58,7 +60,11 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         tsa_chain_pem: Some(tsa_chain),
         openssl_version: openssl_version().context("cannot inspect openssl version")?,
     };
-    let identity = IdentityService::new(IdentityPorts {
+    let case_repository = Arc::new(
+        PostgresCaseRepository::connect(&database_url)
+            .context("cannot initialize PostgreSQL case repository")?,
+    );
+    let identity: Arc<dyn IdentityWorkflow> = Arc::new(IdentityService::new(IdentityPorts {
         users: Arc::new(
             PostgresUserRepository::connect(&database_url)
                 .context("cannot initialize PostgreSQL user repository")?,
@@ -79,10 +85,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             args.data_dir.join("audit.jsonl"),
             RingSha256Hasher::new(),
         )),
-    });
+    }));
+    let cases = CaseService::new(case_repository, identity.clone());
     let workflow = LocalDocumentWorkflow::new(ports, material, kek)
         .context("cannot initialize document workflow")?;
-    let router = web::application_router(Arc::new(workflow), Arc::new(identity));
+    let router = web::application_router(Arc::new(workflow), identity)
+        .merge(web::case_router(Arc::new(cases)));
 
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
