@@ -35,24 +35,40 @@ pub trait RecoveryCodeGenerator {
 /// The stored form of a user's recovery codes: one PHC hash per issued
 /// code, where a consumed slot is cleared and can never match again.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "StoredRecoveryCodeSet")]
 pub struct RecoveryCodeSet {
     /// One slot per issued code; `None` once the code has been used.
     slots: Vec<Option<String>>,
+}
+
+#[derive(Deserialize)]
+struct StoredRecoveryCodeSet {
+    slots: Vec<Option<String>>,
+}
+
+impl TryFrom<StoredRecoveryCodeSet> for RecoveryCodeSet {
+    type Error = DomainError;
+
+    fn try_from(stored: StoredRecoveryCodeSet) -> Result<Self, Self::Error> {
+        Self::from_slots(stored.slots)
+    }
 }
 
 impl RecoveryCodeSet {
     /// Builds the set from the PHC hashes of exactly
     /// [`RECOVERY_CODE_COUNT`] plain codes.
     pub fn from_hashes(hashes: Vec<String>) -> Result<Self, DomainError> {
-        if hashes.len() != RECOVERY_CODE_COUNT {
+        Self::from_slots(hashes.into_iter().map(Some).collect())
+    }
+
+    fn from_slots(slots: Vec<Option<String>>) -> Result<Self, DomainError> {
+        if slots.len() != RECOVERY_CODE_COUNT {
             return Err(DomainError::InvalidRecoveryCodeCount {
                 expected: RECOVERY_CODE_COUNT,
-                actual: hashes.len(),
+                actual: slots.len(),
             });
         }
-        Ok(Self {
-            slots: hashes.into_iter().map(Some).collect(),
-        })
+        Ok(Self { slots })
     }
 
     /// Number of codes that have not been used yet.

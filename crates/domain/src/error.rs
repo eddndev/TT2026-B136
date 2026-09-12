@@ -31,6 +31,10 @@ pub enum DomainError {
     #[error("document version must be 1 or greater")]
     InvalidDocumentVersion,
 
+    /// A document already uses the largest representable version counter.
+    #[error("document version counter is exhausted")]
+    DocumentVersionExhausted,
+
     /// Reading from an input stream failed while digesting its content.
     #[error("failed to read input stream: {message}")]
     StreamRead { message: String },
