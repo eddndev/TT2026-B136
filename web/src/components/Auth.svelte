@@ -1,5 +1,6 @@
 <script>
   import Icon from './Icon.svelte';
+  import Brand from './Brand.svelte';
   import Enrollment from './Enrollment.svelte';
   export let api;
   export let onlogin;
@@ -51,9 +52,7 @@
 <main class="auth-layout">
   <div class="auth-card">
     <section class="auth-story">
-      <a class="brand" href="/" aria-label="Folio, inicio"
-        ><span class="brand-mark">f.</span> folio<span class="brand-dot">.</span></a
-      >
+      <a class="brand" href="/" aria-label="Qadra, inicio"><Brand /></a>
       <div class="story-copy">
         <span class="eyebrow">TU DESPACHO, EN ORDEN</span>
         <h1>Tu trabajo legal,<br /><span>bien resguardado.</span></h1>
@@ -85,7 +84,7 @@
           </li>
         </ul>
       </div>
-      <footer><span>Folio / Evidencia documental</span><span>TT2026-B136</span></footer>
+      <footer><span>Qadra / Evidencia documental</span><span>TT2026-B136</span></footer>
     </section>
     <section class="auth-panel">
       <div class="auth-top">

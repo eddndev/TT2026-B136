@@ -325,7 +325,7 @@
           <h3>Tu paquete de evidencia</h3>
           <p>
             Descarga un ZIP para conservar el archivo y los elementos necesarios para comprobar su
-            evidencia fuera de Folio.
+            evidencia fuera de Qadra.
           </p>
         </div>
       </div>

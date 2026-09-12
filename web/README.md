@@ -1,9 +1,14 @@
-# Folio: interfaz del despacho
+# Qadra: interfaz del despacho
 
 Interfaz en Astro y Svelte para la API existente del prototipo. El contrato
 esta en [`docs/http-api.md`](../docs/http-api.md). `web/` es la aplicacion de
 navegador; `crates/web/` sigue siendo la capa HTTP de Rust. El directorio
 `frontend/` conserva el ejemplo anterior.
+
+La marca del prototipo es Qadra. Sus logos y favicon originales se sirven
+desde `public/brand/qadra/`, sin depender de solicitudes a GitHub al abrir
+la interfaz. La procedencia, revision y licencia se conservan en
+[`public/brand/qadra/README.md`](public/brand/qadra/README.md).
 
 ## Ejecutar
 

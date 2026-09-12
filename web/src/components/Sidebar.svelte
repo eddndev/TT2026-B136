@@ -1,5 +1,6 @@
 <script>
   import Icon from './Icon.svelte';
+  import Brand from './Brand.svelte';
   import { roles } from '../lib/documents.mjs';
   export let user;
   export let view;
@@ -25,8 +26,8 @@
 </script>
 
 {#snippet content()}
-  <button class="brand" onclick={() => go('overview')} aria-label="Folio, ir al inicio"
-    ><span class="brand-mark">f.</span><span>folio<span class="brand-dot">.</span></span></button
+  <button class="brand" onclick={() => go('overview')} aria-label="Qadra, ir al inicio"
+    ><Brand /></button
   >
   <div class="workspace-label">
     <span class="workspace-monogram"><Icon name="briefcase" size={18} /></span>

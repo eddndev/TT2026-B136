@@ -204,3 +204,20 @@ reales requiere el entorno descrito en `docs/http-api.md`.
 La nueva automatizacion `.github/workflows/web.yml` ejecuta formato,
 pruebas, compilacion y pruebas de navegador en Linux. Este informe no afirma
 una corrida remota de ese workflow.
+
+### Integracion de marca Qadra
+
+Comprobaciones ejecutadas el 12 de septiembre de 2026, despues de incorporar
+el nombre y los assets originales de Qadra en `web/`:
+
+- `npm run format:check` y `npm run build`: completados correctamente.
+- `npm run test:e2e -- --workers=1`: 14 pruebas aprobadas en Chromium con las
+  mismas respuestas HTTP simuladas. No se repitieron las pruebas unitarias
+  porque esta correccion no modifica la logica del cliente.
+- Los SHA-256 del logo SVG, favicon SVG, logo PNG y licencia coinciden con
+  los archivos originales. Su procedencia se conserva en
+  `web/public/brand/qadra/README.md`.
+- Revision del nombre, carga local de imagenes y marca en acceso de
+  escritorio y movil, y en la navegacion del espacio documental.
+
+Esta comprobacion tampoco ejecuta los servicios reales del backend.

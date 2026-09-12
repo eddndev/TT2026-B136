@@ -130,7 +130,7 @@
               view={view === 'team' ? 'users' : 'audit'}
             />{/key}{/if}
         <footer class="workspace-footer">
-          <span>Folio / Despacho digital</span><span
+          <span>Qadra / Despacho digital</span><span
             >Entorno local <span class="footer-separator">/</span> TT2026-B136</span
           >
         </footer>

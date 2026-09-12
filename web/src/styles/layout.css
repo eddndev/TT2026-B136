@@ -6,30 +6,18 @@
   border: 0;
   text-decoration: none;
   color: white;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -1.5px;
+  letter-spacing: -0.8px;
   padding: 0;
 }
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 38px;
-  background: #fff;
-  border-radius: 9px;
-  color: var(--blue);
-  font:
-    32px Georgia,
-    serif;
-  letter-spacing: -3px;
-  padding-right: 4px;
-}
-.brand-dot {
-  color: #9db9ff;
-}
-.auth-story .brand-dot {
-  margin-left: -10px;
+.brand-logo {
+  display: block;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 .app-layout {
   min-height: 100vh;

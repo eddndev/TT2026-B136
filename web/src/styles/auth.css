@@ -31,13 +31,12 @@
 .auth-story > .brand {
   align-self: flex-start;
   color: #fff;
+  font-size: 36px;
+  gap: 12px;
 }
-.auth-story .brand-mark {
-  background: #fff;
-  color: var(--blue, #1e40af);
-}
-.auth-story .brand-dot {
-  color: #93b4ff;
+.auth-story .brand-logo {
+  width: 48px;
+  height: 48px;
 }
 .story-copy {
   margin: auto 0;
@@ -282,6 +281,10 @@
   }
   .auth-story > .brand {
     font-size: 28px;
+  }
+  .auth-story .brand-logo {
+    width: 40px;
+    height: 40px;
   }
   .story-copy {
     margin: 0;
