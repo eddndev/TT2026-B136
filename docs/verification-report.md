@@ -162,7 +162,36 @@ por un PSC autorizado.
   auditoría. La identidad procede del bearer token; `X-Actor` fue retirado.
 - PostgreSQL persiste usuarios y Redis conserva el estado efímero de identidad.
   Documentos y auditoría siguen en archivos locales sin una transacción común;
-  la pertenencia a casos, las consultas ampliadas y la UI permanecen pendientes.
+  la pertenencia a casos y las consultas ampliadas permanecen pendientes.
+  La interfaz documental de `web/` se verifica por separado a continuacion.
 
 La transcripción extensa de una corrida anterior se conserva en
 [`docs/demo-transcript.md`](demo-transcript.md).
+
+## Verificacion de la interfaz web
+
+Comprobaciones ejecutadas el 11 de septiembre de 2026 en Windows, con
+Node.js 24.21.0 y npm 11.19.0. Estos resultados corresponden a `web/` y no
+actualizan las mediciones historicas de Rust o criptografia anteriores.
+
+- `npm test`: 9 pruebas aprobadas del cliente HTTP, errores, sesiones,
+  descarga binaria, nombres y tamano de documentos, UUID y permisos visibles.
+- `npm run test:e2e`: 7 pruebas aprobadas en Chromium con Playwright. Cubren
+  alta inicial, MFA con TOTP o recuperacion, carga, sellado, verificacion,
+  descarga, logout, roles, rechazo MFA, sesion vencida, alta de integrantes,
+  auditoria, resultados obsoletos y una pantalla de 390 px de ancho.
+- `npm run build`: compilacion estatica completada con Astro 7 y Svelte 5.
+- `npm run format:check`: sin diferencias de formato.
+- `npm audit`: cero vulnerabilidades reportadas en las dependencias de `web/`.
+- Revision visual de capturas de acceso movil, detalle documental de
+  escritorio y auditoria movil, generadas por las pruebas de navegador.
+
+Las pruebas interceptan las rutas HTTP con respuestas de prueba; no se
+ejecutaron la API Rust, PostgreSQL, Redis ni la TSA en esta comprobacion.
+Tampoco se repitieron `scripts/api-demo.sh`, `scripts/demo.sh` ni las pruebas
+de Cargo. No se modifico codigo Rust. La integracion completa con servicios
+reales requiere el entorno descrito en `docs/http-api.md`.
+
+La nueva automatizacion `.github/workflows/web.yml` ejecuta formato,
+pruebas, compilacion y pruebas de navegador en Linux. Este informe no afirma
+una corrida remota de ese workflow.

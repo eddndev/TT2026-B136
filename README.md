@@ -148,10 +148,16 @@ actor y los permisos proceden de `Authorization: Bearer` y del usuario vigente.
 
 El comando `serve` requiere `DATABASE_URL`, `REDIS_URL`, `KEK_BASE64`, una CA,
 CRL, certificado y llave del firmante, y una TSA local inicializada. Para
-desarrollo se incluyen `compose.yaml` y la guía completa de la API. La UI y el
-modelado de pertenencia de clientes a casos permanecen pendientes.
+desarrollo se incluyen `compose.yaml` y la guía completa de la API. La interfaz
+en `web/` consume estas rutas; el modelado de pertenencia de clientes a casos
+permanece pendiente.
 
 ### Frontend web
+
+- [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,
+  carga, sellado, verificación, evidencia, alta de usuarios y auditoría.
+  Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
+  Expedientes e historial dependen de APIs todavía pendientes.
 
 - [`frontend/`](frontend/) - placeholder de la interfaz web, construido con
   Astro y Svelte. Ver [`frontend/README.md`](frontend/README.md) para
