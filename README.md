@@ -188,6 +188,11 @@ documentales, actividad procesal y la interfaz de producto.
 
 ### Frontend web
 
+- [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,
+  carga, sellado, verificación, evidencia, alta de usuarios y auditoría.
+  Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
+  La UI de expedientes y el historial quedan fuera del alcance de esta interfaz.
+
 - [`frontend/`](frontend/) - placeholder de la interfaz web, construido con
   Astro y Svelte. Ver [`frontend/README.md`](frontend/README.md) para
   instalación y uso (requiere Node.js y npm). Por ahora es intencionalmente
