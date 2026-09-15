@@ -39,6 +39,12 @@ mockall = "0.13"
 # timestamp authority's serial file. The adapter keeps one portable locking
 # API across every supported platform.
 fs2 = "0.4"
+libloading = "0.8.9"
+zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+quick-xml = { version = "=0.42.0", default-features = false }
+rustix = { version = "1.1.4", features = ["fs", "process", "event", "runtime"] }
+flate2 = { version = "=1.1.10", default-features = false, features = ["zlib-rs"] }
+crc32fast = "=1.5.2"
 
 # Temporary files and directories, used by adapters that stage inputs for
 # openssl subprocesses and by tests. proptest stays on the reviewed 1.8 line

@@ -254,3 +254,10 @@ pub(crate) fn decode_evidence(
         .map_err(|error| ApplicationError::StoredDocumentInconsistent(error.to_string()))?
         .into_evidence()
 }
+
+/// Parses a storage-bounded JSON text directly into captured evidence fields.
+pub(crate) fn decode_evidence_text(text: &str) -> Result<SealedEvidence, ApplicationError> {
+    serde_json::from_str::<StoredEvidence>(text)
+        .map_err(|error| ApplicationError::StoredDocumentInconsistent(error.to_string()))?
+        .into_evidence()
+}

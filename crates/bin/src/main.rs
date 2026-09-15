@@ -28,6 +28,9 @@ use crate::cli::{Cli, Command, CryptoAction};
 use crate::config::AppConfig;
 
 fn main() -> anyhow::Result<()> {
+    if let Some(code) = infrastructure::document_formats::worker_entry() {
+        std::process::exit(code);
+    }
     dotenvy::dotenv().ok();
     let settings = AppConfig::load();
     telemetry::init(&settings.rust_log);

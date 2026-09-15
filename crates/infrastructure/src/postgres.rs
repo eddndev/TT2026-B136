@@ -11,6 +11,11 @@ const METADATA_MIGRATION: &str = include_str!("../../../migrations/0005_document
 const PARTICIPANT_MIGRATION: &str = include_str!("../../../migrations/0006_case_participants.sql");
 const CASE_ADMINISTRATION_MIGRATION: &str =
     include_str!("../../../migrations/0007_case_administration.sql");
+const CASE_STAGE_MIGRATIONS: [&str; 3] = [
+    include_str!("../../../migrations/0008_case_stages.sql"),
+    include_str!("../../../migrations/0008_case_stage_values.sql"),
+    include_str!("../../../migrations/0008_case_stage_guards.sql"),
+];
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -46,6 +51,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     transaction
         .batch_execute(CASE_ADMINISTRATION_MIGRATION)
         .map_err(port_error)?;
+    for migration in CASE_STAGE_MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -58,6 +66,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::postgres_metadata_schema::validate(&mut client)?;
     crate::postgres_participant_schema::validate(&mut client)?;
     crate::postgres_case_administration_schema::validate(&mut client)?;
+    crate::postgres_case_stages_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -67,6 +76,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::postgres_metadata_schema::validate_inventory(&mut client)?;
     crate::postgres_participant_schema::validate_inventory(&mut client)?;
     crate::postgres_case_administration_inventory::validate(&mut client)?;
+    crate::postgres_case_stages_inventory::validate(&mut client)?;
     Ok(client)
 }
 
@@ -115,6 +125,13 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
          GRANT SELECT, INSERT(id,title,reference,created_by) ON cases TO {role};
          REVOKE ALL ON case_administration_revisions,case_initial_stage_registrations FROM {role};
          GRANT SELECT, INSERT ON case_administration_revisions,case_initial_stage_registrations TO {role};
+         REVOKE ALL ON case_stage_revisions FROM {role};
+         GRANT SELECT, INSERT ON case_stage_revisions TO {role};
+         GRANT EXECUTE ON FUNCTION case_stage_time_bounds(TEXT,DATE,BIGINT,INTEGER,INTEGER),
+             case_stage_time_bytes(TEXT,DATE,BIGINT,INTEGER,INTEGER),
+             case_stage_support_valid(UUID,BIGINT,BYTEA,TEXT,TEXT,TEXT),
+             case_stage_values_canonical(case_stage_revisions),case_stage_values_bytes(case_stage_revisions),
+             case_stage_recording_valid(case_stage_revisions) TO {role};
          GRANT EXECUTE ON FUNCTION case_administration_text_valid(TEXT,INTEGER,BOOLEAN),
              case_administration_is_canonical(TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT[],TEXT,TEXT),
              case_administration_bytes(TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT[],TEXT,TEXT) TO {role};
@@ -144,6 +161,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
                  'case_participants'::pg_catalog.regclass,'case_participant_revisions'::pg_catalog.regclass,
                  'migration_receipts'::pg_catalog.regclass, 'cases'::pg_catalog.regclass,
                  'case_administration_revisions'::pg_catalog.regclass,
+                 'case_stage_revisions'::pg_catalog.regclass,
                  'case_initial_stage_registrations'::pg_catalog.regclass])
              AND (pg_catalog.pg_has_role(r.oid, c.relowner, 'MEMBER')
                  OR pg_catalog.pg_has_role(r.oid, n.nspowner, 'MEMBER')
@@ -166,6 +184,15 @@ fn validate_runtime_role<C: postgres::GenericClient>(
              SELECT 1 FROM pg_catalog.pg_proc p
              WHERE p.oid OPERATOR(pg_catalog.=) ANY(ARRAY[
                  'preserve_document_evidence()'::pg_catalog.regprocedure,
+                 'case_stage_time_bounds(text,date,bigint,integer,integer)'::pg_catalog.regprocedure,
+                 'case_stage_time_bytes(text,date,bigint,integer,integer)'::pg_catalog.regprocedure,
+                 'case_stage_support_valid(uuid,bigint,bytea,text,text,text)'::pg_catalog.regprocedure,
+                 'case_stage_values_canonical(case_stage_revisions)'::pg_catalog.regprocedure,
+                 'case_stage_values_bytes(case_stage_revisions)'::pg_catalog.regprocedure,
+                 'case_stage_recording_valid(case_stage_revisions)'::pg_catalog.regprocedure,
+                 'preserve_case_stage_history()'::pg_catalog.regprocedure,
+                 'enforce_case_stage_sequence()'::pg_catalog.regprocedure,
+                 'preserve_case_stage_initial_exclusivity()'::pg_catalog.regprocedure,
                  'case_administration_text_valid(text,integer,boolean)'::pg_catalog.regprocedure,
                  'case_administration_is_canonical(text,text,text,text,text,text,text,text[],text,text)'::pg_catalog.regprocedure,
                  'case_administration_bytes(text,text,text,text,text,text,text,text[],text,text)'::pg_catalog.regprocedure,
