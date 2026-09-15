@@ -1,0 +1,58 @@
+\subsection{Etapas, soportes exactos y validación acotada}\label{sec:pruebas-etapas}
+
+El corte del 15 de septiembre de 2026 aprobó \textbf{933 pruebas Rust, cero fallos y una externa ignorada}, con PostgreSQL y Redis desechables y qpdf~12.4.1 real. Son 163 pruebas adicionales respecto de las 770 del corte anterior. Formato, compilación, Clippy, comprobación con Rust~1.88 y política de dependencias terminaron satisfactoriamente. La licencia Zlib de la dependencia de descompresión se leyó antes de incorporarla a la lista permisiva; no se añadieron excepciones de seguridad.
+
+
+La ejecución instrumentada aprobó las mismas 933 pruebas y conservó la única externa ignorada. Obtuvo \textbf{15\,817 de 17\,064 líneas cubiertas, 92.7\,\% global}, con los tres umbrales obligatorios del 90\,\% aprobados. No se excluyeron parsers ni infraestructura para alcanzar el umbral. La \cref{tab:pruebas-cobertura-etapas} presenta los denominadores; el 93.4\,\% del corte administrativo corresponde a su medición histórica, no al código ampliado.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del registro procesal y admisión documental, 15 de septiembre de 2026.}
+  \label{tab:pruebas-cobertura-etapas}
+  \begin{tabularx}{\linewidth}{@{}X r r r@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Cubiertas} & \textbf{Instrumentadas} & \textbf{Cobertura} \\
+    \midrule
+    \texttt{domain} & 1\,859 & 1\,893 & 98.2\,\% \\
+    \texttt{application} & 3\,294 & 3\,430 & 96.0\,\% \\
+    \texttt{infrastructure} & 7\,699 & 8\,354 & 92.2\,\% \\
+    \texttt{web} & 2\,129 & 2\,271 & 93.7\,\% \\
+    \texttt{bin} & 836 & 1\,116 & 74.9\,\% \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La gestión de etapas requiere separar corrección de valores, preparación criptográfica, autorización al confirmar, persistencia e interfaz. Los ensayos de la \cref{tab:pruebas-etapas} comprueban esas fronteras. La existencia de un soporte admitido no demuestra procedencia jurídica; las pruebas usan datos declarados y archivos sintéticos, no expedientes de clientes.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones verificadas para el registro procesal y sus soportes.}
+  \label{tab:pruebas-etapas}
+  \begin{tabularx}{\linewidth}{@{}L{3.4cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones} \\
+    \midrule
+    Dominio & Fechas de día e instante, desfase conservado, intervalos, orden declarado, textos, referencias y bytes canónicos. \\
+    Aplicación & Actor y revisión esperados, registros exactos, autenticación criptográfica una vez por soporte, evidencia capturada y reautenticación antes del commit. \\
+    Formatos & PDF sin recuperación ni cifrado; DOCX con estructura, CRC y final Deflate completos; archivos inválidos y límites compartidos. \\
+    Proceso & Presupuesto del núcleo instalado antes de leer contenido, respuesta acotada, error temprano, timeout y envío por una tubería de capacidad reducida. \\
+    HTTP & DTO inicial y cambios, cuatro rutas, variantes estrictas, límites JSON, permisos, conflictos y fechas sin pérdida silenciosa de precisión. \\
+    Flujo real & Adopción, avance concurrente, soporte V1 después de añadir V2, PDF y DOCX reales, restauración y evidencia histórica idéntica. \\
+    Qadra & Borrador conservado, comparación explícita, respuesta incierta, historia, permisos, revocación, reingreso y presentación móvil. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+{\raggedright La campaña HTTP de \rutarepo{scripts/api-case-stage-demo.sh}, ejecutada con PostgreSQL, Redis y TSA locales desechables, rechaza texto cargado con nombre PDF como soporte y rechaza una declaración futura sin añadir eventos de etapa. Dos solicitudes paralelas con la misma revisión producen una confirmación y un conflicto, con un único evento de éxito. El registro de Intermedia conserva la fecha y el desfase enviados. Después de sellar la versión 1 y añadir una versión 2, el paso a Juicio sigue usando la versión 1 junto con una constancia DOCX de un productor independiente.\par}
+
+La misma campaña consulta historia paginada, preserva el origen inicial y comprueba que cerrar administrativamente mantiene la etapa registrada. Paralegal consulta; después de retirar su asignación, obtiene la misma respuesta que para un expediente inexistente. Una adopción sobre otro expediente rechaza el soporte ajeno y confirma al seleccionar uno propio, sin fabricar una etapa anterior. La repetición de esa adopción produce conflicto.
+
+El respaldo con \texttt{pg\_dump} y la restauración con \texttt{pg\_restore} comparan las filas completas de etapas junto con las demás tablas. Tras reiniciar con el rol operativo, detalle, historia y administración conservan valores, precisión temporal, revisiones, autores y procedencia inicial. El ZIP sellado antes de los avances permanece idéntico. Estos resultados se distinguen de la verificación aislada de componentes y no acreditan capacidad de producción.
+
+Las pruebas de formato incluyen qpdf nativo y un DOCX generado mediante python-docx~1.2.0. La instalación verifica el SHA-256 del artefacto antes de extraerlo y comprueba carga nativa, reutilización y preparación concurrente. El worker real admite un lote mixto PDF/DOCX, rechaza PDF cifrado con contraseña de apertura vacía y verifica los límites instalados en \texttt{/proc}. Una regresión reprodujo agotamiento por una espera fija entre envíos a una tubería de 4096 bytes; la espera por disponibilidad eliminó ese bloqueo artificial. Otro ensayo instrumentado reprodujo \texttt{SIGXFSZ} por la escritura del perfil LLVM al terminar el hijo. Liberar recursos y vaciar la respuesta antes de terminar sin handlers \texttt{atexit} conservó los límites y permitió aprobar las mismas nueve pruebas nativas con instrumentación. Dos DOCX comprimidos que caben individualmente exceden juntos la expansión compartida de 64~MiB y se rechazan. Los contadores DOCX y las cotas del proceso expresan límites diferentes, descritos en la \cref{sec:impl-formatos}.
+
+El corte de interfaz aprobó 56 pruebas unitarias y 129 recorridos simulados. La campaña con servicios reales aprobó seis recorridos en aproximadamente 1.5 minutos, incluidos dos nuevos de transiciones y adopción. Dos sesiones provocan un conflicto real y conservan el borrador; la historia se recupera después de cerrar sesión, recargar y autenticar de nuevo. Litigante adopta, Paralegal consulta y Cliente no solicita las rutas de etapas. La revocación retira los datos de la vista. Se revisaron capturas de escritorio y móvil sin solapamientos; las aserciones no registraron errores JavaScript. Las respuestas 409 y 404 esperadas son parte de los casos negativos, no fallos ocultos. La evaluación de usabilidad con personas permanece pendiente.
+
+{\raggedright La trazabilidad de fuentes y los conteos globales se mantienen en el anexo y en \rutarepo{docs/verification-report.md}. La admisión de nuevos soportes procesales no equivale a validar todas las cargas documentales, ni estas dos aristas implementan recursos, audiencias, plazos o sus módulos dependientes.\par}
+
+La demostración CLI de este corte midió Argon2id en 371.7~ms de promedio sobre cinco corridas, por debajo de la banda objetivo de 500 a 1000~ms. La medición histórica de 529.4~ms conserva su entorno y fecha; no acredita la calibración actual. Los parámetros existentes permanecen iguales y la configuración del entorno de despliegue requiere una nueva evaluación antes del cierre operativo.

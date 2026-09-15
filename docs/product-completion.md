@@ -7,8 +7,8 @@ conciliación de alcance y validación del producto. Los objetivos aprobados se
 conservan en [la introducción](../latex/chapters/01-introduccion.tex); el catálogo
 funcional está en [análisis y diseño](../latex/chapters/03-analisis-diseno.tex).
 El [informe de verificación](verification-report.md) distingue resultados
-reproducidos de mediciones históricas. Este documento organiza trabajo pendiente;
-no declara implementadas las capacidades que enumera.
+reproducidos de mediciones históricas. Este documento distingue capacidades
+implementadas y trabajo pendiente; la matriz no sustituye su evidencia.
 
 La aplicación `web/` integra la identidad Qadra con expedientes reales, rutas
 autorizadas y consultas persistentes. Ofrece carga inicial, historial y selección
@@ -32,6 +32,16 @@ la historia y la etapa inicial. Completar una ficha anterior no inventa etapas;
 la API básica mantiene su proyección para Client. La administración y el cierre
 se describen en [ADR-0022](adr/0022-audited-penal-case-administration.md).
 
+La adopción explícita y los avances Investigación a Intermedia e Intermedia a
+Juicio tienen dominio, aplicación, persistencia auditada, HTTP y flujo Qadra.
+Cada soporte fija documento, versión y digest; se comprueban integridad y formato
+PDF/DOCX en un proceso acotado. Se distinguen registro inicial histórico, etapa
+actual, actos declarados y captura del sistema. Perfil completo, estado activo,
+rol y asignación se revalidan al confirmar; cierre y revocación no se eluden con
+una preparación anterior. Lectura e historia siguen disponibles en expedientes
+cerrados según permisos. El diseño está en [ADR-0023](adr/0023-audited-case-stage-transitions.md)
+y [ADR-0024](adr/0024-isolated-document-format-admission.md).
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -42,7 +52,9 @@ se describen en [ADR-0022](adr/0022-audited-penal-case-administration.md).
 | Directorio de participantes | Fichas por expediente, revisión esperada, historial, filtros, archivo y reactivación con valores vigentes. | ADR-0021, independencia de cuentas, cuatro roles, asociación ajena, concurrencia, auditoría y restauración. No acredita identidad ni firma judicial. |
 | Identidad y firma personal | Resolver autenticación con certificado de socios, identidad del firmante y custodia de claves; altas, bajas, invitaciones y recuperación segura de credenciales. | La clave de firma configurada para el servidor no demuestra firma individual por usuario. Separar recuperación MFA de recuperación de contraseña. Definir contratos y probar revocación con sesiones existentes y fallos de entrega. |
 | Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
-| Etapas y participantes tipificados | Identidad y roles procesales; adopción de etapa anterior y transiciones con documentos habilitantes e historial. | La administración no sustituye transiciones ni valida identidad jurídica. Reglas de dominio, documentos exactos, transacciones, auditoría e interfaz Qadra. |
+| Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
+| Participantes tipificados | Identidad e identificadores por tipo, rol procesal y criterios de autoridad. | Continúa pendiente sobre el directorio manual existente; una etiqueta o cuenta de acceso no acredita identidad jurídica. |
+| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Pendiente; propuesta y criterios en [alcance de recursos](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Audiencias, plazos y calendario | Audiencias vinculadas al expediente, plazos, calendario configurable, vencimientos y alertas persistentes. | Consultar fuentes normativas oficiales vigentes al implementar reglas; casos de prueba de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir validación de las reglas por una simple suma de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
@@ -76,19 +88,19 @@ una ruta. Cada cierre exige evidencia positiva y negativa, autorización,
 persistencia, auditoría e interfaz aplicables. Los criterios se derivan del
 catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 
-| Caso de uso | Estado | Condición pendiente para cierre |
+| Caso de uso | Estado | Alcance y condición pendiente para cierre |
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial | Invitaciones, directorio consultable, baja y protección del último Owner; selección por usuario en asignaciones. |
 | Inicio de sesión y sesiones | Parcial | Certificado de socio, recuperación de contraseña e inactividad; contraseña/MFA y logout ya tienen implementación. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
-| Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones corresponden al siguiente flujo. Los valores declarados no son certificaciones institucionales. |
+| Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Parcial | Directorio manual, filtros, historial y archivo auditados implementados. Faltan identidad e identificadores según tipo, duplicidad de persona verificada/rol, criterio de órgano/FIREL para juez y alcance jurídico de expediente penal activo. El cierre organizativo ya bloquea las mutaciones del directorio. |
-| Transición de etapa procesal | Pendiente | Adopción explícita de etapa en expedientes anteriores, aristas válidas, documentos habilitantes con versión exacta, historia y rechazo de transiciones inválidas. El registro inicial de Investigación no cierra este flujo. |
+| Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos, audiencias o plazos. |
 | Audiencia y activación de plazos | Pendiente | Programación, cambios, cancelaciones y creación consistente de plazos vinculados. |
 | Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |
-| Carga y clasificación documental | Parcial | Conciliar y probar la política de formatos admitidos y su rechazo. Carga cifrada, límites, clasificación atómica, filtros y versiones ya implementados; los bytes del archivo no se interpretan para validar su formato interno. |
+| Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
 | Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
@@ -112,6 +124,11 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
 - Client mantiene acceso a metadatos de expedientes asignados y denegación
   documental. Ampliarlo requiere una política de recursos explícita y pruebas
   de aislamiento; ocultar botones no constituye autorización.
+- El criterio OE-2 conserva su redacción aprobada sobre cuatro etapas. La
+  [propuesta de recursos](procedural-resources-scope.md) distingue las tres etapas
+  del CNPP y recursos vinculados a resoluciones, sin modificar ese criterio.
+  Corregirlo literalmente requiere autorización explícita; implementar las dos
+  transiciones no cierra recursos ni el cómputo automático exigido.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,
@@ -129,7 +146,13 @@ Antes de cerrar, la matriz de los casos de uso debe enlazar cada comportamiento
 con su prueba y resultado. La cobertura de líneas y las pruebas criptográficas
 existentes no prueban por sí mismas el catálogo procesal ni la usabilidad.
 Los ensayos de navegador con respuestas simuladas se registran separados de
-aquellos que ejecutan Rust, PostgreSQL, Redis y TSA.
+aquellos que ejecutan Rust, PostgreSQL, Redis y TSA. Una captura o un render
+verifica presentación; no demuestra por sí solo una operación confirmada.
+
+El servidor requiere qpdf 12.4.1 en Linux x86_64 y comprueba su worker antes de
+aceptar tráfico. Preparación, variables y límites están en
+[operación del validador](document-format-operations.md). La admisión técnica no
+acredita autenticidad jurídica ni implica renderizado o detección de malware.
 
 La usabilidad requiere acordar participantes, tareas y condiciones, obtener
 observaciones reales, corregir los problemas detectados y registrar los

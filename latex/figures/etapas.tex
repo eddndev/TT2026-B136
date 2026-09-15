@@ -1,0 +1,58 @@
+\usetikzlibrary{shapes.geometric}
+\begin{tikzpicture}[
+  x=1pt, y=1pt,
+  font=\fontsize{10}{12}\selectfont,
+  usecase/.style={ellipse, draw=ipnvino!65, fill=white,
+    line width=0.7pt, align=center, text width=100pt, inner sep=4pt},
+  dependency/.style={-{Straight Barb[length=5pt,width=4pt]}, dashed,
+    draw=ipnvino!85, line width=0.7pt},
+  label/.style={fill=white, inner sep=2pt,
+    font=\fontsize{9}{11}\selectfont},
+]
+  \node[usecase, fill=ipnvino!6, text width=90pt] (stage) at (165,265)
+    {\textbf{CU-07}\\Transici\'on de\\etapa procesal};
+
+  \draw[draw=ipnvino!85, line width=0.8pt]
+    (40,290) circle (8pt)
+    (40,282) -- (40,256)
+    (25,273) -- (55,273)
+    (40,256) -- (28,242)
+    (40,256) -- (52,242);
+  \node at (40,230) {Litigante};
+  \draw[draw=ipnvino!85, line width=0.8pt]
+    (55,273) -- (stage.west);
+
+  \node[usecase, text width=96pt] (missing) at (75,390)
+    {Sin documento\\habilitante};
+  \node[usecase, text width=96pt] (format) at (75,145)
+    {Formato del soporte\\no admitido};
+  \draw[dependency] (missing.south) -- (stage.north west)
+    node[midway, label, sloped, above] {$\langle\!\langle$extend$\rangle\!\rangle$};
+  \draw[dependency] (format.north) -- (stage.south west)
+    node[midway, label, sloped, above] {$\langle\!\langle$extend$\rangle\!\rangle$};
+
+  \node[usecase] (modules) at (390,390)
+    {Habilitaci\'on de los\\m\'odulos de la\\nueva etapa};
+  \node[usecase] (history) at (390,285)
+    {Registro inmutable\\de la transici\'on y\\su soporte exacto};
+  \node[usecase] (storage) at (390,180)
+    {Almacenamiento con\\integridad y confidencialidad\\si hay carga};
+  \node[usecase, text width=105pt] (support) at (390,75)
+    {Selecci\'on de versi\'on\\exacta del soporte\\existente o de una\\carga confirmada};
+  \draw[dependency] (stage.north east) -- (modules.south west)
+    node[midway, label, sloped, above] {$\langle\!\langle$include$\rangle\!\rangle$};
+  \draw[dependency] (stage.east) -- (history.west)
+    node[midway, label, above] {$\langle\!\langle$include$\rangle\!\rangle$};
+  \draw[dependency] (stage.south east) -- (storage.west)
+    node[midway, label, sloped, above] {$\langle\!\langle$include$\rangle\!\rangle$};
+  \draw[dependency] (stage.south) to[out=-75,in=180]
+    node[pos=0.6, label, sloped, above] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (support.west);
+
+  \node[draw=ipnvino!65, fill=codebg, align=left,
+    text width=444pt, inner sep=6pt, anchor=north] (requirements) at (235,10)
+    {HU-14, HU-15, HU-16 --- RF-05.\\
+     Investigaci\'on $\rightarrow$ Intermedia: escrito de acusaci\'on.\\
+     Intermedia $\rightarrow$ Juicio Oral: auto de apertura.\\
+     La transici\'on no se revierte; se conserva la evidencia hist\'orica.};
+\end{tikzpicture}

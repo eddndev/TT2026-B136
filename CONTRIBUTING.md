@@ -74,6 +74,19 @@ cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
+The native document-format tests require Linux x86_64 and pinned qpdf 12.4.1.
+Before running `cargo test --workspace`, prepare the library:
+
+```bash
+export TT_TEST_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
+```
+
+`scripts/test-backends.sh` prepares it when unset; API and browser demos also
+configure it for the server. Native parser tests must not silently skip when
+it is absent. `serve` requires `DOCUMENT_QPDF_LIBRARY` or `--qpdf-library` and
+checks the worker before accepting traffic. Follow
+`docs/document-format-operations.md`; do not bypass admission on setup failure.
+
 Continuous integration runs the same checks, plus a minimum-supported-Rust-
 version check, coverage measurement, a dependency policy check (`cargo deny
 check` against `deny.toml`), and a release binary size guard. See
@@ -147,8 +160,9 @@ pull request as the behavior it describes. Update the affected documents:
   disposable PostgreSQL database. Do not reuse the identity test database:
   its bootstrap test requires an empty user table. `scripts/test-backends.sh`
   provisions isolated identity, case and document databases plus Redis and runs
-  the workspace suite. Participant tests use isolated schemas in
-  `CASE_TEST_DATABASE_URL`; document tests use `DOCUMENT_TEST_DATABASE_URL`.
+  the workspace suite. Participant, administration and stage tests use isolated
+  schemas in `CASE_TEST_DATABASE_URL`; document tests use
+  `DOCUMENT_TEST_DATABASE_URL`.
   Missing variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and

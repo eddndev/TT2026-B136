@@ -87,6 +87,19 @@ toolchain locally. Before committing Rust changes, run:
     cargo test --workspace
     cargo clippy --workspace --all-targets -- -D warnings
 
+The native document-format tests require Linux x86_64 and pinned qpdf 12.4.1.
+Before running `cargo test --workspace`, prepare the library:
+
+```bash
+export TT_TEST_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
+```
+
+`scripts/test-backends.sh` prepares it when unset; API and browser demos also
+configure it for the server. Native parser tests must not silently skip when
+it is absent. `serve` requires `DOCUMENT_QPDF_LIBRARY` or `--qpdf-library` and
+checks the worker before accepting traffic. Follow
+`docs/document-format-operations.md`; do not bypass admission on setup failure.
+
 ## Documentation maintenance
 
 Documentation is part of each functional delivery and belongs in the same
@@ -155,8 +168,9 @@ pull request as the behavior it describes. Update the affected documents:
   disposable PostgreSQL database. Do not reuse the identity test database:
   its bootstrap test requires an empty user table. `scripts/test-backends.sh`
   provisions isolated identity, case and document databases plus Redis and runs
-  the workspace suite. Participant tests use isolated schemas in
-  `CASE_TEST_DATABASE_URL`; document tests use `DOCUMENT_TEST_DATABASE_URL`.
+  the workspace suite. Participant, administration and stage tests use isolated
+  schemas in `CASE_TEST_DATABASE_URL`; document tests use
+  `DOCUMENT_TEST_DATABASE_URL`.
   Missing variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
@@ -164,7 +178,7 @@ pull request as the behavior it describes. Update the affected documents:
 
 ## Implemented project state
 
-Reviewed on 2026-09-14. This is a starting map, not a replacement for inspecting
+Reviewed on 2026-09-15. This is a starting map, not a replacement for inspecting
 the working tree. The prototype has a working cryptographic backend and an
 authenticated local HTTP workflow; the complete case-management web product
 is still unfinished.
@@ -202,11 +216,27 @@ is still unfinished.
   Owner manages all; assigned Litigator manages, assigned Paralegal reads and
   Client retains only the four-field basic projection. Expected revisions guard
   edits and status changes; current NUC and judicial case number are separately
-  unique, including closed cases. Administrative closure blocks document and
-  participant mutations while preserving reads, evidence and Owner membership
-  changes. Common audited transactions explicitly use READ COMMITTED. See
+  unique, including closed cases. Administrative closure blocks document,
+  participant and stage mutations while preserving reads, evidence and Owner
+  membership changes. Common audited transactions explicitly use READ COMMITTED. See
   `docs/adr/0022-audited-penal-case-administration.md` and
   `docs/case-administration-api.md`.
+- The three `migrations/0008_case_stage*.sql` files add immutable stage revisions,
+  canonical values and sequence guards while preserving initial registrations.
+  Complete profiles without a stage support explicit adoption with reason and
+  exact documentary support. Investigation -> Intermediate -> Trial uses two
+  ordinary transitions, exact content versions, declared dates/offsets and an
+  independent stage revision. Preparation verifies integrity and PDF/DOCX format;
+  the audited commit revalidates active profile, role, membership, head and the
+  complete prepared evidence. Closure preserves authorized reads and history;
+  revocation prevents later access. Owner manages all, assigned Litigator manages,
+  assigned Paralegal reads and Client is denied. See
+  `docs/adr/0023-audited-case-stage-transitions.md` and `docs/case-stages-api.md`.
+- Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
+  and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
+  It preserves original content, does not render it or certify legal authenticity,
+  and does not retroactively validate every general document upload. Setup and
+  limits are in `docs/document-format-operations.md`.
 - Identity challenges are consumed atomically before MFA verification; user
   creation authenticates the bearer token inside the application use case.
   `crates/web/src/runtime.rs` shares request and blocking-operation limits
@@ -275,7 +305,10 @@ is still unfinished.
   stage; forms preserve drafts during revision conflicts and concurrent closure.
   Case navigation also exposes the participant directory, revision history and
   explicit conflict review for full edits and organizational status changes.
-  Preserve its
+  The Stages view separates current state, declared acts and initial history;
+  it supports adoption, exact-version selection, transitions and reconciliation
+  of conflicts or uncertain outcomes without automatic resubmission. Confirmed
+  uploads survive a later stage rejection. Preserve its
   design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -296,16 +329,18 @@ its original proposed schedule. Its reproduced evidence is in
 current code before planning subsequent work in this dependency order.
 `docs/product-completion.md` tracks the broader product acceptance scope:
 
-1. Reconcile permitted document formats and content delivery before declaring
+1. Reconcile permitted general-upload formats and content delivery before declaring
    the complete document use cases fulfilled. Current classification, queries
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Complete typed participant identity, stage adoption and transitions, hearings
-   and deadlines. Penal profiles and administrative history are implemented;
-   the initial stage registration does not implement stage transitions. The manual participant directory is implemented;
-   it does not establish verified identity or judicial authority. Keep legal
-   transitions separate from account assignments and organizational archiving.
+2. Complete typed participant identity, hearings, deadlines and resources linked
+   to resolutions. Penal administration, stage adoption, two ordinary transitions
+   and the manual participant directory are implemented; they do not establish
+   verified identity, judicial authority or automatic deadline computation.
+   `docs/procedural-resources-scope.md` preserves the approved objective and
+   proposes a separate resource workflow, not a fourth linear stage. Keep these
+   records separate from account assignments and organizational archiving.
 3. Extend the Qadra interface with procedural workflows, user administration,
    dashboard aggregates, reports and audit queries against `docs/http-api.md`.
    Use a user directory for assignment selection instead of requiring raw UUIDs.

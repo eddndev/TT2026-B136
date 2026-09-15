@@ -4,6 +4,126 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: adopción y transiciones de etapa
+
+- Fecha local: 15 de septiembre de 2026 (`America/Mexico_City`).
+- Alcance: adopción explícita, Investigación a Intermedia e Intermedia a Juicio,
+  soportes de versión exacta, historial inmutable y flujo Qadra. La política
+  `pdf_docx_v1` admite nuevos soportes mediante un worker acotado; no valida
+  retrospectivamente ni completa la política de toda carga general.
+- Decisiones: [etapas auditadas](adr/0023-audited-case-stage-transitions.md) y
+  [admisión aislada](adr/0024-isolated-document-format-admission.md).
+- Entorno: Rust/Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9, OpenSSL 3.5.7,
+  Node.js 22.22.2, npm 10.9.7 y qpdf 12.4.1, Linux x86_64.
+
+### Pruebas y recuperación
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `cargo fmt --all`, `cargo build --workspace` | Aprobadas. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Aprobada. |
+| `bash scripts/test-backends.sh` | **933 aprobadas**, 0 fallidas y 1 externa ignorada. |
+| Suite instrumentada y gate de cobertura | **933 aprobadas**, 0 fallidas y 1 externa ignorada; tres umbrales del 90 % aprobados. |
+| Binario release | **10 288 216 bytes**, menor que el límite de 26 214 400 bytes. |
+| `cargo +1.88.0 check --workspace` | Aprobada con la MSRV declarada. |
+| `cargo-deny 0.20.2 check` | Avisos, restricciones, licencias y fuentes aprobados. |
+| Instalador nativo | **9 pruebas aprobadas**; checksum, extracción acotada, reutilización y cuatro instaladores concurrentes. |
+| `bash scripts/demo.sh` | Recorrido criptográfico CLI aprobado. |
+| `bash scripts/api-demo.sh` | Flujo integrado y restauración aprobados con PDF/DOCX y PostgreSQL/Redis/TSA reales. |
+
+Son **163 pruebas Rust adicionales** respecto de las 770 del corte anterior.
+Las variables de backend se configuraron contra servicios desechables separados;
+las pruebas nativas usaron la biblioteca verificada, sin omisiones por ausencia.
+La única ignorada sigue siendo `the_real_sandbox_issues_a_token`. Persisten los
+avisos informativos de compatibilidad futura de Redis y duplicados de dependencias.
+
+El primer control de licencias rechazó `zlib-rs` porque `Zlib` no estaba en la
+lista permitida. Se leyó el aviso incluido en su distribución y se documentaron
+sus condiciones en ADR-0024 antes de incorporarla a la política permisiva.
+No se añadieron excepciones de seguridad. Las bibliotecas nativas de qpdf quedan
+fuera del inventario Cargo y tienen su propia preparación y revisión operativa.
+
+Los casos verifican precisión temporal y desfase, canon CSTG1 entre Rust y SQL
+incluido máximo de 5759 bytes, registro inicial sin procedencia fabricada,
+permisos, revisión esperada y preparación única por referencia. El mismo archivo
+puede servir en dos papeles sin duplicar descifrado ni validación. Los **35 casos
+nuevos de PostgreSQL** comprueban transacciones, rollback, cierre/revocación,
+concurrencia, versiones exactas, esquema, inventario y restauración. El servicio
+no consulta de nuevo después del commit para construir la respuesta.
+
+La revisión con pruebas negativas detectó y corrigió aceptación de un trigger
+de secuencia deshabilitado al arrancar, una discontinuidad histórica después de
+restaurar el trigger, soportes duplicados con distinto formato y prioridad de
+error incorrecta ante sellado concurrente con evidencia excesiva. Un fixture de
+versión 7 requería agrupar sus inserciones por la clave foránea diferida; fue
+corregido en la prueba y no se atribuye como defecto del backend.
+
+La campaña HTTP final comprobó dos avances simultáneos con una confirmación y
+un conflicto, fecha/desfase preservados, V1 seleccionada después de añadir V2,
+PDF y DOCX reales, adopción sin etapa anterior inventada, cierre, revocación e
+historia paginada. Restauró **7 expedientes, 15 revisiones administrativas y 3
+registros iniciales**, además de **9 raíces documentales, 11 versiones, 3 revisiones
+de clasificación, 2 participantes y 6 revisiones del directorio**. Las filas
+completas de etapas, detalle e historia conservan valores, fechas, actores y
+origen inicial; los ZIP anteriores coinciden byte por byte. El prefijo importado
+sigue siendo **4 documentos y 63 eventos**, distinto del total final de auditoría.
+
+Los parsers tienen casos de PDF con xref/object streams, actualización incremental
+y estructuras dañadas, DOCX de productor independiente y lotes comprimidos que
+exceden el presupuesto compartido. Se comprueban límites instalados antes de
+leer, tuberías de 4096 bytes, timeout y recolección del PID. Una regresión con
+instrumentación reprodujo SIGXFSZ por el escritor de perfiles LLVM al salir.
+El worker libera recursos, vacía la respuesta y termina sin handlers `atexit`;
+las mismas **9 pruebas nativas** pasan también instrumentadas. El hijo no genera
+perfiles propios; las pruebas de biblioteca permanecen instrumentadas. Esos
+nueve casos repetidos no se suman al total como pruebas distintas.
+
+### Cobertura del registro procesal
+
+**15 817 de 17 064 líneas cubiertas: 92.7 % global.** Los tres crates sujetos
+al umbral del 90 % pasan el gate versionado. Se incluye el código instrumentado
+nuevo; no se han excluido parsers ni el crate de infraestructura para aprobar.
+
+| Crate | Líneas cubiertas / instrumentadas | Cobertura |
+| --- | ---: | ---: |
+| `domain` | 1859 / 1893 | 98.2 % |
+| `application` | 3294 / 3430 | 96.0 % |
+| `infrastructure` | 7699 / 8354 | 92.2 % |
+| `web` | 2129 / 2271 | 93.7 % |
+| `bin` | 836 / 1116 | 74.9 % |
+
+Es cobertura de líneas, no porcentaje de objetivos ni conformidad documental.
+El 93.4 % del corte administrativo se conserva como medición histórica, con un
+denominador diferente. La regla de salida del hijo y su ausencia de perfiles
+propios se explican arriba; los ensayos de biblioteca sí aportan instrumentación.
+
+### Interfaz y límites de interpretación
+
+La suite de interfaz aprobó **56 pruebas unitarias y 129 escenarios con HTTP
+simulado**, además de compilación y formato. Los seis recorridos iniciales con
+servicios reales aprobaron en aproximadamente 1.3 minutos, incluidos adopción y
+transiciones, junto con administración, participantes, clasificación y versiones.
+La campaña final posterior a los controles de arranque y la salida del worker aprobó también
+los **seis recorridos**, en aproximadamente **1.5 minutos**, sin sumar ambas
+ejecuciones como doce escenarios distintos. Escritorio y móvil conservan el sistema de diseño Qadra; los originales de marca
+y las siete hojas de estilo originales no se modificaron. La revisión de las 162 fuentes y configuraciones de software modificadas encontró solo
+ASCII y archivos menores de 400 líneas, con máximo de 381. No se atribuye a los
+ensayos automáticos una evaluación de usabilidad con usuarios del despacho.
+
+La demostración CLI final midió Argon2id en **371.7 ms de promedio sobre cinco
+corridas**, por debajo de la banda objetivo de 500 a 1000 ms. La cifra de 529.4 ms
+del hardware y ensayo históricos no se sustituye ni se presenta como medición
+actual. Se mantienen los parámetros existentes; la calibración del entorno de
+despliegue sigue requiriendo revisión antes del cierre operativo.
+
+Los soportes prueban admisión técnica, sin certificar autenticidad jurídica,
+conformidad PDF/OOXML completa ni ausencia de malware. El worker tiene límites
+de recursos, no un sandbox general de archivos/red. Su límite de memoria no
+incluye buffers ni criptografía del proceso padre. La identidad tipificada,
+recursos, audiencias, cómputo de términos, alertas, firma personal, ciclo de
+miembros e informes conservan sus pendientes en la [matriz funcional](product-completion.md).
+La TSA local y la auditoría sin anclaje externo conservan sus limitaciones.
+
 ## Corte reproducido: perfil y administración del expediente penal
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC

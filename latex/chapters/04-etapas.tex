@@ -1,0 +1,50 @@
+\subsection{Adopción y transiciones de etapa}\label{sec:impl-http-etapas}
+
+{\raggedright El dominio \rutarepo{crates/domain/src/case_stages/} representa Investigación, Intermedia y Juicio, sus valores declarados y las referencias documentales exactas. El servicio de aplicación separa consulta, historia, adopción y transición. La decisión se documenta en \rutarepo{docs/adr/0023-audited-case-stage-transitions.md}; el contrato está en \rutarepo{docs/case-stages-api.md}. La etapa tiene revisión propia, independiente de las revisiones administrativas y documentales.\par}
+
+El expediente sin registro admite adoptar una de las tres etapas mediante motivo, fecha conocida y soporte. La adopción crea la primera revisión, con etapa anterior ausente; no reconstruye actos ni etapas anteriores. El alta penal conserva su registro inicial original de Investigación como alternativa excluyente a la adopción. Los avances ordinarios implementados son Investigación a Intermedia, con acusación y fecha declarada, e Intermedia a Juicio, con auto de apertura, emisión, recepción y tribunal receptor. Referencia y constancia de recepción son opcionales. No hay reversión ni transición deducida de un nombre, una carga o un sello.
+
+La fecha del acto distingue día e instante. El día conserva fecha local y desfase conocido; el instante conserva hora, hasta nueve dígitos de fracción y desfase. Los desfases tienen precisión de minuto y rango de $-14$ a $+14$ horas; \texttt{-00:00} se rechaza porque no expresa un desfase conocido. El rango local y UTC permanece entre los años 1 y 9999. El servidor no añade una hora ficticia a una fecha que carece de ella.
+
+Para comprobar límites, el día se interpreta como un intervalo de posibilidades en su desfase. Se rechaza una declaración enteramente posterior al instante de captura. Emisión y recepción se rechazan por orden cuando el intervalo completo de emisión es posterior al de recepción; si se solapan, no se inventa un orden interno. El instante de captura procede del reloj del servidor después de preparar los soportes. Esta comprobación expresa coherencia de las declaraciones, sin certificar la fecha jurídica del acto.
+
+Cada papel documental fija UUID, versión positiva y digest SHA-256 esperado. El servicio selecciona esos registros dentro del expediente, verifica el contexto del cifrado, descifra, comprueba el digest y valida la evidencia capturada cuando existe. Una misma referencia puede servir como auto y constancia si se declara con idéntico digest. Los valores conservan ambos papeles; el trabajo criptográfico y de formato se realiza una sola vez por referencia.
+
+El canon propio \texttt{CSTG1} distingue adopción y los dos avances. Codifica precisión temporal, fecha o segundos y nanosegundos, desfase, textos y referencias con longitudes y etiquetas explícitas; admite hasta 5759 bytes. La huella cubre esos valores, mientras claves, revisión, autor y recurso auditado vinculan el registro al expediente. No sustituye una firma personal ni modifica el AAD o la evidencia documental. El origen inicial conserva su digest \texttt{CADM1}; no se transforma retrospectivamente en \texttt{CSTG1}.
+
+{\raggedright La persistencia usa \rutarepo{case_stage_revisions} y conserva la tabla de registros iniciales. Bajo la frontera auditada de PostgreSQL, la confirmación revisa cuenta activa, rol, pertenencia, perfil penal completo, estado administrativo activo, cabeza procesal y registros documentales completos. Captura la revisión administrativa vigente y su digest, UUID y correo del actor, instante y soportes admitidos. Etapa y evento confirman juntos. Una revisión obsoleta produce conflicto; si el soporte se sella entre preparación y confirmación, se exige una validación nueva. El sellado posterior a la transición y las versiones futuras conservan la historia registrada.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Operaciones de etapa bajo \texttt{/api/v1/cases/<id>}.}
+  \label{tab:impl-http-etapas}
+  \begin{tabularx}{\linewidth}{@{}L{5.2cm} X@{}}
+    \toprule
+    \textbf{Método y ruta} & \textbf{Resultado} \\
+    \midrule
+    \texttt{GET /stage} & Etapa registrada o ausencia explícita, con \texttt{200}. \\
+    \texttt{GET /stage/history} & Historia descendente que incluye el origen inicial, con \texttt{200}. \\
+    \texttt{POST /stage/adoption} & Primera revisión adoptada desde ausencia, con \texttt{201}. \\
+    \texttt{POST /stage/transitions} & Sucesor ordinario con soportes exactos, con \texttt{201}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Owner consulta y gestiona cualquier expediente; Litigante necesita asignación vigente; Paralegal asignado consulta. Cliente no accede a estas rutas de personal. Las consultas e historias se auditan antes de devolver datos. La historia ordena por revisión, con límite de 1 a 100, 20 por defecto y cursor positivo exclusivo; no ordena los registros por la fecha declarada del acto. Los comandos JSON admiten 32~KiB y rechazan campos desconocidos. Las respuestas distinguen entradas iniciales y cambios, sin exigir una consulta posterior al commit.
+
+Qadra presenta la etapa actual y la historia por separado del registro original en el resumen. El selector consulta documentos, versiones y detalle exacto, sin inferir el estado de una versión a partir de la cabeza o exigir sellado previo. La carga y el registro procesal son transacciones distintas: rechazar la segunda no elimina una carga confirmada. Ante conflicto se conserva el borrador; ante respuesta incierta se consultan etapa e historia antes de habilitar otro envío. La coincidencia de valores no demuestra por sí sola que aquel envío haya confirmado.
+
+Estas dos transiciones no completan todo el objetivo de gestión procesal. Recursos, audiencias, plazos, alertas y habilitación de sus módulos conservan requisitos propios. Los valores y soportes no acreditan competencia, procedencia jurídica, identidad institucional ni cumplimiento de un plazo.
+
+\subsection{Admisión acotada de PDF y DOCX}\label{sec:impl-formatos}
+
+{\raggedright La política \texttt{pdf\_docx\_v1}, descrita en \rutarepo{docs/adr/0024-isolated-document-format-admission.md}, comprueba el contenido de nuevos soportes procesales. No se aplica retrospectivamente ni declara resuelta la validación de todas las cargas generales. Cada lote admite hasta dos referencias distintas, 16~MiB por documento y 32~MiB en total. El adaptador limita vault y evidencia antes de transferirlos; la evidencia JSON admite 1~MiB antes de deserializarse. La selección definitiva repite las cotas en su propia instantánea.\par}
+
+La aplicación presta los bytes ya autenticados a un proceso separado del mismo ejecutable. Un protocolo binario acota entradas y respuesta; el texto del documento no pasa por argumentos ni mensajes de error. El worker Linux instala 5 segundos de CPU, 256~MiB de espacio de direcciones, tamaño de archivo de salida cero y core dumps deshabilitados antes de leer documentos. El supervisor impone 10 segundos desde el lanzamiento, usa tuberías no bloqueantes y recoge al proceso al fallar. Al concluir, libera buffers y parsers, vacía la respuesta y termina sin handlers \texttt{atexit}; el hijo no escribe perfiles LLVM que infringirían el límite de archivos. Las pruebas de biblioteca permanecen instrumentadas. El presupuesto pertenece al lote completo; no se renueva por archivo ni incluye criptografía o consultas del padre.
+
+PDF usa la API C de qpdf~12.4.1, cargada dentro del worker desde una instalación con artefacto y SHA-256 fijados. Deshabilita recuperación, rechaza advertencias, errores y cifrado, incluso con contraseña de apertura vacía. Comprueba catálogo, referencias, padres y contadores del árbol de páginas, sin ciclos, con máximo de 4096 páginas y profundidad acotada. Esta política no promete un contador de expansión PDF, renderizado, validación completa del estándar ni detección de malware.
+
+DOCX admite un perfil ZIP32 con Stored o Deflate y hasta 1024 entradas físicas. Comprueba cabeceras, directorio, nombres inequívocos, descriptores, CRC32, tamaño real y final exacto del flujo comprimido. Cada entrada se expande una vez; los DOCX del lote comparten 64~MiB de expansión y un millón de eventos XML, con profundidad 128. Exige tipos de contenido, relaciones internas, parte principal Word y un cuerpo; admite familias Transitional y Strict coherentes. Rechaza DTD, entidades personalizadas, macros, OLE, ActiveX, paquetes embebidos, plantillas adjuntas y \texttt{altChunk}. Solo admite relaciones externas de hipervínculo inertes HTTP, HTTPS o mailto, que no se siguen.
+
+{\raggedright La admisión no extrae archivos ni resuelve enlaces; tampoco es una validación XSD completa de OPC/OOXML. Puede rechazar documentos válidos fuera de este perfil, como XML UTF-16 o ZIP64. Se diferencian formato rechazado, tamaño excesivo y presupuesto agotado. Un fallo del parser no autoriza la transición ni reescribe evidencia. El servidor comprueba la instalación nativa antes de abrir su puerto; \rutarepo{scripts/setup-document-formats.sh} prepara la dependencia y \rutarepo{docs/document-format-operations.md} documenta operación, límites y reproducción.
+\par}
