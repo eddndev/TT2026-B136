@@ -7,6 +7,8 @@ source "$REPO_ROOT/scripts/api-version-demo.sh"
 source "$REPO_ROOT/scripts/api-metadata-demo.sh"
 # shellcheck source=scripts/api-participant-demo.sh
 source "$REPO_ROOT/scripts/api-participant-demo.sh"
+# shellcheck source=scripts/api-case-administration-demo.sh
+source "$REPO_ROOT/scripts/api-case-administration-demo.sh"
 
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -50,6 +52,10 @@ migration_demo_state() {
       'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY fingerprint) FROM migration_receipts r),
       'users',(SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u),
       'cases',(SELECT jsonb_agg(to_jsonb(c) ORDER BY id) FROM cases c),
+      'case_administration',(SELECT jsonb_agg(to_jsonb(c) ORDER BY case_id,revision)
+        FROM case_administration_revisions c),
+      'initial_stages',(SELECT jsonb_agg(to_jsonb(s) ORDER BY case_id)
+        FROM case_initial_stage_registrations s),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
@@ -124,11 +130,28 @@ PY
   [ "$document_count" -ge 3 ]
   sealed_count="$(psql "$DATABASE_ADMIN_URL" -Atc 'SELECT COUNT(*) FROM documents WHERE evidence IS NOT NULL')"
   [ "$sealed_count" -ge 2 ]
+  # This is a legacy-format fixture, not a full migration of current case history.
+  # Copy known original root facts into a fresh administrative baseline. Source
+  # API roots, their required R1 revisions and audit events remain untouched.
+  # The full backup below separately proves restoration of every current table.
   pg_dump "$DATABASE_ADMIN_URL" --data-only --no-owner --no-privileges \
-    -t users -t cases -t case_memberships >"$WORK_DIR/identity-cases.sql"
+    -t users >"$WORK_DIR/identity-users.sql"
+  pg_dump "$DATABASE_ADMIN_URL" --data-only --no-owner --no-privileges \
+    -t case_memberships >"$WORK_DIR/case-memberships.sql"
+  psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c \
+    "COPY (SELECT id,title,reference,created_by,created_at,
+      NULL::BIGINT AS required_initial_revision FROM cases ORDER BY id)
+      TO STDOUT WITH (FORMAT CSV, HEADER)" >"$WORK_DIR/case-baselines.csv"
   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE imported' >/dev/null
   DATABASE_URL="$imported_url" "$CLI" database migrate --runtime-role tt_runtime >/dev/null
-  psql "$imported_url" -v ON_ERROR_STOP=1 -f "$WORK_DIR/identity-cases.sql" >/dev/null
+  psql "$imported_url" -v ON_ERROR_STOP=1 -f "$WORK_DIR/identity-users.sql" >/dev/null
+  psql "$imported_url" -v ON_ERROR_STOP=1 -c \
+    '\copy cases(id,title,reference,created_by,created_at,required_initial_revision) FROM STDIN WITH CSV HEADER' \
+    <"$WORK_DIR/case-baselines.csv" >/dev/null
+  psql "$imported_url" -v ON_ERROR_STOP=1 -f "$WORK_DIR/case-memberships.sql" >/dev/null
+  [ "$(psql "$imported_url" -Atc 'SELECT COUNT(*) FROM cases WHERE required_initial_revision IS NOT NULL')" -eq 0 ]
+  [ "$(psql "$imported_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" -eq 0 ]
+  [ "$(psql "$imported_url" -Atc 'SELECT COUNT(*) FROM case_initial_stage_registrations')" -eq 0 ]
 
   DATABASE_URL="$imported_url" "$CLI" --json database import \
     --data-dir "$legacy_dir" --mapping "$legacy_dir/mapping.json" >"$WORK_DIR/import-inspection.json"
@@ -163,8 +186,14 @@ PY
   version_demo "$case_id"
   metadata_demo "$case_id"
   participant_demo "$case_id"
+  administration_demo "$case_id"
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
+  DATABASE_URL="$imported_url" "$CLI" --json database import --apply \
+    --data-dir "$legacy_dir" --mapping "$legacy_dir/mapping.json" >"$WORK_DIR/administration-reconcile.json"
+  [ "$(jq -Sc '.report' "$WORK_DIR/administration-reconcile.json")" = "$import_report" ]
+  migration_demo_state "$imported_url" >"$WORK_DIR/reconciled-state.json"
+  cmp "$WORK_DIR/imported-state.json" "$WORK_DIR/reconciled-state.json"
 
   pg_dump "$imported_url" --format=custom --file="$WORK_DIR/imported.dump"
   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE restored' >/dev/null
@@ -180,6 +209,11 @@ PY
   version_demo_restored "$case_id"
   metadata_demo_restored "$case_id"
   participant_demo_restored "$case_id"
+  administration_demo_restored
+  printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_initial_stage_registrations')"
   printf 'Restored inventory: %s document roots, %s content snapshots, %s classification revisions.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_series')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM documents')" \
@@ -197,3 +231,6 @@ unset -f migration_demo_state migration_demo_export
 unset -f version_demo version_demo_request version_demo_restored
 unset -f metadata_demo metadata_demo_request metadata_demo_restored metadata_demo_evidence
 unset -f participant_demo participant_demo_request participant_demo_enroll participant_demo_restored
+
+unset -f administration_demo administration_demo_request administration_demo_body administration_demo_enroll
+unset -f administration_demo_closed administration_demo_capture administration_demo_restored

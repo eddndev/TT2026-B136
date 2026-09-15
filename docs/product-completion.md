@@ -25,6 +25,13 @@ permisos. Su base y límites se describen en
 [ADR-0021](adr/0021-audited-case-participants.md). Este avance no cierra los
 criterios de identidad jurídica ni la gestión procesal completa.
 
+El registro penal completo añade NUC, carpeta judicial, autoridades, delitos e
+información general, con revisión administrativa y registro inicial de
+Investigación. La edición, el cierre administrativo y la reapertura conservan
+la historia y la etapa inicial. Completar una ficha anterior no inventa etapas;
+la API básica mantiene su proyección para Client. La administración y el cierre
+se describen en [ADR-0022](adr/0022-audited-penal-case-administration.md).
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -34,7 +41,8 @@ criterios de identidad jurídica ni la gestión procesal completa.
 | Clasificación documental | Tipo, clasificación y etiquetas organizativas con revisiones auditadas; búsqueda autorizada por metadatos. | ADR-0020, carga atómica, canon Unicode, revisiones esperadas, concurrencia, permisos y restauración sin alterar evidencia; resultados en el informe de verificación. |
 | Directorio de participantes | Fichas por expediente, revisión esperada, historial, filtros, archivo y reactivación con valores vigentes. | ADR-0021, independencia de cuentas, cuatro roles, asociación ajena, concurrencia, auditoría y restauración. No acredita identidad ni firma judicial. |
 | Identidad y firma personal | Resolver autenticación con certificado de socios, identidad del firmante y custodia de claves; altas, bajas, invitaciones y recuperación segura de credenciales. | La clave de firma configurada para el servidor no demuestra firma individual por usuario. Separar recuperación MFA de recuperación de contraseña. Definir contratos y probar revocación con sesiones existentes y fallos de entrega. |
-| Expediente penal y participantes | Datos procesales del expediente; directorio de personas; roles procesales; transiciones con documentos habilitantes e historial. | Las asignaciones de acceso no representan participantes. Reglas probadas en dominio, transacciones y auditoría; vistas que conserven el diseño Qadra. |
+| Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
+| Etapas y participantes tipificados | Identidad y roles procesales; adopción de etapa anterior y transiciones con documentos habilitantes e historial. | La administración no sustituye transiciones ni valida identidad jurídica. Reglas de dominio, documentos exactos, transacciones, auditoría e interfaz Qadra. |
 | Audiencias, plazos y calendario | Audiencias vinculadas al expediente, plazos, calendario configurable, vencimientos y alertas persistentes. | Consultar fuentes normativas oficiales vigentes al implementar reglas; casos de prueba de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir validación de las reglas por una simple suma de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
@@ -74,9 +82,9 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Ciclo de vida de miembros | Parcial | Invitaciones, directorio consultable, baja y protección del último Owner; selección por usuario en asignaciones. |
 | Inicio de sesión y sesiones | Parcial | Certificado de socio, recuperación de contraseña e inactividad; contraseña/MFA y logout ya tienen implementación. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
-| Registro y administración de expediente penal | Parcial | Añadir identificadores y atributos procesales, edición y cierre; título/referencia y asignaciones ya existen. |
-| Directorio de participantes | Parcial | Directorio manual, filtros, historial y archivo auditados implementados. Faltan identidad e identificadores según tipo, duplicidad de persona verificada/rol, criterio de órgano/FIREL para juez y condición de expediente penal activo del diseño aprobado. |
-| Transición de etapa procesal | Pendiente | Reglas, documentos habilitantes, historial y rechazo de transiciones inválidas. |
+| Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones corresponden al siguiente flujo. Los valores declarados no son certificaciones institucionales. |
+| Directorio de participantes | Parcial | Directorio manual, filtros, historial y archivo auditados implementados. Faltan identidad e identificadores según tipo, duplicidad de persona verificada/rol, criterio de órgano/FIREL para juez y alcance jurídico de expediente penal activo. El cierre organizativo ya bloquea las mutaciones del directorio. |
+| Transición de etapa procesal | Pendiente | Adopción explícita de etapa en expedientes anteriores, aristas válidas, documentos habilitantes con versión exacta, historia y rechazo de transiciones inválidas. El registro inicial de Investigación no cierra este flujo. |
 | Audiencia y activación de plazos | Pendiente | Programación, cambios, cancelaciones y creación consistente de plazos vinculados. |
 | Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |

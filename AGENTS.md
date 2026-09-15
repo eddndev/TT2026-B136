@@ -192,6 +192,21 @@ is still unfinished.
   changes revalidate the actor and commit their audit in the same transaction. See
   `docs/adr/0014-case-membership-and-isolation.md` and
   `crates/web/src/cases.rs`.
+- `migrations/0007_case_administration.sql` adds immutable administrative
+  revisions and a separate initial stage registration. Complete penal creation
+  requires NUC, judicial case number, their authorities and offenses; it commits
+  active R1, creator membership, initial Investigation and audit together. Basic
+  creation remains a pending profile with R1 and no stage. Earlier baselines
+  project R0 without fabricated provenance; completing them does not add a stage.
+  Staff queries and commands revalidate current authorization and commit audit.
+  Owner manages all; assigned Litigator manages, assigned Paralegal reads and
+  Client retains only the four-field basic projection. Expected revisions guard
+  edits and status changes; current NUC and judicial case number are separately
+  unique, including closed cases. Administrative closure blocks document and
+  participant mutations while preserving reads, evidence and Owner membership
+  changes. Common audited transactions explicitly use READ COMMITTED. See
+  `docs/adr/0022-audited-penal-case-administration.md` and
+  `docs/case-administration-api.md`.
 - Identity challenges are consumed atomically before MFA verification; user
   creation authenticates the bearer token inside the application use case.
   `crates/web/src/runtime.rs` shares request and blocking-operation limits
@@ -255,6 +270,9 @@ is still unfinished.
   verification and evidence download. Classification conflicts preserve drafts
   and require explicit selection of the newer base revision. Actions use the
   selected content version; append conflicts preserve the chosen file.
+  The staff case index offers current-profile filters and cursor pagination.
+  Its summary distinguishes pending profiles, administrative status and initial
+  stage; forms preserve drafts during revision conflicts and concurrent closure.
   Case navigation also exposes the participant directory, revision history and
   explicit conflict review for full edits and organizational status changes.
   Preserve its
@@ -283,8 +301,9 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Complete typed participant identity and procedural case attributes, stages,
-   hearings and deadlines. The manual participant directory is implemented;
+2. Complete typed participant identity, stage adoption and transitions, hearings
+   and deadlines. Penal profiles and administrative history are implemented;
+   the initial stage registration does not implement stage transitions. The manual participant directory is implemented;
    it does not establish verified identity or judicial authority. Keep legal
    transitions separate from account assignments and organizational archiving.
 3. Extend the Qadra interface with procedural workflows, user administration,

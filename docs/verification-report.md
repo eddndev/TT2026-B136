@@ -4,6 +4,150 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: perfil y administración del expediente penal
+
+- Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC
+  correspondientes al 15 de septiembre.
+- Alcance: alta penal completa, perfil y revisiones administrativas, índice e
+  historia autorizados, cierre y reapertura, conservación del registro inicial
+  de etapa y formularios Qadra ante conflictos y resultados inciertos.
+- Decisión: [administración auditada](adr/0022-audited-penal-case-administration.md).
+- Entorno comprobado: Rust/Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9,
+  OpenSSL 3.5.7, Node.js 22.22.2 y npm 10.9.7.
+
+### Backend y recuperación de expedientes
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `cargo fmt --all`, `cargo build --workspace` | Aprobadas. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Aprobada. |
+| Política de dependencias con `cargo-deny 0.20.2` | Avisos, restricciones, licencias y fuentes aprobados, sin nuevas excepciones. |
+| `bash scripts/test-backends.sh` | **770 aprobadas**, 0 fallidas y 1 externa ignorada. |
+| Suite instrumentada con `cargo llvm-cov --workspace` | **770 aprobadas**, 0 fallidas y 1 externa ignorada. |
+| `bash scripts/demo.sh` | Recorrido criptográfico CLI aprobado. |
+| `bash scripts/api-demo.sh` | Flujo documental, participantes, administración penal, concurrencia, importación y restauración aprobados. |
+
+Las pruebas usaron PostgreSQL con contraseña SCRAM y Redis desechables. El
+wrapper separa bases de identidad, expedientes y documentos, y los nuevos
+ensayos aíslan esquemas y roles operativos. La prueba externa ignorada sigue
+siendo `the_real_sandbox_issues_a_token`; no se ejecutó un proveedor externo.
+Permanece la advertencia de compatibilidad futura de `redis 0.25.4`.
+
+Las **66 pruebas Rust nuevas** respecto del directorio se distribuyen en 24 de
+dominio/aplicación, 12 HTTP y 30 de infraestructura. Comprueban:
+
+- Perfil completo, límites en escalares Unicode, controles rechazados antes del
+  recorte, CRLF normalizado a LF solamente en información general, delitos
+  ordenados sin duplicados literales y ausencia explícita de opcionales.
+  Tres vectores CADM1 y el máximo de **12 717 bytes** coinciden entre Rust y SQL,
+  con SHA-256 calculado por los adaptadores. Los valores máximos escapados caben
+  en el límite HTTP completo de 64 KiB.
+- Alta básica con R1 pendiente y tres eventos; alta penal con R1 completa,
+  asignación del creador, Investigación inicial y cuatro eventos atómicos.
+  La raíz previa se proyecta como R0 sin historia ni procedencia fabricadas.
+  Completar perfiles pendientes no crea una etapa. El registro inicial conserva
+  el digest, actor y tiempo de su R1 exacta después de editar o cerrar.
+- Owner global, Litigator y Paralegal asignados, permisos de edición/consulta y
+  denegación de perfiles e historia a Client. Su proyección básica conserva
+  exactamente cuatro campos y refleja título/referencia actuales.
+- Revalidación de cuenta y asignación después de esperar el bloqueo común;
+  rechazo de lecturas básicas y administrativas si falla la escritura auditada.
+  Ningún comando necesita una lectura posterior al commit para responder.
+- Revisiones esperadas, un solo sucesor entre ediciones simultáneas, estado que
+  conserva los textos vigentes y perfil completo que no puede eliminarse.
+  La unicidad de NUC y carpeta se comprueba por separado sobre cabezas actuales,
+  incluidos expedientes cerrados; una corrección libera el valor anterior al
+  confirmar, sin eliminar historia ni revelar otro expediente en un conflicto.
+- Cierre comprobado al confirmar cargas, nuevas versiones, clasificación,
+  sellado y mutaciones de participantes. Un sello preparado antes del cierre
+  es rechazado sin estado ni evento de éxito. Los recursos ajenos conservan su
+  `404`; lectura, historia, verificación, evidencia y asignaciones Owner siguen
+  disponibles. Reabrir no altera participantes archivados ni el registro de etapa.
+- READ COMMITTED explícito aun con otro aislamiento predeterminado. Un ensayo
+  SQL directo espera a otro escritor y vuelve a comprobar los identificadores
+  recién confirmados. El rojo de visibilidad bajo REPEATABLE READ y su corrección
+  quedaron reproducidos. Otro ensayo detectó un año fuera de rango UTC que la
+  conversión local ocultaba; el guard ahora evalúa el instante en UTC.
+- Reaplicación de migraciones, UTF8, restricciones, referencias diferidas,
+  privilegios por columna y tablas, inventario y restauración real con
+  `search_path` vacío. El primer import rechaza administración/etapas ocupadas;
+  conciliar un recibo existente tolera revisiones válidas posteriores.
+
+La campaña HTTP recuperó **5 expedientes, 11 revisiones administrativas y 2
+registros iniciales de etapa**, además de **5 raíces documentales, 6 versiones,
+3 revisiones de clasificación, 2 participantes y 6 revisiones del directorio**.
+Comparó filas completas, detalles e historias, autores originales y ZIP de las
+dos versiones byte por byte. Conciliar el recibo después de la administración
+no alteró las filas ni la cadena.
+
+El prefijo importado de este ensayo contiene **63 eventos y 4 documentos**;
+no es el total de eventos después de todos los recorridos. Los 51 eventos del
+corte anterior permanecen como medición histórica. El formato legacy se
+reconstruye como fixture documental sobre baselines administrativos explícitos,
+sin modificar raíces ni historia de la fuente; no representa una conversión
+íntegra del historial administrativo actual. El respaldo/restauración completo
+posterior sí conserva todas las tablas.
+
+El primer intento de la campaña HTTP fue rechazado porque su fixture de carga
+clasificada omitía `tags`. Se corrigió el guion y se reprodujo el recorrido
+completo con código de salida 0. La primera regresión de infraestructura detectó
+una semilla de prueba que atravesaba esquemas anteriores y nuevos sin distinguir
+la columna de baseline; se corrigió el helper administrativo. Estos fallos de
+los guiones no se presentan como defectos de la aplicación.
+
+### Cobertura de la administración penal
+
+**12 613 de 13 506 líneas cubiertas: 93.4 %.** Los tres crates sujetos al umbral
+del 90 % pasan el gate versionado.
+
+| Crate | Líneas cubiertas / instrumentadas | Cobertura |
+| --- | ---: | ---: |
+| `domain` | 1497 / 1531 | 97.8 % |
+| `application` | 2817 / 2950 | 95.5 % |
+| `infrastructure` | 5739 / 6066 | 94.6 % |
+| `web` | 1726 / 1863 | 92.6 % |
+| `bin` | 834 / 1096 | 76.1 % |
+
+La cobertura es de líneas instrumentadas, no una medida de cumplimiento de
+objetivos ni de validez jurídica. La suite del corte anterior y su 92.9 %
+permanecen separados a continuación.
+
+### Qadra y navegador en la administración penal
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| Pruebas unitarias web | **45 aprobadas**, sin omisiones. |
+| Navegador con HTTP simulado | **88 aprobadas**, 35.0 s. |
+| QA móvil dirigida con el estilo final | **1 aprobada**. |
+| Navegador con Rust/PostgreSQL/Redis/TSA reales | **4 aprobadas**, 1.3 min. |
+| `npm run build`, `npm run format:check` | Aprobadas; build de 1.56 s. |
+| Revisión de fuentes/configuración de esta entrega | 138 archivos ASCII, todos menores de 400 líneas; máximo 382. |
+| Originales del sistema de diseño | 7 CSS y 5 archivos de marca/procedencia idénticos byte por byte. |
+
+Los recorridos prueban alta penal completa; edición básica y completar R0/R1
+sin inventar etapa; consulta e historia; filtros por cabezas; cuatro roles;
+revocación; cierre durante una carga y conservación del archivo/borrador;
+reapertura y persistencia después de iniciar otra sesión. Las respuestas tardías
+de consulta, cambio de expediente y denegación se descartan. Edición y estado
+permiten consultar y comparar explícitamente la cabeza después de un conflicto
+o un resultado incierto. El alta incierta busca los identificadores enviados,
+incluyendo casos cerrados, y permite abrir una coincidencia sin atribuirle
+automáticamente el éxito de aquel POST ni volver a enviarlo.
+
+Se inspeccionaron resumen, historial, edición en conflicto y cierre en escritorio
+y móvil. La corrección visual del textarea reutiliza fuente, borde, radio y foco
+de Qadra en una hoja adicional. La suite simulada completa precede solo a ese
+ajuste CSS; la QA móvil y los cuatro recorridos reales usan el estilo final.
+Los ZIP históricos antes y después de cerrar el expediente son idénticos.
+
+Las evidencias anteriores son locales. La usabilidad con personal real, las
+transiciones/adopción de etapa, participantes con identidad tipificada, audiencias,
+plazos, firma individual, informes y preparación operativa siguen pendientes
+según [el alcance del producto](product-completion.md). El guard recorre
+metadatos y el listado hace consultas adicionales acotadas por página; no se
+presentan estos ensayos como medición de capacidad de producción. La TSA local
+sigue siendo evidencia técnica, sin constancia de un PSC autorizado.
+
 ## Corte reproducido: directorio de participantes
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC
