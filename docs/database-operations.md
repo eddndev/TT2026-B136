@@ -1,6 +1,6 @@
 # Base de datos y migración de documentos
 
-El servidor usa PostgreSQL para usuarios, expedientes, documentos y una sola
+El servidor usa PostgreSQL para usuarios, expedientes, participantes, documentos y una sola
 cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
 está en [ADR-0016](adr/0016-case-document-transactions.md).
 
@@ -84,14 +84,41 @@ compatibles con la versión del servidor. Las pruebas aisladas de backend
 requieren ambos ejecutables y comprueban una restauración real con restricciones
 y permisos activos.
 
+## Actualizar el directorio de participantes
+
+Detener escritores y obtener un respaldo completo antes de ejecutar
+`database migrate --runtime-role` con el nuevo binario y conexión administrativa.
+`migrations/0006_case_participants.sql` añade `case_participants` y
+`case_participant_revisions`, sin derivar personas de las cuentas asignadas.
+Los expedientes existentes empiezan con el directorio vacío y sus documentos
+mantienen todas las versiones y evidencias.
+
+El rol operativo necesita SELECT/INSERT sobre ambas tablas y las funciones puras
+de comprobación, sin propiedad, UPDATE, DELETE ni TRUNCATE. El arranque comprueba
+esquema, privilegios y coherencia. Las raíces exigen revisión activa inicial;
+cada sucesor conserva valores, SHA-256, actor y fecha. No reparar conflictos con
+UPDATE ni borrar historia: el usuario debe revisar y enviar la revisión vigente.
+Las funciones fijan su esquema para permitir restauración con `search_path` vacío.
+
+Respaldar ambas tablas junto con usuarios, expedientes, membresías y auditoría.
+Las claves foráneas incluyen una referencia diferida de la raíz a su primera
+revisión; no cargar raíces huérfanas ni fabricar autores al restaurar. Comparar
+filas completas y secuencias, incluida la revisión actual e historia de cada
+ficha. Los textos son metadatos autorizados sin cifrado de archivo; las copias
+requieren los controles operativos correspondientes. Véase
+[ADR-0021](adr/0021-audited-case-participants.md).
+
 ## Migrar un almacenamiento local existente
 
 1. Detener todos los escritores, incluidas versiones anteriores del servidor y
    comandos `audit append` que apunten al archivo compartido. Conservar respaldo
    de la base existente, directorio local, KEK y material criptográfico.
 2. Aplicar el esquema nuevo sobre la base que ya contiene usuarios y expedientes.
-   No iniciar todavía el servidor: el primer import exige destinos documental
-   y de auditoría vacíos para conservar la cadena original como prefijo.
+   No iniciar todavía el servidor: el primer import exige documentos,
+   clasificación, participantes y auditoría vacíos para conservar la cadena
+   original como prefijo. Una ficha cargada directamente también impide esa
+   importación inicial. La conciliación de un recibo existente sigue permitiendo
+   las operaciones posteriores válidas.
 3. Elaborar el mapa explícito. Cada JSON documental debe aparecer exactamente una
    vez y el expediente debe existir en la base. No se infieren asociaciones:
 
@@ -167,8 +194,12 @@ segunda versión, conserva el ZIP de la primera, restaura ambas y compara sus
 exportaciones. También carga un documento con clasificación inicial, reemplaza
 y vacía los valores de otro, comprueba conflictos y filtros actuales, y compara
 todas las revisiones, autores capturados y ambas evidencias tras restaurar.
+El mismo ensayo crea participantes, comprueba conflicto concurrente, permisos,
+archivo/reactivación y revocación; restaura sus raíces, historia, valores y
+procedencia junto con el resto de la base.
 No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
-`document_metadata_revisions` y auditoría; un respaldo incompleto no se repara
+`document_metadata_revisions`, `case_participants`, `case_participant_revisions`
+y auditoría; un respaldo incompleto no se repara
 creando raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

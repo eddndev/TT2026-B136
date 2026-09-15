@@ -1,6 +1,6 @@
 //! Inbound HTTP adapter.
 //!
-//! Routes adapt HTTP to injected identity, document, and case workflows.
+//! Routes adapt HTTP to injected identity, document, case and participant workflows.
 //! Cryptography, persistence, and timestamps remain behind application ports,
 //! so this adapter does not depend on an external timestamp provider.
 
@@ -9,11 +9,13 @@ use std::sync::Arc;
 use application::cases::CaseWorkflow;
 use application::documents::CaseDocumentWorkflow;
 use application::identity::IdentityWorkflow;
+use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
 mod cases;
 mod dto;
 mod error;
+mod participants;
 mod request;
 mod routes;
 mod runtime;
@@ -41,16 +43,24 @@ pub fn case_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
     protect(cases::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds participant routes with authentication delegated to the workflow.
+pub fn participant_router(workflow: Arc<dyn ParticipantWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(participants::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds all API routes with one shared admission and blocking-work budget.
 pub fn api_router(
     documents: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     cases: Arc<dyn CaseWorkflow>,
+    participants: Arc<dyn ParticipantWorkflow>,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
     let routes = routes::router(documents, identity, runtime.clone())
-        .merge(cases::router(cases, runtime.clone()));
+        .merge(cases::router(cases, runtime.clone()))
+        .merge(participants::router(participants, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 
