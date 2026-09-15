@@ -222,6 +222,42 @@ El agotamiento se ensaya con una modificación administrativa deliberada que alc
 
 El cierre de navegador aprobó 38 pruebas unitarias y 65 escenarios simulados, estos últimos en 24.6 segundos, además de formato y compilación. Los tres recorridos con servicios reales aprobaron en 39.4 segundos bajo Node~22.22.2 y npm~10.9.7. El nuevo recorrido del directorio usa cuentas independientes y dos contextos de edición: conserva un borrador ante conflicto, compara la revisión vigente y confirma un reemplazo explícito. Un archivo concurrente conserva el rol actualizado; la reactivación llega a la revisión siete, recuperada tras cerrar sesión, recargar y autenticar de nuevo. Litigante añade la octava revisión, Paralegal consulta esa historia y Cliente no solicita el directorio. Tras revocar la asignación del litigante se retiran los datos de la vista. El ZIP documental anterior permanece idéntico después de las operaciones del directorio y no se registran errores JavaScript. Las capturas de escritorio y móvil y estos ensayos automáticos no sustituyen la validación de usabilidad con personal del despacho.
 
+\subsection{Perfil penal, revisiones y cierre administrativo}\label{sec:pruebas-administracion}
+
+La entrega de administración penal aprobó \textbf{770 pruebas Rust, sin fallos y con una externa ignorada}, usando PostgreSQL y Redis aislados. Las 66 pruebas añadidas respecto del directorio se distribuyen en 24 de dominio y aplicación, 12 HTTP y 30 de infraestructura. Formato, compilación del workspace y Clippy terminaron con código cero. La \cref{tab:pruebas-administracion} distingue validación, persistencia, frontera HTTP y compatibilidad; la \cref{sec:matriz-administracion} identifica sus archivos. Estas cifras amplían la evidencia y no sustituyen las mediciones históricas.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones de comprobación de la administración penal.}
+  \label{tab:pruebas-administracion}
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones verificadas} \\
+    \midrule
+    Valores y canon & Perfil completo o ausente, límites Unicode, CRLF y controles originales, delitos ordenados sin duplicados, canon CADM1 de hasta 12\,717 bytes. \\
+    Altas y procedencia & R0 sin historia inventada, alta básica R1 pendiente, alta penal R1 activa con registro inicial exacto y actor capturado. \\
+    Permisos y proyección & Cuenta y pertenencia vigentes, cuatro roles, Client básico, datos sensibles fuera de su DTO y lecturas sin retorno cuando falla auditoría. \\
+    Revisiones y unicidad & CAS con un ganador, estado exclusivo conserva textos, identificadores sobre cabezas incluidas cerradas y reutilización tras corrección. \\
+    Cierre & Rechazo de mutaciones y sellado preparado antes del cierre; prioridad de recurso ausente y conservación de consultas, verificación, exportación y reapertura. \\
+    Consultas & Filtros literales sobre cabeza, UUID ascendente, revisiones descendentes y cursores exclusivos, sin promesa de instantánea entre páginas. \\
+    Persistencia y recuperación & Rollback, restricciones, privilegios, inventario, READ COMMITTED después de espera, migración repetible y restore con ruta SQL vacía. \\
+    HTTP & Seis rutas, DTO compatibles, tipos y JSON estrictos, cuerpo completo de 64~KiB y máximos escapados. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Los tres vectores de CADM1 fijan bytes y SHA-256 para valores básicos, completos y Unicode con salto de línea. Se contrastan entre Rust, PostgreSQL y OpenSSL; no son vectores oficiales de un estándar externo. La prueba máxima compara 12\,717 bytes de valores multibyte. La validación SQL rechaza perfiles parciales, controles y arreglos de delitos no canónicos; la normalización CRLF se comprueba por separado de la codificación de valores ya normalizados.
+
+Las pruebas de concurrencia enfrentan reemplazos con una misma revisión y altas que compiten por identificadores actuales. Las inserciones directas bajo READ COMMITTED esperan el bloqueo común y vuelven a comprobar unicidad después de la espera; una escritura con aislamiento Repeatable Read se rechaza. Las lecturas que esperan una revocación o desactivación confirmada no devuelven los datos anteriores. El ensayo de cierre obtiene primero una instantánea para sellar, confirma el cierre y exige rechazo al intentar persistirla; la reapertura conserva las fichas existentes. Son condiciones de consistencia, no mediciones de rendimiento ni una campaña de carga.
+
+La demostración HTTP completa terminó con código cero. Comprueba R0, alta básica con tres eventos, alta penal con cuatro, rechazo de perfiles inválidos sin raíces o eventos nuevos, cuatro roles y un único ganador auditado ante CAS paralelo. Cerrar impide nueve operaciones de edición, documentos y directorio; consultas, verificación y ZIP siguen disponibles. La corrección de identificadores permite reutilizarlos y conserva la etapa inicial de la primera revisión. Completar perfiles pendientes no crea una etapa. La revocación con la misma sesión retira detalle e historia.
+
+El inventario respaldado y restaurado contiene \textbf{cinco expedientes, once revisiones administrativas y dos registros iniciales}; conserva cinco raíces documentales, seis versiones de contenido, tres revisiones de clasificación y dos participantes con seis revisiones. Se comparan filas completas, detalles e historias, autores UUID/correo, fechas y ZIP de ambas versiones. El origen documental conserva cuatro archivos y un prefijo de \textbf{63 eventos}; los 51 eventos de entregas previas mantienen su condición histórica. El recibo se reconcilia después de la actividad administrativa sin añadir filas ni eventos. Reconstruir el fixture legacy documental no equivale a migrar íntegramente un historial administrativo actual; esa preservación se comprueba mediante el respaldo completo.
+
+La validación de navegador aprobó 45 pruebas unitarias, 88 escenarios simulados en 35.0 segundos y cuatro recorridos con servicios reales en 1.3 minutos, además de formato y compilación. El recorrido de \rutarepo{web/tests/live/case-administration.spec.mjs} crea un perfil completo en R1 y muestra Investigación; completa perfiles básico y legado conservando etapa sin registrar. Dos contextos autenticados provocan un conflicto de edición, mantienen el borrador y confirman una nueva base explícita. Un cierre concurrente bloquea una carga pendiente sin borrar su nombre. La historia presenta cinco revisiones al cerrar; la reapertura y una edición del litigante permiten al Paralegal consultar siete. Cliente no solicita el contrato administrativo y la revocación retira el resumen visible. El ZIP de la primera versión permanece idéntico durante el cierre; no se registran errores JavaScript.
+
+Las capturas de escritorio y móvil comprueban legibilidad del resumen, formulario multilineal, comparación, historia y estados de cierre. El recorrido de 390 píxeles comprueba ausencia de desplazamiento horizontal. El ajuste final del área de texto se revisó visualmente y con servicios reales. Estas comprobaciones no sustituyen pruebas de usabilidad con personal del despacho ni validación jurídica de los datos manuales.
+
 \section{Resultados criptográficos}\label{sec:pruebas-cripto}
 
 \subsection{Vectores oficiales}\label{sec:pruebas-vectores}
@@ -509,6 +545,27 @@ La ejecución instrumentada del directorio aprobó 704 pruebas y mantuvo una ext
   \end{tabularx}
 \end{table}
 
+La administración penal aprobó 770 pruebas también bajo instrumentación, con una externa ignorada. La cobertura alcanzó \textbf{12\,613 de 13\,506 líneas, equivalentes a 93.4\,\% global}, con los tres umbrales obligatorios aprobados. La \cref{tab:pruebas-cobertura-administracion} conserva numeradores y denominadores; el corte del directorio permanece en 704 pruebas y 92.9\,\%.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura del 14 de septiembre de 2026 con administración penal auditada.}
+  \label{tab:pruebas-cobertura-administracion}
+  \begin{tabularx}{\linewidth}{@{}l r r r X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Cubiertas} & \textbf{Líneas} & \textbf{Cobertura} & \textbf{Umbral} \\
+    \midrule
+    \texttt{domain}         & 1\,497 & 1\,531 & 97.8\,\% & 90\,\% \\
+    \texttt{application}    & 2\,817 & 2\,950 & 95.5\,\% & 90\,\% \\
+    \texttt{infrastructure} & 5\,739 & 6\,066 & 94.6\,\% & 90\,\% \\
+    \texttt{bin}            & 834 & 1\,096 & 76.1\,\% & informativo \\
+    \texttt{web}            & 1\,726 & 1\,863 & 92.6\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{12\,613} & \textbf{13\,506} & \textbf{93.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo OE-6 pide cobertura de al menos 80\,\% en los módulos criptográficos, mientras que el requerimiento RNF-13 pide 90\,\%. La integración continua aplica el más estricto de los dos, y los resultados superan ambos. El requerimiento RNF-14 ---que el 100\,\% de las pruebas de los módulos criptográficos pase antes de considerar completado un incremento--- se verificó en el corte del 12 de septiembre: el job de pruebas reporta error si falla una prueba y la ejecución registrada cierra con 519 de 519 pruebas ejecutadas en verde, más una prueba externa ignorada.
 
 La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de éxito verificables que el Capítulo~\ref{cap:introduccion} fijó para los objetivos específicos validables en esta fase (OE-3 a OE-6, \cref{tab:criterios-exito}), desglosados por subcriterio y con un estado explícito: cumplido, parcial o diferido.
@@ -567,4 +624,4 @@ Los resultados respaldan los criterios criptográficos de integridad y confidenc
 
 La clasificación implementada no completa por sí sola los casos de uso de carga y consulta del producto. La política de rechazo por formatos permitidos todavía debe definirse y aplicarse; disponer de nombres seguros y límites de tamaño no constituye esa política. También permanecen pendientes la entrega de contenido sin exigir sellado previo y la alerta al Owner ante una verificación de integridad rechazada. La matriz funcional conserva estos flujos como parciales, además de la evaluación con usuarios.
 
-El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Las versiones inmutables y la clasificación amplían la operación documental con historias independientes. El directorio añade fichas organizativas auditadas; sus criterios de identidad jurídica permanecen pendientes, junto con los demás módulos procesales, la aceptación de la interfaz con usuarios, TLS, pooling, apagado ordenado y revisión de la firma RSA expuesta por HTTP. La cabeza de auditoría carece de anclaje externo; una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.
+El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Las versiones inmutables y la clasificación amplían la operación documental con historias independientes. El directorio añade fichas organizativas auditadas y el expediente incorpora perfil penal, historia y cierre administrativo. El registro inicial de Investigación no implementa transiciones. Los criterios de identidad jurídica, los módulos procesales restantes, la aceptación de la interfaz con usuarios, TLS, pooling, apagado ordenado y revisión de la firma RSA expuesta por HTTP permanecen pendientes. La cabeza de auditoría carece de anclaje externo; una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.

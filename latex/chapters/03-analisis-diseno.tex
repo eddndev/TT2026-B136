@@ -2201,7 +2201,7 @@ El sistema emplea un modelo de persistencia híbrido que combina \textbf{Postgre
 
 \subsection{PostgreSQL: Datos Persistentes con Valor Probatorio}\label{sec:postgresql}
 
-PostgreSQL relaciona usuarios, expedientes, asignaciones, participantes y documentos mediante transacciones y claves foráneas. Las raíces documentales, sus versiones y las revisiones de clasificación se conservan separadas. El directorio añade \rutarepo{case_participants} y \rutarepo{case_participant_revisions}: cada raíz tiene un expediente inmutable y cada revisión conserva valores, huella y autor. Los archivos cifrados se guardan como bytes y su evidencia como JSONB; las fichas organizativas permanecen en claro bajo autorización. El expediente representa título, referencia y creador; las asignaciones conceden acceso a cuentas, sin crear fichas de participantes. La extensión procesal añadirá atributos y relaciones jurídicas.
+PostgreSQL relaciona usuarios, expedientes, asignaciones, participantes y documentos mediante transacciones y claves foráneas. Las raíces documentales, sus versiones y las revisiones de clasificación se conservan separadas. El directorio añade \rutarepo{case_participants} y \rutarepo{case_participant_revisions}: cada raíz tiene un expediente inmutable y cada revisión conserva valores, huella y autor. Los archivos cifrados se guardan como bytes y su evidencia como JSONB; las fichas organizativas permanecen en claro bajo autorización. La raíz del expediente conserva identidad y hechos de creación; \rutarepo{case_administration_revisions} añade título, referencia, estado y perfil penal en revisiones inmutables. \rutarepo{case_initial_stage_registrations} vincula el registro inicial de Investigación con la primera revisión del alta completa. Las asignaciones conceden acceso a cuentas, sin crear fichas de participantes. Transiciones, audiencias y plazos requieren relaciones y reglas adicionales.
 
 La bitácora \rutarepo{audit_events} conserva secuencia, marca temporal canónica, actor, acción, recurso y hash encadenado. Un bloqueo consultivo común ordena las transacciones mutantes de documentos, expedientes e identidad y el cálculo de la siguiente entrada. La mutación y su evento se confirman o se revierten juntos en PostgreSQL; la criptografía y las solicitudes a la TSA se preparan fuera de esa transacción. Verificación y exportación revalidan acceso y confirman su evento antes de entregar resultados. La atomicidad se limita a PostgreSQL, mientras Redis mantiene el estado efímero de autenticación por separado. Si se pierde la respuesta de una confirmación, la recuperación debe comprobar el estado persistido antes de repetir la operación.
 
@@ -2237,7 +2237,7 @@ La \cref{fig:modelo-datos} presenta el diseño conceptual de la persistencia hí
   \label{fig:modelo-datos}
 \end{figure}
 
-En PostgreSQL, las claves foráneas vinculan cada documento con su expediente y cada asignación con un usuario. La columna \texttt{audit\_events.chain} enlaza los eventos de auditoría, y los privilegios del rol operativo protegen su carácter de solo inserción. Las asignaciones administran acceso a la información; el directorio mantiene raíces y revisiones propias, sin vincular la identidad representada con una cuenta ni deducirla de nombres coincidentes. La figura describe relaciones conceptuales; las claves físicas y las revisiones del directorio se especifican en la \cref{sec:impl-http-participantes}.
+En PostgreSQL, las claves foráneas vinculan cada documento con su expediente y cada asignación con un usuario. La columna \texttt{audit\_events.chain} enlaza los eventos de auditoría, y los privilegios del rol operativo protegen su carácter de solo inserción. Las asignaciones administran acceso a la información; el directorio mantiene raíces y revisiones propias, sin vincular la identidad representada con una cuenta ni deducirla de nombres coincidentes. La figura describe relaciones conceptuales. Las revisiones administrativas y el registro inicial tienen las claves físicas de la \cref{sec:impl-http-administracion}; las revisiones del directorio se especifican en la \cref{sec:impl-http-participantes}. La relación conceptual con etapa no implica un motor implementado de transiciones.
 
 \section{Diagrama de Despliegue y Stack Tecnológico}\label{sec:despliegue}
 
@@ -2262,11 +2262,15 @@ Las conexiones PostgreSQL y Redis usan clientes síncronos detrás de puertos de
 
 La fundamentación del proceso penal expuesta en el marco teórico tiene una consecuencia directa sobre el diseño del prototipo: la base de datos no puede ser un conjunto de tablas genéricas, sino que debe reflejar fielmente las dependencias y restricciones que el CNPP impone. Esta sección articula los vínculos explícitos entre la teoría jurídica y los requerimientos funcionales.
 
-El expediente reúne título, referencia, creador, documentos y asignaciones. La extensión procesal propuesta incorpora las etapas del CNPP \cite{cnpp2021}, el escrito de acusación para Intermedia y el auto de apertura para Juicio Oral. El directorio organizativo conserva participantes por expediente; transiciones, identidad jurídica, audiencias y plazos requieren modelos propios. Cada documento conserva identidad estable y versiones inmutables con cifrado y evidencia propios. El listado filtra la versión máxima; el historial permite elegir otra sin sustituirla. Anexar exige la versión vigente esperada para rechazar cambios concurrentes incompatibles. Consultas y acciones requieren autorización por expediente y auditoría confirmada.
+El expediente reúne raíz estable, administración, documentos, directorio y asignaciones. Su perfil penal contiene NUC y carpeta judicial con sus autoridades, delitos ordenados e información complementaria declarada por el despacho. El alta completa confirma una primera revisión activa y un registro inicial de Investigación, vinculado exactamente a ella. Las raíces anteriores sin historia se proyectan como revisión cero sin autor ni fecha retrospectivos; el alta básica produce una revisión uno pendiente. Completar cualquiera de esas fichas no registra una etapa. El modelo conserva como extensión las transiciones del CNPP \cite{cnpp2021}, los documentos habilitantes de Intermedia y Juicio Oral, identidad jurídica, audiencias y plazos.
+
+Las revisiones administrativas conservan valores, huella y autoría. Editar exige la revisión actual esperada; cambiar únicamente estado preserva los textos vigentes dentro de la transacción. El cierre organiza el trabajo del despacho, sin declarar terminado el proceso judicial. Bloquea mutaciones documentales y del directorio, pero conserva consulta, historia, verificación y exportación autorizadas. NUC y carpeta se comparan literalmente y son únicos, por separado, entre perfiles actuales de la instancia, incluidos los cerrados. Corregirlos libera los valores anteriores al confirmar y conserva su historia; la regla no acredita unicidad nacional ni verificación institucional. La decisión se especifica en \rutarepo{docs/adr/0022-audited-penal-case-administration.md}.
+
+Cada documento conserva identidad estable y versiones inmutables con cifrado y evidencia propios. El listado filtra la versión máxima; el historial permite elegir otra sin sustituirla. Anexar exige la versión vigente esperada para rechazar cambios concurrentes incompatibles. Consultas y acciones requieren autorización por expediente y auditoría confirmada. Los valores administrativos no se agregan al contenido cifrado ni modifican una firma o un sello anteriores.
 
 La clasificación conserva una historia independiente de tipo, categoría y etiquetas en claro, con revisión, huella, instante y autor. El reemplazo exige la revisión esperada; la carga clasificada confirma raíz, archivo y clasificación en una transacción auditada. Los filtros toman ambas cabezas actuales. La clasificación no modifica permisos ni evidencia criptográfica, conforme a \rutarepo{docs/adr/0020-audited-document-classification.md}.
 
-El directorio distingue la identidad de la ficha, su revisión y la cuenta autora. La creación fija estado activo y revisión uno; editar, archivar o reactivar añade un sucesor con revisión esperada. El cambio exclusivo de estado conserva los textos actuales dentro de la transacción, evitando sobrescribir una edición concurrente. Lecturas e historia requieren auditoría confirmada. Los homónimos son válidos: nombre y rol manual no demuestran identidad, representación ni permisos. El diseño conserva abiertos los criterios de identificación por tipo, órgano/FIREL, duplicidad verificada y expediente penal activo, conforme a \rutarepo{docs/adr/0021-audited-case-participants.md}.
+El directorio distingue la identidad de la ficha, su revisión y la cuenta autora. La creación fija estado activo y revisión uno; editar, archivar o reactivar añade un sucesor con revisión esperada. El cambio exclusivo de estado conserva los textos actuales dentro de la transacción, evitando sobrescribir una edición concurrente. Lecturas e historia requieren auditoría confirmada. Los homónimos son válidos: nombre y rol manual no demuestran identidad, representación ni permisos. El cierre administrativo impide mutaciones del directorio; no acredita la condición procesal del expediente. El diseño conserva abiertos los criterios de identificación por tipo, órgano/FIREL y duplicidad verificada, conforme a \rutarepo{docs/adr/0021-audited-case-participants.md}.
 
 \section{Diseño Criptográfico del Prototipo}\label{sec:diseno-cripto}
 
@@ -2334,17 +2338,19 @@ El alta inicial crea al primer Owner únicamente mientras no existan usuarios; l
 
 Tras validar la contraseña se emite un desafío de cinco minutos. Cada intento TOTP o de recuperación consume ese desafío atómicamente; si falla, se necesita otro inicio con contraseña. El primitivo TOTP acepta la tolerancia de un período a cada lado del instante actual, y una reclamación atómica en Redis impide reutilizar el código aceptado. Los fallos consecutivos de contraseña se contabilizan por separado: al alcanzar cinco se bloquea el acceso durante el tiempo restante de la ventana de 15 minutos.
 
-La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos los expedientes; los demás roles solo leen metadatos de los asignados. Para documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente permanece denegado incluso asignado. Se comprueba la asociación exacta documento/expediente también para Owner. Una revocación confirmada antes de la transacción documental impide que esta se confirme; si la operación obtuvo primero el bloqueo, confirma antes y la revocación espera. Una respuesta ya confirmada puede terminar de transmitirse después de esa revocación.
+La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos los expedientes; Litigante y Paralegal consultan la administración de los asignados, mientras Cliente conserva únicamente su proyección básica. Owner y Litigante administran perfiles y estado; las asignaciones siguen reservadas a Owner. Para documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente permanece denegado incluso asignado. Se comprueba la asociación exacta documento/expediente también para Owner. Una revocación confirmada antes de la transacción documental impide que esta se confirme; si la operación obtuvo primero el bloqueo, confirma antes y la revocación espera. Una respuesta ya confirmada puede terminar de transmitirse después de esa revocación.
 
 \begin{table}[H]
   \centering
-  \caption{Permisos de acceso documental y del directorio.}
+  \caption{Permisos de administración, documentos y directorio.}
   \label{tab:permisos-implementados}
   \begin{tabularx}{\linewidth}{@{}X C{0.12\linewidth} C{0.14\linewidth} C{0.14\linewidth} C{0.12\linewidth}@{}}
     \toprule
     \textbf{Operación} & \textbf{Owner} & \textbf{Litigante} & \textbf{Paralegal} & \textbf{Cliente} \\
     \midrule
-    Consultar metadatos e historial & Sí & Sí & Sí & No \\
+    Consultar administración e historial & Sí & Sí & Sí & No \\
+    Registrar o administrar expediente & Sí & Sí & No & No \\
+    Consultar metadatos documentales & Sí & Sí & Sí & No \\
     Cargar o añadir versión & Sí & Sí & Sí & No \\
     Clasificar documento & Sí & Sí & Sí & No \\
     Sellar documento & Sí & Sí & No & No \\
@@ -2356,6 +2362,8 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
     \bottomrule
   \end{tabularx}
 \end{table}
+
+Los permisos de la tabla se combinan con pertenencia vigente, recurso exacto y estado administrativo. Un expediente cerrado conserva las lecturas y operaciones de evidencia, pero rechaza nuevas cargas, versiones, clasificación, sellado, edición de perfil y mutaciones del directorio. Reactivar no modifica etapas ni reactiva participantes archivados.
 
 \subsection{Postura Legal del Prototipo}\label{sec:postura-legal}
 

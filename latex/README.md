@@ -76,6 +76,12 @@ El directorio incorpora fichas por expediente, archivo y reactivación con
 revisiones inmutables; permanece separado de cuentas y membresías. Su corte
 registra 704 pruebas Rust aprobadas y cobertura global de 92.9 %. La identidad
 jurídica, FIREL, duplicidad verificada y expediente penal activo siguen abiertos.
+El corte de administración penal añade perfil manual, revisiones, registro inicial
+exacto de Investigación y cierre/reapertura organizativos: 770 pruebas Rust
+aprobadas, sin fallos y con una externa ignorada, con cobertura global de 93.4 %.
+La API básica permanece
+compatible; completar perfiles pendientes no inventa etapa. El cierre impide
+mutaciones, sin acreditar por sí mismo la condición jurídica del proceso.
 La gestión procesal completa y la usabilidad siguen pendientes. Las mediciones de cada entrega se registran por
 separado, sin actualizar cifras históricas por cambios de funcionalidad.
 La revisión del reporte se registra en

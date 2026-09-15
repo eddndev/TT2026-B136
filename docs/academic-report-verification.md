@@ -1,5 +1,90 @@
 # Verificación de la actualización académica
 
+## Perfil y administración penal: 14 de septiembre de 2026
+
+Se actualizaron alcance, diseño, modelo de persistencia y permisos, contratos
+HTTP, implementación, recuperación, interfaz Qadra, pruebas, cobertura y anexo
+de trazabilidad. La descripción sigue [ADR-0022](adr/0022-audited-penal-case-administration.md)
+y el [contrato HTTP de administración](case-administration-api.md): raíz estable,
+perfil penal manual y revisiones administrativas independientes de documentos
+y participantes. La API básica conserva su respuesta de cuatro campos y las
+lecturas auditadas muestran título y referencia actuales sin exponer el perfil
+a Client. El alta penal confirma R1 activa y registro inicial de Investigación;
+la básica conserva un perfil pendiente. Completar un perfil legado o básico
+no fabrica una etapa, autor o fecha anteriores.
+
+Se documentaron normalización de información multilineal, delitos ordenados,
+canon CADM1 de hasta 12 717 bytes, digest de valores, autor UUID/correo capturado,
+revisión esperada, unicidad literal de identificadores actuales y control de
+estado dentro de la transacción. Las funciones SQL y los guards de arranque
+conservan su frontera de confianza: no autentican cualquier DDL administrativo
+ni detectan un rollback íntegro coherente. El cierre organiza el trabajo del
+despacho y bloquea mutaciones; no concluye un proceso judicial. Transiciones,
+adopción de etapa previa, identidad jurídica, FIREL, duplicidad verificada,
+audiencias, plazos y usabilidad siguen requiriendo trabajo propio.
+
+El corte reproduce **770 pruebas Rust aprobadas, cero fallos y una externa
+ignorada**. Las 66 pruebas nuevas se distribuyen en 24 de dominio/aplicación,
+12 HTTP y 30 de infraestructura. La ejecución instrumentada obtuvo **12 613 de
+13 506 líneas cubiertas, 93.4 % global**, con los tres umbrales obligatorios
+aprobados. Formato, compilación, Clippy, política de dependencias, CLI y campaña
+HTTP terminaron satisfactoriamente. El entorno fue Rust/Cargo 1.94.0, PostgreSQL
+18.6, Valkey 8.1.9, OpenSSL 3.5.7, Node.js 22.22.2 y npm 10.9.7. Los resultados
+anteriores, incluidos 704 pruebas y 92.9 % del directorio, conservan sus cifras
+históricas y no se suman a este corte.
+
+La restauración conserva **cinco expedientes, once revisiones administrativas
+y dos registros iniciales**, además de cinco raíces documentales, seis versiones,
+tres revisiones de clasificación y dos participantes con seis revisiones.
+Coinciden filas completas, detalle e historia, autoría, fechas y ZIP de las dos
+versiones. La reconciliación del recibo posterior a las revisiones no altera
+las filas ni la cadena. Los cuatro documentos y 63 eventos identifican el origen
+importado y su prefijo, no el total final de auditoría; los 51 eventos previos
+mantienen su fecha histórica. La reconstrucción legacy es un fixture documental
+sobre baselines explícitas con hechos de creación conocidos, no una prueba de
+conversión íntegra del historial administrativo actual. La preservación íntegra
+se verifica con el respaldo completo posterior.
+
+Qadra aprobó **45 pruebas unitarias, 88 escenarios simulados en 35.0 segundos
+y cuatro recorridos reales en 1.3 minutos**, además de formato y compilación.
+El recorrido penal contrasta R1 y R0, perfiles pendientes sin etapa inventada,
+conflicto de edición con borrador conservado, cierre concurrente, bloqueo de
+mutaciones, evidencia histórica, reapertura, reingreso y revocación. Paralegal
+consulta la historia y Client no solicita el contrato sensible. El ZIP previo
+permanece idéntico y no se registran errores JavaScript. El área de texto final
+fue comprobada en móvil y con servicios reales. Estos resultados proceden del
+[informe técnico](verification-report.md), se cuentan por separado de Rust y
+no sustituyen una evaluación de usabilidad.
+
+### Compilación y revisión documental
+
+Se ejecutó el Makefile versionado con LuaLaTeX, biber y glosarios en una copia
+temporal nueva, con caché de fuentes separada. La compilación final terminó con
+código cero: **265 páginas**, formato carta y **5 672 258 bytes**. El nuevo
+artefacto es `output/pdf/TT2026-B136-perfil-penal-qadra-2026-09-14.pdf`, acompañado
+de manifiesto de fuentes y SHA-256, sin añadirlo a Git. Su hash es
+`870a21bec1ef7aeb932efbd91736b8a1a5e03b80cd32b0d0ab5cd821eff8b147`.
+Los **51 archivos de fuentes y soporte** del manifiesto coinciden con la copia
+compilada y con el árbol actual.
+
+Se renderizaron y revisaron **75 páginas** afectadas y adyacentes: índices,
+alcance, modelo, permisos, implementación, contratos, migración/restauración,
+interfaz, pruebas, cobertura y trazabilidad. Se corrigió una línea desbordada
+con dos rutas frontend mediante alineación izquierda local. Las tablas y rutas
+finales son legibles, sin recortes ni superposiciones; se inspeccionaron también
+por separado las páginas de contrato, interfaz, pruebas, cobertura y anexo.
+No quedaron citas o referencias indefinidas, etiquetas duplicadas ni glifos
+ausentes. El control de coordenadas no detectó palabras fuera del área segura.
+Solo permanecen las sustituciones históricas de versalitas de Times New Roman
+y el desborde de 0.11754 pt del índice de tablas, sin defecto visual apreciable.
+
+Resumen aprobado, objetivos, revisión de plataformas, marco teórico y
+conclusiones pendientes conservan sus hashes. Los **diez PDF anteriores**,
+incluido `latex/main.pdf`, y los **34 archivos de presentación** permanecen
+idénticos: 42 rutas únicas de artefactos protegidos. La presentación no se
+modificó. Esta evidencia corresponde a la compilación local y no afirma una
+nueva ejecución remota ni cumplimiento jurídico integral.
+
 ## Directorio de participantes: 14 de septiembre de 2026
 
 Se actualizaron alcance, diseño, modelo y permisos, implementación HTTP,

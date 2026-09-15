@@ -312,6 +312,22 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 {\raggedright La especificación y sus límites corresponden a \rutarepo{docs/adr/0021-audited-case-participants.md}. El nombre y el rol son valores manuales; las pruebas automáticas no comprueban identidad jurídica, FIREL, duplicidad de persona verificada ni la condición procesal del expediente. La aceptación del caso de uso permanece parcial.\par}
 
+\section{Trazabilidad de la administración penal}\label{sec:matriz-administracion}
+
+{\raggedright \rutarepo{crates/domain/tests/case_administration.rs} comprueba valores, controles antes del recorte, información multilineal, delitos ordenados y revisiones tipadas. \rutarepo{crates/domain/tests/case_administration_canonical.rs} fija los bytes de los tres vectores CADM1. \rutarepo{crates/application/tests/case_administration_query.rs} y \rutarepo{crates/application/tests/case_administration_workflow.rs} comprueban límites, cursores, permisos, proyecciones y propagación de actor y reloj; \rutarepo{crates/application/tests/case_workflow.rs} conserva la compatibilidad básica.\par}
+
+{\raggedright En PostgreSQL, \rutarepo{crates/infrastructure/tests/case_administration_backend.rs}, \rutarepo{crates/infrastructure/tests/case_administration_queries.rs} y \rutarepo{crates/infrastructure/tests/case_administration_failures.rs} verifican altas, procedencia, perfil pendiente, filtros y ausencia de retorno si falla auditoría. \rutarepo{crates/infrastructure/tests/case_administration_concurrency.rs} y \rutarepo{crates/infrastructure/tests/case_administration_sql.rs} contrastan CAS, unicidad, estado, revocación y espera bajo READ COMMITTED.\par}
+
+{\raggedright \rutarepo{crates/infrastructure/tests/case_administration_canonical.rs} y \rutarepo{crates/infrastructure/tests/case_administration_migration.rs} comparan vectores Rust/SQL/OpenSSL, máximo multibyte y preservación de baselines. \rutarepo{crates/infrastructure/tests/case_administration_schema.rs} y \rutarepo{crates/infrastructure/tests/case_administration_inventory.rs} comprueban restricciones, privilegios e inventarios rechazados. \rutarepo{crates/infrastructure/tests/case_administration_restore.rs} reproduce respaldo completo y funciones con \texttt{search\_path} vacío.\par}
+
+{\raggedright \rutarepo{crates/infrastructure/tests/case_closure.rs} prepara una instantánea antes del cierre y rechaza su sellado posterior, junto con las mutaciones documentales y del directorio; conserva prioridad de recursos ausentes, lecturas y reapertura. \rutarepo{crates/infrastructure/tests/legacy_case_administration.rs} rechaza una primera importación con historia administrativa ocupada y conserva revisiones posteriores al conciliar un recibo válido.\par}
+
+{\raggedright \rutarepo{crates/web/tests/case_administration_api.rs} y \rutarepo{crates/web/tests/case_administration_validation.rs} fijan rutas, DTO, revisión cero, procedencia, errores y cuerpos completos de 64~KiB. El contrato es \rutarepo{docs/case-administration-api.md}; su fundamento y límites se encuentran en \rutarepo{docs/adr/0022-audited-penal-case-administration.md}. Los workflows inyectados prueban el adaptador HTTP; no sustituyen la campaña de servicios reales.\par}
+
+{\raggedright \rutarepo{scripts/api-case-administration-demo.sh}, integrado por \rutarepo{scripts/api-migration-demo.sh}, comprueba permisos, altas, revisión esperada, cierre, lectura autorizada, identificadores, etapa inicial, reconciliación y restore. La preparación del destino legacy usa baselines administrativas explícitas con hechos originales; no borra revisiones ni eventos de origen. El respaldo posterior conserva todas las tablas e historias y los ZIP anteriores.\par}
+
+{\raggedright \rutarepo{web/tests/case-administration.test.mjs} y \rutarepo{web/tests/browser/case-administration-races.spec.mjs}, \rutarepo{web/tests/browser/case-administration-uncertain.spec.mjs} y \rutarepo{web/tests/browser/case-administration-state.spec.mjs} comprueban normalización, filtros, permisos, conflictos explícitos, respuesta incierta y resultados tardíos. \rutarepo{web/tests/live/case-administration.spec.mjs}, ejecutado por \rutarepo{scripts/web-demo.sh}, recorre alta completa, perfiles pendientes, edición concurrente, cierre, evidencia, reapertura, reingreso y revocación con servicios reales. Sus resultados se cuentan por separado de Rust en la \cref{sec:pruebas-administracion}; no acreditan transiciones procesales, identidad jurídica ni usabilidad.\par}
+
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
 Para versiones, el navegador aprobó 28 pruebas unitarias, 32 con respuestas HTTP simuladas y un escenario contra servicios reales. Este último confirmó selección histórica, bytes distintos en la versión 2, ZIP de la versión 1 idéntico al inicial y persistencia de ambas después de autenticar de nuevo, sin errores JavaScript. El escenario se ejecutó con \rutarepo{scripts/web-demo.sh}; su conteo no se suma al de pruebas Rust.
@@ -344,6 +360,8 @@ bash scripts/demo.sh
 bash scripts/api-demo.sh
 \end{lstlisting}
 
+El corte de administración penal aprobó \textbf{770 pruebas Rust, cero fallos y una externa ignorada}, con 66 pruebas adicionales respecto del directorio. La demostración API restauró cinco expedientes, once revisiones administrativas y dos registros iniciales, conservando las seis versiones documentales, tres revisiones de clasificación y seis revisiones de participantes. El prefijo importado de cuatro documentos tiene 63 eventos. Son mediciones de este corte; los conteos anteriores se conservan como historia. La \cref{sec:pruebas-administracion} describe el alcance y sus límites.
+
 \subsection{Cobertura de líneas por crate}\label{sec:matriz-cobertura}
 
 La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. La \cref{tab:matriz-cobertura} presenta la medición del 12 de septiembre: 8\,026 de 8\,845 líneas, equivalentes a 90.7\,\% global. Los tres umbrales obligatorios aprobaron.
@@ -374,6 +392,8 @@ La ejecución instrumentada de versiones inmutables del mismo día aprobó 577 p
 La clasificación registra 9\,854 de 10\,670 líneas cubiertas, equivalentes a 92.4\,\% global. El desglose se presenta en la \cref{tab:pruebas-cobertura-clasificacion}, con los tres umbrales obligatorios aprobados. El resultado pertenece a la ejecución instrumentada de 644 pruebas y no sustituye los denominadores históricos.
 
 La cobertura del directorio registra 10\,994 de 11\,838 líneas, equivalentes a 92.9\,\% global, sobre 704 pruebas aprobadas y una externa ignorada. Los tres umbrales obligatorios aprobaron; la \cref{tab:pruebas-cobertura-participantes} presenta numeradores y denominadores por crate. Esta medición conserva separados los resultados anteriores.
+
+La administración penal cubre 12\,613 de 13\,506 líneas, equivalentes a 93.4\,\% global, con 770 pruebas aprobadas y una externa ignorada. Los tres umbrales del 90\,\% aprobaron. La \cref{tab:pruebas-cobertura-administracion} detalla los resultados por crate, separados de todas las mediciones históricas.
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
