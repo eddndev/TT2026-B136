@@ -4,6 +4,107 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: consultas documentales e integración Qadra
+
+- Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`).
+- Alcance: listado y detalle documental autorizados, búsqueda literal de nombre,
+  filtro de sellado y conexión del sistema de diseño Qadra a expedientes reales.
+- Decisión: [consultas de metadatos](adr/0018-authorized-document-queries.md).
+  El [plan de cierre](product-completion.md) conserva las funciones pendientes.
+
+### Backend y servicios reales
+
+```bash
+cargo fmt --all
+cargo build --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+bash scripts/test-backends.sh
+bash scripts/api-demo.sh
+bash scripts/test-backends.sh cargo llvm-cov --workspace --json --summary-only --output-path /tmp/tt-document-queries-coverage.json
+bash scripts/coverage-gate.sh /tmp/tt-document-queries-coverage.json
+```
+
+La suite completa y su ejecución instrumentada aprobaron **539 pruebas**, sin
+fallos y con una ignorada del proveedor externo. PostgreSQL y Redis fueron
+reales y desechables, con bases separadas de identidad, expedientes y documentos.
+Formato, compilación, Clippy, demostración HTTP y umbrales aprobaron.
+
+Las veinte pruebas nuevas cubren validación del filtro, permisos de lectura,
+autenticación, aislamiento, orden y paginación, comodines tratados literalmente,
+metadatos sin decodificar el contenido cifrado ni la evidencia, cambios de rol,
+inactividad, revocación y fallo de auditoría. Una prueba concurrente bloquea la
+inserción de auditoría: listado y detalle no devuelven resultados antes del
+commit, y retirar la asignación espera ese orden.
+
+La demo HTTP reproduce consultas de los cuatro roles, dos expedientes,
+revocación, sellado concurrente con un éxito y un conflicto, y migración y
+restauración de **cuatro documentos con 51 eventos**. Compara evidencia ZIP y
+verifica sus componentes con OpenSSL. El corte anterior de 46 eventos conserva
+su fecha; los eventos nuevos proceden de las consultas añadidas al ensayo.
+
+La primera ejecución de la suite detectó una carrera preexistente en el fixture
+TCP del adaptador remoto simulado: una prueba liberaba un puerto antes de probar
+su inaccesibilidad y otro servidor de prueba podía reutilizarlo. Se reprodujo
+la interferencia y se reemplazó por un servidor que recibe la petición y cierra
+sin respuesta, reteniendo el puerto. El adaptador no cambió. La suite del stub
+aprobó después y veinte repeticiones acotadas también; esos conteos no se suman
+a las 539 pruebas de la suite completa.
+
+### Cobertura reproducida
+
+| Crate | Líneas cubiertas | Cobertura |
+| --- | --- | --- |
+| `domain` | 1045/1079 | 96.8 % |
+| `application` | 2138/2277 | 93.9 % |
+| `infrastructure` | 3602/3892 | 92.5 % |
+| `web` | 637/737 | 86.4 % |
+| `bin` | 834/1086 | 76.8 % |
+
+Total: **8256/9071 líneas (91.0 %)**. Los tres crates sujetos al umbral del 90 %
+aprueban. La cobertura corresponde al workspace Rust, no a los archivos Svelte.
+
+### Interfaz y pruebas con HTTP simulado
+
+La referencia Qadra se comprobó antes de adaptar sus flujos: 18 pruebas
+unitarias y 14 de navegador, además de formato y compilación, aprobaron en
+este entorno. Después de la integración aprobaron **21 pruebas unitarias y
+23 de navegador con HTTP simulado**, junto con `npm run build` y
+`npm run format:check` (Node.js 22.22.2). La automatización usa Node.js 24.
+
+Las pruebas añaden expedientes persistentes, filtros y páginas solicitados al
+servidor, permisos Client y descarte de resultados de una sesión, expediente,
+búsqueda o detalle anteriores. Dos regresiones reproducidas antes de corregir
+el código cubren una apertura que quedaba bloqueada al cambiar la búsqueda y
+un detalle atrasado que reemplazaba la selección de una carga nueva.
+
+La revisión visual conserva los originales de marca y las siete hojas de
+estilo de Qadra. Las ampliaciones se concentran en `cases.css`. Se comprobaron
+expedientes, lista y detalle en escritorio y móvil. Una prueba de geometría
+verifica que buscador, botón y selector no se solapen a 390 píxeles; verificar
+solo el ancho de la página no detectaba ese defecto de composición.
+
+### Navegador con servicios reales
+
+```bash
+bash scripts/web-demo.sh
+```
+
+Un escenario Playwright aprobó con la API Rust, PostgreSQL y Redis aislados y
+la TSA OpenSSL local. Desde la interfaz realizó login con recuperación MFA,
+creación de expediente, carga de documento, detalle persistido, sellado,
+verificación y descarga ZIP. El contenido descargado coincide byte por byte
+con la muestra generada. Después de logout, recarga e inicio con otro código,
+el expediente y el documento siguen disponibles desde consultas del servidor.
+Se comprobó una vista de 390 píxeles sin desbordamiento horizontal ni errores
+JavaScript. El script elimina servicios, claves y credenciales desechables.
+
+La comprobación de navegador no intercepta HTTP. Las pruebas de UI con respuestas
+simuladas se documentan por separado y no sustituyen este escenario real.
+Usabilidad, carga de producción, versiones, clasificación, gestión procesal,
+autenticación por certificado y firma por credencial individual siguen pendientes.
+Los resultados de compilación y revisión académica están en
+[la verificación del reporte](academic-report-verification.md).
+
 ## Corte reproducido: documentos por expediente y auditoría transaccional
 
 - Fecha local: 12 de septiembre de 2026 (`America/Mexico_City`).

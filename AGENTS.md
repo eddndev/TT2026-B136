@@ -163,7 +163,7 @@ pull request as the behavior it describes. Update the affected documents:
 
 ## Implemented project state
 
-Reviewed on 2026-09-12. This is a starting map, not a replacement for inspecting
+Reviewed on 2026-09-14. This is a starting map, not a replacement for inspecting
 the working tree. The prototype has a working cryptographic backend and an
 authenticated local HTTP workflow; the complete case-management web product
 is still unfinished.
@@ -208,8 +208,10 @@ is still unfinished.
   a shared audit chain for document, case and identity events. Document
   mutations and their audit commit together; verification and export confirm
   access and audit before returning results. Sealed evidence and the document's
-  case association are immutable. Upload still creates version 1; document
-  listing, detail, search and version-history APIs remain absent.
+  case association are immutable. Upload still creates version 1. Authorized document
+  listing, detail, literal name search and sealed-state filters are available;
+  queries confirm audit before returning metadata. Version history and
+  classification remain pending. See `docs/adr/0018-authorized-document-queries.md`.
 - User creation and recovery-code consumption also commit their PostgreSQL
   audit atomically. Redis challenges and sessions do not participate in that
   transaction. Failed audit writes trigger best-effort removal of newly
@@ -229,9 +231,12 @@ is still unfinished.
   provider campaign is outside the current delivery. The local TSA is
   technical demonstration evidence, not an authorized PSC's NOM-151
   attestation. See `docs/adr/0009-local-timestamp-authority.md`.
-- `frontend/src/pages/index.astro` and
-  `frontend/src/components/Hello.svelte` are placeholders, without a product
-  interface or an API integration.
+- `web/` contains the Qadra design system and Astro/Svelte application.
+  It integrates login/MFA, case selection and creation, persistent document
+  queries, upload, sealing, verification and evidence download. Preserve its
+  design tokens, components and original brand assets. `frontend/` retains the
+  older placeholder; new product work belongs in `web/`. Browser mock tests and
+  `scripts/web-demo.sh` against isolated real services provide separate evidence.
 - `latex/main.tex` includes implementation, testing, conclusions, and annexes.
   Its implementation and testing distinguish the reproduced backend delivery
   from pending product and usability work. The approved abstract is preserved;
@@ -246,17 +251,20 @@ is still unfinished.
 its original proposed schedule. Its reproduced evidence is in
 `docs/verification-report.md`; the academic update is documented in
 `docs/academic-report-verification.md`. Reassess historical estimates against
-current code before planning subsequent work in this dependency order:
+current code before planning subsequent work in this dependency order.
+`docs/product-completion.md` tracks the broader product acceptance scope:
 
-1. Add authorized document listing, detail, search and version history.
+1. Add document classification and version history to the authorized queries.
    Define immutable historical evidence and bind every encrypted version to
    its document identity. Keep current case isolation and Client denial unless
    a separate access policy is explicitly designed and tested.
 2. Model procedural participants, hearings and deadlines separately from
    existing user access assignments, with authorization and audit contracts.
-3. In a requested frontend task, implement login/MFA, case navigation, upload,
-   sealing, verification and evidence download against `docs/http-api.md`.
-   Keep business rules and cryptography behind application ports.
+3. Extend the Qadra interface with procedural workflows, user administration,
+   dashboard aggregates, reports and audit queries against `docs/http-api.md`.
+   Use a user directory for assignment selection instead of requiring raw UUIDs.
+   Resolve certificate login and per-user signing identity before declaring
+   those objectives complete. Keep business rules and cryptography behind ports.
 4. Before public deployment, measure database pooling and asynchronous clients,
    request budgets, transport limits, TLS and graceful shutdown. Exercise
    backup/restore and Redis outages; design recoverable enrollment delivery

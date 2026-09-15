@@ -3,13 +3,13 @@
 % =====================================================================
 \chapter{Matriz de pruebas y evidencia de ejecución}\label{anexo:matriz}
 
-Este anexo presenta el inventario de pruebas del prototipo y la evidencia reproducida el 12 de septiembre de 2026, documentada en \rutarepo{docs/verification-report.md}. La matriz relaciona casos positivos y negativos con los archivos que los implementan y complementa los resultados del Capítulo~\ref{cap:pruebas}. Los conteos y la cobertura pertenecen a ese corte; la calibración de Argon2id y la transcripción CLI anterior conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
+Este anexo presenta el inventario de pruebas del prototipo y la evidencia reproducida el 12 de septiembre de 2026, documentada en \rutarepo{docs/verification-report.md}. La matriz relaciona escenarios técnicos positivos y negativos con los archivos que los implementan y complementa los resultados del Capítulo~\ref{cap:pruebas}. Los conteos del inventario y la tabla histórica de cobertura pertenecen a ese corte; la calibración de Argon2id y la transcripción CLI anterior conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
 
 \section{Nota metodológica}\label{sec:matriz-nota}
 
-El workspace contiene \textbf{520 funciones de prueba}: el corte ejecutó 519 satisfactoriamente, sin fallos, y mantuvo una ignorada (\texttt{\#[ignore]}) correspondiente al proveedor externo de sellado. El adaptador externo se ejercita contra un sustituto HTTP local; la prueba del servicio comercial no forma parte de la evidencia reproducida. La suite también utiliza PostgreSQL y Redis locales reales en entornos desechables.
+El inventario del corte del 12 de septiembre contiene \textbf{520 funciones de prueba}: el corte ejecutó 519 satisfactoriamente, sin fallos, y mantuvo una ignorada (\texttt{\#[ignore]}) correspondiente al proveedor externo de sellado. El adaptador externo se ejercita contra un sustituto HTTP local; la prueba del servicio comercial no forma parte de la evidencia reproducida. La suite también utiliza PostgreSQL y Redis locales reales en entornos desechables.
 
-Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
+Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. El inventario por servicio no sustituye la matriz funcional de los 17 casos de uso; esta permanece parcial mientras falten los módulos procesales, el ciclo completo de identidad, la operación del despacho y su validación con usuarios. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
 
 La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las pruebas usan dobles deterministas escritos a mano (el crate no depende de ninguna biblioteca criptográfica); en \texttt{application} usan mocks o fakes de los puertos para probar la orquestación y la propagación de errores; en \texttt{infrastructure} ejercitan los adaptadores con criptografía real y herramientas del sistema; en \texttt{web} verifican el contrato HTTP sobre un workflow inyectado; y en \texttt{bin} ejecutan el binario compilado \texttt{despacho-cli} como subproceso. La \cref{tab:matriz-tipos} define la taxonomía de tipos empleada en la matriz y sus abreviaturas.
 
@@ -270,11 +270,21 @@ La matriz incorpora pruebas de autorización vigente, atomicidad, migración y p
 
 Los casos de mutación incluyen documentos, firmas, certificados, paquetes cifrados, ZIP y auditoría. Su rechazo demuestra el comportamiento sobre los artefactos y alteraciones ensayados; no equivale a probar todas las entradas posibles. De igual modo, 10\,000 nonces distintos en la prueba correspondiente son evidencia sobre esa muestra, no una garantía matemática de ausencia de colisiones futuras.
 
+\section{Trazabilidad de consultas documentales e interfaz}\label{sec:matriz-consultas}
+
+El contrato de listado y detalle por expediente se comprueba mediante archivos separados de los conteos históricos de la \cref{tab:matriz-resumen}. \rutarepo{crates/application/tests/document_query.rs} fija límites y normalización de parámetros. \rutarepo{crates/application/tests/case_document_queries.rs} comprueba el permiso \texttt{ReadDocument}, la denegación de Cliente y la propagación del actor, expediente y momento de auditoría.
+
+\rutarepo{crates/infrastructure/tests/postgres_document_queries.rs} contiene los escenarios de paginación después de filtrar, búsqueda literal y estado sellado; comprueba que el detalle usa una proyección de metadatos sin decodificar material cifrado. También define accesos con pertenencia retirada, cambios de rol o cuenta inactiva, errores indistinguibles para asociaciones ajenas e inexistentes y fallo de auditoría antes de devolver resultados. Su ejecución requiere \rutarepo{DOCUMENT_TEST_DATABASE_URL} sobre una base desechable.
+
+\rutarepo{crates/web/tests/document_queries.rs} comprueba el DTO, los parámetros admitidos y los errores HTTP. Los escenarios con respuestas simuladas en \rutarepo{web/tests/browser/} permiten aislar formularios, navegación por expediente y acciones documentales. El escenario real de \rutarepo{web/tests/live/document-workflow.spec.mjs}, ejecutado mediante \rutarepo{scripts/web-demo.sh}, aprobó el 14 de septiembre: autenticación con segundo factor, creación de expediente, carga, consulta, firma y sello, verificación, descarga de ZIP y recuperación del documento después de cerrar sesión y recargar. Se compararon los bytes del ZIP con el original y se comprobó que a 390 píxeles no hubiera desbordamiento horizontal. Este escenario utiliza API, PostgreSQL, Redis y OpenSSL reales y se contabiliza por separado de las 539 pruebas Rust. La inspección visual del sistema de diseño y la evaluación de usabilidad con usuarios constituyen comprobaciones adicionales y no se infieren de la cantidad de pruebas automáticas.
+
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
 El informe del 12 de septiembre registra \textbf{519 pruebas aprobadas, 0 fallos y 1 ignorada}; la ejecución completa durante la medición de cobertura confirma ese resultado. Formato, compilación, Clippy, umbrales y demostraciones terminaron con código cero. No se atribuye al corte una duración total ni una medición de carga que no fueron registradas.
+
+El ensayo del 14 de septiembre, que incorpora listado, detalle y filtros documentales, aprobó \textbf{539 pruebas, sin fallos y con una ignorada externa}, con PostgreSQL y Redis aislados. La compilación y Clippy del workspace terminaron con código cero. La demostración HTTP comprobó consultas autorizadas, cuatro roles, dos expedientes y revocación con la misma sesión; dos servidores conservaron un único sello y su evento ante solicitudes concurrentes. El recorrido de importación y restauración de esa fecha conservó cuatro documentos y 51 eventos, junto con ZIP de evidencia idénticos. Los 519 resultados y 46 eventos descritos para el 12 de septiembre siguen representando ese ensayo histórico.
 
 \rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:
 
@@ -310,6 +320,8 @@ La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umb
     \bottomrule
   \end{tabularx}
 \end{table}
+
+La medición del 14 de septiembre de 2026 registró 8\,256 líneas cubiertas de 9\,071, equivalentes a 91.0\,\% global. Los resultados por crate fueron 96.8\,\% en \texttt{domain}, 93.9\,\% en \texttt{application}, 92.5\,\% en \texttt{infrastructure}, 76.8\,\% en \texttt{bin} y 86.4\,\% en \texttt{web}; aprobaron los tres umbrales obligatorios. Los numeradores y denominadores se presentan en la \cref{tab:pruebas-cobertura-consultas}. Esta ejecución incluyó las 539 pruebas Rust aprobadas, con una ignorada externa y servicios de persistencia aislados.
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
