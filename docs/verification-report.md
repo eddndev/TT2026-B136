@@ -63,6 +63,22 @@ a las 539 pruebas de la suite completa.
 Total: **8256/9071 líneas (91.0 %)**. Los tres crates sujetos al umbral del 90 %
 aprueban. La cobertura corresponde al workspace Rust, no a los archivos Svelte.
 
+### Actualización de la dependencia TLS
+
+El control de dependencias de CI detectó un aviso publicado el 14 de septiembre
+para `rustls` 0.23.43. Se actualizó únicamente su versión y checksum en
+`Cargo.lock` a 0.23.45, identificada como corregida en
+[el aviso del proyecto](https://github.com/rustls/rustls/security/advisories/GHSA-2mjx-qc3c-rqvc).
+No se añadió ninguna excepción a la política de dependencias.
+
+Después del cambio aprobaron nuevamente formato, build, Clippy, las 539 pruebas
+Rust con servicios desechables y el escenario de navegador real. `cargo-deny`
+0.20.2 aprobó advisories, bans, licenses y sources con la base actualizada. La
+medición de cobertura de esta sección precede al ajuste del lockfile; no se
+presenta como una nueva medición posterior. Las fuentes del reporte no cambiaron
+por esta actualización de dependencia y su PDF permanece válido para el contenido
+documental compilado.
+
 ### Interfaz y pruebas con HTTP simulado
 
 La referencia Qadra se comprobó antes de adaptar sus flujos: 18 pruebas
