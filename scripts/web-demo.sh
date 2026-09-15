@@ -41,10 +41,21 @@ export TSA_DIR="$WORK_DIR/tsa"
 export KEK_BASE64
 KEK_BASE64="$(openssl rand -base64 32)"
 unset CINCEL_BASE_URL CINCEL_API_KEY
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c \
-  'CREATE ROLE tt_browser LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT' >/dev/null
+TT_BROWSER_DATABASE_PASSWORD="$(openssl rand -hex 24)"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
+  -v runtime_password="$TT_BROWSER_DATABASE_PASSWORD" >/dev/null <<'SQL'
+SET password_encryption = 'scram-sha-256';
+CREATE ROLE tt_browser LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT
+  PASSWORD :'runtime_password';
+SQL
 "$CLI" database migrate --runtime-role tt_browser >/dev/null
-export DATABASE_URL="${IDENTITY_TEST_DATABASE_URL/postgresql:\/\//postgresql:\/\/tt_browser@}"
+DATABASE_URL="$(TT_BROWSER_DATABASE_PASSWORD="$TT_BROWSER_DATABASE_PASSWORD" node -e '
+  const url = new URL(process.env.IDENTITY_TEST_DATABASE_URL);
+  url.username = "tt_browser";
+  url.password = process.env.TT_BROWSER_DATABASE_PASSWORD;
+  process.stdout.write(url.href);
+')"
+export DATABASE_URL
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" init-ca >/dev/null
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" issue --cn 'Browser Demo' >/dev/null
 bash "$REPO_ROOT/pki/issue-tsa-cert.sh" >/dev/null

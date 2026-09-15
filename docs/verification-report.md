@@ -76,6 +76,16 @@ servidores existentes. Tras la corrección, formato, compilación, Clippy, suite
 completa e instrumentada aprobaron nuevamente: 577 pruebas, una externa ignorada
 y los mismos numeradores de cobertura que se presentan abajo.
 
+La adaptación a SCRAM también expuso una suposición en `scripts/web-demo.sh`:
+su sustitución textual de URL solo admitía conexiones sin usuario y contraseña.
+Se reprodujo el rechazo de conexión antes de iniciar el navegador. El guion
+ahora crea una contraseña aleatoria propia del rol de prueba y reemplaza las
+credenciales mediante `URL`, conservando host, puerto, base y parámetros.
+El recorrido completo del navegador volvió a aprobar contra los servicios
+desechables con SCRAM: una prueba real, sin cambios de interfaz. También se
+comprobó la construcción de URL con credenciales existentes, IPv6, parámetros
+y caracteres reservados en la contraseña.
+
 ### Cobertura de versiones
 
 | Crate | Líneas cubiertas / totales | Cobertura |
