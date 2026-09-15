@@ -8,6 +8,30 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("invalid case stage")]
+    InvalidCaseStage,
+
+    #[error("declared stage time has an invalid year or offset")]
+    InvalidDeclaredStageTime,
+
+    #[error("stage note must contain 1 to 1000 characters without unsupported controls")]
+    InvalidStageNote,
+
+    #[error("stage court must contain 1 to 200 characters without controls")]
+    InvalidStageCourt,
+
+    #[error("stage receipt reference must contain 1 to 200 characters without controls")]
+    InvalidStageReceiptReference,
+
+    #[error("opening order issuance is incompatible with the declared receipt time")]
+    InvalidStageActOrder,
+
+    #[error("one exact document support cannot have two digests")]
+    ConflictingStageSupport,
+
+    #[error("declared stage act occurs after the captured recording time")]
+    StageActInFuture,
+
     /// A manual penal profile violates bounded field invariants.
     #[error("invalid penal case {field}: {reason}")]
     InvalidPenalCaseProfile {

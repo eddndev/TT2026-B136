@@ -61,6 +61,9 @@ impl CaseStageRevision {
     pub const fn get(self) -> u32 {
         self.0
     }
+    pub fn next(self) -> Option<Self> {
+        self.0.checked_add(1).map(Self)
+    }
 }
 
 /// The only stage supplied by complete new penal registration.
