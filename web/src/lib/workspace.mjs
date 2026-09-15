@@ -12,7 +12,7 @@ export function documentStatus(document) {
 
 export function normalizeView(hash, role) {
   const view = hash.replace(/^#/, '');
-  if (view === 'participants' && canParticipants(role, 'read')) return view;
+  if (['participants', 'stages'].includes(view) && canParticipants(role, 'read')) return view;
   if (['overview', 'cases', 'case-summary', 'documents', 'guide'].includes(view)) return view;
   if (role === 'owner' && ['team', 'audit'].includes(view)) return view;
   return 'overview';
@@ -24,6 +24,7 @@ export const viewLabels = {
   cases: 'Expedientes',
   documents: 'Documentos',
   participants: 'Expedientes / Participantes',
+  stages: 'Expedientes / Etapas',
   team: 'Equipo',
   audit: 'Auditor\u00eda',
   guide: 'Gu\u00eda de uso',

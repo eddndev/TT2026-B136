@@ -62,6 +62,7 @@ existente necesita su KEK original y debe completar la importación descrita en
 la guía. Prepare CA, certificado firmante, CRL y TSA con los scripts de `pki/`:
 
 ```bash
+export DOCUMENT_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
 cargo run --bin despacho-cli -- serve \
   --bind 127.0.0.1:3000 \
   --data-dir runtime-data \
@@ -72,6 +73,10 @@ cargo run --bin despacho-cli -- serve \
   --tsa-config pki/tsa.cnf \
   --tsa-dir ruta/pki-tsa
 ```
+
+El validador nativo requiere Linux x86_64 y qpdf 12.4.1. El arranque comprueba
+la biblioteca en un proceso acotado; véase
+[operación del validador](document-format-operations.md).
 
 El servidor no ejecuta DDL y rechaza roles que puedan administrar o reescribir
 la auditoría. `database migrate` aplica las migraciones de identidad,
@@ -202,11 +207,32 @@ completo de 64 KiB. Distingue alta penal completa con registro inicial de
 Investigación, alta básica con perfil pendiente y raíces anteriores sin historia.
 
 Cerrar administrativamente bloquea edición del perfil, todas las mutaciones de
-participantes y carga, nuevas versiones, clasificación y sellado documental.
+participantes, adopción/transiciones de etapa y carga, nuevas versiones,
+clasificación y sellado documental.
 Conserva lectura, historia, verificación, evidencia y cambios de asignación
 por Owner. El servidor revalida el cierre al confirmar cada mutación; un caso
 cerrado autorizado produce `409 case_closed`. El cierre no termina el proceso
 judicial ni modifica etapas o plazos.
+
+## Etapas procesales
+
+El [contrato de etapas](case-stages-api.md) define GET `/stage`, GET
+`/stage/history`, POST `/stage/adoption` y POST `/stage/transitions`, bajo
+`/api/v1/cases/{case_id}`. Las consultas responden 200 y las mutaciones 201.
+Owner gestiona todos; Litigator asignado gestiona; Paralegal asignado consulta;
+Client no accede. Los cuerpos JSON tienen límite de 32 KiB.
+
+Adopción registra la etapa conocida de un perfil completo sin registro previo.
+Los avances ordinarios son Investigación a Intermedia e Intermedia a Juicio.
+Cada soporte identifica documento, versión y digest; se comprueban cifrado,
+evidencia capturada y formato PDF/DOCX antes de confirmar. Fecha declarada,
+precisión y desfase se conservan aparte del instante y autor del registro.
+La historia incluye el origen inicial sin reescribirlo. La etapa tiene revisión
+propia; un conflicto exige comparación explícita y no genera reenvío automático.
+
+La admisión de soportes utiliza [un worker acotado](document-format-operations.md).
+No completa la validación de toda carga general ni acredita un acto judicial.
+Recursos, audiencias y plazos conservan operaciones pendientes propias.
 
 ## Participantes del expediente
 
@@ -645,6 +671,7 @@ una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
 
 Los cuerpos JSON de identidad y alta básica de expedientes tienen límite de 16 KiB y rechazan
 campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
+Etapas admiten 32 KiB y administración penal 64 KiB.
 Los documentos mantienen 16 MiB. Se rechazan cabeceras
 Authorization múltiples o tokens con espacios; el esquema Bearer no distingue
 mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
@@ -665,10 +692,10 @@ La envoltura es estable:
 - `403`: rol autenticado sin permiso.
 - `404`: documento, participante, usuario o expediente inexistente; también
   recurso oculto o fuera del expediente indicado.
-- `409`: bootstrap cerrado, usuario duplicado, carrera optimista o transición
-  documental incompatible.
+- `409`: bootstrap cerrado, usuario duplicado, carrera optimista, expediente
+  cerrado, etapa incompatible o soporte cambiado durante la preparación.
 - `422`: correo, contraseña, rol, nombre, metadatos de expediente, límite de
-  página o cabecera inválidos.
+  página, cabecera, fecha o soporte procesal inválidos.
 - `413`: cuerpo mayor que el límite de la ruta.
 - `429`: ventana de login bloqueada.
 - `500`: fallo interno sin exponer detalles del backend ni secretos.

@@ -7,6 +7,11 @@ use axum::Json;
 use domain::DomainError;
 use serde::Serialize;
 
+mod stage;
+
+#[cfg(test)]
+mod stage_tests;
+
 #[derive(Debug)]
 pub struct ApiError {
     status: StatusCode,
@@ -104,7 +109,26 @@ impl ApiError {
 
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
+        let error = match stage::map(error) {
+            Ok(mapped) => return mapped,
+            Err(error) => error,
+        };
         match error {
+            ApplicationError::StageSupportTooLarge => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "stage_support_too_large",
+                message: error.to_string(),
+            },
+            ApplicationError::StageSupportFormatRejected => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "stage_support_format_rejected",
+                message: error.to_string(),
+            },
+            ApplicationError::StageSupportValidationLimit => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "stage_support_validation_limit",
+                message: error.to_string(),
+            },
             ApplicationError::BootstrapClosed => Self {
                 status: StatusCode::CONFLICT,
                 code: "bootstrap_closed",

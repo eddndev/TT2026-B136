@@ -89,6 +89,12 @@ ficha documental, de clasificación y de participantes. Su nuevo corte de interf
 registra 48 pruebas unitarias, 109 escenarios simulados y cuatro recorridos reales
 aprobados, sin sustituir las cifras anteriores ni alterar el límite compartido
 del backend.
+La entrega de etapas añade adopción explícita y avances con versiones documentales
+exactas, revisión propia e historia inmutable. PDF y DOCX se validan al admitir
+soportes mediante un proceso acotado; la validación general de carga conserva
+su pendiente. El corte registra 933 pruebas Rust aprobadas y 92.7 % de cobertura,
+56 pruebas unitarias de interfaz, 129 escenarios simulados y seis recorridos
+reales. Las mediciones previas conservan sus propios denominadores.
 La revisión del reporte se registra en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
 

@@ -29,6 +29,8 @@ allow = [
     "ISC",
     "Unicode-DFS-2016",
     "Unicode-3.0",
+    # zlib-rs license review: docs/adr/0024-isolated-document-format-admission.md.
+    "Zlib",
 ]
 confidence-threshold = 0.8
 

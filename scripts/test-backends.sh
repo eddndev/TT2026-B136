@@ -10,6 +10,11 @@ for command in cargo initdb pg_ctl pg_dump pg_restore psql python3 redis-cli red
   }
 done
 
+if [ -z "${TT_TEST_QPDF_LIBRARY:-}" ]; then
+  TT_TEST_QPDF_LIBRARY="$(bash "$REPO_ROOT/scripts/setup-document-formats.sh")"
+fi
+export TT_TEST_QPDF_LIBRARY
+
 TEST_DIR="$(mktemp -d)"
 TEST_DATABASE_USER="tt_backend_test_admin"
 TEST_DATABASE_PASSWORD="$(python3 -c 'import secrets;print(secrets.token_hex(24))')"

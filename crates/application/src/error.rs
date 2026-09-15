@@ -10,6 +10,50 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    /// The command expected another current stage revision.
+    #[error("case stage changed; refresh before recording")]
+    CaseStageConflict,
+
+    /// Stage revision counters never wrap.
+    #[error("case stage revision counter is exhausted")]
+    CaseStageRevisionExhausted,
+
+    /// An ordinary transition requires a registered starting stage.
+    #[error("register the current case stage before advancing")]
+    CaseStageRequired,
+
+    /// The requested target does not follow the current registered stage.
+    #[error("case stage transition is not permitted")]
+    CaseStageTransitionRejected,
+
+    /// A stage mutation requires the current complete penal profile.
+    #[error("complete the penal case profile before recording its stage")]
+    CaseStageProfileIncomplete,
+
+    /// The selected digest disagrees with the authorized exact version.
+    #[error("selected stage support digest does not match the stored version")]
+    StageSupportDigestMismatch,
+
+    /// Evidence changed after the support validation was prepared.
+    #[error("stage support changed; validate it again before recording")]
+    StageSupportChanged,
+
+    /// A selected document exceeds the bounded support-admission policy.
+    #[error("document exceeds the stage support size limit")]
+    StageSupportTooLarge,
+
+    /// Verified content does not satisfy the supported document-format profile.
+    #[error("document format is not admitted as a stage support")]
+    StageSupportFormatRejected,
+
+    /// Format parsing exhausted a configured resource allowance.
+    #[error("document validation exceeded its resource limit")]
+    StageSupportValidationLimit,
+
+    /// Persisted stage values or historical provenance violate invariants.
+    #[error("stored case stage is inconsistent: {0}")]
+    StoredCaseStageInconsistent(String),
+
     /// The caller expected a different current administrative head.
     #[error("case changed; refresh before replacing")]
     CaseRevisionConflict,

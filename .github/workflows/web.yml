@@ -10,7 +10,12 @@ on:
       - 'scripts/web-demo.sh'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-case-administration-fixtures.mjs'
+      - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/test-backends.sh'
+      - 'scripts/setup-document-formats.sh'
+      - 'scripts/setup-document-formats.py'
+      - 'scripts/document_format_archive.py'
+      - 'scripts/tests/test_setup_document_formats.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
   pull_request:
@@ -22,7 +27,12 @@ on:
       - 'scripts/web-demo.sh'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-case-administration-fixtures.mjs'
+      - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/test-backends.sh'
+      - 'scripts/setup-document-formats.sh'
+      - 'scripts/setup-document-formats.py'
+      - 'scripts/document_format_archive.py'
+      - 'scripts/tests/test_setup_document_formats.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
 
@@ -70,6 +80,10 @@ jobs:
         working-directory: web
       - run: npx playwright install --with-deps chromium
         working-directory: web
+      - name: Prepare verified document format library
+        run: |
+          library=$(bash scripts/setup-document-formats.sh)
+          printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
       - name: Run browser against Rust and disposable services
         run: bash scripts/web-demo.sh
       - name: Preserve failed browser screenshots and diagnostics

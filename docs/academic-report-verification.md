@@ -1,5 +1,75 @@
 # Verificación de la actualización académica
 
+## Etapas y admisión de soportes: 15 de septiembre de 2026
+
+Se actualizaron diseño, implementación, pruebas y anexo para describir adopción,
+los dos avances ordinarios, precisión temporal, soportes exactos y revisión
+procesal independiente. Las tablas de permisos y contratos incluyen consulta,
+historia y comandos; el cierre administrativo bloquea los registros procesales.
+CU-07 distingue selección de versión y carga, y conserva una carga confirmada
+cuando se rechaza su uso como soporte. Su diagrama vectorial editable corrige
+la referencia RF-05, conserva las relaciones del caso de uso y su requisito
+de habilitar módulos; el PNG original permanece intacto.
+El anexo identifica las pruebas de dominio, aplicación, PostgreSQL, parsers,
+HTTP y Qadra. Los archivos nuevos se incluyen desde sus capítulos correspondientes.
+
+La admisión PDF/DOCX se describe como perfil restringido en un proceso acotado,
+con biblioteca qpdf 12.4.1 verificada, presupuestos compartidos y salida sin
+handlers `atexit`. No se presenta como validación general de carga, conformidad
+completa del formato, evaluación jurídica ni sandbox general. Recursos,
+audiencias, plazos e identidad tipificada conservan sus pendientes.
+
+El nuevo corte reproduce **933 pruebas Rust aprobadas, cero fallos y una externa
+ignorada**, incluidas las mismas pruebas bajo instrumentación. La cobertura es
+**15 817 / 17 064 líneas, 92.7 % global**, con los tres umbrales obligatorios
+aprobados. Qadra registra 56 pruebas unitarias, 129 escenarios simulados y seis
+recorridos reales finales en aproximadamente 1.5 minutos. El capítulo distingue
+estos resultados de los anteriores y de la evaluación con usuarios pendiente.
+La calibración CLI fresca de Argon2id, 371.7 ms en cinco corridas, se identifica
+fuera de banda; la medición histórica de 529.4 ms conserva su fecha y entorno.
+La evidencia técnica detallada está en [el informe de verificación](verification-report.md).
+
+### Compilación y revisión
+
+Se ejecutó el Makefile versionado con LuaLaTeX, biber y glosarios sobre una copia
+temporal de fuentes, con caché de fuentes separada. La primera compilación
+permitió localizar desbordamientos de rutas en los párrafos nuevos. Se corrigió
+su composición y una revisión independiente comprobó CU-07 e índices. Después
+de conciliar el rechazo de soportes y corregir el diagrama, la compilación definitiva terminó
+con código cero: **272 páginas carta, 5 638 644 bytes**.
+
+Artefacto local: `output/pdf/TT2026-B136-etapas-qadra-2026-09-15.pdf`, acompañado
+de `.sources.json` y `.sha256`. SHA-256:
+`3d09d21cc6dcd44f25afb419c698255927de21d529414c2e7c8b41e192100d1f`.
+Las **55 fuentes y archivos de soporte** del manifiesto coinciden con los archivos
+del repositorio utilizados para compilar. El PDF permanece fuera de Git; el
+workflow Documents conserva la reproducción desde fuentes.
+
+Se revisaron las páginas físicas **161–166, 177–180, 191–195, 207–209 y 266–272**
+mediante renderizados PNG, con ampliación de las tablas nuevas. Contratos,
+porcentajes, rutas, párrafos, referencias y límites de página son legibles.
+La tabla de cobertura conserva sus numeradores y denominadores. El anexo tiene
+sección propia y el capítulo de conclusiones conserva sus marcadores pendientes.
+
+La revisión independiente comprobó **1–10, 59–60 y 141** en el PDF definitivo,
+incluidos portada, índices, tabla y diagrama CU-07 y matriz de permisos. Son
+**38 páginas distintas** inspeccionadas entre ambas revisiones. Los 25
+renderizados de implementación, pruebas y anexo permanecen idénticos píxel a
+píxel después de corregir CU-07; el diagrama final también fue ampliado.
+
+El log final no contiene referencias/citas sin resolver, caracteres ausentes
+ni nuevos desbordamientos. Permanece el aviso histórico de **0.11754 pt** en
+la lista de tablas y las sustituciones ya existentes de versalitas de Times
+New Roman. Las fuentes usadas están incrustadas; Times New Roman y DejaVu Sans
+Mono conservan su selección. No se modifica el diseño general del documento.
+
+El manifiesto de preservación confirmó **53 archivos anteriores idénticos**,
+incluidos los PDF existentes, el paquete de presentación, marcas y fuentes
+académicas protegidas. Resumen, objetivos, estado del arte/marco y conclusiones
+no se editaron. La propuesta de corrección del criterio OE-2 queda separada en
+[alcance de recursos](procedural-resources-scope.md); no está aplicada al reporte.
+
+
 ## Coordinación de fichas: 15 de septiembre de 2026
 
 Se actualizaron implementación, pruebas y README para describir la coordinación

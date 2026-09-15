@@ -72,7 +72,7 @@ pub fn service(store: MockStore, identity: MockIdentity) -> CaseDocumentService 
     CaseDocumentService::new(
         Arc::new(store),
         Arc::new(identity),
-        super::crypto::processor(),
+        Arc::new(super::crypto::processor()),
         Arc::new(super::crypto::TestClock),
     )
 }

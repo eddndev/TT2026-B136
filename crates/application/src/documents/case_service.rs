@@ -19,7 +19,7 @@ use crate::{identity::IdentityWorkflow, verification::VerificationReport, Applic
 pub struct CaseDocumentService {
     pub(super) store: Arc<dyn CaseDocumentStore>,
     identity: Arc<dyn IdentityWorkflow>,
-    pub(super) processor: DocumentProcessor,
+    pub(super) processor: Arc<DocumentProcessor>,
     pub(super) clock: Arc<dyn Clock + Send + Sync>,
 }
 
@@ -27,13 +27,13 @@ impl CaseDocumentService {
     pub fn new(
         store: Arc<dyn CaseDocumentStore>,
         identity: Arc<dyn IdentityWorkflow>,
-        processor: DocumentProcessor,
+        processor: impl Into<Arc<DocumentProcessor>>,
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Self {
         Self {
             store,
             identity,
-            processor,
+            processor: processor.into(),
             clock,
         }
     }

@@ -3,6 +3,7 @@
 mod case_content;
 mod case_port;
 mod case_service;
+pub mod format;
 mod metadata;
 mod metadata_filter;
 mod model;
@@ -29,3 +30,8 @@ pub use metadata::{
     DocumentOverview, MetadataActorSnapshot, MetadataPage, MetadataQuery, MetadataRevision,
 };
 pub use metadata_filter::DocumentMetadataFilter;
+
+pub use format::{
+    DocumentFormatBatch, DocumentFormatBatchValidator, DocumentFormatInput, StageDocumentFormat,
+    StageFormatPolicy, StageSupportReadLimits,
+};

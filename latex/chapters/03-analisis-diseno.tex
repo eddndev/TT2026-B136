@@ -366,10 +366,10 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Nombre & Transición de etapa procesal \\
     Actor principal & Litigante \\
     Actores secundarios & --- \\
-    Precondiciones & El expediente se encuentra en una etapa procesal que admite transición (Investigación, Intermedia o Juicio Oral). \\
-    Flujo principal & 1. El Litigante accede al expediente y solicita avanzar a la siguiente etapa procesal. 2. El sistema solicita la carga del documento habilitante correspondiente (escrito de acusación para Investigación → Intermedia; auto de apertura para Intermedia → Juicio Oral). 3. El Litigante carga el documento procesal. 4. El sistema almacena el documento con las protecciones de integridad y confidencialidad correspondientes. 5. El sistema registra la transición de forma inmutable: marca de tiempo, usuario responsable y documento asociado. 6. El sistema habilita los módulos correspondientes a la nueva etapa. \\
-    Flujos alternos & 2a. El Litigante intenta avanzar de etapa sin cargar el documento habilitante → el sistema rechaza la transición e indica el documento requerido. 3a. El documento cargado no corresponde al formato admitido → el sistema rechaza la carga. \\
-    Postcondiciones & El expediente se encuentra en la nueva etapa procesal. La transición queda registrada de forma inmutable en el historial del expediente y no puede revertirse. \\
+    Precondiciones & El expediente tiene perfil completo y estado administrativo activo, y su etapa registrada admite el avance ordinario solicitado (Investigación o Intermedia). El Litigante tiene asignación vigente. \\
+    Flujo principal & 1. El Litigante solicita el avance de etapa. 2. El sistema pide el soporte habilitante: escrito de acusación para Investigación → Intermedia; auto de apertura para Intermedia → Juicio Oral. 3. El Litigante selecciona una versión documental existente o carga un documento nuevo y selecciona su versión confirmada. 4. Si hay carga, el sistema la almacena con integridad y confidencialidad; después verifica la admisión del soporte para la transición. 5. El sistema registra inmutablemente la transición, la fecha de registro, el usuario y la identidad, versión y resumen criptográfico del soporte, conservando su evidencia histórica. 6. El sistema habilita los módulos correspondientes a la nueva etapa. \\
+    Flujos alternos & 2a. No se selecciona un soporte habilitante → el sistema rechaza la transición e indica el documento requerido. 3a. El formato del soporte no es admitido → el sistema rechaza su admisión a la transición; una carga ya confirmada se conserva. \\
+    Postcondiciones & La nueva etapa y su soporte exacto quedan registrados en el historial inmutable del expediente, sin reversión de la transición ni sustitución de la evidencia histórica. \\
     Derivado de & HU-14, HU-15, HU-16 \\
     RF relacionados & RF-05 \\
     RNF relacionados & RNF-04, RNF-10 \\
@@ -379,7 +379,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\linewidth]{image11.png}
+  \resizebox{\linewidth}{!}{\input{figures/etapas}}
   \caption{Diagrama CU-07. Transición de etapa procesal.}
   \label{fig:cu-07}
 \end{figure}
@@ -2201,7 +2201,7 @@ El sistema emplea un modelo de persistencia híbrido que combina \textbf{Postgre
 
 \subsection{PostgreSQL: Datos Persistentes con Valor Probatorio}\label{sec:postgresql}
 
-PostgreSQL relaciona usuarios, expedientes, asignaciones, participantes y documentos mediante transacciones y claves foráneas. Las raíces documentales, sus versiones y las revisiones de clasificación se conservan separadas. El directorio añade \rutarepo{case_participants} y \rutarepo{case_participant_revisions}: cada raíz tiene un expediente inmutable y cada revisión conserva valores, huella y autor. Los archivos cifrados se guardan como bytes y su evidencia como JSONB; las fichas organizativas permanecen en claro bajo autorización. La raíz del expediente conserva identidad y hechos de creación; \rutarepo{case_administration_revisions} añade título, referencia, estado y perfil penal en revisiones inmutables. \rutarepo{case_initial_stage_registrations} vincula el registro inicial de Investigación con la primera revisión del alta completa. Las asignaciones conceden acceso a cuentas, sin crear fichas de participantes. Transiciones, audiencias y plazos requieren relaciones y reglas adicionales.
+PostgreSQL relaciona usuarios, expedientes, asignaciones, participantes y documentos mediante transacciones y claves foráneas. Las raíces documentales, sus versiones y las revisiones de clasificación se conservan separadas. El directorio añade \rutarepo{case_participants} y \rutarepo{case_participant_revisions}: cada raíz tiene un expediente inmutable y cada revisión conserva valores, huella y autor. Los archivos cifrados se guardan como bytes y su evidencia como JSONB; las fichas organizativas permanecen en claro bajo autorización. La raíz del expediente conserva identidad y hechos de creación; \rutarepo{case_administration_revisions} añade título, referencia, estado y perfil penal en revisiones inmutables. \rutarepo{case_initial_stage_registrations} vincula el registro inicial de Investigación con la primera revisión del alta completa. Las asignaciones conceden acceso a cuentas, sin crear fichas de participantes. \rutarepo{case_stage_revisions} conserva adopciones y avances ordinarios, valores temporales con precisión explícita y soportes vinculados a identidad y versión documental. La revisión procesal y la administrativa son independientes; la confirmación exige perfil completo, estado activo y autorización vigente. La secuencia incorpora el registro inicial original sin duplicarlo como adopción. Recursos, audiencias y plazos requieren relaciones y reglas propias.
 
 La bitácora \rutarepo{audit_events} conserva secuencia, marca temporal canónica, actor, acción, recurso y hash encadenado. Un bloqueo consultivo común ordena las transacciones mutantes de documentos, expedientes e identidad y el cálculo de la siguiente entrada. La mutación y su evento se confirman o se revierten juntos en PostgreSQL; la criptografía y las solicitudes a la TSA se preparan fuera de esa transacción. Verificación y exportación revalidan acceso y confirman su evento antes de entregar resultados. La atomicidad se limita a PostgreSQL, mientras Redis mantiene el estado efímero de autenticación por separado. Si se pierde la respuesta de una confirmación, la recuperación debe comprobar el estado persistido antes de repetir la operación.
 
@@ -2356,6 +2356,8 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
     Sellar documento & Sí & Sí & No & No \\
     Verificar documento & Sí & Sí & Sí & No \\
     Exportar evidencia & Sí & Sí & Sí & No \\
+    Consultar etapa e historial & Sí & Sí & Sí & No \\
+    Adoptar o avanzar etapa & Sí & Sí & No & No \\
     Consultar directorio e historial & Sí & Sí & Sí & No \\
     Crear, editar o archivar ficha & Sí & Sí & No & No \\
     Verificar auditoría completa & Sí & No & No & No \\
@@ -2363,7 +2365,7 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
   \end{tabularx}
 \end{table}
 
-Los permisos de la tabla se combinan con pertenencia vigente, recurso exacto y estado administrativo. Un expediente cerrado conserva las lecturas y operaciones de evidencia, pero rechaza nuevas cargas, versiones, clasificación, sellado, edición de perfil y mutaciones del directorio. Reactivar no modifica etapas ni reactiva participantes archivados.
+Los permisos de la tabla se combinan con pertenencia vigente, recurso exacto y estado administrativo. Un expediente cerrado conserva las lecturas y operaciones de evidencia, pero rechaza nuevas cargas, versiones, clasificación, sellado, edición de perfil, mutaciones del directorio y registros de etapa. Reactivar no modifica etapas ni reactiva participantes archivados.
 
 \subsection{Postura Legal del Prototipo}\label{sec:postura-legal}
 

@@ -114,6 +114,7 @@ impl LegacyImport {
                 "SELECT EXISTS(SELECT 1 FROM document_series) OR EXISTS(SELECT 1 FROM documents) OR EXISTS(SELECT 1 FROM document_metadata_revisions) OR EXISTS(SELECT 1 FROM audit_events)
              OR EXISTS(SELECT 1 FROM case_participants) OR EXISTS(SELECT 1 FROM case_participant_revisions)
              OR EXISTS(SELECT 1 FROM case_administration_revisions) OR EXISTS(SELECT 1 FROM case_initial_stage_registrations)
+             OR EXISTS(SELECT 1 FROM case_stage_revisions)
              OR EXISTS(SELECT 1 FROM migration_receipts)",
                 &[],
             )

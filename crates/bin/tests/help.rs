@@ -49,3 +49,17 @@ fn serve_exposes_nonzero_resource_limits() {
         assert!(String::from_utf8_lossy(&rejected.stderr).contains("zero"));
     }
 }
+
+#[test]
+fn serve_requires_an_explicit_native_document_library() {
+    let exe = env!("CARGO_BIN_EXE_despacho-cli");
+    let output = Command::new(exe)
+        .env_remove("DOCUMENT_QPDF_LIBRARY")
+        .args(["serve", "--signer-cert", "unused", "--signer-key", "unused"])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    let error = String::from_utf8_lossy(&output.stderr);
+    assert!(error.contains("--qpdf-library"));
+    assert!(!error.contains("cannot read signer"));
+}

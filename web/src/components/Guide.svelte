@@ -40,12 +40,32 @@
     <p>
       El administrador o el litigante asignado pueden cerrar y reactivar el expediente desde
       Resumen. Cerrado conserva consulta, historial, verificaci&oacute;n y descarga de evidencia;
-      suspende cambios de ficha, documentos y participantes. No cambia la etapa registrada ni
-      reactiva participantes archivados.
+      suspende cambios de ficha, documentos, participantes y etapas. No cambia la etapa registrada
+      ni reactiva participantes archivados.
     </p>
     <p>
       Si el expediente se cerr&oacute; mientras guardabas, se consulta su estado y se conserva el
       formulario. Reactivarlo no reenv&iacute;a autom&aacute;ticamente tus cambios.
+    </p>
+  </details>
+  <details>
+    <summary>&iquest;C&oacute;mo registro una etapa procesal?</summary>
+    <p>
+      Abre Etapas dentro del expediente. Una ficha completa sin etapa permite registrar la etapa
+      conocida, su fecha, motivo y soporte, sin reconstruir transiciones anteriores. Desde
+      Investigaci&oacute;n puedes registrar el paso a Intermedia; desde Intermedia, el paso a
+      Juicio. El Resumen conserva el registro inicial hist&oacute;rico.
+    </p>
+    <p>
+      Declara fechas y desfases UTC; si desconoces la hora, elige fecha sin hora. Selecciona y
+      confirma una versi&oacute;n exacta del soporte PDF o DOCX. Para Juicio, emisi&oacute;n del
+      auto y recepci&oacute;n por el tribunal son datos separados. El registro conserva lo
+      declarado; no acredita autom&aacute;ticamente un acto judicial.
+    </p>
+    <p>
+      Si hay conflicto, el borrador permanece disponible para comparar con etapa e historial. Una
+      carga confirmada conserva su archivo aunque se rechace registrar la etapa. Si no se conoce el
+      resultado del env&iacute;o, consulta antes de intentar de nuevo.
     </p>
   </details>
   <details>

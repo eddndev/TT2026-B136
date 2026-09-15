@@ -52,6 +52,12 @@ postgres.workspace = true
 tokio-postgres.workspace = true
 redis.workspace = true
 uuid.workspace = true
+libloading.workspace = true
+zip.workspace = true
+quick-xml.workspace = true
+rustix.workspace = true
+flate2.workspace = true
+crc32fast.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

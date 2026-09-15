@@ -1,0 +1,80 @@
+.stage-entry {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.stage-entry:last-child {
+  border-bottom: 0;
+}
+.stage-entry h3 {
+  margin-top: 14px;
+}
+.stage-support,
+.stage-date {
+  margin: 0;
+}
+.stage-support code,
+.stage-entry code,
+.stage-confirmation code,
+.stage-last-request code {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+.stage-support-summary {
+  margin: 16px 0;
+}
+.stage-support-name {
+  overflow-wrap: anywhere;
+}
+.stage-picker {
+  margin-top: 18px;
+}
+.stage-pick-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+.stage-pick-list button {
+  overflow-wrap: anywhere;
+}
+.stage-search {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.stage-search label {
+  flex: 1;
+  min-width: 0;
+}
+.stage-search button {
+  flex-shrink: 0;
+}
+.stage-current .section-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.stage-current > .text-button {
+  display: block;
+  margin-top: 18px;
+}
+.stage-form > .text-button {
+  margin-top: 18px;
+}
+.stage-reconciliation,
+.stage-last-request {
+  margin: 20px 0;
+}
+.stage-form small {
+  font-weight: 400;
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .stage-search {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .stage-support .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

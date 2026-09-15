@@ -28,8 +28,16 @@ pub fn validate_record_with_ports(
     kek: &[u8],
     ports: &DocumentValidationPorts<'_>,
 ) -> Result<(), ApplicationError> {
+    validated_plaintext_with_ports(record, kek, ports).map(|_| ())
+}
+
+pub(crate) fn validated_plaintext_with_ports(
+    record: &DocumentRecord,
+    kek: &[u8],
+    ports: &DocumentValidationPorts<'_>,
+) -> Result<Zeroizing<Vec<u8>>, ApplicationError> {
     ArchiveEntry::new(record.name.clone(), Vec::new())?;
-    let _plaintext = plaintext_with_ports(record, kek, ports)?;
+    let plaintext = plaintext_with_ports(record, kek, ports)?;
     if let Some(evidence) = &record.evidence {
         if evidence.signer_certificate_pem.is_empty()
             || evidence.issuer_certificate_pem.is_empty()
@@ -84,7 +92,7 @@ pub fn validate_record_with_ports(
             )));
         }
     }
-    Ok(())
+    Ok(plaintext)
 }
 
 pub(crate) fn plaintext_with_ports(

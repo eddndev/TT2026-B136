@@ -1,6 +1,7 @@
 <script>
   import { onDestroy, setContext } from 'svelte';
   import { writable } from 'svelte/store';
+  import CaseStages from './CaseStages.svelte';
   import CaseContext from './CaseContext.svelte';
   import CaseAdministration from './CaseAdministration.svelte';
   import Documents from './Documents.svelte';
@@ -94,6 +95,7 @@
         onupdate={update}
         ondenied={deny}
         onrefresh={refresh}
+        {onnavigate}
       />
     {:else}<div class="page-heading"><h1>Resumen del expediente</h1></div>
       <section class="card">
@@ -101,6 +103,14 @@
         <p>Referencia interna: {current.reference}</p>
         <p class="hint">Tu cuenta permite consultar los datos b&#225;sicos de este expediente.</p>
       </section>{/if}
+  {:else if view === 'stages' && staff}<CaseStages
+      {api}
+      {user}
+      record={current}
+      {onnavigate}
+      loading={busy}
+      ondenied={deny}
+    />
   {:else if view === 'participants'}<Participants {api} {user} caseRecord={current} />
   {:else}<Documents {api} {user} caseRecord={current} {intent} {onintent} />{/if}
 {/if}

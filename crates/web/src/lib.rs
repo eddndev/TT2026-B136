@@ -6,6 +6,7 @@
 
 use std::sync::Arc;
 
+use application::case_stages::CaseStageWorkflow;
 use application::cases::CaseWorkflow;
 use application::documents::CaseDocumentWorkflow;
 use application::identity::IdentityWorkflow;
@@ -13,6 +14,7 @@ use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
 mod case_administration;
+mod case_stages;
 mod cases;
 mod dto;
 mod error;
@@ -53,6 +55,12 @@ pub fn case_administration_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
     )
 }
 
+/// Builds stage routes whose workflow validates support and case authorization.
+pub fn case_stage_router(workflow: Arc<dyn CaseStageWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(case_stages::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds participant routes with authentication delegated to the workflow.
 pub fn participant_router(workflow: Arc<dyn ParticipantWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -65,13 +73,15 @@ pub fn api_router(
     identity: Arc<dyn IdentityWorkflow>,
     cases: Arc<dyn CaseWorkflow>,
     participants: Arc<dyn ParticipantWorkflow>,
+    stages: Arc<dyn CaseStageWorkflow>,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
     let routes = routes::router(documents, identity, runtime.clone())
         .merge(cases::router(cases.clone(), runtime.clone()))
         .merge(case_administration::router(cases, runtime.clone()))
-        .merge(participants::router(participants, runtime.clone()));
+        .merge(participants::router(participants, runtime.clone()))
+        .merge(case_stages::router(stages, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 

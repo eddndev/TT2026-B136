@@ -21,7 +21,7 @@
     class="case-sections"
     aria-label="Secciones del expediente"
   >
-    {#each [{ id: 'case-summary', label: 'Resumen' }, { id: 'documents', label: 'Documentos' }, { id: 'participants', label: 'Participantes' }] as item}
+    {#each [{ id: 'case-summary', label: 'Resumen' }, { id: 'documents', label: 'Documentos' }, { id: 'participants', label: 'Participantes' }, { id: 'stages', label: 'Etapas' }] as item}
       <a
         href={`#${item.id}`}
         class:active={view === item.id}

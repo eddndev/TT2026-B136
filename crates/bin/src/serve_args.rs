@@ -5,6 +5,9 @@ use std::path::PathBuf;
 /// Runtime paths, address, and resource limits for the HTTP application.
 #[derive(Debug, clap::Args)]
 pub struct ServeArgs {
+    /// Absolute or relative path to the pinned native qpdf library.
+    #[arg(long, env = "DOCUMENT_QPDF_LIBRARY")]
+    pub qpdf_library: PathBuf,
     /// TCP address listened on by the HTTP server.
     #[arg(long, default_value = "127.0.0.1:3000")]
     pub bind: String,

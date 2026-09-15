@@ -8,6 +8,8 @@ if [ "${1:-}" != "--with-backends" ]; then
 fi
 : "${IDENTITY_TEST_DATABASE_URL:?disposable backends are required}"
 : "${IDENTITY_TEST_REDIS_URL:?disposable backends are required}"
+: "${TT_TEST_QPDF_LIBRARY:?native document validation library is required}"
+export DOCUMENT_QPDF_LIBRARY="${DOCUMENT_QPDF_LIBRARY:-$TT_TEST_QPDF_LIBRARY}"
 
 for command in cargo curl jq openssl python3 node psql unzip; do
   command -v "$command" >/dev/null || {
@@ -86,6 +88,7 @@ curl -fsS -X POST "$API_PROXY_TARGET/api/v1/auth/bootstrap" \
   >"$TT_WEB_FIXTURES"
 node "$REPO_ROOT/scripts/web-participant-fixtures.mjs"
 node "$REPO_ROOT/scripts/web-case-administration-fixtures.mjs"
+node "$REPO_ROOT/scripts/web-case-stage-fixtures.mjs"
 export TT_WEB_PORT
 TT_WEB_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 cd "$REPO_ROOT/web"

@@ -1,7 +1,7 @@
 # Base de datos y migración de documentos
 
-El servidor usa PostgreSQL para usuarios, expedientes, participantes, documentos y una sola
-cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
+El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
+documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
 está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
@@ -24,8 +24,19 @@ target/debug/despacho-cli database migrate --runtime-role tt_runtime
 
 Para `serve`, cambiar `DATABASE_URL` por la del rol operativo. El arranque valida
 sus privilegios y no ejecuta DDL. Conservar KEK, certificados, claves y configuración
-TSA fuera del repositorio y preparar Redis. Los argumentos criptográficos de
-`serve --help` siguen vigentes.
+TSA fuera del repositorio y preparar Redis. Antes de arrancar `serve`, instalar
+el validador obligatorio de soportes PDF/DOCX en Linux x86_64:
+
+```bash
+export DOCUMENT_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
+```
+
+El instalador verifica el artefacto fijado de qpdf 12.4.1. El servidor comprueba
+la biblioteca y el worker antes de escuchar; no omitir esa comprobación ante
+fallos. Proteger la instalación y conservar sus bibliotecas acompañantes. El
+argumento `--qpdf-library` sustituye la variable. Los argumentos criptográficos
+de `serve --help` siguen vigentes. Véase
+[operación del validador](document-format-operations.md).
 
 Comprobar `SHOW server_encoding` en la base de destino: debe devolver `UTF8`.
 Las comprobaciones canónicas de clasificación usan escalares Unicode y SHA-256
@@ -138,9 +149,9 @@ funciones fijan referencias al esquema para admitir `pg_restore` con
 No convertir una raíz nueva en baseline, borrar una revisión ni cambiar su autor
 para resolver un conflicto o preparar una importación. Una corrección de perfil
 se registra con revisión esperada; una reapertura usa el comando de estado.
-El cierre administrativo bloquea mutaciones documentales y de participantes,
-pero mantiene lecturas, evidencia y revocación de miembros por Owner. Conserva
-las etapas y los estados de participantes. Véase
+El cierre administrativo bloquea mutaciones documentales, de participantes y
+de etapas, pero mantiene lecturas, evidencia y revocación de miembros por Owner.
+Conserva las etapas y los estados de participantes. Véase
 [ADR-0022](adr/0022-audited-penal-case-administration.md).
 
 Respaldar y restaurar ambas tablas junto con raíces, asignaciones, usuarios,
@@ -149,6 +160,42 @@ completas, revisión vigente, historial y registro inicial; no basta igualar
 conteos. No importar solo raíces con marcador 1 sin su revisión. El perfil es
 metadato autorizado en PostgreSQL y no forma parte del archivo cifrado DVLT1.
 
+## Actualizar adopción y transiciones de etapa
+
+Detener escritores, obtener un respaldo completo y ejecutar
+`database migrate --runtime-role` con credenciales administrativas. El comando
+aplica `migrations/0008_case_stages.sql`, `0008_case_stage_values.sql` y
+`0008_case_stage_guards.sql`. Añaden `case_stage_revisions`, comprobaciones
+canónicas y triggers; conservan `case_initial_stage_registrations` y no fabrican
+etapas para los expedientes anteriores. No ejecutar fragmentos de migración
+por separado ni mantener escritores de la versión anterior.
+
+El rol operativo necesita SELECT/INSERT sobre la tabla y EXECUTE sobre las
+funciones de comprobación, sin propiedad, UPDATE, DELETE o TRUNCATE. `serve`
+comprueba esquema, permisos e inventario sin ejecutar DDL. La secuencia de etapa
+combina el registro inicial y las revisiones nuevas; R1 inicial y R1 de adopción
+son excluyentes. La revisión administrativa es independiente. No reparar
+conflictos borrando filas, sustituyendo R1 o deshabilitando restricciones.
+
+Cada entrada conserva valores CSTG1 y digest, revisión administrativa exacta,
+fechas declaradas con precisión/desfase, actor y captura del sistema, más nombre,
+UUID, versión, digest y política de sus soportes. Las claves foráneas alcanzan
+las versiones exactas y la administración referenciada. La preparación valida
+integridad/formato; el commit auditado vuelve a comprobar autorización, estado
+activo, perfil completo, revisión esperada y evidencia preparada. Un sellado
+concurrente exige validación explícita de nuevo; un sello o append posterior
+conserva la entrada histórica.
+
+Los triggers usan READ COMMITTED y referencias de esquema explícitas para
+restauración con `search_path` vacío. Respaldar la tabla junto con registros
+iniciales, administración, documentos/versiones, usuarios, membresías y auditoría.
+Comparar filas completas, precisión temporal, procedencia, ambas clases de R1
+y vínculos exactos; no basta comparar conteos o la etapa actual. Los valores de
+etapa son metadatos autorizados sin cifrado de archivo; proteger sus copias.
+Véanse [ADR-0023](adr/0023-audited-case-stage-transitions.md),
+[contrato de etapas](case-stages-api.md) y
+[admisión de formatos](document-format-operations.md).
+
 ## Migrar un almacenamiento local existente
 
 1. Detener todos los escritores, incluidas versiones anteriores del servidor y
@@ -156,8 +203,9 @@ metadato autorizado en PostgreSQL y no forma parte del archivo cifrado DVLT1.
    de la base existente, directorio local, KEK y material criptográfico.
 2. Aplicar el esquema nuevo sobre la base que ya contiene usuarios y expedientes.
    No iniciar todavía el servidor: el primer import exige documentos,
-   clasificación, participantes, revisiones administrativas, registros iniciales
-   de etapa y auditoría vacíos para conservar la cadena original como prefijo.
+   clasificación, participantes, revisiones administrativas, registros iniciales,
+   revisiones de etapa y auditoría vacíos para conservar la cadena original
+   como prefijo.
    Preparar los expedientes de destino administrativamente como baselines con
    marcador NULL y hechos conocidos; no crearlos por HTTP y borrar sus eventos
    o revisiones. Una ficha cargada directamente también impide esa importación
@@ -242,14 +290,18 @@ El mismo ensayo crea participantes, comprueba conflicto concurrente, permisos,
 archivo/reactivación y revocación; restaura sus raíces, historia, valores y
 procedencia junto con el resto de la base. Añade altas penales, completa perfiles
 pendientes, comprueba conflictos y cierre, y restaura las revisiones
-administrativas y los registros iniciales con su procedencia exacta.
+administrativas y los registros iniciales con su procedencia exacta. El recorrido
+de etapas añade adopción y ambos avances con PDF/DOCX, conflicto concurrente,
+soporte histórico después de append, cierre y revocación; al restaurar compara
+estado actual, historia, fechas, actores y evidencia ZIP original.
 La reconstrucción del formato legacy es un fixture documental, no una conversión
 íntegra del historial administrativo actual; la restauración posterior sí conserva
 todas las tablas.
 No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `document_metadata_revisions`, `case_participants`, `case_participant_revisions`,
-`case_administration_revisions`, `case_initial_stage_registrations` y auditoría; un respaldo incompleto no se repara
-creando raíces o revisiones falsas. Comparar las filas completas y hashes, no
+`case_administration_revisions`, `case_initial_stage_registrations`,
+`case_stage_revisions` y auditoría; un respaldo incompleto no se repara creando
+raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 
 Las sesiones Redis no sustituyen el estado durable. En una recuperación operativa

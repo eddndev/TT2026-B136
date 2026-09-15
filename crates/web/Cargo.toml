@@ -13,7 +13,7 @@ domain = { path = "../domain" }
 http-body-util = "0.1"
 serde.workspace = true
 serde_json.workspace = true
-time.workspace = true
+time = { workspace = true, features = ["parsing"] }
 uuid.workspace = true
 tokio = { workspace = true, features = ["sync", "time"] }
 

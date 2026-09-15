@@ -6,6 +6,7 @@
 
 pub mod audit;
 pub mod case_administration;
+pub mod case_stages;
 pub mod cases;
 pub mod clock;
 pub mod crypto;

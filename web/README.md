@@ -124,7 +124,7 @@ consultar o detener ese proceso.
 15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
-expediente, Resumen, Documentos y Participantes comparten contexto. Equipo
+expediente, Resumen, Documentos, Participantes y Etapas comparten contexto. Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
 expediente seleccionado. No presenta recuentos de una página como totales del
 despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
@@ -134,7 +134,8 @@ La identidad visual, los recursos de marca, la tipografía, los colores, las
 proporciones de navegación y los componentes documentales se conservan. Las
 pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados
 de Qadra. Los ajustes adicionales están en `src/styles/cases.css`, `src/styles/versions.css`,
-`src/styles/metadata.css`, `src/styles/participants.css` y `src/styles/case-administration.css`.
+`src/styles/metadata.css`, `src/styles/participants.css`, `src/styles/case-administration.css`
+y `src/styles/stages.css`.
 
 Los controles respetan los roles del backend. Owner ve todos los expedientes;
 Litigator y Paralegal requieren asignación vigente para consultar documentos.
@@ -212,8 +213,8 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
   no valida identidad legal, roles tipificados, identificadores oficiales,
   certificados, FIREL o condiciones procesales. Sus valores están en PostgreSQL,
   separados de los archivos documentales cifrados. El registro inicial de etapa
-  aparece en el resumen del alta penal; las transiciones, adopción de etapa de
-  expedientes anteriores, audiencias y plazos siguen pendientes. La API tampoco ofrece
+  aparece en el resumen del alta penal; Etapas consulta su estado actual y permite
+  adopción y dos avances ordinarios. Audiencias y plazos siguen pendientes. La API tampoco ofrece
   cambio/restablecimiento de contraseña.
 - Si un documento importado empieza en una versión posterior a 1, el historial
   muestra explícitamente su primera versión disponible; no inventa versiones
@@ -229,6 +230,50 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
   se pide consultar los datos guardados antes de repetir: un fallo de conexión
   no demuestra que el servidor haya rechazado la escritura.
 - La TSA local produce evidencia técnica, no una constancia NOM-151 de un PSC.
+
+## Etapas y soportes exactos
+
+**Resumen** conserva el registro inicial histórico. **Etapas** consulta un recurso
+independiente: etapa actual, revisión y origen (inicial, adopción o transición).
+El historial se abre bajo demanda, pagina por revisión exclusiva y muestra los
+actos declarados separados de fecha y autor capturados por el sistema. El detalle
+de soportes históricos llega en cada entrada, sin consultas por fila.
+El contrato está en [`docs/case-stages-api.md`](../docs/case-stages-api.md).
+
+Un expediente completo sin etapa admite **Registrar etapa actual**, con etapa
+conocida, fecha, motivo y soporte obligatorios; no reconstruye transiciones.
+Desde Investigación se declara la acusación para pasar a Intermedia. Desde
+Intermedia se registran por separado emisión del auto, recepción y tribunal para
+pasar a Juicio; referencia y constancia adicional de recepción son opcionales.
+El mismo documento y versión pueden seleccionarse expresamente para ambos actos.
+Motivo/nota admiten 1000 caracteres; tribunal/referencia, 200. No hay siguiente
+avance desde Juicio, corrección o deshacer en este recurso. Recursos procesales,
+audiencias, plazos y calendario requieren otros flujos.
+
+Cada fecha elige precisión de día o instante y desfase UTC explícito. No se
+inventan horas desconocidas ni se usa el desfase actual del navegador para una
+fecha histórica. El servidor comprueba futuro y orden considerando intervalos
+cuando falta la hora. Un registro no acredita por sí mismo validez jurídica.
+
+**Elegir documento** consulta lista, versiones y detalle exacto en orden; confirma
+nombre, versión y digest. No consulta clasificación ni verifica o sella de forma
+automática. **Cargar soporte** reutiliza multipart y clasificación opcional; una
+carga confirmada permanece guardada si después se rechaza la etapa. Que el archivo
+se cargue no demuestra que pase la validación de formato PDF/DOCX del soporte.
+
+El formulario presenta confirmación antes del envío, conserva borrador y último
+comando ante conflicto y exige consultar/comparar la etapa. Si la arista dejó de
+aplicar, no transforma el comando en otro avance. Un soporte cambiado exige
+seleccionarlo y consultarlo de nuevo. Un resultado incierto consulta cabeza e
+historia secuencialmente; una coincidencia no prueba qué envío se confirmó y no
+provoca reenvío automático. Los controles de la misma sección esperan el trabajo
+real de selectores, carga, registro y recargas visibles.
+
+Owner y Litigator asignado gestionan; Paralegal asignado consulta; Client no
+solicita etapas. Perfil incompleto y cierre administrativo impiden registros.
+Un cierre en vuelo actualiza el estado administrativo conservando borrador y
+soportes; una denegación elimina datos protegidos del contexto. El cierre no se
+interpreta como una etapa ni como suspensión de términos judiciales.
 
 ## Verificación
 
@@ -260,7 +305,9 @@ permisos, filtros y cursores, historia, conflictos completos y de estado, errore
 inciertos, revocaciones y formularios abandonados. La administración distingue
 índice staff/Client, alta completa, perfil pendiente R0/R1, validación Unicode y
 multilínea, conflictos de revisión/identificadores, historia, filtros y cierre con
-borradores documentales y de participantes. Cada ejecución inicia un
+borradores documentales y de participantes. Las pruebas de etapas cubren variantes,
+fechas/desfases, referencias históricas exactas, conflictos, conciliación incierta,
+cierre, denegación, páginas y consultas retenidas. Cada ejecución inicia un
 servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
 Ejecuta las pruebas simuladas y reales de forma secuencial: Astro admite una
 sola instancia de desarrollo por proyecto, incluso con puertos diferentes.
@@ -303,3 +350,14 @@ conflicto entre sesiones, cierre durante una carga, lectura de versiones y ZIP
 idéntico, reactivación, persistencia y revocación. Los códigos de cada cuenta
 son independientes de los recorridos anteriores. Las pruebas describen escenarios;
 los resultados ejecutados se registran en el informe de verificación del proyecto.
+
+Los escenarios reales de etapas usan `fixture.caseStages`: cuentas exclusivas
+Owner/Litigator/Paralegal/Client, un expediente completo sin registro inicial y
+uno oculto. Usan un PDF válido versionado como soporte técnico de prueba, sin
+contenido jurídico real. El recorrido distingue registro inicial/adopción,
+ambos avances, conflicto entre sesiones, V1 conservada tras V2, precisión de fecha,
+historia y ZIP estable tras cierre. Otro recorrido verifica adopción por Litigator,
+lectura por Paralegal, ausencia de solicitudes Client y revocación con sesión vigente.
+Owner usa códigos 0/1/2 para sesiones de navegación y 3 para revocación; cada otra
+cuenta usa su código 0. Los resultados se incorporan al informe únicamente después
+de ejecutar `scripts/web-demo.sh` contra la API integrada.
