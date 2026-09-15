@@ -12,6 +12,8 @@ La ejecución del 14 de septiembre de 2026 aprobó \textbf{539 pruebas, sin fall
 
 La ejecución posterior de versiones inmutables, realizada el mismo 14 de septiembre, aprobó \textbf{577 pruebas, sin fallos y con una ignorada externa}. Se ejecutó el workspace completo mediante \rutarepo{scripts/test-backends.sh}, con PostgreSQL y Redis aislados; formato, compilación y Clippy también aprobaron. La demostración HTTP preservó cuatro documentos importados y el prefijo histórico de 51 eventos, añadió y selló una segunda versión y rechazó una cabeza esperada obsoleta y los alias ambiguos. El ZIP de la versión 1 permaneció idéntico tras añadir la 2; el respaldo y restauración conservaron ambas versiones y sus ZIP. Las 539 pruebas y cobertura del ensayo de consultas se mantienen como evidencia histórica independiente.
 
+La entrega de clasificación documental del 14 de septiembre amplía el alcance con \textbf{644 pruebas Rust aprobadas, sin fallos y con una ignorada externa}. El envoltorio de servicios aislados y la ejecución instrumentada terminaron satisfactoriamente; formato, compilación, Clippy, política de dependencias y demostración CLI también aprobaron. La demostración HTTP conserva cuatro documentos importados y el prefijo histórico de 51 eventos; el inventario respaldado contiene cinco raíces documentales, seis versiones de contenido y tres revisiones de clasificación. La restauración conserva filas, procedencia y ZIP de ambas versiones. Los conteos de consultas y versiones anteriores mantienen sus cifras originales y no se suman entre sí.
+
 La cobertura se mide con \texttt{cargo-llvm-cov}. El umbral de integración continua exige al menos 90\,\% de líneas en cada uno de los crates \texttt{domain}, \texttt{application} e \texttt{infrastructure}, conforme a RNF-13. El capítulo presenta la matriz de pruebas (\cref{sec:pruebas-matriz}), los resultados criptográficos (\cref{sec:pruebas-cripto}), los ensayos de autorización y persistencia (\cref{sec:pruebas-transacciones}), la verificación independiente (\cref{sec:pruebas-interop}) y el balance de cobertura y criterios de éxito (\cref{sec:pruebas-cobertura}).
 
 \section{Matriz de pruebas}\label{sec:pruebas-matriz}
@@ -154,6 +156,35 @@ La ampliación documental separa la preservación de una instantánea de la elec
 La demostración \rutarepo{scripts/api-version-demo.sh}, integrada en \rutarepo{scripts/api-demo.sh}, añade una segunda versión a un documento importado, comprueba el conflicto con la cabeza anterior y recorre historial, sellado, verificación y exportación explícitos. Compara el ZIP histórico con el obtenido antes del anexado y, tras restaurar PostgreSQL, compara nuevamente las exportaciones. OpenSSL valida firma y sello del contenido nuevo. Estas comprobaciones verifican las muestras y restauraciones ensayadas; una copia antigua íntegra aún puede conservar validez interna si no existe anclaje externo de la cabeza de auditoría.
 
 La validación final de Qadra aprobó 28 pruebas unitarias y 32 de navegador con respuestas simuladas, además de formato y compilación, bajo Node~22.22.2 y npm~10.9.7. El escenario real de \rutarepo{scripts/web-demo.sh} también aprobó: selló la versión 1 y descargó su ZIP, añadió una versión 2 con nombre y contenido distintos, la selló y verificó, y contrastó la descarga con los bytes del archivo nuevo. Al seleccionar nuevamente la versión 1 obtuvo un ZIP idéntico al inicial. Después de cerrar sesión, recargar y autenticar de nuevo, recuperó ambas versiones. No se registraron errores JavaScript. Las pruebas simuladas aíslan además conflictos de carga y respuestas tardías de sesiones o selecciones anteriores. Estos resultados se contabilizan por separado de Rust y no sustituyen la evaluación de usabilidad con personal del despacho.
+
+\subsection{Clasificación y carga documental atómica}\label{sec:pruebas-clasificacion}
+
+La clasificación añade una historia organizativa independiente de las versiones cifradas. Sus pruebas distinguen validación del valor, orquestación de permisos, persistencia transaccional, adaptación HTTP y comportamiento del navegador. La \cref{tab:pruebas-clasificacion} organiza las condiciones definidas por los archivos de prueba; la trazabilidad se detalla en la \cref{sec:matriz-clasificacion}. El canon de metadatos es un formato propio del prototipo, por lo que sus vectores fijan interoperabilidad entre Rust, PostgreSQL y OpenSSL y no se presentan como vectores oficiales de un estándar externo.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones de comprobación de clasificación documental.}
+  \label{tab:pruebas-clasificacion}
+  \begin{tabularx}{\linewidth}{@{}L{3.2cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones verificables} \\
+    \midrule
+    Valores y canon & Límites por caracteres Unicode, controles antes de recortar, conteo previo a deduplicar, etiquetas exactas y vectores con longitudes UTF-8. \\
+    Autorización & Cuenta y pertenencia vigentes, Cliente denegado, UUID ajeno indistinguible del ausente y ambos permisos de carga clasificada revalidados antes del commit. \\
+    Transacción & Un sucesor por revisión esperada; carga inicial y dos eventos indivisibles; fallo de fila, segundo evento o commit diferido sin residuos. \\
+    Concurrencia & Clasificaciones competidoras producen un ganador; anexado de contenido conserva la clasificación de su commit; revocación confirmada antes de autorizar impide escribir. \\
+    Consultas & Cabezas de archivo y clasificación seleccionadas antes de filtrar; retirada de etiquetas antiguas, coincidencia literal y lectura sin decodificar evidencia. \\
+    Persistencia & Canon y digest Rust/SQL coincidentes, autor UUID y correo histórico, UTC con nanosegundos, rechazo de datos almacenados inconsistentes y privilegios restrictivos. \\
+    HTTP & JSON estricto, límites de parte y petición, orden libre, partes duplicadas o incompletas rechazadas y fallo tardío del cuerpo sin carga confirmada. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La prueba de transporte entrega el cierre multipart antes de un epílogo fragmentado o de un fallo posterior del flujo. La condición exigida es que el límite se aplique a todos los bytes recibidos y que el caso de uso no comience antes de completar satisfactoriamente el cuerpo. Las pruebas de clasificación también separan la revisión cero de una decisión posterior con valores vacíos y exigen conservar el correo capturado aunque la cuenta cambie de dirección. La integridad de esas filas no se equipara con una firma individual ni con detección universal de una restauración administrativa antigua.
+
+La validación final de la interfaz para clasificación aprobó 34 pruebas unitarias, 47 escenarios con respuestas HTTP simuladas y dos recorridos con servicios reales, además de formato y compilación. El nuevo recorrido de \rutarepo{web/tests/live/document-classification.spec.mjs} carga archivo y revisión uno, clasifica de nuevo y genera un conflicto desde dos contextos autenticados. El segundo formulario conserva su borrador, compara la revisión concurrente y confirma una nueva decisión. Añadir una versión de contenido mantiene la clasificación actual; vaciar todos los campos crea la revisión cinco y conserva las cinco decisiones históricas con autor. Los filtros dejan de encontrar etiquetas retiradas y el reingreso recupera las versiones y revisiones. Los ZIP de las versiones 1 y 2 permanecen idénticos después de reclasificar y vaciar valores. El recorrido de versiones existente también aprueba, sin errores JavaScript. Estas comprobaciones de navegador se cuentan por separado de Rust y no sustituyen la evaluación de usabilidad.
+
+La restauración inicial reveló que las funciones SQL de canon dependían del \texttt{search\_path} de la sesión. El comportamiento se corrigió calificando las referencias al esquema de instalación. Las regresiones de \rutarepo{crates/infrastructure/tests/document_metadata_restore.rs} ejecutan las funciones con ruta de búsqueda vacía y un ciclo real de \texttt{pg\_dump}/\texttt{pg\_restore}; comprueban conservación de filas, reapertura con rol restringido, anexado posterior y rechazo de una huella incorrecta. La demostración HTTP confirma también el inventario completo y los ZIP anteriores después de restaurar.
 
 \section{Resultados criptográficos}\label{sec:pruebas-cripto}
 
@@ -400,6 +431,27 @@ La medición instrumentada de versiones inmutables, ejecutada sobre 577 pruebas 
   \end{tabularx}
 \end{table}
 
+La cobertura de clasificación se midió sobre 644 pruebas aprobadas, con una externa ignorada: \textbf{9\,854 de 10\,670 líneas, equivalentes a 92.4\,\% global}. Los crates de dominio, aplicación e infraestructura superan el umbral obligatorio del 90\,\%. La \cref{tab:pruebas-cobertura-clasificacion} conserva los numeradores y denominadores de esta entrega; los resultados anteriores siguen identificados como mediciones históricas.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del 14 de septiembre de 2026 con clasificación documental auditada.}
+  \label{tab:pruebas-cobertura-clasificacion}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,146 & 1\,180 & 97.1\,\% & 90\,\% \\
+    \texttt{application}    & 2\,426 & 2\,559 & 94.8\,\% & 90\,\% \\
+    \texttt{infrastructure} & 4\,358 & 4\,646 & 93.8\,\% & 90\,\% \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 1\,090 & 1\,199 & 90.9\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{9\,854} & \textbf{10\,670} & \textbf{92.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo OE-6 pide cobertura de al menos 80\,\% en los módulos criptográficos, mientras que el requerimiento RNF-13 pide 90\,\%. La integración continua aplica el más estricto de los dos, y los resultados superan ambos. El requerimiento RNF-14 ---que el 100\,\% de las pruebas de los módulos criptográficos pase antes de considerar completado un incremento--- se verificó en el corte del 12 de septiembre: el job de pruebas reporta error si falla una prueba y la ejecución registrada cierra con 519 de 519 pruebas ejecutadas en verde, más una prueba externa ignorada.
 
 La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de éxito verificables que el Capítulo~\ref{cap:introduccion} fijó para los objetivos específicos validables en esta fase (OE-3 a OE-6, \cref{tab:criterios-exito}), desglosados por subcriterio y con un estado explícito: cumplido, parcial o diferido.
@@ -456,4 +508,6 @@ Los resultados respaldan los criterios criptográficos de integridad y confidenc
   \item \textbf{Banda de calibración de Argon2id (OE-5).} La medición histórica situó al hardware de referencia dentro de banda con $m = 256$~MiB, $t = 2$, $p = 1$ y una media de 529.4 ms. El asterisco de la tabla recuerda que un hardware de despliegue distinto exige repetir la medición (\cref{sec:pruebas-argon2}).
 \end{itemize}
 
-El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Permanecen pendientes el historial de versiones, los participantes y demás módulos procesales, la aceptación de la interfaz con usuarios, TLS, pooling, apagado ordenado y revisión de la firma RSA expuesta por HTTP. La cabeza de auditoría carece de anclaje externo; una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.
+La clasificación implementada no completa por sí sola los casos de uso de carga y consulta del producto. La política de rechazo por formatos permitidos todavía debe definirse y aplicarse; disponer de nombres seguros y límites de tamaño no constituye esa política. También permanecen pendientes la entrega de contenido sin exigir sellado previo y la alerta al Owner ante una verificación de integridad rechazada. La matriz funcional conserva estos flujos como parciales, además de la evaluación con usuarios.
+
+El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Las versiones inmutables y la clasificación amplían la operación documental con historias independientes. Permanecen pendientes los participantes y demás módulos procesales, la aceptación de la interfaz con usuarios, TLS, pooling, apagado ordenado y revisión de la firma RSA expuesta por HTTP. La cabeza de auditoría carece de anclaje externo; una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.

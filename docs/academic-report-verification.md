@@ -1,5 +1,62 @@
 # Verificación de la actualización académica
 
+## Clasificación documental auditada: 14 de septiembre de 2026
+
+Se actualizaron introducción, modelo de datos, permisos, implementación,
+pruebas, anexo de trazabilidad y README. La prosa sigue
+[ADR-0020](adr/0020-audited-document-classification.md): clasificación manual,
+canon compartido, revisión cero, UUID y correo histórico del autor, carga
+multipart atómica, conflictos y filtros sobre la clasificación actual.
+Se distinguen las revisiones organizativas de las versiones cifradas y de
+su evidencia. La explicación incluye consumo completo del cuerpo HTTP y
+restauración con referencias SQL calificadas al esquema de instalación.
+
+Los resultados históricos de consultas (539 pruebas y 91.0 %) y versiones
+(577 y 91.7 %) se conservan. El nuevo corte registra 644 pruebas Rust aprobadas,
+una externa ignorada y 9 854 de 10 670 líneas cubiertas (92.4 %); los tres
+umbrales obligatorios aprobaron. Formato, compilación, Clippy, política de
+dependencias, CLI y demostración HTTP terminaron satisfactoriamente. El inventario
+restaurado contiene cinco raíces, seis versiones y tres revisiones organizativas;
+conserva procedencia, filas completas y ZIP históricos. Los 51 eventos identifican
+el prefijo importado y no se presentan como el total final.
+
+La interfaz registra 34 pruebas unitarias, 47 escenarios con respuestas simuladas
+y dos recorridos contra servicios reales. Clasificar, resolver un conflicto,
+vaciar valores y reingresar preserva las cinco revisiones del recorrido nuevo
+y los ZIP de ambas versiones. Estos resultados proceden del
+[informe técnico de verificación](verification-report.md) y no se contabilizan
+como comprobaciones documentales. Los casos de uso de carga y consulta del
+producto permanecen parciales por sus políticas de formatos, entrega de contenido
+sin sellado previo y alerta al Owner, además de la usabilidad pendiente.
+
+### Compilación y revisión documental
+
+Se ejecutó el Makefile versionado con LuaLaTeX, biber y glosarios en una copia
+temporal nueva de las fuentes, con caché de fuentes separada. La compilación final
+terminó con código cero y produjo **248 páginas**, formato carta, **5 616 629
+bytes**. El artefacto local se conserva como
+`output/pdf/TT2026-B136-clasificacion-qadra-2026-09-14.pdf`, acompañado de un
+manifiesto de fuentes y un archivo SHA-256, sin añadirlos a Git. Su hash es
+`701557b342c771cc3f24a293c8c83476bd5ac9c101cbf72d29d093e257805cfa`.
+Los 51 archivos del manifiesto compilado coinciden con el árbol de trabajo.
+
+Se renderizaron y revisaron **61 páginas** afectadas y adyacentes: índices,
+alcance, modelo, permisos, implementación, contratos, restauración, interfaz,
+pruebas, cobertura y trazabilidad. Se corrigió un desbordamiento del código de
+error largo y se compactó la prosa de diseño para evitar cinco líneas aisladas
+al cerrar el capítulo. Las tablas y rutas son legibles, sin recortes,
+superposiciones, referencias indefinidas, etiquetas duplicadas ni glifos ausentes.
+La comprobación de coordenadas no encontró palabras fuera del área segura.
+Solo permanecen las sustituciones históricas de versalitas de Times New Roman
+y el desborde de 0.11754 pt del índice de tablas, sin defecto visual apreciable.
+
+Resumen, objetivos, revisión de plataformas, marco teórico y conclusiones
+pendientes coinciden con su contenido anterior. Los ocho PDFs previos, incluido
+`latex/main.pdf`, y los 34 archivos preexistentes de presentación mantienen sus
+hashes; son 40 rutas únicas al incluir los PDFs externos a presentación.
+No se modificó la presentación. Esta evidencia corresponde a una compilación
+local y no afirma una nueva ejecución remota.
+
 ## Versiones documentales inmutables: 14 de septiembre de 2026
 
 Se actualizaron introducción, diseño, implementación, pruebas, anexo de

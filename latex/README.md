@@ -69,8 +69,10 @@ El corte del 14 de septiembre incorpora consultas documentales y la interfaz
 Qadra conectada a servicios reales, con 539 pruebas Rust y cobertura de 91.0 %.
 La entrega de versiones inmutables amplía el historial y las operaciones sobre
 una instantánea explícita, con 577 pruebas Rust aprobadas y cobertura de 91.7 %.
-La clasificación, la gestión procesal completa y la
-usabilidad siguen pendientes. Las mediciones de cada entrega se registran por
+La clasificación incorpora valores organizativos e historia auditada independientes
+del contenido, con carga multipart atómica y filtros sobre las revisiones actuales.
+Su corte registra 644 pruebas Rust aprobadas y cobertura global de 92.4 %.
+La gestión procesal completa y la usabilidad siguen pendientes. Las mediciones de cada entrega se registran por
 separado, sin actualizar cifras históricas por cambios de funcionalidad.
 La revisión del reporte se registra en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).

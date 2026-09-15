@@ -77,7 +77,8 @@ digest, canonical UTC timestamp, user UUID and the user's email at that moment.
 Reading history does not join the user's current email to reconstruct authorship.
 An unclassified document has no invented actor, timestamp or historical row.
 
-Insertion acquires the shared audit lock before checking the current revision.
+Insertion acquires the existing exclusive audit lock before checking the current
+revision.
 Replacement revalidates the active actor, role, case membership and document/case
 association inside the transaction before testing the expected revision. It
 inserts the next immutable row and `document.metadata_changed` together. Its

@@ -2262,11 +2262,13 @@ Las conexiones PostgreSQL y Redis usan clientes síncronos detrás de puertos de
 
 La fundamentación del proceso penal expuesta en el marco teórico tiene una consecuencia directa sobre el diseño del prototipo: la base de datos no puede ser un conjunto de tablas genéricas, sino que debe reflejar fielmente las dependencias y restricciones que el CNPP impone. Esta sección articula los vínculos explícitos entre la teoría jurídica y los requerimientos funcionales.
 
-El expediente reúne título, referencia, creador, documentos y asignaciones. La extensión procesal propuesta incorpora las etapas del CNPP \cite{cnpp2021}, el escrito de acusación para Intermedia y el auto de apertura para Juicio Oral. Transiciones, participantes, audiencias y plazos se modelarán por separado. Cada documento conserva identidad estable y versiones inmutables con cifrado y evidencia propios. El listado filtra la versión máxima; el historial permite elegir otra sin sustituirla. Anexar exige la versión vigente esperada para rechazar cambios concurrentes incompatibles. Consultas y acciones requieren autorización por expediente y auditoría confirmada. La clasificación permanece separada del contenido cifrado.
+El expediente reúne título, referencia, creador, documentos y asignaciones. La extensión procesal propuesta incorpora las etapas del CNPP \cite{cnpp2021}, el escrito de acusación para Intermedia y el auto de apertura para Juicio Oral. Transiciones, participantes, audiencias y plazos se modelarán por separado. Cada documento conserva identidad estable y versiones inmutables con cifrado y evidencia propios. El listado filtra la versión máxima; el historial permite elegir otra sin sustituirla. Anexar exige la versión vigente esperada para rechazar cambios concurrentes incompatibles. Consultas y acciones requieren autorización por expediente y auditoría confirmada.
+
+La clasificación conserva una historia independiente de tipo, categoría y etiquetas en claro, con revisión, huella, instante y autor. El reemplazo exige la revisión esperada; la carga clasificada confirma raíz, archivo y clasificación en una transacción auditada. Los filtros toman ambas cabezas actuales. La clasificación no modifica permisos ni evidencia criptográfica, conforme a \rutarepo{docs/adr/0020-audited-document-classification.md}.
 
 \section{Diseño Criptográfico del Prototipo}\label{sec:diseno-cripto}
 
-Esta sección documenta las decisiones de diseño criptográfico adoptadas para el prototipo, fundamentadas en los conceptos teóricos expuestos en el capítulo 2 y en las restricciones impuestas por el marco legal mexicano. Cada decisión se justifica con referencia a los estándares y publicaciones del NIST, las RFC del IETF y las guías de OWASP que las sustentan.
+Las decisiones criptográficas aplican los estándares del NIST, las RFC del IETF y las guías de OWASP del marco teórico a las restricciones jurídicas y técnicas del prototipo.
 
 \subsection{Nivel de Seguridad Objetivo}\label{sec:nivel-seguridad}
 
@@ -2342,6 +2344,7 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
     \midrule
     Consultar metadatos e historial & Sí & Sí & Sí & No \\
     Cargar o añadir versión & Sí & Sí & Sí & No \\
+    Clasificar documento & Sí & Sí & Sí & No \\
     Sellar documento & Sí & Sí & No & No \\
     Verificar documento & Sí & Sí & Sí & No \\
     Exportar evidencia & Sí & Sí & Sí & No \\
