@@ -8,6 +8,7 @@ pub mod audit;
 pub mod cases;
 pub mod clock;
 pub mod crypto;
+pub mod document_metadata;
 pub mod error;
 pub mod identity;
 

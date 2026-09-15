@@ -4,8 +4,8 @@ use domain::cases::CaseId;
 use domain::crypto::{DocumentId, DocumentVersion};
 
 use super::{
-    CaseDocumentService, CaseDocumentSummary, DocumentAction, DocumentSummary, EvidenceExport,
-    VersionSelection,
+    CaseDocumentService, CaseDocumentSummary, DocumentAction, DocumentOverview, DocumentSummary,
+    EvidenceExport, VersionSelection,
 };
 use crate::{verification::VerificationReport, ApplicationError};
 
@@ -18,7 +18,7 @@ impl CaseDocumentService {
         expected: DocumentVersion,
         name: &str,
         bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         let permission = DocumentAction::Append.permission();
         let actor = self.actor(token, permission)?;
         let current = self.store.load(
@@ -37,11 +37,7 @@ impl CaseDocumentService {
         let record = self.processor.prepare_version(id, next, name, bytes)?;
         self.reauthenticate(token, actor, permission)?;
         self.store
-            .append(actor, case, expected, record.clone(), self.clock.now())?;
-        Ok(CaseDocumentSummary {
-            case_id: case,
-            document: DocumentSummary::from(&record),
-        })
+            .append(actor, case, expected, record, self.clock.now())
     }
 
     pub(super) fn seal_selected(

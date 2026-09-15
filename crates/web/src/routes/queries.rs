@@ -1,6 +1,6 @@
 //! Authorized metadata queries with bounded pagination and literal name search.
 
-use application::documents::DocumentQuery;
+use application::documents::{DocumentMetadataFilter, DocumentQuery};
 use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::Json;
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use super::documents::{parse_case_id, parse_id};
 use super::AppState;
-use crate::{dto::DocumentResponse, error::ApiError, request::bearer_token};
+use crate::{dto::DocumentOverviewResponse, error::ApiError, request::bearer_token};
 
 #[derive(Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -17,6 +17,9 @@ pub(super) struct ListDocuments {
     offset: u32,
     name: Option<String>,
     sealed: Option<bool>,
+    document_type: Option<String>,
+    classification: Option<String>,
+    tag: Option<String>,
 }
 
 impl Default for ListDocuments {
@@ -26,13 +29,16 @@ impl Default for ListDocuments {
             offset: 0,
             name: None,
             sealed: None,
+            document_type: None,
+            classification: None,
+            tag: None,
         }
     }
 }
 
 #[derive(Serialize)]
 pub(super) struct DocumentPageResponse {
-    documents: Vec<DocumentResponse>,
+    documents: Vec<DocumentOverviewResponse>,
     has_more: bool,
 }
 
@@ -49,7 +55,12 @@ pub(super) async fn list_documents(
         input.offset,
         input.name.as_deref(),
         input.sealed,
-    )?;
+    )?
+    .with_metadata_filter(DocumentMetadataFilter::new(
+        input.document_type.as_deref(),
+        input.classification.as_deref(),
+        input.tag.as_deref(),
+    )?);
     let workflow = state.workflow.clone();
     let page = state
         .runtime
@@ -65,7 +76,7 @@ pub(super) async fn get_document(
     State(state): State<AppState>,
     Path((case_id, id)): Path<(String, String)>,
     headers: HeaderMap,
-) -> Result<Json<DocumentResponse>, ApiError> {
+) -> Result<Json<DocumentOverviewResponse>, ApiError> {
     let token = bearer_token(&headers)?;
     let case_id = parse_case_id(&case_id)?;
     let id = parse_id(&id)?;

@@ -89,7 +89,10 @@ fn append_preserves_history_and_filters_only_the_current_snapshot() {
         )
         .unwrap();
     assert_eq!(pending.documents.len(), 1);
-    assert_eq!(pending.documents[0].document.version, second.version);
+    assert_eq!(
+        pending.documents[0].content.document.version,
+        second.version
+    );
     let page = store
         .history(
             owner,
@@ -175,7 +178,11 @@ fn competing_appends_have_one_winner_and_sealing_the_previous_version_is_indepen
     for worker in workers {
         let (result, candidate) = worker.join().unwrap();
         match result {
-            Ok(()) => assert!(winner.replace(candidate).is_none()),
+            Ok(overview) => {
+                assert_eq!(overview.content.document.version, candidate.version);
+                assert_eq!(overview.current_metadata.metadata_revision.get(), 0);
+                assert!(winner.replace(candidate).is_none());
+            }
             Err(ApplicationError::DocumentVersionConflict) => {}
             other => panic!("unexpected append result: {other:?}"),
         }

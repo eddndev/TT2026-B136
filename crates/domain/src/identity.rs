@@ -70,6 +70,7 @@ impl Role {
                 permission,
                 Permission::ReadDocument
                     | Permission::CreateDocument
+                    | Permission::ClassifyDocument
                     | Permission::AppendDocument
                     | Permission::SealDocument
                     | Permission::VerifyDocument
@@ -79,6 +80,7 @@ impl Role {
                 permission,
                 Permission::ReadDocument
                     | Permission::CreateDocument
+                    | Permission::ClassifyDocument
                     | Permission::AppendDocument
                     | Permission::VerifyDocument
                     | Permission::ExportEvidence
@@ -108,6 +110,7 @@ pub enum Permission {
     ReadDocument,
     CreateDocument,
     AppendDocument,
+    ClassifyDocument,
     SealDocument,
     VerifyDocument,
     ExportEvidence,

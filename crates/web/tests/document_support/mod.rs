@@ -1,16 +1,17 @@
+mod identity;
+mod metadata;
+pub use identity::StubIdentity;
+
 use application::documents::{
-    CaseDocumentSummary, CaseDocumentWorkflow, DocumentPage, DocumentQuery, DocumentSummary,
-    DocumentVersionRef, EvidenceExport, VersionPage, VersionQuery,
-};
-use application::identity::{
-    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+    CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentMetadata,
+    DocumentOverview, DocumentPage, DocumentQuery, DocumentSummary, DocumentVersionRef,
+    EvidenceExport, MetadataPage, MetadataQuery, MetadataRevision, VersionPage, VersionQuery,
 };
 use application::verification::{ComponentReport, ComponentStatus, Verdict, VerificationReport};
 use application::ApplicationError;
 use domain::audit::ChainVerification;
 use domain::cases::CaseId;
 use domain::crypto::{DocumentId, DocumentVersion};
-use domain::identity::{Permission, Role};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use uuid::Uuid;
 
@@ -52,6 +53,45 @@ impl StubWorkflow {
 }
 
 impl CaseDocumentWorkflow for StubWorkflow {
+    fn get_metadata(
+        &self,
+        token: &str,
+        case: CaseId,
+        id: DocumentId,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        self.check(token, case, id)?;
+        Ok(Self::metadata_snapshot(3))
+    }
+    fn replace_metadata(
+        &self,
+        token: &str,
+        case: CaseId,
+        id: DocumentId,
+        expected: MetadataRevision,
+        values: DocumentMetadata,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        self.metadata_replace(token, case, id, expected, values)
+    }
+    fn metadata_history(
+        &self,
+        token: &str,
+        case: CaseId,
+        id: DocumentId,
+        query: MetadataQuery,
+    ) -> Result<MetadataPage, ApplicationError> {
+        self.metadata_page(token, case, id, query)
+    }
+    fn upload_with_metadata(
+        &self,
+        token: &str,
+        case: CaseId,
+        name: &str,
+        bytes: &[u8],
+        values: DocumentMetadata,
+    ) -> Result<DocumentOverview, ApplicationError> {
+        self.metadata_upload(token, case, name, bytes, values)
+    }
+
     fn append(
         &self,
         token: &str,
@@ -60,7 +100,7 @@ impl CaseDocumentWorkflow for StubWorkflow {
         expected_version: DocumentVersion,
         name: &str,
         bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         self.check(token, case_id, id)?;
         match expected_version.get() {
             u32::MAX => return Err(ApplicationError::DocumentVersionExhausted),
@@ -72,7 +112,7 @@ impl CaseDocumentWorkflow for StubWorkflow {
         let mut summary = Self::summary(false);
         summary.document.version = DocumentVersion::new(4).unwrap();
         summary.document.name = name.into();
-        Ok(summary)
+        Ok(Self::overview(summary, 3))
     }
 
     fn history(
@@ -174,7 +214,18 @@ impl CaseDocumentWorkflow for StubWorkflow {
     ) -> Result<DocumentPage, ApplicationError> {
         self.check(token, case_id, DocumentId::from_uuid(DOCUMENT_UUID))?;
         let summary = Self::summary(false);
-        let matches = query.offset() == 0
+        let metadata = Self::metadata_snapshot(3);
+        let filter = query.metadata_filter();
+        let matches = filter
+            .document_type()
+            .is_none_or(|value| metadata.values.document_type() == Some(value))
+            && filter
+                .classification()
+                .is_none_or(|value| metadata.values.classification() == Some(value))
+            && filter
+                .tag()
+                .is_none_or(|value| metadata.values.tags().iter().any(|tag| tag == value))
+            && query.offset() == 0
             && query.sealed() != Some(true)
             && query.name().is_none_or(|name| {
                 summary
@@ -184,7 +235,11 @@ impl CaseDocumentWorkflow for StubWorkflow {
                     .contains(&name.to_lowercase())
             });
         Ok(DocumentPage {
-            documents: if matches { vec![summary] } else { vec![] },
+            documents: if matches {
+                vec![Self::overview(summary, 3)]
+            } else {
+                vec![]
+            },
             has_more: false,
         })
     }
@@ -194,9 +249,9 @@ impl CaseDocumentWorkflow for StubWorkflow {
         token: &str,
         case_id: CaseId,
         id: DocumentId,
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         self.check(token, case_id, id)?;
-        Ok(Self::summary(false))
+        Ok(Self::overview(Self::summary(false), 3))
     }
 
     fn upload(
@@ -205,11 +260,11 @@ impl CaseDocumentWorkflow for StubWorkflow {
         case_id: CaseId,
         name: &str,
         document: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         self.check(token, case_id, DocumentId::from_uuid(DOCUMENT_UUID))?;
         assert_eq!(name, "acta.txt");
         assert_eq!(document, b"case document");
-        Ok(Self::summary(false))
+        Ok(Self::overview(Self::summary(false), 0))
     }
     fn seal(
         &self,
@@ -260,72 +315,5 @@ impl CaseDocumentWorkflow for StubWorkflow {
             DocumentId::from_uuid(DOCUMENT_UUID),
         )?;
         Ok(ChainVerification::Valid { entries: 4 })
-    }
-}
-
-pub struct StubIdentity;
-
-impl IdentityWorkflow for StubIdentity {
-    fn bootstrap_owner(
-        &self,
-        _email: &str,
-        _password: &str,
-    ) -> Result<EnrollmentResult, ApplicationError> {
-        Err(ApplicationError::BootstrapClosed)
-    }
-
-    fn create_user(
-        &self,
-        _token: &str,
-        _email: &str,
-        _password: &str,
-        _role: Role,
-    ) -> Result<EnrollmentResult, ApplicationError> {
-        Err(ApplicationError::InvalidInput("unused".to_string()))
-    }
-
-    fn start_login(
-        &self,
-        _email: &str,
-        _password: &str,
-    ) -> Result<LoginChallenge, ApplicationError> {
-        Err(ApplicationError::InvalidCredentials)
-    }
-
-    fn complete_totp(
-        &self,
-        _challenge_token: &str,
-        _code: &str,
-    ) -> Result<SessionResult, ApplicationError> {
-        Err(ApplicationError::MfaRejected)
-    }
-
-    fn complete_recovery(
-        &self,
-        _challenge_token: &str,
-        _code: &str,
-    ) -> Result<SessionResult, ApplicationError> {
-        Err(ApplicationError::MfaRejected)
-    }
-
-    fn authenticate(&self, token: &str) -> Result<Principal, ApplicationError> {
-        panic!("document authentication must run in the workflow: {token}")
-    }
-
-    fn authorize(
-        &self,
-        token: &str,
-        permission: Permission,
-    ) -> Result<Principal, ApplicationError> {
-        let principal = self.authenticate(token)?;
-        if principal.role.allows(permission) {
-            Ok(principal)
-        } else {
-            Err(ApplicationError::PermissionDenied)
-        }
-    }
-
-    fn logout(&self, _access_token: &str) -> Result<(), ApplicationError> {
-        Ok(())
     }
 }

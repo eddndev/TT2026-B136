@@ -3,8 +3,9 @@ mod case_document_support;
 mod crypto;
 
 use application::documents::{
-    CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction, DocumentSummary, DocumentVersionRef,
-    DocumentWorkflow, VersionPage, VersionQuery, VersionSelection,
+    CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentAction,
+    DocumentMetadata, DocumentOverview, DocumentSummary, DocumentVersionRef, DocumentWorkflow,
+    MetadataRevision, VersionPage, VersionQuery, VersionSelection,
 };
 use application::ApplicationError;
 use case_document_support::{identity, service, MockIdentity, MockStore};
@@ -46,15 +47,31 @@ fn append_preserves_identity_and_uses_expected_successor_after_reauthentication(
                 && record.name == "new.txt"
                 && !record.is_sealed()
         })
-        .returning(|_, _, _, _, _| Ok(()));
+        .returning(|_, scope, _, record, _| {
+            Ok(DocumentOverview {
+                content: CaseDocumentSummary {
+                    case_id: scope,
+                    document: DocumentSummary::from(&record),
+                },
+                current_metadata: CurrentDocumentMetadata {
+                    metadata_revision: MetadataRevision::new(3),
+                    values: DocumentMetadata::new(Some("Escrito"), None, &[]).unwrap(),
+                },
+            })
+        });
     let result = service(store, identity)
         .append("session", case, id, version(1), "new.txt", b"new")
         .unwrap();
-    assert_eq!(result.document.id, id);
-    assert_eq!(result.document.version, version(2));
-    assert_eq!(result.case_id, case);
+    assert_eq!(result.current_metadata.metadata_revision.get(), 3);
     assert_eq!(
-        result.document.digest_hex,
+        result.current_metadata.values.document_type(),
+        Some("Escrito")
+    );
+    assert_eq!(result.content.document.id, id);
+    assert_eq!(result.content.document.version, version(2));
+    assert_eq!(result.content.case_id, case);
+    assert_eq!(
+        result.content.document.digest_hex,
         crypto::workflow()
             .upload("offline", "new.txt", b"new")
             .unwrap()

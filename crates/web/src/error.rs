@@ -26,6 +26,21 @@ struct ErrorBody {
 }
 
 impl ApiError {
+    pub(crate) fn invalid_body(code: &'static str, message: &str) -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code,
+            message: message.to_owned(),
+        }
+    }
+
+    pub(crate) fn payload_too_large(code: &'static str, message: &str) -> Self {
+        Self {
+            status: StatusCode::PAYLOAD_TOO_LARGE,
+            code,
+            message: message.to_owned(),
+        }
+    }
     pub fn invalid_header(name: &'static str) -> Self {
         Self {
             status: StatusCode::UNPROCESSABLE_ENTITY,
@@ -150,6 +165,23 @@ impl From<ApplicationError> for ApiError {
                 code: "document_already_exists",
                 message,
             },
+            ApplicationError::DocumentMetadataConflict => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_metadata_conflict",
+                message: error.to_string(),
+            },
+            ApplicationError::DocumentMetadataRevisionExhausted => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_metadata_revision_exhausted",
+                message: error.to_string(),
+            },
+            ApplicationError::Domain(DomainError::InvalidDocumentMetadata { field, reason }) => {
+                Self {
+                    status: StatusCode::UNPROCESSABLE_ENTITY,
+                    code: "invalid_document_metadata",
+                    message: format!("invalid document {field}: {reason}"),
+                }
+            }
             ApplicationError::DocumentVersionConflict => Self {
                 status: StatusCode::CONFLICT,
                 code: "document_version_conflict",

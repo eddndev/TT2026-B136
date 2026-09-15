@@ -1,6 +1,6 @@
 //! Bounded metadata queries for authorized documents within one case.
 
-use super::CaseDocumentSummary;
+use super::{DocumentMetadataFilter, DocumentOverview};
 use crate::ApplicationError;
 
 /// A validated page and optional literal name and sealed-state filters.
@@ -10,9 +10,19 @@ pub struct DocumentQuery {
     offset: u32,
     name: Option<String>,
     sealed: Option<bool>,
+    metadata_filter: DocumentMetadataFilter,
 }
 
 impl DocumentQuery {
+    pub fn with_metadata_filter(mut self, filter: DocumentMetadataFilter) -> Self {
+        self.metadata_filter = filter;
+        self
+    }
+
+    pub fn metadata_filter(&self) -> &DocumentMetadataFilter {
+        &self.metadata_filter
+    }
+
     pub fn new(
         limit: u32,
         offset: u32,
@@ -40,6 +50,7 @@ impl DocumentQuery {
             offset,
             name: name.map(str::to_owned),
             sealed,
+            metadata_filter: DocumentMetadataFilter::default(),
         })
     }
 
@@ -63,6 +74,6 @@ impl DocumentQuery {
 /// One page of metadata with an indicator for the next page.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DocumentPage {
-    pub documents: Vec<CaseDocumentSummary>,
+    pub documents: Vec<DocumentOverview>,
     pub has_more: bool,
 }

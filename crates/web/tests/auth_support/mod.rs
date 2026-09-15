@@ -1,6 +1,7 @@
 use application::documents::{
-    CaseDocumentSummary, CaseDocumentWorkflow, DocumentPage, DocumentQuery, DocumentVersionRef,
-    EvidenceExport, VersionPage, VersionQuery,
+    CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentMetadata,
+    DocumentOverview, DocumentPage, DocumentQuery, DocumentVersionRef, EvidenceExport,
+    MetadataPage, MetadataQuery, MetadataRevision, VersionPage, VersionQuery,
 };
 use application::{verification::VerificationReport, ApplicationError};
 use domain::{
@@ -12,6 +13,44 @@ use domain::{
 pub struct UnusedDocuments;
 
 impl CaseDocumentWorkflow for UnusedDocuments {
+    fn get_metadata(
+        &self,
+        _token: &str,
+        _case: CaseId,
+        _id: DocumentId,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        unreachable!()
+    }
+    fn replace_metadata(
+        &self,
+        _token: &str,
+        _case: CaseId,
+        _id: DocumentId,
+        _expected: MetadataRevision,
+        _values: DocumentMetadata,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        unreachable!()
+    }
+    fn metadata_history(
+        &self,
+        _token: &str,
+        _case: CaseId,
+        _id: DocumentId,
+        _query: MetadataQuery,
+    ) -> Result<MetadataPage, ApplicationError> {
+        unreachable!()
+    }
+    fn upload_with_metadata(
+        &self,
+        _token: &str,
+        _case: CaseId,
+        _name: &str,
+        _bytes: &[u8],
+        _values: DocumentMetadata,
+    ) -> Result<DocumentOverview, ApplicationError> {
+        unreachable!()
+    }
+
     fn append(
         &self,
         _token: &str,
@@ -20,7 +59,7 @@ impl CaseDocumentWorkflow for UnusedDocuments {
         _expected: DocumentVersion,
         _name: &str,
         _bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         unreachable!()
     }
     fn history(
@@ -79,7 +118,7 @@ impl CaseDocumentWorkflow for UnusedDocuments {
         _token: &str,
         _case_id: CaseId,
         _id: DocumentId,
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         Err(ApplicationError::Port("unused".to_string()))
     }
 
@@ -89,7 +128,7 @@ impl CaseDocumentWorkflow for UnusedDocuments {
         _case_id: CaseId,
         _name: &str,
         _document: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         if _token == "client-token" {
             return Err(ApplicationError::PermissionDenied);
         }

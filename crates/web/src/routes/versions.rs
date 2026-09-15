@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use super::documents::{evidence_response, parse_case_id, parse_id, required_header};
 use super::AppState;
 use crate::{
-    dto::{DocumentResponse, VerificationResponse},
+    dto::{DocumentOverviewResponse, DocumentResponse, VerificationResponse},
     error::ApiError,
     request::bearer_token,
 };
@@ -64,7 +64,7 @@ pub(super) async fn append_version(
     headers: HeaderMap,
     Query(input): Query<AppendVersion>,
     body: Bytes,
-) -> Result<(StatusCode, Json<DocumentResponse>), ApiError> {
+) -> Result<(StatusCode, Json<DocumentOverviewResponse>), ApiError> {
     let token = bearer_token(&headers)?;
     let case_id = parse_case_id(&case_id)?;
     let id = parse_id(&id)?;

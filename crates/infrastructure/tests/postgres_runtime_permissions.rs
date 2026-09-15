@@ -120,6 +120,12 @@ fn runtime_rejects_ownership_of_document_protection_and_import_receipts() {
     for object in [
         "TABLE documents",
         "TABLE document_series",
+        "TABLE document_metadata_revisions",
+        "FUNCTION document_metadata_text_valid(text,integer)",
+        "FUNCTION document_metadata_is_canonical(text,text,text[])",
+        "FUNCTION document_metadata_bytes(text,text,text[])",
+        "FUNCTION preserve_document_metadata()",
+        "FUNCTION enforce_document_metadata_sequence()",
         "FUNCTION preserve_document_series()",
         "FUNCTION enforce_document_version_sequence()",
         "FUNCTION preserve_document_evidence()",

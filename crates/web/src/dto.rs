@@ -6,6 +6,12 @@ use application::verification::{ComponentReport, ComponentStatus, Verdict, Verif
 use domain::audit::ChainVerification;
 use serde::{Deserialize, Serialize};
 
+mod metadata;
+pub(crate) use metadata::{
+    DocumentOverviewResponse, MetadataHistoryResponse, MetadataResponse, MetadataValuesRequest,
+    ReplaceMetadataRequest,
+};
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CredentialsRequest {

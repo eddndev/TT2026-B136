@@ -69,11 +69,14 @@ fn pagination_filters_case_name_and_sealed_state_before_counting_results() {
         assert_eq!(
             page.documents
                 .iter()
-                .map(|item| item.document.id)
+                .map(|item| item.content.document.id)
                 .collect::<Vec<_>>(),
             expected.into_iter().collect::<Vec<_>>()
         );
-        assert!(page.documents.iter().all(|item| item.case_id == case_id));
+        assert!(page
+            .documents
+            .iter()
+            .all(|item| item.content.case_id == case_id));
         assert_eq!(page.has_more, more);
     }
     for literal in ["%", "\\"] {
@@ -87,7 +90,7 @@ fn pagination_filters_case_name_and_sealed_state_before_counting_results() {
         .list(actor, case_id, query(100, 0, None, Some(true)), at)
         .unwrap();
     assert_eq!(sealed.documents.len(), 1);
-    assert!(sealed.documents[0].document.sealed);
+    assert!(sealed.documents[0].content.document.sealed);
     let all = store
         .list(actor, case_id, query(100, 0, None, None), at)
         .unwrap();
@@ -96,7 +99,7 @@ fn pagination_filters_case_name_and_sealed_state_before_counting_results() {
     assert!(all
         .documents
         .windows(2)
-        .all(|pair| pair[0].document.id.as_uuid() < pair[1].document.id.as_uuid()));
+        .all(|pair| pair[0].content.document.id.as_uuid() < pair[1].content.document.id.as_uuid()));
     assert!(store
         .list(actor, case_id, query(1, u32::MAX, None, None), at)
         .unwrap()
@@ -138,7 +141,10 @@ fn detail_and_list_return_metadata_without_decoding_encrypted_or_sealed_material
         store
             .list(owner, case_id, query(1, 0, None, None), at)
             .unwrap()
-            .documents,
+            .documents
+            .into_iter()
+            .map(|item| item.content)
+            .collect::<Vec<_>>(),
         vec![result]
     );
     let entries = store.audit_entries(owner).unwrap();

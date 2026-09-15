@@ -9,8 +9,10 @@ use axum::{
 };
 use std::sync::Arc;
 
+mod classified_upload;
 mod documents;
 mod identity;
+mod metadata;
 mod queries;
 mod versions;
 use documents::{export_evidence, seal_document, upload_document, verify_audit, verify_document};
@@ -48,6 +50,28 @@ pub fn router(
         .layer(DefaultBodyLimit::max(16 * 1024));
     Router::new()
         .merge(identity_routes)
+        .merge(
+            Router::new()
+                .route(
+                    "/api/v1/cases/:case_id/documents/with-metadata",
+                    post(classified_upload::upload_with_metadata),
+                )
+                .layer(DefaultBodyLimit::max(
+                    classified_upload::MAX_CLASSIFIED_UPLOAD_BYTES,
+                )),
+        )
+        .merge(
+            Router::new()
+                .route(
+                    "/api/v1/cases/:case_id/documents/:id/metadata",
+                    get(metadata::get_metadata).put(metadata::replace_metadata),
+                )
+                .route(
+                    "/api/v1/cases/:case_id/documents/:id/metadata/history",
+                    get(metadata::metadata_history),
+                )
+                .layer(DefaultBodyLimit::max(metadata::MAX_METADATA_BYTES)),
+        )
         .route(
             "/api/v1/cases/:case_id/documents",
             get(list_documents).post(upload_document),
