@@ -11,7 +11,7 @@
   </div>
 </div>
 <section class="guide-grid">
-  {#each [{ icon: 'upload', title: '1. Carga tu documento', text: 'Selecciona o arrastra un archivo de hasta 16 MiB. Te sugerimos un nombre compatible; puedes revisarlo antes de cargarlo.' }, { icon: 'lock', title: '2. Genera su evidencia', text: 'Un administrador o litigante puede firmar y sellar. La confirmaci\u00f3n registra esta acci\u00f3n con la identidad de quien la realiza.' }, { icon: 'shield', title: '3. Comprueba el resultado', text: 'Revisa la integridad, la firma, el certificado y el sello. Si hay alg\u00fan fallo, el resultado te indicar\u00e1 qu\u00e9 componente necesita revisi\u00f3n.' }, { icon: 'download', title: '4. Conserva el respaldo', text: 'Descarga el paquete ZIP y guarda el identificador del documento para volver a abrirlo, incluso despu\u00e9s de cerrar sesi\u00f3n.' }] as item}<article
+  {#each [{ icon: 'upload', title: '1. Carga tu documento', text: 'Abre primero el expediente. Selecciona o arrastra un archivo de hasta 16 MiB. Te sugerimos un nombre compatible; puedes revisarlo antes de cargarlo.' }, { icon: 'lock', title: '2. Genera su evidencia', text: 'Un administrador o litigante puede firmar y sellar. La confirmaci\u00f3n registra esta acci\u00f3n con la identidad de quien la realiza.' }, { icon: 'shield', title: '3. Comprueba el resultado', text: 'Revisa la integridad, la firma, el certificado y el sello. Si hay alg\u00fan fallo, el resultado te indicar\u00e1 qu\u00e9 componente necesita revisi\u00f3n.' }, { icon: 'download', title: '4. Conserva el respaldo', text: 'Descarga el paquete ZIP para conservar la evidencia. El documento queda disponible en el expediente para futuras consultas.' }] as item}<article
       class="card"
     >
       <span class="tile-icon"><Icon name={item.icon} size={24} /></span>
@@ -24,17 +24,19 @@
   <details>
     <summary>&iquest;D&oacute;nde est&aacute;n mis documentos anteriores?</summary>
     <p>
-      Los archivos permanecen en el servidor. La lista de trabajo solo muestra los abiertos en tu
-      sesi&oacute;n actual: usa el identificador que recibiste al cargar cada archivo para volver a
-      abrirlo.
+      Abre el expediente y consulta su archivo documental. Puedes buscar por nombre, filtrar por
+      estado de sellado y recorrer las p&aacute;ginas. La b&uacute;squeda abarca los documentos
+      autorizados del expediente, incluso despu&eacute;s de cerrar sesi&oacute;n.
     </p>
   </details>
   <details>
     <summary>&iquest;Qui&eacute;n puede hacer cada cosa?</summary>
     <p>
-      El administrador y el litigante pueden cargar, sellar, verificar y descargar. El asistente
-      legal puede cargar, verificar y descargar; el sellado requiere un administrador o litigante.
-      La auditor&iacute;a completa y el alta de usuarios corresponden al administrador.
+      El administrador tiene acceso a todos los expedientes. El litigante y el asistente legal
+      necesitan una asignaci&oacute;n vigente. El administrador y el litigante pueden cargar,
+      sellar, verificar y descargar. El asistente legal puede cargar, verificar y descargar; el
+      sellado requiere un administrador o litigante. La auditor&iacute;a completa y el alta de
+      usuarios corresponden al administrador.
     </p>
   </details>
   <details>
@@ -47,8 +49,9 @@
   <details>
     <summary>&iquest;Puedo organizar expedientes y audiencias?</summary>
     <p>
-      Esas funciones a&uacute;n no est&aacute;n disponibles en esta interfaz. Hoy puedes completar
-      el flujo documental y conservar la evidencia de cada archivo.
+      Puedes crear y consultar expedientes. Las asignaciones se gestionan mediante la API; su
+      selector de usuarios todav&iacute;a no est&aacute; disponible en esta interfaz. Los
+      participantes procesales, las audiencias y los plazos a&uacute;n no est&aacute;n disponibles.
     </p>
   </details>
   <details>

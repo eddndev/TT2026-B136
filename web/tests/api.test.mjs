@@ -27,13 +27,13 @@ test('login has JSON credentials and no bearer; MFA establishes memory-only sess
 test('upload sends bytes and an ASCII name header without multipart encoding', async () => {
   const file = new Blob(['evidence']);
   const api = createApi(async (url, options) => {
-    assert.equal(url, '/api/v1/documents');
+    assert.equal(url, '/api/v1/cases/case-id/documents');
     assert.equal(options.body, file);
     assert.equal(options.headers['X-Document-Name'], 'evidence.pdf');
     assert.equal(options.headers['Content-Type'], 'application/octet-stream');
     return Response.json({ id: 'document' }, { status: 201 });
   });
-  await api.upload(file, 'evidence.pdf');
+  await api.caseDocuments('case-id').upload(file, 'evidence.pdf');
 });
 
 test('protected 401 clears session and notifies application', async () => {
@@ -73,7 +73,7 @@ test('API preserves stable error codes and explains pending documents and duplic
   const pending = createApi(async () =>
     Response.json({ error: { code: 'document_not_sealed' } }, { status: 409 }),
   );
-  await assert.rejects(pending.verify('document'), (error) => {
+  await assert.rejects(pending.caseDocuments('case-id').verify('document'), (error) => {
     assert.equal(error.code, 'document_not_sealed');
     assert.equal(error.status, 409);
     assert.match(error.message, /verificar|verificaci\u00f3n/);
@@ -94,7 +94,7 @@ test('evidence returns a ZIP blob and the digest header', async () => {
   const api = createApi(
     async () => new Response('zip', { headers: { 'X-Document-Digest': 'abc' } }),
   );
-  const result = await api.evidence('123');
+  const result = await api.caseDocuments('case-id').evidence('123');
   assert.equal(await result.blob.text(), 'zip');
   assert.equal(result.digest, 'abc');
 });

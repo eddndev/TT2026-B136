@@ -51,53 +51,67 @@ consultar o detener ese proceso.
 
 ## Flujo disponible
 
-1. Configurar el acceso inicial si la base no contiene usuarios. Guardar
-   la clave TOTP y los códigos de recuperación antes de finalizar la configuración.
+1. Configurar el acceso inicial si la base no contiene usuarios. Guardar la
+   clave TOTP y los códigos de recuperación antes de finalizar el alta.
 2. Iniciar sesión con correo, contraseña y TOTP o código de recuperación.
-   Un rechazo MFA consume el desafío: la pantalla vuelve a pedir credenciales.
-3. Consultar el inicio con el resumen de documentos abiertos, pendientes de
-   sello y verificados en esta sesión. Cada contador abre su filtro documental.
-4. Subir un archivo de hasta 16 MiB desde el selector o arrastrándolo a la ventana de carga.
-   Se sugiere un nombre ASCII de hasta 124 caracteres, compatible con la
-   cabecera `X-Document-Name` y el ZIP de evidencia. Puede editarse antes de
-   enviarlo. Se transmite el cuerpo binario, sin multipart.
-5. Conservar el UUID recibido. Abrir por UUID consulta la verificación del
-   servidor; si responde `document_not_sealed`, abre una referencia pendiente
-   para poder sellarla. La API no devuelve el nombre en esa respuesta.
-6. Consultar las pestañas Resumen, Verificación y Evidencia. Sellar con
-   confirmación, verificar los cuatro componentes y descargar el ZIP.
-   Verificar y descargar se habilitan cuando el documento tiene sello.
-7. Como administrador, crear integrantes y verificar la cadena de auditoría.
+   Un rechazo MFA consume el desafío y vuelve a pedir credenciales.
+3. Abrir **Expedientes** para consultar los expedientes autorizados. Owner y
+   Litigator pueden crear uno con título y referencia; el servidor asigna al
+   creador. La lista se pagina en grupos de 50 y consulta un registro adicional
+   para determinar si hay otra página. Seleccionar una tarjeta consulta el
+   detalle del expediente antes de abrir su archivo documental.
+4. Consultar **Documentos** del expediente seleccionado. El servidor devuelve
+   páginas de hasta 50 documentos y `has_more`; **Anterior** y **Siguiente**
+   recorren los resultados. **Buscar** aplica una subcadena al nombre y el
+   selector filtra por sellado. Cambiar los filtros vuelve a la primera página.
+5. Subir un archivo de hasta 16 MiB. Se sugiere un nombre ASCII de hasta 124
+   caracteres, compatible con `X-Document-Name` y el ZIP. El cuerpo se transmite
+   como bytes, sin multipart. El listado se consulta nuevamente después de la
+   carga y del sellado.
+6. Abrir una fila o usar un UUID del expediente consulta metadatos por GET:
+   nombre, versión, digest y estado. Esa lectura no dispara verificación.
+   **Verificar integridad** comprueba explícitamente los cuatro componentes
+   de la evidencia. La ficha conserva las pestañas Resumen, Verificación y
+   Evidencia, con confirmación antes de sellar y descarga ZIP cuando hay sello.
+7. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
-La barra lateral permite moverse entre Inicio, Documentos y Guía de uso;
-Equipo y Auditoría aparecen para administradores. En móvil se abre como un
-menú plegable con cierre mediante Escape. Las rutas usan fragmentos de URL y
-respetan los botones atrás y adelante del navegador sin recargar la sesión.
-La mesa documental permite buscar, filtrar por estado y alternar entre lista
-y tarjetas. Los resultados de verificación anteriores se descartan si una
-nueva comprobación falla.
+La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; Equipo
+y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
+expediente seleccionado. No presenta recuentos de una página como totales del
+despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
+Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesión.
 
-Los controles respetan la matriz de roles del backend. El servidor conserva
-la autoridad sobre permisos, reglas de negocio y criptografía. No se firma,
-cifra ni verifica evidencia en el navegador.
+La identidad visual, los recursos de marca, la tipografía, los colores, las
+proporciones de navegación y los componentes documentales se conservan. Las
+pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados
+de Qadra. Los ajustes adicionales están en `src/styles/cases.css`.
+
+Los controles respetan los roles del backend. Owner ve todos los expedientes;
+Litigator y Paralegal requieren asignación vigente para consultar documentos.
+Client puede consultar los metadatos de sus expedientes asignados; la interfaz
+no emite peticiones documentales para ese rol. El servidor conserva la autoridad
+sobre permisos, reglas de negocio y criptografía.
 
 ## Estado y límites
 
-- La sesión opaca, el desafío MFA, los secretos de enrolamiento y las
-  referencias documentales permanecen solo en memoria. No se usa localStorage,
-  sessionStorage, cookies del cliente ni persistencia de archivos en claro.
-- Al recargar hay que iniciar sesión otra vez. La recarga no revoca el token
-  anterior en el servidor: conserva su vencimiento de 24 horas. El botón
-  **Cerrar sesión** llama al endpoint de revocación; si falla, muestra el error.
-- Las referencias de esta sesión no son un catálogo global. Se pierden al
-  recargar o salir, mientras los documentos permanecen en el backend.
-- La búsqueda y los filtros solo abarcan esas referencias. No existen
-  endpoints para listar, buscar globalmente ni consultar historial de versiones.
-- Esta interfaz no ofrece gestión de expedientes, participantes ni
-  asignaciones. La guía explica ese límite y el rol cliente sigue sin acceso
-  documental conforme al backend de esta rama.
+- Sesión opaca, desafío MFA y secretos de enrolamiento permanecen solo en
+  memoria. No se usa localStorage, sessionStorage ni cookies del cliente.
+- Recargar requiere iniciar sesión y elegir el expediente otra vez. Los
+  expedientes y documentos permanecen en PostgreSQL y reaparecen al consultar.
+  La recarga no revoca la sesión anterior; **Cerrar sesión** solicita revocarla.
+- Las respuestas de una sesión o expediente abandonados se descartan. Una
+  respuesta de búsqueda anterior no sustituye resultados más recientes; los
+  fallos de acceso limpian las filas y el detalle de documentos.
+- Las páginas no forman una instantánea conjunta: pueden cambiar si otro
+  usuario agrega documentos o modifica asignaciones entre consultas.
+- La búsqueda abarca los nombres del expediente, no el contenido cifrado.
+  El estado de sellado no equivale a una verificación vigente de la evidencia.
+- Las asignaciones de acceso se gestionan mediante la API. La interfaz para
+  elegir usuarios por nombre o correo requiere el directorio de usuarios y
+  continúa pendiente. No se presenta un formulario de asignaciones por UUID.
+- Participantes procesales, audiencias, plazos e historial de versiones siguen
+  pendientes. La API tampoco ofrece cambio/restablecimiento de contraseña.
 - La TSA local produce evidencia técnica, no una constancia NOM-151 de un PSC.
-- La API no ofrece cambio de contraseña, restablecimiento ni listado de usuarios.
 
 ## Verificación
 
@@ -110,14 +124,19 @@ npm run build
 npm audit
 ```
 
-Las pruebas de navegador interceptan `/api/v1` con respuestas deterministas
-basadas en los DTO de Rust. Comprueban formularios, solicitudes binarias,
-cabeceras, MFA, permisos visibles, errores, descarga, navegación, filtros,
-estadísticas de sesión y adaptación móvil.
-No demuestran una ejecución con PostgreSQL, Redis, OpenSSL o la API real.
-Para verificar el backend por separado usa `scripts/api-demo.sh` desde la
-raíz con sus dependencias. Las capturas de navegador quedan en
-`web/test-results/` y no se versionan.
+Las pruebas de `tests/browser/` interceptan `/api/v1` con respuestas
+reproducibles basadas en los DTO de Rust. Comprueban formularios, solicitudes
+binarias, cabeceras, MFA, roles, consultas persistentes, búsqueda, paginación,
+metadatos por GET, descarga, navegación y adaptación móvil. Incluyen respuestas
+tardías de sesión, expediente y búsqueda, además de revocación de acceso.
+Estas pruebas simuladas no demuestran ejecución con PostgreSQL, Redis o la TSA.
+Las capturas quedan en `web/test-results/` y no se versionan.
+
+La prueba separada `tests/live/` usa la API Rust con PostgreSQL, Redis y TSA
+locales desechables. Se ejecuta desde la raíz con `scripts/web-demo.sh`, que
+prepara su entorno y usa `playwright.live.config.mjs`. Las capturas quedan en
+`web/test-results-live/`. No uses bases de datos ni credenciales de usuarios
+reales para esta prueba.
 
 La verificación local más reciente se registra por separado de las pruebas
 históricas del backend en [`docs/verification-report.md`](../docs/verification-report.md).

@@ -17,6 +17,7 @@
   }
   const work = [
     { id: 'overview', label: 'Inicio', icon: 'home' },
+    { id: 'cases', label: 'Expedientes', icon: 'briefcase' },
     { id: 'documents', label: 'Documentos', icon: 'folder' },
   ];
   const admin = [

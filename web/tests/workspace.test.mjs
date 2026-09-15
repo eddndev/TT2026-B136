@@ -1,16 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  documentStatus,
-  sessionStats,
-  filterDocuments,
-  normalizeView,
-} from '../src/lib/workspace.mjs';
+import { documentStatus, normalizeView } from '../src/lib/workspace.mjs';
 
-test('overview only counts known session records and distinguishes unconfirmed seals', () => {
-  const records = [{ id: 'a', sealed: false }, { id: 'b', sealed: true }, { id: 'c' }];
-  assert.deepEqual(sessionStats(records), { total: 3, sealed: 1, pending: 1, verified: 0 });
-  assert.equal(documentStatus(records[2]).label, 'Estado por confirmar');
+test('document metadata distinguishes sealed, pending and unknown status', () => {
+  assert.equal(documentStatus({ sealed: true }).key, 'sealed');
+  assert.equal(documentStatus({ sealed: false }).key, 'pending');
+  assert.equal(documentStatus({}).label, 'Estado por confirmar');
 });
 
 test('failed verification takes priority over a known seal', () => {
@@ -22,14 +17,10 @@ test('failed verification takes priority over a known seal', () => {
   assert.equal(documentStatus({ sealed: true, report: { verdict: 'valid' } }).key, 'verified');
 });
 
-test('search and status filters combine without mutating the session list', () => {
-  const records = [
-    { id: 'a', name: 'Contrato.pdf', sealed: false },
-    { id: 'b', name: 'Demanda.pdf', sealed: true },
-  ];
-  assert.deepEqual(filterDocuments(records, 'contrato', 'pending'), [records[0]]);
-  assert.deepEqual(filterDocuments(records, 'contrato', 'sealed'), []);
-  assert.equal(records.length, 2);
+test('case navigation is available to every recognized role including clients', () => {
+  for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
+    assert.equal(normalizeView('#cases', role), 'cases');
+  }
 });
 
 test('unknown locations and owner-only locations resolve safely for each role', () => {

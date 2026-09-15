@@ -18,7 +18,7 @@ for (const status of [200, 401]) {
       () => expired++,
     );
     await api.mfa('challenge', '123456', 'totp');
-    const pending = api.verify('document');
+    const pending = api.caseDocuments('case-id').verify('document');
     await api.logout();
     await api.mfa('new-challenge', '123456', 'totp');
     release(

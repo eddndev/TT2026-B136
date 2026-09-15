@@ -244,8 +244,8 @@
           >
         </div>
         <p class="hint">
-          Cons&#233;rvalo para abrir el archivo en otra sesi&#243;n o compartir su referencia con tu
-          equipo.
+          Puedes usarlo para abrir este archivo dentro del expediente o compartir su referencia con
+          integrantes que tengan acceso.
         </p>
         <span class="copy-feedback" role="status" aria-live="polite">{copyMessage}</span>
       </div>

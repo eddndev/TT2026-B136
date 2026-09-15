@@ -6,12 +6,14 @@
   import Guide from './Guide.svelte';
   import Icon from './Icon.svelte';
   import Documents from './Documents.svelte';
+  import Cases from './Cases.svelte';
   import Admin from './Admin.svelte';
   import { createApi } from '../lib/api.mjs';
   import { roles } from '../lib/documents.mjs';
   import { normalizeView, viewLabels } from '../lib/workspace.mjs';
   let user = null;
-  let documents = [];
+  let selectedCase = null;
+
   let view = 'overview';
   let documentIntent = null;
   let notice = '';
@@ -21,7 +23,8 @@
   let main;
   function reset(message = '') {
     user = null;
-    documents = [];
+    selectedCase = null;
+
     documentIntent = null;
     view = 'overview';
     notice = message;
@@ -51,7 +54,7 @@
   }
   function openDocument(intent) {
     documentIntent = intent;
-    go('documents');
+    go(selectedCase ? 'documents' : 'cases');
   }
   onMount(() => {
     const onHash = () => {
@@ -112,18 +115,52 @@
         {#if error}<p class="notice error" role="alert">{error}</p>{/if}
         {#if view === 'overview'}<Overview
             {user}
-            {documents}
+            {selectedCase}
             onnavigate={go}
             ondocument={openDocument}
           />
-        {:else if view === 'documents'}<Documents
+        {:else if view === 'cases'}<Cases
             {api}
             {user}
-            {documents}
-            intent={documentIntent}
-            onintent={() => (documentIntent = null)}
-            ondocuments={(next) => (documents = next)}
+            onselect={(record) => {
+              selectedCase = record;
+
+              go('documents');
+            }}
           />
+        {:else if view === 'documents'}
+          {#if selectedCase}
+            <section class="card case-context">
+              <div>
+                <span class="eyebrow">EXPEDIENTE ACTUAL</span>
+                <h2>{selectedCase.title}</h2>
+                <p>{selectedCase.reference}</p>
+              </div>
+              <div class="action-row">
+                <button
+                  class="secondary"
+                  onclick={() => {
+                    selectedCase = null;
+                    go('cases');
+                  }}>Cambiar expediente</button
+                >
+              </div>
+            </section>
+            {#key selectedCase.id}
+              <Documents
+                {api}
+                {user}
+                caseRecord={selectedCase}
+                intent={documentIntent}
+                onintent={() => (documentIntent = null)}
+              />
+            {/key}
+          {:else}<section class="card empty-state">
+              <span class="empty-icon"><Icon name="briefcase" size={35} /></span>
+              <h1>Selecciona un expediente</h1>
+              <p>Abre un expediente para consultar sus documentos.</p>
+              <button class="primary" onclick={() => go('cases')}>Ver expedientes</button>
+            </section>{/if}
         {:else if view === 'guide'}<Guide onnavigate={go} />
         {:else if user.role === 'owner'}{#key view}<Admin
               {api}

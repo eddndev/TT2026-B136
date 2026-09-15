@@ -4,10 +4,22 @@ on:
   push:
     paths:
       - 'web/**'
+      - 'crates/**'
+      - 'migrations/**'
+      - 'pki/**'
+      - 'scripts/web-demo.sh'
+      - 'scripts/test-backends.sh'
+      - 'Cargo.*'
       - '.github/workflows/web.yml'
   pull_request:
     paths:
       - 'web/**'
+      - 'crates/**'
+      - 'migrations/**'
+      - 'pki/**'
+      - 'scripts/web-demo.sh'
+      - 'scripts/test-backends.sh'
+      - 'Cargo.*'
       - '.github/workflows/web.yml'
 
 permissions:
@@ -32,3 +44,27 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+
+  integration:
+    name: Browser with real services
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install isolated backend tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql redis-server jq unzip
+          pg_config --bindir >> "$GITHUB_PATH"
+      - run: npm ci
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Run browser against Rust and disposable services
+        run: bash scripts/web-demo.sh

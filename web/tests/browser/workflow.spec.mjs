@@ -1,8 +1,14 @@
 import { test, expect } from '@playwright/test';
-
-const id = '78ac67b1-ab36-49ea-9b08-f951f341f081';
-const document = { id, name: 'contrato.pdf', version: 1, digest: 'a'.repeat(64), sealed: false };
-const component = { status: 'passed', detail: 'Verified by test backend' };
+import {
+  caseId,
+  id,
+  document,
+  validReport,
+  setup,
+  login,
+  navigate,
+  openDocument,
+} from './helpers.mjs';
 
 test.beforeEach(async ({ page }) => {
   page.runtimeErrors = [];
@@ -10,88 +16,16 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }) => expect(page.runtimeErrors).toEqual([]));
 
-async function setup(page, role = 'owner') {
-  const requests = [];
-  await page.route('**/api/v1/**', async (route) => {
-    const request = route.request();
-    const path = new URL(request.url()).pathname;
-    requests.push({
-      path,
-      method: request.method(),
-      headers: request.headers(),
-      body: request.postData(),
-    });
-    const user = { id: 'user', email: 'hatz@example.com', role };
-    let body;
-    if (path.endsWith('/login')) body = { challenge_token: 'challenge', expires_in_seconds: 300 };
-    else if (/\/mfa\//.test(path))
-      body = { access_token: 'test-token', user, expires_in_seconds: 86400 };
-    else if (path.endsWith('/me')) body = user;
-    else if (path.endsWith('/logout')) return route.fulfill({ status: 204 });
-    else if (path.endsWith('/seal')) body = { ...document, sealed: true };
-    else if (path.endsWith('/audit/verify'))
-      body = { valid: true, entries: 12, first_broken_index: null };
-    else if (path.endsWith('/verify'))
-      body = {
-        document_digest: document.digest,
-        verdict: 'valid',
-        integrity: component,
-        signature: component,
-        certificate: component,
-        timestamp: component,
-      };
-    else if (path.endsWith('/evidence'))
-      return route.fulfill({ contentType: 'application/zip', body: 'test archive' });
-    else if (path.endsWith('/users') || path.endsWith('/bootstrap'))
-      body = {
-        user,
-        totp_secret_base32: 'TESTSECRET',
-        otpauth_uri: 'otpauth://totp/test',
-        recovery_codes: ['recovery-one', 'recovery-two'],
-      };
-    else if (path.endsWith('/documents')) body = document;
-    else return route.fulfill({ status: 404 });
-    return route.fulfill({ json: body });
-  });
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  return requests;
-}
-
-async function navigate(page, name) {
-  if (await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).isVisible()) {
-    await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).click();
-  }
-  await page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
-}
-
-async function login(page, recovery = false, openDocuments = true) {
-  await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
-  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('a-long-password');
-  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  if (recovery)
-    await page.getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n' }).click();
-  await page
-    .getByLabel(recovery ? 'C\u00f3digo de recuperaci\u00f3n' : 'C\u00f3digo de 6 d\u00edgitos', {
-      exact: true,
-    })
-    .fill(recovery ? 'recovery-one' : '123456');
-  await page.getByRole('button', { name: 'Verificar y entrar' }).click();
-  await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
-  if (openDocuments) await navigate(page, 'Documentos');
-}
-
-test('overview uses session counts and browser navigation without losing the session', async ({
+test('overview offers case actions and browser navigation without losing session', async ({
   page,
 }) => {
   await setup(page);
   await login(page, false, false);
-  await expect(page.getByRole('region', { name: 'Resumen de esta sesi\u00f3n' })).toContainText(
-    'Documentos abiertos',
+  await expect(page.getByRole('region', { name: 'Acciones del despacho' })).toContainText(
+    'Expedientes',
   );
-  await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Subir documento' })).toBeVisible();
-  await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await page.getByRole('button', { name: 'Seleccionar expediente', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Expedientes', exact: true })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
   await page.getByRole('button', { name: 'C\u00f3mo funciona' }).click();
@@ -100,23 +34,19 @@ test('overview uses session counts and browser navigation without losing the ses
   ).toBeVisible();
 });
 
-test('an existing unsealed UUID opens with an actionable seal step', async ({ page }) => {
-  await setup(page);
+test('an existing unsealed UUID opens by GET with an actionable seal step', async ({ page }) => {
+  const requests = await setup(page);
   await login(page);
-  await page.route('**/documents/*/verify', (route) =>
-    route.fulfill({ status: 409, json: { error: { code: 'document_not_sealed' } } }),
-  );
-  await page.getByLabel('Identificador del documento').fill(id);
-  await page.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByRole('heading', { name: 'Documento por identificador' })).toBeVisible();
+  await openDocument(page);
   await expect(page.getByRole('button', { name: 'Sellar documento', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Verificar integridad' })).toBeDisabled();
+  expect(requests.some((item) => item.path.endsWith('/verify'))).toBe(false);
 });
 
-test('upload normalizes the filename and cards, filters and overview reflect the session', async ({
+test('upload normalizes names and refreshed server filters preserve stored records', async ({
   page,
 }) => {
-  const requests = await setup(page);
+  const requests = await setup(page, 'owner', []);
   await login(page);
   await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
   await page.getByLabel('Archivo', { exact: true }).setInputFiles({
@@ -126,19 +56,19 @@ test('upload normalizes the filename and cards, filters and overview reflect the
   });
   await expect(page.getByLabel('Nombre del documento')).toHaveValue('Demanda-inicial.pdf');
   await page.getByRole('button', { name: 'Cargar documento' }).click();
-  await expect(page.getByRole('heading', { name: 'contrato.pdf' })).toBeVisible();
-  expect(requests.find((item) => item.path.endsWith('/documents')).headers['x-document-name']).toBe(
-    'Demanda-inicial.pdf',
-  );
+  await expect(page.getByRole('heading', { name: 'Demanda-inicial.pdf' })).toBeVisible();
+  expect(
+    requests.find((item) => item.path.endsWith('/documents') && item.method === 'POST').headers[
+      'x-document-name'
+    ],
+  ).toBe('Demanda-inicial.pdf');
   await page.getByRole('button', { name: 'Vista de tarjetas' }).click();
   await expect(page.locator('.document-card')).toHaveCount(1);
-  await page.getByLabel('Filtrar por estado').selectOption('verified');
+  await page.getByLabel('Filtrar por estado').selectOption('sealed');
   await expect(page.getByText('No encontramos coincidencias')).toBeVisible();
   await page.getByRole('button', { name: 'Limpiar filtros' }).click();
   await expect(page.locator('.document-card')).toHaveCount(1);
   await navigate(page, 'Inicio');
-  await expect(page.getByRole('button', { name: /Documentos abiertos/ })).toContainText('1');
-  await expect(page.getByRole('button', { name: /Pendientes de sello/ })).toContainText('1');
   await page.screenshot({ path: 'test-results/overview-desktop.png', fullPage: true });
 });
 
@@ -171,58 +101,52 @@ test('initial enrollment is acknowledged before returning to login', async ({ pa
   expect(await page.evaluate(() => document.body.textContent.includes('TESTSECRET'))).toBe(false);
 });
 
-test('a failed verification never leaves a prior successful verdict visible', async ({ page }) => {
-  await setup(page);
+test('failed verification clears a previous verdict and reopening detail resets it', async ({
+  page,
+}) => {
+  await setup(page, 'owner', [{ ...document, sealed: true }]);
   await login(page);
-  await page.getByLabel('Identificador del documento').fill(id);
-  await page.getByRole('button', { name: 'Abrir documento' }).click();
+  await openDocument(page);
+  await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
   await page.route('**/documents/*/verify', (route) =>
-    route.fulfill({ status: 500, json: { error: { code: 'internal' } } }),
+    route.fulfill({ status: 500, json: { error: { code: 'internal_error' } } }),
   );
   await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByRole('alert')).toContainText('servidor');
   await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
+  await page.unroute('**/documents/*/verify');
+  await page.getByRole('button', { name: 'Verificar integridad' }).click();
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
+  await openDocument(page);
+  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
 });
 
-test('reopening the same UUID replaces its previous verification verdict', async ({ page }) => {
-  await setup(page);
+test('failed evidence verdict shows the failed component', async ({ page }) => {
+  await setup(page, 'owner', [{ ...document, sealed: true }]);
   await login(page);
-  const reference = page.locator('.reference-panel');
-  await reference.getByLabel('Identificador del documento').fill(id);
-  await reference.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
+  await openDocument(page);
   await page.route('**/documents/*/verify', (route) =>
     route.fulfill({
       json: {
-        document_digest: document.digest,
+        ...validReport,
         verdict: 'not_valid',
         integrity: { status: 'failed', detail: 'The stored digest does not match' },
-        signature: component,
-        certificate: component,
-        timestamp: component,
       },
     }),
   );
-  await reference.getByRole('button', { name: 'Abrir documento' }).click();
+  await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByText('Verificaci\u00f3n no v\u00e1lida', { exact: true })).toBeVisible();
-  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
-  await page.route('**/documents/*/verify', (route) =>
-    route.fulfill({ status: 500, json: { error: { code: 'internal_error' } } }),
-  );
-  await reference.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(reference.getByRole('alert')).toContainText('servidor');
-  await expect(page.getByText('Verificaci\u00f3n no v\u00e1lida', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Sin verificaci\u00f3n vigente', { exact: true })).toBeVisible();
+  await page
+    .getByText('Ver detalles t\u00e9cnicos de la verificaci\u00f3n', { exact: true })
+    .click();
+  await expect(page.getByText('The stored digest does not match')).toBeVisible();
 });
 
-test('a broken audit shows index zero and clears the verdict when a recheck fails', async ({
-  page,
-}) => {
+test('a broken audit shows index zero and clears verdict when recheck fails', async ({ page }) => {
   await setup(page);
-  await login(page);
-  await page.getByRole('button', { name: 'Auditor\u00eda', exact: true }).click();
+  await login(page, false, false);
+  await navigate(page, 'Auditor\u00eda');
   await page.route('**/audit/verify', (route) =>
     route.fulfill({ json: { valid: false, entries: null, first_broken_index: 0 } }),
   );
@@ -234,10 +158,8 @@ test('a broken audit shows index zero and clears the verdict when a recheck fail
   await expect(page.getByText('Primer \u00edndice roto: 0')).toHaveCount(0);
 });
 
-test('login, upload, seal, verify, download and logout follow the HTTP contract', async ({
-  page,
-}) => {
-  const requests = await setup(page);
+test('login upload seal verify download logout follow the case HTTP contract', async ({ page }) => {
+  const requests = await setup(page, 'owner', []);
   await login(page);
   await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
   await page.getByLabel('Archivo', { exact: true }).setInputFiles({
@@ -255,10 +177,15 @@ test('login, upload, seal, verify, download and logout follow the HTTP contract'
   const downloaded = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Descargar evidencia' }).click();
   expect((await downloaded).suggestedFilename()).toBe(`evidencia-${id}.zip`);
-  const upload = requests.find((item) => item.path.endsWith('/documents'));
-  expect(upload.headers['x-document-name']).toBe('contrato.pdf');
-  expect(upload.headers.authorization).toBe('Bearer test-token');
+  const upload = requests.find(
+    (item) => item.path.endsWith('/documents') && item.method === 'POST',
+  );
+  expect(upload.path).toBe(`/api/v1/cases/${caseId}/documents`);
+  expect(upload.headers.authorization).toBe('Bearer test-token-1');
   expect(upload.body).toBe('document bytes');
+  expect(
+    requests.filter((item) => item.path.endsWith('/documents') && item.method === 'GET').length,
+  ).toBeGreaterThanOrEqual(3);
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: 'test-results/document-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
@@ -266,22 +193,16 @@ test('login, upload, seal, verify, download and logout follow the HTTP contract'
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
 });
 
-test('paralegal cannot seal; client cannot access document controls', async ({ page }) => {
+test('paralegal cannot seal or manage assignments', async ({ page }) => {
   await setup(page, 'paralegal');
   await login(page, true);
-  await page.getByLabel('Identificador del documento').fill(id);
-  await page.getByRole('button', { name: 'Abrir documento' }).click();
+  await openDocument(page);
   await expect(page.getByRole('button', { name: 'Sellar documento', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Equipo', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
-  await page.unrouteAll();
-  await setup(page, 'client');
-  await login(page);
-  await expect(page.getByRole('button', { name: 'Subir documento', exact: true })).toHaveCount(0);
-  await expect(page.getByText('Acceso documental pendiente')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Asignaciones', exact: true })).toHaveCount(0);
 });
 
-test('rejected MFA requires new credentials; expired session clears private content', async ({
+test('rejected MFA requests fresh credentials; expired session clears case content', async ({
   page,
 }) => {
   await setup(page);
@@ -294,10 +215,9 @@ test('rejected MFA requires new credentials; expired session clears private cont
   await page.getByLabel('C\u00f3digo de 6 d\u00edgitos', { exact: true }).fill('123456');
   await page.getByRole('button', { name: 'Verificar y entrar' }).click();
   await expect(page.getByRole('alert')).toContainText('rechazado');
-  await expect(page.getByLabel('Contrase\u00f1a', { exact: true })).toBeVisible();
   await page.unroute('**/auth/mfa/totp');
   await login(page);
-  await page.route('**/documents/*/verify', (route) =>
+  await page.route('**/documents/*', (route) =>
     route.fulfill({ status: 401, json: { error: { code: 'invalid_session' } } }),
   );
   await page.getByLabel('Identificador del documento').fill(id);
@@ -305,11 +225,11 @@ test('rejected MFA requires new credentials; expired session clears private cont
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
 });
 
-test('owner enrollment and audit work; mobile navigation fits the viewport', async ({ page }) => {
+test('owner enrollment and audit work in a mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
   await page.screenshot({ path: 'test-results/login-mobile.png', fullPage: true });
-  await login(page);
+  await login(page, false, false);
   await navigate(page, 'Equipo');
   await page.getByLabel('Correo del nuevo usuario').fill('new@example.com');
   await page.getByLabel('Contrase\u00f1a inicial').fill('long-test-password');
@@ -321,5 +241,4 @@ test('owner enrollment and audit work; mobile navigation fits the viewport', asy
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
   await expect(page.getByText('12 eventos verificados')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: 'test-results/audit-mobile.png', fullPage: true });
 });

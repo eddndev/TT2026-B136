@@ -1,3 +1,5 @@
+import { caseApi } from './case-api.mjs';
+
 const messages = {
   invalid_credentials: 'Correo o contrase\u00f1a incorrectos.',
   mfa_rejected: 'El c\u00f3digo fue rechazado o venci\u00f3. Vuelve a iniciar sesi\u00f3n.',
@@ -11,6 +13,8 @@ const messages = {
     'Ya existe una cuenta con ese correo. Usa otro correo para el nuevo integrante.',
   bootstrap_closed: 'El despacho ya tiene un administrador. Inicia sesi\u00f3n con tu cuenta.',
   invalid_input: 'Revisa los datos ingresados y los l\u00edmites de cada campo.',
+  case_not_found: 'El expediente no est\u00e1 disponible o ya no tienes acceso.',
+  user_not_found: 'No se encontr\u00f3 un usuario activo con ese identificador.',
   invalid_document_name: 'El nombre del documento no es v\u00e1lido.',
 };
 
@@ -93,15 +97,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       sessionVersion++;
     },
     createUser: (email, password, role) => post('/users', { email, password, role }),
-    upload: (file, name) =>
-      request('/documents', {
-        method: 'POST',
-        body: file,
-        headers: { 'X-Document-Name': name, 'Content-Type': 'application/octet-stream' },
-      }),
-    seal: (id) => post(`/documents/${encodeURIComponent(id)}/seal`),
-    verify: (id) => post(`/documents/${encodeURIComponent(id)}/verify`),
-    evidence: (id) => request(`/documents/${encodeURIComponent(id)}/evidence`, { binary: true }),
+    ...caseApi(request),
     audit: () => request('/audit/verify'),
   };
 }
