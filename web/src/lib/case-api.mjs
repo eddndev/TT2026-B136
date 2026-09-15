@@ -1,3 +1,4 @@
+import { participantsApi } from './participants-api.mjs';
 import { versionApi } from './version-api.mjs';
 import { metadataApi } from './metadata-api.mjs';
 
@@ -18,6 +19,7 @@ export function caseApi(request) {
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'PUT' }),
     removeMember: (id, userId) =>
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    caseParticipants: (id) => participantsApi(request, id),
     caseDocuments(id) {
       let active = true;
       const base = `${path(id)}/documents`;

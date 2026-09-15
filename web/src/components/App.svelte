@@ -7,6 +7,8 @@
   import Icon from './Icon.svelte';
   import Documents from './Documents.svelte';
   import Cases from './Cases.svelte';
+  import CaseContext from './CaseContext.svelte';
+  import Participants from './Participants.svelte';
   import Admin from './Admin.svelte';
   import { createApi } from '../lib/api.mjs';
   import { roles } from '../lib/documents.mjs';
@@ -128,37 +130,32 @@
               go('documents');
             }}
           />
-        {:else if view === 'documents'}
+        {:else if view === 'documents' || view === 'participants'}
           {#if selectedCase}
-            <section class="card case-context">
-              <div>
-                <span class="eyebrow">EXPEDIENTE ACTUAL</span>
-                <h2>{selectedCase.title}</h2>
-                <p>{selectedCase.reference}</p>
-              </div>
-              <div class="action-row">
-                <button
-                  class="secondary"
-                  onclick={() => {
-                    selectedCase = null;
-                    go('cases');
-                  }}>Cambiar expediente</button
-                >
-              </div>
-            </section>
+            <CaseContext
+              record={selectedCase}
+              {user}
+              {view}
+              onnavigate={go}
+              onchange={() => {
+                selectedCase = null;
+                go('cases');
+              }}
+            />
             {#key selectedCase.id}
-              <Documents
-                {api}
-                {user}
-                caseRecord={selectedCase}
-                intent={documentIntent}
-                onintent={() => (documentIntent = null)}
-              />
+              {#if view === 'participants'}<Participants {api} {user} caseRecord={selectedCase} />
+              {:else}<Documents
+                  {api}
+                  {user}
+                  caseRecord={selectedCase}
+                  intent={documentIntent}
+                  onintent={() => (documentIntent = null)}
+                />{/if}
             {/key}
           {:else}<section class="card empty-state">
               <span class="empty-icon"><Icon name="briefcase" size={35} /></span>
               <h1>Selecciona un expediente</h1>
-              <p>Abre un expediente para consultar sus documentos.</p>
+              <p>Abre un expediente para consultar sus datos.</p>
               <button class="primary" onclick={() => go('cases')}>Ver expedientes</button>
             </section>{/if}
         {:else if view === 'guide'}<Guide onnavigate={go} />

@@ -37,8 +37,10 @@
   <nav aria-label="Navegaci&#243;n principal">
     <span class="eyebrow nav-label">ESPACIO DE TRABAJO</span>
     {#each work as item}<button
-        class:active={view === item.id}
-        aria-current={view === item.id ? 'page' : undefined}
+        class:active={view === item.id || (item.id === 'cases' && view === 'participants')}
+        aria-current={view === item.id || (item.id === 'cases' && view === 'participants')
+          ? 'page'
+          : undefined}
         onclick={() => go(item.id)}><Icon name={item.icon} />{item.label}</button
       >{/each}
     {#if user.role === 'owner'}<span class="eyebrow nav-label admin-label">ADMINISTRACI&#211;N</span

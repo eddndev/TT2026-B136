@@ -1,6 +1,11 @@
 import { caseApi } from './case-api.mjs';
 
 const messages = {
+  invalid_participant_values: 'Revisa los campos del participante.',
+  invalid_participant_revision: 'La revisi\u00f3n del participante no es v\u00e1lida.',
+  participant_not_found: 'El participante no est\u00e1 disponible en este expediente.',
+  participant_revision_exhausted:
+    'El participante alcanz\u00f3 el l\u00edmite de revisiones. No se pueden guardar m\u00e1s cambios.',
   invalid_credentials: 'Correo o contrase\u00f1a incorrectos.',
   mfa_rejected: 'El c\u00f3digo fue rechazado o venci\u00f3. Vuelve a iniciar sesi\u00f3n.',
   invalid_session: 'Tu sesi\u00f3n termin\u00f3. Vuelve a iniciar sesi\u00f3n.',
