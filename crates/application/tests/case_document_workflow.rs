@@ -256,6 +256,7 @@ fn session_revocation_during_preparation_prevents_every_commit() {
             DocumentAction::Seal => service.seal("session", case, id).err(),
             DocumentAction::Verify => service.verify("session", case, id).err(),
             DocumentAction::Export => service.export_evidence("session", case, id).err(),
+            _ => unreachable!("only prepared document actions are tested"),
         };
         assert!(matches!(error, Some(ApplicationError::InvalidSession)));
     }

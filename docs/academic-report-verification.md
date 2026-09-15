@@ -1,5 +1,41 @@
 # Verificación de la actualización académica
 
+## Consultas documentales e interfaz Qadra: 14 de septiembre de 2026
+
+Se actualizaron la descripción del alcance implementado, diseño, implementación,
+pruebas y anexo de trazabilidad para las consultas autorizadas y la integración
+Qadra. Los objetivos aprobados, resumen, marco teórico y conclusiones pendientes
+se conservaron; se comprobaron contra su contenido anterior. Las referencias a
+519 pruebas y 46 eventos mantienen su fecha histórica; el ensayo nuevo registra
+539 pruebas, 51 eventos y 91.0 % de cobertura Rust. La matriz del catálogo
+funcional completo y usabilidad se identifican como parciales, sin confundirlas
+con la evidencia criptográfica ya disponible.
+
+La compilación usó el Makefile versionado en una copia temporal de las fuentes,
+con LuaLaTeX, biber y glosarios y una caché temporal de fuentes. Produjo **239
+páginas**, **5 577 936 bytes**, en formato carta. Los 51 archivos del manifiesto
+de fuentes coinciden con el árbol de trabajo. El PDF nuevo se conserva como
+`output/pdf/TT2026-B136-consultas-qadra-2026-09-14.pdf`, junto con su manifiesto;
+ninguno se añade a Git. Su SHA-256 es
+`d68c08da5ef7ca9bb70aecdbde6935556f7e951895ad9e3d72424473b42ce5f4`.
+Los cinco entregables anteriores comprobados por hash permanecen intactos,
+incluido `latex/main.pdf`; la presentación no se modificó.
+
+Se renderizaron y revisaron 37 páginas de los apartados afectados y sus páginas
+adyacentes: alcance, diseño, contratos, consultas, interfaz, pruebas, cobertura,
+matriz, conclusiones pendientes y anexo. Se corrigió un desborde nuevo de rutas
+largas antes del render final. No hay citas o referencias indefinidas, glifos
+ausentes, etiquetas duplicadas ni texto fuera del área segura. Se conservan las
+sustituciones de versalitas de Times New Roman y el desborde histórico de
+0.11754 pt en el índice de tablas, sin defecto visual apreciable.
+
+Esta comprobación documenta el PDF local; no afirma una nueva compilación remota.
+La evidencia funcional y los resultados del navegador se registran separadamente
+en [el informe de verificación](verification-report.md). El escenario real de
+navegador no constituye una evaluación de usabilidad con personal del despacho.
+
+## Actualización anterior: 12 de septiembre de 2026
+
 Fecha: 12 de septiembre de 2026. Base de software: `57f9076`, que integra
 la autorización documental por expediente y la auditoría transaccional.
 La evidencia funcional procede del [informe de verificación](verification-report.md).

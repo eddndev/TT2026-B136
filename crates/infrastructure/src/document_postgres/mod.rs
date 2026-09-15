@@ -1,11 +1,15 @@
 //! PostgreSQL document operations with current case authorization and one audit commit.
 
+mod query;
 mod storage;
 pub(crate) use storage::decode_record;
 
 use std::sync::{Mutex, MutexGuard};
 
-use application::documents::{CaseDocumentStore, DocumentAction, DocumentRecord};
+use application::documents::{
+    CaseDocumentStore, CaseDocumentSummary, DocumentAction, DocumentPage, DocumentQuery,
+    DocumentRecord,
+};
 use application::identity::Principal;
 use application::ApplicationError;
 use domain::audit::ChainedEvent;
@@ -46,6 +50,51 @@ impl PostgresCaseDocumentStore {
 }
 
 impl CaseDocumentStore for PostgresCaseDocumentStore {
+    fn list(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        query: DocumentQuery,
+        at: OffsetDateTime,
+    ) -> Result<DocumentPage, ApplicationError> {
+        let mut client = self.client()?;
+        let mut transaction = begin_audited(&mut client)?;
+        let principal = authorize(&mut transaction, actor, case, DocumentAction::List)?;
+        let page = query::list(&mut transaction, case, query)?;
+        append_transaction(
+            &mut transaction,
+            &principal.email,
+            DocumentAction::List.audit_action(),
+            &format!("case:{case}:documents"),
+            at,
+        )?;
+        transaction.commit().map_err(storage::port_error)?;
+        Ok(page)
+    }
+
+    fn get(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        id: DocumentId,
+        at: OffsetDateTime,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        let mut client = self.client()?;
+        let mut transaction = begin_audited(&mut client)?;
+        let principal =
+            authorize_document(&mut transaction, actor, case, id, DocumentAction::Read)?;
+        let summary = query::get(&mut transaction, case, id)?;
+        append_transaction(
+            &mut transaction,
+            &principal.email,
+            DocumentAction::Read.audit_action(),
+            &resource(case, id),
+            at,
+        )?;
+        transaction.commit().map_err(storage::port_error)?;
+        Ok(summary)
+    }
+
     fn check_access(
         &self,
         actor: UserId,

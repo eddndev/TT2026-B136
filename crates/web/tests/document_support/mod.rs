@@ -1,5 +1,6 @@
 use application::documents::{
-    CaseDocumentSummary, CaseDocumentWorkflow, DocumentSummary, EvidenceExport,
+    CaseDocumentSummary, CaseDocumentWorkflow, DocumentPage, DocumentQuery, DocumentSummary,
+    EvidenceExport,
 };
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
@@ -51,6 +52,39 @@ impl StubWorkflow {
 }
 
 impl CaseDocumentWorkflow for StubWorkflow {
+    fn list(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        query: DocumentQuery,
+    ) -> Result<DocumentPage, ApplicationError> {
+        self.check(token, case_id, DocumentId::from_uuid(DOCUMENT_UUID))?;
+        let summary = Self::summary(false);
+        let matches = query.offset() == 0
+            && query.sealed() != Some(true)
+            && query.name().is_none_or(|name| {
+                summary
+                    .document
+                    .name
+                    .to_lowercase()
+                    .contains(&name.to_lowercase())
+            });
+        Ok(DocumentPage {
+            documents: if matches { vec![summary] } else { vec![] },
+            has_more: false,
+        })
+    }
+
+    fn get(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        self.check(token, case_id, id)?;
+        Ok(Self::summary(false))
+    }
+
     fn upload(
         &self,
         token: &str,

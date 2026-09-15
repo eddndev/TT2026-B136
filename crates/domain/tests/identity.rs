@@ -66,3 +66,11 @@ fn role_permissions_follow_the_conservative_matrix() {
         assert!(!Role::Client.allows(permission));
     }
 }
+
+#[test]
+fn document_metadata_reads_are_available_only_to_internal_roles() {
+    for role in [Role::Owner, Role::Litigator, Role::Paralegal] {
+        assert!(role.allows(Permission::ReadDocument));
+    }
+    assert!(!Role::Client.allows(Permission::ReadDocument));
+}

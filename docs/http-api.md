@@ -1,6 +1,6 @@
 # API HTTP local autenticada
 
-Contrato revisado el 2026-09-12. PostgreSQL conserva usuarios, expedientes,
+Contrato revisado el 2026-09-14. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
 conserva desafíos, sesiones revocables, límites de intentos y reclamos TOTP. La
 TSA OpenSSL local emite sellos RFC 3161; la ejecución no consulta Cincel.
@@ -191,15 +191,17 @@ la sesión vigente; `X-Actor` no forma parte del contrato.
 
 | Método y ruta | Permiso | Resultado |
 | --- | --- | --- |
+| `GET /api/v1/cases/{case_id}/documents` | Leer documentos | Página autorizada de metadatos, filtros por nombre y sellado; `200`. |
+| `GET /api/v1/cases/{case_id}/documents/{document_id}` | Leer documentos | Detalle de metadatos persistidos, sin descifrar ni verificar evidencia; `200`. |
 | `POST /api/v1/cases/{case_id}/documents` | Crear documento | Cifra y persiste la versión 1 asociada al expediente; `201`. |
 | `POST /api/v1/cases/{case_id}/documents/{document_id}/seal` | Sellar documento | Firma el digest y emite/verifica el sello local; `200`. |
 | `POST /api/v1/cases/{case_id}/documents/{document_id}/verify` | Verificar documento | Reporta integridad, firma, certificado/CRL y sello; `200`. |
 | `GET /api/v1/cases/{case_id}/documents/{document_id}/evidence` | Exportar evidencia | Descarga ZIP con `X-Document-Digest`; `200`. |
 | `GET /api/v1/audit/verify` | Verificar auditoría | Verifica la cadena PostgreSQL completa y reporta el primer índice roto. |
 
-Carga y sellado devuelven `case_id`, `id`, `version`, `name`, `digest` hexadecimal
-y `sealed` en el mismo objeto JSON. No hay rutas de listado, detalle, búsqueda
-ni historial de versiones documentales. Las antiguas rutas
+Carga, sellado y detalle devuelven `case_id`, `id`, `version`, `name`, `digest`
+hexadecimal y `sealed` en el mismo objeto JSON. El historial de versiones y la
+clasificación documental siguen pendientes. Las antiguas rutas
 `/api/v1/documents` y `/api/v1/documents/{document_id}/...` responden `404`; no
 son alias de la API por expediente.
 
@@ -208,6 +210,7 @@ asignación vigente además del permiso de la siguiente matriz:
 
 | Acción | Owner | Litigante | Paralegal | Cliente |
 | --- | --- | --- | --- | --- |
+| Listar y consultar metadatos documentales | sí | sí | sí | no |
 | Crear documento | sí | sí | sí | no |
 | Sellar documento | sí | sí | no | no |
 | Verificar documento | sí | sí | sí | no |
@@ -219,11 +222,12 @@ Cliente sigue sin acceso documental incluso asignado. Paralegal recibe `403`
 al intentar sellar, también fuera de sus expedientes. Para un rol con permiso,
 un documento que no pertenece al expediente indicado responde
 `404 document_not_found`, incluso si el usuario es Owner o pertenece a ambos
-expedientes. Una carga sobre un expediente inexistente o ajeno responde
+expedientes. Una carga o listado sobre un expediente inexistente o ajeno responde
 `404 case_not_found`.
 
-Cada operación autentica antes de preparar el resultado y otra vez antes de
-confirmarlo. La transacción comprueba rol activo, pertenencia y asociación
+Carga, sellado, verificación y exportación autentican antes de preparar el
+resultado y otra vez antes de confirmarlo. Listado y detalle autentican la
+sesión antes de consultar. La transacción comprueba rol activo, pertenencia y asociación
 exacta. Retirar la asignación surte efecto con la misma sesión: si la revocación
 se confirma primero, impide una confirmación documental posterior. Si la
 operación documental obtiene primero el bloqueo, la revocación espera; una
@@ -233,6 +237,40 @@ Sellar otra vez un documento sellado responde `409 document_already_sealed`
 sin reemplazar su evidencia. Dos preparaciones concurrentes pueden solicitar
 sellos, pero solo una confirma y la otra recibe conflicto. No se ofrece cambio
 de contenido ni reasignación de expediente.
+
+### Listado y búsqueda de metadatos
+
+El listado acepta `limit` de 1 a 100 (predeterminado 50), `offset` entero sin
+signo de 32 bits (predeterminado 0), `name` opcional y `sealed` opcional con
+valor `true` o `false`. `name` se recorta en los extremos, admite hasta 200
+caracteres y rechaza controles; una cadena vacía omite el filtro. La búsqueda
+es una subcadena literal del nombre; `%`, `_` y la barra inversa no actúan como
+comodines. No se distingue entre mayúsculas y minúsculas en los nombres ASCII
+admitidos por el contrato de carga. No se busca en el contenido cifrado.
+
+```http
+GET /api/v1/cases/{case_id}/documents?limit=25&offset=0&name=contrato&sealed=false
+Authorization: Bearer <access_token>
+```
+
+La respuesta tiene forma `{"documents": [...], "has_more": false}`. Los
+elementos usan el mismo formato del detalle. El filtro por expediente y los
+filtros de búsqueda se aplican antes de paginar; el orden es UUID ascendente.
+`has_more` informa si existía otro resultado en esa consulta, no el total del
+despacho. La paginación por desplazamiento no mantiene una fotografía entre
+peticiones: una inserción concurrente puede desplazar páginas posteriores.
+
+Las consultas seleccionan únicamente metadatos y el indicador de evidencia
+presente. No cargan el contenido cifrado, las firmas ni los certificados. Un
+detalle `sealed: true` indica evidencia capturada, no una verificación integral
+recién aprobada. La operación `POST .../verify` conserva esa responsabilidad.
+
+Listado y detalle confirman `document.listed` y `document.read`, respectivamente,
+en la misma transacción que revalida el acceso. Un fallo de auditoría impide
+entregar el resultado. Los valores de búsqueda no se copian a la bitácora.
+Límites o nombres inválidos responden `422`; parámetros desconocidos o con tipos
+inválidos responden `400`. Una consulta válida sin resultados devuelve una lista
+vacía, mientras que un expediente no autorizado conserva su respuesta `404`.
 
 ## Persistencia y límites
 

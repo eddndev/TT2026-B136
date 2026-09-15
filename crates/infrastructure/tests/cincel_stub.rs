@@ -247,11 +247,10 @@ fn an_undecodable_body_is_an_invalid_token() {
 }
 
 #[test]
-fn a_closed_port_is_an_unreachable_authority() {
-    // Bind and drop a listener so the port exists but nothing accepts.
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let base_url = format!("http://{}", listener.local_addr().unwrap());
-    drop(listener);
+fn a_connection_closed_without_a_response_is_an_unreachable_authority() {
+    // Keep the port reserved until the request arrives. Dropping a listener
+    // before connecting lets another concurrent stub acquire its address.
+    let (base_url, seen) = stub_server(vec![String::new()]);
 
     let message = failure_message(
         adapter_for(&base_url, "clave-de-api")
@@ -261,6 +260,10 @@ fn a_closed_port_is_an_unreachable_authority() {
     assert!(
         message.contains("unreachable"),
         "a transport failure should map to the unreachable cause, got: {message}"
+    );
+    assert_eq!(
+        seen.recv().unwrap().request_line,
+        "POST /api/v1/timestamps HTTP/1.1"
     );
 }
 

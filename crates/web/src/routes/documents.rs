@@ -124,13 +124,13 @@ fn required_header<'a>(headers: &'a HeaderMap, name: &'static str) -> Result<&'a
     Ok(value)
 }
 
-fn parse_id(value: &str) -> Result<DocumentId, ApiError> {
+pub(super) fn parse_id(value: &str) -> Result<DocumentId, ApiError> {
     Uuid::parse_str(value)
         .map(DocumentId::from_uuid)
         .map_err(|_| ApiError::invalid_document_id())
 }
 
-fn parse_case_id(value: &str) -> Result<CaseId, ApiError> {
+pub(super) fn parse_case_id(value: &str) -> Result<CaseId, ApiError> {
     Uuid::parse_str(value)
         .map(CaseId::from_uuid)
         .map_err(|_| ApiError::invalid_case_id())

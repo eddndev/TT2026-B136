@@ -1,0 +1,25 @@
+{
+  "name": "despacho-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "format": "prettier --write src tests *.mjs svelte.config.js",
+    "format:check": "prettier --check src tests *.mjs svelte.config.js"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^9.0.1",
+    "astro": "^7.3.2",
+    "svelte": "^5.57.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^1.0.0",
+    "prettier-plugin-svelte": "^4.1.1"
+  }
+}

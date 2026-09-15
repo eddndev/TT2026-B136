@@ -40,6 +40,8 @@ case_demo_login() {
 case_demo_denied_documents() {
   local token="$1" case_id="$2" document_id="$3" expected="$4" seal_expected="$5"
   local collection="/api/v1/cases/$case_id/documents"
+  case_demo_request GET "$expected" "$collection" "$token"
+  case_demo_request GET "$expected" "$collection/$document_id" "$token"
   case_demo_request POST "$expected" "$collection" "$token" \
     -H 'X-Document-Name: document.txt' --data-binary "@$WORK_DIR/document.txt"
   case_demo_request POST "$seal_expected" "$collection/$document_id/seal" "$token"
@@ -111,8 +113,14 @@ case_demo() {
   DOCUMENT_ID="$(jq -er '.id' "$case_response")"
   jq -e --arg id "$owner_case" '.case_id == $id and .version == 1 and .sealed == false' \
     "$case_response" >/dev/null
+  case_demo_request GET 200 "/api/v1/cases/$owner_case/documents/$DOCUMENT_ID" "$OWNER_TOKEN"
+  jq -e --arg id "$DOCUMENT_ID" '.id == $id and .sealed == false' "$case_response" >/dev/null
+  case_demo_request GET 200 "/api/v1/cases/$owner_case/documents?name=DOCUMENT&sealed=false&limit=1" "$OWNER_TOKEN"
+  jq -e --arg id "$DOCUMENT_ID" '.documents | length == 1 and .[0].id == $id' "$case_response" >/dev/null
   case_demo_request POST 200 "/api/v1/cases/$owner_case/documents/$DOCUMENT_ID/seal" "$OWNER_TOKEN"
   jq -e '.sealed == true' "$case_response" >/dev/null
+  case_demo_request GET 200 "/api/v1/cases/$owner_case/documents?sealed=false" "$OWNER_TOKEN"
+  jq -e '.documents == [] and .has_more == false' "$case_response" >/dev/null
   case_demo_request POST 200 "/api/v1/cases/$owner_case/documents/$DOCUMENT_ID/verify" "$OWNER_TOKEN"
   jq -e '.verdict == "valid" and .integrity.status == "passed" and .signature.status == "passed"
     and .certificate.status == "passed" and .timestamp.status == "passed"' "$case_response" >/dev/null
@@ -142,6 +150,10 @@ case_demo() {
   jq -e --arg id "$owner_case" 'length == 1 and .[0].id == $id' "$case_response" >/dev/null
   case_demo_request POST 201 "/api/v1/cases/$owner_case/documents" "$PARALEGAL_TOKEN" \
     -H 'X-Document-Name: paralegal.txt' --data-binary "@$WORK_DIR/document.txt"
+  case_demo_request GET 200 "/api/v1/cases/$owner_case/documents?limit=1" "$PARALEGAL_TOKEN"
+  jq -e '.has_more == true and (.documents | length) == 1' "$case_response" >/dev/null
+  case_demo_request GET 200 "/api/v1/cases/$owner_case/documents?name=paralegal&sealed=false" "$PARALEGAL_TOKEN"
+  jq -e '.has_more == false and (.documents | length) == 1 and .documents[0].name == "paralegal.txt"' "$case_response" >/dev/null
   case_demo_request POST 403 "/api/v1/cases/$owner_case/documents/$DOCUMENT_ID/seal" "$PARALEGAL_TOKEN"
   case_demo_request POST 200 "/api/v1/cases/$owner_case/documents/$DOCUMENT_ID/verify" "$PARALEGAL_TOKEN"
   case_demo_verify_evidence "$PARALEGAL_TOKEN" "$owner_case" "$DOCUMENT_ID" document.txt "$WORK_DIR/paralegal-evidence"

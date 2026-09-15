@@ -65,7 +65,10 @@ El corte técnico del 12 de septiembre de 2026 incluye autorización documental
 por expediente, documentos y auditoría transaccionales, migración y restauración.
 Las cifras de 519 pruebas aprobadas y cobertura global del 90.7 % proceden de
 [`docs/verification-report.md`](../docs/verification-report.md).
-La interfaz y la gestión procesal completa siguen pendientes.
+El corte del 14 de septiembre incorpora consultas documentales y la interfaz
+Qadra conectada a servicios reales, con 539 pruebas Rust y cobertura de 91.0 %.
+El historial de versiones, la gestión procesal completa y la usabilidad siguen
+pendientes. Las mediciones de ambos cortes se registran por separado.
 La revisión del reporte se registra en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
 

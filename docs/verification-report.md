@@ -4,6 +4,123 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: consultas documentales e integración Qadra
+
+- Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`).
+- Alcance: listado y detalle documental autorizados, búsqueda literal de nombre,
+  filtro de sellado y conexión del sistema de diseño Qadra a expedientes reales.
+- Decisión: [consultas de metadatos](adr/0018-authorized-document-queries.md).
+  El [plan de cierre](product-completion.md) conserva las funciones pendientes.
+
+### Backend y servicios reales
+
+```bash
+cargo fmt --all
+cargo build --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+bash scripts/test-backends.sh
+bash scripts/api-demo.sh
+bash scripts/test-backends.sh cargo llvm-cov --workspace --json --summary-only --output-path /tmp/tt-document-queries-coverage.json
+bash scripts/coverage-gate.sh /tmp/tt-document-queries-coverage.json
+```
+
+La suite completa y su ejecución instrumentada aprobaron **539 pruebas**, sin
+fallos y con una ignorada del proveedor externo. PostgreSQL y Redis fueron
+reales y desechables, con bases separadas de identidad, expedientes y documentos.
+Formato, compilación, Clippy, demostración HTTP y umbrales aprobaron.
+
+Las veinte pruebas nuevas cubren validación del filtro, permisos de lectura,
+autenticación, aislamiento, orden y paginación, comodines tratados literalmente,
+metadatos sin decodificar el contenido cifrado ni la evidencia, cambios de rol,
+inactividad, revocación y fallo de auditoría. Una prueba concurrente bloquea la
+inserción de auditoría: listado y detalle no devuelven resultados antes del
+commit, y retirar la asignación espera ese orden.
+
+La demo HTTP reproduce consultas de los cuatro roles, dos expedientes,
+revocación, sellado concurrente con un éxito y un conflicto, y migración y
+restauración de **cuatro documentos con 51 eventos**. Compara evidencia ZIP y
+verifica sus componentes con OpenSSL. El corte anterior de 46 eventos conserva
+su fecha; los eventos nuevos proceden de las consultas añadidas al ensayo.
+
+La primera ejecución de la suite detectó una carrera preexistente en el fixture
+TCP del adaptador remoto simulado: una prueba liberaba un puerto antes de probar
+su inaccesibilidad y otro servidor de prueba podía reutilizarlo. Se reprodujo
+la interferencia y se reemplazó por un servidor que recibe la petición y cierra
+sin respuesta, reteniendo el puerto. El adaptador no cambió. La suite del stub
+aprobó después y veinte repeticiones acotadas también; esos conteos no se suman
+a las 539 pruebas de la suite completa.
+
+### Cobertura reproducida
+
+| Crate | Líneas cubiertas | Cobertura |
+| --- | --- | --- |
+| `domain` | 1045/1079 | 96.8 % |
+| `application` | 2138/2277 | 93.9 % |
+| `infrastructure` | 3602/3892 | 92.5 % |
+| `web` | 637/737 | 86.4 % |
+| `bin` | 834/1086 | 76.8 % |
+
+Total: **8256/9071 líneas (91.0 %)**. Los tres crates sujetos al umbral del 90 %
+aprueban. La cobertura corresponde al workspace Rust, no a los archivos Svelte.
+
+### Actualización de la dependencia TLS
+
+El control de dependencias de CI detectó un aviso publicado el 14 de septiembre
+para `rustls` 0.23.43. Se actualizó únicamente su versión y checksum en
+`Cargo.lock` a 0.23.45, identificada como corregida en
+[el aviso del proyecto](https://github.com/rustls/rustls/security/advisories/GHSA-2mjx-qc3c-rqvc).
+No se añadió ninguna excepción a la política de dependencias.
+
+Después del cambio aprobaron nuevamente formato, build, Clippy, las 539 pruebas
+Rust con servicios desechables y el escenario de navegador real. `cargo-deny`
+0.20.2 aprobó advisories, bans, licenses y sources con la base actualizada. La
+medición de cobertura de esta sección precede al ajuste del lockfile; no se
+presenta como una nueva medición posterior. Las fuentes del reporte no cambiaron
+por esta actualización de dependencia y su PDF permanece válido para el contenido
+documental compilado.
+
+### Interfaz y pruebas con HTTP simulado
+
+La referencia Qadra se comprobó antes de adaptar sus flujos: 18 pruebas
+unitarias y 14 de navegador, además de formato y compilación, aprobaron en
+este entorno. Después de la integración aprobaron **21 pruebas unitarias y
+23 de navegador con HTTP simulado**, junto con `npm run build` y
+`npm run format:check` (Node.js 22.22.2). La automatización usa Node.js 24.
+
+Las pruebas añaden expedientes persistentes, filtros y páginas solicitados al
+servidor, permisos Client y descarte de resultados de una sesión, expediente,
+búsqueda o detalle anteriores. Dos regresiones reproducidas antes de corregir
+el código cubren una apertura que quedaba bloqueada al cambiar la búsqueda y
+un detalle atrasado que reemplazaba la selección de una carga nueva.
+
+La revisión visual conserva los originales de marca y las siete hojas de
+estilo de Qadra. Las ampliaciones se concentran en `cases.css`. Se comprobaron
+expedientes, lista y detalle en escritorio y móvil. Una prueba de geometría
+verifica que buscador, botón y selector no se solapen a 390 píxeles; verificar
+solo el ancho de la página no detectaba ese defecto de composición.
+
+### Navegador con servicios reales
+
+```bash
+bash scripts/web-demo.sh
+```
+
+Un escenario Playwright aprobó con la API Rust, PostgreSQL y Redis aislados y
+la TSA OpenSSL local. Desde la interfaz realizó login con recuperación MFA,
+creación de expediente, carga de documento, detalle persistido, sellado,
+verificación y descarga ZIP. El contenido descargado coincide byte por byte
+con la muestra generada. Después de logout, recarga e inicio con otro código,
+el expediente y el documento siguen disponibles desde consultas del servidor.
+Se comprobó una vista de 390 píxeles sin desbordamiento horizontal ni errores
+JavaScript. El script elimina servicios, claves y credenciales desechables.
+
+La comprobación de navegador no intercepta HTTP. Las pruebas de UI con respuestas
+simuladas se documentan por separado y no sustituyen este escenario real.
+Usabilidad, carga de producción, versiones, clasificación, gestión procesal,
+autenticación por certificado y firma por credencial individual siguen pendientes.
+Los resultados de compilación y revisión académica están en
+[la verificación del reporte](academic-report-verification.md).
+
 ## Corte reproducido: documentos por expediente y auditoría transaccional
 
 - Fecha local: 12 de septiembre de 2026 (`America/Mexico_City`).
@@ -376,7 +493,81 @@ por un PSC autorizado.
   auditoría. La identidad procede del bearer token; `X-Actor` fue retirado.
 - PostgreSQL persiste usuarios y Redis conserva el estado efímero de identidad.
   Documentos y auditoría siguen en archivos locales sin una transacción común;
-  la pertenencia a casos, las consultas ampliadas y la UI permanecen pendientes.
+  la pertenencia a casos y las consultas ampliadas permanecen pendientes.
+  La interfaz documental de `web/` se verifica por separado a continuación.
 
 La transcripción extensa de una corrida anterior se conserva en
 [`docs/demo-transcript.md`](demo-transcript.md).
+
+## Verificación de la interfaz web
+
+Comprobaciones ejecutadas el 11 de septiembre de 2026 en Windows, con
+Node.js 24.21.0 y npm 11.19.0. Estos resultados corresponden a `web/` y no
+actualizan las mediciones históricas de Rust o criptografía anteriores.
+
+- `npm test`: 18 pruebas aprobadas del cliente HTTP, errores, sesiones,
+  descarga binaria, nombres compatibles con el ZIP, tamaño de documentos,
+  UUID, permisos visibles, estados documentales, filtros y rutas por rol.
+  Incluyen respuestas tardías que no deben afectar una sesión posterior.
+- `npm run test:e2e -- --workers=1`: 14 pruebas aprobadas en Chromium con
+  Playwright. Cubren
+  alta inicial, MFA con TOTP o recuperación, carga, sellado, verificación,
+  descarga, logout, roles, rechazo MFA, sesión vencida, alta de integrantes,
+  auditoría, resultados obsoletos, recuperación de documentos pendientes de
+  sello, resumen de sesión, filtros, vista de tarjetas, historial del navegador,
+  visibilidad de contraseña y menú accesible en una pantalla de 390 px de ancho.
+  Las regresiones cubren consultar otra vez el mismo documento, recibir una
+  respuesta después de cerrar sesión y consumir las acciones de navegación.
+  Los 12 flujos de `workflow.spec.mjs` no emitieron errores de JavaScript.
+- `npm run build`: compilación estática completada con Astro 7 y Svelte 5.
+- `npm run format:check`: sin diferencias de formato.
+- `npm audit`: la comprobación anterior del mismo día reportó cero
+  vulnerabilidades. Esta revisión de interfaz no modifica las dependencias.
+- Revisión visual de capturas de inicio en escritorio y móvil, acceso móvil
+  y detalle documental de escritorio, generadas por las pruebas de navegador.
+
+Las pruebas interceptan las rutas HTTP con respuestas de prueba; no se
+ejecutaron la API Rust, PostgreSQL, Redis ni la TSA en esta comprobación.
+Tampoco se repitieron `scripts/api-demo.sh`, `scripts/demo.sh` ni las pruebas
+de Cargo. No se modificó código Rust. La integración completa con servicios
+reales requiere el entorno descrito en `docs/http-api.md`.
+
+La nueva automatización `.github/workflows/web.yml` ejecuta formato,
+pruebas, compilación y pruebas de navegador en Linux. Este informe no afirma
+una corrida remota de ese workflow.
+
+### Integración de marca Qadra
+
+Comprobaciones ejecutadas el 12 de septiembre de 2026, después de incorporar
+el nombre y los assets originales de Qadra en `web/`:
+
+- `npm run format:check` y `npm run build`: completados correctamente.
+- `npm run test:e2e -- --workers=1`: 14 pruebas aprobadas en Chromium con las
+  mismas respuestas HTTP simuladas. No se repitieron las pruebas unitarias
+  porque esta corrección no modifica la lógica del cliente.
+- Los SHA-256 del logo SVG, favicon SVG, logo PNG y licencia coinciden con
+  los archivos originales. Su procedencia se conserva en
+  `web/public/brand/qadra/README.md`.
+- Revisión del nombre, carga local de imágenes y marca en acceso de
+  escritorio y móvil, y en la navegación del espacio documental.
+
+Esta comprobación tampoco ejecuta los servicios reales del backend.
+
+### Revisión de español de México
+
+El 12 de septiembre de 2026 se revisaron los textos de acceso, navegación,
+documentos, administración, ayuda y errores, así como las guías de `web/`.
+Se corrigieron tildes, signos de apertura y concordancia; el documento HTML
+declara `es-MX`. Las entidades HTML y los escapes Unicode permiten mostrar
+los caracteres correctos y conservar los archivos de código en ASCII.
+
+- `npm test`: 18 pruebas aprobadas con las expectativas de texto actualizadas.
+- `npm run test:e2e -- --workers=1 --max-failures=2`: 14 pruebas aprobadas en
+  la ejecución final. Una ejecución anterior agotó los 30 segundos de espera
+  durante el acceso simulado; la repetición completa pasó con el mismo límite.
+- `npm run format:check` y `npm run build`: completados correctamente.
+- Revisión visual del acceso móvil, inicio móvil y detalle documental de
+  escritorio: acentos legibles y sin desbordamiento por los textos corregidos.
+
+Las comprobaciones de navegador mantienen la API simulada; no se probaron
+los servicios reales del backend en esta revisión.

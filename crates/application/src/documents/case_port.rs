@@ -6,12 +6,14 @@ use domain::clock::OffsetDateTime;
 use domain::crypto::DocumentId;
 use domain::identity::{Permission, UserId};
 
-use super::{DocumentRecord, DocumentSummary, EvidenceExport};
+use super::{DocumentPage, DocumentQuery, DocumentRecord, DocumentSummary, EvidenceExport};
 use crate::{verification::VerificationReport, ApplicationError};
 
 /// Document operation checked against the current role and case membership.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DocumentAction {
+    List,
+    Read,
     Upload,
     Seal,
     Verify,
@@ -21,6 +23,7 @@ pub enum DocumentAction {
 impl DocumentAction {
     pub const fn permission(self) -> Permission {
         match self {
+            Self::List | Self::Read => Permission::ReadDocument,
             Self::Upload => Permission::CreateDocument,
             Self::Seal => Permission::SealDocument,
             Self::Verify => Permission::VerifyDocument,
@@ -30,6 +33,8 @@ impl DocumentAction {
 
     pub const fn audit_action(self) -> &'static str {
         match self {
+            Self::List => "document.listed",
+            Self::Read => "document.read",
             Self::Upload => "document.uploaded",
             Self::Seal => "document.sealed",
             Self::Verify => "document.verified",
@@ -47,6 +52,18 @@ pub struct CaseDocumentSummary {
 
 /// The online document boundary accepts credentials, never an actor label.
 pub trait CaseDocumentWorkflow: Send + Sync {
+    fn list(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        query: DocumentQuery,
+    ) -> Result<DocumentPage, ApplicationError>;
+    fn get(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+    ) -> Result<CaseDocumentSummary, ApplicationError>;
     fn upload(
         &self,
         token: &str,
@@ -81,6 +98,22 @@ pub trait CaseDocumentWorkflow: Send + Sync {
 /// actor's active status, role, and case membership. Document reads and commits
 /// also require the supplied case to match the stored immutable association.
 pub trait CaseDocumentStore: Send + Sync {
+    /// Filters metadata before pagination and audits access before returning it.
+    fn list(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        query: DocumentQuery,
+        at: OffsetDateTime,
+    ) -> Result<DocumentPage, ApplicationError>;
+    /// Reads metadata only and audits access in the authorization transaction.
+    fn get(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DocumentId,
+        at: OffsetDateTime,
+    ) -> Result<CaseDocumentSummary, ApplicationError>;
     fn check_access(
         &self,
         actor: UserId,
