@@ -155,8 +155,9 @@ pull request as the behavior it describes. Update the affected documents:
   disposable PostgreSQL database. Do not reuse the identity test database:
   its bootstrap test requires an empty user table. `scripts/test-backends.sh`
   provisions isolated identity, case and document databases plus Redis and runs
-  the workspace suite. Document tests use `DOCUMENT_TEST_DATABASE_URL`; missing
-  variables cause the backend tests to return early.
+  the workspace suite. Participant tests use isolated schemas in
+  `CASE_TEST_DATABASE_URL`; document tests use `DOCUMENT_TEST_DATABASE_URL`.
+  Missing variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
   `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
@@ -221,6 +222,14 @@ is still unfinished.
   `docs/adr/0018-authorized-document-queries.md`,
   `docs/adr/0019-immutable-document-versions.md` and
   `docs/adr/0020-audited-document-classification.md`.
+- `migrations/0006_case_participants.sql` persists case-local directory roots
+  and immutable revisions, separate from accounts and memberships. Owner manages
+  all directories; assigned Litigator manages and assigned Paralegal reads;
+  Client remains denied. Replacements require the current revision. Status-only
+  archive/reactivation preserves current text inside the audited transaction.
+  Captured author UUID/email and values remain historical. Legal identity,
+  verified duplicate detection and judicial certificate criteria remain open.
+  See `docs/adr/0021-audited-case-participants.md`.
 - User creation and recovery-code consumption also commit their PostgreSQL
   audit atomically. Redis challenges and sessions do not participate in that
   transaction. Failed audit writes trigger best-effort removal of newly
@@ -246,6 +255,8 @@ is still unfinished.
   verification and evidence download. Classification conflicts preserve drafts
   and require explicit selection of the newer base revision. Actions use the
   selected content version; append conflicts preserve the chosen file.
+  Case navigation also exposes the participant directory, revision history and
+  explicit conflict review for full edits and organizational status changes.
   Preserve its
   design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
@@ -272,8 +283,10 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Model procedural participants, hearings and deadlines separately from
-   existing user access assignments, with authorization and audit contracts.
+2. Complete typed participant identity and procedural case attributes, stages,
+   hearings and deadlines. The manual participant directory is implemented;
+   it does not establish verified identity or judicial authority. Keep legal
+   transitions separate from account assignments and organizational archiving.
 3. Extend the Qadra interface with procedural workflows, user administration,
    dashboard aggregates, reports and audit queries against `docs/http-api.md`.
    Use a user directory for assignment selection instead of requiring raw UUIDs.

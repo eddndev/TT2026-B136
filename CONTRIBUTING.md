@@ -147,8 +147,9 @@ pull request as the behavior it describes. Update the affected documents:
   disposable PostgreSQL database. Do not reuse the identity test database:
   its bootstrap test requires an empty user table. `scripts/test-backends.sh`
   provisions isolated identity, case and document databases plus Redis and runs
-  the workspace suite. Document tests use `DOCUMENT_TEST_DATABASE_URL`; missing
-  variables cause the backend tests to return early.
+  the workspace suite. Participant tests use isolated schemas in
+  `CASE_TEST_DATABASE_URL`; document tests use `DOCUMENT_TEST_DATABASE_URL`.
+  Missing variables cause the backend tests to return early.
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
   `scripts/api-demo.sh` for changes to the integrated HTTP workflow.

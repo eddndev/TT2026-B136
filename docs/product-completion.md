@@ -18,6 +18,13 @@ contenido, con carga inicial atómica y filtros exactos. Las pruebas con HTTP
 simulado y los recorridos contra servicios reales tienen evidencias separadas.
 `frontend/` conserva el ejemplo anterior; el producto continúa en `web/`.
 
+El directorio por expediente agrega fichas independientes de las cuentas, valores
+manuales, archivo/reactivación e historial inmutable con autoría. El rol de acceso
+y la asignación autorizan cada operación; el texto del rol procesal no concede
+permisos. Su base y límites se describen en
+[ADR-0021](adr/0021-audited-case-participants.md). Este avance no cierra los
+criterios de identidad jurídica ni la gestión procesal completa.
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -25,6 +32,7 @@ simulado y los recorridos contra servicios reales tienen evidencias separadas.
 | Consultas documentales e integración Qadra | Listado paginado, detalle, búsqueda literal de nombre y filtro de sellado; selección y creación de expedientes; carga, sello, verificación y evidencia en el expediente seleccionado. | Autorización vigente antes de exponer metadatos; cuatro roles, expedientes ajenos, revocación, filtros antes de paginación, eventos de consulta y errores. Pruebas HTTP, PostgreSQL y navegador. |
 | Versiones documentales | Identidad estable, cifrado vinculado a UUID/versión, evidencia histórica inmutable y selección explícita de snapshot. | ADR-0019, append optimista, migración V1/V7, aislamiento, conflictos, restauración y evidencia byte por byte; resultados en el informe de verificación. |
 | Clasificación documental | Tipo, clasificación y etiquetas organizativas con revisiones auditadas; búsqueda autorizada por metadatos. | ADR-0020, carga atómica, canon Unicode, revisiones esperadas, concurrencia, permisos y restauración sin alterar evidencia; resultados en el informe de verificación. |
+| Directorio de participantes | Fichas por expediente, revisión esperada, historial, filtros, archivo y reactivación con valores vigentes. | ADR-0021, independencia de cuentas, cuatro roles, asociación ajena, concurrencia, auditoría y restauración. No acredita identidad ni firma judicial. |
 | Identidad y firma personal | Resolver autenticación con certificado de socios, identidad del firmante y custodia de claves; altas, bajas, invitaciones y recuperación segura de credenciales. | La clave de firma configurada para el servidor no demuestra firma individual por usuario. Separar recuperación MFA de recuperación de contraseña. Definir contratos y probar revocación con sesiones existentes y fallos de entrega. |
 | Expediente penal y participantes | Datos procesales del expediente; directorio de personas; roles procesales; transiciones con documentos habilitantes e historial. | Las asignaciones de acceso no representan participantes. Reglas probadas en dominio, transacciones y auditoría; vistas que conserven el diseño Qadra. |
 | Audiencias, plazos y calendario | Audiencias vinculadas al expediente, plazos, calendario configurable, vencimientos y alertas persistentes. | Consultar fuentes normativas oficiales vigentes al implementar reglas; casos de prueba de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir validación de las reglas por una simple suma de días. |
@@ -67,7 +75,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Inicio de sesión y sesiones | Parcial | Certificado de socio, recuperación de contraseña e inactividad; contraseña/MFA y logout ya tienen implementación. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Parcial | Añadir identificadores y atributos procesales, edición y cierre; título/referencia y asignaciones ya existen. |
-| Directorio de participantes | Pendiente | Participantes, roles procesales, relaciones y operaciones con auditoría; independientes de cuentas de acceso. |
+| Directorio de participantes | Parcial | Directorio manual, filtros, historial y archivo auditados implementados. Faltan identidad e identificadores según tipo, duplicidad de persona verificada/rol, criterio de órgano/FIREL para juez y condición de expediente penal activo del diseño aprobado. |
 | Transición de etapa procesal | Pendiente | Reglas, documentos habilitantes, historial y rechazo de transiciones inválidas. |
 | Audiencia y activación de plazos | Pendiente | Programación, cambios, cancelaciones y creación consistente de plazos vinculados. |
 | Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
@@ -98,6 +106,11 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   de aislamiento; ocultar botones no constituye autorización.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
+- El archivo de una ficha es organizativo. No prueba una transición jurídica,
+  nombramiento o legitimación; una etiqueta procesal no modifica RBAC. La revisión
+  de fuentes oficiales en ADR-0021 mantiene separados certificado, identidad y
+  representación. Los criterios de FIREL del catálogo siguen abiertos; no se
+  sustituyen por un campo manual ni se eliminan por falta de sustento localizado.
 - La TSA local y la CA interna permiten verificar evidencia técnica. La campaña
   con un PSC externo permanece fuera de la entrega actual, según
   [la decisión sobre TSA local](adr/0009-local-timestamp-authority.md).
