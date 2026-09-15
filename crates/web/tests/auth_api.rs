@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use application::documents::{CaseDocumentSummary, CaseDocumentWorkflow, EvidenceExport};
+use application::documents::{
+    CaseDocumentSummary, CaseDocumentWorkflow, DocumentPage, DocumentQuery, EvidenceExport,
+};
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
 };
@@ -21,6 +23,24 @@ use zeroize::Zeroizing;
 struct UnusedDocuments;
 
 impl CaseDocumentWorkflow for UnusedDocuments {
+    fn list(
+        &self,
+        _token: &str,
+        _case_id: CaseId,
+        _query: DocumentQuery,
+    ) -> Result<DocumentPage, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+
+    fn get(
+        &self,
+        _token: &str,
+        _case_id: CaseId,
+        _id: DocumentId,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        Err(ApplicationError::Port("unused".to_string()))
+    }
+
     fn upload(
         &self,
         _token: &str,

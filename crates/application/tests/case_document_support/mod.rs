@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use application::documents::{
-    CaseDocumentService, CaseDocumentStore, DocumentAction, DocumentRecord,
+    CaseDocumentService, CaseDocumentStore, CaseDocumentSummary, DocumentAction, DocumentPage,
+    DocumentQuery, DocumentRecord,
 };
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
@@ -17,6 +18,8 @@ use mockall::mock;
 mock! {
     pub Store {}
     impl CaseDocumentStore for Store {
+        fn list(&self, actor: UserId, case: CaseId, query: DocumentQuery, at: OffsetDateTime) -> Result<DocumentPage, ApplicationError>;
+        fn get(&self, actor: UserId, case: CaseId, id: DocumentId, at: OffsetDateTime) -> Result<CaseDocumentSummary, ApplicationError>;
         fn check_access(&self, actor: UserId, case: CaseId, action: DocumentAction) -> Result<(), ApplicationError>;
         fn load(&self, actor: UserId, case: CaseId, id: DocumentId, action: DocumentAction) -> Result<DocumentRecord, ApplicationError>;
         fn insert(&self, actor: UserId, case: CaseId, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;

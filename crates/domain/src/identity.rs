@@ -68,14 +68,16 @@ impl Role {
             Self::Owner => true,
             Self::Litigator => matches!(
                 permission,
-                Permission::CreateDocument
+                Permission::ReadDocument
+                    | Permission::CreateDocument
                     | Permission::SealDocument
                     | Permission::VerifyDocument
                     | Permission::ExportEvidence
             ),
             Self::Paralegal => matches!(
                 permission,
-                Permission::CreateDocument
+                Permission::ReadDocument
+                    | Permission::CreateDocument
                     | Permission::VerifyDocument
                     | Permission::ExportEvidence
             ),
@@ -101,6 +103,7 @@ impl FromStr for Role {
 /// An application action that requires authorization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Permission {
+    ReadDocument,
     CreateDocument,
     SealDocument,
     VerifyDocument,

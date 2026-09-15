@@ -11,11 +11,13 @@ use std::sync::Arc;
 
 mod documents;
 mod identity;
+mod queries;
 use documents::{export_evidence, seal_document, upload_document, verify_audit, verify_document};
 use identity::{
     bootstrap_owner, complete_recovery, complete_totp, create_user, current_user, logout,
     start_login,
 };
+use queries::{get_document, list_documents};
 
 const MAX_DOCUMENT_BYTES: usize = 16 * 1024 * 1024;
 
@@ -42,7 +44,11 @@ pub fn router(
         .layer(DefaultBodyLimit::max(16 * 1024));
     Router::new()
         .merge(identity_routes)
-        .route("/api/v1/cases/:case_id/documents", post(upload_document))
+        .route(
+            "/api/v1/cases/:case_id/documents",
+            get(list_documents).post(upload_document),
+        )
+        .route("/api/v1/cases/:case_id/documents/:id", get(get_document))
         .route(
             "/api/v1/cases/:case_id/documents/:id/seal",
             post(seal_document),

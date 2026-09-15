@@ -9,8 +9,8 @@ use domain::crypto::DocumentId;
 use domain::identity::{Permission, UserId};
 
 use super::{
-    CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction,
-    DocumentProcessor, DocumentSummary, EvidenceExport,
+    CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction, DocumentPage,
+    DocumentProcessor, DocumentQuery, DocumentSummary, EvidenceExport,
 };
 use crate::{identity::IdentityWorkflow, verification::VerificationReport, ApplicationError};
 
@@ -58,6 +58,26 @@ impl CaseDocumentService {
 }
 
 impl CaseDocumentWorkflow for CaseDocumentService {
+    fn list(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        query: DocumentQuery,
+    ) -> Result<DocumentPage, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDocument)?;
+        self.store.list(actor, case_id, query, self.clock.now())
+    }
+
+    fn get(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDocument)?;
+        self.store.get(actor, case_id, id, self.clock.now())
+    }
+
     fn upload(
         &self,
         token: &str,
