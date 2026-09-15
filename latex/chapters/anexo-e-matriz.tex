@@ -300,11 +300,25 @@ El contrato de listado y detalle por expediente se comprueba mediante archivos s
 
 Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-audited-document-classification.md}. La clasificación no forma parte de los bytes cifrados ni del paquete de evidencia de una versión. Las ejecuciones globales y de navegador se registran por separado de la definición de escenarios y conservan la identificación histórica de cada medición.
 
+\section{Trazabilidad del directorio de participantes}\label{sec:matriz-participantes}
+
+{\raggedright Los valores, la revisión positiva, los permisos y el canon se definen en \rutarepo{crates/domain/src/participants/} y se ejercitan en \rutarepo{crates/domain/tests/participants.rs}. La orquestación y los cursores se verifican en \rutarepo{crates/application/tests/participant_workflow.rs} y \rutarepo{crates/application/tests/participant_query.rs}. El estado organizativo tiene su puerto propio; los dobles de prueba exigen una llamada transaccional sin lectura exterior seguida de reemplazo.\par}
+
+{\raggedright Las pruebas de PostgreSQL se encuentran en \rutarepo{crates/infrastructure/tests/participant_workflow.rs}, \rutarepo{crates/infrastructure/tests/participant_authorization.rs} y \rutarepo{crates/infrastructure/tests/participant_queries.rs}: autoría capturada, homónimos, cuatro roles, asociación por expediente, filtros actuales y cursores. Los archivos \rutarepo{crates/infrastructure/tests/participant_concurrency.rs} y \rutarepo{crates/infrastructure/tests/participant_failures.rs} cubren revisión esperada, archivo frente a edición, revocación, fallos de fila, auditoría y commit, y rechazo de valores persistidos inconsistentes.\par}
+
+{\raggedright La migración y protección del esquema se contrastan en \rutarepo{crates/infrastructure/tests/participant_migration.rs}, \rutarepo{crates/infrastructure/tests/participant_schema.rs} y \rutarepo{crates/infrastructure/tests/participant_sql_invariants.rs}. Los ensayos verifican canon Rust/SQL/OpenSSL, primer estado activo, máximo del contador y privilegios de ejecución. \rutarepo{crates/infrastructure/tests/participant_restore.rs} reproduce funciones con \texttt{search\_path} vacío, respaldo y restauración completos y reapertura restringida. \rutarepo{crates/infrastructure/tests/legacy_participants.rs} comprueba que la primera importación exige el directorio vacío y que la reconciliación conserva participantes añadidos posteriormente.\par}
+
+{\raggedright El contrato HTTP se ejercita en \rutarepo{crates/web/tests/participant_api.rs} y \rutarepo{crates/web/tests/participant_validation.rs}. Las pruebas del cliente y los escenarios de estado, filtros y conflictos residen en \rutarepo{web/tests/participants.test.mjs} y los archivos \texttt{participant-*} de \rutarepo{web/tests/browser/}. El recorrido contra servicios reales está en \rutarepo{web/tests/live/case-participants.spec.mjs}. La demostración integrada se extiende mediante \rutarepo{scripts/api-participant-demo.sh}; el respaldo compara raíces, revisiones, procedencia y auditoría junto con la evidencia documental.\par}
+
+{\raggedright La especificación y sus límites corresponden a \rutarepo{docs/adr/0021-audited-case-participants.md}. El nombre y el rol son valores manuales; las pruebas automáticas no comprueban identidad jurídica, FIREL, duplicidad de persona verificada ni la condición procesal del expediente. La aceptación del caso de uso permanece parcial.\par}
+
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
 Para versiones, el navegador aprobó 28 pruebas unitarias, 32 con respuestas HTTP simuladas y un escenario contra servicios reales. Este último confirmó selección histórica, bytes distintos en la versión 2, ZIP de la versión 1 idéntico al inicial y persistencia de ambas después de autenticar de nuevo, sin errores JavaScript. El escenario se ejecutó con \rutarepo{scripts/web-demo.sh}; su conteo no se suma al de pruebas Rust.
 
 La entrega posterior de clasificación aprobó 34 pruebas unitarias de interfaz, 47 escenarios con respuestas simuladas y dos recorridos reales. El nuevo escenario prueba carga atómica, cambios concurrentes con borrador conservado, comparación explícita, limpieza como revisión cinco, historia del autor y recuperación tras reingreso. Reclasificar y vaciar campos conservan los ZIP de las dos versiones; la comprobación de versiones previa sigue vigente. La interfaz reutiliza componentes y estilos Qadra sin atribuir a estas ejecuciones una evaluación de usabilidad con personal del despacho.
+
+El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido nuevo confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
@@ -315,6 +329,8 @@ El ensayo del 14 de septiembre, que incorpora listado, detalle y filtros documen
 El ensayo posterior de versiones inmutables del 14 de septiembre aprobó \textbf{577 pruebas, 0 fallos y 1 ignorada externa}, con persistencia real aislada. Formato, compilación y Clippy aprobaron. La demostración HTTP añadió contenido con control de cabeza esperada, rechazó alias ambiguos y preservó el ZIP de la primera versión; el respaldo y restauración conservaron ambas versiones y exportaciones. Este resultado amplía el alcance técnico sin sustituir las cifras históricas de consultas ni el inventario del 12 de septiembre.
 
 La entrega de clasificación del mismo día registra \textbf{644 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva el prefijo importado de 51 eventos y respalda cinco raíces, seis versiones documentales y tres revisiones organizativas; restaurar mantiene filas, UUID y correo histórico, e igualdad de los ZIP de las versiones 1 y 2. Las cifras de 539 y 577 pruebas se conservan como resultados históricos de consultas y versiones, respectivamente.
+
+El corte del directorio del 14 de septiembre registra \textbf{704 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva dos participantes con seis revisiones, cinco raíces documentales, seis versiones y tres revisiones de clasificación después de restaurar. Los autores, fechas y valores históricos coinciden, al igual que los ZIP de evidencia. El prefijo importado sigue identificado como 51 eventos de cuatro documentos; no representa la cantidad final de eventos.
 
 \rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:
 
@@ -356,6 +372,8 @@ La medición del 14 de septiembre de 2026 registró 8\,256 líneas cubiertas de 
 La ejecución instrumentada de versiones inmutables del mismo día aprobó 577 pruebas, con una externa ignorada, y cubrió 8\,908 de 9\,719 líneas: 91.7\,\% global. El detalle por crate y los tres umbrales aprobados aparecen en la \cref{tab:pruebas-cobertura-versiones}. Estas cifras describen el nuevo alcance; no reemplazan las 539 pruebas y 91.0\,\% del ensayo de consultas.
 
 La clasificación registra 9\,854 de 10\,670 líneas cubiertas, equivalentes a 92.4\,\% global. El desglose se presenta en la \cref{tab:pruebas-cobertura-clasificacion}, con los tres umbrales obligatorios aprobados. El resultado pertenece a la ejecución instrumentada de 644 pruebas y no sustituye los denominadores históricos.
+
+La cobertura del directorio registra 10\,994 de 11\,838 líneas, equivalentes a 92.9\,\% global, sobre 704 pruebas aprobadas y una externa ignorada. Los tres umbrales obligatorios aprobaron; la \cref{tab:pruebas-cobertura-participantes} presenta numeradores y denominadores por crate. Esta medición conserva separados los resultados anteriores.
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 

@@ -1,5 +1,79 @@
 # Verificación de la actualización académica
 
+## Directorio de participantes: 14 de septiembre de 2026
+
+Se actualizaron alcance, diseño, modelo y permisos, implementación HTTP,
+restauración, interfaz, matriz de pruebas, anexo de trazabilidad, bibliografía
+y README. La descripción sigue [ADR-0021](adr/0021-audited-case-participants.md):
+fichas por expediente independientes de cuentas y asignaciones, valores manuales,
+canon PART1, revisión esperada, autor UUID y correo capturados, y cambio exclusivo
+de estado dentro de la transacción. Las consultas seleccionan la revisión actual
+antes de filtrar y usan cursores exclusivos. Los resultados se devuelven después
+de confirmar auditoría; los comandos retornan su propia instantánea confirmada.
+
+El directorio conserva su condición de cumplimiento parcial del catálogo:
+identidad e identificadores por tipo, duplicidad de persona verificada y rol,
+órgano/FIREL y expediente penal activo permanecen abiertos. Se agregaron referencias
+primarias al CNPP consolidado y a los acuerdos OAJ de 2026 fuera del marco teórico
+protegido. La explicación distingue sujetos, partes, etiquetas manuales, cuentas
+y firma. Identifica la abrogación del Acuerdo 12/2020 y la derogación parcial del
+acuerdo conjunto 1/2013 dentro de la competencia del OAJ, sin presentar esos
+antecedentes como disposiciones actuales ni cambiar los criterios aprobados.
+
+El nuevo corte registra 704 pruebas Rust aprobadas, cero fallos y una externa
+ignorada; son 60 pruebas adicionales: 21 de dominio/aplicación, 12 HTTP y 27 de
+infraestructura. La cobertura instrumentada es de 10 994 sobre 11 838 líneas
+(92.9 %), con los tres umbrales obligatorios aprobados. Formato, compilación,
+Clippy, política de dependencias, CLI y demostración API terminaron con código
+cero. Se documentó también el cambio de `chacha20` 0.10.1 retirado a 0.10.2,
+con la corrección SSE2 publicada por RustCrypto; no se atribuye un aviso RUSTSEC.
+Las mediciones previas de consultas, versiones y clasificación mantienen sus
+conteos y denominadores históricos.
+
+La restauración conserva dos participantes y seis revisiones, cinco raíces
+documentales y seis versiones de contenido, además de tres revisiones de
+clasificación. Las filas completas, valores, UUID y correos históricos, fechas
+y ZIP de evidencia coinciden antes y después. Los cuatro documentos y 51 eventos
+identifican el origen importado y su prefijo, no el inventario final. Estos
+resultados proceden del [informe técnico](verification-report.md) y se distinguen
+de la compilación y revisión documental.
+
+La interfaz aprobó 38 pruebas unitarias, 65 escenarios simulados en 24.6 segundos
+y tres recorridos con servicios reales en 39.4 segundos, además de formato y
+compilación. El directorio conserva borradores, confirma conflictos de edición
+y archivo explícitamente, recupera la revisión siete tras reingreso y alcanza
+la octava desde la cuenta del litigante. Paralegal consulta la historia, Cliente
+no solicita el directorio y la revocación elimina datos visibles. El ZIP previo
+permanece idéntico, sin errores JavaScript. Los tiempos pertenecen a las pruebas;
+no se presentan como latencia de producto ni como evaluación de usabilidad.
+
+### Compilación y revisión documental
+
+Se ejecutó el Makefile versionado con LuaLaTeX, biber y glosarios en una copia
+temporal nueva de las fuentes, con caché de fuentes separada. La compilación final
+terminó con código cero: **256 páginas**, formato carta y **5 643 905 bytes**.
+El artefacto local es `output/pdf/TT2026-B136-participantes-qadra-2026-09-14.pdf`,
+acompañado de manifiesto de fuentes y SHA-256, sin incorporarlos a Git. Su hash es
+`a1034aad4df60ceaf4e9b5bf86605e813242fe4833993899424fe0ff469404c3`.
+Los 51 archivos del manifiesto compilado coinciden con las fuentes actuales.
+
+Se renderizaron y revisaron **65 páginas** afectadas y adyacentes: índices,
+alcance, diseño, modelo, permisos, implementación, contratos HTTP, límites
+jurídicos, restauración, interfaz, pruebas, cobertura, bibliografía y trazabilidad.
+Se corrigieron las líneas largas del nuevo anexo con alineación izquierda local;
+las rutas y tablas resultantes son legibles, sin recortes ni superposiciones.
+La revisión final no encontró citas o referencias indefinidas, etiquetas duplicadas
+ni glifos ausentes; el control de coordenadas no detectó palabras fuera del área
+segura. Solo permanecen las sustituciones históricas de versalitas de Times New
+Roman y el desborde de 0.11754 pt del índice de tablas, sin defecto visual apreciable.
+
+Resumen, objetivos, revisión de plataformas, marco teórico y conclusiones
+pendientes conservan su contenido. Los nueve PDFs anteriores, incluido
+`latex/main.pdf`, y los 34 archivos de presentación mantienen sus hashes;
+son 41 rutas únicas al incluir los PDFs externos a presentación. La presentación
+no se modificó. La evidencia documental corresponde a esta compilación local
+y no afirma una nueva ejecución remota.
+
 ## Clasificación documental auditada: 14 de septiembre de 2026
 
 Se actualizaron introducción, modelo de datos, permisos, implementación,

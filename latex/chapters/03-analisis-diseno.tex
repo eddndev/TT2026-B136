@@ -1937,9 +1937,9 @@ La \cref{tab:comparativa-estilos} sintetiza la comparativa entre las seis altern
 
 La arquitectura hexagonal, propuesta originalmente por Alistair Cockburn en 2005 \cite{cockburn2005} y refinada por Vernon \cite{vernon2013} en el contexto del Domain-Driven Design \cite{evans2003}, organiza una aplicación de software en tres capas concéntricas: el dominio en el centro, la aplicación en la capa intermedia, y los adaptadores en la capa exterior.
 
-El dominio define identidades y permisos, metadatos de expediente, documentos y sus versiones, evidencia criptográfica y eventos de auditoría. Su extensión para la gestión procesal prevé participantes, audiencias y etapas. La regla fundamental es que el dominio no importa ninguna otra capa del workspace; utiliza bibliotecas de bajo nivel para tipos, serialización, fechas, errores y manejo de secretos.
+El dominio define identidades y permisos, metadatos de expediente, participantes del directorio, documentos y sus versiones, evidencia criptográfica y eventos de auditoría. Los valores del directorio describen información organizativa; la extensión procesal prevé identidad jurídica, audiencias y etapas. La regla fundamental es que el dominio no importa ninguna otra capa del workspace; utiliza bibliotecas de bajo nivel para tipos, serialización, fechas, errores y manejo de secretos.
 
-{\emergencystretch=2em La capa de aplicación implementa \texttt{Identity\allowbreak Service}, \texttt{Case\allowbreak Service} y \texttt{Case\allowbreak Document\allowbreak Service}, además de los servicios criptográficos y del flujo documental fuera de línea. Sus puertos expresan las dependencias externas, incluida la frontera transaccional \texttt{Case\allowbreak Document\allowbreak Store}. La programación de audiencias y la transición de etapas son casos de uso previstos. La aplicación depende del dominio y no de los adaptadores.\par}
+{\emergencystretch=2em La capa de aplicación implementa \texttt{Identity\allowbreak Service}, \texttt{Case\allowbreak Service}, \texttt{Case\allowbreak Document\allowbreak Service} y \texttt{Participant\allowbreak Service}, además de los servicios criptográficos y del flujo documental fuera de línea. Sus puertos expresan las dependencias externas, incluidas las fronteras transaccionales \texttt{Case\allowbreak Document\allowbreak Store} y \texttt{Participant\allowbreak Store}. La programación de audiencias y la transición de etapas son casos de uso previstos. La aplicación depende del dominio y no de los adaptadores.\par}
 
 Los adaptadores concretan los puertos. Las entradas implementadas son la API Axum y la interfaz de línea de comandos. Las salidas incluyen PostgreSQL mediante \texttt{postgres}, sesiones Redis mediante \texttt{redis}, bibliotecas criptográficas, OpenSSL y la TSA local. Los adaptadores de archivo permanecen para el flujo fuera de línea; el proveedor remoto opcional usa \texttt{reqwest}. Los handlers WebSocket y el envío SMTP son parte del diseño previsto. Los clientes de persistencia actuales son síncronos y se aíslan del runtime HTTP mediante trabajo bloqueante acotado.
 
@@ -2108,7 +2108,7 @@ El permiso de trabajo bloqueante permanece ocupado hasta que termina la operaci�
 
 \subsubsection{Inyección de dependencias por composición}\label{sec:inyeccion-dependencias}
 
-La inyección de dependencias se realiza explícitamente en el crate \texttt{bin}, sin contenedor de DI. En \texttt{serve\_cmd.rs} se construyen \texttt{Identity\allowbreak Service}, \texttt{Case\allowbreak Service} y \texttt{Case\allowbreak Document\allowbreak Service} con repositorios PostgreSQL, sesiones Redis y un \texttt{DocumentProcessor} que reúne los adaptadores criptográficos y la TSA local. Los traits permiten verificar que cada implementación satisface su puerto. El material del firmante se carga en la configuración del servidor; la sesión identifica al actor de la operación, pero no selecciona una clave privada individual por usuario.
+La inyección de dependencias se realiza explícitamente en el crate \texttt{bin}, sin contenedor de DI. En \texttt{serve\_cmd.rs} se construyen \texttt{Identity\allowbreak Service}, \texttt{Case\allowbreak Service}, \texttt{Case\allowbreak Document\allowbreak Service} y \texttt{Participant\allowbreak Service} con repositorios PostgreSQL, sesiones Redis y un \texttt{DocumentProcessor} que reúne los adaptadores criptográficos y la TSA local. Los traits permiten verificar que cada implementación satisface su puerto. El material del firmante se carga en la configuración del servidor; la sesión identifica al actor de la operación, pero no selecciona una clave privada individual por usuario.
 
 \subsubsection{Observabilidad estructurada}\label{sec:observabilidad}
 
@@ -2201,7 +2201,7 @@ El sistema emplea un modelo de persistencia híbrido que combina \textbf{Postgre
 
 \subsection{PostgreSQL: Datos Persistentes con Valor Probatorio}\label{sec:postgresql}
 
-PostgreSQL proporciona las transacciones y claves foráneas necesarias para relacionar usuarios, expedientes, asignaciones y documentos. El esquema consta de \rutarepo{users}, \rutarepo{cases}, \rutarepo{case_memberships}, \rutarepo{documents}, \rutarepo{audit_events} y \rutarepo{migration_receipts}. El contenido documental cifrado se guarda como bytes y la evidencia capturada como JSONB. El modelo de expediente representa título, referencia y creador; las asignaciones relacionan a los usuarios que pueden acceder a él. La gestión procesal ampliará este modelo con atributos, participantes y relaciones propias de cada procedimiento.
+PostgreSQL relaciona usuarios, expedientes, asignaciones, participantes y documentos mediante transacciones y claves foráneas. Las raíces documentales, sus versiones y las revisiones de clasificación se conservan separadas. El directorio añade \rutarepo{case_participants} y \rutarepo{case_participant_revisions}: cada raíz tiene un expediente inmutable y cada revisión conserva valores, huella y autor. Los archivos cifrados se guardan como bytes y su evidencia como JSONB; las fichas organizativas permanecen en claro bajo autorización. El expediente representa título, referencia y creador; las asignaciones conceden acceso a cuentas, sin crear fichas de participantes. La extensión procesal añadirá atributos y relaciones jurídicas.
 
 La bitácora \rutarepo{audit_events} conserva secuencia, marca temporal canónica, actor, acción, recurso y hash encadenado. Un bloqueo consultivo común ordena las transacciones mutantes de documentos, expedientes e identidad y el cálculo de la siguiente entrada. La mutación y su evento se confirman o se revierten juntos en PostgreSQL; la criptografía y las solicitudes a la TSA se preparan fuera de esa transacción. Verificación y exportación revalidan acceso y confirman su evento antes de entregar resultados. La atomicidad se limita a PostgreSQL, mientras Redis mantiene el estado efímero de autenticación por separado. Si se pierde la respuesta de una confirmación, la recuperación debe comprobar el estado persistido antes de repetir la operación.
 
@@ -2237,7 +2237,7 @@ La \cref{fig:modelo-datos} presenta el diseño conceptual de la persistencia hí
   \label{fig:modelo-datos}
 \end{figure}
 
-En PostgreSQL, las claves foráneas vinculan cada documento con su expediente y cada asignación con un usuario. La columna \texttt{audit\_events.chain} enlaza los eventos de auditoría, y los privilegios del rol operativo protegen su carácter de solo inserción. Las asignaciones administran acceso a la información; el directorio de participantes procesales se propone como una relación distinta dentro del modelo jurídico.
+En PostgreSQL, las claves foráneas vinculan cada documento con su expediente y cada asignación con un usuario. La columna \texttt{audit\_events.chain} enlaza los eventos de auditoría, y los privilegios del rol operativo protegen su carácter de solo inserción. Las asignaciones administran acceso a la información; el directorio mantiene raíces y revisiones propias, sin vincular la identidad representada con una cuenta ni deducirla de nombres coincidentes. La figura describe relaciones conceptuales; las claves físicas y las revisiones del directorio se especifican en la \cref{sec:impl-http-participantes}.
 
 \section{Diagrama de Despliegue y Stack Tecnológico}\label{sec:despliegue}
 
@@ -2262,9 +2262,11 @@ Las conexiones PostgreSQL y Redis usan clientes síncronos detrás de puertos de
 
 La fundamentación del proceso penal expuesta en el marco teórico tiene una consecuencia directa sobre el diseño del prototipo: la base de datos no puede ser un conjunto de tablas genéricas, sino que debe reflejar fielmente las dependencias y restricciones que el CNPP impone. Esta sección articula los vínculos explícitos entre la teoría jurídica y los requerimientos funcionales.
 
-El expediente reúne título, referencia, creador, documentos y asignaciones. La extensión procesal propuesta incorpora las etapas del CNPP \cite{cnpp2021}, el escrito de acusación para Intermedia y el auto de apertura para Juicio Oral. Transiciones, participantes, audiencias y plazos se modelarán por separado. Cada documento conserva identidad estable y versiones inmutables con cifrado y evidencia propios. El listado filtra la versión máxima; el historial permite elegir otra sin sustituirla. Anexar exige la versión vigente esperada para rechazar cambios concurrentes incompatibles. Consultas y acciones requieren autorización por expediente y auditoría confirmada.
+El expediente reúne título, referencia, creador, documentos y asignaciones. La extensión procesal propuesta incorpora las etapas del CNPP \cite{cnpp2021}, el escrito de acusación para Intermedia y el auto de apertura para Juicio Oral. El directorio organizativo conserva participantes por expediente; transiciones, identidad jurídica, audiencias y plazos requieren modelos propios. Cada documento conserva identidad estable y versiones inmutables con cifrado y evidencia propios. El listado filtra la versión máxima; el historial permite elegir otra sin sustituirla. Anexar exige la versión vigente esperada para rechazar cambios concurrentes incompatibles. Consultas y acciones requieren autorización por expediente y auditoría confirmada.
 
 La clasificación conserva una historia independiente de tipo, categoría y etiquetas en claro, con revisión, huella, instante y autor. El reemplazo exige la revisión esperada; la carga clasificada confirma raíz, archivo y clasificación en una transacción auditada. Los filtros toman ambas cabezas actuales. La clasificación no modifica permisos ni evidencia criptográfica, conforme a \rutarepo{docs/adr/0020-audited-document-classification.md}.
+
+El directorio distingue la identidad de la ficha, su revisión y la cuenta autora. La creación fija estado activo y revisión uno; editar, archivar o reactivar añade un sucesor con revisión esperada. El cambio exclusivo de estado conserva los textos actuales dentro de la transacción, evitando sobrescribir una edición concurrente. Lecturas e historia requieren auditoría confirmada. Los homónimos son válidos: nombre y rol manual no demuestran identidad, representación ni permisos. El diseño conserva abiertos los criterios de identificación por tipo, órgano/FIREL, duplicidad verificada y expediente penal activo, conforme a \rutarepo{docs/adr/0021-audited-case-participants.md}.
 
 \section{Diseño Criptográfico del Prototipo}\label{sec:diseno-cripto}
 
@@ -2336,7 +2338,7 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
 
 \begin{table}[H]
   \centering
-  \caption{Permisos de acceso a las operaciones documentales.}
+  \caption{Permisos de acceso documental y del directorio.}
   \label{tab:permisos-implementados}
   \begin{tabularx}{\linewidth}{@{}X C{0.12\linewidth} C{0.14\linewidth} C{0.14\linewidth} C{0.12\linewidth}@{}}
     \toprule
@@ -2348,6 +2350,8 @@ La autorización usa el rol y la cuenta activos de PostgreSQL. Owner ve todos lo
     Sellar documento & Sí & Sí & No & No \\
     Verificar documento & Sí & Sí & Sí & No \\
     Exportar evidencia & Sí & Sí & Sí & No \\
+    Consultar directorio e historial & Sí & Sí & Sí & No \\
+    Crear, editar o archivar ficha & Sí & Sí & No & No \\
     Verificar auditoría completa & Sí & No & No & No \\
     \bottomrule
   \end{tabularx}
