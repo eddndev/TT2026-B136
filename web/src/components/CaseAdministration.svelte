@@ -5,7 +5,7 @@
   import CaseHistory from './CaseHistory.svelte';
   import { manageCase } from '../lib/case-administration.mjs';
   import { caseState } from '../lib/case-state.mjs';
-  export let api, scoped, user, record, onupdate, ondenied, onrefresh;
+  export let api, scoped, user, record, onupdate, ondenied, onrefresh, onnavigate;
   const state = caseState();
   let editing = null,
     statusDialog,
@@ -101,6 +101,7 @@
     </details>
   {:else}<h2>Etapa sin registrar</h2>
     <p>Completar la ficha no crea un registro de etapa ni reconstruye actos anteriores.</p>{/if}
+  <button class="text-button" onclick={() => onnavigate('stages')}>Consultar etapas</button>
 </section>
 {#if manageCase(user.role)}<CaseStatus
     bind:this={statusDialog}

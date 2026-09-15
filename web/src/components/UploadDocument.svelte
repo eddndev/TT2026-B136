@@ -9,13 +9,15 @@
   import { safeFilename, validateUpload } from '../lib/documents.mjs';
   export let api;
   export let onuploaded;
+  export let ondenied = () => {};
   let dialog;
   let fields;
   let draft = metadataDraft();
   let alive = true;
   let file = null;
   let name = '';
-  let busy = false;
+  export let busy = false,
+    disabled = false;
   let error = '';
   let blockedByCase = false;
   $: if (blockedByCase && !$administration.closed) {
@@ -25,7 +27,7 @@
   let dragging = false;
   let input;
   export function open() {
-    if ($administration.closed) return;
+    if ($administration.closed || disabled) return;
     error = '';
     dialog.showModal();
   }
@@ -45,7 +47,7 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy || $administration.closed) return;
+    if (busy || disabled || $administration.closed) return;
     error = validateUpload(file, name);
     if (error) return;
     let metadata;
@@ -65,6 +67,7 @@
       close();
     } catch (failure) {
       if (failure.code === 'case_closed') blockedByCase = true;
+      if (alive && [403, 404].includes(failure.status)) ondenied(failure);
       if (alive) error = mutationError(failure, 'cargar');
     } finally {
       if (alive) busy = false;
@@ -144,7 +147,7 @@
     <CaseClosedNotice />
     <div class="dialog-actions">
       <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button
-      ><button class="primary" disabled={busy || $administration.closed}
+      ><button class="primary" disabled={busy || disabled || $administration.closed}
         >{busy ? 'Cargando documento...' : 'Cargar documento'}<Icon
           name="arrow"
           size={17}
