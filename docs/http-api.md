@@ -200,8 +200,8 @@ la sesión vigente; `X-Actor` no forma parte del contrato.
 | `GET /api/v1/audit/verify` | Verificar auditoría | Verifica la cadena PostgreSQL completa y reporta el primer índice roto. |
 
 Carga, sellado y detalle devuelven `case_id`, `id`, `version`, `name`, `digest`
-hexadecimal y `sealed` en el mismo objeto JSON. El historial de versiones y la
-clasificación documental siguen pendientes. Las antiguas rutas
+hexadecimal y `sealed` en el mismo objeto JSON. Listado y detalle muestran la
+versión actual. La clasificación documental sigue pendiente. Las antiguas rutas
 `/api/v1/documents` y `/api/v1/documents/{document_id}/...` responden `404`; no
 son alias de la API por expediente.
 
@@ -212,6 +212,7 @@ asignación vigente además del permiso de la siguiente matriz:
 | --- | --- | --- | --- | --- |
 | Listar y consultar metadatos documentales | sí | sí | sí | no |
 | Crear documento | sí | sí | sí | no |
+| Añadir versión y consultar historial | sí | sí | sí | no |
 | Sellar documento | sí | sí | no | no |
 | Verificar documento | sí | sí | sí | no |
 | Exportar evidencia | sí | sí | sí | no |
@@ -235,8 +236,8 @@ respuesta ya confirmada puede terminar de transmitirse después de la revocació
 
 Sellar otra vez un documento sellado responde `409 document_already_sealed`
 sin reemplazar su evidencia. Dos preparaciones concurrentes pueden solicitar
-sellos, pero solo una confirma y la otra recibe conflicto. No se ofrece cambio
-de contenido ni reasignación de expediente.
+sellos, pero solo una confirma y la otra recibe conflicto. El contenido nuevo
+se añade como otra versión; no se sobrescribe contenido ni se reasigna expediente.
 
 ### Listado y búsqueda de metadatos
 
@@ -254,8 +255,10 @@ Authorization: Bearer <access_token>
 ```
 
 La respuesta tiene forma `{"documents": [...], "has_more": false}`. Los
-elementos usan el mismo formato del detalle. El filtro por expediente y los
-filtros de búsqueda se aplican antes de paginar; el orden es UUID ascendente.
+elementos usan el mismo formato del detalle. Se elige primero la versión actual
+de cada documento y después se aplican los filtros antes de paginar; el orden
+es UUID ascendente. Una versión anterior sellada no aparece como resultado
+sellado si la actual está pendiente.
 `has_more` informa si existía otro resultado en esa consulta, no el total del
 despacho. La paginación por desplazamiento no mantiene una fotografía entre
 peticiones: una inserción concurrente puede desplazar páginas posteriores.
@@ -272,6 +275,54 @@ Límites o nombres inválidos responden `422`; parámetros desconocidos o con ti
 inválidos responden `400`. Una consulta válida sin resultados devuelve una lista
 vacía, mientras que un expediente no autorizado conserva su respuesta `404`.
 
+### Historial y versiones exactas
+
+Base de las rutas siguientes:
+`/api/v1/cases/{case_id}/documents/{document_id}`.
+
+| Método y sufijo | Resultado |
+| --- | --- |
+| `POST /versions?expected_version=N` | Añade N+1 con UUID conservado; cuerpo binario hasta 16 MiB y `X-Document-Name`; devuelve metadatos con `201`. |
+| `GET /versions?limit=50&before_version=N` | Historial descendente de metadatos, con cursor exclusivo y `200`. |
+| `GET /versions/{version}` | Metadatos de la versión exacta; `200`. |
+| `POST /versions/{version}/seal` | Sella solamente esa versión; metadatos con `200`. |
+| `POST /versions/{version}/verify` | Reporte con `case_id`, `id`, `version` y los componentes/veredicto habituales; `200`. |
+| `GET /versions/{version}/evidence` | ZIP exacto con `X-Document-Id`, `X-Document-Version` y `X-Document-Digest`; `200`. |
+
+El historial devuelve `{"versions": [...], "has_more": true,
+"next_before_version": 2, "first_available_version": 1}`. `limit` admite
+1–100; `before_version` es opcional y positivo. Si hay otra página,
+`next_before_version` identifica el cursor a enviar; en caso contrario es
+`null`. La primera versión disponible puede ser mayor que uno para un origen
+importado; no se fabrican sus revisiones previas. Las nuevas versiones aparecen
+al refrescar la primera página, sin desplazar las páginas ya recorridas.
+
+Una versión de ruta debe ser un entero positivo de 32 bits; valores inválidos
+producen `400 invalid_document_version`. Un cursor cero, límite fuera de rango
+o `expected_version=0` produce `422`; parámetros desconocidos, tipos inválidos
+y ausencia de `expected_version` producen `400`. Archivo y cabecera de nombre
+conservan las validaciones de la carga inicial. Una versión inexistente y una
+asociación documental ajena conservan la misma respuesta `404 document_not_found`.
+
+Si la cabeza ya no coincide con `expected_version`, el servidor responde
+`409 document_version_conflict`. No cambia ninguna versión ni confirma un evento
+de esa tentativa. El cliente conserva el archivo, refresca y permite revisarlo
+antes de otro envío; no aumenta el número esperado automáticamente. Si se
+agota el rango, responde `409 document_version_exhausted`.
+
+Las rutas `/seal`, `/verify` y `/evidence` sin número siguen resolviendo una
+única versión disponible. Si al resolver existen varias, responden
+`409 document_version_required`. Una vez resuelta, la operación mantiene ese
+snapshot exacto incluso si se añade otra revisión mientras se prepara. La web
+utiliza siempre las rutas explícitas de la versión seleccionada.
+
+Cada versión conserva su cifrado y evidencia independiente. Nombre, digest,
+vault y asociación no se sobrescriben. Firma y TSA cubren el digest del contenido;
+los metadatos HTTP no amplían lo firmado. La verificación histórica se evalúa
+en la fecha de ejecución, con los certificados y CRL capturados y la política
+vigente del verificador. Un indicador `sealed` no almacena un veredicto permanente.
+Véase [ADR-0019](adr/0019-immutable-document-versions.md).
+
 ## Persistencia y límites
 
 Los usuarios viven en PostgreSQL con correo normalizado, hash PHC Argon2id,
@@ -284,6 +335,9 @@ capturada, auditoría compartida y recibos de importación. El vault conserva el
 formato `DVLT1` y su contexto autenticado de UUID y versión; el expediente se
 protege mediante asociación inmutable y autorización transaccional. No se
 reescribe el cifrado antiguo para añadir el expediente al AAD.
+`0004_document_versions.sql` agrega raíces inmutables y cambia la clave de los
+snapshots a `(id, version)`, preservando sus filas. `serve` exige ese esquema;
+la actualización administrativa requiere detener escritores y conservar respaldo.
 
 Las mutaciones documentales, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan

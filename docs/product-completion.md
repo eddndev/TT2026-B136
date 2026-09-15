@@ -10,18 +10,19 @@ El [informe de verificación](verification-report.md) distingue resultados
 reproducidos de mediciones históricas. Este documento organiza trabajo pendiente;
 no declara implementadas las capacidades que enumera.
 
-La aplicación `web/` aporta la identidad Qadra, componentes, navegación y vistas
-documentales. Sus pruebas originales interceptan HTTP y usan referencias locales
-a la sesión. La integración requiere expedientes reales, rutas autorizadas por
-expediente y consultas persistentes. `frontend/` conserva el ejemplo anterior;
-el desarrollo del producto continúa en `web/`.
+La aplicación `web/` integra la identidad Qadra con expedientes reales, rutas
+autorizadas y consultas persistentes. Ofrece carga inicial, historial y selección
+de versiones, sellado, verificación y descarga exactos. Las pruebas con HTTP
+simulado y los recorridos contra servicios reales tienen evidencias separadas.
+`frontend/` conserva el ejemplo anterior; el producto continúa en `web/`.
 
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
 | --- | --- | --- |
 | Consultas documentales e integración Qadra | Listado paginado, detalle, búsqueda literal de nombre y filtro de sellado; selección y creación de expedientes; carga, sello, verificación y evidencia en el expediente seleccionado. | Autorización vigente antes de exponer metadatos; cuatro roles, expedientes ajenos, revocación, filtros antes de paginación, eventos de consulta y errores. Pruebas HTTP, PostgreSQL y navegador. |
-| Versiones y clasificación | Identidad documental estable, versiones cifradas vinculadas a esa identidad, clasificación y evidencia histórica inmutable; selección explícita de versión para consultar y verificar. | Decisión sobre datos autenticados del cifrado, compatibilidad y migración. Pruebas de sustitución, concurrencia, rechazo de sobrescritura y restauración de evidencia byte por byte. |
+| Versiones documentales | Identidad estable, cifrado vinculado a UUID/versión, evidencia histórica inmutable y selección explícita de snapshot. | ADR-0019, append optimista, migración V1/V7, aislamiento, conflictos, restauración y evidencia byte por byte; resultados en el informe de verificación. |
+| Clasificación documental | Tipo, clasificación y etiquetas organizativas con revisiones auditadas; búsqueda autorizada por metadatos. | Distinguir metadatos actuales de evidencia firmada histórica, validar entradas y concurrencia; conservar contenido y permisos por expediente. |
 | Identidad y firma personal | Resolver autenticación con certificado de socios, identidad del firmante y custodia de claves; altas, bajas, invitaciones y recuperación segura de credenciales. | La clave de firma configurada para el servidor no demuestra firma individual por usuario. Separar recuperación MFA de recuperación de contraseña. Definir contratos y probar revocación con sesiones existentes y fallos de entrega. |
 | Expediente penal y participantes | Datos procesales del expediente; directorio de personas; roles procesales; transiciones con documentos habilitantes e historial. | Las asignaciones de acceso no representan participantes. Reglas probadas en dominio, transacciones y auditoría; vistas que conserven el diseño Qadra. |
 | Audiencias, plazos y calendario | Audiencias vinculadas al expediente, plazos, calendario configurable, vencimientos y alertas persistentes. | Consultar fuentes normativas oficiales vigentes al implementar reglas; casos de prueba de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir validación de las reglas por una simple suma de días. |
@@ -69,10 +70,10 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Audiencia y activación de plazos | Pendiente | Programación, cambios, cancelaciones y creación consistente de plazos vinculados. |
 | Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |
-| Carga y clasificación documental | Parcial | Clasificación y versiones; carga cifrada por expediente implementada. |
-| Consulta e integridad documental | Parcial | Historial y clasificación; consultas actuales e integridad se ofrecen como operaciones explícitas. |
+| Carga y clasificación documental | Parcial | Clasificación; carga cifrada y versiones por expediente implementadas. |
+| Consulta e integridad documental | Parcial | Consultas de clasificación; historial, consultas de contenido actual e integridad ya se ofrecen como operaciones explícitas. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
-| Verificación de firma y sello | Parcial | Cubrir selección de versiones históricas y la política de identidad individual; verificadores existentes se conservan. |
+| Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
 | Tablero de control | Parcial | Indicadores procesales agregados autorizados; la navegación Qadra no equivale a indicadores globales. |
 | Informes | Pendiente | Filtros, generación y acceso autorizado a resultados; comprobar fallos y concurrencia. |
 | Consulta de actividad | Parcial | Listado filtrado de eventos y permisos por recurso; verificación de la cadena ya implementada. |

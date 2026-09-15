@@ -183,18 +183,20 @@ El [contrato HTTP](docs/http-api.md) describe rutas, límites y errores. El
 [barrido del backend](docs/backend-review.md) conserva la revisión anterior;
 ADR-0016 actualiza sus límites sobre asociación documental y transacciones.
 Los [criterios de esta entrega](docs/next-goal.md) se contrastan con resultados
-actuales antes de cerrar la integración. El listado, detalle y búsqueda documental
-se integran con la interfaz Qadra. Siguen pendientes versiones, clasificación y
+actuales antes de cerrar la integración. El listado, detalle, búsqueda e historial
+documental se integran con la interfaz Qadra. Las versiones conservan identidad,
+cifrado y evidencia histórica. Siguen pendientes clasificación y
 gestión procesal; el alcance de cierre está en [el plan del producto](docs/product-completion.md).
 
 ### Frontend web
 
 - [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,
-  expedientes, consultas persistentes, carga, sellado, verificación, evidencia,
+  expedientes, consultas persistentes, carga e historial de versiones, sellado,
+  verificación, evidencia,
   alta de usuarios y verificación de auditoría.
   Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
-  Conserva la identidad visual Qadra. El historial y las pantallas procesales
-  siguen pendientes. `bash scripts/web-demo.sh` prueba el navegador con servicios
+  Conserva la identidad visual Qadra. Las pantallas procesales siguen pendientes.
+  `bash scripts/web-demo.sh` prueba el navegador con servicios
   aislados reales; requiere las dependencias instaladas de `web/`.
 
 - [`frontend/`](frontend/) - placeholder de la interfaz web, construido con

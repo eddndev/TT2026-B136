@@ -208,10 +208,14 @@ is still unfinished.
   a shared audit chain for document, case and identity events. Document
   mutations and their audit commit together; verification and export confirm
   access and audit before returning results. Sealed evidence and the document's
-  case association are immutable. Upload still creates version 1. Authorized document
+  case association are immutable. Upload creates version 1. Authorized document
   listing, detail, literal name search and sealed-state filters are available;
-  queries confirm audit before returning metadata. Version history and
-  classification remain pending. See `docs/adr/0018-authorized-document-queries.md`.
+  queries confirm audit before returning metadata. `0004_document_versions.sql`
+  adds immutable document roots and snapshots keyed by UUID/version. Append
+  checks the expected current version, history uses a descending cursor, and
+  content actions select an exact version. Classification remains pending.
+  See `docs/adr/0018-authorized-document-queries.md` and
+  `docs/adr/0019-immutable-document-versions.md`.
 - User creation and recovery-code consumption also commit their PostgreSQL
   audit atomically. Redis challenges and sessions do not participate in that
   transaction. Failed audit writes trigger best-effort removal of newly
@@ -233,7 +237,9 @@ is still unfinished.
   attestation. See `docs/adr/0009-local-timestamp-authority.md`.
 - `web/` contains the Qadra design system and Astro/Svelte application.
   It integrates login/MFA, case selection and creation, persistent document
-  queries, upload, sealing, verification and evidence download. Preserve its
+  queries, upload, version history, sealing, verification and evidence download.
+  Actions use the selected version; append conflicts preserve the chosen file.
+  Preserve its
   design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -254,9 +260,9 @@ its original proposed schedule. Its reproduced evidence is in
 current code before planning subsequent work in this dependency order.
 `docs/product-completion.md` tracks the broader product acceptance scope:
 
-1. Add document classification and version history to the authorized queries.
-   Define immutable historical evidence and bind every encrypted version to
-   its document identity. Keep current case isolation and Client denial unless
+1. Add document classification to the authorized queries, with audited metadata
+   revisions independent of immutable content and historical evidence. Keep
+   current case isolation and Client denial unless
    a separate access policy is explicitly designed and tested.
 2. Model procedural participants, hearings and deadlines separately from
    existing user access assignments, with authorization and audit contracts.
