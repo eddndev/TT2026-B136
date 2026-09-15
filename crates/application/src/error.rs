@@ -10,6 +10,22 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    /// A participant is absent or outside the requested visible case.
+    #[error("participant not found")]
+    ParticipantNotFound,
+
+    /// A participant replacement expected another current revision.
+    #[error("participant changed; refresh before replacing")]
+    ParticipantRevisionConflict,
+
+    /// A participant cannot append another revision.
+    #[error("participant revision counter is exhausted")]
+    ParticipantRevisionExhausted,
+
+    /// Stored participant values or provenance violate their invariants.
+    #[error("stored participant is inconsistent: {0}")]
+    StoredParticipantInconsistent(String),
+
     /// Bootstrap was requested after the first user had already been stored.
     #[error("initial owner has already been created")]
     BootstrapClosed,

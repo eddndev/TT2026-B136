@@ -11,5 +11,6 @@ pub mod crypto;
 pub mod document_metadata;
 pub mod error;
 pub mod identity;
+pub mod participants;
 
 pub use error::DomainError;
