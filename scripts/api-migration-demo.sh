@@ -3,6 +3,8 @@
 
 # shellcheck source=scripts/api-version-demo.sh
 source "$REPO_ROOT/scripts/api-version-demo.sh"
+# shellcheck source=scripts/api-metadata-demo.sh
+source "$REPO_ROOT/scripts/api-metadata-demo.sh"
 
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -37,6 +39,8 @@ migration_demo_state() {
     "SELECT jsonb_build_object(
       'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),
       'series',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM document_series s),
+      'metadata',(SELECT jsonb_agg(to_jsonb(m) ORDER BY document_id,metadata_revision)
+        FROM document_metadata_revisions m),
       'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a),
       'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY fingerprint) FROM migration_receipts r),
       'users',(SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u),
@@ -152,6 +156,7 @@ PY
   migration_demo_start "$runtime_url" "$legacy_dir" imported
   migration_demo_export "$case_id" "$WORK_DIR/imported-evidence"
   version_demo "$case_id"
+  metadata_demo "$case_id"
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
 
@@ -167,6 +172,11 @@ PY
   migration_demo_start "$runtime_url" "$legacy_dir" restored
   migration_demo_export "$case_id" "$WORK_DIR/restored-evidence"
   version_demo_restored "$case_id"
+  metadata_demo_restored "$case_id"
+  printf 'Restored inventory: %s document roots, %s content snapshots, %s classification revisions.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_series')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM documents')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_metadata_revisions')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -175,3 +185,4 @@ migration_demo
 unset -f migration_demo migration_demo_stop migration_demo_start
 unset -f migration_demo_state migration_demo_export
 unset -f version_demo version_demo_request version_demo_restored
+unset -f metadata_demo metadata_demo_request metadata_demo_restored metadata_demo_evidence

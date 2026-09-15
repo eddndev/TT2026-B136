@@ -6,7 +6,7 @@ está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
 
-Crear previamente una base y un rol de conexión sin privilegios administrativos.
+Crear previamente una base UTF-8 y un rol de conexión sin privilegios administrativos.
 Por ejemplo, desde una sesión de administración PostgreSQL:
 
 ```sql
@@ -26,6 +26,12 @@ Para `serve`, cambiar `DATABASE_URL` por la del rol operativo. El arranque valid
 sus privilegios y no ejecuta DDL. Conservar KEK, certificados, claves y configuración
 TSA fuera del repositorio y preparar Redis. Los argumentos criptográficos de
 `serve --help` siguen vigentes.
+
+Comprobar `SHOW server_encoding` en la base de destino: debe devolver `UTF8`.
+Las comprobaciones canónicas de clasificación usan escalares Unicode y SHA-256
+nativo de PostgreSQL; no requieren `pgcrypto`. Una base con otra codificación
+debe migrarse mediante el procedimiento administrativo de conversión y
+restauración antes de aplicar el esquema; no basta con cambiar `client_encoding`.
 
 ## Actualizar la base a versiones documentales
 
@@ -47,6 +53,36 @@ sin privilegios para actualizar raíces, borrar historia o modificar contexto;
 solo puede actualizar `documents.evidence`. `serve` valida esquema, privilegios
 y coherencia de metadatos al abrir conexiones, sin ejecutar DDL. La comprobación
 de secuencias debe medirse al dimensionar el arranque con volúmenes grandes.
+
+## Actualizar la clasificación documental
+
+Con escritores detenidos y respaldo completo, ejecutar nuevamente
+`database migrate --runtime-role`. `migrations/0005_document_metadata.sql`
+añade `document_metadata_revisions` y funciones puras de validación canónica.
+Los documentos existentes permanecen sin clasificación, con revisión lógica
+cero; no se inventan fechas ni autores. Los bytes cifrados y la evidencia de
+cada snapshot permanecen intactos.
+
+El rol operativo necesita SELECT/INSERT sobre la tabla y EXECUTE sobre sus
+funciones de comprobación. No debe ser propietario ni disponer de UPDATE,
+DELETE o TRUNCATE. El comando administrativo aplica estos permisos y el
+arranque los comprueba junto con el inventario y la continuidad de revisiones.
+Las revisiones capturan el correo y UUID del actor, sin reconstruirlos a partir
+de su perfil actual. No corregir historia con UPDATE ni borrar filas para
+resolver un conflicto de revisión; el cliente debe consultar y enviar la
+revisión esperada vigente.
+
+El guard de esquema comprueba catálogo y coherencia, no autentica el cuerpo de
+funciones que un administrador hubiera sustituido. La administración de la base
+sigue dentro del límite de confianza descrito en
+[ADR-0020](adr/0020-audited-document-classification.md).
+
+Las funciones de clasificación guardan referencias explícitas al esquema donde
+se instalaron, de modo que los CHECK también funcionan durante `pg_restore`,
+que ejecuta con un `search_path` vacío. Usar clientes `pg_dump` y `pg_restore`
+compatibles con la versión del servidor. Las pruebas aisladas de backend
+requieren ambos ejecutables y comprueban una restauración real con restricciones
+y permisos activos.
 
 ## Migrar un almacenamiento local existente
 
@@ -128,8 +164,13 @@ de auditoría y recibos. Verificar ZIP con OpenSSL y comparar con la exportació
 anterior. `scripts/api-demo.sh` incluye un ensayo desechable de importación y
 restauración con documentos realmente sellados. Después de importar añade una
 segunda versión, conserva el ZIP de la primera, restaura ambas y compara sus
-exportaciones. No utiliza datos del usuario. Incluir siempre raíces y todas las
-versiones; un respaldo incompleto no se repara creando raíces o revisiones falsas.
+exportaciones. También carga un documento con clasificación inicial, reemplaza
+y vacía los valores de otro, comprueba conflictos y filtros actuales, y compara
+todas las revisiones, autores capturados y ambas evidencias tras restaurar.
+No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
+`document_metadata_revisions` y auditoría; un respaldo incompleto no se repara
+creando raíces o revisiones falsas. Comparar las filas completas y hashes, no
+solo sus conteos.
 
 Las sesiones Redis no sustituyen el estado durable. En una recuperación operativa
 se deben invalidar sesiones anteriores y ensayar el nuevo acceso con MFA. El
