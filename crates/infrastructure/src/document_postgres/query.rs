@@ -1,8 +1,8 @@
 //! Metadata projections avoid loading ciphertext or captured evidence for reads.
 
 use application::documents::{
-    CaseDocumentSummary, DocumentPage, DocumentQuery, DocumentSummary, VersionPage, VersionQuery,
-    VersionSelection,
+    CaseDocumentSummary, DocumentOverview, DocumentPage, DocumentQuery, DocumentSummary,
+    VersionPage, VersionQuery, VersionSelection,
 };
 use application::ApplicationError;
 use domain::cases::CaseId;
@@ -18,25 +18,41 @@ pub(super) fn list(
 ) -> Result<DocumentPage, ApplicationError> {
     let rows = transaction
         .query(
-            "SELECT id,version,name,digest,sealed FROM (
+            "SELECT d.id,d.version,d.name,d.digest,d.sealed,m.metadata_revision,m.document_type,
+             m.classification,m.tags,m.metadata_digest,m.changed_at,m.changed_by,m.changed_by_email FROM (
              SELECT DISTINCT ON (id) id,version,name,digest,(evidence IS NOT NULL) AS sealed
              FROM documents WHERE case_id=$1 ORDER BY id,version DESC
-         ) latest WHERE ($2::text IS NULL OR strpos(lower(name), lower($2::text)) > 0)
-         AND ($3::boolean IS NULL OR sealed=$3)
-         ORDER BY id LIMIT $4 OFFSET $5",
+         ) d LEFT JOIN LATERAL (
+             SELECT metadata_revision,document_type,classification,tags,metadata_digest,changed_at,changed_by,changed_by_email
+             FROM document_metadata_revisions WHERE document_id=d.id ORDER BY metadata_revision DESC LIMIT 1
+         ) m ON TRUE
+         WHERE ($2::text IS NULL OR strpos(lower(d.name), lower($2::text)) > 0)
+         AND ($3::boolean IS NULL OR d.sealed=$3)
+         AND ($6::text IS NULL OR m.document_type COLLATE \"C\"=$6::text COLLATE \"C\")
+         AND ($7::text IS NULL OR m.classification COLLATE \"C\"=$7::text COLLATE \"C\")
+         AND ($8::text IS NULL OR $8::text COLLATE \"C\"=ANY(m.tags))
+         ORDER BY d.id LIMIT $4 OFFSET $5",
             &[
                 &case.as_uuid(),
                 &query.name(),
                 &query.sealed(),
                 &(i64::from(query.limit()) + 1),
                 &i64::from(query.offset()),
+                &query.metadata_filter().document_type(),
+                &query.metadata_filter().classification(),
+                &query.metadata_filter().tag(),
             ],
         )
         .map_err(port_error)?;
     let mut documents = rows
-        .into_iter()
-        .map(|row| summary(case, row))
-        .collect::<Result<Vec<_>, _>>()?;
+        .iter()
+        .map(|row| {
+            Ok(DocumentOverview {
+                content: summary(case, row)?,
+                current_metadata: super::metadata_storage::current_row(row)?,
+            })
+        })
+        .collect::<Result<Vec<_>, ApplicationError>>()?;
     let has_more = documents.len() > query.limit() as usize;
     documents.truncate(query.limit() as usize);
     Ok(DocumentPage {
@@ -60,7 +76,7 @@ pub(super) fn get(
         )
         .map_err(port_error)?
         .ok_or_else(|| ApplicationError::DocumentNotFound(id.to_string()))?;
-    summary(case, row)
+    summary(case, &row)
 }
 
 pub(super) fn history(
@@ -95,7 +111,7 @@ pub(super) fn history(
         .map_err(port_error)?;
     let mut versions = rows
         .into_iter()
-        .map(|row| summary(case, row))
+        .map(|row| summary(case, &row))
         .collect::<Result<Vec<_>, _>>()?;
     let has_more = versions.len() > query.limit() as usize;
     versions.truncate(query.limit() as usize);
@@ -112,7 +128,7 @@ pub(super) fn history(
     })
 }
 
-fn summary(case: CaseId, row: Row) -> Result<CaseDocumentSummary, ApplicationError> {
+fn summary(case: CaseId, row: &Row) -> Result<CaseDocumentSummary, ApplicationError> {
     let version: i64 = row.get("version");
     let version = u32::try_from(version)
         .map_err(|_| ApplicationError::Port("invalid stored document version".into()))?;

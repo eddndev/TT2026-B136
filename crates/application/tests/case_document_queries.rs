@@ -3,8 +3,9 @@ mod case_document_support;
 mod crypto;
 
 use application::documents::{
-    CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction, DocumentPage, DocumentQuery,
-    DocumentWorkflow,
+    CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentAction,
+    DocumentMetadata, DocumentMetadataFilter, DocumentOverview, DocumentPage, DocumentQuery,
+    DocumentWorkflow, MetadataRevision,
 };
 use application::ApplicationError;
 use case_document_support::{identity, service, MockIdentity, MockStore};
@@ -69,12 +70,24 @@ fn reads_forward_authenticated_scope_query_and_audit_time() {
         case_id: case,
         document: record,
     };
+    let summary = DocumentOverview {
+        content: summary,
+        current_metadata: CurrentDocumentMetadata {
+            metadata_revision: MetadataRevision::new(7),
+            values: DocumentMetadata::new(Some("Escrito"), Some("Civil"), &["Urgente".into()])
+                .unwrap(),
+        },
+    };
     let result = summary.clone();
     let page = DocumentPage {
         documents: vec![summary.clone()],
         has_more: true,
     };
-    let requested = DocumentQuery::new(1, 4, Some("proof"), Some(false)).unwrap();
+    let requested = DocumentQuery::new(1, 4, Some("proof"), Some(false))
+        .unwrap()
+        .with_metadata_filter(
+            DocumentMetadataFilter::new(Some("Escrito"), Some("Civil"), Some("Urgente")).unwrap(),
+        );
     let expected = requested.clone();
     let mut store = MockStore::new();
     store
@@ -88,16 +101,15 @@ fn reads_forward_authenticated_scope_query_and_audit_time() {
         })
         .return_once(move |_, _, _, _| Ok(page));
     store
-        .expect_get()
+        .expect_get_overview()
         .times(1)
-        .withf(move |user, scope, requested, selection, at| {
+        .withf(move |user, scope, requested, at| {
             *user == actor
                 && *scope == case
                 && *requested == id
-                && *selection == application::documents::VersionSelection::Current
                 && *at == domain::clock::Clock::now(&crypto::TestClock)
         })
-        .return_once(move |_, _, _, _, _| Ok(summary));
+        .return_once(move |_, _, _, _| Ok(summary));
     let service = service(store, identity_mock);
     let listed = service.list("session", case, requested).unwrap();
     assert_eq!(listed.documents, vec![result.clone()]);
@@ -114,9 +126,9 @@ fn audit_or_authorization_failure_never_returns_metadata() {
         .times(1)
         .returning(|_, _, _, _| Err(ApplicationError::Port("audit write failed".into())));
     store
-        .expect_get()
+        .expect_get_overview()
         .times(1)
-        .returning(|_, _, id, _, _| Err(ApplicationError::DocumentNotFound(id.to_string())));
+        .returning(|_, _, id, _| Err(ApplicationError::DocumentNotFound(id.to_string())));
     let service = service(store, identity_mock);
     let case = CaseId::new();
     assert!(matches!(

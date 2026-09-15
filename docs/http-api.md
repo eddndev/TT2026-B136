@@ -185,23 +185,29 @@ case_not_found`. El cuerpo de creación tiene límite de 16 KiB.
 
 ## Documentos y permisos
 
-Todas las operaciones documentales incluyen el expediente. La carga recibe un
-cuerpo binario de hasta 16 MiB y requiere `X-Document-Name`. El actor se toma de
+Todas las operaciones documentales incluyen el expediente. La carga binaria
+admite hasta 16 MiB y requiere `X-Document-Name`; la carga con clasificación
+usa multipart con los límites descritos abajo. El actor se toma de
 la sesión vigente; `X-Actor` no forma parte del contrato.
 
 | Método y ruta | Permiso | Resultado |
 | --- | --- | --- |
-| `GET /api/v1/cases/{case_id}/documents` | Leer documentos | Página autorizada de metadatos, filtros por nombre y sellado; `200`. |
+| `GET /api/v1/cases/{case_id}/documents` | Leer documentos | Página autorizada, filtros por nombre, sellado y clasificación actual; `200`. |
 | `GET /api/v1/cases/{case_id}/documents/{document_id}` | Leer documentos | Detalle de metadatos persistidos, sin descifrar ni verificar evidencia; `200`. |
 | `POST /api/v1/cases/{case_id}/documents` | Crear documento | Cifra y persiste la versión 1 asociada al expediente; `201`. |
+| `POST /api/v1/cases/{case_id}/documents/with-metadata` | Crear y clasificar documento | Carga y clasificación inicial atómicas; `201`. |
 | `POST /api/v1/cases/{case_id}/documents/{document_id}/seal` | Sellar documento | Firma el digest y emite/verifica el sello local; `200`. |
 | `POST /api/v1/cases/{case_id}/documents/{document_id}/verify` | Verificar documento | Reporta integridad, firma, certificado/CRL y sello; `200`. |
 | `GET /api/v1/cases/{case_id}/documents/{document_id}/evidence` | Exportar evidencia | Descarga ZIP con `X-Document-Digest`; `200`. |
 | `GET /api/v1/audit/verify` | Verificar auditoría | Verifica la cadena PostgreSQL completa y reporta el primer índice roto. |
 
 Carga, sellado y detalle devuelven `case_id`, `id`, `version`, `name`, `digest`
-hexadecimal y `sealed` en el mismo objeto JSON. Listado y detalle muestran la
-versión actual. La clasificación documental sigue pendiente. Las antiguas rutas
+hexadecimal y `sealed` en el mismo objeto JSON. Listado, detalle actual y ambas
+cargas añaden `current_metadata` con `metadata_revision`, `document_type`,
+`classification` y `tags`. Anexar una versión también devuelve esta proyección
+desde su propia transacción. Listado y detalle actual muestran la versión máxima.
+Detalle exacto, historial de contenido y sellado conservan su formato de contenido,
+sin incorporar clasificación actual a la evidencia histórica. Las antiguas rutas
 `/api/v1/documents` y `/api/v1/documents/{document_id}/...` responden `404`; no
 son alias de la API por expediente.
 
@@ -212,6 +218,7 @@ asignación vigente además del permiso de la siguiente matriz:
 | --- | --- | --- | --- | --- |
 | Listar y consultar metadatos documentales | sí | sí | sí | no |
 | Crear documento | sí | sí | sí | no |
+| Clasificar y consultar su historial | sí | sí | sí | no |
 | Añadir versión y consultar historial | sí | sí | sí | no |
 | Sellar documento | sí | sí | no | no |
 | Verificar documento | sí | sí | sí | no |
@@ -248,6 +255,14 @@ caracteres y rechaza controles; una cadena vacía omite el filtro. La búsqueda
 es una subcadena literal del nombre; `%`, `_` y la barra inversa no actúan como
 comodines. No se distingue entre mayúsculas y minúsculas en los nombres ASCII
 admitidos por el contrato de carga. No se busca en el contenido cifrado.
+
+`document_type`, `classification` y `tag` son filtros opcionales por igualdad
+exacta, combinados mediante AND con nombre y sellado. Sus valores se validan y
+recortan como al clasificar. Tipo y clasificación vacíos omiten el filtro;
+una etiqueta vacía es inválida. Cada `tag` representa una etiqueta individual:
+`tag=a%2Cb` busca la etiqueta `a,b`, no dos etiquetas. Distinguen mayúsculas,
+acentos y formas de normalización Unicode. Se toma la última revisión de
+clasificación antes de filtrar; una etiqueta histórica retirada no coincide.
 
 ```http
 GET /api/v1/cases/{case_id}/documents?limit=25&offset=0&name=contrato&sealed=false
@@ -323,6 +338,94 @@ en la fecha de ejecución, con los certificados y CRL capturados y la política
 vigente del verificador. Un indicador `sealed` no almacena un veredicto permanente.
 Véase [ADR-0019](adr/0019-immutable-document-versions.md).
 
+### Clasificación actual e historial independiente
+
+Base: `/api/v1/cases/{case_id}/documents/{document_id}`.
+
+| Método y sufijo | Resultado |
+| --- | --- |
+| `GET /metadata` | Clasificación actual, `200`. |
+| `PUT /metadata` | Reemplazo completo con revisión esperada; clasificación confirmada, `200`. |
+| `GET /metadata/history?limit=50&before_revision=N` | Revisiones descendentes con cursor exclusivo, `200`. |
+
+GET y PUT devuelven `case_id`, `id`, `metadata_revision`, `document_type`,
+`classification` y `tags` en un objeto plano. Tipo y clasificación ausentes son
+`null`; etiquetas ausentes, `[]`. Un documento sin decisiones de clasificación
+tiene revisión cero, sin inventar autor, fecha o fila histórica.
+
+```json
+{
+  "expected_metadata_revision": 0,
+  "document_type": "Escrito",
+  "classification": "Penal",
+  "tags": ["audiencia", "a,b"]
+}
+```
+
+PUT requiere `expected_metadata_revision` entero sin signo de 32 bits y `tags`;
+los otros valores pueden omitirse o ser `null`. Es un reemplazo, no un parche.
+Se rechazan campos desconocidos, duplicados y JSON mal formado con
+`400 invalid_json`. El cuerpo admite 8 KiB; excederlo produce
+`413 metadata_too_large`. Los valores con controles son inválidos incluso en
+los extremos. Se recorta espacio Unicode antes de admitir hasta 80 escalares
+por tipo/clasificación y de 1 a 40 por etiqueta. Se aceptan hasta 20 etiquetas
+recibidas, antes de eliminar duplicados exactos y ordenar por bytes UTF-8. Un
+valor inválido produce `422 invalid_document_metadata`.
+
+Cada reemplazo confirmado incrementa la revisión, incluso si repite valores o
+los deja vacíos. Si la revisión esperada quedó atrás, responde
+`409 document_metadata_conflict`; si se agotó el rango,
+`409 document_metadata_revision_exhausted`. Ambos conservan estado y auditoría.
+El cliente debe consultar y revisar los cambios antes de enviar otra revisión;
+no debe incrementar automáticamente la esperada. La autorización se comprueba
+antes del conflicto: un documento ajeno no revela su revisión.
+
+El historial devuelve `case_id`, `id`, `revisions`, `has_more` y
+`next_before_revision`. Cada fila contiene los cuatro campos de clasificación,
+`metadata_digest` hexadecimal SHA-256, `changed_at` RFC 3339 en UTC y
+`changed_by: {"id": "...", "email": "..."}` capturado en ese cambio.
+`limit` admite 1–100; `before_revision` es opcional y positivo. El siguiente
+cursor es la última revisión devuelta si hay más resultados; de lo contrario
+es `null`. No se fabrica una fila para la revisión cero.
+
+Lectura, historial y reemplazo confirman respectivamente
+`document.metadata_read`, `document.metadata_history_listed` y
+`document.metadata_changed`. Un fallo de auditoría impide entregar la lectura
+o confirmar el cambio. El digest canónico identifica valores organizativos;
+no amplía el contenido firmado. Cambiar clasificación preserva todas las
+versiones, cifrado, firmas, sellos y archivos ZIP. Véase
+[ADR-0020](adr/0020-audited-document-classification.md).
+
+### Carga inicial con clasificación atómica
+
+`POST /api/v1/cases/{case_id}/documents/with-metadata` requiere exactamente una
+parte `file` y una parte `metadata` JSON, completas y en cualquier orden. El
+JSON usa tipo, clasificación y etiquetas del contrato anterior, sin revisión
+esperada. `X-Document-Name` es obligatorio y prevalece sobre el filename multipart.
+
+```bash
+curl --fail-with-body "$BASE_URL/api/v1/cases/$CASE_ID/documents/with-metadata" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'X-Document-Name: escrito.pdf' \
+  -F 'file=@escrito.pdf;type=application/pdf' \
+  -F 'metadata={"document_type":"Escrito","classification":"Penal","tags":[]};type=application/json'
+```
+
+Archivo: hasta 16 MiB. JSON: hasta 8 KiB. Cuerpo completo, incluidos cabeceras,
+delimitadores y epílogo: hasta 16 MiB más 32 KiB. El servidor consume el cuerpo
+completo con ese límite antes de interpretar sus partes y preparar criptografía;
+no depende de Content-Length. Una interrupción del transporte no confirma la
+carga. Partes faltantes, desconocidas, repetidas o incompletas responden
+`400 invalid_multipart`; el tamaño produce `413 document_too_large`,
+`metadata_too_large` o `upload_too_large`, según el límite alcanzado.
+
+Raíz, contenido versión uno, clasificación revisión uno y los dos eventos de
+éxito se confirman juntos. Si falla cualquiera, no queda una carga parcial.
+La respuesta es el overview confirmado con `201`, incluso si los campos
+opcionales están vacíos. La carga binaria anterior mantiene revisión de
+clasificación cero. Qadra usa una sola carga multipart y conserva el formulario
+ante fallos; una respuesta incierta no dispara reintentos automáticos.
+
 ## Persistencia y límites
 
 Los usuarios viven en PostgreSQL con correo normalizado, hash PHC Argon2id,
@@ -338,6 +441,11 @@ reescribe el cifrado antiguo para añadir el expediente al AAD.
 `0004_document_versions.sql` agrega raíces inmutables y cambia la clave de los
 snapshots a `(id, version)`, preservando sus filas. `serve` exige ese esquema;
 la actualización administrativa requiere detener escritores y conservar respaldo.
+`0005_document_metadata.sql` añade revisiones de clasificación inmutables y
+validación canónica con SHA-256 nativo. Migración y arranque exigen una base UTF-8.
+El runtime no puede actualizar, borrar ni truncar estas revisiones. El arranque
+comprueba inventario, permisos y coherencia; no autentica definiciones SQL
+modificadas por un administrador de la base.
 
 Las mutaciones documentales, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan

@@ -89,6 +89,18 @@ pub enum ApplicationError {
     #[error("document version counter is exhausted")]
     DocumentVersionExhausted,
 
+    /// A classification replacement expected another current revision.
+    #[error("document metadata changed; refresh before replacing")]
+    DocumentMetadataConflict,
+
+    /// A classification revision cannot be incremented further.
+    #[error("document metadata revision counter is exhausted")]
+    DocumentMetadataRevisionExhausted,
+
+    /// Persisted organizational values violate canonical form or digest.
+    #[error("stored document metadata is inconsistent: {0}")]
+    StoredDocumentMetadataInconsistent(String),
+
     /// A document already has immutable signature and timestamp evidence.
     #[error("document is already sealed: {0}")]
     DocumentAlreadySealed(String),

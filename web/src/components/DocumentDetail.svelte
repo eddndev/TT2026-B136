@@ -5,6 +5,7 @@
   export let user;
   export let document;
   export let onupdate;
+  export let ondenied = () => {};
   let report = document.report || null;
   let activeTab = report ? 'verification' : 'summary';
   let busy = '';
@@ -94,6 +95,7 @@
       }
     } catch (failure) {
       error = failure.message;
+      if ([403, 404].includes(failure.status)) ondenied(failure);
       if (failure.status === 409 && failure.code === 'document_not_sealed') {
         report = null;
         onupdate({ ...document, sealed: false, report: null });

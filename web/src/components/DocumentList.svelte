@@ -1,4 +1,5 @@
 <script>
+  import MetadataSummary from './MetadataSummary.svelte';
   import Icon from './Icon.svelte';
   import { documentStatus } from '../lib/workspace.mjs';
   export let documents;
@@ -20,6 +21,7 @@
         <strong>{item.name}</strong><small
           >{item.version ? `Versi\u00f3n ${item.version}` : 'Referencia por identificador'}</small
         >
+        <MetadataSummary metadata={item.current_metadata} compact />
         <div class="document-card-footer">
           <code>{item.id.slice(0, 8)}</code><span>Abrir<Icon name="arrow" size={15} /></span>
         </div></button
@@ -39,7 +41,10 @@
             ><td
               ><div class="table-document">
                 <span class="file-icon"><Icon name="file" /></span><span
-                  ><strong>{item.name}</strong><small>{item.id.slice(0, 8)}</small></span
+                  ><strong>{item.name}</strong><small>{item.id.slice(0, 8)}</small><MetadataSummary
+                    metadata={item.current_metadata}
+                    compact
+                  /></span
                 >
               </div></td
             ><td><span class="badge {status.tone}">{status.label}</span></td><td

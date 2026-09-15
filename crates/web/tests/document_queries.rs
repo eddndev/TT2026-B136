@@ -58,6 +58,56 @@ async fn document_detail_returns_the_persisted_summary() {
     assert_eq!(body["name"], "acta.txt");
     assert_eq!(body["case_id"], CASE_UUID.to_string());
     assert_eq!(body["version"], 1);
+    assert_eq!(body["current_metadata"]["metadata_revision"], 3);
+}
+
+#[tokio::test]
+async fn classification_filters_are_normalized_individual_values_combined_with_content_filters() {
+    let workflow = Arc::new(StubWorkflow::default());
+    for (query, count) in [
+        (
+            "document_type=%20Escrito%20&classification=Penal&tag=a%2Cb&name=ACTA&sealed=false",
+            1,
+        ),
+        ("document_type=escrito", 0),
+        ("classification=penal", 0),
+        ("tag=acci%C3%B3n", 1),
+        ("tag=a", 0),
+        ("tag=%25", 0),
+    ] {
+        let response = get(
+            &workflow,
+            &format!("{}?{query}", collection()),
+            Some("owner-token"),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            json(response).await["documents"].as_array().unwrap().len(),
+            count,
+            "{query}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn invalid_classification_filters_are_rejected_before_querying_documents() {
+    let workflow = Arc::new(StubWorkflow::default());
+    for query in [
+        "tag=".to_owned(),
+        "classification=%0APenal".to_owned(),
+        format!("document_type={}", "x".repeat(81)),
+        format!("tag={}", "x".repeat(41)),
+    ] {
+        let response = get(
+            &workflow,
+            &format!("{}?{query}", collection()),
+            Some("owner-token"),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    assert_eq!(workflow.calls.load(Ordering::SeqCst), 0);
 }
 
 #[tokio::test]

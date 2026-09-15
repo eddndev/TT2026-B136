@@ -7,14 +7,18 @@ use domain::crypto::{DocumentId, DocumentVersion, DocumentVersionRef};
 use domain::identity::{Permission, UserId};
 
 use super::{
-    DocumentPage, DocumentQuery, DocumentRecord, DocumentSummary, EvidenceExport, VersionPage,
-    VersionQuery, VersionSelection,
+    CurrentDocumentMetadata, DocumentMetadata, DocumentOverview, DocumentPage, DocumentQuery,
+    DocumentRecord, DocumentSummary, EvidenceExport, MetadataPage, MetadataQuery, MetadataRevision,
+    VersionPage, VersionQuery, VersionSelection,
 };
 use crate::{verification::VerificationReport, ApplicationError};
 
 /// Document operation checked against the current role and case membership.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DocumentAction {
+    Classify,
+    ReadMetadata,
+    MetadataHistory,
     List,
     Read,
     Upload,
@@ -28,7 +32,12 @@ pub enum DocumentAction {
 impl DocumentAction {
     pub const fn permission(self) -> Permission {
         match self {
-            Self::List | Self::Read | Self::History => Permission::ReadDocument,
+            Self::Classify => Permission::ClassifyDocument,
+            Self::ReadMetadata
+            | Self::MetadataHistory
+            | Self::List
+            | Self::Read
+            | Self::History => Permission::ReadDocument,
             Self::Upload => Permission::CreateDocument,
             Self::Append => Permission::AppendDocument,
             Self::Seal => Permission::SealDocument,
@@ -39,6 +48,9 @@ impl DocumentAction {
 
     pub const fn audit_action(self) -> &'static str {
         match self {
+            Self::Classify => "document.metadata_changed",
+            Self::ReadMetadata => "document.metadata_read",
+            Self::MetadataHistory => "document.metadata_history_listed",
             Self::List => "document.listed",
             Self::Read => "document.read",
             Self::Upload => "document.uploaded",
@@ -60,6 +72,35 @@ pub struct CaseDocumentSummary {
 
 /// The online document boundary accepts credentials, never an actor label.
 pub trait CaseDocumentWorkflow: Send + Sync {
+    fn get_metadata(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError>;
+    fn replace_metadata(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        expected: MetadataRevision,
+        metadata: DocumentMetadata,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError>;
+    fn metadata_history(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        query: MetadataQuery,
+    ) -> Result<MetadataPage, ApplicationError>;
+    fn upload_with_metadata(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        name: &str,
+        bytes: &[u8],
+        metadata: DocumentMetadata,
+    ) -> Result<DocumentOverview, ApplicationError>;
     fn append(
         &self,
         token: &str,
@@ -68,7 +109,7 @@ pub trait CaseDocumentWorkflow: Send + Sync {
         expected_version: DocumentVersion,
         name: &str,
         bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError>;
+    ) -> Result<DocumentOverview, ApplicationError>;
     fn history(
         &self,
         token: &str,
@@ -111,14 +152,14 @@ pub trait CaseDocumentWorkflow: Send + Sync {
         token: &str,
         case_id: CaseId,
         id: DocumentId,
-    ) -> Result<CaseDocumentSummary, ApplicationError>;
+    ) -> Result<DocumentOverview, ApplicationError>;
     fn upload(
         &self,
         token: &str,
         case_id: CaseId,
         name: &str,
         bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError>;
+    ) -> Result<DocumentOverview, ApplicationError>;
     fn seal(
         &self,
         token: &str,
@@ -146,6 +187,46 @@ pub trait CaseDocumentWorkflow: Send + Sync {
 /// actor's active status, role, and case membership. Document reads and commits
 /// also require the supplied case to match the stored immutable association.
 pub trait CaseDocumentStore: Send + Sync {
+    fn get_overview(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DocumentId,
+        at: OffsetDateTime,
+    ) -> Result<DocumentOverview, ApplicationError>;
+    fn get_metadata(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DocumentId,
+        at: OffsetDateTime,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError>;
+    fn replace_metadata(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DocumentId,
+        expected: MetadataRevision,
+        metadata: DocumentMetadata,
+        at: OffsetDateTime,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError>;
+    fn metadata_history(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DocumentId,
+        query: MetadataQuery,
+        at: OffsetDateTime,
+    ) -> Result<MetadataPage, ApplicationError>;
+    /// Commits ciphertext, initial classification and both events atomically.
+    fn insert_with_metadata(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        record: DocumentRecord,
+        metadata: DocumentMetadata,
+        at: OffsetDateTime,
+    ) -> Result<DocumentOverview, ApplicationError>;
     /// Commits the next snapshot and audit only if the current version still matches.
     fn append(
         &self,
@@ -154,7 +235,7 @@ pub trait CaseDocumentStore: Send + Sync {
         expected_version: DocumentVersion,
         record: DocumentRecord,
         at: OffsetDateTime,
-    ) -> Result<(), ApplicationError>;
+    ) -> Result<DocumentOverview, ApplicationError>;
     /// Authorizes the exact document and audits its descending history page.
     fn history(
         &self,
@@ -202,7 +283,7 @@ pub trait CaseDocumentStore: Send + Sync {
         case_id: CaseId,
         record: DocumentRecord,
         at: OffsetDateTime,
-    ) -> Result<(), ApplicationError>;
+    ) -> Result<DocumentOverview, ApplicationError>;
     /// Requires unchanged base content and unsealed current state before commit.
     fn seal(
         &self,

@@ -8,6 +8,13 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    /// Organizational fields are malformed or exceed their bounded size.
+    #[error("invalid document metadata {field}: {reason}")]
+    InvalidDocumentMetadata {
+        field: &'static str,
+        reason: &'static str,
+    },
+
     /// Case metadata is missing, contains controls, or exceeds its size limit.
     #[error("invalid case {field}: {reason}")]
     InvalidCaseMetadata {

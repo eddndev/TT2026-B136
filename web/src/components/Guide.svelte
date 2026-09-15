@@ -40,6 +40,16 @@
     </p>
   </details>
   <details>
+    <summary>&iquest;C&oacute;mo organizo y encuentro mis documentos?</summary>
+    <p>
+      Al cargar un archivo puedes indicar tipo, clasificaci&oacute;n y etiquetas. Cada etiqueta se
+      agrega por separado y puede contener comas y acentos. Despu&eacute;s puedes editar estos
+      valores en Clasificaci&oacute;n actual del documento y consultar su historial de cambios. Los
+      archivos, firmas y sellos conservan sus propias versiones. Los filtros de clasificaci&oacute;n
+      buscan valores completos y distinguen may&uacute;sculas y acentos.
+    </p>
+  </details>
+  <details>
     <summary>&iquest;Qui&eacute;n puede hacer cada cosa?</summary>
     <p>
       El administrador tiene acceso a todos los expedientes. El litigante y el asistente legal

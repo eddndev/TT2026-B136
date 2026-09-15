@@ -60,7 +60,7 @@ fn metadata_reads_commit_their_audit_before_returning_and_serialize_membership_r
                         DocumentQuery::new(1, 0, None, None).unwrap(),
                         at,
                     )
-                    .map(|page| page.documents[0].document.id),
+                    .map(|page| page.documents[0].content.document.id),
                 _ => reader
                     .get(
                         actor,

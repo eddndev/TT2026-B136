@@ -9,9 +9,10 @@ use domain::crypto::{DocumentId, DocumentVersion, DocumentVersionRef};
 use domain::identity::{Permission, UserId};
 
 use super::{
-    CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction, DocumentPage,
-    DocumentProcessor, DocumentQuery, DocumentSummary, EvidenceExport, VersionPage, VersionQuery,
-    VersionSelection,
+    CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata,
+    DocumentAction, DocumentMetadata, DocumentOverview, DocumentPage, DocumentProcessor,
+    DocumentQuery, EvidenceExport, MetadataPage, MetadataQuery, MetadataRevision, VersionPage,
+    VersionQuery, VersionSelection,
 };
 use crate::{identity::IdentityWorkflow, verification::VerificationReport, ApplicationError};
 
@@ -42,8 +43,19 @@ impl CaseDocumentService {
         token: &str,
         permission: Permission,
     ) -> Result<UserId, ApplicationError> {
+        self.actor_permissions(token, &[permission])
+    }
+
+    pub(super) fn actor_permissions(
+        &self,
+        token: &str,
+        permissions: &[Permission],
+    ) -> Result<UserId, ApplicationError> {
         let principal = self.identity.authenticate(token)?;
-        if !principal.role.allows(permission) {
+        if permissions
+            .iter()
+            .any(|permission| !principal.role.allows(*permission))
+        {
             return Err(ApplicationError::PermissionDenied);
         }
         Ok(principal.id)
@@ -63,6 +75,64 @@ impl CaseDocumentService {
 }
 
 impl CaseDocumentWorkflow for CaseDocumentService {
+    fn get_metadata(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDocument)?;
+        self.store
+            .get_metadata(actor, case_id, id, self.clock.now())
+    }
+
+    fn replace_metadata(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        expected: MetadataRevision,
+        metadata: DocumentMetadata,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        let actor = self.actor(token, Permission::ClassifyDocument)?;
+        self.store
+            .replace_metadata(actor, case_id, id, expected, metadata, self.clock.now())
+    }
+
+    fn metadata_history(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        query: MetadataQuery,
+    ) -> Result<MetadataPage, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDocument)?;
+        self.store
+            .metadata_history(actor, case_id, id, query, self.clock.now())
+    }
+
+    fn upload_with_metadata(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        name: &str,
+        bytes: &[u8],
+        metadata: DocumentMetadata,
+    ) -> Result<DocumentOverview, ApplicationError> {
+        let permissions = [Permission::CreateDocument, Permission::ClassifyDocument];
+        let actor = self.actor_permissions(token, &permissions)?;
+        self.store
+            .check_access(actor, case_id, DocumentAction::Upload)?;
+        self.store
+            .check_access(actor, case_id, DocumentAction::Classify)?;
+        let record = self.processor.prepare(name, bytes)?;
+        if self.actor_permissions(token, &permissions)? != actor {
+            return Err(ApplicationError::InvalidSession);
+        }
+        self.store
+            .insert_with_metadata(actor, case_id, record, metadata, self.clock.now())
+    }
+
     fn append(
         &self,
         token: &str,
@@ -71,7 +141,7 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         expected_version: DocumentVersion,
         name: &str,
         bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         self.append_content(token, case_id, id, expected_version, name, bytes)
     }
 
@@ -160,15 +230,10 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         token: &str,
         case_id: CaseId,
         id: DocumentId,
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         let actor = self.actor(token, Permission::ReadDocument)?;
-        self.store.get(
-            actor,
-            case_id,
-            id,
-            VersionSelection::Current,
-            self.clock.now(),
-        )
+        self.store
+            .get_overview(actor, case_id, id, self.clock.now())
     }
 
     fn upload(
@@ -177,18 +242,13 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         case_id: CaseId,
         name: &str,
         bytes: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
         let actor = self.actor(token, DocumentAction::Upload.permission())?;
         self.store
             .check_access(actor, case_id, DocumentAction::Upload)?;
         let record = self.processor.prepare(name, bytes)?;
         self.reauthenticate(token, actor, DocumentAction::Upload.permission())?;
-        self.store
-            .insert(actor, case_id, record.clone(), self.clock.now())?;
-        Ok(CaseDocumentSummary {
-            case_id,
-            document: DocumentSummary::from(&record),
-        })
+        self.store.insert(actor, case_id, record, self.clock.now())
     }
 
     fn seal(

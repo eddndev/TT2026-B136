@@ -4,6 +4,128 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: clasificación documental auditada
+
+- Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC
+  correspondientes al 15 de septiembre.
+- Alcance: carga clasificada atómica, revisiones organizativas independientes
+  del contenido, filtros exactos, concurrencia, restauración e interfaz Qadra.
+- Decisión: [clasificación auditada](adr/0020-audited-document-classification.md).
+- Entorno: Rust y Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9 compatible con
+  Redis, OpenSSL 3.5.7, Node.js 22.22.2 y npm 10.9.7.
+
+### Backend, restricciones y recuperación
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `cargo fmt --all -- --check`, `cargo build --workspace` | Aprobadas. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Aprobada. |
+| Política de dependencias con `cargo-deny 0.20.2` | Aprobada, sin nuevas excepciones. |
+| `bash scripts/test-backends.sh` | **644 aprobadas**, 0 fallidas y 1 externa ignorada. |
+| Suite instrumentada con `cargo llvm-cov --workspace` | **644 aprobadas** y 1 externa ignorada. |
+| `bash scripts/demo.sh` | Recorrido criptográfico CLI aprobado. |
+| `bash scripts/api-demo.sh` | Roles, aislamiento, concurrencia, carga clasificada, versiones, importación y restauración aprobados. |
+
+PostgreSQL y Redis fueron instancias desechables con bases separadas de identidad,
+expedientes y documentos. El guion de pruebas usa SCRAM y contraseñas aleatorias.
+La prueba ignorada sigue siendo `the_real_sandbox_issues_a_token`; no se ejecutó
+una campaña con un proveedor externo. Permanece la advertencia de compatibilidad
+futura de `redis 0.25.4`, sin errores de Clippy.
+
+Las 67 pruebas Rust nuevas respecto de versiones cubren:
+
+- Canon `DMETA1`, escalares Unicode, controles, blancos, deduplicación, comas y
+  orden UTF-8, con comparación de vectores entre Rust, SQL y OpenSSL. La base
+  rechaza valores no canónicos, arrays anómalos, digest falso y codificación
+  distinta de UTF-8 antes de aplicar la migración.
+- Revisión cero sin procedencia inventada, reemplazo completo, valores vacíos,
+  revisiones idénticas, agotamiento y cursor descendente exclusivo. Historial
+  conserva correo y UUID capturados aunque cambie el perfil del actor.
+- Autorización antes de consultar o preparar y dentro de la transacción;
+  Client denegado, asociación ajena oculta, revocación de rol/asignación y
+  revalidación después de esperar a otro escritor.
+- Carga inicial con raíz, V1, R1 y dos eventos atómicos; rollback ante fallo de
+  inserción, del segundo evento o de commit diferido. Fallos de lectura o
+  historial no entregan valores sin confirmar auditoría.
+- Reemplazos concurrentes con un solo ganador, append de contenido independiente,
+  filas inmutables y lecturas del máximo después de esperar commit o rollback.
+- Selección de la última versión y clasificación antes de filtrar y paginar;
+  tipos, clasificación y etiquetas exactos sin reutilizar valores históricos.
+- HTTP con JSON estricto, partes completas en cualquier orden, nombre de cabecera
+  autoritativo, límites por parte y totales, y cuerpos fragmentados sin
+  Content-Length. El detalle actual incluye clasificación; historia y acciones
+  exactas de contenido conservan sus proyecciones y evidencia.
+- Migración aditiva, reaplicación, snapshot legacy 7 seguido por 8, inventario,
+  permisos y restauración de filas completas con comprobaciones activas.
+
+Una prueba de transporte con fragmentos diferidos reprodujo que el parser podía
+aceptar bytes que excedían el límite después del cierre multipart. La corrección
+consume primero el cuerpo completo acotado y rechaza exceso o interrupción antes
+de preparar la carga. Las pruebas cubren ambos límites exactos y el epílogo.
+
+El demo de recuperación reprodujo otro defecto: `pg_restore` usa un search path
+vacío y las funciones canónicas no encontraban sus auxiliares. La migración ahora
+califica referencias al esquema instalado. Dos regresiones fallaron antes del
+cambio; después aprobaron tanto el CHECK bajo search path vacío como un
+`pg_dump`/`pg_restore` real, conservando restricciones y acceso del rol operativo.
+
+El recorrido HTTP importa cuatro documentos y conserva el prefijo de 51 eventos;
+añade V2 a uno y carga otro con clasificación inicial. Reemplaza R0 por R1 y
+vacía valores en R2, rechaza la revisión obsoleta y comprueba filtros e historial.
+El respaldo contiene **cinco raíces, seis snapshots y tres revisiones de
+clasificación**. La restauración compara filas completas de documentos, raíces,
+clasificación, actores capturados, usuarios, expedientes, asignaciones, auditoría
+y recibos. Las dos historias JSON y los ZIP V1/V2 resultan idénticos; OpenSSL
+verifica el contenido y evidencia. Los 51 eventos son el prefijo preservado,
+no el total final después del recorrido.
+
+### Cobertura de clasificación
+
+| Crate | Líneas cubiertas / totales | Cobertura |
+| --- | --- | --- |
+| domain | 1146 / 1180 | 97.1 % |
+| application | 2426 / 2559 | 94.8 % |
+| infrastructure | 4358 / 4646 | 93.8 % |
+| web | 1090 / 1199 | 90.9 % |
+| bin | 834 / 1086 | 76.8 % |
+| **Workspace** | **9854 / 10670** | **92.4 %** |
+
+La medición usa `scripts/test-backends.sh cargo llvm-cov --workspace --json
+--summary-only --output-path /tmp/tt-classification-coverage-final2.json`;
+`scripts/coverage-gate.sh` comprueba los tres umbrales obligatorios de 90 %.
+El corte anterior de versiones, con 577 pruebas y 91.7 %, se conserva abajo.
+
+### Qadra y navegador
+
+Formato y build web aprobados; **34 pruebas unitarias**, **47 pruebas de
+navegador con respuestas simuladas** y **dos recorridos con servicios reales**
+aprobados. Los mocks y el servidor live se ejecutaron secuencialmente. Las nuevas
+regresiones comprueban valores Unicode y comas, límites, texto tratado como texto,
+conflicto con borrador conservado, agotamiento, R0, limpieza explícita, filtros,
+respuestas tardías, denegaciones y separación respecto de la versión seleccionada.
+
+El recorrido nuevo real crea R1 en una sola carga multipart, edita R2, provoca
+un conflicto desde dos contextos autenticados y conserva el formulario ante R3.
+Tras comparar, confirma R4; añadir V2 conserva esa clasificación. Vaciar los
+campos genera R5 y mantiene las cinco revisiones con autor capturado. Reingreso,
+filtros vigentes y selección histórica siguen funcionando. Los ZIP de ambas
+versiones permanecen idénticos tras editar y vaciar clasificación. El otro
+recorrido conserva la validación real de versiones de contenido.
+
+Se inspeccionaron escritorio, móvil, historial desplegable y comparación del
+conflicto con confirmación visible. La clasificación actual aparece separada de
+las versiones; las fechas se presentan en español de México con su valor UTC
+conservado en el elemento `time`. Las siete hojas CSS originales y los recursos
+de marca de Qadra se compararon byte por byte sin cambios; las ampliaciones usan
+`web/src/styles/metadata.css` y componentes basados en los controles existentes.
+
+La clasificación no completa por sí sola todos los casos documentales: siguen
+abiertos la política de formatos admitidos, entrega íntegra sin sello y alertas
+de alteración al Owner. Gestión procesal, identidad/firma individual, informes,
+operación pública y usabilidad con personas reales conservan sus pendientes en
+[el alcance del producto](product-completion.md). Este ensayo no prueba carga de
+producción ni añade autoridad jurídica a la TSA local.
+
 ## Corte reproducido: versiones documentales inmutables
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC

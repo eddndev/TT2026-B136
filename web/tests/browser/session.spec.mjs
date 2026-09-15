@@ -200,10 +200,22 @@ test('new upload remains selected when an earlier document detail arrives later'
     mimeType: 'application/pdf',
     buffer: Buffer.from('new contents'),
   });
-  await page.route(`**/cases/${caseId}/documents`, (route) =>
+  await page.route(`**/cases/${caseId}/documents/with-metadata`, (route) =>
     route.fulfill({
       status: 201,
       json: { ...document, id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', name: 'new-upload.pdf' },
+    }),
+  );
+  await page.route(`**/documents/dddddddd-dddd-4ddd-8ddd-dddddddddddd/metadata`, (route) =>
+    route.fulfill({
+      json: {
+        case_id: caseId,
+        id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+        metadata_revision: 0,
+        document_type: null,
+        classification: null,
+        tags: [],
+      },
     }),
   );
   await page.getByRole('button', { name: 'Cargar documento', exact: true }).click();

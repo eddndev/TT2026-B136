@@ -56,6 +56,7 @@ async fn append_preserves_identity_and_passes_the_expected_head_and_file() {
     assert_eq!(body["version"], 4);
     assert_eq!(body["name"], "revised.txt");
     assert_eq!(body["sealed"], false);
+    assert_eq!(body["current_metadata"]["metadata_revision"], 3);
 }
 
 #[tokio::test]
@@ -79,6 +80,7 @@ async fn history_passes_a_descending_cursor_and_returns_version_metadata() {
     assert_eq!(body["first_available_version"], 1);
     assert!(body["versions"][0].get("vault").is_none());
     assert!(body["versions"][0].get("evidence").is_none());
+    assert!(body["versions"][0].get("current_metadata").is_none());
 }
 
 #[tokio::test]
@@ -94,7 +96,9 @@ async fn detail_and_actions_preserve_the_requested_snapshot() {
         )
         .await;
         assert_eq!(response.status(), StatusCode::OK);
-        assert_eq!(json(response).await["version"], 2);
+        let body = json(response).await;
+        assert_eq!(body["version"], 2);
+        assert!(body.get("current_metadata").is_none());
     }
     let response = request(
         &workflow,

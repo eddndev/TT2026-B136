@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
 use application::documents::{
-    CaseDocumentService, CaseDocumentStore, CaseDocumentSummary, DocumentAction, DocumentPage,
-    DocumentQuery, DocumentRecord, VersionPage, VersionQuery, VersionSelection,
+    CaseDocumentService, CaseDocumentStore, CaseDocumentSummary, CurrentDocumentMetadata,
+    DocumentAction, DocumentMetadata, DocumentOverview, DocumentPage, DocumentQuery,
+    DocumentRecord, MetadataPage, MetadataQuery, MetadataRevision, VersionPage, VersionQuery,
+    VersionSelection,
 };
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
@@ -18,13 +20,18 @@ use mockall::mock;
 mock! {
     pub Store {}
     impl CaseDocumentStore for Store {
+        fn get_overview(&self, actor: UserId, case: CaseId, id: DocumentId, at: OffsetDateTime) -> Result<DocumentOverview, ApplicationError>;
+        fn get_metadata(&self, actor: UserId, case: CaseId, id: DocumentId, at: OffsetDateTime) -> Result<CurrentDocumentMetadata, ApplicationError>;
+        fn replace_metadata(&self, actor: UserId, case: CaseId, id: DocumentId, expected: MetadataRevision, metadata: DocumentMetadata, at: OffsetDateTime) -> Result<CurrentDocumentMetadata, ApplicationError>;
+        fn metadata_history(&self, actor: UserId, case: CaseId, id: DocumentId, query: MetadataQuery, at: OffsetDateTime) -> Result<MetadataPage, ApplicationError>;
+        fn insert_with_metadata(&self, actor: UserId, case: CaseId, record: DocumentRecord, metadata: DocumentMetadata, at: OffsetDateTime) -> Result<DocumentOverview, ApplicationError>;
         fn history(&self, actor: UserId, case: CaseId, id: DocumentId, query: VersionQuery, at: OffsetDateTime) -> Result<VersionPage, ApplicationError>;
-        fn append(&self, actor: UserId, case: CaseId, expected_version: DocumentVersion, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;
+        fn append(&self, actor: UserId, case: CaseId, expected_version: DocumentVersion, record: DocumentRecord, at: OffsetDateTime) -> Result<DocumentOverview, ApplicationError>;
         fn list(&self, actor: UserId, case: CaseId, query: DocumentQuery, at: OffsetDateTime) -> Result<DocumentPage, ApplicationError>;
         fn get(&self, actor: UserId, case: CaseId, id: DocumentId, selection: VersionSelection, at: OffsetDateTime) -> Result<CaseDocumentSummary, ApplicationError>;
         fn check_access(&self, actor: UserId, case: CaseId, action: DocumentAction) -> Result<(), ApplicationError>;
         fn load(&self, actor: UserId, case: CaseId, id: DocumentId, selection: VersionSelection, action: DocumentAction) -> Result<DocumentRecord, ApplicationError>;
-        fn insert(&self, actor: UserId, case: CaseId, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;
+        fn insert(&self, actor: UserId, case: CaseId, record: DocumentRecord, at: OffsetDateTime) -> Result<DocumentOverview, ApplicationError>;
         fn seal(&self, actor: UserId, case: CaseId, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;
         fn record_access(&self, actor: UserId, case: CaseId, record: &DocumentRecord, action: DocumentAction, at: OffsetDateTime) -> Result<(), ApplicationError>;
         fn audit_entries(&self, actor: UserId) -> Result<Vec<ChainedEvent>, ApplicationError>;

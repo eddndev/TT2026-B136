@@ -153,7 +153,9 @@ persista texto claro, lo firma y sella con la TSA local, y valida el ZIP con
 OpenSSL. También crea expedientes, comprueba listados filtrados, asignaciones,
 revocación con la misma sesión, aislamiento documental entre expedientes y
 las restricciones documentales del Cliente. Ensaya además importación y
-restauración con evidencia sellada en servicios desechables.
+restauración con evidencia sellada en servicios desechables. Comprueba carga
+clasificada atómica, filtros exactos, revisiones en conflicto, vaciado de valores
+y conservación de historia, autores y ZIP tras restaurar.
 No configura ni consulta Cincel. El contrato completo está en
 [`docs/http-api.md`](docs/http-api.md).
 
@@ -175,7 +177,7 @@ limpieza inmediata si también falla Redis. La decisión y los límites están e
 [ADR-0016](docs/adr/0016-case-document-transactions.md).
 
 Antes de iniciar `serve`, aplicar `database migrate --runtime-role` con una
-conexión administrativa y configurar `DATABASE_URL` con el rol operativo
+conexión administrativa sobre una base UTF-8 y configurar `DATABASE_URL` con el rol operativo
 restringido. El arranque no ejecuta DDL. También requiere `REDIS_URL`,
 `KEK_BASE64`, CA, CRL, certificado y llave del firmante, y TSA local inicializada.
 Conservar la KEK original al migrar: una llave nueva no descifra los datos
@@ -189,13 +191,15 @@ ADR-0016 actualiza sus límites sobre asociación documental y transacciones.
 Los [criterios de esta entrega](docs/next-goal.md) se contrastan con resultados
 actuales antes de cerrar la integración. El listado, detalle, búsqueda e historial
 documental se integran con la interfaz Qadra. Las versiones conservan identidad,
-cifrado y evidencia histórica. Siguen pendientes clasificación y
-gestión procesal; el alcance de cierre está en [el plan del producto](docs/product-completion.md).
+cifrado y evidencia histórica. Tipo, clasificación y etiquetas tienen un historial
+auditado independiente y filtros por sus valores actuales. La gestión procesal
+sigue pendiente; el alcance de cierre está en [el plan del producto](docs/product-completion.md).
 
 ### Frontend web
 
 - [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,
-  expedientes, consultas persistentes, carga e historial de versiones, sellado,
+  expedientes, consultas persistentes, carga, clasificación y sus revisiones,
+  historial de versiones, sellado,
   verificación, evidencia,
   alta de usuarios y verificación de auditoría.
   Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.

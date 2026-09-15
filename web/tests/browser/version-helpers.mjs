@@ -17,6 +17,7 @@ export async function versionSetup(page, { conflict = false } = {}) {
       method: request.method(),
       body: request.postData(),
     });
+    if (suffix?.startsWith('/metadata')) return route.fallback();
     if (suffix === '') return route.fulfill({ json: records.at(-1) });
     if (suffix === '/versions') {
       if (request.method() === 'POST') {

@@ -14,7 +14,7 @@
 <section class="card version-history" aria-label="Historial de versiones" aria-busy={busy}>
   <div class="section-heading">
     <div>
-      <h2>Historial de versiones</h2>
+      <h2>Versiones de contenido</h2>
       <p class="hint">Versi&#243;n actual: {currentVersion}</p>
     </div>
     <button class="secondary" disabled={busy} onclick={onrefresh}>Actualizar historial</button>

@@ -1,6 +1,9 @@
 //! PostgreSQL document operations with current case authorization and one audit commit.
 
 mod authorization;
+mod metadata;
+mod metadata_storage;
+mod mutations;
 mod query;
 use authorization::{authorize, authorize_document};
 mod storage;
@@ -9,8 +12,9 @@ pub(crate) use storage::decode_record;
 use std::sync::{Mutex, MutexGuard};
 
 use application::documents::{
-    CaseDocumentStore, CaseDocumentSummary, DocumentAction, DocumentPage, DocumentQuery,
-    DocumentRecord, VersionPage, VersionQuery, VersionSelection,
+    CaseDocumentStore, CaseDocumentSummary, CurrentDocumentMetadata, DocumentAction,
+    DocumentMetadata, DocumentOverview, DocumentPage, DocumentQuery, DocumentRecord, MetadataPage,
+    MetadataQuery, MetadataRevision, VersionPage, VersionQuery, VersionSelection,
 };
 use application::ApplicationError;
 use domain::audit::ChainedEvent;
@@ -160,29 +164,8 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         case: CaseId,
         record: DocumentRecord,
         at: OffsetDateTime,
-    ) -> Result<(), ApplicationError> {
-        if record.version != DocumentVersion::initial() {
-            return Err(ApplicationError::InvalidInput(
-                "new documents must start at version one".into(),
-            ));
-        }
-        if record.is_sealed() {
-            return Err(ApplicationError::InvalidInput(
-                "uploaded records must not contain sealed evidence".into(),
-            ));
-        }
-        let mut client = self.client()?;
-        let mut transaction = begin_audited(&mut client)?;
-        let principal = authorize(&mut transaction, actor, case, DocumentAction::Upload)?;
-        storage::insert(&mut transaction, case, &record)?;
-        append_transaction(
-            &mut transaction,
-            &principal.email,
-            DocumentAction::Upload.audit_action(),
-            &resource(case, record.id, record.version, &record.digest.to_hex()),
-            at,
-        )?;
-        transaction.commit().map_err(storage::port_error)
+    ) -> Result<DocumentOverview, ApplicationError> {
+        mutations::insert(self, actor, case, record, None, at)
     }
 
     fn append(
@@ -192,38 +175,84 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         expected: DocumentVersion,
         record: DocumentRecord,
         at: OffsetDateTime,
-    ) -> Result<(), ApplicationError> {
+    ) -> Result<DocumentOverview, ApplicationError> {
+        mutations::append(self, actor, case, expected, record, at)
+    }
+
+    fn insert_with_metadata(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        record: DocumentRecord,
+        metadata: DocumentMetadata,
+        at: OffsetDateTime,
+    ) -> Result<DocumentOverview, ApplicationError> {
+        mutations::insert(self, actor, case, record, Some(metadata), at)
+    }
+
+    fn get_metadata(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        id: DocumentId,
+        at: OffsetDateTime,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        self.read_metadata(actor, case, id, at)
+    }
+
+    fn replace_metadata(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        id: DocumentId,
+        expected: MetadataRevision,
+        metadata: DocumentMetadata,
+        at: OffsetDateTime,
+    ) -> Result<CurrentDocumentMetadata, ApplicationError> {
+        self.change_metadata(actor, case, id, expected, metadata, at)
+    }
+
+    fn metadata_history(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        id: DocumentId,
+        query: MetadataQuery,
+        at: OffsetDateTime,
+    ) -> Result<MetadataPage, ApplicationError> {
+        self.read_metadata_history(actor, case, id, query, at)
+    }
+
+    fn get_overview(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        id: DocumentId,
+        at: OffsetDateTime,
+    ) -> Result<DocumentOverview, ApplicationError> {
         let mut client = self.client()?;
         let mut transaction = begin_audited(&mut client)?;
-        let principal = authorize_document(
-            &mut transaction,
-            actor,
-            case,
-            record.id,
-            DocumentAction::Append,
-        )?;
-        let current =
-            storage::resolve_version(&mut transaction, case, record.id, VersionSelection::Current)?;
-        if current != expected {
-            return Err(ApplicationError::DocumentVersionConflict);
-        }
-        let next = current
-            .next()
-            .map_err(|_| ApplicationError::DocumentVersionExhausted)?;
-        if record.version != next || record.is_sealed() {
-            return Err(ApplicationError::InvalidInput(
-                "appended records must be the next unsealed version".into(),
-            ));
-        }
-        storage::insert_snapshot(&mut transaction, case, &record)?;
+        let principal =
+            authorize_document(&mut transaction, actor, case, id, DocumentAction::Read)?;
+        let content = query::get(&mut transaction, case, id, VersionSelection::Current)?;
+        let current_metadata = metadata_storage::current(&mut transaction, id)?;
         append_transaction(
             &mut transaction,
             &principal.email,
-            DocumentAction::Append.audit_action(),
-            &resource(case, record.id, record.version, &record.digest.to_hex()),
+            DocumentAction::Read.audit_action(),
+            &resource(
+                case,
+                id,
+                content.document.version,
+                &content.document.digest_hex,
+            ),
             at,
         )?;
-        transaction.commit().map_err(storage::port_error)
+        transaction.commit().map_err(storage::port_error)?;
+        Ok(DocumentOverview {
+            content,
+            current_metadata,
+        })
     }
 
     fn seal(

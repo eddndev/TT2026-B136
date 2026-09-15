@@ -22,6 +22,7 @@ pub mod legacy;
 pub mod password;
 mod postgres;
 mod postgres_actor;
+mod postgres_metadata_schema;
 mod postgres_version_schema;
 pub mod recovery;
 pub mod signing;

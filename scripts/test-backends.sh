@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-for command in cargo initdb pg_ctl psql python3 redis-cli redis-server; do
+for command in cargo initdb pg_ctl pg_dump pg_restore psql python3 redis-cli redis-server; do
   command -v "$command" >/dev/null || {
     printf 'test-backends.sh: required command not found: %s\n' "$command" >&2
     exit 1

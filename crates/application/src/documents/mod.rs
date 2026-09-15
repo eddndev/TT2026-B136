@@ -3,6 +3,8 @@
 mod case_content;
 mod case_port;
 mod case_service;
+mod metadata;
+mod metadata_filter;
 mod model;
 mod port;
 mod processor;
@@ -21,3 +23,9 @@ pub use query::{DocumentPage, DocumentQuery};
 pub use service::{DocumentWorkflowPorts, LocalDocumentWorkflow};
 pub use validation::{validate_record_with_ports, DocumentValidationPorts};
 pub use version::{VersionPage, VersionQuery, VersionSelection};
+
+pub use metadata::{
+    metadata_digest, CurrentDocumentMetadata, DocumentMetadata, DocumentMetadataRevision,
+    DocumentOverview, MetadataActorSnapshot, MetadataPage, MetadataQuery, MetadataRevision,
+};
+pub use metadata_filter::DocumentMetadataFilter;

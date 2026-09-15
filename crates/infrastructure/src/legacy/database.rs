@@ -111,7 +111,7 @@ impl LegacyImport {
         }
         let occupied: bool = client
             .query_one(
-                "SELECT EXISTS(SELECT 1 FROM document_series) OR EXISTS(SELECT 1 FROM documents) OR EXISTS(SELECT 1 FROM audit_events)
+                "SELECT EXISTS(SELECT 1 FROM document_series) OR EXISTS(SELECT 1 FROM documents) OR EXISTS(SELECT 1 FROM document_metadata_revisions) OR EXISTS(SELECT 1 FROM audit_events)
              OR EXISTS(SELECT 1 FROM migration_receipts)",
                 &[],
             )

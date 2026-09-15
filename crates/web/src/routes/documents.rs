@@ -1,7 +1,7 @@
 //! Case-scoped document and audit endpoints delegate authorization to use cases.
 
 use super::AppState;
-use crate::dto::{AuditResponse, DocumentResponse, VerificationResponse};
+use crate::dto::{AuditResponse, DocumentOverviewResponse, DocumentResponse, VerificationResponse};
 use crate::{error::ApiError, request::bearer_token};
 use axum::{
     body::{Body, Bytes},
@@ -23,7 +23,7 @@ pub(super) async fn upload_document(
     Path(case_id): Path<String>,
     headers: HeaderMap,
     body: Bytes,
-) -> Result<(StatusCode, Json<DocumentResponse>), ApiError> {
+) -> Result<(StatusCode, Json<DocumentOverviewResponse>), ApiError> {
     let token = bearer_token(&headers)?;
     let case_id = parse_case_id(&case_id)?;
     let name = required_header(&headers, DOCUMENT_NAME_HEADER)?.to_string();

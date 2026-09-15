@@ -6,7 +6,8 @@ export const roles = {
 };
 
 export function can(role, action) {
-  if (action === 'documents') return ['owner', 'litigator', 'paralegal'].includes(role);
+  if (['documents', 'classify'].includes(action))
+    return ['owner', 'litigator', 'paralegal'].includes(role);
   if (action === 'seal') return ['owner', 'litigator'].includes(role);
   if (['users', 'audit'].includes(action)) return role === 'owner';
   return false;

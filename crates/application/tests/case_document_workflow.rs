@@ -35,7 +35,10 @@ mod case_document_support;
 #[path = "support/document_workflow.rs"]
 mod crypto;
 
-use application::documents::{CaseDocumentWorkflow, DocumentWorkflow};
+use application::documents::{
+    CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentMetadata,
+    DocumentOverview, DocumentSummary, DocumentWorkflow, MetadataRevision,
+};
 use application::ApplicationError;
 use case_document_support::{identity, service, MockIdentity, MockStore};
 use domain::cases::CaseId;
@@ -131,13 +134,26 @@ fn authorized_upload_preserves_local_crypto_format_and_commits_authenticated_sco
                 && record.vault.starts_with(b"DVLT1")
                 && !record.is_sealed()
         })
-        .returning(|_, _, _, _| Ok(()));
+        .returning(|_, scope, record, _| {
+            Ok(DocumentOverview {
+                content: CaseDocumentSummary {
+                    case_id: scope,
+                    document: DocumentSummary::from(&record),
+                },
+                current_metadata: CurrentDocumentMetadata {
+                    metadata_revision: MetadataRevision::unclassified(),
+                    values: DocumentMetadata::empty(),
+                },
+            })
+        });
     let result = service(store, identity)
         .upload("session", case, "a.txt", b"data")
         .unwrap();
-    assert_eq!(result.case_id, case);
-    assert_eq!(result.document.digest_hex, local.digest_hex);
-    assert_eq!(result.document.version, local.version);
+    assert_eq!(result.current_metadata.metadata_revision.get(), 0);
+    assert_eq!(result.current_metadata.values, DocumentMetadata::empty());
+    assert_eq!(result.content.case_id, case);
+    assert_eq!(result.content.document.digest_hex, local.digest_hex);
+    assert_eq!(result.content.document.version, local.version);
 }
 
 #[test]
