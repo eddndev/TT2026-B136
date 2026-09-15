@@ -1,5 +1,58 @@
 # Verificación de la actualización académica
 
+## Coordinación de fichas: 15 de septiembre de 2026
+
+Se actualizaron implementación, pruebas y README para describir la coordinación
+entre una mutación confirmada y las consultas que actualizan su ficha. Sellado,
+anexado, clasificación y edición de participantes mantienen ocupados los controles
+correspondientes hasta terminar sus lectores dependientes. La carga inicial espera
+el listado antes de montar clasificación e historial; editar participantes conserva
+el historial abierto. Un cambio de estado confirmado retira el detalle y espera
+el listado. Un fallo transitorio de consulta conserva el estado confirmado; una
+denegación retira los datos y las respuestas tardías no los restablecen.
+
+El alcance se limita a acciones y consultas de cada ficha; no modifica el límite
+compartido del backend ni garantiza capacidad entre vistas o usuarios. Las
+regresiones controladas no atribuyen una respuesta HTTP concreta a los fallos
+remotos anteriores cuyo estado no se capturó. Las mediciones del 14 de septiembre,
+incluidos 88 escenarios simulados, 770 pruebas Rust y cobertura global de 93.4 %,
+conservan su condición histórica.
+
+El corte final aprobó **48 pruebas unitarias, 109 escenarios simulados en 36.5
+segundos y cuatro recorridos reales en 57.6 segundos**. Los recorridos cubren
+administración penal, participantes, clasificación y versiones. Formato y
+compilación terminaron satisfactoriamente; esta última tomó 1.45 segundos sin
+advertencias. La auditoría técnica comprobó 156 archivos fuente/configuración
+ASCII y menores de 400 líneas, con máximo de 382; los 337 hashes de Rust y
+migraciones permanecieron idénticos y sus suites no se repitieron. Los doce
+recursos originales de Qadra también conservaron sus bytes. La evidencia y sus
+límites se detallan en el [informe técnico](verification-report.md); no constituyen
+una evaluación de usabilidad o capacidad de producción.
+
+### Compilación y preservación
+
+Se ejecutó el Makefile de LuaLaTeX en una copia nueva con caché de fuentes separada.
+Terminó con código cero: **266 páginas**, formato carta y **5 675 576 bytes**.
+El artefacto nuevo es `output/pdf/TT2026-B136-perfil-penal-qadra-2026-09-15-coordinacion.pdf`, con manifiesto de fuentes y SHA-256,
+sin sobrescribir la salida del 14 ni añadir el PDF a Git. Su hash es
+`376c0a13689aa0c425c88d46f7f5b18a48507e03f582a02e5e0d7b00e8082eaa`. Los **51 archivos de fuentes y soporte** coinciden entre árbol,
+copia compilada y manifiesto.
+
+La comparación con el PDF anterior identificó las páginas modificadas y los
+cambios de paginación. Se renderizaron y revisaron **106 páginas**, incluidos
+índices y páginas adyacentes; la revisión se repartió entre dos lectores y se
+inspeccionaron también las páginas de implementación, pruebas y una tabla de
+verificación a escala individual. No se observaron recortes, superposiciones o
+rutas ilegibles. El control de coordenadas pasó y no quedaron referencias o citas
+indefinidas, etiquetas duplicadas ni glifos ausentes. Solo permanecen el desborde
+histórico de 0.11754 pt del índice de tablas y las sustituciones de versalitas.
+
+Los **once PDF anteriores** y los **34 archivos de presentación** conservan sus
+hashes: 43 rutas únicas de artefactos protegidos. Resumen aprobado, objetivos,
+revisión de plataformas, marco teórico y conclusiones pendientes permanecen
+idénticos. Esta verificación corresponde al nuevo artefacto local y no afirma
+una nueva compilación remota.
+
 ## Perfil y administración penal: 14 de septiembre de 2026
 
 Se actualizaron alcance, diseño, modelo de persistencia y permisos, contratos

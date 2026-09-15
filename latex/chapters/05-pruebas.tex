@@ -258,6 +258,14 @@ La validación de navegador aprobó 45 pruebas unitarias, 88 escenarios simulado
 
 Las capturas de escritorio y móvil comprueban legibilidad del resumen, formulario multilineal, comparación, historia y estados de cierre. El recorrido de 390 píxeles comprueba ausencia de desplazamiento horizontal. El ajuste final del área de texto se revisó visualmente y con servicios reales. Estas comprobaciones no sustituyen pruebas de usabilidad con personal del despacho ni validación jurídica de los datos manuales.
 
+\subsubsection{Coordinación de acciones y consultas de la interfaz}\label{sec:pruebas-coordinacion-interfaz}
+
+El corte del 15 de septiembre de 2026 aprobó 48 pruebas unitarias, 109 escenarios simulados en 36.5 segundos y cuatro recorridos con servicios reales en 57.6 segundos. Estos últimos ejercitan administración penal, participantes, clasificación y versiones. Formato y compilación de la interfaz terminaron satisfactoriamente; la compilación tomó 1.45 segundos sin advertencias. Son resultados nuevos de navegador, separados de los 88 escenarios registrados el día anterior. Las fuentes Rust y las migraciones conservaron sus hashes, por lo que no se repitieron sus suites ni se presenta la cobertura previa como una nueva medición.
+
+Las regresiones de coordinación retienen deliberadamente las respuestas de listado e historial para comprobar que los controles no se liberan antes de terminar las consultas dependientes. Cubren sellado, anexado, clasificación y edición de participantes, tanto al confirmar cambios como al consultar una base después de un conflicto. La carga inicial espera el listado antes de montar los lectores de la ficha. Un fallo transitorio de consulta conserva el estado ya confirmado; una denegación retira los datos y una respuesta tardía no los restaura. Estas condiciones no alteran el límite compartido del servidor ni garantizan capacidad disponible entre vistas o usuarios.
+
+{\raggedright Los casos se reproducen en \rutarepo{web/tests/browser/document-admission.spec.mjs}, \rutarepo{web/tests/browser/metadata-admission.spec.mjs} y \rutarepo{web/tests/browser/participant-refresh.spec.mjs}, junto con las comprobaciones de carga documental. La reproducción controlada identifica la condición ensayada; no atribuye una respuesta HTTP concreta a fallos remotos anteriores cuyo estado no se capturó.\par}
+
 \section{Resultados criptográficos}\label{sec:pruebas-cripto}
 
 \subsection{Vectores oficiales}\label{sec:pruebas-vectores}

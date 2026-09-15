@@ -84,6 +84,11 @@ compatible; completar perfiles pendientes no inventa etapa. El cierre impide
 mutaciones, sin acreditar por sí mismo la condición jurídica del proceso.
 La gestión procesal completa y la usabilidad siguen pendientes. Las mediciones de cada entrega se registran por
 separado, sin actualizar cifras históricas por cambios de funcionalidad.
+El seguimiento del 15 de septiembre coordina las mutaciones y consultas de cada
+ficha documental, de clasificación y de participantes. Su nuevo corte de interfaz
+registra 48 pruebas unitarias, 109 escenarios simulados y cuatro recorridos reales
+aprobados, sin sustituir las cifras anteriores ni alterar el límite compartido
+del backend.
 La revisión del reporte se registra en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
 
