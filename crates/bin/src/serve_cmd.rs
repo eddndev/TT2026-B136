@@ -4,12 +4,14 @@ use std::fs;
 use std::sync::Arc;
 
 use anyhow::Context;
+use application::case_stages::CaseStageService;
 use application::cases::CaseService;
 use application::documents::{
     CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
 };
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
 use application::participants::ParticipantService;
+use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
     PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresParticipantStore,
@@ -26,6 +28,14 @@ const KEK_VAR: &str = "KEK_BASE64";
 
 /// Builds all local adapters and blocks while the HTTP server is running.
 pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
+    let format_validator = infrastructure::document_formats::IsolatedDocumentFormatValidator::new(
+        std::env::current_exe().context("cannot locate document validation worker")?,
+        fs::canonicalize(&args.qpdf_library).context("cannot locate native qpdf library")?,
+    )
+    .context("cannot configure document format validation")?;
+    format_validator
+        .check_configuration()
+        .context("document format startup check failed")?;
     let signer_certificate = read(&args.signer_cert, "signer certificate")?;
     let signer_key = Zeroizing::new(read(&args.signer_key, "signer private key")?);
     let issuer_certificate = read(&args.ca_cert, "issuer certificate")?;
@@ -99,8 +109,20 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         identity.clone(),
         Arc::new(SystemClock::new()),
     );
-    let processor = DocumentProcessor::new(ports, material, kek)
-        .context("cannot initialize document cryptography")?;
+    let processor = Arc::new(
+        DocumentProcessor::new(ports, material, kek)
+            .context("cannot initialize document cryptography")?,
+    );
+    let stages = CaseStageService::new(
+        Arc::new(
+            PostgresCaseStageStore::open(&database_url, Arc::new(RingSha256Hasher::new()))
+                .context("cannot open PostgreSQL case stage store")?,
+        ),
+        identity.clone(),
+        processor.clone(),
+        Arc::new(format_validator),
+        Arc::new(SystemClock::new()),
+    );
     let workflow = CaseDocumentService::new(
         repository,
         identity.clone(),
@@ -112,6 +134,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         identity,
         Arc::new(cases),
         Arc::new(participants),
+        Arc::new(stages),
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
             max_blocking_operations: args.max_blocking_operations,

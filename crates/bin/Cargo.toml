@@ -16,7 +16,7 @@ application = { path = "../application" }
 infrastructure = { path = "../infrastructure" }
 web = { path = "../web" }
 axum.workspace = true
-clap.workspace = true
+clap = { workspace = true, features = ["env"] }
 serde_json.workspace = true
 anyhow.workspace = true
 base64.workspace = true
