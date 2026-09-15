@@ -1,5 +1,60 @@
 # Verificación de la actualización académica
 
+## Versiones documentales inmutables: 14 de septiembre de 2026
+
+Se actualizaron introducción, diseño, implementación, pruebas, anexo de
+trazabilidad y README del reporte. La descripción integra las versiones como
+comportamiento disponible: identidad estable, DEK propia y AAD por UUID/versión,
+selección explícita, anexado con cabeza esperada, filtros sobre la versión
+máxima, historial descendente y primera versión realmente disponible. El ejemplo
+de importación conserva la versión 7 y permite añadir la 8 sin inventar historia.
+La tabla de permisos incorpora historial y anexado. Las acciones sin número
+resuelven una única versión y conservan esa instantánea si aparece un sucesor.
+
+Se describen la migración repetible, reconciliación y restauración, junto con
+la selección histórica y los conflictos de carga en Qadra. El texto distingue
+el binding de cifrado de la firma y el sello sobre contenido, y aclara que el
+AAD no detecta la restauración íntegra de un estado antiguo válido. Clasificación,
+gestión procesal completa y usabilidad permanecen pendientes.
+
+Las cifras históricas de consultas se conservan: 539 pruebas y 91.0 % de
+cobertura. El nuevo corte documenta 577 pruebas Rust aprobadas, una externa
+ignorada y 8 908 de 9 719 líneas cubiertas (91.7 %), con los tres umbrales
+obligatorios aprobados. La interfaz registra por separado 28 pruebas unitarias,
+32 de navegador simulado y un escenario con servicios reales, además de
+compilación y formato. El recorrido de versiones conserva el ZIP de la primera
+versión y recupera ambas tras cerrar sesión y autenticar de nuevo. Los resultados
+funcionales proceden del [informe de verificación](verification-report.md);
+esta actualización académica no los cuenta como comprobaciones del documento.
+
+### Compilación y revisión documental
+
+Se ejecutó el Makefile versionado con LuaLaTeX, biber y glosarios en una copia
+temporal nueva de las fuentes, con caché de fuentes separada. La compilación
+final terminó con código cero y produjo **242 páginas**, formato carta,
+**5 594 306 bytes**. El PDF local se conserva como
+`output/pdf/TT2026-B136-versiones-qadra-2026-09-14.pdf`, acompañado de manifiesto
+de fuentes y archivo SHA-256, sin añadirlos a Git. Su hash es
+`b2dad626675612833fe4f25e9ab10b566e44d6afeea08aa265e88bde1b0263da`.
+Los 51 archivos del manifiesto compilado coinciden con el árbol de trabajo.
+
+Se renderizaron y revisaron **45 páginas** afectadas y adyacentes: índices,
+alcance, modelo de datos, cifrado, permisos, implementación, contratos, interfaz,
+pruebas, cobertura y trazabilidad. Se corrigieron desbordes de rutas y campos
+largos y se compactó la prosa de diseño para evitar un cierre de capítulo casi
+vacío. Las tablas y rutas son legibles, con referencias resueltas y sin recortes,
+superposiciones, etiquetas duplicadas ni glifos ausentes. La comprobación de
+coordenadas no encontró palabras fuera del área segura. Solo permanecen las
+sustituciones históricas de versalitas de Times New Roman y el desborde de
+0.11754 pt del índice de tablas, sin defecto visual apreciable.
+
+Resumen aprobado, objetivos, revisión de plataformas, marco teórico y
+conclusiones pendientes coinciden con su contenido anterior. Los siete PDFs
+anteriores, incluido `latex/main.pdf`, y los 34 archivos preexistentes de
+presentación mantienen sus hashes; son 39 rutas únicas al incluir los PDFs
+ubicados fuera de presentación. No se modificó la presentación. Esta evidencia
+corresponde a la compilación local y no afirma una nueva ejecución remota.
+
 ## Consultas documentales e interfaz Qadra: 14 de septiembre de 2026
 
 Se actualizaron la descripción del alcance implementado, diseño, implementación,
