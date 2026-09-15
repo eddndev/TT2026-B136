@@ -246,6 +246,12 @@ reproducibles basadas en los DTO de Rust. Comprueban formularios, solicitudes
 binarias, cabeceras, MFA, roles, consultas persistentes, búsqueda, paginación,
 metadatos por GET, descarga, navegación y adaptación móvil. Incluyen respuestas
 tardías de sesión, expediente y búsqueda, además de revocación de acceso.
+Las pruebas retienen respuestas para comprobar que las acciones de una misma
+ficha esperan sus operaciones y recargas automáticas. Cubren carga, nueva versión,
+sello y edición de clasificación, incluso con historial abierto. Un fallo
+transitorio de consulta conserva los datos ya confirmados; una denegación 403/404
+limpia el contenido protegido. La edición espera una consulta de clasificación
+en curso antes de permitir otro cambio.
 El historial, las acciones sobre versiones históricas, la paginación por cursor
 y los conflictos de carga tienen pruebas propias. La clasificación cubre
 Unicode/comas, multipart, revisiones esperadas, historial, filtros, denegaciones
@@ -268,8 +274,11 @@ versiones con nombres diferentes, sella ambas, descarga la evidencia histórica,
 compara los bytes del ZIP original y vuelve a consultar tras iniciar otra sesión.
 Un segundo recorrido prueba carga clasificada, conflicto entre dos sesiones,
 limpieza, persistencia y ZIP idénticos antes/después de clasificar.
-Las capturas quedan en `web/test-results-live/`. No uses bases de datos ni credenciales de usuarios
-reales para esta prueba.
+Las capturas quedan en `web/test-results-live/`. Cada escenario que recibe una
+respuesta API de error conserva `api-failures.json` con método, ruta anonimizada,
+estado HTTP y código de error. El diagnóstico excluye consultas, cabeceras y
+cuerpos completos; sustituye los UUID de la ruta. No uses bases de datos ni
+credenciales de usuarios reales para esta prueba.
 
 La verificación local más reciente se registra por separado de las pruebas
 históricas del backend en [`docs/verification-report.md`](../docs/verification-report.md).

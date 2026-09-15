@@ -177,6 +177,86 @@ navegador durante siete días. Las 88 pruebas y el PDF del corte anterior
 conservan su condición de evidencia histórica; las fuentes del manuscrito no
 cambiaron por esta corrección del guion.
 
+### Coordinación de consultas y acciones documentales
+
+La siguiente ejecución de CI sobre `e01d1f4` terminó con los controles Rust,
+web simulado y documento aprobados, pero fallaron ambos recorridos de navegador
+con servicios reales: uno al descargar y otro al verificar después del sellado.
+Los contextos conservados muestran el documento sellado y una alerta genérica
+para errores del servidor. No contienen el estado HTTP ni su código, por lo
+que no prueban retrospectivamente una respuesta `503`.
+
+La revisión del flujo identificó una carrera productiva: confirmar el sello
+iniciaba consultas de listado e historial sin esperar su finalización y liberaba
+las acciones de la ficha. Con los dos trabajadores ocupados, una nueva operación
+puede ser rechazada por la admisión del servidor. El mismo patrón aparece al
+montar los lectores de una carga y al refrescar una nueva versión. Esta causa
+comprobable en la aplicación se distingue de las esperas incorrectas del guion
+corregidas en el seguimiento anterior.
+
+La ficha documental ahora espera la consulta de listado antes de montar sus
+lectores iniciales; el estado ocupado comprende las operaciones de contenido,
+clasificación y sus recargas dependientes. Sellar, verificar y descargar se
+coordinan con esas consultas. Una nueva versión mantiene la selección ocupada
+hasta terminar listado e historial. Si una consulta posterior falla de forma
+transitoria, el sello confirmado permanece visible; un `403/404` retira los
+recursos protegidos. No se repite automáticamente una mutación.
+
+La edición de participantes conserva el historial abierto y lo refresca
+explícitamente junto con el listado. Tanto la confirmación como la revisión de
+un conflicto esperan ambas lecturas, aunque terminen en distinto orden. Cambiar
+el estado organizativo conserva el comportamiento de retirar el detalle y espera
+el listado. Los borradores y las revisiones esperadas se mantienen; una lista
+tardía no restaura datos retirados por denegación.
+
+Las nuevas pruebas retienen respuestas de operaciones y consultas, comprueban
+controles deshabilitados y luego liberan cada respuesta explícitamente. Hay
+**19 casos nuevos de navegador**: 12 documentales y 7 de participantes. Las
+regresiones dirigidas reprodujeron acciones prematuramente habilitadas antes de
+los cambios. El ensayo de append ajustó su preparación para esperar los lectores
+iniciales; su comprobación posterior con el guard desactivado fue un control
+negativo de sensibilidad, no una ejecución exacta contra una revisión anterior.
+La prueba que antes editaba mientras seguía pendiente un GET de clasificación
+ahora exige que termine esa consulta y después confirma la revisión nueva.
+Permanecen las pruebas de respuestas tardías entre documentos y sesiones.
+
+| Comprobación final del 15 de septiembre de 2026 | Resultado reproducido |
+| --- | --- |
+| Pruebas unitarias web | **48 aprobadas**, sin omisiones. |
+| Navegador con HTTP simulado | **109 aprobadas**, 36.5 s. |
+| Navegador con Rust/PostgreSQL/Redis/TSA reales | **4 aprobadas**, 57.6 s. |
+| `npm run build`, `npm run format:check` | Aprobadas; build de 1.45 s sin advertencias. |
+| Revisión de fuentes/configuración de la entrega | 156 archivos ASCII menores de 400 líneas; máximo 382. |
+| Fuentes Rust y originales Qadra | 337 hashes Rust/migraciones/manifiestos y 12 originales de diseño sin cambios. |
+
+El recorrido real de administración penal tardó 18.6 s; participantes, 17.5 s;
+clasificación, 11.3 s; y versiones, 6.1 s. El tiempo total incluye trabajo del
+runner fuera de los escenarios. El guion penal espera que la nueva versión
+termine sus recargas antes de navegar a participantes; no usa solamente la
+aparición anticipada del nombre del archivo como señal de finalización.
+
+El diagnóstico de las pruebas reales registra únicamente método, ruta con UUID
+sustituidos, estado HTTP y código de error validado en `api-failures.json`.
+Excluye query strings, cabeceras y cuerpos completos; tres pruebas unitarias
+cubren su extracción y sanitización. CI conserva este archivo con las capturas
+y el contexto de un recorrido fallido durante siete días. En la ejecución final
+se registraron siete errores esperados: cinco conflictos `409` y dos `404` tras
+revocaciones; no hubo respuestas `5xx` ni `server_busy`. Este resultado describe
+esos cuatro escenarios y no se extrapola a cualquier carga concurrente.
+
+Se revisaron las capturas finales de la ficha móvil, el conflicto de clasificación
+en escritorio y el resumen penal móvil; el contenido y los controles son
+legibles. Las capturas anteriores se conservaron. La revisión independiente de
+las promesas, los estados ocupados y el descarte de respuestas tardías no encontró
+otros defectos dentro del alcance corregido.
+
+La corrección coordina operaciones y consultas dependientes dentro de las fichas.
+No cambia los límites del backend, añade reintentos automáticos ni demuestra
+capacidad de producción. Cambiar de pantalla o lanzar consultas manuales mientras
+siguen pendientes otras operaciones conserva la admisión compartida del servidor.
+Las suites Rust de 770 pruebas y su cobertura del 93.4 % no se repitieron en este
+seguimiento: sus fuentes siguen idénticas a las comprobadas en el corte anterior.
+
 ## Corte reproducido: directorio de participantes
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC

@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
-import { expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { watchApiFailures } from '../api-diagnostics.mjs';
 
 export const fixture = JSON.parse(readFileSync(process.env.TT_WEB_FIXTURES, 'utf8'));
 
 export async function login(page, recoveryCode, account = fixture) {
+  watchApiFailures(page, test.info());
   await page.getByLabel('Correo electr\u00f3nico').fill(account.email);
   await page.getByLabel('Contrase\u00f1a', { exact: true }).fill(account.password);
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
