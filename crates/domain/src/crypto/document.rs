@@ -50,6 +50,13 @@ impl fmt::Debug for DocumentId {
     }
 }
 
+/// Exact identity of an immutable document content snapshot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocumentVersionRef {
+    pub id: DocumentId,
+    pub version: DocumentVersion,
+}
+
 /// Monotonic version counter for a document, starting at 1.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(try_from = "u32")]

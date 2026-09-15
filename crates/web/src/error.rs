@@ -50,6 +50,14 @@ impl ApiError {
         }
     }
 
+    pub fn invalid_document_version() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "invalid_document_version",
+            message: "document version must be an integer between 1 and 4294967295".into(),
+        }
+    }
+
     pub fn invalid_user_id() -> Self {
         Self {
             status: StatusCode::BAD_REQUEST,
@@ -141,6 +149,21 @@ impl From<ApplicationError> for ApiError {
                 status: StatusCode::CONFLICT,
                 code: "document_already_exists",
                 message,
+            },
+            ApplicationError::DocumentVersionConflict => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_version_conflict",
+                message: error.to_string(),
+            },
+            ApplicationError::DocumentVersionRequired => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_version_required",
+                message: error.to_string(),
+            },
+            ApplicationError::DocumentVersionExhausted => Self {
+                status: StatusCode::CONFLICT,
+                code: "document_version_exhausted",
+                message: error.to_string(),
             },
             ApplicationError::DocumentAlreadySealed(message) => Self {
                 status: StatusCode::CONFLICT,

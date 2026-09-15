@@ -121,7 +121,15 @@ fn detail_and_list_return_metadata_without_decoding_encrypted_or_sealed_material
             &[&record.id.as_uuid()],
         )
         .unwrap();
-    let result = store.get(owner, case_id, record.id, at).unwrap();
+    let result = store
+        .get(
+            owner,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Current,
+            at,
+        )
+        .unwrap();
     let mut expected = DocumentSummary::from(&record);
     expected.sealed = true;
     assert_eq!(result.document, expected);
@@ -137,7 +145,12 @@ fn detail_and_list_return_metadata_without_decoding_encrypted_or_sealed_material
     for (action, resource) in [
         (
             "document.read",
-            format!("case:{case_id}:document:{}", record.id),
+            format!(
+                "case:{case_id}:document:{}:version:{}:sha256:{}",
+                record.id,
+                record.version.get(),
+                record.digest.to_hex()
+            ),
         ),
         ("document.listed", format!("case:{case_id}:documents")),
     ] {
@@ -176,7 +189,13 @@ fn unauthorized_missing_and_foreign_documents_are_indistinguishable() {
         (actor, CaseId::new(), record.id),
     ] {
         assert!(matches!(
-            store.get(user, scope, id, at),
+            store.get(
+                user,
+                scope,
+                id,
+                application::documents::VersionSelection::Current,
+                at
+            ),
             Err(ApplicationError::DocumentNotFound(_))
         ));
     }
@@ -208,12 +227,26 @@ fn reads_reload_current_membership_role_and_active_status() {
     let record = document();
     let at = OffsetDateTime::now_utc();
     store.insert(owner, case_id, record.clone(), at).unwrap();
-    store.get(actor, case_id, record.id, at).unwrap();
+    store
+        .get(
+            actor,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Current,
+            at,
+        )
+        .unwrap();
     store
         .list(actor, case_id, query(20, 0, None, None), at)
         .unwrap();
     assert!(matches!(
-        store.get(client, case_id, record.id, at),
+        store.get(
+            client,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Current,
+            at
+        ),
         Err(ApplicationError::PermissionDenied)
     ));
     assert!(matches!(
@@ -222,7 +255,13 @@ fn reads_reload_current_membership_role_and_active_status() {
     ));
     cases.remove_member(case_id, actor, owner).unwrap();
     assert!(matches!(
-        store.get(actor, case_id, record.id, at),
+        store.get(
+            actor,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Current,
+            at
+        ),
         Err(ApplicationError::DocumentNotFound(_))
     ));
     assert!(matches!(
@@ -238,7 +277,13 @@ fn reads_reload_current_membership_role_and_active_status() {
         )
         .unwrap();
     assert!(matches!(
-        store.get(actor, case_id, record.id, at),
+        store.get(
+            actor,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Current,
+            at
+        ),
         Err(ApplicationError::PermissionDenied)
     ));
     assert!(matches!(
@@ -252,7 +297,13 @@ fn reads_reload_current_membership_role_and_active_status() {
         )
         .unwrap();
     assert!(matches!(
-        store.get(actor, case_id, record.id, at),
+        store.get(
+            actor,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Current,
+            at
+        ),
         Err(ApplicationError::InvalidSession)
     ));
     assert!(matches!(
@@ -275,7 +326,13 @@ fn audit_failure_prevents_detail_and_list_results_without_corrupting_the_chain()
     let constraint = format!("reject_metadata_{}", record.id.as_uuid().simple());
     let mut admin = Client::connect(&url, NoTls).unwrap();
     admin.batch_execute(&format!("ALTER TABLE audit_events ADD CONSTRAINT {constraint} CHECK (action NOT IN ('document.read','document.listed') OR resource NOT LIKE 'case:{case_id}:%')")).unwrap();
-    let detail = store.get(owner, case_id, record.id, at);
+    let detail = store.get(
+        owner,
+        case_id,
+        record.id,
+        application::documents::VersionSelection::Current,
+        at,
+    );
     let list = store.list(owner, case_id, query(20, 0, None, None), at);
     admin
         .batch_execute(&format!(
@@ -286,7 +343,16 @@ fn audit_failure_prevents_detail_and_list_results_without_corrupting_the_chain()
     assert!(matches!(list, Err(ApplicationError::Port(_))));
     assert_eq!(store.audit_entries(owner).unwrap(), before);
     assert_eq!(
-        store.get(owner, case_id, record.id, at).unwrap().document,
+        store
+            .get(
+                owner,
+                case_id,
+                record.id,
+                application::documents::VersionSelection::Current,
+                at
+            )
+            .unwrap()
+            .document,
         DocumentSummary::from(&record)
     );
 }

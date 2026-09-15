@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use application::documents::{
     CaseDocumentService, CaseDocumentStore, CaseDocumentSummary, DocumentAction, DocumentPage,
-    DocumentQuery, DocumentRecord,
+    DocumentQuery, DocumentRecord, VersionPage, VersionQuery, VersionSelection,
 };
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
@@ -11,17 +11,19 @@ use application::ApplicationError;
 use domain::audit::ChainedEvent;
 use domain::cases::CaseId;
 use domain::clock::OffsetDateTime;
-use domain::crypto::DocumentId;
+use domain::crypto::{DocumentId, DocumentVersion};
 use domain::identity::{Permission, Role, UserId};
 use mockall::mock;
 
 mock! {
     pub Store {}
     impl CaseDocumentStore for Store {
+        fn history(&self, actor: UserId, case: CaseId, id: DocumentId, query: VersionQuery, at: OffsetDateTime) -> Result<VersionPage, ApplicationError>;
+        fn append(&self, actor: UserId, case: CaseId, expected_version: DocumentVersion, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;
         fn list(&self, actor: UserId, case: CaseId, query: DocumentQuery, at: OffsetDateTime) -> Result<DocumentPage, ApplicationError>;
-        fn get(&self, actor: UserId, case: CaseId, id: DocumentId, at: OffsetDateTime) -> Result<CaseDocumentSummary, ApplicationError>;
+        fn get(&self, actor: UserId, case: CaseId, id: DocumentId, selection: VersionSelection, at: OffsetDateTime) -> Result<CaseDocumentSummary, ApplicationError>;
         fn check_access(&self, actor: UserId, case: CaseId, action: DocumentAction) -> Result<(), ApplicationError>;
-        fn load(&self, actor: UserId, case: CaseId, id: DocumentId, action: DocumentAction) -> Result<DocumentRecord, ApplicationError>;
+        fn load(&self, actor: UserId, case: CaseId, id: DocumentId, selection: VersionSelection, action: DocumentAction) -> Result<DocumentRecord, ApplicationError>;
         fn insert(&self, actor: UserId, case: CaseId, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;
         fn seal(&self, actor: UserId, case: CaseId, record: DocumentRecord, at: OffsetDateTime) -> Result<(), ApplicationError>;
         fn record_access(&self, actor: UserId, case: CaseId, record: &DocumentRecord, action: DocumentAction, at: OffsetDateTime) -> Result<(), ApplicationError>;

@@ -28,10 +28,13 @@ pub struct Source {
 
 impl Source {
     pub fn new() -> Self {
+        Self::with_version(DocumentVersion::initial())
+    }
+
+    pub fn with_version(version: DocumentVersion) -> Self {
         let dir = tempfile::tempdir().unwrap();
         let id = DocumentId::new();
         let case_id = CaseId::from_uuid(Uuid::new_v4());
-        let version = DocumentVersion::initial();
         let vault = encrypt_with_ports(
             &RingAesGcmCipher::new(),
             &EnvelopeKeyManager::new(),

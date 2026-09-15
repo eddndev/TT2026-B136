@@ -25,7 +25,7 @@ pub use certificate::{
 };
 pub use cipher::{document_aad, AuthenticatedCipher, SealedPayload};
 pub use digest::Sha256Digest;
-pub use document::{DocumentId, DocumentVersion};
+pub use document::{DocumentId, DocumentVersion, DocumentVersionRef};
 pub use hasher::DocumentHasher;
 pub use keys::{KeyManager, WrappedDek};
 pub use password::{PasswordHasher, PasswordVerification};

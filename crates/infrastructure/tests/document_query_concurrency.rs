@@ -62,7 +62,13 @@ fn metadata_reads_commit_their_audit_before_returning_and_serialize_membership_r
                     )
                     .map(|page| page.documents[0].document.id),
                 _ => reader
-                    .get(actor, case_id, id, at)
+                    .get(
+                        actor,
+                        case_id,
+                        id,
+                        application::documents::VersionSelection::Current,
+                        at,
+                    )
                     .map(|summary| summary.document.id),
             };
             read_done.send(result).unwrap();
@@ -96,7 +102,13 @@ fn metadata_reads_commit_their_audit_before_returning_and_serialize_membership_r
             .unwrap()
             .unwrap();
         assert!(matches!(
-            store.get(actor, case_id, id, at),
+            store.get(
+                actor,
+                case_id,
+                id,
+                application::documents::VersionSelection::Current,
+                at
+            ),
             Err(ApplicationError::DocumentNotFound(_))
         ));
         assert!(matches!(

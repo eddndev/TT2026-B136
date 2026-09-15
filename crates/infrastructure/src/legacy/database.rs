@@ -31,6 +31,10 @@ impl LegacyImport {
         if !imported {
             for (case_id, record) in &self.records {
                 let evidence = record.evidence.as_ref().map(encode_evidence).transpose()?;
+                transaction.execute(
+                    "INSERT INTO document_series(id,case_id,first_available_version) VALUES($1,$2,$3)",
+                    &[&record.id.as_uuid(), &case_id.as_uuid(), &i64::from(record.version.get())],
+                ).map_err(invalid)?;
                 transaction
                     .execute(
                         "INSERT INTO documents(id,case_id,version,name,digest,vault,evidence)
@@ -107,7 +111,7 @@ impl LegacyImport {
         }
         let occupied: bool = client
             .query_one(
-                "SELECT EXISTS(SELECT 1 FROM documents) OR EXISTS(SELECT 1 FROM audit_events)
+                "SELECT EXISTS(SELECT 1 FROM document_series) OR EXISTS(SELECT 1 FROM documents) OR EXISTS(SELECT 1 FROM audit_events)
              OR EXISTS(SELECT 1 FROM migration_receipts)",
                 &[],
             )

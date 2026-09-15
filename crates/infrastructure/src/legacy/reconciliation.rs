@@ -112,8 +112,8 @@ pub(super) fn reconcile<C: GenericClient>(
     for (case, original) in records {
         let row = client
             .query_opt(
-                "SELECT id,case_id,version,name,digest,vault,evidence FROM documents WHERE id=$1",
-                &[&original.id.as_uuid()],
+                "SELECT d.id,d.case_id,d.version,d.name,d.digest,d.vault,d.evidence FROM documents d JOIN document_series s ON s.id=d.id AND s.case_id=d.case_id WHERE d.id=$1 AND d.version=$2 AND s.first_available_version=$2",
+                &[&original.id.as_uuid(), &i64::from(original.version.get())],
             )
             .map_err(invalid)?
             .ok_or_else(|| invalid("imported document is missing"))?;
