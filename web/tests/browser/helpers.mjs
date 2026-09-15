@@ -1,3 +1,4 @@
+import { administration, overview, otherAdministration } from './case-administration-helpers.mjs';
 import { expect } from '@playwright/test';
 
 export const caseId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -62,6 +63,26 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       });
     if (path.endsWith('/me')) return route.fulfill({ json: user });
     if (path.endsWith('/logout')) return route.fulfill({ status: 204 });
+    if (path.endsWith('/case-administrations'))
+      return route.fulfill({
+        json: {
+          cases: [overview(administration()), overview(otherAdministration())],
+          has_more: false,
+          next_after_id: null,
+        },
+      });
+    if (path.endsWith(`/cases/${caseId}/administration`))
+      return route.fulfill({ json: administration() });
+    if (path.endsWith(`/cases/${otherCaseId}/administration`))
+      return route.fulfill({ json: otherAdministration() });
+    if (path.endsWith('/administration/history'))
+      return route.fulfill({
+        json: {
+          revisions: [administration().administration],
+          has_more: false,
+          next_before_revision: null,
+        },
+      });
     if (path.endsWith('/cases'))
       return route.fulfill({
         json:
@@ -166,7 +187,12 @@ export async function navigate(page, name) {
 export async function selectCase(page, title = 'Defensa inicial') {
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: new RegExp(title) }).click();
-  await expect(page.getByRole('heading', { name: 'Documentos', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+  ).toBeVisible();
+  if (await page.getByRole('link', { name: 'Documentos', exact: true }).count())
+    await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  else await navigate(page, 'Documentos');
 }
 
 export async function login(page, recovery = false, openDocuments = true) {

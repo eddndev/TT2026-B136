@@ -72,6 +72,7 @@ impl PostgresParticipantStore {
         let mut transaction = begin_audited(&mut client)?;
         let principal = authorize(&mut transaction, actor, case, action, true)?;
         let current = storage::current(&mut transaction, case, id, self.hasher.as_ref())?;
+        crate::postgres_case_status::require_active(&mut transaction, case)?;
         if current.revision != expected {
             return Err(ApplicationError::ParticipantRevisionConflict);
         }
@@ -127,6 +128,7 @@ impl ParticipantStore for PostgresParticipantStore {
             ParticipantAction::Create,
             false,
         )?;
+        crate::postgres_case_status::require_active(&mut transaction, case)?;
         if values.directory_status() != DirectoryStatus::Active {
             return Err(ApplicationError::InvalidInput(
                 "participant creation requires active directory status".into(),

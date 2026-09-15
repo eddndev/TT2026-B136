@@ -150,6 +150,51 @@ impl From<ApplicationError> for ApiError {
                 code: "case_not_found",
                 message: error.to_string(),
             },
+            ApplicationError::CaseRevisionConflict => Self {
+                status: StatusCode::CONFLICT,
+                code: "case_revision_conflict",
+                message: error.to_string(),
+            },
+            ApplicationError::CaseRevisionExhausted => Self {
+                status: StatusCode::CONFLICT,
+                code: "case_revision_exhausted",
+                message: error.to_string(),
+            },
+            ApplicationError::CaseClosed => Self {
+                status: StatusCode::CONFLICT,
+                code: "case_closed",
+                message: error.to_string(),
+            },
+            ApplicationError::CaseIdentifierConflict => Self {
+                status: StatusCode::CONFLICT,
+                code: "case_identifier_conflict",
+                message: error.to_string(),
+            },
+            ApplicationError::CaseProfileRequired => Self {
+                status: StatusCode::CONFLICT,
+                code: "case_profile_required",
+                message: error.to_string(),
+            },
+            ApplicationError::Domain(DomainError::InvalidPenalCaseProfile { .. }) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_penal_case_profile",
+                message: error.to_string(),
+            },
+            ApplicationError::Domain(DomainError::InvalidCaseRevision) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_case_revision",
+                message: error.to_string(),
+            },
+            ApplicationError::Domain(DomainError::InvalidCaseStageRevision) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_case_stage_revision",
+                message: error.to_string(),
+            },
+            ApplicationError::Domain(DomainError::InvalidCaseAdministrativeStatus) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_case_administrative_status",
+                message: error.to_string(),
+            },
             ApplicationError::ParticipantNotFound => Self {
                 status: StatusCode::NOT_FOUND,
                 code: "participant_not_found",

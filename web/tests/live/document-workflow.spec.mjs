@@ -1,3 +1,4 @@
+import { createPenal } from './case-administration-helpers.mjs';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { test, expect } from '@playwright/test';
@@ -16,14 +17,8 @@ test('persisted cases and document evidence work through the real services', asy
   });
   await page.goto('/');
   await login(page, fixture.recoveryCodes[0]);
-  await page
-    .getByRole('navigation')
-    .getByRole('button', { name: 'Expedientes', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Nuevo expediente', exact: true }).click();
-  await page.getByLabel('T\u00edtulo del expediente').fill('Browser evidence case');
-  await page.getByLabel('Referencia del expediente').fill('BROWSER-001');
-  await page.getByRole('button', { name: 'Crear expediente', exact: true }).click();
+  await createPenal(page, 'Browser evidence case', 'BROWSER-001');
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await page.getByRole('button', { name: 'Subir documento', exact: true }).first().click();
   await page.getByLabel('Archivo', { exact: true }).setInputFiles({
     name: 'browser-evidence.txt',
@@ -98,6 +93,7 @@ test('persisted cases and document evidence work through the real services', asy
     .getByRole('button', { name: 'Expedientes', exact: true })
     .click();
   await page.getByRole('button', { name: /Browser evidence case/ }).click();
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await expect(page.getByText('browser-evidence-v2.txt', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: /browser-evidence-v2.txt/ }).click();
   await expect(

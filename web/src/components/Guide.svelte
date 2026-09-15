@@ -22,6 +22,33 @@
 <section class="card guide-questions">
   <h2>Antes de continuar</h2>
   <details>
+    <summary>&iquest;C&oacute;mo registro o completo un expediente penal?</summary>
+    <p>
+      En Expedientes, elige Nuevo expediente penal. Registra t&iacute;tulo, referencia interna, NUC,
+      carpeta judicial, sus autoridades y de una a ocho descripciones manuales de delito. El Resumen
+      muestra la ficha y el registro inicial de Investigaci&oacute;n, sin acreditar un acto
+      judicial.
+    </p>
+    <p>
+      Una ficha pendiente permite editar los datos b&aacute;sicos o completar todos los datos
+      penales. Completar un expediente anterior no inventa una etapa ni fechas pasadas. El historial
+      administrativo conserva las revisiones y sus autores.
+    </p>
+  </details>
+  <details>
+    <summary>&iquest;Qu&eacute; ocurre al cerrar administrativamente?</summary>
+    <p>
+      El administrador o el litigante asignado pueden cerrar y reactivar el expediente desde
+      Resumen. Cerrado conserva consulta, historial, verificaci&oacute;n y descarga de evidencia;
+      suspende cambios de ficha, documentos y participantes. No cambia la etapa registrada ni
+      reactiva participantes archivados.
+    </p>
+    <p>
+      Si el expediente se cerr&oacute; mientras guardabas, se consulta su estado y se conserva el
+      formulario. Reactivarlo no reenv&iacute;a autom&aacute;ticamente tus cambios.
+    </p>
+  </details>
+  <details>
     <summary>&iquest;C&oacute;mo organizo los participantes?</summary>
     <p>
       Dentro del expediente, abre Participantes. El administrador y el litigante asignado pueden

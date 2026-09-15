@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { caseId, id, document, validReport, setup, login, openDocument } from './helpers.mjs';
 
 export async function versionSetup(page, { conflict = false } = {}) {
@@ -64,6 +65,10 @@ export async function versionSetup(page, { conflict = false } = {}) {
   });
   await login(page);
   await openDocument(page);
+  await expect(page.locator('.document-metadata')).toHaveAttribute('aria-busy', 'false');
+  await expect(
+    page.getByRole('button', { name: 'Actualizar historial', exact: true }),
+  ).toBeEnabled();
   return { calls, records };
 }
 

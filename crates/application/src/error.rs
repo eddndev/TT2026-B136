@@ -10,6 +10,30 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    /// The caller expected a different current administrative head.
+    #[error("case changed; refresh before replacing")]
+    CaseRevisionConflict,
+
+    /// Administrative revisions cannot wrap after their maximum counter.
+    #[error("case revision counter is exhausted")]
+    CaseRevisionExhausted,
+
+    /// A currently closed case disallows this authorized mutation.
+    #[error("case is administratively closed")]
+    CaseClosed,
+
+    /// A current profile already claims one of the supplied identifiers.
+    #[error("case identifier is already registered")]
+    CaseIdentifierConflict,
+
+    /// A completed profile cannot be replaced with an absent profile.
+    #[error("completed case profile cannot be removed")]
+    CaseProfileRequired,
+
+    /// Stored administration or initial-stage provenance is inconsistent.
+    #[error("stored case administration is inconsistent: {0}")]
+    StoredCaseAdministrationInconsistent(String),
+
     /// A participant is absent or outside the requested visible case.
     #[error("participant not found")]
     ParticipantNotFound,

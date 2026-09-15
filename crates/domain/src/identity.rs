@@ -68,9 +68,11 @@ impl Role {
             Self::Owner => true,
             Self::Litigator => matches!(
                 permission,
-                Permission::ReadDocument
+                Permission::ReadCaseAdministration
+                    | Permission::ReadDocument
                     | Permission::ReadParticipant
                     | Permission::ManageParticipant
+                    | Permission::ManageCaseAdministration
                     | Permission::CreateDocument
                     | Permission::ClassifyDocument
                     | Permission::AppendDocument
@@ -80,7 +82,8 @@ impl Role {
             ),
             Self::Paralegal => matches!(
                 permission,
-                Permission::ReadDocument
+                Permission::ReadCaseAdministration
+                    | Permission::ReadDocument
                     | Permission::ReadParticipant
                     | Permission::CreateDocument
                     | Permission::ClassifyDocument
@@ -110,6 +113,8 @@ impl FromStr for Role {
 /// An application action that requires authorization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Permission {
+    ReadCaseAdministration,
+    ManageCaseAdministration,
     ReadParticipant,
     ManageParticipant,
     ReadDocument,

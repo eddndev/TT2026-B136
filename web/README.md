@@ -55,11 +55,14 @@ consultar o detener ese proceso.
    clave TOTP y los códigos de recuperación antes de finalizar el alta.
 2. Iniciar sesión con correo, contraseña y TOTP o código de recuperación.
    Un rechazo MFA consume el desafío y vuelve a pedir credenciales.
-3. Abrir **Expedientes** para consultar los expedientes autorizados. Owner y
-   Litigator pueden crear uno con título y referencia; el servidor asigna al
-   creador. La lista se pagina en grupos de 50 y consulta un registro adicional
-   para determinar si hay otra página. Seleccionar una tarjeta consulta el
-   detalle del expediente antes de abrir su archivo documental.
+3. Abrir **Expedientes**. El personal usa un índice autorizado con estado
+   administrativo, ficha completa/pendiente, NUC y carpeta; Client conserva
+   únicamente título y referencia de sus expedientes asignados. El índice del
+   personal pagina con cursor exclusivo, sin calcular totales. Sus filtros
+   combinan parte literal del título, NUC y carpeta exactos, estado y ficha,
+   distinguiendo mayúsculas y acentos. Elegir una tarjeta consulta el detalle
+   antes de abrir **Resumen**. Owner y Litigator tienen un único formulario de
+   **Nuevo expediente penal**, descrito abajo.
 4. Consultar **Documentos** del expediente seleccionado. El servidor devuelve
    páginas de hasta 50 documentos y `has_more`; **Anterior** y **Siguiente**
    recorren los resultados. **Buscar** aplica una subcadena al nombre y el
@@ -121,7 +124,7 @@ consultar o detener ese proceso.
 15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
-expediente, Documentos y Participantes comparten contexto. Equipo
+expediente, Resumen, Documentos y Participantes comparten contexto. Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
 expediente seleccionado. No presenta recuentos de una página como totales del
 despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
@@ -131,13 +134,62 @@ La identidad visual, los recursos de marca, la tipografía, los colores, las
 proporciones de navegación y los componentes documentales se conservan. Las
 pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados
 de Qadra. Los ajustes adicionales están en `src/styles/cases.css`, `src/styles/versions.css`,
-`src/styles/metadata.css` y `src/styles/participants.css`.
+`src/styles/metadata.css`, `src/styles/participants.css` y `src/styles/case-administration.css`.
 
 Los controles respetan los roles del backend. Owner ve todos los expedientes;
 Litigator y Paralegal requieren asignación vigente para consultar documentos.
 Client puede consultar los metadatos de sus expedientes asignados; la interfaz
 no emite peticiones documentales para ese rol. El servidor conserva la autoridad
 sobre permisos, reglas de negocio y criptografía.
+
+## Ficha penal y administración
+
+**Nuevo expediente penal** requiere título (200 caracteres), referencia interna
+(100), NUC y carpeta judicial (100 cada uno), autoridades registradas (200 cada
+una) y de 1 a 8 descripciones manuales de delito (120 cada una). Las descripciones
+conservan orden, comas, Unicode y espacios interiores; los duplicados literales
+tras recortar extremos se rechazan. El texto pendiente se incorpora al guardar.
+Información general es opcional, admite 1000 caracteres y saltos de línea;
+normaliza CRLF a LF. Identificadores complementarios es opcional y admite 300.
+Los límites cuentan escalares Unicode, no unidades UTF-16. Se rechazan controles
+antes de recortar extremos, excepto LF en información general.
+
+La alta completa usa un único POST JSON: crea expediente activo, ficha y registro
+inicial de Investigación en una transacción confirmada por el servidor. La
+referencia interna no se convierte en NUC. Los identificadores y autoridades
+son datos manuales; la interfaz no acredita su validez oficial ni actos judiciales.
+NUC y carpeta son únicos de forma literal entre las cabezas actuales de la
+instancia, incluidos cerrados; un conflicto no revela otro expediente.
+
+Un expediente con **Ficha penal pendiente** permite **Editar datos básicos** o
+**Completar ficha penal**. Los anteriores sin revisiones muestran datos originales,
+sin actor ni fecha ficticios; los creados por el POST básico de compatibilidad
+tienen R1 real y también pueden estar pendientes. La revisión no determina si la
+ficha está completa. Completarla no crea una etapa retrospectiva: conserva
+**Etapa sin registrar**. Una ficha completa no puede eliminarse.
+
+La edición conserva el borrador ante conflictos y requiere consultar/comparar
+los valores guardados antes de **Guardar mis cambios**. Estado y etapa no forman
+parte del reemplazo del formulario. **Ver historial administrativo** pagina
+revisiones descendentes con valores, digest, fecha y actor/correo capturados. El
+registro inicial de etapa referencia su revisión administrativa original, incluso
+tras ediciones y cierre; no representa la fecha de un acto judicial.
+
+**Cerrar administrativamente** y **Reactivar expediente** cambian solo el estado
+con revisión esperada y confirmación. Owner o Litigator asignado pueden hacerlo;
+Paralegal asignado consulta ficha e historia. Client no solicita esas proyecciones.
+El cierre bloquea nuevas cargas, versiones, clasificación, sellado, cambios del
+directorio y de la ficha. Conserva consultas, historia, verificación y ZIP con los
+permisos vigentes; tampoco elimina membresías ni impide que Owner revoque acceso.
+Reactivar no modifica participantes archivados ni el registro de etapa.
+
+Una escritura en vuelo puede detectar un cierre de otra sesión: la interfaz
+consulta el estado, bloquea guardar y conserva el archivo/formulario. Consultar
+el estado después de una reactivación permite revisar y enviar explícitamente;
+no se reenvía automáticamente ni se promete sincronización instantánea entre
+ventanas. Un fallo de acceso elimina los datos protegidos del contexto afectado.
+Un fallo de red no confirma rechazo ni éxito: consulta el índice/detalle antes
+de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
 
 ## Estado y límites
 
@@ -159,8 +211,9 @@ sobre permisos, reglas de negocio y criptografía.
 - El directorio de participantes es organizativo y manual. Admite homónimos;
   no valida identidad legal, roles tipificados, identificadores oficiales,
   certificados, FIREL o condiciones procesales. Sus valores están en PostgreSQL,
-  separados de los archivos documentales cifrados. Las audiencias, las etapas
-  procesales y los plazos siguen pendientes. La API tampoco ofrece
+  separados de los archivos documentales cifrados. El registro inicial de etapa
+  aparece en el resumen del alta penal; las transiciones, adopción de etapa de
+  expedientes anteriores, audiencias y plazos siguen pendientes. La API tampoco ofrece
   cambio/restablecimiento de contraseña.
 - Si un documento importado empieza en una versión posterior a 1, el historial
   muestra explícitamente su primera versión disponible; no inventa versiones
@@ -193,12 +246,21 @@ reproducibles basadas en los DTO de Rust. Comprueban formularios, solicitudes
 binarias, cabeceras, MFA, roles, consultas persistentes, búsqueda, paginación,
 metadatos por GET, descarga, navegación y adaptación móvil. Incluyen respuestas
 tardías de sesión, expediente y búsqueda, además de revocación de acceso.
+Las pruebas retienen respuestas para comprobar que las acciones de una misma
+ficha esperan sus operaciones y recargas automáticas. Cubren carga, nueva versión,
+sello y edición de clasificación, incluso con historial abierto. Un fallo
+transitorio de consulta conserva los datos ya confirmados; una denegación 403/404
+limpia el contenido protegido. La edición espera una consulta de clasificación
+en curso antes de permitir otro cambio.
 El historial, las acciones sobre versiones históricas, la paginación por cursor
 y los conflictos de carga tienen pruebas propias. La clasificación cubre
 Unicode/comas, multipart, revisiones esperadas, historial, filtros, denegaciones
 y respuestas tardías independientes del contenido. El directorio prueba Unicode,
 permisos, filtros y cursores, historia, conflictos completos y de estado, errores
-inciertos, revocaciones y formularios abandonados. Cada ejecución inicia un
+inciertos, revocaciones y formularios abandonados. La administración distingue
+índice staff/Client, alta completa, perfil pendiente R0/R1, validación Unicode y
+multilínea, conflictos de revisión/identificadores, historia, filtros y cierre con
+borradores documentales y de participantes. Cada ejecución inicia un
 servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
 Ejecuta las pruebas simuladas y reales de forma secuencial: Astro admite una
 sola instancia de desarrollo por proyecto, incluso con puertos diferentes.
@@ -212,8 +274,11 @@ versiones con nombres diferentes, sella ambas, descarga la evidencia histórica,
 compara los bytes del ZIP original y vuelve a consultar tras iniciar otra sesión.
 Un segundo recorrido prueba carga clasificada, conflicto entre dos sesiones,
 limpieza, persistencia y ZIP idénticos antes/después de clasificar.
-Las capturas quedan en `web/test-results-live/`. No uses bases de datos ni credenciales de usuarios
-reales para esta prueba.
+Las capturas quedan en `web/test-results-live/`. Cada escenario que recibe una
+respuesta API de error conserva `api-failures.json` con método, ruta anonimizada,
+estado HTTP y código de error. El diagnóstico excluye consultas, cabeceras y
+cuerpos completos; sustituye los UUID de la ruta. No uses bases de datos ni
+credenciales de usuarios reales para esta prueba.
 
 La verificación local más reciente se registra por separado de las pruebas
 históricas del backend en [`docs/verification-report.md`](../docs/verification-report.md).
@@ -229,3 +294,12 @@ solo lectura, denegación a Client, revocación de una asignación con la misma
 sesión y conservación byte por byte de la evidencia documental. Los registros
 son de prueba en servicios aislados; no constituyen un ensayo de usabilidad con
 personal real.
+
+El recorrido de administración usa `fixture.caseAdministration` con cuentas
+exclusivas Owner/Litigator/Paralegal/Client y casos básico R1, original R0 y oculto.
+El seeder y sus credenciales pertenecen al entorno temporal protegido de
+`scripts/web-demo.sh`. El escenario cubre alta penal, completar casos pendientes,
+conflicto entre sesiones, cierre durante una carga, lectura de versiones y ZIP
+idéntico, reactivación, persistencia y revocación. Los códigos de cada cuenta
+son independientes de los recorridos anteriores. Las pruebas describen escenarios;
+los resultados ejecutados se registran en el informe de verificación del proyecto.

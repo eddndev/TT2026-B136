@@ -233,9 +233,17 @@ fn append_and_history_recheck_roles_membership_and_exact_case_before_version_con
     let client = user(&url, Role::Client);
     let case = case(&url, owner);
     let foreign = document_store_support::case(&url, owner);
-    let cases = PostgresCaseRepository::connect(&url).unwrap();
-    cases.add_member(case, actor, owner).unwrap();
-    cases.add_member(case, client, owner).unwrap();
+    let cases = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
+    cases
+        .add_member(case, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
+    cases
+        .add_member(case, client, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     let at = OffsetDateTime::now_utc();
     let first = document();
@@ -278,7 +286,9 @@ fn append_and_history_recheck_roles_membership_and_exact_case_before_version_con
         Err(ApplicationError::DocumentNotFound(_))
     ));
     assert_eq!(store.audit_entries(owner).unwrap(), before);
-    cases.remove_member(case, actor, owner).unwrap();
+    cases
+        .remove_member(case, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     assert!(matches!(
         store.append(actor, case, second.version, next(&second), at),
         Err(ApplicationError::DocumentNotFound(_))

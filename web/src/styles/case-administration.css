@@ -1,0 +1,148 @@
+.case-editor,
+.case-summary,
+.case-stage {
+  margin-bottom: 24px;
+}
+.case-editor {
+  max-width: 950px;
+}
+.case-summary .section-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.case-field-grid,
+.case-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.case-field-grid label {
+  min-width: 0;
+}
+.case-values {
+  margin: 24px 0;
+}
+.case-values dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.case-values dd {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.case-values ol {
+  padding-left: 20px;
+  margin: 0;
+}
+.case-values li {
+  margin-bottom: 8px;
+}
+.case-value-wide {
+  grid-column: 1 / -1;
+}
+.case-multiline {
+  white-space: pre-wrap;
+}
+.case-offenses {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+.case-offenses legend {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+}
+.case-offense-list {
+  padding-left: 24px;
+}
+.case-offense-list li {
+  padding: 8px 0;
+  overflow-wrap: anywhere;
+}
+.case-offense-list button {
+  margin-left: 14px;
+}
+.case-comparison {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.case-filters {
+  margin: 20px 0;
+}
+.case-filter-action {
+  display: flex;
+  align-items: flex-end;
+}
+.case-card-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.case-stage code,
+.case-history code {
+  overflow-wrap: anywhere;
+}
+.case-history {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.case-sections {
+  flex-wrap: wrap;
+  column-gap: 24px;
+  row-gap: 0;
+}
+@media (max-width: 600px) {
+  .case-field-grid,
+  .case-values {
+    grid-template-columns: 1fr;
+  }
+  .case-filter-action button {
+    width: 100%;
+  }
+  .case-summary .action-row,
+  .case-editor .action-row {
+    width: 100%;
+    align-items: stretch;
+  }
+  .case-status-dialog .dialog-actions {
+    flex-wrap: wrap;
+  }
+  .case-status-dialog .dialog-actions > button {
+    flex: 1;
+  }
+}
+
+.case-reconciliation-results {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+.case-comparison > p {
+  overflow-wrap: anywhere;
+}
+.case-editor textarea {
+  font: inherit;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #d8dee5;
+  border-radius: 7px;
+  color: var(--navy);
+  padding: 12px 13px;
+  font-size: 13px;
+  line-height: 1.4;
+  resize: vertical;
+}
+.case-editor textarea:focus-visible {
+  outline: 3px solid #80a1f5;
+  outline-offset: 3px;
+}

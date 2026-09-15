@@ -14,7 +14,9 @@ async function settle(page) {
   );
 }
 
-test('a late metadata GET cannot replace a confirmed edit', async ({ page }) => {
+test('metadata editing waits for its active GET before confirming a new revision', async ({
+  page,
+}) => {
   await metadataSetup(page);
   let release;
   await page.route(`**/documents/${id}/metadata`, async (route) => {
@@ -26,10 +28,9 @@ test('a late metadata GET cannot replace a confirmed edit', async ({ page }) => 
   });
   await page.getByRole('button', { name: 'Actualizar clasificaci\u00f3n', exact: true }).click();
   await expect.poll(() => typeof release).toBe('function');
-  const modal = await edit(page);
-  await modal.getByLabel('Clasificaci\u00f3n (opcional)', { exact: true }).fill('Confirmed');
-  await modal.getByRole('button', { name: 'Guardar clasificaci\u00f3n', exact: true }).click();
-  await expect(card(page).getByText('Confirmed', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Editar clasificaci\u00f3n', exact: true }),
+  ).toBeDisabled();
   const finished = page.waitForEvent(
     'requestfinished',
     (request) => request.url().endsWith('/metadata') && request.method() === 'GET',
@@ -37,6 +38,9 @@ test('a late metadata GET cannot replace a confirmed edit', async ({ page }) => 
   release();
   await finished;
   await settle(page);
+  const modal = await edit(page);
+  await modal.getByLabel('Clasificaci\u00f3n (opcional)', { exact: true }).fill('Confirmed');
+  await modal.getByRole('button', { name: 'Guardar clasificaci\u00f3n', exact: true }).click();
   await expect(card(page).getByText('Confirmed', { exact: true })).toBeVisible();
   await expect(
     card(page).getByText('Revisi\u00f3n de clasificaci\u00f3n: 2', { exact: true }),

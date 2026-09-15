@@ -1,14 +1,23 @@
 <script>
+  import { onDestroy } from 'svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import Icon from './Icon.svelte';
   import { can, download } from '../lib/documents.mjs';
   export let api;
   export let user;
   export let document;
   export let onupdate;
+  export let disabled = false;
   export let ondenied = () => {};
+  let alive = true;
+  onDestroy(() => {
+    alive = false;
+    busy = '';
+  });
   let report = document.report || null;
   let activeTab = report ? 'verification' : 'summary';
-  let busy = '';
+  export let busy = '';
   let error = '';
   let message = '';
   let copyMessage = '';
@@ -65,7 +74,13 @@
     }
   }
   async function run(action) {
-    if (busy || (document.sealed === false && action !== 'seal')) return;
+    if (
+      busy ||
+      disabled ||
+      (action === 'seal' && $administration.closed) ||
+      (document.sealed === false && action !== 'seal')
+    )
+      return;
     busy = action;
     error = '';
     message = '';
@@ -73,7 +88,8 @@
       if (action === 'seal') {
         const result = await api.seal(document.id);
         report = null;
-        onupdate({ ...document, ...result, report: null });
+        await onupdate({ ...document, ...result, report: null });
+        if (!alive) return;
         message = 'Documento sellado correctamente.';
         confirmSeal = false;
       } else if (action === 'verify') {
@@ -94,6 +110,7 @@
         activeTab = 'evidence';
       }
     } catch (failure) {
+      if (!alive) return;
       error = failure.message;
       if ([403, 404].includes(failure.status)) ondenied(failure);
       if (failure.status === 409 && failure.code === 'document_not_sealed') {
@@ -101,7 +118,7 @@
         onupdate({ ...document, sealed: false, report: null });
       }
     } finally {
-      busy = '';
+      if (alive) busy = '';
     }
   }
 </script>
@@ -134,12 +151,12 @@
   <div class="document-actions" aria-label="Acciones del documento">
     {#if can(user.role, 'seal') && document.sealed !== true}<button
         class="primary"
-        disabled={!!busy}
+        disabled={disabled || !!busy || $administration.closed}
         onclick={() => (confirmSeal = true)}><Icon name="lock" size={17} />Sellar documento</button
       >{/if}
     <button
       class="secondary"
-      disabled={!!busy || document.sealed === false}
+      disabled={disabled || !!busy || document.sealed === false}
       onclick={() => run('verify')}
       ><Icon name="shield" size={17} />{busy === 'verify'
         ? 'Verificando...'
@@ -147,13 +164,16 @@
     >
     <button
       class="secondary"
-      disabled={!!busy || document.sealed === false}
+      disabled={disabled || !!busy || document.sealed === false}
       onclick={() => run('evidence')}
       ><Icon name="download" size={17} />{busy === 'evidence'
         ? 'Descargando...'
         : 'Descargar evidencia'}</button
     >
   </div>
+  {#if disabled && !busy}<p class="hint" role="status">
+      Actualizando los datos del documento...
+    </p>{/if}
   {#if document.sealed === false}<p class="detail-next-step">
       <Icon name="info" size={16} /><span
         >{can(user.role, 'seal')
@@ -168,7 +188,10 @@
         autoridad de sellado local. Esta acci&#243;n no se puede deshacer desde la interfaz.
       </p>
       <div class="action-row">
-        <button class="primary" disabled={!!busy} onclick={() => run('seal')}
+        <button
+          class="primary"
+          disabled={disabled || !!busy || $administration.closed}
+          onclick={() => run('seal')}
           >{busy === 'seal' ? 'Sellando...' : 'Confirmar sellado'}</button
         ><button class="secondary" disabled={!!busy} onclick={() => (confirmSeal = false)}
           >Cancelar</button

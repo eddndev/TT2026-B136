@@ -195,6 +195,13 @@ cifrado y evidencia histórica. Tipo, clasificación y etiquetas tienen un histo
 auditado independiente y filtros por sus valores actuales. La gestión procesal
 sigue pendiente; el alcance de cierre está en [el plan del producto](docs/product-completion.md).
 
+El perfil penal tiene NUC, carpeta judicial, autoridades, delitos y datos
+complementarios; conserva revisiones administrativas auditadas. El cierre del
+expediente suspende mutaciones y mantiene consultas y evidencia autorizadas.
+La etapa inicial de Investigación pertenece al alta penal completa; completar
+un perfil anterior no inventa etapas. Los [contratos de administración](docs/case-administration-api.md)
+distinguen estas operaciones de la API básica y las asignaciones de acceso.
+
 ### Frontend web
 
 - [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,

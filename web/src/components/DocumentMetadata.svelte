@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
   import MetadataSummary from './MetadataSummary.svelte';
   import MetadataEditor from './MetadataEditor.svelte';
@@ -9,6 +11,11 @@
   export let document;
   export let onmetadata;
   export let ondenied;
+  export let disabled = false;
+  export let pending = false;
+  let historyBusy = false;
+  let editorBusy = false;
+  $: pending = busy || historyBusy || editorBusy;
   const scoped = api.metadata(document.id);
   let current = document.current_metadata || {
     metadata_revision: 0,
@@ -25,12 +32,12 @@
   function merge(record) {
     if (!alive || record.metadata_revision < current.metadata_revision) return;
     current = record;
-    onmetadata(record);
+    return onmetadata(record);
   }
   function confirmed(record) {
     generation++;
     busy = false;
-    merge(record);
+    return merge(record);
   }
   $: if (document.current_metadata?.metadata_revision > current.metadata_revision)
     confirmed(document.current_metadata);
@@ -40,7 +47,7 @@
     error = '';
     try {
       const record = await scoped.get();
-      if (alive && request === generation) merge(record);
+      if (alive && request === generation) await merge(record);
     } catch (failure) {
       if (alive && request === generation) {
         error = failure.message;
@@ -68,8 +75,10 @@
       <span class="eyebrow">ORGANIZACI&#211;N DEL DOCUMENTO</span>
       <h2>Clasificaci&#243;n actual del documento</h2>
     </div>
-    {#if can(user.role, 'classify')}<button class="secondary" onclick={() => editor.open()}
-        >Editar clasificaci&#243;n</button
+    {#if can(user.role, 'classify')}<button
+        class="secondary"
+        disabled={disabled || pending || $administration.closed}
+        onclick={() => editor.open()}>Editar clasificaci&#243;n</button
       >{/if}
   </div>
   <p class="hint">
@@ -82,9 +91,11 @@
   <MetadataSummary metadata={current} />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <div class="action-row">
-    <button class="secondary" disabled={busy} onclick={load}>Actualizar clasificaci&#243;n</button
+    <button class="secondary" disabled={disabled || pending} onclick={load}
+      >Actualizar clasificaci&#243;n</button
     ><button
       class="text-button"
+      disabled={disabled || pending}
       aria-expanded={showHistory}
       onclick={() => (showHistory = !showHistory)}
       >{showHistory
@@ -94,13 +105,17 @@
   </div>
   {#if showHistory}{#key current.metadata_revision}<MetadataHistory
         api={scoped}
+        disabled={disabled || busy}
+        bind:busy={historyBusy}
         {ondenied}
       />{/key}{/if}
 </section>
 {#if can(user.role, 'classify')}<MetadataEditor
     bind:this={editor}
+    bind:busy={editorBusy}
     api={scoped}
     {current}
+    disabled={disabled || busy || historyBusy}
     onconfirmed={confirmed}
     {ondenied}
   />{/if}

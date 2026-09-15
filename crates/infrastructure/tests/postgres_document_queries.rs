@@ -186,8 +186,14 @@ fn unauthorized_missing_and_foreign_documents_are_indistinguishable() {
     let record = document();
     let at = OffsetDateTime::now_utc();
     store.insert(owner, case_id, record.clone(), at).unwrap();
-    let cases = PostgresCaseRepository::connect(&url).unwrap();
-    cases.add_member(foreign_case, actor, owner).unwrap();
+    let cases = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
+    cases
+        .add_member(foreign_case, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     for (user, scope, id) in [
         (owner, foreign_case, record.id),
         (owner, case_id, DocumentId::new()),
@@ -226,9 +232,17 @@ fn reads_reload_current_membership_role_and_active_status() {
     let actor = user(&url, Role::Paralegal);
     let client = user(&url, Role::Client);
     let case_id = case(&url, owner);
-    let cases = PostgresCaseRepository::connect(&url).unwrap();
-    cases.add_member(case_id, actor, owner).unwrap();
-    cases.add_member(case_id, client, owner).unwrap();
+    let cases = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
+    cases
+        .add_member(case_id, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
+    cases
+        .add_member(case_id, client, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     let record = document();
     let at = OffsetDateTime::now_utc();
@@ -259,7 +273,9 @@ fn reads_reload_current_membership_role_and_active_status() {
         store.list(client, case_id, query(20, 0, None, None), at),
         Err(ApplicationError::PermissionDenied)
     ));
-    cases.remove_member(case_id, actor, owner).unwrap();
+    cases
+        .remove_member(case_id, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     assert!(matches!(
         store.get(
             actor,
@@ -274,7 +290,9 @@ fn reads_reload_current_membership_role_and_active_status() {
         store.list(actor, case_id, query(20, 0, None, None), at),
         Err(ApplicationError::CaseNotFound)
     ));
-    cases.add_member(case_id, actor, owner).unwrap();
+    cases
+        .add_member(case_id, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     let mut admin = Client::connect(&url, NoTls).unwrap();
     admin
         .execute(

@@ -3,7 +3,7 @@ mod document_store_support;
 use std::sync::{mpsc, Arc, Barrier};
 use std::time::{Duration, Instant};
 
-use application::cases::{CaseRecord, CaseRepository};
+use application::cases::CaseRepository;
 use application::documents::{CaseDocumentStore, DocumentAction};
 use domain::audit::{verify_chain, AuditLog, ChainVerification};
 use domain::cases::CaseId;
@@ -34,7 +34,11 @@ fn revocation_waits_for_an_authorized_commit_and_blocks_the_next_commit() {
     let mut sealed = original.clone();
     sealed.seal(evidence()).unwrap();
     let seal_adapter = PostgresCaseDocumentStore::connect(&url).unwrap();
-    let revoke_adapter = PostgresCaseRepository::connect(&url).unwrap();
+    let revoke_adapter = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
     let mut admin = Client::connect(&url, NoTls).unwrap();
     let suffix = original.id.as_uuid().simple().to_string();
     let hold_key = i64::from(
@@ -75,7 +79,8 @@ fn revocation_waits_for_an_authorized_commit_and_blocks_the_next_commit() {
     }
     let (done, observed) = mpsc::channel();
     let revoker = std::thread::spawn(move || {
-        let result = revoke_adapter.remove_member(case_id, actor, owner);
+        let result =
+            revoke_adapter.remove_member(case_id, actor, owner, time::OffsetDateTime::now_utc());
         done.send(result).unwrap();
     });
     let premature = observed.recv_timeout(Duration::from_millis(100));
@@ -134,7 +139,11 @@ fn independent_document_case_and_identity_audit_writers_extend_one_chain() {
     let owner = user(&url, Role::Owner);
     let case_id = case(&url, owner);
     let docs = PostgresCaseDocumentStore::connect(&url).unwrap();
-    let cases = PostgresCaseRepository::connect(&url).unwrap();
+    let cases = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
     let mut audit = PostgresAuditLog::connect(&url).unwrap();
     let barrier = Arc::new(Barrier::new(3));
     let doc_barrier = barrier.clone();
@@ -150,12 +159,12 @@ fn independent_document_case_and_identity_audit_writers_extend_one_chain() {
         case_barrier.wait();
         for _ in 0..4 {
             cases
-                .insert(CaseRecord {
-                    id: CaseId::new(),
-                    title: "Concurrent case".into(),
-                    reference: "File".into(),
-                    created_by: owner,
-                })
+                .create_basic(
+                    owner,
+                    CaseId::new(),
+                    domain::cases::CaseMetadata::new("Concurrent case", "File").unwrap(),
+                    OffsetDateTime::now_utc(),
+                )
                 .unwrap();
         }
     });

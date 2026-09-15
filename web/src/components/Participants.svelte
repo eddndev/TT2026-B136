@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import ParticipantFilters from './ParticipantFilters.svelte';
@@ -25,7 +27,9 @@
   let listGeneration = 0,
     detailGeneration = 0,
     editorGeneration = 0,
-    editor;
+    editor,
+    participantDetail;
+  let refreshing = 0;
   function invalidateDetail() {
     detailGeneration++;
     opening = false;
@@ -41,11 +45,20 @@
     error = failure.message;
     notice = '';
   }
+  async function refreshReaders(id) {
+    refreshing++;
+    try {
+      await Promise.all([load(0), id ? participantDetail?.refreshHistory(id) : undefined]);
+    } finally {
+      if (alive) refreshing--;
+    }
+  }
   function observed(record) {
     if (!alive) return;
+    const changed = selected?.id === record.id && selected.revision < record.revision;
     if (selected?.id === record.id && selected.revision <= record.revision) selected = record;
     cursors = [undefined];
-    load(0);
+    return refreshReaders(changed ? record.id : null);
   }
   async function load(nextIndex = index, afterId = cursors[nextIndex]) {
     const generation = ++listGeneration;
@@ -108,11 +121,12 @@
   }
   function confirmed(record) {
     if (!alive) return;
+    const existing = selected?.id === record.id;
     invalidateDetail();
     selected = record;
     cursors = [undefined];
     notice = 'Participante guardado.';
-    load(0);
+    return refreshReaders(existing ? record.id : null);
   }
   function statusChanged(record) {
     if (!alive) return;
@@ -120,7 +134,7 @@
     cursors = [undefined];
     notice =
       record.directory_status === 'active' ? 'Participante reactivado.' : 'Participante archivado.';
-    load(0);
+    return refreshReaders(null);
   }
   onMount(() => {
     if (canParticipants(user.role, 'read')) load();
@@ -139,8 +153,10 @@
     <h1>Participantes</h1>
     <p>Personas registradas en este expediente.</p>
   </div>
-  {#if canParticipants(user.role, 'manage')}<button class="primary" onclick={() => editor.open()}
-      ><Icon name="plus" size={18} />Agregar participante</button
+  {#if canParticipants(user.role, 'manage')}<button
+      class="primary"
+      disabled={$administration.closed || !!refreshing}
+      onclick={() => editor.open()}><Icon name="plus" size={18} />Agregar participante</button
     >{/if}
 </div>
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
@@ -151,11 +167,13 @@
       <h2>Directorio del expediente</h2>
       <p class="hint">Este registro organiza personas; no administra cuentas ni permisos.</p>
     </div>
-    <button class="secondary" disabled={busy} onclick={() => load()}>Actualizar</button>
+    <button class="secondary" disabled={busy || !!refreshing} onclick={() => load()}
+      >Actualizar</button
+    >
   </div>
-  <ParticipantFilters onapply={apply} {busy} />
+  <ParticipantFilters onapply={apply} busy={busy || !!refreshing} />
   {#if busy}<p class="hint" role="status">Consultando participantes...</p>
-  {:else if rows.length}<ParticipantList {rows} onselect={open} {opening} />
+  {:else if rows.length}<ParticipantList {rows} onselect={open} opening={opening || !!refreshing} />
   {:else if !error}<div class="empty-state">
       <span class="empty-icon"><Icon name="users" size={35} /></span>
       <h3>A&#250;n no hay participantes en esta consulta</h3>
@@ -172,12 +190,16 @@
       {rows.length === 1 ? 'participante' : 'participantes'} en esta p&#225;gina</span
     >
     <div class="action-row">
-      <button class="secondary" disabled={busy || !index} onclick={previous}>Anterior</button
-      ><button class="secondary" disabled={busy || !hasMore} onclick={next}>Siguiente</button>
+      <button class="secondary" disabled={busy || !!refreshing || !index} onclick={previous}
+        >Anterior</button
+      ><button class="secondary" disabled={busy || !!refreshing || !hasMore} onclick={next}
+        >Siguiente</button
+      >
     </div>
   </div>
 </section>
 {#if selected}{#key selected.id}<ParticipantDetail
+      bind:this={participantDetail}
       api={scoped}
       {user}
       record={selected}
@@ -185,6 +207,7 @@
       onobserved={observed}
       onstatus={statusChanged}
       ondenied={denied}
+      disabled={!!refreshing}
     />{/key}{/if}
 {#if canParticipants(user.role, 'manage')}{#key editorGeneration}<ParticipantEditor
       bind:this={editor}

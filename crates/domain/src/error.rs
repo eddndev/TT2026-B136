@@ -8,6 +8,25 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    /// A manual penal profile violates bounded field invariants.
+    #[error("invalid penal case {field}: {reason}")]
+    InvalidPenalCaseProfile {
+        field: &'static str,
+        reason: &'static str,
+    },
+
+    /// Administrative history never stores a revision zero.
+    #[error("case revision must be 1 or greater")]
+    InvalidCaseRevision,
+
+    /// Stage history uses its own positive revision counter.
+    #[error("case stage revision must be 1 or greater")]
+    InvalidCaseStageRevision,
+
+    /// Administrative status is active or closed; rejected input is not retained.
+    #[error("invalid case administrative status")]
+    InvalidCaseAdministrativeStatus,
+
     /// Case-local participant fields violate their bounded text invariants.
     #[error("invalid participant {field}: {reason}")]
     InvalidParticipantValues {

@@ -12,6 +12,7 @@ use application::identity::IdentityWorkflow;
 use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
+mod case_administration;
 mod cases;
 mod dto;
 mod error;
@@ -43,6 +44,15 @@ pub fn case_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
     protect(cases::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds staff case administration routes with workflow authorization.
+pub fn case_administration_router(workflow: Arc<dyn CaseWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        case_administration::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds participant routes with authentication delegated to the workflow.
 pub fn participant_router(workflow: Arc<dyn ParticipantWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -59,7 +69,8 @@ pub fn api_router(
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
     let routes = routes::router(documents, identity, runtime.clone())
-        .merge(cases::router(cases, runtime.clone()))
+        .merge(cases::router(cases.clone(), runtime.clone()))
+        .merge(case_administration::router(cases, runtime.clone()))
         .merge(participants::router(participants, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }

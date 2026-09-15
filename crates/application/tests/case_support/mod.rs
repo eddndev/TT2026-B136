@@ -1,11 +1,16 @@
-use application::cases::{CaseAccess, CaseRecord, CaseRepository};
+use application::cases::*;
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
 };
 use application::ApplicationError;
-use domain::cases::CaseId;
+use domain::cases::{CaseId, CaseMetadata};
+use domain::clock::{Clock, OffsetDateTime};
 use domain::identity::{Permission, Role, UserId};
 use mockall::mock;
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
 
 mock! {
     pub Identity {}
@@ -24,11 +29,17 @@ mock! {
 mock! {
     pub Cases {}
     impl CaseRepository for Cases {
-        fn insert(&self, record: CaseRecord) -> Result<(), ApplicationError>;
-        fn list(&self, access: CaseAccess, limit: u32, offset: u32) -> Result<Vec<CaseRecord>, ApplicationError>;
-        fn find(&self, id: CaseId, access: CaseAccess) -> Result<Option<CaseRecord>, ApplicationError>;
-        fn add_member(&self, id: CaseId, user_id: UserId, actor: UserId) -> Result<(), ApplicationError>;
-        fn remove_member(&self, id: CaseId, user_id: UserId, actor: UserId) -> Result<(), ApplicationError>;
+    fn create_basic(&self, actor: UserId, id: CaseId, metadata: CaseMetadata, at: OffsetDateTime) -> Result<CaseRecord, ApplicationError>;
+    fn list_basic(&self, actor: UserId, limit: u32, offset: u32, at: OffsetDateTime) -> Result<Vec<CaseRecord>, ApplicationError>;
+    fn get_basic(&self, actor: UserId, id: CaseId, at: OffsetDateTime) -> Result<CaseRecord, ApplicationError>;
+    fn add_member(&self, id: CaseId, user_id: UserId, actor: UserId, at: OffsetDateTime) -> Result<(), ApplicationError>;
+    fn remove_member(&self, id: CaseId, user_id: UserId, actor: UserId, at: OffsetDateTime) -> Result<(), ApplicationError>;
+    fn register_penal(&self, actor: UserId, id: CaseId, creation: PenalCaseCreation, at: OffsetDateTime) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn replace_administration(&self, actor: UserId, id: CaseId, expected: CaseRevisionExpectation, values: CaseEditableValues, at: OffsetDateTime) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn change_administrative_status(&self, actor: UserId, id: CaseId, expected: CaseRevisionExpectation, status: CaseAdministrativeStatus, at: OffsetDateTime) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn list_administrations(&self, actor: UserId, query: CaseAdministrationQuery, at: OffsetDateTime) -> Result<CaseAdministrationPage, ApplicationError>;
+    fn get_administration(&self, actor: UserId, id: CaseId, at: OffsetDateTime) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn administration_history(&self, actor: UserId, id: CaseId, query: CaseAdministrationHistoryQuery, at: OffsetDateTime) -> Result<CaseAdministrationHistoryPage, ApplicationError>;
     }
 }
 
@@ -55,4 +66,31 @@ pub fn record(created_by: UserId) -> CaseRecord {
         reference: "NUC-123".into(),
         created_by,
     }
+}
+
+pub fn instant() -> OffsetDateTime {
+    OffsetDateTime::from_unix_timestamp(1_800_000_000).unwrap()
+}
+
+#[derive(Default)]
+pub struct CountingClock {
+    calls: AtomicUsize,
+}
+impl CountingClock {
+    pub fn calls(&self) -> usize {
+        self.calls.load(Ordering::SeqCst)
+    }
+}
+impl Clock for CountingClock {
+    fn now(&self) -> OffsetDateTime {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        instant()
+    }
+}
+pub fn service(repository: MockCases, identity: MockIdentity) -> (CaseService, Arc<CountingClock>) {
+    let clock = Arc::new(CountingClock::default());
+    (
+        CaseService::new(Arc::new(repository), Arc::new(identity), clock.clone()),
+        clock,
+    )
 }

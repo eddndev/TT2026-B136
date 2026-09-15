@@ -1,4 +1,7 @@
 <script>
+  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import ParticipantFields from './ParticipantFields.svelte';
@@ -17,8 +20,14 @@
   let conflict = false;
   let exhausted = false;
   let error = '';
+  let blockedByCase = false;
+  $: if (blockedByCase && !$administration.closed) {
+    error = '';
+    blockedByCase = false;
+  }
   let alive = true;
   export function open(record = null) {
+    if ($administration.closed) return;
     original = record;
     draft = participantDraft(record || {});
     candidate = null;
@@ -41,8 +50,9 @@
       if (!alive) return;
       candidate = result;
       error = '';
-      onobserved(result);
+      await onobserved(result);
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure);
@@ -53,7 +63,7 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy || exhausted || (conflict && !candidate)) return;
+    if (busy || exhausted || $administration.closed || (conflict && !candidate)) return;
     let values;
     try {
       values = fields.values();
@@ -71,10 +81,12 @@
           })
         : await api.create(values);
       if (!alive) return;
+      await onconfirmed(record);
+      if (!alive) return;
       busy = false;
       close();
-      onconfirmed(record);
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;
       conflict = failure.code === 'participant_revision_conflict';
       exhausted = failure.code === 'participant_revision_exhausted';
@@ -131,9 +143,12 @@
           formulario ({draft.directory_status === 'active' ? 'Activo' : 'Archivado'}).
         </p>
       </section>{/if}
+    <CaseClosedNotice />
     <div class="dialog-actions">
       <button type="button" class="secondary" disabled={busy} onclick={close}>Cancelar</button>
-      <button class="primary" disabled={busy || exhausted || (conflict && !candidate)}
+      <button
+        class="primary"
+        disabled={busy || exhausted || $administration.closed || (conflict && !candidate)}
         >{busy
           ? 'Guardando...'
           : candidate

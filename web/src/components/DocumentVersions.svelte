@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import AppendVersion from './AppendVersion.svelte';
@@ -10,6 +12,9 @@
   export let document;
   export let onupdate;
   export let ondenied = () => {};
+  export let disabled = false;
+  export let pending = false;
+  $: pending = busy || !!refreshing || !!detailBusy || appendBusy || selections > 0;
   let current = document;
   let selected = document;
   let versions = [];
@@ -18,6 +23,10 @@
   let hasMore = false;
   let busy = false;
   let opening = false;
+  let refreshing = 0;
+  let detailBusy = '';
+  let appendBusy = false;
+  let selections = 0;
   let error = '';
   let unavailable = false;
   let append;
@@ -40,7 +49,7 @@
   function updateCurrent(record) {
     if (!alive || record.version < current.version) return;
     current = record;
-    onupdate(record);
+    return onupdate(record);
   }
   async function history(more = false) {
     const request = ++historyGeneration;
@@ -61,7 +70,7 @@
       nextBefore = page.next_before_version;
       firstAvailableVersion = page.first_available_version;
       unavailable = false;
-      if (versions[0]?.version > current.version) updateCurrent(versions[0]);
+      if (versions[0]?.version > current.version) await updateCurrent(versions[0]);
     } catch (failure) {
       if (alive && request === historyGeneration) {
         error = failure.message;
@@ -72,6 +81,8 @@
     }
   }
   async function select(record) {
+    if (disabled || detailBusy === 'seal' || appendBusy || refreshing) return;
+    selections++;
     const request = ++detailGeneration;
     opening = true;
     selected = null;
@@ -87,30 +98,44 @@
       }
     } finally {
       exact.dispose();
+      if (alive) selections--;
       if (alive && request === detailGeneration) opening = false;
     }
   }
-  function update(record) {
+  async function update(record) {
     if (!alive || selected?.version !== record.version) return;
     const changed = selected.sealed !== record.sealed;
     selected = record;
     versions = versions.map((entry) =>
       entry.version === record.version ? { ...entry, sealed: record.sealed } : entry,
     );
+    let refresh;
     if (record.version === current.version) {
       current = record;
-      onupdate(record);
+      refresh = onupdate(record);
     }
-    if (changed) history();
+    await Promise.all([refresh, changed ? history() : undefined]);
   }
-  function appended(record) {
+  async function synchronize(record) {
+    refreshing++;
+    try {
+      await Promise.all([onupdate(record), history()]);
+    } finally {
+      if (alive) refreshing--;
+    }
+  }
+  async function refreshedCurrent(record) {
+    if (!alive || record.version < current.version) return;
+    current = record;
+    await synchronize(record);
+  }
+  async function appended(record) {
     if (!alive) return;
     detailGeneration++;
     opening = false;
     current = record;
     selected = record;
-    onupdate(record);
-    history();
+    await synchronize(record);
   }
   onMount(() => {
     history();
@@ -129,19 +154,19 @@
   </div>
   {#if !unavailable && can(user.role, 'documents')}<button
       class="primary"
+      disabled={disabled || $administration.closed || pending}
       onclick={() => append.open()}><Icon name="plus" size={18} />Agregar versi&#243;n</button
     >{/if}
 </div>
 {#if !unavailable}<AppendVersion
     bind:this={append}
+    bind:busy={appendBusy}
     {api}
     document={current}
+    disabled={disabled || busy || !!refreshing || !!detailBusy || selections > 0}
     onappended={appended}
     {ondenied}
-    oncurrent={(record) => {
-      updateCurrent(record);
-      history();
-    }}
+    oncurrent={refreshedCurrent}
   />{/if}
 <VersionHistory
   {versions}
@@ -150,6 +175,7 @@
   {firstAvailableVersion}
   {hasMore}
   {busy}
+  disabled={disabled || !!refreshing || detailBusy === 'seal' || appendBusy}
   onselect={select}
   onmore={() => history(true)}
   onrefresh={() => history()}
@@ -162,9 +188,11 @@
       : `Consultando versi\u00f3n hist\u00f3rica: ${selected.version}`}
   </p>
   {#key selected.version}<VersionDetail
+      bind:busy={detailBusy}
       {api}
       {user}
       document={selected}
+      disabled={disabled || busy || !!refreshing || appendBusy || selections > 0}
       onupdate={update}
       {ondenied}
     />{/key}{/if}

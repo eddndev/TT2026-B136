@@ -1,65 +1,151 @@
-//! Inbound case workflow and durable membership boundary.
+//! Authenticated case workflows and actor-scoped transactional persistence.
 
-use domain::cases::CaseId;
+use domain::cases::{CaseId, CaseMetadata};
+use domain::clock::OffsetDateTime;
 use domain::identity::UserId;
 
-use super::{CaseAccess, CaseRecord};
+use super::{
+    CaseAdministrationDetail, CaseAdministrationHistoryPage, CaseAdministrationHistoryQuery,
+    CaseAdministrationPage, CaseAdministrationQuery, CaseAdministrativeStatus, CaseEditableValues,
+    CaseRecord, CaseRevisionExpectation, PenalCaseCreation,
+};
 use crate::ApplicationError;
 
-/// Authenticates each call and enforces current role and case visibility.
+/// Authenticates every operation; basic client views remain separate from staff data.
 pub trait CaseWorkflow: Send + Sync {
     fn create(
         &self,
-        access_token: &str,
+        token: &str,
         title: &str,
         reference: &str,
     ) -> Result<CaseRecord, ApplicationError>;
     fn list(
         &self,
-        access_token: &str,
+        token: &str,
         limit: u32,
         offset: u32,
     ) -> Result<Vec<CaseRecord>, ApplicationError>;
-    fn get(&self, access_token: &str, id: CaseId) -> Result<CaseRecord, ApplicationError>;
-    fn assign(
+    fn get(&self, token: &str, id: CaseId) -> Result<CaseRecord, ApplicationError>;
+    fn assign(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError>;
+    fn remove(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError>;
+    fn register_penal(
         &self,
-        access_token: &str,
-        id: CaseId,
-        user_id: UserId,
-    ) -> Result<(), ApplicationError>;
-    fn remove(
+        token: &str,
+        creation: PenalCaseCreation,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn replace_administration(
         &self,
-        access_token: &str,
+        token: &str,
         id: CaseId,
-        user_id: UserId,
-    ) -> Result<(), ApplicationError>;
+        expected: CaseRevisionExpectation,
+        values: CaseEditableValues,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn change_administrative_status(
+        &self,
+        token: &str,
+        id: CaseId,
+        expected: CaseRevisionExpectation,
+        status: CaseAdministrativeStatus,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn list_administrations(
+        &self,
+        token: &str,
+        query: CaseAdministrationQuery,
+    ) -> Result<CaseAdministrationPage, ApplicationError>;
+    fn get_administration(
+        &self,
+        token: &str,
+        id: CaseId,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn administration_history(
+        &self,
+        token: &str,
+        id: CaseId,
+        query: CaseAdministrationHistoryQuery,
+    ) -> Result<CaseAdministrationHistoryPage, ApplicationError>;
 }
 
-/// Stores case metadata and checks membership within each read query.
+/// Revalidates the active actor, role and scope inside the common audited transaction.
+///
+/// Reads commit an event before returning data. Mutations return their own
+/// confirmed projection, including captured author and time. A baseline is not
+/// an invented historical revision. Status changes preserve current text and
+/// profile within the transaction; replace never changes status or stage.
 pub trait CaseRepository: Send + Sync {
-    /// Atomically creates the case and its creator's initial assignment.
-    fn insert(&self, record: CaseRecord) -> Result<(), ApplicationError>;
-    /// Filters before applying stable pagination; never returns hidden cases.
-    fn list(
+    fn create_basic(
         &self,
-        access: CaseAccess,
+        actor: UserId,
+        id: CaseId,
+        metadata: CaseMetadata,
+        at: OffsetDateTime,
+    ) -> Result<CaseRecord, ApplicationError>;
+    fn list_basic(
+        &self,
+        actor: UserId,
         limit: u32,
         offset: u32,
+        at: OffsetDateTime,
     ) -> Result<Vec<CaseRecord>, ApplicationError>;
-    /// Returns None for both missing cases and cases outside the given scope.
-    fn find(&self, id: CaseId, access: CaseAccess) -> Result<Option<CaseRecord>, ApplicationError>;
-    /// Idempotently assigns an existing active user to an existing case.
+    fn get_basic(
+        &self,
+        actor: UserId,
+        id: CaseId,
+        at: OffsetDateTime,
+    ) -> Result<CaseRecord, ApplicationError>;
     fn add_member(
         &self,
         id: CaseId,
         user_id: UserId,
         actor: UserId,
+        at: OffsetDateTime,
     ) -> Result<(), ApplicationError>;
-    /// Idempotently removes an assignment; fails if the case does not exist.
     fn remove_member(
         &self,
         id: CaseId,
         user_id: UserId,
         actor: UserId,
+        at: OffsetDateTime,
     ) -> Result<(), ApplicationError>;
+    fn register_penal(
+        &self,
+        actor: UserId,
+        id: CaseId,
+        creation: PenalCaseCreation,
+        at: OffsetDateTime,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn replace_administration(
+        &self,
+        actor: UserId,
+        id: CaseId,
+        expected: CaseRevisionExpectation,
+        values: CaseEditableValues,
+        at: OffsetDateTime,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn change_administrative_status(
+        &self,
+        actor: UserId,
+        id: CaseId,
+        expected: CaseRevisionExpectation,
+        status: CaseAdministrativeStatus,
+        at: OffsetDateTime,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn list_administrations(
+        &self,
+        actor: UserId,
+        query: CaseAdministrationQuery,
+        at: OffsetDateTime,
+    ) -> Result<CaseAdministrationPage, ApplicationError>;
+    fn get_administration(
+        &self,
+        actor: UserId,
+        id: CaseId,
+        at: OffsetDateTime,
+    ) -> Result<CaseAdministrationDetail, ApplicationError>;
+    fn administration_history(
+        &self,
+        actor: UserId,
+        id: CaseId,
+        query: CaseAdministrationHistoryQuery,
+        at: OffsetDateTime,
+    ) -> Result<CaseAdministrationHistoryPage, ApplicationError>;
 }

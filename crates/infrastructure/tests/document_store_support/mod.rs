@@ -41,9 +41,14 @@ pub fn case(url: &str, creator: UserId) -> CaseId {
         reference: "File 42".into(),
         created_by: creator,
     };
-    PostgresCaseRepository::connect(url)
+    PostgresCaseRepository::connect(url, std::sync::Arc::new(infrastructure::RingSha256Hasher))
         .unwrap()
-        .insert(record.clone())
+        .create_basic(
+            creator,
+            record.id,
+            domain::cases::CaseMetadata::new(&record.title, &record.reference).unwrap(),
+            time::OffsetDateTime::now_utc(),
+        )
         .unwrap();
     record.id
 }

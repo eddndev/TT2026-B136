@@ -142,7 +142,7 @@ fn latest_values_are_filtered_literally_before_case_local_keyset_pagination() {
     let other = domain::cases::CaseId::new();
     f.admin
         .execute(
-            "INSERT INTO cases(id,title,reference,created_by) VALUES($1,'Other','Other',$2)",
+            "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Other','Other',$2,NULL)",
             &[&other.as_uuid(), &f.owner.as_uuid()],
         )
         .unwrap();

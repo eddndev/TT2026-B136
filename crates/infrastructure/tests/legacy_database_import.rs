@@ -283,7 +283,7 @@ fn startup_rejects_missing_or_corrupted_import_data_despite_a_matching_receipt()
         database.seed_case(source.case_id);
         source.inspect().apply(&database.url).unwrap();
         database.client.batch_execute(
-            "INSERT INTO cases(id,title,reference,created_by)              SELECT '00000000-0000-4000-8000-000000000001','Other case','OTHER',created_by FROM cases LIMIT 1"
+            "INSERT INTO cases(id,title,reference,created_by,required_initial_revision)              SELECT '00000000-0000-4000-8000-000000000001','Other case','OTHER',created_by,NULL FROM cases LIMIT 1"
         ).unwrap();
         let runtime_url = database.restricted_url();
         infrastructure::legacy::require_completed_import(source.dir.path(), &runtime_url).unwrap();

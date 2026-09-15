@@ -57,6 +57,7 @@ impl PostgresCaseDocumentStore {
         let principal =
             authorize_document(&mut transaction, actor, case, id, DocumentAction::Classify)?;
         metadata_storage::require_document(&mut transaction, case, id)?;
+        crate::postgres_case_status::require_active(&mut transaction, case)?;
         let current = metadata_storage::current(&mut transaction, id)?;
         if current.metadata_revision != expected {
             return Err(ApplicationError::DocumentMetadataConflict);

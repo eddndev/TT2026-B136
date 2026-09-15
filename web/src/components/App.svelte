@@ -5,10 +5,8 @@
   import Overview from './Overview.svelte';
   import Guide from './Guide.svelte';
   import Icon from './Icon.svelte';
-  import Documents from './Documents.svelte';
   import Cases from './Cases.svelte';
-  import CaseContext from './CaseContext.svelte';
-  import Participants from './Participants.svelte';
+  import CaseWorkspace from './CaseWorkspace.svelte';
   import Admin from './Admin.svelte';
   import { createApi } from '../lib/api.mjs';
   import { roles } from '../lib/documents.mjs';
@@ -127,31 +125,24 @@
             onselect={(record) => {
               selectedCase = record;
 
-              go('documents');
+              go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if view === 'documents' || view === 'participants'}
-          {#if selectedCase}
-            <CaseContext
-              record={selectedCase}
-              {user}
-              {view}
-              onnavigate={go}
-              onchange={() => {
-                selectedCase = null;
-                go('cases');
-              }}
-            />
-            {#key selectedCase.id}
-              {#if view === 'participants'}<Participants {api} {user} caseRecord={selectedCase} />
-              {:else}<Documents
-                  {api}
-                  {user}
-                  caseRecord={selectedCase}
-                  intent={documentIntent}
-                  onintent={() => (documentIntent = null)}
-                />{/if}
-            {/key}
+        {:else if ['case-summary', 'documents', 'participants'].includes(view)}
+          {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
+                {api}
+                {user}
+                record={selectedCase}
+                {view}
+                onnavigate={go}
+                onupdate={(record) => (selectedCase = record)}
+                onchange={() => {
+                  selectedCase = null;
+                  go('cases');
+                }}
+                intent={documentIntent}
+                onintent={() => (documentIntent = null)}
+              />{/key}
           {:else}<section class="card empty-state">
               <span class="empty-icon"><Icon name="briefcase" size={35} /></span>
               <h1>Selecciona un expediente</h1>

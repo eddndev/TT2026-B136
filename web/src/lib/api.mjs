@@ -1,6 +1,19 @@
 import { caseApi } from './case-api.mjs';
 
 const messages = {
+  case_closed:
+    'El expediente est\u00e1 cerrado administrativamente. Consulta su estado antes de modificarlo.',
+  case_revision_conflict: 'Los datos del expediente cambiaron. Consulta los valores actuales.',
+  case_revision_exhausted:
+    'El expediente alcanz\u00f3 el l\u00edmite de revisiones. No se pueden guardar m\u00e1s cambios.',
+  case_identifier_conflict:
+    'El NUC o la carpeta judicial ya est\u00e1n registrados. Revisa ambos identificadores.',
+  case_profile_required: 'La ficha penal completa debe conservarse. Consulta los valores actuales.',
+  invalid_penal_case_profile:
+    'Revisa los campos obligatorios, las descripciones y los l\u00edmites de la ficha penal.',
+  invalid_case_metadata: 'Revisa el t\u00edtulo y la referencia interna.',
+  case_administration_body_too_large: 'Los datos del expediente superan el l\u00edmite permitido.',
+
   invalid_participant_values: 'Revisa los campos del participante.',
   invalid_participant_revision: 'La revisi\u00f3n del participante no es v\u00e1lida.',
   participant_not_found: 'El participante no est\u00e1 disponible en este expediente.',

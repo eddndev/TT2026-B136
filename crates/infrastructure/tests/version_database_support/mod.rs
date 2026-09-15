@@ -45,12 +45,13 @@ impl Database {
         let user = Uuid::new_v4();
         let case = Uuid::new_v4();
         self.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture','owner','\\x00','{}')", &[&user, &format!("{user}@example.test")]).unwrap();
-        self.client
-            .execute(
-                "INSERT INTO cases(id,title,reference,created_by) VALUES($1,'Versions','V',$2)",
-                &[&case, &user],
-            )
-            .unwrap();
+        let revised: bool = self.client.query_one("SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid='cases'::regclass AND attname='required_initial_revision' AND NOT attisdropped)",&[]).unwrap().get(0);
+        let insert = if revised {
+            "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Versions','V',$2,NULL)"
+        } else {
+            "INSERT INTO cases(id,title,reference,created_by) VALUES($1,'Versions','V',$2)"
+        };
+        self.client.execute(insert, &[&case, &user]).unwrap();
         case
     }
 

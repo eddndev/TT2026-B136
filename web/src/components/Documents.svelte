@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy, tick } from 'svelte';
   import Icon from './Icon.svelte';
   import DocumentWorkspace from './DocumentWorkspace.svelte';
@@ -55,7 +57,7 @@
       hasMore = result.has_more;
     } catch (failure) {
       if (alive && current === listGeneration) {
-        selected = null;
+        if ([403, 404].includes(failure.status)) selected = null;
         invalidateDetail();
         error = failure.message;
       }
@@ -107,7 +109,7 @@
       selected.version !== document.version ||
       previous?.metadata_revision !== metadata?.metadata_revision;
     selected = { ...document, current_metadata: metadata };
-    if (changed) load(offset);
+    if (changed) return load(offset);
   }
   function updateMetadata(record) {
     if (
@@ -118,7 +120,7 @@
       return;
     const changed = selected.current_metadata?.metadata_revision !== record.metadata_revision;
     selected = { ...selected, current_metadata: record };
-    if (changed) load(offset);
+    if (changed) return load(offset);
   }
   function uploaded(document) {
     if (!alive) return;
@@ -147,7 +149,7 @@
     if (can(user.role, 'documents')) {
       filter = ['pending', 'sealed'].includes(intent?.filter) ? intent.filter : 'all';
       load();
-      if (intent?.type === 'upload') upload.open();
+      if (intent?.type === 'upload' && !$administration.closed) upload.open();
       if (intent?.id) openDocument({ id: intent.id });
     }
     onintent();
@@ -166,8 +168,10 @@
     <h1>Documentos</h1>
     <p>Del archivo original a una evidencia que puedes verificar.</p>
   </div>
-  {#if can(user.role, 'documents')}<button class="primary" onclick={() => upload.open()}
-      ><Icon name="plus" size={18} />Subir documento</button
+  {#if can(user.role, 'documents')}<button
+      class="primary"
+      disabled={$administration.closed}
+      onclick={() => upload.open()}><Icon name="plus" size={18} />Subir documento</button
     >{/if}
 </div>
 {#if !can(user.role, 'documents')}<section class="empty-state card">
@@ -215,8 +219,10 @@
             onclick={() => {
               filters.clear();
             }}>Limpiar filtros</button
-          >{:else}<button class="secondary" onclick={() => upload.open()}
-            >Seleccionar un archivo</button
+          >{:else}<button
+            class="secondary"
+            disabled={$administration.closed}
+            onclick={() => upload.open()}>Seleccionar un archivo</button
           >{/if}
       </div>{/if}
     <Pagination {offset} count={documents.length} {hasMore} {busy} onchange={load} />
@@ -250,6 +256,7 @@
           api={scoped}
           {user}
           document={selected}
+          loading={busy}
           onupdate={update}
           onmetadata={updateMetadata}
           ondenied={denyAccess}

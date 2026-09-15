@@ -62,7 +62,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         openssl_version: openssl_version().context("cannot inspect openssl version")?,
     };
     let case_repository = Arc::new(
-        PostgresCaseRepository::open(&database_url)
+        PostgresCaseRepository::open(&database_url, Arc::new(RingSha256Hasher::new()))
             .context("cannot initialize PostgreSQL case repository")?,
     );
     let identity: Arc<dyn IdentityWorkflow> = Arc::new(IdentityService::new(IdentityPorts {
@@ -86,7 +86,11 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             PostgresAuditLog::open(&database_url).context("cannot open PostgreSQL audit log")?,
         ),
     }));
-    let cases = CaseService::new(case_repository, identity.clone());
+    let cases = CaseService::new(
+        case_repository,
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
     let participants = ParticipantService::new(
         Arc::new(
             PostgresParticipantStore::open(&database_url, Arc::new(RingSha256Hasher::new()))
