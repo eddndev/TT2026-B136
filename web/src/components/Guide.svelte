@@ -22,6 +22,19 @@
 <section class="card guide-questions">
   <h2>Antes de continuar</h2>
   <details>
+    <summary>&iquest;C&oacute;mo organizo los participantes?</summary>
+    <p>
+      Dentro del expediente, abre Participantes. El administrador y el litigante asignado pueden
+      registrar y editar personas; el asistente legal asignado puede consultarlas. El rol cliente no
+      accede al directorio. Registrar una persona no crea una cuenta ni concede acceso.
+    </p>
+    <p>
+      El historial conserva los cambios. Archivar y reactivar solo organizan el directorio; no
+      cambian la situaci&oacute;n jur&iacute;dica. Ante una edici&oacute;n concurrente, consulta los
+      datos actuales y confirma tus cambios sin perder el formulario.
+    </p>
+  </details>
+  <details>
     <summary>&iquest;D&oacute;nde est&aacute;n mis documentos anteriores?</summary>
     <p>
       Abre el expediente y consulta su archivo documental. Puedes buscar por nombre, filtrar por
@@ -70,8 +83,9 @@
     <summary>&iquest;Puedo organizar expedientes y audiencias?</summary>
     <p>
       Puedes crear y consultar expedientes. Las asignaciones se gestionan mediante la API; su
-      selector de usuarios todav&iacute;a no est&aacute; disponible en esta interfaz. Los
-      participantes procesales, las audiencias y los plazos a&uacute;n no est&aacute;n disponibles.
+      selector de usuarios todav&iacute;a no est&aacute; disponible en esta interfaz. Las audiencias
+      y los plazos a&uacute;n no est&aacute;n disponibles. El directorio de participantes registra
+      datos manuales, sin validar identidad legal ni etapas procesales.
     </p>
   </details>
   <details>

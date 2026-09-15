@@ -202,6 +202,8 @@ sigue pendiente; el alcance de cierre está en [el plan del producto](docs/produ
   historial de versiones, sellado,
   verificación, evidencia,
   alta de usuarios y verificación de auditoría.
+  El directorio de participantes por expediente conserva revisiones y autoría,
+  con archivo/reactivación y permisos independientes de las cuentas de acceso.
   Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
   Conserva la identidad visual Qadra. Las pantallas procesales siguen pendientes.
   `bash scripts/web-demo.sh` prueba el navegador con servicios

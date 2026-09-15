@@ -150,6 +150,33 @@ impl From<ApplicationError> for ApiError {
                 code: "case_not_found",
                 message: error.to_string(),
             },
+            ApplicationError::ParticipantNotFound => Self {
+                status: StatusCode::NOT_FOUND,
+                code: "participant_not_found",
+                message: error.to_string(),
+            },
+            ApplicationError::ParticipantRevisionConflict => Self {
+                status: StatusCode::CONFLICT,
+                code: "participant_revision_conflict",
+                message: error.to_string(),
+            },
+            ApplicationError::ParticipantRevisionExhausted => Self {
+                status: StatusCode::CONFLICT,
+                code: "participant_revision_exhausted",
+                message: error.to_string(),
+            },
+            ApplicationError::Domain(DomainError::InvalidParticipantValues { field, reason }) => {
+                Self {
+                    status: StatusCode::UNPROCESSABLE_ENTITY,
+                    code: "invalid_participant_values",
+                    message: format!("invalid participant {field}: {reason}"),
+                }
+            }
+            ApplicationError::Domain(DomainError::InvalidParticipantRevision) => Self {
+                status: StatusCode::UNPROCESSABLE_ENTITY,
+                code: "invalid_participant_revision",
+                message: error.to_string(),
+            },
             ApplicationError::UserNotFound => Self {
                 status: StatusCode::NOT_FOUND,
                 code: "user_not_found",

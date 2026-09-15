@@ -183,6 +183,119 @@ PUT y DELETE no necesitan cuerpo. Asignar un usuario desconocido o inactivo
 produce `404 user_not_found`; un expediente desconocido produce `404
 case_not_found`. El cuerpo de creación tiene límite de 16 KiB.
 
+## Participantes del expediente
+
+La ficha de participante tiene UUID propio y no es una cuenta ni una asignación
+de acceso. Owner puede leer y gestionar todos los directorios; Litigator requiere
+asignación vigente para leer y gestionar, y Paralegal para leer. Client no tiene
+acceso a participantes, aunque puede consultar los metadatos básicos de su
+expediente asignado. El rol procesal escrito en una ficha no concede permisos.
+
+Base: `/api/v1/cases/{case_id}/participants`.
+
+| Método y sufijo | Resultado |
+| --- | --- |
+| `POST /` | Crea ficha activa con revisión 1; snapshot confirmado, `201`. |
+| `GET /` | Página de fichas actuales autorizadas, `200`. |
+| `GET /{participant_id}` | Snapshot actual, `200`. |
+| `PUT /{participant_id}` | Reemplaza todos los valores con revisión esperada; snapshot confirmado, `200`. |
+| `PUT /{participant_id}/directory-status` | Cambia solamente el estado organizativo sobre los valores vigentes; snapshot confirmado, `200`. |
+| `GET /{participant_id}/history` | Página de snapshots históricos descendentes, `200`. |
+
+Los sufijos `/` de colección representan la ruta base sin barra final. No hay
+eliminación física. La creación acepta este JSON:
+
+```json
+{
+  "display_name": "Ana",
+  "procedural_role": "Testigo",
+  "organization": "Despacho",
+  "legal_status": "Dato registrado por el equipo"
+}
+```
+
+Nombre y rol son obligatorios. Organización y estatus jurídico pueden omitirse
+o ser `null`; vacíos tras recortar espacios se convierten a `null`. Sus máximos
+son respectivamente 200, 80, 200 y 160 escalares Unicode. Se rechazan controles
+antes de recortar espacios exteriores, incluso si luego desaparecerían. Se
+preservan espacios internos, acentos, mayúsculas, puntuación y formas Unicode.
+Estos textos son datos manuales, no comprobaciones de identidad o legitimación.
+Se permiten homónimos y el servidor fuerza `directory_status: "active"` al crear.
+
+El reemplazo completo exige `expected_revision`, nombre, rol y
+`directory_status`; los opcionales omitidos quedan vacíos. El cambio de estado
+acepta exclusivamente:
+
+```json
+{"expected_revision": 3, "directory_status": "archived"}
+```
+
+Solo son válidos `active` y `archived`. Archivar o reactivar no cambia el texto
+vigente, la situación jurídica, el expediente ni sus asignaciones. El servidor
+lee el snapshot y comprueba la revisión dentro de la misma transacción. Una
+revisión desactualizada produce `409 participant_revision_conflict`; un contador
+agotado, `409 participant_revision_exhausted`. No se crea revisión ni evento
+exitoso en esos casos. Una sustitución aceptada, incluso idéntica, agrega una
+revisión. El cliente debe revisar los datos actuales y reenviar explícitamente;
+no debe reintentar silenciosamente con una revisión nueva.
+
+La respuesta de creación, detalle y ambas mutaciones contiene:
+
+```json
+{
+  "case_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  "revision": 4,
+  "display_name": "Ana",
+  "procedural_role": "Testigo",
+  "organization": null,
+  "legal_status": null,
+  "directory_status": "archived",
+  "values_digest": "7a9b26dd8018c0c32f1d51be87d6859821930796d55e168e193d1c28d68b76d0",
+  "changed_at": "2026-09-14T23:30:00Z",
+  "changed_by": {"id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "email": "actor@example.com"}
+}
+```
+
+El digest identifica los valores canónicos mediante SHA-256, descrito en [ADR-0021](adr/0021-audited-case-participants.md). No firma
+por sí solo al autor. `changed_by` conserva UUID y correo capturados al cambiar
+esa revisión; no reconstruye historia con el perfil actual. `changed_at` se
+devuelve en UTC. Las revisiones ordenan los cambios; el reloj no garantiza
+instantes crecientes bajo concurrencia.
+
+El listado acepta `limit` entre 1 y 100 (50 predeterminado), `after_id` UUID
+exclusivo, `name`, `procedural_role` y `status` (`active` predeterminado,
+`archived` o `all`). Nombre busca una subcadena literal y distingue mayúsculas;
+rol exige igualdad exacta. Ambos filtros recortan espacios exteriores, rechazan
+controles y tienen los máximos de sus campos; un filtro vacío se omite. `%` y `_`
+no son comodines. Se elige la revisión actual antes de filtrar y paginar, por
+UUID ascendente. La respuesta tiene `participants`, `has_more` y `next_after_id`;
+este último es `null` cuando no hay otra página. No ofrece un total global ni
+una instantánea común entre peticiones.
+
+Historia acepta `limit` con los mismos límites y `before_revision` positivo,
+exclusivo. Devuelve `revisions` con los snapshots completos, `has_more` y
+`next_before_revision`, `null` al terminar. `before_revision=1` devuelve
+página vacía para un recurso existente y autorizado. La revisión cero es
+inválida; no representa una ficha sin historia.
+
+Todas las entradas JSON rechazan campos desconocidos o repetidos con `400
+invalid_json`. UUID o parámetros mal formados producen `400`. Los valores
+inválidos producen `422 invalid_participant_values`; revisión esperada cero,
+`422 invalid_participant_revision`; límites o filtros inválidos, `422
+invalid_input`. El cuerpo JSON completo admite hasta 8 KiB y excederlo produce
+`413 participant_body_too_large`. Los máximos de texto caben incluso con
+escalares astrales escapados; espacios de formato y demás bytes también cuentan.
+
+Las consultas confirman auditoría antes de devolver datos; cada mutación
+confirma ficha y evento juntos. Sesión inválida da `401`; rol sin permiso, `403`.
+Crear o listar sobre expediente inexistente u oculto da `404 case_not_found`.
+Las rutas de ficha no distinguen participante ausente, expediente oculto o
+asociación ajena: `404 participant_not_found`. La autorización precede al
+conflicto de revisión. Datos persistidos incoherentes producen `500
+internal_error` sin exponer valores internos. Todas las respuestas usan
+`Cache-Control: no-store` y el presupuesto HTTP común.
+
 ## Documentos y permisos
 
 Todas las operaciones documentales incluyen el expediente. La carga binaria
@@ -447,7 +560,11 @@ El runtime no puede actualizar, borrar ni truncar estas revisiones. El arranque
 comprueba inventario, permisos y coherencia; no autentica definiciones SQL
 modificadas por un administrador de la base.
 
-Las mutaciones documentales, de expedientes y de identidad comparten
+`0006_case_participants.sql` añade raíces y revisiones inmutables de participantes,
+con autoría capturada, validación canónica y primera revisión activa obligatoria.
+Su estado organizativo no modifica membresías ni evidencia documental.
+
+Las mutaciones documentales, de participantes, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan
 acceso y estado documental y confirman su evento antes de devolver el
 resultado. Un bloqueo común ordena las confirmaciones y la cabeza de auditoría;
@@ -483,7 +600,7 @@ de auditoría no extiende la atomicidad PostgreSQL a ambos servicios.
 
 ## Límites HTTP y sobrecarga
 
-El servidor comparte un presupuesto entre identidad, documentos y expedientes:
+El servidor comparte un presupuesto entre identidad, documentos, participantes y expedientes:
 como máximo ocho peticiones admitidas y dos operaciones bloqueantes concurrentes
 por defecto. Puede configurarlos con `--max-in-flight-requests` y
 `--max-blocking-operations`; ambos requieren enteros positivos. Cada hash Argon2id
@@ -495,7 +612,8 @@ aunque el cliente cancele su petición. La respuesta no implica cancelación de
 una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
 
 Los cuerpos JSON de identidad y expedientes tienen límite de 16 KiB y rechazan
-campos desconocidos. Los documentos mantienen 16 MiB. Se rechazan cabeceras
+campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
+Los documentos mantienen 16 MiB. Se rechazan cabeceras
 Authorization múltiples o tokens con espacios; el esquema Bearer no distingue
 mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
 
@@ -510,15 +628,16 @@ La envoltura es estable:
 {"error":{"code":"permission_denied","message":"permission denied"}}
 ```
 
-- `400`: UUID inválido.
+- `400`: UUID, JSON o parámetro tipado inválido según el contrato de la ruta.
 - `401`: credenciales, segundo factor o sesión inválidos.
 - `403`: rol autenticado sin permiso.
-- `404`: documento, usuario o expediente inexistente; también expediente ajeno
-  o documento fuera del expediente indicado.
+- `404`: documento, participante, usuario o expediente inexistente; también
+  recurso oculto o fuera del expediente indicado.
 - `409`: bootstrap cerrado, usuario duplicado, carrera optimista o transición
   documental incompatible.
 - `422`: correo, contraseña, rol, nombre, metadatos de expediente, límite de
   página o cabecera inválidos.
+- `413`: cuerpo mayor que el límite de la ruta.
 - `429`: ventana de login bloqueada.
 - `500`: fallo interno sin exponer detalles del backend ni secretos.
 - `503`: presupuesto de peticiones u operaciones bloqueantes agotado (`server_busy`).

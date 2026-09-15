@@ -1,4 +1,4 @@
-//! Composition root for the local HTTP case and document application.
+//! Composition root for the local HTTP case, document and participant application.
 
 use std::fs;
 use std::sync::Arc;
@@ -9,12 +9,13 @@ use application::documents::{
     CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
 };
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
+use application::participants::ParticipantService;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
-    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresUserRepository,
-    RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
-    RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
-    TotpRsProvider, X509ChainValidator,
+    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresParticipantStore,
+    PostgresUserRepository, RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier,
+    RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter,
+    SystemClock, TotpRsProvider, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -86,6 +87,14 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         ),
     }));
     let cases = CaseService::new(case_repository, identity.clone());
+    let participants = ParticipantService::new(
+        Arc::new(
+            PostgresParticipantStore::open(&database_url, Arc::new(RingSha256Hasher::new()))
+                .context("cannot open PostgreSQL participant store")?,
+        ),
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
     let processor = DocumentProcessor::new(ports, material, kek)
         .context("cannot initialize document cryptography")?;
     let workflow = CaseDocumentService::new(
@@ -98,6 +107,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         Arc::new(workflow),
         identity,
         Arc::new(cases),
+        Arc::new(participants),
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
             max_blocking_operations: args.max_blocking_operations,

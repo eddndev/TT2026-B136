@@ -103,9 +103,25 @@ consultar o detener ese proceso.
 11. **Filtros de clasificación** busca tipo, clasificación y una etiqueta exactos,
     combinados con nombre y estado. Estos filtros distinguen mayúsculas y acentos
     y se conservan al paginar. Solo se filtran los valores actuales del documento.
-12. Como Owner, crear integrantes y verificar la cadena de auditoría.
+12. Abrir **Participantes** en la navegación local del expediente. El directorio
+    registra nombre, rol manual, organización y situación jurídica opcionales,
+    independientes de cuentas y asignaciones. Owner gestiona todos los expedientes;
+    Litigator gestiona los asignados; Paralegal consulta los asignados; Client no
+    consulta participantes. Registrar a una persona no le concede acceso.
+13. **Agregar participante** crea una revisión activa. **Editar participante**
+    conserva el borrador ante conflictos y exige consultar/comparar los datos
+    actuales antes de **Guardar mis cambios**. **Archivar participante** y
+    **Reactivar participante** tienen confirmación y cambian solamente el estado
+    organizativo, conservando la historia y cualquier edición concurrente del
+    nombre o rol. No cambian la situación jurídica, cuentas ni membresías.
+14. El directorio filtra nombre por subcadena literal, rol exacto y estado
+    Activos/Archivados/Todos antes de paginar por UUID exclusivo. **Anterior** y
+    **Siguiente** recorren páginas; no se calcula un total ficticio. Su historial
+    descendente muestra valores y autor/fecha capturados por revisión.
+15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
-La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; Equipo
+La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
+expediente, Documentos y Participantes comparten contexto. Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
 expediente seleccionado. No presenta recuentos de una página como totales del
 despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
@@ -114,7 +130,8 @@ Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesi
 La identidad visual, los recursos de marca, la tipografía, los colores, las
 proporciones de navegación y los componentes documentales se conservan. Las
 pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados
-de Qadra. Los ajustes adicionales están en `src/styles/cases.css`, `src/styles/versions.css` y `src/styles/metadata.css`.
+de Qadra. Los ajustes adicionales están en `src/styles/cases.css`, `src/styles/versions.css`,
+`src/styles/metadata.css` y `src/styles/participants.css`.
 
 Los controles respetan los roles del backend. Owner ve todos los expedientes;
 Litigator y Paralegal requieren asignación vigente para consultar documentos.
@@ -139,8 +156,12 @@ sobre permisos, reglas de negocio y criptografía.
 - Las asignaciones de acceso se gestionan mediante la API. La interfaz para
   elegir usuarios por nombre o correo requiere el directorio de usuarios y
   continúa pendiente. No se presenta un formulario de asignaciones por UUID.
-- Los participantes procesales, las audiencias y los plazos siguen pendientes. La API tampoco ofrece cambio/restablecimiento
-  de contraseña.
+- El directorio de participantes es organizativo y manual. Admite homónimos;
+  no valida identidad legal, roles tipificados, identificadores oficiales,
+  certificados, FIREL o condiciones procesales. Sus valores están en PostgreSQL,
+  separados de los archivos documentales cifrados. Las audiencias, las etapas
+  procesales y los plazos siguen pendientes. La API tampoco ofrece
+  cambio/restablecimiento de contraseña.
 - Si un documento importado empieza en una versión posterior a 1, el historial
   muestra explícitamente su primera versión disponible; no inventa versiones
   anteriores. Las cargas posteriores no reemplazan evidencia histórica.
@@ -175,7 +196,9 @@ tardías de sesión, expediente y búsqueda, además de revocación de acceso.
 El historial, las acciones sobre versiones históricas, la paginación por cursor
 y los conflictos de carga tienen pruebas propias. La clasificación cubre
 Unicode/comas, multipart, revisiones esperadas, historial, filtros, denegaciones
-y respuestas tardías independientes del contenido. Cada ejecución inicia un
+y respuestas tardías independientes del contenido. El directorio prueba Unicode,
+permisos, filtros y cursores, historia, conflictos completos y de estado, errores
+inciertos, revocaciones y formularios abandonados. Cada ejecución inicia un
 servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
 Ejecuta las pruebas simuladas y reales de forma secuencial: Astro admite una
 sola instancia de desarrollo por proyecto, incluso con puertos diferentes.
@@ -198,3 +221,11 @@ históricas del backend en [`docs/verification-report.md`](../docs/verification-
 El formato se mantiene con `npm run format`. Los componentes, módulos y hojas
 de estilo se dividen en archivos pequeños; `package-lock.json` es generado
 por npm y conserva el árbol completo de dependencias para `npm ci`.
+
+El recorrido real del directorio usa cuentas de fixture exclusivas para Owner,
+Litigator, Paralegal y Client, con códigos de recuperación independientes. Prueba
+edición y archivo desde dos contextos, persistencia al reingresar, consulta de
+solo lectura, denegación a Client, revocación de una asignación con la misma
+sesión y conservación byte por byte de la evidencia documental. Los registros
+son de prueba en servicios aislados; no constituyen un ensayo de usabilidad con
+personal real.

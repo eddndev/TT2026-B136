@@ -72,6 +72,10 @@ una instantánea explícita, con 577 pruebas Rust aprobadas y cobertura de 91.7 
 La clasificación incorpora valores organizativos e historia auditada independientes
 del contenido, con carga multipart atómica y filtros sobre las revisiones actuales.
 Su corte registra 644 pruebas Rust aprobadas y cobertura global de 92.4 %.
+El directorio incorpora fichas por expediente, archivo y reactivación con
+revisiones inmutables; permanece separado de cuentas y membresías. Su corte
+registra 704 pruebas Rust aprobadas y cobertura global de 92.9 %. La identidad
+jurídica, FIREL, duplicidad verificada y expediente penal activo siguen abiertos.
 La gestión procesal completa y la usabilidad siguen pendientes. Las mediciones de cada entrega se registran por
 separado, sin actualizar cifras históricas por cambios de funcionalidad.
 La revisión del reporte se registra en
@@ -105,7 +109,7 @@ chapters/
   anexo-c-verificacion.tex Anexo C Verificación independiente con OpenSSL
   anexo-d-pki.tex        Anexo D Scripts de la CA interna
   anexo-e-matriz.tex     Anexo E Matriz de pruebas y evidencia
-references.bib           88 referencias (biblatex, estilo IEEE)
+references.bib           92 referencias (biblatex, estilo IEEE)
 figures/                 Imágenes (image*.png) y diagrama TikZ (despliegue.tex)
 ```
 

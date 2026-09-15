@@ -14,7 +14,7 @@ use tokio::sync::Semaphore;
 
 use crate::error::ApiError;
 
-/// Per-server bounds shared by identity, document, and case routes.
+/// Per-server bounds shared by identity, document, case and participant routes.
 #[derive(Debug, Clone, Copy)]
 pub struct HttpLimits {
     pub max_requests: NonZeroUsize,

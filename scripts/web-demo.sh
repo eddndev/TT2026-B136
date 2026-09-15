@@ -84,6 +84,7 @@ curl -fsS -X POST "$API_PROXY_TARGET/api/v1/auth/bootstrap" \
   --data '{"email":"browser@example.com","password":"browser demonstration password"}' \
   | jq '{email: .user.email, password: "browser demonstration password", recoveryCodes: .recovery_codes}' \
   >"$TT_WEB_FIXTURES"
+node "$REPO_ROOT/scripts/web-participant-fixtures.mjs"
 export TT_WEB_PORT
 TT_WEB_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 cd "$REPO_ROOT/web"

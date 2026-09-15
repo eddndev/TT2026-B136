@@ -112,13 +112,14 @@ impl LegacyImport {
         let occupied: bool = client
             .query_one(
                 "SELECT EXISTS(SELECT 1 FROM document_series) OR EXISTS(SELECT 1 FROM documents) OR EXISTS(SELECT 1 FROM document_metadata_revisions) OR EXISTS(SELECT 1 FROM audit_events)
+             OR EXISTS(SELECT 1 FROM case_participants) OR EXISTS(SELECT 1 FROM case_participant_revisions)
              OR EXISTS(SELECT 1 FROM migration_receipts)",
                 &[],
             )
             .map_err(invalid)?
             .get(0);
         if occupied {
-            return Err(invalid("initial import requires empty document and audit stores; stop writers before cutover"));
+            return Err(invalid("initial import requires empty document, participant and audit stores; stop writers before cutover"));
         }
         Ok(false)
     }

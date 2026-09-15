@@ -8,6 +8,21 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    /// Case-local participant fields violate their bounded text invariants.
+    #[error("invalid participant {field}: {reason}")]
+    InvalidParticipantValues {
+        field: &'static str,
+        reason: &'static str,
+    },
+
+    /// Participant histories start at one and have no implicit zero snapshot.
+    #[error("participant revision must be 1 or greater")]
+    InvalidParticipantRevision,
+
+    /// The organizational directory state has no such value.
+    #[error("unknown directory status: {0}")]
+    InvalidDirectoryStatus(String),
+
     /// Organizational fields are malformed or exceed their bounded size.
     #[error("invalid document metadata {field}: {reason}")]
     InvalidDocumentMetadata {

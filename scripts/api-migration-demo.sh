@@ -5,6 +5,8 @@
 source "$REPO_ROOT/scripts/api-version-demo.sh"
 # shellcheck source=scripts/api-metadata-demo.sh
 source "$REPO_ROOT/scripts/api-metadata-demo.sh"
+# shellcheck source=scripts/api-participant-demo.sh
+source "$REPO_ROOT/scripts/api-participant-demo.sh"
 
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -41,6 +43,9 @@ migration_demo_state() {
       'series',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM document_series s),
       'metadata',(SELECT jsonb_agg(to_jsonb(m) ORDER BY document_id,metadata_revision)
         FROM document_metadata_revisions m),
+      'participants',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM case_participants p),
+      'participant_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
+        FROM case_participant_revisions p),
       'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a),
       'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY fingerprint) FROM migration_receipts r),
       'users',(SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u),
@@ -157,6 +162,7 @@ PY
   migration_demo_export "$case_id" "$WORK_DIR/imported-evidence"
   version_demo "$case_id"
   metadata_demo "$case_id"
+  participant_demo "$case_id"
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
 
@@ -173,10 +179,14 @@ PY
   migration_demo_export "$case_id" "$WORK_DIR/restored-evidence"
   version_demo_restored "$case_id"
   metadata_demo_restored "$case_id"
+  participant_demo_restored "$case_id"
   printf 'Restored inventory: %s document roots, %s content snapshots, %s classification revisions.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_series')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM documents')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_metadata_revisions')"
+  printf 'Restored participants: %s roots, %s immutable revisions.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_participants')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_participant_revisions')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -186,3 +196,4 @@ unset -f migration_demo migration_demo_stop migration_demo_start
 unset -f migration_demo_state migration_demo_export
 unset -f version_demo version_demo_request version_demo_restored
 unset -f metadata_demo metadata_demo_request metadata_demo_restored metadata_demo_evidence
+unset -f participant_demo participant_demo_request participant_demo_enroll participant_demo_restored

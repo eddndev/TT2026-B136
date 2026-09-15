@@ -4,6 +4,150 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: directorio de participantes
+
+- Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC
+  correspondientes al 15 de septiembre.
+- Alcance: fichas por expediente, revisiones con autoría, consulta autorizada,
+  filtros, archivo/reactivación, conflictos y recuperación, con interfaz Qadra.
+- Decisión: [directorio auditado](adr/0021-audited-case-participants.md).
+- Entorno reproducido: Rust/Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9,
+  OpenSSL 3.5.7, Node.js 22.22.2 y npm 10.9.7.
+
+### Backend y recuperación de participantes
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `cargo fmt --all -- --check`, `cargo build --workspace` | Aprobadas. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Aprobada. |
+| Política de dependencias con `cargo-deny 0.20.2` | Aprobada, sin nuevas excepciones. |
+| `bash scripts/test-backends.sh` | **704 aprobadas**, 0 fallidas y 1 externa ignorada. |
+| Suite instrumentada con `cargo llvm-cov --workspace` | **704 aprobadas**, 0 fallidas y 1 externa ignorada. |
+| `bash scripts/demo.sh` | Recorrido criptográfico CLI aprobado. |
+| `bash scripts/api-demo.sh` | Permisos, conflictos, versiones, clasificación, participantes, importación y restauración aprobados. |
+
+Las instancias PostgreSQL/Redis fueron desechables; las pruebas de participantes
+usaron esquemas aislados en la base de expedientes, con rol operativo y contraseña
+SCRAM explícitos. La prueba ignorada es `the_real_sandbox_issues_a_token`; no se
+ensayó un proveedor externo. La advertencia de compatibilidad futura de
+`redis 0.25.4` permanece, sin errores de Clippy.
+
+La revisión de dependencias detectó `chacha20 0.10.1` retirado del registro,
+heredado a través del generador usado por el cliente PostgreSQL. Se actualizó
+exclusivamente a `0.10.2`: el [registro de cambios de RustCrypto](https://github.com/RustCrypto/stream-ciphers/blob/master/chacha20/CHANGELOG.md)
+documenta una corrección de instrucciones SSE4.1 usadas en el backend SSE2 de
+RNG y variantes de contador de 64 bits. La validación global, instrumentada y
+las demostraciones finales usan ese lockfile. No se presenta como un aviso
+RUSTSEC nuevo ni como un cambio de los algoritmos del prototipo.
+
+Las **60 pruebas Rust nuevas** respecto de clasificación se distribuyen en 21
+pruebas de dominio/aplicación, 12 del adaptador HTTP y 27 de PostgreSQL e
+importación. Cubren:
+
+- Validación previa al recorte de blancos, límites en escalares Unicode,
+  opcionales vacíos, homónimos, signos, identidad independiente y canon `PART1`.
+  Vectores fijos y el máximo de 2584 bytes coinciden entre Rust y SQL.
+- Permisos Owner/Litigator/Paralegal/Client, membresía vigente, recursos ajenos,
+  revalidación de rol, actividad y asignación tras esperar el bloqueo de auditoría.
+- Creación con raíz y revisión activa inicial obligatoria; reemplazo completo
+  y cambio exclusivo de estado con revisión esperada y autoría capturada. No
+  se realiza GET después de confirmar la mutación para construir su respuesta.
+- Rechazo sin cambios parciales ante fallos de fila, evento y commit diferido;
+  lecturas, listado e historia no entregan datos si no pueden confirmar auditoría.
+- Un solo ganador entre edición y archivo concurrentes; ambos órdenes de
+  confirmación y reintento explícito del estado conservando los textos actuales.
+  SQL vuelve a leer el predecesor después de commit o rollback de otro escritor.
+- Cabezas actuales antes de filtros literales y paginación UUID; historia con
+  cursor descendente exclusivo, incluyendo autores anteriores tras cambiar su
+  perfil. Los valores persistidos corruptos no se normalizan silenciosamente.
+- JSON estricto, suplantación de contexto/actor rechazada, revisiones cero
+  distinguidas de errores sintácticos y cuerpo completo limitado a 8 KiB.
+  Los textos máximos caben aun con caracteres astrales escapados.
+- Restricciones, privilegios, UTF-8, continuidad, reaplicación de migración y
+  restauración real con `pg_dump`/`pg_restore` y `search_path` vacío.
+
+El ensayo de agotamiento usa una modificación administrativa deliberada para
+alcanzar `u32::MAX` sin crear miles de millones de filas. Comprueba rechazo sin
+vuelta a cero ni nuevo evento y verifica aparte que el arranque rechaza ese
+inventario discontinuo; no demuestra que sea válido en operación.
+
+Una regresión reprodujo que el importador inicial aceptaba un destino con fichas
+insertadas directamente sin eventos. Ahora comprueba ambas tablas de participantes
+como estado ocupado antes del primer import. La conciliación de un recibo
+existente conserva los participantes válidos creados después y el prefijo legacy.
+
+El recorrido HTTP final importa cuatro documentos y conserva 51 eventos como
+prefijo, agrega V2 y clasificación, y crea **dos fichas con seis revisiones**.
+Comprueba homónimos, cuatro roles, retiro de asignación con sesión existente,
+una carrera con un ganador y un solo evento, archivo con rechazo obsoleto y
+reactivación. El respaldo contiene además **cinco raíces documentales, seis
+snapshots y tres revisiones de clasificación**. La restauración compara todas
+las filas, actores, fechas, auditoría y recibos antes de abrir el servidor.
+Listado e historial de participantes son idénticos; los ZIP V1/V2 documentales
+siguen siendo idénticos y verificables con OpenSSL. Los 51 eventos identifican
+solo el prefijo original, no el total final.
+
+### Cobertura del directorio
+
+| Crate | Líneas cubiertas / totales | Cobertura |
+| --- | --- | --- |
+| domain | 1279 / 1313 | 97.4 % |
+| application | 2632 / 2765 | 95.2 % |
+| infrastructure | 4888 / 5193 | 94.1 % |
+| web | 1361 / 1474 | 92.3 % |
+| bin | 834 / 1093 | 76.3 % |
+| **Total** | **10994 / 11838** | **92.9 %** |
+
+Los tres crates con umbral obligatorio superan 90 %. La cobertura mide líneas
+Rust ejecutadas por la suite; las demostraciones externas y el navegador tienen
+resultados separados. El porcentaje no acredita identidad jurídica, usabilidad
+ni el cumplimiento completo del catálogo procesal.
+
+### Interfaz Qadra y servicios reales
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `npm test` en `web/` | **38 pruebas unitarias aprobadas**. |
+| `npm run test:e2e -- --workers=1` | **65 pruebas aprobadas** con HTTP simulado, en 24.6 s. |
+| `bash scripts/web-demo.sh` | **3 recorridos aprobados** con servicios reales, en 39.4 s. |
+| `npm run build` y `npm run format:check` | Aprobadas. |
+
+El nuevo recorrido real abre dos sesiones independientes y comprueba alta,
+edición concurrente, archivo y reactivación, revisiones R1 a R8, filtros e
+historial persistido. Ambos conflictos conservan la intención del usuario y
+requieren consultar la revisión vigente y confirmar el reintento. Cambiar solo
+el estado conserva los textos más recientes. Después de reingresar, Litigator
+edita y Paralegal consulta; Client no solicita rutas de participantes. Retirar
+la asignación con la misma sesión activa deniega y limpia los datos visibles.
+Los ZIP documentales anteriores y posteriores al cambio siguen siendo idénticos.
+Los otros dos recorridos reales mantienen versiones y clasificación documental.
+
+Las regresiones simuladas cubren respuestas tardías, cambio de expediente,
+sesión terminada, contexto de respuesta incorrecto, denegaciones y agotamiento
+de revisiones. Una regresión falló antes de corregir la actualización de filas
+observadas: después de conocer una revisión nueva se repite la consulta filtrada
+en el servidor, conservando por separado el detalle y el borrador. Otras dos
+aserciones reprodujeron el aviso de conflicto obsoleto después de consultar
+los datos actuales; ahora la pantalla solicita confirmar sobre esa nueva base.
+
+Dos ejecuciones reales previas detectaron defectos del guion de prueba: recargar
+antes de terminar el logout y contar módulos JavaScript como solicitudes a la
+API. El guion espera el formulario de acceso y captura exclusivamente rutas
+`/api/v1`. La corrida completa final aprobó después de esas correcciones.
+
+La revisión visual final cubre directorio y detalle de escritorio, historial
+móvil y diálogos de conflicto y confirmación: textos legibles, controles visibles
+y sin desbordamiento observado. Los siete CSS originales y los cinco archivos
+de marca y procedencia coinciden byte a byte con su fuente original. Los estilos
+nuevos se incorporan en `web/src/styles/participants.css`. Las 91 fuentes y
+configuraciones web revisadas cumplen ASCII y menos de 400 líneas.
+
+Estas comprobaciones no sustituyen pruebas de usabilidad con personas ni una
+campaña de carga. El directorio registra información manual; quedan pendientes
+la identidad jurídica tipada y verificada, los criterios judiciales de
+certificados y duplicidad, y el perfil y estado procesal del expediente. El
+[inventario funcional](product-completion.md) conserva esos criterios abiertos.
+
 ## Corte reproducido: clasificación documental auditada
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC
