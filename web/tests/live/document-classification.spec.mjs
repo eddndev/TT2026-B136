@@ -1,3 +1,4 @@
+import { createPenal } from './case-administration-helpers.mjs';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { test, expect } from '@playwright/test';
@@ -12,6 +13,7 @@ async function openCase(page) {
     .getByRole('button', { name: 'Expedientes', exact: true })
     .click();
   await page.getByRole('button', { name: new RegExp(title) }).click();
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
 }
 async function edit(page, value) {
   await page.getByRole('button', { name: 'Editar clasificaci\u00f3n', exact: true }).click();
@@ -42,14 +44,8 @@ test('classification is atomic, concurrent, persistent and independent of conten
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await login(page, fixture.recoveryCodes[2]);
-  await page
-    .getByRole('navigation')
-    .getByRole('button', { name: 'Expedientes', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Nuevo expediente', exact: true }).click();
-  await page.getByLabel('T\u00edtulo del expediente').fill(title);
-  await page.getByLabel('Referencia del expediente').fill('CLASSIFICATION-001');
-  await page.getByRole('button', { name: 'Crear expediente', exact: true }).click();
+  await createPenal(page, title, 'CLASSIFICATION-001');
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await page.getByRole('button', { name: 'Subir documento', exact: true }).first().click();
   const upload = page.getByRole('dialog', { name: 'Subir documento' });
   await upload.getByLabel('Archivo', { exact: true }).setInputFiles({

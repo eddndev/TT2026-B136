@@ -73,6 +73,7 @@ test('old case list cannot replace documents after another case is selected', as
   );
   await page.getByRole('button', { name: 'Cambiar expediente' }).click();
   await page.getByRole('button', { name: /Otro expediente/ }).click();
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await expect(page.getByText('other-case.pdf', { exact: true })).toBeVisible();
   const finished = page.waitForEvent('requestfinished', (request) =>
     request.url().includes(`/cases/${caseId}/documents?`),

@@ -1,4 +1,7 @@
 <script>
+  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onDestroy } from 'svelte';
   import MetadataFields from './MetadataFields.svelte';
   import MetadataSummary from './MetadataSummary.svelte';
@@ -17,8 +20,14 @@
   let conflict = false;
   let exhausted = false;
   let error = '';
+  let blockedByCase = false;
+  $: if (blockedByCase && !$administration.closed) {
+    error = '';
+    blockedByCase = false;
+  }
   let alive = true;
   export function open() {
+    if ($administration.closed) return;
     draft = metadataDraft(current);
     expected = current.metadata_revision;
     candidate = null;
@@ -43,6 +52,7 @@
       candidate = result;
       onconfirmed(result);
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure);
@@ -53,11 +63,12 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy || exhausted || (conflict && !candidate)) return;
+    if (busy || exhausted || $administration.closed || (conflict && !candidate)) return;
     let values;
     try {
       values = fields.values();
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       error = failure.field === 'tag' ? '' : failure.message;
       return;
     }
@@ -70,6 +81,7 @@
       busy = false;
       close();
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;
       conflict = failure.code === 'document_metadata_conflict';
       exhausted = failure.code === 'document_metadata_revision_exhausted';
@@ -123,9 +135,12 @@
         <MetadataSummary metadata={candidate} />
         <p class="hint">Guardar mis cambios reemplazar&#225; estos valores con tu formulario.</p>
       </section>{/if}
+    <CaseClosedNotice />
     <div class="dialog-actions">
       <button type="button" class="secondary" disabled={busy} onclick={close}>Cancelar</button>
-      <button class="primary" disabled={busy || exhausted || (conflict && !candidate)}
+      <button
+        class="primary"
+        disabled={busy || exhausted || $administration.closed || (conflict && !candidate)}
         >{busy
           ? 'Guardando...'
           : candidate

@@ -1,3 +1,4 @@
+import { caseAdministrationApi } from './case-administration-api.mjs';
 import { participantsApi } from './participants-api.mjs';
 import { versionApi } from './version-api.mjs';
 import { metadataApi } from './metadata-api.mjs';
@@ -8,9 +9,31 @@ function query(values) {
   ).toString();
 }
 
-export function caseApi(request) {
+export function caseApi(transport) {
+  const watchers = new Map();
+  async function request(path, options) {
+    try {
+      return await transport(path, options);
+    } catch (error) {
+      if (error.code === 'case_closed') {
+        const id = /^\/cases\/([^/]+)/.exec(path)?.[1];
+        for (const listener of watchers.get(id) || []) listener(error);
+      }
+      throw error;
+    }
+  }
   const path = (id) => `/cases/${encodeURIComponent(id)}`;
   return {
+    ...caseAdministrationApi(request),
+    watchCase(id, listener) {
+      const listeners = watchers.get(id) || new Set();
+      listeners.add(listener);
+      watchers.set(id, listeners);
+      return () => {
+        listeners.delete(listener);
+        if (!listeners.size) watchers.delete(id);
+      };
+    },
     cases: ({ limit = 51, offset = 0 } = {}) => request(`/cases?${query({ limit, offset })}`),
     createCase: (title, reference) =>
       request('/cases', { method: 'POST', data: { title, reference } }),

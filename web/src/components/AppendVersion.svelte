@@ -1,4 +1,7 @@
 <script>
+  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import { safeFilename, validateUpload } from '../lib/documents.mjs';
@@ -15,9 +18,15 @@
   let conflict = false;
   let exhausted = false;
   let error = '';
+  let blockedByCase = false;
+  $: if (blockedByCase && !$administration.closed) {
+    error = '';
+    blockedByCase = false;
+  }
   let input;
   let alive = true;
   export function open() {
+    if ($administration.closed) return;
     expectedVersion = document.version;
     error = '';
     conflict = false;
@@ -45,6 +54,7 @@
       oncurrent(latest);
       conflict = false;
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure);
@@ -55,7 +65,7 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy || conflict || exhausted) return;
+    if (busy || conflict || exhausted || $administration.closed) return;
     error = validateUpload(file, name);
     if (error) return;
     busy = true;
@@ -66,6 +76,7 @@
       busy = false;
       close();
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;
       if ([403, 404].includes(failure.status)) ondenied(failure);
       conflict = failure.code === 'document_version_conflict';
@@ -144,9 +155,10 @@
     {#if conflict}<button class="secondary" type="button" disabled={busy} onclick={refresh}
         >Consultar versi&#243;n actual</button
       >{/if}
+    <CaseClosedNotice />
     <div class="dialog-actions">
       <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button
-      ><button class="primary" disabled={busy || conflict || exhausted}
+      ><button class="primary" disabled={busy || conflict || exhausted || $administration.closed}
         >{busy ? 'Guardando versi\u00f3n...' : 'Guardar nueva versi\u00f3n'}<Icon
           name="arrow"
           size={17}

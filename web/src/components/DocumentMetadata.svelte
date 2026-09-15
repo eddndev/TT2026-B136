@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
   import MetadataSummary from './MetadataSummary.svelte';
   import MetadataEditor from './MetadataEditor.svelte';
@@ -68,8 +70,10 @@
       <span class="eyebrow">ORGANIZACI&#211;N DEL DOCUMENTO</span>
       <h2>Clasificaci&#243;n actual del documento</h2>
     </div>
-    {#if can(user.role, 'classify')}<button class="secondary" onclick={() => editor.open()}
-        >Editar clasificaci&#243;n</button
+    {#if can(user.role, 'classify')}<button
+        class="secondary"
+        disabled={$administration.closed}
+        onclick={() => editor.open()}>Editar clasificaci&#243;n</button
       >{/if}
   </div>
   <p class="hint">

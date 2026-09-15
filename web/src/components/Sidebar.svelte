@@ -37,8 +37,10 @@
   <nav aria-label="Navegaci&#243;n principal">
     <span class="eyebrow nav-label">ESPACIO DE TRABAJO</span>
     {#each work as item}<button
-        class:active={view === item.id || (item.id === 'cases' && view === 'participants')}
-        aria-current={view === item.id || (item.id === 'cases' && view === 'participants')
+        class:active={view === item.id ||
+          (item.id === 'cases' && ['participants', 'case-summary'].includes(view))}
+        aria-current={view === item.id ||
+        (item.id === 'cases' && ['participants', 'case-summary'].includes(view))
           ? 'page'
           : undefined}
         onclick={() => go(item.id)}><Icon name={item.icon} />{item.label}</button

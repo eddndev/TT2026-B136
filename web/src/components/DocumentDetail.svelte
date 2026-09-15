@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import Icon from './Icon.svelte';
   import { can, download } from '../lib/documents.mjs';
   export let api;
@@ -65,7 +67,12 @@
     }
   }
   async function run(action) {
-    if (busy || (document.sealed === false && action !== 'seal')) return;
+    if (
+      busy ||
+      (action === 'seal' && $administration.closed) ||
+      (document.sealed === false && action !== 'seal')
+    )
+      return;
     busy = action;
     error = '';
     message = '';
@@ -134,7 +141,7 @@
   <div class="document-actions" aria-label="Acciones del documento">
     {#if can(user.role, 'seal') && document.sealed !== true}<button
         class="primary"
-        disabled={!!busy}
+        disabled={!!busy || $administration.closed}
         onclick={() => (confirmSeal = true)}><Icon name="lock" size={17} />Sellar documento</button
       >{/if}
     <button
@@ -168,7 +175,10 @@
         autoridad de sellado local. Esta acci&#243;n no se puede deshacer desde la interfaz.
       </p>
       <div class="action-row">
-        <button class="primary" disabled={!!busy} onclick={() => run('seal')}
+        <button
+          class="primary"
+          disabled={!!busy || $administration.closed}
+          onclick={() => run('seal')}
           >{busy === 'seal' ? 'Sellando...' : 'Confirmar sellado'}</button
         ><button class="secondary" disabled={!!busy} onclick={() => (confirmSeal = false)}
           >Cancelar</button

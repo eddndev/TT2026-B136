@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import ParticipantFilters from './ParticipantFilters.svelte';
@@ -139,8 +141,10 @@
     <h1>Participantes</h1>
     <p>Personas registradas en este expediente.</p>
   </div>
-  {#if canParticipants(user.role, 'manage')}<button class="primary" onclick={() => editor.open()}
-      ><Icon name="plus" size={18} />Agregar participante</button
+  {#if canParticipants(user.role, 'manage')}<button
+      class="primary"
+      disabled={$administration.closed}
+      onclick={() => editor.open()}><Icon name="plus" size={18} />Agregar participante</button
     >{/if}
 </div>
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}

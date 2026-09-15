@@ -1,4 +1,7 @@
 <script>
+  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
@@ -16,9 +19,15 @@
   let exhausted = false;
   let busy = false;
   let error = '';
+  let blockedByCase = false;
+  $: if (blockedByCase && !$administration.closed) {
+    error = '';
+    blockedByCase = false;
+  }
   let alive = true;
   $: already = refreshed && candidate?.directory_status === intended;
   export function open() {
+    if ($administration.closed) return;
     candidate = current;
     intended = current.directory_status === 'active' ? 'archived' : 'active';
     conflict = false;
@@ -40,6 +49,7 @@
       refreshed = true;
       onobserved(result);
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure);
@@ -49,7 +59,7 @@
     }
   }
   async function confirm() {
-    if (busy || exhausted || already || (conflict && !refreshed)) return;
+    if (busy || exhausted || already || $administration.closed || (conflict && !refreshed)) return;
     busy = true;
     error = '';
     try {
@@ -59,6 +69,7 @@
       close();
       onconfirmed(record);
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;
       conflict = failure.code === 'participant_revision_conflict';
       exhausted = failure.code === 'participant_revision_exhausted';
@@ -110,13 +121,14 @@
       El participante ya est&#225; {intended === 'archived' ? 'archivado' : 'activo'}. No es
       necesario volver a enviar.
     </p>{/if}
+  <CaseClosedNotice />
   <div class="dialog-actions">
     <button class="secondary" disabled={busy} onclick={close}
       >{already ? 'Cerrar' : 'Cancelar'}</button
     >
     <button
       class="primary"
-      disabled={busy || exhausted || already || (conflict && !refreshed)}
+      disabled={busy || exhausted || already || $administration.closed || (conflict && !refreshed)}
       onclick={confirm}
       >{busy
         ? 'Guardando...'

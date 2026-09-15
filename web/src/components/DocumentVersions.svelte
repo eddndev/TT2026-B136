@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import AppendVersion from './AppendVersion.svelte';
@@ -129,6 +131,7 @@
   </div>
   {#if !unavailable && can(user.role, 'documents')}<button
       class="primary"
+      disabled={$administration.closed}
       onclick={() => append.open()}><Icon name="plus" size={18} />Agregar versi&#243;n</button
     >{/if}
 </div>

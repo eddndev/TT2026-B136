@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onMount, onDestroy, tick } from 'svelte';
   import Icon from './Icon.svelte';
   import DocumentWorkspace from './DocumentWorkspace.svelte';
@@ -147,7 +149,7 @@
     if (can(user.role, 'documents')) {
       filter = ['pending', 'sealed'].includes(intent?.filter) ? intent.filter : 'all';
       load();
-      if (intent?.type === 'upload') upload.open();
+      if (intent?.type === 'upload' && !$administration.closed) upload.open();
       if (intent?.id) openDocument({ id: intent.id });
     }
     onintent();
@@ -166,8 +168,10 @@
     <h1>Documentos</h1>
     <p>Del archivo original a una evidencia que puedes verificar.</p>
   </div>
-  {#if can(user.role, 'documents')}<button class="primary" onclick={() => upload.open()}
-      ><Icon name="plus" size={18} />Subir documento</button
+  {#if can(user.role, 'documents')}<button
+      class="primary"
+      disabled={$administration.closed}
+      onclick={() => upload.open()}><Icon name="plus" size={18} />Subir documento</button
     >{/if}
 </div>
 {#if !can(user.role, 'documents')}<section class="empty-state card">
@@ -215,8 +219,10 @@
             onclick={() => {
               filters.clear();
             }}>Limpiar filtros</button
-          >{:else}<button class="secondary" onclick={() => upload.open()}
-            >Seleccionar un archivo</button
+          >{:else}<button
+            class="secondary"
+            disabled={$administration.closed}
+            onclick={() => upload.open()}>Seleccionar un archivo</button
           >{/if}
       </div>{/if}
     <Pagination {offset} count={documents.length} {hasMore} {busy} onchange={load} />

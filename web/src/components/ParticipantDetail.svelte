@@ -1,4 +1,6 @@
 <script>
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import ParticipantSummary from './ParticipantSummary.svelte';
   import ParticipantHistory from './ParticipantHistory.svelte';
   import ParticipantStatus from './ParticipantStatus.svelte';
@@ -21,8 +23,11 @@
       <h2>{record.display_name}</h2>
     </div>
     {#if canParticipants(user.role, 'manage')}<div class="action-row">
-        <button class="secondary" onclick={() => onedit(record)}>Editar participante</button><button
+        <button class="secondary" disabled={$administration.closed} onclick={() => onedit(record)}
+          >Editar participante</button
+        ><button
           class="text-button"
+          disabled={$administration.closed}
           onclick={() => statusDialog.open()}
           >{record.directory_status === 'active'
             ? 'Archivar participante'

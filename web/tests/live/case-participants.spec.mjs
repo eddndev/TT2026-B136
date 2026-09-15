@@ -21,6 +21,7 @@ test('participants persist with concurrent edits, precise archive, history and l
   await page.goto('/');
   await loginAs(page, accounts.owner, 0);
   await openCase(page);
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await page.getByRole('button', { name: 'Subir documento', exact: true }).first().click();
   const upload = page.getByRole('dialog', { name: 'Subir documento', exact: true });
   await upload.getByLabel('Archivo', { exact: true }).setInputFiles({

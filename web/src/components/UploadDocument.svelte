@@ -1,4 +1,7 @@
 <script>
+  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  const administration = caseState();
   import { onDestroy } from 'svelte';
   import MetadataFields from './MetadataFields.svelte';
   import { metadataDraft, mutationError } from '../lib/document-metadata.mjs';
@@ -14,9 +17,15 @@
   let name = '';
   let busy = false;
   let error = '';
+  let blockedByCase = false;
+  $: if (blockedByCase && !$administration.closed) {
+    error = '';
+    blockedByCase = false;
+  }
   let dragging = false;
   let input;
   export function open() {
+    if ($administration.closed) return;
     error = '';
     dialog.showModal();
   }
@@ -36,13 +45,14 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || $administration.closed) return;
     error = validateUpload(file, name);
     if (error) return;
     let metadata;
     try {
       metadata = fields.values();
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       error = failure.field === 'tag' ? '' : failure.message;
       return;
     }
@@ -54,6 +64,7 @@
       busy = false;
       close();
     } catch (failure) {
+      if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) error = mutationError(failure, 'cargar');
     } finally {
       if (alive) busy = false;
@@ -130,9 +141,10 @@
     </p>
     <MetadataFields prefix="upload-metadata" bind:this={fields} bind:draft disabled={busy} />
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
+    <CaseClosedNotice />
     <div class="dialog-actions">
       <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button
-      ><button class="primary" disabled={busy}
+      ><button class="primary" disabled={busy || $administration.closed}
         >{busy ? 'Cargando documento...' : 'Cargar documento'}<Icon
           name="arrow"
           size={17}
