@@ -66,6 +66,16 @@ versión y digest: una ejecución inicial llegó al sellado correcto y rechazó
 su aserción anterior, que buscaba el formato sin versión. Tras corregir esa
 consulta, el recorrido completo aprobó con un sellado, un conflicto y un evento.
 
+CI detectó además tres fixtures nuevos que creaban roles sin contraseña y
+dependían de la autenticación `trust` del entorno local. Se reprodujo el fallo
+`28P01` en PostgreSQL aislado con SCRAM, se corrigieron las credenciales de esos
+roles de prueba y aprobaron sus seis escenarios. Una contraseña incorrecta fue
+rechazada en ese entorno. `scripts/test-backends.sh` ahora crea su instancia
+desechable con SCRAM y una contraseña administrativa aleatoria, sin cambiar
+servidores existentes. Tras la corrección, formato, compilación, Clippy, suite
+completa e instrumentada aprobaron nuevamente: 577 pruebas, una externa ignorada
+y los mismos numeradores de cobertura que se presentan abajo.
+
 ### Cobertura de versiones
 
 | Crate | Líneas cubiertas / totales | Cobertura |

@@ -115,12 +115,13 @@ fn a_restricted_runtime_role_can_append_without_update_privilege_on_roots() {
     let role = format!("versions_runtime_{}", Uuid::new_v4().simple());
     db.control
         .batch_execute(&format!(
-            "CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE"
+            "CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE PASSWORD 'runtime-test-only'"
         ))
         .unwrap();
     initialize_database(&db.url, &role).unwrap();
     let mut parsed = reqwest::Url::parse(&db.url).unwrap();
     parsed.set_username(&role).unwrap();
+    parsed.set_password(Some("runtime-test-only")).unwrap();
     let mut runtime = Client::connect(parsed.as_str(), NoTls).unwrap();
     assert!(!runtime
         .query_one(

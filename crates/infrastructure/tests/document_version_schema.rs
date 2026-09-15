@@ -34,13 +34,14 @@ fn startup_rejects_incomplete_version_inventory_and_disabled_constraints() {
         let id = Uuid::new_v4();
         db.client.execute("INSERT INTO documents VALUES($1,$2,1,'first.txt',$3,$4,NULL)", &[&id,&case,&vec![3_u8;32],&vec![7_u8;80]]).unwrap();
         let role = format!("schema_runtime_{}",Uuid::new_v4().simple());
-        db.control.batch_execute(&format!("CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE")).unwrap();
+        db.control.batch_execute(&format!("CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE PASSWORD 'runtime-test-only'")).unwrap();
         initialize_database(&db.url,&role).unwrap();
         for version in [2_i64,3] {
             db.client.execute("INSERT INTO documents VALUES($1,$2,$3,'next.txt',$4,$5,NULL)", &[&id,&case,&version,&vec![3_u8;32],&vec![7_u8;80]]).unwrap();
         }
         let mut runtime = reqwest::Url::parse(&db.url).unwrap();
         runtime.set_username(&role).unwrap();
+        runtime.set_password(Some("runtime-test-only")).unwrap();
         PostgresCaseDocumentStore::open(runtime.as_str()).unwrap();
         db.client.batch_execute(corruption).unwrap();
         assert!(matches!(PostgresCaseDocumentStore::open(runtime.as_str()),Err(ApplicationError::InvalidConfiguration(_))), "accepted {corruption}");

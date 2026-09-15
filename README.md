@@ -64,6 +64,10 @@ bash scripts/test-backends.sh            # suite con PostgreSQL y Redis desechab
 cargo run --bin despacho-cli -- --help   # ayuda del binario
 ```
 
+El guion de backends crea PostgreSQL con autenticación SCRAM y una contraseña
+aleatoria para cada instancia desechable. Exporta las conexiones únicamente al
+proceso de prueba y elimina sus datos al terminar; no modifica servidores existentes.
+
 Antes de confirmar cambios de Rust, ejecutar además:
 
 ```bash

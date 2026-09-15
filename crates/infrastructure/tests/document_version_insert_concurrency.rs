@@ -25,12 +25,13 @@ fn an_insert_waits_for_the_previous_commit_before_reading_the_contiguous_head() 
         let role = format!("append_runtime_{}", Uuid::new_v4().simple());
         db.control
             .batch_execute(&format!(
-                "CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE"
+                "CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE PASSWORD 'runtime-test-only'"
             ))
             .unwrap();
         initialize_database(&db.url, &role).unwrap();
         let mut url = reqwest::Url::parse(&db.url).unwrap();
         url.set_username(&role).unwrap();
+        url.set_password(Some("runtime-test-only")).unwrap();
         let mut first = Client::connect(url.as_str(), NoTls).unwrap();
         let mut transaction = first.transaction().unwrap();
         transaction
