@@ -13,6 +13,15 @@ for command in cargo curl initdb jq openssl pg_ctl pg_dump pg_restore psql pytho
   }
 done
 
+if [ -z "${DOCUMENT_QPDF_LIBRARY:-}" ]; then
+  if [ -n "${TT_TEST_QPDF_LIBRARY:-}" ]; then
+    DOCUMENT_QPDF_LIBRARY="$TT_TEST_QPDF_LIBRARY"
+  else
+    DOCUMENT_QPDF_LIBRARY="$(bash "$REPO_ROOT/scripts/setup-document-formats.sh")"
+  fi
+fi
+export DOCUMENT_QPDF_LIBRARY
+
 cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
 CLI="$REPO_ROOT/target/debug/despacho-cli"
 WORK_DIR="$(mktemp -d)"

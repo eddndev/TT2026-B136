@@ -9,6 +9,8 @@ source "$REPO_ROOT/scripts/api-metadata-demo.sh"
 source "$REPO_ROOT/scripts/api-participant-demo.sh"
 # shellcheck source=scripts/api-case-administration-demo.sh
 source "$REPO_ROOT/scripts/api-case-administration-demo.sh"
+# shellcheck source=scripts/api-case-stage-demo.sh
+source "$REPO_ROOT/scripts/api-case-stage-demo.sh"
 
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -56,6 +58,8 @@ migration_demo_state() {
         FROM case_administration_revisions c),
       'initial_stages',(SELECT jsonb_agg(to_jsonb(s) ORDER BY case_id)
         FROM case_initial_stage_registrations s),
+      'stage_revisions',(SELECT jsonb_agg(to_jsonb(s) ORDER BY case_id,revision)
+        FROM case_stage_revisions s),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
@@ -187,6 +191,7 @@ PY
   metadata_demo "$case_id"
   participant_demo "$case_id"
   administration_demo "$case_id"
+  stage_demo
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
   DATABASE_URL="$imported_url" "$CLI" --json database import --apply \
@@ -210,6 +215,7 @@ PY
   metadata_demo_restored "$case_id"
   participant_demo_restored "$case_id"
   administration_demo_restored
+  stage_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -234,3 +240,4 @@ unset -f participant_demo participant_demo_request participant_demo_enroll parti
 
 unset -f administration_demo administration_demo_request administration_demo_body administration_demo_enroll
 unset -f administration_demo_closed administration_demo_capture administration_demo_restored
+unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
