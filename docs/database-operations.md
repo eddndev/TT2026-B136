@@ -108,6 +108,47 @@ ficha. Los textos son metadatos autorizados sin cifrado de archivo; las copias
 requieren los controles operativos correspondientes. Véase
 [ADR-0021](adr/0021-audited-case-participants.md).
 
+## Actualizar el perfil y la administración de expedientes
+
+Con los escritores detenidos y respaldo completo, ejecutar
+`database migrate --runtime-role` mediante una conexión administrativa.
+`migrations/0007_case_administration.sql` añade
+`case_administration_revisions`, `case_initial_stage_registrations` y
+`cases.required_initial_revision`. Las raíces anteriores conservan el marcador
+NULL: se leen como revisión cero sin inventar perfil, autor, fecha ni etapa.
+Las nuevas altas normales tienen marcador 1 y exigen su revisión 1 por clave
+foránea diferida. El alta básica no inicializa una etapa; el alta penal completa
+sí registra Investigación, vinculada a su primera revisión exacta.
+
+El rol operativo inserta únicamente `id`, `title`, `reference` y `created_by`
+en la raíz; no puede insertar el marcador ni `created_at`. Necesita SELECT e
+INSERT sobre las nuevas tablas y EXECUTE sobre las funciones de comprobación,
+sin propiedad, UPDATE, DELETE ni TRUNCATE. No conceder permisos heredados o
+asumibles que eludan esas restricciones. El arranque comprueba columnas,
+restricciones, funciones, privilegios e inventario sin reparar datos.
+
+Las revisiones preservan valores normalizados, huella CADM1, UUID/correo del
+autor y fecha capturados. Los identificadores se comparan entre cabezas vigentes,
+incluidos expedientes cerrados. La auditoría común y las escrituras usan READ
+COMMITTED explícito, incluso si la conexión tiene otro valor predeterminado;
+los triggers rechazan escrituras administrativas bajo otro aislamiento. Las
+funciones fijan referencias al esquema para admitir `pg_restore` con
+`search_path` vacío. PostgreSQL debe usar UTF8.
+
+No convertir una raíz nueva en baseline, borrar una revisión ni cambiar su autor
+para resolver un conflicto o preparar una importación. Una corrección de perfil
+se registra con revisión esperada; una reapertura usa el comando de estado.
+El cierre administrativo bloquea mutaciones documentales y de participantes,
+pero mantiene lecturas, evidencia y revocación de miembros por Owner. Conserva
+las etapas y los estados de participantes. Véase
+[ADR-0022](adr/0022-audited-penal-case-administration.md).
+
+Respaldar y restaurar ambas tablas junto con raíces, asignaciones, usuarios,
+documentos, clasificación, participantes, auditoría y recibos. Comparar filas
+completas, revisión vigente, historial y registro inicial; no basta igualar
+conteos. No importar solo raíces con marcador 1 sin su revisión. El perfil es
+metadato autorizado en PostgreSQL y no forma parte del archivo cifrado DVLT1.
+
 ## Migrar un almacenamiento local existente
 
 1. Detener todos los escritores, incluidas versiones anteriores del servidor y
@@ -115,9 +156,12 @@ requieren los controles operativos correspondientes. Véase
    de la base existente, directorio local, KEK y material criptográfico.
 2. Aplicar el esquema nuevo sobre la base que ya contiene usuarios y expedientes.
    No iniciar todavía el servidor: el primer import exige documentos,
-   clasificación, participantes y auditoría vacíos para conservar la cadena
-   original como prefijo. Una ficha cargada directamente también impide esa
-   importación inicial. La conciliación de un recibo existente sigue permitiendo
+   clasificación, participantes, revisiones administrativas, registros iniciales
+   de etapa y auditoría vacíos para conservar la cadena original como prefijo.
+   Preparar los expedientes de destino administrativamente como baselines con
+   marcador NULL y hechos conocidos; no crearlos por HTTP y borrar sus eventos
+   o revisiones. Una ficha cargada directamente también impide esa importación
+   inicial. La conciliación de un recibo existente sigue permitiendo
    las operaciones posteriores válidas.
 3. Elaborar el mapa explícito. Cada JSON documental debe aparecer exactamente una
    vez y el expediente debe existir en la base. No se infieren asociaciones:
@@ -196,10 +240,15 @@ y vacía los valores de otro, comprueba conflictos y filtros actuales, y compara
 todas las revisiones, autores capturados y ambas evidencias tras restaurar.
 El mismo ensayo crea participantes, comprueba conflicto concurrente, permisos,
 archivo/reactivación y revocación; restaura sus raíces, historia, valores y
-procedencia junto con el resto de la base.
+procedencia junto con el resto de la base. Añade altas penales, completa perfiles
+pendientes, comprueba conflictos y cierre, y restaura las revisiones
+administrativas y los registros iniciales con su procedencia exacta.
+La reconstrucción del formato legacy es un fixture documental, no una conversión
+íntegra del historial administrativo actual; la restauración posterior sí conserva
+todas las tablas.
 No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
-`document_metadata_revisions`, `case_participants`, `case_participant_revisions`
-y auditoría; un respaldo incompleto no se repara
+`document_metadata_revisions`, `case_participants`, `case_participant_revisions`,
+`case_administration_revisions`, `case_initial_stage_registrations` y auditoría; un respaldo incompleto no se repara
 creando raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

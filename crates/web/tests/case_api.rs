@@ -1,84 +1,15 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use application::cases::{CaseRecord, CaseWorkflow};
-use application::ApplicationError;
 use axum::body::{to_bytes, Body};
 use axum::http::{Request, StatusCode};
-use domain::cases::CaseId;
-use domain::identity::UserId;
-use domain::DomainError;
 use serde_json::{json, Value};
 use tower::ServiceExt;
-use uuid::Uuid;
 
 const CASE: &str = "00000000-0000-0000-0000-000000000001";
 const USER: &str = "00000000-0000-0000-0000-000000000002";
 
-#[derive(Default)]
-struct Workflow {
-    calls: Mutex<Vec<String>>,
-}
-
-impl Workflow {
-    fn record(&self, token: &str, call: String) -> Result<CaseRecord, ApplicationError> {
-        self.calls.lock().unwrap().push(format!("{token} {call}"));
-        match token {
-            "expired" => return Err(ApplicationError::InvalidSession),
-            "forbidden" => return Err(ApplicationError::PermissionDenied),
-            "hidden" => return Err(ApplicationError::CaseNotFound),
-            "missing-user" => return Err(ApplicationError::UserNotFound),
-            "database-failed" => return Err(ApplicationError::Port("secret DSN".into())),
-            _ => {}
-        }
-        Ok(CaseRecord {
-            id: CaseId::from_uuid(Uuid::from_u128(1)),
-            title: "Example case".into(),
-            reference: "REF-123".into(),
-            created_by: UserId::from_uuid(Uuid::from_u128(2)),
-        })
-    }
-}
-
-impl CaseWorkflow for Workflow {
-    fn create(
-        &self,
-        token: &str,
-        title: &str,
-        reference: &str,
-    ) -> Result<CaseRecord, ApplicationError> {
-        if title.is_empty() {
-            return Err(DomainError::InvalidCaseMetadata {
-                field: "title",
-                reason: "must not be empty",
-            }
-            .into());
-        }
-        self.record(token, format!("create {title} {reference}"))
-    }
-
-    fn list(
-        &self,
-        token: &str,
-        limit: u32,
-        offset: u32,
-    ) -> Result<Vec<CaseRecord>, ApplicationError> {
-        Ok(vec![self.record(token, format!("list {limit} {offset}"))?])
-    }
-
-    fn get(&self, token: &str, id: CaseId) -> Result<CaseRecord, ApplicationError> {
-        self.record(token, format!("get {id}"))
-    }
-
-    fn assign(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError> {
-        self.record(token, format!("assign {id} {user_id}"))?;
-        Ok(())
-    }
-
-    fn remove(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError> {
-        self.record(token, format!("remove {id} {user_id}"))?;
-        Ok(())
-    }
-}
+mod case_api_support;
+use case_api_support::Workflow;
 
 async fn request(
     workflow: &Arc<Workflow>,

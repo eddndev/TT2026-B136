@@ -1,36 +1,45 @@
-//! Case authorization belongs to the use cases, independent of HTTP.
+//! Session and role checks precede each actor-scoped transactional command.
 
 use std::sync::Arc;
 
-use domain::cases::{can_create_case, can_manage_members, can_read_case, CaseId, CaseMetadata};
-use domain::identity::UserId;
+use domain::cases::{can_create_case, can_manage_members, CaseId, CaseMetadata};
+use domain::clock::Clock;
+use domain::identity::{Permission, UserId};
 
-use super::{CaseAccess, CaseRecord, CaseRepository, CaseWorkflow};
-use crate::identity::{IdentityWorkflow, Principal};
+use super::{
+    CaseAdministrationAction, CaseAdministrationDetail, CaseAdministrationHistoryPage,
+    CaseAdministrationHistoryQuery, CaseAdministrationPage, CaseAdministrationQuery,
+    CaseAdministrativeStatus, CaseEditableValues, CaseRecord, CaseRepository,
+    CaseRevisionExpectation, CaseWorkflow, PenalCaseCreation,
+};
+use crate::identity::IdentityWorkflow;
 use crate::ApplicationError;
 
-/// Combines current authenticated identity with durable case visibility.
+/// Combines bearer identity with audited basic and staff case workflows.
 pub struct CaseService {
     repository: Arc<dyn CaseRepository>,
     identity: Arc<dyn IdentityWorkflow>,
+    clock: Arc<dyn Clock + Send + Sync>,
 }
-
 impl CaseService {
-    pub fn new(repository: Arc<dyn CaseRepository>, identity: Arc<dyn IdentityWorkflow>) -> Self {
+    pub fn new(
+        repository: Arc<dyn CaseRepository>,
+        identity: Arc<dyn IdentityWorkflow>,
+        clock: Arc<dyn Clock + Send + Sync>,
+    ) -> Self {
         Self {
             repository,
             identity,
+            clock,
         }
     }
-
-    fn access(actor: &Principal) -> CaseAccess {
-        if can_read_case(actor.role, false) {
-            CaseAccess::All
-        } else {
-            CaseAccess::Assigned(actor.id)
+    fn actor(&self, token: &str, permission: Permission) -> Result<UserId, ApplicationError> {
+        let actor = self.identity.authenticate(token)?;
+        if !actor.role.allows(permission) {
+            return Err(ApplicationError::PermissionDenied);
         }
+        Ok(actor.id)
     }
-
     fn require_membership_manager(&self, token: &str) -> Result<UserId, ApplicationError> {
         let actor = self.identity.authenticate(token)?;
         if !can_manage_members(actor.role) {
@@ -52,16 +61,9 @@ impl CaseWorkflow for CaseService {
             return Err(ApplicationError::PermissionDenied);
         }
         let metadata = CaseMetadata::new(title, reference)?;
-        let record = CaseRecord {
-            id: CaseId::new(),
-            title: metadata.title().to_owned(),
-            reference: metadata.reference().to_owned(),
-            created_by: actor.id,
-        };
-        self.repository.insert(record.clone())?;
-        Ok(record)
+        self.repository
+            .create_basic(actor.id, CaseId::new(), metadata, self.clock.now())
     }
-
     fn list(
         &self,
         token: &str,
@@ -69,28 +71,81 @@ impl CaseWorkflow for CaseService {
         offset: u32,
     ) -> Result<Vec<CaseRecord>, ApplicationError> {
         let actor = self.identity.authenticate(token)?;
-        if !(1..=100).contains(&limit) {
-            return Err(ApplicationError::InvalidInput(
-                "case limit must be between 1 and 100".into(),
-            ));
-        }
-        self.repository.list(Self::access(&actor), limit, offset)
+        super::query::validate_limit(limit)?;
+        self.repository
+            .list_basic(actor.id, limit, offset, self.clock.now())
     }
-
     fn get(&self, token: &str, id: CaseId) -> Result<CaseRecord, ApplicationError> {
         let actor = self.identity.authenticate(token)?;
-        self.repository
-            .find(id, Self::access(&actor))?
-            .ok_or(ApplicationError::CaseNotFound)
+        self.repository.get_basic(actor.id, id, self.clock.now())
     }
-
     fn assign(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError> {
         let actor = self.require_membership_manager(token)?;
-        self.repository.add_member(id, user_id, actor)
+        self.repository
+            .add_member(id, user_id, actor, self.clock.now())
     }
-
     fn remove(&self, token: &str, id: CaseId, user_id: UserId) -> Result<(), ApplicationError> {
         let actor = self.require_membership_manager(token)?;
-        self.repository.remove_member(id, user_id, actor)
+        self.repository
+            .remove_member(id, user_id, actor, self.clock.now())
+    }
+    fn register_penal(
+        &self,
+        token: &str,
+        creation: PenalCaseCreation,
+    ) -> Result<CaseAdministrationDetail, ApplicationError> {
+        let actor = self.actor(token, CaseAdministrationAction::RegisterPenal.permission())?;
+        self.repository
+            .register_penal(actor, CaseId::new(), creation, self.clock.now())
+    }
+    fn replace_administration(
+        &self,
+        token: &str,
+        id: CaseId,
+        expected: CaseRevisionExpectation,
+        values: CaseEditableValues,
+    ) -> Result<CaseAdministrationDetail, ApplicationError> {
+        let actor = self.actor(token, CaseAdministrationAction::Replace.permission())?;
+        self.repository
+            .replace_administration(actor, id, expected, values, self.clock.now())
+    }
+    fn change_administrative_status(
+        &self,
+        token: &str,
+        id: CaseId,
+        expected: CaseRevisionExpectation,
+        status: CaseAdministrativeStatus,
+    ) -> Result<CaseAdministrationDetail, ApplicationError> {
+        let actor = self.actor(token, CaseAdministrationAction::ChangeStatus.permission())?;
+        self.repository
+            .change_administrative_status(actor, id, expected, status, self.clock.now())
+    }
+    fn list_administrations(
+        &self,
+        token: &str,
+        query: CaseAdministrationQuery,
+    ) -> Result<CaseAdministrationPage, ApplicationError> {
+        let actor = self.actor(token, CaseAdministrationAction::List.permission())?;
+        self.repository
+            .list_administrations(actor, query, self.clock.now())
+    }
+    fn get_administration(
+        &self,
+        token: &str,
+        id: CaseId,
+    ) -> Result<CaseAdministrationDetail, ApplicationError> {
+        let actor = self.actor(token, CaseAdministrationAction::Read.permission())?;
+        self.repository
+            .get_administration(actor, id, self.clock.now())
+    }
+    fn administration_history(
+        &self,
+        token: &str,
+        id: CaseId,
+        query: CaseAdministrationHistoryQuery,
+    ) -> Result<CaseAdministrationHistoryPage, ApplicationError> {
+        let actor = self.actor(token, CaseAdministrationAction::History.permission())?;
+        self.repository
+            .administration_history(actor, id, query, self.clock.now())
     }
 }

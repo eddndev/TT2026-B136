@@ -36,7 +36,7 @@ impl Fixture {
         admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,'owner@example.test','fixture','owner','\\x00','{}')", &[&owner.as_uuid()]).unwrap();
         admin
             .execute(
-                "INSERT INTO cases(id,title,reference,created_by) VALUES($1,'Participants','P',$2)",
+                "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Participants','P',$2,NULL)",
                 &[&case.as_uuid(), &owner.as_uuid()],
             )
             .unwrap();

@@ -33,6 +33,7 @@ pub(super) fn insert(
     if metadata.is_some() && !principal.role.allows(DocumentAction::Classify.permission()) {
         return Err(ApplicationError::PermissionDenied);
     }
+    crate::postgres_case_status::require_active(&mut transaction, case)?;
     storage::insert(&mut transaction, case, &record)?;
     let current_metadata = match metadata {
         Some(values) => metadata_storage::insert(
@@ -91,6 +92,7 @@ pub(super) fn append(
     )?;
     let current =
         storage::resolve_version(&mut transaction, case, record.id, VersionSelection::Current)?;
+    crate::postgres_case_status::require_active(&mut transaction, case)?;
     if current != expected {
         return Err(ApplicationError::DocumentVersionConflict);
     }

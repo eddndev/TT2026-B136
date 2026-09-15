@@ -37,7 +37,11 @@ impl PostgresAuditLog {
 }
 
 pub(crate) fn begin_audited(client: &mut Client) -> Result<Transaction<'_>, ApplicationError> {
-    let mut transaction = client.transaction().map_err(port_error)?;
+    let mut transaction = client
+        .build_transaction()
+        .isolation_level(postgres::IsolationLevel::ReadCommitted)
+        .start()
+        .map_err(port_error)?;
     lock_mutations(&mut transaction)?;
     Ok(transaction)
 }

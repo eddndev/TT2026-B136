@@ -1,6 +1,6 @@
 mod document_store_support;
 
-use application::cases::{CaseAccess, CaseRepository};
+use application::cases::CaseRepository;
 use application::documents::{CaseDocumentStore, DocumentAction};
 use application::ApplicationError;
 use domain::identity::Role;
@@ -61,7 +61,11 @@ fn an_audit_failure_preserves_both_prior_evidence_state_and_membership() {
     let case_id = case(&url, actor);
     let record = document();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
-    let cases = PostgresCaseRepository::connect(&url).unwrap();
+    let cases = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
     store
         .insert(actor, case_id, record.clone(), OffsetDateTime::now_utc())
         .unwrap();
@@ -75,7 +79,7 @@ fn an_audit_failure_preserves_both_prior_evidence_state_and_membership() {
     let constraint = format!("reject_changes_{}", case_id.as_uuid().simple());
     admin.batch_execute(&format!("ALTER TABLE audit_events ADD CONSTRAINT {constraint} CHECK(sequence < {cutoff} OR resource NOT LIKE 'case:{case_id}:%')")).unwrap();
     let seal_result = store.seal(actor, case_id, prepared, OffsetDateTime::now_utc());
-    let remove_result = cases.remove_member(case_id, actor, owner);
+    let remove_result = cases.remove_member(case_id, actor, owner, time::OffsetDateTime::now_utc());
     admin
         .batch_execute(&format!(
             "ALTER TABLE audit_events DROP CONSTRAINT {constraint}"
@@ -96,7 +100,6 @@ fn an_audit_failure_preserves_both_prior_evidence_state_and_membership() {
         record
     );
     assert!(cases
-        .find(case_id, CaseAccess::Assigned(actor))
-        .unwrap()
-        .is_some());
+        .get_basic(actor, case_id, time::OffsetDateTime::now_utc())
+        .is_ok());
 }

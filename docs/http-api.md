@@ -26,7 +26,7 @@ El guion comprueba, entre otras condiciones, que:
 - un `paralegal` asignado puede cargar y verificar, pero no sellar;
 - un documento ajeno al expediente responde `404`, incluso para Owner;
 - las antiguas rutas globales de documentos responden `404`;
-- los listados y detalles de expedientes excluyen los no asignados;
+- los listados y detalles excluyen expedientes no asignados, salvo para Owner;
 - retirar una asignación surte efecto usando la misma sesión;
 - asignar un Cliente permite consultar metadatos, pero no documentos;
 - logout invalida el token de inmediato;
@@ -154,7 +154,9 @@ sesión. No hay una transacción distribuida entre PostgreSQL y Redis.
 | `PUT /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Asigna un usuario activo; idempotente; `204`. |
 | `DELETE /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Retira la asignación; idempotente; `204`. |
 
-La creación y asignación inicial confirman su auditoría en la misma transacción.
+La creación básica, su revisión administrativa 1 sin perfil penal y la asignación
+inicial confirman su auditoría en la misma transacción. No se registra una etapa
+inicial para esta alta. Título y referencia de las respuestas son los vigentes.
 Los cambios de miembros también revalidan al Owner y registran la mutación
 atómicamente. La creación recibe JSON con `title` y `reference`, ambos
 obligatorios. Se recortan espacios externos y se rechazan caracteres de control; los límites
@@ -163,7 +165,7 @@ libre, no única. No se aceptan campos adicionales de actor, rol ni creador.
 Las respuestas de creación y detalle tienen esta forma:
 
 ```json
-{"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","title":"Defensa inicial","reference":"NUC-123","created_by":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}
+{"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","title":"Defensa inicial","reference":"INTERNA-123","created_by":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}
 ```
 
 Owner ve todos los expedientes. Litigante, Paralegal y Cliente solo ven los que
@@ -172,16 +174,39 @@ puede gestionar miembros. Solo Owner asigna y retira usuarios. Si se retira al
 creador litigante, también pierde acceso. El detalle de un UUID ajeno responde
 igual que uno inexistente: `404 case_not_found`.
 
-La pertenencia se consulta en PostgreSQL en cada lectura y antes de paginar;
-no se conserva en el token. Tras retirar una asignación, la siguiente petición
-con la misma sesión ya no ve el expediente. Las lecturas concurrentes que ya
-habían comenzado pueden finalizar con su instantánea anterior. El listado
+El actor, rol y pertenencia se consultan en PostgreSQL dentro de cada lectura
+auditable y antes de paginar; no se conservan en el token. El bloqueo común de
+auditoría y READ COMMITTED revalidan los cambios confirmados durante la espera.
+Tras retirar una asignación, la siguiente petición con la misma sesión ya no ve
+el expediente. Una lectura que confirmó antes de la revocación puede entregar
+su resultado. El listado
 admite `limit` entre 1 y 100 y `offset` entero no negativo; no ofrece una
 instantánea entre páginas si otros usuarios cambian los datos.
 
 PUT y DELETE no necesitan cuerpo. Asignar un usuario desconocido o inactivo
 produce `404 user_not_found`; un expediente desconocido produce `404
 case_not_found`. El cuerpo de creación tiene límite de 16 KiB.
+
+## Perfil penal y administración
+
+El personal del despacho dispone de `POST /api/v1/penal-cases`,
+`GET /api/v1/case-administrations`, GET/PUT
+`/api/v1/cases/{id}/administration`, GET sobre su `/history` y PUT
+`/api/v1/cases/{id}/administrative-status`. Owner administra todos; Litigator
+asignado administra y Paralegal asignado consulta. Client conserva la proyección
+básica de cuatro campos y no accede a estas seis operaciones.
+
+El [contrato de administración](case-administration-api.md) detalla perfil,
+revisiones esperadas, historial, filtros, respuestas, errores y cuerpo JSON
+completo de 64 KiB. Distingue alta penal completa con registro inicial de
+Investigación, alta básica con perfil pendiente y raíces anteriores sin historia.
+
+Cerrar administrativamente bloquea edición del perfil, todas las mutaciones de
+participantes y carga, nuevas versiones, clasificación y sellado documental.
+Conserva lectura, historia, verificación, evidencia y cambios de asignación
+por Owner. El servidor revalida el cierre al confirmar cada mutación; un caso
+cerrado autorizado produce `409 case_closed`. El cierre no termina el proceso
+judicial ni modifica etapas o plazos.
 
 ## Participantes del expediente
 
@@ -564,6 +589,13 @@ modificadas por un administrador de la base.
 con autoría capturada, validación canónica y primera revisión activa obligatoria.
 Su estado organizativo no modifica membresías ni evidencia documental.
 
+`0007_case_administration.sql` añade revisiones del perfil y estado del expediente,
+registro inicial de etapa separado y una referencia diferida a R1 para altas
+nuevas. Las raíces anteriores permanecen sin historia administrativa inventada.
+La comparación de identificadores actuales y los cambios usan READ COMMITTED
+explícito bajo el bloqueo común de auditoría. Véase el
+[contrato del perfil penal](case-administration-api.md).
+
 Las mutaciones documentales, de participantes, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan
 acceso y estado documental y confirman su evento antes de devolver el
@@ -611,7 +643,7 @@ El permiso del trabajo bloqueante permanece ocupado hasta que este termina,
 aunque el cliente cancele su petición. La respuesta no implica cancelación de
 una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
 
-Los cuerpos JSON de identidad y expedientes tienen límite de 16 KiB y rechazan
+Los cuerpos JSON de identidad y alta básica de expedientes tienen límite de 16 KiB y rechazan
 campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
 Los documentos mantienen 16 MiB. Se rechazan cabeceras
 Authorization múltiples o tokens con espacios; el esquema Bearer no distingue

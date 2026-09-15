@@ -170,7 +170,7 @@ impl Database {
             &[&owner, &format!("{owner}@example.test")],
         ).unwrap();
         self.client.execute(
-            "INSERT INTO cases(id,title,reference,created_by) VALUES($1,'Legacy case','LEGACY',$2)",
+            "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Legacy case','LEGACY',$2,NULL)",
             &[&id.as_uuid(), &owner],
         ).unwrap();
     }

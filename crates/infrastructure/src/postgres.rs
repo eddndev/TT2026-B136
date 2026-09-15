@@ -9,6 +9,8 @@ const DOCUMENT_MIGRATION: &str = include_str!("../../../migrations/0003_case_doc
 const VERSION_MIGRATION: &str = include_str!("../../../migrations/0004_document_versions.sql");
 const METADATA_MIGRATION: &str = include_str!("../../../migrations/0005_document_metadata.sql");
 const PARTICIPANT_MIGRATION: &str = include_str!("../../../migrations/0006_case_participants.sql");
+const CASE_ADMINISTRATION_MIGRATION: &str =
+    include_str!("../../../migrations/0007_case_administration.sql");
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -41,6 +43,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     transaction
         .batch_execute(PARTICIPANT_MIGRATION)
         .map_err(port_error)?;
+    transaction
+        .batch_execute(CASE_ADMINISTRATION_MIGRATION)
+        .map_err(port_error)?;
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -52,6 +57,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::postgres_version_schema::validate(&mut client)?;
     crate::postgres_metadata_schema::validate(&mut client)?;
     crate::postgres_participant_schema::validate(&mut client)?;
+    crate::postgres_case_administration_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -60,6 +66,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::postgres_version_schema::validate_inventory(&mut client)?;
     crate::postgres_metadata_schema::validate_inventory(&mut client)?;
     crate::postgres_participant_schema::validate_inventory(&mut client)?;
+    crate::postgres_case_administration_inventory::validate(&mut client)?;
     Ok(client)
 }
 
@@ -103,7 +110,14 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
              participant_values_bytes(TEXT,TEXT,TEXT,TEXT,TEXT) TO {role};
          GRANT UPDATE(evidence) ON documents TO {role};
          GRANT SELECT ON migration_receipts TO {role};
-         GRANT SELECT, INSERT ON users, cases TO {role};
+         GRANT SELECT, INSERT ON users TO {role};
+         REVOKE INSERT ON cases FROM {role};
+         GRANT SELECT, INSERT(id,title,reference,created_by) ON cases TO {role};
+         REVOKE ALL ON case_administration_revisions,case_initial_stage_registrations FROM {role};
+         GRANT SELECT, INSERT ON case_administration_revisions,case_initial_stage_registrations TO {role};
+         GRANT EXECUTE ON FUNCTION case_administration_text_valid(TEXT,INTEGER,BOOLEAN),
+             case_administration_is_canonical(TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT[],TEXT,TEXT),
+             case_administration_bytes(TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT[],TEXT,TEXT) TO {role};
          GRANT UPDATE(recovery_codes, revision, updated_at) ON users TO {role};
          GRANT SELECT, INSERT, DELETE ON case_memberships TO {role};
          GRANT UPDATE(assigned_at) ON case_memberships TO {role};"
@@ -128,7 +142,9 @@ fn validate_runtime_role<C: postgres::GenericClient>(
                  'documents'::pg_catalog.regclass, 'document_series'::pg_catalog.regclass,
                  'document_metadata_revisions'::pg_catalog.regclass,
                  'case_participants'::pg_catalog.regclass,'case_participant_revisions'::pg_catalog.regclass,
-                 'migration_receipts'::pg_catalog.regclass])
+                 'migration_receipts'::pg_catalog.regclass, 'cases'::pg_catalog.regclass,
+                 'case_administration_revisions'::pg_catalog.regclass,
+                 'case_initial_stage_registrations'::pg_catalog.regclass])
              AND (pg_catalog.pg_has_role(r.oid, c.relowner, 'MEMBER')
                  OR pg_catalog.pg_has_role(r.oid, n.nspowner, 'MEMBER')
                  OR pg_catalog.has_table_privilege(r.oid, c.oid, 'DELETE, TRUNCATE, TRIGGER')
@@ -136,6 +152,9 @@ fn validate_runtime_role<C: postgres::GenericClient>(
                      AND pg_catalog.has_any_column_privilege(r.oid, c.oid, 'UPDATE'))
                  OR (c.oid OPERATOR(pg_catalog.=) 'migration_receipts'::pg_catalog.regclass
                      AND pg_catalog.has_any_column_privilege(r.oid, c.oid, 'INSERT'))
+                 OR (c.oid OPERATOR(pg_catalog.=) 'cases'::pg_catalog.regclass AND (
+                     pg_catalog.has_column_privilege(r.oid,c.oid,'created_at','INSERT')
+                     OR pg_catalog.has_column_privilege(r.oid,c.oid,'required_initial_revision','INSERT')))
                  OR (c.oid OPERATOR(pg_catalog.=) 'documents'::pg_catalog.regclass AND EXISTS (
                      SELECT 1 FROM pg_catalog.pg_attribute a
                      WHERE a.attrelid OPERATOR(pg_catalog.=) c.oid
@@ -147,6 +166,13 @@ fn validate_runtime_role<C: postgres::GenericClient>(
              SELECT 1 FROM pg_catalog.pg_proc p
              WHERE p.oid OPERATOR(pg_catalog.=) ANY(ARRAY[
                  'preserve_document_evidence()'::pg_catalog.regprocedure,
+                 'case_administration_text_valid(text,integer,boolean)'::pg_catalog.regprocedure,
+                 'case_administration_is_canonical(text,text,text,text,text,text,text,text[],text,text)'::pg_catalog.regprocedure,
+                 'case_administration_bytes(text,text,text,text,text,text,text,text[],text,text)'::pg_catalog.regprocedure,
+                 'preserve_case_administration_history()'::pg_catalog.regprocedure,
+                 'enforce_case_administration_sequence()'::pg_catalog.regprocedure,
+                 'validate_case_administration_heads()'::pg_catalog.regprocedure,
+                 'validate_case_initial_stage_registration()'::pg_catalog.regprocedure,
                  'preserve_participant_history()'::pg_catalog.regprocedure,
                  'enforce_participant_sequence()'::pg_catalog.regprocedure,
                  'participant_text_valid(text,integer)'::pg_catalog.regprocedure,

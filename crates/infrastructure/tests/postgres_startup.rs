@@ -2,7 +2,6 @@ use std::env;
 use std::sync::{Arc, Barrier};
 use std::thread;
 
-use application::cases::{CaseAccess, CaseRepository};
 use application::identity::UserRepository;
 use infrastructure::{PostgresCaseRepository, PostgresUserRepository};
 use postgres::{Client, NoTls};
@@ -28,7 +27,11 @@ fn initialize_together(url: &str) -> Vec<Result<(), application::ApplicationErro
     let case_url = url.to_owned();
     let cases = thread::spawn(move || {
         barrier.wait();
-        PostgresCaseRepository::connect(&case_url).map(|_| ())
+        PostgresCaseRepository::connect(
+            &case_url,
+            std::sync::Arc::new(infrastructure::RingSha256Hasher),
+        )
+        .map(|_| ())
     });
     vec![users.join().unwrap(), cases.join().unwrap()]
 }
@@ -56,8 +59,11 @@ fn user_and_case_adapters_share_the_migration_lock_and_initialize_a_fresh_schema
     let initialized = initialize_together(&scoped);
     let users_empty =
         PostgresUserRepository::connect(&scoped).and_then(|repository| repository.has_users());
-    let cases_empty = PostgresCaseRepository::connect(&scoped)
-        .and_then(|repository| repository.list(CaseAccess::All, 10, 0));
+    let cases_empty: i64 = Client::connect(&scoped, NoTls)
+        .unwrap()
+        .query_one("SELECT COUNT(*) FROM cases", &[])
+        .unwrap()
+        .get(0);
     let tables: i64 = control
         .query_one(
             "SELECT COUNT(*) FROM information_schema.tables
@@ -73,6 +79,6 @@ fn user_and_case_adapters_share_the_migration_lock_and_initialize_a_fresh_schema
     assert!(blocked.iter().all(Result::is_err), "{blocked:?}");
     assert!(initialized.iter().all(Result::is_ok), "{initialized:?}");
     assert!(!users_empty.unwrap());
-    assert!(cases_empty.unwrap().is_empty());
+    assert_eq!(cases_empty, 0);
     assert_eq!(tables, 3);
 }

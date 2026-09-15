@@ -139,6 +139,9 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut client = self.client()?;
         let mut transaction = client.transaction().map_err(storage::port_error)?;
         authorize(&mut transaction, actor, case, action)?;
+        if matches!(action, DocumentAction::Upload) {
+            crate::postgres_case_status::require_active(&mut transaction, case)?;
+        }
         transaction.commit().map_err(storage::port_error)
     }
 
@@ -154,6 +157,12 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut transaction = client.transaction().map_err(storage::port_error)?;
         authorize_document(&mut transaction, actor, case, id, action)?;
         let record = storage::load(&mut transaction, case, id, selection)?;
+        if matches!(
+            action,
+            DocumentAction::Append | DocumentAction::Seal | DocumentAction::Classify
+        ) {
+            crate::postgres_case_status::require_active(&mut transaction, case)?;
+        }
         transaction.commit().map_err(storage::port_error)?;
         Ok(record)
     }
@@ -277,6 +286,7 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
             record.id,
             VersionSelection::Exact(record.version),
         )?;
+        crate::postgres_case_status::require_active(&mut transaction, case)?;
         if current.is_sealed() {
             return Err(ApplicationError::DocumentAlreadySealed(
                 record.id.to_string(),

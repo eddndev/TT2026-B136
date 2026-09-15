@@ -27,7 +27,11 @@ fn metadata_reads_commit_their_audit_before_returning_and_serialize_membership_r
         record.seal(evidence()).unwrap();
         store.seal(actor, case_id, record.clone(), at).unwrap();
         let reader = PostgresCaseDocumentStore::connect(&url).unwrap();
-        let revoker = PostgresCaseRepository::connect(&url).unwrap();
+        let revoker = PostgresCaseRepository::connect(
+            &url,
+            std::sync::Arc::new(infrastructure::RingSha256Hasher),
+        )
+        .unwrap();
         let suffix = record.id.as_uuid().simple().to_string();
         let hold_key = i64::from(
             u32::from_be_bytes(record.id.as_uuid().as_bytes()[..4].try_into().unwrap())
@@ -78,7 +82,7 @@ fn metadata_reads_commit_their_audit_before_returning_and_serialize_membership_r
         let (revoke_done, revoke_result) = mpsc::channel();
         let revoking = std::thread::spawn(move || {
             revoke_done
-                .send(revoker.remove_member(case_id, actor, owner))
+                .send(revoker.remove_member(case_id, actor, owner, time::OffsetDateTime::now_utc()))
                 .unwrap();
         });
         let early_revoke = revoke_result.recv_timeout(Duration::from_millis(100));

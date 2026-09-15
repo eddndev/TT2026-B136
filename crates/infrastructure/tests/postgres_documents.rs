@@ -71,8 +71,14 @@ fn revoked_members_and_clients_cannot_commit_or_read_document_evidence() {
     let actor = user(&url, Role::Litigator);
     let client = user(&url, Role::Client);
     let case_id = case(&url, actor);
-    let cases = PostgresCaseRepository::connect(&url).unwrap();
-    cases.add_member(case_id, client, owner).unwrap();
+    let cases = PostgresCaseRepository::connect(
+        &url,
+        std::sync::Arc::new(infrastructure::RingSha256Hasher),
+    )
+    .unwrap();
+    cases
+        .add_member(case_id, client, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     let record = document();
     store
@@ -92,7 +98,9 @@ fn revoked_members_and_clients_cannot_commit_or_read_document_evidence() {
     store
         .check_access(actor, case_id, DocumentAction::Seal)
         .unwrap();
-    cases.remove_member(case_id, actor, owner).unwrap();
+    cases
+        .remove_member(case_id, actor, owner, time::OffsetDateTime::now_utc())
+        .unwrap();
     let mut sealed = record.clone();
     sealed.seal(evidence()).unwrap();
     assert!(store

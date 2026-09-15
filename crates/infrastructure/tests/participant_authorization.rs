@@ -95,7 +95,7 @@ fn owner_cannot_redirect_participant_to_another_case_and_inactive_actor_is_rejec
     let other = CaseId::new();
     f.admin
         .execute(
-            "INSERT INTO cases(id,title,reference,created_by) VALUES($1,'Other','Other',$2)",
+            "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Other','Other',$2,NULL)",
             &[&other.as_uuid(), &f.owner.as_uuid()],
         )
         .unwrap();
