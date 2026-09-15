@@ -90,7 +90,13 @@ fn revocation_waits_for_an_authorized_commit_and_blocks_the_next_commit() {
     admin.batch_execute(&format!("DROP TRIGGER pause_document_{suffix} ON documents; DROP FUNCTION pause_document_{suffix}();")).unwrap();
     assert_eq!(
         store
-            .load(owner, case_id, original.id, DocumentAction::Verify)
+            .load(
+                owner,
+                case_id,
+                original.id,
+                application::documents::VersionSelection::Only,
+                DocumentAction::Verify
+            )
             .unwrap(),
         expected
     );

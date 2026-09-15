@@ -20,7 +20,7 @@ concurrency_demo() {
   second_url="http://$address"
   curl -fsS "$second_url/healthz" | rg -x 'ok' >/dev/null
   case_id="$(psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \
-    "SELECT case_id FROM documents WHERE id='$DOCUMENT_ID'")"
+    "SELECT case_id FROM document_series WHERE id='$DOCUMENT_ID'")"
   document_id="$(curl -fsS -X POST "$BASE_URL/api/v1/cases/$case_id/documents" \
     -H "Authorization: Bearer $RECOVERY_TOKEN" -H 'X-Document-Name: document.txt' \
     --data-binary "@$WORK_DIR/document.txt" | jq -er '.id')"
@@ -43,7 +43,8 @@ concurrency_demo() {
   esac
   [ "$(psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \
     "SELECT COUNT(*) FROM audit_events WHERE action='document.sealed'
-      AND resource='case:$case_id:document:$document_id'")" -eq 1 ]
+      AND resource='case:$case_id:document:$document_id:version:1:sha256:' ||
+        (SELECT encode(digest,'hex') FROM documents WHERE id='$document_id' AND version=1)")" -eq 1 ]
   curl -fsS "$BASE_URL$route/evidence" -H "Authorization: Bearer $RECOVERY_TOKEN" \
     -o "$race_dir/first.zip"
   curl -fsS "$second_url$route/evidence" -H "Authorization: Bearer $RECOVERY_TOKEN" \

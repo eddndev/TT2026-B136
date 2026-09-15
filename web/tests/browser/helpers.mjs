@@ -19,6 +19,8 @@ export const caseRecord = {
 };
 const component = { status: 'passed', detail: 'Verified by test backend' };
 export const validReport = {
+  id,
+  version: 1,
   document_digest: document.digest,
   verdict: 'valid',
   integrity: component,
@@ -89,6 +91,17 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       );
       return route.fulfill({ json: { documents: matches, has_more: false } });
     }
+    if (path.endsWith('/versions'))
+      return route.fulfill({
+        json: {
+          versions: documents.length ? documents : [document],
+          has_more: false,
+          next_before_version: null,
+          first_available_version: 1,
+        },
+      });
+    if (/\/versions\/\d+$/.test(path))
+      return route.fulfill({ json: documents.find((item) => item.id === id) || document });
     if (path.endsWith(`/documents/${id}`))
       return route.fulfill({ json: documents.find((item) => item.id === id) || document });
     if (path.endsWith('/seal')) {
@@ -98,7 +111,11 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
     }
     if (path.endsWith('/verify')) return route.fulfill({ json: validReport });
     if (path.endsWith('/evidence'))
-      return route.fulfill({ contentType: 'application/zip', body: 'test archive' });
+      return route.fulfill({
+        contentType: 'application/zip',
+        body: 'test archive',
+        headers: { 'X-Document-Id': id, 'X-Document-Version': '1' },
+      });
     return route.fulfill({ status: 404 });
   });
   await page.goto('/');

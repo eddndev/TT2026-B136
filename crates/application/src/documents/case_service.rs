@@ -5,20 +5,21 @@ use std::sync::Arc;
 use domain::audit::ChainVerification;
 use domain::cases::CaseId;
 use domain::clock::Clock;
-use domain::crypto::DocumentId;
+use domain::crypto::{DocumentId, DocumentVersion, DocumentVersionRef};
 use domain::identity::{Permission, UserId};
 
 use super::{
     CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction, DocumentPage,
-    DocumentProcessor, DocumentQuery, DocumentSummary, EvidenceExport,
+    DocumentProcessor, DocumentQuery, DocumentSummary, EvidenceExport, VersionPage, VersionQuery,
+    VersionSelection,
 };
 use crate::{identity::IdentityWorkflow, verification::VerificationReport, ApplicationError};
 
 pub struct CaseDocumentService {
-    store: Arc<dyn CaseDocumentStore>,
+    pub(super) store: Arc<dyn CaseDocumentStore>,
     identity: Arc<dyn IdentityWorkflow>,
-    processor: DocumentProcessor,
-    clock: Arc<dyn Clock + Send + Sync>,
+    pub(super) processor: DocumentProcessor,
+    pub(super) clock: Arc<dyn Clock + Send + Sync>,
 }
 
 impl CaseDocumentService {
@@ -36,7 +37,11 @@ impl CaseDocumentService {
         }
     }
 
-    fn actor(&self, token: &str, permission: Permission) -> Result<UserId, ApplicationError> {
+    pub(super) fn actor(
+        &self,
+        token: &str,
+        permission: Permission,
+    ) -> Result<UserId, ApplicationError> {
         let principal = self.identity.authenticate(token)?;
         if !principal.role.allows(permission) {
             return Err(ApplicationError::PermissionDenied);
@@ -44,7 +49,7 @@ impl CaseDocumentService {
         Ok(principal.id)
     }
 
-    fn reauthenticate(
+    pub(super) fn reauthenticate(
         &self,
         token: &str,
         expected: UserId,
@@ -58,6 +63,88 @@ impl CaseDocumentService {
 }
 
 impl CaseDocumentWorkflow for CaseDocumentService {
+    fn append(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        expected_version: DocumentVersion,
+        name: &str,
+        bytes: &[u8],
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        self.append_content(token, case_id, id, expected_version, name, bytes)
+    }
+
+    fn history(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        query: VersionQuery,
+    ) -> Result<VersionPage, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDocument)?;
+        self.store
+            .history(actor, case_id, id, query, self.clock.now())
+    }
+
+    fn get_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDocument)?;
+        self.store.get(
+            actor,
+            case_id,
+            reference.id,
+            VersionSelection::Exact(reference.version),
+            self.clock.now(),
+        )
+    }
+
+    fn seal_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<CaseDocumentSummary, ApplicationError> {
+        self.seal_selected(
+            token,
+            case_id,
+            reference.id,
+            VersionSelection::Exact(reference.version),
+        )
+    }
+
+    fn verify_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<VerificationReport, ApplicationError> {
+        self.verify_selected(
+            token,
+            case_id,
+            reference.id,
+            VersionSelection::Exact(reference.version),
+        )
+    }
+
+    fn export_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<EvidenceExport, ApplicationError> {
+        self.export_selected(
+            token,
+            case_id,
+            reference.id,
+            VersionSelection::Exact(reference.version),
+        )
+    }
+
     fn list(
         &self,
         token: &str,
@@ -75,7 +162,13 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         id: DocumentId,
     ) -> Result<CaseDocumentSummary, ApplicationError> {
         let actor = self.actor(token, Permission::ReadDocument)?;
-        self.store.get(actor, case_id, id, self.clock.now())
+        self.store.get(
+            actor,
+            case_id,
+            id,
+            VersionSelection::Current,
+            self.clock.now(),
+        )
     }
 
     fn upload(
@@ -104,16 +197,7 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         case_id: CaseId,
         id: DocumentId,
     ) -> Result<CaseDocumentSummary, ApplicationError> {
-        let actor = self.actor(token, DocumentAction::Seal.permission())?;
-        let record = self.store.load(actor, case_id, id, DocumentAction::Seal)?;
-        let sealed = self.processor.seal(&record)?;
-        self.reauthenticate(token, actor, DocumentAction::Seal.permission())?;
-        self.store
-            .seal(actor, case_id, sealed.clone(), self.clock.now())?;
-        Ok(CaseDocumentSummary {
-            case_id,
-            document: DocumentSummary::from(&sealed),
-        })
+        self.seal_selected(token, case_id, id, VersionSelection::Only)
     }
 
     fn verify(
@@ -122,22 +206,7 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         case_id: CaseId,
         id: DocumentId,
     ) -> Result<VerificationReport, ApplicationError> {
-        let actor = self.actor(token, DocumentAction::Verify.permission())?;
-        let record = self
-            .store
-            .load(actor, case_id, id, DocumentAction::Verify)?;
-        let report = self
-            .processor
-            .verify(&record, self.clock.now().unix_timestamp())?;
-        self.reauthenticate(token, actor, DocumentAction::Verify.permission())?;
-        self.store.record_access(
-            actor,
-            case_id,
-            &record,
-            DocumentAction::Verify,
-            self.clock.now(),
-        )?;
-        Ok(report)
+        self.verify_selected(token, case_id, id, VersionSelection::Only)
     }
 
     fn export_evidence(
@@ -146,20 +215,7 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         case_id: CaseId,
         id: DocumentId,
     ) -> Result<EvidenceExport, ApplicationError> {
-        let actor = self.actor(token, DocumentAction::Export.permission())?;
-        let record = self
-            .store
-            .load(actor, case_id, id, DocumentAction::Export)?;
-        let export = self.processor.export_evidence(&record)?;
-        self.reauthenticate(token, actor, DocumentAction::Export.permission())?;
-        self.store.record_access(
-            actor,
-            case_id,
-            &record,
-            DocumentAction::Export,
-            self.clock.now(),
-        )?;
-        Ok(export)
+        self.export_selected(token, case_id, id, VersionSelection::Only)
     }
 
     fn verify_audit(&self, token: &str) -> Result<ChainVerification, ApplicationError> {

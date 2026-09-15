@@ -88,7 +88,7 @@
         });
       } else {
         const result = await api.evidence(document.id);
-        download(result.blob, `evidencia-${document.id}.zip`);
+        download(result.blob, `evidencia-${document.id}-v${document.version}.zip`);
         message = 'Evidencia descargada.';
         activeTab = 'evidence';
       }

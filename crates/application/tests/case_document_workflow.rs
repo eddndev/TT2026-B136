@@ -162,7 +162,7 @@ fn seal_commit_rejection_never_returns_prepared_evidence_as_success() {
     let mut store = MockStore::new();
     store
         .expect_load()
-        .return_once(move |_, _, _, _| Ok(pending));
+        .return_once(move |_, _, _, _, _| Ok(pending));
     store
         .expect_seal()
         .times(1)
@@ -191,8 +191,8 @@ fn verification_and_export_recheck_storage_before_releasing_results() {
         let mut store = MockStore::new();
         store
             .expect_load()
-            .withf(move |_, _, _, requested| *requested == action)
-            .return_once(move |_, _, _, _| Ok(record));
+            .withf(move |_, _, _, _, requested| *requested == action)
+            .return_once(move |_, _, _, _, _| Ok(record));
         store
             .expect_record_access()
             .times(1)
@@ -247,7 +247,7 @@ fn session_revocation_during_preparation_prevents_every_commit() {
         } else {
             store
                 .expect_load()
-                .return_once(move |_, _, _, _| Ok(record));
+                .return_once(move |_, _, _, _, _| Ok(record));
         }
         let service = service(store, identity);
         let case = CaseId::new();
@@ -284,7 +284,7 @@ fn a_changed_authenticated_user_cannot_commit_prepared_upload() {
 fn wrong_case_errors_from_storage_are_preserved_even_for_owner() {
     let (identity, _) = identity(Role::Owner, 3);
     let mut store = MockStore::new();
-    store.expect_load().times(3).returning(|_, _, _, _| {
+    store.expect_load().times(3).returning(|_, _, _, _, _| {
         Err(ApplicationError::DocumentNotFound(
             "document not found".into(),
         ))

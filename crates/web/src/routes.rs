@@ -12,12 +12,16 @@ use std::sync::Arc;
 mod documents;
 mod identity;
 mod queries;
+mod versions;
 use documents::{export_evidence, seal_document, upload_document, verify_audit, verify_document};
 use identity::{
     bootstrap_owner, complete_recovery, complete_totp, create_user, current_user, logout,
     start_login,
 };
 use queries::{get_document, list_documents};
+use versions::{
+    append_version, export_version, get_version, list_versions, seal_version, verify_version,
+};
 
 const MAX_DOCUMENT_BYTES: usize = 16 * 1024 * 1024;
 
@@ -49,6 +53,26 @@ pub fn router(
             get(list_documents).post(upload_document),
         )
         .route("/api/v1/cases/:case_id/documents/:id", get(get_document))
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/versions",
+            get(list_versions).post(append_version),
+        )
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/versions/:version",
+            get(get_version),
+        )
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/versions/:version/seal",
+            post(seal_version),
+        )
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/versions/:version/verify",
+            post(verify_version),
+        )
+        .route(
+            "/api/v1/cases/:case_id/documents/:id/versions/:version/evidence",
+            get(export_version),
+        )
         .route(
             "/api/v1/cases/:case_id/documents/:id/seal",
             post(seal_document),

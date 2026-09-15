@@ -287,7 +287,8 @@ fn startup_rejects_missing_or_corrupted_import_data_despite_a_matching_receipt()
         ).unwrap();
         let runtime_url = database.restricted_url();
         infrastructure::legacy::require_completed_import(source.dir.path(), &runtime_url).unwrap();
-        database.client.batch_execute(sql).unwrap();
+        // Simulate an incomplete administrative restore, bypassing normal constraints.
+        database.client.batch_execute(&format!("SET session_replication_role=replica; {sql}; SET session_replication_role=origin")).unwrap();
 
         assert!(infrastructure::legacy::require_completed_import(
             source.dir.path(), &runtime_url

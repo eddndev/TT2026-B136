@@ -4,6 +4,132 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: versiones documentales inmutables
+
+- Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC
+  correspondientes al 15 de septiembre.
+- Alcance: append optimista, historial y operaciones de versión exacta,
+  migración de snapshots existentes, reconciliación, recuperación e interfaz Qadra.
+- Entorno: Rust y Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9 compatible con
+  el protocolo Redis, OpenSSL 3.5.7, Node.js 22.22.2 y npm 10.9.7.
+
+### Backend y recuperación
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `cargo fmt --all`, `cargo build --workspace` | Aprobadas. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Aprobada. |
+| Política de dependencias con `cargo-deny 0.20.2` | Avisos, restricciones, licencias y fuentes aprobados; sin nuevas excepciones. |
+| `bash scripts/test-backends.sh` | **577 aprobadas**, 0 fallidas y 1 externa ignorada; PostgreSQL y Redis desechables. |
+| Suite instrumentada con `cargo llvm-cov --workspace` | Las mismas **577 aprobadas** y 1 externa ignorada. |
+| `bash scripts/demo.sh` | Recorrido CLI aprobado, incluyendo rechazos esperados ante alteración. |
+| `bash scripts/api-demo.sh` | Roles, aislamiento, revocación, concurrencia, importación, versiones y restauración aprobados. |
+
+La prueba ignorada sigue siendo `the_real_sandbox_issues_a_token`. No se
+configuraron credenciales de un proveedor externo. Los adaptadores PostgreSQL
+sí se ejercitaron: el guion provee bases separadas para identidad, expedientes
+y documentos. La advertencia de compatibilidad futura de `redis 0.25.4` permanece;
+no es un fallo de Clippy ni una migración a clientes asíncronos.
+
+Las nuevas regresiones comprueban:
+
+- Validación de consultas, autorización previa, reautenticación tras preparar
+  contenido, rechazo de una cabeza obsoleta y agotamiento del número de versión.
+- Migración de filas existentes con primeras versiones 1 y 7, conservación de
+  vault/evidencia/prefijo de auditoría y repetición administrativa tras añadir 8.
+- Raíces sin versión inicial rechazadas al commit, asociación exacta a expediente,
+  secuencia contigua y privilegios operativos sin UPDATE sobre raíces.
+- Cuatro appends concurrentes con un solo ganador, sellado de una versión
+  histórica conservada y trigger SQL que vuelve a leer tras esperar un commit
+  o rollback competidor.
+- Rollback ante fallos de inserción, auditoría y restricciones diferidas;
+  denegación de historial si no se confirma su evento.
+- Tres snapshots cifrados con AES-GCM real, dos de contenido idéntico, con DEK
+  distinta por versión y rechazo de sustitución de UUID, versión, vault o digest.
+- Consultas que eligen la versión actual antes de aplicar filtros, historial
+  descendente, Client denegado y casos ajenos indistinguibles de inexistentes.
+- Reconciliación del snapshot legacy original tras nuevos appends y sellado;
+  rechazo de esquema incompleto, secuencias incompletas y privilegios excesivos,
+  incluidos roles asumibles mediante SET ROLE.
+
+El demo mantiene cuatro documentos importados y 51 eventos históricos. Después
+de importar añade una segunda versión a uno de ellos, rechaza un número esperado
+obsoleto y las rutas sin versión ambiguas, sella/verifica la revisión nueva y
+vuelve a exportar la primera. El respaldo contiene cinco snapshots de cuatro
+documentos. La restauración compara raíces, snapshots, usuarios, expedientes,
+asignaciones, auditoría y recibos; también conserva idénticos los ZIP de ambas
+versiones y verifica su contenido con OpenSSL. El contador de 51 identifica el
+prefijo preservado, no el total final de eventos después de ese recorrido.
+
+El guion de concurrencia se actualizó para contar el recurso auditado con
+versión y digest: una ejecución inicial llegó al sellado correcto y rechazó
+su aserción anterior, que buscaba el formato sin versión. Tras corregir esa
+consulta, el recorrido completo aprobó con un sellado, un conflicto y un evento.
+
+CI detectó además tres fixtures nuevos que creaban roles sin contraseña y
+dependían de la autenticación `trust` del entorno local. Se reprodujo el fallo
+`28P01` en PostgreSQL aislado con SCRAM, se corrigieron las credenciales de esos
+roles de prueba y aprobaron sus seis escenarios. Una contraseña incorrecta fue
+rechazada en ese entorno. `scripts/test-backends.sh` ahora crea su instancia
+desechable con SCRAM y una contraseña administrativa aleatoria, sin cambiar
+servidores existentes. Tras la corrección, formato, compilación, Clippy, suite
+completa e instrumentada aprobaron nuevamente: 577 pruebas, una externa ignorada
+y los mismos numeradores de cobertura que se presentan abajo.
+
+La adaptación a SCRAM también expuso una suposición en `scripts/web-demo.sh`:
+su sustitución textual de URL solo admitía conexiones sin usuario y contraseña.
+Se reprodujo el rechazo de conexión antes de iniciar el navegador. El guion
+ahora crea una contraseña aleatoria propia del rol de prueba y reemplaza las
+credenciales mediante `URL`, conservando host, puerto, base y parámetros.
+El recorrido completo del navegador volvió a aprobar contra los servicios
+desechables con SCRAM: una prueba real, sin cambios de interfaz. También se
+comprobó la construcción de URL con credenciales existentes, IPv6, parámetros
+y caracteres reservados en la contraseña.
+
+### Cobertura de versiones
+
+| Crate | Líneas cubiertas / totales | Cobertura |
+| --- | --- | --- |
+| domain | 1045 / 1079 | 96.8 % |
+| application | 2319 / 2452 | 94.6 % |
+| infrastructure | 3889 / 4175 | 93.1 % |
+| web | 821 / 927 | 88.6 % |
+| bin | 834 / 1086 | 76.8 % |
+| **Workspace** | **8908 / 9719** | **91.7 %** |
+
+`scripts/coverage-gate.sh` aprobó los tres umbrales obligatorios del 90 %.
+La medición anterior de consultas, 539 pruebas y 91.0 %, se conserva más abajo
+con su alcance; no se sustituyen sus cifras por las de este cambio.
+
+### Qadra y navegador
+
+Formato y build web aprobados; **28 pruebas unitarias** y **32 pruebas de
+navegador con HTTP simulado** aprobadas. Cubren cursor de historial, acciones
+exactas, conflictos con archivo retenido, agotamiento sin refresco engañoso,
+actualización de la fila actual y descarte de respuestas tardías. Una denegación
+de historial o detalle retira sus datos y la opción de añadir versiones.
+La revisión independiente detectó los casos de agotamiento y denegación de
+detalle; sus regresiones fallaron antes de aplicar las correcciones.
+
+`scripts/web-demo.sh` aprobó **un recorrido con servicios reales**: sesión,
+expediente, versión 1 sellada y ZIP, versión 2 con nombre/contenido diferentes,
+sellado/verificación/ZIP de la segunda, selección histórica y ZIP de la primera
+idéntico al original. Al cerrar sesión, recargar y entrar de nuevo recuperó
+ambas versiones. No hubo errores JavaScript y se comprobaron vistas móviles.
+Este escenario no intercepta HTTP.
+
+Las pruebas simuladas usan un puerto propio y no reutilizan un servidor
+encontrado en el puerto predeterminado. Astro impide dos servidores del mismo
+proyecto aun con puertos distintos; una tentativa simultánea de mocks y live
+falló por ese bloqueo. Las verificaciones finales se ejecutaron secuencialmente.
+No se detuvieron servidores de otros proyectos.
+
+Se conservan la marca, tokens y hojas de estilo originales de Qadra. Los
+componentes de historial y carga de revisiones usan las clases existentes y
+`web/src/styles/versions.css`. Clasificación, actividad procesal, firma personal,
+autenticación por certificado, mediciones de producción y usabilidad con personas
+reales siguen pendientes en [el alcance de cierre](product-completion.md).
+
 ## Corte reproducido: consultas documentales e integración Qadra
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`).

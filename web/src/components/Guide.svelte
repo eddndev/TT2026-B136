@@ -30,6 +30,16 @@
     </p>
   </details>
   <details>
+    <summary>&iquest;C&oacute;mo agrego o consulto otra versi&oacute;n?</summary>
+    <p>
+      Abre el documento y usa Agregar versi&oacute;n para cargar otro archivo sin reemplazar los
+      anteriores. El historial muestra primero las versiones m&aacute;s nuevas. Selecciona una fila
+      para consultar, sellar o descargar esa versi&oacute;n exacta. Si otra persona agrega una
+      versi&oacute;n mientras preparas tu archivo, este permanece en el di&aacute;logo: consulta la
+      versi&oacute;n actual, revisa los datos y confirma de nuevo el env&iacute;o.
+    </p>
+  </details>
+  <details>
     <summary>&iquest;Qui&eacute;n puede hacer cada cosa?</summary>
     <p>
       El administrador tiene acceso a todos los expedientes. El litigante y el asistente legal

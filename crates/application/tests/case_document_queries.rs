@@ -90,13 +90,14 @@ fn reads_forward_authenticated_scope_query_and_audit_time() {
     store
         .expect_get()
         .times(1)
-        .withf(move |user, scope, requested, at| {
+        .withf(move |user, scope, requested, selection, at| {
             *user == actor
                 && *scope == case
                 && *requested == id
+                && *selection == application::documents::VersionSelection::Current
                 && *at == domain::clock::Clock::now(&crypto::TestClock)
         })
-        .return_once(move |_, _, _, _| Ok(summary));
+        .return_once(move |_, _, _, _, _| Ok(summary));
     let service = service(store, identity_mock);
     let listed = service.list("session", case, requested).unwrap();
     assert_eq!(listed.documents, vec![result.clone()]);
@@ -115,7 +116,7 @@ fn audit_or_authorization_failure_never_returns_metadata() {
     store
         .expect_get()
         .times(1)
-        .returning(|_, _, id, _| Err(ApplicationError::DocumentNotFound(id.to_string())));
+        .returning(|_, _, id, _, _| Err(ApplicationError::DocumentNotFound(id.to_string())));
     let service = service(store, identity_mock);
     let case = CaseId::new();
     assert!(matches!(

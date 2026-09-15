@@ -27,6 +27,27 @@ sus privilegios y no ejecuta DDL. Conservar KEK, certificados, claves y configur
 TSA fuera del repositorio y preparar Redis. Los argumentos criptográficos de
 `serve --help` siguen vigentes.
 
+## Actualizar la base a versiones documentales
+
+Detener todos los escritores y respaldar la base antes de ejecutar
+`database migrate --runtime-role` con el nuevo ejecutable y credenciales
+administrativas. `migrations/0004_document_versions.sql` agrega `document_series`
+y cambia la clave de `documents` a `(id, version)`; conserva los vaults y la
+evidencia existentes. La migración puede repetirse, pero no permite mantener
+escritores antiguos activos ni volver a un servidor que supone UUID único.
+
+Validar antes de abrir tráfico: cada raíz corresponde al mismo expediente y
+primera versión existente; los bytes cifrados, evidencia y prefijo de auditoría
+coinciden con el respaldo. Comparar una exportación sellada anterior con la ruta
+explícita `/versions/{version}/evidence`. No pedir sellos nuevos para hacer la
+migración ni renumerar snapshots importados.
+
+El rol operativo conserva SELECT/INSERT sobre `document_series` y `documents`,
+sin privilegios para actualizar raíces, borrar historia o modificar contexto;
+solo puede actualizar `documents.evidence`. `serve` valida esquema, privilegios
+y coherencia de metadatos al abrir conexiones, sin ejecutar DDL. La comprobación
+de secuencias debe medirse al dimensionar el arranque con volúmenes grandes.
+
 ## Migrar un almacenamiento local existente
 
 1. Detener todos los escritores, incluidas versiones anteriores del servidor y
@@ -85,6 +106,11 @@ un administrador que los borre. No reiniciar escritores antiguos sobre el origen
 Después de empezar a servir, no reutilizar una base vacía ni volver al servidor
 antiguo como recuperación: se perderían cambios posteriores al corte.
 
+Cada archivo legacy representa un snapshot con su número original. Si contiene
+la versión 7, la primera disponible será 7 y la siguiente 8; no se inventan las
+versiones 1–6. La reconciliación compara el UUID y versión originales, conservando
+bytes, recibo y prefijo de auditoría aunque se añadan versiones posteriormente.
+
 ## Respaldo y restauración
 
 Respaldar PostgreSQL completo, conservar las fuentes originales y proteger KEK,
@@ -100,7 +126,10 @@ Restaurar también roles/permisos según el procedimiento administrativo del ent
 Comprobar conteos, contexto y bytes cifrados, evidencia sellada, secuencias y hashes
 de auditoría y recibos. Verificar ZIP con OpenSSL y comparar con la exportación
 anterior. `scripts/api-demo.sh` incluye un ensayo desechable de importación y
-restauración con documentos realmente sellados; no utiliza datos del usuario.
+restauración con documentos realmente sellados. Después de importar añade una
+segunda versión, conserva el ZIP de la primera, restaura ambas y compara sus
+exportaciones. No utiliza datos del usuario. Incluir siempre raíces y todas las
+versiones; un respaldo incompleto no se repara creando raíces o revisiones falsas.
 
 Las sesiones Redis no sustituyen el estado durable. En una recuperación operativa
 se deben invalidar sesiones anteriores y ensayar el nuevo acceso con MFA. El

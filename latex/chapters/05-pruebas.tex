@@ -10,6 +10,8 @@ El corte reproducido del 12 de septiembre de 2026 aprobó \textbf{519 pruebas, s
 
 La ejecución del 14 de septiembre de 2026 aprobó \textbf{539 pruebas, sin fallos y con una ignorada externa}, mediante \rutarepo{scripts/test-backends.sh} con PostgreSQL y Redis desechables. Este ensayo incluye las consultas documentales de listado y detalle. La compilación y Clippy del workspace terminaron satisfactoriamente. La demostración HTTP conservó el aislamiento de cuatro roles en dos expedientes, la revocación y el sellado concurrente; su restauración comprobó cuatro documentos y 51 eventos preservados. Estas cifras identifican la ejecución de consultas; el inventario detallado conserva el corte del 12 de septiembre y la cobertura de ambas fechas se presenta por separado. La validación del navegador se registra como una ejecución adicional.
 
+La ejecución posterior de versiones inmutables, realizada el mismo 14 de septiembre, aprobó \textbf{577 pruebas, sin fallos y con una ignorada externa}. Se ejecutó el workspace completo mediante \rutarepo{scripts/test-backends.sh}, con PostgreSQL y Redis aislados; formato, compilación y Clippy también aprobaron. La demostración HTTP preservó cuatro documentos importados y el prefijo histórico de 51 eventos, añadió y selló una segunda versión y rechazó una cabeza esperada obsoleta y los alias ambiguos. El ZIP de la versión 1 permaneció idéntico tras añadir la 2; el respaldo y restauración conservaron ambas versiones y sus ZIP. Las 539 pruebas y cobertura del ensayo de consultas se mantienen como evidencia histórica independiente.
+
 La cobertura se mide con \texttt{cargo-llvm-cov}. El umbral de integración continua exige al menos 90\,\% de líneas en cada uno de los crates \texttt{domain}, \texttt{application} e \texttt{infrastructure}, conforme a RNF-13. El capítulo presenta la matriz de pruebas (\cref{sec:pruebas-matriz}), los resultados criptográficos (\cref{sec:pruebas-cripto}), los ensayos de autorización y persistencia (\cref{sec:pruebas-transacciones}), la verificación independiente (\cref{sec:pruebas-interop}) y el balance de cobertura y criterios de éxito (\cref{sec:pruebas-cobertura}).
 
 \section{Matriz de pruebas}\label{sec:pruebas-matriz}
@@ -126,6 +128,32 @@ Las consultas de metadatos incorporan controles de entrada, autorización, proye
 \end{table}
 
 Las pruebas del navegador Qadra se conservan bajo \rutarepo{web/tests/}. Las pruebas con respuestas HTTP simuladas permiten aislar formularios, navegación, permisos visibles, estados de error y solicitudes. El 14 de septiembre, \rutarepo{scripts/web-demo.sh} aprobó un escenario de navegador contra la API, PostgreSQL, Redis y OpenSSL reales, definido en \rutarepo{web/tests/live/document-workflow.spec.mjs}. El recorrido inició sesión con contraseña y recuperación de segundo factor, creó un expediente desde la interfaz, cargó un documento, obtuvo sus metadatos, confirmó su sello, verificó su integridad y descargó un ZIP cuyos bytes se contrastaron con el archivo original. Tras cerrar sesión, recargar y autenticar de nuevo, recuperó el expediente y su documento desde el repositorio persistido. El escenario también comprobó ausencia de errores de JavaScript y de desbordamiento horizontal a 390 píxeles de ancho. Esta ejecución demuestra ese recorrido concreto; no sustituye los escenarios restantes de los 17 casos de uso ni la evaluación de usabilidad con usuarios del despacho.
+
+\subsection{Versiones documentales inmutables}\label{sec:pruebas-versiones}
+
+La ampliación documental separa la preservación de una instantánea de la elección de la versión actual. La \cref{tab:pruebas-versiones} organiza los escenarios añadidos: éxito, rechazo, concurrencia y recuperación. Las pruebas de aplicación verifican el orden de autorización, preparación y confirmación mediante puertos; las de infraestructura utilizan PostgreSQL y criptografía reales. La trazabilidad por archivo se presenta en la \cref{sec:matriz-versiones}, separada del inventario histórico de consultas.
+
+\begin{table}[H]
+  \centering
+  \caption{Escenarios de comprobación de versiones documentales.}
+  \label{tab:pruebas-versiones}
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X@{}}
+    \toprule
+    \textbf{Propiedad} & \textbf{Escenarios positivos y negativos} \\
+    \midrule
+    Contexto cifrado & Versiones con contenido igual y distinto se descifran bajo su UUID y número; solicitan DEK propias. Sustituir vault, UUID, versión o digest produce rechazo. \\
+    Concurrencia & Cuatro anexados con la misma cabeza esperada producen un ganador y conflictos; sellar la versión anterior conserva su evidencia. La inserción espera al predecesor y rechaza el hueco si este revierte. \\
+    Atomicidad & Fallos de inserción, auditoría y commit diferido preservan documento y cadena anteriores. Fallar el evento de historial impide entregar sus metadatos. \\
+    Consultas y acceso & Filtros sobre la cabeza, historial descendente, cursor exclusivo, primera versión disponible y errores de versión ausente; Cliente denegado y pertenencia o rol revocados. \\
+    Continuidad & Migración repetida conserva filas y evidencia; origen con versión 7 admite la 8 y reconcilia la 7. Esquema incompleto, huecos y privilegios capaces de alterar la raíz se rechazan al abrir. \\
+    Frontera HTTP & Número explícito en acciones y respuestas; alias ambiguos rechazados, cuerpo acotado, parámetros inválidos y conflictos tipados sin redirigir a otra versión. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La demostración \rutarepo{scripts/api-version-demo.sh}, integrada en \rutarepo{scripts/api-demo.sh}, añade una segunda versión a un documento importado, comprueba el conflicto con la cabeza anterior y recorre historial, sellado, verificación y exportación explícitos. Compara el ZIP histórico con el obtenido antes del anexado y, tras restaurar PostgreSQL, compara nuevamente las exportaciones. OpenSSL valida firma y sello del contenido nuevo. Estas comprobaciones verifican las muestras y restauraciones ensayadas; una copia antigua íntegra aún puede conservar validez interna si no existe anclaje externo de la cabeza de auditoría.
+
+La validación final de Qadra aprobó 28 pruebas unitarias y 32 de navegador con respuestas simuladas, además de formato y compilación, bajo Node~22.22.2 y npm~10.9.7. El escenario real de \rutarepo{scripts/web-demo.sh} también aprobó: selló la versión 1 y descargó su ZIP, añadió una versión 2 con nombre y contenido distintos, la selló y verificó, y contrastó la descarga con los bytes del archivo nuevo. Al seleccionar nuevamente la versión 1 obtuvo un ZIP idéntico al inicial. Después de cerrar sesión, recargar y autenticar de nuevo, recuperó ambas versiones. No se registraron errores JavaScript. Las pruebas simuladas aíslan además conflictos de carga y respuestas tardías de sesiones o selecciones anteriores. Estos resultados se contabilizan por separado de Rust y no sustituyen la evaluación de usabilidad con personal del despacho.
 
 \section{Resultados criptográficos}\label{sec:pruebas-cripto}
 
@@ -347,6 +375,27 @@ La medición del 14 de septiembre con \texttt{cargo-llvm-cov}, ejecutada sobre 5
     \texttt{web}            & 637 & 737 & 86.4\,\% & informativo \\
     \midrule
     \textbf{Workspace}      & \textbf{8\,256} & \textbf{9\,071} & \textbf{91.0\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La medición instrumentada de versiones inmutables, ejecutada sobre 577 pruebas aprobadas y una externa ignorada, registró \textbf{8\,908 de 9\,719 líneas cubiertas, equivalentes a 91.7\,\% global}. Los tres umbrales obligatorios aprobaron. La \cref{tab:pruebas-cobertura-versiones} identifica este nuevo corte; las tablas anteriores conservan sus denominadores y resultados históricos. La ejecución utilizó Rust y Cargo~1.94.0, PostgreSQL~18.6, Valkey~8.1.9 compatible con Redis y OpenSSL~3.5.7.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del 14 de septiembre de 2026 con versiones documentales inmutables.}
+  \label{tab:pruebas-cobertura-versiones}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% \\
+    \texttt{application}    & 2\,319 & 2\,452 & 94.6\,\% & 90\,\% \\
+    \texttt{infrastructure} & 3\,889 & 4\,175 & 93.1\,\% & 90\,\% \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 821 & 927 & 88.6\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{8\,908} & \textbf{9\,719} & \textbf{91.7\,\%} & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}

@@ -36,7 +36,13 @@ fn a_deferred_commit_failure_rolls_back_both_document_and_success_event() {
     admin.batch_execute(&format!("DROP TRIGGER reject_commit_{suffix} ON documents; DROP FUNCTION reject_commit_{suffix}();")).unwrap();
     assert!(matches!(result, Err(ApplicationError::Port(_))));
     assert!(matches!(
-        store.load(owner, case_id, record.id, DocumentAction::Verify),
+        store.load(
+            owner,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Only,
+            DocumentAction::Verify
+        ),
         Err(ApplicationError::DocumentNotFound(_))
     ));
     assert!(!store
@@ -79,7 +85,13 @@ fn an_audit_failure_preserves_both_prior_evidence_state_and_membership() {
     assert!(matches!(remove_result, Err(ApplicationError::Port(_))));
     assert_eq!(
         store
-            .load(actor, case_id, record.id, DocumentAction::Verify)
+            .load(
+                actor,
+                case_id,
+                record.id,
+                application::documents::VersionSelection::Only,
+                DocumentAction::Verify
+            )
             .unwrap(),
         record
     );

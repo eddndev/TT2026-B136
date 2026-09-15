@@ -74,3 +74,11 @@ fn document_metadata_reads_are_available_only_to_internal_roles() {
     }
     assert!(!Role::Client.allows(Permission::ReadDocument));
 }
+
+#[test]
+fn appending_versions_keeps_the_internal_document_role_boundary() {
+    for role in [Role::Owner, Role::Litigator, Role::Paralegal] {
+        assert!(role.allows(Permission::AppendDocument));
+    }
+    assert!(!Role::Client.allows(Permission::AppendDocument));
+}

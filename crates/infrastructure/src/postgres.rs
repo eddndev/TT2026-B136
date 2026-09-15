@@ -6,6 +6,7 @@ use postgres::{Client, NoTls};
 const IDENTITY_MIGRATION: &str = include_str!("../../../migrations/0001_identity.sql");
 const CASE_MIGRATION: &str = include_str!("../../../migrations/0002_cases.sql");
 const DOCUMENT_MIGRATION: &str = include_str!("../../../migrations/0003_case_documents_audit.sql");
+const VERSION_MIGRATION: &str = include_str!("../../../migrations/0004_document_versions.sql");
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -28,6 +29,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     transaction
         .batch_execute(DOCUMENT_MIGRATION)
         .map_err(port_error)?;
+    transaction
+        .batch_execute(VERSION_MIGRATION)
+        .map_err(port_error)?;
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -35,11 +39,13 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
 /// Connects without DDL and rejects roles able to bypass persisted evidence protection.
 pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     let mut client = Client::connect(database_url, NoTls).map_err(port_error)?;
+    crate::postgres_version_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
         .get(0);
     validate_runtime_role(&mut client, &role)?;
+    crate::postgres_version_schema::validate_inventory(&mut client)?;
     Ok(client)
 }
 
@@ -70,9 +76,10 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     transaction
         .batch_execute(&format!(
             "GRANT USAGE ON SCHEMA {schema} TO {role};
-         REVOKE ALL ON audit_events, documents, migration_receipts FROM {role};
+         REVOKE ALL ON audit_events, documents, document_series, migration_receipts FROM {role};
          GRANT SELECT, INSERT ON audit_events TO {role};
          GRANT SELECT, INSERT ON documents TO {role};
+         GRANT SELECT, INSERT ON document_series TO {role};
          GRANT UPDATE(evidence) ON documents TO {role};
          GRANT SELECT ON migration_receipts TO {role};
          GRANT SELECT, INSERT ON users, cases TO {role};
@@ -97,7 +104,8 @@ fn validate_runtime_role<C: postgres::GenericClient>(
              SELECT 1 FROM pg_catalog.pg_class c
              JOIN pg_catalog.pg_namespace n ON n.oid OPERATOR(pg_catalog.=) c.relnamespace
              WHERE c.oid OPERATOR(pg_catalog.=) ANY(ARRAY['audit_events'::pg_catalog.regclass,
-                 'documents'::pg_catalog.regclass, 'migration_receipts'::pg_catalog.regclass])
+                 'documents'::pg_catalog.regclass, 'document_series'::pg_catalog.regclass,
+                 'migration_receipts'::pg_catalog.regclass])
              AND (pg_catalog.pg_has_role(r.oid, c.relowner, 'MEMBER')
                  OR pg_catalog.pg_has_role(r.oid, n.nspowner, 'MEMBER')
                  OR pg_catalog.has_table_privilege(r.oid, c.oid, 'DELETE, TRUNCATE, TRIGGER')
@@ -114,8 +122,10 @@ fn validate_runtime_role<C: postgres::GenericClient>(
                  )))
          ) OR EXISTS (
              SELECT 1 FROM pg_catalog.pg_proc p
-             WHERE p.oid OPERATOR(pg_catalog.=)
-                 'preserve_document_evidence()'::pg_catalog.regprocedure
+             WHERE p.oid OPERATOR(pg_catalog.=) ANY(ARRAY[
+                 'preserve_document_evidence()'::pg_catalog.regprocedure,
+                 'preserve_document_series()'::pg_catalog.regprocedure,
+                 'enforce_document_version_sequence()'::pg_catalog.regprocedure])
                  AND pg_catalog.pg_has_role(r.oid, p.proowner, 'MEMBER')
          ) OR EXISTS (
              SELECT 1 FROM pg_catalog.pg_namespace n

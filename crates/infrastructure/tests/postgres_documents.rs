@@ -31,12 +31,24 @@ fn document_bytes_case_binding_and_audit_timestamp_survive_reconnection() {
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     assert_eq!(
         store
-            .load(actor, case_id, record.id, DocumentAction::Verify)
+            .load(
+                actor,
+                case_id,
+                record.id,
+                application::documents::VersionSelection::Only,
+                DocumentAction::Verify
+            )
             .unwrap(),
         record
     );
     assert!(matches!(
-        store.load(actor, foreign_case, record.id, DocumentAction::Verify),
+        store.load(
+            actor,
+            foreign_case,
+            record.id,
+            application::documents::VersionSelection::Only,
+            DocumentAction::Verify
+        ),
         Err(ApplicationError::DocumentNotFound(_))
     ));
     let entries = store.audit_entries(owner).unwrap();
@@ -96,11 +108,23 @@ fn revoked_members_and_clients_cannot_commit_or_read_document_evidence() {
         )
         .is_err());
     assert!(store
-        .load(actor, case_id, record.id, DocumentAction::Verify)
+        .load(
+            actor,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Only,
+            DocumentAction::Verify
+        )
         .is_err());
     assert_eq!(
         store
-            .load(owner, case_id, record.id, DocumentAction::Verify)
+            .load(
+                owner,
+                case_id,
+                record.id,
+                application::documents::VersionSelection::Only,
+                DocumentAction::Verify
+            )
             .unwrap(),
         record
     );
@@ -130,7 +154,13 @@ fn audit_insert_failure_rolls_back_document_creation() {
         .unwrap();
     assert!(matches!(result, Err(ApplicationError::Port(_))));
     assert!(matches!(
-        store.load(owner, case_id, record.id, DocumentAction::Verify),
+        store.load(
+            owner,
+            case_id,
+            record.id,
+            application::documents::VersionSelection::Only,
+            DocumentAction::Verify
+        ),
         Err(ApplicationError::DocumentNotFound(_))
     ));
     let count: i64 = admin
@@ -183,7 +213,13 @@ fn competing_seals_capture_one_evidence_value_and_one_success_event() {
     }
     assert_eq!(
         store
-            .load(owner, case_id, record.id, DocumentAction::Verify)
+            .load(
+                owner,
+                case_id,
+                record.id,
+                application::documents::VersionSelection::Only,
+                DocumentAction::Verify
+            )
             .unwrap(),
         winner.unwrap()
     );

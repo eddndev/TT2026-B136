@@ -41,7 +41,13 @@ fn runtime_can_commit_documents_but_cannot_rewrite_history_or_case_binding() {
         .unwrap();
     assert_eq!(
         store
-            .load(actor, case_id, record.id, DocumentAction::Verify)
+            .load(
+                actor,
+                case_id,
+                record.id,
+                application::documents::VersionSelection::Only,
+                DocumentAction::Verify
+            )
             .unwrap(),
         record
     );
@@ -113,6 +119,9 @@ fn runtime_rejects_ownership_of_document_protection_and_import_receipts() {
         .get(0);
     for object in [
         "TABLE documents",
+        "TABLE document_series",
+        "FUNCTION preserve_document_series()",
+        "FUNCTION enforce_document_version_sequence()",
         "FUNCTION preserve_document_evidence()",
         "TABLE migration_receipts",
     ] {
@@ -152,6 +161,13 @@ fn runtime_rejects_extra_document_receipt_and_schema_privileges() {
     let Some(url) = database_url() else { return };
     let (mut admin, role, runtime_url) = runtime_role(&url);
     for privilege in [
+        "UPDATE(id) ON document_series",
+        "UPDATE(case_id) ON document_series",
+        "UPDATE(first_available_version) ON document_series",
+        "UPDATE ON document_series",
+        "DELETE ON document_series",
+        "TRUNCATE ON document_series",
+        "TRIGGER ON document_series",
         "UPDATE(id) ON documents",
         "UPDATE(case_id) ON documents",
         "UPDATE(version) ON documents",
@@ -222,13 +238,13 @@ fn runtime_rejects_a_write_role_it_can_assume_without_inheriting() {
     admin
         .batch_execute(&format!(
             "CREATE ROLE {writer} NOLOGIN;
-             GRANT UPDATE(vault) ON documents TO {writer};
+             GRANT UPDATE(first_available_version) ON document_series TO {writer};
              ALTER ROLE {role} NOINHERIT;
              GRANT {writer} TO {role}"
         ))
         .unwrap();
     let mut runtime = Client::connect(&runtime_url, NoTls).unwrap();
-    let check = "SELECT has_column_privilege(current_user, 'documents', 'vault', 'UPDATE')";
+    let check = "SELECT has_column_privilege(current_user, 'document_series', 'first_available_version', 'UPDATE')";
     assert!(!runtime.query_one(check, &[]).unwrap().get::<_, bool>(0));
     runtime
         .batch_execute(&format!("SET ROLE {writer}"))

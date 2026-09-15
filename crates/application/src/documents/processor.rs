@@ -70,9 +70,23 @@ impl DocumentProcessor {
     }
 
     pub fn prepare(&self, name: &str, document: &[u8]) -> Result<DocumentRecord, ApplicationError> {
+        self.prepare_version(
+            DocumentId::new(),
+            DocumentVersion::initial(),
+            name,
+            document,
+        )
+    }
+
+    /// Encrypts a new snapshot under the caller-selected immutable identity.
+    pub fn prepare_version(
+        &self,
+        id: DocumentId,
+        version: DocumentVersion,
+        name: &str,
+        document: &[u8],
+    ) -> Result<DocumentRecord, ApplicationError> {
         ArchiveEntry::new(name.to_owned(), Vec::new())?;
-        let id = DocumentId::new();
-        let version = DocumentVersion::initial();
         let digest = self.ports.hasher.hash_bytes(document);
         let vault = encrypt_with_ports(
             self.ports.cipher.as_ref(),

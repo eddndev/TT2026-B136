@@ -3,10 +3,13 @@
 use domain::audit::{ChainVerification, ChainedEvent};
 use domain::cases::CaseId;
 use domain::clock::OffsetDateTime;
-use domain::crypto::DocumentId;
+use domain::crypto::{DocumentId, DocumentVersion, DocumentVersionRef};
 use domain::identity::{Permission, UserId};
 
-use super::{DocumentPage, DocumentQuery, DocumentRecord, DocumentSummary, EvidenceExport};
+use super::{
+    DocumentPage, DocumentQuery, DocumentRecord, DocumentSummary, EvidenceExport, VersionPage,
+    VersionQuery, VersionSelection,
+};
 use crate::{verification::VerificationReport, ApplicationError};
 
 /// Document operation checked against the current role and case membership.
@@ -15,6 +18,8 @@ pub enum DocumentAction {
     List,
     Read,
     Upload,
+    Append,
+    History,
     Seal,
     Verify,
     Export,
@@ -23,8 +28,9 @@ pub enum DocumentAction {
 impl DocumentAction {
     pub const fn permission(self) -> Permission {
         match self {
-            Self::List | Self::Read => Permission::ReadDocument,
+            Self::List | Self::Read | Self::History => Permission::ReadDocument,
             Self::Upload => Permission::CreateDocument,
+            Self::Append => Permission::AppendDocument,
             Self::Seal => Permission::SealDocument,
             Self::Verify => Permission::VerifyDocument,
             Self::Export => Permission::ExportEvidence,
@@ -36,6 +42,8 @@ impl DocumentAction {
             Self::List => "document.listed",
             Self::Read => "document.read",
             Self::Upload => "document.uploaded",
+            Self::Append => "document.version_added",
+            Self::History => "document.versions_listed",
             Self::Seal => "document.sealed",
             Self::Verify => "document.verified",
             Self::Export => "document.evidence_exported",
@@ -52,6 +60,46 @@ pub struct CaseDocumentSummary {
 
 /// The online document boundary accepts credentials, never an actor label.
 pub trait CaseDocumentWorkflow: Send + Sync {
+    fn append(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        expected_version: DocumentVersion,
+        name: &str,
+        bytes: &[u8],
+    ) -> Result<CaseDocumentSummary, ApplicationError>;
+    fn history(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DocumentId,
+        query: VersionQuery,
+    ) -> Result<VersionPage, ApplicationError>;
+    fn get_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<CaseDocumentSummary, ApplicationError>;
+    fn seal_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<CaseDocumentSummary, ApplicationError>;
+    fn verify_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<VerificationReport, ApplicationError>;
+    fn export_version(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        reference: DocumentVersionRef,
+    ) -> Result<EvidenceExport, ApplicationError>;
     fn list(
         &self,
         token: &str,
@@ -98,6 +146,24 @@ pub trait CaseDocumentWorkflow: Send + Sync {
 /// actor's active status, role, and case membership. Document reads and commits
 /// also require the supplied case to match the stored immutable association.
 pub trait CaseDocumentStore: Send + Sync {
+    /// Commits the next snapshot and audit only if the current version still matches.
+    fn append(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        expected_version: DocumentVersion,
+        record: DocumentRecord,
+        at: OffsetDateTime,
+    ) -> Result<(), ApplicationError>;
+    /// Authorizes the exact document and audits its descending history page.
+    fn history(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DocumentId,
+        query: VersionQuery,
+        at: OffsetDateTime,
+    ) -> Result<VersionPage, ApplicationError>;
     /// Filters metadata before pagination and audits access before returning it.
     fn list(
         &self,
@@ -112,6 +178,7 @@ pub trait CaseDocumentStore: Send + Sync {
         actor: UserId,
         case_id: CaseId,
         id: DocumentId,
+        selection: VersionSelection,
         at: OffsetDateTime,
     ) -> Result<CaseDocumentSummary, ApplicationError>;
     fn check_access(
@@ -125,6 +192,7 @@ pub trait CaseDocumentStore: Send + Sync {
         actor: UserId,
         case_id: CaseId,
         id: DocumentId,
+        selection: VersionSelection,
         action: DocumentAction,
     ) -> Result<DocumentRecord, ApplicationError>;
     /// Inserts prepared ciphertext and its success event in one transaction.

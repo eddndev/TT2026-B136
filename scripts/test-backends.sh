@@ -11,6 +11,8 @@ for command in cargo initdb pg_ctl psql python3 redis-cli redis-server; do
 done
 
 TEST_DIR="$(mktemp -d)"
+TEST_DATABASE_USER="tt_backend_test_admin"
+TEST_DATABASE_PASSWORD="$(python3 -c 'import secrets;print(secrets.token_hex(24))')"
 POSTGRES_STARTED=false
 REDIS_PID=""
 free_port() {
@@ -34,7 +36,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-initdb -D "$TEST_DIR/postgres" --auth=trust --no-locale --encoding=UTF8 >/dev/null
+printf '%s\n' "$TEST_DATABASE_PASSWORD" > "$TEST_DIR/postgres-password"
+initdb -D "$TEST_DIR/postgres" --auth=scram-sha-256 --no-locale --encoding=UTF8 \
+  --username="$TEST_DATABASE_USER" --pwfile="$TEST_DIR/postgres-password" >/dev/null
 pg_ctl -D "$TEST_DIR/postgres" -l "$TEST_DIR/postgres.log" \
   -o "-p $PG_PORT -k $TEST_DIR -h 127.0.0.1" -w start >/dev/null
 POSTGRES_STARTED=true
@@ -47,9 +51,10 @@ for _ in $(seq 1 50); do
   if [ "$(redis-cli -p "$REDIS_PORT" ping 2>/dev/null || true)" = PONG ]; then break; fi
 done
 
-export IDENTITY_TEST_DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/postgres"
-export CASE_TEST_DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/case_tests"
-export DOCUMENT_TEST_DATABASE_URL="postgresql://127.0.0.1:$PG_PORT/document_tests"
+TEST_DATABASE_BASE="postgresql://$TEST_DATABASE_USER:$TEST_DATABASE_PASSWORD@127.0.0.1:$PG_PORT"
+export IDENTITY_TEST_DATABASE_URL="$TEST_DATABASE_BASE/postgres"
+export CASE_TEST_DATABASE_URL="$TEST_DATABASE_BASE/case_tests"
+export DOCUMENT_TEST_DATABASE_URL="$TEST_DATABASE_BASE/document_tests"
 export IDENTITY_TEST_REDIS_URL="redis://127.0.0.1:$REDIS_PORT/"
 psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 \
   -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests' >/dev/null

@@ -7,6 +7,10 @@ const messages = {
   permission_denied: 'No tienes permiso para realizar esta acci\u00f3n.',
   account_locked: 'Demasiados intentos. Espera 15 minutos antes de volver a intentarlo.',
   document_not_found: 'No se encontr\u00f3 un documento con ese identificador.',
+  document_version_required:
+    'Selecciona una versi\u00f3n del historial para realizar esta acci\u00f3n.',
+  document_version_exhausted:
+    'Este documento ha alcanzado el l\u00edmite de versiones. Conserva tu archivo y c\u00e1rgalo como un documento nuevo.',
   document_already_sealed: 'Este documento ya est\u00e1 sellado.',
   document_not_sealed: 'Primero sella el documento para verificarlo o descargar su evidencia.',
   user_already_exists:
@@ -70,7 +74,12 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       throw error;
     }
     const result = binary
-      ? { blob: await response.blob(), digest: response.headers.get('X-Document-Digest') }
+      ? {
+          blob: await response.blob(),
+          digest: response.headers.get('X-Document-Digest'),
+          documentId: response.headers.get('X-Document-Id'),
+          version: response.headers.get('X-Document-Version'),
+        }
       : response.status === 204
         ? null
         : await response.json();

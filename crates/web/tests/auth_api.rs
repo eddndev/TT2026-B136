@@ -1,90 +1,20 @@
+mod auth_support;
+use auth_support::UnusedDocuments;
+
 use std::sync::Arc;
 
-use application::documents::{
-    CaseDocumentSummary, CaseDocumentWorkflow, DocumentPage, DocumentQuery, EvidenceExport,
-};
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
 };
-use application::verification::VerificationReport;
 use application::ApplicationError;
 use axum::body::{to_bytes, Body};
 use axum::http::{Request, StatusCode};
-use domain::audit::ChainVerification;
-use domain::cases::CaseId;
-use domain::crypto::DocumentId;
 use domain::identity::{Permission, Role, UserId};
 use serde_json::Value;
 use tower::ServiceExt;
 use uuid::Uuid;
 use web::application_router;
 use zeroize::Zeroizing;
-
-struct UnusedDocuments;
-
-impl CaseDocumentWorkflow for UnusedDocuments {
-    fn list(
-        &self,
-        _token: &str,
-        _case_id: CaseId,
-        _query: DocumentQuery,
-    ) -> Result<DocumentPage, ApplicationError> {
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-
-    fn get(
-        &self,
-        _token: &str,
-        _case_id: CaseId,
-        _id: DocumentId,
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-
-    fn upload(
-        &self,
-        _token: &str,
-        _case_id: CaseId,
-        _name: &str,
-        _document: &[u8],
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
-        if _token == "client-token" {
-            return Err(ApplicationError::PermissionDenied);
-        }
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-
-    fn seal(
-        &self,
-        _token: &str,
-        _case_id: CaseId,
-        _id: DocumentId,
-    ) -> Result<CaseDocumentSummary, ApplicationError> {
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-
-    fn verify(
-        &self,
-        _token: &str,
-        _case_id: CaseId,
-        _id: DocumentId,
-    ) -> Result<VerificationReport, ApplicationError> {
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-
-    fn export_evidence(
-        &self,
-        _token: &str,
-        _case_id: CaseId,
-        _id: DocumentId,
-    ) -> Result<EvidenceExport, ApplicationError> {
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-
-    fn verify_audit(&self, _token: &str) -> Result<ChainVerification, ApplicationError> {
-        Err(ApplicationError::Port("unused".to_string()))
-    }
-}
 
 struct StubIdentity;
 

@@ -80,6 +80,12 @@ pub(super) async fn export_evidence(
         .runtime
         .run(move || workflow.export_evidence(&token, case_id, id))
         .await?;
+    evidence_response(export)
+}
+
+pub(super) fn evidence_response(
+    export: application::documents::EvidenceExport,
+) -> Result<Response, ApiError> {
     let disposition = format!("attachment; filename=\"{}\"", export.file_name);
     let mut response = Response::new(Body::from(export.archive));
     response
@@ -112,7 +118,10 @@ pub(super) async fn verify_audit(
     ))
 }
 
-fn required_header<'a>(headers: &'a HeaderMap, name: &'static str) -> Result<&'a str, ApiError> {
+pub(super) fn required_header<'a>(
+    headers: &'a HeaderMap,
+    name: &'static str,
+) -> Result<&'a str, ApiError> {
     let mut values = headers.get_all(name).iter();
     let value = values.next().and_then(|value| value.to_str().ok());
     if values.next().is_some() {

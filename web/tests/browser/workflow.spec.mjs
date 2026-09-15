@@ -109,13 +109,13 @@ test('failed verification clears a previous verdict and reopening detail resets 
   await openDocument(page);
   await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
-  await page.route('**/documents/*/verify', (route) =>
+  await page.route('**/documents/**/verify', (route) =>
     route.fulfill({ status: 500, json: { error: { code: 'internal_error' } } }),
   );
   await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByRole('alert')).toContainText('servidor');
   await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toHaveCount(0);
-  await page.unroute('**/documents/*/verify');
+  await page.unroute('**/documents/**/verify');
   await page.getByRole('button', { name: 'Verificar integridad' }).click();
   await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
   await openDocument(page);
@@ -126,7 +126,7 @@ test('failed evidence verdict shows the failed component', async ({ page }) => {
   await setup(page, 'owner', [{ ...document, sealed: true }]);
   await login(page);
   await openDocument(page);
-  await page.route('**/documents/*/verify', (route) =>
+  await page.route('**/documents/**/verify', (route) =>
     route.fulfill({
       json: {
         ...validReport,
@@ -176,7 +176,7 @@ test('login upload seal verify download logout follow the case HTTP contract', a
   await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
   const downloaded = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Descargar evidencia' }).click();
-  expect((await downloaded).suggestedFilename()).toBe(`evidencia-${id}.zip`);
+  expect((await downloaded).suggestedFilename()).toBe(`evidencia-${id}-v1.zip`);
   const upload = requests.find(
     (item) => item.path.endsWith('/documents') && item.method === 'POST',
   );

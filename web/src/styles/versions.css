@@ -1,0 +1,65 @@
+.version-heading {
+  margin-top: 24px;
+}
+.version-history {
+  margin-bottom: 20px;
+}
+.version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.version-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  color: var(--navy);
+  text-align: left;
+}
+.version-row.selected {
+  border-color: #a9bde9;
+  background: #f6f9ff;
+}
+.version-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.version-text strong,
+.version-text small {
+  display: block;
+}
+.version-text strong {
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.selected-version-label,
+.version-origin {
+  margin: 16px 0;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  .version-heading {
+    align-items: stretch;
+  }
+  .version-heading > button {
+    width: 100%;
+  }
+  .version-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .version-row .file-icon {
+    display: none;
+  }
+  .version-text {
+    min-width: 150px;
+  }
+}

@@ -77,6 +77,18 @@ pub enum ApplicationError {
     #[error("document already exists: {0}")]
     DocumentAlreadyExists(String),
 
+    /// An append expected a different current version.
+    #[error("document version changed; refresh before appending")]
+    DocumentVersionConflict,
+
+    /// A document has multiple versions and the operation did not select one.
+    #[error("document has multiple versions; select an explicit version")]
+    DocumentVersionRequired,
+
+    /// A document cannot increment its maximum version number.
+    #[error("document version counter is exhausted")]
+    DocumentVersionExhausted,
+
     /// A document already has immutable signature and timestamp evidence.
     #[error("document is already sealed: {0}")]
     DocumentAlreadySealed(String),

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Rehearse encrypted legacy cutover and backup restoration in api-demo.sh's cluster.
 
+# shellcheck source=scripts/api-version-demo.sh
+source "$REPO_ROOT/scripts/api-version-demo.sh"
+
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID"
@@ -32,7 +35,8 @@ migration_demo_start() {
 migration_demo_state() {
   psql "$1" -v ON_ERROR_STOP=1 -Atc \
     "SELECT jsonb_build_object(
-      'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id) FROM documents d),
+      'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),
+      'series',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM document_series s),
       'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a),
       'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY fingerprint) FROM migration_receipts r),
       'users',(SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u),
@@ -43,12 +47,12 @@ migration_demo_state() {
 
 migration_demo_export() {
   local case_id="$1" destination="$2"
-  curl -fsS -X POST "$BASE_URL/api/v1/cases/$case_id/documents/$DOCUMENT_ID/verify" \
+  curl -fsS -X POST "$BASE_URL/api/v1/cases/$case_id/documents/$DOCUMENT_ID/versions/1/verify" \
     -H "Authorization: Bearer $RECOVERY_TOKEN" \
     | jq -e '.verdict == "valid" and .integrity.status == "passed"
       and .signature.status == "passed" and .certificate.status == "passed"
       and .timestamp.status == "passed"' >/dev/null
-  curl -fsS "$BASE_URL/api/v1/cases/$case_id/documents/$DOCUMENT_ID/evidence" \
+  curl -fsS "$BASE_URL/api/v1/cases/$case_id/documents/$DOCUMENT_ID/versions/1/evidence" \
     -H "Authorization: Bearer $RECOVERY_TOKEN" -o "$destination.zip"
   cmp "$WORK_DIR/owner-evidence.zip" "$destination.zip"
   unzip -t "$destination.zip" >/dev/null
@@ -73,6 +77,10 @@ migration_demo() {
   restored_url="postgresql://127.0.0.1:$PG_PORT/restored"
   migration_demo_stop
   mkdir -p "$legacy_dir/documents"
+
+  # A legacy file has one snapshot per UUID; do not silently overwrite history.
+  [ "$(psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \
+    'SELECT COUNT(*) FROM (SELECT id FROM documents GROUP BY id HAVING COUNT(*) <> 1) duplicates')" -eq 0 ]
 
   # Reconstruct the versioned JSON format from actual encrypted, sealed records.
   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \
@@ -143,6 +151,7 @@ PY
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/imported"
   migration_demo_start "$runtime_url" "$legacy_dir" imported
   migration_demo_export "$case_id" "$WORK_DIR/imported-evidence"
+  version_demo "$case_id"
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
 
@@ -157,6 +166,7 @@ PY
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/restored"
   migration_demo_start "$runtime_url" "$legacy_dir" restored
   migration_demo_export "$case_id" "$WORK_DIR/restored-evidence"
+  version_demo_restored "$case_id"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -164,3 +174,4 @@ PY
 migration_demo
 unset -f migration_demo migration_demo_stop migration_demo_start
 unset -f migration_demo_state migration_demo_export
+unset -f version_demo version_demo_request version_demo_restored

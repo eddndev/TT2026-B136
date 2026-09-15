@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy, tick } from 'svelte';
   import Icon from './Icon.svelte';
-  import DocumentDetail from './DocumentDetail.svelte';
+  import DocumentVersions from './DocumentVersions.svelte';
   import DocumentList from './DocumentList.svelte';
   import UploadDocument from './UploadDocument.svelte';
   import Pagination from './Pagination.svelte';
@@ -93,7 +93,7 @@
   }
   function update(document) {
     if (!alive || selected?.id !== document.id) return;
-    const changed = selected.sealed !== document.sealed;
+    const changed = selected.sealed !== document.sealed || selected.version !== document.version;
     selected = document;
     if (changed) load(offset);
   }
@@ -254,7 +254,7 @@
   </section>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if selected}<div class="document-focus" tabindex="-1" bind:this={detail}>
-      {#key selected.id}<DocumentDetail
+      {#key selected.id}<DocumentVersions
           api={scoped}
           {user}
           document={selected}
