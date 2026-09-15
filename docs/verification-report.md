@@ -148,6 +148,35 @@ metadatos y el listado hace consultas adicionales acotadas por página; no se
 presentan estos ensayos como medición de capacidad de producción. La TSA local
 sigue siendo evidencia técnica, sin constancia de un PSC autorizado.
 
+### Seguimiento de sincronización del navegador en CI
+
+El 15 de septiembre de 2026 UTC, una ejecución de navegador agotó su espera al
+buscar el expediente básico, mientras la ejecución paralela del mismo código
+aprobó. El guion podía continuar con un PUT pendiente porque esperaba un título
+que ya estaba visible; también podía enviar el filtro mientras seguía pendiente
+la consulta inicial del índice. El job fallido no conservó capturas ni contexto,
+por lo que no se atribuye retrospectivamente una respuesta HTTP específica.
+
+Dos pruebas nuevas retienen explícitamente las respuestas para reproducir esos
+órdenes. Ambas fallaron antes de corregir los helpers. Una consulta filtrada
+superpuesta recibe `503` en el ensayo controlado: reproduce un camino compatible
+con la admisión limitada, sin afirmar que fue la respuesta observada en CI.
+El guion corregido espera el PUT del expediente exacto, su revisión confirmada y
+el cierre del editor; las búsquedas esperan que termine la lectura precedente y
+comprueban la respuesta `200`. No se cambió la aplicación, su concurrencia ni
+el tiempo máximo de prueba.
+
+Las dos regresiones aprobaron después de la corrección. La suite simulada
+completa pasó **90 pruebas en 32.7 segundos**, incluido ese par nuevo. Los
+**cuatro recorridos con servicios reales aprobaron en 57.4 segundos**, con
+18.8 segundos para administración penal, y el formato aprobó. La revisión final
+comprueba 140 fuentes/configuraciones ASCII menores de 400 líneas; las 337
+fuentes Rust, migraciones y manifiestos conservan los hashes usados en las suites
+globales. El workflow ahora conserva PNG y contexto de los fallos de
+navegador durante siete días. Las 88 pruebas y el PDF del corte anterior
+conservan su condición de evidencia histórica; las fuentes del manuscrito no
+cambiaron por esta corrección del guion.
+
 ## Corte reproducido: directorio de participantes
 
 - Fecha local: 14 de septiembre de 2026 (`America/Mexico_City`); registros UTC

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers.mjs';
+import { saveAdministration } from '../case-administration-workflow.mjs';
 import {
   accounts,
   createPenal,
@@ -48,13 +49,13 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
   await capture(page, testInfo, 'penal-legacy-pending');
   await page.getByRole('button', { name: 'Editar datos b\u00e1sicos', exact: true }).click();
   await page.getByLabel('Referencia interna', { exact: true }).fill('LEGACY-REVIEWED');
-  await page.getByRole('button', { name: 'Guardar datos b\u00e1sicos', exact: true }).click();
+  await saveAdministration(page, accounts.legacyCase, 'Guardar datos b\u00e1sicos', 1);
   await expect(
     page.getByRole('heading', { name: 'Ficha penal pendiente', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Completar ficha penal', exact: true }).click();
   await fillProfile(page, 'PENAL-LEGACY-001');
-  await page.getByRole('button', { name: 'Guardar ficha penal', exact: true }).click();
+  await saveAdministration(page, accounts.legacyCase, 'Guardar ficha penal', 2);
   await expect(
     page.getByRole('heading', { name: 'Etapa sin registrar', exact: true }),
   ).toBeVisible();
@@ -65,7 +66,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
   ).toBeVisible();
   await page.getByRole('button', { name: 'Completar ficha penal', exact: true }).click();
   await fillProfile(page, 'PENAL-BASIC-001');
-  await page.getByRole('button', { name: 'Guardar ficha penal', exact: true }).click();
+  await saveAdministration(page, accounts.basicCase, 'Guardar ficha penal', 2);
   await expect(
     page.getByRole('heading', { name: 'Ficha penal completa', exact: true }),
   ).toBeVisible();

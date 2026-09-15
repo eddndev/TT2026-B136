@@ -1,15 +1,10 @@
 import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { fixture, loginAs } from './helpers.mjs';
+import { navigate, openCase as openStaffCase } from '../case-administration-workflow.mjs';
+export { navigate };
 export const accounts = fixture.caseAdministration;
-export async function navigate(page, name) {
-  const menu = page.getByRole('button', { name: 'Abrir men\u00fa', exact: true });
-  if (await menu.isVisible()) await menu.click();
-  await page
-    .getByRole('navigation', { name: 'Navegaci\u00f3n principal' })
-    .getByRole('button', { name, exact: true })
-    .click();
-}
+export const openCase = (page, record = accounts.basicCase) => openStaffCase(page, record);
 export async function fillProfile(page, prefix) {
   for (const [label, value] of [
     ['NUC', `${prefix}-NUC`],
@@ -40,17 +35,6 @@ export async function createPenal(page, title, prefix) {
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
   return (await response).json();
-}
-export async function openCase(page, record = accounts.basicCase) {
-  await navigate(page, 'Expedientes');
-  await page
-    .getByRole('combobox', { name: 'Estado administrativo', exact: true })
-    .selectOption('all');
-  await page.getByRole('button', { name: 'Buscar expedientes', exact: true }).click();
-  await page.getByRole('button', { name: new RegExp(record.title) }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-  ).toBeVisible();
 }
 export async function capture(page, testInfo, name, locator) {
   await page.evaluate(() => {

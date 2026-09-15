@@ -72,3 +72,13 @@ jobs:
         working-directory: web
       - name: Run browser against Rust and disposable services
         run: bash scripts/web-demo.sh
+      - name: Preserve failed browser screenshots and context
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-browser-failure
+          path: |
+            web/test-results-live/**/*.png
+            web/test-results-live/**/error-context.md
+          if-no-files-found: ignore
+          retention-days: 7
