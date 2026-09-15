@@ -26,6 +26,9 @@ use zeroize::Zeroizing;
 
 use crate::error::ApplicationError;
 
+mod limits;
+pub use limits::VaultReadLimits;
+
 /// Leading magic bytes of every vault file.
 pub const VAULT_MAGIC: &[u8; 5] = b"DVLT1";
 

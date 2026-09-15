@@ -217,6 +217,22 @@ impl DocumentProcessor {
         validate_record_with_ports(record, &self.kek, &self.validation_ports())
     }
 
+    /// Validates each unique support once and lends the resulting bytes to one batch.
+    pub fn validate_support_batch(
+        &self,
+        records: &[DocumentRecord],
+        limits: &super::StageSupportReadLimits,
+        validator: &dyn super::DocumentFormatBatchValidator,
+    ) -> Result<Vec<super::StageDocumentFormat>, ApplicationError> {
+        super::format::validate_support_batch(
+            records,
+            &self.kek,
+            &self.validation_ports(),
+            limits,
+            validator,
+        )
+    }
+
     pub fn verify_audit(
         &self,
         entries: &[ChainedEvent],
