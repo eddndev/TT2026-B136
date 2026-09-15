@@ -68,12 +68,26 @@ consultar o detener ese proceso.
    caracteres, compatible con `X-Document-Name` y el ZIP. El cuerpo se transmite
    como bytes, sin multipart. El listado se consulta nuevamente después de la
    carga y del sellado.
-6. Abrir una fila o usar un UUID del expediente consulta metadatos por GET:
+6. Abrir una fila o usar el identificador de un documento del expediente consulta
+   la versión actual por GET:
    nombre, versión, digest y estado. Esa lectura no dispara verificación.
    **Verificar integridad** comprueba explícitamente los cuatro componentes
    de la evidencia. La ficha conserva las pestañas Resumen, Verificación y
    Evidencia, con confirmación antes de sellar y descarga ZIP cuando hay sello.
-7. Como Owner, crear integrantes y verificar la cadena de auditoría.
+7. Consultar el historial descendente y usar **Cargar versiones anteriores**
+   para continuar desde el cursor devuelto por el servidor. Cada fila conserva
+   su nombre y estado de sellado. La ficha distingue la versión actual de una
+   histórica y dirige el sellado, la verificación y la descarga a ese número
+   exacto. La descarga incluye la versión en el nombre del ZIP.
+8. **Agregar versión** carga otro archivo al mismo documento con la versión
+   actual conocida como condición. El archivo documental pasa a mostrar la
+   versión nueva; las anteriores conservan contenido y evidencia. Si otra
+   persona agrega una versión antes, el conflicto conserva el archivo y su
+   nombre en el diálogo: **Consultar versión actual** actualiza la condición,
+   pero se requiere otro clic en **Guardar nueva versión** para enviar de nuevo.
+   Si se alcanza el límite de versiones, el archivo también se conserva y el
+   envío queda bloqueado; se indica cargarlo como un documento nuevo.
+9. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
@@ -84,7 +98,7 @@ Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesi
 La identidad visual, los recursos de marca, la tipografía, los colores, las
 proporciones de navegación y los componentes documentales se conservan. Las
 pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados
-de Qadra. Los ajustes adicionales están en `src/styles/cases.css`.
+de Qadra. Los ajustes adicionales están en `src/styles/cases.css` y `src/styles/versions.css`.
 
 Los controles respetan los roles del backend. Owner ve todos los expedientes;
 Litigator y Paralegal requieren asignación vigente para consultar documentos.
@@ -109,8 +123,15 @@ sobre permisos, reglas de negocio y criptografía.
 - Las asignaciones de acceso se gestionan mediante la API. La interfaz para
   elegir usuarios por nombre o correo requiere el directorio de usuarios y
   continúa pendiente. No se presenta un formulario de asignaciones por UUID.
-- Participantes procesales, audiencias, plazos e historial de versiones siguen
-  pendientes. La API tampoco ofrece cambio/restablecimiento de contraseña.
+- La clasificación documental, los participantes procesales, las audiencias y
+  los plazos siguen pendientes. La API tampoco ofrece cambio/restablecimiento
+  de contraseña.
+- Si un documento importado empieza en una versión posterior a 1, el historial
+  muestra explícitamente su primera versión disponible; no inventa versiones
+  anteriores. Las cargas posteriores no reemplazan evidencia histórica.
+- Cambiar de versión descarta los resultados y archivos pendientes de la
+  selección anterior. La ficha comprueba que el informe de verificación y las
+  cabeceras del ZIP correspondan al documento y versión seleccionados.
 - La TSA local produce evidencia técnica, no una constancia NOM-151 de un PSC.
 
 ## Verificación
@@ -129,12 +150,20 @@ reproducibles basadas en los DTO de Rust. Comprueban formularios, solicitudes
 binarias, cabeceras, MFA, roles, consultas persistentes, búsqueda, paginación,
 metadatos por GET, descarga, navegación y adaptación móvil. Incluyen respuestas
 tardías de sesión, expediente y búsqueda, además de revocación de acceso.
+El historial, las acciones sobre versiones históricas, la paginación por cursor
+y los conflictos de carga tienen pruebas propias. Cada ejecución inicia un
+servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
+Ejecuta las pruebas simuladas y reales de forma secuencial: Astro admite una
+sola instancia de desarrollo por proyecto, incluso con puertos diferentes.
 Estas pruebas simuladas no demuestran ejecución con PostgreSQL, Redis o la TSA.
 Las capturas quedan en `web/test-results/` y no se versionan.
 
 La prueba separada `tests/live/` usa la API Rust con PostgreSQL, Redis y TSA
 locales desechables. Se ejecuta desde la raíz con `scripts/web-demo.sh`, que
-prepara su entorno y usa `playwright.live.config.mjs`. Las capturas quedan en
+prepara su entorno y usa `playwright.live.config.mjs`. El recorrido agrega dos
+versiones con nombres diferentes, sella ambas, descarga la evidencia histórica,
+compara los bytes del ZIP original y vuelve a consultar tras iniciar otra sesión.
+Las capturas quedan en
 `web/test-results-live/`. No uses bases de datos ni credenciales de usuarios
 reales para esta prueba.
 

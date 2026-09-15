@@ -1,3 +1,5 @@
+import { versionApi } from './version-api.mjs';
+
 function query(values) {
   return new URLSearchParams(
     Object.entries(values).filter(([, value]) => value !== undefined && value !== ''),
@@ -28,6 +30,7 @@ export function caseApi(request) {
         return result;
       };
       return {
+        ...versionApi(scoped),
         dispose: () => {
           active = false;
         },

@@ -41,6 +41,15 @@ async function setup(page, role = 'owner') {
           has_more: !url.searchParams.get('name') && url.searchParams.get('offset') === '0',
         },
       });
+    if (path.endsWith('/versions'))
+      return route.fulfill({
+        json: {
+          versions: [doc],
+          has_more: false,
+          next_before_version: null,
+          first_available_version: 1,
+        },
+      });
     if (path.endsWith(`/documents/${id}`)) return route.fulfill({ json: doc });
     if (path.includes('/members/')) return route.fulfill({ status: 204 });
     return route.fulfill({ status: 404 });
