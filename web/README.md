@@ -66,8 +66,10 @@ consultar o detener ese proceso.
    selector filtra por sellado. Cambiar los filtros vuelve a la primera página.
 5. Subir un archivo de hasta 16 MiB. Se sugiere un nombre ASCII de hasta 124
    caracteres, compatible con `X-Document-Name` y el ZIP. El cuerpo se transmite
-   como bytes, sin multipart. El listado se consulta nuevamente después de la
-   carga y del sellado.
+   junto con el tipo, la clasificación y las etiquetas opcionales mediante un
+   único multipart. El servidor confirma archivo y clasificación en una sola
+   transacción. Incluso una carga sin valores organizativos crea su primera
+   revisión vacía. El listado se consulta después de la carga y del sellado.
 6. Abrir una fila o usar el identificador de un documento del expediente consulta
    la versión actual por GET:
    nombre, versión, digest y estado. Esa lectura no dispara verificación.
@@ -87,7 +89,21 @@ consultar o detener ese proceso.
    pero se requiere otro clic en **Guardar nueva versión** para enviar de nuevo.
    Si se alcanza el límite de versiones, el archivo también se conserva y el
    envío queda bloqueado; se indica cargarlo como un documento nuevo.
-9. Como Owner, crear integrantes y verificar la cadena de auditoría.
+9. **Editar clasificación** organiza el documento completo por tipo, clasificación
+   y etiquetas. Los dos campos de texto son opcionales y admiten hasta 80
+   caracteres cada uno; hasta 20 etiquetas individuales admiten 40 caracteres.
+   Las comas y Unicode forman parte del valor, sin separar etiquetas ni cambiar
+   mayúsculas o acentos. Una etiqueta pendiente se valida al guardar.
+10. **Ver historial de clasificación** muestra las revisiones descendentes con
+    fecha y correo/UUID del autor capturados en cada cambio. Se distingue de las
+    versiones de contenido. Editar o limpiar la clasificación no cambia las
+    firmas, sellos ni ZIP históricos. Un conflicto conserva el formulario;
+    consultar los valores actuales y pulsar **Guardar mis cambios** confirma
+    el reemplazo, sin reintentar automáticamente.
+11. **Filtros de clasificación** busca tipo, clasificación y una etiqueta exactos,
+    combinados con nombre y estado. Estos filtros distinguen mayúsculas y acentos
+    y se conservan al paginar. Solo se filtran los valores actuales del documento.
+12. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
@@ -98,7 +114,7 @@ Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesi
 La identidad visual, los recursos de marca, la tipografía, los colores, las
 proporciones de navegación y los componentes documentales se conservan. Las
 pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados
-de Qadra. Los ajustes adicionales están en `src/styles/cases.css` y `src/styles/versions.css`.
+de Qadra. Los ajustes adicionales están en `src/styles/cases.css`, `src/styles/versions.css` y `src/styles/metadata.css`.
 
 Los controles respetan los roles del backend. Owner ve todos los expedientes;
 Litigator y Paralegal requieren asignación vigente para consultar documentos.
@@ -123,8 +139,7 @@ sobre permisos, reglas de negocio y criptografía.
 - Las asignaciones de acceso se gestionan mediante la API. La interfaz para
   elegir usuarios por nombre o correo requiere el directorio de usuarios y
   continúa pendiente. No se presenta un formulario de asignaciones por UUID.
-- La clasificación documental, los participantes procesales, las audiencias y
-  los plazos siguen pendientes. La API tampoco ofrece cambio/restablecimiento
+- Los participantes procesales, las audiencias y los plazos siguen pendientes. La API tampoco ofrece cambio/restablecimiento
   de contraseña.
 - Si un documento importado empieza en una versión posterior a 1, el historial
   muestra explícitamente su primera versión disponible; no inventa versiones
@@ -132,6 +147,13 @@ sobre permisos, reglas de negocio y criptografía.
 - Cambiar de versión descarta los resultados y archivos pendientes de la
   selección anterior. La ficha comprueba que el informe de verificación y las
   cabeceras del ZIP correspondan al documento y versión seleccionados.
+- La clasificación actual tiene una revisión independiente de la versión del
+  archivo. Los documentos existentes sin cambios de clasificación muestran
+  revisión 0, sin inventar actor ni fecha. Limpiar o guardar los mismos valores
+  crea otra revisión; no vuelve a 0. La procedencia se consulta en su historial.
+- Si una respuesta de carga o guardado se pierde, el formulario se conserva y
+  se pide consultar los datos guardados antes de repetir: un fallo de conexión
+  no demuestra que el servidor haya rechazado la escritura.
 - La TSA local produce evidencia técnica, no una constancia NOM-151 de un PSC.
 
 ## Verificación
@@ -151,7 +173,9 @@ binarias, cabeceras, MFA, roles, consultas persistentes, búsqueda, paginación,
 metadatos por GET, descarga, navegación y adaptación móvil. Incluyen respuestas
 tardías de sesión, expediente y búsqueda, además de revocación de acceso.
 El historial, las acciones sobre versiones históricas, la paginación por cursor
-y los conflictos de carga tienen pruebas propias. Cada ejecución inicia un
+y los conflictos de carga tienen pruebas propias. La clasificación cubre
+Unicode/comas, multipart, revisiones esperadas, historial, filtros, denegaciones
+y respuestas tardías independientes del contenido. Cada ejecución inicia un
 servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
 Ejecuta las pruebas simuladas y reales de forma secuencial: Astro admite una
 sola instancia de desarrollo por proyecto, incluso con puertos diferentes.
@@ -163,8 +187,9 @@ locales desechables. Se ejecuta desde la raíz con `scripts/web-demo.sh`, que
 prepara su entorno y usa `playwright.live.config.mjs`. El recorrido agrega dos
 versiones con nombres diferentes, sella ambas, descarga la evidencia histórica,
 compara los bytes del ZIP original y vuelve a consultar tras iniciar otra sesión.
-Las capturas quedan en
-`web/test-results-live/`. No uses bases de datos ni credenciales de usuarios
+Un segundo recorrido prueba carga clasificada, conflicto entre dos sesiones,
+limpieza, persistencia y ZIP idénticos antes/después de clasificar.
+Las capturas quedan en `web/test-results-live/`. No uses bases de datos ni credenciales de usuarios
 reales para esta prueba.
 
 La verificación local más reciente se registra por separado de las pruebas

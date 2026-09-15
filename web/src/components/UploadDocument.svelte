@@ -1,9 +1,15 @@
 <script>
+  import { onDestroy } from 'svelte';
+  import MetadataFields from './MetadataFields.svelte';
+  import { metadataDraft, mutationError } from '../lib/document-metadata.mjs';
   import Icon from './Icon.svelte';
   import { safeFilename, validateUpload } from '../lib/documents.mjs';
   export let api;
   export let onuploaded;
   let dialog;
+  let fields;
+  let draft = metadataDraft();
+  let alive = true;
   let file = null;
   let name = '';
   let busy = false;
@@ -24,24 +30,38 @@
     dialog.close();
     file = null;
     name = '';
+    draft = metadataDraft();
+    fields?.reset();
     if (input) input.value = '';
   }
   async function submit(event) {
     event.preventDefault();
+    if (busy) return;
     error = validateUpload(file, name);
     if (error) return;
+    let metadata;
+    try {
+      metadata = fields.values();
+    } catch (failure) {
+      error = failure.field === 'tag' ? '' : failure.message;
+      return;
+    }
     busy = true;
     try {
-      const result = await api.upload(file, name.trim());
+      const result = await api.uploadWithMetadata(file, name.trim(), metadata);
+      if (!alive) return;
       onuploaded(result);
       busy = false;
       close();
     } catch (failure) {
-      error = failure.message;
+      if (alive) error = mutationError(failure, 'cargar');
     } finally {
-      busy = false;
+      if (alive) busy = false;
     }
   }
+  onDestroy(() => {
+    alive = false;
+  });
 </script>
 
 <dialog
@@ -49,12 +69,8 @@
   bind:this={dialog}
   aria-labelledby="upload-title"
   oncancel={(event) => {
-    if (busy) event.preventDefault();
-    else {
-      file = null;
-      name = '';
-      if (input) input.value = '';
-    }
+    event.preventDefault();
+    close();
   }}
 >
   <div class="dialog-heading">
@@ -112,6 +128,7 @@
       Te sugerimos un nombre compatible para que puedas descargar su evidencia despu&#233;s. Puedes
       editarlo antes de cargar.
     </p>
+    <MetadataFields prefix="upload-metadata" bind:this={fields} bind:draft disabled={busy} />
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="dialog-actions">
       <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button

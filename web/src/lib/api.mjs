@@ -19,6 +19,9 @@ const messages = {
   invalid_input: 'Revisa los datos ingresados y los l\u00edmites de cada campo.',
   case_not_found: 'El expediente no est\u00e1 disponible o ya no tienes acceso.',
   user_not_found: 'No se encontr\u00f3 un usuario activo con ese identificador.',
+  invalid_document_metadata: 'Revisa el tipo, la clasificaci\u00f3n y las etiquetas ingresadas.',
+  document_metadata_revision_exhausted:
+    'Este documento ha alcanzado el l\u00edmite de cambios de clasificaci\u00f3n. No se pueden registrar m\u00e1s cambios.',
   invalid_document_name: 'El nombre del documento no es v\u00e1lido.',
 };
 

@@ -3,6 +3,12 @@ import { expect } from '@playwright/test';
 export const caseId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 export const otherCaseId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 export const id = '78ac67b1-ab36-49ea-9b08-f951f341f081';
+export const emptyMetadata = {
+  metadata_revision: 0,
+  document_type: null,
+  classification: null,
+  tags: [],
+};
 export const document = {
   case_id: caseId,
   id,
@@ -31,7 +37,10 @@ export const validReport = {
 
 export async function setup(page, role = 'owner', initialDocuments = [document]) {
   const requests = [];
-  let documents = initialDocuments.map((record) => ({ ...record }));
+  let documents = initialDocuments.map((record) => ({
+    ...record,
+    current_metadata: record.current_metadata || emptyMetadata,
+  }));
   let sequence = 0;
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
@@ -76,6 +85,31 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       });
     if (!path.startsWith(`/api/v1/cases/${caseId}/documents`))
       return route.fulfill({ status: 404 });
+    if (path.endsWith('/metadata'))
+      return route.fulfill({
+        json: {
+          case_id: caseId,
+          id,
+          ...(documents.find((item) => item.id === id)?.current_metadata || emptyMetadata),
+        },
+      });
+    if (path.endsWith('/metadata/history'))
+      return route.fulfill({
+        json: { case_id: caseId, id, revisions: [], has_more: false, next_before_revision: null },
+      });
+    if (path.endsWith('/documents/with-metadata')) {
+      const form = await new Response(request.postDataBuffer(), {
+        headers: { 'Content-Type': request.headers()['content-type'] },
+      }).formData();
+      const metadata = JSON.parse(await form.get('metadata').text());
+      const uploaded = {
+        ...document,
+        name: request.headers()['x-document-name'],
+        current_metadata: { ...metadata, metadata_revision: 1 },
+      };
+      documents = [uploaded];
+      return route.fulfill({ json: uploaded, status: 201 });
+    }
     if (path.endsWith('/documents')) {
       if (request.method() === 'POST') {
         const uploaded = { ...document, name: request.headers()['x-document-name'] };

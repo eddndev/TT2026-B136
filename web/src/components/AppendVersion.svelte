@@ -6,6 +6,7 @@
   export let document;
   export let onappended;
   export let oncurrent;
+  export let ondenied = () => {};
   let dialog;
   let file = null;
   let name = '';
@@ -44,7 +45,10 @@
       oncurrent(latest);
       conflict = false;
     } catch (failure) {
-      if (alive) error = failure.message;
+      if (alive) {
+        error = failure.message;
+        if ([403, 404].includes(failure.status)) ondenied(failure);
+      }
     } finally {
       if (alive) busy = false;
     }
@@ -63,6 +67,7 @@
       close();
     } catch (failure) {
       if (!alive) return;
+      if ([403, 404].includes(failure.status)) ondenied(failure);
       conflict = failure.code === 'document_version_conflict';
       exhausted = failure.code === 'document_version_exhausted';
       error = conflict

@@ -1,4 +1,5 @@
 import { versionApi } from './version-api.mjs';
+import { metadataApi } from './metadata-api.mjs';
 
 function query(values) {
   return new URLSearchParams(
@@ -31,11 +32,12 @@ export function caseApi(request) {
       };
       return {
         ...versionApi(scoped),
+        ...metadataApi(scoped, id),
         dispose: () => {
           active = false;
         },
-        list: ({ limit = 50, offset = 0, name, sealed } = {}) =>
-          scoped(`?${query({ limit, offset, name, sealed })}`),
+        list: ({ limit = 50, offset = 0, name, sealed, document_type, classification, tag } = {}) =>
+          scoped(`?${query({ limit, offset, name, sealed, document_type, classification, tag })}`),
         detail: (documentId) => scoped(`/${encodeURIComponent(documentId)}`),
         upload: (file, name) =>
           scoped('', {

@@ -58,9 +58,9 @@ test('upload normalizes names and refreshed server filters preserve stored recor
   await page.getByRole('button', { name: 'Cargar documento' }).click();
   await expect(page.getByRole('heading', { name: 'Demanda-inicial.pdf' })).toBeVisible();
   expect(
-    requests.find((item) => item.path.endsWith('/documents') && item.method === 'POST').headers[
-      'x-document-name'
-    ],
+    requests.find(
+      (item) => item.path.endsWith('/documents/with-metadata') && item.method === 'POST',
+    ).headers['x-document-name'],
   ).toBe('Demanda-inicial.pdf');
   await page.getByRole('button', { name: 'Vista de tarjetas' }).click();
   await expect(page.locator('.document-card')).toHaveCount(1);
@@ -178,11 +178,19 @@ test('login upload seal verify download logout follow the case HTTP contract', a
   await page.getByRole('button', { name: 'Descargar evidencia' }).click();
   expect((await downloaded).suggestedFilename()).toBe(`evidencia-${id}-v1.zip`);
   const upload = requests.find(
-    (item) => item.path.endsWith('/documents') && item.method === 'POST',
+    (item) => item.path.endsWith('/documents/with-metadata') && item.method === 'POST',
   );
-  expect(upload.path).toBe(`/api/v1/cases/${caseId}/documents`);
+  expect(upload.path).toBe(`/api/v1/cases/${caseId}/documents/with-metadata`);
   expect(upload.headers.authorization).toBe('Bearer test-token-1');
-  expect(upload.body).toBe('document bytes');
+  const form = await new Response(upload.body, {
+    headers: { 'Content-Type': upload.headers['content-type'] },
+  }).formData();
+  expect(await form.get('file').text()).toBe('document bytes');
+  expect(JSON.parse(await form.get('metadata').text())).toEqual({
+    document_type: null,
+    classification: null,
+    tags: [],
+  });
   expect(
     requests.filter((item) => item.path.endsWith('/documents') && item.method === 'GET').length,
   ).toBeGreaterThanOrEqual(3);

@@ -9,6 +9,7 @@
   export let user;
   export let document;
   export let onupdate;
+  export let ondenied = () => {};
   let current = document;
   let selected = document;
   let versions = [];
@@ -23,7 +24,8 @@
   let alive = true;
   let historyGeneration = 0;
   let detailGeneration = 0;
-  function denyAccess() {
+  function denyAccess(failure) {
+    ondenied(failure);
     unavailable = true;
     selected = null;
     versions = [];
@@ -63,7 +65,7 @@
     } catch (failure) {
       if (alive && request === historyGeneration) {
         error = failure.message;
-        if ([403, 404].includes(failure.status)) denyAccess();
+        if ([403, 404].includes(failure.status)) denyAccess(failure);
       }
     } finally {
       if (alive && request === historyGeneration) busy = false;
@@ -81,7 +83,7 @@
     } catch (failure) {
       if (alive && request === detailGeneration) {
         error = failure.message;
-        if ([403, 404].includes(failure.status)) denyAccess();
+        if ([403, 404].includes(failure.status)) denyAccess(failure);
       }
     } finally {
       exact.dispose();
@@ -135,6 +137,7 @@
     {api}
     document={current}
     onappended={appended}
+    {ondenied}
     oncurrent={(record) => {
       updateCurrent(record);
       history();
@@ -163,4 +166,5 @@
       {user}
       document={selected}
       onupdate={update}
+      {ondenied}
     />{/key}{/if}

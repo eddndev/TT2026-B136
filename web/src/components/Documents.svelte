@@ -1,7 +1,8 @@
 <script>
   import { onMount, onDestroy, tick } from 'svelte';
   import Icon from './Icon.svelte';
-  import DocumentVersions from './DocumentVersions.svelte';
+  import DocumentWorkspace from './DocumentWorkspace.svelte';
+  import DocumentFilters from './DocumentFilters.svelte';
   import DocumentList from './DocumentList.svelte';
   import UploadDocument from './UploadDocument.svelte';
   import Pagination from './Pagination.svelte';
@@ -16,7 +17,8 @@
   let selected = null;
   let upload;
   let reference = '';
-  let search = '';
+  let filters;
+  let metadataQuery = {};
   let name = '';
   let filter = 'all';
   let layout = 'list';
@@ -44,6 +46,7 @@
       const result = await scoped.list({
         limit: 50,
         offset,
+        ...metadataQuery,
         name,
         sealed: filter === 'all' ? undefined : filter === 'sealed',
       });
@@ -93,8 +96,28 @@
   }
   function update(document) {
     if (!alive || selected?.id !== document.id) return;
-    const changed = selected.sealed !== document.sealed || selected.version !== document.version;
-    selected = document;
+    const previous = selected.current_metadata;
+    const incoming = document.current_metadata;
+    const metadata =
+      incoming && (!previous || incoming.metadata_revision >= previous.metadata_revision)
+        ? incoming
+        : previous;
+    const changed =
+      selected.sealed !== document.sealed ||
+      selected.version !== document.version ||
+      previous?.metadata_revision !== metadata?.metadata_revision;
+    selected = { ...document, current_metadata: metadata };
+    if (changed) load(offset);
+  }
+  function updateMetadata(record) {
+    if (
+      !alive ||
+      !selected ||
+      record.metadata_revision < (selected.current_metadata?.metadata_revision ?? 0)
+    )
+      return;
+    const changed = selected.current_metadata?.metadata_revision !== record.metadata_revision;
+    selected = { ...selected, current_metadata: record };
     if (changed) load(offset);
   }
   function uploaded(document) {
@@ -104,13 +127,22 @@
     load(0);
     focus();
   }
-  function applySearch(event) {
-    event.preventDefault();
-    name = search.trim();
+  function applySearch(query) {
+    ({ name, filter, ...metadataQuery } = query);
     selected = null;
     invalidateDetail();
     load(0);
   }
+  function denyAccess(failure) {
+    selected = null;
+    documents = [];
+    hasMore = false;
+    invalidateDetail();
+    listGeneration++;
+    busy = false;
+    error = failure.message;
+  }
+  $: hasFilters = !!name || filter !== 'all' || Object.keys(metadataQuery).length > 0;
   onMount(() => {
     if (can(user.role, 'documents')) {
       filter = ['pending', 'sealed'].includes(intent?.filter) ? intent.filter : 'all';
@@ -158,44 +190,7 @@
       </div>
       <button class="secondary" disabled={busy} onclick={() => load(offset)}>Actualizar</button>
     </div>
-    <div class="list-toolbar">
-      <form class="server-search" onsubmit={applySearch}>
-        <label class="search-field"
-          ><Icon name="search" size={18} /><input
-            aria-label="Buscar por nombre"
-            placeholder="Buscar por nombre..."
-            bind:value={search}
-          /></label
-        ><button class="secondary">Buscar</button>
-      </form>
-      <select
-        aria-label="Filtrar por estado"
-        bind:value={filter}
-        onchange={() => {
-          selected = null;
-          invalidateDetail();
-          load(0);
-        }}
-        ><option value="all">Todos los estados</option><option value="pending"
-          >Pendientes de sello</option
-        ><option value="sealed">Sellados</option></select
-      >
-      <div class="view-switch" aria-label="Presentaci&#243;n del listado">
-        <button
-          class:active={layout === 'list'}
-          class="icon-button"
-          aria-label="Vista de lista"
-          aria-pressed={layout === 'list'}
-          onclick={() => (layout = 'list')}><Icon name="list" size={18} /></button
-        ><button
-          class:active={layout === 'grid'}
-          class="icon-button"
-          aria-label="Vista de tarjetas"
-          aria-pressed={layout === 'grid'}
-          onclick={() => (layout = 'grid')}><Icon name="grid" size={18} /></button
-        >
-      </div>
-    </div>
+    <DocumentFilters bind:this={filters} bind:layout bind:filter onapply={applySearch} />
     {#if busy}<p class="hint" role="status">Consultando documentos...</p>
     {:else if documents.length}<DocumentList
         {documents}
@@ -206,22 +201,19 @@
     {:else if !error}<div class="empty-state">
         <span class="empty-icon"><Icon name="folder" size={35} /></span>
         <h3>
-          {name || filter !== 'all'
+          {hasFilters
             ? 'No encontramos coincidencias'
             : 'Tu archivo empieza con el primer documento'}
         </h3>
         <p>
-          {name || filter !== 'all'
+          {hasFilters
             ? 'Cambia la b\u00fasqueda o el estado para ver otros documentos.'
             : 'Carga un archivo para incorporarlo a este expediente.'}
         </p>
-        {#if name || filter !== 'all'}<button
+        {#if hasFilters}<button
             class="secondary"
             onclick={() => {
-              search = '';
-              name = '';
-              filter = 'all';
-              load(0);
+              filters.clear();
             }}>Limpiar filtros</button
           >{:else}<button class="secondary" onclick={() => upload.open()}
             >Seleccionar un archivo</button
@@ -254,11 +246,13 @@
   </section>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if selected}<div class="document-focus" tabindex="-1" bind:this={detail}>
-      {#key selected.id}<DocumentVersions
+      {#key selected.id}<DocumentWorkspace
           api={scoped}
           {user}
           document={selected}
           onupdate={update}
+          onmetadata={updateMetadata}
+          ondenied={denyAccess}
         />{/key}
     </div>{/if}
 {/if}

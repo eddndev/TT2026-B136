@@ -41,6 +41,17 @@ async function setup(page, role = 'owner') {
           has_more: !url.searchParams.get('name') && url.searchParams.get('offset') === '0',
         },
       });
+    if (path.endsWith('/metadata'))
+      return route.fulfill({
+        json: {
+          case_id: caseId,
+          id,
+          metadata_revision: 0,
+          document_type: null,
+          classification: null,
+          tags: [],
+        },
+      });
     if (path.endsWith('/versions'))
       return route.fulfill({
         json: {
