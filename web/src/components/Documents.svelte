@@ -57,7 +57,7 @@
       hasMore = result.has_more;
     } catch (failure) {
       if (alive && current === listGeneration) {
-        selected = null;
+        if ([403, 404].includes(failure.status)) selected = null;
         invalidateDetail();
         error = failure.message;
       }
@@ -109,7 +109,7 @@
       selected.version !== document.version ||
       previous?.metadata_revision !== metadata?.metadata_revision;
     selected = { ...document, current_metadata: metadata };
-    if (changed) load(offset);
+    if (changed) return load(offset);
   }
   function updateMetadata(record) {
     if (
@@ -120,7 +120,7 @@
       return;
     const changed = selected.current_metadata?.metadata_revision !== record.metadata_revision;
     selected = { ...selected, current_metadata: record };
-    if (changed) load(offset);
+    if (changed) return load(offset);
   }
   function uploaded(document) {
     if (!alive) return;
@@ -256,6 +256,7 @@
           api={scoped}
           {user}
           document={selected}
+          loading={busy}
           onupdate={update}
           onmetadata={updateMetadata}
           ondenied={denyAccess}

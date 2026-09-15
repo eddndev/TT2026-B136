@@ -12,8 +12,14 @@
   export let onobserved;
   export let onstatus;
   export let ondenied;
+  export let disabled = false;
   let showHistory = false;
   let statusDialog;
+  let history;
+  let historyBusy = false;
+  export function refreshHistory(id) {
+    if (record.id === id && showHistory) return history?.refresh();
+  }
 </script>
 
 <section class="card participant-detail" aria-label="Datos del participante">
@@ -23,11 +29,13 @@
       <h2>{record.display_name}</h2>
     </div>
     {#if canParticipants(user.role, 'manage')}<div class="action-row">
-        <button class="secondary" disabled={$administration.closed} onclick={() => onedit(record)}
-          >Editar participante</button
+        <button
+          class="secondary"
+          disabled={$administration.closed || disabled || historyBusy}
+          onclick={() => onedit(record)}>Editar participante</button
         ><button
           class="text-button"
-          disabled={$administration.closed}
+          disabled={$administration.closed || disabled || historyBusy}
           onclick={() => statusDialog.open()}
           >{record.directory_status === 'active'
             ? 'Archivar participante'
@@ -45,14 +53,17 @@
   <button
     class="text-button"
     aria-expanded={showHistory}
+    disabled={disabled || historyBusy}
     onclick={() => (showHistory = !showHistory)}
     >{showHistory ? 'Ocultar historial de cambios' : 'Ver historial de cambios'}</button
   >
-  {#if showHistory}{#key record.revision}<ParticipantHistory
-        {api}
-        id={record.id}
-        {ondenied}
-      />{/key}{/if}
+  {#if showHistory}<ParticipantHistory
+      bind:this={history}
+      bind:busy={historyBusy}
+      {api}
+      id={record.id}
+      {ondenied}
+    />{/if}
 </section>
 {#if canParticipants(user.role, 'manage')}<ParticipantStatus
     bind:this={statusDialog}

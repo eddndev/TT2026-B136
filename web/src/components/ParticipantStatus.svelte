@@ -47,7 +47,7 @@
       candidate = result;
       error = '';
       refreshed = true;
-      onobserved(result);
+      await onobserved(result);
     } catch (failure) {
       if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
@@ -65,9 +65,10 @@
     try {
       const record = await api.changeStatus(current.id, candidate.revision, intended);
       if (!alive) return;
+      await onconfirmed(record);
+      if (!alive) return;
       busy = false;
       close();
-      onconfirmed(record);
     } catch (failure) {
       if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;

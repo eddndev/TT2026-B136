@@ -10,11 +10,12 @@
   export let onappended;
   export let oncurrent;
   export let ondenied = () => {};
+  export let disabled = false;
   let dialog;
   let file = null;
   let name = '';
   let expectedVersion = document.version;
-  let busy = false;
+  export let busy = false;
   let conflict = false;
   let exhausted = false;
   let error = '';
@@ -26,7 +27,7 @@
   let input;
   let alive = true;
   export function open() {
-    if ($administration.closed) return;
+    if (disabled || $administration.closed) return;
     expectedVersion = document.version;
     error = '';
     conflict = false;
@@ -45,13 +46,15 @@
     if (input) input.value = '';
   }
   async function refresh() {
+    if (busy || disabled) return;
     busy = true;
     error = '';
     try {
       const latest = await api.detail(document.id);
       if (!alive) return;
       expectedVersion = latest.version;
-      oncurrent(latest);
+      await oncurrent(latest);
+      if (!alive) return;
       conflict = false;
     } catch (failure) {
       if (failure.code === 'case_closed') blockedByCase = true;
@@ -65,7 +68,7 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy || conflict || exhausted || $administration.closed) return;
+    if (disabled || busy || conflict || exhausted || $administration.closed) return;
     error = validateUpload(file, name);
     if (error) return;
     busy = true;
@@ -90,6 +93,7 @@
   }
   onDestroy(() => {
     alive = false;
+    busy = false;
   });
 </script>
 
@@ -152,13 +156,18 @@
       /></label
     >
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-    {#if conflict}<button class="secondary" type="button" disabled={busy} onclick={refresh}
-        >Consultar versi&#243;n actual</button
+    {#if conflict}<button
+        class="secondary"
+        type="button"
+        disabled={disabled || busy}
+        onclick={refresh}>Consultar versi&#243;n actual</button
       >{/if}
     <CaseClosedNotice />
     <div class="dialog-actions">
       <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button
-      ><button class="primary" disabled={busy || conflict || exhausted || $administration.closed}
+      ><button
+        class="primary"
+        disabled={disabled || busy || conflict || exhausted || $administration.closed}
         >{busy ? 'Guardando versi\u00f3n...' : 'Guardar nueva versi\u00f3n'}<Icon
           name="arrow"
           size={17}

@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { caseId, id, document, setup, login, openDocument } from './helpers.mjs';
 export const values = {
   document_type: 'Escrito',
@@ -96,6 +97,12 @@ export async function metadataSetup(page, { role = 'owner', revision = 1, confli
     return route.fallback();
   });
   await login(page);
-  if (role !== 'client') await openDocument(page);
+  if (role !== 'client') {
+    await openDocument(page);
+    await expect(page.locator('.document-metadata')).toHaveAttribute('aria-busy', 'false');
+    await expect(
+      page.getByRole('button', { name: 'Actualizar historial', exact: true }),
+    ).toBeEnabled();
+  }
   return { calls, state, response, historical };
 }

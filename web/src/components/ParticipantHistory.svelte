@@ -4,16 +4,32 @@
   export let api;
   export let id;
   export let ondenied;
+  export let busy = false;
   let rows = [],
     hasMore = false,
     before,
-    busy = false,
     error = '',
     alive = true;
-  async function load() {
-    if (busy) return;
+  let pending;
+  export async function refresh() {
+    await pending;
+    if (alive) return load(false);
+  }
+  function load(more = true) {
+    if (pending) return pending;
+    pending = read(more).finally(() => {
+      pending = undefined;
+    });
+    return pending;
+  }
+  async function read(more) {
     busy = true;
     error = '';
+    if (!more) {
+      rows = [];
+      before = undefined;
+      hasMore = false;
+    }
     try {
       const page = await api.history(id, { beforeRevision: before });
       if (!alive) return;
@@ -30,7 +46,7 @@
     }
   }
   onMount(() => {
-    load();
+    load(false);
   });
   onDestroy(() => {
     alive = false;

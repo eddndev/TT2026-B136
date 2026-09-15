@@ -6,6 +6,7 @@
   export let firstAvailableVersion = 1;
   export let hasMore = false;
   export let busy = false;
+  export let disabled = false;
   export let onselect;
   export let onmore;
   export let onrefresh;
@@ -17,7 +18,9 @@
       <h2>Versiones de contenido</h2>
       <p class="hint">Versi&#243;n actual: {currentVersion}</p>
     </div>
-    <button class="secondary" disabled={busy} onclick={onrefresh}>Actualizar historial</button>
+    <button class="secondary" disabled={disabled || busy} onclick={onrefresh}
+      >Actualizar historial</button
+    >
   </div>
   {#if firstAvailableVersion > 1}<p class="notice">
       El historial disponible comienza en la versi&#243;n {firstAvailableVersion}.
@@ -25,6 +28,7 @@
   <div class="version-list">
     {#each versions as version}<button
         class="version-row"
+        {disabled}
         class:selected={selectedVersion === version.version}
         aria-pressed={selectedVersion === version.version}
         onclick={() => onselect(version)}
@@ -40,7 +44,8 @@
   </div>
   {#if busy}<p class="hint" role="status">Consultando versiones...</p>{/if}
   {#if hasMore}<div class="action-row">
-      <button class="secondary" disabled={busy} onclick={onmore}>Cargar versiones anteriores</button
+      <button class="secondary" disabled={disabled || busy} onclick={onmore}
+        >Cargar versiones anteriores</button
       >
     </div>{/if}
 </section>

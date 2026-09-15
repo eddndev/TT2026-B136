@@ -11,12 +11,13 @@
   export let current;
   export let onconfirmed;
   export let ondenied;
+  export let disabled = false;
   let dialog;
   let fields;
   let draft = metadataDraft();
   let expected = 0;
   let candidate = null;
-  let busy = false;
+  export let busy = false;
   let conflict = false;
   let exhausted = false;
   let error = '';
@@ -27,7 +28,7 @@
   }
   let alive = true;
   export function open() {
-    if ($administration.closed) return;
+    if (disabled || $administration.closed) return;
     draft = metadataDraft(current);
     expected = current.metadata_revision;
     candidate = null;
@@ -44,13 +45,14 @@
     fields?.reset();
   }
   async function refresh() {
-    if (busy) return;
+    if (busy || disabled) return;
     busy = true;
     try {
       const result = await api.get();
       if (!alive) return;
       candidate = result;
-      onconfirmed(result);
+      await onconfirmed(result);
+      if (!alive) return;
     } catch (failure) {
       if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
@@ -63,7 +65,7 @@
   }
   async function submit(event) {
     event.preventDefault();
-    if (busy || exhausted || $administration.closed || (conflict && !candidate)) return;
+    if (disabled || busy || exhausted || $administration.closed || (conflict && !candidate)) return;
     let values;
     try {
       values = fields.values();
@@ -77,7 +79,8 @@
     try {
       const result = await api.replace(candidate?.metadata_revision ?? expected, values);
       if (!alive) return;
-      onconfirmed(result);
+      await onconfirmed(result);
+      if (!alive) return;
       busy = false;
       close();
     } catch (failure) {
@@ -96,6 +99,7 @@
   }
   onDestroy(() => {
     alive = false;
+    busy = false;
   });
 </script>
 
@@ -126,8 +130,11 @@
   <form class="stack" onsubmit={submit}>
     <MetadataFields prefix="edit-metadata" bind:this={fields} bind:draft disabled={busy} />
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-    {#if conflict}<button type="button" class="secondary" disabled={busy} onclick={refresh}
-        >Consultar clasificaci&#243;n actual</button
+    {#if conflict}<button
+        type="button"
+        class="secondary"
+        disabled={disabled || busy}
+        onclick={refresh}>Consultar clasificaci&#243;n actual</button
       >{/if}
     {#if candidate}<section class="metadata-comparison" aria-label="Valores actuales guardados">
         <h3>Valores actuales guardados</h3>
@@ -140,7 +147,11 @@
       <button type="button" class="secondary" disabled={busy} onclick={close}>Cancelar</button>
       <button
         class="primary"
-        disabled={busy || exhausted || $administration.closed || (conflict && !candidate)}
+        disabled={disabled ||
+          busy ||
+          exhausted ||
+          $administration.closed ||
+          (conflict && !candidate)}
         >{busy
           ? 'Guardando...'
           : candidate

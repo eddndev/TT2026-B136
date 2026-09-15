@@ -6,7 +6,8 @@
   let rows = [];
   let hasMore = false;
   let before;
-  let busy = false;
+  export let busy = false;
+  export let disabled = false;
   let error = '';
   let alive = true;
   async function load() {
@@ -31,6 +32,7 @@
   onMount(load);
   onDestroy(() => {
     alive = false;
+    busy = false;
   });
 </script>
 
@@ -53,8 +55,10 @@
       A&#250;n no hay cambios de clasificaci&#243;n registrados.
     </p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" onclick={load}>Volver a consultar historial</button>{/if}
-  {#if hasMore}<button class="secondary" disabled={busy} onclick={load}
+    <button class="secondary" disabled={disabled || busy} onclick={load}
+      >Volver a consultar historial</button
+    >{/if}
+  {#if hasMore}<button class="secondary" disabled={disabled || busy} onclick={load}
       >Cargar cambios anteriores</button
     >{/if}
 </section>

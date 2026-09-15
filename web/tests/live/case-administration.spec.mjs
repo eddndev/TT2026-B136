@@ -139,6 +139,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
     await expect(
       page.getByRole('heading', { name: 'case-pending.txt', exact: true }),
     ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sellar documento', exact: true })).toBeEnabled();
     await page.getByRole('link', { name: 'Participantes', exact: true }).click();
     await page.getByRole('button', { name: 'Agregar participante', exact: true }).click();
     await page
