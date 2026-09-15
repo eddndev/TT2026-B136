@@ -1,0 +1,23 @@
+---
+import App from '../components/App.svelte';
+import '../styles/global.css';
+---
+
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Qadra: mesa de trabajo documental del despacho. Integridad, firma y evidencia en un solo lugar."
+    />
+    <title>Qadra | Tu despacho digital</title>
+    <link rel="icon" type="image/png" href="/brand/qadra/logo.png" />
+    <link rel="icon" type="image/svg+xml" href="/brand/qadra/favicon.svg" />
+  </head>
+  <body>
+    <App client:only="svelte" />
+    <noscript>Activa JavaScript para utilizar el despacho digital.</noscript>
+  </body>
+</html>

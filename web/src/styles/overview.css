@@ -1,0 +1,258 @@
+.today {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.welcome-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  border: 1px solid #dfe6f7;
+  background: #edf2fc;
+  border-radius: 12px;
+  padding: 30px 34px;
+  overflow: hidden;
+}
+.welcome-card h2 {
+  font-size: 27px;
+  color: var(--navy);
+  font-weight: 650;
+  margin: 11px 0;
+  letter-spacing: -0.8px;
+}
+.welcome-card .eyebrow {
+  color: #456295;
+  font-size: 9px;
+}
+.welcome-card p {
+  font-size: 13px;
+  max-width: 490px;
+}
+.welcome-card .action-row {
+  margin-top: 20px;
+}
+.welcome-card .text-button {
+  padding: 10px;
+}
+.welcome-symbol {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #7f9dd3;
+  background: #e1e9f9;
+  border: 1px solid #d1ddf3;
+  border-radius: 50%;
+  width: 155px;
+  height: 155px;
+  flex-shrink: 0;
+}
+.welcome-symbol > span {
+  position: absolute;
+  right: -3px;
+  bottom: 0;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 5px solid #edf2fc;
+  border-radius: 50%;
+  color: #fff;
+  background: #1e40af;
+}
+.session-heading {
+  margin: 29px 0 16px;
+}
+.session-heading h2 {
+  font-size: 15px;
+}
+.session-heading .hint {
+  font-size: 11px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 19px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 21px 20px;
+  color: #263450;
+}
+.stat-card:hover {
+  border-color: #a9bde9;
+  box-shadow: 0 3px 10px #15235006;
+}
+.stat-card > div > span {
+  display: block;
+  font-size: 12px;
+  color: #596983;
+}
+.stat-card strong {
+  display: block;
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin: 12px 0 6px;
+  color: var(--navy);
+  font-weight: 650;
+}
+.stat-card small {
+  font-size: 10px;
+}
+.stat-icon {
+  width: 41px;
+  height: 41px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #eef2ff;
+  color: #1e40af;
+  flex-shrink: 0;
+}
+.stat-icon.warning {
+  background: #fff7ed;
+  color: #ad6720;
+}
+.stat-icon.success {
+  background: #edf8f2;
+  color: #2f855a;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 22px;
+  align-items: start;
+}
+.recent-panel {
+  padding-bottom: 0;
+}
+.recent-panel .text-button {
+  font-size: 11px;
+}
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0;
+  background: white;
+  border: 0;
+  border-top: 1px solid #eef1f5;
+  width: 100%;
+  text-align: left;
+}
+.recent-row:hover {
+  background: #f8faff;
+}
+.document-name {
+  flex: 1;
+  min-width: 0;
+}
+.document-name strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #25354d;
+  font-size: 13px;
+  font-weight: 550;
+}
+.document-name small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+}
+.panel-footnote {
+  font-size: 10px;
+  padding: 17px 0;
+  border-top: 1px solid var(--line);
+}
+.next-panel h2 {
+  margin: 15px 0 9px;
+  font-size: 17px;
+}
+.next-panel p {
+  font-size: 12px;
+}
+.next-panel > .secondary {
+  width: 100%;
+  margin-top: 16px;
+  font-size: 11px;
+}
+.mini-steps {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+}
+.mini-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+}
+.mini-steps li > span {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid #d9e2f2;
+  color: #526e9e;
+  background: #f8faff;
+  border-radius: 50%;
+  font-size: 10px;
+}
+.mini-steps strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 550;
+}
+.mini-steps small {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.guide-grid h2 {
+  font-size: 18px;
+  margin: 18px 0 12px;
+}
+.guide-grid p {
+  font-size: 13px;
+}
+.guide-questions {
+  margin-top: 24px;
+}
+.guide-questions h2 {
+  margin-bottom: 20px;
+}
+.guide-questions details {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+}
+.guide-questions summary {
+  cursor: pointer;
+  font-weight: 550;
+  font-size: 13px;
+}
+.guide-questions details p {
+  margin-top: 15px;
+  max-width: 850px;
+  font-size: 13px;
+}
+.guide-questions > .primary {
+  margin-top: 17px;
+}
