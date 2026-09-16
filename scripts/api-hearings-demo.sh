@@ -4,7 +4,7 @@
 hearing_demo_python() {
   TT_HEARING_API_BASE_URL="$BASE_URL" TT_HEARING_API_TOKEN="$RECOVERY_TOKEN" \
     TT_HEARING_API_WORK_DIR="$WORK_DIR" TT_HEARING_API_REPO="$REPO_ROOT" \
-    python3 "$REPO_ROOT/scripts/api-hearings-demo.py" "$1"
+    python3 -B "$REPO_ROOT/scripts/api-hearings-demo.py" "$1"
 }
 
 hearing_demo() {

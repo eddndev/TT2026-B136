@@ -80,6 +80,9 @@ migration_demo_state() {
       'hearings',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearings h),
       'hearing_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY hearing_id,revision)
         FROM case_hearing_revisions h),
+      'hearing_results',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearing_results h),
+      'hearing_result_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY result_id,revision)
+        FROM case_hearing_result_revisions h),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
