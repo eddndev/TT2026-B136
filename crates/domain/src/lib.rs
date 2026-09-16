@@ -15,6 +15,7 @@ pub mod error;
 pub mod hearing_results;
 pub mod hearings;
 pub mod identity;
+pub mod judicial_calendars;
 pub mod participants;
 pub mod typed_participants;
 
