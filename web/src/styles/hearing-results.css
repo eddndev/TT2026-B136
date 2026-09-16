@@ -1,0 +1,47 @@
+.hearing-results,
+.hearing-result-editor,
+.hearing-result-detail {
+  min-width: 0;
+}
+.hearing-result-toggle,
+.hearing-result-optional,
+.hearing-result-picker-row,
+.hearing-result-agreement {
+  margin-block: 16px;
+}
+.hearing-result-picker-row,
+.hearing-result-agreement {
+  padding-block: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.hearing-result-row {
+  width: 100%;
+  margin-block: 0.5rem;
+  justify-content: space-between;
+  text-align: left;
+}
+.hearing-result-row > span:first-child {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.hearing-results code,
+.hearing-result-editor code,
+.hearing-result-detail code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.hearing-result-optional > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .hearing-result-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.hearing-result-sources {
+  margin-block: 18px;
+}
