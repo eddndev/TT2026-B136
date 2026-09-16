@@ -215,9 +215,6 @@
           "issued_at": {
             "precision": "date",
             "date": "2028-02-29",
-            "hour": 12,
-            "minute": 34,
-            "second": 56,
             "offset_seconds": null
           },
           "summary": "Declared resolution"
@@ -252,9 +249,6 @@
           "issued_at": {
             "precision": "date",
             "date": "2028-02-29",
-            "hour": 12,
-            "minute": 34,
-            "second": 56,
             "offset_seconds": 0
           },
           "summary": "Declared resolution"
@@ -289,9 +283,6 @@
           "issued_at": {
             "precision": "date",
             "date": "2028-02-29",
-            "hour": 12,
-            "minute": 34,
-            "second": 56,
             "offset_seconds": -50400
           },
           "summary": "Declared resolution"
@@ -326,10 +317,9 @@
           "issued_at": {
             "precision": "minute",
             "date": "2028-02-29",
+            "offset_seconds": null,
             "hour": 12,
-            "minute": 34,
-            "second": 56,
-            "offset_seconds": null
+            "minute": 34
           },
           "summary": "Declared resolution"
         },
@@ -363,10 +353,9 @@
           "issued_at": {
             "precision": "minute",
             "date": "2028-02-29",
+            "offset_seconds": 0,
             "hour": 12,
-            "minute": 34,
-            "second": 56,
-            "offset_seconds": 0
+            "minute": 34
           },
           "summary": "Declared resolution"
         },
@@ -400,10 +389,9 @@
           "issued_at": {
             "precision": "minute",
             "date": "2028-02-29",
+            "offset_seconds": -50400,
             "hour": 12,
-            "minute": 34,
-            "second": 56,
-            "offset_seconds": -50400
+            "minute": 34
           },
           "summary": "Declared resolution"
         },
@@ -437,10 +425,10 @@
           "issued_at": {
             "precision": "second",
             "date": "2028-02-29",
+            "offset_seconds": null,
             "hour": 12,
             "minute": 34,
-            "second": 56,
-            "offset_seconds": null
+            "second": 56
           },
           "summary": "Declared resolution"
         },
@@ -474,10 +462,10 @@
           "issued_at": {
             "precision": "second",
             "date": "2028-02-29",
+            "offset_seconds": 0,
             "hour": 12,
             "minute": 34,
-            "second": 56,
-            "offset_seconds": 0
+            "second": 56
           },
           "summary": "Declared resolution"
         },
@@ -511,10 +499,10 @@
           "issued_at": {
             "precision": "second",
             "date": "2028-02-29",
+            "offset_seconds": -50400,
             "hour": 12,
             "minute": 34,
-            "second": 56,
-            "offset_seconds": -50400
+            "second": 56
           },
           "summary": "Declared resolution"
         },

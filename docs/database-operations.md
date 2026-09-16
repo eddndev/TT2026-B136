@@ -2,7 +2,9 @@
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
 audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos
-y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
+y una sola cadena de auditoría. El esquema incorpora además hechos declarados
+de resolución y notificación; su backend está verificado localmente y aún
+no tiene composición HTTP ni Qadra. Redis conserva las sesiones y controles efímeros. La decisión
 está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
@@ -205,7 +207,8 @@ Véanse [ADR-0023](adr/0023-audited-case-stage-transitions.md),
 2. Aplicar el esquema nuevo sobre la base que ya contiene usuarios y expedientes.
    No iniciar todavía el servidor: el primer import exige documentos,
    clasificación, participantes, revisiones administrativas, registros iniciales,
-   revisiones de etapa, calendarios jurisdiccionales y auditoría vacíos para
+   revisiones de etapa, calendarios jurisdiccionales, raíces/revisiones de hechos
+   declarados y auditoría vacíos para
    conservar la cadena original
    como prefijo.
    Preparar los expedientes de destino administrativamente como baselines con
@@ -399,6 +402,51 @@ transaccional con la revisión del calendario. Véanse
 [el contrato](judicial-calendars-api.md) y
 [ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
 
+## Actualizar hechos declarados de resolución y notificación
+
+Detener escritores, conservar un respaldo y ejecutar `database migrate --runtime-role`
+con conexión administrativa. El conjunto `0014_procedural_fact*.sql` añade parsers
+PFRES1/PFNOT1/PFSRC1/PFTXN1, `case_procedural_facts`,
+`case_procedural_fact_revisions` y sus comprobaciones de fuentes y secuencia.
+La migración completa instala sus dependencias en orden; no ejecutar archivos
+sueltos. No genera hechos a partir de audiencias, texto o documentos existentes.
+
+Las raíces fijan familia, UUID, expediente y, para una notificación, padre
+resolución. Las revisiones conservan bytes, digests, fuentes históricas, recibo,
+acción, motivo y captura administrativa/autor/Clock. Alta, corrección y retiro
+comparten transacción con auditoría y revalidan permisos y expediente activo bajo
+el bloqueo común. Owner gestiona todos; Litigator asignado gestiona, Paralegal
+asignado lee y Client está denegado. Cierre conserva lecturas autorizadas.
+
+Una captura administrativa `Unrevised` conserva título/referencia originales y
+columnas de revisión/digest nulas. Una captura registrada conserva su revisión
+y digest exactos. No completar una forma parcial con ceros ni reemplazar capturas
+históricas por el estado vigente. Retiro es terminal y conserva valores/fuentes;
+no elimina filas ni declara nulidad de una resolución o notificación.
+
+El rol operativo solo recibe SELECT/INSERT en ambas tablas y EXECUTE en helpers
+necesarios. No conceder UPDATE, DELETE, TRUNCATE, TRIGGER, propiedad ni privilegios
+indirectos que permitan alterar el historial. El arranque comprueba catálogo,
+funciones, permisos y todas las revisiones en páginas de 64, incluyendo UUID cero.
+No ejecuta DDL para reparar inconsistencias.
+
+Respaldar ambas tablas y sus dependencias: expediente/administración, usuarios,
+fichas/sujetos, resultados y documentos exactos, además de auditoría. Los textos y
+vistas de hechos son metadatos PostgreSQL, no el contenido cifrado del documento;
+proteger sus respaldos con el resto de la base. Los soportes conservan la versión
+cifrada original. El lote directo de admisión tiene hasta dos documentos; los
+soportes de antecedentes no se añaden de forma recursiva.
+
+El primer import legacy rechaza destinos con cualquiera de las dos tablas
+ocupada, aun si solo existe una raíz o una revisión huérfana. La conciliación de
+un recibo existente permite conservar hechos posteriores sin regenerarlos.
+Las pruebas PostgreSQL de restauración conservan estados retirados, revisiones
+exactas y capturas después de cambios de administración y autor. No atribuir esa
+prueba al guion API o al navegador: HTTP y Qadra de hechos siguen pendientes.
+El cierre de comprobaciones se registra en el [informe](verification-report.md).
+Véanse el [contrato de persistencia](procedural-facts-persistence.md) y
+[ADR-0031](adr/0031-declared-procedural-facts.md).
+
 ## Respaldo y restauración
 
 Las migraciones `0009_participant_credential_trust.sql` y el conjunto `0010_`
@@ -483,7 +531,8 @@ No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `case_administration_revisions`, `case_initial_stage_registrations`,
 `case_stage_revisions`, `case_hearings`, `case_hearing_revisions`,
 `case_hearing_results`, `case_hearing_result_revisions`, `judicial_calendars`,
-`judicial_calendar_revisions` y auditoría; un respaldo incompleto no se repara creando
+`judicial_calendar_revisions`, `case_procedural_facts`,
+`case_procedural_fact_revisions` y auditoría; un respaldo incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

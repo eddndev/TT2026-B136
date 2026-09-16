@@ -47,6 +47,19 @@ const JUDICIAL_CALENDAR_MIGRATIONS: [&str; 6] = [
     include_str!("../../../migrations/0013_judicial_calendar_tables.sql"),
     include_str!("../../../migrations/0013_judicial_calendar_guards.sql"),
 ];
+const PROCEDURAL_FACT_MIGRATIONS: [&str; 11] = [
+    include_str!("../../../migrations/0014_procedural_fact_primitives.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_time.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_people.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_provenance.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_values.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_source_items.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_sources.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_receipts.sql"),
+    include_str!("../../../migrations/0014_procedural_facts.sql"),
+    include_str!("../../../migrations/0014_procedural_fact_source_guards.sql"),
+    include_str!("../../../migrations/0014_procedural_facts_guards.sql"),
+];
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -100,6 +113,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in JUDICIAL_CALENDAR_MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in PROCEDURAL_FACT_MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -118,6 +134,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::hearing_schema::validate(&mut client)?;
     crate::hearing_result_schema::validate(&mut client)?;
     crate::judicial_calendar_schema::validate(&mut client)?;
+    crate::procedural_fact_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -133,6 +150,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::hearing_schema::validate_inventory(&mut client)?;
     crate::hearing_result_schema::validate_inventory(&mut client)?;
     crate::judicial_calendar_schema::validate_inventory(&mut client)?;
+    crate::procedural_fact_schema::validate_inventory(&mut client)?;
     Ok(client)
 }
 
@@ -201,6 +219,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::hearing_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::hearing_result_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::judicial_calendar_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::procedural_fact_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -214,6 +233,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::hearing_schema::validate_runtime_role(client, role)?;
     crate::hearing_result_schema::validate_runtime_role(client, role)?;
     crate::judicial_calendar_schema::validate_runtime_role(client, role)?;
+    crate::procedural_fact_schema::validate_runtime_role(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

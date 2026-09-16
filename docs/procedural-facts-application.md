@@ -7,9 +7,10 @@ consultas acotadas, resolucion de material exacto, canones de fuentes y recibos,
 y `ProceduralFactService` como implementacion de `ProceduralFactWorkflow`.
 El servicio coordina autenticacion por rol, preparacion, admision documental,
 reautenticacion, envio y comprobacion de las respuestas de sus puertos.
-**Todavia no existen adaptador PostgreSQL, migraciones, transaccion auditada,
-rutas HTTP o Qadra para estos hechos.** La autorizacion efectiva por expediente
-y la revalidacion bajo bloqueo siguen siendo obligaciones del futuro adaptador.
+El [backend PostgreSQL](procedural-facts-persistence.md) implementa migraciones,
+transaccion auditada, autorizacion por expediente y revalidacion bajo bloqueo.
+Su cierre de verificacion local esta aprobado. **Las rutas HTTP, su composicion y
+Qadra para estos hechos siguen pendientes.**
 El [informe de verificacion](verification-report.md) distingue las pruebas de
 aplicacion de la evidencia integrada de otras capacidades.
 
@@ -63,7 +64,7 @@ resolucion padre opcional, hasta cuatro `ParticipantDetail` y hasta dos
 pero se comprueban por separado. La resolucion padre aporta su snapshot, un
 resultado opcional y su soporte admitido opcional; no contiene otro padre ni
 expande el grafo recursivamente. Los resolutores del servicio comprueban cotas,
-presencia y union exacta del material. El futuro adaptador debera acotar las
+presencia y union exacta del material. El adaptador debe acotar las
 lecturas antes de decodificar; construir un `Vec` no garantiza ese presupuesto.
 
 El lote `records` contiene exclusivamente los documentos directos. Ningun
@@ -154,9 +155,9 @@ La administracion devuelta tampoco puede retroceder respecto de la observada.
 PFSRC1 codifica las referencias compactas, vistas y soportes admitidos. PFTXN1
 vincula operacion, actor, expediente, raiz fija, accion, revision esperada,
 digests de valores y fuentes y motivo. No introduce CAS administrativo ni
-incluye correo o tiempo del servidor en esos canones. El futuro adaptador debe
-capturarlos bajo bloqueo y conservarlos en su transaccion auditada. Las
-comprobaciones autocontenidas no prueban que esa transaccion ya exista.
+incluye correo o tiempo del servidor en esos canones. El adaptador PostgreSQL
+los captura bajo bloqueo y los conserva en su transaccion auditada. Estas
+propiedades se verifican en backend; no se deducen solo del recibo autocontenido.
 
 El retiro conserva exactamente valores, fuentes y vistas de la base validada;
 no acepta datos nuevos ni repite admision. El servicio mantiene la precision
@@ -182,12 +183,14 @@ El detalle exige target completo y, cuando se solicita, revision exacta; coteja
 valores, union de fuentes y recibo. El historial admite 1..20 revisiones,
 comprueba expediente y target, orden descendente estricto, cursor exclusivo,
 continuacion coherente y cada recibo. Sus filas ligeras no sustituyen un detalle
-ni permiten recomputar sus valores completos. Las capturas administrativas
-cerradas y las declaraciones retiradas conservan consultas autorizadas.
+ni permiten recomputar sus valores completos. Los expedientes actualmente
+cerrados y las declaraciones retiradas conservan consultas autorizadas, con
+la administracion historica de la captura verificada por el adaptador.
 
-## Persistencia e integracion pendientes
+## Persistencia implementada e integracion pendiente
 
-`ProceduralFactStore` fija obligaciones que aun requieren un adaptador real:
+`ProceduralFactStore` fija obligaciones aplicadas por el
+[adaptador PostgreSQL](procedural-facts-persistence.md):
 
 - Owner en todos los expedientes, Litigator asignado para lectura y gestion,
   Paralegal asignado solo lectura y Client denegado, sin revelar fuentes ajenas.
@@ -199,8 +202,8 @@ cerradas y las declaraciones retiradas conservan consultas autorizadas.
 - Capturar Clock y administracion en esa frontera; la observacion del servicio
   no es un token de revision administrativa ni acredita la escritura atomica.
 
-Faltan PostgreSQL y migraciones, pruebas reales de aislamiento, revocacion,
-concurrencia y rollback, inventario y restauracion, composicion HTTP y recorrido
-de Qadra. Las pruebas de puertos de aplicacion no acreditan esas capacidades.
+PostgreSQL, migraciones, inventario y pruebas reales de aislamiento, revocacion,
+concurrencia, rollback y restauracion estan implementados y verificados localmente. Faltan la composicion HTTP y el recorrido de Qadra. Las pruebas de
+puertos de aplicacion no sustituyen las comprobaciones de backend.
 No se habilitan calculos juridicos, recursos, alertas o reevaluacion con este
 servicio de declaraciones.

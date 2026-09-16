@@ -94,7 +94,7 @@ La [precision temporal declarada](procedural-time.md) conserva datos desconocido
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
 registra hechos por si misma. La separacion de resoluciones y practicas de
 notificacion queda adoptada en [ADR-0031](adr/0031-declared-procedural-facts.md),
-con persistencia, contrato completo, autorizacion e interfaz aun pendientes.
+con contrato y persistencia descritos abajo; su interfaz sigue pendiente.
 El [modelo puro de hechos](procedural-facts.md) ya conserva las dos familias,
 referencias historicas seleccionadas, desconocimiento, funciones personales y
 soportes directos. Sus [canones propios](procedural-facts-canonical.md) distinguen
@@ -105,9 +105,12 @@ puertos. El servicio de aplicacion ya coordina autenticacion, verificacion de
 fuentes exactas, admision del lote directo, reautenticacion y comprobacion de
 recibos de preparacion y respuesta. Sus [canones de fuentes y operacion](procedural-facts-receipts.md)
 conservan las vistas historicas y se contrastan con vectores independientes.
-Aun faltan almacenamiento, autorizacion efectiva por expediente y auditoria
-transaccional de estos hechos, HTTP y Qadra. La implementacion del servicio
-no registra actos por HTTP ni habilita plazos.
+El [adaptador PostgreSQL](procedural-facts-persistence.md) implementa ahora
+persistencia, autorizacion efectiva por expediente e historia auditada atomica.
+La verificacion focal local cubre ambas familias, fuentes exactas, permisos,
+concurrencia y restauracion. La campana global local y el guion HTTP existente
+estan aprobados; sus resultados constan en el informe de verificacion.
+HTTP y Qadra siguen pendientes para estos hechos, que aun no habilitan plazos.
 
 ## Entregas y condiciones de cierre
 

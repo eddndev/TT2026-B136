@@ -1,11 +1,14 @@
 # Modelo puro de hechos declarados de resolucion y notificacion
 
-Estado: valores y canones del dominio implementados; comprobacion global local aprobada.
+Estado: valores y canones del dominio implementados. La evidencia de ejecucion
+se registra en el [informe de verificacion](verification-report.md).
 Este contrato describe identidades y validaciones puras. Los formatos binarios
-se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). Los
-[comandos, puertos y comprobaciones de aplicacion](procedural-facts-application.md)
-se describen por separado; no hay flujo persistente, API HTTP o interfaz Qadra.
-Tampoco se define un formato JSON de entrada o recibos canonicos confirmados.
+se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). El
+[servicio de aplicacion](procedural-facts-application.md), los
+[canones de fuentes y recibos](procedural-facts-receipts.md) y la
+[persistencia PostgreSQL](procedural-facts-persistence.md) se describen por separado.
+El backend esta verificado localmente; API HTTP y Qadra siguen pendientes.
+Este modelo puro no define un formato JSON de entrada HTTP.
 
 La separacion de familias y referencias corregibles procede de
 [ADR-0031](adr/0031-declared-procedural-facts.md). El modelo no acredita actos,
@@ -147,8 +150,10 @@ representacion. `direct_supports()` reune esas referencias para trabajo posterio
 
 El lote no incluye recursivamente documentos de la resolucion referida, fichas,
 sujetos o resultados enlazados. Tampoco prueba admision por su nombre o existencia.
-Las cotas de cantidad directa no fijan presupuesto de bytes, formatos o lectura
-transitiva: esos controles siguen pendientes en aplicacion y almacenamiento.
+Las cotas del modelo fijan cantidad directa. El presupuesto de bytes, la admision
+de formatos y la carga acotada de antecedentes estan implementados en
+[aplicacion y almacenamiento](procedural-facts-persistence.md); no los ejecutan
+estos valores puros.
 
 ## 6. Valores de resolucion
 
@@ -217,23 +222,27 @@ ni hereda las restricciones temporales de resultados o etapas.
 Los constructores comprueban forma de datos, texto, revisiones y coherencia local
 de soportes. `validate_values()` comprueba solamente la raiz de resolucion fijada.
 No prueban existencia, pertenencia al expediente, autorizacion, actividad, estado
-de fuentes, autenticidad, representacion o eficacia juridica. La futura aplicacion
-resolvera fuentes exactas y capturara digests/sujetos ligados sin refrescar historia.
+de fuentes, autenticidad, representacion o eficacia juridica. La aplicacion y el
+adaptador resuelven las fuentes exactas y capturan digests/sujetos ligados sin
+refrescar la historia; su comprobacion no atribuye eficacia juridica.
 
 El [contrato de aplicacion](procedural-facts-application.md) incorpora comandos de
 alta, correccion y retiro terminal, con comprobaciones puras y conservacion de
-identidad. Los valores de dominio no ejecutan esas operaciones. Todavia no hay
-coordinacion del servicio, confirmacion persistente, auditoria atomica o
-conciliacion de recibos para hechos. El retiro no declara nulidad.
+identidad. Los valores de dominio no ejecutan esas operaciones. El servicio
+coordina preparacion, envio y comprobacion de recibos; PostgreSQL confirma
+persistencia y auditoria atomica. Sus lecturas permiten consultar la revision
+exacta para conciliar una operacion; la interfaz HTTP/Qadra sigue pendiente.
+El retiro no declara nulidad.
 
-Los [canones de valores](procedural-facts-canonical.md) no son recibos. Los puertos
-y limites de consulta ya estan definidos en la aplicacion; sus implementaciones,
-formatos de envio, admision integrada y persistencia siguen pendientes. No existe
-outbox sin consumidor ni activacion del
+Los [canones de valores](procedural-facts-canonical.md) no son recibos. Los
+[formatos PFSRC1/PFTXN1](procedural-facts-receipts.md), los puertos, limites de
+consulta, servicio y adaptador estan implementados fuera del dominio puro.
+El cierre de backend no habilita por si solo integracion HTTP o de navegador.
+No existe outbox sin consumidor ni activacion del
 [conteo diario](deadline-day-counting.md). Los catalogos y datos declarados no
 seleccionan una regla, recurso, calendario, responsable, canal o corte temporal.
 
 Las comprobaciones del dominio deben cubrir texto Unicode y controles, UUID cero,
 revision maxima, referencias exactas, independencia de funciones/tiempos y soportes
 duplicados o contradictorios. La evidencia de ejecucion se registra por separado;
-este contrato no atribuye pruebas integradas a un modelo sin adaptadores.
+el modelo puro por si solo no demuestra el comportamiento de los adaptadores.

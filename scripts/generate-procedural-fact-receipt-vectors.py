@@ -195,9 +195,13 @@ def source_vectors():
             value["resolution"] = resolution()
             value["resolution"].update(status="withdrawn", issuer={"known": "Issuer"})
             value["resolution"]["class"] = {"known": {"kind": "other", "label": "Other \u00e9"}}
-            value["resolution"]["issued_at"] = {
-                "precision": precision, "date": "2028-02-29", "hour": 12, "minute": 34,
-                "second": 56, "offset_seconds": offset}
+            declared = {
+                "precision": precision, "date": "2028-02-29", "offset_seconds": offset}
+            if precision != "date":
+                declared.update(hour=12, minute=34)
+            if precision == "second":
+                declared["second"] = 56
+            value["resolution"]["issued_at"] = declared
             add(f"resolution_{precision}_{offset}", value)
     value = empty()
     value["resolution"] = resolution()
