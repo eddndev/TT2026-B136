@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted; implementation pending.
+Accepted. Implementado y verificado localmente; pendiente de integración.
 
 ## Context
 
@@ -19,36 +19,38 @@ las restricciones siguientes son decisiones de ingeniería, sin acreditar actos.
 
 ## Decision
 
-Cada sesión o acto informado tendrá una raíz y revisiones propias. Fijará una
+Cada sesión o acto informado tiene una raíz y revisiones propias. Fija una
 revisión exacta de programación del mismo expediente, incluso histórica o
-cancelada. Una continuación creará otra raíz con antecedente exacto preexistente
-e inmutable; una rectificación no representará la continuación de un acto.
-La programación podrá seguir cambiando sin sustituir esas fuentes históricas.
+cancelada. Una continuación crea otra raíz con antecedente exacto preexistente
+e inmutable; una rectificación no representa la continuación de un acto.
+La programación puede seguir cambiando sin sustituir esas fuentes históricas.
 
-Ocurrencia y alcance serán declaraciones separadas. Las comparecencias serán
-fichas históricas exactas, con calidad y observación declaradas; se admitirán
-aunque no se inicie el acto. No se deducirán ausencias ni notificaciones. Los
-acuerdos tendrán UUID y texto con orden explícito, sin clasificación judicial
+Ocurrencia y alcance son declaraciones separadas. Las comparecencias son
+fichas históricas exactas, con calidad y observación declaradas; se admiten
+aunque no se inicie el acto. No se deducen ausencias ni notificaciones. Los
+acuerdos tienen UUID y texto con orden explícito, sin clasificación judicial
 inferida ni efectos automáticos. Relato, clase de antecedente, localizador y
-soporte documental exacto conservarán su propia procedencia.
+soporte documental exacto conservan su propia procedencia.
 
-Alta, rectificación y retiro usarán preparación sin reservas y recibos exactos
-de operación. Retirar será terminal y conservará contenido e historia; no anulará
-el acto. Se comprobarán permiso y expediente activo bajo el bloqueo transaccional
+Alta, rectificación y retiro usan preparación sin reservas y recibos exactos
+de operación. Retirar es terminal y conserva contenido e historia; no anula
+el acto. Se comprueban permiso y expediente activo bajo el bloqueo transaccional
 común, capturando administración y reloj vigentes. Una etapa posterior o una
-edición administrativa no impedirán por sí mismas registrar hechos anteriores.
-La precisión temporal conservará fecha o instante, sin inventar una hora.
+edición administrativa no impiden por sí mismas registrar hechos anteriores.
+La precisión temporal conserva fecha o instante, sin inventar una hora.
 
-Los nuevos cánones HRES1 y HRTX1 vincularán valores y envío respectivamente.
-Auditoría y persistencia compartirán transacción. Se comprobarán referencias,
-secuencia, permisos, ausencia de ciclos y catálogo al operar y al arrancar.
-La rectificación volverá a admitir el soporte propuesto, aunque su referencia sea
-idéntica; retiro e historia conservarán la admisión original.
+Los cánones HRES1 y HRTX1 vinculan valores y envío respectivamente.
+Auditoría y persistencia comparten transacción. La operación comprueba fuentes,
+secuencia y permisos; el inventario de arranque valida además todas las aristas,
+la ausencia de ciclos y el catálogo. La rectificación vuelve a admitir el soporte
+propuesto, aunque su referencia sea idéntica; retiro e historia conservan la
+admisión original.
 
 El contrato detallado es [hearing-results-api.md](../hearing-results-api.md).
-El cuerpo JSON tendrá límite propio de 512 KiB; los límites de programación
-existentes permanecerán sin cambios. La historia devolverá resúmenes acotados y
-el detalle exacto se consultará por selección explícita.
+El cuerpo JSON tiene límite propio de 512 KiB; los límites de programación
+existentes permanecen sin cambios. La historia devuelve resúmenes acotados y
+el detalle exacto se consulta por selección explícita. Detalle, revisión exacta,
+preparación y escrituras rechazan parámetros de query no admitidos.
 
 ## Consequences
 
@@ -60,5 +62,5 @@ el detalle exacto se consultará por selección explícita.
 - Las referencias a acuerdos futuros necesitarán raíz, revisión y UUID exactos.
 - El cálculo de plazos requerirá antecedentes estructurados, sujetos, reglas y
   calendarios verificados; no se extraerá de texto libre ni de la asistencia.
-- La navegación de continuación irá al antecedente exacto. No se promete un árbol
+- La navegación de continuación lleva al antecedente exacto. No se promete un árbol
   inverso, una búsqueda global ni un nuevo calendario con esta entrega.

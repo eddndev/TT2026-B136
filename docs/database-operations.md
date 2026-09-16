@@ -1,7 +1,7 @@
 # Base de datos y migración de documentos
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
-audiencias, documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
+audiencias y sus resultados declarados, documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
 está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
@@ -280,8 +280,9 @@ SHA-256, proyecciones y recibos. La secuencia y las fuentes de administración,
 etapa, participantes y soporte pertenecen al mismo expediente. Cancelación
 conserva el contexto original y registra la administración actual por separado.
 El rol operativo puede leer e insertar; no actualizar, borrar ni truncar ese
-historial. El UUID de operación es único en toda la base y no se reutiliza para
-reintentar una escritura de resultado incierto.
+historial. El UUID de operación es único entre las revisiones de programación y no se
+reutiliza para reintentar una escritura de resultado incierto. La familia de
+sesiones declaradas tiene su propia unicidad y su recibo HRTX1.
 
 Respaldar las dos tablas junto con todas sus fuentes históricas y la auditoría.
 Restaurar únicamente las citas actuales pierde recibos y referencias exactas.
@@ -297,6 +298,44 @@ una cita o crean plazos. Los metadatos de audiencias no usan el cifrado de los
 archivos documentales; proteger sus respaldos. Véanse
 [ADR-0028](adr/0028-audited-hearing-scheduling.md) y
 [contrato HTTP de audiencias](hearings-api.md).
+
+## Actualizar sesiones y resultados declarados de audiencia
+
+La implementación y la recuperación fueron verificadas localmente; la integración remota permanece pendiente.
+Con los escritores detenidos y respaldo completo, ejecutar `database migrate
+--runtime-role` con la conexión administrativa y el nuevo binario. El conjunto
+`0012_hearing_results*.sql` instala los decodificadores de tiempo, HRES1 y HRTX1,
+las tablas `case_hearing_results` y `case_hearing_result_revisions` y sus guards.
+No ejecutar archivos sueltos. Las citas existentes permanecen sin resultados
+hasta una captura explícita; no se alteran HEAR1, HTXN1 ni la programación.
+
+El rol operativo recibe SELECT/INSERT sobre ambas tablas y EXECUTE sobre las
+funciones puras de proyección. No debe tener propiedad, UPDATE, DELETE,
+TRUNCATE, TRIGGER, permisos por columna o roles heredados que permitan eludir
+la inmutabilidad. El arranque verifica catálogo y permisos sin DDL y recorre
+inventario, referencias exactas, secuencias y ciclos de continuidad. Incluye
+raíces con UUID de valor cero; no se omiten por el cursor inicial. Los helpers SQL fijan
+el esquema y conservan la fecha ISO independientemente de `DateStyle`.
+
+La raíz fija audiencia, ancla exacta y continuidad opcional del mismo expediente.
+Un antecedente debe existir antes de crear la nueva raíz; puede estar retirado.
+Los asistentes pueden ser fichas históricas o archivadas. Rectificar conserva
+fuentes fijas y vuelve a admitir el soporte; retirar conserva contenido y
+admisión histórica y es terminal. Captura administrativa, reloj, autorización y
+estado abierto se resuelven después del bloqueo común en READ COMMITTED.
+La administración capturada no puede anteceder sus fuentes históricas exactas.
+No resolver conflictos con UPDATE, borrar revisiones o desactivar guards.
+
+Respaldar ambas tablas junto con programación, etapas, administración,
+participantes manuales/tipificados, identidades, versiones documentales,
+usuarios y auditoría. Comparar filas, cánones, recibos, proyecciones, autores e
+instantes, además de referencias a anclas canceladas y antecedentes retirados.
+Un registro de fecha o acuerdo no se transforma en plazo, alerta o resolución
+por restaurar. Estos metadatos autorizados no usan el cifrado del archivo
+DVLT1: proteger sus copias. Los administradores de PostgreSQL permanecen dentro
+de la base de confianza; el inventario no autentica cuerpos SQL sustituidos por
+ellos. Véanse [ADR-0029](adr/0029-declared-hearing-sessions.md) y
+[contrato de resultados](hearing-results-api.md).
 
 ## Respaldo y restauración
 
@@ -363,16 +402,25 @@ certificado público recuperado. La clave privada de esa fixture permanece fuera
 del directorio de trabajo del servidor y no se envía por HTTP.
 El recorrido de audiencias programa, reemplaza y cancela, retiene participantes
 históricos y soportes sellados exactos, y consulta una agenda autorizada.
-Después de restaurar compara doce respuestas completas y todas las filas de
-`case_hearings` y `case_hearing_revisions`, incluidos recibos, autores, contexto
-y referencias. No valida una restauración únicamente por el total de citas.
+El guion `scripts/api_hearing_results_demo.py` amplía el recorrido con sesiones,
+rectificación, retiro, historia, soportes y continuidad exactos. Después de
+restaurar compara 21 respuestas completas: doce de la programación y su contexto,
+y nueve de resultados. También compara todas las filas de `case_hearings`,
+`case_hearing_revisions`, `case_hearing_results` y
+`case_hearing_result_revisions`, incluidos recibos, autores, contexto y
+referencias. Conserva valores HRES1, recibos HRTX1, fuentes y captura junto con
+el inventario anterior; no valida una restauración únicamente por el total de
+citas. Las pruebas PostgreSQL
+incluyen una continuación vinculada a un antecedente exacto retirado y una nueva
+rectificación autorizada después de restaurar y reabrir el expediente.
 La reconstrucción del formato legacy es un fixture documental, no una conversión
 íntegra del historial administrativo actual; la restauración posterior sí conserva
 todas las tablas.
 No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `document_metadata_revisions`, `case_participants`, `case_participant_revisions`,
 `case_administration_revisions`, `case_initial_stage_registrations`,
-`case_stage_revisions`, `case_hearings`, `case_hearing_revisions` y auditoría; un respaldo incompleto no se repara creando
+`case_stage_revisions`, `case_hearings`, `case_hearing_revisions`,
+`case_hearing_results`, `case_hearing_result_revisions` y auditoría; un respaldo incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

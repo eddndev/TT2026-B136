@@ -1,7 +1,6 @@
 # API de sesiones y resultados declarados de audiencia
 
-Estado: contrato aceptado para implementación; el flujo todavía no está
-implementado. Rationale en [ADR-0029](adr/0029-declared-hearing-sessions.md).
+Estado: implementado y verificado localmente, pendiente de integración. Fundamento en [ADR-0029](adr/0029-declared-hearing-sessions.md).
 No modifica la programación ni reinterpreta sus cánones HEAR1 y HTXN1.
 
 ## 1. Corte y decisiones fijadas
@@ -57,7 +56,7 @@ continuación automáticamente para representar la recuperación de un error.
 
 ## 3. Valores y normalización
 
-| Campo | Contrato propuesto |
+| Campo | Contrato |
 | --- | --- |
 | `occurrence` | `occurred` o `not_started`; selección explícita. |
 | `extent` | `partial`, `concluded`, `unspecified`; selección explícita, con regla anterior. |
@@ -145,7 +144,7 @@ deriva las fuentes fijas de la base; rechazar campos de alta en estas acciones.
 Preparación devuelve `case_id`, `actor_id`, `command` normalizado, `result_revision`,
 `values`, `values_digest`, `anchor`, `continuation`, `submission_digest` y
 `observed_administration` informativa (revisión/digest/estado). Esta última no es
-CAS ni promesa de qué revisión administrativa terminará capturándose. Añadir las
+CAS ni promesa de qué revisión administrativa terminará capturándose. Incluye las
 proyecciones exactas de participantes y soporte admitido necesarias para revisión.
 El contrato no crea ni reserva raíz/operación; no guarda preparación temporal.
 
@@ -178,9 +177,10 @@ estado, occurrence/extent/event_time, número de asistentes/acuerdos y anchor_re
 No incluir relato, nombres, localizadores o soporte en ese listado.
 
 Historia: `limit=1..20`, 10 por defecto; `before_revision` positiva exclusiva;
-`{revisions,has_more,next_before_revision}`. Propuesta: entradas ligeras con
-revisión, acción/estado, motivo, digests, recorded_by/recorded_at; cargar detalle exacto al
-seleccionar. No multiplicar cuerpos de 147 KiB por cada fila de historia.
+`{revisions,has_more,next_before_revision}`. Entradas ligeras con scope, revisión,
+estado, motivo, digests, recibo, referencias de ancla/continuación y administración,
+recorded_by/recorded_at. El contenido y las proyecciones de asistentes/soporte se
+consultan en el detalle exacto, sin multiplicarlos por cada fila de historia.
 
 Sin endpoint global, agenda nueva, búsqueda inversa ni árbol de continuaciones.
 La UI inicia continuación desde un detalle exacto ya consultado. El detalle del
@@ -195,6 +195,9 @@ resultados limitados a **512 KiB = 524288 bytes**, incluido todo JSON/espacio.
 Excederlos causa 413 aunque los valores de dominio sean válidos. No prometer
 aceptar cualquier representación con espacios ilimitados. Los 64 KiB de audiencias
 no cambian. Consultas desconocidas/duplicadas o mal formadas causan 400.
+Detalle, revisión exacta, preparación y escrituras no admiten parámetros de query:
+aceptan query ausente o vacía y rechazan cualquier contenido con `invalid_query`.
+La selección histórica se expresa exclusivamente en la ruta `/revisions/{revision}`.
 
 ## 6. Proyección, autorización histórica y recibo exacto
 
@@ -227,9 +230,10 @@ operación aún en vuelo; conservar incierto. Otro recibo en esa revisión es co
 
 ## 7. Puertos y secuencia de aplicación
 
-Nombres propuestos: `HearingResultStore`, `HearingResultWorkflow`,
-`HearingResultCommand`, `HearingResultPreparation`, `PreparedHearingResultChange`,
-`HearingResultDetail`, `HearingResultDraft`, `HearingResultQuery/HistoryQuery`.
+Los tipos públicos viven en `crates/application/src/hearing_results/`:
+`HearingResultStore`, `HearingResultWorkflow`, `HearingResultCommand`,
+`HearingResultPreparation`, `PreparedHearingResultChange`, `HearingResultDetail`,
+`HearingResultDraft`, `HearingResultQuery` y `HearingResultHistoryQuery`.
 
 Store: `list(actor,case,hearing,query,at)`, `get(actor,case,hearing,id,revision?,at)`,
 `history(actor,case,hearing,id,query,at)`, `prepare(actor,case,command,limits)` y
@@ -256,9 +260,9 @@ digests, fuentes resueltas, formatos y preparación; sin campos públicos mutabl
 6. Capturar Clock tras lock y comprobar no futuro en alta/corrección; insertar
    raíz cuando corresponda, revisión y auditoría atómicamente. Fallo implica rollback.
 
-Default de soporte: alta/corrección vuelven a admitir el soporte que proponen,
+Admisión de soporte: alta/corrección vuelven a admitir el soporte que proponen,
 aunque su referencia sea igual; coincide con programación existente. Retiro copia
-admisión histórica y no vuelve a analizar/parser/validar criptografía antigua.
+admisión histórica sin volver a analizar el formato ni validar criptografía antigua.
 Lecturas históricas verifican integridad y fuentes, sin afirmar nueva admisión.
 La rectificación revalida también el soporte idéntico. La conservación de la
 admisión anterior se limita a retiro e historia.
@@ -283,8 +287,11 @@ Revisiones u32; tiempo UTC segundos i64 y desfase segundos i32. No canon JSON/JS
    opcional texto, support opcional (document UUID16 + versión u32 + digest32).
 
 Máximo **146933 bytes**: 5+1+1+13+4004+1+32*(16+4+404+1+2004)
-+1+16*(16+4004)+1+1+804+1+52. Mínimo válido propuesto 26, sujeto a vector
-independiente. Hash SHA256 de estos bytes; fuentes fijas se vinculan en el recibo.
++1+16*(16+4004)+1+1+804+1+52. Mínimo válido **26 bytes**. Los extremos y las
+variantes se fijan con vectores independientes en
+`crates/domain/tests/fixtures/hearing_result_vectors.json`, generados por
+`generate_hearing_result_vectors.py` en el mismo directorio. Hash SHA256 de estos
+bytes; las fuentes fijas se vinculan en el recibo.
 
 **HRTX1**, en este orden:
 
@@ -306,44 +313,52 @@ uno (~448800 bytes de textos, más estructura); por eso 512 KiB finitos. El lím
 de bytes opera antes de parsear. Un objeto sintético máximo de corrección, generado
 solo para medir serialización, ocupa 154771 bytes UTF-8 o 453971 con escape ASCII
 compacto. No es una prueba del endpoint ni garantiza toda representación JSON.
-Probar cotas/vectores independientemente. HEAR1/HTXN1 no cambian ni se reinterpretan.
+Los vectores HRTX1 se contrastan en
+`crates/application/tests/hearing_result_canonical.rs` y con el decodificador SQL
+en `crates/infrastructure/tests/hearing_result_receipt_sql.rs`.
+HEAR1/HTXN1 no cambian ni se reinterpretan.
 
 ## 9. Persistencia e integridad
 
-Dos tablas propuestas: `case_hearing_results` y `case_hearing_result_revisions`.
+Las migraciones `0012_hearing_results*.sql` definen `case_hearing_results` y
+`case_hearing_result_revisions`, junto con los decodificadores y triggers.
 Raíz con scope, fuentes inmutables y FK a primera revisión diferida; revisiones
-append-only, PK(id,revision), operación UNIQUE, canon/digests/proyecciones generadas,
+append-only, PK(result_id,revision), operación UNIQUE, canon/digests/proyecciones generadas,
 actor/admin capturados, soporte admitido y campos de contexto verificables.
 
 Guard de alta bajo lock común: antecedente y su revisión ya existen antes de
 insertar raíz; mismo caso; distinta raíz. Referencias opcionales completamente
 nulas o completas; FK compuestas y verificación de digests/recibos exactos.
-Prohibir UPDATE/DELETE/TRUNCATE y cambiar raíces. Existencia previa + inmutabilidad
+Los triggers prohíben UPDATE/DELETE/TRUNCATE y cambiar raíces. Existencia previa + inmutabilidad
 impiden crear ciclos durante escrituras autorizadas; no deducirlo de timestamps.
 
 SQL independiente decodifica HRES1/HRTX1 y comprueba proyecciones, secuencia,
 acción/estado/motivo, ancla y continuidad, fuentes de participantes/soporte, actor,
 membresía/rol/caso y tiempo declarado <= captura. La columna de captura no equivale
 a un reloj externo certificado; el Clock se verifica en el adapter después del lock.
-Retiro debe copiar contenido y soporte exactos, conservando la nueva autoría/motivo.
+Retiro copia contenido y soporte exactos, conservando la nueva autoría/motivo.
+La administración capturada no puede preceder la administración registrada en el
+ancla, antecedente o revisión base; si coincide la revisión, también debe coincidir
+su digest. Esta comprobación de integridad no introduce un CAS de administración.
 
 Lecturas reconstruyen fuentes exactas y recibos, sin expansión recursiva de
 continuaciones; validan referencia inmediata y proyección del antecedente. Inventario
 de arranque valida todas las filas/aristas, incluida ausencia de ciclos mediante
-recorrido finito con visitados, sin recursion infinita. Rechazar inconsistencia,
-no normalizar silenciosamente una fila corrupta. Mantener transacción de lectura
-coherente, autorización y auditoría de lectura como en audiencias.
+recorrido finito con visitados. Las inconsistencias causan rechazo, sin normalizar
+silenciosamente una fila corrupta. Las consultas mantienen una transacción de
+lectura coherente, autorización y auditoría como en audiencias.
 
-Incluir tablas/funciones/guards/grants en catálogo estricto; import exige vacías;
-backup/restore incluye filas, fuentes y secuencias si hubiera; preservar evidencia
-criptográfica existente. Reutilizar loaders transaccionales por visibilidad mínima,
-sin duplicar validación ni refactorizar dominios de etapas/participantes/documentos.
-Reutilizar el loader exacto de fichas, no el filtro de elegibilidad activa que
-programación aplica a sus nuevas selecciones.
+El catálogo comprueba tablas, funciones, triggers y privilegios; la importación en
+un destino nuevo exige ambas tablas vacías. El respaldo/restauración incluye sus
+filas y fuentes, conservando la evidencia criptográfica existente. Los loaders
+transaccionales reutilizan las revisiones exactas de etapas, fichas y documentos.
+La selección de asistentes no usa el filtro de fichas activas de programación.
 
-## 10. Errores propuestos
+## 10. Errores
 
-- 400: JSON/Content-Type/query/forma de acción/ruta incongruentes; 413 por body.
+- 400: JSON/Content-Type inválidos (`invalid_json`), query inválida
+  (`invalid_query`) o acción/identidad/ruta incongruentes
+  (`hearing_result_command_mismatch`); 413 `hearing_result_body_too_large` por body.
 - 401 sesión; 403 permiso; 404 recurso del scope no accesible/inexistente, usando
   el patrón actual para no revelar existencia en otro expediente.
 - 409: `hearing_result_revision_conflict`, `hearing_result_already_withdrawn`,
@@ -354,38 +369,46 @@ programación aplica a sus nuevas selecciones.
   `hearing_result_invalid_reference` (autorref/raíz previa no admisible),
   `hearing_result_support_too_large`, `hearing_result_support_format_rejected`,
   `hearing_result_support_validation_limit`, `hearing_result_support_digest_mismatch`.
-- Ausencia de ancla/antecedente/ficha/soporte del scope: 404 genérico de referencia;
-  corrupción de referencia exacta almacenada: 500 genérico, sin filtrar datos.
-  Cambiar cabeza de ficha, etapa, cita o antecedente no provoca por sí solo 409.
+- Resultado no encontrado: 404 `hearing_result_not_found`. Ausencia de
+  ancla/antecedente/ficha/soporte del scope: 404 `hearing_result_reference_not_found`;
+  expediente inaccesible: `case_not_found`. Corrupción almacenada: 500
+  `internal_error`, sin filtrar datos. Cambiar una cabecera histórica no provoca
+  por sí solo 409.
 
-Alinear nombres comunes con `crates/web/src/error` antes de congelar DTO; no exigir
-al frontend adivinar mensajes ni reutilizar claves de otra familia por semejanza.
+Los identificadores y revisiones de audiencias, participantes y documentos
+conservan sus códigos comunes. La correspondencia está en
+`crates/web/src/error/hearing_result.rs` y `crates/web/src/error.rs`; el cliente
+interpreta códigos, no el texto del mensaje.
 
-## 11. Secuencia TDD y entregables
+## 11. Implementación y verificación
 
-1. Mantener ADR y contrato autosuficientes junto con su implementación.
-2. Dominio: rojo primero; valores/tags/tiempo/normalización/cotas/orden/duplicados;
-   vectores independientes mínimo/máximo, fecha e instante, no inicio y procedencias.
-3. Aplicación: alta, corrección, retiro terminal, no-reserva, recibo exacto, sesión
-   revocada, anclas históricas/canceladas, antecedente retirado, soporte y Clock.
-4. PG real aislado: carreras de revisión/operación, cierre/roles bajo lock;
-   ancla/antecedente previos, participantes archivados y fuentes históricas;
-   reprogramación/cancelación concurrente permitida; rollback de cada escritura;
-   guard directo, inmutabilidad, no ciclos, catálogo/inventario/import/restore.
-5. HTTP: rutas/scope estricto, duplicados anidados, cotas 512 KiB (UTF-8/ASCII
-   escapado/espacios), cursores, fuentes inaccesibles y conciliación exacta.
-6. Qadra: panel de raíces e historia separadas; picker histórico nuevo; formulación
-   sin asistentes/hora por defecto; revisión de fuentes; errores concretos;
-   envíos inciertos sin repetición; respuestas tardías y cambio de sesión/caso.
-7. Demo integrada aislada y navegador: sesión parcial, continuación en otra cita,
-   comparecencia sin inicio, corrección/retiro e historia, fuentes exactas, restore;
-   verificación nueva separada de los resultados del corte de programación.
+El dominio y la aplicación residen en `crates/domain/src/hearing_results/` y
+`crates/application/src/hearing_results/`. Infraestructura separa adapter,
+codec y catálogo/inventario bajo `hearing_result_postgres/`, `hearing_result_codec/`
+y `hearing_result_schema/`; HTTP vive en `crates/web/src/hearing_results/`.
+La composición conecta estos puertos sin cambiar las reglas de programación.
 
-Archivos nuevos: domain/application `hearing_results/`; infraestructura adapter,
-codec/schema y pruebas; migración 0012 (confirmar número al comenzar); web Rust
-`hearing_results/`; Qadra componentes pequeños y API/values/submission propios.
-Extensiones mínimas de exports, composición/router, catálogo/restore y paneles
-HearingDetail/CaseHearings. No cambiar reglas de programación ni CSS de marca.
+Las pruebas de dominio `hearing_result_values`, `hearing_result_time` y
+`hearing_result_canonical` fijan normalización, cotas, orden, duplicados y precisión.
+Las de aplicación cubren preparación, recibos, soporte, retiro y consultas.
+Las pruebas de infraestructura requieren PostgreSQL aislado para comprobar
+revalidación, carreras, Clock, rollback, referencias, guards, catálogo, inventario,
+importación y restauración. Una suite sin esas dependencias no acredita el adapter.
+
+En HTTP, `crates/web/tests/hearing_results_{http,body,queries}.rs` cubren rutas,
+query estricta, objetos anidados, tiempos y límite de bytes. Qadra separa raíces,
+historia y detalle mediante `HearingResults`, `HearingResultHistory` y
+`HearingResultDetail`; sus helpers de API y envío incierto viven en `web/src/lib/`.
+La interfaz conserva selección histórica expresa y conciliación sin reenvío
+automático; no construye HRES1 ni HRTX1 en JavaScript.
+
+`scripts/api_hearing_results_demo.py`, invocado por `scripts/api-hearings-demo.py`,
+ejercita sesiones, corrección, retiro, continuación y fuentes exactas. El guion
+`scripts/api-migration-demo.sh` incluye ambas tablas en la comparación de estado
+antes/después del respaldo; el recorrido HTTP compara también respuestas exactas.
+Los resultados ejecutados, entorno y limitaciones se registran por separado en
+[verification-report.md](verification-report.md). La implementación local no
+sustituye el cierre de campaña, integración ni validación de los demás objetivos.
 
 ## 12. Decisiones adoptadas y límite de cumplimiento
 
