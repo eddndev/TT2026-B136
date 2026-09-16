@@ -4,6 +4,49 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: comandos y fuentes exactas de hechos
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). La
+[base de aplicacion](procedural-facts-application.md) agrega comandos de alta,
+correccion y retiro, seleccion exacta y comprobaciones puras de identidad,
+administracion y participantes. Define permisos por rol y puertos. No incluye
+servicio coordinador, recibos canonicos, adaptador, migracion, HTTP o Qadra.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.233 s y 15.512 s. |
+| Suite con PostgreSQL/Redis desechables | **1521 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 398.030 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 1.216 s. |
+| Pruebas nuevas incluidas en la suite | **67 aprobadas**: 66 de aplicacion y una de permisos en dominio. |
+| Rust 1.88 de aplicacion y dominio, todos los targets | Aprobado, 13.526 s. |
+| Conservacion de fuentes durante el cierre | 896 huellas sin cambios. |
+
+TDD registra fallos iniciales por API ausente en comandos, permisos, base,
+seleccion, administracion y participantes. Una regresion adicional reprodujo
+12 aprobadas y una fallida: la comprobacion aislada de estado aceptaba una
+revision agotada. Ahora tambien exige sucesor valido; el cierre completo
+incluye ese ajuste. La revision independiente amplio el positivo tipado para
+distinguir digest de ficha y digest de sujeto. El primer verde focal de 14
+pruebas precede esas aserciones; la tabla refleja las fuentes finales.
+
+Los casos cubren cambio coordinado de padre en comando y valores, expediente
+ajeno, familia distinta con UUID igual, revision obsoleta, retiro terminal,
+selecciones con dos revisiones o acuerdos, digests documentales compartidos,
+administracion sin revision y sin perfil, cierre, avance sin CAS y cambios de
+una misma revision administrativa inmutable. Los participantes se resuelven por
+revision exacta; se verifican sus canones y el sujeto ligado, incluidas fuentes
+archivadas. Estos tests no prueban autorizacion efectiva de un nuevo adaptador:
+esa integracion aun no existe. Los backends existentes si se ejecutaron con sus
+bases y Redis aislados mediante `scripts/test-backends.sh`.
+
+Los 20 archivos Rust nuevos son ASCII y menores de 400 lineas; el mayor tiene
+367. Se conservaron los formatos y fuentes de dominio anteriores de etapas,
+resultados, tiempo declarado y valores de hechos. Sin cambios de dependencias,
+migraciones, CLI, HTTP o interfaz. No se repitieron cobertura instrumentada,
+release o navegador; tampoco se actualizo el manuscrito ni se compilo un PDF.
+La prueba ignorada sigue siendo la del proveedor TSA externo. Este corte tiene
+evidencia local y no dispone de CI remoto para su entrega.
+
 ## Corte reproducido: valores de resolucion y notificacion
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
@@ -48,9 +91,10 @@ dependencias, migraciones o interfaz. Las revisiones independientes del modelo,
 contrato y canones no encontraron hallazgos accionables.
 
 No se repitieron localmente cobertura instrumentada, release, CLI, HTTP o navegador
-para este modelo puro. Las cifras anteriores conservan su corte propio y el CI
-remoto aporta evidencia separada sobre el commit publicado. La prueba externa
-ignorada sigue correspondiendo al proveedor TSA. Autorizacion, auditoria atomica,
+para este modelo puro. Las cifras anteriores conservan su corte propio. Este
+corte solo dispone de evidencia local; el CI remoto de entregas anteriores no
+verifica estos valores nuevos. La prueba externa ignorada sigue correspondiendo
+al proveedor TSA. Autorizacion, auditoria atomica,
 persistencia, interfaz, integracion de PR y actualizacion academica siguen pendientes.
 
 ## Corte reproducido: precision temporal declarada

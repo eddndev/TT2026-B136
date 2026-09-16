@@ -3,9 +3,10 @@
 ## Status
 
 Accepted. Pure domain values and canonical encodings are implemented in
-[the fact model](../procedural-facts.md). Application ports, persistence, HTTP
-and Qadra are pending. This record does not constitute an implemented workflow
-or a complete data and API contract.
+[the fact model](../procedural-facts.md). Application commands, pure guards and
+port contracts are implemented in [the application contract](../procedural-facts-application.md).
+The coordinating service, receipt encodings, persistence, HTTP and Qadra remain
+pending. This record does not constitute an implemented workflow.
 
 ## Context
 
@@ -77,6 +78,21 @@ HRES1 ni modificar sus canones. Una resolucion externa a audiencia no necesita
 una programacion ficticia. Las referencias historicas preservan sus estados;
 que una fuente pueda leerse no demuestra elegibilidad para un calculo futuro.
 
+### Fuentes verificables y administracion
+
+Separar material interno exacto de referencias para recibos y vistas legibles.
+Un digest aislado no permite recomputar un canon ni verificar pertenencia de un
+acuerdo. Resolver valores de ficha y sujeto, resultados y resolucion padre; este
+ultimo solo incorpora su resultado y soporte historicos, sin un grafo recursivo.
+Derivar vistas desde valores comprobados, sin exponer por defecto el sujeto
+completo. La seleccion y las cotas quedan en el [contrato de aplicacion](../procedural-facts-application.md).
+
+Una declaracion externa no requiere inventar una audiencia, etapa o perfil penal.
+Conservar una base administrativa sin revision como `Unrevised`; el contenedor
+la liga al expediente y el adaptador comprueba sus metadatos originales. La
+administracion actual cerrada bloquea cambios. Las observaciones de preparacion
+no son revisiones esperadas administrativas ni sustituyen la captura bajo bloqueo.
+
 ### Precision temporal
 
 Adoptar el valor separado de [precision temporal](../procedural-time.md):
@@ -122,12 +138,13 @@ recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
   no bastara conservar un UUID o consultar una cabeza mutable.
 - El [modelo puro](../procedural-facts.md) fija catalogos descriptivos, campos,
   desconocimiento, personas y representacion. Los canones PFRES1/PFNOT1 preservan
-  esas declaraciones. Estados y comandos persistentes de correccion/retiro siguen
-  pendientes; un constructor no comprueba fuentes ni autorizacion.
+  esas declaraciones. La aplicacion define comandos de correccion/retiro y
+  comprobaciones puras; su coordinacion persistente sigue pendiente. Un
+  constructor no comprueba fuentes ni autorizacion.
 - El modelo admite hasta un soporte directo por resolucion y dos por notificacion,
   conservando funciones/localizadores y rechazando digests contradictorios. Quedan
-  pendientes presupuesto de bytes, admision de formatos, recibos, puertos, esquema,
-  limites HTTP y Qadra. No eludir limites dividiendo el trabajo en lotes. La futura
+  pendientes admision integrada de formatos, recibos, esquema, limites HTTP y
+  Qadra; los puertos fijan el presupuesto compartido de documentos directos. No eludir limites dividiendo el trabajo en lotes. La futura
   admision debera separar soportes directos de antecedentes historicos resueltos.
 - Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
   responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
