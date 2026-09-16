@@ -4,6 +4,55 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: valores de resolucion y notificacion
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[modelo puro](procedural-facts.md) conserva resoluciones y practicas de
+notificacion separadas, seleccion de revisiones exactas, procedencia, tiempos,
+funciones personales y soportes directos. Sus [canones](procedural-facts-canonical.md)
+preservan cada declaracion sin inferir efectos juridicos ni sustituir fuentes
+por su cabeza actual. Este corte no incluye aplicacion, persistencia o HTTP.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.136 s y 5.619 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1454 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 369.749 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 0.956 s. |
+| Suite del dominio | **272 aprobadas**, incluidas **32 nuevas**, sin fallos ni ignoradas. |
+| Corpus binario independiente | **28 vectores** coinciden byte por byte; incluido en dos de las pruebas Rust nuevas, no se suma al total. |
+| Rust 1.88 del dominio, todos los targets | Aprobado, 1.770 s. |
+| Conservacion de fuentes durante el cierre | 876 huellas sin cambios. |
+
+TDD conserva el fallo inicial por API inexistente y fallos previos por ausencia
+de canones y constantes. El primer intento de valores encontro tambien un error
+del fixture: utilizaba un constructor de fecha inexistente. Se corrigio la prueba
+para usar el parser existente antes de la corrida aprobada; no se cuenta ese
+error como una falla conductual del modelo. Todos esos logs se conservan separados.
+La primera suite completa tambien aprobo 1454/0/1; Clippy rechazo despues el
+tamano de la variante de representacion. Su procedencia se movio a un Box sin
+cambiar valores o canones y se ajusto una asignacion del test senalada por lint.
+La tabla corresponde a la repeticion completa posterior a esos ajustes.
+
+El generador Python no invoca Rust. Su salida versionada se reprodujo exactamente,
+incluyendo textos con CRLF y Unicode sin composicion, desconocimiento, tiempos y
+desfases, fuentes y evidencias por funcion. Las cotas alcanzadas son PFRES1
+27..17700 bytes y PFNOT1 67..58671 bytes. Una version documental seleccionada
+para dos funciones se incorpora una sola vez en el lote derivado, conservando ambos
+localizadores; expectativas de digest contradictorias se rechazan. El dominio
+reune referencias: no ejecuta admision, consulta fuentes ni verifica permisos.
+
+Los 21 archivos nuevos de Rust, generador y fixtures son ASCII y menores de
+400 lineas; el mayor tiene 357. Los 17 archivos anteriores de etapas y resultados
+conservan sus bytes, y los demas dominios anteriores no cambiaron. No se modificaron
+dependencias, migraciones o interfaz. Las revisiones independientes del modelo,
+contrato y canones no encontraron hallazgos accionables.
+
+No se repitieron localmente cobertura instrumentada, release, CLI, HTTP o navegador
+para este modelo puro. Las cifras anteriores conservan su corte propio y el CI
+remoto aporta evidencia separada sobre el commit publicado. La prueba externa
+ignorada sigue correspondiendo al proveedor TSA. Autorizacion, auditoria atomica,
+persistencia, interfaz, integracion de PR y actualizacion academica siguen pendientes.
+
 ## Corte reproducido: precision temporal declarada
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El nuevo

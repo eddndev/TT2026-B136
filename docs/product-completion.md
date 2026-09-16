@@ -87,7 +87,7 @@ sobre valores exactos de calendario y conserva cada dia con su clasificacion,
 fuente y acumulado. Se detiene ante datos sin resolver, falta de cobertura o
 agotamiento del rango de fechas. Sus quince pruebas estan incluidas en la suite
 completa reproducida. La primera fecha incluida y la cantidad todavia son
-entradas matematicas: faltan hechos de resolucion/notificacion, perfil aplicable,
+entradas matematicas: faltan registro persistente de hechos, perfil aplicable,
 recepcion, evaluacion persistente y alertas para obtener un plazo operativo.
 
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
@@ -95,6 +95,12 @@ fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
 registra hechos por si misma. La separacion de resoluciones y practicas de
 notificacion queda adoptada en [ADR-0031](adr/0031-declared-procedural-facts.md),
 con persistencia, contrato completo, autorizacion e interfaz aun pendientes.
+El [modelo puro de hechos](procedural-facts.md) ya conserva las dos familias,
+referencias historicas seleccionadas, desconocimiento, funciones personales y
+soportes directos. Sus [canones propios](procedural-facts-canonical.md) distinguen
+precision y desfase, y conservan cada localizador aunque un documento se comparta.
+Estos valores no registran actos por HTTP, verifican pertenencia, confirman
+auditoria o habilitan plazos; la siguiente entrega debe cerrar esa frontera.
 
 ## Entregas y condiciones de cierre
 
