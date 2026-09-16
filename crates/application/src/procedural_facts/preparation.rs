@@ -156,7 +156,7 @@ pub(super) fn admitted_supports(
         .collect())
 }
 /// A correction may replace a reference, but cannot silently rewrite one it retains.
-pub(super) fn validate_retained(
+pub fn validate_retained(
     base: &FactSources,
     current: &FactSources,
 ) -> Result<(), ApplicationError> {

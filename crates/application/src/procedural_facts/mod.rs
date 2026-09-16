@@ -49,3 +49,5 @@ mod service;
 pub use service::ProceduralFactService;
 
 mod service_workflow;
+
+pub use preparation::validate_retained as validate_fact_retained_sources;

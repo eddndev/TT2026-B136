@@ -4,6 +4,66 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: persistencia auditada de hechos declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[adaptador PostgreSQL](procedural-facts-persistence.md) conserva resoluciones y
+notificaciones con fuentes historicas exactas, permisos por expediente, recibos
+y auditoria atomica. Incluye migracion, parsers SQL/Rust, catalogo, inventario,
+importacion y restauracion. HTTP y Qadra de estos hechos siguen pendientes.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.269 s y 7.011 s. |
+| Suite con PostgreSQL/Redis desechables | **1687 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 408.982 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 3.290 s. |
+| Pruebas nuevas incluidas | **74 aprobadas**: 73 en 16 targets de infraestructura y una unitaria de catalogo. |
+| Rust 1.88 del workspace, todos los targets | Aprobado, 35.435 s. |
+| Guion HTTP con servicios aislados | Aprobado, 90.653 s; verifica los flujos existentes y compatibilidad de migracion/arranque. |
+| Conservacion durante la campana | 1025 huellas sin cambios. |
+| Corpus de fuentes y recibos | 43 vectores reproducibles; bytes, digests y longitudes anteriores conservados. |
+
+Las 74 pruebas focales ya estan incluidas en la suite global, no se suman de
+nuevo. Cubren las dos familias, R0 historico y revisiones administrativas,
+permisos/asignacion, cierre y revocacion antes de confirmar, correcciones
+competidas, operacion unica entre familias y Clock observado bajo el bloqueo.
+Las fuentes directas se admiten como lote completo; los antecedentes historicos
+no lo expanden. Se comprueban participantes manuales/tipificados, padres y
+acuerdos exactos, incluidas proyecciones alteradas con digests recalculados.
+
+Los listados prueban seleccion de cabeza antes del filtro, cursores exclusivos
+con UUID cero, padre fijo e historia descendente. Un fallo de auditoria impide
+confirmar cambios o devolver consultas. Importacion rechaza raices solas o
+revisiones huerfanas de cualquiera de las familias. El inventario verifica todas
+las paginas; las pruebas de pg_dump/pg_restore conservan bytes, fuentes, autor y
+capturas despues de modificaciones administrativas y baja del autor.
+
+TDD conserva fallos por APIs ausentes y regresiones conductuales de permisos,
+catalogo, inventario, importacion y administracion historica. Esta ultima
+permitia capturar una notificacion antes de la revision administrativa de su
+resolucion, o una resolucion antes de la de su resultado de audiencia. Las
+lecturas ahora rechazan ambas inconsistencias sin sustituir la historia por el
+estado vigente. Tambien se corrigieron el nombre requerido de la restriccion
+de operacion y la comparacion de cuerpos SQL para esquemas con signos de
+porcentaje. La comprobacion SQL directa rechaza fuentes omitidas, sustituidas
+o reescritas aun con recibos recalculados.
+
+El corpus JSON de PFSRC1 tenia doce componentes temporales no codificados en
+seis proyecciones de fecha/minuto. Se retiraron esos campos para coincidir con
+la precision declarada. Ninguno de los 43 vectores cambia sus bytes canonicos,
+SHA-256, longitud, nombre u orden. El generador Python y los parsers SQL/Rust
+coinciden. Un error inicial de sintaxis de migracion, un fixture de reemplazo de
+funcion y un aviso Clippy del helper de prueba se corrigieron por separado; no
+se presentan como regresiones funcionales.
+
+Las 61 fuentes nuevas Rust/SQL son ASCII y menores de 400 lineas, maximo 394.
+No cambian dependencias ni los formatos criptograficos anteriores. La campana
+usa PostgreSQL y Redis desechables; la unica prueba ignorada es la TSA externa.
+El guion HTTP ejecuta las rutas existentes: no atribuye acceso web a los nuevos
+hechos. No se repitieron navegador, cobertura instrumentada o release para esta
+entrega, ni se modifico el manuscrito o compilo un PDF. Los resultados CI 18/18
+de PR23 corresponden al servicio anterior; no acreditan esta persistencia.
+
 ## Corte reproducido: servicio de hechos declarados
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El

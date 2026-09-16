@@ -56,7 +56,7 @@ pub(crate) fn detail(
     Ok(detail)
 }
 /// Resolves one exact antecedent without recursively traversing its continuation.
-pub(super) fn snapshot(
+pub(crate) fn snapshot(
     tx: &mut Transaction<'_>,
     case: CaseId,
     hearing: HearingId,

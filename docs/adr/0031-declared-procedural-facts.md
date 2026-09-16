@@ -6,9 +6,11 @@ Accepted. Pure domain values and canonical encodings are implemented in
 [the fact model](../procedural-facts.md). The [application contract](../procedural-facts-application.md)
 now includes commands, exact-source validation, coordinating service and reads.
 [Source and operation encodings PFSRC1/PFTXN1](../procedural-facts-receipts.md)
-are implemented. PostgreSQL, migrations, audited transactions, effective case
-membership checks, HTTP and Qadra remain pending. This is not an operational
-persistent workflow.
+are implemented. The [PostgreSQL backend](../procedural-facts-persistence.md)
+now includes migrations, audited transactions, effective case membership checks,
+exact historical reads and startup validation. Backend verification is approved locally;
+HTTP composition and Qadra remain pending. These declarations do not establish
+operational legal deadlines.
 
 ## Context
 
@@ -128,22 +130,23 @@ cuando no esta vacio, por cada preparacion, incluida la del envio, con limites
 compartidos. Los antecedentes historicos no
 agregan archivos al lote. Retiro conserva valores y fuentes y rechaza material
 nuevo. Las lecturas comprueban expediente, revision exacta, recibos y paginacion;
-no aplican el rechazo de escritura a capturas cerradas o declaraciones retiradas.
+no aplican el rechazo de escritura a expedientes actualmente cerrados o declaraciones retiradas.
 
-Raiz, revision, recibo y auditoria deben compartir transaccion. Revalidar permiso,
-pertenencia y expediente activo bajo el bloqueo comun, con lectura vigente,
-revision esperada y operacion unica. Capturar autor y Clock en esa frontera.
+El adaptador PostgreSQL confirma raiz, revision, recibo y auditoria en una
+transaccion. Revalida permiso, pertenencia y expediente activo bajo el bloqueo
+comun, con lectura vigente, revision esperada y operacion unica. Captura autor,
+administracion y Clock en esa frontera.
 Mantener la politica de [administracion](../case-administration-api.md): cierre
 bloquea cambios y conserva consultas autorizadas. No ampliar acceso de Client.
 
 Seguir la [frontera auditada](0016-case-document-transactions.md), con pruebas
 reales de carreras, revocacion entre preparacion y confirmacion, fuentes alteradas,
-fallos y rollback. La restauracion debe conservar y validar todas las revisiones,
-referencias y recibos. Una respuesta incierta requiere conciliacion exacta antes
+fallos y rollback. El inventario y las pruebas de restauracion conservan y validan revisiones,
+referencias y recibos; el cierre ejecutado se registra en el informe de verificacion. Una respuesta incierta requiere conciliacion exacta antes
 de reenviar; una coincidencia visual no demuestra confirmacion de la operacion.
 
-No crear outbox ni intenciones sin consumidor. La implementacion de hechos debera
-persistir su auditoria, sin simular evaluaciones, trabajo pendiente o alertas enviadas.
+No crear outbox ni intenciones sin consumidor. Los hechos persisten su auditoria,
+sin simular evaluaciones, trabajo pendiente o alertas enviadas.
 La futura integracion del evaluador definira su frontera durable, dependencias,
 recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
 
@@ -155,15 +158,16 @@ recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
 - El [modelo puro](../procedural-facts.md) fija catalogos descriptivos, campos,
   desconocimiento, personas y representacion. Los canones PFRES1/PFNOT1 preservan
   esas declaraciones. La aplicacion coordina preparacion, envio y lecturas con
-  PFSRC1/PFTXN1, autenticacion y reautenticacion. El adaptador persistente sigue
-  pendiente; una prueba de puertos no demuestra una transaccion ni autorizacion
-  por membresia real. Un constructor de dominio tampoco las comprueba.
+  PFSRC1/PFTXN1, autenticacion y reautenticacion. El adaptador persistente agrega
+  transaccion auditada, membresia real, fuentes historicas e inventario. Las
+  pruebas de puertos y los constructores puros siguen sin acreditar por si solos
+  esas propiedades; requieren comprobacion PostgreSQL.
 - El modelo admite hasta un soporte directo por resolucion y dos por notificacion,
   conservando funciones/localizadores y rechazando digests contradictorios. Estan
   implementados la admision en el servicio, los recibos y el presupuesto compartido
   de documentos directos, separados de antecedentes historicos resueltos. No
-  eludir limites dividiendo el trabajo en lotes. Siguen pendientes esquema,
-  transaccion, limites HTTP, composicion y Qadra.
+  eludir limites dividiendo el trabajo en lotes. El esquema y la transaccion estan
+  implementados; siguen pendientes limites HTTP, composicion y Qadra.
 - Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
   responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
   Este ADR no fija reglas juridicas, un catalogo universal ni una formula mensual.
