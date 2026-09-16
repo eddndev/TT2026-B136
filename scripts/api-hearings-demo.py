@@ -11,6 +11,8 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
+from api_hearing_results_demo import capture_results
+
 BASE = os.environ["TT_HEARING_API_BASE_URL"]
 TOKEN = os.environ["TT_HEARING_API_TOKEN"]
 WORK = Path(os.environ["TT_HEARING_API_WORK_DIR"])
@@ -242,10 +244,11 @@ def capture():
         assert len(paged) <= 3
     assert len(paged) == len(set(paged)) == 3
     assert set(paged) == {first["id"], foreign["id"], trial_id}
+    result_paths = capture_results(sys.modules[__name__], other, foreign["id"], route, tokens)
     paths = [route + "/hearings/context", route + "/hearings?status=all", hearing,
              hearing + "/history", hearing + "/revisions/1", hearing + "/revisions/2", hearing + "/revisions/3",
              other + "/hearings/" + foreign["id"], trial_route + "/hearings/" + trial_id,
-             participant_path + "/revisions/1", route + "/subjects/" + typed["subject"]["id"], agenda_path]
+             participant_path + "/revisions/1", route + "/subjects/" + typed["subject"]["id"], agenda_path] + result_paths
     STATE.write_text(json.dumps({"records": {path: request("GET", path) for path in paths}}, sort_keys=True), encoding="utf-8")
     assert request("GET", "/api/v1/audit/verify")["valid"]
     print("Hearing API passed: receipts, history, typed identities, archive, stages, exact sealed support, permissions and agenda.")
