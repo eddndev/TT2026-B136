@@ -1,5 +1,4 @@
-//! Transactional hearing scheduling with exact history and explicit operation receipts.
-
+//! Transactional declared sessions with exact historical sources and operation receipts.
 mod authorization;
 mod commit;
 mod decode;
@@ -7,21 +6,20 @@ mod port_impl;
 mod preparation;
 mod query;
 mod sources;
-pub(crate) use sources::{administration, participant};
 pub(crate) mod storage;
 mod write;
 
-use application::{hearings::*, ApplicationError};
+use application::{hearing_results::*, ApplicationError};
 use domain::{clock::Clock, crypto::DocumentHasher};
 use postgres::{Client, Error};
 use std::sync::{Arc, Mutex, MutexGuard};
 
-pub struct PostgresHearingStore {
+pub struct PostgresHearingResultStore {
     client: Mutex<Client>,
     hasher: Arc<dyn DocumentHasher + Send + Sync>,
     clock: Arc<dyn Clock + Send + Sync>,
 }
-impl PostgresHearingStore {
+impl PostgresHearingResultStore {
     pub fn open(
         url: &str,
         hasher: Arc<dyn DocumentHasher + Send + Sync>,
@@ -36,21 +34,21 @@ impl PostgresHearingStore {
     fn client(&self) -> Result<MutexGuard<'_, Client>, ApplicationError> {
         self.client
             .lock()
-            .map_err(|_| ApplicationError::Port("hearing database lock poisoned".into()))
+            .map_err(|_| ApplicationError::Port("hearing result database lock poisoned".into()))
     }
 }
 fn port(error: Error) -> ApplicationError {
     if error.code() == Some(&postgres::error::SqlState::UNIQUE_VIOLATION) {
         return if error.as_db_error().and_then(|e| e.constraint())
-            == Some("hearing_operation_unique")
+            == Some("hearing_result_operation_unique")
         {
-            HearingError::OperationConflict.into()
+            HearingResultError::OperationConflict.into()
         } else {
-            HearingError::RevisionConflict.into()
+            HearingResultError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("hearing database: {error}"))
+    ApplicationError::Port(format!("hearing result database: {error}"))
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
-    HearingError::StoredInconsistent(error.to_string()).into()
+    HearingResultError::StoredInconsistent(error.to_string()).into()
 }

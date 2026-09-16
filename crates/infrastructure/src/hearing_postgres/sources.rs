@@ -24,7 +24,7 @@ pub(super) fn context(
         stage: crate::case_stages::query::current(tx, case, hasher)?,
     })
 }
-pub(super) fn administration(
+pub(crate) fn administration(
     tx: &mut Transaction<'_>,
     case: CaseId,
     revision: CaseRevision,
@@ -53,7 +53,7 @@ pub(super) fn stage(
         .find(|entry| entry.stage_revision() == revision)
         .ok_or_else(|| inconsistent("hearing stage source is absent"))
 }
-pub(super) fn participant(
+pub(crate) fn participant(
     detail: ParticipantDetail,
 ) -> Result<HearingParticipantSnapshot, ApplicationError> {
     let values_digest = detail.values_digest();
