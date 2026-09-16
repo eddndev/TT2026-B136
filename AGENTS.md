@@ -272,9 +272,25 @@ is still unfinished.
   all directories; assigned Litigator manages and assigned Paralegal reads;
   Client remains denied. Replacements require the current revision. Status-only
   archive/reactivation preserves current text inside the audited transaction.
-  Captured author UUID/email and values remain historical. Legal identity,
-  verified duplicate detection and judicial certificate criteria remain open.
+  Captured author UUID/email and values remain historical. Civil identity and
+  external judicial accreditation remain outside the internal demonstration.
   See `docs/adr/0021-audited-case-participants.md`.
+- The `0010_` migrations add represented identities, eleven typed profiles,
+  explicit candidate reviews and mixed manual/typed history. Each typed revision
+  binds an exact subject revision and immutable document supports. Mutations
+  recheck case status, membership, revisions, candidate review and captured
+  documents inside the audited transaction. Declared identifiers and candidate
+  signals do not establish civil identity. See
+  `docs/adr/0025-case-subjects-and-typed-participants.md`.
+- Defenders and control judges require an externally signed internal declaration;
+  other natural-person profiles may supply one. The API verifies public evidence
+  and never accepts private keys. `pki issue --purpose participant-declaration`
+  issues the internal profile; `credential-trust publish` requires an administrative
+  PostgreSQL connection and publishes monotonic CRL revisions. Runtime reads
+  captured trust and preserves historical evidence after status changes. This
+  does not implement certificate login or per-account document signing. See
+  `docs/adr/0026-internal-participant-declarations.md` and
+  `docs/typed-participants-api.md`.
 - User creation and recovery-code consumption also commit their PostgreSQL
   audit atomically. Redis challenges and sessions do not participate in that
   transaction. Failed audit writes trigger best-effort removal of newly
@@ -305,6 +321,11 @@ is still unfinished.
   stage; forms preserve drafts during revision conflicts and concurrent closure.
   Case navigation also exposes the participant directory, revision history and
   explicit conflict review for full edits and organizational status changes.
+  Typed participant forms review candidate identities, select exact supports,
+  export the binary declaration and receive public certificates and signatures.
+  Subject edits preserve historical bindings; uncertain writes require explicit
+  reconciliation before resubmission. Credential files reset when the selected
+  identity, case or session changes.
   The Stages view separates current state, declared acts and initial history;
   it supports adoption, exact-version selection, transitions and reconciliation
   of conflicts or uncertain outcomes without automatic resubmission. Confirmed
@@ -334,10 +355,11 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Complete typed participant identity, hearings, deadlines and resources linked
-   to resolutions. Penal administration, stage adoption, two ordinary transitions
-   and the manual participant directory are implemented; they do not establish
-   verified identity, judicial authority or automatic deadline computation.
+2. Complete hearings, deadlines and resources linked to resolutions. Penal
+   administration, stage adoption, two ordinary transitions and the mixed
+   participant directory are implemented. Typed identities and internal
+   declarations preserve reviewed provenance; they do not establish civil
+   identity, external judicial authority or automatic deadline computation.
    `docs/procedural-resources-scope.md` preserves the approved objective and
    proposes a separate resource workflow, not a fourth linear stage. Keep these
    records separate from account assignments and organizational archiving.

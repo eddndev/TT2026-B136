@@ -268,6 +268,34 @@ bytes, recibo y prefijo de auditoría aunque se añadan versiones posteriormente
 
 ## Respaldo y restauración
 
+Las migraciones `0009_participant_credential_trust.sql` y el conjunto `0010_`
+añaden confianza, identidades, perfiles tipificados, revisiones de selección y
+evidencia de declaración. Ejecutar `database migrate --runtime-role` con los
+escritores detenidos y una conexión administrativa. El requisito de primera
+revisión de participante pasa a un trigger diferido que admite una única R1
+manual o tipificada; no se eliminan ni convierten las revisiones manuales.
+El arranque verifica columnas, restricciones y triggers, sus permisos y el
+inventario completo, incluidas las relaciones entre pruebas firmadas y fichas.
+Una discrepancia exige restaurar datos consistentes, no relajar esos controles.
+
+Las tablas nuevas son `case_subjects`, `case_subject_revisions`,
+`case_participant_typed_revisions`, `subject_identity_reviews`,
+`participant_identity_reviews` y `participant_credential_evidence`, además de
+`participant_credential_authority` y `participant_credential_trust_revisions`.
+Conservarlas junto con usuarios, expedientes, documentos y auditoría. El rol
+operativo puede consultar la confianza publicada, pero no publicarla ni alterar
+la autoridad. No conceder propiedad o permisos indirectos que eludan esa separación.
+
+La confianza de declaraciones de participantes se publica con conexión
+administrativa mediante `credential-trust publish`; consulte
+[el procedimiento PKI](../pki/README.md#publicar-confianza-para-declaraciones).
+El rol operativo conserva sólo lectura sobre `participant_credential_authority`
+y `participant_credential_trust_revisions`. No concederle escritura, propiedad
+de las tablas ni ejecución de las funciones que protegen ese historial.
+El respaldo debe incluir ambas tablas y preservar el UUID de despliegue, los
+bytes públicos de raíz y CRL, sus revisiones y la procedencia administrativa.
+Crear una autoridad nueva no sustituye una restauración de la original.
+
 Respaldar PostgreSQL completo, conservar las fuentes originales y proteger KEK,
 claves y certificados por separado. Una copia documental sin su KEK no basta.
 Crear una base de restauración independiente antes de probar recuperación:
@@ -294,6 +322,13 @@ administrativas y los registros iniciales con su procedencia exacta. El recorrid
 de etapas añade adopción y ambos avances con PDF/DOCX, conflicto concurrente,
 soporte histórico después de append, cierre y revocación; al restaurar compara
 estado actual, historia, fechas, actores y evidencia ZIP original.
+El recorrido tipificado crea una identidad y dos roles, prepara una declaración
+de 218 bytes, la firma externamente con OpenSSL y comprueba el rechazo de una
+firma alterada. Edita la identidad y archiva el rol firmado preservando sus
+referencias originales. Después del respaldo compara diez respuestas completas,
+las tablas nuevas y la confianza capturada; verifica de nuevo la firma con el
+certificado público recuperado. La clave privada de esa fixture permanece fuera
+del directorio de trabajo del servidor y no se envía por HTTP.
 La reconstrucción del formato legacy es un fixture documental, no una conversión
 íntegra del historial administrativo actual; la restauración posterior sí conserva
 todas las tablas.

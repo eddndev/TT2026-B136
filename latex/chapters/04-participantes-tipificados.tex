@@ -1,0 +1,58 @@
+\subsection{Identidades representadas y participantes tipificados}\label{sec:impl-participantes-tipificados}
+
+La extensión conserva las fichas manuales y añade identidades locales al expediente con revisión propia. \texttt{Case\allowbreak SubjectId} identifica a la persona u órgano; \texttt{ParticipantId} identifica la ficha y su rol; \texttt{UserId} identifica a la cuenta autora. Crear una identidad junto con su primera ficha es atómico. Reutilizarla fija una revisión exacta; modificarla después no reescribe la identidad vinculada a fichas o firmas anteriores. La consulta de identidad actual constituye una operación explícita distinta.
+
+\begin{table}[H]
+  \centering
+  \caption{Datos propios de los once perfiles del directorio.}
+  \label{tab:impl-perfiles-tipificados}
+  \begin{tabularx}{\linewidth}{@{}L{3.8cm} X@{}}
+    \toprule
+    \textbf{Perfil} & \textbf{Datos declarados y condiciones particulares} \\
+    \midrule
+    Imputado & Situación de libertad conocida o motivo de desconocimiento. \\
+    Víctima u ofendido & Contacto y protección mediante estados explícitos y soportes cuando están documentados. \\
+    Defensor & Cédula y emisor, modalidad pública o particular; declaración firmada obligatoria. \\
+    Ministerio Público & Identificador de fiscalía, unidad y cédula, con desconocimiento motivado admisible. \\
+    Asesor jurídico & Institución o despacho y cédula conocida o desconocida con motivo. \\
+    Juez de control & Órgano jurisdiccional y declaración firmada obligatoria. \\
+    Tribunal de enjuiciamiento & Identidad institucional, distrito y composición unipersonal o colegiada. \\
+    Perito & Especialidad y cédula, con desconocimiento motivado admisible. \\
+    Policía & Corporación y unidad declaradas o desconocidas con motivo. \\
+    Supervisión cautelar & Autoridad y unidad declaradas o desconocidas con motivo. \\
+    Otro & Etiqueta y descripción; admite persona física u órgano compatible. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Organización y estatus jurídico permanecen como valores organizativos opcionales. La identidad y el rol conservan soportes cifrados con UUID documental, versión, SHA-256 y localizador. El conjunto de una operación, incluidas decisiones de candidatos, admite como máximo dos versiones distintas, 16~MiB cada una y 32~MiB en total. La preparación verifica integridad, evidencia capturada y admisión de formato mediante el worker descrito en la \cref{sec:impl-formatos}. Seleccionar un soporte no modifica su contenido; una carga confirmada permanece si la preparación posterior es rechazada.
+
+\subsubsection{Canon, revisión y confirmación}
+
+\texttt{SUBJ1} codifica la identidad y admite hasta 5676 bytes. \texttt{PART2} codifica el rol y su referencia exacta de identidad, hasta 8380 bytes. \texttt{PART1} permanece idéntico para las revisiones manuales. Los enteros tienen tamaño y orden definidos, las variantes usan etiquetas y los textos conservan UTF-8. Los codecs rechazan representaciones no canónicas, campos incompatibles y datos posteriores al valor completo. SHA-256 cubre cada codificación; una revisión de ficha tipificada no incorpora su propia firma al canon, evitando una dependencia circular.
+
+La revisión de candidatos combina nombre conocido, identificador, certificado y pareja de digest documental y localizador. Una etiqueta de persona no identificada no equivale a un nombre conocido. Las decisiones de identidad distinta deben cubrir exactamente los candidatos devueltos, con motivo y soporte. La capacidad máxima es de 16; excederla rechaza la preparación y no recomienda alterar datos para eludirla. La huella del directorio se obtiene recorriendo sus cabezas ordenadas con memoria acotada. Una edición concurrente fuera de la página visible también invalida esa revisión.
+
+{\raggedright Bajo \rutarepo{/api/v1/cases/<case>/participants/proposals}, las rutas \texttt{review}, \texttt{prepare} y \texttt{commit} separan revisión, preparación y confirmación. La primera propone UUID sin reservarlos; la segunda devuelve expectativas, valores y evidencia a firmar cuando aplica; la tercera confirma la operación completa. El detalle exacto y la historia incorporan revisiones manuales y tipificadas. El recurso \texttt{subjects} ofrece índice compacto, detalle actual, revisión exacta, historia y reemplazo revisado de identidad. El contrato detallado se conserva en \rutarepo{docs/typed-participants-api.md}.\par}
+
+Las rutas tipificadas limitan el JSON completo a 256~KiB y exigen fin de entrada; las escrituras manuales conservan 8~KiB. Los índices seleccionan primero la cabeza de la unión manual y tipificada. Nombre, estado, tipo y perfil se filtran antes de paginar; el filtro de rol manual solo considera fichas todavía manuales. No reaparece una revisión manual antigua por coincidir con un filtro. Identificadores, contacto y material de credenciales se excluyen de los índices; su detalle requiere una consulta explícita con la política de lectura vigente.
+
+La persistencia conserva raíces y revisiones de identidad, revisiones tipificadas, decisiones de candidatos y evidencia pública. Un trigger diferido exige exactamente una revisión inicial manual o tipificada para cada ficha. Bajo la transacción auditada se revalidan cuenta activa, rol, pertenencia, estado abierto, revisiones esperadas, unicidad de identidad y rol, huella del directorio y soportes completos. La sesión también se comprueba antes de ingresar a persistencia. Un fallo revierte valores, decisiones y auditoría juntos. El cierre impide nuevas mutaciones; las lecturas y evidencias autorizadas permanecen. Owner gestiona globalmente, Litigante asignado gestiona, Paralegal asignado consulta y Cliente no accede.
+
+\subsubsection{Declaración personal y confianza publicada}\label{sec:impl-declaracion-participante}
+
+El perfil \texttt{internal\_demo\_v1} valida una cadena raíz-hoja acotada; la hoja aportada por el operador no elige su raíz de confianza. Exige RSA-3072, usos de clave de firma adecuados, extensiones admitidas y CRL directa completa vigente. No realiza consultas AIA, OCSP ni descubrimiento de intermediarios. Certificado y raíz admiten 16~KiB cada uno; la CRL admite 1~MiB y 10\,000 entradas. Material mal formado, revocado, vencido o fuera del perfil se rechaza. Estas condiciones son propias de la demostración interna, no un validador general de FIREL.
+
+La declaración \texttt{PCRED1} mide exactamente 218 bytes. Fija despliegue y raíz, expediente, identidad, operación y revisiones de identidad, ficha y revisiones de ficha, tipo de rol, digests de valores y huella DER de la hoja. Se exportan esos bytes y un recibo legible antes de firmar. La firma separada tiene exactamente 384 bytes y usa RSASSA-PKCS1-v1\_5 con SHA-256, sin aplicar un segundo hash al digest ya preparado. El titular conserva la clave privada fuera del servidor; no se admiten contraseñas de clave, PFX ni PKCS\#12. La clave compartida de sellado documental no sustituye esta firma personal.
+
+El administrador publica raíz y CRL mediante revisiones inmutables de confianza en PostgreSQL. Se conserva el usuario administrativo de sesión como procedencia, sin inventarle una cuenta de Qadra. La raíz del despliegue permanece fija; el número de CRL crece estrictamente y su fecha de emisión no retrocede. Generar o editar el índice local de la CA no actualiza por sí mismo la confianza publicada. El rol operativo solo lee estos materiales. Después de verificar criptografía fuera del bloqueo de auditoría, la confirmación exige la misma cabeza de confianza y captura el reloj tras esperar el bloqueo; el instante debe permanecer dentro del intervalo admitido de raíz, hoja y CRL.
+
+La evidencia histórica conserva declaración, firma, certificados, CRL, revisión de confianza, referencias exactas y momento comprobado. Ese momento no se declara fecha original de firma. Una CRL posterior no reescribe el resultado histórico. Archivar o reactivar conserva la referencia de la credencial anterior, sin afirmar que la firma cubra el nuevo estado organizativo; editar valores que requieren credencial exige una nueva firma. El respaldo debe conservar todo el conjunto. Un rollback administrativo coherente de toda la base sigue fuera de la garantía sin anclaje externo.
+
+\subsubsection{Interacción y conciliación en Qadra}
+
+El alta principal presenta el formulario tipificado; registrar una ficha pendiente mantiene el flujo manual explícito. El operador selecciona una identidad existente o registra una nueva, revisa candidatos, prepara la declaración y confirma. El certificado se libera al cambiar identidad, expediente o sesión; cambiar valores invalida revisión, declaración y firma, pero puede conservar el certificado de la misma identidad. Borradores y archivos permanecen solo en memoria. Las acciones vecinas esperan el trabajo real de consultas o preparación, sin lanzar lecturas por cada fila del índice o de la historia.
+
+Ante una respuesta incierta se conserva el envío exacto. Para una operación sin firma, la revisión propuesta se concilia mediante origen y digest \texttt{PTXN1}; para una firmada, mediante declaración, firma, certificado y referencias originales. Una coincidencia de texto actual no demuestra éxito. La edición separada de identidad permite consultar el sucesor esperado y decidir explícitamente antes de reemplazar otra vez; si esa revisión aún no existe, conserva el borrador. Un conflicto conserva los valores locales, y una denegación retira el detalle e invalida respuestas tardías. Ninguno de estos caminos reenvía automáticamente ni genera nuevos UUID para ocultar incertidumbre.
+
+Los perfiles aportan datos específicos y controles internos de duplicidad, pero no verifican identidad civil, nombramiento, cédula ni representación ante tribunales. La firma interna no acredita FIREL. El directorio no completa por sí solo todos los criterios jurídicos del caso de uso ni cambia los permisos de las cuentas; estas limitaciones se mantienen en la aceptación del producto.

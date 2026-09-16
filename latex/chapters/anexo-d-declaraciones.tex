@@ -1,0 +1,24 @@
+\section{Certificados para declaraciones personales}\label{sec:pki-declaraciones}
+
+{\raggedright El script \rutarepo{pki/issue-declaration-cert.sh} emite el perfil de hoja usado para declaraciones de participantes. La CLI lo selecciona mediante \texttt{pki issue --purpose participant-declaration}. Conserva RSA-3072, \texttt{CA:false} y usos críticos de firma; no añade los EKU de autenticación de cliente o protección de correo del certificado ordinario. El verificador comprueba el resultado antes de admitirlo. La raíz y los certificados documentales mantienen sus usos propios.\par}
+
+La declaración se prepara después de elegir el certificado público. El operador exporta los 218 bytes de \texttt{PCRED1} y el recibo que identifica caso, identidad, ficha, revisiones y digests. El titular firma el archivo exacto fuera de Qadra. Un ejemplo de operación local, con archivos sintéticos, es:
+
+\begin{lstlisting}[language=bash, caption={Firma separada de una declaración exacta con la clave del titular.}, label={lst:pki-declaracion}]
+openssl dgst -sha256 -sign titular.key.pem \
+  -out declaracion.sig declaracion.bin
+openssl x509 -in titular.crt.pem -pubkey -noout \
+  > titular.pub.pem
+openssl dgst -sha256 -verify titular.pub.pem \
+  -signature declaracion.sig declaracion.bin
+\end{lstlisting}
+
+La clave y cualquier contraseña permanecen bajo custodia externa. Se cargan únicamente un certificado público PEM o DER, acotado a 16~KiB, y la firma binaria de 384 bytes. La verificación de la firma por OpenSSL comprueba correspondencia de clave y contenido; no sustituye la admisión del perfil, la confianza publicada, los permisos ni las revisiones esperadas que verifica la aplicación.
+
+\section{Publicación administrativa de confianza}\label{sec:pki-confianza-publicada}
+
+La orden \texttt{credential-trust publish} recibe raíz, CRL y revisión esperada mediante una conexión administrativa a PostgreSQL. La primera publicación fija la identidad del despliegue y raíz. Las siguientes preservan esa raíz, exigen número de CRL estrictamente creciente y fecha de emisión no decreciente. Se conservan los bytes públicos, digests, intervalos y usuario administrativo de sesión. El rol con el que opera \texttt{serve} carece de permisos para publicar o modificar esta confianza.
+
+La CRL debe regenerarse y publicarse después de revocar y antes de caducar. El archivo producido por OpenSSL incluye identificador de autoridad y número de CRL; la admisión comprueba firma, estructura, seriales únicos y vigencia. La representación JSON del número de CRL es una cadena decimal para evitar redondeos de enteros de 64 bits en JavaScript. Cambiar el índice local de la CA no hace efectiva la revocación en este flujo mientras no se publique la CRL correspondiente.
+
+El detalle histórico conserva el material y momento de aceptación originales. Una nueva publicación no altera evidencia ya capturada, pero puede impedir una preparación pendiente. El respaldo y restauración deben incluir identidad del despliegue, revisiones de confianza, evidencia pública y bitácora. El procedimiento operativo se mantiene en \rutarepo{pki/README.md}; los límites del perfil se especifican en la \cref{sec:impl-declaracion-participante}.

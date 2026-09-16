@@ -4,6 +4,182 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Repetición de cierre: identidades y declaraciones
+
+La repetición del 15 de septiembre de 2026, por la noche en
+`America/Mexico_City`, comprobó el software de `f2dfd3c`. Los resultados del
+primer corte se conservan a continuación con sus propios denominadores.
+
+| Comprobación ejecutada de nuevo | Resultado |
+| --- | --- |
+| Formato, compilación y Clippy de todo el workspace | Aprobados. |
+| Suite normal con `scripts/test-backends.sh` | **1066 aprobadas, 0 fallidas, 1 externa ignorada; salida 0.** |
+| Suite instrumentada con PostgreSQL/Redis desechables | **1066 aprobadas, 0 fallidas, 1 externa ignorada; salida 0.** |
+| Cobertura y sus tres umbrales del 90 % | **21 967 / 23 773 líneas, 92.4031 % global; aprobados.** |
+| Rust 1.88 y `cargo-deny 0.20.2 check` | Aprobados. |
+| Binario release | **11 673 656 bytes**, por debajo de 26 214 400. |
+| `scripts/demo.sh` y `scripts/api-demo.sh` | Aprobados, incluida restauración y comprobación independiente con OpenSSL. |
+| Formato, compilación y pruebas unitarias de Qadra | Aprobados; **90 pruebas unitarias**. |
+| Navegador con API simulada | **147 aprobadas**, 1.9 minutos. |
+| Navegador con servicios reales aislados | **8 aprobadas**, 2.0 minutos; script completo 263.047 segundos con preparación. |
+
+La cobertura de esta repetición fue 2441/2513 líneas en `domain`, 4129/4342
+en `application`, 11211/12150 en `infrastructure`, 3275/3568 en `web` y
+911/1200 en `bin`. El conteo de infraestructura difiere en una línea del primer
+corte; no se sustituyó su medición anterior ni se repitió para igualarla.
+Los backends se ejecutaron con las variables aisladas configuradas y qpdf real.
+La única prueba ignorada sigue siendo la del proveedor TSA externo. Esta
+repetición normal también terminó con salida exterior 0; no atribuye una causa
+a la discrepancia histórica del supervisor.
+
+El instructivo del ZIP ahora explica que exportar no renueva la CRL y permite
+consultar `lastUpdate` y `nextUpdate` con OpenSSL. La primera ejecución encontró
+que la prueba del paquete aún esperaba siete comandos; se ajustó para ejecutar
+los ocho y comprobar las fechas de la lista. La prueba dirigida y la suite
+completa posterior aprobaron. El ZIP se regenera con el instructivo del software
+actual: sus bytes pueden diferir de una descarga anterior a esta corrección,
+sin modificar documento, firma, sello, certificados ni CRL almacenados. La
+comparación binaria de respaldo/restauración se hizo bajo el mismo código.
+
+La revisión de interfaz corrigió claves de error de certificado que no coincidían
+con el contrato HTTP y añadió mensajes específicos para CRL y límites. La nueva
+regresión falló antes de la corrección y pasó después. El primer intento de
+navegador abortó antes de ejecutar pruebas por el lock de Astro del servidor
+local; las configuraciones de prueba usan `--ignore-lock` y puertos separados.
+Ambas campañas completas aprobaron conviviendo con la demostración local, cuya
+API y Qadra continuaron respondiendo. Los triggers de CI incluyen el nuevo
+fixture de participantes tipificados.
+
+La demostración CLI registró **615.7 ms de promedio sobre cinco corridas de
+Argon2id**, dentro de la banda de 500 a 1000 ms. Es una nueva medición local con
+otras comprobaciones concurrentes; no sustituye los 1145.9 ms del primer corte
+ni constituye calibración del despliegue. La revisión de fuentes propias
+comprobó ASCII y el límite de tamaño, con máximo de 387 líneas. Las hojas de
+estilo originales, marca, fuentes académicas protegidas y entregables previos
+conservaron sus hashes. No se ejecutó evaluación de usabilidad con personas.
+
+## Corte reproducido: identidades y participantes tipificados
+
+- Fecha local: 15 de septiembre de 2026 (`America/Mexico_City`).
+- Alcance: identidades representadas por expediente, once perfiles procesales,
+  revisión explícita de coincidencias, declaraciones con firma externa y confianza
+  interna publicada, historial mixto y flujos Qadra.
+- Decisiones: [identidades y perfiles](adr/0025-case-subjects-and-typed-participants.md)
+  y [declaraciones internas](adr/0026-internal-participant-declarations.md).
+- Entorno comprobado: Rust/Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9,
+  OpenSSL 3.5.7, Node.js 22.22.2, npm 10.9.7 y qpdf 12.4.1, Linux x86_64.
+
+### Pruebas y recuperación de participantes
+
+| Comprobación | Resultado reproducido |
+| --- | --- |
+| `cargo fmt --all -- --check`, `cargo build --workspace` | Aprobadas. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Aprobada. |
+| `cargo test --workspace` mediante `scripts/test-backends.sh` | **1066 aprobadas**, 0 fallidas y 1 externa ignorada. Cargo y el wrapper registraron salida 0. |
+| Suite instrumentada mediante `scripts/test-backends.sh cargo llvm-cov --workspace --json --summary-only` | **1066 aprobadas**, 0 fallidas y 1 externa ignorada; salida 0. |
+| `scripts/coverage-gate.sh` sobre el JSON instrumentado | Los tres umbrales del 90 % aprobados. |
+| Binario release | **11 673 656 bytes**, menor que el límite de 26 214 400 bytes. |
+| `cargo +1.88.0 check --workspace` | Aprobada con la MSRV declarada. |
+| `cargo-deny 0.20.2 check` | Avisos, restricciones, licencias y fuentes aprobados. |
+| `scripts/demo.sh` | Recorrido criptográfico CLI aprobado. |
+| `scripts/api-demo.sh`, con firma externa y restauración | Recorrido completo y repetición final aprobados con salida 0. |
+| Qadra, lógica y contratos de interfaz | **89 pruebas unitarias y 147 escenarios con HTTP simulado** aprobados. |
+| `scripts/web-demo.sh`, Qadra con servicios reales | **8 recorridos aprobados** en 1.8 minutos. |
+| Compilación y formato de Qadra | Aprobados. |
+
+Son **133 pruebas Rust adicionales** respecto de las 933 del corte anterior.
+Las variables de backend apuntaron a PostgreSQL con SCRAM y Redis desechables,
+con bases separadas para identidad, expedientes y documentos; qpdf se preparó
+con su instalador verificado. No hubo omisiones por ausencia de estos servicios.
+La única ignorada sigue siendo `the_real_sandbox_issues_a_token`. Persisten el
+aviso informativo de compatibilidad futura de Redis y los duplicados permitidos
+de dependencias. No se cambiaron las políticas de seguridad para aprobar.
+
+El supervisor exterior de la repetición no instrumentada informó código 143,
+aunque tanto Cargo como el wrapper registraron su salida 0 después de terminar.
+No se atribuye una causa no reproducida a esa discrepancia. La campaña
+instrumentada independiente completó la misma suite y su cierre con salida 0.
+
+Los ensayos dirigidos previos incluyeron 125 pruebas HTTP, 46 del perfil
+criptográfico y sus regresiones, 19 de confianza publicada, seis del códec y
+23 adaptaciones históricas del directorio y cierre. Son subconjuntos de las
+campañas completas, no pruebas adicionales que deban sumarse. Los casos nuevos
+comprueban permisos y aislamiento, revisión esperada, revisión de candidatos
+más allá de la primera página y límite global de 16 coincidencias, integridad
+de proyecciones compactas y conservación de señales históricas de certificado.
+
+Las pruebas negativas reprodujeron y corrigieron una consulta compacta que no
+rechazaba valores canónicos alterados y una recuperación de credencial que
+necesitaba comprobar la vinculación completa entre declaración, perfil y
+operación aceptada. Se rechazan declaraciones válidas de otra ficha y tiempos
+de aceptación anteriores a su verificación. La publicación de CRL durante la
+preparación y el vencimiento mientras el commit espera su bloqueo rechazan la
+mutación sin filas ni eventos de éxito. El instante de verificación capturado
+no se sustituye al entrar en la transacción.
+
+La demostración HTTP preparó una declaración de 218 bytes, recibió una firma
+externa de 384 bytes y rechazó una firma alterada. Repetir una operación ya
+aceptada produjo conflicto. Editar la identidad a R2 conservó R1 en las fichas
+anteriores; archivar el rol mantuvo el origen de su evidencia. Se compararon diez
+respuestas completas después de restaurar la base y se verificó la firma otra
+vez con OpenSSL y el certificado público recuperado. El inventario restaurado
+incluyó ocho expedientes, 16 revisiones administrativas, tres registros iniciales,
+10 raíces documentales, 12 versiones, tres clasificaciones, cuatro participantes,
+seis revisiones manuales y tres tipificadas, una identidad con dos revisiones y
+una credencial. El prefijo de importación legacy de cuatro documentos y 63 eventos
+es una fixture separada del estado completo final.
+
+### Cobertura de identidades y declaraciones
+
+**21 968 de 23 773 líneas cubiertas: 92.4 % global.** Se incluye el código
+instrumentado nuevo, sin exclusiones para aprobar los umbrales.
+
+| Crate | Líneas cubiertas / instrumentadas | Cobertura |
+| --- | ---: | ---: |
+| `domain` | 2441 / 2513 | 97.1 % |
+| `application` | 4129 / 4342 | 95.1 % |
+| `infrastructure` | 11212 / 12150 | 92.3 % |
+| `web` | 3275 / 3568 | 91.8 % |
+| `bin` | 911 / 1200 | 75.9 % |
+
+Es cobertura de líneas; no representa avance porcentual del TT ni cumplimiento
+jurídico. Las mediciones anteriores conservan su fecha y denominador.
+
+### Interfaz y límites de esta evidencia
+
+La campaña real de Qadra aprobó ocho recorridos. Los dos nuevos verifican la
+política de lectura y gestión de perfiles institucionales y el flujo personal
+con firma externa, cambio de identidad, historia vinculada y nueva autenticación.
+Una ejecución previa completó siete recorridos y detectó que el guion esperaba
+el tablero después de recargar participantes; se corrigió la navegación y se
+repitió el conjunto completo. Otro intento anterior se detuvo al arrancar durante
+el ajuste de nombres de restricciones PostgreSQL y no ejecutó casos de navegador.
+
+Después de la campaña real se mejoró únicamente la presentación del selector
+de archivos y la separación del texto de revisión. Un escenario dirigido con
+HTTP simulado comprobó la apertura del selector nativo, la declaración de 218
+bytes y la firma separada de 384 bytes; compilación y formato aprobaron otra vez.
+Tres recorridos adicionales verificaron el filtro de rol manual y su presentación
+móvil. Estas repeticiones no se suman como nuevos escenarios. Se inspeccionaron
+capturas de escritorio y móvil; los originales de marca y las siete hojas de
+estilo originales conservan sus bytes. La revisión de 242 archivos de software
+y configuración modificados encontró ASCII y fuentes menores de 400 líneas,
+con máximo de 387; `Cargo.lock` se comprobó por separado para ASCII.
+
+La demostración CLI midió Argon2id en **1145.9 ms de promedio sobre cinco
+corridas**, por encima de la banda objetivo de 500 a 1000 ms. El entorno tenía
+otras verificaciones concurrentes; este ensayo no aísla su efecto. Se conserva
+la medición y los parámetros, y sigue pendiente calibrar el entorno de despliegue.
+No se sustituye con las cifras históricas de otros ensayos.
+
+La declaración acredita una firma verificable bajo la CA interna publicada;
+no establece identidad civil, habilitación profesional ni validación FIREL.
+No implementa inicio de sesión por certificado ni firma documental individual
+por cuenta. La TSA local, la falta de anclaje externo de auditoría, las audiencias,
+plazos, recursos, alertas, ciclo de miembros e informes conservan sus límites y
+pendientes en la [matriz funcional](product-completion.md). Los recorridos
+automáticos no sustituyen una evaluación de usabilidad con personas reales.
+
 ## Corte reproducido: adopción y transiciones de etapa
 
 - Fecha local: 15 de septiembre de 2026 (`America/Mexico_City`).
