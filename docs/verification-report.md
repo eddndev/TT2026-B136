@@ -4,6 +4,30 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Correcciones reproducidas durante la validación de audiencias
+
+La inicialización concurrente de PostgreSQL conserva el timeout breve solo en
+las esperas que deben rechazarse. La rama exitosa espera a los competidores y
+los libera después de 750 ms, sin aplicarles el límite de 500 ms que causó el
+fallo de CI. Tras reproducir el fallo se aprobaron formato, compilación, las
+**1183 pruebas Rust (0 fallos, 1 externa ignorada)** con servicios desechables
+(335.294 s) y Clippy de todo el workspace con Rust 1.94 (53.355 s).
+
+Se reprodujo además una pérdida de foco: el evento de hash de una navegación
+ya terminada podía devolver el foco al contenedor mientras se escribía en el
+filtro. Qadra omite ese evento redundante y conserva el tratamiento de cambios
+de ruta externos. El test de permisos espera el resumen del expediente antes
+de probar una ruta prohibida al Cliente, evitando competir con la selección
+pendiente. Son correcciones distintas: una del producto y otra de la prueba.
+
+La verificación posterior aprobó formato, compilación, **119 pruebas unitarias,
+179 escenarios con API simulada** (214.992 s) y **11 recorridos reales**
+(310.470 s de preparación y ejecución; 3.2 minutos de Playwright). Se conservan
+por separado los fallos reproducidos, los intentos interrumpidos por espacio
+insuficiente en el directorio temporal y las ejecuciones aprobadas. Estas cifras
+complementan el corte original siguiente; no actualizan retrospectivamente su
+cobertura, medición CLI ni PDF.
+
 ## Corte reproducido: programación de audiencias
 
 - Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`).

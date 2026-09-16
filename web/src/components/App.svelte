@@ -64,7 +64,7 @@
   }
   onMount(() => {
     const onHash = () => {
-      if (user) go(location.hash);
+      if (user && location.hash !== `#${view}`) go(location.hash);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);

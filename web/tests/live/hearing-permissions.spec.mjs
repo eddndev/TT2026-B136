@@ -106,6 +106,9 @@ test('real agenda honors assignments roles closure and revocation without a brow
         } else {
           await navigate(other, 'Expedientes');
           await other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }).click();
+          await expect(
+            other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+          ).toBeVisible();
           await expect(other.getByRole('link', { name: 'Audiencias', exact: true })).toHaveCount(0);
           await other.evaluate(() => {
             location.hash = 'agenda';
