@@ -4,6 +4,168 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: sesiones y resultados declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Se comprobaron
+alta, rectificación y retiro de registros, anclas históricas de programación,
+continuaciones entre audiencias, comparecencias, acuerdos y soportes exactos.
+El contrato está en [la API de resultados](hearing-results-api.md) y la decisión
+en [ADR-0029](adr/0029-declared-hearing-sessions.md). Las cifras siguientes corresponden a campañas terminadas; se distinguen las
+pruebas Rust, la integración HTTP y los recorridos de Qadra.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Formato y compilación de todo el workspace | Aprobados; compilación 7.275 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1301 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 388.971 s. |
+| Suite instrumentada con los mismos servicios aislados | **1301 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 384.320 s. |
+| Cobertura global y tres umbrales del 90 % | **28 704 / 31 010 líneas, 92.5637 %; aprobados.** |
+| Clippy 1.98.1, todos los targets, warnings denegados | Aprobado, 16.274 s. |
+| Rust 1.88, todos los targets | Aprobado, 16.005 s. |
+| Política de dependencias con cargo-deny 0.20.2 | Aprobada, sin nuevas excepciones. |
+| Instalador verificado de formatos | Nueve pruebas aprobadas. |
+| Binario release | **12 872 600 bytes**, menor que 26 214 400; 98.501 s. |
+| Demostración CLI | Aprobada, 6.726 s; la calibración se distingue abajo. |
+| Demostración HTTP con respaldo y restauración | Aprobada, 107.072 s. |
+| Formato, compilación y pruebas unitarias de Qadra | Aprobados; **151 pruebas**, formato 4.046 s, build 2.734 s y unitarios 0.963 s. |
+| Navegador con API simulada | **204 aprobadas**, 223.553 s del comando; 3.7 minutos de Playwright. |
+| Navegador con PostgreSQL/Redis aislados | **14 aprobadas**, 258.642 s del script; 2.5 minutos de Playwright. |
+
+Por crate: `domain` 3220/3292, `application` 5531/5802,
+`infrastructure` 14237/15405, `web` 4805/5279 y `bin` 911/1232 líneas.
+Son 118 pruebas Rust adicionales respecto de programación. La prueba ignorada
+corresponde al proveedor TSA externo. Los adaptadores de identidad, expedientes
+y documentos se ejecutaron con bases desechables y variables explícitas;
+no se infiere su verificación de una ejecución sin esos servicios.
+
+Las 759 huellas del corte Rust permanecieron iguales al terminar las campañas.
+Al incorporar después la corrección de inicialización concurrente de audiencias,
+solo cambió `crates/infrastructure/tests/postgres_startup.rs`: su única prueba
+se repitió con PostgreSQL real y pasó en 5.948 s del comando. Es una repetición
+del mismo caso, no otra prueba que se sume a las 1301. Las fuentes de producción
+permanecieron idénticas. Se conservan por separado rojos de TDD, errores de
+entorno y las comprobaciones aprobadas.
+
+La CLI midió Argon2id en **409.6 ms de promedio sobre cinco corridas**, por debajo
+de la banda objetivo de 500 a 1000 ms. Se conservan los parámetros existentes y
+la medición histórica de 529.4 ms; el resultado nuevo no sustituye aquel ensayo.
+La calibración del entorno de despliegue sigue pendiente antes del cierre
+operativo, como en los cortes anteriores fuera de banda. No se declara cumplido
+ese subcriterio por el solo hecho de que la demostración funcional terminó.
+
+### Invariantes de sesiones y resultados
+
+Cada sesión o acto declarado tiene identidad propia y revisiones inmutables.
+El alta elige expresamente una revisión de programación, incluso cancelada;
+una continuación puede citar un resultado histórico retirado de otra audiencia
+del mismo expediente. Rectificar conserva esas referencias y exige un motivo.
+Retirar conserva contenido y soporte; no equivale a anular un acto judicial.
+
+Los vectores independientes verifican los bytes y digests de HRES1 y HRTX1,
+incluidos sus límites de 146 933 y 4296 bytes. Se comprueban normalización,
+precisión de fecha o instante, desfases, años extremos, comparecencias repetidas,
+orden e identidad de acuerdos y límites de texto por escalares Unicode. Las
+pruebas distinguen un día conocido de una hora desconocida, sin completarla.
+
+La aplicación rechaza fuentes de otro expediente, proyecciones alteradas y
+recibos incompatibles con actor, acción o revisión. La administración capturada
+no puede preceder a las fuentes históricas de las que depende. Una rectificación
+revalida el soporte, aunque sea la misma versión; un retiro copia la admisión
+histórica sin abrir nuevamente el archivo. Un documento V2 no reemplaza el
+soporte V1. Las respuestas inciertas se concilian con el recibo exacto, sin
+reenviar automáticamente una mutación.
+
+PostgreSQL revalida cuenta, rol, membresía y expediente activo después del
+bloqueo compartido de auditoría; consulta entonces el reloj de captura. No exige
+que sigan vigentes la administración o etapa observadas al preparar, ni que el
+perfil administrativo actual esté completo. Fallos de raíz, revisión, auditoría
+y commit diferido no dejan cambios parciales. Las carreras entre rectificación
+y retiro, o entre raíces que reutilizan una operación, tienen un único ganador.
+
+El arranque rechaza huecos, ciclos, cabeceras alteradas, referencias incompatibles
+y protecciones SQL ausentes. Las pruebas reprodujeron y corrigieron capturas
+administrativas anteriores a sus fuentes. También se comprobó la reconstrucción
+de fechas bajo cuatro configuraciones DateStyle: el canon conserva YYYY-MM-DD
+independientemente de la presentación de fechas de la conexión.
+
+### Contrato HTTP y recuperación
+
+La API admite hasta 512 KiB de JSON, incluidos espacios; un byte adicional
+produce 413. Rechaza campos y consultas desconocidos, claves repetidas, arreglos
+posicionales, datos después del JSON, tipos de contenido incompatibles, tiempos
+ambiguos y comandos que no corresponden a la ruta. El límite admite valores
+máximos con texto Unicode. La historia devuelve metadatos ligeros y carga el
+detalle exacto cuando se solicita.
+
+La demostración HTTP registra una sesión parcial con una ficha archivada y un
+PDF sellado V1 después de crear V2. Reprograma y cancela la audiencia, avanza la
+etapa y conserva las fuentes del resultado. Rectifica, rechaza una revisión
+competidora, retira y registra una continuación desde el antecedente retirado.
+También selecciona una programación cancelada y prueba los cuatro roles,
+revocación posterior a la preparación y cierre administrativo. El recibo de un
+resultado ausente se distingue del error de una fuente ausente o de un expediente
+inaccesible.
+
+El respaldo y restauración comparan 21 respuestas completas de audiencias y
+resultados, junto con las filas de sus cuatro tablas. Se preservan las tres raíces
+y cinco revisiones de resultados, además de cuatro raíces y ocho revisiones de
+programación. Se mantienen los soportes cifrados, la auditoría y los ZIP de
+evidencia de los flujos previos.
+
+### Interfaz Qadra y navegador
+
+El panel de cada audiencia permite registrar sesiones o actos, consultar su
+historia, rectificar contenido y retirar registros con motivo. La programación
+se elige por revisión exacta, incluso cancelada; una continuación conserva el
+antecedente seleccionado aunque haya sido retirado. Los selectores recuperan
+fichas históricas y documentos de versión exacta. La precisión de fecha conserva
+la distinción entre día conocido y hora desconocida.
+
+Son 32 pruebas unitarias, 25 escenarios simulados y tres recorridos reales nuevos
+respecto del corte de audiencias corregido. Verifican permisos y expediente
+cerrado, resultados vacíos, consulta por estado, paginación, historia, fuentes
+archivadas, borradores conservados ante conflictos y conciliación de un envío
+cuya respuesta se perdió. La lectura del recibo no reenvía la mutación. Las
+respuestas tardías de una vista anterior no reemplazan el expediente activo.
+Los recorridos reales incluyen una carrera de revisiones y revocación de acceso.
+
+Se revisaron capturas de historial, detalle y formulario en escritorio y móvil,
+además de comprobar sus dimensiones y navegación. Las 42 fuentes nuevas o
+modificadas del cierre de interfaz conservaron sus huellas durante las campañas;
+son ASCII y su máximo es 331 líneas. Los 19 archivos existentes de marca y
+estilos comprobados permanecen iguales. El import de la nueva hoja de estilos
+reutiliza los componentes y variables de Qadra. Esta revisión funcional y visual
+no equivale a una evaluación de usabilidad con participantes humanos.
+
+### Actualización de la demo persistente
+
+Después de las campañas aisladas se actualizó la demo local conservando las
+filas de sus 23 tablas existentes, 31 archivos de configuración y material
+protegido, roles, credenciales y tres registros Redis aún no caducados. Las dos
+tablas nuevas quedaron vacías, sin crear sesiones declaradas a partir de citas.
+La API, el frontend y la denegación de acceso anónimo respondieron correctamente
+con el binario candidato cuya huella se había fijado antes de actualizar.
+
+La operación requirió recuperación explícita. El primer intento se detuvo antes
+de migrar porque exigía un directorio documental local que este despliegue en
+PostgreSQL no utiliza; se restableció el binario previo y se movió esa validación
+antes de la parada. El segundo migró y verificó todas las filas, pero la
+comprobación inmediata del nombre del proceso npm interrumpió el reinicio.
+Se recreó la unidad transitoria con el mismo supervisor y políticas, y se
+completaron las comprobaciones de estado, archivos y sesiones. No se repitió la
+migración ni se restauró la base sobre trabajo posterior. Los dos intentos y
+sus respaldos se conservaron por separado; este cierre no se informa como una
+actualización que hubiera transcurrido sin incidencias.
+
+### Alcance de la comprobación
+
+Estas pruebas verifican captura, autorización, integridad e historia del registro.
+No acreditan que un acto ocurrió, que una persona quedó notificada ni que un
+acuerdo tenga efectos judiciales. Los términos automáticos, el calendario de
+plazos, las alertas y el ciclo de recursos siguen pendientes. Se conserva la CA
+interna y TSA local como demostración técnica; la prueba del proveedor externo
+permanece identificada por separado.
+
+
 ## Correcciones reproducidas durante la validación de audiencias
 
 La inicialización concurrente de PostgreSQL conserva el timeout breve solo en
