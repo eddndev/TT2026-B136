@@ -143,6 +143,29 @@ Client puede consultar los metadatos de sus expedientes asignados; la interfaz
 no emite peticiones documentales para ese rol. El servidor conserva la autoridad
 sobre permisos, reglas de negocio y criptografía.
 
+## Calendarios jurisdiccionales
+
+Owner abre **Calendarios jurisdiccionales** desde Administración; el personal
+puede llegar desde Agenda sin seleccionar expediente. Owner publica, reemplaza
+y retira; Litigator y Paralegal consultan; Client queda denegado. El contrato
+está en [la API de calendarios](../docs/judicial-calendars-api.md).
+
+La publicación solicita ámbito, entidades, cobertura, fuentes, siete reglas
+semanales y excepciones expresos. El título y el ámbito quedan fijos desde la
+primera revisión y aparecen en la confirmación. Reemplazar requiere motivo;
+retirar conserva la historia y no admite nuevas revisiones de esa raíz.
+
+El detalle ofrece mes y lista de días, con clasificación computable, excluida,
+sin resolver o fuera de cobertura. Consultar historia selecciona una revisión
+exacta. Los enlaces de fuentes se abren por acción explícita; el servidor no
+archiva su contenido ni acredita su aplicabilidad jurídica.
+
+Los conflictos conservan el borrador y requieren comparar la base actual. Un
+resultado incierto se concilia consultando el recibo exacto, sin reenvío automático.
+La vista global y el formulario mantienen el diseño existente en escritorio y
+móvil, con estilos adicionales en `src/styles/judicial-calendars.css`. Este
+catálogo no completa el cómputo automático de plazos ni sus alertas.
+
 ## Ficha penal y administración
 
 **Nuevo expediente penal** requiere título (200 caracteres), referencia interna

@@ -156,7 +156,10 @@ las restricciones documentales del Cliente. Ensaya además importación y
 restauración con evidencia sellada en servicios desechables. Comprueba carga
 clasificada atómica, filtros exactos, revisiones en conflicto, vaciado de valores
 y conservación de historia, autores y ZIP tras restaurar.
-No configura ni consulta Cincel. El contrato completo está en
+La ampliación de calendarios pasó la campaña integrada de permisos globales,
+revisiones, clasificación civil y restauración de diez respuestas exactas,
+junto con las 21 de programación y resultados. No configura ni consulta Cincel.
+El contrato completo está en
 [`docs/http-api.md`](docs/http-api.md).
 
 ### Aplicación HTTP local
@@ -203,9 +206,21 @@ un perfil anterior no inventa etapas. Los [contratos de administración](docs/ca
 distinguen estas operaciones de la API básica y las asignaciones de acceso.
 La adopción y las transiciones ordinarias conservan actos declarados y soportes
 exactos. La [programación de audiencias](docs/hearings-api.md) añade revisiones,
-recibos de operación, cancelación e historia, con una agenda autorizada. Los
-resultados de audiencia, plazos,
-calendario judicial y alertas siguen pendientes.
+recibos de operación, cancelación e historia, con una agenda autorizada. Las
+[sesiones y resultados declarados](docs/hearing-results-api.md) conservan
+comparecencias, acuerdos, procedencia, ancla y continuidad exactas, rectificación
+y retiro; sus pruebas locales y límites se registran por separado. No infieren
+notificaciones, resoluciones ni vencimientos.
+
+El [catálogo de calendarios jurisdiccionales](docs/judicial-calendars-api.md)
+tiene backend, API y Qadra verificados localmente: Owner publica, reemplaza y retira;
+Owner, Litigator y Paralegal consultan revisiones exactas sin asignación a
+expedientes; Client queda denegado. Conserva ámbito, cobertura civil, reglas,
+excepciones y referencias
+públicas declaradas, con historia auditada. No descarga el contenido de las URL.
+Las campañas de API/restauración, cobertura y navegador pasaron. La integración
+remota y el manuscrito siguen pendientes. Cómputo de plazos, reevaluación, recursos
+procesales y alertas siguen pendientes.
 
 ### Frontend web
 
@@ -218,8 +233,11 @@ calendario judicial y alertas siguen pendientes.
   con archivo/reactivación y permisos independientes de las cuentas de acceso.
   Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
   Conserva la identidad visual Qadra. Integra administración penal, etapas,
-  identidades y perfiles procesales; Audiencias y Agenda están en validación
-  integrada. Los resultados de audiencia y los plazos siguen pendientes.
+  identidades y perfiles procesales, programación de audiencias y sesiones
+  declaradas. Las campañas simuladas y reales se distinguen en el informe de
+  verificación. El catálogo de calendarios incorpora publicación, reemplazo,
+  retiro, historia y vistas mensual y por días; este avance no completa el
+  cálculo de plazos ni las alertas.
   `bash scripts/web-demo.sh` prueba el navegador con servicios
   aislados reales; requiere las dependencias instaladas de `web/`.
 

@@ -1,7 +1,8 @@
 # API de calendarios jurisdiccionales por revision
 
-Estado: implementacion en curso; dominio y aplicacion verificados localmente.
-Persistencia, HTTP, Qadra y cierre integrado pendientes de verificacion.
+Estado: dominio, aplicacion, persistencia, HTTP y Qadra implementados y
+verificados localmente, incluida recuperacion con respuestas exactas. La
+integracion remota y la actualizacion del manuscrito siguen pendientes.
 Decision: [ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
 
 ## Alcance
@@ -96,8 +97,8 @@ cuando se solicito una revision historica.
 ### Perfil acotado de URL
 
 La referencia admite el esquema literal `https://` y un host DNS ASCII de al
-menos dos etiquetas. Cada etiqueta tiene1..63 caracteres, extremos alfanumericos
-y guion solo interior; host completo hasta253 bytes y ultima etiqueta de2..63
+menos dos etiquetas. Cada etiqueta tiene 1..63 caracteres, extremos alfanumericos
+y guion solo interior; host completo hasta 253 bytes y ultima etiqueta de 2..63
 letras ASCII. Rechazar etiquetas que comiencen `xn--`, sin distinguir mayusculas.
 No admitir IP, IPv6, puerto, userinfo ni autoridad con escapes. Es un perfil de
 referencias de este catalogo, no un parser universal de URL/IRI.
