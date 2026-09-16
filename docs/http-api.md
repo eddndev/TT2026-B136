@@ -5,6 +5,10 @@ detalla revisión de identidad, perfiles, declaraciones internas, proyecciones
 manuales y tipificadas, y consultas de evidencia histórica.
 La [API de audiencias](hearings-api.md) define programación, reemplazo,
 cancelación organizativa, historial exacto y agenda autorizada.
+La [API de sesiones y resultados declarados](hearing-results-api.md) añade
+registro, rectificación, retiro e historia de comparecencias y acuerdos con
+fuentes exactas. Está implementada y verificada localmente; sus mediciones se
+registran separadas de las entregas anteriores en el informe de verificación.
 
 Contrato revisado el 2026-09-16. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
@@ -239,8 +243,9 @@ propia; un conflicto exige comparación explícita y no genera reenvío automát
 La admisión de soportes utiliza [un worker acotado](document-format-operations.md).
 No completa la validación de toda carga general ni acredita un acto judicial.
 La programación de audiencias tiene su [contrato independiente](hearings-api.md).
-Resultados de audiencia, recursos y cómputo de plazos conservan operaciones
-pendientes propias.
+Las sesiones y resultados declarados disponen de su
+[contrato separado](hearing-results-api.md). Recursos, cómputo de plazos y alertas
+conservan operaciones pendientes propias.
 
 ## Audiencias y agenda
 
@@ -258,8 +263,31 @@ por instante y UUID. El [contrato completo](hearings-api.md) incluye cuerpos,
 proyecciones, límites y errores. Cada revisión conserva un recibo propio para
 conciliar respuestas perdidas sin repetir automáticamente la escritura.
 
-Esta programación no registra celebración, asistencia, resultados ni acuerdos;
-tampoco activa términos o sustituye el calendario judicial.
+El módulo de programación conserva las citas; el registro de sesiones declarado
+se consulta por separado. Ninguno activa términos ni sustituye el calendario judicial.
+
+## Sesiones y resultados declarados
+
+Las rutas bajo `/api/v1/cases/{case_id}/hearings/{hearing_id}/results` ofrecen
+preparación, alta, listado, detalle, rectificación, retiro, revisión exacta e
+historia. Cada sesión tiene raíz propia, ancla inmutable a una revisión de
+programación y continuidad opcional a un resultado exacto preexistente del mismo
+expediente. Una rectificación conserva la raíz; una continuación crea otra.
+Retirar conserva contenido e historia y es terminal, sin anular el acto.
+
+Owner y Litigator asignado gestionan, Paralegal asignado consulta y Client queda
+denegado. Las escrituras requieren expediente activo, revalidado tras obtener
+el bloqueo común. Se admiten captura tardía, etapa posterior y referencias
+históricas archivadas o retiradas. La administración observada al preparar es
+informativa; la confirmación captura la vigente y su reloj, sin CAS de etapa
+o administración. La historia devuelve resúmenes de hasta veinte revisiones;
+seleccionar una revisión permite recuperar sus valores y fuentes completos.
+
+El [contrato de resultados](hearing-results-api.md) define HRES1/HRTX1, límites,
+códigos y proyecciones. Preparar no reserva filas; confirmar recalcula el recibo
+y reautentica. Una respuesta incierta se concilia contra la revisión exacta y su
+operación, sin reenvíos automáticos. Comparecencias, acuerdos y procedencia son
+declarados por el operador; no infieren notificación, resolución ni plazos.
 
 ## Participantes del expediente
 
@@ -654,8 +682,12 @@ revisiones inmutables. Se comprueban el canon de valores y de operación, sus
 proyecciones, la secuencia y las referencias históricas. El inventario de
 arranque recorre las revisiones y resuelve sus fuentes exactas. No se generan
 audiencias a partir de fechas anteriores ni se modifican documentos o etapas.
+El conjunto `0012_hearing_results*.sql` añade raíces y revisiones de resultados,
+canon HRES1, recibo HRTX1 y fuentes históricas exactas. No deriva sesiones de las
+citas existentes. El arranque verifica catálogo, privilegios, secuencias,
+referencias e inventario; la captura comparte transacción con la auditoría.
 
-Las mutaciones documentales, de participantes, de audiencias, de expedientes y de identidad comparten
+Las mutaciones documentales, de participantes, de audiencias y sus resultados, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan
 acceso y estado documental y confirman su evento antes de devolver el
 resultado. Un bloqueo común ordena las confirmaciones y la cabeza de auditoría;
@@ -692,7 +724,7 @@ de auditoría no extiende la atomicidad PostgreSQL a ambos servicios.
 ## Límites HTTP y sobrecarga
 
 El servidor comparte un presupuesto entre identidad, documentos, participantes,
-etapas, audiencias y expedientes:
+etapas, audiencias, resultados declarados y expedientes:
 como máximo ocho peticiones admitidas y dos operaciones bloqueantes concurrentes
 por defecto. Puede configurarlos con `--max-in-flight-requests` y
 `--max-blocking-operations`; ambos requieren enteros positivos. Cada hash Argon2id
@@ -705,7 +737,9 @@ una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
 
 Los cuerpos JSON de identidad y alta básica de expedientes tienen límite de 16 KiB y rechazan
 campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
-Etapas admiten 32 KiB; audiencias y administración penal, 64 KiB.
+Etapas admiten 32 KiB; programación de audiencias y administración penal, 64 KiB.
+Los resultados declarados admiten 512 KiB por JSON y conservan el mismo
+presupuesto compartido; su historia devuelve hasta veinte resúmenes por página.
 Los documentos mantienen 16 MiB. Se rechazan cabeceras
 Authorization múltiples o tokens con espacios; el esquema Bearer no distingue
 mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
