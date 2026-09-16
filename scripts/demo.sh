@@ -47,7 +47,7 @@ expect_failure() {
 
 banner "Build the binary once"
 run cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
-CLI="$REPO_ROOT/target/debug/despacho-cli"
+CLI="$(cd "${CARGO_TARGET_DIR:-$REPO_ROOT/target}" && pwd)/debug/despacho-cli"
 
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
