@@ -217,8 +217,9 @@ is still unfinished.
   Client retains only the four-field basic projection. Expected revisions guard
   edits and status changes; current NUC and judicial case number are separately
   unique, including closed cases. Administrative closure blocks document,
-  participant, stage and hearing mutations while preserving reads, evidence and Owner
-  membership changes. Common audited transactions explicitly use READ COMMITTED. See
+  participant, stage, hearing and hearing-result mutations while preserving reads,
+  evidence and Owner membership changes. Common audited transactions explicitly use
+  READ COMMITTED. See
   `docs/adr/0022-audited-penal-case-administration.md` and
   `docs/case-administration-api.md`.
 - The three `migrations/0008_case_stage*.sql` files add immutable stage revisions,
@@ -239,6 +240,28 @@ is still unfinished.
   Operation receipts reconcile uncertain responses without automatic retries.
   Authorized agenda queries filter current heads before pagination. See
   `docs/adr/0028-audited-hearing-scheduling.md` and `docs/hearings-api.md`.
+- The `0012_hearing_results*.sql` migrations add declared sessions and results,
+  separate from scheduling. Each root binds an exact hearing revision and optional
+  exact continuation; revisions preserve attendance, ordered agreements, declared
+  time and provenance. Record, correction and administrative withdrawal commit
+  with audit and exact receipts. Historical participants and withdrawn antecedents
+  remain selectable; withdrawal preserves content and does not annul a court act.
+  Owner manages all, assigned Litigator manages, assigned Paralegal reads and
+  Client is denied. Closed cases retain reads and block writes. Backend, HTTP and
+  Qadra are implemented and verified locally. They do not establish notification,
+  advance stages or activate deadlines. See `docs/hearing-results-api.md` and
+  `docs/adr/0029-declared-hearing-sessions.md`.
+- The `0013_judicial_calendar_*.sql` migrations implement a global jurisdictional
+  calendar catalog with immutable scope, coverage, weekly rules, exceptions and
+  declared public references. Owner publishes, replaces and retires; Owner,
+  Litigator and Paralegal read without case membership; Client is denied. Exact
+  revisions and civil-date classification preserve unresolved and outside-coverage
+  results without fallback. Audited commits, receipts, startup validation and
+  restoration are implemented in the backend and HTTP API. URLs are not fetched
+  or archived and do not certify normative authenticity or applicability. The
+  Qadra calendar interface is verified locally; automatic deadline computation,
+  reevaluation and notifications remain pending. See `docs/judicial-calendars-api.md`
+  and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,
@@ -337,8 +360,10 @@ is still unfinished.
   it supports adoption, exact-version selection, transitions and reconciliation
   of conflicts or uncertain outcomes without automatic resubmission. Confirmed
   uploads survive a later stage rejection. Audiencias and Agenda add scheduling,
-  history and receipt reconciliation while keeping court outcomes and deadlines
-  pending. Preserve its
+  history and receipt reconciliation. Declared sessions/results add exact anchors,
+  attendance, agreements, continuations, correction, withdrawal and history.
+  Judicial calendar navigation, forms and history are verified locally; deadline calculation,
+  dependent reevaluation and notifications remain pending. Preserve its
   design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -364,16 +389,17 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Complete hearing outcomes, deadlines and resources linked to resolutions. Penal
-   administration, stage adoption, two ordinary transitions and the mixed
-   participant directory are implemented. Hearing scheduling and its agenda
-   preserve exact history but do not record outcomes, attendees or agreements.
-   Typed identities and internal
-   declarations preserve reviewed provenance; they do not establish civil
-   identity, external judicial authority or automatic deadline computation.
-   `docs/procedural-resources-scope.md` preserves the approved objective and
-   proposes a separate resource workflow, not a fourth linear stage. Keep these
-   records separate from account assignments and organizational archiving.
+2. Complete structured deadline triggers, automatic computation, dependent
+   reevaluation and notifications, plus resources linked to resolutions. Hearing
+   scheduling and declared sessions/results already preserve exact history,
+   attendance, agreements and provenance. The calendar backend/API classifies
+   civil dates from exact revisions and Qadra exposes their administration and history. Neither free-text results nor calendar classification
+   establish legal effects or replace the required deadline computation. Fix
+   applicable rules, structured facts and temporal boundaries before activation.
+   Typed identities and internal declarations do not establish civil identity or
+   external judicial authority. `docs/procedural-resources-scope.md` preserves the
+   approved resource objective as a separate workflow, not a fourth linear stage.
+   Keep these records separate from account assignments and organizational archiving.
 3. Extend the Qadra interface with procedural workflows, user administration,
    dashboard aggregates, reports and audit queries against `docs/http-api.md`.
    Use a user directory for assignment selection instead of requiring raw UUIDs.

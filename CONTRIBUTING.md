@@ -167,3 +167,37 @@ pull request as the behavior it describes. Update the affected documents:
 - Report freshly executed checks separately from historical measurements in
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
   `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
+
+## Implemented project state
+
+Reviewed on 2026-09-16. `docs/product-completion.md` is the detailed product map;
+`docs/verification-report.md` distinguishes reproduced checks from pending work.
+Inspect current code and contracts before treating this summary as complete.
+
+- Case administration, documents and versions, manual/typed participants, stage
+  transitions and hearing scheduling have authenticated, audited workflows.
+- Declared hearing sessions/results include exact scheduling and continuation
+  anchors, attendance, ordered agreements, provenance, correction, withdrawal and
+  history in the backend, HTTP API and Qadra. They are verified locally; their
+  declared content does not establish legal effects or activate deadlines. See
+  `docs/hearing-results-api.md` and `docs/adr/0029-declared-hearing-sessions.md`.
+- The global judicial calendar backend/API implements immutable revisions,
+  declared scope and references, weekly rules, exceptions and exact civil-date
+  classification. Owner manages; Owner, Litigator and Paralegal read; Client is
+  denied. Audited persistence, restoration and Qadra are verified locally. See `docs/judicial-calendars-api.md` and
+  `docs/adr/0030-versioned-jurisdictional-calendars.md`.
+
+## Next work, in dependency order
+
+Use `docs/product-completion.md` for acceptance scope and the corresponding
+section in `AGENTS.md` for the dependency map. Current remaining work includes:
+
+1. Preserve exact calendar history while defining structured deadline facts,
+   applicable rules and temporal boundaries;
+   implement automatic computation, dependent reevaluation and notifications.
+   Declared hearing text and civil classification do not replace these workflows.
+2. Complete the remaining document, resource, identity, dashboard, report and
+   audit-query use cases with explicit authorization and reproduced evidence.
+3. Validate deployment limits, recovery and external dependencies; maintain the
+   affected documentation and academic evidence under the rules above. Final
+   conclusions remain pending until the complete project is finished.
