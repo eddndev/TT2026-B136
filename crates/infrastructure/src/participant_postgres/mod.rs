@@ -1,15 +1,16 @@
 //! Audited PostgreSQL directory, separate from account access assignments.
 
 mod authorization;
+mod overview;
 mod query;
-mod storage;
+pub(crate) mod storage;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use application::participants::{
-    DirectoryStatus, ParticipantAction, ParticipantHistoryPage, ParticipantHistoryQuery,
-    ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision, ParticipantSnapshot,
-    ParticipantStore, ParticipantValues,
+    DirectoryStatus, ParticipantAction, ParticipantDetail, ParticipantHistoryPage,
+    ParticipantHistoryQuery, ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision,
+    ParticipantRevisionSnapshot, ParticipantSnapshot, ParticipantStore, ParticipantValues,
 };
 use application::ApplicationError;
 use domain::cases::CaseId;
@@ -63,7 +64,7 @@ impl PostgresParticipantStore {
         expected: ParticipantRevision,
         change: Change,
         at: OffsetDateTime,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         let action = match &change {
             Change::Values(_) => ParticipantAction::Replace,
             Change::Status(_) => ParticipantAction::ChangeStatus,
@@ -73,31 +74,47 @@ impl PostgresParticipantStore {
         let principal = authorize(&mut transaction, actor, case, action, true)?;
         let current = storage::current(&mut transaction, case, id, self.hasher.as_ref())?;
         crate::postgres_case_status::require_active(&mut transaction, case)?;
-        if current.revision != expected {
+        if current.revision_number() != expected {
             return Err(ApplicationError::ParticipantRevisionConflict);
         }
         let revision = expected
             .next()
             .ok_or(ApplicationError::ParticipantRevisionExhausted)?;
-        let values = match change {
-            Change::Values(values) => values,
-            Change::Status(status) => current.values.with_directory_status(status),
+        let snapshot = match current.revision {
+            ParticipantRevisionSnapshot::Manual(current) => {
+                let values = match change {
+                    Change::Values(values) => values,
+                    Change::Status(status) => current.values.with_directory_status(status),
+                };
+                let row = storage::snapshot(
+                    case,
+                    id,
+                    revision,
+                    values,
+                    &principal,
+                    at,
+                    self.hasher.as_ref(),
+                );
+                storage::insert(&mut transaction, &row)?;
+                ParticipantDetail::from(row)
+            }
+            ParticipantRevisionSnapshot::Typed(current) => match change {
+                Change::Values(_) => return Err(ApplicationError::ParticipantProfileRequired),
+                Change::Status(status) => crate::typed_participant_postgres::storage::status(
+                    &mut transaction,
+                    &current,
+                    status,
+                    &principal,
+                    at,
+                    self.hasher.as_ref(),
+                )?,
+            },
         };
-        let snapshot = storage::snapshot(
-            case,
-            id,
-            revision,
-            values,
-            &principal,
-            at,
-            self.hasher.as_ref(),
-        );
-        storage::insert(&mut transaction, &snapshot)?;
         append_transaction(
             &mut transaction,
             &principal.email,
             action.audit_action(),
-            &storage::resource(&snapshot),
+            &storage::detail_resource(&snapshot),
             at,
         )?;
         transaction.commit().map_err(port)?;
@@ -170,7 +187,9 @@ impl ParticipantStore for PostgresParticipantStore {
         values: ParticipantValues,
         at: OffsetDateTime,
     ) -> Result<ParticipantSnapshot, ApplicationError> {
-        self.mutate(actor, case, id, expected, Change::Values(values), at)
+        self.mutate(actor, case, id, expected, Change::Values(values), at)?
+            .into_manual()
+            .ok_or(ApplicationError::ParticipantProfileRequired)
     }
 
     fn change_status(
@@ -181,7 +200,7 @@ impl ParticipantStore for PostgresParticipantStore {
         expected: ParticipantRevision,
         status: DirectoryStatus,
         at: OffsetDateTime,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         self.mutate(actor, case, id, expected, Change::Status(status), at)
     }
 
@@ -191,7 +210,7 @@ impl ParticipantStore for PostgresParticipantStore {
         case: CaseId,
         id: ParticipantId,
         at: OffsetDateTime,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         let mut client = self.client()?;
         let mut transaction = begin_audited(&mut client)?;
         let principal = authorize(&mut transaction, actor, case, ParticipantAction::Read, true)?;
@@ -200,13 +219,35 @@ impl ParticipantStore for PostgresParticipantStore {
             &mut transaction,
             &principal.email,
             ParticipantAction::Read.audit_action(),
-            &storage::resource(&snapshot),
+            &storage::detail_resource(&snapshot),
             at,
         )?;
         transaction.commit().map_err(port)?;
         Ok(snapshot)
     }
 
+    fn get_revision(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        id: ParticipantId,
+        revision: ParticipantRevision,
+        at: OffsetDateTime,
+    ) -> Result<ParticipantDetail, ApplicationError> {
+        let mut client = self.client()?;
+        let mut tx = begin_audited(&mut client)?;
+        let principal = authorize(&mut tx, actor, case, ParticipantAction::Read, true)?;
+        let result = storage::exact(&mut tx, case, id, revision, self.hasher.as_ref())?;
+        append_transaction(
+            &mut tx,
+            &principal.email,
+            ParticipantAction::Read.audit_action(),
+            &storage::detail_resource(&result),
+            at,
+        )?;
+        tx.commit().map_err(port)?;
+        Ok(result)
+    }
     fn list(
         &self,
         actor: UserId,

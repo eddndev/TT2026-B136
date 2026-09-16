@@ -53,12 +53,15 @@ fn participant_replacements_capture_provenance_and_status_preserves_current_text
             f.at,
         )
         .unwrap();
-    assert_eq!(archived.values.display_name(), "Updated");
+    assert_eq!(archived.manual().unwrap().values.display_name(), "Updated");
     assert_eq!(
-        archived.values.directory_status(),
+        archived.manual().unwrap().values.directory_status(),
         DirectoryStatus::Archived
     );
-    assert_eq!(archived.changed_by.email, "new@example.test");
+    assert_eq!(
+        archived.manual().unwrap().changed_by.email,
+        "new@example.test"
+    );
     let history = store
         .history(
             f.owner,
@@ -68,7 +71,7 @@ fn participant_replacements_capture_provenance_and_status_preserves_current_text
             f.at,
         )
         .unwrap();
-    assert_eq!(history.revisions, vec![archived.clone(), second]);
+    assert_eq!(history.revisions, vec![archived.clone(), second.into()]);
     assert!(history.has_more);
     let old = store
         .history(
@@ -79,7 +82,7 @@ fn participant_replacements_capture_provenance_and_status_preserves_current_text
             f.at,
         )
         .unwrap();
-    assert_eq!(old.revisions, vec![first]);
+    assert_eq!(old.revisions, vec![first.into()]);
     assert!(!old.has_more);
     assert_eq!(store.get(f.owner, f.case, id, f.at).unwrap(), archived);
 }
@@ -103,7 +106,7 @@ fn stale_and_identical_mutations_have_explicit_revision_semantics() {
             f.at,
         )
         .unwrap();
-    assert_eq!(r2.revision.get(), 2);
+    assert_eq!(r2.revision_number().get(), 2);
     let before = f.snapshot();
     assert!(matches!(
         store.replace(
@@ -118,10 +121,17 @@ fn stale_and_identical_mutations_have_explicit_revision_semantics() {
     ));
     assert_eq!(f.snapshot(), before);
     let r3 = store
-        .replace(f.owner, f.case, id, r2.revision, values("Same"), f.at)
+        .replace(
+            f.owner,
+            f.case,
+            id,
+            r2.revision_number(),
+            values("Same"),
+            f.at,
+        )
         .unwrap();
     assert_eq!(r3.revision.get(), 3);
-    assert_eq!(r3.values_digest, r2.values_digest);
+    assert_eq!(r3.values_digest, r2.values_digest());
 }
 
 #[test]

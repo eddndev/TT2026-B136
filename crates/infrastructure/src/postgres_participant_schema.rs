@@ -1,5 +1,5 @@
 use application::ApplicationError;
-use postgres::Client;
+use postgres::{Client, GenericClient};
 use time::format_description::well_known::Rfc3339;
 use time::{OffsetDateTime, UtcOffset};
 
@@ -40,12 +40,11 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
              (conrelid='case_participants'::pg_catalog.regclass AND (
                  (contype='c' AND conname='participant_initial_revision')
                  OR (contype='f' AND conname='participant_case_fk' AND confrelid='cases'::pg_catalog.regclass)
-                 OR (contype='f' AND conname='participant_first_revision_fk'
-                     AND confrelid='case_participant_revisions'::pg_catalog.regclass AND condeferrable AND condeferred)))
+                 ))
              OR (conrelid='case_participant_revisions'::pg_catalog.regclass AND (
                  (contype='c' AND conname IN ('participant_revision_range','participant_first_active','participant_canonical','participant_digest'))
                  OR (contype='f' AND conname='participant_root_fk' AND confrelid='case_participants'::pg_catalog.regclass)
-                 OR (contype='f' AND conname='participant_actor_fk' AND confrelid='users'::pg_catalog.regclass)))))=9
+                 OR (contype='f' AND conname='participant_actor_fk' AND confrelid='users'::pg_catalog.regclass)))))=8
          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_constraint c ON c.oid=t.tgconstraint
              WHERE c.conrelid IN ('case_participants'::pg_catalog.regclass,'case_participant_revisions'::pg_catalog.regclass)
                  AND t.tgenabled NOT IN ('O','A'))
@@ -75,9 +74,12 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
 pub(crate) fn validate_inventory(client: &mut Client) -> Result<(), ApplicationError> {
     let broken: bool = client.query_one(
         "SELECT EXISTS(SELECT 1 FROM case_participants p LEFT JOIN cases c ON c.id=p.case_id
-             LEFT JOIN (SELECT participant_id,MIN(revision) first,MAX(revision) last,COUNT(*) count
-                 FROM case_participant_revisions GROUP BY participant_id) r ON r.participant_id=p.id
-             WHERE c.id IS NULL OR p.initial_revision<>1 OR r.first IS DISTINCT FROM 1 OR r.count<>r.last)
+             LEFT JOIN (SELECT participant_id,MIN(revision) first,MAX(revision) last,COUNT(*) count,COUNT(DISTINCT revision) unique_count
+                 FROM (SELECT participant_id,revision FROM case_participant_revisions UNION ALL
+                     SELECT participant_id,revision FROM case_participant_typed_revisions) h GROUP BY participant_id) r ON r.participant_id=p.id
+             WHERE c.id IS NULL OR p.initial_revision<>1 OR r.first IS DISTINCT FROM 1 OR r.count<>r.last OR r.count<>r.unique_count)
+         OR EXISTS(SELECT 1 FROM case_participant_revisions m JOIN case_participant_typed_revisions t USING(participant_id)
+             WHERE m.revision>=t.revision)
          OR EXISTS(SELECT 1 FROM case_participant_revisions r
              LEFT JOIN case_participants p ON p.id=r.participant_id LEFT JOIN users u ON u.id=r.changed_by
              WHERE p.id IS NULL OR u.id IS NULL OR r.revision NOT BETWEEN 1 AND 4294967295
@@ -89,27 +91,52 @@ pub(crate) fn validate_inventory(client: &mut Client) -> Result<(), ApplicationE
     if broken {
         return Err(inconsistent());
     }
-    for row in client
-        .query(
-            "SELECT changed_at,changed_by_email FROM case_participant_revisions",
-            &[],
-        )
-        .map_err(port)?
+    provenance_pages(client, "case_participant_revisions", "participant_id")?;
+    Ok(())
+}
+
+pub(crate) fn provenance_pages<C: GenericClient>(
+    client: &mut C,
+    table: &str,
+    id_column: &str,
+) -> Result<(), ApplicationError> {
+    let mut id = uuid::Uuid::nil();
+    let mut revision = 0_i64;
+    loop {
+        let rows = client
+            .query(
+                &format!(
+                    "SELECT {id_column},revision,changed_at,changed_by_email FROM {table}
+            WHERE ({id_column},revision)>($1,$2) ORDER BY {id_column},revision LIMIT 64"
+                ),
+                &[&id, &revision],
+            )
+            .map_err(port)?;
+        for row in &rows {
+            let timestamp: String = row.try_get(2).map_err(|_| inconsistent())?;
+            let email: String = row.try_get(3).map_err(|_| inconsistent())?;
+            validate_provenance(&timestamp, &email)?;
+            id = row.try_get(0).map_err(|_| inconsistent())?;
+            revision = row.try_get(1).map_err(|_| inconsistent())?;
+        }
+        if rows.len() < 64 {
+            return Ok(());
+        }
+    }
+}
+
+pub(crate) fn validate_provenance(timestamp: &str, email: &str) -> Result<(), ApplicationError> {
+    let at = OffsetDateTime::parse(timestamp, &Rfc3339).map_err(|_| inconsistent())?;
+    if at
+        .to_offset(UtcOffset::UTC)
+        .format(&Rfc3339)
+        .map_err(|_| inconsistent())?
+        != timestamp
+        || email.is_empty()
+        || email.trim() != email
+        || email.chars().any(char::is_control)
     {
-        let timestamp: String = row.try_get(0).map_err(|_| inconsistent())?;
-        let at = OffsetDateTime::parse(&timestamp, &Rfc3339).map_err(|_| inconsistent())?;
-        if at
-            .to_offset(UtcOffset::UTC)
-            .format(&Rfc3339)
-            .map_err(|_| inconsistent())?
-            != timestamp
-        {
-            return Err(inconsistent());
-        }
-        let email: String = row.try_get(1).map_err(|_| inconsistent())?;
-        if email.is_empty() || email.trim() != email || email.chars().any(char::is_control) {
-            return Err(inconsistent());
-        }
+        return Err(inconsistent());
     }
     Ok(())
 }

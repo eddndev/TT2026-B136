@@ -32,23 +32,29 @@ fn row_audit_and_deferred_commit_failures_roll_back_complete_mutations() {
             }
             let before = f.snapshot();
             let result = match operation {
-                "create" => store.create(f.owner, f.case, id, values("New"), f.at),
-                "replace" => store.replace(
-                    f.owner,
-                    f.case,
-                    id,
-                    ParticipantRevision::initial(),
-                    values("Changed"),
-                    f.at,
-                ),
-                _ => store.change_status(
-                    f.owner,
-                    f.case,
-                    id,
-                    ParticipantRevision::initial(),
-                    DirectoryStatus::Archived,
-                    f.at,
-                ),
+                "create" => store
+                    .create(f.owner, f.case, id, values("New"), f.at)
+                    .map(|_| ()),
+                "replace" => store
+                    .replace(
+                        f.owner,
+                        f.case,
+                        id,
+                        ParticipantRevision::initial(),
+                        values("Changed"),
+                        f.at,
+                    )
+                    .map(|_| ()),
+                _ => store
+                    .change_status(
+                        f.owner,
+                        f.case,
+                        id,
+                        ParticipantRevision::initial(),
+                        DirectoryStatus::Archived,
+                        f.at,
+                    )
+                    .map(|_| ()),
             };
             assert!(
                 matches!(result, Err(ApplicationError::Port(_))),

@@ -178,6 +178,8 @@ fn closing_blocks_every_mutation_preserves_missing_items_and_allows_read_and_reo
         participants
             .get(f.owner, f.case, person, f.at)
             .unwrap()
+            .manual()
+            .unwrap()
             .values
             .directory_status(),
         DirectoryStatus::Active
@@ -196,7 +198,7 @@ fn closing_blocks_every_mutation_preserves_missing_items_and_allows_read_and_reo
         participants
             .get(f.owner, f.case, person, f.at)
             .unwrap()
-            .revision
+            .revision_number()
             .get(),
         1
     );

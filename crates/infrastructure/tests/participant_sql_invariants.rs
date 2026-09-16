@@ -154,7 +154,9 @@ fn exhausted_revision_does_not_wrap_or_append_an_audit_event() {
     let before = f.snapshot();
     let max = ParticipantRevision::new(u32::MAX).unwrap();
     for result in [
-        store.replace(f.owner, f.case, id, max, values("Overflow"), f.at),
+        store
+            .replace(f.owner, f.case, id, max, values("Overflow"), f.at)
+            .map(Into::into),
         store.change_status(f.owner, f.case, id, max, DirectoryStatus::Archived, f.at),
     ] {
         assert!(matches!(

@@ -8,8 +8,10 @@
 //! docs/adr/0004-certificate-validation-implementation.md.
 
 mod authority;
+mod internal_declaration;
 mod parse;
 mod validator;
 
 pub use authority::OpensslCaAdapter;
+pub use internal_declaration::InternalRsaDeclarationVerifier;
 pub use validator::X509ChainValidator;

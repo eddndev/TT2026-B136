@@ -30,6 +30,7 @@ const STDERR_LIMIT: usize = 600;
 pub struct OpensslCaAdapter {
     scripts_dir: PathBuf,
     ca_dir: PathBuf,
+    declaration_certificates: bool,
 }
 
 impl OpensslCaAdapter {
@@ -40,7 +41,14 @@ impl OpensslCaAdapter {
         Self {
             scripts_dir: scripts_dir.into(),
             ca_dir: ca_dir.into(),
+            declaration_certificates: false,
         }
+    }
+
+    /// Selects signing-only leaves without authentication or email EKUs.
+    pub fn for_internal_declarations(mut self) -> Self {
+        self.declaration_certificates = true;
+        self
     }
 
     fn run_script(&self, name: &str, args: &[&OsStr]) -> Result<(), DomainError> {
@@ -86,13 +94,18 @@ impl CertificateAuthority for OpensslCaAdapter {
     }
 
     fn issue(&self, common_name: &str) -> Result<IssuedCertificate, DomainError> {
-        self.run_script("issue-cert.sh", &[OsStr::new(common_name)])?;
+        let script = if self.declaration_certificates {
+            "issue-declaration-cert.sh"
+        } else {
+            "issue-cert.sh"
+        };
+        self.run_script(script, &[OsStr::new(common_name)])?;
         let slug = file_slug(common_name);
         let certificate_path = self.ca_dir.join("certs").join(format!("{slug}.crt.pem"));
         let private_key_path = self.ca_dir.join("private").join(format!("{slug}.key.pem"));
         let certificate_pem = fs::read(&certificate_path).map_err(|err| {
             authority_failure(format!(
-                "issue-cert.sh succeeded but the certificate is unreadable at {}: {err}",
+                "{script} succeeded but the certificate is unreadable at {}: {err}",
                 certificate_path.display()
             ))
         })?;

@@ -9,7 +9,7 @@ fn runtime_requires_participant_tables_constraints_and_active_triggers() {
     for corruption in [
         "DROP TABLE case_participant_revisions CASCADE",
         "ALTER TABLE case_participants DROP CONSTRAINT participant_case_fk",
-        "ALTER TABLE case_participants DROP CONSTRAINT participant_first_revision_fk",
+        "DROP TRIGGER typed_root_complete ON case_participants",
         "ALTER TABLE case_participants DROP CONSTRAINT participant_initial_revision",
         "ALTER TABLE case_participant_revisions DROP CONSTRAINT participant_first_active",
         "ALTER TABLE case_participant_revisions DROP CONSTRAINT participant_canonical",
@@ -18,7 +18,7 @@ fn runtime_requires_participant_tables_constraints_and_active_triggers() {
         "ALTER TABLE case_participant_revisions DISABLE TRIGGER participant_sequence",
         "ALTER TABLE case_participants DISABLE TRIGGER participant_root_immutable",
         "ALTER TABLE case_participant_revisions DISABLE TRIGGER participant_revision_immutable",
-        "ALTER TABLE case_participants ALTER CONSTRAINT participant_first_revision_fk NOT DEFERRABLE",
+        "DROP TRIGGER typed_root_complete ON case_participants; CREATE CONSTRAINT TRIGGER typed_root_complete AFTER INSERT ON case_participants NOT DEFERRABLE FOR EACH ROW EXECUTE FUNCTION typed_root_complete()",
     ] {
         let Some(mut f) = Fixture::new() else { return };
         PostgresCaseDocumentStore::open(&f.runtime_url).unwrap();

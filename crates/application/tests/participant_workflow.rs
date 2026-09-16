@@ -203,13 +203,13 @@ fn status_change_uses_the_atomic_port_and_preserves_its_latest_text_values() {
                 && *status == DirectoryStatus::Archived
                 && *at == instant()
         })
-        .return_once(move |_, _, _, _, _, _| Ok(returned));
+        .return_once(move |_, _, _, _, _, _| Ok(returned.into()));
     let (workflow, clock) = service(store, credentials);
     assert_eq!(
         workflow
             .change_status("session", case, id, revision(), DirectoryStatus::Archived)
             .unwrap(),
-        expected
+        expected.into()
     );
     assert_eq!(clock.calls(), 1);
 }
@@ -222,12 +222,12 @@ fn paralegal_reads_forward_scope_cursors_and_captured_history() {
     let id = ParticipantId::new();
     let expected = snapshot(case, id, UserId::new(), 7);
     let page = ParticipantPage {
-        participants: vec![expected.clone()],
+        participants: vec![expected.clone().into()],
         has_more: true,
         next_after_id: Some(id),
     };
     let history = ParticipantHistoryPage {
-        revisions: vec![expected.clone()],
+        revisions: vec![expected.clone().into()],
         has_more: true,
         next_before_revision: Some(revision()),
     };
@@ -241,7 +241,7 @@ fn paralegal_reads_forward_scope_cursors_and_captured_history() {
         .withf(move |who, scope, participant, at| {
             *who == user && *scope == case && *participant == id && *at == instant()
         })
-        .return_once(move |_, _, _, _| Ok(returned));
+        .return_once(move |_, _, _, _| Ok(returned.into()));
     store
         .expect_list()
         .times(1)
@@ -261,7 +261,7 @@ fn paralegal_reads_forward_scope_cursors_and_captured_history() {
         })
         .return_once(move |_, _, _, _, _| Ok(returned_history));
     let (workflow, clock) = service(store, credentials);
-    assert_eq!(workflow.get("session", case, id).unwrap(), expected);
+    assert_eq!(workflow.get("session", case, id).unwrap(), expected.into());
     assert_eq!(workflow.list("session", case, list_query()).unwrap(), page);
     assert_eq!(
         workflow

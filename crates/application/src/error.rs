@@ -10,6 +10,59 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    #[error("represented subject not found")]
+    SubjectNotFound,
+
+    #[error("represented subject changed")]
+    SubjectRevisionConflict,
+
+    #[error("represented subject revision counter is exhausted")]
+    SubjectRevisionExhausted,
+
+    #[error("typed participant profile is required")]
+    ParticipantProfileRequired,
+
+    #[error("represented subject already has this role")]
+    ParticipantRoleConflict,
+
+    #[error("represented identity of a typed participant cannot be replaced")]
+    ParticipantSubjectChangeForbidden,
+
+    #[error("explicit represented identity review is required")]
+    ParticipantIdentityReviewRequired,
+
+    #[error("represented identity review changed")]
+    ParticipantIdentityReviewConflict,
+
+    #[error("identity review exceeds the candidate limit")]
+    ParticipantCandidateLimit,
+
+    #[error("participant support changed; validate it again")]
+    ParticipantSupportChanged,
+
+    #[error("participant credential and declaration signature are required")]
+    ParticipantCredentialRequired,
+
+    #[error("participant credential is not applicable")]
+    ParticipantCredentialUnexpected,
+
+    #[error("participant credential not found")]
+    ParticipantCredentialNotFound,
+
+    #[error("participant credential trust is not published")]
+    CredentialTrustUnavailable,
+
+    #[error("participant credential trust changed")]
+    CredentialTrustChanged,
+
+    #[error("participant credential trust revision changed")]
+    CredentialTrustRevisionConflict,
+
+    #[error("participant credential trust revision counter is exhausted")]
+    CredentialTrustRevisionExhausted,
+    #[error("participant credential rejected: {0}")]
+    ParticipantCredentialRejected(#[from] domain::crypto::CredentialFailure),
+
     /// The command expected another current stage revision.
     #[error("case stage changed; refresh before recording")]
     CaseStageConflict,

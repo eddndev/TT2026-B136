@@ -4,9 +4,9 @@ use std::sync::{
 };
 
 use application::participants::{
-    DirectoryStatus, ParticipantActorSnapshot, ParticipantHistoryPage, ParticipantHistoryQuery,
-    ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision, ParticipantService,
-    ParticipantSnapshot, ParticipantStore, ParticipantValues,
+    DirectoryStatus, ParticipantActorSnapshot, ParticipantDetail, ParticipantHistoryPage,
+    ParticipantHistoryQuery, ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision,
+    ParticipantService, ParticipantSnapshot, ParticipantStore, ParticipantValues,
 };
 use application::ApplicationError;
 use domain::cases::CaseId;
@@ -22,9 +22,10 @@ mock! {
     impl ParticipantStore for Store {
         fn create(&self, actor: UserId, case_id: CaseId, id: ParticipantId, values: ParticipantValues, at: OffsetDateTime) -> Result<ParticipantSnapshot, ApplicationError>;
         fn replace(&self, actor: UserId, case_id: CaseId, id: ParticipantId, expected_revision: ParticipantRevision, values: ParticipantValues, at: OffsetDateTime) -> Result<ParticipantSnapshot, ApplicationError>;
-        fn change_status(&self, actor: UserId, case_id: CaseId, id: ParticipantId, expected_revision: ParticipantRevision, status: DirectoryStatus, at: OffsetDateTime) -> Result<ParticipantSnapshot, ApplicationError>;
+        fn change_status(&self, actor: UserId, case_id: CaseId, id: ParticipantId, expected_revision: ParticipantRevision, status: DirectoryStatus, at: OffsetDateTime) -> Result<ParticipantDetail, ApplicationError>;
         fn list(&self, actor: UserId, case_id: CaseId, query: ParticipantQuery, at: OffsetDateTime) -> Result<ParticipantPage, ApplicationError>;
-        fn get(&self, actor: UserId, case_id: CaseId, id: ParticipantId, at: OffsetDateTime) -> Result<ParticipantSnapshot, ApplicationError>;
+        fn get(&self, actor: UserId, case_id: CaseId, id: ParticipantId, at: OffsetDateTime) -> Result<ParticipantDetail, ApplicationError>;
+        fn get_revision(&self,actor:UserId,case_id:CaseId,id:ParticipantId,revision:ParticipantRevision,at:OffsetDateTime)->Result<ParticipantDetail,ApplicationError>;
         fn history(&self, actor: UserId, case_id: CaseId, id: ParticipantId, query: ParticipantHistoryQuery, at: OffsetDateTime) -> Result<ParticipantHistoryPage, ApplicationError>;
     }
 }

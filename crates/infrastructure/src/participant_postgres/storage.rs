@@ -1,7 +1,7 @@
 use application::identity::Principal;
 use application::participants::{
-    participant_digest, DirectoryStatus, ParticipantActorSnapshot, ParticipantId,
-    ParticipantRevision, ParticipantSnapshot, ParticipantValues,
+    participant_digest, DirectoryStatus, ParticipantActorSnapshot, ParticipantDetail,
+    ParticipantId, ParticipantRevision, ParticipantSnapshot, ParticipantValues,
 };
 use application::ApplicationError;
 use domain::cases::CaseId;
@@ -25,17 +25,61 @@ pub(super) fn require_root(
     Ok(())
 }
 
-pub(super) fn current(
+pub(crate) fn current(
     tx: &mut Transaction<'_>,
     case: CaseId,
     id: ParticipantId,
     hasher: &dyn DocumentHasher,
-) -> Result<ParticipantSnapshot, ApplicationError> {
+) -> Result<ParticipantDetail, ApplicationError> {
     require_root(tx, case, id)?;
-    let row = tx.query_opt("SELECT p.case_id,r.* FROM case_participant_revisions r JOIN case_participants p ON p.id=r.participant_id
-        WHERE p.id=$1 AND p.case_id=$2 ORDER BY r.revision DESC LIMIT 1", &[&id.as_uuid(),&case.as_uuid()])
-        .map_err(port)?.ok_or_else(|| inconsistent("participant root has no first revision"))?;
-    decode(&row, hasher)
+    let row=tx.query_opt("SELECT revision FROM (SELECT revision FROM case_participant_revisions WHERE participant_id=$1 UNION ALL SELECT revision FROM case_participant_typed_revisions WHERE participant_id=$1) r ORDER BY revision DESC LIMIT 1",&[&id.as_uuid()])
+        .map_err(port)?.ok_or_else(||inconsistent("participant root has no first revision"))?;
+    exact(
+        tx,
+        case,
+        id,
+        revision(row.try_get(0).map_err(inconsistent)?)?,
+        hasher,
+    )
+}
+
+pub(crate) fn exact(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    id: ParticipantId,
+    revision: ParticipantRevision,
+    hasher: &dyn DocumentHasher,
+) -> Result<ParticipantDetail, ApplicationError> {
+    require_root(tx, case, id)?;
+    let rows=tx.query("SELECT FALSE AS typed FROM case_participant_revisions WHERE participant_id=$1 AND revision=$2 UNION ALL SELECT TRUE FROM case_participant_typed_revisions WHERE participant_id=$1 AND revision=$2",
+        &[&id.as_uuid(),&i64::from(revision.get())]).map_err(port)?;
+    if rows.len() > 1 {
+        return Err(inconsistent(
+            "participant revision appears in both families",
+        ));
+    }
+    let row = rows.first().ok_or(ApplicationError::ParticipantNotFound)?;
+    if row.try_get::<_, bool>(0).map_err(inconsistent)? {
+        crate::typed_participant_postgres::storage::typed_detail(tx, case, id, revision, hasher)
+    } else {
+        let row=tx.query_one("SELECT p.case_id,r.* FROM case_participant_revisions r JOIN case_participants p ON p.id=r.participant_id WHERE p.id=$1 AND p.case_id=$2 AND r.revision=$3",
+            &[&id.as_uuid(),&case.as_uuid(),&i64::from(revision.get())]).map_err(port)?;
+        decode(&row, hasher).map(Into::into)
+    }
+}
+
+pub(super) fn revision(value: i64) -> Result<ParticipantRevision, ApplicationError> {
+    ParticipantRevision::new(u32::try_from(value).map_err(inconsistent)?).map_err(inconsistent)
+}
+
+pub(super) fn detail_resource(snapshot: &ParticipantDetail) -> String {
+    format!(
+        "case:{}:participant:{}:revision:{}:sha256:{}",
+        snapshot.case_id(),
+        snapshot.id(),
+        snapshot.revision_number().get(),
+        snapshot.values_digest().to_hex()
+    )
 }
 
 pub(super) fn snapshot(

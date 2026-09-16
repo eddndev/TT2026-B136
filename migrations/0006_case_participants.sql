@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS case_participant_revisions (
     CONSTRAINT participant_digest CHECK(values_digest=pg_catalog.sha256(participant_values_bytes(display_name,procedural_role,organization,legal_status,directory_status)))
 );
 DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='case_participants'::regclass
+    IF to_regclass('case_participant_typed_revisions') IS NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='case_participants'::regclass
         AND conname='participant_first_revision_fk') THEN
         ALTER TABLE case_participants ADD CONSTRAINT participant_first_revision_fk
             FOREIGN KEY(id,initial_revision) REFERENCES case_participant_revisions(participant_id,revision)
