@@ -19,6 +19,7 @@ pub mod identity;
 pub mod judicial_calendars;
 pub mod participants;
 pub mod pki;
+pub mod procedural_facts;
 pub mod signing;
 pub mod timestamping;
 pub mod typed_participants;

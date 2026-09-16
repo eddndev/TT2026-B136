@@ -2,9 +2,10 @@
 
 Estado: valores y canones del dominio implementados; comprobacion global local aprobada.
 Este contrato describe identidades y validaciones puras. Los formatos binarios
-se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). No hay flujo
-persistente de hechos, puertos de aplicacion, API HTTP o interfaz Qadra. Tampoco
-se define un formato JSON de entrada o recibos de operaciones confirmadas.
+se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). Los
+[comandos, puertos y comprobaciones de aplicacion](procedural-facts-application.md)
+se describen por separado; no hay flujo persistente, API HTTP o interfaz Qadra.
+Tampoco se define un formato JSON de entrada o recibos canonicos confirmados.
 
 La separacion de familias y referencias corregibles procede de
 [ADR-0031](adr/0031-declared-procedural-facts.md). El modelo no acredita actos,
@@ -219,13 +220,15 @@ No prueban existencia, pertenencia al expediente, autorizacion, actividad, estad
 de fuentes, autenticidad, representacion o eficacia juridica. La futura aplicacion
 resolvera fuentes exactas y capturara digests/sujetos ligados sin refrescar historia.
 
-No hay maquina de estados o comandos de alta, correccion y retiro implementados
-por estos valores. El retiro terminal queda como propuesta del futuro contrato de
-persistencia, con conservacion de contenido y sin declarar nulidad. Tampoco hay
-operacion de confirmacion, auditoria atomica o conciliacion de recibos en este corte.
+El [contrato de aplicacion](procedural-facts-application.md) incorpora comandos de
+alta, correccion y retiro terminal, con comprobaciones puras y conservacion de
+identidad. Los valores de dominio no ejecutan esas operaciones. Todavia no hay
+coordinacion del servicio, confirmacion persistente, auditoria atomica o
+conciliacion de recibos para hechos. El retiro no declara nulidad.
 
-Los [canones de valores](procedural-facts-canonical.md) no son recibos. Formatos de
-envio, limites de lectura, puertos y persistencia siguen pendientes. No existe
+Los [canones de valores](procedural-facts-canonical.md) no son recibos. Los puertos
+y limites de consulta ya estan definidos en la aplicacion; sus implementaciones,
+formatos de envio, admision integrada y persistencia siguen pendientes. No existe
 outbox sin consumidor ni activacion del
 [conteo diario](deadline-day-counting.md). Los catalogos y datos declarados no
 seleccionan una regla, recurso, calendario, responsable, canal o corte temporal.

@@ -99,8 +99,11 @@ El [modelo puro de hechos](procedural-facts.md) ya conserva las dos familias,
 referencias historicas seleccionadas, desconocimiento, funciones personales y
 soportes directos. Sus [canones propios](procedural-facts-canonical.md) distinguen
 precision y desfase, y conservan cada localizador aunque un documento se comparta.
-Estos valores no registran actos por HTTP, verifican pertenencia, confirman
-auditoria o habilitan plazos; la siguiente entrega debe cerrar esa frontera.
+La [base de aplicacion](procedural-facts-application.md) incorpora comandos de
+alta/correccion/retiro, seleccion exacta, comprobaciones puras y contratos de
+puertos. Aun faltan servicio coordinador, recibos, almacenamiento, autorizacion
+efectiva por expediente y auditoria de estos hechos, HTTP y Qadra. Estos valores
+y contratos no registran actos por HTTP ni habilitan plazos.
 
 ## Entregas y condiciones de cierre
 
