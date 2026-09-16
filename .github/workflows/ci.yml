@@ -87,6 +87,11 @@ jobs:
           printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
       - name: Create isolated case and document test databases
         run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
+      - name: Verify independent judicial calendar vectors and SQL guards
+        run: |
+          python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
+          python3 -B scripts/tests/test_judicial_calendar_generator.py
+          python3 -B scripts/tests/test_judicial_calendar_sql.py
       - name: Run workspace tests
         run: cargo test --workspace
 
