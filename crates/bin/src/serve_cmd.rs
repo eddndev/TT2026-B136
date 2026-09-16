@@ -12,6 +12,7 @@ use application::documents::{
 use application::hearing_results::HearingResultService;
 use application::hearings::HearingService;
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
+use application::judicial_calendars::JudicialCalendarService;
 use application::participants::ParticipantService;
 use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
@@ -19,10 +20,11 @@ use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
     PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository,
-    PostgresHearingResultStore, PostgresHearingStore, PostgresParticipantStore,
-    PostgresTypedParticipantStore, PostgresUserRepository, RandomRecoveryCodeGenerator,
-    RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer,
-    RsaPkcs1Verifier, StoredZipWriter, SystemClock, TotpRsProvider, X509ChainValidator,
+    PostgresHearingResultStore, PostgresHearingStore, PostgresJudicialCalendarStore,
+    PostgresParticipantStore, PostgresTypedParticipantStore, PostgresUserRepository,
+    RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
+    RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
+    TotpRsProvider, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -179,6 +181,21 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         result_hasher,
         result_clock,
     );
+    let calendar_hasher = Arc::new(RingSha256Hasher::new());
+    let calendar_clock = Arc::new(SystemClock::new());
+    let calendars = JudicialCalendarService::new(
+        Arc::new(
+            PostgresJudicialCalendarStore::open(
+                &database_url,
+                calendar_hasher.clone(),
+                calendar_clock.clone(),
+            )
+            .context("cannot open PostgreSQL judicial calendar store")?,
+        ),
+        identity.clone(),
+        calendar_hasher,
+        calendar_clock,
+    );
     let workflow = CaseDocumentService::new(
         repository,
         identity.clone(),
@@ -196,6 +213,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             hearings: Arc::new(hearings),
             hearing_results: Arc::new(hearing_results),
         },
+        Arc::new(calendars),
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
             max_blocking_operations: args.max_blocking_operations,
