@@ -4,6 +4,174 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: programación de audiencias
+
+- Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`).
+- Alcance: programación de cuatro tipos, reemplazo y cancelación organizativa,
+  referencias exactas de participantes y soportes, historial inmutable, recibos
+  propios de operación y agenda autorizada.
+- Contrato: [API de audiencias](hearings-api.md); decisión:
+  [programación auditada](adr/0028-audited-hearing-scheduling.md).
+- Entorno: Rust/Cargo 1.94.0, PostgreSQL 18.6, Valkey 8.1.9, OpenSSL 3.5.7,
+  qpdf 12.4.1, Node.js 22.22.2 y npm 10.9.7, Linux x86_64. Clippy usa
+  adicionalmente 1.98.1 para comprobar el toolchain observado en CI.
+
+### Resultados ejecutados
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Formato, compilación y Clippy 1.98.1 del workspace | Aprobados. |
+| Rust 1.88, todos los targets | Aprobado. |
+| Suite normal mediante `scripts/test-backends.sh` | **1183 aprobadas, 0 fallidas y 1 externa ignorada; salida 0**, 360.492 s. |
+| Suite instrumentada con los mismos servicios aislados | **1183 aprobadas, 0 fallidas y 1 externa ignorada; salida 0**, 370.401 s. |
+| Cobertura y tres umbrales del 90 % | **25 201 / 27 226 líneas, 92.5623 % global; aprobados.** |
+| Política de dependencias con `cargo-deny 0.20.2 check` | Aprobada; sin nuevas excepciones. |
+| Compilación release | **12 176 936 bytes**, menor que 26 214 400; 126.825 s. |
+| `scripts/demo.sh` | Aprobado, 9.097 s. |
+| `scripts/api-demo.sh` | Aprobado, 166.180 s, incluidas audiencias y restauración. |
+| Formato, compilación y pruebas unitarias de Qadra | Aprobados; **119 pruebas unitarias**. |
+| Navegador con API simulada | **178 aprobadas**, 152.37 s del comando. |
+| Navegador con servicios reales aislados | **11 aprobadas**, 2.1 minutos de Playwright; 222.42 s del script con preparación. |
+
+La cobertura por crate fue 2730/2802 líneas en `domain`, 4813/5055 en
+`application`, 12653/13694 en `infrastructure`, 4094/4458 en `web` y
+911/1217 en `bin`. Se conserva la exportación de la instrumentación junto con
+los logs y las huellas de fuentes; exportar de nuevo el informe no se cuenta
+como otra ejecución de pruebas.
+
+Son **117 pruebas Rust adicionales** respecto del cierre de participantes. La
+suite usó PostgreSQL y Redis desechables, bases independientes para identidad,
+expedientes y documentos, y qpdf preparado con su instalador verificado. No se
+contabilizan adaptadores omitidos por variables ausentes. La prueba ignorada es
+la del proveedor TSA externo. El instalador de qpdf también pasó sus nueve
+pruebas. Se conservan los avisos informativos y las políticas previas.
+
+Clippy 1.98.1 detectó `chunks_exact` con tamaño constante en el auxiliar que
+lee los vectores de una prueba. Se sustituyó por `as_chunks::<2>()` y se
+comprobaron otra vez las cuatro pruebas del códec, Clippy de todo el workspace
+y Rust 1.88 con todos los targets. No se cambió el código del producto. La
+suite normal anterior se identifica como ese corte; la instrumentada posterior
+se informa con su propia ejecución.
+
+La medición CLI de Argon2id fue **540.7 ms de promedio en cinco ejecuciones**,
+dentro de la banda de 500 a 1000 ms. Se ejecutó mientras otras verificaciones
+estaban activas; no es una calibración aislada ni sustituye mediciones anteriores.
+
+### Invariantes y concurrencia de audiencias
+
+Los vectores independientes de `HEAR1` y `HTXN1` comprueban bytes, proyecciones,
+digests, normalización y límites. Se probaron segundos y desfases explícitos,
+años locales y UTC, participantes repetidos, contexto incompatible, antecedente
+obligatorio para individualización y secuencia sin desbordamiento. La API
+rechaza arreglos posicionales, duplicados, campos desconocidos, fechas ambiguas,
+cuerpos excesivos y comandos incompatibles con la ruta.
+
+PostgreSQL revalida miembro, rol, cuenta activa, cierre, administración, etapa,
+participantes y soporte al confirmar. Los ensayos intercalan cambios después de
+preparar: ninguno deja una audiencia ni un evento parcial. Se inyectaron fallos
+de raíz, revisión, auditoría y commit diferido, comparando las filas completas
+antes y después. Una carrera entre reemplazo y cancelación produce un único sucesor
+para la revisión esperada.
+Dos raíces con el mismo UUID de operación producen una única confirmación.
+
+Una lectura bloqueada observa una membresía retirada aunque la conexión tenga
+por defecto aislamiento repetible. Un reloj controlado demuestra que la fecha
+de captura de la escritura se consulta después de esperar el bloqueo de
+la auditoría. Fallar el evento impide devolver contexto, detalle, historia,
+listado o agenda. Filtros de cabecera y autorización preceden a la paginación.
+
+Las fichas manuales y tipificadas conservan su revisión e identidad exactas al
+editar o archivar la ficha o su identidad. Una nueva selección obsoleta se
+rechaza. Cancelar después de avanzar la etapa conserva el contexto original y
+captura por separado la administración vigente. El soporte histórico V1 permanece
+vinculado después de crear V2. Un sellado concurrente del soporte invalida la
+preparación; cancelar copia lo ya capturado sin reabrir el archivo ni declarar
+una nueva comprobación de integridad.
+
+El arranque rechaza historia incompleta, referencias alteradas, selección de una
+revisión originalmente archivada, permisos excesivos y protecciones ausentes o
+deshabilitadas. Las pruebas SQL reprodujeron antes de corregir la aceptación de
+un digest de etapa falso y de un hueco de revisiones; también reprodujeron una
+omisión del inventario al resolver fuentes exactas. La migración no inventa
+citas anteriores. El import inicial rechaza tablas de audiencias ocupadas.
+
+### HTTP y recuperación
+
+La demostración HTTP prueba preparación normalizada, recibos por revisión,
+reutilización rechazada de operación, digest de envío distinto, permisos de los
+cuatro roles y aislamiento. Registra una audiencia, la reemplaza y cancela tras
+un cambio de etapa; retiene fichas archivadas e identidad tipificada original.
+Individualización comprueba soporte PDF sellado V1 cuando V2 ya existe. La agenda
+usa intervalos explícitos y cursor de tiempo y UUID.
+
+El respaldo y la restauración compararon **12 respuestas completas de audiencias**
+y las filas de sus dos tablas, con **3 raíces y 5 revisiones**. El inventario
+restaurado incluyó 11 expedientes, 20 revisiones administrativas, 6 registros
+iniciales de etapa, 12 raíces documentales, 15 versiones, 3 clasificaciones,
+6 raíces de participantes y 9 revisiones manuales, 4 revisiones tipificadas,
+2 identidades con 4 revisiones y una credencial. Las fuentes de etapas, soportes,
+autores y recibos se conservaron. La importación legacy mantuvo cuatro documentos
+y su prefijo de 63 eventos originales; los ZIP se compararon byte por byte.
+
+El guion se corrigió para incluir también ambas tablas de audiencias en el
+inventario SQL general. La ejecución registrada ya cargó esa corrección y
+comprobó las filas, además de las respuestas HTTP. Las pruebas PostgreSQL específicas
+cubren respaldo completo, autoría de una cuenta posteriormente inactiva y lectura
+de un expediente cerrado; otra comprueba el canon y los guards con `search_path`
+vacío durante la restauración.
+
+### Qadra y navegador
+
+La interfaz permite programación, revisión previa del comando normalizado,
+reemplazo, cancelación, referencias exactas, historia y agenda filtrada. Conserva
+los 18 archivos originales de marca y estilos; las capturas de 1440 y 390 píxeles
+incluyen listado, formulario, agenda y referencias desplegadas, sin desborde.
+Las nuevas referencias permiten distinguir fichas homónimas por UUID y revisión.
+
+Las regresiones reprodujeron una revisión histórica presentada como vigente y
+una apertura desde Agenda que lanzaba tres lecturas frente al límite de dos
+operaciones simultáneas del servidor. La corrección distingue la revisión exacta
+y espera contexto/listado antes de abrirla; no aumenta el límite ni repite
+escrituras. Los escenarios simulados finales pasaron tras esas correcciones.
+
+Los tres recorridos reales nuevos comprueban respuesta perdida después del
+commit y conciliación por recibo, retención manual/tipificada, dos sesiones con
+revisión esperada, cancelación tras cambio de etapa, permisos/asignaciones/cierre/
+revocación y soporte sellado V1 con V2 existente. El ZIP histórico permanece
+idéntico. Los ocho recorridos anteriores también aprobaron.
+
+Las primeras campañas reales detectaron dos errores del guion: usar como método
+el atributo `status` de una respuesta nativa, y contar módulos JavaScript públicos
+como llamadas HTTP de negocio. Se corrigieron los auxiliares y se repitieron los
+once recorridos en servicios nuevos. Los intentos fallidos se conservaron; el
+resultado aprobado corresponde a la repetición de 222.42 segundos.
+
+Una revisión estática focal de aplicación y transporte no encontró divergencias
+con el contrato en permisos, recibos, cancelación, contexto, objetos estrictos,
+fechas, paginación o errores. Es una revisión del alcance descrito y no sustituye
+la campaña ejecutada ni una auditoría general del sistema.
+
+### Actualización de la demostración local
+
+Después de la campaña integrada se actualizó el servidor de desarrollo con un
+respaldo privado de PostgreSQL, una instantánea RDB de Redis y copias de sus
+archivos de configuración y evidencia. Se detuvo el escritor y se esperó el fin
+de sus procesos y conexiones antes de copiar los archivos mutables. La migración
+conservó las filas completas de las **21 tablas existentes** y creó las dos
+tablas de audiencias vacías; no inventó citas históricas. También se conservaron
+las huellas de **30 archivos** de claves, certificados, configuración y acceso.
+
+Los nuevos procesos se comprobaron por identidad, directorio y pertenencia al
+servicio. Salud y frontend respondieron 200; la agenda nueva rechazó consulta
+sin sesión con 401. El navegador mostró la pantalla de acceso. Esta comprobación
+de arranque no se contabiliza como otro recorrido funcional de los once anteriores.
+
+Esta programación no registra celebración, asistentes reales, resultados ni
+acuerdos; no activa términos ni completa el calendario judicial, las alertas,
+los recursos o la identidad y firma documental individual. La evaluación de
+usabilidad con personas sigue pendiente. No se sustituyen los objetivos
+aprobados ni se cierran conclusiones académicas con esta entrega.
+
 ## Repetición de cierre: identidades y declaraciones
 
 La repetición del 15 de septiembre de 2026, por la noche en
@@ -79,6 +247,23 @@ compilación local no se presenta como prueba remota aprobada. La primera CI sí
 aprobó las campañas web, el PDF, MSRV, formato, dependencias y tamaño release.
 Estas correcciones de pruebas y configuración no cambian las fuentes del
 manuscrito ni invalidan la correspondencia de sus 60 hashes con el PDF local.
+
+### Resultado remoto e integración de participantes
+
+El segundo head, `3ba738176de57a55ae7a3885b13f6bf8fd9e8c31`, obtuvo
+19 comprobaciones aprobadas y la publicación de release omitida por tratarse de
+una PR. Las suites remotas de pruebas y cobertura terminaron correctamente con
+el perfil de tablas de líneas. Se integró por squash el 16 de septiembre de
+2026 a las 05:42:25 UTC en `3494fa2bed6879ebf57441034000597b7d20e3a7`.
+El árbol integrado coincide con el head comprobado. Este resultado cierra la
+incertidumbre remota del apartado anterior sin sustituir sus mediciones locales.
+
+El PDF remoto tuvo 281 páginas. Sus 60 fuentes académicas coincidieron con las
+del PDF local y el texto extraído coincidió página por página; las 55 páginas
+renderizadas para comparación fueron idénticas. Los archivos PDF tienen hashes
+binarios distintos y se conservaron por separado. No se declara reproducción
+binaria. Esta integración corresponde a participantes; no completa los flujos
+procesales y de identidad que siguen pendientes.
 
 ## Corte reproducido: identidades y participantes tipificados
 

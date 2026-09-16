@@ -5,6 +5,38 @@ La autorización documental, las transacciones y el corte recuperable se abordan
 en [ADR-0016](adr/0016-case-document-transactions.md). Consultar
 [el informe vigente](verification-report.md) para el estado posterior.
 
+## Revisión de programación de audiencias
+
+Las nuevas revisiones vinculan expediente, tipo inmutable, fecha con desfase,
+participantes exactos y, para individualización, antecedente declarado con
+soporte documental. Se separa el contexto original de programación de la
+revisión administrativa observada al cancelar. El adaptador comparte el bloqueo
+y la transacción de auditoría; repite permisos, actividad del expediente,
+revisiones y fuentes preparadas antes de anexar el registro.
+
+Las pruebas focalizadas con PostgreSQL reproducen revocación, cambio de rol,
+cuenta inactiva, cierre y cambio de contexto durante la preparación. También
+comprueban competencia entre reemplazo y cancelación, colisión de UUID de
+operación, fallos de inserción y commit diferido, y rechazo de consultas cuyo
+evento no puede persistir. Una lectura en espera observa una membresía retirada
+incluso si la conexión tenía aislamiento repetible por defecto. Los resultados
+completos de la entrega se registran por separado en el informe de verificación.
+
+La preparación devuelve el comando normalizado y un digest de operación. No
+reserva identificadores ni sustituye las validaciones del envío. La revisión
+exacta conserva un recibo para reconocer el resultado propio tras una respuesta
+perdida; una ausencia provisional mantiene la incertidumbre. El parser HTTP
+rechaza también arreglos posicionales, campos duplicados y contenido sobrante.
+Las lecturas resuelven revisiones históricas de fichas e identidades, sin
+reemplazarlas por las actuales. Cancelar copia el soporte ya capturado y no
+constituye una nueva comprobación del archivo.
+
+La agenda aplica autorización y filtros sobre cabeceras actuales antes de
+paginar; sus filas omiten notas, conexiones e identidades de participantes.
+El catálogo, límites y codificaciones están en [la API de audiencias](hearings-api.md).
+Persisten resultados, asistencia, acuerdos y términos sin implementar; esta
+programación no es validación de procedencia judicial.
+
 ## Revisión de identidades representadas y declaraciones internas
 
 El directorio combina revisiones manuales y tipificadas, con identidades

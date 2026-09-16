@@ -178,7 +178,7 @@ pull request as the behavior it describes. Update the affected documents:
 
 ## Implemented project state
 
-Reviewed on 2026-09-15. This is a starting map, not a replacement for inspecting
+Reviewed on 2026-09-16. This is a starting map, not a replacement for inspecting
 the working tree. The prototype has a working cryptographic backend and an
 authenticated local HTTP workflow; the complete case-management web product
 is still unfinished.
@@ -217,7 +217,7 @@ is still unfinished.
   Client retains only the four-field basic projection. Expected revisions guard
   edits and status changes; current NUC and judicial case number are separately
   unique, including closed cases. Administrative closure blocks document,
-  participant and stage mutations while preserving reads, evidence and Owner
+  participant, stage and hearing mutations while preserving reads, evidence and Owner
   membership changes. Common audited transactions explicitly use READ COMMITTED. See
   `docs/adr/0022-audited-penal-case-administration.md` and
   `docs/case-administration-api.md`.
@@ -232,6 +232,13 @@ is still unfinished.
   revocation prevents later access. Owner manages all, assigned Litigator manages,
   assigned Paralegal reads and Client is denied. See
   `docs/adr/0023-audited-case-stage-transitions.md` and `docs/case-stages-api.md`.
+- The `0011_hearings*.sql` migrations add immutable hearing roots and revisions.
+  Schedule, replacement and cancellation revalidate authorization and expected
+  context under the audit lock. Participant references preserve exact historical
+  revisions; sentencing requires declared conviction and exact admitted support.
+  Operation receipts reconcile uncertain responses without automatic retries.
+  Authorized agenda queries filter current heads before pagination. See
+  `docs/adr/0028-audited-hearing-scheduling.md` and `docs/hearings-api.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,
@@ -329,7 +336,9 @@ is still unfinished.
   The Stages view separates current state, declared acts and initial history;
   it supports adoption, exact-version selection, transitions and reconciliation
   of conflicts or uncertain outcomes without automatic resubmission. Confirmed
-  uploads survive a later stage rejection. Preserve its
+  uploads survive a later stage rejection. Audiencias and Agenda add scheduling,
+  history and receipt reconciliation while keeping court outcomes and deadlines
+  pending. Preserve its
   design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -355,9 +364,11 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Complete hearings, deadlines and resources linked to resolutions. Penal
+2. Complete hearing outcomes, deadlines and resources linked to resolutions. Penal
    administration, stage adoption, two ordinary transitions and the mixed
-   participant directory are implemented. Typed identities and internal
+   participant directory are implemented. Hearing scheduling and its agenda
+   preserve exact history but do not record outcomes, attendees or agreements.
+   Typed identities and internal
    declarations preserve reviewed provenance; they do not establish civil
    identity, external judicial authority or automatic deadline computation.
    `docs/procedural-resources-scope.md` preserves the approved objective and
