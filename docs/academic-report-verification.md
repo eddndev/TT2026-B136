@@ -1,5 +1,21 @@
 # Verificación de la actualización académica
 
+## Procedencia de las fuentes y actualización pendiente
+
+El corte de sesiones y resultados descrito abajo corresponde a un snapshot local
+de 65 fuentes y figuras. Doce fuentes del manuscrito siguen pendientes de
+integración; el PDF comprobado conserva su procedencia de árbol de trabajo y no
+se atribuye a un commit que no contenga esas fuentes. Los resultados funcionales
+del software tienen su propia evidencia e historia versionada.
+
+La entrega de calendarios jurisdiccionales incorpora contrato, decisiones,
+operación y resultados reproducidos en [el informe técnico](verification-report.md).
+Su actualización del manuscrito, compilación e inspección de PDF siguen pendientes.
+Las comprobaciones de PDF de sesiones y programación conservadas en este documento
+no verifican los cambios posteriores de calendarios. El resumen, los objetivos,
+el marco teórico y las conclusiones pendientes permanecen protegidos.
+
+
 ## Sesiones y resultados declarados: 16 de septiembre de 2026
 
 Se incorporaron cuatro apartados de diseño, implementación, pruebas y

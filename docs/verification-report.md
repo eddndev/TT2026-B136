@@ -4,6 +4,158 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: calendarios jurisdiccionales
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Se verificaron
+el catálogo global por rol, las revisiones inmutables de alcance y reglas, la
+clasificación de fechas civiles y los recibos de operaciones. El contrato está
+en [la API de calendarios](judicial-calendars-api.md) y su decisión en
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md). Este corte registra
+comprobaciones locales, incluida Qadra. La integración remota y la actualización
+académica siguen pendientes; el CI de la PR aporta evidencia separada. Las cifras
+de audiencias de la sección siguiente son históricas.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Formato y compilación de todo el workspace | Aprobados; formato 1.126 s y compilación 0.205 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1392 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 364.567 s. |
+| Suite instrumentada con PostgreSQL/Redis desechables | **1392 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 442.435 s. |
+| Cobertura global y tres umbrales del 90 % | **31 403 / 33 823 líneas, 92.8451 %; aprobados.** |
+| Clippy 1.98.1, todos los targets, warnings denegados | Aprobado, 3.722 s. |
+| Rust 1.88, todos los targets | Aprobado, 26.878 s. |
+| Política de dependencias con cargo-deny 0.20.2 | Aprobada, 1.141 s, sin nuevas excepciones. |
+| Generador independiente de vectores | Nueve pruebas aprobadas. |
+| Restricciones SQL independientes con PostgreSQL | 21 pruebas aprobadas, incluidas carreras de escritura. |
+| Verificación de catálogo e inventario al arrancar | 15 pruebas aprobadas tanto en PostgreSQL 18.6 como en PostgreSQL 16.13. |
+| Binario release | **13 450 384 bytes**, menor que 26 214 400; 133.309 s. |
+| Demostración CLI | Aprobada con target absoluto (7.673 s) y relativo (7.386 s); calibración distinguida abajo. |
+| Demostración HTTP con respaldo y restauración | Aprobada, 210.700 s; diez respuestas exactas nuevas de calendarios. |
+| Formato, compilación y pruebas unitarias de Qadra | Aprobados; **167 pruebas**, formato 4.410 s, build 2.795 s y unitarios 1.112 s. |
+| Navegador con API simulada | **223 aprobadas**, 191.473 s del comando. |
+| Navegador con PostgreSQL/Redis aislados | **17 aprobadas**, 291.660 s del script; 2.8 minutos de Playwright. |
+
+Por crate: `domain` 3887/3983, `application` 6100/6377,
+`infrastructure` 15100/16323, `web` 5405/5895 y `bin` 911/1245 líneas.
+Son 91 pruebas Rust adicionales: 18 de dominio, 25 de aplicación, 30 de
+infraestructura y 18 de HTTP. Las pruebas de infraestructura usan conexiones
+explícitas a bases desechables; las 15 comprobaciones de arranque están incluidas
+en las 30, no se suman otra vez. Las pruebas Python/SQL y los recorridos HTTP
+son campañas separadas. La única prueba ignorada corresponde al proveedor TSA
+externo.
+
+Después de la suite normal se corrigieron dos localizadores hexadecimales de
+prueba para el lint de Rust 1.98.1 y se retiró un `mut` innecesario de otro test.
+No cambiaron las fuentes Rust de producción. Los dos tests de canon y los 18 de
+HTTP afectados pasaron de nuevo; la suite instrumentada completa también incluye
+los tres archivos corregidos. Los dos intentos de Clippy rechazados se conservan
+separados de la corrida aprobada y no se cuentan como pruebas adicionales.
+Las 848 huellas del corte Rust final permanecieron iguales durante Clippy, MSRV,
+cobertura y compilación release.
+
+### Invariantes y persistencia del calendario
+
+Owner administra el catálogo; Owner, Litigator y Paralegal pueden consultarlo sin
+seleccionar un expediente. Client queda denegado. La primera revisión fija un
+ámbito explícito: fuero, entidades, autoridad, órgano, territorio y uso declarado.
+No se infiere competencia a partir de nombres ni se preseleccionan entidades.
+
+Cada revisión conserva una cobertura civil finita, siete reglas semanales,
+excepciones no solapadas y referencias públicas declaradas. Dentro de cobertura,
+una excepción sustituye la regla semanal completa; una clasificación sin resolver
+se distingue de una fecha excluida. Fuera de cobertura no se asigna regla ni se
+supone que el día sea computable. Consultar historia o fechas de una revisión
+exacta conserva su resultado después de reemplazar o retirar la cabecera.
+
+Siete vectores independientes cotejan JCAL1 entre el generador, el dominio, SQL
+y la reconstrucción del adaptador, incluidos 99 y 191 910 bytes. El canon JCTX1
+cubre actor, operación, calendario, acción, revisión esperada, digest y motivo;
+sus extremos comprobados son 91 y 4095 bytes. La validación conserva Unicode en
+los datos y cuenta escalares para las cotas de texto. El cuerpo máximo comprobado
+ocupa 232 723 bytes UTF-8 o 517 267 con escapes Unicode; ambos caben en el límite
+HTTP de 1 MiB. Las URL se validan con el mismo perfil acotado, sin descargarlas.
+
+Preparar no reserva revisiones ni operaciones. El commit revalida cuenta y rol
+después del bloqueo compartido de auditoría, comprueba la cabecera y la operación,
+y lee entonces el reloj de captura. Estado y auditoría se confirman en una sola
+transacción. Las carreras entre sucesores y el reuso de una operación en raíces
+distintas admiten un solo ganador; revocar al actor durante la espera impide la
+escritura posterior. Un fallo de auditoría no deja cambios de calendario.
+
+El arranque comprueba funciones, restricciones, expresiones generadas, claves,
+triggers y privilegios, además de recorrer raíces e historia. Rechaza huecos,
+recibos alterados, cambios de ámbito, autores ausentes y retiros incompatibles.
+La baja o el cambio posterior de correo del autor no invalida una captura
+histórica legítima. El primer importador de documentos también rechaza un destino
+que ya contiene cualquiera de las dos tablas de calendario con filas; esta
+ocupación se reprodujo primero como fallo y se corrigió antes de la suite final.
+
+### HTTP, recuperación y demostración CLI
+
+El recorrido HTTP comprueba publicación, reemplazo y retiro, dos Owners que
+compiten por la revisión, ámbito inmutable, rechazo de operaciones repetidas,
+lectura global del personal, denegación a Client, historia paginada y fechas dentro
+y fuera de cobertura. Incluye valores máximos con Unicode y recibos exactos.
+
+Después del respaldo y la restauración se comparan diez respuestas completas de
+calendarios, con dos raíces y cuatro revisiones, y las filas de sus dos tablas.
+También vuelven a pasar las 21 respuestas anteriores de programación y resultados
+con sus cuatro tablas. Se preservan los soportes cifrados, la auditoría y los ZIP
+de evidencia del flujo integrado. No se restauró sobre la demo persistente.
+
+El primer recorrido HTTP se interrumpió por una expectativa incorrecta del script:
+una consulta inválida produce `400 invalid_query`, no 422. Se corrigieron esa
+expectativa y la descripción del contrato, sin cambiar Rust, y se repitió el
+recorrido completo. El primer intento de CLI también reprodujo que el script
+buscaba el binario en `target/` aun usando `CARGO_TARGET_DIR`; el script ahora
+respeta ese directorio y completó el recorrido con archivos temporales. Un segundo
+rojo reprodujo la ruta relativa tras cambiar al directorio temporal; fijar la ruta
+absoluta antes de ese cambio permitió repetir y aprobar también esa variante.
+
+La calibración Argon2id de esta CLI obtuvo **504.6 ms de promedio sobre cinco
+corridas**; al repetir con target relativo obtuvo **501.3 ms**, también sobre
+cinco corridas. Ambas están dentro de la banda de 500 a 1000 ms. Son observaciones nuevas del
+entorno local; no reemplaza las mediciones anteriores fuera de banda ni elimina
+la necesidad de calibrar el entorno de despliegue. Las mediciones coincidieron
+con otras tareas y no constituyen un benchmark aislado.
+
+### Interfaz Qadra
+
+El catálogo se abre desde la administración del despacho o la Agenda sin exigir
+un expediente seleccionado. Owner puede publicar, reemplazar y retirar; el resto
+del personal autorizado dispone de consulta, historia y clasificación de fechas.
+La vista mensual y la lista de días mantienen la revisión exacta y distinguen
+clasificación sin resolver de falta de cobertura.
+
+Los formularios solicitan ámbito, entidades, fuentes y reglas expresos. El resumen
+previo muestra el título que quedará inmutable, y los conflictos conservan el
+borrador hasta comparar la base actual. Una respuesta incierta habilita la consulta
+del recibo exacto, sin reenviar automáticamente la escritura. Las respuestas tardías
+no reemplazan una selección posterior y la denegación de acceso limpia la vista.
+
+Las 167 pruebas unitarias y 223 simuladas incluyen 16 y 19 nuevas, respectivamente.
+Se comprobaron permisos, navegación global, reglas y fuentes, días extremos,
+paginación, historia, conflictos y conciliación. Las capturas de detalle y
+formulario se revisaron en anchos de 1440 y 390 píxeles, sin cortes horizontales.
+El formulario móvil conserva desplazamiento vertical para los campos explícitos.
+Los 17 recorridos con servicios reales incluyen tres nuevos: ciclo completo y
+recibo de respuesta perdida, conflicto entre dos sesiones con borrador conservado
+y consulta global según rol. El primer intento se detuvo antes de Playwright por
+un campo mal nombrado en el fixture de una fuente, en 155.308 s. Se corrigió
+`official_url`, sin cambiar producto, y se repitió toda la campaña con salida cero.
+
+Se auditaron 42 fuentes nuevas o modificadas de interfaz y fixtures: todas ASCII,
+con máximo de 298 líneas. Los 22 archivos existentes de estilos, marca y activos
+comprobados conservaron sus huellas. Las cifras de la campaña simulada y real
+se mantienen separadas; ninguna sustituye una evaluación de usabilidad humana.
+
+### Límites de este corte
+
+El catálogo configura y clasifica fechas; el cálculo automático de vencimientos,
+los hechos de notificación, la reevaluación y las alertas siguen pendientes.
+Las referencias conservan metadatos declarados, sin archivar ni autenticar el
+contenido remoto. La CA interna y TSA local siguen siendo demostración técnica.
+La evaluación formal de usabilidad no se sustituye por pruebas automatizadas.
+
 ## Corte reproducido: sesiones y resultados declarados
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Se comprobaron
