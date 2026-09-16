@@ -1,0 +1,132 @@
+# ADR-0031: Hechos declarados de resolucion y notificacion
+
+## Status
+
+Accepted as an architectural decision. Implementation of facts, application
+ports, persistence, HTTP and Qadra is pending. This record does not constitute
+an implemented workflow or a complete data and API contract.
+
+## Context
+
+Los resultados de audiencia conservan relatos, comparecencias y acuerdos con
+historia exacta. Su registro no determina que exista una resolucion especifica,
+que una persona haya sido notificada o que empiece un plazo. El
+[contrato de resultados](../hearing-results-api.md) mantiene esa separacion.
+
+El alcance de [recursos](../procedural-resources-scope.md) necesita resoluciones,
+actos y soportes relacionados, sin convertirlos en una etapa lineal adicional.
+El [conteo civil](../deadline-day-counting.md) recibe una primera fecha y una
+cantidad; no interpreta hechos, selecciona una regla o produce por si solo un
+vencimiento operativo. Es necesario conservar insumos estructurados sin atribuir
+al texto libre efectos que el sistema no ha establecido.
+
+Una resolucion puede relacionarse con varias practicas de notificacion. Sus
+fechas, destinatarios y receptores pueden diferir. Combinar todo en una captura
+unica dificulta corregir una practica sin reemplazar la historia de las demas.
+Inmovilizar toda referencia personal tambien impediria rectificar una seleccion
+erronea; consultar siempre su cabeza actual alteraria silenciosamente el pasado.
+
+## Decision
+
+### Familias, identidad y revisiones
+
+Introducir dos familias de hechos declarados: `resolution` y `notification`.
+Cada raiz tiene UUID, expediente y familia fijos. La raiz de notificacion fija
+ademas el UUID de una resolucion del mismo expediente, existente previamente.
+La relacion es uno a muchos; una resolucion puede existir sin notificaciones.
+Esta separacion logica no obliga a duplicar infraestructura o pares de tablas.
+
+Cada revision de notificacion conserva la revision exacta de la resolucion que
+se selecciono, sus digests y las referencias personales declaradas. Estas
+referencias pueden cambiar mediante correccion explicita y motivada dentro de
+la misma raiz. Cambiar a otra raiz de resolucion exige una nueva notificacion.
+La lectura de una revision nunca sustituye fuentes por sus cabezas actuales.
+
+La raiz identifica una declaracion registrada, no acredita identidad juridica
+universal del acto. Una nueva practica de notificacion crea otra raiz; corregir
+un error de captura crea una revision. No deduplicar practicas por nombre,
+fecha, texto o soporte, ni elegir automaticamente la notificacion aplicable.
+El retiro es administrativo: conserva contenido e historia y no declara nulidad,
+ineficacia o inexistencia del acto, ni extincion de un plazo.
+
+### Datos declarados y procedencia
+
+Separar clase de resolucion, organo emisor y tiempo declarado de la modalidad,
+subtipo y tiempo de notificacion. No inferirlos desde nombre de archivo, etapa,
+tipo de audiencia, resumen, perfil del directorio o clasificacion documental.
+Tampoco inferir tipo de recurso, efectos, aplicabilidad o fecha de inicio.
+
+Destinatario pretendido, receptor material y representante son funciones
+separadas. Una relacion de representacion requiere declaracion expresa de sus
+extremos, alcance y procedencia; no se obtiene del rol de una cuenta o de una
+comparecencia. Reutilizar fichas y sujetos historicos exactos del mismo expediente
+con sus digests, conforme a [identidades y perfiles](../typed-participants-api.md).
+Una revision posterior del directorio no reescribe esa seleccion historica.
+
+Los soportes identifican documento, version, digest y localizador, con una funcion
+explicita en la declaracion. El servidor resuelve pertenencia, integridad y
+proyecciones; un digest aportado por el cliente solo expresa una expectativa.
+La admision tecnica no acredita autenticidad juridica ni efectos del documento.
+Una version puede respaldar varias afirmaciones sin duplicar su procesamiento.
+
+La procedencia desde una audiencia conserva resultado y revision exactos; si
+senala un acuerdo, incluye su UUID y verifica que pertenece a esa revision.
+Un UUID de acuerdo aislado no identifica el antecedente. No copiar el relato
+HRES1 ni modificar sus canones. Una resolucion externa a audiencia no necesita
+una programacion ficticia. Las referencias historicas preservan sus estados;
+que una fuente pueda leerse no demuestra elegibilidad para un calculo futuro.
+
+### Precision temporal
+
+Adoptar el valor separado de [precision temporal](../procedural-time.md):
+`Unknown`, `Date`, `Minute` y `Second`, con desfase opcional cuando hay datos.
+Conservar fecha u hora local sin desfase y minuto sin segundos. Solo `Second`
+con desfase declarado permite consultar un instante; UTC expreso y ausencia
+son distintos. No completar medianoche, segundos, zona IANA ni desfase.
+
+Tiempo del acto, recepcion, efectos expresamente asentados y captura del servidor
+son conceptos distintos. La finalidad pertenece al futuro contrato de hechos.
+El valor temporal no consulta Clock ni impone la politica no-futuro de otro
+recurso. Sus extremos civiles y UTC siguen su contrato, sin conversion implicita
+ni cambios de formato para tiempos historicos de etapas o resultados.
+
+### Frontera de implementacion y verificacion
+
+Implementar mediante TDD: primero pruebas que fallen para identidad, precision,
+referencias exactas, correccion frente a nueva practica y denegacion de acceso.
+El servicio prepara y verifica fuentes sin reservar una revision; el envio
+reconcilia comando, actor y digests y reautentica antes de confirmar.
+
+Raiz, revision, recibo y auditoria deben compartir transaccion. Revalidar permiso,
+pertenencia y expediente activo bajo el bloqueo comun, con lectura vigente,
+revision esperada y operacion unica. Capturar autor y Clock en esa frontera.
+Mantener la politica de [administracion](../case-administration-api.md): cierre
+bloquea cambios y conserva consultas autorizadas. No ampliar acceso de Client.
+
+Seguir la [frontera auditada](0016-case-document-transactions.md), con pruebas
+reales de carreras, revocacion entre preparacion y confirmacion, fuentes alteradas,
+fallos y rollback. La restauracion debe conservar y validar todas las revisiones,
+referencias y recibos. Una respuesta incierta requiere conciliacion exacta antes
+de reenviar; una coincidencia visual no demuestra confirmacion de la operacion.
+
+No crear outbox ni intenciones sin consumidor. La implementacion de hechos debera
+persistir su auditoria, sin simular evaluaciones, trabajo pendiente o alertas enviadas.
+La futura integracion del evaluador definira su frontera durable, dependencias,
+recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
+
+## Consequences
+
+- Las revisiones permiten rectificar selecciones manteniendo identidad estable
+  e historia reproducible. Los consumidores deberan fijar revisiones y digests;
+  no bastara conservar un UUID o consultar una cabeza mutable.
+- Quedan pendientes catalogos y estados de captura, campos obligatorios, tratamiento
+  de datos desconocidos, representacion y reglas de retiro/correccion detalladas.
+- Quedan pendientes presupuesto de soportes unicos y bytes, politica de formatos,
+  canones, recibos, puertos, esquema, limites HTTP y flujos de Qadra. No eludir
+  limites existentes dividiendo un mismo trabajo en lotes sin presupuesto comun.
+- Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
+  responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
+  Este ADR no fija reglas juridicas, un catalogo universal ni una formula mensual.
+- Registrar estos hechos no habilita calculo automatico, alertas o recursos ni
+  completa su alcance aprobado. La implementacion y sus evidencias deben cerrar
+  esos contratos posteriores antes de atribuir tales capacidades al producto.

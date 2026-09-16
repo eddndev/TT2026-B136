@@ -8,6 +8,9 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("invalid declared procedural time")]
+    InvalidDeclaredProceduralTime,
+
     #[error("invalid judicial calendar {0}")]
     InvalidJudicialCalendarValue(&'static str),
 

@@ -82,6 +82,20 @@ web están aprobadas localmente; la integración remota y la actualización del
 manuscrito siguen pendientes. Véanse [el contrato](judicial-calendars-api.md) y
 [ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
 
+El [conteo civil diario](deadline-day-counting.md) ya calcula una fecha candidata
+sobre valores exactos de calendario y conserva cada dia con su clasificacion,
+fuente y acumulado. Se detiene ante datos sin resolver, falta de cobertura o
+agotamiento del rango de fechas. Sus quince pruebas estan incluidas en la suite
+completa reproducida. La primera fecha incluida y la cantidad todavia son
+entradas matematicas: faltan hechos de resolucion/notificacion, perfil aplicable,
+recepcion, evaluacion persistente y alertas para obtener un plazo operativo.
+
+La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
+fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
+registra hechos por si misma. La separacion de resoluciones y practicas de
+notificacion queda adoptada en [ADR-0031](adr/0031-declared-procedural-facts.md),
+con persistencia, contrato completo, autorizacion e interfaz aun pendientes.
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -141,7 +155,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
 | Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron; la integración remota permanece pendiente. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
-| Calendario judicial | Parcial; backend del catálogo verificado localmente | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, API y restauración verificadas. Faltan cierre de interfaz, cobertura y CI, selección aplicable para plazos, cómputo y reevaluación ante cambios. Una URL o la clasificación de una fecha no acredita por sí sola la regla normativa. |
+| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. Faltan integración remota, actualización académica, selección aplicable para plazos, evaluación y reevaluación ante cambios. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |

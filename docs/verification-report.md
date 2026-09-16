@@ -4,6 +4,41 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: precision temporal declarada
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El nuevo
+[valor temporal](procedural-time.md) preserva tiempo desconocido, fecha,
+minuto y segundo, con desfase opcional. Conservar una hora local sin zona no
+fabrica un instante UTC; conservar un minuto no inventa segundos. Solo un
+segundo con desfase explicito expone el instante de esa declaracion.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.145 s y 14.658 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1422 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 382.788 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 15.935 s. |
+| Pruebas focales nuevas | **15 aprobadas**, 1.102 s; rojo conductual previo de 1 aprobada y 14 fallidas. |
+| Suite del dominio | **240 aprobadas**, 0 fallidas e ignoradas, 2.462 s. |
+| Rust 1.88 del dominio, todos los targets | Aprobado, 1.321 s. |
+| Conservacion de fuentes durante el cierre completo | 855 huellas sin cambios. |
+
+Las quince pruebas nuevas estan incluidas en las 1422 del workspace. Verifican
+campos ausentes, precision e igualdad literal, UTC declarado distinto de ausencia,
+horas/minutos/segundos invalidos, desfases de minuto hasta ambos extremos de
+14 horas y fechas cuyo intervalo excederia los anios UTC 1..9999. Se conservan
+byte por byte las 17 fuentes anteriores del dominio de etapas y resultados de
+audiencia, incluidos sus canones y tipos temporales. No hubo migracion de datos.
+
+La [decision de hechos declarados](adr/0031-declared-procedural-facts.md) fija
+la separacion entre resoluciones y practicas de notificacion, pero su flujo
+persistente, permisos especificos, API e interfaz siguen pendientes. El valor
+temporal no introduce esas capacidades ni habilita computo juridico o alertas.
+
+No se repitieron cobertura instrumentada, release, CLI, HTTP o navegador para
+este valor puro. Las mediciones que siguen conservan su corte propio; el CI
+remoto verifica el commit publicado y se registra por separado. La unica prueba
+externa ignorada sigue siendo la del proveedor TSA.
+
 ## Corte reproducido: conteo civil de dias
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El nuevo

@@ -18,6 +18,7 @@ pub mod hearings;
 pub mod identity;
 pub mod judicial_calendars;
 pub mod participants;
+pub mod procedural_time;
 pub mod typed_participants;
 
 pub use error::DomainError;
