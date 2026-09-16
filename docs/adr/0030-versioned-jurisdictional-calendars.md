@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted; implementation pending.
+Accepted. Backend, HTTP and Qadra implemented and verified locally.
 
 ## Context
 
@@ -11,7 +11,7 @@ plazos requiere ademas clasificacion de fechas aplicable al supuesto, cobertura,
 fuentes y cambios trazables. Una lista de descansos laborales o el texto libre
 de autoridad del expediente no determina ese calendario.
 
-El [CNPP, articulo94](https://www.diputados.gob.mx/LeyesBiblio/pdf/CNPP.pdf)
+El [CNPP, articulo 94](https://www.diputados.gob.mx/LeyesBiblio/pdf/CNPP.pdf)
 distingue dias, horas y excepciones por acto. El
 [listado OAJ](https://www.oaj.gob.mx/transparencia/paginas/diasinhabiles.htm)
 reune fundamentos y ambitos distintos. Son motivos para conservar alcance y
@@ -36,7 +36,7 @@ por falta de fuente. La revision exacta determina la consulta incluso despues
 de un reemplazo o retiro. No se convierte fecha en hora o zona del navegador.
 
 El contrato completo esta en [judicial-calendars-api.md](../judicial-calendars-api.md).
-Los codigos de entidad se fijan en01..32 del catalogo INEGI citado alli; organo y
+Los codigos de entidad se fijan en 01..32 del catalogo INEGI citado alli; organo y
 territorio permanecen descripciones. El catalogo geografico no acredita competencia.
 
 ## Consequences

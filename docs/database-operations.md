@@ -1,7 +1,8 @@
 # Base de datos y migración de documentos
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
-audiencias y sus resultados declarados, documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
+audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos
+y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
 está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
@@ -204,7 +205,8 @@ Véanse [ADR-0023](adr/0023-audited-case-stage-transitions.md),
 2. Aplicar el esquema nuevo sobre la base que ya contiene usuarios y expedientes.
    No iniciar todavía el servidor: el primer import exige documentos,
    clasificación, participantes, revisiones administrativas, registros iniciales,
-   revisiones de etapa y auditoría vacíos para conservar la cadena original
+   revisiones de etapa, calendarios jurisdiccionales y auditoría vacíos para
+   conservar la cadena original
    como prefijo.
    Preparar los expedientes de destino administrativamente como baselines con
    marcador NULL y hechos conocidos; no crearlos por HTTP y borrar sus eventos
@@ -337,6 +339,66 @@ de la base de confianza; el inventario no autentica cuerpos SQL sustituidos por
 ellos. Véanse [ADR-0029](adr/0029-declared-hearing-sessions.md) y
 [contrato de resultados](hearing-results-api.md).
 
+## Actualizar el catálogo de calendarios jurisdiccionales
+
+La API y la restauración se verificaron localmente en servicios desechables.
+La interfaz, la cobertura y el cierre de CI siguen pendientes. Detener escritores
+y conservar un respaldo completo antes de ejecutar
+`database migrate --runtime-role` con el nuevo binario y una conexión
+administrativa. El conjunto `0013_judicial_calendar_*.sql` instala primitivas,
+fuentes, valores, recibos, tablas y guards en ese orden. No ejecutar archivos
+sueltos. Añade `judicial_calendars` y `judicial_calendar_revisions`; no crea
+calendarios iniciales ni modifica perfiles, citas o resultados existentes.
+
+La raíz fija su primera revisión mediante una clave foránea diferida. JCAL1
+conserva el ámbito, cobertura, referencias y reglas; JCTX1 vincula actor,
+operación, raíz, revisión esperada, digest y motivo. Los SHA-256 se comprueban
+sobre los bytes canónicos y las proyecciones SQL son columnas generadas.
+La secuencia exige sucesor exacto, ámbito idéntico a R1 y retiro terminal con
+copia íntegra de los valores anteriores. UUID de valor cero está permitido;
+el UUID de operación es único dentro de esta familia, incluidas otras raíces.
+
+El rol operativo necesita SELECT/INSERT sobre ambas tablas y EXECUTE sobre
+los seis helpers puros de URL, fecha, fuente, regla, valores y recibo. No debe
+poseer tablas o funciones, ejecutar guards ni tener UPDATE, DELETE, TRUNCATE,
+TRIGGER o privilegios heredados que permitan reescribir la historia. Los guards
+usan READ COMMITTED y el bloqueo común de auditoría; comprueban Owner activo y
+su correo capturado después del bloqueo. La confirmación y su evento pertenecen
+a la misma transacción. Conexiones operativas comprueban el esquema y su
+inventario sin ejecutar DDL; una inconsistencia no se repara relajando controles.
+
+Las fechas civiles y sus proyecciones ISO no dependen del `DateStyle` de la
+sesión ni de una zona horaria. Los helpers fijan `pg_catalog` y califican las
+dependencias del esquema para restaurar con `search_path` vacío. Las referencias
+son texto autorizado, sin copia descargada ni evidencia normativa cifrada.
+Proteger estos metadatos y sus respaldos; retirar un calendario no deroga una
+norma ni elimina sus fuentes históricas.
+
+Respaldar ambas tablas con usuarios y auditoría, además de los demás módulos.
+Restaurar raíces y todas sus revisiones, conservar bytes JCAL1/JCTX1, hashes,
+proyecciones, autor y captura, y comparar filas completas. El proceso no debe
+consultar URLs ni regenerar referencias. La importación inicial del almacenamiento
+legacy rechaza destinos con filas en `judicial_calendars` o
+`judicial_calendar_revisions`, para preservar el prefijo original de auditoría.
+La conciliación de un recibo de importación existente permite conservar los
+calendarios creados posteriormente.
+
+El recorrido `scripts/api-demo.sh` incorpora los helpers
+`scripts/api-judicial-calendars-demo.py` y `.sh`. La campaña integrada terminó
+correctamente en 210.700 s: dos raíces y cuatro revisiones de calendario, una
+con los valores Unicode máximos, permisos sin asignación, denegación de Client,
+conflicto entre Owners, ámbito R1, recibos, días exactos e historia. Tras
+restaurar comparó diez respuestas completas y las filas de ambas tablas.
+Estas diez respuestas se suman a las 21 de programación y resultados de
+audiencia, conservadas por el mismo recorrido. Los resultados y el alcance de
+las demás campañas se distinguen en el [informe de verificación](verification-report.md).
+
+El catálogo no programa tareas vacías de reevaluación ni activa plazos o
+alertas. La evaluación futura requerirá hechos, reglas aplicables y coordinación
+transaccional con la revisión del calendario. Véanse
+[el contrato](judicial-calendars-api.md) y
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
+
 ## Respaldo y restauración
 
 Las migraciones `0009_participant_credential_trust.sql` y el conjunto `0010_`
@@ -420,7 +482,8 @@ No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `document_metadata_revisions`, `case_participants`, `case_participant_revisions`,
 `case_administration_revisions`, `case_initial_stage_registrations`,
 `case_stage_revisions`, `case_hearings`, `case_hearing_revisions`,
-`case_hearing_results`, `case_hearing_result_revisions` y auditoría; un respaldo incompleto no se repara creando
+`case_hearing_results`, `case_hearing_result_revisions`, `judicial_calendars`,
+`judicial_calendar_revisions` y auditoría; un respaldo incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

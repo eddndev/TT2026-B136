@@ -70,6 +70,18 @@ restauración e interfaz simulada y real; sus métricas se conservan en el infor
 de verificación. No activan plazos ni alertas y no acreditan actos judiciales. Véanse [el contrato](hearing-results-api.md) y
 [ADR-0029](adr/0029-declared-hearing-sessions.md).
 
+El backend, la API y Qadra para el catálogo de calendarios jurisdiccionales están
+verificados localmente, incluida la restauración y los recorridos de navegador
+con servicios reales. Sus
+revisiones conservan ámbito global, fechas civiles, cobertura,
+patrón semanal, excepciones y referencias públicas declaradas. Owner gestiona;
+el personal consulta sin membresía de expediente y Client queda denegado.
+La clasificación distingue exclusión, falta de resolución y falta de cobertura,
+sin fabricar disponibilidad o efectos jurídicos. La cobertura y las campañas
+web están aprobadas localmente; la integración remota y la actualización del
+manuscrito siguen pendientes. Véanse [el contrato](judicial-calendars-api.md) y
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -85,7 +97,8 @@ de verificación. No activan plazos ni alertas y no acreditan actos judiciales. 
 | Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Pendiente; propuesta y criterios en [alcance de recursos](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado y verificado localmente, pendiente de integración remota. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Pendiente; antecedentes estructurados, sujetos, fuentes normativas oficiales vigentes, casos de fechas, días inhábiles, excepciones y cambios de calendario. No extraerlos de acuerdos libres ni sustituir reglas por una suma de días. |
+| Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Integración remota y manuscrito pendientes; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Cómputo, reevaluación y alertas pendientes. El catálogo versionado es un insumo parcial: faltan antecedentes estructurados, sujetos, reglas normativas aplicables y casos frontera. No extraerlos de acuerdos libres ni sustituir el cómputo exigido por fechas manuales o una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -128,7 +141,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
 | Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron; la integración remota permanece pendiente. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
-| Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
+| Calendario judicial | Parcial; backend del catálogo verificado localmente | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, API y restauración verificadas. Faltan cierre de interfaz, cobertura y CI, selección aplicable para plazos, cómputo y reevaluación ante cambios. Una URL o la clasificación de una fecha no acredita por sí sola la regla normativa. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
@@ -172,6 +185,13 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   cubre las reglas específicas de medidas cautelares. CU-08 y RF-07 permanecen
   parciales: sus criterios aprobados incluyen activación de plazos y alertas,
   además de la captura implementada y la aceptación integral.
+- CU-09 permanece parcial. El catálogo distingue fechas `countable`, `excluded`,
+  `unresolved` y `outside_coverage` según el ámbito declarado. No adopta un
+  calendario universal, no descarga normas ni asigna calendarios comparando el
+  nombre de una autoridad. El cómputo automático exigido sigue pendiente y
+  requiere hechos jurídicos estructurados, fuentes aplicables y un corpus de
+  aceptación antes de activar vencimientos, reevaluación o alertas. Este avance
+  no completa por sí solo los demás casos del catálogo ni su aceptación integral.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,
