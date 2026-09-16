@@ -58,6 +58,28 @@ comprobó ASCII y el límite de tamaño, con máximo de 387 líneas. Las hojas d
 estilo originales, marca, fuentes académicas protegidas y entregables previos
 conservaron sus hashes. No se ejecutó evaluación de usabilidad con personas.
 
+### Compatibilidad del cierre con CI
+
+La primera ejecución remota utilizó Rust/Clippy 1.98.1. Detectó la nueva
+advertencia `chunks_exact_to_as_chunks` en el lector de vectores de una prueba;
+se sustituyó por `as_chunks::<2>().0.iter()`. El auxiliar conserva su entrada
+y resultado. Las seis pruebas de códec aprobaron, así como Clippy 1.98.1,
+`cargo +1.88.0 check --workspace --all-targets`, formato, compilación y otra
+suite normal completa con **1066 aprobadas, 0 fallidas y 1 externa ignorada**.
+
+Los primeros jobs remotos de pruebas y cobertura agotaron el disco durante el
+enlace, antes de ejecutar la suite: el runner informó 0 MB y 83 MB libres.
+El [perfil de depuración de CI](adr/0027-ci-debug-information.md) limita los
+artefactos a tablas de líneas, conservando pruebas, instrumentación, umbrales
+y perfil release. La compilación local de los 188 ejecutables de pruebas con
+Rust 1.98.1 y ese perfil terminó correctamente; sus binarios sumaron
+**5 329 180 320 bytes**, sin contar dependencias y archivos auxiliares.
+La resolución en el runner queda sujeta a la siguiente ejecución de CI; la
+compilación local no se presenta como prueba remota aprobada. La primera CI sí
+aprobó las campañas web, el PDF, MSRV, formato, dependencias y tamaño release.
+Estas correcciones de pruebas y configuración no cambian las fuentes del
+manuscrito ni invalidan la correspondencia de sus 60 hashes con el PDF local.
+
 ## Corte reproducido: identidades y participantes tipificados
 
 - Fecha local: 15 de septiembre de 2026 (`America/Mexico_City`).
