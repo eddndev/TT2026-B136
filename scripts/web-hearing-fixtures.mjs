@@ -1,3 +1,4 @@
+import { provisionProceduralFacts } from "./web-procedural-fact-fixtures.mjs";
 // Provision hearing scenarios using independent accounts in disposable services.
 import { provisionCalendars } from "./web-calendar-fixtures.mjs";
 import { provisionHearingResults } from "./web-hearing-result-fixtures.mjs";
@@ -244,6 +245,7 @@ try {
   }
   fixture.hearings = hearings;
   fixture.hearingResults = await provisionHearingResults(request);
+  fixture.proceduralFacts = await provisionProceduralFacts(request);
   fixture.judicialCalendars = await provisionCalendars(request);
   await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`, { mode: 0o600 });
 } finally {

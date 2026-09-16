@@ -12,7 +12,8 @@ transaccion auditada, autorizacion por expediente y revalidacion bajo bloqueo.
 Su cierre de verificacion local esta aprobado. La [API HTTP](procedural-facts-api.md)
 y su composicion estan implementadas, con pruebas focales de DTO, proyecciones
 y rutas aprobadas. La comprobacion HTTP integrada con restauracion tambien esta
-aprobada localmente; Qadra sigue pendiente.
+aprobada localmente. El [cliente Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
+esta implementado y su verificacion integral esta aprobada localmente.
 El [informe de verificacion](verification-report.md) distingue las pruebas de
 aplicacion de la evidencia integrada de otras capacidades.
 
@@ -189,7 +190,7 @@ ni permiten recomputar sus valores completos. Los expedientes actualmente
 cerrados y las declaraciones retiradas conservan consultas autorizadas, con
 la administracion historica de la captura verificada por el adaptador.
 
-## Persistencia implementada e integracion pendiente
+## Persistencia y cliente implementados
 
 `ProceduralFactStore` fija obligaciones aplicadas por el
 [adaptador PostgreSQL](procedural-facts-persistence.md):
@@ -208,8 +209,9 @@ PostgreSQL, migraciones, inventario y pruebas reales de aislamiento, revocacion,
 concurrencia, rollback y restauracion estan implementados y verificados localmente.
 La composicion HTTP enlaza el servicio real y su API conserva las mismas
 referencias, permisos y recibos. Sus pruebas focales y el recorrido con servicios
-reales y restauracion tienen evidencia separada. El recorrido de Qadra sigue
-pendiente para estos hechos.
+reales y restauracion tienen evidencia separada. Qadra incorpora captura,
+seleccion historica, lectura y conciliacion explicita; su verificacion integral
+esta aprobada localmente.
 Las pruebas de puertos de aplicacion no sustituyen las comprobaciones de backend.
 No se habilitan calculos juridicos, recursos, alertas o reevaluacion con este
 servicio de declaraciones.

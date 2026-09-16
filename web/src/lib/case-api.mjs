@@ -1,3 +1,4 @@
+import { proceduralFactsApi } from './procedural-facts-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingsApi } from './hearings-api.mjs';
 import { agendaApi } from './agenda-api.mjs';
@@ -47,6 +48,9 @@ export function caseApi(transport) {
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'PUT' }),
     removeMember: (id, userId) =>
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),
+    caseNotifications: (id, resolutionId) =>
+      proceduralFactsApi(request, id, 'notification', resolutionId),
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),
     caseHearings: (id) => hearingsApi(request, id),
     hearingAgenda: () => agendaApi(request),

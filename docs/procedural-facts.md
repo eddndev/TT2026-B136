@@ -9,7 +9,9 @@ se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). El
 [persistencia PostgreSQL](procedural-facts-persistence.md) se describen por separado.
 El backend esta verificado localmente. La [API HTTP](procedural-facts-api.md)
 y su composicion estan implementadas con pruebas focales, suite global y
-comprobacion integrada HTTP con restauracion aprobadas localmente. Qadra sigue pendiente.
+comprobacion integrada HTTP con restauracion aprobadas localmente. El [cliente
+Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas) esta implementado
+y su verificacion integral esta aprobada localmente.
 Este modelo puro no define un formato JSON de entrada HTTP.
 
 La separacion de familias y referencias corregibles procede de
@@ -60,7 +62,8 @@ vacio se rechaza. Las cotas cuentan escalares, no bytes UTF-8 ni grafemas.
 
 Los subtipos opcionales usan `Option<FactLabel>`. La ausencia es `None`; un texto
 vacio no constituye un `FactLabel` valido. La conversion de entradas externas
-vacias o ausentes pertenece a un contrato HTTP posterior.
+vacias o ausentes pertenece al [contrato HTTP](procedural-facts-api.md), no a
+los constructores puros.
 
 ## 3. Catalogos descriptivos
 
@@ -234,7 +237,9 @@ identidad. Los valores de dominio no ejecutan esas operaciones. El servicio
 coordina preparacion, envio y comprobacion de recibos; PostgreSQL confirma
 persistencia y auditoria atomica. Sus lecturas permiten consultar la revision
 exacta para conciliar una operacion. La API HTTP expone esas operaciones;
-su comprobacion integrada esta aprobada localmente y la interfaz Qadra sigue pendiente.
+su comprobacion integrada esta aprobada localmente. La interfaz Qadra implementa
+captura, fuentes historicas, consulta y conciliacion; su verificacion integral
+esta aprobada localmente.
 El retiro no declara nulidad.
 
 Los [canones de valores](procedural-facts-canonical.md) no son recibos. Los

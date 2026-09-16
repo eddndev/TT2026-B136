@@ -11,8 +11,9 @@ now includes migrations, audited transactions, effective case membership checks,
 exact historical reads and startup validation. Backend verification is approved locally.
 The [HTTP API](../procedural-facts-api.md) and composition are implemented, with
 focused DTO, projection and route tests passing. The workspace suite and real
-HTTP workflow with exact restoration passed locally; Qadra remains pending. These declarations do not establish
-operational legal deadlines.
+HTTP workflow with exact restoration passed locally. The [Qadra client](../../web/README.md#resoluciones-y-notificaciones-declaradas)
+is implemented, with integrated browser verification approved locally. These declarations do
+not establish operational legal deadlines.
 
 ## Context
 
@@ -171,7 +172,8 @@ recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
   eludir limites dividiendo el trabajo en lotes. El esquema y la transaccion estan
   implementados. La API agrega cuerpos estrictos de 512 KiB, rutas por familia
   y padre, y proyecciones historicas. Su comprobacion integrada con servicios
-  reales y restauracion esta aprobada localmente; Qadra sigue pendiente.
+  reales y restauracion esta aprobada localmente. Qadra implementa captura, fuentes
+  historicas, consulta y conciliacion explicita; su verificacion integral esta aprobada localmente.
 - Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
   responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
   Este ADR no fija reglas juridicas, un catalogo universal ni una formula mensual.

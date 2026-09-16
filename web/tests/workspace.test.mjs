@@ -35,3 +35,10 @@ test('judicial calendars are a global staff location with no Client fallback int
     assert.equal(normalizeView('#judicial-calendars', role), 'judicial-calendars');
   assert.equal(normalizeView('#judicial-calendars', 'client'), 'overview');
 });
+
+test('declared facts use an authorized case location for staff only', () => {
+  for (const role of ['owner', 'litigator', 'paralegal'])
+    assert.equal(normalizeView('#resolutions', role), 'resolutions');
+  for (const role of ['client', '', undefined])
+    assert.equal(normalizeView('#resolutions', role), 'overview');
+});

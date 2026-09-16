@@ -124,7 +124,8 @@ consultar o detener ese proceso.
 15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
-expediente, Resumen, Documentos, Participantes y Etapas comparten contexto. Equipo
+expediente, Resumen, Documentos, Participantes, Etapas, Audiencias y Resoluciones
+comparten contexto. Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
 expediente seleccionado. No presenta recuentos de una página como totales del
 despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
@@ -142,6 +143,68 @@ Litigator y Paralegal requieren asignación vigente para consultar documentos.
 Client puede consultar los metadatos de sus expedientes asignados; la interfaz
 no emite peticiones documentales para ese rol. El servidor conserva la autoridad
 sobre permisos, reglas de negocio y criptografía.
+
+## Resoluciones y notificaciones declaradas
+
+**Resoluciones** abre las dos familias dentro del expediente. Owner y Litigator
+pueden registrar, corregir y retirar según los permisos vigentes del servidor;
+Paralegal consulta los expedientes asignados. Client no accede a esta sección
+ni a sus fuentes. El contrato está en
+[la API de hechos declarados](../docs/procedural-facts-api.md). La interfaz está
+implementada; su campaña de navegador está aprobada localmente. Esto no sustituye
+la evidencia HTTP y de restauración ya registrada para el backend.
+
+1. Consultar el listado de resoluciones, filtrar por estado y recorrer sus
+   páginas. Abrir una fila consulta el detalle; **Ver historial de resolución**
+   permite cargar una revisión exacta y distinguirla de la actual.
+2. **Registrar resolución** pide clase, emisor, tiempo, resumen y procedencia.
+   Los datos desconocidos se eligen expresamente; no son valores automáticos
+   de un formulario vacío. Clase y emisor requieren motivo cuando no constan.
+   El subtipo es opcional.
+3. Elegir **Solo fecha**, **Fecha y minuto**, **Fecha y segundo** o **No consta**
+   conserva esa precisión. El desfase puede quedar no declarado o capturarse
+   expresamente, incluido UTC. No se completan hora, segundo ni zona con los
+   valores del navegador.
+4. La procedencia admite nota del operador, referencia externa o resultado
+   histórico de audiencia. El selector recorre audiencia, resultado, historia
+   y detalle exacto; permite un resultado retirado y un acuerdo específico.
+   Los soportes se eligen por lista, versiones y detalle, con su localizador.
+   Una carga documental confirmada permanece guardada aunque no se confirme
+   después el hecho; la preparación decide su admisión PDF/DOCX.
+5. Desde una resolución, abrir sus notificaciones. Cada notificación conserva
+   esa raíz como padre; el selector permite elegir otra revisión exacta del
+   mismo padre, incluidas las retiradas. Registrar otra práctica requiere otra
+   raíz; corregir conserva la identidad de la declaración.
+6. **Registrar notificación** distingue carácter, medio, contexto y resultado
+   declarados; destinatario previsto y receptor material se capturan por
+   separado. Una persona puede desconocerse con motivo, describirse sin ficha
+   o vincularse a una revisión histórica del directorio, incluso archivada.
+   La representación tiene extremos y procedencia propios; no se infiere del
+   perfil de defensor ni de una comparecencia.
+7. El tiempo de recepción es opcional. Un efecto expresamente declarado tiene
+   tiempo, afirmación y localizador en la procedencia principal; su captura
+   no calcula ni acredita eficacia jurídica. Constancia y representación
+   admiten hasta dos versiones documentales directas distintas, reutilizables
+   con localizadores separados.
+8. **Preparar registro** muestra valores normalizados, fuentes legibles y
+   administración observada. **Confirmar registro** envía el comando y recibo
+   preparados. Corregir o retirar requiere motivo; retirar conserva historia
+   y fuentes, sin afirmar nulidad del acto.
+
+Ante conflicto de revisión, el borrador se conserva y se exige comparar la
+base actual antes de volver a preparar. Una respuesta incierta conserva el
+comando y se concilia con **Consultar envío exacto**, sin reenvío automático.
+La ausencia de la revisión objetivo no resuelve esa incertidumbre; los errores
+de consulta tampoco prueban el resultado. La revocación de acceso no se trata
+como una confirmación de fracaso o éxito.
+El cierre administrativo bloquea cambios y conserva las lecturas autorizadas.
+
+Los detalles separan tiempo del acto, autor/fecha de registro y administración
+histórica. La captura administrativa original sin revisiones no inventa R1,
+autor ni fecha. Los nombres, estados y huellas de las fuentes pertenecen a las
+revisiones seleccionadas; no se refrescan a sus cabezas actuales. La interfaz
+reutiliza los controles de Qadra y añade `src/styles/procedural-facts.css`.
+No implementa calificación jurídica, recursos, plazos operativos ni alertas.
 
 ## Calendarios jurisdiccionales
 
