@@ -18,6 +18,7 @@ mod case_stages;
 mod cases;
 mod dto;
 mod error;
+mod hearing_results;
 mod hearings;
 mod participants;
 mod request;
@@ -86,6 +87,14 @@ pub fn hearing_router(workflow: Arc<dyn application::hearings::HearingWorkflow>)
     protect(hearings::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds authorized routes for declared hearing sessions and their exact history.
+pub fn hearing_result_router(
+    workflow: Arc<dyn application::hearing_results::HearingResultWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(hearing_results::router(workflow, runtime.clone()), runtime)
+}
+
 /// Related case workflows injected together into the shared HTTP runtime.
 pub struct CaseWorkflows {
     pub cases: Arc<dyn CaseWorkflow>,
@@ -93,6 +102,7 @@ pub struct CaseWorkflows {
     pub stages: Arc<dyn CaseStageWorkflow>,
     pub typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
     pub hearings: Arc<dyn application::hearings::HearingWorkflow>,
+    pub hearing_results: Arc<dyn application::hearing_results::HearingResultWorkflow>,
 }
 
 /// Builds all API routes with one shared admission and blocking-work budget.
@@ -115,7 +125,11 @@ pub fn api_router(
         ))
         .merge(case_stages::router(workflows.stages, runtime.clone()))
         .merge(typed_participants::router(workflows.typed, runtime.clone()))
-        .merge(hearings::router(workflows.hearings, runtime.clone()));
+        .merge(hearings::router(workflows.hearings, runtime.clone()))
+        .merge(hearing_results::router(
+            workflows.hearing_results,
+            runtime.clone(),
+        ));
     protect(routes, runtime).route("/healthz", get(health))
 }
 
