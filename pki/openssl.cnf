@@ -89,3 +89,11 @@ subjectKeyIdentifier    = hash
 [ crl_ext ]
 # Extensions attached to every generated CRL.
 authorityKeyIdentifier  = keyid:always
+
+[ v3_internal_declaration ]
+# Signing-only internal declarations; certificate possession does not
+# establish judicial appointment, professional status or official FIREL.
+basicConstraints        = critical, CA:false
+keyUsage                = critical, digitalSignature, nonRepudiation
+authorityKeyIdentifier  = keyid:always
+subjectKeyIdentifier    = hash

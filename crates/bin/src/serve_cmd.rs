@@ -11,13 +11,15 @@ use application::documents::{
 };
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
 use application::participants::ParticipantService;
+use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
+use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
     PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresParticipantStore,
-    PostgresUserRepository, RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier,
-    RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter,
-    SystemClock, TotpRsProvider, X509ChainValidator,
+    PostgresTypedParticipantStore, PostgresUserRepository, RandomRecoveryCodeGenerator,
+    RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer,
+    RsaPkcs1Verifier, StoredZipWriter, SystemClock, TotpRsProvider, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -113,6 +115,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         DocumentProcessor::new(ports, material, kek)
             .context("cannot initialize document cryptography")?,
     );
+    let format_validator = Arc::new(format_validator);
     let stages = CaseStageService::new(
         Arc::new(
             PostgresCaseStageStore::open(&database_url, Arc::new(RingSha256Hasher::new()))
@@ -120,7 +123,23 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         ),
         identity.clone(),
         processor.clone(),
-        Arc::new(format_validator),
+        format_validator.clone(),
+        Arc::new(SystemClock::new()),
+    );
+    let typed_participants = TypedParticipantService::new(
+        identity.clone(),
+        Arc::new(
+            PostgresTypedParticipantStore::open(
+                &database_url,
+                Arc::new(RingSha256Hasher::new()),
+                Arc::new(SystemClock::new()),
+            )
+            .context("cannot open PostgreSQL typed participant store")?,
+        ),
+        processor.clone(),
+        Arc::new(RingSha256Hasher::new()),
+        format_validator,
+        Arc::new(InternalRsaDeclarationVerifier::new()),
         Arc::new(SystemClock::new()),
     );
     let workflow = CaseDocumentService::new(
@@ -135,6 +154,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         Arc::new(cases),
         Arc::new(participants),
         Arc::new(stages),
+        Arc::new(typed_participants),
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
             max_blocking_operations: args.max_blocking_operations,

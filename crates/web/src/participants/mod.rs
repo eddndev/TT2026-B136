@@ -1,11 +1,8 @@
 //! Authorized case participant routes using the shared server work budget.
 
-use application::participants::{ParticipantId, ParticipantWorkflow};
+use application::participants::{ParticipantId, ParticipantRevision, ParticipantWorkflow};
 use axum::{
-    extract::{
-        rejection::{JsonRejection, QueryRejection},
-        DefaultBodyLimit, Path, Query, State,
-    },
+    extract::{rejection::QueryRejection, DefaultBodyLimit, Path, Query, Request, State},
     http::{HeaderMap, StatusCode},
     routing::{get, put},
     Json, Router,
@@ -38,6 +35,10 @@ pub(crate) fn router(workflow: Arc<dyn ParticipantWorkflow>, runtime: HttpRuntim
         )
         .route("/api/v1/cases/:case/participants/:id/history", get(history))
         .route(
+            "/api/v1/cases/:case/participants/:id/revisions/:revision",
+            get(exact_revision),
+        )
+        .route(
             "/api/v1/cases/:case/participants/:id/directory-status",
             put(change_status),
         )
@@ -49,11 +50,11 @@ async fn create(
     State(state): State<ParticipantState>,
     Path(case): Path<String>,
     headers: HeaderMap,
-    input: Result<Json<CreateRequest>, JsonRejection>,
+    request: Request,
 ) -> Result<(StatusCode, Json<SnapshotResponse>), ApiError> {
     let token = bearer_token(&headers)?;
     let case = parse_case(&case)?;
-    let Json(input) = input.map_err(json_error)?;
+    let input: CreateRequest = read_json(request).await?;
     let row = state
         .runtime
         .run(move || {
@@ -74,11 +75,11 @@ async fn replace(
     State(state): State<ParticipantState>,
     Path((case, id)): Path<(String, String)>,
     headers: HeaderMap,
-    input: Result<Json<ReplaceRequest>, JsonRejection>,
+    request: Request,
 ) -> Result<Json<SnapshotResponse>, ApiError> {
     let token = bearer_token(&headers)?;
     let (case, id) = parse_scope(&case, &id)?;
-    let Json(input) = input.map_err(json_error)?;
+    let input: ReplaceRequest = read_json(request).await?;
     let (expected, values) = input.validate()?;
     let row = state
         .runtime
@@ -91,11 +92,11 @@ async fn change_status(
     State(state): State<ParticipantState>,
     Path((case, id)): Path<(String, String)>,
     headers: HeaderMap,
-    input: Result<Json<StatusRequest>, JsonRejection>,
+    request: Request,
 ) -> Result<Json<SnapshotResponse>, ApiError> {
     let token = bearer_token(&headers)?;
     let (case, id) = parse_scope(&case, &id)?;
-    let Json(input) = input.map_err(json_error)?;
+    let input: StatusRequest = read_json(request).await?;
     let (expected, status) = input.validate()?;
     let row = state
         .runtime
@@ -171,16 +172,39 @@ fn parse_scope(case: &str, id: &str) -> Result<(CaseId, ParticipantId), ApiError
             })?,
     ))
 }
-fn json_error(error: JsonRejection) -> ApiError {
-    if error.status() == StatusCode::PAYLOAD_TOO_LARGE {
-        ApiError::payload_too_large(
-            "participant_body_too_large",
-            "participant JSON exceeds 8 KiB",
-        )
-    } else {
-        ApiError::invalid_body("invalid_json", "invalid participant JSON object")
-    }
+async fn read_json<T: serde::de::DeserializeOwned>(request: Request) -> Result<T, ApiError> {
+    crate::request::json::read(
+        request,
+        8 * 1024,
+        "participant_body_too_large",
+        "participant JSON exceeds 8 KiB",
+    )
+    .await
 }
 fn query_error(_: QueryRejection) -> ApiError {
     ApiError::invalid_body("invalid_query", "invalid participant query parameters")
+}
+
+async fn exact_revision(
+    State(state): State<ParticipantState>,
+    Path((case, id, revision)): Path<(String, String, String)>,
+    headers: HeaderMap,
+) -> Result<Json<SnapshotResponse>, ApiError> {
+    let token = bearer_token(&headers)?;
+    let (case, id) = parse_scope(&case, &id)?;
+    let revision = revision
+        .parse::<u32>()
+        .ok()
+        .filter(|v| *v > 0)
+        .filter(|_| revision.bytes().all(|b| b.is_ascii_digit()))
+        .ok_or_else(|| {
+            ApiError::invalid_body("invalid_revision", "revision must be a positive integer")
+        })?;
+    let revision =
+        ParticipantRevision::new(revision).map_err(application::ApplicationError::from)?;
+    let row = state
+        .runtime
+        .run(move || state.workflow.get_revision(&token, case, id, revision))
+        .await?;
+    Ok(Json(row.try_into()?))
 }

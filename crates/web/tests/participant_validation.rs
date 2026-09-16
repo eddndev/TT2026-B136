@@ -250,3 +250,32 @@ async fn largest_escaped_unicode_values_fit_the_declared_json_limit() {
         200
     );
 }
+
+#[tokio::test]
+async fn manual_commands_reject_trailing_entities_before_any_mutation() {
+    let workflow = Arc::new(Workflow::default());
+    for (method, path, input) in [
+        (
+            "POST",
+            base(),
+            json!({"display_name":"Ana","procedural_role":"Witness"}),
+        ),
+        ("PUT", item(), replacement(3)),
+        (
+            "PUT",
+            format!("{}/directory-status", item()),
+            json!({"expected_revision":3,"directory_status":"active"}),
+        ),
+    ] {
+        let response = request(
+            &workflow,
+            method,
+            &path,
+            Some("owner"),
+            format!("{input}{{}}"),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+    assert!(workflow.calls.lock().unwrap().is_empty());
+}

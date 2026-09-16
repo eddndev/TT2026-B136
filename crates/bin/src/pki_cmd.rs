@@ -14,19 +14,21 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Context;
 use application::pki::{
-    GenerateCrl, InitializeCa, InspectCertificate, IssueCertificate, RevokeCertificate,
+    GenerateCrl, InitializeCa, InspectCertificate, IssueCertificate, IssueDeclarationCertificate,
+    RevokeCertificate,
 };
+use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{OpensslCaAdapter, X509ChainValidator};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 
-use crate::cli::PkiAction;
+use crate::cli::{PkiAction, PkiIssuePurpose};
 
 /// Dispatches a `pki` subcommand to its handler.
 pub fn run(scripts_dir: &Path, action: PkiAction, json: bool) -> anyhow::Result<()> {
     match action {
         PkiAction::InitCa => init_ca(scripts_dir, json),
-        PkiAction::Issue { cn } => issue(scripts_dir, &cn, json),
+        PkiAction::Issue { cn, purpose } => issue(scripts_dir, &cn, purpose, json),
         PkiAction::Revoke { serial } => revoke(scripts_dir, &serial, json),
         PkiAction::GenCrl => gen_crl(scripts_dir, json),
         PkiAction::Show { cert } => show(&cert, json),
@@ -70,11 +72,26 @@ fn init_ca(scripts_dir: &Path, json: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn issue(scripts_dir: &Path, common_name: &str, json: bool) -> anyhow::Result<()> {
+fn issue(
+    scripts_dir: &Path,
+    common_name: &str,
+    purpose: PkiIssuePurpose,
+    json: bool,
+) -> anyhow::Result<()> {
     let (adapter, _ca) = authority(scripts_dir)?;
-    let issued = IssueCertificate::new(adapter, X509ChainValidator::new())
-        .execute(common_name, now_unix()?)
-        .context("certificate issuance failed")?;
+    let at = now_unix()?;
+    let issued = match purpose {
+        PkiIssuePurpose::Partner => {
+            IssueCertificate::new(adapter, X509ChainValidator::new()).execute(common_name, at)
+        }
+        PkiIssuePurpose::ParticipantDeclaration => IssueDeclarationCertificate::new(
+            adapter.for_internal_declarations(),
+            X509ChainValidator::new(),
+            InternalRsaDeclarationVerifier::new(),
+        )
+        .execute(common_name, at),
+    }
+    .context("certificate issuance failed")?;
     if json {
         let body = serde_json::json!({
             "serial": issued.serial_hex,

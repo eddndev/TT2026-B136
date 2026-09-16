@@ -22,6 +22,7 @@ mod participants;
 mod request;
 mod routes;
 mod runtime;
+mod typed_participants;
 pub use runtime::HttpLimits;
 use runtime::{protect, HttpRuntime};
 
@@ -67,6 +68,17 @@ pub fn participant_router(workflow: Arc<dyn ParticipantWorkflow>) -> Router {
     protect(participants::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds reviewed participant and subject routes over an authorized workflow.
+pub fn typed_participant_router(
+    workflow: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        typed_participants::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds all API routes with one shared admission and blocking-work budget.
 pub fn api_router(
     documents: Arc<dyn CaseDocumentWorkflow>,
@@ -74,6 +86,7 @@ pub fn api_router(
     cases: Arc<dyn CaseWorkflow>,
     participants: Arc<dyn ParticipantWorkflow>,
     stages: Arc<dyn CaseStageWorkflow>,
+    typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
@@ -81,7 +94,8 @@ pub fn api_router(
         .merge(cases::router(cases.clone(), runtime.clone()))
         .merge(case_administration::router(cases, runtime.clone()))
         .merge(participants::router(participants, runtime.clone()))
-        .merge(case_stages::router(stages, runtime.clone()));
+        .merge(case_stages::router(stages, runtime.clone()))
+        .merge(typed_participants::router(typed, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 

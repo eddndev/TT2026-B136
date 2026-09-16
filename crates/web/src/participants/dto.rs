@@ -1,12 +1,13 @@
 //! Strict participant input and captured snapshot representations.
 
+use crate::typed_participants::projection;
 use application::participants::{
-    DirectoryStatus, ParticipantHistoryPage, ParticipantPage, ParticipantRevision,
-    ParticipantSnapshot, ParticipantValues,
+    DirectoryStatus, ParticipantDetail, ParticipantHistoryPage, ParticipantPage,
+    ParticipantRevision, ParticipantSnapshot, ParticipantValues,
 };
 use application::ApplicationError;
 use serde::{Deserialize, Serialize};
-use time::{format_description::well_known::Rfc3339, UtcOffset};
+use serde_json::Value;
 
 use crate::error::ApiError;
 
@@ -63,55 +64,25 @@ impl StatusRequest {
 }
 
 #[derive(Serialize)]
-struct ActorResponse {
-    id: String,
-    email: String,
-}
-
-#[derive(Serialize)]
-pub(super) struct SnapshotResponse {
-    case_id: String,
-    id: String,
-    revision: u32,
-    display_name: String,
-    procedural_role: String,
-    organization: Option<String>,
-    legal_status: Option<String>,
-    directory_status: DirectoryStatus,
-    values_digest: String,
-    changed_at: String,
-    changed_by: ActorResponse,
-}
+#[serde(transparent)]
+pub(super) struct SnapshotResponse(Value);
 
 impl TryFrom<ParticipantSnapshot> for SnapshotResponse {
     type Error = ApiError;
     fn try_from(row: ParticipantSnapshot) -> Result<Self, Self::Error> {
-        Ok(Self {
-            case_id: row.case_id.to_string(),
-            id: row.id.to_string(),
-            revision: row.revision.get(),
-            display_name: row.values.display_name().into(),
-            procedural_role: row.values.procedural_role().into(),
-            organization: row.values.organization().map(str::to_owned),
-            legal_status: row.values.legal_status().map(str::to_owned),
-            directory_status: row.values.directory_status(),
-            values_digest: row.values_digest.to_hex(),
-            changed_at: row
-                .changed_at
-                .to_offset(UtcOffset::UTC)
-                .format(&Rfc3339)
-                .map_err(|_| ApiError::internal())?,
-            changed_by: ActorResponse {
-                id: row.changed_by.id.to_string(),
-                email: row.changed_by.email,
-            },
-        })
+        projection::manual(row).map(Self)
+    }
+}
+impl TryFrom<ParticipantDetail> for SnapshotResponse {
+    type Error = ApiError;
+    fn try_from(row: ParticipantDetail) -> Result<Self, Self::Error> {
+        projection::detail(row).map(Self)
     }
 }
 
 #[derive(Serialize)]
 pub(super) struct PageResponse {
-    participants: Vec<SnapshotResponse>,
+    participants: Vec<Value>,
     has_more: bool,
     next_after_id: Option<String>,
 }
@@ -123,8 +94,8 @@ impl TryFrom<ParticipantPage> for PageResponse {
             participants: page
                 .participants
                 .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<_, _>>()?,
+                .map(projection::overview)
+                .collect(),
             has_more: page.has_more,
             next_after_id: page.next_after_id.map(|id| id.to_string()),
         })

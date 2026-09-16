@@ -52,6 +52,7 @@ pub fn replacement(expected: u32) -> Value {
 #[derive(Default)]
 pub struct Workflow {
     pub calls: Mutex<Vec<Value>>,
+    pub filters: Mutex<Vec<Value>>,
 }
 
 impl Workflow {
@@ -116,11 +117,12 @@ impl ParticipantWorkflow for Workflow {
         id: ParticipantId,
         expected: ParticipantRevision,
         status: DirectoryStatus,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         self.record(
             token,
             json!(["status", token, case, id, expected.get(), status]),
         )
+        .map(Into::into)
     }
     fn list(
         &self,
@@ -128,6 +130,14 @@ impl ParticipantWorkflow for Workflow {
         case: CaseId,
         query: ParticipantQuery,
     ) -> Result<ParticipantPage, ApplicationError> {
+        self.filters.lock().unwrap().push(json!([
+            query.kind().map(|v| v.as_str()),
+            match query.profile() {
+                ParticipantProfileFilter::All => "all",
+                ParticipantProfileFilter::Manual => "manual",
+                ParticipantProfileFilter::Typed => "typed",
+            }
+        ]));
         let row = self.record(
             token,
             json!([
@@ -143,7 +153,7 @@ impl ParticipantWorkflow for Workflow {
         )?;
         Ok(ParticipantPage {
             next_after_id: Some(row.id),
-            participants: vec![row],
+            participants: vec![row.into()],
             has_more: true,
         })
     }
@@ -152,8 +162,22 @@ impl ParticipantWorkflow for Workflow {
         token: &str,
         case: CaseId,
         id: ParticipantId,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         self.record(token, json!(["get", token, case, id]))
+            .map(Into::into)
+    }
+    fn get_revision(
+        &self,
+        token: &str,
+        case: CaseId,
+        id: ParticipantId,
+        revision: ParticipantRevision,
+    ) -> Result<ParticipantDetail, ApplicationError> {
+        self.record(
+            token,
+            json!(["get_revision", token, case, id, revision.get()]),
+        )
+        .map(Into::into)
     }
     fn history(
         &self,
@@ -175,7 +199,7 @@ impl ParticipantWorkflow for Workflow {
         )?;
         Ok(ParticipantHistoryPage {
             next_before_revision: Some(row.revision),
-            revisions: vec![row],
+            revisions: vec![row.into()],
             has_more: true,
         })
     }
