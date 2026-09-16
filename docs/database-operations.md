@@ -3,9 +3,10 @@
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
 audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos
 y una sola cadena de auditoría. El esquema incorpora además hechos declarados
-de resolución y notificación; su backend está verificado localmente y aún
-no tiene composición HTTP ni Qadra. Redis conserva las sesiones y controles efímeros. La decisión
-está en [ADR-0016](adr/0016-case-document-transactions.md).
+de resolución y notificación; su backend está verificado localmente y
+tiene [composición HTTP](procedural-facts-api.md) con pruebas focales aprobadas;
+su comprobación integrada y restauración están aprobadas localmente; Qadra sigue pendiente. Redis conserva las sesiones
+y controles efímeros. La decisión está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
 
@@ -442,9 +443,13 @@ ocupada, aun si solo existe una raíz o una revisión huérfana. La conciliació
 un recibo existente permite conservar hechos posteriores sin regenerarlos.
 Las pruebas PostgreSQL de restauración conservan estados retirados, revisiones
 exactas y capturas después de cambios de administración y autor. No atribuir esa
-prueba al guion API o al navegador: HTTP y Qadra de hechos siguen pendientes.
+prueba al navegador. La API de hechos y su composición tienen una campaña
+separada con servicios reales y restauración exacta, aprobada localmente. El
+guion incluye ambas tablas de hechos en el inventario y compara respuestas
+históricas después de restaurar. La interfaz Qadra sigue pendiente.
 El cierre de comprobaciones se registra en el [informe](verification-report.md).
-Véanse el [contrato de persistencia](procedural-facts-persistence.md) y
+Véanse el [contrato de persistencia](procedural-facts-persistence.md), la
+[API de hechos](procedural-facts-api.md) y
 [ADR-0031](adr/0031-declared-procedural-facts.md).
 
 ## Respaldo y restauración

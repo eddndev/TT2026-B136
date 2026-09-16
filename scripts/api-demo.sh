@@ -236,6 +236,9 @@ source "$REPO_ROOT/scripts/api-hearings-demo.sh"
 # shellcheck source=scripts/api-judicial-calendars-demo.sh
 source "$REPO_ROOT/scripts/api-judicial-calendars-demo.sh"
 
+# shellcheck source=scripts/api-procedural-facts-demo.sh
+source "$REPO_ROOT/scripts/api-procedural-facts-demo.sh"
+
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
 

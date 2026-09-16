@@ -87,14 +87,16 @@ sobre valores exactos de calendario y conserva cada dia con su clasificacion,
 fuente y acumulado. Se detiene ante datos sin resolver, falta de cobertura o
 agotamiento del rango de fechas. Sus quince pruebas estan incluidas en la suite
 completa reproducida. La primera fecha incluida y la cantidad todavia son
-entradas matematicas: faltan registro persistente de hechos, perfil aplicable,
-recepcion, evaluacion persistente y alertas para obtener un plazo operativo.
+entradas matematicas: los hechos declarados ya tienen persistencia propia, pero
+falta vincularlos a un perfil aplicable, resolver los datos requeridos de
+recepcion y conservar la evaluacion y sus alertas para obtener un plazo operativo.
 
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
 registra hechos por si misma. La separacion de resoluciones y practicas de
 notificacion queda adoptada en [ADR-0031](adr/0031-declared-procedural-facts.md),
-con contrato y persistencia descritos abajo; su interfaz sigue pendiente.
+con contrato y persistencia descritos abajo; la API HTTP esta implementada y
+su interfaz Qadra sigue pendiente.
 El [modelo puro de hechos](procedural-facts.md) ya conserva las dos familias,
 referencias historicas seleccionadas, desconocimiento, funciones personales y
 soportes directos. Sus [canones propios](procedural-facts-canonical.md) distinguen
@@ -108,9 +110,15 @@ conservan las vistas historicas y se contrastan con vectores independientes.
 El [adaptador PostgreSQL](procedural-facts-persistence.md) implementa ahora
 persistencia, autorizacion efectiva por expediente e historia auditada atomica.
 La verificacion focal local cubre ambas familias, fuentes exactas, permisos,
-concurrencia y restauracion. La campana global local y el guion HTTP existente
-estan aprobados; sus resultados constan en el informe de verificacion.
-HTTP y Qadra siguen pendientes para estos hechos, que aun no habilitan plazos.
+concurrencia y restauracion. El cierre anterior del backend incluyo una campana
+global local y el guion HTTP de las capacidades ya expuestas; sus resultados
+constan en el informe de verificacion.
+La [API HTTP de hechos](procedural-facts-api.md) y su composicion estan
+implementadas. Pasaron 25 pruebas focales unitarias de entrada/proyeccion y
+26 pruebas de rutas HTTP con puertos controlados. La suite global y el recorrido
+HTTP con servicios reales y restauracion tambien estan aprobados localmente.
+Qadra sigue pendiente, y estos
+hechos aun no habilitan plazos operativos.
 
 ## Entregas y condiciones de cierre
 
@@ -128,7 +136,8 @@ HTTP y Qadra siguen pendientes para estos hechos, que aun no habilitan plazos.
 | Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado y verificado localmente, pendiente de integración remota. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Integración remota y manuscrito pendientes; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Cómputo, reevaluación y alertas pendientes. El catálogo versionado es un insumo parcial: faltan antecedentes estructurados, sujetos, reglas normativas aplicables y casos frontera. No extraerlos de acuerdos libres ni sustituir el cómputo exigido por fechas manuales o una suma indiscriminada de días. |
+| Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra pendiente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Cómputo, reevaluación y alertas pendientes. El catálogo y los hechos declarados son insumos parciales: falta seleccionar y validar sus datos para perfiles normativos aplicables, evaluación persistente y casos frontera. No extraerlos de acuerdos libres ni sustituir el cómputo exigido por fechas manuales o una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 

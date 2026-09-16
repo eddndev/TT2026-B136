@@ -10,7 +10,9 @@ aprobado; los resultados ejecutados se registran en el
 [informe de verificacion](verification-report.md), sin atribuir a una prueba
 focal el resultado de toda la suite.
 
-La composicion HTTP y la interfaz Qadra de estos hechos siguen pendientes.
+La [API HTTP](procedural-facts-api.md) y su composicion estan implementadas con
+pruebas focales aprobadas. La comprobacion integrada HTTP con servicios reales
+y restauracion tambien esta aprobada localmente; la interfaz Qadra sigue pendiente.
 El backend no calcula plazos, selecciona recursos, determina eficacia de
 notificaciones ni envia alertas. Conserva declaraciones y su procedencia conforme
 al [modelo](procedural-facts.md), la [precision temporal](procedural-time.md),

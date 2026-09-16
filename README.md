@@ -212,6 +212,13 @@ comparecencias, acuerdos, procedencia, ancla y continuidad exactas, rectificaci�
 y retiro; sus pruebas locales y límites se registran por separado. No infieren
 notificaciones, resoluciones ni vencimientos.
 
+La [API de hechos declarados](docs/procedural-facts-api.md) conserva resoluciones
+y prácticas de notificación como familias propias, con padre fijo, fuentes
+históricas, tiempos de precisión explícita, corrección, retiro y recibos. El
+backend y la API están verificados localmente, incluido el recorrido HTTP con
+servicios reales y la restauración exacta. La interfaz Qadra sigue pendiente. No determina
+eficacia jurídica ni inicia automáticamente plazos o recursos.
+
 El [catálogo de calendarios jurisdiccionales](docs/judicial-calendars-api.md)
 tiene backend, API y Qadra verificados localmente: Owner publica, reemplaza y retira;
 Owner, Litigator y Paralegal consultan revisiones exactas sin asignación a
