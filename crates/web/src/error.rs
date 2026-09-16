@@ -9,6 +9,7 @@ use serde::Serialize;
 
 mod hearing;
 mod hearing_result;
+mod judicial_calendar;
 mod stage;
 mod typed_participant;
 
@@ -114,6 +115,10 @@ impl ApiError {
 
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
+        let error = match judicial_calendar::map(error) {
+            Ok(mapped) => return mapped,
+            Err(error) => error,
+        };
         let error = match hearing_result::map(error) {
             Ok(mapped) => return mapped,
             Err(error) => error,

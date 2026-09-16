@@ -20,6 +20,7 @@ mod dto;
 mod error;
 mod hearing_results;
 mod hearings;
+mod judicial_calendars;
 mod participants;
 mod request;
 mod routes;
@@ -95,6 +96,17 @@ pub fn hearing_result_router(
     protect(hearing_results::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds global staff calendar routes with application authorization.
+pub fn judicial_calendar_router(
+    workflow: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        judicial_calendars::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Related case workflows injected together into the shared HTTP runtime.
 pub struct CaseWorkflows {
     pub cases: Arc<dyn CaseWorkflow>,
@@ -110,6 +122,7 @@ pub fn api_router(
     documents: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     workflows: CaseWorkflows,
+    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
@@ -129,7 +142,8 @@ pub fn api_router(
         .merge(hearing_results::router(
             workflows.hearing_results,
             runtime.clone(),
-        ));
+        ))
+        .merge(judicial_calendars::router(calendars, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 
