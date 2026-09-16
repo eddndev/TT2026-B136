@@ -77,6 +77,9 @@ migration_demo_state() {
         FROM case_initial_stage_registrations s),
       'stage_revisions',(SELECT jsonb_agg(to_jsonb(s) ORDER BY case_id,revision)
         FROM case_stage_revisions s),
+      'hearings',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearings h),
+      'hearing_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY hearing_id,revision)
+        FROM case_hearing_revisions h),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
@@ -210,6 +213,7 @@ PY
   administration_demo "$case_id"
   stage_demo
   typed_participant_demo "$imported_url"
+  hearing_demo "$imported_url"
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
   DATABASE_URL="$imported_url" "$CLI" --json database import --apply \
@@ -235,6 +239,7 @@ PY
   administration_demo_restored
   stage_demo_restored
   typed_participant_demo_restored
+  hearing_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -251,6 +256,9 @@ PY
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_subjects')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_subject_revisions')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM participant_credential_evidence')"
+  printf 'Restored hearings: %s roots, %s immutable revisions.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_hearings')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_hearing_revisions')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -266,3 +274,4 @@ unset -f administration_demo administration_demo_request administration_demo_bod
 unset -f administration_demo_closed administration_demo_capture administration_demo_restored
 unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
 unset -f typed_participant_demo typed_participant_demo_restored typed_participant_demo_python
+unset -f hearing_demo hearing_demo_restored hearing_demo_python

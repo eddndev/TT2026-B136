@@ -18,6 +18,7 @@ mod case_stages;
 mod cases;
 mod dto;
 mod error;
+mod hearings;
 mod participants;
 mod request;
 mod routes;
@@ -79,23 +80,42 @@ pub fn typed_participant_router(
     )
 }
 
+/// Builds authorized hearing and global agenda routes.
+pub fn hearing_router(workflow: Arc<dyn application::hearings::HearingWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(hearings::router(workflow, runtime.clone()), runtime)
+}
+
+/// Related case workflows injected together into the shared HTTP runtime.
+pub struct CaseWorkflows {
+    pub cases: Arc<dyn CaseWorkflow>,
+    pub participants: Arc<dyn ParticipantWorkflow>,
+    pub stages: Arc<dyn CaseStageWorkflow>,
+    pub typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
+    pub hearings: Arc<dyn application::hearings::HearingWorkflow>,
+}
+
 /// Builds all API routes with one shared admission and blocking-work budget.
 pub fn api_router(
     documents: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
-    cases: Arc<dyn CaseWorkflow>,
-    participants: Arc<dyn ParticipantWorkflow>,
-    stages: Arc<dyn CaseStageWorkflow>,
-    typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
+    workflows: CaseWorkflows,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
     let routes = routes::router(documents, identity, runtime.clone())
-        .merge(cases::router(cases.clone(), runtime.clone()))
-        .merge(case_administration::router(cases, runtime.clone()))
-        .merge(participants::router(participants, runtime.clone()))
-        .merge(case_stages::router(stages, runtime.clone()))
-        .merge(typed_participants::router(typed, runtime.clone()));
+        .merge(cases::router(workflows.cases.clone(), runtime.clone()))
+        .merge(case_administration::router(
+            workflows.cases,
+            runtime.clone(),
+        ))
+        .merge(participants::router(
+            workflows.participants,
+            runtime.clone(),
+        ))
+        .merge(case_stages::router(workflows.stages, runtime.clone()))
+        .merge(typed_participants::router(workflows.typed, runtime.clone()))
+        .merge(hearings::router(workflows.hearings, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 
