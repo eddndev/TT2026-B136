@@ -4,6 +4,44 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: conteo civil de dias
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El nuevo
+[componente aritmetico](deadline-day-counting.md) cuenta clasificaciones de una
+revision de calendario a partir de una primera fecha incluida y una cantidad
+positiva. Conserva cada dia, su regla y fuentes, y el acumulado. Devuelve una
+fecha candidata o un bloqueo explicito por clasificacion sin resolver, falta de
+cobertura o agotamiento del ano 9999. No deriva efectos de notificacion ni
+representa un vencimiento operativo; tampoco introduce API, persistencia o avisos.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.090 s y 37.216 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1407 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 383.786 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 36.111 s. |
+| Pruebas focales nuevas | **15 aprobadas**, 0.753 s; rojo conductual previo de 1 aprobada y 14 fallidas. |
+| Suite del dominio | **225 aprobadas**, 0 fallidas e ignoradas, 2.797 s. |
+| Rust 1.88 del dominio, todos los targets | Aprobado, 6.366 s. |
+| Conservacion de fuentes durante el cierre completo | 852 huellas sin cambios. |
+
+Las quince pruebas se incluyen en las 1407 del workspace y no se suman otra
+vez. Comprueban trazas y procedencia, excepciones, febrero bisiesto, inicio fuera
+de cobertura, clasificacion sin resolver antes o despues de la candidata, anios
+extremos y cantidad `u32::MAX`. Incluso una cantidad maxima recorre a lo sumo
+1097 fechas: la cobertura finita y una fecha exterior; no reserva memoria en
+funcion de la cantidad solicitada. Un sabado computable se cuenta conforme al
+calendario; el algoritmo no incorpora un fin de semana propio.
+
+Cuatro fechas candidatas de fixtures sinteticos se cotejaron con un recorrido
+independiente de fechas civiles. Este cotejo verifica aritmetica, no una regla
+juridica ni un calendario oficial. No se ejecuto una comparacion automatizada de
+las cuatro trazas completas entre ese artefacto y Rust.
+
+Este corte no repite cobertura instrumentada, release ni recorridos CLI, HTTP o
+navegador: el cambio solo agrega el componente puro y sus pruebas. Esas cifras
+del corte de calendarios que sigue son historicas y no constituyen mediciones del
+nuevo codigo. La prueba externa ignorada sigue siendo la del proveedor TSA.
+
 ## Corte reproducido: calendarios jurisdiccionales
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Se verificaron
