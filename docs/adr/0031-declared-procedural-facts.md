@@ -2,9 +2,10 @@
 
 ## Status
 
-Accepted as an architectural decision. Implementation of facts, application
-ports, persistence, HTTP and Qadra is pending. This record does not constitute
-an implemented workflow or a complete data and API contract.
+Accepted. Pure domain values and canonical encodings are implemented in
+[the fact model](../procedural-facts.md). Application ports, persistence, HTTP
+and Qadra are pending. This record does not constitute an implemented workflow
+or a complete data and API contract.
 
 ## Context
 
@@ -119,11 +120,15 @@ recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
 - Las revisiones permiten rectificar selecciones manteniendo identidad estable
   e historia reproducible. Los consumidores deberan fijar revisiones y digests;
   no bastara conservar un UUID o consultar una cabeza mutable.
-- Quedan pendientes catalogos y estados de captura, campos obligatorios, tratamiento
-  de datos desconocidos, representacion y reglas de retiro/correccion detalladas.
-- Quedan pendientes presupuesto de soportes unicos y bytes, politica de formatos,
-  canones, recibos, puertos, esquema, limites HTTP y flujos de Qadra. No eludir
-  limites existentes dividiendo un mismo trabajo en lotes sin presupuesto comun.
+- El [modelo puro](../procedural-facts.md) fija catalogos descriptivos, campos,
+  desconocimiento, personas y representacion. Los canones PFRES1/PFNOT1 preservan
+  esas declaraciones. Estados y comandos persistentes de correccion/retiro siguen
+  pendientes; un constructor no comprueba fuentes ni autorizacion.
+- El modelo admite hasta un soporte directo por resolucion y dos por notificacion,
+  conservando funciones/localizadores y rechazando digests contradictorios. Quedan
+  pendientes presupuesto de bytes, admision de formatos, recibos, puertos, esquema,
+  limites HTTP y Qadra. No eludir limites dividiendo el trabajo en lotes. La futura
+  admision debera separar soportes directos de antecedentes historicos resueltos.
 - Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
   responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
   Este ADR no fija reglas juridicas, un catalogo universal ni una formula mensual.
