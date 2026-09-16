@@ -52,7 +52,7 @@ pub fn validate_fact_administration(
     Ok(())
 }
 
-fn validate_snapshot(
+pub(super) fn validate_snapshot(
     hasher: &dyn DocumentHasher,
     case_id: CaseId,
     administration: &CurrentCaseAdministration,

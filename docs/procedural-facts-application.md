@@ -3,15 +3,18 @@
 ## Estado implementado
 
 El modulo `crates/application/src/procedural_facts/` implementa comandos,
-consultas acotadas, seleccion de fuentes y comprobaciones puras de identidad,
-estado, administracion y fichas de participantes. Define puertos y estructuras
-para preparar y confirmar operaciones. **Todavia no implementa un servicio que
-los coordine, un adaptador PostgreSQL, recibos canonicos, rutas HTTP o Qadra.**
-Los permisos nuevos son decisiones de rol probadas, no un flujo autorizado ya
-expuesto. El [informe de verificacion](verification-report.md) distingue este
-corte de las entregas anteriores.
+consultas acotadas, resolucion de material exacto, canones de fuentes y recibos,
+y `ProceduralFactService` como implementacion de `ProceduralFactWorkflow`.
+El servicio coordina autenticacion por rol, preparacion, admision documental,
+reautenticacion, envio y comprobacion de las respuestas de sus puertos.
+**Todavia no existen adaptador PostgreSQL, migraciones, transaccion auditada,
+rutas HTTP o Qadra para estos hechos.** La autorizacion efectiva por expediente
+y la revalidacion bajo bloqueo siguen siendo obligaciones del futuro adaptador.
+El [informe de verificacion](verification-report.md) distingue las pruebas de
+aplicacion de la evidencia integrada de otras capacidades.
 
 Los valores y los canones PFRES1/PFNOT1 siguen el [contrato de dominio](procedural-facts.md).
+Los formatos PFSRC1/PFTXN1 se fijan en el [contrato de fuentes y recibos](procedural-facts-receipts.md).
 La motivacion esta en [ADR-0031](adr/0031-declared-procedural-facts.md).
 
 ## Comandos e identidad
@@ -31,8 +34,9 @@ Seleccionar otra revision del mismo padre o corregir personas si esta permitido.
 
 La validacion de base rechaza alta sobre raiz existente, base ausente, revision
 obsoleta y una raiz retirada. No consulta almacenamiento ni comprueba recibos,
-permisos o unicidad de operacion. El servicio debe verificar el contenido de la
-base y el adaptador debe repetir la comprobacion contra la cabeza bajo bloqueo.
+permisos o unicidad de operacion. El servicio verifica ademas valores, fuentes
+y recibo de la base; el adaptador debera repetir la comprobacion contra la cabeza
+bajo bloqueo y resolver la existencia real de esa revision.
 
 ## Seleccion exacta y material interno
 
@@ -58,15 +62,18 @@ resolucion padre opcional, hasta cuatro `ParticipantDetail` y hasta dos
 `HearingResultSnapshot`. Dos acuerdos de una misma revision comparten material,
 pero se comprueban por separado. La resolucion padre aporta su snapshot, un
 resultado opcional y su soporte admitido opcional; no contiene otro padre ni
-expande el grafo recursivamente. Estas cotas son obligaciones del futuro
-adaptador y validador completo; construir un `Vec` no las garantiza.
+expande el grafo recursivamente. Los resolutores del servicio comprueban cotas,
+presencia y union exacta del material. El futuro adaptador debera acotar las
+lecturas antes de decodificar; construir un `Vec` no garantiza ese presupuesto.
 
 El lote `records` contiene exclusivamente los documentos directos. Ningun
-antecedente agrega sus documentos a ese lote. Las futuras preparaciones de alta
-y correccion deben admitir el lote completo con los limites compartidos de
-16 MiB por archivo y 32 MiB en total. Un documento usado directamente se admite
-aunque tambien figure entre antecedentes. Retiro conserva fuentes y admisiones
-anteriores y exige un lote vacio.
+antecedente agrega sus documentos a ese lote. En cada preparacion de alta o
+correccion, el servicio comprueba identidad, version y digest de cada seleccion directa y admite el lote
+completo de una o dos versiones en una sola llamada al procesador y validador,
+con limites de 16 MiB por archivo y 32 MiB combinados. Si no hay soportes directos,
+no llama al validador. Un documento usado directamente se admite aunque tambien
+figure entre antecedentes. Retiro conserva fuentes y admisiones anteriores y
+rechaza tanto registros documentales como material de reemplazo.
 
 ## Comprobaciones de participantes
 
@@ -82,11 +89,32 @@ La salida combina `FactParticipantSnapshot` con un `ParticipantOverview`
 derivado de esos valores. No expone el sujeto completo, CURP ni todos sus datos.
 Esta comprobacion no verifica una credencial criptografica, admite archivos ni
 prueba existencia en una base de datos. El adaptador debe cargar las fuentes
-reales del mismo expediente y el servicio debe verificar la respuesta completa.
+reales del mismo expediente; el servicio compone esta comprobacion con las de
+las demas fuentes antes de construir el borrador.
 
-`FactSourceViews` reserva proyecciones legibles de resolucion, participantes y
-resultados. La derivacion y comprobacion de vistas de resoluciones y resultados
-siguen pendientes; no deben aceptarse textos arbitrarios como evidencia.
+## Resultados y resolucion padre
+
+`resolve_fact_hearings` exige la union exacta de revisiones de resultado,
+comprueba expediente, valores HRES1 y recibo reconstruido, y verifica que cada
+acuerdo seleccionado pertenece a esa revision. Dos selecciones de acuerdos de
+un mismo resultado comparten un material; cada una conserva su propia vista.
+No se exige que la cabeza actual siga registrada ni se readmiten documentos de
+los resultados historicos. La comprobacion no reemplaza la carga real del
+adaptador ni expande la programacion o continuidad de cada resultado.
+
+`resolve_fact_resolution` comprueba identidad y revision del padre, reconstruye
+sus fuentes inmediatas y coteja valores, fuentes y recibo. El soporte historico
+conserva la admision capturada; no se procesa de nuevo su archivo en claro.
+Un padre retirado puede ser fuente historica exacta. La vista se deriva del
+padre verificado: clase, emisor, tiempo y resumen no se aceptan por separado.
+
+`FactSourceViews` contiene las proyecciones legibles derivadas de resoluciones,
+participantes y resultados. PFSRC1 vincula esos campos a sus referencias y
+rechaza orden, cardinalidad o correspondencia inconsistentes. Dos acuerdos del
+mismo resultado deben compartir sus datos comunes. Una correccion puede cambiar
+una seleccion, pero no puede alterar silenciosamente el snapshot o la vista de
+una referencia exacta que conserva, incluso al elegir otro acuerdo del mismo
+resultado.
 
 ## Administracion observada
 
@@ -107,28 +135,72 @@ capturado no reemplaza el estado vigente para decidir si se puede escribir.
 Esta funcion es una comprobacion de preparacion de cambios, no un verificador
 para denegar lecturas historicas de expedientes cerrados.
 
-## Puertos pendientes de implementar
+## Preparacion, envio y recibos
 
-`ProceduralFactStore` fija estas obligaciones por operacion:
+`prepare` autentica y exige `ManageProceduralFact` antes de consultar el puerto.
+Valida expediente, identidad fija, revision esperada, estado de base y
+administracion observada; resuelve fuentes y admite el lote directo cuando
+corresponde. Construye un `PreparedFactChange` interno y reautentica al mismo
+actor antes de devolver el borrador. No reserva UUID ni revision.
 
-- Autorizacion vigente: Owner en todos los expedientes, Litigator asignado para
-  lectura y gestion, Paralegal asignado solo lectura; Client denegado.
-- Listados de cabezas con filtro de estado antes de paginacion: 1..100 filas,
-  cursor UUID exclusivo. Historial descendente: 1..20 revisiones y cursor positivo.
-- Preparacion sin reservar identidad ni revision; material exacto y batch directo
-  acotados antes de decodificar o admitir contenido.
-- Transaccion comun con auditoria para raiz, revision y recibo. Bajo bloqueo,
-  repetir identidad, membresia, expediente activo, cabeza, operacion unica y
-  correspondencia de todos los documentos y fuentes preparados. Capturar Clock
-  y administracion en esa frontera.
+`submit` vuelve a preparar desde el comando, incluida la admision del lote
+directo, y compara el digest de envio esperado
+y reautentica al mismo actor antes de llamar a `commit`. Un digest diferente,
+sesion revocada o actor distinto impide esa llamada. La respuesta del puerto
+se comprueba contra actor, expediente, target completo, operacion, accion,
+revision resultante y digest esperado, ademas de valores, fuentes y recibo.
+La administracion devuelta tampoco puede retroceder respecto de la observada.
 
-`ProceduralFactWorkflow` exige autenticacion previa a consultas y preparacion,
-reautenticacion del mismo actor despues de admision y comparacion del digest de
-envio antes de confirmar. Las estructuras `FactReceipt` y `PreparedFactChange`
-no definen todavia un canon ni prueban que esas operaciones hayan ocurrido.
+PFSRC1 codifica las referencias compactas, vistas y soportes admitidos. PFTXN1
+vincula operacion, actor, expediente, raiz fija, accion, revision esperada,
+digests de valores y fuentes y motivo. No introduce CAS administrativo ni
+incluye correo o tiempo del servidor en esos canones. El futuro adaptador debe
+capturarlos bajo bloqueo y conservarlos en su transaccion auditada. Las
+comprobaciones autocontenidas no prueban que esa transaccion ya exista.
 
-Faltan el canon de fuentes y recibos, coordinacion del servicio, validacion total
-de la union de fuentes y de las proyecciones retenidas, persistencia y migraciones,
-pruebas de aislamiento/revocacion/concurrencia/rollback, restauracion, HTTP y
-recorrido de Qadra. No se habilitan calculos juridicos, recursos o alertas con
-estos contratos y comprobaciones puras.
+El retiro conserva exactamente valores, fuentes y vistas de la base validada;
+no acepta datos nuevos ni repite admision. El servicio mantiene la precision
+declarada, sin inferir una fecha actual, orden cronologico ni restriccion general
+sobre fechas futuras.
+
+## Lecturas de aplicacion
+
+Las cuatro consultas autentican y exigen `ReadProceduralFact` antes de llamar
+al repositorio. Owner y Litigator tienen lectura y gestion por rol; Paralegal
+solo lectura y Client ninguna de las dos. Pertenencia al expediente y estado
+vigente de la cuenta tambien deberan comprobarse en el adaptador de cada operacion.
+
+Los listados comprueban expediente, padre en ambas referencias de notificacion,
+filtro de estado, orden UUID estricto y cursor exclusivo. Conservan UUID cero.
+Una pagina tiene como maximo el limite solicitado de 1..100 filas. Si anuncia
+mas resultados debe estar llena y devolver como cursor su ultima fila; si no
+anuncia mas, el cursor debe estar ausente. El servicio rechaza incoherencias de
+tamano y cursor antes de recorrer la pagina. El adaptador debera seleccionar
+cabezas antes de filtrar y paginar; un overview aislado no prueba ser la cabeza.
+
+El detalle exige target completo y, cuando se solicita, revision exacta; coteja
+valores, union de fuentes y recibo. El historial admite 1..20 revisiones,
+comprueba expediente y target, orden descendente estricto, cursor exclusivo,
+continuacion coherente y cada recibo. Sus filas ligeras no sustituyen un detalle
+ni permiten recomputar sus valores completos. Las capturas administrativas
+cerradas y las declaraciones retiradas conservan consultas autorizadas.
+
+## Persistencia e integracion pendientes
+
+`ProceduralFactStore` fija obligaciones que aun requieren un adaptador real:
+
+- Owner en todos los expedientes, Litigator asignado para lectura y gestion,
+  Paralegal asignado solo lectura y Client denegado, sin revelar fuentes ajenas.
+- Cargar revisiones exactas y acotar material y documentos antes de decodificar;
+  una referencia historica nunca se sustituye por la cabeza actual.
+- Confirmar raiz, revision, recibo y auditoria en una transaccion comun. Bajo
+  bloqueo, repetir identidad, membresia, expediente activo, cabeza esperada,
+  operacion unica y correspondencia de documentos y fuentes preparados.
+- Capturar Clock y administracion en esa frontera; la observacion del servicio
+  no es un token de revision administrativa ni acredita la escritura atomica.
+
+Faltan PostgreSQL y migraciones, pruebas reales de aislamiento, revocacion,
+concurrencia y rollback, inventario y restauracion, composicion HTTP y recorrido
+de Qadra. Las pruebas de puertos de aplicacion no acreditan esas capacidades.
+No se habilitan calculos juridicos, recursos, alertas o reevaluacion con este
+servicio de declaraciones.
