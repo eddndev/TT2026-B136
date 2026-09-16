@@ -6,7 +6,7 @@ use domain::cases::CaseId;
 use domain::crypto::{DocumentId, DocumentVersion};
 use postgres::Transaction;
 
-pub(super) fn require_scope(
+pub(crate) fn require_scope(
     tx: &mut Transaction<'_>,
     case: CaseId,
     supports: &[StageSupportRef],
@@ -27,7 +27,7 @@ pub(super) fn require_scope(
     Ok(())
 }
 
-pub(super) fn load(
+pub(crate) fn load(
     tx: &mut Transaction<'_>,
     case: CaseId,
     support: StageSupportRef,

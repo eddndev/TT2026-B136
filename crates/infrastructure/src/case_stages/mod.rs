@@ -2,7 +2,7 @@
 
 mod authorization;
 pub(crate) mod decode;
-mod documents;
+pub(crate) mod documents;
 mod encode;
 pub(crate) mod query;
 

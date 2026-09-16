@@ -7,7 +7,7 @@ use postgres::Row;
 use time::format_description::well_known::Rfc3339;
 use time::{OffsetDateTime, UtcOffset};
 
-pub(super) fn decode(
+pub(crate) fn decode(
     row: &Row,
     hasher: &dyn DocumentHasher,
 ) -> Result<CaseAdministrationSnapshot, ApplicationError> {

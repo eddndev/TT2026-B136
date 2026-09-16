@@ -7,7 +7,7 @@ use postgres::GenericClient;
 
 pub(crate) const CHANGE_SELECT:&str="SELECT s.*,to_char(s.act_date,'YYYY-MM-DD') AS act_date_text,to_char(s.received_date,'YYYY-MM-DD') AS received_date_text,a.values_digest AS administration_digest,(a.nuc IS NOT NULL AND a.administrative_status='active') AS administration_valid,case_stage_values_canonical(s) AS canonical,case_stage_recording_valid(s) AS recording_valid FROM case_stage_revisions s JOIN case_administration_revisions a ON a.case_id=s.case_id AND a.revision=s.administration_revision";
 
-pub(super) fn current<C: GenericClient>(
+pub(crate) fn current<C: GenericClient>(
     tx: &mut C,
     case: CaseId,
     hasher: &dyn DocumentHasher,
@@ -21,7 +21,7 @@ pub(super) fn current<C: GenericClient>(
         .unwrap_or(CurrentCaseStage::Unregistered))
 }
 
-pub(super) fn history<C: GenericClient>(
+pub(crate) fn history<C: GenericClient>(
     tx: &mut C,
     case: CaseId,
     query: &CaseStageQuery,

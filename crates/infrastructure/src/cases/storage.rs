@@ -10,7 +10,7 @@ use time::{OffsetDateTime, UtcOffset};
 
 use super::values::{canonical_time, decode, inconsistent};
 
-pub(super) fn detail(
+pub(crate) fn detail(
     tx: &mut Transaction<'_>,
     id: CaseId,
     hasher: &dyn DocumentHasher,
