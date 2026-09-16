@@ -4,6 +4,63 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: API de hechos declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). La
+[API de hechos](procedural-facts-api.md) conecta ambas familias al servicio y
+almacenamiento auditado existentes. Agrega preparacion, alta, correccion,
+retiro, consultas exactas, listados e historia con un presupuesto HTTP compartido.
+La interfaz Qadra de estos hechos, plazos operativos y alertas siguen pendientes.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.331 s y 11.992 s. |
+| Suite con PostgreSQL/Redis desechables | **1741 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 343.456 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 5.544 s. |
+| Rust 1.88 del workspace, todos los targets | Aprobado, 5.170 s. |
+| Pruebas nuevas incluidas | **54 aprobadas**: 3 de errores, 10 de entrada, 15 de proyeccion y 26 de rutas. |
+| Guion HTTP con servicios aislados | Aprobado, 104.032 s; incluye ambas familias y restauracion. |
+| Respuestas HTTP de hechos conservadas tras restaurar | **27** respuestas exactas, con fuentes historicas y recibos. |
+| Conservacion durante la campana | **1061** huellas de fuentes, fixtures y manifiestos sin cambios. |
+
+Las 54 pruebas nuevas estan incluidas en la suite global; no se suman de nuevo.
+Los 28 vectores de valores existentes recorren el DTO y el limite HTTP sin
+cambiar semantica o normalizacion. Se comprueban precision temporal, datos
+desconocidos frente a campos opcionales, UUID cero, familia y padre fijos,
+revision y accion esperadas, proyecciones exactas y errores publicos acotados.
+El cuerpo completo se limita a 512 KiB, incluidos datos escapados y streaming;
+los objetos rechazan claves extra, repetidas y representaciones como arreglos.
+
+TDD conserva rojos por APIs ausentes y errores no mapeados. Las regresiones
+conductuales reproducidas incluyen campos extra aceptados por variantes vacias
+Serde, un envoltorio de objeto duplicado que rechazaba peticiones validas y el
+estado HTTP de la revision cero en la ruta. Las variantes vacias ahora exigen
+objetos estrictos; la lectura usa el DTO ya protegido y las rutas rechazan una
+revision no positiva como entrada invalida. Los ajustes de expectativas para
+revision inicial y version documental, y los avisos de Clippy sobre enums grandes
+y clones de valores Copy, se registran aparte de esos fallos conductuales.
+
+El guion real reproduce ambas familias y sus tres acciones, cuatro roles,
+aislamiento entre expedientes, revocacion y cierre despues de preparar,
+conflictos de revision y operacion, digest de envio alterado e historia terminal.
+Una captura posterior a reapertura conserva la administracion vigente sin
+convertirla en una condicion de revision del comando. Las fuentes incluyen
+ficha manual archivada, resultado de audiencia retirado, padre retirado o una
+revision anterior exacta y soportes PDF/DOCX. Los lotes directos de cero, una y
+dos versiones no se amplian con el soporte del padre. La captura R0 importada tambien se reprodujo: conserva metadatos sin fabricar revision, digest, autor o fecha.
+
+La importacion reconciliada conserva ambas tablas y `pg_dump`/`pg_restore`
+preservan respuestas exactas, valores, fuentes, autores y recibos. La auditoria
+se verifica antes y despues de restaurar. El guion usa PostgreSQL, Redis, PKI y
+TSA local desechables; no modifica el runtime estable ni consulta un PSC externo.
+
+Las 41 fuentes de codigo cambiadas son ASCII y menores de 400 lineas; el maximo
+es 365. No cambian dependencias ni canones de valores, fuentes o recibos.
+No se repitieron navegador, cobertura instrumentada o release locales en esta
+entrega. Tampoco se modifico el manuscrito ni se compilo un PDF. La CI de la
+persistencia anterior, PR24, se consulto con 18/18 comprobaciones aprobadas;
+es evidencia de esa rama, no sustituye la CI de la nueva API.
+
 ## Corte reproducido: persistencia auditada de hechos declarados
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El

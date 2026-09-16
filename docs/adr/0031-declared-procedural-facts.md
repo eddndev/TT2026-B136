@@ -8,8 +8,10 @@ now includes commands, exact-source validation, coordinating service and reads.
 [Source and operation encodings PFSRC1/PFTXN1](../procedural-facts-receipts.md)
 are implemented. The [PostgreSQL backend](../procedural-facts-persistence.md)
 now includes migrations, audited transactions, effective case membership checks,
-exact historical reads and startup validation. Backend verification is approved locally;
-HTTP composition and Qadra remain pending. These declarations do not establish
+exact historical reads and startup validation. Backend verification is approved locally.
+The [HTTP API](../procedural-facts-api.md) and composition are implemented, with
+focused DTO, projection and route tests passing. The workspace suite and real
+HTTP workflow with exact restoration passed locally; Qadra remains pending. These declarations do not establish
 operational legal deadlines.
 
 ## Context
@@ -167,7 +169,9 @@ recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
   implementados la admision en el servicio, los recibos y el presupuesto compartido
   de documentos directos, separados de antecedentes historicos resueltos. No
   eludir limites dividiendo el trabajo en lotes. El esquema y la transaccion estan
-  implementados; siguen pendientes limites HTTP, composicion y Qadra.
+  implementados. La API agrega cuerpos estrictos de 512 KiB, rutas por familia
+  y padre, y proyecciones historicas. Su comprobacion integrada con servicios
+  reales y restauracion esta aprobada localmente; Qadra sigue pendiente.
 - Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
   responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
   Este ADR no fija reglas juridicas, un catalogo universal ni una formula mensual.

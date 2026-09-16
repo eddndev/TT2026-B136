@@ -7,7 +7,9 @@ se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). El
 [servicio de aplicacion](procedural-facts-application.md), los
 [canones de fuentes y recibos](procedural-facts-receipts.md) y la
 [persistencia PostgreSQL](procedural-facts-persistence.md) se describen por separado.
-El backend esta verificado localmente; API HTTP y Qadra siguen pendientes.
+El backend esta verificado localmente. La [API HTTP](procedural-facts-api.md)
+y su composicion estan implementadas con pruebas focales, suite global y
+comprobacion integrada HTTP con restauracion aprobadas localmente. Qadra sigue pendiente.
 Este modelo puro no define un formato JSON de entrada HTTP.
 
 La separacion de familias y referencias corregibles procede de
@@ -231,13 +233,15 @@ alta, correccion y retiro terminal, con comprobaciones puras y conservacion de
 identidad. Los valores de dominio no ejecutan esas operaciones. El servicio
 coordina preparacion, envio y comprobacion de recibos; PostgreSQL confirma
 persistencia y auditoria atomica. Sus lecturas permiten consultar la revision
-exacta para conciliar una operacion; la interfaz HTTP/Qadra sigue pendiente.
+exacta para conciliar una operacion. La API HTTP expone esas operaciones;
+su comprobacion integrada esta aprobada localmente y la interfaz Qadra sigue pendiente.
 El retiro no declara nulidad.
 
 Los [canones de valores](procedural-facts-canonical.md) no son recibos. Los
 [formatos PFSRC1/PFTXN1](procedural-facts-receipts.md), los puertos, limites de
 consulta, servicio y adaptador estan implementados fuera del dominio puro.
-El cierre de backend no habilita por si solo integracion HTTP o de navegador.
+El cierre de backend y las pruebas focales de HTTP no prueban por si solos
+un recorrido con servicios reales o de navegador.
 No existe outbox sin consumidor ni activacion del
 [conteo diario](deadline-day-counting.md). Los catalogos y datos declarados no
 seleccionan una regla, recurso, calendario, responsable, canal o corte temporal.

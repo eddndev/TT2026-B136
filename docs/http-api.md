@@ -11,8 +11,14 @@ fuentes exactas. Está implementada y verificada localmente; sus mediciones se
 registran separadas de las entregas anteriores en el informe de verificación.
 La [API de calendarios jurisdiccionales](judicial-calendars-api.md) incorpora un
 catálogo global de revisiones para clasificar fechas civiles. La API y la
-restauración se verificaron localmente con servicios reales; la interfaz,
-la cobertura y el cierre de CI de esta entrega permanecen pendientes.
+restauración se verificaron localmente con servicios reales; la interfaz Qadra
+y la cobertura también tienen verificación local registrada en el
+[informe de verificación](verification-report.md).
+
+La [API de hechos declarados de resolución y notificación](procedural-facts-api.md)
+añade familias por expediente, padre fijo, preparación, confirmación, retiro e
+historia con fuentes exactas. Sus pruebas focales, la suite global y el recorrido
+HTTP con servicios reales y restauración pasaron localmente; Qadra sigue pendiente.
 
 Contrato revisado el 2026-09-16. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
@@ -338,6 +344,40 @@ no infiere notificaciones desde audiencias y no crea alertas o tareas de
 reevaluación. El [contrato completo](judicial-calendars-api.md) fija el perfil
 acotado de URL, cuerpos estrictos de hasta 1 MiB, filtros, proyecciones y errores;
 [ADR-0030](adr/0030-versioned-jurisdictional-calendars.md) delimita la decisión.
+
+## Hechos declarados de resolución y notificación
+
+La [API específica](procedural-facts-api.md) adapta el servicio de aplicación
+al presupuesto compartido de HTTP. Usa dos bases:
+`/api/v1/cases/{case}/resolutions` y
+`/api/v1/cases/{case}/resolutions/{resolution}/notifications`.
+Owner consulta y gestiona; Litigator asignado consulta y gestiona; Paralegal
+asignado solo consulta; Client queda denegado. Un expediente actualmente cerrado
+conserva lectura autorizada y rechaza mutaciones.
+
+Cada base admite `GET` para listar y `POST /prepare` para preparar un comando
+normalizado de su familia. `POST` confirma alta, `PUT /{id}` confirma corrección
+y `POST /{id}/withdrawal` confirma retiro. Preparar devuelve `200`; confirmar
+cualquiera de las tres acciones devuelve `201`. Confirmar recibe
+`{command, expected_submission_digest}` y revalida el comando antes del commit.
+Las consultas `GET /{id}`, `/{id}/revisions/{revision}` y `/{id}/history`
+conservan cabeza, revisión exacta e historial ligero, respectivamente.
+
+Los cuerpos JSON tienen un límite de 512 KiB y rechazan claves desconocidas,
+repetidas y arreglos en lugar de objetos. Familia, identidad, padre y acción
+deben coincidir con la ruta. Los listados admiten `limit` de 1 a 100 (defecto 20),
+`after_id` exclusivo y `status` all/recorded/withdrawn. El historial usa `limit`
+de 1 a 20 (defecto 10) y `before_revision` exclusivo. Las otras rutas no admiten
+parámetros de consulta. No se sustituye una selección histórica por la cabeza.
+
+Las respuestas incluyen valores, fuentes legibles acotadas, recibo y captura
+administrativa discriminada. Una base sin revisión no fabrica revisión,
+digest, autor ni fecha. Fecha, minuto, segundo y desfase conservan la precisión
+declarada; no se infieren efectos, destinatarios o instantes. Retirar conserva
+los valores y soportes admitidos, es terminal y no declara nulidad jurídica.
+Las pruebas focales y la campaña integrada con servicios reales y restauración
+tienen evidencia separada en el informe de verificación. La interfaz Qadra de
+estas capturas sigue pendiente.
 
 ## Participantes del expediente
 

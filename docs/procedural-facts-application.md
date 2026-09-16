@@ -9,8 +9,10 @@ El servicio coordina autenticacion por rol, preparacion, admision documental,
 reautenticacion, envio y comprobacion de las respuestas de sus puertos.
 El [backend PostgreSQL](procedural-facts-persistence.md) implementa migraciones,
 transaccion auditada, autorizacion por expediente y revalidacion bajo bloqueo.
-Su cierre de verificacion local esta aprobado. **Las rutas HTTP, su composicion y
-Qadra para estos hechos siguen pendientes.**
+Su cierre de verificacion local esta aprobado. La [API HTTP](procedural-facts-api.md)
+y su composicion estan implementadas, con pruebas focales de DTO, proyecciones
+y rutas aprobadas. La comprobacion HTTP integrada con restauracion tambien esta
+aprobada localmente; Qadra sigue pendiente.
 El [informe de verificacion](verification-report.md) distingue las pruebas de
 aplicacion de la evidencia integrada de otras capacidades.
 
@@ -203,7 +205,11 @@ la administracion historica de la captura verificada por el adaptador.
   no es un token de revision administrativa ni acredita la escritura atomica.
 
 PostgreSQL, migraciones, inventario y pruebas reales de aislamiento, revocacion,
-concurrencia, rollback y restauracion estan implementados y verificados localmente. Faltan la composicion HTTP y el recorrido de Qadra. Las pruebas de
-puertos de aplicacion no sustituyen las comprobaciones de backend.
+concurrencia, rollback y restauracion estan implementados y verificados localmente.
+La composicion HTTP enlaza el servicio real y su API conserva las mismas
+referencias, permisos y recibos. Sus pruebas focales y el recorrido con servicios
+reales y restauracion tienen evidencia separada. El recorrido de Qadra sigue
+pendiente para estos hechos.
+Las pruebas de puertos de aplicacion no sustituyen las comprobaciones de backend.
 No se habilitan calculos juridicos, recursos, alertas o reevaluacion con este
 servicio de declaraciones.

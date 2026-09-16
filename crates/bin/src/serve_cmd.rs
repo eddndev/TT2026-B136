@@ -14,9 +14,11 @@ use application::hearings::HearingService;
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
 use application::judicial_calendars::JudicialCalendarService;
 use application::participants::ParticipantService;
+use application::procedural_facts::ProceduralFactService;
 use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
+use infrastructure::PostgresProceduralFactStore;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
     PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository,
@@ -177,9 +179,26 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         ),
         identity.clone(),
         processor.clone(),
-        format_validator,
+        format_validator.clone(),
         result_hasher,
         result_clock,
+    );
+    let fact_hasher = Arc::new(RingSha256Hasher::new());
+    let fact_clock = Arc::new(SystemClock::new());
+    let procedural_facts = ProceduralFactService::new(
+        Arc::new(
+            PostgresProceduralFactStore::open(
+                &database_url,
+                fact_hasher.clone(),
+                fact_clock.clone(),
+            )
+            .context("cannot open PostgreSQL procedural fact store")?,
+        ),
+        identity.clone(),
+        processor.clone(),
+        format_validator,
+        fact_hasher,
+        fact_clock,
     );
     let calendar_hasher = Arc::new(RingSha256Hasher::new());
     let calendar_clock = Arc::new(SystemClock::new());
@@ -212,6 +231,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             typed: Arc::new(typed_participants),
             hearings: Arc::new(hearings),
             hearing_results: Arc::new(hearing_results),
+            procedural_facts: Arc::new(procedural_facts),
         },
         Arc::new(calendars),
         web::HttpLimits {
