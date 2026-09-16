@@ -9,6 +9,7 @@ use application::cases::CaseService;
 use application::documents::{
     CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
 };
+use application::hearing_results::HearingResultService;
 use application::hearings::HearingService;
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
 use application::participants::ParticipantService;
@@ -17,11 +18,11 @@ use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
-    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresHearingStore,
-    PostgresParticipantStore, PostgresTypedParticipantStore, PostgresUserRepository,
-    RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
-    RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
-    TotpRsProvider, X509ChainValidator,
+    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository,
+    PostgresHearingResultStore, PostgresHearingStore, PostgresParticipantStore,
+    PostgresTypedParticipantStore, PostgresUserRepository, RandomRecoveryCodeGenerator,
+    RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer,
+    RsaPkcs1Verifier, StoredZipWriter, SystemClock, TotpRsProvider, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -157,9 +158,26 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         ),
         identity.clone(),
         processor.clone(),
-        format_validator,
+        format_validator.clone(),
         hearing_hasher,
         hearing_clock,
+    );
+    let result_hasher = Arc::new(RingSha256Hasher::new());
+    let result_clock = Arc::new(SystemClock::new());
+    let hearing_results = HearingResultService::new(
+        Arc::new(
+            PostgresHearingResultStore::open(
+                &database_url,
+                result_hasher.clone(),
+                result_clock.clone(),
+            )
+            .context("cannot open PostgreSQL hearing result store")?,
+        ),
+        identity.clone(),
+        processor.clone(),
+        format_validator,
+        result_hasher,
+        result_clock,
     );
     let workflow = CaseDocumentService::new(
         repository,
@@ -176,6 +194,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             stages: Arc::new(stages),
             typed: Arc::new(typed_participants),
             hearings: Arc::new(hearings),
+            hearing_results: Arc::new(hearing_results),
         },
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
