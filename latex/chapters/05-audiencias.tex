@@ -1,0 +1,76 @@
+\subsection{Comprobaciones de programación e historia de audiencias}\label{sec:pruebas-audiencias}
+
+El cierre del 16 de septiembre de 2026 aprobó \textbf{1183 pruebas Rust, cero fallos y una prueba externa de TSA ignorada}, tanto en la ejecución ordinaria como bajo instrumentación. Se utilizaron PostgreSQL y Redis aislados mediante el runner de backends; los dos comandos completos tardaron 360.492 y 370.401 segundos, respectivamente. Estas duraciones incluyen su preparación y ejecución local, y no representan latencia del servicio. La prueba externa ignorada no constituye evidencia de una campaña con un PSC.
+
+La cobertura fue de \textbf{25\,201 de 27\,226 líneas, 92.56\,\% global}. La \cref{tab:pruebas-cobertura-audiencias} conserva los numeradores por crate; dominio, aplicación e infraestructura superaron sus umbrales del 90\,\%. Las cifras de las entregas anteriores mantienen sus fechas y denominadores, sin extrapolar esos resultados a los módulos nuevos.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del cierre de programación de audiencias.}
+  \label{tab:pruebas-cobertura-audiencias}
+  \begin{tabularx}{\linewidth}{@{}X r r r@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Cubiertas} & \textbf{Instrumentadas} & \textbf{Cobertura} \\
+    \midrule
+    \texttt{domain} & 2\,730 & 2\,802 & 97.43\,\% \\
+    \texttt{application} & 4\,813 & 5\,055 & 95.21\,\% \\
+    \texttt{infrastructure} & 12\,653 & 13\,694 & 92.40\,\% \\
+    \texttt{web} & 4\,094 & 4\,458 & 91.83\,\% \\
+    \texttt{bin} & 911 & 1\,217 & 74.86\,\% \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Formato, compilación, Clippy con Rust~1.98, compatibilidad de todos los targets con Rust~1.88 y política de dependencias mediante \texttt{cargo-deny}~0.20.2 terminaron satisfactoriamente. La compilación release produjo un binario de 12\,176\,936 bytes, por debajo del límite de 25~MiB. La demostración CLI terminó en 9.097 segundos y midió Argon2id en 540.7~ms de promedio sobre cinco corridas. Esta última medición coincidió con la compilación release y otras comprobaciones: no es un benchmark aislado ni demuestra una mejora respecto de los cortes anteriores.
+
+Las pruebas nuevas propias del dominio incluyen 23 casos de valores, tiempo y canon; las del servicio incluyen 28 casos de flujo, límites, recibos y fallos. El transporte añade 19 casos de audiencias y cuatro de traducción de errores de soporte. Estas cantidades describen subconjuntos de la campaña y no deben sumarse a su total. Las pruebas de aplicación con dobles verifican el contrato de los puertos; la persistencia real se comprueba de forma separada.
+
+\begin{table}[H]
+  \centering
+  \caption{Propiedades comprobadas en las fronteras de audiencias.}
+  \label{tab:pruebas-audiencias-fronteras}
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Casos y alcance de la evidencia} \\
+    \midrule
+    Valores & Cuatro tipos, modalidades, texto Unicode, controles, 32 referencias ordenadas, duplicados y antecedente exclusivo de individualización. \\
+    Tiempo & Pasado y futuro, segundos completos, límites de años locales y UTC, cruces de día y desfases extremos conservados. \\
+    Canon & Vectores Python independientes para \texttt{HEAR1} y \texttt{HTXN1}, longitudes máximas, permutaciones, bytes y digests. Son formatos propios, no vectores jurídicos normativos. \\
+    Aplicación & Denegación antes del puerto, base y contexto obsoletos, revisión agotada, soporte cambiado, discrepancia de envío y sesión vencida antes de confirmar. \\
+    Historia & Conservación de participantes exactos, cancelación tras cambio de etapa y copia del soporte histórico sin nueva admisión. Los dobles comprueban el contrato del puerto. \\
+    HTTP & Rutas, acción e identificador concordantes, fecha RFC~3339, límite integral de cuerpo, entrada completa y traducción de errores sin revelar datos internos. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El método conserva la secuencia de prueba fallida y posterior implementación. Los vectores independientes calculan la representación binaria con otro programa, incluyendo el máximo de 10\,726 bytes de \texttt{HEAR1}; no se limita la comparación a serializar y leer con el mismo codec. Las pruebas del servicio comprueban que el recibo devuelto corresponda al comando, actor y expediente esperados, y que una sesión vencida impida llegar al commit. El caso con soporte cifrado mediante dobles no se interpreta como una nueva verificación de la criptografía real.
+
+La demostración HTTP integrada se ejecutó con servicios reales aislados y terminó satisfactoriamente en 166.180 segundos, incluyendo preparación y restauración. El recorrido creó, reprogramó y canceló una audiencia; comprobó historia, recibos, roles, denegación entre expedientes, cierre y conflictos de revisión, contexto y huella de envío. Conservó participantes manuales y tipificados exactos después de corregir identidad y archivar una ficha, y canceló después de avanzar la etapa. El caso de individualización rechazó la ausencia del antecedente y después vinculó un PDF sellado de versión uno, aunque ya existiera una versión dos. La agenda se recorrió con filtros y cursores, sin duplicar ni exponer citas de expedientes ajenos.
+
+La restauración volvió a consultar y comparó íntegramente doce respuestas del recorrido: contexto, listado, detalle, historia, revisiones, identidad, ficha histórica y agenda. Se conservaron recibos, autores, instantes, referencias y soportes, y se verificó la cadena de auditoría. La \cref{tab:pruebas-restauracion-audiencias} identifica el conjunto sintético restaurado; sus conteos corresponden a esa demostración, no al tamaño de una base de producción.
+
+\begin{table}[H]
+  \centering
+  \caption{Inventario conservado en la restauración integrada de audiencias.}
+  \label{tab:pruebas-restauracion-audiencias}
+  \begin{tabularx}{\linewidth}{@{}L{4.0cm} X@{}}
+    \toprule
+    \textbf{Conjunto} & \textbf{Registros conservados} \\
+    \midrule
+    Expedientes & 11 raíces, 20 revisiones administrativas y seis registros iniciales de etapa. \\
+    Documentos & 12 raíces, 15 versiones de contenido y tres revisiones de clasificación. \\
+    Directorio & Seis raíces de fichas y nueve revisiones manuales. \\
+    Directorio tipificado & Cuatro revisiones de fichas, dos identidades y cuatro revisiones de identidad. \\
+    Declaración personal & Una credencial con evidencia pública y confianza histórica. \\
+    Audiencias & Tres raíces y cinco revisiones inmutables. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La interfaz aprobó por separado \textbf{119 pruebas unitarias y 178 escenarios de navegador con respuestas simuladas}, además de su compilación. Los casos comprueban preservación de fecha, segundos y desfase, participantes históricos, coordinación de controles, filtros y paginación, acceso por roles, cierre y respuestas tardías. La conciliación exige recibo y revisión exactos, conserva la incertidumbre ante un \texttt{404} de la revisión y no repite la escritura. Los escenarios de composición verifican ausencia de desborde horizontal a 1440 y 390 píxeles. Estos conteos no se suman a Rust y se reportan separados de la campaña con servicios reales y de la evaluación de usabilidad pendiente.
+
+Las pruebas con PostgreSQL real revalidaron pertenencia, rol, cuenta activa, cierre, contexto, participantes y soportes después de la preparación. La carrera entre reemplazo y cancelación admitió un único sucesor auditado; reutilizar un identificador de operación no confirmó dos raíces. Los fallos de inserción, auditoría y restricciones diferidas revirtieron la escritura completa. La cancelación conservó el contexto original después de cambiar la etapa, y las fichas retenidas mantuvieron su identidad exacta tras edición o archivo. Estas propiedades se sustentan en los ensayos transaccionales, además del recorrido HTTP.
+
+La campaña del navegador con servicios reales aprobó \textbf{once recorridos}. El comando completo tardó 222.42 segundos, incluyendo preparación de servicios y fixtures; Playwright informó 2.1 minutos para los escenarios. Los tres recorridos nuevos comprueban conciliación de una respuesta perdida mediante recibo exacto, conflicto entre sesiones con borrador conservado, cancelación después de cambiar la etapa, permisos y revocación en agenda, e individualización con soporte sellado de versión exacta. Los ocho recorridos anteriores también permanecieron aprobados. Esta campaña usa datos sintéticos y no constituye una evaluación de usabilidad con personal del despacho.
+
+El \cref{sec:matriz-audiencias} relaciona las fuentes de prueba y los criterios pendientes. Superar el control de programación no acredita celebración de audiencias, resultados procesales, asistencia efectiva, cómputo jurídico de plazos, notificaciones ni aceptación de uso por personal del despacho.

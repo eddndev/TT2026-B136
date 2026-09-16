@@ -660,6 +660,8 @@ El caso de uso del directorio permanece parcial respecto de los criterios juríd
 
 \input{chapters/04-participantes-tipificados}
 
+\input{chapters/04-audiencias}
+
 \subsection{Confirmación transaccional y continuidad de evidencia}\label{sec:impl-http-transacciones}
 
 El esquema durable se organiza en migraciones con responsabilidades separadas:
@@ -674,6 +676,7 @@ El esquema durable se organiza en migraciones con responsabilidades separadas:
   \item La familia \texttt{0008}: revisiones, canon y secuencia de etapas, descritos en la \cref{sec:impl-http-etapas}.
   \item \rutarepo{migrations/0009_participant_credential_trust.sql}: despliegue y confianza pública con revisiones auditadas.
   \item La familia \texttt{0010}: identidades, fichas tipificadas, codecs, decisiones de candidatos y evidencia personal, descritos en la \cref{sec:impl-participantes-tipificados}.
+  \item La familia \texttt{0011}: programación de audiencias, revisiones, canon, recibos y restricciones, descritos en la \cref{sec:impl-audiencias}.
 \end{itemize}
 
 El servicio autentica antes de la preparación y de nuevo inmediatamente antes de confirmar, exigiendo la misma identidad. El adaptador \texttt{Case\allowbreak Document\allowbreak Store} revalida usuario activo, rol, pertenencia y coincidencia exacta entre expediente y documento dentro de la transacción. Las operaciones costosas ---AES, RSA, TSA y ZIP--- se realizan fuera de ella.
@@ -794,7 +797,7 @@ Las elecciones de bibliotecas, protocolos y adaptadores delimitan las propiedade
   \item \textbf{Sesiones revocables.} Los tokens aleatorios opacos permiten retirar la sesión consultada en Redis. Cada petición recarga desde PostgreSQL el estado activo y el rol, de modo que los permisos no quedan fijados en la credencial. El almacenamiento se abstrae mediante \texttt{Session\allowbreak Store} (\rutarepo{docs/adr/0012-revocable-sessions-and-rbac.md}).
   \item \textbf{Clientes de datos.} Los adaptadores utilizan los clientes síncronos \texttt{postgres} y \texttt{redis}, con versiones compatibles con Rust 1.88. La frontera HTTP ejecuta los casos de uso en el pool bloqueante de Tokio. Antes del despliegue público deberán evaluarse pooling, TLS interno y clientes asíncronos.
   \item \textbf{Fitness functions.} Las comprobaciones arquitectónicas incluyen el umbral de cobertura del 90\,\% por crate criptográfico (FF-4, \cref{sec:fitness-functions,tab:impl-fitness}). La instrumentación de un span de \texttt{tracing} por handler HTTP permanece pendiente.
-  \item \textbf{Autorización por recurso.} El acceso combina rol, usuario activo, pertenencia vigente y asociación documental exacta. Cliente puede consultar metadatos asignados, pero conserva denegado el acceso documental. Las asignaciones regulan permisos de usuarios; el directorio y la clasificación conservan información organizativa sin conceder acceso. Cliente tampoco accede al directorio ni al perfil penal. La administración y el cierre conservan reglas y revisiones propias; la etapa dispone de adopción y dos avances ordinarios, mientras identidad procesal, recursos, audiencias y plazos requieren funcionalidad adicional.
+  \item \textbf{Autorización por recurso.} El acceso combina rol, usuario activo, pertenencia vigente y asociación documental exacta. Cliente puede consultar metadatos asignados, pero conserva denegado el acceso documental. Las asignaciones regulan permisos de usuarios; el directorio y la clasificación conservan información organizativa sin conceder acceso. Cliente tampoco accede al directorio ni al perfil penal. La administración y el cierre conservan reglas y revisiones propias; la etapa dispone de adopción y dos avances ordinarios, mientras la acreditación jurídica, los recursos, los resultados de audiencias y los plazos requieren funcionalidad adicional.
 \end{itemize}
 
 La separación por puertos permitió ampliar la persistencia y el acceso documental conservando la dirección de dependencias \cite{ford2023}.
