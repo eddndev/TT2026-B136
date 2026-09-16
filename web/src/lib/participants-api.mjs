@@ -24,9 +24,17 @@ export function participantsApi(request, caseId) {
     dispose: () => {
       active = false;
     },
-    async list({ limit = 50, afterId, name, procedural_role, status = 'active' } = {}) {
+    async list({
+      limit = 50,
+      afterId,
+      name,
+      procedural_role,
+      kind,
+      profile,
+      status = 'active',
+    } = {}) {
       const page = await call(
-        `?${query({ limit, after_id: afterId, name, procedural_role, status })}`,
+        `?${query({ limit, after_id: afterId, name, procedural_role, kind, profile, status })}`,
       );
       page.participants.forEach((record) => validate(record));
       return page;

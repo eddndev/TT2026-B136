@@ -1,3 +1,4 @@
+import { profileKinds } from './typed-participant-fields.mjs';
 export const participantFields = [
   { key: 'display_name', label: 'Nombre del participante', limit: 200, required: true },
   { key: 'procedural_role', label: 'Rol en el expediente', limit: 80, required: true },
@@ -37,12 +38,18 @@ export function participantValues(draft) {
 export function participantFilters(input) {
   if (!['active', 'archived', 'all'].includes(input.status))
     throw new Error('Estado del directorio no v\u00e1lido.');
+  if (input.profile && !['typed', 'manual', 'all'].includes(input.profile))
+    throw new Error('Filtro de perfil no v\u00e1lido.');
+  if (input.kind && !profileKinds.some((item) => item.key === input.kind))
+    throw new Error('Tipo de participante no v\u00e1lido.');
   const name = textValue(input.name, { ...participantFields[0], required: false });
   const role = textValue(input.procedural_role, { ...participantFields[1], required: false });
   return {
     ...(name ? { name } : {}),
     ...(role ? { procedural_role: role } : {}),
     status: input.status,
+    ...(input.kind ? { kind: input.kind } : {}),
+    ...(input.profile ? { profile: input.profile } : {}),
   };
 }
 export function participantFailure(failure) {

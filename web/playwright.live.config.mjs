@@ -12,8 +12,11 @@ export default defineConfig({
   timeout: 60000,
   use: { baseURL: `http://127.0.0.1:${port}`, headless: true },
   webServer: {
-    command: `npm run dev -- --port ${port}`,
-    env: { ASTRO_DEV_BACKGROUND: '1' },
+    command: `npm run dev -- --port ${port} --ignore-lock`,
+    env: {
+      ASTRO_DEV_BACKGROUND: '1',
+      TT_LIVE_PARTICIPANT_PRIVATE_KEY: '',
+    },
     timeout: 120000,
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: false,

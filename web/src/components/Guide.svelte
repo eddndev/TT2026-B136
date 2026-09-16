@@ -76,6 +76,24 @@
       accede al directorio. Registrar una persona no crea una cuenta ni concede acceso.
     </p>
     <p>
+      Agregar participante permite elegir o registrar una identidad, tipificar el rol y revisar
+      coincidencias con soporte documental exacto. Registrar ficha pendiente conserva el alta
+      manual; Completar perfil agrega una revisi&oacute;n sin borrar su historia. Los
+      hom&oacute;nimos se revisan expresamente y nunca se fusionan por el nombre.
+    </p>
+    <p>
+      Defensor y juez de control requieren certificado p&uacute;blico y firma personal. Descarga la
+      declaraci&oacute;n preparada, f&iacute;rmala con tu herramienta y carga la firma separada. Tu
+      clave privada permanece fuera de Qadra. La comprobaci&oacute;n usa la CA interna de
+      demostraci&oacute;n y no acredita FIREL oficial. Cambiar valores o certificado exige revisar y
+      preparar de nuevo; un resultado incierto se consulta antes de reenviarlo.
+    </p>
+    <p>
+      La ficha conserva su identidad vinculada. Consultar o editar la identidad actual no modifica
+      las fichas ni firmas anteriores. Contacto y protecci&oacute;n se describen mediante soportes:
+      Qadra no env&iacute;a mensajes ni crea un canal de contacto.
+    </p>
+    <p>
       El historial conserva los cambios. Archivar y reactivar solo organizan el directorio; no
       cambian la situaci&oacute;n jur&iacute;dica. Ante una edici&oacute;n concurrente, consulta los
       datos actuales y confirma tus cambios sin perder el formulario.

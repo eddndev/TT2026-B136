@@ -28,7 +28,7 @@ test('literal name and exact role filters run on the server with exclusive UUID 
   await page.getByRole('button', { name: 'Aplicar filtros', exact: true }).click();
   await expect(directory(page).locator('.participant-row')).toHaveCount(0);
   await page.getByLabel('Buscar por nombre', { exact: true }).fill('Ana%_');
-  await page.getByLabel('Rol exacto', { exact: true }).fill('Defensa');
+  await page.getByLabel('Rol manual exacto', { exact: true }).fill('Defensa');
   await page.getByRole('button', { name: 'Aplicar filtros', exact: true }).click();
   await expect(directory(page).locator('.participant-row')).toHaveCount(1);
   const query = new URLSearchParams(state.calls.at(-1).search);

@@ -34,7 +34,7 @@ test('participants persist with concurrent edits, precise archive, history and l
   await page.getByRole('button', { name: 'Confirmar sellado', exact: true }).click();
   const originalZip = await archive(page, testInfo, 'before-participants.zip');
   await page.getByRole('link', { name: 'Participantes', exact: true }).click();
-  await page.getByRole('button', { name: 'Agregar participante', exact: true }).click();
+  await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
   let modal = page.getByRole('dialog', { name: 'Agregar participante', exact: true });
   await modal.getByLabel('Nombre del participante', { exact: true }).fill('Ana Mu\u00f1oz');
   await modal.getByLabel('Rol en el expediente', { exact: true }).fill('Defensa registrada');

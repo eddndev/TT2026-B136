@@ -24,7 +24,7 @@ export default defineConfig({
   testDir: './tests/browser',
   use: { baseURL: `http://127.0.0.1:${port}`, headless: true },
   webServer: {
-    command: `npm run dev -- --port ${port}`,
+    command: `npm run dev -- --port ${port} --ignore-lock`,
     env: { ASTRO_DEV_BACKGROUND: '1' },
     timeout: 120000,
     url: `http://127.0.0.1:${port}`,

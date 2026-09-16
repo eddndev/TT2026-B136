@@ -60,15 +60,24 @@ DATABASE_URL="$(TT_BROWSER_DATABASE_PASSWORD="$TT_BROWSER_DATABASE_PASSWORD" nod
 export DATABASE_URL
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" init-ca >/dev/null
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" issue --cn 'Browser Demo' >/dev/null
+"$CLI" pki --scripts-dir "$REPO_ROOT/pki" issue --cn 'Browser Participant' \
+  --purpose participant-declaration >/dev/null
+mkdir -m 700 "$WORK_DIR/client-credentials" "$WORK_DIR/server"
+mv "$PKI_CA_DIR/private/browser-participant.key.pem" "$WORK_DIR/client-credentials/participant.key.pem"
 bash "$REPO_ROOT/pki/issue-tsa-cert.sh" >/dev/null
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" gen-crl >/dev/null
+DATABASE_URL="$IDENTITY_TEST_DATABASE_URL" "$CLI" credential-trust publish \
+  --root-cert "$PKI_CA_DIR/ca.crt.pem" --crl "$PKI_CA_DIR/crl/crl.pem" \
+  --expected-revision 0 >/dev/null
 
-"$CLI" serve --bind 127.0.0.1:0 --data-dir "$WORK_DIR/data" \
+(
+  cd "$WORK_DIR/server"
+  exec "$CLI" serve --bind 127.0.0.1:0 --data-dir "$WORK_DIR/data" \
   --signer-cert "$PKI_CA_DIR/certs/browser-demo.crt.pem" \
   --signer-key "$PKI_CA_DIR/private/browser-demo.key.pem" \
   --ca-cert "$PKI_CA_DIR/ca.crt.pem" --crl "$PKI_CA_DIR/crl/crl.pem" \
-  --tsa-config "$REPO_ROOT/pki/tsa.cnf" --tsa-dir "$TSA_DIR" \
-  >"$WORK_DIR/server.log" 2>&1 &
+  --tsa-config "$REPO_ROOT/pki/tsa.cnf" --tsa-dir "$TSA_DIR"
+) >"$WORK_DIR/server.log" 2>&1 &
 SERVER_PID=$!
 SERVER_ADDRESS=""
 for _ in $(seq 1 100); do
@@ -80,6 +89,8 @@ done
 [ -n "$SERVER_ADDRESS" ]
 export API_PROXY_TARGET="http://$SERVER_ADDRESS"
 export TT_WEB_FIXTURES="$WORK_DIR/browser-fixtures.json"
+export TT_LIVE_PARTICIPANT_CERTIFICATE="$PKI_CA_DIR/certs/browser-participant.crt.pem"
+export TT_LIVE_PARTICIPANT_PRIVATE_KEY="$WORK_DIR/client-credentials/participant.key.pem"
 umask 077
 curl -fsS -X POST "$API_PROXY_TARGET/api/v1/auth/bootstrap" \
   -H 'Content-Type: application/json' \

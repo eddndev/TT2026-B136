@@ -1,4 +1,6 @@
 <script>
+  import ParticipantTypedSummary from './ParticipantTypedSummary.svelte';
+  import { profileLabel } from '../lib/typed-participant-fields.mjs';
   export let record;
   export let showName = true;
 </script>
@@ -10,7 +12,7 @@
     </div>{/if}
   <div>
     <dt>Rol en el expediente</dt>
-    <dd>{record.procedural_role}</dd>
+    <dd>{record.profile ? profileLabel(record.procedural_role) : record.procedural_role}</dd>
   </div>
   <div>
     <dt>Organizaci&#243;n</dt>
@@ -29,3 +31,7 @@
     </dd>
   </div>
 </dl>
+
+{#if record.profile && record.subject}<ParticipantTypedSummary {record} />{:else}<p class="hint">
+    Ficha pendiente de tipificar.
+  </p>{/if}
