@@ -1,4 +1,5 @@
 // Provision hearing scenarios using independent accounts in disposable services.
+import { provisionHearingResults } from "./web-hearing-result-fixtures.mjs";
 import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 const fixturePath = process.env.TT_WEB_FIXTURES,
@@ -241,6 +242,7 @@ try {
     );
   }
   fixture.hearings = hearings;
+  fixture.hearingResults = await provisionHearingResults(request);
   await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`, { mode: 0o600 });
 } finally {
   await request("POST", "/auth/logout", undefined, 204);
