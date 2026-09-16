@@ -4,6 +4,23 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corrección de sincronización de una prueba de navegación
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Una ejecución de
+CI del cliente terminó con 254 pruebas aprobadas y un fallo en la navegación
+restringida del rol Client; la ejecución paralela de la misma suite aprobó las
+255. La prueba cambiaba el hash antes de esperar que terminara la consulta que
+abre el expediente. La comprobación de ausencia del enlace podía aprobarse
+todavía en la lista y competir con esa apertura pendiente.
+
+La prueba ahora espera el encabezado del resumen antes de comprobar que no hay
+enlace de etapas y de intentar esa ruta. Conserva las aserciones de regreso al
+tablero y ausencia de solicitudes protegidas; no cambia la aplicación ni amplía
+los tiempos de espera. La prueba corregida aprobó **20 repeticiones con dos
+workers, 19.7 s**, y su formato fue validado. Son repeticiones de un escenario,
+no veinte escenarios nuevos. No se repitieron las suites completas locales ni
+los servicios reales para este cambio exclusivo de sincronización de pruebas.
+
 ## Corte reproducido: resoluciones y notificaciones en Qadra
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El cliente de

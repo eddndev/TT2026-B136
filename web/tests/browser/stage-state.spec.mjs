@@ -142,6 +142,9 @@ test('Client neither navigates nor requests staff stages', async ({ page }) => {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Etapas', exact: true })).toHaveCount(0);
   await page.evaluate(() => {
     location.hash = 'stages';
