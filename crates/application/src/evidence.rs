@@ -51,7 +51,7 @@ pub struct EvidenceRequest<'a> {
     pub signer_certificate_pem: &'a [u8],
     /// PEM certificate of the issuing authority.
     pub issuer_certificate_pem: &'a [u8],
-    /// PEM revocation list current at export time.
+    /// PEM revocation list supplied as evidence; export does not refresh it.
     pub crl_pem: &'a [u8],
     /// PEM chain of the timestamp authority, when available.
     pub tsa_chain_pem: Option<&'a [u8]>,
