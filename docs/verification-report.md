@@ -4,6 +4,61 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: servicio de hechos declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[servicio de aplicacion](procedural-facts-application.md) coordina fuentes
+historicas exactas, autenticacion, admision del lote directo, reautenticacion,
+preparacion, envio y lecturas. Sus [recibos PFSRC1/PFTXN1](procedural-facts-receipts.md)
+vinculan valores, proyecciones, actor y comando. No existe todavia adaptador de
+hechos, migracion, transaccion auditada, API o Qadra para estos recursos.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.229 s y 12.602 s. |
+| Suite con PostgreSQL/Redis desechables | **1613 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 417.677 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 20.155 s. |
+| Pruebas nuevas incluidas | **92 aprobadas**, todas en aplicacion. |
+| Rust 1.88 de aplicacion y dominio, todos los targets | Aprobado, 10.753 s. |
+| Conservacion durante la campana | 926 huellas sin cambios. |
+| Corpus independiente | 43 vectores: 25 PFSRC1 y 18 PFTXN1; Python reproducible y bytes Rust coincidentes. |
+
+Las 158 pruebas focales comprenden las 92 nuevas y 66 anteriores; no se suman
+otra vez a la suite global. Los vectores forman parte de cinco pruebas nuevas.
+Su generador Python no invoca Rust; el mock del puerto verifica los bytes y
+devuelve el SHA-256 de Python. No se presenta ese mock como prueba del algoritmo.
+Las cotas reproducidas son 19..36847 bytes para PFSRC1, 141..4145 para el envio
+de resolucion y 157..4161 para el de notificacion.
+
+TDD registra fallos iniciales por APIs ausentes. Se corrigieron dos regresiones
+conductuales adicionales: dos acuerdos de una revision podian contener datos
+comunes contradictorios (14 aprobadas/1 fallida), y cambiar el acuerdo podia
+permitir sustituir su resultado historico aun con recibos recalculados validos
+(12 aprobadas/1 fallida). El cierre incluye ambos negativos y el cambio de
+acuerdo valido. Errores iniciales de fixtures y ajustes de Clippy se distinguen
+de esas regresiones: no son fallos conductuales del producto.
+
+Se comprobaron autenticacion previa, revocacion y cambio de actor o rol tras
+admision, lote unico de dos versiones, deduplicacion sin perder funciones,
+padre historico sin expansion documental, retiro sin readmision, fuentes
+faltantes o sustituidas, cierre, revision obsoleta y recibos ajenos. Las lecturas
+prueban alcance, padre fijo, revisiones exactas, limites, orden, filtros y
+cursores, incluidas declaraciones retiradas y capturas administrativas cerradas.
+El servicio no infiere efectos juridicos ni una politica de fechas futuras.
+
+La suite global ejecuto los backends existentes mediante `scripts/test-backends.sh`
+con PostgreSQL y Redis aislados. Para los hechos nuevos, los puertos son mocks:
+estos resultados no prueban aun transaccion, membresia o rollback de un adaptador
+inexistente. La prueba ignorada corresponde al proveedor TSA externo.
+
+Las 30 fuentes nuevas Rust/Python son ASCII y menores de 400 lineas,
+con maximo 389. Se conservaron 42 fuentes existentes de dominio y resultados.
+Solo se agrega `serde_json` como dependencia de desarrollo ya presente en el
+workspace, para leer el corpus. No hay nuevas dependencias productivas ni
+migraciones. Sin nueva cobertura instrumentada, release, CLI, HTTP, navegador,
+manuscrito o PDF. La evidencia de esta entrega es local en este corte; los CI
+verificados de PR21 (16/16) y PR22 (18/18) corresponden a sus heads anteriores.
+
 ## Corte reproducido: comandos y fuentes exactas de hechos
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). La

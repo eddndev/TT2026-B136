@@ -26,3 +26,26 @@ pub use query::{
     FactHistoryQuery, FactListQuery, FactStatusFilter, NotificationQuery, ResolutionQuery,
 };
 pub use selection::FactSourceSelection;
+
+mod hearings;
+mod source_canonical;
+mod source_encoding;
+mod source_shape;
+pub use hearings::{resolve_fact_hearings, FactHearingProjection};
+pub use source_canonical::{fact_sources_bytes, fact_sources_digest};
+
+mod receipt;
+mod submission;
+pub use receipt::{
+    fact_history_receipt_matches, fact_receipt_matches, fact_snapshot_receipt_matches,
+};
+pub use submission::{fact_submission_bytes, fact_submission_digest, fact_values_digest};
+
+mod resolution_source;
+pub use resolution_source::{resolve_fact_resolution, FactResolutionProjection};
+
+mod preparation;
+mod service;
+pub use service::ProceduralFactService;
+
+mod service_workflow;

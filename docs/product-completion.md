@@ -101,9 +101,13 @@ soportes directos. Sus [canones propios](procedural-facts-canonical.md) distingu
 precision y desfase, y conservan cada localizador aunque un documento se comparta.
 La [base de aplicacion](procedural-facts-application.md) incorpora comandos de
 alta/correccion/retiro, seleccion exacta, comprobaciones puras y contratos de
-puertos. Aun faltan servicio coordinador, recibos, almacenamiento, autorizacion
-efectiva por expediente y auditoria de estos hechos, HTTP y Qadra. Estos valores
-y contratos no registran actos por HTTP ni habilitan plazos.
+puertos. El servicio de aplicacion ya coordina autenticacion, verificacion de
+fuentes exactas, admision del lote directo, reautenticacion y comprobacion de
+recibos de preparacion y respuesta. Sus [canones de fuentes y operacion](procedural-facts-receipts.md)
+conservan las vistas historicas y se contrastan con vectores independientes.
+Aun faltan almacenamiento, autorizacion efectiva por expediente y auditoria
+transaccional de estos hechos, HTTP y Qadra. La implementacion del servicio
+no registra actos por HTTP ni habilita plazos.
 
 ## Entregas y condiciones de cierre
 

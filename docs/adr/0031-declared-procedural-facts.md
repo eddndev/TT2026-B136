@@ -3,10 +3,12 @@
 ## Status
 
 Accepted. Pure domain values and canonical encodings are implemented in
-[the fact model](../procedural-facts.md). Application commands, pure guards and
-port contracts are implemented in [the application contract](../procedural-facts-application.md).
-The coordinating service, receipt encodings, persistence, HTTP and Qadra remain
-pending. This record does not constitute an implemented workflow.
+[the fact model](../procedural-facts.md). The [application contract](../procedural-facts-application.md)
+now includes commands, exact-source validation, coordinating service and reads.
+[Source and operation encodings PFSRC1/PFTXN1](../procedural-facts-receipts.md)
+are implemented. PostgreSQL, migrations, audited transactions, effective case
+membership checks, HTTP and Qadra remain pending. This is not an operational
+persistent workflow.
 
 ## Context
 
@@ -86,6 +88,10 @@ acuerdo. Resolver valores de ficha y sujeto, resultados y resolucion padre; este
 ultimo solo incorpora su resultado y soporte historicos, sin un grafo recursivo.
 Derivar vistas desde valores comprobados, sin exponer por defecto el sujeto
 completo. La seleccion y las cotas quedan en el [contrato de aplicacion](../procedural-facts-application.md).
+PFSRC1 vincula referencias, estados y vistas; PFTXN1 vincula actor, comando,
+identidad fija y digests. Una correccion puede reseleccionar fuentes, pero no
+reescribir las proyecciones de referencias exactas que conserva. Dos acuerdos
+del mismo resultado comparten sus datos de revision.
 
 Una declaracion externa no requiere inventar una audiencia, etapa o perfil penal.
 Conservar una base administrativa sin revision como `Unrevised`; el contenedor
@@ -102,7 +108,7 @@ con desfase declarado permite consultar un instante; UTC expreso y ausencia
 son distintos. No completar medianoche, segundos, zona IANA ni desfase.
 
 Tiempo del acto, recepcion, efectos expresamente asentados y captura del servidor
-son conceptos distintos. La finalidad pertenece al futuro contrato de hechos.
+son conceptos distintos y se conservan conforme al contrato de hechos.
 El valor temporal no consulta Clock ni impone la politica no-futuro de otro
 recurso. Sus extremos civiles y UTC siguen su contrato, sin conversion implicita
 ni cambios de formato para tiempos historicos de etapas o resultados.
@@ -111,8 +117,18 @@ ni cambios de formato para tiempos historicos de etapas o resultados.
 
 Implementar mediante TDD: primero pruebas que fallen para identidad, precision,
 referencias exactas, correccion frente a nueva practica y denegacion de acceso.
-El servicio prepara y verifica fuentes sin reservar una revision; el envio
-reconcilia comando, actor y digests y reautentica antes de confirmar.
+El servicio implementado autentica por rol antes de consultar sus puertos,
+prepara y verifica fuentes sin reservar una revision, y reautentica al mismo
+actor antes de devolver el borrador. El envio vuelve a preparar, compara el
+digest esperado y reautentica antes de solicitar la confirmacion. Comprueba el
+recibo devuelto contra comando, actor, identidad fija y fuentes.
+
+Alta y correccion admiten el lote directo de cero a dos versiones en una llamada
+cuando no esta vacio, por cada preparacion, incluida la del envio, con limites
+compartidos. Los antecedentes historicos no
+agregan archivos al lote. Retiro conserva valores y fuentes y rechaza material
+nuevo. Las lecturas comprueban expediente, revision exacta, recibos y paginacion;
+no aplican el rechazo de escritura a capturas cerradas o declaraciones retiradas.
 
 Raiz, revision, recibo y auditoria deben compartir transaccion. Revalidar permiso,
 pertenencia y expediente activo bajo el bloqueo comun, con lectura vigente,
@@ -138,14 +154,16 @@ recuperacion y reevaluacion atomica antes de habilitar resultados operativos.
   no bastara conservar un UUID o consultar una cabeza mutable.
 - El [modelo puro](../procedural-facts.md) fija catalogos descriptivos, campos,
   desconocimiento, personas y representacion. Los canones PFRES1/PFNOT1 preservan
-  esas declaraciones. La aplicacion define comandos de correccion/retiro y
-  comprobaciones puras; su coordinacion persistente sigue pendiente. Un
-  constructor no comprueba fuentes ni autorizacion.
+  esas declaraciones. La aplicacion coordina preparacion, envio y lecturas con
+  PFSRC1/PFTXN1, autenticacion y reautenticacion. El adaptador persistente sigue
+  pendiente; una prueba de puertos no demuestra una transaccion ni autorizacion
+  por membresia real. Un constructor de dominio tampoco las comprueba.
 - El modelo admite hasta un soporte directo por resolucion y dos por notificacion,
-  conservando funciones/localizadores y rechazando digests contradictorios. Quedan
-  pendientes admision integrada de formatos, recibos, esquema, limites HTTP y
-  Qadra; los puertos fijan el presupuesto compartido de documentos directos. No eludir limites dividiendo el trabajo en lotes. La futura
-  admision debera separar soportes directos de antecedentes historicos resueltos.
+  conservando funciones/localizadores y rechazando digests contradictorios. Estan
+  implementados la admision en el servicio, los recibos y el presupuesto compartido
+  de documentos directos, separados de antecedentes historicos resueltos. No
+  eludir limites dividiendo el trabajo en lotes. Siguen pendientes esquema,
+  transaccion, limites HTTP, composicion y Qadra.
 - Queda pendiente el evaluador: perfiles revisados, aplicabilidad, calendario exacto,
   responsable, canal y corte temporal, discrepancias, consumidores y reevaluacion.
   Este ADR no fija reglas juridicas, un catalogo universal ni una formula mensual.
