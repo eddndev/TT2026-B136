@@ -8,6 +8,17 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("invalid typed participant {0}")]
+    InvalidTypedParticipantValue(&'static str),
+    #[error("subject revision must be positive")]
+    InvalidSubjectRevision,
+    #[error("subject revision counter is exhausted")]
+    SubjectRevisionExhausted,
+    #[error("same participant support has inconsistent digests")]
+    ParticipantSupportDigestMismatch,
+    #[error("participant role and represented subject kind disagree")]
+    ParticipantSubjectKindMismatch,
+
     #[error("invalid case stage")]
     InvalidCaseStage,
 
