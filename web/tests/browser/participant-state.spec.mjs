@@ -41,7 +41,7 @@ for (const action of ['filter', 'create']) {
         }),
       ).toBeEnabled();
     } else {
-      await page.getByRole('button', { name: 'Agregar participante', exact: true }).click();
+      await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
       const modal = page.getByRole('dialog', { name: 'Agregar participante', exact: true });
       await modal.getByLabel('Nombre del participante', { exact: true }).fill('Persona nueva');
       await modal.getByLabel('Rol en el expediente', { exact: true }).fill('Testigo');

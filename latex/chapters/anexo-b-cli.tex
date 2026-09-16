@@ -3,7 +3,7 @@
 % =====================================================================
 \chapter{Manual de la interfaz de línea de comandos}\label{anexo:cli}
 
-Este anexo es el manual de referencia de \texttt{despacho-cli}, la interfaz de línea de comandos del prototipo. El binario lo produce el crate \texttt{bin} del workspace de Cargo, que opera como raíz de composición de la arquitectura hexagonal: los comandos componen casos de uso de aplicación y operaciones administrativas de infraestructura sin trasladar las reglas de negocio a la interfaz. El árbol de mandos está definido en \rutarepo{crates/bin/src/cli.rs}, con argumentos de servidor y base de datos en módulos separados. El contrato descrito corresponde al 12 de septiembre de 2026. Los bloques de comandos sin salida son ejemplos de uso; las transcripciones con el prefijo \texttt{+} conservan resultados históricos: provienen de la transcripción versionada \texttt{docs/demo-transcript.md}, capturada el 12 de julio de 2026 con \texttt{despacho-cli} 0.1.0 y OpenSSL 3.5.7; las mediciones de calibración se distinguen como ejemplos de su corrida y no como rendimiento actual. En esas transcripciones, \texttt{\$REPO} abrevia la raíz del repositorio y \texttt{\$WORK} el directorio temporal de trabajo de aquella ejecución.
+Este anexo es el manual de referencia de \texttt{despacho-cli}, la interfaz de línea de comandos del prototipo. El binario lo produce el crate \texttt{bin} del workspace de Cargo, que opera como raíz de composición de la arquitectura hexagonal: los comandos componen casos de uso de aplicación y operaciones administrativas de infraestructura sin trasladar las reglas de negocio a la interfaz. El árbol de mandos está definido en \rutarepo{crates/bin/src/cli.rs}, con argumentos de servidor y base de datos en módulos separados. El contrato incluye la publicación administrativa de confianza y la emisión de certificados para declaraciones; las transcripciones históricas conservan su fecha propia. Los bloques de comandos sin salida son ejemplos de uso; las transcripciones con el prefijo \texttt{+} conservan resultados históricos: provienen de la transcripción versionada \texttt{docs/demo-transcript.md}, capturada el 12 de julio de 2026 con \texttt{despacho-cli} 0.1.0 y OpenSSL 3.5.7; las mediciones de calibración se distinguen como ejemplos de su corrida y no como rendimiento actual. En esas transcripciones, \texttt{\$REPO} abrevia la raíz del repositorio y \texttt{\$WORK} el directorio temporal de trabajo de aquella ejecución.
 
 \section{Convenciones generales}\label{sec:cli-convenciones}
 
@@ -21,8 +21,11 @@ despacho-cli [--json]
   vault encrypt <FILE> --doc-id <UUID> [--version <N>]
   vault decrypt <PACKAGE> --doc-id <UUID> [--version <N>] [--out <PATH>]
   vault rotate-kek --file <PATH>
-  pki [--scripts-dir <DIR>] {init-ca | issue --cn <CN> |
+  pki [--scripts-dir <DIR>] {init-ca |
+      issue --cn <CN> [--purpose <PURPOSE>] |
       revoke --serial <HEX> | gen-crl | show <CERT>}
+  credential-trust publish --root-cert <PATH> --crl <PATH>
+      --expected-revision <N>
   sign <FILE> --cert <PATH> --key <PATH>
   timestamp <INPUT> [--mock] [--out <PATH>] [--pki-dir <DIR>]
   verify <FILE> --sig <PATH> --cert <PATH> --ca <PATH> [--tsr <PATH>]
@@ -309,6 +312,7 @@ El grupo \texttt{pki} administra la autoridad certificadora interna ejecutando c
     \midrule
     \multicolumn{4}{@{}l}{\textbf{pki issue}} \\
     \texttt{--cn} & cadena & obligatorio & Common name del sujeto del certificado. \\
+    \texttt{--purpose} & enum & \texttt{partner} & \texttt{partner} o \texttt{participant-}\allowbreak\texttt{declaration}; este último usa el perfil de firma personal interna. \\
     \midrule
     \multicolumn{4}{@{}l}{\textbf{pki revoke}} \\
     \texttt{--serial} & cadena (hex) & obligatorio & Serial del certificado, tal como lo imprimen \texttt{issue} y \texttt{show}. \\

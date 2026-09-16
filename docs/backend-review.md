@@ -5,6 +5,38 @@ La autorización documental, las transacciones y el corte recuperable se abordan
 en [ADR-0016](adr/0016-case-document-transactions.md). Consultar
 [el informe vigente](verification-report.md) para el estado posterior.
 
+## Revisión de identidades representadas y declaraciones internas
+
+El directorio combina revisiones manuales y tipificadas, con identidades
+versionadas, autorización por expediente y auditoría transaccional. La selección
+del perfil y el texto de una ficha no otorgan permisos de cuenta. Los detalles
+mantienen la revisión exacta de identidad y el origen de la declaración, incluso
+después de editar la identidad actual o archivar el rol.
+
+La nueva verificación de declaraciones usa exclusivamente material público y una
+firma aportada por el cliente. La clave privada permanece en la herramienta de
+firma externa. Se limita el tamaño de certificado, firma, JSON, declaración y
+soportes; el mismo presupuesto HTTP acota estas operaciones. La política de
+confianza usa una raíz interna y revisiones de CRL publicadas mediante una
+identidad administrativa de PostgreSQL, con permisos de lectura para el servidor.
+La aplicación compara nuevamente confianza, vigencia, permisos y revisiones al
+confirmar. La evidencia conserva los bytes y la decisión de aceptación histórica.
+
+Las pruebas detectaron y corrigieron cuerpos JSON con texto adicional, pérdida
+de comprobación de integridad al construir el índice compacto y supuestos de
+catálogo incompatibles con las restricciones generadas por PostgreSQL. La
+compatibilidad histórica incluye lecturas, archivo, concurrencia y recuperación.
+La demostración HTTP restaura las tablas nuevas y compara tanto respuestas
+completas como firmas verificadas externamente. Los resultados de cada campaña
+se registran en el informe de verificación, separados de este barrido histórico.
+
+La firma de declaraciones internas no cambia la implementación de sellado
+documental que opera con una clave del servidor. Por ello sigue pendiente la
+revisión del modelo de amenaza de [ADR-0002](adr/0002-rsa-signing-crate-and-advisory.md)
+para ese sellado HTTP. Tampoco establece autenticación por certificado, identidad
+civil o acreditación FIREL. Los límites de la nueva política se documentan en
+[ADR-0026](adr/0026-internal-participant-declarations.md).
+
 ## Plan de barrido
 
 1. Contrastar ramas, cambios locales, puertos, adaptadores y contrato vigente.

@@ -1,5 +1,6 @@
 // Provision independent accounts for real browser participant permission tests.
 import { readFile, writeFile } from 'node:fs/promises';
+import { seedTypedParticipants } from './web-typed-participant-fixtures.mjs';
 
 const fixturePath = process.env.TT_WEB_FIXTURES;
 const base = process.env.API_PROXY_TARGET;
@@ -49,6 +50,9 @@ try {
       undefined, session.access_token, 204);
   }
   fixture.participants = participants;
+  fixture.typedParticipants = await seedTypedParticipants(
+    request, session.access_token, process.env.TT_LIVE_PARTICIPANT_CERTIFICATE,
+  );
   await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`, { mode: 0o600 });
 } finally {
   await request('POST', '/api/v1/auth/logout', undefined, session.access_token, 204);

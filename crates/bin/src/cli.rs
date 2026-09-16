@@ -34,6 +34,11 @@ pub enum Command {
         #[command(subcommand)]
         action: DatabaseAction,
     },
+    /// Publish internal declaration trust with administrative database access.
+    CredentialTrust {
+        #[command(subcommand)]
+        action: crate::credential_trust_cmd::CredentialTrustAction,
+    },
     /// Content-integrity operations.
     Crypto {
         #[command(subcommand)]
@@ -82,6 +87,7 @@ impl Command {
         match self {
             Command::Serve(_) => "serve",
             Command::Database { .. } => "database",
+            Command::CredentialTrust { .. } => "credential-trust",
             Command::Crypto { .. } => "crypto",
             Command::Vault { .. } => "vault",
             Command::Pki { .. } => "pki",
@@ -157,6 +163,9 @@ pub enum PkiAction {
         /// Common name for the certificate subject.
         #[arg(long)]
         cn: String,
+        /// Certificate usage profile, supplied only by the local issuer.
+        #[arg(long, value_enum, default_value_t = PkiIssuePurpose::Partner)]
+        purpose: PkiIssuePurpose,
     },
     /// Revoke a certificate by serial number.
     Revoke {
@@ -172,6 +181,13 @@ pub enum PkiAction {
         /// Path to the certificate file.
         cert: PathBuf,
     },
+}
+
+/// Distinct certificate usages offered by the internal authority.
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum PkiIssuePurpose {
+    Partner,
+    ParticipantDeclaration,
 }
 
 /// Arguments for `sign`.

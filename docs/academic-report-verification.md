@@ -1,5 +1,88 @@
 # Verificación de la actualización académica
 
+## Identidades y perfiles tipificados: 15 de septiembre de 2026
+
+Se actualizaron diseño, implementación, pruebas, manual de CLI y anexos para
+separar la cuenta autora, la identidad representada local al expediente y la
+ficha de rol. El reporte describe once perfiles, historia manual y tipificada,
+referencias exactas a identidad y documentos, candidatos con revisión explícita,
+canon SUBJ1/PART2 y declaración PCRED1 firmada fuera del servidor. Se explican
+la publicación administrativa de confianza, las CRL, las comprobaciones después
+del bloqueo transaccional y la conservación de evidencia histórica.
+
+La CA interna se presenta como un perfil de demostración, sin atribuirle FIREL,
+identidad civil acreditada, habilitación profesional o reconocimiento judicial.
+La tabla y el diagrama originales de CU-06, así como el criterio aprobado de
+FIREL, permanecen íntegros; el cumplimiento jurídico pendiente se explica en la
+prosa técnica. Las identidades tampoco conceden acceso a cuentas. Se conserva
+la separación entre las revisiones actuales y las referencias históricas que
+sustentan una ficha o su firma.
+
+### Evidencia de software descrita
+
+El primer corte instrumentado conserva **1066 pruebas Rust aprobadas, cero
+fallos y una externa ignorada**, con **21 968 / 23 773 líneas, 92.4 % global**,
+y el corte de interfaz de **89 pruebas unitarias, 147 escenarios simulados y
+ocho recorridos reales**. El párrafo de repetición distingue la campaña final:
+**1066 / 0 / 1** tanto ordinaria como instrumentada, **21 967 / 23 773 líneas**
+y **11 211 / 12 150** en infraestructura; los demás numeradores no cambiaron.
+Dominio, aplicación e infraestructura superaron sus umbrales del 90 %.
+
+La repetición web aprobó **90 pruebas unitarias, 147 escenarios simulados y
+ocho recorridos reales**, estos últimos en 2.0 minutos de Playwright. La
+prueba unitaria adicional contrasta mensajes de errores de la API. El binario
+release conservó **11 673 656 bytes** y la CLI midió Argon2id en **615.7 ms**
+de promedio de cinco corridas. Compilación, formato, Clippy, MSRV, política de
+dependencias, demostración HTTP y restauración terminaron satisfactoriamente.
+Estos resultados proceden del [informe técnico](verification-report.md);
+la revisión documental no sustituye esas ejecuciones ni una evaluación con
+usuarios. Las mediciones históricas conservan su fecha y denominador.
+
+### Compilación, inspección y procedencia
+
+Se ejecutó el Makefile versionado con LuaLaTeX, biber y glosarios en una copia
+nueva de **60 fuentes y archivos de soporte**, sin reemplazar `latex/main.pdf`.
+Después de incorporar las cifras de cierre, la compilación definitiva terminó
+con código cero: **281 páginas carta y 5 673 845 bytes**. El artefacto local es
+`output/pdf/TT2026-B136-identidades-qadra-2026-09-15.pdf`, acompañado por
+`.sources.json`, `.sha256` y `.provenance.json`. Su SHA-256 es
+`83c33c484c238bd7ae1980d1d46e9c3c796825d87dfda604cd2349d8316eb740`.
+
+El manifiesto registra los hashes exactos y coincide con la copia compilada y
+el árbol utilizado. La procedencia identifica una instantánea de trabajo sobre
+`f5b8fe6b7dc37fade363377354bd6540e5bfed45`, con fuentes modificadas y nuevas
+que aún no tenían commit al compilar. No atribuye íntegramente este PDF a ese
+commit base. Una revisión posterior puede asociar el commit de entrega si
+verifica que los 60 hashes se conservan. El PDF y sus archivos auxiliares
+permanecen fuera de Git; esta evidencia no afirma una nueva compilación remota.
+
+Se inspeccionaron **55 páginas físicas**: 1-10, 57-58, 116-117, 130-135, 157,
+173-177, 198-201, 232-233, 238-239, 245-246, 248, 250-260 y 275-281. Cubren
+índices, CU-06, arquitectura, datos, perfiles, contratos, resultados, CLI,
+verificación independiente y anexos. Las tablas de perfiles y cobertura, la
+trazabilidad y el listado D.6 se ampliaron para revisar legibilidad. La leyenda
+D.6 permanece con sus 24 líneas de código. Tras la corrección final se
+revisaron nuevamente las páginas 198 y 199; otras **49** conservaron sus
+renderizados idénticos píxel a píxel, y se añadieron las cuatro del anexo C.
+
+No se observaron recortes, superposiciones o leyendas separadas del contenido
+nuevo. El control de coordenadas comprobó **13 413 palabras** sin salir del
+área segura. No quedaron citas o referencias sin resolver, etiquetas duplicadas
+ni glifos ausentes. Solo persisten el desborde histórico de **0.11754 pt** en
+el índice de tablas y las sustituciones de versalitas de Times New Roman.
+Las fuentes usadas están incrustadas; Times New Roman y DejaVu Sans Mono
+conservan su selección.
+
+Los **78 archivos protegidos anteriores** mantienen sus hashes, incluidos
+**13 PDF**, los **34 archivos de presentación**, las fuentes académicas
+aprobadas y los doce recursos originales de Qadra. Resumen, introducción con
+objetivos y revisión de plataformas, marco teórico y conclusiones pendientes
+no se editaron. La propuesta de ajuste de OE-2 conserva su condición pendiente
+fuera del manuscrito. El anexo C ya distinguía la CRL capturada al sellar y su
+vigencia temporal; se comprobó su coherencia sin modificarlo. Comparar ZIP
+tras restaurar bajo el mismo código no promete identidad del contenedor entre
+versiones de software, cuyo instructivo puede cambiar.
+
 ## Etapas y admisión de soportes: 15 de septiembre de 2026
 
 Se actualizaron diseño, implementación, pruebas y anexo para describir adopción,

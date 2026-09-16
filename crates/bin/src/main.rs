@@ -9,6 +9,7 @@ mod audit_cmd;
 mod auth_cmd;
 mod cli;
 mod config;
+mod credential_trust_cmd;
 mod database_args;
 mod database_cmd;
 mod handlers;
@@ -51,6 +52,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
     match cli.command {
         Command::Serve(args) => serve_cmd::run(&args),
         Command::Database { action } => database_cmd::run(action, cli.json),
+        Command::CredentialTrust { action } => credential_trust_cmd::run(action, cli.json),
         Command::Crypto {
             action: CryptoAction::Hash { file },
         } => handlers::hash_file(&file, cli.json),

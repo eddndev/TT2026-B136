@@ -8,6 +8,7 @@ use domain::DomainError;
 use serde::Serialize;
 
 mod stage;
+mod typed_participant;
 
 #[cfg(test)]
 mod stage_tests;
@@ -110,6 +111,10 @@ impl ApiError {
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
         let error = match stage::map(error) {
+            Ok(mapped) => return mapped,
+            Err(error) => error,
+        };
+        let error = match typed_participant::map(error) {
             Ok(mapped) => return mapped,
             Err(error) => error,
         };

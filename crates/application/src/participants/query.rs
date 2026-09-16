@@ -1,5 +1,14 @@
 use super::{DirectoryStatus, ParticipantId, ParticipantRevision};
 use crate::ApplicationError;
+use domain::typed_participants::ParticipantKind;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum ParticipantProfileFilter {
+    #[default]
+    All,
+    Manual,
+    Typed,
+}
 
 /// Filtering by organizational state; no procedural status is inferred.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -28,6 +37,8 @@ pub struct ParticipantQuery {
     name: Option<String>,
     procedural_role: Option<String>,
     status: ParticipantStatusFilter,
+    kind: Option<ParticipantKind>,
+    profile: ParticipantProfileFilter,
 }
 
 impl ParticipantQuery {
@@ -45,9 +56,26 @@ impl ParticipantQuery {
             name: normalize_filter(name, "name", 200)?,
             procedural_role: normalize_filter(procedural_role, "procedural_role", 80)?,
             status,
+            kind: None,
+            profile: ParticipantProfileFilter::All,
         })
     }
 
+    pub fn with_profile_filter(
+        mut self,
+        kind: Option<ParticipantKind>,
+        profile: ParticipantProfileFilter,
+    ) -> Self {
+        self.kind = kind;
+        self.profile = profile;
+        self
+    }
+    pub const fn kind(&self) -> Option<ParticipantKind> {
+        self.kind
+    }
+    pub const fn profile(&self) -> ParticipantProfileFilter {
+        self.profile
+    }
     pub const fn limit(&self) -> u32 {
         self.limit
     }

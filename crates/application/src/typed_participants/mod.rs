@@ -1,0 +1,30 @@
+//! Typed roles bind immutable represented identities and exact admission evidence.
+mod canonical;
+mod credential;
+mod model;
+mod port;
+mod prepared;
+mod projection;
+mod proposal;
+mod query;
+mod review;
+mod service;
+mod service_workflow;
+mod validation;
+mod workflow;
+
+pub use crate::credential_trust::{CredentialTrustRevision, CredentialTrustSnapshot};
+pub use crate::documents::{DocumentFormatBatchValidator, StageSupportReadLimits};
+pub use crate::participants::{ParticipantActorSnapshot, ParticipantSnapshot};
+pub use crate::ApplicationError;
+pub use canonical::*;
+pub use credential::*;
+pub use domain::typed_participants::*;
+pub use model::*;
+pub use port::*;
+pub use prepared::*;
+pub use proposal::*;
+pub use query::*;
+pub use review::*;
+pub use service::*;
+pub use workflow::*;

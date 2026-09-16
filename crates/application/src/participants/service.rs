@@ -5,9 +5,9 @@ use domain::clock::Clock;
 use domain::identity::UserId;
 
 use super::{
-    DirectoryStatus, ParticipantAction, ParticipantHistoryPage, ParticipantHistoryQuery,
-    ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision, ParticipantSnapshot,
-    ParticipantStore, ParticipantValues, ParticipantWorkflow,
+    DirectoryStatus, ParticipantAction, ParticipantDetail, ParticipantHistoryPage,
+    ParticipantHistoryQuery, ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision,
+    ParticipantSnapshot, ParticipantStore, ParticipantValues, ParticipantWorkflow,
 };
 use crate::identity::IdentityWorkflow;
 use crate::ApplicationError;
@@ -94,7 +94,7 @@ impl ParticipantWorkflow for ParticipantService {
         id: ParticipantId,
         expected_revision: ParticipantRevision,
         status: DirectoryStatus,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         let actor = self.actor(token, ParticipantAction::ChangeStatus)?;
         self.store.change_status(
             actor,
@@ -121,11 +121,22 @@ impl ParticipantWorkflow for ParticipantService {
         token: &str,
         case_id: CaseId,
         id: ParticipantId,
-    ) -> Result<ParticipantSnapshot, ApplicationError> {
+    ) -> Result<ParticipantDetail, ApplicationError> {
         let actor = self.actor(token, ParticipantAction::Read)?;
         self.store.get(actor, case_id, id, self.clock.now())
     }
 
+    fn get_revision(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: ParticipantId,
+        revision: ParticipantRevision,
+    ) -> Result<ParticipantDetail, ApplicationError> {
+        let actor = self.actor(token, ParticipantAction::Read)?;
+        self.store
+            .get_revision(actor, case_id, id, revision, self.clock.now())
+    }
     fn history(
         &self,
         token: &str,

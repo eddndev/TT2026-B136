@@ -15,8 +15,8 @@ directorio donde extrajo el paquete.
 - `certificado.pem`: el certificado del firmante.
 - `ca.pem`: el certificado de la autoridad emisora, raíz de la confianza
   de este paquete.
-- `crl.pem`: la lista de revocación publicada por la autoridad al
-  momento de exportar.
+- `crl.pem`: la lista de revocación de la autoridad incluida como
+  evidencia; su exportación no actualiza la lista.
 - `tsa-chain.pem`: la cadena de certificados de la autoridad de sellado
   de tiempo (presente cuando estaba disponible al exportar).
 - `INSTRUCCIONES.md`: este archivo.
@@ -53,11 +53,17 @@ emisora y consulte su estado de revocación contra la lista incluida:
     cat ca.pem crl.pem > ca-y-crl.pem
     openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
 
-La salida esperada es `certificado.pem: OK`. Tenga presente que la
-lista de revocación refleja el estado al momento de la exportación y
-tiene fecha de caducidad; para conocer el estado actual solicite una
-lista vigente a la autoridad emisora. Un certificado hoy expirado o
-revocado no invalida por sí solo una firma efectuada mientras el
+La salida esperada es `certificado.pem: OK`. Consulte las fechas de
+emisión y próxima actualización de la lista incluida:
+
+    openssl crl -in crl.pem -noout -lastupdate -nextupdate
+
+La lista refleja la información publicada por la autoridad en su fecha
+de emisión. En el flujo documental se conserva la capturada al sellar;
+exportar la evidencia no la renueva. El comando de verificación evalúa
+la vigencia en la fecha actual y puede rechazar una lista caducada. Para
+conocer el estado actual solicite una lista vigente a la autoridad emisora.
+Un certificado hoy expirado o revocado no invalida por sí solo una firma efectuada mientras el
 certificado era válido; esa lectura corresponde a quien valora la
 evidencia.
 

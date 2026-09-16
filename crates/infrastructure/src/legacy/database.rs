@@ -115,13 +115,17 @@ impl LegacyImport {
              OR EXISTS(SELECT 1 FROM case_participants) OR EXISTS(SELECT 1 FROM case_participant_revisions)
              OR EXISTS(SELECT 1 FROM case_administration_revisions) OR EXISTS(SELECT 1 FROM case_initial_stage_registrations)
              OR EXISTS(SELECT 1 FROM case_stage_revisions)
+             OR EXISTS(SELECT 1 FROM case_subjects) OR EXISTS(SELECT 1 FROM case_subject_revisions)
+             OR EXISTS(SELECT 1 FROM case_participant_typed_revisions) OR EXISTS(SELECT 1 FROM subject_identity_reviews)
+             OR EXISTS(SELECT 1 FROM participant_identity_reviews) OR EXISTS(SELECT 1 FROM participant_credential_evidence)
+             OR EXISTS(SELECT 1 FROM participant_credential_authority) OR EXISTS(SELECT 1 FROM participant_credential_trust_revisions)
              OR EXISTS(SELECT 1 FROM migration_receipts)",
                 &[],
             )
             .map_err(invalid)?
             .get(0);
         if occupied {
-            return Err(invalid("initial import requires empty document, participant, case administration and audit stores; stop writers before cutover"));
+            return Err(invalid("initial import requires empty document, participant, credential trust, case administration and audit stores; stop writers before cutover"));
         }
         Ok(false)
     }

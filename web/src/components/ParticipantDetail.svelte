@@ -4,6 +4,11 @@
   import ParticipantSummary from './ParticipantSummary.svelte';
   import ParticipantHistory from './ParticipantHistory.svelte';
   import ParticipantStatus from './ParticipantStatus.svelte';
+  import ParticipantSubjectReader from './ParticipantSubjectReader.svelte';
+  import ParticipantCredentialEvidence from './ParticipantCredentialEvidence.svelte';
+  export let typedApi, oncomplete, docs, caseId;
+  let credentialBusy = false;
+  let identityBusy = false;
   import { canParticipants } from '../lib/participants.mjs';
   export let api;
   export let user;
@@ -31,11 +36,27 @@
     {#if canParticipants(user.role, 'manage')}<div class="action-row">
         <button
           class="secondary"
-          disabled={$administration.closed || disabled || historyBusy}
+          disabled={$administration.closed ||
+            disabled ||
+            historyBusy ||
+            identityBusy ||
+            credentialBusy}
           onclick={() => onedit(record)}>Editar participante</button
-        ><button
+        >{#if !record.profile}<button
+            class="secondary"
+            disabled={$administration.closed ||
+              disabled ||
+              historyBusy ||
+              identityBusy ||
+              credentialBusy}
+            onclick={() => oncomplete(record)}>Completar perfil</button
+          >{/if}<button
           class="text-button"
-          disabled={$administration.closed || disabled || historyBusy}
+          disabled={$administration.closed ||
+            disabled ||
+            historyBusy ||
+            identityBusy ||
+            credentialBusy}
           onclick={() => statusDialog.open()}
           >{record.directory_status === 'active'
             ? 'Archivar participante'
@@ -53,14 +74,33 @@
   <button
     class="text-button"
     aria-expanded={showHistory}
-    disabled={disabled || historyBusy}
+    disabled={disabled || historyBusy || identityBusy || credentialBusy}
     onclick={() => (showHistory = !showHistory)}
     >{showHistory ? 'Ocultar historial de cambios' : 'Ver historial de cambios'}</button
   >
+  {#if record.subject}{#key record.subject.id}<ParticipantSubjectReader
+        api={typedApi}
+        {docs}
+        {caseId}
+        {user}
+        record={record.subject}
+        {ondenied}
+        disabled={disabled || historyBusy || credentialBusy}
+        bind:busy={identityBusy}
+      />{/key}{/if}
+  {#if record.credential_origin}{#key `${record.credential_origin.participant_revision}:${record.credential_origin.statement_digest}`}<ParticipantCredentialEvidence
+        api={typedApi}
+        reference={record.credential_origin}
+        {ondenied}
+        disabled={disabled || historyBusy || identityBusy}
+        bind:busy={credentialBusy}
+      />{/key}{/if}
   {#if showHistory}<ParticipantHistory
       bind:this={history}
       bind:busy={historyBusy}
       {api}
+      {typedApi}
+      disabled={disabled || identityBusy || credentialBusy}
       id={record.id}
       {ondenied}
     />{/if}

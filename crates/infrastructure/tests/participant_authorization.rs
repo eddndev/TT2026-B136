@@ -44,7 +44,14 @@ fn current_roles_and_memberships_control_every_directory_operation() {
             } else {
                 let current = store.get(actor, f.case, id, f.at).unwrap();
                 store
-                    .replace(actor, f.case, id, current.revision, values("Edited"), f.at)
+                    .replace(
+                        actor,
+                        f.case,
+                        id,
+                        current.revision_number(),
+                        values("Edited"),
+                        f.at,
+                    )
                     .unwrap();
             }
             f.admin

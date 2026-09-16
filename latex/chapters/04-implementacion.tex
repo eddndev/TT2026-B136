@@ -349,10 +349,11 @@ El primer adaptador driving entregado por el prototipo es la interfaz de línea 
     \texttt{vault rotate-kek -{}-file <PATH>} & Re-envuelve la DEK bajo la KEK de \texttt{NEW\_KEK\_BASE64}. \\
     \midrule
     \texttt{pki [-{}-scripts-dir <DIR>] init-ca} & Crea la CA raíz interna (idempotente). \\
-    \texttt{pki issue -{}-cn <CN>} & Emite un certificado de entidad final. \\
+    \texttt{pki issue -{}-cn <CN> [-{}-purpose <PURPOSE>]} & Emite un certificado ordinario o para declaración personal interna. \\
     \texttt{pki revoke -{}-serial <HEX>} & Revoca por número de serie. \\
     \texttt{pki gen-crl} & Genera la CRL en PEM. \\
     \texttt{pki show <CERT>} & Inspecciona sujeto, emisor, serie y vigencia. \\
+    \texttt{credential-trust publish -{}-root-cert <PATH> -{}-crl <PATH> -{}-expected-revision <N>} & Publica raíz y CRL con revisión esperada y conexión administrativa. \\
     \midrule
     \texttt{sign <FILE> -{}-cert <PATH> -{}-key <PATH>} & Firma el digest del archivo; escribe \texttt{<FILE>.sig}. \\
     \texttt{timestamp <INPUT> [-{}-mock] [-{}-out <PATH>] [-{}-pki-dir <DIR>]} & Solicita un sello RFC 3161; escribe \texttt{<INPUT>.tsr}. Con \texttt{-{}-mock} usa la TSA local; sin ella, el proveedor remoto. \\
@@ -385,6 +386,7 @@ El primer adaptador driving entregado por el prototipo es la interfaz de línea 
     \texttt{crypto hash} & \texttt{Hash\allowbreak Document} & \texttt{Ring\allowbreak Sha256\allowbreak Hasher} \\
     \texttt{vault *} & \texttt{Encrypt\allowbreak Document}, \texttt{Decrypt\allowbreak Document}, \texttt{RotateKek} & \texttt{Ring\allowbreak Aes\allowbreak Gcm\allowbreak Cipher}, \texttt{Envelope\allowbreak Key\allowbreak Manager} \\
     \texttt{pki *} & \texttt{Initialize\allowbreak Ca}, \texttt{Issue\allowbreak Certificate}, \texttt{Revoke\allowbreak Certificate}, \texttt{GenerateCrl}, \texttt{Inspect\allowbreak Certificate} & \texttt{Openssl\allowbreak Ca\allowbreak Adapter}, \texttt{X509\allowbreak Chain\allowbreak Validator} \\
+    \texttt{credential-trust} & Publicación auditada de confianza interna & PostgreSQL administrativo y verificador de declaraciones \\
     \texttt{sign} & \texttt{Sign\allowbreak Document} + \texttt{Verify\allowbreak Signature} & \texttt{Rsa\allowbreak Pkcs1\allowbreak Signer}, \texttt{Rsa\allowbreak Pkcs1\allowbreak Verifier} \\
     \texttt{timestamp} & \texttt{Timestamp\allowbreak Document} & \texttt{Local\allowbreak Openssl\allowbreak Tsa} o \texttt{Cincel\allowbreak Tsa\allowbreak Adapter} \\
     \texttt{verify} & \texttt{Verify\allowbreak Document} & \texttt{Ring\allowbreak Sha256\allowbreak Hasher}, \texttt{Rsa\allowbreak Pkcs1\allowbreak Verifier}, \texttt{X509\allowbreak Chain\allowbreak Validator}, \texttt{Rfc3161\allowbreak Verifier} \\
@@ -610,7 +612,7 @@ La carga clasificada recibe exactamente una parte \texttt{file} y una parte JSON
 
 \subsection{Directorio de participantes por expediente}\label{sec:impl-http-participantes}
 
-El directorio registra fichas con UUID propio y asociación inmutable a un expediente. Una ficha puede representar a una persona o autoridad mencionada por el despacho; no crea una cuenta ni una asignación de acceso. Se permiten homónimos, incluso con el mismo rol registrado. La identidad del participante se mantiene separada de la cuenta autenticada que crea o modifica su ficha. El diseño se documenta en \rutarepo{docs/adr/0021-audited-case-participants.md}.
+El directorio conserva el registro manual de fichas con UUID propio y asociación inmutable a un expediente. Una ficha puede representar a una persona o autoridad mencionada por el despacho; no crea una cuenta ni una asignación de acceso. En el registro manual se permiten homónimos, incluso con el mismo rol escrito. La extensión tipificada vincula identidades y perfiles mediante las reglas de la \cref{sec:impl-participantes-tipificados}. La cuenta autenticada que crea o modifica permanece separada de la persona representada. El contrato manual se documenta en \rutarepo{docs/adr/0021-audited-case-participants.md}.
 
 El valor de dominio \texttt{Participant\allowbreak Values} exige nombre y rol manual, de hasta 200 y 80 caracteres Unicode, respectivamente. Organización y estatus jurídico son opcionales, con máximos de 200 y 160. Rechaza caracteres de control en la entrada original antes de recortar espacios Unicode exteriores; una opción vacía queda ausente. Conserva espacios interiores, mayúsculas, acentos, puntuación y forma de normalización Unicode. El estado del directorio es \texttt{active} o \texttt{archived}: organiza la vista, sin cambiar el estatus jurídico ni el del expediente.
 
@@ -622,7 +624,7 @@ El canon \texttt{PART1} codifica primero cinco bytes ASCII, después nombre y ro
 
 La raíz, la primera revisión y el evento de creación se confirman juntos. Cada sucesor conserva valores canónicos, digest, instante UTC y UUID y correo del mismo actor recargado durante la operación. El historial no reconstruye autores mediante sus perfiles actuales. La fecha conserva el instante de la operación; revisión y secuencia de auditoría ordenan las confirmaciones sin prometer marcas temporales estrictamente crecientes. Fallos de inserción, auditoría o commit revierten la mutación completa. La respuesta representa el estado confirmado por esa operación, sin una consulta posterior.
 
-{\emergencystretch=3em La \cref{tab:impl-http-participantes} usa el prefijo \rutarepo{/api/v1/cases/<case>/participants}. El DTO de respuesta presenta campos planos: expediente, UUID, revisión, los cinco valores, \texttt{values\_digest}, \texttt{changed\_at} y \texttt{changed\_by}, este último con UUID y correo capturado.\par}
+{\emergencystretch=3em La \cref{tab:impl-http-participantes} usa el prefijo \rutarepo{/api/v1/cases/<case>/participants}. Las mutaciones manuales conservan su respuesta plana: expediente, UUID, revisión, los cinco valores, \texttt{values\_digest}, \texttt{changed\_at} y \texttt{changed\_by}, este último con UUID y correo capturado. Lecturas, historia y estado admiten la unión de fichas manuales y tipificadas; el listado presenta una proyección compacta.\par}
 
 \begin{table}[H]
   \centering
@@ -642,23 +644,25 @@ La raíz, la primera revisión y el evento de creación se confirman juntos. Cad
   \end{tabularx}
 \end{table}
 
-El listado toma primero la última revisión de cada ficha y después combina nombre por subcadena literal, rol por igualdad exacta y estado. Nombre y rol distinguen mayúsculas y formas Unicode; los signos de comodín no expanden coincidencias. El estado predeterminado es activo y puede solicitarse archivado o ambos. La paginación ordena UUID de forma ascendente y utiliza \texttt{after\_id}; historia ordena revisiones de forma descendente con \texttt{before\_revision}. Ambos límites van de 1 a 100, con 50 por defecto. Una fila adicional determina \texttt{has\_more} y el cursor siguiente; sin ella, el cursor es nulo. No se calcula un total global ni se promete una instantánea compartida entre páginas.
+El listado toma primero la última revisión de cada ficha manual o tipificada y después combina nombre por subcadena literal y estado. El filtro de rol manual por igualdad exacta solo devuelve fichas pendientes de tipificar; tipo y perfil permiten consultar las variantes actuales. Nombre y rol distinguen mayúsculas y formas Unicode; los signos de comodín no expanden coincidencias. El estado predeterminado es activo y puede solicitarse archivado o ambos. La paginación ordena UUID de forma ascendente y utiliza \texttt{after\_id}; historia ordena revisiones de forma descendente con \texttt{before\_revision}. Ambos límites van de 1 a 100, con 50 por defecto. Una fila adicional determina \texttt{has\_more} y el cursor siguiente; sin ella, el cursor es nulo. No se calcula un total global ni se promete una instantánea compartida entre páginas.
 
-Cada lectura confirma su evento antes de devolver datos, incluso con una página vacía. Los seis eventos distinguen creación, reemplazo, cambio exclusivo de estado, listado, detalle e historia, sin copiar nombres ni etiquetas jurídicas al recurso de auditoría. El JSON rechaza campos desconocidos o repetidos y limita el cuerpo completo a 8~KiB, incluidos bytes posteriores al objeto. Cero en una revisión produce \texttt{422}; tipos incorrectos, UUID inválido o JSON mal formado producen \texttt{400}; un cuerpo excesivo, \texttt{413}. Los conflictos distinguen revisión obsoleta y contador agotado. La corrupción persistida se informa como error interno sin exponer detalles.
+Cada lectura confirma su evento antes de devolver datos, incluso con una página vacía. Los eventos del contrato manual distinguen creación, reemplazo, cambio exclusivo de estado, listado, detalle e historia, sin copiar nombres ni etiquetas jurídicas al recurso de auditoría. Las escrituras manuales rechazan campos desconocidos o repetidos y limitan el JSON completo a 8~KiB, incluidos bytes posteriores al objeto. Cero en una revisión produce \texttt{422}; tipos incorrectos, UUID inválido o JSON mal formado producen \texttt{400}; un cuerpo excesivo, \texttt{413}. Los conflictos distinguen revisión obsoleta y contador agotado. La corrupción persistida se informa como error interno sin exponer detalles.
 
 La migración incorpora un directorio vacío a expedientes existentes; no convierte asignaciones de usuarios en participantes. PostgreSQL exige revisión inicial activa, secuencia contigua, canon y huella válidos, referencias al expediente y actor, y una relación diferida que impide confirmar una raíz sin revisión uno. El rol operativo puede leer e insertar, pero no actualizar, eliminar, truncar ni poseer los objetos protegidos. El arranque comprueba esquema, privilegios e inventario. Las funciones resuelven sus referencias en el esquema de instalación, también durante restauración con \texttt{search\_path} vacío. El respaldo conserva raíces, revisiones, procedencia y auditoría junto con documentos y evidencia. Estas medidas no detectan por sí solas una restauración administrativa antigua y coherente.
 
 \subsubsection{Límites de la representación jurídica}
 
-El campo de rol es una descripción manual, no un catálogo normativo ni una regla de autorización. El artículo 105 del CNPP distingue sujetos del procedimiento y quienes tienen calidad de parte \cite{cnpp_consolidado2025}. La ficha tampoco ejecuta comprobaciones de nombramiento, representación o control de una clave. Los artículos 6 y 7 del acuerdo FIREL del OAJ de 2026 regulan firma en su sistema electrónico y reconocimiento procesal para actuar por otra persona \cite{oaj_firel2026}; poseer un certificado no sustituye ese reconocimiento. La separación técnica entre directorio, acceso y firma sigue esta distinción sin afirmar cumplimiento jurídico integral.
+El rol de una ficha pendiente es una descripción manual, no una regla de autorización. El artículo 105 del CNPP distingue sujetos del procedimiento y quienes tienen calidad de parte \cite{cnpp_consolidado2025}. Los perfiles tipificados agregan datos específicos y la declaración interna comprueba una firma real, pero ninguno acredita nombramiento o representación. Los artículos 6 y 7 del acuerdo FIREL del OAJ de 2026 regulan firma en su sistema electrónico y reconocimiento procesal para actuar por otra persona \cite{oaj_firel2026}; poseer un certificado no sustituye ese reconocimiento. La separación técnica entre directorio, acceso y firma conserva esa distinción.
 
 El acuerdo de expediente electrónico AG-POAJ-006/2026 abroga el Acuerdo General 12/2020 \cite{oaj_expediente2026}. El acuerdo FIREL AG-POAJ-016/2026 deroga las disposiciones de emisión, administración, renovación, revocación y uso del acuerdo conjunto 1/2013 en el ámbito de competencia del OAJ, sin declarar la abrogación íntegra de ese antecedente \cite{oaj_firel2026}. Estas fuentes describen los procedimientos judiciales a los que se refieren; no convierten el registro interno de una ficha en una actuación judicial.
 
-El caso de uso del directorio permanece parcial: faltan identidad e identificadores según tipo, duplicidad de persona verificada y rol, criterio de órgano/FIREL para juez y condición de expediente penal activo. Esos criterios del diseño se conservan abiertos en \rutarepo{docs/product-completion.md}; permitir homónimos no los sustituye. Las políticas de datos personales, retención y futura interoperabilidad judicial requieren validación propia.
+El caso de uso del directorio permanece parcial respecto de los criterios jurídicos: datos por tipo, identidad estable local, revisión de coincidencias y firma interna no equivalen a identidad civil comprobada, FIREL o representación acreditada. El estado abierto del expediente es administrativo, no una certificación de condición procesal. El alcance se conserva en \rutarepo{docs/product-completion.md}; las políticas de datos personales, retención e interoperabilidad judicial requieren validación propia.
+
+\input{chapters/04-participantes-tipificados}
 
 \subsection{Confirmación transaccional y continuidad de evidencia}\label{sec:impl-http-transacciones}
 
-El esquema durable se organiza en siete migraciones:
+El esquema durable se organiza en migraciones con responsabilidades separadas:
 \begin{itemize}
   \item \rutarepo{migrations/0001_identity.sql}: usuarios y credenciales protegidas.
   \item \rutarepo{migrations/0002_cases.sql}: expedientes y asignaciones.
@@ -667,6 +671,9 @@ El esquema durable se organiza en siete migraciones:
   \item \rutarepo{migrations/0005_document_metadata.sql}: revisiones organizativas inmutables, canon, huella y procedencia.
   \item \rutarepo{migrations/0006_case_participants.sql}: raíces y revisiones del directorio, secuencia, autoría e invariantes de valores.
   \item \rutarepo{migrations/0007_case_administration.sql}: revisiones del perfil, estado organizativo, unicidad actual y registro inicial exacto.
+  \item La familia \texttt{0008}: revisiones, canon y secuencia de etapas, descritos en la \cref{sec:impl-http-etapas}.
+  \item \rutarepo{migrations/0009_participant_credential_trust.sql}: despliegue y confianza pública con revisiones auditadas.
+  \item La familia \texttt{0010}: identidades, fichas tipificadas, codecs, decisiones de candidatos y evidencia personal, descritos en la \cref{sec:impl-participantes-tipificados}.
 \end{itemize}
 
 El servicio autentica antes de la preparación y de nuevo inmediatamente antes de confirmar, exigiendo la misma identidad. El adaptador \texttt{Case\allowbreak Document\allowbreak Store} revalida usuario activo, rol, pertenencia y coincidencia exacta entre expediente y documento dentro de la transacción. Las operaciones costosas ---AES, RSA, TSA y ZIP--- se realizan fuera de ella.

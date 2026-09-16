@@ -36,14 +36,16 @@ fn competing_full_edit_and_status_change_have_exactly_one_audited_winner() {
                     at,
                 )
             } else {
-                writer.replace(
-                    actor,
-                    case,
-                    id,
-                    ParticipantRevision::initial(),
-                    values("Concurrent text"),
-                    at,
-                )
+                writer
+                    .replace(
+                        actor,
+                        case,
+                        id,
+                        ParticipantRevision::initial(),
+                        values("Concurrent text"),
+                        at,
+                    )
+                    .map(Into::into)
             }
         }));
     }
@@ -62,7 +64,11 @@ fn competing_full_edit_and_status_change_have_exactly_one_audited_winner() {
     );
     let count:i64=f.admin.query_one("SELECT COUNT(*) FROM audit_events WHERE action IN ('participant.updated','participant.directory_status_changed')", &[]).unwrap().get(0);
     assert_eq!(count, 1);
-    let current = store.get(f.owner, f.case, id, f.at).unwrap();
+    let current = store
+        .get(f.owner, f.case, id, f.at)
+        .unwrap()
+        .into_manual()
+        .unwrap();
     assert_eq!(current.revision.get(), 2);
     let retried = store
         .change_status(
@@ -74,7 +80,10 @@ fn competing_full_edit_and_status_change_have_exactly_one_audited_winner() {
             f.at,
         )
         .unwrap();
-    assert_eq!(retried.values.display_name(), current.values.display_name());
+    assert_eq!(
+        retried.manual().unwrap().values.display_name(),
+        current.values.display_name()
+    );
 }
 
 #[test]
@@ -97,15 +106,19 @@ fn both_status_and_text_commit_orders_preserve_explicit_edit_semantics() {
                 f.at,
             )
         } else {
-            writer.replace(
-                f.owner,
-                f.case,
-                id,
-                ParticipantRevision::initial(),
-                values("Current text"),
-                f.at,
-            )
+            writer
+                .replace(
+                    f.owner,
+                    f.case,
+                    id,
+                    ParticipantRevision::initial(),
+                    values("Current text"),
+                    f.at,
+                )
+                .map(Into::into)
         }
+        .unwrap()
+        .into_manual()
         .unwrap();
         assert!(matches!(
             other.change_status(
@@ -119,14 +132,16 @@ fn both_status_and_text_commit_orders_preserve_explicit_edit_semantics() {
             Err(ApplicationError::ParticipantRevisionConflict)
         ));
         let final_snapshot = if status_first {
-            other.replace(
-                f.owner,
-                f.case,
-                id,
-                first.revision,
-                values("Current text").with_directory_status(DirectoryStatus::Archived),
-                f.at,
-            )
+            other
+                .replace(
+                    f.owner,
+                    f.case,
+                    id,
+                    first.revision,
+                    values("Current text").with_directory_status(DirectoryStatus::Archived),
+                    f.at,
+                )
+                .map(Into::into)
         } else {
             other.change_status(
                 f.owner,
@@ -137,6 +152,8 @@ fn both_status_and_text_commit_orders_preserve_explicit_edit_semantics() {
                 f.at,
             )
         }
+        .unwrap()
+        .into_manual()
         .unwrap();
         assert_eq!(final_snapshot.values.display_name(), "Current text");
         assert_eq!(

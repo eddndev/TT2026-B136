@@ -3,7 +3,9 @@ use domain::clock::OffsetDateTime;
 use domain::crypto::{DocumentHasher, Sha256Digest};
 use domain::identity::UserId;
 
-use super::{ParticipantId, ParticipantRevision, ParticipantValues};
+use super::{
+    ParticipantDetail, ParticipantId, ParticipantOverview, ParticipantRevision, ParticipantValues,
+};
 
 /// Identity captured with a revision, independent of later profile changes.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,7 +29,7 @@ pub struct ParticipantSnapshot {
 /// Current snapshots with a stable, exclusive UUID pagination boundary.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParticipantPage {
-    pub participants: Vec<ParticipantSnapshot>,
+    pub participants: Vec<ParticipantOverview>,
     pub has_more: bool,
     pub next_after_id: Option<ParticipantId>,
 }
@@ -35,7 +37,7 @@ pub struct ParticipantPage {
 /// Immutable snapshots in descending revision order.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParticipantHistoryPage {
-    pub revisions: Vec<ParticipantSnapshot>,
+    pub revisions: Vec<ParticipantDetail>,
     pub has_more: bool,
     pub next_before_revision: Option<ParticipantRevision>,
 }

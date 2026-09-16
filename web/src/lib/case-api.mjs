@@ -1,3 +1,4 @@
+import { typedParticipantsApi } from './typed-participants-api.mjs';
 import { caseStagesApi } from './case-stages-api.mjs';
 import { caseAdministrationApi } from './case-administration-api.mjs';
 import { participantsApi } from './participants-api.mjs';
@@ -45,6 +46,7 @@ export function caseApi(transport) {
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
     caseStages: (id) => caseStagesApi(request, id),
     caseParticipants: (id) => participantsApi(request, id),
+    caseTypedParticipants: (id) => typedParticipantsApi(request, id),
     caseDocuments(id) {
       let active = true;
       const base = `${path(id)}/documents`;

@@ -11,6 +11,7 @@ pub mod cipher;
 pub mod digest;
 pub mod document;
 pub mod hasher;
+pub mod internal_credential;
 pub mod keys;
 pub mod password;
 pub mod recovery;
@@ -27,6 +28,10 @@ pub use cipher::{document_aad, AuthenticatedCipher, SealedPayload};
 pub use digest::Sha256Digest;
 pub use document::{DocumentId, DocumentVersion, DocumentVersionRef};
 pub use hasher::DocumentHasher;
+pub use internal_credential::{
+    CredentialCertificate, CredentialCheck, CredentialFailure, CredentialTrustInspection,
+    InternalDeclarationVerifier,
+};
 pub use keys::{KeyManager, WrappedDek};
 pub use password::{PasswordHasher, PasswordVerification};
 pub use recovery::{

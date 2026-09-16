@@ -1,6 +1,10 @@
 # API HTTP local autenticada
 
-Contrato revisado el 2026-09-14. PostgreSQL conserva usuarios, expedientes,
+La [API de identidades representadas y participantes tipificados](typed-participants-api.md)
+detalla revisión de identidad, perfiles, declaraciones internas, proyecciones
+manuales y tipificadas, y consultas de evidencia histórica.
+
+Contrato revisado el 2026-09-15. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
 conserva desafíos, sesiones revocables, límites de intentos y reclamos TOTP. La
 TSA OpenSSL local emite sellos RFC 3161; la ejecución no consulta Cincel.

@@ -8,6 +8,7 @@ pub mod audit;
 pub mod auth;
 pub mod case_stages;
 pub mod cases;
+pub mod credential_trust;
 pub mod documents;
 pub mod error;
 pub mod evidence;
@@ -17,6 +18,7 @@ pub mod participants;
 pub mod pki;
 pub mod signing;
 pub mod timestamping;
+pub mod typed_participants;
 pub mod vault;
 pub mod verification;
 

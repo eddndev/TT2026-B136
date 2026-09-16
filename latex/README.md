@@ -95,6 +95,25 @@ soportes mediante un proceso acotado; la validación general de carga conserva
 su pendiente. El corte registra 933 pruebas Rust aprobadas y 92.7 % de cobertura,
 56 pruebas unitarias de interfaz, 129 escenarios simulados y seis recorridos
 reales. Las mediciones previas conservan sus propios denominadores.
+La extensión de participantes separa cuenta autora, identidad representada local
+al expediente y ficha de rol. Conserva historia manual y añade once perfiles,
+revisión explícita de candidatos, revisiones de identidad y declaración personal
+con CA interna. SUBJ1 y PART2 fijan valores; PCRED1 fija la declaración binaria
+que el titular firma fuera del servidor. La confianza se publica y versiona en
+PostgreSQL; su evidencia no se presenta como FIREL ni como identidad jurídica
+acreditada. La campaña instrumentada aprobó 1066 pruebas Rust, sin fallos y con
+una externa ignorada: 21 968 de 23 773 líneas cubiertas, 92.4 %. El corte web
+aprobó 89 pruebas unitarias, 147 escenarios simulados y ocho recorridos reales.
+El posterior pulido visual de selectores aprobó el escenario dirigido de firma,
+la compilación web y el formato, sin repetir ni aumentar el denominador global.
+Estos resultados conservan los cortes históricos anteriores.
+La repetición de cierre volvió a aprobar 1066 pruebas Rust y midió 21 967 de
+23 773 líneas cubiertas (92.4 %); infraestructura cubrió 11 211 de 12 150 y
+los otros conteos permanecieron iguales. Los tres umbrales aprobaron. El corte
+web final aprobó 90 pruebas unitarias, 147 escenarios simulados y ocho recorridos
+reales; la prueba unitaria adicional contrasta mensajes de errores de la API.
+La CLI midió Argon2id en 615.7 ms de promedio sobre cinco corridas, y el binario
+release conservó 11 673 656 bytes. El primer corte mantiene sus cifras propias.
 La revisión del reporte se registra en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
 
@@ -127,10 +146,18 @@ chapters/
   anexo-d-pki.tex        Anexo D Scripts de la CA interna
   anexo-e-matriz.tex     Anexo E Matriz de pruebas y evidencia
 references.bib           92 referencias (biblatex, estilo IEEE)
-figures/                 Imágenes (image*.png) y diagrama TikZ (despliegue.tex)
+figures/                 Imágenes (image*.png) y diagramas TikZ editables
 ```
 
 ## Convenciones (mantenibilidad)
+
+Los apartados de identidad y perfiles se separan en
+`chapters/03-participantes-tipificados.tex`,
+`chapters/04-participantes-tipificados.tex`,
+`chapters/05-participantes-tipificados.tex`,
+`chapters/anexo-d-declaraciones.tex` y
+`chapters/anexo-e-participantes-tipificados.tex`. Se incluyen desde los capítulos
+respectivos; no requieren alterar el archivo maestro ni las figuras originales.
 
 - **Numeración automática**: las secciones/tablas/figuras NO llevan número
   manual; LaTeX las numera. Para referirte a ellas usa `\cref{etiqueta}`.

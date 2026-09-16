@@ -68,8 +68,8 @@ fn the_documented_openssl_commands_verify_the_extracted_package() {
     let commands = documented_commands(&instructions);
     assert_eq!(
         commands.len(),
-        7,
-        "the instructions document seven commands: {commands:#?}"
+        8,
+        "the instructions document eight commands: {commands:#?}"
     );
     assert!(
         commands
@@ -116,6 +116,11 @@ fn the_documented_openssl_commands_verify_the_extracted_package() {
                 "certificate check output: {text}"
             );
             checked += 1;
+        } else if command.starts_with("openssl crl ") {
+            assert!(
+                text.contains("lastUpdate=") && text.contains("nextUpdate="),
+                "the included CRL must expose its publication and update dates: {text}"
+            );
         } else if command.starts_with("openssl ts -verify") {
             assert!(
                 text.contains("Verification: OK"),

@@ -123,7 +123,7 @@ test('field validation uses scalar limits and an uncertain response retains the 
   page,
 }) => {
   const state = await participantSetup(page);
-  await page.getByRole('button', { name: 'Agregar participante', exact: true }).click();
+  await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
   const modal = page.getByRole('dialog', { name: 'Agregar participante', exact: true });
   const name = modal.getByLabel('Nombre del participante', { exact: true });
   await name.fill('\u{1f600}'.repeat(201));

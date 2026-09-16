@@ -15,5 +15,11 @@ pub use model::{
     ParticipantSnapshot,
 };
 pub use port::{ParticipantStore, ParticipantWorkflow};
-pub use query::{ParticipantHistoryQuery, ParticipantQuery, ParticipantStatusFilter};
+pub use query::{
+    ParticipantHistoryQuery, ParticipantProfileFilter, ParticipantQuery, ParticipantStatusFilter,
+};
 pub use service::ParticipantService;
+
+pub use crate::typed_participants::{
+    ParticipantDetail, ParticipantOverview, ParticipantRevisionSnapshot,
+};

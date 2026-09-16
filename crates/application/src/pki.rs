@@ -5,6 +5,9 @@
 //! Every use case takes time as an explicit unix timestamp where time
 //! matters, so callers own the clock and tests never sleep.
 
+mod declaration;
+pub use declaration::IssueDeclarationCertificate;
+
 use domain::crypto::certificate::{
     CertificateAuthority, CertificateSummary, CertificateValidation, CertificateValidator,
     IssuedCertificate,

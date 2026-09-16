@@ -18,6 +18,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Bound test artifacts while retaining source locations; see docs/adr/0027-ci-debug-information.md.
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  CARGO_PROFILE_TEST_DEBUG: line-tables-only
 
 jobs:
   format:

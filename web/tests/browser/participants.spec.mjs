@@ -14,7 +14,7 @@ test('case-local directory creates, edits and archives without changing account 
   await expect(
     page.getByText('A\u00fan no hay participantes en esta consulta', { exact: true }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Agregar participante', exact: true }).click();
+  await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
   let dialog = page.getByRole('dialog', { name: 'Agregar participante', exact: true });
   await expect(
     dialog.getByText('Registrar a esta persona no le da acceso al sistema.', { exact: true }),

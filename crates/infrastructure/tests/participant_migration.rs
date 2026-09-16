@@ -34,9 +34,11 @@ fn participant_roots_require_an_active_first_revision_at_commit() {
         "INSERT INTO case_participants(id,case_id) VALUES($1,$2)",
         &[&id, &f.case.as_uuid()],
     );
+    let failure = result.unwrap_err();
+    assert_eq!(failure.code(), Some(&SqlState::CHECK_VIOLATION));
     assert_eq!(
-        result.unwrap_err().code(),
-        Some(&SqlState::FOREIGN_KEY_VIOLATION)
+        failure.as_db_error().unwrap().message(),
+        "participant requires exactly one initial revision"
     );
     assert_eq!(
         f.admin

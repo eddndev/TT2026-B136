@@ -112,7 +112,11 @@ fn migration_rerun_and_real_dump_restore_preserve_directory_history_and_runtime_
     );
     assert_eq!(f.snapshot(), before);
     let restored = f.store();
-    let current = restored.get(f.owner, f.case, id, f.at).unwrap();
+    let current = restored
+        .get(f.owner, f.case, id, f.at)
+        .unwrap()
+        .into_manual()
+        .unwrap();
     assert_eq!(current.revision.get(), 3);
     assert_eq!(current.values.display_name(), "After");
     restored

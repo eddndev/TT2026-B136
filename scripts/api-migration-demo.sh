@@ -11,6 +11,8 @@ source "$REPO_ROOT/scripts/api-participant-demo.sh"
 source "$REPO_ROOT/scripts/api-case-administration-demo.sh"
 # shellcheck source=scripts/api-case-stage-demo.sh
 source "$REPO_ROOT/scripts/api-case-stage-demo.sh"
+# shellcheck source=scripts/api-typed-participant-demo.sh
+source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
 
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -50,6 +52,21 @@ migration_demo_state() {
       'participants',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM case_participants p),
       'participant_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
         FROM case_participant_revisions p),
+      'subjects',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM case_subjects s),
+      'subject_revisions',(SELECT jsonb_agg(to_jsonb(s) ORDER BY subject_id,revision)
+        FROM case_subject_revisions s),
+      'typed_participants',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
+        FROM case_participant_typed_revisions p),
+      'subject_reviews',(SELECT jsonb_agg(to_jsonb(s) ORDER BY subject_id,revision)
+        FROM subject_identity_reviews s),
+      'participant_reviews',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
+        FROM participant_identity_reviews p),
+      'participant_credentials',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
+        FROM participant_credential_evidence p),
+      'credential_trust',(SELECT jsonb_agg(to_jsonb(t) ORDER BY deployment_id,revision)
+        FROM participant_credential_trust_revisions t),
+      'credential_authority',(SELECT jsonb_agg(to_jsonb(a) ORDER BY deployment_id)
+        FROM participant_credential_authority a),
       'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a),
       'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY fingerprint) FROM migration_receipts r),
       'users',(SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u),
@@ -192,6 +209,7 @@ PY
   participant_demo "$case_id"
   administration_demo "$case_id"
   stage_demo
+  typed_participant_demo "$imported_url"
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
   DATABASE_URL="$imported_url" "$CLI" --json database import --apply \
@@ -216,6 +234,7 @@ PY
   participant_demo_restored "$case_id"
   administration_demo_restored
   stage_demo_restored
+  typed_participant_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -227,6 +246,11 @@ PY
   printf 'Restored participants: %s roots, %s immutable revisions.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_participants')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_participant_revisions')"
+  printf 'Restored typed participants: %s revisions, %s subjects, %s subject revisions, %s credentials.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_participant_typed_revisions')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_subjects')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_subject_revisions')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM participant_credential_evidence')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -241,3 +265,4 @@ unset -f participant_demo participant_demo_request participant_demo_enroll parti
 unset -f administration_demo administration_demo_request administration_demo_body administration_demo_enroll
 unset -f administration_demo_closed administration_demo_capture administration_demo_restored
 unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
+unset -f typed_participant_demo typed_participant_demo_restored typed_participant_demo_python

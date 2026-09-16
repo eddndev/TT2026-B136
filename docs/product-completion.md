@@ -19,11 +19,22 @@ simulado y los recorridos contra servicios reales tienen evidencias separadas.
 `frontend/` conserva el ejemplo anterior; el producto continúa en `web/`.
 
 El directorio por expediente agrega fichas independientes de las cuentas, valores
-manuales, archivo/reactivación e historial inmutable con autoría. El rol de acceso
+manuales o tipificados, archivo/reactivación e historial inmutable con autoría. El rol de acceso
 y la asignación autorizan cada operación; el texto del rol procesal no concede
 permisos. Su base y límites se describen en
 [ADR-0021](adr/0021-audited-case-participants.md). Este avance no cierra los
 criterios de identidad jurídica ni la gestión procesal completa.
+
+Las fichas tipificadas vinculan una revisión exacta de identidad representada y
+uno de once perfiles. La revisión de posibles duplicados usa señales declaradas,
+soportes y huellas de certificados, con decisiones explícitas y control de
+concurrencia. Qadra permite completar fichas manuales, consultar la identidad
+actual por separado y recuperar evidencia pública de declaraciones firmadas
+externamente. La CA interna y una CRL publicada delimitan esa demostración:
+no equivalen a FIREL ni acreditan civilmente una identidad o una profesión.
+Los contratos están en [ADR-0025](adr/0025-case-subjects-and-typed-participants.md),
+[ADR-0026](adr/0026-internal-participant-declarations.md) y
+[la API tipificada](typed-participants-api.md).
 
 El registro penal completo añade NUC, carpeta judicial, autoridades, delitos e
 información general, con revisión administrativa y registro inicial de
@@ -53,7 +64,7 @@ y [ADR-0024](adr/0024-isolated-document-format-admission.md).
 | Identidad y firma personal | Resolver autenticación con certificado de socios, identidad del firmante y custodia de claves; altas, bajas, invitaciones y recuperación segura de credenciales. | La clave de firma configurada para el servidor no demuestra firma individual por usuario. Separar recuperación MFA de recuperación de contraseña. Definir contratos y probar revocación con sesiones existentes y fallos de entrega. |
 | Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
 | Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
-| Participantes tipificados | Identidad e identificadores por tipo, rol procesal y criterios de autoridad. | Continúa pendiente sobre el directorio manual existente; una etiqueta o cuenta de acceso no acredita identidad jurídica. |
+| Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
 | Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Pendiente; propuesta y criterios en [alcance de recursos](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Audiencias, plazos y calendario | Audiencias vinculadas al expediente, plazos, calendario configurable, vencimientos y alertas persistentes. | Consultar fuentes normativas oficiales vigentes al implementar reglas; casos de prueba de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir validación de las reglas por una simple suma de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
@@ -95,7 +106,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Inicio de sesión y sesiones | Parcial | Certificado de socio, recuperación de contraseña e inactividad; contraseña/MFA y logout ya tienen implementación. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
-| Directorio de participantes | Parcial | Directorio manual, filtros, historial y archivo auditados implementados. Faltan identidad e identificadores según tipo, duplicidad de persona verificada/rol, criterio de órgano/FIREL para juez y alcance jurídico de expediente penal activo. El cierre organizativo ya bloquea las mutaciones del directorio. |
+| Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos, audiencias o plazos. |
 | Audiencia y activación de plazos | Pendiente | Programación, cambios, cancelaciones y creación consistente de plazos vinculados. |
 | Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
@@ -117,10 +128,12 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   conciliarse con esta delimitación antes de introducir facturación o aislamiento
   multiinquilino. Ninguna de esas ampliaciones es requisito implícito para
   conectar la interfaz existente.
-- La autenticación implementada usa contraseña y MFA. Los certificados se usan
-  para firma, y el servidor selecciona una credencial de firma al arrancar. La
-  autenticación por certificado y la firma individual continúan abiertas hasta
-  contar con implementación y pruebas correspondientes.
+- La autenticación implementada usa contraseña y MFA. El sello documental usa
+  la credencial configurada al arrancar el servidor. Las declaraciones internas
+  de participantes verifican una firma externa de 384 bytes sobre una declaración
+  de 218 bytes; no reciben la clave privada. Ese flujo no vincula automáticamente
+  la identidad representada con una cuenta de acceso. La autenticación por
+  certificado y la firma documental individual de usuarios continúan pendientes.
 - Client mantiene acceso a metadatos de expedientes asignados y denegación
   documental. Ampliarlo requiere una política de recursos explícita y pruebas
   de aislamiento; ocultar botones no constituye autorización.
@@ -134,8 +147,10 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,
   nombramiento o legitimación; una etiqueta procesal no modifica RBAC. La revisión
   de fuentes oficiales en ADR-0021 mantiene separados certificado, identidad y
-  representación. Los criterios de FIREL del catálogo siguen abiertos; no se
-  sustituyen por un campo manual ni se eliminan por falta de sustento localizado.
+  representación. La declaración de demostración de ADR-0026 comprueba posesión
+  de una clave y vincula el contenido exacto registrado con confianza interna
+  capturada. El criterio de FIREL del catálogo permanece fuera de esa equivalencia;
+  no se presenta una cadena interna como credencial judicial externa.
 - La TSA local y la CA interna permiten verificar evidencia técnica. La campaña
   con un PSC externo permanece fuera de la entrega actual, según
   [la decisión sobre TSA local](adr/0009-local-timestamp-authority.md).

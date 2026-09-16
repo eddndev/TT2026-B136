@@ -4,6 +4,7 @@ use application::ApplicationError;
 use axum::http::{header::AUTHORIZATION, HeaderMap};
 
 use crate::error::ApiError;
+pub(crate) mod json;
 
 pub(crate) fn bearer_token(headers: &HeaderMap) -> Result<String, ApiError> {
     let mut values = headers.get_all(AUTHORIZATION).iter();

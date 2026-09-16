@@ -6,6 +6,8 @@
 # with the CA for 1 year (365 days) using the v3_end_entity
 # extensions from openssl.cnf (digital signature, non repudiation,
 # client authentication and email protection).
+# The optional --internal-declaration selects signing-only extensions
+# without an extended-key-usage restriction for authentication or email.
 #
 # The CA working directory is taken from the PKI_CA_DIR environment
 # variable and defaults to "pki-ca" under the current working
@@ -13,7 +15,7 @@
 # that directory and must never be committed to version control.
 #
 # Usage:
-#   ./issue-cert.sh COMMON_NAME
+#   ./issue-cert.sh COMMON_NAME [--internal-declaration]
 #   PKI_CA_DIR=/srv/pki-ca ./issue-cert.sh "Juan Perez"
 
 set -euo pipefail
@@ -33,14 +35,19 @@ die() {
 }
 
 usage() {
-    printf 'usage: issue-cert.sh COMMON_NAME\n' >&2
+    printf 'usage: issue-cert.sh COMMON_NAME [--internal-declaration]\n' >&2
     printf 'example: issue-cert.sh "Juan Perez"\n' >&2
     exit 1
 }
 
-[ "$#" -eq 1 ] || usage
+[ "$#" -eq 1 ] || [ "$#" -eq 2 ] || usage
 CN="$1"
 [ -n "$CN" ] || usage
+EXTENSIONS=v3_end_entity
+if [ "$#" -eq 2 ]; then
+    [ "$2" = --internal-declaration ] || usage
+    EXTENSIONS=v3_internal_declaration
+fi
 
 # Restrict the common name to a safe ASCII subset so it can be
 # embedded in the -subj argument and in file names without escaping.
@@ -90,7 +97,7 @@ START_DATE="$(date -u -d '5 minutes ago' +%Y%m%d%H%M%SZ)"
 
 # Sign the request with the CA using the end-entity extensions.
 openssl ca -config "$OPENSSL_CNF" -batch -notext -md sha256 \
-    -startdate "$START_DATE" -days "$CERT_DAYS" -extensions v3_end_entity \
+    -startdate "$START_DATE" -days "$CERT_DAYS" -extensions "$EXTENSIONS" \
     -in "$CSR_FILE" -out "$CERT_FILE"
 
 printf '\nCertificate issued successfully.\n'

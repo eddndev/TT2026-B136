@@ -106,21 +106,21 @@ consultar o detener ese proceso.
 11. **Filtros de clasificación** busca tipo, clasificación y una etiqueta exactos,
     combinados con nombre y estado. Estos filtros distinguen mayúsculas y acentos
     y se conservan al paginar. Solo se filtran los valores actuales del documento.
-12. Abrir **Participantes** en la navegación local del expediente. El directorio
-    registra nombre, rol manual, organización y situación jurídica opcionales,
-    independientes de cuentas y asignaciones. Owner gestiona todos los expedientes;
-    Litigator gestiona los asignados; Paralegal consulta los asignados; Client no
-    consulta participantes. Registrar a una persona no le concede acceso.
-13. **Agregar participante** crea una revisión activa. **Editar participante**
-    conserva el borrador ante conflictos y exige consultar/comparar los datos
-    actuales antes de **Guardar mis cambios**. **Archivar participante** y
-    **Reactivar participante** tienen confirmación y cambian solamente el estado
-    organizativo, conservando la historia y cualquier edición concurrente del
-    nombre o rol. No cambian la situación jurídica, cuentas ni membresías.
-14. El directorio filtra nombre por subcadena literal, rol exacto y estado
-    Activos/Archivados/Todos antes de paginar por UUID exclusivo. **Anterior** y
-    **Siguiente** recorren páginas; no se calcula un total ficticio. Su historial
-    descendente muestra valores y autor/fecha capturados por revisión.
+12. Abrir **Participantes** en la navegación local del expediente. Owner gestiona
+    todos; Litigator gestiona los asignados; Paralegal consulta los asignados;
+    Client no consulta participantes. La identidad representada, la ficha/rol y
+    la cuenta autora son recursos distintos. Registrar una persona no le da acceso.
+13. **Agregar participante** abre el registro tipificado; **Registrar ficha
+    pendiente** conserva el alta manual explícita. **Completar perfil** agrega
+    una revisión tipificada a una ficha manual y conserva sus revisiones anteriores.
+    **Editar participante** conserva el borrador ante conflictos. **Archivar** y
+    **Reactivar** cambian solo el estado organizativo, sin nueva firma personal
+    ni modificación de la identidad, rol, cuentas o membresías.
+14. El directorio filtra nombre literal, rol manual exacto (solo fichas pendientes), tipo tipificado, perfil
+    tipificado/pendiente y estado antes de paginar por cursor exclusivo.
+    Las filas excluyen identificadores personales, contactos y certificados.
+    Su historial conserva los valores y autor/fecha de cada revisión, manual
+    o tipificada; no calcula totales a partir de una página.
 15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
@@ -209,13 +209,9 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
 - Las asignaciones de acceso se gestionan mediante la API. La interfaz para
   elegir usuarios por nombre o correo requiere el directorio de usuarios y
   continúa pendiente. No se presenta un formulario de asignaciones por UUID.
-- El directorio de participantes es organizativo y manual. Admite homónimos;
-  no valida identidad legal, roles tipificados, identificadores oficiales,
-  certificados, FIREL o condiciones procesales. Sus valores están en PostgreSQL,
-  separados de los archivos documentales cifrados. El registro inicial de etapa
-  aparece en el resumen del alta penal; Etapas consulta su estado actual y permite
-  adopción y dos avances ordinarios. Audiencias y plazos siguen pendientes. La API tampoco ofrece
-  cambio/restablecimiento de contraseña.
+- El directorio admite fichas pendientes y once perfiles tipificados. Los
+  datos declarados y el perfil de CA interna no acreditan identidad jurídica,
+  FIREL oficial ni efectos procesales automáticos. No fusiona homónimos.
 - Si un documento importado empieza en una versión posterior a 1, el historial
   muestra explícitamente su primera versión disponible; no inventa versiones
   anteriores. Las cargas posteriores no reemplazan evidencia histórica.
@@ -230,6 +226,55 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
   se pide consultar los datos guardados antes de repetir: un fallo de conexión
   no demuestra que el servidor haya rechazado la escritura.
 - La TSA local produce evidencia técnica, no una constancia NOM-151 de un PSC.
+
+## Identidades, perfiles y firma personal
+
+El formulario permite registrar una identidad nueva o consultar y elegir una
+existente en el expediente. Persona y órgano institucional tienen campos
+separados. Los datos desconocidos requieren estado y motivo; no se inventan CURP,
+nombre ni cédula. La cédula conserva ceros iniciales. Cada identidad y cada rol
+seleccionan soporte por documento, versión, SHA-256 y página o sección, mediante
+lista, historia y detalle exacto; no hay una consulta por fila. El registro admite
+como máximo dos versiones documentales distintas, reutilizables en secciones.
+Una carga confirmada se conserva si luego falla la ficha.
+
+Los perfiles son imputado, víctima/ofendido, defensor, Ministerio Público,
+asesor jurídico, juez de control, tribunal de enjuiciamiento, perito, policía,
+supervisión de medidas cautelares y otro. Contacto/protección remiten a soportes
+cifrados exactos: no se publican como contacto plano ni se envían mensajes.
+La lectura explícita de detalle, historia y evidencia mantiene los permisos de
+Owner/Litigator/Paralegal; la lista compacta no crea una reserva frente a Paralegal.
+
+**Revisar identidad y coincidencias** no guarda ni reserva identificadores.
+Cada candidato se consulta para elegirlo y volver a revisar, o se declara distinto
+con motivo y soporte exacto. Una coincidencia de nombre no fusiona identidades;
+la capacidad de 16 candidatos no permite omitir coincidencias o cambiar los datos
+para evadirlas. Una ficha tipificada conserva su identidad; otra ficha del mismo
+sujeto/tipo, incluida una archivada, se revisa en el directorio completo.
+
+**Preparar registro** fija la revisión propuesta. Defensor y juez de control
+requieren firma personal; otros perfiles personales la permiten y los órganos
+no la admiten. El certificado público PEM/DER ocupa hasta 16 KiB. La descarga
+binaria preserva los 218 bytes de la declaración; el recibo es legible. La firma
+RSA-3072/PKCS#1 v1.5/SHA-256 se realiza fuera del navegador y se carga como archivo
+separado de 384 bytes. No se admiten claves privadas, PFX ni contraseñas de claves.
+Certificado, declaración, firma y borradores solo permanecen en memoria.
+
+Cambiar valores, revisión base, decisiones de identidad o certificado invalida la
+preparación. Un conflicto exige una consulta y comparación explícitas. Ante un
+resultado incierto, la ficha conserva el envío y consulta su revisión exacta:
+la conciliación unsigned usa el digest/revisión de origen; la signed compara
+la declaración y evidencia exactas. No se atribuye un envío por nombre ni se
+crean nuevos identificadores automáticamente. La identidad separada muestra la
+revisión consultada sin atribuirla al envío y exige otra decisión explícita.
+
+El detalle conserva la identidad vinculada a la revisión de la ficha.
+**Consultar identidad actual** y su historia son consultas independientes.
+**Editar identidad** crea una revisión propia; las fichas previas no se reescriben.
+La evidencia personal se consulta expresamente y exporta JSON público, declaración
+y firma binarias. Su leyenda describe la comprobación capturada con la CA interna
+y la revisión atestada; no declara vigencia actual ni equivale al ZIP documental.
+El cierre administrativo bloquea mutaciones y conserva lecturas autorizadas.
 
 ## Etapas y soportes exactos
 
@@ -361,3 +406,13 @@ lectura por Paralegal, ausencia de solicitudes Client y revocación con sesión 
 Owner usa códigos 0/1/2 para sesiones de navegación y 3 para revocación; cada otra
 cuenta usa su código 0. Los resultados se incorporan al informe únicamente después
 de ejecutar `scripts/web-demo.sh` contra la API integrada.
+
+Las regresiones tipificadas cubren los once perfiles en helpers, selección de
+identidades/candidatos, preparación exacta, firma separada, base e identidad como
+contextos distintos, conciliación unsigned/signed, edición separada, historia
+mixta y denegación. Los recorridos reales adicionales usan cuentas exclusivas de
+`typedParticipants`, certificado público de fixture y una clave individual solo
+en `TT_LIVE_PARTICIPANT_PRIVATE_KEY` del proceso Node. OpenSSL firma fuera del
+navegador; solo certificado y firma pública se entregan a la página. Estos guiones
+son independientes: la política de cierre/revocación crea su propio expediente.
+La ejecución de esos guiones se registra cuando el backend integrado está listo.

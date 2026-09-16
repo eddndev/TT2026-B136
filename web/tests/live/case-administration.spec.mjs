@@ -141,7 +141,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sellar documento', exact: true })).toBeEnabled();
     await page.getByRole('link', { name: 'Participantes', exact: true }).click();
-    await page.getByRole('button', { name: 'Agregar participante', exact: true }).click();
+    await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
     await page
       .getByLabel('Nombre del participante', { exact: true })
       .fill('Persona del expediente');

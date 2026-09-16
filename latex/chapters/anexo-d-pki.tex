@@ -3,7 +3,7 @@
 % =====================================================================
 \chapter{Scripts de la autoridad certificadora interna}\label{anexo:pki}
 
-La autoridad certificadora interna del prototipo y su autoridad de sellado de tiempo local se operan con cinco scripts de bash y dos archivos de configuración de OpenSSL, todos versionados en el directorio \texttt{pki/} del repositorio y probados con OpenSSL 3.5.7. Los scripts comparten tres disciplinas: se ejecutan con \texttt{set -euo pipefail} (cualquier fallo intermedio aborta), verifican que \texttt{openssl} esté disponible antes de operar, y leen el directorio de trabajo de la CA de la variable de entorno \texttt{PKI\_CA\_DIR} (por defecto \texttt{pki-ca} bajo el directorio actual). El directorio de trabajo es un artefacto de tiempo de ejecución: contiene las llaves privadas y la base de datos de la autoridad, se crea con permisos restrictivos (\texttt{umask 077} al generar llaves, \texttt{chmod 700} sobre \texttt{private/}) y jamás se versiona; como red de seguridad, el \texttt{.gitignore} de la raíz ignora \texttt{pki/**/*.key} y \texttt{pki/**/*.pem}. El modelo de confianza es una jerarquía de una sola capa: una raíz autofirmada firma directamente certificados de entidad final, la CRL y el certificado de la TSA, conforme a X.509 y RFC 5280 \cite{cooper2008}.
+La autoridad certificadora interna del prototipo y su autoridad de sellado de tiempo local se operan con seis scripts de bash y dos archivos de configuración de OpenSSL, todos versionados en el directorio \texttt{pki/} del repositorio. Los scripts comparten tres disciplinas: se ejecutan con \texttt{set -euo pipefail} (cualquier fallo intermedio aborta), verifican que \texttt{openssl} esté disponible antes de operar, y leen el directorio de trabajo de la CA de la variable de entorno \texttt{PKI\_CA\_DIR} (por defecto \texttt{pki-ca} bajo el directorio actual). El directorio de trabajo es un artefacto de tiempo de ejecución: contiene las llaves privadas y la base de datos de la autoridad, se crea con permisos restrictivos (\texttt{umask 077} al generar llaves, \texttt{chmod 700} sobre \texttt{private/}) y jamás se versiona; como red de seguridad, el \texttt{.gitignore} de la raíz ignora \texttt{pki/**/*.key} y \texttt{pki/**/*.pem}. El modelo de confianza es una jerarquía de una sola capa: una raíz autofirmada firma directamente certificados de entidad final, la CRL y el certificado de la TSA, conforme a X.509 y RFC 5280 \cite{cooper2008}.
 
 Estos mismos scripts son los que ejecuta el prototipo: el adaptador de infraestructura de la autoridad los invoca como subprocesos desde los subcomandos \texttt{pki} de la interfaz de línea de comandos (véase el Anexo~\ref{anexo:cli}), y la suite de pruebas los usa como fixtures reales en directorios temporales, de modo que las pruebas ejercitan la misma implementación de autoridad local utilizada por la demostración. Esto no acredita su operación como autoridad de producción o prestador autorizado.
 
@@ -19,6 +19,7 @@ Estos mismos scripts son los que ejecuta el prototipo: el adaptador de infraestr
     \midrule
     \texttt{init-ca.sh} & Crea la CA raíz: llave privada, certificado autofirmado y base de datos de la autoridad. \\
     \texttt{issue-cert.sh} & Emite un certificado de entidad final firmado por la CA para el common name dado. \\
+    \texttt{issue-declaration-cert.sh} & Emite una hoja para declaraciones personales con usos de firma y sin EKU de autenticación o correo. \\
     \texttt{revoke.sh} & Marca como revocado un certificado emitido, en la base de datos de la CA. \\
     \texttt{gen-crl.sh} & Genera la lista de certificados revocados (CRL) en formato PEM. \\
     \texttt{issue-tsa-cert.sh} & Emite el certificado de la TSA local y prepara su directorio de trabajo. \\
@@ -114,7 +115,7 @@ openssl ca -config "$OPENSSL_CNF" -revoke "$CERT_PATH"
 
 \section{gen-crl.sh: generación de la CRL}\label{sec:pki-gen-crl}
 
-Produce la lista de certificados revocados en formato PEM a partir de la base de datos de la CA. Cada CRL es válida siete días (\texttt{default\_crl\_days = 7} en \texttt{openssl.cnf}), por lo que debe regenerarse al menos semanalmente y después de cada revocación; el validador del prototipo trata una CRL vencida como error duro, nunca como un pase permisivo. La única extensión de la lista es \texttt{authorityKeyIdentifier} (sección \texttt{crl\_ext}). Al terminar, el script reporta las fechas \texttt{lastUpdate} y \texttt{nextUpdate} de la lista recién emitida y cuenta los certificados revocados que contiene.
+Produce la lista de certificados revocados en formato PEM a partir de la base de datos de la CA. Cada CRL es válida siete días (\texttt{default\_crl\_days = 7} en \texttt{openssl.cnf}), por lo que debe regenerarse antes de caducar y después de cada revocación; el validador del prototipo trata una CRL vencida como error duro, nunca como un pase permisivo. La configuración incorpora \texttt{authorityKeyIdentifier}; OpenSSL añade el número de CRL a partir de \texttt{crlnumber}. Al terminar, el script reporta las fechas \texttt{lastUpdate} y \texttt{nextUpdate} de la lista recién emitida y cuenta los certificados revocados que contiene. Las declaraciones de participantes requieren además publicar esa CRL en PostgreSQL.
 
 \begin{lstlisting}[language=bash, caption={Emisión y reporte de la CRL en \texttt{pki/gen-crl.sh}.}, label={lst:pki-gen-crl}]
 openssl ca -config "$OPENSSL_CNF" -gencrl -out "$CRL_FILE"
@@ -146,9 +147,9 @@ cp "$PKI_CA_DIR/ca.crt.pem" "$CHAIN_FILE"
 
 \section{openssl.cnf: configuración de la CA}\label{sec:pki-openssl-cnf}
 
-El archivo define la sección \texttt{internal\_ca} con el layout del directorio de trabajo (resuelto desde \texttt{\$ENV::PKI\_CA\_DIR}, por lo que el archivo no es utilizable de forma independiente de los scripts) y los valores por defecto para la emisión, que son \texttt{default\_md = sha256}, \texttt{default\_days = 365} y \texttt{default\_crl\_days = 7}. Tres directivas endurecen la emisión: \texttt{copy\_extensions = none} garantiza que solo se apliquen las extensiones definidas en el propio archivo y nunca las que el solicitante incluya en su CSR; la política \texttt{policy\_internal} exige que el país y la organización del certificado emitido coincidan con los de la CA (\texttt{match}) y que el common name esté presente (\texttt{supplied}); y \texttt{unique\_subject = no} permite reemitir para un sujeto cuyo certificado anterior fue revocado. La sección \texttt{req} fija \texttt{default\_bits = 3072}, \texttt{default\_md = sha256} y \texttt{string\_mask = utf8only}. Los tres juegos de extensiones X.509 v3 son los siguientes:
+El archivo define la sección \texttt{internal\_ca} con el layout del directorio de trabajo (resuelto desde \texttt{\$ENV::PKI\_CA\_DIR}, por lo que el archivo no es utilizable de forma independiente de los scripts) y los valores por defecto para la emisión, que son \texttt{default\_md = sha256}, \texttt{default\_days = 365} y \texttt{default\_crl\_days = 7}. Tres directivas endurecen la emisión: \texttt{copy\_extensions = none} garantiza que solo se apliquen las extensiones definidas en el propio archivo y nunca las que el solicitante incluya en su CSR; la política \texttt{policy\_internal} exige que el país y la organización del certificado emitido coincidan con los de la CA (\texttt{match}) y que el common name esté presente (\texttt{supplied}); y \texttt{unique\_subject = no} permite reemitir para un sujeto cuyo certificado anterior fue revocado. La sección \texttt{req} fija \texttt{default\_bits = 3072}, \texttt{default\_md = sha256} y \texttt{string\_mask = utf8only}. Los juegos de extensiones incluyen raíz, entidad ordinaria, declaración personal y CRL:
 
-\begin{lstlisting}[language={}, caption={Extensiones X.509 v3 definidas en \texttt{pki/openssl.cnf}.}, label={lst:pki-extensiones}]
+\begin{lstlisting}[language={}, float=htbp, caption={Extensiones X.509 v3 definidas en \texttt{pki/openssl.cnf}.}, label={lst:pki-extensiones}]
 [ v3_root_ca ]
 # Extensions for the self-signed root CA certificate.
 basicConstraints      = critical, CA:true
@@ -167,6 +168,12 @@ subjectKeyIdentifier    = hash
 [ crl_ext ]
 # Extensions attached to every generated CRL.
 authorityKeyIdentifier  = keyid:always
+
+[ v3_internal_declaration ]
+basicConstraints        = critical, CA:false
+keyUsage                = critical, digitalSignature, nonRepudiation
+authorityKeyIdentifier  = keyid:always
+subjectKeyIdentifier    = hash
 \end{lstlisting}
 
 La raíz declara \texttt{CA:true} con uso de llave restringido a firmar certificados y CRL; las entidades finales declaran \texttt{CA:false} con \texttt{digitalSignature} y \texttt{nonRepudiation} críticos ---los usos que sustentan la firma de documentos--- más autenticación de cliente y protección de correo como usos extendidos.
@@ -195,16 +202,19 @@ ordering = no
 
 El mismo archivo define las extensiones \texttt{v3\_tsa} del certificado de la autoridad de sellado, que difieren de las de entidad final en el punto que RFC 3161 exige: el uso extendido de llave \texttt{timeStamping} marcado como crítico, junto con \texttt{basicConstraints = critical, CA:false} y \texttt{keyUsage = critical, digitalSignature}.
 
+\input{chapters/anexo-d-declaraciones}
+
 \section{Flujo típico de operación}\label{sec:pki-flujo}
 
 El orden de uso es el siguiente (los pasos de la autoridad certificadora están documentados en \texttt{pki/README.md}; el paso de la TSA lo añade \texttt{issue-tsa-cert.sh}):
 
 \begin{enumerate}
   \item \texttt{init-ca.sh}, una sola vez, para crear la raíz y la base de datos de la autoridad.
-  \item \texttt{issue-cert.sh "Nombre Apellido"}, una vez por cada firmante que requiera certificado.
+  \item Emitir el certificado con \texttt{issue-cert.sh} para el uso ordinario o \texttt{issue-declaration-cert.sh} para la declaración personal interna, proporcionando el nombre sintético del titular.
   \item \texttt{issue-tsa-cert.sh}, una sola vez, si se empleará el sellado de tiempo local.
   \item \texttt{revoke.sh ruta/al/certificado.crt.pem}, cuando una llave se compromete o el vínculo con el firmante termina.
-  \item \texttt{gen-crl.sh}, después de cada revocación y al menos cada siete días, para que los verificadores dispongan siempre de una lista vigente.
+  \item \texttt{gen-crl.sh}, después de cada revocación y antes de caducar, para que los verificadores dispongan de una lista vigente.
+  \item Publicar raíz y CRL con \texttt{credential-trust publish} cuando se usa la admisión de declaraciones personales; las publicaciones posteriores conservan la raíz y exigen la revisión esperada.
 \end{enumerate}
 
 En la operación normal del prototipo estos pasos no se ejecutan a mano: el adaptador de la autoridad en el crate de infraestructura invoca \texttt{init-ca.sh}, \texttt{issue-cert.sh}, \texttt{revoke.sh} y \texttt{gen-crl.sh} como subprocesos desde los subcomandos \texttt{pki} del binario, inyectando \texttt{PKI\_CA\_DIR}; y la TSA local invoca \texttt{openssl ts -query} y \texttt{openssl ts -reply} contra \texttt{tsa.cnf} con \texttt{TSA\_DIR} inyectada, serializando las respuestas concurrentes con un candado consultivo sobre un archivo del directorio TSA, porque OpenSSL avanza el archivo de seriales con una secuencia leer-incrementar-escribir no atómica. Las pruebas de integración conducen estos mismos scripts en directorios temporales y contrastan sus productos con la línea de comandos de OpenSSL (\texttt{crates/infrastructure/tests/\allowbreak openssl\_ca\_adapter.rs}, \texttt{certificate\_validation.rs} y \texttt{local\_tsa\_rfc3161.rs}).

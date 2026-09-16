@@ -3,8 +3,9 @@ use domain::clock::OffsetDateTime;
 use domain::identity::UserId;
 
 use super::{
-    DirectoryStatus, ParticipantHistoryPage, ParticipantHistoryQuery, ParticipantId,
-    ParticipantPage, ParticipantQuery, ParticipantRevision, ParticipantSnapshot, ParticipantValues,
+    DirectoryStatus, ParticipantDetail, ParticipantHistoryPage, ParticipantHistoryQuery,
+    ParticipantId, ParticipantPage, ParticipantQuery, ParticipantRevision, ParticipantSnapshot,
+    ParticipantValues,
 };
 use crate::ApplicationError;
 
@@ -34,7 +35,7 @@ pub trait ParticipantWorkflow: Send + Sync {
         id: ParticipantId,
         expected_revision: ParticipantRevision,
         status: DirectoryStatus,
-    ) -> Result<ParticipantSnapshot, ApplicationError>;
+    ) -> Result<ParticipantDetail, ApplicationError>;
     fn list(
         &self,
         token: &str,
@@ -46,7 +47,14 @@ pub trait ParticipantWorkflow: Send + Sync {
         token: &str,
         case_id: CaseId,
         id: ParticipantId,
-    ) -> Result<ParticipantSnapshot, ApplicationError>;
+    ) -> Result<ParticipantDetail, ApplicationError>;
+    fn get_revision(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: ParticipantId,
+        revision: ParticipantRevision,
+    ) -> Result<ParticipantDetail, ApplicationError>;
     fn history(
         &self,
         token: &str,
@@ -90,7 +98,7 @@ pub trait ParticipantStore: Send + Sync {
         expected_revision: ParticipantRevision,
         status: DirectoryStatus,
         at: OffsetDateTime,
-    ) -> Result<ParticipantSnapshot, ApplicationError>;
+    ) -> Result<ParticipantDetail, ApplicationError>;
     /// Selects latest revisions and filters before stable, exclusive UUID pagination.
     fn list(
         &self,
@@ -105,7 +113,15 @@ pub trait ParticipantStore: Send + Sync {
         case_id: CaseId,
         id: ParticipantId,
         at: OffsetDateTime,
-    ) -> Result<ParticipantSnapshot, ApplicationError>;
+    ) -> Result<ParticipantDetail, ApplicationError>;
+    fn get_revision(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: ParticipantId,
+        revision: ParticipantRevision,
+        at: OffsetDateTime,
+    ) -> Result<ParticipantDetail, ApplicationError>;
     fn history(
         &self,
         actor: UserId,

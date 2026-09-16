@@ -7,11 +7,15 @@
   import ParticipantList from './ParticipantList.svelte';
   import ParticipantDetail from './ParticipantDetail.svelte';
   import ParticipantEditor from './ParticipantEditor.svelte';
+  import TypedParticipantEditor from './TypedParticipantEditor.svelte';
   import { canParticipants } from '../lib/participants.mjs';
   export let api;
   export let user;
   export let caseRecord;
   const scoped = api.caseParticipants(caseRecord.id);
+  const typedApi = api.caseTypedParticipants(caseRecord.id);
+  const docs = api.caseDocuments(caseRecord.id);
+  let typedEditor;
   let rows = [],
     selected = null,
     filters = { status: 'active' };
@@ -144,6 +148,8 @@
     listGeneration++;
     detailGeneration++;
     scoped.dispose();
+    typedApi.dispose();
+    docs.dispose();
   });
 </script>
 
@@ -156,7 +162,7 @@
   {#if canParticipants(user.role, 'manage')}<button
       class="primary"
       disabled={$administration.closed || !!refreshing}
-      onclick={() => editor.open()}><Icon name="plus" size={18} />Agregar participante</button
+      onclick={() => typedEditor.open()}><Icon name="plus" size={18} />Agregar participante</button
     >{/if}
 </div>
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
@@ -171,6 +177,11 @@
       >Actualizar</button
     >
   </div>
+  {#if canParticipants(user.role, 'manage')}<button
+      class="text-button"
+      disabled={$administration.closed || !!refreshing}
+      onclick={() => editor.open()}>Registrar ficha pendiente</button
+    >{/if}
   <ParticipantFilters onapply={apply} busy={busy || !!refreshing} />
   {#if busy}<p class="hint" role="status">Consultando participantes...</p>
   {:else if rows.length}<ParticipantList {rows} onselect={open} opening={opening || !!refreshing} />
@@ -202,8 +213,12 @@
       bind:this={participantDetail}
       api={scoped}
       {user}
+      {typedApi}
+      {docs}
+      caseId={caseRecord.id}
       record={selected}
-      onedit={(record) => editor.open(record)}
+      onedit={(record) => (record.profile ? typedEditor.open(record) : editor.open(record))}
+      oncomplete={(record) => typedEditor.open(record)}
       onobserved={observed}
       onstatus={statusChanged}
       ondenied={denied}
@@ -212,6 +227,17 @@
 {#if canParticipants(user.role, 'manage')}{#key editorGeneration}<ParticipantEditor
       bind:this={editor}
       api={scoped}
+      onconfirmed={confirmed}
+      onobserved={observed}
+      ondenied={denied}
+    />{/key}{/if}
+
+{#if canParticipants(user.role, 'manage')}{#key editorGeneration}<TypedParticipantEditor
+      bind:this={typedEditor}
+      api={typedApi}
+      manualApi={scoped}
+      {docs}
+      caseId={caseRecord.id}
       onconfirmed={confirmed}
       onobserved={observed}
       ondenied={denied}

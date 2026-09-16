@@ -1,6 +1,6 @@
 use application::participants::{
     ParticipantAction, ParticipantHistoryPage, ParticipantHistoryQuery, ParticipantId,
-    ParticipantPage, ParticipantQuery,
+    ParticipantPage, ParticipantProfileFilter, ParticipantQuery,
 };
 use application::ApplicationError;
 use domain::cases::CaseId;
@@ -23,19 +23,32 @@ impl PostgresParticipantStore {
         let principal = authorize(&mut tx, actor, case, ParticipantAction::List, false)?;
         let cursor = query.after_id().map(|id| id.as_uuid());
         let status = query.status().directory_status().map(|s| s.as_str());
-        let rows=tx.query("SELECT p.case_id,r.* FROM case_participants p
-            JOIN LATERAL (SELECT * FROM case_participant_revisions WHERE participant_id=p.id ORDER BY revision DESC LIMIT 1) r ON TRUE
-            WHERE p.case_id=$1 AND ($2::uuid IS NULL OR p.id>$2)
-                AND ($3::text IS NULL OR strpos(r.display_name COLLATE \"C\",$3)>0)
-                AND ($4::text IS NULL OR r.procedural_role COLLATE \"C\"=$4)
-                AND ($5::text IS NULL OR r.directory_status COLLATE \"C\"=$5)
-            ORDER BY p.id LIMIT $6", &[&case.as_uuid(),&cursor,&query.name(),&query.procedural_role(),&status,&(i64::from(query.limit())+1)])
+        let kind = query.kind().map(|v| v.as_str());
+        let profile = match query.profile() {
+            ParticipantProfileFilter::All => 0i16,
+            ParticipantProfileFilter::Manual => 1,
+            ParticipantProfileFilter::Typed => 2,
+        };
+        let rows = tx
+            .query(
+                include_str!("overview.sql"),
+                &[
+                    &case.as_uuid(),
+                    &cursor,
+                    &query.name(),
+                    &query.procedural_role(),
+                    &status,
+                    &kind,
+                    &profile,
+                    &(i64::from(query.limit()) + 1),
+                ],
+            )
             .map_err(storage::port)?;
         let has_more = rows.len() > query.limit() as usize;
         let participants = rows
             .iter()
             .take(query.limit() as usize)
-            .map(|r| storage::decode(r, self.hasher.as_ref()))
+            .map(super::overview::decode)
             .collect::<Result<Vec<_>, _>>()?;
         let next_after_id = has_more.then(|| participants.last().unwrap().id);
         append_transaction(
@@ -66,16 +79,22 @@ impl PostgresParticipantStore {
         let principal = authorize(&mut tx, actor, case, ParticipantAction::History, true)?;
         storage::current(&mut tx, case, id, self.hasher.as_ref())?;
         let cursor = query.before_revision().map(|r| i64::from(r.get()));
-        let rows=tx.query("SELECT p.case_id,r.* FROM case_participant_revisions r JOIN case_participants p ON p.id=r.participant_id
-            WHERE p.id=$1 AND p.case_id=$2 AND ($3::bigint IS NULL OR r.revision<$3) ORDER BY r.revision DESC LIMIT $4",
-            &[&id.as_uuid(),&case.as_uuid(),&cursor,&(i64::from(query.limit())+1)]).map_err(storage::port)?;
+        let rows=tx.query("SELECT revision FROM (SELECT revision FROM case_participant_revisions WHERE participant_id=$1 UNION ALL SELECT revision FROM case_participant_typed_revisions WHERE participant_id=$1) r
+            WHERE ($2::bigint IS NULL OR revision<$2) ORDER BY revision DESC LIMIT $3",
+            &[&id.as_uuid(),&cursor,&(i64::from(query.limit())+1)]).map_err(storage::port)?;
         let has_more = rows.len() > query.limit() as usize;
-        let revisions = rows
-            .iter()
-            .take(query.limit() as usize)
-            .map(|r| storage::decode(r, self.hasher.as_ref()))
-            .collect::<Result<Vec<_>, _>>()?;
-        let next_before_revision = has_more.then(|| revisions.last().unwrap().revision);
+        let mut revisions = Vec::new();
+        for row in rows.iter().take(query.limit() as usize) {
+            let revision = storage::revision(row.try_get(0).map_err(storage::port)?)?;
+            revisions.push(storage::exact(
+                &mut tx,
+                case,
+                id,
+                revision,
+                self.hasher.as_ref(),
+            )?);
+        }
+        let next_before_revision = has_more.then(|| revisions.last().unwrap().revision_number());
         append_transaction(
             &mut tx,
             &principal.email,

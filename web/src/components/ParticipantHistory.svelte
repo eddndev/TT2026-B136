@@ -1,6 +1,12 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
+  import ParticipantCredentialEvidence from './ParticipantCredentialEvidence.svelte';
+  export let typedApi,
+    disabled = false;
+  let reading = false,
+    evidenceBusy = {};
+  $: busy = reading || Object.values(evidenceBusy).some(Boolean);
   export let api;
   export let id;
   export let ondenied;
@@ -23,7 +29,7 @@
     return pending;
   }
   async function read(more) {
-    busy = true;
+    reading = true;
     error = '';
     if (!more) {
       rows = [];
@@ -42,7 +48,7 @@
         if ([403, 404].includes(failure.status)) ondenied(failure);
       }
     } finally {
-      if (alive) busy = false;
+      if (alive) reading = false;
     }
   }
   onMount(() => {
@@ -65,13 +71,24 @@
         ></summary
       >
       <ParticipantSummary record={row} />
+      {#if row.credential_origin}<ParticipantCredentialEvidence
+          api={typedApi}
+          reference={row.credential_origin}
+          {ondenied}
+          disabled={disabled ||
+            reading ||
+            Object.entries(evidenceBusy).some(
+              ([revision, value]) => Number(revision) !== row.revision && value,
+            )}
+          bind:busy={evidenceBusy[row.revision]}
+        />{/if}
       <p class="hint">Identidad del autor: <code>{row.changed_by.id}</code></p>
     </details>{/each}
   {#if busy}<p class="hint" role="status">Consultando cambios...</p>{/if}
   {#if !busy && !rows.length && !error}<p class="hint">No hay revisiones en esta consulta.</p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>
     <button class="secondary" onclick={load}>Volver a consultar historial</button>{/if}
-  {#if hasMore}<button class="secondary" disabled={busy} onclick={load}
+  {#if hasMore}<button class="secondary" disabled={busy || disabled} onclick={load}
       >Cargar cambios anteriores</button
     >{/if}
 </section>
