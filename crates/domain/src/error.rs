@@ -8,6 +8,12 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("invalid hearing {0}")]
+    InvalidHearingValue(&'static str),
+
+    #[error("hearing revision must be positive")]
+    InvalidHearingRevision,
+
     #[error("invalid typed participant {0}")]
     InvalidTypedParticipantValue(&'static str),
     #[error("subject revision must be positive")]

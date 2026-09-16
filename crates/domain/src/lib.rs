@@ -12,6 +12,7 @@ pub mod clock;
 pub mod crypto;
 pub mod document_metadata;
 pub mod error;
+pub mod hearings;
 pub mod identity;
 pub mod participants;
 pub mod typed_participants;
