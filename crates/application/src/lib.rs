@@ -13,6 +13,7 @@ pub mod documents;
 pub mod error;
 pub mod evidence;
 pub mod hashing;
+pub mod hearings;
 pub mod identity;
 pub mod participants;
 pub mod pki;
