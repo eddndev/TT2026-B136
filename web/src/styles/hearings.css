@@ -1,0 +1,126 @@
+.hearing-index,
+.hearing-detail,
+.hearing-editor {
+  margin-bottom: 24px;
+}
+.hearing-list,
+.hearing-pick-list,
+.hearing-agenda-days,
+.hearing-fields {
+  display: grid;
+  gap: 16px;
+}
+.hearing-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+}
+.hearing-row-text {
+  display: grid;
+  flex: 1;
+  gap: 7px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.hearing-row-text > span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.hearing-filter,
+.hearing-provenance,
+.hearing-preview,
+.hearing-reconciliation,
+.hearing-picker,
+.hearing-antecedent-summary {
+  margin: 18px 0;
+}
+.hearing-filter {
+  align-items: flex-end;
+}
+.hearing-detail .section-heading,
+.hearing-index .section-heading,
+.hearing-agenda .section-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.hearing-participant {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.hearing-participants {
+  margin: 12px 0;
+}
+.hearing-editor > .primary,
+.hearing-editor > .text-button,
+.hearing-agenda-filters button,
+.hearing-picker > button {
+  margin-top: 16px;
+}
+.hearing-fields .case-offenses,
+.hearing-antecedent {
+  margin: 0;
+}
+.hearing-antecedent > p,
+.hearing-antecedent-summary > p,
+.hearing-reconciliation > p,
+.hearing-provenance > p {
+  margin-top: 10px;
+}
+.hearing-revision {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.hearing-revision > summary {
+  color: var(--navy);
+  cursor: pointer;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.hearing-agenda-filters {
+  margin-bottom: 24px;
+}
+.hearing-agenda-days h3 {
+  margin: 20px 0 12px;
+}
+@media (max-width: 600px) {
+  .hearing-row {
+    flex-wrap: wrap;
+  }
+  .hearing-row > .tile-icon {
+    display: none;
+  }
+  .hearing-row-text {
+    flex-basis: calc(100% - 32px);
+  }
+  .hearing-participant,
+  .hearing-filter,
+  .hearing-picker .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.hearing-reference {
+  margin: 10px 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.hearing-reference summary {
+  color: var(--navy);
+  cursor: pointer;
+  font-size: 13px;
+}
+.hearing-reference p {
+  margin-top: 8px;
+}
+.hearing-pick-reference > button {
+  width: 100%;
+  text-align: left;
+}

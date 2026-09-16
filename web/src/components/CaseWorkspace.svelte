@@ -2,12 +2,15 @@
   import { onDestroy, setContext } from 'svelte';
   import { writable } from 'svelte/store';
   import CaseStages from './CaseStages.svelte';
+  import CaseHearings from './CaseHearings.svelte';
   import CaseContext from './CaseContext.svelte';
   import CaseAdministration from './CaseAdministration.svelte';
   import Documents from './Documents.svelte';
   import Participants from './Participants.svelte';
   import { staffCase, basicCase } from '../lib/case-administration.mjs';
   export let api, user, record, view, onnavigate, onchange, onupdate;
+  export let hearingIntent = null,
+    onhearingintent = () => {};
   export let intent = null,
     onintent = () => {};
   const staff = staffCase(user.role);
@@ -110,6 +113,15 @@
       {onnavigate}
       loading={busy}
       ondenied={deny}
+    />
+  {:else if view === 'hearings' && staff}<CaseHearings
+      {api}
+      {user}
+      record={current}
+      {onnavigate}
+      ondenied={deny}
+      intent={hearingIntent}
+      onintent={onhearingintent}
     />
   {:else if view === 'participants'}<Participants {api} {user} caseRecord={current} />
   {:else}<Documents {api} {user} caseRecord={current} {intent} {onintent} />{/if}

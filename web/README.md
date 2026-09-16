@@ -292,8 +292,8 @@ Intermedia se registran por separado emisión del auto, recepción y tribunal pa
 pasar a Juicio; referencia y constancia adicional de recepción son opcionales.
 El mismo documento y versión pueden seleccionarse expresamente para ambos actos.
 Motivo/nota admiten 1000 caracteres; tribunal/referencia, 200. No hay siguiente
-avance desde Juicio, corrección o deshacer en este recurso. Recursos procesales,
-audiencias, plazos y calendario requieren otros flujos.
+avance desde Juicio, corrección o deshacer en este recurso. Recursos procesales y plazos requieren otros flujos; la programación de
+audiencias se consulta en su propia sección.
 
 Cada fecha elige precisión de día o instante y desfase UTC explícito. No se
 inventan horas desconocidas ni se usa el desfase actual del navegador para una
@@ -319,6 +319,34 @@ solicita etapas. Perfil incompleto y cierre administrativo impiden registros.
 Un cierre en vuelo actualiza el estado administrativo conservando borrador y
 soportes; una denegación elimina datos protegidos del contexto. El cierre no se
 interpreta como una etapa ni como suspensión de términos judiciales.
+
+## Audiencias y Agenda
+
+Audiencias conserva citas declaradas y sus revisiones dentro de cada expediente.
+El contrato es [`docs/hearings-api.md`](../docs/hearings-api.md). Owner y Litigator
+asignado gestionan; Paralegal asignado consulta; Client no tiene acceso. El cierre
+administrativo conserva lecturas y suspende también las mutaciones de audiencia.
+
+Los cuatro tipos corresponden a la etapa consultada. Individualización exige
+antecedente declarado de condena y versión documental exacta; Juicio no acredita
+por sí solo una condena. Fecha, hora con segundos y desfase UTC se conservan,
+incluso para fechas futuras. No se calcula un resultado por el paso del tiempo.
+
+Alta y reemplazo se preparan y confirman por separado. Reprogramar conserva el
+tipo y exige un motivo. Cancelar agrega una revisión y mantiene programación,
+participantes y soporte históricos. Las fichas elegidas se vinculan por UUID y
+revisión: editar o archivar después el directorio no sustituye esas referencias.
+Un conflicto conserva el borrador y exige consultar y comparar explícitamente.
+Una respuesta perdida consulta el recibo de la revisión exacta, incluyendo actor,
+operación y digest. Un 404 provisional sigue incierto y nunca causa reenvío.
+
+Agenda usa una sola consulta transversal autorizada, independiente del expediente
+abierto. Sus filtros declaran días, desfase y estado; el servidor recibe un rango
+UTC y devuelve un cursor de instante/UUID. Las tarjetas no exponen conexiones,
+notas ni identidades. Elegir una cita valida el expediente y abre esa revisión
+exacta mediante una intención consumida una vez. Las respuestas tardías de una
+vista abandonada no reabren el expediente. Esta entrega cubre programación,
+consulta e historia: no registra resultados, calcula plazos ni envía avisos.
 
 ## Verificación
 
@@ -354,8 +382,9 @@ borradores documentales y de participantes. Las pruebas de etapas cubren variant
 fechas/desfases, referencias históricas exactas, conflictos, conciliación incierta,
 cierre, denegación, páginas y consultas retenidas. Cada ejecución inicia un
 servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
-Ejecuta las pruebas simuladas y reales de forma secuencial: Astro admite una
-sola instancia de desarrollo por proyecto, incluso con puertos diferentes.
+Las configuraciones aisladas usan puertos libres y `--ignore-lock` para coexistir
+con el servidor de demostración. Ejecuta las suites simulada y real por separado
+para que los resultados y sus diagnósticos sean independientes.
 Estas pruebas simuladas no demuestran ejecución con PostgreSQL, Redis o la TSA.
 Las capturas quedan en `web/test-results/` y no se versionan.
 
@@ -416,3 +445,12 @@ en `TT_LIVE_PARTICIPANT_PRIVATE_KEY` del proceso Node. OpenSSL firma fuera del
 navegador; solo certificado y firma pública se entregan a la página. Estos guiones
 son independientes: la política de cierre/revocación crea su propio expediente.
 La ejecución de esos guiones se registra cuando el backend integrado está listo.
+
+Los recorridos reales de audiencias usan `fixture.hearings`, cuentas exclusivas
+y expedientes distintos para programación, permisos e individualización. El
+seeder reserva el código 7 de `caseStages.owner` para crear esas cuentas; no
+reutiliza los códigos de sus recorridos. La prueba de respuesta perdida descarta
+únicamente la respuesta de un POST que ya confirmó la API real y consulta su
+recibo; no fabrica respuestas de negocio. Otro recorrido compara byte por byte
+el ZIP de la versión sellada exacta antes y después de programar y cancelar.
+Los resultados ejecutados se incorporan al informe de verificación del proyecto.

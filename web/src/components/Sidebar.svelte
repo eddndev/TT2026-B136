@@ -1,5 +1,6 @@
 <script>
   import Icon from './Icon.svelte';
+  import { canHearings } from '../lib/hearings.mjs';
   import Brand from './Brand.svelte';
   import { roles } from '../lib/documents.mjs';
   export let user;
@@ -19,6 +20,9 @@
     { id: 'overview', label: 'Inicio', icon: 'home' },
     { id: 'cases', label: 'Expedientes', icon: 'briefcase' },
     { id: 'documents', label: 'Documentos', icon: 'folder' },
+    ...(canHearings(user.role, 'read')
+      ? [{ id: 'agenda', label: 'Agenda', icon: 'calendar' }]
+      : []),
   ];
   const admin = [
     { id: 'team', label: 'Equipo', icon: 'users' },
@@ -38,9 +42,11 @@
     <span class="eyebrow nav-label">ESPACIO DE TRABAJO</span>
     {#each work as item}<button
         class:active={view === item.id ||
-          (item.id === 'cases' && ['participants', 'case-summary'].includes(view))}
+          (item.id === 'cases' &&
+            ['participants', 'case-summary', 'stages', 'hearings'].includes(view))}
         aria-current={view === item.id ||
-        (item.id === 'cases' && ['participants', 'case-summary'].includes(view))
+        (item.id === 'cases' &&
+          ['participants', 'case-summary', 'stages', 'hearings'].includes(view))
           ? 'page'
           : undefined}
         onclick={() => go(item.id)}><Icon name={item.icon} />{item.label}</button

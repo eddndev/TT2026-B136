@@ -1,3 +1,4 @@
+import { canHearings } from './hearings.mjs';
 import { canParticipants } from './participants.mjs';
 export function documentStatus(document) {
   if (document.report?.verdict === 'not_valid')
@@ -12,6 +13,7 @@ export function documentStatus(document) {
 
 export function normalizeView(hash, role) {
   const view = hash.replace(/^#/, '');
+  if (['hearings', 'agenda'].includes(view) && canHearings(role, 'read')) return view;
   if (['participants', 'stages'].includes(view) && canParticipants(role, 'read')) return view;
   if (['overview', 'cases', 'case-summary', 'documents', 'guide'].includes(view)) return view;
   if (role === 'owner' && ['team', 'audit'].includes(view)) return view;
@@ -25,6 +27,8 @@ export const viewLabels = {
   documents: 'Documentos',
   participants: 'Expedientes / Participantes',
   stages: 'Expedientes / Etapas',
+  hearings: 'Expedientes / Audiencias',
+  agenda: 'Agenda',
   team: 'Equipo',
   audit: 'Auditor\u00eda',
   guide: 'Gu\u00eda de uso',
