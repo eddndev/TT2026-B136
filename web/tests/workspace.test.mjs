@@ -29,3 +29,9 @@ test('unknown locations and owner-only locations resolve safely for each role', 
   assert.equal(normalizeView('#unknown', 'owner'), 'overview');
   assert.equal(normalizeView('#documents', 'client'), 'documents');
 });
+
+test('judicial calendars are a global staff location with no Client fallback into case context', () => {
+  for (const role of ['owner', 'litigator', 'paralegal'])
+    assert.equal(normalizeView('#judicial-calendars', role), 'judicial-calendars');
+  assert.equal(normalizeView('#judicial-calendars', 'client'), 'overview');
+});

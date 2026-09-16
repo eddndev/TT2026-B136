@@ -6,6 +6,7 @@
   import { basicCase } from '../lib/case-administration.mjs';
   export let api,
     onopen,
+    oncalendars = () => {},
     filters = null;
   const scoped = api.hearingAgenda();
   let initial = filters || defaultAgendaFilters(),
@@ -101,6 +102,7 @@
     <h1>Agenda de audiencias</h1>
     <p>Citas de los expedientes autorizados para tu cuenta.</p>
   </div>
+  <button class="secondary" onclick={oncalendars}>Calendarios jurisdiccionales</button>
 </div>
 <section class="card hearing-agenda" aria-label="Agenda de audiencias" aria-busy={busy || opening}>
   <AgendaFilters value={initial} onapply={apply} />

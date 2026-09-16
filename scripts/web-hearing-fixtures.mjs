@@ -1,4 +1,5 @@
 // Provision hearing scenarios using independent accounts in disposable services.
+import { provisionCalendars } from "./web-calendar-fixtures.mjs";
 import { provisionHearingResults } from "./web-hearing-result-fixtures.mjs";
 import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -243,6 +244,7 @@ try {
   }
   fixture.hearings = hearings;
   fixture.hearingResults = await provisionHearingResults(request);
+  fixture.judicialCalendars = await provisionCalendars(request);
   await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`, { mode: 0o600 });
 } finally {
   await request("POST", "/auth/logout", undefined, 204);
