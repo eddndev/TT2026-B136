@@ -7,6 +7,7 @@
     typedApi,
     candidates = [],
     selectedIds = [],
+    selectLabel = 'Informar comparecencia de esta revisi\u00f3n',
     onselected,
     oncancel,
     ondenied,
@@ -156,7 +157,7 @@
       type="button"
       class="primary"
       disabled={busy || disabled || selectedIds.includes(exact.id)}
-      onclick={() => onselected(exact)}>Informar comparecencia de esta revisi&#243;n</button
+      onclick={() => onselected(exact)}>{selectLabel}</button
     >{/if}
   <button type="button" class="text-button" disabled={busy} onclick={oncancel}
     >Cerrar selector hist&#243;rico</button

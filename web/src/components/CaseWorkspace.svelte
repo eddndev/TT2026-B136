@@ -2,6 +2,7 @@
   import { onDestroy, setContext } from 'svelte';
   import { writable } from 'svelte/store';
   import CaseStages from './CaseStages.svelte';
+  import CaseFacts from './CaseFacts.svelte';
   import CaseHearings from './CaseHearings.svelte';
   import CaseContext from './CaseContext.svelte';
   import CaseAdministration from './CaseAdministration.svelte';
@@ -122,6 +123,12 @@
       ondenied={deny}
       intent={hearingIntent}
       onintent={onhearingintent}
+    />
+  {:else if view === 'resolutions' && staff}<CaseFacts
+      {api}
+      {user}
+      record={current}
+      ondenied={deny}
     />
   {:else if view === 'participants'}<Participants {api} {user} caseRecord={current} />
   {:else}<Documents {api} {user} caseRecord={current} {intent} {onintent} />{/if}

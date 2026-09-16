@@ -16,6 +16,15 @@ no verifican los cambios posteriores de calendarios. El resumen, los objetivos,
 el marco teórico y las conclusiones pendientes permanecen protegidos.
 
 
+La captura de resoluciones y notificaciones agrega dominio, servicio,
+persistencia auditada, API y cliente Qadra. Sus contratos y campañas de software
+se describen en [la API de hechos](procedural-facts-api.md) y en el informe
+técnico. La actualización correspondiente del manuscrito, su compilación y
+la inspección del PDF siguen pendientes junto con las de calendarios. Los
+resultados documentales históricos de este archivo no verifican esa interfaz
+ni su implementación posterior.
+
+
 ## Sesiones y resultados declarados: 16 de septiembre de 2026
 
 Se incorporaron cuatro apartados de diseño, implementación, pruebas y

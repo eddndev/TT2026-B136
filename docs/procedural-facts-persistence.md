@@ -12,7 +12,8 @@ focal el resultado de toda la suite.
 
 La [API HTTP](procedural-facts-api.md) y su composicion estan implementadas con
 pruebas focales aprobadas. La comprobacion integrada HTTP con servicios reales
-y restauracion tambien esta aprobada localmente; la interfaz Qadra sigue pendiente.
+y restauracion tambien esta aprobada localmente. El [cliente Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
+esta implementado y su verificacion integral esta aprobada localmente.
 El backend no calcula plazos, selecciona recursos, determina eficacia de
 notificaciones ni envia alertas. Conserva declaraciones y su procedencia conforme
 al [modelo](procedural-facts.md), la [precision temporal](procedural-time.md),
@@ -166,5 +167,7 @@ Las pruebas versionadas incluyen parsers/vectores, fuentes exactas, permisos,
 conflictos concurrentes, fallo de auditoria, inventario y `pg_dump`/`pg_restore`.
 El ensayo de restauracion compara historia exacta despues de cambios de
 administracion y autor, y permite una nueva notificacion sobre un padre retirado
-al reabrir el expediente. Es evidencia de backend PostgreSQL; no atribuirla a
-un recorrido HTTP o de navegador aun no implementado.
+al reabrir el expediente. Es evidencia de backend PostgreSQL; los recorridos
+HTTP y de navegador requieren sus propias comprobaciones. La comprobacion HTTP
+con restauracion ya tiene evidencia separada; la verificacion integral del cliente
+Qadra esta aprobada localmente.

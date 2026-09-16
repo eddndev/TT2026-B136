@@ -6,8 +6,9 @@ El modulo `crates/web/src/procedural_facts/` adapta `ProceduralFactWorkflow`
 a HTTP. Estan implementadas las rutas, entrada estricta, proyecciones y
 composicion. Pasaron 25 pruebas focales de DTO/proyeccion, 26 de rutas con
 puertos controlados y 3 de errores. La suite global y la comprobacion HTTP con
-servicios reales y restauracion tambien estan aprobadas localmente. Qadra sigue
-pendiente; el [informe de verificacion](verification-report.md) separa cada campana. Capturar una declaracion no valida
+servicios reales y restauracion tambien estan aprobadas localmente. El cliente
+Qadra esta implementado y su campana de navegador esta aprobada localmente; el
+[informe de verificacion](verification-report.md) separa cada campana. Capturar una declaracion no valida
 juridicamente un acto, su notificacion, su representacion o sus efectos, ni
 habilita calculos operativos de plazos, recursos o alertas.
 
@@ -241,5 +242,45 @@ recuperar esos cuerpos; una fila ligera no los sustituye.
 El detalle exacto y su recibo permiten cotejar una respuesta perdida contra
 la operacion enviada. Reenviar no constituye una lectura idempotente: una
 operacion ya usada se rechaza. Un 404, una revocacion o un error de red no
-prueban por si mismos si hubo commit; este contrato no implementa un mecanismo
-de reenvio automatico ni una pantalla de conciliacion.
+prueban por si mismos si hubo commit. No existe reenvio automatico; el cliente
+Qadra incorpora la consulta y conciliacion explicita descritas abajo.
+
+
+## Cliente Qadra
+
+El cliente está implementado en `web/src/components/CaseFacts.svelte`, con
+formularios de campos separados de los helpers de valores, API y conciliación.
+El [recorrido de la interfaz](../web/README.md#resoluciones-y-notificaciones-declaradas)
+describe sus controles. La campaña de navegador está aprobada localmente con HTTP simulado y servicios
+reales aislados; las cifras y límites se conservan en el informe de verificación.
+
+Las dos familias ofrecen lista con filtro de estado y cursor, detalle,
+historia exacta, alta, corrección y retiro. Las notificaciones se navegan bajo
+su resolución fija. El formulario puede seleccionar otra revisión de ese
+padre sin cambiar la raíz. Los datos conocidos y desconocidos, la precisión
+temporal, el desfase opcional, las personas no vinculadas y la representación
+se eligen expresamente. No hay entrada de JSON libre ni identificadores
+manuales como mecanismo principal de selección de fuentes.
+
+Los selectores de participantes, resultados y documentos consultan de forma
+secuencial listas, historia y detalle exacto. No excluyen por sí mismos fichas
+archivadas, resultados retirados o resoluciones históricas. La selección de
+un resultado admite ausencia de acuerdo o un UUID de acuerdo concreto, incluido
+el UUID cero. El servidor revalida la autorización, el alcance y la fuente.
+La preparación devuelve nombres, estados, metadatos y huellas históricas;
+la UI muestra esas vistas sin convertirlas en consultas de datos actuales.
+
+Confirmar exige una preparación revisada. La conciliación compara identidad
+completa, revisión, actor, operación, acción, valores, fuentes, recibo y captura
+administrativa compatibles con el envío conservado. No calcula los cánones
+criptográficos en JavaScript. Solo `procedural_fact_not_found` al consultar la
+revisión objetivo produce el estado de ausencia todavía incierta;
+`case_not_found`, `procedural_fact_reference_not_found` y cambios de sesión o
+permiso conservan su significado propio. No se reenvía automáticamente.
+
+La interfaz bloquea acciones locales durante sus consultas auxiliares. El
+presupuesto global de operaciones pertenece al servidor, que puede responder
+503. Los formularios conservan borradores ante conflictos; el cierre bloquea
+escrituras y la consulta histórica sigue su autorización vigente. La captura
+no determina validez, representación eficaz, notificación consumada, firmeza,
+recurso procedente, inicio de plazo ni alerta.

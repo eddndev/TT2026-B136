@@ -216,8 +216,10 @@ La [API de hechos declarados](docs/procedural-facts-api.md) conserva resolucione
 y prácticas de notificación como familias propias, con padre fijo, fuentes
 históricas, tiempos de precisión explícita, corrección, retiro y recibos. El
 backend y la API están verificados localmente, incluido el recorrido HTTP con
-servicios reales y la restauración exacta. La interfaz Qadra sigue pendiente. No determina
-eficacia jurídica ni inicia automáticamente plazos o recursos.
+servicios reales y la restauración exacta. La [interfaz Qadra](web/README.md#resoluciones-y-notificaciones-declaradas)
+ya permite capturar, consultar y conciliar estas declaraciones; su verificación
+integral está aprobada localmente. No determina eficacia jurídica ni inicia automáticamente
+plazos o recursos.
 
 El [catálogo de calendarios jurisdiccionales](docs/judicial-calendars-api.md)
 tiene backend, API y Qadra verificados localmente: Owner publica, reemplaza y retira;
@@ -241,7 +243,9 @@ procesales y alertas siguen pendientes.
   Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
   Conserva la identidad visual Qadra. Integra administración penal, etapas,
   identidades y perfiles procesales, programación de audiencias y sesiones
-  declaradas. Las campañas simuladas y reales se distinguen en el informe de
+  declaradas. Las resoluciones y notificaciones ya tienen formularios, selección
+  de fuentes históricas y conciliación explícita; su verificación integral está
+  aprobada localmente. Las campañas simuladas y reales se distinguen en el informe de
   verificación. El catálogo de calendarios incorpora publicación, reemplazo,
   retiro, historia y vistas mensual y por días; este avance no completa el
   cálculo de plazos ni las alertas.

@@ -4,6 +4,70 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: resoluciones y notificaciones en Qadra
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El cliente de
+[hechos declarados](procedural-facts-api.md#cliente-qadra) agrega navegación por
+expediente, formularios explícitos, selección histórica, preparación y
+confirmación, corrección, retiro y conciliación del recibo exacto. Reutiliza la
+marca, tipografía y controles de Qadra. Los plazos y alertas siguen pendientes.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Suite unitaria del cliente | **195 aprobadas, 0 fallidas**; incluye 27 de hechos y una de navegación nuevas. |
+| Formato y compilación web | Aprobados; 3.868 s y 2.119 s en la campaña integrada. |
+| Navegador con HTTP simulado | **255 aprobadas, 0 fallidas**, 203.410 s del comando; incluye 32 nuevas. |
+| Navegador con servicios reales aislados | **20 aprobadas, 0 fallidas**, 316.943 s del guion completo; incluye tres nuevas. |
+| Regresión del selector histórico | Rojo reproducido y corrección aprobada; incluida en las 32 nuevas. |
+| Inspección visual | Detalle y formulario a 1440 y 390 px; sin desbordamiento horizontal. |
+| Conservación durante la campaña integrada | **1432** archivos controlados sin cambios. |
+
+Las pruebas nuevas ya están incluidas en los totales, no se suman otra vez.
+La suite de cliente contrasta los 28 vectores de valores del dominio, sin
+modificarlos. Conserva precisión temporal y desfase opcional, distingue datos
+desconocidos de campos ausentes, valida fuentes exactas y coteja identidad,
+revisión, actor, acción, operación, valores y recibos. No calcula cánones
+criptográficos en JavaScript ni transforma la administración observada en CAS.
+
+Los escenarios simulados cubren ambas familias, sus tres acciones, listas e
+historia paginadas, roles, cierre, revocación y respuestas tardías. Recorren
+selección de participantes archivados, resultados retirados, acuerdo con UUID
+cero, revisiones antiguas del mismo padre y dos soportes directos. Una respuesta
+perdida conserva el comando: consultar una revisión temporalmente ausente no
+habilita reenvío, y un recibo distinto no confirma la escritura. Se conserva el
+segundo explícito cero y se retiran componentes que exceden la precisión elegida.
+
+La campaña real usa PostgreSQL, Redis, CA interna, TSA local y puertos
+desechables. Los tres escenarios nuevos comprueban correcciones competidas,
+conservación del borrador, respuesta perdida después de un commit real,
+conciliación sin otro envío, cuatro roles, cierre, revocación y limpieza de datos
+privados. Una notificación conserva padre y resultado retirados, participante
+archivado y dos versiones PDF/DOCX exactas, aun existiendo una versión documental
+posterior. Las correcciones y retiros mantienen la revisión original consultable.
+
+TDD conserva los fallos iniciales por navegación y módulos ausentes. La revisión
+adicional reprodujo un fallo real: después de consultar R1, un error al leer R2
+dejaba R1 seleccionable sin rotular claramente la revisión. El selector ahora
+retira la selección anterior al iniciar otra consulta y muestra número y estado
+antes de vincular. Los fallos iniciales de selectores de prueba, textos simulados
+sin normalizar y páginas ficticias incompletas se corrigieron por separado;
+no se relajaron validadores ni contratos para hacer pasar esos datos.
+
+Tras la campaña se alinearon dos etiquetas opcionales con la clase `checkbox`
+ya existente de Qadra. Se repitieron las dos comprobaciones de diseño, la
+compilación y el formato para ese ajuste visual; no se suman a los totales.
+Las 62 fuentes de código cambiadas son ASCII y menores de 400 líneas (máximo
+304). No cambiaron dependencias ni código Rust. La compilación conserva el aviso
+de tamaño de un chunk web mayor de 500 kB; no se midió rendimiento en esta entrega.
+
+Los 1741 resultados Rust, 27 respuestas restauradas y comprobaciones MSRV/Clippy
+del corte HTTP siguiente son evidencia anterior, no una repetición de esta
+entrega. La CI de esa API se consultó con 18/18 comprobaciones aprobadas; no
+sustituye la CI del cliente nuevo. No se repitieron cobertura instrumentada,
+restauración, release ni CLI locales. El manuscrito, su PDF y la usabilidad con
+personas reales siguen pendientes; la inspección visual automatizada no acredita
+esa evaluación. La demo estable permanece intacta.
+
 ## Corte reproducido: API de hechos declarados
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). La
