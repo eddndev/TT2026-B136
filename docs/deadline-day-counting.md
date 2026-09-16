@@ -1,8 +1,7 @@
 # Conteo civil de dias sobre un calendario exacto
 
-Estado: contrato del componente aritmetico; implementacion y comprobaciones en
-curso. No existe todavia un flujo operativo de plazos, endpoint o persistencia
-para este resultado. El calendario usado conserva el contrato de
+Estado: componente aritmetico implementado y comprobado en el dominio. No existe
+todavia un flujo operativo de plazos, endpoint o persistencia para este resultado. El calendario usado conserva el contrato de
 [judicial-calendars-api.md](judicial-calendars-api.md).
 
 ## Frontera
