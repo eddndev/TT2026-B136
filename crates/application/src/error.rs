@@ -11,6 +11,9 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    JudicialCalendar(#[from] crate::judicial_calendars::JudicialCalendarError),
+
+    #[error(transparent)]
     HearingResult(#[from] crate::hearing_results::HearingResultError),
 
     #[error(transparent)]

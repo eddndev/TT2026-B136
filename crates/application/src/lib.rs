@@ -16,6 +16,7 @@ pub mod hashing;
 pub mod hearing_results;
 pub mod hearings;
 pub mod identity;
+pub mod judicial_calendars;
 pub mod participants;
 pub mod pki;
 pub mod signing;
