@@ -1,5 +1,127 @@
 # Verificación de la actualización académica
 
+## Programación de audiencias: 16 de septiembre de 2026
+
+Se añadieron apartados de diseño, implementación, pruebas y trazabilidad para
+programar, reemplazar y cancelar audiencias con historia inmutable. Describen
+fecha y desfase originales, contexto administrativo y procesal, referencias
+exactas a participantes y soporte, canon HEAR1, recibo HTXN1, autorización por
+expediente y conciliación de respuestas inciertas. Se ajustaron las menciones
+que todavía presentaban toda programación como pendiente.
+
+El alcance permanece parcial: no se atribuyen celebración, resultados,
+asistencia, acuerdos, plazos ni alertas a una cita registrada. La matriz explicita
+las menciones adicionales de medidas cautelares y continuación del marco
+teórico. La agenda autorizada no equivale al calendario completo con plazos.
+CU-08, RF-07, RF-08, RF-09 y RF-10 conservan sus tablas aprobadas byte por byte;
+la limitación se explica en la prosa técnica. El resumen, la introducción con
+sus objetivos, el marco teórico y las conclusiones pendientes no se modificaron.
+
+### Evidencia de software descrita
+
+La ejecución global ordinaria y la instrumentada aprobaron **1183 pruebas Rust,
+cero fallos y una externa de TSA ignorada**, en 360.492 y 370.401 segundos.
+La cobertura fue **25 201 / 27 226 líneas, 92.56 %**, con los tres umbrales
+del 90 % aprobados para dominio, aplicación e infraestructura. El capítulo
+conserva los numeradores por crate y distingue las pruebas con dobles de las
+transaccionales sobre PostgreSQL real. Se incorporaron revalidación tras
+preparación, concurrencia con un solo sucesor, rollback y referencias exactas.
+Formato, compilación, Clippy 1.98, Rust 1.88 y cargo-deny 0.20.2 terminaron
+satisfactoriamente. El binario release midió 12 176 936 bytes. La CLI terminó
+en 9.097 segundos y midió Argon2id en 540.7 ms sobre cinco corridas, concurrentes
+con otras comprobaciones; no se presenta como benchmark aislado.
+
+La demostración HTTP con PostgreSQL/Redis aislados terminó con código cero
+en 166.180 segundos y conservó el recorrido de audiencias y su restauración.
+Se compararon doce respuestas completas; el inventario conservó tres raíces y
+cinco revisiones de audiencias junto con expedientes, documentos, participantes
+y evidencia anterior. Qadra aprobó 119 pruebas unitarias, 178 escenarios
+simulados, formato y compilación. La repetición final del navegador aprobó los
+once recorridos con servicios reales: 222.42 segundos de comando completo y
+2.1 minutos de escenarios Playwright. Los tres casos nuevos comprueban recibos,
+conflictos e historia, autorización de agenda y soporte exacto de individualización.
+
+Las cifras del cierre de identidades permanecen históricas. La evidencia
+funcional consta en [el informe de verificación](verification-report.md);
+esta revisión describe exclusivamente la fidelidad y composición del reporte.
+
+### Conservación y preparación documental
+
+Antes de editar se verificaron las 75 huellas del baseline del cierre anterior,
+sin diferencias. Se amplió el registro a 149 archivos: fuentes protegidas,
+presentación completa, avance de Windows, PDF anteriores y materiales de la
+compilación CI anterior. La comprobación posterior a la edición conserva todas
+esas huellas; incluye `latex/main.pdf` y ambos PDF de 281 páginas del cierre de
+identidades, local y CI. No se reemplazó ningún entregable.
+
+Las fuentes de audiencias se separan en cuatro archivos incluidos desde sus
+capítulos, y el README describe su organización. El PDF preliminar se compiló
+con el Makefile versionado en una copia aislada de 61 fuentes y figuras, con
+caché de fuentes propia y logs duraderos. Esa copia conserva el corte anterior
+a la conclusión de las verificaciones integradas.
+
+La compilación preliminar terminó con código cero y produjo **286 páginas**,
+**5 694 304 bytes**, formato carta, con SHA-256
+`6410c53da20d4fe11b42391100626d563129f236588bcb1cd8dd15a8b371ef09`.
+Se renderizaron y revisaron **34 páginas** de índices, caso de uso, apartados
+modificados, transiciones y conclusiones pendientes. Una referencia gramatical
+al apéndice se corrigió y se volvió a comprobar. Las 10 043 palabras revisadas
+por coordenadas permanecen dentro del área segura; no se observaron recortes
+ni superposiciones. No hay referencias o citas indefinidas ni glifos ausentes.
+Persisten únicamente los avisos históricos de versalitas de Times New Roman y
+0.11754 pt de desborde en el índice de tablas, sin defecto visual apreciable.
+Las 61 fuentes del snapshot coincidieron con el árbol académico en esa
+compilación. El PDF preliminar y su snapshot se conservaron sin reemplazo.
+Después se añadió la evidencia HTTP/restauración, la interacción Qadra y las
+métricas globales a las fuentes de la entrega final descrita a continuación.
+
+### Compilación final, inspección y procedencia
+
+Una segunda copia aislada de las 61 fuentes se compiló con el Makefile
+versionado, LuaLaTeX, biber y glosarios. El nuevo PDF final contiene **289
+páginas carta y 5 702 678 bytes**. Se publicó como
+`output/pdf/TT2026-B136-audiencias-qadra-2026-09-16.pdf`, acompañado por
+`.sources.json`, `.provenance.json` y `.sha256`. Su SHA-256 es
+`762c91a46ea2c05dd82b1760686e121912817e85a462a079f32b562f2341e1dd`.
+
+El snapshot registra el árbol de trabajo sobre
+`869d3fbce8f0d20db1ec34f6175e3189fb85b45a`, vigente al copiar las fuentes,
+y conserva las 61 huellas individuales. La publicación se verificó sobre
+`3a9abcd4e354028178b7bf749ac7109f7730e5fb`; las fuentes académicas aún
+estaban sin commit. Ninguno de esos identificadores se presenta como la
+procedencia íntegra del PDF. Después de guardar las fuentes se cotejaron sus
+61 huellas contra el commit de entrega `e13522cfaf4b2151e8fb470f0d0b9911d4f400cd`,
+sin diferencias, y se asoció ese identificador en el sidecar de procedencia.
+La compilación es local y no se atribuye a una nueva ejecución remota.
+
+Se renderizaron y revisaron **50 páginas físicas**: 1-10, 61-62, 81-83,
+116-117, 130-131, 134-137, 176-181, 204-208, 221-223, 261-266 y 283-289.
+Incluyen índices, CU-08 y requisitos aprobados, arquitectura, diseño e
+implementación de audiencias, interfaz, resultados, transición a conclusiones,
+leyenda D.6 y matriz de alcance. La revisión independiente de Qadra precisó
+que consultar de nuevo base y contexto es obligatorio ante conflictos de
+revisión o contexto; los cambios de participantes o soportes exigen revisar
+las referencias afectadas. Una corrección de composición evitó una palabra
+huérfana del anexo, sin modificar el texto ni sus mediciones históricas; se
+volvieron a inspeccionar las cinco páginas afectadas.
+
+El control de coordenadas revisó **12 892 palabras** sin salidas del área
+segura. No se observaron recortes, superposiciones, glifos ausentes ni
+referencias o citas indefinidas. Todas las fuentes están incrustadas; persisten
+únicamente las sustituciones históricas de versalitas de Times New Roman y
+el desborde de 0.11754 pt del índice de tablas, sin defecto visible. La
+compilación inicial y las dos correcciones terminaron con código cero.
+
+Las 61 fuentes del PDF coinciden con la copia compilada y el árbol académico.
+La comprobación final conserva **279 huellas**: las 149 protegidas y otros
+130 archivos del preliminar, incluidos su PDF, fuentes, logs y renderizados.
+Los artefactos anteriores, las conclusiones pendientes y la presentación
+permanecen íntegros. Los resultados nuevos sustentan la programación y su
+historia, sin declarar completos CU-08, RF-07 u OE-2 ni convertir la agenda
+en evidencia de celebración, resultados, plazos o notificaciones.
+
+
+
 ## Identidades y perfiles tipificados: 15 de septiembre de 2026
 
 Se actualizaron diseño, implementación, pruebas, manual de CLI y anexos para
