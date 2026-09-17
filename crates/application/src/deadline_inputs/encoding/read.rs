@@ -20,6 +20,14 @@ use std::num::NonZeroU32;
 use time::{Date, Month, UtcOffset};
 
 pub(super) fn decode(reader: &mut Reader<'_>) -> Result<DeadlineInputRequest, ApplicationError> {
+    Ok(DeadlineInputRequest {
+        trigger: selection(reader)?,
+        requirement: requirement(reader)?,
+        rule: rule(reader)?,
+        calendar: calendar(reader)?,
+    })
+}
+pub(crate) fn selection(reader: &mut Reader<'_>) -> Result<TriggerSelection, ApplicationError> {
     let case_id = CaseId::from_uuid(reader.uuid()?);
     let source = if reader.flag()? {
         FactDeclaration::Known(source(reader)?)
@@ -36,25 +44,22 @@ pub(super) fn decode(reader: &mut Reader<'_>) -> Result<DeadlineInputRequest, Ap
     } else {
         None
     };
-    let requirement = requirement(reader)?;
-    let rule = rule(reader)?;
-    let calendar = if reader.flag()? {
+    Ok(TriggerSelection {
+        case_id,
+        source,
+        qualification,
+    })
+}
+pub(crate) fn calendar(
+    reader: &mut Reader<'_>,
+) -> Result<Option<DeadlineCalendarRef>, ApplicationError> {
+    Ok(if reader.flag()? {
         Some(DeadlineCalendarRef {
             id: JudicialCalendarId::from_uuid(reader.uuid()?),
             revision: JudicialCalendarRevision::new(reader.u32()?).map_err(invalid)?,
         })
     } else {
         None
-    };
-    Ok(DeadlineInputRequest {
-        trigger: TriggerSelection {
-            case_id,
-            source,
-            qualification,
-        },
-        requirement,
-        rule,
-        calendar,
     })
 }
 fn fact_text(reader: &mut Reader<'_>) -> Result<FactText, ApplicationError> {

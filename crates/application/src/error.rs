@@ -11,6 +11,9 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    Deadline(#[from] crate::deadlines::DeadlineError),
+
+    #[error(transparent)]
     DeadlineProfile(#[from] crate::deadline_profiles::DeadlineProfileError),
 
     #[error(transparent)]
