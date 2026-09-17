@@ -51,3 +51,10 @@ fn inconsistent() -> ApplicationError {
     ProceduralFactError::StoredInconsistent("canonical fact or projection is inconsistent".into())
         .into()
 }
+
+/// Reuse the strict normalized procedural-time projection for stored declarations.
+pub(crate) fn declared_time(
+    projection: &Value,
+) -> Result<domain::procedural_time::DeclaredProceduralTime> {
+    temporal::value_time(projection)
+}

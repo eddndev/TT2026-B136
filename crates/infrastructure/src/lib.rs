@@ -13,6 +13,8 @@ pub mod cases;
 pub mod certificates;
 pub mod clock;
 pub mod credential_trust_postgres;
+#[doc(hidden)]
+pub mod deadline_input_history;
 mod deadline_input_postgres;
 mod deadline_source_event_schema;
 pub use deadline_input_postgres::PostgresDeadlineInputStore;
@@ -93,3 +95,7 @@ mod deadline_profile_postgres;
 pub use deadline_profile_postgres::PostgresDeadlineProfileStore;
 
 mod deadline_profile_schema;
+
+mod deadline_postgres;
+pub use deadline_postgres::PostgresDeadlineStore;
+mod deadline_schema;
