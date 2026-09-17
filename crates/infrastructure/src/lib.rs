@@ -13,6 +13,8 @@ pub mod cases;
 pub mod certificates;
 pub mod clock;
 pub mod credential_trust_postgres;
+mod deadline_input_postgres;
+pub use deadline_input_postgres::PostgresDeadlineInputStore;
 pub mod document_postgres;
 pub mod documents;
 pub mod encryption;

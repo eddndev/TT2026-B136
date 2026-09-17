@@ -1,5 +1,33 @@
 # Verificación de la actualización académica
 
+## Insumos temporales autorizados: 16 de septiembre de 2026
+
+Se ampliaron los tres apartados propios de implementación, pruebas y matriz
+para describir la resolución autorizada en aplicación/PostgreSQL. Conservan la
+selección histórica y la cabeza observada, recibos, administración sin revisiones,
+lecturas cerradas, autorización y segunda autenticación. La matriz comprende
+**50 pruebas nuevas** aprobadas en la suite de **1878 aprobadas, cero fallidas
+y una externa ignorada**; sus resultados y comandos pertenecen al
+[informe técnico](verification-report.md).
+
+De **67 fuentes académicas previas**, **63 permanecen idénticas** por hash.
+Solo cambiaron los tres archivos de desencadenantes y el README. Se preservaron
+resumen, objetivos, estado del arte y conclusiones, así como las doce ediciones
+ajenas pendientes de integración descritas abajo.
+
+`make` con LuaLaTeX, biber y glosarios terminó correctamente. El PDF tiene
+**294 páginas y 5719479 bytes**. Se inspeccionaron las páginas físicas
+**186-188, 210-211 y 289-290**: jerarquía, texto, tablas y transiciones legibles,
+sin recortes ni superposiciones. No hay referencias/citas indefinidas ni glifos
+ausentes. El log mantiene la caja excedida preexistente de **0.11754 pt** en
+un título ajeno a los apartados modificados.
+
+SHA-256: `8d98cab6ff1905ac298e6eec60fe26438004a5e9412c5515a055974364a56108`.
+
+Esta comprobación no sustituye la actualización integral pendiente de calendarios,
+hechos y sesiones, ni completa perfiles normativos, evaluaciones persistentes,
+alertas, usabilidad o conclusiones. La preparación verificada permanece en memoria.
+
 ## Fuentes temporales y aritmetica: 16 de septiembre de 2026
 
 Se incorporaron tres apartados propios de implementacion, pruebas y trazabilidad

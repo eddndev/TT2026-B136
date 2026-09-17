@@ -127,9 +127,10 @@ de duracion ordenada, destinatario de receptor, tiempo generico de sesion de
 terminacion y estado administrativo de efecto judicial. Un perfil normativo
 versionado necesita corpus de disparador, inclusion, unidad, excepciones y corte.
 
-Despues, el servicio debera verificar acceso, fuentes y calendario; persistir
-la evaluacion con su historia y auditoria; coordinar reevaluaciones durables y
-alertas; exponer los flujos en HTTP y Qadra. Correccion o retiro de una fuente no
+La [resolucion de insumos](deadline-inputs.md) ya verifica acceso, fuentes y
+calendario, conservando revisiones seleccionadas y cabezas observadas. Falta
+persistir la evaluacion con historia y auditoria, coordinar reevaluaciones durables
+y alertas, y exponer los flujos en HTTP y Qadra. Correccion o retiro de una fuente no
 sustituye una evaluacion historica ni equivale a cancelacion judicial. La
 [matriz de producto](product-completion.md) conserva estos pendientes.
 

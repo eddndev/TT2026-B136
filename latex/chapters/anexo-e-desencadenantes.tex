@@ -21,3 +21,28 @@ La \cref{tab:matriz-desencadenantes} relaciona las 45 pruebas focales de la \cre
 \end{table}
 
 Los seis archivos comparten el prefijo \texttt{deadline\_trigger\_} y los sufijos \texttt{contract}, \texttt{fields}, \texttt{integrity}, \texttt{hearings}, \texttt{qualification} y \texttt{arithmetic}. El informe versionado conserva comandos, resultados y límites de la campaña global. No se atribuye al módulo una validación de autorización, recibos persistidos o aplicabilidad jurídica: esas obligaciones corresponden a su integración mediante aplicación y persistencia.
+
+
+\subsection{Lectura y comprobación de insumos autorizados}\label{sec:matriz-insumos-plazos}
+
+La \cref{tab:matriz-insumos-plazos} corresponde al servicio y adaptador de la \cref{sec:pruebas-insumos-plazos}. Sus fuentes comparten el prefijo \texttt{deadline\_input\_} en los directorios de pruebas de dominio, aplicación e infraestructura. Las pruebas de material y revisiones incluyen submódulos auxiliares; no se suman como ejecuciones adicionales.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas de resolución autorizada de insumos.}
+  \label{tab:matriz-insumos-plazos}
+  \begin{tabularx}{\linewidth}{@{}L{3.1cm} C{1.4cm} X@{}}
+    \toprule
+    \textbf{Grupo} & \textbf{Casos} & \textbf{Invariante comprobado} \\
+    \midrule
+    Permiso & 1 & Lectura de personal autorizado y denegación de Client. \\
+    Material & 13 & Fuentes exactas, recibos, proyecciones, administración y calendario coherentes. \\
+    Revisiones & 13 & Conservación histórica, identidad, orden, ámbito y comparación completa. \\
+    Servicio & 10 & Autenticación previa, reautenticación, errores y preparación exacta o bloqueada. \\
+    PostgreSQL & 8 & Fuentes persistidas, revisiones retiradas, precisión y auditoría única. \\
+    Acceso PostgreSQL & 5 & Roles, pertenencia, revocación, cierre y aislamiento entre expedientes. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El resultado en memoria conserva material y cálculo, pero no acredita una escritura futura. La autorización transaccional del almacén y la reautenticación del servicio se comprueban por separado. Si esta última falla después de confirmar la lectura, su evento de auditoría permanece. La aplicación operativa de reglas, evaluaciones y alertas conserva su aceptación pendiente.

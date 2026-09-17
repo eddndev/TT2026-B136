@@ -215,3 +215,9 @@ resultados de audiencia. Sus pruebas focales de extracción y coordinación son
 de calendarios y hechos, los plazos persistentes, las alertas y el cierre
 académico conservan sus pendientes en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
+
+La resolución autorizada de insumos agrega comprobaciones de servicio y
+PostgreSQL con revisión histórica y cabeza observada por separado. Sus 50 pruebas
+se distribuyen entre permiso, material, revisiones, servicio y backend; los
+resultados ejecutados se conservan en el informe técnico. La preparación permanece
+en memoria y no habilita todavía evaluaciones persistentes ni alertas.

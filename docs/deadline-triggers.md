@@ -169,8 +169,12 @@ Los resultados de campañas se registran por separado en
 [verification-report.md](verification-report.md).
 
 Permanecen pendientes los perfiles normativos aplicables, persistencia de
-calificaciones y evaluaciones, autorización transaccional, seguimiento de
+calificaciones y evaluaciones, autorización al confirmar su escritura, seguimiento de
 atención, reevaluación durable, entrega de alertas, HTTP y Qadra del módulo de
 plazos. La [investigación normativa](deadline-rule-research.md) conserva los
 extremos aún no resueltos. Este componente no sustituye el cálculo automático
 exigido por el TT por fechas manuales ni declara cubierto su alcance completo.
+
+La [resolución de insumos](deadline-inputs.md) implementa la lectura autorizada
+en una transacción, los recibos y la observación separada de cabezas; su resultado
+en memoria no constituye una evaluación operativa persistida.

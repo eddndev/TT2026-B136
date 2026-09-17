@@ -227,9 +227,9 @@ Owner, Litigator y Paralegal consultan revisiones exactas sin asignación a
 expedientes; Client queda denegado. Conserva ámbito, cobertura civil, reglas,
 excepciones y referencias
 públicas declaradas, con historia auditada. No descarga el contenido de las URL.
-Las campañas de API/restauración, cobertura y navegador pasaron. La integración
-remota y el manuscrito siguen pendientes. Cómputo de plazos, reevaluación, recursos
-procesales y alertas siguen pendientes.
+Las campañas de API/restauración, cobertura y navegador pasaron. El código está
+integrado en `main`; la actualización integral del manuscrito sigue pendiente.
+Cómputo de plazos, reevaluación, recursos procesales y alertas siguen pendientes.
 
 La [aritmetica de plazos](docs/deadline-arithmetic.md) calcula candidatas de dias,
 meses civiles y horas con reglas matematicas explicitas, trazas y bloqueos por
@@ -239,7 +239,9 @@ su persistencia, reevaluacion, corte horario y alertas siguen pendientes.
 La [extracción temporal exacta](docs/deadline-triggers.md) ya vincula un campo o
 una calificación declarada con su resolución, notificación o resultado de audiencia
 y coordina ese tiempo con la aritmética. Conserva referencias, procedencia y
-precisión; la integración con fuentes verificadas y plazos persistentes sigue pendiente.
+precisión. La [resolución autorizada de insumos](docs/deadline-inputs.md) conecta
+fuentes verificadas en PostgreSQL y conserva las cabezas observadas por separado.
+Los perfiles aplicables, plazos persistentes, reevaluación y alertas siguen pendientes.
 
 ### Frontend web
 
