@@ -4,6 +4,56 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: insumos temporales autorizados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[servicio de insumos](deadline-inputs.md) autentica, resuelve y comprueba fuentes
+exactas y cabezas observadas antes de calcular. PostgreSQL carga el conjunto
+bajo autorización y auditoría comunes. La preparación queda en memoria;
+los perfiles, evaluaciones persistentes, reevaluación y alertas siguen pendientes.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Suite Rust con PostgreSQL/Redis desechables | **1878 aprobadas, 0 fallidas, 1 TSA externa ignorada**, 545.103 s. |
+| Casos nuevos de insumos | **50 aprobados**, incluidos en la suite global. |
+| Formato del workspace | Aprobado, 1.539 s. |
+| Compilación del workspace | Aprobada, 0.282 s con caché; compilación inicial aprobada en 18.180 s. |
+| Clippy 1.98.1, todos los targets | Aprobado con warnings denegados, 14.052 s. |
+| Rust 1.88, todos los targets | Aprobado, 19.084 s. |
+| Conservación de fuentes durante campaña final | **1110** fuentes, fixtures, scripts y manifiestos intactos. |
+
+Rust local fue 1.94.0. La suite usó `scripts/test-backends.sh cargo test --workspace`,
+qpdf 12.4.1 y bases desechables; los adaptadores no quedaron omitidos por ausencia
+de variables. No cambiaron dependencias, esquema ni cánones existentes.
+
+Los casos nuevos son uno de permiso, trece de material, trece de cabezas, diez
+de servicio, ocho de backend y cinco de acceso PostgreSQL. Cubren las tres
+familias, revisiones exactas y retiradas, padre fijo con revisión variable,
+acuerdo UUID cero eliminado de una cabeza posterior, calendarios modificados,
+proyecciones discordantes, recibos corruptos, R0, cierre y permisos revocados.
+Los rechazos internos del puerto conservan la auditoría previa; cada lectura
+aceptada añade un evento. El rechazo de la segunda autenticación del servicio
+es posterior al commit del puerto y no revierte esa lectura auditada.
+
+TDD capturó módulo, permiso y adaptador ausentes antes de implementar. El primer
+focal aprobó doce casos de material y diez de servicio; los trece de cabezas y
+trece de PostgreSQL aprobaron después. El último caso de material entró en la
+campaña global. Esas repeticiones no se suman como pruebas nuevas. La primera
+campaña se detuvo en Clippy por un atributo `allow(dead_code)` duplicado en
+un módulo auxiliar; se retiró el atributo externo del test y se ejecutó la
+campaña completa sobre las fuentes corregidas, sin modificar producción.
+
+Las 28 fuentes Rust propias son ASCII y menores de 400 líneas, máximo 314.
+Las revisiones independientes de aplicación, PostgreSQL y contratos no encontraron
+hallazgos accionables. No se añadieron rutas HTTP ni composición CLI: no se
+repitieron localmente recorridos HTTP/CLI/navegador ni cobertura instrumentada.
+Las pruebas de restauración existentes de la suite no equivalen a una nueva
+campaña HTTP del módulo. La CI del corte fuente c51b49c terminó con 19 controles
+aprobados y un paso de release omitido; no verifica estos cambios posteriores.
+
+La comprobación del manuscrito y PDF se registra en
+[la verificación académica](academic-report-verification.md).
+
 ## Corte reproducido: extraccion de fuentes temporales exactas
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El modulo

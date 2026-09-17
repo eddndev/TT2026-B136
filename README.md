@@ -239,7 +239,9 @@ su persistencia, reevaluacion, corte horario y alertas siguen pendientes.
 La [extracción temporal exacta](docs/deadline-triggers.md) ya vincula un campo o
 una calificación declarada con su resolución, notificación o resultado de audiencia
 y coordina ese tiempo con la aritmética. Conserva referencias, procedencia y
-precisión; la integración con fuentes verificadas y plazos persistentes sigue pendiente.
+precisión. La [resolución autorizada de insumos](docs/deadline-inputs.md) conecta
+fuentes verificadas en PostgreSQL y conserva las cabezas observadas por separado.
+Los perfiles aplicables, plazos persistentes, reevaluación y alertas siguen pendientes.
 
 ### Frontend web
 

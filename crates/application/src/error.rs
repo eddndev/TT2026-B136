@@ -11,6 +11,9 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    DeadlineInput(#[from] crate::deadline_inputs::DeadlineInputError),
+
+    #[error(transparent)]
     ProceduralFact(#[from] crate::procedural_facts::ProceduralFactError),
 
     #[error(transparent)]

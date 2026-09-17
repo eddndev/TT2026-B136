@@ -544,3 +544,14 @@ solo sus conteos.
 Las sesiones Redis no sustituyen el estado durable. En una recuperación operativa
 se deben invalidar sesiones anteriores y ensayar el nuevo acceso con MFA. El
 respaldo y los recibos no resuelven por sí solos el anclaje externo de auditoría.
+
+## Lectura de insumos temporales
+
+El adaptador de [insumos temporales](deadline-inputs.md) utiliza el esquema y
+el rol de ejecución existentes. Reúne administración, fuentes, calendarios y
+cabezas en una transacción con el evento `deadline.inputs_read`. Aunque no
+modifica datos de negocio, necesita la escritura de auditoría ya autorizada.
+No añade tablas, migraciones ni un proceso de alertas; aún no está compuesto
+en una ruta HTTP. Se aplica el respaldo completo de fuentes y auditoría descrito
+arriba. Una segunda autenticación denegada puede impedir la entrega después
+de confirmar la lectura; no borrar ese evento como supuesto cálculo fallido.
