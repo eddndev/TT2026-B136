@@ -1,0 +1,29 @@
+\section{Trazabilidad y límites de la programación de audiencias}\label{sec:matriz-audiencias}
+
+{\raggedright Los valores, fechas y canon se ejercitan en \rutarepo{crates/domain/tests/hearing_values.rs}, \rutarepo{hearing_time.rs}, \rutarepo{hearing_canonical.rs} y \rutarepo{hearing_permissions.rs}. El generador independiente de vectores reside en \rutarepo{crates/domain/tests/fixtures/generate_hearing_vectors.py}. La aplicación separa flujo, límites, fallos del puerto y recibos en \rutarepo{crates/application/tests/hearing_workflow.rs}, \rutarepo{hearing_boundaries.rs}, \rutarepo{hearing_failures.rs}, \rutarepo{hearing_failures_ports.rs} y \rutarepo{hearing_canonical.rs}; las consultas se prueban en \rutarepo{hearing_queries.rs}.\par}
+
+{\raggedright Las pruebas HTTP residen en \rutarepo{crates/web/src/hearings/}, con casos de valores, rutas y límites del cuerpo. La persistencia se implementa en \rutarepo{crates/infrastructure/src/hearing_postgres/}, el codec en \rutarepo{hearing_codec/} y la comprobación de esquema en \rutarepo{hearing_schema/}. Los archivos de prueba \rutarepo{crates/infrastructure/tests/hearing_backend.rs}, \rutarepo{hearing_queries.rs}, \rutarepo{hearing_revalidation.rs}, \rutarepo{hearing_retention.rs}, \rutarepo{hearing_concurrency.rs} y los casos de canon, recibos y restricciones SQL distinguen ciclo de vida, consultas, historia y condiciones transaccionales. La existencia de estos archivos no sustituye el resultado de una ejecución real.\par}
+
+{\raggedright El recorrido integrado se define en \rutarepo{scripts/api-hearings-demo.sh} y \rutarepo{scripts/api-hearings-demo.py}, invocados por la demostración HTTP junto con la recuperación de la base. El contrato de rutas y proyecciones se conserva en \rutarepo{docs/hearings-api.md}; los resultados reproducidos se registran en \rutarepo{docs/verification-report.md}. Las mediciones por capa y la comparación completa de respuestas después de restaurar se explicitan en la \cref{sec:pruebas-audiencias}.\par}
+
+{\raggedright La interfaz se comprueba mediante \rutarepo{web/tests/hearings.test.mjs}, \rutarepo{hearings-api.test.mjs}, \rutarepo{hearing-time.test.mjs} y \rutarepo{hearing-errors.test.mjs}. Los escenarios bajo \rutarepo{web/tests/browser/} separan flujo, referencias, permisos, conflictos, respuestas inciertas, contextos obsoletos, agenda y composición en los archivos \texttt{hearing-*.spec.mjs}. Los recorridos \rutarepo{web/tests/live/hearings.spec.mjs}, \rutarepo{hearing-permissions.spec.mjs} y \rutarepo{hearing-sentencing.spec.mjs} requieren servicios reales y fixtures aislados. Sus resultados se registran separados de los escenarios simulados.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura funcional parcial de la programación de audiencias.}
+  \label{tab:matriz-alcance-audiencias}
+  \begin{tabularx}{\linewidth}{@{}L{2.6cm} X X@{}}
+    \toprule
+    \textbf{Criterio} & \textbf{Base implementada} & \textbf{Alcance restante} \\
+    \midrule
+    CU-08 y RF-07 & Programación, reemplazo motivado, cancelación, historia y participantes exactos. & Resultados, asistentes efectivos, acuerdos y activación de plazos. \\
+    Catálogo & Inicial, intermedia, debate e individualización con antecedente declarado. & Medidas cautelares y relación entre continuación y sesión original; validación de los actos procesales. \\
+    RF-08 & Fecha explícita con desfase y orden UTC. & Reglas de cómputo, días hábiles, vencimientos y validación jurídica. \\
+    RF-09 & Sin emisión de notificaciones en este módulo. & Alertas y sus canales, programación y seguimiento. \\
+    RF-10 & Agenda transversal autorizada, intervalo, filtros y cursores. & Integración con plazos y vistas completas del calendario aprobado. \\
+    Objetivo de gestión & Citas vinculadas a expediente, etapa y directorio. & Integrar los comportamientos pendientes y probar su aceptación conjunta. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las referencias exactas protegen la interpretación histórica del registro interno, pero no sustituyen un acta judicial ni acreditan la identidad o representación de sus participantes. El recibo de operación permite conciliar un envío; no constituye firma personal, sellado de tiempo ni constancia de notificación. Estas diferencias impiden declarar completo el caso de uso por contar únicamente con formularios y una agenda.

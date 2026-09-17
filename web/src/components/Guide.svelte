@@ -40,8 +40,8 @@
     <p>
       El administrador o el litigante asignado pueden cerrar y reactivar el expediente desde
       Resumen. Cerrado conserva consulta, historial, verificaci&oacute;n y descarga de evidencia;
-      suspende cambios de ficha, documentos, participantes y etapas. No cambia la etapa registrada
-      ni reactiva participantes archivados.
+      suspende cambios de ficha, documentos, participantes, etapas y audiencias. No cambia la etapa
+      registrada ni reactiva participantes archivados.
     </p>
     <p>
       Si el expediente se cerr&oacute; mientras guardabas, se consulta su estado y se conserva el
@@ -145,12 +145,30 @@
     </p>
   </details>
   <details>
-    <summary>&iquest;Puedo organizar expedientes y audiencias?</summary>
+    <summary>&iquest;C&oacute;mo programo y consulto audiencias?</summary>
     <p>
-      Puedes crear y consultar expedientes. Las asignaciones se gestionan mediante la API; su
-      selector de usuarios todav&iacute;a no est&aacute; disponible en esta interfaz. Las audiencias
-      y los plazos a&uacute;n no est&aacute;n disponibles. El directorio de participantes registra
-      datos manuales, sin validar identidad legal ni etapas procesales.
+      Abre Audiencias dentro de un expediente con ficha penal y etapa registradas. El administrador
+      y el litigante asignado pueden programar, corregir, reprogramar y cancelar; el asistente legal
+      asignado puede consultar. Declara fecha, hora, desfase UTC, modalidad y sede o
+      conexi&oacute;n. Cada cambio conserva el motivo y la historia anterior.
+    </p>
+    <p>
+      Elige las revisiones exactas de las fichas previstas. Sus cambios posteriores no actualizan la
+      audiencia. Individualizaci&oacute;n requiere un antecedente de condena declarado y soporte PDF
+      o DOCX exacto; la etapa Juicio no demuestra por s&iacute; sola una condena. Programar no
+      acredita asistencia, celebraci&oacute;n ni resultados.
+    </p>
+    <p>
+      Agenda consulta las citas de todos tus expedientes autorizados dentro de un rango y desfase
+      expl&iacute;citos. Abre una revisi&oacute;n exacta; consulta el registro actual antes de
+      modificar. Si se pierde una respuesta, conserva el formulario y consulta el resultado del
+      env&iacute;o sin repetir la escritura. Un resultado todav&iacute;a no disponible sigue
+      incierto.
+    </p>
+    <p>
+      Este alcance cubre programaci&oacute;n y consulta. Los resultados de audiencias, el
+      c&aacute;lculo de plazos y los avisos a&uacute;n no est&aacute;n disponibles. Las asignaciones
+      de cuentas se gestionan mediante la API.
     </p>
   </details>
   <details>

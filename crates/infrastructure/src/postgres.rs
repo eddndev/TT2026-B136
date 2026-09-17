@@ -26,6 +26,12 @@ const TYPED_PARTICIPANT_MIGRATIONS: [&str; 6] = [
     include_str!("../../../migrations/0010_typed_reviews.sql"),
     include_str!("../../../migrations/0010_typed_credentials.sql"),
 ];
+const HEARING_MIGRATIONS: [&str; 4] = [
+    include_str!("../../../migrations/0011_hearings_values.sql"),
+    include_str!("../../../migrations/0011_hearings_receipts.sql"),
+    include_str!("../../../migrations/0011_hearings.sql"),
+    include_str!("../../../migrations/0011_hearings_guards.sql"),
+];
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -70,6 +76,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in TYPED_PARTICIPANT_MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in HEARING_MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -85,6 +94,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::postgres_case_stages_schema::validate(&mut client)?;
     crate::credential_trust_postgres::schema::validate(&mut client)?;
     crate::typed_participant_schema::validate(&mut client)?;
+    crate::hearing_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -97,6 +107,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::postgres_case_stages_inventory::validate(&mut client)?;
     crate::credential_trust_postgres::schema::validate_inventory(&mut client)?;
     crate::typed_participant_schema::validate_inventory(&mut client)?;
+    crate::hearing_schema::validate_inventory(&mut client)?;
     Ok(client)
 }
 
@@ -162,6 +173,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
         .map_err(port_error)?;
     crate::credential_trust_postgres::schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::typed_participant_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::hearing_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -172,6 +184,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
 ) -> Result<(), ApplicationError> {
     crate::credential_trust_postgres::schema::validate_runtime_role(client, role)?;
     crate::typed_participant_schema::validate_runtime_role(client, role)?;
+    crate::hearing_schema::validate_runtime_role(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

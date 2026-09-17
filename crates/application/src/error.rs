@@ -10,6 +10,9 @@ use thiserror::Error;
 /// are reported as a message so this crate stays free of adapter details.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    #[error(transparent)]
+    Hearing(#[from] crate::hearings::HearingError),
+
     #[error("represented subject not found")]
     SubjectNotFound,
 

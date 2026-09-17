@@ -230,6 +230,9 @@ fi
 # shellcheck source=scripts/api-concurrency-demo.sh
 source "$REPO_ROOT/scripts/api-concurrency-demo.sh"
 
+# shellcheck source=scripts/api-hearings-demo.sh
+source "$REPO_ROOT/scripts/api-hearings-demo.sh"
+
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
 

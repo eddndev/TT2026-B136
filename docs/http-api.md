@@ -3,8 +3,10 @@
 La [API de identidades representadas y participantes tipificados](typed-participants-api.md)
 detalla revisión de identidad, perfiles, declaraciones internas, proyecciones
 manuales y tipificadas, y consultas de evidencia histórica.
+La [API de audiencias](hearings-api.md) define programación, reemplazo,
+cancelación organizativa, historial exacto y agenda autorizada.
 
-Contrato revisado el 2026-09-15. PostgreSQL conserva usuarios, expedientes,
+Contrato revisado el 2026-09-16. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
 conserva desafíos, sesiones revocables, límites de intentos y reclamos TOTP. La
 TSA OpenSSL local emite sellos RFC 3161; la ejecución no consulta Cincel.
@@ -236,7 +238,28 @@ propia; un conflicto exige comparación explícita y no genera reenvío automát
 
 La admisión de soportes utiliza [un worker acotado](document-format-operations.md).
 No completa la validación de toda carga general ni acredita un acto judicial.
-Recursos, audiencias y plazos conservan operaciones pendientes propias.
+La programación de audiencias tiene su [contrato independiente](hearings-api.md).
+Resultados de audiencia, recursos y cómputo de plazos conservan operaciones
+pendientes propias.
+
+## Audiencias y agenda
+
+Owner y Litigator asignado pueden programar, reemplazar y cancelar citas;
+Paralegal asignado consulta. Client no accede al módulo. El perfil completo,
+las revisiones esperadas del expediente y su etapa, la actividad de las nuevas
+fichas seleccionadas y la integridad del soporte se vuelven a comprobar al
+confirmar. Las referencias retenidas conservan su revisión histórica exacta.
+Cancelar copia la programación anterior aunque haya cambiado la etapa; exige
+expediente activo y revisión esperada de audiencia.
+
+Las rutas por expediente parten de `/api/v1/cases/{case_id}/hearings` y la agenda
+transversal usa GET `/api/v1/hearings`, con intervalo UTC explícito y paginación
+por instante y UUID. El [contrato completo](hearings-api.md) incluye cuerpos,
+proyecciones, límites y errores. Cada revisión conserva un recibo propio para
+conciliar respuestas perdidas sin repetir automáticamente la escritura.
+
+Esta programación no registra celebración, asistencia, resultados ni acuerdos;
+tampoco activa términos o sustituye el calendario judicial.
 
 ## Participantes del expediente
 
@@ -626,7 +649,13 @@ La comparación de identificadores actuales y los cambios usan READ COMMITTED
 explícito bajo el bloqueo común de auditoría. Véase el
 [contrato del perfil penal](case-administration-api.md).
 
-Las mutaciones documentales, de participantes, de expedientes y de identidad comparten
+`0011_hearings.sql` y sus archivos auxiliares añaden raíces de audiencias y
+revisiones inmutables. Se comprueban el canon de valores y de operación, sus
+proyecciones, la secuencia y las referencias históricas. El inventario de
+arranque recorre las revisiones y resuelve sus fuentes exactas. No se generan
+audiencias a partir de fechas anteriores ni se modifican documentos o etapas.
+
+Las mutaciones documentales, de participantes, de audiencias, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan
 acceso y estado documental y confirman su evento antes de devolver el
 resultado. Un bloqueo común ordena las confirmaciones y la cabeza de auditoría;
@@ -662,7 +691,8 @@ de auditoría no extiende la atomicidad PostgreSQL a ambos servicios.
 
 ## Límites HTTP y sobrecarga
 
-El servidor comparte un presupuesto entre identidad, documentos, participantes y expedientes:
+El servidor comparte un presupuesto entre identidad, documentos, participantes,
+etapas, audiencias y expedientes:
 como máximo ocho peticiones admitidas y dos operaciones bloqueantes concurrentes
 por defecto. Puede configurarlos con `--max-in-flight-requests` y
 `--max-blocking-operations`; ambos requieren enteros positivos. Cada hash Argon2id
@@ -675,7 +705,7 @@ una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
 
 Los cuerpos JSON de identidad y alta básica de expedientes tienen límite de 16 KiB y rechazan
 campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
-Etapas admiten 32 KiB y administración penal 64 KiB.
+Etapas admiten 32 KiB; audiencias y administración penal, 64 KiB.
 Los documentos mantienen 16 MiB. Se rechazan cabeceras
 Authorization múltiples o tokens con espacios; el esquema Bearer no distingue
 mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
@@ -694,7 +724,7 @@ La envoltura es estable:
 - `400`: UUID, JSON o parámetro tipado inválido según el contrato de la ruta.
 - `401`: credenciales, segundo factor o sesión inválidos.
 - `403`: rol autenticado sin permiso.
-- `404`: documento, participante, usuario o expediente inexistente; también
+- `404`: documento, participante, audiencia, usuario o expediente inexistente; también
   recurso oculto o fuera del expediente indicado.
 - `409`: bootstrap cerrado, usuario duplicado, carrera optimista, expediente
   cerrado, etapa incompatible o soporte cambiado durante la preparación.

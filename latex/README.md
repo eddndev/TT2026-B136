@@ -114,6 +114,21 @@ web final aprobó 90 pruebas unitarias, 147 escenarios simulados y ocho recorrid
 reales; la prueba unitaria adicional contrasta mensajes de errores de la API.
 La CLI midió Argon2id en 615.7 ms de promedio sobre cinco corridas, y el binario
 release conservó 11 673 656 bytes. El primer corte mantiene sus cifras propias.
+La programación de audiencias añade valores temporales, revisiones inmutables,
+participantes exactos y recibos HEAR1/HTXN1. El corte del 16 de septiembre
+registra comprobaciones separadas de dominio, aplicación y transporte, así como
+una demostración HTTP con restauración que conserva tres raíces y cinco revisiones
+de audiencias y compara doce respuestas completas. Qadra incorpora editor,
+historia, selección de referencias exactas y agenda transversal; aprobó 119
+pruebas unitarias y 178 escenarios simulados. Las campañas Rust ordinaria e
+instrumentada aprobaron 1183 pruebas, cero fallos y una externa ignorada; la
+cobertura fue de 25 201 sobre 27 226 líneas, 92.56 %, con los tres umbrales
+aprobados. El binario release midió 12 176 936 bytes. Formato, compilación,
+Clippy 1.98, Rust 1.88, dependencias y CLI terminaron satisfactoriamente. La
+medición Argon2id de 540.7 ms sobre cinco corridas coincidió con otras tareas,
+sin aislamiento de benchmark. Los once recorridos reales de navegador aprobaron; el comando completo tardó
+222.42 segundos y Playwright informó 2.1 minutos. Programar citas no completa
+resultados procesales, asistencia, acuerdos, plazos ni alertas.
 La revisión del reporte se registra en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
 
@@ -158,6 +173,11 @@ Los apartados de identidad y perfiles se separan en
 `chapters/anexo-d-declaraciones.tex` y
 `chapters/anexo-e-participantes-tipificados.tex`. Se incluyen desde los capítulos
 respectivos; no requieren alterar el archivo maestro ni las figuras originales.
+
+Los apartados de audiencias se separan en `chapters/03-audiencias.tex`,
+`chapters/04-audiencias.tex`, `chapters/05-audiencias.tex` y
+`chapters/anexo-e-audiencias.tex`, incluidos en diseño, implementación, pruebas
+y trazabilidad respectivamente.
 
 - **Numeración automática**: las secciones/tablas/figuras NO llevan número
   manual; LaTeX las numera. Para referirte a ellas usa `\cref{etiqueta}`.

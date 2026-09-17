@@ -192,8 +192,8 @@ Los [criterios de esta entrega](docs/next-goal.md) se contrastan con resultados
 actuales antes de cerrar la integración. El listado, detalle, búsqueda e historial
 documental se integran con la interfaz Qadra. Las versiones conservan identidad,
 cifrado y evidencia histórica. Tipo, clasificación y etiquetas tienen un historial
-auditado independiente y filtros por sus valores actuales. La gestión procesal
-sigue pendiente; el alcance de cierre está en [el plan del producto](docs/product-completion.md).
+auditado independiente y filtros por sus valores actuales. La gestión procesal avanza por módulos; el alcance y los pendientes están en
+[el plan del producto](docs/product-completion.md).
 
 El perfil penal tiene NUC, carpeta judicial, autoridades, delitos y datos
 complementarios; conserva revisiones administrativas auditadas. El cierre del
@@ -201,6 +201,11 @@ expediente suspende mutaciones y mantiene consultas y evidencia autorizadas.
 La etapa inicial de Investigación pertenece al alta penal completa; completar
 un perfil anterior no inventa etapas. Los [contratos de administración](docs/case-administration-api.md)
 distinguen estas operaciones de la API básica y las asignaciones de acceso.
+La adopción y las transiciones ordinarias conservan actos declarados y soportes
+exactos. La [programación de audiencias](docs/hearings-api.md) añade revisiones,
+recibos de operación, cancelación e historia, con una agenda autorizada. Los
+resultados de audiencia, plazos,
+calendario judicial y alertas siguen pendientes.
 
 ### Frontend web
 
@@ -212,7 +217,9 @@ distinguen estas operaciones de la API básica y las asignaciones de acceso.
   El directorio de participantes por expediente conserva revisiones y autoría,
   con archivo/reactivación y permisos independientes de las cuentas de acceso.
   Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
-  Conserva la identidad visual Qadra. Las pantallas procesales siguen pendientes.
+  Conserva la identidad visual Qadra. Integra administración penal, etapas,
+  identidades y perfiles procesales; Audiencias y Agenda están en validación
+  integrada. Los resultados de audiencia y los plazos siguen pendientes.
   `bash scripts/web-demo.sh` prueba el navegador con servicios
   aislados reales; requiere las dependencias instaladas de `web/`.
 

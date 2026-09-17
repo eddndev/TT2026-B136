@@ -53,6 +53,14 @@ una preparación anterior. Lectura e historia siguen disponibles en expedientes
 cerrados según permisos. El diseño está en [ADR-0023](adr/0023-audited-case-stage-transitions.md)
 y [ADR-0024](adr/0024-isolated-document-format-admission.md).
 
+La programación de audiencias incorpora cuatro tipos, referencias históricas de
+participantes, soporte exacto de antecedente para individualización, reemplazos
+y cancelación organizativa. Qadra conecta el directorio del expediente con una
+agenda transversal autorizada. Las comprobaciones por capa, la campaña global,
+HTTP, restauración y navegador real se distinguen en el
+[informe de verificación](verification-report.md). Su contrato y límites están en
+[la API de audiencias](hearings-api.md) y [ADR-0028](adr/0028-audited-hearing-scheduling.md).
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -66,7 +74,8 @@ y [ADR-0024](adr/0024-isolated-document-format-admission.md).
 | Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
 | Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
 | Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Pendiente; propuesta y criterios en [alcance de recursos](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
-| Audiencias, plazos y calendario | Audiencias vinculadas al expediente, plazos, calendario configurable, vencimientos y alertas persistentes. | Consultar fuentes normativas oficiales vigentes al implementar reglas; casos de prueba de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir validación de las reglas por una simple suma de días. |
+| Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
+| Resultados, plazos y calendario | Resultados de audiencia, plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Pendiente; fuentes normativas oficiales vigentes, casos de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir reglas por una simple suma de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -107,8 +116,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
-| Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos, audiencias o plazos. |
-| Audiencia y activación de plazos | Pendiente | Programación, cambios, cancelaciones y creación consistente de plazos vinculados. |
+| Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
+| Audiencia y activación de plazos | Parcial; programación implementada | Programación, cambios, cancelaciones, historia y agenda tienen implementación. Faltan resultados, asistentes reales, acuerdos y creación consistente de plazos vinculados; la agenda de citas no es un calendario judicial. |
 | Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
@@ -142,6 +151,11 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   del CNPP y recursos vinculados a resoluciones, sin modificar ese criterio.
   Corregirlo literalmente requiere autorización explícita; implementar las dos
   transiciones no cierra recursos ni el cómputo automático exigido.
+- El catálogo de programación distingue cuatro tipos de audiencia. El marco
+  también menciona medidas cautelares y continuaciones. Esas operaciones no se
+  declaran cubiertas por las cuatro opciones implementadas ni por registrar una
+  segunda cita: requieren su alcance, vínculos y reglas propios. Resultados,
+  asistentes reales y acuerdos conservan su estado pendiente.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,

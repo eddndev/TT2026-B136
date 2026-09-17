@@ -14,6 +14,20 @@ async function summary(page) {
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
 }
 
+test('a completed case navigation preserves search focus when its hashchange arrives', async ({
+  page,
+}) => {
+  await setup(page);
+  await login(page, false, false);
+  await navigate(page, 'Expedientes');
+  const input = page.getByLabel('Buscar por t\u00edtulo');
+  await input.fill('Nueva');
+  await expect(input).toBeFocused();
+  // The browser can deliver the hash event after a field in the new view receives focus.
+  await page.evaluate(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
+  await expect(input).toBeFocused();
+});
+
 test('late staff index response cannot replace a newer filtered page', async ({ page }) => {
   await setup(page);
   const pending = deferred(),

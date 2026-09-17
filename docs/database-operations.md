@@ -1,7 +1,7 @@
 # Base de datos y migración de documentos
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
-documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
+audiencias, documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
 está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
@@ -266,6 +266,38 @@ la versión 7, la primera disponible será 7 y la siguiente 8; no se inventan la
 versiones 1–6. La reconciliación compara el UUID y versión originales, conservando
 bytes, recibo y prefijo de auditoría aunque se añadan versiones posteriormente.
 
+## Actualizar programación de audiencias
+
+Detener escritores, conservar el respaldo y ejecutar `database migrate
+--runtime-role` con la conexión administrativa. Se aplica el conjunto
+`0011_hearings.sql`, `0011_hearings_values.sql`, `0011_hearings_receipts.sql`
+y `0011_hearings_guards.sql`. No ejecutar fragmentos por separado. Se añaden
+`case_hearings` y `case_hearing_revisions`; no se generan citas retrospectivas.
+El servidor operativo comprueba esquema, permisos e inventario sin ejecutar DDL.
+
+Las revisiones conservan los bytes canónicos de valores y operación, sus
+SHA-256, proyecciones y recibos. La secuencia y las fuentes de administración,
+etapa, participantes y soporte pertenecen al mismo expediente. Cancelación
+conserva el contexto original y registra la administración actual por separado.
+El rol operativo puede leer e insertar; no actualizar, borrar ni truncar ese
+historial. El UUID de operación es único en toda la base y no se reutiliza para
+reintentar una escritura de resultado incierto.
+
+Respaldar las dos tablas junto con todas sus fuentes históricas y la auditoría.
+Restaurar únicamente las citas actuales pierde recibos y referencias exactas.
+El inventario resuelve cada revisión y sus fuentes antes de admitir el esquema;
+un hash de valores válido no sustituye la consistencia entre tablas. Una
+inconsistencia exige recuperar datos coherentes, sin fabricar revisiones ni
+relajar restricciones. Administradores de PostgreSQL siguen dentro de la base
+de confianza; el inventario no autentica definiciones SQL alteradas por ellos.
+
+Las fechas preservan su desfase comunicado y la agenda consulta intervalos UTC.
+Ni la restauración ni el paso del tiempo cambian automáticamente el estado de
+una cita o crean plazos. Los metadatos de audiencias no usan el cifrado de los
+archivos documentales; proteger sus respaldos. Véanse
+[ADR-0028](adr/0028-audited-hearing-scheduling.md) y
+[contrato HTTP de audiencias](hearings-api.md).
+
 ## Respaldo y restauración
 
 Las migraciones `0009_participant_credential_trust.sql` y el conjunto `0010_`
@@ -329,13 +361,18 @@ referencias originales. Después del respaldo compara diez respuestas completas,
 las tablas nuevas y la confianza capturada; verifica de nuevo la firma con el
 certificado público recuperado. La clave privada de esa fixture permanece fuera
 del directorio de trabajo del servidor y no se envía por HTTP.
+El recorrido de audiencias programa, reemplaza y cancela, retiene participantes
+históricos y soportes sellados exactos, y consulta una agenda autorizada.
+Después de restaurar compara doce respuestas completas y todas las filas de
+`case_hearings` y `case_hearing_revisions`, incluidos recibos, autores, contexto
+y referencias. No valida una restauración únicamente por el total de citas.
 La reconstrucción del formato legacy es un fixture documental, no una conversión
 íntegra del historial administrativo actual; la restauración posterior sí conserva
 todas las tablas.
 No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `document_metadata_revisions`, `case_participants`, `case_participant_revisions`,
 `case_administration_revisions`, `case_initial_stage_registrations`,
-`case_stage_revisions` y auditoría; un respaldo incompleto no se repara creando
+`case_stage_revisions`, `case_hearings`, `case_hearing_revisions` y auditoría; un respaldo incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

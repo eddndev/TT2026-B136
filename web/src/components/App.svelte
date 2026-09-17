@@ -8,11 +8,14 @@
   import Cases from './Cases.svelte';
   import CaseWorkspace from './CaseWorkspace.svelte';
   import Admin from './Admin.svelte';
+  import Agenda from './Agenda.svelte';
   import { createApi } from '../lib/api.mjs';
   import { roles } from '../lib/documents.mjs';
   import { normalizeView, viewLabels } from '../lib/workspace.mjs';
   let user = null;
   let selectedCase = null;
+  let hearingIntent = null,
+    agendaFilters = null;
 
   let view = 'overview';
   let documentIntent = null;
@@ -24,6 +27,8 @@
   function reset(message = '') {
     user = null;
     selectedCase = null;
+    hearingIntent = null;
+    agendaFilters = null;
 
     documentIntent = null;
     view = 'overview';
@@ -47,6 +52,7 @@
   }
   async function go(destination) {
     view = normalizeView(destination, user?.role);
+    if (view !== 'hearings') hearingIntent = null;
     if (location.hash !== `#${view}`) location.hash = view;
     await tick();
     main?.focus({ preventScroll: true });
@@ -58,7 +64,7 @@
   }
   onMount(() => {
     const onHash = () => {
-      if (user) go(location.hash);
+      if (user && location.hash !== `#${view}`) go(location.hash);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -119,6 +125,16 @@
             onnavigate={go}
             ondocument={openDocument}
           />
+        {:else if view === 'agenda'}<Agenda
+            {api}
+            bind:filters={agendaFilters}
+            onopen={(record, intent) => {
+              selectedCase = record;
+              hearingIntent = intent;
+              documentIntent = null;
+              go('hearings');
+            }}
+          />
         {:else if view === 'cases'}<Cases
             {api}
             {user}
@@ -128,7 +144,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'documents', 'participants', 'stages'].includes(view)}
+        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings'].includes(view)}
           {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
                 {api}
                 {user}
@@ -140,6 +156,8 @@
                   selectedCase = null;
                   go('cases');
                 }}
+                {hearingIntent}
+                onhearingintent={() => (hearingIntent = null)}
                 intent={documentIntent}
                 onintent={() => (documentIntent = null)}
               />{/key}

@@ -3,8 +3,8 @@
 mod authorization;
 mod mutation;
 mod query;
-mod storage;
-mod values;
+pub(crate) mod storage;
+pub(crate) mod values;
 
 use application::cases::*;
 use application::ApplicationError;

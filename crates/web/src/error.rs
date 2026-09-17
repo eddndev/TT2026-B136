@@ -7,9 +7,12 @@ use axum::Json;
 use domain::DomainError;
 use serde::Serialize;
 
+mod hearing;
 mod stage;
 mod typed_participant;
 
+#[cfg(test)]
+mod hearing_tests;
 #[cfg(test)]
 mod stage_tests;
 
@@ -110,6 +113,10 @@ impl ApiError {
 
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
+        let error = match hearing::map(error) {
+            Ok(mapped) => return mapped,
+            Err(error) => error,
+        };
         let error = match stage::map(error) {
             Ok(mapped) => return mapped,
             Err(error) => error,

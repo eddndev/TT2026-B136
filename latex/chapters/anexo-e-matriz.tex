@@ -332,13 +332,15 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 \input{chapters/anexo-e-participantes-tipificados}
 
+\input{chapters/anexo-e-audiencias}
+
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
 Para versiones, el navegador aprobó 28 pruebas unitarias, 32 con respuestas HTTP simuladas y un escenario contra servicios reales. Este último confirmó selección histórica, bytes distintos en la versión 2, ZIP de la versión 1 idéntico al inicial y persistencia de ambas después de autenticar de nuevo, sin errores JavaScript. El escenario se ejecutó con \rutarepo{scripts/web-demo.sh}; su conteo no se suma al de pruebas Rust.
 
 La entrega posterior de clasificación aprobó 34 pruebas unitarias de interfaz, 47 escenarios con respuestas simuladas y dos recorridos reales. El nuevo escenario prueba carga atómica, cambios concurrentes con borrador conservado, comparación explícita, limpieza como revisión cinco, historia del autor y recuperación tras reingreso. Reclasificar y vaciar campos conservan los ZIP de las dos versiones; la comprobación de versiones previa sigue vigente. La interfaz reutiliza componentes y estilos Qadra sin atribuir a estas ejecuciones una evaluación de usabilidad con personal del despacho.
 
-El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido nuevo confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.
+{\looseness=-1 El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido nuevo confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.\par}
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
