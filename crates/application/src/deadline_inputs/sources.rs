@@ -1,4 +1,4 @@
-use super::{inconsistent, DeadlineInputMaterial, DeadlineInputRequest, DeadlineSourceDetail};
+use super::{inconsistent, DeadlineInputMaterial, DeadlineSourceDetail};
 use crate::{
     hearing_results::hearing_result_receipt_matches,
     procedural_facts::{fact_receipt_matches, ProceduralFactSnapshot},
@@ -6,20 +6,18 @@ use crate::{
 };
 use domain::{
     crypto::DocumentHasher,
-    deadline_triggers::{FactTriggerDigests, HearingTriggerDigests, TriggerMaterial},
+    deadline_triggers::{
+        FactTriggerDigests, HearingTriggerDigests, TriggerMaterial, TriggerSelection,
+    },
     procedural_facts::FactDeclaration,
 };
 
 pub(super) fn checked_source<'a>(
     hasher: &dyn DocumentHasher,
-    request: &DeadlineInputRequest,
+    selection: &TriggerSelection,
     material: &'a DeadlineInputMaterial,
 ) -> Result<Option<TriggerMaterial<'a>>, ApplicationError> {
-    let (exact, head) = match (
-        &request.trigger.source,
-        &material.source,
-        &material.source_head,
-    ) {
+    let (exact, head) = match (&selection.source, &material.source, &material.source_head) {
         (FactDeclaration::Unknown(_), None, None) => return Ok(None),
         (FactDeclaration::Known(_), Some(exact), Some(head)) => (exact, head),
         _ => {

@@ -4,9 +4,44 @@ use crate::{
 };
 use domain::{
     crypto::DocumentHasher,
-    deadline_triggers::{evaluate_triggered_arithmetic, TriggeredArithmetic},
+    deadline_triggers::{
+        evaluate_triggered_arithmetic, extract_trigger_time, TriggerExtraction, TriggerMaterial,
+        TriggerRequirement, TriggerSelection, TriggeredArithmetic,
+    },
     judicial_calendars::JudicialCalendarValues,
 };
+
+/// Self-contained checked extraction; it does not establish access or persisted provenance.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckedDeadlineTrigger<'a> {
+    extraction: TriggerExtraction,
+    calendar: Option<&'a JudicialCalendarValues>,
+}
+impl<'a> CheckedDeadlineTrigger<'a> {
+    pub const fn extraction(&self) -> &TriggerExtraction {
+        &self.extraction
+    }
+    pub const fn calendar(&self) -> Option<&'a JudicialCalendarValues> {
+        self.calendar
+    }
+}
+
+/// Verify all supplied material before extracting the explicitly required field or qualification.
+pub fn extract_checked_deadline_inputs<'a>(
+    hasher: &dyn DocumentHasher,
+    requirement: TriggerRequirement,
+    selection: &TriggerSelection,
+    calendar: Option<DeadlineCalendarRef>,
+    material: &'a DeadlineInputMaterial,
+) -> Result<CheckedDeadlineTrigger<'a>, ApplicationError> {
+    let checked = checked_material(hasher, selection, calendar, material)?;
+    let extraction =
+        extract_trigger_time(requirement, selection, checked.source).map_err(inconsistent)?;
+    Ok(CheckedDeadlineTrigger {
+        extraction,
+        calendar: checked.calendar,
+    })
+}
 
 /// Check self-contained consistency; only a store can establish persisted provenance and access.
 pub fn check_deadline_inputs(
@@ -14,7 +49,28 @@ pub fn check_deadline_inputs(
     request: &DeadlineInputRequest,
     material: &DeadlineInputMaterial,
 ) -> Result<TriggeredArithmetic, ApplicationError> {
-    if material.case_id != request.trigger.case_id {
+    let checked = checked_material(hasher, &request.trigger, request.calendar, material)?;
+    evaluate_triggered_arithmetic(
+        request.requirement,
+        &request.trigger,
+        checked.source,
+        request.rule,
+        checked.calendar,
+    )
+    .map_err(inconsistent)
+}
+
+struct CheckedMaterial<'a> {
+    source: Option<TriggerMaterial<'a>>,
+    calendar: Option<&'a JudicialCalendarValues>,
+}
+fn checked_material<'a>(
+    hasher: &dyn DocumentHasher,
+    selection: &TriggerSelection,
+    calendar: Option<DeadlineCalendarRef>,
+    material: &'a DeadlineInputMaterial,
+) -> Result<CheckedMaterial<'a>, ApplicationError> {
+    if material.case_id != selection.case_id {
         return Err(inconsistent("material belongs to another case"));
     }
     if let Some(snapshot) = material.administration.snapshot() {
@@ -24,27 +80,16 @@ pub fn check_deadline_inputs(
             return Err(inconsistent("administration case or values digest differs"));
         }
     }
-    let source = super::sources::checked_source(hasher, request, material)?;
-    let calendar = checked_calendar(hasher, request, material)?;
-    evaluate_triggered_arithmetic(
-        request.requirement,
-        &request.trigger,
-        source,
-        request.rule,
-        calendar,
-    )
-    .map_err(inconsistent)
+    let source = super::sources::checked_source(hasher, selection, material)?;
+    let calendar = checked_calendar(hasher, calendar, material)?;
+    Ok(CheckedMaterial { source, calendar })
 }
 fn checked_calendar<'a>(
     hasher: &dyn DocumentHasher,
-    request: &DeadlineInputRequest,
+    selected: Option<DeadlineCalendarRef>,
     material: &'a DeadlineInputMaterial,
 ) -> Result<Option<&'a JudicialCalendarValues>, ApplicationError> {
-    let (selected, exact, head) = match (
-        &request.calendar,
-        &material.calendar,
-        &material.calendar_head,
-    ) {
+    let (selected, exact, head) = match (selected, &material.calendar, &material.calendar_head) {
         (None, None, None) => return Ok(None),
         (Some(selected), Some(exact), Some(head)) => (selected, exact, head),
         _ => {

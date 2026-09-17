@@ -10,6 +10,7 @@ pub mod case_stages;
 pub mod cases;
 pub mod credential_trust;
 pub mod deadline_inputs;
+pub mod deadline_profiles;
 pub mod documents;
 pub mod error;
 pub mod evidence;
@@ -29,3 +30,5 @@ pub mod verification;
 
 pub use error::ApplicationError;
 pub use hashing::HashDocument;
+
+pub mod deadline_evaluations;
