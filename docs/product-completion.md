@@ -91,6 +91,15 @@ entradas matematicas: los hechos declarados ya tienen persistencia propia, pero
 falta vincularlos a un perfil aplicable, resolver los datos requeridos de
 recepcion y conservar la evaluacion y sus alertas para obtener un plazo operativo.
 
+La [aritmetica temporal](deadline-arithmetic.md) implementa reglas matematicas
+explicitas para dias naturales o computables, meses civiles y horas transcurridas.
+Conserva insumos y trazas, aplica el ajuste final solo si se solicita y bloquea
+ante precision insuficiente, homologo inexistente o calendario incompleto.
+No selecciona un supuesto juridico ni crea un plazo persistente. Los
+[perfiles normativos](deadline-rule-research.md) todavia requieren cerrar
+aplicabilidad, inicio, duracion ordenada y corte, particularmente para meses.
+La activacion, reevaluacion y alertas mantienen su estado pendiente.
+
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
 registra hechos por si misma. La separacion de resoluciones y practicas de

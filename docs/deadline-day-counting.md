@@ -86,6 +86,9 @@ simula mediante este componente puro.
 
 La fecha candidata carece de hora, desfase y zona. No se le asignan medianoche,
 23:59:59 o la zona del navegador; tampoco se programan alertas de 48/24 horas.
-El calculo por meses, sus extremos y la investigacion complementaria requieren
-un contrato y un corpus propios. No se convierten meses en treinta dias ni se
-extiende este conteo diario para declarar cumplido el supuesto mensual.
+La [aritmetica temporal](deadline-arithmetic.md) agrega meses civiles, horas
+transcurridas y politicas diarias explicitas, con corpus matematico propio.
+La investigacion complementaria requiere ademas un perfil normativo sustentado;
+no se convierten meses en treinta dias ni se declara cumplido ese supuesto con
+unicamente el algoritmo. Los extremos pendientes estan documentados en
+[la investigacion de reglas](deadline-rule-research.md).

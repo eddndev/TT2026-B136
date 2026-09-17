@@ -25,6 +25,13 @@ resultados documentales históricos de este archivo no verifican esa interfaz
 ni su implementación posterior.
 
 
+La aritmetica temporal de dias, meses civiles y horas y la investigacion de
+perfiles se documentan en [el contrato](deadline-arithmetic.md) y en
+[las fuentes normativas](deadline-rule-research.md). Su incorporacion al
+manuscrito y la comprobacion del PDF tambien estan pendientes. Las nuevas
+pruebas matematicas no acreditan un perfil juridico ni reemplazan los criterios
+aprobados sobre plazos, calendario y alertas.
+
 ## Sesiones y resultados declarados: 16 de septiembre de 2026
 
 Se incorporaron cuatro apartados de diseño, implementación, pruebas y
