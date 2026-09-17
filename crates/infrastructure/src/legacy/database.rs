@@ -119,6 +119,8 @@ impl LegacyImport {
              OR EXISTS(SELECT 1 FROM case_hearing_results) OR EXISTS(SELECT 1 FROM case_hearing_result_revisions)
              OR EXISTS(SELECT 1 FROM case_procedural_facts) OR EXISTS(SELECT 1 FROM case_procedural_fact_revisions)
              OR EXISTS(SELECT 1 FROM judicial_calendars) OR EXISTS(SELECT 1 FROM judicial_calendar_revisions)
+             OR EXISTS(SELECT 1 FROM deadline_profiles) OR EXISTS(SELECT 1 FROM deadline_profile_revisions)
+             OR EXISTS(SELECT 1 FROM deadline_source_events)
              OR EXISTS(SELECT 1 FROM case_subjects) OR EXISTS(SELECT 1 FROM case_subject_revisions)
              OR EXISTS(SELECT 1 FROM case_participant_typed_revisions) OR EXISTS(SELECT 1 FROM subject_identity_reviews)
              OR EXISTS(SELECT 1 FROM participant_identity_reviews) OR EXISTS(SELECT 1 FROM participant_credential_evidence)
@@ -129,7 +131,7 @@ impl LegacyImport {
             .map_err(invalid)?
             .get(0);
         if occupied {
-            return Err(invalid("initial import requires empty document, participant, credential trust, case administration, hearing, hearing result, judicial calendar, procedural fact and audit stores; stop writers before cutover"));
+            return Err(invalid("initial import requires empty document, participant, credential trust, case administration, hearing, hearing result, judicial calendar, procedural fact, deadline profile, deadline source event and audit stores; stop writers before cutover"));
         }
         Ok(false)
     }

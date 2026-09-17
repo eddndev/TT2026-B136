@@ -1,12 +1,19 @@
 # Base de datos y migración de documentos
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
-audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos
-y una sola cadena de auditoría. El esquema incorpora además hechos declarados
-de resolución y notificación; su backend está verificado localmente y
-tiene [composición HTTP](procedural-facts-api.md) con pruebas focales aprobadas;
-su comprobación integrada y restauración están aprobadas localmente; Qadra sigue pendiente. Redis conserva las sesiones
-y controles efímeros. La decisión está en [ADR-0016](adr/0016-case-document-transactions.md).
+audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos,
+hechos de resolución y notificación y una sola cadena de auditoría. Los hechos
+cuentan con [API](procedural-facts-api.md) e
+[interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas).
+Redis conserva sesiones revocables y controles efímeros.
+
+El esquema incorpora el catálogo de perfiles de plazo y un registro durable de
+cambios de sus fuentes. El catálogo y el núcleo de evaluación están implementados;
+la [API de perfiles](deadline-profiles-api.md) sigue en implementación y
+verificación. Persistir evaluaciones y seguimiento, consumir cambios mediante
+trabajadores, entregar alertas y ofrecer Qadra para esos flujos sigue pendiente.
+Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
+[el alcance de plazos](deadline-lifecycle.md).
 
 ## Preparar un despliegue nuevo
 
@@ -398,8 +405,8 @@ audiencia, conservadas por el mismo recorrido. Los resultados y el alcance de
 las demás campañas se distinguen en el [informe de verificación](verification-report.md).
 
 El catálogo no programa tareas vacías de reevaluación ni activa plazos o
-alertas. La evaluación futura requerirá hechos, reglas aplicables y coordinación
-transaccional con la revisión del calendario. Véanse
+alertas. El seguimiento persistente requiere vincular hechos, perfiles aplicables
+y revisiones exactas, además de consumir los cambios registrados. Véanse
 [el contrato](judicial-calendars-api.md) y
 [ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
 
@@ -446,11 +453,81 @@ exactas y capturas después de cambios de administración y autor. No atribuir e
 prueba al navegador. La API de hechos y su composición tienen una campaña
 separada con servicios reales y restauración exacta, aprobada localmente. El
 guion incluye ambas tablas de hechos en el inventario y compara respuestas
-históricas después de restaurar. La interfaz Qadra sigue pendiente.
+históricas después de restaurar. La [interfaz Qadra de hechos](../web/README.md#resoluciones-y-notificaciones-declaradas)
+permite capturar, consultar y conciliar sus declaraciones.
 El cierre de comprobaciones se registra en el [informe](verification-report.md).
 Véanse el [contrato de persistencia](procedural-facts-persistence.md), la
 [API de hechos](procedural-facts-api.md) y
 [ADR-0031](adr/0031-declared-procedural-facts.md).
+
+## Actualizar eventos de fuentes y catálogo de perfiles de plazo
+
+Detener todos los escritores, conservar el respaldo completo y ejecutar
+`database migrate --runtime-role` con conexión administrativa. La migración
+[0015](../migrations/0015_deadline_source_events.sql) añade
+`deadline_source_events` y `deadline_source_events_sequence`. Los triggers
+registran cambios de resoluciones, notificaciones, resultados y calendarios.
+No fabrican eventos correspondientes a revisiones anteriores a su instalación.
+
+El conjunto `0016_deadline_profile_*.sql` instala, en orden, la
+[proyección](../migrations/0016_deadline_profile_projection.sql), el
+[recibo](../migrations/0016_deadline_profile_receipts.sql), las
+[tablas](../migrations/0016_deadline_profile_tables.sql), los
+[guards](../migrations/0016_deadline_profile_guards.sql) y la
+[extensión de eventos](../migrations/0016_deadline_profile_events.sql).
+Añade `deadline_profiles` y `deadline_profile_revisions`; no publica perfiles
+predeterminados ni modifica calendarios o actos existentes. La extensión agrega
+la familia `profile` al mismo registro de cambios, sin un segundo outbox.
+
+La raíz fija UUID, ámbito global o expediente y referencia diferida a R1.
+Cada revisión conserva definición DPRF1, algoritmo V1, huella, recibo DPTX1,
+operación, acción, motivo, UUID/correo del autor y captura del sistema. La
+proyección SQL contiene título y ámbito; el lector Rust decodifica la definición
+completa y reproduce su corpus. SQL no duplica el motor aritmético. El ámbito
+completo permanece igual a R1; retirar es terminal y copia los bytes y el
+algoritmo anteriores, sin eliminar la historia.
+
+Las escrituras usan READ COMMITTED y el bloqueo común de auditoría. Revalidan
+Owner activo y correo capturado después del bloqueo; los perfiles de expediente
+requieren que éste siga activo. Revisión, auditoría y evento de cambio se
+confirman en la misma transacción. El evento fija revisión y operación exactas;
+su expediente debe coincidir con la raíz, incluido NULL para un perfil global.
+La secuencia se asigna bajo el bloqueo. Un rollback puede dejar huecos de
+numeración; no deben rellenarse ni interpretarse como revisiones perdidas.
+
+El rol operativo necesita SELECT/INSERT sobre las dos tablas de perfiles y
+EXECUTE sobre sus helpers de proyección/recibo, sin propiedad ni facultad de
+reescritura. El registro de cambios permite consultar sus filas e insertar sólo
+las columnas de entrada; no permite proporcionar la secuencia ni las columnas
+calculadas. Su secuencia concede USAGE, sin UPDATE para reiniciarla. Los guards
+no conceden EXECUTE directo al rol operativo. `database migrate` instala estos
+permisos; el arranque rechaza también privilegios indirectos que los eludan.
+
+El arranque no ejecuta DDL: comprueba tablas permanentes sin herencia o
+particiones, columnas, expresiones, claves, funciones, triggers y permisos.
+El inventario revisa todas las revisiones, incluido UUID cero, con lectura
+estricta de DPRF1, huellas y recibos, ámbito inicial, secuencia y retiro; conserva
+autores históricos aunque su cuenta esté inactiva. La existencia del autor y
+las relaciones exactas siguen siendo necesarias. No reparar inconsistencias
+mediante UPDATE, borrado de filas o relajación del catálogo.
+
+Respaldar ambas tablas junto con usuarios, expedientes, fuentes históricas,
+auditoría, `deadline_source_events` y su secuencia. Conservar `last_value` e
+`is_called`, incluso si hay huecos, y los permisos de los objetos restaurados.
+La [prueba PostgreSQL de restauración](../crates/infrastructure/tests/deadline_profile_restore.rs)
+usa `pg_dump` y `pg_restore` reales: compara filas, definiciones, revisiones
+exactas, historial, autores capturados y estado de la secuencia; contempla otra
+cuenta Owner que continúa un perfil publicado después de restaurar. Su alcance
+es backend, no una prueba de navegador ni de entrega de alertas. Las mediciones
+del corte en curso se registran separadamente al concluir la campaña.
+
+El [catálogo HTTP](deadline-profiles-api.md) está en verificación. El
+[evaluador de aplicación](../crates/application/src/deadline_evaluations/evaluate.rs)
+combina insumos verificados, perfil explícito, cantidad ordenada y declaraciones
+de aplicabilidad. Conserva bloqueos y cálculo parcial; no guarda aún una revisión
+de plazo ni activa un trabajador. Un evento durable tampoco equivale a un aviso
+entregado. La persistencia del seguimiento, reevaluación, alertas y Qadra de
+plazos permanece pendiente en [el contrato completo](deadline-lifecycle.md).
 
 ## Respaldo y restauración
 
@@ -537,7 +614,9 @@ No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `case_stage_revisions`, `case_hearings`, `case_hearing_revisions`,
 `case_hearing_results`, `case_hearing_result_revisions`, `judicial_calendars`,
 `judicial_calendar_revisions`, `case_procedural_facts`,
-`case_procedural_fact_revisions` y auditoría; un respaldo incompleto no se repara creando
+`case_procedural_fact_revisions`, `deadline_profiles`, `deadline_profile_revisions`,
+`deadline_source_events`, `deadline_source_events_sequence` y auditoría; un respaldo
+incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

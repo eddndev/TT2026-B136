@@ -65,13 +65,19 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "enforce_judicial_calendar_sequence()",
             7,
         ),
+        (
+            TABLES[1],
+            "deadline_source_emit",
+            "emit_deadline_source_event()",
+            5,
+        ),
     ] {
         let valid:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=$1::text::regclass AND tgname=$2 AND tgfoid=$3::text::regprocedure AND tgtype=$4 AND tgenabled IN ('O','A') AND NOT tgisinternal AND NOT tgdeferrable AND NOT tginitdeferred AND tgqual IS NULL AND tgnargs=0 AND tgattr=''::int2vector)",&[&table,&trigger,&function,&kind]).map_err(port)?.get(0);
         if !valid {
             return Err(incomplete());
         }
     }
-    let altered:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A')) OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>3",&[&&TABLES[..]]).map_err(port)?.get(0);
+    let altered:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A')) OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>4",&[&&TABLES[..]]).map_err(port)?.get(0);
     if altered {
         return Err(incomplete());
     }

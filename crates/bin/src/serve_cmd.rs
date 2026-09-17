@@ -6,6 +6,7 @@ use std::sync::Arc;
 use anyhow::Context;
 use application::case_stages::CaseStageService;
 use application::cases::CaseService;
+use application::deadline_profiles::DeadlineProfileService;
 use application::documents::{
     CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
 };
@@ -18,7 +19,6 @@ use application::procedural_facts::ProceduralFactService;
 use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
-use infrastructure::PostgresProceduralFactStore;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
     PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository,
@@ -28,6 +28,7 @@ use infrastructure::{
     RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
     TotpRsProvider, X509ChainValidator,
 };
+use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 use zeroize::Zeroizing;
 
 use crate::cli::ServeArgs;
@@ -215,6 +216,21 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         calendar_hasher,
         calendar_clock,
     );
+    let profile_hasher = Arc::new(RingSha256Hasher::new());
+    let profile_clock = Arc::new(SystemClock::new());
+    let profiles = DeadlineProfileService::new(
+        Arc::new(
+            PostgresDeadlineProfileStore::open(
+                &database_url,
+                profile_hasher.clone(),
+                profile_clock.clone(),
+            )
+            .context("cannot open PostgreSQL deadline profile store")?,
+        ),
+        identity.clone(),
+        profile_hasher,
+        profile_clock,
+    );
     let workflow = CaseDocumentService::new(
         repository,
         identity.clone(),
@@ -234,6 +250,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             procedural_facts: Arc::new(procedural_facts),
         },
         Arc::new(calendars),
+        Arc::new(profiles),
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
             max_blocking_operations: args.max_blocking_operations,

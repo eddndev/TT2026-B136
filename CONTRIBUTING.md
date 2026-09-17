@@ -187,6 +187,15 @@ Inspect current code and contracts before treating this summary as complete.
   denied. Audited persistence, restoration and Qadra are verified locally. See `docs/judicial-calendars-api.md` and
   `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 
+- Deadline profiles have immutable global or case-specific definitions, exact
+  receipts, reproducible examples, audited PostgreSQL persistence and HTTP routes.
+  Source revisions append durable change events in the same transaction. The
+  pure evaluator checks applicability and verified inputs, preserving incomplete
+  results without inventing a cutoff. Persistent deadlines, attention, workers,
+  alerts and their Qadra interface remain pending. See
+  `docs/deadline-profiles-api.md` and
+  `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
+
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding

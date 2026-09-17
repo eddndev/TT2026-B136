@@ -5,7 +5,7 @@ use serde::{
 };
 use std::{fmt, marker::PhantomData};
 
-pub(super) struct Object<T>(pub T);
+pub(crate) struct Object<T>(pub T);
 impl<'de, T: Deserialize<'de>> Deserialize<'de> for Object<T> {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         struct ObjectVisitor<T>(PhantomData<T>);
@@ -21,12 +21,12 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for Object<T> {
         deserializer.deserialize_map(ObjectVisitor(PhantomData))
     }
 }
-pub(super) fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+pub(crate) fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
     d: D,
 ) -> Result<T, D::Error> {
     Object::<T>::deserialize(d).map(|v| v.0)
 }
-pub(super) fn array<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+pub(crate) fn array<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
     d: D,
 ) -> Result<Vec<T>, D::Error> {
     Vec::<Object<T>>::deserialize(d).map(|v| v.into_iter().map(|v| v.0).collect())

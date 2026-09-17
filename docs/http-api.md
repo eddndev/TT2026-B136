@@ -18,7 +18,18 @@ y la cobertura también tienen verificación local registrada en el
 La [API de hechos declarados de resolución y notificación](procedural-facts-api.md)
 añade familias por expediente, padre fijo, preparación, confirmación, retiro e
 historia con fuentes exactas. Sus pruebas focales, la suite global y el recorrido
-HTTP con servicios reales y restauración pasaron localmente; Qadra sigue pendiente.
+HTTP con servicios reales y restauración pasaron localmente. La
+[interfaz Qadra de hechos](../web/README.md#resoluciones-y-notificaciones-declaradas)
+permite capturar, consultar y conciliar estas declaraciones.
+
+La [API del catálogo de perfiles de plazo](deadline-profiles-api.md) adapta el
+catálogo global y el de expediente, con publicación, reemplazo, retiro e
+historia exacta. El catálogo persistido y el evaluador de aplicación están
+implementados; la capa HTTP sigue en implementación y verificación. No registra
+todavía plazos persistentes ni compone el evaluador como flujo HTTP del expediente.
+Trabajadores de reevaluación, alertas y Qadra de plazos siguen pendientes.
+Véanse [el alcance completo](deadline-lifecycle.md) y
+[el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
 Contrato revisado el 2026-09-16. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
@@ -100,7 +111,8 @@ la biblioteca en un proceso acotado; véase
 
 El servidor no ejecuta DDL y rechaza roles que puedan administrar o reescribir
 la auditoría. `database migrate` aplica las migraciones de identidad,
-expedientes, documentos/auditoría y calendarios jurisdiccionales. `--data-dir` señala el origen local
+expedientes, documentos/auditoría, calendarios jurisdiccionales, hechos declarados,
+eventos de fuentes y perfiles de plazo. `--data-dir` señala el origen local
 preservado: si contiene datos, el arranque exige un corte completado y
 reconciliado con la base. Los documentos nuevos se guardan en PostgreSQL. El
 servidor escucha solamente en `127.0.0.1:3000` por defecto.
@@ -376,8 +388,9 @@ digest, autor ni fecha. Fecha, minuto, segundo y desfase conservan la precisión
 declarada; no se infieren efectos, destinatarios o instantes. Retirar conserva
 los valores y soportes admitidos, es terminal y no declara nulidad jurídica.
 Las pruebas focales y la campaña integrada con servicios reales y restauración
-tienen evidencia separada en el informe de verificación. La interfaz Qadra de
-estas capturas sigue pendiente.
+tienen evidencia separada en el informe de verificación. La
+[interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
+permite capturar, consultar y conciliar estas declaraciones.
 
 ## Participantes del expediente
 

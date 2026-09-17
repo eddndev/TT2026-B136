@@ -11,7 +11,7 @@ use time::{Date, Month, UtcOffset};
 
 #[derive(Deserialize)]
 #[serde(tag = "precision", rename_all = "snake_case", deny_unknown_fields)]
-pub(super) enum DeclaredTime {
+pub(crate) enum DeclaredTime {
     Unknown {},
     Date {
         year: i32,
@@ -38,7 +38,7 @@ pub(super) enum DeclaredTime {
     },
 }
 impl DeclaredTime {
-    pub(super) fn validate(self) -> Result<DeclaredProceduralTime, ApiError> {
+    pub(crate) fn validate(self) -> Result<DeclaredProceduralTime, ApiError> {
         let result = match self {
             Self::Unknown {} => return Ok(DeclaredProceduralTime::unknown()),
             Self::Date {
@@ -92,7 +92,7 @@ fn offset(seconds: Option<i32>) -> Result<Option<UtcOffset>, ApiError> {
         .map(|v| UtcOffset::from_whole_seconds(v).map_err(|_| invalid()))
         .transpose()
 }
-pub(super) fn project(value: DeclaredProceduralTime) -> Result<Value, ApiError> {
+pub(crate) fn project(value: DeclaredProceduralTime) -> Result<Value, ApiError> {
     let precision = match value.precision() {
         DeclaredProceduralPrecision::Unknown => return Ok(json!({"precision":"unknown"})),
         DeclaredProceduralPrecision::Date => "date",

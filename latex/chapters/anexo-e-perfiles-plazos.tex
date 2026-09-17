@@ -1,0 +1,59 @@
+\section{Perfiles, evaluador y registro durable de cambios}\label{sec:matriz-perfiles-plazos}
+
+La \cref{tab:matriz-perfiles-plazos} relaciona las fronteras descritas en las \cref{sec:implementacion-perfiles-plazos,sec:pruebas-perfiles-plazos}. La existencia de una prueba identifica su objeto de comprobación; los resultados de ejecución se conservan en \rutarepo{docs/verification-report.md}. No se suman los auxiliares ni las matrices de datos como campañas independientes.
+
+\begin{table}[H]
+  \centering
+  \caption{Trazabilidad de perfiles y evaluación de plazos.}
+  \label{tab:matriz-perfiles-plazos}
+  \begin{tabularx}{\linewidth}{@{}L{3.2cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Comprobación discriminante} \\
+    \midrule
+    Solicitud de insumos & Reversibilidad de \texttt{DINP1}, referencia exacta, precisión original, ausencia frente a desconocimiento y rechazo de formas no canónicas. \\
+    Definición & Reproducción del corpus, cantidades y corte independientes, referencias propias y conservación de calendarios completos. \\
+    Canon de perfil & Lectura acotada de \texttt{DPRF1}, orden de colecciones, instante esperado con nanosegundos y desfase, y rechazo de truncamiento o exceso. \\
+    Evaluador & Integridad antes de bloqueos, condiciones explícitas, cálculo parcial e instante final ausente cuando falta un dato necesario. \\
+    Servicio y catálogo & Permisos, reautenticación, recibo \texttt{DPTX1}, revisión esperada, retiro terminal y aislamiento de colecciones. \\
+    PostgreSQL & Atomicidad con auditoría, revalidación bajo bloqueo, carrera entre cambios y conservación de historia tras restaurar. \\
+    Esquema e inventario & Tablas permanentes sin herencia, funciones y restricciones exactas, rol limitado, UUID cero y definición completa inválida detrás de una cabecera válida. \\
+    Eventos & Fuente, revisión, operación y ámbito exactos; emisión transaccional, secuencia con huecos admitidos y restauración. \\
+    HTTP & Ruta y comando congruentes, entrada estricta, presupuesto del cuerpo y proyección completa de precisión y referencias. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+{\raggedright
+Las pruebas de aplicación están en el directorio
+\rutarepo{crates/application/tests/}. Los archivos siguientes separan sus
+fronteras:
+\begin{itemize}
+  \item \rutarepo{deadline_input_encoding.rs}: solicitud de insumos.
+  \item \rutarepo{deadline_profile_encoding.rs}: canon del perfil.
+  \item \rutarepo{deadline_profile_definition.rs}: definición y corpus.
+  \item \rutarepo{deadline_profiled_evaluation.rs}: evaluación con perfil.
+\end{itemize}
+Los archivos cuyo nombre comienza con \texttt{deadline\_profile\_catalog},
+en ese mismo directorio, cubren servicio, consultas, fallos y recibos.
+\par}
+
+{\raggedright
+Las pruebas de infraestructura están en el directorio
+\rutarepo{crates/infrastructure/tests/}. Para el catálogo comparten el prefijo
+\texttt{deadline\_profile\_} y la extensión \texttt{.rs}. Los sufijos
+\texttt{backend}, \texttt{revalidation}, \texttt{schema}, \texttt{restore},
+\texttt{import} y \texttt{events} identifican sus fronteras.
+El registro compartido se ejercita además en los siguientes archivos del mismo
+directorio:
+\begin{itemize}
+  \item \rutarepo{deadline_source_events.rs}.
+  \item \rutarepo{deadline_source_event_catalog.rs}.
+  \item \rutarepo{deadline_source_event_restore.rs}.
+\end{itemize}
+Estas pruebas requieren servicios aislados configurados; su omisión por falta
+de entorno no demuestra el adaptador.
+\par}
+
+La frontera de transporte usa los archivos con prefijo \texttt{deadline\_profile\_http} en \rutarepo{crates/web/tests/}. El contrato está en \rutarepo{docs/deadline-profiles-api.md}; la derivación del presupuesto JSON, en \rutarepo{docs/deadline-profile-json-budget.md}; y las obligaciones de respaldo y restauración, en \rutarepo{docs/database-operations.md}.
+
+El seguimiento persistente, los consumidores de eventos, las alertas y sus vistas de Qadra requieren sus propios recorridos de aceptación. Esta matriz conserva la separación entre una candidata matemática, una declaración de aplicabilidad y una actuación procesal acreditada; no sustituye ejemplos jurídicamente respaldados por la sola concordancia de emisores y lectores del prototipo.

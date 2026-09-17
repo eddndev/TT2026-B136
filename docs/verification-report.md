@@ -19,6 +19,96 @@ campaña local se detalla a continuación y requiere su propia CI. La integraci�
 no cierra los flujos pendientes de perfiles, plazos operativos ni alertas.
 Los cortes históricos conservan sus fechas, métricas y límites originales.
 
+El mismo día a las 20:07 (`America/Mexico_City`) se integró también el corte de
+insumos temporales mediante el commit `1e75b41`. Sus 19 controles de CI aprobaron
+y el paso de release fue omitido conforme al evento. La consulta posterior a
+GitHub y la sincronización de `origin/main` confirmaron ese commit. El trabajo
+nuevo de perfiles descrito en el contrato conserva verificación e integración
+propias; esas comprobaciones remotas anteriores no lo cubren.
+
+## Corte reproducido: catálogo de perfiles y evaluación explícita
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[catálogo](deadline-profiles-api.md) publica, reemplaza y retira configuraciones
+versionadas globales o privadas. Conserva definición, algoritmo, ejemplos,
+recibos e historia inmutable con autorización y auditoría atómicas. El evaluador
+puro comprueba integridad, aplicabilidad, cantidad, precisión y corte; conserva
+candidatas y bloqueos. Las evaluaciones persistentes y el seguimiento operativo
+siguen pendientes según [el contrato de ciclo de vida](deadline-lifecycle.md).
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Suite Rust con PostgreSQL/Redis desechables | **2057 aprobadas, 0 fallidas, 1 TSA externa ignorada**, 1174.029 s. |
+| Casos nuevos | **179 aprobados**, ya incluidos en el total. |
+| Formato del workspace | Aprobado, 4.284 s. |
+| Compilación del workspace | Aprobada, 7.834 s con caché. |
+| Clippy 1.98.1, todos los targets | Aprobado con warnings denegados, 11.149 s. |
+| Rust 1.88, todos los targets | Aprobado, 39.946 s. |
+| `scripts/demo.sh` | Aprobado, 16.347 s. |
+| `scripts/api-demo.sh`, servicios y restauración reales | Aprobado, 325.807 s. |
+
+Rust local fue 1.94.0. La suite ejecutó `scripts/test-backends.sh cargo test
+--workspace` con qpdf 12.4.1 y bases aisladas; no omitió adaptadores por falta de
+variables. Las duraciones incluyen compilación y preparación cuando corresponden;
+no son mediciones de latencia de producto. No cambiaron dependencias.
+
+Los 179 casos nuevos comprenden once de dominio, 112 de aplicación, cuarenta de
+infraestructura y dieciséis de HTTP con puertos controlados. Cubren reglas fijas
+y cantidades ordenadas, cortes, corpus, codificación estricta, extracción
+comprobada, bloqueos, ámbito privado, permisos, CAS, revocación/cierre entre
+preparación y confirmación, inventario, eventos durables, rollback y restauración.
+La falta de cantidad no se sustituye por un máximo. Un bloqueo de aplicabilidad
+no oculta corrupción. El registro de eventos no tiene todavía consumidor.
+
+El recorrido HTTP real comprueba cuatro roles, aislamiento global/privado,
+recibos, corpus sintético, conflicto secuencial, retiro y revocación de membresía.
+La restauración recuperó **diez respuestas exactas** del catálogo y sus recibos,
+además de repetir los recorridos existentes, verificar auditoría y conservar el
+ZIP de evidencia. Se compararon los estados de base antes de reconciliar y
+antes/después de restaurar, incluidos perfiles, eventos y posición lógica de su
+secuencia. El estado físico de caché de la secuencia no forma parte de esa
+comparación. Este guion no prueba por sí solo carreras concurrentes de perfiles
+ni cierre; esos escenarios pertenecen a los tests del adaptador.
+
+TDD registró módulos y APIs ausentes antes de implementar. Las regresiones
+adicionales demostraron el rechazo de herencia de tablas en el esquema y de una
+importación inicial sobre catálogos o eventos ocupados. Los reintentos con recibo
+previo siguen conciliándose. Las repeticiones focales no aumentan el total.
+
+La primera campaña HTTP terminó después de capturar perfiles, sin diagnóstico.
+La repetición instrumentada confirmó que el estado restaurado y el recibo eran
+idénticos y localizó el fallo al esperar la dirección del servidor restaurado.
+El guion anterior esperaba aproximadamente diez segundos. Se añadió diagnóstico
+sin comandos ni credenciales y una espera acotada a sesenta segundos. En la
+repetición aprobada el servidor restaurado anunció su dirección a los **12
+segundos**, tras validar el inventario; se mantuvieron todas las aserciones de
+datos, evidencia y HTTP. No se modificó código Rust para resolver ese fallo.
+
+La CI inicial detectó un fallo previo a la suite Rust en la preparación de las
+pruebas SQL independientes de calendarios. Su fixture aplicaba todas las
+migraciones salvo las de calendario y después creaba esas tablas; los eventos
+nuevos ya dependen de ellas. El fallo se reprodujo localmente antes de corregir
+la fixture para instalar sólo prerrequisitos anteriores y después el calendario.
+Se conservaron las migraciones de producto y todas las aserciones. Aprobaron
+**21 pruebas SQL** en 14.603 s, **nueve del generador** en 0.389 s y **nueve de
+preparación de formatos** en 0.382 s. La comprobación de vectores también aprobó
+en 0.296 s. Son pruebas existentes, separadas de las 2057 de Rust.
+
+Las **1441** fuentes, fixtures, scripts y manifiestos controlados conservan
+**1438** huellas desde la suite Rust. Los dos guiones HTTP modificados después
+se comprobaron con la restauración final; la tercera diferencia es la fixture
+SQL, verificada con sus 21 casos. El código Rust y las migraciones permanecen
+idénticos. Las 153 fuentes de código modificadas son ASCII y menores de 400
+líneas, máximo 370. La revisión estática independiente no dejó hallazgos
+accionables. La corrección de la fixture requiere su propia CI remota.
+
+No se implementó una pantalla Qadra en este corte ni se repitió localmente una
+campaña de navegador o cobertura instrumentada. No se atribuye a estas pruebas
+la aceptación jurídica de perfiles, la persistencia de plazos, la entrega de
+alertas ni el cierre del objetivo completo. La comprobación del PDF de 300
+páginas y la conservación de autoría se registran en
+[la verificación académica](academic-report-verification.md).
+
 ## Corte reproducido: insumos temporales autorizados
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El

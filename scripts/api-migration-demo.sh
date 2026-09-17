@@ -23,7 +23,7 @@ migration_demo_stop() {
 }
 
 migration_demo_start() {
-  local url="$1" directory="$2" label="$3" address=""
+  local url="$1" directory="$2" label="$3" address="" started=$SECONDS
   export DATABASE_URL="$url"
   SERVER_LOG="$WORK_DIR/$label-server.log"
   RUST_LOG=warn stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
@@ -31,13 +31,22 @@ migration_demo_start() {
     --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
     --tsa-dir "$TSA_DIR" >"$SERVER_LOG" 2>&1 &
   SERVER_PID=$!
-  for _ in $(seq 1 100); do
+  while (( SECONDS - started < 60 )); do
     address="$(sed -n 's/^listening on http:\/\///p' "$SERVER_LOG" | tail -n 1)"
     if [ -n "$address" ]; then break; fi
-    kill -0 "$SERVER_PID" 2>/dev/null || { cat "$SERVER_LOG" >&2; return 1; }
+    if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+      printf 'Migration restore: %s server exited before reporting its address.\n' "$label" >&2
+      cat "$SERVER_LOG" >&2
+      return 1
+    fi
     sleep 0.1
   done
-  [ -n "$address" ] || { cat "$SERVER_LOG" >&2; return 1; }
+  if [ -z "$address" ]; then
+    printf 'Migration restore: %s server did not report its address within 60 seconds.\n' "$label" >&2
+    cat "$SERVER_LOG" >&2
+    return 1
+  fi
+  printf 'Migration restore: %s server ready after %s seconds.\n' "$label" "$((SECONDS - started))"
   BASE_URL="http://$address"
   curl -fsS "$BASE_URL/healthz" | rg -x 'ok' >/dev/null
 }
@@ -89,6 +98,14 @@ migration_demo_state() {
       'procedural_facts',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id) FROM case_procedural_facts f),
       'procedural_fact_revisions',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id,revision)
         FROM case_procedural_fact_revisions f),
+      'deadline_profiles',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM deadline_profiles p),
+      'deadline_profile_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY profile_id,revision)
+        FROM deadline_profile_revisions p),
+      'deadline_source_events',(SELECT jsonb_agg(to_jsonb(e) ORDER BY sequence)
+        FROM deadline_source_events e),
+      'deadline_source_sequence',(SELECT jsonb_build_object(
+        'last_value',last_value,'is_called',is_called)
+        FROM deadline_source_events_sequence),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
@@ -225,17 +242,23 @@ PY
   hearing_demo "$imported_url"
   calendar_demo
   procedural_facts_demo
+  profile_demo
+  printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
+  printf 'Migration restore: capturing the database state.\n'
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
+  printf 'Migration restore: reconciling the original import receipt.\n'
   DATABASE_URL="$imported_url" "$CLI" --json database import --apply \
     --data-dir "$legacy_dir" --mapping "$legacy_dir/mapping.json" >"$WORK_DIR/administration-reconcile.json"
   [ "$(jq -Sc '.report' "$WORK_DIR/administration-reconcile.json")" = "$import_report" ]
   migration_demo_state "$imported_url" >"$WORK_DIR/reconciled-state.json"
   cmp "$WORK_DIR/imported-state.json" "$WORK_DIR/reconciled-state.json"
 
+  printf 'Migration restore: dumping and restoring the database.\n'
   pg_dump "$imported_url" --format=custom --file="$WORK_DIR/imported.dump"
   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE restored' >/dev/null
   pg_restore --exit-on-error --dbname="$restored_url" "$WORK_DIR/imported.dump"
+  printf 'Migration restore: comparing restored state and import receipt.\n'
   migration_demo_state "$restored_url" >"$WORK_DIR/restored-state.json"
   cmp "$WORK_DIR/imported-state.json" "$WORK_DIR/restored-state.json"
   DATABASE_URL="$restored_url" "$CLI" --json database import \
@@ -253,6 +276,7 @@ PY
   hearing_demo_restored
   calendar_demo_restored
   procedural_facts_demo_restored
+  profile_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -290,3 +314,5 @@ unset -f typed_participant_demo typed_participant_demo_restored typed_participan
 unset -f hearing_demo hearing_demo_restored hearing_demo_python
 unset -f calendar_demo calendar_demo_restored calendar_demo_python
 unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_demo_python
+
+unset -f profile_demo profile_demo_restored profile_demo_python

@@ -16,6 +16,7 @@ use axum::{routing::get, Router};
 mod case_administration;
 mod case_stages;
 mod cases;
+mod deadline_profiles;
 mod dto;
 mod error;
 mod hearing_results;
@@ -127,12 +128,24 @@ pub struct CaseWorkflows {
     pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
 }
 
+/// Builds the explicit global and case profile collections over an authorized workflow.
+pub fn deadline_profile_router(
+    workflow: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        deadline_profiles::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds all API routes with one shared admission and blocking-work budget.
 pub fn api_router(
     documents: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     workflows: CaseWorkflows,
     calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+    profiles: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
@@ -157,7 +170,8 @@ pub fn api_router(
             workflows.procedural_facts,
             runtime.clone(),
         ))
-        .merge(judicial_calendars::router(calendars, runtime.clone()));
+        .merge(judicial_calendars::router(calendars, runtime.clone()))
+        .merge(deadline_profiles::router(profiles, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 

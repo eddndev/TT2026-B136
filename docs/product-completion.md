@@ -108,7 +108,14 @@ finalidad. El coordinador entrega el tiempo exacto a la aritmética. Es un compo
 de dominio, integrado ahora mediante la [resolución autorizada](deadline-inputs.md)
 de fuentes y calendarios en PostgreSQL. El servicio verifica recibos, conserva
 selección histórica y cabeza observada, y reautentica antes de devolver el cálculo.
-Los perfiles aplicables, la evaluación persistente y los flujos de plazos siguen pendientes.
+El [catálogo de perfiles](deadline-profiles-api.md) agrega configuraciones
+versionadas globales o por expediente, condiciones, corpus reproducible, retiro
+terminal y recibos auditados. El evaluador puro combina perfil, fuentes comprobadas
+y declaraciones de aplicabilidad; conserva candidatas y bloqueos y exige un
+corte explícito para obtener un instante civil. La API pasó las pruebas con puertos
+controlados y el recorrido con persistencia real y restauración. Faltan evaluaciones persistentes,
+responsables, atención, reevaluación, alertas y Qadra de plazos. El registro durable
+de cambios de fuentes todavía no tiene un trabajador que los procese.
 
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
@@ -157,7 +164,7 @@ plazos operativos.
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Cómputo, reevaluación y alertas pendientes. El catálogo y los hechos declarados son insumos parciales: falta seleccionar y validar sus datos para perfiles normativos aplicables, evaluación persistente y casos frontera. No extraerlos de acuerdos libres ni sustituir el cómputo exigido por fechas manuales o una suma indiscriminada de días. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles y evaluación pura implementados. Faltan vinculación persistente al expediente, seguimiento, reevaluación, alertas e interfaz. Los ejemplos sintéticos no acreditan aplicabilidad jurídica; los perfiles publicados requieren fundamento y calificación explícitos. No sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 

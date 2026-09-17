@@ -262,6 +262,18 @@ is still unfinished.
   Qadra calendar interface is verified locally; automatic deadline computation,
   reevaluation and notifications remain pending. See `docs/judicial-calendars-api.md`
   and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
+- The `0015_` and `0016_` migrations add immutable source-change events and a
+  versioned deadline-profile catalog. Global and case collections preserve
+  explicit scope, algorithm, reproducible examples and exact receipts. Owner
+  publishes, replaces and retires; staff reads private profiles only with current
+  case authorization. Revisions, source events and audit commit together.
+  `crates/application/src/deadline_evaluations/` evaluates explicit applicability
+  and verified temporal material without persisting a deadline. Its civil cutoff
+  has its own offset and coverage; incomplete inputs remain blocked. The HTTP
+  catalog is composed into the server, while persistent deadlines, responsibility,
+  attention, reevaluation workers, alerts and Qadra remain pending. See
+  `docs/deadline-profiles-api.md` and
+  `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,

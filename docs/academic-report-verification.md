@@ -1,5 +1,41 @@
 # Verificación de la actualización académica
 
+## Catálogo de perfiles y evaluación explícita: 16 de septiembre de 2026
+
+Se añadieron tres apartados propios de implementación, pruebas y trazabilidad
+para perfiles versionados, evaluación en memoria y eventos durables. Se incorporó
+una inclusión en cada capítulo contenedor y se corrigieron tres frases de estado
+en el apartado de insumos. La descripción distingue el catálogo persistente y
+su API de los plazos operativos, responsables, atención, trabajadores, alertas y
+Qadra todavía pendientes. Los resultados de software pertenecen al
+[informe técnico](verification-report.md); no se reutilizan las cifras históricas.
+
+De **67 fuentes académicas previas**, **63 permanecen idénticas** por hash.
+Cambiaron cuatro archivos existentes y se añadieron tres: el corte contiene
+**70 fuentes**. Resumen, objetivos, estado del arte, conclusiones y presentación
+se preservaron. No se incorporaron las doce ediciones ajenas cuya procedencia
+se describe en los cortes anteriores.
+
+`make` con LuaLaTeX, biber y glosarios aprobó. El PDF final tiene **300 páginas y
+5742752 bytes**. Se inspeccionaron las páginas físicas **187-191, 214-216 y
+295-296**, con revisión independiente de cinco de ellas. Se corrigieron seis
+desbordamientos del anexo separando directorios y nombres por elemento, y la
+concordancia de una referencia al apéndice. La página de esa corrección se volvió
+a renderizar e inspeccionar. Texto, tabla, jerarquía y transiciones quedaron
+legibles, sin recortes ni solapamientos nuevos.
+
+El log final no contiene referencias o citas indefinidas ni glifos ausentes.
+Conserva la caja excedida preexistente de **0.11754 pt**, ajena a los apartados
+propios. Las fuentes quedaron idénticas al manifiesto de la última compilación;
+el PDF anterior de 294 páginas se conservó por separado.
+
+SHA-256: `9b5a4ce25710d48b5ba72397c80859bb36f0cd169471a45dd9dc3fa5ff59d086`.
+
+Esta revisión no acredita usabilidad, aceptación jurídica de los perfiles,
+entrega de alertas ni terminación del manuscrito completo. Las conclusiones y
+la actualización integral pendiente de calendarios, hechos y sesiones conservan
+sus límites de alcance y autoría.
+
 ## Insumos temporales autorizados: 16 de septiembre de 2026
 
 Se ampliaron los tres apartados propios de implementación, pruebas y matriz
