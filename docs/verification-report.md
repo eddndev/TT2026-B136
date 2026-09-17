@@ -4,6 +4,21 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Integración de la base publicada
+
+El 16 de septiembre de 2026 a las 19:42 (`America/Mexico_City`) se confirmó
+la integración en `main` del código publicado hasta `c51b49c`. El commit
+resultante, `2d552fd`, conserva exactamente su árbol de fuentes. Se verificaron
+19 controles de CI aprobados y un paso de publicación de release omitido
+por el tipo de evento antes de integrar. Incluyen pruebas Rust, cobertura,
+verificación web, navegador real y compilación del reporte.
+
+Esta comprobación corresponde a la base previa a los insumos autorizados.
+El cambio adicional se trasladó sobre esa base sin alterar su árbol; su
+campaña local se detalla a continuación y requiere su propia CI. La integración
+no cierra los flujos pendientes de perfiles, plazos operativos ni alertas.
+Los cortes históricos conservan sus fechas, métricas y límites originales.
+
 ## Corte reproducido: insumos temporales autorizados
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El

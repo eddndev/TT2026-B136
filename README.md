@@ -227,9 +227,9 @@ Owner, Litigator y Paralegal consultan revisiones exactas sin asignación a
 expedientes; Client queda denegado. Conserva ámbito, cobertura civil, reglas,
 excepciones y referencias
 públicas declaradas, con historia auditada. No descarga el contenido de las URL.
-Las campañas de API/restauración, cobertura y navegador pasaron. La integración
-remota y el manuscrito siguen pendientes. Cómputo de plazos, reevaluación, recursos
-procesales y alertas siguen pendientes.
+Las campañas de API/restauración, cobertura y navegador pasaron. El código está
+integrado en `main`; la actualización integral del manuscrito sigue pendiente.
+Cómputo de plazos, reevaluación, recursos procesales y alertas siguen pendientes.
 
 La [aritmetica de plazos](docs/deadline-arithmetic.md) calcula candidatas de dias,
 meses civiles y horas con reglas matematicas explicitas, trazas y bloqueos por
