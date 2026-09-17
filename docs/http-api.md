@@ -861,6 +861,23 @@ mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
 Estos límites acotan cuerpo y ejecución, pero aún hacen falta límites de
 conexiones, cuerpos lentos, TLS y apagado ordenado antes de despliegue público.
 
+## Plazos registrados por expediente
+
+El [contrato de plazos](deadlines-api.md) define la colección
+`/api/v1/cases/{case_id}/deadlines`: preparación y confirmación con recibo,
+corrección completa, declaración de atención, retiro terminal y consulta de
+revisiones exactas. Owner y Litigator escriben; el personal autorizado consulta,
+Client queda denegado y el cierre conserva lecturas. Cada cuerpo admite 1 MiB y
+utiliza el presupuesto de ejecución compartido.
+
+La respuesta conserva perfil y fuentes exactas, cabezas observadas y resultado
+histórico con bloqueos y traza estructurada. Consultar no vuelve a ejecutar la
+aritmética. Los instantes preservan segundos, nanosegundos y desfase explícitos;
+las declaraciones conservan su precisión. Las pruebas focales de contrato y
+proyección y la aceptación con persistencia y restauración reales están aprobadas.
+La interfaz Qadra de plazos, la reevaluación automática y las alertas siguen
+pendientes.
+
 ## Errores
 
 La envoltura es estable:

@@ -7,10 +7,11 @@ cuentan con [API](procedural-facts-api.md) e
 [interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas).
 Redis conserva sesiones revocables y controles efímeros.
 
-El esquema incorpora el catálogo de perfiles de plazo y un registro durable de
-cambios de sus fuentes. El catálogo y el núcleo de evaluación están implementados;
-la [API de perfiles](deadline-profiles-api.md) sigue en implementación y
-verificación. Persistir evaluaciones y seguimiento, consumir cambios mediante
+El esquema incorpora el catálogo de perfiles de plazo, un registro durable de
+cambios de sus fuentes y las capturas persistentes de evaluación y atención.
+El [catálogo HTTP de perfiles](deadline-profiles-api.md) está implementado;
+la persistencia PostgreSQL y HTTP de [plazos](deadline-records.md) tienen pruebas
+focales y aceptación real de restauración aprobadas. Consumir cambios mediante
 trabajadores, entregar alertas y ofrecer Qadra para esos flujos sigue pendiente.
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
@@ -314,7 +315,8 @@ archivos documentales; proteger sus respaldos. Véanse
 
 ## Actualizar sesiones y resultados declarados de audiencia
 
-La implementación y la recuperación fueron verificadas localmente; la integración remota permanece pendiente.
+La implementación y la recuperación fueron verificadas localmente y el bloque
+está integrado en `main`; la evidencia se conserva en el informe de verificación.
 Con los escritores detenidos y respaldo completo, ejecutar `database migrate
 --runtime-role` con la conexión administrativa y el nuevo binario. El conjunto
 `0012_hearing_results*.sql` instala los decodificadores de tiempo, HRES1 y HRTX1,
@@ -352,9 +354,10 @@ ellos. Véanse [ADR-0029](adr/0029-declared-hearing-sessions.md) y
 
 ## Actualizar el catálogo de calendarios jurisdiccionales
 
-La API y la restauración se verificaron localmente en servicios desechables.
-La interfaz, la cobertura y el cierre de CI siguen pendientes. Detener escritores
-y conservar un respaldo completo antes de ejecutar
+La API, la interfaz y la restauración cuentan con campañas locales aprobadas,
+y el catálogo está integrado en `main`. Las mediciones de cobertura y CI se
+conservan con su corte en el informe de verificación. Detener escritores y
+conservar un respaldo completo antes de ejecutar
 `database migrate --runtime-role` con el nuevo binario y una conexión
 administrativa. El conjunto `0013_judicial_calendar_*.sql` instala primitivas,
 fuentes, valores, recibos, tablas y guards en ese orden. No ejecutar archivos
@@ -521,13 +524,89 @@ cuenta Owner que continúa un perfil publicado después de restaurar. Su alcance
 es backend, no una prueba de navegador ni de entrega de alertas. Las mediciones
 del corte en curso se registran separadamente al concluir la campaña.
 
-El [catálogo HTTP](deadline-profiles-api.md) está en verificación. El
+El [catálogo HTTP](deadline-profiles-api.md) está implementado. El
 [evaluador de aplicación](../crates/application/src/deadline_evaluations/evaluate.rs)
 combina insumos verificados, perfil explícito, cantidad ordenada y declaraciones
-de aplicabilidad. Conserva bloqueos y cálculo parcial; no guarda aún una revisión
-de plazo ni activa un trabajador. Un evento durable tampoco equivale a un aviso
-entregado. La persistencia del seguimiento, reevaluación, alertas y Qadra de
-plazos permanece pendiente en [el contrato completo](deadline-lifecycle.md).
+de aplicabilidad. Conserva bloqueos y cálculo parcial. La persistencia descrita
+a continuación captura ese resultado; un evento durable todavía no provoca su
+reevaluación ni equivale a un aviso entregado. Trabajadores, alertas y Qadra de
+plazos siguen pendientes en [el contrato completo](deadline-lifecycle.md).
+
+## Actualizar capturas y atención de plazos
+
+Detener escritores, conservar un respaldo completo y ejecutar
+`database migrate --runtime-role` con conexión administrativa. Las migraciones
+`0017_deadline_*.sql` instalan selección DEVI1, atención JSON, recibo DLTX1,
+tablas y guards, en ese orden. Añaden `case_deadlines` y
+`case_deadline_revisions`; no generan plazos a partir de fuentes anteriores ni
+modifican sus revisiones. No ejecutar los archivos sueltos.
+
+La raíz fija el expediente y exige R1 mediante una clave foránea diferida. El
+historial es consecutivo e inmutable, con retiro terminal y operación única.
+Owner y Litigator asignado escriben; Paralegal asignado consulta; Client está
+denegado. Los guards y el adaptador comprueban actor vigente, expediente activo
+y revisión esperada bajo READ COMMITTED y el bloqueo común de auditoría. Una
+revisión y su evento de auditoría se confirman o revierten juntos. El expediente
+cerrado conserva las consultas autorizadas.
+
+Alta y corrección requieren la cabeza publicada del perfil, las selecciones
+exactas de fuentes y calendario con sus cabezas observadas, y un responsable
+activo con acceso al expediente. La asignación como responsable no concede ese
+acceso. Un avance administrativo activo puede capturarse al confirmar sin
+alterar lo revisado. Atención y retiro preservan cálculo, referencias, responsable
+y administración capturados; no sustituyen las cabezas capturadas por las
+actuales ni vuelven a calcular.
+
+Se guardan DEVI1 (48–98 897 bytes), DRES1 (hasta 3 000 000), CADM1
+(17–16 384), DLRV1/DLST1 (hasta 524 288 cada uno) y DLTX1 (107–4115), con sus
+huellas y proyecciones verificadas. Las cotas CADM1 y DLRV1/DLST1 son conservadoras;
+su derivación está en [el contrato](deadline-records.md#esquema-y-capturas-acotadas).
+R0 tiene revisión administrativa NULL y los bytes de la metadata original; Rn
+resuelve su revisión exacta. No reemplazar R0 por una R1 creada al restaurar.
+Las dependencias tienen claves foráneas tipificadas. La revisión del padre en la
+cabeza de una notificación se conserva aparte de la seleccionada.
+
+La atención JSON conserva precisión y desfase declarados sin componentes extra.
+La proyección `due_at_seconds`/`due_at_nanoseconds` debe coincidir exactamente con
+el resultado DRES1, incluidos ambos campos ausentes cuando no existe instante.
+No constituye por sí sola una agenda, un estado de vencimiento ni una alerta.
+
+El arranque rechaza cambios de columnas, nulabilidad, restricciones, expresiones,
+funciones, triggers o permisos. El rol operativo sólo lee y agrega filas, y
+necesita EXECUTE sobre los tres helpers; no puede ejecutar guards directamente,
+poseer objetos ni reescribir historia. El inventario verifica todas las
+revisiones y sus recibos en lotes acotados, incluido UUID cero, sin recalcular con
+la versión actual del algoritmo. Los administradores de PostgreSQL siguen dentro
+de la base de confianza; las huellas no son firmas externas.
+
+El primer import legacy rechaza un destino con cualquiera de las dos tablas
+ocupada, incluso una raíz huérfana sin auditoría de una restauración parcial.
+Conciliar un recibo de importación existente conserva la historia posterior.
+Respaldar ambas tablas junto con todos los perfiles, fuentes y calendarios
+referenciados, administración, usuarios, membresías, auditoría y secuencia de
+cambios de fuentes. Comparar bytes, recibos, metadatos y revisiones exactas antes
+de realizar consultas que agreguen nuevos eventos de auditoría; no basta comparar
+conteos. Los metadatos no usan el cifrado de los archivos documentales: proteger
+las copias y mantener las claves de esos archivos por separado.
+
+La [aceptación PostgreSQL de restauración](../crates/infrastructure/tests/deadline_restore.rs)
+pasó con `pg_dump`/`pg_restore` reales y repetición de migración con historia.
+Comparó filas, bytes, auditoría, secuencia y expresiones literales de CHECK y
+columnas generadas antes y después de restaurar. Conservó las cuatro revisiones
+de alta, corrección, atención y retiro, además de otro plazo activo, después de
+retirar fuente y perfil y revocar autor y responsable. Otro Owner pudo consultar
+cada revisión y registrar atención conservando el cálculo y responsable
+históricos. La regresión de siete pruebas de esquema pasó en el mismo corte.
+
+La [campaña HTTP de plazos](../scripts/api-deadlines-demo.py) también pasó con
+servicios reales: días, meses, horas, cuatro roles, aislamiento, preparación,
+conflictos, atención, retiro y revocación. El ensayo global de migración y
+restauración conservó 14 respuestas completas de plazos idénticas, incluidos sus
+resultados históricos. Son evidencias separadas de backend y transporte, sin
+atribuir aceptación de navegador ni aplicabilidad jurídica a los casos sintéticos.
+Qadra, reevaluación y alertas siguen pendientes; el informe de verificación
+registra el cierre global separadamente. Véase
+[ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md).
 
 ## Respaldo y restauración
 
@@ -615,7 +694,7 @@ No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `case_hearing_results`, `case_hearing_result_revisions`, `judicial_calendars`,
 `judicial_calendar_revisions`, `case_procedural_facts`,
 `case_procedural_fact_revisions`, `deadline_profiles`, `deadline_profile_revisions`,
-`deadline_source_events`, `deadline_source_events_sequence` y auditoría; un respaldo
+`case_deadlines`, `case_deadline_revisions`, `deadline_source_events`, `deadline_source_events_sequence` y auditoría; un respaldo
 incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.

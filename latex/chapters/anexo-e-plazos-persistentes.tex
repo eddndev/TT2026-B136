@@ -1,0 +1,47 @@
+\section{Registro de plazos, captura histórica y consulta}\label{sec:matriz-plazos-persistentes}
+
+La \cref{tab:matriz-plazos-persistentes} relaciona la implementación persistente con sus comprobaciones. La presencia de un caso en el repositorio identifica la propiedad exigida; su ejecución y resultado pertenecen al informe técnico. Los casos sintéticos no certifican reglas jurídicas, y la comprobación del transporte no sustituye la aceptación de una interfaz de usuario.
+
+\begin{table}[H]
+  \centering
+  \caption{Fronteras de comprobación del seguimiento persistente de plazos.}
+  \label{tab:matriz-plazos-persistentes}
+  \small
+  \begin{tabularx}{\textwidth}{p{3.2cm} X}
+    \toprule
+    \textbf{Frontera} & \textbf{Propiedad comprobada} \\
+    \midrule
+    Entrada \texttt{DEVI1} & Selección, condiciones, cantidad opcional y precisión reversibles; rechazo de representaciones inválidas. \\
+    Resultado \texttt{DRES1} & Candidata, bloqueos y traza conservados sin recalcular el historial. \\
+    Preparación y recibo & Vinculación de contenido revisado, contexto capturado y envío; ausencia de fechas fabricadas. \\
+    Servicio y consultas & Permisos, reautenticación, ámbito, revisión exacta y cursores coherentes. \\
+    PostgreSQL & Estado y auditoría atómicos, responsable elegible, comparación de base y fuentes vigentes. \\
+    Historia y atención & Cálculo inmutable ante atención o retiro, con dependencias históricas independientes de las cabezas actuales. \\
+    Catálogo y respaldo & Restricciones y proyecciones verificadas; restauración sujeta a contraste de todas las revisiones. \\
+    HTTP & Comandos acotados y proyección estructurada de entradas, resultados, recibos e historia. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begingroup
+\raggedright
+Los archivos se agrupan por frontera para mantener trazabilidad sin confundir pruebas auxiliares con campañas independientes. En el directorio \rutarepo{crates/application/tests/}, los nombres siguientes comparten el prefijo \texttt{deadline\_} y la extensión \texttt{.rs}:
+\begin{itemize}
+  \item Entrada: \texttt{evaluation\_input\_encoding}. Resultado y traza: los archivos cuyo sufijo comienza con \texttt{evaluation\_record}.
+  \item Preparación y recibos: \texttt{preparation}, \texttt{receipts}, \texttt{receipt\_vectors} y \texttt{state\_bytes}.
+  \item Autorización, contexto administrativo y consultas: \texttt{service}, \texttt{service\_administration} y \texttt{queries}.
+\end{itemize}
+
+Las pruebas de infraestructura residen en \rutarepo{crates/infrastructure/tests/}. También comparten el prefijo \texttt{deadline\_} y la extensión \texttt{.rs}. Sus sufijos identifican los grupos siguientes:
+\begin{itemize}
+  \item Los que comienzan con \texttt{backend}: operaciones, revalidación, concurrencia y familias de cálculo.
+  \item \texttt{storage} e \texttt{input\_history}: reconstrucción exacta y corrupción.
+  \item \texttt{input\_projection}, \texttt{schema}, \texttt{import} y \texttt{restore}: proyección SQL, arranque, importación y respaldo.
+\end{itemize}
+Las migraciones del grupo \texttt{0017} residen en \rutarepo{migrations/}.
+
+En el directorio \rutarepo{crates/web/tests/}, los archivos con prefijo \texttt{deadline\_http} comprueban el contrato de transporte. Las pruebas de proyección del resultado se encuentran en \rutarepo{crates/web/src/deadlines/}, archivo \texttt{result\_tests.rs}. El informe \rutarepo{docs/verification-report.md} distingue pruebas focales, adaptadores reales y recorrido HTTP integrado. El documento \rutarepo{docs/academic-report-verification.md} registra por separado la compilación y revisión visual del manuscrito.
+\par
+\endgroup
+
+La persistencia y la atención declarada no completan el consumo de eventos, la reevaluación, las alertas ni sus vistas en Qadra. La aceptación de esos recorridos conserva su carácter pendiente, junto con la validación de perfiles jurídicos aplicables. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
