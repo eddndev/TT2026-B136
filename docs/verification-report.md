@@ -4,6 +4,55 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: extraccion de fuentes temporales exactas
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El modulo
+[deadline_triggers](deadline-triggers.md) verifica coherencia entre seleccion y
+material de resolucion, notificacion o resultado de audiencia, conserva el campo
+y su precision, y coordina ese tiempo con la aritmetica. Distingue errores de
+integridad, campos ausentes, desconocimiento y calificacion temporal declarada.
+No implementa perfiles normativos ni evaluaciones persistentes.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Suite Rust con PostgreSQL y Redis desechables | **1828 aprobadas, 0 fallidas, 1 externa de TSA ignorada**, 494.638 s. |
+| Pruebas nuevas de extraccion y coordinacion | **45 aprobadas**, incluidas en el total global. |
+| Formato del workspace | Aprobado, 1.468 s. |
+| Compilacion del workspace | Aprobada, 14.238 s. |
+| Clippy 1.98.1, workspace y todos los targets | Aprobado con warnings denegados, 19.131 s. |
+| Rust 1.88, workspace y todos los targets | Aprobado, 17.104 s. |
+| Conservacion durante la campana | **1086** fuentes, fixtures, scripts y manifiestos sin cambios. |
+
+La compilacion y las pruebas usaron Rust 1.94.0. La suite completa se ejecuto
+mediante `scripts/test-backends.sh cargo test --workspace`, con qpdf 12.4.1 y
+PostgreSQL/Redis aislados; no se atribuye cobertura de adaptadores a una ejecucion
+sin sus variables de entorno. No cambiaron dependencias ni canones existentes.
+
+Las pruebas nuevas comprenden un caso de contrato, once de campos, once de
+integridad, diez de resultados de audiencia, seis de calificacion y seis de
+coordinacion. Incluyen fuentes ajenas, padres discordantes, revisiones y acuerdos
+exactos, UUID cero, None frente a Unknown, preservacion de copias, precision y
+desfase, candidata UTC literal y calendario independiente de la extraccion.
+El estado Concluded no aporta por si solo un tiempo de final de audiencia.
+
+TDD capturo el modulo ausente en los targets de contrato e integridad, y despues
+en campos y calificacion, antes de implementar la extraccion. El primer focal
+aprobo 29 casos; el focal completo aprobo 45. Las repeticiones no se suman al
+total. Los seis targets entraron en la suite global sobre las fuentes finales.
+Dos revisiones independientes del codigo no encontraron defectos accionables.
+Las fuentes Rust nuevas son ASCII y menores de 400 lineas, maximo 349 tras formato.
+
+La base de aritmetica obtuvo 18/18 checks remotos aprobados en el commit
+269232d; esa comprobacion no sustituye la CI de la nueva entrega. No se repitieron
+localmente cobertura instrumentada, release, CLI, HTTP ni navegador para este
+cambio de dominio. La restauracion cubierta por la suite de backends es distinta
+de una nueva campana HTTP de restauracion.
+
+Los apartados academicos propios y su comprobacion de PDF se documentan en
+[la verificacion academica](academic-report-verification.md). La vinculacion de
+fuentes verificadas mediante aplicacion, los perfiles, la persistencia,
+reevaluacion, alertas y Qadra de plazos siguen pendientes.
+
 ## Corte reproducido: aritmetica temporal de plazos
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El dominio agrega

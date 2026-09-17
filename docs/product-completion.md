@@ -100,6 +100,14 @@ No selecciona un supuesto juridico ni crea un plazo persistente. Los
 aplicabilidad, inicio, duracion ordenada y corte, particularmente para meses.
 La activacion, reevaluacion y alertas mantienen su estado pendiente.
 
+La [extracción temporal exacta](deadline-triggers.md) comprueba expediente,
+identidad, revisión, padre y acuerdo del material recibido antes de seleccionar
+un campo. Distingue ausencia y desconocimiento, conserva precisión y procedencia,
+y requiere una calificación expresa cuando se necesita un tiempo de otra
+finalidad. El coordinador entrega el tiempo exacto a la aritmética. Es un componente
+de dominio: la verificación de recibos y permisos, los perfiles aplicables,
+la evaluación persistente y los flujos de plazos siguen pendientes.
+
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
 registra hechos por si misma. La separacion de resoluciones y practicas de
