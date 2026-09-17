@@ -1,5 +1,138 @@
 # Verificación de la actualización académica
 
+## Fuentes temporales y aritmetica: 16 de septiembre de 2026
+
+Se incorporaron tres apartados propios de implementacion, pruebas y trazabilidad
+para la extraccion temporal exacta y su coordinacion con la aritmetica. Describen
+campos independientes, ausencia frente a desconocimiento, expediente, revision,
+padre y acuerdo exactos, precision, calificacion declarativa y limites de
+confianza. La matriz registra **45 pruebas focales aprobadas**; la suite global
+de **1828 aprobadas, cero fallidas y una externa ignorada** tiene su propia
+evidencia en [el informe tecnico](verification-report.md).
+
+Los cambios consisten en tres archivos nuevos y una inclusion en cada archivo
+contenedor de implementacion, pruebas y matriz, mas la actualizacion del README.
+De los **64 archivos academicos previos** controlados por hash, **60 permanecen
+identicos**. Los cuatro modificados son esos tres contenedores y el README.
+Resumen, objetivos, estado del arte y conclusiones pendientes permanecen iguales.
+No se incorporaron las doce ediciones ajenas mencionadas en el corte siguiente.
+
+`make` compilo con LuaLaTeX, biber y makeglossaries. El PDF final tiene **292
+paginas y 5713480 bytes**, sin referencias o citas indefinidas ni glifos ausentes.
+Se inspeccionaron las paginas fisicas **185-187, 208-209 y 287-288**. Se corrigio
+la ubicacion del apartado de dominio para conservar la jerarquia HTTP, la
+jerarquia independiente del anexo, una concordancia de referencia y el ancho
+del encabezado Casos. La ultima recompilacion y las paginas afectadas volvieron
+a comprobarse visualmente: texto y tablas legibles, sin recortes o solapamientos.
+
+El log conserva una caja excedida de **0.11754 pt** en el titulo existente del
+riesgo RLC-03, ajeno a los apartados nuevos. No hay una medicion de usabilidad
+ni una inspeccion visual nueva de todas las paginas historicas del reporte.
+SHA-256 del PDF final:
+`fe6be26f54d6b2e3ffbb2a87a1a599d3f20051100125c133b3e1f3d726f6779e`.
+
+La actualizacion integral de calendarios, hechos y sesiones conserva los
+pendientes de procedencia identificados abajo. Estos apartados de dominio no
+cierran perfiles normativos, plazos persistentes, alertas, conclusiones o defensa.
+
+## Procedencia de las fuentes y actualización pendiente
+
+El corte de sesiones y resultados descrito abajo corresponde a un snapshot local
+de 65 fuentes y figuras. Doce fuentes del manuscrito siguen pendientes de
+integración; el PDF comprobado conserva su procedencia de árbol de trabajo y no
+se atribuye a un commit que no contenga esas fuentes. Los resultados funcionales
+del software tienen su propia evidencia e historia versionada.
+
+La entrega de calendarios jurisdiccionales incorpora contrato, decisiones,
+operación y resultados reproducidos en [el informe técnico](verification-report.md).
+Su actualización del manuscrito, compilación e inspección de PDF siguen pendientes.
+Las comprobaciones de PDF de sesiones y programación conservadas en este documento
+no verifican los cambios posteriores de calendarios. El resumen, los objetivos,
+el marco teórico y las conclusiones pendientes permanecen protegidos.
+
+
+La captura de resoluciones y notificaciones agrega dominio, servicio,
+persistencia auditada, API y cliente Qadra. Sus contratos y campañas de software
+se describen en [la API de hechos](procedural-facts-api.md) y en el informe
+técnico. La actualización correspondiente del manuscrito, su compilación y
+la inspección del PDF siguen pendientes junto con las de calendarios. Los
+resultados documentales históricos de este archivo no verifican esa interfaz
+ni su implementación posterior.
+
+
+La aritmetica temporal de dias, meses civiles y horas y la investigacion de
+perfiles se documentan en [el contrato](deadline-arithmetic.md) y en
+[las fuentes normativas](deadline-rule-research.md). Los apartados de operandos y
+fuentes exactas incorporan ahora los componentes de dominio al manuscrito, con
+la comprobacion documental descrita arriba. La investigacion de aplicabilidad
+juridica y la integracion operativa mantienen su trabajo pendiente. Las pruebas
+matematicas no acreditan un perfil juridico ni reemplazan los criterios aprobados
+sobre plazos, calendario y alertas.
+
+## Sesiones y resultados declarados: 16 de septiembre de 2026
+
+Se incorporaron cuatro apartados de diseño, implementación, pruebas y
+trazabilidad para sesiones declaradas: raíz por acto, ancla exacta de programación,
+continuidad histórica, comparecencias, acuerdos, procedencia y soporte exacto.
+La interfaz Qadra y sus estados de conflicto e incertidumbre se describen junto
+con la API y la transacción auditada. La programación anterior conserva su alcance
+propio. El registro declarado no acredita notificación ni efectos judiciales.
+
+### Evidencia incorporada y límites
+
+El manuscrito describe **1301 pruebas Rust aprobadas, cero fallos y una prueba
+externa de TSA ignorada**, en ejecución ordinaria e instrumentada con servicios
+desechables. Mantiene **28 704 / 31 010 líneas, 92.56 %**, y los numeradores por
+crate. Formato, compilación, Clippy 1.98.1, Rust 1.88, política de dependencias,
+binario release, CLI y recorrido HTTP/restauración quedaron contrastados con
+los manifiestos. La revisión focal posterior del test de arranque concurrente
+se informa por separado, sin sumarla al total ni repetir la cifra de cobertura.
+
+Las cifras web finales son **151 unitarias, 204 escenarios simulados y 14
+recorridos reales**. Se distinguen 223.553 segundos del comando simulado y
+258.642 del script real, frente a los 3.7 y 2.5 minutos informados por Playwright.
+No se equiparan estas pruebas con una evaluación de usabilidad con personas.
+
+La media actual de Argon2id, **409.6 ms en cinco corridas**, permanece por debajo
+de la banda objetivo; su subcriterio se indica pendiente de recalibración.
+La medición histórica de 529.4 ms conserva su fecha y contexto. No se cambiaron
+parámetros criptográficos para alterar el resultado. Plazos automáticos,
+calendarios, alertas, recursos y aceptación integral permanecen pendientes.
+
+### Conservación y comprobación visual
+
+La edición conservó **592 archivos protegidos** y las cinco tablas aprobadas
+CU-08, RF-07, RF-08, RF-09 y RF-10 byte por byte. Resumen, introducción con
+objetivos, marco teórico, conclusiones pendientes, presentación y entregables
+anteriores permanecieron iguales. Las diferencias necesarias se explican en
+prosa técnica y trazabilidad sin reescribir aquellos criterios.
+
+La compilación final usó el Makefile versionado sobre un snapshot aislado de
+**65 fuentes y figuras**, después de completar las campañas funcionales.
+Terminó con salida cero en 77.588 segundos. El resultado tiene **295 páginas**,
+**5 729 707 bytes**, formato carta y SHA-256
+`6bb7bad31e75032469fb1c6010baa3bb3e3f3f813b310c4e61ff13718cfb5003`.
+El manifiesto de las 65 fuentes tiene SHA-256
+`4fb488d02274462392d36f0257791e7aed32ca6232cf15107a2dd7ded206414f`.
+
+Se renderizaron y revisaron **61 páginas** afectadas o de control: 17 de forma
+individual y 44 mediante hojas de contacto. La comprobación de coordenadas
+mantuvo **15 299 palabras** dentro de los límites definidos; no se observaron
+recortes, superposiciones ni defectos nuevos. Otra revisión individual comprobó
+las páginas PDF 211, 212, 213 y 224, incluidas cobertura, cifras web y el estado
+pendiente de Argon2id. La inspección no pretende abarcar visualmente las 295
+páginas completas. No hay referencias/citas indefinidas ni glifos ausentes.
+Persisten los avisos históricos de versalitas y 0.11754 pt en el índice de tablas,
+sin defecto visual apreciable.
+
+El PDF se publicó como un entregable nuevo, conservando los anteriores y los
+preliminares de esta entrega. Los manifiestos separan el snapshot de trabajo,
+las fuentes efectivas, el PDF, sus comprobaciones y la procedencia de software.
+La compilación y la inspección documental no son una nueva ejecución de Rust;
+la evidencia funcional está en [el informe de verificación](verification-report.md).
+La integración remota y su compilación CI se comprobarán por separado.
+
+
 ## Programación de audiencias: 16 de septiembre de 2026
 
 Se añadieron apartados de diseño, implementación, pruebas y trazabilidad para

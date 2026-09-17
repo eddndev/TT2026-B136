@@ -3,6 +3,7 @@
   import HearingList from './HearingList.svelte';
   import HearingDetail from './HearingDetail.svelte';
   import HearingEditor from './HearingEditor.svelte';
+  import HearingResults from './HearingResults.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { canHearings, hearingDenied } from '../lib/hearings.mjs';
   export let api,
@@ -34,6 +35,8 @@
     busy = false,
     opening = false,
     editorBusy = false,
+    resultBusy = false,
+    resultIntent = null,
     alive = true;
   let listGeneration = 0,
     detailGeneration = 0,
@@ -42,7 +45,7 @@
     detailView,
     consumed,
     initialized = false;
-  $: locked = busy || opening || editorBusy || !!action;
+  $: locked = busy || opening || editorBusy || resultBusy || !!action;
   $: manage =
     canHearings(user.role, 'manage') &&
     !$administration.closed &&
@@ -58,6 +61,7 @@
     contextGeneration++;
     rows = [];
     selected = null;
+    resultIntent = null;
     action = null;
     ondenied(failure);
   }
@@ -269,5 +273,21 @@
       disabled={locked}
       {historical}
       bind:this={detailView}
+    />
+    <HearingResults
+      {api}
+      caseId={record.id}
+      {user}
+      hearing={selected}
+      canManage={canHearings(user.role, 'manage')}
+      ondenied={deny}
+      disabled={busy || opening || editorBusy || !!action}
+      bind:pending={resultBusy}
+      intent={resultIntent}
+      onintent={() => (resultIntent = null)}
+      onopenhearing={(id, revision, next) => {
+        resultIntent = next;
+        open(id, revision ?? undefined);
+      }}
     />{/key}{/if}
 <button class="text-button" onclick={() => onnavigate('agenda')}>Ir a Agenda</button>

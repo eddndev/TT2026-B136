@@ -80,6 +80,15 @@ migration_demo_state() {
       'hearings',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearings h),
       'hearing_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY hearing_id,revision)
         FROM case_hearing_revisions h),
+      'hearing_results',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearing_results h),
+      'hearing_result_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY result_id,revision)
+        FROM case_hearing_result_revisions h),
+      'judicial_calendars',(SELECT jsonb_agg(to_jsonb(c) ORDER BY id) FROM judicial_calendars c),
+      'judicial_calendar_revisions',(SELECT jsonb_agg(to_jsonb(c) ORDER BY calendar_id,revision)
+        FROM judicial_calendar_revisions c),
+      'procedural_facts',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id) FROM case_procedural_facts f),
+      'procedural_fact_revisions',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id,revision)
+        FROM case_procedural_fact_revisions f),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
@@ -214,6 +223,8 @@ PY
   stage_demo
   typed_participant_demo "$imported_url"
   hearing_demo "$imported_url"
+  calendar_demo
+  procedural_facts_demo
   migration_demo_stop
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
   DATABASE_URL="$imported_url" "$CLI" --json database import --apply \
@@ -240,6 +251,8 @@ PY
   stage_demo_restored
   typed_participant_demo_restored
   hearing_demo_restored
+  calendar_demo_restored
+  procedural_facts_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -275,3 +288,5 @@ unset -f administration_demo_closed administration_demo_capture administration_d
 unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
 unset -f typed_participant_demo typed_participant_demo_restored typed_participant_demo_python
 unset -f hearing_demo hearing_demo_restored hearing_demo_python
+unset -f calendar_demo calendar_demo_restored calendar_demo_python
+unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_demo_python

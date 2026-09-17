@@ -9,6 +9,8 @@
   import CaseWorkspace from './CaseWorkspace.svelte';
   import Admin from './Admin.svelte';
   import Agenda from './Agenda.svelte';
+  import JudicialCalendars from './JudicialCalendars.svelte';
+  import '../styles/judicial-calendars.css';
   import { createApi } from '../lib/api.mjs';
   import { roles } from '../lib/documents.mjs';
   import { normalizeView, viewLabels } from '../lib/workspace.mjs';
@@ -125,9 +127,11 @@
             onnavigate={go}
             ondocument={openDocument}
           />
+        {:else if view === 'judicial-calendars'}<JudicialCalendars {api} {user} />
         {:else if view === 'agenda'}<Agenda
             {api}
             bind:filters={agendaFilters}
+            oncalendars={() => go('judicial-calendars')}
             onopen={(record, intent) => {
               selectedCase = record;
               hearingIntent = intent;
@@ -144,7 +148,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings'].includes(view)}
+        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions'].includes(view)}
           {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
                 {api}
                 {user}

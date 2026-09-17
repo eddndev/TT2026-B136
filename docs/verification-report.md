@@ -4,6 +4,842 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: extraccion de fuentes temporales exactas
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El modulo
+[deadline_triggers](deadline-triggers.md) verifica coherencia entre seleccion y
+material de resolucion, notificacion o resultado de audiencia, conserva el campo
+y su precision, y coordina ese tiempo con la aritmetica. Distingue errores de
+integridad, campos ausentes, desconocimiento y calificacion temporal declarada.
+No implementa perfiles normativos ni evaluaciones persistentes.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Suite Rust con PostgreSQL y Redis desechables | **1828 aprobadas, 0 fallidas, 1 externa de TSA ignorada**, 494.638 s. |
+| Pruebas nuevas de extraccion y coordinacion | **45 aprobadas**, incluidas en el total global. |
+| Formato del workspace | Aprobado, 1.468 s. |
+| Compilacion del workspace | Aprobada, 14.238 s. |
+| Clippy 1.98.1, workspace y todos los targets | Aprobado con warnings denegados, 19.131 s. |
+| Rust 1.88, workspace y todos los targets | Aprobado, 17.104 s. |
+| Conservacion durante la campana | **1086** fuentes, fixtures, scripts y manifiestos sin cambios. |
+
+La compilacion y las pruebas usaron Rust 1.94.0. La suite completa se ejecuto
+mediante `scripts/test-backends.sh cargo test --workspace`, con qpdf 12.4.1 y
+PostgreSQL/Redis aislados; no se atribuye cobertura de adaptadores a una ejecucion
+sin sus variables de entorno. No cambiaron dependencias ni canones existentes.
+
+Las pruebas nuevas comprenden un caso de contrato, once de campos, once de
+integridad, diez de resultados de audiencia, seis de calificacion y seis de
+coordinacion. Incluyen fuentes ajenas, padres discordantes, revisiones y acuerdos
+exactos, UUID cero, None frente a Unknown, preservacion de copias, precision y
+desfase, candidata UTC literal y calendario independiente de la extraccion.
+El estado Concluded no aporta por si solo un tiempo de final de audiencia.
+
+TDD capturo el modulo ausente en los targets de contrato e integridad, y despues
+en campos y calificacion, antes de implementar la extraccion. El primer focal
+aprobo 29 casos; el focal completo aprobo 45. Las repeticiones no se suman al
+total. Los seis targets entraron en la suite global sobre las fuentes finales.
+Dos revisiones independientes del codigo no encontraron defectos accionables.
+Las fuentes Rust nuevas son ASCII y menores de 400 lineas, maximo 349 tras formato.
+
+La base de aritmetica obtuvo 18/18 checks remotos aprobados en el commit
+269232d; esa comprobacion no sustituye la CI de la nueva entrega. No se repitieron
+localmente cobertura instrumentada, release, CLI, HTTP ni navegador para este
+cambio de dominio. La restauracion cubierta por la suite de backends es distinta
+de una nueva campana HTTP de restauracion.
+
+Los apartados academicos propios y su comprobacion de PDF se documentan en
+[la verificacion academica](academic-report-verification.md). La vinculacion de
+fuentes verificadas mediante aplicacion, los perfiles, la persistencia,
+reevaluacion, alertas y Qadra de plazos siguen pendientes.
+
+## Corte reproducido: aritmetica temporal de plazos
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El dominio agrega
+[aritmetica explicita](deadline-arithmetic.md) de dias naturales o computables,
+meses civiles y horas transcurridas. Reutiliza el conteo de calendario y conserva
+regla, declaracion original, candidata intermedia, fuentes y bloqueos. La
+[decision de arquitectura](adr/0032-explicit-deadline-arithmetic.md) separa esta
+operacion de perfiles normativos y plazos operativos.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Suite Rust con PostgreSQL y Redis desechables | **1783 aprobadas, 0 fallidas, 1 externa de TSA ignorada**, 431.740 s. |
+| Pruebas nuevas de aritmetica | **42 aprobadas** en cinco targets, ya incluidas en el total. |
+| Formato del workspace | Aprobado, 1.326 s. |
+| Compilacion del workspace | Aprobada, 10.736 s. |
+| Clippy 1.98.1, workspace y todos los targets | Aprobado con warnings denegados, 15.213 s. |
+| Rust 1.88, workspace y todos los targets | Aprobado, 14.124 s. |
+| Conservacion durante la campana | **1071** fuentes, fixtures, scripts y manifiestos controlados sin cambios. |
+
+La compilacion y la suite usaron el toolchain local Rust 1.94.0; Clippy y la
+comprobacion de MSRV usaron las versiones expresas indicadas. El guion configura
+las bases aisladas y Redis: esta campana no depende de una ejecucion sin las
+variables que habilitan las pruebas de adaptadores.
+
+Los cinco targets contienen 12 casos civiles, ocho de calendario, cinco de
+ajuste final, doce horarios y cinco de contrato. Verifican inclusion explicita,
+duracion positiva, homologo mensual sin ajuste silencioso, bisiestos, anos
+limite, cantidades maximas, conservacion del desfase declarado, falta de
+precision, excepciones, fuentes, cobertura y candidata previa a un ajuste
+bloqueado. El resultado horario se calcula en UTC; una fecha civil no adquiere
+hora por disponer de desfase.
+
+TDD capturo fallos de importacion del modulo inexistente antes de implementarlo.
+La primera ejecucion focal aprobo los 42 casos. Despues se separaron los cinco
+casos de ajuste final para respetar el limite de archivo y se ejecuto la suite
+completa sobre esas fuentes finales. No se suman las repeticiones focales.
+Las diez fuentes Rust cambiadas son ASCII y menores de 400 lineas, maximo 328.
+No cambiaron dependencias ni canones de hechos o calendarios. Dos revisiones
+independientes del contrato y el codigo no encontraron defectos accionables.
+
+La [investigacion normativa](deadline-rule-research.md) mantiene por separado
+los extremos mensuales y de aplicabilidad aun no cerrados. Los vectores son
+matematicos sinteticos; no acreditan una interpretacion juridica universal.
+Faltan calificacion estructurada, perfiles respaldados, fuentes exactas resueltas
+por el servicio, persistencia, reevaluacion, alertas y Qadra para plazos.
+
+Esta entrega no cambia HTTP, CLI ni interfaz. No se repitieron localmente los
+guiones de demostracion, recorridos web, cobertura instrumentada, binario release
+o campana de restauracion HTTP. Los resultados web del corte anterior conservan
+su procedencia. La correccion de navegacion de ese corte tiene 18/18 checks CI
+aprobados en su commit b1a8b58; esa CI no prueba la nueva aritmetica. La
+actualizacion del manuscrito y su PDF sigue pendiente, como registra
+[la verificacion academica](academic-report-verification.md).
+
+## Corrección de sincronización de una prueba de navegación
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Una ejecución de
+CI del cliente terminó con 254 pruebas aprobadas y un fallo en la navegación
+restringida del rol Client; la ejecución paralela de la misma suite aprobó las
+255. La prueba cambiaba el hash antes de esperar que terminara la consulta que
+abre el expediente. La comprobación de ausencia del enlace podía aprobarse
+todavía en la lista y competir con esa apertura pendiente.
+
+La prueba ahora espera el encabezado del resumen antes de comprobar que no hay
+enlace de etapas y de intentar esa ruta. Conserva las aserciones de regreso al
+tablero y ausencia de solicitudes protegidas; no cambia la aplicación ni amplía
+los tiempos de espera. La prueba corregida aprobó **20 repeticiones con dos
+workers, 19.7 s**, y su formato fue validado. Son repeticiones de un escenario,
+no veinte escenarios nuevos. No se repitieron las suites completas locales ni
+los servicios reales para este cambio exclusivo de sincronización de pruebas.
+
+## Corte reproducido: resoluciones y notificaciones en Qadra
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El cliente de
+[hechos declarados](procedural-facts-api.md#cliente-qadra) agrega navegación por
+expediente, formularios explícitos, selección histórica, preparación y
+confirmación, corrección, retiro y conciliación del recibo exacto. Reutiliza la
+marca, tipografía y controles de Qadra. Los plazos y alertas siguen pendientes.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Suite unitaria del cliente | **195 aprobadas, 0 fallidas**; incluye 27 de hechos y una de navegación nuevas. |
+| Formato y compilación web | Aprobados; 3.868 s y 2.119 s en la campaña integrada. |
+| Navegador con HTTP simulado | **255 aprobadas, 0 fallidas**, 203.410 s del comando; incluye 32 nuevas. |
+| Navegador con servicios reales aislados | **20 aprobadas, 0 fallidas**, 316.943 s del guion completo; incluye tres nuevas. |
+| Regresión del selector histórico | Rojo reproducido y corrección aprobada; incluida en las 32 nuevas. |
+| Inspección visual | Detalle y formulario a 1440 y 390 px; sin desbordamiento horizontal. |
+| Conservación durante la campaña integrada | **1432** archivos controlados sin cambios. |
+
+Las pruebas nuevas ya están incluidas en los totales, no se suman otra vez.
+La suite de cliente contrasta los 28 vectores de valores del dominio, sin
+modificarlos. Conserva precisión temporal y desfase opcional, distingue datos
+desconocidos de campos ausentes, valida fuentes exactas y coteja identidad,
+revisión, actor, acción, operación, valores y recibos. No calcula cánones
+criptográficos en JavaScript ni transforma la administración observada en CAS.
+
+Los escenarios simulados cubren ambas familias, sus tres acciones, listas e
+historia paginadas, roles, cierre, revocación y respuestas tardías. Recorren
+selección de participantes archivados, resultados retirados, acuerdo con UUID
+cero, revisiones antiguas del mismo padre y dos soportes directos. Una respuesta
+perdida conserva el comando: consultar una revisión temporalmente ausente no
+habilita reenvío, y un recibo distinto no confirma la escritura. Se conserva el
+segundo explícito cero y se retiran componentes que exceden la precisión elegida.
+
+La campaña real usa PostgreSQL, Redis, CA interna, TSA local y puertos
+desechables. Los tres escenarios nuevos comprueban correcciones competidas,
+conservación del borrador, respuesta perdida después de un commit real,
+conciliación sin otro envío, cuatro roles, cierre, revocación y limpieza de datos
+privados. Una notificación conserva padre y resultado retirados, participante
+archivado y dos versiones PDF/DOCX exactas, aun existiendo una versión documental
+posterior. Las correcciones y retiros mantienen la revisión original consultable.
+
+TDD conserva los fallos iniciales por navegación y módulos ausentes. La revisión
+adicional reprodujo un fallo real: después de consultar R1, un error al leer R2
+dejaba R1 seleccionable sin rotular claramente la revisión. El selector ahora
+retira la selección anterior al iniciar otra consulta y muestra número y estado
+antes de vincular. Los fallos iniciales de selectores de prueba, textos simulados
+sin normalizar y páginas ficticias incompletas se corrigieron por separado;
+no se relajaron validadores ni contratos para hacer pasar esos datos.
+
+Tras la campaña se alinearon dos etiquetas opcionales con la clase `checkbox`
+ya existente de Qadra. Se repitieron las dos comprobaciones de diseño, la
+compilación y el formato para ese ajuste visual; no se suman a los totales.
+Las 62 fuentes de código cambiadas son ASCII y menores de 400 líneas (máximo
+304). No cambiaron dependencias ni código Rust. La compilación conserva el aviso
+de tamaño de un chunk web mayor de 500 kB; no se midió rendimiento en esta entrega.
+
+Los 1741 resultados Rust, 27 respuestas restauradas y comprobaciones MSRV/Clippy
+del corte HTTP siguiente son evidencia anterior, no una repetición de esta
+entrega. La CI de esa API se consultó con 18/18 comprobaciones aprobadas; no
+sustituye la CI del cliente nuevo. No se repitieron cobertura instrumentada,
+restauración, release ni CLI locales. El manuscrito, su PDF y la usabilidad con
+personas reales siguen pendientes; la inspección visual automatizada no acredita
+esa evaluación. La demo estable permanece intacta.
+
+## Corte reproducido: API de hechos declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). La
+[API de hechos](procedural-facts-api.md) conecta ambas familias al servicio y
+almacenamiento auditado existentes. Agrega preparacion, alta, correccion,
+retiro, consultas exactas, listados e historia con un presupuesto HTTP compartido.
+La interfaz Qadra de estos hechos, plazos operativos y alertas siguen pendientes.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.331 s y 11.992 s. |
+| Suite con PostgreSQL/Redis desechables | **1741 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 343.456 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 5.544 s. |
+| Rust 1.88 del workspace, todos los targets | Aprobado, 5.170 s. |
+| Pruebas nuevas incluidas | **54 aprobadas**: 3 de errores, 10 de entrada, 15 de proyeccion y 26 de rutas. |
+| Guion HTTP con servicios aislados | Aprobado, 104.032 s; incluye ambas familias y restauracion. |
+| Respuestas HTTP de hechos conservadas tras restaurar | **27** respuestas exactas, con fuentes historicas y recibos. |
+| Conservacion durante la campana | **1061** huellas de fuentes, fixtures y manifiestos sin cambios. |
+
+Las 54 pruebas nuevas estan incluidas en la suite global; no se suman de nuevo.
+Los 28 vectores de valores existentes recorren el DTO y el limite HTTP sin
+cambiar semantica o normalizacion. Se comprueban precision temporal, datos
+desconocidos frente a campos opcionales, UUID cero, familia y padre fijos,
+revision y accion esperadas, proyecciones exactas y errores publicos acotados.
+El cuerpo completo se limita a 512 KiB, incluidos datos escapados y streaming;
+los objetos rechazan claves extra, repetidas y representaciones como arreglos.
+
+TDD conserva rojos por APIs ausentes y errores no mapeados. Las regresiones
+conductuales reproducidas incluyen campos extra aceptados por variantes vacias
+Serde, un envoltorio de objeto duplicado que rechazaba peticiones validas y el
+estado HTTP de la revision cero en la ruta. Las variantes vacias ahora exigen
+objetos estrictos; la lectura usa el DTO ya protegido y las rutas rechazan una
+revision no positiva como entrada invalida. Los ajustes de expectativas para
+revision inicial y version documental, y los avisos de Clippy sobre enums grandes
+y clones de valores Copy, se registran aparte de esos fallos conductuales.
+
+El guion real reproduce ambas familias y sus tres acciones, cuatro roles,
+aislamiento entre expedientes, revocacion y cierre despues de preparar,
+conflictos de revision y operacion, digest de envio alterado e historia terminal.
+Una captura posterior a reapertura conserva la administracion vigente sin
+convertirla en una condicion de revision del comando. Las fuentes incluyen
+ficha manual archivada, resultado de audiencia retirado, padre retirado o una
+revision anterior exacta y soportes PDF/DOCX. Los lotes directos de cero, una y
+dos versiones no se amplian con el soporte del padre. La captura R0 importada tambien se reprodujo: conserva metadatos sin fabricar revision, digest, autor o fecha.
+
+La importacion reconciliada conserva ambas tablas y `pg_dump`/`pg_restore`
+preservan respuestas exactas, valores, fuentes, autores y recibos. La auditoria
+se verifica antes y despues de restaurar. El guion usa PostgreSQL, Redis, PKI y
+TSA local desechables; no modifica el runtime estable ni consulta un PSC externo.
+
+Las 41 fuentes de codigo cambiadas son ASCII y menores de 400 lineas; el maximo
+es 365. No cambian dependencias ni canones de valores, fuentes o recibos.
+No se repitieron navegador, cobertura instrumentada o release locales en esta
+entrega. Tampoco se modifico el manuscrito ni se compilo un PDF. La CI de la
+persistencia anterior, PR24, se consulto con 18/18 comprobaciones aprobadas;
+es evidencia de esa rama, no sustituye la CI de la nueva API.
+
+## Corte reproducido: persistencia auditada de hechos declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[adaptador PostgreSQL](procedural-facts-persistence.md) conserva resoluciones y
+notificaciones con fuentes historicas exactas, permisos por expediente, recibos
+y auditoria atomica. Incluye migracion, parsers SQL/Rust, catalogo, inventario,
+importacion y restauracion. HTTP y Qadra de estos hechos siguen pendientes.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.269 s y 7.011 s. |
+| Suite con PostgreSQL/Redis desechables | **1687 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 408.982 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 3.290 s. |
+| Pruebas nuevas incluidas | **74 aprobadas**: 73 en 16 targets de infraestructura y una unitaria de catalogo. |
+| Rust 1.88 del workspace, todos los targets | Aprobado, 35.435 s. |
+| Guion HTTP con servicios aislados | Aprobado, 90.653 s; verifica los flujos existentes y compatibilidad de migracion/arranque. |
+| Conservacion durante la campana | 1025 huellas sin cambios. |
+| Corpus de fuentes y recibos | 43 vectores reproducibles; bytes, digests y longitudes anteriores conservados. |
+
+Las 74 pruebas focales ya estan incluidas en la suite global, no se suman de
+nuevo. Cubren las dos familias, R0 historico y revisiones administrativas,
+permisos/asignacion, cierre y revocacion antes de confirmar, correcciones
+competidas, operacion unica entre familias y Clock observado bajo el bloqueo.
+Las fuentes directas se admiten como lote completo; los antecedentes historicos
+no lo expanden. Se comprueban participantes manuales/tipificados, padres y
+acuerdos exactos, incluidas proyecciones alteradas con digests recalculados.
+
+Los listados prueban seleccion de cabeza antes del filtro, cursores exclusivos
+con UUID cero, padre fijo e historia descendente. Un fallo de auditoria impide
+confirmar cambios o devolver consultas. Importacion rechaza raices solas o
+revisiones huerfanas de cualquiera de las familias. El inventario verifica todas
+las paginas; las pruebas de pg_dump/pg_restore conservan bytes, fuentes, autor y
+capturas despues de modificaciones administrativas y baja del autor.
+
+TDD conserva fallos por APIs ausentes y regresiones conductuales de permisos,
+catalogo, inventario, importacion y administracion historica. Esta ultima
+permitia capturar una notificacion antes de la revision administrativa de su
+resolucion, o una resolucion antes de la de su resultado de audiencia. Las
+lecturas ahora rechazan ambas inconsistencias sin sustituir la historia por el
+estado vigente. Tambien se corrigieron el nombre requerido de la restriccion
+de operacion y la comparacion de cuerpos SQL para esquemas con signos de
+porcentaje. La comprobacion SQL directa rechaza fuentes omitidas, sustituidas
+o reescritas aun con recibos recalculados.
+
+El corpus JSON de PFSRC1 tenia doce componentes temporales no codificados en
+seis proyecciones de fecha/minuto. Se retiraron esos campos para coincidir con
+la precision declarada. Ninguno de los 43 vectores cambia sus bytes canonicos,
+SHA-256, longitud, nombre u orden. El generador Python y los parsers SQL/Rust
+coinciden. Un error inicial de sintaxis de migracion, un fixture de reemplazo de
+funcion y un aviso Clippy del helper de prueba se corrigieron por separado; no
+se presentan como regresiones funcionales.
+
+Las 61 fuentes nuevas Rust/SQL son ASCII y menores de 400 lineas, maximo 394.
+No cambian dependencias ni los formatos criptograficos anteriores. La campana
+usa PostgreSQL y Redis desechables; la unica prueba ignorada es la TSA externa.
+El guion HTTP ejecuta las rutas existentes: no atribuye acceso web a los nuevos
+hechos. No se repitieron navegador, cobertura instrumentada o release para esta
+entrega, ni se modifico el manuscrito o compilo un PDF. Los resultados CI 18/18
+de PR23 corresponden al servicio anterior; no acreditan esta persistencia.
+
+## Corte reproducido: servicio de hechos declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[servicio de aplicacion](procedural-facts-application.md) coordina fuentes
+historicas exactas, autenticacion, admision del lote directo, reautenticacion,
+preparacion, envio y lecturas. Sus [recibos PFSRC1/PFTXN1](procedural-facts-receipts.md)
+vinculan valores, proyecciones, actor y comando. No existe todavia adaptador de
+hechos, migracion, transaccion auditada, API o Qadra para estos recursos.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.229 s y 12.602 s. |
+| Suite con PostgreSQL/Redis desechables | **1613 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 417.677 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 20.155 s. |
+| Pruebas nuevas incluidas | **92 aprobadas**, todas en aplicacion. |
+| Rust 1.88 de aplicacion y dominio, todos los targets | Aprobado, 10.753 s. |
+| Conservacion durante la campana | 926 huellas sin cambios. |
+| Corpus independiente | 43 vectores: 25 PFSRC1 y 18 PFTXN1; Python reproducible y bytes Rust coincidentes. |
+
+Las 158 pruebas focales comprenden las 92 nuevas y 66 anteriores; no se suman
+otra vez a la suite global. Los vectores forman parte de cinco pruebas nuevas.
+Su generador Python no invoca Rust; el mock del puerto verifica los bytes y
+devuelve el SHA-256 de Python. No se presenta ese mock como prueba del algoritmo.
+Las cotas reproducidas son 19..36847 bytes para PFSRC1, 141..4145 para el envio
+de resolucion y 157..4161 para el de notificacion.
+
+TDD registra fallos iniciales por APIs ausentes. Se corrigieron dos regresiones
+conductuales adicionales: dos acuerdos de una revision podian contener datos
+comunes contradictorios (14 aprobadas/1 fallida), y cambiar el acuerdo podia
+permitir sustituir su resultado historico aun con recibos recalculados validos
+(12 aprobadas/1 fallida). El cierre incluye ambos negativos y el cambio de
+acuerdo valido. Errores iniciales de fixtures y ajustes de Clippy se distinguen
+de esas regresiones: no son fallos conductuales del producto.
+
+Se comprobaron autenticacion previa, revocacion y cambio de actor o rol tras
+admision, lote unico de dos versiones, deduplicacion sin perder funciones,
+padre historico sin expansion documental, retiro sin readmision, fuentes
+faltantes o sustituidas, cierre, revision obsoleta y recibos ajenos. Las lecturas
+prueban alcance, padre fijo, revisiones exactas, limites, orden, filtros y
+cursores, incluidas declaraciones retiradas y capturas administrativas cerradas.
+El servicio no infiere efectos juridicos ni una politica de fechas futuras.
+
+La suite global ejecuto los backends existentes mediante `scripts/test-backends.sh`
+con PostgreSQL y Redis aislados. Para los hechos nuevos, los puertos son mocks:
+estos resultados no prueban aun transaccion, membresia o rollback de un adaptador
+inexistente. La prueba ignorada corresponde al proveedor TSA externo.
+
+Las 30 fuentes nuevas Rust/Python son ASCII y menores de 400 lineas,
+con maximo 389. Se conservaron 42 fuentes existentes de dominio y resultados.
+Solo se agrega `serde_json` como dependencia de desarrollo ya presente en el
+workspace, para leer el corpus. No hay nuevas dependencias productivas ni
+migraciones. Sin nueva cobertura instrumentada, release, CLI, HTTP, navegador,
+manuscrito o PDF. La evidencia de esta entrega es local en este corte; los CI
+verificados de PR21 (16/16) y PR22 (18/18) corresponden a sus heads anteriores.
+
+## Corte reproducido: comandos y fuentes exactas de hechos
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). La
+[base de aplicacion](procedural-facts-application.md) agrega comandos de alta,
+correccion y retiro, seleccion exacta y comprobaciones puras de identidad,
+administracion y participantes. Define permisos por rol y puertos. No incluye
+servicio coordinador, recibos canonicos, adaptador, migracion, HTTP o Qadra.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.233 s y 15.512 s. |
+| Suite con PostgreSQL/Redis desechables | **1521 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 398.030 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 1.216 s. |
+| Pruebas nuevas incluidas en la suite | **67 aprobadas**: 66 de aplicacion y una de permisos en dominio. |
+| Rust 1.88 de aplicacion y dominio, todos los targets | Aprobado, 13.526 s. |
+| Conservacion de fuentes durante el cierre | 896 huellas sin cambios. |
+
+TDD registra fallos iniciales por API ausente en comandos, permisos, base,
+seleccion, administracion y participantes. Una regresion adicional reprodujo
+12 aprobadas y una fallida: la comprobacion aislada de estado aceptaba una
+revision agotada. Ahora tambien exige sucesor valido; el cierre completo
+incluye ese ajuste. La revision independiente amplio el positivo tipado para
+distinguir digest de ficha y digest de sujeto. El primer verde focal de 14
+pruebas precede esas aserciones; la tabla refleja las fuentes finales.
+
+Los casos cubren cambio coordinado de padre en comando y valores, expediente
+ajeno, familia distinta con UUID igual, revision obsoleta, retiro terminal,
+selecciones con dos revisiones o acuerdos, digests documentales compartidos,
+administracion sin revision y sin perfil, cierre, avance sin CAS y cambios de
+una misma revision administrativa inmutable. Los participantes se resuelven por
+revision exacta; se verifican sus canones y el sujeto ligado, incluidas fuentes
+archivadas. Estos tests no prueban autorizacion efectiva de un nuevo adaptador:
+esa integracion aun no existe. Los backends existentes si se ejecutaron con sus
+bases y Redis aislados mediante `scripts/test-backends.sh`.
+
+Los 20 archivos Rust nuevos son ASCII y menores de 400 lineas; el mayor tiene
+367. Se conservaron los formatos y fuentes de dominio anteriores de etapas,
+resultados, tiempo declarado y valores de hechos. Sin cambios de dependencias,
+migraciones, CLI, HTTP o interfaz. No se repitieron cobertura instrumentada,
+release o navegador; tampoco se actualizo el manuscrito ni se compilo un PDF.
+La prueba ignorada sigue siendo la del proveedor TSA externo. Este corte tiene
+evidencia local y no dispone de CI remoto para su entrega.
+
+## Corte reproducido: valores de resolucion y notificacion
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El
+[modelo puro](procedural-facts.md) conserva resoluciones y practicas de
+notificacion separadas, seleccion de revisiones exactas, procedencia, tiempos,
+funciones personales y soportes directos. Sus [canones](procedural-facts-canonical.md)
+preservan cada declaracion sin inferir efectos juridicos ni sustituir fuentes
+por su cabeza actual. Este corte no incluye aplicacion, persistencia o HTTP.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.136 s y 5.619 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1454 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 369.749 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 0.956 s. |
+| Suite del dominio | **272 aprobadas**, incluidas **32 nuevas**, sin fallos ni ignoradas. |
+| Corpus binario independiente | **28 vectores** coinciden byte por byte; incluido en dos de las pruebas Rust nuevas, no se suma al total. |
+| Rust 1.88 del dominio, todos los targets | Aprobado, 1.770 s. |
+| Conservacion de fuentes durante el cierre | 876 huellas sin cambios. |
+
+TDD conserva el fallo inicial por API inexistente y fallos previos por ausencia
+de canones y constantes. El primer intento de valores encontro tambien un error
+del fixture: utilizaba un constructor de fecha inexistente. Se corrigio la prueba
+para usar el parser existente antes de la corrida aprobada; no se cuenta ese
+error como una falla conductual del modelo. Todos esos logs se conservan separados.
+La primera suite completa tambien aprobo 1454/0/1; Clippy rechazo despues el
+tamano de la variante de representacion. Su procedencia se movio a un Box sin
+cambiar valores o canones y se ajusto una asignacion del test senalada por lint.
+La tabla corresponde a la repeticion completa posterior a esos ajustes.
+
+El generador Python no invoca Rust. Su salida versionada se reprodujo exactamente,
+incluyendo textos con CRLF y Unicode sin composicion, desconocimiento, tiempos y
+desfases, fuentes y evidencias por funcion. Las cotas alcanzadas son PFRES1
+27..17700 bytes y PFNOT1 67..58671 bytes. Una version documental seleccionada
+para dos funciones se incorpora una sola vez en el lote derivado, conservando ambos
+localizadores; expectativas de digest contradictorias se rechazan. El dominio
+reune referencias: no ejecuta admision, consulta fuentes ni verifica permisos.
+
+Los 21 archivos nuevos de Rust, generador y fixtures son ASCII y menores de
+400 lineas; el mayor tiene 357. Los 17 archivos anteriores de etapas y resultados
+conservan sus bytes, y los demas dominios anteriores no cambiaron. No se modificaron
+dependencias, migraciones o interfaz. Las revisiones independientes del modelo,
+contrato y canones no encontraron hallazgos accionables.
+
+No se repitieron localmente cobertura instrumentada, release, CLI, HTTP o navegador
+para este modelo puro. Las cifras anteriores conservan su corte propio. Este
+corte solo dispone de evidencia local; el CI remoto de entregas anteriores no
+verifica estos valores nuevos. La prueba externa ignorada sigue correspondiendo
+al proveedor TSA. Autorizacion, auditoria atomica,
+persistencia, interfaz, integracion de PR y actualizacion academica siguen pendientes.
+
+## Corte reproducido: precision temporal declarada
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El nuevo
+[valor temporal](procedural-time.md) preserva tiempo desconocido, fecha,
+minuto y segundo, con desfase opcional. Conservar una hora local sin zona no
+fabrica un instante UTC; conservar un minuto no inventa segundos. Solo un
+segundo con desfase explicito expone el instante de esa declaracion.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.145 s y 14.658 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1422 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 382.788 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 15.935 s. |
+| Pruebas focales nuevas | **15 aprobadas**, 1.102 s; rojo conductual previo de 1 aprobada y 14 fallidas. |
+| Suite del dominio | **240 aprobadas**, 0 fallidas e ignoradas, 2.462 s. |
+| Rust 1.88 del dominio, todos los targets | Aprobado, 1.321 s. |
+| Conservacion de fuentes durante el cierre completo | 855 huellas sin cambios. |
+
+Las quince pruebas nuevas estan incluidas en las 1422 del workspace. Verifican
+campos ausentes, precision e igualdad literal, UTC declarado distinto de ausencia,
+horas/minutos/segundos invalidos, desfases de minuto hasta ambos extremos de
+14 horas y fechas cuyo intervalo excederia los anios UTC 1..9999. Se conservan
+byte por byte las 17 fuentes anteriores del dominio de etapas y resultados de
+audiencia, incluidos sus canones y tipos temporales. No hubo migracion de datos.
+
+La [decision de hechos declarados](adr/0031-declared-procedural-facts.md) fija
+la separacion entre resoluciones y practicas de notificacion, pero su flujo
+persistente, permisos especificos, API e interfaz siguen pendientes. El valor
+temporal no introduce esas capacidades ni habilita computo juridico o alertas.
+
+No se repitieron cobertura instrumentada, release, CLI, HTTP o navegador para
+este valor puro. Las mediciones que siguen conservan su corte propio; el CI
+remoto verifica el commit publicado y se registra por separado. La unica prueba
+externa ignorada sigue siendo la del proveedor TSA.
+
+## Corte reproducido: conteo civil de dias
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El nuevo
+[componente aritmetico](deadline-day-counting.md) cuenta clasificaciones de una
+revision de calendario a partir de una primera fecha incluida y una cantidad
+positiva. Conserva cada dia, su regla y fuentes, y el acumulado. Devuelve una
+fecha candidata o un bloqueo explicito por clasificacion sin resolver, falta de
+cobertura o agotamiento del ano 9999. No deriva efectos de notificacion ni
+representa un vencimiento operativo; tampoco introduce API, persistencia o avisos.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Formato y compilacion del workspace | Aprobados; 1.090 s y 37.216 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1407 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 383.786 s. |
+| Clippy 1.98.1 del workspace, todos los targets, warnings denegados | Aprobado, 36.111 s. |
+| Pruebas focales nuevas | **15 aprobadas**, 0.753 s; rojo conductual previo de 1 aprobada y 14 fallidas. |
+| Suite del dominio | **225 aprobadas**, 0 fallidas e ignoradas, 2.797 s. |
+| Rust 1.88 del dominio, todos los targets | Aprobado, 6.366 s. |
+| Conservacion de fuentes durante el cierre completo | 852 huellas sin cambios. |
+
+Las quince pruebas se incluyen en las 1407 del workspace y no se suman otra
+vez. Comprueban trazas y procedencia, excepciones, febrero bisiesto, inicio fuera
+de cobertura, clasificacion sin resolver antes o despues de la candidata, anios
+extremos y cantidad `u32::MAX`. Incluso una cantidad maxima recorre a lo sumo
+1097 fechas: la cobertura finita y una fecha exterior; no reserva memoria en
+funcion de la cantidad solicitada. Un sabado computable se cuenta conforme al
+calendario; el algoritmo no incorpora un fin de semana propio.
+
+Cuatro fechas candidatas de fixtures sinteticos se cotejaron con un recorrido
+independiente de fechas civiles. Este cotejo verifica aritmetica, no una regla
+juridica ni un calendario oficial. No se ejecuto una comparacion automatizada de
+las cuatro trazas completas entre ese artefacto y Rust.
+
+Este corte no repite cobertura instrumentada, release ni recorridos CLI, HTTP o
+navegador: el cambio solo agrega el componente puro y sus pruebas. Esas cifras
+del corte de calendarios que sigue son historicas y no constituyen mediciones del
+nuevo codigo. La prueba externa ignorada sigue siendo la del proveedor TSA.
+
+## Corte reproducido: calendarios jurisdiccionales
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Se verificaron
+el catálogo global por rol, las revisiones inmutables de alcance y reglas, la
+clasificación de fechas civiles y los recibos de operaciones. El contrato está
+en [la API de calendarios](judicial-calendars-api.md) y su decisión en
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md). Este corte registra
+comprobaciones locales, incluida Qadra. La integración remota y la actualización
+académica siguen pendientes; el CI de la PR aporta evidencia separada. Las cifras
+de audiencias de la sección siguiente son históricas.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Formato y compilación de todo el workspace | Aprobados; formato 1.126 s y compilación 0.205 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1392 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 364.567 s. |
+| Suite instrumentada con PostgreSQL/Redis desechables | **1392 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 442.435 s. |
+| Cobertura global y tres umbrales del 90 % | **31 403 / 33 823 líneas, 92.8451 %; aprobados.** |
+| Clippy 1.98.1, todos los targets, warnings denegados | Aprobado, 3.722 s. |
+| Rust 1.88, todos los targets | Aprobado, 26.878 s. |
+| Política de dependencias con cargo-deny 0.20.2 | Aprobada, 1.141 s, sin nuevas excepciones. |
+| Generador independiente de vectores | Nueve pruebas aprobadas. |
+| Restricciones SQL independientes con PostgreSQL | 21 pruebas aprobadas, incluidas carreras de escritura. |
+| Verificación de catálogo e inventario al arrancar | 15 pruebas aprobadas tanto en PostgreSQL 18.6 como en PostgreSQL 16.13. |
+| Binario release | **13 450 384 bytes**, menor que 26 214 400; 133.309 s. |
+| Demostración CLI | Aprobada con target absoluto (7.673 s) y relativo (7.386 s); calibración distinguida abajo. |
+| Demostración HTTP con respaldo y restauración | Aprobada, 210.700 s; diez respuestas exactas nuevas de calendarios. |
+| Formato, compilación y pruebas unitarias de Qadra | Aprobados; **167 pruebas**, formato 4.410 s, build 2.795 s y unitarios 1.112 s. |
+| Navegador con API simulada | **223 aprobadas**, 191.473 s del comando. |
+| Navegador con PostgreSQL/Redis aislados | **17 aprobadas**, 291.660 s del script; 2.8 minutos de Playwright. |
+
+Por crate: `domain` 3887/3983, `application` 6100/6377,
+`infrastructure` 15100/16323, `web` 5405/5895 y `bin` 911/1245 líneas.
+Son 91 pruebas Rust adicionales: 18 de dominio, 25 de aplicación, 30 de
+infraestructura y 18 de HTTP. Las pruebas de infraestructura usan conexiones
+explícitas a bases desechables; las 15 comprobaciones de arranque están incluidas
+en las 30, no se suman otra vez. Las pruebas Python/SQL y los recorridos HTTP
+son campañas separadas. La única prueba ignorada corresponde al proveedor TSA
+externo.
+
+Después de la suite normal se corrigieron dos localizadores hexadecimales de
+prueba para el lint de Rust 1.98.1 y se retiró un `mut` innecesario de otro test.
+No cambiaron las fuentes Rust de producción. Los dos tests de canon y los 18 de
+HTTP afectados pasaron de nuevo; la suite instrumentada completa también incluye
+los tres archivos corregidos. Los dos intentos de Clippy rechazados se conservan
+separados de la corrida aprobada y no se cuentan como pruebas adicionales.
+Las 848 huellas del corte Rust final permanecieron iguales durante Clippy, MSRV,
+cobertura y compilación release.
+
+### Invariantes y persistencia del calendario
+
+Owner administra el catálogo; Owner, Litigator y Paralegal pueden consultarlo sin
+seleccionar un expediente. Client queda denegado. La primera revisión fija un
+ámbito explícito: fuero, entidades, autoridad, órgano, territorio y uso declarado.
+No se infiere competencia a partir de nombres ni se preseleccionan entidades.
+
+Cada revisión conserva una cobertura civil finita, siete reglas semanales,
+excepciones no solapadas y referencias públicas declaradas. Dentro de cobertura,
+una excepción sustituye la regla semanal completa; una clasificación sin resolver
+se distingue de una fecha excluida. Fuera de cobertura no se asigna regla ni se
+supone que el día sea computable. Consultar historia o fechas de una revisión
+exacta conserva su resultado después de reemplazar o retirar la cabecera.
+
+Siete vectores independientes cotejan JCAL1 entre el generador, el dominio, SQL
+y la reconstrucción del adaptador, incluidos 99 y 191 910 bytes. El canon JCTX1
+cubre actor, operación, calendario, acción, revisión esperada, digest y motivo;
+sus extremos comprobados son 91 y 4095 bytes. La validación conserva Unicode en
+los datos y cuenta escalares para las cotas de texto. El cuerpo máximo comprobado
+ocupa 232 723 bytes UTF-8 o 517 267 con escapes Unicode; ambos caben en el límite
+HTTP de 1 MiB. Las URL se validan con el mismo perfil acotado, sin descargarlas.
+
+Preparar no reserva revisiones ni operaciones. El commit revalida cuenta y rol
+después del bloqueo compartido de auditoría, comprueba la cabecera y la operación,
+y lee entonces el reloj de captura. Estado y auditoría se confirman en una sola
+transacción. Las carreras entre sucesores y el reuso de una operación en raíces
+distintas admiten un solo ganador; revocar al actor durante la espera impide la
+escritura posterior. Un fallo de auditoría no deja cambios de calendario.
+
+El arranque comprueba funciones, restricciones, expresiones generadas, claves,
+triggers y privilegios, además de recorrer raíces e historia. Rechaza huecos,
+recibos alterados, cambios de ámbito, autores ausentes y retiros incompatibles.
+La baja o el cambio posterior de correo del autor no invalida una captura
+histórica legítima. El primer importador de documentos también rechaza un destino
+que ya contiene cualquiera de las dos tablas de calendario con filas; esta
+ocupación se reprodujo primero como fallo y se corrigió antes de la suite final.
+
+### HTTP, recuperación y demostración CLI
+
+El recorrido HTTP comprueba publicación, reemplazo y retiro, dos Owners que
+compiten por la revisión, ámbito inmutable, rechazo de operaciones repetidas,
+lectura global del personal, denegación a Client, historia paginada y fechas dentro
+y fuera de cobertura. Incluye valores máximos con Unicode y recibos exactos.
+
+Después del respaldo y la restauración se comparan diez respuestas completas de
+calendarios, con dos raíces y cuatro revisiones, y las filas de sus dos tablas.
+También vuelven a pasar las 21 respuestas anteriores de programación y resultados
+con sus cuatro tablas. Se preservan los soportes cifrados, la auditoría y los ZIP
+de evidencia del flujo integrado. No se restauró sobre la demo persistente.
+
+El primer recorrido HTTP se interrumpió por una expectativa incorrecta del script:
+una consulta inválida produce `400 invalid_query`, no 422. Se corrigieron esa
+expectativa y la descripción del contrato, sin cambiar Rust, y se repitió el
+recorrido completo. El primer intento de CLI también reprodujo que el script
+buscaba el binario en `target/` aun usando `CARGO_TARGET_DIR`; el script ahora
+respeta ese directorio y completó el recorrido con archivos temporales. Un segundo
+rojo reprodujo la ruta relativa tras cambiar al directorio temporal; fijar la ruta
+absoluta antes de ese cambio permitió repetir y aprobar también esa variante.
+
+La calibración Argon2id de esta CLI obtuvo **504.6 ms de promedio sobre cinco
+corridas**; al repetir con target relativo obtuvo **501.3 ms**, también sobre
+cinco corridas. Ambas están dentro de la banda de 500 a 1000 ms. Son observaciones nuevas del
+entorno local; no reemplaza las mediciones anteriores fuera de banda ni elimina
+la necesidad de calibrar el entorno de despliegue. Las mediciones coincidieron
+con otras tareas y no constituyen un benchmark aislado.
+
+### Interfaz Qadra
+
+El catálogo se abre desde la administración del despacho o la Agenda sin exigir
+un expediente seleccionado. Owner puede publicar, reemplazar y retirar; el resto
+del personal autorizado dispone de consulta, historia y clasificación de fechas.
+La vista mensual y la lista de días mantienen la revisión exacta y distinguen
+clasificación sin resolver de falta de cobertura.
+
+Los formularios solicitan ámbito, entidades, fuentes y reglas expresos. El resumen
+previo muestra el título que quedará inmutable, y los conflictos conservan el
+borrador hasta comparar la base actual. Una respuesta incierta habilita la consulta
+del recibo exacto, sin reenviar automáticamente la escritura. Las respuestas tardías
+no reemplazan una selección posterior y la denegación de acceso limpia la vista.
+
+Las 167 pruebas unitarias y 223 simuladas incluyen 16 y 19 nuevas, respectivamente.
+Se comprobaron permisos, navegación global, reglas y fuentes, días extremos,
+paginación, historia, conflictos y conciliación. Las capturas de detalle y
+formulario se revisaron en anchos de 1440 y 390 píxeles, sin cortes horizontales.
+El formulario móvil conserva desplazamiento vertical para los campos explícitos.
+Los 17 recorridos con servicios reales incluyen tres nuevos: ciclo completo y
+recibo de respuesta perdida, conflicto entre dos sesiones con borrador conservado
+y consulta global según rol. El primer intento se detuvo antes de Playwright por
+un campo mal nombrado en el fixture de una fuente, en 155.308 s. Se corrigió
+`official_url`, sin cambiar producto, y se repitió toda la campaña con salida cero.
+
+Se auditaron 42 fuentes nuevas o modificadas de interfaz y fixtures: todas ASCII,
+con máximo de 298 líneas. Los 22 archivos existentes de estilos, marca y activos
+comprobados conservaron sus huellas. Las cifras de la campaña simulada y real
+se mantienen separadas; ninguna sustituye una evaluación de usabilidad humana.
+
+### Límites de este corte
+
+El catálogo configura y clasifica fechas; el cálculo automático de vencimientos,
+los hechos de notificación, la reevaluación y las alertas siguen pendientes.
+Las referencias conservan metadatos declarados, sin archivar ni autenticar el
+contenido remoto. La CA interna y TSA local siguen siendo demostración técnica.
+La evaluación formal de usabilidad no se sustituye por pruebas automatizadas.
+
+## Corte reproducido: sesiones y resultados declarados
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Se comprobaron
+alta, rectificación y retiro de registros, anclas históricas de programación,
+continuaciones entre audiencias, comparecencias, acuerdos y soportes exactos.
+El contrato está en [la API de resultados](hearing-results-api.md) y la decisión
+en [ADR-0029](adr/0029-declared-hearing-sessions.md). Las cifras siguientes corresponden a campañas terminadas; se distinguen las
+pruebas Rust, la integración HTTP y los recorridos de Qadra.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Formato y compilación de todo el workspace | Aprobados; compilación 7.275 s. |
+| Suite normal con PostgreSQL/Redis desechables | **1301 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 388.971 s. |
+| Suite instrumentada con los mismos servicios aislados | **1301 aprobadas, 0 fallidas y 1 externa ignorada**, salida 0, 384.320 s. |
+| Cobertura global y tres umbrales del 90 % | **28 704 / 31 010 líneas, 92.5637 %; aprobados.** |
+| Clippy 1.98.1, todos los targets, warnings denegados | Aprobado, 16.274 s. |
+| Rust 1.88, todos los targets | Aprobado, 16.005 s. |
+| Política de dependencias con cargo-deny 0.20.2 | Aprobada, sin nuevas excepciones. |
+| Instalador verificado de formatos | Nueve pruebas aprobadas. |
+| Binario release | **12 872 600 bytes**, menor que 26 214 400; 98.501 s. |
+| Demostración CLI | Aprobada, 6.726 s; la calibración se distingue abajo. |
+| Demostración HTTP con respaldo y restauración | Aprobada, 107.072 s. |
+| Formato, compilación y pruebas unitarias de Qadra | Aprobados; **151 pruebas**, formato 4.046 s, build 2.734 s y unitarios 0.963 s. |
+| Navegador con API simulada | **204 aprobadas**, 223.553 s del comando; 3.7 minutos de Playwright. |
+| Navegador con PostgreSQL/Redis aislados | **14 aprobadas**, 258.642 s del script; 2.5 minutos de Playwright. |
+
+Por crate: `domain` 3220/3292, `application` 5531/5802,
+`infrastructure` 14237/15405, `web` 4805/5279 y `bin` 911/1232 líneas.
+Son 118 pruebas Rust adicionales respecto de programación. La prueba ignorada
+corresponde al proveedor TSA externo. Los adaptadores de identidad, expedientes
+y documentos se ejecutaron con bases desechables y variables explícitas;
+no se infiere su verificación de una ejecución sin esos servicios.
+
+Las 759 huellas del corte Rust permanecieron iguales al terminar las campañas.
+Al incorporar después la corrección de inicialización concurrente de audiencias,
+solo cambió `crates/infrastructure/tests/postgres_startup.rs`: su única prueba
+se repitió con PostgreSQL real y pasó en 5.948 s del comando. Es una repetición
+del mismo caso, no otra prueba que se sume a las 1301. Las fuentes de producción
+permanecieron idénticas. Se conservan por separado rojos de TDD, errores de
+entorno y las comprobaciones aprobadas.
+
+La CLI midió Argon2id en **409.6 ms de promedio sobre cinco corridas**, por debajo
+de la banda objetivo de 500 a 1000 ms. Se conservan los parámetros existentes y
+la medición histórica de 529.4 ms; el resultado nuevo no sustituye aquel ensayo.
+La calibración del entorno de despliegue sigue pendiente antes del cierre
+operativo, como en los cortes anteriores fuera de banda. No se declara cumplido
+ese subcriterio por el solo hecho de que la demostración funcional terminó.
+
+### Invariantes de sesiones y resultados
+
+Cada sesión o acto declarado tiene identidad propia y revisiones inmutables.
+El alta elige expresamente una revisión de programación, incluso cancelada;
+una continuación puede citar un resultado histórico retirado de otra audiencia
+del mismo expediente. Rectificar conserva esas referencias y exige un motivo.
+Retirar conserva contenido y soporte; no equivale a anular un acto judicial.
+
+Los vectores independientes verifican los bytes y digests de HRES1 y HRTX1,
+incluidos sus límites de 146 933 y 4296 bytes. Se comprueban normalización,
+precisión de fecha o instante, desfases, años extremos, comparecencias repetidas,
+orden e identidad de acuerdos y límites de texto por escalares Unicode. Las
+pruebas distinguen un día conocido de una hora desconocida, sin completarla.
+
+La aplicación rechaza fuentes de otro expediente, proyecciones alteradas y
+recibos incompatibles con actor, acción o revisión. La administración capturada
+no puede preceder a las fuentes históricas de las que depende. Una rectificación
+revalida el soporte, aunque sea la misma versión; un retiro copia la admisión
+histórica sin abrir nuevamente el archivo. Un documento V2 no reemplaza el
+soporte V1. Las respuestas inciertas se concilian con el recibo exacto, sin
+reenviar automáticamente una mutación.
+
+PostgreSQL revalida cuenta, rol, membresía y expediente activo después del
+bloqueo compartido de auditoría; consulta entonces el reloj de captura. No exige
+que sigan vigentes la administración o etapa observadas al preparar, ni que el
+perfil administrativo actual esté completo. Fallos de raíz, revisión, auditoría
+y commit diferido no dejan cambios parciales. Las carreras entre rectificación
+y retiro, o entre raíces que reutilizan una operación, tienen un único ganador.
+
+El arranque rechaza huecos, ciclos, cabeceras alteradas, referencias incompatibles
+y protecciones SQL ausentes. Las pruebas reprodujeron y corrigieron capturas
+administrativas anteriores a sus fuentes. También se comprobó la reconstrucción
+de fechas bajo cuatro configuraciones DateStyle: el canon conserva YYYY-MM-DD
+independientemente de la presentación de fechas de la conexión.
+
+### Contrato HTTP y recuperación
+
+La API admite hasta 512 KiB de JSON, incluidos espacios; un byte adicional
+produce 413. Rechaza campos y consultas desconocidos, claves repetidas, arreglos
+posicionales, datos después del JSON, tipos de contenido incompatibles, tiempos
+ambiguos y comandos que no corresponden a la ruta. El límite admite valores
+máximos con texto Unicode. La historia devuelve metadatos ligeros y carga el
+detalle exacto cuando se solicita.
+
+La demostración HTTP registra una sesión parcial con una ficha archivada y un
+PDF sellado V1 después de crear V2. Reprograma y cancela la audiencia, avanza la
+etapa y conserva las fuentes del resultado. Rectifica, rechaza una revisión
+competidora, retira y registra una continuación desde el antecedente retirado.
+También selecciona una programación cancelada y prueba los cuatro roles,
+revocación posterior a la preparación y cierre administrativo. El recibo de un
+resultado ausente se distingue del error de una fuente ausente o de un expediente
+inaccesible.
+
+El respaldo y restauración comparan 21 respuestas completas de audiencias y
+resultados, junto con las filas de sus cuatro tablas. Se preservan las tres raíces
+y cinco revisiones de resultados, además de cuatro raíces y ocho revisiones de
+programación. Se mantienen los soportes cifrados, la auditoría y los ZIP de
+evidencia de los flujos previos.
+
+### Interfaz Qadra y navegador
+
+El panel de cada audiencia permite registrar sesiones o actos, consultar su
+historia, rectificar contenido y retirar registros con motivo. La programación
+se elige por revisión exacta, incluso cancelada; una continuación conserva el
+antecedente seleccionado aunque haya sido retirado. Los selectores recuperan
+fichas históricas y documentos de versión exacta. La precisión de fecha conserva
+la distinción entre día conocido y hora desconocida.
+
+Son 32 pruebas unitarias, 25 escenarios simulados y tres recorridos reales nuevos
+respecto del corte de audiencias corregido. Verifican permisos y expediente
+cerrado, resultados vacíos, consulta por estado, paginación, historia, fuentes
+archivadas, borradores conservados ante conflictos y conciliación de un envío
+cuya respuesta se perdió. La lectura del recibo no reenvía la mutación. Las
+respuestas tardías de una vista anterior no reemplazan el expediente activo.
+Los recorridos reales incluyen una carrera de revisiones y revocación de acceso.
+
+Se revisaron capturas de historial, detalle y formulario en escritorio y móvil,
+además de comprobar sus dimensiones y navegación. Las 42 fuentes nuevas o
+modificadas del cierre de interfaz conservaron sus huellas durante las campañas;
+son ASCII y su máximo es 331 líneas. Los 19 archivos existentes de marca y
+estilos comprobados permanecen iguales. El import de la nueva hoja de estilos
+reutiliza los componentes y variables de Qadra. Esta revisión funcional y visual
+no equivale a una evaluación de usabilidad con participantes humanos.
+
+### Actualización de la demo persistente
+
+Después de las campañas aisladas se actualizó la demo local conservando las
+filas de sus 23 tablas existentes, 31 archivos de configuración y material
+protegido, roles, credenciales y tres registros Redis aún no caducados. Las dos
+tablas nuevas quedaron vacías, sin crear sesiones declaradas a partir de citas.
+La API, el frontend y la denegación de acceso anónimo respondieron correctamente
+con el binario candidato cuya huella se había fijado antes de actualizar.
+
+La operación requirió recuperación explícita. El primer intento se detuvo antes
+de migrar porque exigía un directorio documental local que este despliegue en
+PostgreSQL no utiliza; se restableció el binario previo y se movió esa validación
+antes de la parada. El segundo migró y verificó todas las filas, pero la
+comprobación inmediata del nombre del proceso npm interrumpió el reinicio.
+Se recreó la unidad transitoria con el mismo supervisor y políticas, y se
+completaron las comprobaciones de estado, archivos y sesiones. No se repitió la
+migración ni se restauró la base sobre trabajo posterior. Los dos intentos y
+sus respaldos se conservaron por separado; este cierre no se informa como una
+actualización que hubiera transcurrido sin incidencias.
+
+### Alcance de la comprobación
+
+Estas pruebas verifican captura, autorización, integridad e historia del registro.
+No acreditan que un acto ocurrió, que una persona quedó notificada ni que un
+acuerdo tenga efectos judiciales. Los términos automáticos, el calendario de
+plazos, las alertas y el ciclo de recursos siguen pendientes. Se conserva la CA
+interna y TSA local como demostración técnica; la prueba del proveedor externo
+permanece identificada por separado.
+
+
 ## Correcciones reproducidas durante la validación de audiencias
 
 La inicialización concurrente de PostgreSQL conserva el timeout breve solo en

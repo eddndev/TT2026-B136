@@ -9,15 +9,20 @@ use application::cases::CaseService;
 use application::documents::{
     CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
 };
+use application::hearing_results::HearingResultService;
 use application::hearings::HearingService;
 use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
+use application::judicial_calendars::JudicialCalendarService;
 use application::participants::ParticipantService;
+use application::procedural_facts::ProceduralFactService;
 use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
+use infrastructure::PostgresProceduralFactStore;
 use infrastructure::{
     openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
-    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository, PostgresHearingStore,
+    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository,
+    PostgresHearingResultStore, PostgresHearingStore, PostgresJudicialCalendarStore,
     PostgresParticipantStore, PostgresTypedParticipantStore, PostgresUserRepository,
     RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
     RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
@@ -157,9 +162,58 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         ),
         identity.clone(),
         processor.clone(),
-        format_validator,
+        format_validator.clone(),
         hearing_hasher,
         hearing_clock,
+    );
+    let result_hasher = Arc::new(RingSha256Hasher::new());
+    let result_clock = Arc::new(SystemClock::new());
+    let hearing_results = HearingResultService::new(
+        Arc::new(
+            PostgresHearingResultStore::open(
+                &database_url,
+                result_hasher.clone(),
+                result_clock.clone(),
+            )
+            .context("cannot open PostgreSQL hearing result store")?,
+        ),
+        identity.clone(),
+        processor.clone(),
+        format_validator.clone(),
+        result_hasher,
+        result_clock,
+    );
+    let fact_hasher = Arc::new(RingSha256Hasher::new());
+    let fact_clock = Arc::new(SystemClock::new());
+    let procedural_facts = ProceduralFactService::new(
+        Arc::new(
+            PostgresProceduralFactStore::open(
+                &database_url,
+                fact_hasher.clone(),
+                fact_clock.clone(),
+            )
+            .context("cannot open PostgreSQL procedural fact store")?,
+        ),
+        identity.clone(),
+        processor.clone(),
+        format_validator,
+        fact_hasher,
+        fact_clock,
+    );
+    let calendar_hasher = Arc::new(RingSha256Hasher::new());
+    let calendar_clock = Arc::new(SystemClock::new());
+    let calendars = JudicialCalendarService::new(
+        Arc::new(
+            PostgresJudicialCalendarStore::open(
+                &database_url,
+                calendar_hasher.clone(),
+                calendar_clock.clone(),
+            )
+            .context("cannot open PostgreSQL judicial calendar store")?,
+        ),
+        identity.clone(),
+        calendar_hasher,
+        calendar_clock,
     );
     let workflow = CaseDocumentService::new(
         repository,
@@ -176,7 +230,10 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             stages: Arc::new(stages),
             typed: Arc::new(typed_participants),
             hearings: Arc::new(hearings),
+            hearing_results: Arc::new(hearing_results),
+            procedural_facts: Arc::new(procedural_facts),
         },
+        Arc::new(calendars),
         web::HttpLimits {
             max_requests: args.max_in_flight_requests,
             max_blocking_operations: args.max_blocking_operations,

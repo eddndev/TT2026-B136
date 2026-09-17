@@ -8,6 +8,27 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("invalid procedural fact {0}")]
+    InvalidProceduralFact(&'static str),
+
+    #[error("invalid declared procedural time")]
+    InvalidDeclaredProceduralTime,
+
+    #[error("invalid judicial calendar {0}")]
+    InvalidJudicialCalendarValue(&'static str),
+
+    #[error("judicial calendar revision must be positive")]
+    InvalidJudicialCalendarRevision,
+
+    #[error("judicial calendar revision counter is exhausted")]
+    JudicialCalendarRevisionExhausted,
+
+    #[error("invalid hearing result {0}")]
+    InvalidHearingResultValue(&'static str),
+
+    #[error("hearing result revision must be positive")]
+    InvalidHearingResultRevision,
+
     #[error("invalid hearing {0}")]
     InvalidHearingValue(&'static str),
 

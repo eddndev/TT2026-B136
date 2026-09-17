@@ -1,0 +1,54 @@
+.fact-collection,
+.fact-editor,
+.fact-detail {
+  min-width: 0;
+}
+.fact-sources {
+  margin-block: 18px;
+}
+.fact-detail {
+  margin-block: 16px;
+}
+.fact-row {
+  width: 100%;
+  margin-block: 0.5rem;
+  justify-content: space-between;
+  text-align: left;
+}
+.fact-row > span:first-child {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.fact-collection code,
+.fact-editor code,
+.fact-detail code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.fact-history-row {
+  padding-block: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.fact-notification-toggle,
+.fact-administration {
+  margin-block: 18px;
+}
+.fact-editor details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.fact-editor fieldset,
+.fact-editor label,
+.fact-editor input,
+.fact-editor select,
+.fact-editor textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .fact-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

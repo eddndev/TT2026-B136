@@ -61,6 +61,83 @@ HTTP, restauración y navegador real se distinguen en el
 [informe de verificación](verification-report.md). Su contrato y límites están en
 [la API de audiencias](hearings-api.md) y [ADR-0028](adr/0028-audited-hearing-scheduling.md).
 
+Las sesiones y resultados declarados añaden raíces independientes con ancla de
+programación y continuidad exactas, comparecencias históricas, acuerdos ordenados,
+procedencia y precisión temporal conservadas. La rectificación y el retiro
+mantienen historia y recibos propios; Qadra permite prepararlos y consultarlos.
+La verificación local comprende pruebas por capa, campaña global, API con
+restauración e interfaz simulada y real; sus métricas se conservan en el informe
+de verificación. No activan plazos ni alertas y no acreditan actos judiciales. Véanse [el contrato](hearing-results-api.md) y
+[ADR-0029](adr/0029-declared-hearing-sessions.md).
+
+El backend, la API y Qadra para el catálogo de calendarios jurisdiccionales están
+verificados localmente, incluida la restauración y los recorridos de navegador
+con servicios reales. Sus
+revisiones conservan ámbito global, fechas civiles, cobertura,
+patrón semanal, excepciones y referencias públicas declaradas. Owner gestiona;
+el personal consulta sin membresía de expediente y Client queda denegado.
+La clasificación distingue exclusión, falta de resolución y falta de cobertura,
+sin fabricar disponibilidad o efectos jurídicos. La cobertura y las campañas
+web están aprobadas localmente; la integración remota y la actualización del
+manuscrito siguen pendientes. Véanse [el contrato](judicial-calendars-api.md) y
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
+
+El [conteo civil diario](deadline-day-counting.md) ya calcula una fecha candidata
+sobre valores exactos de calendario y conserva cada dia con su clasificacion,
+fuente y acumulado. Se detiene ante datos sin resolver, falta de cobertura o
+agotamiento del rango de fechas. Sus quince pruebas estan incluidas en la suite
+completa reproducida. La primera fecha incluida y la cantidad todavia son
+entradas matematicas: los hechos declarados ya tienen persistencia propia, pero
+falta vincularlos a un perfil aplicable, resolver los datos requeridos de
+recepcion y conservar la evaluacion y sus alertas para obtener un plazo operativo.
+
+La [aritmetica temporal](deadline-arithmetic.md) implementa reglas matematicas
+explicitas para dias naturales o computables, meses civiles y horas transcurridas.
+Conserva insumos y trazas, aplica el ajuste final solo si se solicita y bloquea
+ante precision insuficiente, homologo inexistente o calendario incompleto.
+No selecciona un supuesto juridico ni crea un plazo persistente. Los
+[perfiles normativos](deadline-rule-research.md) todavia requieren cerrar
+aplicabilidad, inicio, duracion ordenada y corte, particularmente para meses.
+La activacion, reevaluacion y alertas mantienen su estado pendiente.
+
+La [extracción temporal exacta](deadline-triggers.md) comprueba expediente,
+identidad, revisión, padre y acuerdo del material recibido antes de seleccionar
+un campo. Distingue ausencia y desconocimiento, conserva precisión y procedencia,
+y requiere una calificación expresa cuando se necesita un tiempo de otra
+finalidad. El coordinador entrega el tiempo exacto a la aritmética. Es un componente
+de dominio: la verificación de recibos y permisos, los perfiles aplicables,
+la evaluación persistente y los flujos de plazos siguen pendientes.
+
+La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
+fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
+registra hechos por si misma. La separacion de resoluciones y practicas de
+notificacion queda adoptada en [ADR-0031](adr/0031-declared-procedural-facts.md),
+con contrato y persistencia descritos abajo; la API HTTP esta implementada y
+su interfaz Qadra esta implementada y verificada localmente en navegador.
+El [modelo puro de hechos](procedural-facts.md) ya conserva las dos familias,
+referencias historicas seleccionadas, desconocimiento, funciones personales y
+soportes directos. Sus [canones propios](procedural-facts-canonical.md) distinguen
+precision y desfase, y conservan cada localizador aunque un documento se comparta.
+La [base de aplicacion](procedural-facts-application.md) incorpora comandos de
+alta/correccion/retiro, seleccion exacta, comprobaciones puras y contratos de
+puertos. El servicio de aplicacion ya coordina autenticacion, verificacion de
+fuentes exactas, admision del lote directo, reautenticacion y comprobacion de
+recibos de preparacion y respuesta. Sus [canones de fuentes y operacion](procedural-facts-receipts.md)
+conservan las vistas historicas y se contrastan con vectores independientes.
+El [adaptador PostgreSQL](procedural-facts-persistence.md) implementa ahora
+persistencia, autorizacion efectiva por expediente e historia auditada atomica.
+La verificacion focal local cubre ambas familias, fuentes exactas, permisos,
+concurrencia y restauracion. El cierre anterior del backend incluyo una campana
+global local y el guion HTTP de las capacidades ya expuestas; sus resultados
+constan en el informe de verificacion.
+La [API HTTP de hechos](procedural-facts-api.md) y su composicion estan
+implementadas. Pasaron 25 pruebas focales unitarias de entrada/proyeccion y
+26 pruebas de rutas HTTP con puertos controlados. La suite global y el recorrido
+HTTP con servicios reales y restauracion tambien estan aprobados localmente.
+Qadra ya incorpora captura, fuentes historicas, consulta y conciliacion explicita;
+su campana de navegador esta aprobada localmente. Estos hechos aun no habilitan
+plazos operativos.
+
 ## Entregas y condiciones de cierre
 
 | Entrega | Alcance verificable | Dependencias y evidencia requerida |
@@ -75,7 +152,10 @@ HTTP, restauración y navegador real se distinguen en el
 | Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
 | Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Pendiente; propuesta y criterios en [alcance de recursos](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
-| Resultados, plazos y calendario | Resultados de audiencia, plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Pendiente; fuentes normativas oficiales vigentes, casos de fechas, días inhábiles, excepciones y cambios de calendario. No sustituir reglas por una simple suma de días. |
+| Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado y verificado localmente, pendiente de integración remota. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
+| Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Integración remota y manuscrito pendientes; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
+| Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Cómputo, reevaluación y alertas pendientes. El catálogo y los hechos declarados son insumos parciales: falta seleccionar y validar sus datos para perfiles normativos aplicables, evaluación persistente y casos frontera. No extraerlos de acuerdos libres ni sustituir el cómputo exigido por fechas manuales o una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -117,8 +197,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
-| Audiencia y activación de plazos | Parcial; programación implementada | Programación, cambios, cancelaciones, historia y agenda tienen implementación. Faltan resultados, asistentes reales, acuerdos y creación consistente de plazos vinculados; la agenda de citas no es un calendario judicial. |
-| Calendario judicial | Pendiente | Calendarios aplicables, inhábiles y excepciones, con pruebas normativas y de fechas. |
+| Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron; la integración remota permanece pendiente. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
+| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. Faltan integración remota, actualización académica, selección aplicable para plazos, evaluación y reevaluación ante cambios. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
 | Monitoreo de plazos y alertas | Pendiente | Vencimientos, entrega de alertas, reintentos y ausencia de duplicados. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
@@ -143,6 +223,10 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   de 218 bytes; no reciben la clave privada. Ese flujo no vincula automáticamente
   la identidad representada con una cuenta de acceso. La autenticación por
   certificado y la firma documental individual de usuarios continúan pendientes.
+- El corte de sesiones declaradas midió Argon2id en 409.6 ms de promedio sobre
+  cinco corridas, por debajo de la banda de 500--1000 ms. La calibración de costo
+  de intento permanece pendiente para el entorno de despliegue; aprobar la CLI
+  no satisface ese criterio. Los parámetros no cambiaron en esta entrega.
 - Client mantiene acceso a metadatos de expedientes asignados y denegación
   documental. Ampliarlo requiere una política de recursos explícita y pruebas
   de aislamiento; ocultar botones no constituye autorización.
@@ -151,11 +235,20 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   del CNPP y recursos vinculados a resoluciones, sin modificar ese criterio.
   Corregirlo literalmente requiere autorización explícita; implementar las dos
   transiciones no cierra recursos ni el cómputo automático exigido.
-- El catálogo de programación distingue cuatro tipos de audiencia. El marco
-  también menciona medidas cautelares y continuaciones. Esas operaciones no se
-  declaran cubiertas por las cuatro opciones implementadas ni por registrar una
-  segunda cita: requieren su alcance, vínculos y reglas propios. Resultados,
-  asistentes reales y acuerdos conservan su estado pendiente.
+- El catálogo de programación distingue cuatro tipos de audiencia; el marco
+  también menciona medidas cautelares y continuaciones. Las sesiones declaradas
+  modelan continuidad mediante otra raíz con antecedente exacto preexistente,
+  con comparecencias y acuerdos propios. Esto no amplía el catálogo de citas ni
+  cubre las reglas específicas de medidas cautelares. CU-08 y RF-07 permanecen
+  parciales: sus criterios aprobados incluyen activación de plazos y alertas,
+  además de la captura implementada y la aceptación integral.
+- CU-09 permanece parcial. El catálogo distingue fechas `countable`, `excluded`,
+  `unresolved` y `outside_coverage` según el ámbito declarado. No adopta un
+  calendario universal, no descarga normas ni asigna calendarios comparando el
+  nombre de una autoridad. El cómputo automático exigido sigue pendiente y
+  requiere hechos jurídicos estructurados, fuentes aplicables y un corpus de
+  aceptación antes de activar vencimientos, reevaluación o alertas. Este avance
+  no completa por sí solo los demás casos del catálogo ni su aceptación integral.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,

@@ -35,7 +35,7 @@ cleanup() {
 trap cleanup EXIT
 
 cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
-CLI="$REPO_ROOT/target/debug/despacho-cli"
+CLI="$(cd "${CARGO_TARGET_DIR:-$REPO_ROOT/target}" && pwd)/debug/despacho-cli"
 export DATABASE_URL="$IDENTITY_TEST_DATABASE_URL"
 export REDIS_URL="$IDENTITY_TEST_REDIS_URL"
 export PKI_CA_DIR="$WORK_DIR/ca"

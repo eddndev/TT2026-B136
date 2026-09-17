@@ -27,6 +27,7 @@
   const admin = [
     { id: 'team', label: 'Equipo', icon: 'users' },
     { id: 'audit', label: 'Auditor\u00eda', icon: 'shield' },
+    { id: 'judicial-calendars', label: 'Calendarios jurisdiccionales', icon: 'calendar' },
   ];
 </script>
 

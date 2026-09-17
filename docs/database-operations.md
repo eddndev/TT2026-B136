@@ -1,8 +1,12 @@
 # Base de datos y migración de documentos
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
-audiencias, documentos y una sola cadena de auditoría. Redis conserva las sesiones y controles efímeros. La decisión
-está en [ADR-0016](adr/0016-case-document-transactions.md).
+audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos
+y una sola cadena de auditoría. El esquema incorpora además hechos declarados
+de resolución y notificación; su backend está verificado localmente y
+tiene [composición HTTP](procedural-facts-api.md) con pruebas focales aprobadas;
+su comprobación integrada y restauración están aprobadas localmente; Qadra sigue pendiente. Redis conserva las sesiones
+y controles efímeros. La decisión está en [ADR-0016](adr/0016-case-document-transactions.md).
 
 ## Preparar un despliegue nuevo
 
@@ -204,7 +208,9 @@ Véanse [ADR-0023](adr/0023-audited-case-stage-transitions.md),
 2. Aplicar el esquema nuevo sobre la base que ya contiene usuarios y expedientes.
    No iniciar todavía el servidor: el primer import exige documentos,
    clasificación, participantes, revisiones administrativas, registros iniciales,
-   revisiones de etapa y auditoría vacíos para conservar la cadena original
+   revisiones de etapa, calendarios jurisdiccionales, raíces/revisiones de hechos
+   declarados y auditoría vacíos para
+   conservar la cadena original
    como prefijo.
    Preparar los expedientes de destino administrativamente como baselines con
    marcador NULL y hechos conocidos; no crearlos por HTTP y borrar sus eventos
@@ -280,8 +286,9 @@ SHA-256, proyecciones y recibos. La secuencia y las fuentes de administración,
 etapa, participantes y soporte pertenecen al mismo expediente. Cancelación
 conserva el contexto original y registra la administración actual por separado.
 El rol operativo puede leer e insertar; no actualizar, borrar ni truncar ese
-historial. El UUID de operación es único en toda la base y no se reutiliza para
-reintentar una escritura de resultado incierto.
+historial. El UUID de operación es único entre las revisiones de programación y no se
+reutiliza para reintentar una escritura de resultado incierto. La familia de
+sesiones declaradas tiene su propia unicidad y su recibo HRTX1.
 
 Respaldar las dos tablas junto con todas sus fuentes históricas y la auditoría.
 Restaurar únicamente las citas actuales pierde recibos y referencias exactas.
@@ -297,6 +304,153 @@ una cita o crean plazos. Los metadatos de audiencias no usan el cifrado de los
 archivos documentales; proteger sus respaldos. Véanse
 [ADR-0028](adr/0028-audited-hearing-scheduling.md) y
 [contrato HTTP de audiencias](hearings-api.md).
+
+## Actualizar sesiones y resultados declarados de audiencia
+
+La implementación y la recuperación fueron verificadas localmente; la integración remota permanece pendiente.
+Con los escritores detenidos y respaldo completo, ejecutar `database migrate
+--runtime-role` con la conexión administrativa y el nuevo binario. El conjunto
+`0012_hearing_results*.sql` instala los decodificadores de tiempo, HRES1 y HRTX1,
+las tablas `case_hearing_results` y `case_hearing_result_revisions` y sus guards.
+No ejecutar archivos sueltos. Las citas existentes permanecen sin resultados
+hasta una captura explícita; no se alteran HEAR1, HTXN1 ni la programación.
+
+El rol operativo recibe SELECT/INSERT sobre ambas tablas y EXECUTE sobre las
+funciones puras de proyección. No debe tener propiedad, UPDATE, DELETE,
+TRUNCATE, TRIGGER, permisos por columna o roles heredados que permitan eludir
+la inmutabilidad. El arranque verifica catálogo y permisos sin DDL y recorre
+inventario, referencias exactas, secuencias y ciclos de continuidad. Incluye
+raíces con UUID de valor cero; no se omiten por el cursor inicial. Los helpers SQL fijan
+el esquema y conservan la fecha ISO independientemente de `DateStyle`.
+
+La raíz fija audiencia, ancla exacta y continuidad opcional del mismo expediente.
+Un antecedente debe existir antes de crear la nueva raíz; puede estar retirado.
+Los asistentes pueden ser fichas históricas o archivadas. Rectificar conserva
+fuentes fijas y vuelve a admitir el soporte; retirar conserva contenido y
+admisión histórica y es terminal. Captura administrativa, reloj, autorización y
+estado abierto se resuelven después del bloqueo común en READ COMMITTED.
+La administración capturada no puede anteceder sus fuentes históricas exactas.
+No resolver conflictos con UPDATE, borrar revisiones o desactivar guards.
+
+Respaldar ambas tablas junto con programación, etapas, administración,
+participantes manuales/tipificados, identidades, versiones documentales,
+usuarios y auditoría. Comparar filas, cánones, recibos, proyecciones, autores e
+instantes, además de referencias a anclas canceladas y antecedentes retirados.
+Un registro de fecha o acuerdo no se transforma en plazo, alerta o resolución
+por restaurar. Estos metadatos autorizados no usan el cifrado del archivo
+DVLT1: proteger sus copias. Los administradores de PostgreSQL permanecen dentro
+de la base de confianza; el inventario no autentica cuerpos SQL sustituidos por
+ellos. Véanse [ADR-0029](adr/0029-declared-hearing-sessions.md) y
+[contrato de resultados](hearing-results-api.md).
+
+## Actualizar el catálogo de calendarios jurisdiccionales
+
+La API y la restauración se verificaron localmente en servicios desechables.
+La interfaz, la cobertura y el cierre de CI siguen pendientes. Detener escritores
+y conservar un respaldo completo antes de ejecutar
+`database migrate --runtime-role` con el nuevo binario y una conexión
+administrativa. El conjunto `0013_judicial_calendar_*.sql` instala primitivas,
+fuentes, valores, recibos, tablas y guards en ese orden. No ejecutar archivos
+sueltos. Añade `judicial_calendars` y `judicial_calendar_revisions`; no crea
+calendarios iniciales ni modifica perfiles, citas o resultados existentes.
+
+La raíz fija su primera revisión mediante una clave foránea diferida. JCAL1
+conserva el ámbito, cobertura, referencias y reglas; JCTX1 vincula actor,
+operación, raíz, revisión esperada, digest y motivo. Los SHA-256 se comprueban
+sobre los bytes canónicos y las proyecciones SQL son columnas generadas.
+La secuencia exige sucesor exacto, ámbito idéntico a R1 y retiro terminal con
+copia íntegra de los valores anteriores. UUID de valor cero está permitido;
+el UUID de operación es único dentro de esta familia, incluidas otras raíces.
+
+El rol operativo necesita SELECT/INSERT sobre ambas tablas y EXECUTE sobre
+los seis helpers puros de URL, fecha, fuente, regla, valores y recibo. No debe
+poseer tablas o funciones, ejecutar guards ni tener UPDATE, DELETE, TRUNCATE,
+TRIGGER o privilegios heredados que permitan reescribir la historia. Los guards
+usan READ COMMITTED y el bloqueo común de auditoría; comprueban Owner activo y
+su correo capturado después del bloqueo. La confirmación y su evento pertenecen
+a la misma transacción. Conexiones operativas comprueban el esquema y su
+inventario sin ejecutar DDL; una inconsistencia no se repara relajando controles.
+
+Las fechas civiles y sus proyecciones ISO no dependen del `DateStyle` de la
+sesión ni de una zona horaria. Los helpers fijan `pg_catalog` y califican las
+dependencias del esquema para restaurar con `search_path` vacío. Las referencias
+son texto autorizado, sin copia descargada ni evidencia normativa cifrada.
+Proteger estos metadatos y sus respaldos; retirar un calendario no deroga una
+norma ni elimina sus fuentes históricas.
+
+Respaldar ambas tablas con usuarios y auditoría, además de los demás módulos.
+Restaurar raíces y todas sus revisiones, conservar bytes JCAL1/JCTX1, hashes,
+proyecciones, autor y captura, y comparar filas completas. El proceso no debe
+consultar URLs ni regenerar referencias. La importación inicial del almacenamiento
+legacy rechaza destinos con filas en `judicial_calendars` o
+`judicial_calendar_revisions`, para preservar el prefijo original de auditoría.
+La conciliación de un recibo de importación existente permite conservar los
+calendarios creados posteriormente.
+
+El recorrido `scripts/api-demo.sh` incorpora los helpers
+`scripts/api-judicial-calendars-demo.py` y `.sh`. La campaña integrada terminó
+correctamente en 210.700 s: dos raíces y cuatro revisiones de calendario, una
+con los valores Unicode máximos, permisos sin asignación, denegación de Client,
+conflicto entre Owners, ámbito R1, recibos, días exactos e historia. Tras
+restaurar comparó diez respuestas completas y las filas de ambas tablas.
+Estas diez respuestas se suman a las 21 de programación y resultados de
+audiencia, conservadas por el mismo recorrido. Los resultados y el alcance de
+las demás campañas se distinguen en el [informe de verificación](verification-report.md).
+
+El catálogo no programa tareas vacías de reevaluación ni activa plazos o
+alertas. La evaluación futura requerirá hechos, reglas aplicables y coordinación
+transaccional con la revisión del calendario. Véanse
+[el contrato](judicial-calendars-api.md) y
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md).
+
+## Actualizar hechos declarados de resolución y notificación
+
+Detener escritores, conservar un respaldo y ejecutar `database migrate --runtime-role`
+con conexión administrativa. El conjunto `0014_procedural_fact*.sql` añade parsers
+PFRES1/PFNOT1/PFSRC1/PFTXN1, `case_procedural_facts`,
+`case_procedural_fact_revisions` y sus comprobaciones de fuentes y secuencia.
+La migración completa instala sus dependencias en orden; no ejecutar archivos
+sueltos. No genera hechos a partir de audiencias, texto o documentos existentes.
+
+Las raíces fijan familia, UUID, expediente y, para una notificación, padre
+resolución. Las revisiones conservan bytes, digests, fuentes históricas, recibo,
+acción, motivo y captura administrativa/autor/Clock. Alta, corrección y retiro
+comparten transacción con auditoría y revalidan permisos y expediente activo bajo
+el bloqueo común. Owner gestiona todos; Litigator asignado gestiona, Paralegal
+asignado lee y Client está denegado. Cierre conserva lecturas autorizadas.
+
+Una captura administrativa `Unrevised` conserva título/referencia originales y
+columnas de revisión/digest nulas. Una captura registrada conserva su revisión
+y digest exactos. No completar una forma parcial con ceros ni reemplazar capturas
+históricas por el estado vigente. Retiro es terminal y conserva valores/fuentes;
+no elimina filas ni declara nulidad de una resolución o notificación.
+
+El rol operativo solo recibe SELECT/INSERT en ambas tablas y EXECUTE en helpers
+necesarios. No conceder UPDATE, DELETE, TRUNCATE, TRIGGER, propiedad ni privilegios
+indirectos que permitan alterar el historial. El arranque comprueba catálogo,
+funciones, permisos y todas las revisiones en páginas de 64, incluyendo UUID cero.
+No ejecuta DDL para reparar inconsistencias.
+
+Respaldar ambas tablas y sus dependencias: expediente/administración, usuarios,
+fichas/sujetos, resultados y documentos exactos, además de auditoría. Los textos y
+vistas de hechos son metadatos PostgreSQL, no el contenido cifrado del documento;
+proteger sus respaldos con el resto de la base. Los soportes conservan la versión
+cifrada original. El lote directo de admisión tiene hasta dos documentos; los
+soportes de antecedentes no se añaden de forma recursiva.
+
+El primer import legacy rechaza destinos con cualquiera de las dos tablas
+ocupada, aun si solo existe una raíz o una revisión huérfana. La conciliación de
+un recibo existente permite conservar hechos posteriores sin regenerarlos.
+Las pruebas PostgreSQL de restauración conservan estados retirados, revisiones
+exactas y capturas después de cambios de administración y autor. No atribuir esa
+prueba al navegador. La API de hechos y su composición tienen una campaña
+separada con servicios reales y restauración exacta, aprobada localmente. El
+guion incluye ambas tablas de hechos en el inventario y compara respuestas
+históricas después de restaurar. La interfaz Qadra sigue pendiente.
+El cierre de comprobaciones se registra en el [informe](verification-report.md).
+Véanse el [contrato de persistencia](procedural-facts-persistence.md), la
+[API de hechos](procedural-facts-api.md) y
+[ADR-0031](adr/0031-declared-procedural-facts.md).
 
 ## Respaldo y restauración
 
@@ -363,16 +517,27 @@ certificado público recuperado. La clave privada de esa fixture permanece fuera
 del directorio de trabajo del servidor y no se envía por HTTP.
 El recorrido de audiencias programa, reemplaza y cancela, retiene participantes
 históricos y soportes sellados exactos, y consulta una agenda autorizada.
-Después de restaurar compara doce respuestas completas y todas las filas de
-`case_hearings` y `case_hearing_revisions`, incluidos recibos, autores, contexto
-y referencias. No valida una restauración únicamente por el total de citas.
+El guion `scripts/api_hearing_results_demo.py` amplía el recorrido con sesiones,
+rectificación, retiro, historia, soportes y continuidad exactos. Después de
+restaurar compara 21 respuestas completas: doce de la programación y su contexto,
+y nueve de resultados. También compara todas las filas de `case_hearings`,
+`case_hearing_revisions`, `case_hearing_results` y
+`case_hearing_result_revisions`, incluidos recibos, autores, contexto y
+referencias. Conserva valores HRES1, recibos HRTX1, fuentes y captura junto con
+el inventario anterior; no valida una restauración únicamente por el total de
+citas. Las pruebas PostgreSQL
+incluyen una continuación vinculada a un antecedente exacto retirado y una nueva
+rectificación autorizada después de restaurar y reabrir el expediente.
 La reconstrucción del formato legacy es un fixture documental, no una conversión
 íntegra del historial administrativo actual; la restauración posterior sí conserva
 todas las tablas.
 No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `document_metadata_revisions`, `case_participants`, `case_participant_revisions`,
 `case_administration_revisions`, `case_initial_stage_registrations`,
-`case_stage_revisions`, `case_hearings`, `case_hearing_revisions` y auditoría; un respaldo incompleto no se repara creando
+`case_stage_revisions`, `case_hearings`, `case_hearing_revisions`,
+`case_hearing_results`, `case_hearing_result_revisions`, `judicial_calendars`,
+`judicial_calendar_revisions`, `case_procedural_facts`,
+`case_procedural_fact_revisions` y auditoría; un respaldo incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 

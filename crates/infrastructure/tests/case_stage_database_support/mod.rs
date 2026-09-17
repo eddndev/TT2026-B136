@@ -179,4 +179,4 @@ pub fn signed_value(
 ) -> serde_json::Value {
     client.query_one("SELECT jsonb_set($1,'{values_digest}',to_jsonb('\\x'||encode(sha256(case_stage_values_bytes(jsonb_populate_record(NULL::case_stage_revisions,$1))),'hex')))",&[value]).unwrap().get(0)
 }
-pub const INSERT:&str="INSERT INTO case_stage_revisions SELECT (jsonb_populate_record(NULL::case_stage_revisions,$1)).*";
+pub const INSERT: &str = "INSERT INTO case_stage_revisions SELECT (jsonb_populate_record(NULL::case_stage_revisions,$1)).*";

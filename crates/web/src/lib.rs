@@ -18,8 +18,11 @@ mod case_stages;
 mod cases;
 mod dto;
 mod error;
+mod hearing_results;
 mod hearings;
+mod judicial_calendars;
 mod participants;
+mod procedural_facts;
 mod request;
 mod routes;
 mod runtime;
@@ -86,6 +89,33 @@ pub fn hearing_router(workflow: Arc<dyn application::hearings::HearingWorkflow>)
     protect(hearings::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds authorized routes for declared hearing sessions and their exact history.
+pub fn hearing_result_router(
+    workflow: Arc<dyn application::hearing_results::HearingResultWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(hearing_results::router(workflow, runtime.clone()), runtime)
+}
+
+/// Builds authorized declarations and exact history for both procedural fact families.
+pub fn procedural_fact_router(
+    workflow: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(procedural_facts::router(workflow, runtime.clone()), runtime)
+}
+
+/// Builds global staff calendar routes with application authorization.
+pub fn judicial_calendar_router(
+    workflow: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        judicial_calendars::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Related case workflows injected together into the shared HTTP runtime.
 pub struct CaseWorkflows {
     pub cases: Arc<dyn CaseWorkflow>,
@@ -93,6 +123,8 @@ pub struct CaseWorkflows {
     pub stages: Arc<dyn CaseStageWorkflow>,
     pub typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
     pub hearings: Arc<dyn application::hearings::HearingWorkflow>,
+    pub hearing_results: Arc<dyn application::hearing_results::HearingResultWorkflow>,
+    pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
 }
 
 /// Builds all API routes with one shared admission and blocking-work budget.
@@ -100,6 +132,7 @@ pub fn api_router(
     documents: Arc<dyn CaseDocumentWorkflow>,
     identity: Arc<dyn IdentityWorkflow>,
     workflows: CaseWorkflows,
+    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
@@ -115,7 +148,16 @@ pub fn api_router(
         ))
         .merge(case_stages::router(workflows.stages, runtime.clone()))
         .merge(typed_participants::router(workflows.typed, runtime.clone()))
-        .merge(hearings::router(workflows.hearings, runtime.clone()));
+        .merge(hearings::router(workflows.hearings, runtime.clone()))
+        .merge(hearing_results::router(
+            workflows.hearing_results,
+            runtime.clone(),
+        ))
+        .merge(procedural_facts::router(
+            workflows.procedural_facts,
+            runtime.clone(),
+        ))
+        .merge(judicial_calendars::router(calendars, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))
 }
 

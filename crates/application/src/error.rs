@@ -11,6 +11,15 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    ProceduralFact(#[from] crate::procedural_facts::ProceduralFactError),
+
+    #[error(transparent)]
+    JudicialCalendar(#[from] crate::judicial_calendars::JudicialCalendarError),
+
+    #[error(transparent)]
+    HearingResult(#[from] crate::hearing_results::HearingResultError),
+
+    #[error(transparent)]
     Hearing(#[from] crate::hearings::HearingError),
 
     #[error("represented subject not found")]

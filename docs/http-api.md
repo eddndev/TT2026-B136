@@ -5,6 +5,20 @@ detalla revisión de identidad, perfiles, declaraciones internas, proyecciones
 manuales y tipificadas, y consultas de evidencia histórica.
 La [API de audiencias](hearings-api.md) define programación, reemplazo,
 cancelación organizativa, historial exacto y agenda autorizada.
+La [API de sesiones y resultados declarados](hearing-results-api.md) añade
+registro, rectificación, retiro e historia de comparecencias y acuerdos con
+fuentes exactas. Está implementada y verificada localmente; sus mediciones se
+registran separadas de las entregas anteriores en el informe de verificación.
+La [API de calendarios jurisdiccionales](judicial-calendars-api.md) incorpora un
+catálogo global de revisiones para clasificar fechas civiles. La API y la
+restauración se verificaron localmente con servicios reales; la interfaz Qadra
+y la cobertura también tienen verificación local registrada en el
+[informe de verificación](verification-report.md).
+
+La [API de hechos declarados de resolución y notificación](procedural-facts-api.md)
+añade familias por expediente, padre fijo, preparación, confirmación, retiro e
+historia con fuentes exactas. Sus pruebas focales, la suite global y el recorrido
+HTTP con servicios reales y restauración pasaron localmente; Qadra sigue pendiente.
 
 Contrato revisado el 2026-09-16. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
@@ -86,7 +100,7 @@ la biblioteca en un proceso acotado; véase
 
 El servidor no ejecuta DDL y rechaza roles que puedan administrar o reescribir
 la auditoría. `database migrate` aplica las migraciones de identidad,
-expedientes y documentos/auditoría. `--data-dir` señala el origen local
+expedientes, documentos/auditoría y calendarios jurisdiccionales. `--data-dir` señala el origen local
 preservado: si contiene datos, el arranque exige un corte completado y
 reconciliado con la base. Los documentos nuevos se guardan en PostgreSQL. El
 servidor escucha solamente en `127.0.0.1:3000` por defecto.
@@ -239,8 +253,9 @@ propia; un conflicto exige comparación explícita y no genera reenvío automát
 La admisión de soportes utiliza [un worker acotado](document-format-operations.md).
 No completa la validación de toda carga general ni acredita un acto judicial.
 La programación de audiencias tiene su [contrato independiente](hearings-api.md).
-Resultados de audiencia, recursos y cómputo de plazos conservan operaciones
-pendientes propias.
+Las sesiones y resultados declarados disponen de su
+[contrato separado](hearing-results-api.md). Recursos, cómputo de plazos y alertas
+conservan operaciones pendientes propias.
 
 ## Audiencias y agenda
 
@@ -258,8 +273,111 @@ por instante y UUID. El [contrato completo](hearings-api.md) incluye cuerpos,
 proyecciones, límites y errores. Cada revisión conserva un recibo propio para
 conciliar respuestas perdidas sin repetir automáticamente la escritura.
 
-Esta programación no registra celebración, asistencia, resultados ni acuerdos;
-tampoco activa términos o sustituye el calendario judicial.
+El módulo de programación conserva las citas; el registro de sesiones declarado
+se consulta por separado. Ninguno activa términos ni sustituye el calendario judicial.
+
+## Sesiones y resultados declarados
+
+Las rutas bajo `/api/v1/cases/{case_id}/hearings/{hearing_id}/results` ofrecen
+preparación, alta, listado, detalle, rectificación, retiro, revisión exacta e
+historia. Cada sesión tiene raíz propia, ancla inmutable a una revisión de
+programación y continuidad opcional a un resultado exacto preexistente del mismo
+expediente. Una rectificación conserva la raíz; una continuación crea otra.
+Retirar conserva contenido e historia y es terminal, sin anular el acto.
+
+Owner y Litigator asignado gestionan, Paralegal asignado consulta y Client queda
+denegado. Las escrituras requieren expediente activo, revalidado tras obtener
+el bloqueo común. Se admiten captura tardía, etapa posterior y referencias
+históricas archivadas o retiradas. La administración observada al preparar es
+informativa; la confirmación captura la vigente y su reloj, sin CAS de etapa
+o administración. La historia devuelve resúmenes de hasta veinte revisiones;
+seleccionar una revisión permite recuperar sus valores y fuentes completos.
+
+El [contrato de resultados](hearing-results-api.md) define HRES1/HRTX1, límites,
+códigos y proyecciones. Preparar no reserva filas; confirmar recalcula el recibo
+y reautentica. Una respuesta incierta se concilia contra la revisión exacta y su
+operación, sin reenvíos automáticos. Comparecencias, acuerdos y procedencia son
+declarados por el operador; no infieren notificación, resolución ni plazos.
+
+## Calendarios jurisdiccionales
+
+El backend, la API y Qadra están verificados localmente, incluida la restauración
+y los recorridos con servicios reales. La integración remota y el manuscrito
+siguen pendientes. Su recurso global usa
+`/api/v1/judicial-calendars`: Owner publica, reemplaza y retira; Owner,
+Litigator y Paralegal consultan sin asignación a un expediente. Client queda
+denegado. El comando no recibe identificadores de expedientes ni soportes
+privados y el calendario no altera el perfil penal.
+
+| Método y sufijo | Operación |
+| --- | --- |
+| `POST /prepare` | Devuelve comando normalizado, revisión resultante y digest del envío; no reserva filas ni UUID. |
+| `POST` | Publica la revisión inicial; `201`. |
+| `GET` | Lista cabezas con filtros de estado, fuero y clave de entidad, y cursor exclusivo por UUID. |
+| `GET /{id}` | Consulta la cabeza actual. |
+| `PUT /{id}` | Reemplaza valores completos con revisión esperada y motivo; `201`. |
+| `POST /{id}/retirement` | Retira la raíz con revisión esperada y motivo; `201`. |
+| `GET /{id}/history` | Consulta resúmenes descendentes de hasta veinte revisiones. |
+| `GET /{id}/revisions/{revision}` | Recupera valores y recibo de una revisión exacta. |
+| `GET /{id}/revisions/{revision}/days` | Clasifica el intervalo civil inclusivo `from`/`through`, de uno a 62 días. |
+
+Cada raíz fija su ámbito completo en R1. Las revisiones conservan cobertura de
+uno a 1096 días, siete reglas semanales explícitas, hasta 64 excepciones sin
+solapamiento y hasta dieciséis referencias públicas declaradas. Las fechas
+usan `YYYY-MM-DD`, años 1..9999, sin hora, desfase ni zona. La clasificación
+puede ser `countable`, `excluded` o `unresolved`; fuera de cobertura devuelve
+`outside_coverage`. Ni la ausencia de una fuente ni la falta de cobertura se
+convierten en día hábil. Una excepción sustituye la regla semanal completa.
+
+JCAL1 fija los valores y JCTX1 vincula actor, operación, raíz, revisión esperada,
+digest y motivo. Confirmar recibe `{command,expected_submission_digest}`.
+El servicio reautentica antes de confirmar; la transacción auditada vuelve a
+comprobar el actor vigente, sus permisos, la revisión y el contenido. Retirar copia los valores anteriores y es terminal;
+las revisiones exactas permanecen consultables. Una respuesta incierta se
+concilia con su recibo completo, sin repetir automáticamente la escritura.
+
+Las referencias guardan URL HTTPS y metadatos declarados. El servidor no visita
+el enlace ni archiva una copia de su contenido. El digest no acredita
+oficialidad, vigencia normativa ni aplicabilidad jurídica. Este catálogo no
+calcula vencimientos, no selecciona calendarios por nombres de autoridades,
+no infiere notificaciones desde audiencias y no crea alertas o tareas de
+reevaluación. El [contrato completo](judicial-calendars-api.md) fija el perfil
+acotado de URL, cuerpos estrictos de hasta 1 MiB, filtros, proyecciones y errores;
+[ADR-0030](adr/0030-versioned-jurisdictional-calendars.md) delimita la decisión.
+
+## Hechos declarados de resolución y notificación
+
+La [API específica](procedural-facts-api.md) adapta el servicio de aplicación
+al presupuesto compartido de HTTP. Usa dos bases:
+`/api/v1/cases/{case}/resolutions` y
+`/api/v1/cases/{case}/resolutions/{resolution}/notifications`.
+Owner consulta y gestiona; Litigator asignado consulta y gestiona; Paralegal
+asignado solo consulta; Client queda denegado. Un expediente actualmente cerrado
+conserva lectura autorizada y rechaza mutaciones.
+
+Cada base admite `GET` para listar y `POST /prepare` para preparar un comando
+normalizado de su familia. `POST` confirma alta, `PUT /{id}` confirma corrección
+y `POST /{id}/withdrawal` confirma retiro. Preparar devuelve `200`; confirmar
+cualquiera de las tres acciones devuelve `201`. Confirmar recibe
+`{command, expected_submission_digest}` y revalida el comando antes del commit.
+Las consultas `GET /{id}`, `/{id}/revisions/{revision}` y `/{id}/history`
+conservan cabeza, revisión exacta e historial ligero, respectivamente.
+
+Los cuerpos JSON tienen un límite de 512 KiB y rechazan claves desconocidas,
+repetidas y arreglos en lugar de objetos. Familia, identidad, padre y acción
+deben coincidir con la ruta. Los listados admiten `limit` de 1 a 100 (defecto 20),
+`after_id` exclusivo y `status` all/recorded/withdrawn. El historial usa `limit`
+de 1 a 20 (defecto 10) y `before_revision` exclusivo. Las otras rutas no admiten
+parámetros de consulta. No se sustituye una selección histórica por la cabeza.
+
+Las respuestas incluyen valores, fuentes legibles acotadas, recibo y captura
+administrativa discriminada. Una base sin revisión no fabrica revisión,
+digest, autor ni fecha. Fecha, minuto, segundo y desfase conservan la precisión
+declarada; no se infieren efectos, destinatarios o instantes. Retirar conserva
+los valores y soportes admitidos, es terminal y no declara nulidad jurídica.
+Las pruebas focales y la campaña integrada con servicios reales y restauración
+tienen evidencia separada en el informe de verificación. La interfaz Qadra de
+estas capturas sigue pendiente.
 
 ## Participantes del expediente
 
@@ -654,8 +772,20 @@ revisiones inmutables. Se comprueban el canon de valores y de operación, sus
 proyecciones, la secuencia y las referencias históricas. El inventario de
 arranque recorre las revisiones y resuelve sus fuentes exactas. No se generan
 audiencias a partir de fechas anteriores ni se modifican documentos o etapas.
+El conjunto `0012_hearing_results*.sql` añade raíces y revisiones de resultados,
+canon HRES1, recibo HRTX1 y fuentes históricas exactas. No deriva sesiones de las
+citas existentes. El arranque verifica catálogo, privilegios, secuencias,
+referencias e inventario; la captura comparte transacción con la auditoría.
 
-Las mutaciones documentales, de participantes, de audiencias, de expedientes y de identidad comparten
+El conjunto `0013_judicial_calendar_*.sql` añade `judicial_calendars` y
+`judicial_calendar_revisions`, canon JCAL1 y recibos JCTX1. La raíz exige R1
+mediante una clave foránea diferida; las revisiones preservan el ámbito inicial,
+la secuencia, la unicidad de operación y el retiro terminal. Las proyecciones
+SQL se derivan de los bytes canónicos y se contrastan al leer. Los calendarios
+anteriores no se deducen de citas ni de metadatos de expedientes.
+
+Las mutaciones documentales, de participantes, de audiencias y sus resultados,
+de calendarios, de expedientes y de identidad comparten
 transacción con su evento PostgreSQL. Verificación y exportación revalidan
 acceso y estado documental y confirman su evento antes de devolver el
 resultado. Un bloqueo común ordena las confirmaciones y la cabeza de auditoría;
@@ -692,7 +822,7 @@ de auditoría no extiende la atomicidad PostgreSQL a ambos servicios.
 ## Límites HTTP y sobrecarga
 
 El servidor comparte un presupuesto entre identidad, documentos, participantes,
-etapas, audiencias y expedientes:
+etapas, audiencias, resultados declarados, calendarios y expedientes:
 como máximo ocho peticiones admitidas y dos operaciones bloqueantes concurrentes
 por defecto. Puede configurarlos con `--max-in-flight-requests` y
 `--max-blocking-operations`; ambos requieren enteros positivos. Cada hash Argon2id
@@ -705,7 +835,12 @@ una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
 
 Los cuerpos JSON de identidad y alta básica de expedientes tienen límite de 16 KiB y rechazan
 campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
-Etapas admiten 32 KiB; audiencias y administración penal, 64 KiB.
+Etapas admiten 32 KiB; programación de audiencias y administración penal, 64 KiB.
+Los resultados declarados admiten 512 KiB por JSON y conservan el mismo
+presupuesto compartido; su historia devuelve hasta veinte resúmenes por página.
+Los calendarios admiten 1 MiB, incluidos envoltura y espacios; las cotas de los
+valores son independientes de ese límite de transporte. Rechazan campos o
+queries desconocidos y claves repetidas, también en rutas sin consulta.
 Los documentos mantienen 16 MiB. Se rechazan cabeceras
 Authorization múltiples o tokens con espacios; el esquema Bearer no distingue
 mayúsculas. Las respuestas API incluyen `Cache-Control: no-store`.
@@ -724,10 +859,11 @@ La envoltura es estable:
 - `400`: UUID, JSON o parámetro tipado inválido según el contrato de la ruta.
 - `401`: credenciales, segundo factor o sesión inválidos.
 - `403`: rol autenticado sin permiso.
-- `404`: documento, participante, audiencia, usuario o expediente inexistente; también
+- `404`: documento, participante, audiencia, calendario, usuario o expediente inexistente; también
   recurso oculto o fuera del expediente indicado.
 - `409`: bootstrap cerrado, usuario duplicado, carrera optimista, expediente
-  cerrado, etapa incompatible o soporte cambiado durante la preparación.
+  cerrado, etapa incompatible o soporte cambiado durante la preparación; también
+  revisión, operación, retiro terminal o contador agotado de calendario.
 - `422`: correo, contraseña, rol, nombre, metadatos de expediente, límite de
   página, cabecera, fecha o soporte procesal inválidos.
 - `413`: cuerpo mayor que el límite de la ruta.

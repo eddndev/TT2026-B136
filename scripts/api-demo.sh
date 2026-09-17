@@ -23,7 +23,7 @@ fi
 export DOCUMENT_QPDF_LIBRARY
 
 cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
-CLI="$REPO_ROOT/target/debug/despacho-cli"
+CLI="${CARGO_TARGET_DIR:-$REPO_ROOT/target}/debug/despacho-cli"
 WORK_DIR="$(mktemp -d)"
 SERVER_PID=""
 SECOND_SERVER_PID=""
@@ -232,6 +232,12 @@ source "$REPO_ROOT/scripts/api-concurrency-demo.sh"
 
 # shellcheck source=scripts/api-hearings-demo.sh
 source "$REPO_ROOT/scripts/api-hearings-demo.sh"
+
+# shellcheck source=scripts/api-judicial-calendars-demo.sh
+source "$REPO_ROOT/scripts/api-judicial-calendars-demo.sh"
+
+# shellcheck source=scripts/api-procedural-facts-demo.sh
+source "$REPO_ROOT/scripts/api-procedural-facts-demo.sh"
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
