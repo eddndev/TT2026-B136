@@ -76,6 +76,12 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         (TABLES[1], "procedural_fact_immutable", TRIGGERS[0], 58),
         (TABLES[0], "procedural_fact_root_sources", TRIGGERS[1], 7),
         (TABLES[1], "procedural_fact_sequence", TRIGGERS[2], 7),
+        (
+            TABLES[1],
+            "deadline_source_emit",
+            "emit_deadline_source_event()",
+            5,
+        ),
     ] {
         let valid: bool = client.query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=$1::text::regclass AND tgname=$2
@@ -93,7 +99,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN
             (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A'))
          OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN
-            (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>4",
+            (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>5",
             &[&&TABLES[..]],
         )
         .map_err(port)?

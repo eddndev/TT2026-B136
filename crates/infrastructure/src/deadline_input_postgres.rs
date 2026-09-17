@@ -6,7 +6,7 @@ use domain::{
     cases::CaseId,
     clock::Clock,
     crypto::DocumentHasher,
-    deadline_triggers::TriggerSourceRef,
+    deadline_triggers::{TriggerSelection, TriggerSourceRef},
     identity::{Permission, Role, UserId},
     procedural_facts::FactDeclaration,
 };
@@ -44,52 +44,12 @@ impl DeadlineInputStore for PostgresDeadlineInputStore {
         let mut tx = crate::audit_postgres::begin_audited(&mut client)?;
         let case_id = request.trigger.case_id;
         let principal = authorize(&mut tx, actor, case_id)?;
-        let administration =
-            crate::cases::storage::detail(&mut tx, case_id, self.hasher.as_ref())?.administration;
-        let (source, source_head) = match request.trigger.source {
-            FactDeclaration::Unknown(_) => (None, None),
-            FactDeclaration::Known(reference) => (
-                Some(source(
-                    &mut tx,
-                    case_id,
-                    reference,
-                    true,
-                    self.hasher.as_ref(),
-                )?),
-                Some(source(
-                    &mut tx,
-                    case_id,
-                    reference,
-                    false,
-                    self.hasher.as_ref(),
-                )?),
-            ),
-        };
-        let (calendar, calendar_head) = match request.calendar {
-            None => (None, None),
-            Some(selected) => (
-                Some(crate::judicial_calendar_postgres::storage::detail(
-                    &mut tx,
-                    selected.id,
-                    Some(selected.revision),
-                    self.hasher.as_ref(),
-                )?),
-                Some(crate::judicial_calendar_postgres::storage::detail(
-                    &mut tx,
-                    selected.id,
-                    None,
-                    self.hasher.as_ref(),
-                )?),
-            ),
-        };
-        let material = DeadlineInputMaterial {
-            case_id,
-            administration,
-            source,
-            source_head,
-            calendar,
-            calendar_head,
-        };
+        let material = load_material(
+            &mut tx,
+            &request.trigger,
+            request.calendar,
+            self.hasher.as_ref(),
+        )?;
         check_deadline_inputs(self.hasher.as_ref(), request, &material)?;
         crate::audit_postgres::append_transaction(
             &mut tx,
@@ -101,6 +61,49 @@ impl DeadlineInputStore for PostgresDeadlineInputStore {
         tx.commit().map_err(port)?;
         Ok(material)
     }
+}
+/// Resolve material using the caller's transaction and prior case authorization.
+/// The caller must check extraction and append its audit before committing.
+pub(crate) fn load_material(
+    tx: &mut Transaction<'_>,
+    selection: &TriggerSelection,
+    calendar: Option<DeadlineCalendarRef>,
+    hasher: &dyn DocumentHasher,
+) -> Result<DeadlineInputMaterial, ApplicationError> {
+    let case_id = selection.case_id;
+    let administration = crate::cases::storage::detail(tx, case_id, hasher)?.administration;
+    let (source, source_head) = match selection.source {
+        FactDeclaration::Unknown(_) => (None, None),
+        FactDeclaration::Known(reference) => (
+            Some(source(tx, case_id, reference, true, hasher)?),
+            Some(source(tx, case_id, reference, false, hasher)?),
+        ),
+    };
+    let (calendar, calendar_head) = match calendar {
+        None => (None, None),
+        Some(selected) => (
+            Some(crate::judicial_calendar_postgres::storage::detail(
+                tx,
+                selected.id,
+                Some(selected.revision),
+                hasher,
+            )?),
+            Some(crate::judicial_calendar_postgres::storage::detail(
+                tx,
+                selected.id,
+                None,
+                hasher,
+            )?),
+        ),
+    };
+    Ok(DeadlineInputMaterial {
+        case_id,
+        administration,
+        source,
+        source_head,
+        calendar,
+        calendar_head,
+    })
 }
 fn authorize(
     tx: &mut Transaction<'_>,

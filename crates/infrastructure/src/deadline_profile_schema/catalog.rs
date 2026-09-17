@@ -3,7 +3,7 @@ use application::ApplicationError;
 use postgres::GenericClient;
 pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
-        let valid:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_class WHERE oid=to_regclass($1) AND relkind='r' AND NOT relrowsecurity AND NOT relforcerowsecurity)",&[&table]).map_err(port)?.get(0);
+        let valid:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_class WHERE oid=to_regclass($1) AND relkind='r' AND relpersistence='p' AND NOT relispartition AND NOT relrowsecurity AND NOT relforcerowsecurity AND NOT EXISTS(SELECT 1 FROM pg_inherits WHERE inhrelid=to_regclass($1) OR inhparent=to_regclass($1)))",&[&table]).map_err(port)?.get(0);
         if !valid {
             return Err(incomplete());
         }
@@ -13,6 +13,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         TABLES[0],
         &[
             ("id", "uuid", true, ""),
+            ("case_id", "uuid", false, ""),
             ("initial_revision", "bigint", true, ""),
         ],
     )?;
@@ -20,11 +21,12 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         client,
         TABLES[1],
         &[
-            ("calendar_id", "uuid", true, ""),
+            ("profile_id", "uuid", true, ""),
             ("revision", "bigint", true, ""),
-            ("values_canonical", "bytea", true, ""),
-            ("values_digest", "bytea", true, ""),
-            ("values_view", "jsonb", false, "s"),
+            ("definition_canonical", "bytea", true, ""),
+            ("definition_digest", "bytea", true, ""),
+            ("definition_view", "jsonb", false, "s"),
+            ("algorithm", "smallint", true, ""),
             ("operation_id", "uuid", true, ""),
             ("action", "text", true, ""),
             ("status", "text", false, "s"),
@@ -39,30 +41,31 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         ],
     )?;
     constraints::validate(client).map_err(|e| {
-        ApplicationError::InvalidConfiguration(format!("calendar constraints: {e}"))
+        ApplicationError::InvalidConfiguration(format!("deadline profile constraints: {e}"))
     })?;
     expressions::validate(client).map_err(|e| {
-        ApplicationError::InvalidConfiguration(format!("calendar expressions: {e}"))
+        ApplicationError::InvalidConfiguration(format!("deadline profile expressions: {e}"))
     })?;
-    functions::validate(client)
-        .map_err(|e| ApplicationError::InvalidConfiguration(format!("calendar functions: {e}")))?;
+    functions::validate(client).map_err(|e| {
+        ApplicationError::InvalidConfiguration(format!("deadline profile functions: {e}"))
+    })?;
     for (table, trigger, function, kind) in [
         (
             TABLES[0],
-            "judicial_calendar_immutable",
-            "preserve_judicial_calendar_history()",
+            "deadline_profile_immutable",
+            "preserve_deadline_profile_history()",
             58_i16,
         ),
         (
             TABLES[1],
-            "judicial_calendar_immutable",
-            "preserve_judicial_calendar_history()",
+            "deadline_profile_immutable",
+            "preserve_deadline_profile_history()",
             58,
         ),
         (
             TABLES[1],
-            "judicial_calendar_sequence",
-            "enforce_judicial_calendar_sequence()",
+            "deadline_profile_sequence",
+            "enforce_deadline_profile_sequence()",
             7,
         ),
         (

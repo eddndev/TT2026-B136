@@ -14,6 +14,7 @@ pub mod certificates;
 pub mod clock;
 pub mod credential_trust_postgres;
 mod deadline_input_postgres;
+mod deadline_source_event_schema;
 pub use deadline_input_postgres::PostgresDeadlineInputStore;
 pub mod document_postgres;
 pub mod documents;
@@ -87,3 +88,8 @@ pub mod document_formats;
 
 pub(crate) mod typed_participant_postgres;
 pub use typed_participant_postgres::PostgresTypedParticipantStore;
+
+mod deadline_profile_postgres;
+pub use deadline_profile_postgres::PostgresDeadlineProfileStore;
+
+mod deadline_profile_schema;
