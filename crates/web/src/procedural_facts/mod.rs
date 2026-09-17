@@ -12,7 +12,7 @@ mod response;
 mod response_tests;
 mod scope;
 mod sources;
-mod values;
+pub(crate) mod values;
 
 use crate::runtime::HttpRuntime;
 use application::procedural_facts::{FactFamily, ProceduralFactWorkflow};

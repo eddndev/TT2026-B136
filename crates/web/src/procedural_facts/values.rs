@@ -3,7 +3,7 @@ mod catalog;
 mod input;
 mod people;
 mod provenance;
-mod time;
+pub(crate) mod time;
 
 use crate::error::ApiError;
 use application::{procedural_facts::*, ApplicationError};

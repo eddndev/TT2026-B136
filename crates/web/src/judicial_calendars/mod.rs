@@ -1,12 +1,12 @@
 //! Global staff calendar references, immutable revisions and civil classification.
 mod mutations;
-mod object;
-mod projection;
+pub(crate) mod object;
+pub(crate) mod projection;
 mod query;
 mod reads;
 mod request;
 mod response;
-mod values;
+pub(crate) mod values;
 use crate::{error::ApiError, runtime::HttpRuntime};
 use application::judicial_calendars::*;
 use axum::{

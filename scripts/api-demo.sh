@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Automated end-to-end smoke test for the authenticated case and document API.
 
-set -euo pipefail
+set -Eeuo pipefail
+trap 'printf "api-demo.sh: failure at %s:%s (status %s)\n" "${BASH_SOURCE[0]}" "$LINENO" "$?" >&2' ERR
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PKI_SCRIPTS="$REPO_ROOT/pki"
@@ -238,6 +239,9 @@ source "$REPO_ROOT/scripts/api-judicial-calendars-demo.sh"
 
 # shellcheck source=scripts/api-procedural-facts-demo.sh
 source "$REPO_ROOT/scripts/api-procedural-facts-demo.sh"
+
+# shellcheck source=scripts/api-deadline-profiles-demo.sh
+source "$REPO_ROOT/scripts/api-deadline-profiles-demo.sh"
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
