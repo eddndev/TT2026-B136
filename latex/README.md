@@ -207,3 +207,11 @@ pandoc como base y limpieza a LaTeX idiomático. Se corrigió el defecto de
 jerarquía donde «3.7 Diseño de Arquitectura» figuraba como capítulo (ahora es
 la sección 3.7 del capítulo 3) y se recuperó el diagrama de la metodología XP
 (`image4.png`) que el documento original incrustaba como objeto agrupado.
+
+Los apartados de operandos y fuentes temporales describen la aritmética de días,
+meses y horas y la extracción de tiempos desde resoluciones, notificaciones y
+resultados de audiencia. Sus pruebas focales de extracción y coordinación son
+45. Estos apartados documentan componentes de dominio; la actualización completa
+de calendarios y hechos, los plazos persistentes, las alertas y el cierre
+académico conservan sus pendientes en
+[`docs/academic-report-verification.md`](../docs/academic-report-verification.md).

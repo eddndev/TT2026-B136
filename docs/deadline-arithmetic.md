@@ -5,6 +5,12 @@ registra en [el informe de verificacion](verification-report.md). Este component
 CNPP ni crea plazos operativos. El alcance pendiente conserva activacion desde
 actos, calificacion y fuentes exactas, persistencia, reevaluacion, alertas y Qadra.
 
+La [extracción de tiempos](deadline-triggers.md) ahora coordina esta aritmética
+con un campo o una calificación sobre material exacto. El dominio comprueba
+coherencia de las referencias y conserva la procedencia; el servicio todavía
+debe verificar autorización, recibos, fuentes y aplicabilidad antes de persistir
+una evaluación operativa.
+
 ## Entradas explicitas
 
 `evaluate_deadline_arithmetic` recibe una `ArithmeticRule`, el tiempo declarado
@@ -91,7 +97,9 @@ Naturales, meses y horas hacen trabajo constante, incluso para `u32::MAX`. Cada
 recorrido de calendario conserva el limite de 1097 pasos. La regla solo puede
 invocar un conteo y un ajuste: a lo sumo dos recorridos, sin reservar memoria
 segun la cantidad. El dominio no verifica hashes ni lee snapshots de aplicacion;
-la futura envoltura conserva identidad/revision/digests de cada insumo resuelto.
+la extracción temporal conserva la referencia y las huellas recibidas de la
+fuente. La integración futura debe verificar esos insumos y vincular también
+identidad, revisión y huellas del calendario aplicable.
 
 ## Corpus matematico, separado de criterios juridicos
 

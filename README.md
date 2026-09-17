@@ -236,6 +236,10 @@ meses civiles y horas con reglas matematicas explicitas, trazas y bloqueos por
 datos insuficientes. La [investigacion de perfiles](docs/deadline-rule-research.md)
 distingue esos calculos de la regla normativa aplicable. La activacion de plazos,
 su persistencia, reevaluacion, corte horario y alertas siguen pendientes.
+La [extracción temporal exacta](docs/deadline-triggers.md) ya vincula un campo o
+una calificación declarada con su resolución, notificación o resultado de audiencia
+y coordina ese tiempo con la aritmética. Conserva referencias, procedencia y
+precisión; la integración con fuentes verificadas y plazos persistentes sigue pendiente.
 
 ### Frontend web
 

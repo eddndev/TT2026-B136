@@ -12,6 +12,7 @@ pub mod clock;
 pub mod crypto;
 pub mod deadline_arithmetic;
 pub mod deadline_days;
+pub mod deadline_triggers;
 pub mod document_metadata;
 pub mod error;
 pub mod hearing_results;

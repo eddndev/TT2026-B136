@@ -1,0 +1,23 @@
+\section{Fuentes temporales exactas y coordinación aritmética}\label{sec:matriz-desencadenantes}
+
+La \cref{tab:matriz-desencadenantes} relaciona las 45 pruebas focales de la \cref{sec:pruebas-desencadenantes} con los invariantes del módulo descrito en la \cref{sec:implementacion-desencadenantes}. Los archivos pertenecen a \rutarepo{crates/domain/tests/}; el contrato es \rutarepo{docs/deadline-triggers.md}.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas de fuentes temporales y coordinación.}
+  \label{tab:matriz-desencadenantes}
+  \begin{tabularx}{\linewidth}{@{}L{3.1cm} C{1.4cm} X@{}}
+    \toprule
+    \textbf{Grupo} & \textbf{Casos} & \textbf{Invariante comprobado} \\
+    \midrule
+    Contrato & 1 & Conservación del motivo de fuente desconocida después de modificar la entrada. \\
+    Campos de hechos & 11 & Campo exacto, ausencia y desconocimiento, procedencia principal, huellas y efecto consumido. \\
+    Integridad & 11 & Expediente, familia, identidad, revisión y padre exacto antes de comprobar requisitos. \\
+    Resultados de audiencia & 10 & Pertenencia del acuerdo, UUID cero, fecha o instante, desfase y ausencia de inferencia de conclusión. \\
+    Calificación & 6 & Finalidad y familia explícitas, tiempo propio, declaración y localizador conservados. \\
+    Coordinación & 6 & Ancla exacta, bloqueos previos, UTC esperado, independencia de calendario y homólogo mensual inexistente. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Los seis archivos comparten el prefijo \texttt{deadline\_trigger\_} y los sufijos \texttt{contract}, \texttt{fields}, \texttt{integrity}, \texttt{hearings}, \texttt{qualification} y \texttt{arithmetic}. El informe versionado conserva comandos, resultados y límites de la campaña global. No se atribuye al módulo una validación de autorización, recibos persistidos o aplicabilidad jurídica: esas obligaciones corresponden a su integración mediante aplicación y persistencia.

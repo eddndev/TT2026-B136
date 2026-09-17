@@ -1,0 +1,23 @@
+\section{Operandos temporales y fuentes exactas de plazos}\label{sec:implementacion-desencadenantes}
+
+El cálculo de una candidata temporal requiere separar tres decisiones: qué declaración aporta el tiempo inicial, qué operación matemática se aplica y bajo qué supuesto procesal esa operación produce un vencimiento. El dominio implementa las dos primeras mediante los módulos \texttt{deadline\_triggers} y \texttt{deadline\_arithmetic}. La determinación de perfiles jurídicos aplicables, la evaluación persistente, la reevaluación y las alertas permanecen pendientes. Por ello, una candidata calculada no se presenta como un plazo operativo.
+
+\subsection{Selección y conservación de fuentes}
+
+Una selección identifica el expediente y una revisión exacta de resolución, práctica de notificación o resultado de audiencia. Para una notificación conserva también la resolución padre y su revisión; para un resultado puede seleccionar un acuerdo dentro de esa misma revisión. Antes de consumir cualquier tiempo se comprueban expediente, familia, identificadores, revisión, coherencia del padre y pertenencia del acuerdo. Un identificador UUID de valor cero sigue siendo un identificador explícito; no sustituye la ausencia de selección.
+
+La extracción exige un campo determinado: emisión de resolución, práctica de notificación, recepción, efecto expresamente declarado o tiempo genérico de sesión. No utiliza otros campos como respaldo. Una recepción ausente bloquea la extracción; una recepción presente cuyo tiempo se declaró desconocido conserva ese desconocimiento y permite que la aritmética lo diagnostique. La procedencia principal, las huellas aportadas y el acuerdo seleccionado se copian en el resultado. La declaración de efecto y su localizador sólo se incorporan cuando se consume ese campo.
+
+La cápsula conserva las huellas de valores, fuentes y operación de los hechos, o las huellas de valores y operación del resultado de audiencia. El dominio no recalcula ni acredita estas huellas. La aplicación que lo integre debe verificar recibos, contenido, autorización y elegibilidad antes de construir el material. La comprobación de identidad entre objetos no demuestra por sí misma existencia persistida ni aplicabilidad jurídica.
+
+\subsection{Precisión y finalidad declaradas}
+
+Una fecha de sesión conserva la fecha local y el desfase, sin adquirir una hora. Un instante conserva sus componentes hasta el segundo y el desfase original. Los límites inferior y superior usados por otros tipos para comparaciones no se convierten en horas del acto. Asimismo, el estado declarado de conclusión no permite interpretar el tiempo genérico de sesión como su terminación.
+
+Cuando se exige una finalidad que el campo genérico no expresa, la selección incorpora una calificación temporal con propósito, tiempo, declaración y localizador. Los propósitos modelados son final de audiencia e inicio del periodo ordenado. La calificación pertenece a la misma fuente exacta y su familia se exige explícitamente. Estos valores son declaraciones estructuradas; su aceptación técnica no acredita que la fuente produzca el efecto procesal indicado.
+
+\subsection{Coordinación con la aritmética}
+
+La regla matemática distingue días naturales o computables, meses civiles y horas transcurridas. El conteo diario declara si incluye la fecha inicial; el ajuste al siguiente día computable también es explícito. El desplazamiento mensual conserva el día homólogo y se bloquea si éste no existe, sin convertir meses en treinta días ni recortar al último día disponible. Las horas requieren precisión de segundo y desfase; el resultado se expresa en UTC.
+
+El coordinador conserva la regla, la extracción y, cuando existe, el resultado aritmético con su traza. Un bloqueo de fuente impide calcular; un tiempo desconocido extraído llega intacto a la aritmética. El calendario sólo afecta a esa operación y no cambia el campo seleccionado. No se consulta el reloj de captura ni se sustituyen revisiones históricas por sus cabezas actuales. El contrato y sus decisiones están en \rutarepo{docs/deadline-triggers.md} y \rutarepo{docs/adr/0033-exact-deadline-trigger-extraction.md}.

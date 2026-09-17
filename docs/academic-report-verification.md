@@ -1,5 +1,40 @@
 # Verificación de la actualización académica
 
+## Fuentes temporales y aritmetica: 16 de septiembre de 2026
+
+Se incorporaron tres apartados propios de implementacion, pruebas y trazabilidad
+para la extraccion temporal exacta y su coordinacion con la aritmetica. Describen
+campos independientes, ausencia frente a desconocimiento, expediente, revision,
+padre y acuerdo exactos, precision, calificacion declarativa y limites de
+confianza. La matriz registra **45 pruebas focales aprobadas**; la suite global
+de **1828 aprobadas, cero fallidas y una externa ignorada** tiene su propia
+evidencia en [el informe tecnico](verification-report.md).
+
+Los cambios consisten en tres archivos nuevos y una inclusion en cada archivo
+contenedor de implementacion, pruebas y matriz, mas la actualizacion del README.
+De los **64 archivos academicos previos** controlados por hash, **60 permanecen
+identicos**. Los cuatro modificados son esos tres contenedores y el README.
+Resumen, objetivos, estado del arte y conclusiones pendientes permanecen iguales.
+No se incorporaron las doce ediciones ajenas mencionadas en el corte siguiente.
+
+`make` compilo con LuaLaTeX, biber y makeglossaries. El PDF final tiene **292
+paginas y 5713480 bytes**, sin referencias o citas indefinidas ni glifos ausentes.
+Se inspeccionaron las paginas fisicas **185-187, 208-209 y 287-288**. Se corrigio
+la ubicacion del apartado de dominio para conservar la jerarquia HTTP, la
+jerarquia independiente del anexo, una concordancia de referencia y el ancho
+del encabezado Casos. La ultima recompilacion y las paginas afectadas volvieron
+a comprobarse visualmente: texto y tablas legibles, sin recortes o solapamientos.
+
+El log conserva una caja excedida de **0.11754 pt** en el titulo existente del
+riesgo RLC-03, ajeno a los apartados nuevos. No hay una medicion de usabilidad
+ni una inspeccion visual nueva de todas las paginas historicas del reporte.
+SHA-256 del PDF final:
+`fe6be26f54d6b2e3ffbb2a87a1a599d3f20051100125c133b3e1f3d726f6779e`.
+
+La actualizacion integral de calendarios, hechos y sesiones conserva los
+pendientes de procedencia identificados abajo. Estos apartados de dominio no
+cierran perfiles normativos, plazos persistentes, alertas, conclusiones o defensa.
+
 ## Procedencia de las fuentes y actualización pendiente
 
 El corte de sesiones y resultados descrito abajo corresponde a un snapshot local
@@ -27,10 +62,12 @@ ni su implementación posterior.
 
 La aritmetica temporal de dias, meses civiles y horas y la investigacion de
 perfiles se documentan en [el contrato](deadline-arithmetic.md) y en
-[las fuentes normativas](deadline-rule-research.md). Su incorporacion al
-manuscrito y la comprobacion del PDF tambien estan pendientes. Las nuevas
-pruebas matematicas no acreditan un perfil juridico ni reemplazan los criterios
-aprobados sobre plazos, calendario y alertas.
+[las fuentes normativas](deadline-rule-research.md). Los apartados de operandos y
+fuentes exactas incorporan ahora los componentes de dominio al manuscrito, con
+la comprobacion documental descrita arriba. La investigacion de aplicabilidad
+juridica y la integracion operativa mantienen su trabajo pendiente. Las pruebas
+matematicas no acreditan un perfil juridico ni reemplazan los criterios aprobados
+sobre plazos, calendario y alertas.
 
 ## Sesiones y resultados declarados: 16 de septiembre de 2026
 
