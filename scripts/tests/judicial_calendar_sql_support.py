@@ -74,7 +74,9 @@ class CalendarSqlFixture(unittest.TestCase):
         cls.sql('CREATE SCHEMA ' + cls.schema)
         installer = (ROOT / 'crates/infrastructure/src/postgres.rs').read_text()
         prerequisites = re.findall(r'include_str!\("../../../(migrations/[^"\n]+)"\)', installer)
-        cls.sql('\n'.join((ROOT / p).read_text() for p in prerequisites if not Path(p).name.startswith('0013_')))
+        # Later migrations can depend on the calendar tables created below.
+        prerequisites = [p for p in prerequisites if Path(p).name < '0013_']
+        cls.sql('\n'.join((ROOT / p).read_text() for p in prerequisites))
         for suffix in MIGRATIONS:
             path = ROOT / 'migrations' / ('0013_judicial_calendar_' + suffix + '.sql')
             if path.exists():

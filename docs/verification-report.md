@@ -84,11 +84,23 @@ repetición aprobada el servidor restaurado anunció su dirección a los **12
 segundos**, tras validar el inventario; se mantuvieron todas las aserciones de
 datos, evidencia y HTTP. No se modificó código Rust para resolver ese fallo.
 
-Las **1441** fuentes, fixtures, scripts y manifiestos controlados conservaron
-**1439** huellas durante la campaña. Los dos guiones cambiados después de la
-suite Rust se verificaron con el recorrido HTTP final. Las 152 fuentes de código
-modificadas son ASCII y menores de 400 líneas, máximo 370. La revisión estática
-independiente no dejó hallazgos accionables.
+La CI inicial detectó un fallo previo a la suite Rust en la preparación de las
+pruebas SQL independientes de calendarios. Su fixture aplicaba todas las
+migraciones salvo las de calendario y después creaba esas tablas; los eventos
+nuevos ya dependen de ellas. El fallo se reprodujo localmente antes de corregir
+la fixture para instalar sólo prerrequisitos anteriores y después el calendario.
+Se conservaron las migraciones de producto y todas las aserciones. Aprobaron
+**21 pruebas SQL** en 14.603 s, **nueve del generador** en 0.389 s y **nueve de
+preparación de formatos** en 0.382 s. La comprobación de vectores también aprobó
+en 0.296 s. Son pruebas existentes, separadas de las 2057 de Rust.
+
+Las **1441** fuentes, fixtures, scripts y manifiestos controlados conservan
+**1438** huellas desde la suite Rust. Los dos guiones HTTP modificados después
+se comprobaron con la restauración final; la tercera diferencia es la fixture
+SQL, verificada con sus 21 casos. El código Rust y las migraciones permanecen
+idénticos. Las 153 fuentes de código modificadas son ASCII y menores de 400
+líneas, máximo 370. La revisión estática independiente no dejó hallazgos
+accionables. La corrección de la fixture requiere su propia CI remota.
 
 No se implementó una pantalla Qadra en este corte ni se repitió localmente una
 campaña de navegador o cobertura instrumentada. No se atribuye a estas pruebas
