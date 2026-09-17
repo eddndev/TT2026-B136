@@ -242,6 +242,8 @@ source "$REPO_ROOT/scripts/api-procedural-facts-demo.sh"
 
 # shellcheck source=scripts/api-deadline-profiles-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-profiles-demo.sh"
+# shellcheck source=scripts/api-deadlines-demo.sh
+source "$REPO_ROOT/scripts/api-deadlines-demo.sh"
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"

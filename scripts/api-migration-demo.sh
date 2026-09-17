@@ -101,6 +101,9 @@ migration_demo_state() {
       'deadline_profiles',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM deadline_profiles p),
       'deadline_profile_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY profile_id,revision)
         FROM deadline_profile_revisions p),
+      'deadlines',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id) FROM case_deadlines d),
+      'deadline_revisions',(SELECT jsonb_agg(to_jsonb(d) ORDER BY deadline_id,revision)
+        FROM case_deadline_revisions d),
       'deadline_source_events',(SELECT jsonb_agg(to_jsonb(e) ORDER BY sequence)
         FROM deadline_source_events e),
       'deadline_source_sequence',(SELECT jsonb_build_object(
@@ -243,6 +246,7 @@ PY
   calendar_demo
   procedural_facts_demo
   profile_demo
+  deadline_demo
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
   printf 'Migration restore: capturing the database state.\n'
@@ -277,6 +281,7 @@ PY
   calendar_demo_restored
   procedural_facts_demo_restored
   profile_demo_restored
+  deadline_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -316,3 +321,5 @@ unset -f calendar_demo calendar_demo_restored calendar_demo_python
 unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_demo_python
 
 unset -f profile_demo profile_demo_restored profile_demo_python
+
+unset -f deadline_demo deadline_demo_restored deadline_demo_python

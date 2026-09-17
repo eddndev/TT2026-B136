@@ -8,7 +8,7 @@ use domain::{
     deadline_triggers::*,
 };
 use serde_json::{json, Value};
-pub(super) fn scope(v: &DeadlineProfileScope) -> Value {
+pub(crate) fn scope(v: &DeadlineProfileScope) -> Value {
     match v {
         DeadlineProfileScope::Global(value) => {
             json!({"kind":"global","value":calendar::scope(value)})
@@ -25,7 +25,7 @@ pub(super) fn definition(v: &DeadlineProfileDefinition) -> Result<Value, ApiErro
             "calendar":v.calendar.as_ref().map(calendar::values),"expected":super::expected::project(v.expected),"reference_ids":v.reference_ids,"locator":v.locator.as_str()}))).collect::<Result<Vec<Value>,ApiError>>()?}),
     )
 }
-fn trigger(v: TriggerRequirement) -> Value {
+pub(crate) fn trigger(v: TriggerRequirement) -> Value {
     match v {
         TriggerRequirement::SourceField(field) => {
             json!({"kind":"source_field","field":match field {

@@ -7,6 +7,7 @@ use anyhow::Context;
 use application::case_stages::CaseStageService;
 use application::cases::CaseService;
 use application::deadline_profiles::DeadlineProfileService;
+use application::deadlines::DeadlineService;
 use application::documents::{
     CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
 };
@@ -231,6 +232,21 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         profile_hasher,
         profile_clock,
     );
+    let deadline_hasher = Arc::new(RingSha256Hasher::new());
+    let deadline_clock = Arc::new(SystemClock::new());
+    let deadlines = DeadlineService::new(
+        Arc::new(
+            infrastructure::PostgresDeadlineStore::open(
+                &database_url,
+                deadline_hasher.clone(),
+                deadline_clock.clone(),
+            )
+            .context("cannot open PostgreSQL deadline store")?,
+        ),
+        identity.clone(),
+        deadline_hasher,
+        deadline_clock,
+    );
     let workflow = CaseDocumentService::new(
         repository,
         identity.clone(),
@@ -248,6 +264,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             hearings: Arc::new(hearings),
             hearing_results: Arc::new(hearing_results),
             procedural_facts: Arc::new(procedural_facts),
+            deadlines: Arc::new(deadlines),
         },
         Arc::new(calendars),
         Arc::new(profiles),
