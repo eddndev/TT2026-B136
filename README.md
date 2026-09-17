@@ -231,6 +231,12 @@ Las campañas de API/restauración, cobertura y navegador pasaron. La integraci�
 remota y el manuscrito siguen pendientes. Cómputo de plazos, reevaluación, recursos
 procesales y alertas siguen pendientes.
 
+La [aritmetica de plazos](docs/deadline-arithmetic.md) calcula candidatas de dias,
+meses civiles y horas con reglas matematicas explicitas, trazas y bloqueos por
+datos insuficientes. La [investigacion de perfiles](docs/deadline-rule-research.md)
+distingue esos calculos de la regla normativa aplicable. La activacion de plazos,
+su persistencia, reevaluacion, corte horario y alertas siguen pendientes.
+
 ### Frontend web
 
 - [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,

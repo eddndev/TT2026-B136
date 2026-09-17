@@ -4,6 +4,60 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Corte reproducido: aritmetica temporal de plazos
+
+Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El dominio agrega
+[aritmetica explicita](deadline-arithmetic.md) de dias naturales o computables,
+meses civiles y horas transcurridas. Reutiliza el conteo de calendario y conserva
+regla, declaracion original, candidata intermedia, fuentes y bloqueos. La
+[decision de arquitectura](adr/0032-explicit-deadline-arithmetic.md) separa esta
+operacion de perfiles normativos y plazos operativos.
+
+| Comprobacion | Resultado fresco |
+| --- | --- |
+| Suite Rust con PostgreSQL y Redis desechables | **1783 aprobadas, 0 fallidas, 1 externa de TSA ignorada**, 431.740 s. |
+| Pruebas nuevas de aritmetica | **42 aprobadas** en cinco targets, ya incluidas en el total. |
+| Formato del workspace | Aprobado, 1.326 s. |
+| Compilacion del workspace | Aprobada, 10.736 s. |
+| Clippy 1.98.1, workspace y todos los targets | Aprobado con warnings denegados, 15.213 s. |
+| Rust 1.88, workspace y todos los targets | Aprobado, 14.124 s. |
+| Conservacion durante la campana | **1071** fuentes, fixtures, scripts y manifiestos controlados sin cambios. |
+
+La compilacion y la suite usaron el toolchain local Rust 1.94.0; Clippy y la
+comprobacion de MSRV usaron las versiones expresas indicadas. El guion configura
+las bases aisladas y Redis: esta campana no depende de una ejecucion sin las
+variables que habilitan las pruebas de adaptadores.
+
+Los cinco targets contienen 12 casos civiles, ocho de calendario, cinco de
+ajuste final, doce horarios y cinco de contrato. Verifican inclusion explicita,
+duracion positiva, homologo mensual sin ajuste silencioso, bisiestos, anos
+limite, cantidades maximas, conservacion del desfase declarado, falta de
+precision, excepciones, fuentes, cobertura y candidata previa a un ajuste
+bloqueado. El resultado horario se calcula en UTC; una fecha civil no adquiere
+hora por disponer de desfase.
+
+TDD capturo fallos de importacion del modulo inexistente antes de implementarlo.
+La primera ejecucion focal aprobo los 42 casos. Despues se separaron los cinco
+casos de ajuste final para respetar el limite de archivo y se ejecuto la suite
+completa sobre esas fuentes finales. No se suman las repeticiones focales.
+Las diez fuentes Rust cambiadas son ASCII y menores de 400 lineas, maximo 328.
+No cambiaron dependencias ni canones de hechos o calendarios. Dos revisiones
+independientes del contrato y el codigo no encontraron defectos accionables.
+
+La [investigacion normativa](deadline-rule-research.md) mantiene por separado
+los extremos mensuales y de aplicabilidad aun no cerrados. Los vectores son
+matematicos sinteticos; no acreditan una interpretacion juridica universal.
+Faltan calificacion estructurada, perfiles respaldados, fuentes exactas resueltas
+por el servicio, persistencia, reevaluacion, alertas y Qadra para plazos.
+
+Esta entrega no cambia HTTP, CLI ni interfaz. No se repitieron localmente los
+guiones de demostracion, recorridos web, cobertura instrumentada, binario release
+o campana de restauracion HTTP. Los resultados web del corte anterior conservan
+su procedencia. La correccion de navegacion de ese corte tiene 18/18 checks CI
+aprobados en su commit b1a8b58; esa CI no prueba la nueva aritmetica. La
+actualizacion del manuscrito y su PDF sigue pendiente, como registra
+[la verificacion academica](academic-report-verification.md).
+
 ## Corrección de sincronización de una prueba de navegación
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). Una ejecución de
