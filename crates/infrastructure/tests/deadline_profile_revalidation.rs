@@ -8,9 +8,11 @@ mod deadline_profile_interleaved_support;
 
 use application::{deadline_profiles::*, ApplicationError};
 use deadline_profile_database_support::*;
+use deadline_profile_interleaved_support::rendezvous::PrepareRendezvous;
 use deadline_profile_interleaved_support::{counts, hooked, unchanged, watched};
 use domain::identity::Role;
-use std::sync::{Arc, Barrier};
+use std::sync::Arc;
+use std::time::Duration;
 
 #[test]
 fn concurrent_stores_append_only_one_revision_event_and_audit_for_the_same_base() {
@@ -23,8 +25,8 @@ fn concurrent_stores_append_only_one_revision_event_and_audit_for_the_same_base(
         publish(None),
     );
     let before = counts(&mut db);
-    let barrier = Arc::new(Barrier::new(2));
-    let workers = [db.owner, other_owner]
+    let barrier = Arc::new(PrepareRendezvous::new(Duration::from_secs(30)));
+    let contenders = [db.owner, other_owner]
         .into_iter()
         .map(|actor| {
             let command = replace(&first);
@@ -35,15 +37,20 @@ fn concurrent_stores_append_only_one_revision_event_and_audit_for_the_same_base(
             let workflow = hooked(&db, actor, move || {
                 barrier.wait();
             });
-            std::thread::spawn(move || {
-                workflow.submit("session", collection, command, draft.submission_digest)
-            })
+            (workflow, command, draft.submission_digest)
         })
         .collect::<Vec<_>>();
-    let results = workers
+    let workers = contenders
         .into_iter()
-        .map(|worker| worker.join().unwrap())
+        .map(|(workflow, command, digest)| {
+            std::thread::spawn(move || workflow.submit("session", collection, command, digest))
+        })
         .collect::<Vec<_>>();
+    let joined = workers
+        .into_iter()
+        .map(|worker| worker.join())
+        .collect::<Vec<_>>();
+    let results = joined.into_iter().map(Result::unwrap).collect::<Vec<_>>();
     assert_eq!(
         results.iter().filter(|result| result.is_ok()).count(),
         1,

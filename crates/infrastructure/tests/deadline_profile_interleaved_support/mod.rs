@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 mod case_actions;
+pub mod rendezvous;
 
 use crate::{
     case_stage_database_support::{FixedClock, TestIdentity},
