@@ -1,6 +1,7 @@
 use super::{super::*, calendar, preservation};
 use crate::{
-    deadline_reevaluation::{ObservationEntry, ObservationRole, TechnicalCause},
+    deadline_observations::build_legacy_deadline_observations,
+    deadline_reevaluation::{ObservationEntry, ObservationRole, Observations, TechnicalCause},
     deadline_tracking::{
         DeadlineReviewState, TrackingDependency, TrackingPolicy, TrackingReviewReason,
     },
@@ -46,7 +47,14 @@ pub(super) fn validate(
                 "technical legacy successor replaced historical evidence",
             ));
         }
-        return cause_matches(None, new, cause);
+        let captured = build_legacy_deadline_observations(hasher, previous)?;
+        observations_advance(&captured, &new.observations)?;
+        return cause_matches(
+            &captured,
+            &new.observations,
+            DeadlineReviewState::LegacyUndeclared,
+            cause,
+        );
     };
     if old.policies != new.policies {
         return Err(inconsistent(
@@ -66,22 +74,23 @@ pub(super) fn validate(
             "technical successor cleared required human review",
         ));
     }
-    observations_advance(old, new)?;
+    observations_advance(&old.observations, &new.observations)?;
     require_advanced_reviews(old, new)?;
-    cause_matches(Some(old), new, cause)?;
+    cause_matches(
+        &old.observations,
+        &new.observations,
+        old.review.state(),
+        cause,
+    )?;
     if preservation::same_body(hasher, previous, next)? {
         return Ok(());
     }
     calendar::validate(hasher, previous, next, cause)
 }
 
-fn observations_advance(
-    old: &DeadlineTrackingCapture,
-    new: &DeadlineTrackingCapture,
-) -> Result<(), ApplicationError> {
-    for previous in &old.observations.entries {
+fn observations_advance(old: &Observations, new: &Observations) -> Result<(), ApplicationError> {
+    for previous in &old.entries {
         let next = new
-            .observations
             .entries
             .iter()
             .find(|entry| entry.role == previous.role)
@@ -95,13 +104,9 @@ fn observations_advance(
             ));
         }
     }
-    if new.observations.entries.iter().any(|entry| {
+    if new.entries.iter().any(|entry| {
         entry.role != ObservationRole::NotificationParent
-            && !old
-                .observations
-                .entries
-                .iter()
-                .any(|old| old.role == entry.role)
+            && !old.entries.iter().any(|old| old.role == entry.role)
     }) {
         return Err(inconsistent(
             "technical successor added a selected dependency",
@@ -166,42 +171,39 @@ fn same_identity(previous: &ObservationEntry, next: &ObservationEntry) -> bool {
 }
 
 fn cause_matches(
-    old: Option<&DeadlineTrackingCapture>,
-    new: &DeadlineTrackingCapture,
+    old: &Observations,
+    new: &Observations,
+    previous_state: DeadlineReviewState,
     cause: TechnicalCause,
 ) -> Result<(), ApplicationError> {
     match cause {
         TechnicalCause::LegacyBootstrap { .. } => {
-            if old
-                .is_some_and(|value| value.review.state() != DeadlineReviewState::LegacyUndeclared)
-            {
+            if previous_state != DeadlineReviewState::LegacyUndeclared {
                 return Err(inconsistent(
                     "bootstrap requires an undeclared legacy predecessor",
                 ));
             }
         }
         TechnicalCause::SourceEvent { event, .. } => {
+            // The durable event can precede the head resolved by this job. Its
+            // exact operation is verified against the event row by the store.
             let observed = new
-                .observations
                 .entries
                 .iter()
                 .find(|entry| {
                     entry.family == event.family
                         && entry.id == event.source_id
-                        && entry.revision == event.revision
+                        && entry.revision >= event.revision
                         && entry.case_id == event.case_id
                         && entry.hearing_id == event.hearing_id
                 })
                 .ok_or_else(|| {
-                    inconsistent("technical event differs from its observed revision")
+                    inconsistent("technical event exceeds or differs from its observed dependency")
                 })?;
             if old
-                .and_then(|old| {
-                    old.observations
-                        .entries
-                        .iter()
-                        .find(|entry| entry.role == observed.role)
-                })
+                .entries
+                .iter()
+                .find(|entry| entry.role == observed.role)
                 .is_some_and(|entry| entry.revision >= event.revision)
             {
                 return Err(inconsistent("technical event has already been observed"));

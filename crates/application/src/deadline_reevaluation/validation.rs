@@ -60,20 +60,26 @@ pub(super) fn submission(value: &TrackedSubmission) -> Result<()> {
             }
         }
     }
-    match value.cause {
-        None => {}
-        Some(TechnicalCause::LegacyBootstrap { policy_version, .. }) => {
+    if let Some(cause) = value.cause {
+        technical_cause(value.case_id, cause)?;
+    }
+    Ok(())
+}
+
+pub(crate) fn technical_cause(case_id: CaseId, cause: TechnicalCause) -> Result<()> {
+    match cause {
+        TechnicalCause::LegacyBootstrap { policy_version, .. } => {
             if policy_version != 1 {
                 return Err(TrackingCodecError::InvalidShape("bootstrap policy"));
             }
         }
-        Some(TechnicalCause::SourceEvent { event, .. }) => {
+        TechnicalCause::SourceEvent { event, .. } => {
             if event.sequence == 0 || event.sequence > i64::MAX as u64 || event.revision == 0 {
                 return Err(TrackingCodecError::InvalidShape(
                     "source event revision or sequence",
                 ));
             }
-            scope(value.case_id, event.family, event.case_id, event.hearing_id)?;
+            scope(case_id, event.family, event.case_id, event.hearing_id)?;
         }
     }
     Ok(())

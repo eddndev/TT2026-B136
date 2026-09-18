@@ -8,9 +8,9 @@ Este documento describe su ampliacion; no acredita que el trabajador, su
 persistencia o la interfaz nueva esten terminados.
 
 El modelo de aplicación V2, las observaciones verificadas y el verificador de
-sucesores ya están implementados como contratos puros. Existe un preparador
-humano con seguimiento explícito; su conexión al servicio persistido sigue
-pendiente. Persistencia V2, trabajador durable, API V2 y Qadra aún no integran
+sucesores ya están implementados como contratos puros. Existen preparadores
+humano y técnico con seguimiento explícito; su conexión al servicio persistido
+sigue pendiente. Persistencia V2, trabajador durable, API V2 y Qadra aún no integran
 esta ampliación. El ADR permanece propuesto para ese conjunto de trabajo.
 
 ## Context
@@ -88,6 +88,13 @@ actuales ni inventa el padre que falta. La conciliación inicial técnica usa
 causa `LegacyBootstrap`, conserva la evaluación histórica y deja políticas sin
 determinar y revisión pendiente, sin fabricar un evento de fuente.
 
+El preparador y el verificador del primer sucesor técnico V2 reconstruyen ese
+manifiesto V1 para comprobar la causa y el avance de observaciones. La ausencia
+de seguimiento explícito no borra las cabezas históricas: una revisión igual
+conserva su evidencia exacta, y ni un evento ni el bootstrap pueden hacerla
+retroceder. Un evento ya observado en V1 tampoco justifica otra revisión
+técnica por el mero hecho de que la cabeza actual haya avanzado.
+
 DLRV2 compromete la única evaluación histórica, las políticas, el estado y
 los motivos canónicos de revisión, junto con la huella del manifiesto DLOB1.
 DLST2 compromete además la administración observada con su evidencia completa,
@@ -128,9 +135,42 @@ debe comprobarse con la evidencia persistida; DLOB1 no lo declara. El calendario
 seguido conserva su regla específica de recálculo.
 
 La excepción de cambio de cálculo corresponde a un calendario seguido y
-publicado, con revisión aceptada antes y después, evento exacto y conservación
-de las demás evidencias. El verificador no ejecuta de nuevo la aritmética;
-preparar ese resultado técnico y confirmar su origen durable sigue pendiente.
+publicado, con revisión aceptada antes y después. Puede combinar avances
+ordinarios de fuentes o perfiles fijos, conservando sus selecciones y
+calificaciones históricas, incluso cuando el evento procede de una de esas
+dependencias. Un avance de fuente o perfil seguido exige revisión pendiente
+y conservación del cálculo anterior. El calendario fijo también conserva su
+selección y resultado ante cambios ordinarios. El verificador no ejecuta de
+nuevo la aritmética histórica; el preparador técnico calcula el nuevo resultado
+de calendario cuando se cumplen esas condiciones.
+
+El evento procesado puede preceder a la cabeza examinada. Para una dependencia
+ya observada, una revisión nueva exige el intervalo
+`observada_anterior < evento <= cabeza_nueva`, sin cambiar identidad ni ámbito.
+La causa mantiene la operación original del evento. Cuando evento y cabeza
+coinciden en revisión, el preparador contrasta su operación exacta; si la cabeza
+es posterior, el adaptador debe verificar la operación en la revisión durable
+del evento.
+
+El preparador técnico devuelve una revisión preparada o un motivo tipificado
+sin cambio: plazo retirado, evento ya observado, dependencia no seleccionada o
+legado ya inicializado. `Retired` y `AlreadyInitialized` dependen de la base y
+la forma de la causa verificadas; se resuelven antes de examinar cabezas que
+no influyen en esas decisiones. En las demás rutas, el preparador comprueba
+la continuidad y evidencia exacta de la administración antes de devolver
+`AlreadyObserved` o `DependencyNotSelected`. Un evento repetido o ajeno no
+permite ocultar retrocesos administrativos ni reescribir evidencia de la
+misma revisión, incluido el desplazamiento temporal.
+
+La revisión preparada retiene base e insumos examinados, enlaza ambas huellas
+anteriores, conserva datos humanos y usa el servicio
+`DeadlineReevaluator` con política 1. La persistencia elige el momento de
+registro y debe comprobar otra vez la base y las cabezas pertinentes antes de
+confirmar, también si el resultado no requiere revisión. Para `Retired` y
+`AlreadyInitialized` no se requieren cabezas irrelevantes para la decisión;
+se revalida la base, además de los controles durables de servicio, causa y
+trabajo que corresponden al adaptador. El núcleo no reserva revisiones ni
+completa trabajos; su almacenamiento y ejecución durables siguen pendientes.
 
 ### Despacho y ejecucion
 

@@ -1,5 +1,6 @@
 //! Validate adjacent captured revisions without recomputing historical arithmetic.
 mod administration;
+pub(crate) use administration::validate_capture as validate_administration_capture;
 mod calendar;
 mod preservation;
 mod reevaluation;

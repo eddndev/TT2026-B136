@@ -70,7 +70,21 @@ fn assert_rejected_link(previous: &DeadlineDetail, next: &DeadlineDetail) {
 fn a_tracked_reevaluation_can_follow_a_verified_legacy_revision() {
     let previous = legacy();
     let mut next = pending(&previous);
+    let mut material = previous.calculation.material.clone();
+    material.source_head = Some(DeadlineSourceDetail::Fact(Box::new(inputs::resolution(
+        2,
+        false,
+        "2026-01-10",
+    ))));
     let tracking = next.tracking.as_mut().unwrap();
+    tracking.observations = application::deadline_observations::build_deadline_observations(
+        inputs::hasher().as_ref(),
+        previous.case_id,
+        &previous.calculation.profile,
+        &material,
+        None,
+    )
+    .unwrap();
     tracking.policies = TrackingPolicies {
         profile: TrackingPolicy::Undetermined,
         source: TrackingPolicy::Undetermined,

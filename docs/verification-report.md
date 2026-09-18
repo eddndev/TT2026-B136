@@ -4,6 +4,59 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Preparación técnica de seguimiento: 18 de septiembre de 2026
+
+Este incremento añade el preparador técnico puro de revisiones y resultados
+sin cambios. Procesa evidencia verificada, conserva decisiones humanas y
+admite eventos anteriores a la cabeza actual sin sustituir su causa original.
+La base de contratos V2 se publicó en
+[PR 34](https://github.com/eddndev/TT2026-B136/pull/34), commits `2680455` y
+`b185534`; los resultados de esta sección corresponden al incremento posterior.
+La PR sigue en borrador: persistencia V2, trabajos durables, HTTP y Qadra de
+reevaluación todavía no están conectados.
+
+La campaña completa ejecutó `scripts/test-backends.sh` con PostgreSQL de
+identidad, expedientes y documentos, Redis desechable, Rust 1.94 y qpdf 12.4.1.
+Terminó con **2442 pruebas aprobadas, cero fallidas y una TSA externa ignorada**.
+Los **415 resúmenes de resultados** no son 415 pruebas. Las 48 pruebas añadidas
+desde la base publicada están incluidas en ese total; no se suman las
+repeticiones focales.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Salida 0, **2.502 s**. |
+| Compilación del workspace | Salida 0, **18.436 s**. |
+| Suite Rust con servicios aislados | **2442 aprobadas, 0 fallidas, 1 ignorada**, salida 0, **761.287 s**. |
+| Clippy 1.98.1, workspace y todos los targets | Warnings denegados, salida 0, **39.597 s**. |
+| Rust 1.88, workspace y todos los targets | Salida 0, **31.655 s**. |
+
+Las **1436 fuentes** capturadas conservaron sus huellas durante la campaña.
+Los **21 archivos Rust** modificados en este incremento son ASCII y menores
+de 400 líneas. Los adaptadores se ejercitaron con sus servicios configurados;
+la TSA externa omitida no representa una campaña con un proveedor real.
+
+Las pruebas cubren preparación técnica y conservación de políticas, atención,
+responsable y cálculo histórico; calendario seguido; motivos pendientes;
+bootstrap del legado y resultados tipificados sin cambios. Los casos nuevos
+de continuidad cubren eventos atrasados y avances simultáneos. La revisión
+detectó y reprodujo antes de corregir dos brechas: la transición V1/V2 debía
+reconstruir las observaciones históricas para comprobar causa y avance, y los
+resultados sin cambios debían rechazar regresión o alteración administrativa.
+La última corrida focal aprobó **71 casos**, incluidos casos anteriores.
+La corrida previa de aplicación con 915 aprobadas precede a las últimas
+correcciones; no sustituye esta campaña final.
+
+No cambió el recorrido HTTP integrado en este incremento. Su última ejecución
+con restauración fue la campaña de la base publicada, registrada abajo:
+14 respuestas exactas de plazos y evidencia ZIP idéntica. Comprueba V1; no
+acredita un almacenamiento V2. Tampoco se repitieron los recorridos locales
+de navegador sobre este cambio puro de aplicación.
+
+Se consultaron los controles remotos de `b185534`: los **18 controles** de
+push y pull request terminaron aprobados, incluidos Test, Coverage y navegador
+con servicios reales. Son evidencia de esa cabeza publicada; no se atribuyen
+a los cambios posteriores hasta que su propia campaña remota termine.
+
 ## Núcleo local V2 de plazos: 18 de septiembre de 2026
 
 Este corte amplía la base integrada por

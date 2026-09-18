@@ -16,7 +16,14 @@ pub(super) fn validate(
         .map_or(&previous.calculation.material.administration, |value| {
             &value.administration
         });
-    let next = &next.administration;
+    validate_capture(hasher, previous, &next.administration)
+}
+
+pub(crate) fn validate_capture(
+    hasher: &dyn DocumentHasher,
+    previous: &CurrentCaseAdministration,
+    next: &CurrentCaseAdministration,
+) -> Result<(), ApplicationError> {
     let valid = match (previous.revision(), next.revision()) {
         (None, Some(_)) => true,
         (Some(_), None) => false,

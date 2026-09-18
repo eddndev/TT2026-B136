@@ -68,6 +68,7 @@ pub use service::DeadlineService;
 
 mod successor;
 pub use successor::deadline_successor_matches;
+pub(crate) use successor::validate_administration_capture;
 
 mod preparation_tracked;
 mod profile_selection;

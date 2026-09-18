@@ -2,8 +2,8 @@
 
 Estado: el modelo de aplicación ya distingue evidencia V1/V2, construye
 observaciones verificadas y comprueba revisiones sucesoras. Incluye la
-preparación humana explícita de seguimiento; su conexión al flujo persistido
-sigue pendiente. Estos contratos no activan un trabajador ni acreditan
+preparación humana explícita y la preparación técnica; su conexión al flujo
+persistido sigue pendiente. Estos contratos no activan un trabajador ni acreditan
 persistencia V2, API V2 o integración en Qadra. La decisión está en
 [ADR 0037](adr/0037-durable-deadline-reevaluation.md).
 
@@ -168,6 +168,15 @@ La causa `LegacyBootstrap` tampoco inventa un evento de fuente; su sucesor
 técnico conserva el cálculo anterior y deja revisión pendiente con políticas
 sin determinar.
 
+La transición técnica V1 a V2 usa ese manifiesto reconstruido como referencia,
+tanto en el preparador como en el verificador del sucesor. La falta de un
+campo de seguimiento V1 no equivale a ausencia de observaciones. Se conservan
+las identidades y el orden de revisiones ya capturados; una revisión igual
+exige la misma evidencia completa. Un evento anterior o igual a la cabeza
+histórica no justifica otra revisión técnica aunque la cabeza actual haya
+avanzado. El bootstrap tampoco permite retroceder una cabeza ni sustituir su
+evidencia, incluido el desplazamiento temporal.
+
 ## DLRV2 y DLST2: estado revisado y captura
 
 Los codificadores de estado conservan la composición histórica V1 y emplean
@@ -258,11 +267,73 @@ genera un motivo por un cambio ordinario, y las políticas sin determinar
 mantienen su exigencia de `PolicyUndetermined`. El calendario seguido conserva
 su regla específica de recálculo; no utiliza `SourceChanged` ni `ProfileChanged`.
 
-El evento debe corresponder a una revisión observada nueva. El cambio de
-cálculo permitido es el de un calendario seguido, con estados anterior y nuevo
-aceptados, calendario publicado y selección/cabeza exactas, conservando la
-evidencia restante. El verificador compara capturas canónicas y no repite la
-aritmética histórica; el preparador técnico y su integración siguen pendientes.
+El evento puede ser anterior a la cabeza observada durante su preparación.
+Para una dependencia ya observada, una revisión técnica nueva exige
+`observada_anterior < evento <= cabeza_nueva`, con identidad y ámbito iguales.
+La causa conserva la revisión y operación originales del evento; no se
+reescribe para aparentar que el evento corresponde a la cabeza nueva. Si ambas
+revisiones coinciden, el preparador exige que la operación del evento coincida
+con el recibo de esa cabeza exacta. Para un evento anterior, su operación se
+debe comprobar contra la revisión durable correspondiente, no contra el recibo
+de la cabeza posterior.
+
+El cambio de cálculo permitido es el de un calendario seguido y publicado,
+con estados anterior y nuevo aceptados y selección/cabeza exactas. Puede
+observar a la vez avances ordinarios de fuentes o perfiles `Fixed`, conservando
+sus selecciones y calificaciones históricas, incluso si uno de esos avances
+originó el trabajo. Las demás observaciones seguidas no cambian en esa
+excepción. Si avanza una fuente o perfil `Follow`, queda `Pending` y se conserva
+el cálculo anterior, aunque también haya avanzado el calendario. Un calendario
+`Fixed` conserva su selección y resultado al observar una revisión ordinaria.
+El verificador compara capturas canónicas y no repite la aritmética histórica.
+
+## Preparación técnica y resultados sin cambio
+
+[`prepare_technical_deadline_change`](../crates/application/src/deadline_technical/mod.rs)
+recibe una base exacta, un identificador de operación y causa técnica, junto
+con la cabeza del perfil, el material seleccionado con cabezas observadas y
+la cabeza completa del padre cuando corresponde. Verifica la base, la forma
+de la causa, la conservación del material seleccionado y las observaciones
+exactas antes de producir una revisión. Conserva políticas, responsable,
+atención y calificación humana; las nuevas causas de revisión se combinan con
+las anteriores en orden canónico, sin borrarlas ni aceptar por el usuario.
+
+El resultado distingue una revisión preparada de cuatro motivos tipificados
+sin cambio:
+
+| Variante `NoChange` | Significado |
+| --- | --- |
+| `Retired` | La base verificada ya es un plazo retirado. |
+| `AlreadyInitialized` | Se solicitó `LegacyBootstrap` y la base ya no está en `LegacyUndeclared`. |
+| `DependencyNotSelected` | La identidad y el ámbito del evento no corresponden a una dependencia observada del plazo. |
+| `AlreadyObserved` | La revisión del evento es igual o anterior a la ya observada. |
+
+`Retired` y `AlreadyInitialized` se deciden después de verificar el recibo de
+la base y la forma de la causa, antes de examinar las cabezas nuevas. No
+necesitan leer ni validar cabezas irrelevantes para esas salidas. Las rutas
+que examinan dependencias comprueban primero la administración exacta contra
+el seguimiento anterior o, en V1, contra la administración del cálculo.
+Rechazan un retroceso de revisión o una sustitución de evidencia de la misma
+revisión, incluidos autor, momento y desplazamiento temporal. Esta comprobación
+precede a `AlreadyObserved` y `DependencyNotSelected`: ninguno puede ocultar
+una administración incompatible en los insumos recibidos.
+
+Una revisión preparada conserva la base y los insumos examinados para su
+revalidación. Captura observaciones, políticas y motivos en V2, enlaza ambas
+huellas del predecesor y registra autor técnico `DeadlineReevaluator`, política
+1. Sólo ejecuta una evaluación nueva cuando procede el calendario seguido;
+en ese caso conserva el perfil, fuente y calificación históricos. Antes de
+devolverla verifica recibo y continuidad. `record(recorded_at)` construye el
+snapshot con el momento elegido por la persistencia; no confirma una escritura.
+
+También un resultado `NoChange` requiere comprobar transaccionalmente que la
+base y las cabezas pertinentes siguen siendo las examinadas antes de dar por
+concluido el trabajo. Para `Retired` y `AlreadyInitialized`, la comprobación de
+continuidad se centra en la base que justifica la salida, sin exigir cabezas
+que no participaron en esa decisión. El adaptador debe autenticar servicio y
+evento durable, resolver la operación exacta de un evento anterior a la cabeza
+y repetir la preparación si cambian sus insumos. El preparador puro no reserva revisiones,
+no marca trabajos como terminados ni prueba por sí solo que un evento exista.
 
 ## Integración pendiente
 
@@ -275,9 +346,9 @@ ni autorización actual.
 
 La persistencia y el HTTP actuales mantienen la frontera V1 y rechazan
 temporalmente registros V2 que no pueden representar completos. Falta conectar
-el preparador humano, el trabajador durable y el contrato HTTP con Qadra,
-incluidos autoría técnica, causa, motivos y políticas. Lectura, agenda y alertas
-deben distinguir resultado histórico de vencimiento operativo.
+los preparadores humano y técnico, el trabajador durable y el contrato HTTP con
+Qadra, incluidos autoría técnica, causa, motivos y políticas. Lectura, agenda y
+alertas deben distinguir resultado histórico de vencimiento operativo.
 
 La evidencia ejecutada se registra en
 [el informe de verificación](verification-report.md). Ninguna prueba pura de

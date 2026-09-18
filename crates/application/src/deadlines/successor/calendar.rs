@@ -61,14 +61,17 @@ pub(super) fn validate(
             "calendar recalculation requires a source event",
         ));
     };
-    if event.family != DependencyFamily::Calendar
-        || event.source_id != calendar.id.as_uuid()
-        || event.revision != calendar.revision.get()
-        || event.operation_id != calendar.receipt.operation_id.as_uuid()
-        || event.case_id.is_some()
-        || event.hearing_id.is_some()
-        || calendar.status != JudicialCalendarStatus::Published
-    {
+    // A job can observe a newer calendar while handling another dependency.
+    // For this exact calendar revision, its captured receipt also proves the
+    // event operation. An older event requires its own durable row verification.
+    let calendar_event_differs = event.family == DependencyFamily::Calendar
+        && (event.source_id != calendar.id.as_uuid()
+            || event.revision > calendar.revision.get()
+            || (event.revision == calendar.revision.get()
+                && event.operation_id != calendar.receipt.operation_id.as_uuid())
+            || event.case_id.is_some()
+            || event.hearing_id.is_some());
+    if calendar_event_differs || calendar.status != JudicialCalendarStatus::Published {
         return Err(inconsistent(
             "calendar recalculation event or status differs",
         ));
@@ -79,9 +82,17 @@ pub(super) fn validate(
         .iter()
         .filter(|entry| entry.role != ObservationRole::Calendar)
     {
-        if !new.observations.entries.contains(entry) {
+        let policy = match entry.role {
+            ObservationRole::Profile => old.policies.profile,
+            ObservationRole::Source | ObservationRole::NotificationParent => old.policies.source,
+            ObservationRole::Calendar => unreachable!(),
+        };
+        // Monotonic identity-preserving observations are checked before this
+        // branch. Fixed selections may observe new heads without replacing the
+        // retained profile, source, or human qualification below.
+        if policy != TrackingPolicy::Fixed && !new.observations.entries.contains(entry) {
             return Err(inconsistent(
-                "calendar recalculation changed another observation",
+                "calendar recalculation changed another followed observation",
             ));
         }
     }

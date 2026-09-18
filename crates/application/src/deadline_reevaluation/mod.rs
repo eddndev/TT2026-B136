@@ -27,3 +27,5 @@ pub enum TrackingCodecError {
     #[error("tracking frame exceeds its byte limit")]
     SizeLimit,
 }
+
+pub(crate) use validation::technical_cause as validate_technical_cause;
