@@ -5,6 +5,8 @@ mod commit;
 mod decode;
 mod dependencies;
 mod header;
+#[cfg(test)]
+mod legacy_tests;
 mod port_impl;
 mod preparation;
 mod query;

@@ -17,7 +17,7 @@ pub(super) fn validate_commit(
     if detail.case_id != reviewed.case_id
         || detail.id != command.deadline_id
         || detail.revision != reviewed.result_revision
-        || detail.recorded_by.id != reviewed.actor
+        || detail.recorded_by.user_id() != Some(reviewed.actor)
         || receipt.operation_id != command.operation_id
         || receipt.action != command.action()
         || receipt.expected_revision != command.expected_revision()
@@ -50,6 +50,9 @@ pub(super) fn validate_commit(
     match command.action() {
         DeadlineAction::Register | DeadlineAction::Correct => {
             validate_administration(&old.administration, &new.administration)?
+        }
+        DeadlineAction::Reevaluate => {
+            return Err(inconsistent("technical action in human command"))
         }
         DeadlineAction::SetAttention | DeadlineAction::Retire => {
             if old.administration != new.administration
@@ -121,6 +124,9 @@ pub(super) fn validate_page(
             || !row.responsible.role.allows(Permission::ReadDeadline)
             || row.responsible.email.trim().is_empty()
             || row.blocked != row.due_at.is_none()
+            || (row.due_at.is_some()
+                && (row.status != DeadlineStatus::Active
+                    || row.review_state != crate::deadline_tracking::DeadlineReviewState::Accepted))
         {
             return Err(inconsistent(
                 "deadline summary scope, order, status, responsible or outcome is inconsistent",
@@ -174,6 +180,7 @@ pub(super) fn validate_history(
         }
     }
     for pair in page.revisions.windows(2) {
+        tracked::predecessor_matches(&pair[1].receipt, &pair[0].receipt)?;
         if pair[1].revision.get().checked_add(1) != Some(pair[0].revision.get())
             || pair[1].status == DeadlineStatus::Retired
         {

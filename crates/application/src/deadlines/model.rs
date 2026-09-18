@@ -42,6 +42,7 @@ pub enum DeadlineAction {
     Correct,
     SetAttention,
     Retire,
+    Reevaluate,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeadlineChange {
@@ -69,11 +70,7 @@ pub struct DeadlineCommand {
     pub deadline_id: DeadlineId,
     pub change: DeadlineChange,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DeadlineActorSnapshot {
-    pub id: UserId,
-    pub email: String,
-}
+pub use crate::deadline_reevaluation::TrackedAuthor as DeadlineActorSnapshot;
 /// Captured identity only; assignment never grants access to the case.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeadlineResponsibleSnapshot {
@@ -96,6 +93,7 @@ pub struct DeadlineCalculation {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeadlineReceipt {
+    pub version: DeadlineReceiptVersion,
     pub operation_id: DeadlineOperationId,
     pub action: DeadlineAction,
     pub expected_revision: u32,
@@ -110,6 +108,7 @@ pub struct DeadlineDetail {
     pub revision: DeadlineRevision,
     pub definition: DeadlineDefinition,
     pub calculation: DeadlineCalculation,
+    pub tracking: Option<DeadlineTrackingCapture>,
     pub responsible: DeadlineResponsibleSnapshot,
     pub attention: DeadlineAttention,
     pub status: DeadlineStatus,

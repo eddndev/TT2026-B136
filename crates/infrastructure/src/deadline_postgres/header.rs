@@ -117,6 +117,7 @@ pub(super) fn row(row: &Row) -> Result<Header, ApplicationError> {
             .map_err(inconsistent)?,
         reason,
         receipt: DeadlineReceipt {
+            version: DeadlineReceiptVersion::Legacy,
             operation_id: DeadlineOperationId::from_uuid(
                 row.try_get("operation_id").map_err(inconsistent)?,
             ),
@@ -127,13 +128,19 @@ pub(super) fn row(row: &Row) -> Result<Header, ApplicationError> {
             submission_digest: digest(row.try_get("submission_digest").map_err(inconsistent)?)?,
         },
         recorded_at,
-        recorded_by: DeadlineActorSnapshot {
+        recorded_by: DeadlineActorSnapshot::User {
             id: UserId::from_uuid(row.try_get("recorded_by").map_err(inconsistent)?),
             email: email(row.try_get("recorded_by_email").map_err(inconsistent)?)?,
         },
     })
 }
 pub(super) fn command(value: &DeadlineDetail) -> Result<DeadlineCommand, ApplicationError> {
+    if value.receipt.version != DeadlineReceiptVersion::Legacy || value.tracking.is_some() {
+        return Err(inconsistent(
+            "legacy storage cannot encode tracked deadline evidence",
+        ));
+    }
+    legacy_actor(&value.recorded_by)?;
     let change = if value.receipt.action == DeadlineAction::Register {
         DeadlineChange::Register {
             definition: value.definition.clone(),
@@ -160,7 +167,11 @@ pub(super) fn command(value: &DeadlineDetail) -> Result<DeadlineCommand, Applica
                 expected_revision,
                 reason,
             },
-            DeadlineAction::Register => unreachable!("register was handled"),
+            DeadlineAction::Register | DeadlineAction::Reevaluate => {
+                return Err(inconsistent(
+                    "legacy storage requires a human deadline command",
+                ));
+            }
         }
     };
     Ok(DeadlineCommand {
@@ -170,9 +181,23 @@ pub(super) fn command(value: &DeadlineDetail) -> Result<DeadlineCommand, Applica
     })
 }
 
-pub(super) fn projection(value: &DeadlineDetail) -> serde_json::Value {
-    serde_json::json!({"actor_id":value.recorded_by.id.to_string(),"case_id":value.case_id.to_string(),
+pub(super) fn legacy_actor(
+    author: &DeadlineActorSnapshot,
+) -> Result<(UserId, &str), ApplicationError> {
+    match author {
+        DeadlineActorSnapshot::User { id, email } => Ok((*id, email.as_str())),
+        DeadlineActorSnapshot::Technical { .. } => Err(inconsistent(
+            "legacy storage requires a human deadline author",
+        )),
+    }
+}
+
+pub(super) fn projection(value: &DeadlineDetail) -> Result<serde_json::Value, ApplicationError> {
+    let (actor, _) = legacy_actor(&value.recorded_by)?;
+    Ok(
+        serde_json::json!({"actor_id":actor.to_string(),"case_id":value.case_id.to_string(),
         "deadline_id":value.id.to_string(),"operation_id":value.receipt.operation_id.to_string(),
         "action":value.receipt.action.as_str(),"expected_revision":value.receipt.expected_revision,
-        "review_digest":value.receipt.review_digest.to_hex(),"reason":value.reason.as_ref().map(|r|r.as_str())})
+        "review_digest":value.receipt.review_digest.to_hex(),"reason":value.reason.as_ref().map(|r|r.as_str())}),
+    )
 }

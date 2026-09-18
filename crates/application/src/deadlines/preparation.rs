@@ -4,7 +4,7 @@ use crate::{
     deadline_evaluations::{
         evaluate_profiled_deadline, DeadlineEvaluationError, DeadlineEvaluationRecord,
     },
-    deadline_profiles::{deadline_profile_receipt_matches, DeadlineProfileStatus},
+    deadline_profiles::deadline_profile_receipt_matches,
     ApplicationError,
 };
 use domain::{
@@ -21,6 +21,25 @@ pub fn prepare_deadline_change(
     case_id: CaseId,
     command: DeadlineCommand,
     preparation: DeadlinePreparation,
+) -> Result<PreparedDeadlineChange, ApplicationError> {
+    if preparation.base.as_ref().is_some_and(|base| {
+        base.tracking.is_some()
+            || matches!(base.receipt.version, DeadlineReceiptVersion::Tracked(_))
+    }) {
+        return Err(inconsistent(
+            "legacy preparation cannot discard tracked evidence",
+        ));
+    }
+    prepare_with_profile_policy(hasher, actor, case_id, command, preparation, None)
+}
+
+pub(super) fn prepare_with_profile_policy(
+    hasher: &dyn DocumentHasher,
+    actor: UserId,
+    case_id: CaseId,
+    command: DeadlineCommand,
+    preparation: DeadlinePreparation,
+    profile_policy: Option<crate::deadline_tracking::TrackingPolicy>,
 ) -> Result<PreparedDeadlineChange, ApplicationError> {
     command.result_revision()?;
     if preparation.case_id != case_id || preparation.deadline_id != command.deadline_id {
@@ -66,7 +85,8 @@ pub fn prepare_deadline_change(
     };
     let (definition, calculation, responsible) = match &command.change {
         DeadlineChange::Register { definition } | DeadlineChange::Correct { definition, .. } => {
-            let (calculation, responsible) = evaluate(hasher, case_id, definition, &preparation)?;
+            let (calculation, responsible) =
+                evaluate(hasher, case_id, definition, &preparation, profile_policy)?;
             (definition.clone(), calculation, responsible)
         }
         _ => {
@@ -89,6 +109,7 @@ pub fn prepare_deadline_change(
         responsible: &responsible,
         attention: &attention,
         status: command.status(),
+        tracking: None,
     };
     let review_digest = canonical::state_digest(hasher, content, false)?;
     let capture_digest = canonical::state_digest(hasher, content, true)?;
@@ -98,6 +119,7 @@ pub fn prepare_deadline_change(
         case_id,
         command.deadline_id,
         &DeadlineReceipt {
+            version: DeadlineReceiptVersion::Legacy,
             operation_id: command.operation_id,
             action: command.action(),
             expected_revision: command.expected_revision(),
@@ -110,6 +132,9 @@ pub fn prepare_deadline_change(
     );
     Ok(PreparedDeadlineChange {
         actor,
+        tracked_author: None,
+        tracking: None,
+        receipt_version: DeadlineReceiptVersion::Legacy,
         case_id,
         command,
         preparation,
@@ -128,6 +153,7 @@ fn evaluate(
     case_id: CaseId,
     definition: &DeadlineDefinition,
     preparation: &DeadlinePreparation,
+    profile_policy: Option<crate::deadline_tracking::TrackingPolicy>,
 ) -> Result<(DeadlineCalculation, DeadlineResponsibleSnapshot), ApplicationError> {
     if definition.input.selection.case_id != case_id {
         return Err(DeadlineError::Invalid("input.case_id").into());
@@ -155,12 +181,22 @@ fn evaluate(
             "resolved profile differs from exact selection",
         ));
     }
-    if resolved.profile != resolved.profile_head
-        || resolved.profile.status != DeadlineProfileStatus::Published
+    super::profile_selection::validate(&resolved.profile, &resolved.profile_head, profile_policy)?;
+    let mut resolved_administration = Vec::new();
+    let mut prepared_administration = Vec::new();
+    evidence::administration(
+        &mut resolved_administration,
+        hasher,
+        &resolved.material.administration,
+    );
+    evidence::administration(
+        &mut prepared_administration,
+        hasher,
+        &preparation.administration,
+    );
+    if resolved.material.administration != preparation.administration
+        || resolved_administration != prepared_administration
     {
-        return Err(DeadlineError::ProfileUnavailable.into());
-    }
-    if resolved.material.administration != preparation.administration {
         return Err(inconsistent(
             "resolved administration differs from current preparation",
         ));

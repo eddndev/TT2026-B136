@@ -25,7 +25,10 @@ fn receipt_binds_applicability_even_when_the_due_instant_does_not_change() {
     altered.responsible.email = "changed@example.com".into();
     assert!(deadline_receipt_matches(inputs::hasher().as_ref(), &altered).is_err());
     altered = first.clone();
-    altered.recorded_by.id = UserId::from_uuid(Uuid::nil());
+    altered.recorded_by = DeadlineActorSnapshot::User {
+        id: UserId::from_uuid(Uuid::nil()),
+        email: "owner@example.com".into(),
+    };
     assert!(deadline_receipt_matches(inputs::hasher().as_ref(), &altered).is_err());
     altered = first;
     altered.receipt.submission_digest = Sha256Digest::from_array([0; 32]);

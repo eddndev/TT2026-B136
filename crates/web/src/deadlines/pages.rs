@@ -1,6 +1,6 @@
 use super::{metadata, result};
 use crate::error::ApiError;
-use application::deadlines::*;
+use application::{deadline_tracking::DeadlineReviewState, deadlines::*};
 use domain::cases::CaseId;
 use serde_json::{json, Value};
 use std::collections::HashSet;
@@ -23,6 +23,8 @@ pub(super) fn page(v: DeadlinePage, case: CaseId, q: &DeadlineQuery) -> Result<V
             || after.is_some_and(|id| v.id.as_uuid() <= id.as_uuid())
             || q.status().status().is_some_and(|s| s != v.status)
             || v.blocked != v.due_at.is_none()
+            || v.review_state != DeadlineReviewState::LegacyUndeclared
+            || v.due_at.is_some()
         {
             return Err(ApiError::internal());
         }
@@ -66,14 +68,14 @@ pub(super) fn history(
         if v.case_id != case
             || v.id != id
             || q.before_revision().is_some_and(|r| v.revision >= r)
-            || v.recorded_by.email.trim().is_empty()
             || v.state_digest != v.receipt.review_digest
             || !operations.insert(v.receipt.operation_id)
         {
             return Err(ApiError::internal());
         }
         metadata::shape(&v.receipt, v.revision, v.status, v.reason.as_ref())?;
-        rows.push(json!({"id":id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"status":v.status.as_str(),"reason":v.reason.as_ref().map(|r|r.as_str()),"receipt":metadata::receipt(&v.receipt),"state_digest":v.state_digest.to_hex(),"recorded_at":result::instant(v.recorded_at),"recorded_by":{"id":v.recorded_by.id,"email":v.recorded_by.email}}));
+        let recorded_by = metadata::actor(&v.recorded_by)?;
+        rows.push(json!({"id":id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"status":v.status.as_str(),"reason":v.reason.as_ref().map(|r|r.as_str()),"receipt":metadata::receipt(&v.receipt),"state_digest":v.state_digest.to_hex(),"recorded_at":result::instant(v.recorded_at),"recorded_by":recorded_by}));
     }
     Ok(
         json!({"case_id":case.to_string(),"id":id.to_string(),"revisions":rows,"has_more":v.has_more,"next_before_revision":v.next_before_revision.map(|r|r.get())}),

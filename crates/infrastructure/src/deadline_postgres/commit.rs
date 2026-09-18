@@ -49,11 +49,13 @@ impl PostgresDeadlineStore {
             revision: command.result_revision()?,
             definition: fresh.definition().clone(),
             calculation: fresh.calculation().clone(),
+            tracking: None,
             responsible: fresh.responsible().clone(),
             attention: fresh.attention().clone(),
             status: fresh.status(),
             reason: command.reason().cloned(),
             receipt: DeadlineReceipt {
+                version: DeadlineReceiptVersion::Legacy,
                 operation_id: command.operation_id,
                 action: command.action(),
                 expected_revision: command.expected_revision(),
@@ -62,7 +64,7 @@ impl PostgresDeadlineStore {
                 submission_digest: fresh.submission_digest(),
             },
             recorded_at: at,
-            recorded_by: DeadlineActorSnapshot {
+            recorded_by: DeadlineActorSnapshot::User {
                 id: actor,
                 email: principal.email.clone(),
             },
@@ -74,6 +76,11 @@ impl PostgresDeadlineStore {
             DeadlineAction::Correct => "deadline.corrected",
             DeadlineAction::SetAttention => "deadline.attention_recorded",
             DeadlineAction::Retire => "deadline.retired",
+            DeadlineAction::Reevaluate => {
+                return Err(inconsistent(
+                    "legacy storage cannot commit a technical reevaluation",
+                ));
+            }
         };
         crate::audit_postgres::append_transaction(
             &mut tx,

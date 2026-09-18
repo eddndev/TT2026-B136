@@ -112,7 +112,7 @@ pub fn change_action(db: &mut Fixture, detail: &DeadlineDetail, action: Deadline
     forged.receipt.review_digest = RingSha256Hasher.hash_bytes(&review);
     forged.receipt.capture_digest = RingSha256Hasher.hash_bytes(&capture);
     let submission = deadline_submission_bytes(
-        forged.recorded_by.id,
+        forged.recorded_by.user_id().expect("human V1 fixture"),
         forged.case_id,
         &command,
         forged.receipt.review_digest,

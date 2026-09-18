@@ -36,8 +36,10 @@ fn blocked_and_calculable_registrations_preserve_explicit_inputs_and_exact_recei
         assert_eq!(result.definition, draft.definition);
         assert_eq!(result.calculation, draft.calculation);
         assert_eq!(result.receipt.operation_id, command.operation_id);
-        assert_eq!(result.recorded_by.id, db.owner);
-        assert_eq!(result.recorded_by.email, "owner@example.test");
+        assert_eq!(result.recorded_by.user_id(), Some(db.owner));
+        assert_eq!(result.recorded_by.email(), Some("owner@example.test"));
+        assert_eq!(result.receipt.version, DeadlineReceiptVersion::Legacy);
+        assert!(result.tracking.is_none());
         assert_eq!(result.receipt.review_digest, draft.review_digest);
         assert_eq!(result.receipt.capture_digest, draft.capture_digest);
         deadline_receipt_matches(&RingSha256Hasher, &result).unwrap();
@@ -67,7 +69,12 @@ fn blocked_and_calculable_registrations_preserve_explicit_inputs_and_exact_recei
     }
     let page = workflow.list("session", db.case, query(100, None)).unwrap();
     assert_eq!(page.deadlines.len(), 2);
-    assert_eq!(page.deadlines.iter().filter(|row| row.blocked).count(), 1);
+    assert!(page
+        .deadlines
+        .iter()
+        .all(|row| row.blocked && row.due_at.is_none()));
+    assert!(page.deadlines.iter().all(|row| row.review_state
+        == application::deadline_tracking::DeadlineReviewState::LegacyUndeclared));
 }
 
 #[test]

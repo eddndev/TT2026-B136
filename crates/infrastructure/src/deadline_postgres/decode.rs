@@ -73,6 +73,7 @@ pub(super) fn row(
             material,
             result,
         },
+        tracking: None,
         responsible: head.responsible,
         attention: head.attention,
         status: head.status,
@@ -82,6 +83,7 @@ pub(super) fn row(
         recorded_by: head.recorded_by,
     };
     deadline_receipt_matches(hasher, &detail).map_err(inconsistent)?;
+    let (actor, _) = header::legacy_actor(&detail.recorded_by)?;
     if row
         .try_get::<_, serde_json::Value>("input_view")
         .map_err(inconsistent)?
@@ -89,7 +91,7 @@ pub(super) fn row(
         || row
             .try_get::<_, serde_json::Value>("submission_view")
             .map_err(inconsistent)?
-            != header::projection(&detail)
+            != header::projection(&detail)?
     {
         return Err(inconsistent(
             "deadline generated projection differs from decoded state",
@@ -101,7 +103,7 @@ pub(super) fn row(
     if deadline_review_bytes(hasher, &detail)? != review
         || deadline_capture_bytes(hasher, &detail)? != capture
         || deadline_submission_bytes(
-            detail.recorded_by.id,
+            actor,
             detail.case_id,
             &header::command(&detail)?,
             detail.receipt.review_digest,

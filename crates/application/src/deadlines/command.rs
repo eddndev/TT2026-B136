@@ -8,6 +8,7 @@ impl DeadlineAction {
             Self::Correct => 1,
             Self::SetAttention => 2,
             Self::Retire => 3,
+            Self::Reevaluate => 4,
         }
     }
     pub const fn as_str(self) -> &'static str {
@@ -16,6 +17,7 @@ impl DeadlineAction {
             Self::Correct => "correct",
             Self::SetAttention => "set_attention",
             Self::Retire => "retire",
+            Self::Reevaluate => "reevaluate",
         }
     }
 }

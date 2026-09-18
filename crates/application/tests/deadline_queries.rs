@@ -87,8 +87,13 @@ fn summary_matches_detail_and_keeps_nil_id_on_an_initial_page() {
     let mut row = DeadlineOverview::from(&detail);
     assert_eq!(row.title, detail.definition.title);
     assert_eq!(row.responsible, detail.responsible);
-    assert_eq!(row.due_at, detail.calculation.result.due_at());
-    assert!(!row.blocked);
+    assert!(detail.calculation.result.due_at().is_some());
+    assert_eq!(row.due_at, None);
+    assert!(row.blocked);
+    assert_eq!(
+        row.review_state,
+        application::deadline_tracking::DeadlineReviewState::LegacyUndeclared
+    );
     assert!(!row.attention_recorded);
     row.id = DeadlineId::from_uuid(Uuid::nil());
     let expected = row.clone();
@@ -142,7 +147,7 @@ fn lists_reject_cross_case_wrong_filter_order_cursor_and_contradictory_outcome()
                 query = list_query(1);
             }
             7 => query = DeadlineQuery::new(2, Some(id), DeadlineStatusFilter::All).unwrap(),
-            8 => rows[0].blocked = true,
+            8 => rows[0].blocked = false,
             _ => rows[0].responsible.role = Role::Client,
         }
         let mut store = MockStore::new();

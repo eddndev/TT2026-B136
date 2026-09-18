@@ -6,6 +6,14 @@ use application::{
 };
 use domain::{cases::CaseId, identity::Permission, procedural_facts::FactText};
 use serde_json::{json, Value};
+pub(super) fn actor(v: &DeadlineActorSnapshot) -> Result<Value, ApiError> {
+    match v {
+        DeadlineActorSnapshot::User { id, email } if !email.trim().is_empty() => {
+            Ok(json!({"id":id,"email":email}))
+        }
+        _ => Err(ApiError::internal()),
+    }
+}
 pub(super) fn responsible(v: &DeadlineResponsibleSnapshot) -> Result<Value, ApiError> {
     if v.email.trim().is_empty() || !v.role.allows(Permission::ReadDeadline) {
         return Err(ApiError::internal());
@@ -31,8 +39,12 @@ pub(super) fn shape(
         DeadlineAction::Retire => {
             v.expected_revision > 0 && reason.is_some() && status == DeadlineStatus::Retired
         }
+        DeadlineAction::Reevaluate => false,
     };
-    if !valid || v.expected_revision.checked_add(1) != Some(revision.get()) {
+    if v.version != DeadlineReceiptVersion::Legacy
+        || !valid
+        || v.expected_revision.checked_add(1) != Some(revision.get())
+    {
         return Err(ApiError::internal());
     }
     Ok(())

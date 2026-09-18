@@ -17,6 +17,7 @@ pub(super) struct Content<'a> {
     pub responsible: &'a DeadlineResponsibleSnapshot,
     pub attention: &'a DeadlineAttention,
     pub status: DeadlineStatus,
+    pub tracking: Option<&'a DeadlineTrackingCapture>,
 }
 impl<'a> From<&'a DeadlineDetail> for Content<'a> {
     fn from(value: &'a DeadlineDetail) -> Self {
@@ -26,6 +27,7 @@ impl<'a> From<&'a DeadlineDetail> for Content<'a> {
             responsible: &value.responsible,
             attention: &value.attention,
             status: value.status,
+            tracking: value.tracking.as_ref(),
         }
     }
 }
@@ -37,6 +39,7 @@ impl<'a> From<&'a PreparedDeadlineChange> for Content<'a> {
             responsible: &value.responsible,
             attention: &value.attention,
             status: value.status(),
+            tracking: value.tracking.as_ref(),
         }
     }
 }
@@ -71,10 +74,22 @@ fn state_bytes(
     content: Content<'_>,
     include_observed_administration: bool,
 ) -> Result<Vec<u8>, ApplicationError> {
-    let mut bytes = if include_observed_administration {
-        b"DLST1"
-    } else {
-        b"DLRV1"
+    let tracking_digest = content
+        .tracking
+        .map(|tracking| {
+            super::tracked_state::validate(
+                hasher,
+                content.definition,
+                content.calculation,
+                tracking,
+            )
+        })
+        .transpose()?;
+    let mut bytes = match (content.tracking.is_some(), include_observed_administration) {
+        (false, false) => b"DLRV1",
+        (false, true) => b"DLST1",
+        (true, false) => b"DLRV2",
+        (true, true) => b"DLST2",
     }
     .to_vec();
     let definition = content.definition;
@@ -117,6 +132,15 @@ fn state_bytes(
         }
     }
     bytes.push(u8::from(content.status == DeadlineStatus::Retired));
+    if let (Some(tracking), Some(digest)) = (content.tracking, tracking_digest) {
+        super::tracked_state::append(
+            &mut bytes,
+            hasher,
+            tracking,
+            digest,
+            include_observed_administration,
+        );
+    }
     Ok(bytes)
 }
 struct SubmissionHeader<'a> {
@@ -185,4 +209,25 @@ fn encode(header: SubmissionHeader<'_>, review_digest: Sha256Digest) -> Vec<u8> 
         text(&mut bytes, reason.as_str());
     }
     bytes
+}
+
+pub(super) fn receipt_submission_bytes(
+    actor: UserId,
+    case_id: CaseId,
+    id: DeadlineId,
+    receipt: &DeadlineReceipt,
+    reason: Option<&FactText>,
+) -> Vec<u8> {
+    encode(
+        SubmissionHeader {
+            actor,
+            case_id,
+            id,
+            operation_id: receipt.operation_id,
+            action: receipt.action,
+            expected_revision: receipt.expected_revision,
+            reason,
+        },
+        receipt.review_digest,
+    )
 }

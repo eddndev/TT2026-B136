@@ -27,7 +27,10 @@ pub(super) fn submitted(
     expected: &DeadlineCommand,
     digest: Sha256Digest,
 ) -> Result<(), ApiError> {
-    if v.receipt.operation_id != expected.operation_id
+    metadata::shape(&v.receipt, v.revision, v.status, v.reason.as_ref())?;
+    metadata::actor(&v.recorded_by)?;
+    if v.tracking.is_some()
+        || v.receipt.operation_id != expected.operation_id
         || v.receipt.action != expected.action()
         || v.receipt.expected_revision != expected.expected_revision()
         || v.receipt.submission_digest != digest
@@ -50,14 +53,15 @@ pub(super) fn detail(
         || v.case_id != case
         || revision.is_some_and(|r| r != v.revision)
         || v.responsible.id != v.definition.responsible
-        || v.recorded_by.email.trim().is_empty()
+        || v.tracking.is_some()
         || v.receipt.action == DeadlineAction::Register && v.attention != DeadlineAttention::Pending
     {
         return Err(ApiError::internal());
     }
     metadata::shape(&v.receipt, v.revision, v.status, v.reason.as_ref())?;
+    let recorded_by = metadata::actor(&v.recorded_by)?;
     Ok(
-        json!({"id":v.id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"definition":input::definition(&v.definition)?,"calculation":metadata::calculation(&v.calculation,&v.definition,case)?,"responsible":metadata::responsible(&v.responsible)?,"attention":input::attention(&v.attention)?,"status":v.status.as_str(),"reason":v.reason.as_ref().map(|r|r.as_str()),"receipt":metadata::receipt(&v.receipt),"recorded_at":result::instant(v.recorded_at),"recorded_by":{"id":v.recorded_by.id,"email":v.recorded_by.email}}),
+        json!({"id":v.id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"definition":input::definition(&v.definition)?,"calculation":metadata::calculation(&v.calculation,&v.definition,case)?,"responsible":metadata::responsible(&v.responsible)?,"attention":input::attention(&v.attention)?,"status":v.status.as_str(),"reason":v.reason.as_ref().map(|r|r.as_str()),"receipt":metadata::receipt(&v.receipt),"recorded_at":result::instant(v.recorded_at),"recorded_by":recorded_by}),
     )
 }
 pub(super) use super::pages::{history, page};

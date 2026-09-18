@@ -1,6 +1,8 @@
 //! Case-scoped deadline commands and immutable historical calculations.
 mod input;
 mod input_projection;
+#[cfg(test)]
+mod legacy_tests;
 mod metadata;
 mod mutations;
 mod pages;

@@ -11,6 +11,8 @@ pub mod cases;
 pub mod credential_trust;
 pub mod deadline_inputs;
 pub mod deadline_profiles;
+pub mod deadline_reevaluation;
+pub mod deadline_tracking;
 pub mod documents;
 pub mod error;
 pub mod evidence;
@@ -33,3 +35,5 @@ pub use hashing::HashDocument;
 
 pub mod deadline_evaluations;
 pub mod deadlines;
+
+pub mod deadline_observations;

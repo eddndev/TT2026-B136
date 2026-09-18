@@ -265,7 +265,12 @@ fn commit_reply_must_bind_full_state_including_title_attention_responsible_and_s
             2 => row.responsible.email = "other@example.com".into(),
             3 => row.calculation.material.source_head = None,
             4 => row.status = DeadlineStatus::Retired,
-            5 => row.recorded_by.id = UserId::new(),
+            5 => {
+                row.recorded_by = DeadlineActorSnapshot::User {
+                    id: UserId::new(),
+                    email: "owner@example.com".into(),
+                };
+            }
             _ => row.receipt.operation_id = DeadlineOperationId::new(),
         }
         let mut store = MockStore::new();

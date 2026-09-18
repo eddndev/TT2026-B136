@@ -16,6 +16,7 @@ pub(super) fn insert(
     if header::command(value)? != *command {
         return Err(inconsistent("deadline write differs from its command"));
     }
+    let (actor, actor_email) = header::legacy_actor(&value.recorded_by)?;
     deadline_receipt_matches(hasher, value)?;
     if command.action() == DeadlineAction::Register {
         tx.execute(
@@ -32,12 +33,8 @@ pub(super) fn insert(
     let admin_digest = hasher.hash_bytes(&admin_bytes);
     let review = deadline_review_bytes(hasher, value)?;
     let capture = deadline_capture_bytes(hasher, value)?;
-    let submission = deadline_submission_bytes(
-        value.recorded_by.id,
-        value.case_id,
-        command,
-        value.receipt.review_digest,
-    );
+    let submission =
+        deadline_submission_bytes(actor, value.case_id, command, value.receipt.review_digest);
     let dependencies = Columns::capture(value)?;
     let due = value.calculation.result.due_at();
     tx.execute("INSERT INTO case_deadline_revisions(
@@ -58,7 +55,7 @@ pub(super) fn insert(
         &value.receipt.operation_id.as_uuid(), &value.receipt.action.as_str(), &value.reason.as_ref().map(|value| value.as_str()),
         &review, &value.receipt.review_digest.as_bytes().as_slice(), &capture, &value.receipt.capture_digest.as_bytes().as_slice(),
         &submission, &value.receipt.submission_digest.as_bytes().as_slice(),
-        &value.recorded_at.unix_timestamp(), &(value.recorded_at.nanosecond() as i32), &value.recorded_by.id.as_uuid(), &value.recorded_by.email,
+        &value.recorded_at.unix_timestamp(), &(value.recorded_at.nanosecond() as i32), &actor.as_uuid(), &actor_email,
         &dependencies.source_kind, &dependencies.source_id, &dependencies.source_revision, &dependencies.source_head_revision,
         &dependencies.source_hearing_id, &dependencies.source_parent_resolution_id, &dependencies.source_parent_resolution_revision,
         &dependencies.source_head_parent_resolution_revision, &dependencies.calendar_id, &dependencies.calendar_revision, &dependencies.calendar_head_revision,

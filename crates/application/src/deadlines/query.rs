@@ -92,6 +92,7 @@ pub struct DeadlineOverview {
     pub attention_recorded: bool,
     pub due_at: Option<OffsetDateTime>,
     pub blocked: bool,
+    pub review_state: crate::deadline_tracking::DeadlineReviewState,
 }
 impl From<&DeadlineDetail> for DeadlineOverview {
     fn from(value: &DeadlineDetail) -> Self {
@@ -103,8 +104,9 @@ impl From<&DeadlineDetail> for DeadlineOverview {
             status: value.status,
             responsible: value.responsible.clone(),
             attention_recorded: matches!(value.attention, DeadlineAttention::Recorded { .. }),
-            due_at: value.calculation.result.due_at(),
-            blocked: !value.calculation.result.blocks().is_empty(),
+            due_at: value.operational_due_at(),
+            blocked: value.operational_due_at().is_none(),
+            review_state: value.review_state(),
         }
     }
 }

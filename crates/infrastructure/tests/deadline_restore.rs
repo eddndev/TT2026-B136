@@ -92,8 +92,8 @@ fn dump_restore_preserves_deadline_captures_after_revocation_and_new_source_head
                 .unwrap(),
             *exact
         );
-        assert_eq!(exact.recorded_by.id, db.owner);
-        assert_eq!(exact.recorded_by.email, "owner@example.test");
+        assert_eq!(exact.recorded_by.user_id(), Some(db.owner));
+        assert_eq!(exact.recorded_by.email(), Some("owner@example.test"));
         assert_eq!(exact.responsible.id, responsible);
         assert_eq!(exact.responsible.role, Role::Paralegal);
         assert_eq!(exact.responsible.email, responsible_email);
@@ -129,7 +129,7 @@ fn dump_restore_preserves_deadline_captures_after_revocation_and_new_source_head
         attention(&active),
     );
     assert_eq!(successor.revision.get(), 2);
-    assert_eq!(successor.recorded_by.id, reader);
+    assert_eq!(successor.recorded_by.user_id(), Some(reader));
     assert_eq!(successor.definition, active.definition);
     assert_eq!(successor.calculation, active.calculation);
     assert_eq!(successor.responsible, active.responsible);

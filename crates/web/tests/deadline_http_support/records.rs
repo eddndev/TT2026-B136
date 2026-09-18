@@ -121,6 +121,7 @@ pub fn fixture() -> DeadlineDetail {
         status: DeadlineStatus::Active,
         reason: None,
         receipt: DeadlineReceipt {
+            version: DeadlineReceiptVersion::Legacy,
             operation_id: DeadlineOperationId::from_uuid(Uuid::nil()),
             action: DeadlineAction::Register,
             expected_revision: 0,
@@ -129,10 +130,11 @@ pub fn fixture() -> DeadlineDetail {
             submission_digest: digest(),
         },
         recorded_at: instant(),
-        recorded_by: DeadlineActorSnapshot {
+        recorded_by: DeadlineActorSnapshot::User {
             id: actor(),
             email: "owner@example.com".into(),
         },
+        tracking: None,
     }
 }
 fn text(v: &str) -> FactText {
