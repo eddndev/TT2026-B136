@@ -26,6 +26,69 @@ GitHub y la sincronización de `origin/main` confirmaron ese commit. El trabajo
 nuevo de perfiles descrito en el contrato conserva verificación e integración
 propias; esas comprobaciones remotas anteriores no lo cubren.
 
+La consulta remota del 17 de septiembre confirmó también la integración del
+catálogo mediante la [PR 31](https://github.com/eddndev/TT2026-B136/pull/31):
+`84af1be3717df4d3257e4d4e6b9dda14084aa713`, integrado el 16 de septiembre a las
+22:40:14 (`America/Mexico_City`). Ese commit sigue siendo la punta remota al
+iniciar la comprobación del registro persistente. Las modificaciones posteriores
+se verifican por separado y no forman parte de esa integración.
+
+## Corte reproducido: registro persistente de plazos
+
+Fecha local: 17 de septiembre de 2026. El bloque incorpora
+[registro, atención e historia](deadline-records.md), persistencia PostgreSQL
+0017 y [contrato HTTP](deadlines-api.md). Conserva los resultados almacenados y
+sus fuentes exactas; no reevalúa una revisión al leerla.
+
+La suite completa de **2159 aprobadas, cero fallidas y una TSA externa ignorada**
+corresponde al corte previo al adaptador PostgreSQL y a la API de este bloque.
+No acredita esas incorporaciones. La nueva campaña completa aprobó **2223 pruebas,
+cero fallidas y una TSA externa ignorada**, en **663.95 s**, mediante
+`scripts/test-backends.sh cargo test --workspace` con PostgreSQL/Redis aislados y
+qpdf 12.4.1. Rust local fue 1.94.0. Los adaptadores no se omitieron por ausencia de
+variables. Las cifras focales siguientes están incluidas en el total y no se
+suman nuevamente:
+
+- 31 casos del adaptador, revalidación, concurrencia, almacenamiento, proyección
+  SQL, esquema e importación aprobados después de corregir sus primeros fallos.
+- Cuatro casos adicionales de persistencia mensual y horaria, parentesco exacto
+  de notificaciones, acuerdos y calendarios históricos aprobados.
+- Restauración real con `pg_dump`/`pg_restore` aprobada, seguida de siete casos de
+  esquema repetidos. Las repeticiones no aumentan el conteo de casos únicos.
+- 17 pruebas HTTP con puertos controlados, seis proyecciones del resultado y
+  dos comprobaciones de traducción de errores aprobadas.
+
+La primera restauración detectó que PostgreSQL aplanaba cuatro conjunciones
+originadas en `BETWEEN`, causando un rechazo incorrecto de un esquema equivalente.
+La migración expresa ahora los límites con comparaciones explícitas. La
+comprobación sigue contrastando expresiones exactas; el test compara el catálogo
+antes y después de restaurar y conserva los rechazos de modificaciones reales.
+La importación inicial rechaza también una raíz parcial de plazo sin auditoría.
+
+`scripts/api-demo.sh` aprobó en **163.95 s**, incluida la compilación del workspace
+en **17.35 s** con caché. El recorrido registra plazos diarios, mensuales y horarios,
+contrasta cuatro roles, aislamiento, preparación, conflictos, atención, retiro y
+revocación. Después de `pg_dump`/`pg_restore` recupera **14 respuestas exactas** de
+plazos, además de repetir los módulos anteriores. La comparación completa de
+estado incluye las dos tablas nuevas, auditoría y recibo de importación; la
+verificación de evidencia documental y el ZIP histórico permanecen válidos.
+
+Clippy **1.98.1** para todos los targets aprobó con warnings denegados en **5.61 s**.
+Los primeros intentos detectaron cuatro patrones de estilo en fixtures y un
+bloqueo conservado a través de `await`; se corrigieron sin suprimir advertencias.
+Estas duraciones son de comandos de verificación, no latencias del producto.
+El PDF de **305 páginas** tiene compilación y revisión visual aprobadas,
+documentadas en [la verificación académica](academic-report-verification.md).
+El formato del workspace y la compilación con Rust **1.88**, todos los targets,
+aprobaron; esta última tomó **28.45 s**. `scripts/demo.sh` aprobó en **6.45 s**.
+`scripts/web-demo.sh` aprobó **20 pruebas de navegador con servicios reales**
+en **362.00 s**, incluida la preparación de datos. Esta campaña comprueba la
+regresión de los flujos Qadra existentes; todavía no existe una interfaz de
+plazos que pueda acreditarse con ella. La integración remota requiere sus
+propios controles. Qadra de plazos, agenda conjunta,
+reevaluación durable y alertas permanecen pendientes. Ninguna de estas cifras
+acredita un corpus normativo aprobado ni el cierre de todos los casos de uso.
+
 ## Corte reproducido: catálogo de perfiles y evaluación explícita
 
 Fecha local: 16 de septiembre de 2026 (`America/Mexico_City`). El

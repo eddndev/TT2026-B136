@@ -1,5 +1,53 @@
 # Verificación de la actualización académica
 
+## Plazos persistentes y consulta HTTP: 17 de septiembre de 2026
+
+Se añadieron tres apartados propios de [implementación](../latex/chapters/04-plazos-persistentes.tex),
+[pruebas](../latex/chapters/05-plazos-persistentes.tex) y
+[trazabilidad](../latex/chapters/anexo-e-plazos-persistentes.tex). Describen la
+entrada DEVI1, el resultado histórico DRES1, PostgreSQL 0017, responsables,
+atención declarada, recibos y auditoría, sin recalcular la historia sobre las
+fuentes actuales. La elegibilidad vigente del responsable se comprueba en alta
+y corrección; atención y retiro conservan su captura histórica. Se corrigieron
+las referencias de estado de los apartados previos para enlazar ese flujo.
+
+El texto diferencia las pruebas focales de la campaña HTTP con servicios reales,
+que recorrió días, meses y horas y conservó **14 respuestas exactas de plazos**
+después de restaurar. Las cifras y comandos de software pertenecen al
+[informe técnico](verification-report.md); este corte académico no introduce
+un conteo global nuevo. La interfaz de plazos en Qadra, los estados derivados
+del reloj, la reevaluación y las alertas siguen pendientes.
+
+De **70 fuentes académicas previas**, **64 permanecen idénticas** por hash.
+Se modificaron seis archivos existentes —tres inclusiones y tres ajustes
+puntuales de estado— y se añadieron tres; el corte contiene **73 fuentes**.
+Las nueve fuentes propias coinciden con las usadas en la compilación final.
+El README de LaTeX no cambió. Se preservaron resumen, objetivos, teoría,
+estado del arte, conclusiones y presentación. No se incorporaron las doce
+ediciones ajenas descritas en los cortes anteriores.
+
+`make` con LuaLaTeX, biber y glosarios terminó con código cero. El PDF final
+contiene **305 páginas y 5762720 bytes**. Se inspeccionaron visualmente las
+páginas físicas **189-192, 217-219 y 299-302**, incluidos los párrafos finales
+sobre autorización, API y restauración. Se corrigieron seis desbordamientos
+en los nombres de archivos del anexo mediante directorios, prefijos y sufijos
+separados y alineación local; la tabla y el tamaño global de letra se conservaron.
+También se corrigió la concordancia de referencias a secciones. Las páginas
+afectadas se volvieron a renderizar e inspeccionar: texto, tablas, jerarquía y
+transiciones quedaron legibles, sin recortes ni solapamientos nuevos.
+
+El log final no contiene referencias o citas indefinidas ni glifos ausentes.
+Sólo permanece la caja excedida preexistente de **0.11754 pt**, ajena a los
+apartados propios. La huella del PDF se comprobó después de la revisión visual.
+
+SHA-256: `2f144bbaa41c02eccc3ee687c76c0e9ba0f85fc8aeb043366b246b1d93c1d5cd`.
+
+Esta revisión comprende los apartados modificados y sus transiciones; no es
+una nueva inspección de todas las páginas históricas. Tampoco acredita
+usabilidad, aceptación jurídica de perfiles, entrega de alertas ni terminación
+del manuscrito. Las conclusiones y la actualización integral pendiente de
+calendarios, hechos y sesiones conservan sus límites de alcance y autoría.
+
 ## Catálogo de perfiles y evaluación explícita: 16 de septiembre de 2026
 
 Se añadieron tres apartados propios de implementación, pruebas y trazabilidad

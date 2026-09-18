@@ -14,6 +14,7 @@ pub mod deadline_arithmetic;
 pub mod deadline_days;
 pub mod deadline_profiles;
 pub mod deadline_triggers;
+pub mod deadlines;
 pub mod document_metadata;
 pub mod error;
 pub mod hearing_results;

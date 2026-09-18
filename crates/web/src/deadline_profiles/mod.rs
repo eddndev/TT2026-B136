@@ -1,6 +1,6 @@
 //! Explicit global and case profile collections with editable definitions and receipts.
 mod definition;
-mod definition_projection;
+pub(crate) mod definition_projection;
 mod expected;
 mod mutations;
 mod query;

@@ -1,8 +1,10 @@
 use super::{DeadlineInputRequest, PREFIX};
+use crate::deadline_inputs::DeadlineCalendarRef;
 use domain::{
     deadline_arithmetic::{ArithmeticRule, DayBasis, DayInclusion, FinalDayPolicy},
     deadline_triggers::{
-        QualifiedTriggerPurpose, TriggerFamily, TriggerField, TriggerRequirement, TriggerSourceRef,
+        QualifiedTriggerPurpose, TriggerFamily, TriggerField, TriggerRequirement, TriggerSelection,
+        TriggerSourceRef,
     },
     procedural_facts::{FactDeclaration, FactResolutionRef},
     procedural_time::{DeclaredProceduralPrecision, DeclaredProceduralTime},
@@ -10,34 +12,40 @@ use domain::{
 
 pub(super) fn encode(request: &DeadlineInputRequest) -> Vec<u8> {
     let mut bytes = PREFIX.to_vec();
-    bytes.extend_from_slice(request.trigger.case_id.as_uuid().as_bytes());
-    match &request.trigger.source {
+    selection(&mut bytes, &request.trigger);
+    requirement(&mut bytes, request.requirement);
+    rule(&mut bytes, request.rule);
+    calendar(&mut bytes, request.calendar);
+    bytes
+}
+pub(crate) fn selection(bytes: &mut Vec<u8>, value: &TriggerSelection) {
+    bytes.extend_from_slice(value.case_id.as_uuid().as_bytes());
+    match &value.source {
         FactDeclaration::Unknown(reason) => {
             bytes.push(0);
-            text(&mut bytes, reason.as_str());
+            text(bytes, reason.as_str());
         }
         FactDeclaration::Known(reference) => {
             bytes.push(1);
-            source(&mut bytes, *reference);
+            source(bytes, *reference);
         }
     }
-    bytes.push(u8::from(request.trigger.qualification.is_some()));
-    if let Some(value) = &request.trigger.qualification {
+    bytes.push(u8::from(value.qualification.is_some()));
+    if let Some(value) = &value.qualification {
         bytes.push(purpose(value.purpose));
-        declared_time(&mut bytes, value.at);
-        text(&mut bytes, value.statement.as_str());
-        text(&mut bytes, value.locator.as_str());
+        declared_time(bytes, value.at);
+        text(bytes, value.statement.as_str());
+        text(bytes, value.locator.as_str());
     }
-    requirement(&mut bytes, request.requirement);
-    rule(&mut bytes, request.rule);
-    bytes.push(u8::from(request.calendar.is_some()));
-    if let Some(value) = request.calendar {
+}
+pub(crate) fn calendar(bytes: &mut Vec<u8>, value: Option<DeadlineCalendarRef>) {
+    bytes.push(u8::from(value.is_some()));
+    if let Some(value) = value {
         bytes.extend_from_slice(value.id.as_uuid().as_bytes());
         bytes.extend_from_slice(&value.revision.get().to_be_bytes());
     }
-    bytes
 }
-fn text(bytes: &mut Vec<u8>, value: &str) {
+pub(crate) fn text(bytes: &mut Vec<u8>, value: &str) {
     bytes.extend_from_slice(&(value.len() as u32).to_be_bytes());
     bytes.extend_from_slice(value.as_bytes());
 }

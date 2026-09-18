@@ -120,6 +120,7 @@ impl LegacyImport {
              OR EXISTS(SELECT 1 FROM case_procedural_facts) OR EXISTS(SELECT 1 FROM case_procedural_fact_revisions)
              OR EXISTS(SELECT 1 FROM judicial_calendars) OR EXISTS(SELECT 1 FROM judicial_calendar_revisions)
              OR EXISTS(SELECT 1 FROM deadline_profiles) OR EXISTS(SELECT 1 FROM deadline_profile_revisions)
+             OR EXISTS(SELECT 1 FROM case_deadlines) OR EXISTS(SELECT 1 FROM case_deadline_revisions)
              OR EXISTS(SELECT 1 FROM deadline_source_events)
              OR EXISTS(SELECT 1 FROM case_subjects) OR EXISTS(SELECT 1 FROM case_subject_revisions)
              OR EXISTS(SELECT 1 FROM case_participant_typed_revisions) OR EXISTS(SELECT 1 FROM subject_identity_reviews)

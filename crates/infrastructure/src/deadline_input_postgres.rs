@@ -126,7 +126,7 @@ fn authorize(
     visible.ok_or(ApplicationError::CaseNotFound)?;
     Ok(principal)
 }
-fn source(
+pub(crate) fn source(
     tx: &mut Transaction<'_>,
     case_id: CaseId,
     reference: TriggerSourceRef,
