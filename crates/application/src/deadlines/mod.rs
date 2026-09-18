@@ -9,6 +9,7 @@ mod preparation;
 mod prepared;
 mod query;
 mod receipt;
+mod responsibles;
 pub use canonical::{deadline_capture_bytes, deadline_review_bytes, deadline_submission_bytes};
 pub use domain::deadlines::{DeadlineId, DeadlineOperationId, DeadlineRevision, DeadlineStatus};
 pub use model::*;
@@ -17,6 +18,7 @@ pub use preparation::prepare_deadline_change;
 pub use prepared::*;
 pub use query::*;
 pub use receipt::{deadline_history_receipt_matches, deadline_receipt_matches};
+pub use responsibles::*;
 
 #[derive(Debug, thiserror::Error)]
 pub enum DeadlineError {

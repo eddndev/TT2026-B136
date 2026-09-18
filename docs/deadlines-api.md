@@ -23,6 +23,7 @@ responsable, administración y fuentes al confirmar.
 | Método y sufijo | Operación |
 | --- | --- |
 | GET base | Lista ligera de cabezas actuales. |
+| GET `/responsibles` | Selector paginado de responsables actualmente elegibles. |
 | GET `/{id}` | Detalle de cabeza actual. |
 | GET `/{id}/revisions/{revision}` | Detalle histórico exacto. |
 | GET `/{id}/history` | Revisiones ligeras descendentes. |
@@ -37,6 +38,56 @@ Lista: `limit`1..100, por defecto20; `after_id` UUID opcional; `status` es
 y `before_revision` positivo opcional. No se admiten consultas en detalle,
 revisión exacta ni mutaciones. Parámetros repetidos o desconocidos producen400.
 UUID cero conserva su identidad y nunca significa ausencia.
+
+## Selector de responsables
+
+`GET /api/v1/cases/{case_id}/deadlines/responsibles` recibe `limit` entre 1 y
+100 (por defecto 20) y `after_id` UUID opcional. Los parámetros desconocidos,
+repetidos, vacíos o inválidos producen 400; el literal `null` no es un UUID.
+Omitir `after_id` inicia la consulta y el UUID cero conserva su valor. La página
+ordena por UUID ascendente y excluye el cursor; el cursor no necesita identificar
+una cuenta existente y no concede acceso a otro expediente.
+
+```json
+{
+  "case_id": "00000000-0000-0000-0000-000000000010",
+  "responsibles": [
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "email": "responsable@example.test",
+      "role": "paralegal"
+    }
+  ],
+  "has_more": false,
+  "next_after_id": null
+}
+```
+
+La respuesta sólo contiene UUID, correo y rol de cuentas activas elegibles:
+Owner puede atender cualquier expediente, aun sin membresía; Litigator y
+Paralegal requieren asignación vigente al expediente solicitado. Client nunca
+aparece. Un Owner asignado aparece una sola vez. La selección no expone
+contraseñas, secretos MFA, códigos de recuperación ni datos de otros roles.
+`has_more` verdadero indica una página completa y `next_after_id` es el último
+UUID devuelto; cuando no quedan candidatos, el cursor es `null`.
+
+Owner, Litigator y Paralegal pueden consultar según los permisos de lectura de
+plazos. La cuenta lectora debe seguir activa y, para los dos últimos roles,
+asignada al expediente. La falta de sesión o su revocación produce 401, Client
+recibe 403 y un expediente inexistente o ajeno produce 404. Los expedientes
+cerrados siguen siendo legibles. El servidor confirma la auditoría
+`deadline.responsibles_read` antes de entregar candidatos; un fallo de auditoría
+impide la respuesta de datos. La aplicación comprueba nuevamente la sesión antes
+de devolver la página.
+
+El selector representa elegibilidad actual, separada de la identidad histórica
+conservada en un plazo. Una selección no reserva la cuenta ni modifica permisos.
+Preparar y confirmar un registro o una corrección de definición vuelven a
+comprobar actividad, rol y asignación; una revocación posterior al listado puede
+rechazar esas operaciones con 409 `deadline_responsible_unavailable`. Declarar
+atención o retirar conserva el responsable histórico, aunque ya esté revocado.
+Consultar revisiones históricas también conserva esa identidad capturada,
+aunque ya no aparezca entre los candidatos actuales.
 
 ## Preparación y confirmación
 

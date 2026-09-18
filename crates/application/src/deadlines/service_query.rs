@@ -6,6 +6,20 @@ use crate::ApplicationError;
 use domain::{cases::CaseId, crypto::Sha256Digest, identity::Permission};
 
 impl DeadlineWorkflow for DeadlineService {
+    fn responsibles(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        query: DeadlineResponsibleQuery,
+    ) -> Result<DeadlineResponsiblePage, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDeadline)?;
+        let page = self
+            .store
+            .responsibles(actor.0, case_id, query, self.clock.now())?;
+        page.validate(case_id, query)?;
+        self.same_actor(token, actor, Permission::ReadDeadline)?;
+        Ok(page)
+    }
     fn list(
         &self,
         token: &str,

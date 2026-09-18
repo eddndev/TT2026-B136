@@ -15,6 +15,7 @@ use std::sync::Arc;
 mock! {
     pub Store {}
     impl DeadlineStore for Store {
+        fn responsibles(&self, actor:UserId, case_id:CaseId, query:DeadlineResponsibleQuery, at:OffsetDateTime)->Result<DeadlineResponsiblePage,ApplicationError>;
         fn list(&self, actor:UserId, case_id:CaseId, query:DeadlineQuery, at:OffsetDateTime)->Result<DeadlinePage,ApplicationError>;
         fn get(&self, actor:UserId, case_id:CaseId, id:DeadlineId, revision:Option<DeadlineRevision>, at:OffsetDateTime)->Result<DeadlineDetail,ApplicationError>;
         fn history(&self, actor:UserId, case_id:CaseId, id:DeadlineId, query:DeadlineHistoryQuery, at:OffsetDateTime)->Result<DeadlineHistoryPage,ApplicationError>;

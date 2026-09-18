@@ -8,6 +8,7 @@ pub struct Workflow {
     pub calls: Mutex<Vec<Value>>,
     pub command: Mutex<Option<DeadlineCommand>>,
     pub response: Mutex<Option<DeadlineDetail>>,
+    pub responsible_page: Mutex<Option<DeadlineResponsiblePage>>,
     pub failure: Mutex<Option<&'static str>>,
     pub return_draft: bool,
 }
@@ -40,6 +41,34 @@ impl Workflow {
     }
 }
 impl DeadlineWorkflow for Workflow {
+    fn responsibles(
+        &self,
+        token: &str,
+        case: CaseId,
+        query: DeadlineResponsibleQuery,
+    ) -> Result<DeadlineResponsiblePage, ApplicationError> {
+        self.record(
+            token,
+            case,
+            json!([
+                "responsibles",
+                query.limit(),
+                query.after_id().map(|id| id.to_string())
+            ]),
+            false,
+        )?;
+        Ok(self
+            .responsible_page
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or(DeadlineResponsiblePage {
+                case_id: case,
+                responsibles: vec![],
+                has_more: false,
+                next_after_id: None,
+            }))
+    }
     fn list(
         &self,
         token: &str,
