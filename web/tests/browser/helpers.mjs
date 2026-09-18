@@ -174,7 +174,10 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
     return route.fulfill({ status: 404 });
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  // Initial client hydration includes cold compilation by the development server.
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible({
+    timeout: 20000,
+  });
   return requests;
 }
 

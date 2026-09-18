@@ -1,0 +1,57 @@
+.deadline-collection,
+.deadline-detail,
+.deadline-calculation,
+.deadline-reference {
+  min-width: 0;
+}
+.deadline-detail p,
+.deadline-detail code,
+.deadline-row,
+.deadline-trace {
+  overflow-wrap: anywhere;
+}
+.deadline-due {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.deadline-trace {
+  padding-inline-start: 1.5rem;
+}
+.deadline-trace > li {
+  margin-block: 1rem;
+}
+.deadline-days {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.deadline-days table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+}
+.deadline-days th,
+.deadline-days td {
+  text-align: left;
+  overflow-wrap: normal;
+  padding: 0.75rem;
+  vertical-align: top;
+}
+.deadline-days td:first-child {
+  white-space: nowrap;
+}
+.deadline-detail details {
+  margin-block: 1rem;
+}
+.deadline-detail summary {
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .deadline-row {
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .deadline-detail .section-heading {
+    flex-wrap: wrap;
+  }
+}

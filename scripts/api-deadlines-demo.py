@@ -4,6 +4,7 @@ import copy
 import json
 import sys
 from uuid import uuid4
+from api_deadline_responsibles import verify_selector, verify_revocation
 from api_deadlines_support import (
     STATE, TOKEN, correct, enroll, prepare, profile, qualified_time,
     register, request, resolution, submit,
@@ -20,6 +21,7 @@ def capture():
     for role in ['litigator', 'paralegal', 'client']:
         users[role], tokens[role] = enroll(role)
         request('PUT', route + '/members/' + users[role], expected=204)
+    verify_selector(route, foreign, users, tokens)
     source = resolution(route)
     daily = profile(cases[0], 'daily')
     monthly = profile(cases[0], 'monthly')
@@ -93,6 +95,7 @@ def capture():
 
     # Revocation leaves captured responsibility and historical calculations intact.
     request('DELETE', route + '/members/' + users['litigator'], expected=204)
+    verify_revocation(route, users, tokens)
     request('GET', path, token=tokens['litigator'], expected=404)
     prepare(base, correct(hours), expected=409, code='deadline_responsible_unavailable')
     request('GET', path, token=tokens['paralegal'])

@@ -24,14 +24,19 @@ permite capturar, consultar y conciliar estas declaraciones.
 
 La [API del catálogo de perfiles de plazo](deadline-profiles-api.md) adapta el
 catálogo global y el de expediente, con publicación, reemplazo, retiro e
-historia exacta. El catálogo persistido y el evaluador de aplicación están
-implementados; la capa HTTP sigue en implementación y verificación. No registra
-todavía plazos persistentes ni compone el evaluador como flujo HTTP del expediente.
-Trabajadores de reevaluación, alertas y Qadra de plazos siguen pendientes.
+historia exacta. El catálogo, su API y el evaluador están implementados. La
+[API de plazos](deadlines-api.md) registra por expediente la evaluación, el
+responsable y la atención, con correcciones, retiro e historia inmutable.
+El backend persistente fue integrado en `main`; sus pruebas y restauración se
+registran en el [informe de verificación](verification-report.md). La ampliación
+actual incorpora selección paginada de responsables y el
+[flujo Qadra de plazos](../web/README.md#plazos-del-expediente). Su verificación
+integral y publicación se registran por separado del backend anterior.
+Trabajadores de reevaluación, agenda conjunta y alertas siguen pendientes.
 Véanse [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
-Contrato revisado el 2026-09-16. PostgreSQL conserva usuarios, expedientes,
+Contrato revisado el 2026-09-18. PostgreSQL conserva usuarios, expedientes,
 asignaciones, documentos cifrados y una cadena de auditoría compartida. Redis
 conserva desafíos, sesiones revocables, límites de intentos y reclamos TOTP. La
 TSA OpenSSL local emite sellos RFC 3161; la ejecución no consulta Cincel.
@@ -112,7 +117,7 @@ la biblioteca en un proceso acotado; véase
 El servidor no ejecuta DDL y rechaza roles que puedan administrar o reescribir
 la auditoría. `database migrate` aplica las migraciones de identidad,
 expedientes, documentos/auditoría, calendarios jurisdiccionales, hechos declarados,
-eventos de fuentes y perfiles de plazo. `--data-dir` señala el origen local
+eventos de fuentes, perfiles y plazos persistentes. `--data-dir` señala el origen local
 preservado: si contiene datos, el arranque exige un corte completado y
 reconciliado con la base. Los documentos nuevos se guardan en PostgreSQL. El
 servidor escucha solamente en `127.0.0.1:3000` por defecto.
@@ -266,8 +271,9 @@ La admisión de soportes utiliza [un worker acotado](document-format-operations.
 No completa la validación de toda carga general ni acredita un acto judicial.
 La programación de audiencias tiene su [contrato independiente](hearings-api.md).
 Las sesiones y resultados declarados disponen de su
-[contrato separado](hearing-results-api.md). Recursos, cómputo de plazos y alertas
-conservan operaciones pendientes propias.
+[contrato separado](hearing-results-api.md). El cálculo y la historia de plazos
+usan [su propia colección](deadlines-api.md). Recursos, activación automática,
+reevaluación y alertas conservan operaciones pendientes propias.
 
 ## Audiencias y agenda
 
@@ -875,8 +881,21 @@ histórico con bloqueos y traza estructurada. Consultar no vuelve a ejecutar la
 aritmética. Los instantes preservan segundos, nanosegundos y desfase explícitos;
 las declaraciones conservan su precisión. Las pruebas focales de contrato y
 proyección y la aceptación con persistencia y restauración reales están aprobadas.
-La interfaz Qadra de plazos, la reevaluación automática y las alertas siguen
-pendientes.
+`GET /responsibles` ofrece cuentas activas elegibles, con `limit` de 1 a 100
+(por defecto 20), `after_id` exclusivo y orden UUID ascendente. Owner es elegible
+sin asignación; Litigator y Paralegal necesitan membresía vigente al expediente.
+Client queda excluido como lector y como candidato. La respuesta entrega
+`case_id`, `responsibles:[{id,email,role}]`, `has_more` y `next_after_id`;
+la consulta autoriza el expediente y confirma su evento de auditoría. No crea
+una membresía ni reserva elegibilidad para registrar o corregir después.
+
+Qadra permite registrar, corregir, declarar atención, retirar y consultar
+revisiones exactas mediante estas rutas. El selector y la interfaz son la
+ampliación actual, con campañas locales completas aprobadas; sus comprobaciones
+globales, recorridos reales y publicación se documentan en el informe de
+verificación.
+La reevaluación automática, la agenda de audiencias y vencimientos reunidos y
+las alertas siguen pendientes.
 
 ## Errores
 

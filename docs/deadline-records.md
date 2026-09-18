@@ -3,8 +3,9 @@
 Estado: modelo, aplicación, persistencia PostgreSQL y HTTP implementados. Están
 aprobadas las pruebas focales de esquema, transacciones, concurrencia y
 revalidación, la restauración PostgreSQL y el ensayo integrado de API con
-servicios reales. Qadra de plazos sigue pendiente: no existe todavía un flujo de
-alta de plazos en la interfaz. El cierre global de esta entrega se registra por
+servicios reales. Qadra incorpora captura, consultas, atención, retiro e historia
+con selectores exactos y conciliación de envíos inciertos. Sus comprobaciones de
+navegador y la integración de cada ampliación se registran por
 separado en el [informe de verificación](verification-report.md). La decisión está en
 [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md).
 
@@ -159,6 +160,7 @@ La cola de reevaluación, sus cursores y reintentos, la sustitución atómica de
 alertas, el correo y la agenda conjunta conservan el alcance del
 [ciclo de vida](deadline-lifecycle.md). El catálogo de eventos de fuentes existente
 no tiene aún un consumidor que actualice automáticamente estos plazos. La
-interfaz Qadra y la aceptación de esos recorridos completos requieren sus propias
-campañas; el ensayo HTTP aprobado no acredita interacción de usuario ni entrega
-de alertas.
+interfaz Qadra tiene campañas separadas de transporte controlado y servicios
+reales, registradas en el informe. El ensayo HTTP del backend no acredita por sí
+solo interacción de usuario ni entrega de alertas. La aceptación del ciclo
+operativo completo permanece pendiente.

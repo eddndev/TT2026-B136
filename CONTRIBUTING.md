@@ -148,8 +148,9 @@ pull request as the behavior it describes. Update the affected documents:
   changed tracked files, untracked sources, and ignored runtime data. Equal
   HEAD commits alone do not prove that either directory can be discarded.
 - Preserve existing document edits and generated deliverables when changing
-  assistant guidance. Treat frontend implementation as a separate requested
-  task; the current placeholder does not imply permission to redesign it.
+  assistant guidance. Preserve the existing Qadra design system while implementing
+  requested frontend changes; incomplete screens do not authorize an unrelated
+  redesign.
 - For identity integration tests, set `IDENTITY_TEST_DATABASE_URL` and
   `IDENTITY_TEST_REDIS_URL` to isolated, disposable PostgreSQL and Redis
   instances. The tests in
@@ -170,7 +171,7 @@ pull request as the behavior it describes. Update the affected documents:
 
 ## Implemented project state
 
-Reviewed on 2026-09-16. `docs/product-completion.md` is the detailed product map;
+Reviewed on 2026-09-18. `docs/product-completion.md` is the detailed product map;
 `docs/verification-report.md` distinguishes reproduced checks from pending work.
 Inspect current code and contracts before treating this summary as complete.
 
@@ -191,20 +192,35 @@ Inspect current code and contracts before treating this summary as complete.
   receipts, reproducible examples, audited PostgreSQL persistence and HTTP routes.
   Source revisions append durable change events in the same transaction. The
   pure evaluator checks applicability and verified inputs, preserving incomplete
-  results without inventing a cutoff. Persistent deadlines, attention, workers,
-  alerts and their Qadra interface remain pending. See
+  results without inventing a cutoff. These exact profiles feed persisted
+  evaluations; source events do not yet have a processing worker. See
   `docs/deadline-profiles-api.md` and
   `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
+- The `0017_` migrations persist case deadlines and immutable evaluation history.
+  Register, correct, declare attention and retire commit state and audit together.
+  Historical reads retain exact profile, source, calendar, responsible and result
+  captures without reevaluation. The backend and HTTP API are integrated in
+  `main`; their reproduced verification is in `docs/verification-report.md`.
+  The current extension adds a case-authorized, audited selector of eligible
+  active accounts and the Qadra workflow. Owner and Litigator manage; authorized
+  Paralegal reads; Client is denied. Closure preserves reads and blocks writes.
+  The selector does not grant membership or replace a general member directory.
+  The full local Rust, HTTP/restore, browser and web verification campaigns
+  have passed. Remote checks and integration have their own evidence. See `docs/deadlines-api.md`,
+  `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
+  Automatic activation, reevaluation workers, combined hearing/deadline agenda,
+  alerts and the qualified legal-profile acceptance corpus remain pending.
 
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
-1. Preserve exact calendar history while defining structured deadline facts,
-   applicable rules and temporal boundaries;
-   implement automatic computation, dependent reevaluation and notifications.
-   Declared hearing text and civil classification do not replace these workflows.
+1. Complete integrated acceptance and publication of the Qadra deadline workflow.
+   Qualify legal profiles with primary sources and acceptance cases, then implement
+   durable activation, dependent reevaluation, combined agenda and notifications.
+   Preserve exact inputs and immutable historical evaluations. Declared hearing
+   text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and
    audit-query use cases with explicit authorization and reproduced evidence.
 3. Validate deployment limits, recovery and external dependencies; maintain the

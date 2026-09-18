@@ -3,9 +3,19 @@ use crate::ApplicationError;
 use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest, identity::UserId};
 
 /// Case authorization precedes every lookup and pagination, including empty pages.
-/// Closed cases remain readable. Every projection must match the immutable complete
+/// Closed cases remain readable. Deadline projections must match the immutable complete
 /// record, canonical inputs, calculation and receipt; reads do not rerun arithmetic.
 pub trait DeadlineStore: Send + Sync {
+    /// Read active Owners and assigned active staff after case authorization. Project
+    /// only account identity, email and role; commit the read audit before disclosure.
+    /// An exclusive UUID cursor never grants access or reserves a candidate.
+    fn responsibles(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        query: DeadlineResponsibleQuery,
+        at: OffsetDateTime,
+    ) -> Result<DeadlineResponsiblePage, ApplicationError>;
     fn list(
         &self,
         actor: UserId,
@@ -51,6 +61,12 @@ pub trait DeadlineStore: Send + Sync {
 }
 
 pub trait DeadlineWorkflow: Send + Sync {
+    fn responsibles(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        query: DeadlineResponsibleQuery,
+    ) -> Result<DeadlineResponsiblePage, ApplicationError>;
     fn list(
         &self,
         token: &str,

@@ -166,9 +166,32 @@
       incierto.
     </p>
     <p>
-      Este alcance cubre programaci&oacute;n y consulta. Los resultados de audiencias, el
-      c&aacute;lculo de plazos y los avisos a&uacute;n no est&aacute;n disponibles. Las asignaciones
+      La programaci&oacute;n y los resultados declarados conservan historias separadas. Registrar
+      una audiencia no crea autom&aacute;ticamente un plazo ni env&iacute;a avisos. Las asignaciones
       de cuentas se gestionan mediante la API.
+    </p>
+  </details>
+  <details>
+    <summary>&iquest;C&oacute;mo registro y consulto un plazo?</summary>
+    <p>
+      Abre Plazos dentro del expediente. El administrador y el litigante asignado pueden registrar,
+      corregir, declarar atenci&oacute;n y retirar; el asistente legal asignado puede consultar.
+      Selecciona perfil, fuente, calendario y responsable. Declara aplicabilidad, condiciones y
+      cantidad concedida cuando corresponda; no uses el m&aacute;ximo como una cantidad otorgada.
+    </p>
+    <p>
+      Prepara el plazo y revisa el resultado, los pasos del c&oacute;mputo y sus bloqueos antes de
+      confirmar. Un registro bloqueado conserva lo que falta sin inventar un vencimiento. La
+      historia permite consultar el perfil y las fuentes exactas de cada revisi&oacute;n. Declarar
+      atenci&oacute;n o retirar conserva el c&aacute;lculo anterior y no acredita por s&iacute; solo
+      una presentaci&oacute;n v&aacute;lida.
+    </p>
+    <p>
+      Un conflicto conserva tu borrador: consulta y compara la base actual antes de preparar otra
+      correcci&oacute;n. Si se pierde la respuesta al confirmar, consulta el env&iacute;o exacto sin
+      repetirlo. Un expediente cerrado conserva lecturas autorizadas. Los cambios de fuentes
+      a&uacute;n no generan reevaluaci&oacute;n autom&aacute;tica; la agenda conjunta y los avisos
+      siguen pendientes.
     </p>
   </details>
   <details>

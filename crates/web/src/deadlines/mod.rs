@@ -8,6 +8,7 @@ mod query;
 mod reads;
 mod request;
 mod response;
+mod responsibles;
 mod result;
 mod result_blocks;
 #[cfg(test)]
@@ -39,6 +40,7 @@ pub(crate) fn router(workflow: Arc<dyn DeadlineWorkflow>, runtime: HttpRuntime) 
     Router::new()
         .route(base, get(reads::list).post(mutations::register))
         .route(&format!("{base}/prepare"), post(mutations::prepare))
+        .route(&format!("{base}/responsibles"), get(responsibles::list))
         .route(
             &format!("{base}/:id"),
             get(reads::detail).put(mutations::correct),

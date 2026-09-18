@@ -42,3 +42,10 @@ test('declared facts use an authorized case location for staff only', () => {
   for (const role of ['client', '', undefined])
     assert.equal(normalizeView('#resolutions', role), 'overview');
 });
+
+test('deadlines are an assigned case view for staff and never a Client fallback', () => {
+  for (const role of ['owner', 'litigator', 'paralegal'])
+    assert.equal(normalizeView('#deadlines', role), 'deadlines');
+  for (const role of ['client', '', undefined])
+    assert.equal(normalizeView('#deadlines', role), 'overview');
+});

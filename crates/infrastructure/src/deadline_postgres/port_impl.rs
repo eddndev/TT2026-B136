@@ -2,6 +2,15 @@ use super::{authorization, port, preparation, storage, PostgresDeadlineStore};
 use application::{deadlines::*, ApplicationError};
 use domain::{cases::CaseId, clock::OffsetDateTime, identity::UserId};
 impl DeadlineStore for PostgresDeadlineStore {
+    fn responsibles(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        query: DeadlineResponsibleQuery,
+        at: OffsetDateTime,
+    ) -> Result<DeadlineResponsiblePage, ApplicationError> {
+        self.responsible_page(actor, case, query, at)
+    }
     fn list(
         &self,
         actor: UserId,

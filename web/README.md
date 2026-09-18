@@ -124,8 +124,8 @@ consultar o detener ese proceso.
 15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
-expediente, Resumen, Documentos, Participantes, Etapas, Audiencias y Resoluciones
-comparten contexto. Equipo
+expediente, Resumen, Documentos, Participantes, Etapas, Audiencias, Resoluciones
+y Plazos comparten contexto. Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
 expediente seleccionado. No presenta recuentos de una página como totales del
 despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
@@ -204,7 +204,92 @@ histórica. La captura administrativa original sin revisiones no inventa R1,
 autor ni fecha. Los nombres, estados y huellas de las fuentes pertenecen a las
 revisiones seleccionadas; no se refrescan a sus cabezas actuales. La interfaz
 reutiliza los controles de Qadra y añade `src/styles/procedural-facts.css`.
-No implementa calificación jurídica, recursos, plazos operativos ni alertas.
+Este módulo de hechos no activa automáticamente un plazo ni determina efectos
+jurídicos. Sus revisiones exactas pueden seleccionarse en **Plazos**; recursos,
+reevaluación automática y alertas conservan su alcance pendiente.
+
+## Plazos del expediente
+
+**Plazos** consulta la colección persistente del expediente seleccionado. Owner
+puede gestionar todos los expedientes; Litigator gestiona los asignados y
+Paralegal los consulta. Client no abre esta sección ni emite sus solicitudes.
+Un expediente cerrado conserva lecturas e historia y bloquea las mutaciones.
+Los contratos son [plazos](../docs/deadlines-api.md) y
+[perfiles versionados](../docs/deadline-profiles-api.md). El backend persistente
+ya está integrado en `main`; la interfaz y el selector de responsables aprobaron
+sus campañas locales completas, incluido el navegador con servicios reales.
+Consulta [el informe](../docs/verification-report.md) para sus resultados
+reproducidos y su estado de publicación.
+
+1. El listado ofrece estado **Activos**, **Todos** o **Retirados** y páginas
+   ordenadas por identificador. No representa un orden cronológico ni calcula
+   totales a partir del tamaño de página. Abrir una fila recupera su detalle
+   actual, responsable capturado, resultado y atención.
+2. **Registrar plazo** pide un título y un perfil por revisión exacta. El
+   selector recorre el catálogo disponible en el expediente, incluidos perfiles
+   globales y privados, o exclusivamente el global. Se consulta historia y
+   definición antes de elegir. Una revisión retirada sigue siendo consultable,
+   pero no seleccionable para una nueva captura. La interfaz consulta perfiles;
+   su publicación, reemplazo y retiro siguen disponibles mediante la API Owner.
+3. **Elegir responsable** pagina cuentas actualmente elegibles por correo y
+   rol. Incluye Owner activos y Litigator/Paralegal activos con asignación al
+   expediente, sin introducir UUID a mano. Elegir a alguien no concede acceso
+   ni reserva la cuenta: registrar y corregir vuelven a comprobar elegibilidad.
+   El responsable histórico se conserva aunque después pierda el acceso.
+4. **Tipo de fuente** permite resolución, notificación, resultado de audiencia
+   o fuente no identificada con motivo. Los selectores recuperan una revisión
+   exacta. La notificación conserva la revisión de su resolución padre, incluso
+   si existe una posterior. Un resultado permite seleccionar acuerdo o declarar
+   que se usa el resultado completo; no confunde un UUID cero con ausencia.
+5. **Declarar un inicio calificado** conserva finalidad, tiempo, declaración y
+   localizador en la misma fuente cuando corresponda. Fecha, minuto, segundo y
+   desconocimiento conservan su precisión; no se completan componentes desde el
+   reloj o zona del navegador.
+6. El calendario se elige por revisión exacta o queda explícitamente ausente.
+   **Cantidad ordenada** distingue ausencia de cantidad declarada. El máximo
+   del perfil se muestra separado y nunca rellena la duración concedida.
+   Ámbito, incidencia y condiciones requieren elecciones explícitas de sí, no
+   o desconocimiento con motivo. Las condiciones omitidas de una definición
+   histórica pueden agregarse al corregirla; no aparecen satisfechas por defecto.
+7. **Preparar plazo** muestra declaraciones, perfil, responsable, fuente y
+   calendario exactos, resultado, bloqueos y pasos del cálculo. La casilla de
+   revisión habilita **Confirmar plazo**; cuando existen bloqueos, la
+   confirmación declara expresamente que se guardará ese resultado incompleto.
+   Una fecha candidata no se muestra como vencimiento si falta el corte o la
+   precisión que el perfil requiere.
+8. **Corregir plazo** conserva identidad y exige motivo y revisión base.
+   **Declarar atención** captura estado pendiente o declaración con precisión
+   temporal, afirmación y localizador. La atención conserva el cálculo y no
+   acredita presentación válida ni cumplimiento oportuno. **Retirar plazo** es
+   terminal, exige motivo y conserva cálculo, atención e historia.
+9. **Ver historial de plazo** pagina revisiones descendentes. Elegir una
+   recupera su contenido exacto y la distingue de la actual; las acciones de
+   modificación requieren volver a consultar la cabeza. El detalle separa
+   insumos seleccionados, cabezas observadas, administración capturada, perfil
+   y recibo. Consultar historia no vuelve a ejecutar la aritmética ni sustituye
+   las referencias por sus versiones más recientes.
+
+Un conflicto conserva el borrador y exige **Consultar base actual**, revisar
+la comparación y **Usar esta base y conservar borrador** antes de preparar otro
+cambio. Un resultado incierto permite **Consultar envío exacto**, sin reenvío
+automático. Solo el código específico de revisión inexistente se interpreta
+como ausencia de esa revisión; aun así, una ausencia temporal no acredita que
+la escritura haya fallado. Caducidad, revocación y otros errores de consulta no
+son una confirmación de fracaso o éxito. Cambiar de expediente o sesión y cerrar
+el formulario descarta su estado local; no cancela una escritura ya enviada.
+
+Registrar o corregir puede capturar una administración observada más reciente
+sin cambiar el contenido revisado; la conciliación valida los recibos y las
+fuentes correspondientes. Atención y retiro conservan el cálculo capturado.
+El cliente no crea huellas ni realiza la aritmética: las reglas, autorización,
+persistencia y auditoría siguen en el backend.
+
+Este flujo no envía correos ni procesa automáticamente los eventos de cambio de
+fuentes, calendarios o perfiles. La agenda conjunta diaria, semanal y mensual de
+audiencias y vencimientos, las alertas de 48/24 horas y la reevaluación durable
+siguen pendientes. Los ejemplos sintéticos de aceptación no acreditan perfiles
+jurídicos aplicables; su calificación y fundamento primario requieren el trabajo
+separado descrito en [las fronteras de reglas](../docs/deadline-rule-research.md).
 
 ## Calendarios jurisdiccionales
 
@@ -292,9 +377,10 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
   usuario agrega documentos o modifica asignaciones entre consultas.
 - La búsqueda abarca los nombres del expediente, no el contenido cifrado.
   El estado de sellado no equivale a una verificación vigente de la evidencia.
-- Las asignaciones de acceso se gestionan mediante la API. La interfaz para
-  elegir usuarios por nombre o correo requiere el directorio de usuarios y
-  continúa pendiente. No se presenta un formulario de asignaciones por UUID.
+- Las asignaciones de acceso se gestionan mediante la API; su administración
+  visual y el directorio general de miembros continúan pendientes. El selector
+  de responsable de un plazo muestra cuentas ya autorizadas y no asigna acceso
+  al expediente. No se presenta un formulario de asignaciones por UUID.
 - El directorio admite fichas pendientes y once perfiles tipificados. Los
   datos declarados y el perfil de CA interna no acreditan identidad jurídica,
   FIREL oficial ni efectos procesales automáticos. No fusiona homónimos.
@@ -486,6 +572,14 @@ respuesta API de error conserva `api-failures.json` con método, ruta anonimizad
 estado HTTP y código de error. El diagnóstico excluye consultas, cabeceras y
 cuerpos completos; sustituye los UUID de la ruta. No uses bases de datos ni
 credenciales de usuarios reales para esta prueba.
+
+Las pruebas focales de plazos separan validación de contratos, renderizado de
+campos y recorridos con HTTP simulado. Cubren declaraciones sin valores
+inventados, confirmación explícita de bloqueos, selección paginada de
+responsables, referencia histórica del padre de una notificación, corrección
+con conflicto, atención, retiro y conciliación de un envío incierto sin
+repetirlo. Estos resultados no sustituyen la campaña completa ni las pruebas
+contra servicios reales; su evidencia se registra en el informe.
 
 La verificación local más reciente se registra por separado de las pruebas
 históricas del backend en [`docs/verification-report.md`](../docs/verification-report.md).

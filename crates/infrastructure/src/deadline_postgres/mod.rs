@@ -8,6 +8,7 @@ mod header;
 mod port_impl;
 mod preparation;
 mod query;
+mod responsibles;
 pub(crate) mod storage;
 mod write;
 use application::{deadlines::DeadlineError, ApplicationError};

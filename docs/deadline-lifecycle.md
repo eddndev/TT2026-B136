@@ -1,10 +1,21 @@
 # Perfiles, evaluaciones y seguimiento de plazos
 
-Estado: implementación parcial. Están implementados la resolución autorizada
-de insumos, el catálogo persistente de perfiles con API, el evaluador puro y el
-registro durable de cambios de fuentes. El seguimiento descrito aquí todavía
-necesita plazos y evaluaciones persistentes, trabajadores, API operativa, interfaz
-y aceptación integrada. Véanse la
+Estado: implementación parcial del seguimiento completo. La resolución
+autorizada de insumos, el catálogo de perfiles con API, el evaluador, los eventos
+de cambio y el [registro persistente de plazos](deadline-records.md) están
+implementados. El backend y la [API operativa](deadlines-api.md) están integrados
+en `main`, con evaluación histórica, responsable, atención, corrección y retiro
+auditable. La ampliación Qadra permite esas operaciones y la selección paginada
+de responsables elegibles, con campañas locales completas aprobadas. El
+[informe de verificación](verification-report.md) separa sus resultados de la
+comprobación remota y de la integración de cada entrega.
+
+Los trabajadores de activación y reevaluación, la agenda conjunta y las alertas
+descritos más abajo siguen siendo objetivos de implementación. Tener eventos
+inmutables no demuestra que se procesen, y guardar un vencimiento no demuestra
+que se haya entregado un aviso. El cierre de perfiles jurídicos con fuentes
+primarias y aceptación del supuesto también permanece pendiente; los ejemplos
+sintéticos verifican mecanismos, no aplicabilidad jurídica. Véanse la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
 las [fronteras de las reglas](deadline-rule-research.md).
 
