@@ -1,3 +1,5 @@
+import { deadlinesApi } from './deadline-api.mjs';
+import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
 import { proceduralFactsApi } from './procedural-facts-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingsApi } from './hearings-api.mjs';
@@ -48,6 +50,8 @@ export function caseApi(transport) {
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'PUT' }),
     removeMember: (id, userId) =>
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    deadlines: (id) => deadlinesApi(request, id),
+    deadlineProfiles: (id = null) => deadlineProfilesApi(request, id),
     caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),

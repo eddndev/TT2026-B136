@@ -148,7 +148,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions'].includes(view)}
+        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'deadlines'].includes(view)}
           {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
                 {api}
                 {user}

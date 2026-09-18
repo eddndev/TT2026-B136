@@ -44,10 +44,24 @@
     {#each work as item}<button
         class:active={view === item.id ||
           (item.id === 'cases' &&
-            ['participants', 'case-summary', 'stages', 'hearings'].includes(view))}
+            [
+              'participants',
+              'case-summary',
+              'stages',
+              'hearings',
+              'resolutions',
+              'deadlines',
+            ].includes(view))}
         aria-current={view === item.id ||
         (item.id === 'cases' &&
-          ['participants', 'case-summary', 'stages', 'hearings'].includes(view))
+          [
+            'participants',
+            'case-summary',
+            'stages',
+            'hearings',
+            'resolutions',
+            'deadlines',
+          ].includes(view))
           ? 'page'
           : undefined}
         onclick={() => go(item.id)}><Icon name={item.icon} />{item.label}</button
