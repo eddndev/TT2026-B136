@@ -281,8 +281,8 @@ is still unfinished.
   Historical reads retain exact profile, source, calendar, responsible and result
   captures without reevaluation. The backend and HTTP API are integrated in
   `main`; their reproduced verification is in `docs/verification-report.md`.
-  The current extension adds a case-authorized, audited selector of eligible
-  active accounts and the Qadra workflow. Owner and Litigator manage; authorized
+  The Qadra workflow and case-authorized, audited selector of eligible active
+  accounts are also integrated in `main`. Owner and Litigator manage; authorized
   Paralegal reads; Client is denied. Closure preserves reads and blocks writes.
   The selector does not grant membership or replace a general member directory.
   The full local Rust, HTTP/restore, browser and web verification campaigns

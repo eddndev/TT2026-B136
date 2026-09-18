@@ -4,6 +4,109 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Núcleo local V2 de plazos: 18 de septiembre de 2026
+
+Este corte amplía la base integrada por
+[PR 33](https://github.com/eddndev/TT2026-B136/pull/33), commit `214202a`.
+Corresponde al núcleo local de aplicación; no atribuye V2 a esa PR ni acredita
+su conexión a persistencia, trabajador durable, HTTP o Qadra. El contrato se
+describe en [los recibos de seguimiento](deadline-tracking-receipts.md).
+
+Las corridas focales comprobaron los grupos siguientes. Todos los resultados
+de esta tabla terminaron sin fallos ni casos ignorados; las repeticiones y los
+casos compartidos con cortes anteriores no se suman como pruebas nuevas.
+
+| Grupo | Resultado comprobado | Alcance |
+| --- | --- | --- |
+| Observaciones completas | **31 aprobadas**: 10 de construcción, 7 de evidencia, 4 de desplazamientos temporales y 10 de validación. | DLOE1, recibos exactos, ámbitos, pares selección/cabeza, padre de notificación, alteración de metadata e igualdad de revisión. |
+| Reconstrucción del legado | **7 aprobadas**, más **1 vector V1** repetido. | Sólo material capturado; sin padre ni cabeza actual inventados; conservación de DLRV1, DLST1 y DLTX1. |
+| Registro V2 | **8 aprobadas**. | Versiones explícitas, autoría humana/técnica, políticas, observaciones, revisión y recibos. |
+| Preparador humano | **13 aprobadas**. | Calificación explícita, selección fija, cabezas disponibles, atención/retiro, transición desde legado y administración capturada. |
+| Consultas V2 de aplicación | **4 aprobadas**. | Fecha operativa sólo con revisión aceptada y plazo activo; historia con ambas huellas del predecesor y rechazo de V2 a V1. |
+| Continuidad de revisiones | **34 aprobadas**: 17 generales, 5 de calendario, 7 de dependencias y 5 de administración. | Preservación por acción, calendario seguido, motivos para todas las dependencias avanzadas y administración sin retrocesos ni reescritura. |
+| Frontera V1 de infraestructura | **2 aprobadas**. | Autor humano conservado y rechazo tipificado de autor técnico en el adaptador V1. |
+| Frontera HTTP V1 | **5 aprobadas**. | JSON humano conservado y rechazo de autor, recibo, acción o estado V2 que la proyección V1 no puede representar completos. |
+
+Los grupos de preparación, consultas y registro terminaron aprobados en la
+integración de aplicación posterior a sus fallos iniciales. La revisión de
+continuidad detectó además regresión administrativa y ausencia de motivo al
+avanzar otra dependencia seguida; se reprodujeron y corrigieron antes de la
+última corrida focal y de la campaña completa registrada abajo. El padre de
+notificación se comprueba en el ámbito fuente. Estas pruebas comparan evidencia
+capturada sin recalcular la aritmética histórica.
+
+### Campaña global y controles completados
+
+La repetición completa ejecutó `cargo test --workspace` en el entorno preparado
+por `scripts/test-backends.sh`, con PostgreSQL de identidad, expedientes y
+documentos, Redis desechable, Rust **1.94.0** y qpdf **12.4.1**. Terminó con
+código de salida cero:
+**2394 aprobadas, 0 fallidas y 1 TSA externa ignorada**, en **600.183 s**.
+El registro contiene **408 resúmenes de resultados**, que no equivalen a 408
+pruebas. Los casos focales anteriores están incluidos en el total y no se
+suman nuevamente. Los adaptadores se ejecutaron con sus variables de servicios;
+no se atribuye éxito a retornos por ausencia de configuración.
+
+| Control de este corte | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Aprobado, salida 0, **2.145 s**. |
+| Compilación del workspace | Aprobada, salida 0, **6.510 s**. |
+| Suite Rust con servicios aislados | **2394 aprobadas, 0 fallidas, 1 ignorada**, salida 0, **600.183 s**. |
+| Clippy 1.98.1, workspace y todos los targets | Aprobado con warnings denegados, salida 0, **14.740 s**. |
+| Rust 1.88, `check --workspace --all-targets` | Aprobado, salida 0, **43.570 s**. |
+| `scripts/api-demo.sh`, servicios y restauración reales | Aprobado, salida 0, **138.696 s**. |
+
+La campaña global anterior se interrumpió deliberadamente antes de terminar
+para corregir los defectos de continuidad; no se contabiliza como aprobada.
+Las duraciones registradas corresponden a comandos de verificación, incluida
+la preparación cuando procede; no miden latencia de producto. La advertencia
+de incompatibilidad futura de `redis 0.25.4` se conserva como diagnóstico de
+dependencia y no se oculta.
+
+### Restauración y límites del cierre local
+
+El recorrido API terminó completo y restauró **14 respuestas exactas de plazos**,
+incluidos resultados y recibos capturados, junto con los módulos persistidos
+anteriores. La comparación conservó el ZIP de evidencia idéntico. Este recorrido
+comprueba la regresión del almacenamiento y del HTTP V1; no acredita persistencia
+ni restauración V2.
+
+Las **1424 fuentes** del manifiesto de verificación conservaron todas sus huellas
+al terminar la campaña. Los **72 archivos Rust modificados** son ASCII y menores
+de 400 líneas. Las actualizaciones del informe y del estado del producto no
+modifican esas fuentes. Las campañas históricas de navegador y CI de PR 33
+permanecen separadas; la publicación e integración de este núcleo local requieren
+sus propios controles remotos.
+
+La suite global verifica el código local existente, incluidos los controles
+provisionales V1; no crea persistencia V2 ni demuestra un trabajador que aún
+no está implementado. Tampoco acredita HTTP/Qadra V2, alertas, un corpus
+jurídico aprobado o aceptación integral del producto.
+
+## Corte focal previo: políticas y codecs, 18 de septiembre de 2026
+
+Sobre la base integrada `214202a` se ejecutaron **52 pruebas focales de
+aplicación: 52 aprobadas, 0 fallidas y 0 ignoradas**. Incluyen 14 decisiones
+ante cambios de dependencias, 15 comprobaciones de motivos y políticas de
+revisión, 11 del recibo DLTX2, 11 de observaciones DLOB1 y un vector de
+compatibilidad de los bytes DLRV1, DLST1 y DLTX1. Los fallos iniciales por las
+APIs ausentes precedieron a cada implementación nueva.
+
+Los codecs se contrastaron con vectores independientes, límites máximos,
+truncados, versiones, textos canónicos y referencias de ámbito incorrecto.
+El vector legado conserva el formato anterior con un hasher determinista de
+prueba; no constituye una nueva prueba del algoritmo SHA-256. Las dos pruebas
+de codecs compilaron en 2.76 s. El formato del workspace y Clippy 1.98.1 sobre
+los cinco targets aprobaron. Clippy detectó inicialmente una copia redundante
+en una prueba: se eliminó y se repitieron el control y los 11 casos de
+observaciones, todos aprobados; esa repetición no aumenta los 52 casos únicos.
+Los 13 archivos nuevos de código y pruebas son ASCII y menores de 400 líneas.
+
+Este corte previo comprendía primitivas locales sin conexión a persistencia,
+trabajador, HTTP o Qadra. En ese momento no se había repetido la suite completa
+sobre el código nuevo. La campaña del núcleo V2 se registra por separado arriba;
+los resultados históricos de las entregas integradas que siguen no se le atribuyen.
+
 ## Interfaz de plazos y responsables: 18 de septiembre de 2026
 
 La [PR 32](https://github.com/eddndev/TT2026-B136/pull/32) se integró mediante
@@ -82,8 +185,21 @@ El reporte de **306 páginas** tiene compilación y revisión visual propias en
 [la verificación académica](academic-report-verification.md). La reevaluación
 durable, activación automática, alertas, agenda conjunta y corpus jurídico
 aplicable siguen pendientes. Las duraciones anteriores miden comandos de
-verificación, no latencia ni rendimiento del producto. La ampliación requiere
-su propia CI e integración remota.
+verificación, no latencia ni rendimiento del producto.
+
+La [PR 33](https://github.com/eddndev/TT2026-B136/pull/33) se integró mediante
+squash el mismo día a las **15:09:02 de Ciudad de México**, commit
+`214202a1ddfc37ffc2bbf47706ab88b164d091c3`, después de **19 comprobaciones
+aprobadas y una publicación de release omitida** conforme al evento. El árbol
+`09ee772ce4e03e5cdb86ed6ac1e38322468ae5fe` coincide exactamente con el de la
+cabeza probada `eac8d0b42ca69988e5bc93a26a1e35df181a46f4`.
+La [medición remota](https://github.com/eddndev/TT2026-B136/actions/runs/35392792002/job/105754739607)
+registró dominio **5070/5192 (97 %)**, aplicación **11862/12323 (96 %)** e
+infraestructura **20273/21845 (92 %)**; los tres umbrales de 90 % aprobaron.
+El ejecutable registró **913/1286 (70 %)**, informado sin umbral en esa campaña.
+Se sincronizaron las referencias locales de `main` y se conservaron los cambios
+académicos ajenos. Estas comprobaciones corresponden a la PR; las ejecuciones
+posteriores al push de `main` tienen resultados independientes.
 
 ## Integración de la base publicada
 

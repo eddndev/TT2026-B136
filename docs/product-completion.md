@@ -142,10 +142,48 @@ Las campañas locales completas del selector y la interfaz están aprobadas:
 Rust, contratos y formularios, regresión con HTTP controlado, API/restauración
 y navegador con servicios reales. Sus resultados y la comprobación remota se
 registran por separado del backend anterior en el informe de verificación.
-Faltan reevaluación, agenda combinada y alertas. El registro durable de cambios
-de fuentes todavía no tiene un trabajador que los procese. Tampoco los ejemplos
+La [PR 33](https://github.com/eddndev/TT2026-B136/pull/33) integró esta interfaz
+y el selector en `main`, commit `214202a`, el 18 de septiembre de 2026 a las
+15:09 de Ciudad de México, con 19 comprobaciones aprobadas y el paso de release
+omitido conforme al evento.
+Faltan reevaluación durable, agenda combinada y alertas. El registro durable de
+cambios de fuentes todavía no tiene un trabajador que los procese. Tampoco los ejemplos
 sintéticos cierran los perfiles jurídicos con fundamento y casos de aceptación
 aplicables al alcance aprobado.
+
+Sobre esa base integrada, el núcleo local de seguimiento V2 ya implementa
+contratos de aplicación descritos en
+[los recibos de seguimiento](deadline-tracking-receipts.md) y
+[ADR-0037](adr/0037-durable-deadline-reevaluation.md):
+
+- Evidencia V1/V2 y autoría humana/técnica explícitas, estados revisados y
+  capturas que conservan una sola evaluación histórica.
+- Construcción estricta de observaciones completas de perfil, fuente,
+  calendario y padre de notificación. La reconstrucción del legado usa sólo
+  material capturado y no inventa un padre observado ni declara aceptación.
+- Continuidad entre revisiones con huellas del predecesor, administración sin
+  retrocesos, preservación de atención y responsables según la acción, y motivos
+  para cada perfil o fuente seguida que avanza. La cabeza del padre se revisa
+  como fuente. El retiro de una dependencia tampoco se acepta implícitamente
+  con política fija.
+- Preparador humano explícito: alta/corrección declaran políticas; atención y
+  retiro conservan el seguimiento anterior. Su existencia en aplicación no
+  conecta todavía las mutaciones V2 al almacenamiento ni al HTTP.
+- Consultas de aplicación que distinguen fecha histórica y operativa, verifican
+  continuidad en historia y sólo admiten vencimiento operativo para un plazo
+  activo con revisión aceptada. Una aceptación no completa un cálculo bloqueado.
+- Controles provisionales V1 en persistencia y HTTP: conservan el autor humano
+  existente y rechazan V2 antes de omitir autoría, políticas o estado de revisión.
+
+La campaña local Rust, las pruebas focales, formato, compilación, Clippy, Rust
+1.88 y la regresión API con restauración aprobaron; sus resultados propios y
+límites se conservan en el informe de verificación. La restauración comprueba
+el almacenamiento V1 existente, sin acreditar persistencia V2.
+Este núcleo local no forma parte de la entrega integrada por PR 33. Siguen
+pendientes la persistencia V2 con reconstrucción exacta, el preparador técnico,
+el despacho y trabajador durables, el contrato HTTP V2 y sus flujos Qadra.
+La conciliación excepcional de dependencias retiradas requiere un contrato
+explícito. Ninguno de estos contratos puros cierra activación, agenda ni alertas.
 
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
@@ -196,7 +234,7 @@ su evidencia separada.
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente, responsable, atención e historia integrados en `main`; aceptación real con restauración y campaña global del backend aprobadas. Qadra y el selector paginado de responsables están implementados y verificados localmente con campañas completas; su CI e integración tienen evidencia separada. Faltan activación y reevaluación durables, agenda conjunta y alertas. Los ejemplos sintéticos no acreditan aplicabilidad jurídica; los perfiles requieren fundamento y calificación explícitos. No sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente, responsable, atención e historia integrados en `main`; aceptación real con restauración y campaña global del backend aprobadas. Qadra y el selector paginado de responsables están integrados por PR 33. El núcleo V2 local añade observaciones verificadas, continuidad, preparación humana y consultas operativas, con controles V1 provisionales; falta conectarlo a persistencia, trabajador, HTTP y Qadra V2. Activación durable, agenda conjunta, alertas y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -240,7 +278,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
 | Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron y el código está integrado en `main`. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
 | Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra de plazos tiene campañas locales completas aprobadas. Faltan cierre del corpus jurídico aplicable, reevaluación ante cambios y aceptación del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
-| Monitoreo de plazos y alertas | Parcial; registro, API y Qadra implementados y verificados localmente | Registro, revisión exacta, responsable y atención tienen flujo web; faltan activación y reevaluación automáticas, agenda conjunta, seguimiento de vencimientos y alertas con reintentos y control de duplicados. El resultado persistido y su atención no equivalen al monitoreo completo. |
+| Monitoreo de plazos y alertas | Parcial; registro, API y Qadra integrados por PR 33; núcleo V2 local | Registro, revisión exacta, responsable y atención tienen flujo web. V2 ya dispone de contratos puros de observaciones, continuidad, preparación humana y consultas; persistencia, trabajador, HTTP y Qadra V2 siguen pendientes. Faltan activación y reevaluación automáticas, agenda conjunta y alertas con reintentos y control de duplicados. El resultado persistido y su atención no equivalen al monitoreo completo. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |

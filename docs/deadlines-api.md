@@ -1,7 +1,8 @@
 # API de plazos registrados por expediente
 
-Estado: adaptador HTTP implementado; 17 pruebas de contrato con workflow
-simulado y 6 pruebas de proyección del resultado aprobadas. La aceptación HTTP
+Estado: adaptador HTTP implementado; 21 pruebas de contrato con workflow
+simulado (17 del flujo base y 4 del selector de responsables) y 6 pruebas de
+proyección del resultado aprobadas. La aceptación HTTP
 con persistencia y restauración reales aprobó los recorridos diarios, mensuales y
 horarios y conservó 14 respuestas exactas tras recuperar la base. El contrato corresponde a
 [la entrega operativa](deadline-lifecycle.md) y utiliza
