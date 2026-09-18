@@ -1,5 +1,34 @@
 # Verificación de la actualización académica
 
+## Interfaz y selector de plazos: 18 de septiembre de 2026
+
+Se actualizaron los tres apartados propios de implementación, pruebas y matriz
+para describir la operación de plazos en Qadra y el selector autorizado de
+responsables. Incluyen revisión exacta, datos desconocidos, confirmación de
+bloqueos, conflictos, conciliación sin reenvío, cuatro roles y cierre. Los
+recorridos controlados y los de servicios reales se distinguen; sus resultados
+pertenecen al [informe técnico](verification-report.md).
+
+Se conservaron por hash **80 de 83 archivos versionados** del reporte y la
+presentación; sólo cambiaron esos tres apartados. Resumen, objetivos, estado del
+arte y conclusiones permanecen iguales. La presentación y las ediciones ajenas
+no se incorporaron a este cambio. El PDF anterior de 305 páginas se preservó.
+
+`make` con LuaLaTeX, biber y glosarios aprobó en **59.808 s**. El PDF resultante
+tiene **306 páginas y 5769158 bytes**. Se inspeccionaron las páginas físicas
+**190-192, 218-220 y 300-302**, incluidas transiciones adyacentes; cinco recibieron
+revisión independiente. Texto, rutas, tabla y jerarquía son legibles, sin recortes
+ni solapamientos. No hay referencias/citas indefinidas ni glifos ausentes. El log
+conserva las sustituciones preexistentes de versalitas de Times New Roman y la
+caja excedida histórica de **0.11754 pt**. Las fuentes comprobadas son las mismas
+que produjeron el PDF.
+
+SHA-256: `e87e93fa377cc88cb4cbe60311975ba0698a449b9e711c2b3f7d6a2f6556ef4b`.
+
+Esta revisión no acredita usabilidad con personas, corpus jurídico aprobado,
+reevaluación durable, alertas ni cierre del manuscrito completo. La aceptación
+integral de software y la integración remota conservan evidencia propia.
+
 ## Plazos persistentes y consulta HTTP: 17 de septiembre de 2026
 
 Se añadieron tres apartados propios de [implementación](../latex/chapters/04-plazos-persistentes.tex),

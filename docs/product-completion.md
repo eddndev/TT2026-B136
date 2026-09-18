@@ -87,9 +87,11 @@ sobre valores exactos de calendario y conserva cada dia con su clasificacion,
 fuente y acumulado. Se detiene ante datos sin resolver, falta de cobertura o
 agotamiento del rango de fechas. Sus quince pruebas estan incluidas en la suite
 completa reproducida. La primera fecha incluida y la cantidad todavia son
-entradas matematicas: los hechos declarados ya tienen persistencia propia, pero
-falta vincularlos a un perfil aplicable, resolver los datos requeridos de
-recepcion y conservar la evaluacion y sus alertas para obtener un plazo operativo.
+entradas matemáticas. El registro persistente ya las vincula a una revisión
+exacta de perfil, fuentes y calendario, y conserva la evaluación y su atención.
+La calificación del supuesto no se deduce de esa aritmética; el cierre del
+corpus jurídico, la activación automática, la reevaluación y las alertas siguen
+pendientes.
 
 La [aritmetica temporal](deadline-arithmetic.md) implementa reglas matematicas
 explicitas para dias naturales o computables, meses civiles y horas transcurridas.
@@ -120,11 +122,30 @@ expediente, responsable, atención declarada, corrección y retiro, con historia
 inmutable y auditoría transaccional. PostgreSQL conserva entradas, resultados,
 fuentes y cabezas exactos; la consulta histórica no recalcula. La
 [API de plazos](deadlines-api.md) está implementada y sus pruebas focales están
-aprobadas. La aceptación HTTP integrada con restauración también está aprobada;
-la campaña global también aprobó;
-este bloque todavía no está integrado en `main`. Faltan Qadra de plazos,
-reevaluación, agenda combinada y alertas. El registro durable de cambios de fuentes
-todavía no tiene un trabajador que los procese.
+aprobadas. La aceptación HTTP integrada con restauración y la campaña global
+del backend aprobaron. Ese bloque fue integrado en `main` mediante
+[PR 32](https://github.com/eddndev/TT2026-B136/pull/32), commit `ae205d2`.
+
+La interfaz Qadra de plazos incorpora:
+registro, corrección, declaración de atención, retiro, consultas e historia por
+revisión exacta. Los selectores conservan perfil, fuente, padre, acuerdo y
+calendario exactos; el formulario no rellena cantidades ni condiciones
+jurídicas. El selector paginado de responsables limita candidatos a cuentas
+activas con acceso al expediente y confirma auditoría; no sustituye el directorio
+general de miembros ni asigna acceso. La preparación muestra bloqueos y traza,
+exige confirmación expresa y concilia respuestas inciertas por revisión exacta
+sin reenviar. Owner y Litigator gestionan, Paralegal consulta, Client queda
+excluido y el cierre conserva las lecturas autorizadas. La
+[guía Qadra](../web/README.md#plazos-del-expediente) describe las operaciones.
+
+Las campañas locales completas del selector y la interfaz están aprobadas:
+Rust, contratos y formularios, regresión con HTTP controlado, API/restauración
+y navegador con servicios reales. Sus resultados y la comprobación remota se
+registran por separado del backend anterior en el informe de verificación.
+Faltan reevaluación, agenda combinada y alertas. El registro durable de cambios
+de fuentes todavía no tiene un trabajador que los procese. Tampoco los ejemplos
+sintéticos cierran los perfiles jurídicos con fundamento y casos de aceptación
+aplicables al alcance aprobado.
 
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no
@@ -154,8 +175,9 @@ implementadas. Pasaron 25 pruebas focales unitarias de entrada/proyeccion y
 HTTP con servicios reales y restauracion tambien estan aprobados localmente.
 Qadra ya incorpora captura, fuentes historicas, consulta y conciliacion explicita;
 su campana de navegador esta aprobada localmente. Sus revisiones exactas pueden
-seleccionarse al registrar plazos; la activacion automatica, la interfaz de plazos
-y los avisos siguen pendientes.
+seleccionarse desde el formulario de plazos. La activación automática y los
+avisos siguen pendientes; la validación integral de la nueva interfaz conserva
+su evidencia separada.
 
 ## Entregas y condiciones de cierre
 
@@ -174,7 +196,7 @@ y los avisos siguen pendientes.
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente por expediente, responsable, atención e historia implementados. PostgreSQL y HTTP tienen pruebas focales aprobadas y aceptación real con restauración; campaña global aprobada y publicación en curso. Faltan interfaz, reevaluación, agenda conjunta y alertas. Los ejemplos sintéticos no acreditan aplicabilidad jurídica; los perfiles publicados requieren fundamento y calificación explícitos. No sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente, responsable, atención e historia integrados en `main`; aceptación real con restauración y campaña global del backend aprobadas. Qadra y el selector paginado de responsables están implementados y verificados localmente con campañas completas; su CI e integración tienen evidencia separada. Faltan activación y reevaluación durables, agenda conjunta y alertas. Los ejemplos sintéticos no acreditan aplicabilidad jurídica; los perfiles requieren fundamento y calificación explícitos. No sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -217,8 +239,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
 | Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron y el código está integrado en `main`. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
-| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. Faltan actualización académica, selección aplicable para plazos, evaluación y reevaluación ante cambios. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
-| Monitoreo de plazos y alertas | Parcial; registro e historia con backend y API implementados | Faltan interfaz, reevaluación automática, seguimiento de vencimientos, entrega de alertas, reintentos y ausencia de duplicados. El resultado persistido y su atención no equivalen al monitoreo completo. |
+| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra de plazos tiene campañas locales completas aprobadas. Faltan cierre del corpus jurídico aplicable, reevaluación ante cambios y aceptación del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
+| Monitoreo de plazos y alertas | Parcial; registro, API y Qadra implementados y verificados localmente | Registro, revisión exacta, responsable y atención tienen flujo web; faltan activación y reevaluación automáticas, agenda conjunta, seguimiento de vencimientos y alertas con reintentos y control de duplicados. El resultado persistido y su atención no equivalen al monitoreo completo. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
@@ -264,10 +286,12 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
 - CU-09 permanece parcial. El catálogo distingue fechas `countable`, `excluded`,
   `unresolved` y `outside_coverage` según el ámbito declarado. No adopta un
   calendario universal, no descarga normas ni asigna calendarios comparando el
-  nombre de una autoridad. El cómputo automático exigido sigue pendiente y
-  requiere hechos jurídicos estructurados, fuentes aplicables y un corpus de
-  aceptación antes de activar vencimientos, reevaluación o alertas. Este avance
-  no completa por sí solo los demás casos del catálogo ni su aceptación integral.
+  nombre de una autoridad. El registro explícito ya evalúa y conserva el
+  resultado de fuentes y perfiles exactos. El flujo automático completo requiere
+  cerrar perfiles jurídicos con fuentes primarias y corpus de aceptación,
+  procesar cambios durables, reunir la agenda y entregar alertas. La selección
+  y calificación manuales implementadas no completan esos pendientes ni la
+  aceptación integral de los demás casos del catálogo.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,

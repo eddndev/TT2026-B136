@@ -5,8 +5,9 @@
 Accepted. The application contract, PostgreSQL persistence and HTTP are
 implemented. Focused schema, transaction, concurrency, revalidation and real
 restore acceptance have passed. The integrated API campaign preserved fourteen
-complete deadline responses through restoration. Qadra and the remaining
-operational lifecycle are pending. This decision does not assert completion of
+complete deadline responses through restoration. Qadra provides the case-local
+registry interface; its separate verification is recorded in the verification
+report. The remaining operational lifecycle is pending. This decision does not assert completion of
 the operational deadline workflow. See [the lifecycle](../deadline-lifecycle.md).
 
 ## Context
@@ -112,6 +113,36 @@ fourteen complete restored deadline responses. These are backend and transport
 results; they neither establish browser acceptance nor certify the legal
 applicability of synthetic profiles. Workspace-wide verification is reported
 separately in [the verification report](../verification-report.md).
+
+### Case-local interface and eligible responsible selection
+
+Expose an audited, paginated selection of eligible accounts under the case's
+deadline collection. Return only ID, email and role: active Owners have global
+case access, while active Litigators and Paralegals require membership. Filter
+before pagination and do not duplicate an Owner who is also a member. Reading
+candidates neither creates membership nor reserves eligibility; Register and
+Correct still revalidate it under the audited commit. Historical attention and
+retirement preserve the previously captured responsible even after revocation.
+
+The browser presents captured inputs, result, receipts and exact profile/source
+revisions without implementing a second evaluator. Selecting a source revision
+does not substitute its current head. Unknown declarations require a reason;
+absent ordered quantities remain absent. A blocked preparation requires explicit
+confirmation before it is recorded. Owner and assigned Litigator manage the
+registry; assigned Paralegal reads and Client has no deadline navigation or data.
+
+An uncertain submission retains its operation and expected revision. Reconcile
+through an exact-revision query and compare the full receipt and reviewed state;
+never automatically resend the write. A conflicting revision requires comparison
+with the current base before preserving and preparing the draft again. Session
+and case changes dispose scoped requests; late responses cannot populate the new
+context. Closed cases retain reads and disable mutations.
+
+The browser displays integer seconds, nanoseconds and the declared offset without
+rounding them through a millisecond-only date representation. Day-count traces
+use bounded progressive display and a contained horizontal table on narrow
+screens. Reference expansion remains an authorized request for the captured
+revision, not a request for the latest source.
 
 ## Consequences
 

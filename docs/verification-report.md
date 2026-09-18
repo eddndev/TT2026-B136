@@ -4,6 +4,87 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Interfaz de plazos y responsables: 18 de septiembre de 2026
+
+La [PR 32](https://github.com/eddndev/TT2026-B136/pull/32) se integró mediante
+squash a las **13:27:15 de Ciudad de México**, commit
+`ae205d2e5cbe7bcbb9e47b25248fdeb0f9239e52`. Se comprobaron **19 controles
+aprobados y un release omitido** conforme al evento. El árbol integrado coincide
+con el de la cabeza verificada. La cobertura remota de ese corte fue dominio
+**5070/5192 (97 %)**, aplicación **11807/12268 (96 %)** e infraestructura
+**20210/21782 (92 %)**; los tres umbrales aprobaron. Estas cifras corresponden
+al backend integrado, no a la interfaz añadida después ni al push posterior a
+`main`.
+
+La ampliación actual incorpora el selector autorizado de responsables y
+[Qadra de plazos](../web/README.md#plazos-del-expediente). Se ejecutaron los
+controles siguientes sobre el nuevo código, con Rust 1.94, Clippy 1.98.1,
+Node 22, qpdf 12.4.1 y PostgreSQL/Redis desechables. Ningún adaptador se omitió
+por falta de variables.
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Formato y compilación Rust | Aprobados; compilación 21.134 s con caché. |
+| Suite Rust completa | **2238 aprobadas, 0 fallidas, 1 TSA externa ignorada**, 697.753 s. |
+| Clippy, todos los targets | Aprobado con warnings denegados, 28.920 s. |
+| Rust 1.88, todos los targets | Aprobado, 28.967 s. |
+| Pruebas unitarias web | **232 aprobadas**, 2.495 s del comando. |
+| Formato y compilación web | Aprobados; compilación inicial 3.988 s, repetida tras actualizar la guía. |
+| API y restauración reales | Aprobadas, 170.800 s. |
+
+Los **15 casos nuevos Rust** están incluidos en el total: seis del servicio,
+cuatro HTTP con puertos controlados, cuatro PostgreSQL y uno concurrente que
+recorre cuatro formas de revocación. Comprueban Owner sin membresía, personal
+asignado, exclusión de Client/cuentas inactivas, paginación filtrada, cursores
+estrictos, cierre, reautenticación y auditoría antes de devolver candidatos.
+El caso concurrente comprueba también una conexión cuyo aislamiento por defecto
+es más fuerte que el de las transacciones auditadas.
+
+El recorrido API agregó la selección real de responsables, ausencia de
+credenciales en su proyección y desaparición después de revocar membresía.
+Repitió los flujos de días, meses y horas y conservó **14 respuestas exactas**
+de plazos después de restaurar, junto con la comparación de estado y auditoría.
+La CLI no cambió; su última demostración permanece identificada en el corte
+histórico siguiente y no se registra como una ejecución nueva.
+
+La primera regresión web completa aprobó **281 de 283 escenarios**; dos
+agotaron cinco segundos al esperar la pantalla inicial durante la compilación
+en frío. Ambas capturas ya mostraban el acceso al finalizar el diagnóstico.
+Se acotó a veinte segundos únicamente la espera de hidratación inicial del
+arnés, sin aumentar tiempos de operaciones ni añadir reintentos. La repetición
+completa aprobó **283 de 283 escenarios** en **246.123 s**; incluye los 28 nuevos
+de plazos. El formato final aprobó en 6.743 s.
+
+`scripts/web-demo.sh` aprobó **23 escenarios con servicios reales** en
+**438.490 s**, incluida la preparación; Playwright informó 4.2 minutos.
+Los tres nuevos escenarios recorren días, meses y horas con fuentes/calendario
+seleccionados R1 y cabezas R2; mes sin homólogo; cantidad ausente corregida a
+24 sin adoptar el máximo de 72; atención, retiro e historia exacta. Comprueban
+los cuatro roles, expedientes ajenos, cierre y revocación. Una corrección
+competidora conserva el borrador; un 201 confirmado en el servidor cuya respuesta
+se pierde se concilia por revisión y recibo, con una sola escritura.
+Los veinte escenarios anteriores también aprobaron. Tras ajustar únicamente el
+restablecimiento de foco y desplazamiento previo a las dos capturas de plazos,
+se repitió ese escenario contra servicios aislados: **1/1 aprobado**, 153.958 s
+incluida la preparación y 12.7 s informados por Playwright. Esa repetición no
+incrementa los 23 casos únicos. Las capturas finales de escritorio (1440 px)
+y móvil (390 px) se inspeccionaron sin recortes ni desbordamiento horizontal de
+la página; el enlace de salto permanece fuera del área visible mientras no
+recibe foco.
+
+Las comprobaciones focales detectaron y corrigieron columnas comprimidas en
+móvil y la ausencia del calendario/referencias de los ejemplos de un perfil.
+La interfaz conserva la evaluación capturada y sus revisiones exactas; no
+implementa un segundo evaluador. Las capturas de escritorio y móvil permiten
+revisar legibilidad, sin sustituir una prueba formal de usabilidad.
+
+El reporte de **306 páginas** tiene compilación y revisión visual propias en
+[la verificación académica](academic-report-verification.md). La reevaluación
+durable, activación automática, alertas, agenda conjunta y corpus jurídico
+aplicable siguen pendientes. Las duraciones anteriores miden comandos de
+verificación, no latencia ni rendimiento del producto. La ampliación requiere
+su propia CI e integración remota.
+
 ## Integración de la base publicada
 
 El 16 de septiembre de 2026 a las 19:42 (`America/Mexico_City`) se confirmó

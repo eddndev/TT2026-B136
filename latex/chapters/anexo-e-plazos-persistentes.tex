@@ -44,4 +44,13 @@ En el directorio \rutarepo{crates/web/tests/}, los archivos con prefijo \texttt{
 \par
 \endgroup
 
-La persistencia y la atención declarada no completan el consumo de eventos, la reevaluación, las alertas ni sus vistas en Qadra. La aceptación de esos recorridos conserva su carácter pendiente, junto con la validación de perfiles jurídicos aplicables. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
+La captura y la consulta de plazos en Qadra no completan el consumo de eventos, la reevaluación, las alertas ni la agenda conjunta. La aceptación de esos recorridos conserva su carácter pendiente, junto con la validación de perfiles jurídicos aplicables. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
+
+
+\subsection{Selector e interfaz de plazos}
+
+Las comprobaciones del selector mantienen el prefijo \texttt{deadline\_responsibles}. En \rutarepo{crates/application/tests/} se verifican servicio y respuestas; en \rutarepo{crates/web/tests/}, el contrato HTTP. Los archivos terminados en \texttt{backend.rs} y \texttt{concurrency.rs} del directorio de pruebas de infraestructura comprueban selección SQL y revocación concurrente.
+
+En \rutarepo{web/tests/}, los archivos cuyo nombre comienza por \texttt{deadline-} comprueban el cliente, resultados, recibos, referencias y campos. El subdirectorio \texttt{browser/} agrega navegación, consultas, acceso, edición y presentación con transporte controlado. En \texttt{live/}, los archivos de plazos terminados en \texttt{workflow.spec.mjs}, \texttt{permissions.spec.mjs} y \texttt{concurrency.spec.mjs} ejercitan el servidor real. Se ejecutan mediante \rutarepo{scripts/web-demo.sh}, junto con los recorridos de regresión existentes.
+
+El recorrido \rutarepo{scripts/api-demo.sh} incorpora la consulta de responsables y comprueba que la proyección no exponga credenciales. Los ensayos de navegador conservan resultados diarios, mensuales y horarios, relaciones históricas exactas, atención y retiro, cierre y revocación, conflictos y conciliación sin reenvío. La matriz separa el transporte controlado de las campañas reales; sus conteos y resultados observados permanecen en el informe de verificación.

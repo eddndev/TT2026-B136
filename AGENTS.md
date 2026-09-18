@@ -156,8 +156,9 @@ pull request as the behavior it describes. Update the affected documents:
   changed tracked files, untracked sources, and ignored runtime data. Equal
   HEAD commits alone do not prove that either directory can be discarded.
 - Preserve existing document edits and generated deliverables when changing
-  assistant guidance. Treat frontend implementation as a separate requested
-  task; the current placeholder does not imply permission to redesign it.
+  assistant guidance. Preserve the existing Qadra design system while implementing
+  requested frontend changes; incomplete screens do not authorize an unrelated
+  redesign.
 - For identity integration tests, set `IDENTITY_TEST_DATABASE_URL` and
   `IDENTITY_TEST_REDIS_URL` to isolated, disposable PostgreSQL and Redis
   instances. The tests in
@@ -178,7 +179,7 @@ pull request as the behavior it describes. Update the affected documents:
 
 ## Implemented project state
 
-Reviewed on 2026-09-16. This is a starting map, not a replacement for inspecting
+Reviewed on 2026-09-18. This is a starting map, not a replacement for inspecting
 the working tree. The prototype has a working cryptographic backend and an
 authenticated local HTTP workflow; the complete case-management web product
 is still unfinished.
@@ -259,8 +260,9 @@ is still unfinished.
   results without fallback. Audited commits, receipts, startup validation and
   restoration are implemented in the backend and HTTP API. URLs are not fetched
   or archived and do not certify normative authenticity or applicability. The
-  Qadra calendar interface is verified locally; automatic deadline computation,
-  reevaluation and notifications remain pending. See `docs/judicial-calendars-api.md`
+  Qadra calendar interface is verified locally. Its exact revisions can feed
+  recorded deadline evaluations; automatic activation, reevaluation and
+  notifications remain pending. See `docs/judicial-calendars-api.md`
   and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 - The `0015_` and `0016_` migrations add immutable source-change events and a
   versioned deadline-profile catalog. Global and case collections preserve
@@ -270,10 +272,24 @@ is still unfinished.
   `crates/application/src/deadline_evaluations/` evaluates explicit applicability
   and verified temporal material without persisting a deadline. Its civil cutoff
   has its own offset and coverage; incomplete inputs remain blocked. The HTTP
-  catalog is composed into the server, while persistent deadlines, responsibility,
-  attention, reevaluation workers, alerts and Qadra remain pending. See
+  catalog is composed into the server and supplies exact profiles to persisted
+  evaluations. Source events do not yet have a processing worker. See
   `docs/deadline-profiles-api.md` and
   `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
+- The `0017_` migrations persist case deadlines and immutable evaluation history.
+  Register, correct, declare attention and retire commit state and audit together.
+  Historical reads retain exact profile, source, calendar, responsible and result
+  captures without reevaluation. The backend and HTTP API are integrated in
+  `main`; their reproduced verification is in `docs/verification-report.md`.
+  The current extension adds a case-authorized, audited selector of eligible
+  active accounts and the Qadra workflow. Owner and Litigator manage; authorized
+  Paralegal reads; Client is denied. Closure preserves reads and blocks writes.
+  The selector does not grant membership or replace a general member directory.
+  The full local Rust, HTTP/restore, browser and web verification campaigns
+  have passed. Remote checks and integration have their own evidence. See `docs/deadlines-api.md`,
+  `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
+  Automatic activation, reevaluation workers, combined hearing/deadline agenda,
+  alerts and the qualified legal-profile acceptance corpus remain pending.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,
@@ -374,9 +390,14 @@ is still unfinished.
   uploads survive a later stage rejection. Audiencias and Agenda add scheduling,
   history and receipt reconciliation. Declared sessions/results add exact anchors,
   attendance, agreements, continuations, correction, withdrawal and history.
-  Judicial calendar navigation, forms and history are verified locally; deadline calculation,
-  dependent reevaluation and notifications remain pending. Preserve its
-  design tokens, components and original brand assets. `frontend/` retains the
+  Judicial calendar navigation, forms and history are verified locally. The
+  current deadline interface adds exact selectors, calculation/trace review,
+  attention, retirement and history, verified with mock and real-service browser
+  campaigns.
+  Conflicts preserve drafts and uncertain responses require exact receipt
+  reconciliation without automatic resubmission. Dependent reevaluation,
+  combined agenda and alerts remain pending. Preserve its design tokens,
+  components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
 - `latex/main.tex` includes implementation, testing, conclusions, and annexes.
@@ -401,13 +422,16 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Complete structured deadline triggers, automatic computation, dependent
-   reevaluation and notifications, plus resources linked to resolutions. Hearing
+2. Keep functional deliveries integrated with approved CI. Qualify the remaining legal profiles with primary sources and acceptance cases;
+   implement durable activation, dependent reevaluation, combined agenda and
+   notifications, plus resources linked to resolutions. Hearing
    scheduling and declared sessions/results already preserve exact history,
    attendance, agreements and provenance. The calendar backend/API classifies
-   civil dates from exact revisions and Qadra exposes their administration and history. Neither free-text results nor calendar classification
-   establish legal effects or replace the required deadline computation. Fix
-   applicable rules, structured facts and temporal boundaries before activation.
+   civil dates from exact revisions and Qadra exposes their administration and
+   history. Persisted evaluations already compute explicit profiles and inputs;
+   free-text results and calendar classification do not establish legal effects.
+   Preserve declared applicability, quantities, temporal boundaries and immutable
+   historical evaluations when adding automatic processing.
    Typed identities and internal declarations do not establish civil identity or
    external judicial authority. `docs/procedural-resources-scope.md` preserves the
    approved resource objective as a separate workflow, not a fourth linear stage.
