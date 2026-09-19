@@ -12,10 +12,23 @@ frontera. La decisión general está en
 
 El [consumidor local](deadline-worker.md) confirma revisiones técnicas,
 resultados sin cambios e intentos durables. El despachador y el consumidor
-todavía no se ejecutan desde `serve` ni exponen una ruta HTTP o comando CLI.
-El servicio humano y HTTP conservan V1; su ampliación y Qadra V2 siguen pendientes.
+se componen en `serve` mediante un único bucle bloqueante serial, con parada y
+supervisión. El ejecutable aprobó 31 pruebas unitarias y cuatro de ayuda CLI;
+las 26 de bucle, parada y supervisión están incluidas en las 31. La campaña API
+real comprobó reevaluación, cierre TERM/INT, reinicios y restauración de R1-R5.
+Qadra V2 aprobó 25 recorridos con backend real, incluidos dos Follow de escritorio
+y móvil, además de sus pruebas con HTTP controlado. No se expone una orden
+humana de reevaluación por HTTP: el cliente puede consultar revisiones técnicas,
+pero no elegir su autor ni enviar comandos de trabajador. La repetición final
+API tras corregir su comprobación de token, la nueva regresión global y la
+integración en `main` permanecen pendientes; véase
+[el informe de verificación](verification-report.md).
+
 Persistir un evento o asignar un trabajo no significa que el plazo ya haya sido
-reevaluado o que se haya entregado una notificación.
+reevaluado ni que se haya entregado una notificación. El detalle actual y el
+listado comprueban vigencia a partir de cabezas verificadas; no usan la posición
+del cursor o el estado de la cola como prueba de frescura. Véase
+[el contrato de seguimiento](deadline-tracking-api.md).
 
 ## Dos recorridos independientes
 
@@ -67,6 +80,15 @@ permite reabrir y continuar desde la posición persistida. Si falla la escritura
 de auditoría, toda la página revierte. Dos despachadores comparten el mismo
 orden de bloqueo y no pueden confirmar páginas contradictorias.
 
+Una conexión cerrada se recupera desde el mismo adaptador. Cada reconexión
+vuelve a comprobar esquema, permisos e inventario completo antes de despachar,
+y restablece los presupuestos de bloqueo y sentencia. Un esquema alterado o un
+cursor ausente impiden continuar hasta reparar o restaurar la evidencia; no se
+reconstruye progreso supuesto. Cuatro pruebas de reconexión verifican continuación
+sin duplicados, rechazo y recuperación. La regresión focal incluye además cinco
+pruebas de atomicidad y dos de presupuestos: once aprobadas en total. Véase
+[el informe de verificación](verification-report.md).
+
 SQL rechaza saltos de evento, regresiones, posiciones que no identifican un
 trabajo, intervalos con candidatos sin asignar y cambios simultáneos de ambos
 recorridos. Los trabajos son inmutables. Los cursores sólo admiten cambios de
@@ -86,8 +108,9 @@ de existencia. Las validaciones de un trabajo usan el intervalo exacto de su UUI
 UUID nulo como valor y ausencia de cursor son estados distintos.
 
 El adaptador configura un segundo para esperar bloqueos y cinco segundos por
-sentencia antes de iniciar la transacción de despacho. Son presupuestos de
-sentencia, no un límite global de tiempo para toda la página o para su apertura.
+sentencia en cada conexión, incluida su recuperación, antes de iniciar la
+transacción de despacho. Son presupuestos de sentencia, no un límite global
+de tiempo para toda la página o para su apertura.
 Una página puede examinar muchas raíces si las coincidencias son dispersas;
 no se garantiza tiempo constante ni memoria total constante del ejecutor SQL.
 Dimensionar el servicio con evidencia representativa de sus datos.

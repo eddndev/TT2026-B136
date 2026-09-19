@@ -3,21 +3,34 @@
 Estado: implementación parcial del seguimiento completo. La resolución
 autorizada de insumos, el catálogo de perfiles con API, el evaluador, los eventos
 de cambio y el [registro persistente de plazos](deadline-records.md) están
-implementados. El backend y la [API operativa](deadlines-api.md) están integrados
-en `main`, con evaluación histórica, responsable, atención, corrección y retiro
-auditable. La ampliación Qadra permite esas operaciones y la selección paginada
+implementados. La base V1 del backend y la [API operativa](deadlines-api.md)
+está integrada en `main`, con evaluación histórica, responsable, atención,
+corrección y retiro auditable. La interfaz Qadra V1 integrada permite esas
+operaciones y la selección paginada
 de responsables elegibles, con campañas locales completas aprobadas. El
 [informe de verificación](verification-report.md) separa sus resultados de la
 comprobación remota y de la integración de cada entrega.
 
 El [despachador](deadline-dispatch.md) y el [consumidor local](deadline-worker.md)
-implementan expansión de eventos y confirmación técnica durable; su composición
-en servidor y HTTP/Qadra V2 siguen pendientes. Activación, agenda conjunta y
-alertas descritas más abajo conservan objetivos propios de implementación.
-Tener eventos inmutables no demuestra que se procesen en el servidor, y guardar
-un vencimiento no demuestra que se haya entregado un aviso. El cierre de perfiles jurídicos con fuentes
-primarias y aceptación del supuesto también permanece pendiente; los ejemplos
-sintéticos verifican mecanismos, no aplicabilidad jurídica. Véanse la
+implementan expansión de eventos y confirmación técnica durable. El servicio
+humano y HTTP V2 están implementados localmente, con políticas explícitas,
+historia completa y consultas de vigencia en detalle actual y listado. La
+interfaz Qadra V2 aprobó 88 pruebas Node y 36 recorridos con HTTP controlado.
+Una campaña posterior con backend real aprobó 25 recorridos, incluidos dos
+Follow a 1440 y 390 píxeles, con seis capturas inspeccionadas. La composición
+del dispatcher/worker en `serve` tiene 31 pruebas unitarias y cuatro de ayuda
+CLI aprobadas; las 26 de bucle, parada y supervisión forman parte de las 31.
+La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
+restauración de R1-R5. Faltan la repetición final API tras corregir su comprobación
+de token, la nueva regresión global y la integración en `main`. La
+[API de seguimiento](deadline-tracking-api.md) separa la captura histórica de
+su proyección operativa comprobada.
+
+Activación, agenda conjunta y alertas descritas más abajo conservan objetivos
+propios de implementación. Tener eventos inmutables no demuestra que se procesen
+en el servidor, y guardar un vencimiento no demuestra una entrega de avisos.
+El cierre de perfiles jurídicos con fuentes primarias y aceptación del supuesto
+permanece pendiente; los ejemplos sintéticos verifican mecanismos. Véanse la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
 las [fronteras de las reglas](deadline-rule-research.md).
 
@@ -108,6 +121,13 @@ auditable común. Un resolvedor interno recibe esa transacción: no llama al pue
 público de insumos desde otro commit. Revisión, dependencias, recibo y auditoría
 se confirman juntos. Una cabeza nueva produce conflicto o una nueva evaluación;
 una modificación de contenido histórico produce inconsistencia, nunca sustitución.
+
+La lectura actual y el listado comparan las cabezas verificadas con las
+observaciones capturadas dentro de una transacción auditada. Conservan el
+cálculo histórico y distinguen su fecha de un vencimiento operativo vigente.
+No deducen frescura del estado de la cola ni de un resultado del consumidor.
+Una consulta exacta de revisión conserva evidencia histórica y no comprueba
+las cabezas actuales; las reglas están en el [contrato de seguimiento](deadline-tracking-api.md).
 
 Las lecturas conservan historia y evidencia de expedientes cerrados. El cierre
 organizativo bloquea las decisiones manuales sujetas a esa política, pero no

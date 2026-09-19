@@ -16,9 +16,17 @@ trabajos, con cursores y auditoría atómicos. El [consumidor local](../deadline
 implementa confirmación técnica, resultados sin cambios e intentos durables.
 La restauración real sin migración reparadora y las comprobaciones focales de
 catálogo y permisos aprobaron. Las regresiones focales de clasificación de
-fallos también aprobaron; la regresión integral aprobó según el informe de verificación. La composición desde `serve`,
-el servicio/HTTP V2 y Qadra V2 siguen pendientes. El ADR permanece propuesto
-para ese conjunto de trabajo.
+fallos también aprobaron; la regresión integral de esa entrega tiene su propio
+registro en el informe de verificación. El servicio humano y HTTP exponen V2 y
+consultas de vigencia con verificación focal. Qadra V2 dispone de pruebas
+unitarias y de navegador con HTTP controlado. La composición desde `serve` está
+implementada localmente y su planificación y supervisión tienen pruebas focales.
+La aceptación real de Qadra completó 25 escenarios, incluidos los recorridos
+de reevaluación y revisión humana en escritorio y móvil. El recorrido HTTP
+conservó R1 a R5 tras reinicios y restauración. La regresión final de la revisión
+publicada y su integración siguen pendientes; el ADR permanece propuesto hasta
+cerrar esa entrega. El alcance y las limitaciones de las comprobaciones están
+en [el informe de verificación](../verification-report.md).
 
 ## Context
 
@@ -107,9 +115,37 @@ DLRV2 compromete la única evaluación histórica, las políticas, el estado y
 los motivos canónicos de revisión, junto con la huella del manifiesto DLOB1.
 DLST2 compromete además la administración observada con su evidencia completa,
 sin reemplazar la administración histórica del cálculo. El vencimiento
-operativo sólo existe si el plazo está activo, la revisión está `Accepted` y
-la evaluación histórica contiene un instante. El legado sin declaración,
+operativo sólo existe si el plazo está activo, la revisión está `Accepted`,
+la evaluación histórica contiene un instante y una lectura autorizada ha
+comprobado la vigencia de sus dependencias. El legado sin declaración,
 la revisión pendiente y el retiro no habilitan una fecha operativa.
+
+### Comprobación actual separada de la captura
+
+La lectura actual resuelve la cabeza del plazo y las dependencias pertinentes
+bajo una misma transacción autorizada con el bloqueo común de auditoría. Verifica
+la evidencia histórica seleccionada, la continuidad administrativa y las cabezas
+completas; compara todas las observaciones con sus políticas sin ejecutar otra
+vez el cálculo. La cabeza del padre de una notificación se resuelve de forma
+independiente. El instante de comprobación se obtiene después de esas lecturas.
+
+`DeadlineCurrent` mantiene juntos el detalle verificado y `DeadlineOperational`,
+con una vinculación privada a identidad, revisión y captura. El resumen copia
+esos campos y conserva la vinculación; el servicio y el proyector rechazan una
+sustitución de identidad, fecha, desfase o metadatos resumidos. La lista aplica
+paginación y filtro antes de cargar cabezas y entrega datos sólo después de
+confirmar su auditoría. No se recupera de una inconsistencia devolviendo vigencia
+sin comprobar o un resultado histórico como si fuera actual.
+
+`Current` significa que las cabezas no exigen actualizar el seguimiento capturado
+según sus políticas; `Changed` impide usar la fecha histórica. `NotChecked`
+identifica consultas exactas, confirmaciones, legado sin políticas y retiro.
+Un seguimiento pendiente puede estar `Current` respecto de sus observaciones y
+seguir sin fecha operativa porque falta aceptación humana. Los cambios ordinarios
+`Fixed` pueden conservar vigencia; un retiro nuevo exige revisión. La cola, el
+cursor y un resultado sin cambios no se usan como prueba de vigencia. La lectura
+no modifica trabajos ni revisiones. Cada futura agenda o entrega de aviso debe
+revalidar acceso y vigencia para su propio instante de uso.
 
 ### Preparacion humana y sucesores
 
@@ -231,6 +267,38 @@ la latencia de operaciones concurrentes requieren mediciones propias. Si en el
 futuro se separa el cálculo de la transacción, esa nueva frontera necesitará
 reclamación y protección contra confirmaciones de trabajadores reemplazados.
 
+### Composicion y cierre del servidor
+
+`serve` abre y valida despachador y consumidor antes de aceptar tráfico. Un
+único consumidor bloqueante alterna eventos y conciliación del legado. Cada
+ciclo despacha una página e intenta como máximo el mismo número de trabajos,
+en serie, seguido siempre por una pausa positiva. `--deadline-page-limit`
+admite 1 a 100, con 20 por omisión; `--deadline-poll-ms` admite un entero positivo
+de 32 bits, con 1000 por omisión. Un resultado `Deferred` consume una unidad
+del lote y permite continuar con otros trabajos elegibles. No se drena una
+cola completa antes de ceder ejecución.
+
+Los errores de puerto retornados permiten otro ciclo después de la pausa;
+los errores explícitos de configuración o integridad detienen el consumidor
+y el servidor. La reconexión de ambos adaptadores repite la apertura con
+validación completa del inventario y reinstala los presupuestos por sentencia
+y bloqueo. Ningún reintento ejecuta trabajo sobre una conexión no validada.
+
+El supervisor registra SIGINT y SIGTERM en Unix antes de iniciar el trabajo.
+Una señal, el fin del HTTP o el fin del consumidor solicitan la parada y el
+cierre gradual del HTTP. Se espera tanto el fin de las solicitudes como el
+consumidor bloqueante; no se aborta ni se abandona una transacción en curso.
+La espera entre ciclos se interrumpe por parada, pero una notificación sin
+parada no reduce la pausa mínima. Un fallo o fin inesperado del consumidor
+no deja al servidor funcionando sin procesamiento. Los diagnósticos de esa
+frontera usan categorías estables y conservan fallos de ambos lados al cerrar.
+
+El propietario final del router y de los adaptadores síncronos permanece fuera
+del contexto asíncrono. Esto permite liberar las conexiones PostgreSQL después
+del cierre sin ejecutar su limpieza bloqueante dentro de Tokio. La política
+acota llamadas por ciclo, no el tiempo total de apertura, consulta, cálculo o
+cierre: los presupuestos por sentencia no constituyen un plazo global.
+
 ### Verificacion
 
 Probar recibos antiguos y nuevos, alteracion de politicas y causas, rechazo de
@@ -243,8 +311,9 @@ revision requerida, manteniendo aislamiento, conflictos y borradores.
 Los contratos de aplicación comprueban V1/V2, observaciones y sucesores. El
 adaptador persiste decisiones humanas V2 y reconstruye las revisiones exactas
 observadas; sus migraciones conservan filas y recibos históricos V1. El HTTP
-mantiene temporalmente V1 y rechaza registros que no puede proyectar completos,
-en lugar de omitir autoría o revisión. La escritura técnica local exige la
+escribe decisiones humanas V2 y conserva historia V1/V2 con autoría y causa
+explícitas. El contrato de [seguimiento y vigencia](../deadline-tracking-api.md)
+separa cálculo conservado y fecha operativa. La escritura técnica local exige la
 frontera durable de trabajo, resultado y causa; el puerto humano sigue rechazando
 la autoría técnica. Los resultados ejecutados y sus límites se registran en
 [el informe de verificación](../verification-report.md). Las pruebas puras no

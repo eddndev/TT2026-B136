@@ -86,9 +86,42 @@ coverage or document builds. After an interruption, inspect live processes
 before starting another run; a lost terminal handle can leave child processes
 running. Keep completed evidence separate from interrupted runs.
 
+When `/tmp` uses tmpfs, configure `TMPDIR` on disk before starting a local
+campaign. Use `output/tmp` in the active checkout, after
+confirming that checkout is on a disk-backed filesystem. From the repository
+root, create the private directory before exporting it:
+
+```bash
+mkdir -p output/tmp
+chmod 700 output/tmp
+export TMPDIR="$PWD/output/tmp"
+export CARGO_BUILD_JOBS=1
+export RUST_TEST_THREADS=1
+```
+
+Keep this environment for the coordinator and its child processes, including
+browser runners, and use one browser worker. Do not delete unrelated files in
+`/tmp`, the checkout or the temporary directory. Record the temporary filesystem
+with verification evidence; a resource-loading error alone does not establish
+its exact cause.
+
+Implement and verify one observable workflow at a time. During development,
+use the failing test and focused checks for the affected behavior. Commit and
+publish coherent checkpoints with their executed evidence and remaining checks;
+do not require another full regression for each checkpoint or documentation
+adjustment. Repeat checks only when a change, failure or unresolved concern
+justifies it. Keep incomplete deliveries in a draft pull request.
+
+Run the full regression once when closing the functional delivery, before
+merging. CI may supply this evidence for the published revision; do not repeat
+the same broad campaign locally just to wait for it again remotely. Address
+failures with focused checks, then rerun the affected closing checks. Preserve
+TDD and all required merge gates.
+
 The installed toolchain is newer than the declared MSRV. MSRV is declared with
 `rust-version` in the workspace manifest and enforced in CI, not by pinning a
-toolchain locally. Before committing Rust changes, run:
+toolchain locally. Closing a Rust delivery requires these checks, locally or
+in CI for the revision being integrated:
 
     cargo fmt --all
     cargo build --workspace
@@ -270,7 +303,8 @@ is still unfinished.
   or archived and do not certify normative authenticity or applicability. The
   Qadra calendar interface is verified locally. Its exact revisions can feed
   recorded deadline evaluations. Local reevaluation has an internal worker port;
-  automatic activation, server composition and notifications remain pending.
+  its server composition has real API and browser verification. Automatic activation
+  and notifications remain pending.
   See `docs/judicial-calendars-api.md`
   and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 - The `0015_` and `0016_` migrations add immutable source-change events and a
@@ -283,47 +317,71 @@ is still unfinished.
   has its own offset and coverage; incomplete inputs remain blocked. The HTTP
   catalog is composed into the server and supplies exact profiles to persisted
   evaluations. Source events feed the local dispatcher and worker ports; their
-  server composition remains pending. See
+  local server composition has real API and browser verification. See
   `docs/deadline-profiles-api.md` and
   `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
 - The `0017_` migrations persist case deadlines and immutable evaluation history.
   Register, correct, declare attention and retire commit state and audit together.
   Historical reads retain exact profile, source, calendar, responsible and result
-  captures without reevaluation. The backend and HTTP API are integrated in
+  captures without reevaluation. The V1 backend and HTTP API are integrated in
   `main`; their reproduced verification is in `docs/verification-report.md`.
   The Qadra workflow and case-authorized, audited selector of eligible active
   accounts are also integrated in `main`. Owner and Litigator manage; authorized
   Paralegal reads; Client is denied. Closure preserves reads and blocks writes.
   The selector does not grant membership or replace a general member directory.
-  The full local Rust, HTTP/restore, browser and web verification campaigns
-  have passed. Remote checks and integration have their own evidence. See `docs/deadlines-api.md`,
+  The integrated V1 delivery passed its local Rust, HTTP/restore, browser and web
+  verification campaigns. The later human/HTTP V2 changes have separate focal
+  evidence and are not covered by those historical runs. Remote checks and
+  integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, server composition of reevaluation, combined hearing/deadline
-  agenda, alerts and the qualified legal-profile acceptance corpus remain pending.
+  Automatic activation, combined hearing/deadline agenda, alerts and the qualified
+  legal-profile acceptance corpus remain pending. The later reevaluation runtime
+  is composed locally in `serve` and has separate real-service verification.
 - The `0018_` migrations extend deadline storage with human V2 tracking captures
-  and observations while preserving V1 history. Historical reads reconstruct
-  exact source and administration evidence without recalculation. Human commits
-  reauthorize and preserve action-specific continuity. The human port rejects
-  technical authors; technical writes use the durable worker boundary below.
-  The human service and HTTP workflow still use V1. Server composition and
-  HTTP/Qadra V2 remain pending. Verification belongs to its recorded code revision;
-  see `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
+  and observations while preserving V1 history. The single human service and
+  HTTP workflow now prepare and confirm V2: register and correct require explicit
+  policies; attention and retirement retain tracking and historical calculation.
+  Authorship captures the authenticated user and email, and reauthentication
+  compares the complete principal. Notification-parent heads are resolved
+  separately from the parent's historical revision in the selected notification.
+  Historical reads reconstruct exact evidence without recalculation. Current
+  detail and list reads check verified dependency heads under audited access and
+  keep calculation history separate from operational freshness and due time.
+  The human port rejects technical authors. This extension has local focal
+  verification. Qadra V2 passed 88 Node tests and 36 controlled-HTTP browser
+  cases, including eight new desktop/mobile cases. A separate real-backend
+  browser campaign passed 25 cases, including two Follow scenarios at 1440 and
+  390 pixels; six screenshots were visually inspected. The composed runtime
+  passed 31 unit and four CLI-help tests; its 26 loop/stop/supervision tests are
+  included in the 31. A real API campaign passed reevaluation, TERM/INT shutdown,
+  restart and restoration of R1-R5. Its final repeat remains pending after the
+  recovery-token assertion fix. A new global regression and integration into
+  `main` remain pending. See `docs/deadline-tracking-api.md`,
+  `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
   and audit commit together; jobs reserve their operation against human writes.
-  Startup verifies schema, runtime grants and historical inventory. Candidate
-  bounds and missing-job filters apply before the SQL result is materialized.
-  This adapter does not yet run from `serve`; the separate local worker consumes
-  its jobs. Service/HTTP V2 and Qadra remain pending; see `docs/deadline-dispatch.md`.
+  Startup and reconnection verify schema, runtime grants and historical inventory.
+  Reconnection restores statement and lock budgets; corruption prevents reuse until
+  repair or restoration. Eleven focal reconnection, atomicity and timeout tests
+  passed. Candidate bounds and missing-job filters apply before materialization.
+  The local `serve` runtime serializes dispatch and worker consumption; real API
+  and browser campaigns exercised this composition. See `docs/deadline-dispatch.md`.
 - The `0020_` migrations and `PostgresDeadlineWorkerStore` implement local durable
   consumption, technical revisions, verified no-change results and failed attempts.
   Completion, revision and audit share a transaction; failures retain their own
   audited attempts and stable operation identities. History resolves exact sources
   without current-head substitution. Retry delay never bypasses startup inventory
   checks: persistent corruption prevents reopening until repair or restoration.
-  Focal catalog, real restore/retry and failure-classification tests passed;
-  full local regression passed; its scope is recorded in `docs/verification-report.md`. The port is not composed in `serve` or
-  HTTP/Qadra V2. See `docs/deadline-worker.md` and `docs/verification-report.md`.
+  Focal catalog, real restore/retry and failure-classification tests passed, as
+  did the consumer delivery's local regression. Their scope is recorded in
+  `docs/verification-report.md`. The worker is composed locally in `serve`.
+  Runtime verification passed 31 unit and four CLI-help tests, including the
+  26 loop, stop and supervision tests. Real API verification covered reevaluation,
+  TERM/INT shutdown, restart and restoration of R1-R5. The final API repeat and
+  new global regression remain pending. The human HTTP contract represents
+  V1/V2 history and technical provenance without accepting worker commands. See
+  `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,
@@ -429,9 +487,14 @@ is still unfinished.
   attention, retirement and history, verified with mock and real-service browser
   campaigns.
   Conflicts preserve drafts and uncertain responses require exact receipt
-  reconciliation without automatic resubmission. The local reevaluation worker
-  has no HTTP/Qadra V2 integration yet; combined agenda and alerts remain pending.
-  Preserve its design tokens,
+  reconciliation without automatic resubmission. Historical real-service browser
+  campaigns describe the integrated V1 interface. Qadra V2 passed 88 Node tests,
+  36 controlled-HTTP browser cases and a separate 25-case real-backend campaign.
+  The real campaign includes two Follow scenarios at desktop 1440 and mobile
+  390 pixels, with six screenshots visually inspected. The dispatcher and worker
+  run in the composed `serve` process. Final API repetition, new global regression
+  and integration into `main` remain pending; combined agenda and alerts retain
+  their own scope. Preserve its design tokens,
   components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -458,7 +521,8 @@ current code before planning subsequent work in this dependency order.
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
 2. Keep functional deliveries integrated with approved CI. Qualify the remaining legal profiles with primary sources and acceptance cases;
-   finish verification and server/HTTP/Qadra integration of durable reevaluation;
+   complete the final API repeat and new global regression, then integrate the
+   verified human/HTTP/Qadra V2 workflow and composed durable runtime into `main`;
    implement activation, combined agenda and notifications, plus resources linked
    to resolutions. Hearing scheduling and declared sessions/results already preserve exact history,
    attendance, agreements and provenance. The calendar backend/API classifies

@@ -211,13 +211,19 @@ la sección 3.7 del capítulo 3) y se recuperó el diagrama de la metodología X
 Los apartados de operandos y fuentes temporales describen la aritmética de días,
 meses y horas y la extracción de tiempos desde resoluciones, notificaciones y
 resultados de audiencia. Sus pruebas focales de extracción y coordinación son
-45. Estos apartados documentan componentes de dominio; la actualización completa
-de calendarios y hechos, los plazos persistentes, las alertas y el cierre
-académico conservan sus pendientes en
+45. Estos apartados documentan componentes de dominio; los perfiles, el registro
+persistente y el seguimiento de cambios se desarrollan en sus apartados propios.
+Las alertas y el cierre académico conservan sus pendientes en
 [`docs/academic-report-verification.md`](../docs/academic-report-verification.md).
 
 La resolución autorizada de insumos agrega comprobaciones de servicio y
 PostgreSQL con revisión histórica y cabeza observada por separado. Sus 50 pruebas
 se distribuyen entre permiso, material, revisiones, servicio y backend; los
-resultados ejecutados se conservan en el informe técnico. La preparación permanece
-en memoria y no habilita todavía evaluaciones persistentes ni alertas.
+resultados ejecutados se conservan en el informe técnico. La preparación aislada
+permanece en memoria; el servicio de plazos la compone con evaluaciones
+persistentes, decisiones humanas V2 y reevaluación durable desde `serve`.
+Qadra conserva la historia y distingue revisión, cálculo y vigencia. Su campaña
+con servidor real aprobó 25 escenarios, incluidos dos de seguimiento en
+escritorio y móvil. La repetición final de la campaña API y la regresión global
+en curso todavía no tienen un resultado definitivo. Las alertas mantienen un
+alcance independiente pendiente.

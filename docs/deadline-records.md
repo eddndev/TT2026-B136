@@ -1,16 +1,23 @@
 # Registro y atención de plazos
 
-Estado: el flujo V1 de modelo, aplicación, persistencia PostgreSQL, HTTP y Qadra
-está implementado. La ampliación de persistencia humana V2 y sus fronteras
-pendientes se describen en la sección Seguimiento V2.
+Estado: la base V1 de registro, persistencia, HTTP y Qadra está integrada.
+El servicio humano único y el contrato HTTP ahora preparan y confirman V2,
+con políticas explícitas y consultas de vigencia en detalle actual y listado.
+La interfaz Qadra V2 aprobó 88 pruebas Node y 36 recorridos con HTTP controlado.
+Una campaña separada con backend real aprobó 25 recorridos, incluidos dos Follow
+a 1440 y 390 píxeles; seis capturas se inspeccionaron visualmente. Dispatcher y
+worker están compuestos en `serve`; la campaña API real comprobó reevaluación,
+cierre TERM/INT, reinicios y restauración de R1-R5. La repetición final API tras
+corregir su comprobación de token, la nueva regresión global y la integración en
+`main` siguen pendientes.
 
-Para el flujo V1 están aprobadas las pruebas focales de esquema, transacciones,
-concurrencia y revalidación, la restauración PostgreSQL y el ensayo integrado de API con
-servicios reales. Qadra incorpora captura, consultas, atención, retiro e historia
-con selectores exactos y conciliación de envíos inciertos. Sus comprobaciones de
-navegador y la integración de cada ampliación se registran por
-separado en el [informe de verificación](verification-report.md). La decisión está en
-[ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md).
+Las campañas V1 de esquema, transacciones, concurrencia, restauración PostgreSQL,
+API con servicios reales y navegador conservan su alcance histórico. La evidencia
+focal de la ampliación V2 se registra por separado en el
+[informe de verificación](verification-report.md). Véanse
+[ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md),
+[los recibos V2](deadline-tracking-receipts.md) y
+[el contrato HTTP de seguimiento](deadline-tracking-api.md).
 
 ## Modelo
 
@@ -34,8 +41,8 @@ capturado. Determinar si ya transcurrió comparándolo con el reloj es una cuest
 separada de la atención y del retiro; esa clasificación no se persiste como un
 estado adicional en este corte.
 
-En el flujo V1, un cálculo nuevo requiere la cabeza publicada del perfil.
-La preparación humana V2 admite una revisión histórica publicada con política
+En el flujo histórico V1, un cálculo nuevo requería la cabeza publicada del
+perfil. El servicio humano V2 admite una revisión histórica publicada con política
 `Fixed`; también exige que la cabeza observada siga publicada. `Follow` requiere
 la selección vigente. Ninguna de esas políticas acepta implícitamente el retiro.
 Las capturas anteriores siguen disponibles para consulta, atención y retiro.
@@ -91,19 +98,57 @@ alertas tendrá que revalidarlo nuevamente.
 
 ### Seguimiento V2
 
-El adaptador admite también decisiones humanas con recibos V2. Conserva la
-evaluación histórica y agrega políticas, estado de revisión, observaciones y
-administración exterior mediante las migraciones `0018_`. El contrato de bytes,
-selección `Fixed`/`Follow` y límites propios de DLRV2/DLST2/DLTX2 está en
-[los recibos de seguimiento](deadline-tracking-receipts.md).
+El servicio humano único y el adaptador confirman decisiones con recibos V2.
+El comando `DeadlineHumanCommand` exige políticas en alta y corrección:
+perfil siempre `Fixed` o `Follow`, fuente conocida y calendario presente con
+una de esas dos políticas, y `Undetermined` para fuente desconocida o calendario
+ausente. Atención y retiro no admiten políticas de reemplazo.
 
-Atención y retiro conservan exactamente esas capturas; un upgrade manual V1
-recupera sólo las observaciones ya registradas, sin añadir un padre ni una
-cabeza posterior. La validación resuelve material histórico exacto y ambas
-huellas del predecesor. El servicio y HTTP mantienen V1 mientras evoluciona
-su contrato. El [consumidor local](deadline-worker.md) añade revisiones técnicas
-y resultados durables mediante `0020_`; el puerto humano no admite esa autoría.
-Las cotas V1 siguientes siguen aplicándose a sus formatos.
+El autor conserva UUID y correo de la identidad autenticada. La reautenticación
+compara el principal completo; confirmar revalida autorización, base, políticas,
+observaciones, cálculo y recibo. La cabeza actual del padre de una notificación
+se carga en la misma transacción, separada de la resolución histórica referida
+por la notificación seleccionada. Un avance administrativo activo puede aceptarse
+en alta o corrección si se verifica su continuidad y ambas capturas administrativas
+coinciden; no permite cambiar contenido bajo una revisión igual ni retroceder.
+
+Atención y retiro conservan cálculo y seguimiento capturados. Al partir de V1,
+la reconstrucción usa sólo sus observaciones conservadas, sin inventar un padre
+observado o una cabeza posterior ni declarar aceptación. Los bytes V1 permanecen
+legibles en su formato original. Las migraciones `0018_` y
+[los recibos de seguimiento](deadline-tracking-receipts.md) fijan DLRV2/DLST2/DLTX2.
+El [consumidor local](deadline-worker.md) añade revisiones técnicas y resultados
+durables mediante `0020_`; el puerto humano rechaza esa autoría.
+
+### Vigencia comprobada e historia inmutable
+
+El detalle actual y el listado cargan cabezas verificadas de perfil, fuente,
+calendario y padre de notificación bajo la misma transacción autorizada y auditada.
+Comparan esas cabezas con las observaciones capturadas sin recalcular ni agregar
+una revisión del plazo. El resultado operativo queda vinculado a la identidad,
+revisión y captura exactas del detalle o resumen que acompaña.
+
+`Current` significa que no se encontró un cambio relevante según las políticas;
+no equivale a aceptación. `Follow` detecta avances; un avance ordinario bajo
+`Fixed` conserva vigencia si la cabeza verificada permanece activa. El retiro
+requiere revisión incluso bajo `Fixed`. Una regresión, sustitución de identidad
+o alteración de contenido es inconsistencia y se rechaza. La cabeza del padre
+de notificación participa como dependencia de fuente.
+
+Sólo un plazo activo, aceptado, con instante calculado y vigencia `Current`
+expone vencimiento operativo. El legado sin políticas declaradas y los plazos
+retirados devuelven `NotChecked`; una revisión pendiente no obtiene vencimiento
+operativo. El cierre organizativo del expediente conserva las lecturas y no
+suspende por sí mismo el término. Una consulta exacta del historial conserva
+su captura y no acredita vigencia actual.
+
+La cola, la causa de un evento y los resultados `Completed` o sin cambios del
+worker no determinan esta lectura. Una cabeza nueva puede detectarse antes del
+despacho; un trabajo anterior puede seguir pendiente aunque una corrección humana
+ya haya observado esa cabeza. Los resultados sin cambios conservan sus propias
+cabezas comprobadas como evidencia histórica.
+
+Las cotas V1 siguientes siguen aplicándose a sus formatos históricos.
 
 ### Esquema y capturas acotadas
 
@@ -180,9 +225,12 @@ validez jurídica de los perfiles sintéticos. Véanse las
 
 El [despachador](deadline-dispatch.md) expande eventos y el
 [consumidor local](deadline-worker.md) confirma revisiones, resultados sin cambios
-e intentos. Su composición en servidor y su representación HTTP/Qadra V2 siguen
-pendientes, junto con activación, sustitución atómica de alertas, correo y agenda
-conjunta del [ciclo de vida](deadline-lifecycle.md). La interfaz Qadra V1 tiene
-campañas separadas de transporte controlado y servicios reales, registradas en
-el informe. El ensayo HTTP histórico no acredita el consumidor nuevo ni entrega
-de avisos. La aceptación del ciclo operativo completo permanece pendiente.
+e intentos. Su composición en servidor tiene 31 pruebas unitarias y cuatro de
+ayuda CLI aprobadas; las 26 de bucle, parada y supervisión están incluidas en
+las 31. La campaña API real conservó R1-R5 tras reinicios y restauración, con
+salida cero ante TERM/INT; Qadra V2 aprobó 25 recorridos con backend real.
+La repetición final API, la nueva regresión global y la integración en `main`
+conservan seguimiento propio. Activación, sustitución atómica de alertas,
+correo y agenda conjunta mantienen el alcance pendiente del
+[ciclo de vida](deadline-lifecycle.md). Las campañas históricas V1 no se
+atribuyen a estos resultados nuevos ni acreditan entrega de avisos.

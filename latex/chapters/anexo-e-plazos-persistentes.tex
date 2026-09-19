@@ -14,14 +14,17 @@ La \cref{tab:matriz-plazos-persistentes} relaciona la implementación persistent
     Entrada \texttt{DEVI1} & Selección, condiciones, cantidad opcional y precisión reversibles; rechazo de representaciones inválidas. \\
     Resultado \texttt{DRES1} & Candidata, bloqueos y traza conservados sin recalcular el historial. \\
     Preparación y recibo & Vinculación de contenido revisado, contexto capturado y envío; ausencia de fechas fabricadas. \\
-    Servicio y consultas & Permisos, reautenticación, ámbito, revisión exacta y cursores coherentes. \\
-    PostgreSQL & Estado y auditoría atómicos, responsable elegible, comparación de base y fuentes vigentes. \\
+    Decisión humana & Políticas obligatorias, autor auténtico y conservación del seguimiento en atención o retiro. \\
+    Servicio y consultas & Permisos, reautenticación completa, ámbito, revisión exacta y cursores coherentes. \\
+    PostgreSQL & Estado y auditoría atómicos, responsable elegible, comparación de base y fuentes verificadas. \\
     Historia y atención & Cálculo inmutable ante atención o retiro, con dependencias históricas independientes de las cabezas actuales. \\
     Seguimiento V2 & Observaciones verificadas, políticas explícitas, ambas huellas del predecesor y continuidad de decisiones humanas. \\
+    Vigencia y listado & Captura y cabezas verificadas bajo lectura auditada; revisión, cálculo y fecha operativa separados. \\
     Consumidor local & Revisión, resultado y auditoría atómicos; motivos sin cambios ligados a evidencia histórica exacta. \\
     Intentos y recuperación & Fallos tipados, espera persistida, conciliación de respuestas y conservación de todos los intentos. \\
     Catálogo y respaldo & Restricciones y proyecciones verificadas; restauración sujeta a contraste de todas las revisiones. \\
-    HTTP & Comandos acotados y proyección estructurada de entradas, resultados, recibos e historia. \\
+    HTTP y Qadra & V1/V2, autoría, causa, observaciones, decisión explícita y conciliación sin reenvío automático. \\
+    Servidor compuesto & Lotes secuenciales, alternancia, pausa, errores y cierre coordinado de HTTP y consumidor. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -33,6 +36,9 @@ Los archivos se agrupan por frontera para mantener trazabilidad sin confundir pr
   \item Entrada: \texttt{evaluation\_input\_encoding}. Resultado y traza: los archivos cuyo sufijo comienza con \texttt{evaluation\_record}.
   \item Preparación y recibos: \texttt{preparation}, \texttt{receipts}, \texttt{receipt\_vectors} y \texttt{state\_bytes}.
   \item Autorización, contexto administrativo y consultas: \texttt{service}, \texttt{service\_administration} y \texttt{queries}.
+  \item Decisión humana e identidad completa: \texttt{human\_command} y \texttt{service\_identity}.
+  \item Vigencia y vínculo a la captura: \texttt{currentness}, \texttt{currentness\_integrity} y \texttt{currentness\_binding}.
+  \item Consulta actual y resúmenes: \texttt{current\_service} y \texttt{current\_overview}.
 \end{itemize}
 
 Las pruebas de infraestructura residen en \rutarepo{crates/infrastructure/tests/}. También comparten el prefijo \texttt{deadline\_} y la extensión \texttt{.rs}. Sus sufijos identifican los grupos siguientes:
@@ -40,21 +46,26 @@ Las pruebas de infraestructura residen en \rutarepo{crates/infrastructure/tests/
   \item Los que comienzan con \texttt{backend}: operaciones, revalidación, concurrencia y familias de cálculo.
   \item \texttt{storage} e \texttt{input\_history}: reconstrucción exacta y corrupción.
   \item \texttt{input\_projection}, \texttt{schema}, \texttt{import} y \texttt{restore}: proyección SQL, arranque, importación y respaldo.
+  \item \texttt{tracked\_notifications}: padre observado independiente de la referencia histórica.
+  \item \texttt{current\_backend}, \texttt{current\_guards} y \texttt{current\_list\_backend}: lectura de cabezas verificadas, autorización, auditoría y listado.
+  \item \texttt{current\_read\_concurrency}: lectura auditada concurrente, espera observada en PostgreSQL y conservación del historial.
 \end{itemize}
 Las migraciones del grupo \texttt{0017} residen en \rutarepo{migrations/}.
 
-En el directorio \rutarepo{crates/web/tests/}, los archivos con prefijo \texttt{deadline\_http} comprueban el contrato de transporte. Las pruebas de proyección del resultado se encuentran en \rutarepo{crates/web/src/deadlines/}, archivo \texttt{result\_tests.rs}. El informe \rutarepo{docs/verification-report.md} distingue pruebas focales, adaptadores reales y recorrido HTTP integrado. El documento \rutarepo{docs/academic-report-verification.md} registra por separado la compilación y revisión visual del manuscrito.
+En el directorio \rutarepo{crates/web/tests/}, los archivos con prefijo \texttt{deadline\_http} comprueban el contrato de transporte; \texttt{deadline\_http\_tracking.rs} cubre políticas y proyección actual e histórica. Las pruebas de proyección de resultados, recibos, observaciones y contexto se encuentran en \rutarepo{crates/web/src/deadlines/}. El informe \rutarepo{docs/verification-report.md} distingue pruebas focales, adaptadores reales y recorrido HTTP integrado. El documento \rutarepo{docs/academic-report-verification.md} registra por separado la compilación y revisión visual del manuscrito.
 \par
 \endgroup
 
-La captura y la consulta de plazos en Qadra conservan el contrato V1. La composición del despachador y el consumidor en \texttt{serve}, el servicio humano y HTTP V2, las alertas y la agenda conjunta requieren sus recorridos de aceptación, junto con la validación de perfiles jurídicos aplicables. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
+El servicio humano, el transporte y Qadra incorporan seguimiento V2 y conservan la lectura histórica V1. \texttt{serve} compone despacho y consumo secuencial con supervisión de cierre. Las comprobaciones focales se distinguen de los recorridos con procesos y servicios reales. Un recorrido HTTP real comprobó reevaluación, cierre por señales, reinicios y restauración de cinco revisiones; la repetición final de la campaña de API permanece pendiente. La campaña de Qadra con backend real aprobó 25 escenarios, incluidos los dos nuevos de seguimiento en escritorio y móvil. Agenda, alertas y validación de perfiles jurídicos aplicables conservan sus propias obligaciones. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
 
 
 \subsection{Selector e interfaz de plazos}
 
 Las comprobaciones del selector mantienen el prefijo \texttt{deadline\_responsibles}. En \rutarepo{crates/application/tests/} se verifican servicio y respuestas; en \rutarepo{crates/web/tests/}, el contrato HTTP. Los archivos terminados en \texttt{backend.rs} y \texttt{concurrency.rs} del directorio de pruebas de infraestructura comprueban selección SQL y revocación concurrente.
 
-En \rutarepo{web/tests/}, los archivos cuyo nombre comienza por \texttt{deadline-} comprueban el cliente, resultados, recibos, referencias y campos. El subdirectorio \texttt{browser/} agrega navegación, consultas, acceso, edición y presentación con transporte controlado. En \texttt{live/}, los archivos de plazos terminados en \texttt{workflow.spec.mjs}, \texttt{permissions.spec.mjs} y \texttt{concurrency.spec.mjs} ejercitan el servidor real. Se ejecutan mediante \rutarepo{scripts/web-demo.sh}, junto con los recorridos de regresión existentes.
+En \rutarepo{web/tests/}, los archivos cuyo nombre comienza por \texttt{deadline-} comprueban cliente, resultados, recibos, referencias, vigencia y políticas del editor. El subdirectorio \texttt{browser/} agrega navegación, consultas, acceso, edición y presentación con transporte controlado; \texttt{deadline-tracking-v2.spec.mjs} contiene los casos nuevos de seguimiento. La campaña focal del cliente aprobó 88 pruebas y la regresión de navegador controlado aprobó 36 escenarios, incluidos esos ocho casos nuevos. Son fronteras distintas y sus resultados no se suman como una campaña única.
+
+En \rutarepo{web/tests/live/}, los archivos de plazos terminados en \texttt{workflow.spec.mjs}, \texttt{permissions.spec.mjs} y \texttt{concurrency.spec.mjs} ejercitan el servidor real. El nuevo \texttt{deadline-reevaluation.spec.mjs} comprueba la transición de calendario seguido, revisión pendiente por fuente y confirmación humana con historia intacta. Sus datos se preparan mediante \rutarepo{scripts/web-deadline-reevaluation.mjs} con activación explícita y raíces independientes de las selecciones históricas fijas. Sus casos aprobados en escritorio y móvil pertenecen a la campaña real de 25 escenarios; la inspección de sus seis capturas no detectó recortes ni desbordamiento. El orquestador de las campañas de navegador es \rutarepo{scripts/web-demo.sh}.
 
 El recorrido \rutarepo{scripts/api-demo.sh} incorpora la consulta de responsables y comprueba que la proyección no exponga credenciales. Los ensayos de navegador conservan resultados diarios, mensuales y horarios, relaciones históricas exactas, atención y retiro, cierre y revocación, conflictos y conciliación sin reenvío. La matriz separa el transporte controlado de las campañas reales; sus conteos y resultados observados permanecen en el informe de verificación.
 
@@ -66,6 +77,10 @@ Los valores y puertos están en \rutarepo{crates/application/src/}. Los módulos
 
 En \rutarepo{crates/infrastructure/tests/}, los archivos comparten el prefijo \texttt{deadline\_worker\_} y la extensión \texttt{.rs}. Los sufijos \texttt{backend}, \texttt{guards} y \texttt{retries} identifican las once pruebas de la campaña focal inicial. \texttt{catalog} y \texttt{recovery} corresponden a las cinco pruebas focales de apertura, permisos, restauración real sin migración reparadora y crecimiento de reintentos. \texttt{profile\_failure} y \texttt{sql\_failures} corresponden a las tres pruebas focales de clasificación. Los archivos \texttt{families}, \texttt{history} e \texttt{inventory} amplían los escenarios del consumidor; sus casos se ejecutaron en la campaña integral, que incluye las 27 pruebas PostgreSQL del consumidor. El informe técnico conserva ese resultado sin volver a sumar las campañas focales.
 
-El contrato está en \rutarepo{docs/deadline-worker.md}; el compromiso de observaciones y la continuidad, en \rutarepo{docs/deadline-tracking-receipts.md}; y el respaldo, en \rutarepo{docs/database-operations.md}. La decisión de arquitectura es \rutarepo{docs/adr/0037-durable-deadline-reevaluation.md}. El informe técnico conserva los resultados focales por separado y no los atribuye a HTTP o Qadra V2.
+El contrato está en \rutarepo{docs/deadline-worker.md}; el compromiso de observaciones y la continuidad, en \rutarepo{docs/deadline-tracking-receipts.md}; la proyección y vigencia, en \rutarepo{docs/deadline-tracking-api.md}; y el respaldo, en \rutarepo{docs/database-operations.md}. La decisión de arquitectura es \rutarepo{docs/adr/0037-durable-deadline-reevaluation.md}. El informe técnico conserva los resultados históricos del consumidor separados de las verificaciones humanas, HTTP y Qadra V2.
 \par
 \endgroup
+
+\subsection{Composición y supervisión del servidor}
+
+En \rutarepo{crates/bin/src/}, \texttt{serve\_deadline\_runtime.rs} implementa el ciclo; \texttt{serve\_start.rs} compone sus propietarios; y \texttt{serve\_runtime.rs}, \texttt{serve\_signals.rs} y \texttt{serve\_stop.rs} coordinan terminación y parada. Los archivos de prueba correspondientes comprueban la composición sin sustituir la aceptación de procesos reales. El ejecutable aprobó 31 pruebas unitarias y cuatro de ayuda y configuración; las 26 de ciclo y supervisión están incluidas en las unitarias. Clippy aprobó todos los objetivos del ejecutable. Estos controles no se atribuyen a una nueva campaña global del espacio de trabajo.

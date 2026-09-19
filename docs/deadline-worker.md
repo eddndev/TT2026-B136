@@ -10,16 +10,54 @@ elija autor tecnico. El contrato esta en
 `crates/application/src/deadline_worker/` y la decision arquitectonica en
 [ADR 0037](adr/0037-durable-deadline-reevaluation.md).
 
-Este adaptador todavia no se ejecuta desde `serve`. La composicion operativa,
-el servicio humano V2, HTTP y Qadra V2 siguen pendientes. Tampoco implementa
-activacion de plazos, agenda conjunta, alertas o calificacion juridica de
-perfiles. Sus pruebas y las del flujo HTTP V1 tienen evidencias separadas en
-[el informe de verificacion](verification-report.md).
+Este adaptador está compuesto en `serve`, con recorridos API y navegador reales
+aprobados y evidencia separada de sus comprobaciones internas.
+El servicio humano y HTTP V2 están implementados localmente, con políticas
+explícitas, proyección de historia
+V1/V2 y consultas de vigencia. Su representación de una revisión técnica no
+permite ejecutar el consumidor ni elegir su autor desde un comando humano.
+Qadra V2 está implementada y aprobaron 88 pruebas Node y 36 recorridos de
+navegador con HTTP controlado, incluidos ocho nuevos de escritorio y móvil.
+La campaña posterior de navegador con backend real aprobó 25 recorridos,
+incluidos dos Follow a 1440 y 390 píxeles; se inspeccionaron seis capturas.
+La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración de
+R1-R5. Siguen pendientes la repetición final API tras corregir su comprobación
+de token, la nueva regresión global y la integración en `main`. Activación,
+agenda conjunta, alertas y calificación jurídica conservan su alcance pendiente.
 
-La restauración real y las comprobaciones focales de catálogo, permisos y
-clasificación de fallos aprobaron. La regresión integral aprobó con los resultados
-registrados en el informe de verificación; conserva su alcance separado de
-la futura integración HTTP/Qadra V2.
+La restauración real y las comprobaciones de catálogo, permisos, clasificación
+de fallos y regresión integral del consumidor aprobaron en su propia entrega.
+La evidencia focal humana/HTTP V2 es posterior y se registra por separado en
+[el informe de verificación](verification-report.md). La campaña HTTP/restauración
+histórica corresponde a V1.
+
+## Composición local y verificación
+
+`serve` abre y valida ambos adaptadores antes de escuchar y registra las señales
+INT/TERM antes de enlazar el socket. Un único `spawn_blocking` alterna `Events`
+y `LegacyBootstrap`; en cada ciclo despacha una página e intenta como máximo el
+número configurado de trabajos antes de una pausa positiva. No crea un bucle
+por petición HTTP ni deduce vigencia operativa de una cola vacía.
+
+`--deadline-page-limit` acepta 1 a 100, con valor predeterminado 20.
+`--deadline-poll-ms` exige un entero positivo de 32 bits y tiene valor
+predeterminado 1000. Esa pausa no sustituye los presupuestos por sentencia de
+PostgreSQL ni acota el tiempo completo del cálculo o del apagado.
+
+La señal o un fallo fatal del servidor o consumidor solicita la parada de
+ambos y espera su terminación, sin abortar la operación bloqueante en curso.
+Los propietarios del router y los adaptadores síncronos permanecen fuera del
+bloque asíncrono para liberar PostgreSQL fuera de Tokio. Los errores de puerto
+recuperables conservan la espera positiva antes de reintentar.
+
+El ejecutable aprobó 31 pruebas unitarias y cuatro de ayuda CLI: 35 en total.
+Las 13 del bucle, cuatro de parada y nueve del supervisor suman 26 incluidas
+en las 31 unitarias; no se agregan nuevamente. Una campaña API real terminó
+con código cero y comprobó reevaluación, cierre por TERM/INT, reinicios y
+restauración exacta de R1-R5. El navegador con backend real aprobó 25 recorridos.
+La repetición final API tras corregir la comprobación del token de recuperación,
+la nueva regresión global y la integración en `main` permanecen pendientes.
+Véase [el informe de verificación](verification-report.md).
 
 ## Puerto y ejecución de un trabajo
 
@@ -82,6 +120,14 @@ decision. `AlreadyObserved` y `DependencyNotSelected` conservan DLOB1 y el
 compromiso completo de administracion, incluidos sus metadatos historicos.
 Pueden examinar otras cabezas posteriores a las observadas por la base; no
 se exige que ambos manifiestos sean iguales artificialmente.
+
+Estas cabezas comprobadas pertenecen al resultado histórico del trabajo.
+`Completed` y los motivos sin cambios no certifican frescura actual ni deben
+copiarse a la proyección operativa de una lectura. El detalle actual y el listado
+resuelven y verifican las cabezas de sus dependencias bajo acceso autorizado
+y auditado, y las comparan con la captura según sus políticas. Así detectan
+una cabeza aún no expandida sin bloquear por trabajos antiguos que una decisión
+humana ya haya cubierto.
 
 `result(job_id)` devuelve ausencia cuando no hay una confirmación guardada;
 no significa éxito ni que el trabajo carezca de intentos. Cuando existe,
@@ -178,6 +224,10 @@ No se relajaron los guards para hacer pasar la prueba.
 Tres regresiones adicionales verifican un perfil posterior inconsistente y los
 fallos nativos de bloqueo e interrupción durante la auditoría de confirmación.
 Exigen la categoría correcta, reversión de revisión/resultado, intento durable,
-espera y reapertura. La regresión global también aprobó y registra estos casos dentro de su total.
-Estos resultados focales tampoco acreditan ejecución desde `serve`, transporte
-HTTP/Qadra V2, tiempos máximos de toda la operación o entregas de correo.
+espera y reapertura. La regresión global de esa entrega del consumidor también
+aprobó y registra estos casos dentro de su total. Los resultados posteriores de
+composición en `serve`, API V2 con restauración y navegador con backend real
+se registran por separado; no se atribuyen a aquella regresión del consumidor.
+Ninguna de estas campañas acredita tiempos máximos de toda la operación ni
+entregas de correo. La repetición final API, la nueva regresión global y la
+integración en `main` mantienen su seguimiento propio.

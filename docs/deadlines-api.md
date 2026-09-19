@@ -1,24 +1,24 @@
 # API de plazos registrados por expediente
 
-Estado: adaptador HTTP implementado; 21 pruebas de contrato con workflow
-simulado (17 del flujo base y 4 del selector de responsables) y 6 pruebas de
-proyección del resultado aprobadas. La aceptación HTTP
-con persistencia y restauración reales aprobó los recorridos diarios, mensuales y
-horarios y conservó 14 respuestas exactas tras recuperar la base. El contrato corresponde a
-[la entrega operativa](deadline-lifecycle.md) y utiliza
-[perfiles versionados](deadline-profiles-api.md). El resultado conservado es una
-evaluación de declaraciones explícitas; no determina por sí mismo la validez de
-un acto ni sustituye su calificación jurídica.
+Estado: el servicio humano y el adaptador HTTP escriben seguimiento V2 y
+leen historia V1/V2. La vigencia actual se consulta por separado del cálculo
+capturado. Sus comprobaciones focales y la aceptación integrada se identifican
+por revisión en [el informe de verificación](verification-report.md); una campaña
+histórica de V1 no acredita el contrato actual. La integración Qadra y la
+composición del trabajador en `serve` tienen su propio estado de entrega.
+
+El contrato utiliza [perfiles versionados](deadline-profiles-api.md). El resultado
+conservado evalúa declaraciones explícitas; no determina por sí mismo la validez
+de un acto ni sustituye su calificación jurídica.
 
 ## Frontera de versión
 
-Las rutas y respuestas de este documento conservan el flujo humano V1. No
-aceptan autoría técnica ni parámetros de seguimiento V2. Un registro que no
-pueda representarse completo se rechaza; no se omiten políticas o motivos para
-hacerlo parecer V1. La persistencia y el [consumidor local](deadline-worker.md)
-admiten evidencia V2 mediante puertos internos, pero todavía no se componen
-como flujo HTTP/Qadra V2 ni se ejecutan desde `serve`. La aceptación HTTP V1
-anterior no acredita esa integración pendiente.
+Las rutas conservan `/api/v1`; V1/V2 identifica el formato del recibo histórico.
+Los nuevos comandos humanos preparan V2 con políticas explícitas y autor tomado
+de la sesión autenticada. No reciben autor técnico, causa, observaciones ni
+estados de revisión proporcionados por el cliente. Las revisiones técnicas se
+consultan junto a las humanas y conservan su procedencia. Véase el contrato
+completo de [seguimiento y vigencia](deadline-tracking-api.md).
 
 ## Colección y autorización
 
@@ -35,7 +35,7 @@ responsable, administración y fuentes al confirmar.
 | --- | --- |
 | GET base | Lista ligera de cabezas actuales. |
 | GET `/responsibles` | Selector paginado de responsables actualmente elegibles. |
-| GET `/{id}` | Detalle de cabeza actual. |
+| GET `/{id}` | Detalle actual con comprobación autorizada de vigencia. |
 | GET `/{id}/revisions/{revision}` | Detalle histórico exacto. |
 | GET `/{id}/history` | Revisiones ligeras descendentes. |
 | POST `/prepare` | Prepara un comando sin reservar ni escribir. |
@@ -111,6 +111,7 @@ aunque ya no aparezca entre los candidatos actuales.
   "change": {
     "action": "register",
     "expected_revision": 0,
+    "tracking": {"profile": "follow", "source": "fixed", "calendar": "undetermined"},
     "definition": {
       "title": "Respuesta declarada",
       "profile": {"id": "00000000-0000-0000-0000-000000000002", "revision": 1},
@@ -143,10 +144,15 @@ Este ejemplo requiere un perfil, responsable y fuente existentes y autorizados.
 Las condiciones vacías no satisfacen condiciones requeridas por un perfil;
 producen los bloqueos que correspondan. Las variantes de `change` son:
 
-- `register`: `expected_revision:0`, `definition`.
-- `correct`: revisión positiva esperada, `definition`, `reason`.
+- `register`: `expected_revision:0`, `definition`, `tracking`.
+- `correct`: revisión positiva esperada, `definition`, `reason`, `tracking`.
 - `set_attention`: revisión positiva esperada, `attention`, `reason`.
 - `retire`: revisión positiva esperada y `reason`, sin definición ni atención.
+
+`tracking` contiene exactamente `profile`, `source` y `calendar`. Cada dependencia
+presente exige `fixed` o `follow`; una fuente desconocida o calendario ausente
+exige `undetermined`. No se infiere intención de la revisión seleccionada.
+Atención y retiro prohíben `tracking`, incluso nulo: heredan la captura previa.
 
 Confirmar utiliza `{command,expected_submission_digest}`. El comando debe
 corresponder al expediente, UUID y acción de la ruta. El digest contiene64
@@ -232,11 +238,15 @@ la definición crea una nueva revisión evaluada.
 
 El borrador contiene `case_id`, `actor_id`, `command` normalizado,
 `result_revision`, `definition`, `calculation`, `responsible`, `attention`,
-`status`, `review_digest`, `capture_digest` y `submission_digest`.
+`status`, `author`, `tracking`, `receipt_version`, `review_digest`,
+`capture_digest` y `submission_digest`. No incluye vigencia operativa.
 
 Detalle contiene `id`, `case_id`, `revision`, `definition`, `calculation`,
 `responsible`, `attention`, `status`, `reason`, `receipt`, `recorded_at` y
-`recorded_by:{id,email}`. Responsable contiene `{id,email,role}` históricos.
+`recorded_by`, `tracking` y `operational`. Autoría lleva `kind:"user"` con
+`id,email`, o `kind:"technical"` con `service,policy_version`. Responsable conserva
+`{id,email,role}` históricos. `receipt.version` distingue V1/V2 y conserva
+predecesor y causa técnica cuando corresponden.
 El recibo contiene `operation_id`, `action`, `expected_revision` y los tres
 digests del borrador. `review_digest` vincula el contenido confirmado;
 `capture_digest` conserva además la administración finalmente capturada.
@@ -308,7 +318,10 @@ convierte enumeraciones en textos Debug ni recalcula un resultado al consultarlo
 
 Lista devuelve `{case_id,deadlines,has_more,next_after_id}`. Cada resumen contiene
 `id`, `case_id`, `revision`, `title`, `status`, `responsible`,
-`attention_recorded`, `due_at` y `blocked`. No incorpora cálculo ni corpus.
+`attention_recorded`, `receipt_kind`, `review_state`, `calculation_due_at`,
+`calculation_blocked` y `operational`. No incorpora cálculo completo ni corpus.
+La fecha utilizable para seguimiento está exclusivamente en `operational.due_at`;
+la fecha `calculation_due_at` conserva el resultado histórico.
 Historia devuelve `{case_id,id,revisions,has_more,next_before_revision}`; cada
 revisión lleva identificación, estado, motivo, recibo, `state_digest`, fecha y
 autor, sin definición ni cálculo completo.

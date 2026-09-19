@@ -4,8 +4,10 @@ Estado: el modelo distingue evidencia V1/V2, observaciones verificadas y
 revisiones sucesoras. La persistencia PostgreSQL admite las decisiones humanas
 V2 y reconstruye sus capturas históricas; incluye actualización compatible
 desde V1. El [consumidor local](deadline-worker.md) usa la preparación técnica
-y persiste sus resultados e intentos. Su composición desde `serve`, API humana
-V2 e integración en Qadra siguen pendientes. La decisión está en
+y persiste sus resultados e intentos. El servicio humano y HTTP escriben V2;
+Qadra muestra sus políticas, revisión, autoría e historia. La composición desde
+`serve` está implementada localmente, con aceptación integrada aún pendiente.
+La decisión está en
 [ADR 0037](adr/0037-durable-deadline-reevaluation.md).
 
 ## Versiones y estado operativo
@@ -373,11 +375,14 @@ revisión, resultado y auditoría atómicamente, o conserva un motivo sin cambio
 con base y observaciones exactas. Sus intentos fallidos tienen historia separada;
 no se consideran resultados satisfactorios. Véase [el contrato](deadline-worker.md).
 
-El servicio humano y HTTP actuales mantienen V1; falta evolucionar su contrato
-junto con Qadra para exponer políticas, motivos, causa y autoría y componer ambos
-adaptadores en `serve`. Agenda y alertas deben consumir solamente vencimientos
+El servicio humano y HTTP escriben V2 y leen historia V1/V2 con políticas,
+motivos, causa y autoría; [el contrato de seguimiento](deadline-tracking-api.md)
+explica la comprobación actual de vigencia. Qadra y la composición de ambos
+adaptadores en `serve` están implementados localmente; su aceptación con servicios
+reales tiene evidencia separada de las pruebas de contratos. Agenda y alertas
+deben consumir solamente vencimientos
 operativos admitidos. La verificación local del consumidor aprobó; sus resultados no acreditan
-esa integración operativa todavía pendiente.
+la aceptación operativa ni la entrega de avisos.
 
 La evidencia ejecutada y sus límites están en
 [el informe de verificación](verification-report.md). El almacenamiento humano

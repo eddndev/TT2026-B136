@@ -90,8 +90,9 @@ completa reproducida. La primera fecha incluida y la cantidad todavia son
 entradas matemáticas. El registro persistente ya las vincula a una revisión
 exacta de perfil, fuentes y calendario, y conserva la evaluación y su atención.
 La calificación del supuesto no se deduce de esa aritmética; el cierre del
-corpus jurídico, la activación automática, la integración operativa de la
-reevaluación en servidor y Qadra y las alertas siguen pendientes.
+corpus jurídico, la activación automática y las alertas siguen pendientes.
+La reevaluación compuesta en servidor tiene recorridos API y navegador reales
+aprobados, con integración en `main` todavía pendiente.
 
 La [aritmetica temporal](deadline-arithmetic.md) implementa reglas matematicas
 explicitas para dias naturales o computables, meses civiles y horas transcurridas.
@@ -100,8 +101,9 @@ ante precision insuficiente, homologo inexistente o calendario incompleto.
 No selecciona un supuesto juridico ni crea un plazo persistente. Los
 [perfiles normativos](deadline-rule-research.md) todavia requieren cerrar
 aplicabilidad, inicio, duracion ordenada y corte, particularmente para meses.
-La activación, la integración operativa de la reevaluación en servidor y Qadra
-y las alertas mantienen su estado pendiente.
+La activación y las alertas mantienen su estado pendiente. La reevaluación
+compuesta en servidor tiene verificación con servicios reales; la nueva regresión
+global y su integración en `main` conservan seguimiento propio.
 
 La [extracción temporal exacta](deadline-triggers.md) comprueba expediente,
 identidad, revisión, padre y acuerdo del material recibido antes de seleccionar
@@ -147,45 +149,47 @@ La [PR 33](https://github.com/eddndev/TT2026-B136/pull/33) integró esta interfa
 y el selector en `main`, commit `214202a`, el 18 de septiembre de 2026 a las
 15:09 de Ciudad de México, con 19 comprobaciones aprobadas y el paso de release
 omitido conforme al evento.
-Faltan integrar la reevaluación en servidor y Qadra, agenda combinada y alertas.
+La reevaluación compuesta y Qadra V2 tienen recorridos con backend real aprobados.
+Faltan la repetición final API, la nueva regresión global y la integración en
+`main`, además de agenda combinada y alertas.
 Los cambios de fuentes ya tienen despacho y consumo mediante puertos internos.
 Tampoco los ejemplos
 sintéticos cierran los perfiles jurídicos con fundamento y casos de aceptación
 aplicables al alcance aprobado.
 
-Sobre esa base integrada, la ampliación de seguimiento V2 implementa
-contratos y persistencia humana descritos en
-[los recibos de seguimiento](deadline-tracking-receipts.md) y
-[ADR-0037](adr/0037-durable-deadline-reevaluation.md):
+Sobre la base V1 integrada, la ampliación V2 implementa seguimiento durable,
+un servicio humano único y su contrato HTTP. Servicio, HTTP e interfaz Qadra V2
+están implementados; el dispatcher/worker está compuesto en servidor y tiene
+verificación API real con reinicios y restauración. Qadra V2 también tiene una
+campaña de navegador con backend real aprobada. La repetición final API, la
+nueva regresión global y la integración en `main` siguen pendientes. Véanse
+[los recibos de seguimiento](deadline-tracking-receipts.md),
+[el contrato HTTP](deadline-tracking-api.md) y
+[ADR-0037](adr/0037-durable-deadline-reevaluation.md).
 
-- Evidencia V1/V2 y autoría humana/técnica explícitas, estados revisados y
-  capturas que conservan una sola evaluación histórica.
-- Construcción estricta de observaciones completas de perfil, fuente,
-  calendario y padre de notificación. La reconstrucción del legado usa sólo
-  material capturado y no inventa un padre observado ni declara aceptación.
-- Continuidad entre revisiones con huellas del predecesor, administración sin
-  retrocesos, preservación de atención y responsables según la acción, y motivos
-  para cada perfil o fuente seguida que avanza. La cabeza del padre se revisa
-  como fuente. El retiro de una dependencia tampoco se acepta implícitamente
-  con política fija.
-- Preparador humano explícito: alta/corrección declaran políticas; atención y
-  retiro conservan el seguimiento anterior. El adaptador ya confirma estas
-  decisiones V2 con reautorización, revisión y auditoría atómicas; el servicio
-  humano y su contrato HTTP siguen pendientes de evolucionar.
-- Preparador técnico puro que produce una revisión o un motivo sin cambios;
-  conserva políticas, motivos pendientes y decisiones humanas. Admite eventos
-  atrasados y avances simultáneos, y sólo recalcula el calendario seguido bajo
-  las condiciones de aceptación. La persistencia debe autenticar su causa y
-  revalidar base y cabezas, incluso al confirmar ausencia de cambios.
-- Consultas de aplicación que distinguen fecha histórica y operativa, verifican
-  continuidad en historia y sólo admiten vencimiento operativo para un plazo
-  activo con revisión aceptada. Una aceptación no completa un cálculo bloqueado.
-- Lectura y escritura humanas V1/V2, migración incremental y reconstrucción
-  exacta de DLOE y administración. SQL comprueba seguimiento, referencias,
-  recibos y continuidad; inventario y lectura rechazan evidencia falsa aun
-  con hashes coherentes. El HTTP conserva su frontera V1 y el puerto humano
-  rechaza autoría técnica; las revisiones técnicas requieren el trabajo durable
-  y su resultado mediante el consumidor autorizado.
+- Evidencia V1/V2, autoría humana/técnica explícita y continuidad con ambas
+  huellas del predecesor, conservando una sola evaluación histórica.
+- Observaciones verificadas de perfil, fuente, calendario y padre independiente
+  de notificación. El legado usa sólo la evidencia capturada, sin inventar una
+  cabeza observada ni declarar aceptación.
+- Alta y corrección humanas con políticas explícitas; atención y retiro conservan
+  seguimiento y cálculo. El autor captura la cuenta y correo autenticados;
+  la reautenticación compara la identidad completa y el commit revalida recibos,
+  observaciones y administración bajo autorización y auditoría atómicas.
+- Despacho durable y consumidor que autentica la causa exacta, vuelve a comprobar
+  la base y las cabezas, y confirma revisión y resultado o evidencia sin cambios.
+  Conserva responsable, atención, políticas, calificaciones y motivos pendientes;
+  sólo recalcula al avanzar un calendario seguido bajo las condiciones de aceptación.
+- Detalle actual y listado que comparan cabezas verificadas con las observaciones
+  capturadas bajo la misma lectura autorizada y auditada. Separan fecha calculada
+  de vencimiento operativo; sólo un plazo activo, aceptado, con instante y vigencia
+  comprobada lo expone. Cola pendiente, `Completed` y resultados sin cambios no
+  certifican frescura. Los cambios ordinarios bajo `Fixed` conservan vigencia
+  con cabeza activa; el retiro requiere revisión y la evidencia regresiva se rechaza.
+- Historia y HTTP representan de forma explícita recibos V1, seguimiento V2,
+  revisión pendiente, causa y autoría técnica. El puerto humano no permite
+  solicitar revisiones técnicas. Lectura e inventario reconstruyen fuentes y
+  administración exactas y rechazan evidencia falsa aun con hashes coherentes.
 
 La preparación técnica publicada en la PR 34, commit `8c838cb`, tiene una
 campaña propia de 2442 pruebas Rust aprobadas y controles globales aprobados.
@@ -193,22 +197,41 @@ La evidencia de esa cabeza y las campañas anteriores se conserva en el
 informe de verificación; no acredita los cambios posteriores de almacenamiento.
 La restauración HTTP histórica comprueba V1.
 
-Esta ampliación añade persistencia humana V1/V2, reconstrucción exacta,
-actualización de esquema y controles de continuidad. Sus pruebas focales y
-la campaña global tienen evidencias separadas. La campaña completa de
-almacenamiento aprobó los controles registrados en el
-[informe de verificación](verification-report.md). Su regresión HTTP y
-restauración todavía ejercitan V1; la CI se comprueba sobre su propio commit.
+Las campañas completas de almacenamiento y del consumidor tienen resultados
+propios en el [informe de verificación](verification-report.md). La regresión
+HTTP con servicios reales y restauración registrada en esas entregas ejercita
+V1. La ampliación humana/HTTP V2 aprobó 50 pruebas focales de aplicación,
+160 de web Rust, 17 de PostgreSQL y una de lectura concurrente, además
+de Clippy en los tres crates y todos sus targets. Qadra V2 aprobó 88 pruebas
+Node y 36 recorridos de navegador con HTTP controlado, incluidos ocho nuevos
+de escritorio y móvil. La inspección visual cubrió las nuevas vistas diarias
+y horarias a 1440 y 390 píxeles, sin desbordamiento. La campaña posterior de
+navegador con backend real aprobó 25 recorridos, incluidos dos Follow de escritorio
+1440 y móvil 390; se inspeccionaron seis capturas. Esa campaña comprueba cambios
+de calendario, revisión pendiente por fuente, corrección humana e historia.
+Estos grupos tienen alcance propio y no constituyen una nueva regresión global.
 
-La PR 34 sigue en borrador y este trabajo no forma parte de la entrega
-integrada por PR 33. El [despachador](deadline-dispatch.md) ya expande eventos
-y legado en trabajos persistentes, con paginación y auditoría atómicas.
-El [consumidor](deadline-worker.md) autentica causas exactas y confirma revisión,
-resultado y auditoría; conserva también resultados sin cambios e intentos fallidos
-con espera durable. Sus comprobaciones focales de restauración, permisos y
-clasificación aprobaron; la campaña global aprobó y tiene su evidencia propia en el informe de verificación.
-Faltan composición en servidor, servicio/HTTP V2 y sus flujos Qadra. Los puertos
-internos todavía no equivalen a reevaluación automática disponible en el producto.
+La reconexión del despachador aprobó cuatro pruebas; junto con cinco de
+atomicidad y dos de presupuestos, su regresión focal suma once aprobadas.
+El ejecutable aprobó 31 pruebas unitarias y cuatro de ayuda CLI: 35 en total.
+Las 13 del bucle, cuatro de parada y nueve del supervisor suman 26 incluidas
+en las 31 unitarias. La composición en `serve` valida ambos adaptadores antes
+de escuchar y mantiene un bucle bloqueante serial y parada coordinada.
+La tercera campaña API real terminó con código cero: comprobó reevaluación,
+cierre TERM/INT, reinicios y conservación exacta de R1-R5 tras restauración.
+La repetición final permanece pendiente tras corregir la comprobación del token
+de recuperación con `rg -F --`; ese ajuste auxiliar no cambia los resultados
+observados de reevaluación.
+
+La PR 34 permanece en borrador. El último consumidor publicado en ese corte es
+`a53d9ea`; la ampliación humana/HTTP/Qadra V2 descrita aquí sigue local y no forma
+parte de la entrega integrada por PR 33. El [despachador](deadline-dispatch.md)
+expande eventos y legado en trabajos persistentes; el [consumidor](deadline-worker.md)
+confirma revisión, resultado y auditoría, o resultados sin cambios e intentos
+con espera durable. Faltan la repetición final API, la nueva regresión global y
+la integración en `main`, además de activación, agenda conjunta y alertas.
+Los recorridos reales aprobados de reevaluación no completan esos otros
+objetivos del producto.
 
 La conciliación excepcional de dependencias retiradas requiere un contrato
 explícito. Esta ampliación no cierra activación, agenda ni alertas.
@@ -262,7 +285,7 @@ su evidencia separada.
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente, responsable, atención e historia integrados en `main`; aceptación real con restauración y campaña global del backend aprobadas. Qadra y el selector paginado de responsables están integrados por PR 33. La ampliación V2 incorpora observaciones verificadas, continuidad, preparación humana y técnica, consultas operativas y persistencia humana con reconstrucción exacta; su evidencia se distingue de la base integrada. Despacho y consumo durables están implementados mediante puertos internos, con resultados, intentos e historia; su verificación se distingue de la base integrada. Faltan composición en servidor, servicio/HTTP V2 y Qadra V2. Activación durable, agenda conjunta, alertas y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, perfiles, evaluación persistente, responsable, atención e historia están integrados; Qadra V1 y el selector de responsables se integraron por PR 33. Sus campañas globales y API/restauración conservan su alcance histórico. La ampliación V2 implementa observaciones verificadas, continuidad, preparación humana y técnica, persistencia y reconstrucción exacta. Servicio humano y HTTP V2, detalle actual y listado con vigencia están implementados con evidencia focal local. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP controlado y 25 con backend real, incluidos dos Follow de escritorio y móvil, con seis capturas inspeccionadas. Despacho y consumo durables conservan resultados, intentos e historia. La composición aprobó 31 unitarias y cuatro de ayuda CLI; la campaña API real comprobó TERM/INT, reinicios y restauración de R1-R5. Faltan la repetición final API, la nueva regresión global y la integración en `main`. Activación, agenda conjunta, alertas y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -305,8 +328,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
 | Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron y el código está integrado en `main`. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
-| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra de plazos tiene campañas locales completas aprobadas. Faltan cierre del corpus jurídico aplicable, integración operativa de la reevaluación en servidor y Qadra y aceptación del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
-| Monitoreo de plazos y alertas | Parcial; registro, API y Qadra V1 integrados; ampliación V2 pendiente de cierre funcional | Registro, revisión exacta, responsable y atención tienen flujo web. V2 añade observaciones, continuidad, preparación humana y técnica, consultas y persistencia humana con reconstrucción exacta. El despacho de eventos y legado crea trabajos con cursores y auditoría atómicos; el consumidor confirma revisiones, resultados e intentos durables. La composición en servidor, servicio/HTTP V2 y Qadra V2 siguen pendientes. Faltan activación y reevaluación automáticas, agenda conjunta y alertas con reintentos y control de duplicados. La escritura humana V2 no constituye monitoreo automático ni completa la aceptación del caso de uso. |
+| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra V1 de plazos tiene campañas locales completas aprobadas; V2 tiene recorridos API con restauración y navegador con backend real aprobados. Faltan la repetición final API, la nueva regresión global, la integración en `main`, el cierre del corpus jurídico aplicable y la aceptación de los objetivos restantes del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
+| Monitoreo de plazos y alertas | Parcial; base V1 integrada y servicio/HTTP/Qadra V2 con recorridos reales aprobados | Registro, revisión exacta, responsable y atención tienen flujo web integrado. La ampliación humana/HTTP V2 declara políticas, conserva observaciones y continuidad y representa historia humana/técnica. Detalle actual y listado verifican vigencia sin usar la cola como prueba de actualidad. Despacho y consumo confirman trabajos, cursores, resultados e intentos con auditoría. Qadra V2 tiene pruebas Node y navegador con HTTP controlado y backend real aprobadas. La composición en servidor aprobó pruebas unitarias y una campaña API con TERM/INT, reinicios y restauración. Faltan la repetición final API, la nueva regresión global y la integración en `main`, además de activación, agenda conjunta y alertas con reintentos y control de duplicados. Los recorridos reales de reevaluación no completan esos objetivos restantes del caso de uso. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |

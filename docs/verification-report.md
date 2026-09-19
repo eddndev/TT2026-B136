@@ -4,6 +4,144 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Seguimiento humano V2 y composicion local: 19 de septiembre de 2026
+
+El servicio humano prepara y confirma seguimiento V2 con politicas explicitas,
+autor autenticado completo y continuidad administrativa verificada. Detalle y
+listado comparan cabezas comprobadas dentro de la transaccion autorizada y
+auditada; el resultado operativo no se deduce de la cola. Qadra separa ese
+resultado del calculo conservado y muestra la historia humana y tecnica.
+`serve` compone un consumidor serial con pausa, presupuesto por ciclo y cierre
+supervisado de HTTP y operaciones bloqueantes.
+
+### Verificacion focal terminada
+
+Las siguientes ejecuciones son grupos separados de esta ampliacion. No se suman
+como una suite global ni sustituyen las campanas completas de la entrega anterior.
+Cada suite se ejecuta de forma exclusiva: Cargo con un proceso de compilacion y
+un hilo de pruebas, Node con concurrencia 1 y Playwright con un worker. Los
+colaboradores no ejecutan compilaciones ni suites paralelas.
+
+| Grupo | Resultado confirmado |
+| --- | --- |
+| Aplicacion: vigencia, enlace de resumen, consultas y servicio actual | 50 pruebas; siete targets. |
+| HTTP Rust: proyecciones, contexto, solicitudes y limites V1/V2 | 160 pruebas focales. |
+| PostgreSQL: detalle, guardas, listado y regresion de registros | 17 pruebas en bases desechables. |
+| Lectura actual y escritor concurrente | Una prueba PostgreSQL: espera observada en el bloqueo de auditoria, historia y orden de eventos conservados. |
+| Dispatcher: reconexion, atomicidad y presupuestos | 11 pruebas PostgreSQL; incluye cuatro de reconexion con inventario y recuperacion. |
+| Cliente y presentacion de plazos | 88 pruebas Node. |
+| Navegador de plazos con HTTP controlado | 36 escenarios, incluidos ocho nuevos de V2; escritorio 1440 y movil 390. |
+| Navegador completo con servicios reales | 25 escenarios, incluidos dos nuevos de reevaluacion Follow en escritorio y movil. |
+| Binario compuesto y opciones de serve | 31 pruebas unitarias y cuatro de ayuda/configuracion. |
+| Clippy de aplicacion, infraestructura y web | Todos sus targets, warnings denegados; comprobacion anterior a la composicion de serve. |
+| Clippy del binario compuesto | Todos sus targets, warnings denegados. |
+
+Las 26 pruebas del ciclo y supervisor estan incluidas en las 31 unitarias del
+binario: 13 del ciclo serial, cuatro de parada y nueve de supervision. Otras
+dos pruebas ejercitan la composicion real y observan que los propietarios
+finales del router y adaptadores se liberan fuera de Tokio, tanto al fallar
+el bind como al detenerse el consumidor. Antes de
+implementar el ciclo fallaron 12 de sus 13 escenarios y la nueva prueba de
+opciones; antes de implementar parada y supervision fallaron sus 13 escenarios.
+La repeticion confirmo limites, alternancia, pausa, errores recuperables,
+parada entre llamadas, conservacion del join y drenaje de ambos lados. Los
+canales y barreras observan operaciones en curso; las esperas de vigilancia
+no constituyen la evidencia de exclusion.
+
+La primera pasada de los ocho escenarios nuevos de navegador detecto una
+asercion que contaba consultas de revisiones del perfil como si fueran del plazo.
+Se restringio a las rutas de plazos, conservando la exigencia de una sola
+conciliacion y ningun reenvio automatico. La repeticion y la regresion de 36
+escenarios aprobaron. Las capturas inspeccionadas conservan el diseno Qadra y
+la lectura movil sin desbordamiento horizontal.
+
+### Aceptacion integrada ejecutada y cierre pendiente
+
+La primera pasada del navegador real se interrumpio tras un escenario aprobado,
+uno fallido, uno interrumpido y 22 sin ejecutar. La recarga posterior al cierre de
+sesion no podia importar la interfaz. Una regresion reducida sin PostgreSQL ni
+Redis reprodujo 52 solicitudes de scripts con `ERR_INSUFFICIENT_RESOURCES`.
+`/tmp` era un tmpfs con presion de espacio y la swap estaba practicamente llena.
+Se probaron importaciones diferidas, pero no eliminaron el fallo y se retiraron.
+La misma interfaz original completo las tres recargas del caso en 7.588 s al
+ubicar `TMPDIR` en disco. Esta comparacion identifica una condicion del entorno
+local; no establece la causa de un OOM anterior del equipo. Las campanas
+posteriores usan temporales privados en disco y mantienen la ejecucion serial.
+La regresion se conserva en `web/tests/browser/app-loading.spec.mjs`.
+
+La repeticion completa con temporales en disco termino con salida 0 en
+437.344 s: **25 escenarios aprobados**, incluidos los dos nuevos de seguimiento
+Follow en escritorio 1440 y movil 390. Playwright informo 4.4 minutos para los
+recorridos, ademas de preparar servicios y datos. Se inspeccionaron seis capturas
+de calendario actualizado, revision pendiente y confirmacion humana; conservan
+el diseno Qadra y no presentan recortes ni desbordamiento horizontal. Las 2074
+fuentes comprobadas conservaron sus huellas durante la ejecucion. La campana
+uso Node 22.22.2, PostgreSQL 18.6, Redis desechable y un unico worker.
+
+Los datos de ambos recorridos se crearon mediante HTTP en expedientes distintos.
+Cada uno contrasta la revision tecnica por calendario, la fuente cambiada con
+calculo conservado y fecha operativa nula, y la aceptacion explicita de Litigator
+desde Qadra. Consulta R1 a R4 exactas, autor y causa, historial y auditoria.
+Los perfiles son sinteticos; la aprobacion no califica una regla juridica.
+
+Los calendarios sinteticos de los dos escenarios nuevos llevan titulos distintos
+del calendario de la regresion previa, para evitar selectores ambiguos. El nuevo
+guion de datos tambien figura en los filtros de cambios del workflow Web.
+
+La primera campana HTTP con servicios reales completo el cambio de calendario,
+la revision pendiente por cambio de fuente, la correccion humana, la historia
+exacta y un cierre SIGTERM con salida 0. Tras reiniciar, el consumidor proceso
+un nuevo evento testigo. El guion fallo despues al solicitar 100 revisiones de
+historia, fuera del maximo 20 del contrato; la API rechazo correctamente con
+`invalid_query`. Se corrigio solo esa peticion en los guiones API y navegador.
+La repeticion completo ambos reinicios con salida 0 (SIGTERM y SIGINT),
+retomo el procesamiento sin duplicar revisiones y conservo R1 a R5. Durante
+la restauracion detecto otra precondicion antigua del guion: la coleccion de
+calendarios esperada se habia capturado antes de publicar el calendario del
+nuevo escenario. Se anadio una captura de las colecciones mutables justo antes
+del respaldo; se conservan las expectativas originales de revisiones y dias
+exactos. La tercera ejecucion completo el guion con salida 0 en 215.613 s,
+incluidos ambos reinicios, el evento testigo sin duplicados y el cotejo de R1
+a R5 despues de `pg_restore`. La huella de sus 2073 archivos de fuente no cambio
+durante la ejecucion. Tambien conservo las 14 respuestas historicas del flujo
+previo de plazos y las comparaciones de los demas modulos.
+
+Esta tercera pasada emitio una advertencia en otra comprobacion del guion: un
+token de prueba que empezaba por guion se interpreto como opcion de `rg` al
+buscarlo entre claves Redis. Se corrigio a `rg -F --` y una comprobacion focal
+confirmo la coincidencia literal y el rechazo de una clave distinta. El recorrido
+de reevaluacion y restauracion termino; falta repetir el guion completo para
+acreditar tambien esa asercion de sesiones con su correccion.
+
+### Checkpoint funcional y regresion de cierre
+
+La comprobacion final del cliente completo aprobo 284 pruebas Node en 9.390 s,
+formato en 6.969 s y build en 3.898 s, sin cambios de las fuentes durante las
+comprobaciones. Son ejecuciones posteriores al grupo focal de 88 pruebas;
+no se suman ambos conteos.
+
+Se detuvo deliberadamente la regresion amplia de navegador con salida 130
+tras 175.837 s, antes de completar todos los escenarios. Esa ejecucion no
+acredita una suite aprobada. La serie se detuvo ahi: no ejecuto los controles
+Rust, MSRV, CLI y API que estaban encadenados despues. No quedaron suites
+locales activas. La evidencia focal y los 25 recorridos reales anteriores
+sostienen el checkpoint funcional; la regresion de cierre se realiza sobre
+la revision publicada antes de integrar, aprovechando los controles de CI.
+
+CI cubre Rust con backends reales, formato, Clippy, MSRV, cobertura, politicas
+de dependencias, build release y las suites web completas. No ejecuta los
+guiones CLI ni API; la repeticion de la API con la asercion corregida sigue
+pendiente y no puede darse por cubierta por el navegador real.
+
+Las fuentes academicas afectadas estan actualizadas. CI compila el manuscrito;
+la revision visual del nuevo PDF sigue pendiente. El PDF anterior conserva su
+alcance historico y no acredita esta ampliacion.
+
+Estos resultados no acreditan todavia la nueva aceptacion completa de
+API/restauracion con la ultima correccion del guion, una campana global Rust/MSRV,
+cobertura nueva ni integracion en main. Los resultados siguientes conservan
+sus revisiones y alcance historicos.
+
 ## Consumidor durable de plazos: 18 de septiembre de 2026
 
 El [consumidor](deadline-worker.md) confirma una revisión técnica, un resultado
@@ -11,8 +149,8 @@ sin cambios o un intento fallido verificable por cada trabajo elegible. La
 revisión, el resultado y su auditoría comparten transacción; un fallo revierte
 esa transacción antes de registrar el intento. Las migraciones `0020_` conservan
 ambos historiales, la procedencia del trabajo y sus restricciones de escritura.
-El servidor todavía no compone el despachador y el consumidor; el servicio
-humano, HTTP y Qadra mantienen V1. Las verificaciones de este incremento no
+Al cierre de esa campaña el servidor todavía no componía el despachador y el
+consumidor; el servicio humano, HTTP y Qadra mantenían V1. Las verificaciones de este incremento no
 acreditan ese recorrido operativo V2, agenda conjunta ni alertas.
 
 ### Regresiones reproducidas y correcciones
