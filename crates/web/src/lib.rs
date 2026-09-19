@@ -13,6 +13,7 @@ use application::identity::IdentityWorkflow;
 use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
+mod agenda;
 mod case_administration;
 mod case_stages;
 mod cases;
@@ -85,6 +86,12 @@ pub fn typed_participant_router(
     )
 }
 
+/// Builds the combined authorized hearing and operational deadline agenda.
+pub fn agenda_router(workflow: Arc<dyn application::agenda::AgendaWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(agenda::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds authorized hearing and global agenda routes.
 pub fn hearing_router(workflow: Arc<dyn application::hearings::HearingWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -128,6 +135,7 @@ pub struct CaseWorkflows {
     pub hearing_results: Arc<dyn application::hearing_results::HearingResultWorkflow>,
     pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
+    pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
 }
 
 /// Builds the explicit global and case profile collections over an authorized workflow.
@@ -179,6 +187,7 @@ pub fn api_router(
             runtime.clone(),
         ))
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
+        .merge(agenda::router(workflows.agenda, runtime.clone()))
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))

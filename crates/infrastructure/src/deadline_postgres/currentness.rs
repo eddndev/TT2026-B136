@@ -6,7 +6,7 @@ use application::{
     deadlines::{DeadlineDetail, DeadlineError, DeadlineId, DeadlineStatus},
     ApplicationError,
 };
-use domain::{cases::CaseId, identity::UserId};
+use domain::{cases::CaseId, clock::OffsetDateTime, crypto::DocumentHasher, identity::UserId};
 use postgres::Transaction;
 
 impl PostgresDeadlineStore {
@@ -45,42 +45,46 @@ impl PostgresDeadlineStore {
         tx: &mut Transaction<'_>,
         detail: &DeadlineDetail,
     ) -> Result<DeadlineCurrent, ApplicationError> {
-        let inputs = if detail.status == DeadlineStatus::Retired
-            || detail.review_state() == DeadlineReviewState::LegacyUndeclared
-        {
-            None
-        } else {
-            let definition = &detail.definition;
-            Some(DeadlineReevaluationInputs {
-                profile_head: crate::deadline_profile_postgres::storage::detail(
-                    tx,
-                    definition.profile.id,
-                    None,
-                    self.hasher.as_ref(),
-                )
-                .map_err(stored)?,
-                material: crate::deadline_input_postgres::load_material(
-                    tx,
-                    &definition.input.selection,
-                    definition.input.calendar,
-                    self.hasher.as_ref(),
-                )
-                .map_err(stored)?,
-                notification_parent_head: preparation::notification_parent_for_definition(
-                    tx,
-                    detail.case_id,
-                    definition,
-                    self.hasher.as_ref(),
-                )
-                .map_err(stored)?,
-            })
-        };
-        evaluate_deadline_currentness(
-            self.hasher.as_ref(),
-            detail,
-            inputs.as_ref(),
-            self.clock.now(),
-        )
-        .map_err(stored)
+        current_in_transaction(tx, detail, self.hasher.as_ref(), self.clock.now())
     }
+}
+
+/// Resolve current evidence inside the caller's authorized audited transaction.
+pub(crate) fn current_in_transaction(
+    tx: &mut Transaction<'_>,
+    detail: &DeadlineDetail,
+    hasher: &dyn DocumentHasher,
+    checked_at: OffsetDateTime,
+) -> Result<DeadlineCurrent, ApplicationError> {
+    let inputs = if detail.status == DeadlineStatus::Retired
+        || detail.review_state() == DeadlineReviewState::LegacyUndeclared
+    {
+        None
+    } else {
+        let definition = &detail.definition;
+        Some(DeadlineReevaluationInputs {
+            profile_head: crate::deadline_profile_postgres::storage::detail(
+                tx,
+                definition.profile.id,
+                None,
+                hasher,
+            )
+            .map_err(stored)?,
+            material: crate::deadline_input_postgres::load_material(
+                tx,
+                &definition.input.selection,
+                definition.input.calendar,
+                hasher,
+            )
+            .map_err(stored)?,
+            notification_parent_head: preparation::notification_parent_for_definition(
+                tx,
+                detail.case_id,
+                definition,
+                hasher,
+            )
+            .map_err(stored)?,
+        })
+    };
+    evaluate_deadline_currentness(hasher, detail, inputs.as_ref(), checked_at).map_err(stored)
 }

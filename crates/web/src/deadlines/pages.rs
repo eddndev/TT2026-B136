@@ -27,19 +27,27 @@ pub(super) fn page(v: DeadlinePage, case: CaseId, q: &DeadlineQuery) -> Result<V
             return Err(ApiError::internal());
         }
         after = Some(v.id);
-        let receipt_kind = match v.receipt_kind {
-            DeadlineReceiptKind::Legacy => "v1",
-            DeadlineReceiptKind::Tracked => "v2",
-        };
-        let review_state = match v.review_state {
-            DeadlineReviewState::Accepted => "accepted",
-            DeadlineReviewState::Pending => "pending",
-            DeadlineReviewState::LegacyUndeclared => "legacy_undeclared",
-        };
-        rows.push(json!({"id":v.id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"title":v.title.as_str(),"status":v.status.as_str(),"responsible":metadata::responsible(&v.responsible)?,"attention_recorded":v.attention_recorded,"receipt_kind":receipt_kind,"review_state":review_state,"calculation_due_at":v.calculation_due_at.map(result::instant),"calculation_blocked":v.calculation_blocked,"operational":operational_projection::project(&v.operational)}));
+        rows.push(overview(v)?);
     }
     Ok(
         json!({"case_id":case.to_string(),"deadlines":rows,"has_more":v.has_more,"next_after_id":v.next_after_id.map(|id|id.to_string())}),
+    )
+}
+pub(crate) fn overview(v: DeadlineOverview) -> Result<Value, ApiError> {
+    if !v.operational.matches_overview(&v) {
+        return Err(ApiError::internal());
+    }
+    let receipt_kind = match v.receipt_kind {
+        DeadlineReceiptKind::Legacy => "v1",
+        DeadlineReceiptKind::Tracked => "v2",
+    };
+    let review_state = match v.review_state {
+        DeadlineReviewState::Accepted => "accepted",
+        DeadlineReviewState::Pending => "pending",
+        DeadlineReviewState::LegacyUndeclared => "legacy_undeclared",
+    };
+    Ok(
+        json!({"id":v.id.to_string(),"case_id":v.case_id.to_string(),"revision":v.revision.get(),"title":v.title.as_str(),"status":v.status.as_str(),"responsible":metadata::responsible(&v.responsible)?,"attention_recorded":v.attention_recorded,"receipt_kind":receipt_kind,"review_state":review_state,"calculation_due_at":v.calculation_due_at.map(result::instant),"calculation_blocked":v.calculation_blocked,"operational":operational_projection::project(&v.operational)}),
     )
 }
 pub(super) fn history(

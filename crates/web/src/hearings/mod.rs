@@ -9,6 +9,8 @@ mod response;
 mod time;
 mod values;
 
+pub(crate) use projection::overview as agenda_overview;
+
 use crate::{error::ApiError, runtime::HttpRuntime};
 use application::hearings::{HearingId, HearingRevision, HearingWorkflow};
 use axum::{

@@ -7,6 +7,7 @@ mod metadata;
 mod mutations;
 mod operational_projection;
 mod pages;
+pub(crate) use pages::overview as agenda_overview;
 #[cfg(test)]
 mod pages_tracking_tests;
 mod query;

@@ -5,6 +5,7 @@
 //! alongside their ports and tests. Backend errors are defined here and mapped
 //! into [`application::ApplicationError`] at the call site.
 
+mod agenda_postgres;
 pub mod archive;
 pub mod audit;
 mod audit_postgres;
@@ -62,6 +63,7 @@ pub mod totp;
 pub mod typed_participant_codec;
 pub(crate) mod typed_participant_schema;
 
+pub use agenda_postgres::PostgresAgendaStore;
 pub use archive::StoredZipWriter;
 pub use audit::{FileAuditLog, InMemoryAuditLog};
 pub use case_stages::PostgresCaseStageStore;

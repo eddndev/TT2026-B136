@@ -89,7 +89,7 @@ fn participant(value: &HearingParticipantSnapshot) -> Value {
 fn support(s: &StageSupportSnapshot) -> Value {
     json!({"document_id":s.reference.id.to_string(),"version":s.reference.version.get(),"digest":s.digest.to_hex(),"name":s.name,"format":s.format.as_str(),"policy":s.policy.as_str()})
 }
-pub(super) fn overview(v: HearingOverview) -> Result<Value, ApiError> {
+pub(crate) fn overview(v: HearingOverview) -> Result<Value, ApiError> {
     Ok(
         json!({"case_id":v.case_id,"case_title":v.case_title,"case_reference":v.case_reference,"case_status":v.case_status.as_str(),"id":v.id.to_string(),"revision":v.revision.get(),"kind":v.kind.as_str(),"scheduled_at":format_time(v.scheduled_at)?,"modality":v.modality.as_str(),"status":v.status.as_str(),"participant_count":v.participant_count}),
     )
