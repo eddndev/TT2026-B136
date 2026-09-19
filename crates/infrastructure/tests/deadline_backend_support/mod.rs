@@ -2,6 +2,7 @@
 mod values;
 pub use crate::case_administration_support::Fixture;
 use crate::case_stage_database_support::{FixedClock, TestIdentity};
+pub use application::deadline_tracking::{TrackingPolicies, TrackingPolicy};
 use application::{deadlines::*, identity::Principal};
 use domain::{
     cases::CaseId,
@@ -10,6 +11,16 @@ use domain::{
 use infrastructure::{PostgresDeadlineStore, RingSha256Hasher};
 use std::sync::Arc;
 pub use values::*;
+
+pub const FOLLOW_RESOLUTION: TrackingPolicies = TrackingPolicies {
+    profile: TrackingPolicy::Follow,
+    source: TrackingPolicy::Follow,
+    calendar: TrackingPolicy::Undetermined,
+};
+
+pub fn human(command: DeadlineCommand, policies: Option<TrackingPolicies>) -> DeadlineHumanCommand {
+    DeadlineHumanCommand::new(command, policies).unwrap()
+}
 
 pub fn store(db: &Fixture) -> Arc<PostgresDeadlineStore> {
     Arc::new(
@@ -26,7 +37,11 @@ pub fn service(db: &Fixture, actor: UserId, role: Role) -> DeadlineService {
         store(db),
         Arc::new(TestIdentity(Principal {
             id: actor,
-            email: "session@example.test".into(),
+            email: if actor == db.owner {
+                "owner@example.test".into()
+            } else {
+                format!("{actor}@example.test")
+            },
             role,
         })),
         Arc::new(RingSha256Hasher),
@@ -36,7 +51,7 @@ pub fn service(db: &Fixture, actor: UserId, role: Role) -> DeadlineService {
 pub fn persist(
     workflow: &dyn DeadlineWorkflow,
     case_id: CaseId,
-    command: DeadlineCommand,
+    command: DeadlineHumanCommand,
 ) -> DeadlineDetail {
     let draft = workflow
         .prepare("session", case_id, command.clone())
@@ -45,8 +60,29 @@ pub fn persist(
         .submit("session", case_id, command, draft.submission_digest)
         .unwrap()
 }
-pub fn prepared(db: &Fixture, actor: UserId, command: &DeadlineCommand) -> PreparedDeadlineChange {
-    let preparation = store(db).prepare(actor, db.case, command).unwrap();
+/// Prepare historical V1 fixture evidence without using the human workflow.
+pub fn prepared_legacy(
+    db: &Fixture,
+    actor: UserId,
+    command: &DeadlineCommand,
+) -> PreparedDeadlineChange {
+    legacy_preparation(store(db).as_ref(), db, actor, command)
+}
+
+/// Seed V1 history for migration, reconstruction and durable legacy reconciliation.
+pub fn persist_legacy(db: &Fixture, actor: UserId, command: DeadlineCommand) -> DeadlineDetail {
+    let repository = store(db);
+    let prepared = legacy_preparation(repository.as_ref(), db, actor, &command);
+    repository.commit(actor, prepared).unwrap()
+}
+
+fn legacy_preparation(
+    repository: &dyn DeadlineStore,
+    db: &Fixture,
+    actor: UserId,
+    command: &DeadlineCommand,
+) -> PreparedDeadlineChange {
+    let preparation = repository.prepare(actor, db.case, command).unwrap();
     prepare_deadline_change(
         &RingSha256Hasher,
         actor,

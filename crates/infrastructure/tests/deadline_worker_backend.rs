@@ -26,7 +26,6 @@ use deadline_backend_support as dl;
 use deadline_dispatch_support as dispatch;
 use deadline_tracked_backend_support as tracked;
 use deadline_worker_backend_support as worker;
-use domain::identity::Role;
 use procedural_fact_backend_support as facts;
 
 #[test]
@@ -38,9 +37,8 @@ fn worker_bootstraps_v1_without_replacing_calculation_attention_or_responsible()
     let (profile, source) = worker::inputs(&mut db);
     let mut command = dispatch::command(&db, &profile, &source, 10);
     dl::definition_mut(&mut command).responsible = responsible;
-    let workflow = dl::service(&db, db.owner, Role::Owner);
-    let first = dl::persist(&workflow, db.case, command);
-    let base = dl::persist(&workflow, db.case, dl::attention(&first));
+    let first = dl::persist_legacy(&db, db.owner, command);
+    let base = dl::persist_legacy(&db, db.owner, dl::attention(&first));
     assert_eq!(base.receipt.version, DeadlineReceiptVersion::Legacy);
     assert!(matches!(base.attention, DeadlineAttention::Recorded { .. }));
     let old_rows = [

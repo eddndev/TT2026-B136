@@ -9,6 +9,7 @@ pub mod auth;
 pub mod case_stages;
 pub mod cases;
 pub mod credential_trust;
+pub mod deadline_currentness;
 pub mod deadline_inputs;
 pub mod deadline_profiles;
 pub mod deadline_reevaluation;

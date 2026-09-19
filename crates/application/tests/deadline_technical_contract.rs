@@ -146,6 +146,7 @@ fn a_legacy_source_withdrawal_keeps_all_missing_policy_reasons() {
         profile: model.calculation.profile.clone(),
         profile_head: model.calculation.profile.clone(),
         material: model.calculation.material.clone(),
+        notification_parent_head: None,
     });
     let base = deadline_support::detail(&deadline_support::prepare(command, preparation).unwrap());
     let resolved = source_heads(&base, 2, true);

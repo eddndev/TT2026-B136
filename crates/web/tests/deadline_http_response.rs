@@ -60,11 +60,18 @@ async fn all_submission_routes_return_created_and_preserve_the_confirmed_operati
         ("set_attention", "POST", "/ID/attention"),
         ("retire", "POST", "/ID/retirement"),
     ] {
-        let mut detail = records::fixture();
+        let mut detail = records::tracked_fixture();
         let mut value = command();
         if action != "register" {
             detail.revision = DeadlineRevision::new(2).unwrap();
             detail.receipt.expected_revision = 1;
+            let DeadlineReceiptVersion::Tracked(metadata) = &mut detail.receipt.version else {
+                unreachable!()
+            };
+            metadata.predecessor = Some(application::deadline_reevaluation::PredecessorReceipt {
+                submission_digest: digest(),
+                capture_digest: digest(),
+            });
             detail.reason = Some(FactText::new("Declared change").unwrap());
             value["change"]["expected_revision"] = json!(1);
             value["change"]["reason"] = json!("Declared change");
@@ -81,6 +88,7 @@ async fn all_submission_routes_return_created_and_preserve_the_confirmed_operati
                 .as_object_mut()
                 .unwrap()
                 .remove("definition");
+            value["change"].as_object_mut().unwrap().remove("tracking");
         }
         if action == "set_attention" {
             value["change"]["attention"] = json!({"status":"pending"});
@@ -113,7 +121,7 @@ async fn list_and_history_remain_lightweight_and_paginated() {
     *workflow.response.lock().unwrap() = Some(records::fixture());
     let (status, page) = request(workflow.clone(), "GET", BASE, Some("owner"), None, &[]).await;
     assert_eq!(status, 200, "{page}");
-    assert_eq!(page["deadlines"][0]["blocked"], true);
+    assert_eq!(page["deadlines"][0]["calculation_blocked"], true);
     assert!(page["deadlines"][0].get("calculation").is_none());
     let (status, page) = request(
         workflow,

@@ -3,10 +3,16 @@ mod case_support;
 #[allow(dead_code)]
 #[path = "support/document_workflow.rs"]
 mod crypto;
+mod deadline_observation_support;
 mod deadline_service_support;
 mod deadline_support;
+mod deadline_technical_support;
 mod deadline_tracked_support;
-use application::{deadline_tracking::DeadlineReviewState, deadlines::*};
+use application::{
+    deadline_currentness::evaluate_deadline_currentness,
+    deadline_tracking::{DeadlineReviewState, TrackingPolicy},
+    deadlines::*,
+};
 use deadline_service_support::*;
 use deadline_tracked_support::{accepted, pending, resign};
 use domain::{crypto::Sha256Digest, identity::Role};
@@ -47,9 +53,17 @@ fn read_history(
     workflow.history("session", case_id(), first.id, history_query(20))
 }
 #[test]
-fn only_accepted_active_summaries_may_publish_an_operational_due() {
-    let row = DeadlineOverview::from(&accepted());
-    assert!(row.due_at.is_some());
+fn only_current_accepted_active_summaries_may_publish_an_operational_due() {
+    let base = deadline_technical_support::accepted(TrackingPolicy::Follow);
+    let current = evaluate_deadline_currentness(
+        hasher().as_ref(),
+        &base,
+        Some(&deadline_technical_support::heads(&base)),
+        case_support::instant(),
+    )
+    .unwrap();
+    let row = DeadlineOverview::from(&current);
+    assert!(row.operational.due_at().is_some());
     read_summary(row.clone(), true).unwrap();
     for state in [
         DeadlineReviewState::Pending,
@@ -57,17 +71,29 @@ fn only_accepted_active_summaries_may_publish_an_operational_due() {
     ] {
         let mut changed = row.clone();
         changed.review_state = state;
-        assert!(read_summary(changed.clone(), false).is_err());
-        changed.due_at = None;
-        changed.blocked = true;
-        read_summary(changed, true).unwrap();
+        assert!(read_summary(changed, false).is_err());
     }
     let mut retired = row;
     retired.status = DeadlineStatus::Retired;
-    assert!(read_summary(retired.clone(), false).is_err());
-    retired.due_at = None;
-    retired.blocked = true;
-    read_summary(retired, true).unwrap();
+    assert!(read_summary(retired, false).is_err());
+    let changed = deadline_technical_support::source_heads(&base, 2, false);
+    let reviewed = deadline_technical_support::revision(
+        &base,
+        deadline_technical_support::event_command(deadline_technical_support::source_event(
+            &changed, 2,
+        )),
+        changed,
+    );
+    for detail in [
+        reviewed,
+        deadline_technical_support::attention(&deadline_technical_support::legacy()),
+        deadline_technical_support::retired(&base),
+    ] {
+        let row = historical_overview(&detail);
+        assert!(row.calculation_due_at.is_some());
+        assert_eq!(row.operational.due_at(), None);
+        read_summary(row, true).unwrap();
+    }
 }
 #[test]
 fn a_valid_tracked_history_can_cross_human_and_technical_authors() {

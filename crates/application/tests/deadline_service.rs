@@ -7,6 +7,7 @@ mod deadline_service_support;
 mod deadline_support;
 use application::{deadlines::*, ApplicationError};
 use deadline_service_support::*;
+use deadline_service_support::{prepare_human as prepare, tracked_detail as detail};
 use domain::{
     crypto::Sha256Digest,
     identity::{Role, UserId},
@@ -74,7 +75,7 @@ fn owner_and_litigator_prepare_exact_full_state_then_reauthenticate() {
             .returning(move |_| Ok(principal(role)));
         let (workflow, clock) = service(store, session);
         let draft = workflow
-            .prepare("session", case_id(), command.clone())
+            .prepare("session", case_id(), human_command(command.clone()))
             .unwrap();
         assert_eq!(draft.case_id, case_id());
         assert_eq!(draft.actor, owner());
@@ -103,7 +104,9 @@ fn blocked_calculation_survives_service_preparation_without_an_invented_due_date
         .times(1)
         .return_once(move |_, _, _| Ok(preparation));
     let (workflow, _) = service(store, identity(Role::Owner, 2));
-    let draft = workflow.prepare("session", case_id(), command).unwrap();
+    let draft = workflow
+        .prepare("session", case_id(), human_command(command))
+        .unwrap();
     assert!(draft.calculation.result.due_at().is_none());
     assert!(!draft.calculation.result.blocks().is_empty());
     assert!(draft.calculation.result.arithmetic().is_some());
@@ -112,7 +115,7 @@ fn blocked_calculation_survives_service_preparation_without_an_invented_due_date
 #[test]
 fn second_authentication_rejects_revocation_changed_actor_or_changed_role() {
     for operation in 0..5 {
-        for change in 0..4 {
+        for change in 0..5 {
             let mut session = MockIdentity::new();
             let mut sequence = Sequence::new();
             session
@@ -132,7 +135,12 @@ fn second_authentication_rejects_revocation_changed_actor_or_changed_role() {
                         Ok(value)
                     }
                     2 => Ok(principal(Role::Litigator)),
-                    _ => Ok(principal(Role::Client)),
+                    3 => Ok(principal(Role::Client)),
+                    _ => {
+                        let mut value = principal(Role::Owner);
+                        value.email = "changed@example.test".into();
+                        Ok(value)
+                    }
                 });
             let mut store = MockStore::new();
             expect_operation(&mut store, operation);
@@ -205,7 +213,7 @@ fn submission_digest_is_checked_before_reauthentication_or_commit() {
         workflow.submit(
             "session",
             case_id(),
-            fixture().0,
+            human_command(fixture().0),
             Sha256Digest::from_array([0; 32])
         ),
         Err(ApplicationError::Deadline(
@@ -247,7 +255,7 @@ fn successful_commit_preserves_every_prepared_field_and_receipt() {
             .submit(
                 "session",
                 case_id(),
-                command,
+                human_command(command),
                 wanted.receipt.submission_digest
             )
             .unwrap(),
@@ -258,7 +266,8 @@ fn successful_commit_preserves_every_prepared_field_and_receipt() {
 #[test]
 fn commit_reply_must_bind_full_state_including_title_attention_responsible_and_sources() {
     for mutation in 0..7 {
-        let mut row = captured();
+        let (command, preparation) = fixture();
+        let mut row = detail(&prepare(command, preparation).unwrap());
         match mutation {
             0 => row.definition.title = FactLabel::new("Unrequested title").unwrap(),
             1 => row.attention = attention(),
@@ -296,7 +305,7 @@ fn exhausted_revision_is_rejected_before_preparation_port() {
     );
     let (workflow, _) = service(MockStore::new(), identity(Role::Owner, 1));
     assert!(matches!(
-        workflow.prepare("session", case_id(), command),
+        workflow.prepare("session", case_id(), human_command(command)),
         Err(ApplicationError::Deadline(DeadlineError::RevisionExhausted))
     ));
 }

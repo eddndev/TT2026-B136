@@ -164,7 +164,10 @@ pub(super) fn material(
         json!({"case_id":case.to_string(),"administration":administration(&v.administration,case)?,"source":source,"source_head":head,"calendar":calendar,"calendar_head":calendar_head}),
     )
 }
-fn administration(v: &CurrentCaseAdministration, case: CaseId) -> Result<Value, ApiError> {
+pub(super) fn administration(
+    v: &CurrentCaseAdministration,
+    case: CaseId,
+) -> Result<Value, ApiError> {
     let values = v.values();
     let mut out = json!({"title":values.metadata().title(),"reference":values.metadata().reference(),"status":values.status().as_str()});
     match v {

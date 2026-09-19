@@ -76,7 +76,7 @@ pub(super) fn review(
     Ok((review, recalculate))
 }
 
-fn selected_revision(base: &DeadlineDetail, role: ObservationRole) -> Result<u32> {
+pub(crate) fn selected_revision(base: &DeadlineDetail, role: ObservationRole) -> Result<u32> {
     let revision = match role {
         ObservationRole::Profile => Some(base.definition.profile.revision.get()),
         ObservationRole::Calendar => base
@@ -109,7 +109,7 @@ fn selected_revision(base: &DeadlineDetail, role: ObservationRole) -> Result<u32
     revision.ok_or_else(|| inconsistent("observed dependency has no historical selection"))
 }
 
-fn retired(inputs: &DeadlineReevaluationInputs, role: ObservationRole) -> bool {
+pub(crate) fn retired(inputs: &DeadlineReevaluationInputs, role: ObservationRole) -> bool {
     match role {
         ObservationRole::Profile => inputs.profile_head.status == DeadlineProfileStatus::Retired,
         ObservationRole::Calendar => inputs

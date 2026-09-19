@@ -21,7 +21,6 @@ use application::{
 use deadline_backend_support as dl;
 use deadline_tracked_backend_support as tracked;
 use deadline_tracked_notification_support as notification;
-use domain::identity::Role;
 use infrastructure::RingSha256Hasher;
 use procedural_fact_backend_support as facts;
 
@@ -134,7 +133,7 @@ fn legacy_notification_attention_upgrade_does_not_invent_an_observed_parent() {
         return;
     };
     let (command, parent, notice) = notification::setup(&db);
-    let first = dl::persist(&dl::service(&db, db.owner, Role::Owner), db.case, command);
+    let first = dl::persist_legacy(&db, db.owner, command);
     assert_eq!(first.receipt.version, DeadlineReceiptVersion::Legacy);
     assert!(first.tracking.is_none());
     let original_row = tracked::revision_row(&mut db, &first);

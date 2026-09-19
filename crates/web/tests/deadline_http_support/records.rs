@@ -5,6 +5,7 @@ use application::{
     deadline_evaluations::*,
     deadline_inputs::*,
     deadline_profiles::*,
+    deadline_tracking::{TrackingPolicies, TrackingPolicy},
     deadlines::*,
     procedural_facts::*,
 };
@@ -196,19 +197,97 @@ fn source(administration: CurrentCaseAdministration) -> DeadlineSourceDetail {
         },
     }))
 }
-pub fn draft(command: DeadlineCommand, detail: &DeadlineDetail) -> DeadlineDraft {
-    DeadlineDraft {
-        case_id: detail.case_id,
-        actor: actor(),
-        result_revision: command.result_revision().unwrap(),
-        command,
-        definition: detail.definition.clone(),
-        calculation: detail.calculation.clone(),
-        responsible: detail.responsible.clone(),
-        attention: detail.attention.clone(),
-        status: detail.status,
-        review_digest: digest(),
-        capture_digest: digest(),
-        submission_digest: digest(),
+pub fn tracking_policies() -> TrackingPolicies {
+    TrackingPolicies {
+        profile: TrackingPolicy::Follow,
+        source: TrackingPolicy::Follow,
+        calendar: TrackingPolicy::Undetermined,
     }
+}
+pub fn tracked_fixture() -> DeadlineDetail {
+    let detail = fixture();
+    let command = DeadlineHumanCommand::new(
+        DeadlineCommand {
+            operation_id: detail.receipt.operation_id,
+            deadline_id: detail.id,
+            change: DeadlineChange::Register {
+                definition: detail.definition.clone(),
+            },
+        },
+        Some(tracking_policies()),
+    )
+    .unwrap();
+    tracked_change(command, &detail)
+}
+/// Registration uses the supplied material; other actions use the supplied base.
+pub fn tracked_change(command: DeadlineHumanCommand, detail: &DeadlineDetail) -> DeadlineDetail {
+    let prepared = prepare_tracked(command, detail);
+    DeadlineDetail {
+        id: prepared.command().deadline_id,
+        case_id: prepared.case_id(),
+        revision: prepared.command().result_revision().unwrap(),
+        definition: prepared.definition().clone(),
+        calculation: prepared.calculation().clone(),
+        tracking: prepared.tracking().cloned(),
+        responsible: prepared.responsible().clone(),
+        attention: prepared.attention().clone(),
+        status: prepared.status(),
+        reason: prepared.command().reason().cloned(),
+        receipt: prepared.receipt(),
+        recorded_at: instant(),
+        recorded_by: prepared.tracked_author().unwrap().clone(),
+    }
+}
+pub fn draft(command: DeadlineHumanCommand, detail: &DeadlineDetail) -> DeadlineDraft {
+    let prepared = prepare_tracked(command, detail);
+    DeadlineDraft {
+        case_id: prepared.case_id(),
+        actor: prepared.actor(),
+        author: prepared.tracked_author().unwrap().clone(),
+        tracking: prepared.tracking().unwrap().clone(),
+        receipt_version: prepared.receipt().version,
+        result_revision: prepared.command().result_revision().unwrap(),
+        command: prepared.command().clone(),
+        definition: prepared.definition().clone(),
+        calculation: prepared.calculation().clone(),
+        responsible: prepared.responsible().clone(),
+        attention: prepared.attention().clone(),
+        status: prepared.status(),
+        review_digest: prepared.review_digest(),
+        capture_digest: prepared.capture_digest(),
+        submission_digest: prepared.submission_digest(),
+    }
+}
+fn prepare_tracked(human: DeadlineHumanCommand, detail: &DeadlineDetail) -> PreparedDeadlineChange {
+    let (command, policies) = human.into_parts();
+    let qualification = matches!(
+        command.action(),
+        DeadlineAction::Register | DeadlineAction::Correct
+    );
+    let preparation = DeadlinePreparation {
+        case_id: detail.case_id,
+        deadline_id: detail.id,
+        administration: detail.calculation.material.administration.clone(),
+        base: (command.action() != DeadlineAction::Register).then(|| detail.clone()),
+        resolved: qualification.then(|| DeadlineResolvedInputs {
+            profile: detail.calculation.profile.clone(),
+            profile_head: detail.calculation.profile.clone(),
+            material: detail.calculation.material.clone(),
+            notification_parent_head: None,
+        }),
+        responsible: qualification.then(|| detail.responsible.clone()),
+    };
+    prepare_tracked_deadline_change(
+        &Hasher,
+        DeadlineActorSnapshot::User {
+            id: actor(),
+            email: "owner@example.com".into(),
+        },
+        detail.case_id,
+        command,
+        preparation,
+        policies,
+        None,
+    )
+    .expect("coherent deadline HTTP fixture")
 }

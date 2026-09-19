@@ -71,7 +71,14 @@ fn monthly_missing_homologous_day_remains_blocked_after_the_source_changes() {
         db.case,
         inputs::dated_resolution("2026-01-31"),
     );
-    let record = dl::persist(&workflow, db.case, dl::command(&db, &profile, &source));
+    let record = dl::persist(
+        &workflow,
+        db.case,
+        dl::human(
+            dl::command(&db, &profile, &source),
+            Some(dl::FOLLOW_RESOLUTION),
+        ),
+    );
     assert!(record.calculation.result.due_at().is_none());
     assert_eq!(
         record.calculation.result.arithmetic().unwrap().outcome(),
@@ -137,12 +144,20 @@ fn ordered_hours_preserve_missing_duration_then_use_the_declared_quantity_and_of
         statement: dl::text("Declared ordered start"),
         locator: dl::label("Resolution page 1"),
     });
-    let blocked = dl::persist(&workflow, db.case, command);
+    let blocked = dl::persist(
+        &workflow,
+        db.case,
+        dl::human(command, Some(dl::FOLLOW_RESOLUTION)),
+    );
     assert!(blocked.calculation.result.rule().is_none());
     assert!(blocked.calculation.result.due_at().is_none());
     let mut correction = dl::correct(&blocked);
     dl::definition_mut(&mut correction).input.ordered_quantity = NonZeroU32::new(24);
-    let calculated = dl::persist(&workflow, db.case, correction);
+    let calculated = dl::persist(
+        &workflow,
+        db.case,
+        dl::human(correction, Some(dl::FOLLOW_RESOLUTION)),
+    );
     assert_eq!(
         calculated.calculation.result.due_at(),
         Some((at.instant_value().unwrap() + Duration::hours(24)).to_offset(UtcOffset::UTC))
@@ -182,7 +197,15 @@ fn notification_capture_preserves_distinct_selected_and_head_parent_revisions() 
     let profile = publish(&db, definition);
     let mut command = dl::command(&db, &profile, &parent);
     dl::definition_mut(&mut command).input.selection = inputs::fact_request(&first).trigger;
-    let record = dl::persist(&dl::service(&db, db.owner, Role::Owner), db.case, command);
+    let policies = dl::TrackingPolicies {
+        source: dl::TrackingPolicy::Fixed,
+        ..dl::FOLLOW_RESOLUTION
+    };
+    let record = dl::persist(
+        &dl::service(&db, db.owner, Role::Owner),
+        db.case,
+        dl::human(command, Some(policies)),
+    );
     assert_eq!(
         record.calculation.material.source,
         Some(DeadlineSourceDetail::Fact(Box::new(first)))
@@ -228,7 +251,16 @@ fn hearing_agreement_and_calendar_captures_survive_head_replacement_and_retireme
         id: calendar.id,
         revision: calendar.revision,
     });
-    let record = dl::persist(&dl::service(&db, db.owner, Role::Owner), db.case, command);
+    let policies = dl::TrackingPolicies {
+        source: dl::TrackingPolicy::Fixed,
+        calendar: dl::TrackingPolicy::Fixed,
+        ..dl::FOLLOW_RESOLUTION
+    };
+    let record = dl::persist(
+        &dl::service(&db, db.owner, Role::Owner),
+        db.case,
+        dl::human(command, Some(policies)),
+    );
     assert_eq!(
         record.calculation.material.source,
         Some(DeadlineSourceDetail::HearingResult(Box::new(first)))

@@ -5,7 +5,7 @@ use crate::{
     deadlines::evidence,
 };
 
-pub(super) fn selected(
+pub(crate) fn selected(
     hasher: &dyn DocumentHasher,
     base: &DeadlineDetail,
     inputs: &DeadlineReevaluationInputs,
@@ -54,7 +54,7 @@ pub(super) fn selected(
     Ok(())
 }
 
-pub(super) fn advance(old: &Observations, new: &Observations) -> Result<()> {
+pub(crate) fn advance(old: &Observations, new: &Observations) -> Result<()> {
     for before in &old.entries {
         let after = new
             .entries

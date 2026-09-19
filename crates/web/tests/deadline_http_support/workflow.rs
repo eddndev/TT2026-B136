@@ -1,4 +1,5 @@
-use application::{deadlines::*, ApplicationError};
+use application::deadline_currentness::DeadlineCurrent;
+use application::{deadline_tracking::TrackingPolicies, deadlines::*, ApplicationError};
 use domain::{cases::CaseId, crypto::Sha256Digest};
 use serde_json::{json, Value};
 use std::sync::Mutex;
@@ -7,7 +8,9 @@ use std::sync::Mutex;
 pub struct Workflow {
     pub calls: Mutex<Vec<Value>>,
     pub command: Mutex<Option<DeadlineCommand>>,
+    pub policies: Mutex<Option<TrackingPolicies>>,
     pub response: Mutex<Option<DeadlineDetail>>,
+    pub current_response: Mutex<Option<DeadlineCurrent>>,
     pub responsible_page: Mutex<Option<DeadlineResponsiblePage>>,
     pub failure: Mutex<Option<&'static str>>,
     pub return_draft: bool,
@@ -92,12 +95,28 @@ impl DeadlineWorkflow for Workflow {
                 .lock()
                 .unwrap()
                 .as_ref()
-                .map(DeadlineOverview::from)
+                .map(|detail| {
+                    DeadlineCurrent::historical(&super::records::Hasher, detail)
+                        .map(|current| DeadlineOverview::from(&current))
+                })
+                .transpose()?
                 .into_iter()
                 .collect(),
             has_more: false,
             next_after_id: None,
         })
+    }
+    fn current(
+        &self,
+        token: &str,
+        case: CaseId,
+        id: DeadlineId,
+    ) -> Result<DeadlineCurrent, ApplicationError> {
+        let detail = self.get(token, case, id, None)?;
+        if let Some(current) = self.current_response.lock().unwrap().clone() {
+            return Ok(current);
+        }
+        DeadlineCurrent::historical(&super::records::Hasher, &detail)
     }
     fn get(
         &self,
@@ -151,8 +170,9 @@ impl DeadlineWorkflow for Workflow {
         &self,
         token: &str,
         case: CaseId,
-        command: DeadlineCommand,
+        human: DeadlineHumanCommand,
     ) -> Result<DeadlineDraft, ApplicationError> {
+        let (command, policies) = human.clone().into_parts();
         self.record(
             token,
             case,
@@ -164,10 +184,11 @@ impl DeadlineWorkflow for Workflow {
             true,
         )?;
         *self.command.lock().unwrap() = Some(command.clone());
+        *self.policies.lock().unwrap() = policies;
         if self.return_draft {
             let guard = self.response.lock().unwrap();
             return Ok(super::records::draft(
-                command,
+                human,
                 guard.as_ref().expect("fixture detail"),
             ));
         }
@@ -179,9 +200,10 @@ impl DeadlineWorkflow for Workflow {
         &self,
         token: &str,
         case: CaseId,
-        command: DeadlineCommand,
+        human: DeadlineHumanCommand,
         digest: Sha256Digest,
     ) -> Result<DeadlineDetail, ApplicationError> {
+        let (command, policies) = human.into_parts();
         self.record(
             token,
             case,
@@ -194,6 +216,7 @@ impl DeadlineWorkflow for Workflow {
             true,
         )?;
         *self.command.lock().unwrap() = Some(command);
+        *self.policies.lock().unwrap() = policies;
         self.response
             .lock()
             .unwrap()

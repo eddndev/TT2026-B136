@@ -107,7 +107,7 @@ pub fn result_in_current_case(db: &dl::Fixture) -> HearingResultDetail {
 }
 
 pub fn persist(db: &dl::Fixture, command: DeadlineCommand) -> DeadlineDetail {
-    dl::persist(&dl::service(db, db.owner, Role::Owner), db.case, command)
+    dl::persist_legacy(db, db.owner, command)
 }
 
 pub fn assert_event(

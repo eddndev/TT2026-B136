@@ -12,7 +12,6 @@ mod procedural_fact_backend_support;
 use application::deadline_dispatch::*;
 use deadline_backend_support as dl;
 use deadline_dispatch_support as dispatch;
-use domain::identity::Role;
 use serde_json::{json, Value};
 use std::time::Instant;
 
@@ -25,12 +24,11 @@ fn measured_pages_preserve_all_jobs_at_minimum_default_and_maximum_limits() {
     let mut source = dl::source(&db);
     let store = dispatch::open(&db);
     dispatch::drain_existing(&mut db, &store);
-    let workflow = dl::service(&db, db.owner, Role::Owner);
     let mut expected = Vec::new();
     for value in 0..240 {
         let command = dispatch::command(&db, &profile, &source, value);
         expected.push(command.deadline_id);
-        dl::persist(&workflow, db.case, command);
+        dl::persist_legacy(&db, db.owner, command);
     }
     let mut measured = Vec::new();
     for limit in [1, 20, 100] {

@@ -55,11 +55,7 @@ pub fn legacy(
     source: &FactDetail,
     value: u128,
 ) -> DeadlineDetail {
-    dl::persist(
-        &dl::service(db, db.owner, Role::Owner),
-        db.case,
-        command(db, profile, source, value),
-    )
+    dl::persist_legacy(db, db.owner, command(db, profile, source, value))
 }
 
 pub fn advance(db: &dl::Fixture, source: &FactDetail) -> FactDetail {

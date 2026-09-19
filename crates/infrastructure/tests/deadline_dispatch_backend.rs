@@ -16,7 +16,7 @@ use application::{
 use deadline_backend_support as dl;
 use deadline_dispatch_support as dispatch;
 use deadline_tracked_backend_support as tracked;
-use domain::{deadline_triggers::TriggerSourceRef, identity::Role};
+use domain::deadline_triggers::TriggerSourceRef;
 use procedural_fact_backend_support as facts;
 use uuid::Uuid;
 
@@ -46,11 +46,7 @@ fn event_pages_use_exclusive_uuid_and_current_heads_across_reopen() {
     let mut correction = dl::correct(&old_match);
     dl::definition_mut(&mut correction).input.selection.source =
         FactDeclaration::Known(TriggerSourceRef::Resolution(facts::resolution_ref(&other)));
-    dl::persist(
-        &dl::service(&db, db.owner, Role::Owner),
-        db.case,
-        correction,
-    );
+    dl::persist_legacy(&db, db.owner, correction);
     let initial = dispatch::open(&db);
     dispatch::drain_existing(&mut db, &initial);
     drop(initial);
@@ -200,11 +196,7 @@ fn bootstrap_repeats_without_duplicate_jobs_and_finds_late_lower_uuids() {
     let legacy = dispatch::legacy(&db, &profile, &source, 40);
     dispatch::legacy(&db, &profile, &source, 60);
     let retired = dispatch::legacy(&db, &profile, &source, 50);
-    dl::persist(
-        &dl::service(&db, db.owner, Role::Owner),
-        db.case,
-        dl::retire(&retired),
-    );
+    dl::persist_legacy(&db, db.owner, dl::retire(&retired));
     let deadlines = dl::store(&db);
     let prepared =
         tracked::tracked_prepared(&db, deadlines.as_ref(), &dl::attention(&legacy), None);

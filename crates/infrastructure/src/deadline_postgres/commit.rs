@@ -32,11 +32,10 @@ impl PostgresDeadlineStore {
                 command.action(),
                 DeadlineAction::Register | DeadlineAction::Correct,
             );
-            let parent = if qualification {
-                preparation::notification_parent_head(&mut tx, case, command, self.hasher.as_ref())?
-            } else {
-                None
-            };
+            let parent = observed
+                .resolved
+                .as_ref()
+                .and_then(|resolved| resolved.notification_parent_head.clone());
             prepare_tracked_deadline_change(
                 self.hasher.as_ref(),
                 current_author.clone(),

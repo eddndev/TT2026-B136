@@ -3,16 +3,23 @@ mod case_support;
 #[allow(dead_code)]
 #[path = "support/document_workflow.rs"]
 mod crypto;
+mod deadline_observation_support;
 mod deadline_support;
+mod deadline_technical_support;
 mod deadline_tracked_support;
 
 use application::{
-    cases::CurrentCaseAdministration, deadline_reevaluation::*, deadline_tracking::*, deadlines::*,
+    cases::CurrentCaseAdministration, deadline_currentness::DeadlineCurrent,
+    deadline_reevaluation::*, deadline_tracking::*, deadlines::*,
 };
 use deadline_support::evaluation::inputs;
 use deadline_tracked_support::*;
 use domain::{cases::CaseMetadata, crypto::Sha256Digest};
 use uuid::Uuid;
+
+fn historical_overview(detail: &DeadlineDetail) -> DeadlineOverview {
+    DeadlineOverview::from(&DeadlineCurrent::historical(inputs::hasher().as_ref(), detail).unwrap())
+}
 
 #[test]
 fn tracked_state_and_history_use_explicit_new_versions() {
@@ -47,9 +54,13 @@ fn pending_capture_preserves_historical_due_and_removes_operational_projection()
         before.calculation.result.due_at()
     );
     assert_eq!(after.operational_due_at(), None);
-    let summary = DeadlineOverview::from(&after);
-    assert!(summary.blocked);
-    assert_eq!(summary.due_at, None);
+    let summary = historical_overview(&after);
+    assert!(!summary.calculation_blocked);
+    assert_eq!(
+        summary.calculation_due_at,
+        after.calculation.result.due_at()
+    );
+    assert_eq!(summary.operational.due_at(), None);
     assert_eq!(summary.review_state, DeadlineReviewState::Pending);
     assert_eq!(legacy().operational_due_at(), None);
 }
@@ -155,9 +166,13 @@ fn technical_author_is_not_a_human_registration_or_correction() {
 
 #[test]
 fn retired_deadline_never_exposes_an_operational_due() {
-    let mut value = accepted();
-    value.status = DeadlineStatus::Retired;
+    let value = deadline_technical_support::retired(&deadline_technical_support::accepted(
+        TrackingPolicy::Follow,
+    ));
     assert!(value.calculation.result.due_at().is_some());
     assert_eq!(value.operational_due_at(), None);
-    assert!(DeadlineOverview::from(&value).blocked);
+    let row = historical_overview(&value);
+    assert!(!row.calculation_blocked);
+    assert_eq!(row.calculation_due_at, value.calculation.result.due_at());
+    assert_eq!(row.operational.due_at(), None);
 }

@@ -83,19 +83,22 @@ fn exact_get_rejects_wrong_case_root_revision_or_damaged_receipt() {
 
 #[test]
 fn summary_matches_detail_and_keeps_nil_id_on_an_initial_page() {
-    let detail = captured();
-    let mut row = DeadlineOverview::from(&detail);
+    let (mut command, mut preparation) = fixture();
+    command.deadline_id = DeadlineId::from_uuid(Uuid::nil());
+    preparation.deadline_id = command.deadline_id;
+    let detail = deadline_support::detail(&prepare(command, preparation).unwrap());
+    let row = historical_overview(&detail);
     assert_eq!(row.title, detail.definition.title);
     assert_eq!(row.responsible, detail.responsible);
     assert!(detail.calculation.result.due_at().is_some());
-    assert_eq!(row.due_at, None);
-    assert!(row.blocked);
+    assert_eq!(row.calculation_due_at, detail.calculation.result.due_at());
+    assert!(!row.calculation_blocked);
+    assert_eq!(row.operational.due_at(), None);
     assert_eq!(
         row.review_state,
         application::deadline_tracking::DeadlineReviewState::LegacyUndeclared
     );
     assert!(!row.attention_recorded);
-    row.id = DeadlineId::from_uuid(Uuid::nil());
     let expected = row.clone();
     let mut store = MockStore::new();
     store
@@ -122,7 +125,7 @@ fn summary_matches_detail_and_keeps_nil_id_on_an_initial_page() {
 #[test]
 fn lists_reject_cross_case_wrong_filter_order_cursor_and_contradictory_outcome() {
     for mutation in 0..10 {
-        let mut row = DeadlineOverview::from(&captured());
+        let mut row = historical_overview(&captured());
         let id = row.id;
         let mut rows = vec![row.clone()];
         let mut has_more = false;
@@ -147,7 +150,7 @@ fn lists_reject_cross_case_wrong_filter_order_cursor_and_contradictory_outcome()
                 query = list_query(1);
             }
             7 => query = DeadlineQuery::new(2, Some(id), DeadlineStatusFilter::All).unwrap(),
-            8 => rows[0].blocked = false,
+            8 => rows[0].calculation_blocked = true,
             _ => rows[0].responsible.role = Role::Client,
         }
         let mut store = MockStore::new();
@@ -276,9 +279,9 @@ fn empty_case_queries_still_reach_the_authorized_store() {
 
 #[test]
 fn summary_without_due_instant_must_report_a_block() {
-    let mut row = DeadlineOverview::from(&captured());
-    row.due_at = None;
-    row.blocked = false;
+    let mut row = historical_overview(&captured());
+    row.calculation_due_at = None;
+    row.calculation_blocked = false;
     let mut store = MockStore::new();
     store.expect_list().times(1).return_once(move |_, _, _, _| {
         Ok(DeadlinePage {

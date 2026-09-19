@@ -9,7 +9,7 @@ mod deadline_storage_support;
 mod procedural_fact_backend_support;
 
 use application::{deadlines::*, ApplicationError};
-use deadline_backend_support::{persist, service, setup, Fixture};
+use deadline_backend_support::{persist_legacy, service, setup, Fixture};
 use deadline_storage_support::*;
 use domain::{identity::Role, procedural_time::DeclaredProceduralTime};
 use serde_json::json;
@@ -19,7 +19,7 @@ fn attention_preserves_declared_precision_offset_and_historical_calculation() {
     let Some(db) = Fixture::new() else { return };
     let command = setup(&db);
     let workflow = service(&db, db.owner, Role::Owner);
-    let original = persist(&workflow, db.case, command);
+    let original = persist_legacy(&db, db.owner, command);
     let date = "2026-01-09".parse().unwrap();
     let times = [
         DeclaredProceduralTime::unknown(),
@@ -43,7 +43,7 @@ fn attention_preserves_declared_precision_offset_and_historical_calculation() {
     ];
     let mut base = original.clone();
     for at in times {
-        base = persist(&workflow, db.case, attention(&base, at));
+        base = persist_legacy(&db, db.owner, attention(&base, at));
         let exact = workflow
             .get("session", db.case, base.id, Some(base.revision))
             .unwrap();
@@ -55,7 +55,7 @@ fn attention_preserves_declared_precision_offset_and_historical_calculation() {
         assert_eq!(exact.calculation, original.calculation);
         assert_eq!(exact.definition, original.definition);
     }
-    let retired = persist(&workflow, db.case, retire(&base));
+    let retired = persist_legacy(&db, db.owner, retire(&base));
     assert_eq!(retired.attention, base.attention);
     assert_eq!(retired.calculation, original.calculation);
     assert_eq!(
@@ -71,9 +71,9 @@ fn attention_json_rejects_ignored_keys_missing_offset_and_silent_normalization()
     let Some(mut db) = Fixture::new() else { return };
     let command = setup(&db);
     let workflow = service(&db, db.owner, Role::Owner);
-    let initial = persist(&workflow, db.case, command);
+    let initial = persist_legacy(&db, db.owner, command);
     let at = DeclaredProceduralTime::date("2026-01-09".parse().unwrap(), None).unwrap();
-    let base = persist(&workflow, db.case, attention(&initial, at));
+    let base = persist_legacy(&db, db.owner, attention(&initial, at));
     let valid = json!({"status":"recorded","occurred_at":{"precision":"date","year":2026,"month":1,"day":9,"offset_seconds":null},"statement":"Declared action","locator":"Captured record"});
     let mut extra = valid.clone();
     extra["ignored"] = json!(true);
@@ -105,7 +105,7 @@ fn strict_binary_inputs_and_results_reject_trailing_bytes_before_returning_histo
     let Some(mut db) = Fixture::new() else { return };
     let command = setup(&db);
     let workflow = service(&db, db.owner, Role::Owner);
-    let base = persist(&workflow, db.case, command);
+    let base = persist_legacy(&db, db.owner, command);
     let row = db.admin.query_one("SELECT input_canonical,result_canonical FROM case_deadline_revisions WHERE deadline_id=$1 AND revision=1", &[&base.id.as_uuid()]).unwrap();
     let input: Vec<u8> = row.get(0);
     let result: Vec<u8> = row.get(1);
@@ -144,7 +144,7 @@ fn stored_canonical_review_cannot_disagree_with_the_captured_fields() {
     let Some(mut db) = Fixture::new() else { return };
     let command = setup(&db);
     let workflow = service(&db, db.owner, Role::Owner);
-    let base = persist(&workflow, db.case, command);
+    let base = persist_legacy(&db, db.owner, command);
     remove_checks(&mut db);
     db.admin.execute("UPDATE case_deadline_revisions SET review_canonical=review_canonical || '\\x00'::bytea WHERE deadline_id=$1", &[&base.id.as_uuid()]).unwrap();
     let before = audit(&mut db);
@@ -157,8 +157,8 @@ fn valid_receipt_does_not_allow_attention_to_replace_a_previous_definition() {
     let Some(mut db) = Fixture::new() else { return };
     let command = setup(&db);
     let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, command);
-    let corrected = persist(&workflow, db.case, change_title(&first));
+    let first = persist_legacy(&db, db.owner, command);
+    let corrected = persist_legacy(&db, db.owner, change_title(&first));
     remove_checks(&mut db);
     change_action(&mut db, &corrected, DeadlineAction::SetAttention);
     let before = audit(&mut db);
@@ -173,8 +173,8 @@ fn valid_receipt_does_not_allow_retirement_to_replace_a_previous_definition() {
     let Some(mut db) = Fixture::new() else { return };
     let command = setup(&db);
     let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, command);
-    let corrected = persist(&workflow, db.case, change_title(&first));
+    let first = persist_legacy(&db, db.owner, command);
+    let corrected = persist_legacy(&db, db.owner, change_title(&first));
     remove_checks(&mut db);
     change_action(&mut db, &corrected, DeadlineAction::Retire);
     let before = audit(&mut db);

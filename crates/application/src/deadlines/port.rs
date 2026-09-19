@@ -1,5 +1,5 @@
 use super::*;
-use crate::ApplicationError;
+use crate::{deadline_currentness::DeadlineCurrent, ApplicationError};
 use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest, identity::UserId};
 
 /// Case authorization precedes every lookup and pagination, including empty pages.
@@ -23,6 +23,13 @@ pub trait DeadlineStore: Send + Sync {
         query: DeadlineQuery,
         at: OffsetDateTime,
     ) -> Result<DeadlinePage, ApplicationError>;
+    /// Check current dependency heads with the current deadline in one audited read.
+    fn current(
+        &self,
+        actor: UserId,
+        case_id: CaseId,
+        id: DeadlineId,
+    ) -> Result<DeadlineCurrent, ApplicationError>;
     fn get(
         &self,
         actor: UserId,
@@ -73,6 +80,12 @@ pub trait DeadlineWorkflow: Send + Sync {
         case_id: CaseId,
         query: DeadlineQuery,
     ) -> Result<DeadlinePage, ApplicationError>;
+    fn current(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DeadlineId,
+    ) -> Result<DeadlineCurrent, ApplicationError>;
     fn get(
         &self,
         token: &str,
@@ -91,13 +104,13 @@ pub trait DeadlineWorkflow: Send + Sync {
         &self,
         token: &str,
         case_id: CaseId,
-        command: DeadlineCommand,
+        command: DeadlineHumanCommand,
     ) -> Result<DeadlineDraft, ApplicationError>;
     fn submit(
         &self,
         token: &str,
         case_id: CaseId,
-        command: DeadlineCommand,
+        command: DeadlineHumanCommand,
         expected_submission_digest: Sha256Digest,
     ) -> Result<DeadlineDetail, ApplicationError>;
 }

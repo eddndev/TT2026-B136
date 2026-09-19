@@ -4,6 +4,7 @@ use crate::{
     deadline_evaluations::{DeadlineEvaluationInput, DeadlineEvaluationRecord},
     deadline_inputs::DeadlineInputMaterial,
     deadline_profiles::{DeadlineProfileDetail, DeadlineProfileId, DeadlineProfileRevision},
+    procedural_facts::FactDetail,
 };
 use domain::{
     cases::CaseId,
@@ -83,6 +84,8 @@ pub struct DeadlineResolvedInputs {
     pub profile: DeadlineProfileDetail,
     pub profile_head: DeadlineProfileDetail,
     pub material: DeadlineInputMaterial,
+    /// Current parent head, distinct from the notification's historical parent.
+    pub notification_parent_head: Option<FactDetail>,
 }
 /// The result is stored, including its trace. Reading history never reruns arithmetic.
 #[derive(Debug, Clone, PartialEq, Eq)]

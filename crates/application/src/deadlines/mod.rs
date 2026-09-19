@@ -8,6 +8,8 @@ pub use tracking_storage::{
     deadline_tracking_capture_bytes, decode_deadline_tracking_capture, DeadlineTrackingMetadata,
 };
 mod command;
+mod human_command;
+pub use human_command::DeadlineHumanCommand;
 pub(crate) mod evidence;
 mod evidence_hearing;
 mod model;

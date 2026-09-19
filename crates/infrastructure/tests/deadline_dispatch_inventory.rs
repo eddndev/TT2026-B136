@@ -16,7 +16,7 @@ use deadline_backend_support as dl;
 use deadline_dispatch_guard_support as guards;
 use deadline_dispatch_support as dispatch;
 use deadline_schema_support::open;
-use domain::{deadline_triggers::TriggerSourceRef, identity::Role};
+use domain::deadline_triggers::TriggerSourceRef;
 use procedural_fact_backend_support as facts;
 
 #[test]
@@ -84,16 +84,12 @@ fn historic_jobs_and_cursor_anchors_survive_dependency_changes_and_retirement() 
     let mut command = dl::correct(&deadlines[0]);
     dl::definition_mut(&mut command).input.selection.source =
         FactDeclaration::Known(TriggerSourceRef::Resolution(facts::resolution_ref(&other)));
-    let corrected = dl::persist(&dl::service(&db, db.owner, Role::Owner), db.case, command);
+    let corrected = dl::persist_legacy(&db, db.owner, command);
     let after_correction = guards::snapshot(&mut db);
     open(&db).unwrap();
     assert_eq!(guards::snapshot(&mut db), after_correction);
     assert_eq!(guards::jobs(&mut db), jobs_before);
-    dl::persist(
-        &dl::service(&db, db.owner, Role::Owner),
-        db.case,
-        dl::retire(&corrected),
-    );
+    dl::persist_legacy(&db, db.owner, dl::retire(&corrected));
     let before_reopen = guards::snapshot(&mut db);
     db.migrate();
     open(&db).unwrap();

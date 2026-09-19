@@ -1,11 +1,11 @@
 use super::{metadata, pages};
-use application::{deadline_reevaluation::TechnicalService, deadlines::*};
+use application::deadlines::*;
 use domain::{crypto::Sha256Digest, identity::UserId};
 use serde_json::json;
 use uuid::Uuid;
 
 #[test]
-fn legacy_http_actor_keeps_the_existing_human_json() {
+fn legacy_http_actor_is_tagged_without_replacing_the_captured_identity() {
     let author = DeadlineActorSnapshot::User {
         id: UserId::from_uuid(Uuid::nil()),
         email: "owner@example.test".into(),
@@ -13,18 +13,9 @@ fn legacy_http_actor_keeps_the_existing_human_json() {
     assert_eq!(
         metadata::actor(&author).unwrap(),
         json!({
-            "id": Uuid::nil(), "email": "owner@example.test"
+            "kind":"user", "id": Uuid::nil(), "email": "owner@example.test"
         })
     );
-}
-
-#[test]
-fn legacy_http_actor_rejects_technical_authorship() {
-    let author = DeadlineActorSnapshot::Technical {
-        service: TechnicalService::DeadlineReevaluator,
-        policy_version: 1,
-    };
-    assert!(metadata::actor(&author).is_err());
 }
 
 #[test]
@@ -42,13 +33,15 @@ fn legacy_http_receipt_rejects_a_technical_action() {
         &receipt,
         DeadlineRevision::new(2).unwrap(),
         DeadlineStatus::Active,
-        None
+        None,
+        &human(),
+        case(),
     )
     .is_err());
 }
 
 #[test]
-fn legacy_http_receipt_rejects_tracked_metadata_even_for_a_human_action() {
+fn tracked_http_receipt_accepts_coherent_human_metadata() {
     let digest = Sha256Digest::from_bytes(&[0; 32]).unwrap();
     let receipt = DeadlineReceipt {
         operation_id: DeadlineOperationId::from_uuid(Uuid::nil()),
@@ -68,33 +61,24 @@ fn legacy_http_receipt_rejects_tracked_metadata_even_for_a_human_action() {
         DeadlineRevision::initial(),
         DeadlineStatus::Active,
         None,
+        &human(),
+        case(),
     )
-    .is_err());
+    .is_ok());
 }
 
 #[test]
 fn legacy_http_list_rejects_unprojected_review_states() {
-    use application::deadline_tracking::DeadlineReviewState;
-    use domain::{cases::CaseId, identity::Role, procedural_facts::FactLabel};
-
-    let case = CaseId::from_uuid(Uuid::nil());
+    use super::tracking_response_test_support::records;
+    use application::{
+        deadline_currentness::DeadlineCurrent, deadline_tracking::DeadlineReviewState,
+    };
+    let detail = records::fixture();
+    let current = DeadlineCurrent::historical(&records::Hasher, &detail).unwrap();
+    let case = detail.case_id;
     for review_state in [DeadlineReviewState::Accepted, DeadlineReviewState::Pending] {
-        let row = DeadlineOverview {
-            id: DeadlineId::from_uuid(Uuid::nil()),
-            case_id: case,
-            revision: DeadlineRevision::initial(),
-            title: FactLabel::new("Declared period").unwrap(),
-            status: DeadlineStatus::Active,
-            responsible: DeadlineResponsibleSnapshot {
-                id: UserId::from_uuid(Uuid::nil()),
-                email: "owner@example.test".into(),
-                role: Role::Owner,
-            },
-            attention_recorded: false,
-            due_at: None,
-            blocked: true,
-            review_state,
-        };
+        let mut row = DeadlineOverview::from(&current);
+        row.review_state = review_state;
         let page = DeadlinePage {
             deadlines: vec![row],
             has_more: false,
@@ -103,4 +87,14 @@ fn legacy_http_list_rejects_unprojected_review_states() {
         let query = DeadlineQuery::new(20, None, DeadlineStatusFilter::Active).unwrap();
         assert!(pages::page(page, case, &query).is_err());
     }
+}
+
+fn human() -> DeadlineActorSnapshot {
+    DeadlineActorSnapshot::User {
+        id: UserId::from_uuid(Uuid::nil()),
+        email: "owner@example.test".into(),
+    }
+}
+fn case() -> domain::cases::CaseId {
+    domain::cases::CaseId::from_uuid(Uuid::nil())
 }

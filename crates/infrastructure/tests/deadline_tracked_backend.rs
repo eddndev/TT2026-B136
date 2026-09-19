@@ -64,8 +64,7 @@ fn tracked_human_registration_roundtrips_exact_capture_receipt_and_history() {
 #[test]
 fn human_upgrade_preserves_v1_bytes_and_attention_until_explicit_v2_correction() {
     let Some(mut db) = Fixture::new() else { return };
-    let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, setup(&db));
+    let first = persist_legacy(&db, db.owner, setup(&db));
     assert_eq!(first.receipt.version, DeadlineReceiptVersion::Legacy);
     assert!(first.tracking.is_none());
     let original_row = revision_row(&mut db, &first);

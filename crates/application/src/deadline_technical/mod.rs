@@ -2,8 +2,8 @@
 //! The repository must authenticate the durable event and service, then recheck
 //! the base and all heads when committing the revision or a no-change outcome.
 mod model;
-mod policy;
-mod validation;
+pub(crate) mod policy;
+pub(crate) mod validation;
 pub use model::*;
 
 use crate::{

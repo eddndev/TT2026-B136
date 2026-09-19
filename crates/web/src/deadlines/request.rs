@@ -1,6 +1,10 @@
 use super::{input::Definition, object::Object};
 use crate::{error::ApiError, procedural_facts::values::time::DeclaredTime};
-use application::{deadlines::*, ApplicationError};
+use application::{
+    deadline_tracking::{TrackingPolicies, TrackingPolicy},
+    deadlines::*,
+    ApplicationError,
+};
 use domain::{
     crypto::Sha256Digest,
     procedural_facts::{FactLabel, FactText},
@@ -19,11 +23,13 @@ enum Change {
     Register {
         expected_revision: u32,
         definition: Object<Definition>,
+        tracking: Object<Policies>,
     },
     Correct {
         expected_revision: u32,
         definition: Object<Definition>,
         reason: String,
+        tracking: Object<Policies>,
     },
     SetAttention {
         expected_revision: u32,
@@ -46,53 +52,70 @@ enum Attention {
     },
 }
 impl Command {
-    pub(super) fn validate(self) -> Result<DeadlineCommand, ApiError> {
-        let change = match self.change.0 {
+    pub(super) fn validate(self) -> Result<DeadlineHumanCommand, ApiError> {
+        let (change, policies) = match self.change.0 {
             Change::Register {
                 expected_revision,
                 definition,
+                tracking,
             } => {
                 if expected_revision != 0 {
                     return Err(invalid());
                 }
-                DeadlineChange::Register {
-                    definition: definition.0.validate()?,
-                }
+                (
+                    DeadlineChange::Register {
+                        definition: definition.0.validate()?,
+                    },
+                    Some(tracking.0.value()),
+                )
             }
             Change::Correct {
                 expected_revision,
                 definition,
                 reason,
-            } => DeadlineChange::Correct {
-                expected_revision: checked(DeadlineRevision::new(expected_revision))?,
-                definition: definition.0.validate()?,
-                reason: checked(FactText::new(&reason))?,
-            },
+                tracking,
+            } => (
+                DeadlineChange::Correct {
+                    expected_revision: checked(DeadlineRevision::new(expected_revision))?,
+                    definition: definition.0.validate()?,
+                    reason: checked(FactText::new(&reason))?,
+                },
+                Some(tracking.0.value()),
+            ),
             Change::SetAttention {
                 expected_revision,
                 attention,
                 reason,
-            } => DeadlineChange::SetAttention {
-                expected_revision: checked(DeadlineRevision::new(expected_revision))?,
-                attention: attention.0.validate()?,
-                reason: checked(FactText::new(&reason))?,
-            },
+            } => (
+                DeadlineChange::SetAttention {
+                    expected_revision: checked(DeadlineRevision::new(expected_revision))?,
+                    attention: attention.0.validate()?,
+                    reason: checked(FactText::new(&reason))?,
+                },
+                None,
+            ),
             Change::Retire {
                 expected_revision,
                 reason,
-            } => DeadlineChange::Retire {
-                expected_revision: checked(DeadlineRevision::new(expected_revision))?,
-                reason: checked(FactText::new(&reason))?,
-            },
+            } => (
+                DeadlineChange::Retire {
+                    expected_revision: checked(DeadlineRevision::new(expected_revision))?,
+                    reason: checked(FactText::new(&reason))?,
+                },
+                None,
+            ),
         };
-        Ok(DeadlineCommand {
-            operation_id: DeadlineOperationId::from_uuid(uuid(
-                &self.operation_id,
-                "invalid_deadline_operation_id",
-            )?),
-            deadline_id: DeadlineId::from_uuid(uuid(&self.deadline_id, "invalid_deadline_id")?),
-            change,
-        })
+        checked(DeadlineHumanCommand::new(
+            DeadlineCommand {
+                operation_id: DeadlineOperationId::from_uuid(uuid(
+                    &self.operation_id,
+                    "invalid_deadline_operation_id",
+                )?),
+                deadline_id: DeadlineId::from_uuid(uuid(&self.deadline_id, "invalid_deadline_id")?),
+                change,
+            },
+            policies,
+        ))
     }
 }
 impl Attention {
@@ -118,7 +141,7 @@ pub(super) struct Submission {
     expected_submission_digest: String,
 }
 impl Submission {
-    pub(super) fn validate(self) -> Result<(DeadlineCommand, Sha256Digest), ApiError> {
+    pub(super) fn validate(self) -> Result<(DeadlineHumanCommand, Sha256Digest), ApiError> {
         let digest = Sha256Digest::from_hex(&self.expected_submission_digest).map_err(|_| {
             ApiError::invalid_body(
                 "invalid_deadline_digest",
@@ -126,6 +149,38 @@ impl Submission {
             )
         })?;
         Ok((self.command.0.validate()?, digest))
+    }
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Policies {
+    profile: Policy,
+    source: Policy,
+    calendar: Policy,
+}
+impl Policies {
+    fn value(self) -> TrackingPolicies {
+        TrackingPolicies {
+            profile: self.profile.value(),
+            source: self.source.value(),
+            calendar: self.calendar.value(),
+        }
+    }
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum Policy {
+    Fixed,
+    Follow,
+    Undetermined,
+}
+impl Policy {
+    fn value(self) -> TrackingPolicy {
+        match self {
+            Self::Fixed => TrackingPolicy::Fixed,
+            Self::Follow => TrackingPolicy::Follow,
+            Self::Undetermined => TrackingPolicy::Undetermined,
+        }
     }
 }
 pub(super) fn uuid(v: &str, code: &'static str) -> Result<uuid::Uuid, ApiError> {

@@ -18,7 +18,7 @@ use application::{
 use deadline_backend_support as dl;
 use deadline_tracked_backend_support as tracked;
 use deadline_tracked_notification_support as notification;
-use domain::{crypto::DocumentHasher, identity::Role};
+use domain::crypto::DocumentHasher;
 use infrastructure::RingSha256Hasher;
 use serde_json::json;
 
@@ -81,7 +81,7 @@ fn legacy_attention_cannot_add_an_authentic_parent_head_that_the_original_never_
         return;
     };
     let (command, parent, _) = notification::setup(&db);
-    let first = dl::persist(&dl::service(&db, db.owner, Role::Owner), db.case, command);
+    let first = dl::persist_legacy(&db, db.owner, command);
     assert_eq!(first.receipt.version, DeadlineReceiptVersion::Legacy);
     let parent_head = notification::advance_parent(&db, &parent);
     let repository = dl::store(&db);

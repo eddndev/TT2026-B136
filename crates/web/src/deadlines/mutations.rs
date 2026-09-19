@@ -23,12 +23,12 @@ pub(super) async fn prepare(
         .run(move || {
             Ok((|| {
                 let command = input.validate()?;
-                if !scope::accepts(c, &command) {
+                let expected = command.clone().into_parts().0;
+                if !scope::accepts(c, &expected) {
                     return Err(scope::mismatch());
                 }
-                let expected = command.clone();
-                let row = s.workflow.prepare(&token, c, command)?;
-                response::draft(row, c, &expected)
+                let row = s.workflow.prepare(&token, c, command.clone())?;
+                response::draft(row, c, &command)
             })())
         })
         .await??;
@@ -96,16 +96,16 @@ async fn submit(
         .run(move || {
             Ok((|| {
                 let (command, digest) = input.validate()?;
-                if !scope::accepts(c, &command)
-                    || command.action() != action
-                    || id.is_some_and(|id| id != command.deadline_id)
+                let expected = command.clone().into_parts().0;
+                if !scope::accepts(c, &expected)
+                    || expected.action() != action
+                    || id.is_some_and(|id| id != expected.deadline_id)
                 {
                     return Err(scope::mismatch());
                 }
-                let expected = command.clone();
-                let revision = command.result_revision()?;
-                let row = s.workflow.submit(&token, c, command, digest)?;
-                response::submitted(&row, &expected, digest)?;
+                let revision = expected.result_revision()?;
+                let row = s.workflow.submit(&token, c, command.clone(), digest)?;
+                response::submitted(&row, &command, digest)?;
                 response::detail(row, c, expected.deadline_id, Some(revision))
             })())
         })

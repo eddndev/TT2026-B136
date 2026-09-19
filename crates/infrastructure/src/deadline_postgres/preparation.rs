@@ -94,11 +94,14 @@ pub(super) fn load(
                 definition.input.calendar,
                 hasher,
             )?;
+            let notification_parent_head =
+                notification_parent_for_definition(tx, case, definition, hasher)?;
             (
                 Some(DeadlineResolvedInputs {
                     profile,
                     profile_head,
                     material,
+                    notification_parent_head,
                 }),
                 Some(responsible),
             )
@@ -121,23 +124,6 @@ fn profile_error(error: ApplicationError) -> ApplicationError {
         }
         other => other,
     }
-}
-
-/// Resolve the current parent independently of a notification's selected historical parent.
-/// The caller authorizes the case and shares the audited lock with all source writers.
-pub(super) fn notification_parent_head(
-    tx: &mut Transaction<'_>,
-    case: CaseId,
-    command: &DeadlineCommand,
-    hasher: &dyn DocumentHasher,
-) -> Result<Option<FactDetail>, ApplicationError> {
-    let definition = match &command.change {
-        DeadlineChange::Register { definition } | DeadlineChange::Correct { definition, .. } => {
-            definition
-        }
-        _ => return Ok(None),
-    };
-    notification_parent_for_definition(tx, case, definition, hasher)
 }
 
 /// Resolve a selected notification's independent current parent for an audited caller.

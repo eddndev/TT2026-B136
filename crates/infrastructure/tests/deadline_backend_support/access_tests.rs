@@ -6,11 +6,7 @@ use domain::{cases::CaseId, identity::UserId};
 fn store_authorizes_all_four_roles_before_reads_mutations_and_cross_case_lookups() {
     let Some(mut db) = Fixture::new() else { return };
     let command = setup(&db);
-    let first = persist(
-        &service(&db, db.owner, Role::Owner),
-        db.case,
-        command.clone(),
-    );
+    let first = persist_legacy(&db, db.owner, command.clone());
     let owner = db.owner;
     let actors = [
         (owner, Role::Owner),
@@ -75,7 +71,11 @@ fn responsible_must_be_active_staff_authorized_for_the_case_but_history_is_immut
     for actor in [db.owner, db.user("litigator", true), paralegal] {
         let mut candidate = command(&db, &profile, &source);
         definition_mut(&mut candidate).responsible = actor;
-        let row = persist(&workflow, db.case, candidate);
+        let row = persist(
+            &workflow,
+            db.case,
+            human(candidate, Some(FOLLOW_RESOLUTION)),
+        );
         assert_eq!(row.responsible.id, actor);
     }
     let client = db.user("client", true);
@@ -92,7 +92,11 @@ fn responsible_must_be_active_staff_authorized_for_the_case_but_history_is_immut
         let mut candidate = command(&db, &profile, &source);
         definition_mut(&mut candidate).responsible = actor;
         assert!(matches!(
-            workflow.prepare("session", db.case, candidate),
+            workflow.prepare(
+                "session",
+                db.case,
+                human(candidate, Some(FOLLOW_RESOLUTION))
+            ),
             Err(ApplicationError::Deadline(
                 DeadlineError::ResponsibleUnavailable
             ))
@@ -101,7 +105,11 @@ fn responsible_must_be_active_staff_authorized_for_the_case_but_history_is_immut
     assert_eq!(snapshot(&mut db), before);
     let mut candidate = command(&db, &profile, &source);
     definition_mut(&mut candidate).responsible = paralegal;
-    let row = persist(&workflow, db.case, candidate);
+    let row = persist(
+        &workflow,
+        db.case,
+        human(candidate, Some(FOLLOW_RESOLUTION)),
+    );
     db.admin
         .execute(
             "UPDATE users SET active=false,email='former@example.test' WHERE id=$1",
@@ -122,12 +130,12 @@ fn closed_case_preserves_reads_and_rejects_every_mutation_and_prepared_commit() 
     crate::case_stage_database_support::complete(&db);
     let workflow = service(&db, db.owner, Role::Owner);
     let initial = setup(&db);
-    let first = persist(&workflow, db.case, initial.clone());
+    let first = persist_legacy(&db, db.owner, initial.clone());
     let mut new = initial;
     new.deadline_id = DeadlineId::new();
     new.operation_id = DeadlineOperationId::new();
     let commands = [new, correct(&first), attention(&first), retire(&first)];
-    let pending = prepared(&db, db.owner, &commands[1]);
+    let pending = prepared_legacy(&db, db.owner, &commands[1]);
     db.store()
         .change_administrative_status(
             db.owner,
@@ -159,8 +167,14 @@ fn closed_case_preserves_reads_and_rejects_every_mutation_and_prepared_commit() 
     );
     let before = snapshot(&mut db);
     for command in commands {
+        let policies = match &command.change {
+            DeadlineChange::Register { .. } | DeadlineChange::Correct { .. } => {
+                Some(FOLLOW_RESOLUTION)
+            }
+            DeadlineChange::SetAttention { .. } | DeadlineChange::Retire { .. } => None,
+        };
         assert!(matches!(
-            workflow.prepare("session", db.case, command),
+            workflow.prepare("session", db.case, human(command, policies)),
             Err(ApplicationError::CaseClosed)
         ));
     }

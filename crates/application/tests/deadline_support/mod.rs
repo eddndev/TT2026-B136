@@ -72,6 +72,7 @@ pub fn fixture() -> (DeadlineCommand, DeadlinePreparation) {
             profile: profile.clone(),
             profile_head: profile,
             material,
+            notification_parent_head: None,
         }),
         responsible: Some(DeadlineResponsibleSnapshot {
             id: inputs::actor(),
