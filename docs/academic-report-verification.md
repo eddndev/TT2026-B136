@@ -24,6 +24,22 @@ Se separó el directorio del nombre del ADR para corregirlo. La comprobación
 visual definitiva corresponde al artefacto recompilado después de ese ajuste;
 este primer PDF no se presenta como aprobado visualmente.
 
+El [artefacto corregido](https://github.com/eddndev/TT2026-B136/actions/runs/35459213191)
+corresponde a `ac33bc5`: su merge de revisión `9063550` tiene padres `2ef6c53`
+y `ac33bc5` y el mismo árbol que esa cabeza. Conserva **326 páginas carta**,
+con **5917636 bytes**. SHA-256:
+`9e2e13fbdefcaa50de58fa3a40d0d620f98eff01ccae99abcaf1abff7143b043`.
+Se renderizaron e inspeccionaron **14 páginas físicas: 3-6, 10, 198-200,
+232-234 y 320-322**. Los apartados, tablas, continuaciones e índices son
+legibles; el párrafo corregido cabe dentro del margen, sin recortes ni
+solapamientos. La pasada final sólo conserva las sustituciones históricas de
+versalitas y el desborde anterior de 0.11754 pt; no contiene referencias o
+citas indefinidas, etiquetas duplicadas ni glifos ausentes. El PDF y las
+imágenes se conservan en `output/resources-verification/ci-report-ac33bc5/`.
+La muestra no acredita una inspección de todas las páginas ni el cierre
+del manuscrito completo.
+
+
 ## Alertas personales: fuentes del 19 de septiembre de 2026
 
 Se añadieron implementación, pruebas y trazabilidad de alertas persistentes,
