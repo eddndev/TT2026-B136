@@ -15,6 +15,16 @@ no incluye creación contextual de audiencias, activación automática ni corpus
 jurídico nuevo. La aceptación API/restauración integrada y los tres recorridos con navegador
 real aprobaron. CI e integración permanecen pendientes en este corte.
 
+El navegador remoto de `f81f0cb` aprobó 36 escenarios y falló el de
+asociaciones de escritorio: esperaba que el aviso de 48 horas siempre tuviera
+origen R2. El trabajador puede activarlo en R1 antes del cambio de sede, sin
+cambiar su fecha ni abrir otra ocurrencia. La prueba ahora exige origen R1 o R2
+con su digest exacto, mismo sujeto y ámbito, ventana de 48 horas y estado activo;
+conserva la comparación íntegra del aviso antes y después de vincular/desvincular.
+Dos casos Node reprodujeron el rechazo incorrecto; los tres casos de origen
+aprobaron en 0.330 s, incluido el rechazo de digest, ámbito, revisión o ventana
+ajenos. La repetición con servidor real y el cierre remoto siguen pendientes.
+
 Resultados focales ejecutados en serie, sin sumarlos como una regresión global:
 
 | Frontera | Casos distintos aprobados | Alcance y límite |

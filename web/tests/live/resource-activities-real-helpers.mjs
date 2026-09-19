@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { fixture } from './helpers.mjs';
+import { hearingOccurrenceMatches } from '../resource-activity-alert-origin.mjs';
 import { openResource, responseTo } from './procedural-resources-helpers.mjs';
 export { accountAction } from './hearing-result-helpers.mjs';
 export const accounts = fixture.resourceActivities;
@@ -121,14 +122,7 @@ export async function readyAlerts(call, scenario) {
     .poll(
       async () => {
         rows = await alertSnapshot(call, scenario);
-        return rows.filter(
-          (row) =>
-            row.subject.id === scenario.hearing.id &&
-            row.origin.revision === 2 &&
-            row.state.kind === 'active' &&
-            row.kind.kind === 'upcoming' &&
-            row.kind.lead_hours === 48,
-        ).length;
+        return rows.filter((row) => hearingOccurrenceMatches(row, scenario)).length;
       },
       { timeout: 60000, intervals: [250, 500, 1000] },
     )
