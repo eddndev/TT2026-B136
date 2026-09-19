@@ -47,3 +47,6 @@ pub mod deadline_technical;
 pub mod deadline_worker;
 
 pub mod deadline_dispatch;
+
+pub mod document_content;
+pub mod document_integrity;

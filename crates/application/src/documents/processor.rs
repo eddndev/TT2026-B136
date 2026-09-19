@@ -244,6 +244,14 @@ impl DocumentProcessor {
         plaintext_with_ports(record, &self.kek, &self.validation_ports())
     }
 
+    /// Authenticates bounded exact content and its digest without evaluating sealed evidence.
+    pub fn content_plaintext(
+        &self,
+        record: &DocumentRecord,
+    ) -> Result<Zeroizing<Vec<u8>>, ApplicationError> {
+        super::content_validation::plaintext(record, &self.kek, &self.validation_ports())
+    }
+
     fn validation_ports(&self) -> DocumentValidationPorts<'_> {
         DocumentValidationPorts {
             cipher: self.ports.cipher.as_ref(),
