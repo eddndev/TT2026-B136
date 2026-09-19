@@ -85,13 +85,16 @@ DATABASE_URL="$IDENTITY_TEST_DATABASE_URL" "$CLI" credential-trust publish \
 ) >"$WORK_DIR/server.log" 2>&1 &
 SERVER_PID=$!
 SERVER_ADDRESS=""
-for _ in $(seq 1 100); do
+for _ in $(seq 1 600); do
   SERVER_ADDRESS="$(sed -n 's/^listening on http:\/\///p' "$WORK_DIR/server.log" | tail -n 1)"
   if [ -n "$SERVER_ADDRESS" ]; then break; fi
   kill -0 "$SERVER_PID" 2>/dev/null || exit 1
   sleep 0.1
 done
-[ -n "$SERVER_ADDRESS" ]
+if [ -z "$SERVER_ADDRESS" ]; then
+  printf 'web-demo.sh: server did not report its address within 60 seconds\n' >&2
+  exit 1
+fi
 export API_PROXY_TARGET="http://$SERVER_ADDRESS"
 export TT_WEB_FIXTURES="$WORK_DIR/browser-fixtures.json"
 export TT_LIVE_PARTICIPANT_CERTIFICATE="$PKI_CA_DIR/certs/browser-participant.crt.pem"
