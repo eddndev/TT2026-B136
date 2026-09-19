@@ -55,12 +55,24 @@ sin enumerar expedientes, y abrieron las cinco revisiones exactas. Ambos recorri
 reales, a 1440/390 píxeles, aprobaron en 214.055 s con preparación; Playwright
 informó 16.4 s. Las 2119 fuentes conservaron sus huellas. Se reutilizó el operador
 y calendario, con políticas fijas y datos independientes de la prueba Follow.
+Se inspeccionaron sus dos capturas: las cinco tarjetas conservan legibilidad
+en escritorio y el calendario mantiene desplazamiento contenido en móvil.
 La regresión global, cobertura,
 actualización académica de esta ampliación e integración en main están pendientes.
 La aceptación de esta agenda no acredita alertas, activación automática ni
 perfiles jurídicos calificados.
 
 ## Seguimiento humano V2 y composicion local: 19 de septiembre de 2026
+
+La entrega se integró en `main` mediante squash de la
+[PR 34](https://github.com/eddndev/TT2026-B136/pull/34), commit `e2e6758`,
+el 19 de septiembre de 2026. La campaña de
+[CI de la PR](https://github.com/eddndev/TT2026-B136/actions/runs/35431913733)
+aprobó formato, Clippy, MSRV, pruebas, cobertura, política de dependencias y
+binario de release para `24da17d`. También aprobaron los workflows Web
+y Documents de esa revisión. Esta evidencia remota cierra la regresión de
+reevaluación; no se repitió la campaña completa localmente ni se atribuye
+a la agenda posterior.
 
 El servicio humano prepara y confirma seguimiento V2 con politicas explicitas,
 autor autenticado completo y continuidad administrativa verificada. Detalle y
