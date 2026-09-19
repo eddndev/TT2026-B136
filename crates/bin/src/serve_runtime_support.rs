@@ -9,7 +9,7 @@ use std::{
         atomic::{AtomicBool, Ordering::SeqCst},
         mpsc, Arc,
     },
-    task::{Context, Poll, Wake, Waker},
+    task::{Context, Poll, Waker},
     time::Duration,
 };
 use tokio::{sync::oneshot, task::AbortHandle};
@@ -24,11 +24,6 @@ pub enum ConsumerExit {
     Success,
     Error,
     Panic,
-}
-
-struct NoopWake;
-impl Wake for NoopWake {
-    fn wake(self: Arc<Self>) {}
 }
 
 type Supervisor = Pin<Box<dyn Future<Output = anyhow::Result<()>> + Send>>;
@@ -120,8 +115,7 @@ impl Running {
         if self.result.is_some() {
             return false;
         }
-        let waker = Waker::from(Arc::new(NoopWake));
-        let mut context = Context::from_waker(&waker);
+        let mut context = Context::from_waker(Waker::noop());
         if let Poll::Ready(value) = self.supervisor.as_mut().poll(&mut context) {
             self.result = Some(value);
         }

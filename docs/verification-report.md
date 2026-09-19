@@ -113,6 +113,16 @@ confirmo la coincidencia literal y el rechazo de una clave distinta. El recorrid
 de reevaluacion y restauracion termino; falta repetir el guion completo para
 acreditar tambien esa asercion de sesiones con su correccion.
 
+### Ajuste focal detectado en CI
+
+Clippy 1.98.1 rechazo la implementacion manual de un despertador sin efecto en
+el auxiliar de pruebas del supervisor (`manual_noop_waker`). Se sustituyo por
+`Waker::noop()`, conservando la conduccion manual del futuro y sus aserciones.
+Las nueve pruebas del supervisor aprobaron de nuevo en 4.918 s, sin repetir
+la suite global local. Clippy 1.98.1 del binario y todos sus targets aprobo
+en 28.386 s con warnings denegados. Esta correccion no cambia el consumidor
+de produccion.
+
 ### Checkpoint funcional y regresion de cierre
 
 La comprobacion final del cliente completo aprobo 284 pruebas Node en 9.390 s,
