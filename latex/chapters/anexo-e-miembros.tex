@@ -1,0 +1,25 @@
+\section{Trazabilidad de administración de miembros}\label{anexo:miembros}
+
+Esta matriz delimita la implementación de la \cref{sec:impl-miembros} y los ensayos de la \cref{sec:pruebas-miembros}. La actividad de una cuenta y su pertenencia a expedientes son estados distintos; ninguna ficha procesal otorga una identidad de acceso.
+
+\begin{longtable}{@{}p{0.23\linewidth}p{0.48\linewidth}p{0.20\linewidth}@{}}
+  \caption[Verificación de miembros y acceso]{Fronteras verificadas del directorio y la revocación durable de cuentas.}\label{tab:miembros-verificacion}\\
+  \toprule
+  \textbf{Frontera} & \textbf{Comportamiento comprobado} & \textbf{Evidencia} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Comportamiento comprobado} & \textbf{Evidencia} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Identidad y aplicación & Rechazo de generaciones anteriores; principal completo, permisos Owner, cursor ligado y resultado confirmado sin secretos. & 34 pruebas de aplicación. \\
+  Transporte HTTP & Contratos cerrados, revisión decimal, límites, permisos y errores de conflicto. & Siete pruebas HTTP. \\
+  PostgreSQL y Redis & Último Owner, carrera entre cambios, atomicidad, guardas, valores anteriores rechazados y restauración de cuentas y generación. & Doce pruebas con servicios reales. \\
+  Cliente & Validación de páginas y respuesta, revisiones exactas, contexto y conciliación sin reintento ciego. & Dieciséis pruebas Node. \\
+  Qadra & Filtros, asignación, cambio propio, conflicto, incertidumbre y descarte de respuestas tardías. & Once escenarios con HTTP controlado. \\
+  Cierre & Aceptación HTTP integrada, navegador real, CI y revisión del PDF del incremento. & Pendientes en este corte. \\
+\end{longtable}
+
+La restauración focal no acredita por sí sola la invalidación operativa de todos los tokens de una instalación restaurada. El procedimiento de \rutarepo{docs/database-operations.md} exige cerrar el tráfico e invalidar sesiones y desafíos del Redis correcto antes de servir nuevamente; conserva reclamos TOTP y datos ajenos. El alcance no incluye invitaciones, recuperación de acceso ni autenticación por certificado.

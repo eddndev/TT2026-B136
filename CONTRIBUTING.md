@@ -216,6 +216,17 @@ Reviewed on 2026-09-18. `docs/product-completion.md` is the detailed product map
 `docs/verification-report.md` distinguishes reproduced checks from pending work.
 Inspect current code and contracts before treating this summary as complete.
 
+- The Owner-only member directory, assignment selectors and role/activity changes
+  are implemented locally in application, PostgreSQL, HTTP and Qadra. Expected
+  revisions, the last active Owner guard and durable authentication generations
+  protect access changes; reactivation requires a fresh password/MFA login.
+  Assignments and historical authors remain intact. Application/HTTP, Node,
+  controlled-browser and PostgreSQL/Redis checks passed, including database
+  restoration. Integrated acceptance, CI and integration remain pending for this
+  increment. Direct enrollment is not an invitation; account recovery and
+  certificate login remain pending. See
+  `docs/members-api.md` and
+  `docs/adr/0043-member-access-and-authentication-generation.md`.
 - Case administration, documents and versions, manual/typed participants, stage
   transitions and hearing scheduling have authenticated, audited workflows.
 - Declared hearing sessions/results include exact scheduling and continuation
@@ -353,6 +364,9 @@ section in `AGENTS.md` for the dependency map. Current remaining work includes:
    text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and
    audit-query use cases with explicit authorization and reproduced evidence.
+   Member administration and directory-based assignment selection are implemented
+   locally; close their acceptance separately from invitations, account recovery
+   and certificate login, which remain pending.
 3. Validate deployment limits, recovery and external dependencies; maintain the
    affected documentation and academic evidence under the rules above. Final
    conclusions remain pending until the complete project is finished.

@@ -239,6 +239,17 @@ is still unfinished.
   revocable opaque sessions, challenges, login limits, and TOTP replay claims.
   These are not JWT sessions. See
   `docs/adr/0012-revocable-sessions-and-rbac.md`.
+- The Owner-only member directory, assignment selectors and role/activity changes
+  are implemented locally in application, PostgreSQL, HTTP and Qadra. Expected
+  revisions, the last active Owner guard and durable authentication generations
+  protect access changes; reactivation requires a fresh password/MFA login.
+  Assignments and historical authors remain intact. Application/HTTP, Node,
+  controlled-browser and PostgreSQL/Redis checks passed, including database
+  restoration. Integrated acceptance, CI and integration remain pending for this
+  increment. Direct enrollment is not an invitation; account recovery and
+  certificate login remain pending. See
+  `docs/members-api.md` and
+  `docs/adr/0043-member-access-and-authentication-generation.md`.
 - `migrations/0002_cases.sql` persists case metadata and current assignments.
   `crates/application/src/cases/` authenticates every operation; the PostgreSQL
   adapter filters detail and paginated lists by membership. Owners see all
@@ -572,9 +583,10 @@ current code before planning subsequent work in this dependency order.
    external judicial authority. `docs/procedural-resources-scope.md` preserves the
    approved resource objective as a separate workflow, not a fourth linear stage.
    Keep these records separate from account assignments and organizational archiving.
-3. Extend the Qadra interface with procedural workflows, user administration,
-   dashboard aggregates, reports and audit queries against `docs/http-api.md`.
-   Use a user directory for assignment selection instead of requiring raw UUIDs.
+3. Complete acceptance of member administration and extend Qadra with remaining
+   procedural workflows, dashboard aggregates, reports and audit queries against
+   `docs/http-api.md`. The implemented member directory supplies assignment
+   selection without raw UUID entry; invitations and account recovery remain open.
    Resolve certificate login and per-user signing identity before declaring
    those objectives complete. Keep business rules and cryptography behind ports.
 4. Before public deployment, measure database pooling and asynchronous clients,

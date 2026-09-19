@@ -1,5 +1,13 @@
 # API HTTP local autenticada
 
+La [API de miembros y acceso de cuentas](members-api.md) incorpora el directorio
+exclusivo de Owner, selección de asignados/disponibles y cambios de rol o estado
+con revisión esperada. La revocación durable alcanza sesiones y desafíos previos;
+reactivar exige un nuevo inicio de sesión. La implementación local tiene evidencia
+focal y PostgreSQL/Redis aprobada; la aceptación integrada y de CI conserva su seguimiento en el
+[informe de verificación](verification-report.md). El alta directa existente no
+se convierte en invitación ni recuperación de acceso.
+
 La [API de contenido documental e incidentes](document-content-api.md) añade
 la descarga de una versión exacta, pendiente o sellada, y el buzón interno
 exclusivo de Owner. Su aceptación se registra por separado en el informe.

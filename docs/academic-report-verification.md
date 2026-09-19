@@ -1,5 +1,37 @@
 # Verificación de la actualización académica
 
+## Miembros: fuentes del 19 de septiembre de 2026
+
+Se incorporaron apartados propios de implementacion, pruebas y anexo, con sus
+inclusiones. Describen directorio, cambios de rol/actividad, generacion de
+sesiones/desafios y selectores de asignacion. Distinguen las cuatro campanas
+focales aprobadas de aceptacion integrada, CI y PDF pendientes. Se añadieron
+captions cortos de indice a dos tablas historicas sin cambiar sus titulos
+principales ni mediciones. La compilacion e inspeccion de estas fuentes todavia
+no se ejecutaron; el PDF de contenido original descrito abajo no las acredita.
+Resumen, objetivos, estado del arte, conclusiones y presentacion se preservan.
+
+## Inspeccion del artefacto de contenido original publicado
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35464914814)
+compilo la cabeza `626cea0`. El artefacto identifica `0d40c59`, con padres
+`f81f0cb` y `626cea0`; el arbol coincide con la cabeza publicada. El PDF tiene
+**335 paginas carta, 5945980 bytes** y SHA-256
+`2cd93d161125652fe32863fe3fd13f5ef566d9c229da8bef1404f3cf4c91e3cc`.
+Se renderizaron e inspeccionaron **13 paginas fisicas: 3-6, 10, 169-171,
+219-221 y 316-317**. Los apartados nuevos, la matriz y sus continuaciones son
+legibles, sin recortes o solapamientos. La pasada final conserva las
+sustituciones historicas de versalitas y el desborde de 0.11754 pt; no aparecen
+referencias/citas indefinidas, etiquetas duplicadas o glifos ausentes.
+
+En el indice de tablas, pagina fisica 10, las entradas historicas 5.20 y 5.22
+quedan pegadas a sus numeros de pagina. Se registra esta observacion tipografica
+para su ajuste en las fuentes posteriores; no se extiende la inspeccion a todas
+las paginas ni se declara cerrado el manuscrito. El artefacto y las capturas
+se conservan en `output/document-content-verification/ci-report-626cea0/` del
+checkout de contenido original. El resultado acredita ese PDF, no la futura
+compilacion de miembros.
+
 ## Contenido original e incidentes: fuentes del 19 de septiembre de 2026
 
 Se añadieron implementación, pruebas focales y una matriz de trazabilidad,

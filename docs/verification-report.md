@@ -4,6 +4,46 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Directorio, acceso y asignaciones: verificacion del 19 de septiembre de 2026
+
+El incremento local implementa directorio Owner, cambios de rol/actividad con
+revision esperada y selectores de asignacion. Una generacion persistida revoca
+sesiones y desafios anteriores incluso despues de reactivar la cuenta. Las
+asignaciones se conservan al desactivar; se protege el ultimo Owner activo.
+El [contrato de miembros](members-api.md) y
+[ADR 0043](adr/0043-member-access-and-authentication-generation.md) fijan limites.
+Invitaciones, recuperacion de credenciales y autenticacion por certificado
+permanecen pendientes. Este corte no acredita integracion ni regresion global.
+
+Las campanas locales corrieron en serie, con un coordinador, jobs Rust y
+hilos de prueba en uno, y Playwright con un trabajador. Los temporales privados
+estuvieron en disco, bajo `output/tmp`. Se conservaron resultados y hashes de
+fuentes por comando en `output/member-lifecycle-verification/`.
+
+- Node: dieciseis fallos iniciales por metodos ausentes; despues **16 aprobadas**
+  en 0.655 s, con 2521 fuentes estables. Cubren revision decimal sin perdida,
+  contrato estricto y directorios filtrados de cuentas/asignaciones.
+- Aplicacion/HTTP: **41 aprobadas** en 42.282 s, con 2553 fuentes estables:
+  veinte de identidad, cuatro de consultas, diez de servicio y siete HTTP.
+  La campana inicial habia aprobado dieciseis de identidad y fallado las cuatro
+  nuevas, cuatro consultas, diez servicios y siete rutas. La repeticion cubre
+  generacion, reautenticacion, limites, conflictos y respuestas sin secretos.
+- Navegador con HTTP controlado: **11 aprobadas** en 28.848 s de comando y
+  27.5 s de Playwright, con 2553 fuentes estables. Incluye escritorio/movil,
+  filtros, asignacion con expediente cerrado, conflicto, ultimo Owner,
+  cambio propio, respuesta incierta y cambios de contexto. El intento inicial
+  paro ante la region de directorio ausente: uno fallo y diez no se ejecutaron.
+- PostgreSQL/Redis: diez casos reprodujeron el comportamiento ausente.
+  La siguiente campana no ejecuto tests: fallo compilacion por conversion
+  `OffsetDateTime`/PostgreSQL en dos puntos, en 10.773 s. Se corrigieron las
+  conversiones sin ampliar dependencias. La repeticion aprobo **12 casos** en
+  41.896 s, con 2553 fuentes estables y PostgreSQL/Redis desechables: atomicidad,
+  ultimo Owner concurrente, filtros, inventario/catalogo, guardas y restauracion.
+
+La aceptacion HTTP con restauracion y el navegador con servicios reales estan
+preparados; no se contabilizan hasta completar su ejecucion. El cierre de CI,
+la compilacion y la inspeccion de las nuevas fuentes academicas siguen pendientes.
+
 ## Contenido original e incidentes: verificación del 19 de septiembre de 2026
 
 El incremento añade descarga exacta de versiones pendientes o selladas y buzón

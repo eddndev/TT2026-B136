@@ -115,6 +115,42 @@ su cifrado exacto antes del respaldo; ese procedimiento no es una función de
 reparación del producto. Las campañas ejecutadas y las todavía pendientes se
 registran en [el informe](verification-report.md).
 
+## Acceso de miembros y restauración de identidad
+
+`0025_member_lifecycle.sql` añade `users.auth_generation`. Los cambios reales
+de rol o estado incrementan generación y revisión, junto con su evento de
+auditoría en la misma transacción. Las guardas serializan cambios y preservan
+al menos un Owner activo; el rol operativo no puede reescribir credenciales
+ni contadores arbitrariamente. El arranque valida catálogo, privilegios e
+inventario. Véanse [el contrato](members-api.md) y
+[ADR-0043](adr/0043-member-access-and-authentication-generation.md).
+
+Las sesiones y los desafíos Redis capturan la generación de autenticación.
+El servicio la contrasta con PostgreSQL antes de aceptar la identidad; un valor
+antiguo no vuelve a ser válido al reactivar la cuenta. Los valores Redis del
+formato anterior carecen de generación y requieren un nuevo inicio de sesión.
+Desactivar conserva asignaciones y autoría histórica. El consumo de un código
+de recuperación puede avanzar la revisión sin cambiar la generación.
+
+Restaurar PostgreSQL puede retroceder la generación. Antes de reabrir tráfico:
+
+1. Detener todas las instancias HTTP que utilicen la base y bloquear su acceso.
+2. Restaurar PostgreSQL con sus restricciones, privilegios y auditoría; comprobar
+   que el inventario se acepta sin alterar guardas ni datos para eludir fallos.
+3. Invalidar **todas** las sesiones y desafíos del espacio Redis de esa instancia,
+   verificando previamente la identidad del servidor y el espacio de claves.
+   No vaciar una base compartida ni borrar reclamos TOTP o límites de acceso.
+4. Reabrir tráfico sólo tras terminar la invalidación. Exigir contraseña y MFA
+   nuevos y comprobar que los tokens anteriores son rechazados.
+
+Una copia SQL por sí sola no conserva la revocación frente a una restauración
+anterior. La limpieza del guion de aceptación comprueba PID y directorio del
+Redis desechable; no es una autorización para borrar claves de otros entornos.
+Las pruebas focales de aplicación/HTTP y PostgreSQL/Redis están aprobadas, incluida
+la restauración de cuentas, generaciones y guardas. La aceptación integrada y CI
+de este incremento siguen pendientes en este corte; sus resultados
+se registran en [el informe](verification-report.md).
+
 ## Preparar un despliegue nuevo
 
 Crear previamente una base UTF-8 y un rol de conexión sin privilegios administrativos.
@@ -938,7 +974,9 @@ raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 
 Las sesiones Redis no sustituyen el estado durable. En una recuperación operativa
-se deben invalidar sesiones anteriores y ensayar el nuevo acceso con MFA. El
+se deben invalidar sesiones y desafíos anteriores antes de reabrir tráfico y
+ensayar el nuevo acceso con MFA, según el procedimiento de
+[restauración de identidad](#acceso-de-miembros-y-restauración-de-identidad). El
 respaldo y los recibos no resuelven por sí solos el anclaje externo de auditoría.
 
 ## Lectura de insumos temporales

@@ -18,6 +18,18 @@ contenido, con carga inicial atómica y filtros exactos. Las pruebas con HTTP
 simulado y los recorridos contra servicios reales tienen evidencias separadas.
 `frontend/` conserva el ejemplo anterior; el producto continúa en `web/`.
 
+El [directorio de miembros](members-api.md) y la administración de acceso están
+implementados localmente en aplicación, PostgreSQL, HTTP y Qadra. Owner consulta
+cuentas sin secretos, filtra por correo/rol/estado y selecciona asignados o
+disponibles por expediente. El cambio conjunto de rol y estado exige revisión
+esperada, conserva al último Owner activo y revoca sesiones y desafíos anteriores
+mediante generación durable. Reactivar conserva las asignaciones y exige nuevo
+inicio de sesión. Aplicación/HTTP, Node y navegador con HTTP controlado tienen
+evidencia focal aprobada. PostgreSQL/Redis también aprobó sus 12 casos, incluida
+la restauración; aceptación integrada, CI e integración permanecen pendientes.
+Invitaciones, recuperación de acceso y
+autenticación por certificado siguen fuera de esta implementación.
+
 La entrega en curso de [contenido original e incidentes](document-content-api.md)
 añade descarga de versiones pendientes o selladas, comprobación completa antes
 de entregar bytes y aviso interno persistente a Owner. Sus pruebas por capa se
@@ -348,8 +360,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Caso de uso | Estado | Alcance y condición pendiente para cierre |
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
-| Ciclo de vida de miembros | Parcial | Invitaciones, directorio consultable, baja y protección del último Owner; selección por usuario en asignaciones. |
-| Inicio de sesión y sesiones | Parcial | Certificado de socio, recuperación de contraseña e inactividad; contraseña/MFA y logout ya tienen implementación. |
+| Ciclo de vida de miembros | Parcial; directorio y administración de acceso implementados localmente | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal y PostgreSQL/Redis aprobada; aceptación integrada/CI pendiente. Invitaciones y enrolamiento recuperable siguen pendientes. |
+| Inicio de sesión y sesiones | Parcial | Contraseña/MFA y logout implementados; la generación durable impide reutilizar sesiones o desafíos anteriores tras reactivación, con evidencia focal propia. Certificado de socio, recuperación de contraseña e inactividad siguen pendientes. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
