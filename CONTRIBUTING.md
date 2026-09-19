@@ -223,9 +223,11 @@ Inspect current code and contracts before treating this summary as complete.
   Assignments and historical authors remain intact. Application/HTTP, Node,
   controlled-browser and PostgreSQL/Redis checks passed, including database
   restoration. Three real-browser scenarios also passed on desktop/mobile,
-  covering access revocation after reactivation and role restrictions. Integrated
-  API/restore acceptance, CI and integration remain pending for this increment. Direct enrollment is not an invitation; account recovery and
-  certificate login remain pending. See
+  covering access revocation after reactivation and role restrictions. Complete
+  API/restore acceptance also passed, preserving account and assignment views
+  while rejecting old tokens and requiring fresh MFA. Global CI, the PDF for
+  these results and integration remain pending. Direct enrollment is not an
+  invitation; account recovery and certificate login remain pending. See
   `docs/members-api.md` and
   `docs/adr/0043-member-access-and-authentication-generation.md`.
 - Case administration, documents and versions, manual/typed participants, stage

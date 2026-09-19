@@ -4,9 +4,9 @@ La [API de miembros y acceso de cuentas](members-api.md) incorpora el directorio
 exclusivo de Owner, selección de asignados/disponibles y cambios de rol o estado
 con revisión esperada. La revocación durable alcanza sesiones y desafíos previos;
 reactivar exige un nuevo inicio de sesión. La implementación local tiene evidencia
-focal, PostgreSQL/Redis y tres recorridos de navegador real aprobados. La aceptación
-API completa con restauración y CI siguen pendientes en el
-[informe de verificación](verification-report.md). El alta directa existente no
+focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa
+con restauración aprobados. CI global y el PDF actualizado conservan su seguimiento
+en el [informe de verificación](verification-report.md). El alta directa existente no
 se convierte en invitación ni recuperación de acceso.
 
 La [API de contenido documental e incidentes](document-content-api.md) añade

@@ -20,9 +20,10 @@ Esta matriz delimita la implementación de la \cref{sec:impl-miembros} y los ens
   Cliente & Validación de páginas y respuesta, revisiones exactas, contexto y conciliación sin reintento ciego. & Dieciséis pruebas Node. \\
   Qadra & Filtros, asignación, cambio propio, conflicto, incertidumbre y descarte de respuestas tardías. & Once escenarios con HTTP controlado. \\
   Navegador real & Escritorio y móvil, expediente cerrado, token anterior rechazado tras reactivación y restricciones de rol, incluido Client. & Tres recorridos aprobados. \\
-  Cierre & Aceptación API completa con restauración, CI y revisión del PDF del incremento. & Pendientes en este corte. \\
+  API y restauración & Cuentas y asignaciones conservadas; tokens anteriores rechazados, MFA nuevo y evidencia documental exacta. & Campaña completa aprobada. \\
+  Cierre & CI global y compilación e inspección del PDF con estos resultados. & Pendientes en este corte. \\
 \end{longtable}
 
 La campaña real duró 418.426~s de comando y 40.1~s de Playwright, con 2553 fuentes estables. Los recorridos usaron 1440 y 390 píxeles; las cuatro capturas fueron inspeccionadas y resultaron legibles, sin desbordamientos ni solapamientos, conservando Qadra. No se atribuye una evaluación de usabilidad con personas.
 
-La restauración focal no acredita por sí sola la invalidación operativa de todos los tokens de una instalación restaurada. El procedimiento de \rutarepo{docs/database-operations.md} exige cerrar el tráfico e invalidar sesiones y desafíos del Redis correcto antes de servir nuevamente; conserva reclamos TOTP y datos ajenos. El alcance no incluye invitaciones, recuperación de acceso ni autenticación por certificado.
+La aceptación API completa aprobó en 453.174~s con 2553 fuentes estables. Conservó proyecciones de cuentas y asignaciones, rechazó tokens anteriores y exigió MFA nuevo; comparó los ZIP de cuatro documentos importados y sus 70 eventos históricos idénticos. El inventario final conservó 19 raíces documentales, 25 versiones y un incidente. La restauración focal y esta aceptación integrada tienen evidencias separadas. El procedimiento de \rutarepo{docs/database-operations.md} exige cerrar el tráfico e invalidar sesiones y desafíos del Redis correcto antes de servir nuevamente; conserva reclamos TOTP y datos ajenos. El alcance no incluye invitaciones, recuperación de acceso ni autenticación por certificado.

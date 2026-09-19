@@ -149,8 +149,13 @@ Redis desechable; no es una autorización para borrar claves de otros entornos.
 Las pruebas focales de aplicación/HTTP y PostgreSQL/Redis están aprobadas, incluida
 la restauración de cuentas, generaciones y guardas. Tres recorridos de navegador
 real aprobaron, incluido el rechazo de un token anterior después de reactivar
-la cuenta. La aceptación API completa con restauración y CI de este incremento
-siguen pendientes; sus resultados se registran en [el informe](verification-report.md).
+la cuenta. La aceptación API completa aprobó en 453.174 s con 2553 fuentes estables:
+el respaldo y la restauración finales conservaron las proyecciones de cuentas y
+asignaciones, rechazaron tokens anteriores con 401 y exigieron MFA nuevo. También
+conservaron idénticos los ZIP de cuatro documentos importados y sus 70 eventos de
+auditoría; el inventario final incluyó 19 raíces documentales, 25 versiones y un
+incidente. CI global y el PDF de estos resultados siguen pendientes en
+[el informe](verification-report.md).
 
 ## Preparar un despliegue nuevo
 

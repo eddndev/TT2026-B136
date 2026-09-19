@@ -49,9 +49,20 @@ restriccion de Client. Las cuatro capturas reales resultaron legibles, sin
 recortes ni desbordamiento, conservando Qadra. Se encuentran bajo
 `output/member-lifecycle-verification/browser-live-first/`.
 
-La aceptacion HTTP completa con restauracion sigue pendiente. El cierre de CI,
-la compilacion y la inspeccion de las nuevas fuentes academicas requieren su
-propia comprobacion; estos resultados no equivalen a integracion en main.
+La aceptacion HTTP completa con restauracion aprobo en **453.174 s**, con
+2553 fuentes estables. Reprodujo directorio paginado, asignaciones, cambios con
+revision esperada, baja/reactivacion, desafios y sesiones anteriores rechazados,
+nuevo MFA, cambio propio y rol actualizado. Tras dump/restore, las proyecciones
+de cuentas y asignaciones coinciden, las sesiones anteriores siguen denegadas
+y los accesos renovados usan MFA sin cambiar revisiones. El inventario conserva
+19 raices documentales, 25 versiones y un incidente; la importacion conserva
+cuatro documentos, 70 eventos historicos y ZIP de evidencia identico.
+El registro es `members-api-live-first.json` y su log correspondiente.
+
+Clippy, formato y MSRV aprobaron en CI de `41f914b`. La regresion global y
+cobertura siguen pendientes; la compilacion e inspeccion de las fuentes
+academicas actualizadas requieren su propia comprobacion. Estos resultados
+no equivalen a integracion en main.
 
 ## Contenido original e incidentes: verificación del 19 de septiembre de 2026
 

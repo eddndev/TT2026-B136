@@ -7,11 +7,34 @@ inclusiones. Describen directorio, cambios de rol/actividad, generacion de
 sesiones/desafios y selectores de asignacion. Distinguen las cuatro campanas
 focales aprobadas del cierre de CI y PDF pendientes. El navegador con servicios
 reales aprobo tres escenarios en 418.426 s y cuatro capturas inspeccionadas;
-la aceptacion HTTP completa con restauracion sigue pendiente. Se añadieron
+la aceptacion HTTP completa con restauracion aprobo en 453.174 s, con
+2553 fuentes estables, y sus resultados se incorporan a las fuentes posteriores. Se añadieron
 captions cortos de indice a dos tablas historicas sin cambiar sus titulos
 principales ni mediciones. La compilacion e inspeccion de estas fuentes todavia
 no se ejecutaron; el PDF de contenido original descrito abajo no las acredita.
 Resumen, objetivos, estado del arte, conclusiones y presentacion se preservan.
+
+## PDF intermedio de miembros y actualizacion de aceptacion
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35466570118)
+compilo `41f914b`: el artefacto identifica `ab5ae1d`, cuyos padres son `626cea0`
+y `41f914b`, con el mismo arbol de esa cabeza. Tiene **336 paginas carta y
+5954773 bytes**, SHA-256
+`7f22bb3a5e735dcbcc57706fe63f8b922b3f9d5e798590f33e3ed0681526fe57`.
+Se renderizaron e inspeccionaron **13 paginas fisicas: 3-5, 10, 203-205,
+240-242 y 330-332**. Los apartados y tablas son legibles, sin recortes ni
+solapamientos. En la pagina 10, los dos titulos cortos corrigen la separacion
+entre entradas y numeros. La pasada final conserva las sustituciones de
+versalitas, el desborde de 0.11754 pt y la advertencia de destino duplicado
+`page.1`; no se declara una compilacion sin advertencias.
+
+La inspeccion detecto una frase ambigua sobre credenciales nuevas: se preciso
+que la reactivacion exige un nuevo inicio con contrasena y segundo factor,
+sin reemplazarlos. Las fuentes siguientes incorporan ademas la aceptacion
+HTTP con restauracion de 453.174 s. Este PDF intermedio no acredita esas dos
+actualizaciones; su recompilacion y comprobacion visual siguen pendientes.
+Los archivos se conservan en
+`output/member-lifecycle-verification/ci-report-41f914b/`.
 
 ## Inspeccion del artefacto de contenido original publicado
 

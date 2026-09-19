@@ -79,8 +79,9 @@ también aprobaron: escritorio a 1440 y móvil a 390 píxeles, expediente cerrad
 revocación de la sesión anterior tras reactivación y permisos de los otros roles,
 incluido Client. Las cuatro capturas fueron inspeccionadas y resultaron legibles, sin desbordes
 ni solapamientos, conservando Qadra. La aceptación API completa con restauración
-y CI siguen pendientes en
-[el informe](../docs/verification-report.md).
+también aprobó: las cuentas y asignaciones se conservaron, los tokens anteriores
+fueron rechazados y el acceso nuevo exigió MFA. CI global y el PDF actualizado
+conservan su seguimiento en [el informe](../docs/verification-report.md).
 
 ### Identidad, expedientes y documentos
 
