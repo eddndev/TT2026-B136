@@ -224,6 +224,6 @@ permanece en memoria; el servicio de plazos la compone con evaluaciones
 persistentes, decisiones humanas V2 y reevaluación durable desde `serve`.
 Qadra conserva la historia y distingue revisión, cálculo y vigencia. Su campaña
 con servidor real aprobó 25 escenarios, incluidos dos de seguimiento en
-escritorio y móvil. La repetición final de la campaña API y la regresión global
-en curso todavía no tienen un resultado definitivo. Las alertas mantienen un
-alcance independiente pendiente.
+escritorio y móvil. La regresión local se interrumpió antes de completar la
+serie; el cierre mediante CI está en curso. La repetición final de la campaña
+API terminó satisfactoriamente con el guion corregido. Las alertas mantienen un alcance independiente pendiente.

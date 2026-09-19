@@ -110,8 +110,9 @@ Esta tercera pasada emitio una advertencia en otra comprobacion del guion: un
 token de prueba que empezaba por guion se interpreto como opcion de `rg` al
 buscarlo entre claves Redis. Se corrigio a `rg -F --` y una comprobacion focal
 confirmo la coincidencia literal y el rechazo de una clave distinta. El recorrido
-de reevaluacion y restauracion termino; falta repetir el guion completo para
-acreditar tambien esa asercion de sesiones con su correccion.
+de reevaluacion y restauracion termino. La repeticion final del guion completo
+con esa correccion aprobo en 215.301 s: incluyo la asercion de sesiones, los
+reinicios y la restauracion. Sus 2074 fuentes conservaron las huellas.
 
 ### Ajuste focal detectado en CI
 
@@ -140,16 +141,21 @@ la revision publicada antes de integrar, aprovechando los controles de CI.
 
 CI cubre Rust con backends reales, formato, Clippy, MSRV, cobertura, politicas
 de dependencias, build release y las suites web completas. No ejecuta los
-guiones CLI ni API; la repeticion de la API con la asercion corregida sigue
-pendiente y no puede darse por cubierta por el navegador real.
+guiones CLI ni API; la aceptacion API final con la asercion corregida se
+ejecuto localmente y no se deduce del navegador real.
+
+El guion CLI completo tambien aprobo en 6.355 s, incluido el ciclo de evidencia,
+rechazo de alteraciones, revocacion y autenticacion. No se repitio la campana
+global local. La guia de Qadra se actualizo para explicar las politicas y la
+revision humana, eliminando la afirmacion anterior de que no habia seguimiento.
 
 Las fuentes academicas afectadas estan actualizadas. CI compila el manuscrito;
 la revision visual del nuevo PDF sigue pendiente. El PDF anterior conserva su
 alcance historico y no acredita esta ampliacion.
 
-Estos resultados no acreditan todavia la nueva aceptacion completa de
-API/restauracion con la ultima correccion del guion, una campana global Rust/MSRV,
-cobertura nueva ni integracion en main. Los resultados siguientes conservan
+Estos resultados locales no acreditan por si mismos una campana global
+Rust/MSRV, cobertura nueva ni integracion en main. CI comprueba esos controles
+sobre la revision publicada. Los resultados siguientes conservan
 sus revisiones y alcance historicos.
 
 ## Consumidor durable de plazos: 18 de septiembre de 2026

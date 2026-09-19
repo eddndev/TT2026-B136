@@ -21,8 +21,8 @@ navegador con HTTP controlado, incluidos ocho nuevos de escritorio y móvil.
 La campaña posterior de navegador con backend real aprobó 25 recorridos,
 incluidos dos Follow a 1440 y 390 píxeles; se inspeccionaron seis capturas.
 La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración de
-R1-R5. Siguen pendientes la repetición final API tras corregir su comprobación
-de token, la nueva regresión global y la integración en `main`. Activación,
+R1-R5. La aceptación API final aprobó; el cierre global y la integración en `main`
+continúan con sus resultados en el informe de verificación. Activación,
 agenda conjunta, alertas y calificación jurídica conservan su alcance pendiente.
 
 La restauración real y las comprobaciones de catálogo, permisos, clasificación
@@ -55,8 +55,8 @@ Las 13 del bucle, cuatro de parada y nueve del supervisor suman 26 incluidas
 en las 31 unitarias; no se agregan nuevamente. Una campaña API real terminó
 con código cero y comprobó reevaluación, cierre por TERM/INT, reinicios y
 restauración exacta de R1-R5. El navegador con backend real aprobó 25 recorridos.
-La repetición final API tras corregir la comprobación del token de recuperación,
-la nueva regresión global y la integración en `main` permanecen pendientes.
+La aceptación API final y la demostración CLI también aprobaron. El cierre
+global y la integración en `main` siguen en curso.
 Véase [el informe de verificación](verification-report.md).
 
 ## Puerto y ejecución de un trabajo
@@ -229,5 +229,5 @@ aprobó y registra estos casos dentro de su total. Los resultados posteriores de
 composición en `serve`, API V2 con restauración y navegador con backend real
 se registran por separado; no se atribuyen a aquella regresión del consumidor.
 Ninguna de estas campañas acredita tiempos máximos de toda la operación ni
-entregas de correo. La repetición final API, la nueva regresión global y la
-integración en `main` mantienen su seguimiento propio.
+entregas de correo. La aceptación API final aprobó; el cierre global y la
+integración en `main` mantienen su seguimiento en el informe de verificación.

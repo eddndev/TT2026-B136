@@ -7,9 +7,9 @@ La interfaz Qadra V2 aprobó 88 pruebas Node y 36 recorridos con HTTP controlado
 Una campaña separada con backend real aprobó 25 recorridos, incluidos dos Follow
 a 1440 y 390 píxeles; seis capturas se inspeccionaron visualmente. Dispatcher y
 worker están compuestos en `serve`; la campaña API real comprobó reevaluación,
-cierre TERM/INT, reinicios y restauración de R1-R5. La repetición final API tras
-corregir su comprobación de token, la nueva regresión global y la integración en
-`main` siguen pendientes.
+cierre TERM/INT, reinicios y restauración de R1-R5. La aceptación API final
+aprobó; el cierre global y la integración en `main` siguen en curso, con evidencia
+en el informe de verificación.
 
 Las campañas V1 de esquema, transacciones, concurrencia, restauración PostgreSQL,
 API con servicios reales y navegador conservan su alcance histórico. La evidencia
@@ -229,8 +229,8 @@ e intentos. Su composición en servidor tiene 31 pruebas unitarias y cuatro de
 ayuda CLI aprobadas; las 26 de bucle, parada y supervisión están incluidas en
 las 31. La campaña API real conservó R1-R5 tras reinicios y restauración, con
 salida cero ante TERM/INT; Qadra V2 aprobó 25 recorridos con backend real.
-La repetición final API, la nueva regresión global y la integración en `main`
-conservan seguimiento propio. Activación, sustitución atómica de alertas,
+La aceptación API final aprobó; el cierre global y la integración en `main`
+conservan su seguimiento en el informe de verificación. Activación, sustitución atómica de alertas,
 correo y agenda conjunta mantienen el alcance pendiente del
 [ciclo de vida](deadline-lifecycle.md). Las campañas históricas V1 no se
 atribuyen a estos resultados nuevos ni acreditan entrega de avisos.

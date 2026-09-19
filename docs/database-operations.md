@@ -21,8 +21,8 @@ entrega. La ampliación humana, HTTP y Qadra V2 tiene evidencia posterior:
 88 pruebas Node, 36 de navegador con HTTP controlado y 25 con backend real,
 incluidos dos Follow a 1440 y 390 píxeles; seis capturas se inspeccionaron.
 La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración
-de R1-R5. Faltan su repetición final tras corregir la comprobación de token,
-la nueva regresión global y la integración en `main`; las alertas mantienen su
+de R1-R5; la aceptación API final también aprobó. El cierre global y la
+integración en `main` siguen en curso; las alertas mantienen su
 alcance pendiente. Cada campaña se registra por separado en el informe de
 verificación.
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
@@ -558,8 +558,8 @@ el servicio humano y HTTP V2 están implementados y verificados localmente.
 Qadra V2 tiene pruebas Node y navegador tanto con HTTP controlado como con
 backend real aprobadas. El dispatcher/worker está compuesto en `serve`; la
 campaña API real comprobó reevaluación, señales, reinicios y restauración.
-La repetición final API, la nueva regresión global y la integración en `main`
-conservan seguimiento propio. Activación, agenda conjunta y alertas siguen
+La aceptación API final aprobó; el cierre global y la integración en `main`
+conservan su seguimiento en el informe de verificación. Activación, agenda conjunta y alertas siguen
 pendientes en [el contrato completo](deadline-lifecycle.md).
 
 ## Actualizar capturas y atención de plazos
@@ -683,9 +683,9 @@ y tienen verificación focal local. Qadra V2 también está implementada: aproba
 nuevos de escritorio y móvil. La campaña posterior con backend real aprobó 25
 recorridos, incluidos dos Follow a 1440 y 390 píxeles; seis capturas se
 inspeccionaron. La campaña API real terminó con código cero y comprobó cierre
-TERM/INT, reinicios y conservación de R1-R5 tras restaurar. Su repetición final
-tras corregir la comprobación del token, la nueva regresión global y la
-integración en `main` siguen pendientes; las alertas conservan su alcance propio.
+TERM/INT, reinicios y conservación de R1-R5 tras restaurar. La aceptación API
+final aprobó; el cierre global y la integración en `main` siguen en curso.
+Las alertas conservan su alcance propio.
 El [informe de verificación](verification-report.md) separa cada campaña. Véanse [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md)
 y [el contrato de seguimiento](deadline-tracking-api.md).
 

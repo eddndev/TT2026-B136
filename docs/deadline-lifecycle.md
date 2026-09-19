@@ -21,8 +21,9 @@ Follow a 1440 y 390 píxeles, con seis capturas inspeccionadas. La composición
 del dispatcher/worker en `serve` tiene 31 pruebas unitarias y cuatro de ayuda
 CLI aprobadas; las 26 de bucle, parada y supervisión forman parte de las 31.
 La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
-restauración de R1-R5. Faltan la repetición final API tras corregir su comprobación
-de token, la nueva regresión global y la integración en `main`. La
+restauración de R1-R5, incluida la aceptación API final aprobada. El cierre global
+y la integración en `main` siguen en curso; el informe de verificación conserva
+sus resultados. La
 [API de seguimiento](deadline-tracking-api.md) separa la captura histórica de
 su proyección operativa comprobada.
 

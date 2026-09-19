@@ -273,9 +273,9 @@ Inspect current code and contracts before treating this summary as complete.
   390 pixels; six screenshots were visually inspected. The composed runtime
   passed 31 unit and four CLI-help tests; its 26 loop/stop/supervision tests are
   included in the 31. A real API campaign passed reevaluation, TERM/INT shutdown,
-  restart and restoration of R1-R5. Its final repeat remains pending after the
-  recovery-token assertion fix. A new global regression and integration into
-  `main` remain pending. See `docs/deadline-tracking-api.md`,
+  restart and restoration of R1-R5. The final API repeat and CLI demonstration
+  also passed; detailed results are in `docs/verification-report.md`.
+  Global verification and integration into `main` are still being closed. See `docs/deadline-tracking-api.md`,
   `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
@@ -297,8 +297,9 @@ Inspect current code and contracts before treating this summary as complete.
   `docs/verification-report.md`. The worker is composed locally in `serve`.
   Runtime verification passed 31 unit and four CLI-help tests, including the
   26 loop, stop and supervision tests. Real API verification covered reevaluation,
-  TERM/INT shutdown, restart and restoration of R1-R5. The final API repeat and
-  new global regression remain pending. The human HTTP contract represents
+  TERM/INT shutdown, restart and restoration of R1-R5, including the final API
+  acceptance. Global verification remains in progress; consult
+  `docs/verification-report.md`. The human HTTP contract represents
   V1/V2 history and technical provenance without accepting worker commands. See
   `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
 
@@ -307,7 +308,7 @@ Inspect current code and contracts before treating this summary as complete.
 Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
-1. Complete the final API repeat and new global regression, then integrate the
+1. Complete global verification, then integrate the
    verified human/HTTP/Qadra V2 workflow and composed durable runtime into `main`.
    Qualify legal profiles with primary sources and
    acceptance cases, then implement activation, combined agenda

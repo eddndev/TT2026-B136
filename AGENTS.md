@@ -354,9 +354,9 @@ is still unfinished.
   390 pixels; six screenshots were visually inspected. The composed runtime
   passed 31 unit and four CLI-help tests; its 26 loop/stop/supervision tests are
   included in the 31. A real API campaign passed reevaluation, TERM/INT shutdown,
-  restart and restoration of R1-R5. Its final repeat remains pending after the
-  recovery-token assertion fix. A new global regression and integration into
-  `main` remain pending. See `docs/deadline-tracking-api.md`,
+  restart and restoration of R1-R5. The final API repeat and CLI demonstration
+  also passed; detailed results are in `docs/verification-report.md`.
+  Global verification and integration into `main` are still being closed. See `docs/deadline-tracking-api.md`,
   `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
@@ -378,8 +378,9 @@ is still unfinished.
   `docs/verification-report.md`. The worker is composed locally in `serve`.
   Runtime verification passed 31 unit and four CLI-help tests, including the
   26 loop, stop and supervision tests. Real API verification covered reevaluation,
-  TERM/INT shutdown, restart and restoration of R1-R5. The final API repeat and
-  new global regression remain pending. The human HTTP contract represents
+  TERM/INT shutdown, restart and restoration of R1-R5, including the final API
+  acceptance. Global verification remains in progress; consult
+  `docs/verification-report.md`. The human HTTP contract represents
   V1/V2 history and technical provenance without accepting worker commands. See
   `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
@@ -492,8 +493,8 @@ is still unfinished.
   36 controlled-HTTP browser cases and a separate 25-case real-backend campaign.
   The real campaign includes two Follow scenarios at desktop 1440 and mobile
   390 pixels, with six screenshots visually inspected. The dispatcher and worker
-  run in the composed `serve` process. Final API repetition, new global regression
-  and integration into `main` remain pending; combined agenda and alerts retain
+  run in the composed `serve` process. Final API acceptance passed; global
+  verification and integration into `main` remain in progress. Combined agenda and alerts retain
   their own scope. Preserve its design tokens,
   components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
@@ -521,7 +522,7 @@ current code before planning subsequent work in this dependency order.
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
 2. Keep functional deliveries integrated with approved CI. Qualify the remaining legal profiles with primary sources and acceptance cases;
-   complete the final API repeat and new global regression, then integrate the
+   complete global verification, then integrate the
    verified human/HTTP/Qadra V2 workflow and composed durable runtime into `main`;
    implement activation, combined agenda and notifications, plus resources linked
    to resolutions. Hearing scheduling and declared sessions/results already preserve exact history,

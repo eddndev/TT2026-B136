@@ -19,9 +19,8 @@ real comprobó reevaluación, cierre TERM/INT, reinicios y restauración de R1-R
 Qadra V2 aprobó 25 recorridos con backend real, incluidos dos Follow de escritorio
 y móvil, además de sus pruebas con HTTP controlado. No se expone una orden
 humana de reevaluación por HTTP: el cliente puede consultar revisiones técnicas,
-pero no elegir su autor ni enviar comandos de trabajador. La repetición final
-API tras corregir su comprobación de token, la nueva regresión global y la
-integración en `main` permanecen pendientes; véase
+pero no elegir su autor ni enviar comandos de trabajador. La aceptación API
+final aprobó; el cierre global y la integración en `main` siguen en curso. Véase
 [el informe de verificación](verification-report.md).
 
 Persistir un evento o asignar un trabajo no significa que el plazo ya haya sido

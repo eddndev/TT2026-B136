@@ -41,8 +41,8 @@ compuesto en `serve`. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP
 controlado y una campaña separada de 25 recorridos con backend real, incluidos
 dos escenarios Follow a 1440 y 390 píxeles; se inspeccionaron seis capturas.
 La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
-restauración de R1-R5. Faltan su repetición final tras corregir la comprobación
-del token de recuperación, la nueva regresión global y la integración en `main`.
+restauración de R1-R5; la aceptación API final también aprobó. El cierre global
+y la integración en `main` continúan; el informe conserva los resultados exactos.
 Agenda conjunta y alertas conservan su alcance pendiente. Véanse
 [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
@@ -927,9 +927,9 @@ de escritorio y móvil; seis capturas se inspeccionaron visualmente. La campaña
 API real comprobó revisiones R1-R5, cierre TERM/INT, reinicios y restauración.
 Estos resultados ejercitan el [consumidor compuesto](deadline-worker.md) y se
 registran por separado en el [informe de verificación](verification-report.md).
-La repetición final API tras corregir su comprobación de token, la nueva
-regresión global y la integración en `main` siguen pendientes, al igual que
-la agenda de audiencias y vencimientos reunidos y las alertas.
+La aceptación API final aprobó. El cierre global y la integración en `main`
+siguen en curso. La agenda de audiencias y vencimientos reunidos y las alertas
+conservan su implementación pendiente.
 
 ## Errores
 

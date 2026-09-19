@@ -176,7 +176,8 @@
     <p>
       Abre Plazos dentro del expediente. El administrador y el litigante asignado pueden registrar,
       corregir, declarar atenci&oacute;n y retirar; el asistente legal asignado puede consultar.
-      Selecciona perfil, fuente, calendario y responsable. Declara aplicabilidad, condiciones y
+      Selecciona perfil, fuente, calendario y responsable. Para cada dependencia, declara si sigue
+      cambios o conserva la revisi&oacute;n seleccionada. Declara aplicabilidad, condiciones y
       cantidad concedida cuando corresponda; no uses el m&aacute;ximo como una cantidad otorgada.
     </p>
     <p>
@@ -189,9 +190,15 @@
     <p>
       Un conflicto conserva tu borrador: consulta y compara la base actual antes de preparar otra
       correcci&oacute;n. Si se pierde la respuesta al confirmar, consulta el env&iacute;o exacto sin
-      repetirlo. Un expediente cerrado conserva lecturas autorizadas. Los cambios de fuentes
-      a&uacute;n no generan reevaluaci&oacute;n autom&aacute;tica; la agenda conjunta y los avisos
-      siguen pendientes.
+      repetirlo. Un expediente cerrado conserva lecturas autorizadas.
+    </p>
+    <p>
+      El seguimiento procesa cambios de las dependencias. Si sigues un calendario, una nueva
+      revisi&oacute;n puede actualizar el c&aacute;lculo. Si sigues una fuente o perfil que cambia,
+      revisa los insumos y confirma expl&iacute;citamente una correcci&oacute;n. Mientras se
+      requiere revisi&oacute;n, el c&aacute;lculo anterior permanece en la historia y no se presenta
+      como vencimiento vigente. Consulta la causa y el autor de cada revisi&oacute;n. La agenda
+      conjunta y los avisos siguen pendientes.
     </p>
   </details>
   <details>
