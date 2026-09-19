@@ -205,8 +205,9 @@ autor ni fecha. Los nombres, estados y huellas de las fuentes pertenecen a las
 revisiones seleccionadas; no se refrescan a sus cabezas actuales. La interfaz
 reutiliza los controles de Qadra y añade `src/styles/procedural-facts.css`.
 Este módulo de hechos no activa automáticamente un plazo ni determina efectos
-jurídicos. Sus revisiones exactas pueden seleccionarse en **Plazos**; recursos,
-reevaluación automática y alertas conservan su alcance pendiente.
+jurídicos. Sus revisiones exactas pueden seleccionarse en **Plazos** y sus cambios
+alimentan la reevaluación durable según las políticas capturadas. Los recursos,
+la activación automática y las alertas conservan su alcance pendiente.
 
 ## Plazos del expediente
 
@@ -284,12 +285,20 @@ fuentes correspondientes. Atención y retiro conservan el cálculo capturado.
 El cliente no crea huellas ni realiza la aritmética: las reglas, autorización,
 persistencia y auditoría siguen en el backend.
 
-Este flujo no envía correos ni procesa automáticamente los eventos de cambio de
-fuentes, calendarios o perfiles. La agenda conjunta diaria, semanal y mensual de
-audiencias y vencimientos, las alertas de 48/24 horas y la reevaluación durable
-siguen pendientes. Los ejemplos sintéticos de aceptación no acreditan perfiles
-jurídicos aplicables; su calificación y fundamento primario requieren el trabajo
-separado descrito en [las fronteras de reglas](../docs/deadline-rule-research.md).
+El servicio humano y Qadra V2 capturan políticas explícitas de seguimiento para
+perfil, fuente y calendario. El consumidor durable compuesto en `serve` procesa
+sus cambios y conserva revisiones técnicas, causa e historia. Los recorridos de
+reevaluación API con reinicios y restauración, y de Qadra con backend real,
+aprobaron en su entrega; sus resultados se conservan separados en el informe de
+verificación. El [contrato de seguimiento](../docs/deadline-tracking-api.md)
+distingue el cálculo histórico del vencimiento operativo: una aceptación
+capturada no sustituye la comprobación actual de las dependencias.
+
+La agenda combinada diaria, semanal y mensual está implementada y su aceptación
+sigue en curso. La activación automática y las alertas de 48/24 horas permanecen
+pendientes. Los ejemplos sintéticos no acreditan perfiles jurídicos aplicables;
+su calificación y fundamento primario requieren el trabajo separado descrito
+en [las fronteras de reglas](../docs/deadline-rule-research.md).
 
 ## Calendarios jurisdiccionales
 
@@ -512,13 +521,44 @@ Un conflicto conserva el borrador y exige consultar y comparar explícitamente.
 Una respuesta perdida consulta el recibo de la revisión exacta, incluyendo actor,
 operación y digest. Un 404 provisional sigue incierto y nunca causa reenvío.
 
-Agenda usa una sola consulta transversal autorizada, independiente del expediente
-abierto. Sus filtros declaran días, desfase y estado; el servidor recibe un rango
-UTC y devuelve un cursor de instante/UUID. Las tarjetas no exponen conexiones,
-notas ni identidades. Elegir una cita valida el expediente y abre esa revisión
-exacta mediante una intención consumida una vez. Las respuestas tardías de una
-vista abandonada no reabren el expediente. Esta entrega cubre programación,
-consulta e historia: no registra resultados, calcula plazos ni envía avisos.
+### Agenda combinada
+
+**Agenda del despacho** reúne audiencias y vencimientos operativos mediante
+una sola consulta autorizada a `/api/v1/agenda`, independiente del expediente
+abierto. Owner consulta el despacho; Litigator y Paralegal sólo sus expedientes
+asignados; Client no accede. El contrato está en
+[la API de agenda](../docs/agenda-api.md) y la decisión en
+[ADR-0038](../docs/adr/0038-authorized-combined-agenda.md).
+
+**Vista de agenda** ofrece Día, Semana, Mes y Rango personalizado. La fecha de
+referencia y **Periodo anterior** o **Periodo siguiente** desplazan las vistas;
+las semanas comienzan el lunes y navegar meses conserva el día cuando existe.
+El rango personalizado incluye **Desde** y excluye **Hasta**, con un máximo de
+366 días. El desfase se declara expresamente; **Tipo de actividad** filtra
+ambas familias o una sola. **Estado de audiencia** sólo afecta a las audiencias
+y se deshabilita al consultar únicamente plazos. En móvil, los calendarios
+semanal y mensual se desplazan horizontalmente dentro de su contenedor.
+
+La consulta pide hasta 20 actividades por página y **Cargar más actividades**
+acumula resultados. Una página vacía con continuación conserva el aviso de
+consulta parcial. Las tarjetas se identifican por familia e identificador y
+conservan la revisión mayor recibida; un mismo UUID en ambas familias representa
+dos actividades. El orden mantiene segundo UTC, nanosegundo, audiencias antes
+de plazos en un empate e identificador. Cambiar filtros descarta la continuación
+y las respuestas tardías. **Actualizar Agenda** reinicia la consulta: las páginas
+no forman una instantánea reservada ni permiten calcular un total del despacho.
+
+Un plazo sólo aparece si el servidor comprueba seguimiento V2 aceptado, estado
+activo, dependencias vigentes y vencimiento operativo. El cálculo histórico de
+un plazo pendiente, cambiado, bloqueado, legado o retirado permanece en su
+expediente. Atención declarada y cierre administrativo no eliminan por sí solos
+una fecha vigente autorizada. Las tarjetas de audiencia conservan su fecha
+original sin exponer sede, notas o participantes. Elegir cualquier actividad
+revalida el expediente y abre la revisión exacta mediante una intención de un
+solo uso; una denegación elimina sus actividades del contexto visible.
+
+La implementación de esta agenda tiene su aceptación en curso, separada de los
+recorridos aprobados de reevaluación. No activa plazos ni envía alertas.
 
 ## Verificación
 

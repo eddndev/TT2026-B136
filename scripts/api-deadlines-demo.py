@@ -111,7 +111,10 @@ def capture():
         paths.extend([prefix, prefix + '/history'])
         paths.extend(prefix + '/revisions/' + str(revision) for revision in range(1, record['revision'] + 1))
     records = {p: stable_read(request('GET', p)) for p in paths}
-    STATE.write_text(json.dumps({'records': records}, sort_keys=True))
+    STATE.write_text(json.dumps({'records': records, 'agenda': {
+        'case_id': cases[0], 'deadline_id': hours['id'], 'retired_id': fourth['id'],
+        'blocked_id': month['id'], 'tokens': tokens}}, sort_keys=True))
+    STATE.chmod(0o600)
     assert request('GET', '/api/v1/audit/verify')['valid']
     print('Deadline API passed: daily/monthly/hourly, four roles, isolation, review, conflicts, attention, retirement and revocation.')
 

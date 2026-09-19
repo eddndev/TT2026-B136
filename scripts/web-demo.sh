@@ -4,8 +4,9 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [ "${1:-}" != "--with-backends" ]; then
-  exec bash "$REPO_ROOT/scripts/test-backends.sh" bash "$0" --with-backends
+  exec bash "$REPO_ROOT/scripts/test-backends.sh" bash "$0" --with-backends "$@"
 fi
+shift
 : "${IDENTITY_TEST_DATABASE_URL:?disposable backends are required}"
 : "${IDENTITY_TEST_REDIS_URL:?disposable backends are required}"
 : "${TT_TEST_QPDF_LIBRARY:?native document validation library is required}"
@@ -106,4 +107,4 @@ node "$REPO_ROOT/scripts/web-hearing-fixtures.mjs"
 export TT_WEB_PORT
 TT_WEB_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 cd "$REPO_ROOT/web"
-node node_modules/@playwright/test/cli.js test -c playwright.live.config.mjs
+node node_modules/@playwright/test/cli.js test -c playwright.live.config.mjs "$@"

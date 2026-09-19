@@ -250,6 +250,7 @@ PY
   procedural_facts_demo
   profile_demo
   deadline_demo
+  agenda_demo
   deadline_worker_demo "$runtime_url" "$legacy_dir"
   calendar_demo_python checkpoint
   printf 'Migration restore: stopping the capture server.\n'
@@ -287,6 +288,7 @@ PY
   procedural_facts_demo_restored
   profile_demo_restored
   deadline_demo_restored
+  agenda_demo
   deadline_worker_demo_python verify
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
@@ -329,4 +331,5 @@ unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_d
 unset -f profile_demo profile_demo_restored profile_demo_python
 
 unset -f deadline_demo deadline_demo_restored deadline_demo_python
+unset -f agenda_demo
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop

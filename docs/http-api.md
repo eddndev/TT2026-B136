@@ -5,6 +5,8 @@ detalla revisión de identidad, perfiles, declaraciones internas, proyecciones
 manuales y tipificadas, y consultas de evidencia histórica.
 La [API de audiencias](hearings-api.md) define programación, reemplazo,
 cancelación organizativa, historial exacto y agenda autorizada.
+La [agenda combinada](agenda-api.md) reúne audiencias y vencimientos operativos
+mediante `GET /api/v1/agenda`, con autorización y observación comunes por página.
 La [API de sesiones y resultados declarados](hearing-results-api.md) añade
 registro, rectificación, retiro e historia de comparecencias y acuerdos con
 fuentes exactas. Está implementada y verificada localmente; sus mediciones se
@@ -43,7 +45,8 @@ dos escenarios Follow a 1440 y 390 píxeles; se inspeccionaron seis capturas.
 La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
 restauración de R1-R5; la aceptación API final también aprobó. El cierre global
 y la integración en `main` continúan; el informe conserva los resultados exactos.
-Agenda conjunta y alertas conservan su alcance pendiente. Véanse
+La agenda conjunta incorpora su [contrato independiente](agenda-api.md);
+la aceptación de cada entrega se registra en el informe. Las alertas siguen pendientes. Véanse
 [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
@@ -298,10 +301,14 @@ Cancelar copia la programación anterior aunque haya cambiado la etapa; exige
 expediente activo y revisión esperada de audiencia.
 
 Las rutas por expediente parten de `/api/v1/cases/{case_id}/hearings` y la agenda
-transversal usa GET `/api/v1/hearings`, con intervalo UTC explícito y paginación
+de audiencias usa GET `/api/v1/hearings`, con intervalo UTC explícito y paginación
 por instante y UUID. El [contrato completo](hearings-api.md) incluye cuerpos,
 proyecciones, límites y errores. Cada revisión conserva un recibo propio para
 conciliar respuestas perdidas sin repetir automáticamente la escritura.
+
+Qadra usa [la agenda combinada](agenda-api.md) para las vistas diaria, semanal y
+mensual, con rango personalizado opcional. Sus páginas reúnen audiencias y
+plazos vigentes, preservan nanosegundos y pueden ser parciales aun sin filas.
 
 El módulo de programación conserva las citas; el registro de sesiones declarado
 se consulta por separado. Ninguno activa términos ni sustituye el calendario judicial.
@@ -928,8 +935,8 @@ API real comprobó revisiones R1-R5, cierre TERM/INT, reinicios y restauración.
 Estos resultados ejercitan el [consumidor compuesto](deadline-worker.md) y se
 registran por separado en el [informe de verificación](verification-report.md).
 La aceptación API final aprobó. El cierre global y la integración en `main`
-siguen en curso. La agenda de audiencias y vencimientos reunidos y las alertas
-conservan su implementación pendiente.
+siguen en curso. La agenda de audiencias y vencimientos reunidos tiene
+[un contrato propio](agenda-api.md); las alertas conservan su implementación pendiente.
 
 ## Errores
 
