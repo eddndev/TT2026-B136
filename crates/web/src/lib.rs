@@ -29,6 +29,7 @@ mod participants;
 mod procedural_facts;
 mod procedural_resources;
 mod request;
+mod resource_activities;
 mod routes;
 mod runtime;
 mod typed_participants;
@@ -133,6 +134,17 @@ pub fn procedural_resource_router(
     )
 }
 
+/// Builds exact resource association routes over an authorized workflow.
+pub fn resource_activity_router(
+    workflow: Arc<dyn application::resource_activities::ResourceActivityWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        resource_activities::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds global staff calendar routes with application authorization.
 pub fn judicial_calendar_router(
     workflow: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
@@ -155,6 +167,7 @@ pub struct CaseWorkflows {
     pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
     pub procedural_resources:
         Arc<dyn application::procedural_resources::ProceduralResourceWorkflow>,
+    pub resource_activities: Arc<dyn application::resource_activities::ResourceActivityWorkflow>,
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
     pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
@@ -210,6 +223,10 @@ pub fn api_router(
         ))
         .merge(procedural_resources::router(
             workflows.procedural_resources,
+            runtime.clone(),
+        ))
+        .merge(resource_activities::router(
+            workflows.resource_activities,
             runtime.clone(),
         ))
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))

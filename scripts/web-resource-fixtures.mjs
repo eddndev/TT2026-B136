@@ -4,25 +4,25 @@ import { readFile } from 'node:fs/promises';
 
 const envelope = (draft) => ({ command: draft.command, expected_submission_digest: draft.submission_digest });
 const unknown = () => ({ kind: 'unknown', reason: 'No consta en la captura sintetica' });
-export async function provisionResources(call) {
+export async function provisionResources(call, prefix = '') {
   if (!process.env.IDENTITY_TEST_DATABASE_URL) throw new Error('disposable browser services are required');
   const principal = await call('GET', '/auth/me');
   if (principal.role !== 'owner' || !principal.id || !principal.email)
     throw new Error('resource fixture requires the authenticated owner principal');
   const fixture = {};
   for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
-    const password = `procedural resources browser ${role} password`;
+    const password = `procedural resources browser ${prefix}${role} password`;
     const enrollment = await call('POST', '/users', {
-      email: `procedural-resources.${role}@example.com`, password, role,
+      email: `procedural-resources.${prefix}${role}@example.com`, password, role,
     }, 201);
     fixture[role] = { id: enrollment.user.id, email: enrollment.user.email,
       password, recoveryCodes: enrollment.recovery_codes };
   }
   const pdf = await readFile(new URL('../crates/infrastructure/tests/fixtures/stage-support.pdf', import.meta.url));
   for (const key of ['desktop', 'mobile', 'policy']) {
-    const reference = `RESOURCE-${key.toUpperCase()}`;
+    const reference = `RESOURCE-${prefix.toUpperCase()}${key.toUpperCase()}`;
     const row = await call('POST', '/penal-cases', {
-      title: `Recursos declarados ${key}`, reference,
+      title: `Recursos declarados ${prefix}${key}`, reference,
       profile: {
         nuc: `${reference}-NUC`, nuc_authority: 'Autoridad declarada',
         judicial_case_number: `${reference}-CJ`, judicial_authority: 'Organo declarado',

@@ -309,6 +309,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         alert_email,
         alert_config,
     )?;
+    let resource_activities =
+        crate::serve_resource_activities::open(&database_url, identity.clone())?;
     let router = web::api_router(
         Arc::new(workflow),
         identity,
@@ -321,6 +323,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             hearing_results: Arc::new(hearing_results),
             procedural_facts: Arc::new(procedural_facts),
             procedural_resources: Arc::new(procedural_resources),
+            resource_activities,
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
             alerts: alerts.workflow,

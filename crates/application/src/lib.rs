@@ -28,6 +28,7 @@ pub mod participants;
 pub mod pki;
 pub mod procedural_facts;
 pub mod procedural_resources;
+pub mod resource_activities;
 pub mod signing;
 pub mod timestamping;
 pub mod typed_participants;

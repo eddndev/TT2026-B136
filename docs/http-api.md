@@ -43,13 +43,13 @@ compuesto en `serve`. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP
 controlado y una campaña separada de 25 recorridos con backend real, incluidos
 dos escenarios Follow a 1440 y 390 píxeles; se inspeccionaron seis capturas.
 La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
-restauración de R1-R5; la aceptación API final también aprobó. El cierre global
-y la integración en `main` continúan; el informe conserva los resultados exactos.
+restauración de R1-R5; la aceptación API final también aprobó. La reevaluación
+está integrada por PR 34; el informe conserva los resultados exactos.
 La agenda conjunta incorpora su [contrato independiente](agenda-api.md);
 la aceptación de cada entrega se registra en el informe. Las
 [alertas personales](alerts-api.md) tienen servicio, router y cliente Qadra,
-compuestos en `serve` con generación interna y transporte opcional;
-la aceptación integrada de persistencia y runtime sigue pendiente. Véanse
+compuestos en `serve` con generación interna y transporte opcional, integrados
+por PR 36 como `8261c51` tras su aceptación API/restauración y navegador real. Véanse
 [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
@@ -292,7 +292,7 @@ Las sesiones y resultados declarados disponen de su
 usan [su propia colección](deadlines-api.md). La reevaluación compuesta en servidor
 cuenta con recorridos API y navegador reales. Recursos y activación automática
 conservan operaciones pendientes propias; las [alertas personales](alerts-api.md)
-tienen su propio contrato y aceptación integrada pendiente.
+tienen su propio contrato y aceptación integrada aprobada; se integraron por PR 36.
 
 ## Audiencias y agenda
 
@@ -432,9 +432,34 @@ plazos por inferencia. Owner y Litigator asignado gestionan; Paralegal asignado
 consulta y Client queda denegado. El cierre administrativo conserva las lecturas.
 
 La interfaz Qadra comparte esos comandos y distingue corrección del recurso,
-corrección de un acto y archivo organizativo. La asociación posterior con
-audiencias, términos y alertas permanece pendiente. El alcance de aceptación
-por capa y las comprobaciones reales se registran en el informe de verificación.
+corrección de un acto y archivo organizativo. El alcance de aceptación por capa
+y las comprobaciones reales se registran en el informe de verificación.
+
+## Actividades existentes vinculadas a recursos
+
+La [API de asociaciones](resource-activities-api.md) añade la colección
+`/api/v1/cases/{case_id}/procedural-resources/{resource_id}/activities`.
+Ofrece lista, detalle, revisión exacta, historia, preparación, vinculación y
+desvinculación organizativa. Captura una revisión exacta del recurso, un acto
+opcional con su revisión contenedora y una audiencia o plazo existente del mismo
+expediente. La cabeza esperada del recurso se contrasta por separado.
+
+Detalle y lista devuelven la captura histórica junto con `current_target`,
+verificado en la misma transacción y con un único `checked_at` por página.
+El cálculo histórico de un plazo nunca sustituye su fecha operativa actual.
+Historia y recibos de confirmación conservan sólo evidencia histórica.
+Los cuerpos tienen límite de 16 KiB; lista e historia admiten hasta 100 y 20
+filas respectivamente, con continuación exclusiva.
+
+Owner y Litigator asignado gestionan; Paralegal asignado consulta y Client queda
+denegado. Un recurso archivado permite desvincular, pero no crear otro vínculo.
+El expediente cerrado conserva lecturas y repetición exacta autorizada, sin
+nuevas mutaciones. Vincular no crea ni cancela actividades, cambia atención,
+activa términos ni duplica alertas. La creación contextual de actividades y el
+impulso jurídico conservan su alcance pendiente. La implementación local tiene
+evidencia focal y aceptación API/restauración integrada aprobadas. El navegador
+real y CI permanecen pendientes para este incremento, según el
+[informe](verification-report.md).
 
 ## Participantes del expediente
 
@@ -953,8 +978,8 @@ de escritorio y móvil; seis capturas se inspeccionaron visualmente. La campaña
 API real comprobó revisiones R1-R5, cierre TERM/INT, reinicios y restauración.
 Estos resultados ejercitan el [consumidor compuesto](deadline-worker.md) y se
 registran por separado en el [informe de verificación](verification-report.md).
-La aceptación API final aprobó. El cierre global y la integración en `main`
-siguen en curso. La agenda de audiencias y vencimientos reunidos tiene
+La aceptación API final aprobó y la reevaluación está integrada por PR 34.
+La agenda de audiencias y vencimientos reunidos, integrada por PR 35, tiene
 [un contrato propio](agenda-api.md); las alertas personales se describen a continuación.
 
 ## Alertas personales
@@ -971,9 +996,10 @@ histórico no acredita vigencia operativa. `email.kind=accepted` sólo confirma
 aceptación por el proveedor y `disabled` expresa transporte no configurado.
 El router y el servicio de aplicación están compuestos en `serve` junto con
 Qadra. La [configuración del servidor](alerts-api.md#configuración-y-aceptación-del-servidor)
-detalla el correo opcional y los límites del consumidor. Los recorridos API y
-navegador real están preparados; su ejecución integrada sigue pendiente y se
-registra por separado de la verificación con HTTP controlado.
+detalla el correo opcional y los límites del consumidor. Las alertas se
+integraron en `main` por PR 36 como `8261c51`; la aceptación API/restauración y
+el navegador real aprobados se registran por separado de las pruebas con HTTP
+controlado en el [informe de verificación](verification-report.md).
 
 ## Errores
 

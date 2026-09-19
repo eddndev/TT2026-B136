@@ -1,0 +1,29 @@
+\section{Verificación focal de asociaciones de recursos}\label{sec:pruebas-asociaciones-recursos}
+
+El corte local del 19 de septiembre de 2026 comprueba asociaciones a actividades existentes por fronteras independientes. Las ejecuciones fueron seriales y no constituyen una nueva regresión global. El informe versionado \rutarepo{docs/verification-report.md} conserva los resultados y las comprobaciones pendientes.
+
+\subsection{Referencias, permisos y recibos}
+
+Cuatro pruebas de dominio verificaron identidades y revisiones independientes, codificación de referencias exactas y distinción entre familia de actividad y acto opcional. La aplicación aprobó 18 pruebas: seis de flujo, ocho de límites y cuatro de tiempo. Cubren selección histórica, cabeza esperada, permisos, reautenticación, repetición de operación, cierre y conservación de fuentes e historia.
+
+Diez pruebas HTTP aprobaron correspondencia entre URL y comando, cuerpos estrictos, límites, errores y proyecciones. El detalle de plazo conserva por separado una fecha calculada histórica y la ausencia de vencimiento operativo de la cabeza retirada. El caso adicional de acto no nulo conserva recurso R2, acto contenido en recurso R3 y soporte exacto, y rechaza una captura discordante; aprobó en 27.228 segundos con 2426 fuentes estables. Doce pruebas del cliente verificaron comandos, fuentes, recibos, alcance e invalidación de consultas pendientes.
+
+\subsection{Transacción, restauración e instante de lectura}
+
+Once pruebas PostgreSQL aprobaron almacenamiento, autorización, atomicidad, inventario, catálogo y restauración. Los rechazos comprueban aislamiento, revocación, corrupción y ausencia de escritura parcial; los positivos conservan las capturas exactas y su autoría. La restauración focal usa \texttt{pg\_dump} y \texttt{pg\_restore}, compara historia y auditoría y permite registrar otra asociación desde un Owner autorizado. No modifica las actividades vinculadas.
+
+Una prueba adicional identificó que el instante tomado antes de esperar el bloqueo podía preceder una cabeza confirmada durante la espera. La corrección captura el instante bajo el bloqueo y conserva un corte único para detalle, página y proyección operativa. La prueba PostgreSQL específica aprobó en 15.186 segundos. Las cuatro pruebas de aplicación aceptan un corte posterior al inicio y rechazan observaciones fuera de la ventana o diferentes entre filas. Esas pruebas y las otras 14 de aplicación aprobaron juntas en 6.737 segundos, con 2426 fuentes estables.
+
+Los doce casos PostgreSQL distintos corresponden a once positivos de la primera campaña y al positivo posterior del reloj. La primera campaña incluyó el rechazo esperado de esa prueba nueva; no se presenta como una ejecución completamente aprobada ni se suma otra vez al contabilizar el arreglo.
+
+\subsection{Interacción controlada y alcance pendiente}
+
+Doce casos distintos de navegador con HTTP controlado aprobaron el flujo de vinculación y desvinculación, selección histórica, acto opcional, separación de la actividad actual, permisos, revocación, cierre, conflicto y conciliación de una escritura confirmada cuya respuesta se perdió. Los dos casos adicionales comprueban reenvío explícito del mismo comando tras un resultado incierto no confirmado y recuperación del selector después de un conflicto al confirmar. Dos repeticiones visuales de 12.326 segundos no añaden casos funcionales distintos. Se inspeccionaron cuatro capturas de las secciones nuevas a 1440 y 390 píxeles sin desbordamiento; no se midió usabilidad con personas.
+
+\subsection{Aceptación API integrada con restauración}
+
+La campaña completa de \rutarepo{scripts/api-demo.sh} aprobó en 434.402 segundos, con 2426 fuentes sin cambios. Verificó fuentes históricas exactas frente a cabezas actuales separadas, acto opcional, desvinculación, repetición exacta, roles, revocación, cierre, archivo y aislamiento entre expedientes.
+
+Tras restaurar se compararon 26 respuestas HTTP y se conservaron idénticas las tres raíces y cuatro revisiones de asociación del ensayo. Los instantes de lectura se validaron aparte: una consulta posterior al respaldo tiene otro instante, pero debe conservar el corte común y su vínculo con la proyección operativa. Esa diferencia no modifica las capturas históricas comparadas.
+
+Tres escenarios distintos de navegador real aprobaron: Owner en escritorio, Litigator en móvil y permisos con Paralegal y Client. La primera campaña aprobó los dos flujos de escritura y detectó un error en la navegación del guion de Client; la repetición del recorrido corregido aprobó en 274.304 segundos, incluidos los preparativos. No se alteraron las actividades ni se duplicaron sus avisos. El cierre global en CI permanece pendiente. Las campañas de API y navegador conservan resultados separados y no equivalen a una regresión global. Tampoco se acreditan corpus jurídico, activación automática, creación contextual de audiencias, entrega externa de avisos o usabilidad con personas. La matriz del \cref{sec:matriz-asociaciones-recursos} distingue esas fronteras.

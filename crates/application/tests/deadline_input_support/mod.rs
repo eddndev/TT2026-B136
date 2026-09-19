@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 mod external;
 #[path = "../procedural_fact_service_support/mod.rs"]
-mod facts;
+pub mod facts;
 mod notices;
 use application::{cases::CurrentCaseAdministration, deadline_inputs::*, procedural_facts::*};
 use domain::{

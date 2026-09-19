@@ -1,5 +1,6 @@
 //! Audited immutable procedural resources and declared acts.
 mod authorization;
+pub(crate) use authorization::authorize;
 mod commit;
 mod decode;
 mod preparation;

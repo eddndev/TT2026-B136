@@ -304,7 +304,7 @@ is still unfinished.
   Qadra calendar interface is verified locally. Its exact revisions can feed
   recorded deadline evaluations. Local reevaluation has an internal worker port;
   its server composition is integrated through PR 34. Automatic activation
-  remains pending; alerts are implemented in the separate PR 36 delivery.
+  remains pending; alerts are integrated through PR 36.
   See `docs/judicial-calendars-api.md`
   and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 - The `0015_` and `0016_` migrations add immutable source-change events and a
@@ -335,8 +335,8 @@ is still unfinished.
   integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
   Automatic activation and the qualified legal-profile acceptance corpus remain
-  pending. Reevaluation is integrated through PR 34; alerts have their own
-  published delivery and acceptance status below.
+  pending. Reevaluation is integrated through PR 34; alerts are integrated
+  through PR 36 with their own acceptance evidence below.
 - The combined `/api/v1/agenda` query and Qadra day, week and month views are
   implemented. One authorized, audited transaction combines hearing heads with
   verified operational deadline dates, with bounded candidate scans and explicit
@@ -505,7 +505,7 @@ is still unfinished.
   390 pixels, with six screenshots visually inspected. The dispatcher and worker
   run in the composed `serve` process. PR 34 integrated reevaluation and PR 35
   integrated the combined agenda, each with its own acceptance evidence. Qadra
-  alerts are published in PR 36 with acceptance and CI closure in progress.
+  alerts are integrated through PR 36 with acceptance and CI passed.
   Preserve its design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -518,11 +518,18 @@ is still unfinished.
   `presentacion/presentacion.tex`.
 
 - Durable activity alerts, account preferences, the personal Qadra inbox and
-  the scheduler/email consumers composed in `serve` are implemented and published
-  in PR 36. Internal alerts and optional generic email preserve
-  delivery state, retries and duplicate control. API/restoration and focal
-  real-service browser acceptance passed; CI closure remains in progress. This delivery is not integrated into
-  `main`. See `docs/alerts-api.md` and `docs/verification-report.md`.
+  the scheduler/email consumers composed in `serve` are integrated into `main`
+  through PR 36 as `8261c51`. Internal alerts and optional generic email preserve
+  delivery state, retries and duplicate control. API/restoration, real-service
+  browser acceptance and CI passed. See `docs/alerts-api.md` and
+  `docs/verification-report.md`.
+- Declared procedural resources and acts preserve exact resolutions, supports
+  and history. Their API/restoration and real-service browser acceptance passed;
+  PR 37 is integrated into main as eeba869 with CI passed. The subsequent associations
+  to existing hearings/deadlines have local implementation and API/restoration
+  acceptance, with real-browser acceptance passed and CI closure still pending. Qualified legal
+  profiles, durable activation and the complete resource workflow remain work
+  under `docs/procedural-resources-scope.md`.
 
 ## Next work, in dependency order
 
@@ -538,10 +545,11 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Close acceptance and CI for the published alerts delivery before integrating
-   it into `main`. Reevaluation and the combined agenda are already integrated.
-   Qualify the remaining legal profiles with primary sources and acceptance cases;
-   implement automatic activation and resources linked to resolutions. Hearing
+2. Qualify the remaining legal profiles with primary sources and acceptance cases;
+   implement durable activation and complete the resource workflow beyond declared
+   records and links to existing activities. Reevaluation, the combined agenda
+   and alerts are already integrated. Close the separate resource delivery using
+   its own acceptance and CI evidence. Hearing
    scheduling and declared sessions/results already preserve exact history,
    attendance, agreements and provenance. The calendar backend/API classifies
    civil dates from exact revisions and Qadra exposes their administration and

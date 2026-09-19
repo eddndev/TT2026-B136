@@ -1,5 +1,40 @@
 # Verificación de la actualización académica
 
+## Asociaciones de recursos: fuentes del 19 de septiembre de 2026
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35462654499)
+compiló `63846a2`. El artefacto identifica el merge de revisión `3353dfa`, cuyos
+padres son `40ed0c7` y `63846a2`; su árbol coincide con la cabeza publicada.
+El PDF tiene **331 páginas carta y 5934208 bytes**, SHA-256
+`03206b08810f830436648c22bd0dc63c4186a9151c053a3f0f1e26851878fbd4`.
+
+Se renderizaron e inspeccionaron **15 páginas físicas: 3-6, 10, 199-202,
+237-239 y 326-328**. Las nuevas secciones, tablas, continuaciones y rutas
+son legibles, sin nuevos recortes o solapamientos. Se corrigieron los desbordes
+de rutas detectados en las compilaciones anteriores; la pasada final conserva
+sólo las sustituciones históricas de versalitas y el desborde de 0.11754 pt.
+No presenta referencias/citas indefinidas, etiquetas duplicadas o glifos ausentes.
+La inspección detectó una frase de implementación que aún calificaba pendiente
+el navegador real, mientras pruebas y anexo ya describían su aceptación. Se
+corrigió esa frase; su recompilación y comprobación visual quedan pendientes.
+
+El PDF, registro y páginas están en
+`output/resource-activities-verification/ci-report-63846a2/`. La muestra no
+acredita revisión completa de las 331 páginas ni cierre del manuscrito.
+
+El [artefacto de la frase corregida](https://github.com/eddndev/TT2026-B136/actions/runs/35462966621)
+corresponde a `296b20c`: merge de revisión `18c86ab`, con padres `40ed0c7` y
+`296b20c`, y árbol idéntico a esa cabeza. Conserva **331 páginas carta**, ocupa
+**5934318 bytes** y tiene SHA-256
+`3e8279237db334f66ab1e095bc33a3cd7677866f803c5ab5fd800a7476f49f7e`.
+Se renderizaron las mismas quince páginas. Doce imágenes son idénticas a las
+anteriores y se inspeccionaron nuevamente las páginas 4, 201 y 202: índice,
+frase y continuación son legibles, sin recortes ni solapamientos. La pasada
+final mantiene sólo las advertencias históricas ya identificadas. Los archivos
+se conservan en `output/resource-activities-verification/ci-report-296b20c/`.
+Esta comprobación cierra la revisión de esas fuentes académicas, sin declarar
+terminado el manuscrito ni extender la muestra al resto de páginas.
+
 ## Recursos procesales declarados: fuentes del 19 de septiembre de 2026
 
 Se añadieron tres apartados propios de implementación, pruebas y matriz, con
