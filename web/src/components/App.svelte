@@ -72,6 +72,7 @@
         'stages',
         'hearings',
         'resolutions',
+        'resources',
         'deadlines',
       ].includes(view)
     )
@@ -184,7 +185,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'deadlines'].includes(view)}
+        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'resources', 'deadlines'].includes(view)}
           {#if alertReturn}<button class="text-button alerts-return" onclick={() => go('alerts')}
               >Volver a Alertas</button
             >{/if}

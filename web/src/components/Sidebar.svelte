@@ -52,6 +52,7 @@
               'stages',
               'hearings',
               'resolutions',
+              'resources',
               'deadlines',
             ].includes(view))}
         aria-current={view === item.id ||
@@ -62,6 +63,7 @@
             'stages',
             'hearings',
             'resolutions',
+            'resources',
             'deadlines',
           ].includes(view))
           ? 'page'

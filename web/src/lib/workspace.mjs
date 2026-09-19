@@ -19,7 +19,7 @@ export function normalizeView(hash, role) {
   if (view === 'judicial-calendars' && canCalendars(role)) return view;
   if (['hearings', 'agenda'].includes(view) && canHearings(role, 'read')) return view;
   if (
-    ['participants', 'stages', 'resolutions', 'deadlines'].includes(view) &&
+    ['participants', 'stages', 'resolutions', 'resources', 'deadlines'].includes(view) &&
     canParticipants(role, 'read')
   )
     return view;
@@ -37,6 +37,7 @@ export const viewLabels = {
   stages: 'Expedientes / Etapas',
   hearings: 'Expedientes / Audiencias',
   resolutions: 'Expedientes / Resoluciones',
+  resources: 'Expedientes / Recursos',
   deadlines: 'Expedientes / Plazos',
   agenda: 'Agenda',
   alerts: 'Mis alertas',

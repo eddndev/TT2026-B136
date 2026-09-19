@@ -1,6 +1,7 @@
 import { deadlinesApi } from './deadline-api.mjs';
 import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
 import { proceduralFactsApi } from './procedural-facts-api.mjs';
+import { proceduralResourcesApi } from './procedural-resources-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingsApi } from './hearings-api.mjs';
 import { agendaApi } from './agenda-api.mjs';
@@ -54,6 +55,7 @@ export function caseApi(transport) {
     deadlines: (id) => deadlinesApi(request, id),
     deadlineProfiles: (id = null) => deadlineProfilesApi(request, id),
     caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),
+    caseResources: (id) => proceduralResourcesApi(request, id),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),
