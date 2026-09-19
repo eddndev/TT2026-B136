@@ -144,5 +144,5 @@ pub(super) fn port(error: postgres::Error) -> ApplicationError {
     }) {
         return ApplicationError::CaseIdentifierConflict;
     }
-    ApplicationError::Port(format!("case database: {error}"))
+    crate::postgres_port::error("case database", error)
 }

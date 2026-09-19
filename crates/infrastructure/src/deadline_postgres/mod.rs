@@ -1,5 +1,5 @@
 //! Immutable deadline evaluations and attention in one audited transaction.
-mod administration;
+pub(crate) mod administration;
 mod attention;
 mod authorization;
 mod commit;
@@ -9,13 +9,15 @@ mod header;
 #[cfg(test)]
 mod legacy_tests;
 mod port_impl;
-mod preparation;
+#[cfg(test)]
+mod port_tests;
+pub(crate) mod preparation;
 mod projection;
 mod query;
 mod responsibles;
 pub(crate) mod storage;
-mod tracking;
-mod write;
+pub(crate) mod tracking;
+pub(crate) mod write;
 use application::{deadlines::DeadlineError, ApplicationError};
 use domain::{clock::Clock, crypto::DocumentHasher};
 use postgres::{Client, Error};
@@ -55,8 +57,15 @@ fn port(error: Error) -> ApplicationError {
             DeadlineError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("deadline database: {error}"))
+    crate::postgres_port::error("deadline database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     DeadlineError::StoredInconsistent(error.to_string()).into()
+}
+
+fn stored(error: ApplicationError) -> ApplicationError {
+    match error {
+        ApplicationError::Port(_) | ApplicationError::ClassifiedPort { .. } => error,
+        other => inconsistent(other),
+    }
 }

@@ -269,8 +269,9 @@ is still unfinished.
   restoration are implemented in the backend and HTTP API. URLs are not fetched
   or archived and do not certify normative authenticity or applicability. The
   Qadra calendar interface is verified locally. Its exact revisions can feed
-  recorded deadline evaluations; automatic activation, reevaluation and
-  notifications remain pending. See `docs/judicial-calendars-api.md`
+  recorded deadline evaluations. Local reevaluation has an internal worker port;
+  automatic activation, server composition and notifications remain pending.
+  See `docs/judicial-calendars-api.md`
   and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 - The `0015_` and `0016_` migrations add immutable source-change events and a
   versioned deadline-profile catalog. Global and case collections preserve
@@ -281,7 +282,8 @@ is still unfinished.
   and verified temporal material without persisting a deadline. Its civil cutoff
   has its own offset and coverage; incomplete inputs remain blocked. The HTTP
   catalog is composed into the server and supplies exact profiles to persisted
-  evaluations. Source events do not yet have a processing worker. See
+  evaluations. Source events feed the local dispatcher and worker ports; their
+  server composition remains pending. See
   `docs/deadline-profiles-api.md` and
   `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
 - The `0017_` migrations persist case deadlines and immutable evaluation history.
@@ -296,24 +298,32 @@ is still unfinished.
   The full local Rust, HTTP/restore, browser and web verification campaigns
   have passed. Remote checks and integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, reevaluation workers, combined hearing/deadline agenda,
-  alerts and the qualified legal-profile acceptance corpus remain pending.
+  Automatic activation, server composition of reevaluation, combined hearing/deadline
+  agenda, alerts and the qualified legal-profile acceptance corpus remain pending.
 - The `0018_` migrations extend deadline storage with human V2 tracking captures
   and observations while preserving V1 history. Historical reads reconstruct
   exact source and administration evidence without recalculation. Human commits
-  reauthorize and preserve action-specific continuity; the SQL guard rejects
-  technical writes until their durable worker boundary exists. The human service
-  and HTTP workflow still use V1. Worker execution and HTTP/Qadra V2
-  remain pending. Verification results belong to their recorded code revision;
+  reauthorize and preserve action-specific continuity. The human port rejects
+  technical authors; technical writes use the durable worker boundary below.
+  The human service and HTTP workflow still use V1. Server composition and
+  HTTP/Qadra V2 remain pending. Verification belongs to its recorded code revision;
   see `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
   and audit commit together; jobs reserve their operation against human writes.
   Startup verifies schema, runtime grants and historical inventory. Candidate
   bounds and missing-job filters apply before the SQL result is materialized.
-  This adapter does not yet run from `serve` or consume jobs. Technical commit,
-  worker outcomes, service/HTTP V2 and Qadra remain pending; see
-  `docs/deadline-dispatch.md`.
+  This adapter does not yet run from `serve`; the separate local worker consumes
+  its jobs. Service/HTTP V2 and Qadra remain pending; see `docs/deadline-dispatch.md`.
+- The `0020_` migrations and `PostgresDeadlineWorkerStore` implement local durable
+  consumption, technical revisions, verified no-change results and failed attempts.
+  Completion, revision and audit share a transaction; failures retain their own
+  audited attempts and stable operation identities. History resolves exact sources
+  without current-head substitution. Retry delay never bypasses startup inventory
+  checks: persistent corruption prevents reopening until repair or restoration.
+  Focal catalog, real restore/retry and failure-classification tests passed;
+  full local regression passed; its scope is recorded in `docs/verification-report.md`. The port is not composed in `serve` or
+  HTTP/Qadra V2. See `docs/deadline-worker.md` and `docs/verification-report.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,
@@ -419,8 +429,9 @@ is still unfinished.
   attention, retirement and history, verified with mock and real-service browser
   campaigns.
   Conflicts preserve drafts and uncertain responses require exact receipt
-  reconciliation without automatic resubmission. Dependent reevaluation,
-  combined agenda and alerts remain pending. Preserve its design tokens,
+  reconciliation without automatic resubmission. The local reevaluation worker
+  has no HTTP/Qadra V2 integration yet; combined agenda and alerts remain pending.
+  Preserve its design tokens,
   components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
@@ -447,9 +458,9 @@ current code before planning subsequent work in this dependency order.
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
 2. Keep functional deliveries integrated with approved CI. Qualify the remaining legal profiles with primary sources and acceptance cases;
-   implement durable activation, dependent reevaluation, combined agenda and
-   notifications, plus resources linked to resolutions. Hearing
-   scheduling and declared sessions/results already preserve exact history,
+   finish verification and server/HTTP/Qadra integration of durable reevaluation;
+   implement activation, combined agenda and notifications, plus resources linked
+   to resolutions. Hearing scheduling and declared sessions/results already preserve exact history,
    attendance, agreements and provenance. The calendar backend/API classifies
    civil dates from exact revisions and Qadra exposes their administration and
    history. Persisted evaluations already compute explicit profiles and inputs;

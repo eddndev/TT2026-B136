@@ -137,6 +137,16 @@ pub(super) fn notification_parent_head(
         }
         _ => return Ok(None),
     };
+    notification_parent_for_definition(tx, case, definition, hasher)
+}
+
+/// Resolve a selected notification's independent current parent for an audited caller.
+pub(crate) fn notification_parent_for_definition(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    definition: &DeadlineDefinition,
+    hasher: &dyn DocumentHasher,
+) -> Result<Option<FactDetail>, ApplicationError> {
     if definition.input.selection.case_id != case {
         return Err(DeadlineError::Invalid("input.case_id").into());
     }

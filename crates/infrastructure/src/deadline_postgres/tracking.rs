@@ -1,4 +1,4 @@
-use super::{administration, inconsistent};
+use super::{administration, inconsistent, stored};
 use application::{
     deadline_inputs::{DeadlineCalendarRef, DeadlineInputHeads},
     deadline_observations::verify_captured_deadline_observations,
@@ -61,7 +61,25 @@ pub(super) fn capture(
         return Err(inconsistent("deadline observations belong to another case"));
     }
     let administration = administration::at_revision(tx, detail.case_id, revision, hasher)?;
-    let profile = entry(&observations, ObservationRole::Profile)
+    observed_inputs(tx, detail, &observations, &administration, hasher)?;
+    metadata
+        .restore(hasher, observations, administration)
+        .map(Some)
+        .map_err(inconsistent)
+}
+
+/// Reconstruct observed inputs at their captured revisions using verified administration.
+pub(crate) fn observed_inputs(
+    tx: &mut Transaction<'_>,
+    detail: &DeadlineDetail,
+    observations: &Observations,
+    administration: &application::cases::CurrentCaseAdministration,
+    hasher: &dyn DocumentHasher,
+) -> Result<application::deadline_technical::DeadlineReevaluationInputs, ApplicationError> {
+    if observations.case_id != detail.case_id {
+        return Err(inconsistent("deadline observations belong to another case"));
+    }
+    let profile = entry(observations, ObservationRole::Profile)
         .ok_or_else(|| inconsistent("deadline observed profile is absent"))?;
     let profile_head = crate::deadline_profile_postgres::storage::detail(
         tx,
@@ -69,20 +87,20 @@ pub(super) fn capture(
         Some(DeadlineProfileRevision::new(profile.revision).map_err(inconsistent)?),
         hasher,
     )
-    .map_err(inconsistent)?;
-    let heads = heads(&observations)?;
+    .map_err(stored)?;
+    let heads = heads(observations)?;
     let input = &detail.definition.input;
     let material = crate::deadline_input_history::load_captured_material(
         tx,
         detail.calculation.profile.definition.trigger(),
         &input.selection,
         input.calendar,
-        &administration,
+        administration,
         &heads,
         hasher,
     )
-    .map_err(inconsistent)?;
-    let parent = entry(&observations, ObservationRole::NotificationParent)
+    .map_err(stored)?;
+    let parent = entry(observations, ObservationRole::NotificationParent)
         .map(|parent| {
             crate::procedural_fact_postgres::storage::detail(
                 tx,
@@ -91,21 +109,24 @@ pub(super) fn capture(
                 Some(FactRevision::new(parent.revision).map_err(inconsistent)?),
                 hasher,
             )
-            .map_err(inconsistent)
+            .map_err(stored)
         })
         .transpose()?;
     verify_captured_deadline_observations(
         hasher,
-        &observations,
+        observations,
         &profile_head,
         &material,
         parent.as_ref(),
     )
     .map_err(inconsistent)?;
-    metadata
-        .restore(hasher, observations, administration)
-        .map(Some)
-        .map_err(inconsistent)
+    Ok(
+        application::deadline_technical::DeadlineReevaluationInputs {
+            profile_head,
+            material,
+            notification_parent_head: parent,
+        },
+    )
 }
 
 fn entry(observations: &Observations, role: ObservationRole) -> Option<&ObservationEntry> {

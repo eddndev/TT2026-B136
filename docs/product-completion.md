@@ -90,8 +90,8 @@ completa reproducida. La primera fecha incluida y la cantidad todavia son
 entradas matemáticas. El registro persistente ya las vincula a una revisión
 exacta de perfil, fuentes y calendario, y conserva la evaluación y su atención.
 La calificación del supuesto no se deduce de esa aritmética; el cierre del
-corpus jurídico, la activación automática, la reevaluación y las alertas siguen
-pendientes.
+corpus jurídico, la activación automática, la integración operativa de la
+reevaluación en servidor y Qadra y las alertas siguen pendientes.
 
 La [aritmetica temporal](deadline-arithmetic.md) implementa reglas matematicas
 explicitas para dias naturales o computables, meses civiles y horas transcurridas.
@@ -100,7 +100,8 @@ ante precision insuficiente, homologo inexistente o calendario incompleto.
 No selecciona un supuesto juridico ni crea un plazo persistente. Los
 [perfiles normativos](deadline-rule-research.md) todavia requieren cerrar
 aplicabilidad, inicio, duracion ordenada y corte, particularmente para meses.
-La activacion, reevaluacion y alertas mantienen su estado pendiente.
+La activación, la integración operativa de la reevaluación en servidor y Qadra
+y las alertas mantienen su estado pendiente.
 
 La [extracción temporal exacta](deadline-triggers.md) comprueba expediente,
 identidad, revisión, padre y acuerdo del material recibido antes de seleccionar
@@ -146,8 +147,9 @@ La [PR 33](https://github.com/eddndev/TT2026-B136/pull/33) integró esta interfa
 y el selector en `main`, commit `214202a`, el 18 de septiembre de 2026 a las
 15:09 de Ciudad de México, con 19 comprobaciones aprobadas y el paso de release
 omitido conforme al evento.
-Faltan reevaluación durable, agenda combinada y alertas. El registro durable de
-cambios de fuentes todavía no tiene un trabajador que los procese. Tampoco los ejemplos
+Faltan integrar la reevaluación en servidor y Qadra, agenda combinada y alertas.
+Los cambios de fuentes ya tienen despacho y consumo mediante puertos internos.
+Tampoco los ejemplos
 sintéticos cierran los perfiles jurídicos con fundamento y casos de aceptación
 aplicables al alcance aprobado.
 
@@ -181,8 +183,9 @@ contratos y persistencia humana descritos en
 - Lectura y escritura humanas V1/V2, migración incremental y reconstrucción
   exacta de DLOE y administración. SQL comprueba seguimiento, referencias,
   recibos y continuidad; inventario y lectura rechazan evidencia falsa aun
-  con hashes coherentes. El HTTP conserva su frontera V1 y el guard humano
-  rechaza las escrituras técnicas pendientes de trabajador autorizado.
+  con hashes coherentes. El HTTP conserva su frontera V1 y el puerto humano
+  rechaza autoría técnica; las revisiones técnicas requieren el trabajo durable
+  y su resultado mediante el consumidor autorizado.
 
 La preparación técnica publicada en la PR 34, commit `8c838cb`, tiene una
 campaña propia de 2442 pruebas Rust aprobadas y controles globales aprobados.
@@ -200,9 +203,12 @@ restauración todavía ejercitan V1; la CI se comprueba sobre su propio commit.
 La PR 34 sigue en borrador y este trabajo no forma parte de la entrega
 integrada por PR 33. El [despachador](deadline-dispatch.md) ya expande eventos
 y legado en trabajos persistentes, con paginación y auditoría atómicas.
-Faltan el consumidor durable, autenticación y confirmación de su revisión
-técnica, servicio/HTTP V2 y sus flujos Qadra. La creación de trabajos no equivale
-a reevaluación automática: el proceso aún no se ejecuta desde el servidor.
+El [consumidor](deadline-worker.md) autentica causas exactas y confirma revisión,
+resultado y auditoría; conserva también resultados sin cambios e intentos fallidos
+con espera durable. Sus comprobaciones focales de restauración, permisos y
+clasificación aprobaron; la campaña global aprobó y tiene su evidencia propia en el informe de verificación.
+Faltan composición en servidor, servicio/HTTP V2 y sus flujos Qadra. Los puertos
+internos todavía no equivalen a reevaluación automática disponible en el producto.
 
 La conciliación excepcional de dependencias retiradas requiere un contrato
 explícito. Esta ampliación no cierra activación, agenda ni alertas.
@@ -256,7 +262,7 @@ su evidencia separada.
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
-| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente, responsable, atención e historia integrados en `main`; aceptación real con restauración y campaña global del backend aprobadas. Qadra y el selector paginado de responsables están integrados por PR 33. La ampliación V2 incorpora observaciones verificadas, continuidad, preparación humana y técnica, consultas operativas y persistencia humana con reconstrucción exacta; su evidencia se distingue de la base integrada. El despacho durable está implementado como adaptador; faltan su consumidor, servicio/HTTP V2 y Qadra V2. Activación durable, agenda conjunta, alertas y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
+| Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, catálogo de perfiles, evaluación persistente, responsable, atención e historia integrados en `main`; aceptación real con restauración y campaña global del backend aprobadas. Qadra y el selector paginado de responsables están integrados por PR 33. La ampliación V2 incorpora observaciones verificadas, continuidad, preparación humana y técnica, consultas operativas y persistencia humana con reconstrucción exacta; su evidencia se distingue de la base integrada. Despacho y consumo durables están implementados mediante puertos internos, con resultados, intentos e historia; su verificación se distingue de la base integrada. Faltan composición en servidor, servicio/HTTP V2 y Qadra V2. Activación durable, agenda conjunta, alertas y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
 | Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | No presentar el tamaño de una página como total del despacho. Probar aislamiento de agregados e informes, concurrencia y acceso a resultados generados. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
@@ -299,8 +305,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
 | Audiencia y activación de plazos | Parcial; programación y sesiones declaradas implementadas localmente | Programación, agenda, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron y el código está integrado en `main`. Faltan activación consistente de plazos, alertas, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
-| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra de plazos tiene campañas locales completas aprobadas. Faltan cierre del corpus jurídico aplicable, reevaluación ante cambios y aceptación del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
-| Monitoreo de plazos y alertas | Parcial; registro, API y Qadra V1 integrados; ampliación V2 pendiente de cierre funcional | Registro, revisión exacta, responsable y atención tienen flujo web. V2 añade observaciones, continuidad, preparación humana y técnica, consultas y persistencia humana con reconstrucción exacta. El despacho de eventos y legado ya crea trabajos con cursores y auditoría atómicos; su consumidor, servicio/HTTP V2 y Qadra V2 siguen pendientes. Faltan activación y reevaluación automáticas, agenda conjunta y alertas con reintentos y control de duplicados. La escritura humana V2 no constituye monitoreo automático ni completa la aceptación del caso de uso. |
+| Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra de plazos tiene campañas locales completas aprobadas. Faltan cierre del corpus jurídico aplicable, integración operativa de la reevaluación en servidor y Qadra y aceptación del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
+| Monitoreo de plazos y alertas | Parcial; registro, API y Qadra V1 integrados; ampliación V2 pendiente de cierre funcional | Registro, revisión exacta, responsable y atención tienen flujo web. V2 añade observaciones, continuidad, preparación humana y técnica, consultas y persistencia humana con reconstrucción exacta. El despacho de eventos y legado crea trabajos con cursores y auditoría atómicos; el consumidor confirma revisiones, resultados e intentos durables. La composición en servidor, servicio/HTTP V2 y Qadra V2 siguen pendientes. Faltan activación y reevaluación automáticas, agenda conjunta y alertas con reintentos y control de duplicados. La escritura humana V2 no constituye monitoreo automático ni completa la aceptación del caso de uso. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
 | Consulta e integridad documental | Parcial | Entrega íntegra de contenido sin requerir sello y alerta de seguridad al Owner ante alteraciones. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |

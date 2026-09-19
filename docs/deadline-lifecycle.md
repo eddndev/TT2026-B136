@@ -10,10 +10,12 @@ de responsables elegibles, con campañas locales completas aprobadas. El
 [informe de verificación](verification-report.md) separa sus resultados de la
 comprobación remota y de la integración de cada entrega.
 
-Los trabajadores de activación y reevaluación, la agenda conjunta y las alertas
-descritos más abajo siguen siendo objetivos de implementación. Tener eventos
-inmutables no demuestra que se procesen, y guardar un vencimiento no demuestra
-que se haya entregado un aviso. El cierre de perfiles jurídicos con fuentes
+El [despachador](deadline-dispatch.md) y el [consumidor local](deadline-worker.md)
+implementan expansión de eventos y confirmación técnica durable; su composición
+en servidor y HTTP/Qadra V2 siguen pendientes. Activación, agenda conjunta y
+alertas descritas más abajo conservan objetivos propios de implementación.
+Tener eventos inmutables no demuestra que se procesen en el servidor, y guardar
+un vencimiento no demuestra que se haya entregado un aviso. El cierre de perfiles jurídicos con fuentes
 primarias y aceptación del supuesto también permanece pendiente; los ejemplos
 sintéticos verifican mecanismos, no aplicabilidad jurídica. Véanse la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
@@ -129,9 +131,11 @@ todo cambio posterior emite un evento durable. El inventario valida los eventos
 existentes, los triggers y la secuencia; la restauración conserva esos datos.
 
 El despachador pagina dependencias, inserta trabajos únicos por evento/plazo y
-avanza su cursor en una transacción. El trabajador confirma nueva evaluación,
-resultado del trabajo y sustitución de alertas pendientes juntos. Conserva
-responsable y atención vigentes; no los reinicia al recalcular. Las correcciones
+avanza su cursor en una transacción. El consumidor local confirma revisión,
+resultado del trabajo y auditoría juntos, o registra la causa de no producir una
+revisión. La sustitución atómica de alertas pendientes conserva su implementación
+futura. El consumidor mantiene responsable y atención vigentes; no los reinicia
+al recalcular. Las correcciones
 de fuente no autorizan inferir nuevamente condiciones jurídicas desde texto.
 La revisión de aplicabilidad pendiente debe quedar visible, con el cálculo
 anterior conservado. Los cambios de calendario aplicable se evalúan con su nueva

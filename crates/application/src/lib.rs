@@ -30,7 +30,7 @@ pub mod typed_participants;
 pub mod vault;
 pub mod verification;
 
-pub use error::ApplicationError;
+pub use error::{ApplicationError, PortFailureKind};
 pub use hashing::HashDocument;
 
 pub mod deadline_evaluations;
@@ -39,5 +39,6 @@ pub mod deadlines;
 pub mod deadline_observations;
 
 pub mod deadline_technical;
+pub mod deadline_worker;
 
 pub mod deadline_dispatch;

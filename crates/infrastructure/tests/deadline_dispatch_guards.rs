@@ -111,17 +111,32 @@ fn job_history_and_cursor_identity_remain_protected_for_administrative_connectio
         "UPDATE deadline_reevaluation_jobs SET case_id=case_id",
         "DELETE FROM deadline_reevaluation_jobs",
         "TRUNCATE deadline_reevaluation_jobs",
+        "TRUNCATE deadline_reevaluation_jobs CASCADE",
+        "TRUNCATE deadline_reevaluation_jobs,deadline_reevaluation_results,deadline_reevaluation_attempts",
         "INSERT INTO deadline_dispatch_cursor(singleton) VALUES(TRUE)",
         "UPDATE deadline_dispatch_cursor SET singleton=FALSE",
         "DELETE FROM deadline_dispatch_cursor",
         "TRUNCATE deadline_dispatch_cursor",
     ] {
         let error = db.admin.batch_execute(sql).unwrap_err();
+        let expected = if sql == "TRUNCATE deadline_reevaluation_jobs" {
+            SqlState::FEATURE_NOT_SUPPORTED
+        } else {
+            SqlState::CHECK_VIOLATION
+        };
         assert_eq!(
             error.code(),
-            Some(&SqlState::CHECK_VIOLATION),
+            Some(&expected),
             "{sql}: {error:?}"
         );
+        if sql.starts_with("TRUNCATE deadline_reevaluation_jobs")
+            && expected == SqlState::CHECK_VIOLATION
+        {
+            assert_eq!(
+                error.as_db_error().unwrap().message(),
+                "deadline dispatch identities and jobs cannot be removed or rewritten"
+            );
+        }
         assert_eq!(guards::snapshot(&mut db), before, "{sql}");
     }
 }

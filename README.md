@@ -229,8 +229,9 @@ excepciones y referencias
 públicas declaradas, con historia auditada. No descarga el contenido de las URL.
 Las campañas de API/restauración, cobertura y navegador pasaron. El código está
 integrado en `main`; la actualización integral del manuscrito sigue pendiente.
-El seguimiento persistente de plazos, la reevaluación, los recursos procesales
-y las alertas siguen pendientes.
+El registro persistente de plazos ya tiene API e interfaz Qadra V1. La
+reevaluación tiene puertos internos de despacho y consumo; su composición en
+servidor y Qadra V2, los recursos procesales y las alertas siguen pendientes.
 
 La [aritmética de plazos](docs/deadline-arithmetic.md) calcula candidatas de días,
 meses civiles y horas con reglas matemáticas explícitas, trazas y bloqueos por
@@ -246,8 +247,11 @@ recibos y persistencia PostgreSQL con publicación, reemplazo, retiro terminal e
 historia exacta. El evaluador de aplicación combina esos perfiles con insumos
 verificados y declaraciones de aplicabilidad, conserva bloqueos y admite un
 corte civil explícito sin fabricar horas. La API del catálogo y su restauración están verificadas localmente; publicar un perfil no acredita su aplicabilidad
-jurídica. Persistir evaluaciones y seguimiento, consumir eventos mediante
-trabajadores, entregar alertas y ofrecer Qadra para plazos sigue pendiente.
+jurídica. Las [evaluaciones persistentes](docs/deadline-records.md) y Qadra V1
+ya conservan cálculo, responsable, atención e historia. El seguimiento V2 tiene
+persistencia humana, [despacho](docs/deadline-dispatch.md) y
+[consumo durable](docs/deadline-worker.md), todavía sin composición en `serve`
+ni interfaz HTTP/Qadra V2. Activación, agenda conjunta y alertas siguen pendientes.
 El [contrato de ciclo de vida](docs/deadline-lifecycle.md) conserva ese alcance
 completo; [la guía de operación](docs/database-operations.md) explica las nuevas
 tablas y el registro durable de cambios.

@@ -3,8 +3,9 @@
 Estado: el modelo distingue evidencia V1/V2, observaciones verificadas y
 revisiones sucesoras. La persistencia PostgreSQL admite las decisiones humanas
 V2 y reconstruye sus capturas históricas; incluye actualización compatible
-desde V1. La preparación técnica sigue sin trabajador durable, API V2 ni
-integración en Qadra. La decisión está en
+desde V1. El [consumidor local](deadline-worker.md) usa la preparación técnica
+y persiste sus resultados e intentos. Su composición desde `serve`, API humana
+V2 e integración en Qadra siguen pendientes. La decisión está en
 [ADR 0037](adr/0037-durable-deadline-reevaluation.md).
 
 ## Versiones y estado operativo
@@ -349,8 +350,9 @@ Las migraciones `0018_` guardan por separado `tracking_canonical`, el sufijo
 existente de DLST2, y `observations_canonical`, el marco DLOB1. Las proyecciones
 generadas enlazan administración observada y secuencia de causa. El cálculo
 anterior mantiene sus columnas y bytes. Los campos de usuario admiten NULL
-para representar autoría técnica sin cuentas ficticias, pero el guard humano
-rechaza esas escrituras hasta que exista su frontera durable autorizada.
+para representar autoría técnica sin cuentas ficticias. El puerto humano
+rechaza esa autoría; la ampliación `0020_` permite únicamente la transición
+correspondiente a un trabajo durable auténtico y exige su resultado al confirmar.
 
 El commit humano reautoriza cuenta, expediente y responsable cuando corresponde,
 vuelve a preparar las cabezas y confirma revisión y auditoría conjuntamente.
@@ -365,11 +367,17 @@ la evidencia administrativa completa desde revisiones exactas. La coincidencia
 de hashes por sí sola no autentica ese material. La lectura y el inventario
 verifican continuidad y rechazan referencias inexistentes o evidencia alterada.
 
-Faltan autenticar servicio, eventos y trabajos durables en la ruta técnica,
-persistir cursores y resultados y confirmar reevaluación, auditoría y trabajo
-atómicamente. El servicio humano y HTTP actuales mantienen V1; falta evolucionar
-su contrato junto con Qadra para exponer políticas, motivos, causa y autoría.
-Agenda y alertas deben consumir solamente vencimientos operativos admitidos.
+El despachador persiste trabajos y cursores mediante `0019_`; el consumidor
+local autentica servicio técnico, evento y trabajo mediante `0020_`. Confirma
+revisión, resultado y auditoría atómicamente, o conserva un motivo sin cambios
+con base y observaciones exactas. Sus intentos fallidos tienen historia separada;
+no se consideran resultados satisfactorios. Véase [el contrato](deadline-worker.md).
+
+El servicio humano y HTTP actuales mantienen V1; falta evolucionar su contrato
+junto con Qadra para exponer políticas, motivos, causa y autoría y componer ambos
+adaptadores en `serve`. Agenda y alertas deben consumir solamente vencimientos
+operativos admitidos. La verificación local del consumidor aprobó; sus resultados no acreditan
+esa integración operativa todavía pendiente.
 
 La evidencia ejecutada y sus límites están en
 [el informe de verificación](verification-report.md). El almacenamiento humano

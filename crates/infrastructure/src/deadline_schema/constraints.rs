@@ -207,7 +207,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         }
     }
     // CHECK definitions are validated separately; PostgreSQL 18 reports NOT NULL constraints too.
-    let extra:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c')) AND (SELECT count(*) FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c'))<>$1", &[&23_i64]).map_err(port)?.get(0);
+    let extra:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c')) AND (SELECT count(*) FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c'))<>$1", &[&24_i64]).map_err(port)?.get(0);
     if extra {
         return Err(incomplete());
     }

@@ -139,5 +139,5 @@ fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     DeadlineInputError::Inconsistent(error.to_string()).into()
 }
 fn port(error: postgres::Error) -> ApplicationError {
-    ApplicationError::Port(format!("deadline input history database: {error}"))
+    crate::postgres_port::error("deadline input history database", error)
 }

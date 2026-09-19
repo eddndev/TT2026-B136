@@ -13,7 +13,7 @@ fn startup_rejects_changed_dispatch_columns_constraints_indexes_triggers_and_fun
         "ALTER TABLE deadline_reevaluation_jobs ALTER COLUMN created_at_seconds DROP NOT NULL",
         "ALTER TABLE deadline_reevaluation_jobs ADD COLUMN unexpected text",
         "ALTER TABLE deadline_dispatch_cursor ALTER COLUMN bootstrap_after_deadline_id SET DEFAULT '00000000-0000-0000-0000-000000000000'::uuid",
-        "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_primary",
+        "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_primary CASCADE",
         "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_operation",
         "ALTER TABLE deadline_dispatch_cursor ALTER CONSTRAINT deadline_dispatch_active DEFERRABLE INITIALLY DEFERRED",
         "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_cause;

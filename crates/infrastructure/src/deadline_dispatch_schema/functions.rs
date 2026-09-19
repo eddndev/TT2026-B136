@@ -88,7 +88,10 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
 
 fn expected_body(name: &str, schema: &str) -> Option<String> {
     let mut effective = None;
-    for sql in MIGRATIONS {
+    for sql in MIGRATIONS
+        .iter()
+        .chain(crate::deadline_worker_schema::MIGRATIONS.iter())
+    {
         for definition in sql.split("CREATE OR REPLACE FUNCTION ").skip(1) {
             let Some((declaration, rest)) = definition.split_once(" AS $$") else {
                 continue;

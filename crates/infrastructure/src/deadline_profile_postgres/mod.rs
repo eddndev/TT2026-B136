@@ -48,7 +48,7 @@ fn port(error: Error) -> ApplicationError {
             DeadlineProfileError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("profile database: {error}"))
+    crate::postgres_port::error("profile database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     DeadlineProfileError::StoredInconsistent(error.to_string()).into()

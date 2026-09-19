@@ -4,14 +4,111 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Consumidor durable de plazos: 18 de septiembre de 2026
+
+El [consumidor](deadline-worker.md) confirma una revisión técnica, un resultado
+sin cambios o un intento fallido verificable por cada trabajo elegible. La
+revisión, el resultado y su auditoría comparten transacción; un fallo revierte
+esa transacción antes de registrar el intento. Las migraciones `0020_` conservan
+ambos historiales, la procedencia del trabajo y sus restricciones de escritura.
+El servidor todavía no compone el despachador y el consumidor; el servicio
+humano, HTTP y Qadra mantienen V1. Las verificaciones de este incremento no
+acreditan ese recorrido operativo V2, agenda conjunta ni alertas.
+
+### Regresiones reproducidas y correcciones
+
+El primer ensayo de restauración detectó que PostgreSQL reconstruía con otra
+agrupación algunas expresiones `BETWEEN` combinadas con `AND`. Se sustituyeron
+por comparaciones explícitas equivalentes en las nuevas tablas y se conservaron
+las comprobaciones exactas del catálogo. La repetición aprobó cinco casos:
+tres de catálogo/permisos y dos de recuperación, incluido un `pg_dump` y
+`pg_restore` real sin migración reparadora. El ensayo compara las once
+expresiones `CHECK` antes y después de restaurar, además de datos y recibos.
+
+Tres regresiones focales comprobaron que un perfil corrupto se clasificaba como
+fallo transitorio y que se perdía la categoría nativa de dos errores SQL.
+Tras conservar categorías tipadas a través de los puertos, los tres casos
+aprobaron: evidencia inconsistente con espera de una hora, bloqueo `55P03` e
+interrupción `57014`. Los diagnósticos no se interpretan como códigos ni se
+exponen en HTTP. Esto no constituye una campaña de desconexiones físicas o TLS.
+
+La primera campaña global iniciada quedó interrumpida durante compilación y no
+se contabiliza como aprobada. Después de comprobar que sus procesos habían
+terminado, se cerró exclusivamente su PostgreSQL desechable identificado.
+La siguiente campaña, ya serializada, se detuvo en una preparación de prueba:
+las nuevas claves foráneas impedían eliminar la clave primaria del trabajo.
+La alteración deliberada del catálogo ahora elimina también sus dependencias;
+el validador de producción conserva sus comprobaciones estrictas.
+
+Una regresión dirigida confirmó también que el truncado aislado se rechaza por
+la clave foránea antes del guard de inmutabilidad. La prueba exige ese rechazo
+y comprueba además el SQLSTATE y mensaje exactos del guard para truncado en
+cascada y conjunto. Las dos suites corregidas aprobaron tres casos cada una,
+con conservación del estado después de los rechazos. No se relajaron las
+restricciones de producción.
+
+La siguiente campaña se detuvo en una expectativa antigua de timeout del
+despachador: el puerto de auditoría ya conservaba la categoría tipada de bloqueo
+pero la prueba esperaba un error genérico. La repetición dirigida aprobó los
+dos escenarios exigiendo `Busy` e `Interrupted`, respectivamente, con rollback
+y recuperación de la misma conexión. El rechazo de la segunda prueba en la
+campaña previa correspondió al mutex envenenado por la primera aserción.
+
+### Condiciones de ejecución
+
+Todas las verificaciones locales de cierre se coordinan de forma secuencial,
+con `CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y un bloqueo exclusivo del
+coordinador. No se superponen Cargo, otras suites, cobertura ni compilación
+documental. Se usa PostgreSQL 18.6 y Valkey 8.1.9, este último mediante los
+comandos y el protocolo Redis del entorno de pruebas. Sus instancias son
+desechables. qpdf corresponde a la versión 12.4.1 exigida por el repositorio;
+la compilación ordinaria usa Rust 1.94.0.
+
+La campaña completa terminó con **2630 pruebas Rust aprobadas,
+cero fallidas y una TSA externa ignorada**, en 459 resúmenes.
+Los manifiestos registran 1581 fuentes y conservan las huellas de cada
+ejecución. La lógica de producción no cambió entre los seis controles.
+La suite se ejecutó con `cargo test --workspace --no-fail-fast` dentro de
+`scripts/test-backends.sh`; recopilar todos los fallos no introduce paralelismo.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Salida 0; 3.025 s. |
+| Compilación del workspace | Salida 0; 0.347 s. |
+| Suite Rust con servicios aislados | Salida 0; 1482.506 s. |
+| Clippy 1.98.1, warnings denegados | Salida 0; 15.586 s. |
+| MSRV 1.88, todos los targets | Salida 0; 166.722 s. |
+| API y restauración V1 | Salida 0; 151.915 s. |
+
+El primer Clippy detectó un atributo `allow(dead_code)` duplicado al importar
+un helper en dos archivos de pruebas. Se eliminó solamente la anotación
+redundante; no cambiaron lógica ni aserciones. Los cuatro casos de esos dos
+targets se repitieron con servicios aislados y aprobaron antes de completar
+Clippy, MSRV y la demo. Esa repetición no se suma al total global. El manifiesto
+contrasta exactamente las dos eliminaciones con las fuentes de la suite completa.
+
+Los diez targets PostgreSQL del consumidor aprobaron **27 pruebas** dentro de
+esa suite, incluidas familias, historia, inventario, permisos, atomicidad,
+concurrencia, espera, clasificación y restauración. Las once pruebas focales
+iniciales, cinco de catálogo/recuperación y tres de clasificación conservan sus
+ejecuciones propias; no se suman otra vez al total global. También se ejecutaron
+las pruebas de categorías nativas SQL, su conservación en lectores y la
+respuesta HTTP opaca.
+
+La demo HTTP confirma compatibilidad y restauración del flujo V1 bajo el
+esquema ampliado. No compone ni acredita HTTP/Qadra V2 o ejecución del trabajador
+desde `serve`. No se midió cobertura, rendimiento ni navegador en esta campaña.
+La CI del incremento publicado debe comprobarse sobre su nueva cabeza.
+
 ## Despacho persistente de plazos: 18 de septiembre de 2026
 
 El [despachador](deadline-dispatch.md) confirma trabajos únicos, cursores y
 auditoría en una transacción. Consume las cinco familias de eventos y conserva
 un recorrido recurrente del legado. Las migraciones `0019_` añaden restricciones,
 reservas de operación y comprobaciones de esquema, permisos e inventario.
-El consumidor y la confirmación de revisiones técnicas siguen pendientes;
-servicio/HTTP y Qadra conservan V1. El despachador aún no se invoca desde `serve`.
+Al cierre de esta campaña estaban pendientes el consumidor y la confirmación
+de revisiones técnicas; servicio/HTTP y Qadra conservaban V1 y el despachador
+no se invocaba desde `serve`. El corte posterior del consumidor se registra arriba.
 
 La campaña global con PostgreSQL/Redis aislados y qpdf 12.4.1 terminó con
 **2584 pruebas Rust aprobadas, 0 fallidas y 1 ignorada**,
@@ -134,7 +231,9 @@ El recorrido HTTP repetido sigue produciendo V1: comprueba la compatibilidad
 del flujo existente y su restauración bajo el esquema ampliado. No acredita
 una API V2 ni restauración de trabajos automáticos. El guard humano sigue
 rechazando autoría técnica hasta disponer del servicio y trabajo durable.
-La PR 34 permanece en borrador; faltan despacho, trabajador, HTTP V2 y Qadra.
+Al cierre de esta campaña, la PR 34 permanecía en borrador y estaban pendientes
+despacho, trabajador, HTTP V2 y Qadra. Los cortes posteriores de despacho y
+consumo se registran arriba.
 
 La CI de `8c838cb` terminó con sus 18 controles aprobados. Corresponde al
 preparador técnico publicado antes de este cambio de almacenamiento; la CI

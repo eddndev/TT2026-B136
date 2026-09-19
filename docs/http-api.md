@@ -32,7 +32,9 @@ registran en el [informe de verificación](verification-report.md). La ampliaci�
 actual incorpora selección paginada de responsables y el
 [flujo Qadra de plazos](../web/README.md#plazos-del-expediente). Su verificación
 integral y publicación se registran por separado del backend anterior.
-Trabajadores de reevaluación, agenda conjunta y alertas siguen pendientes.
+El [consumidor local](deadline-worker.md) tiene puerto interno; todavía no se
+compone en `serve` ni tiene representación HTTP/Qadra V2. La agenda conjunta
+y las alertas siguen pendientes.
 Véanse [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
@@ -273,7 +275,7 @@ La programación de audiencias tiene su [contrato independiente](hearings-api.md
 Las sesiones y resultados declarados disponen de su
 [contrato separado](hearing-results-api.md). El cálculo y la historia de plazos
 usan [su propia colección](deadlines-api.md). Recursos, activación automática,
-reevaluación y alertas conservan operaciones pendientes propias.
+integración HTTP de la reevaluación y alertas conservan operaciones pendientes propias.
 
 ## Audiencias y agenda
 
@@ -894,8 +896,11 @@ revisiones exactas mediante estas rutas. El selector y la interfaz son la
 ampliación actual, con campañas locales completas aprobadas; sus comprobaciones
 globales, recorridos reales y publicación se documentan en el informe de
 verificación.
-La reevaluación automática, la agenda de audiencias y vencimientos reunidos y
-las alertas siguen pendientes.
+Este contrato HTTP mantiene V1 y no acepta autores técnicos, políticas de
+seguimiento ni comandos de trabajador. Rechaza proyecciones V2 que no puede
+representar completas. El [consumidor local](deadline-worker.md) sigue separado
+de `serve`; su composición y HTTP/Qadra V2 requieren una entrega conjunta.
+La agenda de audiencias y vencimientos reunidos y las alertas siguen pendientes.
 
 ## Errores
 

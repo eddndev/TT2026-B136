@@ -17,6 +17,9 @@ La \cref{tab:matriz-plazos-persistentes} relaciona la implementación persistent
     Servicio y consultas & Permisos, reautenticación, ámbito, revisión exacta y cursores coherentes. \\
     PostgreSQL & Estado y auditoría atómicos, responsable elegible, comparación de base y fuentes vigentes. \\
     Historia y atención & Cálculo inmutable ante atención o retiro, con dependencias históricas independientes de las cabezas actuales. \\
+    Seguimiento V2 & Observaciones verificadas, políticas explícitas, ambas huellas del predecesor y continuidad de decisiones humanas. \\
+    Consumidor local & Revisión, resultado y auditoría atómicos; motivos sin cambios ligados a evidencia histórica exacta. \\
+    Intentos y recuperación & Fallos tipados, espera persistida, conciliación de respuestas y conservación de todos los intentos. \\
     Catálogo y respaldo & Restricciones y proyecciones verificadas; restauración sujeta a contraste de todas las revisiones. \\
     HTTP & Comandos acotados y proyección estructurada de entradas, resultados, recibos e historia. \\
     \bottomrule
@@ -44,7 +47,7 @@ En el directorio \rutarepo{crates/web/tests/}, los archivos con prefijo \texttt{
 \par
 \endgroup
 
-La captura y la consulta de plazos en Qadra no completan el consumo de eventos, la reevaluación, las alertas ni la agenda conjunta. La aceptación de esos recorridos conserva su carácter pendiente, junto con la validación de perfiles jurídicos aplicables. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
+La captura y la consulta de plazos en Qadra conservan el contrato V1. La composición del despachador y el consumidor en \texttt{serve}, el servicio humano y HTTP V2, las alertas y la agenda conjunta requieren sus recorridos de aceptación, junto con la validación de perfiles jurídicos aplicables. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
 
 
 \subsection{Selector e interfaz de plazos}
@@ -54,3 +57,15 @@ Las comprobaciones del selector mantienen el prefijo \texttt{deadline\_responsib
 En \rutarepo{web/tests/}, los archivos cuyo nombre comienza por \texttt{deadline-} comprueban el cliente, resultados, recibos, referencias y campos. El subdirectorio \texttt{browser/} agrega navegación, consultas, acceso, edición y presentación con transporte controlado. En \texttt{live/}, los archivos de plazos terminados en \texttt{workflow.spec.mjs}, \texttt{permissions.spec.mjs} y \texttt{concurrency.spec.mjs} ejercitan el servidor real. Se ejecutan mediante \rutarepo{scripts/web-demo.sh}, junto con los recorridos de regresión existentes.
 
 El recorrido \rutarepo{scripts/api-demo.sh} incorpora la consulta de responsables y comprueba que la proyección no exponga credenciales. Los ensayos de navegador conservan resultados diarios, mensuales y horarios, relaciones históricas exactas, atención y retiro, cierre y revocación, conflictos y conciliación sin reenvío. La matriz separa el transporte controlado de las campañas reales; sus conteos y resultados observados permanecen en el informe de verificación.
+
+\subsection{Seguimiento y consumidor durable}
+
+\begingroup
+\raggedright
+Los valores y puertos están en \rutarepo{crates/application/src/}. Los módulos \texttt{deadline\_reevaluation}, \texttt{deadline\_observations} y \texttt{deadline\_technical} separan recibos, evidencia observada y preparación; \texttt{deadline\_worker} define resultados e intentos. En \rutarepo{crates/infrastructure/src/}, los módulos \texttt{deadline\_worker\_postgres} y \texttt{deadline\_worker\_schema} implementan consumo, lectura histórica y verificación de apertura. Las migraciones \texttt{0018} conservan V1/V2; las del grupo \texttt{0020} incorporan resultados, intentos y las restricciones de la escritura técnica.
+
+En \rutarepo{crates/infrastructure/tests/}, los archivos comparten el prefijo \texttt{deadline\_worker\_} y la extensión \texttt{.rs}. Los sufijos \texttt{backend}, \texttt{guards} y \texttt{retries} identifican las once pruebas de la campaña focal inicial. \texttt{catalog} y \texttt{recovery} corresponden a las cinco pruebas focales de apertura, permisos, restauración real sin migración reparadora y crecimiento de reintentos. \texttt{profile\_failure} y \texttt{sql\_failures} corresponden a las tres pruebas focales de clasificación. Los archivos \texttt{families}, \texttt{history} e \texttt{inventory} amplían los escenarios del consumidor; sus casos se ejecutaron en la campaña integral, que incluye las 27 pruebas PostgreSQL del consumidor. El informe técnico conserva ese resultado sin volver a sumar las campañas focales.
+
+El contrato está en \rutarepo{docs/deadline-worker.md}; el compromiso de observaciones y la continuidad, en \rutarepo{docs/deadline-tracking-receipts.md}; y el respaldo, en \rutarepo{docs/database-operations.md}. La decisión de arquitectura es \rutarepo{docs/adr/0037-durable-deadline-reevaluation.md}. El informe técnico conserva los resultados focales por separado y no los atribuye a HTTP o Qadra V2.
+\par
+\endgroup

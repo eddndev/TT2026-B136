@@ -201,7 +201,8 @@ Inspect current code and contracts before treating this summary as complete.
   Source revisions append durable change events in the same transaction. The
   pure evaluator checks applicability and verified inputs, preserving incomplete
   results without inventing a cutoff. These exact profiles feed persisted
-  evaluations; source events do not yet have a processing worker. See
+  evaluations. Source events feed the local dispatcher and worker ports; their
+  server composition remains pending. See
   `docs/deadline-profiles-api.md` and
   `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
 - The `0017_` migrations persist case deadlines and immutable evaluation history.
@@ -216,25 +217,33 @@ Inspect current code and contracts before treating this summary as complete.
   The full local Rust, HTTP/restore, browser and web verification campaigns
   have passed. Remote checks and integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, reevaluation workers, combined hearing/deadline agenda,
-  alerts and the qualified legal-profile acceptance corpus remain pending.
+  Automatic activation, server composition of reevaluation, combined hearing/deadline
+  agenda, alerts and the qualified legal-profile acceptance corpus remain pending.
 
 - The `0018_` migrations extend deadline storage with human V2 tracking captures
   and observations while preserving V1 history. Historical reads reconstruct
   exact source and administration evidence without recalculation. Human commits
-  reauthorize and preserve action-specific continuity; the SQL guard rejects
-  technical writes until their durable worker boundary exists. The human service
-  and HTTP workflow still use V1. Worker execution and HTTP/Qadra V2
-  remain pending. Verification results belong to their recorded code revision;
+  reauthorize and preserve action-specific continuity. The human port rejects
+  technical authors; technical writes use the durable worker boundary below.
+  The human service and HTTP workflow still use V1. Server composition and
+  HTTP/Qadra V2 remain pending. Verification belongs to its recorded code revision;
   see `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
   and audit commit together; jobs reserve their operation against human writes.
   Startup verifies schema, runtime grants and historical inventory. Candidate
   bounds and missing-job filters apply before the SQL result is materialized.
-  This adapter does not yet run from `serve` or consume jobs. Technical commit,
-  worker outcomes, service/HTTP V2 and Qadra remain pending; see
-  `docs/deadline-dispatch.md`.
+  This adapter does not yet run from `serve`; the separate local worker consumes
+  its jobs. Service/HTTP V2 and Qadra remain pending; see `docs/deadline-dispatch.md`.
+- The `0020_` migrations and `PostgresDeadlineWorkerStore` implement local durable
+  consumption, technical revisions, verified no-change results and failed attempts.
+  Completion, revision and audit share a transaction; failures retain their own
+  audited attempts and stable operation identities. History resolves exact sources
+  without current-head substitution. Retry delay never bypasses startup inventory
+  checks: persistent corruption prevents reopening until repair or restoration.
+  Focal catalog, real restore/retry and failure-classification tests passed;
+  full local regression passed; its scope is recorded in `docs/verification-report.md`. The port is not composed in `serve` or
+  HTTP/Qadra V2. See `docs/deadline-worker.md` and `docs/verification-report.md`.
 
 ## Next work, in dependency order
 
@@ -243,7 +252,8 @@ section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
 1. Extend the integrated Qadra deadline workflow with explicit V2 tracking.
    Qualify legal profiles with primary sources and acceptance cases, then implement
-   durable activation, dependent reevaluation, combined agenda and notifications.
+   activation, combined agenda and notifications. Finish verification and
+   server/HTTP/Qadra integration of the local durable reevaluation ports.
    Preserve exact inputs and immutable historical evaluations. Declared hearing
    text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and

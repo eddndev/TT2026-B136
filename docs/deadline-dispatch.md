@@ -10,10 +10,12 @@ avance y la auditoría en una transacción. Las migraciones `0019_` y
 frontera. La decisión general está en
 [ADR 0037](adr/0037-durable-deadline-reevaluation.md).
 
-El trabajador que consume esos trabajos y confirma revisiones técnicas sigue
-pendiente, junto con su servicio, HTTP y Qadra V2. El despachador todavía no
-se ejecuta desde `serve` ni expone una ruta HTTP o un comando CLI. Los eventos
-persistidos no significan que un plazo ya haya sido recalculado o notificado.
+El [consumidor local](deadline-worker.md) confirma revisiones técnicas,
+resultados sin cambios e intentos durables. El despachador y el consumidor
+todavía no se ejecutan desde `serve` ni exponen una ruta HTTP o comando CLI.
+El servicio humano y HTTP conservan V1; su ampliación y Qadra V2 siguen pendientes.
+Persistir un evento o asignar un trabajo no significa que el plazo ya haya sido
+reevaluado o que se haya entregado una notificación.
 
 ## Dos recorridos independientes
 
@@ -43,7 +45,7 @@ Una coincidencia únicamente histórica no selecciona la cabeza actual. UUID
 iguales en familias diferentes no intercambian causas. El cierre administrativo
 del expediente y la pérdida de acceso del responsable no eliminan el seguimiento
 técnico. Los plazos retirados quedan fuera de nuevas expansiones; sus trabajos
-históricos se conservan y el futuro consumidor debe decidir sobre la base actual.
+históricos se conservan y el consumidor decide sobre la base actual verificada.
 
 ## Transacción, identidad y recuperación
 
@@ -117,6 +119,10 @@ cabeza actual: una corrección o retiro posterior es legítimo. Respaldar juntos
 eventos, trabajos, cursores, plazos, dependencias y auditoría. Nunca reparar un
 cursor perdido eliminando trabajos ni volver a crear progreso supuesto.
 
-Antes de habilitar el consumidor técnico deben ampliarse las reservas y el
-inventario para admitir únicamente la revisión y resultado del trabajo exacto.
-El guard humano actual sigue rechazando las escrituras técnicas.
+Las migraciones `0020_` amplían las reservas y el inventario para admitir
+únicamente la revisión técnica y el resultado del trabajo exacto, con su causa
+autenticada. La operación reservada no puede reutilizarse desde el puerto humano.
+El consumidor conserva cierre, retiro y cambios humanos posteriores; sus
+resultados, intentos y límites de recuperación están en
+[el contrato del trabajador](deadline-worker.md). Su verificación es independiente
+de las campañas históricas del despachador.

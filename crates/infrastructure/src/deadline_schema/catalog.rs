@@ -113,7 +113,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             return Err(incomplete());
         }
     }
-    let altered:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A')) OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>4",&[&&TABLES[..]]).map_err(port)?.get(0);
+    let altered:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A')) OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>5",&[&&TABLES[..]]).map_err(port)?.get(0);
     if altered {
         return Err(incomplete());
     }

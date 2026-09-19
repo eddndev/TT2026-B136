@@ -1,4 +1,4 @@
-use super::{header, inconsistent, port};
+use super::{header, inconsistent, port, stored};
 use application::{cases::CurrentCaseAdministration, ApplicationError};
 use domain::{
     case_administration::CaseRevision,
@@ -34,7 +34,7 @@ pub(super) fn captured(
     Ok(captured)
 }
 
-pub(super) fn at_revision(
+pub(crate) fn at_revision(
     tx: &mut Transaction<'_>,
     case: CaseId,
     revision: Option<CaseRevision>,
@@ -42,8 +42,7 @@ pub(super) fn at_revision(
 ) -> Result<CurrentCaseAdministration, ApplicationError> {
     match revision {
         Some(revision) => Ok(CurrentCaseAdministration::Recorded(Box::new(
-            crate::hearing_postgres::administration(tx, case, revision, hasher)
-                .map_err(inconsistent)?,
+            crate::hearing_postgres::administration(tx, case, revision, hasher).map_err(stored)?,
         ))),
         None => {
             let baseline = tx

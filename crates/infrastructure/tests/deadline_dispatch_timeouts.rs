@@ -11,7 +11,7 @@ mod deadline_dispatch_timeout_support;
 mod deadline_profile_database_support;
 mod procedural_fact_backend_support;
 
-use application::{deadline_dispatch::DeadlineDispatchStore, ApplicationError};
+use application::{deadline_dispatch::DeadlineDispatchStore, ApplicationError, PortFailureKind};
 use deadline_dispatch_guard_support as guards;
 use deadline_dispatch_support as dispatch;
 use deadline_dispatch_timeout_support as timeout;
@@ -43,7 +43,13 @@ fn audit_lock_timeout_preserves_progress_and_the_same_connection_recovers() {
         "dispatch required external cancellation while the audit lock remained held"
     );
     assert!(
-        matches!(&outcome, Err(ApplicationError::Port(_))),
+        matches!(
+            &outcome,
+            Err(ApplicationError::ClassifiedPort {
+                kind: PortFailureKind::Busy,
+                ..
+            })
+        ),
         "{outcome:?}"
     );
     assert_eq!(guards::snapshot(&mut db), before);
@@ -85,7 +91,13 @@ fn statement_timeout_rolls_back_jobs_cursor_and_audit_then_reuses_the_connection
         "the injected delay was not reached after both job and cursor writes"
     );
     assert!(
-        matches!(&outcome, Err(ApplicationError::Port(_))),
+        matches!(
+            &outcome,
+            Err(ApplicationError::ClassifiedPort {
+                kind: PortFailureKind::Interrupted,
+                ..
+            })
+        ),
         "{outcome:?}"
     );
     assert_eq!(after_failure, before);

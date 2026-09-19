@@ -1,4 +1,4 @@
-use super::{administration, dependencies, header, inconsistent, tracking};
+use super::{administration, dependencies, header, inconsistent, stored, tracking};
 use application::{
     deadline_evaluations::{decode_deadline_evaluation_input, decode_deadline_evaluation_record},
     deadline_profiles::{DeadlineProfileCollection, DeadlineProfileStatus},
@@ -33,7 +33,7 @@ pub(super) fn row(
         Some(head.profile.revision),
         hasher,
     )
-    .map_err(inconsistent)?;
+    .map_err(stored)?;
     if !DeadlineProfileCollection::ForCase(head.case_id).includes(profile.definition.scope())
         || profile.status != DeadlineProfileStatus::Published
     {
@@ -52,7 +52,7 @@ pub(super) fn row(
         &heads,
         hasher,
     )
-    .map_err(inconsistent)?;
+    .map_err(stored)?;
     let mut detail = DeadlineDetail {
         id: head.id,
         case_id: head.case_id,
@@ -118,5 +118,6 @@ pub(super) fn row(
             "deadline due projection differs from historical result",
         ));
     }
+    crate::deadline_worker_provenance::validate_technical_record(tx, &detail, hasher)?;
     Ok(detail)
 }

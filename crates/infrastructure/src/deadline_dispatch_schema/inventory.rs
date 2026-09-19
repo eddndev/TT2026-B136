@@ -45,7 +45,7 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
                         AND j.event_sequence IS DISTINCT FROM (SELECT min(next_event.sequence)
                             FROM deadline_source_events next_event
                             WHERE next_event.sequence>coalesce(position.completed_event_sequence,0)))))
-                OR EXISTS(SELECT 1 FROM case_deadline_revisions r WHERE r.operation_id=j.operation_id))",
+                )",
         &[],
     ).map_err(port)?.get(0);
     if broken_jobs {
@@ -53,5 +53,6 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
     }
     // Current heads may no longer select a dispatched dependency, or may be retired.
     // Past scan coverage is enforced when advancing, not inferred from later heads.
+    crate::deadline_worker_schema::validate_reserved_operations(&mut tx)?;
     tx.rollback().map_err(port)
 }

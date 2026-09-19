@@ -101,8 +101,9 @@ Atención y retiro conservan exactamente esas capturas; un upgrade manual V1
 recupera sólo las observaciones ya registradas, sin añadir un padre ni una
 cabeza posterior. La validación resuelve material histórico exacto y ambas
 huellas del predecesor. El servicio y HTTP mantienen V1 mientras evoluciona
-su contrato, y el guard humano rechaza escrituras técnicas pendientes del
-trabajador durable. Las cotas V1 siguientes siguen aplicándose a sus formatos.
+su contrato. El [consumidor local](deadline-worker.md) añade revisiones técnicas
+y resultados durables mediante `0020_`; el puerto humano no admite esa autoría.
+Las cotas V1 siguientes siguen aplicándose a sus formatos.
 
 ### Esquema y capturas acotadas
 
@@ -177,11 +178,11 @@ capturados. Esta evidencia cubre API y backend, no interacción de navegador ni
 validez jurídica de los perfiles sintéticos. Véanse las
 [operaciones de base de datos](database-operations.md).
 
-La cola de reevaluación, sus cursores y reintentos, la sustitución atómica de
-alertas, el correo y la agenda conjunta conservan el alcance del
-[ciclo de vida](deadline-lifecycle.md). El catálogo de eventos de fuentes existente
-no tiene aún un consumidor que actualice automáticamente estos plazos. La
-interfaz Qadra tiene campañas separadas de transporte controlado y servicios
-reales, registradas en el informe. El ensayo HTTP del backend no acredita por sí
-solo interacción de usuario ni entrega de alertas. La aceptación del ciclo
-operativo completo permanece pendiente.
+El [despachador](deadline-dispatch.md) expande eventos y el
+[consumidor local](deadline-worker.md) confirma revisiones, resultados sin cambios
+e intentos. Su composición en servidor y su representación HTTP/Qadra V2 siguen
+pendientes, junto con activación, sustitución atómica de alertas, correo y agenda
+conjunta del [ciclo de vida](deadline-lifecycle.md). La interfaz Qadra V1 tiene
+campañas separadas de transporte controlado y servicios reales, registradas en
+el informe. El ensayo HTTP histórico no acredita el consumidor nuevo ni entrega
+de avisos. La aceptación del ciclo operativo completo permanece pendiente.

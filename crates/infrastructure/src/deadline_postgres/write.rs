@@ -8,7 +8,7 @@ use application::{
 use domain::crypto::DocumentHasher;
 use postgres::Transaction;
 
-pub(super) fn insert(
+pub(crate) fn insert(
     tx: &mut Transaction<'_>,
     value: &DeadlineDetail,
     hasher: &dyn DocumentHasher,

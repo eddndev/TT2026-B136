@@ -24,6 +24,27 @@ use domain::{
 
 type Result<T> = std::result::Result<T, ApplicationError>;
 
+/// Resolve terminal or initialized work from verified history alone.
+/// Storage must still authenticate the durable job and cause before completion.
+pub fn early_technical_deadline_outcome(
+    hasher: &dyn DocumentHasher,
+    base: &DeadlineDetail,
+    command: &DeadlineReevaluationCommand,
+) -> Result<Option<DeadlineReevaluationNoChange>> {
+    deadline_receipt_matches(hasher, base)?;
+    crate::deadline_reevaluation::validate_technical_cause(base.case_id, command.cause)
+        .map_err(inconsistent)?;
+    if base.status == DeadlineStatus::Retired {
+        return Ok(Some(DeadlineReevaluationNoChange::Retired));
+    }
+    if matches!(command.cause, TechnicalCause::LegacyBootstrap { .. })
+        && base.review_state() != DeadlineReviewState::LegacyUndeclared
+    {
+        return Ok(Some(DeadlineReevaluationNoChange::AlreadyInitialized));
+    }
+    Ok(None)
+}
+
 /// Build a new capture without granting human acceptance or changing retained
 /// legal qualifications. No-change outcomes still require a transactional base
 /// check before the repository can mark their durable job complete.
@@ -33,20 +54,8 @@ pub fn prepare_technical_deadline_change(
     command: DeadlineReevaluationCommand,
     inputs: DeadlineReevaluationInputs,
 ) -> Result<DeadlineReevaluationOutcome> {
-    deadline_receipt_matches(hasher, base)?;
-    crate::deadline_reevaluation::validate_technical_cause(base.case_id, command.cause)
-        .map_err(inconsistent)?;
-    if base.status == DeadlineStatus::Retired {
-        return Ok(DeadlineReevaluationOutcome::NoChange(
-            DeadlineReevaluationNoChange::Retired,
-        ));
-    }
-    if matches!(command.cause, TechnicalCause::LegacyBootstrap { .. })
-        && base.review_state() != DeadlineReviewState::LegacyUndeclared
-    {
-        return Ok(DeadlineReevaluationOutcome::NoChange(
-            DeadlineReevaluationNoChange::AlreadyInitialized,
-        ));
+    if let Some(reason) = early_technical_deadline_outcome(hasher, base, &command)? {
+        return Ok(DeadlineReevaluationOutcome::NoChange(reason));
     }
     let old_observations = match &base.tracking {
         Some(tracking) => tracking.observations.clone(),

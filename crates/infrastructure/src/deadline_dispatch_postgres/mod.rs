@@ -2,6 +2,7 @@
 mod cursor;
 mod dispatch;
 mod events;
+pub(crate) use events::decode as decode_source_event;
 mod jobs;
 mod selection;
 

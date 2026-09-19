@@ -3,11 +3,19 @@
 use domain::DomainError;
 use thiserror::Error;
 
+/// Stable transport-neutral categories for failures whose native port retained evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PortFailureKind {
+    Unavailable,
+    Busy,
+    Interrupted,
+}
+
 /// Failure of a use case.
 ///
 /// A use case either violates a domain invariant (wrapped from
 /// [`DomainError`]) or fails while talking to an outbound port. Port failures
-/// are reported as a message so this crate stays free of adapter details.
+/// retain a diagnostic and optionally a neutral category, without adapter types.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
@@ -215,6 +223,13 @@ pub enum ApplicationError {
     /// An outbound port reported a failure.
     #[error("port failure: {0}")]
     Port(String),
+
+    /// A native port failure whose category was preserved before formatting.
+    #[error("port failure: {message}")]
+    ClassifiedPort {
+        kind: PortFailureKind,
+        message: String,
+    },
 
     /// Bytes presented as a vault file did not match the vault file format
     /// documented in the `vault` module.

@@ -10,6 +10,16 @@ horarios y conservó 14 respuestas exactas tras recuperar la base. El contrato c
 evaluación de declaraciones explícitas; no determina por sí mismo la validez de
 un acto ni sustituye su calificación jurídica.
 
+## Frontera de versión
+
+Las rutas y respuestas de este documento conservan el flujo humano V1. No
+aceptan autoría técnica ni parámetros de seguimiento V2. Un registro que no
+pueda representarse completo se rechaza; no se omiten políticas o motivos para
+hacerlo parecer V1. La persistencia y el [consumidor local](deadline-worker.md)
+admiten evidencia V2 mediante puertos internos, pero todavía no se componen
+como flujo HTTP/Qadra V2 ni se ejecutan desde `serve`. La aceptación HTTP V1
+anterior no acredita esa integración pendiente.
+
 ## Colección y autorización
 
 Base: `/api/v1/cases/{case_id}/deadlines`.

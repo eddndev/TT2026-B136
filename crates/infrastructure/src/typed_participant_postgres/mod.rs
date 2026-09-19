@@ -57,8 +57,15 @@ impl PostgresTypedParticipantStore {
         self.client.lock().map_err(|_| inconsistent())
     }
 }
-fn port(_: postgres::Error) -> ApplicationError {
-    ApplicationError::Port("typed participant database operation failed".into())
+fn port(error: postgres::Error) -> ApplicationError {
+    let message = "typed participant database operation failed";
+    match crate::postgres_port::error(message, error) {
+        ApplicationError::ClassifiedPort { kind, .. } => ApplicationError::ClassifiedPort {
+            kind,
+            message: message.into(),
+        },
+        _ => ApplicationError::Port(message.into()),
+    }
 }
 fn inconsistent() -> ApplicationError {
     ApplicationError::StoredParticipantInconsistent(

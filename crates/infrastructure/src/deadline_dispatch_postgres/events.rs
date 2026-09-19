@@ -28,7 +28,7 @@ pub(super) fn load(
     Ok(event)
 }
 
-fn decode(row: &Row) -> Result<SourceEventReference, ApplicationError> {
+pub(crate) fn decode(row: &Row) -> Result<SourceEventReference, ApplicationError> {
     let sequence: i64 = row.try_get(0).map_err(inconsistent)?;
     let revision: i64 = row.try_get(3).map_err(inconsistent)?;
     if sequence <= 0 || revision <= 0 {

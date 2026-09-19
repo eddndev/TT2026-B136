@@ -4,17 +4,21 @@
 
 Propuesto. El registro humano descrito en
 [ADR 0036](0036-persisted-deadline-evaluation-and-attention.md) esta implementado.
-Este documento describe su ampliacion; no acredita que el trabajador, su
-persistencia o la interfaz nueva esten terminados.
+Este documento describe su ampliacion y distingue la implementacion local de
+su integracion operativa completa. El estado de cada frontera aparece debajo.
 
 El modelo de aplicación V2, las observaciones verificadas y el verificador de
 sucesores ya están implementados como contratos puros. Existen preparadores
 humano y técnico con seguimiento explícito. La persistencia PostgreSQL admite
 decisiones humanas V2 y reconstrucción histórica compatible con V1. El
 [despachador persistente](../deadline-dispatch.md) expande eventos y legado en
-trabajos, con cursores y auditoría atómicos. El consumidor de esos trabajos,
-su confirmación técnica, servicio/HTTP V2 y Qadra siguen pendientes.
-El ADR permanece propuesto para ese conjunto de trabajo.
+trabajos, con cursores y auditoría atómicos. El [consumidor local](../deadline-worker.md)
+implementa confirmación técnica, resultados sin cambios e intentos durables.
+La restauración real sin migración reparadora y las comprobaciones focales de
+catálogo y permisos aprobaron. Las regresiones focales de clasificación de
+fallos también aprobaron; la regresión integral aprobó según el informe de verificación. La composición desde `serve`,
+el servicio/HTTP V2 y Qadra V2 siguen pendientes. El ADR permanece propuesto
+para ese conjunto de trabajo.
 
 ## Context
 
@@ -181,8 +185,9 @@ confirmar, también si el resultado no requiere revisión. Para `Retired` y
 `AlreadyInitialized` no se requieren cabezas irrelevantes para la decisión;
 se revalida la base, además de los controles durables de servicio, causa y
 trabajo que corresponden al adaptador. El núcleo no reserva revisiones ni
-completa trabajos; la ejecución y confirmación técnicas siguen pendientes. El
-despachador ya conserva la asignación de trabajos y sus cursores.
+completa trabajos. Esa frontera pertenece al consumidor PostgreSQL: autentica
+el trabajo durable y confirma su resultado junto con la revisión y auditoría
+cuando corresponde. El despachador conserva la asignación y sus cursores.
 
 ### Despacho y ejecucion
 
@@ -200,12 +205,31 @@ es terminal. La reevaluacion tecnica puede continuar en expedientes cerrados
 y conserva responsables revocados como evidencia, sin autorizar futuras
 entregas protegidas a esas cuentas.
 
-La estrategia de carga y calculo debe decidirse con mediciones del material
-maximo admitido y de la latencia de operaciones concurrentes. Una transaccion
-corta por trabajo simplifica la recuperacion; si el calculo exige separarla,
-la reclamacion necesita vencimiento y un token que invalide confirmaciones de
-trabajadores reemplazados. No se ejecutan llamadas externas bajo el bloqueo
-comun de auditoria.
+El consumidor actual ejecuta un trabajo por transacción bajo el bloqueo común
+de auditoría. No necesita una reclamación con vencimiento ni roles nuevos.
+La revisión técnica y su resultado se exigen mutuamente al confirmar; los
+resultados sin cambios conservan causa, base y evidencia examinada. Sus lectores
+reconstruyen referencias históricas, sin consultar cabezas actuales ni duplicar
+los verificadores existentes. No se hacen llamadas externas bajo ese bloqueo.
+
+Una ejecución fallida revierte antes de registrar un intento y su auditoría en
+otra transacción. Los reintentos transitorios usan espera creciente de 1 a 300
+segundos para una misma base; las inconsistencias esperan 3600 segundos. Una
+base nueva invalida la espera anterior. `Deferred` sólo significa que el intento
+se confirmó; no convierte el fallo en éxito. Si la respuesta es incierta, se
+concilian las identidades originales del resultado y del intento.
+
+La apertura valida todo el inventario. La recuperación entre reinicios exige
+inventario válido; una corrupción persistente impide abrir hasta repararla o
+restaurar. Una conexión ya abierta puede registrar el fallo y permitir otros
+trabajos si puede confirmar su intento y auditoría, sin eludir ese control.
+Un fallo que impide también esa confirmación sigue siendo un error.
+
+Los presupuestos de bloqueo y sentencia no acotan el tiempo total de apertura,
+la búsqueda entre todos los trabajos pendientes ni el cálculo Rust. Su coste y
+la latencia de operaciones concurrentes requieren mediciones propias. Si en el
+futuro se separa el cálculo de la transacción, esa nueva frontera necesitará
+reclamación y protección contra confirmaciones de trabajadores reemplazados.
 
 ### Verificacion
 
@@ -220,10 +244,12 @@ Los contratos de aplicación comprueban V1/V2, observaciones y sucesores. El
 adaptador persiste decisiones humanas V2 y reconstruye las revisiones exactas
 observadas; sus migraciones conservan filas y recibos históricos V1. El HTTP
 mantiene temporalmente V1 y rechaza registros que no puede proyectar completos,
-en lugar de omitir autoría o revisión. La escritura técnica requiere aún la
-frontera durable de trabajo y servicio; el guard humano la rechaza. Los resultados
-ejecutados y sus límites se registran en [el informe de verificación](../verification-report.md); las pruebas puras
-no acreditan trabajador, concurrencia, restauración V2 ni entregas externas.
+en lugar de omitir autoría o revisión. La escritura técnica local exige la
+frontera durable de trabajo, resultado y causa; el puerto humano sigue rechazando
+la autoría técnica. Los resultados ejecutados y sus límites se registran en
+[el informe de verificación](../verification-report.md). Las pruebas puras no
+acreditan concurrencia o recuperación, y las pruebas del consumidor no acreditan
+su composición en servidor, interacción Qadra ni entregas externas.
 
 ## Consequences
 
