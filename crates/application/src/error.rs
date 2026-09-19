@@ -19,6 +19,9 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    ResourceActivity(#[from] crate::resource_activities::ResourceActivityError),
+
+    #[error(transparent)]
     ProceduralResource(#[from] crate::procedural_resources::ProceduralResourceError),
 
     #[error(transparent)]
