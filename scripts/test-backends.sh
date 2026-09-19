@@ -44,8 +44,11 @@ trap cleanup EXIT
 printf '%s\n' "$TEST_DATABASE_PASSWORD" > "$TEST_DIR/postgres-password"
 initdb -D "$TEST_DIR/postgres" --auth=scram-sha-256 --no-locale --encoding=UTF8 \
   --username="$TEST_DATABASE_USER" --pwfile="$TEST_DIR/postgres-password" >/dev/null
-pg_ctl -D "$TEST_DIR/postgres" -l "$TEST_DIR/postgres.log" \
-  -o "-p $PG_PORT -k $TEST_DIR -h 127.0.0.1" -w start >/dev/null
+if ! pg_ctl -D "$TEST_DIR/postgres" -l "$TEST_DIR/postgres.log" \
+  -o "-p $PG_PORT -k $TEST_DIR -h 127.0.0.1 -c logging_collector=off" -w start >/dev/null; then
+  cat "$TEST_DIR/postgres.log" >&2
+  exit 1
+fi
 POSTGRES_STARTED=true
 redis-server --port "$REDIS_PORT" --bind 127.0.0.1 --save "" \
   --appendonly no --daemonize no --dir "$TEST_DIR" >"$TEST_DIR/redis.log" 2>&1 &

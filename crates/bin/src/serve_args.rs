@@ -17,6 +17,12 @@ pub struct ServeArgs {
     /// Maximum concurrent blocking application operations.
     #[arg(long, default_value_t = web::HttpLimits::default().max_blocking_operations)]
     pub max_blocking_operations: std::num::NonZeroUsize,
+    /// Maximum entries dispatched and jobs attempted per serial deadline cycle.
+    #[arg(long, default_value_t = 20, value_parser = clap::value_parser!(u32).range(1..=100))]
+    pub deadline_page_limit: u32,
+    /// Positive pause in milliseconds between serial deadline cycles.
+    #[arg(long, default_value = "1000")]
+    pub deadline_poll_ms: std::num::NonZeroU32,
     /// Legacy storage directory checked for a completed import before startup.
     #[arg(long, default_value = "runtime-data")]
     pub data_dir: PathBuf,

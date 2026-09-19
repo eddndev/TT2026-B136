@@ -63,3 +63,43 @@ fn serve_requires_an_explicit_native_document_library() {
     assert!(error.contains("--qpdf-library"));
     assert!(!error.contains("cannot read signer"));
 }
+
+#[test]
+fn serve_exposes_bounded_serial_deadline_processing() {
+    let exe = env!("CARGO_BIN_EXE_despacho-cli");
+    let output = Command::new(exe)
+        .args(["serve", "--help"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let help = String::from_utf8(output.stdout).unwrap();
+    for flag in ["--deadline-page-limit", "--deadline-poll-ms"] {
+        assert!(help.contains(flag), "missing deadline configuration {flag}");
+    }
+    for (flag, value) in [
+        ("--deadline-page-limit", "0"),
+        ("--deadline-page-limit", "101"),
+        ("--deadline-poll-ms", "0"),
+        ("--deadline-poll-ms", "4294967296"),
+    ] {
+        let rejected = Command::new(exe)
+            .env_remove("DOCUMENT_QPDF_LIBRARY")
+            .args([
+                "serve",
+                flag,
+                value,
+                "--qpdf-library",
+                "unused",
+                "--signer-cert",
+                "unused",
+                "--signer-key",
+                "unused",
+            ])
+            .output()
+            .unwrap();
+        assert_eq!(rejected.status.code(), Some(2));
+        let stderr = String::from_utf8(rejected.stderr).unwrap();
+        assert!(stderr.contains(flag));
+        assert!(!stderr.contains("cannot locate native"));
+    }
+}

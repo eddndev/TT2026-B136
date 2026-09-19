@@ -7,10 +7,7 @@ impl DeadlineDispatchStore for PostgresDeadlineDispatchStore {
         &self,
         request: DeadlineDispatchRequest,
     ) -> Result<DeadlineDispatchBatch, ApplicationError> {
-        let mut client = self
-            .client
-            .lock()
-            .map_err(|_| inconsistent("dispatch database lock poisoned"))?;
+        let mut client = self.client()?;
         let mut tx = crate::audit_postgres::begin_audited(&mut client)?;
         let old = cursor::load(&mut tx)?;
         let mut progress = old;
