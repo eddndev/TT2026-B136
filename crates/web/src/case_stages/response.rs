@@ -117,7 +117,7 @@ impl Entry {
     }
 }
 #[derive(Serialize)]
-pub(super) struct Detail {
+pub(crate) struct Detail {
     case_id: CaseId,
     current: Option<Entry>,
 }

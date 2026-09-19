@@ -208,9 +208,26 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         ),
         identity.clone(),
         processor.clone(),
-        format_validator,
+        format_validator.clone(),
         fact_hasher,
         fact_clock,
+    );
+    let resource_hasher = Arc::new(RingSha256Hasher::new());
+    let resource_clock = Arc::new(SystemClock::new());
+    let procedural_resources = application::procedural_resources::ProceduralResourceService::new(
+        Arc::new(
+            infrastructure::PostgresProceduralResourceStore::open(
+                &database_url,
+                resource_hasher.clone(),
+                resource_clock.clone(),
+            )
+            .context("cannot open PostgreSQL procedural resource store")?,
+        ),
+        identity.clone(),
+        processor.clone(),
+        format_validator,
+        resource_hasher,
+        resource_clock,
     );
     let calendar_hasher = Arc::new(RingSha256Hasher::new());
     let calendar_clock = Arc::new(SystemClock::new());
@@ -303,6 +320,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             hearings: Arc::new(hearings),
             hearing_results: Arc::new(hearing_results),
             procedural_facts: Arc::new(procedural_facts),
+            procedural_resources: Arc::new(procedural_resources),
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
             alerts: alerts.workflow,

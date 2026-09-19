@@ -1,7 +1,7 @@
 //! Authorized declarations of resolutions and notification practices.
 mod mutations;
-mod object;
-mod projection;
+pub(crate) mod object;
+pub(crate) mod projection;
 mod query;
 mod reads;
 mod request;
@@ -11,7 +11,7 @@ mod response;
 #[cfg(test)]
 mod response_tests;
 mod scope;
-mod sources;
+pub(crate) mod sources;
 pub(crate) mod values;
 
 use crate::runtime::HttpRuntime;

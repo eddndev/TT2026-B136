@@ -74,7 +74,7 @@ pub(super) fn target(case: CaseId, target: FactTarget) -> Value {
         }),
     }
 }
-pub(super) fn administration(
+pub(crate) fn administration(
     current: &application::cases::CurrentCaseAdministration,
     case: CaseId,
 ) -> Result<Value, ApiError> {

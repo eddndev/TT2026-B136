@@ -29,6 +29,26 @@ sin integración en `main`. Cada campaña se registra por separado en el
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
+## Recursos y actos declarados
+
+Las migraciones `0022_procedural_resources.sql` y
+`0022_procedural_resource_guards.sql` crean raíces de recursos, raíces de actos
+y revisiones inmutables. Migrar no inventa recursos ni actos para expedientes
+anteriores. Valores, fuentes, autoría, contexto administrativo y etapa quedan
+vinculados a sus recibos; escritura y auditoría confirman en la misma transacción.
+
+El rol de ejecución recibe sólo los privilegios requeridos. El arranque valida
+columnas, restricciones, índices, funciones, disparadores y privilegios, y
+reconstruye el inventario capturado sin modificarlo. Las consultas comprueban
+también la raíz histórica del acto. No se deben desactivar los disparadores
+ni reparar recibos manualmente para eludir un rechazo de integridad.
+
+El respaldo PostgreSQL existente incluye las tres tablas. La comprobación
+focal de restauración y la aceptación HTTP se distinguen en
+[el informe](verification-report.md); conservar un dump no demuestra por sí
+solo su recuperación. La [API](procedural-resources-api.md) mantiene consulta
+histórica y permisos vigentes después de reabrir el almacén.
+
 ## Preparar un despliegue nuevo
 
 Crear previamente una base UTF-8 y un rol de conexión sin privilegios administrativos.

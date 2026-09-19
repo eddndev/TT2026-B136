@@ -421,6 +421,21 @@ tienen evidencia separada en el informe de verificación. La
 [interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
 permite capturar, consultar y conciliar estas declaraciones.
 
+## Recursos procesales declarados
+
+La [API de recursos](procedural-resources-api.md) expone revocación y apelación
+bajo `/api/v1/cases/{case_id}/procedural-resources`. Ofrece listado, detalle,
+revisión exacta, historia, preparación y confirmación de registro, corrección,
+actos, archivo y reactivación. Las escrituras conservan referencias exactas y
+requieren un recibo preparado; no causan una transición de etapa ni activan
+plazos por inferencia. Owner y Litigator asignado gestionan; Paralegal asignado
+consulta y Client queda denegado. El cierre administrativo conserva las lecturas.
+
+La interfaz Qadra comparte esos comandos y distingue corrección del recurso,
+corrección de un acto y archivo organizativo. La asociación posterior con
+audiencias, términos y alertas permanece pendiente. El alcance de aceptación
+por capa y las comprobaciones reales se registran en el informe de verificación.
+
 ## Participantes del expediente
 
 La ficha de participante tiene UUID propio y no es una cuenta ni una asignación

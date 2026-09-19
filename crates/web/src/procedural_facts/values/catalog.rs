@@ -6,12 +6,12 @@ use serde_json::{json, Value};
 
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
-pub(super) enum Declaration<T> {
+pub(crate) enum Declaration<T> {
     Known { value: T },
     Unknown { reason: String },
 }
 impl<T> Declaration<T> {
-    pub(super) fn validate<V>(
+    pub(crate) fn validate<V>(
         self,
         parse: impl FnOnce(T) -> Result<V, ApiError>,
     ) -> Result<FactDeclaration<V>, ApiError> {
@@ -99,7 +99,7 @@ impl Outcome {
         }))
     }
 }
-pub(super) fn declaration<T>(
+pub(crate) fn declaration<T>(
     value: &FactDeclaration<T>,
     project: impl FnOnce(&T) -> Value,
 ) -> Value {
