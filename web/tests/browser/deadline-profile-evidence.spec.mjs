@@ -5,7 +5,8 @@ import {
   deadlineFixture,
   caseId,
 } from './deadline-editor-helpers.mjs';
-import { detail, profile, id } from '../fixtures/deadline-unit.mjs';
+import { profile, id } from '../fixtures/deadline-unit.mjs';
+import { v1Record as detail } from '../fixtures/deadline-v2-unit.mjs';
 import { calendarFixtureValues } from '../fixtures/judicial-calendars.mjs';
 
 test('exact profile examples expose their complete embedded calendar and declared reference titles', async ({

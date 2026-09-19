@@ -1,10 +1,13 @@
 <script>
   import DeadlineSourcePicker from './DeadlineSourcePicker.svelte';
   import FactTimeFields from './FactTimeFields.svelte';
+  import DeadlinePolicyChoice from './DeadlinePolicyChoice.svelte';
   export let value,
     api,
     caseId,
     ondenied,
+    policy = '',
+    policyPresent = false,
     disabled = false,
     pending = false;
   let choosing = false,
@@ -73,6 +76,12 @@
       >Elegir fuente exacta</button
     >
   {/if}
+  <DeadlinePolicyChoice
+    dependency="source"
+    bind:value={policy}
+    present={policyPresent}
+    disabled={disabled || pending}
+  />
 </fieldset>
 {#if choosing}{#key family}<DeadlineSourcePicker
       {api}

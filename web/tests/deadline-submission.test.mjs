@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { deadlineMatches, readDeadlineSubmission } from '../src/lib/deadline-submission.mjs';
-import { prepared, detail, administration, id, hash, known } from './fixtures/deadline-unit.mjs';
+import {
+  v2Prepared as prepared,
+  v2Record as detail,
+  administration,
+  ids as id,
+  digest as hash,
+} from './fixtures/deadline-v2-unit.mjs';
 
 test('register and correction accept forward administration without changing reviewed content', () => {
   for (const action of ['register', 'correct']) {
@@ -9,11 +15,14 @@ test('register and correction accept forward administration without changing rev
       d = detail(p);
     assert.equal(deadlineMatches(d, p), true);
     d.calculation.material.administration = administration();
+    d.tracking.administration = administration();
     d.receipt.capture_digest = hash('1');
     assert.equal(deadlineMatches(d, p), true);
     p.calculation.material.administration = administration(2);
+    p.tracking.administration = administration(2);
     assert.equal(deadlineMatches(d, p), false);
     d.calculation.material.administration = administration(2);
+    d.tracking.administration = administration(2);
     d.calculation.material.administration.changed_at.offset_seconds = 0;
     assert.equal(deadlineMatches(d, p), false);
   }

@@ -21,6 +21,9 @@ test('deadline capture retains unknown source and absent quantity and requires e
     form.getByRole('combobox', { name: 'Existe una incidencia sin resolver', exact: true }),
   ).toHaveValue('');
   await fillDeadline(page);
+  await form
+    .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
+    .selectOption('follow');
   await confirmDeadline(page);
   await expect(form).toHaveCount(0);
   expect(state.submissions).toHaveLength(1);
@@ -37,6 +40,9 @@ test('unknown applicability requires its reason and is never silently false', as
   await page.getByRole('button', { name: 'Registrar plazo', exact: true }).click();
   await fillDeadline(page);
   const form = editor(page);
+  await form
+    .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
+    .selectOption('follow');
   await form
     .getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true })
     .selectOption('unknown');
@@ -70,6 +76,9 @@ test('uncertain commit checks its exact revision without automatically resubmitt
   await openDeadlines(page);
   await page.getByRole('button', { name: 'Registrar plazo', exact: true }).click();
   await fillDeadline(page);
+  await editor(page)
+    .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
+    .selectOption('follow');
   await confirmDeadline(page);
   await expect(
     editor(page).getByRole('heading', { name: 'Resultado incierto', exact: true }),

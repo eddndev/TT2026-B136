@@ -1,4 +1,5 @@
-import { provisionDeadlines } from './web-deadline-fixtures.mjs';
+import { provisionDeadlines } from "./web-deadline-fixtures.mjs";
+import { provisionDeadlineReevaluation } from "./web-deadline-reevaluation.mjs";
 import { provisionProceduralFacts } from "./web-procedural-fact-fixtures.mjs";
 // Provision hearing scenarios using independent accounts in disposable services.
 import { provisionCalendars } from "./web-calendar-fixtures.mjs";
@@ -249,6 +250,8 @@ try {
   fixture.proceduralFacts = await provisionProceduralFacts(request);
   fixture.judicialCalendars = await provisionCalendars(request);
   fixture.deadlines = await provisionDeadlines(request);
+  if (process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === "1")
+    fixture.deadlineReevaluation = await provisionDeadlineReevaluation(request);
   await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`, { mode: 0o600 });
 } finally {
   await request("POST", "/auth/logout", undefined, 204);

@@ -12,6 +12,12 @@
     deadlineUncertain,
   } from '../lib/deadline-errors.mjs';
   import { readDeadlineSubmission } from '../lib/deadline-submission.mjs';
+  import {
+    initialDeadlinePolicies,
+    reconcileDeadlinePolicies,
+    deadlinePoliciesCommand,
+    adoptDeadlineDefinition,
+  } from '../lib/deadline-editor-policies.mjs';
   export let api,
     user,
     caseId,
@@ -30,6 +36,8 @@
     current = null,
     id = '',
     definition,
+    policies,
+    fieldsVersion = 0,
     attention = { status: '' },
     reason = '',
     profile = null,
@@ -44,7 +52,7 @@
     error = '',
     acknowledge = false;
   $: allowed = canDeadlines(user?.role, 'manage');
-  $: identity = `${caseId}:${user?.id}:${user?.role}:${mode}:${base?.id || ''}:${base?.revision || ''}`;
+  $: identity = `${caseId}:${user?.id}:${user?.email}:${user?.role}:${mode}:${base?.id || ''}:${base?.revision || ''}`;
   $: if (identity !== seen) reset(identity);
   $: pending = busy || fieldsBusy;
   $: frozen =
@@ -92,6 +100,8 @@
             },
           },
         };
+    policies = initialDeadlinePolicies(definition, base?.tracking?.policies);
+    fieldsVersion++;
     if (canDeadlines(user?.role, 'manage')) scoped = api.deadlines(caseId);
   }
   const currentRequest = (token) => alive && token === generation;
@@ -129,12 +139,15 @@
         action: mode,
         expected_revision: mode === 'register' ? 0 : current.revision,
       };
-      if (['register', 'correct'].includes(mode)) change.definition = structuredClone(definition);
+      if (['register', 'correct'].includes(mode)) {
+        change.definition = structuredClone(definition);
+        change.tracking = deadlinePoliciesCommand(policies, definition);
+      }
       if (mode === 'set_attention') change.attention = structuredClone(attention);
       if (mode !== 'register') change.reason = reason;
       const value = await scoped.prepare(
         { operation_id: crypto.randomUUID(), deadline_id: id, change },
-        user.id,
+        { id: user.id, email: user.email, role: user.role },
       );
       if (currentRequest(token)) {
         prepared = structuredClone(value);
@@ -222,7 +235,16 @@
   function accept() {
     if (frozen || !compared || !candidate || candidate.status !== 'active' || mode === 'register')
       return;
+    if (mode === 'correct') {
+      definition = adoptDeadlineDefinition(current.definition, definition, candidate.definition);
+      if (definition.responsible_id === candidate.responsible.id)
+        responsible = candidate.responsible;
+      policies = reconcileDeadlinePolicies(policies, definition);
+      profile = null;
+      fieldsVersion++;
+    }
     current = candidate;
+    prepared = null;
     step = 'draft';
     compared = false;
     error = '';
@@ -297,8 +319,8 @@
         <label class="checkbox"
           ><input type="checkbox" bind:checked={acknowledge} disabled={frozen} />
           {prepared.calculation.result.blocks.length
-            ? 'Revise las declaraciones y confirmo guardar el plazo con estos bloqueos'
-            : 'Revise las declaraciones y el resultado a guardar'}</label
+            ? 'Revise las declaraciones, fuentes y politicas; confirmo guardar el plazo con estos bloqueos'
+            : 'Revise las declaraciones, fuentes, politicas y el resultado a guardar'}</label
         >
         <div class="action-row">
           <button
@@ -315,7 +337,7 @@
           >
         </div>
       </section>{:else if step !== 'confirmed'}
-      {#key identity}
+      {#key `${identity}:${fieldsVersion}`}
         {#if ['register', 'correct'].includes(mode)}<DeadlineFields
             {api}
             {caseId}
@@ -323,6 +345,7 @@
             bind:value={definition}
             bind:profile
             bind:responsible
+            bind:policies
             bind:pending={fieldsBusy}
             disabled={disabled ||
               busy ||

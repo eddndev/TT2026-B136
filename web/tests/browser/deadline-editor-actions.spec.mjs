@@ -7,7 +7,8 @@ import {
   deadlineFixture,
   deadlineError,
 } from './deadline-editor-helpers.mjs';
-import { detail, id } from '../fixtures/deadline-unit.mjs';
+import { id } from '../fixtures/deadline-unit.mjs';
+import { v2Record as detail } from '../fixtures/deadline-v2-unit.mjs';
 const current = () => detail(deadlineFixture());
 const detailPanel = (page) => page.getByRole('region', { name: 'Detalle de plazo', exact: true });
 async function openCurrent(page, state) {

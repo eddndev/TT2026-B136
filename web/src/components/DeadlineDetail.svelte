@@ -3,7 +3,8 @@
   import DeadlineHistory from './DeadlineHistory.svelte';
   import DeadlineCapturedMaterial from './DeadlineCapturedMaterial.svelte';
   import DeadlineProfileDetails from './DeadlineProfileDetails.svelte';
-  import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
+  import DeadlineTrackingSummary from './DeadlineTrackingSummary.svelte';
+  import DeadlineReceipt from './DeadlineReceipt.svelte';
   import { factTimeLabel } from '../lib/procedural-fact-time.mjs';
   import { roles } from '../lib/documents.mjs';
   export let api,
@@ -43,6 +44,8 @@
       record.responsible.role
     ]}
   </p>
+  <DeadlineReceipt value={record} compact />
+  <DeadlineTrackingSummary value={record} {historical} />
   <DeadlineCalculation calculation={record.calculation} />
   <section aria-label="Atencion del plazo">
     <h3>Atenci&#243;n declarada</h3>
@@ -55,7 +58,9 @@
   <div class="action-row">
     {#if canManage && !historical && record.status === 'active'}
       <button class="primary" disabled={disabled || historyBusy} onclick={() => onedit('correct')}
-        >Corregir plazo</button
+        >{record.tracking?.review.state === 'accepted'
+          ? 'Corregir plazo'
+          : 'Revisar seguimiento'}</button
       >
       <button
         class="secondary"
@@ -94,9 +99,6 @@
   <details>
     <summary>Autor y recibo de esta captura</summary>
     <p><code>{record.id}</code> / Revisi&#243;n {record.revision}</p>
-    <p>{record.recorded_by.email} / {deadlineInstantLabel(record.recorded_at)}</p>
-    <p>Confirmaci&#243;n: <code>{record.receipt.submission_digest}</code></p>
-    <p>Contenido revisado: <code>{record.receipt.review_digest}</code></p>
-    <p>Captura: <code>{record.receipt.capture_digest}</code></p>
+    <DeadlineReceipt value={record} />
   </details>
 </section>

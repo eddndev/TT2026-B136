@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
-  import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
+  import DeadlineReceipt from './DeadlineReceipt.svelte';
   import { deadlineActions } from './deadline-view-labels.mjs';
   export let api,
     id,
@@ -55,7 +55,7 @@
     >{/if}
   {#each rows as row (row.revision)}<div class="fact-history-row">
       <p><strong>Revisi&#243;n {row.revision}</strong> / {deadlineActions[row.receipt.action]}</p>
-      <p>{row.recorded_by.email} / {deadlineInstantLabel(row.recorded_at)}</p>
+      <DeadlineReceipt value={row} compact />
       {#if row.reason}<p class="case-multiline">{row.reason}</p>{/if}
       <button
         class="secondary"

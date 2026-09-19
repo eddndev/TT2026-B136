@@ -10,6 +10,7 @@ fi
 : "${IDENTITY_TEST_REDIS_URL:?disposable backends are required}"
 : "${TT_TEST_QPDF_LIBRARY:?native document validation library is required}"
 export DOCUMENT_QPDF_LIBRARY="${DOCUMENT_QPDF_LIBRARY:-$TT_TEST_QPDF_LIBRARY}"
+export TT_DEADLINE_REEVALUATION_ACCEPTANCE=1
 
 for command in cargo curl jq openssl python3 node psql unzip; do
   command -v "$command" >/dev/null || {
@@ -73,6 +74,7 @@ DATABASE_URL="$IDENTITY_TEST_DATABASE_URL" "$CLI" credential-trust publish \
 (
   cd "$WORK_DIR/server"
   exec "$CLI" serve --bind 127.0.0.1:0 --data-dir "$WORK_DIR/data" \
+  --deadline-page-limit 2 --deadline-poll-ms 50 \
   --signer-cert "$PKI_CA_DIR/certs/browser-demo.crt.pem" \
   --signer-key "$PKI_CA_DIR/private/browser-demo.key.pem" \
   --ca-cert "$PKI_CA_DIR/ca.crt.pem" --crl "$PKI_CA_DIR/crl/crl.pem" \

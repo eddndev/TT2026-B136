@@ -123,6 +123,18 @@ export function deadlinesApi(request, caseId) {
         )
           invalid();
         operations.add(row.receipt.operation_id);
+        if (i) {
+          const next = rows[i - 1].receipt.version;
+          if (next.kind === 'v1' && row.receipt.version.kind === 'v2') invalid();
+          if (
+            next.kind === 'v2' &&
+            !same(next.predecessor, {
+              submission_digest: row.receipt.submission_digest,
+              capture_digest: row.receipt.capture_digest,
+            })
+          )
+            invalid();
+        }
       });
       if (
         (!rows.length && beforeRevision !== 1) ||
@@ -145,15 +157,27 @@ export function deadlinesApi(request, caseId) {
       );
       return value;
     },
-    async prepare(raw, actorId) {
+    async prepare(raw, principal) {
       assertActive();
       deadlineBudget(raw);
-      actorId = uuid(actorId);
+      const actorId = uuid(principal?.id),
+        actorEmail = principal.email;
+      if (
+        typeof actorEmail !== 'string' ||
+        !actorEmail ||
+        !['owner', 'litigator'].includes(principal.role)
+      )
+        invalid();
       const expected = deadlineNormalizeCommand(structuredClone(raw));
       scope(expected);
       const value = await call('/prepare', { method: 'POST', data: structuredClone(expected) });
       deadlinePreparedValue(value);
-      if (value.case_id !== caseId || value.actor_id !== actorId || !same(value.command, expected))
+      if (
+        value.case_id !== caseId ||
+        value.actor_id !== actorId ||
+        value.author.email !== actorEmail ||
+        !same(value.command, expected)
+      )
         invalid('La preparaci\u00f3n no corresponde al actor y comando enviados.');
       return value;
     },

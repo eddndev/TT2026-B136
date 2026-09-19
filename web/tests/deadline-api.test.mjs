@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import { deadlinesApi } from '../src/lib/deadline-api.mjs';
 import { deadlineDenied, canDeadlines, deadlineFailure } from '../src/lib/deadline-errors.mjs';
 import {
-  prepared,
-  detail,
+  v2Prepared as prepared,
+  v2Record as detail,
   summary,
-  history,
-  id,
+  historyRow as history,
+  ids as id,
   administration,
-  hash,
-} from './fixtures/deadline-unit.mjs';
+  digest as hash,
+} from './fixtures/deadline-v2-unit.mjs';
+const principal = () => ({ id: id(4), email: 'staff@example.test', role: 'owner' });
 
 test('prepare normalizes command, scopes actor and sends verified submission once', async () => {
   const p = prepared(),
@@ -21,7 +22,7 @@ test('prepare normalizes command, scopes actor and sends verified submission onc
     }, id(1));
   const raw = structuredClone(p.command);
   raw.change.definition.title = '  Respuesta declarada  ';
-  const ready = await api.prepare(raw, id(4));
+  const ready = await api.prepare(raw, principal());
   assert.deepEqual(await api.submit(ready), detail(p));
   assert.equal(calls.length, 2);
   assert.equal(calls[1].path, `/cases/${id(1)}/deadlines`);
@@ -71,7 +72,7 @@ test('wrong scopes, commands, result bodies and disposed async completions are r
     const response = structuredClone(p);
     mutate(response);
     const api = deadlinesApi(async () => response, id(1));
-    await assert.rejects(() => api.prepare(p.command, id(4)));
+    await assert.rejects(() => api.prepare(p.command, principal()));
   }
   let resolve;
   const api = deadlinesApi(
@@ -107,7 +108,7 @@ test('pagination validates scope, order, cursor, role and query bounds', async (
       p.deadlines[0].responsible.role = 'client';
     },
     (p) => {
-      p.deadlines[0].blocked = false;
+      p.deadlines[0].calculation_blocked = false;
     },
     (p) => {
       p.deadlines[0].case_id = id(9);
@@ -147,7 +148,7 @@ test('history validates immutable receipt headers and body budget before network
     () =>
       deadlinesApi(async () => {
         calls++;
-      }, id(1)).prepare(big, id(4)),
+      }, id(1)).prepare(big, principal()),
     { status: 413 },
   );
   assert.equal(calls, 0);
