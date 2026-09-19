@@ -14,6 +14,7 @@ use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
 mod agenda;
+mod alerts;
 mod case_administration;
 mod case_stages;
 mod cases;
@@ -90,6 +91,12 @@ pub fn typed_participant_router(
 pub fn agenda_router(workflow: Arc<dyn application::agenda::AgendaWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
     protect(agenda::router(workflow, runtime.clone()), runtime)
+}
+
+/// Builds personal alert preferences and inbox routes over an authorized workflow.
+pub fn alert_router(workflow: Arc<dyn application::alerts::AlertWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(alerts::router(workflow, runtime.clone()), runtime)
 }
 
 /// Builds authorized hearing and global agenda routes.
