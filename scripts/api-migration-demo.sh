@@ -104,6 +104,10 @@ migration_demo_state() {
       'procedural_facts',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id) FROM case_procedural_facts f),
       'procedural_fact_revisions',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id,revision)
         FROM case_procedural_fact_revisions f),
+      'procedural_resources',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id) FROM case_procedural_resources r),
+      'procedural_resource_acts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM case_procedural_resource_acts a),
+      'procedural_resource_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY resource_id,revision)
+        FROM case_procedural_resource_revisions r),
       'deadline_profiles',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM deadline_profiles p),
       'deadline_profile_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY profile_id,revision)
         FROM deadline_profile_revisions p),
@@ -267,6 +271,7 @@ PY
   hearing_demo "$imported_url"
   calendar_demo
   procedural_facts_demo
+  procedural_resources_demo
   profile_demo
   deadline_demo
   agenda_demo
@@ -306,6 +311,7 @@ PY
   hearing_demo_restored
   calendar_demo_restored
   procedural_facts_demo_restored
+  procedural_resources_demo_restored
   profile_demo_restored
   deadline_demo_restored
   agenda_demo
@@ -348,6 +354,7 @@ unset -f typed_participant_demo typed_participant_demo_restored typed_participan
 unset -f hearing_demo hearing_demo_restored hearing_demo_python
 unset -f calendar_demo calendar_demo_restored calendar_demo_python
 unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_demo_python
+unset -f procedural_resources_demo procedural_resources_demo_restored procedural_resources_demo_python
 
 unset -f profile_demo profile_demo_restored profile_demo_python
 
