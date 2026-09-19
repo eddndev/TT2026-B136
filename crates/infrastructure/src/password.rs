@@ -5,12 +5,11 @@ use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier, V
 use domain::crypto::password::{PasswordHasher, PasswordVerification};
 use domain::DomainError;
 
-/// Memory cost in KiB (256 MiB), calibrated with two passes on the reference
-/// host to target 500-1000 ms per password hash.
+/// Memory cost in KiB (256 MiB).
 const MEMORY_KIB: u32 = 262144;
 
 /// Number of passes over the memory.
-const ITERATIONS: u32 = 2;
+const ITERATIONS: u32 = 3;
 
 /// Degree of parallelism (lanes).
 const PARALLELISM: u32 = 1;
@@ -91,7 +90,7 @@ mod tests {
         let hasher = Argon2idHasher::new();
         let phc = hasher.hash("correct horse battery staple").unwrap();
         assert!(phc.starts_with("$argon2id$v=19$"), "got: {phc}");
-        assert!(phc.contains("m=262144,t=2,p=1"), "got: {phc}");
+        assert!(phc.contains("m=262144,t=3,p=1"), "got: {phc}");
     }
 
     #[test]
