@@ -68,5 +68,6 @@ pub(crate) fn insert(
         &dependencies.source_hearing_id, &dependencies.source_parent_resolution_id, &dependencies.source_parent_resolution_revision,
         &dependencies.source_head_parent_resolution_revision, &dependencies.calendar_id, &dependencies.calendar_revision, &dependencies.calendar_head_revision,
         &due.map(|at| at.unix_timestamp()), &due.map(|at| at.nanosecond() as i32), &tracking, &observations]).map_err(port)?;
+    crate::alerts_postgres::invalidate_deadline(tx, value, hasher)?;
     Ok(())
 }

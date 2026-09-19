@@ -7,6 +7,8 @@
 
 mod agenda_postgres;
 pub mod alert_email;
+mod alert_schema;
+mod alerts_postgres;
 pub mod archive;
 pub mod audit;
 mod audit_postgres;
@@ -65,6 +67,7 @@ pub mod typed_participant_codec;
 pub(crate) mod typed_participant_schema;
 
 pub use agenda_postgres::PostgresAgendaStore;
+pub use alerts_postgres::PostgresAlertStore;
 pub use archive::StoredZipWriter;
 pub use audit::{FileAuditLog, InMemoryAuditLog};
 pub use case_stages::PostgresCaseStageStore;

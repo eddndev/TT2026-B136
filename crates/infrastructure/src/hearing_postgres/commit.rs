@@ -102,6 +102,14 @@ impl PostgresHearingStore {
         };
         hearing_receipt_matches(self.hasher.as_ref(), &detail)?;
         write::insert(&mut tx, &detail, command)?;
+        crate::alerts_postgres::invalidate(
+            &mut tx,
+            application::alerts::AlertSubject::Hearing {
+                case_id: case,
+                id: detail.snapshot.id,
+            },
+            self.hasher.as_ref(),
+        )?;
         let action = match command.action() {
             HearingAction::Schedule => "hearing.scheduled",
             HearingAction::Replace => "hearing.replaced",

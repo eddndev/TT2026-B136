@@ -30,7 +30,10 @@ no son un segundo cómputo jurídico. Su ventana incluye el umbral y excluye el
 vencimiento, conservando nanosegundos. Una puesta en marcha tardía genera sólo el
 umbral pendiente más próximo ya cruzado y conserva los demás como sustituidos.
 Después del vencimiento se evalúa el aviso de falta de atención. Leer un aviso
-no declara atención ni altera el plazo.
+no declara atención ni altera el plazo. El título y la referencia del expediente
+se toman de la revisión administrativa capturada por la audiencia o plazo; se
+verifican contra esa evidencia al consultar el aviso, aunque el expediente
+cambie de nombre después.
 
 El responsable vigente del plazo recibe sus avisos si sigue activo y autorizado.
 Las audiencias se dirigen a los miembros activos del expediente con permiso de
@@ -48,13 +51,15 @@ la fila. El cierre organizativo no suspende términos ni borra avisos.
 
 Una ocurrencia de proximidad se identifica por recurso, instante UTC exacto y
 anticipación; destinatario y canal completan su unicidad. Cambios de nota, desfase
-representacional o preferencias no vuelven a entregar esa ocurrencia. Revisión
+representacional o preferencias no vuelven a entregar esa ocurrencia una vez activada. Un plan
+sustituido que nunca produjo un aviso puede reactivarse si recupera elegibilidad. Revisión
 requerida y falta de atención tienen episodios durables; aceptar o atender cierra
 el episodio correspondiente. Un cambio posterior puede abrir otro episodio.
 El cambio de fecha se vincula a la transición comprobada, sin convertir toda
 dependencia cambiada en una decisión humana pendiente.
 
-Los escritores invalidan planes afectados dentro de su transacción. El escáner
+Los escritores de audiencias y plazos invalidan su estado de alertas dentro
+de la transacción auditada. El escáner
 reconcilia altas, preferencias y cambios con avance durable y presupuesto de
 candidatos y destinatarios. Antes de activar o entregar se vuelve a comprobar
 la evidencia actual; no se espera a que la cola de reevaluación quede vacía ni
