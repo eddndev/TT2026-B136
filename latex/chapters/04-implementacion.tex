@@ -529,6 +529,8 @@ Owner accede a cualquier expediente. Litigante y Paralegal necesitan pertenencia
 
 Carga, detalle y sellado conservan los campos \texttt{case\_id}, \texttt{id}, \texttt{version}, \texttt{name}, \texttt{digest} y \texttt{sealed}. Listado, detalle actual, carga y anexado agregan \texttt{current\_metadata} con la clasificación vigente; detalle histórico, historial de contenido y sellado conservan una proyección exclusivamente documental. Cada versión conserva su propio contenido cifrado y estado de sellado. Sellar requiere descifrar y comprobar el digest, producir y verificar la firma, solicitar el token y verificarlo bajo la cadena TSA capturada. Una segunda solicitud sobre un documento sellado produce \texttt{409 document\_already\_sealed}. Exportar comprueba el contenido descifrado y empaqueta la evidencia capturada sin actualizarla; la consulta de verificación proporciona por separado el reporte criptográfico completo.
 
+\input{chapters/04-contenido-documental}
+
 \subsection{Consultas autorizadas de metadatos}\label{sec:impl-http-consultas}
 
 El listado recibe \texttt{limit}, \texttt{offset}, \texttt{name}, \texttt{sealed}, \texttt{document\_type}, \texttt{classification} y \texttt{tag}. El tamaño de página predeterminado es 50 y admite de 1 a 100; el desplazamiento es un entero no negativo. El filtro de nombre admite hasta 200 caracteres, recorta espacios exteriores y rechaza caracteres de control. PostgreSQL busca una subcadena literal sin distinguir mayúsculas mediante \texttt{strpos(lower(name), lower(...))}; los caracteres \texttt{\%} y \texttt{\_} conservan su significado literal. El filtro de sellado distingue documentos pendientes y documentos con evidencia capturada. La búsqueda alcanza el nombre almacenado, no el contenido cifrado.

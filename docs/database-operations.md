@@ -93,6 +93,28 @@ comparó 26 respuestas restauradas, con los instantes de lectura validados apart
 revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos. CI del incremento
 permanece pendiente en el [corte de verificación](verification-report.md).
 
+## Contenido e incidentes de integridad
+
+`database migrate --runtime-role` instala `0024_document_integrity.sql` sin
+fabricar incidentes para documentos anteriores. La tabla append-only
+`document_integrity_incidents` conserva una observación exacta y su huella;
+incidente y auditoría se confirman juntos. El catálogo valida estructura,
+funciones, disparadores y privilegios; el inventario contrasta el canon de cada
+fila. El rol operativo carece de UPDATE, DELETE y TRUNCATE sobre el historial.
+
+Respaldar esta tabla junto con usuarios, expedientes, todas las versiones
+cifradas y auditoría. Una reparación operativa del archivo no borra el incidente
+histórico. No desactivar guardas, reescribir huellas ni borrar filas para lograr
+un arranque. Ante un rechazo, preservar evidencia y comprobar la configuración
+de claves y el respaldo: la categoría observada no prueba la causa ni un ataque.
+El [contrato](document-content-api.md) distingue fallos de contenido de errores
+técnicos y limita la descarga a 16 MiB, sin readmitir formatos históricos.
+
+Los guiones de aceptación alteran únicamente un fixture desechable y restauran
+su cifrado exacto antes del respaldo; ese procedimiento no es una función de
+reparación del producto. Las campañas ejecutadas y las todavía pendientes se
+registran en [el informe](verification-report.md).
+
 ## Preparar un despliegue nuevo
 
 Crear previamente una base UTF-8 y un rol de conexión sin privilegios administrativos.

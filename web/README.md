@@ -780,3 +780,19 @@ conservan el borrador y exigen aceptar una nueva base.
 La captura no inicia plazos ni programa audiencias; esas asociaciones siguen
 pendientes. El contrato está en [la API de recursos](../docs/procedural-resources-api.md)
 y las verificaciones ejecutadas en [el informe](../docs/verification-report.md).
+
+## Contenido original e incidentes de integridad
+
+La ficha de una versión permite **Descargar archivo**, incluso pendiente de
+sello. La API comprueba íntegramente los bytes antes de entregarlos; Qadra
+contrasta expediente, UUID, versión y huella con la selección visible. Cambiar
+expediente, versión o sesión descarta el resultado tardío. La verificación de
+firma y sello conserva su acción separada.
+
+Owner ve un aviso persistente cuando existen incidentes y puede consultar
+**Incidentes de integridad**, actualizar la lista y abrir la versión exacta.
+La consulta no descarga automáticamente archivos rechazados. Los otros roles
+no reciben ni consultan ese buzón. Un error de servicio se muestra como error,
+no como lista vacía; los avisos no atribuyen una causa ni confirman un ataque.
+Véanse [el contrato](../docs/document-content-api.md) y
+[la evidencia de aceptación](../docs/verification-report.md).

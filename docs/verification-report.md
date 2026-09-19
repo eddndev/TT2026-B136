@@ -4,6 +4,93 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Contenido original e incidentes: verificación del 19 de septiembre de 2026
+
+El incremento añade descarga exacta de versiones pendientes o selladas y buzón
+interno Owner. Las focales PostgreSQL y el navegador con servicios reales
+aprobaron. La aceptación API completa, la inspección del PDF y CI permanecen
+pendientes; este corte no acredita integración.
+La [API](document-content-api.md) conserva la separación entre comprobar bytes
+y verificar firma/sello, así como la denegación de Client.
+
+La construcción comenzó por pruebas fallidas: diez casos Node por método
+ausente, trece de aplicación y siete HTTP frente a puertos/rutas sin implementar,
+y seis de PostgreSQL. Las focales siguientes son independientes:
+
+- Aplicación y HTTP: **20 aprobadas**, 41.997 s; trece de aplicación y siete de
+  transporte. Cubren AAD/digest, exactitud histórica, permisos, reautenticación
+  del principal completo, fallo de auditoría o incidente y ausencia de bytes
+  rechazados. También distinguen 409 de indisponibilidad y los límites de ruta.
+  Las fuentes de aplicación y HTTP permanecieron estables; ocho archivos de
+  infraestructura no compilados por este comando cambiaron en paralelo.
+- Cliente Node: **19 aprobadas**, 0.563 s, con 2485 fuentes estables. Comprueban
+  identidad/versión/cabeceras binarias, limpieza de contexto y parseo estricto
+  de incidentes, tiempos y paginación.
+- Navegador con HTTP controlado: **13 de 14 aprobadas**, 58.274 s; seis de
+  descarga y siete del buzón. El escenario de descarga durante logout agotó
+  su espera y sigue pendiente de corrección; este comando no se declara
+  aprobado. Sólo cambió un archivo Rust durante el navegador; las fuentes
+  JavaScript/Svelte ejecutadas permanecieron estables.
+
+- PostgreSQL: **8 aprobadas**, 42.427 s, con 2485 fuentes estables y servicios
+  desechables. Comprueban exactitud histórica, cota previa a materializar vault,
+  revocación, rollback de auditoría, repetición exacta, permisos Owner, catálogo,
+  inventario y restauración completa de la captura.
+- Capacidad HTTP: dos casos nuevos reprodujeron la entrega sin límite de cuerpos
+  vivos; ambos fallaron al observar 200 donde se esperaba 503. Después aprobaron
+  junto con las cuatro regresiones de contenido en 24.454 s, con 2486 fuentes
+  estables. El permiso acompaña al buffer ceroizable hasta soltar el último
+  chunk o copia, incluso después de consumir el cuerpo HTTP.
+
+La primera campaña API integrada se detuvo en 92.508 s antes de recibir la
+primera petición funcional: el guion agotó diez segundos de arranque sin que el
+proceso publicara dirección. No acredita aceptación ni un fallo documental.
+La espera acotada se amplió a sesenta segundos y se inició una nueva campaña.
+
+El caso pendiente de logout controlado aprobó por separado en **9.783 s**,
+con 2490 fuentes estables. La espera ahora observa la resolución/cancelación
+del fetch iniciada antes del cambio, sin exigir consumir un cuerpo que el cliente
+ya descartó. Conserva las comprobaciones de cero descargas y cero éxito tardío.
+Son **14 escenarios distintos aprobados** por las dos ejecuciones, sin atribuir
+éxito a la campaña anterior completa.
+
+La segunda campaña API se detuvo en 53.584 s al agotar la misma espera corta
+en el segundo servidor de concurrencia; también se amplió a sesenta segundos.
+La tercera duró 333.427 s y alcanzó el nuevo fixture tras aprobar los recorridos
+anteriores. Falló su helper SQL: pasar una URI como `PGDATABASE` sin `-d` no
+la expandía y elegía la conexión predeterminada. La reproducción sobre la base
+desechable retenida confirmó el fallo y la corrección con `-d`; ambos helpers,
+API y navegador, ahora especifican esa conexión. Estas ejecuciones no acreditan
+el cierre integrado. Las fuentes HTTP/Rust/Python ejecutadas en la tercera se
+conservaron; cambiaron únicamente fuentes web ajenas a ese comando.
+
+### Navegador con servicios reales
+
+La campaña `content-browser-live-first` aprobó **3 escenarios**: 285.120 s del
+comando y 24.6 s de Playwright, con **2490 fuentes estables**. Comprueba descarga
+binaria exacta de V1 pendiente de sello después de registrar V2, cabeceras y
+digest ligados a esa versión, aviso Owner, buzón persistente, apertura exacta
+y retorno. Los recorridos Owner se ejecutaron a **1440 y 390 píxeles**; el
+expediente del recorrido móvil estaba cerrado administrativamente. El tercero
+comprueba lectura del Paralegal asignado, denegación de Client y del buzón a
+otros roles, y limpieza de la captura después de revocar la asignación.
+
+El fixture alteró dos vaults AES aislados de la base desechable para provocar
+rechazos reales y sus incidentes persistidos. Restauró los bytes originales en
+`finally` antes de abrir el navegador. Esta preparación del ensayo no es una
+función de reparación del producto ni demuestra un ataque. Las denegaciones
+por permisos no añadieron incidentes.
+
+Se inspeccionaron **cuatro capturas** de contenido exacto y buzón en escritorio
+y móvil, además de dos ampliaciones del detalle: Qadra permanece legible, sin
+recortes ni desbordamiento. Esta inspección de interfaz no acredita usabilidad
+con personas ni sustituye la compilación e inspección del PDF. La aceptación
+API completa sigue pendiente después de los tres fallos descritos; el navegador
+aprobado no cierra esa campaña ni los controles de CI.
+
+Se usa un solo runner local, Cargo y Rust en un hilo, Chromium con un trabajador
+y temporales privados en disco. No se repitió una regresión global local.
+
 ## Asociaciones de recursos con actividades: verificación del 19 de septiembre de 2026
 
 El incremento implementa vínculos organizativos a audiencias y plazos
