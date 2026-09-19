@@ -32,6 +32,11 @@ for (const width of [1440, 390])
           .locator('[data-agenda-kind]')
           .evaluateAll((rows) => rows.map((row) => row.dataset.agendaKind)),
       ).toEqual(['hearing', 'deadline']);
+      if (view === 'month')
+        await page.screenshot({
+          path: test.info().outputPath(`combined-month-compact-${width}.png`),
+          fullPage: true,
+        });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
