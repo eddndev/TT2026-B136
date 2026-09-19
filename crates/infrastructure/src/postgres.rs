@@ -1,5 +1,6 @@
 //! Shared PostgreSQL connection and schema initialization boundary.
 
+use crate::postgres_connection::{port_error, require_utf8};
 use application::ApplicationError;
 use postgres::{Client, NoTls};
 
@@ -149,6 +150,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::resource_activity_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in crate::document_integrity_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -176,6 +180,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::alert_schema::validate(&mut client)?;
     crate::procedural_resource_schema::validate(&mut client)?;
     crate::resource_activity_schema::validate(&mut client)?;
+    crate::document_integrity_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -200,6 +205,7 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::alerts_postgres::validate_inventory(&mut client)?;
     crate::procedural_resource_schema::validate_inventory(&mut client)?;
     crate::resource_activity_schema::validate_inventory(&mut client)?;
+    crate::document_integrity_schema::validate_inventory(&mut client)?;
     Ok(client)
 }
 
@@ -277,6 +283,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::alert_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::procedural_resource_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::resource_activity_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::document_integrity_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -299,6 +306,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::alert_schema::validate_runtime_role(client, role)?;
     crate::procedural_resource_schema::validate_runtime_role(client, role)?;
     crate::resource_activity_schema::validate_runtime_role(client, role)?;
+    crate::document_integrity_schema::validate_runtime_role(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(
@@ -377,23 +385,6 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     if unsafe_role {
         return Err(ApplicationError::InvalidConfiguration(
             "runtime database role must not own protected objects, modify immutable data, create search-path objects, or administer roles".into()
-        ));
-    }
-    Ok(())
-}
-
-fn port_error(error: postgres::Error) -> ApplicationError {
-    ApplicationError::Port(format!("postgres initialization: {error}"))
-}
-
-fn require_utf8(client: &mut Client) -> Result<(), ApplicationError> {
-    let encoding: String = client
-        .query_one("SELECT pg_catalog.current_setting('server_encoding')", &[])
-        .map_err(port_error)?
-        .get(0);
-    if encoding != "UTF8" {
-        return Err(ApplicationError::InvalidConfiguration(
-            "PostgreSQL database encoding must be UTF8 for canonical document metadata".into(),
         ));
     }
     Ok(())
