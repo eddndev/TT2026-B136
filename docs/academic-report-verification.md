@@ -29,6 +29,20 @@ duplicadas ni glifos ausentes. El artefacto y las imágenes se conservan en
 Esta muestra no constituye una revisión de las 320 páginas ni acredita el
 cierre del manuscrito completo.
 
+El [artefacto corregido](https://github.com/eddndev/TT2026-B136/actions/runs/35455073260)
+corresponde a `a1cfeae`: el merge de revisión `02c214e` tiene padres `c16b820`
+y `a1cfeae` y el mismo árbol que esa cabeza. Conserva **320 páginas**, formato
+carta, y ocupa **5896518 bytes**. SHA-256:
+`f8964dbcc89c7fd8b75569f8e16bfb0e7ca9c989bbd3b327dca10cf3c4996ac2`.
+Se renderizaron las mismas quince páginas: doce imágenes son idénticas a las
+ya inspeccionadas y se revisaron nuevamente las páginas 230, 316 y 317.
+El párrafo ya cabe en el margen y la referencia al apéndice es correcta,
+sin recortes ni solapamientos. La última pasada de LuaLaTeX conserva sólo
+las sustituciones históricas de versalitas y el desborde de 0.11754 pt;
+no contiene referencias o citas indefinidas, etiquetas duplicadas ni glifos
+ausentes. El resultado se conserva en
+`output/alerts-verification/ci-report-a1cfeae/`.
+
 ## Agenda combinada: 19 de septiembre de 2026
 
 Los apartados de audiencias y plazos describen la consulta combinada, vigencia,
