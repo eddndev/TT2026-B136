@@ -46,9 +46,10 @@ impl PostgresDeadlineStore {
 }
 fn port(error: Error) -> ApplicationError {
     if error.code() == Some(&postgres::error::SqlState::UNIQUE_VIOLATION) {
-        return if error.as_db_error().and_then(|e| e.constraint())
-            == Some("deadline_operation_unique")
-        {
+        return if matches!(
+            error.as_db_error().and_then(|e| e.constraint()),
+            Some("deadline_operation_unique" | "deadline_job_operation")
+        ) {
             DeadlineError::OperationConflict.into()
         } else {
             DeadlineError::RevisionConflict.into()

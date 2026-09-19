@@ -10,8 +10,10 @@ persistencia o la interfaz nueva esten terminados.
 El modelo de aplicación V2, las observaciones verificadas y el verificador de
 sucesores ya están implementados como contratos puros. Existen preparadores
 humano y técnico con seguimiento explícito. La persistencia PostgreSQL admite
-decisiones humanas V2 y reconstrucción histórica compatible con V1. El despacho,
-trabajador durable, servicio/HTTP V2 y Qadra aún no integran esta ampliación.
+decisiones humanas V2 y reconstrucción histórica compatible con V1. El
+[despachador persistente](../deadline-dispatch.md) expande eventos y legado en
+trabajos, con cursores y auditoría atómicos. El consumidor de esos trabajos,
+su confirmación técnica, servicio/HTTP V2 y Qadra siguen pendientes.
 El ADR permanece propuesto para ese conjunto de trabajo.
 
 ## Context
@@ -179,7 +181,8 @@ confirmar, también si el resultado no requiere revisión. Para `Retired` y
 `AlreadyInitialized` no se requieren cabezas irrelevantes para la decisión;
 se revalida la base, además de los controles durables de servicio, causa y
 trabajo que corresponden al adaptador. El núcleo no reserva revisiones ni
-completa trabajos; su almacenamiento y ejecución durables siguen pendientes.
+completa trabajos; la ejecución y confirmación técnicas siguen pendientes. El
+despachador ya conserva la asignación de trabajos y sus cursores.
 
 ### Despacho y ejecucion
 

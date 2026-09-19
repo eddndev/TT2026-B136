@@ -4,6 +4,78 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Despacho persistente de plazos: 18 de septiembre de 2026
+
+El [despachador](deadline-dispatch.md) confirma trabajos únicos, cursores y
+auditoría en una transacción. Consume las cinco familias de eventos y conserva
+un recorrido recurrente del legado. Las migraciones `0019_` añaden restricciones,
+reservas de operación y comprobaciones de esquema, permisos e inventario.
+El consumidor y la confirmación de revisiones técnicas siguen pendientes;
+servicio/HTTP y Qadra conservan V1. El despachador aún no se invoca desde `serve`.
+
+La campaña global con PostgreSQL/Redis aislados y qpdf 12.4.1 terminó con
+**2584 pruebas Rust aprobadas, 0 fallidas y 1 ignorada**,
+en 446 resúmenes. La prueba ignorada corresponde al proveedor TSA
+externo. Las fuentes conservaron sus huellas durante los seis controles.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| fmt | Salida 0; 2.936 s. |
+| build | Salida 0; 0.360 s. |
+| workspace | Salida 0; 793.321 s. |
+| clippy | Salida 0; 1.816 s. |
+| msrv | Salida 0; 1.337 s. |
+| api | Salida 0; 168.757 s. |
+
+Las 26 pruebas propias del despachador están incluidas en esa suite, no se
+suman otra vez. Cubren paginación, UUID nulo y máximo, huecos de secuencia,
+eventos vacíos, selección de cabeza y ámbito, legado añadido bajo un cursor
+anterior y dos despachadores reales. Comprueban además colisiones de operación
+en ambos sentidos, fallo de auditoría después de escribir trabajos/cursor,
+respuesta perdida, migración repetida y pérdida del singleton sin reparación.
+
+Las comprobaciones directas rechazan cursores que saltan candidatos y cambios
+en tablas, restricciones, índices, triggers, funciones o permisos, incluidos
+PUBLIC y roles heredables o asumibles. Un trabajo histórico sigue siendo válido
+si una corrección posterior cambia la dependencia o retira el plazo.
+
+Las pruebas de timeout mantienen un bloqueo ajeno o una sentencia lenta activa
+y exigen que el adaptador salga sin cancelación externa. Verifican rollback y
+recuperación de la misma conexión. Los dos escenarios se serializan desde la
+preparación hasta la limpieza porque sus esquemas comparten el advisory lock
+de la base de datos. El watchdog sólo evita una prueba infinita;
+si actúa, el caso falla. La restauración usa un dump real con trabajos y ambos
+cursores parciales, conexión con `search_path` vacío y reapertura sin migrar.
+La continuación conserva filas, operaciones y auditoría anteriores y completa
+ambos recorridos sin duplicados.
+
+### Medición de páginas y límites
+
+Una campaña independiente creó 240 plazos y procesó tres eventos con límites
+1, 20 y 100, comprobando 720 trabajos. Antes del cambio, el helper reunía todos
+los candidatos antes de aplicar el filtro y límite exteriores. Ahora el
+intervalo, filtro de trabajos pendientes y límite se aplican dentro del helper:
+materializa hasta 101 filas por página y una por consulta de guard.
+
+| Límite | Mediana anterior por página (ms) | Mediana con límites internos (ms) |
+| --- | --- | --- |
+| 1 | 8.911 | 8.324 |
+| 20 | 116.289 | 118.248 |
+| 100 | 552.286 | 529.158 |
+
+Son observaciones de dos campañas locales, no una prueba estadística de mejora
+general ni una garantía de producción. El plan de la consulta exterior confirma
+la reducción de filas materializadas; no mide por sí solo todas las raíces
+examinadas dentro de PL/pgSQL. Las coincidencias dispersas aún pueden exigir
+recorrer muchas raíces. Los presupuestos de un segundo para bloqueos y cinco
+por sentencia no limitan el tiempo total de una página ni de la apertura.
+
+La demo HTTP posterior comprueba compatibilidad y restauración del flujo V1
+bajo el esquema ampliado; la prueba específica de dump/restore anterior cubre
+los trabajos y cursores. Ninguna acredita ejecución del consumidor ni Qadra V2.
+Los 18 controles remotos de `179115d` aprobaron y corresponden al almacenamiento
+humano anterior. La CI de este incremento debe comprobarse sobre su nuevo commit.
+
 ## Persistencia humana V1/V2: 18 de septiembre de 2026
 
 El adaptador PostgreSQL incorpora capturas y observaciones V2 sin modificar

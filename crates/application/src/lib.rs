@@ -39,3 +39,5 @@ pub mod deadlines;
 pub mod deadline_observations;
 
 pub mod deadline_technical;
+
+pub mod deadline_dispatch;

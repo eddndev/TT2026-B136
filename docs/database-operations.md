@@ -13,6 +13,8 @@ El [catálogo HTTP de perfiles](deadline-profiles-api.md) está implementado;
 la persistencia PostgreSQL y HTTP de [plazos](deadline-records.md) tienen pruebas
 focales y aceptación real de restauración aprobadas. Consumir cambios mediante
 trabajadores, entregar alertas y ofrecer seguimiento V2 en Qadra sigue pendiente.
+El [despachador persistente](deadline-dispatch.md) añade trabajos y cursores
+mediante `0019_`; su adaptador todavía no se ejecuta desde `serve`.
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
@@ -580,6 +582,16 @@ del cálculo histórico; `tracking_administration_revision` y
 El lector selecciona cada formato explícitamente y verifica la evidencia exacta
 de sus observaciones. Un hash coherente no permite inventar una revisión.
 El guard humano rechaza autoría técnica hasta implementar su trabajador durable.
+
+`0019_` añade `deadline_dispatch_cursor` y `deadline_reevaluation_jobs`.
+Respaldar ambas junto con eventos, plazos, fuentes y auditoría. La identidad
+del cursor se crea una sola vez; una migración repetida no repara su pérdida.
+El rol operativo sólo lee y añade trabajos y actualiza las cuatro posiciones
+del cursor. La reserva de operación rechaza colisiones con revisiones humanas.
+La apertura comprueba el esquema completo y el inventario, sin exigir que un
+trabajo histórico siga siendo candidato después de una corrección o retiro.
+Los detalles de expansión, límites y recuperación están en
+[despacho persistente](deadline-dispatch.md).
 
 La atención JSON conserva precisión y desfase declarados sin componentes extra.
 La proyección `due_at_seconds`/`due_at_nanoseconds` debe coincidir exactamente con

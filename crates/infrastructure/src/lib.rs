@@ -99,3 +99,7 @@ mod deadline_profile_schema;
 mod deadline_postgres;
 pub use deadline_postgres::PostgresDeadlineStore;
 mod deadline_schema;
+
+mod deadline_dispatch_postgres;
+mod deadline_dispatch_schema;
+pub use deadline_dispatch_postgres::PostgresDeadlineDispatchStore;

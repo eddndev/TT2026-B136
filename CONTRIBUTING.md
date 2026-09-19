@@ -216,9 +216,17 @@ Inspect current code and contracts before treating this summary as complete.
   exact source and administration evidence without recalculation. Human commits
   reauthorize and preserve action-specific continuity; the SQL guard rejects
   technical writes until their durable worker boundary exists. The human service
-  and HTTP workflow still use V1. Dispatch, worker execution and HTTP/Qadra V2
+  and HTTP workflow still use V1. Worker execution and HTTP/Qadra V2
   remain pending. Verification results belong to their recorded code revision;
   see `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
+- The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
+  event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
+  and audit commit together; jobs reserve their operation against human writes.
+  Startup verifies schema, runtime grants and historical inventory. Candidate
+  bounds and missing-job filters apply before the SQL result is materialized.
+  This adapter does not yet run from `serve` or consume jobs. Technical commit,
+  worker outcomes, service/HTTP V2 and Qadra remain pending; see
+  `docs/deadline-dispatch.md`.
 
 ## Next work, in dependency order
 
