@@ -3,12 +3,10 @@ mod case_support;
 #[allow(dead_code)]
 #[path = "support/document_workflow.rs"]
 mod crypto;
-#[allow(dead_code)]
 mod deadline_support;
 #[allow(dead_code)]
 mod hearing_support;
-#[allow(dead_code)]
-mod procedural_fact_service_support;
+use deadline_support::evaluation::inputs::facts as procedural_fact_service_support;
 mod procedural_resource_support;
 mod resource_activity_support;
 use application::{resource_activities::*, ApplicationError};
