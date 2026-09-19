@@ -253,8 +253,8 @@ Inspect current code and contracts before treating this summary as complete.
   integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
   Automatic activation and the qualified legal-profile acceptance corpus remain
-  pending. Reevaluation is integrated through PR 34; alerts have their own
-  published delivery and acceptance status below.
+  pending. Reevaluation is integrated through PR 34; alerts are integrated
+  through PR 36 with their own acceptance evidence below.
 
 - The combined `/api/v1/agenda` query and Qadra day, week and month views are
   implemented. One authorized, audited transaction combines hearing heads with
@@ -315,21 +315,29 @@ Inspect current code and contracts before treating this summary as complete.
   `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
 
 - Durable activity alerts, account preferences, the personal Qadra inbox and
-  the scheduler/email consumers composed in `serve` are implemented and published
-  in PR 36. Internal alerts and optional generic email preserve
-  delivery state, retries and duplicate control. API/restoration and focal
-  real-service browser acceptance passed; CI closure remains in progress. This delivery is not integrated into
-  `main`. See `docs/alerts-api.md` and `docs/verification-report.md`.
+  the scheduler/email consumers composed in `serve` are integrated into `main`
+  through PR 36 as `8261c51`. Internal alerts and optional generic email preserve
+  delivery state, retries and duplicate control. API/restoration, real-service
+  browser acceptance and CI passed. See `docs/alerts-api.md` and
+  `docs/verification-report.md`.
+- Declared procedural resources and acts preserve exact resolutions, supports
+  and history. Their API/restoration and real-service browser acceptance passed;
+  PR 37 remains pending CI closure and integration. The subsequent associations
+  to existing hearings/deadlines have local implementation and API/restoration
+  acceptance, with real-browser and CI checks still pending. Qualified legal
+  profiles, durable activation and the complete resource workflow remain work
+  under `docs/procedural-resources-scope.md`.
 
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
-1. Close acceptance and CI for the published alerts delivery before integrating
-   it into `main`. Reevaluation and the combined agenda are already integrated.
-   Qualify legal profiles with primary sources and acceptance cases, then implement
-   automatic activation and resources linked to resolutions.
+1. Qualify the remaining legal profiles with primary sources and acceptance cases;
+   implement durable activation and complete the resource workflow beyond declared
+   records and links to existing activities. Reevaluation, the combined agenda
+   and alerts are already integrated. Close the separate resource delivery using
+   its own acceptance and CI evidence.
    Preserve exact inputs and immutable historical evaluations. Declared hearing
    text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and
