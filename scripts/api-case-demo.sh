@@ -23,9 +23,9 @@ case_demo_enroll() {
 }
 
 case_demo_login() {
-  local enrollment="$1" email challenge code
+  local enrollment="$1" index="${2:-0}" email challenge code
   email="$(jq -er '.user.email' <<<"$enrollment")"
-  code="$(jq -er '.recovery_codes[0]' <<<"$enrollment")"
+  code="$(jq -er --argjson index "$index" '.recovery_codes[$index]' <<<"$enrollment")"
   challenge="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/login" \
     -H 'Content-Type: application/json' \
     --data "$(jq -n --arg email "$email" \
@@ -35,6 +35,16 @@ case_demo_login() {
     -H 'Content-Type: application/json' \
     --data "$(jq -n --arg challenge "$challenge" --arg code "$code" \
       '{challenge_token: $challenge, code: $code}')" | jq -er '.access_token'
+}
+
+case_demo_access() {
+  local id="$1" role="$2" active="$3" revision
+  case_demo_request GET 200 "/api/v1/users/$id" "$OWNER_TOKEN"
+  revision="$(jq -er '.revision' "$case_response")"
+  case_demo_request PUT 200 "/api/v1/users/$id/access" "$OWNER_TOKEN" \
+    -H 'Content-Type: application/json' \
+    --data "$(jq -n --arg revision "$revision" --arg role "$role" --argjson active "$active" \
+      '{expected_revision:$revision,role:$role,active:$active}')"
 }
 
 case_demo_denied_documents() {
@@ -193,14 +203,14 @@ case_demo() {
   case_demo_request DELETE 204 "/api/v1/cases/$litigator_case/members/$litigator_id" "$OWNER_TOKEN"
   case_demo_denied_documents "$litigator_token" "$litigator_case" "$other_document" 404 404
   case_demo_request PUT 204 "/api/v1/cases/$litigator_case/members/$litigator_id" "$OWNER_TOKEN"
-  psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c \
-    "UPDATE users SET role = 'paralegal' WHERE email = 'litigator-cases@example.com'" >/dev/null
+  case_demo_access "$litigator_id" paralegal true
+  case_demo_request GET 401 /api/v1/auth/me "$litigator_token"
+  litigator_token="$(case_demo_login "$litigator" 1)"
   case_demo_request POST 403 /api/v1/cases "$litigator_token" \
     -H 'Content-Type: application/json' --data '{"title":"Denied","reference":"DENIED"}'
   case_demo_request POST 403 "/api/v1/cases/$litigator_case/documents/$other_document/seal" "$litigator_token"
   case_demo_request POST 200 "/api/v1/cases/$litigator_case/documents/$other_document/verify" "$litigator_token"
-  psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -c \
-    "UPDATE users SET active = FALSE WHERE email = 'litigator-cases@example.com'" >/dev/null
+  case_demo_access "$litigator_id" paralegal false
   case_demo_request POST 401 "/api/v1/cases/$litigator_case/documents/$other_document/verify" "$litigator_token"
 
   plaintext_count="$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc \
@@ -213,5 +223,5 @@ case_demo() {
 }
 
 case_demo
-unset -f case_demo case_demo_login case_demo_enroll case_demo_request
+unset -f case_demo case_demo_login case_demo_enroll case_demo_request case_demo_access
 unset -f case_demo_denied_documents case_demo_verify_evidence

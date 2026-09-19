@@ -16,6 +16,9 @@ source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
 # shellcheck source=scripts/api-deadline-reevaluation-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
 
+# shellcheck source=scripts/api-identity-restore.sh
+source "$REPO_ROOT/scripts/api-identity-restore.sh"
+
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID"
@@ -266,7 +269,9 @@ PY
   [ "$(jq -Sc . "$legacy_dir/documents/.migrated")" = "$import_report" ]
 
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/imported"
+  identity_restore_run invalidate
   migration_demo_start "$runtime_url" "$legacy_dir" imported
+  identity_restore_login
   migration_demo_export "$case_id" "$WORK_DIR/imported-evidence"
   version_demo "$case_id"
   metadata_demo "$case_id"
@@ -285,6 +290,7 @@ PY
   deadline_worker_demo "$runtime_url" "$legacy_dir"
   alert_demo
   document_content_demo "$imported_url"
+  member_demo
   calendar_demo_python checkpoint
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
@@ -308,7 +314,9 @@ PY
     --data-dir "$legacy_dir" --mapping "$legacy_dir/mapping.json" >"$WORK_DIR/restored-inspection.json"
   [ "$(jq -Sc '.report' "$WORK_DIR/restored-inspection.json")" = "$import_report" ]
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/restored"
+  identity_restore_run invalidate
   migration_demo_start "$runtime_url" "$legacy_dir" restored
+  identity_restore_login
   migration_demo_export "$case_id" "$WORK_DIR/restored-evidence"
   version_demo_restored "$case_id"
   metadata_demo_restored "$case_id"
@@ -327,6 +335,7 @@ PY
   deadline_worker_demo_python verify
   alert_demo_restored
   document_content_demo_restored
+  member_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -378,3 +387,5 @@ unset -f agenda_demo
 unset -f alert_demo alert_demo_restored alert_demo_python
 unset -f document_content_demo document_content_demo_restored document_content_demo_python
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop
+
+unset -f member_demo member_demo_restored member_demo_python identity_restore_run identity_restore_login

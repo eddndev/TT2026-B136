@@ -1,3 +1,4 @@
+import { provisionMembers } from "./web-member-fixtures.mjs";
 import { provisionDocumentContent } from "./web-document-content-fixtures.mjs";
 import { provisionDeadlines } from "./web-deadline-fixtures.mjs";
 import { provisionDeadlineReevaluation } from "./web-deadline-reevaluation.mjs";
@@ -257,6 +258,7 @@ try {
   fixture.proceduralResources = await provisionResources(request);
   fixture.resourceActivities = await provisionResourceActivities(request);
   fixture.documentContent = await provisionDocumentContent(request);
+  fixture.members = await provisionMembers(request);
   fixture.judicialCalendars = await provisionCalendars(request);
   fixture.deadlines = await provisionDeadlines(request);
   if (process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === "1") {

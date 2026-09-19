@@ -266,6 +266,9 @@ source "$REPO_ROOT/scripts/api-alerts-demo.sh"
 # shellcheck source=scripts/api-document-content-demo.sh
 source "$REPO_ROOT/scripts/api-document-content-demo.sh"
 
+# shellcheck source=scripts/api-members-demo.sh
+source "$REPO_ROOT/scripts/api-members-demo.sh"
+
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
 

@@ -40,6 +40,11 @@ def enroll(role):
     session = request('POST', '/api/v1/auth/mfa/recovery', {
         'challenge_token': challenge['challenge_token'], 'code': row['recovery_codes'][0],
     })
+    material = STATE.with_name('deadline-login-material.json')
+    saved = json.loads(material.read_text()) if material.exists() else {}
+    saved[role] = {'email': email, 'password': password, 'secret': row['totp_secret_base32']}
+    material.write_text(json.dumps(saved, sort_keys=True))
+    material.chmod(0o600)
     return row['user']['id'], session['access_token']
 
 
