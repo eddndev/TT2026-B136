@@ -5,10 +5,13 @@ concurrency_demo() {
   local address="" second_url case_id document_id route first_pid second_pid statuses
   local race_dir="$WORK_DIR/concurrent-seal"
   mkdir -p "$race_dir"
-  RUST_LOG=warn stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
-    --data-dir "$DATA_DIR" --signer-cert "$CERT" --signer-key "$KEY" \
-    --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
-    --tsa-dir "$TSA_DIR" >"$race_dir/server.log" 2>&1 &
+  (
+    cd "$WORK_DIR"
+    RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+      --data-dir "$DATA_DIR" --signer-cert "$CERT" --signer-key "$KEY" \
+      --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
+      --tsa-dir "$TSA_DIR"
+  ) >"$race_dir/server.log" 2>&1 &
   SECOND_SERVER_PID=$!
   for _ in $(seq 1 100); do
     address="$(sed -n 's/^listening on http:\/\///p' "$race_dir/server.log" | tail -n 1)"

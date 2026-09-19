@@ -104,6 +104,7 @@ test('real agenda honors assignments roles closure and revocation without a brow
             .click();
           await expect(other.locator('.hearing-revision')).toHaveCount(2);
         } else {
+          await expect(other.getByRole('button', { name: 'Alertas', exact: true })).toHaveCount(0);
           await navigate(other, 'Expedientes');
           await other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }).click();
           await expect(
@@ -116,8 +117,20 @@ test('real agenda honors assignments roles closure and revocation without a brow
           await expect(
             other.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
           ).toBeVisible();
+          await other.evaluate(() => {
+            location.hash = 'alerts';
+          });
+          await expect(
+            other.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
+          ).toBeVisible();
           expect(
-            reads.filter((path) => path.includes('/hearings') || path === '/api/v1/agenda'),
+            reads.filter(
+              (path) =>
+                path.includes('/hearings') ||
+                path === '/api/v1/agenda' ||
+                path.startsWith('/api/v1/alerts') ||
+                path === '/api/v1/alert-preferences',
+            ),
           ).toEqual([]);
         }
       } finally {

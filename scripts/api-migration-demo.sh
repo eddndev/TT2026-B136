@@ -28,11 +28,14 @@ migration_demo_start() {
   local url="$1" directory="$2" label="$3" address="" started=$SECONDS
   export DATABASE_URL="$url"
   SERVER_LOG="$WORK_DIR/$label-server.log"
-  RUST_LOG=warn stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
-    --deadline-page-limit 2 --deadline-poll-ms 50 \
-    --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
-    --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
-    --tsa-dir "$TSA_DIR" >"$SERVER_LOG" 2>&1 &
+  (
+    cd "$WORK_DIR"
+    RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+      --deadline-page-limit 2 --deadline-poll-ms 50 \
+      --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
+      --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
+      --tsa-dir "$TSA_DIR"
+  ) >"$SERVER_LOG" 2>&1 &
   SERVER_PID=$!
   while (( SECONDS - started < 60 )); do
     address="$(sed -n 's/^listening on http:\/\///p' "$SERVER_LOG" | tail -n 1)"

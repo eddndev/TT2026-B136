@@ -21,10 +21,11 @@ if [ -z "${DOCUMENT_QPDF_LIBRARY:-}" ]; then
     DOCUMENT_QPDF_LIBRARY="$(bash "$REPO_ROOT/scripts/setup-document-formats.sh")"
   fi
 fi
+DOCUMENT_QPDF_LIBRARY="$(cd "$(dirname "$DOCUMENT_QPDF_LIBRARY")" && pwd)/$(basename "$DOCUMENT_QPDF_LIBRARY")"
 export DOCUMENT_QPDF_LIBRARY
 
 cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
-CLI="${CARGO_TARGET_DIR:-$REPO_ROOT/target}/debug/despacho-cli"
+CLI="$(cd "${CARGO_TARGET_DIR:-$REPO_ROOT/target}" && pwd)/debug/despacho-cli"
 WORK_DIR="$(mktemp -d)"
 SERVER_PID=""
 SECOND_SERVER_PID=""
@@ -66,7 +67,7 @@ export PKI_CA_DIR="$WORK_DIR/pki-ca"
 export TSA_DIR="$WORK_DIR/pki-tsa"
 export KEK_BASE64
 KEK_BASE64="$(openssl rand -base64 32)"
-unset CINCEL_BASE_URL CINCEL_API_KEY
+unset CINCEL_BASE_URL CINCEL_API_KEY RESEND_API_KEY ALERT_EMAIL_FROM ALERT_LOGIN_URL
 DATABASE_ADMIN_URL="postgresql://127.0.0.1:$PG_PORT/postgres"
 export DATABASE_URL="$DATABASE_ADMIN_URL"
 export REDIS_URL="redis://127.0.0.1:$REDIS_PORT/"
@@ -100,15 +101,19 @@ CRL="$PKI_CA_DIR/crl/crl.pem"
 DATA_DIR="$WORK_DIR/runtime-data"
 SERVER_LOG="$WORK_DIR/server.log"
 
-RUST_LOG=warn stdbuf -oL -eL "$CLI" serve \
-  --bind 127.0.0.1:0 \
-  --data-dir "$DATA_DIR" \
-  --signer-cert "$CERT" \
-  --signer-key "$KEY" \
-  --ca-cert "$CA" \
-  --crl "$CRL" \
-  --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
-  --tsa-dir "$TSA_DIR" >"$SERVER_LOG" 2>&1 &
+# Keep dotenv discovery inside disposable storage, with external email disabled.
+(
+  cd "$WORK_DIR"
+  RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve \
+    --bind 127.0.0.1:0 \
+    --data-dir "$DATA_DIR" \
+    --signer-cert "$CERT" \
+    --signer-key "$KEY" \
+    --ca-cert "$CA" \
+    --crl "$CRL" \
+    --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
+    --tsa-dir "$TSA_DIR"
+) >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 
 SERVER_ADDRESS=""
@@ -249,5 +254,8 @@ source "$REPO_ROOT/scripts/api-agenda-demo.sh"
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
+
+# shellcheck source=scripts/api-alerts-demo.sh
+source "$REPO_ROOT/scripts/api-alerts-demo.sh"
 
 printf 'Authenticated API demo passed: %s\n' "$DOCUMENT_ID"
