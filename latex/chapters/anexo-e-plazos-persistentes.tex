@@ -65,7 +65,14 @@ Las comprobaciones del selector mantienen el prefijo \texttt{deadline\_responsib
 
 En \rutarepo{web/tests/}, los archivos cuyo nombre comienza por \texttt{deadline-} comprueban cliente, resultados, recibos, referencias, vigencia y políticas del editor. El subdirectorio \texttt{browser/} agrega navegación, consultas, acceso, edición y presentación con transporte controlado; \texttt{deadline-tracking-v2.spec.mjs} contiene los casos nuevos de seguimiento. La campaña focal del cliente aprobó 88 pruebas y la regresión de navegador controlado aprobó 36 escenarios, incluidos esos ocho casos nuevos. Son fronteras distintas y sus resultados no se suman como una campaña única.
 
-En \rutarepo{web/tests/live/}, los archivos de plazos terminados en \texttt{workflow.spec.mjs}, \texttt{permissions.spec.mjs} y \texttt{concurrency.spec.mjs} ejercitan el servidor real. El nuevo \texttt{deadline-reevaluation.spec.mjs} comprueba la transición de calendario seguido, revisión pendiente por fuente y confirmación humana con historia intacta. Sus datos se preparan mediante \rutarepo{scripts/web-deadline-reevaluation.mjs} con activación explícita y raíces independientes de las selecciones históricas fijas. Sus casos aprobados en escritorio y móvil pertenecen a la campaña real de 25 escenarios; la inspección de sus seis capturas no detectó recortes ni desbordamiento. El orquestador de las campañas de navegador es \rutarepo{scripts/web-demo.sh}.
+En \rutarepo{web/tests/live/}, las pruebas de plazos ejercitan el servidor real. Sus nombres distinguen los recorridos siguientes:
+\begin{itemize}
+  \item Los terminados en \texttt{workflow.spec.mjs}: operaciones integradas.
+  \item Los terminados en \texttt{permissions.spec.mjs}: autorización.
+  \item Los terminados en \texttt{concurrency.spec.mjs}: concurrencia.
+  \item \texttt{deadline-reevaluation.spec.mjs}: transición de calendario seguido, revisión pendiente por fuente y confirmación humana con historia intacta.
+\end{itemize}
+Los datos del recorrido de reevaluación se preparan mediante \rutarepo{scripts/web-deadline-reevaluation.mjs} con activación explícita y raíces independientes de las selecciones históricas fijas. Sus casos aprobados en escritorio y móvil pertenecen a la campaña real de 25 escenarios; la inspección de sus seis capturas no detectó recortes ni desbordamiento. El orquestador de las campañas de navegador es \rutarepo{scripts/web-demo.sh}.
 
 El recorrido \rutarepo{scripts/api-demo.sh} incorpora la consulta de responsables y comprueba que la proyección no exponga credenciales. Los ensayos de navegador conservan resultados diarios, mensuales y horarios, relaciones históricas exactas, atención y retiro, cierre y revocación, conflictos y conciliación sin reenvío. La matriz separa el transporte controlado de las campañas reales; sus conteos y resultados observados permanecen en el informe de verificación.
 
