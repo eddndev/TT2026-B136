@@ -50,6 +50,7 @@
             [
               'participants',
               'case-summary',
+              'case-members',
               'stages',
               'hearings',
               'resolutions',
@@ -61,6 +62,7 @@
           [
             'participants',
             'case-summary',
+            'case-members',
             'stages',
             'hearings',
             'resolutions',

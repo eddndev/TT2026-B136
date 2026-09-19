@@ -12,6 +12,7 @@ import { caseStagesApi } from './case-stages-api.mjs';
 import { caseAdministrationApi } from './case-administration-api.mjs';
 import { participantsApi } from './participants-api.mjs';
 import { versionApi } from './version-api.mjs';
+import { caseMembersApi } from './members-api.mjs';
 import { metadataApi } from './metadata-api.mjs';
 
 function query(values) {
@@ -53,6 +54,7 @@ export function caseApi(transport) {
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'PUT' }),
     removeMember: (id, userId) =>
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    caseMembers: (id) => caseMembersApi(request, id),
     deadlines: (id) => deadlinesApi(request, id),
     deadlineProfiles: (id = null) => deadlineProfilesApi(request, id),
     caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),

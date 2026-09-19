@@ -24,13 +24,15 @@ export function normalizeView(hash, role) {
   )
     return view;
   if (['overview', 'cases', 'case-summary', 'documents', 'guide'].includes(view)) return view;
-  if (role === 'owner' && ['team', 'audit', 'integrity-incidents'].includes(view)) return view;
+  if (role === 'owner' && ['team', 'audit', 'integrity-incidents', 'case-members'].includes(view))
+    return view;
   return 'overview';
 }
 
 export const viewLabels = {
   overview: 'Inicio',
   'case-summary': 'Expedientes / Resumen',
+  'case-members': 'Expedientes / Asignaciones',
   cases: 'Expedientes',
   documents: 'Documentos',
   participants: 'Expedientes / Participantes',

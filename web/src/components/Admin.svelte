@@ -1,8 +1,11 @@
 <script>
+  import { onDestroy } from 'svelte';
   import Enrollment from './Enrollment.svelte';
+  import MemberDirectory from './MemberDirectory.svelte';
   import Icon from './Icon.svelte';
   export let api;
   export let view;
+  export let user;
   let email = '';
   let password = '';
   let role = 'paralegal';
@@ -10,23 +13,34 @@
   let audit = null;
   let busy = false;
   let error = '';
+  let alive = true,
+    directory;
   async function submit(event) {
     event?.preventDefault();
     busy = true;
     error = '';
     try {
-      if (view === 'users') enrollment = await api.createUser(email.trim(), password, role);
-      else {
+      if (view === 'users') {
+        const value = await api.createUser(email.trim(), password, role);
+        if (alive) enrollment = value;
+      } else {
         audit = null;
-        audit = await api.audit();
+        const value = await api.audit();
+        if (alive) audit = value;
       }
     } catch (failure) {
-      error = failure.message;
+      if (alive) error = failure.message;
     } finally {
       password = '';
       busy = false;
     }
   }
+  onDestroy(() => {
+    alive = false;
+    enrollment = null;
+    password = '';
+    email = '';
+  });
 </script>
 
 <div class="page-heading">
@@ -40,6 +54,7 @@
     </p>
   </div>
 </div>
+{#if view === 'users'}<MemberDirectory bind:this={directory} {api} {user} />{/if}
 <section class="card admin-panel">
   {#if view === 'users'}
     {#if enrollment}<Enrollment
@@ -47,6 +62,7 @@
         ondone={() => {
           enrollment = null;
           email = '';
+          directory?.refresh();
         }}
       />
     {:else}<span class="tile-icon"><Icon name="users" size={26} /></span>

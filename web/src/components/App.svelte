@@ -210,7 +210,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'resources', 'deadlines'].includes(view)}
+        {:else if ['case-summary', 'case-members', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'resources', 'deadlines'].includes(view)}
           {#if incidentReturn}<button
               class="text-button alerts-return"
               onclick={() => go('integrity-incidents')}>Volver a incidentes</button
@@ -245,6 +245,7 @@
         {:else if view === 'guide'}<Guide onnavigate={go} />
         {:else if user.role === 'owner'}{#key view}<Admin
               {api}
+              {user}
               view={view === 'team' ? 'users' : 'audit'}
             />{/key}{/if}
         <footer class="workspace-footer">

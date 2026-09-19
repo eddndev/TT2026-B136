@@ -32,4 +32,13 @@
         }}>{item.label}</a
       >
     {/each}
+    {#if user.role === 'owner'}<a
+        href="#case-members"
+        class:active={view === 'case-members'}
+        aria-current={view === 'case-members' ? 'page' : undefined}
+        onclick={(event) => {
+          event.preventDefault();
+          onnavigate('case-members');
+        }}>Asignaciones</a
+      >{/if}
   </nav>{/if}

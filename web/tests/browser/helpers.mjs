@@ -101,6 +101,12 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       return route.fulfill({ json: { ...caseRecord, id: otherCaseId, title: 'Otro expediente' } });
     if (path.endsWith('/audit/verify'))
       return route.fulfill({ json: { valid: true, entries: 12, first_broken_index: null } });
+    if (path === '/api/v1/users' && request.method() === 'GET')
+      return route.fulfill(
+        role === 'owner'
+          ? { json: { items: [], has_more: false, next_cursor: null } }
+          : { status: 403, json: { error: { code: 'permission_denied' } } },
+      );
     if (path.endsWith('/users') || path.endsWith('/bootstrap'))
       return route.fulfill({
         json: {
