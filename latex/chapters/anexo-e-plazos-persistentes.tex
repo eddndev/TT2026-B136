@@ -98,6 +98,6 @@ En \rutarepo{crates/bin/src/}, \texttt{serve\_deadline\_runtime.rs} implementa e
 
 \subsection{Consulta combinada de actividades}
 
-La \cref{sec:implementacion-agenda-combinada} corresponde al puerto de aplicación \rutarepo{crates/application/src/agenda/}, al adaptador \rutarepo{crates/infrastructure/src/agenda_postgres/} y al transporte \rutarepo{crates/web/src/agenda/}. En los directorios de pruebas de aplicación e infraestructura, los archivos con prefijo \texttt{agenda\_} separan consultas, permisos, proyección, paginación, corrupción y concurrencia; \rutarepo{crates/web/tests/agenda_http.rs} comprueba el contrato HTTP.
+{\raggedright La \cref{sec:implementacion-agenda-combinada} corresponde al puerto de aplicación \rutarepo{crates/application/src/agenda/}, al adaptador \rutarepo{crates/infrastructure/src/agenda_postgres/} y al transporte \rutarepo{crates/web/src/agenda/}. En los directorios de pruebas de aplicación e infraestructura, los archivos con prefijo \texttt{agenda\_} separan consultas, permisos, proyección, paginación, corrupción y concurrencia; \rutarepo{crates/web/tests/agenda_http.rs} comprueba el contrato HTTP.\par}
 
 La aceptación con servidor real utiliza \rutarepo{web/tests/live/combined-agenda.spec.mjs}; el guion \rutarepo{scripts/api-agenda-demo.py} contrasta la API y su estado restaurado. Sus resultados pertenecen a la \cref{sec:pruebas-agenda-combinada}. Estos ensayos conservan su alcance separado de las campañas históricas de programación, plazos y reevaluación, y no representan pruebas de entrega de alertas.
