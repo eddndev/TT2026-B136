@@ -1,5 +1,41 @@
 # Verificación de la actualización académica
 
+## Seguimiento humano V2 compuesto y Qadra: 19 de septiembre de 2026
+
+Los apartados propios describen decisiones humanas V2, consultas de vigencia,
+reevaluación compuesta en `serve`, supervisión y aceptación real HTTP/Qadra.
+Se conserva el alcance de los perfiles sintéticos, la activación, las alertas
+y el trabajo jurídico restante. Las correcciones de cierre sólo modificaron
+el ajuste de rutas y nombres de archivos en el anexo de plazos; no cambiaron
+resumen, objetivos, estado del arte, conclusiones ni presentación.
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35431568521)
+compiló el árbol de `f743c5e`: el artefacto identifica el merge de revisión
+`37e5e5d`, cuyos padres son `214202a` y `f743c5e`; su árbol coincide exactamente
+con la cabeza de la rama. El PDF tiene **315 páginas, formato carta y 5874639
+bytes**. SHA-256:
+`db171360b216c9ca23498f85230a4a90878b85729a06a31d184308a729395e6f`.
+
+La primera revisión detectó una lista de archivos fuera del margen en la página
+310. Se separaron sus elementos y se permitió el ajuste de una ruta larga.
+La comprobación final renderizó **22 páginas físicas: 3-5, 185, 190-196,
+224-228 y 307-312**. Diecinueve imágenes son idénticas byte por byte a las ya
+inspeccionadas; se inspeccionaron de nuevo las páginas 310-312. No presentan
+recortes ni solapamientos. Siete páginas de implementación recibieron revisión
+independiente. Esta selección no equivale a inspeccionar las 315 páginas.
+
+La última pasada de LuaLaTeX no contiene referencias o citas indefinidas,
+etiquetas duplicadas ni glifos ausentes. Conserva las sustituciones de versalitas
+de Times New Roman y el desborde histórico de **0.11754 pt**; el desborde nuevo
+quedó corregido. El artefacto comprobado se conserva como
+`output/pdf/TT2026-B136-reporte.pdf`; el PDF previo de 312 páginas se preservó
+por separado. No se añaden binarios a Git.
+
+La aceptación de software pertenece al [informe técnico](verification-report.md).
+Este resultado no acredita usabilidad con personas, perfiles jurídicos
+calificados, aprobación del manuscrito completo ni preparación final de defensa.
+
+
 ## Consumidor durable de reevaluación: 18 de septiembre de 2026
 
 Se actualizaron seis apartados propios de implementación, pruebas y trazabilidad

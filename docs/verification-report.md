@@ -149,9 +149,24 @@ rechazo de alteraciones, revocacion y autenticacion. No se repitio la campana
 global local. La guia de Qadra se actualizo para explicar las politicas y la
 revision humana, eliminando la afirmacion anterior de que no habia seguimiento.
 
-Las fuentes academicas afectadas estan actualizadas. CI compila el manuscrito;
-la revision visual del nuevo PDF sigue pendiente. El PDF anterior conserva su
-alcance historico y no acredita esta ampliacion.
+Las fuentes academicas afectadas estan actualizadas. El PDF de CI con el arbol
+`f743c5e` tiene 315 paginas; su revision visual dirigida termino despues de
+corregir un desborde en el anexo. La procedencia, huella y 22 paginas comprobadas
+se documentan en [la revision academica](academic-report-verification.md).
+
+La [regresion Web remota de f467624](https://github.com/eddndev/TT2026-B136/actions/runs/35430535047)
+aprobo formato, build, 284 pruebas Node, 292 escenarios con HTTP controlado y
+25 con servicios reales. Verifico el merge de revision `3f3b06d`; las dos
+correcciones posteriores hasta `f743c5e` solo cambiaron el anexo LaTeX. Node
+informo 2277.685713 ms; las campanas de navegador, 4.6 y 2.6 minutos. El navegador
+controlado uso dos workers remotos y el real uno; localmente se conserva un
+solo runner. Estos resultados no se suman a sus focales locales.
+
+El [workflow Rust de ese corte](https://github.com/eddndev/TT2026-B136/actions/runs/35430535048)
+aprobo formato, Clippy, MSRV 1.88, dependencias y build release de 16894024 bytes.
+Test y Coverage seguian en curso al registrar este corte: no se atribuye aun
+un nuevo conteo global Rust ni una nueva cobertura. La integracion requiere
+los controles de cierre aprobados en la revision que finalmente se publique.
 
 Estos resultados locales no acreditan por si mismos una campana global
 Rust/MSRV, cobertura nueva ni integracion en main. CI comprueba esos controles
