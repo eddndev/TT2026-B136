@@ -137,7 +137,7 @@ fn waiting_basic_reads_observe_committed_revocation_or_disabled_actor_before_ret
         } else {
             f.admin
                 .execute(
-                    "UPDATE users SET active=FALSE WHERE id=$1",
+                    "UPDATE users SET active=FALSE,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                     &[&actor.as_uuid()],
                 )
                 .unwrap();

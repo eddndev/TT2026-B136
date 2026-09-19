@@ -99,16 +99,17 @@ fn sql_requires_current_authority_contiguous_history_and_terminal_withdrawal() {
         "23514"
     );
     runtime.batch_execute("ROLLBACK").unwrap();
+    db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET active=FALSE WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();
     reject(&db, &attempted, false);
     db.admin
         .execute(
-            "UPDATE users SET active=TRUE WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM TRUE THEN 1 ELSE 0 END,active=TRUE WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

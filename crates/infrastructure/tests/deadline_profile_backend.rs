@@ -152,9 +152,10 @@ fn inactive_or_nonowner_cannot_mutate_and_client_cannot_read_any_collection() {
     let draft = workflow
         .prepare("session", collection, command.clone())
         .unwrap();
+    db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

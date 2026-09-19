@@ -53,11 +53,11 @@ fn dump_restore_preserves_deadline_captures_after_revocation_and_new_source_head
     );
     db.admin
         .execute(
-            "UPDATE users SET active=FALSE,email='former-author@example.test' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE,email='former-author@example.test' WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();
-    db.admin.execute("UPDATE users SET active=FALSE,email='former-responsible@example.test',role='client' WHERE id=$1",
+    db.admin.execute("UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE OR role IS DISTINCT FROM 'client' THEN 1 ELSE 0 END,active=FALSE,email='former-responsible@example.test',role='client' WHERE id=$1",
         &[&responsible.as_uuid()]).unwrap();
     db.admin
         .execute(

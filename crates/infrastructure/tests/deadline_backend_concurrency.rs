@@ -90,7 +90,7 @@ fn attention_and_retirement_keep_sources_retired_after_registration_and_a_revoke
     );
     db.admin
         .execute(
-            "UPDATE users SET active=false,email='former-responsible@example.test' WHERE id=$1",
+            "UPDATE users SET active=false,email='former-responsible@example.test',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
             &[&responsible.as_uuid()],
         )
         .unwrap();

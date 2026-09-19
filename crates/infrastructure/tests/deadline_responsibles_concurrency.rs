@@ -2,6 +2,7 @@ mod case_administration_support;
 mod deadline_responsibles_support;
 use application::{deadlines::*, ApplicationError};
 use deadline_responsibles_support::*;
+use postgres::{Client, NoTls};
 use std::{
     sync::mpsc,
     time::{Duration, Instant},
@@ -24,7 +25,8 @@ fn waiting_responsible_reads_see_actor_and_candidate_revocations_after_audit_loc
             .query_one("SELECT count(*) FROM audit_events", &[])
             .unwrap()
             .get(0);
-        let mut gate = db.control.transaction().unwrap();
+        let mut locker = Client::connect(&db.admin_url, NoTls).unwrap();
+        let mut gate = locker.transaction().unwrap();
         gate.query_one("SELECT pg_advisory_xact_lock(280603412820)", &[])
             .unwrap();
         let (sender, receiver) = mpsc::sync_channel(1);
@@ -54,33 +56,32 @@ fn waiting_responsible_reads_see_actor_and_candidate_revocations_after_audit_loc
         };
         match change {
             0 => {
-                db.admin
+                gate
                     .execute(
-                        "UPDATE users SET active=false WHERE id=$1",
+                        "UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                         &[&actor.as_uuid()],
                     )
                     .unwrap();
             }
             1 => {
-                db.admin
-                    .execute(
-                        "DELETE FROM case_memberships WHERE case_id=$1 AND user_id=$2",
-                        &[&case.as_uuid(), &actor.as_uuid()],
-                    )
-                    .unwrap();
+                gate.execute(
+                    "DELETE FROM case_memberships WHERE case_id=$1 AND user_id=$2",
+                    &[&case.as_uuid(), &actor.as_uuid()],
+                )
+                .unwrap();
             }
             2 => {
-                db.admin
+                gate
                     .execute(
-                        "UPDATE users SET active=false WHERE id=$1",
+                        "UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                         &[&candidate.as_uuid()],
                     )
                     .unwrap();
             }
             _ => {
-                db.admin
+                gate
                     .execute(
-                        "UPDATE users SET role='client' WHERE id=$1",
+                        "UPDATE users SET role='client',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                         &[&candidate.as_uuid()],
                     )
                     .unwrap();

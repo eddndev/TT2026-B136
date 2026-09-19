@@ -296,7 +296,7 @@ fn reads_reload_current_membership_role_and_active_status() {
     let mut admin = Client::connect(&url, NoTls).unwrap();
     admin
         .execute(
-            "UPDATE users SET role='client' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'client' THEN 1 ELSE 0 END,role='client' WHERE id=$1",
             &[&actor.as_uuid()],
         )
         .unwrap();
@@ -316,7 +316,7 @@ fn reads_reload_current_membership_role_and_active_status() {
     ));
     admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&actor.as_uuid()],
         )
         .unwrap();

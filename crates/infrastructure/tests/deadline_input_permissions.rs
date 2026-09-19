@@ -59,9 +59,10 @@ fn an_open_reader_rechecks_revoked_membership_and_disabled_user() {
         Err(ApplicationError::CaseNotFound)
     ));
     assert_eq!(audit(&mut db), before);
+    db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

@@ -54,7 +54,7 @@ fn full_dump_restore_preserves_union_snapshots_closed_history_and_inactive_captu
     let reader = db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET active=FALSE,email='changed@example.test' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE,email='changed@example.test' WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

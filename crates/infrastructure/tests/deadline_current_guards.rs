@@ -64,7 +64,7 @@ fn current_reads_recheck_roles_membership_and_case_isolation() {
     ));
     db.admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&paralegal.as_uuid()],
         )
         .unwrap();

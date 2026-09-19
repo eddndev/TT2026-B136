@@ -118,7 +118,7 @@ fn membership_filters_both_families_before_limit_and_revocation_is_rechecked() {
     assert!(revoked.complete);
     db.admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&paralegal.as_uuid()],
         )
         .unwrap();

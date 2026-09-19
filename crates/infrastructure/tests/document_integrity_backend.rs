@@ -47,7 +47,7 @@ fn rejected_content_is_durable_replayable_and_only_visible_to_current_owners() {
         .unwrap();
     f.db.admin
         .execute(
-            "UPDATE users SET role='litigator' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'litigator' THEN 1 ELSE 0 END,role='litigator' WHERE id=$1",
             &[&other_owner.as_uuid()],
         )
         .unwrap();

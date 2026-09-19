@@ -105,8 +105,8 @@ fn commit_rechecks_membership_role_and_active_identity_after_service_reauthentic
             "DELETE FROM case_memberships WHERE user_id=$1",
             "membership",
         ),
-        ("UPDATE users SET active=FALSE WHERE id=$1", "active"),
-        ("UPDATE users SET role='paralegal' WHERE id=$1", "role"),
+        ("UPDATE users SET active=FALSE,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", "active"),
+        ("UPDATE users SET role='paralegal',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", "role"),
     ] {
         let Some(mut db) = Fixture::new() else { return };
         let actor = db.user("litigator", true);

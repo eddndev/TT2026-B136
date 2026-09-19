@@ -119,7 +119,7 @@ fn global_and_case_profiles_and_calendar_select_current_heads_even_after_closure
         .unwrap();
     db.admin
         .execute(
-            "UPDATE users SET active=FALSE WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE WHERE id=$1",
             &[&responsible.as_uuid()],
         )
         .unwrap();

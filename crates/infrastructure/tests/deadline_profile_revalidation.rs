@@ -87,6 +87,7 @@ fn concurrent_stores_append_only_one_revision_event_and_audit_for_the_same_base(
 fn owner_revocation_and_demotion_after_internal_prepare_prevent_commit() {
     for inactive in [true, false] {
         let Some(mut db) = Fixture::new() else { return };
+        db.user("owner", false);
         let collection = DeadlineProfileCollection::Global;
         let command = publish(None);
         let draft = service(&db, db.owner, Role::Owner)
@@ -97,9 +98,9 @@ fn owner_revocation_and_demotion_after_internal_prepare_prevent_commit() {
             client
                 .execute(
                     if inactive {
-                        "UPDATE users SET active=false WHERE id=$1"
+                        "UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1"
                     } else {
-                        "UPDATE users SET role='litigator' WHERE id=$1"
+                        "UPDATE users SET role='litigator',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1"
                     },
                     &[&owner.as_uuid()],
                 )

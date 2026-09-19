@@ -97,9 +97,10 @@ fn direct_sql_requires_contiguous_history_authorized_actor_and_read_committed() 
         "23514"
     );
     runtime.batch_execute("ROLLBACK").unwrap();
+    db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET active=FALSE WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

@@ -150,7 +150,7 @@ fn global_and_case_profile_events_preserve_fixed_choices_and_require_review_afte
             .unwrap();
         db.admin
             .execute(
-                "UPDATE users SET active=FALSE WHERE id=$1",
+                "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE WHERE id=$1",
                 &[&responsible.as_uuid()],
             )
             .unwrap();

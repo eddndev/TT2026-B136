@@ -109,9 +109,12 @@ fn invalid_appends_and_current_role_changes_do_not_mutate_document_history() {
         store.insert(actor, case, next.clone(), at),
         Err(ApplicationError::InvalidInput(_))
     ));
+    let backup_owner = Uuid::new_v4();
+    db.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture','owner','\\x00','{}')",
+        &[&backup_owner, &format!("{backup_owner}@example.test")]).unwrap();
     for sql in [
-        "UPDATE users SET active=false WHERE id=$1",
-        "UPDATE users SET active=true,role='client' WHERE id=$1",
+        "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
+        "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM true OR role IS DISTINCT FROM 'client' THEN 1 ELSE 0 END,active=true,role='client' WHERE id=$1",
     ] {
         db.client.execute(sql, &[&actor.as_uuid()]).unwrap();
         assert!(store
@@ -129,7 +132,7 @@ fn invalid_appends_and_current_role_changes_do_not_mutate_document_history() {
     }
     db.client
         .execute(
-            "UPDATE users SET role='owner' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'owner' THEN 1 ELSE 0 END,role='owner' WHERE id=$1",
             &[&actor.as_uuid()],
         )
         .unwrap();

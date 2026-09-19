@@ -130,8 +130,9 @@ fn sql_guards_preserve_initial_scope_contiguous_history_and_terminal_retirement(
     let case = db.case;
     assert!(append(&mut db, Uuid::new_v4(), Some(case), 1, "publish", &bytes).is_err());
     let actor = db.owner.as_uuid();
+    db.user("owner", false);
     db.admin
-        .execute("UPDATE users SET active=false WHERE id=$1", &[&actor])
+        .execute("UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1", &[&actor])
         .unwrap();
     assert!(append(&mut db, Uuid::new_v4(), None, 1, "publish", &bytes).is_err());
 }

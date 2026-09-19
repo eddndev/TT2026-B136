@@ -120,7 +120,7 @@ fn waiting_read_rechecks_active_staff_after_the_lock_even_with_repeatable_read_d
     let waiting = wait_for_lock(&mut db);
     db.admin
         .execute(
-            "UPDATE users SET role='client' WHERE id=$1",
+            "UPDATE users SET role='client',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
             &[&actor.as_uuid()],
         )
         .unwrap();
