@@ -323,10 +323,19 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     )?;
     let resource_activities =
         crate::serve_resource_activities::open(&database_url, identity.clone())?;
+    let members = application::members::MemberService::new(
+        Arc::new(
+            infrastructure::PostgresMemberStore::open(&database_url, Arc::new(SystemClock::new()))
+                .context("cannot open PostgreSQL member store")?,
+        ),
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
     let router = web::api_router(
         Arc::new(workflow),
         identity,
         web::CaseWorkflows {
+            members: Arc::new(members),
             cases: Arc::new(cases),
             participants: Arc::new(participants),
             stages: Arc::new(stages),

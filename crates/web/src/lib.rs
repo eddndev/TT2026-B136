@@ -27,6 +27,7 @@ mod error;
 mod hearing_results;
 mod hearings;
 mod judicial_calendars;
+mod members;
 mod participants;
 mod procedural_facts;
 mod procedural_resources;
@@ -41,6 +42,12 @@ use runtime::{protect, HttpRuntime};
 /// Builds the inbound HTTP router.
 pub fn router() -> Router {
     Router::new().route("/healthz", get(health))
+}
+
+/// Builds Owner directory and account access routes.
+pub fn member_router(workflow: Arc<dyn application::members::MemberWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(members::router(workflow, runtime.clone()), runtime)
 }
 
 /// Builds exact document content routes over an authenticated workflow.
@@ -179,6 +186,7 @@ pub fn judicial_calendar_router(
 
 /// Related case workflows injected together into the shared HTTP runtime.
 pub struct CaseWorkflows {
+    pub members: Arc<dyn application::members::MemberWorkflow>,
     pub cases: Arc<dyn CaseWorkflow>,
     pub participants: Arc<dyn ParticipantWorkflow>,
     pub stages: Arc<dyn CaseStageWorkflow>,
@@ -224,6 +232,7 @@ pub fn api_router(
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
     let routes = routes::router(documents, identity, runtime.clone())
+        .merge(members::router(workflows.members, runtime.clone()))
         .merge(cases::router(workflows.cases.clone(), runtime.clone()))
         .merge(case_administration::router(
             workflows.cases,
