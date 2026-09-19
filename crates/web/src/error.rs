@@ -15,6 +15,7 @@ mod hearing_result;
 mod judicial_calendar;
 mod procedural_fact;
 mod procedural_resource;
+mod resource_activity;
 mod stage;
 mod typed_participant;
 
@@ -135,6 +136,10 @@ impl From<ApplicationError> for ApiError {
             Err(error) => error,
         };
         let error = match deadline_profile::map(error) {
+            Ok(mapped) => return mapped,
+            Err(error) => error,
+        };
+        let error = match resource_activity::map(error) {
             Ok(mapped) => return mapped,
             Err(error) => error,
         };

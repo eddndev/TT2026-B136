@@ -1,4 +1,5 @@
 //! HTTP adapters for authorized hearing scheduling and agenda queries.
+pub(crate) use projection::detail as exact_projection;
 mod mutations;
 mod object;
 mod projection;

@@ -45,7 +45,7 @@ fn act(v: &ResourceActCapture) -> Result<Value, ApiError> {
         "supports":sources::supports(&v.supports)?,"previous":previous(v.previous)}),
     )
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     row: ResourceDetail,
     case: CaseId,
     id: ResourceId,
