@@ -28,11 +28,14 @@ migration_demo_start() {
   local url="$1" directory="$2" label="$3" address="" started=$SECONDS
   export DATABASE_URL="$url"
   SERVER_LOG="$WORK_DIR/$label-server.log"
-  RUST_LOG=warn stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
-    --deadline-page-limit 2 --deadline-poll-ms 50 \
-    --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
-    --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
-    --tsa-dir "$TSA_DIR" >"$SERVER_LOG" 2>&1 &
+  (
+    cd "$WORK_DIR"
+    RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+      --deadline-page-limit 2 --deadline-poll-ms 50 \
+      --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
+      --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
+      --tsa-dir "$TSA_DIR"
+  ) >"$SERVER_LOG" 2>&1 &
   SERVER_PID=$!
   while (( SECONDS - started < 60 )); do
     address="$(sed -n 's/^listening on http:\/\///p' "$SERVER_LOG" | tail -n 1)"
@@ -112,6 +115,22 @@ migration_demo_state() {
       'deadline_source_sequence',(SELECT jsonb_build_object(
         'last_value',last_value,'is_called',is_called)
         FROM deadline_source_events_sequence),
+      'alert_preferences',(SELECT jsonb_agg(to_jsonb(a) ORDER BY user_id,revision)
+        FROM alert_preferences a),
+      'alert_subject_state',(SELECT jsonb_agg(to_jsonb(a) ORDER BY kind,id)
+        FROM alert_subject_state a),
+      'alert_scan_cursor',(SELECT jsonb_agg(to_jsonb(a) ORDER BY singleton)
+        FROM alert_scan_cursor a),
+      'alert_schedule',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id)
+        FROM alert_schedule a),
+      'alert_notifications',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id)
+        FROM alert_notifications a),
+      'alert_read_receipts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY operation_id)
+        FROM alert_read_receipts a),
+      'alert_email_outbox',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id)
+        FROM alert_email_outbox a),
+      'alert_email_attempts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY delivery_id,sequence)
+        FROM alert_email_attempts a),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     )" | jq -Sc .
 }
@@ -252,6 +271,7 @@ PY
   deadline_demo
   agenda_demo
   deadline_worker_demo "$runtime_url" "$legacy_dir"
+  alert_demo
   calendar_demo_python checkpoint
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
@@ -290,6 +310,7 @@ PY
   deadline_demo_restored
   agenda_demo
   deadline_worker_demo_python verify
+  alert_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -332,4 +353,5 @@ unset -f profile_demo profile_demo_restored profile_demo_python
 
 unset -f deadline_demo deadline_demo_restored deadline_demo_python
 unset -f agenda_demo
+unset -f alert_demo alert_demo_restored alert_demo_python
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop

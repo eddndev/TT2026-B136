@@ -1,6 +1,7 @@
 <script>
   import Icon from './Icon.svelte';
   import { canHearings } from '../lib/hearings.mjs';
+  import { canAlerts } from '../lib/alerts-presentation.mjs';
   import Brand from './Brand.svelte';
   import { roles } from '../lib/documents.mjs';
   export let user;
@@ -23,6 +24,7 @@
     ...(canHearings(user.role, 'read')
       ? [{ id: 'agenda', label: 'Agenda', icon: 'calendar' }]
       : []),
+    ...(canAlerts(user.role) ? [{ id: 'alerts', label: 'Alertas', icon: 'clock' }] : []),
   ];
   const admin = [
     { id: 'team', label: 'Equipo', icon: 'users' },

@@ -4,6 +4,115 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Alertas personales: checkpoint funcional del 19 de septiembre de 2026
+
+Están implementados temporización configurable, puertos de preferencias y
+bandeja personal, servicio autorizado, cinco rutas HTTP y Qadra. La bandeja
+conserva el origen exacto, lectura independiente de atención, estados del correo,
+filtros, continuación, conflictos y respuestas inciertas. El contrato está en
+[alerts-api.md](alerts-api.md). La persistencia, generación durable y composición del servidor están
+implementadas en el borrador; el navegador real aprobó sus recorridos focales.
+La aceptación API/restauración también aprobó; la regresión de cierre y la
+integración de esta ampliación permanecen pendientes. No se afirma
+entrega a un destinatario externo.
+
+Se ejecutó una sola verificación local a la vez, con pruebas focales después del
+RED y sin otra regresión global. Resultados de fronteras independientes:
+
+- Ocho pruebas de temporización y 16 de aplicación aprobadas.
+- Tres pruebas de vigencia distinguen revisión humana de recálculo ordinario.
+- Seis pruebas HTTP aprobadas tras corregir las rutas parametrizadas.
+- 26 pruebas del cliente aprobadas; una prueba adicional del cursor futuro falló
+  primero y aprobó después de corregir la comparación con el instante consultado.
+- Nueve recorridos de navegador con HTTP controlado aprobaron en 18.891 s,
+  incluidos escritorio y móvil, lectura incierta, conflicto, apertura exacta,
+  retorno, continuación y revocación. Sus 2173 fuentes mantuvieron sus huellas.
+  Se inspeccionaron las dos capturas de bandeja sin recortes ni solapamientos.
+
+El adaptador HTTP de correo genérico tiene seis pruebas aprobadas contra un
+servidor loopback: solicitud e idempotencia, aceptación explícita, respuestas
+inciertas, rechazo y reintentos. No se contactó a un destinatario externo. Ocho
+pruebas focales adicionales aprobaron configuración completa o deshabilitada,
+límites de ciclo, parada y supervisión de ambos consumidores; esta composición
+por puertos se comprobó antes de conectar el servidor. El adaptador PostgreSQL
+se excluyó de aquella compilación; su comprobación posterior se distingue abajo.
+
+La comprobación posterior de PostgreSQL real usó bases desechables, directorio
+temporal privado en disco y un solo proceso de compilación y pruebas. La primera
+pasada de siete objetivos terminó en 148.091 s: 20 casos aprobaron y dos pruebas
+nuevas reprodujeron defectos de episodios y preferencias. Se conservaron las
+fuentes Rust y SQL durante esa pasada; sólo cambiaron guiones de aceptación
+independientes, que no ejecutó esa campaña.
+
+Los 20 casos cubren preferencias y reintentos, aislamiento antes del límite de
+bandeja, reinicio y lectura independiente de atención, origen histórico corrupto,
+rollback de escaneo/activación/correo, fuente cambiada antes del trabajador,
+arrendamiento y confirmación de intentos, payload congelado e incertidumbre más
+allá de la ventana del proveedor, inventario de arranque y permisos mínimos.
+Las dos pruebas fallidas exigieron resolver el aviso anterior al registrar
+atención aunque se reabra antes del escaneo, y reactivar una ocurrencia nunca
+emitida al habilitar sus canales. Tras corregirlo, sólo ese objetivo se repitió:
+ambas aprobaron en 18.977 s, con 2219 fuentes sin cambios. Los avisos ya activados
+conservan su identidad y no se reenvían por esa reactivación.
+
+Una prueba adicional reprodujo la misma pérdida de episodio cuando se acepta
+una revisión humana y otra fuente cambia antes del siguiente escaneo (RED en
+11.519 s). Se conserva ahora esa aceptación en el estado y se verifica su
+revisión histórica al resolver el aviso anterior. El caso nuevo y los dos
+anteriores aprobaron juntos en 26.463 s, con las fuentes
+sin cambios durante la campaña.
+
+Dos pruebas adicionales de composición del servidor aprobaron en 25.417 s,
+incluida compilación: fallo de bind sin iniciar consumidores y parada de ambos
+con liberación final de los adaptadores fuera de Tokio. La implementación Rust
+se mantuvo estable; continuó la preparación independiente de guiones HTTP y web.
+
+Cuatro pruebas de ayuda CLI y límites de argumentos aprobaron en 6.011 s,
+con fuentes sin cambios.
+
+La primera aceptación HTTP integrada terminó con salida 1 en 84.430 s:
+el escaneo sin raíces escribía progreso y auditoría y alteraba el oráculo
+exacto de operaciones rechazadas del expediente cerrado. Se corrigió el
+escaneo vacío para que permanezca sin escrituras y se conservó el oráculo
+original. La repetición terminó en 239.232 s: aprobaron los recorridos previos
+de documentos, participantes, expedientes, audiencias, calendarios, hechos,
+perfiles, plazos, agenda y reinicios. La restauración detectó que una función
+CHECK nueva dependía del `search_path` de la sesión; `pg_restore` lo deja vacío.
+Se hizo autocontenido el predicado y se añadió una regresión específica. Esa
+campaña conserva salida 1 y no acredita la aceptación final de alertas.
+
+El CI de `1971c81` reprodujo el mismo defecto en Test y Coverage. Formato,
+Clippy, MSRV, dependencias, release y verificación web aprobaron. El navegador
+remoto aprobó 29 escenarios y falló en los dos nuevos de alertas porque su
+fixture leía título y referencia fuera del objeto `administration`. Se corrigió
+el fixture conforme al contrato existente, sin cambiar la respuesta del producto.
+
+El recorrido local con servicios reales aprobó tres escenarios: alertas a
+1440/390 píxeles y permisos de agenda con revocación. Tardó 233.822 s con
+preparación; Playwright informó 26.7 s. Comprueba generación por el consumidor,
+origen exacto, lectura persistente, preferencias y correo deshabilitado. Se
+inspeccionaron ambas capturas, sin desbordamientos ni solapamientos. El fixture
+de título/referencia se corrigió antes de cargarlo; durante la preparación se
+editaron también el predicado SQL, su prueba y el guion API independiente. El
+servidor ya compilado no incorporaba todavía la corrección SQL de restauración;
+por ello este recorrido acredita la interfaz real, no esa corrección posterior.
+
+Las dos regresiones nuevas de `search_path` vacío y escaneo sin raíces aprobaron
+en una campaña focal de 18.053 s, con PostgreSQL real y 2220 fuentes sin cambios.
+Se ejecutaron secuencialmente, sin repetir los otros objetivos PostgreSQL.
+
+La aceptación API final aprobó en 273.199 s, con 2220 fuentes sin cambios.
+Ejercitó el consumidor real, aviso de 48 horas, bandeja personal, preferencias,
+lectura idempotente, origen exacto y denegaciones. El respaldo/restauración
+comparó exactamente las ocho tablas de alertas con el servidor detenido y, al
+reabrirlo, conservó preferencias, lectura, destinatario, origen e historia de
+audiencia sin una segunda ocurrencia. También aprobaron los recorridos previos
+y sus comparaciones de documentos, hechos, plazos, agenda, señales y reinicios.
+
+Los resultados no se suman a campañas históricas ni acreditan recepción externa
+de correo o cierre global. El CI ahora verifica las PR y los pushes a main,
+sin ejecutar dos campañas equivalentes por cada actualización de una rama.
+
 ## Agenda combinada: checkpoint funcional del 19 de septiembre de 2026
 
 `GET /api/v1/agenda` reúne audiencias y vencimientos operativos bajo una lectura
@@ -57,8 +166,13 @@ informó 16.4 s. Las 2119 fuentes conservaron sus huellas. Se reutilizó el oper
 y calendario, con políticas fijas y datos independientes de la prueba Follow.
 Se inspeccionaron sus dos capturas: las cinco tarjetas conservan legibilidad
 en escritorio y el calendario mantiene desplazamiento contenido en móvil.
-La regresión global, cobertura,
-actualización académica de esta ampliación e integración en main están pendientes.
+La agenda se integró en `main` mediante squash de la
+[PR 35](https://github.com/eddndev/TT2026-B136/pull/35), commit `c16b820`,
+el 19 de septiembre de 2026. El [CI de cierre](https://github.com/eddndev/TT2026-B136/actions/runs/35434470861)
+aprobó formato, Clippy, MSRV, pruebas, cobertura, dependencias y binario de
+release para `79a618b`; Web aprobó sus dos trabajos. El PDF de esa revisión
+pasó compilación y revisión visual según el informe académico. Estos controles
+remotos no se repitieron como otra campaña completa local.
 La aceptación de esta agenda no acredita alertas, activación automática ni
 perfiles jurídicos calificados.
 

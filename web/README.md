@@ -123,7 +123,8 @@ consultar o detener ese proceso.
     o tipificada; no calcula totales a partir de una página.
 15. Como Owner, crear integrantes y verificar la cadena de auditoría.
 
-La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; dentro del
+La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; el personal
+también accede a Agenda y Alertas. Dentro del
 expediente, Resumen, Documentos, Participantes, Etapas, Audiencias, Resoluciones
 y Plazos comparten contexto. Equipo
 y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
@@ -206,8 +207,10 @@ revisiones seleccionadas; no se refrescan a sus cabezas actuales. La interfaz
 reutiliza los controles de Qadra y añade `src/styles/procedural-facts.css`.
 Este módulo de hechos no activa automáticamente un plazo ni determina efectos
 jurídicos. Sus revisiones exactas pueden seleccionarse en **Plazos** y sus cambios
-alimentan la reevaluación durable según las políticas capturadas. Los recursos,
-la activación automática y las alertas conservan su alcance pendiente.
+alimentan la reevaluación durable según las políticas capturadas. Los recursos
+y la activación automática conservan su alcance pendiente. La interfaz de
+[alertas personales](#alertas-personales) y su contrato HTTP están implementados;
+su aceptación integrada con persistencia y runtime sigue pendiente.
 
 ## Plazos del expediente
 
@@ -295,8 +298,10 @@ distingue el cálculo histórico del vencimiento operativo: una aceptación
 capturada no sustituye la comprobación actual de las dependencias.
 
 La agenda combinada diaria, semanal y mensual está implementada y su aceptación
-sigue en curso. La activación automática y las alertas de 48/24 horas permanecen
-pendientes. Los ejemplos sintéticos no acreditan perfiles jurídicos aplicables;
+sigue en curso. La activación automática permanece pendiente. Las alertas
+personales permiten configurar anticipaciones de 48/24 horas y otros valores,
+con bandeja y lectura explícita; su aceptación con PostgreSQL y el runtime
+integrado sigue pendiente. Los ejemplos sintéticos no acreditan perfiles jurídicos aplicables;
 su calificación y fundamento primario requieren el trabajo separado descrito
 en [las fronteras de reglas](../docs/deadline-rule-research.md).
 
@@ -559,6 +564,60 @@ solo uso; una denegación elimina sus actividades del contexto visible.
 
 La implementación de esta agenda tiene su aceptación en curso, separada de los
 recorridos aprobados de reevaluación. No activa plazos ni envía alertas.
+
+## Alertas personales
+
+**Alertas** abre **Mis alertas** desde la navegación principal; Inicio también
+ofrece un acceso sin inventar un contador. Owner, Litigator y Paralegal consultan
+su propia bandeja y preferencias. Client no ve la entrada ni emite solicitudes
+de este módulo. El [contrato HTTP](../docs/alerts-api.md) y
+[ADR-0039](../docs/adr/0039-durable-activity-alerts.md) separan lectura, resolución
+del aviso y entrega al proveedor de correo.
+
+La política de destinatarios exige membresía staff actual para las audiencias,
+incluido Owner; los plazos se dirigen a su responsable autorizado. Consultar
+todos los expedientes no suscribe todas las audiencias ni permite ver bandejas
+ajenas. Esta interfaz no crea suscripciones o destinatarios arbitrarios.
+
+1. **Lectura** filtra Todas o Sin leer; **Estado de alerta**, Activas o Activas
+   y resueltas. **Consultar alertas** aplica los filtros y **Actualizar alertas**
+   vuelve al principio. **Cargar más alertas** acumula por identidad de aviso.
+   Una página vacía con continuación conserva el estado parcial; los filtros
+   invalidan respuestas tardías y no se calculan totales a partir de una página.
+2. Las tarjetas distinguen proximidad de audiencia o plazo, vencimiento sin
+   atención declarada, revisión requerida y cambio de fecha próxima. Muestran
+   contexto y revisión de origen capturados, generación y fechas exactas cuando
+   existen. Esas fechas no acreditan un vencimiento operativo actual.
+3. **Abrir audiencia** o **Abrir plazo** vuelve a consultar la alerta y autoriza
+   el expediente antes de abrir su revisión exacta. **Volver a Alertas** conserva
+   los filtros; la intención de apertura se consume una sola vez. Una revocación
+   retira los avisos del expediente del contexto visible.
+4. **Marcar como leída** es explícito, idempotente y separado de la atención del
+   plazo. Abrir el recurso no cambia la lectura. Una respuesta incierta permite
+   **Comprobar lectura** por GET sin repetir automáticamente la escritura.
+5. **Preferencias de alertas** muestra valores del servidor para la cuenta.
+   Las dos familias permiten hasta ocho anticipaciones de 1 a 720 horas,
+   separadas por comas; vacío desactiva sus anticipaciones. Los cinco grupos
+   tienen canales interno y correo independientes. Los valores iniciales del
+   servidor son 48/24 y ambos canales activos, sin guardado automático al abrir.
+6. Un conflicto conserva el formulario. **Consultar preferencias actuales**
+   muestra la revisión y los valores guardados; **Guardar mis preferencias**
+   exige una decisión explícita sobre esa nueva base. Un resultado incierto
+   conserva el comando y permite **Comprobar guardado**, sin reenvío automático.
+
+**Correo deshabilitado** indica falta de transporte configurado, aunque la
+preferencia de correo esté activa. **Aceptado por proveedor** no significa
+entregado al buzón ni leído. No se ofrece una acción de reintento de correo.
+El aviso externo previsto es genérico y no expone datos del expediente.
+
+La interfaz conserva tarjetas, estados, colores y navegación de Qadra; añade
+`src/styles/alerts.css` y apila controles y acciones en móvil. Salir de la vista
+invalida sus solicitudes; cerrar sesión borra filtros privados e intenciones.
+Las pruebas focales del cliente y nueve recorridos con HTTP controlado
+aprobaron, incluidos escritorio de 1440 y móvil de 390 píxeles. Esas pruebas
+no son aceptación con servicios reales: la composición PostgreSQL/runtime,
+generación durable y entrega externa conservan su aceptación integrada pendiente.
+Los resultados ejecutados se registran en el informe de verificación.
 
 ## Verificación
 

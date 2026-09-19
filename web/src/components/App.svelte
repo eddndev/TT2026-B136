@@ -9,8 +9,10 @@
   import CaseWorkspace from './CaseWorkspace.svelte';
   import Admin from './Admin.svelte';
   import Agenda from './Agenda.svelte';
+  import Alerts from './Alerts.svelte';
   import JudicialCalendars from './JudicialCalendars.svelte';
   import '../styles/judicial-calendars.css';
+  import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
   import { roles } from '../lib/documents.mjs';
   import { normalizeView, viewLabels } from '../lib/workspace.mjs';
@@ -19,6 +21,8 @@
   let hearingIntent = null,
     deadlineIntent = null,
     agendaFilters = null;
+  let alertFilters = null,
+    alertReturn = false;
 
   let view = 'overview';
   let documentIntent = null;
@@ -33,6 +37,8 @@
     hearingIntent = null;
     deadlineIntent = null;
     agendaFilters = null;
+    alertFilters = null;
+    alertReturn = false;
 
     documentIntent = null;
     view = 'overview';
@@ -58,6 +64,18 @@
     view = normalizeView(destination, user?.role);
     if (view !== 'hearings') hearingIntent = null;
     if (view !== 'deadlines') deadlineIntent = null;
+    if (
+      ![
+        'case-summary',
+        'documents',
+        'participants',
+        'stages',
+        'hearings',
+        'resolutions',
+        'deadlines',
+      ].includes(view)
+    )
+      alertReturn = false;
     if (location.hash !== `#${view}`) location.hash = view;
     await tick();
     main?.focus({ preventScroll: true });
@@ -102,6 +120,7 @@
       {view}
       onnavigate={(next) => {
         documentIntent = null;
+        alertReturn = false;
         go(next);
       }}
       onlogout={logout}
@@ -131,6 +150,19 @@
             ondocument={openDocument}
           />
         {:else if view === 'judicial-calendars'}<JudicialCalendars {api} {user} />
+        {:else if view === 'alerts'}<Alerts
+            {api}
+            {user}
+            bind:filters={alertFilters}
+            onopen={(record, intent) => {
+              selectedCase = record;
+              alertReturn = true;
+              hearingIntent = intent.kind === 'hearing' ? intent : null;
+              deadlineIntent = intent.kind === 'deadline' ? intent : null;
+              documentIntent = null;
+              go(intent.kind === 'deadline' ? 'deadlines' : 'hearings');
+            }}
+          />
         {:else if view === 'agenda'}<Agenda
             {api}
             bind:filters={agendaFilters}
@@ -153,6 +185,9 @@
             }}
           />
         {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'deadlines'].includes(view)}
+          {#if alertReturn}<button class="text-button alerts-return" onclick={() => go('alerts')}
+              >Volver a Alertas</button
+            >{/if}
           {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
                 {api}
                 {user}

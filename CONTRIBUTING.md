@@ -252,9 +252,9 @@ Inspect current code and contracts before treating this summary as complete.
   evidence and are not covered by those historical runs. Remote checks and
   integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, alerts and the qualified legal-profile acceptance corpus
-  remain pending. The later reevaluation runtime is composed locally in `serve`
-  and has separate real-service verification.
+  Automatic activation and the qualified legal-profile acceptance corpus remain
+  pending. Reevaluation is integrated through PR 34; alerts have their own
+  published delivery and acceptance status below.
 
 - The combined `/api/v1/agenda` query and Qadra day, week and month views are
   implemented. One authorized, audited transaction combines hearing heads with
@@ -262,7 +262,7 @@ Inspect current code and contracts before treating this summary as complete.
   continuation. Historical reads and pending, retired or changed deadlines provide
   no operational date. Opening preserves the exact revision. Backend/HTTP,
   desktop/mobile browser and restored-API acceptance passed for the published
-  checkpoint. Closing CI and integration into `main` remain pending. See
+  checkpoint. PR 35 integrated this delivery into `main` as `c16b820`. See
   `docs/agenda-api.md`, `docs/adr/0038-authorized-combined-agenda.md` and
   `docs/verification-report.md`.
 
@@ -285,7 +285,8 @@ Inspect current code and contracts before treating this summary as complete.
   included in the 31. A real API campaign passed reevaluation, TERM/INT shutdown,
   restart and restoration of R1-R5. The final API repeat and CLI demonstration
   also passed; detailed results are in `docs/verification-report.md`.
-  Global verification and integration into `main` are still being closed. See `docs/deadline-tracking-api.md`,
+  Closing verification passed and PR 34 integrated this delivery into `main` as
+  `e2e6758`. See `docs/deadline-tracking-api.md`,
   `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
@@ -308,20 +309,27 @@ Inspect current code and contracts before treating this summary as complete.
   Runtime verification passed 31 unit and four CLI-help tests, including the
   26 loop, stop and supervision tests. Real API verification covered reevaluation,
   TERM/INT shutdown, restart and restoration of R1-R5, including the final API
-  acceptance. Global verification remains in progress; consult
+  acceptance. PR 34 integrated the verified delivery into `main`; consult
   `docs/verification-report.md`. The human HTTP contract represents
   V1/V2 history and technical provenance without accepting worker commands. See
   `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
+
+- Durable activity alerts, account preferences, the personal Qadra inbox and
+  the scheduler/email consumers composed in `serve` are implemented and published
+  in PR 36. Internal alerts and optional generic email preserve
+  delivery state, retries and duplicate control. API/restoration and focal
+  real-service browser acceptance passed; CI closure remains in progress. This delivery is not integrated into
+  `main`. See `docs/alerts-api.md` and `docs/verification-report.md`.
 
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
-1. Complete global verification, then integrate the
-   verified human/HTTP/Qadra V2 workflow, composed durable runtime and combined
-   agenda into `main`. Qualify legal profiles with primary sources and
-   acceptance cases, then implement activation and notifications.
+1. Close acceptance and CI for the published alerts delivery before integrating
+   it into `main`. Reevaluation and the combined agenda are already integrated.
+   Qualify legal profiles with primary sources and acceptance cases, then implement
+   automatic activation and resources linked to resolutions.
    Preserve exact inputs and immutable historical evaluations. Declared hearing
    text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and

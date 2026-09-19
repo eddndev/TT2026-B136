@@ -21,6 +21,8 @@ for command in cargo curl jq openssl python3 node psql unzip; do
 done
 
 WORK_DIR="$(mktemp -d)"
+# Stop dotenv discovery before it can reach an ancestor checkout's settings.
+: >"$WORK_DIR/.env"
 SERVER_PID=""
 cleanup() {
   local status=$?
@@ -44,7 +46,7 @@ export PKI_CA_DIR="$WORK_DIR/ca"
 export TSA_DIR="$WORK_DIR/tsa"
 export KEK_BASE64
 KEK_BASE64="$(openssl rand -base64 32)"
-unset CINCEL_BASE_URL CINCEL_API_KEY
+unset CINCEL_BASE_URL CINCEL_API_KEY RESEND_API_KEY ALERT_EMAIL_FROM ALERT_LOGIN_URL
 TT_BROWSER_DATABASE_PASSWORD="$(openssl rand -hex 24)"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
   -v runtime_password="$TT_BROWSER_DATABASE_PASSWORD" >/dev/null <<'SQL'

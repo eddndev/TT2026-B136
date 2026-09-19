@@ -7,6 +7,7 @@ use axum::Json;
 use domain::DomainError;
 use serde::Serialize;
 
+mod alerts;
 mod deadline;
 mod deadline_profile;
 mod hearing;
@@ -124,6 +125,10 @@ impl ApiError {
 
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
+        let error = match alerts::map(error) {
+            Ok(mapped) => return mapped,
+            Err(error) => error,
+        };
         let error = match deadline::map(error) {
             Ok(mapped) => return mapped,
             Err(error) => error,

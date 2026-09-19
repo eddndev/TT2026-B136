@@ -19,6 +19,9 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    Alert(#[from] crate::alerts::AlertError),
+
+    #[error(transparent)]
     Deadline(#[from] crate::deadlines::DeadlineError),
 
     #[error(transparent)]

@@ -23,6 +23,18 @@ pub struct ServeArgs {
     /// Positive pause in milliseconds between serial deadline cycles.
     #[arg(long, default_value = "1000")]
     pub deadline_poll_ms: std::num::NonZeroU32,
+    /// Maximum reconciliation or activation actions per serial alert cycle.
+    #[arg(long, default_value_t = 20, value_parser = clap::value_parser!(u32).range(1..=100))]
+    pub alert_page_limit: u32,
+    /// Positive pause in milliseconds between serial alert cycles.
+    #[arg(long, default_value = "1000")]
+    pub alert_poll_ms: std::num::NonZeroU32,
+    /// Optional alert sender; requires ALERT_LOGIN_URL and RESEND_API_KEY together.
+    #[arg(long, env = "ALERT_EMAIL_FROM")]
+    pub alert_email_from: Option<String>,
+    /// Public login URL used in generic alert emails.
+    #[arg(long, env = "ALERT_LOGIN_URL")]
+    pub alert_login_url: Option<String>,
     /// Legacy storage directory checked for a completed import before startup.
     #[arg(long, default_value = "runtime-data")]
     pub data_dir: PathBuf,

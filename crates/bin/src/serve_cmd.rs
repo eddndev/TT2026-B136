@@ -40,6 +40,11 @@ const KEK_VAR: &str = "KEK_BASE64";
 
 /// Builds all local adapters and blocks while the HTTP server is running.
 pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
+    let alert_email = crate::serve_alert_composition::email_settings(args)?;
+    let alert_config = crate::serve_alert_runtime::AlertRuntimeConfig::new(
+        args.alert_page_limit,
+        std::time::Duration::from_millis(u64::from(args.alert_poll_ms.get())),
+    )?;
     let deadline_config = DeadlineRuntimeConfig::new(
         application::deadline_dispatch::DeadlineDispatchLimit::new(args.deadline_page_limit)?,
         std::time::Duration::from_millis(u64::from(args.deadline_poll_ms.get())),
@@ -281,6 +286,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         processor,
         Arc::new(SystemClock::new()),
     );
+    let alerts = crate::serve_alert_composition::open(
+        &database_url,
+        identity.clone(),
+        alert_email,
+        alert_config,
+    )?;
     let router = web::api_router(
         Arc::new(workflow),
         identity,
@@ -294,6 +305,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             procedural_facts: Arc::new(procedural_facts),
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
+            alerts: alerts.workflow,
         },
         Arc::new(calendars),
         Arc::new(profiles),
@@ -303,7 +315,14 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         },
     );
 
-    crate::serve_start::run(&args.bind, router, dispatch, worker, deadline_config)
+    crate::serve_start::run(
+        &args.bind,
+        router,
+        dispatch,
+        worker,
+        deadline_config,
+        alerts.consumers,
+    )
 }
 
 fn read(path: &std::path::Path, label: &str) -> anyhow::Result<Vec<u8>> {

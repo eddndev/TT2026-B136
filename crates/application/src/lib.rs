@@ -5,6 +5,7 @@
 //! use cases are added together with their tests.
 
 pub mod agenda;
+pub mod alerts;
 pub mod audit;
 pub mod auth;
 pub mod case_stages;

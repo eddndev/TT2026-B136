@@ -46,7 +46,10 @@ La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
 restauración de R1-R5; la aceptación API final también aprobó. El cierre global
 y la integración en `main` continúan; el informe conserva los resultados exactos.
 La agenda conjunta incorpora su [contrato independiente](agenda-api.md);
-la aceptación de cada entrega se registra en el informe. Las alertas siguen pendientes. Véanse
+la aceptación de cada entrega se registra en el informe. Las
+[alertas personales](alerts-api.md) tienen servicio, router y cliente Qadra,
+compuestos en `serve` con generación interna y transporte opcional;
+la aceptación integrada de persistencia y runtime sigue pendiente. Véanse
 [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
@@ -287,8 +290,9 @@ La programación de audiencias tiene su [contrato independiente](hearings-api.md
 Las sesiones y resultados declarados disponen de su
 [contrato separado](hearing-results-api.md). El cálculo y la historia de plazos
 usan [su propia colección](deadlines-api.md). La reevaluación compuesta en servidor
-cuenta con recorridos API y navegador reales. Recursos, activación automática y
-alertas conservan operaciones pendientes propias.
+cuenta con recorridos API y navegador reales. Recursos y activación automática
+conservan operaciones pendientes propias; las [alertas personales](alerts-api.md)
+tienen su propio contrato y aceptación integrada pendiente.
 
 ## Audiencias y agenda
 
@@ -936,7 +940,25 @@ Estos resultados ejercitan el [consumidor compuesto](deadline-worker.md) y se
 registran por separado en el [informe de verificación](verification-report.md).
 La aceptación API final aprobó. El cierre global y la integración en `main`
 siguen en curso. La agenda de audiencias y vencimientos reunidos tiene
-[un contrato propio](agenda-api.md); las alertas conservan su implementación pendiente.
+[un contrato propio](agenda-api.md); las alertas personales se describen a continuación.
+
+## Alertas personales
+
+El [contrato de alertas](alerts-api.md) incorpora `GET/PUT /api/v1/alert-preferences`,
+`GET /api/v1/alerts`, detalle por identificador y `POST /api/v1/alerts/{id}/read`.
+Son recursos personales de staff, sin suscripciones ni acceso Client. Owner
+no obtiene bandejas ajenas por su rol. Los cuerpos, recibos, filtros y cursores
+se validan antes de proyectar una respuesta; el servicio reautentica al principal.
+
+Las preferencias admiten anticipaciones configurables, inicialmente 48/24 horas,
+y canales por los cuatro motivos de aviso. Leer no declara atención; el origen
+histórico no acredita vigencia operativa. `email.kind=accepted` sólo confirma
+aceptación por el proveedor y `disabled` expresa transporte no configurado.
+El router y el servicio de aplicación están compuestos en `serve` junto con
+Qadra. La [configuración del servidor](alerts-api.md#configuración-y-aceptación-del-servidor)
+detalla el correo opcional y los límites del consumidor. Los recorridos API y
+navegador real están preparados; su ejecución integrada sigue pendiente y se
+registra por separado de la verificación con HTTP controlado.
 
 ## Errores
 

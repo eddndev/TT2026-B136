@@ -1,7 +1,10 @@
 //! Preserve synchronous adapter ownership through the complete server lifetime.
 
-use crate::{serve_deadline_runtime::DeadlineRuntimeConfig, serve_start};
-use application::{deadline_dispatch::*, deadline_worker::*, ApplicationError};
+use crate::{
+    serve_alert_composition::AlertConsumers, serve_alert_runtime::AlertRuntimeConfig,
+    serve_deadline_runtime::DeadlineRuntimeConfig, serve_start,
+};
+use application::{alerts::*, deadline_dispatch::*, deadline_worker::*, ApplicationError};
 use axum::{routing::get, Extension, Router};
 use domain::typed_participants::Uuid;
 use std::{
@@ -74,6 +77,39 @@ impl DeadlineWorkerStore for Worker {
     }
 }
 
+struct Alerts {
+    _probe: Probe,
+    calls: Arc<AtomicUsize>,
+}
+
+impl AlertSchedulerStore for Alerts {
+    fn run_next(&self) -> Result<AlertSchedulerRun, ApplicationError> {
+        self.calls.fetch_add(1, SeqCst);
+        Ok(AlertSchedulerRun::Idle)
+    }
+}
+
+impl AlertDeliveryStore for Alerts {
+    fn claim_next(&self) -> Result<Option<AlertDeliveryClaim>, ApplicationError> {
+        self.calls.fetch_add(1, SeqCst);
+        Ok(None)
+    }
+
+    fn complete_attempt(&self, _: AlertDeliveryCompletion) -> Result<(), ApplicationError> {
+        panic!("composition must not complete an absent claim")
+    }
+}
+
+struct Sender {
+    _probe: Probe,
+}
+
+impl AlertEmailSender for Sender {
+    fn send(&self, _: &AlertEmailMessage) -> AlertEmailOutcome {
+        panic!("composition must not send an absent claim")
+    }
+}
+
 #[test]
 fn failed_bind_starts_no_consumer_and_drops_every_final_owner_outside_tokio() {
     scenario("127.0.0.1:not-a-port", false);
@@ -88,9 +124,11 @@ fn scenario(bind: &'static str, consumer_started: bool) {
     let drops: Drops = Arc::new(Mutex::new(Vec::new()));
     let dispatch_calls = Arc::new(AtomicUsize::new(0));
     let worker_calls = Arc::new(AtomicUsize::new(0));
+    let alert_calls = Arc::new(AtomicUsize::new(0));
     let observed = Arc::clone(&drops);
     let dispatched = Arc::clone(&dispatch_calls);
     let worked = Arc::clone(&worker_calls);
+    let alerted = Arc::clone(&alert_calls);
     let (sender, finished) = mpsc::sync_channel(1);
     let owner = thread::spawn(move || {
         let probe = |label| Probe {
@@ -114,7 +152,19 @@ fn scenario(bind: &'static str, consumer_started: bool) {
             Duration::from_millis(1),
         )
         .unwrap();
-        let result = serve_start::run(bind, router, dispatch, worker, config);
+        let alerts = Arc::new(Alerts {
+            _probe: probe("alerts"),
+            calls: alerted,
+        });
+        let consumers = AlertConsumers {
+            scheduler: alerts.clone(),
+            delivery: alerts,
+            sender: Some(Arc::new(Sender {
+                _probe: probe("sender"),
+            })),
+            config: AlertRuntimeConfig::new(1, Duration::from_millis(1)).unwrap(),
+        };
+        let result = serve_start::run(bind, router, dispatch, worker, config, consumers);
         let _ = sender.send((thread::current().id(), result));
     });
     let (owner_thread, result) = finished
@@ -127,11 +177,14 @@ fn scenario(bind: &'static str, consumer_started: bool) {
     }
     assert_eq!(dispatch_calls.load(SeqCst), usize::from(consumer_started));
     assert_eq!(worker_calls.load(SeqCst), 0);
+    if !consumer_started {
+        assert_eq!(alert_calls.load(SeqCst), 0);
+    }
     let mut events = drops.lock().unwrap();
     events.sort_by_key(|event| event.label);
     assert_eq!(
         events.iter().map(|event| event.label).collect::<Vec<_>>(),
-        vec!["dispatcher", "router", "worker"]
+        vec!["alerts", "dispatcher", "router", "sender", "worker"]
     );
     for event in events.iter() {
         assert!(

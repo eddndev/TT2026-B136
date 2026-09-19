@@ -14,6 +14,7 @@ use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
 mod agenda;
+mod alerts;
 mod case_administration;
 mod case_stages;
 mod cases;
@@ -92,6 +93,12 @@ pub fn agenda_router(workflow: Arc<dyn application::agenda::AgendaWorkflow>) -> 
     protect(agenda::router(workflow, runtime.clone()), runtime)
 }
 
+/// Builds personal alert preferences and inbox routes over an authorized workflow.
+pub fn alert_router(workflow: Arc<dyn application::alerts::AlertWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(alerts::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds authorized hearing and global agenda routes.
 pub fn hearing_router(workflow: Arc<dyn application::hearings::HearingWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -136,6 +143,7 @@ pub struct CaseWorkflows {
     pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
+    pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
 }
 
 /// Builds the explicit global and case profile collections over an authorized workflow.
@@ -188,6 +196,7 @@ pub fn api_router(
         ))
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
         .merge(agenda::router(workflows.agenda, runtime.clone()))
+        .merge(alerts::router(workflows.alerts, runtime.clone()))
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))

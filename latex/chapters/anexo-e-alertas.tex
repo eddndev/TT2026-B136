@@ -1,0 +1,32 @@
+\section{Trazabilidad de alertas personales persistentes}\label{sec:matriz-alertas}
+
+La implementación de la \cref{sec:implementacion-alertas} separa temporización, autorización, persistencia, transporte y presentación. Las comprobaciones de la \cref{sec:pruebas-alertas} conservan denominadores por campaña; la existencia de una prueba o guion no acredita su ejecución satisfactoria. El contrato se conserva en \rutarepo{docs/alerts-api.md} y la decisión en \rutarepo{docs/adr/0039-durable-activity-alerts.md}.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.13}
+\begin{longtable}{@{}p{0.23\textwidth}p{0.71\textwidth}@{}}
+  \caption{Fronteras y evidencia de alertas personales.}\label{tab:matriz-alertas}\\
+  \toprule
+  \textbf{Frontera} & \textbf{Invariantes y fuentes de comprobación} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Invariantes y fuentes de comprobación} \\
+  \midrule
+  \endhead
+  Temporización y servicio & Ventanas con nanosegundos, preferencias personales, autorización y coherencia de respuestas. Los módulos \texttt{alerts} de dominio y aplicación y las pruebas de aplicación con prefijo \texttt{alert\_} conservan estas fronteras. \\
+  Catálogo e inventario & \texttt{alert\_catalog.rs} y \texttt{alert\_inventory.rs}, en las pruebas de infraestructura, comprueban estructura, permisos y evidencia almacenada; el arranque no repara silenciosamente una alteración. \\
+  Bandeja y preferencias & \texttt{alert\_inbox.rs} y \texttt{alert\_preferences.rs} comprueban cuenta destinataria, aislamiento antes del límite, lectura idempotente y recuperación de operaciones. \\
+  Generación y episodios & \texttt{alert\_scheduler.rs}, \texttt{alert\_scheduler\_edges.rs} y \texttt{alert\_review\_episode.rs} comprueban atomicidad, vigencia y continuidad tras atención, aceptación humana o cambios de preferencias. \\
+  Entrega de correo & \texttt{alert\_delivery.rs} comprueba arrendamientos, confirmación del intento vigente, mensaje congelado y reversión auditada. Las pruebas del adaptador \texttt{alert\_email} usan un servidor local de ensayo, sin acreditar recepción externa. \\
+  Transporte e interfaz & \texttt{alert\_http.rs}, las pruebas del cliente con prefijo \texttt{alerts-} y los recorridos de navegador controlado comprueban proyección, conflictos, paginación y apertura de la revisión exacta. \\
+  Composición & Los archivos \texttt{serve\_alert\_runtime}, \texttt{serve\_alert\_supervisor} y sus pruebas separan presupuesto, espera, configuración y parada; los controles de arranque comprueban la conexión de estos componentes. \\
+  \bottomrule
+\end{longtable}
+\endgroup
+
+Las migraciones \texttt{0021} conservan el catálogo. Dentro del directorio \rutarepo{crates/infrastructure/src/}, los módulos \texttt{alert\_schema} y \texttt{alerts\_postgres} implementan su comprobación, las proyecciones y el inventario.
+
+La aceptación de \rutarepo{scripts/api-alerts-demo.py} y \rutarepo{web/tests/live/alerts.spec.mjs} utiliza servicios reales y mantiene correo externo deshabilitado. El navegador aprobó escritorio, móvil y permisos; la API y la restauración compararon las ocho tablas y conservaron la alerta leída, las preferencias y la evidencia de audiencia sin duplicados. Estas fronteras no sustituyen la aceptación de un proveedor externo ni las campañas históricas de documentos, agenda o plazos.

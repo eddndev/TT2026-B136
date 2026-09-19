@@ -1,6 +1,7 @@
 import { canCalendars } from './judicial-calendar-labels.mjs';
 import { canHearings } from './hearings.mjs';
 import { canParticipants } from './participants.mjs';
+import { canAlerts } from './alerts-presentation.mjs';
 export function documentStatus(document) {
   if (document.report?.verdict === 'not_valid')
     return { label: 'Revisar evidencia', tone: 'danger', key: 'failed' };
@@ -14,6 +15,7 @@ export function documentStatus(document) {
 
 export function normalizeView(hash, role) {
   const view = hash.replace(/^#/, '');
+  if (view === 'alerts' && canAlerts(role)) return view;
   if (view === 'judicial-calendars' && canCalendars(role)) return view;
   if (['hearings', 'agenda'].includes(view) && canHearings(role, 'read')) return view;
   if (
@@ -37,6 +39,7 @@ export const viewLabels = {
   resolutions: 'Expedientes / Resoluciones',
   deadlines: 'Expedientes / Plazos',
   agenda: 'Agenda',
+  alerts: 'Mis alertas',
   'judicial-calendars': 'Calendarios jurisdiccionales',
   team: 'Equipo',
   audit: 'Auditor\u00eda',

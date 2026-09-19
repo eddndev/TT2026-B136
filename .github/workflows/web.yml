@@ -2,12 +2,14 @@ name: Web
 
 on:
   push:
+    branches: [main]
     paths:
       - 'web/**'
       - 'crates/**'
       - 'migrations/**'
       - 'pki/**'
       - 'scripts/web-demo.sh'
+      - 'scripts/web-alert-fixtures.mjs'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-typed-participant-fixtures.mjs'
       - 'scripts/web-case-administration-fixtures.mjs'
@@ -34,6 +36,7 @@ on:
       - 'migrations/**'
       - 'pki/**'
       - 'scripts/web-demo.sh'
+      - 'scripts/web-alert-fixtures.mjs'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-typed-participant-fixtures.mjs'
       - 'scripts/web-case-administration-fixtures.mjs'

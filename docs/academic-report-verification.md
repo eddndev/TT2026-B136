@@ -1,20 +1,79 @@
 # Verificación de la actualización académica
 
-## Agenda combinada: actualización en revisión
+## Alertas personales: fuentes del 19 de septiembre de 2026
 
-Los apartados de audiencias y plazos describen la consulta combinada, su límite
-de vigencia, autorización, paginación y navegación por revisión exacta. Pruebas
-y anexo incorporan la aceptación reproducida con PostgreSQL, navegador y
-restauración. Se preservan resumen, objetivos, estado del arte, conclusiones
-pendientes y presentación.
+Se añadieron implementación, pruebas y trazabilidad de alertas persistentes,
+con sus inclusiones y dos correcciones puntuales de referencias pendientes.
+El texto distingue PostgreSQL y correo de ensayo, navegador con HTTP controlado,
+aceptación real de escritorio/móvil y API con respaldo y restauración.
+Los resultados pertenecen al [informe técnico](verification-report.md).
 
-El workflow Documents compiló el árbol de agenda con aceptación de cinco
-expedientes en un PDF de 316 páginas. Su log identificó un desborde nuevo en
-una lista de rutas del anexo; se corrigió el ajuste de ese párrafo. La
-compilación de esta corrección y la inspección final permanecen pendientes.
-El resultado de 315 páginas documentado a continuación corresponde al
-seguimiento humano V2 anterior; no acredita estos nuevos apartados. Los
-resultados de software están en [el informe técnico](verification-report.md).
+Sólo cambiaron cinco fuentes académicas existentes y se añadieron tres.
+Resumen, objetivos, estado del arte, conclusiones y presentación se preservan.
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35454343442)
+compiló la cabeza `3e8fa07`. El artefacto identifica el merge de revisión
+`c5ea27b`, con padres `c16b820` y `3e8fa07`, cuyo árbol coincide con esa cabeza.
+El PDF tiene **320 páginas, formato carta y 5896482 bytes**. SHA-256:
+`0339305f0e765ca9927d02bafe71f0c8ced8d04aaa4585d37bd67282cdc90bce`.
+
+Se renderizaron e inspeccionaron **15 páginas físicas: 3-5, 195-198, 228-231
+y 314-317**. La página 316 presenta un desborde nuevo de **13.34413 pt** en
+una lista de rutas. Se dividió ese párrafo y se corrigió el artículo de una
+referencia al apéndice. La compilación y revisión de estas correcciones quedan
+pendientes; el primer artefacto no acredita su resultado.
+
+La pasada final conserva las sustituciones históricas de versalitas y el
+desborde anterior de 0.11754 pt, sin referencias o citas indefinidas, etiquetas
+duplicadas ni glifos ausentes. El artefacto y las imágenes se conservan en
+`output/alerts-verification/ci-report-3e8fa07/`, sin añadir binarios a Git.
+Esta muestra no constituye una revisión de las 320 páginas ni acredita el
+cierre del manuscrito completo.
+
+El [artefacto corregido](https://github.com/eddndev/TT2026-B136/actions/runs/35455073260)
+corresponde a `a1cfeae`: el merge de revisión `02c214e` tiene padres `c16b820`
+y `a1cfeae` y el mismo árbol que esa cabeza. Conserva **320 páginas**, formato
+carta, y ocupa **5896518 bytes**. SHA-256:
+`f8964dbcc89c7fd8b75569f8e16bfb0e7ca9c989bbd3b327dca10cf3c4996ac2`.
+Se renderizaron las mismas quince páginas: doce imágenes son idénticas a las
+ya inspeccionadas y se revisaron nuevamente las páginas 230, 316 y 317.
+El párrafo ya cabe en el margen y la referencia al apéndice es correcta,
+sin recortes ni solapamientos. La última pasada de LuaLaTeX conserva sólo
+las sustituciones históricas de versalitas y el desborde de 0.11754 pt;
+no contiene referencias o citas indefinidas, etiquetas duplicadas ni glifos
+ausentes. El resultado se conserva en
+`output/alerts-verification/ci-report-a1cfeae/`.
+
+## Agenda combinada: 19 de septiembre de 2026
+
+Los apartados de audiencias y plazos describen la consulta combinada, vigencia,
+autorización, continuación y apertura por revisión exacta. Pruebas y anexo
+incorporan la aceptación PostgreSQL, navegador, restauración y cinco expedientes.
+Se preservan resumen, objetivos, estado del arte, conclusiones pendientes y
+presentación.
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35434470866)
+compiló `79a618b`: el artefacto identifica el merge de revisión `9273b8f`,
+con padres `e2e6758` y `79a618b`, cuyo árbol coincide con la cabeza publicada.
+El PDF tiene **316 páginas, formato carta y 5880480 bytes**. SHA-256:
+`671d5ebc4ce6d0534636a613f4f767ac45809197b7f739eb12fe18e03aa52560`.
+
+Se renderizaron e inspeccionaron **16 páginas físicas: 3-5, 178-180, 192-195,
+226-228 y 311-313**. Siete páginas de implementación recibieron revisión
+independiente. Texto, tablas y rutas son legibles, sin recortes ni solapamientos.
+Permanecen dos cortes tipográficos menores: una línea de continuación al inicio
+de la página 180 y la extensión final de una ruta en la 194. No se presenta
+esta muestra como inspección de todas las páginas.
+
+La revisión previa detectó un desborde de 25.56375 pt en las rutas del anexo;
+el ajuste del párrafo lo corrigió. La pasada final no contiene referencias o
+citas indefinidas, etiquetas duplicadas ni glifos ausentes. Conserva las
+sustituciones históricas de versalitas y el desborde de 0.11754 pt. El artefacto
+comprobado se conserva en `output/deadline-reevaluation/ci-report-79a618b/` del
+checkout de agenda, sin añadir binarios a Git ni sustituir otros entregables.
+
+La aceptación de software pertenece al [informe técnico](verification-report.md).
+Este resultado no acredita usabilidad con personas, perfiles jurídicos
+calificados, cierre del manuscrito completo ni preparación final de defensa.
 
 ## Seguimiento humano V2 compuesto y Qadra: 19 de septiembre de 2026
 
