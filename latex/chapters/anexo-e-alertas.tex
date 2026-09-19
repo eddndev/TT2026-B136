@@ -27,4 +27,6 @@ La implementación de la \cref{sec:implementacion-alertas} separa temporización
 \end{longtable}
 \endgroup
 
-Las migraciones \texttt{0021} y los módulos \rutarepo{crates/infrastructure/src/alert_schema/} y \rutarepo{crates/infrastructure/src/alerts_postgres/} conservan catálogo, proyecciones e inventario. La aceptación de \rutarepo{scripts/api-alerts-demo.py} y \rutarepo{web/tests/live/alerts.spec.mjs} utiliza servicios reales y mantiene correo externo deshabilitado. El navegador aprobó escritorio, móvil y permisos; la API y la restauración compararon las ocho tablas y conservaron la alerta leída, las preferencias y la evidencia de audiencia sin duplicados. Estas fronteras no sustituyen la aceptación de un proveedor externo ni las campañas históricas de documentos, agenda o plazos.
+Las migraciones \texttt{0021} conservan el catálogo. Dentro del directorio \rutarepo{crates/infrastructure/src/}, los módulos \texttt{alert\_schema} y \texttt{alerts\_postgres} implementan su comprobación, las proyecciones y el inventario.
+
+La aceptación de \rutarepo{scripts/api-alerts-demo.py} y \rutarepo{web/tests/live/alerts.spec.mjs} utiliza servicios reales y mantiene correo externo deshabilitado. El navegador aprobó escritorio, móvil y permisos; la API y la restauración compararon las ocho tablas y conservaron la alerta leída, las preferencias y la evidencia de audiencia sin duplicados. Estas fronteras no sustituyen la aceptación de un proveedor externo ni las campañas históricas de documentos, agenda o plazos.

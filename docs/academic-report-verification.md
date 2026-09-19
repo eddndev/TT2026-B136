@@ -10,9 +10,24 @@ Los resultados pertenecen al [informe técnico](verification-report.md).
 
 Sólo cambiaron cinco fuentes académicas existentes y se añadieron tres.
 Resumen, objetivos, estado del arte, conclusiones y presentación se preservan.
-La compilación y revisión visual de este nuevo corte quedan pendientes del
-artefacto Documents de la PR 36; el PDF de agenda descrito abajo conserva su
-propia evidencia y no se presenta como el reporte de alertas.
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35454343442)
+compiló la cabeza `3e8fa07`. El artefacto identifica el merge de revisión
+`c5ea27b`, con padres `c16b820` y `3e8fa07`, cuyo árbol coincide con esa cabeza.
+El PDF tiene **320 páginas, formato carta y 5896482 bytes**. SHA-256:
+`0339305f0e765ca9927d02bafe71f0c8ced8d04aaa4585d37bd67282cdc90bce`.
+
+Se renderizaron e inspeccionaron **15 páginas físicas: 3-5, 195-198, 228-231
+y 314-317**. La página 316 presenta un desborde nuevo de **13.34413 pt** en
+una lista de rutas. Se dividió ese párrafo y se corrigió el artículo de una
+referencia al apéndice. La compilación y revisión de estas correcciones quedan
+pendientes; el primer artefacto no acredita su resultado.
+
+La pasada final conserva las sustituciones históricas de versalitas y el
+desborde anterior de 0.11754 pt, sin referencias o citas indefinidas, etiquetas
+duplicadas ni glifos ausentes. El artefacto y las imágenes se conservan en
+`output/alerts-verification/ci-report-3e8fa07/`, sin añadir binarios a Git.
+Esta muestra no constituye una revisión de las 320 páginas ni acredita el
+cierre del manuscrito completo.
 
 ## Agenda combinada: 19 de septiembre de 2026
 
