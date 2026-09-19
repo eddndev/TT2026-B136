@@ -108,6 +108,10 @@ migration_demo_state() {
       'procedural_resource_acts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM case_procedural_resource_acts a),
       'procedural_resource_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY resource_id,revision)
         FROM case_procedural_resource_revisions r),
+      'resource_activity_associations',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id)
+        FROM case_resource_activity_associations r),
+      'resource_activity_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY association_id,revision)
+        FROM case_resource_activity_association_revisions r),
       'deadline_profiles',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM deadline_profiles p),
       'deadline_profile_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY profile_id,revision)
         FROM deadline_profile_revisions p),
@@ -275,6 +279,7 @@ PY
   profile_demo
   deadline_demo
   agenda_demo
+  resource_activities_demo
   deadline_worker_demo "$runtime_url" "$legacy_dir"
   alert_demo
   calendar_demo_python checkpoint
@@ -315,6 +320,7 @@ PY
   profile_demo_restored
   deadline_demo_restored
   agenda_demo
+  resource_activities_demo_restored
   deadline_worker_demo_python verify
   alert_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
@@ -336,6 +342,9 @@ PY
   printf 'Restored hearings: %s roots, %s immutable revisions.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_hearings')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_hearing_revisions')"
+  printf 'Restored resource activities: %s roots, %s immutable revisions.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_resource_activity_associations')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_resource_activity_association_revisions')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }

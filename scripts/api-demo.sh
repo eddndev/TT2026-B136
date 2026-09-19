@@ -250,6 +250,9 @@ source "$REPO_ROOT/scripts/api-procedural-facts-demo.sh"
 # shellcheck source=scripts/api-procedural-resources-demo.sh
 source "$REPO_ROOT/scripts/api-procedural-resources-demo.sh"
 
+# shellcheck source=scripts/api-resource-activities-demo.sh
+source "$REPO_ROOT/scripts/api-resource-activities-demo.sh"
+
 # shellcheck source=scripts/api-deadline-profiles-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-profiles-demo.sh"
 # shellcheck source=scripts/api-deadlines-demo.sh
