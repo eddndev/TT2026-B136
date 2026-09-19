@@ -1,4 +1,5 @@
 import { caseApi } from './case-api.mjs';
+import { alertsApi } from './alerts-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 
 const messages = {
@@ -130,6 +131,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
+    alerts: (actorId) => alertsApi(request, actorId),
     audit: () => request('/audit/verify'),
   };
 }

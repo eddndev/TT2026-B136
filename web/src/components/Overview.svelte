@@ -1,6 +1,7 @@
 <script>
   import Icon from './Icon.svelte';
   import { can } from '../lib/documents.mjs';
+  import { canAlerts } from '../lib/alerts-presentation.mjs';
   export let user;
   export let selectedCase = null;
   export let onnavigate;
@@ -73,6 +74,14 @@
       </div>
       <span class="stat-icon"><Icon name="help" size={23} /></span></button
     >{/if}
+  {#if canAlerts(user.role)}<button class="stat-card" onclick={() => onnavigate('alerts')}>
+      <div>
+        <span>Mis alertas</span><strong>Consultar</strong><small
+          >Avisos personales y preferencias</small
+        >
+      </div>
+      <span class="stat-icon warning"><Icon name="clock" size={23} /></span>
+    </button>{/if}
 </section>
 <div class="overview-grid">
   <section class="card recent-panel">
