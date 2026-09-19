@@ -4,6 +4,7 @@
 //! dependency on any other workspace crate. Adapters and outbound ports are
 //! defined elsewhere; the domain stays free of I/O and framework concerns.
 
+pub mod alerts;
 pub mod audit;
 pub mod case_administration;
 pub mod case_stages;
