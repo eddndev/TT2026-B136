@@ -72,7 +72,11 @@ En \rutarepo{web/tests/live/}, las pruebas de plazos ejercitan el servidor real.
   \item Los terminados en \texttt{concurrency.spec.mjs}: concurrencia.
   \item \texttt{deadline-reevaluation.spec.mjs}: transición de calendario seguido, revisión pendiente por fuente y confirmación humana con historia intacta.
 \end{itemize}
+\begingroup
+\raggedright
 Los datos del recorrido de reevaluación se preparan mediante \rutarepo{scripts/web-deadline-reevaluation.mjs} con activación explícita y raíces independientes de las selecciones históricas fijas. Sus casos aprobados en escritorio y móvil pertenecen a la campaña real de 25 escenarios; la inspección de sus seis capturas no detectó recortes ni desbordamiento. El orquestador de las campañas de navegador es \rutarepo{scripts/web-demo.sh}.
+\par
+\endgroup
 
 El recorrido \rutarepo{scripts/api-demo.sh} incorpora la consulta de responsables y comprueba que la proyección no exponga credenciales. Los ensayos de navegador conservan resultados diarios, mensuales y horarios, relaciones históricas exactas, atención y retiro, cierre y revocación, conflictos y conciliación sin reenvío. La matriz separa el transporte controlado de las campañas reales; sus conteos y resultados observados permanecen en el informe de verificación.
 
