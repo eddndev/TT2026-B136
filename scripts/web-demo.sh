@@ -21,6 +21,8 @@ for command in cargo curl jq openssl python3 node psql unzip; do
 done
 
 WORK_DIR="$(mktemp -d)"
+# Stop dotenv discovery before it can reach an ancestor checkout's settings.
+: >"$WORK_DIR/.env"
 SERVER_PID=""
 cleanup() {
   local status=$?

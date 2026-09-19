@@ -45,7 +45,7 @@ export async function provisionAlerts(call, accounts) {
     expected_submission_digest: prepared.submission_digest,
   }, 201);
   return {
-    case: { id: row.id, title: row.title, reference: row.reference },
+    case: { id: row.id, title: row.administration.title, reference: row.administration.reference },
     hearing,
     desktop: accounts.litigator,
     mobile: accounts.paralegal,

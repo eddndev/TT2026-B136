@@ -3,11 +3,14 @@
 import copy
 from datetime import datetime, timedelta, timezone
 import json
+import sys
 import time
 from urllib.parse import urlencode
 from uuid import uuid4
 
 from api_deadlines_support import STATE, TOKEN, request
+
+ALERT_STATE = STATE.with_name('alerts-api-state.json')
 
 
 def inbox(read='all', state='all'):
@@ -26,6 +29,24 @@ def inbox(read='all', state='all'):
         cursors.add(cursor)
         parameters['cursor'] = cursor
     raise AssertionError('Alert inbox exceeded the fixture scan budget')
+
+
+def checkpoint_hearing_agenda(hearing_id):
+    """Include only the new alert fixture in the existing global agenda snapshot."""
+    path = STATE.with_name('hearing-api-state.json')
+    saved = json.loads(path.read_text(encoding='utf-8'))
+    agendas = [route for route in saved['records'] if route.startswith('/api/v1/hearings?')]
+    assert len(agendas) == 1
+    route = agendas[0]
+    previous = saved['records'][route]
+    current = request('GET', route)
+    before = {row['id']: row for row in previous['hearings']}
+    after = {row['id']: row for row in current['hearings']}
+    assert all(after.get(identifier) == row for identifier, row in before.items())
+    assert set(after) - set(before) <= {hearing_id}
+    assert not previous['has_more'] and not current['has_more']
+    saved['records'][route] = current
+    path.write_text(json.dumps(saved, sort_keys=True), encoding='utf-8')
 
 
 def capture():
@@ -70,7 +91,8 @@ def capture():
     alert = matches[0]
     assert alert['recipient_id'] == actor and alert['read_at'] is None
     assert alert['subject'] == {'kind': 'hearing', 'case_id': case['id'], 'id': hearing['id']}
-    assert alert['case_title'] == case['title'] and alert['case_reference'] == case['reference']
+    assert alert['case_title'] == case['administration']['title']
+    assert alert['case_reference'] == case['administration']['reference']
     assert alert['origin'] == {'revision': 1, 'evidence_digest': hearing['receipt']['submission_digest']}
     assert alert['kind'] == {'kind': 'upcoming', 'lead_hours': 48, 'activity_at': {
         'unix_seconds': int(scheduled.timestamp()), 'nanosecond': 0, 'offset_seconds': 0}}
@@ -106,10 +128,32 @@ def capture():
             ('PUT', '/api/v1/alert-preferences', change)]:
             request(method, endpoint, body, status, token=token, code=code)
     request('GET', path, token=tokens['paralegal'], expected=404, code='alert_not_found')
+    ALERT_STATE.write_text(json.dumps({
+        'preferences': saved, 'alert': receipt['alert'], 'hearing': hearing,
+        'exact_path': exact, 'history_path': route + '/hearings/' + hearing['id'] + '/history',
+    }, sort_keys=True), encoding='utf-8')
+    ALERT_STATE.chmod(0o600)
+    checkpoint_hearing_agenda(hearing['id'])
     assert request('GET', '/api/v1/audit/verify', token=TOKEN)['valid']
     print('Alert API passed: live worker, 48-hour hearing, personal inbox, idempotent reading, '
           'preferences, exact history, disabled email and denied anonymous/Client/foreign access.')
 
 
+def restore():
+    saved = json.loads(ALERT_STATE.read_text(encoding='utf-8'))
+    alert = saved['alert']
+    assert request('GET', '/api/v1/auth/me')['id'] == alert['recipient_id']
+    assert request('GET', '/api/v1/alert-preferences')['preferences'] == saved['preferences']
+    assert request('GET', '/api/v1/alerts/' + alert['id'])['alert'] == alert
+    matching = [row for row in inbox() if row['subject']['id'] == saved['hearing']['id']]
+    assert matching == [alert], 'Restored alert must preserve its identity and original read time'
+    assert alert['id'] not in {row['id'] for row in inbox(read='unread')}
+    assert request('GET', saved['exact_path']) == saved['hearing']
+    assert request('GET', saved['history_path'])['revisions'] == [saved['hearing']]
+    assert request('GET', '/api/v1/audit/verify', token=TOKEN)['valid']
+    print('Alert restore passed: exact preferences, read alert, recipient, captured origin '
+          'and hearing history preserved without a duplicate occurrence.')
+
+
 if __name__ == '__main__':
-    capture()
+    {'capture': capture, 'restore': restore}[sys.argv[1]]()

@@ -27,6 +27,8 @@ export DOCUMENT_QPDF_LIBRARY
 cargo build --workspace --manifest-path "$REPO_ROOT/Cargo.toml"
 CLI="$(cd "${CARGO_TARGET_DIR:-$REPO_ROOT/target}" && pwd)/debug/despacho-cli"
 WORK_DIR="$(mktemp -d)"
+# Stop dotenv discovery before it can reach an ancestor checkout's settings.
+: >"$WORK_DIR/.env"
 SERVER_PID=""
 SECOND_SERVER_PID=""
 POSTGRES_STARTED="false"
@@ -252,10 +254,10 @@ source "$REPO_ROOT/scripts/api-deadlines-demo.sh"
 # shellcheck source=scripts/api-agenda-demo.sh
 source "$REPO_ROOT/scripts/api-agenda-demo.sh"
 
-# shellcheck source=scripts/api-migration-demo.sh
-source "$REPO_ROOT/scripts/api-migration-demo.sh"
-
 # shellcheck source=scripts/api-alerts-demo.sh
 source "$REPO_ROOT/scripts/api-alerts-demo.sh"
+
+# shellcheck source=scripts/api-migration-demo.sh
+source "$REPO_ROOT/scripts/api-migration-demo.sh"
 
 printf 'Authenticated API demo passed: %s\n' "$DOCUMENT_ID"
