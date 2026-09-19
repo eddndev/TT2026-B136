@@ -4,6 +4,7 @@ import { proceduralFactsApi } from './procedural-facts-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingsApi } from './hearings-api.mjs';
 import { agendaApi } from './agenda-api.mjs';
+import { combinedAgendaApi } from './combined-agenda-api.mjs';
 import { typedParticipantsApi } from './typed-participants-api.mjs';
 import { caseStagesApi } from './case-stages-api.mjs';
 import { caseAdministrationApi } from './case-administration-api.mjs';
@@ -58,6 +59,7 @@ export function caseApi(transport) {
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),
     caseHearings: (id) => hearingsApi(request, id),
     hearingAgenda: () => agendaApi(request),
+    agenda: () => combinedAgendaApi(request),
     caseStages: (id) => caseStagesApi(request, id),
     caseParticipants: (id) => participantsApi(request, id),
     caseTypedParticipants: (id) => typedParticipantsApi(request, id),

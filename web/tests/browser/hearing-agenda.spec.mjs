@@ -1,18 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { setupHearings } from './hearing-helpers.mjs';
 import { hearingRecord, hearingRow } from '../fixtures/hearings.mjs';
 import { login, navigate } from './helpers.mjs';
-async function query(page, from = '2026-10-01', until = '2026-10-03') {
-  await page.getByLabel('Desde (incluido)', { exact: true }).fill(from);
-  await page.getByLabel('Hasta (excluido)', { exact: true }).fill(until);
-  await page.getByRole('button', { name: 'Consultar Agenda', exact: true }).click();
-}
+import {
+  agendaPage,
+  queryHearingAgenda as query,
+  setupHearingAgenda,
+} from './combined-agenda-helpers.mjs';
 
 test('agenda queries a single transversal endpoint and opens an exact one-use hearing intent', async ({
   page,
 }) => {
   const record = hearingRecord(),
-    { state, requests } = await setupHearings(page, { records: [record] });
+    { state, requests, agenda } = await setupHearingAgenda(page, [record]);
   await login(page, false, false);
   await navigate(page, 'Agenda');
   await query(page);
@@ -24,7 +23,9 @@ test('agenda queries a single transversal endpoint and opens an exact one-use he
       (row) => row.path.includes('/cases') || row.path.includes('/case-administrations'),
     ),
   ).toHaveLength(0);
-  expect(state.calls.every((row) => row.path === '/api/v1/hearings')).toBeTruthy();
+  expect(agenda.calls.length).toBeGreaterThan(0);
+  expect(agenda.calls.every((url) => url.pathname === '/api/v1/agenda')).toBeTruthy();
+  expect(state.calls).toHaveLength(0);
   await page.getByRole('button', { name: `Consultar audiencia ${record.id}`, exact: true }).click();
   await expect(
     page.getByRole('region', { name: 'Detalle de audiencia', exact: true }),
@@ -41,23 +42,26 @@ test('agenda queries a single transversal endpoint and opens an exact one-use he
   expect(state.calls.filter((row) => row.path.includes('/revisions/'))).toHaveLength(exactReads);
 });
 
-test('agenda paginates by the paired UTC cursor and preserves applied filters on return', async ({
+test('agenda accumulates pages by the bound UTC cursor and preserves applied filters on return', async ({
   page,
 }) => {
   const first = hearingRecord(),
     second = { ...structuredClone(first), id: '30000000-0000-4000-8000-000000000003' };
-  const { state } = await setupHearings(page, { records: [first, second] });
+  const { state, agenda } = await setupHearingAgenda(page, [first, second]);
   state.pageSize = 1;
   await login(page, false, false);
   await navigate(page, 'Agenda');
   await query(page);
-  await page.getByRole('button', { name: 'Siguiente', exact: true }).click();
+  await page.getByRole('button', { name: 'Cargar m\u00e1s actividades', exact: true }).click();
   await expect(
     page.getByRole('button', { name: `Consultar audiencia ${second.id}`, exact: true }),
   ).toBeVisible();
-  const cursor = state.calls.filter((row) => row.path === '/api/v1/hearings').at(-1).search;
-  expect(cursor).toContain('after_time=2026-10-01T15%3A02%3A03Z');
-  expect(cursor).toContain(`after_id=${first.id}`);
+  await expect(
+    page.getByRole('button', { name: `Consultar audiencia ${first.id}`, exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('[data-agenda-kind="hearing"]')).toHaveCount(2);
+  const cursor = agenda.calls.at(-1).searchParams.get('cursor');
+  expect(cursor).toBe(`a1:1790812800:1790985600:hearing:scheduled:1790866923:0:0:${first.id}`);
   await page.getByRole('button', { name: `Consultar audiencia ${second.id}`, exact: true }).click();
   await page.getByRole('button', { name: 'Ir a Agenda', exact: true }).click();
   await expect(page.getByLabel('Desde (incluido)', { exact: true })).toHaveValue('2026-10-01');
@@ -68,17 +72,27 @@ test('agenda paginates by the paired UTC cursor and preserves applied filters on
 
 test('an old agenda query cannot replace a newer explicit range', async ({ page }) => {
   const record = hearingRecord(),
-    { state } = await setupHearings(page, { records: [record] });
+    { agenda } = await setupHearingAgenda(page, [record]);
   let release;
   await login(page, false, false);
   await navigate(page, 'Agenda');
-  state.handle = async (route, call) => {
-    if (call.path !== '/api/v1/hearings' || !call.search.includes('from=2026-10-01')) return false;
+  agenda.handle = async (route, url) => {
+    if (!url.searchParams.get('from')?.startsWith('2026-10-01')) return false;
     await new Promise((resolve) => {
       release = resolve;
     });
     await route.fulfill({
-      json: { hearings: [hearingRow(record)], has_more: false, next_after: null },
+      json: agendaPage(url, [
+        {
+          kind: 'hearing',
+          hearing: hearingRow(record),
+          at: {
+            unix_seconds: 1790866923,
+            nanosecond: 0,
+            offset_seconds: 0,
+          },
+        },
+      ]),
     });
     return true;
   };
@@ -86,7 +100,7 @@ test('an old agenda query cannot replace a newer explicit range', async ({ page 
   await expect.poll(() => !!release).toBeTruthy();
   await query(page, '2026-10-05', '2026-10-06');
   await expect(
-    page.getByText('No hay audiencias en esta consulta.', { exact: true }),
+    page.getByText('No hay actividades en esta consulta.', { exact: true }),
   ).toBeVisible();
   const late = page.waitForResponse((response) => response.url().includes('from=2026-10-01'));
   release();
@@ -100,7 +114,7 @@ test('agenda exact intent waits for its case context and listing before reading 
   page,
 }) => {
   const record = hearingRecord(),
-    { state } = await setupHearings(page, { records: [record] });
+    { state } = await setupHearingAgenda(page, [record]);
   await login(page, false, false);
   await navigate(page, 'Agenda');
   await query(page);
