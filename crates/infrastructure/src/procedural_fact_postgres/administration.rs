@@ -7,7 +7,7 @@ use domain::{
 };
 use postgres::{Row, Transaction};
 
-pub(super) fn captured(
+pub(crate) fn captured(
     tx: &mut Transaction<'_>,
     row: &Row,
     case: CaseId,

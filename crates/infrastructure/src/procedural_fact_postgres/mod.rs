@@ -1,12 +1,12 @@
 //! Audited declarations with immutable exact historical sources.
-mod administration;
+pub(crate) mod administration;
 mod authorization;
 mod commit;
 mod decode;
 mod port_impl;
 mod preparation;
 mod query;
-mod sources;
+pub(crate) mod sources;
 pub(crate) mod storage;
 mod target;
 mod write;
