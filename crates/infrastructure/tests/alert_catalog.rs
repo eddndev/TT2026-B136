@@ -7,6 +7,30 @@ use postgres::error::SqlState;
 use uuid::Uuid;
 
 #[test]
+fn alert_value_checks_work_with_empty_restore_search_path() {
+    let Some(db) = Fixture::new() else { return };
+    open(&db).unwrap();
+    let mut runtime = db.runtime();
+    runtime.batch_execute("SET search_path = ''").unwrap();
+    let payload = b"[]".to_vec();
+    let valid: bool = runtime
+        .query_one(
+            &format!(
+                "SELECT {schema}.alert_time_valid(0::bigint,0)
+                AND {schema}.alert_optional_time_valid(0::bigint,0)
+                AND {schema}.alert_optional_time_valid(NULL::bigint,NULL::integer)
+                AND NOT {schema}.alert_optional_time_valid(NULL::bigint,0)
+                AND {schema}.alert_payload_valid($1,pg_catalog.sha256($1))",
+                schema = db.schema,
+            ),
+            &[&payload],
+        )
+        .expect("restored CHECK helpers must not depend on the session search path")
+        .get(0);
+    assert!(valid);
+}
+
+#[test]
 fn alert_startup_rejects_altered_tables_columns_constraints_indexes_functions_and_triggers() {
     for alteration in [
         "ALTER TABLE alert_preferences SET UNLOGGED",
