@@ -12,7 +12,7 @@ cambios de sus fuentes y las capturas persistentes de evaluación y atención.
 El [catálogo HTTP de perfiles](deadline-profiles-api.md) está implementado;
 la persistencia PostgreSQL y HTTP de [plazos](deadline-records.md) tienen pruebas
 focales y aceptación real de restauración aprobadas. Consumir cambios mediante
-trabajadores, entregar alertas y ofrecer Qadra para esos flujos sigue pendiente.
+trabajadores, entregar alertas y ofrecer seguimiento V2 en Qadra sigue pendiente.
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
@@ -529,8 +529,9 @@ El [catálogo HTTP](deadline-profiles-api.md) está implementado. El
 combina insumos verificados, perfil explícito, cantidad ordenada y declaraciones
 de aplicabilidad. Conserva bloqueos y cálculo parcial. La persistencia descrita
 a continuación captura ese resultado; un evento durable todavía no provoca su
-reevaluación ni equivale a un aviso entregado. Trabajadores, alertas y Qadra de
-plazos siguen pendientes en [el contrato completo](deadline-lifecycle.md).
+reevaluación ni equivale a un aviso entregado. Qadra ya ofrece registro y
+atención de plazos V1. Trabajadores, seguimiento V2 en HTTP/Qadra y alertas
+siguen pendientes en [el contrato completo](deadline-lifecycle.md).
 
 ## Actualizar capturas y atención de plazos
 
@@ -539,7 +540,10 @@ Detener escritores, conservar un respaldo completo y ejecutar
 `0017_deadline_*.sql` instalan selección DEVI1, atención JSON, recibo DLTX1,
 tablas y guards, en ese orden. Añaden `case_deadlines` y
 `case_deadline_revisions`; no generan plazos a partir de fuentes anteriores ni
-modifican sus revisiones. No ejecutar los archivos sueltos.
+modifican sus revisiones. El conjunto `0018_` amplía ese esquema con
+capturas V2, parsers y un guard humano compatible con V1. La migración conserva
+filas y recibos anteriores; no convierte automáticamente su estado de revisión.
+No ejecutar los archivos sueltos.
 
 La raíz fija el expediente y exige R1 mediante una clave foránea diferida. El
 historial es consecutivo e inmutable, con retiro terminal y operación única.
@@ -549,8 +553,10 @@ y revisión esperada bajo READ COMMITTED y el bloqueo común de auditoría. Una
 revisión y su evento de auditoría se confirman o revierten juntos. El expediente
 cerrado conserva las consultas autorizadas.
 
-Alta y corrección requieren la cabeza publicada del perfil, las selecciones
-exactas de fuentes y calendario con sus cabezas observadas, y un responsable
+Alta y corrección V1 requieren la cabeza publicada del perfil. V2 admite una
+revisión histórica publicada con política `Fixed` y exige que la cabeza actual
+observada también siga publicada; `Follow` requiere seleccionar esa cabeza.
+Ambas versiones conservan selecciones exactas y requieren un responsable
 activo con acceso al expediente. La asignación como responsable no concede ese
 acceso. Un avance administrativo activo puede capturarse al confirmar sin
 alterar lo revisado. Atención y retiro preservan cálculo, referencias, responsable
@@ -566,6 +572,15 @@ resuelve su revisión exacta. No reemplazar R0 por una R1 creada al restaurar.
 Las dependencias tienen claves foráneas tipificadas. La revisión del padre en la
 cabeza de una notificación se conserva aparte de la seleccionada.
 
+V2 añade `tracking_canonical` (102–122 bytes) y `observations_canonical`
+(DLOB1, 111–446 bytes), con límites propios de DLRV2 (524 341), DLST2 (524 410)
+y DLTX2 (151–5502). La administración exterior se reconstruye separadamente
+del cálculo histórico; `tracking_administration_revision` y
+`cause_event_sequence` son proyecciones generadas. Los límites V1 no cambian.
+El lector selecciona cada formato explícitamente y verifica la evidencia exacta
+de sus observaciones. Un hash coherente no permite inventar una revisión.
+El guard humano rechaza autoría técnica hasta implementar su trabajador durable.
+
 La atención JSON conserva precisión y desfase declarados sin componentes extra.
 La proyección `due_at_seconds`/`due_at_nanoseconds` debe coincidir exactamente con
 el resultado DRES1, incluidos ambos campos ausentes cuando no existe instante.
@@ -573,7 +588,7 @@ No constituye por sí sola una agenda, un estado de vencimiento ni una alerta.
 
 El arranque rechaza cambios de columnas, nulabilidad, restricciones, expresiones,
 funciones, triggers o permisos. El rol operativo sólo lee y agrega filas, y
-necesita EXECUTE sobre los tres helpers; no puede ejecutar guards directamente,
+necesita EXECUTE sobre los parsers del contrato; no puede ejecutar guards directamente,
 poseer objetos ni reescribir historia. El inventario verifica todas las
 revisiones y sus recibos en lotes acotados, incluido UUID cero, sin recalcular con
 la versión actual del algoritmo. Los administradores de PostgreSQL siguen dentro
@@ -604,8 +619,9 @@ conflictos, atención, retiro y revocación. El ensayo global de migración y
 restauración conservó 14 respuestas completas de plazos idénticas, incluidos sus
 resultados históricos. Son evidencias separadas de backend y transporte, sin
 atribuir aceptación de navegador ni aplicabilidad jurídica a los casos sintéticos.
-Qadra, reevaluación y alertas siguen pendientes; el informe de verificación
-registra el cierre global separadamente. Véase
+Qadra ya integra el registro humano V1. El seguimiento V2 en HTTP/Qadra,
+la reevaluación automática y las alertas siguen pendientes; el informe de
+verificación distingue cada campaña y su alcance. Véase
 [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md).
 
 ## Respaldo y restauración

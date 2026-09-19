@@ -10,13 +10,27 @@ const BOUNDS: &str = "octet_length(r.input_canonical) BETWEEN 48 AND 98897
     AND octet_length(r.result_canonical) BETWEEN 5 AND 3000000
     AND octet_length(r.observed_administration_canonical) BETWEEN 17 AND 16384
     AND octet_length(r.observed_administration_digest)=32
-    AND octet_length(r.review_canonical) BETWEEN 5 AND 524288
-    AND octet_length(r.capture_canonical) BETWEEN 5 AND 524288
-    AND octet_length(r.submission_canonical) BETWEEN 107 AND 4115
+    AND (
+        (substring(r.submission_canonical FROM 1 FOR 5)=convert_to('DLTX1','UTF8')
+            AND octet_length(r.review_canonical) BETWEEN 5 AND 524288
+            AND octet_length(r.capture_canonical) BETWEEN 5 AND 524288
+            AND octet_length(r.submission_canonical) BETWEEN 107 AND 4115
+            AND r.tracking_canonical IS NULL AND r.observations_canonical IS NULL
+            AND r.recorded_by IS NOT NULL AND r.recorded_by_email IS NOT NULL)
+        OR (substring(r.submission_canonical FROM 1 FOR 5)=convert_to('DLTX2','UTF8')
+            AND octet_length(r.review_canonical) BETWEEN 5 AND 524341
+            AND octet_length(r.capture_canonical) BETWEEN 5 AND 524410
+            AND octet_length(r.submission_canonical) BETWEEN 151 AND 5502
+            AND r.tracking_canonical IS NOT NULL AND r.observations_canonical IS NOT NULL
+            AND octet_length(r.tracking_canonical) BETWEEN 102 AND 122
+            AND octet_length(r.observations_canonical) BETWEEN 111 AND 446))
     AND octet_length(r.review_digest)=32 AND octet_length(r.capture_digest)=32
     AND octet_length(r.submission_digest)=32 AND octet_length(r.title)<=800
     AND COALESCE(octet_length(r.reason),0)<=4000
-    AND octet_length(r.responsible_email)<=1280 AND octet_length(r.recorded_by_email)<=1280
+    AND octet_length(r.responsible_email)<=1280
+    AND ((r.recorded_by IS NULL AND r.recorded_by_email IS NULL)
+        OR (r.recorded_by IS NOT NULL AND r.recorded_by_email IS NOT NULL
+            AND octet_length(r.recorded_by_email)<=1280))
     AND octet_length(r.attention::text)<=65536
     AND octet_length(r.input_view::text)<=1048576 AND octet_length(r.submission_view::text)<=32768";
 
@@ -42,33 +56,7 @@ pub(crate) fn detail(
             }
             other => other,
         })?;
-        if prior.status != DeadlineStatus::Active {
-            return Err(inconsistent("deadline history continued after retirement"));
-        }
-        match selected.receipt.action {
-            DeadlineAction::Correct if selected.attention != prior.attention => {
-                return Err(inconsistent("deadline correction changed attention"));
-            }
-            DeadlineAction::SetAttention | DeadlineAction::Retire => {
-                if selected.receipt.action == DeadlineAction::Retire
-                    && selected.attention != prior.attention
-                {
-                    return Err(inconsistent("deadline retirement changed attention"));
-                }
-                let mut copied = selected.clone();
-                copied.status = prior.status;
-                copied.attention = prior.attention.clone();
-                if deadline_review_bytes(hasher, &copied)? != deadline_review_bytes(hasher, &prior)?
-                    || deadline_capture_bytes(hasher, &copied)?
-                        != deadline_capture_bytes(hasher, &prior)?
-                {
-                    return Err(inconsistent(
-                        "attention or retirement changed captured deadline content",
-                    ));
-                }
-            }
-            _ => {}
-        }
+        deadline_successor_matches(hasher, &prior, &selected).map_err(inconsistent)?;
     }
     Ok(selected)
 }

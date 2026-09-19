@@ -1,10 +1,10 @@
 # Recibos y observaciones para seguimiento de plazos
 
-Estado: el modelo de aplicación ya distingue evidencia V1/V2, construye
-observaciones verificadas y comprueba revisiones sucesoras. Incluye la
-preparación humana explícita y la preparación técnica; su conexión al flujo
-persistido sigue pendiente. Estos contratos no activan un trabajador ni acreditan
-persistencia V2, API V2 o integración en Qadra. La decisión está en
+Estado: el modelo distingue evidencia V1/V2, observaciones verificadas y
+revisiones sucesoras. La persistencia PostgreSQL admite las decisiones humanas
+V2 y reconstruye sus capturas históricas; incluye actualización compatible
+desde V1. La preparación técnica sigue sin trabajador durable, API V2 ni
+integración en Qadra. La decisión está en
 [ADR 0037](adr/0037-durable-deadline-reevaluation.md).
 
 ## Versiones y estado operativo
@@ -167,6 +167,14 @@ de notificación que V1 nunca capturó y no declara políticas ni aceptación.
 La causa `LegacyBootstrap` tampoco inventa un evento de fuente; su sucesor
 técnico conserva el cálculo anterior y deja revisión pendiente con políticas
 sin determinar.
+
+`verify_captured_deadline_observations` contrasta un manifiesto persistido con
+el perfil, material y padre observado reconstruidos desde revisiones exactas.
+Conserva la ausencia histórica legítima de la observación separada del padre;
+no la completa con su cabeza actual ni declara aceptación. Verifica el marco,
+los recibos y la evidencia completa antes de comparar las observaciones.
+El constructor de observaciones nuevas mantiene su exigencia estricta de padre
+completo para notificaciones.
 
 La transición técnica V1 a V2 usa ese manifiesto reconstruido como referencia,
 tanto en el preparador como en el verificador del sucesor. La falta de un
@@ -335,21 +343,34 @@ evento durable, resolver la operación exacta de un evento anterior a la cabeza
 y repetir la preparación si cambian sus insumos. El preparador puro no reserva revisiones,
 no marca trabajos como terminados ni prueba por sí solo que un evento exista.
 
-## Integración pendiente
+## Persistencia y fronteras pendientes
 
-La existencia de estos verificadores no acredita que las observaciones
-provengan de almacenamiento. El adaptador V2 aún debe reconstruir las revisiones
-exactas y DLOE1, comprobar eventos y trabajos persistidos, autenticar al servicio,
-imponer unicidad en toda la historia y confirmar revisión, auditoría y resultado
-del trabajo de forma atómica. Las comprobaciones puras no prueban concurrencia
-ni autorización actual.
+Las migraciones `0018_` guardan por separado `tracking_canonical`, el sufijo
+existente de DLST2, y `observations_canonical`, el marco DLOB1. Las proyecciones
+generadas enlazan administración observada y secuencia de causa. El cálculo
+anterior mantiene sus columnas y bytes. Los campos de usuario admiten NULL
+para representar autoría técnica sin cuentas ficticias, pero el guard humano
+rechaza esas escrituras hasta que exista su frontera durable autorizada.
 
-La persistencia y el HTTP actuales mantienen la frontera V1 y rechazan
-temporalmente registros V2 que no pueden representar completos. Falta conectar
-los preparadores humano y técnico, el trabajador durable y el contrato HTTP con
-Qadra, incluidos autoría técnica, causa, motivos y políticas. Lectura, agenda y
-alertas deben distinguir resultado histórico de vencimiento operativo.
+El commit humano reautoriza cuenta, expediente y responsable cuando corresponde,
+vuelve a preparar las cabezas y confirma revisión y auditoría conjuntamente.
+Registro y corrección requieren seguimiento aceptado con observaciones vigentes;
+`Fixed` permite conservar una selección histórica publicada. Atención y retiro
+preservan la captura. Un upgrade manual V1 conserva exactamente sus observaciones
+históricas y políticas no declaradas.
 
-La evidencia ejecutada se registra en
-[el informe de verificación](verification-report.md). Ninguna prueba pura de
-estos contratos acredita todavía persistencia, concurrencia o entrega de avisos.
+Los parsers SQL comprueban marcos, proyecciones y compromisos. El guard contrasta
+referencias y recibos de cada revisión; el lector reconstruye también DLOE1 y
+la evidencia administrativa completa desde revisiones exactas. La coincidencia
+de hashes por sí sola no autentica ese material. La lectura y el inventario
+verifican continuidad y rechazan referencias inexistentes o evidencia alterada.
+
+Faltan autenticar servicio, eventos y trabajos durables en la ruta técnica,
+persistir cursores y resultados y confirmar reevaluación, auditoría y trabajo
+atómicamente. El servicio humano y HTTP actuales mantienen V1; falta evolucionar
+su contrato junto con Qadra para exponer políticas, motivos, causa y autoría.
+Agenda y alertas deben consumir solamente vencimientos operativos admitidos.
+
+La evidencia ejecutada y sus límites están en
+[el informe de verificación](verification-report.md). El almacenamiento humano
+no acredita procesamiento automático ni entrega de avisos.

@@ -9,17 +9,19 @@ persistencia o la interfaz nueva esten terminados.
 
 El modelo de aplicación V2, las observaciones verificadas y el verificador de
 sucesores ya están implementados como contratos puros. Existen preparadores
-humano y técnico con seguimiento explícito; su conexión al servicio persistido
-sigue pendiente. Persistencia V2, trabajador durable, API V2 y Qadra aún no integran
-esta ampliación. El ADR permanece propuesto para ese conjunto de trabajo.
+humano y técnico con seguimiento explícito. La persistencia PostgreSQL admite
+decisiones humanas V2 y reconstrucción histórica compatible con V1. El despacho,
+trabajador durable, servicio/HTTP V2 y Qadra aún no integran esta ampliación.
+El ADR permanece propuesto para ese conjunto de trabajo.
 
 ## Context
 
-Los plazos conservan calculos reproducibles, fuentes exactas, responsable y
-atencion. Los cambios de fuentes, calendarios y perfiles emiten eventos
-inmutables. Todavia no existe un consumidor que aplique esos cambios a cada
-plazo dependiente ni una distincion persistida entre un vencimiento historico
-y uno habilitado para seguimiento actual.
+El registro V1 conserva calculos reproducibles, fuentes exactas, responsable
+y atencion. Los cambios de fuentes, calendarios y perfiles emiten eventos
+inmutables. Al proponer esta ampliacion no existia un consumidor que aplicara
+esos cambios a cada plazo dependiente ni una distincion persistida entre un
+vencimiento historico y uno habilitado para seguimiento actual. El estado
+de implementacion de esta ampliacion se mantiene en Status.
 
 Una nueva fuente o regla puede invalidar las declaraciones con las que se
 calculo un plazo. Reutilizarlas por coincidir identificadores de condiciones
@@ -110,6 +112,13 @@ requiere autor humano. Alta y corrección declaran políticas y aceptación;
 atención y retiro conservan el seguimiento anterior, incluso si está pendiente.
 Una atención o retiro sobre V1 puede adquirir recibo V2 conservando
 `LegacyUndeclared`; ese cambio de formato no acepta ni fija políticas.
+
+La conversión manual conserva exactamente el manifiesto reconstruido de V1
+y la administración histórica del cálculo. No añade un padre de notificación
+observado ni una cabeza posterior, aunque esa evidencia sea auténtica. Atención
+y retiro sobre V2 conservan los bytes de seguimiento y observaciones anteriores.
+La incorporación de observaciones nuevas corresponde a otra transición con
+su propia causa y validación.
 
 El verificador de sucesores exige identidad de expediente y plazo, revisiones
 consecutivas y ambas huellas del predecesor V2. Rechaza volver de V2 a V1 y
@@ -204,12 +213,13 @@ huecos de secuencia, rollback, respuesta incierta, restauracion y concurrencia
 con decisiones humanas. La interfaz debe mostrar autor, causa, historia y
 revision requerida, manteniendo aislamiento, conflictos y borradores.
 
-Los contratos de aplicación ya permiten comprobar V1/V2, observaciones y
-sucesores sin almacenamiento. El adaptador conserva temporalmente V1 y el HTTP
-rechaza los registros V2 que no puede proyectar completos, en lugar de omitir
-autoría o revisión. Esto es una frontera de compatibilidad provisional, no la
-entrega de la API nueva. Los resultados ejecutados y sus límites se registran
-en [el informe de verificación](../verification-report.md); las pruebas puras
+Los contratos de aplicación comprueban V1/V2, observaciones y sucesores. El
+adaptador persiste decisiones humanas V2 y reconstruye las revisiones exactas
+observadas; sus migraciones conservan filas y recibos históricos V1. El HTTP
+mantiene temporalmente V1 y rechaza registros que no puede proyectar completos,
+en lugar de omitir autoría o revisión. La escritura técnica requiere aún la
+frontera durable de trabajo y servicio; el guard humano la rechaza. Los resultados
+ejecutados y sus límites se registran en [el informe de verificación](../verification-report.md); las pruebas puras
 no acreditan trabajador, concurrencia, restauración V2 ni entregas externas.
 
 ## Consequences

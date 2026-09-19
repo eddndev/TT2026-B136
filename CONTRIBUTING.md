@@ -211,12 +211,21 @@ Inspect current code and contracts before treating this summary as complete.
   Automatic activation, reevaluation workers, combined hearing/deadline agenda,
   alerts and the qualified legal-profile acceptance corpus remain pending.
 
+- The `0018_` migrations extend deadline storage with human V2 tracking captures
+  and observations while preserving V1 history. Historical reads reconstruct
+  exact source and administration evidence without recalculation. Human commits
+  reauthorize and preserve action-specific continuity; the SQL guard rejects
+  technical writes until their durable worker boundary exists. The human service
+  and HTTP workflow still use V1. Dispatch, worker execution and HTTP/Qadra V2
+  remain pending. Verification results belong to their recorded code revision;
+  see `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
+
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
-1. Complete integrated acceptance and publication of the Qadra deadline workflow.
+1. Extend the integrated Qadra deadline workflow with explicit V2 tracking.
    Qualify legal profiles with primary sources and acceptance cases, then implement
    durable activation, dependent reevaluation, combined agenda and notifications.
    Preserve exact inputs and immutable historical evaluations. Declared hearing

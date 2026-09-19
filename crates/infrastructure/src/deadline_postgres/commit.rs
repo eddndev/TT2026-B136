@@ -23,8 +23,32 @@ impl PostgresDeadlineStore {
         ) {
             return Err(DeadlineError::RevisionConflict.into());
         }
-        let fresh =
-            prepare_deadline_change(self.hasher.as_ref(), actor, case, command.clone(), observed)?;
+        let current_author = DeadlineActorSnapshot::User {
+            id: actor,
+            email: principal.email.clone(),
+        };
+        let fresh = if let Some(tracking) = prepared.tracking() {
+            let qualification = matches!(
+                command.action(),
+                DeadlineAction::Register | DeadlineAction::Correct,
+            );
+            let parent = if qualification {
+                preparation::notification_parent_head(&mut tx, case, command, self.hasher.as_ref())?
+            } else {
+                None
+            };
+            prepare_tracked_deadline_change(
+                self.hasher.as_ref(),
+                current_author.clone(),
+                case,
+                command.clone(),
+                observed,
+                qualification.then_some(tracking.policies),
+                parent.as_ref(),
+            )?
+        } else {
+            prepare_deadline_change(self.hasher.as_ref(), actor, case, command.clone(), observed)?
+        };
         if fresh.submission_digest() != prepared.submission_digest()
             || fresh.review_digest() != prepared.review_digest()
         {
@@ -49,28 +73,16 @@ impl PostgresDeadlineStore {
             revision: command.result_revision()?,
             definition: fresh.definition().clone(),
             calculation: fresh.calculation().clone(),
-            tracking: None,
+            tracking: fresh.tracking().cloned(),
             responsible: fresh.responsible().clone(),
             attention: fresh.attention().clone(),
             status: fresh.status(),
             reason: command.reason().cloned(),
-            receipt: DeadlineReceipt {
-                version: DeadlineReceiptVersion::Legacy,
-                operation_id: command.operation_id,
-                action: command.action(),
-                expected_revision: command.expected_revision(),
-                review_digest: fresh.review_digest(),
-                capture_digest: fresh.capture_digest(),
-                submission_digest: fresh.submission_digest(),
-            },
+            receipt: fresh.receipt(),
             recorded_at: at,
-            recorded_by: DeadlineActorSnapshot::User {
-                id: actor,
-                email: principal.email.clone(),
-            },
+            recorded_by: fresh.tracked_author().cloned().unwrap_or(current_author),
         };
         deadline_receipt_matches(self.hasher.as_ref(), &detail)?;
-        write::insert(&mut tx, &detail, command, self.hasher.as_ref())?;
         let action = match command.action() {
             DeadlineAction::Register => "deadline.registered",
             DeadlineAction::Correct => "deadline.corrected",
@@ -78,10 +90,11 @@ impl PostgresDeadlineStore {
             DeadlineAction::Retire => "deadline.retired",
             DeadlineAction::Reevaluate => {
                 return Err(inconsistent(
-                    "legacy storage cannot commit a technical reevaluation",
+                    "human deadline commits cannot perform technical reevaluation",
                 ));
             }
         };
+        write::insert(&mut tx, &detail, self.hasher.as_ref())?;
         crate::audit_postgres::append_transaction(
             &mut tx,
             &principal.email,

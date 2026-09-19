@@ -76,6 +76,21 @@ fn manual_preservation(
                     "manual legacy followup declared tracking policies",
                 ));
             }
+            let expected = DeadlineTrackingCapture {
+                policies: tracking.policies,
+                review: tracking.review.clone(),
+                observations: crate::deadline_observations::build_legacy_deadline_observations(
+                    hasher, previous,
+                )?,
+                administration: previous.calculation.material.administration.clone(),
+            };
+            if deadline_tracking_capture_bytes(hasher, tracking)?
+                != deadline_tracking_capture_bytes(hasher, &expected)?
+            {
+                return Err(inconsistent(
+                    "manual legacy followup changed historical tracking evidence",
+                ));
+            }
             Ok(())
         }
         (Some(_), Some(_)) => {

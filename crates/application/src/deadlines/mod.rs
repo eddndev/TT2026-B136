@@ -2,7 +2,11 @@
 mod canonical;
 mod tracked;
 mod tracked_state;
+mod tracking_storage;
 pub use tracked::*;
+pub use tracking_storage::{
+    deadline_tracking_capture_bytes, decode_deadline_tracking_capture, DeadlineTrackingMetadata,
+};
 mod command;
 pub(crate) mod evidence;
 mod evidence_hearing;

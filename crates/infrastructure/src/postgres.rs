@@ -69,13 +69,6 @@ const DEADLINE_PROFILE_MIGRATIONS: &[&str] = &[
     include_str!("../../../migrations/0016_deadline_profile_guards.sql"),
     include_str!("../../../migrations/0016_deadline_profile_events.sql"),
 ];
-const DEADLINE_MIGRATIONS: &[&str] = &[
-    include_str!("../../../migrations/0017_deadline_input_selection.sql"),
-    include_str!("../../../migrations/0017_deadline_attention.sql"),
-    include_str!("../../../migrations/0017_deadline_receipts.sql"),
-    include_str!("../../../migrations/0017_deadline_tables.sql"),
-    include_str!("../../../migrations/0017_deadline_guards.sql"),
-];
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -138,7 +131,7 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in DEADLINE_PROFILE_MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
-    for migration in DEADLINE_MIGRATIONS {
+    for migration in crate::deadline_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
     transaction.commit().map_err(port_error)?;

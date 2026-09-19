@@ -320,6 +320,12 @@ fn human_attention_and_retirement_can_upgrade_legacy_without_declaring_policies(
     for action in [DeadlineAction::SetAttention, DeadlineAction::Retire] {
         let mut next = manual_successor(&previous, action);
         let mut tracking = capture(&previous);
+        tracking.observations =
+            application::deadline_observations::build_legacy_deadline_observations(
+                inputs::hasher().as_ref(),
+                &previous,
+            )
+            .unwrap();
         tracking.policies = TrackingPolicies {
             profile: TrackingPolicy::Undetermined,
             source: TrackingPolicy::Undetermined,

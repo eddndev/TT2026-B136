@@ -15,24 +15,63 @@ use domain::{
     procedural_facts::FactDeclaration,
 };
 
+/// Validate metadata shared by complete deadline states and their stored suffix.
+/// The selected legal inputs remain the responsibility of the complete state.
+pub(super) fn validate_capture(
+    hasher: &dyn DocumentHasher,
+    value: &DeadlineTrackingCapture,
+) -> Result<Sha256Digest, ApplicationError> {
+    let bytes = encode_observations(&value.observations)
+        .map_err(|error| inconsistent(&error.to_string()))?;
+    if let Some(admin) = value.administration.snapshot() {
+        if admin.case_id != value.observations.case_id
+            || case_administration_digest(hasher, &admin.values) != admin.values_digest
+        {
+            return Err(inconsistent("tracked administration differs"));
+        }
+    }
+    let present = |role| {
+        value
+            .observations
+            .entries
+            .iter()
+            .any(|entry| entry.role == role)
+    };
+    let notification = value.observations.entries.iter().any(|entry| {
+        entry.role == ObservationRole::Source && entry.family == DependencyFamily::Notification
+    });
+    if notification
+        && value.review.state() == DeadlineReviewState::Accepted
+        && !present(ObservationRole::NotificationParent)
+    {
+        return Err(inconsistent(
+            "accepted notification requires observed parent head",
+        ));
+    }
+    value
+        .review
+        .validate_policies(
+            &value.policies,
+            [
+                true,
+                present(ObservationRole::Source),
+                present(ObservationRole::Calendar),
+            ],
+        )
+        .map_err(|error| inconsistent(&error.to_string()))?;
+    Ok(hasher.hash_bytes(&bytes))
+}
+
 pub(super) fn validate(
     hasher: &dyn DocumentHasher,
     definition: &DeadlineDefinition,
     calculation: &DeadlineCalculation,
     value: &DeadlineTrackingCapture,
 ) -> Result<Sha256Digest, ApplicationError> {
-    let bytes = encode_observations(&value.observations)
-        .map_err(|error| inconsistent(&error.to_string()))?;
+    let digest = validate_capture(hasher, value)?;
     let case_id = definition.input.selection.case_id;
     if value.observations.case_id != case_id {
         return Err(inconsistent("tracked observations belong to another case"));
-    }
-    if let Some(admin) = value.administration.snapshot() {
-        if admin.case_id != case_id
-            || case_administration_digest(hasher, &admin.values) != admin.values_digest
-        {
-            return Err(inconsistent("tracked administration differs"));
-        }
     }
     let find = |role| {
         value
@@ -102,14 +141,6 @@ pub(super) fn validate(
                 value.policies.source,
                 value.review.state(),
             )?;
-            if family == DependencyFamily::Notification
-                && value.review.state() == DeadlineReviewState::Accepted
-                && find(ObservationRole::NotificationParent).is_none()
-            {
-                return Err(inconsistent(
-                    "accepted notification requires observed parent head",
-                ));
-            }
         }
         _ => return Err(inconsistent("observed source presence differs")),
     }
@@ -126,14 +157,7 @@ pub(super) fn validate(
         }
         _ => return Err(inconsistent("observed calendar differs")),
     }
-    value
-        .review
-        .validate_policies(
-            &value.policies,
-            [true, source.is_some(), calendar.is_some()],
-        )
-        .map_err(|error| inconsistent(&error.to_string()))?;
-    Ok(hasher.hash_bytes(&bytes))
+    Ok(digest)
 }
 fn selected_revision(
     observed: &ObservationEntry,

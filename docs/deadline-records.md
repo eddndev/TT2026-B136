@@ -1,8 +1,11 @@
 # Registro y atención de plazos
 
-Estado: modelo, aplicación, persistencia PostgreSQL y HTTP implementados. Están
-aprobadas las pruebas focales de esquema, transacciones, concurrencia y
-revalidación, la restauración PostgreSQL y el ensayo integrado de API con
+Estado: el flujo V1 de modelo, aplicación, persistencia PostgreSQL, HTTP y Qadra
+está implementado. La ampliación de persistencia humana V2 y sus fronteras
+pendientes se describen en la sección Seguimiento V2.
+
+Para el flujo V1 están aprobadas las pruebas focales de esquema, transacciones,
+concurrencia y revalidación, la restauración PostgreSQL y el ensayo integrado de API con
 servicios reales. Qadra incorpora captura, consultas, atención, retiro e historia
 con selectores exactos y conciliación de envíos inciertos. Sus comprobaciones de
 navegador y la integración de cada ampliación se registran por
@@ -31,11 +34,14 @@ capturado. Determinar si ya transcurrió comparándolo con el reloj es una cuest
 separada de la atención y del retiro; esa clasificación no se persiste como un
 estado adicional en este corte.
 
-La selección de un perfil retirado o de una revisión anterior a su cabeza impide
-un cálculo nuevo. Sus capturas anteriores siguen disponibles para consulta,
-atención y retiro. Las fuentes procesales históricas pueden seleccionarse
-expresamente; su diferencia frente a la cabeza observada se conserva. Un estado
-organizativo de retiro no determina por sí solo su efecto jurídico.
+En el flujo V1, un cálculo nuevo requiere la cabeza publicada del perfil.
+La preparación humana V2 admite una revisión histórica publicada con política
+`Fixed`; también exige que la cabeza observada siga publicada. `Follow` requiere
+la selección vigente. Ninguna de esas políticas acepta implícitamente el retiro.
+Las capturas anteriores siguen disponibles para consulta, atención y retiro.
+Las fuentes procesales históricas pueden seleccionarse expresamente; su
+diferencia frente a la cabeza observada se conserva. Un estado organizativo
+de retiro no determina por sí solo su efecto jurídico.
 
 ## Capturas y verificación
 
@@ -82,6 +88,21 @@ otro gestor autorizado registre la actuación. Alta y corrección comprueban de
 nuevo su cuenta activa, rol de personal y acceso actual al expediente; una
 asignación como responsable nunca concede ese acceso. La entrega futura de
 alertas tendrá que revalidarlo nuevamente.
+
+### Seguimiento V2
+
+El adaptador admite también decisiones humanas con recibos V2. Conserva la
+evaluación histórica y agrega políticas, estado de revisión, observaciones y
+administración exterior mediante las migraciones `0018_`. El contrato de bytes,
+selección `Fixed`/`Follow` y límites propios de DLRV2/DLST2/DLTX2 está en
+[los recibos de seguimiento](deadline-tracking-receipts.md).
+
+Atención y retiro conservan exactamente esas capturas; un upgrade manual V1
+recupera sólo las observaciones ya registradas, sin añadir un padre ni una
+cabeza posterior. La validación resuelve material histórico exacto y ambas
+huellas del predecesor. El servicio y HTTP mantienen V1 mientras evoluciona
+su contrato, y el guard humano rechaza escrituras técnicas pendientes del
+trabajador durable. Las cotas V1 siguientes siguen aplicándose a sus formatos.
 
 ### Esquema y capturas acotadas
 
@@ -148,7 +169,7 @@ posterior de fuente y perfil, revocación de autor y responsable, y consulta y
 atención por otro Owner que conserva las capturas anteriores. La regresión de
 siete pruebas de esquema también pasó tras ese ajuste.
 
-El [ensayo HTTP integrado](../scripts/api-deadlines-demo.py) pasó con servicios
+El [ensayo HTTP integrado V1](../scripts/api-deadlines-demo.py) pasó con servicios
 reales: días, meses y horas, cuatro roles, aislamiento, preparación y confirmación,
 conflictos, atención, retiro y revocación. Después de la restauración global
 comparó 14 respuestas completas de plazos idénticas, incluidos resultados

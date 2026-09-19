@@ -1,4 +1,4 @@
-//! Exact catalog expressions for migrations/0017_deadline_tables.sql.
+//! Exact catalog expressions for the versioned deadline table contract.
 use super::{incomplete, port, TABLES};
 use application::ApplicationError;
 use postgres::GenericClient;
@@ -11,12 +11,12 @@ const CHECKS: &[(&str, &str, &str)] = &[
     (
         "case_deadline_revisions",
         "deadline_action",
-        r#"((action COLLATE "C") = ANY (ARRAY['register'::text, 'correct'::text, 'set_attention'::text, 'retire'::text]))"#,
+        r#"(((action COLLATE "C") = ANY (ARRAY['register'::text, 'correct'::text, 'set_attention'::text, 'retire'::text, 'reevaluate'::text])) IS TRUE)"#,
     ),
     (
         "case_deadline_revisions",
         "deadline_actor_email",
-        r#"case_administration_text_valid(recorded_by_email, 320, false)"#,
+        r#"(((recorded_by_email IS NULL) OR case_administration_text_valid(recorded_by_email, 320, false)) IS TRUE)"#,
     ),
     (
         "case_deadline_revisions",
@@ -46,7 +46,7 @@ const CHECKS: &[(&str, &str, &str)] = &[
     (
         "case_deadline_revisions",
         "deadline_capture_size",
-        r#"((octet_length(capture_canonical) >= 5) AND (octet_length(capture_canonical) <= 524288) AND (SUBSTRING(capture_canonical FROM 1 FOR 5) = convert_to('DLST1'::text, 'UTF8'::name)))"#,
+        r#"((((SUBSTRING(capture_canonical FROM 1 FOR 5) = convert_to('DLST1'::text, 'UTF8'::name)) AND ((octet_length(capture_canonical) >= 5) AND (octet_length(capture_canonical) <= 524288))) OR ((SUBSTRING(capture_canonical FROM 1 FOR 5) = convert_to('DLST2'::text, 'UTF8'::name)) AND ((octet_length(capture_canonical) >= 5) AND (octet_length(capture_canonical) <= 524410)))) IS TRUE)"#,
     ),
     (
         "case_deadline_revisions",
@@ -71,7 +71,17 @@ const CHECKS: &[(&str, &str, &str)] = &[
     (
         "case_deadline_revisions",
         "deadline_receipt_projection",
-        r#"((recorded_by = ((submission_view ->> 'actor_id'::text))::uuid) AND (operation_id = ((submission_view ->> 'operation_id'::text))::uuid) AND (deadline_id = ((submission_view ->> 'deadline_id'::text))::uuid) AND (case_id = ((submission_view ->> 'case_id'::text))::uuid) AND (action = (submission_view ->> 'action'::text)) AND ((revision - 1) = ((submission_view ->> 'expected_revision'::text))::bigint) AND (review_digest = decode((submission_view ->> 'review_digest'::text), 'hex'::text)) AND (NOT ((reason COLLATE "C") IS DISTINCT FROM ((submission_view ->> 'reason'::text) COLLATE "C"))))"#,
+        r#"(((operation_id = ((submission_view ->> 'operation_id'::text))::uuid) AND (deadline_id = ((submission_view ->> 'deadline_id'::text))::uuid) AND (case_id = ((submission_view ->> 'case_id'::text))::uuid) AND ((action COLLATE "C") = ((submission_view ->> 'action'::text) COLLATE "C")) AND ((revision - 1) = ((submission_view ->> 'expected_revision'::text))::bigint) AND (review_digest = decode((submission_view ->> 'review_digest'::text), 'hex'::text)) AND (NOT ((reason COLLATE "C") IS DISTINCT FROM ((submission_view ->> 'reason'::text) COLLATE "C"))) AND
+CASE SUBSTRING(submission_canonical FROM 1 FOR 5)
+    WHEN convert_to('DLTX1'::text, 'UTF8'::name) THEN (recorded_by = ((submission_view ->> 'actor_id'::text))::uuid)
+    WHEN convert_to('DLTX2'::text, 'UTF8'::name) THEN
+    CASE ((submission_view -> 'author'::text) ->> 'kind'::text)
+        WHEN 'user'::text THEN ((recorded_by = (((submission_view -> 'author'::text) ->> 'id'::text))::uuid) AND ((recorded_by_email COLLATE "C") = (((submission_view -> 'author'::text) ->> 'email'::text) COLLATE "C")))
+        WHEN 'technical'::text THEN ((recorded_by IS NULL) AND (recorded_by_email IS NULL))
+        ELSE false
+    END
+    ELSE false
+END) IS TRUE)"#,
     ),
     (
         "case_deadline_revisions",
@@ -106,7 +116,7 @@ const CHECKS: &[(&str, &str, &str)] = &[
     (
         "case_deadline_revisions",
         "deadline_review_size",
-        r#"((octet_length(review_canonical) >= 5) AND (octet_length(review_canonical) <= 524288) AND (SUBSTRING(review_canonical FROM 1 FOR 5) = convert_to('DLRV1'::text, 'UTF8'::name)))"#,
+        r#"((((SUBSTRING(review_canonical FROM 1 FOR 5) = convert_to('DLRV1'::text, 'UTF8'::name)) AND ((octet_length(review_canonical) >= 5) AND (octet_length(review_canonical) <= 524288))) OR ((SUBSTRING(review_canonical FROM 1 FOR 5) = convert_to('DLRV2'::text, 'UTF8'::name)) AND ((octet_length(review_canonical) >= 5) AND (octet_length(review_canonical) <= 524341)))) IS TRUE)"#,
     ),
     (
         "case_deadline_revisions",
@@ -126,12 +136,47 @@ const CHECKS: &[(&str, &str, &str)] = &[
     (
         "case_deadline_revisions",
         "deadline_submission_size",
-        r#"((octet_length(submission_canonical) >= 107) AND (octet_length(submission_canonical) <= 4115))"#,
+        r#"((((SUBSTRING(submission_canonical FROM 1 FOR 5) = convert_to('DLTX1'::text, 'UTF8'::name)) AND ((octet_length(submission_canonical) >= 107) AND (octet_length(submission_canonical) <= 4115))) OR ((SUBSTRING(submission_canonical FROM 1 FOR 5) = convert_to('DLTX2'::text, 'UTF8'::name)) AND ((octet_length(submission_canonical) >= 151) AND (octet_length(submission_canonical) <= 5502)))) IS TRUE)"#,
     ),
     (
         "case_deadline_revisions",
         "deadline_title",
         r#"case_administration_text_valid(title, 200, false)"#,
+    ),
+    (
+        "case_deadline_revisions",
+        "deadline_recorded_author",
+        r#"(
+CASE SUBSTRING(submission_canonical FROM 1 FOR 5)
+    WHEN convert_to('DLTX1'::text, 'UTF8'::name) THEN ((recorded_by IS NOT NULL) AND (recorded_by_email IS NOT NULL) AND (action <> 'reevaluate'::text))
+    WHEN convert_to('DLTX2'::text, 'UTF8'::name) THEN
+    CASE ((submission_view -> 'author'::text) ->> 'kind'::text)
+        WHEN 'user'::text THEN ((recorded_by IS NOT NULL) AND (recorded_by_email IS NOT NULL) AND (action <> 'reevaluate'::text) AND ((submission_view -> 'cause'::text) = 'null'::jsonb))
+        WHEN 'technical'::text THEN ((recorded_by IS NULL) AND (recorded_by_email IS NULL) AND (action = 'reevaluate'::text) AND (((submission_view -> 'author'::text) ->> 'service'::text) = 'deadline_reevaluator'::text) AND ((((submission_view -> 'author'::text) ->> 'policy_version'::text))::bigint = 1) AND (((submission_view -> 'cause'::text) ->> 'kind'::text) = ANY (ARRAY['source_event'::text, 'legacy_bootstrap'::text])))
+        ELSE false
+    END
+    ELSE false
+END IS TRUE)"#,
+    ),
+    (
+        "case_deadline_revisions",
+        "deadline_tracking_commitments",
+        r#"(
+CASE SUBSTRING(submission_canonical FROM 1 FOR 5)
+    WHEN convert_to('DLTX1'::text, 'UTF8'::name) THEN ((tracking_canonical IS NULL) AND (observations_canonical IS NULL))
+    WHEN convert_to('DLTX2'::text, 'UTF8'::name) THEN ((tracking_canonical IS NOT NULL) AND (observations_canonical IS NOT NULL) AND deadline_tracking_consistent(tracking_canonical, observations_canonical) AND (case_id = ((deadline_observations(observations_canonical) ->> 'case_id'::text))::uuid) AND (sha256(observations_canonical) = decode((deadline_tracking(tracking_canonical) ->> 'observations_digest'::text), 'hex'::text)) AND (sha256(observations_canonical) = decode((submission_view ->> 'observations_digest'::text), 'hex'::text)) AND (SUBSTRING(capture_canonical FROM ((octet_length(capture_canonical) - octet_length(tracking_canonical)) + 1)) = tracking_canonical) AND (SUBSTRING(review_canonical FROM ((octet_length(review_canonical) - (37 + (2 * get_byte(tracking_canonical, 4)))) + 1)) = SUBSTRING(tracking_canonical FROM 1 FOR (37 + (2 * get_byte(tracking_canonical, 4))))))
+    ELSE false
+END IS TRUE)"#,
+    ),
+    (
+        "case_deadline_revisions",
+        "deadline_tracking_shape",
+        r#"(
+CASE SUBSTRING(submission_canonical FROM 1 FOR 5)
+    WHEN convert_to('DLTX1'::text, 'UTF8'::name) THEN ((SUBSTRING(review_canonical FROM 1 FOR 5) = convert_to('DLRV1'::text, 'UTF8'::name)) AND (SUBSTRING(capture_canonical FROM 1 FOR 5) = convert_to('DLST1'::text, 'UTF8'::name)) AND (tracking_canonical IS NULL) AND (observations_canonical IS NULL) AND (tracking_administration_revision IS NULL) AND (cause_event_sequence IS NULL))
+    WHEN convert_to('DLTX2'::text, 'UTF8'::name) THEN ((SUBSTRING(review_canonical FROM 1 FOR 5) = convert_to('DLRV2'::text, 'UTF8'::name)) AND (SUBSTRING(capture_canonical FROM 1 FOR 5) = convert_to('DLST2'::text, 'UTF8'::name)) AND (tracking_canonical IS NOT NULL) AND (observations_canonical IS NOT NULL) AND ((octet_length(tracking_canonical) >= 102) AND (octet_length(tracking_canonical) <= 122)) AND ((octet_length(observations_canonical) >= 111) AND (octet_length(observations_canonical) <= 446)))
+    ELSE false
+END IS TRUE)"#,
     ),
 ];
 const DEFAULTS: &[(&str, &str, &str)] = &[
@@ -190,6 +235,16 @@ CASE
     WHEN (source_kind = 'notification'::text) THEN 'resolution'::text
     ELSE NULL::text
 END"#,
+    ),
+    (
+        "case_deadline_revisions",
+        "cause_event_sequence",
+        r#"((((deadline_submission(submission_canonical) -> 'cause'::text) -> 'event'::text) ->> 'sequence'::text))::bigint"#,
+    ),
+    (
+        "case_deadline_revisions",
+        "tracking_administration_revision",
+        r#"((deadline_tracking(tracking_canonical) ->> 'administration_revision'::text))::bigint"#,
     ),
 ];
 pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {

@@ -1,16 +1,11 @@
-use super::{dependencies, header, inconsistent, port};
+use super::{administration, dependencies, header, inconsistent, tracking};
 use application::{
-    cases::CurrentCaseAdministration,
     deadline_evaluations::{decode_deadline_evaluation_input, decode_deadline_evaluation_record},
     deadline_profiles::{DeadlineProfileCollection, DeadlineProfileStatus},
     deadlines::*,
     ApplicationError,
 };
-use domain::{
-    case_administration::CaseRevision,
-    cases::{CaseId, CaseMetadata},
-    crypto::DocumentHasher,
-};
+use domain::crypto::DocumentHasher;
 use postgres::{Row, Transaction};
 
 pub(super) fn row(
@@ -46,7 +41,7 @@ pub(super) fn row(
             "captured deadline profile has invalid scope or state",
         ));
     }
-    let administration = administration(tx, row, head.case_id, hasher)?;
+    let administration = administration::captured(tx, row, head.case_id, hasher)?;
     let heads = dependencies::read(row, &input)?;
     let material = crate::deadline_input_history::load_captured_material(
         tx,
@@ -58,7 +53,7 @@ pub(super) fn row(
         hasher,
     )
     .map_err(inconsistent)?;
-    let detail = DeadlineDetail {
+    let mut detail = DeadlineDetail {
         id: head.id,
         case_id: head.case_id,
         revision: head.revision,
@@ -82,8 +77,8 @@ pub(super) fn row(
         recorded_at: head.recorded_at,
         recorded_by: head.recorded_by,
     };
+    detail.tracking = tracking::capture(tx, row, &detail, hasher)?;
     deadline_receipt_matches(hasher, &detail).map_err(inconsistent)?;
-    let (actor, _) = header::legacy_actor(&detail.recorded_by)?;
     if row
         .try_get::<_, serde_json::Value>("input_view")
         .map_err(inconsistent)?
@@ -102,12 +97,7 @@ pub(super) fn row(
     let submission: Vec<u8> = row.try_get("submission_canonical").map_err(inconsistent)?;
     if deadline_review_bytes(hasher, &detail)? != review
         || deadline_capture_bytes(hasher, &detail)? != capture
-        || deadline_submission_bytes(
-            actor,
-            detail.case_id,
-            &header::command(&detail)?,
-            detail.receipt.review_digest,
-        ) != submission
+        || deadline_record_submission_bytes(&detail)? != submission
         || hasher.hash_bytes(&review) != detail.receipt.review_digest
         || hasher.hash_bytes(&capture) != detail.receipt.capture_digest
         || hasher.hash_bytes(&submission) != detail.receipt.submission_digest
@@ -129,68 +119,4 @@ pub(super) fn row(
         ));
     }
     Ok(detail)
-}
-fn administration(
-    tx: &mut Transaction<'_>,
-    row: &Row,
-    case: CaseId,
-    hasher: &dyn DocumentHasher,
-) -> Result<CurrentCaseAdministration, ApplicationError> {
-    let revision: Option<i64> = row
-        .try_get("observed_administration_revision")
-        .map_err(inconsistent)?;
-    let captured = match revision {
-        Some(revision) => CurrentCaseAdministration::Recorded(Box::new(
-            crate::hearing_postgres::administration(
-                tx,
-                case,
-                CaseRevision::new(header::counter(revision)?).map_err(inconsistent)?,
-                hasher,
-            )
-            .map_err(inconsistent)?,
-        )),
-        None => {
-            let baseline = tx
-                .query_opt(
-                    "SELECT title,reference,required_initial_revision FROM cases WHERE id=$1
-                AND octet_length(title)<=800 AND octet_length(reference)<=400",
-                    &[&case.as_uuid()],
-                )
-                .map_err(port)?
-                .ok_or_else(|| {
-                    inconsistent("deadline original administration absent or unbounded")
-                })?;
-            if baseline
-                .try_get::<_, Option<i64>>("required_initial_revision")
-                .map_err(inconsistent)?
-                .is_some()
-            {
-                return Err(inconsistent(
-                    "deadline invented an unrevised administration",
-                ));
-            }
-            let title: String = baseline.try_get("title").map_err(inconsistent)?;
-            let reference: String = baseline.try_get("reference").map_err(inconsistent)?;
-            let metadata = CaseMetadata::new(&title, &reference).map_err(inconsistent)?;
-            if metadata.title() != title || metadata.reference() != reference {
-                return Err(inconsistent(
-                    "noncanonical original deadline administration",
-                ));
-            }
-            CurrentCaseAdministration::Unrevised(metadata)
-        }
-    };
-    let bytes: Vec<u8> = row
-        .try_get("observed_administration_canonical")
-        .map_err(inconsistent)?;
-    let digest = header::digest(
-        row.try_get("observed_administration_digest")
-            .map_err(inconsistent)?,
-    )?;
-    if captured.values().canonical_bytes() != bytes || hasher.hash_bytes(&bytes) != digest {
-        return Err(inconsistent(
-            "deadline administration canonical capture differs",
-        ));
-    }
-    Ok(captured)
 }

@@ -35,12 +35,60 @@ pub fn build_deadline_observations(
     material: &DeadlineInputMaterial,
     notification_parent_head: Option<&FactDetail>,
 ) -> Result<Observations, ApplicationError> {
+    build_verified(
+        hasher,
+        case_id,
+        profile_head,
+        material,
+        notification_parent_head,
+        true,
+    )
+}
+
+/// Verify exactly the dependency observations captured with a historical revision.
+///
+/// Legacy notification history may omit a separately observed parent. Its absence
+/// is preserved, without granting acceptance or consulting current dependency heads.
+pub fn verify_captured_deadline_observations(
+    hasher: &dyn DocumentHasher,
+    observations: &Observations,
+    profile: &DeadlineProfileDetail,
+    material: &DeadlineInputMaterial,
+    notification_parent: Option<&FactDetail>,
+) -> Result<(), ApplicationError> {
+    encode_observations(observations).map_err(inconsistent)?;
+    let expected = build_verified(
+        hasher,
+        observations.case_id,
+        profile,
+        material,
+        notification_parent,
+        false,
+    )?;
+    if *observations != expected {
+        return Err(inconsistent(
+            "captured observations differ from verified historical evidence",
+        ));
+    }
+    Ok(())
+}
+
+fn build_verified(
+    hasher: &dyn DocumentHasher,
+    case_id: CaseId,
+    profile_head: &DeadlineProfileDetail,
+    material: &DeadlineInputMaterial,
+    notification_parent_head: Option<&FactDetail>,
+    require_parent: bool,
+) -> Result<Observations, ApplicationError> {
     deadline_profile_receipt_matches(hasher, profile_head)?;
     if matches!(profile_head.definition.scope(), DeadlineProfileScope::Case(id) if *id != case_id) {
         return Err(inconsistent("observed profile belongs to another case"));
     }
     validation::material(hasher, case_id, material)?;
-    validation::parent(hasher, case_id, material, notification_parent_head)?;
+    if require_parent || notification_parent_head.is_some() {
+        validation::parent(hasher, case_id, material, notification_parent_head)?;
+    }
     let mut entries = vec![entries::profile(hasher, profile_head)];
     if let Some(source) = &material.source_head {
         entries.push(entries::source(hasher, ObservationRole::Source, source));

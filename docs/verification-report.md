@@ -4,6 +4,70 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Persistencia humana V1/V2: 18 de septiembre de 2026
+
+El adaptador PostgreSQL incorpora capturas y observaciones V2 sin modificar
+los bytes históricos V1. Revalida las cuatro acciones humanas con el usuario
+real, conserva ambas huellas del predecesor y reconstruye material histórico
+exacto. Las migraciones `0018_` añaden seguimiento separado del cálculo,
+parsers estrictos y un guard compatible con selección histórica `Fixed`.
+La lectura no recalcula fechas ni completa padres que el legado no observó.
+
+La campaña completa ejecutó `scripts/test-backends.sh` con PostgreSQL de
+identidad, expedientes y documentos, Redis desechable y qpdf 12.4.1.
+Terminó con **2558 pruebas aprobadas, cero fallidas y una TSA externa
+ignorada**, en 436 resúmenes. Los casos comprobados en campañas focales
+se ejecutan también en esta suite; las repeticiones de aquellas campañas no se
+suman a este total.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Salida 0, 3.832 s. |
+| Compilación del workspace | Salida 0, 0.343 s. |
+| Suite Rust con servicios aislados | Salida 0, 663.489 s. |
+| Clippy 1.98.1 con warnings denegados | Salida 0, 29.008 s. |
+| MSRV 1.88, todos los targets | Salida 0, 26.607 s. |
+| API y restauración con servicios reales | Salida 0, 152.118 s. |
+
+Las 1483 fuentes de la campaña conservaron sus huellas. Se reprodujeron
+los fallos de codec, parsers, esquema y persistencia antes de implementar sus
+fronteras. Los controles SQL anteriores rechazaban perfiles fijos históricos
+y aceptaban enlaces de predecesor, cambios de política en atención y recibos
+de observación incoherentes. Sus pruebas directas verifican los rechazos y
+la ausencia de escrituras parciales tras la corrección.
+
+La primera campaña global de almacenamiento se detuvo en la prueba de
+inmutabilidad de eventos: `TRUNCATE` devolvió `0A000` porque la nueva
+clave foránea impide truncar la tabla referenciada antes de ejecutar su
+guard. Se reprodujo el error completo y se ajustó la expectativa por
+sentencia. La prueba exige además `23514` y el mensaje exacto del guard
+para `TRUNCATE CASCADE` y truncado conjunto, manteniendo el snapshot
+después de cada rechazo. Las diez pruebas del emisor aprobaron antes de
+repetir esta campaña completa. No se alteraron las restricciones de datos.
+
+La aceptación incluye actualización desde un esquema 0017 real con cuatro
+registros V1, migración repetida, reapertura, autor humano y auditoría,
+notificaciones con padre histórico y observado distintos, administración
+histórica y detección de falsificaciones con hashes coherentes. Los controles
+del inventario reconstruyen evidencia, además de comprobar sus huellas.
+
+Los cinco controles Rust terminaron con salida cero. El primer intento HTTP
+quedó interrumpido por una terminación del runner con señal 15, sin un
+resultado completo de la demo. Tras comprobar que sus procesos habían
+terminado y detener su PostgreSQL desechable, se repitió solamente ese
+control con servicios nuevos. La tabla recoge la repetición terminada;
+las huellas confirman que no cambiaron las fuentes entre ambos intentos.
+
+El recorrido HTTP repetido sigue produciendo V1: comprueba la compatibilidad
+del flujo existente y su restauración bajo el esquema ampliado. No acredita
+una API V2 ni restauración de trabajos automáticos. El guard humano sigue
+rechazando autoría técnica hasta disponer del servicio y trabajo durable.
+La PR 34 permanece en borrador; faltan despacho, trabajador, HTTP V2 y Qadra.
+
+La CI de `8c838cb` terminó con sus 18 controles aprobados. Corresponde al
+preparador técnico publicado antes de este cambio de almacenamiento; la CI
+del incremento actual debe comprobarse sobre su propio commit.
+
 ## Preparación técnica de seguimiento: 18 de septiembre de 2026
 
 Este incremento añade el preparador técnico puro de revisiones y resultados
@@ -12,8 +76,9 @@ admite eventos anteriores a la cabeza actual sin sustituir su causa original.
 La base de contratos V2 se publicó en
 [PR 34](https://github.com/eddndev/TT2026-B136/pull/34), commits `2680455` y
 `b185534`; los resultados de esta sección corresponden al incremento posterior.
-La PR sigue en borrador: persistencia V2, trabajos durables, HTTP y Qadra de
-reevaluación todavía no están conectados.
+Al cierre de este incremento, la PR seguía en borrador: persistencia V2,
+trabajos durables, HTTP y Qadra de reevaluación todavía no estaban conectados.
+El estado posterior y sus verificaciones se describen en los cortes siguientes.
 
 La campaña completa ejecutó `scripts/test-backends.sh` con PostgreSQL de
 identidad, expedientes y documentos, Redis desechable, Rust 1.94 y qpdf 12.4.1.

@@ -1,4 +1,5 @@
 //! Immutable deadline evaluations and attention in one audited transaction.
+mod administration;
 mod attention;
 mod authorization;
 mod commit;
@@ -9,9 +10,11 @@ mod header;
 mod legacy_tests;
 mod port_impl;
 mod preparation;
+mod projection;
 mod query;
 mod responsibles;
 pub(crate) mod storage;
+mod tracking;
 mod write;
 use application::{deadlines::DeadlineError, ApplicationError};
 use domain::{clock::Clock, crypto::DocumentHasher};

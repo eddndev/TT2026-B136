@@ -290,6 +290,14 @@ is still unfinished.
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
   Automatic activation, reevaluation workers, combined hearing/deadline agenda,
   alerts and the qualified legal-profile acceptance corpus remain pending.
+- The `0018_` migrations extend deadline storage with human V2 tracking captures
+  and observations while preserving V1 history. Historical reads reconstruct
+  exact source and administration evidence without recalculation. Human commits
+  reauthorize and preserve action-specific continuity; the SQL guard rejects
+  technical writes until their durable worker boundary exists. The human service
+  and HTTP workflow still use V1. Dispatch, worker execution and HTTP/Qadra V2
+  remain pending. Verification results belong to their recorded code revision;
+  see `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - Support admission runs in one bounded Linux worker using mandatory qpdf 12.4.1
   and the DOCX profile in `docs/adr/0024-isolated-document-format-admission.md`.
   It preserves original content, does not render it or certify legal authenticity,
