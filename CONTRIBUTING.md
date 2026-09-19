@@ -252,9 +252,19 @@ Inspect current code and contracts before treating this summary as complete.
   evidence and are not covered by those historical runs. Remote checks and
   integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, combined hearing/deadline agenda, alerts and the qualified
-  legal-profile acceptance corpus remain pending. The later reevaluation runtime
-  is composed locally in `serve` and has separate real-service verification.
+  Automatic activation, alerts and the qualified legal-profile acceptance corpus
+  remain pending. The later reevaluation runtime is composed locally in `serve`
+  and has separate real-service verification.
+
+- The combined `/api/v1/agenda` query and Qadra day, week and month views are
+  implemented. One authorized, audited transaction combines hearing heads with
+  verified operational deadline dates, with bounded candidate scans and explicit
+  continuation. Historical reads and pending, retired or changed deadlines provide
+  no operational date. Opening preserves the exact revision. Backend/HTTP,
+  desktop/mobile browser and restored-API acceptance passed for the published
+  checkpoint. Closing CI and integration into `main` remain pending. See
+  `docs/agenda-api.md`, `docs/adr/0038-authorized-combined-agenda.md` and
+  `docs/verification-report.md`.
 
 - The `0018_` migrations extend deadline storage with human V2 tracking captures
   and observations while preserving V1 history. The single human service and
@@ -309,10 +319,9 @@ Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
 1. Complete global verification, then integrate the
-   verified human/HTTP/Qadra V2 workflow and composed durable runtime into `main`.
-   Qualify legal profiles with primary sources and
-   acceptance cases, then implement activation, combined agenda
-   and notifications.
+   verified human/HTTP/Qadra V2 workflow, composed durable runtime and combined
+   agenda into `main`. Qualify legal profiles with primary sources and
+   acceptance cases, then implement activation and notifications.
    Preserve exact inputs and immutable historical evaluations. Declared hearing
    text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and

@@ -34,8 +34,15 @@ cursores, vigencia, atomicidad ni proyección HTTP; esto no sustituye las prueba
 
 Se inspeccionaron cuatro capturas reales. Conservan los componentes y colores
 Qadra y no desbordan la página; el mes usa desplazamiento horizontal contenido
-en móvil. Las tarjetas mensuales requieren compactar su texto para reducir la
-altura de las filas: la aceptación funcional no se presenta como cierre visual.
+en móvil. Esa revisión detectó tarjetas mensuales demasiado altas. La presentación
+se compactó después a familia, revisión, hora exacta, título y referencia, con
+descripción accesible completa y detalle al abrir. Omite sólo fracciones nulas.
+La comprobación focal de los tres periodos a 1440/390 píxeles detectó un desborde
+móvil causado por la descripción oculta fuera de la tarjeta. Al contenerla dentro
+del botón, ambos escenarios aprobaron en 9.805 s, sin cambios de fuentes durante
+la campaña. Se inspeccionaron las capturas del mes en escritorio y del encuadre
+móvil; este último conserva desplazamiento horizontal para consultar los días
+fuera del área inicial. No se repitió la campaña real por este ajuste visual.
 
 El guion API contrastó la consulta mixta, filtros, continuación, permisos y
 vigencia antes y después de restaurar, reutilizando los registros existentes.
