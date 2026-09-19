@@ -400,10 +400,19 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   de 218 bytes; no reciben la clave privada. Ese flujo no vincula automáticamente
   la identidad representada con una cuenta de acceso. La autenticación por
   certificado y la firma documental individual de usuarios continúan pendientes.
-- El corte de sesiones declaradas midió Argon2id en 409.6 ms de promedio sobre
-  cinco corridas, por debajo de la banda de 500--1000 ms. La calibración de costo
-  de intento permanece pendiente para el entorno de despliegue; aprobar la CLI
-  no satisface ese criterio. Los parámetros no cambiaron en esta entrega.
+- El corte histórico de sesiones declaradas midió Argon2id en 409.6 ms sobre
+  cinco corridas con dos iteraciones. La medición aislada posterior del mismo
+  costo promedió 400.3851816 ms, también por debajo de 500--1000 ms. El ajuste
+  actual usa tres iteraciones para hashes nuevos, conserva 256 MiB y un carril
+  y aprobó siete pruebas focales, incluida la verificación de PHC históricos
+  con dos iteraciones. La medición real de tres iteraciones promedió
+  659.7596048 ms en cinco hashes y obtuvo veredicto dentro de 500--1000 ms:
+  la banda queda comprobada para hashes nuevos en el host y binario medidos,
+  no para el login completo ni HTTP bajo carga. Seis pruebas CLI aprobaron en
+  20.916 s y la demostración completa en 8.240 s; esta midió por separado
+  563.2 ms en cinco hashes, también dentro de banda, sin sustituir la medición
+  principal. CI y PDF actualizado siguen pendientes. Véase
+  [ADR-0044](adr/0044-reference-password-hashing-cost.md).
 - Client mantiene acceso a metadatos de expedientes asignados y denegación
   documental. Ampliarlo requiere una política de recursos explícita y pruebas
   de aislamiento; ocultar botones no constituye autorización.

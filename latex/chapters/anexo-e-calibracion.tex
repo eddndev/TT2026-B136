@@ -1,0 +1,7 @@
+\section{Reproducción de la calibración de credenciales}\label{anexo:calibracion-credenciales}
+
+La comprobación de \cref{sec:calibracion-credenciales} utiliza cinco hashes secuenciales mediante \texttt{auth calibrate}. La salida JSON debe declarar cinco corridas, límites de 500 y 1000 ms y veredicto \texttt{inside}; el éxito del proceso por sí solo no establece ese resultado. Una medición temporal del equipo de referencia no se convierte en una aserción de duración para CI.
+
+La prueba de compatibilidad histórica construye explícitamente un PHC anterior y comprueba aceptación y rechazo sin sustituir sus parámetros. Se conserva en \rutarepo{crates/infrastructure/tests/password_hashing.rs}. Las pruebas CLI y la demostración verifican uso del mismo adaptador, códigos de salida y recorridos criptográficos. No se omiten comprobaciones de códigos de recuperación para reducir su costo.
+
+El criterio de tiempo se limita a los hashes nuevos y al binario medido. Cambiar de equipo o perfil de construcción requiere otra medición; los hashes anteriores y los flujos completos conservan costos distintos. El informe técnico registra por separado la calibración principal y la secundaria, sin sustituir mediciones históricas.

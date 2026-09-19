@@ -1,0 +1,7 @@
+\section{Calibración del costo de credenciales}\label{sec:calibracion-credenciales}
+
+El 19 de septiembre de 2026 se midió el costo de un hash nuevo en un equipo AMD Ryzen 7 7730U, con 16 CPU lógicas y Linux 7.1.13. El binario de desarrollo optimiza las dependencias Argon2 y Blake2 a nivel 3. Las cinco operaciones secuenciales con dos pasadas promediaron 400.3851816 ms, por debajo de la banda de 500 a 1000 ms. Con tres pasadas, el promedio de cinco operaciones fue 659.7596048 ms, dentro de esa banda. Se mantuvieron 256 MiB de memoria, una vía, sal aleatoria de 16 bytes y salida de 32 bytes.
+
+La comprobación focal aprobó siete casos, incluida la verificación de un PHC histórico de dos pasadas con contraseña correcta e incorrecta. Seis pruebas CLI aprobaron y la demostración completa de comandos terminó satisfactoriamente; su calibración secundaria dio 563.2 ms sobre cinco hashes. Las dos observaciones conservan su contexto. Las identidades del binario, entorno, comandos y resultados se registran en \rutarepo{docs/verification-report.md}.
+
+El ajuste afecta a hashes nuevos; los anteriores conservan sus parámetros y no se reescriben. La banda no mide un inicio de sesión completo ni acredita rendimiento bajo carga. La memoria por operación no aumenta, aunque el trabajo de CPU y la ocupación del trabajador son mayores. La regresión global y la integración de este ajuste requieren su evidencia propia.

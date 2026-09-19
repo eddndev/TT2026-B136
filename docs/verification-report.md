@@ -4,6 +4,42 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Costo de contrasenas: calibracion del 19 de septiembre de 2026
+
+El adaptador genera hashes Argon2id con tres pasadas, conservando 262144 KiB
+(256 MiB), una via, sal aleatoria de 16 bytes y salida de 32 bytes. La razon y
+los limites estan en [ADR 0044](adr/0044-reference-password-hashing-cost.md).
+No se migran PHCs existentes ni se altera la concurrencia de la API.
+
+La medicion se ejecuto en AMD Ryzen 7 7730U, 16 CPU logicas, Linux
+7.1.13-100.fc43.x86_64. El binario dev optimiza `argon2` y `blake2` a nivel 3.
+Solo habia un coordinador de verificacion; no se afirma aislamiento de todo
+el sistema operativo. La carga media previa era 1.9004/2.6924/2.7114.
+
+- Base de dos pasadas: **400.3851816 ms**, cinco hashes, veredicto `below`.
+  El binario construido por la aceptacion de miembros tiene SHA-256
+  `e62a9cccc90deea528c35ea092e320434b75a626ea020b8b8d10dea765027427`.
+- Tres pasadas: **659.7596048 ms**, cinco hashes, veredicto `inside` en la
+  banda inclusiva de 500-1000 ms. Se comprobaron el JSON y sus limites;
+  el exit code no acredita por si solo la banda. SHA-256 del binario:
+  `cf688da4940d70825b85c9d9d7ce26e3efc03888a0b206d7819e92268bdd5486`.
+  Compilacion y calibracion juntas tomaron 79.514 s, con 2553 fuentes estables.
+- TDD: la expectativa de tres pasadas fallo con el adaptador anterior;
+  dos casos aprobaron y uno fallo en 34.548 s. Despues aprobaron **7 casos**
+  en 21.602 s: tres de integracion y cuatro internos, incluidos PHC anterior
+  con contrasena correcta/incorrecta, sales distintas y formatos malformados.
+- CLI: **6 pruebas aprobadas**, 20.916 s. `scripts/demo.sh` aprobo en
+  **8.240 s**, incluida una medicion secundaria de **563.2 ms** sobre cinco
+  hashes. Esta segunda observacion no reemplaza la principal. Cada comando
+  conservo sus 2553 fuentes estables y uso temporales privados en disco.
+
+Los registros estan en `output/password-calibration-verification/`. La banda
+corresponde a un hash nuevo en ese binario y equipo, no al login completo,
+enrolamiento, recuperacion ni comportamiento bajo carga. Los hashes historicos
+siguen verificandose con sus parametros codificados. CI, integracion y revision
+del PDF de estas fuentes siguen pendientes; las cifras anteriores conservan
+su propio contexto y no se recalculan con este cambio.
+
 ## Directorio, acceso y asignaciones: verificacion del 19 de septiembre de 2026
 
 El incremento local implementa directorio Owner, cambios de rol/actividad con
