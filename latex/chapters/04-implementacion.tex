@@ -742,6 +742,8 @@ Los errores de credenciales o sesión usan \texttt{401}; permisos, \texttt{403};
 
 \input{chapters/04-alertas}
 
+\input{chapters/04-recursos-procesales}
+
 \section{Resultados de la exploración del sellado de tiempo}\label{sec:impl-spike-tsa}
 
 El análisis de riesgos identificó la integración con la API del PSC como el riesgo técnico de mayor exposición (RTC-01, \cref{tab:rtc-01}), y previó como contingencia un servicio sustituto que simulara las respuestas de la TSA para no bloquear el desarrollo. El registro en el entorno de Cincel pudo completarse, pero el riesgo se materializó durante el consumo: la API no mostró estabilidad suficiente para sostener una campaña repetible y el sandbox requiere pago, por lo que no es una dependencia determinista ni económicamente neutra para la suite o la demostración (\cref{sec:riesgo-psc-materializado}). La respuesta de implementación fue más fuerte que la contingencia prevista: en lugar de un simulador, se construyó una \emph{autoridad de sellado real} operada localmente con OpenSSL, que emite tokens RFC 3161 auténticos, criptográficamente completos y verificables con herramientas independientes.

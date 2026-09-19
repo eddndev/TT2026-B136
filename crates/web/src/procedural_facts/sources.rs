@@ -43,7 +43,7 @@ pub(super) fn validate(
     Ok(())
 }
 
-pub(super) fn project(sources: &FactSources) -> Result<Value, ApiError> {
+pub(crate) fn project(sources: &FactSources) -> Result<Value, ApiError> {
     fact_sources_bytes(sources).map_err(|_| ApiError::internal())?;
     let resolution = match (&sources.resolved.resolution, &sources.views.resolution) {
         (Some(s), Some(v)) => Some(json!({"case_id":s.case_id,

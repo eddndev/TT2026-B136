@@ -21,7 +21,7 @@
     class="case-sections"
     aria-label="Secciones del expediente"
   >
-    {#each [{ id: 'case-summary', label: 'Resumen' }, { id: 'documents', label: 'Documentos' }, { id: 'participants', label: 'Participantes' }, { id: 'stages', label: 'Etapas' }, { id: 'hearings', label: 'Audiencias' }, { id: 'resolutions', label: 'Resoluciones' }, { id: 'deadlines', label: 'Plazos' }] as item}
+    {#each [{ id: 'case-summary', label: 'Resumen' }, { id: 'documents', label: 'Documentos' }, { id: 'participants', label: 'Participantes' }, { id: 'stages', label: 'Etapas' }, { id: 'hearings', label: 'Audiencias' }, { id: 'resolutions', label: 'Resoluciones' }, { id: 'resources', label: 'Recursos' }, { id: 'deadlines', label: 'Plazos' }] as item}
       <a
         href={`#${item.id}`}
         class:active={view === item.id}

@@ -1,8 +1,8 @@
 //! HTTP values preserve declared components; optional input projects explicit nulls.
-mod catalog;
+pub(crate) mod catalog;
 mod input;
 mod people;
-mod provenance;
+pub(crate) mod provenance;
 pub(crate) mod time;
 
 use crate::error::ApiError;

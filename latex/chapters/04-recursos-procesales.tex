@@ -1,0 +1,41 @@
+\section{Recursos procesales declarados}\label{sec:impl-recursos-declarados}
+
+El incremento de recursos incorpora el registro de revocación y apelación como historias independientes de la etapa ordinaria del expediente. Su finalidad inmediata es conservar lo declarado por el usuario, la resolución seleccionada y los soportes que acompañan cada captura. No introduce una cuarta etapa ni interpreta que registrar un recurso acredite su presentación, admisión, firmeza o efectos sobre otros actos. El contrato implementado está en \rutarepo{docs/procedural-resources-api.md}; la separación entre registro organizativo y efectos procesales se fundamenta en \rutarepo{docs/adr/0040-resources-linked-to-historical-resolutions.md}.
+
+\subsection{Identidad, declaración y fuentes históricas}
+
+Cada recurso tiene una identidad y una secuencia propia de revisiones. El registro distingue tipo de recurso, modalidad oral o escrita, título organizativo, parte impugnada, motivos, autoridades y tiempos declarados. Una declaración conocida conserva su valor; una declaración desconocida conserva el motivo de ese desconocimiento. En los campos opcionales, la ausencia se mantiene distinta de una declaración desconocida. Una fecha sin hora no se completa con medianoche ni se convierte en un instante preciso.
+
+La resolución se selecciona mediante identidad y revisión exactas dentro del mismo expediente. La preparación verifica sus recibos y conserva una proyección legible de esa revisión. Por ejemplo, elegir la revisión 1 no implica reemplazarla por la revisión 2 al confirmar, aunque ésta sea la cabeza consultable. Pueden coexistir varios recursos referidos a la misma resolución. La selección histórica tampoco atribuye vigencia o elegibilidad jurídica a la fuente.
+
+Las personas recurrentes conservan nombre y papel declarados. Su vínculo opcional con el directorio identifica una revisión histórica verificada y no las convierte en cuentas de acceso. El límite de 32 capturas por recurso es técnico. Se rechaza la repetición de una misma ficha del directorio; dos personas declaradas sin ficha pueden compartir nombre. La resolución impugnada exige un soporte documental exacto, identificado por documento, versión, digest y localizador.
+
+\subsection{Actos e historia organizativa}
+
+Los actos declarados distinguen interposición, admisión, inadmisibilidad, desistimiento y resolución. Cada acto tiene identidad, revisiones, modalidad, tiempo, autoridad, declaración y evidencia propios. Registrar o corregir un acto añade una revisión al recurso; la corrección referencia además la captura anterior de ese mismo acto. Por ello, la revisión anterior del acto puede encontrarse varias revisiones atrás en la historia del recurso.
+
+Cada acto admite entre uno y dos localizadores de evidencia, conforme al límite técnico del lote documental existente. Dos localizadores de una misma versión conservan sus funciones y comparten la admisión; un digest contradictorio para esa versión provoca rechazo. Se reutiliza la admisión PDF/DOCX, sin afirmar que esos formatos determinen la suficiencia jurídica de la evidencia. Una constancia documental puede respaldar un acto declarado oral sin convertirlo en un acto escrito.
+
+El archivo y la reactivación son cambios organizativos que preservan valores y fuentes. Archivar no registra un desistimiento. La cabeza del recurso expone el acto que se haya registrado en esa revisión, no una lista implícita de todos los actos anteriores. La historia permite consultar cada captura y reconstruir las revisiones de una identidad de acto.
+
+\subsection{Preparación, confirmación y persistencia}
+
+El servicio separa seis intenciones: registrar y corregir recurso, registrar y corregir acto, archivar y reactivar. La preparación reúne fuentes exactas, verifica las nuevas versiones documentales en un lote acotado y genera un digest del envío que el usuario revisa. No reserva la operación ni mantiene bloqueadas las fuentes mientras se muestra el formulario. Los soportes admitidos que se retienen se contrastan con su captura, sin sustituirlos por versiones más recientes ni readmitirlos silenciosamente.
+
+La confirmación vuelve a autenticar al principal completo y contrasta la revisión esperada del recurso, la revisión del acto cuando corresponde, la evidencia preparada y las observaciones administrativas y de etapa. El adaptador PostgreSQL revalida cuenta activa, rol y asignación bajo el bloqueo de auditoría compartido. Añade la revisión, el recibo y el evento de auditoría dentro de la misma transacción. Si el contexto observado cambió, devuelve un conflicto; no confirma sobre una nueva base sin una decisión explícita.
+
+El recibo vincula comando, autor con correo capturado, valores, fuentes, contexto observado y digest de la captura anterior. La captura final añade el instante UTC de confirmación. Las codificaciones canónicas distinguen valores del recurso, valores del acto, fuentes, envío y captura; su comprobación demuestra coherencia técnica y no aplicabilidad jurídica. Una repetición con la misma identidad de operación, actor y comando conserva el recibo original. Un uso diferente de esa identidad produce conflicto. La autorización vigente también se exige para recuperar una operación ya confirmada.
+
+La migración \rutarepo{migrations/0022_procedural_resources.sql} incorpora raíces, actos y revisiones inmutables. Sus guardas y el catálogo de arranque controlan secuencias, relaciones y privilegios de inserción. El inventario utiliza el lector histórico del adaptador, recorre revisiones en lotes acotados y rechaza capturas incoherentes sin escribir nuevos eventos. La lectura de una corrección también comprueba que la raíz del acto conserve su captura inicial exacta. Las pruebas del adaptador verificaron exportación y restauración de PostgreSQL, conservación de autoría y continuación de la historia; la aceptación integrada de API y navegador permanece separada, como se precisa en la \cref{sec:pruebas-recursos-declarados}.
+
+\subsection{Consulta autorizada e interacción en Qadra}
+
+Owner puede gestionar los recursos; Litigator requiere asignación vigente al expediente. Paralegal asignado consulta y Client conserva la denegación. El cierre administrativo permite consultar la historia y bloquea nuevas mutaciones. La lectura devuelve datos sólo después de confirmar su auditoría y de la reautenticación del servicio. Las capturas conservan el correo del autor original aunque su cuenta cambie posteriormente.
+
+La API ofrece colección, cabeza, revisión exacta e historia bajo la ruta del expediente. El listado selecciona cabezas antes de aplicar los filtros de tipo y estado, y utiliza continuación exclusiva por identidad. Admite hasta 100 recursos por página, con 20 por omisión; la historia descendente admite hasta 20 revisiones, con 10 por omisión. Estos límites de consulta no son límites procesales. El transporte rechaza campos desconocidos, cuerpos ambiguos y discordancias entre ruta, recurso, acto e intención.
+
+Qadra presenta formulario, revisión previa a confirmar, detalle e historia. Ante un conflicto conserva el borrador y requiere comparar y aceptar expresamente la base actual antes de preparar otro envío. Ante una respuesta incierta consulta el recibo exacto de la operación; no interpreta una ausencia temporal como prueba de fracaso ni reenvía automáticamente. La revocación de acceso retira los datos visibles cuando la consulta vuelve a ser denegada.
+
+\subsection{Frontera pendiente del flujo completo}
+
+Este incremento implementa registro y consulta de recursos declarados. Todavía requiere la asociación específica con audiencias, plazos calculados y alertas, así como el impulso procesal sustentado en un corpus jurídico calificado. Ninguno de sus comandos avanza la etapa, suspende términos o determina elegibilidad. Esas obligaciones permanecen en \rutarepo{docs/procedural-resources-scope.md}; el registro disponible no las sustituye por fechas manuales ni acredita que el flujo completo de recursos esté concluido.

@@ -4,7 +4,7 @@ use domain::{cases::CaseId, crypto::DocumentHasher};
 use postgres::Transaction;
 use std::collections::BTreeSet;
 
-pub(super) fn material(
+pub(crate) fn material(
     tx: &mut Transaction<'_>,
     case: CaseId,
     selection: &FactSourceSelection,

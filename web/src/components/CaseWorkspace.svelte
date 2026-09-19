@@ -3,6 +3,7 @@
   import { writable } from 'svelte/store';
   import CaseStages from './CaseStages.svelte';
   import CaseFacts from './CaseFacts.svelte';
+  import CaseResources from './CaseResources.svelte';
   import CaseDeadlines from './CaseDeadlines.svelte';
   import CaseHearings from './CaseHearings.svelte';
   import CaseContext from './CaseContext.svelte';
@@ -128,6 +129,12 @@
       onintent={onhearingintent}
     />
   {:else if view === 'resolutions' && staff}<CaseFacts
+      {api}
+      {user}
+      record={current}
+      ondenied={deny}
+    />
+  {:else if view === 'resources' && staff}<CaseResources
       {api}
       {user}
       record={current}

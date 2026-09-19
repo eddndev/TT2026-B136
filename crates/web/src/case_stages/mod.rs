@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 mod date;
 mod request;
-mod response;
+pub(crate) mod response;
 mod values;
 
 #[derive(Clone)]

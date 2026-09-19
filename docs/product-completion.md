@@ -439,3 +439,25 @@ El despliegue público requiere además resolver los límites operativos enumera
 en [la revisión del backend](backend-review.md), revisar el modelo de amenaza de
 firma HTTP y delimitar la ausencia de anclaje externo de auditoría. La
 demostración local no se presenta como validación de producción.
+
+## Recursos procesales: checkpoint funcional publicado
+
+El registro de revocación y apelación conserva una resolución histórica exacta,
+su soporte y personas recurrentes, con fichas del directorio opcionales. Los
+actos tienen identidad y revisiones propias; su corrección no sustituye evidencia
+anterior. Archivo y reactivación organizativos permanecen separados del
+acto de desistimiento. PostgreSQL mantiene escrituras y auditoría atómicas;
+HTTP y Qadra exponen preparación, confirmación, consulta e historia autorizadas.
+
+La verificación focal incluye dominio, aplicación, HTTP, doce pruebas PostgreSQL
+con restauración y recorridos de navegador con HTTP controlado. La compilación
+web está aprobada. La aceptación HTTP completa conservó veinte respuestas
+exactas después de restaurar la base y los tres recorridos con servidor real
+aprobaron escritorio, móvil y permisos. El checkpoint está en la PR 37. El cierre de CI,
+la revisión del nuevo PDF y la integración conservan su propio criterio de
+aceptación; no se presenta este código local como integrado en `main`.
+
+Persisten las asociaciones con audiencias, términos y alertas descritas en
+[el alcance](procedural-resources-scope.md), además de la calificación jurídica
+que corresponde a los perfiles de plazo. El [contrato](procedural-resources-api.md)
+y [la evidencia](verification-report.md) delimitan lo implementado.

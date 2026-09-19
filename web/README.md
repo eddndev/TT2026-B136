@@ -757,3 +757,26 @@ reutiliza los códigos de sus recorridos. La prueba de respuesta perdida descart
 recibo; no fabrica respuestas de negocio. Otro recorrido compara byte por byte
 el ZIP de la versión sellada exacta antes y después de programar y cancelar.
 Los resultados ejecutados se incorporan al informe de verificación del proyecto.
+
+## Recursos procesales del expediente
+
+La sección Recursos permite registrar revocación y apelación con una resolución
+histórica exacta, su soporte documental y personas recurrentes declaradas, con
+fichas del directorio opcionales. La modalidad y precisión temporal requieren
+una selección expresa; los datos desconocidos conservan ese estado.
+
+Owner y Litigator asignado preparan y confirman altas, correcciones, actos,
+archivo y reactivación. Paralegal asignado consulta; Client permanece denegado.
+El cierre del expediente conserva la historia y bloquea escrituras. Archivar un
+recurso sólo cambia su organización; el desistimiento se captura como acto
+independiente.
+
+Cada acto conserva uno o dos soportes exactos PDF/DOCX. Su revisión se encuentra
+en la historia del recurso y puede corregirse sin sustituir capturas anteriores.
+Una revisión histórica se abre expresamente; las respuestas inciertas se
+concilian por recibo y nunca se reenvían automáticamente. Los conflictos
+conservan el borrador y exigen aceptar una nueva base.
+
+La captura no inicia plazos ni programa audiencias; esas asociaciones siguen
+pendientes. El contrato está en [la API de recursos](../docs/procedural-resources-api.md)
+y las verificaciones ejecutadas en [el informe](../docs/verification-report.md).

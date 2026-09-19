@@ -4,6 +4,95 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Recursos procesales: checkpoint local del 19 de septiembre de 2026
+
+El dominio, servicio, adaptador PostgreSQL, rutas HTTP y formularios Qadra
+implementan registro y corrección de recursos, actos con revisiones propias,
+archivo/reactivación e historia. Cada recurso conserva resolución, personas y
+soportes exactos. El [contrato](procedural-resources-api.md) distingue esta
+captura del enlace posterior con audiencias, términos y alertas, aún pendiente.
+La aceptación HTTP con restauración completa y los tres recorridos de navegador
+con servidor real aprobaron después de las pruebas focales. El cierre de CI y
+la integración permanecen pendientes; el checkpoint está publicado en la PR 37.
+
+Se ejecutó una sola verificación local a la vez, con Cargo y pruebas Rust en un
+hilo, navegador con un trabajador y temporales privados en disco. Evidencias
+por frontera, sin sumar campañas repetidas como pruebas distintas:
+
+- Dominio: 14 pruebas aprobadas sobre identidades, valores, canones y compromisos.
+- Aplicación: 13 aprobadas por puertos, con permisos, fuentes exactas,
+  reautenticación, recibos, actos y estados organizativos. El primer intento
+  detectó una variable del fixture que ocultaba una función; se corrigió antes
+  de ejecutar los casos.
+- HTTP Rust: nueve aprobadas. La primera campaña detectó un nombre documental
+  inválido en el fixture; se conservó como rechazo y se corrigió el positivo.
+- Cliente: cuatro pruebas de valores y cinco de API/recibos aprobadas, después
+  de sus fallos iniciales por módulos aún ausentes.
+  Nueve pruebas adicionales verificaron el vínculo entre administración y etapa
+  capturadas: tres positivos pasaron y seis rechazos fallaron antes del arreglo;
+  las nueve aprobaron en 0.371 s con 2329 fuentes estables después del guard.
+- PostgreSQL: tres pruebas de almacenamiento, tres de atomicidad/revocación y
+  una de inventario aprobaron con una base desechable. La restauración falló
+  por la función SQL de alertas anterior al arreglo ya publicado; se incorporó
+  esa corrección. La campaña final aprobó los doce casos PostgreSQL en
+  48.921 s, con 2328 fuentes estables: los siete anteriores, restauración,
+  dos de catálogo y dos de raíces de actos. Estos últimos fallaron primero
+  al aceptar una raíz sustituida después de abrir el almacén; el JOIN que
+  verifica identidad, primera revisión y acción del acto corrigió ambos.
+  Restaurar preservó recibos y autoría y permitió anexar otra revisión.
+- Qadra con HTTP controlado: cinco recorridos aprobaron en 16.1 s de Playwright
+  (17.338 s de comando), incluidos resolución R1 con cabeza R2, acto oral,
+  archivo/reactivación, historia exacta y respuesta incierta sin reenvío.
+  La campaña siguiente aprobó siete casos adicionales de roles, revocación,
+  cierre y conflicto explícito, junto con dos repeticiones para capturas
+  visuales: nueve recorridos en 19.2 s (20.398 s de comando).
+- Se inspeccionaron las capturas de historia a 1440 y 390 píxeles: tarjetas,
+  referencias y controles conservan Qadra sin desbordamiento horizontal. Una
+  repetición de dos recorridos (9.6 s de navegador, 10.785 s de comando) tomó
+  las imágenes desde el inicio de página para evitar un artefacto de elementos
+  fijos fuera del viewport en la captura completa. No añade casos funcionales.
+- `npm run build` aprobó en 3.655 s. Esta compilación no acredita la aceptación
+  contra el backend real.
+- Clippy focal detectó un `format!` innecesario en un fixture HTTP, corregido
+  después. La ejecución global posterior se interrumpió a los 242.790 s para
+  publicar el checkpoint y reservar el cierre global para CI; no se contabiliza
+  como aprobada ni sustituye el control requerido antes de integrar.
+
+### Aceptación integrada de recursos
+
+`scripts/api-demo.sh` aprobó en 383.388 s, con 2329 fuentes estables y PostgreSQL,
+Redis, qpdf y TSA local desechables. Ejercitó revocación y apelación, actos orales
+y escritos, soportes históricos PDF/DOCX, corrección de actos, archivo/reactivación,
+cuatro roles, aislamiento, cierre/reapertura, conflictos y repetición exacta.
+La captura previa al respaldo conservó veinte respuestas HTTP de recursos;
+después de restaurar se compararon completas, incluidos autores y recibos.
+Los estados de recursos, alertas y auditoría entraron en la misma comparación
+de tablas con el servidor detenido. No se envió correo externo.
+
+El primer navegador real aprobó escritorio y móvil y se detuvo en el caso de
+permisos: el guion confundió la descarga de un módulo JavaScript con una consulta
+a la API. Se restringió ese filtro a rutas API. La repetición aprobó los tres
+casos en 25.3 s de Playwright y 264.627 s totales, con 2329 fuentes estables.
+Owner a 1440 píxeles y Litigator a 390 registraron y corrigieron un acto oral,
+conservando R1 y R2 frente a R3. Paralegal consultó sin mutaciones, Client no
+obtuvo navegación ni acceso API y la revocación de membresía retiró el detalle.
+Se inspeccionaron cuatro capturas actuales e históricas: sin desbordamiento ni
+solapamiento. Se tomaron desde el inicio de página para evitar artefactos de
+elementos fijos fuera del viewport en capturas completas.
+
+La CI de `616b908` aprobó formato, MSRV, política de dependencias, tamaño,
+verificación web y compilación del reporte. Clippy señaló `chunks_exact(2)` en
+un fixture canónico; se sustituyó por `as_chunks::<2>()` como en los vectores
+versionados existentes. Clippy focal del fixture corregido aprobó en 3.921 s,
+con 2329 fuentes estables. Test y Coverage seguían en curso al preparar este corte.
+La cabeza corregida requiere sus propios controles de cierre.
+
+Las ejecuciones conservaron fuentes y logs en `output/resources-verification/`.
+Los cambios concurrentes registrados durante algunos comandos pertenecen a
+fronteras distintas de las ejercitadas: fixtures PostgreSQL o SQL de alertas
+durante navegador, y JavaScript durante HTTP/PostgreSQL. No se presenta el
+conjunto como una regresión global de una única cabeza publicada.
+
 ## Alertas personales: checkpoint funcional del 19 de septiembre de 2026
 
 Están implementados temporización configurable, puertos de preferencias y

@@ -5,7 +5,7 @@ use serde::{
 };
 use std::{fmt, marker::PhantomData};
 
-pub(super) struct Object<T>(pub T);
+pub(crate) struct Object<T>(pub T);
 impl<'de, T: Deserialize<'de>> Deserialize<'de> for Object<T> {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         struct ObjectVisitor<T>(PhantomData<T>);

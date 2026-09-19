@@ -1,5 +1,45 @@
 # Verificación de la actualización académica
 
+## Recursos procesales declarados: fuentes del 19 de septiembre de 2026
+
+Se añadieron tres apartados propios de implementación, pruebas y matriz, con
+sus inclusiones. Describen la captura de recursos y actos, las verificaciones
+focales, restauración PostgreSQL y aceptación HTTP completa aprobadas. Los tres
+recorridos con servidor real aprobaron; el cierre de CI permanece pendiente.
+Se preservan resumen, objetivos, estado del arte, conclusiones y presentación.
+
+La compilación inicial de `616b908` aprobó en CI. Las fuentes posteriores añaden
+la aceptación real; su nueva compilación y revisión visual siguen pendientes.
+El PDF de alertas conserva su evidencia propia y no acredita estos apartados.
+
+
+La primera compilación con la aceptación real aprobó en el
+[workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35458351638).
+El artefacto de `af7329a` declara `058dcdc`, cuyos padres son `2ef6c53` y
+`af7329a`; su árbol coincide con esa cabeza. Tiene 326 páginas carta,
+5917571 bytes y SHA-256
+`00f66cb895ac387e809894d85304f3e7b0557204535a280a19205e08385119d5`.
+La pasada final detectó un desborde nuevo de 9.82555 pt en una ruta del anexo.
+Se separó el directorio del nombre del ADR para corregirlo. La comprobación
+visual definitiva corresponde al artefacto recompilado después de ese ajuste;
+este primer PDF no se presenta como aprobado visualmente.
+
+El [artefacto corregido](https://github.com/eddndev/TT2026-B136/actions/runs/35459213191)
+corresponde a `ac33bc5`: su merge de revisión `9063550` tiene padres `2ef6c53`
+y `ac33bc5` y el mismo árbol que esa cabeza. Conserva **326 páginas carta**,
+con **5917636 bytes**. SHA-256:
+`9e2e13fbdefcaa50de58fa3a40d0d620f98eff01ccae99abcaf1abff7143b043`.
+Se renderizaron e inspeccionaron **14 páginas físicas: 3-6, 10, 198-200,
+232-234 y 320-322**. Los apartados, tablas, continuaciones e índices son
+legibles; el párrafo corregido cabe dentro del margen, sin recortes ni
+solapamientos. La pasada final sólo conserva las sustituciones históricas de
+versalitas y el desborde anterior de 0.11754 pt; no contiene referencias o
+citas indefinidas, etiquetas duplicadas ni glifos ausentes. El PDF y las
+imágenes se conservan en `output/resources-verification/ci-report-ac33bc5/`.
+La muestra no acredita una inspección de todas las páginas ni el cierre
+del manuscrito completo.
+
+
 ## Alertas personales: fuentes del 19 de septiembre de 2026
 
 Se añadieron implementación, pruebas y trazabilidad de alertas persistentes,

@@ -31,7 +31,7 @@ pub(super) enum Provenance {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct Evidence {
+pub(crate) struct Evidence {
     document_id: String,
     version: u32,
     digest: String,
@@ -66,7 +66,7 @@ impl Provenance {
     }
 }
 impl Evidence {
-    fn validate(self) -> Result<FactEvidence, ApiError> {
+    pub(crate) fn validate(self) -> Result<FactEvidence, ApiError> {
         Ok(FactEvidence::new(
             DocumentVersionRef {
                 id: DocumentId::from_uuid(parse_uuid(&self.document_id, "invalid_document_id")?),
@@ -97,7 +97,7 @@ impl HearingRef {
         })
     }
 }
-fn evidence(value: &FactEvidence) -> Value {
+pub(crate) fn evidence(value: &FactEvidence) -> Value {
     json!({"document_id":value.reference().id.to_string(),"version":value.reference().version.get(),
         "digest":value.digest().to_hex(),"locator":value.locator().as_str()})
 }

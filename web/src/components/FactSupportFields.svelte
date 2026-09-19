@@ -9,7 +9,8 @@
     label,
     ondenied,
     disabled = false,
-    pending = false;
+    pending = false,
+    required = false;
   const documents = api.caseDocuments(caseId);
   let choosing = false,
     pickerBusy = false,
@@ -33,7 +34,7 @@
 </script>
 
 <section class="fact-support-fields" aria-label={`Soporte: ${label}`}>
-  <h4>Soporte documental de {label} (opcional)</h4>
+  <h4>Soporte documental de {label} ({required ? 'obligatorio' : 'opcional'})</h4>
   {#if value}
     <StageSupportSummary record={{ ...value, name: selected?.name }} />
     <label
