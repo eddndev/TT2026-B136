@@ -26,9 +26,14 @@ esperada, conserva al último Owner activo y revoca sesiones y desafíos anterio
 mediante generación durable. Reactivar conserva las asignaciones y exige nuevo
 inicio de sesión. Aplicación/HTTP, Node y navegador con HTTP controlado tienen
 evidencia focal aprobada. PostgreSQL/Redis también aprobó sus 12 casos, incluida
-la restauración; aceptación integrada, CI e integración permanecen pendientes.
-Invitaciones, recuperación de acceso y
-autenticación por certificado siguen fuera de esta implementación.
+la restauración. Tres recorridos con navegador real aprobaron en 418.426 s de
+comando y 40.1 s de Playwright, con 2553 fuentes estables: escritorio a 1440 y
+móvil a 390 píxeles, expediente cerrado, revocación del token anterior tras
+reactivación y restricciones por rol, incluido Client. Las cuatro capturas fueron inspeccionadas: legibles, sin desbordes ni
+solapamientos y consistentes con Qadra. Esta inspección no es una prueba de
+usabilidad con personas. La aceptación API completa con restauración, CI, PDF e integración
+permanecen pendientes. Invitaciones, recuperación de acceso y autenticación por
+certificado siguen fuera de esta implementación.
 
 La entrega en curso de [contenido original e incidentes](document-content-api.md)
 añade descarga de versiones pendientes o selladas, comprobación completa antes
@@ -360,7 +365,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Caso de uso | Estado | Alcance y condición pendiente para cierre |
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
-| Ciclo de vida de miembros | Parcial; directorio y administración de acceso implementados localmente | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal y PostgreSQL/Redis aprobada; aceptación integrada/CI pendiente. Invitaciones y enrolamiento recuperable siguen pendientes. |
+| Ciclo de vida de miembros | Parcial; directorio y administración de acceso implementados localmente | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis y tres recorridos de navegador real aprobados; aceptación API completa con restauración y CI pendiente. Invitaciones y enrolamiento recuperable siguen pendientes. |
 | Inicio de sesión y sesiones | Parcial | Contraseña/MFA y logout implementados; la generación durable impide reutilizar sesiones o desafíos anteriores tras reactivación, con evidencia focal propia. Certificado de socio, recuperación de contraseña e inactividad siguen pendientes. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |

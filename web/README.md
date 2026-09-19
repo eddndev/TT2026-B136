@@ -74,8 +74,13 @@ No puede retirarse el último Owner activo. Un cambio real del propio rol o esta
 devuelve su confirmación y lleva al inicio de sesión; un cambio sin efecto conserva
 la sesión. El alta directa sigue mostrando el material MFA inicial una sola vez:
 no es una invitación ni recuperación de credenciales. Las pruebas Node y de
-navegador con HTTP controlado están aprobadas; la aceptación con persistencia real
-y CI se consulta en [el informe](../docs/verification-report.md).
+navegador con HTTP controlado están aprobadas. Tres recorridos con servicios reales
+también aprobaron: escritorio a 1440 y móvil a 390 píxeles, expediente cerrado,
+revocación de la sesión anterior tras reactivación y permisos de los otros roles,
+incluido Client. Las cuatro capturas fueron inspeccionadas y resultaron legibles, sin desbordes
+ni solapamientos, conservando Qadra. La aceptación API completa con restauración
+y CI siguen pendientes en
+[el informe](../docs/verification-report.md).
 
 ### Identidad, expedientes y documentos
 

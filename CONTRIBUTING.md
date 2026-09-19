@@ -222,8 +222,9 @@ Inspect current code and contracts before treating this summary as complete.
   protect access changes; reactivation requires a fresh password/MFA login.
   Assignments and historical authors remain intact. Application/HTTP, Node,
   controlled-browser and PostgreSQL/Redis checks passed, including database
-  restoration. Integrated acceptance, CI and integration remain pending for this
-  increment. Direct enrollment is not an invitation; account recovery and
+  restoration. Three real-browser scenarios also passed on desktop/mobile,
+  covering access revocation after reactivation and role restrictions. Integrated
+  API/restore acceptance, CI and integration remain pending for this increment. Direct enrollment is not an invitation; account recovery and
   certificate login remain pending. See
   `docs/members-api.md` and
   `docs/adr/0043-member-access-and-authentication-generation.md`.

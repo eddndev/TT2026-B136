@@ -5,7 +5,9 @@
 Se incorporaron apartados propios de implementacion, pruebas y anexo, con sus
 inclusiones. Describen directorio, cambios de rol/actividad, generacion de
 sesiones/desafios y selectores de asignacion. Distinguen las cuatro campanas
-focales aprobadas de aceptacion integrada, CI y PDF pendientes. Se añadieron
+focales aprobadas del cierre de CI y PDF pendientes. El navegador con servicios
+reales aprobo tres escenarios en 418.426 s y cuatro capturas inspeccionadas;
+la aceptacion HTTP completa con restauracion sigue pendiente. Se añadieron
 captions cortos de indice a dos tablas historicas sin cambiar sus titulos
 principales ni mediciones. La compilacion e inspeccion de estas fuentes todavia
 no se ejecutaron; el PDF de contenido original descrito abajo no las acredita.

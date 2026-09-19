@@ -147,9 +147,10 @@ Una copia SQL por sí sola no conserva la revocación frente a una restauración
 anterior. La limpieza del guion de aceptación comprueba PID y directorio del
 Redis desechable; no es una autorización para borrar claves de otros entornos.
 Las pruebas focales de aplicación/HTTP y PostgreSQL/Redis están aprobadas, incluida
-la restauración de cuentas, generaciones y guardas. La aceptación integrada y CI
-de este incremento siguen pendientes en este corte; sus resultados
-se registran en [el informe](verification-report.md).
+la restauración de cuentas, generaciones y guardas. Tres recorridos de navegador
+real aprobaron, incluido el rechazo de un token anterior después de reactivar
+la cuenta. La aceptación API completa con restauración y CI de este incremento
+siguen pendientes; sus resultados se registran en [el informe](verification-report.md).
 
 ## Preparar un despliegue nuevo
 

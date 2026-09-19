@@ -40,9 +40,18 @@ fuentes por comando en `output/member-lifecycle-verification/`.
   41.896 s, con 2553 fuentes estables y PostgreSQL/Redis desechables: atomicidad,
   ultimo Owner concurrente, filtros, inventario/catalogo, guardas y restauracion.
 
-La aceptacion HTTP con restauracion y el navegador con servicios reales estan
-preparados; no se contabilizan hasta completar su ejecucion. El cierre de CI,
-la compilacion y la inspeccion de las nuevas fuentes academicas siguen pendientes.
+El navegador con servicios reales aprobo **3 escenarios**, 418.426 s de comando
+y 40.1 s de Playwright, con 2553 fuentes estables. En escritorio de 1440 pixeles
+y movil de 390 se verificaron baja/reactivacion, sesion anterior rechazada tras
+reactivar, login nuevo y asignaciones conservadas; el expediente movil estaba
+cerrado. Otro recorrido confirmo cambio propio antes de cerrar sesion y
+restriccion de Client. Las cuatro capturas reales resultaron legibles, sin
+recortes ni desbordamiento, conservando Qadra. Se encuentran bajo
+`output/member-lifecycle-verification/browser-live-first/`.
+
+La aceptacion HTTP completa con restauracion sigue pendiente. El cierre de CI,
+la compilacion y la inspeccion de las nuevas fuentes academicas requieren su
+propia comprobacion; estos resultados no equivalen a integracion en main.
 
 ## Contenido original e incidentes: verificación del 19 de septiembre de 2026
 
