@@ -143,6 +143,7 @@ export async function advanceForCancellation() {
   });
 }
 export async function queryAgenda(page) {
+  await page.getByRole('combobox', { name: 'Vista de agenda', exact: true }).selectOption('custom');
   await page.getByLabel('Desde (incluido)', { exact: true }).fill('2030-10-01');
   await page.getByLabel('Hasta (excluido)', { exact: true }).fill('2030-10-03');
   await page.getByRole('button', { name: 'Consultar Agenda', exact: true }).click();

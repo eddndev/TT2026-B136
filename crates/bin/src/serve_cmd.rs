@@ -251,6 +251,17 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         deadline_clock.clone(),
     )
     .context("cannot open PostgreSQL deadline worker")?;
+    let agenda = application::agenda::AgendaService::new(
+        Arc::new(
+            infrastructure::PostgresAgendaStore::open(
+                &database_url,
+                deadline_hasher.clone(),
+                deadline_clock.clone(),
+            )
+            .context("cannot open PostgreSQL agenda store")?,
+        ),
+        identity.clone(),
+    );
     let deadlines = DeadlineService::new(
         Arc::new(
             infrastructure::PostgresDeadlineStore::open(
@@ -282,6 +293,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             hearing_results: Arc::new(hearing_results),
             procedural_facts: Arc::new(procedural_facts),
             deadlines: Arc::new(deadlines),
+            agenda: Arc::new(agenda),
         },
         Arc::new(calendars),
         Arc::new(profiles),

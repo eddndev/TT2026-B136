@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { setupHearings, openHearings, hearingEditor, fillHearing } from './hearing-helpers.mjs';
 import { hearingRecord, hearingPrepared } from '../fixtures/hearings.mjs';
 import { login, navigate, caseId } from './helpers.mjs';
+import { setupHearingAgenda, queryHearingAgenda } from './combined-agenda-helpers.mjs';
 for (const operation of ['prepare', 'detail']) {
   test(`late ${operation} cannot restore a hearing view after leaving the case`, async ({
     page,
@@ -51,12 +52,10 @@ for (const operation of ['prepare', 'detail']) {
 }
 test('a late agenda case validation cannot navigate after leaving Agenda', async ({ page }) => {
   const record = hearingRecord(),
-    { state } = await setupHearings(page, { records: [record] });
+    { state } = await setupHearingAgenda(page, [record]);
   await login(page, false, false);
   await navigate(page, 'Agenda');
-  await page.getByLabel('Desde (incluido)', { exact: true }).fill('2026-10-01');
-  await page.getByLabel('Hasta (excluido)', { exact: true }).fill('2026-10-03');
-  await page.getByRole('button', { name: 'Consultar Agenda', exact: true }).click();
+  await queryHearingAgenda(page);
   let release;
   await page.route(`**/api/v1/cases/${caseId}/administration`, async (route) => {
     await new Promise((resolve) => {

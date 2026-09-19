@@ -17,6 +17,7 @@
   let user = null;
   let selectedCase = null;
   let hearingIntent = null,
+    deadlineIntent = null,
     agendaFilters = null;
 
   let view = 'overview';
@@ -30,6 +31,7 @@
     user = null;
     selectedCase = null;
     hearingIntent = null;
+    deadlineIntent = null;
     agendaFilters = null;
 
     documentIntent = null;
@@ -55,6 +57,7 @@
   async function go(destination) {
     view = normalizeView(destination, user?.role);
     if (view !== 'hearings') hearingIntent = null;
+    if (view !== 'deadlines') deadlineIntent = null;
     if (location.hash !== `#${view}`) location.hash = view;
     await tick();
     main?.focus({ preventScroll: true });
@@ -134,9 +137,10 @@
             oncalendars={() => go('judicial-calendars')}
             onopen={(record, intent) => {
               selectedCase = record;
-              hearingIntent = intent;
+              hearingIntent = intent.kind === 'hearing' ? intent : null;
+              deadlineIntent = intent.kind === 'deadline' ? intent : null;
               documentIntent = null;
-              go('hearings');
+              go(intent.kind === 'deadline' ? 'deadlines' : 'hearings');
             }}
           />
         {:else if view === 'cases'}<Cases
@@ -162,6 +166,8 @@
                 }}
                 {hearingIntent}
                 onhearingintent={() => (hearingIntent = null)}
+                {deadlineIntent}
+                ondeadlineintent={() => (deadlineIntent = null)}
                 intent={documentIntent}
                 onintent={() => (documentIntent = null)}
               />{/key}

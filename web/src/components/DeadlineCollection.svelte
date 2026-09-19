@@ -7,6 +7,8 @@
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
   import { deadlineOperationalLabel, deadlineReviewLabels } from './deadline-view-labels.mjs';
   export let api, user, caseId, ondenied;
+  export let intent = null,
+    onintent = () => {};
   const scoped = api.deadlines(caseId),
     administration = caseState();
   let rows = [],
@@ -29,8 +31,15 @@
     alive = true,
     listGeneration = 0,
     detailGeneration = 0;
+  let initialized = false,
+    consumed;
   $: manage = canDeadlines(user.role, 'manage') && !$administration.closed;
   $: pending = busy || opening || editorBusy || !!mode;
+  $: if (initialized && intent && intent !== consumed) {
+    consumed = intent;
+    if (intent.case_id === caseId) open(intent.deadline_id, intent.revision);
+    onintent();
+  }
   function fail(failure) {
     error = deadlineFailure(failure);
     if (deadlineDenied(failure)) {
@@ -107,7 +116,11 @@
     cursors = [undefined];
     load();
   }
-  onMount(() => load());
+  onMount(() => {
+    load().then(() => {
+      if (alive) initialized = true;
+    });
+  });
   onDestroy(() => {
     alive = false;
     listGeneration++;

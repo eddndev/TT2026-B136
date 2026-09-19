@@ -4,7 +4,9 @@
   import '../styles/procedural-facts.css';
   import '../styles/judicial-calendars.css';
   import '../styles/deadlines.css';
-  export let api, user, record, ondenied;
+  export let api, user, record, ondenied, onnavigate;
+  export let intent = null,
+    onintent = () => {};
 </script>
 
 {#if canDeadlines(user.role)}
@@ -15,5 +17,6 @@
       <p>Consulta el c&#243;mputo, sus fuentes y la atenci&#243;n declarada.</p>
     </div>
   </div>
-  <DeadlineCollection {api} {user} caseId={record.id} {ondenied} />
+  <DeadlineCollection {api} {user} caseId={record.id} {ondenied} {intent} {onintent} />
+  <button class="text-button" onclick={() => onnavigate('agenda')}>Ir a Agenda</button>
 {/if}

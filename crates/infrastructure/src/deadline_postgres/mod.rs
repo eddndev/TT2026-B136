@@ -4,6 +4,7 @@ mod attention;
 mod authorization;
 mod commit;
 mod currentness;
+pub(crate) use currentness::current_in_transaction;
 mod decode;
 mod dependencies;
 mod header;

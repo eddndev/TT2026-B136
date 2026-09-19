@@ -159,11 +159,12 @@
       acredita asistencia, celebraci&oacute;n ni resultados.
     </p>
     <p>
-      Agenda consulta las citas de todos tus expedientes autorizados dentro de un rango y desfase
-      expl&iacute;citos. Abre una revisi&oacute;n exacta; consulta el registro actual antes de
-      modificar. Si se pierde una respuesta, conserva el formulario y consulta el resultado del
-      env&iacute;o sin repetir la escritura. Un resultado todav&iacute;a no disponible sigue
-      incierto.
+      Agenda re&uacute;ne audiencias y vencimientos vigentes de tus expedientes autorizados. Elige
+      d&iacute;a, semana, mes o un rango personalizado y el desfase de consulta. Si la vista es
+      parcial, carga m&aacute;s actividades. Abre una revisi&oacute;n exacta; consulta el registro
+      actual antes de modificar. Si se pierde una respuesta, conserva el formulario y consulta el
+      resultado del env&iacute;o sin repetir la escritura. Un resultado todav&iacute;a no disponible
+      sigue incierto.
     </p>
     <p>
       La programaci&oacute;n y los resultados declarados conservan historias separadas. Registrar
@@ -197,8 +198,9 @@
       revisi&oacute;n puede actualizar el c&aacute;lculo. Si sigues una fuente o perfil que cambia,
       revisa los insumos y confirma expl&iacute;citamente una correcci&oacute;n. Mientras se
       requiere revisi&oacute;n, el c&aacute;lculo anterior permanece en la historia y no se presenta
-      como vencimiento vigente. Consulta la causa y el autor de cada revisi&oacute;n. La agenda
-      conjunta y los avisos siguen pendientes.
+      como vencimiento vigente. Consulta la causa y el autor de cada revisi&oacute;n. Agenda muestra
+      s&oacute;lo los vencimientos operativos comprobados al consultar. Los avisos siguen
+      pendientes.
     </p>
   </details>
   <details>

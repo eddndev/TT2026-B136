@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { setupHearings, openHearings, hearingEditor, fillHearing } from './hearing-helpers.mjs';
+import { openHearings, hearingEditor, fillHearing } from './hearing-helpers.mjs';
+import { setupHearingAgenda, queryHearingAgenda } from './combined-agenda-helpers.mjs';
 import { hearingRecord } from '../fixtures/hearings.mjs';
 async function captureNormal(page, name) {
   await page.evaluate(() => {
@@ -14,7 +15,7 @@ for (const width of [1440, 390]) {
   test(`hearing and agenda layouts remain usable at ${width} pixels`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
     const record = hearingRecord();
-    await setupHearings(page, { records: [record] });
+    await setupHearingAgenda(page, [record]);
     await openHearings(page);
     await page
       .getByRole('button', { name: `Consultar audiencia ${record.id}`, exact: true })
@@ -35,9 +36,7 @@ for (const width of [1440, 390]) {
       .toBeTruthy();
     await captureNormal(page, `hearing-form-${width}`);
     await page.getByRole('button', { name: 'Ir a Agenda', exact: true }).click();
-    await page.getByLabel('Desde (incluido)', { exact: true }).fill('2026-10-01');
-    await page.getByLabel('Hasta (excluido)', { exact: true }).fill('2026-10-03');
-    await page.getByRole('button', { name: 'Consultar Agenda', exact: true }).click();
+    await queryHearingAgenda(page);
     await expect(
       page.getByRole('button', { name: `Consultar audiencia ${record.id}`, exact: true }),
     ).toBeVisible();

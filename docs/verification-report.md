@@ -4,7 +4,75 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Agenda combinada: checkpoint funcional del 19 de septiembre de 2026
+
+`GET /api/v1/agenda` reúne audiencias y vencimientos operativos bajo una lectura
+PostgreSQL autorizada y auditada. Comprueba dependencias antes de incluir un
+plazo y conserva un cursor de candidatos examinados, incluso en páginas vacías
+parciales. Qadra añade día, semana, mes y rango personalizado; acumula actividades
+y abre su revisión exacta tras revalidar el expediente. El contrato está en
+[agenda-api.md](agenda-api.md) y la decisión en [ADR-0038](adr/0038-authorized-combined-agenda.md).
+
+El desarrollo usó TDD focal y un solo runner local. Las comprobaciones siguientes
+son grupos distintos, no una nueva campaña global ni un porcentaje de avance:
+
+| Frontera | Evidencia ejecutada |
+| --- | --- |
+| Aplicación y HTTP | 19 pruebas de aplicación y seis HTTP aprobaron después del RED. La ejecución conjunta conservó cinco fallos esperados del adaptador PostgreSQL aún sin implementar; no se declara verde esa ejecución completa. |
+| PostgreSQL real | Siete pruebas aprobadas en 59.339 s, con bases desechables: mezcla, membresías, cambio de fuente sin despacho, 100 candidatos omitidos, corrupción, fallo de auditoría y revocación concurrente. |
+| Cliente y periodos civiles | Ocho pruebas del cliente y 14 de periodos e instantes aprobadas, con RED previo; conservan nanosegundos y límites civiles. |
+| Navegador con transporte controlado | 20 de 21 escenarios aprobaron; el restante detectó la falta de regreso desde el plazo a Agenda. Se añadió el botón y sólo ese escenario se repitió, aprobado en una campaña de 8.268 s. La primera pasada había detectado selectores de prueba que confundían texto de etiquetas envolventes con nombres accesibles; se corrigieron a combobox. |
+| Navegador con servicios reales | Tres escenarios aprobados en 269.684 s, incluidos preparación y build; Playwright informó 28.1 s. Dos recorren la agenda a 1440/390 píxeles; el tercero comprueba asignaciones, cuatro roles, cierre y revocación. |
+
+La aceptación real consulta los tres periodos, comprueba la respuesta mezclada,
+abre audiencia y plazo exactos, modifica la fuente y observa el plazo pendiente
+fuera de Agenda, con cálculo e historia intactos y auditoría válida. No enumera
+expedientes desde el navegador. Sus 2118 fuentes conservaron huellas durante
+la campaña; el formato posterior de los archivos de prueba no cambió su lógica.
+Un revisor independiente no encontró defectos concretos por lectura en permisos,
+cursores, vigencia, atomicidad ni proyección HTTP; esto no sustituye las pruebas.
+
+Se inspeccionaron cuatro capturas reales. Conservan los componentes y colores
+Qadra y no desbordan la página; el mes usa desplazamiento horizontal contenido
+en móvil. Esa revisión detectó tarjetas mensuales demasiado altas. La presentación
+se compactó después a familia, revisión, hora exacta, título y referencia, con
+descripción accesible completa y detalle al abrir. Omite sólo fracciones nulas.
+La comprobación focal de los tres periodos a 1440/390 píxeles detectó un desborde
+móvil causado por la descripción oculta fuera de la tarjeta. Al contenerla dentro
+del botón, ambos escenarios aprobaron en 9.805 s, sin cambios de fuentes durante
+la campaña. Se inspeccionaron las capturas del mes en escritorio y del encuadre
+móvil; este último conserva desplazamiento horizontal para consultar los días
+fuera del área inicial. No se repitió la campaña real por este ajuste visual.
+
+El guion API contrastó la consulta mixta, filtros, continuación, permisos y
+vigencia antes y después de restaurar, reutilizando los registros existentes.
+La campaña completa terminó con salida 0 en 235.844 s y conservó las huellas de
+sus 2118 fuentes; también verificó reinicios del consumidor y la historia exacta.
+La aceptación transversal posterior reunió cinco expedientes asignados al mismo
+Litigante (tres audiencias y dos plazos vigentes) y excluyó un sexto expediente
+sin asignación. Las vistas de día, semana y mes usaron una consulta de agenda,
+sin enumerar expedientes, y abrieron las cinco revisiones exactas. Ambos recorridos
+reales, a 1440/390 píxeles, aprobaron en 214.055 s con preparación; Playwright
+informó 16.4 s. Las 2119 fuentes conservaron sus huellas. Se reutilizó el operador
+y calendario, con políticas fijas y datos independientes de la prueba Follow.
+Se inspeccionaron sus dos capturas: las cinco tarjetas conservan legibilidad
+en escritorio y el calendario mantiene desplazamiento contenido en móvil.
+La regresión global, cobertura,
+actualización académica de esta ampliación e integración en main están pendientes.
+La aceptación de esta agenda no acredita alertas, activación automática ni
+perfiles jurídicos calificados.
+
 ## Seguimiento humano V2 y composicion local: 19 de septiembre de 2026
+
+La entrega se integró en `main` mediante squash de la
+[PR 34](https://github.com/eddndev/TT2026-B136/pull/34), commit `e2e6758`,
+el 19 de septiembre de 2026. La campaña de
+[CI de la PR](https://github.com/eddndev/TT2026-B136/actions/runs/35431913733)
+aprobó formato, Clippy, MSRV, pruebas, cobertura, política de dependencias y
+binario de release para `24da17d`. También aprobaron los workflows Web
+y Documents de esa revisión. Esta evidencia remota cierra la regresión de
+reevaluación; no se repitió la campaña completa localmente ni se atribuye
+a la agenda posterior.
 
 El servicio humano prepara y confirma seguimiento V2 con politicas explicitas,
 autor autenticado completo y continuidad administrativa verificada. Detalle y

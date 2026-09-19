@@ -116,7 +116,9 @@ test('real agenda honors assignments roles closure and revocation without a brow
           await expect(
             other.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
           ).toBeVisible();
-          expect(reads.filter((path) => path.includes('/hearings'))).toEqual([]);
+          expect(
+            reads.filter((path) => path.includes('/hearings') || path === '/api/v1/agenda'),
+          ).toEqual([]);
         }
       } finally {
         await context.close();

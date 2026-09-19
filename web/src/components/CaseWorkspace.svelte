@@ -13,6 +13,8 @@
   export let api, user, record, view, onnavigate, onchange, onupdate;
   export let hearingIntent = null,
     onhearingintent = () => {};
+  export let deadlineIntent = null,
+    ondeadlineintent = () => {};
   export let intent = null,
     onintent = () => {};
   const staff = staffCase(user.role);
@@ -134,8 +136,11 @@
   {:else if view === 'deadlines' && staff}<CaseDeadlines
       {api}
       {user}
+      {onnavigate}
       record={current}
       ondenied={deny}
+      intent={deadlineIntent}
+      onintent={ondeadlineintent}
     />
   {:else if view === 'participants'}<Participants {api} {user} caseRecord={current} />
   {:else}<Documents {api} {user} caseRecord={current} {intent} {onintent} />{/if}

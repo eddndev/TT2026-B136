@@ -27,9 +27,10 @@ sus resultados. La
 [API de seguimiento](deadline-tracking-api.md) separa la captura histórica de
 su proyección operativa comprobada.
 
-Activación, agenda conjunta y alertas descritas más abajo conservan objetivos
-propios de implementación. Tener eventos inmutables no demuestra que se procesen
-en el servidor, y guardar un vencimiento no demuestra una entrega de avisos.
+La agenda conjunta está implementada con aceptación en curso, separada de las
+campañas de reevaluación. Activación y alertas conservan objetivos propios de
+implementación. La composición en servidor procesa eventos durables; guardar
+un vencimiento o mostrarlo en la agenda no demuestra una entrega de avisos.
 El cierre de perfiles jurídicos con fuentes primarias y aceptación del supuesto
 permanece pendiente; los ejemplos sintéticos verifican mecanismos. Véanse la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
@@ -40,16 +41,18 @@ las [fronteras de las reglas](deadline-rule-research.md).
 Desde una resolución, notificación o resultado de audiencia, el litigante
 selecciona un perfil disponible, declara su aplicabilidad, completa los datos
 requeridos y asigna un responsable. El sistema calcula y conserva una evaluación
-reproducible. Los datos completos permiten activar el vencimiento sin introducir
-su fecha manualmente. Los datos insuficientes conservan el cálculo parcial y
-explican qué falta. La historia permite consultar tanto las evaluaciones como
-la actuación registrada y los avisos.
+reproducible. Una evaluación aceptada con instante y dependencias vigentes
+permite consultar el vencimiento operativo sin introducir su fecha manualmente.
+Los datos insuficientes conservan el cálculo parcial y explican qué falta. La
+historia permite consultar evaluaciones y atención declarada. La activación
+automática y la historia de avisos requieren sus flujos todavía pendientes.
 
-La agenda debe reunir audiencias y vencimientos de los expedientes autorizados
-en vistas diaria, semanal y mensual. Las alertas incluyen anticipaciones
+La agenda reúne audiencias y vencimientos de los expedientes autorizados en
+vistas diaria, semanal y mensual, además de un rango personalizado. Su aceptación
+se verifica por separado. El alcance pendiente de alertas incluye anticipaciones
 configurables de 48 y 24 horas, audiencias próximas, cambios que afectan un
 vencimiento inferior a 48 horas y vencimiento sin actuación registrada. El
-seguimiento del tablero incluye ventanas de 48 horas y siete días.
+seguimiento pendiente del tablero incluye ventanas de 48 horas y siete días.
 
 ## Perfiles configurables y versionados
 
@@ -135,6 +138,30 @@ organizativo bloquea las decisiones manuales sujetas a esa política, pero no
 suspende por sí mismo términos ni borra alertas o reevaluaciones. Los trabajadores
 tienen identidad técnica propia; no aparentan actuar como el publicador de una
 fuente. La baja o revocación de una cuenta impide futuras entregas protegidas.
+
+## Agenda autorizada de actividades
+
+La [API de agenda](agenda-api.md) reúne ambas familias bajo una lectura auditada
+que revalida actor, membresías y administración. Sólo incluye plazos V2 activos,
+aceptados y con un instante operativo cuya vigencia se comprueba en esa lectura.
+La fecha histórica sirve para localizar candidatos, pero no basta para mostrar
+un vencimiento. Los plazos pendientes, cambiados, bloqueados, legados o retirados
+siguen consultándose dentro del expediente. Atención declarada y cierre
+administrativo conservan las lecturas autorizadas y no eliminan por sí solos
+una actividad vigente.
+
+Qadra convierte el periodo civil y su desfase explícito en un intervalo UTC,
+conserva las fechas originales de las audiencias y muestra listas o calendarios.
+Acumula páginas y conserva la revisión mayor de cada par familia/identificador.
+La continuación avanza incluso cuando una página no contiene actividades;
+mientras exista, la consulta permanece parcial. Cada página observa el estado
+actual, sin reservar una instantánea entre peticiones. Cambiar filtros invalida
+respuestas anteriores y actualizar reinicia la consulta.
+
+Abrir una actividad revalida el expediente antes de consultar la revisión exacta
+seleccionada. Esta implementación y sus límites están en
+[ADR-0038](adr/0038-authorized-combined-agenda.md); su aceptación sigue en curso.
+La agenda no recalcula fechas, activa términos ni entrega alertas.
 
 ## Cambios y reevaluación sin pérdida
 

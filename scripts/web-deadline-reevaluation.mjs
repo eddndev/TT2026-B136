@@ -135,15 +135,15 @@ async function scenario(call, label) {
   return { case: record, owner, operator, source, calendar, profile, deadline };
 }
 
-export async function provisionDeadlineReevaluation(call) {
+export async function provisionDeadlineReevaluation(call, prefix = "") {
   if (process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE !== "1")
     throw new Error(
       "Explicit deadline reevaluation acceptance opt-in is required",
     );
   if (!process.env.IDENTITY_TEST_DATABASE_URL)
     throw new Error("Disposable browser backends are required");
-  const desktop = await scenario(call, "desktop");
-  const mobile = await scenario(call, "mobile");
+  const desktop = await scenario(call, `${prefix}desktop`);
+  const mobile = await scenario(call, `${prefix}mobile`);
   return { desktop, mobile };
 }
 
