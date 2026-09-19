@@ -37,9 +37,11 @@ Qadra y no desbordan la página; el mes usa desplazamiento horizontal contenido
 en móvil. Las tarjetas mensuales requieren compactar su texto para reducir la
 altura de las filas: la aceptación funcional no se presenta como cierre visual.
 
-El guion API se amplió para contrastar la consulta mixta, filtros, continuación,
-permisos y vigencia antes y después de restaurar, reutilizando los registros
-existentes. Su ejecución de cierre está en curso. La regresión global, cobertura,
+El guion API contrastó la consulta mixta, filtros, continuación, permisos y
+vigencia antes y después de restaurar, reutilizando los registros existentes.
+La campaña completa terminó con salida 0 en 235.844 s y conservó las huellas de
+sus 2118 fuentes; también verificó reinicios del consumidor y la historia exacta.
+La regresión global, cobertura,
 actualización académica de esta ampliación e integración en main están pendientes.
 La aceptación de esta agenda no acredita alertas, activación automática ni
 perfiles jurídicos calificados.
