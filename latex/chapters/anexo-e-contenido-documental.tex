@@ -1,6 +1,6 @@
 \section{Trazabilidad de contenido original e incidentes}\label{anexo:contenido-documental}
 
-La matriz delimita las propiedades de la consulta de contenido descrita en la \cref{sec:impl-contenido-documental}. Sus ejecuciones focales y los recorridos con servicios reales se presentan en la \cref{sec:pruebas-contenido-documental}; no sustituyen el cierre de la aceptación API completa ni una evaluación de usabilidad.
+La matriz delimita las propiedades de la consulta de contenido descrita en la \cref{sec:impl-contenido-documental}. Sus ejecuciones focales y los recorridos con servicios reales se presentan en la \cref{sec:pruebas-contenido-documental}; no sustituyen el cierre remoto ni una evaluación de usabilidad.
 
 \begin{longtable}{@{}p{0.22\linewidth}p{0.46\linewidth}p{0.23\linewidth}@{}}
   \caption{Fronteras de contenido exacto y observaciones de integridad.}\label{tab:contenido-integridad}\\
@@ -20,7 +20,8 @@ La matriz delimita las propiedades de la consulta de contenido descrita en la \c
   Cliente & Cabeceras ligadas al contexto, instantes y cursor; rechazo de respuestas incompletas o ajenas. & Diecinueve casos Node aprobados. \\
   Qadra & Descarga histórica y buzón Owner a 1440/390 píxeles; otros roles denegados y respuestas tardías descartadas. & Catorce escenarios distintos con HTTP controlado. \\
   Navegador real & V1 pendiente después de V2, bytes exactos, incidentes persistidos y apertura histórica; cierre, permisos y revocación. & Tres recorridos aprobados a 1440/390 píxeles y con roles separados. \\
-  Cierre del incremento & API completa, restauración integrada, CI y compilación e inspección del PDF. & Pendientes en este corte; evidencia separada en el informe. \\
+  API y restauración & Bytes V1/V2, roles, revocación, rechazo sin contenido e incidente histórico preservado después de restaurar. & Campaña completa aprobada en 372.048~s. \\
+  Cierre del incremento & CI y compilación e inspección del PDF. & Pendientes en este corte; evidencia separada en el informe. \\
 \end{longtable}
 
 La campaña real duró 285.120~s de comando y 24.6~s de Playwright, con 2490 fuentes estables. Cuatro capturas de contenido y buzón y dos ampliaciones del detalle fueron legibles, sin recortes ni desbordamiento; esta revisión de interfaz no acredita el PDF. El fixture alteró dos vaults AES aislados y restauró sus bytes originales mediante un bloque de finalización, conservando los incidentes. Esa preparación no es una función de reparación del producto.

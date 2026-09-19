@@ -14,7 +14,8 @@ inspeccionadas, sin recortes ni desbordamiento. El fixture conserva incidentes
 reales después de restaurar sus dos vaults aislados; no acredita reparación
 del producto ni un ataque.
 
-La aceptación API completa y CI permanecen pendientes en este corte. Resumen,
+Las fuentes también incorporan la aceptación API completa con restauración,
+aprobada en 372.048 s con 2490 fuentes estables. CI sigue pendiente. Resumen,
 objetivos, estado del arte, conclusiones y presentación se preservan.
 La compilación e inspección del PDF de estas fuentes todavía no se ejecutan;
 las capturas de interfaz y los artefactos de asociaciones anteriores no

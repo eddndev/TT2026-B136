@@ -8,8 +8,8 @@ Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
 El incremento añade descarga exacta de versiones pendientes o selladas y buzón
 interno Owner. Las focales PostgreSQL y el navegador con servicios reales
-aprobaron. La aceptación API completa, la inspección del PDF y CI permanecen
-pendientes; este corte no acredita integración.
+aprobaron. La aceptación API completa con restauración también aprobó; la
+inspección del PDF y CI permanecen pendientes. Este corte no acredita integración.
 La [API](document-content-api.md) conserva la separación entre comprobar bytes
 y verificar firma/sello, así como la denegación de Client.
 
@@ -87,6 +87,20 @@ recortes ni desbordamiento. Esta inspección de interfaz no acredita usabilidad
 con personas ni sustituye la compilación e inspección del PDF. La aceptación
 API completa sigue pendiente después de los tres fallos descritos; el navegador
 aprobado no cierra esa campaña ni los controles de CI.
+
+La cuarta campaña API completa **aprobó en 372.048 s**, con 2490 fuentes
+estables, tras especificar la conexión SQL del fixture. Comprueba descarga V1/V2
+pendientes de sello, bytes/cabeceras exactos, cuatro roles, cierre, revocación,
+rechazo AES sin contenido ni autorización exitosa, y buzón exclusivo de Owner.
+La corrupción desechable se revierte byte a byte antes del respaldo. Después de
+restaurar, los archivos y respuestas históricas del incidente coinciden; el
+inventario conserva 19 raíces documentales, 25 versiones y un incidente inmutable.
+También preserva el prefijo importado de cuatro documentos y 63 eventos con ZIP
+idéntico. No se atribuye éxito a los tres intentos anteriores.
+
+El primer CI de esta entrega detectó una conversión `as_str` redundante en el
+codec del incidente; se elimina sin cambiar sus bytes ni el contrato. El cierre
+remoto y su comprobación de Clippy conservan resultados separados.
 
 Se usa un solo runner local, Cargo y Rust en un hilo, Chromium con un trabajador
 y temporales privados en disco. No se repitió una regresión global local.
