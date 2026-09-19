@@ -20,7 +20,7 @@ pub(super) fn snapshot(observation: &DocumentIntegrityObservation) -> Sha256Dige
     bytes.extend_from_slice(record.id.as_uuid().as_bytes());
     bytes.extend_from_slice(&record.version.get().to_be_bytes());
     bytes.extend_from_slice(&(record.name.as_str().len() as u64).to_be_bytes());
-    bytes.extend_from_slice(record.name.as_str().as_bytes());
+    bytes.extend_from_slice(record.name.as_bytes());
     bytes.extend_from_slice(record.digest.as_bytes());
     bytes.extend_from_slice(&(record.vault.len() as u64).to_be_bytes());
     bytes.extend_from_slice(RingSha256Hasher.hash_bytes(&record.vault).as_bytes());

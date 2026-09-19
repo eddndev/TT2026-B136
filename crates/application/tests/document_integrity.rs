@@ -75,7 +75,7 @@ fn owner_receives_the_audited_page_after_full_reauthentication() {
     let page = service
         .list("session", DocumentIntegrityQuery::new(1, None).unwrap())
         .unwrap();
-    assert_eq!(page.incidents, [expected.clone()]);
+    assert_eq!(page.incidents.as_slice(), std::slice::from_ref(&expected));
     assert!(page.has_more);
     assert_eq!(page.next_after_id, Some(expected.id));
 }
