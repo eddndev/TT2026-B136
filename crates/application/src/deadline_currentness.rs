@@ -33,6 +33,7 @@ pub enum DeadlineFreshness {
 pub struct DeadlineOperational {
     binding: CaptureBinding,
     freshness: DeadlineFreshness,
+    requires_review: bool,
     checked_at: Option<OffsetDateTime>,
     changed_dependencies: Vec<TrackingDependency>,
     due_at: Option<OffsetDateTime>,
@@ -101,6 +102,11 @@ impl DeadlineOperational {
                     .map(|value| value.offset())
     }
 
+    /// Whether verified current evidence calls for human applicability review.
+    pub const fn requires_review(&self) -> bool {
+        self.requires_review
+    }
+
     pub const fn freshness(&self) -> DeadlineFreshness {
         self.freshness
     }
@@ -154,6 +160,7 @@ impl DeadlineCurrent {
             operational: DeadlineOperational {
                 binding: CaptureBinding::new(detail),
                 freshness: DeadlineFreshness::NotChecked,
+                requires_review: false,
                 checked_at: None,
                 changed_dependencies: Vec::new(),
                 due_at: None,
@@ -197,6 +204,7 @@ pub fn evaluate_deadline_currentness(
     }
     validation::advance(&tracking.observations, &observations)?;
     let mut changed_dependencies = Vec::new();
+    let mut requires_review = base.review_state() == DeadlineReviewState::Pending;
     for entry in &observations.entries {
         let (dependency, declared_policy) = match entry.role {
             ObservationRole::Profile => (TrackingDependency::Profile, tracking.policies.profile),
@@ -229,6 +237,7 @@ pub fn evaluate_deadline_currentness(
             retired,
         })
         .map_err(inconsistent)?;
+        requires_review |= matches!(decision.disposition, TrackingDisposition::ReviewRequired(_));
         if matches!(
             decision.disposition,
             TrackingDisposition::Recalculate | TrackingDisposition::ReviewRequired(_)
@@ -252,6 +261,7 @@ pub fn evaluate_deadline_currentness(
         operational: DeadlineOperational {
             binding: CaptureBinding::new(base),
             freshness,
+            requires_review,
             checked_at: Some(checked_at),
             changed_dependencies,
             due_at: if freshness == DeadlineFreshness::Current {
