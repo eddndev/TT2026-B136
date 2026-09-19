@@ -6,7 +6,7 @@ use domain::{
 };
 use postgres::Transaction;
 
-pub(super) fn authorize(
+pub(crate) fn authorize(
     tx: &mut Transaction<'_>,
     actor: UserId,
     case: CaseId,
