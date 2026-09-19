@@ -20,6 +20,8 @@ mod case_stages;
 mod cases;
 mod deadline_profiles;
 mod deadlines;
+mod document_content;
+mod document_integrity;
 mod dto;
 mod error;
 mod hearing_results;
@@ -39,6 +41,25 @@ use runtime::{protect, HttpRuntime};
 /// Builds the inbound HTTP router.
 pub fn router() -> Router {
     Router::new().route("/healthz", get(health))
+}
+
+/// Builds exact document content routes over an authenticated workflow.
+pub fn document_content_router(
+    workflow: Arc<dyn application::document_content::DocumentContentWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(document_content::router(workflow, runtime.clone()), runtime)
+}
+
+/// Builds the Owner-only document integrity incident inbox.
+pub fn document_integrity_router(
+    workflow: Arc<dyn application::document_integrity::DocumentIntegrityWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        document_integrity::router(workflow, runtime.clone()),
+        runtime,
+    )
 }
 
 /// Builds the versioned application API over an injected workflow.
@@ -171,6 +192,8 @@ pub struct CaseWorkflows {
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
     pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
+    pub document_content: Arc<dyn application::document_content::DocumentContentWorkflow>,
+    pub document_integrity: Arc<dyn application::document_integrity::DocumentIntegrityWorkflow>,
 }
 
 /// Builds the explicit global and case profile collections over an authorized workflow.
@@ -232,6 +255,14 @@ pub fn api_router(
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
         .merge(agenda::router(workflows.agenda, runtime.clone()))
         .merge(alerts::router(workflows.alerts, runtime.clone()))
+        .merge(document_content::router(
+            workflows.document_content,
+            runtime.clone(),
+        ))
+        .merge(document_integrity::router(
+            workflows.document_integrity,
+            runtime.clone(),
+        ))
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()));
     protect(routes, runtime).route("/healthz", get(health))

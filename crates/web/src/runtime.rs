@@ -10,7 +10,7 @@ use axum::http::{header::CACHE_CONTROL, HeaderValue};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::Router;
-use tokio::sync::Semaphore;
+use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 use crate::error::ApiError;
 
@@ -35,6 +35,7 @@ impl Default for HttpLimits {
 pub(crate) struct HttpRuntime {
     request_slots: Arc<Semaphore>,
     blocking_slots: Arc<Semaphore>,
+    content_slots: Arc<Semaphore>,
 }
 
 impl HttpRuntime {
@@ -42,7 +43,16 @@ impl HttpRuntime {
         Self {
             request_slots: Arc::new(Semaphore::new(limits.max_requests.get())),
             blocking_slots: Arc::new(Semaphore::new(limits.max_blocking_operations.get())),
+            content_slots: Arc::new(Semaphore::new(limits.max_requests.get())),
         }
+    }
+
+    /// The content owner keeps this permit through preparation and final byte release.
+    pub(crate) fn reserve_content(&self) -> Result<OwnedSemaphorePermit, ApiError> {
+        self.content_slots
+            .clone()
+            .try_acquire_owned()
+            .map_err(|_| ApiError::busy())
     }
 
     pub(crate) async fn run<T, F>(&self, task: F) -> Result<T, ApiError>
