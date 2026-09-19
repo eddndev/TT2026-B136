@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Alertas personales: fuentes del 19 de septiembre de 2026
+
+Se añadieron implementación, pruebas y trazabilidad de alertas persistentes,
+con sus inclusiones y dos correcciones puntuales de referencias pendientes.
+El texto distingue PostgreSQL y correo de ensayo, navegador con HTTP controlado,
+aceptación real de escritorio/móvil y API con respaldo y restauración.
+Los resultados pertenecen al [informe técnico](verification-report.md).
+
+Sólo cambiaron cinco fuentes académicas existentes y se añadieron tres.
+Resumen, objetivos, estado del arte, conclusiones y presentación se preservan.
+La compilación y revisión visual de este nuevo corte quedan pendientes del
+artefacto Documents de la PR 36; el PDF de agenda descrito abajo conserva su
+propia evidencia y no se presenta como el reporte de alertas.
+
 ## Agenda combinada: 19 de septiembre de 2026
 
 Los apartados de audiencias y plazos describen la consulta combinada, vigencia,

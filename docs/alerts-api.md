@@ -224,18 +224,20 @@ parada supervisada por INT/TERM. El servidor espera sus operaciones bloqueantes
 en curso antes de cerrar los adaptadores; un fallo fatal también solicita
 la parada de ambos consumidores y HTTP.
 
-La aceptación preparada en `scripts/api-alerts-demo.py`, invocada al final de
-`scripts/api-demo.sh`, crea una audiencia a 36 horas y espera de forma acotada
+La aceptación de `scripts/api-alerts-demo.py`, invocada por
+`scripts/api-demo.sh` antes del respaldo, crea una audiencia a 36 horas y espera de forma acotada
 el aviso de 48 horas. Comprueba bandeja propia, lectura idempotente, preferencias,
 origen e historial exactos y denegación de acceso anónimo, Client y otra cuenta.
-Se ejecuta después de las comparaciones de restauración existentes; este
-recorrido no acredita por sí mismo restauración de las tablas de alertas.
+Con el servidor detenido compara las ocho tablas de alertas antes y después
+de restaurar. Al reabrir el servidor consulta las preferencias, el aviso leído
+y la historia exacta de audiencia, conservando una sola ocurrencia.
 
 `scripts/web-demo.sh` incorpora `web/tests/live/alerts.spec.mjs` a 1440 y 390
 píxeles usando PostgreSQL y el consumidor real, sin interceptar las respuestas
 de alertas. Ambos guiones deshabilitan correo externo en sus servicios
-desechables. Estas comprobaciones están preparadas y pendientes de ejecución;
-no acreditan entrega real de Resend ni aceptación del proveedor. Los resultados
+desechables. El navegador aprobó sus dos escenarios y el control de permisos;
+la aceptación API/restauración también aprobó. No acreditan entrega real de
+Resend ni aceptación del proveedor. Los resultados
 reproducidos se registran por separado en el informe de verificación.
 
 ## Errores

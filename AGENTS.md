@@ -303,8 +303,8 @@ is still unfinished.
   or archived and do not certify normative authenticity or applicability. The
   Qadra calendar interface is verified locally. Its exact revisions can feed
   recorded deadline evaluations. Local reevaluation has an internal worker port;
-  its server composition has real API and browser verification. Automatic activation
-  and notifications remain pending.
+  its server composition is integrated through PR 34. Automatic activation
+  remains pending; alerts are implemented in the separate PR 36 delivery.
   See `docs/judicial-calendars-api.md`
   and `docs/adr/0030-versioned-jurisdictional-calendars.md`.
 - The `0015_` and `0016_` migrations add immutable source-change events and a
@@ -334,16 +334,16 @@ is still unfinished.
   evidence and are not covered by those historical runs. Remote checks and
   integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, alerts and the qualified legal-profile acceptance corpus
-  remain pending. The later reevaluation runtime is composed locally in `serve`
-  and has separate real-service verification.
+  Automatic activation and the qualified legal-profile acceptance corpus remain
+  pending. Reevaluation is integrated through PR 34; alerts have their own
+  published delivery and acceptance status below.
 - The combined `/api/v1/agenda` query and Qadra day, week and month views are
   implemented. One authorized, audited transaction combines hearing heads with
   verified operational deadline dates, with bounded candidate scans and explicit
   continuation. Historical reads and pending, retired or changed deadlines provide
   no operational date. Opening preserves the exact revision. Backend/HTTP,
   desktop/mobile browser and restored-API acceptance passed for the published
-  checkpoint. Closing CI and integration into `main` remain pending. See
+  checkpoint. PR 35 integrated this delivery into `main` as `c16b820`. See
   `docs/agenda-api.md`, `docs/adr/0038-authorized-combined-agenda.md` and
   `docs/verification-report.md`.
 - The `0018_` migrations extend deadline storage with human V2 tracking captures
@@ -365,7 +365,8 @@ is still unfinished.
   included in the 31. A real API campaign passed reevaluation, TERM/INT shutdown,
   restart and restoration of R1-R5. The final API repeat and CLI demonstration
   also passed; detailed results are in `docs/verification-report.md`.
-  Global verification and integration into `main` are still being closed. See `docs/deadline-tracking-api.md`,
+  Closing verification passed and PR 34 integrated this delivery into `main` as
+  `e2e6758`. See `docs/deadline-tracking-api.md`,
   `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
 - The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
   event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
@@ -388,7 +389,7 @@ is still unfinished.
   Runtime verification passed 31 unit and four CLI-help tests, including the
   26 loop, stop and supervision tests. Real API verification covered reevaluation,
   TERM/INT shutdown, restart and restoration of R1-R5, including the final API
-  acceptance. Global verification remains in progress; consult
+  acceptance. PR 34 integrated the verified delivery into `main`; consult
   `docs/verification-report.md`. The human HTTP contract represents
   V1/V2 history and technical provenance without accepting worker commands. See
   `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
@@ -502,10 +503,10 @@ is still unfinished.
   36 controlled-HTTP browser cases and a separate 25-case real-backend campaign.
   The real campaign includes two Follow scenarios at desktop 1440 and mobile
   390 pixels, with six screenshots visually inspected. The dispatcher and worker
-  run in the composed `serve` process. Final API acceptance passed; global
-  verification and integration into `main` remain in progress. The combined
-  agenda has its own acceptance evidence; alerts remain pending. Preserve its design tokens,
-  components and original brand assets. `frontend/` retains the
+  run in the composed `serve` process. PR 34 integrated reevaluation and PR 35
+  integrated the combined agenda, each with its own acceptance evidence. Qadra
+  alerts are published in PR 36 with acceptance and CI closure in progress.
+  Preserve its design tokens, components and original brand assets. `frontend/` retains the
   older placeholder; new product work belongs in `web/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
 - `latex/main.tex` includes implementation, testing, conclusions, and annexes.
@@ -515,6 +516,13 @@ is still unfinished.
   implementation, testing and annex sections as evidence changes.
   The versioned Beamer presentation starts at
   `presentacion/presentacion.tex`.
+
+- Durable activity alerts, account preferences, the personal Qadra inbox and
+  the scheduler/email consumers composed in `serve` are implemented and published
+  in PR 36. Internal alerts and optional generic email preserve
+  delivery state, retries and duplicate control. API/restoration and focal
+  real-service browser acceptance passed; CI closure remains in progress. This delivery is not integrated into
+  `main`. See `docs/alerts-api.md` and `docs/verification-report.md`.
 
 ## Next work, in dependency order
 
@@ -530,11 +538,11 @@ current code before planning subsequent work in this dependency order.
    and immutable versions preserve case isolation and Client denial. Delivery
    without a seal and security alerts to the Owner remain separate work; widening
    Client access requires an explicit tested resource policy.
-2. Keep functional deliveries integrated with approved CI. Qualify the remaining legal profiles with primary sources and acceptance cases;
-   complete global verification, then integrate the
-   verified human/HTTP/Qadra V2 workflow, composed durable runtime and combined
-   agenda into `main`; implement activation and notifications, plus resources linked
-   to resolutions. Hearing scheduling and declared sessions/results already preserve exact history,
+2. Close acceptance and CI for the published alerts delivery before integrating
+   it into `main`. Reevaluation and the combined agenda are already integrated.
+   Qualify the remaining legal profiles with primary sources and acceptance cases;
+   implement automatic activation and resources linked to resolutions. Hearing
+   scheduling and declared sessions/results already preserve exact history,
    attendance, agreements and provenance. The calendar backend/API classifies
    civil dates from exact revisions and Qadra exposes their administration and
    history. Persisted evaluations already compute explicit profiles and inputs;

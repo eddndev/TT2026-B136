@@ -4,15 +4,16 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
-## Alertas personales: implementación parcial del 19 de septiembre de 2026
+## Alertas personales: checkpoint funcional del 19 de septiembre de 2026
 
 Están implementados temporización configurable, puertos de preferencias y
 bandeja personal, servicio autorizado, cinco rutas HTTP y Qadra. La bandeja
 conserva el origen exacto, lectura independiente de atención, estados del correo,
 filtros, continuación, conflictos y respuestas inciertas. El contrato está en
 [alerts-api.md](alerts-api.md). La persistencia, generación durable y composición del servidor están
-implementadas en el borrador; la aceptación API/navegador real, la regresión de
-cierre y la integración de esta ampliación permanecen pendientes. No se afirma
+implementadas en el borrador; el navegador real aprobó sus recorridos focales.
+La aceptación API/restauración también aprobó; la regresión de cierre y la
+integración de esta ampliación permanecen pendientes. No se afirma
 entrega a un destinatario externo.
 
 Se ejecutó una sola verificación local a la vez, con pruebas focales después del
@@ -69,8 +70,48 @@ se mantuvo estable; continuó la preparación independiente de guiones HTTP y we
 Cuatro pruebas de ayuda CLI y límites de argumentos aprobaron en 6.011 s,
 con fuentes sin cambios.
 
+La primera aceptación HTTP integrada terminó con salida 1 en 84.430 s:
+el escaneo sin raíces escribía progreso y auditoría y alteraba el oráculo
+exacto de operaciones rechazadas del expediente cerrado. Se corrigió el
+escaneo vacío para que permanezca sin escrituras y se conservó el oráculo
+original. La repetición terminó en 239.232 s: aprobaron los recorridos previos
+de documentos, participantes, expedientes, audiencias, calendarios, hechos,
+perfiles, plazos, agenda y reinicios. La restauración detectó que una función
+CHECK nueva dependía del `search_path` de la sesión; `pg_restore` lo deja vacío.
+Se hizo autocontenido el predicado y se añadió una regresión específica. Esa
+campaña conserva salida 1 y no acredita la aceptación final de alertas.
+
+El CI de `1971c81` reprodujo el mismo defecto en Test y Coverage. Formato,
+Clippy, MSRV, dependencias, release y verificación web aprobaron. El navegador
+remoto aprobó 29 escenarios y falló en los dos nuevos de alertas porque su
+fixture leía título y referencia fuera del objeto `administration`. Se corrigió
+el fixture conforme al contrato existente, sin cambiar la respuesta del producto.
+
+El recorrido local con servicios reales aprobó tres escenarios: alertas a
+1440/390 píxeles y permisos de agenda con revocación. Tardó 233.822 s con
+preparación; Playwright informó 26.7 s. Comprueba generación por el consumidor,
+origen exacto, lectura persistente, preferencias y correo deshabilitado. Se
+inspeccionaron ambas capturas, sin desbordamientos ni solapamientos. El fixture
+de título/referencia se corrigió antes de cargarlo; durante la preparación se
+editaron también el predicado SQL, su prueba y el guion API independiente. El
+servidor ya compilado no incorporaba todavía la corrección SQL de restauración;
+por ello este recorrido acredita la interfaz real, no esa corrección posterior.
+
+Las dos regresiones nuevas de `search_path` vacío y escaneo sin raíces aprobaron
+en una campaña focal de 18.053 s, con PostgreSQL real y 2220 fuentes sin cambios.
+Se ejecutaron secuencialmente, sin repetir los otros objetivos PostgreSQL.
+
+La aceptación API final aprobó en 273.199 s, con 2220 fuentes sin cambios.
+Ejercitó el consumidor real, aviso de 48 horas, bandeja personal, preferencias,
+lectura idempotente, origen exacto y denegaciones. El respaldo/restauración
+comparó exactamente las ocho tablas de alertas con el servidor detenido y, al
+reabrirlo, conservó preferencias, lectura, destinatario, origen e historia de
+audiencia sin una segunda ocurrencia. También aprobaron los recorridos previos
+y sus comparaciones de documentos, hechos, plazos, agenda, señales y reinicios.
+
 Los resultados no se suman a campañas históricas ni acreditan recepción externa
-de correo, aceptación API/navegador real, restauración integral o cierre global.
+de correo o cierre global. El CI ahora verifica las PR y los pushes a main,
+sin ejecutar dos campañas equivalentes por cada actualización de una rama.
 
 ## Agenda combinada: checkpoint funcional del 19 de septiembre de 2026
 

@@ -2,8 +2,8 @@
 
 El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
 audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos,
-hechos de resolución y notificación y una sola cadena de auditoría. Los hechos
-cuentan con [API](procedural-facts-api.md) e
+hechos de resolución y notificación, alertas durables y una sola cadena de
+auditoría. Los hechos cuentan con [API](procedural-facts-api.md) e
 [interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas).
 Redis conserva sesiones revocables y controles efímeros.
 
@@ -21,10 +21,11 @@ entrega. La ampliación humana, HTTP y Qadra V2 tiene evidencia posterior:
 88 pruebas Node, 36 de navegador con HTTP controlado y 25 con backend real,
 incluidos dos Follow a 1440 y 390 píxeles; seis capturas se inspeccionaron.
 La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración
-de R1-R5; la aceptación API final también aprobó. El cierre global y la
-integración en `main` siguen en curso; las alertas mantienen su
-alcance pendiente. Cada campaña se registra por separado en el informe de
-verificación.
+de R1-R5; la aceptación API final y el cierre global también aprobaron. PR 34
+integró la reevaluación en `main` como `e2e6758`; PR 35 integró la agenda combinada
+como `c16b820`. PR 36 publica alertas durables, Qadra y composición en servidor; la aceptación API/restauración y el navegador focal aprobaron; CI sigue en curso,
+sin integración en `main`. Cada campaña se registra por separado en el
+[informe de verificación](verification-report.md).
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
@@ -68,8 +69,9 @@ generar la bandeja interna. `RESEND_API_KEY`, `ALERT_EMAIL_FROM` y
 `ALERT_LOGIN_URL` habilitan el transporte sólo cuando están presentes y son
 válidos los tres; sin ellos se informa `disabled`. Véanse la
 [configuración y los límites del consumidor de alertas](alerts-api.md#configuración-y-aceptación-del-servidor).
-La aceptación API/browser preparada usa servicios desechables sin correo
-externo; no sustituye un ensayo del proveedor ni una verificación de entrega.
+La aceptación API con restauración y los recorridos focales de navegador
+aprobaron con servicios desechables sin correo externo; no sustituye un ensayo del proveedor ni una
+verificación de entrega.
 
 La composición local de reevaluación abre y valida despachador y consumidor
 antes de escuchar. `--deadline-page-limit` limita cada página y los trabajos
@@ -567,8 +569,9 @@ el servicio humano y HTTP V2 están implementados y verificados localmente.
 Qadra V2 tiene pruebas Node y navegador tanto con HTTP controlado como con
 backend real aprobadas. El dispatcher/worker está compuesto en `serve`; la
 campaña API real comprobó reevaluación, señales, reinicios y restauración.
-La aceptación API final aprobó; el cierre global y la integración en `main`
-conservan su seguimiento en el informe de verificación. Activación, agenda conjunta y alertas siguen
+La aceptación API final y el cierre global aprobaron; PR 34 integró esta entrega
+y PR 35 integró la agenda conjunta. Las alertas están publicadas en PR 36 con
+aceptación y CI en curso. La activación automática y el corpus jurídico siguen
 pendientes en [el contrato completo](deadline-lifecycle.md).
 
 ## Actualizar capturas y atención de plazos
@@ -693,8 +696,8 @@ nuevos de escritorio y móvil. La campaña posterior con backend real aprobó 25
 recorridos, incluidos dos Follow a 1440 y 390 píxeles; seis capturas se
 inspeccionaron. La campaña API real terminó con código cero y comprobó cierre
 TERM/INT, reinicios y conservación de R1-R5 tras restaurar. La aceptación API
-final aprobó; el cierre global y la integración en `main` siguen en curso.
-Las alertas conservan su alcance propio.
+final y el cierre global aprobaron; PR 34 integró esta entrega en `main`.
+Las alertas publicadas en PR 36 conservan su propia aceptación en curso.
 El [informe de verificación](verification-report.md) separa cada campaña. Véanse [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md)
 y [el contrato de seguimiento](deadline-tracking-api.md).
 
