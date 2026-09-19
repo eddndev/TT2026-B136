@@ -1,6 +1,7 @@
 <script>
   import HearingValues from './HearingValues.svelte';
   import DeadlineTrackingSummary from './DeadlineTrackingSummary.svelte';
+  import { deadlineAuthorLabel } from './deadline-view-labels.mjs';
   import { hearingStatus } from '../lib/hearings.mjs';
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
   export let target,
@@ -37,6 +38,12 @@
 <details>
   <summary>Identidad y autor de la actividad</summary>
   <p><code>{record.id}</code></p>
-  <p>{record.recorded_by.email} / {record.recorded_at}</p>
+  <p>
+    {target.kind === 'deadline'
+      ? deadlineAuthorLabel(record.recorded_by)
+      : record.recorded_by.email} / {target.kind === 'deadline'
+      ? deadlineInstantLabel(record.recorded_at)
+      : record.recorded_at}
+  </p>
   <p><code>{record.receipt.capture_digest || record.receipt.submission_digest}</code></p>
 </details>

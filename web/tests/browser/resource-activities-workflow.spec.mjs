@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { technicalRecord } from '../fixtures/deadline-v2-unit.mjs';
 import {
   setupResourceActivities,
   openResourceActivities,
@@ -97,6 +98,17 @@ test('keeps historical deadline calculation separate from current absence of ope
   page,
 }) => {
   const state = await setupResourceActivities(page);
+  const head = state.deadline.at(-1);
+  const technical = technicalRecord();
+  const currentRecord = JSON.parse(
+    JSON.stringify(technical).replaceAll(technical.case_id, head.case_id),
+  );
+  currentRecord.definition.title = head.definition.title;
+  currentRecord.operational = head.operational;
+  currentRecord.receipt.operation_id = head.receipt.operation_id;
+  currentRecord.receipt.submission_digest = head.receipt.submission_digest;
+  currentRecord.receipt.capture_digest = head.receipt.capture_digest;
+  state.deadline[state.deadline.length - 1] = currentRecord;
   const linked = state.seed('deadline');
   expect(linked.sources.target.record.calculation.result.due_at).not.toBeNull();
   expect(state.deadline.at(-1).operational.due_at).toBeNull();
@@ -111,6 +123,26 @@ test('keeps historical deadline calculation separate from current absence of ope
   await expect(current).toContainText('Plazo actual sin fecha operativa');
   await expect(current).toContainText('Sin fecha operativa');
   await expect(current).not.toContainText('2026-01-02');
+  for (const section of [historical, current])
+    await section.getByText('Identidad y autor de la actividad', { exact: true }).click();
+  await expect
+    .soft(
+      historical.getByText('staff@example.test / 2025-12-31 18:00:00.123456789 / UTC-06:00', {
+        exact: true,
+      }),
+    )
+    .toBeVisible();
+  await expect
+    .soft(
+      current.getByText(
+        'Servicio de reevaluaci\u00f3n / 2025-12-31 18:00:00.123456789 / UTC-06:00',
+        {
+          exact: true,
+        },
+      ),
+    )
+    .toBeVisible();
+  await expect.soft(detail).not.toContainText('[object Object]');
   expect(state.submissions).toHaveLength(0);
 });
 
