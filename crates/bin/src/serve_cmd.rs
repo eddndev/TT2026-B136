@@ -297,6 +297,18 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         deadline_hasher,
         deadline_clock,
     );
+    let document_content = application::document_content::DocumentContentService::new(
+        repository.clone(),
+        identity.clone(),
+        processor.clone(),
+        Arc::new(SystemClock::new()),
+        repository.clone(),
+    );
+    let document_integrity = application::document_integrity::DocumentIntegrityService::new(
+        repository.clone(),
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
     let workflow = CaseDocumentService::new(
         repository,
         identity.clone(),
@@ -327,6 +339,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
             alerts: alerts.workflow,
+            document_content: Arc::new(document_content),
+            document_integrity: Arc::new(document_integrity),
         },
         Arc::new(calendars),
         Arc::new(profiles),

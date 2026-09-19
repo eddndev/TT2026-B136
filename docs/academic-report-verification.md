@@ -1,5 +1,27 @@
 # Verificación de la actualización académica
 
+## Contenido original e incidentes: fuentes del 19 de septiembre de 2026
+
+Se añadieron implementación, pruebas focales y una matriz de trazabilidad,
+con sus inclusiones. Describen descarga exacta sin sello, validación completa,
+autorización auditada, capacidad de cuerpos e incidentes internos Owner.
+Las fuentes de pruebas y anexo incorporan tres recorridos de navegador con
+servicios reales aprobados en 285.120 s de comando y 24.6 s de Playwright, con
+2490 fuentes estables. Distinguen escritorio Owner a 1440 píxeles, móvil Owner
+a 390 píxeles con expediente cerrado y permisos de Paralegal, Client y
+revocación. Cuatro capturas de interfaz y dos ampliaciones del detalle fueron
+inspeccionadas, sin recortes ni desbordamiento. El fixture conserva incidentes
+reales después de restaurar sus dos vaults aislados; no acredita reparación
+del producto ni un ataque.
+
+Las fuentes también incorporan la aceptación API completa con restauración,
+aprobada en 372.048 s con 2490 fuentes estables. CI sigue pendiente. Resumen,
+objetivos, estado del arte, conclusiones y presentación se preservan.
+La compilación e inspección del PDF de estas fuentes todavía no se ejecutan;
+las capturas de interfaz y los artefactos de asociaciones anteriores no
+acreditan estas páginas. Los resultados de software se conservan en el
+[informe técnico](verification-report.md).
+
 ## Asociaciones de recursos: fuentes del 19 de septiembre de 2026
 
 El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35462654499)

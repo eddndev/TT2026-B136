@@ -13,13 +13,17 @@ concurrency_demo() {
       --tsa-dir "$TSA_DIR"
   ) >"$race_dir/server.log" 2>&1 &
   SECOND_SERVER_PID=$!
-  for _ in $(seq 1 100); do
+  for _ in $(seq 1 600); do
     address="$(sed -n 's/^listening on http:\/\///p' "$race_dir/server.log" | tail -n 1)"
     if [ -n "$address" ]; then break; fi
     kill -0 "$SECOND_SERVER_PID" 2>/dev/null || { cat "$race_dir/server.log" >&2; return 1; }
     sleep 0.1
   done
-  [ -n "$address" ] || { cat "$race_dir/server.log" >&2; return 1; }
+  [ -n "$address" ] || {
+    cat "$race_dir/server.log" >&2
+    printf 'api-concurrency-demo.sh: second server did not report its address within 60 seconds\n' >&2
+    return 1
+  }
   second_url="http://$address"
   curl -fsS "$second_url/healthz" | rg -x 'ok' >/dev/null
   case_id="$(psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \

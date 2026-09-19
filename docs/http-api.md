@@ -1,5 +1,9 @@
 # API HTTP local autenticada
 
+La [API de contenido documental e incidentes](document-content-api.md) añade
+la descarga de una versión exacta, pendiente o sellada, y el buzón interno
+exclusivo de Owner. Su aceptación se registra por separado en el informe.
+
 La [API de identidades representadas y participantes tipificados](typed-participants-api.md)
 detalla revisión de identidad, perfiles, declaraciones internas, proyecciones
 manuales y tipificadas, y consultas de evidencia histórica.

@@ -119,7 +119,7 @@ SERVER_LOG="$WORK_DIR/server.log"
 SERVER_PID=$!
 
 SERVER_ADDRESS=""
-for _ in $(seq 1 100); do
+for _ in $(seq 1 600); do
   SERVER_ADDRESS="$(sed -n 's/^listening on http:\/\///p' "$SERVER_LOG" | tail -n 1)"
   if [ -n "$SERVER_ADDRESS" ]; then
     break
@@ -132,7 +132,7 @@ for _ in $(seq 1 100); do
 done
 [ -n "$SERVER_ADDRESS" ] || {
   cat "$SERVER_LOG" >&2
-  printf 'api-demo.sh: server did not report its address\n' >&2
+  printf 'api-demo.sh: server did not report its address within 60 seconds\n' >&2
   exit 1
 }
 BASE_URL="http://$SERVER_ADDRESS"
@@ -262,6 +262,9 @@ source "$REPO_ROOT/scripts/api-agenda-demo.sh"
 
 # shellcheck source=scripts/api-alerts-demo.sh
 source "$REPO_ROOT/scripts/api-alerts-demo.sh"
+
+# shellcheck source=scripts/api-document-content-demo.sh
+source "$REPO_ROOT/scripts/api-document-content-demo.sh"
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"

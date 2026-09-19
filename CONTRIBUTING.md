@@ -328,6 +328,17 @@ Inspect current code and contracts before treating this summary as complete.
   profiles, durable activation and the complete resource workflow remain work
   under `docs/procedural-resources-scope.md`.
 
+- Exact original content delivery and an Owner-only integrity incident inbox
+  are implemented locally. Pending and sealed versions use bounded AES-GCM and
+  SHA-256 validation, full principal reauthentication and a final audited
+  authorization before plaintext reaches HTTP. Rejected content records a
+  separate immutable incident with audit; failures do not establish their cause.
+  Qadra exposes exact download and the internal inbox. Focused application,
+  HTTP, PostgreSQL and client checks passed; integrated acceptance and CI closure
+  remain separate in `docs/verification-report.md`. See
+  `docs/document-content-api.md` and
+  `docs/adr/0042-verified-document-content-and-integrity-incidents.md`.
+
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding

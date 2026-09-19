@@ -18,6 +18,18 @@ pub enum PortFailureKind {
 /// retain a diagnostic and optionally a neutral category, without adapter types.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    #[error("document content validation failed")]
+    DocumentContentValidationFailed(crate::document_integrity::DocumentIntegrityFailure),
+
+    #[error("document content exceeds the read limit")]
+    DocumentContentTooLarge,
+
+    #[error("document integrity observation was reused with different data")]
+    DocumentIntegrityObservationConflict,
+
+    #[error("document integrity incident not found: {0}")]
+    DocumentIntegrityIncidentNotFound(String),
+
     #[error(transparent)]
     ResourceActivity(#[from] crate::resource_activities::ResourceActivityError),
 

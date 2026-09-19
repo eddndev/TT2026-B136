@@ -61,6 +61,8 @@ migration_demo_state() {
   psql "$1" -v ON_ERROR_STOP=1 -Atc \
     "SELECT jsonb_build_object(
       'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),
+      'document_integrity_incidents',(SELECT jsonb_agg(to_jsonb(i) ORDER BY id)
+        FROM document_integrity_incidents i),
       'series',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM document_series s),
       'metadata',(SELECT jsonb_agg(to_jsonb(m) ORDER BY document_id,metadata_revision)
         FROM document_metadata_revisions m),
@@ -282,6 +284,7 @@ PY
   resource_activities_demo
   deadline_worker_demo "$runtime_url" "$legacy_dir"
   alert_demo
+  document_content_demo "$imported_url"
   calendar_demo_python checkpoint
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
@@ -323,6 +326,7 @@ PY
   resource_activities_demo_restored
   deadline_worker_demo_python verify
   alert_demo_restored
+  document_content_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -345,6 +349,8 @@ PY
   printf 'Restored resource activities: %s roots, %s immutable revisions.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_resource_activity_associations')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_resource_activity_association_revisions')"
+  printf 'Restored document content: %s immutable integrity incidents.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_integrity_incidents')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -370,4 +376,5 @@ unset -f profile_demo profile_demo_restored profile_demo_python
 unset -f deadline_demo deadline_demo_restored deadline_demo_python
 unset -f agenda_demo
 unset -f alert_demo alert_demo_restored alert_demo_python
+unset -f document_content_demo document_content_demo_restored document_content_demo_python
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop

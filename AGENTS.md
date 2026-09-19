@@ -531,6 +531,17 @@ is still unfinished.
   profiles, durable activation and the complete resource workflow remain work
   under `docs/procedural-resources-scope.md`.
 
+- Exact original content delivery and an Owner-only integrity incident inbox
+  are implemented locally. Pending and sealed versions use bounded AES-GCM and
+  SHA-256 validation, full principal reauthentication and a final audited
+  authorization before plaintext reaches HTTP. Rejected content records a
+  separate immutable incident with audit; failures do not establish their cause.
+  Qadra exposes exact download and the internal inbox. Focused application,
+  HTTP, PostgreSQL and client checks passed; integrated acceptance and CI closure
+  remain separate in `docs/verification-report.md`. See
+  `docs/document-content-api.md` and
+  `docs/adr/0042-verified-document-content-and-integrity-incidents.md`.
+
 ## Next work, in dependency order
 
 `docs/next-goal.md` records the completed case-document delivery and retains
@@ -542,8 +553,8 @@ current code before planning subsequent work in this dependency order.
 
 1. Reconcile permitted general-upload formats and content delivery before declaring
    the complete document use cases fulfilled. Current classification, queries
-   and immutable versions preserve case isolation and Client denial. Delivery
-   without a seal and security alerts to the Owner remain separate work; widening
+   and immutable versions preserve case isolation and Client denial. Content delivery
+   and Owner incidents have their own acceptance checkpoint; widening
    Client access requires an explicit tested resource policy.
 2. Qualify the remaining legal profiles with primary sources and acceptance cases;
    implement durable activation and complete the resource workflow beyond declared
