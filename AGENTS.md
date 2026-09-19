@@ -78,6 +78,14 @@ comments reference the ADR file path, never an external document.
 
 ## Local verification
 
+Run only one local verification suite at a time. A single coordinator owns
+Cargo, test runners and demo services; helpers must not start them. Set
+`CARGO_BUILD_JOBS=1` and `RUST_TEST_THREADS=1` for local Cargo verification,
+and use one worker for browser suites. Do not overlap builds, test suites,
+coverage or document builds. After an interruption, inspect live processes
+before starting another run; a lost terminal handle can leave child processes
+running. Keep completed evidence separate from interrupted runs.
+
 The installed toolchain is newer than the declared MSRV. MSRV is declared with
 `rust-version` in the workspace manifest and enforced in CI, not by pinning a
 toolchain locally. Before committing Rust changes, run:
