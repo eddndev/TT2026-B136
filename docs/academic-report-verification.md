@@ -12,6 +12,18 @@ La compilación inicial de `616b908` aprobó en CI. Las fuentes posteriores aña
 la aceptación real; su nueva compilación y revisión visual siguen pendientes.
 El PDF de alertas conserva su evidencia propia y no acredita estos apartados.
 
+
+La primera compilación con la aceptación real aprobó en el
+[workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35458351638).
+El artefacto de `af7329a` declara `058dcdc`, cuyos padres son `2ef6c53` y
+`af7329a`; su árbol coincide con esa cabeza. Tiene 326 páginas carta,
+5917571 bytes y SHA-256
+`00f66cb895ac387e809894d85304f3e7b0557204535a280a19205e08385119d5`.
+La pasada final detectó un desborde nuevo de 9.82555 pt en una ruta del anexo.
+Se separó el directorio del nombre del ADR para corregirlo. La comprobación
+visual definitiva corresponde al artefacto recompilado después de ese ajuste;
+este primer PDF no se presenta como aprobado visualmente.
+
 ## Alertas personales: fuentes del 19 de septiembre de 2026
 
 Se añadieron implementación, pruebas y trazabilidad de alertas persistentes,
