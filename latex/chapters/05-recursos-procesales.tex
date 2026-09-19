@@ -1,6 +1,6 @@
 \section{Pruebas focales de recursos declarados}\label{sec:pruebas-recursos-declarados}
 
-El corte local del 19 de septiembre de 2026 verifica por separado dominio, aplicación, transporte, almacenamiento e interfaz del registro descrito en la \cref{sec:impl-recursos-declarados}. El informe \rutarepo{docs/verification-report.md} conserva la procedencia y el alcance de las ejecuciones. Los resultados siguientes no constituyen una regresión global de una única cabeza publicada ni una aceptación completa con navegador y servidor reales.
+El corte local del 19 de septiembre de 2026 verifica por separado dominio, aplicación, transporte, almacenamiento e interfaz del registro descrito en la \cref{sec:impl-recursos-declarados}. El informe \rutarepo{docs/verification-report.md} conserva la procedencia y el alcance de las ejecuciones. Las pruebas focales se complementan con aceptación HTTP y navegador contra servicios reales. Sus ejecuciones se conservan por separado; no constituyen una regresión global de una única cabeza publicada.
 
 \begin{table}[H]
   \centering
@@ -13,7 +13,7 @@ El corte local del 19 de septiembre de 2026 verifica por separado dominio, aplic
     Dominio & 14 aprobadas & Identidades, valores, codificaciones canónicas y compromisos del recurso y del acto. \\
     Aplicación & 13 aprobadas & Permisos, reautenticación, fuentes exactas, recibos, actos y estados organizativos mediante puertos. \\
     HTTP Rust & 9 aprobadas & Rutas, cuerpos, capturas y rechazos con puertos controlados. \\
-    Cliente JavaScript & 4 de valores y 5 de API aprobadas & Validación de comandos, respuestas y recibos antes de consumirlos en la interfaz. \\
+    Cliente JavaScript & 18 aprobadas & Validación de comandos, respuestas y recibos antes de consumirlos en la interfaz. \\
     PostgreSQL desechable & 12 aprobadas & Almacenamiento, atomicidad, revocación, inventario, catálogo, raíces de actos y restauración con continuación de historia. \\
     Navegador controlado & 5 y 7 casos aprobados & Dos conjuntos funcionales distintos; las dos repeticiones para capturas visuales no se cuentan como casos nuevos. \\
     Compilación web & Aprobada & Construcción de la interfaz; no sustituye aceptación integrada ni pruebas de backend. \\
@@ -35,7 +35,7 @@ Las doce pruebas PostgreSQL aprobaron en 48.921 segundos con una base desechable
 
 Los escenarios comprueban registro, actos e historia, repetición de operación y autorización vigente. Un fallo de auditoría revierte la escritura, y una revocación durante la admisión documental impide confirmar. El inventario rechaza la sustitución de una proyección capturada; el catálogo rechaza alteraciones de columnas, restricciones, índices, guardas y privilegios. Las dos pruebas de raíz comprueban que una corrección no se acepte si, después de abrir el adaptador, su raíz se cambia para apuntar a otro acto o a una corrección en lugar de su captura inicial.
 
-La prueba de recuperación ejecuta \texttt{pg\_dump} y \texttt{pg\_restore}, compara las capturas y conserva el correo del autor original aunque su cuenta haya cambiado. Después de restaurar, un Owner autorizado añade una revisión que continúa la historia anterior. Este resultado acredita la recuperación ensayada del adaptador; la aceptación integrada con API, servidor y navegador reales sigue pendiente.
+La prueba de recuperación ejecuta \texttt{pg\_dump} y \texttt{pg\_restore}, compara las capturas y conserva el correo del autor original aunque su cuenta haya cambiado. Después de restaurar, un Owner autorizado añade una revisión que continúa la historia anterior. Este resultado acredita la recuperación ensayada del adaptador. La aceptación integrada posterior con API se documenta por separado a continuación.
 
 \subsection{Interfaz con transporte controlado}
 
@@ -45,4 +45,10 @@ El segundo conjunto añadió siete casos de roles, revocación, cierre y conflic
 
 La construcción web aprobó en 3.655 segundos. Las verificaciones locales se ejecutaron en serie, con un hilo de pruebas Rust y un trabajador de navegador. Los resultados se registran por frontera; no constituyen una nueva regresión global.
 
-La aceptación con servidor real, el cierre de integración continua y la integración del incremento permanecen pendientes en este corte. No se midió usabilidad con personas ni cobertura global nueva. Las pruebas tampoco verifican asociaciones de recursos con audiencias, plazos o alertas, ni determinan interpretación jurídica. La matriz del \cref{sec:matriz-recursos-declarados} conserva esa separación.
+\subsection{Aceptación con servicios reales}
+
+La demostración HTTP integrada aprobó en 383.388 segundos, con 2329 fuentes estables, PostgreSQL y Redis desechables, qpdf y TSA local. Registró revocación y apelación, actos orales y escritos, correcciones, archivo y reactivación. Verificó cuatro roles, aislamiento, cierre y reapertura, conflictos y repetición exacta. Antes del respaldo conservó veinte respuestas completas; después de restaurar comparó sus fuentes, autores y recibos, junto con la historia y auditoría persistidas. No se envió correo externo.
+
+El navegador real aprobó tres recorridos en 25.3 segundos de Playwright y 264.627 segundos totales de preparación y ejecución, con 2329 fuentes estables. Owner a 1440 píxeles y Litigator a 390 registraron y corrigieron un acto oral y consultaron intactas las revisiones anteriores. Paralegal consultó sin controles de escritura, Client recibió denegación en la API y la revocación de membresía retiró el detalle visible. Las cuatro capturas actuales e históricas se inspeccionaron sin desbordamiento ni solapamientos. Esta evidencia verifica el prototipo con datos de ensayo; no acredita recepción judicial de un recurso.
+
+El cierre de integración continua y la integración del incremento permanecen pendientes en este corte. No se midió usabilidad con personas ni cobertura global nueva. Las pruebas tampoco verifican asociaciones de recursos con audiencias, plazos o alertas, ni determinan interpretación jurídica. La matriz del \cref{sec:matriz-recursos-declarados} conserva esa separación.

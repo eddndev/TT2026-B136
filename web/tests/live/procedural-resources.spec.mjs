@@ -98,6 +98,7 @@ for (const [name, width, role] of [
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: testInfo.outputPath(`resource-real-${name}-historical-act.png`),
       fullPage: true,
@@ -111,6 +112,7 @@ for (const [name, width, role] of [
       .click();
     await expect(detail(page)).toContainText(`Precision posterior del acto ${name}`);
     await expect(detail(page)).toContainText('Revisi\u00f3n del acto: 2');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: testInfo.outputPath(`resource-real-${name}-current.png`),
       fullPage: true,
@@ -163,7 +165,11 @@ test('real resource permissions retain staff history and clear it after membersh
       client.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
     ).toBeVisible();
     await expect(client.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
-    expect(calls.filter((path) => path.includes('/procedural-resources'))).toEqual([]);
+    expect(
+      calls.filter(
+        (path) => path.startsWith('/api/v1/cases/') && path.includes('/procedural-resources'),
+      ),
+    ).toEqual([]);
     await accountAction(accounts.client, 1, async (call) => {
       const denied = await call(
         'GET',

@@ -440,7 +440,7 @@ en [la revisión del backend](backend-review.md), revisar el modelo de amenaza d
 firma HTTP y delimitar la ausencia de anclaje externo de auditoría. La
 demostración local no se presenta como validación de producción.
 
-## Recursos procesales: implementación en desarrollo
+## Recursos procesales: checkpoint funcional publicado
 
 El registro de revocación y apelación conserva una resolución histórica exacta,
 su soporte y personas recurrentes, con fichas del directorio opcionales. Los
@@ -451,8 +451,9 @@ HTTP y Qadra exponen preparación, confirmación, consulta e historia autorizada
 
 La verificación focal incluye dominio, aplicación, HTTP, doce pruebas PostgreSQL
 con restauración y recorridos de navegador con HTTP controlado. La compilación
-web está aprobada. La aceptación HTTP completa y el navegador con servidor
-real están preparados, pero aún no ejecutados en este corte. El cierre de CI,
+web está aprobada. La aceptación HTTP completa conservó veinte respuestas
+exactas después de restaurar la base y los tres recorridos con servidor real
+aprobaron escritorio, móvil y permisos. El checkpoint está en la PR 37. El cierre de CI,
 la revisión del nuevo PDF y la integración conservan su propio criterio de
 aceptación; no se presenta este código local como integrado en `main`.
 

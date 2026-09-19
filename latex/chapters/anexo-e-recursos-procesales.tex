@@ -1,6 +1,6 @@
 \section{Trazabilidad de recursos procesales declarados}\label{sec:matriz-recursos-declarados}
 
-La matriz identifica las fronteras del incremento de registro declarado y la evidencia focal del 19 de septiembre de 2026. Las doce pruebas PostgreSQL incluyen restauración del adaptador y se distinguen de los ensayos con puertos o transporte controlados. La aceptación integrada del servidor y navegador reales permanece pendiente. Los resultados corresponden a grupos distintos y las repeticiones no se suman como casos nuevos. El detalle de ejecuciones permanece en \rutarepo{docs/verification-report.md} y en la \cref{sec:pruebas-recursos-declarados}.
+La matriz identifica las fronteras del incremento de registro declarado y la evidencia focal del 19 de septiembre de 2026. Las doce pruebas PostgreSQL incluyen restauración del adaptador y se distinguen de los ensayos con puertos o transporte controlados. La aceptación HTTP integrada preservó veinte respuestas exactas después de restaurar; tres recorridos de navegador real aprobaron escritorio, móvil y permisos. Los resultados corresponden a grupos distintos y las repeticiones no se suman como casos nuevos. El detalle de ejecuciones permanece en \rutarepo{docs/verification-report.md} y en la \cref{sec:pruebas-recursos-declarados}.
 
 \begin{longtable}{@{}L{3.0cm} L{7.0cm} L{3.0cm}@{}}
   \caption{Invariantes del registro de recursos y estado de su comprobación.}
@@ -24,7 +24,7 @@ La matriz identifica las fronteras del incremento de registro declarado y la evi
   \addlinespace
   Transporte HTTP & Correspondencia de ruta, intención e identidad; cuerpos estrictos; errores y capturas proyectadas. & 9 pruebas aprobadas con puertos controlados. \\
   \addlinespace
-  Cliente & Comandos, valores y recibos se validan antes de integrarse en el estado de la interfaz. & 4 pruebas de valores y 5 de API aprobadas. \\
+  Cliente & Comandos, valores y recibos se validan antes de integrarse en el estado de la interfaz. & 18 pruebas aprobadas, incluidos nueve casos del contexto administrativo. \\
   \addlinespace
   Almacenamiento & Registro y revisiones de actos; historia exacta, repetición y permisos vigentes. & 3 pruebas PostgreSQL aprobadas. \\
   \addlinespace
@@ -38,7 +38,9 @@ La matriz identifica las fronteras del incremento de registro declarado y la evi
   \addlinespace
   Acceso y conflicto Qadra & Cuatro roles, revocación que limpia datos, cierre con lectura y aceptación explícita de base nueva. & 7 casos aprobados; HTTP controlado. \\
   \addlinespace
-  Integración final & API y navegador con servidor real, restauración integrada, cierre de CI e integración del incremento. & Pendiente; no inferida de las focales. \\
+  Servicios reales & API completa, restauración de veinte respuestas exactas, corrección de actos y permisos en escritorio y móvil. & API aprobada y 3 recorridos reales aprobados. \\
+  \addlinespace
+  Integración final & Cierre de CI e integración del incremento. & Pendiente; no inferida de las focales. \\
   \addlinespace
   Flujo procesal completo & Asociación específica con audiencias, términos calculados y alertas; impulso con corpus jurídico calificado. & Pendiente de implementación y validación. \\
 \end{longtable}

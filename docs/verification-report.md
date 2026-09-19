@@ -11,9 +11,9 @@ implementan registro y corrección de recursos, actos con revisiones propias,
 archivo/reactivación e historia. Cada recurso conserva resolución, personas y
 soportes exactos. El [contrato](procedural-resources-api.md) distingue esta
 captura del enlace posterior con audiencias, términos y alertas, aún pendiente.
-La aceptación con servidor real y restauración completa, el cierre de CI y la
-integración permanecen pendientes; las pruebas controladas no acreditan esos
-resultados.
+La aceptación HTTP con restauración completa y los tres recorridos de navegador
+con servidor real aprobaron después de las pruebas focales. El cierre de CI y
+la integración permanecen pendientes; el checkpoint está publicado en la PR 37.
 
 Se ejecutó una sola verificación local a la vez, con Cargo y pruebas Rust en un
 hilo, navegador con un trabajador y temporales privados en disco. Evidencias
@@ -57,6 +57,35 @@ por frontera, sin sumar campañas repetidas como pruebas distintas:
   después. La ejecución global posterior se interrumpió a los 242.790 s para
   publicar el checkpoint y reservar el cierre global para CI; no se contabiliza
   como aprobada ni sustituye el control requerido antes de integrar.
+
+### Aceptación integrada de recursos
+
+`scripts/api-demo.sh` aprobó en 383.388 s, con 2329 fuentes estables y PostgreSQL,
+Redis, qpdf y TSA local desechables. Ejercitó revocación y apelación, actos orales
+y escritos, soportes históricos PDF/DOCX, corrección de actos, archivo/reactivación,
+cuatro roles, aislamiento, cierre/reapertura, conflictos y repetición exacta.
+La captura previa al respaldo conservó veinte respuestas HTTP de recursos;
+después de restaurar se compararon completas, incluidos autores y recibos.
+Los estados de recursos, alertas y auditoría entraron en la misma comparación
+de tablas con el servidor detenido. No se envió correo externo.
+
+El primer navegador real aprobó escritorio y móvil y se detuvo en el caso de
+permisos: el guion confundió la descarga de un módulo JavaScript con una consulta
+a la API. Se restringió ese filtro a rutas API. La repetición aprobó los tres
+casos en 25.3 s de Playwright y 264.627 s totales, con 2329 fuentes estables.
+Owner a 1440 píxeles y Litigator a 390 registraron y corrigieron un acto oral,
+conservando R1 y R2 frente a R3. Paralegal consultó sin mutaciones, Client no
+obtuvo navegación ni acceso API y la revocación de membresía retiró el detalle.
+Se inspeccionaron cuatro capturas actuales e históricas: sin desbordamiento ni
+solapamiento. Se tomaron desde el inicio de página para evitar artefactos de
+elementos fijos fuera del viewport en capturas completas.
+
+La CI de `616b908` aprobó formato, MSRV, política de dependencias, tamaño,
+verificación web y compilación del reporte. Clippy señaló `chunks_exact(2)` en
+un fixture canónico; se sustituyó por `as_chunks::<2>()` como en los vectores
+versionados existentes. Clippy focal del fixture corregido aprobó en 3.921 s,
+con 2329 fuentes estables. Test y Coverage seguían en curso al preparar este corte.
+La cabeza corregida requiere sus propios controles de cierre.
 
 Las ejecuciones conservaron fuentes y logs en `output/resources-verification/`.
 Los cambios concurrentes registrados durante algunos comandos pertenecen a
