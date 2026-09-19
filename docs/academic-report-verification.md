@@ -1,5 +1,16 @@
 # Verificación de la actualización académica
 
+## Recursos procesales declarados: fuentes del 19 de septiembre de 2026
+
+Se añadieron tres apartados propios de implementación, pruebas y matriz, con
+sus inclusiones. Describen la captura de recursos y actos, las verificaciones
+focales y la restauración PostgreSQL aprobada. La aceptación HTTP completa,
+el navegador con servidor real y el cierre de CI se mantienen pendientes.
+Se preservan resumen, objetivos, estado del arte, conclusiones y presentación.
+
+La compilación y revisión visual del reporte con recursos siguen pendientes.
+El PDF de alertas conserva su evidencia propia y no acredita estos apartados.
+
 ## Alertas personales: fuentes del 19 de septiembre de 2026
 
 Se añadieron implementación, pruebas y trazabilidad de alertas persistentes,

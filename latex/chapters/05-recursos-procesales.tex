@@ -1,0 +1,48 @@
+\section{Pruebas focales de recursos declarados}\label{sec:pruebas-recursos-declarados}
+
+El corte local del 19 de septiembre de 2026 verifica por separado dominio, aplicación, transporte, almacenamiento e interfaz del registro descrito en la \cref{sec:impl-recursos-declarados}. El informe \rutarepo{docs/verification-report.md} conserva la procedencia y el alcance de las ejecuciones. Los resultados siguientes no constituyen una regresión global de una única cabeza publicada ni una aceptación completa con navegador y servidor reales.
+
+\begin{table}[H]
+  \centering
+  \caption{Evidencia focal ejecutada del registro de recursos declarados.}
+  \label{tab:pruebas-recursos-declarados}
+  \begin{tabularx}{\linewidth}{@{}L{2.9cm} L{2.7cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Resultado} & \textbf{Alcance observado} \\
+    \midrule
+    Dominio & 14 aprobadas & Identidades, valores, codificaciones canónicas y compromisos del recurso y del acto. \\
+    Aplicación & 13 aprobadas & Permisos, reautenticación, fuentes exactas, recibos, actos y estados organizativos mediante puertos. \\
+    HTTP Rust & 9 aprobadas & Rutas, cuerpos, capturas y rechazos con puertos controlados. \\
+    Cliente JavaScript & 4 de valores y 5 de API aprobadas & Validación de comandos, respuestas y recibos antes de consumirlos en la interfaz. \\
+    PostgreSQL desechable & 12 aprobadas & Almacenamiento, atomicidad, revocación, inventario, catálogo, raíces de actos y restauración con continuación de historia. \\
+    Navegador controlado & 5 y 7 casos aprobados & Dos conjuntos funcionales distintos; las dos repeticiones para capturas visuales no se cuentan como casos nuevos. \\
+    Compilación web & Aprobada & Construcción de la interfaz; no sustituye aceptación integrada ni pruebas de backend. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Identidad, capturas y confirmación}
+
+Las pruebas de dominio comprueban límites técnicos, declaraciones explícitas y conservación de valores canónicos. Las de aplicación utilizan material verificado y lo alteran para distinguir un recibo válido de una respuesta que cambia identidad, revisión o captura. Comprueban las referencias históricas de resolución, los soportes exactos, los actos con revisión propia y la diferencia entre archivo organizativo y desistimiento declarado.
+
+El servicio se prueba con cuatro roles y reautenticación del principal completo. Los casos de confirmación conservan el digest revisado y el recibo devuelto; una repetición exacta no requiere otro commit. Los cambios de actor, correo o rol y las respuestas incongruentes del puerto se rechazan. La comparación del contexto observado evita que el servicio sustituya una fuente seleccionada por su cabeza sin revisión humana.
+
+La evidencia HTTP comprueba el enlace entre ruta e intención y los rechazos antes de invocar el caso de uso. Las pruebas del cliente comprueban comandos, capturas y recibos, e impiden incorporar respuestas cuya identidad o estructura no corresponde a la operación solicitada.
+
+\subsection{Persistencia y límites de recuperación}
+
+Las doce pruebas PostgreSQL aprobaron en 48.921 segundos con una base desechable y las 2328 fuentes observadas sin cambios durante la ejecución. El conjunto comprende tres casos de almacenamiento, tres de atomicidad y revocación, uno de inventario, uno de restauración, dos de catálogo y dos de raíces de actos. Son pruebas del adaptador real, distintas de los dobles de aplicación y HTTP.
+
+Los escenarios comprueban registro, actos e historia, repetición de operación y autorización vigente. Un fallo de auditoría revierte la escritura, y una revocación durante la admisión documental impide confirmar. El inventario rechaza la sustitución de una proyección capturada; el catálogo rechaza alteraciones de columnas, restricciones, índices, guardas y privilegios. Las dos pruebas de raíz comprueban que una corrección no se acepte si, después de abrir el adaptador, su raíz se cambia para apuntar a otro acto o a una corrección en lugar de su captura inicial.
+
+La prueba de recuperación ejecuta \texttt{pg\_dump} y \texttt{pg\_restore}, compara las capturas y conserva el correo del autor original aunque su cuenta haya cambiado. Después de restaurar, un Owner autorizado añade una revisión que continúa la historia anterior. Este resultado acredita la recuperación ensayada del adaptador; la aceptación integrada con API, servidor y navegador reales sigue pendiente.
+
+\subsection{Interfaz con transporte controlado}
+
+El primer conjunto de Playwright aprobó cinco recorridos en 16.1 segundos del navegador. Incluye seleccionar resolución R1 aunque exista cabeza R2, registrar un acto declarado oral, archivar y reactivar a 1440 y 390 píxeles, consultar historia exacta y conciliar una respuesta incierta sin duplicar el envío. El resultado verifica interacción y contrato con respuestas HTTP controladas.
+
+El segundo conjunto añadió siete casos de roles, revocación, cierre y conflicto. Paralegal consulta historia sin controles de gestión; Client no recibe navegación de recursos ni provoca consultas a esa API mediante una ruta protegida. Al revocar la asignación, la actualización retira filas y detalle. Un expediente cerrado conserva la consulta exacta sin ofrecer mutaciones habilitadas. Un conflicto conserva el borrador hasta comparar y aceptar la nueva base, y sólo entonces permite confirmar sobre la revisión esperada actualizada. La ejecución incluyó dos repeticiones adicionales destinadas a capturas: sus nueve recorridos duraron 19.2 segundos, sin convertir esas repeticiones en casos funcionales distintos.
+
+La construcción web aprobó en 3.655 segundos. Las verificaciones locales se ejecutaron en serie, con un hilo de pruebas Rust y un trabajador de navegador. Los resultados se registran por frontera; no constituyen una nueva regresión global.
+
+La aceptación con servidor real, el cierre de integración continua y la integración del incremento permanecen pendientes en este corte. No se midió usabilidad con personas ni cobertura global nueva. Las pruebas tampoco verifican asociaciones de recursos con audiencias, plazos o alertas, ni determinan interpretación jurídica. La matriz del \cref{sec:matriz-recursos-declarados} conserva esa separación.

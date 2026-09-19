@@ -1,0 +1,48 @@
+\section{Trazabilidad de recursos procesales declarados}\label{sec:matriz-recursos-declarados}
+
+La matriz identifica las fronteras del incremento de registro declarado y la evidencia focal del 19 de septiembre de 2026. Las doce pruebas PostgreSQL incluyen restauración del adaptador y se distinguen de los ensayos con puertos o transporte controlados. La aceptación integrada del servidor y navegador reales permanece pendiente. Los resultados corresponden a grupos distintos y las repeticiones no se suman como casos nuevos. El detalle de ejecuciones permanece en \rutarepo{docs/verification-report.md} y en la \cref{sec:pruebas-recursos-declarados}.
+
+\begin{longtable}{@{}L{3.0cm} L{7.0cm} L{3.0cm}@{}}
+  \caption{Invariantes del registro de recursos y estado de su comprobación.}
+  \label{tab:matriz-recursos-declarados} \\
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad o escenario} & \textbf{Evidencia del corte} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad o escenario} & \textbf{Evidencia del corte} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  Valores del dominio & Modalidad y tiempos explícitos; identidades separadas; límites técnicos y bytes canónicos del recurso y acto. & 14 pruebas aprobadas. \\
+  \addlinespace
+  Servicio por puertos & Permisos, principal completo, fuentes exactas, digest revisado, recibo y repetición de operación. & 13 pruebas aprobadas. \\
+  \addlinespace
+  Transporte HTTP & Correspondencia de ruta, intención e identidad; cuerpos estrictos; errores y capturas proyectadas. & 9 pruebas aprobadas con puertos controlados. \\
+  \addlinespace
+  Cliente & Comandos, valores y recibos se validan antes de integrarse en el estado de la interfaz. & 4 pruebas de valores y 5 de API aprobadas. \\
+  \addlinespace
+  Almacenamiento & Registro y revisiones de actos; historia exacta, repetición y permisos vigentes. & 3 pruebas PostgreSQL aprobadas. \\
+  \addlinespace
+  Atomicidad y revocación & Fallo de auditoría sin escritura parcial, identidad de acto no duplicada y revocación durante admisión. & 3 pruebas PostgreSQL aprobadas. \\
+  \addlinespace
+  Inventario & Lectura de recibos sin nuevas escrituras y rechazo de sustitución de una proyección capturada. & 1 prueba PostgreSQL aprobada. \\
+  \addlinespace
+  Recuperación y catálogo & Restaurar autoría e historia y continuar; rechazar alteraciones de catálogo y de raíz inicial de acto posteriores a abrir el adaptador. & 1 prueba de restauración, 2 de catálogo y 2 de raíces aprobadas. \\
+  \addlinespace
+  Flujo Qadra & Resolución R1 con cabeza R2, acto oral, archivo/reactivación, historia y conciliación sin reenvío. & 5 recorridos aprobados; HTTP controlado. \\
+  \addlinespace
+  Acceso y conflicto Qadra & Cuatro roles, revocación que limpia datos, cierre con lectura y aceptación explícita de base nueva. & 7 casos aprobados; HTTP controlado. \\
+  \addlinespace
+  Integración final & API y navegador con servidor real, restauración integrada, cierre de CI e integración del incremento. & Pendiente; no inferida de las focales. \\
+  \addlinespace
+  Flujo procesal completo & Asociación específica con audiencias, términos calculados y alertas; impulso con corpus jurídico calificado. & Pendiente de implementación y validación. \\
+\end{longtable}
+
+Las pruebas se localizan en los objetivos de recursos de \rutarepo{crates/domain/tests}, \rutarepo{crates/application/tests}, \rutarepo{crates/infrastructure/tests} y \rutarepo{crates/web/tests}. Los recorridos controlados de Qadra están en \rutarepo{web/tests/browser/procedural-resources-access.spec.mjs} y en los archivos de flujo de la misma familia. Los contratos versionados son \rutarepo{docs/procedural-resources-api.md} y \rutarepo{docs/adr/0040-resources-linked-to-historical-resolutions.md}.
+
+Archivar un recurso no acredita desistimiento; registrar una interposición no certifica recepción judicial. Las fuentes históricas conservadas no determinan elegibilidad ni suspenden términos. La matriz no cambia los objetivos académicos ni declara concluido el alcance de \rutarepo{docs/procedural-resources-scope.md}.
