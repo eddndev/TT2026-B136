@@ -5,6 +5,11 @@ use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest, identit
 /// all, assigned Litigator manages, assigned Paralegal reads, Client is denied.
 /// Commit read audit before returning protected rows. Current target heads and
 /// exact historical captures must come from the same authorized transaction.
+/// For list/get, `at` is the request's earliest observation bound, not the read
+/// timestamp. Capture Clock after acquiring the transaction lock and reject a
+/// timestamp before `at`. Use that single UTC instant for every returned view,
+/// deadline current projection and read audit. Application checks it against
+/// Clock after the store returns, including one common instant across the page.
 pub trait ResourceActivityStore: Send + Sync {
     fn list(
         &self,

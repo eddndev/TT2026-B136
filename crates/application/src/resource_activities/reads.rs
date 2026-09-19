@@ -18,6 +18,8 @@ impl ResourceActivityWorkflow for ResourceActivityService {
         let actor = self.actor(token, false)?;
         let at = self.clock.now();
         let page = self.store.list(actor.id, case, resource, query, at)?;
+        let returned_at = self.clock.now();
+        read_window(at, returned_at)?;
         page_shape(
             page.associations.len(),
             query.limit(),
@@ -26,17 +28,19 @@ impl ResourceActivityWorkflow for ResourceActivityService {
             page.associations.last().map(|v| v.association.id),
         )?;
         let mut prior = query.after_id();
+        let checked_at = page.associations.first().map(|view| view.checked_at);
         for view in &page.associations {
-            self.view(view, case, resource, at)?;
+            self.view(view, case, resource, at, returned_at)?;
             let row = &view.association;
-            if prior.is_some_and(|id| id.as_uuid() >= row.id.as_uuid())
+            if Some(view.checked_at) != checked_at
+                || prior.is_some_and(|id| id.as_uuid() >= row.id.as_uuid())
                 || query
                     .kind()
                     .is_some_and(|kind| kind != row.selection.target.kind())
                 || query.status().is_some_and(|status| status != row.status)
             {
                 return Err(inconsistent(
-                    "association list order, scope or filter differs",
+                    "association list observation, order, scope or filter differs",
                 ));
             }
             prior = Some(row.id);
@@ -55,7 +59,9 @@ impl ResourceActivityWorkflow for ResourceActivityService {
         let actor = self.actor(token, false)?;
         let at = self.clock.now();
         let view = self.store.get(actor.id, case, resource, id, revision, at)?;
-        self.view(&view, case, resource, at)?;
+        let returned_at = self.clock.now();
+        read_window(at, returned_at)?;
+        self.view(&view, case, resource, at, returned_at)?;
         if view.association.id != id || revision.is_some_and(|r| r != view.association.revision) {
             return Err(inconsistent(
                 "association detail identity or exact revision differs",
@@ -141,14 +147,17 @@ impl ResourceActivityService {
         view: &ResourceActivityView,
         case: CaseId,
         resource: ResourceId,
-        at: OffsetDateTime,
+        started_at: OffsetDateTime,
+        returned_at: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
         let row = &view.association;
         resource_activity_receipt_matches(self.hasher.as_ref(), row)?;
-        super::validation::valid_time(view.checked_at)?;
+        let at = view.checked_at;
+        super::validation::valid_time(at)?;
         if row.case_id != case
             || row.resource_id != resource
-            || view.checked_at != at
+            || at < started_at
+            || at > returned_at
             || row.recorded_at > at
         {
             return Err(inconsistent(
@@ -211,6 +220,17 @@ impl ResourceActivityService {
         }
         Ok(())
     }
+}
+fn read_window(
+    started_at: OffsetDateTime,
+    returned_at: OffsetDateTime,
+) -> Result<(), ApplicationError> {
+    super::validation::valid_time(started_at)?;
+    super::validation::valid_time(returned_at)?;
+    if returned_at < started_at {
+        return Err(inconsistent("association read clock regressed"));
+    }
+    Ok(())
 }
 fn page_shape<T: PartialEq>(
     length: usize,
