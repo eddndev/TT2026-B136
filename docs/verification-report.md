@@ -12,8 +12,8 @@ separan esas capturas del estado actual observado; desvincular no modifica las
 actividades ni duplica sus alertas. PostgreSQL, HTTP y Qadra están conectados
 localmente. El [contrato](resource-activities-api.md) delimita el incremento;
 no incluye creación contextual de audiencias, activación automática ni corpus
-jurídico nuevo. La aceptación API/restauración integrada aprobó. Navegador con
-servicios reales, CI e integración permanecen pendientes en este corte.
+jurídico nuevo. La aceptación API/restauración integrada y los tres recorridos con navegador
+real aprobaron. CI e integración permanecen pendientes en este corte.
 
 Resultados focales ejecutados en serie, sin sumarlos como una regresión global:
 
@@ -73,9 +73,29 @@ al anterior al respaldo. Las capturas históricas y los demás datos comparados 
 conservaron. El inventario confirmó tres raíces y cuatro revisiones de asociación
 idénticas después de restaurar, junto con las demás tablas del recorrido.
 
-Este resultado acredita la API integrada y su restauración. El navegador con
-servicios reales y CI siguen pendientes para el incremento; las pruebas de Qadra
-descritas arriba usan HTTP controlado. No se ha ejecutado otra suite global local.
+Este resultado acredita la API integrada y su restauración. No se ha ejecutado
+otra suite global local.
+
+### Navegador real y correcciones de cierre
+
+La primera campaña real duró 345.356 s: aprobó los recorridos Owner a 1440 y
+Litigator a 390 píxeles, y falló en el guion de Client porque utilizaba el
+buscador exclusivo del personal. Ese comando completo no se declara aprobado.
+La corrección usa la lista básica autorizada de Client y limita el control de
+solicitudes a las rutas API, sin confundir módulos JavaScript con acceso a datos.
+La repetición del único recorrido pendiente aprobó en 274.304 s, incluidos
+preparativos; Playwright tardó 18.0 s. Ambas ejecuciones conservaron 2426 fuentes
+sin cambios. Son tres escenarios distintos aprobados: vínculo/desvínculo e
+historia en escritorio/móvil, y permisos/revocación con Paralegal y Client.
+Las comprobaciones conservan las actividades y sus alertas sin duplicarlas.
+
+Un caso controlado ampliado reprodujo fecha sin formato y autor técnico vacío
+en la actividad de plazo: falló en 25.044 s y aprobó en 8.445 s al reutilizar los
+formatos existentes. Es una ampliación del caso ya contabilizado, no un caso
+adicional. CI detectó carga duplicada de fixtures Rust; la corrección reutiliza
+el módulo compartido y aprobó Clippy focal de los tres objetivos de aplicación
+en 13.996 s. El CI inicial fue cancelado después de ese fallo, no aprobado.
+El cierre global remoto y la inspección del PDF actualizado siguen pendientes.
 
 ## Recursos procesales: checkpoint local del 19 de septiembre de 2026
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers.mjs';
-import { openCase } from './procedural-resources-helpers.mjs';
+import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
   panel,
@@ -75,6 +75,7 @@ for (const [name, width, role] of [
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
+      await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({
         path: testInfo.outputPath(`resource-activity-real-${name}-linked.png`),
         fullPage: true,
@@ -92,6 +93,7 @@ for (const [name, width, role] of [
       const historical = await exactAssociation(page, scenario, linked.id, 1);
       expect(historical.association).toEqual(linked);
       expect(historical.current_target.record).toEqual(scenario.hearing);
+      await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({
         path: testInfo.outputPath(`resource-activity-real-${name}-history.png`),
         fullPage: true,
@@ -150,9 +152,17 @@ test('real association access preserves read-only history and clears revoked mem
     client.on('request', (request) => calls.push(new URL(request.url()).pathname));
     await client.goto('/');
     await loginAs(client, accounts.client, 0);
-    await openCase(client, scenario.case);
+    await navigate(client, 'Expedientes');
+    await client.getByRole('button', { name: new RegExp(scenario.case.title) }).click();
+    await expect(
+      client.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+    ).toBeVisible();
     await expect(client.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
-    expect(calls.filter((path) => path.includes('/procedural-resources'))).toEqual([]);
+    expect(
+      calls.filter(
+        (path) => path.startsWith('/api/v1/cases/') && path.includes('/procedural-resources'),
+      ),
+    ).toEqual([]);
     await accountAction(accounts.client, 1, async (call) => {
       const denied = await call(
         'GET',

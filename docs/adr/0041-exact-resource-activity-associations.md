@@ -4,8 +4,8 @@
 
 Accepted and implemented locally. Focused domain, application, PostgreSQL, HTTP
 and controlled-browser checks passed. Integrated API/restore acceptance also
-passed. A real browser campaign, CI and integration remain pending for this
-increment. Evidence is recorded in `docs/verification-report.md`.
+passed. Three distinct real-browser scenarios passed; CI and integration remain
+pending for this increment. Evidence is recorded in `docs/verification-report.md`.
 
 ## Context
 

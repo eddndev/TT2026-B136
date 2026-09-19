@@ -90,8 +90,8 @@ otro vínculo desde un Owner autorizado después de restaurar. La aceptación HT
 completa posterior también aprobó: `scripts/api-resource-activities-demo.py`
 comparó 26 respuestas restauradas, con los instantes de lectura validados aparte;
 `scripts/api-migration-demo.sh` conservó idénticas las tres raíces y cuatro
-revisiones de asociación del ensayo. El navegador real y CI del incremento
-permanecen pendientes en el [corte de verificación](verification-report.md).
+revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos. CI del incremento
+permanece pendiente en el [corte de verificación](verification-report.md).
 
 ## Preparar un despliegue nuevo
 
