@@ -16,6 +16,16 @@ use std::sync::Arc;
 use time::Duration;
 
 #[test]
+fn idle_empty_inventory_does_not_mutate_progress_or_append_audit_events() {
+    let Some(mut db) = fixture() else { return };
+    let store = store(&db, Arc::new(MutableClock::new(db.at)));
+    let before = atomicity::snapshot(&mut db);
+    assert_eq!(store.run_next().unwrap(), AlertSchedulerRun::Idle);
+    assert_eq!(store.run_next().unwrap(), AlertSchedulerRun::Idle);
+    assert_eq!(atomicity::snapshot(&mut db), before);
+}
+
+#[test]
 fn scanner_audit_failure_rolls_back_plan_and_cursor_then_retry_succeeds() {
     let Some(mut db) = fixture() else { return };
     let at = db.at.replace_nanosecond(0).unwrap() + Duration::hours(24);

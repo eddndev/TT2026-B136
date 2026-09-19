@@ -62,6 +62,9 @@ pub(super) fn next(
             )
             .map_err(port)?;
         let Some(row) = row else {
+            if kind == 0 && id.is_none() {
+                return Ok(None);
+            }
             let next = now
                 .checked_add(Duration::seconds(1))
                 .ok_or_else(|| stored("alert scan clock overflow"))?;
