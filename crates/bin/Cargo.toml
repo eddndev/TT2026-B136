@@ -29,7 +29,7 @@ zeroize.workspace = true
 # form, which needs the parsing feature on top of the workspace-wide
 # formatting selection.
 time = { workspace = true, features = ["parsing"] }
-tokio = { workspace = true, features = ["net"] }
+tokio = { workspace = true, features = ["net", "signal", "sync", "time"] }
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -31,6 +31,9 @@ export async function fill(page, kind, title) {
     .getByRole('button', { name: 'Consultar perfil revisi\u00f3n 1 (publicado)', exact: true })
     .click();
   await form.getByRole('button', { name: 'Usar este perfil exacto', exact: true }).click();
+  await form
+    .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
+    .selectOption('follow');
   await form.getByRole('button', { name: 'Elegir responsable', exact: true }).click();
   await form
     .getByRole('button', { name: `Elegir responsable ${accounts.litigator.email}`, exact: true })
@@ -48,6 +51,9 @@ export async function fill(page, kind, title) {
   await form
     .getByRole('button', { name: 'Vincular esta revisi\u00f3n de resoluci\u00f3n', exact: true })
     .click();
+  await form
+    .getByRole('combobox', { name: 'Cuando cambie la fuente', exact: true })
+    .selectOption('fixed');
   if (kind === 'daily') {
     await form.getByRole('button', { name: 'Elegir calendario exacto', exact: true }).click();
     await form
@@ -63,6 +69,9 @@ export async function fill(page, kind, title) {
       })
       .click();
     await form.getByRole('button', { name: 'Usar este calendario exacto', exact: true }).click();
+    await form
+      .getByRole('combobox', { name: 'Cuando cambie el calendario', exact: true })
+      .selectOption('fixed');
   }
   if (kind === 'hourly') {
     await form

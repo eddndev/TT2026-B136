@@ -48,7 +48,7 @@ fn port(error: Error) -> ApplicationError {
             ProceduralFactError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("procedural fact database: {error}"))
+    crate::postgres_port::error("procedural fact database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     ProceduralFactError::StoredInconsistent(error.to_string()).into()

@@ -5,7 +5,8 @@ import {
   deadlineDefinition,
   deadlineAttention,
 } from '../src/lib/deadline-values.mjs';
-import { definition, prepared, id, known } from './fixtures/deadline-unit.mjs';
+import { definition, id, known } from './fixtures/deadline-unit.mjs';
+import { v2Prepared as prepared } from './fixtures/deadline-v2-unit.mjs';
 
 test('deadline definitions preserve absent quantities, unknown conditions and nil agreements', () => {
   const d = definition();

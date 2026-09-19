@@ -15,12 +15,14 @@
 
 <section class="deadline-calculation" aria-label="Resultado del plazo">
   <div class="section-heading">
-    <h3>{result.due_at ? 'Vencimiento calculado' : 'Sin vencimiento fijado'}</h3>
+    <h3>C&#225;lculo conservado en esta revisi&#243;n</h3>
     <span class="badge" class:warning={result.blocks.length > 0} class:info={!!result.due_at}>
-      {result.blocks.length ? 'Requiere datos o revisi\u00f3n' : 'Evaluado'}
+      {result.blocks.length ? 'C\u00e1lculo bloqueado' : 'Evaluado'}
     </span>
   </div>
-  {#if result.due_at}<p class="deadline-due">{deadlineInstantLabel(result.due_at)}</p>{/if}
+  {#if result.due_at}<p>Vencimiento calculado</p>
+    <p class="deadline-due">{deadlineInstantLabel(result.due_at)}</p>
+  {:else}<p>Sin vencimiento calculado.</p>{/if}
   <p>
     <strong>{calculation.profile.title}</strong> / Perfil revisi&#243;n {calculation.profile
       .revision}

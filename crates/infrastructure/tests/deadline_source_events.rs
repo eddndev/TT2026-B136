@@ -85,20 +85,43 @@ fn duplicate_source_revision_events_are_rejected_without_modifying_the_original(
 
 #[test]
 fn stored_events_are_immutable_even_for_an_administrative_connection() {
+    use postgres::error::SqlState;
+
     let Some(mut db) = Fixture::new() else { return };
     record(&mut db, "resolution");
     let before = snapshot(&mut db);
-    for sql in [
-        "UPDATE deadline_source_events SET operation_id=operation_id",
-        "DELETE FROM deadline_source_events",
-        "TRUNCATE deadline_source_events",
+    for (sql, expected) in [
+        (
+            "UPDATE deadline_source_events SET operation_id=operation_id",
+            SqlState::CHECK_VIOLATION,
+        ),
+        (
+            "DELETE FROM deadline_source_events",
+            SqlState::CHECK_VIOLATION,
+        ),
+        (
+            "TRUNCATE deadline_source_events",
+            SqlState::FEATURE_NOT_SUPPORTED,
+        ),
+        (
+            "TRUNCATE deadline_source_events CASCADE",
+            SqlState::CHECK_VIOLATION,
+        ),
+        (
+            "TRUNCATE deadline_source_events, case_deadline_revisions CASCADE",
+            SqlState::CHECK_VIOLATION,
+        ),
     ] {
         let error = db.admin.batch_execute(sql).unwrap_err();
-        assert_eq!(
-            error.code(),
-            Some(&postgres::error::SqlState::CHECK_VIOLATION)
-        );
-        assert_eq!(snapshot(&mut db), before);
+        assert_eq!(error.code(), Some(&expected), "{sql}: {error:?}");
+        if expected == SqlState::CHECK_VIOLATION {
+            assert_eq!(
+                error.as_db_error().unwrap().message(),
+                "deadline source events are immutable",
+                "{sql}"
+            );
+        }
+        assert_eq!(snapshot(&mut db), before, "{sql}");
     }
 }
 

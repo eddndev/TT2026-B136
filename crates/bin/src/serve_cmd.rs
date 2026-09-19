@@ -33,12 +33,17 @@ use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 use zeroize::Zeroizing;
 
 use crate::cli::ServeArgs;
+use crate::serve_deadline_runtime::DeadlineRuntimeConfig;
 use crate::vault_cmd::load_kek;
 
 const KEK_VAR: &str = "KEK_BASE64";
 
 /// Builds all local adapters and blocks while the HTTP server is running.
 pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
+    let deadline_config = DeadlineRuntimeConfig::new(
+        application::deadline_dispatch::DeadlineDispatchLimit::new(args.deadline_page_limit)?,
+        std::time::Duration::from_millis(u64::from(args.deadline_poll_ms.get())),
+    )?;
     let format_validator = infrastructure::document_formats::IsolatedDocumentFormatValidator::new(
         std::env::current_exe().context("cannot locate document validation worker")?,
         fs::canonicalize(&args.qpdf_library).context("cannot locate native qpdf library")?,
@@ -234,6 +239,18 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     );
     let deadline_hasher = Arc::new(RingSha256Hasher::new());
     let deadline_clock = Arc::new(SystemClock::new());
+    let dispatch = infrastructure::PostgresDeadlineDispatchStore::open(
+        &database_url,
+        deadline_hasher.clone(),
+        deadline_clock.clone(),
+    )
+    .context("cannot open PostgreSQL deadline dispatcher")?;
+    let worker = infrastructure::PostgresDeadlineWorkerStore::open(
+        &database_url,
+        deadline_hasher.clone(),
+        deadline_clock.clone(),
+    )
+    .context("cannot open PostgreSQL deadline worker")?;
     let deadlines = DeadlineService::new(
         Arc::new(
             infrastructure::PostgresDeadlineStore::open(
@@ -274,23 +291,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         },
     );
 
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .context("cannot initialize async runtime")?;
-    runtime.block_on(async {
-        let listener = tokio::net::TcpListener::bind(&args.bind)
-            .await
-            .with_context(|| format!("cannot bind http server to {}", args.bind))?;
-        let local_address = listener
-            .local_addr()
-            .context("cannot read local http address")?;
-        println!("listening on http://{local_address}");
-        tracing::info!(bind = %local_address, "local http application started");
-        axum::serve(listener, router)
-            .await
-            .context("http server stopped unexpectedly")
-    })
+    crate::serve_start::run(&args.bind, router, dispatch, worker, deadline_config)
 }
 
 fn read(path: &std::path::Path, label: &str) -> anyhow::Result<Vec<u8>> {

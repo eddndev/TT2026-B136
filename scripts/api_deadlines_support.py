@@ -100,7 +100,9 @@ def resolution(route):
 
 def register(case_id, profile_row, source, responsible):
     return {'operation_id': str(uuid4()), 'deadline_id': str(uuid4()), 'change': {
-        'action': 'register', 'expected_revision': 0, 'definition': {
+        'action': 'register', 'expected_revision': 0,
+        'tracking': {'profile': 'follow', 'source': 'follow', 'calendar': 'undetermined'},
+        'definition': {
             'title': 'Declared deadline', 'profile': {'id': profile_row['id'], 'revision': profile_row['revision']},
             'responsible_id': responsible, 'input': {'selection': {'case_id': case_id,
                 'source': {'kind': 'known', 'value': {'family': 'resolution', 'id': source['id'], 'revision': source['revision']}},
@@ -115,7 +117,8 @@ def register(case_id, profile_row, source, responsible):
 def correct(row):
     return {'operation_id': str(uuid4()), 'deadline_id': row['id'], 'change': {
         'action': 'correct', 'expected_revision': row['revision'],
-        'definition': copy.deepcopy(row['definition']), 'reason': 'Correct declared tracking'}}
+        'definition': copy.deepcopy(row['definition']), 'reason': 'Correct declared tracking',
+        'tracking': copy.deepcopy(row['tracking']['policies'])}}
 
 
 def prepare(route, command, **kwargs):
@@ -133,3 +136,24 @@ def submit(route, draft, **kwargs):
     kwargs.setdefault('expected', 201)
     return request('PUT' if action == 'correct' else 'POST', path,
         {'command': command, 'expected_submission_digest': draft['submission_digest']}, **kwargs)
+
+
+def stable_read(value):
+    """Preserve returned evidence and freshness while normalizing a new read instant."""
+    if isinstance(value, list):
+        return [stable_read(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    out = {key: stable_read(item) for key, item in value.items()}
+    if 'operational' in out:
+        operational = out['operational']
+        checked = operational['checked_at']
+        if operational['freshness'] == 'not_checked':
+            assert checked is None
+        else:
+            assert isinstance(checked, dict)
+            assert set(checked) == {'unix_seconds', 'nanosecond', 'offset_seconds'}
+            assert isinstance(checked['unix_seconds'], int) and checked['unix_seconds'] > 0
+            assert 0 <= checked['nanosecond'] < 1_000_000_000
+            operational['checked_at'] = 'validated read instant'
+    return out

@@ -4,6 +4,567 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Seguimiento humano V2 y composicion local: 19 de septiembre de 2026
+
+El servicio humano prepara y confirma seguimiento V2 con politicas explicitas,
+autor autenticado completo y continuidad administrativa verificada. Detalle y
+listado comparan cabezas comprobadas dentro de la transaccion autorizada y
+auditada; el resultado operativo no se deduce de la cola. Qadra separa ese
+resultado del calculo conservado y muestra la historia humana y tecnica.
+`serve` compone un consumidor serial con pausa, presupuesto por ciclo y cierre
+supervisado de HTTP y operaciones bloqueantes.
+
+### Verificacion focal terminada
+
+Las siguientes ejecuciones son grupos separados de esta ampliacion. No se suman
+como una suite global ni sustituyen las campanas completas de la entrega anterior.
+Cada suite se ejecuta de forma exclusiva: Cargo con un proceso de compilacion y
+un hilo de pruebas, Node con concurrencia 1 y Playwright con un worker. Los
+colaboradores no ejecutan compilaciones ni suites paralelas.
+
+| Grupo | Resultado confirmado |
+| --- | --- |
+| Aplicacion: vigencia, enlace de resumen, consultas y servicio actual | 50 pruebas; siete targets. |
+| HTTP Rust: proyecciones, contexto, solicitudes y limites V1/V2 | 160 pruebas focales. |
+| PostgreSQL: detalle, guardas, listado y regresion de registros | 17 pruebas en bases desechables. |
+| Lectura actual y escritor concurrente | Una prueba PostgreSQL: espera observada en el bloqueo de auditoria, historia y orden de eventos conservados. |
+| Dispatcher: reconexion, atomicidad y presupuestos | 11 pruebas PostgreSQL; incluye cuatro de reconexion con inventario y recuperacion. |
+| Cliente y presentacion de plazos | 88 pruebas Node. |
+| Navegador de plazos con HTTP controlado | 36 escenarios, incluidos ocho nuevos de V2; escritorio 1440 y movil 390. |
+| Navegador completo con servicios reales | 25 escenarios, incluidos dos nuevos de reevaluacion Follow en escritorio y movil. |
+| Binario compuesto y opciones de serve | 31 pruebas unitarias y cuatro de ayuda/configuracion. |
+| Clippy de aplicacion, infraestructura y web | Todos sus targets, warnings denegados; comprobacion anterior a la composicion de serve. |
+| Clippy del binario compuesto | Todos sus targets, warnings denegados. |
+
+Las 26 pruebas del ciclo y supervisor estan incluidas en las 31 unitarias del
+binario: 13 del ciclo serial, cuatro de parada y nueve de supervision. Otras
+dos pruebas ejercitan la composicion real y observan que los propietarios
+finales del router y adaptadores se liberan fuera de Tokio, tanto al fallar
+el bind como al detenerse el consumidor. Antes de
+implementar el ciclo fallaron 12 de sus 13 escenarios y la nueva prueba de
+opciones; antes de implementar parada y supervision fallaron sus 13 escenarios.
+La repeticion confirmo limites, alternancia, pausa, errores recuperables,
+parada entre llamadas, conservacion del join y drenaje de ambos lados. Los
+canales y barreras observan operaciones en curso; las esperas de vigilancia
+no constituyen la evidencia de exclusion.
+
+La primera pasada de los ocho escenarios nuevos de navegador detecto una
+asercion que contaba consultas de revisiones del perfil como si fueran del plazo.
+Se restringio a las rutas de plazos, conservando la exigencia de una sola
+conciliacion y ningun reenvio automatico. La repeticion y la regresion de 36
+escenarios aprobaron. Las capturas inspeccionadas conservan el diseno Qadra y
+la lectura movil sin desbordamiento horizontal.
+
+### Aceptacion integrada ejecutada y cierre pendiente
+
+La primera pasada del navegador real se interrumpio tras un escenario aprobado,
+uno fallido, uno interrumpido y 22 sin ejecutar. La recarga posterior al cierre de
+sesion no podia importar la interfaz. Una regresion reducida sin PostgreSQL ni
+Redis reprodujo 52 solicitudes de scripts con `ERR_INSUFFICIENT_RESOURCES`.
+`/tmp` era un tmpfs con presion de espacio y la swap estaba practicamente llena.
+Se probaron importaciones diferidas, pero no eliminaron el fallo y se retiraron.
+La misma interfaz original completo las tres recargas del caso en 7.588 s al
+ubicar `TMPDIR` en disco. Esta comparacion identifica una condicion del entorno
+local; no establece la causa de un OOM anterior del equipo. Las campanas
+posteriores usan temporales privados en disco y mantienen la ejecucion serial.
+La regresion se conserva en `web/tests/browser/app-loading.spec.mjs`.
+
+La repeticion completa con temporales en disco termino con salida 0 en
+437.344 s: **25 escenarios aprobados**, incluidos los dos nuevos de seguimiento
+Follow en escritorio 1440 y movil 390. Playwright informo 4.4 minutos para los
+recorridos, ademas de preparar servicios y datos. Se inspeccionaron seis capturas
+de calendario actualizado, revision pendiente y confirmacion humana; conservan
+el diseno Qadra y no presentan recortes ni desbordamiento horizontal. Las 2074
+fuentes comprobadas conservaron sus huellas durante la ejecucion. La campana
+uso Node 22.22.2, PostgreSQL 18.6, Redis desechable y un unico worker.
+
+Los datos de ambos recorridos se crearon mediante HTTP en expedientes distintos.
+Cada uno contrasta la revision tecnica por calendario, la fuente cambiada con
+calculo conservado y fecha operativa nula, y la aceptacion explicita de Litigator
+desde Qadra. Consulta R1 a R4 exactas, autor y causa, historial y auditoria.
+Los perfiles son sinteticos; la aprobacion no califica una regla juridica.
+
+Los calendarios sinteticos de los dos escenarios nuevos llevan titulos distintos
+del calendario de la regresion previa, para evitar selectores ambiguos. El nuevo
+guion de datos tambien figura en los filtros de cambios del workflow Web.
+
+La primera campana HTTP con servicios reales completo el cambio de calendario,
+la revision pendiente por cambio de fuente, la correccion humana, la historia
+exacta y un cierre SIGTERM con salida 0. Tras reiniciar, el consumidor proceso
+un nuevo evento testigo. El guion fallo despues al solicitar 100 revisiones de
+historia, fuera del maximo 20 del contrato; la API rechazo correctamente con
+`invalid_query`. Se corrigio solo esa peticion en los guiones API y navegador.
+La repeticion completo ambos reinicios con salida 0 (SIGTERM y SIGINT),
+retomo el procesamiento sin duplicar revisiones y conservo R1 a R5. Durante
+la restauracion detecto otra precondicion antigua del guion: la coleccion de
+calendarios esperada se habia capturado antes de publicar el calendario del
+nuevo escenario. Se anadio una captura de las colecciones mutables justo antes
+del respaldo; se conservan las expectativas originales de revisiones y dias
+exactos. La tercera ejecucion completo el guion con salida 0 en 215.613 s,
+incluidos ambos reinicios, el evento testigo sin duplicados y el cotejo de R1
+a R5 despues de `pg_restore`. La huella de sus 2073 archivos de fuente no cambio
+durante la ejecucion. Tambien conservo las 14 respuestas historicas del flujo
+previo de plazos y las comparaciones de los demas modulos.
+
+Esta tercera pasada emitio una advertencia en otra comprobacion del guion: un
+token de prueba que empezaba por guion se interpreto como opcion de `rg` al
+buscarlo entre claves Redis. Se corrigio a `rg -F --` y una comprobacion focal
+confirmo la coincidencia literal y el rechazo de una clave distinta. El recorrido
+de reevaluacion y restauracion termino. La repeticion final del guion completo
+con esa correccion aprobo en 215.301 s: incluyo la asercion de sesiones, los
+reinicios y la restauracion. Sus 2074 fuentes conservaron las huellas.
+
+### Ajuste focal detectado en CI
+
+Clippy 1.98.1 rechazo la implementacion manual de un despertador sin efecto en
+el auxiliar de pruebas del supervisor (`manual_noop_waker`). Se sustituyo por
+`Waker::noop()`, conservando la conduccion manual del futuro y sus aserciones.
+Las nueve pruebas del supervisor aprobaron de nuevo en 4.918 s, sin repetir
+la suite global local. Clippy 1.98.1 del binario y todos sus targets aprobo
+en 28.386 s con warnings denegados. Esta correccion no cambia el consumidor
+de produccion.
+
+### Checkpoint funcional y regresion de cierre
+
+La comprobacion final del cliente completo aprobo 284 pruebas Node en 9.390 s,
+formato en 6.969 s y build en 3.898 s, sin cambios de las fuentes durante las
+comprobaciones. Son ejecuciones posteriores al grupo focal de 88 pruebas;
+no se suman ambos conteos.
+
+Se detuvo deliberadamente la regresion amplia de navegador con salida 130
+tras 175.837 s, antes de completar todos los escenarios. Esa ejecucion no
+acredita una suite aprobada. La serie se detuvo ahi: no ejecuto los controles
+Rust, MSRV, CLI y API que estaban encadenados despues. No quedaron suites
+locales activas. La evidencia focal y los 25 recorridos reales anteriores
+sostienen el checkpoint funcional; la regresion de cierre se realiza sobre
+la revision publicada antes de integrar, aprovechando los controles de CI.
+
+CI cubre Rust con backends reales, formato, Clippy, MSRV, cobertura, politicas
+de dependencias, build release y las suites web completas. No ejecuta los
+guiones CLI ni API; la aceptacion API final con la asercion corregida se
+ejecuto localmente y no se deduce del navegador real.
+
+El guion CLI completo tambien aprobo en 6.355 s, incluido el ciclo de evidencia,
+rechazo de alteraciones, revocacion y autenticacion. No se repitio la campana
+global local. La guia de Qadra se actualizo para explicar las politicas y la
+revision humana, eliminando la afirmacion anterior de que no habia seguimiento.
+
+Las fuentes academicas afectadas estan actualizadas. El PDF de CI con el arbol
+`f743c5e` tiene 315 paginas; su revision visual dirigida termino despues de
+corregir un desborde en el anexo. La procedencia, huella y 22 paginas comprobadas
+se documentan en [la revision academica](academic-report-verification.md).
+
+La [regresion Web remota de f467624](https://github.com/eddndev/TT2026-B136/actions/runs/35430535047)
+aprobo formato, build, 284 pruebas Node, 292 escenarios con HTTP controlado y
+25 con servicios reales. Verifico el merge de revision `3f3b06d`; las dos
+correcciones posteriores hasta `f743c5e` solo cambiaron el anexo LaTeX. Node
+informo 2277.685713 ms; las campanas de navegador, 4.6 y 2.6 minutos. El navegador
+controlado uso dos workers remotos y el real uno; localmente se conserva un
+solo runner. Estos resultados no se suman a sus focales locales.
+
+El [workflow Rust de ese corte](https://github.com/eddndev/TT2026-B136/actions/runs/35430535048)
+aprobo formato, Clippy, MSRV 1.88, dependencias y build release de 16894024 bytes.
+Test y Coverage seguian en curso al registrar este corte: no se atribuye aun
+un nuevo conteo global Rust ni una nueva cobertura. La integracion requiere
+los controles de cierre aprobados en la revision que finalmente se publique.
+
+Estos resultados locales no acreditan por si mismos una campana global
+Rust/MSRV, cobertura nueva ni integracion en main. CI comprueba esos controles
+sobre la revision publicada. Los resultados siguientes conservan
+sus revisiones y alcance historicos.
+
+## Consumidor durable de plazos: 18 de septiembre de 2026
+
+El [consumidor](deadline-worker.md) confirma una revisión técnica, un resultado
+sin cambios o un intento fallido verificable por cada trabajo elegible. La
+revisión, el resultado y su auditoría comparten transacción; un fallo revierte
+esa transacción antes de registrar el intento. Las migraciones `0020_` conservan
+ambos historiales, la procedencia del trabajo y sus restricciones de escritura.
+Al cierre de esa campaña el servidor todavía no componía el despachador y el
+consumidor; el servicio humano, HTTP y Qadra mantenían V1. Las verificaciones de este incremento no
+acreditan ese recorrido operativo V2, agenda conjunta ni alertas.
+
+### Regresiones reproducidas y correcciones
+
+El primer ensayo de restauración detectó que PostgreSQL reconstruía con otra
+agrupación algunas expresiones `BETWEEN` combinadas con `AND`. Se sustituyeron
+por comparaciones explícitas equivalentes en las nuevas tablas y se conservaron
+las comprobaciones exactas del catálogo. La repetición aprobó cinco casos:
+tres de catálogo/permisos y dos de recuperación, incluido un `pg_dump` y
+`pg_restore` real sin migración reparadora. El ensayo compara las once
+expresiones `CHECK` antes y después de restaurar, además de datos y recibos.
+
+Tres regresiones focales comprobaron que un perfil corrupto se clasificaba como
+fallo transitorio y que se perdía la categoría nativa de dos errores SQL.
+Tras conservar categorías tipadas a través de los puertos, los tres casos
+aprobaron: evidencia inconsistente con espera de una hora, bloqueo `55P03` e
+interrupción `57014`. Los diagnósticos no se interpretan como códigos ni se
+exponen en HTTP. Esto no constituye una campaña de desconexiones físicas o TLS.
+
+La primera campaña global iniciada quedó interrumpida durante compilación y no
+se contabiliza como aprobada. Después de comprobar que sus procesos habían
+terminado, se cerró exclusivamente su PostgreSQL desechable identificado.
+La siguiente campaña, ya serializada, se detuvo en una preparación de prueba:
+las nuevas claves foráneas impedían eliminar la clave primaria del trabajo.
+La alteración deliberada del catálogo ahora elimina también sus dependencias;
+el validador de producción conserva sus comprobaciones estrictas.
+
+Una regresión dirigida confirmó también que el truncado aislado se rechaza por
+la clave foránea antes del guard de inmutabilidad. La prueba exige ese rechazo
+y comprueba además el SQLSTATE y mensaje exactos del guard para truncado en
+cascada y conjunto. Las dos suites corregidas aprobaron tres casos cada una,
+con conservación del estado después de los rechazos. No se relajaron las
+restricciones de producción.
+
+La siguiente campaña se detuvo en una expectativa antigua de timeout del
+despachador: el puerto de auditoría ya conservaba la categoría tipada de bloqueo
+pero la prueba esperaba un error genérico. La repetición dirigida aprobó los
+dos escenarios exigiendo `Busy` e `Interrupted`, respectivamente, con rollback
+y recuperación de la misma conexión. El rechazo de la segunda prueba en la
+campaña previa correspondió al mutex envenenado por la primera aserción.
+
+### Condiciones de ejecución
+
+Todas las verificaciones locales de cierre se coordinan de forma secuencial,
+con `CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y un bloqueo exclusivo del
+coordinador. No se superponen Cargo, otras suites, cobertura ni compilación
+documental. Se usa PostgreSQL 18.6 y Valkey 8.1.9, este último mediante los
+comandos y el protocolo Redis del entorno de pruebas. Sus instancias son
+desechables. qpdf corresponde a la versión 12.4.1 exigida por el repositorio;
+la compilación ordinaria usa Rust 1.94.0.
+
+La campaña completa terminó con **2630 pruebas Rust aprobadas,
+cero fallidas y una TSA externa ignorada**, en 459 resúmenes.
+Los manifiestos registran 1581 fuentes y conservan las huellas de cada
+ejecución. La lógica de producción no cambió entre los seis controles.
+La suite se ejecutó con `cargo test --workspace --no-fail-fast` dentro de
+`scripts/test-backends.sh`; recopilar todos los fallos no introduce paralelismo.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Salida 0; 3.025 s. |
+| Compilación del workspace | Salida 0; 0.347 s. |
+| Suite Rust con servicios aislados | Salida 0; 1482.506 s. |
+| Clippy 1.98.1, warnings denegados | Salida 0; 15.586 s. |
+| MSRV 1.88, todos los targets | Salida 0; 166.722 s. |
+| API y restauración V1 | Salida 0; 151.915 s. |
+
+El primer Clippy detectó un atributo `allow(dead_code)` duplicado al importar
+un helper en dos archivos de pruebas. Se eliminó solamente la anotación
+redundante; no cambiaron lógica ni aserciones. Los cuatro casos de esos dos
+targets se repitieron con servicios aislados y aprobaron antes de completar
+Clippy, MSRV y la demo. Esa repetición no se suma al total global. El manifiesto
+contrasta exactamente las dos eliminaciones con las fuentes de la suite completa.
+
+Los diez targets PostgreSQL del consumidor aprobaron **27 pruebas** dentro de
+esa suite, incluidas familias, historia, inventario, permisos, atomicidad,
+concurrencia, espera, clasificación y restauración. Las once pruebas focales
+iniciales, cinco de catálogo/recuperación y tres de clasificación conservan sus
+ejecuciones propias; no se suman otra vez al total global. También se ejecutaron
+las pruebas de categorías nativas SQL, su conservación en lectores y la
+respuesta HTTP opaca.
+
+La demo HTTP confirma compatibilidad y restauración del flujo V1 bajo el
+esquema ampliado. No compone ni acredita HTTP/Qadra V2 o ejecución del trabajador
+desde `serve`. No se midió cobertura, rendimiento ni navegador en esta campaña.
+La CI del incremento publicado debe comprobarse sobre su nueva cabeza.
+
+## Despacho persistente de plazos: 18 de septiembre de 2026
+
+El [despachador](deadline-dispatch.md) confirma trabajos únicos, cursores y
+auditoría en una transacción. Consume las cinco familias de eventos y conserva
+un recorrido recurrente del legado. Las migraciones `0019_` añaden restricciones,
+reservas de operación y comprobaciones de esquema, permisos e inventario.
+Al cierre de esta campaña estaban pendientes el consumidor y la confirmación
+de revisiones técnicas; servicio/HTTP y Qadra conservaban V1 y el despachador
+no se invocaba desde `serve`. El corte posterior del consumidor se registra arriba.
+
+La campaña global con PostgreSQL/Redis aislados y qpdf 12.4.1 terminó con
+**2584 pruebas Rust aprobadas, 0 fallidas y 1 ignorada**,
+en 446 resúmenes. La prueba ignorada corresponde al proveedor TSA
+externo. Las fuentes conservaron sus huellas durante los seis controles.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| fmt | Salida 0; 2.936 s. |
+| build | Salida 0; 0.360 s. |
+| workspace | Salida 0; 793.321 s. |
+| clippy | Salida 0; 1.816 s. |
+| msrv | Salida 0; 1.337 s. |
+| api | Salida 0; 168.757 s. |
+
+Las 26 pruebas propias del despachador están incluidas en esa suite, no se
+suman otra vez. Cubren paginación, UUID nulo y máximo, huecos de secuencia,
+eventos vacíos, selección de cabeza y ámbito, legado añadido bajo un cursor
+anterior y dos despachadores reales. Comprueban además colisiones de operación
+en ambos sentidos, fallo de auditoría después de escribir trabajos/cursor,
+respuesta perdida, migración repetida y pérdida del singleton sin reparación.
+
+Las comprobaciones directas rechazan cursores que saltan candidatos y cambios
+en tablas, restricciones, índices, triggers, funciones o permisos, incluidos
+PUBLIC y roles heredables o asumibles. Un trabajo histórico sigue siendo válido
+si una corrección posterior cambia la dependencia o retira el plazo.
+
+Las pruebas de timeout mantienen un bloqueo ajeno o una sentencia lenta activa
+y exigen que el adaptador salga sin cancelación externa. Verifican rollback y
+recuperación de la misma conexión. Los dos escenarios se serializan desde la
+preparación hasta la limpieza porque sus esquemas comparten el advisory lock
+de la base de datos. El watchdog sólo evita una prueba infinita;
+si actúa, el caso falla. La restauración usa un dump real con trabajos y ambos
+cursores parciales, conexión con `search_path` vacío y reapertura sin migrar.
+La continuación conserva filas, operaciones y auditoría anteriores y completa
+ambos recorridos sin duplicados.
+
+### Medición de páginas y límites
+
+Una campaña independiente creó 240 plazos y procesó tres eventos con límites
+1, 20 y 100, comprobando 720 trabajos. Antes del cambio, el helper reunía todos
+los candidatos antes de aplicar el filtro y límite exteriores. Ahora el
+intervalo, filtro de trabajos pendientes y límite se aplican dentro del helper:
+materializa hasta 101 filas por página y una por consulta de guard.
+
+| Límite | Mediana anterior por página (ms) | Mediana con límites internos (ms) |
+| --- | --- | --- |
+| 1 | 8.911 | 8.324 |
+| 20 | 116.289 | 118.248 |
+| 100 | 552.286 | 529.158 |
+
+Son observaciones de dos campañas locales, no una prueba estadística de mejora
+general ni una garantía de producción. El plan de la consulta exterior confirma
+la reducción de filas materializadas; no mide por sí solo todas las raíces
+examinadas dentro de PL/pgSQL. Las coincidencias dispersas aún pueden exigir
+recorrer muchas raíces. Los presupuestos de un segundo para bloqueos y cinco
+por sentencia no limitan el tiempo total de una página ni de la apertura.
+
+La demo HTTP posterior comprueba compatibilidad y restauración del flujo V1
+bajo el esquema ampliado; la prueba específica de dump/restore anterior cubre
+los trabajos y cursores. Ninguna acredita ejecución del consumidor ni Qadra V2.
+Los 18 controles remotos de `179115d` aprobaron y corresponden al almacenamiento
+humano anterior. La CI de este incremento debe comprobarse sobre su nuevo commit.
+
+## Persistencia humana V1/V2: 18 de septiembre de 2026
+
+El adaptador PostgreSQL incorpora capturas y observaciones V2 sin modificar
+los bytes históricos V1. Revalida las cuatro acciones humanas con el usuario
+real, conserva ambas huellas del predecesor y reconstruye material histórico
+exacto. Las migraciones `0018_` añaden seguimiento separado del cálculo,
+parsers estrictos y un guard compatible con selección histórica `Fixed`.
+La lectura no recalcula fechas ni completa padres que el legado no observó.
+
+La campaña completa ejecutó `scripts/test-backends.sh` con PostgreSQL de
+identidad, expedientes y documentos, Redis desechable y qpdf 12.4.1.
+Terminó con **2558 pruebas aprobadas, cero fallidas y una TSA externa
+ignorada**, en 436 resúmenes. Los casos comprobados en campañas focales
+se ejecutan también en esta suite; las repeticiones de aquellas campañas no se
+suman a este total.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Salida 0, 3.832 s. |
+| Compilación del workspace | Salida 0, 0.343 s. |
+| Suite Rust con servicios aislados | Salida 0, 663.489 s. |
+| Clippy 1.98.1 con warnings denegados | Salida 0, 29.008 s. |
+| MSRV 1.88, todos los targets | Salida 0, 26.607 s. |
+| API y restauración con servicios reales | Salida 0, 152.118 s. |
+
+Las 1483 fuentes de la campaña conservaron sus huellas. Se reprodujeron
+los fallos de codec, parsers, esquema y persistencia antes de implementar sus
+fronteras. Los controles SQL anteriores rechazaban perfiles fijos históricos
+y aceptaban enlaces de predecesor, cambios de política en atención y recibos
+de observación incoherentes. Sus pruebas directas verifican los rechazos y
+la ausencia de escrituras parciales tras la corrección.
+
+La primera campaña global de almacenamiento se detuvo en la prueba de
+inmutabilidad de eventos: `TRUNCATE` devolvió `0A000` porque la nueva
+clave foránea impide truncar la tabla referenciada antes de ejecutar su
+guard. Se reprodujo el error completo y se ajustó la expectativa por
+sentencia. La prueba exige además `23514` y el mensaje exacto del guard
+para `TRUNCATE CASCADE` y truncado conjunto, manteniendo el snapshot
+después de cada rechazo. Las diez pruebas del emisor aprobaron antes de
+repetir esta campaña completa. No se alteraron las restricciones de datos.
+
+La aceptación incluye actualización desde un esquema 0017 real con cuatro
+registros V1, migración repetida, reapertura, autor humano y auditoría,
+notificaciones con padre histórico y observado distintos, administración
+histórica y detección de falsificaciones con hashes coherentes. Los controles
+del inventario reconstruyen evidencia, además de comprobar sus huellas.
+
+Los cinco controles Rust terminaron con salida cero. El primer intento HTTP
+quedó interrumpido por una terminación del runner con señal 15, sin un
+resultado completo de la demo. Tras comprobar que sus procesos habían
+terminado y detener su PostgreSQL desechable, se repitió solamente ese
+control con servicios nuevos. La tabla recoge la repetición terminada;
+las huellas confirman que no cambiaron las fuentes entre ambos intentos.
+
+El recorrido HTTP repetido sigue produciendo V1: comprueba la compatibilidad
+del flujo existente y su restauración bajo el esquema ampliado. No acredita
+una API V2 ni restauración de trabajos automáticos. El guard humano sigue
+rechazando autoría técnica hasta disponer del servicio y trabajo durable.
+Al cierre de esta campaña, la PR 34 permanecía en borrador y estaban pendientes
+despacho, trabajador, HTTP V2 y Qadra. Los cortes posteriores de despacho y
+consumo se registran arriba.
+
+La CI de `8c838cb` terminó con sus 18 controles aprobados. Corresponde al
+preparador técnico publicado antes de este cambio de almacenamiento; la CI
+del incremento actual debe comprobarse sobre su propio commit.
+
+## Preparación técnica de seguimiento: 18 de septiembre de 2026
+
+Este incremento añade el preparador técnico puro de revisiones y resultados
+sin cambios. Procesa evidencia verificada, conserva decisiones humanas y
+admite eventos anteriores a la cabeza actual sin sustituir su causa original.
+La base de contratos V2 se publicó en
+[PR 34](https://github.com/eddndev/TT2026-B136/pull/34), commits `2680455` y
+`b185534`; los resultados de esta sección corresponden al incremento posterior.
+Al cierre de este incremento, la PR seguía en borrador: persistencia V2,
+trabajos durables, HTTP y Qadra de reevaluación todavía no estaban conectados.
+El estado posterior y sus verificaciones se describen en los cortes siguientes.
+
+La campaña completa ejecutó `scripts/test-backends.sh` con PostgreSQL de
+identidad, expedientes y documentos, Redis desechable, Rust 1.94 y qpdf 12.4.1.
+Terminó con **2442 pruebas aprobadas, cero fallidas y una TSA externa ignorada**.
+Los **415 resúmenes de resultados** no son 415 pruebas. Las 48 pruebas añadidas
+desde la base publicada están incluidas en ese total; no se suman las
+repeticiones focales.
+
+| Control | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Salida 0, **2.502 s**. |
+| Compilación del workspace | Salida 0, **18.436 s**. |
+| Suite Rust con servicios aislados | **2442 aprobadas, 0 fallidas, 1 ignorada**, salida 0, **761.287 s**. |
+| Clippy 1.98.1, workspace y todos los targets | Warnings denegados, salida 0, **39.597 s**. |
+| Rust 1.88, workspace y todos los targets | Salida 0, **31.655 s**. |
+
+Las **1436 fuentes** capturadas conservaron sus huellas durante la campaña.
+Los **21 archivos Rust** modificados en este incremento son ASCII y menores
+de 400 líneas. Los adaptadores se ejercitaron con sus servicios configurados;
+la TSA externa omitida no representa una campaña con un proveedor real.
+
+Las pruebas cubren preparación técnica y conservación de políticas, atención,
+responsable y cálculo histórico; calendario seguido; motivos pendientes;
+bootstrap del legado y resultados tipificados sin cambios. Los casos nuevos
+de continuidad cubren eventos atrasados y avances simultáneos. La revisión
+detectó y reprodujo antes de corregir dos brechas: la transición V1/V2 debía
+reconstruir las observaciones históricas para comprobar causa y avance, y los
+resultados sin cambios debían rechazar regresión o alteración administrativa.
+La última corrida focal aprobó **71 casos**, incluidos casos anteriores.
+La corrida previa de aplicación con 915 aprobadas precede a las últimas
+correcciones; no sustituye esta campaña final.
+
+No cambió el recorrido HTTP integrado en este incremento. Su última ejecución
+con restauración fue la campaña de la base publicada, registrada abajo:
+14 respuestas exactas de plazos y evidencia ZIP idéntica. Comprueba V1; no
+acredita un almacenamiento V2. Tampoco se repitieron los recorridos locales
+de navegador sobre este cambio puro de aplicación.
+
+Se consultaron los controles remotos de `b185534`: los **18 controles** de
+push y pull request terminaron aprobados, incluidos Test, Coverage y navegador
+con servicios reales. Son evidencia de esa cabeza publicada; no se atribuyen
+a los cambios posteriores hasta que su propia campaña remota termine.
+
+## Núcleo local V2 de plazos: 18 de septiembre de 2026
+
+Este corte amplía la base integrada por
+[PR 33](https://github.com/eddndev/TT2026-B136/pull/33), commit `214202a`.
+Corresponde al núcleo local de aplicación; no atribuye V2 a esa PR ni acredita
+su conexión a persistencia, trabajador durable, HTTP o Qadra. El contrato se
+describe en [los recibos de seguimiento](deadline-tracking-receipts.md).
+
+Las corridas focales comprobaron los grupos siguientes. Todos los resultados
+de esta tabla terminaron sin fallos ni casos ignorados; las repeticiones y los
+casos compartidos con cortes anteriores no se suman como pruebas nuevas.
+
+| Grupo | Resultado comprobado | Alcance |
+| --- | --- | --- |
+| Observaciones completas | **31 aprobadas**: 10 de construcción, 7 de evidencia, 4 de desplazamientos temporales y 10 de validación. | DLOE1, recibos exactos, ámbitos, pares selección/cabeza, padre de notificación, alteración de metadata e igualdad de revisión. |
+| Reconstrucción del legado | **7 aprobadas**, más **1 vector V1** repetido. | Sólo material capturado; sin padre ni cabeza actual inventados; conservación de DLRV1, DLST1 y DLTX1. |
+| Registro V2 | **8 aprobadas**. | Versiones explícitas, autoría humana/técnica, políticas, observaciones, revisión y recibos. |
+| Preparador humano | **13 aprobadas**. | Calificación explícita, selección fija, cabezas disponibles, atención/retiro, transición desde legado y administración capturada. |
+| Consultas V2 de aplicación | **4 aprobadas**. | Fecha operativa sólo con revisión aceptada y plazo activo; historia con ambas huellas del predecesor y rechazo de V2 a V1. |
+| Continuidad de revisiones | **34 aprobadas**: 17 generales, 5 de calendario, 7 de dependencias y 5 de administración. | Preservación por acción, calendario seguido, motivos para todas las dependencias avanzadas y administración sin retrocesos ni reescritura. |
+| Frontera V1 de infraestructura | **2 aprobadas**. | Autor humano conservado y rechazo tipificado de autor técnico en el adaptador V1. |
+| Frontera HTTP V1 | **5 aprobadas**. | JSON humano conservado y rechazo de autor, recibo, acción o estado V2 que la proyección V1 no puede representar completos. |
+
+Los grupos de preparación, consultas y registro terminaron aprobados en la
+integración de aplicación posterior a sus fallos iniciales. La revisión de
+continuidad detectó además regresión administrativa y ausencia de motivo al
+avanzar otra dependencia seguida; se reprodujeron y corrigieron antes de la
+última corrida focal y de la campaña completa registrada abajo. El padre de
+notificación se comprueba en el ámbito fuente. Estas pruebas comparan evidencia
+capturada sin recalcular la aritmética histórica.
+
+### Campaña global y controles completados
+
+La repetición completa ejecutó `cargo test --workspace` en el entorno preparado
+por `scripts/test-backends.sh`, con PostgreSQL de identidad, expedientes y
+documentos, Redis desechable, Rust **1.94.0** y qpdf **12.4.1**. Terminó con
+código de salida cero:
+**2394 aprobadas, 0 fallidas y 1 TSA externa ignorada**, en **600.183 s**.
+El registro contiene **408 resúmenes de resultados**, que no equivalen a 408
+pruebas. Los casos focales anteriores están incluidos en el total y no se
+suman nuevamente. Los adaptadores se ejecutaron con sus variables de servicios;
+no se atribuye éxito a retornos por ausencia de configuración.
+
+| Control de este corte | Resultado confirmado |
+| --- | --- |
+| Formato del workspace | Aprobado, salida 0, **2.145 s**. |
+| Compilación del workspace | Aprobada, salida 0, **6.510 s**. |
+| Suite Rust con servicios aislados | **2394 aprobadas, 0 fallidas, 1 ignorada**, salida 0, **600.183 s**. |
+| Clippy 1.98.1, workspace y todos los targets | Aprobado con warnings denegados, salida 0, **14.740 s**. |
+| Rust 1.88, `check --workspace --all-targets` | Aprobado, salida 0, **43.570 s**. |
+| `scripts/api-demo.sh`, servicios y restauración reales | Aprobado, salida 0, **138.696 s**. |
+
+La campaña global anterior se interrumpió deliberadamente antes de terminar
+para corregir los defectos de continuidad; no se contabiliza como aprobada.
+Las duraciones registradas corresponden a comandos de verificación, incluida
+la preparación cuando procede; no miden latencia de producto. La advertencia
+de incompatibilidad futura de `redis 0.25.4` se conserva como diagnóstico de
+dependencia y no se oculta.
+
+### Restauración y límites del cierre local
+
+El recorrido API terminó completo y restauró **14 respuestas exactas de plazos**,
+incluidos resultados y recibos capturados, junto con los módulos persistidos
+anteriores. La comparación conservó el ZIP de evidencia idéntico. Este recorrido
+comprueba la regresión del almacenamiento y del HTTP V1; no acredita persistencia
+ni restauración V2.
+
+Las **1424 fuentes** del manifiesto de verificación conservaron todas sus huellas
+al terminar la campaña. Los **72 archivos Rust modificados** son ASCII y menores
+de 400 líneas. Las actualizaciones del informe y del estado del producto no
+modifican esas fuentes. Las campañas históricas de navegador y CI de PR 33
+permanecen separadas; la publicación e integración de este núcleo local requieren
+sus propios controles remotos.
+
+La suite global verifica el código local existente, incluidos los controles
+provisionales V1; no crea persistencia V2 ni demuestra un trabajador que aún
+no está implementado. Tampoco acredita HTTP/Qadra V2, alertas, un corpus
+jurídico aprobado o aceptación integral del producto.
+
+## Corte focal previo: políticas y codecs, 18 de septiembre de 2026
+
+Sobre la base integrada `214202a` se ejecutaron **52 pruebas focales de
+aplicación: 52 aprobadas, 0 fallidas y 0 ignoradas**. Incluyen 14 decisiones
+ante cambios de dependencias, 15 comprobaciones de motivos y políticas de
+revisión, 11 del recibo DLTX2, 11 de observaciones DLOB1 y un vector de
+compatibilidad de los bytes DLRV1, DLST1 y DLTX1. Los fallos iniciales por las
+APIs ausentes precedieron a cada implementación nueva.
+
+Los codecs se contrastaron con vectores independientes, límites máximos,
+truncados, versiones, textos canónicos y referencias de ámbito incorrecto.
+El vector legado conserva el formato anterior con un hasher determinista de
+prueba; no constituye una nueva prueba del algoritmo SHA-256. Las dos pruebas
+de codecs compilaron en 2.76 s. El formato del workspace y Clippy 1.98.1 sobre
+los cinco targets aprobaron. Clippy detectó inicialmente una copia redundante
+en una prueba: se eliminó y se repitieron el control y los 11 casos de
+observaciones, todos aprobados; esa repetición no aumenta los 52 casos únicos.
+Los 13 archivos nuevos de código y pruebas son ASCII y menores de 400 líneas.
+
+Este corte previo comprendía primitivas locales sin conexión a persistencia,
+trabajador, HTTP o Qadra. En ese momento no se había repetido la suite completa
+sobre el código nuevo. La campaña del núcleo V2 se registra por separado arriba;
+los resultados históricos de las entregas integradas que siguen no se le atribuyen.
+
 ## Interfaz de plazos y responsables: 18 de septiembre de 2026
 
 La [PR 32](https://github.com/eddndev/TT2026-B136/pull/32) se integró mediante
@@ -82,8 +643,21 @@ El reporte de **306 páginas** tiene compilación y revisión visual propias en
 [la verificación académica](academic-report-verification.md). La reevaluación
 durable, activación automática, alertas, agenda conjunta y corpus jurídico
 aplicable siguen pendientes. Las duraciones anteriores miden comandos de
-verificación, no latencia ni rendimiento del producto. La ampliación requiere
-su propia CI e integración remota.
+verificación, no latencia ni rendimiento del producto.
+
+La [PR 33](https://github.com/eddndev/TT2026-B136/pull/33) se integró mediante
+squash el mismo día a las **15:09:02 de Ciudad de México**, commit
+`214202a1ddfc37ffc2bbf47706ab88b164d091c3`, después de **19 comprobaciones
+aprobadas y una publicación de release omitida** conforme al evento. El árbol
+`09ee772ce4e03e5cdb86ed6ac1e38322468ae5fe` coincide exactamente con el de la
+cabeza probada `eac8d0b42ca69988e5bc93a26a1e35df181a46f4`.
+La [medición remota](https://github.com/eddndev/TT2026-B136/actions/runs/35392792002/job/105754739607)
+registró dominio **5070/5192 (97 %)**, aplicación **11862/12323 (96 %)** e
+infraestructura **20273/21845 (92 %)**; los tres umbrales de 90 % aprobaron.
+El ejecutable registró **913/1286 (70 %)**, informado sin umbral en esa campaña.
+Se sincronizaron las referencias locales de `main` y se conservaron los cambios
+académicos ajenos. Estas comprobaciones corresponden a la PR; las ejecuciones
+posteriores al push de `main` tienen resultados independientes.
 
 ## Integración de la base publicada
 

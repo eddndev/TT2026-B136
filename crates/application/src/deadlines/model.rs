@@ -4,6 +4,7 @@ use crate::{
     deadline_evaluations::{DeadlineEvaluationInput, DeadlineEvaluationRecord},
     deadline_inputs::DeadlineInputMaterial,
     deadline_profiles::{DeadlineProfileDetail, DeadlineProfileId, DeadlineProfileRevision},
+    procedural_facts::FactDetail,
 };
 use domain::{
     cases::CaseId,
@@ -42,6 +43,7 @@ pub enum DeadlineAction {
     Correct,
     SetAttention,
     Retire,
+    Reevaluate,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeadlineChange {
@@ -69,11 +71,7 @@ pub struct DeadlineCommand {
     pub deadline_id: DeadlineId,
     pub change: DeadlineChange,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DeadlineActorSnapshot {
-    pub id: UserId,
-    pub email: String,
-}
+pub use crate::deadline_reevaluation::TrackedAuthor as DeadlineActorSnapshot;
 /// Captured identity only; assignment never grants access to the case.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeadlineResponsibleSnapshot {
@@ -86,6 +84,8 @@ pub struct DeadlineResolvedInputs {
     pub profile: DeadlineProfileDetail,
     pub profile_head: DeadlineProfileDetail,
     pub material: DeadlineInputMaterial,
+    /// Current parent head, distinct from the notification's historical parent.
+    pub notification_parent_head: Option<FactDetail>,
 }
 /// The result is stored, including its trace. Reading history never reruns arithmetic.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -96,6 +96,7 @@ pub struct DeadlineCalculation {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeadlineReceipt {
+    pub version: DeadlineReceiptVersion,
     pub operation_id: DeadlineOperationId,
     pub action: DeadlineAction,
     pub expected_revision: u32,
@@ -110,6 +111,7 @@ pub struct DeadlineDetail {
     pub revision: DeadlineRevision,
     pub definition: DeadlineDefinition,
     pub calculation: DeadlineCalculation,
+    pub tracking: Option<DeadlineTrackingCapture>,
     pub responsible: DeadlineResponsibleSnapshot,
     pub attention: DeadlineAttention,
     pub status: DeadlineStatus,

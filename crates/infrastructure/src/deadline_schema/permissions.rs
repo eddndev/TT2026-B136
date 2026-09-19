@@ -1,7 +1,7 @@
 use application::ApplicationError;
 use postgres::GenericClient;
 
-use super::{port, HELPERS, TABLES, TRIGGERS};
+use super::{function_specs::signatures, port, TABLES};
 
 pub(crate) fn grant_runtime<C: GenericClient>(
     client: &mut C,
@@ -12,12 +12,14 @@ pub(crate) fn grant_runtime<C: GenericClient>(
         .map_err(port)?
         .get(0);
     let tables = TABLES.join(",");
+    let helpers = signatures(true);
+    let triggers = signatures(false);
     client
         .batch_execute(&format!(
             "REVOKE ALL ON {tables} FROM {role}; GRANT SELECT,INSERT ON {tables} TO {role};
         REVOKE ALL ON FUNCTION {} FROM {role}; GRANT EXECUTE ON FUNCTION {} TO {role}",
-            TRIGGERS.join(","),
-            HELPERS.join(",")
+            triggers.join(","),
+            helpers.join(",")
         ))
         .map_err(port)
 }
@@ -26,6 +28,8 @@ pub(crate) fn validate_runtime_role<C: GenericClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {
+    let helpers = signatures(true);
+    let triggers = signatures(false);
     let unsafe_role:bool=client.query_one("SELECT
         EXISTS(SELECT 1 FROM unnest($2::text[]) t WHERE NOT pg_catalog.has_table_privilege($1,t,'SELECT')
             OR NOT pg_catalog.has_table_privilege($1,t,'INSERT'))
@@ -41,7 +45,7 @@ pub(crate) fn validate_runtime_role<C: GenericClient>(
                 WHERE p.oid IN (SELECT f::regprocedure FROM unnest($3::text[]||$4::text[]) f)
                     AND pg_catalog.pg_has_role(r.oid,p.proowner,'MEMBER'))
             OR EXISTS(SELECT 1 FROM unnest($4::text[]) f WHERE pg_catalog.has_function_privilege(r.oid,f,'EXECUTE'))))",
-        &[&role,&&TABLES[..],&&HELPERS[..],&&TRIGGERS[..]]).map_err(port)?.get(0);
+        &[&role,&&TABLES[..],&helpers,&triggers]).map_err(port)?.get(0);
     if unsafe_role {
         return Err(ApplicationError::InvalidConfiguration(
         "runtime database role must only read and append deadline history without owning protected objects".into()));

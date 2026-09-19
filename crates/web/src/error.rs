@@ -21,6 +21,8 @@ mod deadline_tests;
 #[cfg(test)]
 mod hearing_tests;
 #[cfg(test)]
+mod port_tests;
+#[cfg(test)]
 mod procedural_fact_tests;
 #[cfg(test)]
 mod stage_tests;

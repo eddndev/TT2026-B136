@@ -9,6 +9,7 @@ import {
 } from './procedural-fact-primitives.mjs';
 import { factDeclaration } from './procedural-fact-values.mjs';
 import { factTime } from './procedural-fact-time.mjs';
+import { deadlineTrackingPolicies } from './deadline-tracking-policies.mjs';
 export function deadlineReference(raw) {
   object(raw, ['id', 'revision']);
   return { id: uuid(raw.id), revision: revision(raw.revision) };
@@ -113,7 +114,7 @@ export function deadlineNormalizeCommand(raw) {
   const fields = [
     'action',
     'expected_revision',
-    ...(['register', 'correct'].includes(action) ? ['definition'] : []),
+    ...(['register', 'correct'].includes(action) ? ['definition', 'tracking'] : []),
     ...(action === 'set_attention' ? ['attention'] : []),
     ...(action !== 'register' ? ['reason'] : []),
   ];
@@ -125,8 +126,16 @@ export function deadlineNormalizeCommand(raw) {
     revision(change.expected_revision, factMaxRevision - 1);
     change.reason = text(raw.change.reason, 'Motivo');
   }
-  if (['register', 'correct'].includes(action))
+  if (['register', 'correct'].includes(action)) {
     change.definition = deadlineDefinition(raw.change.definition);
+    change.tracking = structuredClone(
+      deadlineTrackingPolicies(raw.change.tracking, [
+        true,
+        change.definition.input.selection.source.kind === 'known',
+        change.definition.input.calendar !== null,
+      ]),
+    );
+  }
   if (action === 'set_attention') change.attention = deadlineAttention(raw.change.attention);
   return { operation_id: uuid(raw.operation_id), deadline_id: uuid(raw.deadline_id), change };
 }

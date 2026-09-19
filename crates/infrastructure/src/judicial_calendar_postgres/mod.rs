@@ -46,7 +46,7 @@ fn port(error: Error) -> ApplicationError {
             JudicialCalendarError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("calendar database: {error}"))
+    crate::postgres_port::error("calendar database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     JudicialCalendarError::StoredInconsistent(error.to_string()).into()

@@ -5,7 +5,8 @@ import {
   deadlineFixture,
   caseId,
 } from './deadline-editor-helpers.mjs';
-import { detail, id, instant, known, hash } from '../fixtures/deadline-unit.mjs';
+import { id, instant, known, hash } from '../fixtures/deadline-unit.mjs';
+import { v1Record as detail } from '../fixtures/deadline-v2-unit.mjs';
 function examples() {
   const daily = deadlineFixture(),
     monthly = deadlineFixture(),

@@ -17,7 +17,9 @@ pub(super) fn validate_commit(
     if detail.case_id != reviewed.case_id
         || detail.id != command.deadline_id
         || detail.revision != reviewed.result_revision
-        || detail.recorded_by.id != reviewed.actor
+        || detail.recorded_by.user_id() != Some(reviewed.actor)
+        || detail.recorded_by != reviewed.author
+        || receipt.version != reviewed.receipt_version
         || receipt.operation_id != command.operation_id
         || receipt.action != command.action()
         || receipt.expected_revision != command.expected_revision()
@@ -47,12 +49,36 @@ pub(super) fn validate_commit(
             "committed deadline changed exact sources or observed heads",
         ));
     }
+    let tracking = detail
+        .tracking
+        .as_ref()
+        .ok_or_else(|| inconsistent("human confirmation requires tracked state"))?;
+    if tracking.policies != reviewed.tracking.policies
+        || tracking.review != reviewed.tracking.review
+        || tracking.observations != reviewed.tracking.observations
+    {
+        return Err(inconsistent("committed deadline changed reviewed tracking"));
+    }
     match command.action() {
         DeadlineAction::Register | DeadlineAction::Correct => {
-            validate_administration(&old.administration, &new.administration)?
+            validate_administration(hasher, &old.administration, &new.administration)?;
+            validate_administration(
+                hasher,
+                &reviewed.tracking.administration,
+                &tracking.administration,
+            )?;
+            if !same_administration(hasher, &new.administration, &tracking.administration) {
+                return Err(inconsistent(
+                    "human qualification captured different calculation and tracking administrations",
+                ));
+            }
+        }
+        DeadlineAction::Reevaluate => {
+            return Err(inconsistent("technical action in human command"))
         }
         DeadlineAction::SetAttention | DeadlineAction::Retire => {
             if old.administration != new.administration
+                || tracking != &reviewed.tracking
                 || receipt.capture_digest != reviewed.capture_digest
             {
                 return Err(inconsistent(
@@ -64,6 +90,7 @@ pub(super) fn validate_commit(
     Ok(())
 }
 fn validate_administration(
+    hasher: &dyn DocumentHasher,
     old: &CurrentCaseAdministration,
     new: &CurrentCaseAdministration,
 ) -> Result<(), ApplicationError> {
@@ -72,27 +99,18 @@ fn validate_administration(
             "committed deadline captured a closed case administration",
         ));
     }
-    let valid = match (old, new) {
-        (
-            CurrentCaseAdministration::Unrevised(before),
-            CurrentCaseAdministration::Unrevised(after),
-        ) => before == after,
-        (CurrentCaseAdministration::Unrevised(_), CurrentCaseAdministration::Recorded(_)) => true,
-        (CurrentCaseAdministration::Recorded(_), CurrentCaseAdministration::Unrevised(_)) => false,
-        (
-            CurrentCaseAdministration::Recorded(before),
-            CurrentCaseAdministration::Recorded(after),
-        ) => {
-            after.revision > before.revision
-                || (after == before && after.changed_at.offset() == before.changed_at.offset())
-        }
-    };
-    if !valid {
-        return Err(inconsistent(
-            "committed administration moved backwards or rewrote an immutable revision",
-        ));
-    }
-    Ok(())
+    validate_administration_capture(hasher, old, new)
+}
+fn same_administration(
+    hasher: &dyn DocumentHasher,
+    old: &CurrentCaseAdministration,
+    new: &CurrentCaseAdministration,
+) -> bool {
+    let mut before = Vec::new();
+    let mut after = Vec::new();
+    evidence::administration(&mut before, hasher, old);
+    evidence::administration(&mut after, hasher, new);
+    old == new && before == after
 }
 
 pub(super) fn validate_page(
@@ -120,7 +138,7 @@ pub(super) fn validate_page(
             || previous.is_some_and(|id| row.id.as_uuid() <= id.as_uuid())
             || !row.responsible.role.allows(Permission::ReadDeadline)
             || row.responsible.email.trim().is_empty()
-            || row.blocked != row.due_at.is_none()
+            || !row.operational.matches_overview(row)
         {
             return Err(inconsistent(
                 "deadline summary scope, order, status, responsible or outcome is inconsistent",
@@ -174,6 +192,7 @@ pub(super) fn validate_history(
         }
     }
     for pair in page.revisions.windows(2) {
+        tracked::predecessor_matches(&pair[1].receipt, &pair[0].receipt)?;
         if pair[1].revision.get().checked_add(1) != Some(pair[0].revision.get())
             || pair[1].status == DeadlineStatus::Retired
         {

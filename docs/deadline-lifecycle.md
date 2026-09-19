@@ -3,19 +3,35 @@
 Estado: implementación parcial del seguimiento completo. La resolución
 autorizada de insumos, el catálogo de perfiles con API, el evaluador, los eventos
 de cambio y el [registro persistente de plazos](deadline-records.md) están
-implementados. El backend y la [API operativa](deadlines-api.md) están integrados
-en `main`, con evaluación histórica, responsable, atención, corrección y retiro
-auditable. La ampliación Qadra permite esas operaciones y la selección paginada
+implementados. La base V1 del backend y la [API operativa](deadlines-api.md)
+está integrada en `main`, con evaluación histórica, responsable, atención,
+corrección y retiro auditable. La interfaz Qadra V1 integrada permite esas
+operaciones y la selección paginada
 de responsables elegibles, con campañas locales completas aprobadas. El
 [informe de verificación](verification-report.md) separa sus resultados de la
 comprobación remota y de la integración de cada entrega.
 
-Los trabajadores de activación y reevaluación, la agenda conjunta y las alertas
-descritos más abajo siguen siendo objetivos de implementación. Tener eventos
-inmutables no demuestra que se procesen, y guardar un vencimiento no demuestra
-que se haya entregado un aviso. El cierre de perfiles jurídicos con fuentes
-primarias y aceptación del supuesto también permanece pendiente; los ejemplos
-sintéticos verifican mecanismos, no aplicabilidad jurídica. Véanse la
+El [despachador](deadline-dispatch.md) y el [consumidor local](deadline-worker.md)
+implementan expansión de eventos y confirmación técnica durable. El servicio
+humano y HTTP V2 están implementados localmente, con políticas explícitas,
+historia completa y consultas de vigencia en detalle actual y listado. La
+interfaz Qadra V2 aprobó 88 pruebas Node y 36 recorridos con HTTP controlado.
+Una campaña posterior con backend real aprobó 25 recorridos, incluidos dos
+Follow a 1440 y 390 píxeles, con seis capturas inspeccionadas. La composición
+del dispatcher/worker en `serve` tiene 31 pruebas unitarias y cuatro de ayuda
+CLI aprobadas; las 26 de bucle, parada y supervisión forman parte de las 31.
+La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
+restauración de R1-R5, incluida la aceptación API final aprobada. El cierre global
+y la integración en `main` siguen en curso; el informe de verificación conserva
+sus resultados. La
+[API de seguimiento](deadline-tracking-api.md) separa la captura histórica de
+su proyección operativa comprobada.
+
+Activación, agenda conjunta y alertas descritas más abajo conservan objetivos
+propios de implementación. Tener eventos inmutables no demuestra que se procesen
+en el servidor, y guardar un vencimiento no demuestra una entrega de avisos.
+El cierre de perfiles jurídicos con fuentes primarias y aceptación del supuesto
+permanece pendiente; los ejemplos sintéticos verifican mecanismos. Véanse la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
 las [fronteras de las reglas](deadline-rule-research.md).
 
@@ -107,6 +123,13 @@ público de insumos desde otro commit. Revisión, dependencias, recibo y auditor
 se confirman juntos. Una cabeza nueva produce conflicto o una nueva evaluación;
 una modificación de contenido histórico produce inconsistencia, nunca sustitución.
 
+La lectura actual y el listado comparan las cabezas verificadas con las
+observaciones capturadas dentro de una transacción auditada. Conservan el
+cálculo histórico y distinguen su fecha de un vencimiento operativo vigente.
+No deducen frescura del estado de la cola ni de un resultado del consumidor.
+Una consulta exacta de revisión conserva evidencia histórica y no comprueba
+las cabezas actuales; las reglas están en el [contrato de seguimiento](deadline-tracking-api.md).
+
 Las lecturas conservan historia y evidencia de expedientes cerrados. El cierre
 organizativo bloquea las decisiones manuales sujetas a esa política, pero no
 suspende por sí mismo términos ni borra alertas o reevaluaciones. Los trabajadores
@@ -129,9 +152,11 @@ todo cambio posterior emite un evento durable. El inventario valida los eventos
 existentes, los triggers y la secuencia; la restauración conserva esos datos.
 
 El despachador pagina dependencias, inserta trabajos únicos por evento/plazo y
-avanza su cursor en una transacción. El trabajador confirma nueva evaluación,
-resultado del trabajo y sustitución de alertas pendientes juntos. Conserva
-responsable y atención vigentes; no los reinicia al recalcular. Las correcciones
+avanza su cursor en una transacción. El consumidor local confirma revisión,
+resultado del trabajo y auditoría juntos, o registra la causa de no producir una
+revisión. La sustitución atómica de alertas pendientes conserva su implementación
+futura. El consumidor mantiene responsable y atención vigentes; no los reinicia
+al recalcular. Las correcciones
 de fuente no autorizan inferir nuevamente condiciones jurídicas desde texto.
 La revisión de aplicabilidad pendiente debe quedar visible, con el cálculo
 anterior conservado. Los cambios de calendario aplicable se evalúan con su nueva

@@ -206,7 +206,7 @@ fn action(change: &CaseStageChange) -> CaseStageAction {
     }
 }
 pub(super) fn port(error: postgres::Error) -> ApplicationError {
-    ApplicationError::Port(format!("stage database: {error}"))
+    crate::postgres_port::error("stage database", error)
 }
 pub(super) fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     ApplicationError::StoredCaseStageInconsistent(error.to_string())

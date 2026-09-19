@@ -24,16 +24,27 @@ permite capturar, consultar y conciliar estas declaraciones.
 
 La [API del catálogo de perfiles de plazo](deadline-profiles-api.md) adapta el
 catálogo global y el de expediente, con publicación, reemplazo, retiro e
-historia exacta. El catálogo, su API y el evaluador están implementados. La
-[API de plazos](deadlines-api.md) registra por expediente la evaluación, el
-responsable y la atención, con correcciones, retiro e historia inmutable.
-El backend persistente fue integrado en `main`; sus pruebas y restauración se
-registran en el [informe de verificación](verification-report.md). La ampliación
-actual incorpora selección paginada de responsables y el
-[flujo Qadra de plazos](../web/README.md#plazos-del-expediente). Su verificación
-integral y publicación se registran por separado del backend anterior.
-Trabajadores de reevaluación, agenda conjunta y alertas siguen pendientes.
-Véanse [el alcance completo](deadline-lifecycle.md) y
+historia exacta. La [API de plazos](deadlines-api.md) registra la evaluación,
+el responsable y la atención, con correcciones, retiro e historia inmutable.
+La base V1 y su interfaz Qadra están integradas; sus campañas de restauración
+y navegador conservan su alcance en el [informe de verificación](verification-report.md).
+
+La ampliación humana/HTTP V2 está implementada y verificada localmente.
+Alta y corrección exigen políticas explícitas; atención y retiro conservan
+seguimiento y cálculo. Las lecturas representan evidencia V1/V2, autoría humana
+o técnica y continuidad sin sustituir el historial. El detalle actual y el
+listado comprueban la vigencia de las dependencias bajo lectura autorizada y
+auditable. Véase el [contrato de seguimiento](deadline-tracking-api.md).
+
+El [consumidor local](deadline-worker.md) conserva su puerto interno y está
+compuesto en `serve`. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP
+controlado y una campaña separada de 25 recorridos con backend real, incluidos
+dos escenarios Follow a 1440 y 390 píxeles; se inspeccionaron seis capturas.
+La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
+restauración de R1-R5; la aceptación API final también aprobó. El cierre global
+y la integración en `main` continúan; el informe conserva los resultados exactos.
+Agenda conjunta y alertas conservan su alcance pendiente. Véanse
+[el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
 
 Contrato revisado el 2026-09-18. PostgreSQL conserva usuarios, expedientes,
@@ -272,8 +283,9 @@ No completa la validación de toda carga general ni acredita un acto judicial.
 La programación de audiencias tiene su [contrato independiente](hearings-api.md).
 Las sesiones y resultados declarados disponen de su
 [contrato separado](hearing-results-api.md). El cálculo y la historia de plazos
-usan [su propia colección](deadlines-api.md). Recursos, activación automática,
-reevaluación y alertas conservan operaciones pendientes propias.
+usan [su propia colección](deadlines-api.md). La reevaluación compuesta en servidor
+cuenta con recorridos API y navegador reales. Recursos, activación automática y
+alertas conservan operaciones pendientes propias.
 
 ## Audiencias y agenda
 
@@ -876,11 +888,22 @@ revisiones exactas. Owner y Litigator escriben; el personal autorizado consulta,
 Client queda denegado y el cierre conserva lecturas. Cada cuerpo admite 1 MiB y
 utiliza el presupuesto de ejecución compartido.
 
-La respuesta conserva perfil y fuentes exactas, cabezas observadas y resultado
-histórico con bloqueos y traza estructurada. Consultar no vuelve a ejecutar la
-aritmética. Los instantes preservan segundos, nanosegundos y desfase explícitos;
-las declaraciones conservan su precisión. Las pruebas focales de contrato y
-proyección y la aceptación con persistencia y restauración reales están aprobadas.
+Las respuestas conservan perfil, fuentes, observaciones y resultado histórico,
+con bloqueos y traza estructurada. Consultar no vuelve a ejecutar la aritmética.
+Los instantes preservan segundos, nanosegundos y desfase explícitos; las
+declaraciones conservan su precisión. El detalle actual y el listado añaden
+`operational` con `freshness`, `checked_at`, `changed_dependencies` y `due_at`.
+La revisión exacta y la respuesta de confirmación conservan `not_checked` y no
+acreditan vigencia actual. El listado separa `calculation_due_at` y
+`calculation_blocked` de esa proyección operativa.
+
+La frescura se determina comparando evidencia verificada con las observaciones
+capturadas según las políticas. Ni trabajos pendientes ni un resultado
+`Completed` acreditan o descartan por sí solos esa vigencia. El contrato
+[de seguimiento](deadline-tracking-api.md) define los estados y la conservación
+de V1. Las campañas históricas de API/restauración corresponden a V1; las
+pruebas focales actuales de V2 tienen evidencia separada.
+
 `GET /responsibles` ofrece cuentas activas elegibles, con `limit` de 1 a 100
 (por defecto 20), `after_id` exclusivo y orden UUID ascendente. Owner es elegible
 sin asignación; Litigator y Paralegal necesitan membresía vigente al expediente.
@@ -889,13 +912,24 @@ Client queda excluido como lector y como candidato. La respuesta entrega
 la consulta autoriza el expediente y confirma su evento de auditoría. No crea
 una membresía ni reserva elegibilidad para registrar o corregir después.
 
-Qadra permite registrar, corregir, declarar atención, retirar y consultar
-revisiones exactas mediante estas rutas. El selector y la interfaz son la
-ampliación actual, con campañas locales completas aprobadas; sus comprobaciones
-globales, recorridos reales y publicación se documentan en el informe de
-verificación.
-La reevaluación automática, la agenda de audiencias y vencimientos reunidos y
-las alertas siguen pendientes.
+La colección mantiene el prefijo `/api/v1`; la versión del recibo se declara
+por separado. El contrato humano actual exige `change.tracking` en registro
+y corrección. Las políticas son explícitas para perfil, fuente y calendario;
+atención y retiro no reciben políticas de reemplazo. El servidor obtiene el
+autor humano de la sesión y rechaza autoría técnica o comandos de trabajador
+aportados por el cliente. Las consultas sí representan recibos históricos V1,
+capturas V2 y la procedencia técnica de revisiones confirmadas por el consumidor.
+
+Las campañas históricas de Qadra con servicios reales corresponden a V1.
+La interfaz V2 aprobó 88 pruebas Node y 36 recorridos con HTTP controlado.
+La campaña posterior con backend real aprobó 25 recorridos, incluidos dos Follow
+de escritorio y móvil; seis capturas se inspeccionaron visualmente. La campaña
+API real comprobó revisiones R1-R5, cierre TERM/INT, reinicios y restauración.
+Estos resultados ejercitan el [consumidor compuesto](deadline-worker.md) y se
+registran por separado en el [informe de verificación](verification-report.md).
+La aceptación API final aprobó. El cierre global y la integración en `main`
+siguen en curso. La agenda de audiencias y vencimientos reunidos y las alertas
+conservan su implementación pendiente.
 
 ## Errores
 

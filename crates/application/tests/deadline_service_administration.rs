@@ -7,6 +7,7 @@ mod deadline_service_support;
 mod deadline_support;
 use application::{cases::*, deadlines::*};
 use deadline_service_support::*;
+use deadline_service_support::{prepare_human as prepare, tracked_detail as detail};
 use domain::{
     case_administration::{CaseAdministrationValues, CaseRevision},
     cases::CaseMetadata,
@@ -74,7 +75,12 @@ fn register_and_correct_accept_new_active_administration_with_same_reviewed_stat
         let (workflow, _) = service(store, identity(Role::Owner, 2));
         assert_eq!(
             workflow
-                .submit("session", case_id(), command, prepared.submission_digest())
+                .submit(
+                    "session",
+                    case_id(),
+                    human_command(command),
+                    prepared.submission_digest()
+                )
                 .unwrap(),
             expected
         );
@@ -83,9 +89,6 @@ fn register_and_correct_accept_new_active_administration_with_same_reviewed_stat
 #[test]
 fn attention_and_retirement_reject_replacing_historical_administration_even_with_valid_receipt() {
     let original = captured();
-    let (register, mut newer) = fixture();
-    recapture(&mut newer);
-    let recaptured = detail(&prepare(register, newer).unwrap());
     for retirement in [false, true] {
         let change = if retirement {
             DeadlineChange::Retire {
@@ -101,8 +104,11 @@ fn attention_and_retirement_reject_replacing_historical_administration_even_with
         };
         let (command, preparation) = followup(&original, change.clone());
         let prepared = prepare(command.clone(), preparation.clone()).unwrap();
-        let (_, altered) = followup(&recaptured, change);
-        let unexpected = detail(&prepare(command.clone(), altered).unwrap());
+        let mut unexpected = detail(&prepared);
+        unexpected.calculation.material.administration = newer_administration();
+        unexpected.tracking.as_mut().unwrap().administration = newer_administration();
+        unexpected.receipt.capture_digest =
+            hasher().hash_bytes(&deadline_capture_bytes(hasher().as_ref(), &unexpected).unwrap());
         deadline_receipt_matches(hasher().as_ref(), &unexpected).unwrap();
         assert_eq!(
             unexpected.receipt.submission_digest,
@@ -121,7 +127,12 @@ fn attention_and_retirement_reject_replacing_historical_administration_even_with
         let (workflow, _) = service(store, identity(Role::Owner, 2));
         invalid(
             workflow
-                .submit("session", case_id(), command, prepared.submission_digest())
+                .submit(
+                    "session",
+                    case_id(),
+                    human_command(command),
+                    prepared.submission_digest(),
+                )
                 .map(|_| ()),
         );
     }
@@ -173,7 +184,12 @@ fn registration_commit_rejects_administrative_rollback_and_rewriting_the_same_re
         let (workflow, _) = service(store, identity(Role::Owner, 2));
         invalid(
             workflow
-                .submit("session", case_id(), command, prepared.submission_digest())
+                .submit(
+                    "session",
+                    case_id(),
+                    human_command(command),
+                    prepared.submission_digest(),
+                )
                 .map(|_| ()),
         );
     }

@@ -1,5 +1,79 @@
 # Verificación de la actualización académica
 
+## Seguimiento humano V2 compuesto y Qadra: 19 de septiembre de 2026
+
+Los apartados propios describen decisiones humanas V2, consultas de vigencia,
+reevaluación compuesta en `serve`, supervisión y aceptación real HTTP/Qadra.
+Se conserva el alcance de los perfiles sintéticos, la activación, las alertas
+y el trabajo jurídico restante. Las correcciones de cierre sólo modificaron
+el ajuste de rutas y nombres de archivos en el anexo de plazos; no cambiaron
+resumen, objetivos, estado del arte, conclusiones ni presentación.
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35431568521)
+compiló el árbol de `f743c5e`: el artefacto identifica el merge de revisión
+`37e5e5d`, cuyos padres son `214202a` y `f743c5e`; su árbol coincide exactamente
+con la cabeza de la rama. El PDF tiene **315 páginas, formato carta y 5874639
+bytes**. SHA-256:
+`db171360b216c9ca23498f85230a4a90878b85729a06a31d184308a729395e6f`.
+
+La primera revisión detectó una lista de archivos fuera del margen en la página
+310. Se separaron sus elementos y se permitió el ajuste de una ruta larga.
+La comprobación final renderizó **22 páginas físicas: 3-5, 185, 190-196,
+224-228 y 307-312**. Diecinueve imágenes son idénticas byte por byte a las ya
+inspeccionadas; se inspeccionaron de nuevo las páginas 310-312. No presentan
+recortes ni solapamientos. Siete páginas de implementación recibieron revisión
+independiente. Esta selección no equivale a inspeccionar las 315 páginas.
+
+La última pasada de LuaLaTeX no contiene referencias o citas indefinidas,
+etiquetas duplicadas ni glifos ausentes. Conserva las sustituciones de versalitas
+de Times New Roman y el desborde histórico de **0.11754 pt**; el desborde nuevo
+quedó corregido. El artefacto comprobado se conserva como
+`output/pdf/TT2026-B136-reporte.pdf`; el PDF previo de 312 páginas se preservó
+por separado. No se añaden binarios a Git.
+
+La aceptación de software pertenece al [informe técnico](verification-report.md).
+Este resultado no acredita usabilidad con personas, perfiles jurídicos
+calificados, aprobación del manuscrito completo ni preparación final de defensa.
+
+
+## Consumidor durable de reevaluación: 18 de septiembre de 2026
+
+Se actualizaron seis apartados propios de implementación, pruebas y trazabilidad
+de perfiles y plazos. Describen la captura humana V2, el despacho persistente,
+el consumidor local, los resultados e intentos auditados, la clasificación
+tipada de fallos y la recuperación. Separan esos componentes de su composición
+pendiente en `serve`, del servicio humano y HTTP/Qadra V2, de la activación,
+la agenda conjunta y las alertas. Los resultados funcionales pertenecen al
+[informe técnico](verification-report.md); la campaña integral de 2630 pruebas
+incluye los 27 casos PostgreSQL del consumidor, sin volver a sumar sus campañas
+focales.
+
+Se conservaron por hash **77 de 83 archivos versionados** del reporte y la
+presentación; sólo cambiaron los seis apartados descritos. Resumen, objetivos,
+estado del arte, conclusiones pendientes y presentación permanecen iguales.
+Los entregables de otros checkouts no se sustituyeron.
+
+`make -C latex` con LuaLaTeX, biber y glosarios terminó con código cero en
+**82.001 s**, después de finalizar la verificación de software. Las fuentes
+conservaron sus huellas durante la compilación. El PDF resultante contiene
+**312 páginas, formato carta y 5789359 bytes**; se conserva localmente como
+`output/pdf/TT2026-B136-reporte.pdf`, sin añadirlo a Git.
+
+Se renderizaron e inspeccionaron **22 páginas físicas: 3-5, 187-194, 219-224
+y 304-308**, incluidos índices y transiciones adyacentes. Trece páginas
+recibieron revisión independiente. Texto, rutas, tablas, encabezados y jerarquía
+son legibles, sin recortes ni solapamientos. El log final no contiene referencias
+o citas indefinidas, etiquetas duplicadas ni glifos ausentes. Conserva las
+sustituciones preexistentes de versalitas de Times New Roman y el desborde
+histórico de **0.11754 pt**.
+
+SHA-256: `ab19660015679902fa7ba34b4f259af4919a203038112912b5face14e7d03af8`.
+
+Esta comprobación corresponde al PDF local y a las páginas indicadas; no afirma
+una nueva compilación remota ni una inspección visual de todas sus páginas.
+Tampoco acredita aceptación operativa en Qadra, usabilidad con personas,
+calificación jurídica de perfiles ni cierre del manuscrito completo.
+
 ## Interfaz y selector de plazos: 18 de septiembre de 2026
 
 Se actualizaron los tres apartados propios de implementación, pruebas y matriz

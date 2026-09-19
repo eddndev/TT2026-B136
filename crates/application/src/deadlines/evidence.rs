@@ -2,6 +2,8 @@ use super::*;
 use crate::{
     cases::{case_administration_digest, CurrentCaseAdministration},
     deadline_inputs::DeadlineSourceDetail,
+    deadline_profiles::DeadlineProfileDetail,
+    judicial_calendars::JudicialCalendarDetail,
     procedural_facts::{FactAction, FactStatus, ProceduralFactSnapshot},
 };
 use domain::{crypto::DocumentHasher, identity::UserId};
@@ -31,7 +33,7 @@ pub(super) fn actor(bytes: &mut Vec<u8>, id: UserId, email: &str, at: OffsetDate
     text(bytes, email);
     instant(bytes, at);
 }
-fn administration(
+pub(crate) fn administration(
     bytes: &mut Vec<u8>,
     hasher: &dyn DocumentHasher,
     admin: &CurrentCaseAdministration,
@@ -60,7 +62,22 @@ pub(super) fn calculation(
     value: &DeadlineCalculation,
     include_observed_administration: bool,
 ) {
-    let profile = &value.profile;
+    profile(bytes, &value.profile);
+    let material = &value.material;
+    bytes.extend_from_slice(material.case_id.as_uuid().as_bytes());
+    // Observed administration may advance while the confirmed content stays equal.
+    // Historical administration inside a source remains fixed in both digests.
+    if include_observed_administration {
+        administration(bytes, hasher, &material.administration);
+    }
+    source(bytes, hasher, material.source.as_ref());
+    source(bytes, hasher, material.source_head.as_ref());
+    for calendar in [&material.calendar, &material.calendar_head] {
+        optional(bytes, calendar.as_ref(), self::calendar);
+    }
+}
+/// The caller verifies the definition digest before committing captured metadata.
+pub(crate) fn profile(bytes: &mut Vec<u8>, profile: &DeadlineProfileDetail) {
     bytes.push(profile.algorithm.tag());
     bytes.extend_from_slice(profile.id.as_uuid().as_bytes());
     bytes.extend_from_slice(&profile.revision.get().to_be_bytes());
@@ -79,38 +96,33 @@ pub(super) fn calculation(
         &profile.recorded_by.email,
         profile.recorded_at,
     );
-    let material = &value.material;
-    bytes.extend_from_slice(material.case_id.as_uuid().as_bytes());
-    // Observed administration may advance while the confirmed content stays equal.
-    // Historical administration inside a source remains fixed in both digests.
-    if include_observed_administration {
-        administration(bytes, hasher, &material.administration);
-    }
-    source(bytes, hasher, material.source.as_ref());
-    source(bytes, hasher, material.source_head.as_ref());
-    for calendar in [&material.calendar, &material.calendar_head] {
-        optional(bytes, calendar.as_ref(), |bytes, calendar| {
-            bytes.extend_from_slice(calendar.id.as_uuid().as_bytes());
-            bytes.extend_from_slice(&calendar.revision.get().to_be_bytes());
-            bytes.extend_from_slice(calendar.values_digest.as_bytes());
-            text(bytes, calendar.status.as_str());
-            optional(bytes, calendar.reason.as_ref(), |bytes, reason| {
-                text(bytes, reason.as_str())
-            });
-            bytes.extend_from_slice(calendar.receipt.operation_id.as_uuid().as_bytes());
-            bytes.push(calendar.receipt.action.tag());
-            bytes.extend_from_slice(&calendar.receipt.expected_revision.to_be_bytes());
-            bytes.extend_from_slice(calendar.receipt.submission_digest.as_bytes());
-            actor(
-                bytes,
-                calendar.recorded_by.id,
-                &calendar.recorded_by.email,
-                calendar.recorded_at,
-            );
-        });
-    }
 }
-fn source(bytes: &mut Vec<u8>, hasher: &dyn DocumentHasher, value: Option<&DeadlineSourceDetail>) {
+/// The caller verifies the calendar values digest before committing captured metadata.
+pub(crate) fn calendar(bytes: &mut Vec<u8>, calendar: &JudicialCalendarDetail) {
+    bytes.extend_from_slice(calendar.id.as_uuid().as_bytes());
+    bytes.extend_from_slice(&calendar.revision.get().to_be_bytes());
+    bytes.extend_from_slice(calendar.values_digest.as_bytes());
+    text(bytes, calendar.status.as_str());
+    optional(bytes, calendar.reason.as_ref(), |bytes, reason| {
+        text(bytes, reason.as_str())
+    });
+    bytes.extend_from_slice(calendar.receipt.operation_id.as_uuid().as_bytes());
+    bytes.push(calendar.receipt.action.tag());
+    bytes.extend_from_slice(&calendar.receipt.expected_revision.to_be_bytes());
+    bytes.extend_from_slice(calendar.receipt.submission_digest.as_bytes());
+    actor(
+        bytes,
+        calendar.recorded_by.id,
+        &calendar.recorded_by.email,
+        calendar.recorded_at,
+    );
+}
+
+pub(crate) fn source(
+    bytes: &mut Vec<u8>,
+    hasher: &dyn DocumentHasher,
+    value: Option<&DeadlineSourceDetail>,
+) {
     let Some(value) = value else {
         bytes.push(0);
         return;

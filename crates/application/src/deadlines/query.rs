@@ -80,7 +80,22 @@ fn validate_limit(limit: u32, maximum: u32) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-/// Compact current state. The store validates it against the captured full record.
+/// Stored receipt format without the full historical receipt payload.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeadlineReceiptKind {
+    Legacy,
+    Tracked,
+}
+impl From<&DeadlineReceiptVersion> for DeadlineReceiptKind {
+    fn from(value: &DeadlineReceiptVersion) -> Self {
+        match value {
+            DeadlineReceiptVersion::Legacy => Self::Legacy,
+            DeadlineReceiptVersion::Tracked(_) => Self::Tracked,
+        }
+    }
+}
+
+/// Compact verified capture with its separate operational read projection.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeadlineOverview {
     pub id: DeadlineId,
@@ -90,11 +105,21 @@ pub struct DeadlineOverview {
     pub status: DeadlineStatus,
     pub responsible: DeadlineResponsibleSnapshot,
     pub attention_recorded: bool,
-    pub due_at: Option<OffsetDateTime>,
-    pub blocked: bool,
+    pub receipt_kind: DeadlineReceiptKind,
+    pub calculation_due_at: Option<OffsetDateTime>,
+    pub calculation_blocked: bool,
+    pub review_state: crate::deadline_tracking::DeadlineReviewState,
+    pub operational: crate::deadline_currentness::DeadlineOperational,
+    capture_digest: Sha256Digest,
 }
-impl From<&DeadlineDetail> for DeadlineOverview {
-    fn from(value: &DeadlineDetail) -> Self {
+impl DeadlineOverview {
+    pub(crate) const fn capture_digest(&self) -> Sha256Digest {
+        self.capture_digest
+    }
+}
+impl From<&crate::deadline_currentness::DeadlineCurrent> for DeadlineOverview {
+    fn from(current: &crate::deadline_currentness::DeadlineCurrent) -> Self {
+        let value = current.detail();
         Self {
             id: value.id,
             case_id: value.case_id,
@@ -103,8 +128,12 @@ impl From<&DeadlineDetail> for DeadlineOverview {
             status: value.status,
             responsible: value.responsible.clone(),
             attention_recorded: matches!(value.attention, DeadlineAttention::Recorded { .. }),
-            due_at: value.calculation.result.due_at(),
-            blocked: !value.calculation.result.blocks().is_empty(),
+            receipt_kind: DeadlineReceiptKind::from(&value.receipt.version),
+            calculation_due_at: value.calculation.result.due_at(),
+            calculation_blocked: value.calculation.result.due_at().is_none(),
+            review_state: value.review_state(),
+            operational: current.operational().clone(),
+            capture_digest: value.receipt.capture_digest,
         }
     }
 }
@@ -138,6 +167,9 @@ pub struct DeadlineHistoryPage {
 pub struct DeadlineDraft {
     pub case_id: CaseId,
     pub actor: UserId,
+    pub author: DeadlineActorSnapshot,
+    pub tracking: DeadlineTrackingCapture,
+    pub receipt_version: DeadlineReceiptVersion,
     pub command: DeadlineCommand,
     pub result_revision: DeadlineRevision,
     pub definition: DeadlineDefinition,

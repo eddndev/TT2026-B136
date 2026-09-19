@@ -52,6 +52,7 @@ mod postgres_case_stages_schema;
 mod postgres_case_status;
 mod postgres_metadata_schema;
 mod postgres_participant_schema;
+mod postgres_port;
 mod postgres_version_schema;
 pub mod recovery;
 pub mod signing;
@@ -99,3 +100,13 @@ mod deadline_profile_schema;
 mod deadline_postgres;
 pub use deadline_postgres::PostgresDeadlineStore;
 mod deadline_schema;
+
+mod deadline_dispatch_postgres;
+mod deadline_dispatch_schema;
+pub use deadline_dispatch_postgres::PostgresDeadlineDispatchStore;
+
+mod deadline_worker_provenance;
+
+mod deadline_worker_postgres;
+mod deadline_worker_schema;
+pub use deadline_worker_postgres::PostgresDeadlineWorkerStore;

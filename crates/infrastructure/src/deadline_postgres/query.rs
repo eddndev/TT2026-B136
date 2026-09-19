@@ -35,7 +35,8 @@ impl PostgresDeadlineStore {
                     "deadline status projection differs from captured state",
                 ));
             }
-            deadlines.push(DeadlineOverview::from(&detail));
+            let current = self.current_projection(&mut tx, &detail)?;
+            deadlines.push(DeadlineOverview::from(&current));
         }
         let next_after_id = if has_more {
             deadlines.last().map(|d| d.id)

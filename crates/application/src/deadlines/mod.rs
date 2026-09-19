@@ -1,7 +1,16 @@
 //! Audited deadline registration and attention over immutable evaluated inputs.
 mod canonical;
+mod tracked;
+mod tracked_state;
+mod tracking_storage;
+pub use tracked::*;
+pub use tracking_storage::{
+    deadline_tracking_capture_bytes, decode_deadline_tracking_capture, DeadlineTrackingMetadata,
+};
 mod command;
-mod evidence;
+mod human_command;
+pub use human_command::DeadlineHumanCommand;
+pub(crate) mod evidence;
 mod evidence_hearing;
 mod model;
 mod port;
@@ -62,3 +71,11 @@ mod service;
 mod service_query;
 mod service_validation;
 pub use service::DeadlineService;
+
+mod successor;
+pub use successor::deadline_successor_matches;
+pub(crate) use successor::validate_administration_capture;
+
+mod preparation_tracked;
+mod profile_selection;
+pub use preparation_tracked::prepare_tracked_deadline_change;

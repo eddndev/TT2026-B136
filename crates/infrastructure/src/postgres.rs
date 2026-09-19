@@ -69,13 +69,6 @@ const DEADLINE_PROFILE_MIGRATIONS: &[&str] = &[
     include_str!("../../../migrations/0016_deadline_profile_guards.sql"),
     include_str!("../../../migrations/0016_deadline_profile_events.sql"),
 ];
-const DEADLINE_MIGRATIONS: &[&str] = &[
-    include_str!("../../../migrations/0017_deadline_input_selection.sql"),
-    include_str!("../../../migrations/0017_deadline_attention.sql"),
-    include_str!("../../../migrations/0017_deadline_receipts.sql"),
-    include_str!("../../../migrations/0017_deadline_tables.sql"),
-    include_str!("../../../migrations/0017_deadline_guards.sql"),
-];
 // Every adapter uses this same database-scoped lock before applying schema DDL.
 const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
 
@@ -138,7 +131,13 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in DEADLINE_PROFILE_MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
-    for migration in DEADLINE_MIGRATIONS {
+    for migration in crate::deadline_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
+    for migration in crate::deadline_dispatch_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
+    for migration in crate::deadline_worker_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
     transaction.commit().map_err(port_error)?;
@@ -163,6 +162,8 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::deadline_profile_schema::validate(&mut client)?;
     crate::deadline_schema::validate(&mut client)?;
     crate::deadline_source_event_schema::validate(&mut client)?;
+    crate::deadline_dispatch_schema::validate(&mut client)?;
+    crate::deadline_worker_schema::validate(&mut client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -182,6 +183,8 @@ pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
     crate::deadline_profile_schema::validate_inventory(&mut client)?;
     crate::deadline_schema::validate_inventory(&mut client)?;
     crate::deadline_source_event_schema::validate_inventory(&mut client)?;
+    crate::deadline_dispatch_schema::validate_inventory(&mut client)?;
+    crate::deadline_worker_schema::validate_inventory(&mut client)?;
     Ok(client)
 }
 
@@ -254,6 +257,8 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::deadline_profile_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::deadline_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::deadline_source_event_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::deadline_dispatch_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::deadline_worker_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -271,6 +276,8 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::deadline_profile_schema::validate_runtime_role(client, role)?;
     crate::deadline_schema::validate_runtime_role(client, role)?;
     crate::deadline_source_event_schema::validate_runtime_role(client, role)?;
+    crate::deadline_dispatch_schema::validate_runtime_role(client, role)?;
+    crate::deadline_worker_schema::validate_runtime_role(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

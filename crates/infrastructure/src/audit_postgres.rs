@@ -153,7 +153,7 @@ impl AuditLog for PostgresAuditLog {
 }
 
 fn port_error(error: postgres::Error) -> ApplicationError {
-    ApplicationError::Port(format!("audit database: {error}"))
+    crate::postgres_port::error("audit database", error)
 }
 
 fn storage_error(error: ApplicationError) -> DomainError {

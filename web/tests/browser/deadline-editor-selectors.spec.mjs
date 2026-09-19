@@ -33,6 +33,9 @@ test('responsible selector pages eligible staff without requiring a manually ent
   await page.getByRole('button', { name: 'Registrar plazo', exact: true }).click();
   await fillDeadline(page);
   const form = editor(page);
+  await form
+    .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
+    .selectOption('follow');
   await form.getByRole('button', { name: 'Elegir responsable', exact: true }).click();
   await form.getByRole('button', { name: 'Siguientes responsables', exact: true }).click();
   await form
@@ -71,6 +74,9 @@ test('notification selector keeps the exact historical parent resolution revisio
   await fillDeadline(page);
   const form = editor(page);
   await form
+    .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
+    .selectOption('follow');
+  await form
     .getByRole('combobox', { name: 'Tipo de fuente', exact: true })
     .selectOption('notification');
   await form.getByRole('button', { name: 'Elegir fuente exacta', exact: true }).click();
@@ -92,6 +98,9 @@ test('notification selector keeps the exact historical parent resolution revisio
   await expect(
     form.getByText('Resoluci\u00f3n vinculada: revisi\u00f3n 1', { exact: true }),
   ).toBeVisible();
+  await form
+    .getByRole('combobox', { name: 'Cuando cambie la fuente', exact: true })
+    .selectOption('fixed');
   await form.getByRole('button', { name: 'Preparar plazo', exact: true }).click();
   await expect(form.getByRole('alert')).toBeVisible();
   expect(

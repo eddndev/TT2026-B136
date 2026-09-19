@@ -11,8 +11,20 @@ El esquema incorpora el catálogo de perfiles de plazo, un registro durable de
 cambios de sus fuentes y las capturas persistentes de evaluación y atención.
 El [catálogo HTTP de perfiles](deadline-profiles-api.md) está implementado;
 la persistencia PostgreSQL y HTTP de [plazos](deadline-records.md) tienen pruebas
-focales y aceptación real de restauración aprobadas. Consumir cambios mediante
-trabajadores, entregar alertas y ofrecer Qadra para esos flujos sigue pendiente.
+focales y aceptación real de restauración aprobadas para el flujo V1.
+El [despachador persistente](deadline-dispatch.md) añade trabajos y cursores
+mediante `0019_`; el [consumidor local](deadline-worker.md) añade resultados e
+intentos mediante `0020_`. Ambos adaptadores están compuestos localmente en
+`serve`, con verificación API y navegador reales. La restauración del consumidor,
+el catálogo, la clasificación y la regresión integral aprobaron en su propia
+entrega. La ampliación humana, HTTP y Qadra V2 tiene evidencia posterior:
+88 pruebas Node, 36 de navegador con HTTP controlado y 25 con backend real,
+incluidos dos Follow a 1440 y 390 píxeles; seis capturas se inspeccionaron.
+La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración
+de R1-R5; la aceptación API final también aprobó. El cierre global y la
+integración en `main` siguen en curso; las alertas mantienen su
+alcance pendiente. Cada campaña se registra por separado en el informe de
+verificación.
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
@@ -49,6 +61,17 @@ fallos. Proteger la instalación y conservar sus bibliotecas acompañantes. El
 argumento `--qpdf-library` sustituye la variable. Los argumentos criptográficos
 de `serve --help` siguen vigentes. Véase
 [operación del validador](document-format-operations.md).
+
+La composición local de reevaluación abre y valida despachador y consumidor
+antes de escuchar. `--deadline-page-limit` limita cada página y los trabajos
+intentados por ciclo a 1–100, con valor predeterminado 20;
+`--deadline-poll-ms` exige un entero positivo de 32 bits, por defecto 1000.
+INT/TERM y los fallos fatales coordinan parada y espera del servidor y consumidor,
+sin abortar su operación bloqueante en curso. El ejecutable aprobó 31 pruebas
+unitarias y cuatro de ayuda CLI, con las 26 de bucle, parada y supervisión
+incluidas en las 31. La campaña API real comprobó cierre por ambas señales,
+reinicios y restauración; límites y comportamiento están en
+[el contrato del consumidor](deadline-worker.md#composición-local-y-verificación).
 
 Comprobar `SHOW server_encoding` en la base de destino: debe devolver `UTF8`.
 Las comprobaciones canónicas de clasificación usan escalares Unicode y SHA-256
@@ -522,15 +545,22 @@ usa `pg_dump` y `pg_restore` reales: compara filas, definiciones, revisiones
 exactas, historial, autores capturados y estado de la secuencia; contempla otra
 cuenta Owner que continúa un perfil publicado después de restaurar. Su alcance
 es backend, no una prueba de navegador ni de entrega de alertas. Las mediciones
-del corte en curso se registran separadamente al concluir la campaña.
+de cada corte se registran por separado en [el informe de verificación](verification-report.md).
 
 El [catálogo HTTP](deadline-profiles-api.md) está implementado. El
 [evaluador de aplicación](../crates/application/src/deadline_evaluations/evaluate.rs)
 combina insumos verificados, perfil explícito, cantidad ordenada y declaraciones
 de aplicabilidad. Conserva bloqueos y cálculo parcial. La persistencia descrita
-a continuación captura ese resultado; un evento durable todavía no provoca su
-reevaluación ni equivale a un aviso entregado. Trabajadores, alertas y Qadra de
-plazos siguen pendientes en [el contrato completo](deadline-lifecycle.md).
+a continuación captura ese resultado. El despachador y el consumidor locales
+procesan eventos y trabajos durables; un evento por sí solo no demuestra una
+reevaluación concluida ni un aviso entregado. La base Qadra V1 está integrada;
+el servicio humano y HTTP V2 están implementados y verificados localmente.
+Qadra V2 tiene pruebas Node y navegador tanto con HTTP controlado como con
+backend real aprobadas. El dispatcher/worker está compuesto en `serve`; la
+campaña API real comprobó reevaluación, señales, reinicios y restauración.
+La aceptación API final aprobó; el cierre global y la integración en `main`
+conservan su seguimiento en el informe de verificación. Activación, agenda conjunta y alertas siguen
+pendientes en [el contrato completo](deadline-lifecycle.md).
 
 ## Actualizar capturas y atención de plazos
 
@@ -539,7 +569,10 @@ Detener escritores, conservar un respaldo completo y ejecutar
 `0017_deadline_*.sql` instalan selección DEVI1, atención JSON, recibo DLTX1,
 tablas y guards, en ese orden. Añaden `case_deadlines` y
 `case_deadline_revisions`; no generan plazos a partir de fuentes anteriores ni
-modifican sus revisiones. No ejecutar los archivos sueltos.
+modifican sus revisiones. El conjunto `0018_` amplía ese esquema con
+capturas V2, parsers y un guard humano compatible con V1. La migración conserva
+filas y recibos anteriores; no convierte automáticamente su estado de revisión.
+No ejecutar los archivos sueltos.
 
 La raíz fija el expediente y exige R1 mediante una clave foránea diferida. El
 historial es consecutivo e inmutable, con retiro terminal y operación única.
@@ -549,13 +582,23 @@ y revisión esperada bajo READ COMMITTED y el bloqueo común de auditoría. Una
 revisión y su evento de auditoría se confirman o revierten juntos. El expediente
 cerrado conserva las consultas autorizadas.
 
-Alta y corrección requieren la cabeza publicada del perfil, las selecciones
-exactas de fuentes y calendario con sus cabezas observadas, y un responsable
-activo con acceso al expediente. La asignación como responsable no concede ese
-acceso. Un avance administrativo activo puede capturarse al confirmar sin
-alterar lo revisado. Atención y retiro preservan cálculo, referencias, responsable
-y administración capturados; no sustituyen las cabezas capturadas por las
-actuales ni vuelven a calcular.
+Los registros históricos V1 se conservan con sus recibos originales. Las nuevas
+operaciones del servicio humano y HTTP usan V2: alta y corrección declaran
+políticas explícitas. `Fixed` admite un perfil histórico publicado y exige que
+la cabeza actual observada permanezca publicada; `Follow` exige seleccionar
+esa cabeza. El perfil y las dependencias presentes necesitan una política
+`Fixed` o `Follow`; la fuente desconocida y el calendario ausente usan
+`Undetermined`. El responsable debe seguir activo y tener acceso al expediente;
+asignarlo no concede ese acceso.
+
+El autor se obtiene de la identidad autenticada, incluido su correo. La
+reautenticación compara el principal completo. El commit verifica autor,
+versión, políticas, observaciones, continuidad y ambas capturas administrativas.
+Alta y corrección pueden capturar un avance administrativo activo verificado;
+atención y retiro conservan cálculo, seguimiento y administración capturados.
+No reciben políticas de reemplazo ni sustituyen referencias históricas por
+cabezas actuales. El padre observado de una notificación se resuelve de forma
+independiente en la misma transacción que su material seleccionado.
 
 Se guardan DEVI1 (48–98 897 bytes), DRES1 (hasta 3 000 000), CADM1
 (17–16 384), DLRV1/DLST1 (hasta 524 288 cada uno) y DLTX1 (107–4115), con sus
@@ -566,14 +609,43 @@ resuelve su revisión exacta. No reemplazar R0 por una R1 creada al restaurar.
 Las dependencias tienen claves foráneas tipificadas. La revisión del padre en la
 cabeza de una notificación se conserva aparte de la seleccionada.
 
+V2 añade `tracking_canonical` (102–122 bytes) y `observations_canonical`
+(DLOB1, 111–446 bytes), con límites propios de DLRV2 (524 341), DLST2 (524 410)
+y DLTX2 (151–5502). La administración exterior se reconstruye separadamente
+del cálculo histórico; `tracking_administration_revision` y
+`cause_event_sequence` son proyecciones generadas. Los límites V1 no cambian.
+El lector selecciona cada formato explícitamente y verifica la evidencia exacta
+de sus observaciones. Un hash coherente no permite inventar una revisión.
+El puerto humano rechaza autoría técnica. La ampliación `0020_` habilita sólo
+la revisión correspondiente a un trabajo durable auténtico y su resultado.
+
+`0019_` añade `deadline_dispatch_cursor` y `deadline_reevaluation_jobs`.
+Respaldar ambas junto con eventos, plazos, fuentes y auditoría. La identidad
+del cursor se crea una sola vez; una migración repetida no repara su pérdida.
+El rol operativo sólo lee y añade trabajos y actualiza las cuatro posiciones
+del cursor. La reserva de operación rechaza colisiones con revisiones humanas.
+La apertura comprueba el esquema completo y el inventario, sin exigir que un
+trabajo histórico siga siendo candidato después de una corrección o retiro.
+Los detalles de expansión, límites y recuperación están en
+[despacho persistente](deadline-dispatch.md).
+
 La atención JSON conserva precisión y desfase declarados sin componentes extra.
 La proyección `due_at_seconds`/`due_at_nanoseconds` debe coincidir exactamente con
 el resultado DRES1, incluidos ambos campos ausentes cuando no existe instante.
 No constituye por sí sola una agenda, un estado de vencimiento ni una alerta.
 
+El detalle actual y el listado resuelven las cabezas verificadas en su propia
+transacción autorizada y auditada. Mantienen el cálculo histórico y producen una
+proyección operativa vinculada a su captura exacta. `calculation_due_at` y
+`calculation_blocked` describen el cálculo; `operational.due_at` sólo aparece
+si el plazo está activo, aceptado y vigente conforme a sus políticas. Ni el
+cursor, ni trabajos pendientes, ni `Completed` sustituyen esta comprobación.
+La lectura exacta de una revisión no certifica vigencia actual. Véase
+[el contrato HTTP de seguimiento](deadline-tracking-api.md).
+
 El arranque rechaza cambios de columnas, nulabilidad, restricciones, expresiones,
 funciones, triggers o permisos. El rol operativo sólo lee y agrega filas, y
-necesita EXECUTE sobre los tres helpers; no puede ejecutar guards directamente,
+necesita EXECUTE sobre los parsers del contrato; no puede ejecutar guards directamente,
 poseer objetos ni reescribir historia. El inventario verifica todas las
 revisiones y sus recibos en lotes acotados, incluido UUID cero, sin recalcular con
 la versión actual del algoritmo. Los administradores de PostgreSQL siguen dentro
@@ -598,15 +670,80 @@ retirar fuente y perfil y revocar autor y responsable. Otro Owner pudo consultar
 cada revisión y registrar atención conservando el cálculo y responsable
 históricos. La regresión de siete pruebas de esquema pasó en el mismo corte.
 
-La [campaña HTTP de plazos](../scripts/api-deadlines-demo.py) también pasó con
-servicios reales: días, meses, horas, cuatro roles, aislamiento, preparación,
-conflictos, atención, retiro y revocación. El ensayo global de migración y
+La [campaña HTTP histórica V1 de plazos](../scripts/api-deadlines-demo.py)
+también pasó con servicios reales: días, meses, horas, cuatro roles, aislamiento,
+preparación, conflictos, atención, retiro y revocación. El ensayo global de migración y
 restauración conservó 14 respuestas completas de plazos idénticas, incluidos sus
 resultados históricos. Son evidencias separadas de backend y transporte, sin
 atribuir aceptación de navegador ni aplicabilidad jurídica a los casos sintéticos.
-Qadra, reevaluación y alertas siguen pendientes; el informe de verificación
-registra el cierre global separadamente. Véase
-[ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md).
+Esa campaña no acredita la aceptación API/restauración del contrato humano V2.
+El servicio y HTTP V2, incluidos detalle actual y listado, están implementados
+y tienen verificación focal local. Qadra V2 también está implementada: aprobaron
+88 pruebas Node y 36 recorridos de navegador con HTTP controlado, incluidos ocho
+nuevos de escritorio y móvil. La campaña posterior con backend real aprobó 25
+recorridos, incluidos dos Follow a 1440 y 390 píxeles; seis capturas se
+inspeccionaron. La campaña API real terminó con código cero y comprobó cierre
+TERM/INT, reinicios y conservación de R1-R5 tras restaurar. La aceptación API
+final aprobó; el cierre global y la integración en `main` siguen en curso.
+Las alertas conservan su alcance propio.
+El [informe de verificación](verification-report.md) separa cada campaña. Véanse [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md)
+y [el contrato de seguimiento](deadline-tracking-api.md).
+
+## Instalar el consumidor local de plazos
+
+Aplicar las migraciones `0020_` mediante `database migrate --runtime-role`,
+con conexión administrativa, escritores detenidos y respaldo coherente.
+`crates/infrastructure/src/deadline_worker_schema/migrations.rs` fija su orden.
+Se añaden `deadline_reevaluation_results` y `deadline_reevaluation_attempts`;
+no se reescriben los recibos V1 ni se crea una cuenta Owner para el trabajador.
+Una migración instalada no inicia por sí sola el consumidor. La composición
+local en `serve` abre dispatcher y worker, valida ambos inventarios y coordina
+su parada y supervisión. Las proyecciones HTTP V1/V2 y Qadra V2 están implementadas;
+la composición tiene evidencia API con reinicios y restauración, y Qadra tiene
+una campaña de navegador con backend real aprobada. Sus resultados se registran
+separados de la entrega original del consumidor.
+
+Los resultados conservan trabajo, base y ambas huellas; una revisión producida
+conserva también su número y recibos. Los resultados sin cambios que examinan
+cabezas guardan DLOB1 y la huella administrativa completa. Los intentos tienen
+UUID y numeración consecutiva por trabajo, base verificada opcional, categoría,
+código y tiempos UTC de fallo/reintento. No borrar intentos después del éxito.
+
+El rol operativo sólo puede leer y agregar columnas permitidas, con funciones
+de validación autorizadas. No puede alterar ni eliminar estas filas o eludir
+los guards. La apertura verifica funciones, restricciones, índices, permisos y
+todo el inventario de trabajos, resultados e intentos. Incluye revisiones
+huérfanas, causas falsas, operaciones reservadas y huecos de intentos.
+
+Respaldar resultados e intentos junto con trabajos, cursores, eventos y secuencia,
+plazos, fuentes, perfiles, calendarios, administración y auditoría. Después de
+restaurar, comparar filas y recibos exactos y abrir con el rol operativo sin
+reparación automática por migración. Una prueba debe conservar un trabajo
+completado y otro esperando reintento, leer su historia y continuar sin duplicar.
+Ese escenario aprobó junto con crecimiento y límite de reintentos, en
+`crates/infrastructure/tests/deadline_worker_recovery.rs`. La comprobación focal
+de catálogo y permisos también aprobó. Estas cinco pruebas no sustituyen la
+regresión integral ni la aceptación de composición en servidor.
+
+Para comparar evidencia restaurada, usar capturas y revisiones exactas.
+`operational.checked_at` pertenece a una consulta nueva y la vigencia depende
+de las cabezas verificadas en ella; no son bytes históricos del recibo ni un
+resultado que deba fabricarse para reproducir la respuesta anterior.
+
+Las restricciones nuevas escriben los límites con `>=` y `<=` explícitos.
+Combinar `BETWEEN` con conjunciones producía otra agrupación de `AND` al
+reconstruir el DDL de `pg_dump`, aunque la condición conservaba su significado.
+Las comparaciones explícitas estabilizan esa representación al restaurar.
+El verificador sigue comparando estrictamente las once expresiones de CHECK;
+no elimina paréntesis ni acepta predicados distintos de forma genérica.
+
+Una demora de reintento no autoriza ignorar corrupción. La recuperación entre
+reinicios exige inventario válido; una inconsistencia persistente bloquea la
+apertura hasta reparación o restauración. Una conexión abierta sólo puede
+informar `Deferred` cuando confirmó intento y auditoría. Los errores de esas
+operaciones siguen siendo errores. No reinsertar trabajos con otro UUID ni
+fabricar un resultado para desbloquear la cola. Véase
+[el contrato del consumidor](deadline-worker.md).
 
 ## Respaldo y restauración
 
@@ -694,7 +831,10 @@ No utiliza datos del usuario. Incluir siempre raíces, todas las versiones,
 `case_hearing_results`, `case_hearing_result_revisions`, `judicial_calendars`,
 `judicial_calendar_revisions`, `case_procedural_facts`,
 `case_procedural_fact_revisions`, `deadline_profiles`, `deadline_profile_revisions`,
-`case_deadlines`, `case_deadline_revisions`, `deadline_source_events`, `deadline_source_events_sequence` y auditoría; un respaldo
+`case_deadlines`, `case_deadline_revisions`, `deadline_source_events`,
+`deadline_source_events_sequence`, `deadline_dispatch_cursor`,
+`deadline_reevaluation_jobs`, `deadline_reevaluation_results`,
+`deadline_reevaluation_attempts` y auditoría; un respaldo
 incompleto no se repara creando
 raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.

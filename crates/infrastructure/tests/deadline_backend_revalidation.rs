@@ -30,7 +30,7 @@ fn commit_rechecks_current_actor_assignment_and_responsible_eligibility() {
         };
         let mut command = command(&db, &profile, &source);
         definition_mut(&mut command).responsible = responsible;
-        let pending = prepared(&db, actor, &command);
+        let pending = prepared_legacy(&db, actor, &command);
         let target = if change < 3 { actor } else { responsible };
         match change {
             0 | 3 => {
@@ -82,7 +82,7 @@ fn source_or_profile_head_changes_reject_the_prepared_review_without_partial_wri
         let profile = profile(&db);
         let source = source(&db);
         let command = command(&db, &profile, &source);
-        let pending = prepared(&db, db.owner, &command);
+        let pending = prepared_legacy(&db, db.owner, &command);
         if change_profile {
             let profiles =
                 &crate::deadline_profile_database_support::service(&db, db.owner, Role::Owner);
@@ -110,9 +110,9 @@ fn source_or_profile_head_changes_reject_the_prepared_review_without_partial_wri
 fn only_one_prepared_correction_can_advance_the_same_base_revision() {
     let Some(mut db) = Fixture::new() else { return };
     let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, setup(&db));
-    let left = prepared(&db, db.owner, &correct(&first));
-    let right = prepared(&db, db.owner, &correct(&first));
+    let first = persist_legacy(&db, db.owner, setup(&db));
+    let left = prepared_legacy(&db, db.owner, &correct(&first));
+    let right = prepared_legacy(&db, db.owner, &correct(&first));
     let second = store(&db).commit(db.owner, left).unwrap();
     assert_eq!(second.revision.get(), 2);
     let before = snapshot(&mut db);
@@ -131,8 +131,8 @@ fn only_one_prepared_correction_can_advance_the_same_base_revision() {
 fn active_administration_advances_capture_while_attention_keeps_historical_calculation() {
     let Some(db) = Fixture::new() else { return };
     let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, setup(&db));
-    let pending = prepared(&db, db.owner, &correct(&first));
+    let first = persist_legacy(&db, db.owner, setup(&db));
+    let pending = prepared_legacy(&db, db.owner, &correct(&first));
     let reviewed = pending.review_digest();
     let old_capture = pending.capture_digest();
     let revised = db
@@ -161,7 +161,7 @@ fn active_administration_advances_capture_while_attention_keeps_historical_calcu
             .unwrap(),
         first
     );
-    let pending = prepared(&db, db.owner, &attention(&second));
+    let pending = prepared_legacy(&db, db.owner, &attention(&second));
     let captured = pending.capture_digest();
     db.store()
         .replace_administration(

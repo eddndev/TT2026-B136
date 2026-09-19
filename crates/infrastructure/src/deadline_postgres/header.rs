@@ -1,6 +1,7 @@
-use super::{attention, inconsistent};
+use super::{attention, inconsistent, projection};
 use application::{
     deadline_profiles::{DeadlineProfileId, DeadlineProfileRevision},
+    deadline_reevaluation::{decode_tracked_submission, TechnicalCause, TrackedSubmission},
     deadlines::*,
     ApplicationError,
 };
@@ -74,6 +75,7 @@ pub(super) fn row(row: &Row) -> Result<Header, ApplicationError> {
         "correct" => DeadlineAction::Correct,
         "set_attention" => DeadlineAction::SetAttention,
         "retire" => DeadlineAction::Retire,
+        "reevaluate" => DeadlineAction::Reevaluate,
         _ => return Err(inconsistent("unknown deadline action")),
     };
     let recorded_at = OffsetDateTime::from_unix_timestamp(
@@ -88,7 +90,17 @@ pub(super) fn row(row: &Row) -> Result<Header, ApplicationError> {
     if !(1..=9999).contains(&recorded_at.year()) {
         return Err(inconsistent("deadline capture year is outside bounds"));
     }
-    Ok(Header {
+    let (submission, recorded_by) = author(row)?;
+    let version = submission
+        .as_ref()
+        .map_or(DeadlineReceiptVersion::Legacy, |value| {
+            DeadlineReceiptVersion::Tracked(DeadlineTrackedReceipt {
+                observations_digest: value.observations_digest,
+                predecessor: value.predecessor,
+                cause: value.cause,
+            })
+        });
+    let header = Header {
         id: DeadlineId::from_uuid(row.try_get("deadline_id").map_err(inconsistent)?),
         case_id: CaseId::from_uuid(row.try_get("case_id").map_err(inconsistent)?),
         revision,
@@ -117,6 +129,7 @@ pub(super) fn row(row: &Row) -> Result<Header, ApplicationError> {
             .map_err(inconsistent)?,
         reason,
         receipt: DeadlineReceipt {
+            version,
             operation_id: DeadlineOperationId::from_uuid(
                 row.try_get("operation_id").map_err(inconsistent)?,
             ),
@@ -127,52 +140,98 @@ pub(super) fn row(row: &Row) -> Result<Header, ApplicationError> {
             submission_digest: digest(row.try_get("submission_digest").map_err(inconsistent)?)?,
         },
         recorded_at,
-        recorded_by: DeadlineActorSnapshot {
-            id: UserId::from_uuid(row.try_get("recorded_by").map_err(inconsistent)?),
-            email: email(row.try_get("recorded_by_email").map_err(inconsistent)?)?,
-        },
-    })
-}
-pub(super) fn command(value: &DeadlineDetail) -> Result<DeadlineCommand, ApplicationError> {
-    let change = if value.receipt.action == DeadlineAction::Register {
-        DeadlineChange::Register {
-            definition: value.definition.clone(),
-        }
-    } else {
-        let expected_revision =
-            DeadlineRevision::new(value.receipt.expected_revision).map_err(inconsistent)?;
-        let reason = value
-            .reason
-            .clone()
-            .ok_or_else(|| inconsistent("deadline reason is absent"))?;
-        match value.receipt.action {
-            DeadlineAction::Correct => DeadlineChange::Correct {
-                expected_revision,
-                definition: value.definition.clone(),
-                reason,
-            },
-            DeadlineAction::SetAttention => DeadlineChange::SetAttention {
-                expected_revision,
-                attention: value.attention.clone(),
-                reason,
-            },
-            DeadlineAction::Retire => DeadlineChange::Retire {
-                expected_revision,
-                reason,
-            },
-            DeadlineAction::Register => unreachable!("register was handled"),
-        }
+        recorded_by,
     };
-    Ok(DeadlineCommand {
-        operation_id: value.receipt.operation_id,
-        deadline_id: value.id,
-        change,
-    })
+    if let Some(value) = submission {
+        if value.case_id != header.case_id
+            || value.deadline_id != header.id
+            || value.operation_id != header.receipt.operation_id
+            || value.action as u8 != header.receipt.action.tag()
+            || value.expected_revision != header.receipt.expected_revision
+            || value.review_digest != header.receipt.review_digest
+            || value.reason.as_deref() != header.reason.as_ref().map(|reason| reason.as_str())
+        {
+            return Err(inconsistent(
+                "tracked submission differs from deadline columns",
+            ));
+        }
+    } else if action == DeadlineAction::Reevaluate {
+        return Err(inconsistent(
+            "legacy receipt cannot record technical reevaluation",
+        ));
+    }
+    let event = match &header.receipt.version {
+        DeadlineReceiptVersion::Tracked(metadata) => match metadata.cause {
+            Some(TechnicalCause::SourceEvent { event, .. }) => {
+                Some(i64::try_from(event.sequence).map_err(inconsistent)?)
+            }
+            _ => None,
+        },
+        DeadlineReceiptVersion::Legacy => None,
+    };
+    if row
+        .try_get::<_, Option<i64>>("cause_event_sequence")
+        .map_err(inconsistent)?
+        != event
+    {
+        return Err(inconsistent("deadline event sequence projection differs"));
+    }
+    Ok(header)
 }
 
-pub(super) fn projection(value: &DeadlineDetail) -> serde_json::Value {
-    serde_json::json!({"actor_id":value.recorded_by.id.to_string(),"case_id":value.case_id.to_string(),
-        "deadline_id":value.id.to_string(),"operation_id":value.receipt.operation_id.to_string(),
-        "action":value.receipt.action.as_str(),"expected_revision":value.receipt.expected_revision,
-        "review_digest":value.receipt.review_digest.to_hex(),"reason":value.reason.as_ref().map(|r|r.as_str())})
+fn author(
+    row: &Row,
+) -> Result<(Option<TrackedSubmission>, DeadlineActorSnapshot), ApplicationError> {
+    let bytes: &[u8] = row.try_get("submission_canonical").map_err(inconsistent)?;
+    let id: Option<uuid::Uuid> = row.try_get("recorded_by").map_err(inconsistent)?;
+    let captured_email: Option<String> = row.try_get("recorded_by_email").map_err(inconsistent)?;
+    match bytes.get(..5) {
+        Some(b"DLTX1") => Ok((
+            None,
+            DeadlineActorSnapshot::User {
+                id: UserId::from_uuid(id.ok_or_else(|| inconsistent("legacy author is absent"))?),
+                email: email(
+                    captured_email.ok_or_else(|| inconsistent("legacy author email is absent"))?,
+                )?,
+            },
+        )),
+        Some(b"DLTX2") => {
+            let submission = decode_tracked_submission(bytes).map_err(inconsistent)?;
+            match &submission.author {
+                DeadlineActorSnapshot::User {
+                    id: author_id,
+                    email,
+                } => {
+                    if id != Some(author_id.as_uuid())
+                        || captured_email.as_deref() != Some(email.as_str())
+                    {
+                        return Err(inconsistent("tracked user author differs from columns"));
+                    }
+                }
+                DeadlineActorSnapshot::Technical { .. } => {
+                    if id.is_some() || captured_email.is_some() {
+                        return Err(inconsistent("technical author has fabricated user columns"));
+                    }
+                }
+            }
+            let author = submission.author.clone();
+            Ok((Some(submission), author))
+        }
+        _ => Err(inconsistent("unsupported deadline submission version")),
+    }
+}
+
+pub(super) fn legacy_actor(
+    author: &DeadlineActorSnapshot,
+) -> Result<(UserId, &str), ApplicationError> {
+    match author {
+        DeadlineActorSnapshot::User { id, email } => Ok((*id, email.as_str())),
+        DeadlineActorSnapshot::Technical { .. } => Err(inconsistent(
+            "legacy storage requires a human deadline author",
+        )),
+    }
+}
+
+pub(super) fn projection(value: &DeadlineDetail) -> Result<serde_json::Value, ApplicationError> {
+    projection::submission(value)
 }

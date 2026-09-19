@@ -5,6 +5,7 @@
   import { caseState } from '../lib/case-state.mjs';
   import { canDeadlines, deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
+  import { deadlineOperationalLabel, deadlineReviewLabels } from './deadline-view-labels.mjs';
   export let api, user, caseId, ondenied;
   const scoped = api.deadlines(caseId),
     administration = caseState();
@@ -160,7 +161,8 @@
       >
     </div>
     <p class="hint">
-      Orden por identificador. Para conocer el vencimiento, consulta el resultado de cada plazo.
+      Orden por identificador. El seguimiento consultado y el c&#225;lculo conservado se muestran
+      por separado.
     </p>
     {#each rows as row (row.id)}<button
         class="case-card fact-row deadline-row"
@@ -175,15 +177,19 @@
               ? 'Atenci\u00f3n declarada'
               : 'Atenci\u00f3n pendiente'}</small
           >
-          <span>{row.due_at ? deadlineInstantLabel(row.due_at) : 'Sin vencimiento fijado'}</span
-          ></span
+          <span class="deadline-operational"
+            >Vencimiento para seguimiento:
+            {deadlineOperationalLabel(row.operational, row.status, row.review_state)}</span
+          >
+          <small
+            >C&#225;lculo conservado: {row.calculation_due_at
+              ? deadlineInstantLabel(row.calculation_due_at)
+              : 'Sin vencimiento calculado'}</small
+          >
+          <small>{deadlineReviewLabels[row.review_state]}</small></span
         >
-        <span class="badge" class:warning={row.blocked}
-          >{row.status === 'retired'
-            ? 'Retirado'
-            : row.blocked
-              ? 'Requiere revisi\u00f3n'
-              : 'Activo'}</span
+        <span class="badge" class:info={row.status === 'active'}
+          >{row.status === 'retired' ? 'Retirado' : 'Activo'}</span
         >
       </button>{/each}
     {#if !rows.length && !busy && !error}<p>No hay plazos en esta consulta.</p>{/if}

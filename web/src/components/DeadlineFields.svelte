@@ -4,6 +4,11 @@
   import DeadlineFieldsSource from './DeadlineFieldsSource.svelte';
   import DeadlineCatalogPicker from './DeadlineCatalogPicker.svelte';
   import DeadlineResponsiblePicker from './DeadlineResponsiblePicker.svelte';
+  import DeadlinePolicyChoice from './DeadlinePolicyChoice.svelte';
+  import {
+    initialDeadlinePolicies,
+    reconcileDeadlinePolicies,
+  } from '../lib/deadline-editor-policies.mjs';
   import { deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
   export let value,
     api,
@@ -11,6 +16,7 @@
     ondenied,
     responsible = null,
     profile = null,
+    policies = null,
     disabled = false,
     pending = false;
   const scoped = api.deadlineProfiles(caseId);
@@ -24,6 +30,13 @@
     profileKey = '';
   $: pending = pickerBusy || sourceBusy || loading;
   $: locked = disabled || pending;
+  $: synchronizePolicies(value, policies);
+  function synchronizePolicies(definition, current) {
+    const next = current
+      ? reconcileDeadlinePolicies(current, definition)
+      : initialDeadlinePolicies(definition);
+    if (JSON.stringify(next) !== JSON.stringify(current)) policies = next;
+  }
   async function loadProfile() {
     if (!value.profile?.id || loading) return;
     loading = true;
@@ -50,8 +63,17 @@
         ...value,
         input: {
           ...value.input,
+          ordered_quantity:
+            profile?.definition.template.kind === 'ordered' &&
+            row.definition.template.kind === 'ordered' &&
+            JSON.stringify(profile.definition.template.unit) ===
+              JSON.stringify(row.definition.template.unit)
+              ? value.input.ordered_quantity
+              : null,
           qualification: {
             ...value.input.qualification,
+            scope_applies: { kind: '' },
+            unresolved_incident: { kind: '' },
             conditions: row.definition.conditions.map((condition) => ({
               id: condition.id,
               applies: { kind: '' },
@@ -136,6 +158,12 @@
     <button type="button" class="secondary" disabled={locked} onclick={() => (choosing = 'profile')}
       >Elegir perfil exacto</button
     >
+    <DeadlinePolicyChoice
+      dependency="profile"
+      bind:value={policies.profile.value}
+      present={!!policies.profile.key}
+      disabled={locked}
+    />
   </section>
   <section class="case-comparison" aria-label="Responsable seleccionado">
     <h3>Responsable</h3>
@@ -194,6 +222,8 @@
     {ondenied}
     disabled={disabled || pickerBusy || loading}
     bind:pending={sourceBusy}
+    bind:policy={policies.source.value}
+    policyPresent={!!policies.source.key}
   />
   <section class="case-comparison" aria-label="Calendario seleccionado">
     <h3>Calendario</h3>
@@ -222,6 +252,12 @@
           }}>Declarar calendario ausente</button
         >{/if}
     </div>
+    <DeadlinePolicyChoice
+      dependency="calendar"
+      bind:value={policies.calendar.value}
+      present={!!policies.calendar.key}
+      disabled={locked}
+    />
   </section>
   <fieldset class="case-offenses" disabled={locked}>
     <legend>Duraci&#243;n ordenada</legend>

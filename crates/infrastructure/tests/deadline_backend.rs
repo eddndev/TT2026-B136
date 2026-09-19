@@ -25,19 +25,40 @@ fn blocked_and_calculable_registrations_preserve_explicit_inputs_and_exact_recei
             definition_mut(&mut command).input.selection.source =
                 FactDeclaration::Unknown(text("Exact source not yet supplied"));
         }
+        let policies = TrackingPolicies {
+            source: if blocked {
+                TrackingPolicy::Undetermined
+            } else {
+                TrackingPolicy::Follow
+            },
+            ..FOLLOW_RESOLUTION
+        };
         let before = snapshot(&mut db);
         let draft = workflow
-            .prepare("session", db.case, command.clone())
+            .prepare("session", db.case, human(command.clone(), Some(policies)))
             .unwrap();
         assert_eq!(snapshot(&mut db), before);
         let result = workflow
-            .submit("session", db.case, command.clone(), draft.submission_digest)
+            .submit(
+                "session",
+                db.case,
+                human(command.clone(), Some(policies)),
+                draft.submission_digest,
+            )
             .unwrap();
         assert_eq!(result.definition, draft.definition);
         assert_eq!(result.calculation, draft.calculation);
         assert_eq!(result.receipt.operation_id, command.operation_id);
-        assert_eq!(result.recorded_by.id, db.owner);
-        assert_eq!(result.recorded_by.email, "owner@example.test");
+        assert_eq!(result.recorded_by.user_id(), Some(db.owner));
+        assert_eq!(result.recorded_by.email(), Some("owner@example.test"));
+        assert_eq!(result.receipt.version, draft.receipt_version);
+        assert!(matches!(
+            &result.receipt.version,
+            DeadlineReceiptVersion::Tracked(_)
+        ));
+        assert_eq!(result.tracking.as_ref(), Some(&draft.tracking));
+        assert_eq!(draft.tracking.policies, policies);
+        assert_eq!(result.recorded_by, draft.author);
         assert_eq!(result.receipt.review_digest, draft.review_digest);
         assert_eq!(result.receipt.capture_digest, draft.capture_digest);
         deadline_receipt_matches(&RingSha256Hasher, &result).unwrap();
@@ -67,20 +88,46 @@ fn blocked_and_calculable_registrations_preserve_explicit_inputs_and_exact_recei
     }
     let page = workflow.list("session", db.case, query(100, None)).unwrap();
     assert_eq!(page.deadlines.len(), 2);
-    assert_eq!(page.deadlines.iter().filter(|row| row.blocked).count(), 1);
+    assert_eq!(
+        page.deadlines
+            .iter()
+            .filter(|row| row.calculation_blocked)
+            .count(),
+        1
+    );
+    assert_eq!(
+        page.deadlines
+            .iter()
+            .filter(|row| row.operational.due_at().is_some())
+            .count(),
+        1
+    );
+    assert!(page.deadlines.iter().all(
+        |row| row.review_state == application::deadline_tracking::DeadlineReviewState::Accepted
+    ));
 }
 
 #[test]
 fn corrections_attention_retirement_and_paged_history_preserve_historical_calculation() {
     let Some(mut db) = Fixture::new() else { return };
     let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, setup(&db));
-    let second = persist(&workflow, db.case, correct(&first));
-    let third = persist(&workflow, db.case, attention(&second));
-    let fourth = persist(&workflow, db.case, retire(&third));
+    let first = persist(
+        &workflow,
+        db.case,
+        human(setup(&db), Some(FOLLOW_RESOLUTION)),
+    );
+    let second = persist(
+        &workflow,
+        db.case,
+        human(correct(&first), Some(FOLLOW_RESOLUTION)),
+    );
+    let third = persist(&workflow, db.case, human(attention(&second), None));
+    let fourth = persist(&workflow, db.case, human(retire(&third), None));
     assert_ne!(first.definition.title, second.definition.title);
     assert_eq!(second.calculation, third.calculation);
     assert_eq!(third.calculation, fourth.calculation);
+    assert_eq!(second.tracking, third.tracking);
+    assert_eq!(third.tracking, fourth.tracking);
     assert_eq!(third.attention, fourth.attention);
     assert!(matches!(
         third.attention,
@@ -116,7 +163,11 @@ fn corrections_attention_retirement_and_paged_history_preserve_historical_calcul
     }
     let before = snapshot(&mut db);
     assert!(matches!(
-        workflow.prepare("session", db.case, correct(&fourth)),
+        workflow.prepare(
+            "session",
+            db.case,
+            human(correct(&fourth), Some(FOLLOW_RESOLUTION))
+        ),
         Err(ApplicationError::Deadline(DeadlineError::Retired))
     ));
     assert_eq!(snapshot(&mut db), before);
@@ -125,16 +176,15 @@ fn corrections_attention_retirement_and_paged_history_preserve_historical_calcul
 #[test]
 fn failed_audit_rolls_back_new_root_and_followup_revision() {
     let Some(mut db) = Fixture::new() else { return };
-    let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, setup(&db));
+    let first = persist_legacy(&db, db.owner, setup(&db));
     let mut register = correct(&first);
     register.deadline_id = DeadlineId::new();
     register.change = DeadlineChange::Register {
         definition: first.definition.clone(),
     };
     let changes = [
-        prepared(&db, db.owner, &register),
-        prepared(&db, db.owner, &correct(&first)),
+        prepared_legacy(&db, db.owner, &register),
+        prepared_legacy(&db, db.owner, &correct(&first)),
     ];
     db.admin.batch_execute("CREATE FUNCTION reject_deadline_audit() RETURNS trigger LANGUAGE plpgsql AS $$
         BEGIN RAISE EXCEPTION 'injected audit failure'; END; $$;

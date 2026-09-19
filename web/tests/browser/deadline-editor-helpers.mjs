@@ -1,30 +1,16 @@
 import { expect } from '@playwright/test';
 import { setupFacts } from './procedural-facts-helpers.mjs';
 import { login, navigate, caseId } from './helpers.mjs';
-import {
-  prepared,
-  detail,
-  summary,
-  history,
-  profile,
-  id,
-  hash,
-} from '../fixtures/deadline-unit.mjs';
+import { profile, id } from '../fixtures/deadline-unit.mjs';
+import { v2Record, summary, historyRow, notChecked } from '../fixtures/deadline-v2-unit.mjs';
+import { browserDeadlinePrepared, prepareBrowserDeadline } from '../fixtures/deadline-browser.mjs';
 export { caseId } from './helpers.mjs';
 export const editor = (page) =>
   page.getByRole('region', { name: 'Formulario de plazo', exact: true });
 export const deadlineError = (route, code, status = 409) =>
   route.fulfill({ status, json: { error: { code } } });
 export function deadlineFixture(action = 'register') {
-  const value = prepared(action);
-  value.case_id = caseId;
-  value.definition.input.selection.case_id = caseId;
-  value.calculation.profile.scope.case_id = caseId;
-  value.calculation.profile.href = `/api/v1/cases/${caseId}/deadline-profiles/${id(2)}/revisions/1`;
-  value.calculation.material.case_id = caseId;
-  if (value.command.change.definition)
-    value.command.change.definition.input.selection.case_id = caseId;
-  return value;
+  return browserDeadlinePrepared(caseId, action);
 }
 export async function setupDeadlines(
   page,
@@ -43,24 +29,10 @@ export async function setupDeadlines(
   };
   for (const row of deadlines)
     state.records.set(row.id, [...(state.records.get(row.id) || []), structuredClone(row)]);
-  state.prepare = (command) => {
-    const value = deadlineFixture(command.change.action),
-      current = state.records.get(command.deadline_id)?.at(-1);
-    value.command = structuredClone(command);
-    value.result_revision = command.change.expected_revision + 1;
-    value.definition = structuredClone(command.change.definition || current.definition);
-    value.attention = structuredClone(
-      command.change.attention || current?.attention || { status: 'pending' },
-    );
-    value.responsible =
-      state.responsibles.find((row) => row.id === value.definition.responsible_id) ||
-      current?.responsible;
-    if (current && !command.change.definition)
-      value.calculation = structuredClone(current.calculation);
-    return value;
-  };
+  state.prepare = (command) =>
+    prepareBrowserDeadline(command, state.records.get(command.deadline_id)?.at(-1), state, caseId);
   state.commit = (value) => {
-    const row = detail(value);
+    const row = v2Record(value);
     state.records.set(row.id, [...(state.records.get(row.id) || []), row]);
     return row;
   };
@@ -180,7 +152,7 @@ export async function setupDeadlines(
         json: {
           case_id: caseId,
           id: parts[0],
-          revisions: page.map(history),
+          revisions: page.map(historyRow),
           has_more: more,
           next_before_revision: more ? page.at(-1).revision : null,
         },
@@ -190,7 +162,10 @@ export async function setupDeadlines(
       parts[1] === 'revisions'
         ? rows.find((item) => item.revision === Number(parts[2]))
         : rows.at(-1);
-    return row ? route.fulfill({ json: row }) : deadlineError(route, 'deadline_not_found', 404);
+    if (!row) return deadlineError(route, 'deadline_not_found', 404);
+    return route.fulfill({
+      json: parts[1] === 'revisions' ? { ...row, operational: notChecked() } : row,
+    });
   });
   return state;
 }

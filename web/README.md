@@ -522,10 +522,34 @@ consulta e historia: no registra resultados, calcula plazos ni envía avisos.
 
 ## Verificación
 
+Ejecutar una sola suite local a la vez. Un único coordinador administra las
+compilaciones, las pruebas y sus servicios de demostración. No solapar
+compilaciones ni campañas. Mantener un trabajo de compilación Cargo, un hilo
+de pruebas Rust y un worker de navegador.
+
+Si `/tmp` usa tmpfs, configurar los temporales en disco antes de la campaña.
+Desde la raíz del checkout activo, comprobar que su sistema de archivos está
+en disco y preparar un directorio privado:
+
+```sh
+mkdir -p output/tmp
+chmod 700 output/tmp
+export TMPDIR="$PWD/output/tmp"
+export CARGO_BUILD_JOBS=1
+export RUST_TEST_THREADS=1
+```
+
+Conservar estas variables en el coordinador y sus procesos hijos, incluido
+`scripts/web-demo.sh`. No borrar archivos ajenos en `/tmp`, el checkout ni el
+directorio temporal. Registrar ese entorno junto con los resultados; un error
+de carga de recursos no identifica por sí solo su causa exacta.
+
+Después, desde `web/`, ejecutar los controles secuencialmente:
+
 ```sh
 npm test
 npx playwright install chromium
-npm run test:e2e
+npm run test:e2e -- --workers=1
 npm run format:check
 npm run build
 npm audit

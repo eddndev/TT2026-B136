@@ -7,6 +7,10 @@ if (!process.env.TT_WEB_FIXTURES || !process.env.API_PROXY_TARGET) {
 
 export default defineConfig({
   testDir: './tests/live',
+  testIgnore:
+    process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === '1'
+      ? []
+      : ['**/deadline-reevaluation.spec.mjs'],
   outputDir: './test-results-live',
   workers: 1,
   timeout: 60000,

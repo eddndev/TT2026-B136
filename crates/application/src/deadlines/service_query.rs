@@ -2,7 +2,7 @@ use super::{
     service_validation::{validate_history, validate_page},
     *,
 };
-use crate::ApplicationError;
+use crate::{deadline_currentness::DeadlineCurrent, ApplicationError};
 use domain::{cases::CaseId, crypto::Sha256Digest, identity::Permission};
 
 impl DeadlineWorkflow for DeadlineService {
@@ -15,9 +15,9 @@ impl DeadlineWorkflow for DeadlineService {
         let actor = self.actor(token, Permission::ReadDeadline)?;
         let page = self
             .store
-            .responsibles(actor.0, case_id, query, self.clock.now())?;
+            .responsibles(actor.id, case_id, query, self.clock.now())?;
         page.validate(case_id, query)?;
-        self.same_actor(token, actor, Permission::ReadDeadline)?;
+        self.same_actor(token, &actor, Permission::ReadDeadline)?;
         Ok(page)
     }
     fn list(
@@ -29,10 +29,31 @@ impl DeadlineWorkflow for DeadlineService {
         let actor = self.actor(token, Permission::ReadDeadline)?;
         let page = self
             .store
-            .list(actor.0, case_id, query.clone(), self.clock.now())?;
+            .list(actor.id, case_id, query.clone(), self.clock.now())?;
         validate_page(case_id, &page, &query)?;
-        self.same_actor(token, actor, Permission::ReadDeadline)?;
+        self.same_actor(token, &actor, Permission::ReadDeadline)?;
         Ok(page)
+    }
+    fn current(
+        &self,
+        token: &str,
+        case_id: CaseId,
+        id: DeadlineId,
+    ) -> Result<DeadlineCurrent, ApplicationError> {
+        let actor = self.actor(token, Permission::ReadDeadline)?;
+        let current = self.store.current(actor.id, case_id, id)?;
+        let detail = current.detail();
+        deadline_receipt_matches(self.hasher.as_ref(), detail)?;
+        if detail.case_id != case_id
+            || detail.id != id
+            || !current.operational().matches_capture(detail)
+        {
+            return Err(inconsistent(
+                "current deadline differs from its requested identity or capture",
+            ));
+        }
+        self.same_actor(token, &actor, Permission::ReadDeadline)?;
+        Ok(current)
     }
     fn get(
         &self,
@@ -44,7 +65,7 @@ impl DeadlineWorkflow for DeadlineService {
         let actor = self.actor(token, Permission::ReadDeadline)?;
         let detail = self
             .store
-            .get(actor.0, case_id, id, revision, self.clock.now())?;
+            .get(actor.id, case_id, id, revision, self.clock.now())?;
         deadline_receipt_matches(self.hasher.as_ref(), &detail)?;
         if detail.case_id != case_id
             || detail.id != id
@@ -54,7 +75,7 @@ impl DeadlineWorkflow for DeadlineService {
                 "deadline detail differs from requested case, identity or exact revision",
             ));
         }
-        self.same_actor(token, actor, Permission::ReadDeadline)?;
+        self.same_actor(token, &actor, Permission::ReadDeadline)?;
         Ok(detail)
     }
     fn history(
@@ -67,16 +88,16 @@ impl DeadlineWorkflow for DeadlineService {
         let actor = self.actor(token, Permission::ReadDeadline)?;
         let page = self
             .store
-            .history(actor.0, case_id, id, query, self.clock.now())?;
+            .history(actor.id, case_id, id, query, self.clock.now())?;
         validate_history(self.hasher.as_ref(), case_id, id, &page, query)?;
-        self.same_actor(token, actor, Permission::ReadDeadline)?;
+        self.same_actor(token, &actor, Permission::ReadDeadline)?;
         Ok(page)
     }
     fn prepare(
         &self,
         token: &str,
         case_id: CaseId,
-        command: DeadlineCommand,
+        command: DeadlineHumanCommand,
     ) -> Result<DeadlineDraft, ApplicationError> {
         self.prepare_command(token, case_id, command)
     }
@@ -84,7 +105,7 @@ impl DeadlineWorkflow for DeadlineService {
         &self,
         token: &str,
         case_id: CaseId,
-        command: DeadlineCommand,
+        command: DeadlineHumanCommand,
         expected_submission_digest: Sha256Digest,
     ) -> Result<DeadlineDetail, ApplicationError> {
         self.submit_command(token, case_id, command, expected_submission_digest)

@@ -170,5 +170,5 @@ pub(crate) fn source(
     )))
 }
 fn port(error: postgres::Error) -> ApplicationError {
-    ApplicationError::Port(format!("deadline input database: {error}"))
+    crate::postgres_port::error("deadline input database", error)
 }

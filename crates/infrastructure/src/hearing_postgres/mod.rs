@@ -49,7 +49,7 @@ fn port(error: Error) -> ApplicationError {
             HearingError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("hearing database: {error}"))
+    crate::postgres_port::error("hearing database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     HearingError::StoredInconsistent(error.to_string()).into()

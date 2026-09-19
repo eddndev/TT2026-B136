@@ -41,8 +41,8 @@ pub(super) async fn detail(
         .runtime
         .run(move || {
             Ok((|| {
-                let row = s.workflow.get(&token, c, id, None)?;
-                response::detail(row, c, id, None)
+                let row = s.workflow.current(&token, c, id)?;
+                response::current(row, c, id)
             })())
         })
         .await??;

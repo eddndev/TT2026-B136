@@ -5,7 +5,8 @@ import {
   deadlineFixture,
   caseId,
 } from './deadline-editor-helpers.mjs';
-import { detail, id, known } from '../fixtures/deadline-unit.mjs';
+import { id, known } from '../fixtures/deadline-unit.mjs';
+import { v1Record as detail } from '../fixtures/deadline-v2-unit.mjs';
 import {
   factRecord,
   factPrepared,

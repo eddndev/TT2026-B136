@@ -22,7 +22,10 @@ pub fn definition() -> Value {
     json!({"title":"Declared period","profile":{"id":PROFILE,"revision":1},"responsible_id":ACTOR,"input":input()})
 }
 pub fn command() -> Value {
-    json!({"operation_id":ID,"deadline_id":ID,"change":{"action":"register","expected_revision":0,"definition":definition()}})
+    json!({"operation_id":ID,"deadline_id":ID,"change":{"action":"register","expected_revision":0,"definition":definition(),"tracking":tracking()}})
+}
+pub fn tracking() -> Value {
+    json!({"profile":"follow","source":"follow","calendar":"undetermined"})
 }
 pub fn submission() -> Value {
     json!({"command":command(),"expected_submission_digest":digest().to_hex()})

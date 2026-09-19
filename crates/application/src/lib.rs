@@ -9,8 +9,11 @@ pub mod auth;
 pub mod case_stages;
 pub mod cases;
 pub mod credential_trust;
+pub mod deadline_currentness;
 pub mod deadline_inputs;
 pub mod deadline_profiles;
+pub mod deadline_reevaluation;
+pub mod deadline_tracking;
 pub mod documents;
 pub mod error;
 pub mod evidence;
@@ -28,8 +31,15 @@ pub mod typed_participants;
 pub mod vault;
 pub mod verification;
 
-pub use error::ApplicationError;
+pub use error::{ApplicationError, PortFailureKind};
 pub use hashing::HashDocument;
 
 pub mod deadline_evaluations;
 pub mod deadlines;
+
+pub mod deadline_observations;
+
+pub mod deadline_technical;
+pub mod deadline_worker;
+
+pub mod deadline_dispatch;

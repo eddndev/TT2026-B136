@@ -1,5 +1,7 @@
 <script>
   import DeadlineCalculation from './DeadlineCalculation.svelte';
+  import DeadlineTrackingSummary from './DeadlineTrackingSummary.svelte';
+  import DeadlineReceipt from './DeadlineReceipt.svelte';
   import { factTimeLabel } from '../lib/procedural-fact-time.mjs';
   export let value,
     profile = null;
@@ -17,6 +19,8 @@
 <div class="calendar-values">
   <h4>{definition.title}</h4>
   <p>Responsable: {value.responsible.email} / {value.responsible.role}</p>
+  <DeadlineTrackingSummary {value} prepared={!!value.command} historical={!value.command} />
+  <DeadlineReceipt {value} compact />
   <p>Perfil: {value.calculation.profile.title} / Revisi&#243;n {definition.profile.revision}</p>
   {#if selection.source.kind === 'unknown'}<p>Fuente no identificada: {selection.source.reason}</p>
   {:else}<p>

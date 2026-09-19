@@ -33,13 +33,13 @@ fn dump_restore_preserves_deadline_captures_after_revocation_and_new_source_head
     let source = source(&db);
     let mut initial = command(&db, &profile, &source);
     definition_mut(&mut initial).responsible = responsible;
-    let first = persist(&workflow, db.case, initial);
-    let second = persist(&workflow, db.case, correct(&first));
-    let third = persist(&workflow, db.case, attention(&second));
-    let fourth = persist(&workflow, db.case, retire(&third));
+    let first = persist_legacy(&db, db.owner, initial);
+    let second = persist_legacy(&db, db.owner, correct(&first));
+    let third = persist_legacy(&db, db.owner, attention(&second));
+    let fourth = persist_legacy(&db, db.owner, retire(&third));
     let mut next = command(&db, &profile, &source);
     definition_mut(&mut next).responsible = responsible;
-    let active = persist(&workflow, db.case, next);
+    let active = persist_legacy(&db, db.owner, next);
     let history = vec![first, second, third, fourth];
     facts::persist(
         &facts::service(&db, db.owner, Role::Owner),
@@ -92,8 +92,8 @@ fn dump_restore_preserves_deadline_captures_after_revocation_and_new_source_head
                 .unwrap(),
             *exact
         );
-        assert_eq!(exact.recorded_by.id, db.owner);
-        assert_eq!(exact.recorded_by.email, "owner@example.test");
+        assert_eq!(exact.recorded_by.user_id(), Some(db.owner));
+        assert_eq!(exact.recorded_by.email(), Some("owner@example.test"));
         assert_eq!(exact.responsible.id, responsible);
         assert_eq!(exact.responsible.role, Role::Paralegal);
         assert_eq!(exact.responsible.email, responsible_email);
@@ -126,10 +126,10 @@ fn dump_restore_preserves_deadline_captures_after_revocation_and_new_source_head
     let successor = persist(
         &service(&db, reader, Role::Owner),
         db.case,
-        attention(&active),
+        human(attention(&active), None),
     );
     assert_eq!(successor.revision.get(), 2);
-    assert_eq!(successor.recorded_by.id, reader);
+    assert_eq!(successor.recorded_by.user_id(), Some(reader));
     assert_eq!(successor.definition, active.definition);
     assert_eq!(successor.calculation, active.calculation);
     assert_eq!(successor.responsible, active.responsible);

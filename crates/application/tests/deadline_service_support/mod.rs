@@ -2,7 +2,9 @@
 pub use crate::case_support::{CountingClock, MockIdentity};
 pub use crate::deadline_support::evaluation::inputs::{case_id, hasher};
 pub use crate::deadline_support::*;
-use application::{deadlines::*, identity::Principal, ApplicationError};
+use application::{
+    deadline_currentness::DeadlineCurrent, deadlines::*, identity::Principal, ApplicationError,
+};
 use domain::{
     cases::CaseId,
     clock::OffsetDateTime,
@@ -17,6 +19,7 @@ mock! {
     impl DeadlineStore for Store {
         fn responsibles(&self, actor:UserId, case_id:CaseId, query:DeadlineResponsibleQuery, at:OffsetDateTime)->Result<DeadlineResponsiblePage,ApplicationError>;
         fn list(&self, actor:UserId, case_id:CaseId, query:DeadlineQuery, at:OffsetDateTime)->Result<DeadlinePage,ApplicationError>;
+        fn current(&self, actor:UserId, case_id:CaseId, id:DeadlineId)->Result<DeadlineCurrent,ApplicationError>;
         fn get(&self, actor:UserId, case_id:CaseId, id:DeadlineId, revision:Option<DeadlineRevision>, at:OffsetDateTime)->Result<DeadlineDetail,ApplicationError>;
         fn history(&self, actor:UserId, case_id:CaseId, id:DeadlineId, query:DeadlineHistoryQuery, at:OffsetDateTime)->Result<DeadlineHistoryPage,ApplicationError>;
         fn prepare(&self, actor:UserId, case_id:CaseId, command:&DeadlineCommand)->Result<DeadlinePreparation,ApplicationError>;
@@ -49,6 +52,9 @@ pub fn service(store: MockStore, identity: MockIdentity) -> (DeadlineService, Ar
 pub fn captured() -> DeadlineDetail {
     let (command, preparation) = fixture();
     detail(&prepare(command, preparation).unwrap())
+}
+pub fn historical_overview(detail: &DeadlineDetail) -> DeadlineOverview {
+    DeadlineOverview::from(&DeadlineCurrent::historical(hasher().as_ref(), detail).unwrap())
 }
 pub fn history_entry(value: &DeadlineDetail) -> DeadlineHistoryEntry {
     DeadlineHistoryEntry::from_detail(hasher().as_ref(), value).unwrap()
@@ -91,7 +97,7 @@ pub fn expect_operation(store: &mut MockStore, operation: usize) {
                     assert_eq!(actor, owner());
                     assert_eq!(case, case_id());
                     Ok(DeadlinePage {
-                        deadlines: vec![DeadlineOverview::from(&row)],
+                        deadlines: vec![historical_overview(&row)],
                         has_more: false,
                         next_after_id: None,
                     })
@@ -140,7 +146,7 @@ pub fn expect_operation(store: &mut MockStore, operation: usize) {
 }
 pub fn run(service: &DeadlineService, operation: usize) -> Result<(), ApplicationError> {
     let (command, preparation) = fixture();
-    let digest = prepare(command.clone(), preparation)
+    let digest = prepare_human(command.clone(), preparation)
         .unwrap()
         .submission_digest();
     let id = command.deadline_id;
@@ -154,9 +160,11 @@ pub fn run(service: &DeadlineService, operation: usize) -> Result<(), Applicatio
         2 => service
             .history("session", case_id(), id, history_query(20))
             .map(|_| ()),
-        3 => service.prepare("session", case_id(), command).map(|_| ()),
+        3 => service
+            .prepare("session", case_id(), human_command(command))
+            .map(|_| ()),
         4 => service
-            .submit("session", case_id(), command, digest)
+            .submit("session", case_id(), human_command(command), digest)
             .map(|_| ()),
         _ => panic!("invalid test operation"),
     }
@@ -171,4 +179,61 @@ pub fn invalid(result: Result<(), ApplicationError>) {
 }
 pub fn digest() -> Sha256Digest {
     captured().receipt.submission_digest
+}
+
+/// Declare Follow for each selected dependency in service-command fixtures.
+pub fn human_command(command: DeadlineCommand) -> DeadlineHumanCommand {
+    use application::deadline_tracking::{TrackingPolicies, TrackingPolicy};
+    use domain::procedural_facts::FactDeclaration;
+    let policies = match &command.change {
+        DeadlineChange::Register { definition } | DeadlineChange::Correct { definition, .. } => {
+            Some(TrackingPolicies {
+                profile: TrackingPolicy::Follow,
+                source: if matches!(definition.input.selection.source, FactDeclaration::Known(_)) {
+                    TrackingPolicy::Follow
+                } else {
+                    TrackingPolicy::Undetermined
+                },
+                calendar: if definition.input.calendar.is_some() {
+                    TrackingPolicy::Follow
+                } else {
+                    TrackingPolicy::Undetermined
+                },
+            })
+        }
+        _ => None,
+    };
+    DeadlineHumanCommand::new(command, policies).unwrap()
+}
+
+pub fn prepare_human(
+    command: DeadlineCommand,
+    preparation: DeadlinePreparation,
+) -> Result<PreparedDeadlineChange, ApplicationError> {
+    let (command, policies) = human_command(command).into_parts();
+    let parent = preparation
+        .resolved
+        .as_ref()
+        .and_then(|resolved| resolved.notification_parent_head.clone());
+    prepare_tracked_deadline_change(
+        hasher().as_ref(),
+        DeadlineActorSnapshot::User {
+            id: owner(),
+            email: principal(Role::Owner).email,
+        },
+        case_id(),
+        command,
+        preparation,
+        policies,
+        parent.as_ref(),
+    )
+}
+
+pub fn tracked_detail(prepared: &PreparedDeadlineChange) -> DeadlineDetail {
+    let mut row = detail(prepared);
+    row.recorded_by = prepared.tracked_author().unwrap().clone();
+    row.tracking = prepared.tracking().cloned();
+    row.receipt = prepared.receipt();
+    deadline_receipt_matches(hasher().as_ref(), &row).unwrap();
+    row
 }

@@ -72,6 +72,7 @@ pub fn fixture() -> (DeadlineCommand, DeadlinePreparation) {
             profile: profile.clone(),
             profile_head: profile,
             material,
+            notification_parent_head: None,
         }),
         responsible: Some(DeadlineResponsibleSnapshot {
             id: inputs::actor(),
@@ -100,11 +101,13 @@ pub fn detail(prepared: &PreparedDeadlineChange) -> DeadlineDetail {
         revision: prepared.command().result_revision().unwrap(),
         definition: prepared.definition().clone(),
         calculation: prepared.calculation().clone(),
+        tracking: None,
         responsible: prepared.responsible().clone(),
         attention: prepared.attention().clone(),
         status: prepared.status(),
         reason: prepared.command().reason().cloned(),
         receipt: DeadlineReceipt {
+            version: DeadlineReceiptVersion::Legacy,
             operation_id: prepared.command().operation_id,
             action: prepared.command().action(),
             expected_revision: prepared.command().expected_revision(),
@@ -113,7 +116,7 @@ pub fn detail(prepared: &PreparedDeadlineChange) -> DeadlineDetail {
             submission_digest: prepared.submission_digest(),
         },
         recorded_at: crate::case_support::instant(),
-        recorded_by: DeadlineActorSnapshot {
+        recorded_by: DeadlineActorSnapshot::User {
             id: inputs::actor(),
             email: "owner@example.com".into(),
         },

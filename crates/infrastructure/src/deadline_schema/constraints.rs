@@ -76,6 +76,22 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         ),
         (
             "case_deadline_revisions",
+            "deadline_tracking_administration",
+            "case_administration_revisions",
+            &["case_id", "tracking_administration_revision"] as &[&str],
+            &["case_id", "revision"] as &[&str],
+            false,
+        ),
+        (
+            "case_deadline_revisions",
+            "deadline_cause_event",
+            "deadline_source_events",
+            &["cause_event_sequence"] as &[&str],
+            &["sequence"] as &[&str],
+            false,
+        ),
+        (
+            "case_deadline_revisions",
             "deadline_responsible",
             "users",
             &["responsible_id"] as &[&str],
@@ -191,7 +207,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         }
     }
     // CHECK definitions are validated separately; PostgreSQL 18 reports NOT NULL constraints too.
-    let extra:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c')) AND (SELECT count(*) FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c'))<>$1", &[&21_i64]).map_err(port)?.get(0);
+    let extra:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c')) AND (SELECT count(*) FROM pg_constraint WHERE conrelid IN ('case_deadlines'::regclass,'case_deadline_revisions'::regclass) AND contype NOT IN ('n','c'))<>$1", &[&24_i64]).map_err(port)?.get(0);
     if extra {
         return Err(incomplete());
     }

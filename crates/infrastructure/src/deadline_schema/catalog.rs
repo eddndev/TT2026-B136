@@ -50,8 +50,8 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             ("submission_view", "jsonb", false, "s"),
             ("recorded_at_seconds", "bigint", true, ""),
             ("recorded_at_nanoseconds", "integer", true, ""),
-            ("recorded_by", "uuid", true, ""),
-            ("recorded_by_email", "text", true, ""),
+            ("recorded_by", "uuid", false, ""),
+            ("recorded_by_email", "text", false, ""),
             ("due_at_seconds", "bigint", false, ""),
             ("due_at_nanoseconds", "integer", false, ""),
             ("source_kind", "text", false, ""),
@@ -74,6 +74,10 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             ("source_fact_id", "uuid", false, "s"),
             ("source_result_id", "uuid", false, "s"),
             ("source_parent_family", "text", false, "s"),
+            ("tracking_canonical", "bytea", false, ""),
+            ("observations_canonical", "bytea", false, ""),
+            ("tracking_administration_revision", "bigint", false, "s"),
+            ("cause_event_sequence", "bigint", false, "s"),
         ],
     )?;
     constraints::validate(client).map_err(|e| {
@@ -109,7 +113,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             return Err(incomplete());
         }
     }
-    let altered:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A')) OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>3",&[&&TABLES[..]]).map_err(port)?.get(0);
+    let altered:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND tgenabled NOT IN ('O','A')) OR (SELECT count(*) FROM pg_trigger WHERE tgrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND NOT tgisinternal)<>5",&[&&TABLES[..]]).map_err(port)?.get(0);
     if altered {
         return Err(incomplete());
     }

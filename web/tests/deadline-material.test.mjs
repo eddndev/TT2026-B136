@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { deadlinePreparedValue, deadlineRecordValue } from '../src/lib/deadline-validation.mjs';
 import { deadlineMatches } from '../src/lib/deadline-submission.mjs';
-import { prepared, detail, id, hash, known, instant } from './fixtures/deadline-unit.mjs';
+import { deadlineCalculation } from '../src/lib/deadline-material.mjs';
+import { id, hash, known, instant } from './fixtures/deadline-unit.mjs';
+import { v2Prepared as prepared, v2Record as detail } from './fixtures/deadline-v2-unit.mjs';
 function withSource(family) {
   const p = prepared();
   const reference =
@@ -34,6 +36,31 @@ function withSource(family) {
   p.calculation.material.source = source;
   p.calculation.material.source_head = structuredClone(source);
   if (family === 'hearing_result') p.calculation.material.source_head.reference.agreement_id = null;
+  p.tracking.policies.source = 'fixed';
+  p.command.change.tracking = structuredClone(p.tracking.policies);
+  p.tracking.observations.entries.push({
+    role: 'source',
+    family,
+    id: id(8),
+    revision: 1,
+    case_id: id(1),
+    hearing_id: family === 'hearing_result' ? id(7) : null,
+    parent_resolution: family === 'notification' ? { id: id(7), revision: 2 } : null,
+    submission_digest: hash('3'),
+    evidence_digest: hash('4'),
+  });
+  if (family === 'notification')
+    p.tracking.observations.entries.push({
+      role: 'notification_parent',
+      family: 'resolution',
+      id: id(7),
+      revision: 3,
+      case_id: id(1),
+      hearing_id: null,
+      parent_resolution: null,
+      submission_digest: hash('5'),
+      evidence_digest: hash('6'),
+    });
   const rule = p.calculation.result.rule,
     at = { precision: 'unknown' };
   p.calculation.result = {
@@ -69,6 +96,11 @@ test('known sources preserve hearing nil agreement and notification selected ver
     head.href = head.href.replace('/revisions/1', '/revisions/2');
     head.values_digest = hash('4');
     if (family === 'notification') head.reference.resolution.revision = 5;
+    p.tracking.observations.entries[1].revision = 2;
+    if (family === 'notification') {
+      p.tracking.observations.entries[1].parent_resolution.revision = 5;
+      p.tracking.observations.entries[2].revision = 6;
+    }
     assert.deepEqual(deadlinePreparedValue(p), p);
     if (family === 'hearing_result')
       assert.equal(p.definition.input.selection.source.value.agreement_id, id(0));
@@ -114,9 +146,9 @@ test('source and calendar projections reject substituted roots, revisions, scope
     href: `/api/v1/judicial-calendars/${id(9)}/revisions/2`,
   };
   p.calculation.material.calendar_head = structuredClone(p.calculation.material.calendar);
-  assert.deepEqual(deadlinePreparedValue(p), p);
+  assert.deepEqual(deadlineCalculation(p.calculation, p.definition, id(1)), p.calculation);
   p.calculation.material.calendar_head.revision = 1;
-  assert.throws(() => deadlinePreparedValue(p));
+  assert.throws(() => deadlineCalculation(p.calculation, p.definition, id(1)));
 });
 test('receipts reject body, attention and expected revision contradictions on reads', () => {
   const p = prepared();

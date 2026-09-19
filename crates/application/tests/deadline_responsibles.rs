@@ -113,7 +113,7 @@ fn responsible_selector_denies_client_and_invalid_session_before_store() {
 
 #[test]
 fn responsible_selector_rejects_session_revocation_actor_and_role_changes_after_read() {
-    for change in 0..4 {
+    for change in 0..5 {
         let mut session = MockIdentity::new();
         let mut sequence = Sequence::new();
         session
@@ -139,7 +139,12 @@ fn responsible_selector_rejects_session_revocation_actor_and_role_changes_after_
                     Ok(actor)
                 }
                 2 => Ok(principal(Role::Litigator)),
-                _ => Ok(principal(Role::Client)),
+                3 => Ok(principal(Role::Client)),
+                _ => {
+                    let mut actor = principal(Role::Owner);
+                    actor.email = "changed@example.test".into();
+                    Ok(actor)
+                }
             });
         let (workflow, _) = service(store, session);
         let result = workflow.responsibles("session", case_id(), query());

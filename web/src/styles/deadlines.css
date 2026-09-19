@@ -10,6 +10,14 @@
 .deadline-trace {
   overflow-wrap: anywhere;
 }
+.deadline-tracking,
+.deadline-receipt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.deadline-operational {
+  display: block;
+}
 .deadline-due {
   font-size: 1.25rem;
   font-weight: 600;

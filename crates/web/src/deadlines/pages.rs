@@ -1,6 +1,6 @@
-use super::{metadata, result};
+use super::{metadata, operational_projection, result};
 use crate::error::ApiError;
-use application::deadlines::*;
+use application::{deadline_tracking::DeadlineReviewState, deadlines::*};
 use domain::cases::CaseId;
 use serde_json::{json, Value};
 use std::collections::HashSet;
@@ -22,12 +22,21 @@ pub(super) fn page(v: DeadlinePage, case: CaseId, q: &DeadlineQuery) -> Result<V
         if v.case_id != case
             || after.is_some_and(|id| v.id.as_uuid() <= id.as_uuid())
             || q.status().status().is_some_and(|s| s != v.status)
-            || v.blocked != v.due_at.is_none()
+            || !v.operational.matches_overview(&v)
         {
             return Err(ApiError::internal());
         }
         after = Some(v.id);
-        rows.push(json!({"id":v.id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"title":v.title.as_str(),"status":v.status.as_str(),"responsible":metadata::responsible(&v.responsible)?,"attention_recorded":v.attention_recorded,"due_at":v.due_at.map(result::instant),"blocked":v.blocked}));
+        let receipt_kind = match v.receipt_kind {
+            DeadlineReceiptKind::Legacy => "v1",
+            DeadlineReceiptKind::Tracked => "v2",
+        };
+        let review_state = match v.review_state {
+            DeadlineReviewState::Accepted => "accepted",
+            DeadlineReviewState::Pending => "pending",
+            DeadlineReviewState::LegacyUndeclared => "legacy_undeclared",
+        };
+        rows.push(json!({"id":v.id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"title":v.title.as_str(),"status":v.status.as_str(),"responsible":metadata::responsible(&v.responsible)?,"attention_recorded":v.attention_recorded,"receipt_kind":receipt_kind,"review_state":review_state,"calculation_due_at":v.calculation_due_at.map(result::instant),"calculation_blocked":v.calculation_blocked,"operational":operational_projection::project(&v.operational)}));
     }
     Ok(
         json!({"case_id":case.to_string(),"deadlines":rows,"has_more":v.has_more,"next_after_id":v.next_after_id.map(|id|id.to_string())}),
@@ -56,6 +65,7 @@ pub(super) fn history(
     for pair in v.revisions.windows(2) {
         if pair[1].revision.get().checked_add(1) != Some(pair[0].revision.get())
             || pair[1].status == DeadlineStatus::Retired
+            || !predecessor_matches(&pair[1].receipt, &pair[0].receipt)
         {
             return Err(ApiError::internal());
         }
@@ -66,16 +76,33 @@ pub(super) fn history(
         if v.case_id != case
             || v.id != id
             || q.before_revision().is_some_and(|r| v.revision >= r)
-            || v.recorded_by.email.trim().is_empty()
             || v.state_digest != v.receipt.review_digest
             || !operations.insert(v.receipt.operation_id)
         {
             return Err(ApiError::internal());
         }
-        metadata::shape(&v.receipt, v.revision, v.status, v.reason.as_ref())?;
-        rows.push(json!({"id":id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"status":v.status.as_str(),"reason":v.reason.as_ref().map(|r|r.as_str()),"receipt":metadata::receipt(&v.receipt),"state_digest":v.state_digest.to_hex(),"recorded_at":result::instant(v.recorded_at),"recorded_by":{"id":v.recorded_by.id,"email":v.recorded_by.email}}));
+        metadata::shape(
+            &v.receipt,
+            v.revision,
+            v.status,
+            v.reason.as_ref(),
+            &v.recorded_by,
+            v.case_id,
+        )?;
+        let recorded_by = metadata::actor(&v.recorded_by)?;
+        rows.push(json!({"id":id.to_string(),"case_id":case.to_string(),"revision":v.revision.get(),"status":v.status.as_str(),"reason":v.reason.as_ref().map(|r|r.as_str()),"receipt":metadata::receipt(&v.receipt,case)?,"state_digest":v.state_digest.to_hex(),"recorded_at":result::instant(v.recorded_at),"recorded_by":recorded_by}));
     }
     Ok(
         json!({"case_id":case.to_string(),"id":id.to_string(),"revisions":rows,"has_more":v.has_more,"next_before_revision":v.next_before_revision.map(|r|r.get())}),
     )
+}
+fn predecessor_matches(previous: &DeadlineReceipt, next: &DeadlineReceipt) -> bool {
+    match (&previous.version, &next.version) {
+        (DeadlineReceiptVersion::Legacy, DeadlineReceiptVersion::Legacy) => true,
+        (DeadlineReceiptVersion::Tracked(_), DeadlineReceiptVersion::Legacy) => false,
+        (_, DeadlineReceiptVersion::Tracked(metadata)) => metadata.predecessor.is_some_and(|v| {
+            v.submission_digest == previous.submission_digest
+                && v.capture_digest == previous.capture_digest
+        }),
+    }
 }

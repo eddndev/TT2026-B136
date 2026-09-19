@@ -13,6 +13,8 @@ source "$REPO_ROOT/scripts/api-case-administration-demo.sh"
 source "$REPO_ROOT/scripts/api-case-stage-demo.sh"
 # shellcheck source=scripts/api-typed-participant-demo.sh
 source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
+# shellcheck source=scripts/api-deadline-reevaluation-demo.sh
+source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
 
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -27,6 +29,7 @@ migration_demo_start() {
   export DATABASE_URL="$url"
   SERVER_LOG="$WORK_DIR/$label-server.log"
   RUST_LOG=warn stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+    --deadline-page-limit 2 --deadline-poll-ms 50 \
     --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
     --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
     --tsa-dir "$TSA_DIR" >"$SERVER_LOG" 2>&1 &
@@ -247,6 +250,8 @@ PY
   procedural_facts_demo
   profile_demo
   deadline_demo
+  deadline_worker_demo "$runtime_url" "$legacy_dir"
+  calendar_demo_python checkpoint
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
   printf 'Migration restore: capturing the database state.\n'
@@ -282,6 +287,7 @@ PY
   procedural_facts_demo_restored
   profile_demo_restored
   deadline_demo_restored
+  deadline_worker_demo_python verify
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -323,3 +329,4 @@ unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_d
 unset -f profile_demo profile_demo_restored profile_demo_python
 
 unset -f deadline_demo deadline_demo_restored deadline_demo_python
+unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop

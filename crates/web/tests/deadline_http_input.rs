@@ -130,6 +130,8 @@ async fn unknown_declarations_calendar_and_ordered_quantity_remain_explicit() {
     input["calendar"] = json!({"id":ID,"revision":2});
     input["ordered_quantity"] = json!(4294967295u32);
     input["qualification"]["scope_applies"] = json!({"kind":"unknown","reason":"Scope pending"});
+    value["change"]["tracking"]["source"] = json!("undetermined");
+    value["change"]["tracking"]["calendar"] = json!("follow");
     let (_, body) = prepare(workflow.clone(), value).await;
     let command = workflow
         .command

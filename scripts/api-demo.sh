@@ -223,7 +223,7 @@ psql "$DATABASE_URL" -Atc 'SELECT password_hash FROM users' \
     printf 'api-demo.sh: plaintext password leaked into PostgreSQL\n' >&2
     exit 1
   }
-if redis-cli -p "$REDIS_PORT" keys '*' | rg -F "$RECOVERY_TOKEN" >/dev/null; then
+if redis-cli -p "$REDIS_PORT" keys '*' | rg -F -- "$RECOVERY_TOKEN" >/dev/null; then
   printf 'api-demo.sh: raw session token leaked into Redis keys\n' >&2
   exit 1
 fi

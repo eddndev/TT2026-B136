@@ -1,9 +1,53 @@
+import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
+
 export const deadlineActions = {
   register: 'Registro',
   correct: 'Correcci\u00f3n',
   set_attention: 'Atenci\u00f3n declarada',
   retire: 'Retiro',
+  reevaluate: 'Reevaluaci\u00f3n',
 };
+export const deadlineReviewLabels = {
+  accepted: 'Revisi\u00f3n aceptada',
+  pending: 'Revisi\u00f3n pendiente',
+  legacy_undeclared: 'Seguimiento sin declarar',
+};
+export const deadlineDependencies = {
+  profile: 'Perfil',
+  source: 'Fuente',
+  calendar: 'Calendario',
+};
+export const deadlinePolicyLabels = {
+  fixed: 'Conservar esta revisi\u00f3n',
+  follow: 'Seguir cambios',
+  undetermined: 'Seguimiento sin declarar',
+};
+export const deadlineFreshnessLabels = {
+  current: 'Vigencia consultada',
+  changed: 'Dependencias cambiaron desde esta captura',
+  not_checked: 'Vigencia no consultada',
+};
+export function deadlineAuthorLabel(author) {
+  return author.kind === 'technical' ? 'Servicio de reevaluaci\u00f3n' : author.email;
+}
+export function deadlineReviewReasonLabel(value) {
+  const label = {
+    source_changed: 'Cambi\u00f3 la fuente',
+    profile_changed: 'Cambi\u00f3 el perfil',
+    dependency_retired: 'Dependencia retirada',
+    policy_undetermined: 'Falta definir c\u00f3mo dar seguimiento',
+  }[value.reason];
+  return `${deadlineDependencies[value.dependency]}: ${label}`;
+}
+export function deadlineOperationalLabel(operational, status, review, historical = false) {
+  if (historical) return 'Vigencia no consultada para esta revisi\u00f3n hist\u00f3rica';
+  if (operational.due_at) return deadlineInstantLabel(operational.due_at);
+  if (status === 'retired') return 'Plazo retirado; sin vencimiento para seguimiento';
+  if (review === 'legacy_undeclared') return 'Seguimiento sin declarar';
+  if (review === 'pending') return 'Sin vencimiento habilitado: requiere revisi\u00f3n';
+  if (operational.freshness !== 'current') return deadlineFreshnessLabels[operational.freshness];
+  return 'Sin vencimiento calculado';
+}
 export const deadlineFields = {
   resolution_issued_at: 'Emisi\u00f3n de la resoluci\u00f3n',
   notification_practiced_at: 'Pr\u00e1ctica de la notificaci\u00f3n',

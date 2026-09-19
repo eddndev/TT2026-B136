@@ -7,7 +7,7 @@ from uuid import uuid4
 from api_deadline_responsibles import verify_selector, verify_revocation
 from api_deadlines_support import (
     STATE, TOKEN, correct, enroll, prepare, profile, qualified_time,
-    register, request, resolution, submit,
+    register, request, resolution, stable_read, submit,
 )
 
 
@@ -44,7 +44,13 @@ def capture():
     assert first['calculation']['result']['blocks'] == []
     assert first['calculation']['result']['arithmetic']['outcome']['date'] == '2026-01-31'
     assert first['calculation']['result']['due_at'] is not None
-    assert request('GET', path, token=tokens['paralegal']) == first
+    current = request('GET', path, token=tokens['paralegal'])
+    assert current['operational']['freshness'] == 'current'
+    assert current['operational']['due_at'] == first['calculation']['result']['due_at']
+    assert current['operational']['checked_at'] is not None
+    assert first['operational']['freshness'] == 'not_checked'
+    assert {k: v for k, v in current.items() if k != 'operational'} == {
+        k: v for k, v in first.items() if k != 'operational'}
     request('GET', foreign + '/' + first['id'], expected=404)
     request('GET', foreign, token=tokens['litigator'], expected=404)
     request('GET', path + '/revisions/99', expected=404, code='deadline_not_found')
@@ -104,7 +110,7 @@ def capture():
         prefix = base + '/' + record['id']
         paths.extend([prefix, prefix + '/history'])
         paths.extend(prefix + '/revisions/' + str(revision) for revision in range(1, record['revision'] + 1))
-    records = {p: request('GET', p) for p in paths}
+    records = {p: stable_read(request('GET', p)) for p in paths}
     STATE.write_text(json.dumps({'records': records}, sort_keys=True))
     assert request('GET', '/api/v1/audit/verify')['valid']
     print('Deadline API passed: daily/monthly/hourly, four roles, isolation, review, conflicts, attention, retirement and revocation.')
@@ -113,9 +119,9 @@ def capture():
 def restore():
     saved = json.loads(STATE.read_text())
     for path, expected in saved['records'].items():
-        assert request('GET', path) == expected, 'Restored deadline differs: ' + path
+        assert stable_read(request('GET', path)) == expected, 'Restored deadline differs: ' + path
     assert request('GET', '/api/v1/audit/verify')['valid']
-    print('Deadline restore passed: ' + str(len(saved['records'])) + ' exact responses and captured results.')
+    print('Deadline restore passed: ' + str(len(saved['records'])) + ' responses and captured results; current read instants checked separately.')
 
 
 if __name__ == '__main__':

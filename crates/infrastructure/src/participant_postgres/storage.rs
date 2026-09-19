@@ -196,7 +196,7 @@ fn canonical_time(at: OffsetDateTime) -> Result<String, ApplicationError> {
         .map_err(inconsistent)
 }
 pub(super) fn port(error: postgres::Error) -> ApplicationError {
-    ApplicationError::Port(format!("participant database: {error}"))
+    crate::postgres_port::error("participant database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     ApplicationError::StoredParticipantInconsistent(error.to_string())

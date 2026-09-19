@@ -17,15 +17,29 @@ export function deadlineMatches(record, prepared) {
       observed = prepared.calculation.material.administration,
       captured = record.calculation.material.administration;
     const preparedCalculation = structuredClone(prepared.calculation),
-      recordCalculation = structuredClone(record.calculation);
+      recordCalculation = structuredClone(record.calculation),
+      preparedTracking = structuredClone(prepared.tracking),
+      recordTracking = structuredClone(record.tracking);
     const forward = ['register', 'correct'].includes(change.action);
     if (forward) {
       if (!deadlineAdministrationFollows(captured, observed, prepared.case_id)) return false;
+      if (
+        !deadlineAdministrationFollows(
+          recordTracking.administration,
+          preparedTracking.administration,
+          prepared.case_id,
+        ) ||
+        !same(captured, recordTracking.administration) ||
+        !same(observed, preparedTracking.administration)
+      )
+        return false;
       delete preparedCalculation.material.administration;
       delete recordCalculation.material.administration;
+      delete preparedTracking.administration;
+      delete recordTracking.administration;
     }
     return (
-      record.recorded_by.id === prepared.actor_id &&
+      same(record.recorded_by, prepared.author) &&
       record.status === prepared.status &&
       record.reason === (change.reason ?? null) &&
       receipt.operation_id === command.operation_id &&
@@ -33,6 +47,7 @@ export function deadlineMatches(record, prepared) {
       receipt.expected_revision === change.expected_revision &&
       receipt.review_digest === prepared.review_digest &&
       receipt.submission_digest === prepared.submission_digest &&
+      same(receipt.version, prepared.receipt_version) &&
       (forward || receipt.capture_digest === prepared.capture_digest) &&
       (!forward ||
         !same(captured, observed) ||
@@ -40,7 +55,8 @@ export function deadlineMatches(record, prepared) {
       same(record.definition, prepared.definition) &&
       same(record.responsible, prepared.responsible) &&
       same(record.attention, prepared.attention) &&
-      same(recordCalculation, preparedCalculation)
+      same(recordCalculation, preparedCalculation) &&
+      same(recordTracking, preparedTracking)
     );
   } catch {
     return false;

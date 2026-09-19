@@ -1,16 +1,24 @@
 //! Immutable deadline evaluations and attention in one audited transaction.
+pub(crate) mod administration;
 mod attention;
 mod authorization;
 mod commit;
+mod currentness;
 mod decode;
 mod dependencies;
 mod header;
+#[cfg(test)]
+mod legacy_tests;
 mod port_impl;
-mod preparation;
+#[cfg(test)]
+mod port_tests;
+pub(crate) mod preparation;
+mod projection;
 mod query;
 mod responsibles;
 pub(crate) mod storage;
-mod write;
+pub(crate) mod tracking;
+pub(crate) mod write;
 use application::{deadlines::DeadlineError, ApplicationError};
 use domain::{clock::Clock, crypto::DocumentHasher};
 use postgres::{Client, Error};
@@ -41,16 +49,24 @@ impl PostgresDeadlineStore {
 }
 fn port(error: Error) -> ApplicationError {
     if error.code() == Some(&postgres::error::SqlState::UNIQUE_VIOLATION) {
-        return if error.as_db_error().and_then(|e| e.constraint())
-            == Some("deadline_operation_unique")
-        {
+        return if matches!(
+            error.as_db_error().and_then(|e| e.constraint()),
+            Some("deadline_operation_unique" | "deadline_job_operation")
+        ) {
             DeadlineError::OperationConflict.into()
         } else {
             DeadlineError::RevisionConflict.into()
         };
     }
-    ApplicationError::Port(format!("deadline database: {error}"))
+    crate::postgres_port::error("deadline database", error)
 }
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     DeadlineError::StoredInconsistent(error.to_string()).into()
+}
+
+fn stored(error: ApplicationError) -> ApplicationError {
+    match error {
+        ApplicationError::Port(_) | ApplicationError::ClassifiedPort { .. } => error,
+        other => inconsistent(other),
+    }
 }

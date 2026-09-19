@@ -65,7 +65,48 @@ dependency direction. Do not add a workspace dependency that violates it:
 
 ## Local verification
 
-Before committing Rust changes, run:
+Run only one local verification suite at a time. A single coordinator owns
+Cargo, test runners and demo services; helpers must not start them. Set
+`CARGO_BUILD_JOBS=1` and `RUST_TEST_THREADS=1` for local Cargo verification,
+and use one worker for browser suites. Do not overlap builds, test suites,
+coverage or document builds. After an interruption, inspect live processes
+before starting another run; a lost terminal handle can leave child processes
+running. Keep completed evidence separate from interrupted runs.
+
+When `/tmp` uses tmpfs, configure `TMPDIR` on disk before starting a local
+campaign. Use `output/tmp` in the active checkout, after
+confirming that checkout is on a disk-backed filesystem. From the repository
+root, create the private directory before exporting it:
+
+```bash
+mkdir -p output/tmp
+chmod 700 output/tmp
+export TMPDIR="$PWD/output/tmp"
+export CARGO_BUILD_JOBS=1
+export RUST_TEST_THREADS=1
+```
+
+Keep this environment for the coordinator and its child processes, including
+browser runners, and use one browser worker. Do not delete unrelated files in
+`/tmp`, the checkout or the temporary directory. Record the temporary filesystem
+with verification evidence; a resource-loading error alone does not establish
+its exact cause.
+
+Implement and verify one observable workflow at a time. During development,
+use the failing test and focused checks for the affected behavior. Commit and
+publish coherent checkpoints with their executed evidence and remaining checks;
+do not require another full regression for each checkpoint or documentation
+adjustment. Repeat checks only when a change, failure or unresolved concern
+justifies it. Keep incomplete deliveries in a draft pull request.
+
+Run the full regression once when closing the functional delivery, before
+merging. CI may supply this evidence for the published revision; do not repeat
+the same broad campaign locally just to wait for it again remotely. Address
+failures with focused checks, then rerun the affected closing checks. Preserve
+TDD and all required merge gates.
+
+Closing a Rust delivery requires these checks, locally or in CI for the
+revision being integrated:
 
 ```
 cargo fmt --all
@@ -193,32 +234,85 @@ Inspect current code and contracts before treating this summary as complete.
   Source revisions append durable change events in the same transaction. The
   pure evaluator checks applicability and verified inputs, preserving incomplete
   results without inventing a cutoff. These exact profiles feed persisted
-  evaluations; source events do not yet have a processing worker. See
+  evaluations. Source events feed the local dispatcher and worker ports; their
+  local server composition has real API and browser verification. See
   `docs/deadline-profiles-api.md` and
   `docs/adr/0035-versioned-deadline-profiles-and-evaluations.md`.
 - The `0017_` migrations persist case deadlines and immutable evaluation history.
   Register, correct, declare attention and retire commit state and audit together.
   Historical reads retain exact profile, source, calendar, responsible and result
-  captures without reevaluation. The backend and HTTP API are integrated in
+  captures without reevaluation. The V1 backend and HTTP API are integrated in
   `main`; their reproduced verification is in `docs/verification-report.md`.
-  The current extension adds a case-authorized, audited selector of eligible
-  active accounts and the Qadra workflow. Owner and Litigator manage; authorized
+  The Qadra workflow and case-authorized, audited selector of eligible active
+  accounts are also integrated in `main`. Owner and Litigator manage; authorized
   Paralegal reads; Client is denied. Closure preserves reads and blocks writes.
   The selector does not grant membership or replace a general member directory.
-  The full local Rust, HTTP/restore, browser and web verification campaigns
-  have passed. Remote checks and integration have their own evidence. See `docs/deadlines-api.md`,
+  The integrated V1 delivery passed its local Rust, HTTP/restore, browser and web
+  verification campaigns. The later human/HTTP V2 changes have separate focal
+  evidence and are not covered by those historical runs. Remote checks and
+  integration have their own evidence. See `docs/deadlines-api.md`,
   `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
-  Automatic activation, reevaluation workers, combined hearing/deadline agenda,
-  alerts and the qualified legal-profile acceptance corpus remain pending.
+  Automatic activation, combined hearing/deadline agenda, alerts and the qualified
+  legal-profile acceptance corpus remain pending. The later reevaluation runtime
+  is composed locally in `serve` and has separate real-service verification.
+
+- The `0018_` migrations extend deadline storage with human V2 tracking captures
+  and observations while preserving V1 history. The single human service and
+  HTTP workflow now prepare and confirm V2: register and correct require explicit
+  policies; attention and retirement retain tracking and historical calculation.
+  Authorship captures the authenticated user and email, and reauthentication
+  compares the complete principal. Notification-parent heads are resolved
+  separately from the parent's historical revision in the selected notification.
+  Historical reads reconstruct exact evidence without recalculation. Current
+  detail and list reads check verified dependency heads under audited access and
+  keep calculation history separate from operational freshness and due time.
+  The human port rejects technical authors. This extension has local focal
+  verification. Qadra V2 passed 88 Node tests and 36 controlled-HTTP browser
+  cases, including eight new desktop/mobile cases. A separate real-backend
+  browser campaign passed 25 cases, including two Follow scenarios at 1440 and
+  390 pixels; six screenshots were visually inspected. The composed runtime
+  passed 31 unit and four CLI-help tests; its 26 loop/stop/supervision tests are
+  included in the 31. A real API campaign passed reevaluation, TERM/INT shutdown,
+  restart and restoration of R1-R5. The final API repeat and CLI demonstration
+  also passed; detailed results are in `docs/verification-report.md`.
+  Global verification and integration into `main` are still being closed. See `docs/deadline-tracking-api.md`,
+  `docs/deadline-tracking-receipts.md` and `docs/verification-report.md`.
+- The `0019_` migrations and `PostgresDeadlineDispatchStore` persist paginated
+  event expansion and recurrent legacy reconciliation. Jobs, cursor advancement
+  and audit commit together; jobs reserve their operation against human writes.
+  Startup and reconnection verify schema, runtime grants and historical inventory.
+  Reconnection restores statement and lock budgets; corruption prevents reuse until
+  repair or restoration. Eleven focal reconnection, atomicity and timeout tests
+  passed. Candidate bounds and missing-job filters apply before materialization.
+  The local `serve` runtime serializes dispatch and worker consumption; real API
+  and browser campaigns exercised this composition. See `docs/deadline-dispatch.md`.
+- The `0020_` migrations and `PostgresDeadlineWorkerStore` implement local durable
+  consumption, technical revisions, verified no-change results and failed attempts.
+  Completion, revision and audit share a transaction; failures retain their own
+  audited attempts and stable operation identities. History resolves exact sources
+  without current-head substitution. Retry delay never bypasses startup inventory
+  checks: persistent corruption prevents reopening until repair or restoration.
+  Focal catalog, real restore/retry and failure-classification tests passed, as
+  did the consumer delivery's local regression. Their scope is recorded in
+  `docs/verification-report.md`. The worker is composed locally in `serve`.
+  Runtime verification passed 31 unit and four CLI-help tests, including the
+  26 loop, stop and supervision tests. Real API verification covered reevaluation,
+  TERM/INT shutdown, restart and restoration of R1-R5, including the final API
+  acceptance. Global verification remains in progress; consult
+  `docs/verification-report.md`. The human HTTP contract represents
+  V1/V2 history and technical provenance without accepting worker commands. See
+  `docs/deadline-worker.md` and `docs/deadline-tracking-api.md`.
 
 ## Next work, in dependency order
 
 Use `docs/product-completion.md` for acceptance scope and the corresponding
 section in `AGENTS.md` for the dependency map. Current remaining work includes:
 
-1. Complete integrated acceptance and publication of the Qadra deadline workflow.
-   Qualify legal profiles with primary sources and acceptance cases, then implement
-   durable activation, dependent reevaluation, combined agenda and notifications.
+1. Complete global verification, then integrate the
+   verified human/HTTP/Qadra V2 workflow and composed durable runtime into `main`.
+   Qualify legal profiles with primary sources and
+   acceptance cases, then implement activation, combined agenda
+   and notifications.
    Preserve exact inputs and immutable historical evaluations. Declared hearing
    text and civil classification do not establish legal effects.
 2. Complete the remaining document, resource, identity, dashboard, report and

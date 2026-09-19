@@ -1,6 +1,14 @@
 use super::{authorization, inconsistent, port, storage};
-use application::{deadline_profiles::*, deadlines::*, ApplicationError};
-use domain::{cases::CaseId, crypto::DocumentHasher};
+use application::{
+    deadline_profiles::*,
+    deadlines::*,
+    procedural_facts::{FactDetail, FactTarget},
+    ApplicationError,
+};
+use domain::{
+    cases::CaseId, crypto::DocumentHasher, deadline_triggers::TriggerSourceRef,
+    procedural_facts::FactDeclaration,
+};
 use postgres::Transaction;
 
 pub(super) fn load(
@@ -86,11 +94,14 @@ pub(super) fn load(
                 definition.input.calendar,
                 hasher,
             )?;
+            let notification_parent_head =
+                notification_parent_for_definition(tx, case, definition, hasher)?;
             (
                 Some(DeadlineResolvedInputs {
                     profile,
                     profile_head,
                     material,
+                    notification_parent_head,
                 }),
                 Some(responsible),
             )
@@ -113,4 +124,29 @@ fn profile_error(error: ApplicationError) -> ApplicationError {
         }
         other => other,
     }
+}
+
+/// Resolve a selected notification's independent current parent for an audited caller.
+pub(crate) fn notification_parent_for_definition(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    definition: &DeadlineDefinition,
+    hasher: &dyn DocumentHasher,
+) -> Result<Option<FactDetail>, ApplicationError> {
+    if definition.input.selection.case_id != case {
+        return Err(DeadlineError::Invalid("input.case_id").into());
+    }
+    let FactDeclaration::Known(TriggerSourceRef::Notification { resolution, .. }) =
+        &definition.input.selection.source
+    else {
+        return Ok(None);
+    };
+    crate::procedural_fact_postgres::storage::detail(
+        tx,
+        case,
+        FactTarget::Resolution(resolution.id),
+        None,
+        hasher,
+    )
+    .map(Some)
 }

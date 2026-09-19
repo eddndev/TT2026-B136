@@ -26,6 +26,12 @@ export function deadlineResponsible(raw) {
   return raw;
 }
 export function deadlineAdministration(raw, caseId) {
+  return administration(raw, caseId, false);
+}
+export function deadlineTrackingAdministration(raw, caseId) {
+  return administration(raw, caseId, true);
+}
+function administration(raw, caseId, allowClosed) {
   const keys = ['kind', 'title', 'reference', 'status'];
   if (raw?.kind === 'recorded') {
     object(raw, [...keys, 'case_id', 'revision', 'values_digest', 'changed_at', 'changed_by']);
@@ -36,11 +42,11 @@ export function deadlineAdministration(raw, caseId) {
     deadlineAuthor(raw.changed_by);
   } else {
     object(raw, keys);
-    if (raw.kind !== 'unrevised') invalid();
+    if (raw.kind !== 'unrevised' || raw.status !== 'active') invalid();
   }
   label(raw.title);
   if (raw.reference !== null) label(raw.reference);
-  if (raw.status !== 'active') invalid();
+  if (raw.status !== 'active' && !(allowClosed && raw.status === 'closed')) invalid();
   return raw;
 }
 export function deadlineAdministrationFollows(current, previous, caseId) {

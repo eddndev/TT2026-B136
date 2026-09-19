@@ -154,6 +154,16 @@ def capture():
     print('Calendar API passed: global permissions, exact receipts, civil dates, conflicts, retirement and maximum Unicode.')
 
 
+def checkpoint_collections():
+    """Capture mutable catalog lists after other fixtures publish calendars."""
+    saved = json.loads(STATE.read_text(encoding='utf-8'))
+    for path in saved['records']:
+        if path.split('?', 1)[0] == ROUTE:
+            saved['records'][path] = request('GET', path)
+    STATE.write_text(json.dumps(saved, sort_keys=True), encoding='utf-8')
+    print('Calendar catalog checkpoint refreshed before backup; exact revision expectations retained.')
+
+
 def restore():
     saved = json.loads(STATE.read_text(encoding='utf-8'))
     for path, expected in saved['records'].items():
@@ -163,4 +173,4 @@ def restore():
 
 
 if __name__ == '__main__':
-    {'capture': capture, 'restore': restore}[sys.argv[1]]()
+    {'capture': capture, 'checkpoint': checkpoint_collections, 'restore': restore}[sys.argv[1]]()

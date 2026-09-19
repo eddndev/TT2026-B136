@@ -17,9 +17,9 @@ use std::{sync::Arc, time::Duration};
 fn simultaneous_connections_commit_one_successor_and_one_audit_event() {
     let Some(mut db) = Fixture::new() else { return };
     let workflow = service(&db, db.owner, Role::Owner);
-    let first = persist(&workflow, db.case, setup(&db));
-    let left = prepared(&db, db.owner, &correct(&first));
-    let right = prepared(&db, db.owner, &correct(&first));
+    let first = persist_legacy(&db, db.owner, setup(&db));
+    let left = prepared_legacy(&db, db.owner, &correct(&first));
+    let right = prepared_legacy(&db, db.owner, &correct(&first));
     let before = snapshot(&mut db);
     let gate = Arc::new(rendezvous::PrepareRendezvous::new(Duration::from_secs(5)));
     let mut threads = Vec::new();
@@ -75,7 +75,7 @@ fn attention_and_retirement_keep_sources_retired_after_registration_and_a_revoke
     let mut command = command(&db, &profile, &source);
     definition_mut(&mut command).responsible = responsible;
     let workflow = service(&db, db.owner, Role::Owner);
-    let original = persist(&workflow, db.case, command);
+    let original = persist(&workflow, db.case, human(command, Some(FOLLOW_RESOLUTION)));
     let profiles = crate::deadline_profile_database_support::service(&db, db.owner, Role::Owner);
     crate::deadline_profile_database_support::persist(
         &profiles,
@@ -94,11 +94,12 @@ fn attention_and_retirement_keep_sources_retired_after_registration_and_a_revoke
             &[&responsible.as_uuid()],
         )
         .unwrap();
-    let attended = persist(&workflow, db.case, attention(&original));
-    let retired = persist(&workflow, db.case, retire(&attended));
+    let attended = persist(&workflow, db.case, human(attention(&original), None));
+    let retired = persist(&workflow, db.case, human(retire(&attended), None));
     for detail in [&attended, &retired] {
         assert_eq!(detail.definition, original.definition);
         assert_eq!(detail.calculation, original.calculation);
+        assert_eq!(detail.tracking, original.tracking);
         assert_eq!(detail.responsible, original.responsible);
         assert_eq!(
             workflow
