@@ -62,6 +62,15 @@ argumento `--qpdf-library` sustituye la variable. Los argumentos criptográficos
 de `serve --help` siguen vigentes. Véase
 [operación del validador](document-format-operations.md).
 
+La composición de alertas comparte su store PostgreSQL entre las rutas
+personales y los consumidores de generación y correo. No requiere Resend para
+generar la bandeja interna. `RESEND_API_KEY`, `ALERT_EMAIL_FROM` y
+`ALERT_LOGIN_URL` habilitan el transporte sólo cuando están presentes y son
+válidos los tres; sin ellos se informa `disabled`. Véanse la
+[configuración y los límites del consumidor de alertas](alerts-api.md#configuración-y-aceptación-del-servidor).
+La aceptación API/browser preparada usa servicios desechables sin correo
+externo; no sustituye un ensayo del proveedor ni una verificación de entrega.
+
 La composición local de reevaluación abre y valida despachador y consumidor
 antes de escuchar. `--deadline-page-limit` limita cada página y los trabajos
 intentados por ciclo a 1–100, con valor predeterminado 20;

@@ -163,7 +163,8 @@ un servicio humano único y su contrato HTTP. Servicio, HTTP e interfaz Qadra V2
 están implementados; el dispatcher/worker está compuesto en servidor y tiene
 verificación API real con reinicios y restauración. Qadra V2 también tiene una
 campaña de navegador con backend real aprobada. La aceptación API final aprobó;
-el cierre global y la integración en `main` siguen en curso. Véanse
+el cierre global aprobó y esta ampliación se integró mediante la
+[PR 34](https://github.com/eddndev/TT2026-B136/pull/34). Véanse
 [los recibos de seguimiento](deadline-tracking-receipts.md),
 [el contrato HTTP](deadline-tracking-api.md) y
 [ADR-0037](adr/0037-durable-deadline-reevaluation.md).
@@ -224,16 +225,16 @@ conservación exacta de R1-R5 tras restauración. La demostración CLI también
 aprobó. El [informe de verificación](verification-report.md) conserva tiempos,
 fuentes y alcance de estas ejecuciones y del cierre global en curso.
 
-La PR 34 publica el consumidor y la ampliación humana/HTTP/Qadra V2 y
-permanece en borrador durante el cierre de verificación. Esa ampliación no
-forma parte de la entrega integrada por PR 33. El [despachador](deadline-dispatch.md)
-expande eventos y legado en trabajos persistentes; el [consumidor](deadline-worker.md)
-confirma revisión, resultado y auditoría, o resultados sin cambios e intentos
-con espera durable. El cierre global y la integración en `main` siguen en curso;
-activación y alertas mantienen su implementación pendiente. La agenda conjunta
-está implementada y su aceptación conserva un seguimiento separado.
-Los recorridos reales aprobados de reevaluación no completan esos otros
-objetivos del producto.
+La [PR 34](https://github.com/eddndev/TT2026-B136/pull/34) integró el consumidor
+y la ampliación humana/HTTP/Qadra V2 mediante squash `e2e6758`. El
+[despachador](deadline-dispatch.md) expande eventos y legado en trabajos
+persistentes; el [consumidor](deadline-worker.md) confirma revisión, resultado
+y auditoría, o resultados sin cambios e intentos con espera durable. Los
+controles globales y los recorridos reales de esta entrega se conservan en el
+informe de verificación. La agenda posterior se integró por separado mediante
+la [PR 35](https://github.com/eddndev/TT2026-B136/pull/35), squash `c16b820`.
+La entrega de alertas conserva su aceptación pendiente y no forma parte de
+esas dos integraciones.
 
 La conciliación excepcional de dependencias retiradas requiere un contrato
 explícito. La ampliación de reevaluación no cierra activación ni alertas y sus
@@ -248,9 +249,9 @@ vacía puede conservar continuación y nunca acredita agotamiento por sí sola.
 Las actividades se distinguen por familia e identificador y conservan la revisión
 mayor recibida. Abrirlas revalida el expediente y consulta la revisión exacta.
 La decisión y los límites se describen en
-[ADR-0038](adr/0038-authorized-combined-agenda.md). Esta implementación mantiene
-su aceptación en curso; no se declara integrada en `main` ni sustituye los
-objetivos pendientes de activación, alertas o corpus jurídico.
+[ADR-0038](adr/0038-authorized-combined-agenda.md). La agenda está integrada en `main` con aceptación real de escritorio, móvil
+y restauración. Sus resultados no sustituyen los objetivos pendientes de
+alertas, recursos procesales, identidad y operación del despacho.
 
 La [precision temporal declarada](procedural-time.md) conserva datos desconocidos,
 fecha, minuto y segundo, con desfase opcional. Esta implementacion de dominio no

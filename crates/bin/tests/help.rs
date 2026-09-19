@@ -65,7 +65,7 @@ fn serve_requires_an_explicit_native_document_library() {
 }
 
 #[test]
-fn serve_exposes_bounded_serial_deadline_processing() {
+fn serve_exposes_bounded_activity_processing_and_optional_email() {
     let exe = env!("CARGO_BIN_EXE_despacho-cli");
     let output = Command::new(exe)
         .args(["serve", "--help"])
@@ -73,14 +73,28 @@ fn serve_exposes_bounded_serial_deadline_processing() {
         .unwrap();
     assert!(output.status.success());
     let help = String::from_utf8(output.stdout).unwrap();
-    for flag in ["--deadline-page-limit", "--deadline-poll-ms"] {
-        assert!(help.contains(flag), "missing deadline configuration {flag}");
+    for flag in [
+        "--deadline-page-limit",
+        "--deadline-poll-ms",
+        "--alert-page-limit",
+        "--alert-poll-ms",
+        "--alert-email-from",
+        "--alert-login-url",
+    ] {
+        assert!(help.contains(flag), "missing activity configuration {flag}");
     }
+    assert!(help.contains("ALERT_EMAIL_FROM"));
+    assert!(help.contains("ALERT_LOGIN_URL"));
+    assert!(help.contains("RESEND_API_KEY"));
     for (flag, value) in [
         ("--deadline-page-limit", "0"),
         ("--deadline-page-limit", "101"),
         ("--deadline-poll-ms", "0"),
         ("--deadline-poll-ms", "4294967296"),
+        ("--alert-page-limit", "0"),
+        ("--alert-page-limit", "101"),
+        ("--alert-poll-ms", "0"),
+        ("--alert-poll-ms", "4294967296"),
     ] {
         let rejected = Command::new(exe)
             .env_remove("DOCUMENT_QPDF_LIBRARY")

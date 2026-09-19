@@ -1,9 +1,11 @@
 # Alertas personales de audiencias y plazos
 
 El router HTTP y Qadra implementan preferencias personales, consulta de bandeja,
-detalle y lectura explícita. Las rutas se construyen mediante `web::alert_router`
-sobre `AlertWorkflow`. La composición con persistencia PostgreSQL, generación
-periódica y transporte de correo conserva su aceptación integrada pendiente.
+detalle y lectura explícita. `web::api_router` reúne las rutas sobre
+`AlertWorkflow` con el presupuesto HTTP compartido; `web::alert_router` conserva
+el router aislado. `serve` comparte un `PostgresAlertStore` entre el servicio,
+el generador periódico y el consumidor de correo. La composición conserva
+su aceptación integrada pendiente.
 Las pruebas del cliente y del navegador con HTTP controlado no acreditan ese
 recorrido real. La decisión está en
 [ADR-0039](adr/0039-durable-activity-alerts.md).
@@ -181,7 +183,7 @@ operaciones distintas; un aviso resuelto puede seguir sin leer.
 o `{kind:"accepted",accepted_at}`. `accepted` significa **Aceptado por proveedor**;
 no prueba entrega al buzón ni lectura del correo. La bandeja no expone dirección
 de envío, texto de errores del proveedor ni una acción pública de reintento.
-El mensaje externo previsto es genérico y enlaza al acceso a Qadra, sin datos
+El mensaje externo es genérico y enlaza al acceso a Qadra, sin datos
 del recurso. Su transporte y recuperación requieren aceptación propia.
 
 `POST /api/v1/alerts/{id}/read` sólo recibe:
@@ -195,6 +197,46 @@ nulo. La repetición idempotente conserva el instante de lectura original; no
 declara atención del plazo, no confirma aplicabilidad ni modifica su historial.
 Abrir el recurso tampoco marca la alerta como leída. Ante respuesta incierta,
 **Comprobar lectura** consulta el detalle sin repetir automáticamente la escritura.
+
+## Configuración y aceptación del servidor
+
+El servidor genera alertas internas aunque el correo esté deshabilitado. El
+transporte se habilita sólo al proporcionar los tres valores siguientes; una
+configuración parcial o inválida impide el arranque:
+
+| Variable | Argumento alternativo | Uso |
+| --- | --- | --- |
+| `RESEND_API_KEY` | Ninguno; sólo entorno | Credencial de Resend, sin inclusión en argumentos ni diagnósticos. |
+| `ALERT_EMAIL_FROM` | `--alert-email-from` | Dirección remitente del mensaje genérico. |
+| `ALERT_LOGIN_URL` | `--alert-login-url` | URL fija de acceso, sin credenciales, parámetros ni fragmentos; ruta `/` o `/login`. |
+
+La URL exige HTTPS, salvo HTTP de loopback para ensayos locales. Sin los tres
+valores, `email_transport=disabled`; conservar una preferencia de correo activa
+no equivale a habilitar un transporte ni a haber enviado el aviso. El remitente,
+destinatario, URL, plantilla y clave de idempotencia quedan congelados al primer
+reclamo de entrega; una modificación de configuración no reescribe ese envío.
+
+`--alert-page-limit` limita a 1–100 las acciones de reconciliación o activación
+por ciclo; su valor predeterminado es 20. `--alert-poll-ms` fija la pausa positiva
+entre ciclos, por defecto 1000 ms. Cada ciclo puede reclamar un correo si hay
+transporte. El consumidor de alertas y el de reevaluación de plazos comparten la
+parada supervisada por INT/TERM. El servidor espera sus operaciones bloqueantes
+en curso antes de cerrar los adaptadores; un fallo fatal también solicita
+la parada de ambos consumidores y HTTP.
+
+La aceptación preparada en `scripts/api-alerts-demo.py`, invocada al final de
+`scripts/api-demo.sh`, crea una audiencia a 36 horas y espera de forma acotada
+el aviso de 48 horas. Comprueba bandeja propia, lectura idempotente, preferencias,
+origen e historial exactos y denegación de acceso anónimo, Client y otra cuenta.
+Se ejecuta después de las comparaciones de restauración existentes; este
+recorrido no acredita por sí mismo restauración de las tablas de alertas.
+
+`scripts/web-demo.sh` incorpora `web/tests/live/alerts.spec.mjs` a 1440 y 390
+píxeles usando PostgreSQL y el consumidor real, sin interceptar las respuestas
+de alertas. Ambos guiones deshabilitan correo externo en sus servicios
+desechables. Estas comprobaciones están preparadas y pendientes de ejecución;
+no acreditan entrega real de Resend ni aceptación del proveedor. Los resultados
+reproducidos se registran por separado en el informe de verificación.
 
 ## Errores
 

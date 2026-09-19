@@ -1,6 +1,8 @@
 //! Own synchronous adapters outside the asynchronous server lifetime.
 
 use crate::{
+    serve_alert_composition::AlertConsumers,
+    serve_alert_runtime, serve_alert_supervisor,
     serve_deadline_runtime::{self, DeadlineRuntimeConfig},
     serve_runtime,
     serve_signals::Signals,
@@ -16,6 +18,7 @@ pub(crate) fn run<D, W>(
     dispatch: D,
     worker: W,
     config: DeadlineRuntimeConfig,
+    alerts: AlertConsumers,
 ) -> anyhow::Result<()>
 where
     D: DeadlineDispatchStore + 'static,
@@ -40,7 +43,7 @@ where
         let consumer_stop = Arc::clone(&stop);
         let dispatch = Arc::clone(&dispatch);
         let worker = Arc::clone(&worker);
-        let consumer = tokio::task::spawn_blocking(move || {
+        let deadlines = tokio::task::spawn_blocking(move || {
             serve_deadline_runtime::run(
                 dispatch.as_ref(),
                 worker.as_ref(),
@@ -48,6 +51,25 @@ where
                 consumer_stop.as_ref(),
             )
         });
+        let alert_stop = Arc::clone(&stop);
+        let scheduler = Arc::clone(&alerts.scheduler);
+        let delivery = Arc::clone(&alerts.delivery);
+        let sender = alerts.sender.clone();
+        let alert_config = alerts.config;
+        let alerts = tokio::task::spawn_blocking(move || {
+            serve_alert_runtime::run(
+                scheduler.as_ref(),
+                delivery.as_ref(),
+                sender.as_deref(),
+                alert_config,
+                alert_stop.as_ref(),
+            )
+        });
+        let consumer = tokio::spawn(serve_alert_supervisor::supervise(
+            deadlines,
+            alerts,
+            Arc::clone(&stop),
+        ));
         let (http_shutdown, shutdown) = tokio::sync::oneshot::channel();
         let server_router = router.clone();
         let http = async move {

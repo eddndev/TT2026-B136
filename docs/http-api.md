@@ -47,7 +47,8 @@ restauración de R1-R5; la aceptación API final también aprobó. El cierre glo
 y la integración en `main` continúan; el informe conserva los resultados exactos.
 La agenda conjunta incorpora su [contrato independiente](agenda-api.md);
 la aceptación de cada entrega se registra en el informe. Las
-[alertas personales](alerts-api.md) tienen servicio, router y cliente Qadra;
+[alertas personales](alerts-api.md) tienen servicio, router y cliente Qadra,
+compuestos en `serve` con generación interna y transporte opcional;
 la aceptación integrada de persistencia y runtime sigue pendiente. Véanse
 [el alcance completo](deadline-lifecycle.md) y
 [el presupuesto JSON del catálogo](deadline-profile-json-budget.md).
@@ -953,9 +954,11 @@ Las preferencias admiten anticipaciones configurables, inicialmente 48/24 horas,
 y canales por los cuatro motivos de aviso. Leer no declara atención; el origen
 histórico no acredita vigencia operativa. `email.kind=accepted` sólo confirma
 aceptación por el proveedor y `disabled` expresa transporte no configurado.
-El router, el servicio de aplicación y Qadra están implementados. La verificación
-del navegador con HTTP controlado no acredita todavía el recorrido integrado
-con PostgreSQL, generación periódica y correo; esa aceptación sigue pendiente.
+El router y el servicio de aplicación están compuestos en `serve` junto con
+Qadra. La [configuración del servidor](alerts-api.md#configuración-y-aceptación-del-servidor)
+detalla el correo opcional y los límites del consumidor. Los recorridos API y
+navegador real están preparados; su ejecución integrada sigue pendiente y se
+registra por separado de la verificación con HTTP controlado.
 
 ## Errores
 

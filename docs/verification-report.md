@@ -10,9 +10,10 @@ Están implementados temporización configurable, puertos de preferencias y
 bandeja personal, servicio autorizado, cinco rutas HTTP y Qadra. La bandeja
 conserva el origen exacto, lectura independiente de atención, estados del correo,
 filtros, continuación, conflictos y respuestas inciertas. El contrato está en
-[alerts-api.md](alerts-api.md). La persistencia, generación durable, composición
-del servidor y aceptación real permanecen en desarrollo; esta entrega no afirma
-que un servidor desplegado ya genere o envíe alertas.
+[alerts-api.md](alerts-api.md). La persistencia, generación durable y composición del servidor están
+implementadas en el borrador; la aceptación API/navegador real, la regresión de
+cierre y la integración de esta ampliación permanecen pendientes. No se afirma
+entrega a un destinatario externo.
 
 Se ejecutó una sola verificación local a la vez, con pruebas focales después del
 RED y sin otra regresión global. Resultados de fronteras independientes:
@@ -32,11 +33,44 @@ servidor loopback: solicitud e idempotencia, aceptación explícita, respuestas
 inciertas, rechazo y reintentos. No se contactó a un destinatario externo. Ocho
 pruebas focales adicionales aprobaron configuración completa o deshabilitada,
 límites de ciclo, parada y supervisión de ambos consumidores; esta composición
-por puertos todavía no está conectada al servidor. El adaptador PostgreSQL en
-desarrollo se excluyó de esa compilación; no se acredita su funcionamiento.
+por puertos se comprobó antes de conectar el servidor. El adaptador PostgreSQL
+se excluyó de aquella compilación; su comprobación posterior se distingue abajo.
 
-Los resultados no se suman a campañas históricas ni acreditan integración
-PostgreSQL, entrega de correo, aceptación con servicios reales o cierre global.
+La comprobación posterior de PostgreSQL real usó bases desechables, directorio
+temporal privado en disco y un solo proceso de compilación y pruebas. La primera
+pasada de siete objetivos terminó en 148.091 s: 20 casos aprobaron y dos pruebas
+nuevas reprodujeron defectos de episodios y preferencias. Se conservaron las
+fuentes Rust y SQL durante esa pasada; sólo cambiaron guiones de aceptación
+independientes, que no ejecutó esa campaña.
+
+Los 20 casos cubren preferencias y reintentos, aislamiento antes del límite de
+bandeja, reinicio y lectura independiente de atención, origen histórico corrupto,
+rollback de escaneo/activación/correo, fuente cambiada antes del trabajador,
+arrendamiento y confirmación de intentos, payload congelado e incertidumbre más
+allá de la ventana del proveedor, inventario de arranque y permisos mínimos.
+Las dos pruebas fallidas exigieron resolver el aviso anterior al registrar
+atención aunque se reabra antes del escaneo, y reactivar una ocurrencia nunca
+emitida al habilitar sus canales. Tras corregirlo, sólo ese objetivo se repitió:
+ambas aprobaron en 18.977 s, con 2219 fuentes sin cambios. Los avisos ya activados
+conservan su identidad y no se reenvían por esa reactivación.
+
+Una prueba adicional reprodujo la misma pérdida de episodio cuando se acepta
+una revisión humana y otra fuente cambia antes del siguiente escaneo (RED en
+11.519 s). Se conserva ahora esa aceptación en el estado y se verifica su
+revisión histórica al resolver el aviso anterior. El caso nuevo y los dos
+anteriores aprobaron juntos en 26.463 s, con las fuentes
+sin cambios durante la campaña.
+
+Dos pruebas adicionales de composición del servidor aprobaron en 25.417 s,
+incluida compilación: fallo de bind sin iniciar consumidores y parada de ambos
+con liberación final de los adaptadores fuera de Tokio. La implementación Rust
+se mantuvo estable; continuó la preparación independiente de guiones HTTP y web.
+
+Cuatro pruebas de ayuda CLI y límites de argumentos aprobaron en 6.011 s,
+con fuentes sin cambios.
+
+Los resultados no se suman a campañas históricas ni acreditan recepción externa
+de correo, aceptación API/navegador real, restauración integral o cierre global.
 
 ## Agenda combinada: checkpoint funcional del 19 de septiembre de 2026
 
