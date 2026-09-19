@@ -4,6 +4,32 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Alertas personales: implementación parcial del 19 de septiembre de 2026
+
+Están implementados temporización configurable, puertos de preferencias y
+bandeja personal, servicio autorizado, cinco rutas HTTP y Qadra. La bandeja
+conserva el origen exacto, lectura independiente de atención, estados del correo,
+filtros, continuación, conflictos y respuestas inciertas. El contrato está en
+[alerts-api.md](alerts-api.md). La persistencia, generación durable, composición
+del servidor y aceptación real permanecen en desarrollo; esta entrega no afirma
+que un servidor desplegado ya genere o envíe alertas.
+
+Se ejecutó una sola verificación local a la vez, con pruebas focales después del
+RED y sin otra regresión global. Resultados de fronteras independientes:
+
+- Ocho pruebas de temporización y 16 de aplicación aprobadas.
+- Tres pruebas de vigencia distinguen revisión humana de recálculo ordinario.
+- Seis pruebas HTTP aprobadas tras corregir las rutas parametrizadas.
+- 26 pruebas del cliente aprobadas; una prueba adicional del cursor futuro falló
+  primero y aprobó después de corregir la comparación con el instante consultado.
+- Nueve recorridos de navegador con HTTP controlado aprobaron en 18.891 s,
+  incluidos escritorio y móvil, lectura incierta, conflicto, apertura exacta,
+  retorno, continuación y revocación. Sus 2173 fuentes mantuvieron sus huellas.
+  Se inspeccionaron las dos capturas de bandeja sin recortes ni solapamientos.
+
+Los resultados no se suman a campañas históricas ni acreditan integración
+PostgreSQL, entrega de correo, aceptación con servicios reales o cierre global.
+
 ## Agenda combinada: checkpoint funcional del 19 de septiembre de 2026
 
 `GET /api/v1/agenda` reúne audiencias y vencimientos operativos bajo una lectura
@@ -57,8 +83,13 @@ informó 16.4 s. Las 2119 fuentes conservaron sus huellas. Se reutilizó el oper
 y calendario, con políticas fijas y datos independientes de la prueba Follow.
 Se inspeccionaron sus dos capturas: las cinco tarjetas conservan legibilidad
 en escritorio y el calendario mantiene desplazamiento contenido en móvil.
-La regresión global, cobertura,
-actualización académica de esta ampliación e integración en main están pendientes.
+La agenda se integró en `main` mediante squash de la
+[PR 35](https://github.com/eddndev/TT2026-B136/pull/35), commit `c16b820`,
+el 19 de septiembre de 2026. El [CI de cierre](https://github.com/eddndev/TT2026-B136/actions/runs/35434470861)
+aprobó formato, Clippy, MSRV, pruebas, cobertura, dependencias y binario de
+release para `79a618b`; Web aprobó sus dos trabajos. El PDF de esa revisión
+pasó compilación y revisión visual según el informe académico. Estos controles
+remotos no se repitieron como otra campaña completa local.
 La aceptación de esta agenda no acredita alertas, activación automática ni
 perfiles jurídicos calificados.
 

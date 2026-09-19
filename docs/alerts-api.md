@@ -140,7 +140,7 @@ Cada objeto `alert` contiene:
 | Campo | Contenido |
 | --- | --- |
 | `id`, `recipient_id`, `occurrence_id` | Identidad de alerta, cuenta destinataria y ocurrencia. |
-| `subject` | `{kind:"hearing"|"deadline",case_id,id}`. |
+| `subject` | `{kind,case_id,id}`; `kind` es `hearing` o `deadline`. |
 | `subject_title`, `case_title`, `case_reference` | Contexto capturado; límites de 200, 200 y 100 escalares Unicode. Texto no vacío, sin controles y sin espacios sobrantes en los extremos. |
 | `kind` | Uno de los cuatro motivos descritos abajo. |
 | `origin` | `{revision,evidence_digest}`; revisión exacta y SHA-256 hexadecimal minúscula de 64 caracteres. |

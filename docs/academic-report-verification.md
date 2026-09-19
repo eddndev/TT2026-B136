@@ -1,20 +1,36 @@
 # Verificación de la actualización académica
 
-## Agenda combinada: actualización en revisión
+## Agenda combinada: 19 de septiembre de 2026
 
-Los apartados de audiencias y plazos describen la consulta combinada, su límite
-de vigencia, autorización, paginación y navegación por revisión exacta. Pruebas
-y anexo incorporan la aceptación reproducida con PostgreSQL, navegador y
-restauración. Se preservan resumen, objetivos, estado del arte, conclusiones
-pendientes y presentación.
+Los apartados de audiencias y plazos describen la consulta combinada, vigencia,
+autorización, continuación y apertura por revisión exacta. Pruebas y anexo
+incorporan la aceptación PostgreSQL, navegador, restauración y cinco expedientes.
+Se preservan resumen, objetivos, estado del arte, conclusiones pendientes y
+presentación.
 
-El workflow Documents compiló el árbol de agenda con aceptación de cinco
-expedientes en un PDF de 316 páginas. Su log identificó un desborde nuevo en
-una lista de rutas del anexo; se corrigió el ajuste de ese párrafo. La
-compilación de esta corrección y la inspección final permanecen pendientes.
-El resultado de 315 páginas documentado a continuación corresponde al
-seguimiento humano V2 anterior; no acredita estos nuevos apartados. Los
-resultados de software están en [el informe técnico](verification-report.md).
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35434470866)
+compiló `79a618b`: el artefacto identifica el merge de revisión `9273b8f`,
+con padres `e2e6758` y `79a618b`, cuyo árbol coincide con la cabeza publicada.
+El PDF tiene **316 páginas, formato carta y 5880480 bytes**. SHA-256:
+`671d5ebc4ce6d0534636a613f4f767ac45809197b7f739eb12fe18e03aa52560`.
+
+Se renderizaron e inspeccionaron **16 páginas físicas: 3-5, 178-180, 192-195,
+226-228 y 311-313**. Siete páginas de implementación recibieron revisión
+independiente. Texto, tablas y rutas son legibles, sin recortes ni solapamientos.
+Permanecen dos cortes tipográficos menores: una línea de continuación al inicio
+de la página 180 y la extensión final de una ruta en la 194. No se presenta
+esta muestra como inspección de todas las páginas.
+
+La revisión previa detectó un desborde de 25.56375 pt en las rutas del anexo;
+el ajuste del párrafo lo corrigió. La pasada final no contiene referencias o
+citas indefinidas, etiquetas duplicadas ni glifos ausentes. Conserva las
+sustituciones históricas de versalitas y el desborde de 0.11754 pt. El artefacto
+comprobado se conserva en `output/deadline-reevaluation/ci-report-79a618b/` del
+checkout de agenda, sin añadir binarios a Git ni sustituir otros entregables.
+
+La aceptación de software pertenece al [informe técnico](verification-report.md).
+Este resultado no acredita usabilidad con personas, perfiles jurídicos
+calificados, cierre del manuscrito completo ni preparación final de defensa.
 
 ## Seguimiento humano V2 compuesto y Qadra: 19 de septiembre de 2026
 
