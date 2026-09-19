@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Agenda combinada: actualización en revisión
+
+Los apartados de audiencias y plazos describen la consulta combinada, su límite
+de vigencia, autorización, paginación y navegación por revisión exacta. Pruebas
+y anexo incorporan la aceptación reproducida con PostgreSQL, navegador y
+restauración. Se preservan resumen, objetivos, estado del arte, conclusiones
+pendientes y presentación.
+
+La compilación y la inspección del PDF de esta ampliación están pendientes.
+El resultado de 315 páginas documentado a continuación corresponde al
+seguimiento humano V2 anterior; no acredita estos nuevos apartados. Los
+resultados de software están en [el informe técnico](verification-report.md).
+
 ## Seguimiento humano V2 compuesto y Qadra: 19 de septiembre de 2026
 
 Los apartados propios describen decisiones humanas V2, consultas de vigencia,

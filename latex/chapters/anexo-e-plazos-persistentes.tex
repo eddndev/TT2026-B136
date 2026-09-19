@@ -95,3 +95,9 @@ El contrato está en \rutarepo{docs/deadline-worker.md}; el compromiso de observ
 \subsection{Composición y supervisión del servidor}
 
 En \rutarepo{crates/bin/src/}, \texttt{serve\_deadline\_runtime.rs} implementa el ciclo; \texttt{serve\_start.rs} compone sus propietarios; y \texttt{serve\_runtime.rs}, \texttt{serve\_signals.rs} y \texttt{serve\_stop.rs} coordinan terminación y parada. Los archivos de prueba correspondientes comprueban la composición sin sustituir la aceptación de procesos reales. El ejecutable aprobó 31 pruebas unitarias y cuatro de ayuda y configuración; las 26 de ciclo y supervisión están incluidas en las unitarias. Clippy aprobó todos los objetivos del ejecutable. Estos controles no se atribuyen a una nueva campaña global del espacio de trabajo.
+
+\subsection{Consulta combinada de actividades}
+
+La \cref{sec:implementacion-agenda-combinada} corresponde al puerto de aplicación \rutarepo{crates/application/src/agenda/}, al adaptador \rutarepo{crates/infrastructure/src/agenda_postgres/} y al transporte \rutarepo{crates/web/src/agenda/}. En los directorios de pruebas de aplicación e infraestructura, los archivos con prefijo \texttt{agenda\_} separan consultas, permisos, proyección, paginación, corrupción y concurrencia; \rutarepo{crates/web/tests/agenda_http.rs} comprueba el contrato HTTP.
+
+La aceptación con servidor real utiliza \rutarepo{web/tests/live/combined-agenda.spec.mjs}; el guion \rutarepo{scripts/api-agenda-demo.py} contrasta la API y su estado restaurado. Sus resultados pertenecen a la \cref{sec:pruebas-agenda-combinada}. Estos ensayos conservan su alcance separado de las campañas históricas de programación, plazos y reevaluación, y no representan pruebas de entrega de alertas.
