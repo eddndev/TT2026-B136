@@ -95,7 +95,10 @@ formatos existentes. Es una ampliación del caso ya contabilizado, no un caso
 adicional. CI detectó carga duplicada de fixtures Rust; la corrección reutiliza
 el módulo compartido y aprobó Clippy focal de los tres objetivos de aplicación
 en 13.996 s. El CI inicial fue cancelado después de ese fallo, no aprobado.
-El cierre global remoto y la inspección del PDF actualizado siguen pendientes.
+Una segunda carga duplicada del mismo catálogo en fixtures HTTP fue corregida
+al reutilizar el módulo ya importado. Clippy del workspace completo, incluidos
+todos los objetivos, aprobó en 315.721 s con 2426 fuentes estables. El cierre
+global remoto y la inspección del PDF actualizado siguen pendientes.
 
 ## Recursos procesales: checkpoint local del 19 de septiembre de 2026
 

@@ -1,3 +1,4 @@
+use super::deadlines::records::profiles;
 use super::*;
 use application::{
     case_stages::{CaseStage, CaseStageRevision},
@@ -16,8 +17,6 @@ use domain::{
 };
 use time::{OffsetDateTime, Time, UtcOffset};
 use uuid::Uuid;
-#[path = "../../../application/tests/deadline_profile_catalog_support/values.rs"]
-mod profiles;
 pub fn digest() -> Sha256Digest {
     resources::digest()
 }
