@@ -12,6 +12,25 @@ pub struct FactSourceSelection {
     direct_supports: Vec<FactSupportRef>,
 }
 impl FactSourceSelection {
+    /// One exact resolution selection for consumers that share fact verification.
+    pub fn select_resolution(reference: FactResolutionRef) -> Self {
+        Self {
+            resolution: Some(reference),
+            participants: vec![],
+            hearing_results: vec![],
+            direct_supports: vec![],
+        }
+    }
+    /// One exact participant selection; the existing per-fact limits are unchanged.
+    pub fn select_participant(reference: FactParticipantRef) -> Self {
+        Self {
+            resolution: None,
+            participants: vec![reference],
+            hearing_results: vec![],
+            direct_supports: vec![],
+        }
+    }
+
     pub fn from_values(values: &ProceduralFactValues) -> Self {
         let mut selected = Self {
             resolution: None,
