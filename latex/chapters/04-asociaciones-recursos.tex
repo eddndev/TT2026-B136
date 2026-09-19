@@ -20,7 +20,7 @@ La consulta toma un instante UTC común después de adquirir el bloqueo. Todas l
 
 Las migraciones de asociaciones, conservadas en el directorio \rutarepo{migrations/}, incorporan dos tablas: raíces y revisiones de asociación. La transacción añade revisión, recibo y auditoría conjuntamente. El catálogo estricto comprueba estructura y privilegios; el inventario reconstruye capturas históricas en lotes acotados, sin modificar datos al abrir. El respaldo conserva ambas tablas y sus dependencias, no sólo los identificadores de los extremos.
 
-La aceptación API integrada comprobó la conservación de capturas y respuestas tras restaurar, incluida la separación entre selección histórica y cabeza actual. Los instantes de consulta nuevos se validan como observaciones nuevas, sin compararlos por igualdad con los anteriores al respaldo. La \cref{sec:pruebas-asociaciones-recursos} delimita esta evidencia respecto del navegador real y CI todavía pendientes.
+La aceptación API integrada comprobó la conservación de capturas y respuestas tras restaurar, incluida la separación entre selección histórica y cabeza actual. Los instantes de consulta nuevos se validan como observaciones nuevas, sin compararlos por igualdad con los anteriores al respaldo. La \cref{sec:pruebas-asociaciones-recursos} delimita esta evidencia respecto del navegador real aprobado y el cierre de CI todavía pendiente.
 
 Owner gestiona todos los expedientes; Litigator asignado gestiona y Paralegal asignado consulta. Client no accede. El servicio reautentica al principal completo y el adaptador comprueba cuenta, rol y asignación vigentes. El cierre conserva lecturas y repetición exacta autorizada de una operación confirmada, pero impide nuevas mutaciones.
 

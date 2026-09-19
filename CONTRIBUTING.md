@@ -324,7 +324,7 @@ Inspect current code and contracts before treating this summary as complete.
   and history. Their API/restoration and real-service browser acceptance passed;
   PR 37 remains pending CI closure and integration. The subsequent associations
   to existing hearings/deadlines have local implementation and API/restoration
-  acceptance, with real-browser and CI checks still pending. Qualified legal
+  acceptance, with real-browser acceptance passed and CI closure still pending. Qualified legal
   profiles, durable activation and the complete resource workflow remain work
   under `docs/procedural-resources-scope.md`.
 
