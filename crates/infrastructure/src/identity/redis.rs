@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use application::identity::{Principal, SessionStore};
+use application::identity::{LoginChallengeIdentity, SessionIdentity, SessionStore};
 use application::ApplicationError;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -82,36 +82,46 @@ impl RedisSessionStore {
 }
 
 impl SessionStore for RedisSessionStore {
-    fn create_challenge(&self, user_id: UserId, ttl: u64) -> Result<String, ApplicationError> {
+    fn create_challenge(
+        &self,
+        identity: &LoginChallengeIdentity,
+        ttl: u64,
+    ) -> Result<String, ApplicationError> {
+        validate_generation(identity.auth_generation)?;
         let token = self.random_token()?;
         let key = self.digest_key("challenge", token.as_bytes());
+        let value = serde_json::to_string(identity).map_err(|error| {
+            ApplicationError::Port(format!("challenge serialization failed: {error}"))
+        })?;
         self.connection()?
-            .set_ex::<_, _, ()>(key, user_id.to_string(), ttl)
+            .set_ex::<_, _, ()>(key, value, ttl)
             .map_err(port_error)?;
         Ok(token)
     }
 
-    fn take_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError> {
+    fn take_challenge(
+        &self,
+        token: &str,
+    ) -> Result<Option<LoginChallengeIdentity>, ApplicationError> {
         let key = self.digest_key("challenge", token.as_bytes());
         let value: Option<String> = redis::cmd("GETDEL")
             .arg(key)
             .query(&mut self.connection()?)
             .map_err(port_error)?;
-        value
-            .map(|raw| {
-                uuid::Uuid::parse_str(&raw)
-                    .map(UserId::from_uuid)
-                    .map_err(|error| {
-                        ApplicationError::Port(format!("redis challenge user is invalid: {error}"))
-                    })
-            })
-            .transpose()
+        Ok(value
+            .and_then(|raw| serde_json::from_str::<LoginChallengeIdentity>(&raw).ok())
+            .filter(|identity| identity.auth_generation <= i64::MAX as u64))
     }
 
-    fn create_session(&self, principal: &Principal, ttl: u64) -> Result<String, ApplicationError> {
+    fn create_session(
+        &self,
+        identity: &SessionIdentity,
+        ttl: u64,
+    ) -> Result<String, ApplicationError> {
+        validate_generation(identity.auth_generation)?;
         let token = self.random_token()?;
         let key = self.digest_key("session", token.as_bytes());
-        let value = serde_json::to_string(principal).map_err(|error| {
+        let value = serde_json::to_string(identity).map_err(|error| {
             ApplicationError::Port(format!("session serialization failed: {error}"))
         })?;
         self.connection()?
@@ -120,16 +130,20 @@ impl SessionStore for RedisSessionStore {
         Ok(token)
     }
 
-    fn find_session(&self, token: &str) -> Result<Option<Principal>, ApplicationError> {
+    fn find_session(&self, token: &str) -> Result<Option<SessionIdentity>, ApplicationError> {
         let key = self.digest_key("session", token.as_bytes());
         let value: Option<String> = self.connection()?.get(key).map_err(port_error)?;
-        value
-            .map(|json| {
-                serde_json::from_str(&json).map_err(|error| {
-                    ApplicationError::Port(format!("stored session is invalid: {error}"))
-                })
-            })
-            .transpose()
+        Ok(value
+            .and_then(|raw| serde_json::from_str::<StoredSession>(&raw).ok())
+            .filter(|identity| identity.auth_generation <= i64::MAX as u64)
+            .map(|identity| SessionIdentity {
+                principal: application::identity::Principal {
+                    id: identity.principal.id,
+                    email: identity.principal.email,
+                    role: identity.principal.role,
+                },
+                auth_generation: identity.auth_generation,
+            }))
     }
 
     fn revoke_session(&self, token: &str) -> Result<(), ApplicationError> {
@@ -200,4 +214,28 @@ fn failure_window(ttl: u64) -> Result<u32, ApplicationError> {
 
 fn port_error(error: redis::RedisError) -> ApplicationError {
     ApplicationError::Port(format!("redis: {error}"))
+}
+
+fn validate_generation(value: u64) -> Result<(), ApplicationError> {
+    if value > i64::MAX as u64 {
+        return Err(ApplicationError::InvalidInput(
+            "authentication generation exceeds i64".into(),
+        ));
+    }
+    Ok(())
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StoredSession {
+    principal: StoredPrincipal,
+    auth_generation: u64,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StoredPrincipal {
+    id: UserId,
+    email: String,
+    role: domain::identity::Role,
 }

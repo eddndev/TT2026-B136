@@ -13,7 +13,7 @@ use postgres::error::SqlState;
 use postgres::{Client, Row};
 
 const USER_COLUMNS: &str = "id, email, password_hash, role, active, \
-    protected_totp_secret, recovery_codes, revision";
+    protected_totp_secret, recovery_codes, revision, auth_generation";
 
 /// Durable user repository backed by PostgreSQL.
 pub struct PostgresUserRepository {
@@ -167,6 +167,11 @@ where
     let recovery_codes = serde_json::to_value(&user.recovery_codes).map_err(|error| {
         ApplicationError::Port(format!("recovery code serialization failed: {error}"))
     })?;
+    if user.auth_generation != 0 {
+        return Err(ApplicationError::InvalidInput(
+            "new accounts require generation zero".into(),
+        ));
+    }
     let revision = i64::try_from(user.revision)
         .map_err(|_| ApplicationError::Port("user revision exceeds i64".to_string()))?;
     client
@@ -199,6 +204,9 @@ fn row_to_user(row: Row) -> Result<UserRecord, ApplicationError> {
         password_hash: row.get("password_hash"),
         role: Role::from_str(&role_name)?,
         active: row.get("active"),
+        auth_generation: u64::try_from(row.get::<_, i64>("auth_generation")).map_err(|_| {
+            ApplicationError::Port("stored authentication generation is negative".into())
+        })?,
         protected_totp_secret: row.get("protected_totp_secret"),
         recovery_codes: serde_json::from_value(recovery_json).map_err(|error| {
             ApplicationError::Port(format!("stored recovery codes are invalid: {error}"))

@@ -19,6 +19,7 @@ fn user(email: &str, role: Role) -> UserRecord {
         recovery_codes: RecoveryCodeSet::from_hashes(vec!["test-code".into(); RECOVERY_CODE_COUNT])
             .unwrap(),
         revision: 0,
+        auth_generation: 0,
     }
 }
 
@@ -145,9 +146,16 @@ fn persistence_rechecks_current_owner_before_creating_a_user() {
     repository
         .insert_initial_owner(owner.clone(), OffsetDateTime::now_utc())
         .unwrap();
+    repository
+        .insert(
+            user("backup@example.com", Role::Owner),
+            owner.id,
+            OffsetDateTime::now_utc(),
+        )
+        .unwrap();
     control
         .execute(
-            "UPDATE users SET role='paralegal' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'paralegal' THEN 1 ELSE 0 END,role='paralegal' WHERE id=$1",
             &[&owner.id.as_uuid()],
         )
         .unwrap();
@@ -167,5 +175,5 @@ fn persistence_rechecks_current_owner_before_creating_a_user() {
         denied,
         Err(application::ApplicationError::PermissionDenied)
     ));
-    assert_eq!(count, 1);
+    assert_eq!(count, 2);
 }
