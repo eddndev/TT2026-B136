@@ -10,9 +10,10 @@ use domain::crypto::{
 };
 use domain::identity::{Permission, Role, UserId};
 
+use super::validation::{normalize_email, validate_password};
 use super::{
-    EnrollmentResult, LoginChallenge, Principal, SecretProtector, SessionResult, SessionStore,
-    UserRecord, UserRepository,
+    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SecretProtector,
+    SessionIdentity, SessionResult, SessionStore, UserRecord, UserRepository,
 };
 use crate::ApplicationError;
 
@@ -21,8 +22,6 @@ const SESSION_TTL_SECONDS: u64 = 86_400;
 const FAILURE_WINDOW_SECONDS: u64 = 900;
 const TOTP_REPLAY_TTL_SECONDS: u64 = 90;
 const MAX_PASSWORD_FAILURES: u32 = 5;
-const MIN_PASSWORD_BYTES: usize = 12;
-const MAX_PASSWORD_BYTES: usize = 1024;
 
 /// Outbound adapters required by [`IdentityService`].
 pub struct IdentityPorts {
@@ -111,7 +110,7 @@ impl IdentityService {
         validate_password(password)?;
         let (record, enrollment) = self.enroll(&email, password, role)?;
         let current = self.authorize(access_token, Permission::CreateUser)?;
-        if current.id != actor.id {
+        if current != actor {
             return Err(ApplicationError::InvalidSession);
         }
         self.ports
@@ -147,10 +146,13 @@ impl IdentityService {
             return Err(ApplicationError::InvalidCredentials);
         }
         self.ports.sessions.clear_password_failures(&email)?;
-        let challenge_token = self
-            .ports
-            .sessions
-            .create_challenge(user.id, CHALLENGE_TTL_SECONDS)?;
+        let challenge_token = self.ports.sessions.create_challenge(
+            &LoginChallengeIdentity {
+                user_id: user.id,
+                auth_generation: user.auth_generation,
+            },
+            CHALLENGE_TTL_SECONDS,
+        )?;
         if let Err(error) = self.audit(&email, "identity.password_accepted", &user.id.to_string()) {
             self.ports
                 .sessions
@@ -217,12 +219,14 @@ impl IdentityService {
             .sessions
             .find_session(access_token)?
             .ok_or(ApplicationError::InvalidSession)?;
-        let Some(user) = self.ports.users.find_by_id(cached.id)? else {
-            self.ports.sessions.revoke_session(access_token)?;
+        let Some(user) = self.ports.users.find_by_id(cached.principal.id)? else {
             return Err(ApplicationError::InvalidSession);
         };
-        if !user.active {
-            self.ports.sessions.revoke_session(access_token)?;
+        if !user.active
+            || user.auth_generation > i64::MAX as u64
+            || cached.auth_generation != user.auth_generation
+            || cached.principal != Principal::from(&user)
+        {
             return Err(ApplicationError::InvalidSession);
         }
         Ok(Principal::from(&user))
@@ -280,6 +284,7 @@ impl IdentityService {
             protected_totp_secret,
             recovery_codes,
             revision: 0,
+            auth_generation: 0,
         };
         let result = EnrollmentResult {
             principal,
@@ -291,15 +296,19 @@ impl IdentityService {
     }
 
     fn take_challenge_user(&self, token: &str) -> Result<UserRecord, ApplicationError> {
-        let id = self
+        let challenge = self
             .ports
             .sessions
             .take_challenge(token)?
             .ok_or(ApplicationError::MfaRejected)?;
         self.ports
             .users
-            .find_by_id(id)?
-            .filter(|user| user.active)
+            .find_by_id(challenge.user_id)?
+            .filter(|user| {
+                user.active
+                    && user.auth_generation <= i64::MAX as u64
+                    && user.auth_generation == challenge.auth_generation
+            })
             .ok_or(ApplicationError::MfaRejected)
     }
 
@@ -312,13 +321,21 @@ impl IdentityService {
             .ports
             .users
             .find_by_id(user.id)?
-            .filter(|user| user.active)
+            .filter(|current| {
+                current.active
+                    && current.auth_generation <= i64::MAX as u64
+                    && current.auth_generation == user.auth_generation
+                    && Principal::from(current) == Principal::from(user)
+            })
             .ok_or(ApplicationError::MfaRejected)?;
         let principal = Principal::from(&current);
-        let access_token = self
-            .ports
-            .sessions
-            .create_session(&principal, SESSION_TTL_SECONDS)?;
+        let access_token = self.ports.sessions.create_session(
+            &SessionIdentity {
+                principal: principal.clone(),
+                auth_generation: user.auth_generation,
+            },
+            SESSION_TTL_SECONDS,
+        )?;
         if let Err(error) = self.audit(&principal.email, action, &principal.id.to_string()) {
             self.ports
                 .sessions
@@ -349,29 +366,4 @@ impl IdentityService {
             .append(actor, action, resource, self.ports.clock.now())?;
         Ok(())
     }
-}
-
-fn normalize_email(value: &str) -> Result<String, ApplicationError> {
-    let normalized = value.trim().to_ascii_lowercase();
-    let mut parts = normalized.split('@');
-    let valid = !value.bytes().any(|byte| byte.is_ascii_control())
-        && normalized.is_ascii()
-        && normalized.len() <= 254
-        && !normalized.contains(char::is_whitespace)
-        && parts.next().is_some_and(|part| !part.is_empty())
-        && parts.next().is_some_and(|part| !part.is_empty())
-        && parts.next().is_none();
-    if !valid {
-        return Err(ApplicationError::InvalidInput("invalid email".to_string()));
-    }
-    Ok(normalized)
-}
-
-fn validate_password(value: &str) -> Result<(), ApplicationError> {
-    if !(MIN_PASSWORD_BYTES..=MAX_PASSWORD_BYTES).contains(&value.len()) {
-        return Err(ApplicationError::InvalidInput(format!(
-            "password must contain between {MIN_PASSWORD_BYTES} and {MAX_PASSWORD_BYTES} bytes"
-        )));
-    }
-    Ok(())
 }

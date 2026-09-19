@@ -18,6 +18,9 @@ pub enum PortFailureKind {
 /// retain a diagnostic and optionally a neutral category, without adapter types.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    #[error(transparent)]
+    Member(#[from] crate::members::MemberError),
+
     #[error("document content validation failed")]
     DocumentContentValidationFailed(crate::document_integrity::DocumentIntegrityFailure),
 
