@@ -1,9 +1,29 @@
 # Alcance funcional de los recursos procesales
 
-Estado: propuesta técnica para implementación y revisión académica. Revisión de
-fuentes: 15 de septiembre de 2026. Esta nota no modifica objetivos, criterios,
-casos de uso ni resultados de pruebas; tampoco declara implementados recursos,
-audiencias o cómputo de términos.
+Estado: alcance completo y conciliación académica, con implementación parcial
+documentada abajo. La revisión de fuentes del 15 de septiembre de 2026 se
+conserva como antecedente; esta actualización técnica no es una nueva revisión
+normativa. No modifica objetivos, criterios ni casos de uso aprobados.
+
+## Implementación disponible y frontera pendiente
+
+El [registro declarado](procedural-resources-api.md) implementa recursos, actos,
+archivo/reactivación e historia con resoluciones y soportes exactos. Su evidencia
+incluye aceptación API/restauración y navegador real. La ampliación de
+[asociaciones existentes](resource-activities-api.md) implementa vínculos
+independientes del recurso y acto a revisiones exactas de audiencias o plazos.
+Conserva esa historia separada del estado actual de la actividad; al desvincular
+no cancela la audiencia, retira el plazo ni modifica sus alertas. Sus pruebas
+focales y la aceptación API con restauración están aprobadas. El navegador real
+y CI del incremento siguen pendientes según el [informe](verification-report.md).
+
+Este incremento no crea audiencias desde un contexto procesal de recurso ni
+activa automáticamente términos. Faltan la creación contextual coherente, el
+corpus jurídico calificado y su activación durable, y completar la navegación y
+trazabilidad de las alertas en el flujo de recursos. Los avisos existentes siguen
+perteneciendo a la actividad y conservan su política de destinatarios y episodios;
+una asociación no representa una suscripción ni una alerta nueva. Estas
+fronteras no reducen los criterios de aceptación completos de esta nota.
 
 ## Decisión propuesta
 
@@ -49,7 +69,7 @@ del despacho por defecto.
 | [Análisis y diseño, CU-07](../latex/chapters/03-analisis-diseno.tex) | Exige perfil completo, estado administrativo activo, asignación vigente y etapa Investigación o Intermedia para un avance ordinario. Su flujo conserva esas dos transiciones; no define una transición desde Juicio ni el ciclo de recursos. |
 | [Análisis y diseño, CU-08 a CU-10](../latex/chapters/03-analisis-diseno.tex) | Audiencias, calendario y alertas necesitan vinculación adicional a recurso/acto. CU-08 condiciona audiencia a etapa; la extensión debe describirse antes de evaluar audiencias asociadas a recursos. |
 | [Marco teórico, Recursos, Impugnación y Ejecución; tabla de plazos](../latex/chapters/02-marco-teorico.tex) | Presenta recursos después de sentencia y un plazo general de diez días para apelación de sentencia. Debe conciliarse el alcance transversal y distinguir autoridad/resolución. Ejecución no se incorpora silenciosamente al módulo de recursos. |
-| [Cierre funcional](product-completion.md) | Tiene entregas de etapas y calendario, pero carece de aceptación específica de recursos. Esta propuesta aporta esa aceptación sin cambiar estados ni mediciones. |
+| [Cierre funcional](product-completion.md) | Distingue registro declarado, asociaciones a actividades existentes y cierre del flujo completo, con evidencia separada por entrega. Los criterios siguientes conservan el alcance restante. |
 
 El criterio aprobado de OE-2 permanece literalmente:
 
@@ -145,7 +165,11 @@ duplicados verificados. Un vencimiento calculado no declara inadmisibilidad ni
 firmeza. El contrato de calendario concretará cada supuesto y corpus normativo
 antes de implementar términos judiciales.
 
-## Aceptación propuesta, aún sin resultados
+## Criterios de aceptación del alcance completo
+
+Los resultados parciales del registro y de las asociaciones se describen arriba
+y en el informe. No se atribuyen a todas las filas de esta matriz ni completan
+los supuestos jurídicos aún pendientes.
 
 | Caso positivo requerido | Caso negativo o límite requerido |
 | --- | --- |
@@ -172,9 +196,11 @@ aplica a LaTeX ni al catálogo. Eliminar recursos o audiencias, sustituir cálcu
 automático por fechas manuales o declarar suficiente una cobertura menor también
 requiere una decisión explícita de alcance, nunca una inferencia de ingeniería.
 
-Un ADR posterior puede adoptar el título **Recursos vinculados a resoluciones del
-expediente**, con esta separación como decisión y calendario/historia como
-consecuencias. Ese ADR no modifica por sí mismo el criterio aprobado.
+[ADR-0040](adr/0040-resources-linked-to-historical-resolutions.md) adopta el
+registro ligado a resoluciones históricas y
+[ADR-0041](adr/0041-exact-resource-activity-associations.md) separa los vínculos
+organizativos de las actividades. Ninguno modifica por sí mismo el criterio
+aprobado.
 **Ni esta nota, ni las etapas implementadas, ni un registro manual de recursos
 satisfacen por sí solos OE-2.** El cierre necesita implementación y evidencia de
 aceptación, conciliación académica y la validación integral del producto.

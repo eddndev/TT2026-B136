@@ -23,8 +23,9 @@ incluidos dos Follow a 1440 y 390 píxeles; seis capturas se inspeccionaron.
 La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración
 de R1-R5; la aceptación API final y el cierre global también aprobaron. PR 34
 integró la reevaluación en `main` como `e2e6758`; PR 35 integró la agenda combinada
-como `c16b820`. PR 36 publica alertas durables, Qadra y composición en servidor; la aceptación API/restauración y el navegador focal aprobaron; CI sigue en curso,
-sin integración en `main`. Cada campaña se registra por separado en el
+como `c16b820`. PR 36 integró alertas durables, Qadra y composición en servidor
+como `8261c51`, tras su aceptación API/restauración y navegador real. Cada
+campaña se registra por separado en el
 [informe de verificación](verification-report.md).
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
@@ -48,6 +49,49 @@ focal de restauración y la aceptación HTTP se distinguen en
 [el informe](verification-report.md); conservar un dump no demuestra por sí
 solo su recuperación. La [API](procedural-resources-api.md) mantiene consulta
 histórica y permisos vigentes después de reabrir el almacén.
+
+## Asociaciones de recursos con actividades existentes
+
+`database migrate --runtime-role` instala `0023_resource_activities.sql` y
+`0023_resource_activity_guards.sql`. No ejecutar esos archivos por separado ni
+fabricar vínculos para datos anteriores. Las dos tablas nuevas son:
+
+- `case_resource_activity_associations`: identidad, expediente y recurso fijos,
+  con primera revisión obligatoria mediante clave foránea diferida.
+- `case_resource_activity_association_revisions`: vinculación R1 y
+  desvinculación R2, operación única, referencias exactas, recibos, autor y
+  administración capturados. Desvincular no permite reactivar esa raíz; un nuevo
+  vínculo tiene otra identidad.
+
+Las referencias de recurso y acto identifican revisiones independientes. El
+acto conserva además la revisión del recurso que contiene su captura. La
+audiencia se liga a su digest de envío y el plazo a su digest de captura.
+La transacción verifica las fuentes históricas, la cabeza esperada, la cuenta
+activa y los permisos bajo el bloqueo compartido de auditoría. La escritura no
+modifica las tablas de actividades ni genera otro episodio de alerta.
+
+El rol operativo recibe SELECT e INSERT por columnas, sin facultad de actualizar,
+borrar, truncar o desactivar guardas. El catálogo estricto comprueba columnas,
+restricciones, índice, funciones, disparadores y privilegios directos e
+indirectos. El inventario recorre raíces y revisiones en lotes acotados,
+reconstruye capturas con los lectores exactos existentes y rechaza corrupción
+sin escribir ni reparar datos al abrir. Los datos históricos no se rechazan
+porque el autor haya perdido posteriormente su acceso.
+
+Respaldar ambas tablas con recursos, actos, audiencias, plazos, fuentes,
+usuarios, administración y auditoría. Un respaldo parcial de las asociaciones
+no conserva sus dependencias. Restaurar con el esquema y privilegios completos
+y dejar que el arranque valide catálogo e inventario antes de aceptar tráfico;
+no sortear un rechazo mediante UPDATE de recibos o desactivación de triggers.
+
+La [prueba PostgreSQL de restauración](../crates/infrastructure/tests/resource_activity_restore.rs)
+compara filas, capturas, autores y auditoría con `pg_dump`/`pg_restore`, y añade
+otro vínculo desde un Owner autorizado después de restaurar. La aceptación HTTP
+completa posterior también aprobó: `scripts/api-resource-activities-demo.py`
+comparó 26 respuestas restauradas, con los instantes de lectura validados aparte;
+`scripts/api-migration-demo.sh` conservó idénticas las tres raíces y cuatro
+revisiones de asociación del ensayo. El navegador real y CI del incremento
+permanecen pendientes en el [corte de verificación](verification-report.md).
 
 ## Preparar un despliegue nuevo
 
@@ -590,8 +634,8 @@ Qadra V2 tiene pruebas Node y navegador tanto con HTTP controlado como con
 backend real aprobadas. El dispatcher/worker está compuesto en `serve`; la
 campaña API real comprobó reevaluación, señales, reinicios y restauración.
 La aceptación API final y el cierre global aprobaron; PR 34 integró esta entrega
-y PR 35 integró la agenda conjunta. Las alertas están publicadas en PR 36 con
-aceptación y CI en curso. La activación automática y el corpus jurídico siguen
+y PR 35 integró la agenda conjunta. PR 36 integró las alertas como `8261c51`.
+La activación automática y el corpus jurídico siguen
 pendientes en [el contrato completo](deadline-lifecycle.md).
 
 ## Actualizar capturas y atención de plazos
@@ -717,7 +761,7 @@ recorridos, incluidos dos Follow a 1440 y 390 píxeles; seis capturas se
 inspeccionaron. La campaña API real terminó con código cero y comprobó cierre
 TERM/INT, reinicios y conservación de R1-R5 tras restaurar. La aceptación API
 final y el cierre global aprobaron; PR 34 integró esta entrega en `main`.
-Las alertas publicadas en PR 36 conservan su propia aceptación en curso.
+Las alertas se integraron por PR 36 y conservan su propia evidencia de aceptación.
 El [informe de verificación](verification-report.md) separa cada campaña. Véanse [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md)
 y [el contrato de seguimiento](deadline-tracking-api.md).
 

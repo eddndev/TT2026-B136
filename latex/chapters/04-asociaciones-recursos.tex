@@ -1,0 +1,29 @@
+\section{Asociaciones de recursos con actividades existentes}\label{sec:impl-asociaciones-recursos}
+
+La asociación organizativa permite relacionar un recurso declarado, y opcionalmente uno de sus actos, con una audiencia o un plazo que ya existen en el mismo expediente. El vínculo tiene identidad e historia independientes de sus extremos. Su registro no programa otra audiencia, recalcula un término ni genera una segunda alerta. La decisión se documenta en \rutarepo{docs/adr/0041-exact-resource-activity-associations.md} y el intercambio HTTP en \rutarepo{docs/resource-activities-api.md}.
+
+\subsection{Selección exacta y cabeza esperada}
+
+La selección conserva identidad, revisión y digest del recurso. Cuando incluye un acto, identifica también la revisión del recurso que contiene esa captura. Ambas selecciones son independientes: puede vincularse la revisión 1 del recurso junto con un acto conservado en la revisión 2, aunque una corrección posterior sea la cabeza actual. El servidor verifica que cada fuente pertenezca al expediente y al recurso solicitados; no sustituye la selección por la última revisión ni vuelve a admitir el contenido documental retenido.
+
+La audiencia se identifica por su revisión y digest de envío; el plazo, por su revisión y digest de captura. La cabeza esperada del recurso se declara aparte de esas referencias históricas. Preparar reúne las fuentes verificadas y el contexto administrativo; confirmar vuelve a contrastarlos bajo el bloqueo compartido de auditoría. Una revisión concurrente produce conflicto y exige aceptar expresamente otra base.
+
+La vinculación crea la revisión 1. La desvinculación añade una revisión 2 con motivo, preservando selección y fuentes. Es terminal para esa identidad; un vínculo posterior tiene otra raíz. Pueden existir varias asociaciones con una misma actividad sin duplicar la actividad ni sus avisos. El archivo del recurso impide crear vínculos nuevos, pero permite desvincular los existentes cuando el expediente está activo.
+
+\subsection{Historia y estado actual separados}
+
+Detalle y lista exponen dos partes: la asociación histórica con sus capturas, y la cabeza actual verificada de la actividad. Ambas se resuelven en una transacción autorizada. Una audiencia histórica puede conservar su programación original aunque la cabeza actual esté cancelada. Para un plazo, la evaluación capturada permanece legible, pero sólo la proyección operativa de la cabeza actual determina si se muestra un vencimiento vigente. Un plazo retirado, pendiente o afectado por cambios no recupera una fecha operativa desde su cálculo histórico.
+
+La consulta toma un instante UTC común después de adquirir el bloqueo. Todas las filas de la página y las proyecciones operativas de plazo comparten ese corte. El servicio comprueba que esté entre el inicio de la solicitud y el retorno del almacén. Así admite una cabeza confirmada mientras el lector esperaba, sin aceptar una observación anterior a la solicitud o posterior al retorno. La historia y los recibos de escritura no incorporan esa afirmación de vigencia.
+
+\subsection{Persistencia, permisos e interfaz}
+
+Las migraciones \rutarepo{migrations/0023_resource_activities.sql} y \rutarepo{migrations/0023_resource_activity_guards.sql} incorporan dos tablas: raíces y revisiones de asociación. La transacción añade revisión, recibo y auditoría conjuntamente. El catálogo estricto comprueba estructura y privilegios; el inventario reconstruye capturas históricas en lotes acotados, sin modificar datos al abrir. El respaldo conserva ambas tablas y sus dependencias, no sólo los identificadores de los extremos.
+
+La aceptación API integrada comprobó la conservación de capturas y respuestas tras restaurar, incluida la separación entre selección histórica y cabeza actual. Los instantes de consulta nuevos se validan como observaciones nuevas, sin compararlos por igualdad con los anteriores al respaldo. La \cref{sec:pruebas-asociaciones-recursos} delimita esta evidencia respecto del navegador real y CI todavía pendientes.
+
+Owner gestiona todos los expedientes; Litigator asignado gestiona y Paralegal asignado consulta. Client no accede. El servicio reautentica al principal completo y el adaptador comprueba cuenta, rol y asignación vigentes. El cierre conserva lecturas y repetición exacta autorizada de una operación confirmada, pero impide nuevas mutaciones.
+
+Qadra incorpora selectores de actividad, revisión y acto opcional, revisión previa a confirmar, listado filtrado, detalle e historia. La captura vinculada y la actividad actual ocupan áreas separadas. Ante conflicto conserva selección y motivo hasta comparar y aceptar una nueva base. La consulta de un recibo exacto permite conciliar una respuesta perdida sin inferir éxito a partir de una coincidencia visual. Cuando el resultado sigue incierto, el reenvío explícito conserva el mismo comando, operación y digest, sin preparar otra identidad automáticamente. Los permisos y la revocación también se reflejan en la retirada de los datos protegidos.
+
+Esta entrega vincula actividades existentes. Permanecen pendientes la creación de actividades desde un contexto procesal de recurso, la calificación del corpus jurídico, la activación durable de sus términos y completar la navegación y trazabilidad de alertas en ese flujo. Los enlaces disponibles no sustituyen esas obligaciones ni modifican los objetivos aprobados.

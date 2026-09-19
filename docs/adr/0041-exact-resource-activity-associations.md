@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted design; implementation and acceptance remain pending.
+Accepted and implemented locally. Focused domain, application, PostgreSQL, HTTP
+and controlled-browser checks passed. Integrated API/restore acceptance also
+passed. A real browser campaign, CI and integration remain pending for this
+increment. Evidence is recorded in `docs/verification-report.md`.
 
 ## Context
 
@@ -53,6 +56,12 @@ operational projection is calculated from its real current head and current
 observations, with a common checked-at instant. The selected old deadline is
 preserved separately and cannot supply a current due date. History and mutation
 receipts contain historical evidence and do not assert operational currentness.
+
+The request start is a lower bound, not the observation instant. Persistence
+captures the common instant after acquiring the audit lock; the application
+checks it against request start and the clock after return. This permits a head
+committed while the read waited, while rejecting future, regressive or mixed
+page observations.
 
 ## Consequences
 

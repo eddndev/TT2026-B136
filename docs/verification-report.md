@@ -4,6 +4,79 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Asociaciones de recursos con actividades: verificación del 19 de septiembre de 2026
+
+El incremento implementa vínculos organizativos a audiencias y plazos
+existentes, con recurso/acto y actividad históricos verificados. Detalle y lista
+separan esas capturas del estado actual observado; desvincular no modifica las
+actividades ni duplica sus alertas. PostgreSQL, HTTP y Qadra están conectados
+localmente. El [contrato](resource-activities-api.md) delimita el incremento;
+no incluye creación contextual de audiencias, activación automática ni corpus
+jurídico nuevo. La aceptación API/restauración integrada aprobó. Navegador con
+servicios reales, CI e integración permanecen pendientes en este corte.
+
+Resultados focales ejecutados en serie, sin sumarlos como una regresión global:
+
+| Frontera | Casos distintos aprobados | Alcance y límite |
+| --- | ---: | --- |
+| Dominio | 4 | Identidades, referencias tipificadas, acto opcional y selección canónica. |
+| Aplicación | 18 | Seis de flujo, ocho de límites y cuatro de tiempo; permisos, reautenticación, fuentes, recibos e historia por puertos. |
+| HTTP Rust | 10 | Dos de cuerpos y ocho de workflow, incluido el acto no nulo; alcance de URL, límites, errores y proyecciones. |
+| Cliente Node | 12 | Comandos, selección, respuestas, recibos y conservación separada de historia/vigencia. |
+| Navegador con HTTP controlado | 12 | Diez casos anteriores y dos adicionales de recuperación; dos repeticiones visuales a 1440/390 píxeles no añaden casos distintos. |
+| PostgreSQL | 12 | Once de backend, permisos, atomicidad, inventario, catálogo y restauración; una adicional del reloj bajo bloqueo. |
+
+La primera campaña HTTP observó dos fallos de cuerpos y seis de workflow frente
+al stub. Los nueve casos aprobaron después de implementar el transporte en
+29.639 s, con 2406 fuentes estables. La prueba adicional del acto no nulo aprobó
+después en 27.228 s, con 2426 fuentes estables: conserva recurso R2, acto dentro
+de recurso R3 y soporte exacto, y rechaza una captura discordante. Esas focales
+usan puertos controlados y no demuestran comportamiento con PostgreSQL real.
+
+La revisión identificó que capturar `checked_at` antes de esperar el bloqueo
+podía rechazar una cabeza legítima confirmada durante la espera. El RED de
+aplicación produjo dos fallos positivos y dos rechazos aprobados en 4.565 s.
+La corrección acepta un corte UTC entre inicio y retorno, exige uno común por
+página y conserva su vínculo con la proyección operativa. Los 18 casos de
+aplicación aprobaron juntos en 6.737 s, con 2426 fuentes estables.
+
+La campaña PostgreSQL de 88.999 s aprobó once casos y reprodujo el fallo del
+reloj; ese comando tuvo un fallo y no se declara aprobado. La prueba focal del
+reloj aprobó después en 15.186 s, con 2426 fuentes estables: verifica que la
+consulta tome su instante mientras posee el bloqueo, tanto para detalle como
+para lista. Los doce casos distintos quedan respaldados por esas ejecuciones
+separadas. La restauración focal usa `pg_dump`/`pg_restore`, preserva capturas y
+autores históricos y permite crear otra asociación. El recorrido HTTP completo
+de restauración se ejecutó después, con el alcance descrito a continuación.
+
+Dos casos posteriores de navegador cubren el reenvío explícito del mismo
+comando después de un resultado incierto no confirmado y la recuperación del
+selector tras un conflicto al confirmar. El primero aprobó dentro de una
+campaña de 15.408 s que aún falló en el selector; ésta no se presenta como
+completamente aprobada. La repetición focal del selector aprobó en 12.847 s,
+con 2426 fuentes estables. Los dos casos se añaden una sola vez a los diez
+anteriores. Dos repeticiones visuales duraron 12.326 s. Se inspeccionaron cuatro
+capturas de las secciones nuevas a 1440/390 píxeles, sin desbordamiento; esa
+inspección no constituye un ensayo de usabilidad con personas.
+
+### Aceptación API con restauración
+
+La campaña completa `scripts/api-demo.sh` aprobó en 434.402 s, con 2426 fuentes
+sin cambios durante la ejecución. El guion de asociaciones verificó fuentes
+exactas y cabezas actuales separadas, acto opcional, desvinculación, repetición
+exacta, roles, revocación, cierre, archivo y aislamiento entre expedientes.
+
+Después de restaurar se compararon 26 respuestas HTTP. Sus instantes de lectura
+se validaron por separado, incluido el corte común de página y su vínculo con
+la proyección operativa; no se exigió que un instante de consulta nueva igualara
+al anterior al respaldo. Las capturas históricas y los demás datos comparados se
+conservaron. El inventario confirmó tres raíces y cuatro revisiones de asociación
+idénticas después de restaurar, junto con las demás tablas del recorrido.
+
+Este resultado acredita la API integrada y su restauración. El navegador con
+servicios reales y CI siguen pendientes para el incremento; las pruebas de Qadra
+descritas arriba usan HTTP controlado. No se ha ejecutado otra suite global local.
+
 ## Recursos procesales: checkpoint local del 19 de septiembre de 2026
 
 El dominio, servicio, adaptador PostgreSQL, rutas HTTP y formularios Qadra
@@ -99,10 +172,11 @@ Están implementados temporización configurable, puertos de preferencias y
 bandeja personal, servicio autorizado, cinco rutas HTTP y Qadra. La bandeja
 conserva el origen exacto, lectura independiente de atención, estados del correo,
 filtros, continuación, conflictos y respuestas inciertas. El contrato está en
-[alerts-api.md](alerts-api.md). La persistencia, generación durable y composición del servidor están
-implementadas en el borrador; el navegador real aprobó sus recorridos focales.
-La aceptación API/restauración también aprobó; la regresión de cierre y la
-integración de esta ampliación permanecen pendientes. No se afirma
+[alerts-api.md](alerts-api.md). La persistencia, generación durable y composición
+del servidor están implementadas; el navegador real aprobó sus recorridos
+focales. La aceptación API/restauración también aprobó. PR 36 integró esta
+ampliación en `main` como `8261c51`. Ese cierre no acredita la CI ni la integración
+de recursos de PR 37 o del incremento posterior de asociaciones. No se afirma
 entrega a un destinatario externo.
 
 Se ejecutó una sola verificación local a la vez, con pruebas focales después del
