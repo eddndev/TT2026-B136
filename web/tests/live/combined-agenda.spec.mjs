@@ -14,6 +14,8 @@ import {
 const enabled = process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === '1';
 if (enabled && !fixture.combinedAgenda)
   throw new Error('Enable combined agenda fixtures before selecting this live spec');
+if (enabled && !fixture.combinedAgenda.fiveCases)
+  throw new Error('Enable five-case combined agenda fixtures before selecting this live spec');
 test.skip(!enabled, 'Requires disposable Follow acceptance fixtures');
 
 const agenda = (page) => page.getByRole('region', { name: 'Agenda combinada', exact: true });
@@ -157,5 +159,71 @@ for (const [name, width] of [
       expect((await call('GET', '/audit/verify')).valid).toBe(true);
     });
     await captureReevaluation(page, testInfo, `combined-pending-${name}`);
+    expect(errors).toEqual([]);
+  });
+
+for (const [name, width, recoveryIndex] of [
+  ['desktop', 1440, 1],
+  ['mobile', 390, 2],
+])
+  test(`real combined agenda queries five assigned cases and excludes an unassigned sixth at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180000);
+    const scenario = fixture.combinedAgenda.fiveCases;
+    const expectedCases = scenario.visible.map((entry) => entry.case.id).sort();
+    const expectedRows = scenario.visible
+      .map((entry) => `${entry.kind}:${entry[entry.kind].id}`)
+      .sort((left, right) => {
+        const rank = (value) => (value.startsWith('hearing:') ? 0 : 1);
+        return rank(left) - rank(right) || (left < right ? -1 : left > right ? 1 : 0);
+      });
+    const at = scenario.visible.find((entry) => entry.kind === 'deadline').dueAt;
+    const errors = [],
+      paths = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('request', (request) => {
+      const path = new URL(request.url()).pathname;
+      if (path.startsWith('/api/v1/')) paths.push(path);
+    });
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/');
+    await loginAs(page, scenario.operator, recoveryIndex);
+    paths.length = 0;
+    await navigate(page, 'Agenda');
+    await expect(agenda(page)).toHaveAttribute('aria-busy', 'false');
+    for (const view of ['day', 'week', 'month']) {
+      const before = paths.length;
+      const result = await query(page, view, scenario.date);
+      expect(paths.slice(before)).toEqual(['/api/v1/agenda']);
+      expect(result.complete).toBe(true);
+      expect(result.next_cursor).toBeNull();
+      expect(result.items).toHaveLength(5);
+      expect(result.items.map((row) => row[row.kind].case_id).sort()).toEqual(expectedCases);
+      expect(new Set(expectedCases).size).toBe(5);
+      expect(result.items.map((row) => `${row.kind}:${row[row.kind].id}`)).toEqual(expectedRows);
+      expect(result.items.map((row) => row.at)).toEqual(Array(5).fill(at));
+      expect(result.items.filter((row) => row.kind === 'hearing')).toHaveLength(3);
+      expect(result.items.filter((row) => row.kind === 'deadline')).toHaveLength(2);
+      for (const row of result.items) {
+        expect(row[row.kind].revision).toBe(1);
+        if (row.kind === 'deadline') {
+          expect(row.deadline.review_state).toBe('accepted');
+          expect(row.deadline.operational).toMatchObject({
+            freshness: 'current',
+            due_at: at,
+            checked_at: result.checked_at,
+          });
+        }
+      }
+      for (const entry of scenario.visible)
+        await expect(activity(page, entry.kind, entry[entry.kind].id)).toBeVisible();
+      expect(JSON.stringify(result)).not.toContain(scenario.hidden.case.id);
+      expect(JSON.stringify(result)).not.toContain(scenario.hidden.hearing.id);
+      await expect(activity(page, 'hearing', scenario.hidden.hearing.id)).toHaveCount(0);
+    }
+    expect(paths.every((path) => path === '/api/v1/agenda')).toBe(true);
+    await captureReevaluation(page, testInfo, `combined-five-cases-${name}`);
+    for (const entry of scenario.visible) await openExact(page, entry, entry.kind);
     expect(errors).toEqual([]);
   });

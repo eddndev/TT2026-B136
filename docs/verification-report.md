@@ -48,6 +48,13 @@ El guion API contrastó la consulta mixta, filtros, continuación, permisos y
 vigencia antes y después de restaurar, reutilizando los registros existentes.
 La campaña completa terminó con salida 0 en 235.844 s y conservó las huellas de
 sus 2118 fuentes; también verificó reinicios del consumidor y la historia exacta.
+La aceptación transversal posterior reunió cinco expedientes asignados al mismo
+Litigante (tres audiencias y dos plazos vigentes) y excluyó un sexto expediente
+sin asignación. Las vistas de día, semana y mes usaron una consulta de agenda,
+sin enumerar expedientes, y abrieron las cinco revisiones exactas. Ambos recorridos
+reales, a 1440/390 píxeles, aprobaron en 214.055 s con preparación; Playwright
+informó 16.4 s. Las 2119 fuentes conservaron sus huellas. Se reutilizó el operador
+y calendario, con políticas fijas y datos independientes de la prueba Follow.
 La regresión global, cobertura,
 actualización académica de esta ampliación e integración en main están pendientes.
 La aceptación de esta agenda no acredita alertas, activación automática ni

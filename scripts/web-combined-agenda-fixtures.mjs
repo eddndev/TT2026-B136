@@ -1,5 +1,6 @@
 // Independent authorized cases combine a hearing with a followed deadline.
 import { randomUUID } from "node:crypto";
+import { provisionFiveCaseAgenda } from "./web-agenda-five-case-fixtures.mjs";
 import {
   persistFollowRecord,
   provisionDeadlineReevaluation,
@@ -37,5 +38,10 @@ export async function provisionCombinedAgenda(call) {
     scenario.date = scheduledAt.slice(0, 10);
     scenario.dueAt = due;
   }
+  scenarios.fiveCases = await provisionFiveCaseAgenda(
+    call,
+    scenarios.desktop.operator,
+    scenarios.desktop.calendar,
+  );
   return scenarios;
 }
