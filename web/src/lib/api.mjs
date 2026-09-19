@@ -1,5 +1,6 @@
 import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
+import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 
 const messages = {
@@ -33,6 +34,9 @@ const messages = {
     'Este documento ha alcanzado el l\u00edmite de versiones. Conserva tu archivo y c\u00e1rgalo como un documento nuevo.',
   document_already_sealed: 'Este documento ya est\u00e1 sellado.',
   document_not_sealed: 'Primero sella el documento para verificarlo o descargar su evidencia.',
+  document_content_validation_failed:
+    'No se descarg\u00f3 el archivo: su validaci\u00f3n fall\u00f3.',
+  document_integrity_incident_not_found: 'El incidente de integridad no est\u00e1 disponible.',
   user_already_exists:
     'Ya existe una cuenta con ese correo. Usa otro correo para el nuevo integrante.',
   bootstrap_closed: 'El despacho ya tiene un administrador. Inicia sesi\u00f3n con tu cuenta.',
@@ -102,6 +106,12 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
           digest: response.headers.get('X-Document-Digest'),
           documentId: response.headers.get('X-Document-Id'),
           version: response.headers.get('X-Document-Version'),
+          ...(binary === 'content'
+            ? {
+                caseId: response.headers.get('X-Case-Id'),
+                contentType: response.headers.get('Content-Type'),
+              }
+            : {}),
         }
       : response.status === 204
         ? null
@@ -132,6 +142,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     ...caseApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
     alerts: (actorId) => alertsApi(request, actorId),
+    integrityIncidents: () => integrityIncidentsApi(request),
     audit: () => request('/audit/verify'),
   };
 }

@@ -27,6 +27,7 @@
     ...(canAlerts(user.role) ? [{ id: 'alerts', label: 'Alertas', icon: 'clock' }] : []),
   ];
   const admin = [
+    { id: 'integrity-incidents', label: 'Incidentes de integridad', icon: 'shield' },
     { id: 'team', label: 'Equipo', icon: 'users' },
     { id: 'audit', label: 'Auditor\u00eda', icon: 'shield' },
     { id: 'judicial-calendars', label: 'Calendarios jurisdiccionales', icon: 'calendar' },

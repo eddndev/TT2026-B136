@@ -80,7 +80,7 @@ export function caseApi(transport) {
         return result;
       };
       return {
-        ...versionApi(scoped),
+        ...versionApi(scoped, id),
         ...metadataApi(scoped, id),
         dispose: () => {
           active = false;

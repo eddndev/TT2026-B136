@@ -17,6 +17,7 @@
   const scoped = api.caseDocuments(caseRecord.id);
   let documents = [];
   let selected = null;
+  let selectedVersion = null;
   let upload;
   let reference = '';
   let filters;
@@ -71,9 +72,10 @@
     detail?.scrollIntoView({ block: 'start' });
     detail?.focus({ preventScroll: true });
   }
-  async function openDocument(document) {
+  async function openDocument(document, exactVersion = null) {
     const current = ++detailGeneration;
     selected = null;
+    selectedVersion = exactVersion;
     opening = true;
     error = '';
     try {
@@ -125,6 +127,7 @@
   function uploaded(document) {
     if (!alive) return;
     invalidateDetail();
+    selectedVersion = null;
     selected = document;
     load(0);
     focus();
@@ -150,7 +153,8 @@
       filter = ['pending', 'sealed'].includes(intent?.filter) ? intent.filter : 'all';
       load();
       if (intent?.type === 'upload' && !$administration.closed) upload.open();
-      if (intent?.id) openDocument({ id: intent.id });
+      if (intent?.id && (!intent.case_id || intent.case_id === caseRecord.id))
+        openDocument({ id: intent.id }, intent.version ?? null);
     }
     onintent();
   });
@@ -256,6 +260,7 @@
           api={scoped}
           {user}
           document={selected}
+          initialVersion={selectedVersion}
           loading={busy}
           onupdate={update}
           onmetadata={updateMetadata}

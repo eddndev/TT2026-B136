@@ -10,13 +10,16 @@
   export let api;
   export let user;
   export let document;
+  export let initialVersion = null;
   export let onupdate;
   export let ondenied = () => {};
   export let disabled = false;
   export let pending = false;
   $: pending = busy || !!refreshing || !!detailBusy || appendBusy || selections > 0;
   let current = document;
-  let selected = document;
+  let requestedVersion = initialVersion;
+  let selected = initialVersion === null ? document : null;
+  let mounted = false;
   let versions = [];
   let firstAvailableVersion = 1;
   let nextBefore;
@@ -90,6 +93,12 @@
     const exact = api.version(document.id, record.version);
     try {
       const result = await exact.detail();
+      if (
+        result.id !== document.id ||
+        result.case_id !== document.case_id ||
+        result.version !== record.version
+      )
+        throw new Error('El documento no corresponde a la versi\u00f3n exacta solicitada.');
       if (alive && request === detailGeneration) selected = result;
     } catch (failure) {
       if (alive && request === detailGeneration) {
@@ -138,8 +147,24 @@
     await synchronize(record);
   }
   onMount(() => {
+    mounted = true;
     history();
   });
+  $: if (
+    mounted &&
+    requestedVersion !== null &&
+    !unavailable &&
+    !disabled &&
+    !busy &&
+    !refreshing &&
+    !appendBusy &&
+    !detailBusy &&
+    selections === 0
+  ) {
+    const version = requestedVersion;
+    requestedVersion = null;
+    select({ version });
+  }
   onDestroy(() => {
     alive = false;
     historyGeneration++;

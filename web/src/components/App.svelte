@@ -10,6 +10,8 @@
   import Admin from './Admin.svelte';
   import Agenda from './Agenda.svelte';
   import Alerts from './Alerts.svelte';
+  import DocumentIntegrityNotice from './DocumentIntegrityNotice.svelte';
+  import DocumentIntegrityIncidents from './DocumentIntegrityIncidents.svelte';
   import JudicialCalendars from './JudicialCalendars.svelte';
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
@@ -26,6 +28,8 @@
 
   let view = 'overview';
   let documentIntent = null;
+  let incidentReturn = false,
+    integrityNotice;
   let notice = '';
   let logoutBusy = false;
   let error = '';
@@ -41,6 +45,7 @@
     alertReturn = false;
 
     documentIntent = null;
+    incidentReturn = false;
     view = 'overview';
     notice = message;
     history.replaceState(null, '', '#overview');
@@ -64,6 +69,7 @@
     view = normalizeView(destination, user?.role);
     if (view !== 'hearings') hearingIntent = null;
     if (view !== 'deadlines') deadlineIntent = null;
+    if (view !== 'documents') incidentReturn = false;
     if (
       ![
         'case-summary',
@@ -121,6 +127,7 @@
       {view}
       onnavigate={(next) => {
         documentIntent = null;
+        incidentReturn = false;
         alertReturn = false;
         go(next);
       }}
@@ -143,12 +150,30 @@
         </div>
       </header>
       <main id="main-content" tabindex="-1" bind:this={main}>
+        {#if user.role === 'owner'}<DocumentIntegrityNotice
+            bind:this={integrityNotice}
+            {api}
+            onopen={() => go('integrity-incidents')}
+          />{/if}
         {#if error}<p class="notice error" role="alert">{error}</p>{/if}
         {#if view === 'overview'}<Overview
             {user}
             {selectedCase}
             onnavigate={go}
             ondocument={openDocument}
+          />
+        {:else if view === 'integrity-incidents' && user.role === 'owner'}<DocumentIntegrityIncidents
+            {api}
+            onknown={(exists) => integrityNotice?.observed(exists)}
+            onopen={(record, intent) => {
+              selectedCase = record;
+              documentIntent = intent;
+              hearingIntent = null;
+              deadlineIntent = null;
+              alertReturn = false;
+              incidentReturn = true;
+              go('documents');
+            }}
           />
         {:else if view === 'judicial-calendars'}<JudicialCalendars {api} {user} />
         {:else if view === 'alerts'}<Alerts
@@ -186,6 +211,10 @@
             }}
           />
         {:else if ['case-summary', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'resources', 'deadlines'].includes(view)}
+          {#if incidentReturn}<button
+              class="text-button alerts-return"
+              onclick={() => go('integrity-incidents')}>Volver a incidentes</button
+            >{/if}
           {#if alertReturn}<button class="text-button alerts-return" onclick={() => go('alerts')}
               >Volver a Alertas</button
             >{/if}
