@@ -27,6 +27,14 @@ RED y sin otra regresión global. Resultados de fronteras independientes:
   retorno, continuación y revocación. Sus 2173 fuentes mantuvieron sus huellas.
   Se inspeccionaron las dos capturas de bandeja sin recortes ni solapamientos.
 
+El adaptador HTTP de correo genérico tiene seis pruebas aprobadas contra un
+servidor loopback: solicitud e idempotencia, aceptación explícita, respuestas
+inciertas, rechazo y reintentos. No se contactó a un destinatario externo. Ocho
+pruebas focales adicionales aprobaron configuración completa o deshabilitada,
+límites de ciclo, parada y supervisión de ambos consumidores; esta composición
+por puertos todavía no está conectada al servidor. El adaptador PostgreSQL en
+desarrollo se excluyó de esa compilación; no se acredita su funcionamiento.
+
 Los resultados no se suman a campañas históricas ni acreditan integración
 PostgreSQL, entrega de correo, aceptación con servicios reales o cierre global.
 

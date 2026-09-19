@@ -6,6 +6,7 @@
 //! into [`application::ApplicationError`] at the call site.
 
 mod agenda_postgres;
+pub mod alert_email;
 pub mod archive;
 pub mod audit;
 mod audit_postgres;
