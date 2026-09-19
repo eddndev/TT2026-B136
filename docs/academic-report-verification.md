@@ -22,6 +22,19 @@ El PDF, registro y páginas están en
 `output/resource-activities-verification/ci-report-63846a2/`. La muestra no
 acredita revisión completa de las 331 páginas ni cierre del manuscrito.
 
+El [artefacto de la frase corregida](https://github.com/eddndev/TT2026-B136/actions/runs/35462966621)
+corresponde a `296b20c`: merge de revisión `18c86ab`, con padres `40ed0c7` y
+`296b20c`, y árbol idéntico a esa cabeza. Conserva **331 páginas carta**, ocupa
+**5934318 bytes** y tiene SHA-256
+`3e8279237db334f66ab1e095bc33a3cd7677866f803c5ab5fd800a7476f49f7e`.
+Se renderizaron las mismas quince páginas. Doce imágenes son idénticas a las
+anteriores y se inspeccionaron nuevamente las páginas 4, 201 y 202: índice,
+frase y continuación son legibles, sin recortes ni solapamientos. La pasada
+final mantiene sólo las advertencias históricas ya identificadas. Los archivos
+se conservan en `output/resource-activities-verification/ci-report-296b20c/`.
+Esta comprobación cierra la revisión de esas fuentes académicas, sin declarar
+terminado el manuscrito ni extender la muestra al resto de páginas.
+
 ## Recursos procesales declarados: fuentes del 19 de septiembre de 2026
 
 Se añadieron tres apartados propios de implementación, pruebas y matriz, con

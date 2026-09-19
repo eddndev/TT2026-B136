@@ -322,7 +322,7 @@ Inspect current code and contracts before treating this summary as complete.
   `docs/verification-report.md`.
 - Declared procedural resources and acts preserve exact resolutions, supports
   and history. Their API/restoration and real-service browser acceptance passed;
-  PR 37 remains pending CI closure and integration. The subsequent associations
+  PR 37 is integrated into main as eeba869 with CI passed. The subsequent associations
   to existing hearings/deadlines have local implementation and API/restoration
   acceptance, with real-browser acceptance passed and CI closure still pending. Qualified legal
   profiles, durable activation and the complete resource workflow remain work

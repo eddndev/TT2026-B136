@@ -98,7 +98,25 @@ en 13.996 s. El CI inicial fue cancelado después de ese fallo, no aprobado.
 Una segunda carga duplicada del mismo catálogo en fixtures HTTP fue corregida
 al reutilizar el módulo ya importado. Clippy del workspace completo, incluidos
 todos los objetivos, aprobó en 315.721 s con 2426 fuentes estables. El cierre
-global remoto y la inspección del PDF actualizado siguen pendientes.
+global remoto permanece pendiente; el PDF de 331 páginas tiene inspección
+registrada en `docs/academic-report-verification.md`.
+
+## Integración de recursos procesales en main
+
+La [PR 37](https://github.com/eddndev/TT2026-B136/pull/37) se integró mediante
+squash el 19 de septiembre de 2026 a las 19:16:57 UTC como `eeba869`. Su cabeza
+`40ed0c7` aprobó los controles remotos de formato, Clippy, MSRV, dependencias,
+binario, web, navegador real y documentos. El
+[CI de cierre](https://github.com/eddndev/TT2026-B136/actions/runs/35459822870)
+registró **2936 pruebas Rust aprobadas, cero fallidas y una TSA externa ignorada**,
+con PostgreSQL/Redis aislados. La campaña instrumentada reprodujo esos conteos;
+no se suman como casos adicionales.
+
+La cobertura medida fue dominio 5572/5694 líneas (97 %), aplicación
+16078/16860 (95 %) e infraestructura 28261/30660 (92 %), todas por encima del
+umbral del 90 %. El binario obtuvo 1822/2302 (79 %), sin umbral propio.
+Estos valores pertenecen a esa revisión remota; no constituyen una ejecución
+global del incremento de asociaciones ni del contenido documental posterior.
 
 ## Recursos procesales: checkpoint local del 19 de septiembre de 2026
 
