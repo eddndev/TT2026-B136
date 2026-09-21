@@ -44,7 +44,8 @@ export async function fill(page, kind, title) {
     if (!(await next.isEnabled())) throw new Error('The deadline responsible is not available');
     const loaded = page.waitForResponse(
       (response) =>
-        response.url().includes(`/api/v1/cases/${accounts.case.id}/members?`) && response.ok(),
+        response.url().includes(`/api/v1/cases/${accounts.case.id}/deadlines/responsibles?`) &&
+        response.ok(),
     );
     await next.click();
     await loaded;
