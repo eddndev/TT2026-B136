@@ -3,9 +3,9 @@
 # Jobs:
 #   format       - rustfmt check
 #   lint         - clippy with warnings denied
-#   test         - full workspace test suite
+#   test         - workspace tests and coverage in one pass on the repository runner
 #   msrv         - build check on the minimum supported Rust version (1.88)
-#   coverage     - line coverage via cargo-llvm-cov, gated at 90 percent
+#   coverage     - consume the test report, gated at 90 percent
 #                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
 #   binary-size  - release binary of despacho-cli must stay under 25 MB
@@ -16,6 +16,19 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      dispatch_measurement:
+        description: Run only the extended dispatch measurement
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -49,15 +62,17 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps2]
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:16-alpine
         env:
           POSTGRES_PASSWORD: postgres
         ports:
-          - 5432:5432
+          - '127.0.0.1::5432'
         options: >-
+          --memory 768m
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
           --health-timeout 3s
@@ -65,21 +80,41 @@ jobs:
       redis:
         image: redis:7-alpine
         ports:
-          - 6379:6379
+          - '127.0.0.1::6379'
         options: >-
+          --memory 128m
           --health-cmd "redis-cli ping"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
     env:
-      IDENTITY_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-      IDENTITY_TEST_REDIS_URL: redis://127.0.0.1:6379/
-      CASE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/case_tests
-      DOCUMENT_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/document_tests
+      CARGO_BUILD_JOBS: '1'
+      RUST_TEST_THREADS: '1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure isolated backend addresses
+        env:
+          POSTGRES_TEST_PORT: ${{ job.services.postgres.ports['5432'] }}
+          REDIS_TEST_PORT: ${{ job.services.redis.ports['6379'] }}
+        run: |
+          printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'IDENTITY_TEST_REDIS_URL=redis://127.0.0.1:%s/\n' "$REDIS_TEST_PORT" >> "$GITHUB_ENV"
+      - name: Prepare disk-backed temporary directory
+        run: |
+          mkdir -p output/tmp
+          chmod 700 output/tmp
+          printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: vps2-coverage
+      - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Check native format setup
         run: python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
       - name: Prepare verified document format library
@@ -89,12 +124,43 @@ jobs:
       - name: Create isolated case and document test databases
         run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
       - name: Verify independent judicial calendar vectors and SQL guards
+        if: ${{ !inputs.dispatch_measurement }}
         run: |
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
           python3 -B scripts/tests/test_judicial_calendar_sql.py
-      - name: Run workspace tests
-        run: cargo test --workspace
+      - name: Build workspace and check documentation examples
+        if: ${{ !inputs.dispatch_measurement }}
+        run: |
+          cargo build --workspace --locked
+          cargo test --workspace --doc --locked
+      - name: Run workspace tests once with coverage
+        if: ${{ !inputs.dispatch_measurement }}
+        run: |
+          cargo llvm-cov --workspace --locked --json --summary-only \
+            --output-path coverage.json
+      - name: Publish coverage from this execution
+        if: ${{ !inputs.dispatch_measurement }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-coverage
+          path: coverage.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Measure extended dispatch campaign
+        if: ${{ inputs.dispatch_measurement }}
+        run: |
+          set -o pipefail
+          cargo test -p infrastructure --test deadline_dispatch_measurement --locked \
+            -- --ignored --nocapture 2>&1 | tee output/dispatch-measurement.log
+      - name: Publish extended measurement
+        if: ${{ always() && inputs.dispatch_measurement }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dispatch-measurement
+          path: output/dispatch-measurement.log
+          if-no-files-found: error
+          retention-days: 30
 
   msrv:
     name: MSRV check (Rust 1.88)
@@ -110,52 +176,16 @@ jobs:
 
   coverage:
     name: Coverage
+    needs: test
+    if: ${{ !inputs.dispatch_measurement }}
     runs-on: ubuntu-24.04
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-    env:
-      IDENTITY_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-      IDENTITY_TEST_REDIS_URL: redis://127.0.0.1:6379/
-      CASE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/case_tests
-      DOCUMENT_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/document_tests
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
         with:
-          components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Check native format setup
-        run: python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
-      - name: Prepare verified document format library
-        run: |
-          library=$(bash scripts/setup-document-formats.sh)
-          printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
-      - name: Create isolated case and document test databases
-        run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
-      - name: Measure line coverage
-        run: |
-          cargo llvm-cov --workspace --json --summary-only \
-            --output-path coverage.json
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: workspace-coverage
       - name: Enforce the per-crate gate on the cryptographic crates
         run: scripts/coverage-gate.sh coverage.json
 

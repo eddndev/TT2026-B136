@@ -114,11 +114,27 @@ Una página puede examinar muchas raíces si las coincidencias son dispersas;
 no se garantiza tiempo constante ni memoria total constante del ejecutor SQL.
 Dimensionar el servicio con evidencia representativa de sus datos.
 
-La campaña reproducible crea 240 plazos y consume tres eventos usando límites
-1, 20 y 100. Comprueba 720 trabajos exactos y registra duración por página y
-planes `EXPLAIN ANALYZE`. Los valores medidos, su entorno y sus límites se
-reportan en [verificación](verification-report.md), separados de la corrección
-funcional. No son una garantía de rendimiento de producción.
+La prueba obligatoria crea 21 plazos y consume tres eventos usando límites
+1, 20 y 100. Comprueba los identificadores exactos, la cantidad de páginas y
+la terminación sin pérdida ni duplicados. Una campaña manual usa el mismo
+procedimiento con 240 plazos, comprueba 720 trabajos exactos y registra duración
+por página y planes `EXPLAIN ANALYZE`. Ambas reutilizan un repositorio abierto
+para preparar los registros; las pruebas específicas de apertura siguen
+comprobando esquemas, permisos e inventarios.
+
+La campaña extensa está marcada `ignore` para no repetir una medición de
+rendimiento en cada cambio. Se ejecuta explícitamente con servicios desechables:
+
+```bash
+bash scripts/test-backends.sh cargo test -p infrastructure \
+  --test deadline_dispatch_measurement -- --ignored --nocapture
+```
+
+También puede ejecutarse desde Actions, workflow `CI`, activando
+`dispatch_measurement`. El runner publica `dispatch-measurement.log` como
+artefacto. Los valores medidos, su entorno y sus límites se reportan en
+[verificación](verification-report.md), separados de la corrección funcional.
+No son una garantía de rendimiento de producción.
 
 ## Migración y operación
 

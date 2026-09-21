@@ -4,6 +4,33 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Preparacion de la prueba de despacho y CI: 21 de septiembre de 2026
+
+La prueba `deadline_dispatch_measurement` reutiliza un repositorio abierto al
+sembrar los plazos. Se mantienen una muestra obligatoria de 21 registros y una
+campaña manual de 240, ambas con límites 1, 20 y 100, igualdad de identificadores,
+cantidad de páginas y total de trabajos. La campaña extensa queda ignorada en
+la ejecución normal y se puede activar explícitamente; no se retiraron las
+pruebas de corrupción, permisos, reapertura o restauración.
+
+Comprobación focal local, PostgreSQL y Redis desechables, `CARGO_BUILD_JOBS=1`,
+`RUST_TEST_THREADS=1` y temporales privados en disco Btrfs:
+
+- RED: el target no compiló al solicitar el helper de repositorio reutilizable
+  antes de incorporarlo (`E0425`).
+- GREEN: `scripts/test-backends.sh cargo test -p infrastructure --test
+  deadline_dispatch_measurement -- --include-ignored --nocapture` aprobó los
+  dos casos en **25.32 s de ejecución de pruebas**, sin incluir compilación.
+  La campaña de 240 creó los 720 trabajos esperados y la de 21 creó 63.
+- Los logs locales quedaron en `output/ci-runner-verification/`. Este resultado
+  es una ejecución focal; no acredita todavía el tiempo de la suite completa
+  en el VPS ni permite comparar directamente velocidades de equipos distintos.
+
+El flujo de CI de [ADR 0045](adr/0045-single-pass-ci-and-dispatch-measurements.md)
+ejecuta la batería instrumentada una vez y entrega su reporte al control de
+cobertura. La validación remota del nuevo flujo se registra por separado al
+completar la ejecución.
+
 ## Costo de contrasenas: calibracion del 19 de septiembre de 2026
 
 El adaptador genera hashes Argon2id con tres pasadas, conservando 262144 KiB
