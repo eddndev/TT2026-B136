@@ -4,6 +4,42 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Reduccion del costo de CI: 21 de septiembre de 2026
+
+Se sustituyen 537 ejecutables de integración por 201, conservando los archivos
+originales y sus casos. El inventario automatizado comprueba que cada archivo
+está registrado exactamente una vez. La revisión del cambio conserva los
+nombres de funciones y atributos de prueba e ignorado existentes.
+
+La caché instrumentada se conserva por configuración compatible; cada campaña
+elimina perfiles y reportes previos. La compilación posterior usa uno o dos
+trabajadores según la memoria medida durante el build ordinario, dentro del
+mismo límite de 5 GiB. Los fixtures de despacho reutilizan un repositorio durante
+la siembra sin compartir esquemas entre pruebas ni retirar validación de
+producción. Véase [ADR 0046](adr/0046-cached-ci-test-suites.md).
+
+La campaña anterior fue cancelada para aplicar esta corrección. No se cuenta
+como aprobada ni se promete un tiempo final hasta medir la nueva ejecución.
+El navegador permanece sin cambios en esta corrección.
+
+Comprobaciones ejecutadas en esta corrección:
+
+- Resolución y compilación de comprobación de todos los targets Rust mediante
+  `cargo fix --workspace --tests --locked --allow-dirty`, seguida de la misma
+  comprobación para la agrupación final de infraestructura. Solo se aplicaron
+  sugerencias de imports sobrantes introducidos al compartir fixtures.
+- 17 escenarios de despacho agrupados, con PostgreSQL/Redis desechables, un
+  compilador y un hilo: **17 aprobados en 108.23 s de pruebas**. Incluyen
+  rollback, concurrencia, permisos, corrupción del catálogo y reapertura.
+- Siete pruebas Python de limpieza/invalidez de caché y límites de memoria.
+- Dos ejecuciones de un proyecto mínimo: el binario conserva su fecha de
+  compilación y la cobertura baja de 11 a 8 líneas cuando la segunda campaña
+  deja de ejecutar una función. La prueba local usó cargo-llvm-cov 0.8.7;
+  CI fija 0.9.1 y valida allí el workspace completo.
+- Inventario de 201 ejecutables, `cargo fmt --all -- --check`, `git diff
+  --check` y actionlint. La regresión global y el umbral de cobertura quedan
+  para la nueva campaña de CI; no se presentan como aprobados todavía.
+
 ## Preparacion de la prueba de despacho y CI: 21 de septiembre de 2026
 
 La prueba `deadline_dispatch_measurement` reutiliza un repositorio abierto al

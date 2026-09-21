@@ -117,9 +117,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Check native format setup
-        run: python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov@0.9.1
+      - name: Check CI helpers and native format setup
+        run: |
+          python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
+          python3 -B -m unittest discover -s scripts/tests -p "test_ci_*.py"
+          python3 -B scripts/check-test-layout.py
       - name: Prepare verified document format library
         run: |
           library=$(bash scripts/setup-document-formats.sh)
@@ -135,13 +140,11 @@ jobs:
       - name: Build workspace and check documentation examples
         if: ${{ !inputs.dispatch_measurement }}
         run: |
-          cargo build --workspace --locked
+          python3 -B scripts/ci-resources.py
           cargo test --workspace --doc --locked
       - name: Run workspace tests once with coverage
         if: ${{ !inputs.dispatch_measurement }}
-        run: |
-          cargo llvm-cov --workspace --locked --json --summary-only \
-            --output-path coverage.json
+        run: python3 -B scripts/ci-coverage.py
       - name: Publish coverage from this execution
         if: ${{ !inputs.dispatch_measurement }}
         uses: actions/upload-artifact@v4

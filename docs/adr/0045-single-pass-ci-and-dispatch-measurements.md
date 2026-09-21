@@ -31,7 +31,9 @@ line gate to that artifact; it does not rerun tests.
 The runner has one listener, a dedicated unprivileged account and rootless
 Docker. Place the runner service and its user services in the same capped
 slice: three CPU equivalents, 4500 MiB memory high watermark and 5 GiB maximum.
-Use one Cargo build job and two Rust test threads within the single suite.
+Use one measured ordinary build job and one or two coverage build jobs, as
+specified in `docs/adr/0046-cached-ci-test-suites.md`, with two Rust test threads
+within the single suite.
 Serializing every test underused the capped runner and prolonged database
 fixture setup; the shared resource limits still bound both test workers.
 Service containers use
