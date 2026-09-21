@@ -35,7 +35,10 @@ Set Cargo build jobs and Rust test threads to one. Service containers use
 random host ports and disposable databases, with 768 MiB for PostgreSQL and
 128 MiB for Redis. Use disk-backed private temporary files. Keep the repository
 private and its workflow token read-only. Rust belongs to the runner account;
-do not use wrappers delegating to other server accounts.
+do not use wrappers delegating to other server accounts. Keep Cargo artifacts
+under the runner account's `.cache/tt-ci/target`, outside checkout cleanup.
+The persistent runner does not run `Swatinem/rust-cache`: its post-job binary
+pruning can remove a freshly installed `rustup` and break the next job.
 
 Cancel superseded pull-request CI and Web runs. Keep push and manual runs in
 separate concurrency groups so a manual measurement cannot cancel a PR gate.

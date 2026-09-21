@@ -28,8 +28,13 @@ Comprobación focal local, PostgreSQL y Redis desechables, `CARGO_BUILD_JOBS=1`,
 
 El flujo de CI de [ADR 0045](adr/0045-single-pass-ci-and-dispatch-measurements.md)
 ejecuta la batería instrumentada una vez y entrega su reporte al control de
-cobertura. La validación remota del nuevo flujo se registra por separado al
-completar la ejecución.
+cobertura. La campaña manual en vps2, con un hilo y el límite compartido de tres CPU y
+5 GiB, aprobó los 240 registros y 720 trabajos en **149.01 s de pruebas**.
+El job completo, incluida la primera compilación, tomó **7 min 34 s**.
+El control posterior falló antes de las pruebas porque la limpieza de caché
+había eliminado `rustup`. Se retiró esa acción del runner persistente y se
+conservan los artefactos de Cargo fuera del checkout. El cierre de la suite
+completa con esta corrección aún está pendiente.
 
 ## Costo de contrasenas: calibracion del 19 de septiembre de 2026
 

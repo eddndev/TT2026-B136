@@ -112,12 +112,11 @@ jobs:
           test -x "$HOME/.cargo/bin/rustup"
           printf '%s/.cargo/bin\n' "$HOME" >> "$GITHUB_PATH"
           printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/tt-ci/target"
+          printf 'CARGO_TARGET_DIR=%s/.cache/tt-ci/target\n' "$HOME" >> "$GITHUB_ENV"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: vps2-coverage
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Check native format setup
         run: python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
