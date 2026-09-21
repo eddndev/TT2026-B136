@@ -128,7 +128,7 @@ pub fn snapshot(db: &mut Fixture, upgraded: bool) -> Value {
         'profile_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY profile_id,revision) FROM deadline_profile_revisions r),
         'cases',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id) FROM cases r),
         'administration',(SELECT jsonb_agg(to_jsonb(r) ORDER BY case_id,revision) FROM case_administration_revisions r),
-        'users',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id) FROM users r),
+        'users',(SELECT jsonb_agg(to_jsonb(r)-'auth_generation' ORDER BY id) FROM users r),
         'memberships',(SELECT jsonb_agg(to_jsonb(r) ORDER BY case_id,user_id) FROM case_memberships r),
         'events',(SELECT jsonb_agg(to_jsonb(r) ORDER BY sequence) FROM deadline_source_events r),
         'event_sequence',(SELECT jsonb_build_object('last_value',last_value,'is_called',is_called) FROM deadline_source_events_sequence),
