@@ -314,3 +314,11 @@ path = "tests/suites/typed_suite_2.rs"
 [[test]]
 name = "zip_archive"
 path = "tests/zip_archive.rs"
+
+[[test]]
+name = "deadline_profile_schema"
+path = "tests/deadline_profile_schema.rs"
+
+[[test]]
+name = "deadline_tracking_schema_upgrade"
+path = "tests/deadline_tracking_schema_upgrade.rs"

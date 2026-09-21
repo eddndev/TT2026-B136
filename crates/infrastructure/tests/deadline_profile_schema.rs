@@ -1,4 +1,5 @@
-use crate::{case_administration_support, deadline_profile_schema_support};
+mod case_administration_support;
+mod deadline_profile_schema_support;
 use case_administration_support::Fixture;
 use deadline_profile_schema_support::*;
 use domain::crypto::DocumentHasher;

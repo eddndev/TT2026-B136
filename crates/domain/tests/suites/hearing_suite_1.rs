@@ -7,7 +7,6 @@ mod hearing_permissions;
 mod hearing_result_canonical;
 #[path = "../hearing_result_permissions.rs"]
 mod hearing_result_permissions;
-#[allow(dead_code)]
 #[path = "../hearing_result_support/mod.rs"]
 mod hearing_result_support;
 #[path = "../hearing_result_time.rs"]

@@ -51,7 +51,7 @@ validation is not bypassed or cached.
 
 ## Consequences
 
-The grouped workspace has 201 integration executables. Fewer links and repeated
+The grouped workspace has 203 integration executables. Fewer links and repeated
 fixture compilations should reduce cold compilation; subsequent compatible
 runs can reuse instrumented builds. The first run after this layout change is
 cold. No wall-clock improvement is claimed until the complete CI finishes.

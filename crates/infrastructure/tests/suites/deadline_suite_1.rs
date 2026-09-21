@@ -1,8 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[allow(dead_code)]
@@ -14,7 +12,6 @@ mod deadline_backend_concurrency;
 mod deadline_backend_families;
 #[path = "../deadline_backend_revalidation.rs"]
 mod deadline_backend_revalidation;
-#[allow(dead_code)]
 #[path = "../deadline_backend_support/mod.rs"]
 mod deadline_backend_support;
 #[path = "../deadline_current_backend.rs"]
@@ -44,37 +41,27 @@ mod deadline_dispatch_family_support;
 #[allow(dead_code)]
 #[path = "../deadline_dispatch_support/mod.rs"]
 mod deadline_dispatch_support;
-#[allow(dead_code)]
 #[path = "../deadline_input_history_support/mod.rs"]
 mod deadline_input_history_support;
-#[allow(dead_code)]
 #[path = "../deadline_input_support/mod.rs"]
 mod deadline_input_support;
-#[allow(dead_code)]
 #[path = "../deadline_profile_database_support/mod.rs"]
 mod deadline_profile_database_support;
-#[allow(dead_code)]
 #[path = "../deadline_schema_support/mod.rs"]
 mod deadline_schema_support;
-#[allow(dead_code)]
 #[path = "../deadline_tracked_backend_support/mod.rs"]
 mod deadline_tracked_backend_support;
-#[allow(dead_code)]
 #[path = "../deadline_tracked_guard_support/mod.rs"]
 mod deadline_tracked_guard_support;
 #[allow(dead_code)]
 #[path = "../deadline_worker_backend_support/mod.rs"]
 mod deadline_worker_backend_support;
-#[allow(dead_code)]
 #[path = "../hearing_database_support/mod.rs"]
 mod hearing_database_support;
-#[allow(dead_code)]
 #[path = "../hearing_result_database_support/mod.rs"]
 mod hearing_result_database_support;
-#[allow(dead_code)]
 #[path = "../judicial_calendar_database_support/mod.rs"]
 mod judicial_calendar_database_support;
-#[allow(dead_code)]
 #[path = "../procedural_fact_backend_support/mod.rs"]
 mod procedural_fact_backend_support;
 #[allow(dead_code)]

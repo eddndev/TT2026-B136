@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 #[path = "../case_administration_support/mod.rs"]
-mod administration;
+pub(crate) mod administration;
 
 use application::document_integrity::{
     DocumentIntegrityFailure, DocumentIntegrityObservation, DocumentIntegrityObservationId,

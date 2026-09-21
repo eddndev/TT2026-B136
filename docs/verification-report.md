@@ -6,7 +6,7 @@ Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
 ## Reduccion del costo de CI: 21 de septiembre de 2026
 
-Se sustituyen 537 ejecutables de integración por 201, conservando los archivos
+Se sustituyen 537 ejecutables de integración por 203, conservando los archivos
 originales y sus casos. El inventario automatizado comprueba que cada archivo
 está registrado exactamente una vez. La revisión del cambio conserva los
 nombres de funciones y atributos de prueba e ignorado existentes.
@@ -31,12 +31,14 @@ Comprobaciones ejecutadas en esta corrección:
 - 17 escenarios de despacho agrupados, con PostgreSQL/Redis desechables, un
   compilador y un hilo: **17 aprobados en 108.23 s de pruebas**. Incluyen
   rollback, concurrencia, permisos, corrupción del catálogo y reapertura.
+- `cargo clippy --workspace --all-targets --locked -- -D warnings`: aprobado
+  después de resolver atributos duplicados y módulos anidados compartidos.
 - Siete pruebas Python de limpieza/invalidez de caché y límites de memoria.
 - Dos ejecuciones de un proyecto mínimo: el binario conserva su fecha de
   compilación y la cobertura baja de 11 a 8 líneas cuando la segunda campaña
   deja de ejecutar una función. La prueba local usó cargo-llvm-cov 0.8.7;
   CI fija 0.9.1 y valida allí el workspace completo.
-- Inventario de 201 ejecutables, `cargo fmt --all -- --check`, `git diff
+- Inventario de 203 ejecutables, `cargo fmt --all -- --check`, `git diff
   --check` y actionlint. La regresión global y el umbral de cobertura quedan
   para la nueva campaña de CI; no se presentan como aprobados todavía.
 

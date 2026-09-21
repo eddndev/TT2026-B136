@@ -5,7 +5,6 @@ mod judicial_calendar_canonical;
 mod judicial_calendar_dates;
 #[path = "../judicial_calendar_limits.rs"]
 mod judicial_calendar_limits;
-#[allow(dead_code)]
 #[path = "../judicial_calendar_support/mod.rs"]
 mod judicial_calendar_support;
 #[path = "../judicial_calendar_urls.rs"]

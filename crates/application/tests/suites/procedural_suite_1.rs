@@ -37,7 +37,6 @@ mod procedural_resource_acts;
 mod procedural_resource_queries;
 #[path = "../procedural_resource_service.rs"]
 mod procedural_resource_service;
-#[allow(dead_code)]
 #[path = "../procedural_resource_support/mod.rs"]
 mod procedural_resource_support;
 #[allow(dead_code)]

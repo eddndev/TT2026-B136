@@ -11,6 +11,5 @@ mod member_redis;
 mod member_restore;
 #[path = "../member_schema.rs"]
 mod member_schema;
-#[allow(dead_code)]
 #[path = "../member_support/mod.rs"]
 mod member_support;

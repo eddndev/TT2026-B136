@@ -37,11 +37,15 @@ def memory_limit():
 
 
 def main():
-    output = subprocess.check_output(
+    build = subprocess.run(
         ["cargo", "build", "--workspace", "--locked", "--message-format=json"],
-        env={**os.environ, "CARGO_BUILD_JOBS": "1"}, text=True,
+        env={**os.environ, "CARGO_BUILD_JOBS": "1"}, text=True, stdout=subprocess.PIPE,
     )
-    artifacts = [json.loads(line) for line in output.splitlines() if line.startswith("{")]
+    artifacts = [json.loads(line) for line in build.stdout.splitlines() if line.startswith("{")]
+    for item in artifacts:
+        if item.get("reason") == "compiler-message":
+            print(item["message"].get("rendered", ""), end="")
+    build.check_returncode()
     compiled = any(item.get("reason") == "compiler-artifact" and not item.get("fresh")
                    for item in artifacts)
     peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * 1024

@@ -1,8 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[allow(dead_code)]
@@ -18,7 +16,6 @@ mod hearing_clock;
 mod hearing_codec;
 #[path = "../hearing_concurrency.rs"]
 mod hearing_concurrency;
-#[allow(dead_code)]
 #[path = "../hearing_database_support/mod.rs"]
 mod hearing_database_support;
 #[path = "../hearing_import.rs"]
@@ -35,13 +32,10 @@ mod hearing_restore;
 mod hearing_result_backend;
 #[path = "../hearing_result_canonical_sql.rs"]
 mod hearing_result_canonical_sql;
-#[allow(dead_code)]
 #[path = "../hearing_result_database_support/mod.rs"]
 mod hearing_result_database_support;
-#[allow(dead_code)]
 #[path = "../hearing_revalidation_support/mod.rs"]
 mod hearing_revalidation_support;
-#[allow(dead_code)]
 #[path = "../hearing_sql_support/mod.rs"]
 mod hearing_sql_support;
 #[allow(dead_code)]

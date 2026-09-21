@@ -1,5 +1,4 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
 #[path = "../participant_authorization.rs"]
@@ -25,6 +24,5 @@ mod participant_schema;
 mod participant_sql_invariants;
 #[path = "../participant_workflow.rs"]
 mod participant_workflow;
-#[allow(dead_code)]
 #[path = "../typed_participant_database_support/mod.rs"]
 mod typed_participant_database_support;

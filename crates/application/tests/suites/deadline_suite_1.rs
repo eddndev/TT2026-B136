@@ -21,32 +21,24 @@ mod deadline_currentness_binding;
 mod deadline_currentness_integrity;
 #[path = "../deadline_currentness_review.rs"]
 mod deadline_currentness_review;
-#[allow(dead_code)]
 #[path = "../deadline_currentness_support/mod.rs"]
 mod deadline_currentness_support;
 #[path = "../deadline_evaluation_record.rs"]
 mod deadline_evaluation_record;
 #[path = "../deadline_evaluation_record_calendar.rs"]
 mod deadline_evaluation_record_calendar;
-#[allow(dead_code)]
 #[path = "../deadline_evaluation_record_support/mod.rs"]
 mod deadline_evaluation_record_support;
 #[path = "../deadline_evaluation_record_validation.rs"]
 mod deadline_evaluation_record_validation;
 #[path = "../deadline_evaluation_record_wire.rs"]
 mod deadline_evaluation_record_wire;
-#[allow(dead_code)]
-#[path = "../deadline_evaluation_support/mod.rs"]
-mod deadline_evaluation_support;
-#[allow(dead_code)]
+use deadline_support::evaluation as deadline_evaluation_support;
 #[path = "../deadline_observation_support/mod.rs"]
 mod deadline_observation_support;
-#[allow(dead_code)]
 #[path = "../deadline_service_support/mod.rs"]
 mod deadline_service_support;
-#[allow(dead_code)]
 #[path = "../deadline_support/mod.rs"]
 mod deadline_support;
-#[allow(dead_code)]
 #[path = "../deadline_technical_support/mod.rs"]
 mod deadline_technical_support;

@@ -7,7 +7,6 @@ mod procedural_fact_evidence;
 mod procedural_fact_permissions;
 #[path = "../procedural_fact_primitives.rs"]
 mod procedural_fact_primitives;
-#[allow(dead_code)]
 #[path = "../procedural_fact_support/mod.rs"]
 mod procedural_fact_support;
 #[path = "../procedural_fact_values.rs"]
@@ -18,7 +17,6 @@ mod procedural_resource_canonical;
 mod procedural_resource_commitments;
 #[path = "../procedural_resource_identity.rs"]
 mod procedural_resource_identity;
-#[allow(dead_code)]
 #[path = "../procedural_resource_support/mod.rs"]
 mod procedural_resource_support;
 #[path = "../procedural_resource_values.rs"]

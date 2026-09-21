@@ -1,8 +1,5 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
-#[path = "../case_administration_support/mod.rs"]
-mod case_administration_support;
-#[allow(dead_code)]
+use document_content_support::administration as case_administration_support;
 #[path = "../document_content_support/mod.rs"]
 mod document_content_support;
 #[path = "../document_integrity_backend.rs"]
@@ -32,6 +29,4 @@ mod document_metadata_schema;
 #[allow(dead_code)]
 #[path = "../metadata_database_support/mod.rs"]
 mod metadata_database_support;
-#[allow(dead_code)]
-#[path = "../version_database_support/mod.rs"]
-mod version_database_support;
+use metadata_database_support::version_database_support;

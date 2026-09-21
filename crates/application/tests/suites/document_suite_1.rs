@@ -18,9 +18,6 @@ mod document_version_crypto;
 mod document_versions;
 #[path = "../document_workflow.rs"]
 mod document_workflow;
-#[allow(dead_code)]
-#[path = "../support/document_workflow.rs"]
-mod support;
-#[allow(dead_code)]
+use crypto as support;
 #[path = "../verification_mocks/mod.rs"]
 mod verification_mocks;

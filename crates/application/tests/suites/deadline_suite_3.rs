@@ -5,9 +5,7 @@ mod case_support;
 #[allow(dead_code)]
 #[path = "../support/document_workflow.rs"]
 mod crypto;
-#[allow(dead_code)]
-#[path = "../deadline_evaluation_support/mod.rs"]
-mod deadline_evaluation_support;
+use deadline_support::evaluation as deadline_evaluation_support;
 #[path = "../deadline_profile_catalog.rs"]
 mod deadline_profile_catalog;
 #[path = "../deadline_profile_catalog_canonical.rs"]
@@ -16,7 +14,6 @@ mod deadline_profile_catalog_canonical;
 mod deadline_profile_catalog_failures;
 #[path = "../deadline_profile_catalog_queries.rs"]
 mod deadline_profile_catalog_queries;
-#[allow(dead_code)]
 #[path = "../deadline_profile_catalog_support/mod.rs"]
 mod deadline_profile_catalog_support;
 #[path = "../deadline_profiled_evaluation.rs"]
@@ -35,9 +32,7 @@ mod deadline_reevaluation_receipts;
 mod deadline_responsibles;
 #[path = "../deadline_service_identity.rs"]
 mod deadline_service_identity;
-#[allow(dead_code)]
 #[path = "../deadline_service_support/mod.rs"]
 mod deadline_service_support;
-#[allow(dead_code)]
 #[path = "../deadline_support/mod.rs"]
 mod deadline_support;

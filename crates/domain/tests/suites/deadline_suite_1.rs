@@ -11,7 +11,6 @@ mod deadline_arithmetic_final_day;
 mod deadline_arithmetic_hours;
 #[path = "../deadline_days_candidates.rs"]
 mod deadline_days_candidates;
-#[allow(dead_code)]
 #[path = "../deadline_days_support/mod.rs"]
 mod deadline_days_support;
 #[path = "../deadline_identity.rs"]
@@ -26,12 +25,9 @@ mod deadline_trigger_contract;
 mod deadline_trigger_hearings;
 #[path = "../deadline_trigger_integrity.rs"]
 mod deadline_trigger_integrity;
-#[allow(dead_code)]
 #[path = "../deadline_trigger_integrity_support/mod.rs"]
 mod deadline_trigger_integrity_support;
-#[allow(dead_code)]
 #[path = "../hearing_result_support/mod.rs"]
 mod hearing_result_support;
-#[allow(dead_code)]
 #[path = "../procedural_fact_support/mod.rs"]
 mod procedural_fact_support;

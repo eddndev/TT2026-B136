@@ -19,14 +19,12 @@ mod case_administration_restore;
 mod case_administration_schema;
 #[path = "../case_administration_sql.rs"]
 mod case_administration_sql;
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
 #[path = "../case_backends.rs"]
 mod case_backends;
 #[path = "../case_stage_backend.rs"]
 mod case_stage_backend;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[allow(dead_code)]

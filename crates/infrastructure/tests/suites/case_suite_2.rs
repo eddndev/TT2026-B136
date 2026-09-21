@@ -1,5 +1,4 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
 #[path = "../case_stage_canonical_sql.rs"]
@@ -8,7 +7,6 @@ mod case_stage_canonical_sql;
 mod case_stage_concurrency;
 #[path = "../case_stage_constraints.rs"]
 mod case_stage_constraints;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[path = "../case_stage_failures.rs"]

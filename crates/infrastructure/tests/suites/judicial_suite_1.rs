@@ -1,8 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[allow(dead_code)]
@@ -16,12 +14,10 @@ mod judicial_calendar_catalog;
 mod judicial_calendar_clock;
 #[path = "../judicial_calendar_concurrency.rs"]
 mod judicial_calendar_concurrency;
-#[allow(dead_code)]
 #[path = "../judicial_calendar_database_support/mod.rs"]
 mod judicial_calendar_database_support;
 #[path = "../judicial_calendar_import.rs"]
 mod judicial_calendar_import;
-#[allow(dead_code)]
 #[path = "../judicial_calendar_interleaved_support/mod.rs"]
 mod judicial_calendar_interleaved_support;
 #[path = "../judicial_calendar_inventory.rs"]

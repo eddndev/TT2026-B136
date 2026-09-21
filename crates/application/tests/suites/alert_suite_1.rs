@@ -5,7 +5,6 @@ mod alert_preferences;
 mod alert_query;
 #[path = "../alert_service.rs"]
 mod alert_service;
-#[allow(dead_code)]
 #[path = "../alert_support/mod.rs"]
 mod alert_support;
 #[allow(dead_code)]

@@ -8,8 +8,10 @@ import subprocess
 def cache_key(root, environment, toolchain):
     digest = hashlib.sha256(toolchain.encode())
     manifests = sorted(root.glob("crates/*/Cargo.toml"))
+    cargo_home = Path(environment.get("CARGO_HOME", Path.home() / ".cargo"))
     for path in [root / "Cargo.toml", root / "Cargo.lock", *manifests,
-                 *sorted((root / ".cargo").glob("*")), Path(__file__)]:
+                 *sorted((root / ".cargo").glob("*")), cargo_home / "config",
+                 cargo_home / "config.toml", Path(__file__)]:
         if path.is_file():
             digest.update(path.read_bytes())
     for key, value in sorted(environment.items()):

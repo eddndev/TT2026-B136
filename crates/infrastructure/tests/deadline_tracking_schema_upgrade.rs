@@ -1,4 +1,6 @@
-use crate::deadline_tracking_upgrade_support;
+mod case_administration_support;
+mod deadline_tracking_upgrade_support;
+
 use application::deadlines::*;
 use deadline_tracking_upgrade_support::*;
 use domain::clock::{Clock, OffsetDateTime};

@@ -14,9 +14,7 @@ mod deadline_input_service;
 #[allow(dead_code)]
 #[path = "../deadline_input_service_support/mod.rs"]
 mod deadline_input_service_support;
-#[allow(dead_code)]
-#[path = "../deadline_input_support/mod.rs"]
-mod deadline_input_support;
+use deadline_support::evaluation::inputs as deadline_input_support;
 #[path = "../deadline_legacy_observations.rs"]
 mod deadline_legacy_observations;
 #[path = "../deadline_legacy_successor_observations.rs"]
@@ -25,7 +23,6 @@ mod deadline_legacy_successor_observations;
 mod deadline_legacy_vectors;
 #[path = "../deadline_manual_legacy_observations.rs"]
 mod deadline_manual_legacy_observations;
-#[allow(dead_code)]
 #[path = "../deadline_observation_support/mod.rs"]
 mod deadline_observation_support;
 #[path = "../deadline_observations.rs"]
@@ -38,12 +35,9 @@ mod deadline_observations_offsets;
 mod deadline_observations_validation;
 #[path = "../deadline_preparation.rs"]
 mod deadline_preparation;
-#[allow(dead_code)]
 #[path = "../deadline_support/mod.rs"]
 mod deadline_support;
-#[allow(dead_code)]
 #[path = "../deadline_technical_support/mod.rs"]
 mod deadline_technical_support;
-#[allow(dead_code)]
 #[path = "../deadline_tracked_support/mod.rs"]
 mod deadline_tracked_support;

@@ -5,16 +5,12 @@ mod case_support;
 #[allow(dead_code)]
 #[path = "../support/document_workflow.rs"]
 mod crypto;
-#[allow(dead_code)]
 #[path = "../deadline_observation_support/mod.rs"]
 mod deadline_observation_support;
-#[allow(dead_code)]
 #[path = "../deadline_service_support/mod.rs"]
 mod deadline_service_support;
-#[allow(dead_code)]
 #[path = "../deadline_support/mod.rs"]
 mod deadline_support;
-#[allow(dead_code)]
 #[path = "../deadline_technical_support/mod.rs"]
 mod deadline_technical_support;
 #[path = "../deadline_tracked_dependency_successors.rs"]
@@ -27,7 +23,6 @@ mod deadline_tracked_queries;
 mod deadline_tracked_records;
 #[path = "../deadline_tracked_successors.rs"]
 mod deadline_tracked_successors;
-#[allow(dead_code)]
 #[path = "../deadline_tracked_support/mod.rs"]
 mod deadline_tracked_support;
 #[path = "../deadline_tracking_policy.rs"]
@@ -40,7 +35,6 @@ mod deadline_tracking_storage_administration;
 mod deadline_tracking_storage_decode;
 #[path = "../deadline_tracking_storage_restore.rs"]
 mod deadline_tracking_storage_restore;
-#[allow(dead_code)]
 #[path = "../deadline_tracking_storage_support/mod.rs"]
 mod deadline_tracking_storage_support;
 #[path = "../deadline_tracking_storage_vectors.rs"]

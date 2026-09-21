@@ -7,7 +7,6 @@ mod agenda_projection;
 mod agenda_query;
 #[path = "../agenda_service.rs"]
 mod agenda_service;
-#[allow(dead_code)]
 #[path = "../agenda_support/mod.rs"]
 mod agenda_support;
 #[allow(dead_code)]
@@ -16,15 +15,11 @@ mod case_support;
 #[allow(dead_code)]
 #[path = "../support/document_workflow.rs"]
 mod crypto;
-#[allow(dead_code)]
 #[path = "../deadline_currentness_support/mod.rs"]
 mod deadline_currentness_support;
-#[allow(dead_code)]
 #[path = "../deadline_observation_support/mod.rs"]
 mod deadline_observation_support;
-#[allow(dead_code)]
 #[path = "../deadline_support/mod.rs"]
 mod deadline_support;
-#[allow(dead_code)]
 #[path = "../deadline_technical_support/mod.rs"]
 mod deadline_technical_support;

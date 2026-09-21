@@ -3,6 +3,5 @@
 mod audit_log;
 #[path = "../audit_transaction_isolation.rs"]
 mod audit_transaction_isolation;
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;

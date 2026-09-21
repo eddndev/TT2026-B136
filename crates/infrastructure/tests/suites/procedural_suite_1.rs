@@ -1,8 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[allow(dead_code)]
@@ -19,7 +17,6 @@ mod procedural_fact_atomicity;
 mod procedural_fact_authorization;
 #[path = "../procedural_fact_backend.rs"]
 mod procedural_fact_backend;
-#[allow(dead_code)]
 #[path = "../procedural_fact_backend_support/mod.rs"]
 mod procedural_fact_backend_support;
 #[path = "../procedural_fact_catalog.rs"]

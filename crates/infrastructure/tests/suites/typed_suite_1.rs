@@ -1,8 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
-#[allow(dead_code)]
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
-#[allow(dead_code)]
 #[path = "../case_stage_database_support/mod.rs"]
 mod case_stage_database_support;
 #[allow(dead_code)]
@@ -22,7 +20,6 @@ mod typed_participant_codec;
 mod typed_participant_concurrency;
 #[path = "../typed_participant_credential_absence.rs"]
 mod typed_participant_credential_absence;
-#[allow(dead_code)]
 #[path = "../typed_participant_database_support/mod.rs"]
 mod typed_participant_database_support;
 #[path = "../typed_participant_declaration_vectors.rs"]
@@ -35,12 +32,9 @@ mod typed_participant_guards;
 mod typed_participant_integrity;
 #[path = "../typed_participant_inventory.rs"]
 mod typed_participant_inventory;
-#[allow(dead_code)]
 #[path = "../typed_participant_service_support/mod.rs"]
 mod typed_participant_service_support;
 #[allow(dead_code)]
 #[path = "../../../domain/tests/typed_participant_vectors_support/mod.rs"]
 mod values;
-#[allow(dead_code)]
-#[path = "../../../domain/tests/typed_participant_vectors_support/mod.rs"]
-mod vector_support;
+use values as vector_support;

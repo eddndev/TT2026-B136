@@ -12,7 +12,6 @@ mod judicial_calendar_history_boundaries;
 mod judicial_calendar_query;
 #[path = "../judicial_calendar_reads.rs"]
 mod judicial_calendar_reads;
-#[allow(dead_code)]
 #[path = "../judicial_calendar_support/mod.rs"]
 mod judicial_calendar_support;
 #[path = "../judicial_calendar_workflow.rs"]
