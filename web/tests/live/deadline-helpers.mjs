@@ -35,9 +35,21 @@ export async function fill(page, kind, title) {
     .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
     .selectOption('follow');
   await form.getByRole('button', { name: 'Elegir responsable', exact: true }).click();
-  await form
-    .getByRole('button', { name: `Elegir responsable ${accounts.litigator.email}`, exact: true })
-    .click();
+  const responsible = form.getByRole('button', {
+    name: `Elegir responsable ${accounts.litigator.email}`,
+    exact: true,
+  });
+  for (let pageNumber = 0; (await responsible.count()) === 0 && pageNumber < 10; pageNumber += 1) {
+    const next = form.getByRole('button', { name: 'Siguientes responsables', exact: true });
+    if (!(await next.isEnabled())) throw new Error('The deadline responsible is not available');
+    const loaded = page.waitForResponse(
+      (response) =>
+        response.url().includes(`/api/v1/cases/${accounts.case.id}/members?`) && response.ok(),
+    );
+    await next.click();
+    await loaded;
+  }
+  await responsible.click();
   await form
     .getByRole('combobox', { name: 'Tipo de fuente', exact: true })
     .selectOption('resolution');
