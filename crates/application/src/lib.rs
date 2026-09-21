@@ -24,10 +24,12 @@ pub mod hearing_results;
 pub mod hearings;
 pub mod identity;
 pub mod judicial_calendars;
+pub mod members;
 pub mod participants;
 pub mod pki;
 pub mod procedural_facts;
 pub mod procedural_resources;
+pub mod resource_activities;
 pub mod signing;
 pub mod timestamping;
 pub mod typed_participants;
@@ -46,3 +48,6 @@ pub mod deadline_technical;
 pub mod deadline_worker;
 
 pub mod deadline_dispatch;
+
+pub mod document_content;
+pub mod document_integrity;

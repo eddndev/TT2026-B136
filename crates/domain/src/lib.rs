@@ -26,6 +26,7 @@ pub mod participants;
 pub mod procedural_facts;
 pub mod procedural_resources;
 pub mod procedural_time;
+pub mod resource_activities;
 pub mod typed_participants;
 
 pub use error::DomainError;

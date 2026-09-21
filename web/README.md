@@ -51,6 +51,40 @@ consultar o detener ese proceso.
 
 ## Flujo disponible
 
+### Miembros y asignaciones
+
+Owner dispone del directorio de cuentas y del selector de miembros del expediente.
+El [contrato de miembros](../docs/members-api.md) fija los permisos y límites:
+
+1. Abrir la administración de cuentas y filtrar por prefijo literal de correo,
+   rol y estado. Las páginas tienen orden estable por identificador; cambiar
+   filtros reinicia la consulta. No se muestran secretos ni material MFA.
+2. Elegir una cuenta, revisar su rol y actividad y confirmar ambos valores.
+   Desactivar conserva asignaciones e historia, pero invalida sesiones y desafíos
+   anteriores. Reactivar exige nuevo acceso con contraseña y segundo factor.
+3. Ante conflicto, conservar la intención, consultar la versión actual y aceptarla
+   expresamente antes de otro envío. Ante respuesta incierta, consultar primero;
+   no suponer éxito ni repetir silenciosamente la operación.
+4. Para asignar, abrir miembros del expediente y elegir una cuenta activa entre
+   las disponibles. La lista de asignados incluye inactivos y permite retirarlos,
+   también con el expediente cerrado. Owner conserva acceso global aun sin fila
+   de asignación. El responsable de un plazo es una selección independiente.
+
+No puede retirarse el último Owner activo. Un cambio real del propio rol o estado
+devuelve su confirmación y lleva al inicio de sesión; un cambio sin efecto conserva
+la sesión. El alta directa sigue mostrando el material MFA inicial una sola vez:
+no es una invitación ni recuperación de credenciales. Las pruebas Node y de
+navegador con HTTP controlado están aprobadas. Tres recorridos con servicios reales
+también aprobaron: escritorio a 1440 y móvil a 390 píxeles, expediente cerrado,
+revocación de la sesión anterior tras reactivación y permisos de los otros roles,
+incluido Client. Las cuatro capturas fueron inspeccionadas y resultaron legibles, sin desbordes
+ni solapamientos, conservando Qadra. La aceptación API completa con restauración
+también aprobó: las cuentas y asignaciones se conservaron, los tokens anteriores
+fueron rechazados y el acceso nuevo exigió MFA. CI global y el PDF actualizado
+conservan su seguimiento en [el informe](../docs/verification-report.md).
+
+### Identidad, expedientes y documentos
+
 1. Configurar el acceso inicial si la base no contiene usuarios. Guardar la
    clave TOTP y los códigos de recuperación antes de finalizar el alta.
 2. Iniciar sesión con correo, contraseña y TOTP o código de recuperación.
@@ -391,8 +425,7 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
   usuario agrega documentos o modifica asignaciones entre consultas.
 - La búsqueda abarca los nombres del expediente, no el contenido cifrado.
   El estado de sellado no equivale a una verificación vigente de la evidencia.
-- Las asignaciones de acceso se gestionan mediante la API; su administración
-  visual y el directorio general de miembros continúan pendientes. El selector
+- Las asignaciones se gestionan desde el directorio y los selectores Owner. El selector
   de responsable de un plazo muestra cuentas ya autorizadas y no asigna acceso
   al expediente. No se presenta un formulario de asignaciones por UUID.
 - El directorio admite fichas pendientes y once perfiles tipificados. Los
@@ -780,3 +813,19 @@ conservan el borrador y exigen aceptar una nueva base.
 La captura no inicia plazos ni programa audiencias; esas asociaciones siguen
 pendientes. El contrato está en [la API de recursos](../docs/procedural-resources-api.md)
 y las verificaciones ejecutadas en [el informe](../docs/verification-report.md).
+
+## Contenido original e incidentes de integridad
+
+La ficha de una versión permite **Descargar archivo**, incluso pendiente de
+sello. La API comprueba íntegramente los bytes antes de entregarlos; Qadra
+contrasta expediente, UUID, versión y huella con la selección visible. Cambiar
+expediente, versión o sesión descarta el resultado tardío. La verificación de
+firma y sello conserva su acción separada.
+
+Owner ve un aviso persistente cuando existen incidentes y puede consultar
+**Incidentes de integridad**, actualizar la lista y abrir la versión exacta.
+La consulta no descarga automáticamente archivos rechazados. Los otros roles
+no reciben ni consultan ese buzón. Un error de servicio se muestra como error,
+no como lista vacía; los avisos no atribuyen una causa ni confirman un ataque.
+Véanse [el contrato](../docs/document-content-api.md) y
+[la evidencia de aceptación](../docs/verification-report.md).

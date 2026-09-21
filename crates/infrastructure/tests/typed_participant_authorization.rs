@@ -116,7 +116,7 @@ fn membership_revocation_and_account_disable_during_parser_prevent_commit() {
             if disable {
                 client
                     .execute(
-                        "UPDATE users SET active=FALSE WHERE id=$1",
+                        "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE WHERE id=$1",
                         &[&actor.as_uuid()],
                     )
                     .unwrap();

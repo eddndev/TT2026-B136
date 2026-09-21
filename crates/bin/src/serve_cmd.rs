@@ -297,6 +297,18 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         deadline_hasher,
         deadline_clock,
     );
+    let document_content = application::document_content::DocumentContentService::new(
+        repository.clone(),
+        identity.clone(),
+        processor.clone(),
+        Arc::new(SystemClock::new()),
+        repository.clone(),
+    );
+    let document_integrity = application::document_integrity::DocumentIntegrityService::new(
+        repository.clone(),
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
     let workflow = CaseDocumentService::new(
         repository,
         identity.clone(),
@@ -309,10 +321,21 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         alert_email,
         alert_config,
     )?;
+    let resource_activities =
+        crate::serve_resource_activities::open(&database_url, identity.clone())?;
+    let members = application::members::MemberService::new(
+        Arc::new(
+            infrastructure::PostgresMemberStore::open(&database_url, Arc::new(SystemClock::new()))
+                .context("cannot open PostgreSQL member store")?,
+        ),
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
     let router = web::api_router(
         Arc::new(workflow),
         identity,
         web::CaseWorkflows {
+            members: Arc::new(members),
             cases: Arc::new(cases),
             participants: Arc::new(participants),
             stages: Arc::new(stages),
@@ -321,9 +344,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             hearing_results: Arc::new(hearing_results),
             procedural_facts: Arc::new(procedural_facts),
             procedural_resources: Arc::new(procedural_resources),
+            resource_activities,
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
             alerts: alerts.workflow,
+            document_content: Arc::new(document_content),
+            document_integrity: Arc::new(document_integrity),
         },
         Arc::new(calendars),
         Arc::new(profiles),

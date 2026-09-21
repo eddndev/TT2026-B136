@@ -21,6 +21,7 @@ pub enum DocumentAction {
     MetadataHistory,
     List,
     Read,
+    ReadContent,
     Upload,
     Append,
     History,
@@ -37,6 +38,7 @@ impl DocumentAction {
             | Self::MetadataHistory
             | Self::List
             | Self::Read
+            | Self::ReadContent
             | Self::History => Permission::ReadDocument,
             Self::Upload => Permission::CreateDocument,
             Self::Append => Permission::AppendDocument,
@@ -53,6 +55,7 @@ impl DocumentAction {
             Self::MetadataHistory => "document.metadata_history_listed",
             Self::List => "document.listed",
             Self::Read => "document.read",
+            Self::ReadContent => "document.content_authorized",
             Self::Upload => "document.uploaded",
             Self::Append => "document.version_added",
             Self::History => "document.versions_listed",

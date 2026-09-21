@@ -5,6 +5,7 @@
   export let api;
   export let user;
   export let document;
+  export let initialVersion = null;
   export let onupdate;
   export let onmetadata;
   export let ondenied;
@@ -39,6 +40,7 @@
     {api}
     {user}
     {document}
+    {initialVersion}
     disabled={loading || metadataPending}
     bind:pending={versionsPending}
     {onupdate}

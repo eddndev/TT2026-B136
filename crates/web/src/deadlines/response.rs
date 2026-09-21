@@ -88,7 +88,7 @@ pub(super) fn submitted(
     }
     Ok(())
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     v: DeadlineDetail,
     case: CaseId,
     id: DeadlineId,
@@ -123,7 +123,7 @@ pub(super) fn detail(
         "operational":{"freshness":"not_checked","checked_at":null,"changed_dependencies":[],"due_at":null}
     }))
 }
-pub(super) fn current(
+pub(crate) fn current(
     value: DeadlineCurrent,
     case: CaseId,
     id: DeadlineId,

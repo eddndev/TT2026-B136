@@ -1,0 +1,29 @@
+\section{Trazabilidad de administración de miembros}\label{anexo:miembros}
+
+Esta matriz delimita la implementación de la \cref{sec:impl-miembros} y los ensayos de la \cref{sec:pruebas-miembros}. La actividad de una cuenta y su pertenencia a expedientes son estados distintos; ninguna ficha procesal otorga una identidad de acceso.
+
+\begin{longtable}{@{}p{0.23\linewidth}p{0.48\linewidth}p{0.20\linewidth}@{}}
+  \caption[Verificación de miembros y acceso]{Fronteras verificadas del directorio y la revocación durable de cuentas.}\label{tab:miembros-verificacion}\\
+  \toprule
+  \textbf{Frontera} & \textbf{Comportamiento comprobado} & \textbf{Evidencia} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Comportamiento comprobado} & \textbf{Evidencia} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Identidad y aplicación & Rechazo de generaciones anteriores; principal completo, permisos Owner, cursor ligado y resultado confirmado sin secretos. & 34 pruebas de aplicación. \\
+  Transporte HTTP & Contratos cerrados, revisión decimal, límites, permisos y errores de conflicto. & Siete pruebas HTTP. \\
+  PostgreSQL y Redis & Último Owner, carrera entre cambios, atomicidad, guardas, valores anteriores rechazados y restauración de cuentas y generación. & Doce pruebas con servicios reales. \\
+  Cliente & Validación de páginas y respuesta, revisiones exactas, contexto y conciliación sin reintento ciego. & Dieciséis pruebas Node. \\
+  Qadra & Filtros, asignación, cambio propio, conflicto, incertidumbre y descarte de respuestas tardías. & Once escenarios con HTTP controlado. \\
+  Navegador real & Escritorio y móvil, expediente cerrado, token anterior rechazado tras reactivación y restricciones de rol, incluido Client. & Tres recorridos aprobados. \\
+  API y restauración & Cuentas y asignaciones conservadas; tokens anteriores rechazados, MFA nuevo y evidencia documental exacta. & Campaña completa aprobada. \\
+  Cierre & CI global y compilación e inspección del PDF con estos resultados. & Pendientes en este corte. \\
+\end{longtable}
+
+La campaña real duró 418.426~s de comando y 40.1~s de Playwright, con 2553 fuentes estables. Los recorridos usaron 1440 y 390 píxeles; las cuatro capturas fueron inspeccionadas y resultaron legibles, sin desbordamientos ni solapamientos, conservando Qadra. No se atribuye una evaluación de usabilidad con personas.
+
+La aceptación API completa aprobó en 453.174~s con 2553 fuentes estables. Conservó proyecciones de cuentas y asignaciones, rechazó tokens anteriores y exigió MFA nuevo; comparó los ZIP de cuatro documentos importados y sus 70 eventos históricos idénticos. El inventario final conservó 19 raíces documentales, 25 versiones y un incidente. La restauración focal y esta aceptación integrada tienen evidencias separadas. El procedimiento de \rutarepo{docs/database-operations.md} exige cerrar el tráfico e invalidar sesiones y desafíos del Redis correcto antes de servir nuevamente; conserva reclamos TOTP y datos ajenos. El alcance no incluye invitaciones, recuperación de acceso ni autenticación por certificado.

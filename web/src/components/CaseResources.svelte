@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import ResourceEditor from './ResourceEditor.svelte';
   import ResourceDetail from './ResourceDetail.svelte';
+  import ResourceActivities from './ResourceActivities.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { resourceKinds } from '../lib/procedural-resource-values.mjs';
   import {
@@ -33,10 +34,11 @@
     busy = false,
     opening = false,
     editorBusy = false,
+    activityBusy = false,
     alive = true,
     generation = 0,
     detailGeneration = 0;
-  $: pending = busy || opening || editorBusy || !!action;
+  $: pending = busy || opening || editorBusy || activityBusy || !!action;
   $: manage = canResources(user.role, 'manage') && !$administration.closed;
   function fail(failure) {
     error = resourceFailure(failure);
@@ -246,5 +248,13 @@
         canManage={manage}
         disabled={pending}
         {historical}
+      /><ResourceActivities
+        {api}
+        {user}
+        {caseId}
+        resource={selected}
+        {ondenied}
+        disabled={busy || opening || editorBusy || !!action}
+        bind:pending={activityBusy}
       />{/key}{/if}
 </section>

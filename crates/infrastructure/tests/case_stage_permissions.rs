@@ -74,8 +74,8 @@ fn four_roles_and_case_membership_are_rechecked_for_reads_and_writes() {
 fn revocation_role_change_and_disabled_identity_after_preparation_cannot_commit() {
     for mutation in [
         "DELETE FROM case_memberships WHERE user_id=$1",
-        "UPDATE users SET active=FALSE WHERE id=$1",
-        "UPDATE users SET role='paralegal' WHERE id=$1",
+        "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE WHERE id=$1",
+        "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'paralegal' THEN 1 ELSE 0 END,role='paralegal' WHERE id=$1",
     ] {
         let Some(mut db) = Fixture::new() else { return };
         complete(&db);

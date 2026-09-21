@@ -22,8 +22,8 @@ use hearing_result_revalidation_support::*;
 fn membership_role_and_active_identity_are_rechecked_after_result_preparation() {
     for (mutation, expected) in [
         ("DELETE FROM case_memberships WHERE user_id=$1", "hidden"),
-        ("UPDATE users SET active=FALSE WHERE id=$1", "inactive"),
-        ("UPDATE users SET role='paralegal' WHERE id=$1", "role"),
+        ("UPDATE users SET active=FALSE,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", "inactive"),
+        ("UPDATE users SET role='paralegal',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", "role"),
     ] {
         let Some(mut db) = Fixture::new() else { return };
         let anchor = appointment(&mut db);

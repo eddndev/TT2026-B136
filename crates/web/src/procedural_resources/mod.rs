@@ -1,4 +1,6 @@
 //! Authorized organizational resources and exact declared act history.
+pub(crate) use context::{actor as project_actor, administration as project_administration, utc};
+pub(crate) use projection::detail as exact_projection;
 mod context;
 mod mutations;
 mod object;

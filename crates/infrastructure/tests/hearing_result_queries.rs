@@ -219,9 +219,10 @@ fn queries_reauthorize_membership_role_and_scope_without_auditing_rejections() {
         ),
         Err(ApplicationError::CaseNotFound)
     ));
+    db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET role='client' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'client' THEN 1 ELSE 0 END,role='client' WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

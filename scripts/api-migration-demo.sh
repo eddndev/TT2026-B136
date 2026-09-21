@@ -16,6 +16,9 @@ source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
 # shellcheck source=scripts/api-deadline-reevaluation-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
 
+# shellcheck source=scripts/api-identity-restore.sh
+source "$REPO_ROOT/scripts/api-identity-restore.sh"
+
 migration_demo_stop() {
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID"
@@ -61,6 +64,8 @@ migration_demo_state() {
   psql "$1" -v ON_ERROR_STOP=1 -Atc \
     "SELECT jsonb_build_object(
       'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),
+      'document_integrity_incidents',(SELECT jsonb_agg(to_jsonb(i) ORDER BY id)
+        FROM document_integrity_incidents i),
       'series',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM document_series s),
       'metadata',(SELECT jsonb_agg(to_jsonb(m) ORDER BY document_id,metadata_revision)
         FROM document_metadata_revisions m),
@@ -108,6 +113,10 @@ migration_demo_state() {
       'procedural_resource_acts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM case_procedural_resource_acts a),
       'procedural_resource_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY resource_id,revision)
         FROM case_procedural_resource_revisions r),
+      'resource_activity_associations',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id)
+        FROM case_resource_activity_associations r),
+      'resource_activity_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY association_id,revision)
+        FROM case_resource_activity_association_revisions r),
       'deadline_profiles',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM deadline_profiles p),
       'deadline_profile_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY profile_id,revision)
         FROM deadline_profile_revisions p),
@@ -260,7 +269,9 @@ PY
   [ "$(jq -Sc . "$legacy_dir/documents/.migrated")" = "$import_report" ]
 
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/imported"
+  identity_restore_run invalidate
   migration_demo_start "$runtime_url" "$legacy_dir" imported
+  identity_restore_login
   migration_demo_export "$case_id" "$WORK_DIR/imported-evidence"
   version_demo "$case_id"
   metadata_demo "$case_id"
@@ -275,8 +286,11 @@ PY
   profile_demo
   deadline_demo
   agenda_demo
+  resource_activities_demo
   deadline_worker_demo "$runtime_url" "$legacy_dir"
   alert_demo
+  document_content_demo "$imported_url"
+  member_demo
   calendar_demo_python checkpoint
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
@@ -300,7 +314,9 @@ PY
     --data-dir "$legacy_dir" --mapping "$legacy_dir/mapping.json" >"$WORK_DIR/restored-inspection.json"
   [ "$(jq -Sc '.report' "$WORK_DIR/restored-inspection.json")" = "$import_report" ]
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/restored"
+  identity_restore_run invalidate
   migration_demo_start "$runtime_url" "$legacy_dir" restored
+  identity_restore_login
   migration_demo_export "$case_id" "$WORK_DIR/restored-evidence"
   version_demo_restored "$case_id"
   metadata_demo_restored "$case_id"
@@ -315,8 +331,11 @@ PY
   profile_demo_restored
   deadline_demo_restored
   agenda_demo
+  resource_activities_demo_restored
   deadline_worker_demo_python verify
   alert_demo_restored
+  document_content_demo_restored
+  member_demo_restored
   printf 'Restored case administration: %s roots, %s revisions, %s initial stage registrations.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM cases')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_administration_revisions')" \
@@ -336,6 +355,11 @@ PY
   printf 'Restored hearings: %s roots, %s immutable revisions.\n' \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_hearings')" \
     "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_hearing_revisions')"
+  printf 'Restored resource activities: %s roots, %s immutable revisions.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_resource_activity_associations')" \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM case_resource_activity_association_revisions')"
+  printf 'Restored document content: %s immutable integrity incidents.\n' \
+    "$(psql "$restored_url" -Atc 'SELECT COUNT(*) FROM document_integrity_incidents')"
   printf 'Migration and restore demo passed: %s documents, %s preserved audit events, identical evidence ZIP.\n' \
     "$document_count" "$audit_count"
 }
@@ -361,4 +385,7 @@ unset -f profile_demo profile_demo_restored profile_demo_python
 unset -f deadline_demo deadline_demo_restored deadline_demo_python
 unset -f agenda_demo
 unset -f alert_demo alert_demo_restored alert_demo_python
+unset -f document_content_demo document_content_demo_restored document_content_demo_python
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop
+
+unset -f member_demo member_demo_restored member_demo_python identity_restore_run identity_restore_login

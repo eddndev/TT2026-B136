@@ -36,7 +36,7 @@ fn commit_rechecks_current_actor_assignment_and_responsible_eligibility() {
             0 | 3 => {
                 db.admin
                     .execute(
-                        "UPDATE users SET active=false WHERE id=$1",
+                        "UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                         &[&target.as_uuid()],
                     )
                     .unwrap();
@@ -52,7 +52,7 @@ fn commit_rechecks_current_actor_assignment_and_responsible_eligibility() {
             _ => {
                 db.admin
                     .execute(
-                        "UPDATE users SET role='client' WHERE id=$1",
+                        "UPDATE users SET role='client',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                         &[&target.as_uuid()],
                     )
                     .unwrap();

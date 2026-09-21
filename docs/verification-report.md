@@ -4,6 +4,327 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Costo de contrasenas: calibracion del 19 de septiembre de 2026
+
+El adaptador genera hashes Argon2id con tres pasadas, conservando 262144 KiB
+(256 MiB), una via, sal aleatoria de 16 bytes y salida de 32 bytes. La razon y
+los limites estan en [ADR 0044](adr/0044-reference-password-hashing-cost.md).
+No se migran PHCs existentes ni se altera la concurrencia de la API.
+
+La medicion se ejecuto en AMD Ryzen 7 7730U, 16 CPU logicas, Linux
+7.1.13-100.fc43.x86_64. El binario dev optimiza `argon2` y `blake2` a nivel 3.
+Solo habia un coordinador de verificacion; no se afirma aislamiento de todo
+el sistema operativo. La carga media previa era 1.9004/2.6924/2.7114.
+
+- Base de dos pasadas: **400.3851816 ms**, cinco hashes, veredicto `below`.
+  El binario construido por la aceptacion de miembros tiene SHA-256
+  `e62a9cccc90deea528c35ea092e320434b75a626ea020b8b8d10dea765027427`.
+- Tres pasadas: **659.7596048 ms**, cinco hashes, veredicto `inside` en la
+  banda inclusiva de 500-1000 ms. Se comprobaron el JSON y sus limites;
+  el exit code no acredita por si solo la banda. SHA-256 del binario:
+  `cf688da4940d70825b85c9d9d7ce26e3efc03888a0b206d7819e92268bdd5486`.
+  Compilacion y calibracion juntas tomaron 79.514 s, con 2553 fuentes estables.
+- TDD: la expectativa de tres pasadas fallo con el adaptador anterior;
+  dos casos aprobaron y uno fallo en 34.548 s. Despues aprobaron **7 casos**
+  en 21.602 s: tres de integracion y cuatro internos, incluidos PHC anterior
+  con contrasena correcta/incorrecta, sales distintas y formatos malformados.
+- CLI: **6 pruebas aprobadas**, 20.916 s. `scripts/demo.sh` aprobo en
+  **8.240 s**, incluida una medicion secundaria de **563.2 ms** sobre cinco
+  hashes. Esta segunda observacion no reemplaza la principal. Cada comando
+  conservo sus 2553 fuentes estables y uso temporales privados en disco.
+
+Los registros estan en `output/password-calibration-verification/`. La banda
+corresponde a un hash nuevo en ese binario y equipo, no al login completo,
+enrolamiento, recuperacion ni comportamiento bajo carga. Los hashes historicos
+siguen verificandose con sus parametros codificados. CI, integracion y revision
+del PDF de estas fuentes siguen pendientes; las cifras anteriores conservan
+su propio contexto y no se recalculan con este cambio.
+
+## Directorio, acceso y asignaciones: verificacion del 19 de septiembre de 2026
+
+El incremento local implementa directorio Owner, cambios de rol/actividad con
+revision esperada y selectores de asignacion. Una generacion persistida revoca
+sesiones y desafios anteriores incluso despues de reactivar la cuenta. Las
+asignaciones se conservan al desactivar; se protege el ultimo Owner activo.
+El [contrato de miembros](members-api.md) y
+[ADR 0043](adr/0043-member-access-and-authentication-generation.md) fijan limites.
+Invitaciones, recuperacion de credenciales y autenticacion por certificado
+permanecen pendientes. Este corte no acredita integracion ni regresion global.
+
+Las campanas locales corrieron en serie, con un coordinador, jobs Rust y
+hilos de prueba en uno, y Playwright con un trabajador. Los temporales privados
+estuvieron en disco, bajo `output/tmp`. Se conservaron resultados y hashes de
+fuentes por comando en `output/member-lifecycle-verification/`.
+
+- Node: dieciseis fallos iniciales por metodos ausentes; despues **16 aprobadas**
+  en 0.655 s, con 2521 fuentes estables. Cubren revision decimal sin perdida,
+  contrato estricto y directorios filtrados de cuentas/asignaciones.
+- Aplicacion/HTTP: **41 aprobadas** en 42.282 s, con 2553 fuentes estables:
+  veinte de identidad, cuatro de consultas, diez de servicio y siete HTTP.
+  La campana inicial habia aprobado dieciseis de identidad y fallado las cuatro
+  nuevas, cuatro consultas, diez servicios y siete rutas. La repeticion cubre
+  generacion, reautenticacion, limites, conflictos y respuestas sin secretos.
+- Navegador con HTTP controlado: **11 aprobadas** en 28.848 s de comando y
+  27.5 s de Playwright, con 2553 fuentes estables. Incluye escritorio/movil,
+  filtros, asignacion con expediente cerrado, conflicto, ultimo Owner,
+  cambio propio, respuesta incierta y cambios de contexto. El intento inicial
+  paro ante la region de directorio ausente: uno fallo y diez no se ejecutaron.
+- PostgreSQL/Redis: diez casos reprodujeron el comportamiento ausente.
+  La siguiente campana no ejecuto tests: fallo compilacion por conversion
+  `OffsetDateTime`/PostgreSQL en dos puntos, en 10.773 s. Se corrigieron las
+  conversiones sin ampliar dependencias. La repeticion aprobo **12 casos** en
+  41.896 s, con 2553 fuentes estables y PostgreSQL/Redis desechables: atomicidad,
+  ultimo Owner concurrente, filtros, inventario/catalogo, guardas y restauracion.
+
+El navegador con servicios reales aprobo **3 escenarios**, 418.426 s de comando
+y 40.1 s de Playwright, con 2553 fuentes estables. En escritorio de 1440 pixeles
+y movil de 390 se verificaron baja/reactivacion, sesion anterior rechazada tras
+reactivar, login nuevo y asignaciones conservadas; el expediente movil estaba
+cerrado. Otro recorrido confirmo cambio propio antes de cerrar sesion y
+restriccion de Client. Las cuatro capturas reales resultaron legibles, sin
+recortes ni desbordamiento, conservando Qadra. Se encuentran bajo
+`output/member-lifecycle-verification/browser-live-first/`.
+
+La aceptacion HTTP completa con restauracion aprobo en **453.174 s**, con
+2553 fuentes estables. Reprodujo directorio paginado, asignaciones, cambios con
+revision esperada, baja/reactivacion, desafios y sesiones anteriores rechazados,
+nuevo MFA, cambio propio y rol actualizado. Tras dump/restore, las proyecciones
+de cuentas y asignaciones coinciden, las sesiones anteriores siguen denegadas
+y los accesos renovados usan MFA sin cambiar revisiones. El inventario conserva
+19 raices documentales, 25 versiones y un incidente; la importacion conserva
+cuatro documentos, 70 eventos historicos y ZIP de evidencia identico.
+El registro es `members-api-live-first.json` y su log correspondiente.
+
+Clippy, formato y MSRV aprobaron en CI de `41f914b`. La regresion global y
+cobertura siguen pendientes; la compilacion e inspeccion de las fuentes
+academicas actualizadas requieren su propia comprobacion. Estos resultados
+no equivalen a integracion en main.
+
+## Contenido original e incidentes: verificación del 19 de septiembre de 2026
+
+El incremento añade descarga exacta de versiones pendientes o selladas y buzón
+interno Owner. Las focales PostgreSQL y el navegador con servicios reales
+aprobaron. La aceptación API completa con restauración también aprobó; la
+inspección del PDF y CI permanecen pendientes. Este corte no acredita integración.
+La [API](document-content-api.md) conserva la separación entre comprobar bytes
+y verificar firma/sello, así como la denegación de Client.
+
+La construcción comenzó por pruebas fallidas: diez casos Node por método
+ausente, trece de aplicación y siete HTTP frente a puertos/rutas sin implementar,
+y seis de PostgreSQL. Las focales siguientes son independientes:
+
+- Aplicación y HTTP: **20 aprobadas**, 41.997 s; trece de aplicación y siete de
+  transporte. Cubren AAD/digest, exactitud histórica, permisos, reautenticación
+  del principal completo, fallo de auditoría o incidente y ausencia de bytes
+  rechazados. También distinguen 409 de indisponibilidad y los límites de ruta.
+  Las fuentes de aplicación y HTTP permanecieron estables; ocho archivos de
+  infraestructura no compilados por este comando cambiaron en paralelo.
+- Cliente Node: **19 aprobadas**, 0.563 s, con 2485 fuentes estables. Comprueban
+  identidad/versión/cabeceras binarias, limpieza de contexto y parseo estricto
+  de incidentes, tiempos y paginación.
+- Navegador con HTTP controlado: **13 de 14 aprobadas**, 58.274 s; seis de
+  descarga y siete del buzón. El escenario de descarga durante logout agotó
+  su espera y sigue pendiente de corrección; este comando no se declara
+  aprobado. Sólo cambió un archivo Rust durante el navegador; las fuentes
+  JavaScript/Svelte ejecutadas permanecieron estables.
+
+- PostgreSQL: **8 aprobadas**, 42.427 s, con 2485 fuentes estables y servicios
+  desechables. Comprueban exactitud histórica, cota previa a materializar vault,
+  revocación, rollback de auditoría, repetición exacta, permisos Owner, catálogo,
+  inventario y restauración completa de la captura.
+- Capacidad HTTP: dos casos nuevos reprodujeron la entrega sin límite de cuerpos
+  vivos; ambos fallaron al observar 200 donde se esperaba 503. Después aprobaron
+  junto con las cuatro regresiones de contenido en 24.454 s, con 2486 fuentes
+  estables. El permiso acompaña al buffer ceroizable hasta soltar el último
+  chunk o copia, incluso después de consumir el cuerpo HTTP.
+
+La primera campaña API integrada se detuvo en 92.508 s antes de recibir la
+primera petición funcional: el guion agotó diez segundos de arranque sin que el
+proceso publicara dirección. No acredita aceptación ni un fallo documental.
+La espera acotada se amplió a sesenta segundos y se inició una nueva campaña.
+
+El caso pendiente de logout controlado aprobó por separado en **9.783 s**,
+con 2490 fuentes estables. La espera ahora observa la resolución/cancelación
+del fetch iniciada antes del cambio, sin exigir consumir un cuerpo que el cliente
+ya descartó. Conserva las comprobaciones de cero descargas y cero éxito tardío.
+Son **14 escenarios distintos aprobados** por las dos ejecuciones, sin atribuir
+éxito a la campaña anterior completa.
+
+La segunda campaña API se detuvo en 53.584 s al agotar la misma espera corta
+en el segundo servidor de concurrencia; también se amplió a sesenta segundos.
+La tercera duró 333.427 s y alcanzó el nuevo fixture tras aprobar los recorridos
+anteriores. Falló su helper SQL: pasar una URI como `PGDATABASE` sin `-d` no
+la expandía y elegía la conexión predeterminada. La reproducción sobre la base
+desechable retenida confirmó el fallo y la corrección con `-d`; ambos helpers,
+API y navegador, ahora especifican esa conexión. Estas ejecuciones no acreditan
+el cierre integrado. Las fuentes HTTP/Rust/Python ejecutadas en la tercera se
+conservaron; cambiaron únicamente fuentes web ajenas a ese comando.
+
+### Navegador con servicios reales
+
+La campaña `content-browser-live-first` aprobó **3 escenarios**: 285.120 s del
+comando y 24.6 s de Playwright, con **2490 fuentes estables**. Comprueba descarga
+binaria exacta de V1 pendiente de sello después de registrar V2, cabeceras y
+digest ligados a esa versión, aviso Owner, buzón persistente, apertura exacta
+y retorno. Los recorridos Owner se ejecutaron a **1440 y 390 píxeles**; el
+expediente del recorrido móvil estaba cerrado administrativamente. El tercero
+comprueba lectura del Paralegal asignado, denegación de Client y del buzón a
+otros roles, y limpieza de la captura después de revocar la asignación.
+
+El fixture alteró dos vaults AES aislados de la base desechable para provocar
+rechazos reales y sus incidentes persistidos. Restauró los bytes originales en
+`finally` antes de abrir el navegador. Esta preparación del ensayo no es una
+función de reparación del producto ni demuestra un ataque. Las denegaciones
+por permisos no añadieron incidentes.
+
+Se inspeccionaron **cuatro capturas** de contenido exacto y buzón en escritorio
+y móvil, además de dos ampliaciones del detalle: Qadra permanece legible, sin
+recortes ni desbordamiento. Esta inspección de interfaz no acredita usabilidad
+con personas ni sustituye la compilación e inspección del PDF. La aceptación
+API completa sigue pendiente después de los tres fallos descritos; el navegador
+aprobado no cierra esa campaña ni los controles de CI.
+
+La cuarta campaña API completa **aprobó en 372.048 s**, con 2490 fuentes
+estables, tras especificar la conexión SQL del fixture. Comprueba descarga V1/V2
+pendientes de sello, bytes/cabeceras exactos, cuatro roles, cierre, revocación,
+rechazo AES sin contenido ni autorización exitosa, y buzón exclusivo de Owner.
+La corrupción desechable se revierte byte a byte antes del respaldo. Después de
+restaurar, los archivos y respuestas históricas del incidente coinciden; el
+inventario conserva 19 raíces documentales, 25 versiones y un incidente inmutable.
+También preserva el prefijo importado de cuatro documentos y 63 eventos con ZIP
+idéntico. No se atribuye éxito a los tres intentos anteriores.
+
+El primer CI de esta entrega detectó una conversión `as_str` redundante en el
+codec del incidente; se elimina sin cambiar sus bytes ni el contrato. El cierre
+remoto y su comprobación de Clippy conservan resultados separados.
+
+Se usa un solo runner local, Cargo y Rust en un hilo, Chromium con un trabajador
+y temporales privados en disco. No se repitió una regresión global local.
+
+## Asociaciones de recursos con actividades: verificación del 19 de septiembre de 2026
+
+El incremento implementa vínculos organizativos a audiencias y plazos
+existentes, con recurso/acto y actividad históricos verificados. Detalle y lista
+separan esas capturas del estado actual observado; desvincular no modifica las
+actividades ni duplica sus alertas. PostgreSQL, HTTP y Qadra están conectados
+localmente. El [contrato](resource-activities-api.md) delimita el incremento;
+no incluye creación contextual de audiencias, activación automática ni corpus
+jurídico nuevo. La aceptación API/restauración integrada y los tres recorridos con navegador
+real aprobaron. CI e integración permanecen pendientes en este corte.
+
+El navegador remoto de `f81f0cb` aprobó 36 escenarios y falló el de
+asociaciones de escritorio: esperaba que el aviso de 48 horas siempre tuviera
+origen R2. El trabajador puede activarlo en R1 antes del cambio de sede, sin
+cambiar su fecha ni abrir otra ocurrencia. La prueba ahora exige origen R1 o R2
+con su digest exacto, mismo sujeto y ámbito, ventana de 48 horas y estado activo;
+conserva la comparación íntegra del aviso antes y después de vincular/desvincular.
+Dos casos Node reprodujeron el rechazo incorrecto; los tres casos de origen
+aprobaron en 0.330 s, incluido el rechazo de digest, ámbito, revisión o ventana
+ajenos. La repetición con servidor real y el cierre remoto siguen pendientes.
+
+Resultados focales ejecutados en serie, sin sumarlos como una regresión global:
+
+| Frontera | Casos distintos aprobados | Alcance y límite |
+| --- | ---: | --- |
+| Dominio | 4 | Identidades, referencias tipificadas, acto opcional y selección canónica. |
+| Aplicación | 18 | Seis de flujo, ocho de límites y cuatro de tiempo; permisos, reautenticación, fuentes, recibos e historia por puertos. |
+| HTTP Rust | 10 | Dos de cuerpos y ocho de workflow, incluido el acto no nulo; alcance de URL, límites, errores y proyecciones. |
+| Cliente Node | 12 | Comandos, selección, respuestas, recibos y conservación separada de historia/vigencia. |
+| Navegador con HTTP controlado | 12 | Diez casos anteriores y dos adicionales de recuperación; dos repeticiones visuales a 1440/390 píxeles no añaden casos distintos. |
+| PostgreSQL | 12 | Once de backend, permisos, atomicidad, inventario, catálogo y restauración; una adicional del reloj bajo bloqueo. |
+
+La primera campaña HTTP observó dos fallos de cuerpos y seis de workflow frente
+al stub. Los nueve casos aprobaron después de implementar el transporte en
+29.639 s, con 2406 fuentes estables. La prueba adicional del acto no nulo aprobó
+después en 27.228 s, con 2426 fuentes estables: conserva recurso R2, acto dentro
+de recurso R3 y soporte exacto, y rechaza una captura discordante. Esas focales
+usan puertos controlados y no demuestran comportamiento con PostgreSQL real.
+
+La revisión identificó que capturar `checked_at` antes de esperar el bloqueo
+podía rechazar una cabeza legítima confirmada durante la espera. El RED de
+aplicación produjo dos fallos positivos y dos rechazos aprobados en 4.565 s.
+La corrección acepta un corte UTC entre inicio y retorno, exige uno común por
+página y conserva su vínculo con la proyección operativa. Los 18 casos de
+aplicación aprobaron juntos en 6.737 s, con 2426 fuentes estables.
+
+La campaña PostgreSQL de 88.999 s aprobó once casos y reprodujo el fallo del
+reloj; ese comando tuvo un fallo y no se declara aprobado. La prueba focal del
+reloj aprobó después en 15.186 s, con 2426 fuentes estables: verifica que la
+consulta tome su instante mientras posee el bloqueo, tanto para detalle como
+para lista. Los doce casos distintos quedan respaldados por esas ejecuciones
+separadas. La restauración focal usa `pg_dump`/`pg_restore`, preserva capturas y
+autores históricos y permite crear otra asociación. El recorrido HTTP completo
+de restauración se ejecutó después, con el alcance descrito a continuación.
+
+Dos casos posteriores de navegador cubren el reenvío explícito del mismo
+comando después de un resultado incierto no confirmado y la recuperación del
+selector tras un conflicto al confirmar. El primero aprobó dentro de una
+campaña de 15.408 s que aún falló en el selector; ésta no se presenta como
+completamente aprobada. La repetición focal del selector aprobó en 12.847 s,
+con 2426 fuentes estables. Los dos casos se añaden una sola vez a los diez
+anteriores. Dos repeticiones visuales duraron 12.326 s. Se inspeccionaron cuatro
+capturas de las secciones nuevas a 1440/390 píxeles, sin desbordamiento; esa
+inspección no constituye un ensayo de usabilidad con personas.
+
+### Aceptación API con restauración
+
+La campaña completa `scripts/api-demo.sh` aprobó en 434.402 s, con 2426 fuentes
+sin cambios durante la ejecución. El guion de asociaciones verificó fuentes
+exactas y cabezas actuales separadas, acto opcional, desvinculación, repetición
+exacta, roles, revocación, cierre, archivo y aislamiento entre expedientes.
+
+Después de restaurar se compararon 26 respuestas HTTP. Sus instantes de lectura
+se validaron por separado, incluido el corte común de página y su vínculo con
+la proyección operativa; no se exigió que un instante de consulta nueva igualara
+al anterior al respaldo. Las capturas históricas y los demás datos comparados se
+conservaron. El inventario confirmó tres raíces y cuatro revisiones de asociación
+idénticas después de restaurar, junto con las demás tablas del recorrido.
+
+Este resultado acredita la API integrada y su restauración. No se ha ejecutado
+otra suite global local.
+
+### Navegador real y correcciones de cierre
+
+La primera campaña real duró 345.356 s: aprobó los recorridos Owner a 1440 y
+Litigator a 390 píxeles, y falló en el guion de Client porque utilizaba el
+buscador exclusivo del personal. Ese comando completo no se declara aprobado.
+La corrección usa la lista básica autorizada de Client y limita el control de
+solicitudes a las rutas API, sin confundir módulos JavaScript con acceso a datos.
+La repetición del único recorrido pendiente aprobó en 274.304 s, incluidos
+preparativos; Playwright tardó 18.0 s. Ambas ejecuciones conservaron 2426 fuentes
+sin cambios. Son tres escenarios distintos aprobados: vínculo/desvínculo e
+historia en escritorio/móvil, y permisos/revocación con Paralegal y Client.
+Las comprobaciones conservan las actividades y sus alertas sin duplicarlas.
+
+Un caso controlado ampliado reprodujo fecha sin formato y autor técnico vacío
+en la actividad de plazo: falló en 25.044 s y aprobó en 8.445 s al reutilizar los
+formatos existentes. Es una ampliación del caso ya contabilizado, no un caso
+adicional. CI detectó carga duplicada de fixtures Rust; la corrección reutiliza
+el módulo compartido y aprobó Clippy focal de los tres objetivos de aplicación
+en 13.996 s. El CI inicial fue cancelado después de ese fallo, no aprobado.
+Una segunda carga duplicada del mismo catálogo en fixtures HTTP fue corregida
+al reutilizar el módulo ya importado. Clippy del workspace completo, incluidos
+todos los objetivos, aprobó en 315.721 s con 2426 fuentes estables. El cierre
+global remoto permanece pendiente; el PDF de 331 páginas tiene inspección
+registrada en `docs/academic-report-verification.md`.
+
+## Integración de recursos procesales en main
+
+La [PR 37](https://github.com/eddndev/TT2026-B136/pull/37) se integró mediante
+squash el 19 de septiembre de 2026 a las 19:16:57 UTC como `eeba869`. Su cabeza
+`40ed0c7` aprobó los controles remotos de formato, Clippy, MSRV, dependencias,
+binario, web, navegador real y documentos. El
+[CI de cierre](https://github.com/eddndev/TT2026-B136/actions/runs/35459822870)
+registró **2936 pruebas Rust aprobadas, cero fallidas y una TSA externa ignorada**,
+con PostgreSQL/Redis aislados. La campaña instrumentada reprodujo esos conteos;
+no se suman como casos adicionales.
+
+La cobertura medida fue dominio 5572/5694 líneas (97 %), aplicación
+16078/16860 (95 %) e infraestructura 28261/30660 (92 %), todas por encima del
+umbral del 90 %. El binario obtuvo 1822/2302 (79 %), sin umbral propio.
+Estos valores pertenecen a esa revisión remota; no constituyen una ejecución
+global del incremento de asociaciones ni del contenido documental posterior.
+
 ## Recursos procesales: checkpoint local del 19 de septiembre de 2026
 
 El dominio, servicio, adaptador PostgreSQL, rutas HTTP y formularios Qadra
@@ -99,10 +420,11 @@ Están implementados temporización configurable, puertos de preferencias y
 bandeja personal, servicio autorizado, cinco rutas HTTP y Qadra. La bandeja
 conserva el origen exacto, lectura independiente de atención, estados del correo,
 filtros, continuación, conflictos y respuestas inciertas. El contrato está en
-[alerts-api.md](alerts-api.md). La persistencia, generación durable y composición del servidor están
-implementadas en el borrador; el navegador real aprobó sus recorridos focales.
-La aceptación API/restauración también aprobó; la regresión de cierre y la
-integración de esta ampliación permanecen pendientes. No se afirma
+[alerts-api.md](alerts-api.md). La persistencia, generación durable y composición
+del servidor están implementadas; el navegador real aprobó sus recorridos
+focales. La aceptación API/restauración también aprobó. PR 36 integró esta
+ampliación en `main` como `8261c51`. Ese cierre no acredita la CI ni la integración
+de recursos de PR 37 o del incremento posterior de asociaciones. No se afirma
 entrega a un destinatario externo.
 
 Se ejecutó una sola verificación local a la vez, con pruebas focales después del

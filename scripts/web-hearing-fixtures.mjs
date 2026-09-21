@@ -1,9 +1,12 @@
+import { provisionMembers } from "./web-member-fixtures.mjs";
+import { provisionDocumentContent } from "./web-document-content-fixtures.mjs";
 import { provisionDeadlines } from "./web-deadline-fixtures.mjs";
 import { provisionDeadlineReevaluation } from "./web-deadline-reevaluation.mjs";
 import { provisionCombinedAgenda } from "./web-combined-agenda-fixtures.mjs";
 import { provisionAlerts } from "./web-alert-fixtures.mjs";
 import { provisionProceduralFacts } from "./web-procedural-fact-fixtures.mjs";
 import { provisionResources } from "./web-resource-fixtures.mjs";
+import { provisionResourceActivities } from "./web-resource-activity-fixtures.mjs";
 // Provision hearing scenarios using independent accounts in disposable services.
 import { provisionCalendars } from "./web-calendar-fixtures.mjs";
 import { provisionHearingResults } from "./web-hearing-result-fixtures.mjs";
@@ -253,6 +256,9 @@ try {
   fixture.hearingResults = await provisionHearingResults(request);
   fixture.proceduralFacts = await provisionProceduralFacts(request);
   fixture.proceduralResources = await provisionResources(request);
+  fixture.resourceActivities = await provisionResourceActivities(request);
+  fixture.documentContent = await provisionDocumentContent(request);
+  fixture.members = await provisionMembers(request);
   fixture.judicialCalendars = await provisionCalendars(request);
   fixture.deadlines = await provisionDeadlines(request);
   if (process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === "1") {

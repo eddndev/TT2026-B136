@@ -16,6 +16,23 @@ pub struct UserRecord {
     pub protected_totp_secret: Vec<u8>,
     pub recovery_codes: RecoveryCodeSet,
     pub revision: u64,
+    pub auth_generation: u64,
+}
+
+/// Internal password-verified identity captured before the second factor.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LoginChallengeIdentity {
+    pub user_id: UserId,
+    pub auth_generation: u64,
+}
+
+/// Internal session identity; authentication generation is never a public DTO.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SessionIdentity {
+    pub principal: Principal,
+    pub auth_generation: u64,
 }
 
 /// Identity attached to an authenticated request.

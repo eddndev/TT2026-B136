@@ -8,6 +8,7 @@
   import CaseHearings from './CaseHearings.svelte';
   import CaseContext from './CaseContext.svelte';
   import CaseAdministration from './CaseAdministration.svelte';
+  import CaseMembers from './CaseMembers.svelte';
   import Documents from './Documents.svelte';
   import Participants from './Participants.svelte';
   import { staffCase, basicCase } from '../lib/case-administration.mjs';
@@ -111,6 +112,11 @@
         <p>Referencia interna: {current.reference}</p>
         <p class="hint">Tu cuenta permite consultar los datos b&#225;sicos de este expediente.</p>
       </section>{/if}
+  {:else if view === 'case-members' && user.role === 'owner'}<CaseMembers
+      {api}
+      caseId={current.id}
+      ondenied={deny}
+    />
   {:else if view === 'stages' && staff}<CaseStages
       {api}
       {user}

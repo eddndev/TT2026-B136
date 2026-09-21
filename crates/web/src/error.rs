@@ -10,11 +10,14 @@ use serde::Serialize;
 mod alerts;
 mod deadline;
 mod deadline_profile;
+mod document_content;
 mod hearing;
 mod hearing_result;
 mod judicial_calendar;
+mod members;
 mod procedural_fact;
 mod procedural_resource;
+mod resource_activity;
 mod stage;
 mod typed_participant;
 
@@ -126,43 +129,20 @@ impl ApiError {
 
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
-        let error = match alerts::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match deadline::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match deadline_profile::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match procedural_resource::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match procedural_fact::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match judicial_calendar::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match hearing_result::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match hearing::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match stage::map(error) {
-            Ok(mapped) => return mapped,
-            Err(error) => error,
-        };
-        let error = match typed_participant::map(error) {
+        let error = match members::map(error)
+            .or_else(document_content::map)
+            .or_else(alerts::map)
+            .or_else(deadline::map)
+            .or_else(deadline_profile::map)
+            .or_else(resource_activity::map)
+            .or_else(procedural_resource::map)
+            .or_else(procedural_fact::map)
+            .or_else(judicial_calendar::map)
+            .or_else(hearing_result::map)
+            .or_else(hearing::map)
+            .or_else(stage::map)
+            .or_else(typed_participant::map)
+        {
             Ok(mapped) => return mapped,
             Err(error) => error,
         };

@@ -5,8 +5,8 @@ use std::sync::{
 };
 
 use application::identity::{
-    IdentityPorts, IdentityService, Principal, SecretProtector, SessionStore, UserRecord,
-    UserRepository,
+    IdentityPorts, IdentityService, LoginChallengeIdentity, SecretProtector, SessionIdentity,
+    SessionStore, UserRecord, UserRepository,
 };
 use application::ApplicationError;
 use domain::audit::{AuditEvent, AuditLog, ChainedEvent};
@@ -91,23 +91,30 @@ pub struct MemorySessions {
     issued_sessions: AtomicUsize,
     fail_challenge_cleanup: AtomicBool,
     fail_session_cleanup: AtomicBool,
-    challenges: Mutex<HashMap<String, UserId>>,
-    sessions: Mutex<HashMap<String, Principal>>,
+    challenges: Mutex<HashMap<String, LoginChallengeIdentity>>,
+    sessions: Mutex<HashMap<String, SessionIdentity>>,
     failures: Mutex<HashMap<String, u32>>,
     used_totp: Mutex<Vec<(UserId, String)>>,
 }
 
 impl SessionStore for MemorySessions {
-    fn create_challenge(&self, user_id: UserId, _ttl: u64) -> Result<String, ApplicationError> {
+    fn create_challenge(
+        &self,
+        identity: &LoginChallengeIdentity,
+        _ttl: u64,
+    ) -> Result<String, ApplicationError> {
         let token = format!("challenge-{}", uuid::Uuid::new_v4());
         self.challenges
             .lock()
             .unwrap()
-            .insert(token.clone(), user_id);
+            .insert(token.clone(), identity.clone());
         Ok(token)
     }
 
-    fn take_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError> {
+    fn take_challenge(
+        &self,
+        token: &str,
+    ) -> Result<Option<LoginChallengeIdentity>, ApplicationError> {
         if self.fail_challenge_cleanup.load(Ordering::SeqCst) {
             return Err(ApplicationError::Port(format!(
                 "cleanup failed for {token}"
@@ -116,17 +123,21 @@ impl SessionStore for MemorySessions {
         Ok(self.challenges.lock().unwrap().remove(token))
     }
 
-    fn create_session(&self, principal: &Principal, _ttl: u64) -> Result<String, ApplicationError> {
+    fn create_session(
+        &self,
+        identity: &SessionIdentity,
+        _ttl: u64,
+    ) -> Result<String, ApplicationError> {
         let index = self.issued_sessions.fetch_add(1, Ordering::SeqCst);
-        let token = format!("session-{}-{index}", principal.id);
+        let token = format!("session-{}-{index}", identity.principal.id);
         self.sessions
             .lock()
             .unwrap()
-            .insert(token.clone(), principal.clone());
+            .insert(token.clone(), identity.clone());
         Ok(token)
     }
 
-    fn find_session(&self, token: &str) -> Result<Option<Principal>, ApplicationError> {
+    fn find_session(&self, token: &str) -> Result<Option<SessionIdentity>, ApplicationError> {
         Ok(self.sessions.lock().unwrap().get(token).cloned())
     }
 
@@ -312,12 +323,25 @@ impl MemorySessions {
 }
 
 impl MemoryUsers {
+    pub fn set_access(&self, id: UserId, role: Role, active: bool) {
+        let mut users = self.0.lock().unwrap();
+        let user = users.get_mut(&id).unwrap();
+        if user.role != role || user.active != active {
+            user.role = role;
+            user.active = active;
+            user.revision += 1;
+            user.auth_generation += 1;
+        }
+    }
+
     pub fn set_role(&self, id: UserId, role: Role) {
-        self.0.lock().unwrap().get_mut(&id).unwrap().role = role;
+        let active = self.0.lock().unwrap().get(&id).unwrap().active;
+        self.set_access(id, role, active);
     }
 
     pub fn deactivate(&self, id: UserId) {
-        self.0.lock().unwrap().get_mut(&id).unwrap().active = false;
+        let role = self.0.lock().unwrap().get(&id).unwrap().role;
+        self.set_access(id, role, false);
     }
 }
 mod failure_tests;

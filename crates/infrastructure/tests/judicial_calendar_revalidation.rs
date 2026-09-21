@@ -15,6 +15,7 @@ use postgres::{Client, NoTls};
 fn prepared_calendar_is_denied_if_owner_is_disabled_or_demoted_before_commit() {
     for disabled in [true, false] {
         let Some(mut db) = Fixture::new() else { return };
+        db.user("owner", false);
         let command = publish();
         let draft = service(&db, db.owner, Role::Owner)
             .prepare("session", command.clone())
@@ -26,9 +27,9 @@ fn prepared_calendar_is_denied_if_owner_is_disabled_or_demoted_before_commit() {
             admin
                 .execute(
                     if disabled {
-                        "UPDATE users SET active=FALSE WHERE id=$1"
+                        "UPDATE users SET active=FALSE,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1"
                     } else {
-                        "UPDATE users SET role='litigator' WHERE id=$1"
+                        "UPDATE users SET role='litigator',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1"
                     },
                     &[&owner.as_uuid()],
                 )

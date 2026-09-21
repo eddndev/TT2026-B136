@@ -29,7 +29,7 @@ fn responsible_candidates_are_active_case_staff_and_global_owners_without_duplic
     for id in &excluded[3..] {
         db.admin
             .execute(
-                "UPDATE users SET active=false WHERE id=$1",
+                "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
                 &[&id.as_uuid()],
             )
             .unwrap();

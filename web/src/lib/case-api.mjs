@@ -2,6 +2,7 @@ import { deadlinesApi } from './deadline-api.mjs';
 import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
 import { proceduralFactsApi } from './procedural-facts-api.mjs';
 import { proceduralResourcesApi } from './procedural-resources-api.mjs';
+import { resourceActivitiesApi } from './resource-activities-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingsApi } from './hearings-api.mjs';
 import { agendaApi } from './agenda-api.mjs';
@@ -11,6 +12,7 @@ import { caseStagesApi } from './case-stages-api.mjs';
 import { caseAdministrationApi } from './case-administration-api.mjs';
 import { participantsApi } from './participants-api.mjs';
 import { versionApi } from './version-api.mjs';
+import { caseMembersApi } from './members-api.mjs';
 import { metadataApi } from './metadata-api.mjs';
 
 function query(values) {
@@ -52,10 +54,12 @@ export function caseApi(transport) {
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'PUT' }),
     removeMember: (id, userId) =>
       request(`${path(id)}/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    caseMembers: (id) => caseMembersApi(request, id),
     deadlines: (id) => deadlinesApi(request, id),
     deadlineProfiles: (id = null) => deadlineProfilesApi(request, id),
     caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),
     caseResources: (id) => proceduralResourcesApi(request, id),
+    caseResourceActivities: (id, resourceId) => resourceActivitiesApi(request, id, resourceId),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),
@@ -78,7 +82,7 @@ export function caseApi(transport) {
         return result;
       };
       return {
-        ...versionApi(scoped),
+        ...versionApi(scoped, id),
         ...metadataApi(scoped, id),
         dispose: () => {
           active = false;

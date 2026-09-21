@@ -1,6 +1,10 @@
 //! PostgreSQL document operations with current case authorization and one audit commit.
 
 mod authorization;
+mod content;
+mod integrity;
+mod integrity_codec;
+pub(crate) use integrity::validate_inventory as validate_integrity_inventory;
 mod metadata;
 mod metadata_storage;
 mod mutations;
@@ -156,7 +160,11 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut client = self.client()?;
         let mut transaction = client.transaction().map_err(storage::port_error)?;
         authorize_document(&mut transaction, actor, case, id, action)?;
-        let record = storage::load(&mut transaction, case, id, selection)?;
+        let record = if action == DocumentAction::ReadContent {
+            content::load(&mut transaction, case, id, selection)?
+        } else {
+            storage::load(&mut transaction, case, id, selection)?
+        };
         if matches!(
             action,
             DocumentAction::Append | DocumentAction::Seal | DocumentAction::Classify
@@ -326,32 +334,7 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         action: DocumentAction,
         at: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
-        if !matches!(action, DocumentAction::Verify | DocumentAction::Export) {
-            return Err(ApplicationError::InvalidInput(
-                "access events require verification or export".into(),
-            ));
-        }
-        let mut client = self.client()?;
-        let mut transaction = begin_audited(&mut client)?;
-        let principal = authorize_document(&mut transaction, actor, case, record.id, action)?;
-        let current = storage::load(
-            &mut transaction,
-            case,
-            record.id,
-            VersionSelection::Exact(record.version),
-        )?;
-        storage::unchanged_document(&current, record)?;
-        if current.evidence != record.evidence {
-            return Err(ApplicationError::ConcurrentModification);
-        }
-        append_transaction(
-            &mut transaction,
-            &principal.email,
-            action.audit_action(),
-            &resource(case, record.id, record.version, &record.digest.to_hex()),
-            at,
-        )?;
-        transaction.commit().map_err(storage::port_error)
+        content::record_access(self, actor, case, record, action, at)
     }
 
     fn audit_entries(&self, actor: UserId) -> Result<Vec<ChainedEvent>, ApplicationError> {

@@ -1,6 +1,6 @@
 use std::env;
 
-use application::identity::SessionStore;
+use application::identity::{LoginChallengeIdentity, SessionStore};
 use application::ApplicationError;
 use domain::crypto::DocumentHasher;
 use domain::identity::UserId;
@@ -110,7 +110,11 @@ fn concurrent_callers_can_take_a_challenge_exactly_once() {
     let Some(url) = redis_url() else { return };
     let store = RedisSessionStore::connect(&url).unwrap();
     let user = UserId::new();
-    let token = store.create_challenge(user, 30).unwrap();
+    let identity = LoginChallengeIdentity {
+        user_id: user,
+        auth_generation: 0,
+    };
+    let token = store.create_challenge(&identity, 30).unwrap();
     let barrier = std::sync::Arc::new(std::sync::Barrier::new(8));
     let workers: Vec<_> = (0..8)
         .map(|_| {
@@ -127,6 +131,6 @@ fn concurrent_callers_can_take_a_challenge_exactly_once() {
         .into_iter()
         .filter_map(|worker| worker.join().unwrap())
         .collect();
-    assert_eq!(results, vec![user]);
-    assert_eq!(store.take_challenge(&token).unwrap(), None);
+    assert!(results == vec![identity]);
+    assert!(store.take_challenge(&token).unwrap().is_none());
 }

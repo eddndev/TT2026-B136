@@ -243,14 +243,16 @@ El sellado de tiempo conserva el contrato del diseño (\cref{sec:sellado-tiempo}
 
 \subsection{S7. Hash de contraseñas con Argon2id}\label{sec:impl-s7-argon2}
 
-El puerto \texttt{Password\allowbreak Hasher} (\rutarepo{crates/domain/src/crypto/password.rs}) declara el contrato del almacenamiento de contraseñas: cada hash usa una sal aleatoria fresca y produce una cadena en formato PHC, y una cadena almacenada ilegible es un error (\texttt{Malformed\allowbreak Password\allowbreak Hash}) que jamás se confunde con un intento de acceso fallido. El adaptador \texttt{Argon2id\allowbreak Hasher} (\rutarepo{crates/infrastructure/src/password.rs}) lo implementa con el crate \texttt{argon2}~0.5 y sales de \texttt{getrandom}, con los parámetros calibrados que fijó el diseño en \cref{sec:autenticacion} declarados como constantes (Listado~\ref{lst:impl-argon2}): 262\,144~KiB de memoria (256~MiB), dos iteraciones, un carril, sal de 16 bytes y salida de 32 bytes. El PHC resultante inicia con \texttt{\$argon2id\$v=19\$} y contiene \texttt{m=262144,t=2,p=1}, propiedad fijada por prueba. En la demostración de cierre, el hardware de referencia promedió 529.4 ms sobre cinco corridas, dentro de la banda objetivo inclusiva de 500 a 1\,000 milisegundos, y emite un veredicto \texttt{BelowBand}, \texttt{InBand} o \texttt{AboveBand}. Si el hardware de despliegue difiere, la medición debe repetirse.
+El puerto \texttt{Password\allowbreak Hasher} (\rutarepo{crates/domain/src/crypto/password.rs}) exige una sal aleatoria fresca y una cadena PHC; un hash almacenado ilegible es un error distinto de una contraseña incorrecta. El adaptador \texttt{Argon2id\allowbreak Hasher} (\rutarepo{crates/infrastructure/src/password.rs}) usa \texttt{argon2}~0.5 y sales de \texttt{getrandom}. Los hashes nuevos contienen \texttt{m=262144,t=3,p=1}: 256~MiB, tres iteraciones, un carril, sal de 16 bytes y salida de 32 bytes. La verificación toma los parámetros del PHC almacenado; los valores históricos con dos iteraciones siguen aceptando la contraseña correcta y rechazando una incorrecta, sin reescritura ni migración implícita.
+
+La medición histórica de 529.4 ms con dos iteraciones conserva su alcance. El nuevo control aislado del mismo costo promedió 400.3851816 ms en cinco hashes sobre AMD Ryzen 7 7730U, 16 hilos lógicos y Linux 7.1.13 fc43, con binario de desarrollo y optimización de nivel 3 en Argon2 y Blake2. Siete pruebas focales del ajuste aprobaron en 21.602~s, incluida la compatibilidad histórica. La medición real de tres iteraciones promedió 659.7596048 ms en cinco hashes y obtuvo veredicto dentro de banda; compilación y calibración duraron 79.514~s con 2553 fuentes estables y un único ensayo activo. Este resultado acredita hashes nuevos en ese host y binario, sin modificar el costo codificado en los PHC anteriores. Seis pruebas CLI aprobaron en 20.916~s y la demostración completa en 8.240~s; su medición secundaria de 563.2 ms sobre cinco hashes también quedó dentro de banda, sin sustituir la principal. CI y el PDF actualizado conservan su comprobación pendiente. La banda inclusiva de 500--1000 ms requiere un promedio y veredicto explícitos: el éxito del comando no demuestra que se cumpla. Se mide un hash, no un enrolamiento o recuperación completos, y debe repetirse en otro entorno de despliegue. El ADR~0044 de \rutarepo{docs/adr/} documenta estos límites.
 
 \begin{lstlisting}[language=Rust,caption={Parámetros de Argon2id declarados como constantes (\texttt{crates/infrastructure/src/password.rs}).},label={lst:impl-argon2}]
-/// Memory cost in KiB (256 MiB), calibrated on the reference host.
+/// Memory cost in KiB (256 MiB).
 const MEMORY_KIB: u32 = 262144;
 
 /// Number of passes over the memory.
-const ITERATIONS: u32 = 2;
+const ITERATIONS: u32 = 3;
 
 /// Degree of parallelism (lanes).
 const PARALLELISM: u32 = 1;
@@ -529,6 +531,8 @@ Owner accede a cualquier expediente. Litigante y Paralegal necesitan pertenencia
 
 Carga, detalle y sellado conservan los campos \texttt{case\_id}, \texttt{id}, \texttt{version}, \texttt{name}, \texttt{digest} y \texttt{sealed}. Listado, detalle actual, carga y anexado agregan \texttt{current\_metadata} con la clasificación vigente; detalle histórico, historial de contenido y sellado conservan una proyección exclusivamente documental. Cada versión conserva su propio contenido cifrado y estado de sellado. Sellar requiere descifrar y comprobar el digest, producir y verificar la firma, solicitar el token y verificarlo bajo la cadena TSA capturada. Una segunda solicitud sobre un documento sellado produce \texttt{409 document\_already\_sealed}. Exportar comprueba el contenido descifrado y empaqueta la evidencia capturada sin actualizarla; la consulta de verificación proporciona por separado el reporte criptográfico completo.
 
+\input{chapters/04-contenido-documental}
+
 \subsection{Consultas autorizadas de metadatos}\label{sec:impl-http-consultas}
 
 El listado recibe \texttt{limit}, \texttt{offset}, \texttt{name}, \texttt{sealed}, \texttt{document\_type}, \texttt{classification} y \texttt{tag}. El tamaño de página predeterminado es 50 y admite de 1 a 100; el desplazamiento es un entero no negativo. El filtro de nombre admite hasta 200 caracteres, recorta espacios exteriores y rechaza caracteres de control. PostgreSQL busca una subcadena literal sin distinguir mayúsculas mediante \texttt{strpos(lower(name), lower(...))}; los caracteres \texttt{\%} y \texttt{\_} conservan su significado literal. El filtro de sellado distingue documentos pendientes y documentos con evidencia capturada. La búsqueda alcanza el nombre almacenado, no el contenido cifrado.
@@ -743,6 +747,10 @@ Los errores de credenciales o sesión usan \texttt{401}; permisos, \texttt{403};
 \input{chapters/04-alertas}
 
 \input{chapters/04-recursos-procesales}
+
+\input{chapters/04-asociaciones-recursos}
+
+\input{chapters/04-miembros}
 
 \section{Resultados de la exploración del sellado de tiempo}\label{sec:impl-spike-tsa}
 

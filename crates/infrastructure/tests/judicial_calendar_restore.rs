@@ -19,7 +19,7 @@ fn dump_restore_preserves_all_calendar_revisions_receipts_and_original_author() 
     let reader = db.user("owner", false);
     db.admin
         .execute(
-            "UPDATE users SET active=FALSE,email='former@example.test' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE THEN 1 ELSE 0 END,active=FALSE,email='former@example.test' WHERE id=$1",
             &[&db.owner.as_uuid()],
         )
         .unwrap();

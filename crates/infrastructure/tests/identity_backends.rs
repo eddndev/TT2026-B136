@@ -1,7 +1,9 @@
 use domain::clock::OffsetDateTime;
 use std::env;
 
-use application::identity::{Principal, SessionStore, UserRecord, UserRepository};
+use application::identity::{
+    LoginChallengeIdentity, Principal, SessionIdentity, SessionStore, UserRecord, UserRepository,
+};
 use application::ApplicationError;
 use domain::crypto::{RecoveryCodeSet, RECOVERY_CODE_COUNT};
 use domain::identity::{Role, UserId};
@@ -22,6 +24,7 @@ fn user(email: &str, role: Role) -> UserRecord {
         )
         .unwrap(),
         revision: 0,
+        auth_generation: 0,
     }
 }
 
@@ -109,18 +112,23 @@ fn redis_sessions_are_opaque_replay_safe_and_revocable() {
         role: Role::Owner,
     };
 
-    let challenge = store.create_challenge(principal.id, 60).unwrap();
+    let identity = LoginChallengeIdentity {
+        user_id: principal.id,
+        auth_generation: 0,
+    };
+    let challenge = store.create_challenge(&identity, 60).unwrap();
     assert_ne!(challenge, principal.id.to_string());
-    assert_eq!(
-        store.take_challenge(&challenge).unwrap(),
-        Some(principal.id)
-    );
-    assert_eq!(store.take_challenge(&challenge).unwrap(), None);
+    assert!(store.take_challenge(&challenge).unwrap() == Some(identity));
+    assert!(store.take_challenge(&challenge).unwrap().is_none());
 
-    let token = store.create_session(&principal, 60).unwrap();
-    assert_eq!(store.find_session(&token).unwrap(), Some(principal.clone()));
+    let identity = SessionIdentity {
+        principal: principal.clone(),
+        auth_generation: 0,
+    };
+    let token = store.create_session(&identity, 60).unwrap();
+    assert!(store.find_session(&token).unwrap() == Some(identity));
     store.revoke_session(&token).unwrap();
-    assert_eq!(store.find_session(&token).unwrap(), None);
+    assert!(store.find_session(&token).unwrap().is_none());
 
     assert_eq!(
         store

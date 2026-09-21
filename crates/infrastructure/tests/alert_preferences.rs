@@ -80,7 +80,7 @@ fn personal_preferences_preserve_exact_replay_and_reject_stale_changes() {
     ));
     db.admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&actor.as_uuid()],
         )
         .unwrap();

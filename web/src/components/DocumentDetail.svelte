@@ -3,6 +3,7 @@
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   import Icon from './Icon.svelte';
+  import DocumentContentAction from './DocumentContentAction.svelte';
   import { can, download } from '../lib/documents.mjs';
   export let api;
   export let user;
@@ -149,6 +150,15 @@
     </div>
   </div>
   <div class="document-actions" aria-label="Acciones del documento">
+    <DocumentContentAction
+      {api}
+      {document}
+      {disabled}
+      {ondenied}
+      bind:busy
+      bind:error
+      bind:message
+    />
     {#if can(user.role, 'seal') && document.sealed !== true}<button
         class="primary"
         disabled={disabled || !!busy || $administration.closed}
@@ -178,7 +188,7 @@
       <Icon name="info" size={16} /><span
         >{can(user.role, 'seal')
           ? 'Sella el documento para habilitar su verificaci\u00f3n y descarga de evidencia.'
-          : 'Solicita al administrador o a un litigante que selle el documento para continuar.'}</span
+          : 'Solicita al administrador o a un litigante que selle el documento para verificarlo o descargar su evidencia.'}</span
       >
     </p>{/if}
   {#if confirmSeal}<div class="notice stack seal-confirmation">

@@ -23,8 +23,9 @@ incluidos dos Follow a 1440 y 390 píxeles; seis capturas se inspeccionaron.
 La campaña API real comprobó reevaluación, TERM/INT, reinicios y restauración
 de R1-R5; la aceptación API final y el cierre global también aprobaron. PR 34
 integró la reevaluación en `main` como `e2e6758`; PR 35 integró la agenda combinada
-como `c16b820`. PR 36 publica alertas durables, Qadra y composición en servidor; la aceptación API/restauración y el navegador focal aprobaron; CI sigue en curso,
-sin integración en `main`. Cada campaña se registra por separado en el
+como `c16b820`. PR 36 integró alertas durables, Qadra y composición en servidor
+como `8261c51`, tras su aceptación API/restauración y navegador real. Cada
+campaña se registra por separado en el
 [informe de verificación](verification-report.md).
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
@@ -48,6 +49,113 @@ focal de restauración y la aceptación HTTP se distinguen en
 [el informe](verification-report.md); conservar un dump no demuestra por sí
 solo su recuperación. La [API](procedural-resources-api.md) mantiene consulta
 histórica y permisos vigentes después de reabrir el almacén.
+
+## Asociaciones de recursos con actividades existentes
+
+`database migrate --runtime-role` instala `0023_resource_activities.sql` y
+`0023_resource_activity_guards.sql`. No ejecutar esos archivos por separado ni
+fabricar vínculos para datos anteriores. Las dos tablas nuevas son:
+
+- `case_resource_activity_associations`: identidad, expediente y recurso fijos,
+  con primera revisión obligatoria mediante clave foránea diferida.
+- `case_resource_activity_association_revisions`: vinculación R1 y
+  desvinculación R2, operación única, referencias exactas, recibos, autor y
+  administración capturados. Desvincular no permite reactivar esa raíz; un nuevo
+  vínculo tiene otra identidad.
+
+Las referencias de recurso y acto identifican revisiones independientes. El
+acto conserva además la revisión del recurso que contiene su captura. La
+audiencia se liga a su digest de envío y el plazo a su digest de captura.
+La transacción verifica las fuentes históricas, la cabeza esperada, la cuenta
+activa y los permisos bajo el bloqueo compartido de auditoría. La escritura no
+modifica las tablas de actividades ni genera otro episodio de alerta.
+
+El rol operativo recibe SELECT e INSERT por columnas, sin facultad de actualizar,
+borrar, truncar o desactivar guardas. El catálogo estricto comprueba columnas,
+restricciones, índice, funciones, disparadores y privilegios directos e
+indirectos. El inventario recorre raíces y revisiones en lotes acotados,
+reconstruye capturas con los lectores exactos existentes y rechaza corrupción
+sin escribir ni reparar datos al abrir. Los datos históricos no se rechazan
+porque el autor haya perdido posteriormente su acceso.
+
+Respaldar ambas tablas con recursos, actos, audiencias, plazos, fuentes,
+usuarios, administración y auditoría. Un respaldo parcial de las asociaciones
+no conserva sus dependencias. Restaurar con el esquema y privilegios completos
+y dejar que el arranque valide catálogo e inventario antes de aceptar tráfico;
+no sortear un rechazo mediante UPDATE de recibos o desactivación de triggers.
+
+La [prueba PostgreSQL de restauración](../crates/infrastructure/tests/resource_activity_restore.rs)
+compara filas, capturas, autores y auditoría con `pg_dump`/`pg_restore`, y añade
+otro vínculo desde un Owner autorizado después de restaurar. La aceptación HTTP
+completa posterior también aprobó: `scripts/api-resource-activities-demo.py`
+comparó 26 respuestas restauradas, con los instantes de lectura validados aparte;
+`scripts/api-migration-demo.sh` conservó idénticas las tres raíces y cuatro
+revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos. CI del incremento
+permanece pendiente en el [corte de verificación](verification-report.md).
+
+## Contenido e incidentes de integridad
+
+`database migrate --runtime-role` instala `0024_document_integrity.sql` sin
+fabricar incidentes para documentos anteriores. La tabla append-only
+`document_integrity_incidents` conserva una observación exacta y su huella;
+incidente y auditoría se confirman juntos. El catálogo valida estructura,
+funciones, disparadores y privilegios; el inventario contrasta el canon de cada
+fila. El rol operativo carece de UPDATE, DELETE y TRUNCATE sobre el historial.
+
+Respaldar esta tabla junto con usuarios, expedientes, todas las versiones
+cifradas y auditoría. Una reparación operativa del archivo no borra el incidente
+histórico. No desactivar guardas, reescribir huellas ni borrar filas para lograr
+un arranque. Ante un rechazo, preservar evidencia y comprobar la configuración
+de claves y el respaldo: la categoría observada no prueba la causa ni un ataque.
+El [contrato](document-content-api.md) distingue fallos de contenido de errores
+técnicos y limita la descarga a 16 MiB, sin readmitir formatos históricos.
+
+Los guiones de aceptación alteran únicamente un fixture desechable y restauran
+su cifrado exacto antes del respaldo; ese procedimiento no es una función de
+reparación del producto. Las campañas ejecutadas y las todavía pendientes se
+registran en [el informe](verification-report.md).
+
+## Acceso de miembros y restauración de identidad
+
+`0025_member_lifecycle.sql` añade `users.auth_generation`. Los cambios reales
+de rol o estado incrementan generación y revisión, junto con su evento de
+auditoría en la misma transacción. Las guardas serializan cambios y preservan
+al menos un Owner activo; el rol operativo no puede reescribir credenciales
+ni contadores arbitrariamente. El arranque valida catálogo, privilegios e
+inventario. Véanse [el contrato](members-api.md) y
+[ADR-0043](adr/0043-member-access-and-authentication-generation.md).
+
+Las sesiones y los desafíos Redis capturan la generación de autenticación.
+El servicio la contrasta con PostgreSQL antes de aceptar la identidad; un valor
+antiguo no vuelve a ser válido al reactivar la cuenta. Los valores Redis del
+formato anterior carecen de generación y requieren un nuevo inicio de sesión.
+Desactivar conserva asignaciones y autoría histórica. El consumo de un código
+de recuperación puede avanzar la revisión sin cambiar la generación.
+
+Restaurar PostgreSQL puede retroceder la generación. Antes de reabrir tráfico:
+
+1. Detener todas las instancias HTTP que utilicen la base y bloquear su acceso.
+2. Restaurar PostgreSQL con sus restricciones, privilegios y auditoría; comprobar
+   que el inventario se acepta sin alterar guardas ni datos para eludir fallos.
+3. Invalidar **todas** las sesiones y desafíos del espacio Redis de esa instancia,
+   verificando previamente la identidad del servidor y el espacio de claves.
+   No vaciar una base compartida ni borrar reclamos TOTP o límites de acceso.
+4. Reabrir tráfico sólo tras terminar la invalidación. Exigir contraseña y MFA
+   nuevos y comprobar que los tokens anteriores son rechazados.
+
+Una copia SQL por sí sola no conserva la revocación frente a una restauración
+anterior. La limpieza del guion de aceptación comprueba PID y directorio del
+Redis desechable; no es una autorización para borrar claves de otros entornos.
+Las pruebas focales de aplicación/HTTP y PostgreSQL/Redis están aprobadas, incluida
+la restauración de cuentas, generaciones y guardas. Tres recorridos de navegador
+real aprobaron, incluido el rechazo de un token anterior después de reactivar
+la cuenta. La aceptación API completa aprobó en 453.174 s con 2553 fuentes estables:
+el respaldo y la restauración finales conservaron las proyecciones de cuentas y
+asignaciones, rechazaron tokens anteriores con 401 y exigieron MFA nuevo. También
+conservaron idénticos los ZIP de cuatro documentos importados y sus 70 eventos de
+auditoría; el inventario final incluyó 19 raíces documentales, 25 versiones y un
+incidente. CI global y el PDF de estos resultados siguen pendientes en
+[el informe](verification-report.md).
 
 ## Preparar un despliegue nuevo
 
@@ -590,8 +698,8 @@ Qadra V2 tiene pruebas Node y navegador tanto con HTTP controlado como con
 backend real aprobadas. El dispatcher/worker está compuesto en `serve`; la
 campaña API real comprobó reevaluación, señales, reinicios y restauración.
 La aceptación API final y el cierre global aprobaron; PR 34 integró esta entrega
-y PR 35 integró la agenda conjunta. Las alertas están publicadas en PR 36 con
-aceptación y CI en curso. La activación automática y el corpus jurídico siguen
+y PR 35 integró la agenda conjunta. PR 36 integró las alertas como `8261c51`.
+La activación automática y el corpus jurídico siguen
 pendientes en [el contrato completo](deadline-lifecycle.md).
 
 ## Actualizar capturas y atención de plazos
@@ -717,7 +825,7 @@ recorridos, incluidos dos Follow a 1440 y 390 píxeles; seis capturas se
 inspeccionaron. La campaña API real terminó con código cero y comprobó cierre
 TERM/INT, reinicios y conservación de R1-R5 tras restaurar. La aceptación API
 final y el cierre global aprobaron; PR 34 integró esta entrega en `main`.
-Las alertas publicadas en PR 36 conservan su propia aceptación en curso.
+Las alertas se integraron por PR 36 y conservan su propia evidencia de aceptación.
 El [informe de verificación](verification-report.md) separa cada campaña. Véanse [ADR-0036](adr/0036-persisted-deadline-evaluation-and-attention.md)
 y [el contrato de seguimiento](deadline-tracking-api.md).
 
@@ -872,7 +980,9 @@ raíces o revisiones falsas. Comparar las filas completas y hashes, no
 solo sus conteos.
 
 Las sesiones Redis no sustituyen el estado durable. En una recuperación operativa
-se deben invalidar sesiones anteriores y ensayar el nuevo acceso con MFA. El
+se deben invalidar sesiones y desafíos anteriores antes de reabrir tráfico y
+ensayar el nuevo acceso con MFA, según el procedimiento de
+[restauración de identidad](#acceso-de-miembros-y-restauración-de-identidad). El
 respaldo y los recibos no resuelven por sí solos el anclaje externo de auditoría.
 
 ## Lectura de insumos temporales

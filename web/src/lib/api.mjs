@@ -1,5 +1,7 @@
 import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
+import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
+import { membersApi } from './members-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 
 const messages = {
@@ -33,12 +35,20 @@ const messages = {
     'Este documento ha alcanzado el l\u00edmite de versiones. Conserva tu archivo y c\u00e1rgalo como un documento nuevo.',
   document_already_sealed: 'Este documento ya est\u00e1 sellado.',
   document_not_sealed: 'Primero sella el documento para verificarlo o descargar su evidencia.',
+  document_content_validation_failed:
+    'No se descarg\u00f3 el archivo: su validaci\u00f3n fall\u00f3.',
+  document_integrity_incident_not_found: 'El incidente de integridad no est\u00e1 disponible.',
   user_already_exists:
     'Ya existe una cuenta con ese correo. Usa otro correo para el nuevo integrante.',
   bootstrap_closed: 'El despacho ya tiene un administrador. Inicia sesi\u00f3n con tu cuenta.',
   invalid_input: 'Revisa los datos ingresados y los l\u00edmites de cada campo.',
   case_not_found: 'El expediente no est\u00e1 disponible o ya no tienes acceso.',
   user_not_found: 'No se encontr\u00f3 un usuario activo con ese identificador.',
+  user_revision_conflict:
+    'La cuenta cambi\u00f3. Consulta su revisi\u00f3n actual antes de confirmar.',
+  last_active_owner:
+    'Debe conservarse al menos un administrador activo; no puedes retirar al \u00faltimo.',
+  user_access_version_exhausted: 'La cuenta alcanz\u00f3 el l\u00edmite de cambios de acceso.',
   invalid_document_metadata: 'Revisa el tipo, la clasificaci\u00f3n y las etiquetas ingresadas.',
   document_metadata_revision_exhausted:
     'Este documento ha alcanzado el l\u00edmite de cambios de clasificaci\u00f3n. No se pueden registrar m\u00e1s cambios.',
@@ -47,6 +57,7 @@ const messages = {
 
 export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   let token = '';
+  let principalId = null;
   let sessionVersion = 0;
   async function request(
     path,
@@ -80,6 +91,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       assertCurrentSession();
       if (response.status === 401 && protectedRoute) {
         token = '';
+        principalId = null;
         sessionVersion++;
         onExpired();
       }
@@ -102,6 +114,12 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
           digest: response.headers.get('X-Document-Digest'),
           documentId: response.headers.get('X-Document-Id'),
           version: response.headers.get('X-Document-Version'),
+          ...(binary === 'content'
+            ? {
+                caseId: response.headers.get('X-Case-Id'),
+                contentType: response.headers.get('Content-Type'),
+              }
+            : {}),
         }
       : response.status === 204
         ? null
@@ -119,6 +137,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         throw new Error('M\u00e9todo de verificaci\u00f3n no v\u00e1lido.');
       const session = await post(`/auth/mfa/${mode}`, { challenge_token, code }, false);
       token = session.access_token;
+      principalId = session.user?.id ?? null;
       sessionVersion++;
       return session;
     },
@@ -126,12 +145,22 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     async logout() {
       await post('/auth/logout');
       token = '';
+      principalId = null;
       sessionVersion++;
     },
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
     alerts: (actorId) => alertsApi(request, actorId),
+    integrityIncidents: () => integrityIncidentsApi(request),
+    members: () =>
+      membersApi(request, (record) => {
+        if (record.id !== principalId) return;
+        token = '';
+        principalId = null;
+        sessionVersion++;
+        onExpired();
+      }),
     audit: () => request('/audit/verify'),
   };
 }

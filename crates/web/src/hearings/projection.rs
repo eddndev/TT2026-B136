@@ -50,7 +50,7 @@ pub(super) fn context(row: HearingCaseContext, case: CaseId) -> Result<Value, Ap
         "stage_revision":row.stage.revision().map(|r|r.get()),"stage":row.stage.stage().map(|s|s.as_str()),"stage_values_digest":stage_digest}),
     )
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     row: HearingDetail,
     case: CaseId,
     id: HearingId,

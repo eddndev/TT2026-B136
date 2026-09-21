@@ -63,6 +63,12 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       });
     if (path.endsWith('/me')) return route.fulfill({ json: user });
     if (path.endsWith('/logout')) return route.fulfill({ status: 204 });
+    if (path === '/api/v1/document-integrity-incidents')
+      return route.fulfill(
+        role === 'owner'
+          ? { json: { incidents: [], has_more: false, next_after_id: null } }
+          : { status: 403, json: { error: { code: 'permission_denied' } } },
+      );
     if (path.endsWith('/case-administrations'))
       return route.fulfill({
         json: {
@@ -95,6 +101,12 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       return route.fulfill({ json: { ...caseRecord, id: otherCaseId, title: 'Otro expediente' } });
     if (path.endsWith('/audit/verify'))
       return route.fulfill({ json: { valid: true, entries: 12, first_broken_index: null } });
+    if (path === '/api/v1/users' && request.method() === 'GET')
+      return route.fulfill(
+        role === 'owner'
+          ? { json: { items: [], has_more: false, next_cursor: null } }
+          : { status: 403, json: { error: { code: 'permission_denied' } } },
+      );
     if (path.endsWith('/users') || path.endsWith('/bootstrap'))
       return route.fulfill({
         json: {

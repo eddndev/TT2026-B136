@@ -1,0 +1,42 @@
+\section{Trazabilidad de asociaciones con actividades}\label{sec:matriz-asociaciones-recursos}
+
+La matriz resume el incremento de vínculos organizativos a audiencias y plazos existentes. Conserva los resultados por frontera y no suma repeticiones de una campaña como casos distintos. La implementación se describe en la \cref{sec:impl-asociaciones-recursos} y la evidencia focal en la \cref{sec:pruebas-asociaciones-recursos}.
+
+\begin{longtable}{@{}L{3.0cm} L{7.0cm} L{3.0cm}@{}}
+  \caption{Invariantes de asociaciones y evidencia focal disponible.}
+  \label{tab:matriz-asociaciones-recursos} \\
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad comprobada} & \textbf{Evidencia del corte} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad comprobada} & \textbf{Evidencia del corte} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  Selección del dominio & Identidades separadas; familia de actividad, revisión, digest y acto opcional forman una selección inequívoca. & 4 pruebas aprobadas. \\
+  \addlinespace
+  Servicio & Permisos, principal completo, cabeza esperada, recibos, fuentes históricas y estado organizativo. & 14 pruebas aprobadas, además de las 4 temporales. \\
+  \addlinespace
+  Ventana de lectura & Cabezas posteriores al inicio son válidas dentro del corte; se rechazan tiempos ajenos a la ventana o distintos en la página. & 4 pruebas de aplicación y 1 PostgreSQL aprobadas. \\
+  \addlinespace
+  Transporte & URL y comando ligados, límites, acto opcional exacto, rechazo de cuerpos ambiguos, historia y estado actual separados. & 10 pruebas HTTP aprobadas. \\
+  \addlinespace
+  Cliente & Capturas, recibos, filtros, continuidad y descarte de consultas fuera del contexto abierto. & 12 pruebas Node aprobadas. \\
+  \addlinespace
+  Persistencia & Permisos y aislamiento, escritura auditada atómica, catálogo e inventario estrictos y restauración con continuación. & 11 pruebas PostgreSQL aprobadas, además de la temporal. \\
+  \addlinespace
+  Qadra controlada & Vínculo exacto, acto opcional, desvinculación, historia, fecha operativa independiente y recuperación explícita ante conflicto o resultado incierto. & 12 casos distintos aprobados. \\
+  \addlinespace
+  API integrada & Fuentes exactas, permisos, desvinculación y repetición; 26 respuestas restauradas, con instantes de lectura validados aparte. & Aprobada en 434.402 segundos. \\
+  \addlinespace
+  Navegador real & Vínculos exactos en escritorio y móvil, permisos y revocación; actividades y avisos sin alteraciones ni duplicados. & 3 escenarios distintos aprobados; CI pendiente. \\
+  \addlinespace
+  Alcance procesal restante & Creación contextual de actividades, corpus calificado, activación durable y trazabilidad de alertas en recursos. & No completado por estos vínculos. \\
+\end{longtable}
+
+La evidencia del backend se conserva en los directorios de pruebas de dominio, aplicación, infraestructura y HTTP. Los archivos correspondientes comienzan con \rutarepo{resource_activity} o \rutarepo{resource_activities}. Los recorridos de navegador se conservan en \rutarepo{web/tests/browser/}, con el prefijo \rutarepo{resource-activities}. Los contratos se conservan en \rutarepo{docs/resource-activities-api.md} y las operaciones de recuperación en \rutarepo{docs/database-operations.md}. Asociar o desvincular no certifica efectos procesales, no cambia la etapa ni altera la atención de un plazo.

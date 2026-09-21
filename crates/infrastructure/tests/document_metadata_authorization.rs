@@ -74,7 +74,7 @@ fn metadata_operations_recheck_roles_membership_and_exact_document_case() {
     assert_eq!(f.snapshot(), before);
     f.db.client
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&f.owner.as_uuid()],
         )
         .unwrap();

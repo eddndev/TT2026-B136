@@ -6,13 +6,13 @@ use application::{
 use domain::cases::CaseId;
 use serde_json::{json, Value};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime, UtcOffset};
-pub(super) fn actor(v: &CaseActorSnapshot) -> Result<Value, ApiError> {
+pub(crate) fn actor(v: &CaseActorSnapshot) -> Result<Value, ApiError> {
     if v.email.is_empty() || v.email.trim() != v.email || v.email.chars().any(char::is_control) {
         return Err(ApiError::internal());
     }
     Ok(json!({"id":v.id,"email":v.email}))
 }
-pub(super) fn utc(value: OffsetDateTime) -> Result<String, ApiError> {
+pub(crate) fn utc(value: OffsetDateTime) -> Result<String, ApiError> {
     value
         .checked_to_offset(UtcOffset::UTC)
         .filter(|v| (1..=9999).contains(&v.year()))
@@ -20,7 +20,7 @@ pub(super) fn utc(value: OffsetDateTime) -> Result<String, ApiError> {
         .format(&Rfc3339)
         .map_err(|_| ApiError::internal())
 }
-pub(super) fn administration(
+pub(crate) fn administration(
     v: &CurrentCaseAdministration,
     case: CaseId,
 ) -> Result<Value, ApiError> {

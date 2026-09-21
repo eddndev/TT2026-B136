@@ -163,7 +163,7 @@ fn agenda_scopes_membership_before_limit_and_reloads_role() {
         .is_empty());
     db.admin
         .execute(
-            "UPDATE users SET role='client' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN role IS DISTINCT FROM 'client' THEN 1 ELSE 0 END,role='client' WHERE id=$1",
             &[&member.as_uuid()],
         )
         .unwrap();

@@ -131,6 +131,8 @@ fn direct_sql_insert_observes_predecessor_commit_after_waiting_for_sequence_lock
 #[test]
 fn revocation_committed_while_classification_waits_prevents_mutation_and_audit() {
     let Some(mut f) = Fixture::new() else { return };
+    // Keep another active Owner while revoking the document's author.
+    f.db.seed_case();
     let store = f.store();
     let record = document();
     store.insert(f.owner, f.case, record.clone(), f.at).unwrap();
@@ -142,7 +144,7 @@ fn revocation_committed_while_classification_waits_prevents_mutation_and_audit()
         .unwrap();
     transaction
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
             &[&f.owner.as_uuid()],
         )
         .unwrap();

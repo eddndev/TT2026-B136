@@ -5,7 +5,10 @@ use domain::crypto::RecoveryCodeSet;
 use domain::identity::{Permission, Role, UserId};
 use zeroize::Zeroizing;
 
-use super::{EnrollmentResult, LoginChallenge, Principal, SessionResult, UserRecord};
+use super::{
+    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionIdentity,
+    SessionResult, UserRecord,
+};
 use crate::ApplicationError;
 
 /// Inbound boundary consumed by delivery adapters.
@@ -71,12 +74,23 @@ pub trait UserRepository: Send + Sync {
 
 /// Ephemeral challenges, sessions, throttling counters, and TOTP replay keys.
 pub trait SessionStore: Send + Sync {
-    fn create_challenge(&self, user_id: UserId, ttl: u64) -> Result<String, ApplicationError>;
+    fn create_challenge(
+        &self,
+        identity: &LoginChallengeIdentity,
+        ttl: u64,
+    ) -> Result<String, ApplicationError>;
     /// Atomically removes and returns a live challenge before any MFA attempt.
     /// Missing, expired, and already claimed challenges all return None.
-    fn take_challenge(&self, token: &str) -> Result<Option<UserId>, ApplicationError>;
-    fn create_session(&self, principal: &Principal, ttl: u64) -> Result<String, ApplicationError>;
-    fn find_session(&self, token: &str) -> Result<Option<Principal>, ApplicationError>;
+    fn take_challenge(
+        &self,
+        token: &str,
+    ) -> Result<Option<LoginChallengeIdentity>, ApplicationError>;
+    fn create_session(
+        &self,
+        identity: &SessionIdentity,
+        ttl: u64,
+    ) -> Result<String, ApplicationError>;
+    fn find_session(&self, token: &str) -> Result<Option<SessionIdentity>, ApplicationError>;
     fn revoke_session(&self, token: &str) -> Result<(), ApplicationError>;
     /// Reads the failure count and repairs missing expiration using the supplied window.
     /// Existing expirations are preserved; absent counters remain absent.

@@ -1,3 +1,5 @@
+#[path = "identity_support/generation_cases.rs"]
+mod generation_cases;
 mod identity_support;
 
 use std::sync::{mpsc, Arc, Mutex};
@@ -212,7 +214,7 @@ fn create_user_rejects_an_owner_after_role_downgrade() {
             "another safe password",
             Role::Client
         ),
-        Err(ApplicationError::PermissionDenied)
+        Err(ApplicationError::InvalidSession)
     ));
 }
 

@@ -19,6 +19,24 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    Member(#[from] crate::members::MemberError),
+
+    #[error("document content validation failed")]
+    DocumentContentValidationFailed(crate::document_integrity::DocumentIntegrityFailure),
+
+    #[error("document content exceeds the read limit")]
+    DocumentContentTooLarge,
+
+    #[error("document integrity observation was reused with different data")]
+    DocumentIntegrityObservationConflict,
+
+    #[error("document integrity incident not found: {0}")]
+    DocumentIntegrityIncidentNotFound(String),
+
+    #[error(transparent)]
+    ResourceActivity(#[from] crate::resource_activities::ResourceActivityError),
+
+    #[error(transparent)]
     ProceduralResource(#[from] crate::procedural_resources::ProceduralResourceError),
 
     #[error(transparent)]

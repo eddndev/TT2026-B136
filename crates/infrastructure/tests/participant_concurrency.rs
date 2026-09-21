@@ -181,8 +181,8 @@ fn membership_and_role_revocation_committed_while_waiting_prevent_mutation() {
             .unwrap();
         let sql = match revoke {
             "membership" => "DELETE FROM case_memberships WHERE user_id=$1",
-            "role" => "UPDATE users SET role='client' WHERE id=$1",
-            _ => "UPDATE users SET active=false WHERE id=$1",
+            "role" => "UPDATE users SET role='client',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
+            _ => "UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
         };
         transaction.execute(sql, &[&actor.as_uuid()]).unwrap();
         let (case, at) = (f.case, f.at);

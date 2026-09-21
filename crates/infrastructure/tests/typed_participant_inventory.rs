@@ -23,8 +23,9 @@ fn populated() -> Option<Fixture> {
 #[test]
 fn startup_preserves_historical_identity_author_even_after_account_changes() {
     let Some(mut db) = populated() else { return };
+    db.user("owner", false);
     db.admin
-        .batch_execute("UPDATE users SET active=FALSE,role='client',email='renamed@example.test'")
+        .execute("UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM FALSE OR role IS DISTINCT FROM 'client' THEN 1 ELSE 0 END,active=FALSE,role='client',email='renamed@example.test' WHERE id=$1", &[&db.owner.as_uuid()])
         .unwrap();
     PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)).unwrap();
     let captured: String = db

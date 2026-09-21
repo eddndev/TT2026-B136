@@ -19,7 +19,7 @@ use domain::{
 use time::OffsetDateTime;
 use uuid::Uuid;
 #[path = "../../../application/tests/deadline_profile_catalog_support/values.rs"]
-mod profiles;
+pub mod profiles;
 pub struct Hasher;
 impl DocumentHasher for Hasher {
     fn hash_bytes(&self, _: &[u8]) -> Sha256Digest {

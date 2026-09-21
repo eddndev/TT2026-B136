@@ -83,7 +83,7 @@ fn responsible_must_be_active_staff_authorized_for_the_case_but_history_is_immut
     let inactive = db.user("paralegal", true);
     db.admin
         .execute(
-            "UPDATE users SET active=false WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",
             &[&inactive.as_uuid()],
         )
         .unwrap();
@@ -112,7 +112,7 @@ fn responsible_must_be_active_staff_authorized_for_the_case_but_history_is_immut
     );
     db.admin
         .execute(
-            "UPDATE users SET active=false,email='former@example.test' WHERE id=$1",
+            "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false,email='former@example.test' WHERE id=$1",
             &[&paralegal.as_uuid()],
         )
         .unwrap();

@@ -1,4 +1,6 @@
-export function versionApi(scoped) {
+import { contentReference, contentValue } from './document-content.mjs';
+
+export function versionApi(scoped, caseId) {
   const base = (id) => `/${encodeURIComponent(id)}/versions`;
   return {
     versions(id, { limit = 50, beforeVersion } = {}) {
@@ -42,6 +44,12 @@ export function versionApi(scoped) {
             throw new Error('La evidencia no corresponde a la versi\u00f3n seleccionada.');
           }
           return result;
+        },
+        async content(expectedDigest) {
+          assertActive();
+          contentReference(caseId, id, number, expectedDigest);
+          const result = await request('/content', { binary: 'content' });
+          return contentValue(result, caseId, id, number, expectedDigest);
         },
       };
     },

@@ -16,6 +16,7 @@ fi
 export TT_TEST_QPDF_LIBRARY
 
 TEST_DIR="$(mktemp -d)"
+export TT_BACKEND_TEST_DIR="$TEST_DIR"
 TEST_DATABASE_USER="tt_backend_test_admin"
 TEST_DATABASE_PASSWORD="$(python3 -c 'import secrets;print(secrets.token_hex(24))')"
 POSTGRES_STARTED=false

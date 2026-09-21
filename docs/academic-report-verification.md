@@ -1,5 +1,119 @@
 # Verificación de la actualización académica
 
+## Miembros: fuentes del 19 de septiembre de 2026
+
+Se incorporaron apartados propios de implementacion, pruebas y anexo, con sus
+inclusiones. Describen directorio, cambios de rol/actividad, generacion de
+sesiones/desafios y selectores de asignacion. Distinguen las cuatro campanas
+focales aprobadas del cierre de CI y PDF pendientes. El navegador con servicios
+reales aprobo tres escenarios en 418.426 s y cuatro capturas inspeccionadas;
+la aceptacion HTTP completa con restauracion aprobo en 453.174 s, con
+2553 fuentes estables, y sus resultados se incorporan a las fuentes posteriores. Se añadieron
+captions cortos de indice a dos tablas historicas sin cambiar sus titulos
+principales ni mediciones. La compilacion e inspeccion de estas fuentes todavia
+no se ejecutaron; el PDF de contenido original descrito abajo no las acredita.
+Resumen, objetivos, estado del arte, conclusiones y presentacion se preservan.
+
+## PDF intermedio de miembros y actualizacion de aceptacion
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35466570118)
+compilo `41f914b`: el artefacto identifica `ab5ae1d`, cuyos padres son `626cea0`
+y `41f914b`, con el mismo arbol de esa cabeza. Tiene **336 paginas carta y
+5954773 bytes**, SHA-256
+`7f22bb3a5e735dcbcc57706fe63f8b922b3f9d5e798590f33e3ed0681526fe57`.
+Se renderizaron e inspeccionaron **13 paginas fisicas: 3-5, 10, 203-205,
+240-242 y 330-332**. Los apartados y tablas son legibles, sin recortes ni
+solapamientos. En la pagina 10, los dos titulos cortos corrigen la separacion
+entre entradas y numeros. La pasada final conserva las sustituciones de
+versalitas, el desborde de 0.11754 pt y la advertencia de destino duplicado
+`page.1`; no se declara una compilacion sin advertencias.
+
+La inspeccion detecto una frase ambigua sobre credenciales nuevas: se preciso
+que la reactivacion exige un nuevo inicio con contrasena y segundo factor,
+sin reemplazarlos. Las fuentes siguientes incorporan ademas la aceptacion
+HTTP con restauracion de 453.174 s. Este PDF intermedio no acredita esas dos
+actualizaciones; su recompilacion y comprobacion visual siguen pendientes.
+Los archivos se conservan en
+`output/member-lifecycle-verification/ci-report-41f914b/`.
+
+## Inspeccion del artefacto de contenido original publicado
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35464914814)
+compilo la cabeza `626cea0`. El artefacto identifica `0d40c59`, con padres
+`f81f0cb` y `626cea0`; el arbol coincide con la cabeza publicada. El PDF tiene
+**335 paginas carta, 5945980 bytes** y SHA-256
+`2cd93d161125652fe32863fe3fd13f5ef566d9c229da8bef1404f3cf4c91e3cc`.
+Se renderizaron e inspeccionaron **13 paginas fisicas: 3-6, 10, 169-171,
+219-221 y 316-317**. Los apartados nuevos, la matriz y sus continuaciones son
+legibles, sin recortes o solapamientos. La pasada final conserva las
+sustituciones historicas de versalitas y el desborde de 0.11754 pt; no aparecen
+referencias/citas indefinidas, etiquetas duplicadas o glifos ausentes.
+
+En el indice de tablas, pagina fisica 10, las entradas historicas 5.20 y 5.22
+quedan pegadas a sus numeros de pagina. Se registra esta observacion tipografica
+para su ajuste en las fuentes posteriores; no se extiende la inspeccion a todas
+las paginas ni se declara cerrado el manuscrito. El artefacto y las capturas
+se conservan en `output/document-content-verification/ci-report-626cea0/` del
+checkout de contenido original. El resultado acredita ese PDF, no la futura
+compilacion de miembros.
+
+## Contenido original e incidentes: fuentes del 19 de septiembre de 2026
+
+Se añadieron implementación, pruebas focales y una matriz de trazabilidad,
+con sus inclusiones. Describen descarga exacta sin sello, validación completa,
+autorización auditada, capacidad de cuerpos e incidentes internos Owner.
+Las fuentes de pruebas y anexo incorporan tres recorridos de navegador con
+servicios reales aprobados en 285.120 s de comando y 24.6 s de Playwright, con
+2490 fuentes estables. Distinguen escritorio Owner a 1440 píxeles, móvil Owner
+a 390 píxeles con expediente cerrado y permisos de Paralegal, Client y
+revocación. Cuatro capturas de interfaz y dos ampliaciones del detalle fueron
+inspeccionadas, sin recortes ni desbordamiento. El fixture conserva incidentes
+reales después de restaurar sus dos vaults aislados; no acredita reparación
+del producto ni un ataque.
+
+Las fuentes también incorporan la aceptación API completa con restauración,
+aprobada en 372.048 s con 2490 fuentes estables. CI sigue pendiente. Resumen,
+objetivos, estado del arte, conclusiones y presentación se preservan.
+La compilación e inspección del PDF de estas fuentes todavía no se ejecutan;
+las capturas de interfaz y los artefactos de asociaciones anteriores no
+acreditan estas páginas. Los resultados de software se conservan en el
+[informe técnico](verification-report.md).
+
+## Asociaciones de recursos: fuentes del 19 de septiembre de 2026
+
+El [workflow Documents](https://github.com/eddndev/TT2026-B136/actions/runs/35462654499)
+compiló `63846a2`. El artefacto identifica el merge de revisión `3353dfa`, cuyos
+padres son `40ed0c7` y `63846a2`; su árbol coincide con la cabeza publicada.
+El PDF tiene **331 páginas carta y 5934208 bytes**, SHA-256
+`03206b08810f830436648c22bd0dc63c4186a9151c053a3f0f1e26851878fbd4`.
+
+Se renderizaron e inspeccionaron **15 páginas físicas: 3-6, 10, 199-202,
+237-239 y 326-328**. Las nuevas secciones, tablas, continuaciones y rutas
+son legibles, sin nuevos recortes o solapamientos. Se corrigieron los desbordes
+de rutas detectados en las compilaciones anteriores; la pasada final conserva
+sólo las sustituciones históricas de versalitas y el desborde de 0.11754 pt.
+No presenta referencias/citas indefinidas, etiquetas duplicadas o glifos ausentes.
+La inspección detectó una frase de implementación que aún calificaba pendiente
+el navegador real, mientras pruebas y anexo ya describían su aceptación. Se
+corrigió esa frase; su recompilación y comprobación visual quedan pendientes.
+
+El PDF, registro y páginas están en
+`output/resource-activities-verification/ci-report-63846a2/`. La muestra no
+acredita revisión completa de las 331 páginas ni cierre del manuscrito.
+
+El [artefacto de la frase corregida](https://github.com/eddndev/TT2026-B136/actions/runs/35462966621)
+corresponde a `296b20c`: merge de revisión `18c86ab`, con padres `40ed0c7` y
+`296b20c`, y árbol idéntico a esa cabeza. Conserva **331 páginas carta**, ocupa
+**5934318 bytes** y tiene SHA-256
+`3e8279237db334f66ab1e095bc33a3cd7677866f803c5ab5fd800a7476f49f7e`.
+Se renderizaron las mismas quince páginas. Doce imágenes son idénticas a las
+anteriores y se inspeccionaron nuevamente las páginas 4, 201 y 202: índice,
+frase y continuación son legibles, sin recortes ni solapamientos. La pasada
+final mantiene sólo las advertencias históricas ya identificadas. Los archivos
+se conservan en `output/resource-activities-verification/ci-report-296b20c/`.
+Esta comprobación cierra la revisión de esas fuentes académicas, sin declarar
+terminado el manuscrito ni extender la muestra al resto de páginas.
+
 ## Recursos procesales declarados: fuentes del 19 de septiembre de 2026
 
 Se añadieron tres apartados propios de implementación, pruebas y matriz, con
