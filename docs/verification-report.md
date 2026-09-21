@@ -34,7 +34,13 @@ El job completo, incluida la primera compilación, tomó **7 min 34 s**.
 El control posterior falló antes de las pruebas porque la limpieza de caché
 había eliminado `rustup`. Se retiró esa acción del runner persistente y se
 conservan los artefactos de Cargo fuera del checkout. El cierre de la suite
-completa con esta corrección aún está pendiente.
+completa con esta corrección aún está pendiente. La primera compilación
+instrumentada terminó y la ejecución avanzó a infraestructura, pero se canceló
+la campaña que forzaba un solo hilo por su duración. Se conserva un solo
+compilador y una sola suite, con dos hilos de pruebas dentro de los mismos
+límites de CPU y memoria. No se contabiliza la campaña cancelada como aprobada.
+El recorrido de navegador real de la corrección del selector de responsables
+aprobó sus 43 escenarios en una campaña separada; no sustituye el cierre Rust.
 
 ## Costo de contrasenas: calibracion del 19 de septiembre de 2026
 

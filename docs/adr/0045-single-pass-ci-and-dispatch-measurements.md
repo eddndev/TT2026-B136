@@ -31,7 +31,10 @@ line gate to that artifact; it does not rerun tests.
 The runner has one listener, a dedicated unprivileged account and rootless
 Docker. Place the runner service and its user services in the same capped
 slice: three CPU equivalents, 4500 MiB memory high watermark and 5 GiB maximum.
-Set Cargo build jobs and Rust test threads to one. Service containers use
+Use one Cargo build job and two Rust test threads within the single suite.
+Serializing every test underused the capped runner and prolonged database
+fixture setup; the shared resource limits still bound both test workers.
+Service containers use
 random host ports and disposable databases, with 768 MiB for PostgreSQL and
 128 MiB for Redis. Use disk-backed private temporary files. Keep the repository
 private and its workflow token read-only. Rust belongs to the runner account;
