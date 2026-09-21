@@ -38,6 +38,7 @@ env:
 
 jobs:
   format:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Format
     runs-on: ubuntu-24.04
     steps:
@@ -49,6 +50,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   lint:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Lint
     runs-on: ubuntu-24.04
     steps:
@@ -107,6 +109,8 @@ jobs:
         run: |
           mkdir -p output/tmp
           chmod 700 output/tmp
+          test -x "$HOME/.cargo/bin/rustup"
+          printf '%s/.cargo/bin\n' "$HOME" >> "$GITHUB_PATH"
           printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -163,6 +167,7 @@ jobs:
           retention-days: 30
 
   msrv:
+    if: ${{ !inputs.dispatch_measurement }}
     name: MSRV check (Rust 1.88)
     runs-on: ubuntu-24.04
     steps:
@@ -190,6 +195,7 @@ jobs:
         run: scripts/coverage-gate.sh coverage.json
 
   deny:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Dependency policy
     runs-on: ubuntu-24.04
     steps:
@@ -200,6 +206,7 @@ jobs:
         run: cargo deny check
 
   binary-size:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Release binary size
     runs-on: ubuntu-24.04
     steps:
