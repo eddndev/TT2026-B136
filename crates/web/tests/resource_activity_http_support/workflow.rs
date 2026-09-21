@@ -96,10 +96,12 @@ impl ResourceActivityWorkflow for Workflow {
         revision: Option<ResourceActivityRevision>,
     ) -> Result<ResourceActivityView, ApplicationError> {
         self.call(token, json!({"method":"get","case_id":case,"resource_id":resource.to_string(),"id":id.to_string(),"revision":revision.map(|v|v.get())}))?;
-        let c = command(
-            ResourceActivityKind::Hearing,
-            revision.is_some_and(|v| v.get() == 2),
-        );
+        let kind = if token == "deadline" {
+            ResourceActivityKind::Deadline
+        } else {
+            ResourceActivityKind::Hearing
+        };
+        let c = command(kind, revision.is_some_and(|v| v.get() == 2));
         Ok(self.view(token, &c))
     }
     fn history(
