@@ -1,11 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_evaluation_record_support;
-mod deadline_evaluation_support;
-
+use crate::{deadline_evaluation_record_support, deadline_evaluation_support};
 use application::deadline_evaluations::*;
 use deadline_evaluation_record_support::*;
 use domain::{deadline_arithmetic::ArithmeticBlock, procedural_time::DeclaredProceduralTime};

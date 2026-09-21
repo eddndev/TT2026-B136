@@ -1,4 +1,4 @@
-mod deadline_evaluation_record_support;
+use crate::deadline_evaluation_record_support;
 use application::deadline_evaluations::*;
 use deadline_evaluation_record_support::*;
 use domain::{

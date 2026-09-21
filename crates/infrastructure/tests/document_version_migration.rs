@@ -1,8 +1,8 @@
+use crate::version_database_support;
 use infrastructure::{initialize_database, PostgresCaseDocumentStore};
 use postgres::{Client, NoTls};
 use uuid::Uuid;
 
-mod version_database_support;
 use version_database_support::Database;
 
 #[test]

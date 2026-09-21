@@ -1,15 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-mod deadline_profile_database_support;
-mod deadline_tracked_backend_support;
-#[allow(dead_code)]
-mod deadline_tracked_notification_support;
-mod procedural_fact_backend_support;
-
+use crate::{
+    deadline_backend_support, deadline_tracked_backend_support,
+    deadline_tracked_notification_support,
+};
 use application::{
     deadline_observations::build_deadline_observations,
     deadline_reevaluation::{encode_observations, ObservationRole},

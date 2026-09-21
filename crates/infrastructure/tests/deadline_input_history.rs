@@ -1,15 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_input_history_support;
-mod deadline_input_support;
-mod hearing_database_support;
-mod hearing_result_database_support;
-mod judicial_calendar_database_support;
-mod procedural_fact_backend_support;
-
+use crate::{
+    deadline_input_history_support, deadline_input_support, judicial_calendar_database_support,
+    procedural_fact_backend_support,
+};
 use application::{cases::*, deadline_inputs::*, procedural_facts::*};
 use deadline_input_history_support::*;
 use deadline_input_support::*;

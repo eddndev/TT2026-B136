@@ -1,7 +1,4 @@
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-
+use crate::crypto;
 use application::documents::{
     DocumentFormatBatch, DocumentFormatBatchValidator, DocumentRecord, StageDocumentFormat,
     StageFormatPolicy, StageSupportReadLimits,

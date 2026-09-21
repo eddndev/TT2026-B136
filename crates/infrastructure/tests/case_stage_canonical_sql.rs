@@ -1,4 +1,4 @@
-mod case_administration_support;
+use crate::case_administration_support;
 use case_administration_support::Fixture;
 use serde_json::{json, Value};
 

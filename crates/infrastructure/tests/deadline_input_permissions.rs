@@ -1,14 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_input_support;
-mod hearing_database_support;
-mod hearing_result_database_support;
-mod judicial_calendar_database_support;
-mod procedural_fact_backend_support;
-
+use crate::{deadline_input_support, procedural_fact_backend_support};
 use application::{deadline_inputs::DeadlineInputStore, ApplicationError};
 use deadline_input_support::*;
 

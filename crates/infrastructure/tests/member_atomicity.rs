@@ -1,4 +1,4 @@
-mod member_support;
+use crate::member_support;
 use application::members::{MemberError, MemberStore, UserAccessChange};
 use application::ApplicationError;
 use domain::identity::Role;

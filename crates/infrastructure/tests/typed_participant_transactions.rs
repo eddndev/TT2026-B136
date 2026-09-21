@@ -1,9 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod typed_participant_service_support;
+use crate::typed_participant_service_support;
 use application::{typed_participants::*, ApplicationError};
 use typed_participant_service_support::*;
 #[test]

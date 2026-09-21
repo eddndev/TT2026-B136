@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod version_database_support;
-
+use crate::version_database_support;
 use application::documents::{
     CaseDocumentStore, DocumentAction, DocumentRecord, VersionQuery, VersionSelection,
 };

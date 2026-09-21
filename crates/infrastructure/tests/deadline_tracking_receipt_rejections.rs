@@ -1,6 +1,4 @@
-mod case_administration_support;
-mod deadline_tracking_receipt_support;
-
+use crate::{case_administration_support, deadline_tracking_receipt_support};
 use application::deadline_reevaluation::*;
 use case_administration_support::Fixture;
 use deadline_tracking_receipt_support::*;

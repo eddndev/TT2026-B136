@@ -1,6 +1,4 @@
-mod deadline_trigger_integrity_support;
-mod hearing_result_support;
-
+use crate::{deadline_trigger_integrity_support, hearing_result_support};
 use deadline_trigger_integrity_support::*;
 use domain::{
     deadline_triggers::*,

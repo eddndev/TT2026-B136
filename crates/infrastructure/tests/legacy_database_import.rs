@@ -1,5 +1,4 @@
-mod legacy_database_support;
-
+use crate::legacy_database_support;
 use std::fs;
 
 use application::documents::DocumentRepository;

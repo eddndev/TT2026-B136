@@ -1,4 +1,4 @@
-mod procedural_fact_support;
+use crate::procedural_fact_support;
 use domain::{
     cases::CaseId,
     hearing_results::{HearingResultAgreementId, HearingResultId, HearingResultRevision},

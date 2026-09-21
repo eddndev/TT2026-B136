@@ -1,11 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-#[allow(dead_code)]
-mod legacy_database_support;
-
+use crate::{case_stage_database_support, crypto, legacy_database_support};
 use application::case_stages::*;
 use application::documents::{DocumentProcessor, DocumentRepository};
 use application::identity::Principal;

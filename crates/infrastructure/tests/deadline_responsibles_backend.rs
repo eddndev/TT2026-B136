@@ -1,5 +1,4 @@
-mod case_administration_support;
-mod deadline_responsibles_support;
+use crate::deadline_responsibles_support;
 use application::{cases::*, deadlines::*, ApplicationError};
 use deadline_responsibles_support::*;
 use domain::{

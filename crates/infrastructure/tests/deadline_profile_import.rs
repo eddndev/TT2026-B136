@@ -1,9 +1,4 @@
-#[allow(dead_code)]
-mod legacy_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/deadline_profile_catalog_support/values.rs"]
-mod profile_values;
-
+use crate::{legacy_database_support, profile_values};
 use application::deadline_profiles::*;
 use domain::{crypto::DocumentHasher, identity::UserId};
 use infrastructure::RingSha256Hasher;

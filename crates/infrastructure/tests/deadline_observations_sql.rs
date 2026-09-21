@@ -1,6 +1,4 @@
-mod case_administration_support;
-mod deadline_observations_sql_support;
-
+use crate::deadline_observations_sql_support;
 use application::deadline_reevaluation::*;
 use deadline_observations_sql_support::*;
 use domain::cases::CaseId;

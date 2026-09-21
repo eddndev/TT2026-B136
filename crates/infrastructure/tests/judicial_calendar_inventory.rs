@@ -1,10 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod judicial_calendar_database_support;
-mod judicial_calendar_inventory_support;
+use crate::{
+    case_administration_support, judicial_calendar_database_support,
+    judicial_calendar_inventory_support,
+};
 use application::judicial_calendars::*;
 use case_administration_support::Fixture;
 use domain::identity::Role;

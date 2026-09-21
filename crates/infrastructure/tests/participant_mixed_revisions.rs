@@ -1,6 +1,4 @@
-mod case_administration_support;
-mod typed_participant_database_support;
-
+use crate::{case_administration_support, typed_participant_database_support};
 use application::{participants::*, ApplicationError};
 use case_administration_support::Fixture;
 use infrastructure::{PostgresParticipantStore, RingSha256Hasher};

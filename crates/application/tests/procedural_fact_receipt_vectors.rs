@@ -1,4 +1,4 @@
-mod procedural_fact_receipt_vector_support;
+use crate::procedural_fact_receipt_vector_support;
 use application::{procedural_facts::*, ApplicationError};
 use domain::{cases::CaseId, identity::UserId};
 use procedural_fact_receipt_vector_support::*;

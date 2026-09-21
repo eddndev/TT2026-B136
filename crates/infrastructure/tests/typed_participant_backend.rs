@@ -1,4 +1,4 @@
-mod case_administration_support;
+use crate::case_administration_support;
 use application::typed_participants::*;
 use case_administration_support::Fixture;
 use domain::{

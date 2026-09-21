@@ -1,5 +1,4 @@
-mod case_support;
-
+use crate::case_support;
 use application::cases::{CaseRecord, CaseWorkflow};
 use application::ApplicationError;
 use case_support::{identity, instant, record, service, MockCases, MockIdentity};

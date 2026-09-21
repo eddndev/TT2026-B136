@@ -1,10 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_service_support;
-mod deadline_support;
+use crate::deadline_service_support;
 use application::{
     deadline_reevaluation::PredecessorReceipt,
     deadline_tracking::{DeadlineReviewState, TrackingPolicies, TrackingPolicy},

@@ -1,13 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_observation_support;
-mod deadline_support;
-mod deadline_tracked_support;
-mod deadline_tracking_storage_support;
-
+use crate::{deadline_tracked_support, deadline_tracking_storage_support};
 use application::{
     cases::CurrentCaseAdministration,
     deadline_tracking::*,

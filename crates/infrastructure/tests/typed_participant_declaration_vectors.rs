@@ -1,5 +1,4 @@
-#[path = "../../domain/tests/typed_participant_vectors_support/mod.rs"]
-mod values;
+use crate::values;
 use application::typed_participants::*;
 use domain::{
     cases::CaseId,

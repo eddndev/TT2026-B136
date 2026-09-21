@@ -1,4 +1,4 @@
-mod case_administration_support;
+use crate::case_administration_support;
 use application::cases::{
     case_administration_digest, CaseAdministrationValues, CaseAdministrativeStatus,
     CaseEditableValues, PenalCaseProfile,

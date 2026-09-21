@@ -1,4 +1,4 @@
-mod hearing_result_support;
+use crate::hearing_result_support;
 use domain::hearing_results::*;
 use domain::DomainError;
 use hearing_result_support::*;

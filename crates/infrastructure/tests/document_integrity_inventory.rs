@@ -1,4 +1,4 @@
-mod document_content_support;
+use crate::document_content_support;
 use application::document_integrity::DocumentIntegrityStore;
 use application::ApplicationError;
 use document_content_support::Fixture;

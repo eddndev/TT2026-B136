@@ -1,14 +1,4 @@
-mod agenda_support;
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_currentness_support;
-mod deadline_observation_support;
-mod deadline_support;
-mod deadline_technical_support;
-
+use crate::{agenda_support, deadline_currentness_support, deadline_technical_support};
 use agenda_support::*;
 use application::{
     agenda::*,

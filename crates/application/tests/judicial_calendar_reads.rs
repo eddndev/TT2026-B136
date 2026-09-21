@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-mod judicial_calendar_support;
+use crate::judicial_calendar_support;
 use application::{judicial_calendars::*, ApplicationError};
 use domain::{crypto::Sha256Digest, identity::Role};
 use judicial_calendar_support::*;

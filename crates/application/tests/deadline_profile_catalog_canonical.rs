@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-mod deadline_profile_catalog_support;
+use crate::deadline_profile_catalog_support;
 use application::deadline_profiles::*;
 use deadline_profile_catalog_support::*;
 use domain::{crypto::Sha256Digest, identity::UserId};

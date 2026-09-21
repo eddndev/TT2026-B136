@@ -4,8 +4,7 @@
 //! in `verification_mocks`; the per-component failure cases live in
 //! `verify_document_failures.rs`.
 
-mod verification_mocks;
-
+use crate::verification_mocks;
 use application::verification::{ComponentStatus, Verdict, VerifyDocument, VerifyDocumentRequest};
 use application::ApplicationError;
 use domain::crypto::certificate::CertificateValidation;

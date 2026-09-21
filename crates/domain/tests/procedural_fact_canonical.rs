@@ -1,4 +1,4 @@
-mod procedural_fact_support;
+use crate::procedural_fact_support;
 use domain::{procedural_facts::*, procedural_time::DeclaredProceduralTime};
 use procedural_fact_support::*;
 use time::UtcOffset;

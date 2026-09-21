@@ -1,11 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-#[allow(dead_code)]
-mod declaration_fixture;
-mod typed_participant_service_support;
+use crate::{declaration_fixture, typed_participant_service_support};
 use application::{
     credential_trust::{CredentialTrustExpectation, CredentialTrustStore},
     typed_participants::*,

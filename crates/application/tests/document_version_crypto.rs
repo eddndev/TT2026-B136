@@ -1,7 +1,4 @@
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-
+use crate::crypto;
 use application::documents::DocumentProcessor;
 use domain::crypto::{
     document_aad, AuthenticatedCipher, DocumentId, DocumentVersion, KeyManager, SealedPayload,

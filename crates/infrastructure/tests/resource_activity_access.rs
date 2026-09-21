@@ -1,12 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod hearing_database_support;
-mod procedural_fact_backend_support;
-mod procedural_resource_support;
-mod resource_activity_support;
+use crate::{hearing_database_support, resource_activity_support};
 use application::{cases::*, resource_activities::*, ApplicationError};
 use domain::{cases::CaseId, identity::Role};
 use resource_activity_support::*;

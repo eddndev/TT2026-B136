@@ -1,10 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod procedural_fact_backend_support;
-mod procedural_resource_support;
+use crate::procedural_resource_support;
 use application::{procedural_resources::*, ApplicationError};
 use domain::identity::Role;
 use infrastructure::RingSha256Hasher;

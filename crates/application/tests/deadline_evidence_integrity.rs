@@ -1,10 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_support;
-
+use crate::deadline_support;
 use application::{
     case_stages::{StageDocumentFormat, StageFormatPolicy, StageSupportSnapshot},
     cases::CurrentCaseAdministration,

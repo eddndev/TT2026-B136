@@ -1,5 +1,4 @@
-mod case_administration_support;
-mod deadline_input_projection_support;
+use crate::{case_administration_support, deadline_input_projection_support};
 use case_administration_support::Fixture;
 use deadline_input_projection_support::*;
 use serde_json::json;

@@ -1,7 +1,4 @@
-mod alert_support;
-#[allow(dead_code)]
-mod case_support;
-
+use crate::{alert_support, case_support};
 use alert_support::*;
 use application::{alerts::*, identity::Principal, ApplicationError};
 use case_support::MockIdentity;

@@ -1,16 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-#[allow(dead_code)]
-mod deadline_dispatch_support;
-mod deadline_profile_database_support;
-mod deadline_tracked_backend_support;
-mod deadline_worker_backend_support;
-mod procedural_fact_backend_support;
-
+use crate::{
+    deadline_backend_support, deadline_dispatch_support, deadline_tracked_backend_support,
+    deadline_worker_backend_support, procedural_fact_backend_support,
+};
 use application::{
     deadline_dispatch::DeadlineDispatchStream,
     deadline_reevaluation::{
@@ -245,10 +236,11 @@ fn worker_reopens_between_jobs_and_replays_committed_results_without_duplicates(
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let (profile, source) = worker::inputs(&mut db);
     let bases = [
-        dispatch::legacy(&db, &profile, &source, 40),
-        dispatch::legacy(&db, &profile, &source, 50),
+        dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 40),
+        dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 50),
     ];
     let batch = dispatch::dispatch(
         &dispatch::open(&db),
