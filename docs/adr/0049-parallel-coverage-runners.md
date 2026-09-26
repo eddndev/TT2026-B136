@@ -22,8 +22,15 @@ groups, while unmeasured targets receive conservative default weights. Use a
 4:6 GiB memory limits and is more conservative than the 2:4 CPU quota ratio
 because database waits do not scale directly with CPU. Keep
 the ordinary Rust test harness within each executable, with at most two test
-threads per runner. Keep the manual extended dispatch measurement on the
-second runner as a separate job.
+threads for the non-infrastructure crates. Infrastructure fixtures share
+one PostgreSQL database even when their tables occupy distinct schemas.
+Their audited writes and SQL guards acquire the same database-wide advisory
+lock, and dispatch/worker adapters deliberately time out after one second
+of lock contention. Run infrastructure tests with one harness thread so
+unrelated fixtures cannot consume that timeout. Concurrency tests still
+create their own threads and database connections; the two runners remain
+parallel because their databases are independent. Keep the manual extended
+dispatch measurement on the second runner as a separate job.
 
 Each runner clears old raw profiles before its campaign and retains the new
 profiles while running executables with `cargo llvm-cov --no-report`. This

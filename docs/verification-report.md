@@ -4,6 +4,31 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Contencion entre fixtures de infraestructura: 26 de septiembre de 2026
+
+En la ejecucion [36262186578](https://github.com/eddndev/TT2026-B136/actions/runs/36262186578),
+`Test (1/2)` y ambos jobs de Web aprobaron. `Test (2/2)` fallo en
+`deadline_worker_guards::completion_audit_failure_rolls_back_revision_and_result_but_records_retry`:
+la preparacion de su despacho encontro `ClassifiedPort::Busy` antes de
+inyectar el fallo de auditoria. PostgreSQL registro `lock_timeout` en
+`pg_advisory_xact_lock`; las otras 34 pruebas del ejecutable aprobaron.
+Coverage se omitio por la dependencia fallida.
+
+Los esquemas de prueba comparten una base de datos y el candado global de
+mutaciones auditadas. Dos pruebas independientes pueden retenerlo el tiempo
+suficiente para agotar el limite de un segundo del adaptador de despacho.
+El reparto de CI ahora pasa `--test-threads=1` a los ejecutables de
+infraestructura; conserva el paralelismo entre runners con bases separadas,
+los hilos propios de las pruebas concurrentes y los dos hilos del harness
+en los otros crates. No se cambia el protocolo de bloqueo de la aplicacion.
+
+La regresion del comando fallo antes del cambio y los 12 tests de helpers
+de CI aprobaron despues. La prueba Rust que habia fallado aprobo 1/1 en
+5.75 s con PostgreSQL y Redis locales desechables, un hilo de harness y
+directorio temporal sobre disco btrfs. Esta ejecucion focal no reproduce
+la carga completa del VPS. La suite completa y la union de cobertura deben
+aprobar en la nueva revision antes de integrar.
+
 ## Python de los workers aislados: 26 de septiembre de 2026
 
 En la primera campaña distribuida,

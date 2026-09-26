@@ -59,6 +59,9 @@ def command(target):
         args.extend(["--bin", name])
     else:
         args.extend(["--test", name])
+    if package == "infrastructure":
+        # Fixtures share a database-wide audit lock; see docs/adr/0049-parallel-coverage-runners.md.
+        args.extend(["--", "--test-threads=1"])
     return args
 
 

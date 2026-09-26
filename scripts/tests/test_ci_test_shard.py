@@ -44,7 +44,7 @@ class TestCiTestShard(unittest.TestCase):
             MODULE.command(("infrastructure", "test", "deadline_suite_1")),
             ["cargo", "llvm-cov", "--no-report", "--locked", "-p",
              "infrastructure",
-             "--test", "deadline_suite_1"],
+             "--test", "deadline_suite_1", "--", "--test-threads=1"],
         )
         self.assertEqual(
             MODULE.command(("domain", "lib", "domain"))[-3:],
@@ -53,6 +53,10 @@ class TestCiTestShard(unittest.TestCase):
         self.assertEqual(
             MODULE.command(("despacho-cli", "bin", "despacho-cli"))[-2:],
             ["--bin", "despacho-cli"],
+        )
+        self.assertEqual(
+            MODULE.command(("infrastructure", "lib", "infrastructure"))[-3:],
+            ["--lib", "--", "--test-threads=1"],
         )
 
 
