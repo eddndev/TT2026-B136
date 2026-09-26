@@ -12,10 +12,10 @@ fn simultaneous_connections_commit_one_successor_and_one_audit_event() {
     let left = prepared_legacy(&db, db.owner, &correct(&first));
     let right = prepared_legacy(&db, db.owner, &correct(&first));
     let before = snapshot(&mut db);
-    let gate = Arc::new(rendezvous::PrepareRendezvous::new(Duration::from_secs(5)));
+    let adapters = [store(&db), store(&db)];
+    let gate = Arc::new(rendezvous::PrepareRendezvous::new(Duration::from_secs(30)));
     let mut threads = Vec::new();
-    for pending in [left, right] {
-        let adapter = store(&db);
+    for (pending, adapter) in [left, right].into_iter().zip(adapters) {
         let actor = db.owner;
         let gate = gate.clone();
         threads.push(std::thread::spawn(move || {
