@@ -1,5 +1,5 @@
 use std::env;
-use std::sync::{Arc, Barrier};
+use std::sync::{Arc, Barrier, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -7,6 +7,10 @@ use application::identity::UserRepository;
 use infrastructure::{PostgresCaseRepository, PostgresUserRepository};
 use postgres::{Client, NoTls};
 use uuid::Uuid;
+
+static STARTUP_TEST_LOCK: Mutex<()> = Mutex::new(());
+const SCHEMA_LOCK_CLASS: i32 = 0x43415345;
+const DATABASE_WIDE_MIGRATION_LOCK: i64 = 0x4341534553;
 
 fn scoped_url(url: &str, schema: &str, lock_timeout: Option<&str>) -> String {
     let mut options = format!("-csearch_path={schema} -capplication_name={schema}");
@@ -63,6 +67,7 @@ fn initialize_together(url: &str) -> Vec<Result<(), application::ApplicationErro
 
 #[test]
 fn user_and_case_adapters_share_the_migration_lock_and_initialize_a_fresh_schema() {
+    let _serial = STARTUP_TEST_LOCK.lock().unwrap();
     let Ok(url) = env::var("CASE_TEST_DATABASE_URL") else {
         return;
     };
@@ -75,7 +80,11 @@ fn user_and_case_adapters_share_the_migration_lock_and_initialize_a_fresh_schema
         .unwrap();
     let mut transaction = control.transaction().unwrap();
     transaction
-        .query_one("SELECT pg_advisory_xact_lock($1)", &[&0x4341534553_i64])
+        .query_one(
+            "SELECT pg_advisory_xact_lock($1::integer, \
+             (SELECT oid::integer FROM pg_namespace WHERE nspname=$2))",
+            &[&SCHEMA_LOCK_CLASS, &schema],
+        )
         .unwrap();
 
     // lock_timeout makes both connection attempts complete while this lock
@@ -118,4 +127,45 @@ fn user_and_case_adapters_share_the_migration_lock_and_initialize_a_fresh_schema
     assert!(!users_empty.unwrap());
     assert_eq!(cases_empty, 0);
     assert_eq!(tables, 3);
+}
+
+#[test]
+fn migrations_in_distinct_schemas_do_not_wait_for_each_others_lock() {
+    let _serial = STARTUP_TEST_LOCK.lock().unwrap();
+    let Ok(url) = env::var("CASE_TEST_DATABASE_URL") else {
+        return;
+    };
+    let first = format!("startup_{}", Uuid::new_v4().simple());
+    let second = format!("startup_{}", Uuid::new_v4().simple());
+    let mut control = Client::connect(&url, NoTls).unwrap();
+    control
+        .batch_execute(&format!("CREATE SCHEMA {first}; CREATE SCHEMA {second}"))
+        .unwrap();
+    let mut holder = control.transaction().unwrap();
+    // A return to the database-wide key would block the independent schema.
+    holder
+        .query_one(
+            "SELECT pg_advisory_xact_lock($1)",
+            &[&DATABASE_WIDE_MIGRATION_LOCK],
+        )
+        .unwrap();
+    holder
+        .query_one(
+            "SELECT pg_advisory_xact_lock($1::integer, \
+             (SELECT oid::integer FROM pg_namespace WHERE nspname=$2))",
+            &[&SCHEMA_LOCK_CLASS, &first],
+        )
+        .unwrap();
+    let independent = scoped_url(&url, &second, Some("3s"));
+    let result = PostgresUserRepository::connect(&independent).map(|_| ());
+    holder.commit().unwrap();
+    control
+        .batch_execute(&format!(
+            "DROP SCHEMA {first} CASCADE; DROP SCHEMA {second} CASCADE"
+        ))
+        .unwrap();
+    assert!(
+        result.is_ok(),
+        "independent schema migration failed: {result:?}"
+    );
 }

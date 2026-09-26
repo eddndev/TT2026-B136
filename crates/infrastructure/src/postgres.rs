@@ -4,6 +4,8 @@ use crate::postgres_connection::{port_error, require_utf8};
 use application::ApplicationError;
 use postgres::{Client, NoTls};
 
+mod migration_lock;
+
 const IDENTITY_MIGRATION: &str = include_str!("../../../migrations/0001_identity.sql");
 const CASE_MIGRATION: &str = include_str!("../../../migrations/0002_cases.sql");
 const DOCUMENT_MIGRATION: &str = include_str!("../../../migrations/0003_case_documents_audit.sql");
@@ -70,20 +72,12 @@ const DEADLINE_PROFILE_MIGRATIONS: &[&str] = &[
     include_str!("../../../migrations/0016_deadline_profile_guards.sql"),
     include_str!("../../../migrations/0016_deadline_profile_events.sql"),
 ];
-// Every adapter uses this same database-scoped lock before applying schema DDL.
-const SCHEMA_MIGRATION_LOCK: i64 = 0x4341534553;
-
-/// Applies all schema prerequisites atomically, serialized across processes.
+/// Applies all schema prerequisites atomically, serialized per schema.
 pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     let mut client = Client::connect(database_url, NoTls).map_err(port_error)?;
     require_utf8(&mut client)?;
     let mut transaction = client.transaction().map_err(port_error)?;
-    transaction
-        .query_one(
-            "SELECT pg_advisory_xact_lock($1)",
-            &[&SCHEMA_MIGRATION_LOCK],
-        )
-        .map_err(port_error)?;
+    migration_lock::acquire(&mut transaction)?;
     transaction
         .batch_execute(IDENTITY_MIGRATION)
         .map_err(port_error)?;

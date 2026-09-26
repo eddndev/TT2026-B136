@@ -4,6 +4,27 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Bloqueo de migraciones por esquema: 26 de septiembre de 2026
+
+La apertura PostgreSQL tomaba un candado de migracion comun a todos los
+esquemas de una base de datos. Las pruebas de integracion crean esquemas
+independientes, por lo que dos aperturas se serializaban aunque sus tablas no
+se compartieran. La prueba nueva retuvo el candado anterior y el candado de un
+primer esquema: con el codigo previo, abrir un segundo esquema fallo por
+`lock_timeout` en 3.11 s. Con la clave basada en el OID del esquema, esa misma
+prueba aprobo en 0.43 s. Las dos pruebas del ejecutable
+`postgres_startup` aprobaron en 2.26 s con PostgreSQL desechable. El build
+ordinario del workspace tambien aprobo. El alcance y la limitacion de
+despliegues que mezclen binarios antiguos y nuevos estan en
+[ADR 0048](adr/0048-schema-scoped-migration-lock.md).
+
+La suite completa local con PostgreSQL y Redis desechables aprobo **3049
+pruebas**, con **2 ignoradas**, en **212 ejecutables**. Despues del ultimo
+ajuste de claridad en la prueba de arranque, su ejecutable aprobo de nuevo
+las 2 pruebas. `cargo fmt --all`, `cargo build --workspace --locked` y
+`cargo clippy --workspace --all-targets --locked -- -D warnings` aprobaron.
+Los tiempos de CI se mediran antes de atribuir una mejora global.
+
 ## Diagnostico de la PR42: 25 de septiembre de 2026
 
 La ejecucion [35572138875](https://github.com/eddndev/TT2026-B136/actions/runs/35572138875)
