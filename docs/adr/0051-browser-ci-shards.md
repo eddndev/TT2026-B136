@@ -10,8 +10,8 @@ same service instance would introduce interference.
 
 ## Decision
 
-Split each browser suite into two Playwright shards on separate GitHub-hosted
-jobs. Preserve file-level scheduling and one worker per job. Each real-service
+Split mocked browser tests into two Playwright shards and real-service tests
+into three, on separate GitHub-hosted jobs. Preserve file-level scheduling and one worker per job. Each real-service
 job provisions its own PostgreSQL, Redis, Rust server, identities and fixture
 data through the existing disposable service script. No tests, assertions or
 timeouts are removed, and no retries are introduced.
@@ -22,7 +22,7 @@ shard to succeed. Disable matrix fail-fast to collect the complete regression
 result. Publish separate JUnit timing artifacts and failure diagnostics using
 shard-specific artifact names.
 
-The first validation enumerates the unsplit suite and both shards, verifying
+The first validation enumerates the unsplit suite and every shard, verifying
 that their sets are disjoint and their union is complete. Full remote runs
 then validate both correctness and elapsed time. Local verification remains
 one worker and one suite at a time.
@@ -34,7 +34,10 @@ ordering. Wait for every task in a failed batch before logging out the shared
 provisioner, and never start later batches after failure. The default remains
 one provisioning worker for local execution. Emit per-family durations.
 Browser builds use line-table debug information as described in
-`docs/adr/0027-ci-debug-information.md`.
+`docs/adr/0027-ci-debug-information.md`. Cache workspace crates as well as
+dependencies with a separate browser workspace cache key. Cargo still checks
+the selected revision and compiles before starting services; cached binaries
+never substitute for a fresh test run.
 
 ## Status
 

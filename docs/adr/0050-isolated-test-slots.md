@@ -44,7 +44,10 @@ output is not stored or printed individually.
 
 The compiler selector may opt into four compile workers and a 24 GiB budget on
 the dedicated host, still respecting a smaller cgroup limit and the measured
-compiler footprint. Legacy defaults remain two workers and 6 GiB. Runtime
+compiler footprint. Legacy defaults remain two workers and 6 GiB. The dedicated PostgreSQL container has a 6 GiB limit within that shared
+budget: at 2 GiB, the eight-slot campaign repeatedly reached its child cgroup
+limit while the parent retained memory headroom. Legacy containers remain at
+768 MiB. Runtime
 slots and compile workers are different budgets: compilation finishes before
 Nextest starts executing tests.
 

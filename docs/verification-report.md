@@ -4,6 +4,35 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Ocho slots y limites por servicio: 26 de septiembre de 2026
+
+La ejecucion [36279736231](https://github.com/eddndev/TT2026-B136/actions/runs/36279736231)
+aprobo todas las pruebas y cobertura, en aproximadamente **13m50s** desde la
+creacion hasta finalizar Coverage. Los **3049** casos pasaron, con dos
+ignorados, en **782.456s**; el build instrumentado reutilizado tomo **0.17s**.
+La union de reportes Web conserva **358** pruebas simuladas y **43** reales,
+todas aprobadas. El [workflow Web](https://github.com/eddndev/TT2026-B136/actions/runs/36279736239)
+tardo aproximadamente **13m25s**: no mejoro materialmente frente a 13m22s.
+En el shard real mas lento, la compilacion tomo 2m16s, la preparacion posterior
+5m04s y las pruebas cinco minutos. La nueva concurrencia de fixtures paso la
+regresion, pero no se acredita como mejora de tiempo global.
+
+El muestreo de ocho slots registro **5.39 CPU** de promedio, maximo promedio
+de muestra **6.16**, y **0.82s** acumulados de throttling durante el intervalo.
+La memoria cargada al grupo llego a **18.18 GiB**, sin OOM ni swap. Los contadores
+locales identificaron al contenedor PostgreSQL: llego a su limite de **2 GiB**
+y registro **9175** eventos `memory.events.local:max`. El cgroup padre no
+registro eventos max locales. El contenedor PostgreSQL uso unas 3.23 CPU y el
+servicio Docker/rootless alrededor de 1.03 CPU. Son observaciones; el efecto
+de ampliar el limite aun requiere una nueva medicion.
+
+El siguiente ajuste aumenta PostgreSQL a **6 GiB**, dentro del presupuesto
+conjunto de 26 GiB, y conserva ocho slots. Web real pasa a tres shards con
+cache de crates del workspace ademas de dependencias; siempre ejecuta Cargo
+sobre la revision seleccionada. Actionlint y la enumeracion disjunta de todas
+las pruebas reales validan el reparto; la regresion remota queda pendiente.
+No se cambiaron tests, umbrales de cobertura ni limites de produccion.
+
 ## Seis slots y navegador dividido: 26 de septiembre de 2026
 
 La ejecucion [36278172116](https://github.com/eddndev/TT2026-B136/actions/runs/36278172116)

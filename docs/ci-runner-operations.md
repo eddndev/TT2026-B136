@@ -12,7 +12,7 @@ Limitar conjuntamente el usuario del runner y su Docker rootless a 7 CPU y
 26 GiB de RAM, con `MemoryHigh=24G`. Mantener libres los recursos restantes
 para el sistema y futuros servicios. Mantener una cuenta independiente para
 despliegues, sin pertenencia a los grupos ni acceso a las credenciales del
-runner. El workflow limita PostgreSQL a 2 GiB y Redis a 128 MiB,
+runner. El workflow limita PostgreSQL a 6 GiB y Redis a 128 MiB,
 incluidos en el presupuesto anterior. Usar almacenamiento persistente para
 `~/.cache/tt-ci` y `output/tmp`; no colocar esas rutas en tmpfs. El espacio de
 compilacion debe dimensionarse con la primera ejecucion completa, conservando
@@ -47,7 +47,7 @@ compilacion, ejecucion y reporte con cache frio y caliente; descargar
 continuamente Actions. Una campana verde acredita correccion; el objetivo de
 10-20 minutos solo se acredita con una medicion completa. Aumentar de cuatro
 a seis u ocho slots requiere revisar CPU, memoria, conexiones PostgreSQL y
-los resultados de esa campana. El navegador reparte sus suites entre dos jobs independientes por suite;
+los resultados de esa campana. El navegador reparte sus suites entre dos jobs para API simulada y tres para servicios reales;
 cada job conserva un solo worker y servicios aislados. Ambos deben aprobar
 para que apruebe el check agregado. Ver
 [ADR 0051](adr/0051-browser-ci-shards.md).
