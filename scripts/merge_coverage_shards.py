@@ -1,4 +1,4 @@
-"""Union line hits from two isolated LLVM coverage campaigns."""
+"""Union line hits from all explicitly required LLVM coverage campaigns."""
 
 import argparse
 import json
@@ -16,9 +16,9 @@ def source_path(raw, root):
     return path
 
 
-def merge(paths, root):
-    if len(paths) != 2 or paths[0] == paths[1]:
-        raise ValueError("exactly two distinct coverage shards are required")
+def merge(paths, root, expected_count=2):
+    if expected_count < 1 or len(paths) != expected_count or len(set(paths)) != len(paths):
+        raise ValueError(f"exactly {expected_count} distinct coverage shards are required")
     merged = {}
     for path in paths:
         if not path.is_file() or not path.stat().st_size:
@@ -56,11 +56,11 @@ def merge(paths, root):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("first", type=Path)
-    parser.add_argument("second", type=Path)
+    parser.add_argument("--expected-shards", type=int, default=2)
+    parser.add_argument("shards", type=Path, nargs="+")
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
-    result = merge([args.first, args.second], Path.cwd())
+    result = merge(args.shards, Path.cwd(), args.expected_shards)
     args.output.write_text(json.dumps(result, separators=(",", ":")) + "\n")
     print(f"Merged coverage for {len(result['data'][0]['files'])} workspace files")
 

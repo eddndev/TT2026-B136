@@ -1,4 +1,55 @@
-# Python para los runners de CI
+# Operacion de los runners de CI
+
+## Servidor dedicado
+
+El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta
+exclusiva del runner y Docker con servicios desechables. Registrar un solo
+runner de este repositorio con la etiqueta `tt-ci-dedicated`. Un unico proceso
+Nextest reparte las pruebas individuales entre cuatro slots; no instalar
+cuatro runners que compilen simultaneamente el mismo workspace.
+
+Limitar conjuntamente el usuario del runner y su Docker rootless a 7 CPU y
+26 GiB de RAM, con `MemoryHigh=24G`. Mantener libres los recursos restantes
+para el sistema. El workflow limita PostgreSQL a 2 GiB y Redis a 128 MiB,
+incluidos en el presupuesto anterior. Usar almacenamiento persistente para
+`~/.cache/tt-ci` y `output/tmp`; no colocar esas rutas en tmpfs. El espacio de
+compilacion debe dimensionarse con la primera ejecucion completa, conservando
+los caches compatibles y retirando generaciones obsoletas fuera de trabajos
+activos.
+
+Preparar Python 3.12+, PostgreSQL **cliente 16** (`psql`, `pg_dump`,
+`pg_restore`), Rust stable con `llvm-tools-preview`, las dependencias de
+`scripts/setup-document-formats.sh`, Docker y las herramientas habituales de
+compilacion. El workflow instala cargo-llvm-cov 0.9.1 y cargo-nextest 0.9.146.
+Verificar el acceso a Docker con el usuario del servicio, sus limites de
+cgroup y los prerrequisitos antes de habilitarlo. El servidor no necesita
+publicar puertos de PostgreSQL o Redis fuera de loopback.
+
+La variable del repositorio `TT_CI_DEDICATED=true` activa este modo. Mientras
+este ausente o tenga otro valor, siguen operando los dos runners actuales.
+Cambiarla entre ejecuciones, despues de validar el host y antes de iniciar la
+siguiente campana. No modificarla a mitad de una ejecucion: determina tanto
+el destino de las pruebas como el numero de artefactos exigidos por Coverage.
+
+Validacion focal del circuito de cobertura con servicios reales, un compilador
+y un slot local, tras preparar `output/tmp` en disco y las herramientas:
+
+```bash
+TMPDIR="$PWD/output/tmp" CARGO_BUILD_JOBS=1 RUST_TEST_THREADS=1 \
+  bash scripts/test-backends.sh python3 -B scripts/tests/check_nextest_pipeline.py
+```
+
+Despues, ejecutar la regresion completa en el servidor dedicado. Comparar
+compilacion, ejecucion y reporte con cache frio y caliente; descargar
+`test-durations` para localizar las pruebas que dominan el tiempo sin sondear
+continuamente Actions. Una campana verde acredita correccion; el objetivo de
+10-20 minutos solo se acredita con una medicion completa. Aumentar de cuatro
+a seis u ocho slots requiere revisar CPU, memoria, conexiones PostgreSQL y
+los resultados de esa campana. El navegador conserva su workflow actual.
+
+Ver [ADR 0050](adr/0050-isolated-test-slots.md).
+
+## Python
 
 Los runners Linux requieren Python **3.12 o posterior**. La selección debe
 funcionar tanto en los pasos normales como dentro de `/bin/sh` con el entorno

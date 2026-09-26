@@ -29,6 +29,10 @@ class BuildBudgetTests(unittest.TestCase):
     def test_large_machine_still_caps_at_two(self):
         self.assertEqual(self.module.jobs(64 * 1024**3, 256 * 1024**2), 2)
 
+    def test_dedicated_runner_can_opt_into_four_compilers_with_memory_guard(self):
+        self.assertEqual(self.module.jobs(24 * 1024**3, 1024**3, maximum=4), 4)
+        self.assertEqual(self.module.jobs(4 * 1024**3, 1024**3, maximum=4), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

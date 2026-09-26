@@ -4,6 +4,39 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Preparacion del runner dedicado: 26 de septiembre de 2026
+
+El modo opcional de [ADR 0050](adr/0050-isolated-test-slots.md) programa pruebas
+individuales con Nextest 0.9.146 y bases PostgreSQL e indices Redis por slot.
+La configuracion inicial usa cuatro slots, conserva todos los tests ordinarios
+y la cobertura requerida, y deja activos los dos runners anteriores mientras
+la variable `TT_CI_DEDICATED` no sea `true`. La provision del nuevo host y su
+regresion completa siguen pendientes; no hay una mejora de tiempo global
+medida ni se declara alcanzado el objetivo de 10-20 minutos.
+
+Verificacion fresca, con una sola suite local a la vez y `output/tmp` sobre
+el filesystem de disco del checkout:
+
+- Los nuevos casos de aislamiento y conteo de reportes fallaron antes de su
+  implementacion; tambien fallo inicialmente el caso que permite cuatro
+  compiladores conservando el limite de memoria. Despues aprobaron **19/19**
+  tests de los helpers CI.
+- `scripts/tests/check_nextest_pipeline.py`, ejecutado mediante
+  `scripts/test-backends.sh`, compilo un workspace pequeno y aprobo **3/3**
+  pruebas reales con un slot, PostgreSQL, Redis y cargo-llvm-cov. Verifico los
+  URLs aislados, el reporte LCOV y tres resultados JUnit. La primera prueba
+  detecto una ruta equivocada para JUnit; se fijo explicitamente el directorio
+  de Nextest y la comprobacion completa posterior aprobo.
+- La prueba real de infraestructura
+  `deadline_worker_guards::completion_audit_failure_rolls_back_revision_and_result_but_records_retry`
+  aprobo **1/1 en 6.641 s** bajo Nextest, con un slot y los servicios
+  desechables. Las otras 34 pruebas del ejecutable se filtraron para esta
+  comprobacion focal. La compilacion reutilizada tomo 0.16 s. Es evidencia
+  local del caso, no una medida de coverage ni de la campana remota completa.
+- actionlint, sintaxis Python/TOML, ASCII de scripts y `git diff --check`
+  aprobaron. No se repitio la suite completa ni el navegador por este cambio
+  de infraestructura de pruebas.
+
 ## Sincronizacion de la navegacion del Cliente: 26 de septiembre de 2026
 
 El job de navegador de la ejecucion

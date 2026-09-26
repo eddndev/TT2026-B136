@@ -1,4 +1,5 @@
 """Measure the ordinary build before selecting bounded coverage compile jobs."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -8,16 +9,16 @@ import subprocess
 GIB = 1024**3
 
 
-def jobs(limit_bytes, compiler_peak_bytes):
+def jobs(limit_bytes, compiler_peak_bytes, maximum=2):
     if compiler_peak_bytes <= 0:
         return 1
     # Reserve services/runner memory and twice the measured compiler footprint.
     # The extra margin covers instrumentation and the grouped test harnesses.
     worker_bytes = 2 * compiler_peak_bytes + 256 * 1024**2
-    return max(1, min(2, (limit_bytes - 2 * GIB) // worker_bytes))
+    return max(1, min(maximum, (limit_bytes - 2 * GIB) // worker_bytes))
 
 
-def memory_limit():
+def memory_limit(ceiling_bytes=6 * GIB):
     relative = next(
         line.split(":", 2)[2]
         for line in Path("/proc/self/cgroup").read_text().splitlines()
@@ -25,7 +26,7 @@ def memory_limit():
     )
     root = Path("/sys/fs/cgroup")
     group = root / relative.lstrip("/")
-    limits = [6 * GIB]
+    limits = [ceiling_bytes]
     while group == root or root in group.parents:
         path = group / "memory.max"
         if path.exists() and path.read_text().strip() != "max":
@@ -37,6 +38,10 @@ def memory_limit():
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-jobs", type=int, choices=range(1, 5), default=2)
+    parser.add_argument("--memory-ceiling-gib", type=int, choices=range(1, 25), default=6)
+    args = parser.parse_args()
     build = subprocess.run(
         ["cargo", "build", "--workspace", "--locked", "--message-format=json"],
         env={**os.environ, "CARGO_BUILD_JOBS": "1"}, text=True, stdout=subprocess.PIPE,
@@ -54,7 +59,8 @@ def main():
     previous = json.loads(measurement.read_text()) if measurement.exists() else 0
     peak = max(peak if compiled else 0, previous)
     # Cargo alone on a warm cache is not evidence that two rustc workers fit.
-    workers = jobs(memory_limit(), peak) if peak >= 256 * 1024**2 else 1
+    limit = memory_limit(args.memory_ceiling_gib * GIB)
+    workers = jobs(limit, peak, args.max_jobs) if peak >= 256 * 1024**2 else 1
     measurement.write_text(json.dumps(peak))
     print(f"Compiler peak: {peak // 1024**2} MiB; coverage build jobs: {workers}")
     with open(os.environ["GITHUB_ENV"], "a") as stream:

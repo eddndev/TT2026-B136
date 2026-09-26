@@ -3,10 +3,10 @@
 # Jobs:
 #   format       - rustfmt check
 #   lint         - clippy with warnings denied
-#   test         - one half of workspace tests and coverage per repository runner
+#   test         - isolated tests and coverage on repository runners
 #   dispatch-measurement - manual extended dispatch timing campaign
 #   msrv         - build check on the minimum supported Rust version (1.88)
-#   coverage     - merge both reports and gate at 90 percent
+#   coverage     - merge the required reports and gate at 90 percent
 #                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
 #   binary-size  - release binary of despacho-cli must stay under 25 MB
@@ -65,15 +65,12 @@ jobs:
 
   test:
     if: ${{ !inputs.dispatch_measurement }}
-    name: Test (${{ matrix.shard }}/2)
+    name: Test (${{ matrix.shard }}/${{ matrix.total }})
     strategy:
       fail-fast: false
+      # Activate only after provisioning; see docs/adr/0050-isolated-test-slots.md.
       matrix:
-        include:
-          - shard: 1
-            runner: tt-ci-vps1
-          - shard: 2
-            runner: tt-ci-vps2
+        include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":4}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
     runs-on: [self-hosted, Linux, X64, "${{ matrix.runner }}"]
     timeout-minutes: 210
     services:
@@ -84,7 +81,7 @@ jobs:
         ports:
           - '127.0.0.1::5432'
         options: >-
-          --memory 768m
+          --memory ${{ matrix.slots > 0 && '2g' || '768m' }}
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
           --health-timeout 3s
@@ -151,6 +148,10 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov@0.9.1
+      - uses: taiki-e/install-action@v2
+        if: ${{ matrix.slots > 0 }}
+        with:
+          tool: cargo-nextest@0.9.146
       - name: Check CI helpers and native format setup
         run: |
           python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
@@ -169,12 +170,27 @@ jobs:
           python3 -B scripts/tests/test_judicial_calendar_generator.py
           python3 -B scripts/tests/test_judicial_calendar_sql.py
       - name: Select bounded compiler count
-        run: python3 -B scripts/ci-resources.py
+        env:
+          MAX_COMPILERS: ${{ matrix.slots > 0 && '4' || '2' }}
+          MEMORY_CEILING_GIB: ${{ matrix.slots > 0 && '24' || '6' }}
+        run: python3 -B scripts/ci-resources.py --max-jobs "$MAX_COMPILERS" --memory-ceiling-gib "$MEMORY_CEILING_GIB"
       - name: Check documentation examples
         if: ${{ matrix.shard == 1 }}
         run: cargo test --workspace --doc --locked
       - name: Run this shard with coverage
+        if: ${{ matrix.slots == 0 }}
         run: python3 -B scripts/ci_test_shard.py "${{ matrix.shard }}"
+      - name: Run individually scheduled tests with isolated backends
+        if: ${{ matrix.slots > 0 }}
+        run: python3 -B scripts/ci_nextest.py --slots "${{ matrix.slots }}"
+      - name: Publish individual test durations
+        if: ${{ always() && matrix.slots > 0 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-durations
+          path: output/ci-nextest-junit.xml
+          if-no-files-found: warn
+          retention-days: 7
       - name: Publish coverage from this execution
         uses: actions/upload-artifact@v4
         with:
@@ -286,10 +302,12 @@ jobs:
           pattern: workspace-coverage-*
           path: coverage-shards
       - name: Enforce the per-crate gate on the cryptographic crates
+        env:
+          EXPECTED_SHARDS: ${{ vars.TT_CI_DEDICATED == 'true' && '1' || '2' }}
         run: |
           python3 -B scripts/merge_coverage_shards.py \
-            coverage-shards/workspace-coverage-1/coverage-shard-1.info \
-            coverage-shards/workspace-coverage-2/coverage-shard-2.info coverage.json
+            --expected-shards "$EXPECTED_SHARDS" \
+            coverage-shards/workspace-coverage-*/coverage-shard-*.info coverage.json
           scripts/coverage-gate.sh coverage.json
 
   deny:
