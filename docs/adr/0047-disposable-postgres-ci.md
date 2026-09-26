@@ -25,18 +25,20 @@ databases and verify them in a new connection. Keep schema isolation, startup
 validation, permissions, and failure tests. These settings do not apply to
 production or developer databases.
 
-Use three Rust test threads within the existing shared three-CPU and 5-GiB
-runner limit. Keep a single test job and a single coverage collection. Allow
-up to 180 minutes for the first complete campaign after this change so a
-slow run can produce a result and coverage report; tighten that limit after
-measuring the completed run. Do not count a cancelled or timed-out run as a
-passed regression.
+Keep two Rust test threads within the existing shared three-CPU and 5-GiB
+runner limit. A three-thread campaign made the alert suite slower and one
+alert test hit the one-second audit lock timeout. The database-wide audit lock
+can contend even when tests use isolated schemas. Keep a single test job and
+a single coverage collection. Allow up to 180 minutes for the first complete
+campaign so a slow run can produce a result and coverage report. Tighten that
+limit after measuring the completed run. Do not count a cancelled or timed-out
+run as a passed regression.
 
 ## Consequences
 
 A host crash can lose or corrupt the disposable test database. Each CI job
 creates it from scratch, so no committed data depends on its recovery.
 PostgreSQL still provides normal transactional semantics during the job.
-Extra test concurrency may increase memory use; the shared cgroup remains the
-hard limit, and the completed run must be checked for memory events and time.
+The shared cgroup remains the hard resource limit, and the completed run must
+be checked for memory events and time.
 The change is a performance hypothesis until measured in a full CI run.

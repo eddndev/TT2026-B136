@@ -17,12 +17,24 @@ cancelo al empezar otro. Los grupos mas costosos fueron `deadline_suite_1`
 `alert_suite_1` (527.04 s) y los dos grupos `case_suite` (350.38 y 340.10 s).
 Esta es evidencia historica de una campana incompleta, no un resultado global.
 
+La siguiente campana, con configuracion desechable de PostgreSQL y tres hilos,
+fallo en `alert_suite_1`: 24 pruebas aprobaron y
+`activation_audit_failure_rolls_back_inbox_outbox_and_plan_together` recibio
+un error `Busy` al adquirir el candado de auditoria antes de inyectar su fallo.
+El job termino en 15 min 35 s; Coverage se omitio. El grupo de alertas tardo
+538.23 s, frente a 527.04 s con dos hilos en la campana anterior. El candado
+de auditoria es comun a todos los esquemas de esa base de datos y el adaptador
+de alertas limita su espera a un segundo. Por eso se retiran los tres hilos;
+no hay evidencia de que hayan acelerado esa prueba. Web aprobo ambos jobs en
+[la ejecucion 36205760409](https://github.com/eddndev/TT2026-B136/actions/runs/36205760409)
+para la cabeza `9fd5110`. El resultado completo de Rust sigue pendiente.
+
 El build ordinario reutilizo su cache y registro 0 MiB como pico medido, por lo
 que la seleccion conservadora mantuvo un compilador. El grupo de memoria del
 runner registro cero eventos OOM, aunque supero el umbral MemoryHigh. Los logs
 de PostgreSQL muestran checkpoints frecuentes de miles de archivos. Para la
 siguiente campana se configuran solo sus bases desechables sin durabilidad de
-caida, se usan tres hilos de pruebas dentro del mismo tope 3 CPU/5 GiB y se
+caida, se conservan dos hilos de pruebas dentro del mismo tope 3 CPU/5 GiB y se
 amplia temporalmente el tiempo maximo a 180 minutos para obtener el resultado
 completo. La razon y el riesgo estan en [ADR 0047](adr/0047-disposable-postgres-ci.md).
 Se medira el tiempo completo antes de afirmar una aceleracion o reducir el
@@ -31,6 +43,10 @@ previa de configuracion fallo con `on|on|on` y aprobo con `off|off|off` despues
 de aplicar el ajuste. Con esa configuracion, 17 pruebas focales de despacho
 aprobaron en **100.22 s de pruebas** (105.49 s incluyendo preparacion). Esta
 medicion local no reemplaza la regresion instrumentada del VPS.
+Tras volver a dos hilos, la suite local de alertas con PostgreSQL y Redis
+desechables y la misma configuracion no durable aprobo **25 pruebas en 79.78 s**,
+incluida la que habia fallado en CI. La diferencia de equipo e instrumentacion
+impide usar ese tiempo para estimar la duracion del VPS.
 
 ## Reduccion del costo de CI: 21 de septiembre de 2026
 
