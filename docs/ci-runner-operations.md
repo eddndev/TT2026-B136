@@ -5,7 +5,7 @@
 El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta
 exclusiva del runner y Docker con servicios desechables. Registrar un solo
 runner de este repositorio con la etiqueta `tt-ci-dedicated`. Un unico proceso
-Nextest reparte las pruebas individuales entre seis slots; no instalar
+Nextest reparte las pruebas individuales entre ocho slots; no instalar
 cuatro runners que compilen simultaneamente el mismo workspace.
 
 Limitar conjuntamente el usuario del runner y su Docker rootless a 7 CPU y

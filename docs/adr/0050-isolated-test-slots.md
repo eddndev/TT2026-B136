@@ -14,7 +14,7 @@ compilation and build caches.
 
 Provide an opt-in dedicated Linux x86_64 runner labeled `tt-ci-dedicated`.
 The repository variable `TT_CI_DEDICATED=true` selects one workspace coverage
-job, using cargo-nextest 0.9.146 to schedule individual tests with six active
+job, using cargo-nextest 0.9.146 to schedule individual tests with eight active
 slots. The default remains the two-runner configuration from
 `docs/adr/0049-parallel-coverage-runners.md` until the dedicated host is ready.
 
@@ -59,7 +59,8 @@ Individual tests from a long executable can occupy different slots without
 replicating its compilation or weakening its assertions. Nextest runs each test
 in a separate process, so process-local fixture caches are rebuilt per test;
 the first complete campaign must quantify that cost. Four slots were the initial
-bound. Six slots are the next measured configuration, not a demonstrated optimum. The helper supports one through eight slots
+bound. Six slots passed the full regression. Eight slots are the next configuration
+to measure within the existing host CPU and memory limits. The helper supports one through eight slots
 for subsequent measured tuning. Local verification still uses one slot.
 
 A 10-20 minute end-to-end CI duration is a performance objective, not a measured

@@ -10,6 +10,7 @@ import { provisionResourceActivities } from "./web-resource-activity-fixtures.mj
 // Provision hearing scenarios using independent accounts in disposable services.
 import { provisionCalendars } from "./web-calendar-fixtures.mjs";
 import { provisionHearingResults } from "./web-hearing-result-fixtures.mjs";
+import { provisionFixtures } from "./web-fixture-provisioning.mjs";
 import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 const fixturePath = process.env.TT_WEB_FIXTURES,
@@ -253,14 +254,22 @@ try {
   }
   fixture.hearings = hearings;
   fixture.alerts = await provisionAlerts(request, hearings);
-  fixture.hearingResults = await provisionHearingResults(request);
-  fixture.proceduralFacts = await provisionProceduralFacts(request);
-  fixture.proceduralResources = await provisionResources(request);
-  fixture.resourceActivities = await provisionResourceActivities(request);
-  fixture.documentContent = await provisionDocumentContent(request);
-  fixture.members = await provisionMembers(request);
-  fixture.judicialCalendars = await provisionCalendars(request);
-  fixture.deadlines = await provisionDeadlines(request);
+  Object.assign(
+    fixture,
+    await provisionFixtures(
+      {
+        hearingResults: () => provisionHearingResults(request),
+        proceduralFacts: () => provisionProceduralFacts(request),
+        proceduralResources: () => provisionResources(request),
+        resourceActivities: () => provisionResourceActivities(request),
+        documentContent: () => provisionDocumentContent(request),
+        members: () => provisionMembers(request),
+        judicialCalendars: () => provisionCalendars(request),
+        deadlines: () => provisionDeadlines(request),
+      },
+      Number(process.env.TT_WEB_FIXTURE_WORKERS || "1"),
+    ),
+  );
   if (process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === "1") {
     fixture.deadlineReevaluation = await provisionDeadlineReevaluation(request);
     fixture.combinedAgenda = await provisionCombinedAgenda(request);

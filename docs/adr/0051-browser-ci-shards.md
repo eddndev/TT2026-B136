@@ -27,6 +27,15 @@ that their sets are disjoint and their union is complete. Full remote runs
 then validate both correctness and elapsed time. Local verification remains
 one worker and one suite at a time.
 
+On remote jobs, provision independent fixture families in batches of two.
+Each family retains its sequential commands, accounts and case boundaries;
+hearing-dependent alerts and the Follow/combined-agenda setup retain their
+ordering. Wait for every task in a failed batch before logging out the shared
+provisioner, and never start later batches after failure. The default remains
+one provisioning worker for local execution. Emit per-family durations.
+Browser builds use line-table debug information as described in
+`docs/adr/0027-ci-debug-information.md`.
+
 ## Status
 
 Accepted for measured rollout.

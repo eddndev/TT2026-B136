@@ -15,6 +15,7 @@ on:
       - 'scripts/web-case-administration-fixtures.mjs'
       - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/web-hearing-fixtures.mjs'
+      - 'scripts/web-fixture-provisioning.mjs'
       - 'scripts/web-document-content-fixtures.mjs'
       - 'scripts/web-member-fixtures.mjs'
       - 'scripts/web-document-content-corruption.mjs'
@@ -46,6 +47,7 @@ on:
       - 'scripts/web-case-administration-fixtures.mjs'
       - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/web-hearing-fixtures.mjs'
+      - 'scripts/web-fixture-provisioning.mjs'
       - 'scripts/web-document-content-fixtures.mjs'
       - 'scripts/web-member-fixtures.mjs'
       - 'scripts/web-document-content-corruption.mjs'
@@ -124,6 +126,8 @@ jobs:
       matrix:
         shard: [1, 2]
     runs-on: ubuntu-24.04
+    env:
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -149,6 +153,7 @@ jobs:
       - name: Run browser against Rust and disposable services
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
+          TT_WEB_FIXTURE_WORKERS: '2'
         run: bash scripts/web-demo.sh --shard=${{ matrix.shard }}/2 --reporter=line,junit
       - name: Publish real browser durations
         if: always()

@@ -4,6 +4,34 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Seis slots y navegador dividido: 26 de septiembre de 2026
+
+La ejecucion [36278172116](https://github.com/eddndev/TT2026-B136/actions/runs/36278172116)
+aprobo en **14m47s**, con **3049/3049** pruebas y dos ignoradas. La ejecucion
+instrumentada tomo **839.417s** y reutilizo compilacion (0.16s). La mejora
+sobre los 16m45s calientes anteriores fue de 1m58s; no alcanzo diez minutos.
+
+El [workflow Web](https://github.com/eddndev/TT2026-B136/actions/runs/36278172087)
+aprobo en **13m22s**. Los reportes JUnit confirman las **358** pruebas simuladas
+y **43** reales sin fallos. El gate de las simuladas termino en 6m46s. En la
+particion real mas lenta, la compilacion tomo 2m27s, la preparacion posterior
+unos 5m12s y el navegador 4.6 minutos. La preparacion domina ahora ese camino.
+
+Durante el tramo de pruebas, el cgroup conjunto de VPS3 uso **4.79 CPU** de
+promedio y **5.24 CPU** como mayor promedio de muestra de 15 segundos. No hubo
+throttling de CPU, OOM ni swap. El maximo de memoria cargada al cgroup fue
+**16.60 GiB**, incluyendo hasta 14.80 GiB de cache de archivos; no equivale a
+RSS. Aumentaron eventos jerarquicos de limite de memoria sin alcanzar el
+limite agregado: la siguiente medicion recoge tambien los subgrupos para
+identificar su origen. No se atribuyen esos eventos a un servicio sin evidencia.
+
+Siguiente ajuste: ocho slots Rust conservando limites del host, preparacion
+remota de fixtures independientes en lotes de dos y debug de lineas para el
+build del navegador. Cuatro tests focales de concurrencia, orden local,
+rechazo de limites y drenaje ante fallo fallaron antes de agregar el helper y
+aprobaron despues. Actionlint y diff checks aprobaron. La siguiente regresion
+remota queda pendiente; no se repitio una suite completa local.
+
 ## Medicion completa y siguiente ajuste de CI: 26 de septiembre de 2026
 
 La campana [36275446647](https://github.com/eddndev/TT2026-B136/actions/runs/36275446647)
