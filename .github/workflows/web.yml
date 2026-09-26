@@ -73,7 +73,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
+  verify-shards:
+    name: Web checks (${{ matrix.shard }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -90,10 +95,34 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --workers=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/browser-junit.xml
+      - name: Publish browser durations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-durations-${{ matrix.shard }}
+          path: web/test-results/browser-junit.xml
+          if-no-files-found: error
+          retention-days: 7
 
-  integration:
-    name: Browser with real services
+  verify:
+    if: always()
+    needs: verify-shards
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every web shard
+        env:
+          SHARD_RESULT: ${{ needs.verify-shards.result }}
+        run: test "$SHARD_RESULT" = success
+
+  integration-shards:
+    name: Browser with real services (${{ matrix.shard }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -118,15 +147,36 @@ jobs:
           library=$(bash scripts/setup-document-formats.sh)
           printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
       - name: Run browser against Rust and disposable services
-        run: bash scripts/web-demo.sh
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
+        run: bash scripts/web-demo.sh --shard=${{ matrix.shard }}/2 --reporter=line,junit
+      - name: Publish real browser durations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-browser-durations-${{ matrix.shard }}
+          path: web/test-results-live/browser-junit.xml
+          if-no-files-found: error
+          retention-days: 7
       - name: Preserve failed browser screenshots and diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: real-browser-failure
+          name: real-browser-failure-${{ matrix.shard }}
           path: |
             web/test-results-live/**/*.png
             web/test-results-live/**/error-context.md
             web/test-results-live/**/api-failures.json
           if-no-files-found: ignore
           retention-days: 7
+
+  integration:
+    name: Browser with real services
+    if: always()
+    needs: integration-shards
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every real browser shard
+        env:
+          SHARD_RESULT: ${{ needs.integration-shards.result }}
+        run: test "$SHARD_RESULT" = success

@@ -5,7 +5,7 @@
 El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta
 exclusiva del runner y Docker con servicios desechables. Registrar un solo
 runner de este repositorio con la etiqueta `tt-ci-dedicated`. Un unico proceso
-Nextest reparte las pruebas individuales entre cuatro slots; no instalar
+Nextest reparte las pruebas individuales entre seis slots; no instalar
 cuatro runners que compilen simultaneamente el mismo workspace.
 
 Limitar conjuntamente el usuario del runner y su Docker rootless a 7 CPU y
@@ -47,7 +47,10 @@ compilacion, ejecucion y reporte con cache frio y caliente; descargar
 continuamente Actions. Una campana verde acredita correccion; el objetivo de
 10-20 minutos solo se acredita con una medicion completa. Aumentar de cuatro
 a seis u ocho slots requiere revisar CPU, memoria, conexiones PostgreSQL y
-los resultados de esa campana. El navegador conserva su workflow actual.
+los resultados de esa campana. El navegador reparte sus suites entre dos jobs independientes por suite;
+cada job conserva un solo worker y servicios aislados. Ambos deben aprobar
+para que apruebe el check agregado. Ver
+[ADR 0051](adr/0051-browser-ci-shards.md).
 
 Ver [ADR 0050](adr/0050-isolated-test-slots.md).
 

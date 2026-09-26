@@ -4,6 +4,30 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Medicion completa y siguiente ajuste de CI: 26 de septiembre de 2026
+
+La campana [36275446647](https://github.com/eddndev/TT2026-B136/actions/runs/36275446647)
+aprobo con cuatro slots: **19m55s** con compilacion fria, **3049/3049** pruebas
+ordinarias aprobadas y dos ignoradas, **953.784s** de ejecucion instrumentada.
+Los gates por crate conservaron el 90% exigido; los porcentajes mostrados
+fueron 97% dominio, 95% aplicacion y 93% infraestructura.
+
+La siguiente ejecucion de main,
+[36276646491](https://github.com/eddndev/TT2026-B136/actions/runs/36276646491),
+aprobo en **16m45s** con cache reutilizada. Su
+[workflow Web](https://github.com/eddndev/TT2026-B136/actions/runs/36276646536)
+aprobo en **14m01s**: 358 pruebas con API simulada tomaron 12 minutos; 43
+pruebas con servicios reales tomaron 7.5 minutos, mas preparacion de fixtures.
+Estas mediciones sustituyen el estado pendiente de las secciones historicas.
+
+El siguiente ajuste propone seis slots Rust y dos particiones por suite de
+navegador, manteniendo los gates y un worker por particion. La validacion
+estatica de workflows y los **19/19** tests de helpers CI aprobaron localmente.
+La enumeracion de Playwright comprueba que las particiones son disjuntas y
+que su union conserva las 358 y 43 pruebas originales. Esto comprueba la
+seleccion, no sustituye la ejecucion remota. El tiempo con seis slots sigue
+pendiente; no se afirma todavia un CI de diez minutos.
+
 ## Validacion del nuevo host principal de CI: 26 de septiembre de 2026
 
 El nuevo host Ubuntu 22.04, con 8 vCPU y 32 GB, cuenta con un runner exclusivo
