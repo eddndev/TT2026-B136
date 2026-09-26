@@ -3,9 +3,10 @@
 # Jobs:
 #   format       - rustfmt check
 #   lint         - clippy with warnings denied
-#   test         - workspace tests and coverage in one pass on the repository runner
+#   test         - one half of workspace tests and coverage per repository runner
+#   dispatch-measurement - manual extended dispatch timing campaign
 #   msrv         - build check on the minimum supported Rust version (1.88)
-#   coverage     - consume the test report, gated at 90 percent
+#   coverage     - merge both reports and gate at 90 percent
 #                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
 #   binary-size  - release binary of despacho-cli must stay under 25 MB
@@ -63,8 +64,17 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
 
   test:
-    name: Test
-    runs-on: [self-hosted, Linux, X64, tt-ci-vps2]
+    if: ${{ !inputs.dispatch_measurement }}
+    name: Test (${{ matrix.shard }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 1
+            runner: tt-ci-vps1
+          - shard: 2
+            runner: tt-ci-vps2
+    runs-on: [self-hosted, Linux, X64, "${{ matrix.runner }}"]
     timeout-minutes: 210
     services:
       postgres:
@@ -96,6 +106,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Select PostgreSQL 16 client tools
+        run: |
+          if [ -x /usr/pgsql-16/bin/pg_dump ]; then
+            printf '/usr/pgsql-16/bin\n' >> "$GITHUB_PATH"
+          fi
+      - name: Require PostgreSQL 16 client tools
+        run: |
+          pg_dump --version | grep -qE 'PostgreSQL\) 16\.'
+          pg_restore --version | grep -qE 'PostgreSQL\) 16\.'
+          psql --version | grep -qE 'PostgreSQL\) 16\.'
       - name: Configure isolated backend addresses
         env:
           POSTGRES_TEST_PORT: ${{ job.services.postgres.ports['5432'] }}
@@ -134,35 +154,95 @@ jobs:
       - name: Create isolated case and document test databases
         run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
       - name: Verify independent judicial calendar vectors and SQL guards
-        if: ${{ !inputs.dispatch_measurement }}
+        if: ${{ matrix.shard == 1 }}
         run: |
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
           python3 -B scripts/tests/test_judicial_calendar_sql.py
-      - name: Build workspace and check documentation examples
-        if: ${{ !inputs.dispatch_measurement }}
-        run: |
-          python3 -B scripts/ci-resources.py
-          cargo test --workspace --doc --locked
-      - name: Run workspace tests once with coverage
-        if: ${{ !inputs.dispatch_measurement }}
-        run: python3 -B scripts/ci-coverage.py
+      - name: Select bounded compiler count
+        run: python3 -B scripts/ci-resources.py
+      - name: Check documentation examples
+        if: ${{ matrix.shard == 1 }}
+        run: cargo test --workspace --doc --locked
+      - name: Run this shard with coverage
+        run: python3 -B scripts/ci_test_shard.py "${{ matrix.shard }}"
       - name: Publish coverage from this execution
-        if: ${{ !inputs.dispatch_measurement }}
         uses: actions/upload-artifact@v4
         with:
-          name: workspace-coverage
-          path: coverage.json
+          name: workspace-coverage-${{ matrix.shard }}
+          path: coverage-shard-${{ matrix.shard }}.info
           if-no-files-found: error
           retention-days: 7
+
+  dispatch-measurement:
+    if: ${{ inputs.dispatch_measurement }}
+    name: Extended dispatch measurement
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps2]
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - '127.0.0.1::5432'
+        options: >-
+          --memory 768m
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - '127.0.0.1::6379'
+        options: >-
+          --memory 128m
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      CARGO_BUILD_JOBS: '1'
+      RUST_TEST_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure isolated backend addresses
+        env:
+          POSTGRES_TEST_PORT: ${{ job.services.postgres.ports['5432'] }}
+          REDIS_TEST_PORT: ${{ job.services.redis.ports['6379'] }}
+        run: |
+          printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'IDENTITY_TEST_REDIS_URL=redis://127.0.0.1:%s/\n' "$REDIS_TEST_PORT" >> "$GITHUB_ENV"
+      - name: Configure disposable PostgreSQL for CI
+        run: bash scripts/configure-ci-postgres.sh
+      - name: Prepare disk-backed temporary directory
+        run: |
+          mkdir -p output/tmp
+          chmod 700 output/tmp
+          test -x "$HOME/.cargo/bin/rustup"
+          printf '%s/.cargo/bin\n' "$HOME" >> "$GITHUB_PATH"
+          printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/tt-ci/target"
+          printf 'CARGO_TARGET_DIR=%s/.cache/tt-ci/target\n' "$HOME" >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Prepare verified document format library
+        run: |
+          library=$(bash scripts/setup-document-formats.sh)
+          printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
+      - name: Create isolated case and document test databases
+        run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
       - name: Measure extended dispatch campaign
-        if: ${{ inputs.dispatch_measurement }}
         run: |
           set -o pipefail
           cargo test -p infrastructure --test deadline_dispatch_measurement --locked \
             -- --ignored --nocapture 2>&1 | tee output/dispatch-measurement.log
       - name: Publish extended measurement
-        if: ${{ always() && inputs.dispatch_measurement }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: dispatch-measurement
@@ -194,9 +274,14 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: workspace-coverage
+          pattern: workspace-coverage-*
+          path: coverage-shards
       - name: Enforce the per-crate gate on the cryptographic crates
-        run: scripts/coverage-gate.sh coverage.json
+        run: |
+          python3 -B scripts/merge_coverage_shards.py \
+            coverage-shards/workspace-coverage-1/coverage-shard-1.info \
+            coverage-shards/workspace-coverage-2/coverage-shard-2.info coverage.json
+          scripts/coverage-gate.sh coverage.json
 
   deny:
     if: ${{ !inputs.dispatch_measurement }}

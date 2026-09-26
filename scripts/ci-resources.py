@@ -25,7 +25,7 @@ def memory_limit():
     )
     root = Path("/sys/fs/cgroup")
     group = root / relative.lstrip("/")
-    limits = [5 * GIB]
+    limits = [6 * GIB]
     while group == root or root in group.parents:
         path = group / "memory.max"
         if path.exists() and path.read_text().strip() != "max":

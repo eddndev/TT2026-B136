@@ -4,6 +4,55 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Distribucion del CI entre dos runners: 26 de septiembre de 2026
+
+El repositorio es privado y cuenta con dos runners dedicados en linea. El
+runner de VPS1 tiene un limite de 2 CPU y 4 GiB para su usuario y Docker
+rootless; el de VPS2 tiene 4 CPU y 6 GiB. El workflow propuesto asigna grupos
+de pruebas Rust disjuntos a `Test (1/2)` y `Test (2/2)`, cada uno con PostgreSQL
+y Redis desechables. El job Coverage solo inicia cuando ambos han aprobado y
+une la cobertura por linea antes de aplicar los umbrales actuales. La campaña
+extendida de despacho sigue siendo manual. Todavia no hay una medicion de
+duracion ni una aprobacion de CI para esta distribucion.
+La asignacion usa una proporcion de capacidad 2:3: VPS1 recibe los ejecutables
+rapidos y 27 grupos de infraestructura; VPS2 recibe los otros 39. Esa
+proporcion es inicial y debera contrastarse con la duracion real de ambos jobs.
+
+Antes de la primera ejecucion distribuida se detecto que VPS1 tenia las
+herramientas cliente de PostgreSQL 17, mientras el servicio de pruebas usa
+PostgreSQL 16. Se instalaron las herramientas 16 junto a las existentes y el
+workflow ahora exige esa version antes de iniciar la suite. La reproduccion
+local con cliente 18 y servidor 16 fallo en `pg_restore` por
+`transaction_timeout`; la misma prueba aprobo 1/1 en 5.97 s con cliente 16.
+La primera suite local se detuvo al encontrar esa incompatibilidad. La nueva
+ejecucion con herramientas compatibles aprobo la restauracion y la prueba
+concurrente corregida, pero fue interrumpida por el apagado del equipo; no es
+una aprobacion completa. Se publica con la campana completa pendiente en CI.
+Los 12 tests de los helpers de CI aprobaron. Una prueba minima con dos crates
+y dos ejecutables verifico que `cargo llvm-cov --no-report` acumula sus perfiles
+y que un unico reporte LCOV final incluye las seis lineas cubiertas de ambos.
+La generacion del reporte queda fuera del bucle de ejecutables para evitar
+repetir la agregacion de perfiles durante toda la campana.
+
+## Sincronizacion de la prueba concurrente: 26 de septiembre de 2026
+
+La ejecucion [36217187390](https://github.com/eddndev/TT2026-B136/actions/runs/36217187390)
+fallo despues de 79 minutos en
+`deadline_backend_concurrency::simultaneous_connections_commit_one_successor_and_one_audit_event`.
+El primer hilo esperaba al segundo con un limite de cinco segundos, pero la
+prueba abria y validaba la segunda conexion despues de iniciar el primero.
+Ambos participantes agotaron ese limite antes de probar la escritura
+concurrente. Las otras 38 pruebas del ejecutable aprobaron; Coverage se omitio
+al depender de Test. Los otros cinco checks de Rust y ambos de Web aprobaron
+para la misma cabeza. El fallo no demuestra un defecto en la escritura de
+revisiones ni una mejora de tiempo de CI.
+
+La prueba prepara ambas conexiones antes de iniciar los hilos y permite hasta
+30 segundos para que el sistema programe a ambos participantes. Ese limite no
+agrega espera cuando llegan normalmente. La prueba focal aprobo 1/1 en 9.90 s
+con PostgreSQL 16 desechable. La campana instrumentada completa sigue
+pendiente.
+
 ## Bloqueo de migraciones por esquema: 26 de septiembre de 2026
 
 La apertura PostgreSQL tomaba un candado de migracion comun a todos los
