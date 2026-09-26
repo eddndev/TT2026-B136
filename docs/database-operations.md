@@ -159,6 +159,11 @@ incidente. CI global y el PDF de estos resultados siguen pendientes en
 
 ## Preparar un despliegue nuevo
 
+Para servicios privados y publicación por tags, seguir
+[la guía de despliegue](deployment.md). Su recuperación cambia la aplicación
+conservando la base actual y exige idéntica huella de migraciones; no es una
+restauración SQL ni permite retroceder el esquema.
+
 Crear previamente una base UTF-8 y un rol de conexión sin privilegios administrativos.
 Por ejemplo, desde una sesión de administración PostgreSQL:
 

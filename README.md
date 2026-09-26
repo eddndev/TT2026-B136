@@ -35,6 +35,13 @@ cambian los documentos. Ver [la guía de distribución](latex/README.md).
 
 ## Desarrollo
 
+### Despliegue privado
+
+La [guía de despliegue](docs/deployment.md) describe publicación por tags
+`vMAJOR.MINOR.PATCH`, acceso SSH, servicios privados, verificaciones y recuperación
+de la versión anterior. Tag y commit identifican cada paquete; datos y claves
+permanecen fuera de él.
+
 ### Workspace de Rust
 
 El prototipo se desarrolla como un workspace de Cargo con arquitectura

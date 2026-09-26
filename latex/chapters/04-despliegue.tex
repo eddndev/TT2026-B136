@@ -1,0 +1,27 @@
+\section{Despliegue privado identificado por versión}\label{sec:impl-despliegue}
+
+El proceso de entrega utiliza etiquetas de tres componentes numéricos con el
+prefijo \texttt{v}. La automatización valida su formato y resuelve la etiqueta
+al commit de origen antes de reutilizar las comprobaciones de Rust y de la
+interfaz. Solamente después de su aprobación compila y empaqueta el ejecutable,
+los archivos estáticos y la biblioteca qpdf fijada. Un manifiesto conserva
+versión, commit, huellas de archivos y huella de migraciones; no contiene
+credenciales ni material criptográfico privado.
+
+La transferencia usa una identidad Ed25519 y una llave de servidor verificada
+previamente. PostgreSQL, Redis, Rust y nginx se ejecutan como servicios del
+usuario de despliegue, con puertos limitados a la interfaz de retorno local.
+El navegador accede por un túnel SSH. Los datos, la clave de protección y el
+material de firma y sellado permanecen fuera de los directorios de versiones.
+La preparación del host no crea automáticamente una cuenta Owner ni publica
+la aplicación en Internet.
+
+La activación verifica el paquete, detiene la entrada y la API, respalda el
+estado y cambia un enlace a la versión candidata. Después comprueba las
+dependencias, la API, el proxy, el HTML y la identidad servida. Si falla,
+restablece la versión anterior y conserva las escrituras de la base actual.
+Una diferencia entre huellas de migraciones impide el cambio automático:
+retroceder el ejecutable no implica que una base migrada sea compatible.
+\rutarepo{docs/deployment.md} documenta mantenimiento, consulta de registros y
+recuperación; \rutarepo{docs/adr/0048-private-versioned-deployment.md} fundamenta
+esta separación entre versiones de aplicación y estado persistente.

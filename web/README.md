@@ -1,5 +1,9 @@
 # Qadra: interfaz del despacho
 
+El [despliegue privado por tags](../docs/deployment.md) sirve el resultado de
+`npm run build` con nginx y proxy `/api/` hacia Rust. El servidor de desarrollo
+Astro no se utiliza como servicio de despliegue.
+
 Interfaz en Astro y Svelte para la API existente del prototipo. El contrato
 está en [`docs/http-api.md`](../docs/http-api.md). `web/` es la aplicación de
 navegador; `crates/web/` sigue siendo la capa HTTP de Rust. El directorio

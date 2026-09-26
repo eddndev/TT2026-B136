@@ -1,0 +1,107 @@
+name: Deploy version
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qadra-version-deployment
+  cancel-in-progress: false
+
+jobs:
+  version:
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.identity.outputs.tag }}
+      commit: ${{ steps.identity.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate version and exact tag commit
+        id: identity
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python3 -c 'import sys; sys.path.insert(0, "ops/deploy"); from bundle import validate_version; import os; validate_version(os.environ["TAG"])'
+          commit=$(git rev-parse "refs/tags/$TAG^{commit}")
+          test "$commit" = "$(git rev-parse HEAD)"
+          test "$commit" = "$(git rev-parse "$GITHUB_SHA^{commit}")"
+          printf 'tag=%s\ncommit=%s\n' "$TAG" "$commit" >> "$GITHUB_OUTPUT"
+      - name: Verify deployment state transitions and archive admission
+        run: python3 -B -m unittest discover -s scripts/tests -p 'test_deploy_*.py'
+
+  rust:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+
+  web:
+    needs: version
+    uses: ./.github/workflows/web.yml
+
+  package:
+    needs: [version, rust, web]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CARGO_BUILD_JOBS: '1'
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+      CARGO_PROFILE_TEST_DEBUG: line-tables-only
+      VERSION: ${{ needs.version.outputs.tag }}
+      SOURCE_COMMIT: ${{ needs.version.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.commit }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build the verified version and package native dependencies
+        run: bash scripts/build-release.sh "$VERSION" "$SOURCE_COMMIT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qadra-${{ needs.version.outputs.tag }}-${{ needs.version.outputs.commit }}
+          path: output/releases/qadra-*
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy:
+    needs: [version, package]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.commit }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: qadra-${{ needs.version.outputs.tag }}-${{ needs.version.outputs.commit }}
+          path: output/releases
+      - name: Refuse deleted or moved tags
+        env:
+          TAG: ${{ needs.version.outputs.tag }}
+          SOURCE_COMMIT: ${{ needs.version.outputs.commit }}
+        run: |
+          git fetch --no-tags origin "refs/tags/$TAG"
+          test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$SOURCE_COMMIT"
+      - name: Transfer, activate and verify the exact release over pinned SSH
+        env:
+          VERSION: ${{ needs.version.outputs.tag }}
+          SOURCE_COMMIT: ${{ needs.version.outputs.commit }}
+          DEPLOY_HOST: ${{ vars.QADRA_HOST }}
+          DEPLOY_PORT: ${{ vars.QADRA_PORT }}
+          DEPLOY_USER: ${{ vars.QADRA_USER }}
+          DEPLOY_ROOT: ${{ vars.QADRA_ROOT }}
+          DEPLOY_SSH_KEY: ${{ secrets.QADRA_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.QADRA_KNOWN_HOSTS }}
+        run: bash scripts/deploy-via-ssh.sh

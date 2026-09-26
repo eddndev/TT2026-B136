@@ -1,0 +1,18 @@
+\section{Verificación del controlador de despliegue}\label{sec:pruebas-despliegue}
+
+La comprobación focal del 25 de septiembre de 2026 comprende 17 pruebas Python
+del formato de versión, identidad e integridad del paquete, rechazo de rutas
+inseguras, configuración privada, recuperación y respuestas HTTP de salud.
+Los ensayos de activación sustituyen las operaciones de servicio y los enlaces
+por dobles controlados; los de HTTP utilizan un servidor local de prueba y
+sustituyen las dependencias de base de datos. No demuestran una recuperación
+real entre dos ejecutables publicados ni un recorrido de negocio autenticado.
+
+La revisión con \texttt{actionlint} valida la sintaxis de los workflows. En el
+host se comprobaron las unidades de usuario, la configuración nginx y las
+instancias independientes de PostgreSQL y Redis, limitadas a retorno local.
+Las credenciales SSH y los parámetros de conexión se configuraron en Actions.
+La primera publicación de una etiqueta y su campaña completa constituyen
+evidencia distinta: un fallo previo de CI debe impedir el despliegue y no puede
+omitirse para obtener una activación. Los resultados focales no actualizan los
+conteos históricos de Rust ni sus porcentajes de cobertura.

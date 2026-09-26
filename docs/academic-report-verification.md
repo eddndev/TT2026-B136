@@ -1,5 +1,27 @@
 # Verificación de la actualización académica
 
+## Despliegue privado: 25 de septiembre de 2026
+
+Se añadieron apartados de implementación, verificación focal y operación por
+etiquetas. Distinguen preparación del host, 17 pruebas del controlador y
+configuración de Actions de una primera activación real todavía pendiente.
+No se modificaron resumen, objetivos, estado del arte ni conclusiones.
+
+La compilación local con TeX Live 2026, LuaLaTeX, latexmk 4.87, biber y
+makeglossaries en Windows terminó con código 0. El PDF final tiene **340 páginas
+y 5998802 bytes**, SHA-256
+`c3f9247fed6dd5c80d77c0da9c9ddfb1eb93f9822b6679762b257d33d57dad82`.
+El resultado permanece fuera de Git; no se sustituyeron entregables anteriores.
+
+Se renderizaron e inspeccionaron **seis páginas físicas: 4, 6, 205, 206, 244 y
+340**, que incluyen entradas de índice, apartados nuevos y transiciones.
+Una primera revisión detectó dos líneas aisladas al final del anexo; se condensó
+su prosa y se repitieron compilación e inspección del resultado final. Los
+apartados comprobados son legibles, sin recortes, solapamientos ni glifos ausentes.
+El log final no contiene referencias o citas indefinidas ni caracteres faltantes;
+conserva cajas subllenas, el desborde histórico de 0.11754 pt y el destino duplicado
+`page.1`. Esta comprobación documental no acredita CI, cobertura o despliegue.
+
 ## Miembros: fuentes del 19 de septiembre de 2026
 
 Se incorporaron apartados propios de implementacion, pruebas y anexo, con sus

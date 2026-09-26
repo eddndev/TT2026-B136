@@ -1,5 +1,46 @@
 # Informe de verificación local
 
+## Despliegue privado por tags: 25 de septiembre de 2026
+
+Se implementaron el workflow de tags exactos, empaquetado por versión/commit,
+transferencia SSH con llave de host fijada, servicios privados y recuperación
+conservando la base actual. Véanse [operación](deployment.md) y
+[ADR 0048](adr/0048-private-versioned-deployment.md).
+
+Verificación focal nueva en Windows con Python 3.14: **17 pruebas aprobadas**
+mediante `python -B -m unittest discover -s scripts/tests -p 'test_deploy_*.py'`.
+Cubren versión canónica, identidad y checksum, rutas/enlaces de archivo inseguros,
+configuración privada, activación, recuperación ante error de salud/respaldo,
+rechazo de esquema diferente o versión retrasada y respuestas HTTP locales.
+Las transiciones usan dobles de servicios/enlaces; la comprobación HTTP usa un
+servidor de prueba y sustituye la base de datos. No se acredita recuperación
+real de dos versiones ni un recorrido autenticado del producto.
+
+`actionlint` 1.7.12, descargado con verificación SHA-256, aprobó los tres
+workflows afectados; se deshabilitaron sus analizadores externos shellcheck y
+pyflakes, no instalados. `bash -n` aprobó ambos guiones nuevos. Los archivos de
+lógica nuevos son ASCII y menores de 400 líneas. No se modificó código Rust ni
+se actualizaron cifras históricas de cobertura. No se inició otra campaña
+Cargo: el runner `vps2-tt2026-b136` ya tenía una ejecución de cobertura activa.
+
+En Ubuntu 24.04 x86_64, mediante el acceso existente, se preparó
+`/home/hat/qadra` (0700), con configuración privada 0600, servicios systemd de
+usuario y lingering habilitado. `systemd-analyze --user verify` y `nginx -t`
+aprobaron. PostgreSQL 16 y Redis propios quedaron activos y habilitados, con
+listeners exclusivamente `127.0.0.1:15486` y `127.0.0.1:16386`. Los servicios API
+y web están preparados pero inactivos hasta recibir una versión verificada.
+La consulta `SELECT 1` con el rol runtime y `PING` autenticado de Redis aprobaron.
+Se confirmó que la llave Ed25519 proporcionada coincide con la configurada y
+ya autorizada. Los dos secretos cifrados y cuatro variables de Actions quedaron
+configurados; se verificaron sus nombres por API, sin publicar valores privados.
+
+No se publicó un tag ni se ejecutó el workflow completo de despliegue. Quedan
+por acreditar la compilación del paquete en Actions, su primera activación,
+el recorrido autenticado y la recuperación entre dos versiones reales. El
+workflow exige CI y Web exitosos para el tag; cualquier fallo bloquea el cambio.
+La actualización y comprobación académica se registran por separado en
+[el informe documental](academic-report-verification.md).
+
 La actualización académica posterior de estos resultados y la comprobación del
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
