@@ -12,6 +12,9 @@ run the complete migration and startup inventory repeatedly. The full test
 job was cancelled at its 90-minute limit before reaching the remaining
 integration executables. Its first instrumented compilation took 13 minutes
 47 seconds; the completed test executables then consumed over 75 minutes.
+With disposable PostgreSQL settings and two test threads, another run was
+cancelled at its 180-minute limit during the final infrastructure tests,
+without an assertion failure.
 PostgreSQL wrote frequent checkpoints with thousands of files while tests
 created schemas. No test requires recovery from a host or database crash.
 Transaction commit, rollback, isolation, and logical backup tests still run.
@@ -29,8 +32,10 @@ Keep two Rust test threads within the existing shared three-CPU and 5-GiB
 runner limit. A three-thread campaign made the alert suite slower and one
 alert test hit the one-second audit lock timeout. The database-wide audit lock
 can contend even when tests use isolated schemas. Keep a single test job and
-a single coverage collection. Allow up to 180 minutes for the first complete
-campaign so a slow run can produce a result and coverage report. Tighten that
+a single coverage collection. Allow up to 210 minutes for a complete
+campaign so a slow run can produce a result and coverage report. Scope the
+migration lock per schema as recorded in
+`docs/adr/0048-schema-scoped-migration-lock.md`. Tighten that
 limit after measuring the completed run. Do not count a cancelled or timed-out
 run as a passed regression.
 

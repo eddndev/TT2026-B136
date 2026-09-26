@@ -69,6 +69,18 @@ desechables y la misma configuracion no durable aprobo **25 pruebas en 79.78 s**
 incluida la que habia fallado en CI. La diferencia de equipo e instrumentacion
 impide usar ese tiempo para estimar la duracion del VPS.
 
+La campana [36207460783](https://github.com/eddndev/TT2026-B136/actions/runs/36207460783),
+con dos hilos y PostgreSQL desechable, fue cancelada exactamente al limite de
+180 minutos. El ultimo grupo completo, `typed_suite_1`, aprobo 31 pruebas a
+las 04:09:21 UTC; el job entro en `typed_suite_2` y se detuvo 25 segundos
+despues. No aparece una asercion fallida. Los otros cinco checks de Rust y los
+dos de Web aprobaron para la misma cabeza `4649d43`; Coverage se omitio al
+depender de Test. El limite se amplia a 210 minutos para completar la campana
+y producir el reporte de cobertura. El candado de migracion pasa a ser por
+esquema segun [ADR 0048](adr/0048-schema-scoped-migration-lock.md), con la
+regresion local completa descrita arriba. El tiempo total nuevo sigue sin
+medirse: el aumento de limite no cuenta como una aceleracion.
+
 ## Reduccion del costo de CI: 21 de septiembre de 2026
 
 Se sustituyen 537 ejecutables de integración por 203, conservando los archivos
