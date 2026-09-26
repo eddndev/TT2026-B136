@@ -1,14 +1,7 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_currentness_support;
-mod deadline_observation_support;
-mod deadline_service_support;
-mod deadline_support;
-mod deadline_technical_support;
-
+use crate::{
+    deadline_currentness_support, deadline_observation_support, deadline_service_support,
+    deadline_support, deadline_technical_support,
+};
 use application::{
     deadline_currentness::{evaluate_deadline_currentness, DeadlineCurrent, DeadlineFreshness},
     deadline_technical::DeadlineReevaluationInputs,

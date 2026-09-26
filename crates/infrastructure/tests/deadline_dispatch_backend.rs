@@ -1,14 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-mod deadline_dispatch_support;
-mod deadline_profile_database_support;
-mod deadline_tracked_backend_support;
-mod procedural_fact_backend_support;
-
+use crate::{
+    deadline_backend_support, deadline_dispatch_support, deadline_tracked_backend_support,
+    procedural_fact_backend_support,
+};
 use application::{
     deadline_dispatch::*, deadline_reevaluation::DependencyFamily,
     deadline_tracking::DeadlineReviewState, deadlines::*, procedural_facts::FactDeclaration,
@@ -35,14 +28,15 @@ fn event_pages_use_exclusive_uuid_and_current_heads_across_reopen() {
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let profile = dl::profile(&db);
     let source = dl::source(&db);
     let other = dl::source(&db);
     for value in [0, 20, 40, 60, 80] {
-        dispatch::legacy(&db, &profile, &source, value);
+        dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, value);
     }
-    dispatch::legacy(&db, &profile, &other, 10);
-    let old_match = dispatch::legacy(&db, &profile, &source, 30);
+    dispatch::legacy(seed_repository.as_ref(), &db, &profile, &other, 10);
+    let old_match = dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 30);
     let mut correction = dl::correct(&old_match);
     dl::definition_mut(&mut correction).input.selection.source =
         FactDeclaration::Known(TriggerSourceRef::Resolution(facts::resolution_ref(&other)));
@@ -139,10 +133,11 @@ fn rollback_sequence_gaps_and_empty_events_do_not_stall_or_skip_dispatch() {
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let profile = dl::profile(&db);
     let source = dl::source(&db);
     for value in [20, 40, 60] {
-        dispatch::legacy(&db, &profile, &source, value);
+        dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, value);
     }
     let store = dispatch::open(&db);
     dispatch::drain_existing(&mut db, &store);
@@ -190,12 +185,13 @@ fn bootstrap_repeats_without_duplicate_jobs_and_finds_late_lower_uuids() {
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let profile = dl::profile(&db);
     let source = dl::source(&db);
-    dispatch::legacy(&db, &profile, &source, 20);
-    let legacy = dispatch::legacy(&db, &profile, &source, 40);
-    dispatch::legacy(&db, &profile, &source, 60);
-    let retired = dispatch::legacy(&db, &profile, &source, 50);
+    dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 20);
+    let legacy = dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 40);
+    dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 60);
+    let retired = dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 50);
     dl::persist_legacy(&db, db.owner, dl::retire(&retired));
     let deadlines = dl::store(&db);
     let prepared =
@@ -228,7 +224,7 @@ fn bootstrap_repeats_without_duplicate_jobs_and_finds_late_lower_uuids() {
         Some(dispatch::id(20))
     );
     assert_eq!(dispatch::bootstrap_jobs(&mut db), vec![dispatch::id(20)]);
-    dispatch::legacy(&db, &profile, &source, 10);
+    dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 10);
     drop(first_store);
     for after in [Some(40), None] {
         let store = dispatch::open(&db);

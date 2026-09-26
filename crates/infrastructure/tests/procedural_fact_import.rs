@@ -1,5 +1,4 @@
-#[allow(dead_code)]
-mod legacy_database_support;
+use crate::legacy_database_support;
 use application::procedural_facts::*;
 use domain::{crypto::DocumentHasher, identity::UserId};
 use infrastructure::RingSha256Hasher;

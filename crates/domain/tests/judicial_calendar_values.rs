@@ -1,4 +1,4 @@
-mod judicial_calendar_support;
+use crate::judicial_calendar_support;
 use domain::{
     identity::{Permission, Role},
     judicial_calendars::*,

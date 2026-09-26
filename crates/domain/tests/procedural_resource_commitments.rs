@@ -1,5 +1,4 @@
-mod procedural_fact_support;
-mod procedural_resource_support;
+use crate::{procedural_fact_support, procedural_resource_support};
 use domain::{
     procedural_facts::*, procedural_resources::*, procedural_time::DeclaredProceduralTime,
 };

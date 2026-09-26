@@ -1,9 +1,7 @@
+use crate::vector_support;
 use application::ApplicationError;
 use infrastructure::typed_participant_codec;
 use serde_json::{json, Value};
-
-#[path = "../../domain/tests/typed_participant_vectors_support/mod.rs"]
-mod vector_support;
 
 fn vectors() -> Vec<Value> {
     serde_json::from_str(include_str!(

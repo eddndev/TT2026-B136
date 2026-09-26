@@ -1,4 +1,3 @@
-mod judicial_calendar_support;
 use domain::judicial_calendars::*;
 use serde_json::Value;
 use uuid::Uuid;

@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod legacy_database_support;
-
+use crate::legacy_database_support;
 use application::documents::{
     CaseDocumentStore, DocumentAction, DocumentRecord, VersionQuery, VersionSelection,
 };

@@ -16,7 +16,17 @@ use serde_json::{json, Value};
 use std::time::Instant;
 
 #[test]
+fn pages_preserve_all_jobs_at_minimum_default_and_maximum_limits() {
+    measure_pages(21);
+}
+
+#[test]
+#[ignore = "manual dispatch performance campaign; see docs/deadline-dispatch.md"]
 fn measured_pages_preserve_all_jobs_at_minimum_default_and_maximum_limits() {
+    measure_pages(240);
+}
+
+fn measure_pages(deadlines: u32) {
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
@@ -24,11 +34,12 @@ fn measured_pages_preserve_all_jobs_at_minimum_default_and_maximum_limits() {
     let mut source = dl::source(&db);
     let store = dispatch::open(&db);
     dispatch::drain_existing(&mut db, &store);
+    let repository = dl::store(&db);
     let mut expected = Vec::new();
-    for value in 0..240 {
-        let command = dispatch::command(&db, &profile, &source, value);
+    for value in 0..deadlines {
+        let command = dispatch::command(&db, &profile, &source, u128::from(value));
         expected.push(command.deadline_id);
-        dl::persist_legacy(&db, db.owner, command);
+        dl::persist_legacy_in_repository(repository.as_ref(), &db, db.owner, command);
     }
     let mut measured = Vec::new();
     for limit in [1, 20, 100] {
@@ -42,7 +53,7 @@ fn measured_pages_preserve_all_jobs_at_minimum_default_and_maximum_limits() {
             $1,$2,FALSE,NULL,FALSE,$3) c ORDER BY c.deadline_id",
                 &[
                     &i64::try_from(sequence).unwrap(),
-                    &dispatch::id(119).as_uuid(),
+                    &dispatch::id(u128::from(deadlines / 2)).as_uuid(),
                     &(i32::try_from(limit).unwrap() + 1),
                 ],
             )
@@ -61,14 +72,18 @@ fn measured_pages_preserve_all_jobs_at_minimum_default_and_maximum_limits() {
             if batch.completed_scan {
                 break;
             }
-            assert!(pages.len() <= 240, "dispatch must make bounded progress");
+            assert!(
+                pages.len() <= deadlines as usize,
+                "dispatch must make bounded progress"
+            );
         }
-        assert_eq!(total, 240);
+        assert_eq!(total, deadlines);
+        assert_eq!(pages.len(), deadlines.div_ceil(limit) as usize);
         assert_eq!(dispatch::event_jobs(&mut db, sequence), expected);
         measured.push(json!({"limit": limit, "pages_ms": pages, "query_plan": plan}));
     }
     println!(
         "dispatch_measurement={}",
-        json!({"deadlines": 240, "campaigns": measured})
+        json!({"deadlines": deadlines, "campaigns": measured})
     );
 }

@@ -94,6 +94,9 @@ export async function exercisePermissions(browser, testInfo, name, errors) {
       ).toHaveCount(0);
       await page.getByRole('button', { name: new RegExp(accounts.case.title) }).click();
       if (role === 'client') {
+        await expect(
+          page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+        ).toBeVisible();
         await expect(page.getByRole('link', { name: 'Participantes', exact: true })).toHaveCount(0);
         await page.evaluate(() => {
           location.hash = 'participants';

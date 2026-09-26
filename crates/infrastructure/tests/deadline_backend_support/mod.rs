@@ -72,7 +72,17 @@ pub fn prepared_legacy(
 /// Seed V1 history for migration, reconstruction and durable legacy reconciliation.
 pub fn persist_legacy(db: &Fixture, actor: UserId, command: DeadlineCommand) -> DeadlineDetail {
     let repository = store(db);
-    let prepared = legacy_preparation(repository.as_ref(), db, actor, &command);
+    persist_legacy_in_repository(repository.as_ref(), db, actor, command)
+}
+
+/// Reuse an opened repository when seeding several historical records.
+pub fn persist_legacy_in_repository(
+    repository: &dyn DeadlineStore,
+    db: &Fixture,
+    actor: UserId,
+    command: DeadlineCommand,
+) -> DeadlineDetail {
+    let prepared = legacy_preparation(repository, db, actor, &command);
     repository.commit(actor, prepared).unwrap()
 }
 

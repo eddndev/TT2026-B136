@@ -1,11 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod hearing_database_support;
-mod hearing_revalidation_support;
-
+use crate::{case_stage_database_support, hearing_database_support, hearing_revalidation_support};
 use application::{cases::*, hearings::*, ApplicationError};
 use domain::identity::Role;
 use hearing_database_support::*;

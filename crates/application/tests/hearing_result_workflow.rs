@@ -1,13 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-#[allow(dead_code)]
-mod hearing_result_support;
-#[allow(dead_code)]
-mod hearing_support;
-
+use crate::{hearing_result_support, hearing_support};
 use application::{hearing_results::*, ApplicationError};
 use domain::{cases::CaseId, identity::Role};
 use hearing_result_support::*;

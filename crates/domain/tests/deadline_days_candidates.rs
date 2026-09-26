@@ -1,4 +1,4 @@
-mod deadline_days_support;
+use crate::deadline_days_support;
 use deadline_days_support::*;
 use domain::deadline_days::{count_calendar_days, CivilDayCountOutcome};
 use domain::judicial_calendars::{

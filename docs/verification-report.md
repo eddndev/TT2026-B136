@@ -4,6 +4,334 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Validacion del nuevo host principal de CI: 26 de septiembre de 2026
+
+El nuevo host Ubuntu 22.04, con 8 vCPU y 32 GB, cuenta con un runner exclusivo
+del repositorio y Docker rootless bajo la misma slice de systemd: 7 CPU,
+`MemoryHigh=24G`, `MemoryMax=26G`. Una cuenta independiente queda disponible
+para futuros servicios. Los runners anteriores se conservan como respaldo.
+
+Se instalaron CPython 3.12.14 separado del interprete del sistema, clientes
+PostgreSQL 16.15, Rust 1.98.1, cargo-llvm-cov 0.9.1, Nextest 0.9.146 y qpdf
+12.4.1. El interprete satisface la comprobacion con entorno vacio. Los
+archivos de Python, runner, herramientas Cargo y qpdf se verificaron contra
+los hashes de sus publicaciones antes de utilizarlos.
+
+`scripts/tests/check_nextest_pipeline.py --slots 4` aprobo **6/6 pruebas en
+0.604 s**, con **0.32 s** de compilacion del workspace pequeno. Cuatro casos
+de backend se sincronizaron para ejecutar simultaneamente y tomaron la misma
+clave consultiva contra bases distintas, sin superar el limite de bloqueo.
+PostgreSQL y Redis fueron contenedores desechables; ambos se retiraron al
+finalizar. Tambien se verificaron LCOV fresco y seis resultados JUnit.
+Es una comprobacion del aislamiento y del entorno, no un tiempo de CI del
+proyecto. La regresion completa y el objetivo de 10-20 minutos siguen pendientes.
+
+## Preparacion del runner dedicado: 26 de septiembre de 2026
+
+El modo opcional de [ADR 0050](adr/0050-isolated-test-slots.md) programa pruebas
+individuales con Nextest 0.9.146 y bases PostgreSQL e indices Redis por slot.
+La configuracion inicial usa cuatro slots, conserva todos los tests ordinarios
+y la cobertura requerida, y deja activos los dos runners anteriores mientras
+la variable `TT_CI_DEDICATED` no sea `true`. La provision del nuevo host y su
+regresion completa siguen pendientes; no hay una mejora de tiempo global
+medida ni se declara alcanzado el objetivo de 10-20 minutos.
+
+Verificacion fresca, con una sola suite local a la vez y `output/tmp` sobre
+el filesystem de disco del checkout:
+
+- Los nuevos casos de aislamiento y conteo de reportes fallaron antes de su
+  implementacion; tambien fallo inicialmente el caso que permite cuatro
+  compiladores conservando el limite de memoria. Despues aprobaron **19/19**
+  tests de los helpers CI.
+- `scripts/tests/check_nextest_pipeline.py`, ejecutado mediante
+  `scripts/test-backends.sh`, compilo un workspace pequeno y aprobo **3/3**
+  pruebas reales con un slot, PostgreSQL, Redis y cargo-llvm-cov. Verifico los
+  URLs aislados, el reporte LCOV y tres resultados JUnit. La primera prueba
+  detecto una ruta equivocada para JUnit; se fijo explicitamente el directorio
+  de Nextest y la comprobacion completa posterior aprobo.
+- La prueba real de infraestructura
+  `deadline_worker_guards::completion_audit_failure_rolls_back_revision_and_result_but_records_retry`
+  aprobo **1/1 en 6.641 s** bajo Nextest, con un slot y los servicios
+  desechables. Las otras 34 pruebas del ejecutable se filtraron para esta
+  comprobacion focal. La compilacion reutilizada tomo 0.16 s. Es evidencia
+  local del caso, no una medida de coverage ni de la campana remota completa.
+- actionlint, sintaxis Python/TOML, ASCII de scripts y `git diff --check`
+  aprobaron. No se repitio la suite completa ni el navegador por este cambio
+  de infraestructura de pruebas.
+
+## Sincronizacion de la navegacion del Cliente: 26 de septiembre de 2026
+
+El job de navegador de la ejecucion
+[36264358697](https://github.com/eddndev/TT2026-B136/actions/runs/36264358697)
+aprobo 42 de 43 pruebas. La comprobacion de permisos de participantes
+cambiaba el hash inmediatamente despues de pulsar un expediente, sin esperar
+la consulta asincrona de su detalle. La captura del fallo mostro el resumen
+del expediente donde se esperaba el inicio: la apertura pendiente podia
+competir con la navegacion de prueba hacia una ruta no permitida.
+
+El helper espera ahora que aparezca `Resumen del expediente` antes de
+intentar esa ruta como Cliente. Conserva la exigencia de volver al inicio,
+la ausencia de solicitudes de participantes y los limites de espera. No
+cambia la navegacion ni la autorizacion de la aplicacion.
+
+La prueba integrada `case-participants.spec.mjs` aprobo **1/1**, con un
+worker de navegador y servicios Rust, PostgreSQL y Redis desechables. El caso
+tomo 24.6 s y Playwright completo su ejecucion en 29.8 s; esos tiempos no
+incluyen la compilacion ni la preparacion de los servicios y fixtures.
+Prettier, la comprobacion sintactica de Node y `git diff --check` aprobaron.
+La campana completa del navegador sigue pendiente para esta correccion.
+
+## Contencion entre fixtures de infraestructura: 26 de septiembre de 2026
+
+En la ejecucion [36262186578](https://github.com/eddndev/TT2026-B136/actions/runs/36262186578),
+`Test (1/2)` y ambos jobs de Web aprobaron. `Test (2/2)` fallo en
+`deadline_worker_guards::completion_audit_failure_rolls_back_revision_and_result_but_records_retry`:
+la preparacion de su despacho encontro `ClassifiedPort::Busy` antes de
+inyectar el fallo de auditoria. PostgreSQL registro `lock_timeout` en
+`pg_advisory_xact_lock`; las otras 34 pruebas del ejecutable aprobaron.
+Coverage se omitio por la dependencia fallida.
+
+Los esquemas de prueba comparten una base de datos y el candado global de
+mutaciones auditadas. Dos pruebas independientes pueden retenerlo el tiempo
+suficiente para agotar el limite de un segundo del adaptador de despacho.
+El reparto de CI ahora pasa `--test-threads=1` a los ejecutables de
+infraestructura; conserva el paralelismo entre runners con bases separadas,
+los hilos propios de las pruebas concurrentes y los dos hilos del harness
+en los otros crates. No se cambia el protocolo de bloqueo de la aplicacion.
+
+La regresion del comando fallo antes del cambio y los 12 tests de helpers
+de CI aprobaron despues. La prueba Rust que habia fallado aprobo 1/1 en
+5.75 s con PostgreSQL y Redis locales desechables, un hilo de harness y
+directorio temporal sobre disco btrfs. Esta ejecucion focal no reproduce
+la carga completa del VPS. La suite completa y la union de cobertura deben
+aprobar en la nueva revision antes de integrar.
+
+## Python de los workers aislados: 26 de septiembre de 2026
+
+En la primera campaña distribuida,
+[Test (1/2)](https://github.com/eddndev/TT2026-B136/actions/runs/36258835813/job/108450635744)
+falló tras unos 38 minutos en
+`document_formats::isolated::tests::continuously_readable_input_does_not_pay_a_delay_per_pipe_chunk`.
+El worker de prueba encontró Python 3.9.25 después de limpiar su entorno;
+esa versión no expone `fcntl.F_SETPIPE_SZ`. Python 3.12 ya estaba instalado,
+pero solo se seleccionaba mediante el PATH de la sesión del runner.
+
+La prueba original reprodujo el fallo aisladamente en VPS1 en 0.03 s. Se
+seleccionó Python 3.12.14 mediante `/usr/local/bin/python3`, conservando el
+intérprete de la distribución en `/usr/bin/python3`. Después, el mismo binario
+instrumentado original aprobó las cinco pruebas de aislamiento en **0.31 s**,
+con dos hilos, directorio temporal en disco y el usuario acotado del runner.
+No se modificó el código Rust ni se amplió el límite de la prueba. VPS2
+también aprobó la comprobación con entorno vacío usando Python 3.12.3.
+
+El workflow comprueba ahora Python 3.12 o posterior y la constante de Linux
+antes de compilar. La preparación de nuevos hosts está documentada en
+[las operaciones del runner](ci-runner-operations.md). `actionlint` y
+`git diff --check` aprobaron. Estos resultados focales no sustituyen la
+suite completa ni el umbral de cobertura, todavía pendientes.
+
+## Distribucion del CI entre dos runners: 26 de septiembre de 2026
+
+El repositorio es privado y cuenta con dos runners dedicados en linea. El
+runner de VPS1 tiene un limite de 2 CPU y 4 GiB para su usuario y Docker
+rootless; el de VPS2 tiene 4 CPU y 6 GiB. El workflow propuesto asigna grupos
+de pruebas Rust disjuntos a `Test (1/2)` y `Test (2/2)`, cada uno con PostgreSQL
+y Redis desechables. El job Coverage solo inicia cuando ambos han aprobado y
+une la cobertura por linea antes de aplicar los umbrales actuales. La campaña
+extendida de despacho sigue siendo manual. Todavia no hay una medicion de
+duracion ni una aprobacion de CI para esta distribucion.
+La asignacion usa una proporcion de capacidad 2:3: VPS1 recibe los ejecutables
+rapidos y 27 grupos de infraestructura; VPS2 recibe los otros 39. Esa
+proporcion es inicial y debera contrastarse con la duracion real de ambos jobs.
+
+Antes de la primera ejecucion distribuida se detecto que VPS1 tenia las
+herramientas cliente de PostgreSQL 17, mientras el servicio de pruebas usa
+PostgreSQL 16. Se instalaron las herramientas 16 junto a las existentes y el
+workflow ahora exige esa version antes de iniciar la suite. La reproduccion
+local con cliente 18 y servidor 16 fallo en `pg_restore` por
+`transaction_timeout`; la misma prueba aprobo 1/1 en 5.97 s con cliente 16.
+La primera suite local se detuvo al encontrar esa incompatibilidad. La nueva
+ejecucion con herramientas compatibles aprobo la restauracion y la prueba
+concurrente corregida, pero fue interrumpida por el apagado del equipo; no es
+una aprobacion completa. Se publica con la campana completa pendiente en CI.
+Los 12 tests de los helpers de CI aprobaron. Una prueba minima con dos crates
+y dos ejecutables verifico que `cargo llvm-cov --no-report` acumula sus perfiles
+y que un unico reporte LCOV final incluye las seis lineas cubiertas de ambos.
+La generacion del reporte queda fuera del bucle de ejecutables para evitar
+repetir la agregacion de perfiles durante toda la campana.
+
+## Sincronizacion de la prueba concurrente: 26 de septiembre de 2026
+
+La ejecucion [36217187390](https://github.com/eddndev/TT2026-B136/actions/runs/36217187390)
+fallo despues de 79 minutos en
+`deadline_backend_concurrency::simultaneous_connections_commit_one_successor_and_one_audit_event`.
+El primer hilo esperaba al segundo con un limite de cinco segundos, pero la
+prueba abria y validaba la segunda conexion despues de iniciar el primero.
+Ambos participantes agotaron ese limite antes de probar la escritura
+concurrente. Las otras 38 pruebas del ejecutable aprobaron; Coverage se omitio
+al depender de Test. Los otros cinco checks de Rust y ambos de Web aprobaron
+para la misma cabeza. El fallo no demuestra un defecto en la escritura de
+revisiones ni una mejora de tiempo de CI.
+
+La prueba prepara ambas conexiones antes de iniciar los hilos y permite hasta
+30 segundos para que el sistema programe a ambos participantes. Ese limite no
+agrega espera cuando llegan normalmente. La prueba focal aprobo 1/1 en 9.90 s
+con PostgreSQL 16 desechable. La campana instrumentada completa sigue
+pendiente.
+
+## Bloqueo de migraciones por esquema: 26 de septiembre de 2026
+
+La apertura PostgreSQL tomaba un candado de migracion comun a todos los
+esquemas de una base de datos. Las pruebas de integracion crean esquemas
+independientes, por lo que dos aperturas se serializaban aunque sus tablas no
+se compartieran. La prueba nueva retuvo el candado anterior y el candado de un
+primer esquema: con el codigo previo, abrir un segundo esquema fallo por
+`lock_timeout` en 3.11 s. Con la clave basada en el OID del esquema, esa misma
+prueba aprobo en 0.43 s. Las dos pruebas del ejecutable
+`postgres_startup` aprobaron en 2.26 s con PostgreSQL desechable. El build
+ordinario del workspace tambien aprobo. El alcance y la limitacion de
+despliegues que mezclen binarios antiguos y nuevos estan en
+[ADR 0048](adr/0048-schema-scoped-migration-lock.md).
+
+La suite completa local con PostgreSQL y Redis desechables aprobo **3049
+pruebas**, con **2 ignoradas**, en **212 ejecutables**. Despues del ultimo
+ajuste de claridad en la prueba de arranque, su ejecutable aprobo de nuevo
+las 2 pruebas. `cargo fmt --all`, `cargo build --workspace --locked` y
+`cargo clippy --workspace --all-targets --locked -- -D warnings` aprobaron.
+Los tiempos de CI se mediran antes de atribuir una mejora global.
+
+## Diagnostico de la PR42: 25 de septiembre de 2026
+
+La ejecucion [35572138875](https://github.com/eddndev/TT2026-B136/actions/runs/35572138875)
+termino cancelada exactamente al limite de 90 minutos del job Test. Format,
+Lint, MSRV, Dependency policy, Release binary size y los dos jobs Web aprobaron;
+Coverage se omitio porque dependia de Test. No se observo una asercion fallida.
+La compilacion instrumentada de la primera campana tomo 13 min 47 s. Los
+primeros 121 ejecutables completos sumaron 75.39 min de pruebas, y el job se
+cancelo al empezar otro. Los grupos mas costosos fueron `deadline_suite_1`
+(989.84 s), `deadline_suite_2` (637.44 s), `deadline_suite_3` (529.28 s),
+`alert_suite_1` (527.04 s) y los dos grupos `case_suite` (350.38 y 340.10 s).
+Esta es evidencia historica de una campana incompleta, no un resultado global.
+
+La siguiente campana, con configuracion desechable de PostgreSQL y tres hilos,
+fallo en `alert_suite_1`: 24 pruebas aprobaron y
+`activation_audit_failure_rolls_back_inbox_outbox_and_plan_together` recibio
+un error `Busy` al adquirir el candado de auditoria antes de inyectar su fallo.
+El job termino en 15 min 35 s; Coverage se omitio. El grupo de alertas tardo
+538.23 s, frente a 527.04 s con dos hilos en la campana anterior. El candado
+de auditoria es comun a todos los esquemas de esa base de datos y el adaptador
+de alertas limita su espera a un segundo. Por eso se retiran los tres hilos;
+no hay evidencia de que hayan acelerado esa prueba. Web aprobo ambos jobs en
+[la ejecucion 36205760409](https://github.com/eddndev/TT2026-B136/actions/runs/36205760409)
+para la cabeza `9fd5110`. El resultado completo de Rust sigue pendiente.
+
+El build ordinario reutilizo su cache y registro 0 MiB como pico medido, por lo
+que la seleccion conservadora mantuvo un compilador. El grupo de memoria del
+runner registro cero eventos OOM, aunque supero el umbral MemoryHigh. Los logs
+de PostgreSQL muestran checkpoints frecuentes de miles de archivos. Para la
+siguiente campana se configuran solo sus bases desechables sin durabilidad de
+caida, se conservan dos hilos de pruebas dentro del mismo tope 3 CPU/5 GiB y se
+amplia temporalmente el tiempo maximo a 180 minutos para obtener el resultado
+completo. La razon y el riesgo estan en [ADR 0047](adr/0047-disposable-postgres-ci.md).
+Se medira el tiempo completo antes de afirmar una aceleracion o reducir el
+limite de tiempo. En una base PostgreSQL local desechable, la comprobacion
+previa de configuracion fallo con `on|on|on` y aprobo con `off|off|off` despues
+de aplicar el ajuste. Con esa configuracion, 17 pruebas focales de despacho
+aprobaron en **100.22 s de pruebas** (105.49 s incluyendo preparacion). Esta
+medicion local no reemplaza la regresion instrumentada del VPS.
+Tras volver a dos hilos, la suite local de alertas con PostgreSQL y Redis
+desechables y la misma configuracion no durable aprobo **25 pruebas en 79.78 s**,
+incluida la que habia fallado en CI. La diferencia de equipo e instrumentacion
+impide usar ese tiempo para estimar la duracion del VPS.
+
+La campana [36207460783](https://github.com/eddndev/TT2026-B136/actions/runs/36207460783),
+con dos hilos y PostgreSQL desechable, fue cancelada exactamente al limite de
+180 minutos. El ultimo grupo completo, `typed_suite_1`, aprobo 31 pruebas a
+las 04:09:21 UTC; el job entro en `typed_suite_2` y se detuvo 25 segundos
+despues. No aparece una asercion fallida. Los otros cinco checks de Rust y los
+dos de Web aprobaron para la misma cabeza `4649d43`; Coverage se omitio al
+depender de Test. El limite se amplia a 210 minutos para completar la campana
+y producir el reporte de cobertura. El candado de migracion pasa a ser por
+esquema segun [ADR 0048](adr/0048-schema-scoped-migration-lock.md), con la
+regresion local completa descrita arriba. El tiempo total nuevo sigue sin
+medirse: el aumento de limite no cuenta como una aceleracion.
+
+## Reduccion del costo de CI: 21 de septiembre de 2026
+
+Se sustituyen 537 ejecutables de integración por 203, conservando los archivos
+originales y sus casos. El inventario automatizado comprueba que cada archivo
+está registrado exactamente una vez. La revisión del cambio conserva los
+nombres de funciones y atributos de prueba e ignorado existentes.
+
+La caché instrumentada se conserva por configuración compatible; cada campaña
+elimina perfiles y reportes previos. La compilación posterior usa uno o dos
+trabajadores según la memoria medida durante el build ordinario, dentro del
+mismo límite de 5 GiB. Los fixtures de despacho reutilizan un repositorio durante
+la siembra sin compartir esquemas entre pruebas ni retirar validación de
+producción. Véase [ADR 0046](adr/0046-cached-ci-test-suites.md).
+
+La campaña anterior fue cancelada para aplicar esta corrección. No se cuenta
+como aprobada ni se promete un tiempo final hasta medir la nueva ejecución.
+El navegador permanece sin cambios en esta corrección.
+
+Comprobaciones ejecutadas en esta corrección:
+
+- Resolución y compilación de comprobación de todos los targets Rust mediante
+  `cargo fix --workspace --tests --locked --allow-dirty`, seguida de la misma
+  comprobación para la agrupación final de infraestructura. Solo se aplicaron
+  sugerencias de imports sobrantes introducidos al compartir fixtures.
+- 17 escenarios de despacho agrupados, con PostgreSQL/Redis desechables, un
+  compilador y un hilo: **17 aprobados en 108.23 s de pruebas**. Incluyen
+  rollback, concurrencia, permisos, corrupción del catálogo y reapertura.
+- `cargo clippy --workspace --all-targets --locked -- -D warnings`: aprobado
+  después de resolver atributos duplicados y módulos anidados compartidos.
+- Siete pruebas Python de limpieza/invalidez de caché y límites de memoria.
+- Dos ejecuciones de un proyecto mínimo: el binario conserva su fecha de
+  compilación y la cobertura baja de 11 a 8 líneas cuando la segunda campaña
+  deja de ejecutar una función. La prueba local usó cargo-llvm-cov 0.8.7;
+  CI fija 0.9.1 y valida allí el workspace completo.
+- Inventario de 203 ejecutables, `cargo fmt --all -- --check`, `git diff
+  --check` y actionlint. La regresión global y el umbral de cobertura quedan
+  para la nueva campaña de CI; no se presentan como aprobados todavía.
+
+## Preparacion de la prueba de despacho y CI: 21 de septiembre de 2026
+
+La prueba `deadline_dispatch_measurement` reutiliza un repositorio abierto al
+sembrar los plazos. Se mantienen una muestra obligatoria de 21 registros y una
+campaña manual de 240, ambas con límites 1, 20 y 100, igualdad de identificadores,
+cantidad de páginas y total de trabajos. La campaña extensa queda ignorada en
+la ejecución normal y se puede activar explícitamente; no se retiraron las
+pruebas de corrupción, permisos, reapertura o restauración.
+
+Comprobación focal local, PostgreSQL y Redis desechables, `CARGO_BUILD_JOBS=1`,
+`RUST_TEST_THREADS=1` y temporales privados en disco Btrfs:
+
+- RED: el target no compiló al solicitar el helper de repositorio reutilizable
+  antes de incorporarlo (`E0425`).
+- GREEN: `scripts/test-backends.sh cargo test -p infrastructure --test
+  deadline_dispatch_measurement -- --include-ignored --nocapture` aprobó los
+  dos casos en **25.32 s de ejecución de pruebas**, sin incluir compilación.
+  La campaña de 240 creó los 720 trabajos esperados y la de 21 creó 63.
+- Los logs locales quedaron en `output/ci-runner-verification/`. Este resultado
+  es una ejecución focal; no acredita todavía el tiempo de la suite completa
+  en el VPS ni permite comparar directamente velocidades de equipos distintos.
+
+El flujo de CI de [ADR 0045](adr/0045-single-pass-ci-and-dispatch-measurements.md)
+ejecuta la batería instrumentada una vez y entrega su reporte al control de
+cobertura. La campaña manual en vps2, con un hilo y el límite compartido de tres CPU y
+5 GiB, aprobó los 240 registros y 720 trabajos en **149.01 s de pruebas**.
+El job completo, incluida la primera compilación, tomó **7 min 34 s**.
+El control posterior falló antes de las pruebas porque la limpieza de caché
+había eliminado `rustup`. Se retiró esa acción del runner persistente y se
+conservan los artefactos de Cargo fuera del checkout. El cierre de la suite
+completa con esta corrección aún está pendiente. La primera compilación
+instrumentada terminó y la ejecución avanzó a infraestructura, pero se canceló
+la campaña que forzaba un solo hilo por su duración. Se conserva un solo
+compilador y una sola suite, con dos hilos de pruebas dentro de los mismos
+límites de CPU y memoria. No se contabiliza la campaña cancelada como aprobada.
+El recorrido de navegador real de la corrección del selector de responsables
+aprobó sus 43 escenarios en una campaña separada; no sustituye el cierre Rust.
+
 ## Costo de contrasenas: calibracion del 19 de septiembre de 2026
 
 El adaptador genera hashes Argon2id con tres pasadas, conservando 262144 KiB

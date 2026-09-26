@@ -1,14 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-#[allow(dead_code)]
-mod deadline_dispatch_support;
-mod deadline_profile_database_support;
-mod procedural_fact_backend_support;
-
+use crate::{deadline_backend_support, deadline_dispatch_support};
 use application::deadline_dispatch::DeadlineDispatchStream;
 use deadline_backend_support as dl;
 use deadline_dispatch_support as dispatch;
@@ -78,10 +68,11 @@ fn candidate_window_applies_uuid_bounds_and_missing_jobs_before_limiting() {
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let profile = dl::profile(&db);
     let source = dl::source(&db);
     for value in [0, 10, 20, 30, 40, u128::MAX] {
-        dispatch::legacy(&db, &profile, &source, value);
+        dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, value);
     }
     let mut client = db.runtime();
     let selected = |values: &[u128]| {

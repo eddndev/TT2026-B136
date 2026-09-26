@@ -1,6 +1,4 @@
-#[path = "support/document_workflow.rs"]
-mod support;
-
+use crate::{support, verification_mocks};
 use application::documents::DocumentWorkflow;
 use application::ApplicationError;
 use domain::audit::ChainVerification;
@@ -130,8 +128,6 @@ fn historical_validation_never_calls_signing_or_timestamp_creation() {
     .unwrap();
     reader.validate_record(&record).unwrap();
 }
-
-mod verification_mocks;
 
 fn historical_reader(
     validator: verification_mocks::MockCertValidator,

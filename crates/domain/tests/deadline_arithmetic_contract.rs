@@ -1,4 +1,4 @@
-mod deadline_days_support;
+use crate::deadline_days_support;
 use deadline_days_support::*;
 use domain::deadline_arithmetic::*;
 use domain::procedural_time::DeclaredProceduralTime;

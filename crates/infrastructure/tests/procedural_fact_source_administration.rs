@@ -1,12 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod hearing_database_support;
-mod hearing_result_database_support;
-mod hearing_result_revalidation_support;
-mod procedural_fact_backend_support;
+use crate::{
+    hearing_result_database_support, hearing_result_revalidation_support,
+    procedural_fact_backend_support,
+};
 use application::{cases::*, procedural_facts::*, ApplicationError};
 use domain::{cases::CaseMetadata, identity::Role};
 use procedural_fact_backend_support::*;

@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod participant_database_support;
-
+use crate::participant_database_support;
 use application::participants::{
     participant_digest, DirectoryStatus, ParticipantId, ParticipantRevision, ParticipantStore,
     ParticipantValues,

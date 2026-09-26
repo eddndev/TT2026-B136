@@ -1,11 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-#[allow(dead_code)]
-mod procedural_fact_service_support;
-mod procedural_resource_support;
+use crate::{case_support, procedural_fact_service_support, procedural_resource_support};
 use application::{procedural_resources::*, ApplicationError};
 use domain::identity::Role;
 use procedural_resource_support::*;

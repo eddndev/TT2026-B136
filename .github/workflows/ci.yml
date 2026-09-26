@@ -3,9 +3,10 @@
 # Jobs:
 #   format       - rustfmt check
 #   lint         - clippy with warnings denied
-#   test         - full workspace test suite
+#   test         - isolated tests and coverage on repository runners
+#   dispatch-measurement - manual extended dispatch timing campaign
 #   msrv         - build check on the minimum supported Rust version (1.88)
-#   coverage     - line coverage via cargo-llvm-cov, gated at 90 percent
+#   coverage     - merge the required reports and gate at 90 percent
 #                  per cryptographic crate by scripts/coverage-gate.sh
 #   deny         - dependency policy (advisories, licenses, bans, sources)
 #   binary-size  - release binary of despacho-cli must stay under 25 MB
@@ -16,6 +17,19 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      dispatch_measurement:
+        description: Run only the extended dispatch measurement
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -25,6 +39,7 @@ env:
 
 jobs:
   format:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Format
     runs-on: ubuntu-24.04
     steps:
@@ -36,6 +51,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   lint:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Lint
     runs-on: ubuntu-24.04
     steps:
@@ -48,16 +64,24 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
 
   test:
-    name: Test
-    runs-on: ubuntu-24.04
+    if: ${{ !inputs.dispatch_measurement }}
+    name: Test (${{ matrix.shard }}/${{ matrix.total }})
+    strategy:
+      fail-fast: false
+      # Activate only after provisioning; see docs/adr/0050-isolated-test-slots.md.
+      matrix:
+        include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":4}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
+    runs-on: [self-hosted, Linux, X64, "${{ matrix.runner }}"]
+    timeout-minutes: 210
     services:
       postgres:
         image: postgres:16-alpine
         env:
           POSTGRES_PASSWORD: postgres
         ports:
-          - 5432:5432
+          - '127.0.0.1::5432'
         options: >-
+          --memory ${{ matrix.slots > 0 && '2g' || '768m' }}
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
           --health-timeout 3s
@@ -65,23 +89,74 @@ jobs:
       redis:
         image: redis:7-alpine
         ports:
-          - 6379:6379
+          - '127.0.0.1::6379'
         options: >-
+          --memory 128m
           --health-cmd "redis-cli ping"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
     env:
-      IDENTITY_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-      IDENTITY_TEST_REDIS_URL: redis://127.0.0.1:6379/
-      CASE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/case_tests
-      DOCUMENT_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/document_tests
+      CARGO_BUILD_JOBS: '1'
+      RUST_TEST_THREADS: '2'
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require Python 3.12 for isolated workers
+        run: |
+          env -i /bin/sh -c 'python3 -' <<'PY'
+          import fcntl
+          import sys
+          assert sys.version_info >= (3, 12), "Python 3.12+ is required with an empty environment"
+          assert hasattr(fcntl, "F_SETPIPE_SZ"), "Python must expose Linux pipe sizing"
+          print(sys.executable, sys.version.split()[0])
+          PY
+      - name: Select PostgreSQL 16 client tools
+        run: |
+          if [ -x /usr/pgsql-16/bin/pg_dump ]; then
+            printf '/usr/pgsql-16/bin\n' >> "$GITHUB_PATH"
+          fi
+      - name: Require PostgreSQL 16 client tools
+        run: |
+          pg_dump --version | grep -qE 'PostgreSQL\) 16\.'
+          pg_restore --version | grep -qE 'PostgreSQL\) 16\.'
+          psql --version | grep -qE 'PostgreSQL\) 16\.'
+      - name: Configure isolated backend addresses
+        env:
+          POSTGRES_TEST_PORT: ${{ job.services.postgres.ports['5432'] }}
+          REDIS_TEST_PORT: ${{ job.services.redis.ports['6379'] }}
+        run: |
+          printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'IDENTITY_TEST_REDIS_URL=redis://127.0.0.1:%s/\n' "$REDIS_TEST_PORT" >> "$GITHUB_ENV"
+      - name: Configure disposable PostgreSQL for CI
+        run: bash scripts/configure-ci-postgres.sh
+      - name: Prepare disk-backed temporary directory
+        run: |
+          mkdir -p output/tmp
+          chmod 700 output/tmp
+          test -x "$HOME/.cargo/bin/rustup"
+          printf '%s/.cargo/bin\n' "$HOME" >> "$GITHUB_PATH"
+          printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/tt-ci/target"
+          printf 'CARGO_TARGET_DIR=%s/.cache/tt-ci/target\n' "$HOME" >> "$GITHUB_ENV"
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Check native format setup
-        run: python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
+        with:
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov@0.9.1
+      - uses: taiki-e/install-action@v2
+        if: ${{ matrix.slots > 0 }}
+        with:
+          tool: cargo-nextest@0.9.146
+      - name: Check CI helpers and native format setup
+        run: |
+          python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
+          python3 -B -m unittest discover -s scripts/tests -p "test_ci_*.py"
+          python3 -B scripts/check-test-layout.py
       - name: Prepare verified document format library
         run: |
           library=$(bash scripts/setup-document-formats.sh)
@@ -89,14 +164,119 @@ jobs:
       - name: Create isolated case and document test databases
         run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
       - name: Verify independent judicial calendar vectors and SQL guards
+        if: ${{ matrix.shard == 1 }}
         run: |
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
           python3 -B scripts/tests/test_judicial_calendar_sql.py
-      - name: Run workspace tests
-        run: cargo test --workspace
+      - name: Select bounded compiler count
+        env:
+          MAX_COMPILERS: ${{ matrix.slots > 0 && '4' || '2' }}
+          MEMORY_CEILING_GIB: ${{ matrix.slots > 0 && '24' || '6' }}
+        run: python3 -B scripts/ci-resources.py --max-jobs "$MAX_COMPILERS" --memory-ceiling-gib "$MEMORY_CEILING_GIB"
+      - name: Check documentation examples
+        if: ${{ matrix.shard == 1 }}
+        run: cargo test --workspace --doc --locked
+      - name: Run this shard with coverage
+        if: ${{ matrix.slots == 0 }}
+        run: python3 -B scripts/ci_test_shard.py "${{ matrix.shard }}"
+      - name: Run individually scheduled tests with isolated backends
+        if: ${{ matrix.slots > 0 }}
+        run: python3 -B scripts/ci_nextest.py --slots "${{ matrix.slots }}"
+      - name: Publish individual test durations
+        if: ${{ always() && matrix.slots > 0 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-durations
+          path: output/ci-nextest-junit.xml
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Publish coverage from this execution
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-coverage-${{ matrix.shard }}
+          path: coverage-shard-${{ matrix.shard }}.info
+          if-no-files-found: error
+          retention-days: 7
+
+  dispatch-measurement:
+    if: ${{ inputs.dispatch_measurement }}
+    name: Extended dispatch measurement
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps2]
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - '127.0.0.1::5432'
+        options: >-
+          --memory 768m
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - '127.0.0.1::6379'
+        options: >-
+          --memory 128m
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      CARGO_BUILD_JOBS: '1'
+      RUST_TEST_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure isolated backend addresses
+        env:
+          POSTGRES_TEST_PORT: ${{ job.services.postgres.ports['5432'] }}
+          REDIS_TEST_PORT: ${{ job.services.redis.ports['6379'] }}
+        run: |
+          printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          printf 'IDENTITY_TEST_REDIS_URL=redis://127.0.0.1:%s/\n' "$REDIS_TEST_PORT" >> "$GITHUB_ENV"
+      - name: Configure disposable PostgreSQL for CI
+        run: bash scripts/configure-ci-postgres.sh
+      - name: Prepare disk-backed temporary directory
+        run: |
+          mkdir -p output/tmp
+          chmod 700 output/tmp
+          test -x "$HOME/.cargo/bin/rustup"
+          printf '%s/.cargo/bin\n' "$HOME" >> "$GITHUB_PATH"
+          printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/tt-ci/target"
+          printf 'CARGO_TARGET_DIR=%s/.cache/tt-ci/target\n' "$HOME" >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Prepare verified document format library
+        run: |
+          library=$(bash scripts/setup-document-formats.sh)
+          printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
+      - name: Create isolated case and document test databases
+        run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
+      - name: Measure extended dispatch campaign
+        run: |
+          set -o pipefail
+          cargo test -p infrastructure --test deadline_dispatch_measurement --locked \
+            -- --ignored --nocapture 2>&1 | tee output/dispatch-measurement.log
+      - name: Publish extended measurement
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dispatch-measurement
+          path: output/dispatch-measurement.log
+          if-no-files-found: error
+          retention-days: 30
 
   msrv:
+    if: ${{ !inputs.dispatch_measurement }}
     name: MSRV check (Rust 1.88)
     runs-on: ubuntu-24.04
     steps:
@@ -110,56 +290,28 @@ jobs:
 
   coverage:
     name: Coverage
+    needs: test
+    if: ${{ !inputs.dispatch_measurement }}
     runs-on: ubuntu-24.04
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-    env:
-      IDENTITY_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-      IDENTITY_TEST_REDIS_URL: redis://127.0.0.1:6379/
-      CASE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/case_tests
-      DOCUMENT_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/document_tests
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
         with:
-          components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Check native format setup
-        run: python3 -B -m unittest discover -s scripts/tests -p test_setup_document_formats.py
-      - name: Prepare verified document format library
-        run: |
-          library=$(bash scripts/setup-document-formats.sh)
-          printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
-      - name: Create isolated case and document test databases
-        run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
-      - name: Measure line coverage
-        run: |
-          cargo llvm-cov --workspace --json --summary-only \
-            --output-path coverage.json
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: workspace-coverage-*
+          path: coverage-shards
       - name: Enforce the per-crate gate on the cryptographic crates
-        run: scripts/coverage-gate.sh coverage.json
+        env:
+          EXPECTED_SHARDS: ${{ vars.TT_CI_DEDICATED == 'true' && '1' || '2' }}
+        run: |
+          python3 -B scripts/merge_coverage_shards.py \
+            --expected-shards "$EXPECTED_SHARDS" \
+            coverage-shards/workspace-coverage-*/coverage-shard-*.info coverage.json
+          scripts/coverage-gate.sh coverage.json
 
   deny:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Dependency policy
     runs-on: ubuntu-24.04
     steps:
@@ -170,6 +322,7 @@ jobs:
         run: cargo deny check
 
   binary-size:
+    if: ${{ !inputs.dispatch_measurement }}
     name: Release binary size
     runs-on: ubuntu-24.04
     steps:

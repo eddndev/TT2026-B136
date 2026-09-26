@@ -1,7 +1,4 @@
-mod case_administration_support;
-#[allow(dead_code)]
-mod case_support;
-
+use crate::{case_administration_support, case_support};
 use application::cases::*;
 use application::ApplicationError;
 use case_administration_support::{creation, detail, expected, history_query, list_query, values};

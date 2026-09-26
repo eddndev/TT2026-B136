@@ -20,9 +20,10 @@ pub fn seed(
 ) -> (DeadlineProfileDetail, FactDetail, Vec<DeadlineDetail>) {
     let profile = dl::profile(db);
     let source = dl::source(db);
+    let repository = dl::store(db);
     let rows = ids
         .iter()
-        .map(|id| dispatch::legacy(db, &profile, &source, *id))
+        .map(|id| dispatch::legacy(repository.as_ref(), db, &profile, &source, *id))
         .collect();
     (profile, source, rows)
 }

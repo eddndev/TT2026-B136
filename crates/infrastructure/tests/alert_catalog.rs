@@ -1,6 +1,4 @@
-mod case_administration_support;
-mod deadline_schema_support;
-
+use crate::{case_administration_support, deadline_schema_support};
 use case_administration_support::Fixture;
 use deadline_schema_support::open;
 use postgres::error::SqlState;

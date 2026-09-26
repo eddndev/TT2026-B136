@@ -1,13 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-mod deadline_profile_database_support;
-mod procedural_fact_backend_support;
-#[path = "deadline_profile_interleaved_support/rendezvous.rs"]
-mod rendezvous;
+use crate::{deadline_backend_support, rendezvous};
 use application::{deadline_profiles::DeadlineProfileCollection, deadlines::*, ApplicationError};
 use deadline_backend_support::*;
 use domain::identity::Role;
@@ -21,10 +12,10 @@ fn simultaneous_connections_commit_one_successor_and_one_audit_event() {
     let left = prepared_legacy(&db, db.owner, &correct(&first));
     let right = prepared_legacy(&db, db.owner, &correct(&first));
     let before = snapshot(&mut db);
-    let gate = Arc::new(rendezvous::PrepareRendezvous::new(Duration::from_secs(5)));
+    let adapters = [store(&db), store(&db)];
+    let gate = Arc::new(rendezvous::PrepareRendezvous::new(Duration::from_secs(30)));
     let mut threads = Vec::new();
-    for pending in [left, right] {
-        let adapter = store(&db);
+    for (pending, adapter) in [left, right].into_iter().zip(adapters) {
         let actor = db.owner;
         let gate = gate.clone();
         threads.push(std::thread::spawn(move || {

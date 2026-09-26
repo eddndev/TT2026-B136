@@ -1,5 +1,5 @@
 #[path = "../version_database_support/mod.rs"]
-mod version_database_support;
+pub(crate) mod version_database_support;
 
 use application::documents::{DocumentMetadata, DocumentRecord};
 use domain::cases::CaseId;

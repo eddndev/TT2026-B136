@@ -1,7 +1,4 @@
-mod agenda_support;
-#[allow(dead_code)]
-mod case_support;
-
+use crate::{agenda_support, case_support};
 use agenda_support::*;
 use application::{
     agenda::*, hearings::HearingStatusFilter, identity::Principal, ApplicationError,

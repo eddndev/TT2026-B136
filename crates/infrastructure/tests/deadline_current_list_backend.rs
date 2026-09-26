@@ -1,17 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-#[allow(dead_code)]
-mod deadline_dispatch_support;
-mod deadline_profile_database_support;
-mod deadline_tracked_backend_support;
-#[allow(dead_code)]
-mod deadline_worker_backend_support;
-mod procedural_fact_backend_support;
-
+use crate::{
+    deadline_backend_support, deadline_dispatch_support, deadline_worker_backend_support,
+    procedural_fact_backend_support,
+};
 use application::{
     deadline_currentness::DeadlineFreshness::{Changed, Current, NotChecked},
     deadline_dispatch::DeadlineDispatchStream,
@@ -38,9 +28,10 @@ fn mixed_history_list_checks_heads_before_dispatch_and_retains_each_historical_c
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let (profile, source) = worker::inputs(&mut db);
     let workflow = dl::service(&db, db.owner, Role::Owner);
-    let legacy = dispatch::legacy(&db, &profile, &source, 10);
+    let legacy = dispatch::legacy(seed_repository.as_ref(), &db, &profile, &source, 10);
     let mut fixed_policies = dl::FOLLOW_RESOLUTION;
     fixed_policies.source = dl::TrackingPolicy::Fixed;
     let fixed = dl::persist(

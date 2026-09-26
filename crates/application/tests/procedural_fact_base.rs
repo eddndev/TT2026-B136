@@ -1,4 +1,4 @@
-mod procedural_fact_base_support;
+use crate::procedural_fact_base_support;
 use application::procedural_facts::*;
 use domain::cases::CaseId;
 use procedural_fact_base_support::*;

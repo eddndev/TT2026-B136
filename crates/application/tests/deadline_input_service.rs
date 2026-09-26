@@ -1,11 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_input_service_support;
-mod deadline_input_support;
-
+use crate::{case_support, deadline_input_service_support, deadline_input_support};
 use application::{deadline_inputs::*, ApplicationError};
 use case_support::MockIdentity;
 use deadline_input_service_support::*;

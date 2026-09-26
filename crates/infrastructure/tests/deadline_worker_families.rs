@@ -1,26 +1,10 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-#[allow(dead_code)]
-mod deadline_dispatch_family_support;
-#[allow(dead_code)]
-mod deadline_dispatch_support;
-mod deadline_input_support;
-mod deadline_profile_database_support;
-mod deadline_tracked_backend_support;
-#[allow(dead_code)]
-mod deadline_worker_backend_support;
-mod deadline_worker_extra_support;
-mod hearing_database_support;
-mod hearing_result_database_support;
-mod judicial_calendar_database_support;
-mod procedural_fact_backend_support;
-#[path = "deadline_worker_extra_support/calendar.rs"]
-mod worker_calendar;
-
+use crate::{
+    case_stage_database_support, deadline_backend_support, deadline_dispatch_family_support,
+    deadline_dispatch_support, deadline_input_support, deadline_profile_database_support,
+    deadline_tracked_backend_support, deadline_worker_backend_support,
+    deadline_worker_extra_support, judicial_calendar_database_support,
+    procedural_fact_backend_support, worker_calendar,
+};
 use application::{
     cases::*,
     deadline_inputs::DeadlineCalendarRef,

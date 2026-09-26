@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod version_database_support;
-
+use crate::version_database_support;
 use infrastructure::initialize_database;
 use postgres::{Client, NoTls};
 use std::sync::mpsc;

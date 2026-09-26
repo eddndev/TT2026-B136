@@ -1,4 +1,4 @@
-mod member_support;
+use crate::member_support;
 use application::members::{
     CaseMemberQuery, MemberError, MemberSelection, MemberStore, UserAccessChange, UserQuery,
     UserStatusFilter,

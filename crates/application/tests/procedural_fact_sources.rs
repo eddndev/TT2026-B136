@@ -1,4 +1,4 @@
-mod procedural_fact_sources_support;
+use crate::procedural_fact_sources_support;
 use application::procedural_facts::*;
 use domain::{participants::DirectoryStatus, typed_participants::*};
 use procedural_fact_sources_support::*;

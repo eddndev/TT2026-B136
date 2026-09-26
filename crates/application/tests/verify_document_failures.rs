@@ -3,8 +3,7 @@
 //! the other components untouched, and turns the verdict not valid.
 //! The mocked ports live in `verification_mocks`.
 
-mod verification_mocks;
-
+use crate::verification_mocks;
 use application::verification::{ComponentStatus, Verdict, VerifyDocument};
 use domain::crypto::certificate::CertificateValidation;
 use domain::crypto::timestamp::TimestampVerification;

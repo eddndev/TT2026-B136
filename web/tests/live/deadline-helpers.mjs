@@ -35,6 +35,8 @@ export async function fill(page, kind, title) {
     .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
     .selectOption('follow');
   await form.getByRole('button', { name: 'Elegir responsable', exact: true }).click();
+  const picker = form.getByRole('region', { name: 'Elegir responsable', exact: true });
+  await expect(picker).toHaveAttribute('aria-busy', 'false');
   const responsible = form.getByRole('button', {
     name: `Elegir responsable ${accounts.litigator.email}`,
     exact: true,
@@ -49,6 +51,7 @@ export async function fill(page, kind, title) {
     );
     await next.click();
     await loaded;
+    await expect(picker).toHaveAttribute('aria-busy', 'false');
   }
   await responsible.click();
   await form

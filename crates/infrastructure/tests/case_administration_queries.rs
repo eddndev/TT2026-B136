@@ -1,4 +1,4 @@
-mod case_administration_support;
+use crate::case_administration_support;
 use application::cases::*;
 use application::ApplicationError;
 use case_administration_support::Fixture;
