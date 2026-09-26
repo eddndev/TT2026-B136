@@ -4,6 +4,28 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Sincronizacion de la navegacion del Cliente: 26 de septiembre de 2026
+
+El job de navegador de la ejecucion
+[36264358697](https://github.com/eddndev/TT2026-B136/actions/runs/36264358697)
+aprobo 42 de 43 pruebas. La comprobacion de permisos de participantes
+cambiaba el hash inmediatamente despues de pulsar un expediente, sin esperar
+la consulta asincrona de su detalle. La captura del fallo mostro el resumen
+del expediente donde se esperaba el inicio: la apertura pendiente podia
+competir con la navegacion de prueba hacia una ruta no permitida.
+
+El helper espera ahora que aparezca `Resumen del expediente` antes de
+intentar esa ruta como Cliente. Conserva la exigencia de volver al inicio,
+la ausencia de solicitudes de participantes y los limites de espera. No
+cambia la navegacion ni la autorizacion de la aplicacion.
+
+La prueba integrada `case-participants.spec.mjs` aprobo **1/1**, con un
+worker de navegador y servicios Rust, PostgreSQL y Redis desechables. El caso
+tomo 24.6 s y Playwright completo su ejecucion en 29.8 s; esos tiempos no
+incluyen la compilacion ni la preparacion de los servicios y fixtures.
+Prettier, la comprobacion sintactica de Node y `git diff --check` aprobaron.
+La campana completa del navegador sigue pendiente para esta correccion.
+
 ## Contencion entre fixtures de infraestructura: 26 de septiembre de 2026
 
 En la ejecucion [36262186578](https://github.com/eddndev/TT2026-B136/actions/runs/36262186578),
