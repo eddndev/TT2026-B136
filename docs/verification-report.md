@@ -4,6 +4,34 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Diagnostico de la PR42: 25 de septiembre de 2026
+
+La ejecucion [35572138875](https://github.com/eddndev/TT2026-B136/actions/runs/35572138875)
+termino cancelada exactamente al limite de 90 minutos del job Test. Format,
+Lint, MSRV, Dependency policy, Release binary size y los dos jobs Web aprobaron;
+Coverage se omitio porque dependia de Test. No se observo una asercion fallida.
+La compilacion instrumentada de la primera campana tomo 13 min 47 s. Los
+primeros 121 ejecutables completos sumaron 75.39 min de pruebas, y el job se
+cancelo al empezar otro. Los grupos mas costosos fueron `deadline_suite_1`
+(989.84 s), `deadline_suite_2` (637.44 s), `deadline_suite_3` (529.28 s),
+`alert_suite_1` (527.04 s) y los dos grupos `case_suite` (350.38 y 340.10 s).
+Esta es evidencia historica de una campana incompleta, no un resultado global.
+
+El build ordinario reutilizo su cache y registro 0 MiB como pico medido, por lo
+que la seleccion conservadora mantuvo un compilador. El grupo de memoria del
+runner registro cero eventos OOM, aunque supero el umbral MemoryHigh. Los logs
+de PostgreSQL muestran checkpoints frecuentes de miles de archivos. Para la
+siguiente campana se configuran solo sus bases desechables sin durabilidad de
+caida, se usan tres hilos de pruebas dentro del mismo tope 3 CPU/5 GiB y se
+amplia temporalmente el tiempo maximo a 180 minutos para obtener el resultado
+completo. La razon y el riesgo estan en [ADR 0047](adr/0047-disposable-postgres-ci.md).
+Se medira el tiempo completo antes de afirmar una aceleracion o reducir el
+limite de tiempo. En una base PostgreSQL local desechable, la comprobacion
+previa de configuracion fallo con `on|on|on` y aprobo con `off|off|off` despues
+de aplicar el ajuste. Con esa configuracion, 17 pruebas focales de despacho
+aprobaron en **100.22 s de pruebas** (105.49 s incluyendo preparacion). Esta
+medicion local no reemplaza la regresion instrumentada del VPS.
+
 ## Reduccion del costo de CI: 21 de septiembre de 2026
 
 Se sustituyen 537 ejecutables de integración por 203, conservando los archivos

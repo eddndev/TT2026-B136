@@ -65,7 +65,7 @@ jobs:
   test:
     name: Test
     runs-on: [self-hosted, Linux, X64, tt-ci-vps2]
-    timeout-minutes: 90
+    timeout-minutes: 180
     services:
       postgres:
         image: postgres:16-alpine
@@ -91,7 +91,7 @@ jobs:
           --health-retries 10
     env:
       CARGO_BUILD_JOBS: '1'
-      RUST_TEST_THREADS: '2'
+      RUST_TEST_THREADS: '3'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -105,6 +105,8 @@ jobs:
           printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
           printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
           printf 'IDENTITY_TEST_REDIS_URL=redis://127.0.0.1:%s/\n' "$REDIS_TEST_PORT" >> "$GITHUB_ENV"
+      - name: Configure disposable PostgreSQL for CI
+        run: bash scripts/configure-ci-postgres.sh
       - name: Prepare disk-backed temporary directory
         run: |
           mkdir -p output/tmp

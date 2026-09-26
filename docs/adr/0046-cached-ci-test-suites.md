@@ -37,8 +37,8 @@ build. `scripts/ci-resources.py` conservatively selects one or two subsequent
 compile workers inside the existing 5 GiB cgroup limit: reserve 2 GiB for
 services and the runner, then budget twice the measured compiler peak plus
 256 MiB per worker. Retain the largest observed peak across cached builds;
-a missing representative measurement selects one worker. Keep two Rust test
-threads and one suite. Local verification still uses one build job and one
+a missing representative measurement selects one worker. Keep the test-thread setting specified in
+`docs/adr/0047-disposable-postgres-ci.md` and one suite. Local verification still uses one build job and one
 test thread. The cgroup remains the hard resource boundary; the estimate is
 not a guarantee about the size of every future test harness.
 

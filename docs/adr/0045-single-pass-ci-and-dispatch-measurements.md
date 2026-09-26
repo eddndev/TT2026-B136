@@ -32,10 +32,10 @@ The runner has one listener, a dedicated unprivileged account and rootless
 Docker. Place the runner service and its user services in the same capped
 slice: three CPU equivalents, 4500 MiB memory high watermark and 5 GiB maximum.
 Use one measured ordinary build job and one or two coverage build jobs, as
-specified in `docs/adr/0046-cached-ci-test-suites.md`, with two Rust test threads
-within the single suite.
+specified in `docs/adr/0046-cached-ci-test-suites.md`, with three Rust test threads
+within the single suite, as specified in `docs/adr/0047-disposable-postgres-ci.md`.
 Serializing every test underused the capped runner and prolonged database
-fixture setup; the shared resource limits still bound both test workers.
+fixture setup; the shared resource limits still bound the test workers.
 Service containers use
 random host ports and disposable databases, with 768 MiB for PostgreSQL and
 128 MiB for Redis. Use disk-backed private temporary files. Keep the repository
