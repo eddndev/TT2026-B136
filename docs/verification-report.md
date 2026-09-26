@@ -4,6 +4,28 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Validacion del nuevo host principal de CI: 26 de septiembre de 2026
+
+El nuevo host Ubuntu 22.04, con 8 vCPU y 32 GB, cuenta con un runner exclusivo
+del repositorio y Docker rootless bajo la misma slice de systemd: 7 CPU,
+`MemoryHigh=24G`, `MemoryMax=26G`. Una cuenta independiente queda disponible
+para futuros servicios. Los runners anteriores se conservan como respaldo.
+
+Se instalaron CPython 3.12.14 separado del interprete del sistema, clientes
+PostgreSQL 16.15, Rust 1.98.1, cargo-llvm-cov 0.9.1, Nextest 0.9.146 y qpdf
+12.4.1. El interprete satisface la comprobacion con entorno vacio. Los
+archivos de Python, runner, herramientas Cargo y qpdf se verificaron contra
+los hashes de sus publicaciones antes de utilizarlos.
+
+`scripts/tests/check_nextest_pipeline.py --slots 4` aprobo **6/6 pruebas en
+0.604 s**, con **0.32 s** de compilacion del workspace pequeno. Cuatro casos
+de backend se sincronizaron para ejecutar simultaneamente y tomaron la misma
+clave consultiva contra bases distintas, sin superar el limite de bloqueo.
+PostgreSQL y Redis fueron contenedores desechables; ambos se retiraron al
+finalizar. Tambien se verificaron LCOV fresco y seis resultados JUnit.
+Es una comprobacion del aislamiento y del entorno, no un tiempo de CI del
+proyecto. La regresion completa y el objetivo de 10-20 minutos siguen pendientes.
+
 ## Preparacion del runner dedicado: 26 de septiembre de 2026
 
 El modo opcional de [ADR 0050](adr/0050-isolated-test-slots.md) programa pruebas
