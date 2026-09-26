@@ -4,6 +4,30 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Python de los workers aislados: 26 de septiembre de 2026
+
+En la primera campaña distribuida,
+[Test (1/2)](https://github.com/eddndev/TT2026-B136/actions/runs/36258835813/job/108450635744)
+falló tras unos 38 minutos en
+`document_formats::isolated::tests::continuously_readable_input_does_not_pay_a_delay_per_pipe_chunk`.
+El worker de prueba encontró Python 3.9.25 después de limpiar su entorno;
+esa versión no expone `fcntl.F_SETPIPE_SZ`. Python 3.12 ya estaba instalado,
+pero solo se seleccionaba mediante el PATH de la sesión del runner.
+
+La prueba original reprodujo el fallo aisladamente en VPS1 en 0.03 s. Se
+seleccionó Python 3.12.14 mediante `/usr/local/bin/python3`, conservando el
+intérprete de la distribución en `/usr/bin/python3`. Después, el mismo binario
+instrumentado original aprobó las cinco pruebas de aislamiento en **0.31 s**,
+con dos hilos, directorio temporal en disco y el usuario acotado del runner.
+No se modificó el código Rust ni se amplió el límite de la prueba. VPS2
+también aprobó la comprobación con entorno vacío usando Python 3.12.3.
+
+El workflow comprueba ahora Python 3.12 o posterior y la constante de Linux
+antes de compilar. La preparación de nuevos hosts está documentada en
+[las operaciones del runner](ci-runner-operations.md). `actionlint` y
+`git diff --check` aprobaron. Estos resultados focales no sustituyen la
+suite completa ni el umbral de cobertura, todavía pendientes.
+
 ## Distribucion del CI entre dos runners: 26 de septiembre de 2026
 
 El repositorio es privado y cuenta con dos runners dedicados en linea. El

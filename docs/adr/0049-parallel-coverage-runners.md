@@ -41,6 +41,12 @@ memory. Bound the second to four CPU cores and 6 GiB. Keep GitHub-hosted
 checks on their existing parallel jobs; moving short checks to the new runner
 would only queue them behind the long tests.
 
+Both hosts must resolve Python 3.12 or newer even when `/bin/sh` starts with
+an empty environment. Isolated format workers clear their environment, so a
+runner-only PATH does not select their interpreter. Check this prerequisite
+before compilation; provisioning instructions are in
+`docs/ci-runner-operations.md`.
+
 ## Status
 
 Accepted.

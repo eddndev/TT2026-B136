@@ -106,6 +106,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Require Python 3.12 for isolated workers
+        run: |
+          env -i /bin/sh -c 'python3 -' <<'PY'
+          import fcntl
+          import sys
+          assert sys.version_info >= (3, 12), "Python 3.12+ is required with an empty environment"
+          assert hasattr(fcntl, "F_SETPIPE_SZ"), "Python must expose Linux pipe sizing"
+          print(sys.executable, sys.version.split()[0])
+          PY
       - name: Select PostgreSQL 16 client tools
         run: |
           if [ -x /usr/pgsql-16/bin/pg_dump ]; then
