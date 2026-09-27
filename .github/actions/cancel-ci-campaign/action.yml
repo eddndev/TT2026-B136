@@ -1,5 +1,5 @@
 name: Cancel failed CI campaign
-description: Stop CI and Web for the same revision after preserving failure evidence.
+description: Stop CI, Web and Documents for the same revision after preserving failure evidence.
 runs:
   using: composite
   steps:

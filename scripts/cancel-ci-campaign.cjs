@@ -2,7 +2,7 @@
 module.exports = async function cancelCampaign({ github, context, core }) {
   const repo = context.repo;
   const errors = [];
-  const allowed = new Set(['.github/workflows/ci.yml', '.github/workflows/web.yml']);
+  const allowed = new Set(['.github/workflows/ci.yml', '.github/workflows/web.yml', '.github/workflows/documents.yml']);
   async function cancel(runId) {
     try {
       await github.rest.actions.cancelWorkflowRun({ ...repo, run_id: runId });

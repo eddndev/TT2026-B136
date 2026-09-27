@@ -25,8 +25,10 @@ o manualmente: `latexmk -lualatex main.tex`. El motor **debe ser LuaLaTeX**
 
 `main.pdf` es un resultado local ignorado por Git. Las fuentes LaTeX, las
 figuras y la bibliografía siguen versionadas. El workflow
-[`Documents`](../.github/workflows/documents.yml) instala TeX Live, biber,
-glosarios, Times New Roman y DejaVu Sans Mono en Ubuntu 24.04.
+[`Documents`](../.github/workflows/documents.yml) usa el runner propio dedicado para compilar y el runner auxiliar para adjuntar
+releases. TeX Live, biber, glosarios y DejaVu Sans Mono se aprovisionan en el host;
+cada ejecución verifica las herramientas y el archivo de Times New Roman.
+Véase [la preparación del runner](../docs/ci-runner-operations.md).
 
 - En PR y cambios de documentos en `main`, compila y conserva el artefacto
   `report-pdf` durante 14 días para revisión.
