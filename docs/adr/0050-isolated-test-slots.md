@@ -14,7 +14,7 @@ compilation and build caches.
 
 Provide an opt-in dedicated Linux x86_64 runner labeled `tt-ci-dedicated`.
 The repository variable `TT_CI_DEDICATED=true` selects one workspace coverage
-job, using cargo-nextest 0.9.146 to schedule individual tests with eight active
+job, using cargo-nextest 0.9.146 to schedule individual tests with twelve active
 slots. The default remains the two-runner configuration from
 `docs/adr/0049-parallel-coverage-runners.md` until the dedicated host is ready.
 
@@ -44,11 +44,10 @@ output is not stored or printed individually.
 
 The compiler selector may opt into four compile workers and a 24 GiB budget on
 the dedicated host, still respecting a smaller cgroup limit and the measured
-compiler footprint. Legacy defaults remain two workers and 6 GiB. The dedicated PostgreSQL container has a 6 GiB limit within that shared
-budget: at 2 GiB, the eight-slot campaign repeatedly reached its child cgroup
+compiler footprint. Legacy defaults remain two workers and 6 GiB. The dedicated
+PostgreSQL container has a 6 GiB limit within that shared budget: at 2 GiB, the eight-slot campaign repeatedly reached its child cgroup
 limit while the parent retained memory headroom. Legacy containers remain at
-768 MiB. Runtime
-slots and compile workers are different budgets: compilation finishes before
+768 MiB. Runtime slots and compile workers are different budgets: compilation finishes before
 Nextest starts executing tests.
 
 ## Status
@@ -62,9 +61,16 @@ Individual tests from a long executable can occupy different slots without
 replicating its compilation or weakening its assertions. Nextest runs each test
 in a separate process, so process-local fixture caches are rebuilt per test;
 the first complete campaign must quantify that cost. Four slots were the initial
-bound. Six slots passed the full regression. Eight slots are the next configuration
-to measure within the existing host CPU and memory limits. The helper supports one through eight slots
-for subsequent measured tuning. Local verification still uses one slot.
+bound; six and eight slots passed the full regression. With eight slots and a
+6 GiB PostgreSQL limit, the measured parent CPU average was 5.44 cores, peak
+charged memory was 21.35 GiB and there were no OOM, swap or memory-limit events.
+Twelve slots are the next configuration to measure within the existing
+7-core quota and 26 GiB parent limit. Waiting tests can overlap while the CPU
+quota still bounds execution. The helper supports one through twelve slots;
+Redis indices 0 through 11 remain below its default 16-database capacity.
+Database wait sampling and a complete regression must confirm that extra
+concurrency improves time without exhausting connections or creating failures.
+Local verification still uses one slot.
 
 A 10-20 minute end-to-end CI duration is a performance objective, not a measured
 result or a timeout imposed before measurement. Track cold compilation, warm

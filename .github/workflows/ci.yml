@@ -70,7 +70,7 @@ jobs:
       fail-fast: false
       # Activate only after provisioning; see docs/adr/0050-isolated-test-slots.md.
       matrix:
-        include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":8}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
+        include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":12}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
     runs-on: [self-hosted, Linux, X64, "${{ matrix.runner }}"]
     timeout-minutes: 210
     services:

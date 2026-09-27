@@ -4,6 +4,41 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Memoria PostgreSQL y tres particiones Web: 27 de septiembre de 2026
+
+La ejecucion [CI 36281044569](https://github.com/eddndev/TT2026-B136/actions/runs/36281044569)
+aprobo en **13m52s**, con **3049** pruebas aprobadas y dos ignoradas. Las
+pruebas instrumentadas tomaron **781.391s**, compilacion reutilizada **0.25s**
+y generacion del informe unos seis segundos. Los gates conservaron el 90%
+por crate; dominio, aplicacion e infraestructura mostraron **97/95/93%**.
+No hay mejora material de Rust respecto de la ejecucion anterior.
+
+[Web 36281044607](https://github.com/eddndev/TT2026-B136/actions/runs/36281044607)
+aprobo en **11m33s**, frente a 13m25s. La union JUnit conserva **358** pruebas
+simuladas y **43** reales, sin duplicados ni fallos. El reparto real fue
+**15+16+12**. Los jobs reales compilaron en 2m10s a 2m15s; el mas lento preparo
+fixtures en unos cinco minutos y ejecuto navegador en 3.3 minutos. La cache
+con clave nueva estaba fria y quedo guardada; su mejora con cache caliente
+sigue pendiente de medir.
+
+La memoria cargada al cgroup padre alcanzo **21.35 GiB** y PostgreSQL
+**3.44 GiB**, con limite de 6 GiB. No hubo eventos de limite, OOM ni swap.
+CPU promedio **5.44 cores**, mayor promedio de muestra de 15s **5.97**, y
+throttling acumulado **1.06s**. La ampliacion elimino la presion del limite
+previo, pero no redujo el tiempo de Rust. Docker/rootless uso 1.06 cores.
+
+Una microprueba desechable de ocho clientes consultando `SELECT 1` comparo
+TCP con socket Unix, alternando dos muestras de diez segundos por transporte.
+TCP obtuvo 40.3-41.3 mil consultas/s y socket 42.1-43.2 mil consultas/s. La
+pequena diferencia no demuestra un cuello de botella de transporte en la
+suite real; no se cambia su conexion basandose solo en esa microprueba.
+
+Siguiente medicion: doce slots, mismos limites de 7 CPU y 26 GiB, PostgreSQL
+6 GiB. Cinco comprobaciones focales de URLs independientes, indices Redis y
+rechazo de configuraciones invalidas pasaron tras comprobar primero el fallo
+con doce slots. Actionlint aprobo. La regresion remota y el muestreo de esperas
+PostgreSQL quedan pendientes; no se repitio una suite completa local.
+
 ## Ocho slots y limites por servicio: 26 de septiembre de 2026
 
 La ejecucion [36279736231](https://github.com/eddndev/TT2026-B136/actions/runs/36279736231)

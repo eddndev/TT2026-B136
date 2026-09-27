@@ -62,7 +62,7 @@ mod tests {
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--slots", type=int, choices=range(1, 9), default=1)
+    parser.add_argument("--slots", type=int, choices=range(1, 13), default=1)
     args = parser.parse_args()
     for key in ("IDENTITY_TEST_DATABASE_URL", "IDENTITY_TEST_REDIS_URL"):
         if not os.environ.get(key):
