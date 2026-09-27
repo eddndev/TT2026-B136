@@ -11,7 +11,15 @@ export async function login(page, recoveryCode, account = fixture) {
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n' }).click();
   await page.getByLabel('C\u00f3digo de recuperaci\u00f3n', { exact: true }).fill(recoveryCode);
-  await page.getByRole('button', { name: 'Verificar y entrar' }).click();
+  const [verified] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === '/api/v1/auth/mfa/recovery' &&
+        response.request().method() === 'POST',
+    ),
+    page.getByRole('button', { name: 'Verificar y entrar' }).click(),
+  ]);
+  expect(verified.status()).toBe(200);
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
 }
 

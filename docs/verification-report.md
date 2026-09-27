@@ -4,6 +4,34 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Sincronizacion de respuesta MFA: 27 de septiembre de 2026
+
+[Web 36294895911](https://github.com/eddndev/TT2026-B136/actions/runs/36294895911)
+aprobo los **13 escenarios** de VPS3 simultaneamente con Rust en **6m42s**.
+La compilacion caliente tardo 0.15s y el navegador 224.96s; administracion
+aprobo en 37.18s y participantes en 29.44s, ambos dentro de sus 60s originales.
+VPS3 promedio 6.61 CPU y alcanzo 27.21 GiB sin MemoryHigh, OOM ni swap. Esto
+confirma esa particion, no el conjunto: la cancelacion posterior interrumpio
+los demas gates.
+
+La segunda particion en VPS2 aprobo nueve escenarios y fallo al iniciar
+`hearing-sentencing.spec.mjs`. El helper comprobo el encabezado de inicio
+durante cinco segundos mientras la pagina seguia mostrando MFA en estado
+`Verificando...`; no se habia recibido una respuesta de autenticacion fallida.
+La captura no permite afirmar que esa solicitud finalmente habria aprobado.
+Una regresion controlada usando el helper real reprodujo el fallo con una
+respuesta MFA valida demorada seis segundos.
+
+El helper ahora espera la respuesta POST de recuperacion, exige HTTP 200 y
+despues comprueba el mismo encabezado. La espera HTTP usa el presupuesto
+existente de Playwright; la assertion visual conserva cinco segundos y cada
+escenario real conserva su limite total de 60s. No reintenta solicitudes ni
+cambia producto, criptografia o recursos. La regresion fallo antes del cambio
+y luego aprobo **1/1 en 13.0s**, incluido el arranque local, con un worker.
+Formato, ASCII, limite de lineas y diff aprobaron. El listado conserva los
+358 casos simulados anteriores y agrega solo esta regresion: **359** en total.
+Los 43 escenarios reales no cambian; la validacion real conjunta sigue pendiente.
+
 ## Reequilibrio de familias reales: 27 de septiembre de 2026
 
 [Web 36293965586](https://github.com/eddndev/TT2026-B136/actions/runs/36293965586)
