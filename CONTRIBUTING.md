@@ -128,6 +128,14 @@ it is absent. `serve` requires `DOCUMENT_QPDF_LIBRARY` or `--qpdf-library` and
 checks the worker before accepting traffic. Follow
 `docs/document-format-operations.md`; do not bypass admission on setup failure.
 
+General upload admission additionally requires the pinned minimal FFmpeg/ffprobe
+installation described in `docs/media-decoder-setup.md`. Provision it once for
+the host ABI and verify it read-only before verification; do not rebuild it on
+each CI run. Set `TT_FFPROBE_PATH` and `TT_FFMPEG_PATH` when the executables are
+outside `/opt/tt-media/bin`. Native tests and `serve` must fail closed when the
+installation or its startup fixtures fail; an arbitrary system decoder is not
+a substitute for the verified capability set.
+
 Continuous integration runs the same checks, plus a minimum-supported-Rust-
 version check, coverage measurement, a dependency policy check (`cargo deny
 check` against `deny.toml`), and a release binary size guard. See

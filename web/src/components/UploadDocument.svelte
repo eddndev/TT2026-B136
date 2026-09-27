@@ -6,7 +6,7 @@
   import MetadataFields from './MetadataFields.svelte';
   import { metadataDraft, mutationError } from '../lib/document-metadata.mjs';
   import Icon from './Icon.svelte';
-  import { safeFilename, validateUpload } from '../lib/documents.mjs';
+  import { safeFilename, validateUpload, uploadFormats } from '../lib/documents.mjs';
   export let api;
   export let onuploaded;
   export let ondenied = () => {};
@@ -127,7 +127,10 @@
           disabled={busy}
           onchange={(event) => choose(event.currentTarget.files[0])}
         /></label
-      ><small>Cualquier formato. M&#225;ximo: 16 MiB por documento.</small>
+      ><small
+        >Formatos admitidos: {uploadFormats}. M&#225;ximo: 16 MiB por documento. El contenido se
+        valida antes de guardarlo.</small
+      >
     </div>
     <label
       >Nombre del documento<input

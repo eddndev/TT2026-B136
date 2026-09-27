@@ -48,6 +48,10 @@ name = "case_document_workflow"
 path = "tests/case_document_workflow.rs"
 
 [[test]]
+name = "document_upload_admission"
+path = "tests/document_upload_admission.rs"
+
+[[test]]
 name = "case_stage_boundaries"
 path = "tests/case_stage_boundaries.rs"
 

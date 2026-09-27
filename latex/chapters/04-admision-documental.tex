@@ -1,0 +1,59 @@
+\subsection{Admisión general de nuevas cargas documentales}\label{sec:impl-admision-documental}
+
+La carga binaria, la carga con clasificación inicial y el anexado de versiones
+comparten una política obligatoria de admisión antes del hash, cifrado y registro.
+El límite permanece en 16~MiB por archivo. Se admiten ocho familias: PDF, DOCX,
+TXT, JPEG, PNG, MP3, WAV y MP4. El nombre, la extensión, el MIME declarado y los
+metadatos no seleccionan el formato ni permiten omitir su validación. El
+contenido admitido conserva exactamente sus bytes originales; la inspección no
+lo transforma en otra versión ni modifica documentos, firmas o sellos históricos.
+
+PDF y DOCX reutilizan sus analizadores existentes. TXT exige UTF-8 válido y
+admite BOM inicial, tabulación y saltos de línea, pero rechaza otros controles.
+JPEG y PNG deben ser imágenes estáticas completas. MP3 requiere Layer~III; WAV
+admite PCM de 8, 16, 24 o 32 bits, hasta ocho canales y 192~kHz. MP4 admite
+contenedores regulares con H.264 o AAC, hasta ocho pistas, sin fragmentación,
+cifrado ni referencias externas de datos. Cada cuadro de imagen o video queda
+limitado a 16\,777\,216 píxeles. Para multimedia se comprueban la estructura, el
+inventario permitido y la decodificación completa de todas las pistas a salida
+nula; reconocer una cabecera o leer una muestra no basta para aceptar el archivo.
+
+La aplicación comprueba identidad y acceso antes de inspeccionar. La inspección
+no mantiene abierta una transacción de persistencia. Antes de confirmar se
+reautentica al principal completo; la transacción documental conserva la
+comprobación de pertenencia, cierre administrativo, versión esperada y auditoría.
+Un rechazo no cifra ni persiste una nueva versión. Qadra distingue formato no
+admitido, formato inválido, límite de validación e indisponibilidad del validador;
+conserva archivo, nombre y borrador para una acción explícita del usuario, sin
+reenviar automáticamente. Cliente mantiene denegado el acceso documental.
+
+La entrada acotada se copia a un descriptor \texttt{memfd} sellado contra
+escritura, crecimiento y reducción. Los procesos secuenciales reciben ese
+mismo contenido mediante descriptor. La inspección dispone de cinco segundos
+de CPU, 256~MiB de espacio de direcciones y diez segundos transcurridos. La
+sonda y la decodificación disponen de dos y ocho segundos de CPU, respectivamente,
+y 512~MiB de espacio de direcciones cada una. Las cuotas suman quince segundos
+de CPU y comparten un vencimiento monótono de veinte segundos transcurridos;
+no se reinician por pista ni se transfieren entre procesos. Se acota también la
+salida del protocolo y se fijan en cero las cotas de escritura de archivos y
+volcados de memoria.
+
+El proceso privado instala los límites y cierra descriptores heredados ajenos
+antes de ejecutar el decodificador. El supervisor conserva la identidad del
+líder hasta terminar su grupo y recolectar el hijo directo. La implementación
+nativa usa FFmpeg~9.0.2 con componentes restringidos y red deshabilitada en su
+compilación; verifica las ocho familias al arrancar. Desconectar el cliente
+HTTP no cancela inmediatamente una validación ya iniciada: ésta conserva el
+supervisor y su presupuesto. Estas medidas no constituyen un aislamiento
+completo del sistema operativo ni un antivirus, y las páginas del descriptor
+pueden llegar a swap. Un archivo válido que exceda recursos se rechaza por
+límite, sin presentarlo como corrupción.
+
+Esta admisión general es independiente de la política de soportes procesales
+PDF/DOCX de la \cref{sec:impl-formatos}: admitir audio, video o imágenes como
+documentos no los habilita donde un acto exige uno de esos soportes. Tampoco
+acredita autenticidad jurídica ni amplía permisos. El contrato preciso reside en
+\rutarepo{docs/document-upload-admission-api.md} y su justificación en
+\rutarepo{docs/adr/0058-bounded-general-document-admission.md}. La implementación
+cuenta con los resultados focales de la \cref{sec:pruebas-admision-documental};
+su aceptación integral conserva un cierre independiente.

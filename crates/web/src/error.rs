@@ -11,6 +11,7 @@ mod alerts;
 mod deadline;
 mod deadline_profile;
 mod document_content;
+mod document_upload;
 mod hearing;
 mod hearing_result;
 mod judicial_calendar;
@@ -23,6 +24,8 @@ mod typed_participant;
 
 #[cfg(test)]
 mod deadline_tests;
+#[cfg(test)]
+mod document_upload_tests;
 #[cfg(test)]
 mod hearing_tests;
 #[cfg(test)]
@@ -131,6 +134,7 @@ impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
         let error = match members::map(error)
             .or_else(document_content::map)
+            .or_else(document_upload::map)
             .or_else(alerts::map)
             .or_else(deadline::map)
             .or_else(deadline_profile::map)

@@ -11,6 +11,7 @@ mod port;
 mod processor;
 mod query;
 mod service;
+mod upload_admission;
 mod validation;
 mod version;
 
@@ -36,3 +37,7 @@ pub use format::{
     StageFormatPolicy, StageSupportReadLimits,
 };
 mod content_validation;
+
+pub use upload_admission::{
+    AdmittedDocumentFormat, DocumentUploadAdmission, DocumentUploadError, MAX_DOCUMENT_UPLOAD_BYTES,
+};

@@ -4,6 +4,55 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Admisión documental general: aceptación local del 27 de septiembre de 2026
+
+La nueva admisión valida PDF, DOCX, TXT, JPEG, PNG, MP3, WAV y MP4 en cargas
+iniciales y nuevas versiones de hasta 16 MiB. La política inspecciona el contenido
+antes de cifrarlo, exige decodificación multimedia completa en procesos acotados
+y reautentica al principal antes del commit auditado. Conserva los bytes
+originales, la clasificación atómica, los permisos y la política independiente
+de soportes procesales PDF/DOCX. Su contrato está en
+[document-upload-admission-api.md](document-upload-admission-api.md) y su diseño
+en [ADR 0058](adr/0058-bounded-general-document-admission.md).
+
+| Comprobación nueva | Resultado registrado |
+| --- | --- |
+| Aplicación: tres ingresos, rechazo y reautenticación | 8 aprobadas |
+| Infraestructura: estructuras, inventario y supervisor | 29 casos distintos aprobados |
+| HTTP: categorías y transporte de errores | 1 prueba unitaria y 1 de rutas aprobadas |
+| Adaptador nativo con formatos reales y corrupción comprimida interna | 5 casos distintos aprobados |
+| Worker privado: límites, descriptores y protocolo | 5 aprobadas |
+| Cliente Node: errores tipados, sesión y envío único | 12 aprobadas |
+| Navegador con HTTP controlado: rechazo y borrador conservado | 8 aprobadas |
+| Instalador: fuente, configuración y provisión | 15 aprobadas en VPS3 |
+| Aceptación API completa, respaldo y restauración | `scripts/api-demo.sh`: PASS completo, salida 0 |
+| Navegador con servicios reales | 4/4 en 27.2 s; escenario nuevo de admisión en 8.4 s |
+
+La aceptación API restauró las ocho familias y comprobó sus bytes originales
+exactos. El grupo de navegador real contiene un escenario nuevo de admisión y
+tres regresiones del flujo de contenido existente; no son cuatro casos nuevos
+de formatos. Se inspeccionaron las capturas a 1440 y 390 píxeles sin
+desbordamiento horizontal. Estas comprobaciones no sustituyen una evaluación
+de usabilidad con participantes reales.
+
+Los conteos de infraestructura y del adaptador nativo corresponden a casos
+distintos aprobados; las repeticiones focales no se suman como pruebas nuevas.
+Las pruebas nativas incluyen daño interno del contenido comprimido y la
+supervisión separa rechazo de formato, exceso de recursos e indisponibilidad.
+No se declara una regresión global ni se actualizan porcentajes históricos de
+cobertura con estos resultados.
+
+La dependencia quedó verificada con el usuario del runner en los tres VPS.
+VPS1, con AlmaLinux, requirió una compilación nativa porque el binario de Ubuntu
+22 exige GLIBC 2.35; VPS2 reutiliza el binario compatible preparado en VPS3.
+Cada instalación comprobó su manifiesto, configuración y capacidades sin
+escribir ni recompilar durante la verificación. Clippy del workspace y todos
+los targets aprobó con advertencias denegadas. El PDF de 343 páginas compiló; se inspeccionaron las páginas físicas 171, 172,
+223, 224 y 225 sin desbordamiento visible ni referencias sin resolver en las
+secciones nuevas. CI general e integración permanecen pendientes.
+Esta sección registra únicamente la admisión documental; la evidencia de la
+creación contextual de plazos se conserva separada a continuación.
+
 ## Creación contextual de plazos: aceptación local del 27 de septiembre de 2026
 
 La entrega añade preparación y confirmación conjuntas de un plazo y su vínculo
@@ -64,6 +113,23 @@ desbordamientos ni referencias sin resolver en esas secciones. Persisten avisos
 de sustitución de versalitas de la fuente, sin impedir la compilación. El cierre
 global y la integración de esta entrega permanecen pendientes. No se consideran completados
 el corpus jurídico, la activación automática ni las audiencias propias de recursos.
+
+### Cierre global de la creación contextual
+
+La cabeza `a9a3a331b403547d79494dc3d5b7edb2d7da0db4` aprobó CI en 6 min
+48 s, Web en 11 min 39 s y Documents en 7 min 50 s. Se conservaron todas las
+identidades de pruebas previas: 3084 Rust, dos ignoradas, 378 de navegador
+controlado y 45 con servicios reales. Los gates de cobertura conservaron
+97/95/93 % para domain/application/infrastructure. PR46 se integró por squash
+como `23970cc516854688da587e878d4304fa52068ecf`; la ejecución natural de main
+sigue siendo su comprobación final independiente.
+
+La primera campaña se canceló al fallar un helper de navegador: confundía una
+lista de hechos históricos con un estado compartido ya inicializado y omitía
+preparar la página de login. El fallo se reprodujo localmente; se separaron los
+parámetros y aprobaron 15 casos afectados en 34.6 s sin alterar los tiempos,
+assertions ni comportamiento del producto. Esa campaña cancelada no acredita
+el inventario completo; las cifras anteriores corresponden a la cabeza verde.
 
 ## Tablero operativo: verificacion focal del 27 de septiembre de 2026
 

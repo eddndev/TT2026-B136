@@ -64,6 +64,21 @@ bash scripts/test-backends.sh            # suite con PostgreSQL y Redis desechab
 cargo run --bin despacho-cli -- --help   # ayuda del binario
 ```
 
+Antes de iniciar `serve` o una demostración con la API real, preparar la
+[biblioteca qpdf](docs/document-format-operations.md) y realizar una sola vez la
+[instalación fijada del decodificador multimedia](docs/media-decoder-setup.md).
+El prefijo predeterminado es `/opt/tt-media`. En las ejecuciones posteriores,
+incluido CI, comprobar la instalación sin descargar ni compilar:
+
+```bash
+python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media
+```
+
+Usar esa instalación verificada; un `ffmpeg` arbitrario del sistema no sustituye
+el conjunto de capacidades requerido. Las rutas del servidor se pueden cambiar
+con `TT_FFPROBE_PATH` y `TT_FFMPEG_PATH`, o con `--ffprobe-path` y
+`--ffmpeg-path`, apuntando a otro prefijo preparado con el mismo instalador.
+
 El guion de backends crea PostgreSQL con autenticación SCRAM y una contraseña
 aleatoria para cada instancia desechable. Exporta las conexiones únicamente al
 proceso de prueba y elimina sus datos al terminar; no modifica servidores existentes.
@@ -124,6 +139,9 @@ Se cargan del entorno o de un archivo `.env` local (ver
 | `RUST_LOG` | Filtro de diagnóstico (`error`, `warn`, `info`, `debug`, `trace`); los diagnósticos van a `stderr`. |
 | `DATABASE_URL` | PostgreSQL para usuarios, expedientes, documentos y auditoría: rol restringido en `serve`, administrativo en los comandos `database`. |
 | `REDIS_URL` | Cadena de conexión a Redis para desafíos, sesiones revocables, límites y replay TOTP. |
+| `DOCUMENT_QPDF_LIBRARY` | Biblioteca qpdf fijada para `serve`; alternativa al argumento `--qpdf-library`. |
+| `TT_FFPROBE_PATH` | Ruta absoluta de ffprobe verificado; por defecto `/opt/tt-media/bin/ffprobe` en `serve`. |
+| `TT_FFMPEG_PATH` | Ruta absoluta de FFmpeg verificado; por defecto `/opt/tt-media/bin/ffmpeg` en `serve`. |
 
 ### Demostración de extremo a extremo
 

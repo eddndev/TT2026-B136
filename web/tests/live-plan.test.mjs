@@ -83,3 +83,11 @@ test('discovery includes nested specs and future supported test extensions', () 
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('real document admission shares only the exact content fixture family', () => {
+  const file = 'document-admission-real.spec.mjs';
+  const plans = [1, 2, 3].map((n) => planLiveSuite([file], `${n}/3`));
+  assert.deepEqual(plans[1], { files: [file], fixtures: ['documentContent'] });
+  assert.deepEqual(plans[0].files, []);
+  assert.deepEqual(plans[2].files, []);
+});

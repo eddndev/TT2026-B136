@@ -4,8 +4,9 @@ pub use identity::StubIdentity;
 
 use application::documents::{
     CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentMetadata,
-    DocumentOverview, DocumentPage, DocumentQuery, DocumentSummary, DocumentVersionRef,
-    EvidenceExport, MetadataPage, MetadataQuery, MetadataRevision, VersionPage, VersionQuery,
+    DocumentOverview, DocumentPage, DocumentQuery, DocumentSummary, DocumentUploadError,
+    DocumentVersionRef, EvidenceExport, MetadataPage, MetadataQuery, MetadataRevision, VersionPage,
+    VersionQuery,
 };
 use application::verification::{ComponentReport, ComponentStatus, Verdict, VerificationReport};
 use application::ApplicationError;
@@ -21,6 +22,7 @@ pub const CASE_UUID: Uuid = Uuid::from_u128(0x11223344_5566_7788_99aa_bbccddeeff
 #[derive(Default)]
 pub struct StubWorkflow {
     pub calls: AtomicUsize,
+    pub upload_failure: Option<DocumentUploadError>,
 }
 
 impl StubWorkflow {
@@ -109,6 +111,9 @@ impl CaseDocumentWorkflow for StubWorkflow {
         }
         assert_eq!(name, "revised.txt");
         assert_eq!(bytes, b"revised content");
+        if let Some(error) = self.upload_failure {
+            return Err(error.into());
+        }
         let mut summary = Self::summary(false);
         summary.document.version = DocumentVersion::new(4).unwrap();
         summary.document.name = name.into();
@@ -264,6 +269,9 @@ impl CaseDocumentWorkflow for StubWorkflow {
         self.check(token, case_id, DocumentId::from_uuid(DOCUMENT_UUID))?;
         assert_eq!(name, "acta.txt");
         assert_eq!(document, b"case document");
+        if let Some(error) = self.upload_failure {
+            return Err(error.into());
+        }
         Ok(Self::overview(Self::summary(false), 0))
     }
     fn seal(

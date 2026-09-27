@@ -85,7 +85,10 @@ export async function downloadExact(page, scenario) {
   const bytes = Buffer.concat(chunks);
   expect(bytes).toEqual(Buffer.from(scenario.payload_base64, 'base64'));
   expect(createHash('sha256').update(bytes).digest('hex')).toBe(scenario.first.digest);
-  expect(downloaded.suggestedFilename()).toBe(scenario.first.name.replace('.bin', '-v1.bin'));
+  const extension = scenario.first.name.lastIndexOf('.');
+  expect(downloaded.suggestedFilename()).toBe(
+    `${scenario.first.name.slice(0, extension)}-v1${scenario.first.name.slice(extension)}`,
+  );
   await expect(page.getByText('Descarga del archivo iniciada.', { exact: true })).toBeVisible();
 }
 
