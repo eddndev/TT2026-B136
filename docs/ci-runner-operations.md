@@ -11,7 +11,7 @@ maquinas de GitHub. El reparto es:
 | VPS3 | Uno, `tt-ci-dedicated` | Rust y generacion de cobertura | 8 CPU, MemoryHigh 24 GiB, MemoryMax 26 GiB |
 | VPS1 | Uno, `tt-ci-vps1` | Checks nativos y agregados de CI/Web | 3 CPU, MemoryHigh 4608 MiB, MemoryMax 5 GiB |
 | VPS1 | Dos, `tt-ci-mock` | Dos shards de navegador simulado | Incluido en el presupuesto de VPS1 |
-| VPS2 | Tres, `tt-ci-live` | Tres shards de navegador real | 6 CPU, MemoryHigh 6 GiB, MemoryMax 7 GiB |
+| VPS2 | Tres, `tt-ci-live` | Tres shards de navegador real | 6 CPU, MemoryHigh 6.5 GiB, MemoryMax 7 GiB |
 
 Los runners adicionales comparten la cuenta `tt-runner`, pero cada uno tiene
 su propio directorio de instalacion y trabajo. Asignar sus unidades systemd
@@ -19,6 +19,15 @@ a `user-$(id -u tt-runner).slice`, igual que Docker rootless. No multiplicar
 los limites por el numero de servicios. El runner original de VPS2 conserva
 ademas `tt-ci-vps2` para las tareas manuales y el modo Rust alternativo.
 Evitar solapar una campana manual con la regresion completa.
+
+En VPS2, usar `CPUWeight=1000` en el slice compartido de `tt-runner` para
+priorizar CI frente a otros usuarios cuando compitan por CPU. Configurar
+`Nice=0` en los tres servicios: el runner original no debe conservar una
+prioridad inferior a los adicionales. `MemoryHigh=6656M` deja 512 MiB entre
+el umbral de reclamacion y `MemoryMax=7G`; no aumenta el limite duro ni la
+cuota de seis CPU. Los pesos reparten capacidad disponible, no garantizan
+un tiempo de ejecucion. Aplicar cambios y reiniciar runners cuando no haya
+jobs activos; comprobar propiedades efectivas y medir la siguiente campana.
 
 Preparar VPS1 con compilador C, pkg-config, OpenSSL de desarrollo, Git, curl,
 Python 3.12+, jq, Rust stable/rustfmt/clippy y Rust 1.88. Los jobs seleccionan

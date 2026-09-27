@@ -4,6 +4,34 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Preparacion reducida y contencion del host: 27 de septiembre de 2026
+
+En [Web 36290455092](https://github.com/eddndev/TT2026-B136/actions/runs/36290455092)
+las tres particiones superaron la autenticacion corregida y llegaron al
+navegador. La tercera preparo sus familias y servicios en aproximadamente
+cinco minutos, frente a los quince anteriores; la primera llego al navegador
+6m46s despues del inicio del workflow. No es todavia una medicion de Web
+completo: participantes agoto su presupuesto total de 60s al volver a iniciar
+sesion despues de verificar ediciones, archivo, historial y evidencia. Los
+unicos errores HTTP registrados fueron los conflictos 409 esperados.
+El mismo escenario habia aprobado en 30.113s en la campana completa previa.
+
+Durante la ventana muestreada del fallo, el grupo de CI en VPS2 obtuvo
+**4.05 CPU** de seis, sin throttling de cuota. El host tenia **8.5%** de CPU
+ociosa y el grupo acumulo **21.45s** de presion parcial de CPU. Alcanzar
+MemoryHigh de 6 GiB produjo **440** eventos y **0.60s** de presion completa
+de memoria, con un pico de **0.14 GiB** de swap y sin OOM. La presion de CPU
+es mayor que la de memoria. El runner original conservaba Nice=5; los dos
+adicionales usaban Nice=0. Esto no prueba por si solo la causa de todo el
+retraso, pero justifica medir prioridad consistente en el host compartido.
+
+La siguiente configuracion iguala Nice=0, aplica CPUWeight=1000 al slice de
+CI y mueve MemoryHigh a 6.5 GiB. Conserva seis CPU de cuota, MemoryMax=7 GiB,
+los tres workers, las pruebas y sus timeouts. Se comprobara su efecto en la
+siguiente ejecucion; no se acredita aun una reduccion del total ni un pase.
+Ambos workflows anteriores se cancelaron automaticamente tras el fallo.
+No se repitieron suites locales por este cambio operativo.
+
 ## Recuperacion del provisionador y cancelacion cruzada: 27 de septiembre de 2026
 
 La preparacion selectiva publicada en `3ccf617` fallo antes del navegador:
