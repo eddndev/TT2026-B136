@@ -4,6 +4,36 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Reequilibrio de familias reales: 27 de septiembre de 2026
+
+[Web 36293965586](https://github.com/eddndev/TT2026-B136/actions/runs/36293965586)
+confirmo el checkout corregido y aprobo los **12 escenarios** de la tercera
+particion en VPS3, simultaneamente con Rust. Su job completo tardo **6m52s**:
+47.43s de compilacion y 191.58s de navegador, mas preparacion, servicios y
+publicacion de resultados. Participantes aprobo en **35.23s**, dentro de sus
+60s originales. Esto acredita esa particion, no la campana completa.
+
+La primera particion en VPS2 agoto los 60s de administracion de expedientes
+tras recorrer conflictos y cierre; sus respuestas fallidas fueron solo los
+409 esperados. La cancelacion detuvo el resto. La preparacion administrativa
+habia tardado 50s. VPS2 promedio **2.94 CPU**, alcanzo **5.32 GiB**, sin eventos
+MemoryHigh, OOM ni throttling de cuota; registro 53.99s de presion CPU parcial
+y 15.95s completa durante la ventana de jobs. En VPS3 el conjunto promedio
+**6.74 CPU**, alcanzo **26.96 GiB**, sin MemoryHigh, OOM ni swap. No se aumentan
+recursos ni slots a partir de esta campana parcial.
+
+Se mueve solo la familia administrativa, con su preparacion, a la tercera
+particion. Etapas/plazos permanecen en la primera. No se agrega otro runner
+ni se modifican escenarios, timeouts, assertions, producto o criptografia.
+La comprobacion nueva del plan fallo antes del cambio y despues aprobaron
+**11/11** comprobaciones focales de seleccion y autenticacion de fixtures.
+Los listados reales de Playwright preservan las mismas **43 identidades** de
+la referencia completa, ahora **13/17/13**, sin duplicados. Formato, ASCII,
+limite de lineas y diff aprobaron. El escenario administrativo sin cambios
+aprobo **1/1 en 22.3s** en VPS3, usando la nueva preparacion de su particion y
+el limite original de 60s. Esta comprobacion focal fue aislada de Rust;
+la campana conjunta sigue pendiente.
+
 ## Permisos del checkout del runner: 27 de septiembre de 2026
 
 [Web 36293132814](https://github.com/eddndev/TT2026-B136/actions/runs/36293132814)

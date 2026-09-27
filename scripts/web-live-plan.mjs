@@ -22,7 +22,7 @@ export const fixtureNames = [
 
 const families = [
   [/^(case-stages|stage-adoption)\./, 1, ["caseStages"]],
-  [/^case-administration\./, 1, ["caseAdministration"]],
+  [/^case-administration\./, 3, ["caseAdministration"]],
   [/^deadline-reevaluation\./, 1, ["deadlineReevaluation"]],
   [/^deadline-/, 1, ["deadlines"]],
   [/^combined-agenda\./, 1, ["deadlineReevaluation", "combinedAgenda"]],

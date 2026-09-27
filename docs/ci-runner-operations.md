@@ -85,6 +85,9 @@ archivos y preparar sus familias de datos. No combinar esa variable con
 `--shard` de Playwright: dividiria dos veces y omitiria pruebas. Sin variable,
 `scripts/web-demo.sh` conserva la suite y preparacion completas. Un archivo
 nuevo sin clasificar recibe una particion y todos los fixtures como respaldo.
+La tercera particion reune administracion y participantes en VPS3; la primera
+conserva etapas y plazos en VPS2. Los fixtures siguen a sus escenarios, sin
+duplicar su preparacion ni aumentar la cantidad de runners.
 Ver [ADR 0054](adr/0054-browser-fixture-partitions.md).
 
 ## Servidor dedicado

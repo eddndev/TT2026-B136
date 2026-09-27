@@ -40,6 +40,15 @@ test('related scenarios share expensive fixtures and preserve dependent setup', 
   assert.ok(plans[2].fixtures.includes('participants'));
 });
 
+test('administration runs with participants on the primary without unrelated stage setup', () => {
+  const plans = [1, 2, 3].map((n) => planLiveSuite(files, `${n}/3`));
+  const owner = plans.find((plan) => plan.files.includes('case-participants.spec.mjs'));
+  assert.ok(owner.files.includes('case-administration.spec.mjs'));
+  assert.ok(owner.fixtures.includes('caseAdministration'));
+  assert.ok(!owner.fixtures.includes('caseStages'));
+  assert.equal(plans.filter((plan) => plan.fixtures.includes('caseAdministration')).length, 1);
+});
+
 test('future unclassified specs run once with conservative complete fixtures', () => {
   const future = 'new-feature.spec.mjs';
   const plans = [1, 2, 3].map((n) => planLiveSuite([...files, future], `${n}/3`));

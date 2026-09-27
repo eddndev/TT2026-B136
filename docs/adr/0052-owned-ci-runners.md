@@ -29,9 +29,11 @@ execution as a fallback. Other workflows are outside this decision.
   operator; jobs do not run privileged package installation.
 
 Moving one real partition to the dedicated server reduces competition on the
-shared support host. Keep total partition count and fixture ownership fixed
-so runtime differences reflect placement. Provision the new target before
-measuring warm runs and account for its one-time compilation separately.
+shared support host. Compare placement with unchanged fixture ownership
+first, then rebalance families using measured preparation and browser times
+as described in `docs/adr/0054-browser-fixture-partitions.md`. Preserve the
+complete scenario inventory. Provision the new target before measuring warm
+runs and account for its one-time compilation separately.
 
 All runner services and rootless containers on a server share its runner
 user's cgroup budget. Budgets are host totals, not allowances per runner.

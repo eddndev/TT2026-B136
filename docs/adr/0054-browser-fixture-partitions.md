@@ -24,6 +24,15 @@ Each job still has independent PostgreSQL, Redis, files, server and one
 browser worker. All provisioning and authentication continue through the
 real API, including unchanged password/recovery costs and permissions.
 
+Assign administration and participant scenarios to the primary server's
+third partition. The long administration workflow exceeded its unchanged
+timeout on the shared support server, while the primary completed its
+participant family alongside Rust. Move administration and its fixture
+together, without preparing stage accounts there. Keep stage/adoption and
+deadline/agenda families on the first partition and hearing-related families
+on the second. Validate the full union and concurrent runtime after moving
+a family; a focused pass alone does not establish full-campaign stability.
+
 When stage fixtures exist, their Owner uses reserved recovery code 7 to
 provision optional families. Otherwise bootstrap code 6 remains available
 because stage setup did not consume it. Bootstrap codes 0 through 4 remain
