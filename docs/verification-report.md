@@ -4,6 +4,27 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Recuperacion del provisionador y cancelacion cruzada: 27 de septiembre de 2026
+
+La preparacion selectiva publicada en `3ccf617` fallo antes del navegador:
+solicitaba el indice 8 de un conjunto de ocho codigos (indices 0 a 7), por
+lo que la peticion MFA omitia el campo y recibia HTTP 422. La correccion usa
+el codigo reservado del Owner de etapas cuando ese fixture existe; cuando
+no existe, usa el codigo de bootstrap que etapas no consumio.
+
+Cuatro pruebas focales importan el script real con transporte HTTP simulado,
+una por particion y otra sin particion. Las cuatro reprodujeron primero el
+codigo inexistente; tras la correccion pasaron **4/4**. Comprueban pertenencia
+al conjunto emitido, ausencia de colision con otros consumidores, uso de la
+sesion y cierre al fallar la preparacion. No ejecutan PostgreSQL ni acreditan
+la regresion completa remota, que sigue pendiente.
+
+El hook de [Web 36289758863](https://github.com/eddndev/TT2026-B136/actions/runs/36289758863)
+solicito cancelar ambos workflows a las 02:53:50 UTC. Web y
+[CI 36289758856](https://github.com/eddndev/TT2026-B136/actions/runs/36289758856)
+terminaron cancelados a las 02:54:07. Esta ejecucion confirma la cancelacion
+cruzada con CI todavia activo; no representa suites completas aprobadas.
+
 ## Cache caliente y preparacion selectiva del navegador: 27 de septiembre de 2026
 
 [CI 36287708210](https://github.com/eddndev/TT2026-B136/actions/runs/36287708210)

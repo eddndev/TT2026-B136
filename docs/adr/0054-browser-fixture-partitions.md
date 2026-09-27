@@ -24,10 +24,14 @@ Each job still has independent PostgreSQL, Redis, files, server and one
 browser worker. All provisioning and authentication continue through the
 real API, including unchanged password/recovery costs and permissions.
 
-The bootstrap Owner uses its reserved recovery code 8 to provision optional
-families. Codes 0 through 7 retain their existing document and setup owners.
-Provisioning no longer needs unrelated stage accounts solely to obtain an
-Owner session. Extract hearing setup without changing its operations.
+When stage fixtures exist, their Owner uses reserved recovery code 7 to
+provision optional families. Otherwise bootstrap code 6 remains available
+because stage setup did not consume it. Bootstrap codes 0 through 4 remain
+reserved for document scenarios, code 5 for administration and code 7 for
+participant setup. All indices belong to the issued eight-code set; validate
+the selected code before login. Provisioning does not create unrelated stage
+accounts solely to obtain an Owner session. Extract hearing setup without
+changing its operations.
 
 Discover supported spec/test extensions recursively. A future unclassified
 file gets one deterministic owner and conservative complete fixture setup;

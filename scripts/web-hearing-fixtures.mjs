@@ -47,15 +47,19 @@ async function request(method, path, body, expected = 200, headers = {}) {
     );
   return response.status === 204 ? undefined : response.json();
 }
-// Bootstrap codes 0..7 belong to document and setup scenarios; code 8 provisions these families.
-const provisioner = fixture;
+// Stage setup consumes bootstrap code 6; its Owner reserves code 7 for provisioning.
+// Without stage setup, bootstrap code 6 remains available for these families.
+const provisioner = fixture.caseStages?.owner ?? fixture;
+const recoveryCode = provisioner.recoveryCodes[fixture.caseStages ? 7 : 6];
+if (typeof recoveryCode !== "string" || recoveryCode.length === 0)
+  throw new Error("Fixture provisioner has no reserved recovery code");
 const challenge = await request("POST", "/auth/login", {
   email: provisioner.email,
   password: provisioner.password,
 });
 const session = await request("POST", "/auth/mfa/recovery", {
   challenge_token: challenge.challenge_token,
-  code: provisioner.recoveryCodes[8],
+  code: recoveryCode,
 });
 token = session.access_token;
 const pdf = await readFile(
