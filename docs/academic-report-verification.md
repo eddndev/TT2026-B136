@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Consulta inversa desde actividades: PDF del 27 de septiembre de 2026
+
+El PDF local final tiene **344 páginas y 5915321 bytes**, SHA-256
+`3ce7eae180a840a57e3975e83c13ed782e853dbbae761ed4976860f0994d7a3c`.
+Se compiló con LuaLaTeX siguiendo el README del manuscrito y se inspeccionaron
+las páginas físicas **205, 206, 246 y 247**: implementación, pruebas y sus
+continuaciones son legibles, sin nuevos recortes ni solapamientos. No se
+observaron referencias sin resolver ni glifos ausentes. Persisten las
+sustituciones históricas de versalitas y el desborde conocido de 0.11754 pt.
+El PDF anterior se conservó antes de compilar. Esta muestra no equivale a una
+revisión visual integral ni cierra las conclusiones o la evaluación con personas.
+
+
 ## Miembros: fuentes del 19 de septiembre de 2026
 
 Se incorporaron apartados propios de implementacion, pruebas y anexo, con sus

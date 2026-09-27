@@ -1,3 +1,4 @@
+import { activityResourcePage } from './activity-resources-fixtures.mjs';
 import { expect } from '@playwright/test';
 import { setup, login, navigate, caseId, caseRecord } from './helpers.mjs';
 import { administration, overview, profile } from './case-administration-helpers.mjs';
@@ -194,6 +195,8 @@ export async function setupHearings(
     }
     const history = state.records.get(parts[0]);
     if (!history) return failure(route, 'hearing_not_found', 404);
+    if (parts[1] === 'resource-associations')
+      return route.fulfill({ json: activityResourcePage(caseId, 'hearing', parts[0], url) });
     if (parts[1] === 'history') {
       let rows = [...history]
         .reverse()

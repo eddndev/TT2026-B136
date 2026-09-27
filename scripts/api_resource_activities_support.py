@@ -133,6 +133,10 @@ def stable(value):
     out = copy.deepcopy(value)
     if 'associations' in out and out['associations']:
         assert all(v['checked_at'] == out['associations'][0]['checked_at'] for v in out['associations'])
+    if 'associations' in out and 'target' in out:
+        instant(out['checked_at'])
+        assert all(v['checked_at'] == out['checked_at'] for v in out['associations'])
+        out['checked_at'] = 'validated inverse association page instant'
     if 'current_target' in out:
         instant(out['checked_at'])
         current = out['current_target']

@@ -1,5 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
+  import ActivityResources from './ActivityResources.svelte';
   import HearingList from './HearingList.svelte';
   import HearingDetail from './HearingDetail.svelte';
   import HearingEditor from './HearingEditor.svelte';
@@ -13,6 +14,7 @@
     onnavigate,
     intent = null,
     onintent = () => {};
+  export let onresource = () => {};
   const scoped = api.caseHearings(record.id),
     participants = api.caseParticipants(record.id),
     typed = api.caseTypedParticipants(record.id),
@@ -274,6 +276,15 @@
       {historical}
       bind:this={detailView}
     />
+    {#key selected.revision}<ActivityResources
+        {api}
+        caseId={record.id}
+        kind="hearing"
+        record={selected}
+        ondenied={deny}
+        onopen={onresource}
+        disabled={locked}
+      />{/key}
     <HearingResults
       {api}
       caseId={record.id}

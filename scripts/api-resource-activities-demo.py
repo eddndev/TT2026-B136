@@ -18,9 +18,12 @@ def authorization(first, head, hearing, act, original, original_draft, users, to
         for suffix in ['', '/history', '/revisions/1']:
             request('GET', path + suffix, token=token)
         request('GET', collection, token=token)
+        request('GET', route + '/hearings/' + hearing['id'] + '/resource-associations', token=token)
     for suffix in ['', '/' + original['id'], '/' + original['id'] + '/history',
                    '/' + original['id'] + '/revisions/1']:
         request('GET', collection + suffix, expected=403, token=tokens['client'], code='permission_denied')
+    request('GET', route + '/hearings/' + hearing['id'] + '/resource-associations',
+            expected=403, token=tokens['client'], code='permission_denied')
     command = link(first, head, hearing, 'hearing', act)
     draft = prepare(collection, command, tokens['litigator'])
     for role in ['paralegal', 'client']:
@@ -29,6 +32,8 @@ def authorization(first, head, hearing, act, original, original_draft, users, to
     request('DELETE', route + '/members/' + users['litigator'], expected=204)
     submit(collection, draft, tokens['litigator'], 404, 'case_not_found')
     submit(collection, original_draft, tokens['litigator'], 404, 'case_not_found')
+    request('GET', route + '/hearings/' + hearing['id'] + '/resource-associations',
+            expected=404, token=tokens['litigator'], code='case_not_found')
     hidden = request('GET', path, expected=404, token=tokens['litigator'])
     missing = request('GET', '/api/v1/cases/' + str(uuid4())
                       + '/procedural-resources/' + first['id'] + '/activities/' + original['id'],
@@ -146,6 +151,27 @@ def capture():
         page = request('GET', collection + '?status=' + status)
         assert [v['association']['id'] for v in page['associations']] == [expected_id]
     assert request('GET', collection + '?kind=deadline')['associations'] == []
+    inverse_paths = []
+    for target_path, target_kind, target, expected_rows in [
+        (hearing_path, 'hearing', hearing, [removed, plain]),
+        (deadline_path, 'deadline', deadline, [deadline_link]),
+    ]:
+        inverse = target_path + '/resource-associations'
+        all_page = request('GET', inverse + '?status=all&limit=1')
+        assert all_page['target'] == {'kind': target_kind, 'id': target['id']}
+        assert all_page['case_id'] == target['case_id']
+        stable(all_page)
+        found = list(all_page['associations'])
+        if all_page['has_more']:
+            page = request('GET', inverse + '?status=all&limit=1&after_id=' + all_page['next_after_id'])
+            stable(page)
+            assert not page['has_more'] and page['next_after_id'] is None
+            found += page['associations']
+        assert {v['association']['id'] for v in found} == {v['id'] for v in expected_rows}
+        assert {v['association']['id']: v['association'] for v in found} == {v['id']: v for v in expected_rows}
+        assert [v['association'] for v in request('GET', inverse)['associations']] == [
+            v for v in expected_rows if v['status'] == 'linked']
+        inverse_paths += [inverse, inverse + '?status=all', inverse + '?status=unlinked']
     assert request('GET', hearing_path) == original_hearing
     assert stable(request('GET', deadline_path)) == original_deadline
     assert request('GET', route + '/stage') == stage
@@ -155,6 +181,7 @@ def capture():
         item = prefix + '/' + row['id']
         paths += [item, item + '/history'] + [item + '/revisions/' + str(n)
                   for n in range(1, row['revision'] + 1)]
+    paths += inverse_paths
     paths += resources.exact_paths(route, archived)
     paths += resources.exact_paths('/api/v1/cases/' + deadline_first['case_id'], deadline_first)
     records = {p: stable(request('GET', p)) for p in dict.fromkeys(paths)}

@@ -40,6 +40,7 @@ const families = [
   [/^procedural-facts-/, 3, ["proceduralFacts"]],
   [/^procedural-resources\./, 3, ["proceduralResources"]],
   [/^resource-activities-real\./, 3, ["resourceActivities"]],
+  [/^activity-resources-real\./, 3, ["resourceActivities"]],
   [/^resource-activities-contextual-real\./, 3, ["resourceActivities"]],
 ];
 

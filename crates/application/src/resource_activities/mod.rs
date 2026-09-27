@@ -9,6 +9,8 @@ mod query;
 mod reads;
 mod service;
 mod sources;
+mod target;
+mod target_reads;
 mod validation;
 pub use canonical::{resource_activity_capture_bytes, resource_activity_submission_bytes};
 pub use command::*;
@@ -21,6 +23,7 @@ pub use port::*;
 pub use prepared::PreparedResourceActivityChange;
 pub use query::*;
 pub use service::ResourceActivityService;
+pub use target::*;
 pub use validation::{resource_activity_command_from_detail, resource_activity_receipt_matches};
 
 #[derive(Debug, thiserror::Error)]

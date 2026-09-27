@@ -10,6 +10,7 @@ use std::sync::Arc;
 mock! {
     pub Store {}
     impl ResourceActivityStore for Store {
+        fn list_for_target(&self, actor:UserId, case:CaseId, target:ResourceActivityTargetId, query:ResourceActivityTargetQuery, at:OffsetDateTime)->Result<ResourceActivityTargetPage,ApplicationError>;
         fn list(&self, actor:UserId, case:CaseId, resource:ResourceId, query:ResourceActivityQuery, at:OffsetDateTime)->Result<ResourceActivityPage,ApplicationError>;
         fn get(&self, actor:UserId, case:CaseId, resource:ResourceId, id:ResourceActivityId, revision:Option<ResourceActivityRevision>, at:OffsetDateTime)->Result<ResourceActivityView,ApplicationError>;
         fn history(&self, actor:UserId, case:CaseId, resource:ResourceId, id:ResourceActivityId, query:ResourceActivityHistoryQuery, at:OffsetDateTime)->Result<ResourceActivityHistoryPage,ApplicationError>;

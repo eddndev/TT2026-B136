@@ -4,6 +4,46 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Recursos relacionados desde actividades: comprobación del 27 de septiembre de 2026
+
+La consulta inversa autoriza una audiencia o plazo concreto, lee las cabezas
+actuales de sus asociaciones y conserva sus capturas históricas. La interfaz
+abre el recurso y vínculo exactos y regresa a la actividad original y a la
+bandeja filtrada sin marcar alertas como leídas. Su contrato está en
+[activity-resource-links-api.md](activity-resource-links-api.md) y la decisión
+en [ADR 0059](adr/0059-activity-resource-navigation.md).
+
+| Comprobación nueva | Resultado ejecutado |
+| --- | --- |
+| Aplicación: ámbito, contrato de página y reautenticación | 5/5 |
+| PostgreSQL desechable: lectura, acceso, auditoría y concurrencia | 6 casos distintos aprobados |
+| Regresiones PostgreSQL de asociaciones existentes | 12/12 |
+| HTTP inverso: rutas, permisos, filtros y contrato | 6/6; diez regresiones previas aprobadas |
+| Cliente Node | 8/8 |
+| Navegador controlado, un worker | 9 casos distintos aprobados |
+| Planificador de fixtures reales | 9/9, incluyendo el archivo nuevo en su familia existente |
+
+Las pruebas fallaron primero ante la ausencia del nuevo comportamiento. El
+caso PostgreSQL de revocación necesitó incrementar revisión y generación de
+cuenta en su fixture para respetar el guard existente; después aprobó aislado.
+El navegador de plazo necesitó representar una revisión histórica con estado
+operativo no comprobado; se corrigió el fixture sin debilitar el contrato.
+Las repeticiones focales no se cuentan como pruebas adicionales. No se ejecutó
+una suite completa local. El recorrido con servicios reales aprobó 1/1 en
+11.6 s de escenario y 15.5 s del ejecutor. Se inspeccionaron las capturas a 1440
+y 390 píxeles: el panel mantiene el sistema Qadra y no desborda horizontalmente.
+El flujo HTTP integrado y su respaldo/restauración aprobaron con salida cero,
+incluidas páginas inversas, filtros, capturas y rechazo tras revocar pertenencia.
+Las ocho familias documentales también conservaron sus bytes tras restaurar.
+Después de corregir sólo tildes visibles, los dos recorridos de navegación
+aprobaron en 8.5 s y las 17 regresiones de alertas, plazos y acceso a asociaciones
+en 27.7 s, siempre con un worker. Clippy del workspace y todos sus targets aprobó con advertencias denegadas
+(1 min 51 s); el registro estático comprobó 216 ejecutables de integración sin
+fuentes duplicadas. El PDF final de 344 páginas compiló y se inspeccionaron las
+páginas físicas 205, 206, 246 y 247. No se observaron nuevos recortes ni
+referencias sin resolver; persisten las sustituciones históricas de versalitas
+y el desborde conocido de 0.11754 pt. El cierre global sigue pendiente.
+
 ## Admisión documental general: aceptación local del 27 de septiembre de 2026
 
 La nueva admisión valida PDF, DOCX, TXT, JPEG, PNG, MP3, WAV y MP4 en cargas
@@ -122,7 +162,9 @@ identidades de pruebas previas: 3084 Rust, dos ignoradas, 378 de navegador
 controlado y 45 con servicios reales. Los gates de cobertura conservaron
 97/95/93 % para domain/application/infrastructure. PR46 se integró por squash
 como `23970cc516854688da587e878d4304fa52068ecf`; la ejecución natural de main
-sigue siendo su comprobación final independiente.
+aprobó también: CI en 6 min 37 s, Web en 13 min 19 s y Documents en 7 min
+39 s, conservando el mismo inventario y todos los gates. Esa confirmación
+natural es independiente de la campaña de la PR.
 
 La primera campaña se canceló al fallar un helper de navegador: confundía una
 lista de hechos históricos con un estado compartido ya inicializado y omitía

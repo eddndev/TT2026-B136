@@ -12,6 +12,16 @@
   } from '../lib/procedural-resource-errors.mjs';
   import '../styles/procedural-facts.css';
   export let api, user, record, ondenied;
+  export let intent = null,
+    onintent = () => {};
+  let initialized = false,
+    consumed,
+    associationIntent = null;
+  $: if (initialized && intent && intent !== consumed) {
+    consumed = intent;
+    if (intent.case_id === record.id) open(intent.resource.id, intent.resource.revision, intent);
+    onintent();
+  }
   const caseId = record.id,
     scoped = api.caseResources(caseId),
     administration = caseState();
@@ -73,15 +83,19 @@
       if (alive && request === generation) busy = false;
     }
   }
-  async function open(id, exact) {
+  async function open(id, exact, linked = null) {
     const request = ++detailGeneration;
     opening = true;
     selected = null;
+    associationIntent = null;
     error = '';
     notice = '';
     try {
       const value = exact === undefined ? await scoped.get(id) : await scoped.revision(id, exact);
       if (alive && request === detailGeneration) {
+        if (linked && value.receipt.capture_digest !== linked.resource.capture_digest)
+          throw new Error('La captura del recurso no coincide con el v\u00ednculo seleccionado.');
+        associationIntent = linked?.association ?? null;
         selected = value;
         historical = exact !== undefined;
       }
@@ -133,7 +147,11 @@
     cursors = [undefined];
     load();
   }
-  onMount(() => load());
+  onMount(() => {
+    load().then(() => {
+      if (alive) initialized = true;
+    });
+  });
   onDestroy(() => {
     alive = false;
     generation++;
@@ -253,6 +271,8 @@
         {user}
         {caseId}
         resource={selected}
+        intent={associationIntent}
+        onintent={() => (associationIntent = null)}
         {ondenied}
         disabled={busy || opening || editorBusy || !!action}
         bind:pending={activityBusy}
