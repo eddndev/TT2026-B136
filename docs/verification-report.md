@@ -4,6 +4,23 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Sincronizacion de navegacion del cliente: 27 de septiembre de 2026
+
+[Web 36291240886](https://github.com/eddndev/TT2026-B136/actions/runs/36291240886)
+se detuvo en `deadline-navigation.spec.mjs`: el test forzaba el hash de plazos
+inmediatamente despues del clic en un expediente. Comprobar que no existia
+un enlace privado podia cumplirse antes de terminar `Cases.open`, que espera
+la respuesta de detalle y despues navega al resumen. Esa respuesta pendiente
+podia sobrescribir la redireccion a Inicio del hash denegado.
+
+La prueba ahora espera el encabezado del resumen antes de forzar el hash.
+Mantiene el enlace privado ausente, Inicio seleccionado y cero solicitudes
+privadas; no se cambio el producto, el timeout ni la cantidad de pruebas.
+La ejecucion focal con un worker aprobo **1/1** (19.9s incluyendo arranque);
+formato, ASCII y diff tambien pasaron. No se repitio una suite completa.
+La cancelacion cruzada detuvo Web y CI; esta campana no permite concluir si
+las prioridades nuevas resuelven el timeout previo del navegador real.
+
 ## Preparacion reducida y contencion del host: 27 de septiembre de 2026
 
 En [Web 36290455092](https://github.com/eddndev/TT2026-B136/actions/runs/36290455092)
