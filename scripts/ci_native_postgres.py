@@ -1,5 +1,6 @@
 """Run CI against bounded disposable PostgreSQL; see docs/adr/0055-native-ci-postgres.md."""
 
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -23,7 +24,21 @@ def state_path():
 
 
 def cleanup(marker=None):
-    marker = marker or state_path()
+    marker = Path(marker or state_path())
+    lock_path = marker.with_name(marker.name + ".cleanup.lock")
+    descriptor = os.open(
+        lock_path, os.O_CREAT | os.O_RDWR | os.O_CLOEXEC | os.O_NOFOLLOW, 0o600
+    )
+    try:
+        os.fchmod(descriptor, 0o600)
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        _cleanup_locked(marker)
+    finally:
+        # Keep the lock inode so waiting cleanup processes remain serialized.
+        os.close(descriptor)
+
+
+def _cleanup_locked(marker):
     if not marker.exists():
         return
     state = json.loads(marker.read_text())
