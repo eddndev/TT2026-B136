@@ -4,6 +4,40 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Reparto de navegador entre servidores: 27 de septiembre de 2026
+
+[Web 36291943072](https://github.com/eddndev/TT2026-B136/actions/runs/36291943072)
+repitio el timeout total de participantes, ahora al final de los controles de
+permisos. La cancelacion automatica detuvo ambos workflows. En la ventana
+activa muestreada, VPS2 obtuvo **4.15 CPU** y alcanzo **6.33 GiB**, con cero
+eventos nuevos MemoryHigh u OOM y 0.04 GiB de swap. La prioridad elimino la
+presion de memoria observada antes, pero no resolvio el tiempo del escenario.
+No se acredita una campana completa ni una mejora del total.
+
+La matriz ahora asigna las particiones reales 1 y 2 a VPS2 y la 3 a un runner
+independiente de VPS3. Conserva los mismos 43 escenarios, fixtures, un worker
+por job y todos los gates. VPS3 mantiene sus 16 slots Rust y ocho CPU; el
+presupuesto conjunto pasa a MemoryHigh 28 GiB y MemoryMax 30 GiB para incluir
+el navegador, dejando 2 GiB fuera del limite para el sistema. La ventana Rust
+anterior alcanzo 24 GiB, sin OOM ni swap. Se medira la contencion conjunta en
+la siguiente campana antes de acreditar el cambio.
+
+Se prepara una sola vez el target independiente del nuevo runner antes de
+medir ejecuciones calientes. Ese coste de instalacion y compilacion se
+registra aparte; no se presenta como parte de una mejora del tiempo frio.
+La compilacion inicial del target nuevo termino en **1m54s** usando un
+compilador. Chromium abrio una pagina y PostgreSQL/Redis desechables pasaron
+la comprobacion con el usuario real del runner. La matriz paso Actionlint;
+no se repitio una suite local. La comprobacion focal inicial detecto Redis
+6.0 del sistema sin `GETDEL` y fallo en MFA antes del navegador; se actualiza
+la dependencia a **Redis 7.4.11** desde el repositorio oficial, sin alterar
+el adaptador de identidad. El mismo escenario completo de participantes
+aprobo **1/1 en 21.7s** con su presupuesto original de 60s. Las familias
+participantes, hechos, recursos y actividades se prepararon en 35s, 16.00s,
+16.26s y 17.40s respectivamente; hechos/recursos compartieron un lote. Esta
+comprobacion fue aislada, sin la suite Rust simultanea, por lo que no demuestra
+todavia el tiempo del reparto completo.
+
 ## Sincronizacion de navegacion del cliente: 27 de septiembre de 2026
 
 [Web 36291240886](https://github.com/eddndev/TT2026-B136/actions/runs/36291240886)

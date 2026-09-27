@@ -5,3 +5,4 @@ self-hosted-runner:
     - tt-ci-dedicated
     - tt-ci-mock
     - tt-ci-live
+    - tt-ci-live-primary

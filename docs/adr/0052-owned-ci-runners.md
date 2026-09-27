@@ -15,15 +15,23 @@ GitHub Actions as the scheduler and artifact store; do not enable paid hosted
 execution as a fallback. Other workflows are outside this decision.
 
 - The dedicated server retains one `tt-ci-dedicated` runner for Rust tests
-  and coverage generation, with sixteen isolated test slots.
+  and coverage generation, with sixteen isolated test slots. A separate
+  `tt-ci-live-primary` runner executes the third real-browser partition, with
+  its own workspace, native backends and compiler target.
 - The first support server has one `tt-ci-vps1` runner for native format,
   Clippy, MSRV, dependency, binary-size and aggregate checks. Two additional
   `tt-ci-mock` runners each execute a simulated-browser shard in the official
   Playwright Ubuntu image. Its version must match the locked NPM dependency.
-- The second support server has three `tt-ci-live` runners, one per real
-  browser shard, with independent workspaces, backend services and ports.
-  Each job uses one compiler and browser worker. System dependencies are
-  prepared by the operator; jobs do not run privileged package installation.
+- The second support server retains three `tt-ci-live` runners but receives
+  only the first two real-browser partitions concurrently. Every real-browser
+  job uses an independent workspace, backends, ports and target, with one
+  compiler and browser worker. System dependencies are prepared by the
+  operator; jobs do not run privileged package installation.
+
+Moving one real partition to the dedicated server reduces competition on the
+shared support host. Keep total partition count and fixture ownership fixed
+so runtime differences reflect placement. Provision the new target before
+measuring warm runs and account for its one-time compilation separately.
 
 All runner services and rootless containers on a server share its runner
 user's cgroup budget. Budgets are host totals, not allowances per runner.

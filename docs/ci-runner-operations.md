@@ -8,10 +8,11 @@ maquinas de GitHub. El reparto es:
 
 | Servidor | Runners y etiquetas | Trabajo | Presupuesto compartido |
 | --- | --- | --- | --- |
-| VPS3 | Uno, `tt-ci-dedicated` | Rust y generacion de cobertura | 8 CPU, MemoryHigh 24 GiB, MemoryMax 26 GiB |
+| VPS3 | Uno, `tt-ci-dedicated` | Rust y generacion de cobertura | 8 CPU, MemoryHigh 28 GiB, MemoryMax 30 GiB |
+| VPS3 | Uno, `tt-ci-live-primary` | Tercera particion real | Incluido en el presupuesto de VPS3 |
 | VPS1 | Uno, `tt-ci-vps1` | Checks nativos y agregados de CI/Web | 3 CPU, MemoryHigh 4608 MiB, MemoryMax 5 GiB |
 | VPS1 | Dos, `tt-ci-mock` | Dos shards de navegador simulado | Incluido en el presupuesto de VPS1 |
-| VPS2 | Tres, `tt-ci-live` | Tres shards de navegador real | 6 CPU, MemoryHigh 6.5 GiB, MemoryMax 7 GiB |
+| VPS2 | Tres, `tt-ci-live` | Dos particiones reales; un runner de reserva | 6 CPU, MemoryHigh 6.5 GiB, MemoryMax 7 GiB |
 
 Los runners adicionales comparten la cuenta `tt-runner`, pero cada uno tiene
 su propio directorio de instalacion y trabajo. Asignar sus unidades systemd
@@ -38,13 +39,20 @@ la imagen con el usuario del runner antes de habilitarlo. Al actualizar
 Playwright en `web/package-lock.json`, actualizar tambien la imagen y
 comprobar Chromium; el workflow rechaza una imagen incompatible.
 
-VPS2 requiere Ubuntu 24.04, PostgreSQL 16 con `initdb`/`pg_ctl`, Redis,
+Los runners reales de VPS2 (Ubuntu 24.04) y VPS3 (Ubuntu 22.04) requieren
+PostgreSQL 16 con `initdb`/`pg_ctl`, Redis 7,
 Python 3.12+, jq, unzip, OpenSSL y las dependencias nativas de Chromium.
 Instalar estas dependencias una vez como administrador con la version de
 Playwright fijada por el lockfile. Instalar Chromium con el usuario del
 runner; el workflow reutiliza esa cache y no ejecuta APT con sudo. Node 24
 se selecciona por job con setup-node. Comprobar que el navegador abre una
 pagina antes de publicar cambios de infraestructura.
+
+En Ubuntu 22.04, instalar Redis 7 desde el [repositorio APT oficial de Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/apt/)
+y conservar la serie mayor con una preferencia APT. El paquete Redis 6.0 de
+la distribucion no ofrece `GETDEL`, usado por la autenticacion. Comprobar un
+login MFA contra servicios desechables antes de habilitar un runner nuevo;
+que el servidor responda PING no valida ese contrato.
 
 `scripts/prepare-ci-workspace.sh` configura un compilador por job y conserva
 `~/.cache/tt-ci/target` para los checks secuenciales. Cada runner real usa
@@ -74,11 +82,15 @@ El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta
 exclusiva del runner y Docker con servicios desechables. Registrar un solo
 runner de este repositorio con la etiqueta `tt-ci-dedicated`. Un unico proceso
 Nextest reparte las pruebas individuales entre dieciseis slots; no instalar
-cuatro runners que compilen simultaneamente el mismo workspace.
+cuatro runners que compilen simultaneamente el mismo workspace. El runner
+adicional `tt-ci-live-primary` usa un target distinto para la tercera
+particion real. Preparar sus dependencias nativas y navegador como se indica
+arriba. Se conservan al menos 2 GiB fuera del limite de CI para el sistema;
+recalcular este presupuesto antes de alojar servicios de despliegue.
 
 Limitar conjuntamente el usuario del runner y su Docker rootless a 8 CPU y
-26 GiB de RAM, con `MemoryHigh=24G`. Este presupuesto utiliza las ocho vCPU
-del host dedicado; revisar el reparto de CPU antes de desplegar servicios
+30 GiB de RAM, con `MemoryHigh=28G`, incluidos Rust y el navegador real.
+Este presupuesto utiliza las ocho vCPU del host dedicado; revisar el reparto de CPU antes de desplegar servicios
 adicionales. Mantener una cuenta independiente para despliegues, sin
 pertenencia a los grupos ni acceso a las credenciales del runner. El workflow
 limita PostgreSQL a 6 GiB y Redis a 128 MiB,
@@ -93,7 +105,7 @@ conjuntamente a sus procesos y servicios rootless mediante la slice del UID:
 
 ```bash
 sudo systemctl set-property "user-$(id -u tt-runner).slice" \
-  CPUQuota=800% MemoryHigh=24G MemoryMax=26G
+  CPUQuota=800% MemoryHigh=28G MemoryMax=30G
 ```
 
 Cambiar recursos entre campanas. El numero de slots, distinto del numero de
