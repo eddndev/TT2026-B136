@@ -215,7 +215,7 @@ fn mp4_requires_an_approved_brand_and_complete_top_level_boxes() {
     let ftyp = marker(&bytes, b"ftyp");
     let end = ftyp - 4 + be32(&bytes, ftyp - 4);
     bytes[ftyp + 4..ftyp + 8].copy_from_slice(b"qt  ");
-    for brand in bytes[ftyp + 12..end].chunks_exact_mut(4) {
+    for brand in bytes[ftyp + 12..end].as_chunks_mut::<4>().0 {
         brand.copy_from_slice(b"qt  ");
     }
     rejected(&bytes);
