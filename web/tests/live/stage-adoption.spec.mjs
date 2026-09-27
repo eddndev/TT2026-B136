@@ -63,6 +63,9 @@ test('legacy adoption keeps its own origin and current staff permissions', async
         other.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
       ).toHaveCount(0);
       await other.getByRole('button', { name: new RegExp(accounts.legacyCase.title) }).click();
+      await expect(
+        other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+      ).toBeVisible();
       if (role === 'paralegal') {
         await openStages(other);
         await expect(other.locator('.stage-current')).toContainText('Intermedia');

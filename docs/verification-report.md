@@ -4,6 +4,38 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Dieciseis slots y sincronizacion de navegacion: 27 de septiembre de 2026
+
+[CI 36283718718](https://github.com/eddndev/TT2026-B136/actions/runs/36283718718)
+aprobo en **11m54s**. Las **3049** pruebas Rust pasaron, con dos ignoradas,
+en **665.174s** y compilacion instrumentada reutilizada de **0.15s**. Todos
+los gates de CI aprobaron. La mejora frente a doce slots fue de veinte
+segundos; no justifica seguir aumentando paralelismo sin otra causa medida.
+
+CPU promedio **6.56**, mayor promedio de muestra **7.14**, memoria cargada
+maxima **21.05 GiB**, PostgreSQL **3.79 GiB** y conexiones maximas **56**.
+No hubo OOM, swap ni eventos de limite de memoria. El throttling acumulado
+fue 0.0015s. PSI de memoria registro menos de un milisegundo de presion; el
+muestreo no muestra saturacion de memoria o E/S. Estos datos no equivalen a
+que todas las pruebas usen ocho cores de forma continua.
+
+[Web 36283718728](https://github.com/eddndev/TT2026-B136/actions/runs/36283718728)
+termino con fallo: las **358** pruebas simuladas y **42 de 43** reales pasaron.
+La identidad exacta de las suites se conserva. `stage-adoption.spec.mjs`
+esperaba el inicio tras forzar una ruta de personal para un cliente, pero la
+captura mostro el resumen del expediente. El test cambiaba el hash justo
+despues del click que inicia una consulta asincrona; comprobar que el enlace
+no existe no esperaba a que concluyera esa apertura. Su finalizacion podia
+sobrescribir la navegacion que la prueba intentaba comprobar.
+
+La correccion espera el encabezado del resumen antes de comprobar los enlaces
+y forzar la ruta. Conserva el retorno esperado al inicio y la asercion de cero
+consultas a etapas, sin ampliar timeouts ni agregar reintentos. La prueba
+focal existente `Client neither navigates nor requests staff stages` aprobo
+con un worker local; ya empleaba esa misma espera. Prettier y diff checks
+aprobaron. La prueba real corregida y la regresion de la nueva cabeza quedan
+pendientes en CI; no se repitio una suite completa local.
+
 ## Doce slots y cache Web caliente: 27 de septiembre de 2026
 
 [CI 36282244911](https://github.com/eddndev/TT2026-B136/actions/runs/36282244911)

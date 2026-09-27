@@ -60,8 +60,9 @@ compilacion, ejecucion y reporte con cache frio y caliente; descargar
 continuamente Actions. Una campana verde acredita correccion; el objetivo de
 10-20 minutos solo se acredita con una medicion completa. Aumentar los slots
 requiere revisar CPU, memoria, conexiones PostgreSQL y los resultados de esa
-campana. Dieciseis slots es la configuracion actual en medicion, con ocho
-CPU disponibles y el mismo limite de memoria. El navegador reparte sus suites
+campana. Dieciseis slots con ocho CPU aprobaron Rust y cobertura en 11m54s,
+con el mismo limite de memoria. La estabilidad del conjunto de checks se
+confirma para cada cabeza publicada. El navegador reparte sus suites
 entre dos jobs para API simulada y tres para servicios reales; cada job conserva un solo worker
 y servicios aislados. Todos los jobs de cada suite deben aprobar
 para que apruebe el check agregado. Ver

@@ -69,8 +69,10 @@ Measured CPU averaged 6.19 cores, PostgreSQL connections peaked at 46, and
 no OOM or swap occurred. Nine MemoryHigh events appeared; peak charged memory
 was 23.93 GiB, primarily file cache and reclaimable kernel memory.
 
-Sixteen slots are the next bounded configuration, with the dedicated host's
-full eight-core quota and the existing 26 GiB parent limit. A future service
+Sixteen slots use the dedicated host's full eight-core quota and the existing
+26 GiB parent limit. The complete Rust campaign passed in 11m54s, with
+3049 passing tests, no OOM or swap and a 21.05 GiB charged-memory peak.
+The twenty-second improvement over twelve slots shows diminishing returns. A future service
 deployment must review the shared CPU budget. The helper supports one through
 sixteen slots; Redis indices 0 through 15 fit its default database capacity.
 Database wait sampling and a complete regression must confirm that extra
