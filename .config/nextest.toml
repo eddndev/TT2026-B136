@@ -5,7 +5,7 @@ dir = "output/nextest"
 
 [profile.ci]
 retries = 0
-fail-fast = false
+fail-fast = true
 status-level = "fail"
 final-status-level = "fail"
 failure-output = "final"

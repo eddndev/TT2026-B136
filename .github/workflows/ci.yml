@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
@@ -33,6 +34,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: '1'
   # Bound test artifacts while retaining source locations; see docs/adr/0027-ci-debug-information.md.
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
@@ -41,7 +43,7 @@ jobs:
   format:
     if: ${{ !inputs.dispatch_measurement }}
     name: Format
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -49,39 +51,51 @@ jobs:
           components: rustfmt
       - name: Check formatting
         run: cargo fmt --all -- --check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify cancellation scope
+        run: node --test scripts/tests/test_cancel_ci_campaign.cjs
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   lint:
     if: ${{ !inputs.dispatch_measurement }}
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - uses: Swatinem/rust-cache@v2
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
       - name: Clippy (deny warnings)
         run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   test:
     if: ${{ !inputs.dispatch_measurement }}
     name: Test (${{ matrix.shard }}/${{ matrix.total }})
     strategy:
-      fail-fast: false
+      fail-fast: true
       # Activate only after provisioning; see docs/adr/0050-isolated-test-slots.md.
       matrix:
-        include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":4}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
-    runs-on: [self-hosted, Linux, X64, "${{ matrix.runner }}"]
+        include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":16}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
+    runs-on: [self-hosted, Linux, X64, '${{ matrix.runner }}']
     timeout-minutes: 210
     services:
       postgres:
-        image: postgres:16-alpine
+        image: ${{ matrix.slots == 0 && 'postgres:16-alpine' || '' }}
         env:
           POSTGRES_PASSWORD: postgres
         ports:
           - '127.0.0.1::5432'
         options: >-
-          --memory ${{ matrix.slots > 0 && '2g' || '768m' }}
+          --memory 768m
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
           --health-timeout 3s
@@ -116,6 +130,8 @@ jobs:
         run: |
           if [ -x /usr/pgsql-16/bin/pg_dump ]; then
             printf '/usr/pgsql-16/bin\n' >> "$GITHUB_PATH"
+          elif command -v pg_config >/dev/null; then
+            pg_config --bindir >> "$GITHUB_PATH"
           fi
       - name: Require PostgreSQL 16 client tools
         run: |
@@ -127,11 +143,14 @@ jobs:
           POSTGRES_TEST_PORT: ${{ job.services.postgres.ports['5432'] }}
           REDIS_TEST_PORT: ${{ job.services.redis.ports['6379'] }}
         run: |
-          printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
-          printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
-          printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          if [ -n "$POSTGRES_TEST_PORT" ]; then
+            printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+            printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+            printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+          fi
           printf 'IDENTITY_TEST_REDIS_URL=redis://127.0.0.1:%s/\n' "$REDIS_TEST_PORT" >> "$GITHUB_ENV"
       - name: Configure disposable PostgreSQL for CI
+        if: ${{ matrix.slots == 0 }}
         run: bash scripts/configure-ci-postgres.sh
       - name: Prepare disk-backed temporary directory
         run: |
@@ -162,13 +181,18 @@ jobs:
           library=$(bash scripts/setup-document-formats.sh)
           printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
       - name: Create isolated case and document test databases
+        if: ${{ matrix.slots == 0 }}
         run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
       - name: Verify independent judicial calendar vectors and SQL guards
         if: ${{ matrix.shard == 1 }}
         run: |
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
-          python3 -B scripts/tests/test_judicial_calendar_sql.py
+          if [ '${{ matrix.slots }}' -gt 0 ]; then
+            python3 -B scripts/ci_native_postgres.py -- python3 -B scripts/tests/test_judicial_calendar_sql.py
+          else
+            python3 -B scripts/tests/test_judicial_calendar_sql.py
+          fi
       - name: Select bounded compiler count
         env:
           MAX_COMPILERS: ${{ matrix.slots > 0 && '4' || '2' }}
@@ -182,7 +206,10 @@ jobs:
         run: python3 -B scripts/ci_test_shard.py "${{ matrix.shard }}"
       - name: Run individually scheduled tests with isolated backends
         if: ${{ matrix.slots > 0 }}
-        run: python3 -B scripts/ci_nextest.py --slots "${{ matrix.slots }}"
+        run: python3 -B scripts/ci_native_postgres.py -- python3 -B scripts/ci_nextest.py --slots "${{ matrix.slots }}"
+      - name: Ensure native PostgreSQL cleanup
+        if: ${{ always() && matrix.slots > 0 }}
+        run: python3 -B scripts/ci_native_postgres.py --cleanup
       - name: Publish individual test durations
         if: ${{ always() && matrix.slots > 0 }}
         uses: actions/upload-artifact@v4
@@ -198,6 +225,9 @@ jobs:
           path: coverage-shard-${{ matrix.shard }}.info
           if-no-files-found: error
           retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   dispatch-measurement:
     if: ${{ inputs.dispatch_measurement }}
@@ -274,25 +304,32 @@ jobs:
           path: output/dispatch-measurement.log
           if-no-files-found: error
           retention-days: 30
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   msrv:
     if: ${{ !inputs.dispatch_measurement }}
     name: MSRV check (Rust 1.88)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.88"
-      - uses: Swatinem/rust-cache@v2
+          toolchain: '1.88'
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
       - name: Build check on the minimum supported Rust version
         run: cargo check --workspace
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   coverage:
     name: Coverage
     needs: test
     if: ${{ !inputs.dispatch_measurement }}
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -309,31 +346,38 @@ jobs:
             --expected-shards "$EXPECTED_SHARDS" \
             coverage-shards/workspace-coverage-*/coverage-shard-*.info coverage.json
           scripts/coverage-gate.sh coverage.json
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   deny:
     if: ${{ !inputs.dispatch_measurement }}
     name: Dependency policy
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@cargo-deny
       - name: Check advisories, licenses, bans and sources
         run: cargo deny check
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   binary-size:
     if: ${{ !inputs.dispatch_measurement }}
     name: Release binary size
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
       - name: Build release binary
         run: cargo build --release --bin despacho-cli
       - name: Fail if despacho-cli exceeds 25 MB
         run: |
-          bin=target/release/despacho-cli
+          bin="$CARGO_TARGET_DIR/release/despacho-cli"
           size=$(stat -c %s "$bin")
           limit=$((25 * 1024 * 1024))
           echo "despacho-cli release size: $size bytes (limit: $limit bytes)"
@@ -341,3 +385,6 @@ jobs:
             echo "error: release binary exceeds the 25 MB limit"
             exit 1
           fi
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign

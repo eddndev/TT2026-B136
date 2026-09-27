@@ -15,6 +15,9 @@ on:
       - 'scripts/web-case-administration-fixtures.mjs'
       - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/web-hearing-fixtures.mjs'
+      - 'scripts/web-fixture-provisioning.mjs'
+      - 'scripts/web-live-plan.mjs'
+      - 'scripts/web-hearing-base-fixture.mjs'
       - 'scripts/web-document-content-fixtures.mjs'
       - 'scripts/web-member-fixtures.mjs'
       - 'scripts/web-document-content-corruption.mjs'
@@ -27,12 +30,16 @@ on:
       - 'scripts/web-hearing-result-fixtures.mjs'
       - 'scripts/web-calendar-fixtures.mjs'
       - 'scripts/test-backends.sh'
+      - 'scripts/prepare-ci-workspace.sh'
       - 'scripts/setup-document-formats.sh'
       - 'scripts/setup-document-formats.py'
       - 'scripts/document_format_archive.py'
       - 'scripts/tests/test_setup_document_formats.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
+      - '.github/actions/cancel-ci-campaign/**'
+      - 'scripts/cancel-ci-campaign.cjs'
+      - 'scripts/tests/test_cancel_ci_campaign.cjs'
   pull_request:
     paths:
       - 'web/**'
@@ -46,6 +53,9 @@ on:
       - 'scripts/web-case-administration-fixtures.mjs'
       - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/web-hearing-fixtures.mjs'
+      - 'scripts/web-fixture-provisioning.mjs'
+      - 'scripts/web-live-plan.mjs'
+      - 'scripts/web-hearing-base-fixture.mjs'
       - 'scripts/web-document-content-fixtures.mjs'
       - 'scripts/web-member-fixtures.mjs'
       - 'scripts/web-document-content-corruption.mjs'
@@ -58,28 +68,43 @@ on:
       - 'scripts/web-hearing-result-fixtures.mjs'
       - 'scripts/web-calendar-fixtures.mjs'
       - 'scripts/test-backends.sh'
+      - 'scripts/prepare-ci-workspace.sh'
       - 'scripts/setup-document-formats.sh'
       - 'scripts/setup-document-formats.py'
       - 'scripts/document_format_archive.py'
       - 'scripts/tests/test_setup_document_formats.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
+      - '.github/actions/cancel-ci-campaign/**'
+      - 'scripts/cancel-ci-campaign.cjs'
+      - 'scripts/tests/test_cancel_ci_campaign.cjs'
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: web-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
-    runs-on: ubuntu-24.04
+  verify-shards:
+    name: Web checks (${{ matrix.shard }}/2)
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [1, 2]
+    runs-on: [self-hosted, Linux, X64, tt-ci-mock]
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --init --shm-size=512m --memory=1536m --cpus=1.5
     defaults:
       run:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -89,44 +114,132 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - name: Require the matching preinstalled browser
+        run: |
+          node --input-type=module -e '
+            import { existsSync } from "node:fs";
+            import { chromium } from "@playwright/test";
+            if (!existsSync(chromium.executablePath())) {
+              throw new Error("Update the Playwright image to match package-lock.json");
+            }
+          '
+      - run: npm run test:e2e -- --workers=1 --max-failures=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/browser-junit.xml
+      - name: Publish browser durations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-durations-${{ matrix.shard }}
+          path: web/test-results/browser-junit.xml
+          if-no-files-found: error
+          retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
-  integration:
-    name: Browser with real services
-    runs-on: ubuntu-24.04
+  verify:
+    if: ${{ !cancelled() }}
+    needs: verify-shards
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require every web shard
+        env:
+          SHARD_RESULT: ${{ needs.verify-shards.result }}
+        run: test "$SHARD_RESULT" = success
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
+
+  integration-shards:
+    name: Browser with real services (${{ matrix.shard }}/3)
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - shard: 1
+            runner: tt-ci-live
+          - shard: 2
+            runner: tt-ci-live
+          - shard: 3
+            runner: tt-ci-live-primary
+    runs-on: [self-hosted, Linux, X64, '${{ matrix.runner }}']
+    env:
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+      TT_WEB_LIVE_SHARD: ${{ matrix.shard }}/3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh web
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - name: Install isolated backend tools
+      - name: Require isolated backend tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql redis-server jq unzip
-          pg_config --bindir >> "$GITHUB_PATH"
+          pg_bin=$(pg_config --bindir)
+          test -x "$pg_bin/initdb"
+          test -x "$pg_bin/pg_ctl"
+          printf '%s\n' "$pg_bin" >> "$GITHUB_PATH"
+          for command in redis-server redis-cli jq unzip; do
+            command -v "$command" >/dev/null
+          done
       - run: npm ci
         working-directory: web
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
         working-directory: web
       - name: Prepare verified document format library
         run: |
           library=$(bash scripts/setup-document-formats.sh)
           printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
       - name: Run browser against Rust and disposable services
-        run: bash scripts/web-demo.sh
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
+          TT_WEB_FIXTURE_WORKERS: '2'
+        run: bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
+      - name: Publish real browser durations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-browser-durations-${{ matrix.shard }}
+          path: web/test-results-live/browser-junit.xml
+          if-no-files-found: error
+          retention-days: 7
       - name: Preserve failed browser screenshots and diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: real-browser-failure
+          name: real-browser-failure-${{ matrix.shard }}
           path: |
             web/test-results-live/**/*.png
             web/test-results-live/**/error-context.md
             web/test-results-live/**/api-failures.json
           if-no-files-found: ignore
           retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
+
+  integration:
+    name: Browser with real services
+    if: ${{ !cancelled() }}
+    needs: integration-shards
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require every real browser shard
+        env:
+          SHARD_RESULT: ${{ needs.integration-shards.result }}
+        run: test "$SHARD_RESULT" = success
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign

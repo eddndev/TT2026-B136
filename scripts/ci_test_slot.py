@@ -20,8 +20,8 @@ def slot_environment(environment):
         redis = environment["TT_CI_REDIS_BASE"]
     except (KeyError, ValueError) as error:
         raise ValueError("nextest requires a slot and all disposable backend addresses") from error
-    if not 1 <= count <= 8 or not 0 <= slot < count:
-        raise ValueError("nextest slot must fit the configured 1..8 backend slots")
+    if not 1 <= count <= 16 or not 0 <= slot < count:
+        raise ValueError("nextest slot must fit the configured 1..16 backend slots")
     result = dict(environment)
     for kind in ("IDENTITY", "CASE", "DOCUMENT"):
         result[f"{kind}_TEST_DATABASE_URL"] = database_url(postgres, f"ci_{kind.lower()}_{slot}")

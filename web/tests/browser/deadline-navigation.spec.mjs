@@ -40,6 +40,9 @@ test('Client cannot open deadlines by navigation or forced hash and sends no pri
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Plazos', exact: true })).toHaveCount(0);
   await page.evaluate(() => {
     location.hash = 'deadlines';

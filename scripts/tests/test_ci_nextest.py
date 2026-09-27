@@ -23,16 +23,23 @@ class TestCiNextest(unittest.TestCase):
 
     def test_concurrent_slots_use_distinct_databases_and_redis_indices(self):
         environments = [MODULE.slot_environment({**self.environment(),
-                        "NEXTEST_TEST_GLOBAL_SLOT": str(slot)}) for slot in range(4)]
+                        "TT_CI_TEST_SLOTS": "16",
+                        "NEXTEST_TEST_GLOBAL_SLOT": str(slot)}) for slot in range(16)]
         for key in ("IDENTITY_TEST_DATABASE_URL", "CASE_TEST_DATABASE_URL",
                     "DOCUMENT_TEST_DATABASE_URL", "IDENTITY_TEST_REDIS_URL"):
-            self.assertEqual(len({env[key] for env in environments}), 4)
+            self.assertEqual(len({env[key] for env in environments}), 16)
+        self.assertEqual(urlsplit(environments[-1]["IDENTITY_TEST_REDIS_URL"]).path, "/15")
         self.assertEqual(len({environments[0][key] for key in (
             "IDENTITY_TEST_DATABASE_URL", "CASE_TEST_DATABASE_URL",
             "DOCUMENT_TEST_DATABASE_URL")}), 3)
         parsed = urlsplit(environments[0]["CASE_TEST_DATABASE_URL"])
         self.assertEqual(parsed.netloc, "runner:p%40ss@127.0.0.1:5433")
         self.assertEqual(parsed.query, "sslmode=disable")
+
+    def test_rejects_backend_counts_outside_the_resource_budget(self):
+        for count in ("0", "17", "32", "bad"):
+            with self.subTest(count=count), self.assertRaises(ValueError):
+                MODULE.slot_environment({**self.environment(), "TT_CI_TEST_SLOTS": count})
 
     def test_missing_or_out_of_range_slot_fails_closed(self):
         for slot in (None, "-1", "4", "bad"):

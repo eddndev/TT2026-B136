@@ -1,0 +1,11 @@
+name: Cancel failed CI campaign
+description: Stop CI and Web for the same revision after preserving failure evidence.
+runs:
+  using: composite
+  steps:
+    - uses: actions/github-script@v8
+      with:
+        github-token: ${{ github.token }}
+        script: |
+          const cancel = require(`${process.env.GITHUB_WORKSPACE}/scripts/cancel-ci-campaign.cjs`);
+          await cancel({ github, context, core });
