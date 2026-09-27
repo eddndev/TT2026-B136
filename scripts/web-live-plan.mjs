@@ -14,6 +14,7 @@ export const fixtureNames = [
   "resourceActivities",
   "documentContent",
   "members",
+  "dashboard",
   "judicialCalendars",
   "deadlines",
   "deadlineReevaluation",
@@ -23,6 +24,7 @@ export const fixtureNames = [
 const families = [
   [/^(case-stages|stage-adoption)\./, 1, ["caseStages"]],
   [/^case-administration\./, 3, ["caseAdministration"]],
+  [/^dashboard\./, 3, ["dashboard"]],
   [/^deadline-reevaluation\./, 1, ["deadlineReevaluation"]],
   [/^deadline-/, 1, ["deadlines"]],
   [/^combined-agenda\./, 1, ["deadlineReevaluation", "combinedAgenda"]],

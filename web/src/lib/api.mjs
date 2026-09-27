@@ -1,3 +1,4 @@
+import { dashboardApi } from './dashboard-api.mjs';
 import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
 import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
@@ -150,6 +151,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     },
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
+    dashboard: () => dashboardApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
     alerts: (actorId) => alertsApi(request, actorId),
     integrityIncidents: () => integrityIncidentsApi(request),

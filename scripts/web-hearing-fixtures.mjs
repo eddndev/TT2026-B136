@@ -1,3 +1,4 @@
+import { provisionDashboard } from "./web-dashboard-fixtures.mjs";
 import { provisionMembers } from "./web-member-fixtures.mjs";
 import { provisionDocumentContent } from "./web-document-content-fixtures.mjs";
 import { provisionDeadlines } from "./web-deadline-fixtures.mjs";
@@ -89,6 +90,7 @@ try {
           resourceActivities: () => provisionResourceActivities(request),
           documentContent: () => provisionDocumentContent(request),
           members: () => provisionMembers(request),
+          dashboard: () => provisionDashboard(request),
           judicialCalendars: () => provisionCalendars(request),
           deadlines: () => provisionDeadlines(request),
         }).filter(([name]) => needed.has(name)),

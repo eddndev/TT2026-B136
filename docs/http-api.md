@@ -1,5 +1,10 @@
 # API HTTP local autenticada
 
+El [tablero operativo](dashboard-api.md) agrega indicadores mediante
+`GET /api/v1/dashboard`: despacho completo para Owner y expedientes asignados
+para Litigante, con una instantánea auditada y sin caché. Paralegal y Cliente
+no acceden al agregado. Su aceptación incluye revocación y restauración.
+
 La [API de miembros y acceso de cuentas](members-api.md) incorpora el directorio
 exclusivo de Owner, selección de asignados/disponibles y cambios de rol o estado
 con revisión esperada. La revocación durable alcanza sesiones y desafíos previos;

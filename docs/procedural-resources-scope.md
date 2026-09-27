@@ -15,7 +15,8 @@ independientes del recurso y acto a revisiones exactas de audiencias o plazos.
 Conserva esa historia separada del estado actual de la actividad; al desvincular
 no cancela la audiencia, retira el plazo ni modifica sus alertas. Sus pruebas
 focales, la aceptación API con restauración y el navegador real están aprobados.
-CI del incremento sigue pendiente según el [informe](verification-report.md).
+El incremento está integrado; su aceptación y cierre global conservan evidencia
+por revisión en el [informe](verification-report.md).
 
 Este incremento no crea audiencias desde un contexto procesal de recurso ni
 activa automáticamente términos. Faltan la creación contextual coherente, el

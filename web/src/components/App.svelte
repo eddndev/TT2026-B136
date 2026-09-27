@@ -157,6 +157,7 @@
           />{/if}
         {#if error}<p class="notice error" role="alert">{error}</p>{/if}
         {#if view === 'overview'}<Overview
+            {api}
             {user}
             {selectedCase}
             onnavigate={go}

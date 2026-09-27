@@ -292,6 +292,7 @@ PY
   document_content_demo "$imported_url"
   member_demo
   calendar_demo_python checkpoint
+  dashboard_demo_capture
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
   printf 'Migration restore: capturing the database state.\n'
@@ -317,6 +318,7 @@ PY
   identity_restore_run invalidate
   migration_demo_start "$runtime_url" "$legacy_dir" restored
   identity_restore_login
+  dashboard_demo_restored
   migration_demo_export "$case_id" "$WORK_DIR/restored-evidence"
   version_demo_restored "$case_id"
   metadata_demo_restored "$case_id"
@@ -389,3 +391,4 @@ unset -f document_content_demo document_content_demo_restored document_content_d
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop
 
 unset -f member_demo member_demo_restored member_demo_python identity_restore_run identity_restore_login
+unset -f dashboard_demo_capture dashboard_demo_restored dashboard_demo_python
