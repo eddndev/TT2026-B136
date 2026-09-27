@@ -4,9 +4,9 @@ mod decode;
 mod preparation;
 mod query;
 mod selection;
-mod sources;
+pub(crate) mod sources;
 pub(crate) mod storage;
-mod write;
+pub(crate) mod write;
 use crate::procedural_resource_postgres::authorize;
 use application::{resource_activities::*, ApplicationError};
 use domain::{

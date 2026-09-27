@@ -4,6 +4,67 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Creación contextual de plazos: aceptación local del 27 de septiembre de 2026
+
+La entrega añade preparación y confirmación conjuntas de un plazo y su vínculo
+con un recurso. Reutiliza perfil, fuente temporal, calendario y políticas
+explícitas; el acto seleccionado aporta contexto histórico y no infiere una
+regla jurídica. El contrato está en [resource-deadlines-api.md](resource-deadlines-api.md)
+y la transacción y el marcador de origen en
+[ADR 0057](adr/0057-atomic-resource-deadline-creation.md).
+
+| Comprobación nueva | Resultado local |
+| --- | --- |
+| Aplicación: preparación, recibos y permisos | 5/5 |
+| PostgreSQL desechable: atomicidad, concurrencia, replay y revalidación | 9 casos distintos aprobados |
+| HTTP: comando conjunto, padres, autenticación y límites | 3/3 |
+| Cliente, comparación temporal y conciliación en Node | 11/11 |
+| Navegador con HTTP controlado, un worker | 11/11, 28.8 s |
+| Navegador con servicios reales, un worker | 1/1, 13.6 s de escenario y 17.8 s del ejecutor |
+| Aceptación HTTP integrada y respaldo/restauración | PASS completo, salida 0 |
+| Clippy, workspace y todos los targets, con advertencias denegadas | PASS |
+| LuaLaTeX y revisión visual de las secciones modificadas | PASS, PDF de 341 páginas |
+
+El grupo PostgreSQL aprobó ocho casos en la primera ejecución y el noveno en
+una repetición focal tras corregir su fixture de roles. Son nueve pruebas
+distintas; no se presenta esa repetición como otra campaña completa. Las
+comprobaciones incluyen fallo de auditoría dentro de la transacción, ausencia
+de escrituras parciales, dos confirmaciones concurrentes, rechazo de una
+operación ordinaria previa y nueva comprobación de pertenencia y fuente vigente.
+La repetición exacta conserva los recibos originales incluso tras cerrar el
+expediente; una nueva creación permanece impedida por el cierre.
+
+La aceptación HTTP comprobó confirmación conjunta, repetición exacta, agenda y
+rechazo de una preparación obsoleta. Después de restaurar PostgreSQL y renovar
+la sesión, comparó las capturas del plazo y la asociación, sus recibos y su
+proyección en agenda. La demostración completa terminó con salida cero. El
+rechazo previo por conflicto no sustituye la prueba de atomicidad con fallo
+inyectado dentro de la transacción.
+
+Las regresiones se observaron fallar antes de corregirlas. La preparación real
+reveló que la administración del recurso exponía el instante como RFC 3339 y la
+del plazo como segundos y nanosegundos: el cliente ahora compara el mismo
+instante sin perder nanosegundos ni normalizar fechas civiles inválidas. La
+conciliación también aceptaba dos recibos ordinarios coincidentes sin acreditar
+su origen conjunto. Ahora conserva ese par como no confirmado y exige una
+acción explícita con el mismo comando y digest; el servidor comprueba el
+marcador auditado antes de devolver éxito. Otro fallo reproducido impedía esa
+comprobación histórica tras cerrar el expediente: se permite confirmar el
+origen del par existente, pero se mantiene bloqueado reintentar una creación
+cuando ambos registros están ausentes y el expediente está cerrado.
+
+El recorrido real creó el plazo desde un acto histórico, confirmó ambos recibos,
+repitió la operación y abrió la revisión exacta desde la agenda. Se inspeccionaron
+las capturas de escritorio y móvil, sin desbordamiento horizontal. Las suites
+se ejecutaron secuencialmente con un compilador y un worker. Estos resultados
+son focales y de aceptación; no constituyen una nueva regresión global ni una
+medición de usabilidad con personas. El PDF final tiene 341 páginas; se revisaron
+visualmente las páginas físicas 203, 205, 206, 243, 244, 245, 335 y 337, sin
+desbordamientos ni referencias sin resolver en esas secciones. Persisten avisos
+de sustitución de versalitas de la fuente, sin impedir la compilación. El cierre
+global y la integración de esta entrega permanecen pendientes. No se consideran completados
+el corpus jurídico, la activación automática ni las audiencias propias de recursos.
+
 ## Tablero operativo: verificacion focal del 27 de septiembre de 2026
 
 Esta entrega anade `GET /api/v1/dashboard` y los indicadores de Inicio para

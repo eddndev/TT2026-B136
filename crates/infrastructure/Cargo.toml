@@ -326,3 +326,7 @@ path = "tests/deadline_tracking_schema_upgrade.rs"
 [[test]]
 name = "dashboard_backend"
 path = "tests/dashboard_backend.rs"
+
+[[test]]
+name = "resource_deadline_backend"
+path = "tests/resource_deadline_backend.rs"

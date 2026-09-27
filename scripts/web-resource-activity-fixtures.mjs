@@ -1,3 +1,4 @@
+import { provisionContextualDeadline } from './web-contextual-deadline-fixtures.mjs';
 // Existing activities and historical evidence are captured through public HTTP.
 import { randomUUID } from 'node:crypto';
 import { provisionResources } from './web-resource-fixtures.mjs';
@@ -115,5 +116,6 @@ export async function provisionResourceActivities(call) {
     await deadline(call, scenario, calendar, key === 'desktop' ? fixture.owner.id : fixture.litigator.id, future);
   }
   await seedPolicy(call, fixture.policy);
+  fixture.contextual = await provisionContextualDeadline(call, fixture, calendar, future);
   return fixture;
 }

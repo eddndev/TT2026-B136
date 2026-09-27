@@ -11,7 +11,7 @@ use domain::{
 };
 use postgres::Transaction;
 
-pub(super) fn load(
+pub(crate) fn load(
     tx: &mut Transaction<'_>,
     case: CaseId,
     command: &DeadlineCommand,

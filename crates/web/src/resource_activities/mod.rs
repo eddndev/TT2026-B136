@@ -1,4 +1,10 @@
 //! Exact organizational associations to existing case activities.
+pub(crate) use projection::{context as validate_context, detail as exact_projection};
+pub(crate) use selection::{
+    command as project_command, resource as project_resource, Act as ActInput,
+    Resource as ResourceInput,
+};
+pub(crate) use sources::resource_sources;
 mod current;
 mod mutations;
 mod projection;

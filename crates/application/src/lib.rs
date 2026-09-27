@@ -52,3 +52,5 @@ pub mod deadline_dispatch;
 
 pub mod document_content;
 pub mod document_integrity;
+
+pub mod resource_deadlines;

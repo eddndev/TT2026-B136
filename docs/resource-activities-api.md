@@ -10,6 +10,10 @@ recursos. Quitar un vínculo es una revisión organizativa, sin borrar evidencia
 cancelar la audiencia, retirar el plazo, registrar atención o resolver avisos.
 El archivo del recurso tampoco realiza esas operaciones.
 
+La [creación contextual de plazos](resource-deadlines-api.md) tiene un contrato
+separado que registra plazo y vínculo juntos; las operaciones de asociación de
+este documento continúan seleccionando actividades existentes.
+
 ## Autorización y confirmación
 
 | Principal vigente | Lectura | Vínculo y desvinculación |

@@ -9,40 +9,14 @@ pub(super) fn load(
     selection: ResourceActivitySelection,
     hasher: &dyn DocumentHasher,
 ) -> Result<ResourceActivitySources, ApplicationError> {
-    if selection.resource.id != resource {
-        return Err(ResourceActivityError::SourceMismatch.into());
-    }
-    let source = crate::procedural_resource_postgres::storage::detail(
+    let (source, act) = load_resource(
         tx,
         case,
         resource,
-        Some(selection.resource.revision),
+        selection.resource,
+        selection.act,
         hasher,
     )?;
-    if source.receipt.capture_digest != selection.resource.capture_digest {
-        return Err(ResourceActivityError::SourceMismatch.into());
-    }
-    let act = selection
-        .act
-        .map(|reference| {
-            let row = crate::procedural_resource_postgres::storage::detail(
-                tx,
-                case,
-                resource,
-                Some(reference.resource_revision),
-                hasher,
-            )?;
-            if row.receipt.capture_digest != reference.capture_digest
-                || row
-                    .act
-                    .as_ref()
-                    .is_none_or(|act| act.id != reference.id || act.revision != reference.revision)
-            {
-                return Err(ResourceActivityError::SourceMismatch.into());
-            }
-            Ok::<_, ApplicationError>(row)
-        })
-        .transpose()?;
     let target = match selection.target {
         ResourceActivityTarget::Hearing {
             id,
@@ -74,4 +48,53 @@ pub(super) fn load(
         act,
         target,
     })
+}
+pub(crate) fn load_resource(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    resource: ResourceId,
+    selected_resource: ResourceCaptureRef,
+    selected_act: Option<ResourceActCaptureRef>,
+    hasher: &dyn DocumentHasher,
+) -> Result<
+    (
+        application::procedural_resources::ResourceDetail,
+        Option<application::procedural_resources::ResourceDetail>,
+    ),
+    ApplicationError,
+> {
+    if selected_resource.id != resource {
+        return Err(ResourceActivityError::SourceMismatch.into());
+    }
+    let source = crate::procedural_resource_postgres::storage::detail(
+        tx,
+        case,
+        resource,
+        Some(selected_resource.revision),
+        hasher,
+    )?;
+    if source.receipt.capture_digest != selected_resource.capture_digest {
+        return Err(ResourceActivityError::SourceMismatch.into());
+    }
+    let act = selected_act
+        .map(|reference| {
+            let row = crate::procedural_resource_postgres::storage::detail(
+                tx,
+                case,
+                resource,
+                Some(reference.resource_revision),
+                hasher,
+            )?;
+            if row.receipt.capture_digest != reference.capture_digest
+                || row
+                    .act
+                    .as_ref()
+                    .is_none_or(|act| act.id != reference.id || act.revision != reference.revision)
+            {
+                return Err(ResourceActivityError::SourceMismatch.into());
+            }
+            Ok::<_, ApplicationError>(row)
+        })
+        .transpose()?;
+    Ok((source, act))
 }

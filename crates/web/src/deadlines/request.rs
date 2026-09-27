@@ -12,7 +12,7 @@ use domain::{
 use serde::Deserialize;
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct Command {
+pub(crate) struct Command {
     operation_id: String,
     deadline_id: String,
     change: Object<Change>,
@@ -52,7 +52,7 @@ enum Attention {
     },
 }
 impl Command {
-    pub(super) fn validate(self) -> Result<DeadlineHumanCommand, ApiError> {
+    pub(crate) fn validate(self) -> Result<DeadlineHumanCommand, ApiError> {
         let (change, policies) = match self.change.0 {
             Change::Register {
                 expected_revision,
