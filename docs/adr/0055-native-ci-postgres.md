@@ -64,3 +64,20 @@ shared parent peaked at 27.87GiB without OOM or swap. Future changes must
 continue recording child and parent limits, full inventory, coverage and
 concurrent browser behavior. Do not infer full-suite timing by scaling a
 single-test result.
+
+## Shared lock capacity
+
+The disposable cluster starts with `max_locks_per_transaction=256` and verifies
+that effective value before starting the workload. Independent test databases
+still share PostgreSQL's lock table. Concurrent schema creation and teardown
+exhausted its default capacity during fixture initialization, before a deadline
+test reached its assertions. This startup setting increases lock-table capacity;
+it does not raise the sixteen test slots or the cluster's 6 GiB memory ceiling.
+
+A bounded comparison with sixteen transactions reproduced `out of shared memory`
+under the default value of 64: only twelve transactions held their 1,000 locks.
+The same workload with 256 held all 16,000 locks without error. Both disposable
+clusters cleaned up their services and markers. This focused result establishes
+capacity for that workload; the complete CI suite remains the integration gate.
+PostgreSQL documents the shared table and startup-only setting in its
+[version 16 lock-management reference](https://www.postgresql.org/docs/16/runtime-config-locks.html).

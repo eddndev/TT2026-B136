@@ -88,6 +88,7 @@ class Backend:
             f"--property=StandardError=append:{self.directory / 'postgres.log'}",
             shutil.which("postgres"), "-D", str(data), "-p", str(port),
             "-h", "127.0.0.1", "-c", "unix_socket_directories=",
+            "-c", "max_locks_per_transaction=256",
         ], check=True)
         limit = subprocess.check_output([
             "systemctl", "--user", "show", self.unit, "-p", "MemoryMax", "--value",
@@ -104,6 +105,12 @@ class Backend:
         else:
             raise RuntimeError("disposable PostgreSQL did not become ready")
         base = f"postgresql://postgres:{password}@127.0.0.1:{port}"
+        locks = subprocess.check_output([
+            "psql", base + "/postgres", "-X", "-v", "ON_ERROR_STOP=1", "-At",
+            "-c", "SHOW max_locks_per_transaction",
+        ], text=True).strip()
+        if locks != "256":
+            raise RuntimeError("PostgreSQL shared lock capacity was not applied")
         environment = {**os.environ,
                        "IDENTITY_TEST_DATABASE_URL": base + "/postgres",
                        "CASE_TEST_DATABASE_URL": base + "/case_tests",
