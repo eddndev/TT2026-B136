@@ -4,6 +4,22 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Espera de preparacion de actividades: 27 de septiembre de 2026
+
+La primera campana completamente alojada en los VPS encontro un fallo en
+`resource-activities-conflict.spec.mjs`: esperaba revision 4 pero leyo 3 de
+la peticion anterior. El test inspeccionaba inmediatamente el registro de
+peticiones despues del click de preparacion asincrona. La interfaz solo
+muestra `Confirmar vinculo` cuando recibe y valida el nuevo borrador.
+
+La correccion espera ese boton antes de inspeccionar el comando, igual que
+la prueba existente de recuperacion del mismo flujo. Mantiene todas las
+aserciones sobre revision actual, fuentes historicas y confirmacion, sin
+cambiar producto, timeouts ni reintentos. La prueba exacta aprobo **1/1 en
+9.4s**, con un worker local y temporales en disco. Prettier, ASCII, tamano y
+diff checks aprobaron. La regresion remota de esta correccion queda pendiente;
+la campana previa continua para conservar sus resultados y caches frias.
+
 ## Regresion completa y bloqueo de jobs finales: 27 de septiembre de 2026
 
 En la cabeza `14dcf1d`, [CI 36284539265](https://github.com/eddndev/TT2026-B136/actions/runs/36284539265)
