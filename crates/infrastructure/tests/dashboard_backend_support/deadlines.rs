@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn operational_deadline_boundaries_ignore_retired_heads_but_not_case_closure() {
-    let Some(mut db) = fixture() else { return };
+    let Some(db) = fixture() else { return };
     let (_, deadline) = accepted(&db);
     let due = deadline.calculation.result.due_at().unwrap();
     for (at, overdue, hours, week) in [

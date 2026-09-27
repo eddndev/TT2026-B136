@@ -60,11 +60,13 @@ impl HttpRuntime {
         T: Send + 'static,
         F: FnOnce() -> Result<T, ApplicationError> + Send + 'static,
     {
+        // HTTP admission bounds the requests waiting for a blocking worker.
         let permit = self
             .blocking_slots
             .clone()
-            .try_acquire_owned()
-            .map_err(|_| ApiError::busy())?;
+            .acquire_owned()
+            .await
+            .map_err(|_| ApiError::internal())?;
         tokio::task::spawn_blocking(move || {
             // The worker owns its permit even if the HTTP future is dropped.
             let _permit = permit;

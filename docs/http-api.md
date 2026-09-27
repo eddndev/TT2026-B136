@@ -928,10 +928,17 @@ por defecto. Puede configurarlos con `--max-in-flight-requests` y
 `--max-blocking-operations`; ambos requieren enteros positivos. Cada hash Argon2id
 utiliza 256 MiB, por lo que aumentar el segundo valor requiere medir capacidad.
 
-Si no hay cupo se responde `503 server_busy`, sin encolar trabajo indefinido.
-El permiso del trabajo bloqueante permanece ocupado hasta que este termina,
-aunque el cliente cancele su petición. La respuesta no implica cancelación de
-una mutación que ya estaba en curso. `/healthz` permanece fuera de admisión.
+Si se agota el presupuesto de peticiones, la siguiente recibe inmediatamente
+`503 server_busy`. Una petición ya admitida espera de forma asíncrona a que haya
+un trabajador disponible, conservando su permiso de admisión: la espera queda
+acotada por las mismas ocho peticiones y no crea hilos bloqueantes adicionales.
+Cancelar una petición que todavía espera evita ejecutar su operación.
+El permiso de un trabajo bloqueante ya iniciado permanece ocupado hasta que
+este termina, aunque el cliente cancele su petición. La respuesta no implica
+cancelación de una mutación que ya estaba en curso. Las entregas de contenido
+verificado conservan además su presupuesto propio mientras los bytes de respuesta
+siguen en uso; su saturación también devuelve `503 server_busy`.
+No se agregan reintentos ni un timeout global. `/healthz` permanece fuera de admisión.
 
 Los cuerpos JSON de identidad y alta básica de expedientes tienen límite de 16 KiB y rechazan
 campos desconocidos. Participantes y clasificación JSON tienen límites de 8 KiB.
@@ -1040,7 +1047,9 @@ La envoltura es estable:
 - `413`: cuerpo mayor que el límite de la ruta.
 - `429`: ventana de login bloqueada.
 - `500`: fallo interno sin exponer detalles del backend ni secretos.
-- `503`: presupuesto de peticiones u operaciones bloqueantes agotado (`server_busy`).
+- `503`: presupuesto de peticiones o de entregas de contenido verificado agotado
+  (`server_busy`). Las peticiones admitidas esperan el turno del trabajador sin
+  aumentar la concurrencia bloqueante.
 
 El contrato por expediente y las transacciones se definen en
 [ADR-0016](adr/0016-case-document-transactions.md). Esta decisión sustituye la

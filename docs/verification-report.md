@@ -51,6 +51,16 @@ incluyen la de 48 horas; los plazos retirados o atendidos no cuentan como
 trabajo pendiente, y los que requieren revision no reutilizan una fecha
 historica como vencimiento operativo.
 
+La regresion integrada detecto una rafaga de navegacion que agotaba los dos
+trabajadores y devolvia `503 server_busy` a una peticion ya admitida. La admision
+ahora conserva como maximo ocho peticiones y espera asincronamente un trabajador,
+sin aumentar los dos trabajadores ni agregar reintentos. La regresion fallo
+primero en cuatro comprobaciones y despues aprobo 7/7: dos operaciones activas,
+seis en espera, novena rechazada, cancelacion antes/despues de iniciar y liberacion
+tras errores. Los permisos de contenido verificado conservan su limite separado. El recorrido
+real que abria una segunda sesion y navegaba entre expedientes aprobo en
+24.1 s con las mismas assertions y limite total.
+
 La aceptacion HTTP integrada con respaldo/restauracion aprobo: contadores y
 carga exactos tras restaurar PostgreSQL, lectura UTC nueva, MFA nuevo, ambito
 vacio del litigante revocado y denegacion de Paralegal/Cliente. Tambien
