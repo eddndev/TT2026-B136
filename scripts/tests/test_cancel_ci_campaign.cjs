@@ -80,3 +80,15 @@ test('one peer permission error does not leave other targets running silently', 
   await assert.rejects(cancelCampaign(f.args), /permission denied/);
   assert.deepEqual(f.calls, [20, 21, 10]);
 });
+
+
+test('document failures cancel active CI and Web, and CI also cancels document validation', async () => {
+  for (const currentPath of ['documents', 'ci']) {
+    const f = fixture({ path: `.github/workflows/${currentPath}.yml` });
+    f.github.paginate = async () => ['ci', 'web', 'documents', 'deploy'].map((name, index) => ({
+      ...f.current, id: 20 + index, path: `.github/workflows/${name}.yml`,
+    }));
+    await cancelCampaign(f.args);
+    assert.deepEqual(f.calls, currentPath === 'documents' ? [20, 21, 10] : [21, 22, 10]);
+  }
+});

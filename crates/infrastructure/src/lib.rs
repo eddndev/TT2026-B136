@@ -6,6 +6,8 @@
 //! into [`application::ApplicationError`] at the call site.
 
 mod agenda_postgres;
+mod dashboard_postgres;
+pub use dashboard_postgres::PostgresDashboardStore;
 pub mod alert_email;
 mod alert_schema;
 mod alerts_postgres;

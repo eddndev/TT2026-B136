@@ -5,7 +5,7 @@
 A failed required check invalidates the revision. Continuing other suites
 after that failure consumes shared runner resources and delays the corrected
 revision. Matrix fail-fast alone does not stop unrelated jobs or the other
-workflow in a CI/Web campaign.
+workflow in a CI/Web/Documents campaign.
 
 ## Decision
 
@@ -15,7 +15,7 @@ Successful campaigns still execute every selected test and all coverage gates.
 
 Each job has a failure-only final step using the local cancellation action.
 After saving available diagnostics, it requests cancellation through the
-Actions API for active CI/Web runs with the same head SHA, branch and event.
+Actions API for active CI/Web/Documents runs with the same head SHA, branch and event.
 It cancels peer workflows before its own workflow. Completed runs, unrelated
 workflows and other revisions are excluded. A manual measurement cancels only
 itself. No periodic status polling or extra hosted runner is needed.
@@ -42,8 +42,8 @@ Accepted. Supersedes the collect-all-failures scheduling policy in
 
 Failures release capacity sooner, but later independent failures can remain
 undiscovered until the next campaign. Cancellation is subject to API and
-runner signal-delivery latency. The five helper tests check cancellation
-scope, manual runs, completion races and API failures without cancelling
+runner signal-delivery latency. The helper tests check cancellation
+scope (including document validation), manual runs, completion races and API failures without cancelling
 unrelated real jobs.
 
 References: [GitHub matrix fail-fast and permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax),

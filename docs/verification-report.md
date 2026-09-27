@@ -4,6 +4,73 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Tablero operativo: verificacion focal del 27 de septiembre de 2026
+
+Esta entrega anade `GET /api/v1/dashboard` y los indicadores de Inicio para
+Owner y Litigante. La consulta usa una sola transaccion auditada y verifica
+la cuenta, las pertenencias, las cabezas actuales y los limites completos del
+agregado. Paralegal y Cliente no reciben estos indicadores. No se consideran
+cerrados los pendientes de firma personal, calificacion juridica de plazos,
+informes exportables ni otros modulos por incorporar este tablero.
+
+| Comprobacion nueva | Resultado local |
+| --- | --- |
+| Aplicacion, autorizacion y reautenticacion | 5/5 |
+| PostgreSQL desechable: scope, contratos, plazos, limites y revocacion concurrente | 8/8, 25.45 s |
+| HTTP: autenticacion, filtros estrictos y contrato | 3/3 |
+| Cliente y valores del tablero en Node | 7/7 |
+| Navegador con HTTP controlado, un worker | 8/8, 14.5 s |
+| Navegador con servidor real y cuentas independientes | 1/1, 6.5 s de escenario |
+| Planificador de particiones y autenticacion de fixtures | 11/11 |
+| Cancelacion del conjunto CI, Web y Documents | 6/6 |
+| Aceptacion API integrada y respaldo/restauracion | PASS completo, salida 0 |
+| LuaLaTeX y revision visual de las secciones nuevas | PASS, PDF de 340 paginas |
+
+Las pruebas focales se escribieron antes de la implementacion. Se observaron
+fallos por ausencia del modulo, adaptador y panel; se corrigio tambien el
+rechazo HTTP de consultas desconocidas para conservar el contrato de 400.
+La regresion de cancelacion fallo primero cuando Documents quedaba fuera del
+conjunto. Las suites locales se ejecutaron secuencialmente con un compilador
+y un worker, sin repetir la regresion Rust completa.
+
+El recorrido real inicia Owner y Litigante, comprueba el despacho completo
+frente a un expediente asignado con su contrato, retira la pertenencia y exige
+cero indicadores y ninguna carga al actualizar. Para esta comprobacion local
+se prepararon exclusivamente sus fixtures; la particion remota conserva el
+resto de familias. Se inspeccionaron capturas de 1440 y 390 px, tanto con HTTP
+controlado como con servidor real. No hubo desbordamiento horizontal. El PDF se compilo con `make -B -C latex`;
+se renderizaron e inspeccionaron las paginas fisicas 205, 244 y 336
+(implementacion, pruebas y trazabilidad), con referencias resueltas, texto
+legible y transiciones sin recortes. No se afirma una nueva revision visual
+integral de las 340 paginas.
+
+El indicador documental significa contrato de la version actual pendiente de
+sello interno. La urgencia visual usa vencimiento y proximidad de 48 horas;
+no atribuye una calificacion juridica fatal. Las ventanas de siete dias
+incluyen la de 48 horas; los plazos retirados o atendidos no cuentan como
+trabajo pendiente, y los que requieren revision no reutilizan una fecha
+historica como vencimiento operativo.
+
+La regresion integrada detecto una rafaga de navegacion que agotaba los dos
+trabajadores y devolvia `503 server_busy` a una peticion ya admitida. La admision
+ahora conserva como maximo ocho peticiones y espera asincronamente un trabajador,
+sin aumentar los dos trabajadores ni agregar reintentos. La regresion fallo
+primero en cuatro comprobaciones y despues aprobo 7/7: dos operaciones activas,
+seis en espera, novena rechazada, cancelacion antes/despues de iniciar y liberacion
+tras errores. Los permisos de contenido verificado conservan su limite separado. El recorrido
+real que abria una segunda sesion y navegaba entre expedientes aprobo en
+24.1 s con las mismas assertions y limite total.
+
+La aceptacion HTTP integrada con respaldo/restauracion aprobo: contadores y
+carga exactos tras restaurar PostgreSQL, lectura UTC nueva, MFA nuevo, ambito
+vacio del litigante revocado y denegacion de Paralegal/Cliente. Tambien
+aprobaron los recorridos existentes de la misma demostracion y la igualdad
+de evidencia ZIP. La campana completa de CI/Web/Documents queda pendiente. Los
+resultados historicos inferiores describen otras revisiones y no sustituyen
+la comprobacion de esta entrega. Documents se traslada a los servidores
+propios, con herramientas provisionadas y el mismo control de fuentes y PDF;
+no se requieren minutos adicionales de maquinas alojadas por GitHub.
+
 ## Cierre de rendimiento con PostgreSQL nativo: 27 de septiembre de 2026
 
 La cabeza `793c8de` aprobo [CI 36300194908](https://github.com/eddndev/TT2026-B136/actions/runs/36300194908)

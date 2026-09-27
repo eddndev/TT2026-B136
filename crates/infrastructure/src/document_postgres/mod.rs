@@ -356,3 +356,10 @@ fn resource(case: CaseId, id: DocumentId, version: DocumentVersion, digest: &str
         version.get()
     )
 }
+
+/// Validate current metadata without exposing document ciphertext to aggregates.
+pub(crate) fn current_metadata_row(
+    row: &postgres::Row,
+) -> Result<CurrentDocumentMetadata, ApplicationError> {
+    metadata_storage::current_row(row)
+}

@@ -4,7 +4,7 @@ use axum::{
     http::{Request, StatusCode},
     routing::post,
 };
-use std::sync::mpsc;
+use std::{future::Future, sync::mpsc, task::Poll};
 use tower::ServiceExt;
 
 fn runtime() -> HttpRuntime {
@@ -15,7 +15,7 @@ fn runtime() -> HttpRuntime {
 }
 
 #[tokio::test]
-async fn excess_blocking_work_is_rejected_without_starting_it() {
+async fn admitted_blocking_work_waits_without_starting_an_extra_worker() {
     let runtime = runtime();
     let worker = runtime.clone();
     let (started, ready) = tokio::sync::oneshot::channel();
@@ -30,16 +30,16 @@ async fn excess_blocking_work_is_rejected_without_starting_it() {
             .await
     });
     ready.await.unwrap();
-    let rejected = runtime
-        .run(|| -> Result<(), ApplicationError> { panic!("excess work started") })
-        .await;
+    let mut second = Box::pin(runtime.run(|| Ok(9)));
+    let queued =
+        std::future::poll_fn(|cx| Poll::Ready(second.as_mut().poll(cx).is_pending())).await;
     release.send(()).unwrap();
-    assert_eq!(
-        rejected.err().unwrap().into_response().status(),
-        StatusCode::SERVICE_UNAVAILABLE
-    );
     assert_eq!(first.await.unwrap().unwrap(), 7);
-    assert_eq!(runtime.run(|| Ok(9)).await.unwrap(), 9);
+    assert!(
+        queued,
+        "admitted work must wait for the occupied worker slot"
+    );
+    assert_eq!(second.await.unwrap(), 9);
 }
 
 #[tokio::test]
@@ -60,21 +60,15 @@ async fn cancelling_http_future_does_not_release_running_blocking_work() {
     ready.await.unwrap();
     first.abort();
     assert!(first.await.unwrap_err().is_cancelled());
-    let rejected = runtime.run(|| Ok(())).await;
+    let mut second = Box::pin(runtime.run(|| Ok(())));
+    let queued =
+        std::future::poll_fn(|cx| Poll::Ready(second.as_mut().poll(cx).is_pending())).await;
     release.send(()).unwrap();
-    assert_eq!(
-        rejected.err().unwrap().into_response().status(),
-        StatusCode::SERVICE_UNAVAILABLE
+    assert!(
+        queued,
+        "cancelling HTTP must not free the running worker slot"
     );
-    let permit = tokio::time::timeout(
-        std::time::Duration::from_secs(2),
-        runtime.blocking_slots.acquire(),
-    )
-    .await
-    .unwrap()
-    .unwrap();
-    drop(permit);
-    runtime.run(|| Ok(())).await.unwrap();
+    second.await.unwrap();
 }
 
 #[tokio::test]
@@ -169,4 +163,101 @@ async fn middleware_holds_admission_until_the_request_finishes_or_is_cancelled()
         .await
         .unwrap();
     assert_eq!(accepted.status(), StatusCode::OK);
+}
+
+#[tokio::test]
+async fn admitted_http_requests_wait_for_workers_and_ninth_is_rejected() {
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Mutex,
+    };
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    let entered = Arc::new(AtomicUsize::new(0));
+    let (started, mut ready) = tokio::sync::mpsc::unbounded_channel();
+    let (release, wait) = mpsc::channel();
+    let wait = Arc::new(Mutex::new(wait));
+    let worker = runtime.clone();
+    let count = entered.clone();
+    let handler = move || {
+        let worker = worker.clone();
+        let count = count.clone();
+        let started = started.clone();
+        let wait = wait.clone();
+        async move {
+            worker
+                .run(move || {
+                    let index = count.fetch_add(1, Ordering::SeqCst);
+                    if index < 2 {
+                        started.send(()).unwrap();
+                        wait.lock().unwrap().recv().unwrap();
+                    }
+                    Ok("ready")
+                })
+                .await
+        }
+    };
+    let router = protect(
+        axum::Router::new().route("/", post(handler)),
+        runtime.clone(),
+    );
+    let request = || Request::post("/").body(Body::empty()).unwrap();
+    let first = tokio::spawn(router.clone().oneshot(request()));
+    let second = tokio::spawn(router.clone().oneshot(request()));
+    ready.recv().await.unwrap();
+    ready.recv().await.unwrap();
+    let mut waiting = Vec::new();
+    let mut all_queued = true;
+    for _ in 0..6 {
+        let mut future = Box::pin(router.clone().oneshot(request()));
+        let queued =
+            std::future::poll_fn(|cx| Poll::Ready(future.as_mut().poll(cx).is_pending())).await;
+        all_queued &= queued;
+        waiting.push(future);
+    }
+    let available = runtime.request_slots.available_permits();
+    let running = entered.load(Ordering::SeqCst);
+    let ninth = router.oneshot(request()).await.unwrap();
+    release.send(()).unwrap();
+    release.send(()).unwrap();
+    assert_eq!(first.await.unwrap().unwrap().status(), StatusCode::OK);
+    assert_eq!(second.await.unwrap().unwrap().status(), StatusCode::OK);
+    assert!(
+        all_queued,
+        "six admitted requests must wait behind the two active workers"
+    );
+    assert_eq!(
+        available, 0,
+        "queued requests retain the original eight-slot request budget"
+    );
+    assert_eq!(running, 2, "waiting requests must not launch extra workers");
+    assert_eq!(ninth.status(), StatusCode::SERVICE_UNAVAILABLE);
+    for future in waiting {
+        assert_eq!(future.await.unwrap().status(), StatusCode::OK);
+    }
+    assert_eq!(entered.load(Ordering::SeqCst), 8);
+    assert_eq!(runtime.request_slots.available_permits(), 8);
+    assert_eq!(runtime.blocking_slots.available_permits(), 2);
+}
+
+#[tokio::test]
+async fn cancelling_queued_work_does_not_execute_it_or_consume_a_worker() {
+    let runtime = runtime();
+    let held = runtime
+        .blocking_slots
+        .clone()
+        .acquire_owned()
+        .await
+        .unwrap();
+    let mut queued = Box::pin(runtime.run(|| -> Result<(), ApplicationError> {
+        panic!("cancelled queued work must not execute")
+    }));
+    let waiting =
+        std::future::poll_fn(|cx| Poll::Ready(queued.as_mut().poll(cx).is_pending())).await;
+    drop(queued);
+    drop(held);
+    assert!(
+        waiting,
+        "worker saturation must retain admitted work in the bounded queue"
+    );
+    assert_eq!(runtime.run(|| Ok(3)).await.unwrap(), 3);
 }

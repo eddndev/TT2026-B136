@@ -3,15 +3,15 @@ name: Documents
 on:
   pull_request:
     paths:
-      - '.github/workflows/documents.yml'
-      - '.gitignore'
-      - 'latex/**'
+      - ".github/workflows/documents.yml"
+      - ".gitignore"
+      - "latex/**"
   push:
     branches: [main]
     paths:
-      - '.github/workflows/documents.yml'
-      - '.gitignore'
-      - 'latex/**'
+      - ".github/workflows/documents.yml"
+      - ".gitignore"
+      - "latex/**"
   release:
     types: [published]
   workflow_dispatch:
@@ -31,22 +31,21 @@ concurrency:
 jobs:
   build:
     name: Build report PDF
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-dedicated]
     timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
           persist-credentials: false
-      - name: Install LaTeX and document fonts
-        env:
-          DEBIAN_FRONTEND: noninteractive
+      - name: Verify provisioned document tools
         run: |
-          sudo apt-get update
-          sudo --preserve-env=DEBIAN_FRONTEND apt-get install -y --no-install-recommends \
-            latexmk texlive-luatex texlive-latex-extra texlive-lang-spanish \
-            texlive-bibtex-extra texlive-fonts-recommended texlive-plain-generic biber \
-            fonts-dejavu-core fonts-texgyre fontconfig poppler-utils curl cabextract
+          for tool in latexmk lualatex biber makeglossaries fc-match pdfinfo curl cabextract; do
+            command -v "$tool" >/dev/null
+          done
       - name: Install verified Times New Roman fonts
         env:
           TIMES_ARCHIVE_SHA256: db56595ec6ef5d3de5c24994f001f03b2a13e37cee27bc25c58f6f43e8f807ab
@@ -70,6 +69,7 @@ jobs:
       - name: Validate and package the report
         run: |
           pdfinfo latex/main.pdf
+          rm -rf -- "$RUNNER_TEMP/document-assets"
           mkdir -p "$RUNNER_TEMP/document-assets"
           cp latex/main.pdf "$RUNNER_TEMP/document-assets/TT2026-B136-reporte.pdf"
           cd "$RUNNER_TEMP/document-assets"
@@ -92,22 +92,29 @@ jobs:
           path: ${{ runner.temp }}/document-assets/
           if-no-files-found: error
           retention-days: 14
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   publish:
     name: Attach report to release
     needs: build
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
+      - name: Prepare release staging
+        run: |
+          rm -rf -- "$RUNNER_TEMP/document-release-assets"
+          mkdir -p "$RUNNER_TEMP/document-release-assets"
       - uses: actions/download-artifact@v4
         with:
           name: report-pdf
-          path: document-assets
+          path: ${{ runner.temp }}/document-release-assets
       - name: Verify and upload release assets
-        working-directory: document-assets
+        working-directory: ${{ runner.temp }}/document-release-assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

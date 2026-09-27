@@ -246,3 +246,7 @@ path = "tests/suites/vault_suite_1.rs"
 [[test]]
 name = "verify_suite_1"
 path = "tests/suites/verify_suite_1.rs"
+
+[[test]]
+name = "dashboard_service"
+path = "tests/dashboard_service.rs"

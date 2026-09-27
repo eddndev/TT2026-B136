@@ -84,7 +84,7 @@ espacio para la primera compilacion de cada target y medirla separadamente
 de las siguientes ejecuciones calientes. La migracion no acredita por si
 sola una reduccion de tiempo. Ver [ADR 0052](adr/0052-owned-ci-runners.md).
 
-Un check fallido solicita la cancelacion de los jobs restantes de CI/Web de
+Un check fallido solicita la cancelacion de los jobs restantes de CI/Web/Documents de
 la misma revision, rama y evento, despues de conservar diagnosticos. Las
 suites dejan de programar pruebas al primer fallo. Una ejecucion cancelada
 no satisface los gates ni acredita el inventario completo; corregir y medir
@@ -253,3 +253,30 @@ incorrecta del intérprete debe fallar en ese paso, conservando sin cambios
 la prueba de transferencia por pipes y el aislamiento del worker. Los
 límites y la distribución de trabajo se describen en
 [ADR 0049](adr/0049-parallel-coverage-runners.md).
+
+
+## Documentos en servidores propios
+
+El workflow `Documents` compila con la etiqueta `tt-ci-dedicated` y adjunta
+releases con `tt-ci-vps1`. No usa minutos de máquinas alojadas por GitHub.
+Comparte la cola del runner dedicado, sin añadir otro proceso de compilación
+simultáneo a Rust en ese runner. Las condiciones de ejecución por rutas,
+validación del PDF y procedencia SHA-256 de las fuentes se conservan.
+
+El administrador prepara las herramientas del host una vez. En Ubuntu:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \
+  latexmk texlive-luatex texlive-latex-extra texlive-lang-spanish \
+  texlive-bibtex-extra texlive-fonts-recommended texlive-plain-generic biber \
+  fonts-dejavu-core fonts-texgyre fontconfig poppler-utils curl cabextract
+```
+
+El job comprueba las herramientas sin invocar sudo. Instala Times New Roman
+bajo el HOME del usuario de servicio sólo tras verificar el archivo original,
+según `docs/adr/0017-report-font-installation.md`. El auxiliar de publicación
+requiere `gh`; el permiso de escritura del token sólo pertenece al job que
+adjunta una release ya solicitada. Cambiar las dependencias del host exige
+volver a compilar e inspeccionar el documento; la presencia de los comandos
+no constituye una validación visual.

@@ -58,7 +58,7 @@ cleanup() {
     kill "$REDIS_PID" 2>/dev/null || true
     wait "$REDIS_PID" 2>/dev/null || true
   fi
-  if [ -d "$WORK_DIR" ] && [[ "$WORK_DIR" == /tmp/* ]]; then
+  if [ -d "$WORK_DIR" ] && [[ "$WORK_DIR" == "${TMPDIR:-/tmp}"/tmp.* ]]; then
     rm -rf -- "$WORK_DIR"
   fi
   return "$status"
@@ -268,6 +268,9 @@ source "$REPO_ROOT/scripts/api-document-content-demo.sh"
 
 # shellcheck source=scripts/api-members-demo.sh
 source "$REPO_ROOT/scripts/api-members-demo.sh"
+
+# shellcheck source=scripts/api-dashboard-demo.sh
+source "$REPO_ROOT/scripts/api-dashboard-demo.sh"
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"

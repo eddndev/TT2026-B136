@@ -1,5 +1,33 @@
 # Cierre funcional del prototipo web
 
+## Checkpoint funcional reconciliado
+
+Revisión del 27 de septiembre de 2026 contra `main` después de integrar los
+recursos, documentos, miembros, calibración de contraseñas y optimización de CI.
+Las referencias históricas a aceptación local o CI pendiente de esas entregas
+no significan que su código siga fuera de `main`.
+
+- Integrados: plazos persistentes y reevaluación durable, agenda conjunta,
+  alertas, recursos y actos declarados, asociaciones a actividades existentes,
+  contenido documental y avisos de integridad, directorio y administración de
+  acceso de miembros, y calibración de contraseñas.
+- Pendientes procesales: corpus jurídico aplicable, activación durable de un
+  plazo nuevo, creación contextual de actividades desde recursos y catálogo
+  restante de audiencias. Las continuaciones declaradas ya existen.
+- Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
+  restablecimiento de contraseña, inactividad, autenticación por certificado y
+  firma individual, política de formatos generales y política documental Client.
+- Pendientes operativos: informes generados en segundo plano y consulta
+  filtrada de actividad; firma personal y calificación jurídica de urgencia
+  siguen separadas del tablero operativo. La navegación de Inicio y la
+  verificación de la cadena de auditoría no completan esos flujos.
+- Cierre académico posterior: conciliación del manuscrito con las entregas,
+  evaluación formal con participantes reales y conclusiones basadas en resultados.
+
+La entrega actual implementa el tablero operativo mediante una instantánea
+autorizada y su interfaz Qadra, con aceptación focal y restauración aprobadas; su contrato está en [dashboard-api.md](dashboard-api.md).
+No cambia los objetivos aprobados ni declara completos los otros pendientes.
+
 ## Alcance y evidencia
 
 El cierre comprende gestión documental, gestión procesal penal, interfaz web,
@@ -34,7 +62,7 @@ solapamientos y consistentes con Qadra. Esta inspección no es una prueba de
 usabilidad con personas. La aceptación API completa con restauración aprobó en
 453.174 s con 2553 fuentes estables: preservó cuentas y asignaciones, rechazó
 tokens anteriores y verificó nuevo acceso MFA y evidencia documental exacta.
-CI global, el PDF que incorpore estos resultados e integración permanecen pendientes.
+Ese incremento y su cierre global se integraron en `main`. Las cifras anteriores describen su aceptación original, no una nueva ejecución.
 Invitaciones, recuperación de acceso y autenticación por certificado siguen fuera
 de esta implementación.
 
@@ -327,7 +355,7 @@ separada de las campañas de hechos y plazos.
 | Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
 | Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
 | Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
-| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Registro declarado implementado con aceptación real; asociaciones a audiencias/plazos existentes implementadas con evidencia focal y aceptación API/restauración y navegador real aprobados; CI del incremento pendiente. Faltan creación contextual, corpus calificado, activación durable y completar la trazabilidad de alertas en recursos, según [el alcance](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
+| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Registro declarado implementado con aceptación real; asociaciones a audiencias/plazos existentes implementadas con evidencia focal y aceptación API/restauración y navegador real aprobados; incremento integrado en main. Faltan creación contextual, corpus calificado, activación durable y completar la trazabilidad de alertas en recursos, según [el alcance](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
@@ -368,7 +396,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Caso de uso | Estado | Alcance y condición pendiente para cierre |
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
-| Ciclo de vida de miembros | Parcial; directorio y administración de acceso implementados localmente | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados; CI global y PDF actualizado pendientes. Invitaciones y enrolamiento recuperable siguen pendientes. |
+| Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada; conservar la evidencia académica por revisión. Invitaciones y enrolamiento recuperable siguen pendientes. |
 | Inicio de sesión y sesiones | Parcial | Contraseña/MFA y logout implementados; la generación durable impide reutilizar sesiones o desafíos anteriores tras reactivación, con evidencia focal propia. Certificado de socio, recuperación de contraseña e inactividad siguen pendientes. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
@@ -378,10 +406,10 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra V1 de plazos tiene campañas locales completas aprobadas; V2 tiene recorridos API con restauración y navegador con backend real aprobados. La aceptación API final y el cierre global aprobaron; PR 34 integró la reevaluación en `main`. Faltan el cierre del corpus jurídico aplicable y la aceptación de los objetivos restantes del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
 | Monitoreo de plazos y alertas | Parcial; base V1 integrada y servicio/HTTP/Qadra V2 con recorridos reales aprobados | Registro, revisión exacta, responsable y atención tienen flujo web integrado. La ampliación humana/HTTP V2 declara políticas, conserva observaciones y continuidad y representa historia humana/técnica. Detalle actual y listado verifican vigencia sin usar la cola como prueba de actualidad. Despacho y consumo confirman trabajos, cursores, resultados e intentos con auditoría. Qadra V2 tiene pruebas Node y navegador con HTTP controlado y backend real aprobadas. La composición en servidor aprobó pruebas unitarias y una campaña API con TERM/INT, reinicios y restauración. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34. La agenda conjunta se integró por PR 35. PR 36 integró alertas con persistencia, reintentos, control de duplicados, Qadra y composición en servidor como `8261c51`; su aceptación API/restauración, navegador real y cierre de CI conservan evidencia propia. La activación automática continúa pendiente. Los recorridos reales de reevaluación no completan esos objetivos restantes del caso de uso. |
 | Carga y clasificación documental | Parcial | Conciliar la política de formatos de carga general. Carga cifrada, límites, clasificación atómica, filtros y versiones implementados. La admisión PDF/DOCX ahora valida soportes nuevos de etapas; no se aplica retrospectivamente ni convierte toda carga general en validación estructural. |
-| Consulta e integridad documental | Parcial | Contenido sin sello y buzón interno Owner implementados, con aceptación del incremento aún en curso. Los avisos describen fallos de validación, no causas demostradas. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
+| Consulta e integridad documental | Parcial | Contenido sin sello y buzón interno Owner integrados con aceptación del incremento y cierre global aprobados. Los avisos describen fallos de validación, no causas demostradas. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
 | Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
-| Tablero de control | Parcial | Indicadores procesales agregados autorizados; la navegación Qadra no equivale a indicadores globales. |
+| Tablero de control | Indicadores operativos implementados; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados. Firma personal pendiente y naturaleza fatal de plazos no se infieren de estos indicadores. |
 | Informes | Pendiente | Filtros, generación y acceso autorizado a resultados; comprobar fallos y concurrencia. |
 | Consulta de actividad | Parcial | Listado filtrado de eventos y permisos por recurso; verificación de la cadena ya implementada. |
 
@@ -411,7 +439,7 @@ de cobertura ni una demostración parcial cambia automáticamente estos estados.
   no para el login completo ni HTTP bajo carga. Seis pruebas CLI aprobaron en
   20.916 s y la demostración completa en 8.240 s; esta midió por separado
   563.2 ms en cinco hashes, también dentro de banda, sin sustituir la medición
-  principal. CI y PDF actualizado siguen pendientes. Véase
+  principal. El incremento está integrado; la evidencia de PDF corresponde a su revisión específica. Véase
   [ADR-0044](adr/0044-reference-password-hashing-cost.md).
 - Client mantiene acceso a metadatos de expedientes asignados y denegación
   documental. Ampliarlo requiere una política de recursos explícita y pruebas
@@ -502,7 +530,7 @@ pruebas focales de aplicación y PostgreSQL verifican que el instante consultado
 se tome después del bloqueo y dentro de la ventana de lectura. La aceptación
 API/restauración integrada aprobó en 434.402 s, con 26 respuestas restauradas
 y sus instantes de lectura validados por separado. Tres escenarios distintos de navegador real
-aprobaron; el cierre CI sigue pendiente para este incremento; no se afirma integrado por la aceptación
+aprobaron; el incremento se integró posteriormente en main; se conserva separada la aceptación
 previa de PR 37.
 
 Persisten creación de actividades con contexto de recurso, corpus jurídico

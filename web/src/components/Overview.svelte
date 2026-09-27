@@ -1,8 +1,10 @@
 <script>
   import Icon from './Icon.svelte';
+  import Dashboard from './Dashboard.svelte';
   import { can } from '../lib/documents.mjs';
   import { canAlerts } from '../lib/alerts-presentation.mjs';
   export let user;
+  export let api;
   export let selectedCase = null;
   export let onnavigate;
   export let ondocument;
@@ -21,6 +23,9 @@
   </div>
   <span class="today"><Icon name="calendar" size={16} />{today}</span>
 </div>
+{#if ['owner', 'litigator'].includes(user.role)}
+  <Dashboard {api} {user} {onnavigate} />
+{/if}
 <section class="welcome-card">
   <div>
     <span class="eyebrow">MENOS PASOS. M&#193;S CLARIDAD.</span>

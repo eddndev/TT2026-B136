@@ -18,6 +18,7 @@ mod alerts;
 mod case_administration;
 mod case_stages;
 mod cases;
+mod dashboard;
 mod deadline_profiles;
 mod deadlines;
 mod document_content;
@@ -117,6 +118,12 @@ pub fn typed_participant_router(
     )
 }
 
+/// Builds the authorized operational dashboard.
+pub fn dashboard_router(workflow: Arc<dyn application::dashboard::DashboardWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(dashboard::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds the combined authorized hearing and operational deadline agenda.
 pub fn agenda_router(workflow: Arc<dyn application::agenda::AgendaWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -199,6 +206,7 @@ pub struct CaseWorkflows {
     pub resource_activities: Arc<dyn application::resource_activities::ResourceActivityWorkflow>,
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
+    pub dashboard: Arc<dyn application::dashboard::DashboardWorkflow>,
     pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
     pub document_content: Arc<dyn application::document_content::DocumentContentWorkflow>,
     pub document_integrity: Arc<dyn application::document_integrity::DocumentIntegrityWorkflow>,
@@ -263,6 +271,7 @@ pub fn api_router(
         ))
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
         .merge(agenda::router(workflows.agenda, runtime.clone()))
+        .merge(dashboard::router(workflows.dashboard, runtime.clone()))
         .merge(alerts::router(workflows.alerts, runtime.clone()))
         .merge(document_content::router(
             workflows.document_content,

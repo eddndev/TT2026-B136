@@ -25,15 +25,32 @@ version and recovery-code invariants.
 Build the full server through `web::api_router`, with one shared runtime for
 identity, document and case routes. Admit at most eight API requests before
 body extraction and at most two blocking application operations by default.
-Reject saturation immediately as `503 server_busy`, without an unbounded queue.
+Reject requests beyond the request-admission budget immediately as
+`503 server_busy`. An admitted request waits asynchronously for an available
+blocking worker while retaining its request permit. This bounds the waiting
+queue by the existing request budget; waiting does not start another blocking
+thread. Cancelling a request while it waits removes that waiter without executing
+its application operation. All public route constructors apply this admission
+layer before handlers can request a worker.
 Expose positive limits through `--max-in-flight-requests` and
 `--max-blocking-operations`. The liveness endpoint remains outside admission.
+
+This bounded wait replaces the earlier immediate rejection at worker saturation.
+A dashboard read can still be running after the user navigates to another view;
+ignoring its response or cancelling its HTTP future does not release its running
+worker. Rejecting another already-admitted request in that interval makes normal
+navigation fail even while the request budget has capacity. Waiting inside that
+budget preserves both limits without retries or additional workers.
 
 A blocking worker owns its semaphore permit until the closure finishes,
 including when its HTTP future is cancelled. The request permit bounds body
 extraction and handler execution; it is separate from the blocking-work permit.
 There is no blanket timeout that would falsely imply a mutation was cancelled.
-Response streaming and transport connections need separate deployment limits.
+Verified document content additionally retains a separate delivery permit until
+its response bytes are released. Exhausting those permits still returns
+`503 server_busy`; waiting for a blocking worker does not relax the delivery
+budget. General response streaming and transport connections need separate
+deployment limits.
 See the upstream [Tokio blocking-task documentation](https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html).
 
 Identity and case JSON bodies have a 16 KiB maximum; document bodies retain
@@ -82,7 +99,9 @@ including consumed slots. Preserve the existing valid JSON formats.
 - A caller of `IdentityWorkflow::create_user` now supplies a bearer token;
   `SessionStore` consumes a challenge atomically. HTTP paths and successful
   JSON responses remain compatible; malformed input is rejected earlier.
-- Worker limits bound application concurrency but do not provide fair per-user
+- Worker limits bound application concurrency. Requests waiting for a worker can
+  increase response latency and occupy the full admission budget; the next
+  request is rejected immediately. The queue does not provide fair per-user
   scheduling, distributed admission, TLS, database pooling or protection from
   slow network clients. Defaults must be validated on deployment hardware.
 - Local locks protect cooperating processes on the same filesystem. They do
