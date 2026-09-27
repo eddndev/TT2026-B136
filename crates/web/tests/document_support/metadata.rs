@@ -114,6 +114,9 @@ impl StubWorkflow {
         } else {
             assert_eq!(bytes, b"case document");
         }
+        if let Some(error) = self.upload_failure {
+            return Err(error.into());
+        }
         Ok(DocumentOverview {
             content: Self::summary(false),
             current_metadata: CurrentDocumentMetadata {

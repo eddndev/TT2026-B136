@@ -33,6 +33,7 @@ const families = [
   [/^hearing-result-/, 2, ["hearingResults"]],
   [/^hearings?[-.]/, 2, ["hearings"]],
   [/^document-content\./, 2, ["documentContent"]],
+  [/^document-admission-real\./, 2, ["documentContent"]],
   [/^members\./, 2, ["members"]],
   [/^judicial-calendars\./, 2, ["judicialCalendars"]],
   [/^(case-participants|typed-participant)/, 3, ["participants"]],

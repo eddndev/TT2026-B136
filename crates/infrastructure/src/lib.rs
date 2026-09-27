@@ -133,3 +133,5 @@ pub use deadline_worker_postgres::PostgresDeadlineWorkerStore;
 
 pub mod resource_deadline_postgres;
 pub use resource_deadline_postgres::PostgresResourceDeadlineStore;
+
+pub mod document_admission;

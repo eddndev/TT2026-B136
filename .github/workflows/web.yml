@@ -38,6 +38,8 @@ on:
       - 'scripts/setup-document-formats.py'
       - 'scripts/document_format_archive.py'
       - 'scripts/tests/test_setup_document_formats.py'
+      - 'scripts/install_media_decoder.py'
+      - 'scripts/tests/test_install_media_decoder.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
       - '.github/actions/cancel-ci-campaign/**'
@@ -79,6 +81,8 @@ on:
       - 'scripts/setup-document-formats.py'
       - 'scripts/document_format_archive.py'
       - 'scripts/tests/test_setup_document_formats.py'
+      - 'scripts/install_media_decoder.py'
+      - 'scripts/tests/test_install_media_decoder.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
       - '.github/actions/cancel-ci-campaign/**'
@@ -205,6 +209,8 @@ jobs:
         run: |
           library=$(bash scripts/setup-document-formats.sh)
           printf 'TT_TEST_QPDF_LIBRARY=%s\n' "$library" >> "$GITHUB_ENV"
+          python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media
+          printf 'TT_FFPROBE_PATH=/opt/tt-media/bin/ffprobe\nTT_FFMPEG_PATH=/opt/tt-media/bin/ffmpeg\n' >> "$GITHUB_ENV"
       - name: Run browser against Rust and disposable services
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml

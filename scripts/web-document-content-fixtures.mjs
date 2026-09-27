@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { withCorruptDocumentVault } from './web-document-content-corruption.mjs';
 
 const inbox = '/document-integrity-incidents';
@@ -44,13 +45,14 @@ export async function provisionDocumentContent(call) {
       for (const name of ['paralegal', 'client'])
         await call('PUT', `${base}/members/${fixture[name].id}`, undefined, 204);
     }
-    const original = Buffer.concat([Buffer.from(`Historical ${key} content\n`), Buffer.from([0, 255, 13, 10])]);
-    const replacement = Buffer.concat([Buffer.from(`Current ${key} content\n`), Buffer.from([1, 254, 10])]);
+    const media = new URL('../crates/infrastructure/tests/fixtures/media-admission/', import.meta.url);
+    const original = readFileSync(new URL('tiny.png', media));
+    const replacement = readFileSync(new URL('tiny.jpg', media));
     const first = await call('POST', `${base}/documents`, original, 201,
-      { 'X-Document-Name': `content-${key}.bin` });
+      { 'X-Document-Name': `content-${key}.png` });
     const path = `${base}/documents/${first.id}`;
     await call('POST', `${path}/versions?expected_version=1`, replacement, 201,
-      { 'X-Document-Name': `content-${key}-current.bin` });
+      { 'X-Document-Name': `content-${key}-current.jpg` });
     scenario.first = await call('GET', `${path}/versions/1`);
     scenario.current = await call('GET', `${path}/versions/2`);
     assert.equal(scenario.first.sealed, false);
@@ -74,5 +76,11 @@ export async function provisionDocumentContent(call) {
     });
     fixture[key] = scenario;
   }
+  const admission = await call('POST', '/cases', {
+    title: 'Admision documental independiente', reference: 'CONTENT-ADMISSION',
+  }, 201);
+  const administration = (await call('GET', `/cases/${admission.id}/administration`)).administration;
+  fixture.admission = { case: { id: admission.id, title: administration.title,
+    reference: administration.reference } };
   return fixture;
 }

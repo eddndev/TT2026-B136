@@ -1,0 +1,59 @@
+\subsection{Validación y aceptación de la admisión documental general}\label{sec:pruebas-admision-documental}
+
+Las comprobaciones focales de la admisión general distinguen la política de
+aplicación, el rechazo HTTP y la ejecución de analizadores nativos. La
+\cref{tab:pruebas-admision-documental} presenta los resultados aprobados por
+frontera; no representa una nueva ejecución global del proyecto ni actualiza
+las mediciones históricas de cobertura. Los 29 casos de infraestructura y los
+cinco del adaptador nativo son pruebas distintas, sin acumular sus repeticiones
+focales como casos adicionales.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas focales de admisión de nuevas cargas y versiones.}
+  \label{tab:pruebas-admision-documental}
+  \begin{tabularx}{\linewidth}{@{}L{3.2cm} r X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Aprobadas} & \textbf{Comprobación principal} \\
+    \midrule
+    Aplicación & 8 & Tres ingresos documentales, rechazo previo a persistencia y reautenticación. \\
+    Cliente Node & 12 & Errores tipados, contexto de sesión y envío único. \\
+    Navegador controlado & 8 & Rechazo de carga o versión y conservación de archivo y borrador. \\
+    Adaptador nativo & 5 & Familias reales y corrupción interna de contenido comprimido. \\
+    Proceso privado & 5 & Límites de recursos, descriptores heredados y protocolo. \\
+    Infraestructura & 29 & Estructuras de archivo, inventario multimedia y supervisión de procesos. \\
+    HTTP & $1+1$ & Una prueba unitaria y una de rutas: categorías públicas y transporte de errores. \\
+    Instalador & 15 & Fuente, configuración y provisión comprobadas en VPS3. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las pruebas nativas comprueban que no basta una envoltura válida cuando el
+contenido comprimido interno está dañado. Las del proceso privado observan sus
+límites, la retirada de descriptores ajenos y el rechazo de respuestas de
+protocolo incompletas o inesperadas. El supervisor diferencia exceso de salida,
+vencimiento, rechazo del archivo e indisponibilidad de ejecución. Los recorridos
+con HTTP controlado comprueban que el fallo no borra el archivo seleccionado ni
+los metadatos y que no provoca una segunda escritura automática. Esos recorridos
+no sustituyen el ingreso contra PostgreSQL, Redis y el decodificador compuesto
+en el servidor real.
+
+La aceptación integrada mediante \rutarepo{scripts/api-demo.sh} terminó con
+salida cero. Después del respaldo y la restauración, las ocho familias
+conservaron sus bytes originales exactos. El navegador con servicios reales
+aprobó cuatro escenarios en 27.2~s: uno nuevo de admisión documental, cuya
+ejecución duró 8.4~s, y tres regresiones de contenido. Se inspeccionaron las
+capturas de escritorio a 1440 píxeles y móvil a 390 píxeles, sin desbordamiento
+horizontal. Estas evidencias complementan las focales; no acreditan una
+campaña de usabilidad con personas.
+
+La dependencia se verificó con el usuario del runner en los tres VPS. VPS1,
+con AlmaLinux, requirió una compilación nativa porque el binario preparado en
+Ubuntu~22 depende de GLIBC~2.35. La comprobación posterior de cada instalación
+es de solo lectura. Clippy aprobó el workspace y todos los targets con
+advertencias denegadas. Los gates globales y la integración permanecen
+pendientes. Los resultados no acreditan detección de malware, autenticidad
+jurídica ni ampliación de la política de soportes PDF/DOCX. El contrato y la
+distinción entre evidencia local y cierre global se conservan en
+\rutarepo{docs/document-upload-admission-api.md} y en
+\rutarepo{docs/adr/0058-bounded-general-document-admission.md}.

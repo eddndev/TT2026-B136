@@ -1,3 +1,6 @@
+export const uploadFormats =
+  'PDF, DOCX, TXT, JPEG y PNG sin animaci\u00f3n, MP3, WAV (PCM) y MP4 (H.264/AAC)';
+
 export const roles = {
   owner: 'Administrador',
   litigator: 'Litigante',

@@ -1,7 +1,10 @@
 """Check cancellation and failure cleanup for disposable CI services."""
 
 from contextlib import contextmanager
+import fcntl
 import importlib.util
+import json
+import multiprocessing
 from pathlib import Path
 import signal
 import tempfile
@@ -44,6 +47,32 @@ def startup_backend(effective_locks):
         MODULE.socket, "socket", return_value=socket_context
     ), patch("builtins.print"):
         yield MODULE.Backend(), events
+
+
+@contextmanager
+def cleanup_backend():
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        directory = root / "tt-ci-postgres-owned"
+        (directory / "data").mkdir(parents=True)
+        (directory / "data" / "postgresql.conf").write_text("shared_buffers=128MB\n")
+        marker = root / "tt-ci-postgres.json"
+        marker.write_text(json.dumps({
+            "unit": "tt-ci-postgres-" + "a" * 32,
+            "directory": str(directory),
+        }))
+        marker.chmod(0o600)
+        with patch.dict(MODULE.os.environ, {"RUNNER_TEMP": str(root)}):
+            yield marker, directory
+
+
+def concurrent_cleanup_worker(marker, results):
+    try:
+        MODULE.cleanup(marker)
+    except BaseException as error:
+        results.put((multiprocessing.current_process().name, type(error).__name__, str(error)))
+    else:
+        results.put((multiprocessing.current_process().name, None, None))
 
 
 class TestNativePostgres(unittest.TestCase):
@@ -120,6 +149,103 @@ class TestNativePostgres(unittest.TestCase):
             with patch.dict(MODULE.os.environ, {"RUNNER_TEMP": str(root)}), self.assertRaises(ValueError):
                 MODULE.cleanup(marker)
             self.assertTrue(marker.exists())
+
+    def test_concurrent_cleanup_serializes_marker_read_stop_and_directory_removal(self):
+        context = multiprocessing.get_context("fork")
+        first_at_remove = context.Event()
+        release_first = context.Event()
+        results = context.Queue()
+        removals = context.Queue()
+        stops = context.Queue()
+        real_remove = MODULE.shutil.rmtree
+        real_flock = fcntl.flock
+
+        def remove(path, *args, **kwargs):
+            name = multiprocessing.current_process().name
+            removals.put(name)
+            if name == "cleanup-first":
+                first_at_remove.set()
+                if not release_first.wait(5):
+                    raise TimeoutError("second cleanup did not reach the shared boundary")
+                return real_remove(path, *args, **kwargs)
+            try:
+                return real_remove(path, *args, **kwargs)
+            finally:
+                release_first.set()
+
+        def lock(descriptor, operation):
+            if (multiprocessing.current_process().name == "cleanup-second"
+                    and operation == fcntl.LOCK_EX):
+                release_first.set()
+            return real_flock(descriptor, operation)
+
+        def stop(command, **_kwargs):
+            self.assertEqual(command[:3], ["systemctl", "--user", "stop"])
+            stops.put(multiprocessing.current_process().name)
+            return Mock(returncode=0)
+
+        with cleanup_backend() as (marker, directory):
+            children = [context.Process(target=concurrent_cleanup_worker,
+                        args=(marker, results), name=f"cleanup-{name}")
+                        for name in ["first", "second"]]
+            with patch.object(MODULE.subprocess, "run", side_effect=stop), patch.object(
+                MODULE.shutil, "rmtree", side_effect=remove
+            ), patch.object(fcntl, "flock", side_effect=lock):
+                try:
+                    children[0].start()
+                    self.assertTrue(first_at_remove.wait(5), "first cleanup did not reach removal")
+                    children[1].start()
+                    outcomes = [results.get(timeout=5), results.get(timeout=5)]
+                finally:
+                    release_first.set()
+                    for child in children:
+                        if child.pid is not None:
+                            child.join(5)
+                            if child.is_alive():
+                                child.terminate()
+                                child.join(5)
+            self.assertTrue(all(child.exitcode == 0 for child in children))
+            self.assertEqual(sorted(outcomes), [("cleanup-first", None, None), ("cleanup-second", None, None)])
+            self.assertEqual(stops.get(timeout=1), "cleanup-first")
+            self.assertTrue(stops.empty(), "the same unit must be stopped only once")
+            self.assertEqual(removals.get(timeout=1), "cleanup-first")
+            self.assertTrue(removals.empty(), "the same tree must be removed only once")
+            self.assertFalse(marker.exists())
+            self.assertFalse(directory.exists())
+        for queue in [results, removals, stops]:
+            queue.close()
+            queue.join_thread()
+
+    def test_cleanup_failed_service_stop_retains_marker_and_data(self):
+        with cleanup_backend() as (marker, directory), patch.object(
+            MODULE.subprocess, "run", return_value=Mock(returncode=1)
+        ), patch.object(MODULE.subprocess, "check_output", return_value="loaded\n"):
+            with self.assertRaisesRegex(RuntimeError, "retaining its data"):
+                MODULE.cleanup(marker)
+            self.assertTrue(marker.is_file())
+            self.assertEqual((directory / "data" / "postgresql.conf").read_text(), "shared_buffers=128MB\n")
+
+    def test_cleanup_permission_failure_is_not_silenced_or_unmarked(self):
+        with cleanup_backend() as (marker, directory), patch.object(
+            MODULE.subprocess, "run", return_value=Mock(returncode=0)
+        ), patch.object(MODULE.shutil, "rmtree", side_effect=PermissionError("denied")):
+            with self.assertRaisesRegex(PermissionError, "denied"):
+                MODULE.cleanup(marker)
+            self.assertTrue(marker.is_file())
+            self.assertTrue((directory / "data" / "postgresql.conf").is_file())
+
+    def test_cleanup_valid_unit_cannot_remove_an_unrelated_directory(self):
+        with cleanup_backend() as (marker, directory), tempfile.TemporaryDirectory() as other:
+            state = json.loads(marker.read_text())
+            state["directory"] = other
+            marker.write_text(json.dumps(state))
+            with patch.object(MODULE.subprocess, "run") as stop:
+                with self.assertRaisesRegex(ValueError, "unrelated"):
+                    MODULE.cleanup(marker)
+                stop.assert_not_called()
+            self.assertTrue(marker.is_file())
+            self.assertTrue(directory.is_dir())
+            self.assertTrue(Path(other).is_dir())
 
     def test_sigterm_produces_cancellation_exit_status(self):
         with self.assertRaises(SystemExit) as raised:

@@ -20,7 +20,8 @@ impl CaseDocumentService {
         bytes: &[u8],
     ) -> Result<DocumentOverview, ApplicationError> {
         let permission = DocumentAction::Append.permission();
-        let actor = self.actor(token, permission)?;
+        let principal = self.principal_permissions(token, &[permission])?;
+        let actor = principal.id;
         let current = self.store.load(
             actor,
             case,
@@ -34,8 +35,9 @@ impl CaseDocumentService {
         let next = expected
             .next()
             .map_err(|_| ApplicationError::DocumentVersionExhausted)?;
+        self.admit_upload(name, bytes)?;
         let record = self.processor.prepare_version(id, next, name, bytes)?;
-        self.reauthenticate(token, actor, permission)?;
+        self.reauthenticate_principal(token, &principal, &[permission])?;
         self.store
             .append(actor, case, expected, record, self.clock.now())
     }

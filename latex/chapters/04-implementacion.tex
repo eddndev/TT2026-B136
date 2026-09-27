@@ -533,6 +533,8 @@ Carga, detalle y sellado conservan los campos \texttt{case\_id}, \texttt{id}, \t
 
 \input{chapters/04-contenido-documental}
 
+\input{chapters/04-admision-documental}
+
 \subsection{Consultas autorizadas de metadatos}\label{sec:impl-http-consultas}
 
 El listado recibe \texttt{limit}, \texttt{offset}, \texttt{name}, \texttt{sealed}, \texttt{document\_type}, \texttt{classification} y \texttt{tag}. El tamaño de página predeterminado es 50 y admite de 1 a 100; el desplazamiento es un entero no negativo. El filtro de nombre admite hasta 200 caracteres, recorta espacios exteriores y rechaza caracteres de control. PostgreSQL busca una subcadena literal sin distinguir mayúsculas mediante \texttt{strpos(lower(name), lower(...))}; los caracteres \texttt{\%} y \texttt{\_} conservan su significado literal. El filtro de sellado distingue documentos pendientes y documentos con evidencia capturada. La búsqueda alcanza el nombre almacenado, no el contenido cifrado.

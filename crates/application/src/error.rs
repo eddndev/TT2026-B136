@@ -19,6 +19,9 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    DocumentUpload(#[from] crate::documents::DocumentUploadError),
+
+    #[error(transparent)]
     Member(#[from] crate::members::MemberError),
 
     #[error("document content validation failed")]

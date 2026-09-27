@@ -101,13 +101,21 @@ export async function queryContextualAgenda(page, scenario, deadline) {
   await page.getByRole('combobox', { name: 'Vista de agenda', exact: true }).selectOption('day');
   await page.getByLabel('Fecha de referencia', { exact: true }).fill(scenario.date);
   await page.getByLabel('Desfase de consulta', { exact: true }).fill('+00:00');
-  const pending = page.waitForResponse(
-    (response) =>
-      new URL(response.url()).pathname === '/api/v1/agenda' &&
-      response.request().method() === 'GET',
-  );
+  const from = `${scenario.date}T00:00:00Z`;
+  const until = new Date(Date.parse(from) + 86_400_000).toISOString().replace('.000Z', 'Z');
+  const pending = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.pathname === '/api/v1/agenda' &&
+      request.method() === 'GET' &&
+      url.searchParams.get('from') === from &&
+      url.searchParams.get('until') === until &&
+      !url.searchParams.has('cursor')
+    );
+  });
   await page.getByRole('button', { name: 'Consultar Agenda', exact: true }).click();
-  const response = await pending;
+  const response = await (await pending).response();
+  expect(response).not.toBeNull();
   expect(response.status()).toBe(200);
   const pageData = await response.json();
   const matches = pageData.items.filter(

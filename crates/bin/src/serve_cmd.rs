@@ -49,14 +49,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         application::deadline_dispatch::DeadlineDispatchLimit::new(args.deadline_page_limit)?,
         std::time::Duration::from_millis(u64::from(args.deadline_poll_ms.get())),
     )?;
-    let format_validator = infrastructure::document_formats::IsolatedDocumentFormatValidator::new(
-        std::env::current_exe().context("cannot locate document validation worker")?,
-        fs::canonicalize(&args.qpdf_library).context("cannot locate native qpdf library")?,
-    )
-    .context("cannot configure document format validation")?;
-    format_validator
-        .check_configuration()
-        .context("document format startup check failed")?;
+    let (format_validator, admission) = crate::serve_document_validation::open(args)?;
     let signer_certificate = read(&args.signer_cert, "signer certificate")?;
     let signer_key = Zeroizing::new(read(&args.signer_key, "signer private key")?);
     let issuer_certificate = read(&args.ca_cert, "issuer certificate")?;
@@ -324,6 +317,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         repository,
         identity.clone(),
         processor,
+        Arc::new(admission),
         Arc::new(SystemClock::new()),
     );
     let alerts = crate::serve_alert_composition::open(

@@ -24,6 +24,18 @@ backend. Para operar necesitas la API Rust, PostgreSQL, Redis y la PKI/TSA
 descritos en [`docs/http-api.md`](../docs/http-api.md). No se crean cuentas ni
 documentos de prueba al arrancar esta interfaz.
 
+El backend también requiere [qpdf y la validación documental](../docs/document-format-operations.md)
+y la [instalación fijada de FFmpeg/ffprobe](../docs/media-decoder-setup.md).
+Preparar esta última una sola vez por máquina; antes de las campañas reales,
+verificarla desde la raíz con
+`python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media`.
+La comprobación es de solo lectura: no descarga ni recompila en cada CI.
+`serve` usa `/opt/tt-media/bin/ffprobe` y `/opt/tt-media/bin/ffmpeg`; otro prefijo
+verificado se configura mediante `TT_FFPROBE_PATH` y `TT_FFMPEG_PATH` en el
+entorno del servidor o de `scripts/web-demo.sh`, no en el navegador. No usar un
+FFmpeg arbitrario del sistema como reemplazo. Las pruebas con HTTP simulado no
+necesitan estas dependencias nativas.
+
 El proxy local reenvía `/api` a `http://127.0.0.1:3000`. Para otra dirección,
 establece `API_PROXY_TARGET` en el entorno antes de iniciar Astro. En PowerShell:
 
