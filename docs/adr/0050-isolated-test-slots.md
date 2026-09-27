@@ -73,8 +73,8 @@ Measured CPU averaged 6.19 cores, PostgreSQL connections peaked at 46, and
 no OOM or swap occurred. Nine MemoryHigh events appeared; peak charged memory
 was 23.93 GiB, primarily file cache and reclaimable kernel memory.
 
-Sixteen slots use the dedicated host's full eight-core quota and the existing
-26 GiB parent limit. The complete Rust campaign passed in 11m54s, with
+The first sixteen-slot campaign used the dedicated host's full eight-core
+quota and a 26 GiB parent limit. That complete Rust campaign passed in 11m54s, with
 3049 passing tests, no OOM or swap and a 21.05 GiB charged-memory peak.
 The twenty-second improvement over twelve slots shows diminishing returns. A future service
 deployment must review the shared CPU budget. The helper supports one through

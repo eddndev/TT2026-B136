@@ -4,6 +4,52 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Cierre de rendimiento con PostgreSQL nativo: 27 de septiembre de 2026
+
+La cabeza `793c8de` aprobo [CI 36300194908](https://github.com/eddndev/TT2026-B136/actions/runs/36300194908)
+y [Web 36300194936](https://github.com/eddndev/TT2026-B136/actions/runs/36300194936)
+con todos sus checks y gates. Los JUnit conservan exactamente las mismas
+identidades del checkpoint completo anterior: **3049 Rust**, **359 simuladas**
+y **43 reales**, sin duplicados ni fallos. Las dos pruebas Rust ignoradas
+siguen declaradas aparte. Cobertura: domain **5512/5629, 97%**, application
+**17215/17963, 95%**, infrastructure **30656/32701, 93%**; todos los umbrales de 90%
+aprobaron. El chequeo SQL del calendario tambien aprobo antes de Nextest.
+
+| Medicion | Resultado |
+| --- | --- |
+| CI completo, creacion a ultimo check | **6m23s** |
+| Web completo, creacion a ultimo check | **10m26s** |
+| Compilacion Rust instrumentada caliente | 0.23s |
+| Ejecucion de las 3049 pruebas Rust | 328.404s |
+| Generacion del reporte de cobertura | aproximadamente 6.4s |
+| Gate agregado de cobertura | 9s |
+| Jobs reales completos, particiones 1/2/3 | 10m12s / 10m17s / 6m50s |
+| Compilacion real caliente, particiones 1/2/3 | 2.09s / 2.10s / 0.14s |
+| Ejecucion navegador real, particiones 1/2/3 | 315.659s / 326.224s / 193.942s |
+| Ejecucion navegador simulado, particiones 1/2 | 413.140s / 452.772s |
+
+Frente al checkpoint completo anterior de **13m12s / 11m15s**, CI bajo a
+**6m23s** y Web a **10m26s**. El objetivo aproximado de diez minutos queda
+reproducido en esta campana. La preparacion de fixtures sigue separada de
+la ejecucion del navegador: el comando real de la particion 2 tomo 585s,
+con 326.224s de navegador y 2.10s de compilacion; el resto incluye servicios,
+criptografia y fixtures. Los logs conservan los tiempos por familia. La
+provision inicial de cache fria de VPS3 (1m54s) fue un coste anterior y no
+forma parte de esta medicion caliente.
+
+Durante ventanas activas, VPS3 promedio **6.60 CPU** y alcanzo **27.87 GiB**,
+con 14 eventos MemoryHigh y sin OOM ni swap. Su PostgreSQL nativo mantuvo el
+limite de 6 GiB y alcanzo **4.04 GiB**, sin eventos de memoria en esa unidad;
+se observaron hasta 55 conexiones. VPS2 promedio **3.08 CPU**, pico de 5.01 GiB,
+sin OOM ni throttling de cuota. VPS1 promedio 1.82 CPU, pico de 4.47 GiB,
+1217 eventos MemoryHigh, 113 eventos max y 18.83s de throttling, sin OOM;
+su swap pico fue de 0.36 GiB. No se aumentaron recursos para esta campana.
+
+No se requieren nuevos ajustes para perseguir segundos adicionales antes
+de integrar. La confirmacion de estabilidad corresponde a la ejecucion
+natural de main posterior a la integracion; esta campana no acredita esa
+ejecucion posterior.
+
 ## PostgreSQL para el chequeo SQL previo: 27 de septiembre de 2026
 
 La cabeza `fe8053d` detuvo [CI 36299431042](https://github.com/eddndev/TT2026-B136/actions/runs/36299431042)

@@ -1,5 +1,15 @@
 # Operacion de los runners de CI
 
+## Resultado medido
+
+La campana completa de `793c8de` aprobo CI en **6m23s** y Web en **10m26s**,
+con 3049 pruebas Rust, 359 simuladas, 43 reales y todos los gates. Rust ejecuto en
+328.404s con compilacion caliente de 0.23s; la provision fria queda registrada
+por separado. No se aumentaron recursos. El objetivo aproximado de diez
+minutos tiene evidencia completa; confirmar estabilidad tras integrar con
+la ejecucion natural de main. Detalles, cobertura y presion de memoria en
+`docs/verification-report.md`.
+
 ## Reparto sin maquinas alojadas por GitHub
 
 CI y Web usan exclusivamente runners del repositorio. Actions conserva la

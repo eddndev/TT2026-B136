@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted for a measured rollout; complete concurrent CI validation is pending.
+Accepted. The complete concurrent campaign on `793c8de` passed CI in 6m23s
+and Web in 10m26s, retaining all tests and coverage gates. See
+`docs/verification-report.md`.
 
 ## Context
 
@@ -55,7 +57,10 @@ A runner migration requires those documented dependencies; no host address or
 runner name is embedded in the helper. The temporary cluster contains no
 persistent project data and every campaign starts with new databases.
 
-Confirm the full test inventory, coverage, concurrent browser behavior and
-active-window resource measurements before accepting the runtime improvement.
-Record the native service's child memory events as well as the shared parent
-budget. Do not infer full-suite timing by scaling the single-test result.
+The complete campaign retained 3049 passing Rust tests, two declared ignored
+tests, 359 mock-browser cases and 43 real-browser cases. The native service
+peaked at 4.04GiB within its six-GiB limit, without memory events or OOM; the
+shared parent peaked at 27.87GiB without OOM or swap. Future changes must
+continue recording child and parent limits, full inventory, coverage and
+concurrent browser behavior. Do not infer full-suite timing by scaling a
+single-test result.
