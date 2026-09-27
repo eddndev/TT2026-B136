@@ -194,7 +194,7 @@ fn case_capacity_failure_is_explicit_and_does_not_return_a_partial_count() {
     assert_eq!(audits(&mut db), 0);
 }
 
-#[path = "dashboard_concurrency.rs"]
+#[path = "dashboard_backend_support/concurrency.rs"]
 mod dashboard_concurrency;
-#[path = "dashboard_deadlines.rs"]
+#[path = "dashboard_backend_support/deadlines.rs"]
 mod dashboard_deadlines;
