@@ -33,6 +33,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: '1'
   # Bound test artifacts while retaining source locations; see docs/adr/0027-ci-debug-information.md.
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
@@ -41,7 +42,7 @@ jobs:
   format:
     if: ${{ !inputs.dispatch_measurement }}
     name: Format
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -53,13 +54,14 @@ jobs:
   lint:
     if: ${{ !inputs.dispatch_measurement }}
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - uses: Swatinem/rust-cache@v2
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
       - name: Clippy (deny warnings)
         run: cargo clippy --workspace --all-targets -- -D warnings
 
@@ -278,13 +280,14 @@ jobs:
   msrv:
     if: ${{ !inputs.dispatch_measurement }}
     name: MSRV check (Rust 1.88)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.88"
-      - uses: Swatinem/rust-cache@v2
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
       - name: Build check on the minimum supported Rust version
         run: cargo check --workspace
 
@@ -292,7 +295,7 @@ jobs:
     name: Coverage
     needs: test
     if: ${{ !inputs.dispatch_measurement }}
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -313,7 +316,7 @@ jobs:
   deny:
     if: ${{ !inputs.dispatch_measurement }}
     name: Dependency policy
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -324,16 +327,17 @@ jobs:
   binary-size:
     if: ${{ !inputs.dispatch_measurement }}
     name: Release binary size
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
       - name: Build release binary
         run: cargo build --release --bin despacho-cli
       - name: Fail if despacho-cli exceeds 25 MB
         run: |
-          bin=target/release/despacho-cli
+          bin="$CARGO_TARGET_DIR/release/despacho-cli"
           size=$(stat -c %s "$bin")
           limit=$((25 * 1024 * 1024))
           echo "despacho-cli release size: $size bytes (limit: $limit bytes)"

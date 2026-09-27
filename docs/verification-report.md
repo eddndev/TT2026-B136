@@ -4,6 +4,35 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Regresion completa y bloqueo de jobs finales: 27 de septiembre de 2026
+
+En la cabeza `14dcf1d`, [CI 36284539265](https://github.com/eddndev/TT2026-B136/actions/runs/36284539265)
+ejecuto correctamente las **3049** pruebas Rust en **652.355s**, con dos
+ignoradas y compilacion instrumentada reutilizada de **0.16s**, y
+[Web 36284539264](https://github.com/eddndev/TT2026-B136/actions/runs/36284539264)
+ejecuto correctamente las **358** simuladas y **43** reales. La comparacion
+de JUnit confirma las mismas identidades, sin duplicados ni fallos, respecto
+a la campana completa anterior. La correccion de sincronizacion de
+`stage-adoption.spec.mjs` queda asi verificada en el navegador real.
+
+Ambos workflows terminaron con fallo porque **Coverage** y el agregado
+**Browser with real services** no iniciaron. GitHub atribuyo el rechazo a
+pagos recientes fallidos o al limite de gasto; ambos jobs carecen de pasos
+ejecutados. No es un fallo de las pruebas. Como comprobacion adicional se
+ejecuto el gate local sobre el LCOV descargado de esa misma cabeza:
+domain **97%**, application **95%**, infrastructure **93%**, todos sobre
+el umbral de 90%. Esa comprobacion no sustituye los gates de Actions.
+
+La siguiente configuracion traslada CI y Web a los servidores propios, segun
+[ADR 0052](adr/0052-owned-ci-runners.md). Los siete runners se registraron
+en linea. Chromium abrio una pagina tanto en el contenedor de VPS1 como
+nativamente en VPS2. Actionlint y la sintaxis del nuevo helper de cache
+aprobaron; el helper tambien creo caches y temporales accesibles con las
+cuentas reales de los runners. No se repitieron suites completas locales.
+Quedan pendientes la
+campana remota con esta topologia y la comparacion de tiempos frios/calientes;
+no se atribuye una mejora de rendimiento a la migracion sin medirla.
+
 ## Dieciseis slots y sincronizacion de navegacion: 27 de septiembre de 2026
 
 [CI 36283718718](https://github.com/eddndev/TT2026-B136/actions/runs/36283718718)

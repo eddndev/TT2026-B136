@@ -28,6 +28,7 @@ on:
       - 'scripts/web-hearing-result-fixtures.mjs'
       - 'scripts/web-calendar-fixtures.mjs'
       - 'scripts/test-backends.sh'
+      - 'scripts/prepare-ci-workspace.sh'
       - 'scripts/setup-document-formats.sh'
       - 'scripts/setup-document-formats.py'
       - 'scripts/document_format_archive.py'
@@ -60,6 +61,7 @@ on:
       - 'scripts/web-hearing-result-fixtures.mjs'
       - 'scripts/web-calendar-fixtures.mjs'
       - 'scripts/test-backends.sh'
+      - 'scripts/prepare-ci-workspace.sh'
       - 'scripts/setup-document-formats.sh'
       - 'scripts/setup-document-formats.py'
       - 'scripts/document_format_archive.py'
@@ -81,12 +83,17 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2]
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-mock]
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --init --shm-size=512m --memory=1536m --cpus=1.5
     defaults:
       run:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -96,7 +103,15 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - name: Require the matching preinstalled browser
+        run: |
+          node --input-type=module -e '
+            import { existsSync } from "node:fs";
+            import { chromium } from "@playwright/test";
+            if (!existsSync(chromium.executablePath())) {
+              throw new Error("Update the Playwright image to match package-lock.json");
+            }
+          '
       - run: npm run test:e2e -- --workers=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/browser-junit.xml
@@ -112,7 +127,7 @@ jobs:
   verify:
     if: always()
     needs: verify-shards
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - name: Require every web shard
         env:
@@ -125,29 +140,33 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-live]
     env:
       CARGO_PROFILE_DEV_DEBUG: line-tables-only
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
         with:
-          key: live-workspace
-          cache-workspace-crates: true
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh web
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - name: Install isolated backend tools
+      - name: Require isolated backend tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql redis-server jq unzip
-          pg_config --bindir >> "$GITHUB_PATH"
+          pg_bin=$(pg_config --bindir)
+          test -x "$pg_bin/initdb"
+          test -x "$pg_bin/pg_ctl"
+          printf '%s\n' "$pg_bin" >> "$GITHUB_PATH"
+          for command in redis-server redis-cli jq unzip; do
+            command -v "$command" >/dev/null
+          done
       - run: npm ci
         working-directory: web
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
         working-directory: web
       - name: Prepare verified document format library
         run: |
@@ -182,7 +201,7 @@ jobs:
     name: Browser with real services
     if: always()
     needs: integration-shards
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - name: Require every real browser shard
         env:

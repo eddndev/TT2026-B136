@@ -3,3 +3,5 @@ self-hosted-runner:
     - tt-ci-vps1
     - tt-ci-vps2
     - tt-ci-dedicated
+    - tt-ci-mock
+    - tt-ci-live

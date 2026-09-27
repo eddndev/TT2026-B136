@@ -11,7 +11,9 @@ same service instance would introduce interference.
 ## Decision
 
 Split mocked browser tests into two Playwright shards and real-service tests
-into three, on separate GitHub-hosted jobs. Preserve file-level scheduling and one worker per job. Each real-service
+into three, on separate jobs. The initial rollout used GitHub-hosted machines;
+`docs/adr/0052-owned-ci-runners.md` moves them to repository-owned runners.
+Preserve file-level scheduling and one worker per job. Each real-service
 job provisions its own PostgreSQL, Redis, Rust server, identities and fixture
 data through the existing disposable service script. No tests, assertions or
 timeouts are removed, and no retries are introduced.
@@ -35,7 +37,8 @@ provisioner, and never start later batches after failure. The default remains
 one provisioning worker for local execution. Emit per-family durations.
 Browser builds use line-table debug information as described in
 `docs/adr/0027-ci-debug-information.md`. Cache workspace crates as well as
-dependencies with a separate browser workspace cache key. Cargo still checks
+dependencies in a separate persistent target for each browser runner, as
+described in `docs/adr/0052-owned-ci-runners.md`. Cargo still checks
 the selected revision and compiles before starting services; cached binaries
 never substitute for a fresh test run.
 

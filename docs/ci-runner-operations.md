@@ -1,5 +1,51 @@
 # Operacion de los runners de CI
 
+## Reparto sin maquinas alojadas por GitHub
+
+CI y Web usan exclusivamente runners del repositorio. Actions conserva la
+orquestacion y los artefactos; no aumentar limites de gasto para habilitar
+maquinas de GitHub. El reparto es:
+
+| Servidor | Runners y etiquetas | Trabajo | Presupuesto compartido |
+| --- | --- | --- | --- |
+| VPS3 | Uno, `tt-ci-dedicated` | Rust y generacion de cobertura | 8 CPU, MemoryHigh 24 GiB, MemoryMax 26 GiB |
+| VPS1 | Uno, `tt-ci-vps1` | Checks nativos y agregados de CI/Web | 3 CPU, MemoryHigh 4608 MiB, MemoryMax 5 GiB |
+| VPS1 | Dos, `tt-ci-mock` | Dos shards de navegador simulado | Incluido en el presupuesto de VPS1 |
+| VPS2 | Tres, `tt-ci-live` | Tres shards de navegador real | 4 CPU, MemoryHigh 5.394 GiB, MemoryMax 6 GiB |
+
+Los runners adicionales comparten la cuenta `tt-runner`, pero cada uno tiene
+su propio directorio de instalacion y trabajo. Asignar sus unidades systemd
+a `user-$(id -u tt-runner).slice`, igual que Docker rootless. No multiplicar
+los limites por el numero de servicios. El runner original de VPS2 conserva
+ademas `tt-ci-vps2` para las tareas manuales y el modo Rust alternativo.
+Evitar solapar una campana manual con la regresion completa.
+
+Preparar VPS1 con compilador C, pkg-config, OpenSSL de desarrollo, Git, curl,
+Python 3.12+, jq, Rust stable/rustfmt/clippy y Rust 1.88. Los jobs seleccionan
+la version Rust requerida. El navegador simulado corre en
+`mcr.microsoft.com/playwright:v1.63.0-noble` mediante Docker rootless, con
+1.5 CPU, 1536 MiB y 512 MiB de memoria compartida por contenedor. Descargar
+la imagen con el usuario del runner antes de habilitarlo. Al actualizar
+Playwright en `web/package-lock.json`, actualizar tambien la imagen y
+comprobar Chromium; el workflow rechaza una imagen incompatible.
+
+VPS2 requiere Ubuntu 24.04, PostgreSQL 16 con `initdb`/`pg_ctl`, Redis,
+Python 3.12+, jq, unzip, OpenSSL y las dependencias nativas de Chromium.
+Instalar estas dependencias una vez como administrador con la version de
+Playwright fijada por el lockfile. Instalar Chromium con el usuario del
+runner; el workflow reutiliza esa cache y no ejecuta APT con sudo. Node 24
+se selecciona por job con setup-node. Comprobar que el navegador abre una
+pagina antes de publicar cambios de infraestructura.
+
+`scripts/prepare-ci-workspace.sh` configura un compilador por job y conserva
+`~/.cache/tt-ci/target` para los checks secuenciales. Cada runner real usa
+`~/.cache/tt-ci/web/$RUNNER_NAME` para evitar compartir un target entre tres
+compilaciones simultaneas. Las herramientas y los caches permanecen fuera
+del checkout; los backends temporales usan `output/tmp` en disco. Conservar
+espacio para la primera compilacion de cada target y medirla separadamente
+de las siguientes ejecuciones calientes. La migracion no acredita por si
+sola una reduccion de tiempo. Ver [ADR 0052](adr/0052-owned-ci-runners.md).
+
 ## Servidor dedicado
 
 El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta
