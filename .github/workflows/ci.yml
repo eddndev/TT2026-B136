@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
@@ -50,6 +51,14 @@ jobs:
           components: rustfmt
       - name: Check formatting
         run: cargo fmt --all -- --check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify cancellation scope
+        run: node --test scripts/tests/test_cancel_ci_campaign.cjs
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   lint:
     if: ${{ !inputs.dispatch_measurement }}
@@ -64,12 +73,15 @@ jobs:
         run: bash scripts/prepare-ci-workspace.sh checks
       - name: Clippy (deny warnings)
         run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   test:
     if: ${{ !inputs.dispatch_measurement }}
     name: Test (${{ matrix.shard }}/${{ matrix.total }})
     strategy:
-      fail-fast: false
+      fail-fast: true
       # Activate only after provisioning; see docs/adr/0050-isolated-test-slots.md.
       matrix:
         include: ${{ fromJSON(vars.TT_CI_DEDICATED == 'true' && '[{"shard":1,"total":1,"runner":"tt-ci-dedicated","slots":16}]' || '[{"shard":1,"total":2,"runner":"tt-ci-vps1","slots":0},{"shard":2,"total":2,"runner":"tt-ci-vps2","slots":0}]') }}
@@ -200,6 +212,9 @@ jobs:
           path: coverage-shard-${{ matrix.shard }}.info
           if-no-files-found: error
           retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   dispatch-measurement:
     if: ${{ inputs.dispatch_measurement }}
@@ -276,6 +291,9 @@ jobs:
           path: output/dispatch-measurement.log
           if-no-files-found: error
           retention-days: 30
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   msrv:
     if: ${{ !inputs.dispatch_measurement }}
@@ -290,6 +308,9 @@ jobs:
         run: bash scripts/prepare-ci-workspace.sh checks
       - name: Build check on the minimum supported Rust version
         run: cargo check --workspace
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   coverage:
     name: Coverage
@@ -312,6 +333,9 @@ jobs:
             --expected-shards "$EXPECTED_SHARDS" \
             coverage-shards/workspace-coverage-*/coverage-shard-*.info coverage.json
           scripts/coverage-gate.sh coverage.json
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   deny:
     if: ${{ !inputs.dispatch_measurement }}
@@ -323,6 +347,9 @@ jobs:
       - uses: taiki-e/install-action@cargo-deny
       - name: Check advisories, licenses, bans and sources
         run: cargo deny check
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   binary-size:
     if: ${{ !inputs.dispatch_measurement }}
@@ -345,3 +372,6 @@ jobs:
             echo "error: release binary exceeds the 25 MB limit"
             exit 1
           fi
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign

@@ -35,6 +35,9 @@ on:
       - 'scripts/tests/test_setup_document_formats.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
+      - '.github/actions/cancel-ci-campaign/**'
+      - 'scripts/cancel-ci-campaign.cjs'
+      - 'scripts/tests/test_cancel_ci_campaign.cjs'
   pull_request:
     paths:
       - 'web/**'
@@ -68,9 +71,13 @@ on:
       - 'scripts/tests/test_setup_document_formats.py'
       - 'Cargo.*'
       - '.github/workflows/web.yml'
+      - '.github/actions/cancel-ci-campaign/**'
+      - 'scripts/cancel-ci-campaign.cjs'
+      - 'scripts/tests/test_cancel_ci_campaign.cjs'
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: web-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
@@ -80,7 +87,7 @@ jobs:
   verify-shards:
     name: Web checks (${{ matrix.shard }}/2)
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         shard: [1, 2]
     runs-on: [self-hosted, Linux, X64, tt-ci-mock]
@@ -112,7 +119,7 @@ jobs:
               throw new Error("Update the Playwright image to match package-lock.json");
             }
           '
-      - run: npm run test:e2e -- --workers=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
+      - run: npm run test:e2e -- --workers=1 --max-failures=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/browser-junit.xml
       - name: Publish browser durations
@@ -123,21 +130,30 @@ jobs:
           path: web/test-results/browser-junit.xml
           if-no-files-found: error
           retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   verify:
-    if: always()
+    if: ${{ !cancelled() }}
     needs: verify-shards
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Require every web shard
         env:
           SHARD_RESULT: ${{ needs.verify-shards.result }}
         run: test "$SHARD_RESULT" = success
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   integration-shards:
     name: Browser with real services (${{ matrix.shard }}/3)
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         shard: [1, 2, 3]
     runs-on: [self-hosted, Linux, X64, tt-ci-live]
@@ -176,7 +192,7 @@ jobs:
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
           TT_WEB_FIXTURE_WORKERS: '2'
-        run: bash scripts/web-demo.sh --shard=${{ matrix.shard }}/3 --reporter=line,junit
+        run: bash scripts/web-demo.sh --max-failures=1 --shard=${{ matrix.shard }}/3 --reporter=line,junit
       - name: Publish real browser durations
         if: always()
         uses: actions/upload-artifact@v4
@@ -196,14 +212,23 @@ jobs:
             web/test-results-live/**/api-failures.json
           if-no-files-found: ignore
           retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
 
   integration:
     name: Browser with real services
-    if: always()
+    if: ${{ !cancelled() }}
     needs: integration-shards
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Require every real browser shard
         env:
           SHARD_RESULT: ${{ needs.integration-shards.result }}
         run: test "$SHARD_RESULT" = success
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign

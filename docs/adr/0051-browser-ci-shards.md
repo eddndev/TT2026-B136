@@ -20,8 +20,8 @@ timeouts are removed, and no retries are introduced.
 
 Keep the existing aggregate check names, `verify` and `Browser with real
 services`. These checks run even when a dependency fails and require every
-shard to succeed. Disable matrix fail-fast to collect the complete regression
-result. Publish separate JUnit timing artifacts and failure diagnostics using
+shard to succeed. The initial rollout collected all failures; cancellation
+now follows `docs/adr/0053-ci-failure-cancellation.md`. Publish separate JUnit timing artifacts and failure diagnostics using
 shard-specific artifact names.
 
 The first validation enumerates the unsplit suite and every shard, verifying

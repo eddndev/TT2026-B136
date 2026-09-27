@@ -11,7 +11,7 @@ maquinas de GitHub. El reparto es:
 | VPS3 | Uno, `tt-ci-dedicated` | Rust y generacion de cobertura | 8 CPU, MemoryHigh 24 GiB, MemoryMax 26 GiB |
 | VPS1 | Uno, `tt-ci-vps1` | Checks nativos y agregados de CI/Web | 3 CPU, MemoryHigh 4608 MiB, MemoryMax 5 GiB |
 | VPS1 | Dos, `tt-ci-mock` | Dos shards de navegador simulado | Incluido en el presupuesto de VPS1 |
-| VPS2 | Tres, `tt-ci-live` | Tres shards de navegador real | 4 CPU, MemoryHigh 5.394 GiB, MemoryMax 6 GiB |
+| VPS2 | Tres, `tt-ci-live` | Tres shards de navegador real | 6 CPU, MemoryHigh 6 GiB, MemoryMax 7 GiB |
 
 Los runners adicionales comparten la cuenta `tt-runner`, pero cada uno tiene
 su propio directorio de instalacion y trabajo. Asignar sus unidades systemd
@@ -45,6 +45,12 @@ del checkout; los backends temporales usan `output/tmp` en disco. Conservar
 espacio para la primera compilacion de cada target y medirla separadamente
 de las siguientes ejecuciones calientes. La migracion no acredita por si
 sola una reduccion de tiempo. Ver [ADR 0052](adr/0052-owned-ci-runners.md).
+
+Un check fallido solicita la cancelacion de los jobs restantes de CI/Web de
+la misma revision, rama y evento, despues de conservar diagnosticos. Las
+suites dejan de programar pruebas al primer fallo. Una ejecucion cancelada
+no satisface los gates ni acredita el inventario completo; corregir y medir
+la siguiente cabeza. Ver [ADR 0053](adr/0053-ci-failure-cancellation.md).
 
 ## Servidor dedicado
 

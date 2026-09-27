@@ -4,6 +4,36 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Primera medicion en los tres VPS y cancelacion: 27 de septiembre de 2026
+
+[CI 36286314852](https://github.com/eddndev/TT2026-B136/actions/runs/36286314852)
+aprobo en **13m13s**. El job Rust duro **11m42s**; Coverage espero al runner
+de soporte. La compilacion release fria tomo **7m10s**, seguida por los
+checks restantes en ese mismo runner. No fue una regresion Rust de veinte
+minutos.
+
+[Web 36286314906](https://github.com/eddndev/TT2026-B136/actions/runs/36286314906)
+tuvo el fallo de sincronizacion descrito abajo y se cancelo. Los jobs reales
+seguian preparando servicios y fixtures. En el primero, compilar Rust desde
+cero tomo **6m57s**. Las tres particiones repetian esa preparacion bajo una
+cuota conjunta de cuatro CPU. Durante la ventana de fixtures muestreada,
+VPS2 promedio **3.62 CPU**, acumulo **276.35s** de throttling y **107.98s** de
+presion completa de CPU; la espera de E/S del host fue **0.45%** y no hubo
+OOM. El muestreo completo registro 4141 eventos MemoryHigh y hasta 0.31 GiB
+de swap en el grupo del runner. CPU y compilacion fria explican el retraso;
+no hay evidencia de disco como cuello dominante.
+
+La siguiente campana conserva los targets ya compilados y eleva el presupuesto
+conjunto de VPS2 a **6 CPU**, MemoryHigh **6 GiB** y MemoryMax **7 GiB**,
+dentro de sus seis vCPU y aproximadamente doce GiB fisicos. El efecto sobre
+tiempo, presion y servicios compartidos sigue pendiente de medicion.
+
+Se configuro cancelacion de CI/Web de la misma revision al fallar un check,
+fail-fast de matrices/Nextest y un fallo maximo de Playwright. La suite focal de cinco casos
+del helper de cancelacion fallo antes de implementarlo y aprobo despues, cubriendo alcance y errores de API; no cancelan runs reales. La
+cancelacion automatica completa aun debe observarse en Actions cuando haya
+un fallo. No se redujo ningun test, asercion ni umbral de cobertura.
+
 ## Espera de preparacion de actividades: 27 de septiembre de 2026
 
 La primera campana completamente alojada en los VPS encontro un fallo en
