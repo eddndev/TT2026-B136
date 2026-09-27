@@ -5,19 +5,32 @@
 El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta
 exclusiva del runner y Docker con servicios desechables. Registrar un solo
 runner de este repositorio con la etiqueta `tt-ci-dedicated`. Un unico proceso
-Nextest reparte las pruebas individuales entre doce slots; no instalar
+Nextest reparte las pruebas individuales entre dieciseis slots; no instalar
 cuatro runners que compilen simultaneamente el mismo workspace.
 
-Limitar conjuntamente el usuario del runner y su Docker rootless a 7 CPU y
-26 GiB de RAM, con `MemoryHigh=24G`. Mantener libres los recursos restantes
-para el sistema y futuros servicios. Mantener una cuenta independiente para
-despliegues, sin pertenencia a los grupos ni acceso a las credenciales del
-runner. El workflow limita PostgreSQL a 6 GiB y Redis a 128 MiB,
+Limitar conjuntamente el usuario del runner y su Docker rootless a 8 CPU y
+26 GiB de RAM, con `MemoryHigh=24G`. Este presupuesto utiliza las ocho vCPU
+del host dedicado; revisar el reparto de CPU antes de desplegar servicios
+adicionales. Mantener una cuenta independiente para despliegues, sin
+pertenencia a los grupos ni acceso a las credenciales del runner. El workflow
+limita PostgreSQL a 6 GiB y Redis a 128 MiB,
 incluidos en el presupuesto anterior. Usar almacenamiento persistente para
 `~/.cache/tt-ci` y `output/tmp`; no colocar esas rutas en tmpfs. El espacio de
 compilacion debe dimensionarse con la primera ejecucion completa, conservando
 los caches compatibles y retirando generaciones obsoletas fuera de trabajos
 activos.
+
+En un host configurado con el usuario `tt-runner`, aplicar el presupuesto
+conjuntamente a sus procesos y servicios rootless mediante la slice del UID:
+
+```bash
+sudo systemctl set-property "user-$(id -u tt-runner).slice" \
+  CPUQuota=800% MemoryHigh=24G MemoryMax=26G
+```
+
+Cambiar recursos entre campanas. El numero de slots, distinto del numero de
+compiladores, se configura en el workflow. Verificar los contadores de CPU,
+memoria y conexiones al concluir la siguiente campana.
 
 Preparar Python 3.12+, PostgreSQL **cliente 16** (`psql`, `pg_dump`,
 `pg_restore`), Rust stable con `llvm-tools-preview`, las dependencias de
@@ -47,9 +60,9 @@ compilacion, ejecucion y reporte con cache frio y caliente; descargar
 continuamente Actions. Una campana verde acredita correccion; el objetivo de
 10-20 minutos solo se acredita con una medicion completa. Aumentar los slots
 requiere revisar CPU, memoria, conexiones PostgreSQL y los resultados de esa
-campana. Doce slots es la configuracion actual en medicion; se conservan los
-limites de CPU y memoria. El navegador reparte sus suites entre dos jobs para
-API simulada y tres para servicios reales; cada job conserva un solo worker
+campana. Dieciseis slots es la configuracion actual en medicion, con ocho
+CPU disponibles y el mismo limite de memoria. El navegador reparte sus suites
+entre dos jobs para API simulada y tres para servicios reales; cada job conserva un solo worker
 y servicios aislados. Todos los jobs de cada suite deben aprobar
 para que apruebe el check agregado. Ver
 [ADR 0051](adr/0051-browser-ci-shards.md).

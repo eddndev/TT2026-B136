@@ -12,7 +12,7 @@ from ci_test_shard import coverage_helpers
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--slots", type=int, choices=range(1, 13), default=4)
+    parser.add_argument("--slots", type=int, choices=range(1, 17), default=4)
     parser.add_argument("targets", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     root = Path.cwd()

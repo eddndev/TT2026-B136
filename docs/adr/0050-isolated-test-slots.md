@@ -14,7 +14,7 @@ compilation and build caches.
 
 Provide an opt-in dedicated Linux x86_64 runner labeled `tt-ci-dedicated`.
 The repository variable `TT_CI_DEDICATED=true` selects one workspace coverage
-job, using cargo-nextest 0.9.146 to schedule individual tests with twelve active
+job, using cargo-nextest 0.9.146 to schedule individual tests with sixteen active
 slots. The default remains the two-runner configuration from
 `docs/adr/0049-parallel-coverage-runners.md` until the dedicated host is ready.
 
@@ -64,10 +64,15 @@ the first complete campaign must quantify that cost. Four slots were the initial
 bound; six and eight slots passed the full regression. With eight slots and a
 6 GiB PostgreSQL limit, the measured parent CPU average was 5.44 cores, peak
 charged memory was 21.35 GiB and there were no OOM, swap or memory-limit events.
-Twelve slots are the next configuration to measure within the existing
-7-core quota and 26 GiB parent limit. Waiting tests can overlap while the CPU
-quota still bounds execution. The helper supports one through twelve slots;
-Redis indices 0 through 11 remain below its default 16-database capacity.
+Twelve slots passed the complete regression in 12m14s with a 7-core quota.
+Measured CPU averaged 6.19 cores, PostgreSQL connections peaked at 46, and
+no OOM or swap occurred. Nine MemoryHigh events appeared; peak charged memory
+was 23.93 GiB, primarily file cache and reclaimable kernel memory.
+
+Sixteen slots are the next bounded configuration, with the dedicated host's
+full eight-core quota and the existing 26 GiB parent limit. A future service
+deployment must review the shared CPU budget. The helper supports one through
+sixteen slots; Redis indices 0 through 15 fit its default database capacity.
 Database wait sampling and a complete regression must confirm that extra
 concurrency improves time without exhausting connections or creating failures.
 Local verification still uses one slot.

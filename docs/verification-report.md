@@ -4,6 +4,41 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Doce slots y cache Web caliente: 27 de septiembre de 2026
+
+[CI 36282244911](https://github.com/eddndev/TT2026-B136/actions/runs/36282244911)
+aprobo en **12m14s** desde creacion hasta actualizacion final. Las **3049**
+pruebas Rust pasaron, con dos ignoradas, en **683.441s**; la compilacion
+instrumentada reutilizada tomo **0.17s**. La generacion de cobertura tomo
+unos seis segundos y los gates continuaron aprobados. La identidad exacta
+de todas las pruebas coincide con la campana anterior.
+
+[Web 36282244873](https://github.com/eddndev/TT2026-B136/actions/runs/36282244873)
+aprobo en **10m03s**, con las mismas **358** pruebas simuladas y **43** reales.
+La cache caliente redujo la compilacion real a **22.43-50.48s**. El job real
+mas lento compilo en 43.32s, preparo fixtures en aproximadamente 4m44s y
+corrio el navegador en 3.4 minutos. Web alcanzo el objetivo aproximado una
+vez; falta confirmar estabilidad tras integrar. Rust todavia supera ese tiempo.
+
+El muestreo de pruebas registro CPU promedio **6.19**, maximo promedio de
+muestra **6.69**, y throttling acumulado **11.42s**. PostgreSQL alcanzo
+**46** conexiones: predominan estados de espera del cliente y trabajo activo,
+con solo dos observaciones de espera por bloqueo consultivo. Los intervalos
+son muestras de 15s, no un registro exhaustivo de cada espera.
+
+La memoria cargada al padre alcanzo **23.93 GiB**: aproximadamente 21.02 GiB
+de archivos, 2.44 GiB de memoria de kernel recuperable y 0.44 GiB anonima.
+Hubo nueve eventos MemoryHigh y ninguno de limite maximo u OOM, sin swap.
+PostgreSQL alcanzo 3.64 GiB dentro de sus 6 GiB. El host registro 0.032% de
+espera por E/S y 0.003% de steal; no se atribuye el retraso a disco saturado.
+
+La siguiente medicion usa **16 slots** y una cuota de **8 CPU**, manteniendo
+26 GiB de memoria maxima y 24 GiB para MemoryHigh. Las cinco comprobaciones
+focales de aislamiento y rechazo de indices invalidos fallaron primero con
+el limite anterior y luego aprobaron. Actionlint aprobo. La regresion remota
+y las mediciones con esta configuracion siguen pendientes; no se afirma que
+16 slots cumplan ya el objetivo ni se repitio una suite completa local.
+
 ## Memoria PostgreSQL y tres particiones Web: 27 de septiembre de 2026
 
 La ejecucion [CI 36281044569](https://github.com/eddndev/TT2026-B136/actions/runs/36281044569)
