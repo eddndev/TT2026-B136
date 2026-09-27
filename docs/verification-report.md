@@ -4,6 +4,35 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Cache caliente y preparacion selectiva del navegador: 27 de septiembre de 2026
+
+[CI 36287708210](https://github.com/eddndev/TT2026-B136/actions/runs/36287708210)
+aprobo en **11m47s**; las **3049** pruebas Rust y los gates pasaron.
+Las **358** pruebas simuladas tambien aprobaron. En
+[Web 36287708222](https://github.com/eddndev/TT2026-B136/actions/runs/36287708222),
+el escenario real completo de administracion agoto sus 60s al llegar a la
+comprobacion de permisos. No se observo una respuesta de acceso indebido:
+el diagnostico registra los dos conflictos 409 esperados. La cancelacion
+automatica se solicito a las 02:27:53 UTC y los jobs restantes terminaron
+a las 02:28:12. CI ya habia concluido; se observo la cancelacion del workflow
+actual, no una cancelacion cruzada de otro workflow activo.
+
+La primera particion compilo en **2.93s**, pero luego preparo datos durante
+aproximadamente **15m17s**. En esa ventana VPS2 promedio **4.03 CPU**, con
+solo **0.01s** de throttling, 79.57s de presion completa de CPU y 0.55% de
+espera de E/S del host. Memoria maxima 5.95 GiB, swap 0.13 GiB y cero OOM.
+La cuota mayor elimino la limitacion anterior; no elimino la preparacion
+duplicada de todas las familias en los tres jobs.
+
+La nueva seleccion prepara solo las familias de los archivos asignados.
+Diez comprobaciones focales de planificacion y lotes aprobaron; se verifico
+primero el fallo de los nuevos casos. Playwright enumero **14 + 17 + 12 = 43**
+pruebas con las mismas identidades de la ultima campana real completa, sin
+duplicados. La extraccion de los comandos de preparacion de audiencias
+conserva su contenido. No se ejecuto una regresion completa local ni se
+cambiaron timeouts, aserciones o costes de credenciales. La ejecucion real y
+la mejora de tiempo con esta preparacion selectiva quedan pendientes.
+
 ## Primera medicion en los tres VPS y cancelacion: 27 de septiembre de 2026
 
 [CI 36286314852](https://github.com/eddndev/TT2026-B136/actions/runs/36286314852)

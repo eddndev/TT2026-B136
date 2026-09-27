@@ -13,7 +13,8 @@ same service instance would introduce interference.
 Split mocked browser tests into two Playwright shards and real-service tests
 into three, on separate jobs. The initial rollout used GitHub-hosted machines;
 `docs/adr/0052-owned-ci-runners.md` moves them to repository-owned runners.
-Preserve file-level scheduling and one worker per job. Each real-service
+Real-service file ownership and selective setup now follow
+`docs/adr/0054-browser-fixture-partitions.md`. Preserve one worker per job. Each real-service
 job provisions its own PostgreSQL, Redis, Rust server, identities and fixture
 data through the existing disposable service script. No tests, assertions or
 timeouts are removed, and no retries are introduced.

@@ -16,6 +16,8 @@ on:
       - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/web-hearing-fixtures.mjs'
       - 'scripts/web-fixture-provisioning.mjs'
+      - 'scripts/web-live-plan.mjs'
+      - 'scripts/web-hearing-base-fixture.mjs'
       - 'scripts/web-document-content-fixtures.mjs'
       - 'scripts/web-member-fixtures.mjs'
       - 'scripts/web-document-content-corruption.mjs'
@@ -52,6 +54,8 @@ on:
       - 'scripts/web-case-stage-fixtures.mjs'
       - 'scripts/web-hearing-fixtures.mjs'
       - 'scripts/web-fixture-provisioning.mjs'
+      - 'scripts/web-live-plan.mjs'
+      - 'scripts/web-hearing-base-fixture.mjs'
       - 'scripts/web-document-content-fixtures.mjs'
       - 'scripts/web-member-fixtures.mjs'
       - 'scripts/web-document-content-corruption.mjs'
@@ -159,6 +163,7 @@ jobs:
     runs-on: [self-hosted, Linux, X64, tt-ci-live]
     env:
       CARGO_PROFILE_DEV_DEBUG: line-tables-only
+      TT_WEB_LIVE_SHARD: ${{ matrix.shard }}/3
     steps:
       - uses: actions/checkout@v4
         with:
@@ -192,7 +197,7 @@ jobs:
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
           TT_WEB_FIXTURE_WORKERS: '2'
-        run: bash scripts/web-demo.sh --max-failures=1 --shard=${{ matrix.shard }}/3 --reporter=line,junit
+        run: bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
       - name: Publish real browser durations
         if: always()
         uses: actions/upload-artifact@v4

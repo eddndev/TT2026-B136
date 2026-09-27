@@ -52,6 +52,13 @@ suites dejan de programar pruebas al primer fallo. Una ejecucion cancelada
 no satisface los gates ni acredita el inventario completo; corregir y medir
 la siguiente cabeza. Ver [ADR 0053](adr/0053-ci-failure-cancellation.md).
 
+Los tres jobs reales usan `TT_WEB_LIVE_SHARD=1/3`, `2/3` o `3/3` para elegir
+archivos y preparar sus familias de datos. No combinar esa variable con
+`--shard` de Playwright: dividiria dos veces y omitiria pruebas. Sin variable,
+`scripts/web-demo.sh` conserva la suite y preparacion completas. Un archivo
+nuevo sin clasificar recibe una particion y todos los fixtures como respaldo.
+Ver [ADR 0054](adr/0054-browser-fixture-partitions.md).
+
 ## Servidor dedicado
 
 El modo dedicado requiere Linux x86_64 con 8 vCPU y 32 GB de RAM, una cuenta

@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test';
+import { currentLivePlan } from '../scripts/web-live-plan.mjs';
 
 const port = Number(process.env.TT_WEB_PORT || 4322);
 if (!process.env.TT_WEB_FIXTURES || !process.env.API_PROXY_TARGET) {
@@ -7,6 +8,7 @@ if (!process.env.TT_WEB_FIXTURES || !process.env.API_PROXY_TARGET) {
 
 export default defineConfig({
   testDir: './tests/live',
+  testMatch: currentLivePlan().files.map((file) => `**/${file}`),
   testIgnore:
     process.env.TT_DEADLINE_REEVALUATION_ACCEPTANCE === '1'
       ? []
