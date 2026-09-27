@@ -4,6 +4,77 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## PostgreSQL nativo para CI: 27 de septiembre de 2026
+
+Una comparacion focal secuencial uso el mismo ejecutable instrumentado, una
+base nueva por variante y las mismas opciones desechables de durabilidad.
+La prueba de alteraciones del catalogo aprobo **1/1** en cada variante:
+
+| Servicio PostgreSQL 16 | Prueba | Llamadas SQL | Ejecucion SQL | Trabajo JIT |
+| --- | --- | --- | --- | --- |
+| Contenedor rootless Alpine | 40.747s | 53718 | 10.010s | 0 |
+| Paquete nativo Ubuntu | 21.103s | 53718 | 4.925s | 0 |
+
+La reduccion focal fue **48.2%**. Cambian transporte, distribucion y ubicacion
+de datos; la comparacion no atribuye toda la diferencia a la red. Tampoco
+acredita una reduccion equivalente del CI completo bajo concurrencia.
+La optimizacion temporal de compilacion anterior no mostro una ganancia:
+82.59s de compilacion y 40.86s en la prueba; no se aplico al repositorio.
+
+El nuevo supervisor conserva PostgreSQL16, SCRAM, loopback, limite6GiB y
+bases independientes. Las cinco pruebas de control se escribieron primero,
+fallaron por ausencia del helper y luego aprobaron **5/5**. Cubren fallo de
+arranque, propagacion del resultado, cancelacion, rechazo de limpieza ajena
+y estado de salida por SIGTERM.
+
+En VPS3, el supervisor real verifico rechazo de una contrasena incorrecta,
+aislamiento entre sus tres bases, SCRAM, loopback sin socket Unix y el limite
+systemd de 6GiB. La prueba de catalogo aprobo **1/1**; supervisor mas prueba y
+limpieza tardaron **21.45s**. Otros dos recorridos focales confirmaron que un
+comando fallido conserva salida **7** y SIGTERM conserva salida **143**.
+En los tres casos se cerraron el puerto y el servicio, se retiro el marcador
+y se elimino solo el cluster propio. La campana completa con Rust y navegador
+simultaneos queda pendiente; no se aplican nuevas cifras de cobertura aun.
+
+## Campana completa en servidores propios: 27 de septiembre de 2026
+
+La cabeza `5e1bc9b` aprobo [CI 36295738154](https://github.com/eddndev/TT2026-B136/actions/runs/36295738154)
+y [Web 36295738149](https://github.com/eddndev/TT2026-B136/actions/runs/36295738149),
+incluidos sus checks agregados. Los JUnit contienen **3049 Rust**, **359 de
+navegador simulado** y **43 reales** aprobados, sin fallos ni duplicados.
+Nextest conserva las dos pruebas ignoradas previamente declaradas; no forman
+parte de las 3049 ejecutadas. La cobertura por lineas aprobo los umbrales de
+90%: domain **97%**, application **95%**, infrastructure **93%**.
+
+| Medicion | Tiempo |
+| --- | --- |
+| CI completo, desde creacion hasta ultimo check | 13m12s |
+| Web completo, desde creacion hasta ultimo check | 11m15s |
+| Ejecucion Rust instrumentada | 738.57s |
+| Compilacion instrumentada caliente | 0.19s |
+| Generacion del reporte de cobertura | aproximadamente 6s |
+| Gate agregado de cobertura | 8s |
+| Navegador real en VPS3, 13 casos, job completo | 6m46s |
+
+El coste dominante sigue siendo ejecutar Rust, no compilar ni generar el
+reporte. Los slots acumulan 11653.64 segundos de pruebas; divididos entre
+16 dan 728.35s, cercanos a los 738.57s medidos. Reordenar las mismas pruebas
+sin reducir su coste dificilmente eliminaria los tres minutos restantes.
+El objetivo aproximado de diez minutos sigue pendiente; esta campana es el
+checkpoint completo reproducido para comparar cambios posteriores.
+
+Durante sus ventanas de jobs, VPS3 promedio **6.59 CPU**, alcanzo **27.73 GiB**
+y registro ocho eventos MemoryHigh, sin OOM ni swap. VPS2 promedio **3.12 CPU**,
+alcanzo **5.78 GiB**, sin MemoryHigh u OOM. VPS1 alcanzo **4.49 GiB**, registro
+918 eventos MemoryHigh y un evento max, sin OOM; su swap pico fue 0.29 GiB.
+No se aumentaron recursos. La cache y los artefactos permanecen conservados.
+
+Una comprobacion focal posterior ejecuto exactamente una prueba costosa de
+integridad del catalogo con PostgreSQL desechable y pg_stat_statements:
+**1/1 PASS en 40.80s**, 53718 llamadas y cero funciones compiladas mediante
+JIT. No acredita el conjunto ni reproduce la concurrencia de CI; no aporta
+evidencia para desactivar JIT y ese ajuste no se aplico.
+
 ## Sincronizacion de respuesta MFA: 27 de septiembre de 2026
 
 [Web 36294895911](https://github.com/eddndev/TT2026-B136/actions/runs/36294895911)

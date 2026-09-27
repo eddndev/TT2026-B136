@@ -50,6 +50,10 @@ limit while the parent retained memory headroom. Legacy containers remain at
 768 MiB. Runtime slots and compile workers are different budgets: compilation finishes before
 Nextest starts executing tests.
 
+The dedicated database service is subsequently replaced by a bounded native
+service in `docs/adr/0055-native-ci-postgres.md`; the six-GiB child limit and
+all slot isolation rules remain in effect.
+
 ## Status
 
 Accepted for staged deployment. Host provisioning and a complete dedicated

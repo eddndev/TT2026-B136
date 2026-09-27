@@ -126,13 +126,24 @@ Cambiar recursos entre campanas. El numero de slots, distinto del numero de
 compiladores, se configura en el workflow. Verificar los contadores de CPU,
 memoria y conexiones al concluir la siguiente campana.
 
-Preparar Python 3.12+, PostgreSQL **cliente 16** (`psql`, `pg_dump`,
-`pg_restore`), Rust stable con `llvm-tools-preview`, las dependencias de
+Preparar Python 3.12+, PostgreSQL **servidor y cliente 16** (`postgres`,
+`initdb`, `pg_isready`, `psql`, `pg_dump`, `pg_restore`), Rust stable con `llvm-tools-preview`, las dependencias de
 `scripts/setup-document-formats.sh`, Docker y las herramientas habituales de
 compilacion. El workflow instala cargo-llvm-cov 0.9.1 y cargo-nextest 0.9.146.
 Verificar el acceso a Docker con el usuario del servicio, sus limites de
 cgroup y los prerrequisitos antes de habilitarlo. El servidor no necesita
 publicar puertos de PostgreSQL o Redis fuera de loopback.
+
+El job dedicado inicia PostgreSQL nativo mediante una unidad transitoria de
+`systemd --user`, dentro de la slice presupuestada del usuario. Verificar que
+`systemctl --user` funciona en el entorno del servicio runner y que
+`XDG_RUNTIME_DIR` apunta al directorio de ese UID. El helper exige PostgreSQL16
+con limite efectivo de 6GiB, usa credenciales SCRAM nuevas y tres bases por
+slot, y elimina el cluster al terminar o cancelar. El paso de limpieza final
+atiende un marcador residual; el limite de vida de la unidad cubre una muerte
+abrupta del supervisor. No habilitar un servidor PostgreSQL persistente para
+CI. Se conserva Redis en contenedor y el modo no dedicado sin cambios. Ver
+`docs/adr/0055-native-ci-postgres.md`.
 
 La variable del repositorio `TT_CI_DEDICATED=true` activa este modo. Mientras
 este ausente o tenga otro valor, siguen operando los dos runners actuales.
