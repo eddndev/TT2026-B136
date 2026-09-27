@@ -14,9 +14,9 @@ export function deadlineFixture(action = 'register') {
 }
 export async function setupDeadlines(
   page,
-  { deadlines = [], profiles = [profile(caseId)], facts: suppliedFacts, ...options } = {},
+  { deadlines = [], profiles = [profile(caseId)], factState, ...options } = {},
 ) {
-  const facts = suppliedFacts || (await setupFacts(page, options));
+  const facts = factState ?? (await setupFacts(page, options));
   const state = {
     facts,
     calls: [],

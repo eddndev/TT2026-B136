@@ -17,7 +17,7 @@ const ref = (row) => ({
 });
 export async function setupResourceDeadline(page, options = {}) {
   const activities = await setupResourceActivities(page, options);
-  const deadlines = await setupDeadlines(page, { ...options, facts: activities.resources.facts });
+  const deadlines = await setupDeadlines(page, { ...options, factState: activities.resources.facts });
   const state = {
     activities,
     deadlines,
