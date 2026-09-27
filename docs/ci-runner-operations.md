@@ -48,6 +48,17 @@ runner; el workflow reutiliza esa cache y no ejecuta APT con sudo. Node 24
 se selecciona por job con setup-node. Comprobar que el navegador abre una
 pagina antes de publicar cambios de infraestructura.
 
+La preparacion manual del checkout, sus directorios `output/` y `output/tmp`
+y las pruebas focales deben ejecutarse como `tt-runner`. Si el administrador
+crea directorios, asignar propietario y grupo al crearlos, incluidos todos
+los padres. Antes de habilitar el runner, comprobar con esa cuenta que puede
+crear y eliminar recursivamente un directorio de prueba dentro de `output/`
+y que todos los directorios del checkout permiten escritura y recorrido.
+Un padre propiedad de root puede impedir la limpieza de `actions/checkout`
+aunque `output/tmp` tenga el propietario correcto. Corregir solamente los
+permisos afectados, conservar los targets externos y retirar resultados
+obsoletos de pruebas focales antes de iniciar la primera campana de Actions.
+
 En Ubuntu 22.04, instalar Redis 7 desde el [repositorio APT oficial de Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/apt/)
 y conservar la serie mayor con una preferencia APT. El paquete Redis 6.0 de
 la distribucion no ofrece `GETDEL`, usado por la autenticacion. Comprobar un

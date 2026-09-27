@@ -4,6 +4,25 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Permisos del checkout del runner: 27 de septiembre de 2026
+
+[Web 36293132814](https://github.com/eddndev/TT2026-B136/actions/runs/36293132814)
+fallo en ocho segundos durante el checkout del nuevo runner de VPS3, antes
+de ejecutar pruebas. La preparacion manual habia dejado `output/` con
+propietario root y modo 0755, aunque su hijo `output/tmp` pertenecia al runner.
+Una comprobacion como `tt-runner` reprodujo `PermissionError` al crear un
+directorio dentro de ese padre. Se corrigio exclusivamente su propietario;
+despues aprobaron la creacion y eliminacion recursiva de un directorio de
+prueba y la comprobacion de escritura/recorrido de todos los directorios.
+El target persistente de Cargo permanece intacto.
+
+La cancelacion automatica detuvo los demas jobs; el ultimo termino 38 segundos
+despues del job fallido. Los diagnosticos de navegador subidos por ese job
+eran restos de la comprobacion focal anterior, no resultados de esta campana;
+se retiraron del checkout. Esta ejecucion no acredita pruebas ni rendimiento.
+No se cambiaron producto, pruebas, timeouts o recursos. El checkout completo
+y la ejecucion concurrente quedan pendientes de la siguiente campana.
+
 ## Reparto de navegador entre servidores: 27 de septiembre de 2026
 
 [Web 36291943072](https://github.com/eddndev/TT2026-B136/actions/runs/36291943072)
