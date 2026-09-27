@@ -7,6 +7,38 @@ pub fn resource_activity_submission_bytes(
     hasher: &dyn DocumentHasher,
     draft: &ResourceActivityDraft,
 ) -> Result<Vec<u8>, ApplicationError> {
+    activity_submission_bytes(
+        hasher,
+        &ActivitySubmission {
+            case_id: draft.case_id,
+            resource_id: draft.resource_id,
+            command: &draft.command,
+            result_revision: draft.result_revision,
+            selection: draft.selection,
+            status: draft.status,
+            previous: draft.previous,
+            recorded_by: &draft.recorded_by,
+            observed_administration: &draft.observed_administration,
+            observed_resource_head: draft.observed_resource_head,
+        },
+    )
+}
+pub(crate) struct ActivitySubmission<'a> {
+    pub case_id: domain::cases::CaseId,
+    pub resource_id: ResourceId,
+    pub command: &'a ResourceActivityCommand,
+    pub result_revision: ResourceActivityRevision,
+    pub selection: ResourceActivitySelection,
+    pub status: ResourceActivityStatus,
+    pub previous: Option<ResourceActivityRevisionRef>,
+    pub recorded_by: &'a crate::cases::CaseActorSnapshot,
+    pub observed_administration: &'a crate::cases::CurrentCaseAdministration,
+    pub observed_resource_head: ResourceCaptureRef,
+}
+pub(crate) fn activity_submission_bytes(
+    hasher: &dyn DocumentHasher,
+    draft: &ActivitySubmission<'_>,
+) -> Result<Vec<u8>, ApplicationError> {
     let mut bytes = b"RATX1".to_vec();
     bytes.extend_from_slice(draft.case_id.as_uuid().as_bytes());
     bytes.extend_from_slice(draft.resource_id.as_uuid().as_bytes());

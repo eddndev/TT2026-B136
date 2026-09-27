@@ -2,6 +2,7 @@ import { deadlinesApi } from './deadline-api.mjs';
 import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
 import { proceduralFactsApi } from './procedural-facts-api.mjs';
 import { proceduralResourcesApi } from './procedural-resources-api.mjs';
+import { resourceDeadlinesApi } from './resource-deadline-api.mjs';
 import { resourceActivitiesApi } from './resource-activities-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingsApi } from './hearings-api.mjs';
@@ -60,6 +61,7 @@ export function caseApi(transport) {
     caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),
     caseResources: (id) => proceduralResourcesApi(request, id),
     caseResourceActivities: (id, resourceId) => resourceActivitiesApi(request, id, resourceId),
+    caseResourceDeadlines: (id, resourceId) => resourceDeadlinesApi(request, id, resourceId),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),

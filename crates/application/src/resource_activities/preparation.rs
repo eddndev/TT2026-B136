@@ -12,7 +12,7 @@ use domain::{
 };
 use std::sync::Arc;
 
-pub(super) fn prepare(
+pub(crate) fn prepare(
     hasher: Arc<dyn DocumentHasher + Send + Sync>,
     actor: &Principal,
     case: CaseId,

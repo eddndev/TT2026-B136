@@ -342,6 +342,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         identity.clone(),
         Arc::new(SystemClock::new()),
     );
+    let resource_deadlines =
+        crate::serve_resource_activities::open_deadlines(&database_url, identity.clone())?;
     let router = web::api_router(
         Arc::new(workflow),
         identity,
@@ -356,6 +358,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             procedural_facts: Arc::new(procedural_facts),
             procedural_resources: Arc::new(procedural_resources),
             resource_activities,
+            resource_deadlines,
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
             dashboard: Arc::new(dashboard),

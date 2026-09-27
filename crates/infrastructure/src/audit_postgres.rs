@@ -97,7 +97,7 @@ pub(crate) fn load_transaction<C: GenericClient>(
         .map_err(port_error)?.into_iter().map(decode_event).collect()
 }
 
-fn decode_event(row: Row) -> Result<ChainedEvent, ApplicationError> {
+pub(crate) fn decode_event(row: Row) -> Result<ChainedEvent, ApplicationError> {
     let sequence: i64 = row.get("sequence");
     let timestamp: String = row.get("timestamp");
     let timestamp = OffsetDateTime::parse(&timestamp, &Rfc3339)

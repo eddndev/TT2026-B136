@@ -10,13 +10,13 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct Resource {
+pub(crate) struct Resource {
     id: String,
     revision: u32,
     capture_digest: String,
 }
 impl Resource {
-    pub(super) fn validate(self) -> Result<ResourceCaptureRef, ApiError> {
+    pub(crate) fn validate(self) -> Result<ResourceCaptureRef, ApiError> {
         Ok(ResourceCaptureRef {
             id: ResourceId::from_uuid(uuid(&self.id)?),
             revision: ResourceRevision::new(self.revision)
@@ -27,14 +27,14 @@ impl Resource {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct Act {
+pub(crate) struct Act {
     id: String,
     revision: u32,
     resource_revision: u32,
     capture_digest: String,
 }
 impl Act {
-    pub(super) fn validate(self) -> Result<ResourceActCaptureRef, ApiError> {
+    pub(crate) fn validate(self) -> Result<ResourceActCaptureRef, ApiError> {
         Ok(ResourceActCaptureRef {
             id: ResourceActId::from_uuid(uuid(&self.id)?),
             revision: ResourceActRevision::new(self.revision)
@@ -85,10 +85,10 @@ impl Target {
         })
     }
 }
-pub(super) fn resource(v: ResourceCaptureRef) -> Value {
+pub(crate) fn resource(v: ResourceCaptureRef) -> Value {
     json!({"id":v.id.to_string(),"revision":v.revision.get(),"capture_digest":v.capture_digest.to_hex()})
 }
-pub(super) fn project(v: ResourceActivitySelection) -> Value {
+pub(crate) fn project(v: ResourceActivitySelection) -> Value {
     let act = v.act.map(|a| json!({"id":a.id.to_string(),"revision":a.revision.get(),"resource_revision":a.resource_revision.get(),"capture_digest":a.capture_digest.to_hex()}));
     let target = match v.target {
         ResourceActivityTarget::Hearing {
@@ -108,7 +108,7 @@ pub(super) fn project(v: ResourceActivitySelection) -> Value {
     };
     json!({"resource":resource(v.resource),"act":act,"target":target})
 }
-pub(super) fn command(
+pub(crate) fn command(
     c: &ResourceActivityCommand,
     case: domain::cases::CaseId,
     resource: ResourceId,

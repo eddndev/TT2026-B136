@@ -250,3 +250,7 @@ path = "tests/suites/verify_suite_1.rs"
 [[test]]
 name = "dashboard_service"
 path = "tests/dashboard_service.rs"
+
+[[test]]
+name = "resource_deadline_service"
+path = "tests/resource_deadline_service.rs"

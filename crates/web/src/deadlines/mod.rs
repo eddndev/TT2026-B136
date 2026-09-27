@@ -1,5 +1,7 @@
 //! Case-scoped deadline commands and immutable historical calculations.
+pub(crate) use request::Command as CommandInput;
 pub(crate) use response::{current as current_projection, detail as exact_projection};
+pub(crate) use response::{draft as draft_projection, submitted as validate_submission};
 mod input;
 mod input_projection;
 #[cfg(test)]

@@ -5,5 +5,13 @@ resource_activities_demo_python() {
     TT_FACT_API_WORK_DIR="$WORK_DIR" TT_FACT_API_REPO="$REPO_ROOT" \
     python3 -B "$REPO_ROOT/scripts/api-resource-activities-demo.py" "$1"
 }
-resource_activities_demo() { resource_activities_demo_python capture; }
-resource_activities_demo_restored() { resource_activities_demo_python restore; }
+# shellcheck source=scripts/api-contextual-deadline-demo.sh
+source "$REPO_ROOT/scripts/api-contextual-deadline-demo.sh"
+resource_activities_demo() {
+  resource_activities_demo_python capture
+  contextual_deadline_demo capture
+}
+resource_activities_demo_restored() {
+  resource_activities_demo_python restore
+  contextual_deadline_demo restore
+}

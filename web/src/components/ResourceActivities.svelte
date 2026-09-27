@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import ResourceActivityEditor from './ResourceActivityEditor.svelte';
+  import ResourceDeadlineEditor from './ResourceDeadlineEditor.svelte';
   import ResourceActivityDetail from './ResourceActivityDetail.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { resourceActivityFailure, resourceDenied } from '../lib/resource-activity-errors.mjs';
@@ -89,7 +90,7 @@
       if (alive && request === generation) opening = false;
     }
   }
-  async function edit(record = null) {
+  async function edit(record = null, createDeadline = false) {
     if (pending || disabled || !manage) return;
     opening = true;
     error = '';
@@ -103,7 +104,7 @@
       }
       head = value;
       editorRecord = record;
-      action = record ? 'unlink' : 'link';
+      action = createDeadline ? 'create-deadline' : record ? 'unlink' : 'link';
       editorKey++;
     } catch (failure) {
       if (alive) fail(failure);
@@ -148,6 +149,11 @@
         disabled={disabled || pending || !manage}
         onclick={() => edit()}>Vincular actividad</button
       >{/if}
+    {#if canResources(user.role, 'manage')}<button
+        class="primary"
+        disabled={disabled || pending || !manage}
+        onclick={() => edit(null, true)}>Crear plazo</button
+      >{/if}
   </div>
   <p class="hint">
     V&#237;nculos organizativos con revisiones exactas. La historia y el estado actual se consultan
@@ -155,7 +161,19 @@
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
-  {#if action}{#key editorKey}<ResourceActivityEditor
+  {#if action === 'create-deadline'}{#key editorKey}<ResourceDeadlineEditor
+        {api}
+        {caseId}
+        {user}
+        {resource}
+        {head}
+        {ondenied}
+        {disabled}
+        onconfirmed={confirmed}
+        oncancel={() => (action = null)}
+        bind:pending={editorBusy}
+      />{/key}
+  {:else if action}{#key editorKey}<ResourceActivityEditor
         {api}
         {caseId}
         {user}

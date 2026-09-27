@@ -47,3 +47,7 @@ pub enum ResourceActivityError {
 pub(super) fn inconsistent(message: &str) -> crate::ApplicationError {
     ResourceActivityError::StoredInconsistent(message.into()).into()
 }
+
+pub(crate) use canonical::{activity_submission_bytes, ActivitySubmission};
+pub(crate) use preparation::prepare as prepare_activity_change;
+pub(crate) use sources::verify_resource_sources;

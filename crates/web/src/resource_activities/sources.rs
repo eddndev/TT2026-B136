@@ -9,37 +9,7 @@ pub(super) fn project(
     resource: ResourceId,
     selection: ResourceActivitySelection,
 ) -> Result<Value, ApiError> {
-    if selection.resource.id != resource
-        || values.resource.receipt.capture_digest != selection.resource.capture_digest
-    {
-        return Err(ApiError::internal());
-    }
-    let source = resources::exact_projection(
-        values.resource,
-        case,
-        resource,
-        Some(selection.resource.revision),
-    )?;
-    let act = match (selection.act, values.act) {
-        (None, None) => None,
-        (Some(reference), Some(row)) => {
-            if row.receipt.capture_digest != reference.capture_digest
-                || row
-                    .act
-                    .as_ref()
-                    .is_none_or(|act| act.id != reference.id || act.revision != reference.revision)
-            {
-                return Err(ApiError::internal());
-            }
-            Some(resources::exact_projection(
-                row,
-                case,
-                resource,
-                Some(reference.resource_revision),
-            )?)
-        }
-        _ => return Err(ApiError::internal()),
-    };
+    let (source, act) = resource_sources(values.resource, values.act, case, resource, selection)?;
     let target = match (selection.target, values.target) {
         (
             ResourceActivityTarget::Hearing {
@@ -86,4 +56,45 @@ pub(super) fn latest_time(values: &ResourceActivitySources) -> time::OffsetDateT
                 .map_or(values.resource.recorded_at, |a| a.recorded_at),
         )
         .max(target)
+}
+
+pub(crate) fn resource_sources(
+    resource_value: application::procedural_resources::ResourceDetail,
+    act_value: Option<application::procedural_resources::ResourceDetail>,
+    case: CaseId,
+    resource: ResourceId,
+    selection: ResourceActivitySelection,
+) -> Result<(Value, Option<Value>), ApiError> {
+    if selection.resource.id != resource
+        || resource_value.receipt.capture_digest != selection.resource.capture_digest
+    {
+        return Err(ApiError::internal());
+    }
+    let source = resources::exact_projection(
+        resource_value,
+        case,
+        resource,
+        Some(selection.resource.revision),
+    )?;
+    let act = match (selection.act, act_value) {
+        (None, None) => None,
+        (Some(reference), Some(row)) => {
+            if row.receipt.capture_digest != reference.capture_digest
+                || row
+                    .act
+                    .as_ref()
+                    .is_none_or(|act| act.id != reference.id || act.revision != reference.revision)
+            {
+                return Err(ApiError::internal());
+            }
+            Some(resources::exact_projection(
+                row,
+                case,
+                resource,
+                Some(reference.resource_revision),
+            )?)
+        }
+        _ => return Err(ApiError::internal()),
+    };
+    Ok((source, act))
 }

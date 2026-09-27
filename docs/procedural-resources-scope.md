@@ -19,7 +19,9 @@ El incremento está integrado; su aceptación y cierre global conservan evidenci
 por revisión en el [informe](verification-report.md).
 
 Este incremento no crea audiencias desde un contexto procesal de recurso ni
-activa automáticamente términos. Faltan la creación contextual coherente, el
+activa automáticamente términos. La [creación contextual de plazos](resource-deadlines-api.md)
+prepara y registra conjuntamente un plazo calculado y su vínculo, con fuente
+temporal explícita. Faltan las audiencias contextuales, el
 corpus jurídico calificado y su activación durable, y completar la navegación y
 trazabilidad de las alertas en el flujo de recursos. Los avisos existentes siguen
 perteneciendo a la actividad y conservan su política de destinatarios y episodios;

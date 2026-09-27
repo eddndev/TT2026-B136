@@ -130,3 +130,6 @@ mod deadline_worker_provenance;
 mod deadline_worker_postgres;
 mod deadline_worker_schema;
 pub use deadline_worker_postgres::PostgresDeadlineWorkerStore;
+
+pub mod resource_deadline_postgres;
+pub use resource_deadline_postgres::PostgresResourceDeadlineStore;

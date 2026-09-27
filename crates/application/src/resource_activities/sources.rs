@@ -21,33 +21,15 @@ pub(super) fn verify(
     selection: ResourceActivitySelection,
     sources: &ResourceActivitySources,
 ) -> Result<(), ApplicationError> {
-    resource_receipt_matches(hasher, &sources.resource)?;
-    if sources.resource.case_id != case
-        || sources.resource.id != resource
-        || selection.resource != resource_ref(&sources.resource)
-    {
-        return Err(ResourceActivityError::SourceMismatch.into());
-    }
-    match (selection.act, &sources.act) {
-        (None, None) => {}
-        (Some(reference), Some(row)) => {
-            resource_receipt_matches(hasher, row)?;
-            let act = row
-                .act
-                .as_ref()
-                .ok_or_else(|| inconsistent("selected revision contains no act"))?;
-            if row.case_id != case
-                || row.id != resource
-                || row.revision != reference.resource_revision
-                || row.receipt.capture_digest != reference.capture_digest
-                || act.id != reference.id
-                || act.revision != reference.revision
-            {
-                return Err(ResourceActivityError::SourceMismatch.into());
-            }
-        }
-        _ => return Err(ResourceActivityError::SourceMismatch.into()),
-    }
+    verify_resource_sources(
+        hasher,
+        case,
+        resource,
+        selection.resource,
+        selection.act,
+        &sources.resource,
+        sources.act.as_ref(),
+    )?;
     match (selection.target, &sources.target) {
         (
             ResourceActivityTarget::Hearing {
@@ -98,4 +80,40 @@ pub(super) fn latest_time(sources: &ResourceActivitySources) -> OffsetDateTime {
         .map(|value| value.recorded_at)
         .unwrap_or(sources.resource.recorded_at);
     target.max(act).max(sources.resource.recorded_at)
+}
+pub(crate) fn verify_resource_sources(
+    hasher: &dyn DocumentHasher,
+    case: CaseId,
+    resource: ResourceId,
+    selected_resource: ResourceCaptureRef,
+    selected_act: Option<ResourceActCaptureRef>,
+    source: &ResourceDetail,
+    selected_source_act: Option<&ResourceDetail>,
+) -> Result<(), ApplicationError> {
+    resource_receipt_matches(hasher, source)?;
+    if source.case_id != case || source.id != resource || selected_resource != resource_ref(source)
+    {
+        return Err(ResourceActivityError::SourceMismatch.into());
+    }
+    match (selected_act, selected_source_act) {
+        (None, None) => {}
+        (Some(reference), Some(row)) => {
+            resource_receipt_matches(hasher, row)?;
+            let act = row
+                .act
+                .as_ref()
+                .ok_or_else(|| inconsistent("selected revision contains no act"))?;
+            if row.case_id != case
+                || row.id != resource
+                || row.revision != reference.resource_revision
+                || row.receipt.capture_digest != reference.capture_digest
+                || act.id != reference.id
+                || act.revision != reference.revision
+            {
+                return Err(ResourceActivityError::SourceMismatch.into());
+            }
+        }
+        _ => return Err(ResourceActivityError::SourceMismatch.into()),
+    }
+    Ok(())
 }
