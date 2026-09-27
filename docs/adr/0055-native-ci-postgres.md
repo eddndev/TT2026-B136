@@ -29,8 +29,10 @@ settings from `docs/adr/0047-disposable-postgres-ci.md` and the independent
 identity, case and document databases per Nextest slot from
 `docs/adr/0050-isolated-test-slots.md`.
 
-`scripts/ci_native_postgres.py` owns the service lifetime and wraps the existing
-coverage command. Preserve its exit status. On termination, stop test children
+`scripts/ci_native_postgres.py` owns the service lifetime for both database
+consumers: the independent SQL calendar checks and the existing coverage
+command. Each invocation gets its own fresh cluster. Calendar checks execute
+before Nextest and cannot depend on a database created only for Nextest. Preserve its exit status. On termination, stop test children
 before the database; on success or failure, stop the service and remove only
 its private cluster. Keep the PostgreSQL log outside that temporary cluster.
 An unconditional workflow cleanup step handles a surviving ownership marker.

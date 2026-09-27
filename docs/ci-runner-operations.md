@@ -142,7 +142,9 @@ con limite efectivo de 6GiB, usa credenciales SCRAM nuevas y tres bases por
 slot, y elimina el cluster al terminar o cancelar. El paso de limpieza final
 atiende un marcador residual; el limite de vida de la unidad cubre una muerte
 abrupta del supervisor. No habilitar un servidor PostgreSQL persistente para
-CI. Se conserva Redis en contenedor y el modo no dedicado sin cambios. Ver
+CI. Tanto las pruebas SQL previas del calendario como Nextest invocan el
+supervisor, cada uno con su propio cluster nuevo. Se conserva Redis en
+contenedor y el modo no dedicado sin cambios. Ver
 `docs/adr/0055-native-ci-postgres.md`.
 
 La variable del repositorio `TT_CI_DEDICATED=true` activa este modo. Mientras

@@ -188,7 +188,11 @@ jobs:
         run: |
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
-          python3 -B scripts/tests/test_judicial_calendar_sql.py
+          if [ '${{ matrix.slots }}' -gt 0 ]; then
+            python3 -B scripts/ci_native_postgres.py -- python3 -B scripts/tests/test_judicial_calendar_sql.py
+          else
+            python3 -B scripts/tests/test_judicial_calendar_sql.py
+          fi
       - name: Select bounded compiler count
         env:
           MAX_COMPILERS: ${{ matrix.slots > 0 && '4' || '2' }}

@@ -4,6 +4,25 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## PostgreSQL para el chequeo SQL previo: 27 de septiembre de 2026
+
+La cabeza `fe8053d` detuvo [CI 36299431042](https://github.com/eddndev/TT2026-B136/actions/runs/36299431042)
+antes de Nextest: el chequeo SQL independiente del calendario requeria
+`DOCUMENT_TEST_DATABASE_URL`, pero el servicio nativo se iniciaba solamente
+al ejecutar la cobertura. Las tres clases fallaron en preparacion; no se
+ejecutaron sus pruebas ni la suite Rust. La cancelacion automatica detuvo CI
+y Web; el ultimo job termino 18 segundos despues del error. No hay artefactos
+de resultados ni una medicion valida de mejora para esta campana.
+
+El paso previo ahora invoca el mismo supervisor para ejecutar el chequeo SQL
+con su propio cluster desechable. La cobertura sigue obteniendo otro cluster
+nuevo; el modo no dedicado conserva su servicio anterior. El comando corregido
+aprobo **21/21 pruebas SQL en 3.477s** en VPS3 con el usuario del runner,
+PostgreSQL16, SCRAM y limite6GiB. El supervisor termino correctamente y elimino
+su servicio y cluster. Formato YAML, ASCII, limite de lineas y diff aprobaron.
+No se modificaron assertions, limites de tiempo, producto ni recursos.
+La nueva campana completa sigue pendiente.
+
 ## PostgreSQL nativo para CI: 27 de septiembre de 2026
 
 Una comparacion focal secuencial uso el mismo ejecutable instrumentado, una
