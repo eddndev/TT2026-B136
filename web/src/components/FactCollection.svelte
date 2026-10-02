@@ -1,5 +1,6 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import { pendingFactDrafts } from '../lib/fact-draft.mjs';
   import FactEditor from './FactEditor.svelte';
   import FactDetail from './FactDetail.svelte';
   import { caseState } from '../lib/case-state.mjs';
@@ -18,6 +19,10 @@
     family === 'resolution'
       ? api.caseResolutions(caseId)
       : api.caseNotifications(caseId, resolution.id);
+  const session = getContext('session-drafts'),
+    parentId = resolution?.id ?? null;
+  let savedDraft = null,
+    drafts = pendingFactDrafts(session, caseId, family, parentId);
   const administration = caseState(),
     singular = family === 'resolution' ? 'resoluci\u00f3n' : 'notificaci\u00f3n';
   const plural = family === 'resolution' ? 'Resoluciones' : 'Notificaciones',
@@ -105,8 +110,38 @@
   function edit(nextAction) {
     if (pending || disabled || !manage) return;
     editorBase = nextAction === 'record' ? null : selected;
+    savedDraft =
+      drafts.find(
+        (row) => row.action === nextAction && row.resourceId === (editorBase?.id ?? null),
+      ) ?? null;
     action = nextAction;
     editorKey++;
+  }
+  async function resume(saved) {
+    if (pending || disabled) return;
+    opening = true;
+    try {
+      editorBase = saved.resourceId ? await scoped.get(saved.resourceId) : null;
+      if (!alive || !session?.canAdmit()) return;
+      savedDraft = saved;
+      action = saved.action;
+      editorKey++;
+    } catch (failure) {
+      if (alive) {
+        if (failure.status === 404 && failure.code === 'procedural_fact_not_found') {
+          session?.registry.closeEditor(saved.key);
+          drafts = pendingFactDrafts(session, caseId, family, parentId);
+        }
+        fail(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
+  function closedEditor() {
+    action = null;
+    savedDraft = null;
+    drafts = pendingFactDrafts(session, caseId, family, parentId);
   }
   async function confirmed(value, exact = false) {
     if (!alive) return;
@@ -115,7 +150,7 @@
     notice = 'Registro guardado.';
     cursors = [undefined];
     await load();
-    if (alive) action = null;
+    if (alive) closedEditor();
   }
   function reset() {
     selected = null;
@@ -159,13 +194,19 @@
         {family}
         {resolution}
         {action}
+        {savedDraft}
         record={editorBase}
         {ondenied}
         {disabled}
         onconfirmed={confirmed}
-        oncancel={() => (action = null)}
+        oncancel={closedEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
+  {#if !action}{#each drafts as saved (saved.key)}<button
+        class="secondary"
+        disabled={disabled || pending}
+        onclick={() => resume(saved)}>Retomar borrador de {singular}</button
+      >{/each}{/if}
   <section class="card" aria-label={`${plural} registradas`} aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
