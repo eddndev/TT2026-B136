@@ -216,11 +216,14 @@ for (const succeeds of [true, false]) {
     const logoutRequest = h.take('/auth/logout');
     answer(exchange, session('obsolete'));
     await old;
-    assert.equal((await h.api.me()).bearer, 'Bearer original');
+    const sent = h.calls.length;
+    await assert.rejects(h.api.me(), (error) => error.code === 'session_inactive');
+    assert.equal(h.calls.length, sent);
     if (succeeds) logoutRequest.resolve(new Response(null, { status: 204 }));
     else answer(logoutRequest, { error: { code: 'unavailable' } }, 503);
     await checkedLogout;
-    assert.equal((await h.api.me()).bearer, succeeds ? null : 'Bearer original');
+    await assert.rejects(h.api.me(), (error) => error.code === 'session_inactive');
+    assert.equal(h.calls.length, sent);
   });
 }
 
@@ -234,7 +237,9 @@ test('a protected 401 invalidates pending authentication without a late revival'
   await rejected;
   answer(exchange, session('obsolete'));
   await old;
-  assert.equal((await h.api.me()).bearer, null);
+  const sent = h.calls.length;
+  await assert.rejects(h.api.me(), (error) => error.code === 'session_inactive');
+  assert.equal(h.calls.length, sent);
   assert.equal(h.expired, 1);
 });
 
@@ -259,7 +264,11 @@ test('a confirmed self access change invalidates pending MFA but a no-op does no
     await update;
     answer(exchange, session('new-session'));
     await checked;
-    assert.equal((await h.api.me()).bearer, changed ? null : 'Bearer new-session');
+    if (changed) {
+      const sent = h.calls.length;
+      await assert.rejects(h.api.me(), (error) => error.code === 'session_inactive');
+      assert.equal(h.calls.length, sent);
+    } else assert.equal((await h.api.me()).bearer, 'Bearer new-session');
     assert.equal(h.expired, changed ? 1 : 0);
   }
 });
@@ -300,10 +309,9 @@ for (const status of [204, 503]) {
   test(`late logout HTTP ${status} cannot clear a session established while it was pending`, async () => {
     const h = client();
     await establish(h, 'original');
-    const rejected = assert.rejects(
-      h.api.logout(),
-      /La sesi\u00f3n de esta solicitud termin\u00f3/,
-    );
+    const pending = h.api.logout();
+    const rejected =
+      status === 204 ? pending : assert.rejects(pending, (error) => error.status === 503);
     const exchange = h.take('/auth/logout');
     await establish(h, 'replacement');
     if (status === 204) exchange.resolve(new Response(null, { status }));

@@ -57,9 +57,9 @@ test('logout accepts an empty 204 and removes the bearer', async () => {
   });
   await api.mfa('challenge', '123456', 'totp');
   await api.logout();
-  await api.me();
+  await assert.rejects(api.me(), (error) => error.code === 'session_inactive');
   assert.equal(requests[1].headers.Authorization, 'Bearer opaque');
-  assert.equal(requests[2].headers.Authorization, undefined);
+  assert.equal(requests.length, 2);
 });
 
 test('API translates permission errors and handles non-JSON gateway failures', async () => {

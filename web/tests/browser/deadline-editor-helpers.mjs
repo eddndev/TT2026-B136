@@ -2,6 +2,7 @@ import { activityResourcePage } from './activity-resources-fixtures.mjs';
 import { expect } from '@playwright/test';
 import { setupFacts } from './procedural-facts-helpers.mjs';
 import { login, navigate, caseId } from './helpers.mjs';
+import { absoluteSession } from '../fixtures/session.mjs';
 import { profile, id } from '../fixtures/deadline-unit.mjs';
 import { v2Record, summary, historyRow, notChecked } from '../fixtures/deadline-v2-unit.mjs';
 import { browserDeadlinePrepared, prepareBrowserDeadline } from '../fixtures/deadline-browser.mjs';
@@ -41,7 +42,7 @@ export async function setupDeadlines(
     const user = { id: id(4), email: 'staff@example.test', role: options.role || 'owner' };
     if (route.request().url().endsWith('/me')) return route.fulfill({ json: user });
     return route.fulfill({
-      json: { access_token: 'deadline-token', user, expires_in_seconds: 86400 },
+      json: absoluteSession(user, 'deadline-token'),
     });
   });
   await page.route('**/api/v1/**/deadline-profiles**', async (route) => {

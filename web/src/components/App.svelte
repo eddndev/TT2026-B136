@@ -1,6 +1,7 @@
 <script>
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, setContext, onDestroy } from 'svelte';
   import Auth from './Auth.svelte';
+  import SessionNotice from './SessionNotice.svelte';
   import Sidebar from './Sidebar.svelte';
   import Overview from './Overview.svelte';
   import CaseReports from './CaseReports.svelte';
@@ -17,9 +18,13 @@
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
+  import { createDraftRegistry } from '../lib/draft-registry.mjs';
+  import { createSessionLifecycle } from '../lib/session-lifecycle.mjs';
+  import { createSessionDialogs } from '../lib/session-dialogs.mjs';
   import { roles } from '../lib/documents.mjs';
   import { normalizeView, viewLabels } from '../lib/workspace.mjs';
   let user = null;
+  let pendingUser = null;
   let selectedCase = null;
   let hearingIntent = null,
     deadlineIntent = null,
@@ -34,12 +39,12 @@
   let incidentReturn = false,
     integrityNotice;
   let notice = '';
-  let logoutBusy = false;
   let error = '';
   let sidebar;
   let main;
   function reset(message = '') {
     user = null;
+    pendingUser = null;
     selectedCase = null;
     hearingIntent = null;
     deadlineIntent = null;
@@ -55,22 +60,74 @@
     notice = message;
     history.replaceState(null, '', '#overview');
   }
-  const api = createApi(globalThis.fetch, () =>
-    reset('Tu sesi\u00f3n termin\u00f3. Vuelve a iniciar sesi\u00f3n.'),
-  );
-  async function logout() {
-    logoutBusy = true;
-    error = '';
-    try {
-      await api.logout();
-      reset();
-    } catch (failure) {
-      error = failure.message;
-    } finally {
-      logoutBusy = false;
-    }
+  let appLayout;
+  let sessionState = { phase: 'signed-out' };
+  const dialogs = createSessionDialogs({ root: () => appLayout, settled: tick });
+  const drafts = createDraftRegistry();
+  const api = createApi(globalThis.fetch, () => lifecycle.expire('rejected'));
+  const lifecycle = createSessionLifecycle({
+    api,
+    drafts,
+    onState(state) {
+      sessionState = state;
+      dialogs.transition(state.phase);
+      if (state.phase === 'active' && pendingUser) {
+        const confirmed = pendingUser;
+        pendingUser = null;
+        if (confirmed.id !== state.principalId) {
+          lifecycle.expire('invalid-state');
+          return;
+        }
+        user = confirmed;
+        notice = '';
+        error = '';
+        go(location.hash);
+      } else if (state.phase === 'expired') {
+        reset('Tu sesi\u00f3n termin\u00f3. Vuelve a iniciar sesi\u00f3n.');
+        if (state.captureFailures)
+          notice += ' No se pudieron conservar algunos cambios pendientes.';
+      } else if (state.phase === 'signed-out' && state.reason !== 'initial') {
+        reset(
+          state.logoutUncertain
+            ? 'Saliste de esta pantalla. No se pudo confirmar el cierre en el servidor.'
+            : '',
+        );
+      }
+    },
+  });
+  setContext('session-drafts', {
+    registry: drafts,
+    principal: () => user,
+    canAdmit: () => lifecycle.canAdmit(),
+    async authorizeCase(caseId) {
+      const scoped = api.caseAdministration(caseId);
+      try {
+        return await scoped.get();
+      } catch (failure) {
+        if ([403, 404].includes(failure.status)) drafts.denyContext(caseId);
+        throw failure;
+      } finally {
+        scoped.dispose();
+      }
+    },
+  });
+  function logout() {
+    return lifecycle.logout();
   }
+  function login(session, receipt) {
+    pendingUser = session?.user ?? null;
+    if (!lifecycle.acceptSession(session, receipt)) pendingUser = null;
+  }
+  onDestroy(() => {
+    pendingUser = null;
+    lifecycle.dispose();
+    dialogs.dispose();
+  });
   async function go(destination) {
+    if (!lifecycle.canAdmit()) {
+      if (user) history.replaceState(null, '', `#${view}`);
+      return;
+    }
     view = normalizeView(destination, user?.role);
     if (view !== 'resources') {
       resourceIntent = null;
@@ -98,12 +155,14 @@
     window.scrollTo(0, 0);
   }
   function openRelatedResource(intent) {
+    if (!lifecycle.canAdmit()) return;
     if (!user || intent.case_id !== selectedCase?.id) return;
     resourceIntent = intent;
     activityReturn = intent.origin;
     go('resources');
   }
   function returnToActivity() {
+    if (!lifecycle.canAdmit()) return;
     const origin = activityReturn;
     if (!origin || origin.case_id !== selectedCase?.id) return;
     hearingIntent = origin.kind === 'hearing' ? origin : null;
@@ -111,6 +170,7 @@
     go(origin.kind === 'hearing' ? 'hearings' : 'deadlines');
   }
   function openDocument(intent) {
+    if (!lifecycle.canAdmit()) return;
     documentIntent = intent;
     go(selectedCase ? 'documents' : 'cases');
   }
@@ -118,22 +178,39 @@
     const onHash = () => {
       if (user && location.hash !== `#${view}`) go(location.hash);
     };
+    const onVisibility = () => lifecycle.visibilityChanged(document.visibilityState);
+    const onActivity = (event) =>
+      lifecycle.activity({ isTrusted: event.isTrusted, type: event.type });
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    document.addEventListener('visibilitychange', onVisibility);
+    onVisibility();
+    const events = ['pointerdown', 'keydown', 'input'];
+    events.forEach((name) => document.addEventListener(name, onActivity, true));
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      document.removeEventListener('visibilitychange', onVisibility);
+      events.forEach((name) => document.removeEventListener(name, onActivity, true));
+    };
   });
 </script>
 
-{#if !user}<Auth
-    {api}
-    {notice}
-    onlogin={(principal) => {
-      user = principal;
-      notice = '';
-      error = '';
-      go(location.hash);
-    }}
-  />
+{#if !user}
+  {#if pendingUser}
+    <SessionNotice
+      phase={sessionState.phase}
+      pending
+      oncheck={() => lifecycle.visibilityChanged('visible')}
+      onlogout={logout}
+    />
+  {:else}<Auth {api} {notice} onlogin={login} />{/if}
 {:else}
+  {#if sessionState.phase === 'checking'}
+    <SessionNotice
+      phase={sessionState.phase}
+      oncheck={() => lifecycle.visibilityChanged('visible')}
+      onlogout={logout}
+    />
+  {/if}
   <a
     class="skip-link"
     href="#main-content"
@@ -142,12 +219,13 @@
       main?.focus();
     }}>Saltar al contenido</a
   >
-  <div class="app-layout">
+  <div class="app-layout" bind:this={appLayout} inert={sessionState.phase !== 'active'}>
     <Sidebar
       bind:this={sidebar}
       {user}
       {view}
       onnavigate={(next) => {
+        if (!lifecycle.canAdmit()) return;
         documentIntent = null;
         incidentReturn = false;
         alertReturn = false;
@@ -156,7 +234,6 @@
         go(next);
       }}
       onlogout={logout}
-      busy={logoutBusy}
     />
     <div class="app-content">
       <header class="topbar">
@@ -191,6 +268,7 @@
             {api}
             onknown={(exists) => integrityNotice?.observed(exists)}
             onopen={(record, intent) => {
+              if (!lifecycle.canAdmit()) return;
               selectedCase = record;
               documentIntent = intent;
               hearingIntent = null;
@@ -207,6 +285,7 @@
             {user}
             bind:filters={alertFilters}
             onopen={(record, intent) => {
+              if (!lifecycle.canAdmit()) return;
               selectedCase = record;
               alertReturn = true;
               hearingIntent = intent.kind === 'hearing' ? intent : null;
@@ -220,6 +299,7 @@
             bind:filters={agendaFilters}
             oncalendars={() => go('judicial-calendars')}
             onopen={(record, intent) => {
+              if (!lifecycle.canAdmit()) return;
               selectedCase = record;
               hearingIntent = intent.kind === 'hearing' ? intent : null;
               deadlineIntent = intent.kind === 'deadline' ? intent : null;
@@ -231,6 +311,7 @@
             {api}
             {user}
             onselect={(record) => {
+              if (!lifecycle.canAdmit()) return;
               selectedCase = record;
 
               go(documentIntent ? 'documents' : 'case-summary');
@@ -256,6 +337,7 @@
                 onnavigate={go}
                 onupdate={(record) => (selectedCase = record)}
                 onchange={() => {
+                  if (!lifecycle.canAdmit()) return;
                   selectedCase = null;
                   go('cases');
                 }}
