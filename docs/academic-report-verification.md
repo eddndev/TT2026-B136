@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Conciliación de informes y despliegue: PDF final del 2 de octubre de 2026
+
+La base integrada genera **350 páginas y 5943775 bytes**, SHA-256
+`c1011f1cff4f9640d522283beaf736f7f136ef5b4d4b14384437d445f1d580da`.
+Se preservan ambos apartados y la evidencia original del despliegue. La revisión
+intermedia de las páginas 207, 208, 252, 345 y 350 detectó una jerarquía de
+secciones incorrecta: tablero e informes quedaban bajo despliegue. Se reordenó
+una inclusión y se corrigió una afirmación antigua de cierre pendiente en
+miembros. Tras recompilar, las páginas 208 y 209 conservan texto legible y
+secciones correctas, sin recortes ni solapamientos. El log final no contiene
+referencias indefinidas, etiquetas duplicadas ni glifos ausentes; conserva las
+advertencias históricas de versalitas y el desborde de 0.11754 pt.
+
 ## Informes propios: PDF del 2 de octubre de 2026
 
 LuaLaTeX generó **349 páginas y 5934856 bytes**, SHA-256
