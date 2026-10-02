@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { navigate } from './helpers.mjs';
-import { reportId, otherReportId, report, reportPage } from './case-reports-fixtures.mjs';
+import { reportId, otherReportId, report, pending, reportPage } from './case-reports-fixtures.mjs';
 import {
   setupReports,
   enterReports,
@@ -108,5 +108,62 @@ test('report revocation clears the ready capture and later session expiry return
   await reports(page).getByRole('button', { name: 'Actualizar informes', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await expect(reports(page)).toHaveCount(0);
+  expect(state.downloads).toHaveLength(0);
+});
+
+test('observed report duration remains fixed after notice reading and excludes pending work', async ({
+  page,
+}, testInfo) => {
+  const state = await setupReports(page);
+  const queued = pending({
+    id: otherReportId,
+    operation_id: '82000000-0000-4000-8000-000000000002',
+    request_digest: 'ef'.repeat(32),
+    requested_at: '2026-09-27T12:00:30Z',
+    updated_at: '2026-09-27T12:00:30Z',
+  });
+  state.records.set(otherReportId, queued);
+  await enterReports(page);
+  await openReport(page);
+  await expect(details(page).getByText('Duraci\u00f3n observada', { exact: true })).toBeVisible();
+  await expect(details(page).getByText('1 min', { exact: true })).toBeVisible();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect(details(page).getByText('1 min', { exact: true })).toBeVisible();
+    await page.screenshot({
+      path: testInfo.outputPath(`report-duration-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await details(page)
+    .getByRole('button', { name: 'Marcar aviso como le\u00eddo', exact: true })
+    .click();
+  await expect(details(page).getByText('Aviso le\u00eddo', { exact: true })).toBeVisible();
+  expect(state.acknowledgments).toEqual([reportId]);
+  expect(state.records.get(reportId).updated_at).toBe('2026-09-27T12:01:00Z');
+  await expect(details(page).getByText('1 min', { exact: true })).toBeVisible();
+  await expect(details(page).getByText('2 min', { exact: true })).toHaveCount(0);
+  await expect(
+    details(page).getByRole('button', { name: 'Descargar PDF', exact: true }),
+  ).toBeVisible();
+
+  await openReport(page, otherReportId);
+  await expect(details(page).getByText('En cola', { exact: true })).toBeVisible();
+  await expect(details(page).getByText('Duraci\u00f3n observada', { exact: true })).toHaveCount(0);
+  state.records.set(otherReportId, {
+    ...queued,
+    state: 'failed',
+    failure: 'render_failed',
+    updated_at: '2026-09-27T12:01:00Z',
+    notice: { kind: 'failed', created_at: '2026-09-27T12:01:00Z', read_at: null },
+  });
+  await updateReport(page);
+  await expect(
+    details(page).getByText('No se pudo generar el informe', { exact: true }),
+  ).toBeVisible();
+  await expect(details(page).getByText('Duraci\u00f3n observada', { exact: true })).toBeVisible();
+  await expect(details(page).getByText('30 s', { exact: true })).toBeVisible();
+  expect(state.requests).toHaveLength(0);
   expect(state.downloads).toHaveLength(0);
 });

@@ -16,8 +16,12 @@ integrada por squash en `3a67a6a`, con CI, Web y Documents aprobados para
 CI en 6m42s, Web en 11m25s y Documents en 7m43s. La primera release privada `v0.1.0` quedó activada en VPS3 sobre `a8dc3dd`;
 la salud, identidad del paquete y PKI aprobaron. La cuenta Owner todavía no está
 creada y la aceptación autenticada permanece pendiente.
-Las referencias históricas a aceptación local o CI pendiente de esas entregas
-no significan que su código siga fuera de `main`.
+PR51 integró el respaldo Redis y la corrección del entorno CI como `673b9ec`
+el 2 de octubre a las 10:42 UTC. Su cabeza `177fe1f` aprobó CI en 7m57s y
+Documents en 1m18s. La confirmación natural de `673b9ece` aprobó CI
+`36996915839` en 6m52s y Documents `36996915909` en 7m55s: 3340 pruebas Rust,
+dos ignoradas, una nativa Redis y cobertura 97/95/93 %. Los controladores de
+esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
 
 - Integrados: plazos persistentes y reevaluación durable, agenda conjunta,
   alertas, recursos y actos declarados, asociaciones a actividades existentes,
@@ -48,12 +52,16 @@ no significan que su código siga fuera de `main`.
   Los filtros usan creación y estado actual,
   no un censo histórico. Correo, estimación de terminación, otros tipos de
   informe y métricas de desempeño permanecen pendientes del alcance aprobado.
+  La duración observada de informes tiene verificación local de siete pruebas
+  Node y un escenario de navegador aprobados; todavía no está desplegada.
+  Ese tiempo observado no implementa una estimación de terminación.
 - Consulta de actividad integrada por PR50: selección Owner por intervalo UTC,
   actor histórico, operación y recurso, con paginación de instantánea y lectura
   auditada. Aplicación, PostgreSQL, HTTP, cliente y navegador controlado aprobaron.
   La aceptación API/restauración aprobó en 376.459967 s y el navegador real,
   2/2 en 13.7 s; CI y confirmación natural de `main` aprobaron tras integrar PR50.
-  La activación continúa separada. CU-17/RF-20 conservan
+  Está incluida en `v0.1.0`; falta la aceptación autenticada de esa instalación.
+  CU-17/RF-20 conservan
   pendientes identificador estable de cuenta, IP y el criterio de registro
   menor de 500 ms; el anclaje externo sigue separado.
 - Pendientes operativos: firma personal y calificación jurídica de urgencia
@@ -65,8 +73,15 @@ no significan que su código siga fuera de `main`.
   7m43s. La release `v0.1.0` aprobó el workflow de despliegue en 17m28s,
   incluyendo 6m05s de empaquetado y 16s de activación. PostgreSQL, Redis, API y
   frontend están activos en loopback; salud, identidad y PKI se comprobaron y
-  se capturó un respaldo posterior a inicializar las claves. Owner y aceptación
-  autenticada siguen pendientes; salud no equivale a validación de todos los flujos.
+  se capturó un respaldo posterior a inicializar las claves. Su copia privada
+  fuera del host y restauración SQL/PKI aprobaron con cero usuarios y un evento
+  de auditoría; ese respaldo inicial no contiene RDB. Los controladores
+  `673b9ec`, instalados bajo `deploy.lock`, generaron después la captura
+  `20261002T105313Z-886940db` con SQL, RDB, PKI y `COMPLETE` validados. Su copia
+  externa de cuatro archivos coincidió por hash y tamaño; falta el ensayo de
+  restauración completa de esa captura. El ensayo Redis de cinco claves
+  sintéticas conserva su alcance separado. Owner espera el correo elegido
+  por el operador; siguen cero usuarios y la aceptación autenticada pendiente.
 - Cierre académico posterior: conciliación del manuscrito con las entregas,
   evaluación formal con participantes reales y conclusiones basadas en resultados.
 
@@ -563,8 +578,8 @@ semana 9 para persistencia, autorización, gestión procesal/documental e interf
 y la semana 10 para aceptación final, usabilidad, correcciones y manuales.
 El núcleo criptográfico y gran parte del producto están integrados, pero el
 cierre funcional de la semana 9 continúa con los pendientes de esta matriz.
-La infraestructura de CI y la preparación de VPS3 facilitan ese trabajo; no
-cierran por sí mismas los módulos restantes.
+La infraestructura de CI y la release privada activa en VPS3 facilitan ese
+trabajo; no cierran por sí mismas los módulos restantes.
 
 La consulta de actividad avanza selección, persistencia e interfaz de la semana 9.
 Aprobaron aplicación 20/20, PostgreSQL 14/14 en 37.01 s, HTTP 6/6, presupuesto
@@ -573,9 +588,10 @@ compartido 1/1, Node 12/12 y navegador controlado 9/9 en 17.1 s; las capturas
 API/restauración terminó con salida cero en 376.459967 s; el navegador real aprobó
 2/2, Owner 6.2 s y Litigator 2.4 s, con 13.7 s de Playwright y 185.7532 s del
 comando completo. En ambas campañas permanecieron idénticos 3198 archivos fuente.
-Son duraciones de validación, no latencia por registro. Falta acreditar CI de la
-revisión exacta e integración del incremento. UUID estable, IP y medición del
-registro menor de 500 ms conservan el alcance de CU-17/RF-20.
+Son duraciones de validación, no latencia por registro. PR50 y su confirmación
+natural en `main` aprobaron, y la consulta está incluida en `v0.1.0`.
+UUID estable, IP y medición del registro menor de 500 ms conservan el alcance
+de CU-17/RF-20.
 
 La semana 10 conserva pendientes la validación con participantes reales,
 los manuales finales y la conciliación de resultados y conclusiones. Las
@@ -587,7 +603,7 @@ fechas de cierre nuevas no acordadas.
 
 | Pendiente de aceptación | Evidencia necesaria para cambiar su estado |
 | --- | --- |
-| CI e integración de auditoría | Conservar la API/restauración y el navegador real aprobados; confirmar gates e integración de la revisión exacta. No reutilizar CI de informes o despliegue como evidencia de esta entrega. |
+| Aceptación autenticada en VPS3 | Crear el primer Owner con el correo elegido por el operador y verificar los flujos de la release activa. La salud del servidor y la restauración inicial SQL/PKI con cero usuarios no acreditan ese recorrido. |
 | Registro de auditoría en menos de 500 ms | Medición por operación y confirmación durable, con volumen de historial, concurrencia y host declarados; tiempos individuales y resumen de distribución. Un índice utilizable no acredita ese umbral. |
 | Usabilidad con personal del despacho | Kit, protocolo y plantillas preparados; todavía sin evaluación humana. Participantes reales y tareas acordadas; registrar terminación, tiempo, errores, asistencia y observaciones, junto con las correcciones verificadas. El protocolo por sí solo sigue pendiente de ejecución. |
 | Manuales y conclusiones | Conciliar instrucciones con una revisión reproducida; compilar e inspeccionar el manuscrito y redactar conclusiones a partir de los resultados completos. Los marcadores pendientes no equivalen a cierre académico. |
@@ -750,7 +766,7 @@ y el PDF final de esa entrega, de 345 páginas, se compiló e inspeccionó. La e
 integrada por PR48 en `5020707`; CI, Web y Documents de la confirmación natural
 aprobaron en 6m41s, 11m24s y 7m43s, con 3156 Rust, 396 escenarios controlados
 y 47 reales, además de dos ignorados. Se conserva separada
-la aceptación de esta entrega de la aceptación todavía abierta de informes.
+la aceptación de esta entrega de la aceptación de informes integrada por PR49.
 
 Persisten las audiencias propias de recursos, el corpus jurídico calificado y
 la activación automática durable de sus términos. Asociar o consultar no crea

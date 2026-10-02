@@ -112,6 +112,14 @@ descargar no marca el aviso como leído. El acuse guarda el primer `read_at` y e
 idempotente; sin aviso disponible responde conflicto. Los avisos son internos,
 persistentes y distintos de las alertas de plazos o audiencias.
 
+La interfaz deriva **Duración observada** para `ready` y `failed` restando
+`requested_at` a `notice.created_at`, con precisión de nanosegundos antes de
+presentar segundos enteros. Incluye cola y reintentos; no mide exclusivamente
+CPU ni estima finalización. El acuse no modifica esa duración: `updated_at`
+puede cambiar después del resultado y no sirve como extremo del intervalo.
+Datos incompatibles o instantes fuera del orden solicitud, captura, resultado,
+acuse y actualización omiten la duración. No se añaden campos al contrato HTTP.
+
 ## Descargas y límites
 
 Las respuestas binarias incluyen `Content-Disposition: attachment` con nombre
