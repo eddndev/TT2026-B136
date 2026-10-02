@@ -202,6 +202,33 @@ de espera provoca un fallo. Verifica tambien cobertura fresca y resultados
 JUnit. Su duracion no representa la regresion del proyecto. En la computadora
 local mantener el valor predeterminado de un slot.
 
+## Toolchains Rust independientes por runner
+
+Los runners nativos que comparten `tt-runner` deben tener un `RUSTUP_HOME`
+distinto, ademas de sus directorios de trabajo y targets. Actualizar `stable`
+simultaneamente desde dos jobs sobre el mismo home puede reemplazar archivos
+mientras otro job los usa. Conservar en cada unidad systemd una variable de
+entorno que apunte a `/home/tt-runner/.rustup-runners/NOMBRE-DEL-RUNNER`, con
+propietario `tt-runner` y nombre propio del servicio; no usar un unico directorio
+compartido. El entorno debe estar presente antes de arrancar el proceso runner,
+para que lo hereden tambien las acciones de instalacion de toolchains.
+
+Preparar el home de cada runner con Rust stable, `rustfmt`, `clippy` y
+`llvm-tools-preview`. Preparar ademas Rust 1.88 en el runner nativo de VPS1 que
+comprueba MSRV. Ejecutar la instalacion y `rustup set auto-self-update disable`
+con ese `RUSTUP_HOME` explicito y como `tt-runner`. Deshabilitar la actualizacion
+automatica del ejecutable rustup evita que los jobs actualicen sus proxies
+compartidos; las actualizaciones administrativas se realizan sin jobs activos.
+No cambiar `CARGO_HOME` ni borrar caches para aislar los toolchains.
+
+Aplicar cambios con los servicios sin trabajo, reiniciarlos y comprobar en cada
+proceso activo el home efectivo, `rustc --version` y los componentes instalados.
+No basta verificar el entorno de una sesion SSH diferente. La preparacion del
+1 de octubre de 2026 verifico seis unidades nativas activas en los tres VPS con
+homes separados y stable 1.99.0; el runner nativo de VPS1 conserva tambien 1.88.
+Los targets y caches Cargo existentes quedaron en sus rutas anteriores. Esta
+comprobacion de host no sustituye el resultado de la siguiente campana CI/Web.
+
 ## Python
 
 Los runners Linux requieren Python **3.12 o posterior**. La selección debe
