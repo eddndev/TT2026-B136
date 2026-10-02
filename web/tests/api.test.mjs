@@ -13,7 +13,9 @@ test('login has JSON credentials and no bearer; MFA establishes memory-only sess
   const requests = [];
   const api = createApi(async (url, options) => {
     requests.push({ url, ...options });
-    return Response.json(url.endsWith('/totp') ? { access_token: 'opaque' } : {});
+    return Response.json(
+      url.endsWith('/totp') ? { access_token: 'opaque' } : { challenge_token: 'challenge' },
+    );
   });
   await api.login('a@example.com', 'secret');
   await api.mfa('challenge', '123456', 'totp');

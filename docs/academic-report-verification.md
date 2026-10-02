@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Intentos de acceso y recuperación inicial: 2 de octubre de 2026
+
+Los apartados de implementación y despliegue describen la exclusión de respuestas
+obsoletas de acceso y la restauración conjunta del estado inicial SQL/Redis/PKI.
+LuaLaTeX terminó con salida cero: **355 páginas y 5860070 bytes**, SHA-256
+`5ddc707e6dade93f477532a9b582aa617d20310045e1647ea1b933eea1cb0e01`.
+Se inspeccionaron las páginas físicas **189 y 212**: texto legible, continuidad
+correcta y sin recortes ni solapamientos. No hay referencias/citas indefinidas,
+etiquetas múltiples ni glifos ausentes; permanecen las sustituciones históricas
+de versalitas. Resumen, introducción, teoría y conclusiones conservan sus hashes.
+Este resultado acredita el documento local; no cierra inactividad, recuperación
+de un despacho poblado, resultados humanos ni las conclusiones.
+
+
 ## Duración observada de informes: 2 de octubre de 2026
 
 El apartado de implementación distingue el intervalo observado de un resultado

@@ -219,9 +219,10 @@ con invalidación de sesiones/desafíos y conservación de controles TOTP/límit
 El respaldo inicial SQL/PKI tiene copia privada fuera de VPS3 y restauración
 aislada comprobadas; no contiene RDB. La nueva captura
 `20261002T105313Z-886940db` tiene SQL, RDB, PKI y `COMPLETE` validados, y su
-copia externa de cuatro archivos coincide por hash y tamaño. Falta el ensayo
-de restauración completa de esta captura; la prueba nativa Redis de cinco
-claves sintéticas es evidencia separada. No se borran automáticamente releases
+copia externa de cuatro archivos coincide por hash y tamaño. Su restauración
+conjunta con PostgreSQL 16.15 y Redis 7.4.11 aprobó, incluida persistencia AOF,
+confianza y auditoría. Conservó cero usuarios y Redis vacío: no acredita un
+despacho poblado. La prueba Redis de cinco claves sintéticas es evidencia separada. No se borran automáticamente releases
 ni respaldos. Rollback de aplicación conserva SQL y Redis actuales.
 
 Los certificados y CRL requieren mantenimiento: los guiones generan certificados

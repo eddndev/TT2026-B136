@@ -1,5 +1,60 @@
 # Informe de verificación local
 
+## Restauración conjunta SQL, Redis y PKI: 2 de octubre de 2026
+
+El conjunto real de cuatro archivos `20261002T105313Z-886940db` se restauró
+fuera de VPS3. PostgreSQL 16.15 rootless, limitado a un CPU y 768 MiB, conservó
+owners, ACL, esquema y confianza sin migraciones ni reparaciones. Redis 7.4.11
+cargó el RDB original y confirmó persistencia AOF tras reiniciar con la copia
+RDB anterior presente. Sus ejecutables coincidieron por SHA-256 con VPS3.
+El binario aceptado `v0.1.0` arrancó y rechazó acceso sin credenciales; auditoría,
+proyección, claves, certificados y CRL conservaron el estado inicial exacto.
+La captura tenía cero usuarios, un evento de auditoría y cero claves Redis.
+
+El primer intento falló porque Valkey 8.1.10 no admite RDB versión 12. El segundo
+falló por el límite artificial de espacio virtual de 256 MiB del arnés, no por
+agotamiento de RAM del host. Se comprobó primero Redis 7.4.11 con límite virtual
+de 1 GiB y máximo de datos de 64 MiB: arranque, RDB y reinicio AOF aprobaron;
+se observaron 11324 KiB residentes y 364044 KiB virtuales. Después aprobó la
+restauración conjunta. Sólo se cambió el entorno aislado de verificación.
+
+En todos los intentos se retiraron servicios y volúmenes propios y los hashes
+de la fuente permanecieron iguales. No se alteró el servidor desplegado ni se
+creó Owner. Este ensayo acredita recuperación del estado inicial capturado;
+los cinco controles Redis sintéticos se probaron por separado. No demuestra
+un despacho poblado, continuidad de restricciones posteriores a la captura,
+aceptación autenticada ni tiempo objetivo de recuperación.
+
+## Aislamiento de intentos de acceso: 2 de octubre de 2026
+
+La nueva batería reproduce respuestas tardías de contraseña y MFA, tanto
+exitosas como rechazadas o interrumpidas por red. Antes de corregir el cliente,
+19 de 25 casos fallaron: un resultado anterior podía reemplazar la sesión o
+seguir entregándose después de iniciar otro acceso. La vigencia de un intento
+se comprueba después de recibir y leer la respuesta y también ante errores.
+Se conserva por separado la protección de las solicitudes de sesión existentes.
+
+La suite focal aprobó 49/49 en 892.928 ms. La suite completa Node de la interfaz,
+ejecutada con concurrencia uno, aprobó 524/524 en 14.686 s. Los ocho recorridos
+existentes de sesión y sincronización MFA aprobaron en 23.1 s con un worker.
+Se preservaron todas sus assertions y límites; sólo un mock de login recibió
+el campo de desafío que la respuesta HTTP real ya contiene. No cambian rutas,
+permisos, cifrado ni presentación. La regresión remota de esta corrección
+permanece pendiente; no completa inactividad ni recuperación de borradores.
+
+La primera campaña de la cabeza `facbe30` se canceló al fallar la generación
+aleatoria de una clave en `rsa_modulus_and_exponent_have_exact_bounds`, antes
+de evaluar el verificador. El log no permite identificar la combinación exacta
+ni atribuir el fallo a una versión concreta de OpenSSL; los registros del host
+no mostraron OOM, y había espacio libre. Se reprodujo focalmente el error con
+un envoltorio que rechazaba sólo la generación adicional de esa prueba.
+
+El fixture corregido construye claves públicas controladas para los negativos,
+conserva el certificado real del positivo y añade los límites vecinos de 3071
+y 3073 bits. Con el mismo fallo inyectado pasó 1/1 en 0.61 s; el módulo completo
+normal aprobó 24/24 en 1.19 s. No se cambian criptografía de producción,
+assertions, reintentos, timeouts ni gates. La nueva campaña remota sigue pendiente.
+
 ## Duración observada de informes: 2 de octubre de 2026
 
 La interfaz calcula el intervalo inmutable entre solicitud y aviso terminal,
@@ -10,8 +65,11 @@ cálculo y un fallo de navegador por ausencia del dato. Después aprobaron Node
 Se verificaron segundos, nanosegundos, días, fallo, acuse posterior, exclusión
 de trabajos activos y datos incompatibles. Las vistas de 1440 y 390 px se
 inspeccionaron sin solapamientos ni desbordamientos. Formato y revisión del
-cambio aprobaron. La regresión remota, integración y despliegue de esta
-ampliación permanecen pendientes; no se reutiliza el CI previo como evidencia.
+cambio aprobaron. La cabeza `a05c85c` aprobó CI en 9m26s, Web en 10m30s y
+Documents en 1m14s. Se integró como `2621755`; su ejecución natural de main
+confirmó CI en 7m31s, Web en 10m54s y Documents en 8m32s, con las mismas
+3340 pruebas Rust, dos ignoradas, 419 de navegador simulado y 51 reales,
+gate Redis nativo y cobertura 97/95/93%. La ampliación aún no está desplegada.
 
 ## Controladores de VPS3: confirmación del 2 de octubre de 2026
 
@@ -26,9 +84,9 @@ copias privadas de sus originales. La aplicación sigue en `v0.1.0`/`a8dc3dd`.
 Con API y web detenidas, se capturaron SQL, RDB validado y material PKI privado;
 se publicó `COMPLETE` y se reinició la misma versión con salud, identidad y
 esquema comprobados. La copia de los cuatro archivos fuera de VPS3 conservó
-tamaños y SHA-256. Persisten cero usuarios. Esta nueva captura completa no
-tiene todavía un ensayo integral de restauración: la recuperación SQL/PKI
-inicial y el ensayo Redis con claves sintéticas son evidencias separadas.
+tamaños y SHA-256. Persisten cero usuarios. Su restauración conjunta posterior
+aprobó como se registra arriba; la recuperación SQL/PKI inicial y el ensayo
+Redis con claves sintéticas conservan su evidencia separada.
 
 
 ## Primera release privada en VPS3: 2 de octubre de 2026
