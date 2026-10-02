@@ -1,5 +1,18 @@
 # Informe de verificación local
 
+## Reingreso en etapas: aceptacion focal del 2 de octubre de 2026
+
+Ocho escenarios de navegador controlado aprobaron en 28.4 s con un worker,
+despues de reproducir la falta de autorizacion fresca antes de recuperar el
+borrador. Conservan adopcion o transicion originales, campos incompletos,
+referencias exactas y archivos separados por campo y propietario. Una revision
+mas reciente exige consulta del historial completo y decision explicita; una
+coincidencia no demuestra que el envio anterior haya quedado confirmado.
+La confirmacion elimina el borrador antes de esperar el refresco posterior.
+Se comprobaron expediente cerrado, acceso denegado, otra cuenta y cierre
+explicito, sin modificar tiempos, producto procesal ni numero de escenarios.
+Son resultados locales; falta la regresion completa de la cabeza publicada.
+
 ## Reingreso en participantes: aceptación focal del 2 de octubre de 2026
 
 La ampliación local añade ocho escenarios distintos de ficha manual, nueve de

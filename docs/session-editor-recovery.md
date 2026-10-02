@@ -55,8 +55,12 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Identidad representada | Campos crudos, motivos y base original; candidatos consultados de nuevo y comparación de revisiones. | Una decisión anterior no aprueba un candidato con otra revisión. |
 | Soportes anidados de identidad | Búsqueda sin aplicar, versión seleccionada y archivo pendiente, separados por campo y candidato propietario. | La autorización del documento se revalida; otra versión o una denegación no hereda permisos. |
 | Participante tipificado | Alta, completar ficha manual y reemplazo con identidad exacta, rol, soportes y envío incierto separados. | La revisión de coincidencias y la declaración se preparan de nuevo; una firma anterior sólo queda como evidencia inerte. |
+| Etapa procesal | Adopción y transición originales, fechas y textos crudos, soportes y cargas por propietario; consulta completa de historia ante incertidumbre. | Las etapas no tienen recibo técnico consultable: una coincidencia no confirma un envío ni acredita procedencia jurídica. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
+focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
+soportes independientes, incertidumbre y descarte posterior a una confirmación.
+Estos resultados son locales y no afirman integración ni despliegue. Un
 recorrido adicional con servicios reales aceptó dos vencimientos y nueva MFA,
 conservando campos de un alta de expediente y un archivo de carga principal.
 Ese recorrido no valida contra servicios reales todos los editores de la tabla.
@@ -76,7 +80,6 @@ asumiendo que todos los formularios conservan sus cambios.
 
 | Familia | Componentes | Contexto que debe consultarse de nuevo |
 | --- | --- | --- |
-| Etapa procesal | `StageForm.svelte` | Etapa vigente, historial, soportes y operación de transición o adopción. |
 | Audiencias y resultados | `HearingEditor.svelte`, `HearingResultEditor.svelte` | Audiencia o continuación exacta, participantes, soportes y declaración preparada. |
 | Resoluciones y notificaciones | `FactEditor.svelte` | Resolución propietaria, hechos registrados, soportes y revisión base. |
 | Recursos y actividades | `ResourceEditor.svelte`, `ResourceActivityEditor.svelte`, `ResourceDeadlineEditor.svelte` | Recurso propietario, actividad o plazo elegible, asociaciones y resultado incierto. |

@@ -1,214 +1,160 @@
 <script>
-  import { onDestroy } from 'svelte';
-  import StageFields from './StageFields.svelte';
-  import StageValues from './StageValues.svelte';
-  import StageEntry from './StageEntry.svelte';
-  import {
-    stageDraft,
-    stagePayload,
-    stageAction,
-    stageLabels,
-    uncertainStage,
-    stageSupportFields,
-  } from '../lib/case-stages.mjs';
-  export let api, documents, caseId, current, onconfirmed, onobserved, ondenied;
-  export let oncancel,
-    disabled = false,
-    pending = false;
-  let base = current,
-    draft = stageDraft(current),
-    action = stageAction(current);
-  let preview = null,
-    lastPayload = null,
-    lastSupports = [],
-    candidate,
-    compared = [];
-  let busy = false,
-    fieldsBusy = false,
-    alive = true,
-    error = '',
-    uncertain = false;
-  let needsReview = false,
-    exhausted = false,
-    supportIssue = false,
-    oldSupports = [];
-  $: pending = busy || fieldsBusy;
-  $: supportUnreviewed = supportIssue && oldSupports.some(([key, value]) => draft[key] === value);
-  const refs = () =>
-    Object.keys(stageSupportFields).flatMap((key) => (draft[key] ? [draft[key]] : []));
-  function review() {
-    if (disabled || pending || needsReview || exhausted || supportUnreviewed) return;
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import { caseState } from '../lib/case-state.mjs';
+  import { createStageDraft, refreshStageSupports } from '../lib/stage-draft.mjs';
+  import { captureStage, stageFormState } from '../lib/stage-draft-values.mjs';
+  import { stageFormActions } from '../lib/stage-form-actions.mjs';
+  import StageFormBody from './StageFormBody.svelte';
+  export let api, documents, caseId, current, onconfirmed, onobserved, ondenied, oncancel;
+  export let disabled = false,
+    readBlocked = false,
+    pending = false,
+    savedDraft = null;
+  const session = getContext('session-drafts'),
+    administration = caseState();
+  let state = stageFormState(current, savedDraft?.action);
+  let alive = true,
+    generation = 0,
+    finished = false;
+  const patch = (changes) => {
+    state = { ...state, ...changes };
+  };
+  const recovery = session
+    ? createStageDraft({ session, caseId, api, capture: () => captureStage(state) })
+    : null;
+  const admitted = () => alive && !finished && (!recovery || recovery.admitted());
+  $: locked = disabled || readBlocked || state.blocked || state.restoredClosed || state.incomplete;
+  $: supportUnreviewed =
+    state.supportIssue && state.oldSupports.some(([key, value]) => state.draft[key] === value);
+  $: if (state.blockedByCase && !$administration.closed) {
+    state.blockedByCase = state.restoredClosed = false;
+    state.error = '';
+  }
+  function deny(failure) {
+    recovery?.discard();
+    state = stageFormState(null, state.action);
+    ondenied(failure);
+  }
+  function observe(context) {
+    if (!admitted()) return;
+    patch({ restoredClosed: context.closed, incomplete: context.incomplete });
+    if ((context.result.current?.stage_revision ?? 0) !== (state.base?.stage_revision ?? 0))
+      patch({ needsReview: true, preview: null, historyComplete: false });
+    onobserved(context.result);
+  }
+  async function freshContext() {
+    if (recovery) return recovery.freshContext();
+    const result = await api.get();
+    return admitted() ? { result, closed: $administration.closed, incomplete: false } : null;
+  }
+  async function validate(context, valid) {
+    observe(context);
+    if (!(await refreshStageSupports(state.draft, documents, caseId, valid)) || !valid()) return;
+    patch({ blocked: false, supportIssue: false, oldSupports: [] });
+  }
+  async function initialize() {
+    if (pending || !admitted()) return;
+    const ticket = ++generation,
+      valid = () => admitted() && ticket === generation;
+    patch({ busy: true, blocked: true, error: '' });
     try {
-      preview = stagePayload(draft, base);
-      error = '';
+      let context;
+      if (savedDraft && !state.loaded && recovery) {
+        const result = await recovery.restore(savedDraft, (value, fresh) => {
+          patch({ ...value, loaded: true });
+          context = fresh;
+        });
+        if (!valid()) return;
+        if (result.status !== 'restored')
+          throw new Error('No se pudo recuperar el borrador de etapa.');
+      } else {
+        context = await freshContext();
+        if (!context || !valid()) return;
+        if (!state.loaded) recovery?.register(state.action, state.base?.stage_revision ?? 0);
+        patch({ loaded: true });
+      }
+      await validate(context, valid);
     } catch (failure) {
-      error = failure.message;
+      if (valid()) {
+        state.error = failure.message;
+        if ([403, 404].includes(failure.status)) deny(failure);
+      }
+    } finally {
+      if (alive && ticket === generation) state.busy = false;
     }
   }
-  async function submit() {
-    if (!preview || disabled || pending || needsReview || exhausted) return;
-    busy = true;
-    error = '';
-    lastPayload = structuredClone(preview);
-    lastSupports = structuredClone(refs());
+  function supportContext(field) {
+    return state.blocked
+      ? null
+      : (recovery?.supportContext(field, () => !state.blocked && !finished, observe, deny) ?? null);
+  }
+  function discardSupport(field) {
+    recovery?.discardSupport(field);
+  }
+  function close() {
+    if (pending) return;
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    recovery?.close();
+    finished = true;
+    generation++;
+    oncancel();
+  }
+  async function work(operation, reading = false) {
+    if (pending || !admitted() || state.blocked || readBlocked || (!reading && locked)) return;
+    const ticket = generation,
+      valid = () => admitted() && ticket === generation;
+    patch({ busy: true, error: '' });
     try {
-      const result = await (action === 'adoption'
-        ? api.adopt(lastPayload)
-        : api.transition(lastPayload));
-      if (!alive) return;
+      await operation(valid);
+    } catch (failure) {
+      if (valid()) {
+        state.error = failure.message;
+        if (failure.code === 'case_closed') state.blockedByCase = state.restoredClosed = true;
+        if ([403, 404].includes(failure.status)) deny(failure);
+      }
+    } finally {
+      if (alive && ticket === generation) state.busy = false;
+    }
+  }
+  const actions = stageFormActions({
+    api,
+    caseId,
+    patch,
+    work,
+    freshContext,
+    observe,
+    get: () => ({ ...state, disabled: locked || !admitted(), pending, supportUnreviewed }),
+    adopt(base) {
+      state.base = base;
+      recovery?.register(state.action, base?.stage_revision ?? 0);
+    },
+    async finish(result) {
+      recovery?.close();
+      finished = true;
       await onconfirmed(result);
-    } catch (failure) {
-      if (!alive) return;
-      if ([403, 404].includes(failure.status)) {
-        ondenied(failure);
-        return;
-      }
-      preview = null;
-      uncertain = uncertainStage(failure);
-      exhausted = failure.code === 'case_stage_revision_exhausted';
-      needsReview =
-        uncertain ||
-        ['case_stage_conflict', 'case_stage_required', 'case_stage_transition_rejected'].includes(
-          failure.code,
-        );
-      candidate = undefined;
-      compared = [];
-      if (['stage_support_changed', 'stage_support_digest_mismatch'].includes(failure.code)) {
-        supportIssue = true;
-        oldSupports = Object.keys(stageSupportFields).flatMap((key) =>
-          draft[key] ? [[key, draft[key]]] : [],
-        );
-      }
-      const uploaded = refs().some((record) => record.uploaded);
-      error = uncertain
-        ? `${uploaded ? 'El documento se guard\u00f3. ' : ''}No se pudo confirmar el registro. Consulta etapa e historial antes de enviar de nuevo.`
-        : `${uploaded ? 'El documento se guard\u00f3. La etapa no se registr\u00f3. ' : ''}${failure.message}`;
-    } finally {
-      if (alive) busy = false;
-    }
-  }
-  async function reconcile() {
-    if (pending || disabled || exhausted) return;
-    busy = true;
-    error = '';
-    try {
-      const result = await api.get();
-      if (!alive) return;
-      onobserved(result);
-      candidate = result.current;
-      const history = await api.history();
-      if (!alive) return;
-      compared = history.entries;
-    } catch (failure) {
-      if (!alive) return;
-      candidate = undefined;
-      error = failure.message;
-      if ([403, 404].includes(failure.status)) ondenied(failure);
-    } finally {
-      if (alive) busy = false;
-    }
-  }
-  function accept() {
-    if (candidate === undefined || pending || disabled || stageAction(candidate) !== action) return;
-    base = candidate;
-    needsReview = false;
-    uncertain = false;
-    candidate = undefined;
-    preview = null;
-    error = '';
-    compared = [];
-  }
+    },
+  });
+  onMount(initialize);
   onDestroy(() => {
     alive = false;
+    generation++;
+    recovery?.dispose();
     pending = false;
   });
 </script>
 
-<section class="card case-editor stage-form" aria-busy={pending}>
-  <h2>
-    {action === 'adoption' ? 'Registrar etapa actual' : `Registrar paso a ${stageLabels[action]}`}
-  </h2>
-  <p class="hint">
-    Se registran los datos que declaras y sus soportes. El sistema no certifica la procedencia
-    jur&#237;dica del cambio.
-  </p>
-  {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if supportUnreviewed}<p class="notice">
-      Vuelve a elegir y consultar cada versi&#243;n seleccionada. Se conserva el borrador y no se
-      cargar&#225;n archivos de nuevo autom&#225;ticamente.
-    </p>{/if}
-  {#if needsReview}
-    <button class="secondary" disabled={pending || disabled} onclick={reconcile}
-      >Consultar etapa e historial</button
-    >
-    {#if lastPayload}<details class="stage-last-request">
-        <summary>Consultar el &#250;ltimo env&#237;o</summary>
-        <p>Revisi&#243;n esperada: {lastPayload.expected_revision}.</p>
-        <StageValues values={lastPayload} supports={lastSupports} />
-      </details>{/if}
-    {#if candidate !== undefined}<div class="case-comparison stage-reconciliation">
-        <h3>Etapa consultada</h3>
-        {#if candidate}<StageEntry record={candidate} />{:else}<p>Sin etapa registrada.</p>{/if}
-        {#if uncertain}<p class="notice">
-            Una coincidencia no confirma que este env&#237;o se guard&#243;. Revisa los registros
-            antes de decidir otro intento.
-          </p>{/if}
-        {#if stageAction(candidate) === action}<button
-            class="secondary"
-            disabled={pending || disabled}
-            onclick={accept}>Usar etapa consultada y revisar borrador</button
-          >
-        {:else}<p class="notice">
-            El avance del borrador ya no corresponde a la etapa consultada. Conserva estos datos
-            antes de cerrar el formulario.
-          </p>{/if}
-        <details>
-          <summary>Historial consultado para comparar</summary
-          >{#each compared as record (record.stage_revision)}<StageEntry {record} />{/each}
-        </details>
-      </div>{/if}
-  {/if}
-  {#if preview}<div class="case-comparison stage-confirmation">
-      <h3>Confirma el registro</h3>
-      <p>
-        {action === 'adoption'
-          ? 'Adopci\u00f3n de etapa conocida'
-          : `${stageLabels[base.stage]} a ${stageLabels[action]}`} / revisi&#243;n esperada {preview.expected_revision}.
-      </p>
-      <StageValues values={preview} supports={refs()} />
-      <p>El registro quedar&#225; en el historial. Revisa los datos antes de confirmarlo.</p>
-      <div class="action-row">
-        <button class="secondary" disabled={pending || disabled} onclick={() => (preview = null)}
-          >Volver al borrador</button
-        >
-        <button class="primary" disabled={pending || disabled} onclick={submit}
-          >{busy
-            ? 'Registrando etapa...'
-            : action === 'adoption'
-              ? 'Registrar etapa actual'
-              : 'Registrar transici\u00f3n'}</button
-        >
-      </div>
-    </div>
-  {:else}
-    <StageFields
-      {action}
-      bind:draft
-      api={documents}
-      {caseId}
-      {ondenied}
-      disabled={disabled || busy}
-      bind:pending={fieldsBusy}
-    />
-    <div class="action-row">
-      <button
-        class="primary"
-        disabled={disabled || pending || needsReview || exhausted || supportUnreviewed}
-        onclick={review}>Revisar registro</button
-      >
-    </div>
-  {/if}
-  <button class="text-button" disabled={pending} onclick={oncancel}
-    >Cerrar formulario de etapa</button
-  >
-</section>
+<StageFormBody
+  bind:state
+  bind:pending
+  {actions}
+  {documents}
+  {caseId}
+  ondenied={deny}
+  {close}
+  retry={initialize}
+  disabled={locked}
+  {readBlocked}
+  {supportUnreviewed}
+  {supportContext}
+  {discardSupport}
+/>

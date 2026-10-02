@@ -9,6 +9,8 @@
     ondenied,
     disabled = false,
     pending = false;
+  export let supportContext = () => null,
+    discardSupport = () => {};
   let firstBusy = false,
     secondBusy = false;
   $: pending = firstBusy || secondBusy;
@@ -45,6 +47,7 @@
       {caseId}
       {ondenied}
       label="Soporte de adopci&#243;n"
+      draftContext={supportContext('support')}
       bind:value={draft.support}
       bind:pending={firstBusy}
       {disabled}
@@ -60,6 +63,7 @@
       {caseId}
       {ondenied}
       label="Acusaci&#243;n"
+      draftContext={supportContext('accusation')}
       bind:value={draft.accusation}
       bind:pending={firstBusy}
       {disabled}
@@ -76,6 +80,7 @@
       {caseId}
       {ondenied}
       label="Auto de apertura"
+      draftContext={supportContext('opening_order')}
       bind:value={draft.opening_order}
       bind:pending={firstBusy}
       disabled={disabled || secondBusy}
@@ -103,6 +108,8 @@
       {caseId}
       {ondenied}
       label="Constancia de recepci&#243;n"
+      draftContext={supportContext('receipt_support')}
+      ondiscard={() => discardSupport('receipt_support')}
       bind:value={draft.receipt_support}
       optional
       bind:pending={secondBusy}
