@@ -1,12 +1,8 @@
 use std::collections::HashMap;
-use std::sync::{
-    atomic::{AtomicBool, AtomicUsize, Ordering},
-    Arc, Mutex,
-};
+use std::sync::{atomic::Ordering, Arc, Mutex};
 
 use application::identity::{
-    IdentityPorts, IdentityService, LoginChallengeIdentity, SecretProtector, SessionIdentity,
-    SessionStore, UserRecord, UserRepository,
+    IdentityPorts, IdentityService, SecretProtector, UserRecord, UserRepository,
 };
 use application::ApplicationError;
 use domain::audit::{AuditEvent, AuditLog, ChainedEvent};
@@ -20,11 +16,14 @@ use domain::DomainError;
 use zeroize::Zeroizing;
 
 #[derive(Default)]
-pub struct MemoryUsers(Mutex<HashMap<UserId, UserRecord>>);
+pub struct MemoryUsers {
+    records: Mutex<HashMap<UserId, UserRecord>>,
+    after_find: Mutex<Option<Box<dyn FnOnce() + Send>>>,
+}
 
 impl UserRepository for MemoryUsers {
     fn has_users(&self) -> Result<bool, ApplicationError> {
-        Ok(!self.0.lock().unwrap().is_empty())
+        Ok(!self.records.lock().unwrap().is_empty())
     }
 
     fn insert_initial_owner(
@@ -32,7 +31,7 @@ impl UserRepository for MemoryUsers {
         user: UserRecord,
         _at: OffsetDateTime,
     ) -> Result<bool, ApplicationError> {
-        let mut users = self.0.lock().unwrap();
+        let mut users = self.records.lock().unwrap();
         if !users.is_empty() {
             return Ok(false);
         }
@@ -46,7 +45,7 @@ impl UserRepository for MemoryUsers {
         _actor: UserId,
         _at: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
-        let mut users = self.0.lock().unwrap();
+        let mut users = self.records.lock().unwrap();
         if users.values().any(|stored| stored.email == user.email) {
             return Err(ApplicationError::UserAlreadyExists);
         }
@@ -56,7 +55,7 @@ impl UserRepository for MemoryUsers {
 
     fn find_by_email(&self, email: &str) -> Result<Option<UserRecord>, ApplicationError> {
         Ok(self
-            .0
+            .records
             .lock()
             .unwrap()
             .values()
@@ -65,7 +64,11 @@ impl UserRepository for MemoryUsers {
     }
 
     fn find_by_id(&self, id: UserId) -> Result<Option<UserRecord>, ApplicationError> {
-        Ok(self.0.lock().unwrap().get(&id).cloned())
+        let user = self.records.lock().unwrap().get(&id).cloned();
+        if let Some(callback) = self.after_find.lock().unwrap().take() {
+            callback();
+        }
+        Ok(user)
     }
 
     fn replace_recovery_codes(
@@ -75,7 +78,7 @@ impl UserRepository for MemoryUsers {
         codes: domain::crypto::RecoveryCodeSet,
         _at: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
-        let mut users = self.0.lock().unwrap();
+        let mut users = self.records.lock().unwrap();
         let user = users.get_mut(&id).ok_or(ApplicationError::UserNotFound)?;
         if user.revision != expected_revision {
             return Err(ApplicationError::ConcurrentModification);
@@ -86,102 +89,8 @@ impl UserRepository for MemoryUsers {
     }
 }
 
-#[derive(Default)]
-pub struct MemorySessions {
-    issued_sessions: AtomicUsize,
-    fail_challenge_cleanup: AtomicBool,
-    fail_session_cleanup: AtomicBool,
-    challenges: Mutex<HashMap<String, LoginChallengeIdentity>>,
-    sessions: Mutex<HashMap<String, SessionIdentity>>,
-    failures: Mutex<HashMap<String, u32>>,
-    used_totp: Mutex<Vec<(UserId, String)>>,
-}
-
-impl SessionStore for MemorySessions {
-    fn create_challenge(
-        &self,
-        identity: &LoginChallengeIdentity,
-        _ttl: u64,
-    ) -> Result<String, ApplicationError> {
-        let token = format!("challenge-{}", uuid::Uuid::new_v4());
-        self.challenges
-            .lock()
-            .unwrap()
-            .insert(token.clone(), identity.clone());
-        Ok(token)
-    }
-
-    fn take_challenge(
-        &self,
-        token: &str,
-    ) -> Result<Option<LoginChallengeIdentity>, ApplicationError> {
-        if self.fail_challenge_cleanup.load(Ordering::SeqCst) {
-            return Err(ApplicationError::Port(format!(
-                "cleanup failed for {token}"
-            )));
-        }
-        Ok(self.challenges.lock().unwrap().remove(token))
-    }
-
-    fn create_session(
-        &self,
-        identity: &SessionIdentity,
-        _ttl: u64,
-    ) -> Result<String, ApplicationError> {
-        let index = self.issued_sessions.fetch_add(1, Ordering::SeqCst);
-        let token = format!("session-{}-{index}", identity.principal.id);
-        self.sessions
-            .lock()
-            .unwrap()
-            .insert(token.clone(), identity.clone());
-        Ok(token)
-    }
-
-    fn find_session(&self, token: &str) -> Result<Option<SessionIdentity>, ApplicationError> {
-        Ok(self.sessions.lock().unwrap().get(token).cloned())
-    }
-
-    fn revoke_session(&self, token: &str) -> Result<(), ApplicationError> {
-        if self.fail_session_cleanup.load(Ordering::SeqCst) {
-            return Err(ApplicationError::Port(format!(
-                "cleanup failed for {token}"
-            )));
-        }
-        self.sessions.lock().unwrap().remove(token);
-        Ok(())
-    }
-
-    fn failed_password_attempts(&self, email: &str, _ttl: u64) -> Result<u32, ApplicationError> {
-        Ok(*self.failures.lock().unwrap().get(email).unwrap_or(&0))
-    }
-
-    fn record_password_failure(&self, email: &str, _ttl: u64) -> Result<u32, ApplicationError> {
-        let mut failures = self.failures.lock().unwrap();
-        let count = failures.entry(email.to_string()).or_default();
-        *count += 1;
-        Ok(*count)
-    }
-
-    fn clear_password_failures(&self, email: &str) -> Result<(), ApplicationError> {
-        self.failures.lock().unwrap().remove(email);
-        Ok(())
-    }
-
-    fn claim_totp(
-        &self,
-        user_id: UserId,
-        code_fingerprint: &str,
-        _ttl: u64,
-    ) -> Result<bool, ApplicationError> {
-        let key = (user_id, code_fingerprint.to_string());
-        let mut used = self.used_totp.lock().unwrap();
-        if used.contains(&key) {
-            return Ok(false);
-        }
-        used.push(key);
-        Ok(true)
-    }
-}
+mod sessions;
+pub use sessions::MemorySessions;
 
 struct FakeHasher;
 
@@ -323,8 +232,12 @@ impl MemorySessions {
 }
 
 impl MemoryUsers {
+    fn after_next_find(&self, callback: impl FnOnce() + Send + 'static) {
+        *self.after_find.lock().unwrap() = Some(Box::new(callback));
+    }
+
     pub fn set_access(&self, id: UserId, role: Role, active: bool) {
-        let mut users = self.0.lock().unwrap();
+        let mut users = self.records.lock().unwrap();
         let user = users.get_mut(&id).unwrap();
         if user.role != role || user.active != active {
             user.role = role;
@@ -335,14 +248,15 @@ impl MemoryUsers {
     }
 
     pub fn set_role(&self, id: UserId, role: Role) {
-        let active = self.0.lock().unwrap().get(&id).unwrap().active;
+        let active = self.records.lock().unwrap().get(&id).unwrap().active;
         self.set_access(id, role, active);
     }
 
     pub fn deactivate(&self, id: UserId) {
-        let role = self.0.lock().unwrap().get(&id).unwrap().role;
+        let role = self.records.lock().unwrap().get(&id).unwrap().role;
         self.set_access(id, role, false);
     }
 }
 mod failure_tests;
+mod inactivity_cases;
 pub mod invalid_email;

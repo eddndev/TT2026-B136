@@ -1,10 +1,16 @@
 mod auth_support;
+#[path = "auth_support/session_cases.rs"]
+mod session_cases;
 use auth_support::UnusedDocuments;
 
-use std::sync::Arc;
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
 
 use application::identity::{
-    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionPolicy, SessionResult,
+    SessionStatus,
 };
 use application::ApplicationError;
 use axum::body::{to_bytes, Body};
@@ -16,9 +22,23 @@ use uuid::Uuid;
 use web::application_router;
 use zeroize::Zeroizing;
 
-struct StubIdentity;
+#[derive(Default)]
+struct StubIdentity {
+    status_calls: AtomicUsize,
+    activity_calls: AtomicUsize,
+}
 
 impl StubIdentity {
+    fn status(principal: Principal) -> SessionStatus {
+        SessionStatus {
+            principal,
+            policy: SessionPolicy::default(),
+            server_now_unix_ms: 100_000,
+            absolute_expires_at_unix_ms: 86_500_000,
+            idle_expires_at_unix_ms: None,
+        }
+    }
+
     fn principal(role: Role) -> Principal {
         Principal {
             id: UserId::from_uuid(Uuid::from_u128(9)),
@@ -81,23 +101,40 @@ impl IdentityWorkflow for StubIdentity {
             access_token: "owner-token".to_string(),
             expires_in_seconds: 86_400,
             principal: Self::principal(Role::Owner),
+            session: Self::status(Self::principal(Role::Owner)),
         })
     }
 
     fn complete_recovery(
         &self,
-        _challenge_token: &str,
-        _code: &str,
+        challenge_token: &str,
+        code: &str,
     ) -> Result<SessionResult, ApplicationError> {
-        Err(ApplicationError::MfaRejected)
+        if code != "RECOVERY-0" {
+            return Err(ApplicationError::MfaRejected);
+        }
+        self.complete_totp(challenge_token, "123456")
     }
 
     fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
         match access_token {
             "owner-token" => Ok(Self::principal(Role::Owner)),
+            "litigator-token" => Ok(Self::principal(Role::Litigator)),
+            "paralegal-token" => Ok(Self::principal(Role::Paralegal)),
             "client-token" => Ok(Self::principal(Role::Client)),
+            "unavailable-token" => Err(ApplicationError::Port("private Redis failure".into())),
             _ => Err(ApplicationError::InvalidSession),
         }
+    }
+
+    fn session_status(&self, token: &str) -> Result<SessionStatus, ApplicationError> {
+        self.status_calls.fetch_add(1, Ordering::SeqCst);
+        self.authenticate(token).map(Self::status)
+    }
+
+    fn record_activity(&self, token: &str) -> Result<SessionStatus, ApplicationError> {
+        self.activity_calls.fetch_add(1, Ordering::SeqCst);
+        self.authenticate(token).map(Self::status)
     }
 
     fn authorize(
@@ -119,7 +156,7 @@ impl IdentityWorkflow for StubIdentity {
 }
 
 fn router() -> axum::Router {
-    application_router(Arc::new(UnusedDocuments), Arc::new(StubIdentity))
+    application_router(Arc::new(UnusedDocuments), Arc::new(StubIdentity::default()))
 }
 
 async fn json(response: axum::response::Response) -> Value {
@@ -255,6 +292,36 @@ async fn bearer_headers_reject_ambiguity_and_accept_case_insensitive_scheme() {
         .oneshot(
             Request::get("/api/v1/auth/me")
                 .header("authorization", "bearer owner-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()["cache-control"], "no-store");
+}
+
+#[tokio::test]
+async fn session_status_route_accepts_an_authenticated_empty_request() {
+    let response = router()
+        .oneshot(
+            Request::get("/api/v1/auth/session")
+                .header("authorization", "Bearer owner-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()["cache-control"], "no-store");
+}
+
+#[tokio::test]
+async fn session_activity_route_accepts_an_authenticated_empty_request() {
+    let response = router()
+        .oneshot(
+            Request::post("/api/v1/auth/activity")
+                .header("authorization", "Bearer owner-token")
                 .body(Body::empty())
                 .unwrap(),
         )

@@ -20,8 +20,10 @@ whose authorization data can become stale.
 ## Decision
 
 Use opaque 256-bit random Bearer tokens. Redis stores only a SHA-256-derived
-lookup key for each token, with the user principal as its value and a 24-hour
-TTL. Logout deletes the lookup key immediately. Password-login challenges,
+lookup key for each token, with a maximum 24-hour absolute lifetime.
+[ADR-0064](0064-explicit-session-activity.md) defines the current versioned
+session value and optional explicit-activity deadline. Logout deletes the
+lookup key immediately. Password-login challenges,
 failed-attempt counters, and already-consumed TOTP codes also live in Redis
 with bounded TTLs.
 

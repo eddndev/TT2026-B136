@@ -24,6 +24,7 @@ mod serve_audit_composition;
 mod serve_cmd;
 mod serve_deadline_runtime;
 mod serve_document_validation;
+mod serve_identity_composition;
 mod serve_report_composition;
 mod serve_report_runtime;
 mod serve_resource_activities;

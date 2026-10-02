@@ -3,12 +3,13 @@
 use super::AppState;
 use crate::dto::{
     ChallengeCodeRequest, CreateUserRequest, CredentialsRequest, EnrollmentResponse,
-    LoginChallengeResponse, PrincipalResponse, SessionResponse,
+    LoginChallengeResponse, PrincipalResponse, SessionResponse, SessionStatusResponse,
 };
 use crate::{error::ApiError, request::bearer_token};
 use application::ApplicationError;
 use axum::{
-    extract::State,
+    body::Bytes,
+    extract::{RawQuery, State},
     http::{HeaderMap, StatusCode},
     Json,
 };
@@ -108,4 +109,53 @@ pub(super) async fn current_user(
             .await?
             .into(),
     ))
+}
+
+pub(super) async fn session_status(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    RawQuery(query): RawQuery,
+    body: Bytes,
+) -> Result<Json<SessionStatusResponse>, ApiError> {
+    let token = session_request_token(&headers, query.as_deref(), &body)?;
+    let identity = state.identity.clone();
+    Ok(Json(
+        state
+            .runtime
+            .run(move || identity.session_status(&token))
+            .await?
+            .into(),
+    ))
+}
+
+pub(super) async fn record_activity(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    RawQuery(query): RawQuery,
+    body: Bytes,
+) -> Result<Json<SessionStatusResponse>, ApiError> {
+    let token = session_request_token(&headers, query.as_deref(), &body)?;
+    let identity = state.identity.clone();
+    Ok(Json(
+        state
+            .runtime
+            .run(move || identity.record_activity(&token))
+            .await?
+            .into(),
+    ))
+}
+
+fn session_request_token(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    body: &[u8],
+) -> Result<String, ApiError> {
+    let token = bearer_token(headers)?;
+    if query.is_some() || !body.is_empty() {
+        return Err(ApiError::invalid_body(
+            "invalid_session_request",
+            "session requests require an empty body and no query string",
+        ));
+    }
+    Ok(token)
 }

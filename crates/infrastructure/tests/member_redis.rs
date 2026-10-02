@@ -1,4 +1,6 @@
-use application::identity::{LoginChallengeIdentity, Principal, SessionIdentity, SessionStore};
+use application::identity::{
+    LoginChallengeIdentity, Principal, SessionIdentity, SessionPolicy, SessionStore,
+};
 use application::ApplicationError;
 use domain::crypto::DocumentHasher;
 use domain::identity::{Role, UserId};
@@ -37,7 +39,7 @@ fn legacy_or_invalid_authentication_values_never_become_generation_zero() {
         redis
             .set_ex::<_, _, ()>(key("session", &token), value, 60)
             .unwrap();
-        assert!(matches!(store.find_session(&token), Ok(None)));
+        assert!(matches!(store.find_session(&token, SessionPolicy::default()), Ok(None)));
     }
     for value in [
         principal.id.to_string(),
@@ -74,16 +76,23 @@ fn redis_roundtrips_generations_and_rejects_out_of_range_values_on_creation() {
         principal,
         auth_generation: 7,
     };
-    let token = store.create_session(&session, 60).unwrap();
-    assert!(store.find_session(&token).unwrap() == Some(session.clone()));
+    let policy = SessionPolicy::new(60, None).unwrap();
+    let token = store.create_session(&session, policy).unwrap().access_token;
+    assert!(
+        store
+            .find_session(&token, policy)
+            .unwrap()
+            .map(|state| state.identity)
+            == Some(session.clone())
+    );
     store.revoke_session(&token).unwrap();
-    assert!(store.find_session(&token).unwrap().is_none());
+    assert!(store.find_session(&token, policy).unwrap().is_none());
     let invalid = SessionIdentity {
         auth_generation: u64::MAX,
         ..session
     };
     assert!(matches!(
-        store.create_session(&invalid, 60),
+        store.create_session(&invalid, policy),
         Err(ApplicationError::InvalidInput(_))
     ));
     let invalid = LoginChallengeIdentity {

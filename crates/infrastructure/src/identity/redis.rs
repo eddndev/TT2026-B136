@@ -2,7 +2,10 @@
 
 use std::time::Duration;
 
-use application::identity::{LoginChallengeIdentity, SessionIdentity, SessionStore};
+use application::identity::{
+    LoginChallengeIdentity, SessionGrant, SessionIdentity, SessionPolicy, SessionState,
+    SessionStore,
+};
 use application::ApplicationError;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -11,6 +14,8 @@ use domain::identity::UserId;
 use redis::Commands;
 
 use crate::RingSha256Hasher;
+
+mod session;
 
 const DEFAULT_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const DEFAULT_IO_TIMEOUT: Duration = Duration::from_secs(5);
@@ -116,34 +121,26 @@ impl SessionStore for RedisSessionStore {
     fn create_session(
         &self,
         identity: &SessionIdentity,
-        ttl: u64,
-    ) -> Result<String, ApplicationError> {
-        validate_generation(identity.auth_generation)?;
-        let token = self.random_token()?;
-        let key = self.digest_key("session", token.as_bytes());
-        let value = serde_json::to_string(identity).map_err(|error| {
-            ApplicationError::Port(format!("session serialization failed: {error}"))
-        })?;
-        self.connection()?
-            .set_ex::<_, _, ()>(key, value, ttl)
-            .map_err(port_error)?;
-        Ok(token)
+        policy: SessionPolicy,
+    ) -> Result<SessionGrant, ApplicationError> {
+        self.create_timed_session(identity, policy)
     }
 
-    fn find_session(&self, token: &str) -> Result<Option<SessionIdentity>, ApplicationError> {
-        let key = self.digest_key("session", token.as_bytes());
-        let value: Option<String> = self.connection()?.get(key).map_err(port_error)?;
-        Ok(value
-            .and_then(|raw| serde_json::from_str::<StoredSession>(&raw).ok())
-            .filter(|identity| identity.auth_generation <= i64::MAX as u64)
-            .map(|identity| SessionIdentity {
-                principal: application::identity::Principal {
-                    id: identity.principal.id,
-                    email: identity.principal.email,
-                    role: identity.principal.role,
-                },
-                auth_generation: identity.auth_generation,
-            }))
+    fn find_session(
+        &self,
+        token: &str,
+        policy: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError> {
+        self.read_timed_session(token, policy)
+    }
+
+    fn record_activity(
+        &self,
+        token: &str,
+        expected: &SessionIdentity,
+        policy: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError> {
+        self.touch_timed_session(token, expected, policy)
     }
 
     fn revoke_session(&self, token: &str) -> Result<(), ApplicationError> {
@@ -223,19 +220,4 @@ fn validate_generation(value: u64) -> Result<(), ApplicationError> {
         ));
     }
     Ok(())
-}
-
-#[derive(serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct StoredSession {
-    principal: StoredPrincipal,
-    auth_generation: u64,
-}
-
-#[derive(serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct StoredPrincipal {
-    id: UserId,
-    email: String,
-    role: domain::identity::Role,
 }

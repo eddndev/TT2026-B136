@@ -8,9 +8,17 @@ mismo ejecutable aceptado. No cambia certificados, permisos, esquema ni release.
 La decisión y el límite entre archivos, SQL y arranque están en
 [ADR 0063](adr/0063-recoverable-crl-maintenance.md).
 
-La instalación del controlador en VPS3 y su aceptación operativa deben comprobarse
-por separado; que el módulo exista en el repositorio no significa que ya esté
-instalado. El procedimiento aún no programa renovaciones automáticas.
+Los nueve controladores aceptados de `2de3326` están instalados en VPS3. La
+aceptación real del 2 de octubre renovó la revisión de confianza 1 a 2 y la CRL
+4096 a 4097, conservando CA, claves y revocaciones. La aplicación `v0.1.1`
+reinició con salud válida; se comprobó el journal aceptado, el respaldo exacto
+de cuatro piezas y un único evento nuevo en una cadena de auditoría válida.
+La verificación completa tardó 8.246 s en el servidor, 10.146 s con transporte,
+y aprobó 172 comprobaciones. El export temporal de auditoría se eliminó.
+
+Esta instalación todavía tiene cero usuarios: no acredita aceptación funcional
+autenticada ni recuperación poblada. El procedimiento no programa renovaciones
+automáticas.
 
 ## Preparación
 

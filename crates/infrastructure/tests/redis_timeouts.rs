@@ -3,7 +3,7 @@ use std::net::TcpListener;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use application::identity::SessionStore;
+use application::identity::{SessionPolicy, SessionStore};
 use application::ApplicationError;
 use infrastructure::RedisSessionStore;
 
@@ -37,7 +37,7 @@ fn an_established_connection_times_out_when_a_command_never_receives_a_reply() {
     let (result_sent, result_received) = mpsc::channel();
     let caller = std::thread::spawn(move || {
         result_sent
-            .send(store.find_session("opaque-token"))
+            .send(store.find_session("opaque-token", SessionPolicy::default()))
             .unwrap();
     });
     command_received

@@ -30,9 +30,9 @@ comprobación falló primero por una ruta temporal global sin permisos y aprobó
 al ubicar los cinco directorios bajo la raíz privada. La provisión seleccionó
 Python 3.12.14, y el paquete incluye las versiones fijadas de qpdf y
 FFmpeg/ffprobe. PostgreSQL y Redis de \texttt{qadra} están activos en retorno
-local. API y frontend permanecen inactivos: no hay una release activada ni
-Owner enrolado. La ejecución completa por tag, el recorrido autenticado y una
-recuperación real conservan su aceptación pendiente.
+local. En ese corte, API y frontend permanecían inactivos, sin una release activada
+ni Owner enrolado; la ejecución completa por etiqueta y la recuperación real
+aún no tenían aceptación.
 
 Un ensayo adicional con PostgreSQL y OpenSSL reales comprobó cinco condiciones
 sobre el esquema de confianza versionado: ausencia inicial, coincidencia DER
@@ -42,3 +42,27 @@ con marcador interrumpido exige revisión 1 vigente al tiempo de PostgreSQL y
 CA/CRL locales idénticas antes de generar material. No se vuelve a publicar
 la confianza ni se regeneran CA/CRL para eludir una discrepancia. Esta evidencia
 no sustituye una restauración completa ni un rollback entre releases reales.
+
+
+La aceptación del 2 de octubre activó primero \texttt{v0.1.0} y después
+\texttt{v0.1.1}. El workflow de esta última aprobó en 17m44s, conservando las
+3340 identidades de pruebas Rust, 419 de navegador controlado y 51 reales de
+la confirmación de main. Las huellas del paquete, versión servida, esquema,
+salud, PKI y respaldo de cuatro piezas coincidieron en VPS3.
+
+El rollback real desde \texttt{v0.1.1} a \texttt{v0.1.0} tardó 7.936~s;
+el retorno, 8.020~s. Los tiempos incluyen respaldo, salud y comprobación de
+estado. Los datos SQL y las huellas de configuración y claves permanecieron
+iguales, y ambos respaldos y sus instantáneas Redis aprobaron. Quedó activa
+\texttt{v0.1.1}. La instalación tenía cero usuarios: esta evidencia no
+acredita recuperación de un despacho poblado ni un recorrido autenticado.
+
+
+La renovación de CRL se verificó primero con 96 pruebas focales y con un ensayo
+SQL/OpenSSL de tres renovaciones que recuperó respuestas y arranques fallidos;
+sus servicios eran simulados. Después se instaló el controlador aceptado en
+VPS3 y se ejecutó una renovación real, sin fallos inducidos. Aprobó
+172 comprobaciones en 8.246~s en el servidor, 10.146~s con transporte: confianza
+1 a 2, CRL 4096 a 4097, mismas claves y revocaciones, un único evento añadido
+y cadena completa de dos entradas válida. Los servicios y el respaldo eran
+reales; la ausencia de usuarios limita el alcance de esta aceptación.

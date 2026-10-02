@@ -31,6 +31,14 @@ retroceder el ejecutable no implica que una base migrada sea compatible.
 recuperación; \rutarepo{docs/adr/0048-private-versioned-deployment.md} fundamenta
 esta separación entre versiones de aplicación y estado persistente.
 
+La versión privada aceptada \texttt{v0.1.1} conserva un manifiesto de 119
+archivos y el esquema de la versión previa. La aceptación operativa comprobó
+su salud, identidad y material criptográfico, así como el rollback real a
+\texttt{v0.1.0} y el retorno a la nueva versión sin alterar datos SQL ni claves.
+El ingreso permanece privado y la cuenta inicial Owner requiere enrolamiento
+explícito; una instalación sin usuarios no demuestra todavía el recorrido
+autenticado de un despacho.
+
 El respaldo reúne PostgreSQL, una instantánea Redis validada y el material
 privado disponible, con la API y la entrada detenidas. La comprobación del
 proceso y directorio Redis evita capturar otra instancia; permisos restringidos
@@ -72,3 +80,12 @@ sin retroceder la confianza ni el contador. Este protocolo no es una transacció
 distribuida ni programa renovaciones automáticas; sus condiciones operativas
 se detallan en \rutarepo{docs/deployment-crl.md} y
 \rutarepo{docs/adr/0063-recoverable-crl-maintenance.md}.
+
+
+La aceptación operativa de este controlador renovó una vez la confianza de
+la instalación privada, de revisión 1 a 2, y conservó la autoridad, claves,
+certificados y revocaciones. Sólo cambiaron la CRL y su contador en el material
+privado. La aplicación \texttt{v0.1.1} reinició con salud comprobada, el registro
+terminó aceptado y su respaldo exacto conservó las cuatro piezas. Se verificó
+la cadena de auditoría completa y el prefijo previo sin modificaciones.
+Esta comprobación usó una instalación sin usuarios y no programó un timer.

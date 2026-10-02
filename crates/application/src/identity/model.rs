@@ -74,4 +74,5 @@ pub struct SessionResult {
     pub access_token: String,
     pub expires_in_seconds: u64,
     pub principal: Principal,
+    pub session: super::SessionStatus,
 }

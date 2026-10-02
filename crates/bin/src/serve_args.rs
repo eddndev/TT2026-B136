@@ -25,6 +25,13 @@ pub struct ServeArgs {
     /// TCP address listened on by the HTTP server.
     #[arg(long, default_value = "127.0.0.1:3000")]
     pub bind: String,
+    /// Optional idle lifetime in seconds; omission retains the 24-hour absolute limit only.
+    #[arg(
+        long,
+        env = "TT_SESSION_IDLE_SECONDS",
+        value_parser = clap::value_parser!(u64).range(1..=86_400)
+    )]
+    pub session_idle_seconds: Option<u64>,
     /// Maximum API requests admitted before body extraction.
     #[arg(long, default_value_t = web::HttpLimits::default().max_requests)]
     pub max_in_flight_requests: std::num::NonZeroUsize,

@@ -1,5 +1,80 @@
 # Informe de verificación local
 
+## Política temporal de sesión y actividad explícita: 2 de octubre de 2026
+
+El backend conserva `absolute_only` por defecto: 24 horas desde la emisión,
+sin plazo de inactividad implícito. La opción explícita de inactividad valida
+su duración antes del arranque. Estado, `/me` y autorización no renuevan;
+actividad compara la sesión vigente y sólo amplía el plazo de inactividad
+hasta el límite absoluto. Las sesiones antiguas sin el formato temporal y las
+claves sin expiración requieren volver a entrar. El contrato y sus límites
+están en [ADR-0064](adr/0064-explicit-session-activity.md).
+
+Los RED observados reprodujeron aceptación del formato antiguo y de claves sin
+TTL, rutas ausentes, metadatos MFA ausentes y opción CLI desconocida. También
+fallaron la política explícita aún sin implementar y seis casos de aplicación:
+actividad/estado, tiempo restante, expiración o revocación durante la consulta
+del usuario y propagación del error de almacenamiento. Las firmas incompletas
+no se presentan como fallos de comportamiento.
+
+La ejecución local secuencial posterior, con formato aplicado, obtuvo:
+
+| Frontera | Resultado | Tiempo de pruebas | Total del comando, incluida compilación |
+| --- | --- | --- | --- |
+| `identity_workflow`, política y reloj de prueba | 31/31 | 0.00 s | 4.073 s |
+| `auth_api`, contrato HTTP con doble de identidad | 13/13 | 0.03 s | 31.035 s |
+| `serve_session_config`, parser real | 4/4 | 0.00 s | 49.299 s |
+| Redis, formato, plazos, precisión y concurrencia | 23/23 | 0.07 s | 17.126 s |
+
+Redis se ejercitó realmente contra Valkey 8.1.10 desechable, autenticado y
+limitado a loopback y 64 MiB; sus recursos propios se retiraron. Se probaron
+expiración exacta, lecturas sin renovación, límite absoluto, política distinta,
+estado corrupto, generaciones superiores a la precisión numérica de Lua y
+actividad concurrente con revocación. El adaptador requiere Redis 7 o posterior
+por `PEXPIRETIME`; el respaldo sigue exigiendo Redis 7.4 por separado.
+
+Los focales de aplicación y HTTP usan dobles de persistencia e identidad.
+La demostración API integrada posterior aprobó con salida 0 en **320.859 s**,
+incluyendo compilación, arranque nativo y restauración SQL/PKI. Conservó los
+roles, recibos y recorridos existentes con backends reales; la limpieza normal
+de recursos propios aprobó. La admisión multimedia usó los ejecutables exactos
+de `v0.1.1`, con SHA-256 y capacidades de la política verificados.
+
+Esa demostración ejercitó la política **predeterminada**. Una aceptación HTTP
+focal posterior habilitó cinco segundos de inactividad exclusivamente en una
+instalación desechable con PostgreSQL, Valkey 8.1.10 y criptografía real. Aprobó
+**139 comprobaciones sobre 29 peticiones en 18.306 s**: MFA por TOTP y recuperación,
+metadatos exactos, lecturas sin renovación, rechazo de cuerpo o consulta,
+actividad válida más allá del plazo anterior, límite absoluto inmutable,
+expiración y logout sin recreación de claves. Se retiraron todos sus procesos
+y archivos temporales propios. Esa duración es de la prueba, no una política
+operativa elegida para VPS3.
+
+El cliente HTTP, reloj y monitor independientes aprobaron **53/53 en 722.851 ms**.
+Dos regresiones primero fallaron porque una respuesta posterior más rápida
+podía ampliar el plazo monotónico ya confirmado. El monitor conserva la
+conversión más conservadora entre ambos relojes; sólo un nuevo plazo de
+inactividad confirmado puede prolongar la vigencia local, siempre dentro del
+límite absoluto. No hace consultas periódicas, actividad autónoma ni reintentos.
+
+Estas verificaciones no acreditan regresión global, CI ni despliegue del cambio.
+No se activó inactividad operativa y no se probó aún recuperación de borradores
+o reingreso en el navegador.
+
+## Activación y rollback real de v0.1.1: 2 de octubre de 2026
+
+La etiqueta exacta de `e3aa87a` aprobó Deploy version en **17m44s**. Se verificaron
+3340 identidades Rust, 419 de navegador controlado y 51 reales, iguales a la
+confirmación natural de main. El paquete de 19142052 bytes y 119 archivos
+conservó SHA-256 `4e8dac3f8852da4bd5b8e080348daed8ada01e00da0fc56e7fa53a9459bf3169`.
+En VPS3 aprobaron versión, huellas, salud, PKI y respaldo completo.
+
+El rollback real a `v0.1.0` tardó **7.936 s**; el retorno a `v0.1.1`, **8.020 s**.
+Ambos tiempos incluyen respaldo, salud y comprobación de estado. Los hashes de
+configuración y claves, y la captura de datos SQL, permanecieron iguales; cada
+respaldo validó sus cuatro archivos y el RDB. La aplicación final es `v0.1.1`.
+Había cero usuarios; no acredita recuperación poblada ni aceptación autenticada.
+
 ## Renovación recuperable de CRL: 2 de octubre de 2026
 
 El controlador de mantenimiento conserva CA, claves, identidad de instalación
@@ -28,8 +103,22 @@ respaldo y salud es simulada: no acredita renovación operativa en VPS3.
 El primer intento nativo falló en una consulta del arnés, que usó `operation`
 en vez de la columna `action`; no fue un fallo del producto. El arnés corregido
 verificó además la cadena con el ejecutable independiente. No se cambiaron
-producto, criptografía, límites, esquema ni gates de CI. La regresión remota y
-la instalación del controlador permanecen pendientes; no hay timer automático.
+producto, criptografía, límites, esquema ni gates de CI. La cabeza de PR54
+aprobó CI en 6m45s y Documents en 7m50s; su merge `2de3326` confirmó 7m55s y
+1m15s. Conservó las 3340 identidades Rust y cobertura 97/95/93 %. Web no aplica
+a sus rutas modificadas; el producto conserva el estado aceptado de `e3aa87a`.
+Los nueve controladores se instalaron realmente en VPS3 en 5.754 s, con
+originales respaldados, aplicación `v0.1.1`, salud y huellas privadas intactas.
+La renovación operativa posterior aprobó **172 comprobaciones en 8.246 s**
+en VPS3, **10.146 s** con transporte. La confianza avanzó de 1 a 2 y la CRL de
+4096 a 4097; sólo cambiaron la CRL y su contador entre los archivos privados.
+La autoridad, claves, certificados, revocaciones y enlaces de release quedaron
+iguales. El journal terminó aceptado, sin marcador pendiente; se verificaron
+salud de `v0.1.1` y las cuatro piezas del respaldo exacto
+`20261002T172853Z-56240847`. El prefijo SQL original permaneció byte por byte;
+la publicación añadió un único evento y el CLI confirmó la cadena completa de
+dos entradas. El export temporal propio se eliminó. Son servicios y respaldo
+reales, con cero usuarios; no hubo fallos inducidos ni timer automático.
 
 ## Restauración conjunta SQL, Redis y PKI: 2 de octubre de 2026
 

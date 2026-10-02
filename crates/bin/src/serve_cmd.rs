@@ -12,7 +12,7 @@ use application::documents::{
 };
 use application::hearing_results::HearingResultService;
 use application::hearings::HearingService;
-use application::identity::{IdentityPorts, IdentityService, IdentityWorkflow};
+use application::identity::SessionPolicy;
 use application::judicial_calendars::JudicialCalendarService;
 use application::participants::ParticipantService;
 use application::procedural_facts::ProceduralFactService;
@@ -20,13 +20,11 @@ use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{
-    openssl_version, AesGcmSecretProtector, Argon2idHasher, EnvelopeKeyManager, LocalOpensslTsa,
-    PostgresAuditLog, PostgresCaseDocumentStore, PostgresCaseRepository,
-    PostgresHearingResultStore, PostgresHearingStore, PostgresJudicialCalendarStore,
-    PostgresParticipantStore, PostgresTypedParticipantStore, PostgresUserRepository,
-    RandomRecoveryCodeGenerator, RedisSessionStore, Rfc3161Verifier, RingAesGcmCipher,
-    RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, SystemClock,
-    TotpRsProvider, X509ChainValidator,
+    openssl_version, EnvelopeKeyManager, LocalOpensslTsa, PostgresCaseDocumentStore,
+    PostgresCaseRepository, PostgresHearingResultStore, PostgresHearingStore,
+    PostgresJudicialCalendarStore, PostgresParticipantStore, PostgresTypedParticipantStore,
+    Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier,
+    StoredZipWriter, SystemClock, X509ChainValidator,
 };
 use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 use zeroize::Zeroizing;
@@ -42,6 +40,10 @@ const KEK_VAR: &str = "KEK_BASE64";
 
 /// Builds all local adapters and blocks while the HTTP server is running.
 pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
+    let session_policy = SessionPolicy::new(
+        SessionPolicy::default().absolute_ttl_seconds(),
+        args.session_idle_seconds,
+    )?;
     let alert_email = crate::serve_alert_composition::email_settings(args)?;
     let alert_config = crate::serve_alert_runtime::AlertRuntimeConfig::new(
         args.alert_page_limit,
@@ -94,29 +96,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 PostgresCaseRepository::open(database, Arc::new(RingSha256Hasher::new()))
                     .context("cannot initialize PostgreSQL case repository")?,
             );
-            let identity: Arc<dyn IdentityWorkflow> =
-                Arc::new(IdentityService::new(IdentityPorts {
-                    users: Arc::new(
-                        PostgresUserRepository::open(database)
-                            .context("cannot initialize PostgreSQL user repository")?,
-                    ),
-                    sessions: Arc::new(
-                        RedisSessionStore::connect(&redis_url)
-                            .context("cannot initialize Redis session store")?,
-                    ),
-                    passwords: Arc::new(Argon2idHasher::new()),
-                    totp: Arc::new(TotpRsProvider::new()),
-                    recovery: Arc::new(RandomRecoveryCodeGenerator),
-                    secrets: Arc::new(
-                        AesGcmSecretProtector::new(kek.clone())
-                            .context("cannot initialize TOTP secret protection")?,
-                    ),
-                    clock: Arc::new(SystemClock::new()),
-                    audit_log: Box::new(
-                        PostgresAuditLog::open(database)
-                            .context("cannot open PostgreSQL audit log")?,
-                    ),
-                }));
+            let identity = crate::serve_identity_composition::open(
+                database,
+                &redis_url,
+                kek.clone(),
+                session_policy,
+            )?;
             let cases = CaseService::new(
                 case_repository,
                 identity.clone(),

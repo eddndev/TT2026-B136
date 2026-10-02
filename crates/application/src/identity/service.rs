@@ -13,12 +13,13 @@ use domain::identity::{Permission, Role, UserId};
 use super::validation::{normalize_email, validate_password};
 use super::{
     EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SecretProtector,
-    SessionIdentity, SessionResult, SessionStore, UserRecord, UserRepository,
+    SessionPolicy, SessionResult, SessionStore, UserRecord, UserRepository,
 };
 use crate::ApplicationError;
 
+mod session;
+
 const CHALLENGE_TTL_SECONDS: u64 = 300;
-const SESSION_TTL_SECONDS: u64 = 86_400;
 const FAILURE_WINDOW_SECONDS: u64 = 900;
 const TOTP_REPLAY_TTL_SECONDS: u64 = 90;
 const MAX_PASSWORD_FAILURES: u32 = 5;
@@ -48,11 +49,16 @@ struct RuntimePorts {
 /// Thread-safe implementation of account and session workflows.
 pub struct IdentityService {
     ports: RuntimePorts,
+    session_policy: SessionPolicy,
     audit_log: Mutex<Box<dyn AuditLog + Send + Sync>>,
 }
 
 impl IdentityService {
     pub fn new(ports: IdentityPorts) -> Self {
+        Self::with_session_policy(ports, SessionPolicy::default())
+    }
+
+    pub fn with_session_policy(ports: IdentityPorts, session_policy: SessionPolicy) -> Self {
         let IdentityPorts {
             users,
             sessions,
@@ -73,6 +79,7 @@ impl IdentityService {
                 secrets,
                 clock,
             },
+            session_policy,
             audit_log: Mutex::new(audit_log),
         }
     }
@@ -213,25 +220,6 @@ impl IdentityService {
         self.issue_session(&user, "identity.recovery_accepted")
     }
 
-    pub fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
-        let cached = self
-            .ports
-            .sessions
-            .find_session(access_token)?
-            .ok_or(ApplicationError::InvalidSession)?;
-        let Some(user) = self.ports.users.find_by_id(cached.principal.id)? else {
-            return Err(ApplicationError::InvalidSession);
-        };
-        if !user.active
-            || user.auth_generation > i64::MAX as u64
-            || cached.auth_generation != user.auth_generation
-            || cached.principal != Principal::from(&user)
-        {
-            return Err(ApplicationError::InvalidSession);
-        }
-        Ok(Principal::from(&user))
-    }
-
     pub fn authorize(
         &self,
         access_token: &str,
@@ -310,46 +298,6 @@ impl IdentityService {
                     && user.auth_generation == challenge.auth_generation
             })
             .ok_or(ApplicationError::MfaRejected)
-    }
-
-    fn issue_session(
-        &self,
-        user: &UserRecord,
-        action: &str,
-    ) -> Result<SessionResult, ApplicationError> {
-        let current = self
-            .ports
-            .users
-            .find_by_id(user.id)?
-            .filter(|current| {
-                current.active
-                    && current.auth_generation <= i64::MAX as u64
-                    && current.auth_generation == user.auth_generation
-                    && Principal::from(current) == Principal::from(user)
-            })
-            .ok_or(ApplicationError::MfaRejected)?;
-        let principal = Principal::from(&current);
-        let access_token = self.ports.sessions.create_session(
-            &SessionIdentity {
-                principal: principal.clone(),
-                auth_generation: user.auth_generation,
-            },
-            SESSION_TTL_SECONDS,
-        )?;
-        if let Err(error) = self.audit(&principal.email, action, &principal.id.to_string()) {
-            self.ports
-                .sessions
-                .revoke_session(&access_token)
-                .map_err(|_| {
-                    ApplicationError::Port("session cleanup failed after audit failure".into())
-                })?;
-            return Err(error);
-        }
-        Ok(SessionResult {
-            access_token,
-            expires_in_seconds: SESSION_TTL_SECONDS,
-            principal,
-        })
     }
 
     fn reject_password(&self, email: &str) -> Result<(), ApplicationError> {

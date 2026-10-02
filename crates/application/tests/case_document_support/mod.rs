@@ -7,7 +7,7 @@ use application::documents::{
     MetadataRevision, VersionPage, VersionQuery, VersionSelection,
 };
 use application::identity::{
-    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult, SessionStatus,
 };
 use application::ApplicationError;
 use domain::audit::ChainedEvent;
@@ -47,6 +47,8 @@ mock! {
         fn complete_totp(&self, token: &str, code: &str) -> Result<SessionResult, ApplicationError>;
         fn complete_recovery(&self, token: &str, code: &str) -> Result<SessionResult, ApplicationError>;
         fn authenticate(&self, token: &str) -> Result<Principal, ApplicationError>;
+        fn session_status(&self, token: &str) -> Result<SessionStatus, ApplicationError>;
+        fn record_activity(&self, token: &str) -> Result<SessionStatus, ApplicationError>;
         fn authorize(&self, token: &str, permission: Permission) -> Result<Principal, ApplicationError>;
         fn logout(&self, token: &str) -> Result<(), ApplicationError>;
     }

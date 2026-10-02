@@ -111,6 +111,12 @@ impl DocumentFormatBatchValidator for FormatCheck {
 
 pub struct TestIdentity(pub Principal);
 impl IdentityWorkflow for TestIdentity {
+    fn session_status(&self, _: &str) -> Result<SessionStatus, ApplicationError> {
+        unreachable!()
+    }
+    fn record_activity(&self, _: &str) -> Result<SessionStatus, ApplicationError> {
+        unreachable!()
+    }
     fn authenticate(&self, _: &str) -> Result<Principal, ApplicationError> {
         Ok(self.0.clone())
     }
