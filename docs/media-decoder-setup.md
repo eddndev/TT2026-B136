@@ -84,3 +84,10 @@ independent of build resources and the runner's total RAM. The runtime policy an
 `docs/adr/0058-bounded-general-document-admission.md`; do not raise those limits
 or infer complete upload safety from this provisioning check. Existing PDF/DOCX
 limits remain documented in `docs/document-format-operations.md`.
+
+The private native exec fixes `MALLOC_ARENA_MAX=2` after clearing the inherited
+environment. This bounds glibc allocator reservations within the existing
+512 MiB AS budget; it does not increase that budget or remove FFmpeg scheduler
+threads. Setting allocator variables only in a service or runner has no effect
+because the worker discards them. Caller-provided `GLIBC_TUNABLES`, allocator
+settings and other environment variables must not cross this boundary.

@@ -54,6 +54,17 @@ un grupo propio, observa la salida del lider sin recolectarlo mediante
 la identidad del grupo hasta limpiarlo, incluso cuando el lider termina antes
 que un descendiente. No convierte al servidor HTTP en subreaper.
 
+El entorno del proceso nativo se vacia y recibe exclusivamente
+`MALLOC_ARENA_MAX=2`. En glibc, las arenas adicionales pueden reservar bloques
+virtuales de 64 o 128 MiB; los hilos del scheduler de FFmpeg no desaparecen al
+limitar a uno los hilos de codecs y filtros. Una comprobacion MP4 positiva
+reprodujo `pthread_create` con EAGAIN y salida 245, y la traza mostro reservas
+rechazadas por ENOMEM bajo los 512 MiB existentes. Acotar las arenas elimino
+esas reservas rechazadas en la comprobacion trazada, sin ampliar AS, CPU,
+tiempo o archivos. No heredar opciones del llamador, incluido GLIBC_TUNABLES,
+ni configurar este ajuste solamente en el runner: el exec privado limpia el
+entorno. La aceptacion nativa positiva y negativa sigue siendo obligatoria.
+
 Provisionar FFmpeg 9.0.2 mediante `scripts/install_media_decoder.py`, con fuente
 y digest fijos, componentes minimos y red deshabilitada en la compilacion. La
 invocacion admite exclusivamente el protocolo de entrada `fd`, decodificadores

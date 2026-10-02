@@ -42,6 +42,8 @@ pub fn worker_entry() -> Option<i32> {
             let _error = std::process::Command::new(program)
                 .args(args)
                 .env_clear()
+                // Bound native allocator reservations; see docs/adr/0058-bounded-general-document-admission.md.
+                .env("MALLOC_ARENA_MAX", "2")
                 .exec();
             rustix::runtime::exit_group(125);
         }
