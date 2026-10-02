@@ -191,6 +191,14 @@ comprobaciones son locales; no acreditan todavía una cabeza global integrada
 ni una activación de VPS3. Los grupos focales son distintos y no se suman como
 si fueran una ejecución completa de CI.
 
+La primera campaña global detectó un fallo de preparación en el verificador SQL
+del calendario: todavía extraía las migraciones de `postgres.rs`, aunque las
+constantes habían pasado a `postgres/migrations.rs`. CI y Web se cancelaron
+automáticamente antes de completar la regresión. El helper ahora resuelve las
+rutas respecto al módulo que las declara y rechaza un inventario vacío o ajeno
+a `migrations/`. La comprobación SQL corregida aprobó sus 21 casos en 5.369 s
+con PostgreSQL desechable; el cierre global requiere la nueva cabeza publicada.
+
 | Comprobación de esta entrega | Resultado observado |
 | --- | --- |
 | Aplicación: contratos, autorización, trabajos y avisos | 26 casos aprobados |

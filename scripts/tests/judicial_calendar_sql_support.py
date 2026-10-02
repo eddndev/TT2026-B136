@@ -72,11 +72,16 @@ class CalendarSqlFixture(unittest.TestCase):
             raise RuntimeError('An isolated DOCUMENT_TEST_DATABASE_URL is required')
         cls.schema = 'calendar_sql_' + uuid4().hex
         cls.sql('CREATE SCHEMA ' + cls.schema)
-        installer = (ROOT / 'crates/infrastructure/src/postgres.rs').read_text()
-        prerequisites = re.findall(r'include_str!\("../../../(migrations/[^"\n]+)"\)', installer)
+        installer = ROOT / 'crates/infrastructure/src/postgres/migrations.rs'
+        included = re.findall(r'include_str!\s*\(\s*"([^"\n]+)"\s*\)', installer.read_text())
+        prerequisites = [(installer.parent / path).resolve() for path in included]
+        if not prerequisites or any(path.parent != ROOT / 'migrations' for path in prerequisites):
+            raise RuntimeError('Calendar prerequisites must reference versioned migrations')
         # Later migrations can depend on the calendar tables created below.
-        prerequisites = [p for p in prerequisites if Path(p).name < '0013_']
-        cls.sql('\n'.join((ROOT / p).read_text() for p in prerequisites))
+        prerequisites = [p for p in prerequisites if p.name < '0013_']
+        if not prerequisites:
+            raise RuntimeError('Calendar migration prerequisites are missing')
+        cls.sql('\n'.join(path.read_text() for path in prerequisites))
         for suffix in MIGRATIONS:
             path = ROOT / 'migrations' / ('0013_judicial_calendar_' + suffix + '.sql')
             if path.exists():
