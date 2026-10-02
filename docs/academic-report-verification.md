@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Despliegue reconciliado: PDF del 2 de octubre de 2026
+
+La compilación con LuaLaTeX terminó con código 0 después de incorporar la
+consulta inversa desde actividades y la corrección de reinicio tras reprogramar
+audiencias. El PDF tiene **347 páginas y 5924645 bytes**, SHA-256
+`97a9d896224d01d01a7de293766e081c00d8570d374c0d2dfb1fff87175934f5`.
+Se inspeccionaron las páginas físicas **207, 249, 250, 346 y 347**, con
+implementación, verificación del despliegue y anexo operativo. La muestra es
+legible, sin recortes ni solapamientos. No hay referencias sin resolver ni
+glifos ausentes; permanecen las sustituciones históricas de versalitas y el
+desborde de 0.11754 pt. Esta revisión no acredita una activación del servidor
+ni el cierre integral del manuscrito.
+
 ## Despliegue privado: 25 de septiembre de 2026
 
 Se añadieron apartados de implementación, verificación focal y operación por
