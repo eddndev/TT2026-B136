@@ -1,6 +1,7 @@
+import { activityResourcePage } from './activity-resources-fixtures.mjs';
 import { failFact } from './procedural-facts-helpers.mjs';
 import { caseId } from './helpers.mjs';
-import { summary, historyRow } from '../fixtures/deadline-v2-unit.mjs';
+import { summary, historyRow, notChecked } from '../fixtures/deadline-v2-unit.mjs';
 
 export async function installResourceActivityRoutes(page, state, options) {
   const { resources, resource, deadline } = state;
@@ -121,6 +122,16 @@ export async function installResourceActivityRoutes(page, state, options) {
         },
       });
     if (parts[0] !== deadline[0].id) return failFact(route, 'deadline_not_found', 404);
+    if (parts[1] === 'resource-associations')
+      return route.fulfill({
+        json: activityResourcePage(
+          caseId,
+          'deadline',
+          parts[0],
+          url,
+          [...state.records.values()].map((history) => state.view(history.at(-1))),
+        ),
+      });
     if (parts[1] === 'history')
       return route.fulfill({
         json: {
@@ -135,6 +146,10 @@ export async function installResourceActivityRoutes(page, state, options) {
       parts[1] === 'revisions'
         ? deadline.find((v) => v.revision === Number(parts[2]))
         : deadline.at(-1);
-    return row ? route.fulfill({ json: row }) : failFact(route, 'deadline_not_found', 404);
+    return row
+      ? route.fulfill({
+          json: parts[1] === 'revisions' ? { ...row, operational: notChecked() } : row,
+        })
+      : failFact(route, 'deadline_not_found', 404);
   });
 }

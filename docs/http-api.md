@@ -473,11 +473,27 @@ Owner y Litigator asignado gestionan; Paralegal asignado consulta y Client queda
 denegado. Un recurso archivado permite desvincular, pero no crear otro vínculo.
 El expediente cerrado conserva lecturas y repetición exacta autorizada, sin
 nuevas mutaciones. Vincular no crea ni cancela actividades, cambia atención,
-activa términos ni duplica alertas. La creación contextual de actividades y el
-impulso jurídico conservan su alcance pendiente. La implementación local tiene
-evidencia focal y aceptación API/restauración integrada aprobadas. El navegador
-real y CI permanecen pendientes para este incremento, según el
+activa términos ni duplica alertas. La [creación contextual de plazos](resource-deadlines-api.md)
+prepara y confirma un plazo y su vínculo en una transacción auditada. Las
+audiencias propias de recursos y el impulso jurídico conservan su alcance
+pendiente. Cada incremento registra su aceptación y cierre global en el
 [informe](verification-report.md).
+
+## Recursos relacionados desde una actividad
+
+La [lectura inversa de asociaciones](activity-resource-links-api.md) permite
+consultar `/api/v1/cases/{case_id}/hearings/{hearing_id}/resource-associations`
+y su equivalente para `deadlines/{deadline_id}`. Devuelve cabezas actuales de
+vínculos, capturas históricas y una proyección actual del destino, con un
+`checked_at` común incluso en una página vacía. Admite estado y cursor exclusivo;
+autoriza y audita cada página dentro de una transacción.
+
+Qadra ofrece esta consulta desde el detalle exacto de una audiencia o plazo,
+incluidos los abiertos desde alertas. Abre el recurso y vínculo capturados y
+permite regresar a la actividad y la bandeja filtrada sin alterar la lectura
+del aviso. Los vínculos actuales no describen las relaciones existentes al
+emitirse la alerta. Client permanece denegado; consultar un aviso no concede
+acceso adicional al expediente.
 
 ## Participantes del expediente
 

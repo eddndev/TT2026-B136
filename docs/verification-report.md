@@ -1,5 +1,14 @@
 # Informe de verificación local
 
+## Integración de navegación desde actividades y recuperación de audiencias
+
+La cabeza `02f33f5` aprobó CI en 7:42, Web en 13:03 y Documents en 8:45.
+Se conservaron 3156 pruebas Rust y dos ignoradas, 396 de navegador controlado y
+47 reales, sin perder identidades de la campaña integrada anterior. PR48 se
+integró por squash como `5020707ebdb65e85ab913f0252bf319ca2f52931`.
+La confirmación natural de main está en curso; estos resultados no sustituyen
+las aceptaciones pendientes de informes ni del despliegue.
+
 ## Adaptación del despliegue a VPS3: 1 de octubre de 2026
 
 La adaptación conserva el controlador por tags y los límites del despliegue
@@ -111,9 +120,108 @@ workflow exige CI y Web exitosos para el tag; cualquier fallo bloquea el cambio.
 La actualización y comprobación académica se registran por separado en
 [el informe documental](academic-report-verification.md).
 
+## Reprogramación próxima de audiencias: planes compatibles con el inventario
+
+La aceptación HTTP con servicios reales detectó un fallo al reabrir `serve`
+después de una parada SIGTERM con salida cero. El inventario persistido rechazó
+una alerta de audiencia con el motivo `notification kind does not apply to
+hearing`. El fallo ocurrió antes de generar informes. El planificador creaba
+un episodio `DueChangedSoon` al cambiar una fecha próxima sin distinguir
+entre audiencia y plazo. Ese plan podía guardarse, aunque la activación y el
+inventario de arranque exigen que una audiencia sólo tenga `Upcoming`, como
+establece [el contrato de alertas](alerts-api.md).
+
+La reproducción focal del planificador obtuvo **dos fallos y un control positivo
+aprobado**. Una segunda reproducción con PostgreSQL aislado obtuvo **dos fallos
+y un control positivo aprobado en 14.55 s**: los casos de audiencia fallaron al
+activar o reabrir, con el mismo error observado por HTTP. El control de plazo
+conservó su aviso de cambio de vencimiento. Las pruebas de reapertura comparan
+el estado persistido antes y después de abrir el adaptador; no emplean reparación
+de filas para superar el inventario.
+
+La corrección limita la creación del episodio de cambio a sujetos de plazo.
+La reprogramación de una audiencia conserva la reconciliación de anticipaciones
+con la nueva fecha y su origen. No cambian preferencias, tiempos, validadores,
+contrato HTTP ni datos existentes. Las guardas SQL vigentes comprueban tamaño y
+digest del contenido, relaciones e inmutabilidad; no comprueban la combinación
+semántica audiencia/tipo de aviso dentro de ese contenido. La corrección evita
+producirla, sin omitir la validación estricta al activar o iniciar el servidor.
+
+Después de la corrección aprobaron los **tres casos unitarios y los tres casos
+PostgreSQL**, estos últimos en **14.96 s**: seis casos distintos en total.
+Incluyen planes pendientes y avisos activados de audiencia, reapertura sin
+reescritura de filas y conservación de `DueChangedSoon` para plazos. Son los
+mismos casos de la reproducción anterior, no seis pruebas adicionales a ella.
+Sigue pendiente repetir el reinicio del servidor compuesto y la aceptación HTTP
+que detectó el problema. El resultado focal no modifica los totales históricos
+de pruebas o cobertura ni acredita ese cierre integrado.
+
+La prevención no sanea registros incompatibles ya persistidos. Un inventario
+con ellos debe seguir rechazándose; no se borran planes, se reinterpretan como
+anticipaciones ni se relaja el arranque. Cualquier recuperación de datos no
+desechables requiere un procedimiento explícito y verificable por separado.
+
+## 2026-10-02: ubicación del recorrido de clasificación documental
+
+La ejecución de cierre del navegador agotó los 60 segundos totales del escenario
+de clasificación en VPS2, durante la recarga final del historial. La revisión 5
+ya era visible; el único rechazo HTTP registrado fue el conflicto 409 esperado.
+Los resultados anteriores del mismo escenario fueron 47.478–50.075 segundos en
+las entregas funcionales recientes. No se atribuye la variación a una causa de
+CPU concreta sin una medición controlada.
+
+Se asignó únicamente este escenario a la tercera partición, en VPS3. El recorrido,
+sus aserciones, sus tiempos y sus datos permanecen iguales; no requiere otra
+familia de preparación. La nueva prueba de asignación falló primero y después
+aprobó junto con las demás comprobaciones del plan: **11/11**, incluida la unión
+exacta de los archivos descubiertos sin duplicados. Esto acredita la asignación;
+la estabilidad y el tiempo del recorrido concurrente quedan pendientes del CI.
+Rust y documentación habían aprobado en la cabeza anterior; la campaña de
+navegador cancelada no acredita la regresión completa.
+
 La actualización académica posterior de estos resultados y la comprobación del
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
+
+## Recursos relacionados desde actividades: comprobación del 27 de septiembre de 2026
+
+La consulta inversa autoriza una audiencia o plazo concreto, lee las cabezas
+actuales de sus asociaciones y conserva sus capturas históricas. La interfaz
+abre el recurso y vínculo exactos y regresa a la actividad original y a la
+bandeja filtrada sin marcar alertas como leídas. Su contrato está en
+[activity-resource-links-api.md](activity-resource-links-api.md) y la decisión
+en [ADR 0059](adr/0059-activity-resource-navigation.md).
+
+| Comprobación nueva | Resultado ejecutado |
+| --- | --- |
+| Aplicación: ámbito, contrato de página y reautenticación | 5/5 |
+| PostgreSQL desechable: lectura, acceso, auditoría y concurrencia | 6 casos distintos aprobados |
+| Regresiones PostgreSQL de asociaciones existentes | 12/12 |
+| HTTP inverso: rutas, permisos, filtros y contrato | 6/6; diez regresiones previas aprobadas |
+| Cliente Node | 8/8 |
+| Navegador controlado, un worker | 9 casos distintos aprobados |
+| Planificador de fixtures reales | 9/9, incluyendo el archivo nuevo en su familia existente |
+
+Las pruebas fallaron primero ante la ausencia del nuevo comportamiento. El
+caso PostgreSQL de revocación necesitó incrementar revisión y generación de
+cuenta en su fixture para respetar el guard existente; después aprobó aislado.
+El navegador de plazo necesitó representar una revisión histórica con estado
+operativo no comprobado; se corrigió el fixture sin debilitar el contrato.
+Las repeticiones focales no se cuentan como pruebas adicionales. No se ejecutó
+una suite completa local. El recorrido con servicios reales aprobó 1/1 en
+11.6 s de escenario y 15.5 s del ejecutor. Se inspeccionaron las capturas a 1440
+y 390 píxeles: el panel mantiene el sistema Qadra y no desborda horizontalmente.
+El flujo HTTP integrado y su respaldo/restauración aprobaron con salida cero,
+incluidas páginas inversas, filtros, capturas y rechazo tras revocar pertenencia.
+Las ocho familias documentales también conservaron sus bytes tras restaurar.
+Después de corregir sólo tildes visibles, los dos recorridos de navegación
+aprobaron en 8.5 s y las 17 regresiones de alertas, plazos y acceso a asociaciones
+en 27.7 s, siempre con un worker. Clippy del workspace y todos sus targets aprobó con advertencias denegadas
+(1 min 51 s); el registro estático comprobó 216 ejecutables de integración sin
+fuentes duplicadas. El PDF final de 344 páginas compiló y se inspeccionaron las
+páginas físicas 205, 206, 246 y 247. No se observaron nuevos recortes ni
+referencias sin resolver; persisten las sustituciones históricas de versalitas
+y el desborde conocido de 0.11754 pt. El cierre global sigue pendiente.
 
 ## Admisión documental general: aceptación local del 27 de septiembre de 2026
 
@@ -233,7 +341,9 @@ identidades de pruebas previas: 3084 Rust, dos ignoradas, 378 de navegador
 controlado y 45 con servicios reales. Los gates de cobertura conservaron
 97/95/93 % para domain/application/infrastructure. PR46 se integró por squash
 como `23970cc516854688da587e878d4304fa52068ecf`; la ejecución natural de main
-sigue siendo su comprobación final independiente.
+aprobó también: CI en 6 min 37 s, Web en 13 min 19 s y Documents en 7 min
+39 s, conservando el mismo inventario y todos los gates. Esa confirmación
+natural es independiente de la campaña de la PR.
 
 La primera campaña se canceló al fallar un helper de navegador: confundía una
 lista de hechos históricos con un estado compartido ya inicializado y omitía

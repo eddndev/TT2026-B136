@@ -14,9 +14,9 @@ no significan que su código siga fuera de `main`.
   acceso de miembros, calibración de contraseñas, tablero operativo autorizado y
   creación contextual explícita de plazos y sus asociaciones, y admisión general
   de las ocho familias documentales aprobadas.
-- En verificación: consulta inversa de recursos desde audiencia o plazo, con
-  regreso a la actividad o al contexto de alertas, publicada en PR 48. La cabeza
-  `de4761e` espera confirmación; no se presenta como integrada.
+- Integrada mediante PR48: consulta inversa de recursos desde audiencia o plazo,
+  con regreso a la actividad o al contexto de alertas. La cabeza final aprobó
+  los tres gates; está en curso la confirmación natural de main.
 - Pendientes procesales: corpus jurídico aplicable, activación automática y
   durable de un plazo nuevo, audiencias propias de recursos y catálogo restante
   de audiencias. Las continuaciones declaradas y la creación contextual explícita
@@ -405,7 +405,7 @@ separada de las campañas de hechos y plazos.
 | Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
 | Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
 | Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
-| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Registro declarado implementado con aceptación real; asociaciones a audiencias/plazos existentes implementadas con evidencia focal y aceptación API/restauración y navegador real aprobados; incremento integrado en main. La creación contextual explícita de plazos aprobó aceptación local y CI y quedó integrada mediante PR46, con confirmación natural de main aprobada. La consulta inversa y el regreso al contexto de actividad/alertas están publicados en PR48, pendientes de confirmación e integración. Faltan audiencias contextuales, corpus calificado, activación automática durable y completar la trazabilidad de alertas en recursos, según [el alcance](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
+| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Registro declarado implementado con aceptación real; asociaciones a audiencias/plazos existentes implementadas con evidencia focal y aceptación API/restauración y navegador real aprobados; incremento integrado en main. La creación contextual explícita de plazos aprobó aceptación local y CI y quedó integrada mediante PR46, con confirmación natural de main aprobada. La consulta inversa y el regreso al contexto de actividad/alertas están integrados mediante PR48, con confirmación natural de main en curso. Faltan audiencias contextuales, corpus calificado, activación automática durable y completar la trazabilidad de alertas en recursos, según [el alcance](procedural-resources-scope.md). No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
@@ -460,7 +460,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
 | Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
 | Tablero de control | Indicadores integrados por PR45 y confirmados en main; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados; CI, Web y Documents de PR45 y de main aprobados. Firma personal pendiente y naturaleza fatal de plazos no se infieren de estos indicadores. |
-| Informes | Implementación local por capas; aún no expuesta por el servidor | Solicitudes, captura autorizada, generación PDF/CSV, persistencia, avisos, descargas e interfaz tienen aceptación focal. El trabajo está conservado separado del despliegue; faltan composición del consumidor y HTTP, aceptación integral con restauración/navegador real y publicación. No se declara disponible para usuarios. |
+| Informes | En desarrollo, sin versión publicada | Solicitudes, captura autorizada, PDF/CSV, avisos y selector tienen aceptación focal local. La composición supervisada y dos recorridos reales aprobaron localmente; falta cerrar la aceptación API/restauración, regresión global y publicación. El incremento permanece separado del despliegue y no se declara disponible para usuarios. |
 | Consulta de actividad | Parcial | Listado filtrado de eventos y permisos por recurso; verificación de la cadena ya implementada. |
 
 La validación final incluye usabilidad con participantes reales. Ningún resultado
@@ -609,15 +609,38 @@ La [creación contextual de plazos](resource-deadlines-api.md) está integrada
 como entrega posterior: prepara un plazo y su asociación, exige una
 fuente temporal explícita y confirma ambos registros con un marcador auditado
 de origen conjunto. La repetición exacta conserva ambos recibos; dos operaciones
-ordinarias independientes no acreditan ese origen. La aceptación local y los
-tres gates aprobaron; PR46 está integrada y su confirmación natural de `main`
-también aprobó. La consulta inversa desde una audiencia o plazo y el regreso
-a su contexto están publicados por separado en PR48, todavía pendientes de
-confirmación e integración.
+ordinarias independientes no acreditan ese origen. La aceptación local y los tres gates aprobaron; PR46 está integrada. La
+confirmación natural de main aprobó los tres gates y se registra separadamente.
+
+La [lectura inversa desde actividades](activity-resource-links-api.md) está
+integrada mediante PR48. El panel **Recursos relacionados** consulta asociaciones
+por expediente y audiencia o plazo, filtra sus cabezas actuales y pagina sin
+recorrer todos los recursos en el navegador. La observación común también
+existe en una página vacía. Abrir una fila conserva el recurso y la asociación
+exactos; el regreso mantiene la revisión de actividad original y, si procede,
+la bandeja de alertas con sus filtros. Un rechazo retira los datos privados y
+las respuestas tardías no restituyen capturas de un contexto cerrado.
+
+La revisión abierta desde el aviso, la capturada por la asociación y la cabeza
+actual se muestran por separado. Son vínculos actuales: no se afirma que
+existieran al emitirse la alerta ni que fueran su causa. La consulta no marca
+avisos como leídos, modifica recibos ni concede permisos por haber recibido
+una alerta. Owner y personal asignado conservan las lecturas autorizadas;
+Client sigue denegado. La verificación focal aprobó cinco casos de aplicación,
+seis PostgreSQL distintos y doce regresiones previas, seis HTTP nuevos y diez
+regresiones previas, ocho Node, nueve escenarios distintos de navegador con
+HTTP controlado y nueve del planificador. Un recorrido real aprobó en 11.6 s
+de escenario y 15.5 s de ejecutor; se inspeccionaron sus capturas a 1440 y
+390 píxeles. La campaña API/restauración aprobó con salida cero, conservando
+las capturas exactas y los filtros tras recuperar el respaldo. Clippy aprobó
+y el PDF de 344 páginas se compiló e inspeccionó. La cabeza final aprobó
+3156 pruebas Rust, 396 de navegador controlado y 47 reales, e incorporó la
+corrección del inventario de alertas al reprogramar audiencias. PR48 se integró
+como `5020707ebdb65e85ab913f0252bf319ca2f52931`; la confirmación natural de main
+está en curso. Esta evidencia sigue separada de las campañas históricas.
 
 Persisten las audiencias propias de recursos, el corpus jurídico calificado y
-la activación automática durable de sus términos, además de completar navegación
-y trazabilidad de alertas dentro de ese flujo. Asociar no crea otro aviso ni
-cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
+la activación automática durable de sus términos. Asociar o consultar no crea
+otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
 [la evidencia por entrega](verification-report.md) conservan esos pendientes.

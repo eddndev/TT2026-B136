@@ -6,6 +6,7 @@ mod query;
 mod selection;
 pub(crate) mod sources;
 pub(crate) mod storage;
+mod target_query;
 pub(crate) mod write;
 use crate::procedural_resource_postgres::authorize;
 use application::{resource_activities::*, ApplicationError};
@@ -42,6 +43,16 @@ impl PostgresResourceActivityStore {
     }
 }
 impl ResourceActivityStore for PostgresResourceActivityStore {
+    fn list_for_target(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        target: ResourceActivityTargetId,
+        query: ResourceActivityTargetQuery,
+        at: OffsetDateTime,
+    ) -> Result<ResourceActivityTargetPage, ApplicationError> {
+        self.target_page(actor, case, target, query, at)
+    }
     fn list(
         &self,
         actor: UserId,

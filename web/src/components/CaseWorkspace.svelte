@@ -13,6 +13,10 @@
   import Participants from './Participants.svelte';
   import { staffCase, basicCase } from '../lib/case-administration.mjs';
   export let api, user, record, view, onnavigate, onchange, onupdate;
+  export let resourceIntent = null,
+    onresourceintent = () => {},
+    onresource = () => {},
+    onrelateddenied = () => {};
   export let hearingIntent = null,
     onhearingintent = () => {};
   export let deadlineIntent = null,
@@ -51,6 +55,7 @@
     error = failure.message;
     busy = false;
     current = null;
+    onrelateddenied();
   }
   async function refresh() {
     if (!staff || denied) return;
@@ -133,6 +138,7 @@
       ondenied={deny}
       intent={hearingIntent}
       onintent={onhearingintent}
+      {onresource}
     />
   {:else if view === 'resolutions' && staff}<CaseFacts
       {api}
@@ -141,6 +147,8 @@
       ondenied={deny}
     />
   {:else if view === 'resources' && staff}<CaseResources
+      intent={resourceIntent}
+      onintent={onresourceintent}
       {api}
       {user}
       record={current}
@@ -154,6 +162,7 @@
       ondenied={deny}
       intent={deadlineIntent}
       onintent={ondeadlineintent}
+      {onresource}
     />
   {:else if view === 'participants'}<Participants {api} {user} caseRecord={current} />
   {:else}<Documents {api} {user} caseRecord={current} {intent} {onintent} />{/if}

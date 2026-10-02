@@ -26,6 +26,8 @@
   let alertFilters = null,
     alertReturn = false;
 
+  let resourceIntent = null,
+    activityReturn = null;
   let view = 'overview';
   let documentIntent = null;
   let incidentReturn = false,
@@ -44,6 +46,8 @@
     alertFilters = null;
     alertReturn = false;
 
+    resourceIntent = null;
+    activityReturn = null;
     documentIntent = null;
     incidentReturn = false;
     view = 'overview';
@@ -67,6 +71,10 @@
   }
   async function go(destination) {
     view = normalizeView(destination, user?.role);
+    if (view !== 'resources') {
+      resourceIntent = null;
+      activityReturn = null;
+    }
     if (view !== 'hearings') hearingIntent = null;
     if (view !== 'deadlines') deadlineIntent = null;
     if (view !== 'documents') incidentReturn = false;
@@ -87,6 +95,19 @@
     await tick();
     main?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
+  }
+  function openRelatedResource(intent) {
+    if (!user || intent.case_id !== selectedCase?.id) return;
+    resourceIntent = intent;
+    activityReturn = intent.origin;
+    go('resources');
+  }
+  function returnToActivity() {
+    const origin = activityReturn;
+    if (!origin || origin.case_id !== selectedCase?.id) return;
+    hearingIntent = origin.kind === 'hearing' ? origin : null;
+    deadlineIntent = origin.kind === 'deadline' ? origin : null;
+    go(origin.kind === 'hearing' ? 'hearings' : 'deadlines');
   }
   function openDocument(intent) {
     documentIntent = intent;
@@ -129,6 +150,8 @@
         documentIntent = null;
         incidentReturn = false;
         alertReturn = false;
+        activityReturn = null;
+        resourceIntent = null;
         go(next);
       }}
       onlogout={logout}
@@ -219,6 +242,10 @@
           {#if alertReturn}<button class="text-button alerts-return" onclick={() => go('alerts')}
               >Volver a Alertas</button
             >{/if}
+          {#if activityReturn && activityReturn.case_id === selectedCase?.id}<button
+              class="text-button alerts-return"
+              onclick={returnToActivity}>Volver a actividad</button
+            >{/if}
           {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
                 {api}
                 {user}
@@ -229,6 +256,13 @@
                 onchange={() => {
                   selectedCase = null;
                   go('cases');
+                }}
+                {resourceIntent}
+                onresourceintent={() => (resourceIntent = null)}
+                onresource={openRelatedResource}
+                onrelateddenied={() => {
+                  resourceIntent = null;
+                  activityReturn = null;
                 }}
                 {hearingIntent}
                 onhearingintent={() => (hearingIntent = null)}

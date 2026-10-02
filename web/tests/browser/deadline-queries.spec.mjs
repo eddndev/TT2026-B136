@@ -93,7 +93,15 @@ test('deadline history is light, paged and loads immutable calculation only on e
   await expect(
     panel(page).getByRole('button', { name: 'Corregir plazo', exact: true }),
   ).toHaveCount(0);
-  expect(state.calls.at(-1).path).toContain(`/deadlines/${rows[0].id}/revisions/1`);
+  expect(
+    state.calls.filter(
+      (call) => call.path.includes('/deadlines/') && call.path.includes('/revisions/'),
+    ),
+  ).toEqual([
+    expect.objectContaining({
+      path: `/api/v1/cases/${caseId}/deadlines/${rows[0].id}/revisions/1`,
+    }),
+  ]);
   await panel(page).getByRole('button', { name: 'Consultar plazo actual', exact: true }).click();
   await expect(panel(page)).toContainText(rows[10].definition.title);
 });
@@ -112,9 +120,11 @@ test('captured profile opens its exact corpus without expanding it in the collec
   await expect(profile).toContainText('Perfil de prueba');
   await expect(profile).toContainText('Supuesto declarado');
   await expect(profile.getByRole('link')).toHaveAttribute('href', 'https://example.test/fixture');
-  expect(state.calls.at(-1).path).toBe(
-    `/api/v1/cases/${caseId}/deadline-profiles/${id(2)}/revisions/1`,
-  );
+  expect(state.calls.filter((call) => call.path.includes('/deadline-profiles/'))).toEqual([
+    expect.objectContaining({
+      path: `/api/v1/cases/${caseId}/deadline-profiles/${id(2)}/revisions/1`,
+    }),
+  ]);
 });
 for (const family of ['resolution', 'notification', 'hearing_result'])
   test(`captured ${family} opens the selected immutable source`, async ({ page }) => {

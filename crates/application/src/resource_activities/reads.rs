@@ -8,6 +8,15 @@ use crate::{
 use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest};
 
 impl ResourceActivityWorkflow for ResourceActivityService {
+    fn list_for_target(
+        &self,
+        token: &str,
+        case: CaseId,
+        target: ResourceActivityTargetId,
+        query: ResourceActivityTargetQuery,
+    ) -> Result<ResourceActivityTargetPage, ApplicationError> {
+        self.read_target_page(token, case, target, query)
+    }
     fn list(
         &self,
         token: &str,
@@ -142,7 +151,7 @@ impl ResourceActivityWorkflow for ResourceActivityService {
     }
 }
 impl ResourceActivityService {
-    fn view(
+    pub(super) fn view(
         &self,
         view: &ResourceActivityView,
         case: CaseId,
@@ -221,7 +230,7 @@ impl ResourceActivityService {
         Ok(())
     }
 }
-fn read_window(
+pub(super) fn read_window(
     started_at: OffsetDateTime,
     returned_at: OffsetDateTime,
 ) -> Result<(), ApplicationError> {
@@ -232,7 +241,7 @@ fn read_window(
     }
     Ok(())
 }
-fn page_shape<T: PartialEq>(
+pub(super) fn page_shape<T: PartialEq>(
     length: usize,
     limit: u32,
     more: bool,

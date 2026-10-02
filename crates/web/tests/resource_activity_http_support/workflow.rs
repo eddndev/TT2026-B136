@@ -73,6 +73,28 @@ impl Workflow {
     }
 }
 impl ResourceActivityWorkflow for Workflow {
+    fn list_for_target(
+        &self,
+        token: &str,
+        case: CaseId,
+        target: ResourceActivityTargetId,
+        query: ResourceActivityTargetQuery,
+    ) -> Result<ResourceActivityTargetPage, ApplicationError> {
+        let target_json = match &target {
+            ResourceActivityTargetId::Hearing(id) => json!({"kind":"hearing","id":id.to_string()}),
+            ResourceActivityTargetId::Deadline(id) => {
+                json!({"kind":"deadline","id":id.to_string()})
+            }
+        };
+        self.call(
+            token,
+            json!({"method":"list_for_target","case_id":case,
+            "target":target_json,"limit":query.limit(),
+            "after_id":query.after_id().map(|v|v.to_string()),
+            "status":query.status().map(|v|v.as_str())}),
+        )?;
+        super::target::page(token, target, query)
+    }
     fn list(
         &self,
         token: &str,

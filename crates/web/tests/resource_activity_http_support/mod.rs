@@ -5,6 +5,7 @@ mod deadlines;
 mod model;
 #[path = "../procedural_resource_http_support/model.rs"]
 mod resources;
+mod target;
 mod workflow;
 use axum::{
     body::{to_bytes, Body},

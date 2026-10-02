@@ -13,6 +13,8 @@ mod alert_inbox;
 mod alert_inventory;
 #[path = "../alert_preferences.rs"]
 mod alert_preferences;
+#[path = "../alert_reschedule_inventory.rs"]
+mod alert_reschedule_inventory;
 #[path = "../alert_review_episode.rs"]
 mod alert_review_episode;
 #[path = "../alert_scheduler.rs"]
