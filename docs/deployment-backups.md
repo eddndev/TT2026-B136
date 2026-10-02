@@ -11,6 +11,14 @@ SQL y systemd se simularon en ese recorrido; no fue una restauración completa
 del despliegue. Consultar [el informe de verificación](verification-report.md). Un respaldo creado no demuestra por sí solo una
 recuperación completa, un tiempo de recuperación ni una copia fuera del servidor.
 
+El 2 de octubre de 2026 se restauró fuera de VPS3 el conjunto real
+`20261002T105313Z-886940db`, incluidos SQL, RDB y PKI, con PostgreSQL 16.15 y
+los binarios Redis 7.4.11 del servidor, comprobados por SHA-256. El arranque,
+privilegios, esquema, confianza, auditoría y reinicio AOF aprobaron. La captura
+tenía cero usuarios y Redis vacío; no acredita recuperación de datos poblados,
+conservación de controles posteriores al respaldo ni un RTO. La copia fuente
+permaneció intacta y los servicios propios del ensayo fueron retirados.
+
 ## Contrato de captura
 
 `ops/deploy/release.py` mantiene el bloqueo exclusivo `deploy.lock`, detiene API

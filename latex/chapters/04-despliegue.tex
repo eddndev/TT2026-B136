@@ -40,3 +40,11 @@ vigentes y verificar la persistencia AOF antes de reabrir el ingreso.
 Una copia histórica no recupera cambios posteriores ni demuestra por sí sola
 una recuperación integral; \rutarepo{docs/deployment-backups.md} delimita el
 procedimiento y sus condiciones de aceptación.
+
+La captura real del estado inicial se restauró fuera de VPS3 con PostgreSQL
+16.15 y Redis 7.4.11. Se conservaron esquema, privilegios, claves, confianza,
+proyección y cadena de auditoría; el binario aceptado arrancó con rechazo de
+peticiones sin credenciales. La instantánea Redis se cargó y se comprobó su
+persistencia tras reiniciar con AOF. El conjunto tenía cero usuarios y ninguna
+clave Redis vigente: esta evidencia acredita la recuperación del estado inicial,
+no la recuperación de un despacho poblado ni un tiempo objetivo de recuperación.

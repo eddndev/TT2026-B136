@@ -41,6 +41,9 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   firma individual y política documental Client. La admisión general de formatos
   está integrada por PR47 en `ac34b34`, con aceptación API/restauración,
   navegador real y confirmación natural de `main` comprobados.
+  El aislamiento de respuestas tardías de contraseña y MFA tiene aceptación
+  local: 524 pruebas Node y ocho recorridos de navegador aprobados. Su CI e
+  integración están pendientes; no implementa todavía inactividad o borradores.
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de
@@ -52,9 +55,10 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   Los filtros usan creación y estado actual,
   no un censo histórico. Correo, estimación de terminación, otros tipos de
   informe y métricas de desempeño permanecen pendientes del alcance aprobado.
-  La duración observada de informes tiene verificación local de siete pruebas
-  Node y un escenario de navegador aprobados; todavía no está desplegada.
-  Ese tiempo observado no implementa una estimación de terminación.
+  La duración observada se integró por PR52 en `2621755`, con CI 9m26s, Web
+  10m30s y Documents 1m14s; conserva 3340 pruebas Rust, 419 controladas y 51
+  reales. La confirmación natural de main aprobó; el despliegue de esta
+  ampliación sigue pendiente. Ese tiempo observado no estima la terminación.
 - Consulta de actividad integrada por PR50: selección Owner por intervalo UTC,
   actor histórico, operación y recurso, con paginación de instantánea y lectura
   auditada. Aplicación, PostgreSQL, HTTP, cliente y navegador controlado aprobaron.
@@ -78,9 +82,10 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   de auditoría; ese respaldo inicial no contiene RDB. Los controladores
   `673b9ec`, instalados bajo `deploy.lock`, generaron después la captura
   `20261002T105313Z-886940db` con SQL, RDB, PKI y `COMPLETE` validados. Su copia
-  externa de cuatro archivos coincidió por hash y tamaño; falta el ensayo de
-  restauración completa de esa captura. El ensayo Redis de cinco claves
-  sintéticas conserva su alcance separado. Owner espera el correo elegido
+  externa de cuatro archivos coincidió por hash y tamaño. Su restauración
+  conjunta SQL/RDB/PKI con PostgreSQL 16.15 y Redis 7.4.11 aprobó, incluida
+  persistencia AOF, confianza y auditoría; conservó cero usuarios y Redis vacío.
+  La recuperación poblada y el ensayo de cinco claves sintéticas siguen separados. Owner espera el correo elegido
   por el operador; siguen cero usuarios y la aceptación autenticada pendiente.
 - Cierre académico posterior: conciliación del manuscrito con las entregas,
   evaluación formal con participantes reales y conclusiones basadas en resultados.
