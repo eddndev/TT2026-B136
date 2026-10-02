@@ -1,0 +1,90 @@
+\subsection{Informes durables de expedientes}\label{sec:impl-informes}
+
+La implementación local compone la solicitud autenticada, la persistencia
+transaccional, el cifrado de capturas y artefactos, el renderizado acotado y la
+consulta desde Qadra. \texttt{CaseReportWorkflow} delimita el puerto de aplicación;
+HTTP expone solicitud, listado propio, detalle, selector de litigantes, acuse y
+descarga bajo \texttt{/api/v1/case-reports}. El adaptador PostgreSQL comprueba la
+identidad completa, la generación de autorización y las pertenencias dentro de
+la transacción auditada. Los cambios posteriores de permisos no quedan
+neutralizados por conservar una sesión o por devolver a la cuenta su rol
+anterior. El consumo de recuperación que sólo incrementa la revisión de cuenta
+no invalida por sí mismo el informe.
+
+El intervalo filtra la creación original y el estado se observa al capturar,
+según la \cref{sec:diseno-informes}. El filtro opcional por litigante limita los
+expedientes; no elimina del resumen a otros litigantes asignados a esos mismos
+casos. La captura conserva filtros, instante de observación, identificadores,
+revisiones administrativas, asignaciones y carga derivada. Repetir una operación
+con sus mismos filtros devuelve el trabajo original; cambiar los filtros con
+el mismo identificador produce conflicto. La interfaz conserva esa identidad
+ante una respuesta incierta y permite reintentar explícitamente.
+
+\paragraph{Persistencia y recuperación.}
+La migración \rutarepo{migrations/0026_case_reports.sql} añade solicitudes,
+capturas, artefactos y avisos. Las solicitudes mantienen la identidad original
+junto con el estado de ejecución. Capturas y artefactos son inmutables: se
+protegen mediante los puertos de cifrado autenticado y envoltura de claves,
+ligando identificador de informe, tipo de contenido y digest. Los dos formatos
+proceden de los mismos bytes canónicos, incluso después de reintentar un
+renderizado. No se crea una identidad documental ni un sello jurídico para la
+exportación. La KEK y la copia consistente de PostgreSQL son necesarias para
+restaurar solicitudes, autorizaciones y resultados.
+
+\texttt{serve} incorpora un consumidor serial supervisado con parada coordinada.
+La cola persistente concede cada trabajo por dos minutos mediante identificador,
+intento, token y generación; las renovaciones amplían la concesión en dos
+minutos. Cada escritura comprueba la concesión completa y su vigencia. Un
+proceso anterior no puede publicar sobre un intento posterior. Los errores
+transitorios elegibles admiten hasta cinco intentos, con una espera de treinta
+segundos multiplicada por el número de intento. El procesamiento puede recuperar
+un trabajo interrumpido sin recapturar un resultado ya persistido.
+
+El renderizado se ejecuta fuera de la transacción de auditoría. Antes de publicar
+se revalida el acceso a toda la captura y una sola confirmación guarda ambos
+artefactos, el estado disponible y el aviso. También la descarga comprueba el
+conjunto completo. Perder una pertenencia impide obtener el archivo, sin
+recortarlo ni fabricar una nueva captura. El acuse registra únicamente la
+primera lectura del aviso; consultar el detalle o descargar no lo sustituye.
+
+\paragraph{Presupuestos del renderizador.}
+El adaptador Linux invoca una entrada privada del mismo ejecutable confiable por
+cada formato. Recibe la captura en memoria sellada, con entorno vacío, sin los
+descriptores heredados de los servicios y con un protocolo de salida ligado al
+informe y al digest. El proceso padre controla el grupo hijo y su terminación.
+Los límites por formato son quince segundos de CPU, 512 MiB de espacio virtual
+y veinte segundos de tiempo de pared. El crecimiento de archivos regulares y
+los volcados de memoria tienen límite cero; la salida se acota al artefacto de
+16 MiB y su cabecera. Estos controles limitan recursos y separan la ejecución,
+pero no crean un aislamiento adicional de permisos, archivos o red.
+
+La captura admite hasta mil expedientes, diez mil pares de asignación y mil
+litigantes en el resumen, con un máximo canónico de 8 MiB. El PDF limita además
+la composición a 512 páginas y un millón de glifos, con fuentes incorporadas y
+rechazo explícito de caracteres no soportados. El CSV utiliza registros RFC
+4180 y protege textos no confiables frente a fórmulas de hoja de cálculo. Los
+presupuestos se aplican conjuntamente: el máximo de filas no garantiza que
+el resultado quepa en los límites de páginas, memoria y tiempo, incluso con
+campos cortos. Un exceso falla sin omitir datos para aparentar un informe completo.
+Cada instancia de fuente reutiliza su plan tipográfico para medir y dibujar
+texto latino de izquierda a derecha con las mismas opciones. Las líneas se
+componen por separado para respetar sus extremos y sus ligaduras;
+no se rebajan los presupuestos para aceptar un artefacto.
+
+\paragraph{Presentación y alcance de la entrega.}
+Qadra permite filtrar, solicitar, actualizar el estado, consultar trabajos,
+acusar avisos y descargar un formato. Distingue espera, captura, renderizado,
+reintento, disponibilidad y fallo; no estima porcentajes ni fechas de finalización.
+El selector paginado conserva los colegas compartidos sólo en expedientes
+cerrados. Antes de ofrecer una descarga, el cliente contrasta identificador,
+captura, tamaño y digest con el detalle autorizado.
+
+El contrato \rutarepo{docs/case-reports-api.md} y la operación de respaldo en
+\rutarepo{docs/database-operations.md} describen estas fronteras. La decisión
+\rutarepo{docs/adr/0060-durable-authorized-case-reports.md} documenta las decisiones de autorización,
+persistencia y publicación conjunta verificadas en la aceptación integrada. La composición local
+no acredita por sí sola un despliegue, una campaña global aprobada, efectividad
+jurídica, firma personal o constancia emitida por un PSC. El aviso por correo y
+la estimación de terminación de la \cref{tab:cu-16}, junto con otros tipos de
+informe y las métricas de desempeño de la \cref{tab:rf-19}, conservan su alcance
+pendiente. La exportación de estado y carga no completa esos criterios.

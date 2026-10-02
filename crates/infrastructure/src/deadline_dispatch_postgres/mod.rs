@@ -20,13 +20,13 @@ pub struct PostgresDeadlineDispatchStore {
 
 impl PostgresDeadlineDispatchStore {
     pub fn open(
-        url: &str,
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
         hasher: Arc<dyn DocumentHasher + Send + Sync>,
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Result<Self, ApplicationError> {
         Ok(Self {
             client: Mutex::new(connect(url)?),
-            url: url.to_owned(),
+            url: crate::postgres_source::url(url).to_owned(),
             hasher,
             clock,
         })
@@ -44,7 +44,9 @@ impl PostgresDeadlineDispatchStore {
     }
 }
 
-fn connect(url: &str) -> Result<Client, ApplicationError> {
+fn connect(
+    url: &(impl crate::PostgresConnectionSource + ?Sized),
+) -> Result<Client, ApplicationError> {
     let mut client = crate::postgres::open(url)?;
     // Reconnection must validate the inventory and restore transaction budgets.
     client

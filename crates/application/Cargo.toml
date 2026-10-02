@@ -262,3 +262,15 @@ path = "tests/resource_deadline_service.rs"
 [[test]]
 name = "resource_activity_target"
 path = "tests/resource_activity_target.rs"
+
+[[test]]
+name = "case_reports"
+path = "tests/case_reports.rs"
+
+[[test]]
+name = "case_report_model"
+path = "tests/case_report_model.rs"
+
+[[test]]
+name = "case_report_worker"
+path = "tests/case_report_worker.rs"

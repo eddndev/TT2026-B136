@@ -1,5 +1,32 @@
 # Verificación de la actualización académica
 
+## Conciliación de informes y despliegue: PDF final del 2 de octubre de 2026
+
+La base integrada genera **350 páginas y 5943775 bytes**, SHA-256
+`c1011f1cff4f9640d522283beaf736f7f136ef5b4d4b14384437d445f1d580da`.
+Se preservan ambos apartados y la evidencia original del despliegue. La revisión
+intermedia de las páginas 207, 208, 252, 345 y 350 detectó una jerarquía de
+secciones incorrecta: tablero e informes quedaban bajo despliegue. Se reordenó
+una inclusión y se corrigió una afirmación antigua de cierre pendiente en
+miembros. Tras recompilar, las páginas 208 y 209 conservan texto legible y
+secciones correctas, sin recortes ni solapamientos. El log final no contiene
+referencias indefinidas, etiquetas duplicadas ni glifos ausentes; conserva las
+advertencias históricas de versalitas y el desborde de 0.11754 pt.
+
+## Informes propios: PDF del 2 de octubre de 2026
+
+LuaLaTeX generó **349 páginas y 5934856 bytes**, SHA-256
+`875ca4f638a15cc3cc89a1c290ebb07e8d693352ccbe173218267b4a59f308f5`.
+Se inspeccionaron las páginas físicas **78, 208, 209, 251, 252, 344 y 345**,
+con alcance, implementación, aceptación y trazabilidad de informes. Una primera
+revisión detectó dos desbordes en rutas largas del anexo; se reformuló ese
+párrafo y se recompiló. Las páginas afectadas se revisaron nuevamente: son
+legibles, sin recortes ni solapamientos. No quedan referencias indefinidas ni
+glifos ausentes; permanecen las sustituciones históricas de versalitas y el
+desborde anterior de 0.11754 pt. Resumen, objetivos y conclusiones se preservan.
+Este resultado documenta la aceptación local de informes y sus límites; no
+acredita su cierre global, despliegue o evaluación formal con participantes.
+
 ## Despliegue reconciliado: PDF del 2 de octubre de 2026
 
 La compilación con LuaLaTeX terminó con código 0 después de incorporar la

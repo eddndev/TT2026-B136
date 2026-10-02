@@ -60,6 +60,10 @@ rustix.workspace = true
 flate2.workspace = true
 crc32fast.workspace = true
 
+pdf-writer = "=0.15.0"
+harfrust = "=0.13.3"
+skrifa = { version = "=0.46.2", default-features = false, features = ["std"] }
+
 [dev-dependencies]
 proptest.workspace = true
 
@@ -334,3 +338,19 @@ path = "tests/resource_deadline_backend.rs"
 [[test]]
 name = "resource_activity_target"
 path = "tests/resource_activity_target.rs"
+
+[[test]]
+name = "case_report_rendering"
+path = "tests/case_report_rendering.rs"
+
+[[test]]
+name = "case_report_protection"
+path = "tests/case_report_protection.rs"
+
+[[test]]
+name = "case_report_backend"
+path = "tests/case_report_backend.rs"
+
+[[test]]
+name = "case_report_schema"
+path = "tests/case_report_schema.rs"

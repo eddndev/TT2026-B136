@@ -1,6 +1,5 @@
 //! Composition root for the local HTTP case, document and participant application.
 
-use std::fs;
 use std::sync::Arc;
 
 use anyhow::Context;
@@ -33,8 +32,11 @@ use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 use zeroize::Zeroizing;
 
 use crate::cli::ServeArgs;
+
+mod inputs;
 use crate::serve_deadline_runtime::DeadlineRuntimeConfig;
 use crate::vault_cmd::load_kek;
+use inputs::{read, required_env};
 
 const KEK_VAR: &str = "KEK_BASE64";
 
@@ -62,311 +64,325 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
 
     infrastructure::legacy::require_completed_import(&args.data_dir, &database_url)
         .context("legacy storage has not completed database cutover")?;
-    let repository = Arc::new(
-        PostgresCaseDocumentStore::open(&database_url)
-            .context("cannot open PostgreSQL document store")?,
-    );
-    let signer = RsaPkcs1Signer::new(signer_key).context("cannot load signer private key")?;
-    let ports = DocumentProcessorPorts {
-        hasher: Box::new(RingSha256Hasher::new()),
-        cipher: Box::new(RingAesGcmCipher::new()),
-        keys: Box::new(EnvelopeKeyManager::new()),
-        signer: Box::new(signer),
-        timestamp_service: Box::new(LocalOpensslTsa::new(&args.tsa_config, &args.tsa_dir)),
-        signature_verifier: Box::new(RsaPkcs1Verifier::new()),
-        certificate_validator: Box::new(X509ChainValidator::new()),
-        timestamp_verifier: Box::new(Rfc3161Verifier::new()),
-        archiver: Box::new(StoredZipWriter::new()),
-    };
-    let material = EvidenceMaterial {
-        signer_certificate_pem: signer_certificate,
-        issuer_certificate_pem: issuer_certificate,
-        crl_pem: crl,
-        tsa_chain_pem: Some(tsa_chain),
-        openssl_version: openssl_version().context("cannot inspect openssl version")?,
-    };
-    let case_repository = Arc::new(
-        PostgresCaseRepository::open(&database_url, Arc::new(RingSha256Hasher::new()))
-            .context("cannot initialize PostgreSQL case repository")?,
-    );
-    let identity: Arc<dyn IdentityWorkflow> = Arc::new(IdentityService::new(IdentityPorts {
-        users: Arc::new(
-            PostgresUserRepository::open(&database_url)
-                .context("cannot initialize PostgreSQL user repository")?,
-        ),
-        sessions: Arc::new(
-            RedisSessionStore::connect(&redis_url)
-                .context("cannot initialize Redis session store")?,
-        ),
-        passwords: Arc::new(Argon2idHasher::new()),
-        totp: Arc::new(TotpRsProvider::new()),
-        recovery: Arc::new(RandomRecoveryCodeGenerator),
-        secrets: Arc::new(
-            AesGcmSecretProtector::new(kek.clone())
-                .context("cannot initialize TOTP secret protection")?,
-        ),
-        clock: Arc::new(SystemClock::new()),
-        audit_log: Box::new(
-            PostgresAuditLog::open(&database_url).context("cannot open PostgreSQL audit log")?,
-        ),
-    }));
-    let cases = CaseService::new(
-        case_repository,
-        identity.clone(),
-        Arc::new(SystemClock::new()),
-    );
-    let participants = ParticipantService::new(
-        Arc::new(
-            PostgresParticipantStore::open(&database_url, Arc::new(RingSha256Hasher::new()))
-                .context("cannot open PostgreSQL participant store")?,
-        ),
-        identity.clone(),
-        Arc::new(SystemClock::new()),
-    );
-    let processor = Arc::new(
-        DocumentProcessor::new(ports, material, kek)
-            .context("cannot initialize document cryptography")?,
-    );
-    let format_validator = Arc::new(format_validator);
-    let stages = CaseStageService::new(
-        Arc::new(
-            PostgresCaseStageStore::open(&database_url, Arc::new(RingSha256Hasher::new()))
-                .context("cannot open PostgreSQL case stage store")?,
-        ),
-        identity.clone(),
-        processor.clone(),
-        format_validator.clone(),
-        Arc::new(SystemClock::new()),
-    );
-    let typed_participants = TypedParticipantService::new(
-        identity.clone(),
-        Arc::new(
-            PostgresTypedParticipantStore::open(
-                &database_url,
-                Arc::new(RingSha256Hasher::new()),
+    let (router, dispatch, worker, alerts, reports) =
+        infrastructure::with_validated_postgres(&database_url, |database| -> anyhow::Result<_> {
+            let repository = Arc::new(
+                PostgresCaseDocumentStore::open(database)
+                    .context("cannot open PostgreSQL document store")?,
+            );
+            let signer =
+                RsaPkcs1Signer::new(signer_key).context("cannot load signer private key")?;
+            let ports = DocumentProcessorPorts {
+                hasher: Box::new(RingSha256Hasher::new()),
+                cipher: Box::new(RingAesGcmCipher::new()),
+                keys: Box::new(EnvelopeKeyManager::new()),
+                signer: Box::new(signer),
+                timestamp_service: Box::new(LocalOpensslTsa::new(&args.tsa_config, &args.tsa_dir)),
+                signature_verifier: Box::new(RsaPkcs1Verifier::new()),
+                certificate_validator: Box::new(X509ChainValidator::new()),
+                timestamp_verifier: Box::new(Rfc3161Verifier::new()),
+                archiver: Box::new(StoredZipWriter::new()),
+            };
+            let material = EvidenceMaterial {
+                signer_certificate_pem: signer_certificate,
+                issuer_certificate_pem: issuer_certificate,
+                crl_pem: crl,
+                tsa_chain_pem: Some(tsa_chain),
+                openssl_version: openssl_version().context("cannot inspect openssl version")?,
+            };
+            let case_repository = Arc::new(
+                PostgresCaseRepository::open(database, Arc::new(RingSha256Hasher::new()))
+                    .context("cannot initialize PostgreSQL case repository")?,
+            );
+            let identity: Arc<dyn IdentityWorkflow> =
+                Arc::new(IdentityService::new(IdentityPorts {
+                    users: Arc::new(
+                        PostgresUserRepository::open(database)
+                            .context("cannot initialize PostgreSQL user repository")?,
+                    ),
+                    sessions: Arc::new(
+                        RedisSessionStore::connect(&redis_url)
+                            .context("cannot initialize Redis session store")?,
+                    ),
+                    passwords: Arc::new(Argon2idHasher::new()),
+                    totp: Arc::new(TotpRsProvider::new()),
+                    recovery: Arc::new(RandomRecoveryCodeGenerator),
+                    secrets: Arc::new(
+                        AesGcmSecretProtector::new(kek.clone())
+                            .context("cannot initialize TOTP secret protection")?,
+                    ),
+                    clock: Arc::new(SystemClock::new()),
+                    audit_log: Box::new(
+                        PostgresAuditLog::open(database)
+                            .context("cannot open PostgreSQL audit log")?,
+                    ),
+                }));
+            let cases = CaseService::new(
+                case_repository,
+                identity.clone(),
                 Arc::new(SystemClock::new()),
-            )
-            .context("cannot open PostgreSQL typed participant store")?,
-        ),
-        processor.clone(),
-        Arc::new(RingSha256Hasher::new()),
-        format_validator.clone(),
-        Arc::new(InternalRsaDeclarationVerifier::new()),
-        Arc::new(SystemClock::new()),
-    );
-    let hearing_hasher = Arc::new(RingSha256Hasher::new());
-    let hearing_clock = Arc::new(SystemClock::new());
-    let hearings = HearingService::new(
-        Arc::new(
-            PostgresHearingStore::open(
-                &database_url,
-                hearing_hasher.clone(),
-                hearing_clock.clone(),
-            )
-            .context("cannot open PostgreSQL hearing store")?,
-        ),
-        identity.clone(),
-        processor.clone(),
-        format_validator.clone(),
-        hearing_hasher,
-        hearing_clock,
-    );
-    let result_hasher = Arc::new(RingSha256Hasher::new());
-    let result_clock = Arc::new(SystemClock::new());
-    let hearing_results = HearingResultService::new(
-        Arc::new(
-            PostgresHearingResultStore::open(
-                &database_url,
-                result_hasher.clone(),
-                result_clock.clone(),
-            )
-            .context("cannot open PostgreSQL hearing result store")?,
-        ),
-        identity.clone(),
-        processor.clone(),
-        format_validator.clone(),
-        result_hasher,
-        result_clock,
-    );
-    let fact_hasher = Arc::new(RingSha256Hasher::new());
-    let fact_clock = Arc::new(SystemClock::new());
-    let procedural_facts = ProceduralFactService::new(
-        Arc::new(
-            PostgresProceduralFactStore::open(
-                &database_url,
-                fact_hasher.clone(),
-                fact_clock.clone(),
-            )
-            .context("cannot open PostgreSQL procedural fact store")?,
-        ),
-        identity.clone(),
-        processor.clone(),
-        format_validator.clone(),
-        fact_hasher,
-        fact_clock,
-    );
-    let resource_hasher = Arc::new(RingSha256Hasher::new());
-    let resource_clock = Arc::new(SystemClock::new());
-    let procedural_resources = application::procedural_resources::ProceduralResourceService::new(
-        Arc::new(
-            infrastructure::PostgresProceduralResourceStore::open(
-                &database_url,
-                resource_hasher.clone(),
-                resource_clock.clone(),
-            )
-            .context("cannot open PostgreSQL procedural resource store")?,
-        ),
-        identity.clone(),
-        processor.clone(),
-        format_validator,
-        resource_hasher,
-        resource_clock,
-    );
-    let calendar_hasher = Arc::new(RingSha256Hasher::new());
-    let calendar_clock = Arc::new(SystemClock::new());
-    let calendars = JudicialCalendarService::new(
-        Arc::new(
-            PostgresJudicialCalendarStore::open(
-                &database_url,
-                calendar_hasher.clone(),
-                calendar_clock.clone(),
-            )
-            .context("cannot open PostgreSQL judicial calendar store")?,
-        ),
-        identity.clone(),
-        calendar_hasher,
-        calendar_clock,
-    );
-    let profile_hasher = Arc::new(RingSha256Hasher::new());
-    let profile_clock = Arc::new(SystemClock::new());
-    let profiles = DeadlineProfileService::new(
-        Arc::new(
-            PostgresDeadlineProfileStore::open(
-                &database_url,
-                profile_hasher.clone(),
-                profile_clock.clone(),
-            )
-            .context("cannot open PostgreSQL deadline profile store")?,
-        ),
-        identity.clone(),
-        profile_hasher,
-        profile_clock,
-    );
-    let deadline_hasher = Arc::new(RingSha256Hasher::new());
-    let deadline_clock = Arc::new(SystemClock::new());
-    let dispatch = infrastructure::PostgresDeadlineDispatchStore::open(
-        &database_url,
-        deadline_hasher.clone(),
-        deadline_clock.clone(),
-    )
-    .context("cannot open PostgreSQL deadline dispatcher")?;
-    let worker = infrastructure::PostgresDeadlineWorkerStore::open(
-        &database_url,
-        deadline_hasher.clone(),
-        deadline_clock.clone(),
-    )
-    .context("cannot open PostgreSQL deadline worker")?;
-    let dashboard = application::dashboard::DashboardService::new(
-        Arc::new(
-            infrastructure::PostgresDashboardStore::open(
-                &database_url,
+            );
+            let participants = ParticipantService::new(
+                Arc::new(
+                    PostgresParticipantStore::open(database, Arc::new(RingSha256Hasher::new()))
+                        .context("cannot open PostgreSQL participant store")?,
+                ),
+                identity.clone(),
+                Arc::new(SystemClock::new()),
+            );
+            let reports =
+                crate::serve_report_composition::open(database, identity.clone(), kek.clone())?;
+            let processor = Arc::new(
+                DocumentProcessor::new(ports, material, kek)
+                    .context("cannot initialize document cryptography")?,
+            );
+            let format_validator = Arc::new(format_validator);
+            let stages = CaseStageService::new(
+                Arc::new(
+                    PostgresCaseStageStore::open(database, Arc::new(RingSha256Hasher::new()))
+                        .context("cannot open PostgreSQL case stage store")?,
+                ),
+                identity.clone(),
+                processor.clone(),
+                format_validator.clone(),
+                Arc::new(SystemClock::new()),
+            );
+            let typed_participants = TypedParticipantService::new(
+                identity.clone(),
+                Arc::new(
+                    PostgresTypedParticipantStore::open(
+                        database,
+                        Arc::new(RingSha256Hasher::new()),
+                        Arc::new(SystemClock::new()),
+                    )
+                    .context("cannot open PostgreSQL typed participant store")?,
+                ),
+                processor.clone(),
+                Arc::new(RingSha256Hasher::new()),
+                format_validator.clone(),
+                Arc::new(InternalRsaDeclarationVerifier::new()),
+                Arc::new(SystemClock::new()),
+            );
+            let hearing_hasher = Arc::new(RingSha256Hasher::new());
+            let hearing_clock = Arc::new(SystemClock::new());
+            let hearings = HearingService::new(
+                Arc::new(
+                    PostgresHearingStore::open(
+                        database,
+                        hearing_hasher.clone(),
+                        hearing_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL hearing store")?,
+                ),
+                identity.clone(),
+                processor.clone(),
+                format_validator.clone(),
+                hearing_hasher,
+                hearing_clock,
+            );
+            let result_hasher = Arc::new(RingSha256Hasher::new());
+            let result_clock = Arc::new(SystemClock::new());
+            let hearing_results = HearingResultService::new(
+                Arc::new(
+                    PostgresHearingResultStore::open(
+                        database,
+                        result_hasher.clone(),
+                        result_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL hearing result store")?,
+                ),
+                identity.clone(),
+                processor.clone(),
+                format_validator.clone(),
+                result_hasher,
+                result_clock,
+            );
+            let fact_hasher = Arc::new(RingSha256Hasher::new());
+            let fact_clock = Arc::new(SystemClock::new());
+            let procedural_facts = ProceduralFactService::new(
+                Arc::new(
+                    PostgresProceduralFactStore::open(
+                        database,
+                        fact_hasher.clone(),
+                        fact_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL procedural fact store")?,
+                ),
+                identity.clone(),
+                processor.clone(),
+                format_validator.clone(),
+                fact_hasher,
+                fact_clock,
+            );
+            let resource_hasher = Arc::new(RingSha256Hasher::new());
+            let resource_clock = Arc::new(SystemClock::new());
+            let procedural_resources =
+                application::procedural_resources::ProceduralResourceService::new(
+                    Arc::new(
+                        infrastructure::PostgresProceduralResourceStore::open(
+                            database,
+                            resource_hasher.clone(),
+                            resource_clock.clone(),
+                        )
+                        .context("cannot open PostgreSQL procedural resource store")?,
+                    ),
+                    identity.clone(),
+                    processor.clone(),
+                    format_validator,
+                    resource_hasher,
+                    resource_clock,
+                );
+            let calendar_hasher = Arc::new(RingSha256Hasher::new());
+            let calendar_clock = Arc::new(SystemClock::new());
+            let calendars = JudicialCalendarService::new(
+                Arc::new(
+                    PostgresJudicialCalendarStore::open(
+                        database,
+                        calendar_hasher.clone(),
+                        calendar_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL judicial calendar store")?,
+                ),
+                identity.clone(),
+                calendar_hasher,
+                calendar_clock,
+            );
+            let profile_hasher = Arc::new(RingSha256Hasher::new());
+            let profile_clock = Arc::new(SystemClock::new());
+            let profiles = DeadlineProfileService::new(
+                Arc::new(
+                    PostgresDeadlineProfileStore::open(
+                        database,
+                        profile_hasher.clone(),
+                        profile_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL deadline profile store")?,
+                ),
+                identity.clone(),
+                profile_hasher,
+                profile_clock,
+            );
+            let deadline_hasher = Arc::new(RingSha256Hasher::new());
+            let deadline_clock = Arc::new(SystemClock::new());
+            let dispatch = infrastructure::PostgresDeadlineDispatchStore::open(
+                database,
                 deadline_hasher.clone(),
                 deadline_clock.clone(),
             )
-            .context("cannot open PostgreSQL dashboard store")?,
-        ),
-        identity.clone(),
-    );
-    let agenda = application::agenda::AgendaService::new(
-        Arc::new(
-            infrastructure::PostgresAgendaStore::open(
-                &database_url,
+            .context("cannot open PostgreSQL deadline dispatcher")?;
+            let worker = infrastructure::PostgresDeadlineWorkerStore::open(
+                database,
                 deadline_hasher.clone(),
                 deadline_clock.clone(),
             )
-            .context("cannot open PostgreSQL agenda store")?,
-        ),
-        identity.clone(),
-    );
-    let deadlines = DeadlineService::new(
-        Arc::new(
-            infrastructure::PostgresDeadlineStore::open(
-                &database_url,
-                deadline_hasher.clone(),
-                deadline_clock.clone(),
-            )
-            .context("cannot open PostgreSQL deadline store")?,
-        ),
-        identity.clone(),
-        deadline_hasher,
-        deadline_clock,
-    );
-    let document_content = application::document_content::DocumentContentService::new(
-        repository.clone(),
-        identity.clone(),
-        processor.clone(),
-        Arc::new(SystemClock::new()),
-        repository.clone(),
-    );
-    let document_integrity = application::document_integrity::DocumentIntegrityService::new(
-        repository.clone(),
-        identity.clone(),
-        Arc::new(SystemClock::new()),
-    );
-    let workflow = CaseDocumentService::new(
-        repository,
-        identity.clone(),
-        processor,
-        Arc::new(admission),
-        Arc::new(SystemClock::new()),
-    );
-    let alerts = crate::serve_alert_composition::open(
-        &database_url,
-        identity.clone(),
-        alert_email,
-        alert_config,
-    )?;
-    let resource_activities =
-        crate::serve_resource_activities::open(&database_url, identity.clone())?;
-    let members = application::members::MemberService::new(
-        Arc::new(
-            infrastructure::PostgresMemberStore::open(&database_url, Arc::new(SystemClock::new()))
-                .context("cannot open PostgreSQL member store")?,
-        ),
-        identity.clone(),
-        Arc::new(SystemClock::new()),
-    );
-    let resource_deadlines =
-        crate::serve_resource_activities::open_deadlines(&database_url, identity.clone())?;
-    let router = web::api_router(
-        Arc::new(workflow),
-        identity,
-        web::CaseWorkflows {
-            members: Arc::new(members),
-            cases: Arc::new(cases),
-            participants: Arc::new(participants),
-            stages: Arc::new(stages),
-            typed: Arc::new(typed_participants),
-            hearings: Arc::new(hearings),
-            hearing_results: Arc::new(hearing_results),
-            procedural_facts: Arc::new(procedural_facts),
-            procedural_resources: Arc::new(procedural_resources),
-            resource_activities,
-            resource_deadlines,
-            deadlines: Arc::new(deadlines),
-            agenda: Arc::new(agenda),
-            dashboard: Arc::new(dashboard),
-            alerts: alerts.workflow,
-            document_content: Arc::new(document_content),
-            document_integrity: Arc::new(document_integrity),
-        },
-        Arc::new(calendars),
-        Arc::new(profiles),
-        web::HttpLimits {
-            max_requests: args.max_in_flight_requests,
-            max_blocking_operations: args.max_blocking_operations,
-        },
-    );
+            .context("cannot open PostgreSQL deadline worker")?;
+            let dashboard = application::dashboard::DashboardService::new(
+                Arc::new(
+                    infrastructure::PostgresDashboardStore::open(
+                        database,
+                        deadline_hasher.clone(),
+                        deadline_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL dashboard store")?,
+                ),
+                identity.clone(),
+            );
+            let agenda = application::agenda::AgendaService::new(
+                Arc::new(
+                    infrastructure::PostgresAgendaStore::open(
+                        database,
+                        deadline_hasher.clone(),
+                        deadline_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL agenda store")?,
+                ),
+                identity.clone(),
+            );
+            let deadlines = DeadlineService::new(
+                Arc::new(
+                    infrastructure::PostgresDeadlineStore::open(
+                        database,
+                        deadline_hasher.clone(),
+                        deadline_clock.clone(),
+                    )
+                    .context("cannot open PostgreSQL deadline store")?,
+                ),
+                identity.clone(),
+                deadline_hasher,
+                deadline_clock,
+            );
+            let document_content = application::document_content::DocumentContentService::new(
+                repository.clone(),
+                identity.clone(),
+                processor.clone(),
+                Arc::new(SystemClock::new()),
+                repository.clone(),
+            );
+            let document_integrity = application::document_integrity::DocumentIntegrityService::new(
+                repository.clone(),
+                identity.clone(),
+                Arc::new(SystemClock::new()),
+            );
+            let workflow = CaseDocumentService::new(
+                repository,
+                identity.clone(),
+                processor,
+                Arc::new(admission),
+                Arc::new(SystemClock::new()),
+            );
+            let alerts = crate::serve_alert_composition::open(
+                database,
+                identity.clone(),
+                alert_email,
+                alert_config,
+            )?;
+            let resource_activities =
+                crate::serve_resource_activities::open(database, identity.clone())?;
+            let members = application::members::MemberService::new(
+                Arc::new(
+                    infrastructure::PostgresMemberStore::open(
+                        database,
+                        Arc::new(SystemClock::new()),
+                    )
+                    .context("cannot open PostgreSQL member store")?,
+                ),
+                identity.clone(),
+                Arc::new(SystemClock::new()),
+            );
+            let resource_deadlines =
+                crate::serve_resource_activities::open_deadlines(database, identity.clone())?;
+            let router = web::api_router(
+                Arc::new(workflow),
+                identity,
+                web::CaseWorkflows {
+                    members: Arc::new(members),
+                    cases: Arc::new(cases),
+                    participants: Arc::new(participants),
+                    stages: Arc::new(stages),
+                    typed: Arc::new(typed_participants),
+                    hearings: Arc::new(hearings),
+                    hearing_results: Arc::new(hearing_results),
+                    procedural_facts: Arc::new(procedural_facts),
+                    procedural_resources: Arc::new(procedural_resources),
+                    resource_activities,
+                    resource_deadlines,
+                    deadlines: Arc::new(deadlines),
+                    agenda: Arc::new(agenda),
+                    dashboard: Arc::new(dashboard),
+                    case_reports: reports.workflow,
+                    alerts: alerts.workflow,
+                    document_content: Arc::new(document_content),
+                    document_integrity: Arc::new(document_integrity),
+                },
+                Arc::new(calendars),
+                Arc::new(profiles),
+                web::HttpLimits {
+                    max_requests: args.max_in_flight_requests,
+                    max_blocking_operations: args.max_blocking_operations,
+                },
+            );
+            Ok((router, dispatch, worker, alerts.consumers, reports.consumer))
+        })?;
 
     crate::serve_start::run(
         &args.bind,
@@ -374,14 +390,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         dispatch,
         worker,
         deadline_config,
-        alerts.consumers,
+        alerts,
+        reports,
     )
-}
-
-fn read(path: &std::path::Path, label: &str) -> anyhow::Result<Vec<u8>> {
-    fs::read(path).with_context(|| format!("cannot read {label} at {}", path.display()))
-}
-
-fn required_env(name: &str) -> anyhow::Result<String> {
-    std::env::var(name).with_context(|| format!("{name} must be set for the HTTP application"))
 }

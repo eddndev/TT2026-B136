@@ -220,6 +220,7 @@ pub struct CaseWorkflows {
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
     pub dashboard: Arc<dyn application::dashboard::DashboardWorkflow>,
+    pub case_reports: Arc<dyn application::case_reports::CaseReportWorkflow>,
     pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
     pub document_content: Arc<dyn application::document_content::DocumentContentWorkflow>,
     pub document_integrity: Arc<dyn application::document_integrity::DocumentIntegrityWorkflow>,
@@ -289,6 +290,10 @@ pub fn api_router(
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
         .merge(agenda::router(workflows.agenda, runtime.clone()))
         .merge(dashboard::router(workflows.dashboard, runtime.clone()))
+        .merge(case_reports::router(
+            workflows.case_reports,
+            runtime.clone(),
+        ))
         .merge(alerts::router(workflows.alerts, runtime.clone()))
         .merge(document_content::router(
             workflows.document_content,
@@ -329,4 +334,13 @@ mod tests {
         let body = to_bytes(response.into_body(), 1024).await.unwrap();
         assert_eq!(&body[..], b"ok");
     }
+}
+
+mod case_reports;
+/// Builds authenticated durable report request and download routes.
+pub fn case_reports_router(
+    workflow: Arc<dyn application::case_reports::CaseReportWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(case_reports::router(workflow, runtime.clone()), runtime)
 }

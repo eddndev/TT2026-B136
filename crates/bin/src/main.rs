@@ -23,6 +23,8 @@ mod serve_args;
 mod serve_cmd;
 mod serve_deadline_runtime;
 mod serve_document_validation;
+mod serve_report_composition;
+mod serve_report_runtime;
 mod serve_resource_activities;
 mod serve_runtime;
 mod serve_signals;
@@ -40,6 +42,9 @@ use crate::cli::{Cli, Command, CryptoAction};
 use crate::config::AppConfig;
 
 fn main() -> anyhow::Result<()> {
+    if let Some(code) = infrastructure::case_report_isolation::worker_entry() {
+        std::process::exit(code);
+    }
     if let Some(code) = infrastructure::document_formats::worker_entry() {
         std::process::exit(code);
     }

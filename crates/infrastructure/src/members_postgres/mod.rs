@@ -19,7 +19,7 @@ pub struct PostgresMemberStore {
 
 impl PostgresMemberStore {
     pub fn open(
-        database_url: &str,
+        database_url: &(impl crate::PostgresConnectionSource + ?Sized),
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Result<Self, ApplicationError> {
         Ok(Self {

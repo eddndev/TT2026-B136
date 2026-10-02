@@ -53,7 +53,12 @@ async fn every_unexpected_consumer_exit_requests_stop_and_joins_the_other_before
             } else {
                 (second, first)
             };
-            let mut future = Box::pin(supervise(deadline, alert, stop.clone()));
+            let mut future = Box::pin(supervise(
+                deadline,
+                alert,
+                tokio::spawn(async { Ok(()) }),
+                stop.clone(),
+            ));
             let initial = future
                 .as_mut()
                 .poll(&mut Context::from_waker(Waker::noop()));
@@ -93,7 +98,12 @@ async fn requested_stop_waits_for_both_owners_and_reports_normal_completion() {
     let deadline_handle = deadlines.abort_handle();
     let alert_handle = alerts.abort_handle();
     stop.request();
-    let mut future = Box::pin(supervise(deadlines, alerts, stop));
+    let mut future = Box::pin(supervise(
+        deadlines,
+        alerts,
+        tokio::spawn(async { Ok(()) }),
+        stop,
+    ));
     let initial = future
         .as_mut()
         .poll(&mut Context::from_waker(Waker::noop()));

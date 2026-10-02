@@ -3,6 +3,7 @@
   import Auth from './Auth.svelte';
   import Sidebar from './Sidebar.svelte';
   import Overview from './Overview.svelte';
+  import CaseReports from './CaseReports.svelte';
   import Guide from './Guide.svelte';
   import Icon from './Icon.svelte';
   import Cases from './Cases.svelte';
@@ -199,6 +200,7 @@
               go('documents');
             }}
           />
+        {:else if view === 'reports'}<CaseReports {api} {user} />
         {:else if view === 'judicial-calendars'}<JudicialCalendars {api} {user} />
         {:else if view === 'alerts'}<Alerts
             {api}

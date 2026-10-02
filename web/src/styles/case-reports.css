@@ -1,0 +1,234 @@
+.reports-page {
+  min-width: 0;
+}
+.reports-page .page-heading {
+  align-items: flex-start;
+  gap: 18px;
+}
+.report-scope {
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+.report-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.3fr);
+  gap: 22px;
+  align-items: start;
+  margin: 22px 0;
+}
+.report-request,
+.report-list,
+.report-detail {
+  padding: 24px;
+  min-width: 0;
+}
+.report-fields {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0 14px;
+}
+.report-fields label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+.report-fields input,
+.report-fields select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.report-request .hint {
+  line-height: 1.6;
+  margin: 12px 0;
+}
+.report-request form > .primary {
+  width: 100%;
+  margin-top: 10px;
+}
+.report-request-note {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.report-retry p {
+  margin: 0 0 10px;
+}
+.report-row {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.report-row:last-of-type {
+  border-bottom: 0;
+}
+.report-row-content {
+  min-width: 0;
+}
+.report-row h3 {
+  margin: 9px 0 5px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.report-row p {
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 6px 0;
+}
+.report-row .secondary {
+  flex-shrink: 0;
+}
+.report-phase {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surface-alt, #f1f3f5);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.report-ready {
+  color: #216155;
+  background: #eaf4ef;
+}
+.report-notice {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.report-pagination {
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+}
+.report-empty {
+  padding: 22px 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.report-detail {
+  margin-bottom: 24px;
+}
+.report-detail .section-heading {
+  gap: 18px;
+  align-items: flex-start;
+}
+.report-detail-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+.report-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 20px 0;
+}
+.report-facts > div {
+  min-width: 0;
+}
+.report-facts dt {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.report-facts dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.report-capture {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  margin: 20px 0;
+  background: var(--surface-alt, #f8faf9);
+}
+.report-capture h3 {
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+.report-capture p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.report-capture code {
+  display: block;
+  font-size: 11px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.report-downloads {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.report-artifact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.report-artifact strong {
+  display: block;
+  color: var(--navy);
+  font-size: 15px;
+}
+.report-artifact small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.reports-page time,
+.reports-page .notice {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1100px) {
+  .report-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .reports-page .page-heading,
+  .report-detail .section-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .report-request,
+  .report-list,
+  .report-detail {
+    padding: 18px;
+  }
+  .report-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .report-facts,
+  .report-downloads {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .report-artifact {
+    flex-wrap: wrap;
+  }
+  .report-capture {
+    padding: 14px;
+  }
+}

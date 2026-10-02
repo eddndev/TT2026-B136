@@ -1,0 +1,37 @@
+\subsubsection{Alcance del informe de estado de expedientes}\label{sec:diseno-informes}
+
+La concreción de la \cref{tab:rf-19} en esta entrega aborda el estado de
+expedientes y su carga de asignaciones; no agota el catálogo de tipos ni la
+medición de desempeño. La \cref{tab:cu-16} conserva como alcance el aviso por
+correo y la estimación de tiempo en su flujo alterno. La implementación ofrece
+avisos internos y estados de procesamiento; el canal de correo y una estimación
+validada de terminación permanecen pendientes. Estos límites no sustituyen
+los requisitos ni permiten considerar el caso de uso completo.
+
+El informe de estado representa una observación administrativa de los expedientes
+originalmente creados dentro de un intervalo UTC. El inicio es inclusivo, el
+fin exclusivo y la duración máxima es de 366 días. El estado activo o cerrado
+se consulta al capturar los datos; no se reconstruye el estado que cada
+expediente tenía al final del periodo. La carga de trabajo procede de las
+asignaciones de esos mismos expedientes. Por ello, el resultado no es un censo
+histórico, una medición de actividad durante el intervalo ni una calificación
+de desempeño o efectividad jurídica.
+
+Owner solicita el ámbito del despacho; Litigante, sus expedientes asignados.
+Cada informe es privado de su solicitante, incluso frente a otro Owner.
+Paralegal y Cliente no acceden a este agregado. La selección opcional de un
+litigante utiliza el mismo criterio de pertenencia que el filtro: Owner ve
+los litigantes activos, aunque carezcan de expedientes, y Litigante ve a los
+activos con quienes comparte algún expediente, incluidos los cerrados. El
+selector se pagina y no utiliza la carga de expedientes activos del tablero
+como sustituto del directorio autorizado.
+
+La solicitud se identifica con una operación repetible y una captura inmutable,
+compartida por PDF y CSV. El trabajo puede continuar fuera de la petición HTTP,
+pero su publicación y descarga vuelven a comprobar el acceso a todos los
+expedientes capturados. La revocación de uno impide entregar el conjunto; no se
+eliminan filas para presentar como completo un resultado distinto. Los avisos
+de disponibilidad o fallo son internos y su lectura requiere acuse explícito.
+La especificación concreta está en \rutarepo{docs/case-reports-api.md}; la
+\cref{sec:impl-informes} describe su composición, y la
+\cref{sec:pruebas-informes} separa implementación y aceptación reproducida.

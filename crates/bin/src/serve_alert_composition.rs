@@ -43,7 +43,7 @@ pub(crate) fn email_settings(args: &ServeArgs) -> anyhow::Result<Option<AlertEma
 }
 
 pub(crate) fn open(
-    database_url: &str,
+    database_url: &(impl infrastructure::PostgresConnectionSource + ?Sized),
     identity: Arc<dyn IdentityWorkflow>,
     email: Option<AlertEmailSettings>,
     config: AlertRuntimeConfig,

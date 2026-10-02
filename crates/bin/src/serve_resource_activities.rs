@@ -8,7 +8,7 @@ use infrastructure::{PostgresResourceActivityStore, RingSha256Hasher, SystemCloc
 use std::sync::Arc;
 
 pub(crate) fn open(
-    database_url: &str,
+    database_url: &(impl infrastructure::PostgresConnectionSource + ?Sized),
     identity: Arc<dyn IdentityWorkflow>,
 ) -> anyhow::Result<Arc<dyn ResourceActivityWorkflow>> {
     let hasher = Arc::new(RingSha256Hasher::new());
@@ -24,7 +24,7 @@ pub(crate) fn open(
 }
 
 pub(crate) fn open_deadlines(
-    database_url: &str,
+    database_url: &(impl infrastructure::PostgresConnectionSource + ?Sized),
     identity: Arc<dyn IdentityWorkflow>,
 ) -> anyhow::Result<Arc<dyn application::resource_deadlines::ResourceDeadlineWorkflow>> {
     let hasher = Arc::new(RingSha256Hasher::new());

@@ -14,6 +14,14 @@ con restauración aprobados. CI global y el PDF actualizado conservan su seguimi
 en el [informe de verificación](verification-report.md). El alta directa existente no
 se convierte en invitación ni recuperación de acceso.
 
+La [API de informes de expedientes](case-reports-api.md) define solicitudes
+durables propias para Owner y Litigator, una captura administrativa compartida por
+PDF y CSV, y avisos internos de lectura explícita. El servidor compone su consumidor
+supervisado y un selector paginado de litigantes con el alcance propio del informe,
+incluidos colegas de expedientes cerrados. La aceptación integrada y el cierre
+global siguen pendientes. El intervalo filtra fechas de creación y la captura
+observa el estado actual; no representa efectividad histórica ni constancia externa.
+
 La [API de contenido documental e incidentes](document-content-api.md) añade
 la descarga de una versión exacta, pendiente o sellada, y el buzón interno
 exclusivo de Owner. Su aceptación se registra por separado en el informe.

@@ -183,6 +183,103 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Informes propios y arranque: comprobación del 2 de octubre de 2026
+
+La entrega de [informes](case-reports-api.md) conserva una captura autorizada y
+cifrada, publica juntos PDF y CSV, y mantiene avisos propios durables. Estas
+comprobaciones son locales; no acreditan todavía una cabeza global integrada
+ni una activación de VPS3. Los grupos focales son distintos y no se suman como
+si fueran una ejecución completa de CI.
+
+La primera campaña global detectó un fallo de preparación en el verificador SQL
+del calendario: todavía extraía las migraciones de `postgres.rs`, aunque las
+constantes habían pasado a `postgres/migrations.rs`. CI y Web se cancelaron
+automáticamente antes de completar la regresión. El helper ahora resuelve las
+rutas respecto al módulo que las declara y rechaza un inventario vacío o ajeno
+a `migrations/`. La comprobación SQL corregida aprobó sus 21 casos en 5.369 s
+con PostgreSQL desechable; el cierre global requiere la nueva cabeza publicada.
+
+La segunda campaña se canceló al rechazar la política de dependencias
+`rustybuzz` 0.20.1 y `ttf-parser` 0.25.1, sin mantenimiento según
+[RUSTSEC-2026-0206](https://rustsec.org/advisories/RUSTSEC-2026-0206.html) y
+[RUSTSEC-2026-0192](https://rustsec.org/advisories/RUSTSEC-2026-0192.html).
+Se sustituyeron por HarfRust 0.13.3 y Skrifa 0.46.2, con un único parser
+`read-fonts` 0.43.3; no se añadieron excepciones a la política. Los vectores
+fijos capturados del motor anterior conservan métricas, glifos, clústeres,
+avances, posiciones y líneas de ambas fuentes Noto originales.
+
+| Comprobación posterior del motor tipográfico | Resultado nuevo |
+| --- | --- |
+| Captura de referencia sobre el motor anterior | 1/1; 0.32 s, generador temporal retirado |
+| Equivalencia completa y reutilización del plan | 2/2; 0.38 s |
+| Renderizado, paginación, límites y texto original | 15/15; 1.96 s |
+| Política de avisos, licencias, fuentes y restricciones | `cargo deny check`: PASS |
+| Clippy workspace y todos los targets | PASS; 2 min 17 s |
+| PDF representativo mediante el proceso aislado | 1/1; 0.566156 s de renderizado, compilación separada de 59.44 s |
+
+La última comprobación reutilizó la captura exacta de 60 expedientes, 179
+asignaciones y 120 filas de carga. Conservó los **1654401 bytes**, las 25 páginas,
+el texto extraído, todas las identidades y las continuaciones; su SHA-256 sigue
+siendo `32659e0008fefdf7565ba66d60708cc3e117871e11d4affb23bfb26c808a4674`.
+Los 0.566156 s nuevos y 1.604057 s anteriores son observaciones individuales
+sobre esa captura, con los mismos límites del worker. No se repitió la captura
+máxima ni se extrapola esta diferencia al tiempo total de CI. La inspección
+visual previa corresponde a esos mismos bytes. La aceptación API y de navegador
+registrada abajo precede a esta sustitución; los gates de la nueva cabeza
+publicada deben confirmar la regresión global.
+
+| Comprobación de esta entrega | Resultado observado |
+| --- | --- |
+| Aplicación: contratos, autorización, trabajos y avisos | 26 casos aprobados |
+| Protección cifrada, renderizado inicial y persistencia | 12, 12 y 24 casos, respectivamente |
+| Esquema de informes | 4 casos aprobados |
+| Paginación y renderizado final | 15/15 |
+| Selector de litigantes: aplicación, PostgreSQL y HTTP de informes | 6/6, 4/4 y 14/14 |
+| Cliente Node y navegador controlado | 19 y 13 casos distintos aprobados |
+| Composición y supervisión del servidor | 43/43 |
+| Validación PostgreSQL compartida durante construcción | RED: 5 aprobados y 3 fallidos; GREEN: 8/8 en 15.00 s |
+| Capacidad de arranque sellada y sin escape | 2/2 ejemplos de rechazo de compilación |
+| Reutilización de plan tipográfico con glifos y posiciones exactos | 2/2 |
+| Clippy workspace, todos los targets, con `-D warnings` | aprobado; 19.91 s |
+| Navegador contra servicios reales, un worker | 2/2; 23.4 s de Playwright y 207.863 s de comando |
+| API completa con restauración y sesiones nuevas | salida 0 en 326.299 s; 3136 fuentes sin cambios durante la ejecución |
+| Demostración CLI criptográfica y rechazos esperados | `scripts/demo.sh` completo, salida 0 |
+
+El recorrido real de Owner y Litigator conserva bytes, hashes, identidad de la
+captura y avisos al iniciar una sesión nueva. Cuatro capturas de 1440 y 390
+píxeles son legibles, sin superposiciones ni desbordamiento horizontal. Esta
+inspección no sustituye una evaluación de usabilidad con personas.
+
+La aceptación HTTP verificó tres trabajos por cola, replay exacto, publicación
+pareada, avisos leídos y no leídos, denegación a otros roles y a otro Owner, y
+revocación del informe completo al perder acceso a uno de sus expedientes.
+Tras `pg_dump`/`pg_restore` y MFA nuevo, PDF/CSV, identidades y avisos conservaron
+sus valores exactos. El proceso recorrió los estados observables sin exigir
+que cada consulta alcanzara a ver todas las transiciones intermedias.
+
+Los reinicios con inventario poblado después de SIGTERM y SIGINT estuvieron
+listos en **5 s cada uno**, conservando historial y evidencia. Antes de compartir
+la validación durante construcción, el primero tardó 59 s y el segundo no
+estuvo listo dentro del límite existente de 60 s. Ese límite no se amplió.
+[ADR 0062](adr/0062-scoped-postgres-startup-validation.md) conserva la validación
+completa para aperturas independientes y reconexiones. Los ensayos previos de
+arranque que terminaron antes de informes no se cuentan como su aceptación.
+
+La captura máxima de 1000 expedientes, 10000 asignaciones y 1000 filas de carga
+produjo CSV de 1523555 bytes en 0.382 s. Su PDF devolvió `CapacityExceeded`
+en 15.197 s: no se declara soportado ese máximo combinado para cualquier texto
+ni se atribuye el rechazo a un recurso concreto. Una captura representativa de
+60 expedientes produjo 25 páginas y 1654401 bytes. Reutilizar el plan tipográfico
+redujo su tiempo de 2.7404 a 1.604057 s, con bytes idénticos y SHA-256
+`32659e0008fefdf7565ba66d60708cc3e117871e11d4affb23bfb26c808a4674`.
+Las páginas físicas 1, 2, 3, 13 y 25 se inspeccionaron sin recortes ni
+solapamientos. Las mediciones usaron el proceso aislado en perfil de desarrollo;
+no son una promesa de latencia para el despliegue.
+
+Los filtros representan creación y estado actual. Correo, estimación de entrega,
+otros tipos de reporte y evaluación de rendimiento jurídico de CU-16/RF-19
+permanecen pendientes; avisos internos y carga no sustituyen esos requisitos.
+
 ## Recursos relacionados desde actividades: comprobación del 27 de septiembre de 2026
 
 La consulta inversa autoriza una audiencia o plazo concreto, lee las cabezas

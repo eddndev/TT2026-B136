@@ -7,7 +7,7 @@ trap 'printf "api-demo.sh: failure at %s:%s (status %s)\n" "${BASH_SOURCE[0]}" "
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PKI_SCRIPTS="$REPO_ROOT/pki"
 
-for command in cargo curl initdb jq openssl pg_ctl pg_dump pg_restore psql python3 redis-cli redis-server rg unzip stdbuf; do
+for command in cargo curl initdb jq openssl pdftotext pg_ctl pg_dump pg_restore psql python3 redis-cli redis-server rg unzip stdbuf; do
   command -v "$command" >/dev/null 2>&1 || {
     printf 'api-demo.sh: required command not found: %s\n' "$command" >&2
     exit 1
@@ -271,6 +271,12 @@ source "$REPO_ROOT/scripts/api-members-demo.sh"
 
 # shellcheck source=scripts/api-dashboard-demo.sh
 source "$REPO_ROOT/scripts/api-dashboard-demo.sh"
+
+case_reports_demo_python() {
+  TT_FACT_API_BASE_URL="$BASE_URL" TT_FACT_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_FACT_API_WORK_DIR="$WORK_DIR" TT_FACT_API_REPO="$REPO_ROOT" \
+    python3 -B "$REPO_ROOT/scripts/api-case-reports-demo.py" "$1"
+}
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"

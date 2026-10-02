@@ -1,0 +1,347 @@
+# Qadra: manual de uso
+
+**Tu despacho, en orden.** Esta guía describe cómo trabajar con el prototipo
+Qadra y reconocer el resultado de cada operación. Los menús disponibles dependen
+de tu cuenta y de los expedientes asignados. La sección de **Informes** describe
+una nueva entrega local pendiente de aceptación y publicación; no presupone que
+ya esté disponible en tu instalación.
+
+Este manual se basa en las pantallas y contratos del producto. No es un informe
+de evaluación de usabilidad con personas ni acredita por sí mismo la puesta en
+servicio del sistema. El administrador proporciona la dirección de acceso;
+la preparación de esa instalación corresponde al administrador del servicio.
+
+## 1. Entrar y conservar el acceso
+
+### Primera configuración del segundo factor
+
+Al crear una cuenta, Qadra muestra **Configura el segundo factor**. Registra la
+**Clave de configuración** en una aplicación de autenticación compatible con
+códigos temporales. También puedes usar la URI de configuración manual mostrada
+en esa pantalla. La clave y los códigos de recuperación se muestran una sola vez.
+
+Guarda los códigos de recuperación en un lugar privado. Después marca
+**Ya guardé la clave y los códigos** y selecciona **Finalizar**. No incluyas
+contraseñas, claves, códigos temporales ni códigos de recuperación en capturas
+para soporte, presentaciones o expedientes.
+
+### Inicio de sesión habitual
+
+1. En **Accede a tu despacho.**, escribe el correo y la contraseña de tu cuenta.
+2. Cuando aparezca **Un paso más.**, abre tu aplicación de autenticación e
+   introduce el **Código de 6 dígitos** vigente.
+3. Selecciona **Verificar y entrar**. El acceso correcto muestra **Tu mesa de
+   trabajo**, el correo y el rol de la sesión.
+
+El OTP es el código temporal generado por la aplicación que configuraste durante
+el alta; no es una contraseña fija ni un código enviado automáticamente por correo.
+Si vence la solicitud o se rechaza el código, vuelve a iniciar sesión. Si el reloj
+del dispositivo está desajustado, corrígelo antes de intentarlo nuevamente.
+
+Si no dispones de la aplicación, selecciona **Usar código de recuperación** e
+introduce uno que no hayas utilizado. Cada código permite un solo uso. Si perdiste
+ambos medios o la contraseña, contacta al administrador: todavía no existe un
+flujo de restablecimiento autónomo ni de recuperación del enrolamiento.
+
+Usa **Cerrar sesión** al terminar. Cerrar sesión conserva los expedientes y sus
+archivos. No dependas de un cierre por inactividad para proteger una sesión abierta.
+
+## 2. Qué permite cada cuenta
+
+| Cuenta en Qadra | Alcance y tareas principales |
+| --- | --- |
+| **Administrador** (Owner) | Todos los expedientes; gestión de cuentas y asignaciones, registro procesal, documentos y sellado. Accede a Equipo, Auditoría, Incidentes de integridad y Calendarios jurisdiccionales. |
+| **Litigante** | Expedientes con asignación vigente; registro procesal, documentos, clasificación y sellado. Consulta el tablero de sus expedientes. |
+| **Asistente legal** | Expedientes asignados; carga, clasificación, consulta, verificación y descarga documental. Consulta participantes, actividades y agenda; no sella ni gestiona los registros procesales. |
+| **Cliente** | Consulta básica de expedientes asignados. El acceso documental y los módulos de participantes, agenda, alertas e informes permanecen restringidos. |
+
+Las asignaciones se aplican a cuentas de acceso. Una ficha de participante
+procesal no crea una cuenta ni concede permisos. Tampoco la existencia de una
+alerta concede acceso adicional a un expediente.
+
+### Administrar el equipo y las asignaciones
+
+El administrador abre **Equipo** para crear una cuenta o consultar el directorio.
+Al crearla, conserva y entrega de forma privada la configuración inicial del
+segundo factor. El alta es directa: **no hay invitaciones por correo ni enlaces de
+aceptación implementados**.
+
+El directorio permite filtrar por correo, rol y estado. Revisa la cuenta antes de
+confirmar cambios de acceso. Cambiar rol o estado invalida el acceso anterior;
+reactivar exige un nuevo inicio de sesión y conserva las asignaciones existentes.
+No se permite dejar al despacho sin un administrador activo.
+
+Para asignar cuentas, abre un expediente y entra en **Asignaciones**. Consulta
+asignados o disponibles, selecciona la cuenta y confirma asignación o retiro.
+Una cuenta inactiva puede conservar su asignación, pero no puede usarla para entrar.
+Si el resultado del envío es incierto, consulta las asignaciones actuales antes
+de decidir otra acción. Véase [gestión de miembros](members-api.md).
+
+## 3. Orientarse desde Inicio
+
+**Inicio** reúne accesos a expedientes, documentos pendientes de sello, documentos
+sellados y alertas según tu rol. El expediente seleccionado se conserva como
+contexto de navegación; comprueba siempre su título y referencia antes de escribir.
+
+Administrador y Litigante disponen de **Indicadores operativos**. Usa **Actualizar
+indicadores** para consultar una nueva observación. La pantalla distingue
+expedientes activos, contratos pendientes de sello y plazos vencidos, próximos o
+por revisar, además de la carga por litigante.
+
+- El administrador observa todo el despacho; el litigante, sus expedientes asignados.
+- Los plazos de menos de 48 horas están incluidos en los de menos de siete días;
+  no sumes ambas cifras como grupos independientes.
+- **Por revisar** indica que falta un vencimiento operativo vigente; no significa
+  que el plazo esté resuelto ni que deje de requerir atención.
+- La carga por litigante cuenta asignaciones y puede incluir el mismo expediente
+  en más de una persona. Los indicadores no califican resultados jurídicos.
+
+La [descripción del tablero](dashboard-api.md) precisa su alcance.
+
+## 4. Crear, completar y cerrar un expediente
+
+1. Abre **Expedientes** y selecciona **Nuevo expediente penal** si tu rol lo permite.
+2. Registra título, referencia interna, NUC, carpeta judicial, autoridades y
+   descripciones de delito que correspondan a la ficha.
+3. Revisa los datos y confirma. Abre **Resumen** para comprobar la ficha guardada.
+4. Desde el expediente entra en Documentos, Participantes, Etapas, Audiencias,
+   Resoluciones, Recursos o Plazos según la tarea.
+
+Una ficha anterior pendiente se puede completar; esto no reconstruye etapas ni
+fechas pasadas. El registro inicial de Investigación de una nueva ficha completa
+es un registro del sistema, no una acreditación de actuación judicial.
+
+Administrador y Litigante asignado pueden cerrar administrativamente o reactivar
+un expediente desde **Resumen**. El cierre conserva consulta e historial
+permitidos, verificación y descargas; impide nuevas modificaciones de ficha,
+documentos y registros procesales. No cambia la etapa ni reactiva participantes
+archivados. Consulta el [alcance administrativo](case-administration-api.md).
+
+## 5. Trabajar con documentos
+
+### Cargar y clasificar
+
+Abre primero el expediente correcto y su sección **Documentos**. Selecciona o
+arrastra el archivo, revisa el nombre sugerido y, si corresponde, completa tipo,
+clasificación y etiquetas. Cada etiqueta se agrega por separado.
+
+Se admiten archivos de hasta **16 MiB**: PDF, DOCX, TXT, JPEG y PNG sin animación,
+MP3, WAV PCM y MP4 H.264/AAC. La admisión comprueba el contenido; cambiar la
+extensión no convierte un archivo a otro formato. Un archivo reconocible puede
+ser rechazado por contenido inválido, subtipo no admitido o límites de validación.
+Consulta el [catálogo de admisión](document-upload-admission-api.md) si necesitas
+las variantes concretas.
+
+Qadra puede sugerir un nombre compatible sin espacios ni acentos para el archivo.
+Revisarlo no modifica los bytes originales. Tipo, clasificación y etiquetas se
+mantienen separados del contenido; editar esos datos no sustituye el archivo ni
+sus evidencias. Los filtros por clasificación buscan valores completos y
+distinguen mayúsculas y acentos.
+
+Un rechazo conserva el archivo y el borrador en la pantalla. Lee la causa,
+corrige o selecciona otro archivo y confirma de nuevo. No supongas que se guardó
+si no aparece la confirmación. Los soportes de actos procesales mantienen su
+política propia de **PDF o DOCX**; el catálogo general no amplía esos soportes.
+
+### Versiones y contenido original
+
+Usa **Agregar versión** para conservar otro archivo bajo la misma identidad del
+documento. Las versiones anteriores permanecen disponibles. El historial muestra
+primero las más nuevas; selecciona la versión exacta antes de sellar, verificar
+o descargar. La clasificación actual pertenece al documento y tiene un historial
+separado del historial de archivos.
+
+La descarga de contenido puede recuperar una versión pendiente o sellada tras
+comprobar su integridad. No agrega un sello. Si aparece un aviso de integridad,
+conserva el mensaje y comunica al administrador el expediente, documento y versión;
+no sustituyas el archivo para ocultar el incidente. El administrador dispone de
+**Incidentes de integridad**. Véase [contenido y avisos](document-content-api.md).
+
+### Sellar, verificar y guardar evidencia
+
+1. Administrador o Litigante selecciona la versión correcta y confirma su sellado.
+2. Usa **Verificar integridad** para obtener un resultado actualizado. Abrir la
+   ficha por sí solo no ejecuta esa comprobación.
+3. Revisa el resultado de integridad, firma, certificado y sello de tiempo.
+   Un fallo requiere atención; no presentes esa verificación como satisfactoria.
+4. Descarga la evidencia ZIP de la versión seleccionada y comprueba que el
+   navegador terminó de guardarla. Conserva el paquete completo.
+
+El sellado emplea la identidad técnica del servicio y un sello de tiempo local;
+no demuestra una firma personal del usuario que pulsó el botón. Tampoco equivale
+a una constancia NOM-151 emitida por un PSC autorizado. Las declaraciones externas
+usadas en determinadas fichas de participantes son un flujo distinto.
+
+## 6. Participantes, etapas y actuaciones declaradas
+
+En **Participantes**, Administrador y Litigante asignado pueden registrar,
+completar, editar, archivar y reactivar fichas. El Asistente legal asignado puede
+consultarlas. Selecciona la identidad y el perfil adecuados, revisa coincidencias
+y confirma los soportes exactos. Personas con nombres iguales no se fusionan
+automáticamente. Archivar organiza el directorio; no cambia su situación jurídica.
+
+Cuando una ficha exige certificado y declaración firmada, descarga la declaración
+preparada, fírmala externamente y carga la firma separada. Qadra no necesita recibir
+tu clave privada. Cambiar la declaración o el certificado exige prepararla otra
+vez. La comprobación de demostración usa una autoridad interna; no acredita por sí
+misma identidad civil, profesión ni FIREL oficial. Consulta
+[participantes tipificados](typed-participants-api.md).
+
+En **Etapas**, declara la etapa conocida o el avance permitido, fecha, motivo y
+soporte PDF/DOCX exacto. Diferencia fecha sin hora de fecha con hora y desfase UTC.
+La recepción por el tribunal y la emisión de un auto son datos distintos. Revisar
+el historial permite ver qué se declaró y cuándo se registró. Una carga documental
+confirmada puede permanecer guardada aunque el acto posterior sea rechazado.
+
+En **Audiencias**, revisa expediente, etapa, tipo, fecha, hora, desfase UTC,
+modalidad, sede o conexión y revisiones de los participantes. Corregir, reprogramar
+y cancelar requiere revisar el estado actual y conservar el motivo. Programar
+una audiencia no declara que se celebró. Los resultados y resoluciones se registran
+por separado, con sus soportes y antecedentes; no se deducen de la programación.
+Los catálogos disponibles delimitan lo que puede registrarse.
+
+Consulta [etapas](case-stages-api.md), [audiencias](hearings-api.md),
+[resultados de audiencia](hearing-results-api.md) y [hechos y resoluciones
+procesales](procedural-facts-api.md).
+
+## 7. Recursos y sus actividades
+
+En **Recursos**, Administrador y Litigante asignado registran el recurso con su
+resolución de origen, personas y soportes correspondientes. Revisa la revisión
+histórica seleccionada; una corrección posterior de la fuente no sustituye lo que
+quedó capturado. Los actos del recurso son declaraciones expresas y conservan su
+historial. Su registro no prueba por sí solo admisión ni efectos jurídicos.
+
+Las actividades permiten asociar una audiencia o plazo existente del mismo
+expediente. Revisa la actividad exacta y el estado de su asociación; desvincular
+conserva la historia. También se puede preparar un plazo nuevo desde el recurso:
+revisa sus insumos, cálculo y vínculo antes de confirmar. Esa confirmación guarda
+el plazo y su asociación juntos; preparar no equivale a guardar.
+
+La navegación de recursos relacionados desde una actividad, incluida la abierta
+por una alerta, muestra asociaciones actuales y sus capturas. No demuestra que
+el recurso haya causado la alerta. Distingue siempre revisión capturada y registro
+actual, y usa la acción de regreso para volver al contexto abierto. Esta navegación
+ampliada está en verificación de entrega; su disponibilidad depende de la versión.
+
+No hay creación de audiencias propias del recurso ni activación jurídica automática
+de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
+[plazos desde recursos](resource-deadlines-api.md) y
+[navegación desde actividades](activity-resource-links-api.md).
+
+## 8. Plazos, agenda y alertas
+
+### Preparar un plazo
+
+Administrador y Litigante asignado seleccionan perfil, fuente, calendario y
+responsable. Declara expresamente aplicabilidad, condiciones y cantidad concedida
+cuando se pida. Para las dependencias, distingue conservar una revisión de seguir
+cambios. Un máximo permitido no demuestra que esa cantidad haya sido concedida.
+
+**Prepara y revisa antes de confirmar.** Comprueba el cálculo, sus pasos y los
+bloqueos. Un registro bloqueado conserva lo pendiente sin inventar un vencimiento.
+Si cambian fuentes o perfiles seguidos, revisa los insumos y confirma la corrección
+necesaria. La historia conserva cálculos anteriores, separados de la fecha vigente.
+Declarar atención o retirar un plazo no acredita por sí solo una presentación válida.
+
+El administrador mantiene los calendarios jurisdiccionales; antes de usar un
+cómputo, confirma que calendario, fuente, perfil y datos declarados correspondan
+al caso. Qadra organiza esos datos y cálculos, sin sustituir esa revisión profesional.
+Véanse [plazos](deadlines-api.md) y [seguimiento](deadline-tracking-api.md).
+
+### Consultar Agenda
+
+Abre **Agenda**, elige día, semana, mes o rango personalizado, desfase de consulta
+y filtros. Pulsa **Consultar Agenda**. Revisa las fechas con su desfase; no confundas
+la hora original declarada con la representación del intervalo elegido.
+
+La agenda reúne audiencias y vencimientos operativos autorizados. Si indica que
+la consulta es parcial, carga más actividades antes de tratarla como completa.
+Un plazo bloqueado, retirado o pendiente de revisión puede conservar historia sin
+aparecer como vencimiento vigente. Abre la actividad y consulta su registro actual
+antes de modificarla. Véase [agenda](agenda-api.md).
+
+### Usar Mis alertas
+
+Administrador, Litigante y Asistente legal consultan sus propias alertas y
+preferencias. Las audiencias se dirigen a cuentas activas asignadas al expediente;
+el administrador no recibe todas automáticamente. Los plazos se dirigen al
+responsable actual autorizado.
+
+Consulta los filtros y usa **Actualizar alertas** cuando necesites una nueva
+lectura. Abrir una alerta o su actividad no la marca como leída: usa **Marcar como
+leída** cuando corresponda. La alerta conserva el origen observado; compara con
+el estado actual antes de actuar.
+
+En **Preferencias de alertas**, revisa anticipaciones y canales. Si el servidor
+indica que el correo está deshabilitado, guardar la preferencia no enviará mensajes.
+Cuando esté habilitado, el correo contiene un aviso genérico y acceso a Qadra,
+sin datos del expediente. Consultar una audiencia o activar una preferencia no
+confirma que se haya enviado un aviso. Véanse [alertas](alerts-api.md).
+
+## 9. Informes: nueva entrega local pendiente
+
+Esta sección describe la interfaz en preparación. Su aceptación y publicación
+siguen pendientes; no la uses como evidencia de una función desplegada.
+
+Administrador y Litigante podrán abrir **Informes** para solicitar una captura del
+estado administrativo observado. Cada persona consulta únicamente sus propias
+solicitudes. El administrador incluye expedientes del despacho; el litigante,
+los que tiene asignados y puede consultar.
+
+1. En **Solicitar informe**, elige **Creación desde (UTC)** y **Creación hasta
+   (excluida, UTC)**, estado administrativo y, opcionalmente, litigante asignado.
+2. El inicio se incluye y el final se excluye, ambos a las 00:00 UTC; el intervalo
+   máximo es 366 días. Para incluir todo septiembre, usa 1 de septiembre a
+   1 de octubre. El selector considera también compañeros de expedientes cerrados;
+   usa **Cargar más litigantes** cuando haya otra página.
+3. Selecciona **Generar informe** y conserva su identidad. Puedes salir de la
+   pantalla y volver; usa **Actualizar informe** para consultar el progreso.
+4. Cuando esté listo, descarga PDF o CSV. Ambos contienen la misma captura y no
+   cambian porque el expediente se modifique después.
+5. Usa **Marcar aviso como leído** para acusar el aviso interno. Descargar un
+   archivo no realiza ese acuse.
+
+El periodo filtra **cuándo se crearon los expedientes**. El contenido muestra su
+estado observado al preparar la captura; no reconstruye el estado al final del
+periodo ni mide la actividad o el éxito jurídico. No incluye una firma documental
+ni una constancia de PSC. Una pérdida posterior de permisos puede impedir la
+consulta o descarga completa.
+
+Si una respuesta es incierta, **Reintentar solicitud** conserva la misma solicitud
+y filtros. Si se excede la capacidad, reduce el conjunto y solicita otro informe;
+no se recortan filas para aparentar un resultado completo. Consulta
+[el alcance de informes](case-reports-api.md).
+
+## 10. Resolver incidencias sin duplicar operaciones
+
+| Situación | Qué hacer |
+| --- | --- |
+| Sesión vencida o acceso invalidado | Inicia sesión de nuevo. Si desapareció un permiso o expediente, pide al administrador que revise rol y asignación. |
+| Otra persona modificó el registro | Conserva el borrador, consulta el estado y la historia actuales, compara y confirma de nuevo cuando corresponda. No des por aplicado el envío rechazado. |
+| Se perdió la respuesta de una escritura | Usa la consulta o comprobación ofrecida para ese envío. No repitas automáticamente altas, sellados o confirmaciones. Si sigue incierto, conserva los datos y pide ayuda. |
+| Archivo rechazado | Lee el motivo, verifica formato y tamaño, conserva el original y vuelve a enviar sólo tras decidir la corrección. Cambiar el nombre no repara el contenido. |
+| Falló la integridad o la evidencia | Conserva el aviso y comunica expediente, documento, versión y momento al administrador. No afirmes que la verificación aprobó. |
+| Servicio temporalmente no disponible | Conserva el borrador y vuelve a consultar. Un mensaje de error no confirma que una escritura anterior haya fallado o tenido éxito. |
+| Descarga iniciada pero sin archivo visible | Comprueba la lista de descargas y su finalización en el navegador antes de darla por guardada. |
+| Lista parcial o botón para cargar más | Solicita la continuación antes de interpretar esa pantalla como el conjunto completo. |
+
+Para solicitar soporte, comunica la operación, el mensaje mostrado, el momento y
+las identidades del expediente o registro necesarias. Mantén fuera del reporte
+contraseñas, códigos y claves privadas; evita adjuntar contenido sensible si no es
+necesario para atender el problema.
+
+## 11. Alcance del manual y evaluación pendiente
+
+Este documento permite preparar recorridos de acceso, asignación, carga,
+versionado, sellado, verificación, registro procesal y consulta. Las funciones
+pendientes —invitaciones, restablecimiento autónomo, política documental de
+Cliente y las entregas señaladas expresamente— no deben incluirse como tareas
+completadas en una demostración.
+
+La evaluación con usuarios requiere un protocolo separado: participantes y
+consentimiento, tareas, criterios de éxito, observaciones y resultados reales.
+Esta guía no registra participantes, tiempos, satisfacción ni conclusiones de
+una evaluación que todavía no se haya realizado. El estado funcional y su
+verificación se consultan en [cierre del producto](product-completion.md) y
+[el informe de verificación](verification-report.md).

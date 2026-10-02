@@ -21,6 +21,9 @@
     { id: 'overview', label: 'Inicio', icon: 'home' },
     { id: 'cases', label: 'Expedientes', icon: 'briefcase' },
     { id: 'documents', label: 'Documentos', icon: 'folder' },
+    ...(['owner', 'litigator'].includes(user.role)
+      ? [{ id: 'reports', label: 'Informes', icon: 'folder' }]
+      : []),
     ...(canHearings(user.role, 'read')
       ? [{ id: 'agenda', label: 'Agenda', icon: 'calendar' }]
       : []),

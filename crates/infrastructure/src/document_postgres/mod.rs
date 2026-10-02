@@ -45,7 +45,9 @@ impl PostgresCaseDocumentStore {
     }
 
     /// Runtime constructor that performs no DDL and validates audit privileges.
-    pub fn open(url: &str) -> Result<Self, ApplicationError> {
+    pub fn open(
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
+    ) -> Result<Self, ApplicationError> {
         Ok(Self {
             client: Mutex::new(crate::postgres::open(url)?),
         })

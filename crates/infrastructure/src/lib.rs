@@ -61,6 +61,8 @@ mod resource_activity_postgres;
 mod resource_activity_schema;
 pub use resource_activity_postgres::PostgresResourceActivityStore;
 mod postgres;
+mod postgres_source;
+pub use postgres_source::{with_validated_postgres, PostgresConnectionSource, ValidatedPostgres};
 mod postgres_actor;
 mod postgres_case_administration_inventory;
 mod postgres_case_administration_schema;
@@ -135,3 +137,15 @@ pub mod resource_deadline_postgres;
 pub use resource_deadline_postgres::PostgresResourceDeadlineStore;
 
 pub mod document_admission;
+
+pub mod case_report_rendering;
+
+mod case_report_protection;
+pub use case_report_protection::CaseReportEnvelopeProtector;
+
+mod case_reports;
+pub use case_reports::PostgresCaseReportStore;
+
+mod case_report_schema;
+
+pub mod case_report_isolation;

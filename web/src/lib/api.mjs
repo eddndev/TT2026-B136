@@ -1,3 +1,4 @@
+import { caseReportsApi } from './case-reports-api.mjs';
 import { dashboardApi } from './dashboard-api.mjs';
 import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
@@ -123,6 +124,15 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
           digest: response.headers.get('X-Document-Digest'),
           documentId: response.headers.get('X-Document-Id'),
           version: response.headers.get('X-Document-Version'),
+          ...(binary === 'report'
+            ? {
+                reportId: response.headers.get('X-Report-Id'),
+                digest: response.headers.get('X-Report-Digest'),
+                snapshotDigest: response.headers.get('X-Report-Snapshot-Digest'),
+                contentType: response.headers.get('Content-Type'),
+                contentLength: response.headers.get('Content-Length'),
+              }
+            : {}),
           ...(binary === 'content'
             ? {
                 caseId: response.headers.get('X-Case-Id'),
@@ -160,6 +170,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
     dashboard: () => dashboardApi(request),
+    reports: () => caseReportsApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
     alerts: (actorId) => alertsApi(request, actorId),
     integrityIncidents: () => integrityIncidentsApi(request),
