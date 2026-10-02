@@ -437,6 +437,12 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
 - Las respuestas de una sesión o expediente abandonados se descartan. Una
   respuesta de búsqueda anterior no sustituye resultados más recientes; los
   fallos de acceso limpian las filas y el detalle de documentos.
+- El cliente distingue la sesión activa del intento de acceso pendiente.
+  Iniciar otro acceso o cerrar sesión invalida las respuestas anteriores de
+  contraseña y MFA, incluso si su cuerpo tarda en recibirse. Una respuesta
+  obsoleta no reemplaza el bearer ni propaga su error remoto a otro intento.
+  Esto no cancela una operación ya admitida por el servidor ni implementa
+  el cierre por inactividad o la conservación de borradores, aún pendientes.
 - Las páginas no forman una instantánea conjunta: pueden cambiar si otro
   usuario agrega documentos o modifica asignaciones entre consultas.
 - La búsqueda abarca los nombres del expediente, no el contenido cifrado.

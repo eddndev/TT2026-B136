@@ -74,15 +74,29 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   let token = '';
   let principalId = null;
   let sessionVersion = 0;
+  let authAttemptVersion = 0;
+  let observedLogin = false;
+  let currentChallenge = null;
+  function invalidateAuthentication() {
+    currentChallenge = null;
+    return ++authAttemptVersion;
+  }
+  function supersededAuthentication() {
+    const error = new Error('Este intento de acceso fue sustituido. Inicia sesi\u00f3n de nuevo.');
+    error.code = 'auth_attempt_superseded';
+    return error;
+  }
+  function assertSession(version) {
+    if (version !== sessionVersion)
+      throw new Error('La sesi\u00f3n de esta solicitud termin\u00f3.');
+  }
   async function request(
     path,
     { method = 'GET', data, body, headers = {}, protectedRoute = true, binary = false } = {},
   ) {
     const requestVersion = sessionVersion;
     const assertCurrentSession = () => {
-      if (protectedRoute && requestVersion !== sessionVersion) {
-        throw new Error('La sesi\u00f3n de esta solicitud termin\u00f3.');
-      }
+      if (protectedRoute) assertSession(requestVersion);
     };
     const requestHeaders = { ...headers };
     if (protectedRoute && token) requestHeaders.Authorization = `Bearer ${token}`;
@@ -108,6 +122,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         token = '';
         principalId = null;
         sessionVersion++;
+        invalidateAuthentication();
         onExpired();
       }
       const fallback =
@@ -153,21 +168,59 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   }
   const post = (path, data, protectedRoute = true) =>
     request(path, { method: 'POST', data, protectedRoute });
+  async function authenticate(path, data, attempt, accept = (value) => value) {
+    const assertAttempt = () => {
+      if (attempt !== authAttemptVersion) throw supersededAuthentication();
+    };
+    try {
+      const result = await post(path, data, false);
+      assertAttempt();
+      return accept(result);
+    } catch (failure) {
+      assertAttempt();
+      throw failure;
+    }
+  }
   return {
-    login: (email, password) => post('/auth/login', { email, password }, false),
-    bootstrap: (email, password) => post('/auth/bootstrap', { email, password }, false),
+    login(email, password) {
+      observedLogin = true;
+      return authenticate(
+        '/auth/login',
+        { email, password },
+        invalidateAuthentication(),
+        (value) => {
+          currentChallenge =
+            typeof value?.challenge_token === 'string' ? value.challenge_token : null;
+          return value;
+        },
+      );
+    },
+    bootstrap: (email, password) =>
+      authenticate('/auth/bootstrap', { email, password }, invalidateAuthentication()),
     async mfa(challenge_token, code, mode) {
       if (!['totp', 'recovery'].includes(mode))
         throw new Error('M\u00e9todo de verificaci\u00f3n no v\u00e1lido.');
-      const session = await post(`/auth/mfa/${mode}`, { challenge_token, code }, false);
-      token = session.access_token;
-      principalId = session.user?.id ?? null;
-      sessionVersion++;
-      return session;
+      if (observedLogin && (currentChallenge === null || challenge_token !== currentChallenge))
+        throw supersededAuthentication();
+      return authenticate(
+        `/auth/mfa/${mode}`,
+        { challenge_token, code },
+        ++authAttemptVersion,
+        (session) => {
+          token = session.access_token;
+          principalId = session.user?.id ?? null;
+          sessionVersion++;
+          currentChallenge = null;
+          return session;
+        },
+      );
     },
     me: () => request('/auth/me'),
     async logout() {
+      const version = sessionVersion;
+      invalidateAuthentication();
       await post('/auth/logout');
+      assertSession(version);
       token = '';
       principalId = null;
       sessionVersion++;
@@ -186,6 +239,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         token = '';
         principalId = null;
         sessionVersion++;
+        invalidateAuthentication();
         onExpired();
       }),
     audit: () => request('/audit/verify'),

@@ -212,6 +212,13 @@ clave derivada por SHA-256, por lo que logout puede revocarlos de inmediato sin
 persistir el token en claro. Cada petición protegida recarga desde PostgreSQL el
 estado activo y el rol actual del usuario.
 
+El cliente Qadra controla por separado la vigencia de los intentos de acceso:
+una respuesta de contraseña o MFA reemplazada por un intento posterior no
+instala una sesión ni entrega su resultado al consumidor. Cerrar sesión o
+invalidar la identidad local también descarta esos intentos. Esta protección
+del cliente no cambia los contratos HTTP ni revoca automáticamente una sesión
+que el servidor pudiera haber emitido antes de descartar su respuesta.
+
 Cinco contraseñas rechazadas bloquean la clave normalizada del correo durante
 15 minutos. Incremento y expiración son atómicos; la lectura repara contadores
 heredados sin caducidad sin ampliar una ventana vigente. Los errores de
