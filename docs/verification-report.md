@@ -1,5 +1,27 @@
 # Informe de verificación local
 
+## Arranque del decodificador nativo: corrección focal del 2 de octubre de 2026
+
+Una ejecución en VPS3 rechazó el MP4 positivo durante el arranque, antes de
+iniciar el navegador. Un recorrido con el mismo binario publicado y los mismos
+argumentos aisló el fallo en la decodificación: salida 245 y creación de hilo
+rechazada por EAGAIN. El código fuente de FFmpeg sitúa ese hilo en el scheduler;
+los límites de un hilo por codec/filtro no suprimen sus tareas independientes.
+La traza mostró reservas virtuales de 64/128 MiB rechazadas por ENOMEM. Los
+límites de tareas no estaban agotados y no se registró OOM del kernel en esa
+ventana; esto no constituye una medición global de recursos de la campaña.
+
+El exec privado fija ahora `MALLOC_ARENA_MAX=2` después de vaciar el entorno.
+La comprobación MP4 trazada con esa configuración no registró las reservas
+rechazadas. Se mantienen AS de 512 MiB, CPU, tiempo total, protocolo cerrado,
+validación y decodificación completas. La regresión reprodujo primero la ausencia
+del entorno acotado; luego aprobaron 6/6 pruebas del worker en 0.07 s y 5/5 de
+admisión nativa en 1.24 s, incluida configuración, todos los formatos y rechazo
+de datos dañados. Compilación de ambos targets: 9.55 s. No se afirma todavía
+estabilidad concurrente ni mejora del tiempo total; eso corresponde al cierre CI.
+Véanse [la decisión](adr/0058-bounded-general-document-admission.md) y
+[la operación del decoder](media-decoder-setup.md).
+
 ## Política temporal de sesión y actividad explícita: 2 de octubre de 2026
 
 El backend conserva `absolute_only` por defecto: 24 horas desde la emisión,

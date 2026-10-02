@@ -28,7 +28,8 @@ test('related scenarios share expensive fixtures and preserve dependent setup', 
     'typed-participants.spec.mjs',
   ];
   const plans = [1, 2, 3].map((n) => planLiveSuite(related, `${n}/3`));
-  assert.ok(plans[0].fixtures.includes('caseStages'));
+  assert.ok(!plans[0].fixtures.includes('caseStages'));
+  assert.ok(plans[2].fixtures.includes('caseStages'));
   assert.ok(plans[0].fixtures.includes('deadlineReevaluation'));
   assert.ok(plans[0].fixtures.includes('combinedAgenda'));
   assert.ok(!plans[0].fixtures.includes('participants'));
@@ -40,12 +41,16 @@ test('related scenarios share expensive fixtures and preserve dependent setup', 
   assert.ok(plans[2].fixtures.includes('participants'));
 });
 
-test('administration runs with participants on the primary without unrelated stage setup', () => {
+test('stage transitions and adoption share the primary with administration and participants', () => {
   const plans = [1, 2, 3].map((n) => planLiveSuite(files, `${n}/3`));
   const owner = plans.find((plan) => plan.files.includes('case-participants.spec.mjs'));
   assert.ok(owner.files.includes('case-administration.spec.mjs'));
   assert.ok(owner.fixtures.includes('caseAdministration'));
-  assert.ok(!owner.fixtures.includes('caseStages'));
+  assert.equal(owner, plans[2]);
+  assert.ok(owner.files.includes('case-stages.spec.mjs'));
+  assert.ok(owner.files.includes('stage-adoption.spec.mjs'));
+  assert.ok(owner.fixtures.includes('caseStages'));
+  assert.equal(plans.filter((plan) => plan.fixtures.includes('caseStages')).length, 1);
   assert.equal(plans.filter((plan) => plan.fixtures.includes('caseAdministration')).length, 1);
 });
 

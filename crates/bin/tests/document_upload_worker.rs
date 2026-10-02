@@ -175,3 +175,24 @@ fn supervisor_rejects_truncated_malformed_and_extra_inspection_responses() {
         }
     }
 }
+
+#[test]
+fn decoder_allocator_is_bounded_without_forwarding_caller_configuration() {
+    for mode in ["probe", "decode"] {
+        let result = Command::new(BINARY)
+            .args(["--document-decoder-worker", mode, "/usr/bin/env"])
+            .env_clear()
+            .env("MALLOC_ARENA_MAX", "4096")
+            .env("GLIBC_TUNABLES", "glibc.malloc.arena_max=4096")
+            .env(
+                "PRIVATE_DECODER_TEST_VALUE",
+                "must-not-reach-native-process",
+            )
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert!(result.status.success());
+        assert_eq!(result.stdout, b"MALLOC_ARENA_MAX=2\n");
+        assert!(result.stderr.is_empty());
+    }
+}
