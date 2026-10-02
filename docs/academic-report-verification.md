@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Duración observada de informes: 2 de octubre de 2026
+
+El apartado de implementación distingue el intervalo observado de un resultado
+terminal y la estimación de terminación aún pendiente. LuaLaTeX terminó con
+salida cero: **355 páginas y 5858796 bytes**, SHA-256
+`b1dea8365edcaaa05625ac22ecf62238acd55c76c0f6169f8f0eb4c969a5e443`.
+Se inspeccionó la página física **210**, legible y sin recortes ni solapamientos.
+No se detectaron referencias/citas indefinidas, etiquetas múltiples ni glifos
+ausentes; permanecen las sustituciones históricas de versalitas. Resumen,
+introducción con objetivos, marco teórico y conclusiones conservan sus hashes.
+Este resultado acredita el documento local y su muestra visual, no la
+regresión remota ni el despliegue de la nueva presentación.
+
 
 ## Respaldo Redis de despliegue: 2 de octubre de 2026
 

@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Duración observada de informes: 2 de octubre de 2026
+
+La interfaz calcula el intervalo inmutable entre solicitud y aviso terminal,
+incluyendo espera y reintentos. No cambia API, permisos, persistencia ni tiempos
+de espera; no constituye ETA. TDD reprodujo siete fallos Node por ausencia del
+cálculo y un fallo de navegador por ausencia del dato. Después aprobaron Node
+7/7 en 170.141 ms y navegador controlado 1/1 en 7.3 s con un worker.
+Se verificaron segundos, nanosegundos, días, fallo, acuse posterior, exclusión
+de trabajos activos y datos incompatibles. Las vistas de 1440 y 390 px se
+inspeccionaron sin solapamientos ni desbordamientos. Formato y revisión del
+cambio aprobaron. La regresión remota, integración y despliegue de esta
+ampliación permanecen pendientes; no se reutiliza el CI previo como evidencia.
+
+## Controladores de VPS3: confirmación del 2 de octubre de 2026
+
+La cabeza `177fe1f` de PR51 aprobó CI en 7m57s y Documents en 1m18s. El merge
+`673b9ec` confirmó CI en 6m52s y Documents en 7m55s, con 3340 pruebas Rust,
+dos ignoradas, una prueba Redis nativa y cobertura 97/95/93%. Web no aplica
+a esos archivos según los filtros existentes; los fuentes del producto no
+cambiaron respecto a la release aceptada.
+
+Los cinco controladores aceptados se instalaron bajo bloqueo exclusivo y con
+copias privadas de sus originales. La aplicación sigue en `v0.1.0`/`a8dc3dd`.
+Con API y web detenidas, se capturaron SQL, RDB validado y material PKI privado;
+se publicó `COMPLETE` y se reinició la misma versión con salud, identidad y
+esquema comprobados. La copia de los cuatro archivos fuera de VPS3 conservó
+tamaños y SHA-256. Persisten cero usuarios. Esta nueva captura completa no
+tiene todavía un ensayo integral de restauración: la recuperación SQL/PKI
+inicial y el ensayo Redis con claves sintéticas son evidencias separadas.
+
 
 ## Primera release privada en VPS3: 2 de octubre de 2026
 
@@ -24,9 +54,9 @@ Los cuatro servicios están activos, sin reinicios automáticos observados.
 La captura anterior a inicializar no contenía aún PKI; se creó otra con ingreso
 cerrado y deploy.lock exclusivo, se reinició la misma versión y se confirmó
 respaldo completo del material inicializado. Había cero usuarios y cero Owners.
-Este controlador todavía realiza SQL y material privado: la ampliación Redis
-que acompaña este informe no está instalada por ese tag. No se afirma respaldo
-Redis, aceptación autenticada ni rollback entre versiones reales. La copia
+El controlador original del tag capturó SQL y material privado. Su actualización
+posterior y la nueva captura Redis se documentan por separado arriba. No se afirma
+aceptación autenticada ni rollback entre versiones reales. La copia
 externa y restauración inicial ejecutadas posteriormente se detallan abajo. La CRL conserva su mantenimiento de siete días.
 
 
@@ -86,7 +116,7 @@ corrigió su lectura raw, sin modificar código de producto para resolverlo.
 
 La comprobación inicial corresponde al entorno local indicado. El ensayo
 posterior con Redis 7.4.11 en VPS3 se registra en la sección siguiente; la
-instalación de los controladores actualizados permanece pendiente. Las copias
+instalación posterior y la captura real se registran arriba. Las copias
 antiguas sin RDB conservan su alcance anterior. Una copia histórica no cubre
 controles creados después; no se afirma recuperación integral ni un RTO.
 
@@ -116,8 +146,8 @@ Se restauró rustup 1.28.2 desde el archivo oficial con checksum y se comprobó
 rustc/cargo 1.99.0 en los dos homes aislados, sin borrar toolchains ni caches.
 La suite simulada separada aprobó 39/39 en 2.125 s. La prueba nativa
 corregida aprobó 1/1 en 5.528 s como tt-runner en VPS3, con Redis 7.4.11 real
-y puertos/datos desechables. La nueva campaña CI y la
-instalación de los controladores de respaldo actualizados siguen pendientes.
+y puertos/datos desechables. La campaña remota, la confirmación de main y
+la instalación posteriores aprobaron como se detalla arriba.
 
 
 ## Consulta Owner de actividad: aceptación local del 2 de octubre de 2026

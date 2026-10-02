@@ -1,3 +1,5 @@
+import { reportInstant, reportValue } from './case-report-values.mjs';
+
 export const canReports = (role) => ['owner', 'litigator'].includes(role);
 export const reportScope = (role) => (role === 'owner' ? 'office' : 'assigned_cases');
 export const scopeLabel = (scope) =>
@@ -13,6 +15,42 @@ export function phaseLabel(value) {
   if (value.state === 'access_revoked') return 'Acceso retirado';
   return 'No se pudo generar el informe';
 }
+
+function reportTimeNanoseconds(value) {
+  const [seconds, fraction = ''] = value.slice(0, -1).split('.');
+  return BigInt(reportInstant(`${seconds}Z`)) * 1_000_000n + BigInt(fraction.padEnd(9, '0'));
+}
+
+export function reportDuration(value) {
+  try {
+    reportValue(value);
+    if (!['ready', 'failed'].includes(value.state)) return null;
+    const requested = reportTimeNanoseconds(value.requested_at),
+      finished = reportTimeNanoseconds(value.notice.created_at),
+      updated = reportTimeNanoseconds(value.updated_at),
+      captured = value.ready ? reportTimeNanoseconds(value.ready.checked_at) : requested,
+      read = value.notice.read_at === null ? finished : reportTimeNanoseconds(value.notice.read_at);
+    if (requested > captured || captured > finished || finished > read || read > updated)
+      return null;
+    let remaining = (finished - requested) / 1_000_000_000n;
+    if (remaining === 0n) return 'Menos de 1 s';
+    const parts = [];
+    for (const [seconds, label] of [
+      [86400n, 'd'],
+      [3600n, 'h'],
+      [60n, 'min'],
+      [1n, 's'],
+    ]) {
+      const count = remaining / seconds;
+      if (count > 0n) parts.push(`${count} ${label}`);
+      remaining %= seconds;
+    }
+    return parts.join(' ');
+  } catch {
+    return null;
+  }
+}
+
 export const failureLabel = (code) =>
   ({
     capacity_exceeded:

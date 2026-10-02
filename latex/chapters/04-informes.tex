@@ -75,6 +75,10 @@ no se rebajan los presupuestos para aceptar un artefacto.
 Qadra permite filtrar, solicitar, actualizar el estado, consultar trabajos,
 acusar avisos y descargar un formato. Distingue espera, captura, renderizado,
 reintento, disponibilidad y fallo; no estima porcentajes ni fechas de finalización.
+Para un resultado disponible o fallido presenta la duración observada entre la
+solicitud y su aviso terminal, incluida la espera en cola y los reintentos.
+El acuse posterior del aviso no amplía ese intervalo. Esta medición de un trabajo
+terminado no constituye una predicción para solicitudes pendientes.
 El selector paginado conserva los colegas compartidos sólo en expedientes
 cerrados. Antes de ofrecer una descarga, el cliente contrasta identificador,
 captura, tamaño y digest con el detalle autorizado.

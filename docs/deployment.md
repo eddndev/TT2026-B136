@@ -208,13 +208,21 @@ ingreso/API, migrar con el binario nuevo y conexión admin, validar inventario y
 definir qué revisión admite esa base antes de registrar una nueva huella. No
 forman parte del despliegue automático. Seguir [operación de base de datos](database-operations.md).
 
-Antes de activar, con API/web detenidas, se capturan PostgreSQL, Redis y la
-configuración privada CA/TSA; `COMPLETE` se publica al terminar correctamente.
+El controlador ampliado, integrado por PR51, captura PostgreSQL, Redis y la
+configuración privada CA/TSA antes de activar, con API/web detenidas;
+`COMPLETE` se publica al terminar correctamente. Los controladores `673b9ec`
+ya están instalados en VPS3 bajo `deploy.lock`; la aplicación sigue en
+`v0.1.0` sobre `a8dc3dd`.
 La [guía de respaldos](deployment-backups.md) concreta permisos, fallos,
 copias antiguas sin Redis, transferencia fuera del servidor y restauración manual
 con invalidación de sesiones/desafíos y conservación de controles TOTP/límites.
-Su aceptación focal real permanece pendiente. No se borran automáticamente
-releases ni respaldos. Rollback de aplicación conserva SQL y Redis actuales.
+El respaldo inicial SQL/PKI tiene copia privada fuera de VPS3 y restauración
+aislada comprobadas; no contiene RDB. La nueva captura
+`20261002T105313Z-886940db` tiene SQL, RDB, PKI y `COMPLETE` validados, y su
+copia externa de cuatro archivos coincide por hash y tamaño. Falta el ensayo
+de restauración completa de esta captura; la prueba nativa Redis de cinco
+claves sintéticas es evidencia separada. No se borran automáticamente releases
+ni respaldos. Rollback de aplicación conserva SQL y Redis actuales.
 
 Los certificados y CRL requieren mantenimiento: los guiones generan certificados
 de un año y CRL de siete días. Seguir [PKI](../pki/README.md) y la publicación de
@@ -224,18 +232,28 @@ para cargar el material operativo actualizado.
 
 ## Evidencia y límites
 
-Consultar [el informe](verification-report.md). El 1 de octubre de 2026 se
-comprobaron 30 pruebas del controlador, incluidos los casos focales de
+Consultar [el informe](verification-report.md). Como evidencia histórica del
+1 de octubre de 2026, se comprobaron 30 pruebas del controlador, incluidos los casos focales de
 configuración y recuperación de confianza, y la sintaxis de los workflows.
 Cinco comprobaciones adicionales de recuperación con PostgreSQL/OpenSSL reales
-aprobaron contra el esquema de confianza exacto. En VPS3 quedaron activos PostgreSQL y Redis de
-`qadra`, y aprobaron las cuatro unidades de usuario y la configuración nginx.
-API y frontend permanecen inactivos, sin release ni Owner; el enrolamiento espera
-el correo administrativo elegido por el operador. Los ensayos del servidor
-original se conservan como evidencia histórica distinta. Servicios preparados y
-pruebas focales no equivalen a una versión publicada. No se omiten gates fallidos para probar transporte.
-La primera ejecución real, el recorrido autenticado y la recuperación entre
-dos versiones reales requieren evidencia propia.
+aprobaron contra el esquema de confianza exacto. Ese día quedaron preparados
+PostgreSQL, Redis, las cuatro unidades de usuario y la configuración nginx;
+API y frontend aún no tenían una release activa. Los ensayos del servidor
+original conservan su evidencia histórica separada.
+
+El 2 de octubre se activó `v0.1.0` sobre `a8dc3dd`. Deploy version aprobó en
+17m28s, con CI/Web completos, identidad y hashes del paquete, salud y PKI
+comprobados. PostgreSQL, Redis, API y frontend están activos. La restauración
+inicial SQL/PKI conservó cero usuarios y un evento de auditoría, y el binario
+aceptado arrancó y respondió 401. No acredita continuidad Redis ni datos poblados.
+Owner todavía espera el correo administrativo; el recorrido autenticado y la
+recuperación entre dos versiones reales requieren evidencia propia.
+
+PR51 se integró como `673b9ec` tras CI de 7m57s y Documents de 1m18s sobre
+`177fe1f`. La confirmación natural de `673b9ece` aprobó CI `36996915839` en
+6m52s y Documents `36996915909` en 7m55s, con 3340 pruebas Rust, dos ignoradas,
+una nativa Redis y cobertura 97/95/93 %. Los controladores ya se actualizaron
+en VPS3; la release activa y los cero usuarios permanecen sin cambio.
 
 Referencias: [Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax),
 [respaldo PostgreSQL](https://www.postgresql.org/docs/16/backup-dump.html),

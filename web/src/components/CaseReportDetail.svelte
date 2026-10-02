@@ -4,6 +4,7 @@
     statusLabel,
     scopeLabel,
     failureLabel,
+    reportDuration,
   } from '../lib/case-reports-presentation.mjs';
   export let value = null,
     busy = false,
@@ -12,6 +13,7 @@
     onrefresh,
     ondownload,
     onread;
+  $: duration = reportDuration(value);
 </script>
 
 <section class="card report-detail" aria-label="Detalle de informe" aria-busy={busy}>
@@ -58,11 +60,22 @@
         <dt>Solicitud</dt>
         <dd><time datetime={value.requested_at}>{value.requested_at}</time></dd>
       </div>
+      {#if duration !== null}
+        <div>
+          <dt>Duraci&#243;n observada</dt>
+          <dd>{duration}</dd>
+        </div>
+      {/if}
       <div>
         <dt>Informe</dt>
         <dd class="report-identifier">{value.id}</dd>
       </div>
     </dl>
+    {#if duration !== null}
+      <p class="hint">
+        Tiempo desde la solicitud hasta el resultado registrado, incluyendo espera y reintentos.
+      </p>
+    {/if}
     {#if value.state === 'queued' || value.state === 'processing'}<p class="notice">
         El trabajo sigue en el servidor. Actualiza cuando quieras consultar su estado; no necesitas
         mantener esta pantalla abierta.

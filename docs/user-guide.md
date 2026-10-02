@@ -2,9 +2,8 @@
 
 **Tu despacho, en orden.** Esta guía describe cómo trabajar con el prototipo
 Qadra y reconocer el resultado de cada operación. Los menús disponibles dependen
-de tu cuenta y de los expedientes asignados. La sección de **Informes** describe
-una nueva entrega local pendiente de aceptación y publicación; no presupone que
-ya esté disponible en tu instalación.
+de tu cuenta y de los expedientes asignados. **Informes** y la consulta de
+**Auditoría** están incluidos en la release privada `v0.1.0`.
 
 Este manual se basa en las pantallas y contratos del producto. No es un informe
 de evaluación de usabilidad con personas ni acredita por sí mismo la puesta en
@@ -222,7 +221,7 @@ La navegación de recursos relacionados desde una actividad, incluida la abierta
 por una alerta, muestra asociaciones actuales y sus capturas. No demuestra que
 el recurso haya causado la alerta. Distingue siempre revisión capturada y registro
 actual, y usa la acción de regreso para volver al contexto abierto. Esta navegación
-ampliada está en verificación de entrega; su disponibilidad depende de la versión.
+está incluida en `v0.1.0`.
 
 No hay creación de audiencias propias del recurso ni activación jurídica automática
 de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
@@ -279,13 +278,9 @@ Cuando esté habilitado, el correo contiene un aviso genérico y acceso a Qadra,
 sin datos del expediente. Consultar una audiencia o activar una preferencia no
 confirma que se haya enviado un aviso. Véanse [alertas](alerts-api.md).
 
-## 9. Informes: entrega en verificación de integración
+## 9. Informes
 
-La entrega de informes ya tiene comprobación local de API y navegador con
-servicios reales. Su integración y activación siguen pendientes; comprueba la
-versión disponible antes de usarla como una función desplegada.
-
-Administrador y Litigante podrán abrir **Informes** para solicitar una captura del
+Administrador y Litigante pueden abrir **Informes** para solicitar una captura del
 estado administrativo observado. Cada persona consulta únicamente sus propias
 solicitudes. El administrador incluye expedientes del despacho; el litigante,
 los que tiene asignados y puede consultar.
@@ -303,6 +298,12 @@ los que tiene asignados y puede consultar.
 5. Usa **Marcar aviso como leído** para acusar el aviso interno. Descargar un
    archivo no realiza ese acuse.
 
+En versiones que incluyen **Duración observada**, el detalle disponible o fallido
+muestra el tiempo transcurrido desde la solicitud hasta el resultado registrado,
+incluyendo espera y reintentos. Leer el aviso no aumenta ese tiempo. No aparece
+en trabajos pendientes ni predice cuándo terminarán; esta ampliación aún no forma
+parte de `v0.1.0`.
+
 El periodo filtra **cuándo se crearon los expedientes**. El contenido muestra su
 estado observado al preparar la captura; no reconstruye el estado al final del
 periodo ni mide la actividad o el éxito jurídico. No incluye una firma documental
@@ -316,11 +317,8 @@ no se recortan filas para aparentar un resultado completo. Consulta
 
 ## 10. Auditoría: consulta de actividad
 
-**Sólo el Administrador** puede abrir **Auditoría**. La nueva consulta tiene
-aceptación local de API con restauración y navegador con servicios reales.
-Su CI, integración y activación siguen pendientes; comprueba que esta función
-esté disponible en la versión que utilizas. La acción **Verificar cadena**
-es independiente y conserva su funcionamiento.
+**Sólo el Administrador** puede abrir **Auditoría** para consultar la actividad
+registrada. La acción **Verificar cadena** es independiente de esa consulta.
 
 ### Consultar eventos registrados
 
