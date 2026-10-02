@@ -169,3 +169,8 @@ fn migrations_in_distinct_schemas_do_not_wait_for_each_others_lock() {
         "independent schema migration failed: {result:?}"
     );
 }
+
+#[path = "case_administration_support/mod.rs"]
+mod case_administration_support;
+#[path = "postgres_composition/mod.rs"]
+mod composition;

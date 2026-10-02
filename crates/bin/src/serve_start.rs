@@ -4,7 +4,7 @@ use crate::{
     serve_alert_composition::AlertConsumers,
     serve_alert_runtime, serve_alert_supervisor,
     serve_deadline_runtime::{self, DeadlineRuntimeConfig},
-    serve_runtime,
+    serve_report_runtime, serve_runtime,
     serve_signals::Signals,
     serve_stop::Stop,
 };
@@ -19,6 +19,7 @@ pub(crate) fn run<D, W>(
     worker: W,
     config: DeadlineRuntimeConfig,
     alerts: AlertConsumers,
+    reports: crate::serve_report_composition::ReportConsumer,
 ) -> anyhow::Result<()>
 where
     D: DeadlineDispatchStore + 'static,
@@ -65,9 +66,15 @@ where
                 alert_stop.as_ref(),
             )
         });
+        let report_stop = Arc::clone(&stop);
+        let report_consumer = Arc::clone(&reports);
+        let reports = tokio::task::spawn_blocking(move || {
+            serve_report_runtime::run(report_consumer.as_ref(), report_stop.as_ref())
+        });
         let consumer = tokio::spawn(serve_alert_supervisor::supervise(
             deadlines,
             alerts,
+            reports,
             Arc::clone(&stop),
         ));
         let (http_shutdown, shutdown) = tokio::sync::oneshot::channel();

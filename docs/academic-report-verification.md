@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Informes propios: PDF del 2 de octubre de 2026
+
+LuaLaTeX generó **349 páginas y 5934856 bytes**, SHA-256
+`875ca4f638a15cc3cc89a1c290ebb07e8d693352ccbe173218267b4a59f308f5`.
+Se inspeccionaron las páginas físicas **78, 208, 209, 251, 252, 344 y 345**,
+con alcance, implementación, aceptación y trazabilidad de informes. Una primera
+revisión detectó dos desbordes en rutas largas del anexo; se reformuló ese
+párrafo y se recompiló. Las páginas afectadas se revisaron nuevamente: son
+legibles, sin recortes ni solapamientos. No quedan referencias indefinidas ni
+glifos ausentes; permanecen las sustituciones históricas de versalitas y el
+desborde anterior de 0.11754 pt. Resumen, objetivos y conclusiones se preservan.
+Este resultado documenta la aceptación local de informes y sus límites; no
+acredita su cierre global, despliegue o evaluación formal con participantes.
+
 ## Consulta inversa desde actividades: PDF del 27 de septiembre de 2026
 
 El PDF local final tiene **344 páginas y 5915321 bytes**, SHA-256

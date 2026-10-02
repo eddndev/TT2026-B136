@@ -1,3 +1,4 @@
+import { provisionCaseReports } from "./web-case-report-fixtures.mjs";
 import { provisionDashboard } from "./web-dashboard-fixtures.mjs";
 import { provisionMembers } from "./web-member-fixtures.mjs";
 import { provisionDocumentContent } from "./web-document-content-fixtures.mjs";
@@ -91,6 +92,7 @@ try {
           documentContent: () => provisionDocumentContent(request),
           members: () => provisionMembers(request),
           dashboard: () => provisionDashboard(request),
+          caseReports: () => provisionCaseReports(request),
           judicialCalendars: () => provisionCalendars(request),
           deadlines: () => provisionDeadlines(request),
         }).filter(([name]) => needed.has(name)),

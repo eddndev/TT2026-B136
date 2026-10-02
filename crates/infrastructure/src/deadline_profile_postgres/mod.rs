@@ -22,7 +22,7 @@ pub struct PostgresDeadlineProfileStore {
 }
 impl PostgresDeadlineProfileStore {
     pub fn open(
-        url: &str,
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
         hasher: Arc<dyn DocumentHasher + Send + Sync>,
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Result<Self, ApplicationError> {

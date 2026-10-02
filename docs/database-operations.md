@@ -157,6 +157,63 @@ auditoría; el inventario final incluyó 19 raíces documentales, 25 versiones y
 incidente. CI global y el PDF de estos resultados siguen pendientes en
 [el informe](verification-report.md).
 
+## Informes durables y restauración
+
+`0026_case_reports.sql` conserva el flujo de informes en cuatro tablas:
+
+- `case_report_jobs`: solicitud, filtros, identidad y generación de autorización
+  originales; estado, intentos y concesión de procesamiento vigente.
+- `case_report_snapshots`: captura administrativa inmutable y cifrada.
+- `case_report_artifacts`: PDF y CSV cifrados, vinculados a la misma captura.
+- `case_report_notices`: disponibilidad o fallo, con primer acuse de lectura.
+
+La migración instala guardas y privilegios; `serve` valida el catálogo operativo
+sin ejecutar DDL. Solicitud, transiciones, publicaciones y avisos participan en
+la transacción auditada. Las guardas conservan solicitudes, capturas y artefactos;
+no borrar filas, reiniciar intentos ni editar concesiones para forzar resultados.
+El renderizado se hace fuera de esa transacción y ambos formatos se publican
+juntos. No hay un PDF disponible mientras falte su CSV correspondiente.
+
+El consumidor serial está compuesto en el supervisor de `serve`, con pausa de
+un segundo entre ciclos y parada coordinada. Cada reclamación usa una concesión
+de dos minutos, ampliable en renovaciones de dos minutos, y compara identificador,
+intento, token y generación. Tras reiniciar, la cola puede recuperar concesiones
+vencidas; un proceso anterior no puede sobrescribir el resultado nuevo. Un error
+transitorio de disponibilidad o de arranque del renderizador admite reintento,
+hasta cinco intentos en total, con espera de 30 segundos por número de intento.
+La captura ya persistida se conserva. La espera es elegibilidad del trabajo,
+no una garantía de hora de terminación.
+
+La ejecución Linux limita cada formato a 15 segundos de CPU, 512 MiB de espacio
+virtual y 20 segundos de pared. La salida contiene como máximo un artefacto de
+16 MiB más su cabecera de protocolo. El hijo recibe una captura en memoria sellada,
+con entorno vacío y sin descriptores de los servicios; no recibe configuración de
+base de datos ni KEK mediante esos canales. Se conservan los permisos normales
+del proceso: esta separación de recursos no es un sandbox de archivos o red.
+No ampliar presupuestos para ocultar errores de captura o renderizado. Los
+límites y la semántica de filtros están en [el contrato](case-reports-api.md).
+
+Respaldar las cuatro tablas como parte de la copia consistente de PostgreSQL,
+junto con usuarios, generaciones, expedientes, membresías, administración y
+cadena de auditoría. Conservar por separado y de forma protegida la KEK necesaria
+para descifrar los sobres existentes. Una copia de archivos PDF/CSV por sí sola
+no conserva solicitudes, capturas ni su autorización. Antes de restaurar, detener
+`serve` y sus consumidores, restaurar restricciones y privilegios, y seguir la
+invalidación de sesiones Redis descrita arriba. No reescribir tiempos, intentos o
+capturas durante la recuperación.
+
+La descarga revalida al solicitante y todos los expedientes capturados: perder
+una membresía deniega la captura completa. Cambiar y restaurar el rol no revive
+su generación anterior. Los avisos pertenecen exclusivamente al solicitante y
+persisten entre sesiones; sólo un acuse explícito fija su primera lectura.
+El selector de filtros consulta membresías actuales, incluidos expedientes
+cerrados, con lecturas auditadas; no depende del agregado del tablero.
+
+La implementación local incluye la composición del consumidor. La aceptación
+integrada de reinicio, revocación, publicación, restauración y límites, y el
+cierre global de esta entrega, siguen pendientes de evidencia en
+[el informe de verificación](verification-report.md).
+
 ## Preparar un despliegue nuevo
 
 Crear previamente una base UTF-8 y un rol de conexión sin privilegios administrativos.

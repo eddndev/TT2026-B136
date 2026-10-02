@@ -1,0 +1,47 @@
+\section{Trazabilidad de informes de expedientes}\label{anexo:informes}
+
+Las \cref{sec:diseno-informes,sec:impl-informes,sec:pruebas-informes} delimitan
+filtros, autorización, cola durable, artefactos y evidencia. El contrato
+\rutarepo{docs/case-reports-api.md} distingue creación dentro de un periodo y
+estado observado, sin reconstruir un censo histórico. La decisión
+\rutarepo{docs/adr/0060-durable-authorized-case-reports.md} y la guía
+\rutarepo{docs/database-operations.md} conservan las condiciones de privacidad,
+recuperación y respaldo con KEK. La aceptación integrada comprueba estas
+condiciones sin sustituir la regresión global del incremento.
+
+Las pruebas de aplicación están en \rutarepo{crates/application/tests/}:
+\texttt{case\_reports.rs} ejercita contratos autorizados y
+\texttt{case\_report\_worker.rs}, el procesamiento. La persistencia se comprueba
+en \rutarepo{crates/infrastructure/tests/case_report_backend.rs}; protección y
+renderizado tienen grupos separados en ese mismo directorio. La composición y
+la supervisión tienen módulos en \rutarepo{crates/bin/src/}:
+\texttt{serve\_report\_composition.rs} y \texttt{serve\_report\_runtime.rs}.
+Sus pruebas no sustituyen la aceptación mediante el servidor compuesto.
+
+La adaptación HTTP se verifica en
+\rutarepo{crates/web/tests/case_reports_http.rs}; el cliente tiene comprobaciones
+en \rutarepo{web/tests/case-reports-api.test.mjs} y recorridos bajo
+\rutarepo{web/tests/browser/}. Los dos recorridos de servicios reales están en
+\rutarepo{web/tests/live/case-reports.spec.mjs} y conservan sus propios usuarios
+y expedientes de prueba. Acreditan los formatos exactos tras renovar la sesión.
+El guion \rutarepo{scripts/api-case-reports-demo.py} aprobó el recorrido HTTP
+con el consumidor real, los avisos y la revocación de toda la captura; la
+restauración comprobó PDF y CSV exactos, identidades y estados de lectura, con
+autenticación renovada. Los resultados se
+registran por campaña en el informe de verificación, manteniendo separados
+éxitos focales, fallos pendientes y aceptación integrada.
+
+El criterio de cierre exige conservar ambos formatos de la misma captura,
+concesiones que no permitan escrituras atrasadas, revalidación del conjunto
+completo antes de publicar o descargar, avisos propios y primer acuse durable.
+El selector debe admitir un litigante visible por casos cerrados y rechazar
+cualquier rol o pertenencia que no autorice la consulta. Las restauraciones
+deben conservar estas condiciones además de la igualdad de bytes. Ninguna
+exportación constituye un documento firmado por una persona, una notificación
+jurídica ni una constancia externa de conservación.
+
+La \cref{tab:cu-16} mantiene su flujo alterno de correo y estimación de tiempo;
+la \cref{tab:rf-19}, tipos de reporte y desempeño. La implementación parcial de
+estado y carga, aunque complete su aceptación técnica, no modifica ni da por
+cumplidos esos alcances restantes. La responsividad para trabajos mayores a
+tres segundos requiere su propia observación reproducida.

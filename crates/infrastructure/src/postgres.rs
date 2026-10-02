@@ -5,73 +5,9 @@ use application::ApplicationError;
 use postgres::{Client, NoTls};
 
 mod migration_lock;
+mod migrations;
+use migrations::*;
 
-const IDENTITY_MIGRATION: &str = include_str!("../../../migrations/0001_identity.sql");
-const CASE_MIGRATION: &str = include_str!("../../../migrations/0002_cases.sql");
-const DOCUMENT_MIGRATION: &str = include_str!("../../../migrations/0003_case_documents_audit.sql");
-const VERSION_MIGRATION: &str = include_str!("../../../migrations/0004_document_versions.sql");
-const METADATA_MIGRATION: &str = include_str!("../../../migrations/0005_document_metadata.sql");
-const PARTICIPANT_MIGRATION: &str = include_str!("../../../migrations/0006_case_participants.sql");
-const CASE_ADMINISTRATION_MIGRATION: &str =
-    include_str!("../../../migrations/0007_case_administration.sql");
-const CASE_STAGE_MIGRATIONS: [&str; 3] = [
-    include_str!("../../../migrations/0008_case_stages.sql"),
-    include_str!("../../../migrations/0008_case_stage_values.sql"),
-    include_str!("../../../migrations/0008_case_stage_guards.sql"),
-];
-const CREDENTIAL_TRUST_MIGRATION: &str =
-    include_str!("../../../migrations/0009_participant_credential_trust.sql");
-const TYPED_PARTICIPANT_MIGRATIONS: [&str; 6] = [
-    include_str!("../../../migrations/0010_typed_values_primitives.sql"),
-    include_str!("../../../migrations/0010_typed_values.sql"),
-    include_str!("../../../migrations/0010_typed_participants.sql"),
-    include_str!("../../../migrations/0010_typed_guards.sql"),
-    include_str!("../../../migrations/0010_typed_reviews.sql"),
-    include_str!("../../../migrations/0010_typed_credentials.sql"),
-];
-const HEARING_MIGRATIONS: [&str; 4] = [
-    include_str!("../../../migrations/0011_hearings_values.sql"),
-    include_str!("../../../migrations/0011_hearings_receipts.sql"),
-    include_str!("../../../migrations/0011_hearings.sql"),
-    include_str!("../../../migrations/0011_hearings_guards.sql"),
-];
-const HEARING_RESULT_MIGRATIONS: [&str; 5] = [
-    include_str!("../../../migrations/0012_hearing_results_time.sql"),
-    include_str!("../../../migrations/0012_hearing_results_values.sql"),
-    include_str!("../../../migrations/0012_hearing_results_receipts.sql"),
-    include_str!("../../../migrations/0012_hearing_results.sql"),
-    include_str!("../../../migrations/0012_hearing_results_guards.sql"),
-];
-const JUDICIAL_CALENDAR_MIGRATIONS: [&str; 6] = [
-    include_str!("../../../migrations/0013_judicial_calendar_primitives.sql"),
-    include_str!("../../../migrations/0013_judicial_calendar_sources.sql"),
-    include_str!("../../../migrations/0013_judicial_calendar_values.sql"),
-    include_str!("../../../migrations/0013_judicial_calendar_receipts.sql"),
-    include_str!("../../../migrations/0013_judicial_calendar_tables.sql"),
-    include_str!("../../../migrations/0013_judicial_calendar_guards.sql"),
-];
-const PROCEDURAL_FACT_MIGRATIONS: [&str; 11] = [
-    include_str!("../../../migrations/0014_procedural_fact_primitives.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_time.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_people.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_provenance.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_values.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_source_items.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_sources.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_receipts.sql"),
-    include_str!("../../../migrations/0014_procedural_facts.sql"),
-    include_str!("../../../migrations/0014_procedural_fact_source_guards.sql"),
-    include_str!("../../../migrations/0014_procedural_facts_guards.sql"),
-];
-const DEADLINE_SOURCE_EVENT_MIGRATION: &str =
-    include_str!("../../../migrations/0015_deadline_source_events.sql");
-const DEADLINE_PROFILE_MIGRATIONS: &[&str] = &[
-    include_str!("../../../migrations/0016_deadline_profile_projection.sql"),
-    include_str!("../../../migrations/0016_deadline_profile_receipts.sql"),
-    include_str!("../../../migrations/0016_deadline_profile_tables.sql"),
-    include_str!("../../../migrations/0016_deadline_profile_guards.sql"),
-    include_str!("../../../migrations/0016_deadline_profile_events.sql"),
-];
 /// Applies all schema prerequisites atomically, serialized per schema.
 pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     let mut client = Client::connect(database_url, NoTls).map_err(port_error)?;
@@ -150,62 +86,93 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::member_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in crate::case_report_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
 
 /// Connects without DDL and rejects roles able to bypass persisted evidence protection.
-pub(crate) fn open(database_url: &str) -> Result<Client, ApplicationError> {
+pub(crate) fn open(
+    source: &(impl crate::PostgresConnectionSource + ?Sized),
+) -> Result<Client, ApplicationError> {
+    crate::postgres_source::connect(source)
+}
+
+pub(crate) fn open_url(database_url: &str) -> Result<Client, ApplicationError> {
+    let mut client = connect_runtime(database_url)?;
+    validate_runtime(&mut client)?;
+    Ok(client)
+}
+
+pub(crate) fn connect_runtime(database_url: &str) -> Result<Client, ApplicationError> {
     let mut client = Client::connect(database_url, NoTls).map_err(port_error)?;
     require_utf8(&mut client)?;
-    crate::postgres_version_schema::validate(&mut client)?;
-    crate::postgres_metadata_schema::validate(&mut client)?;
-    crate::postgres_participant_schema::validate(&mut client)?;
-    crate::postgres_case_administration_schema::validate(&mut client)?;
-    crate::postgres_case_stages_schema::validate(&mut client)?;
-    crate::credential_trust_postgres::schema::validate(&mut client)?;
-    crate::typed_participant_schema::validate(&mut client)?;
-    crate::hearing_schema::validate(&mut client)?;
-    crate::hearing_result_schema::validate(&mut client)?;
-    crate::judicial_calendar_schema::validate(&mut client)?;
-    crate::procedural_fact_schema::validate(&mut client)?;
-    crate::deadline_profile_schema::validate(&mut client)?;
-    crate::deadline_schema::validate(&mut client)?;
-    crate::deadline_source_event_schema::validate(&mut client)?;
-    crate::deadline_dispatch_schema::validate(&mut client)?;
-    crate::deadline_worker_schema::validate(&mut client)?;
-    crate::alert_schema::validate(&mut client)?;
-    crate::procedural_resource_schema::validate(&mut client)?;
-    crate::resource_activity_schema::validate(&mut client)?;
-    crate::document_integrity_schema::validate(&mut client)?;
-    crate::member_schema::validate(&mut client)?;
+    Ok(client)
+}
+
+pub(crate) fn lock_startup_schema(client: &mut Client) -> Result<i32, ApplicationError> {
+    migration_lock::acquire_startup(client)
+}
+pub(crate) fn unlock_startup_schema(
+    client: &mut Client,
+    schema: i32,
+) -> Result<(), ApplicationError> {
+    migration_lock::release_startup(client, schema)
+}
+
+pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationError> {
+    crate::postgres_version_schema::validate(client)?;
+    crate::postgres_metadata_schema::validate(client)?;
+    crate::postgres_participant_schema::validate(client)?;
+    crate::postgres_case_administration_schema::validate(client)?;
+    crate::postgres_case_stages_schema::validate(client)?;
+    crate::credential_trust_postgres::schema::validate(client)?;
+    crate::typed_participant_schema::validate(client)?;
+    crate::hearing_schema::validate(client)?;
+    crate::hearing_result_schema::validate(client)?;
+    crate::judicial_calendar_schema::validate(client)?;
+    crate::procedural_fact_schema::validate(client)?;
+    crate::deadline_profile_schema::validate(client)?;
+    crate::deadline_schema::validate(client)?;
+    crate::deadline_source_event_schema::validate(client)?;
+    crate::deadline_dispatch_schema::validate(client)?;
+    crate::deadline_worker_schema::validate(client)?;
+    crate::alert_schema::validate(client)?;
+    crate::procedural_resource_schema::validate(client)?;
+    crate::resource_activity_schema::validate(client)?;
+    crate::document_integrity_schema::validate(client)?;
+    crate::member_schema::validate(client)?;
+    crate::case_report_schema::validate(client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
         .get(0);
-    validate_runtime_role(&mut client, &role)?;
-    crate::postgres_version_schema::validate_inventory(&mut client)?;
-    crate::postgres_metadata_schema::validate_inventory(&mut client)?;
-    crate::postgres_participant_schema::validate_inventory(&mut client)?;
-    crate::postgres_case_administration_inventory::validate(&mut client)?;
-    crate::postgres_case_stages_inventory::validate(&mut client)?;
-    crate::credential_trust_postgres::schema::validate_inventory(&mut client)?;
-    crate::typed_participant_schema::validate_inventory(&mut client)?;
-    crate::hearing_schema::validate_inventory(&mut client)?;
-    crate::hearing_result_schema::validate_inventory(&mut client)?;
-    crate::judicial_calendar_schema::validate_inventory(&mut client)?;
-    crate::procedural_fact_schema::validate_inventory(&mut client)?;
-    crate::deadline_profile_schema::validate_inventory(&mut client)?;
-    crate::deadline_schema::validate_inventory(&mut client)?;
-    crate::deadline_source_event_schema::validate_inventory(&mut client)?;
-    crate::deadline_dispatch_schema::validate_inventory(&mut client)?;
-    crate::deadline_worker_schema::validate_inventory(&mut client)?;
-    crate::alerts_postgres::validate_inventory(&mut client)?;
-    crate::procedural_resource_schema::validate_inventory(&mut client)?;
-    crate::resource_activity_schema::validate_inventory(&mut client)?;
-    crate::document_integrity_schema::validate_inventory(&mut client)?;
-    crate::member_schema::validate_inventory(&mut client)?;
-    Ok(client)
+    validate_runtime_role(client, &role)?;
+    crate::postgres_version_schema::validate_inventory(client)?;
+    crate::postgres_metadata_schema::validate_inventory(client)?;
+    crate::postgres_participant_schema::validate_inventory(client)?;
+    crate::postgres_case_administration_inventory::validate(client)?;
+    crate::postgres_case_stages_inventory::validate(client)?;
+    crate::credential_trust_postgres::schema::validate_inventory(client)?;
+    crate::typed_participant_schema::validate_inventory(client)?;
+    crate::hearing_schema::validate_inventory(client)?;
+    crate::hearing_result_schema::validate_inventory(client)?;
+    crate::judicial_calendar_schema::validate_inventory(client)?;
+    crate::procedural_fact_schema::validate_inventory(client)?;
+    crate::deadline_profile_schema::validate_inventory(client)?;
+    crate::deadline_schema::validate_inventory(client)?;
+    crate::deadline_source_event_schema::validate_inventory(client)?;
+    crate::deadline_dispatch_schema::validate_inventory(client)?;
+    crate::deadline_worker_schema::validate_inventory(client)?;
+    crate::alerts_postgres::validate_inventory(client)?;
+    crate::procedural_resource_schema::validate_inventory(client)?;
+    crate::resource_activity_schema::validate_inventory(client)?;
+    crate::document_integrity_schema::validate_inventory(client)?;
+    crate::member_schema::validate_inventory(client)?;
+    crate::case_report_schema::validate_inventory(client)?;
+    Ok(())
 }
 
 /// Applies schema using administrative credentials and grants a pre-existing runtime role.
@@ -284,6 +251,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::resource_activity_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::document_integrity_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::member_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::case_report_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -308,6 +276,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::resource_activity_schema::validate_runtime_role(client, role)?;
     crate::document_integrity_schema::validate_runtime_role(client, role)?;
     crate::member_schema::validate_runtime_role(client, role)?;
+    crate::case_report_schema::validate_runtime_role(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

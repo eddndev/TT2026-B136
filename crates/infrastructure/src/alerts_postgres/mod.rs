@@ -34,7 +34,7 @@ pub struct PostgresAlertStore {
 
 impl PostgresAlertStore {
     pub fn open(
-        url: &str,
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
         hasher: Arc<dyn DocumentHasher + Send + Sync>,
         clock: Arc<dyn Clock + Send + Sync>,
         email: Option<AlertEmailConfiguration>,
@@ -44,7 +44,7 @@ impl PostgresAlertStore {
         }
         Ok(Self {
             client: Mutex::new(connect(url)?),
-            url: url.into(),
+            url: crate::postgres_source::url(url).to_owned(),
             hasher,
             clock,
             email,
@@ -79,7 +79,9 @@ impl PostgresAlertStore {
     }
 }
 
-fn connect(url: &str) -> Result<Client, ApplicationError> {
+fn connect(
+    url: &(impl crate::PostgresConnectionSource + ?Sized),
+) -> Result<Client, ApplicationError> {
     let mut client = crate::postgres::open(url)?;
     client
         .batch_execute("SET lock_timeout='1s'; SET statement_timeout='5s'")

@@ -8,6 +8,7 @@ use domain::DomainError;
 use serde::Serialize;
 
 mod alerts;
+mod case_report;
 mod deadline;
 mod deadline_profile;
 mod document_content;
@@ -136,6 +137,7 @@ impl From<ApplicationError> for ApiError {
             .or_else(document_content::map)
             .or_else(document_upload::map)
             .or_else(alerts::map)
+            .or_else(case_report::map)
             .or_else(deadline::map)
             .or_else(deadline_profile::map)
             .or_else(resource_activity::map)

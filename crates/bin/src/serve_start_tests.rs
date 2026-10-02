@@ -125,10 +125,12 @@ fn scenario(bind: &'static str, consumer_started: bool) {
     let dispatch_calls = Arc::new(AtomicUsize::new(0));
     let worker_calls = Arc::new(AtomicUsize::new(0));
     let alert_calls = Arc::new(AtomicUsize::new(0));
+    let report_calls = Arc::new(AtomicUsize::new(0));
     let observed = Arc::clone(&drops);
     let dispatched = Arc::clone(&dispatch_calls);
     let worked = Arc::clone(&worker_calls);
     let alerted = Arc::clone(&alert_calls);
+    let reported = Arc::clone(&report_calls);
     let (sender, finished) = mpsc::sync_channel(1);
     let owner = thread::spawn(move || {
         let probe = |label| Probe {
@@ -164,7 +166,13 @@ fn scenario(bind: &'static str, consumer_started: bool) {
             })),
             config: AlertRuntimeConfig::new(1, Duration::from_millis(1)).unwrap(),
         };
-        let result = serve_start::run(bind, router, dispatch, worker, config, consumers);
+        let report_probe = probe("reports");
+        let reports: crate::serve_report_composition::ReportConsumer = Arc::new(move || {
+            let _owner = &report_probe;
+            reported.fetch_add(1, SeqCst);
+            Ok(application::case_reports::CaseReportWorkerRun::Idle)
+        });
+        let result = serve_start::run(bind, router, dispatch, worker, config, consumers, reports);
         let _ = sender.send((thread::current().id(), result));
     });
     let (owner_thread, result) = finished
@@ -179,12 +187,20 @@ fn scenario(bind: &'static str, consumer_started: bool) {
     assert_eq!(worker_calls.load(SeqCst), 0);
     if !consumer_started {
         assert_eq!(alert_calls.load(SeqCst), 0);
+        assert_eq!(report_calls.load(SeqCst), 0);
     }
     let mut events = drops.lock().unwrap();
     events.sort_by_key(|event| event.label);
     assert_eq!(
         events.iter().map(|event| event.label).collect::<Vec<_>>(),
-        vec!["alerts", "dispatcher", "router", "sender", "worker"]
+        vec![
+            "alerts",
+            "dispatcher",
+            "reports",
+            "router",
+            "sender",
+            "worker"
+        ]
     );
     for event in events.iter() {
         assert!(

@@ -1,0 +1,80 @@
+\section{Verificación de informes durables}\label{sec:pruebas-informes}
+
+La aceptación distingue autorización, consistencia de captura, persistencia,
+renderizado y presentación. Una prueba de generación aislada no demuestra que
+un archivo sólo pueda descargarse por su solicitante vigente ni que ambos
+formatos sobrevivan a reinicios y restauraciones. Tampoco una página del
+selector constituye un conteo global. Los grupos focales se registran por
+su alcance y no se suman como si fueran una regresión completa del producto.
+
+En la comprobación local de composición y supervisión aprobaron 43 pruebas.
+El grupo focal de renderizado y paginación aprobó 15; el selector de litigantes
+aprobó seis en aplicación y cuatro con PostgreSQL aislado. El contrato HTTP de
+informes aprobó 14 y el cliente de interfaz, 19 verificaciones Node. El selector
+incluye un colega compartido únicamente en expedientes cerrados, paginación de
+litigantes activos sin expedientes para Owner, retirada de pertenencia y rechazo
+de roles ajenos incluso para una página vacía. La aplicación rechaza además
+respuestas incoherentes de alcance, orden, cursor o reloj y vuelve a autenticar
+al solicitante antes de entregar el resultado.
+
+La paginación del PDF debe conservar texto y filas en los saltos de página, sin
+recortar líneas ni dejar espacio reservado que fuerce una página innecesaria.
+La comprobación de recursos debe combinar cantidad de casos, asignaciones y
+carga con textos representativos y de anchura máxima. Un resultado dentro del
+máximo de filas aún puede exceder páginas, bytes o el presupuesto del proceso.
+Por ello, los valores de la \cref{sec:impl-informes} son límites de admisión y
+ejecución, no una medición de rendimiento ni garantía de aceptar cualquier
+contenido con esa cantidad de filas.
+
+En el navegador con HTTP controlado se acreditaron trece escenarios distintos;
+las repeticiones focales no se cuentan como escenarios adicionales. Con servicios
+reales aprobaron dos recorridos de informes, uno Owner y otro Litigante, en
+10.6 y 7.6 segundos respectivamente. El ejecutor de navegador duró 23.4 segundos;
+la campaña completa, 207.863 segundos. Ambos recorrieron solicitud, actualización,
+descarga exacta de PDF y CSV, aviso, navegación y nueva autenticación, conservando
+los artefactos. La inspección de cuatro capturas, a 1440 y 390 píxeles para ambos
+roles, aprobó la presentación de escritorio y móvil.
+
+Dos pruebas focales de reutilización del plan tipográfico conservaron exactamente
+los identificadores de glifo y sus posiciones, incluidos texto largo, acentos y
+ligaduras. La captura representativa de sesenta expedientes produjo el mismo PDF
+de veinticinco páginas, byte por byte, en 1.6041 segundos frente a los 2.7404
+segundos previos, sin modificar los límites. La inspección visual de sus páginas
+1, 2, 3, 13 y 25 aprobó.
+
+La captura de mil expedientes, diez mil asignaciones y mil entradas de carga
+aprobó CSV en 0.382 segundos. Su PDF continuó devolviendo
+\texttt{CapacityExceeded}: 15.197 segundos en la medición posterior y 15.284 en
+la anterior. La categoría pública no identifica cuál de los presupuestos se
+alcanzó; no se atribuye el rechazo sólo a CPU ni se declara generación del PDF
+máximo. Son observaciones del renderizador aislado, no una frontera exhaustiva
+de capacidad ni una aceptación de producción.
+
+La aceptación API integrada aprobó con salida cero en 326.299 segundos. El
+recorrido HTTP creó tres trabajos y comprobó la repetición de una misma
+operación, los pares PDF/CSV, sus identidades y digests, los avisos propios y el
+primer acuse. En dos trabajos se observaron cola, procesamiento en renderizado
+y disponibilidad; el trabajo después revocado se observó en cola y disponible.
+El sondeo no acredita haber observado todos los estados intermedios.
+
+Los reinicios mediante \texttt{SIGTERM} y \texttt{SIGINT} concluyeron en cinco
+segundos cada uno y conservaron el histórico exacto. La restauración de
+PostgreSQL y la renovación de MFA conservaron los bytes de PDF y CSV, sus
+identidades, los avisos leídos y no leídos y el rechazo completo de la captura
+revocada. Retirar la pertenencia a uno de los expedientes capturados impidió
+descargar el informe entero; una operación idempotente no permitió recuperar
+el archivo revocado. Los roles Client y Paralegal fueron rechazados.
+Estos resultados están separados de las pruebas focales y de la regresión
+global en \rutarepo{docs/verification-report.md}.
+
+El criterio de la \cref{tab:rf-19} exige comprobar una interfaz responsiva
+cuando la generación supera tres segundos, conservando la sesión y la consulta
+de progreso. La notificación interna no demuestra el canal de correo ni la
+estimación de terminación previstos por la \cref{tab:cu-16}; ambos requieren
+implementación y aceptación propias. Tampoco la carga de expedientes acredita
+por sí sola desempeño de abogados ni los demás tipos de reporte.
+
+Estas comprobaciones no sustituyen la regresión global ni la validación de
+usabilidad con participantes del despacho. La
+\cref{anexo:informes} identifica las fuentes reproducibles; su existencia no
+acredita ejecución, aprobación o despliegue.

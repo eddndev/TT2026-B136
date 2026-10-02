@@ -4,6 +4,66 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Informes propios y arranque: comprobación del 2 de octubre de 2026
+
+La entrega de [informes](case-reports-api.md) conserva una captura autorizada y
+cifrada, publica juntos PDF y CSV, y mantiene avisos propios durables. Estas
+comprobaciones son locales; no acreditan todavía una cabeza global integrada
+ni una activación de VPS3. Los grupos focales son distintos y no se suman como
+si fueran una ejecución completa de CI.
+
+| Comprobación de esta entrega | Resultado observado |
+| --- | --- |
+| Aplicación: contratos, autorización, trabajos y avisos | 26 casos aprobados |
+| Protección cifrada, renderizado inicial y persistencia | 12, 12 y 24 casos, respectivamente |
+| Esquema de informes | 4 casos aprobados |
+| Paginación y renderizado final | 15/15 |
+| Selector de litigantes: aplicación, PostgreSQL y HTTP de informes | 6/6, 4/4 y 14/14 |
+| Cliente Node y navegador controlado | 19 y 13 casos distintos aprobados |
+| Composición y supervisión del servidor | 43/43 |
+| Validación PostgreSQL compartida durante construcción | RED: 5 aprobados y 3 fallidos; GREEN: 8/8 en 15.00 s |
+| Capacidad de arranque sellada y sin escape | 2/2 ejemplos de rechazo de compilación |
+| Reutilización de plan tipográfico con glifos y posiciones exactos | 2/2 |
+| Clippy workspace, todos los targets, con `-D warnings` | aprobado; 19.91 s |
+| Navegador contra servicios reales, un worker | 2/2; 23.4 s de Playwright y 207.863 s de comando |
+| API completa con restauración y sesiones nuevas | salida 0 en 326.299 s; 3136 fuentes sin cambios durante la ejecución |
+| Demostración CLI criptográfica y rechazos esperados | `scripts/demo.sh` completo, salida 0 |
+
+El recorrido real de Owner y Litigator conserva bytes, hashes, identidad de la
+captura y avisos al iniciar una sesión nueva. Cuatro capturas de 1440 y 390
+píxeles son legibles, sin superposiciones ni desbordamiento horizontal. Esta
+inspección no sustituye una evaluación de usabilidad con personas.
+
+La aceptación HTTP verificó tres trabajos por cola, replay exacto, publicación
+pareada, avisos leídos y no leídos, denegación a otros roles y a otro Owner, y
+revocación del informe completo al perder acceso a uno de sus expedientes.
+Tras `pg_dump`/`pg_restore` y MFA nuevo, PDF/CSV, identidades y avisos conservaron
+sus valores exactos. El proceso recorrió los estados observables sin exigir
+que cada consulta alcanzara a ver todas las transiciones intermedias.
+
+Los reinicios con inventario poblado después de SIGTERM y SIGINT estuvieron
+listos en **5 s cada uno**, conservando historial y evidencia. Antes de compartir
+la validación durante construcción, el primero tardó 59 s y el segundo no
+estuvo listo dentro del límite existente de 60 s. Ese límite no se amplió.
+[ADR 0062](adr/0062-scoped-postgres-startup-validation.md) conserva la validación
+completa para aperturas independientes y reconexiones. Los ensayos previos de
+arranque que terminaron antes de informes no se cuentan como su aceptación.
+
+La captura máxima de 1000 expedientes, 10000 asignaciones y 1000 filas de carga
+produjo CSV de 1523555 bytes en 0.382 s. Su PDF devolvió `CapacityExceeded`
+en 15.197 s: no se declara soportado ese máximo combinado para cualquier texto
+ni se atribuye el rechazo a un recurso concreto. Una captura representativa de
+60 expedientes produjo 25 páginas y 1654401 bytes. Reutilizar el plan tipográfico
+redujo su tiempo de 2.7404 a 1.604057 s, con bytes idénticos y SHA-256
+`32659e0008fefdf7565ba66d60708cc3e117871e11d4affb23bfb26c808a4674`.
+Las páginas físicas 1, 2, 3, 13 y 25 se inspeccionaron sin recortes ni
+solapamientos. Las mediciones usaron el proceso aislado en perfil de desarrollo;
+no son una promesa de latencia para el despliegue.
+
+Los filtros representan creación y estado actual. Correo, estimación de entrega,
+otros tipos de reporte y evaluación de rendimiento jurídico de CU-16/RF-19
+permanecen pendientes; avisos internos y carga no sustituyen esos requisitos.
+
 ## Recursos relacionados desde actividades: comprobación del 27 de septiembre de 2026
 
 La consulta inversa autoriza una audiencia o plazo concreto, lee las cabezas

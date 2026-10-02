@@ -29,11 +29,28 @@ impl PostgresAuditLog {
     }
 
     /// Runtime connection with immutable audit history privileges and no DDL.
-    pub fn open(url: &str) -> Result<Self, ApplicationError> {
+    pub fn open(
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
+    ) -> Result<Self, ApplicationError> {
         Ok(Self {
             client: Mutex::new(crate::postgres::open(url)?),
         })
     }
+}
+
+/// Holds mutation exclusion until the startup validation connection is dropped.
+pub(crate) fn lock_startup(client: &mut Client) -> Result<(), ApplicationError> {
+    client
+        .query_one("SELECT pg_advisory_lock($1)", &[&AUDITED_MUTATION_LOCK])
+        .map_err(port_error)?;
+    Ok(())
+}
+
+pub(crate) fn unlock_startup(client: &mut Client) -> Result<(), ApplicationError> {
+    client
+        .query_one("SELECT pg_advisory_unlock($1)", &[&AUDITED_MUTATION_LOCK])
+        .map_err(port_error)?;
+    Ok(())
 }
 
 pub(crate) fn begin_audited(client: &mut Client) -> Result<Transaction<'_>, ApplicationError> {

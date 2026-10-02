@@ -15,6 +15,7 @@ export function documentStatus(document) {
 
 export function normalizeView(hash, role) {
   const view = hash.replace(/^#/, '');
+  if (view === 'reports' && ['owner', 'litigator'].includes(role)) return view;
   if (view === 'alerts' && canAlerts(role)) return view;
   if (view === 'judicial-calendars' && canCalendars(role)) return view;
   if (['hearings', 'agenda'].includes(view) && canHearings(role, 'read')) return view;
@@ -31,6 +32,7 @@ export function normalizeView(hash, role) {
 
 export const viewLabels = {
   overview: 'Inicio',
+  reports: 'Informes',
   'case-summary': 'Expedientes / Resumen',
   'case-members': 'Expedientes / Asignaciones',
   cases: 'Expedientes',

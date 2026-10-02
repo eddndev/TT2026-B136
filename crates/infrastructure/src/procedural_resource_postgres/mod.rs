@@ -25,7 +25,7 @@ pub struct PostgresProceduralResourceStore {
 }
 impl PostgresProceduralResourceStore {
     pub fn open(
-        url: &str,
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
         hasher: Arc<dyn DocumentHasher + Send + Sync>,
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Result<Self, ApplicationError> {

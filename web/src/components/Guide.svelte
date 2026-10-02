@@ -168,8 +168,9 @@
     </p>
     <p>
       La programaci&oacute;n y los resultados declarados conservan historias separadas. Registrar
-      una audiencia no crea autom&aacute;ticamente un plazo ni env&iacute;a avisos. Las asignaciones
-      de cuentas se gestionan mediante la API.
+      una audiencia no crea autom&aacute;ticamente un plazo. Los avisos personales dependen de las
+      asignaciones, preferencias y anticipaciones configuradas. El administrador gestiona las
+      cuentas del expediente desde Asignaciones.
     </p>
   </details>
   <details>
@@ -199,8 +200,9 @@
       revisa los insumos y confirma expl&iacute;citamente una correcci&oacute;n. Mientras se
       requiere revisi&oacute;n, el c&aacute;lculo anterior permanece en la historia y no se presenta
       como vencimiento vigente. Consulta la causa y el autor de cada revisi&oacute;n. Agenda muestra
-      s&oacute;lo los vencimientos operativos comprobados al consultar. Los avisos siguen
-      pendientes.
+      s&oacute;lo los vencimientos operativos comprobados al consultar. Abre Alertas para revisar
+      tus avisos y preferencias. Abrir un aviso no lo marca como le&iacute;do: usa la acci&oacute;n
+      expl&iacute;cita. El correo requiere que el servidor lo tenga habilitado.
     </p>
   </details>
   <details>

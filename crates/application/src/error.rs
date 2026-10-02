@@ -19,6 +19,8 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    CaseReport(#[from] crate::case_reports::CaseReportError),
+    #[error(transparent)]
     DocumentUpload(#[from] crate::documents::DocumentUploadError),
 
     #[error(transparent)]

@@ -33,7 +33,7 @@ impl PostgresCaseStageStore {
         })
     }
     pub fn open(
-        url: &str,
+        url: &(impl crate::PostgresConnectionSource + ?Sized),
         hasher: Arc<dyn DocumentHasher + Send + Sync>,
     ) -> Result<Self, ApplicationError> {
         Ok(Self {

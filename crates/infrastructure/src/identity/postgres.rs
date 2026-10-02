@@ -29,7 +29,9 @@ impl PostgresUserRepository {
     }
 
     /// Opens the prepared schema with a restricted runtime role and no DDL.
-    pub fn open(database_url: &str) -> Result<Self, ApplicationError> {
+    pub fn open(
+        database_url: &(impl crate::PostgresConnectionSource + ?Sized),
+    ) -> Result<Self, ApplicationError> {
         Ok(Self {
             client: Mutex::new(crate::postgres::open(database_url)?),
         })
