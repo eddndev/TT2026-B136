@@ -173,13 +173,26 @@ test('mobile history keeps version controls readable without horizontal overflow
   await versionSetup(page);
   await append(page, 'new-procedural-document-with-a-long-name.txt');
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    page.getByRole('heading', {
+      name: 'new-procedural-document-with-a-long-name.txt',
+      exact: true,
+    }),
+  ).toBeVisible();
   const history = page.getByRole('region', { name: 'Historial de versiones' });
-  const width = await history.boundingBox();
-  for (const button of await history.getByRole('button').all()) {
-    const box = await button.boundingBox();
-    expect(box.x).toBeGreaterThanOrEqual(width.x);
-    expect(box.x + box.width).toBeLessThanOrEqual(width.x + width.width);
-  }
+  await expect(history).toHaveAttribute('aria-busy', 'false');
+  await expect(history.getByRole('button', { name: /^Versi\u00f3n/ })).toHaveCount(2);
+  await expect
+    .poll(() =>
+      history.evaluate((region) => {
+        const bounds = region.getBoundingClientRect();
+        return [...region.querySelectorAll('button')].every((button) => {
+          const box = button.getBoundingClientRect();
+          return box.width > 0 && box.x >= bounds.x && box.right <= bounds.right;
+        });
+      }),
+    )
+    .toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.evaluate(() => {
     document.activeElement?.blur();
