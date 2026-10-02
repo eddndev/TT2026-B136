@@ -8,7 +8,10 @@
     caseId,
     ondenied,
     pending = false;
+  export let draftContext = null,
+    ondiscard = () => {};
   function change(state) {
+    ondiscard();
     value =
       state === 'known'
         ? { state, value: field.type === 'license' ? { number: '', issuer: '' } : '' }
@@ -39,6 +42,7 @@
       api={docs}
       {caseId}
       label={field.label}
+      {draftContext}
       bind:value={value.support}
       {ondenied}
       {disabled}

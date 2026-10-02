@@ -4,3 +4,4 @@ dist/
 test-results/
 test-results-live/
 playwright-report/
+test-results-session/

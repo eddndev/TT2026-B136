@@ -18,6 +18,10 @@
   export let onstatus;
   export let ondenied;
   export let disabled = false;
+  export let manualDraft = false,
+    onmanual = () => {};
+  export let typedDraft = false,
+    ontyped = () => {};
   let showHistory = false;
   let statusDialog;
   let history;
@@ -34,6 +38,16 @@
       <h2>{record.display_name}</h2>
     </div>
     {#if canParticipants(user.role, 'manage')}<div class="action-row">
+        {#if manualDraft && ($administration.closed || record.profile)}<button
+            class="secondary"
+            disabled={disabled || historyBusy || identityBusy || credentialBusy}
+            onclick={() => onmanual(record)}>Retomar borrador manual</button
+          >{/if}
+        {#if typedDraft}<button
+            class="secondary"
+            disabled={disabled || historyBusy || identityBusy || credentialBusy}
+            onclick={() => ontyped(record)}>Retomar borrador tipificado</button
+          >{/if}
         <button
           class="secondary"
           disabled={$administration.closed ||

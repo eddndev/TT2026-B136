@@ -11,6 +11,14 @@
     disabled = false,
     pending = false;
   export let choiceLabel = 'Consultar y usar este candidato';
+  export let supportContext = null,
+    onredeclare = () => {};
+  let decisionEpochs = {};
+  function declareDifferent(key) {
+    onredeclare(key);
+    decisionEpochs = { ...decisionEpochs, [key]: (decisionEpochs[key] || 0) + 1 };
+    decisions = { ...decisions, [key]: { reason: '', support: null } };
+  }
   let pendingRows = {};
   const signals = {
     name: 'Nombre',
@@ -48,8 +56,7 @@
           type="button"
           class="text-button"
           disabled={disabled || pending}
-          onclick={() => (decisions = { ...decisions, [key]: { reason: '', support: null } })}
-          >Declarar persona distinta</button
+          onclick={() => declareDifferent(key)}>Declarar persona distinta</button
         >
       </div>
       {#if decisions[key]}<label
@@ -57,16 +64,17 @@
             bind:value={decisions[key].reason}
             disabled={disabled || pending}></textarea></label
         >
-        <ParticipantSupport
-          api={docs}
-          {caseId}
-          label="Soporte de comparaci&#243;n"
-          bind:value={decisions[key].support}
-          {ondenied}
-          disabled={disabled ||
-            Object.entries(pendingRows).some(([id, value]) => id !== key && value)}
-          bind:pending={pendingRows[key]}
-        />{/if}
+        {#key decisionEpochs[key] || 0}<ParticipantSupport
+            api={docs}
+            {caseId}
+            label="Soporte de comparaci&#243;n"
+            draftContext={supportContext?.(key) ?? null}
+            bind:value={decisions[key].support}
+            {ondenied}
+            disabled={disabled ||
+              Object.entries(pendingRows).some(([id, value]) => id !== key && value)}
+            bind:pending={pendingRows[key]}
+          />{/key}{/if}
     </section>
   {/each}
   <label

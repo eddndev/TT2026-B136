@@ -9,6 +9,7 @@
     disabled = false,
     pending = false,
     fixedKind = false;
+  export let draftContext = null;
   function kind(value) {
     draft =
       value === 'natural_person'
@@ -94,6 +95,7 @@
       api={docs}
       {caseId}
       label="Soporte de identidad"
+      {draftContext}
       bind:value={draft.identity_support}
       {ondenied}
       {disabled}

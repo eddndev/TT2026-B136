@@ -1,287 +1,358 @@
 <script>
-  import { onDestroy, tick } from 'svelte';
+  import { getContext, onDestroy, tick } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
-  import { needsCredential } from '../lib/typed-participant-fields.mjs';
-  import {
-    subjectDraft,
-    roleDraft,
-    reviewValues,
-    validateSupportSet,
-  } from '../lib/typed-participant-values.mjs';
-  import { proposalRequest, resolveCandidate } from '../lib/typed-participant-proposal.mjs';
-  import {
-    base64Bytes,
-    bytesBase64,
-    readSubmission,
-    typedParticipantFailure,
-  } from '../lib/typed-participant-preparation.mjs';
-  import TypedParticipantForm from './TypedParticipantForm.svelte';
-  import ParticipantCredential from './ParticipantCredential.svelte';
-  import ParticipantCandidates from './ParticipantCandidates.svelte';
-  import TypedParticipantNotice from './TypedParticipantNotice.svelte';
-  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { subjectDraft, roleDraft } from '../lib/typed-participant-values.mjs';
+  import { typedParticipantFailure } from '../lib/typed-participant-preparation.mjs';
+  import { createTypedDraft, refreshTypedSupports } from '../lib/typed-draft.mjs';
+  import { typedCapture, subjectReference } from '../lib/typed-draft-values.mjs';
+  import { typedParticipantActions } from '../lib/typed-participant-actions.mjs';
+  import TypedParticipantBody from './TypedParticipantBody.svelte';
   const administration = caseState();
+  const session = getContext('session-drafts');
   export let api, manualApi, docs, caseId, onconfirmed, onobserved, ondenied;
+  export let ondraftchange = () => {};
   let dialog,
-    credential,
-    original = null,
-    subject = subjectDraft(),
-    selected = null,
-    role = roleDraft();
-  let review = null,
-    decisions = {},
-    reason = '',
-    prepared = null,
-    preparation = null,
-    lastSubmission = null;
-  let value = null,
-    busy = false,
-    formBusy = false,
-    credentialBusy = false,
-    candidatesBusy = false,
-    directoryBusy = false,
-    error = '',
-    alive = true,
-    opened = false;
-  let uncertain = false,
-    checkedAbsent = false,
-    conflict = false,
-    current = null,
-    exhausted = false,
-    generation = 0;
-  let previousBasis, previousCertificate, basis, reviewBasis, previousReviewBasis;
-  $: reviewBasis = JSON.stringify({ reason, decisions });
-  $: if (reviewBasis !== previousReviewBasis) {
-    previousReviewBasis = reviewBasis;
-    prepared = null;
-    preparation = null;
+    body,
+    value = null,
+    pending = false,
+    generation = 0,
+    alive = true;
+  let root = null,
+    previousBasis,
+    previousReview,
+    previousCertificate,
+    previousSelected;
+  function empty() {
+    return {
+      original: null,
+      subject: subjectDraft(),
+      selected: null,
+      selectedReference: null,
+      role: roleDraft(),
+      review: null,
+      decisions: {},
+      reason: '',
+      prepared: null,
+      preparation: null,
+      lastSubmission: null,
+      busy: false,
+      error: '',
+      opened: false,
+      uncertain: false,
+      checkedAbsent: false,
+      conflict: false,
+      current: null,
+      exhausted: false,
+      blocked: false,
+      loaded: false,
+      restoredClosed: false,
+      blockedByCase: false,
+      typedCurrent: false,
+      formDraft: null,
+      credentialDraft: null,
+      intent: 'create',
+      ownerEpoch: 0,
+    };
   }
-  $: basis = JSON.stringify({ subject, selected, role, base: original?.revision });
+  let state = empty();
+  const patch = (changes) => {
+    state = { ...state, ...changes };
+  };
+  const recovery = session
+    ? createTypedDraft({
+        session,
+        caseId,
+        api,
+        manualApi,
+        capture: () =>
+          typedCapture(
+            state,
+            state.blocked ? null : { captureDraft: () => body?.captureForm() ?? null },
+            state.credentialDraft !== null
+              ? null
+              : { captureDraft: () => body?.captureCredential() ?? null },
+          ),
+      })
+    : null;
+  const admitted = () => alive && (!recovery || recovery.admitted());
+  $: closed = state.blocked || state.restoredClosed || state.typedCurrent || $administration.closed;
+  $: if (state.blockedByCase && !$administration.closed) {
+    state.blockedByCase = state.restoredClosed = false;
+    state.error = '';
+  }
+  $: natural = (state.selected?.values.kind || state.subject.kind) === 'natural_person';
+  $: title =
+    state.intent === 'replace'
+      ? 'Editar ficha tipificada'
+      : state.intent === 'complete'
+        ? 'Completar perfil de participante'
+        : 'Agregar participante tipificado';
+  $: basis = JSON.stringify({
+    subject: state.subject,
+    selected: state.selected,
+    role: state.role,
+    base: state.original?.revision,
+  });
   $: if (basis !== previousBasis) {
     previousBasis = basis;
     invalidate();
+  }
+  $: reviewBasis = JSON.stringify({ reason: state.reason, decisions: state.decisions });
+  $: if (reviewBasis !== previousReview) {
+    previousReview = reviewBasis;
+    state.prepared = state.preparation = null;
   }
   $: if (value?.certificate?.blob !== previousCertificate) {
     previousCertificate = value?.certificate?.blob;
     invalidate();
   }
-  $: pending = busy || formBusy || credentialBusy || candidatesBusy || directoryBusy;
-  $: closed = $administration.closed;
-  $: title = original
-    ? original.profile
-      ? 'Editar ficha tipificada'
-      : 'Completar perfil de participante'
-    : 'Agregar participante tipificado';
-  $: natural = (selected?.values.kind || subject.kind) === 'natural_person';
+  $: if (state.selected !== previousSelected) {
+    previousSelected = state.selected;
+    if (state.selected || !state.blocked)
+      state.selectedReference = subjectReference(state.selected);
+  }
   function invalidate() {
-    review = null;
-    prepared = null;
-    preparation = null;
+    state.review = state.prepared = state.preparation = null;
   }
-  export async function open(record = null) {
-    if (closed) return;
-    generation++;
-    original = record;
-    selected = record?.subject || null;
-    subject = subjectDraft();
-    role = roleDraft('', record?.profile ? record : undefined);
+  export function pendingDrafts() {
+    return recovery?.pendingEntries() ?? [];
+  }
+  function entry(record, action) {
+    return {
+      id: record?.id ?? null,
+      action: action ?? (record ? (record.profile ? 'replace' : 'complete') : 'create'),
+      expected: record?.revision ?? null,
+    };
+  }
+  export function resume(record = null) {
+    const saved = pendingDrafts().find((row) => row.id === (record?.id ?? null));
+    if (saved) return open(record, saved.action);
+  }
+  function deny(failure) {
+    recovery?.discard(failure, root);
+    patch({
+      subject: subjectDraft(),
+      selected: null,
+      role: roleDraft(),
+      decisions: {},
+      credentialDraft: null,
+      formDraft: null,
+      lastSubmission: null,
+      blocked: true,
+    });
+    ondenied(failure);
+  }
+  function supportDenied(failure) {
+    if (!admitted()) return;
     invalidate();
-    decisions = {};
-    reason = '';
-    lastSubmission = null;
-    uncertain = false;
-    conflict = false;
-    current = null;
-    exhausted = false;
-    error = '';
-    opened = true;
-    await tick();
-    dialog.showModal();
+    state.error = failure.message;
+    if (failure.code === 'case_not_found') deny(failure);
   }
-  export function close() {
-    if (pending) return;
-    release();
+  function supportContext(path, rowId = null) {
+    return state.blocked
+      ? null
+      : (recovery?.supportContext(path, rowId, () => state.opened && !state.blocked, deny) ?? null);
+  }
+  function discardPath(path, rowId) {
+    recovery?.discardPath(path, rowId);
+  }
+  async function validateContext(context, valid) {
+    patch({
+      restoredClosed: context.status === 'closed',
+      typedCurrent: root.action === 'complete' && !!context.record?.profile,
+    });
+    if (context.record && context.record.revision !== root.expected)
+      patch({ current: { record: context.record }, conflict: true });
+    if (
+      root.action === 'replace' &&
+      context.record?.revision === root.expected &&
+      JSON.stringify(subjectReference(context.record.subject)) !==
+        JSON.stringify(state.selectedReference)
+    )
+      throw new Error('La identidad vinculada no coincide con la base conservada.');
+    if (state.selectedReference) {
+      const selected = recovery
+        ? await recovery.exactSubject(state.selectedReference)
+        : await api.subjectRevision(state.selectedReference.id, state.selectedReference.revision);
+      if (!valid()) return;
+      patch({ selected });
+    }
+    const rejected = await refreshTypedSupports(state, docs, caseId, valid);
+    if (!valid()) return;
+    patch({ subject: state.subject, role: state.role, decisions: state.decisions });
+    await tick();
+    if (!valid()) return;
+    if (state.credentialDraft !== null) {
+      const restored = await body.restoreCredential(state.credentialDraft, valid);
+      if (!valid()) return;
+      if (!restored)
+        throw new Error('No se pudo recuperar el material p\u00fablico de la declaraci\u00f3n.');
+      patch({ credentialDraft: null });
+    }
+    if (!valid()) return;
+    patch({
+      blocked: false,
+      error: rejected
+        ? 'Un soporte ya no est\u00e1 disponible. Selecciona una versi\u00f3n autorizada.'
+        : '',
+    });
+  }
+  export async function open(record = null, action) {
+    if (pending || !admitted() || state.opened) return;
+    root = entry(record, action);
+    const saved = recovery?.pending(root);
+    if ($administration.closed && !saved) return;
+    const ticket = ++generation,
+      valid = () => admitted() && ticket === generation;
+    state = { ...empty(), intent: root.action, opened: true, blocked: true, busy: true };
+    await tick();
+    if (!valid()) {
+      if (alive && ticket === generation) state = empty();
+      return;
+    }
+    dialog.showModal();
+    try {
+      let context;
+      if (saved) {
+        const result = await recovery.restore(root, (snapshot, fresh, savedRoot) => {
+          root = savedRoot;
+          context = fresh;
+          patch({
+            ...snapshot,
+            original:
+              root.id === null
+                ? null
+                : {
+                    ...fresh.record,
+                    revision: snapshot.expected,
+                    profile: root.action === 'replace' ? fresh.record.profile : undefined,
+                  },
+            loaded: true,
+          });
+        });
+        if (!valid()) return;
+        if (result.status !== 'restored')
+          throw new Error('No se pudo recuperar la ficha tipificada.');
+      } else {
+        context = recovery
+          ? await recovery.freshContext(root)
+          : { record, status: $administration.closed ? 'closed' : 'active' };
+        if (!valid() || !context) return;
+        root = { ...root, expected: context.record?.revision ?? null };
+        patch({
+          original: context.record,
+          role: roleDraft('', context.record?.profile ? context.record : undefined),
+          selectedReference: subjectReference(context.record?.subject),
+          loaded: true,
+        });
+        recovery?.register(root);
+      }
+      await validateContext(context, valid);
+    } catch (failure) {
+      if (valid()) {
+        state.error = failure.message;
+        if ([403, 404].includes(failure.status) && !failure.documentSupportDenied) deny(failure);
+      }
+    } finally {
+      if (alive && ticket === generation) state.busy = false;
+    }
+  }
+  async function retry() {
+    if (pending || !admitted()) return;
+    if (!state.loaded) {
+      state.opened = false;
+      return open(root?.id ? { id: root.id, revision: root.expected } : null, root.action);
+    }
+    const ticket = generation,
+      valid = () => admitted() && ticket === generation;
+    patch({ busy: true, blocked: true, error: '' });
+    try {
+      const context = await recovery.freshContext(root);
+      if (valid() && context) await validateContext(context, valid);
+    } catch (failure) {
+      if (valid()) {
+        state.error = failure.message;
+        if ([403, 404].includes(failure.status) && !failure.documentSupportDenied) deny(failure);
+      }
+    } finally {
+      if (alive && ticket === generation) state.busy = false;
+    }
   }
   function release() {
+    recovery?.close(root);
     generation++;
-    opened = false;
     dialog.close();
-    selected = null;
-    subject = subjectDraft();
-    role = roleDraft();
-    invalidate();
-    lastSubmission = null;
+    state = empty();
+    root = null;
+    value = null;
+    ondraftchange();
+  }
+  export function close() {
+    if (!pending) release();
   }
   async function work(operation) {
-    if (pending || !alive) return;
-    const ticket = generation;
-    busy = true;
-    error = '';
+    if (pending || !admitted() || state.blocked) return;
+    const ticket = generation,
+      valid = () => admitted() && ticket === generation;
+    patch({ busy: true, error: '' });
     try {
-      await operation(() => alive && ticket === generation);
+      await operation(valid);
     } catch (failure) {
-      if (alive && ticket === generation) {
-        error =
-          uncertain || failure.status || failure.code
-            ? typedParticipantFailure(failure)
-            : failure.message;
-        exhausted = failure.code?.endsWith('_revision_exhausted');
-        conflict = ['participant_revision_conflict', 'subject_revision_conflict'].includes(
-          failure.code,
-        );
+      if (valid()) {
+        patch({
+          error:
+            state.uncertain || failure.status || failure.code
+              ? typedParticipantFailure(failure)
+              : failure.message,
+          exhausted: failure.code?.endsWith('_revision_exhausted'),
+          conflict:
+            state.conflict ||
+            ['participant_revision_conflict', 'subject_revision_conflict'].includes(failure.code),
+        });
+        if (failure.code === 'case_closed') state.blockedByCase = state.restoredClosed = true;
         if (
           [403, 404].includes(failure.status) &&
           !['subject_not_found', 'participant_credential_not_found'].includes(failure.code)
         )
-          ondenied(failure);
+          deny(failure);
       }
     } finally {
-      if (alive && ticket === generation) busy = false;
+      if (alive && ticket === generation) state.busy = false;
     }
   }
-  function reviewIdentity() {
-    if (closed || uncertain || conflict) return;
-    return work(async (valid) => {
-      const certificate =
-        natural && value?.certificate ? await bytesBase64(value.certificate.blob) : null;
-      const result = await api.review(
-        proposalRequest({ selected, subject, role, original, natural }, certificate),
-      );
-      if (!valid()) return;
-      review = result;
-      prepared = null;
-      decisions = {};
-      preparation = null;
+  function adopt(original, selected) {
+    const next = entry(original);
+    const changed = next.id !== root.id || next.action !== root.action;
+    if (changed) recovery?.close(root);
+    root = next;
+    patch({
+      original,
+      selected,
+      selectedReference: subjectReference(selected),
+      intent: root.action,
+      ownerEpoch: state.ownerEpoch + (changed ? 1 : 0),
     });
-  }
-  function choose(row) {
-    return work(async (valid) => {
-      const result = await resolveCandidate(row, { api, manualApi, original, selected });
-      if (!valid()) return;
-      original = result.original;
-      selected = result.selected;
-      invalidate();
-      error = 'Candidato consultado. Revisa de nuevo la identidad con esta selecci\u00f3n.';
-    });
-  }
-  function prepare() {
-    if (closed || uncertain || conflict || !review) return;
-    return work(async (valid) => {
-      const identityReview = reviewValues(review, reason, decisions);
-      validateSupportSet(review.proposal, selected?.values, identityReview);
-      const certificate =
-        natural && value?.certificate ? await bytesBase64(value.certificate.blob) : null;
-      const request = {
-        proposal: review.proposal,
-        review: identityReview,
-        certificate_base64: certificate,
-      };
-      const ticket = certificate ? credential.beginPreparation() : null;
-      try {
-        const result = await api.prepare(request);
-        if (!valid()) return;
-        if (
-          result.declaration &&
-          !credential.acceptPreparation(
-            ticket,
-            base64Bytes(result.declaration.bytes_base64),
-            new TextEncoder().encode(JSON.stringify(result, null, 2)),
-          )
-        )
-          return;
-        prepared = result;
-        preparation = request;
-      } catch (failure) {
-        if (ticket !== null) credential.failPreparation(ticket, typedParticipantFailure(failure));
-        throw failure;
-      }
-    });
-  }
-  async function send(bundle, valid) {
-    try {
-      const record = await api.commit(bundle.request);
-      if (!valid()) return;
-      uncertain = false;
-      await onconfirmed(record);
-      if (valid()) {
-        busy = false;
-        release();
-      }
-    } catch (failure) {
-      if (valid()) {
-        uncertain = !failure.status || failure.status >= 500;
-        checkedAbsent = false;
-      }
-      throw failure;
-    }
-  }
-  function submit() {
-    if (
-      closed ||
-      uncertain ||
-      conflict ||
-      exhausted ||
-      !prepared ||
-      (prepared.declaration && !value?.ready)
-    )
-      return;
-    return work(async (valid) => {
-      const signature_base64 = prepared.declaration
-        ? await bytesBase64(value.signature.blob)
-        : null;
-      lastSubmission = { prepared, request: { prepared: preparation, signature_base64 } };
-      await send(lastSubmission, valid);
-    });
-  }
-  function reconcile() {
-    return work(async (valid) => {
-      checkedAbsent = false;
-      const result = await readSubmission(api, lastSubmission, valid);
-      if (!valid()) return;
-      if (result.state === 'absent') {
-        checkedAbsent = true;
-        error =
-          'Esta consulta no encontr\u00f3 la revisi\u00f3n enviada. Puedes consultar de nuevo o reenviar expl\u00edcitamente el mismo registro, sin crear otros identificadores.';
-        return;
-      }
-      const record = result.record;
-      if (result.state === 'matched') {
-        uncertain = false;
-        await onconfirmed(record);
-        if (valid()) {
-          busy = false;
-          release();
-        }
-      } else {
-        current = { record, exact: true };
-        error =
-          'La revisi\u00f3n consultada no corresponde al env\u00edo conservado. Compara los datos; no se reenviar\u00e1 autom\u00e1ticamente.';
-      }
-    });
-  }
-  function refresh() {
-    return work(async (valid) => {
-      const record = original ? await manualApi.get(original.id) : null;
-      const identity = selected ? await api.subject(selected.id) : null;
-      if (!valid()) return;
-      current = { record, identity };
-      error = '';
-      if (record) await onobserved(record);
-    });
-  }
-  function useCurrent() {
-    if (current?.record) original = current.record;
-    if (current?.identity) selected = current.identity;
-    conflict = false;
-    uncertain = false;
-    current = null;
+    recovery?.register(root);
     invalidate();
   }
+  const actions = typedParticipantActions({
+    api,
+    manualApi,
+    work,
+    patch,
+    adopt,
+    onobserved,
+    get: () => ({ ...state, value, closed, natural }),
+    credential: () => body?.credentialControl(),
+    finish: async (record) => {
+      release();
+      await onconfirmed(record);
+    },
+  });
   onDestroy(() => {
     alive = false;
     generation++;
-    opened = false;
-    lastSubmission = null;
+    recovery?.dispose();
   });
 </script>
 
@@ -302,86 +373,23 @@
     </div>
     <button class="text-button" disabled={pending} onclick={close}>Cerrar ficha</button>
   </div>
-  {#if opened}<div class="stack">
-      <p>
-        Registra una identidad y su participaci&#243;n en el expediente. Esto no crea una cuenta ni
-        acredita efectos jur&#237;dicos autom&#225;ticos.
-      </p>
-      <TypedParticipantForm
-        {api}
-        {docs}
-        {caseId}
-        bind:subject
-        bind:selected
-        bind:role
-        fixedSubject={!!original?.profile}
-        {ondenied}
-        disabled={busy || credentialBusy || candidatesBusy || directoryBusy || closed}
-        bind:pending={formBusy}
-      />
-      {#if natural}<ParticipantCredential
-          bind:this={credential}
-          mandatory={needsCredential(role.profile.kind)}
-          scopeKey={`${caseId}:${generation}:${selected?.id || 'new-identity'}`}
-          basisKey={`${basis}:${reviewBasis}`}
-          disabled={busy || formBusy || candidatesBusy || directoryBusy || closed}
-          bind:pending={credentialBusy}
-          bind:value
-        />{/if}
-      <button
-        type="button"
-        class="secondary"
-        disabled={pending || closed || uncertain || conflict || exhausted}
-        onclick={reviewIdentity}>Revisar identidad y coincidencias</button
-      >
-      {#if review}<ParticipantCandidates
-          result={review}
-          bind:decisions
-          bind:reason
-          {docs}
-          {caseId}
-          {ondenied}
-          onchoose={choose}
-          disabled={busy || formBusy || credentialBusy || directoryBusy || closed}
-          bind:pending={candidatesBusy}
-        /><button
-          type="button"
-          class="secondary"
-          disabled={pending || closed || uncertain || exhausted}
-          onclick={prepare}>Preparar registro</button
-        >{/if}
-      <TypedParticipantNotice
-        {prepared}
-        {error}
-        {conflict}
-        {current}
-        {uncertain}
-        {checkedAbsent}
-        {pending}
-        {closed}
-        onrefresh={refresh}
-        onusecurrent={useCurrent}
-        onreconcile={reconcile}
-        onresend={() => work((valid) => send(lastSubmission, valid))}
-        api={manualApi}
-        kind={role.profile.kind}
-        {ondenied}
-        directoryDisabled={busy || formBusy || credentialBusy || candidatesBusy}
-        bind:directoryBusy
-      />
-      <CaseClosedNotice />
-      <div class="dialog-actions">
-        <button class="secondary" disabled={pending} onclick={close}>Cancelar</button><button
-          class="primary"
-          disabled={pending ||
-            closed ||
-            uncertain ||
-            conflict ||
-            exhausted ||
-            !prepared ||
-            (!!prepared.declaration && !value?.ready)}
-          onclick={submit}>{busy ? 'Procesando...' : 'Confirmar registro'}</button
-        >
-      </div>
-    </div>{/if}
+  {#if state.opened}<TypedParticipantBody
+      bind:this={body}
+      bind:state
+      bind:value
+      bind:pending
+      {actions}
+      {api}
+      {manualApi}
+      {docs}
+      {caseId}
+      {generation}
+      {closed}
+      {admitted}
+      {supportContext}
+      {discardPath}
+      ondenied={supportDenied}
+      {close}
+      {retry}
+    />{/if}
 </dialog>

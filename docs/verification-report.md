@@ -1,5 +1,34 @@
 # Informe de verificación local
 
+## Reingreso en participantes: aceptación focal del 2 de octubre de 2026
+
+La ampliación local añade ocho escenarios distintos de ficha manual, nueve de
+identidad representada y ocho de participante tipificado. Se comprobaron en
+campañas focales separadas; no se presentan como una única suite de 25 casos.
+Conservan textos incompletos, revisiones, archivos y propietarios estructurales;
+exigen autorización y consulta vigentes antes de recuperar o confirmar. Cierre,
+denegación, cambio de cuenta e incertidumbre de escritura mantienen sus decisiones
+explícitas. Una confirmación retira el borrador antes de esperar otra lectura.
+
+Cuatro pruebas Node adicionales aprobaron restauraciones de certificados públicos
+interrumpidas por revocación, otro restore, retirada del dueño o limpieza explícita.
+Una firma anterior queda como evidencia inerte, sin preparar ni aprobar una nueva
+declaración. Los dos ajustes de localizadores de las pruebas Typed conservaron
+aserciones y tiempos: el select tiene nombre accesible propio y el botón bloqueado
+muestra «Procesando...» durante la lectura.
+
+El ensayo de sesión real aceptó dos vencimientos y tres autenticaciones MFA,
+con un alta de expediente y un archivo principal conservados: 1/1 en 37.5 s;
+campaña total 102.735 s, incluida compilación de 51.80 s. Tres pruebas Node
+verificaron la invocación aislada del ensayo. El modo de doce segundos es exclusivo
+de servicios desechables. Su incorporación a Web no habilita la política operativa.
+Véanse [alcance e inventario pendiente](session-editor-recovery.md).
+
+La estabilización previa de CI quedó integrada como `14e7eec`: CI natural aprobó
+en 7m28s y Web en 11m09s, con 3382 Rust, 447 controladas y 51 reales, preservando
+las identidades anteriores. Esta evidencia pertenece a la base anterior a la
+ampliación de participantes; la regresión completa de esta ampliación sigue pendiente.
+
 ## Arranque del decodificador nativo: corrección focal del 2 de octubre de 2026
 
 Una ejecución en VPS3 rechazó el MP4 positivo durante el arranque, antes de

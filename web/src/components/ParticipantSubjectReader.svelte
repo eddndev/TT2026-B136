@@ -76,7 +76,13 @@
           class="secondary"
           disabled={disabled || busy || $administration.closed}
           onclick={() => editor.open(current)}>Editar identidad</button
-        >{/if}
+        >
+        {#if $administration.closed && editor?.hasSuspendedDraft(current.id)}<button
+            class="secondary"
+            disabled={disabled || busy}
+            onclick={() => editor.open(current)}>Retomar borrador de identidad</button
+          >{/if}
+      {/if}
       <p class="hint">La ficha sigue vinculada a la revisi&#243;n {record.revision}.</p>
     </section>{/if}
   <button
