@@ -272,7 +272,7 @@ fn retry_rejects_corrupted_post_import_history_without_recreating_markers() {
 fn startup_rejects_missing_or_corrupted_import_data_despite_a_matching_receipt() {
     for sql in [
         "DELETE FROM documents",
-        "TRUNCATE audit_events",
+        "TRUNCATE password_reset_capabilities, audit_events",
         "UPDATE audit_events SET actor='tampered' WHERE sequence=0",
         "UPDATE audit_events SET actor='tampered' WHERE action='migration.imported'",
         "ALTER TABLE documents DISABLE TRIGGER documents_preserve_evidence;          UPDATE documents SET case_id=(SELECT id FROM cases WHERE title='Other case')",
