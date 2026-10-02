@@ -4,12 +4,14 @@ use der::{Decode, Encode};
 use domain::crypto::{CredentialFailure, DocumentHasher, InternalDeclarationVerifier, Signature};
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::RingSha256Hasher;
+use rsa::pkcs8::EncodePublicKey;
+use rsa::{BigUint, RsaPublicKey};
 use x509_cert::ext::pkix::{
     AuthorityKeyIdentifier, BasicConstraints, KeyUsage, SubjectKeyIdentifier,
 };
 use x509_cert::{Certificate, Version};
 
-use crate::declaration_fixture::{fixture, leaf, openssl, root, signed_certificate, time};
+use crate::declaration_fixture::{fixture, leaf, root, signed_certificate, time};
 
 fn rejected(certificate: Certificate, expected: CredentialFailure) {
     assert_eq!(
@@ -173,32 +175,23 @@ fn algorithm_parameters_versions_and_serials_are_restricted() {
 
 #[test]
 fn rsa_modulus_and_exponent_have_exact_bounds() {
-    for (bits, exponent) in [(2048, 65537), (4096, 65537), (3072, 3), (3072, 65537)] {
-        let dir = tempfile::tempdir().unwrap();
-        let key_path = dir.path().join("key.pem");
-        openssl(&[
-            "genpkey",
-            "-quiet",
-            "-algorithm",
-            "RSA",
-            "-pkeyopt",
-            &format!("rsa_keygen_bits:{bits}"),
-            "-pkeyopt",
-            &format!("rsa_keygen_pubexp:{exponent}"),
-            "-out",
-            key_path.to_str().unwrap(),
-        ]);
-        let der = openssl(&[
-            "pkey",
-            "-in",
-            key_path.to_str().unwrap(),
-            "-pubout",
-            "-outform",
-            "DER",
-        ]);
+    assert!(InternalRsaDeclarationVerifier::new()
+        .inspect_certificate(&signed_certificate(leaf()))
+        .is_ok());
+    for (bits, exponent) in [
+        (2048_usize, 65537_u32),
+        (3071, 65537),
+        (3073, 65537),
+        (4096, 65537),
+        (3072, 3),
+    ] {
+        // Public-only values exercise profile bounds without generating private keys.
+        let modulus = (BigUint::from(1_u8) << (bits - 1)) + BigUint::from(1_u8);
+        let key = RsaPublicKey::new(modulus, BigUint::from(exponent)).unwrap();
+        let der = key.to_public_key_der().unwrap();
         let mut cert = leaf();
         cert.tbs_certificate.subject_public_key_info =
-            x509_cert::spki::SubjectPublicKeyInfoOwned::from_der(&der).unwrap();
+            x509_cert::spki::SubjectPublicKeyInfoOwned::from_der(der.as_bytes()).unwrap();
         let key_bits = cert
             .tbs_certificate
             .subject_public_key_info
@@ -210,13 +203,7 @@ fn rsa_modulus_and_exponent_have_exact_bounds() {
             &mut cert,
             SubjectKeyIdentifier(OctetString::new(identifier.as_ref()).unwrap()),
         );
-        if bits == 3072 && exponent == 65537 {
-            assert!(InternalRsaDeclarationVerifier::new()
-                .inspect_certificate(&signed_certificate(cert))
-                .is_ok());
-        } else {
-            rejected(cert, CredentialFailure::UnsupportedCertificate);
-        }
+        rejected(cert, CredentialFailure::UnsupportedCertificate);
     }
 }
 

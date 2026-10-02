@@ -42,6 +42,19 @@ el campo de desafío que la respuesta HTTP real ya contiene. No cambian rutas,
 permisos, cifrado ni presentación. La regresión remota de esta corrección
 permanece pendiente; no completa inactividad ni recuperación de borradores.
 
+La primera campaña de la cabeza `facbe30` se canceló al fallar la generación
+aleatoria de una clave en `rsa_modulus_and_exponent_have_exact_bounds`, antes
+de evaluar el verificador. El log no permite identificar la combinación exacta
+ni atribuir el fallo a una versión concreta de OpenSSL; los registros del host
+no mostraron OOM, y había espacio libre. Se reprodujo focalmente el error con
+un envoltorio que rechazaba sólo la generación adicional de esa prueba.
+
+El fixture corregido construye claves públicas controladas para los negativos,
+conserva el certificado real del positivo y añade los límites vecinos de 3071
+y 3073 bits. Con el mismo fallo inyectado pasó 1/1 en 0.61 s; el módulo completo
+normal aprobó 24/24 en 1.19 s. No se cambian criptografía de producción,
+assertions, reintentos, timeouts ni gates. La nueva campaña remota sigue pendiente.
+
 ## Duración observada de informes: 2 de octubre de 2026
 
 La interfaz calcula el intervalo inmutable entre solicitud y aviso terminal,
