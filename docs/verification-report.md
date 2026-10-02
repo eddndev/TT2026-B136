@@ -22,6 +22,36 @@ estabilidad concurrente ni mejora del tiempo total; eso corresponde al cierre CI
 Véanse [la decisión](adr/0058-bounded-general-document-admission.md) y
 [la operación del decoder](media-decoder-setup.md).
 
+## Entropía y límites de recuperación: focal del 2 de octubre de 2026
+
+El target de once pruebas falló primero por los adaptadores todavía ausentes.
+Después de implementar fuente OS y cuatro cupos Redis explícitos, aprobó 11/11
+en 0.46 s; compilación de 14.84 s. El servicio desechable local fue Valkey 8.1.10,
+con autenticación, memoria acotada y limpieza comprobada. Dos unitarias de
+entropía aprobaron por separado, tras compilar 11.34 s: llenado exacto y error
+posterior a un llenado parcial. No se imprimieron tokens.
+
+Se verificaron admisiones concurrentes, vencimiento real, rechazo sin cargar
+el otro cupo ni extender su TTL, estado corrupto, cambios incompatibles de
+política, conservación de claves de identidad, autenticación/base seleccionada
+y fallo de I/O establecido. Tres pruebas adicionales de ACL aprobaron en 0.02 s:
+la denegación de una escritura o de su expiración conserva ambos contadores.
+Primero falló la preparación del ensayo porque trataba cualquier respuesta textual
+de `ACL DRYRUN` como permiso; ahora sólo admite la respuesta exacta `OK`. No se
+cambió el producto para corregir esa interpretación. La combinación con SQL y MFA del apartado siguiente
+conserva sus dobles declarados: no se atribuye retrospectivamente a estos nuevos
+adaptadores. Rutas, correo, formulario y configuración operativa siguen pendientes.
+
+La aceptación combinada posterior aprobó 1/1 en 10.98 s (compilación 2.10 s),
+con PostgreSQL 18.6 y Valkey 8.1.10 desechables. Reutilizó la preparación de
+identidad, sustituyendo sólo fuente y limitador antes de invocar recuperación.
+Comprobó una emisión OS/SQL, rechazo de otra solicitud sin mover DUMP ni TTL,
+consumo auditado, Argon2id, credenciales viejas rechazadas por generación y nuevo
+TOTP. El doble de entrega quedó en memoria; no hubo proveedor externo. El replay
+no alteró SQL y el límite posterior no cargó ningún contador. Clippy de la biblioteca
+y ambos targets aprobó con advertencias denegadas en 1.15 s. Los ensayos anteriores
+con dobles conservan su alcance original.
+
 ## Recuperación interna de contraseña: aceptación local del 2 de octubre de 2026
 
 Este incremento implementa aplicación y persistencia, todavía sin rutas HTTP,

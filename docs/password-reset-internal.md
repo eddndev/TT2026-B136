@@ -64,6 +64,54 @@ del esquema válido. El segundo reprodujo primero una invocación en el namespac
 equivocado; el adaptador ahora obtiene el namespace de la tabla validada.
 Estos resultados focales no sustituyen el cierre global de CI.
 
+## Entropía y cupos de transporte
+
+`RandomResetTokenSource` obtiene los 32 bytes del sistema operativo en un buffer
+propio que se borra al liberarse. Un fallo después de llenar parcialmente el
+buffer no devuelve una capacidad parcial. Los ensayos de inyección comprueban
+el contrato, no la calidad estadística de la fuente ni el contenido de memoria
+posterior a la liberación.
+
+`RedisPasswordResetLimiter` exige cuatro políticas: cupo global y por correo
+para solicitar, y cupo global y por digest para completar. Cada cupo es positivo
+y cada ventana admite de uno a 86400 segundos; son límites técnicos, sin una
+política operativa implícita. Las claves son exclusivas de recuperación y los
+identificadores por sujeto usan SHA-256 con propósito separado. Esto evita
+persistir correos en claro en las claves; no garantiza anonimato.
+
+Una operación Lua comprueba ambos contadores antes de mutarlos: tipo, campos,
+versión, política, números enteros, reloj y expiración absoluta exacta. Rechaza
+estado alterado o una política incompatible sin repararlo. Agotar un cupo no
+carga el otro ni amplía su vencimiento. Las admisiones concurrentes comparten
+los mismos cupos globales. No se modifican sesiones, desafíos, bloqueos de
+contraseña ni reclamaciones TOTP. La serialización y validación previas no reservan
+memoria ni garantizan rollback ante OOM, caída del proceso o pérdida de las
+claves. El transporte requiere conservación del estado y política `noeviction`;
+un reinicio vacío abre ventanas nuevas. Un reloj que retrocede antes de la
+apertura provoca rechazo; un retroceso dentro de la misma ventana conserva el
+cupo y su fecha límite, aunque puede prolongar su duración real.
+
+La conexión conserva autenticación y base Redis seleccionada. Exige límites
+explícitos de conexión y de lectura/escritura establecidas. El driver síncrono
+realiza autenticación, selección e identificación antes de poder aplicar estos
+últimos límites; no se afirma que acoten ese handshake. Un fallo de transporte
+puede ocurrir después de consumir el cupo; no se reintenta la operación.
+
+La primera verificación focal aprobó once pruebas en 0.46 s contra Valkey 8.1.10
+desechable y dos pruebas unitarias de entropía. Conservó expiraciones, aislamiento,
+cuotas entre instancias y errores neutros. Estos resultados no son una
+campaña sobre Redis del despliegue ni activan el flujo público. Tres pruebas
+adicionales aceptaron ACL de escritura o expiración denegadas sin carga parcial.
+
+Un recorrido combinado separado aprobó 1/1 en 10.98 s con PostgreSQL 18.6,
+Valkey 8.1.10, fuente OS, Argon2id y MFA reales. La segunda solicitud limitada
+conservó contadores y expiraciones sin otra entrega. El consumo confirmó cambio
+auditado de contraseña y generación; credenciales anteriores quedaron rechazadas
+y el nuevo acceso conservó TOTP. La entrega fue capturada en memoria mediante un
+doble explícito, sin proveedor ni envío externo. Un replay y un intento posterior
+limitado no repitieron la mutación SQL. Esta evidencia no sustituye los gates de
+la cabeza publicada ni una prueba del recorrido público.
+
 ## Invalidación administrativa después de restaurar
 
 `invalidate_restored_password_resets` usa una conexión privada del propietario
