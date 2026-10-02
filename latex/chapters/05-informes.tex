@@ -42,8 +42,16 @@ de veinticinco páginas, byte por byte, en 1.6041 segundos frente a los 2.7404
 segundos previos, sin modificar los límites. La inspección visual de sus páginas
 1, 2, 3, 13 y 25 aprobó.
 
-La captura de mil expedientes, diez mil asignaciones y mil entradas de carga
-aprobó CSV en 0.382 segundos. Su PDF continuó devolviendo
+La sustitución posterior de las bibliotecas tipográficas por HarfRust y Skrifa,
+con mantenimiento vigente, conservó ese PDF de 1654401 bytes exactamente y
+produjo una observación aislada de 0.566156 segundos. La compilación previa
+consumió 59.44 segundos y se contabilizó aparte. Son muestras individuales del
+renderizador; no acreditan una reducción equivalente del CI ni una nueva
+compilación o inspección del manuscrito. La revisión visual del PDF exportado
+se conserva por su identidad de bytes.
+
+En la medición anterior a esa sustitución, la captura de mil expedientes,
+diez mil asignaciones y mil entradas de carga aprobó CSV en 0.382 segundos. Su PDF continuó devolviendo
 \texttt{CapacityExceeded}: 15.197 segundos en la medición posterior y 15.284 en
 la anterior. La categoría pública no identifica cuál de los presupuestos se
 alcanzó; no se atribuye el rechazo sólo a CPU ni se declara generación del PDF

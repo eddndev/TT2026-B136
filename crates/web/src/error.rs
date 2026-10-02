@@ -153,6 +153,10 @@ impl From<ApplicationError> for ApiError {
             Err(error) => error,
         };
         match error {
+            ApplicationError::AuditQueryCapacityExceeded => Self::payload_too_large(
+                "audit_query_capacity_exceeded",
+                "audit page text exceeds its bounded capacity; narrow the filters or page size",
+            ),
             ApplicationError::StageSupportTooLarge => Self {
                 status: StatusCode::UNPROCESSABLE_ENTITY,
                 code: "stage_support_too_large",

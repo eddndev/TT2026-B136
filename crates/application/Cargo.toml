@@ -274,3 +274,7 @@ path = "tests/case_report_model.rs"
 [[test]]
 name = "case_report_worker"
 path = "tests/case_report_worker.rs"
+
+[[test]]
+name = "audit_query"
+path = "tests/audit_query.rs"

@@ -89,6 +89,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::case_report_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    transaction
+        .batch_execute(crate::audit_query_schema::MIGRATION)
+        .map_err(port_error)?;
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -145,6 +148,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::document_integrity_schema::validate(client)?;
     crate::member_schema::validate(client)?;
     crate::case_report_schema::validate(client)?;
+    crate::audit_query_schema::validate(client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -172,6 +176,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::document_integrity_schema::validate_inventory(client)?;
     crate::member_schema::validate_inventory(client)?;
     crate::case_report_schema::validate_inventory(client)?;
+    crate::audit_query_schema::validate_inventory(client)?;
     Ok(())
 }
 
@@ -252,6 +257,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::document_integrity_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::member_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::case_report_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::audit_query_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -277,6 +283,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::document_integrity_schema::validate_runtime_role(client, role)?;
     crate::member_schema::validate_runtime_role(client, role)?;
     crate::case_report_schema::validate_runtime_role(client, role)?;
+    crate::audit_query_schema::validate_runtime_role(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

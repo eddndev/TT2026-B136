@@ -3,6 +3,7 @@
   import Enrollment from './Enrollment.svelte';
   import MemberDirectory from './MemberDirectory.svelte';
   import Icon from './Icon.svelte';
+  import AuditEvents from './AuditEvents.svelte';
   export let api;
   export let view;
   export let user;
@@ -140,3 +141,5 @@
   {/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 </section>
+
+{#if view === 'audit'}<AuditEvents {api} {user} />{/if}

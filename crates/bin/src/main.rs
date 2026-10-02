@@ -20,6 +20,7 @@ mod serve_alert_config;
 mod serve_alert_runtime;
 mod serve_alert_supervisor;
 mod serve_args;
+mod serve_audit_composition;
 mod serve_cmd;
 mod serve_deadline_runtime;
 mod serve_document_validation;

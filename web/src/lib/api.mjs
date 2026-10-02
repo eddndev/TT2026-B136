@@ -1,4 +1,5 @@
 import { caseReportsApi } from './case-reports-api.mjs';
+import { auditEventsApi } from './audit-events-api.mjs';
 import { dashboardApi } from './dashboard-api.mjs';
 import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
@@ -7,6 +8,10 @@ import { membersApi } from './members-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 
 const messages = {
+  audit_query_capacity_exceeded:
+    'La p\u00e1gina de actividad supera su capacidad. Reduce el n\u00famero de eventos o concreta los filtros.',
+  invalid_audit_query:
+    'Revisa el periodo, los filtros exactos y el tama\u00f1o de la p\u00e1gina de actividad.',
   case_closed:
     'El expediente est\u00e1 cerrado administrativamente. Consulta su estado antes de modificarlo.',
   case_revision_conflict: 'Los datos del expediente cambiaron. Consulta los valores actuales.',
@@ -170,6 +175,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
     dashboard: () => dashboardApi(request),
+    auditEvents: () => auditEventsApi(request),
     reports: () => caseReportsApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
     alerts: (actorId) => alertsApi(request, actorId),

@@ -7,6 +7,7 @@
 pub mod agenda;
 pub mod alerts;
 pub mod audit;
+pub mod audit_query;
 pub mod auth;
 pub mod case_stages;
 pub mod cases;

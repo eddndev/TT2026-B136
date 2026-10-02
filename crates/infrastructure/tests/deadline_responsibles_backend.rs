@@ -205,10 +205,12 @@ fn responsible_reads_survive_case_closure_and_recheck_membership_and_candidate_r
 #[test]
 fn responsible_failed_audit_prevents_return_and_preserves_database() {
     let Some(mut db) = Fixture::new() else { return };
+    let repository = store(&db);
     db.admin.batch_execute("CREATE FUNCTION reject_responsible_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected audit failure'; END; $$; CREATE TRIGGER reject_responsible_audit BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION reject_responsible_audit()").unwrap();
     let before = snapshot(&mut db);
-    assert!(store(&db)
-        .responsibles(db.owner, db.case, query(100, None), db.at)
-        .is_err());
+    assert!(matches!(
+        repository.responsibles(db.owner, db.case, query(100, None), db.at),
+        Err(ApplicationError::Port(_))
+    ));
     assert_eq!(snapshot(&mut db), before);
 }

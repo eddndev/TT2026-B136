@@ -15,6 +15,7 @@ use axum::{routing::get, Router};
 
 mod agenda;
 mod alerts;
+mod audit_events;
 mod case_administration;
 mod case_stages;
 mod cases;
@@ -119,6 +120,14 @@ pub fn typed_participant_router(
     )
 }
 
+/// Builds bounded Owner consultation of existing recorded audit activity.
+pub fn audit_events_router(
+    workflow: Arc<dyn application::audit_query::AuditEventWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(audit_events::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds the authorized operational dashboard.
 pub fn dashboard_router(workflow: Arc<dyn application::dashboard::DashboardWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -220,6 +229,7 @@ pub struct CaseWorkflows {
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
     pub dashboard: Arc<dyn application::dashboard::DashboardWorkflow>,
+    pub audit_events: Arc<dyn application::audit_query::AuditEventWorkflow>,
     pub case_reports: Arc<dyn application::case_reports::CaseReportWorkflow>,
     pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
     pub document_content: Arc<dyn application::document_content::DocumentContentWorkflow>,
@@ -290,6 +300,10 @@ pub fn api_router(
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
         .merge(agenda::router(workflows.agenda, runtime.clone()))
         .merge(dashboard::router(workflows.dashboard, runtime.clone()))
+        .merge(audit_events::router(
+            workflows.audit_events,
+            runtime.clone(),
+        ))
         .merge(case_reports::router(
             workflows.case_reports,
             runtime.clone(),

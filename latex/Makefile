@@ -1,4 +1,4 @@
-# Makefile — Trabajo Terminal 2026-B136
+# Makefile -- Trabajo Terminal 2026-B136
 # Uso:  make        -> compila main.pdf con LuaLaTeX (latexmk)
 #       make clean  -> borra auxiliares
 #       make purge  -> borra auxiliares y el PDF
@@ -11,7 +11,7 @@ FLAGS = -lualatex -interaction=nonstopmode -halt-on-error -file-line-error
 
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(MAIN).tex $(wildcard chapters/*.tex) $(wildcard config/*.tex) $(wildcard frontmatter/*.tex) references.bib
+$(MAIN).pdf: $(MAIN).tex $(wildcard chapters/*.tex) $(wildcard config/*.tex) $(wildcard frontmatter/*.tex) $(wildcard figures/*.tex) references.bib
 	$(LATEXMK) $(FLAGS) $(MAIN).tex
 
 watch:

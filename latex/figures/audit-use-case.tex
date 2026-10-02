@@ -1,0 +1,34 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize\sffamily},>=Latex,line width=0.35pt]
+  \node[font=\bfseries\sffamily] at (7,4.75)
+    {CU-17 --- Consulta de bitácora de actividad};
+  \draw[fill=gray!10] (0.9,2.75) circle (0.22);
+  \draw (0.9,2.53) -- (0.9,1.95);
+  \draw (0.45,2.3) -- (1.35,2.3);
+  \draw (0.9,1.95) -- (0.5,1.5) (0.9,1.95) -- (1.3,1.5);
+  \node at (0.9,1.15) {Owner};
+  \draw[fill=yellow!4] (5,2.3) ellipse (1.6 and 0.8);
+  \node[align=center] at (5,2.3)
+    {CU-17\\Bitácora de\\actividad};
+  \draw (1.55,2.3) -- (3.4,2.3);
+  \node[draw,fill=yellow!8,align=left,text width=5cm,inner sep=6pt]
+    at (10.55,2.35)
+    {HU-40 $\cdot$ RF-20 $\cdot$ RNF-04\\
+     SOLO LECTURA: la bitácora no admite\\
+     modificación ni eliminación por\\
+     ningún usuario, incluido el Owner.\\
+     Cada entrada incluye: usuario,\\
+     operación, recurso, marca de tiempo\\
+     y dirección IP.};
+  \draw (6.6,2.3) -- (7.9,2.5);
+  \draw[fill=yellow!4] (5,0.35) ellipse (2.5 and 0.6);
+  \node[align=center] at (5,0.35)
+    {Presentación cronológica\\de los registros};
+  \draw[->,dashed] (5,1.5) -- node[right] {$\langle\!\langle$incluye$\rangle\!\rangle$}
+    (5,0.95);
+  \draw[fill=yellow!4] (5,-1.35) ellipse (2.8 and 0.8);
+  \node[align=center] at (5,-1.35)
+    {Aplicación de filtros\\(fecha, usuario, operación, recurso)};
+  \draw[->,dashed] (3.5,1.9) .. controls (1.35,0.85) and (1.35,-0.8) ..
+    node[left,align=center,pos=0.5] {$\langle\!\langle$incluye$\rangle\!\rangle$}
+    (2.35,-1.1);
+\end{tikzpicture}

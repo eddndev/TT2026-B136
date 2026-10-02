@@ -351,6 +351,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             );
             let resource_deadlines =
                 crate::serve_resource_activities::open_deadlines(database, identity.clone())?;
+            let audit_events = crate::serve_audit_composition::open(database, identity.clone())?;
             let router = web::api_router(
                 Arc::new(workflow),
                 identity,
@@ -369,6 +370,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     deadlines: Arc::new(deadlines),
                     agenda: Arc::new(agenda),
                     dashboard: Arc::new(dashboard),
+                    audit_events,
                     case_reports: reports.workflow,
                     alerts: alerts.workflow,
                     document_content: Arc::new(document_content),

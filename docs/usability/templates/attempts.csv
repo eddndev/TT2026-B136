@@ -1,0 +1,1 @@
+session_id,participant_id,task_id,attempt_no,planned_order,task_limit_seconds,fixture_reference,status,started_at,ended_at,elapsed_seconds,external_pause_seconds,active_seconds,assistance_count,assistance_kinds,error_count,completion_evidence,observation_ids,stop_reason,notes

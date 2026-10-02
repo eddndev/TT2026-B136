@@ -278,6 +278,12 @@ case_reports_demo_python() {
     python3 -B "$REPO_ROOT/scripts/api-case-reports-demo.py" "$1"
 }
 
+audit_events_demo_python() {
+  TT_FACT_API_BASE_URL="$BASE_URL" TT_FACT_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_FACT_API_WORK_DIR="$WORK_DIR" TT_FACT_API_REPO="$REPO_ROOT" \
+    TT_AUDIT_DATABASE_URL="$2" python3 -B "$REPO_ROOT/scripts/api-audit-events-demo.py" "$1"
+}
+
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
 

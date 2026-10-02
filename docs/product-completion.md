@@ -7,11 +7,13 @@ PR45 y PR46 están integradas; PR47 quedó integrada como `ac34b34` y su
 confirmación natural en `main` está comprobada. PR48 quedó integrada en
 `5020707`; CI, Web y Documents de su confirmación natural aprobaron en 6m41s,
 11m24s y 7m43s: 3156 pruebas Rust, 396 de navegador controlado, 47 reales y
-dos ignoradas. Los informes aprobaron su aceptación local HTTP/restauración,
-pero conservan pendiente el cierre global. La adaptación de PR43 a VPS3 está
+dos ignoradas. Los informes se integraron por PR49 como `f3bfed8`, después de
+aprobar CI, Web y Documents sobre la cabeza exacta `6e1ae2b`. Su confirmación
+natural en `main` aprobó CI en 8m36s, Web en 11m46s y Documents en 1m13s,
+con las mismas 3299 pruebas Rust, 409 controladas y 49 reales. La adaptación de PR43 a VPS3 está
 integrada por squash en `3a67a6a`, con CI, Web y Documents aprobados para
-`37087b8` y ambos coautores humanos. Su confirmación natural en main está
-en curso. Todavía no hay una release activada.
+`37087b8` y ambos coautores humanos. Su confirmación natural en main aprobó
+CI en 6m42s, Web en 11m25s y Documents en 7m43s. Todavía no hay una release activada.
 Las referencias históricas a aceptación local o CI pendiente de esas entregas
 no significan que su código siga fuera de `main`.
 
@@ -33,23 +35,31 @@ no significan que su código siga fuera de `main`.
   firma individual y política documental Client. La admisión general de formatos
   está integrada por PR47 en `ac34b34`, con aceptación API/restauración,
   navegador real y confirmación natural de `main` comprobados.
-- En verificación de informes: solicitudes propias durables, captura cifrada,
+- Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
-  implementados localmente. Se acreditaron trece escenarios distintos de
+  integrados en `main`. Se acreditaron trece escenarios distintos de
   navegador controlado; las mediciones de capacidad se detallan más adelante.
   Dos recorridos con servicios reales aprobaron y conservaron PDF/CSV exactos
   tras renovar la sesión. La aceptación HTTP/restauración aprobó en 326.299 s
   con artefactos y avisos exactos, reinicios y revocación de toda la captura.
-  Su cierre global sigue pendiente. Los filtros usan creación y estado actual,
+  Los gates de PR49 y su confirmación natural en `main` aprobaron.
+  Los filtros usan creación y estado actual,
   no un censo histórico. Correo, estimación de terminación, otros tipos de
   informe y métricas de desempeño permanecen pendientes del alcance aprobado.
-- Pendientes operativos: consulta filtrada de actividad; firma personal y
-  calificación jurídica de urgencia siguen separadas del tablero operativo.
-  La navegación de Inicio y la verificación de la cadena de auditoría no
-  completan esos flujos.
+- Consulta de actividad en verificación: selección Owner por intervalo UTC,
+  actor histórico, operación y recurso, con paginación de instantánea y lectura
+  auditada. Aplicación, PostgreSQL, HTTP, cliente y navegador controlado aprobaron.
+  La aceptación API/restauración aprobó en 376.459967 s y el navegador real,
+  2/2 en 13.7 s; CI, integración y activación siguen pendientes. CU-17/RF-20 conservan
+  pendientes identificador estable de cuenta, IP y el criterio de registro
+  menor de 500 ms; el anclaje externo sigue separado.
+- Pendientes operativos: firma personal y calificación jurídica de urgencia
+  siguen separadas del tablero. Ni Inicio ni verificar la cadena completan
+  esos flujos o el alcance restante de la bitácora.
 - Despliegue: PR43 conserva la propuesta de la compañera y añade la adaptación
   a VPS3. Se integró como `3a67a6a` después de aprobar CI, Web y Documents,
-  con confirmación natural de main en curso. PostgreSQL y Redis están preparados; API
+  con confirmación natural de main aprobada: CI 6m42s, Web 11m25s y Documents
+  7m43s. PostgreSQL y Redis están preparados; API
   y frontend siguen inactivos, sin release desplegada. Preparación no equivale a activación ni
   aceptación de producción.
 - Cierre académico posterior: conciliación del manuscrito con las entregas,
@@ -79,8 +89,8 @@ completos los otros pendientes.
 
 La semana 9 continúa en cierre funcional: los incrementos integrados de tablero,
 plazos contextuales, admisión documental y consulta inversa de recursos se
-separan del cierre global de informes y la primera activación del despliegue
-todavía pendientes. La semana 10 mantiene
+incluyen ahora los informes integrados y confirmados en `main`; el cierre global
+de consulta de actividad y la primera activación del despliegue siguen pendientes. La semana 10 mantiene
 la evaluación con participantes reales, consolidación de manuales, conciliación
 final del manuscrito y conclusiones derivadas de resultados. Preparar un manual
 no completa el estudio de usabilidad; no se asigna un porcentaje nuevo por
@@ -115,7 +125,11 @@ restaurar PostgreSQL y renovar MFA permanecieron los bytes de ambos formatos,
 sus identidades, los avisos leídos/no leídos y el rechazo de la captura revocada
 completa. El arranque optimizado tiene evidencia focal separada: ocho pruebas
 PostgreSQL, dos comprobaciones de compilación negativa y 43 de composición.
-La aceptación local no acredita aún el CI global del incremento de informes.
+La cabeza `6e1ae2b` de PR49 aprobó CI en 9m13s, Web en 12m32s y Documents en
+10m16s: 3299 pruebas Rust y dos ignoradas, 409 de navegador controlado y 49
+reales; cobertura de dominio/aplicación/infraestructura de 97/95/93 %. Se
+integró por squash como `f3bfed8`; su confirmación natural de `main` aprobó
+CI en 8m36s, Web en 11m46s y Documents en 1m13s con el mismo inventario. Esta evidencia no corresponde al incremento de consulta de actividad.
 CU-16 y RF-19 se conservan literalmente: avisos internos no sustituyen correo ni
 una estimación de terminación; carga de asignaciones no equivale a desempeño
 jurídico.
@@ -474,7 +488,7 @@ separada de las campañas de hechos y plazos.
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
 | Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, perfiles, evaluación persistente, responsable, atención e historia están integrados; Qadra V1 y el selector de responsables se integraron por PR 33. Sus campañas globales y API/restauración conservan su alcance histórico. La ampliación V2 implementa observaciones verificadas, continuidad, preparación humana y técnica, persistencia y reconstrucción exacta. Servicio humano y HTTP V2, detalle actual y listado con vigencia están implementados con evidencia focal local. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP controlado y 25 con backend real, incluidos dos Follow de escritorio y móvil, con seis capturas inspeccionadas. Despacho y consumo durables conservan resultados, intentos e historia. La composición aprobó 31 unitarias y cuatro de ayuda CLI; la campaña API real comprobó TERM/INT, reinicios y restauración de R1-R5. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34, según el informe de verificación. La agenda conjunta se integró por PR 35. Las alertas durables, Qadra y su composición en servidor se integraron por PR 36 como `8261c51`, con aceptación propia registrada en el informe. Activación y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
-| Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | Tablero operativo integrado por PR 45 con aceptación focal, navegador real y restauración; CI, Web y Documents de su confirmación natural en main aprobados. Informes durables implementados localmente con consumidor supervisado, captura cifrada común a PDF/CSV, avisos propios y selector autorizado que incluye membresías de casos cerrados; trece escenarios distintos de navegador controlado y dos con servicios reales aprobados, con descargas exactas tras nuevo ingreso; aceptación HTTP/restauración aprobada con reinicios y revocación completa; cierre global pendiente. Capacidad CSV máxima aprobada y PDF máximo rechazado de forma tipada; no equivale a generación satisfactoria a todos los máximos. Correo, estimación de terminación, otros tipos de informe y desempeño permanecen pendientes. Véase [el contrato](case-reports-api.md). La descarga exige acceso a toda la captura. La consulta filtrada de actividad sigue pendiente. No presentar una página como total del despacho ni la captura actual como un censo histórico. |
+| Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | Tablero operativo integrado por PR 45 con aceptación focal, navegador real y restauración; CI, Web y Documents de su confirmación natural en main aprobados. Informes durables integrados por PR49 en `f3bfed8`, con consumidor supervisado, captura cifrada común a PDF/CSV, avisos propios y selector autorizado que incluye membresías de casos cerrados; trece escenarios distintos de navegador controlado y dos con servicios reales aprobados, con descargas exactas tras nuevo ingreso; aceptación HTTP/restauración aprobada con reinicios y revocación completa; gates de PR49 aprobados y confirmación natural de main pendiente. Capacidad CSV máxima aprobada y PDF máximo rechazado de forma tipada; no equivale a generación satisfactoria a todos los máximos. Correo, estimación de terminación, otros tipos de informe y desempeño permanecen pendientes. Véase [el contrato](case-reports-api.md). La descarga exige acceso a toda la captura. La consulta filtrada Owner aprobó sus pruebas focales, API/restauración y dos escenarios reales; CI e integración del incremento pendientes. No incorpora aún identificador estable de cuenta ni IP; tampoco demuestra el límite de registro de 500 ms o anclaje externo. No presentar una página como total del despacho ni la captura actual como un censo histórico. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
 Las entregas se implementan en ramas `feat/` y se integran mediante PR y squash
@@ -523,8 +537,8 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
 | Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
 | Tablero de control | Indicadores integrados por PR 45; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados. CI, Web y Documents aprobaron también para su merge en main. Firma personal pendiente y naturaleza fatal de plazos no se infieren de estos indicadores. |
-| Informes | Implementación parcial local; navegador real y HTTP/restauración aprobados | Estado y carga de asignaciones, captura común cifrada PDF/CSV, selector autorizado, avisos internos y consumidor supervisado. Trece escenarios controlados y dos reales aprobados; cuatro capturas inspeccionadas y formatos exactos tras reingreso. Capacidad y presentación medidas por separado; aceptación HTTP/restauración aprobada con artefactos y avisos exactos y captura revocada; cierre global pendiente. Correo, estimación de terminación, demás tipos de reporte y desempeño conservan el alcance de CU-16/RF-19. |
-| Consulta de actividad | Parcial | Listado filtrado de eventos y permisos por recurso; verificación de la cadena ya implementada. |
+| Informes | Estado/carga integrados por PR49; alcance completo parcial | Estado y carga de asignaciones, captura común cifrada PDF/CSV, selector autorizado, avisos internos y consumidor supervisado. Trece escenarios controlados y dos reales aprobados; cuatro capturas inspeccionadas y formatos exactos tras reingreso. Capacidad y presentación medidas por separado; aceptación HTTP/restauración aprobada con artefactos y avisos exactos y captura revocada; CI, Web y Documents de PR49 y su confirmación natural de main aprobados. Correo, estimación de terminación, demás tipos de reporte y desempeño conservan el alcance de CU-16/RF-19. |
+| Consulta de actividad | Aceptación local completa; CI e integración pendientes | Owner global, filtros exactos, UTC con nanosegundos, páginas con máximo de secuencia fijo, preflight de texto y lectura auditada. Aplicación 20, PostgreSQL 14, HTTP 6, runtime 1, Node 12 y navegador controlado 9 aprobados. API/restauración exit0 en 376.459967 s y navegador real 2/2 en 13.7 s; Clippy aprobado. CU-17/RF-20 conservan identificador estable de cuenta, IP, cobertura uniforme de operaciones y registro menor de 500 ms. La verificación de la cadena es separada; el anclaje externo sigue pendiente. |
 
 La validación final incluye usabilidad con participantes reales. Ningún resultado
 de cobertura ni una demostración parcial cambia automáticamente estos estados.
@@ -539,6 +553,17 @@ cierre funcional de la semana 9 continúa con los pendientes de esta matriz.
 La infraestructura de CI y la preparación de VPS3 facilitan ese trabajo; no
 cierran por sí mismas los módulos restantes.
 
+La consulta de actividad avanza selección, persistencia e interfaz de la semana 9.
+Aprobaron aplicación 20/20, PostgreSQL 14/14 en 37.01 s, HTTP 6/6, presupuesto
+compartido 1/1, Node 12/12 y navegador controlado 9/9 en 17.1 s; las capturas
+1440/390 fueron inspeccionadas y Clippy aprobó en 2m12s. La aceptación
+API/restauración terminó con salida cero en 376.459967 s; el navegador real aprobó
+2/2, Owner 6.2 s y Litigator 2.4 s, con 13.7 s de Playwright y 185.7532 s del
+comando completo. En ambas campañas permanecieron idénticos 3198 archivos fuente.
+Son duraciones de validación, no latencia por registro. Falta acreditar CI de la
+revisión exacta e integración del incremento. UUID estable, IP y medición del
+registro menor de 500 ms conservan el alcance de CU-17/RF-20.
+
 La semana 10 conserva pendientes la validación con participantes reales,
 los manuales finales y la conciliación de resultados y conclusiones. Las
 pruebas automáticas y la inspección visual ya disponibles aportan evidencia
@@ -546,6 +571,18 @@ técnica, pero no sustituyen el estudio de usabilidad. Los capítulos y los
 objetivos aprobados se conservan; el cronograma se informa por entregas y
 condiciones de aceptación, sin convertirlo en un porcentaje ni asignarle
 fechas de cierre nuevas no acordadas.
+
+| Pendiente de aceptación | Evidencia necesaria para cambiar su estado |
+| --- | --- |
+| CI e integración de auditoría | Conservar la API/restauración y el navegador real aprobados; confirmar gates e integración de la revisión exacta. No reutilizar CI de informes o despliegue como evidencia de esta entrega. |
+| Registro de auditoría en menos de 500 ms | Medición por operación y confirmación durable, con volumen de historial, concurrencia y host declarados; tiempos individuales y resumen de distribución. Un índice utilizable no acredita ese umbral. |
+| Usabilidad con personal del despacho | Kit, protocolo y plantillas preparados; todavía sin evaluación humana. Participantes reales y tareas acordadas; registrar terminación, tiempo, errores, asistencia y observaciones, junto con las correcciones verificadas. El protocolo por sí solo sigue pendiente de ejecución. |
+| Manuales y conclusiones | Conciliar instrucciones con una revisión reproducida; compilar e inspeccionar el manuscrito y redactar conclusiones a partir de los resultados completos. Los marcadores pendientes no equivalen a cierre académico. |
+| Proveedor externo de sellado | La extensión posterior definida por el objetivo aprobado no se acredita mediante la TSA local. Si se ejecuta, identificar proveedor/entorno, evidencia recibida y verificación independiente con casos de aceptación/rechazo, tiempos y disponibilidad observados. No se declara ejecutada ni se redefine como requisito de esta consulta. |
+
+La introducción, los objetivos, el estado del arte y las conclusiones pendientes
+conservan su redacción. El incremento de consulta no modifica los criterios
+aprobados ni produce un nuevo porcentaje global del TT.
 
 ## Conciliación de alcance
 
