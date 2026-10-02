@@ -12,6 +12,12 @@
   export function reset() {
     editor?.reset();
   }
+  export function captureDraft() {
+    return { tag: editor.captureDraft() };
+  }
+  export function restoreDraft(value) {
+    editor.restoreDraft(value.tag);
+  }
 </script>
 
 <fieldset class="metadata-fields" {disabled}>

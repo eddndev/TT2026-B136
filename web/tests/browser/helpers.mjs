@@ -1,5 +1,6 @@
 import { administration, overview, otherAdministration } from './case-administration-helpers.mjs';
 import { expect } from '@playwright/test';
+import { absoluteSession } from '../fixtures/session.mjs';
 
 export const caseId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 export const otherCaseId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
@@ -59,7 +60,7 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       return route.fulfill({ json: { challenge_token: 'challenge', expires_in_seconds: 300 } });
     if (/\/mfa\//.test(path))
       return route.fulfill({
-        json: { access_token: `test-token-${++sequence}`, user, expires_in_seconds: 86400 },
+        json: absoluteSession(user, `test-token-${++sequence}`),
       });
     if (path.endsWith('/me')) return route.fulfill({ json: user });
     if (path.endsWith('/logout')) return route.fulfill({ status: 204 });

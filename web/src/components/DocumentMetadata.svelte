@@ -39,6 +39,10 @@
     busy = false;
     return merge(record);
   }
+  function deny(failure) {
+    editor?.discardDraft(failure);
+    ondenied(failure);
+  }
   $: if (document.current_metadata?.metadata_revision > current.metadata_revision)
     confirmed(document.current_metadata);
   async function load() {
@@ -51,7 +55,7 @@
     } catch (failure) {
       if (alive && request === generation) {
         error = failure.message;
-        if ([403, 404].includes(failure.status)) ondenied(failure);
+        if ([403, 404].includes(failure.status)) deny(failure);
       }
     } finally {
       if (alive && request === generation) busy = false;
@@ -77,7 +81,7 @@
     </div>
     {#if can(user.role, 'classify')}<button
         class="secondary"
-        disabled={disabled || pending || $administration.closed}
+        disabled={disabled || pending || ($administration.closed && !editor?.hasSuspendedDraft())}
         onclick={() => editor.open()}>Editar clasificaci&#243;n</button
       >{/if}
   </div>
@@ -107,7 +111,7 @@
         api={scoped}
         disabled={disabled || busy}
         bind:busy={historyBusy}
-        {ondenied}
+        ondenied={deny}
       />{/key}{/if}
 </section>
 {#if can(user.role, 'classify')}<MetadataEditor
@@ -115,7 +119,9 @@
     bind:busy={editorBusy}
     api={scoped}
     {current}
+    {user}
+    {document}
     disabled={disabled || busy || historyBusy}
     onconfirmed={confirmed}
-    {ondenied}
+    ondenied={deny}
   />{/if}

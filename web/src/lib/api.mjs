@@ -77,6 +77,8 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   let authAttemptVersion = 0;
   let observedLogin = false;
   let currentChallenge = null;
+  let locallyClosed = false;
+  let sessionGuard = () => true;
   function invalidateAuthentication() {
     currentChallenge = null;
     return ++authAttemptVersion;
@@ -90,13 +92,37 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     if (version !== sessionVersion)
       throw new Error('La sesi\u00f3n de esta solicitud termin\u00f3.');
   }
+  function invalidateSession() {
+    if (!locallyClosed || token) sessionVersion++;
+    token = '';
+    principalId = null;
+    locallyClosed = true;
+    invalidateAuthentication();
+  }
+  function assertAdmission(controlRoute) {
+    if (locallyClosed || (!controlRoute && !sessionGuard())) {
+      const error = new Error(messages.invalid_session);
+      error.code = 'session_inactive';
+      throw error;
+    }
+  }
   async function request(
     path,
-    { method = 'GET', data, body, headers = {}, protectedRoute = true, binary = false } = {},
+    {
+      method = 'GET',
+      data,
+      body,
+      headers = {},
+      protectedRoute = true,
+      binary = false,
+      controlRoute = false,
+      revocationOnly = false,
+    } = {},
   ) {
+    if (protectedRoute) assertAdmission(controlRoute);
     const requestVersion = sessionVersion;
     const assertCurrentSession = () => {
-      if (protectedRoute) assertSession(requestVersion);
+      if (protectedRoute && !revocationOnly) assertSession(requestVersion);
     };
     const requestHeaders = { ...headers };
     if (protectedRoute && token) requestHeaders.Authorization = `Bearer ${token}`;
@@ -118,11 +144,8 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
       assertCurrentSession();
-      if (response.status === 401 && protectedRoute) {
-        token = '';
-        principalId = null;
-        sessionVersion++;
-        invalidateAuthentication();
+      if (response.status === 401 && protectedRoute && requestVersion === sessionVersion) {
+        invalidateSession();
         onExpired();
       }
       const fallback =
@@ -182,6 +205,15 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     }
   }
   return {
+    invalidateSession,
+    setSessionGuard(guard) {
+      if (typeof guard !== 'function') throw new TypeError('A session guard is required.');
+      const installed = () => guard();
+      sessionGuard = installed;
+      return () => {
+        if (sessionGuard === installed) sessionGuard = () => true;
+      };
+    },
     login(email, password) {
       observedLogin = true;
       return authenticate(
@@ -209,6 +241,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         (session) => {
           token = session.access_token;
           principalId = session.user?.id ?? null;
+          locallyClosed = false;
           sessionVersion++;
           currentChallenge = null;
           return session;
@@ -216,16 +249,16 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       );
     },
     me: () => request('/auth/me'),
-    sessionStatus: () => request('/auth/session'),
+    sessionStatus: () => request('/auth/session', { controlRoute: true }),
     recordActivity: () => post('/auth/activity'),
-    async logout() {
-      const version = sessionVersion;
-      invalidateAuthentication();
-      await post('/auth/logout');
-      assertSession(version);
-      token = '';
-      principalId = null;
-      sessionVersion++;
+    logout() {
+      const result = request('/auth/logout', {
+        method: 'POST',
+        controlRoute: true,
+        revocationOnly: true,
+      });
+      invalidateSession();
+      return result;
     },
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
@@ -238,10 +271,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     members: () =>
       membersApi(request, (record) => {
         if (record.id !== principalId) return;
-        token = '';
-        principalId = null;
-        sessionVersion++;
-        invalidateAuthentication();
+        invalidateSession();
         onExpired();
       }),
     audit: () => request('/audit/verify'),

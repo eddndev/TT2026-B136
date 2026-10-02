@@ -224,8 +224,9 @@ test('a real self access change clears the local session without depending on re
     after,
   );
   assert.equal(expired, 1);
-  await api.me();
-  assert.equal(calls.at(-1).headers.Authorization, undefined);
+  const before = calls.length;
+  await assert.rejects(api.me(), { code: 'session_inactive' });
+  assert.equal(calls.length, before);
   assert.equal(
     calls.some((call) => call.url.endsWith('/logout')),
     false,

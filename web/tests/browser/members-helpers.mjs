@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { setup, login, navigate, caseId, otherCaseId, caseRecord } from './helpers.mjs';
 import { administration, overview, otherAdministration } from './case-administration-helpers.mjs';
+import { absoluteSession } from '../fixtures/session.mjs';
 import {
   memberRecord,
   memberActor,
@@ -99,11 +100,7 @@ export async function setupMembers(page, { role = 'owner', rows, closed = false 
       path = url.pathname;
     if (/\/auth\/mfa\//.test(path))
       return route.fulfill({
-        json: {
-          access_token: 'member-session',
-          user: principal(state.actor),
-          expires_in_seconds: 86400,
-        },
+        json: absoluteSession(principal(state.actor), 'member-session'),
       });
     if (path.endsWith('/auth/me'))
       return state.revoked

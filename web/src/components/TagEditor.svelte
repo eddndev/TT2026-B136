@@ -35,6 +35,15 @@
     error = '';
     message = '';
   }
+  export function captureDraft() {
+    return { pending };
+  }
+  export function restoreDraft(value) {
+    if (typeof value?.pending !== 'string') throw new TypeError('Invalid pending tag draft.');
+    pending = value.pending;
+    error = '';
+    message = '';
+  }
 </script>
 
 <div class="metadata-tags-editor">

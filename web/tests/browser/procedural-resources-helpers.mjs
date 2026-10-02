@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { expect } from '@playwright/test';
 import { setupFacts, failFact } from './procedural-facts-helpers.mjs';
 import { login, navigate, caseId, document } from './helpers.mjs';
+import { absoluteSession } from '../fixtures/session.mjs';
 import {
   factRecord,
   factResolutionSource,
@@ -58,9 +59,7 @@ export async function setupProceduralResources(page, { resources = [], ...option
   await page.route(/\/api\/v1\/auth\/(me|mfa\/.*)$/, (route) => {
     const path = new URL(route.request().url()).pathname;
     return route.fulfill({
-      json: path.includes('/mfa/')
-        ? { access_token: 'resource-session', user, expires_in_seconds: 86400 }
-        : user,
+      json: path.includes('/mfa/') ? absoluteSession(user, 'resource-session') : user,
     });
   });
   const state = { facts, calls: [], submissions: [], records: new Map(), handle: null };

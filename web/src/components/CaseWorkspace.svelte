@@ -1,5 +1,5 @@
 <script>
-  import { onDestroy, setContext } from 'svelte';
+  import { onDestroy, setContext, getContext } from 'svelte';
   import { writable } from 'svelte/store';
   import CaseStages from './CaseStages.svelte';
   import CaseFacts from './CaseFacts.svelte';
@@ -23,6 +23,7 @@
     ondeadlineintent = () => {};
   export let intent = null,
     onintent = () => {};
+  const drafts = getContext('session-drafts');
   const staff = staffCase(user.role);
   const scoped = staff ? api.caseAdministration(record.id) : null;
   const state = writable({
@@ -50,6 +51,7 @@
     onupdate(current);
   }
   function deny(failure) {
+    drafts?.registry.denyContext(record.id);
     generation++;
     denied = true;
     error = failure.message;

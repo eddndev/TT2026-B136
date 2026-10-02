@@ -7,7 +7,25 @@
   let offenses,
     container,
     error = '',
-    invalid = '';
+    invalid = '',
+    pendingDraft = null;
+  $: if (offenses && pendingDraft) {
+    offenses.restoreDraft(pendingDraft);
+    pendingDraft = null;
+  }
+  export function captureDraft() {
+    return { offenses: pendingDraft ?? offenses?.captureDraft() ?? { pending: '' } };
+  }
+  export function restoreDraft(value) {
+    if (typeof value?.offenses?.pending !== 'string')
+      throw new TypeError('Invalid case fields draft.');
+    pendingDraft = value.offenses;
+    if (offenses) {
+      offenses.restoreDraft(pendingDraft);
+      pendingDraft = null;
+    }
+    error = invalid = '';
+  }
   export function values() {
     error = '';
     invalid = '';

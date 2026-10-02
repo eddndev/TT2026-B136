@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import Icon from './Icon.svelte';
   import Brand from './Brand.svelte';
   import Enrollment from './Enrollment.svelte';
@@ -16,6 +17,8 @@
   let busy = false;
   let error = '';
   let showPassword = false;
+  let emailInput;
+  onMount(() => emailInput?.focus());
   async function submit(event) {
     event.preventDefault();
     busy = true;
@@ -24,12 +27,13 @@
       if (challenge) {
         if (Date.now() >= deadline)
           throw new Error('La solicitud de acceso venci\u00f3. Inicia sesi\u00f3n de nuevo.');
+        const startedAt = performance.now();
         const session = await api.mfa(
           challenge.challenge_token,
           code.trim(),
           recovery ? 'recovery' : 'totp',
         );
-        onlogin(session.user);
+        onlogin(session, { startedAt, receivedAt: performance.now() });
       } else if (bootstrap) {
         enrollment = await api.bootstrap(email.trim(), password);
       } else {
@@ -173,6 +177,7 @@
                   placeholder="tu@despacho.com"
                   required
                   bind:value={email}
+                  bind:this={emailInput}
                 /></label
               >
               <div class="password-field">

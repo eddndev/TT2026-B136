@@ -27,6 +27,14 @@
       flush();
     } catch {}
   }
+  export function captureDraft() {
+    return { pending };
+  }
+  export function restoreDraft(value) {
+    if (typeof value?.pending !== 'string') throw new TypeError('Invalid pending offense draft.');
+    pending = value.pending;
+    error = '';
+  }
 </script>
 
 <fieldset class="case-offenses">

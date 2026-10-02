@@ -29,6 +29,33 @@ El cliente HTTP, reloj y monitor independientes aprobaron 53 pruebas.
 Dos casos reprodujeron primero la recuperación indebida de tiempo descontado
 por latencia cuando una respuesta posterior era más rápida. El monitor
 corregido mantiene la conversión temporal más conservadora durante la sesión;
-no genera actividad autónoma, consultas periódicas ni reintentos. Estos
-resultados no acreditan todavía la integración del temporizador en las vistas,
-la conservación de borradores, el reingreso ni el cierre global de CI.
+no genera actividad autónoma, consultas periódicas ni reintentos. La campaña
+remota del contrato de backend aprobó 3381 pruebas Rust, 419 de navegador con
+respuestas simuladas y 51 contra servicios reales, además de los umbrales de
+cobertura de 97/95/93\,\%. Esa campaña precede a los adaptadores de recuperación
+de formularios y no acredita su comportamiento.
+
+La integración posterior del navegador cuenta con 45 comprobaciones focales
+del ciclo de sesión, registro de borradores y alcance del descarte por
+denegación. Los recorridos simulados verificaron vencimiento sin otra respuesta
+HTTP, reautenticación, retirada de autorización, cierre concurrente y comparación
+de clasificación. También reprodujeron y corrigieron dos carreras: una navegación
+durante la comprobación de sesión destruía el editor; una respuesta de logout
+pendiente mantenía bloqueado el control de cierre de una cuenta autenticada
+después. La comprobación de visibilidad controla eventos y relojes del navegador;
+no representa una suspensión física del sistema operativo.
+
+Tres recorridos focales de expediente aprobaron la conservación de texto parcial
+y delitos aún sin confirmar, el descarte al cambiar de cuenta y la comparación
+de una revisión administrativa nueva antes de un envío explícito. Seis
+recorridos de carga documental principal comprobaron bytes y nombre del archivo,
+campos pendientes, cancelación, cambio de cuenta, cierre del expediente y pérdida
+de autorización. Una carga con respuesta perdida permaneció bloqueada hasta
+consultar el listado actual y aceptar explícitamente el riesgo de duplicación.
+Otros cuatro recorridos aprobaron en 16.2~s: el primer montaje después de MFA
+oculta esperó la confirmación visible; la nueva versión documental recuperó
+archivo y nombre sólo tras consultas frescas, conservó la base original ante
+una versión concurrente y descartó la captura al cancelar o cambiar de cuenta.
+Estos resultados usan respuestas HTTP simuladas y no sustituyen una campaña
+integrada de todas las familias de editores. La recuperación universal y la
+activación operativa del límite de inactividad permanecen pendientes.
