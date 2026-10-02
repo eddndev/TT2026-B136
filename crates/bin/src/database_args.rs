@@ -3,8 +3,16 @@
 use clap::Subcommand;
 use std::path::PathBuf;
 
+#[path = "database_restore_args.rs"]
+mod restore;
+pub use restore::InvalidateRestoredPasswordResetsArgs;
+
 #[derive(Debug, Subcommand)]
 pub enum DatabaseAction {
+    /// Validate the complete database using the restricted runtime DATABASE_URL.
+    Check,
+    /// Cancel restored pending recovery capabilities using administrative DATABASE_URL.
+    InvalidateRestoredPasswordResets(InvalidateRestoredPasswordResetsArgs),
     /// Apply schema with DATABASE_URL and grant an existing restricted runtime role.
     Migrate {
         #[arg(long)]

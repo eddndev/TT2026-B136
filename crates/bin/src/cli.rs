@@ -28,7 +28,7 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Run the local HTTP document application.
-    Serve(ServeArgs),
+    Serve(Box<ServeArgs>),
     /// Prepare database privileges or import legacy encrypted storage.
     Database {
         #[command(subcommand)]

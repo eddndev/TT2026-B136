@@ -4,6 +4,7 @@ use crate::{
     serve_alert_composition::AlertConsumers,
     serve_alert_runtime, serve_alert_supervisor,
     serve_deadline_runtime::{self, DeadlineRuntimeConfig},
+    serve_password_reset_runtime::{PasswordResetConsumer, ResetRequestWork},
     serve_report_runtime, serve_runtime,
     serve_signals::Signals,
     serve_stop::Stop,
@@ -12,9 +13,20 @@ use anyhow::Context;
 use application::{deadline_dispatch::DeadlineDispatchStore, deadline_worker::DeadlineWorkerStore};
 use std::sync::Arc;
 
+pub(crate) struct PasswordResetRuntime {
+    pub owner: ResetRequestWork,
+    pub consumer: PasswordResetConsumer,
+}
+
+pub(crate) struct ServerComponents {
+    pub router: axum::Router,
+    pub stop: Arc<Stop>,
+    pub password_reset: Option<PasswordResetRuntime>,
+}
+
 pub(crate) fn run<D, W>(
     bind: &str,
-    router: axum::Router,
+    server: ServerComponents,
     dispatch: D,
     worker: W,
     config: DeadlineRuntimeConfig,
@@ -26,6 +38,15 @@ where
     W: DeadlineWorkerStore + 'static,
 {
     // Keep these owners outside block_on: synchronous PostgreSQL drops may block.
+    let ServerComponents {
+        router,
+        stop,
+        password_reset,
+    } = server;
+    let (_reset_owner, password_reset) = match password_reset {
+        Some(reset) => (Some(reset.owner), Some(reset.consumer)),
+        None => (None, None),
+    };
     let dispatch = Arc::new(dispatch);
     let worker = Arc::new(worker);
     let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -40,7 +61,6 @@ where
         let address = listener
             .local_addr()
             .context("cannot read local http address")?;
-        let stop = Arc::new(Stop::default());
         let consumer_stop = Arc::clone(&stop);
         let dispatch = Arc::clone(&dispatch);
         let worker = Arc::clone(&worker);
@@ -71,12 +91,24 @@ where
         let reports = tokio::task::spawn_blocking(move || {
             serve_report_runtime::run(report_consumer.as_ref(), report_stop.as_ref())
         });
-        let consumer = tokio::spawn(serve_alert_supervisor::supervise(
-            deadlines,
-            alerts,
-            reports,
-            Arc::clone(&stop),
-        ));
+        let consumer = match password_reset {
+            Some(reset) => {
+                let reset = tokio::spawn(reset.run());
+                tokio::spawn(serve_alert_supervisor::supervise_with_password_reset(
+                    deadlines,
+                    alerts,
+                    reports,
+                    Some(reset),
+                    Arc::clone(&stop),
+                ))
+            }
+            None => tokio::spawn(serve_alert_supervisor::supervise(
+                deadlines,
+                alerts,
+                reports,
+                Arc::clone(&stop),
+            )),
+        };
         let (http_shutdown, shutdown) = tokio::sync::oneshot::channel();
         let server_router = router.clone();
         let http = async move {

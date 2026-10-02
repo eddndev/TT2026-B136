@@ -15,6 +15,7 @@ use axum::{routing::get, Router};
 
 mod agenda;
 mod alerts;
+mod api;
 mod audit_events;
 mod case_administration;
 mod case_stages;
@@ -31,6 +32,7 @@ mod hearings;
 mod judicial_calendars;
 mod members;
 mod participants;
+pub mod password_reset;
 mod procedural_facts;
 mod procedural_resources;
 mod request;
@@ -39,8 +41,18 @@ mod resource_deadlines;
 mod routes;
 mod runtime;
 mod typed_participants;
-pub use runtime::HttpLimits;
+pub use api::{api_router, api_router_with_password_reset, api_router_with_password_reset_budget};
 use runtime::{protect, HttpRuntime};
+pub use runtime::{HttpLimits, HttpWorkBudget, HttpWorkPermit};
+
+/// Builds standalone reset routes using one admission and blocking-work budget.
+pub fn password_reset_router(
+    components: Option<password_reset::PasswordResetHttp>,
+    limits: HttpLimits,
+) -> Router {
+    let runtime = HttpRuntime::new(limits);
+    protect(password_reset::router(components, runtime.clone()), runtime)
+}
 
 /// Builds the inbound HTTP router.
 pub fn router() -> Router {
@@ -251,75 +263,6 @@ pub fn deadline_profile_router(
 pub fn deadline_router(workflow: Arc<dyn application::deadlines::DeadlineWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
     protect(deadlines::router(workflow, runtime.clone()), runtime)
-}
-
-/// Builds all API routes with one shared admission and blocking-work budget.
-pub fn api_router(
-    documents: Arc<dyn CaseDocumentWorkflow>,
-    identity: Arc<dyn IdentityWorkflow>,
-    workflows: CaseWorkflows,
-    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
-    profiles: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
-    limits: HttpLimits,
-) -> Router {
-    let runtime = HttpRuntime::new(limits);
-    let routes = routes::router(documents, identity, runtime.clone())
-        .merge(members::router(workflows.members, runtime.clone()))
-        .merge(cases::router(workflows.cases.clone(), runtime.clone()))
-        .merge(case_administration::router(
-            workflows.cases,
-            runtime.clone(),
-        ))
-        .merge(participants::router(
-            workflows.participants,
-            runtime.clone(),
-        ))
-        .merge(case_stages::router(workflows.stages, runtime.clone()))
-        .merge(typed_participants::router(workflows.typed, runtime.clone()))
-        .merge(hearings::router(workflows.hearings, runtime.clone()))
-        .merge(hearing_results::router(
-            workflows.hearing_results,
-            runtime.clone(),
-        ))
-        .merge(procedural_facts::router(
-            workflows.procedural_facts,
-            runtime.clone(),
-        ))
-        .merge(procedural_resources::router(
-            workflows.procedural_resources,
-            runtime.clone(),
-        ))
-        .merge(resource_activities::router(
-            workflows.resource_activities,
-            runtime.clone(),
-        ))
-        .merge(resource_deadlines::router(
-            workflows.resource_deadlines,
-            runtime.clone(),
-        ))
-        .merge(deadlines::router(workflows.deadlines, runtime.clone()))
-        .merge(agenda::router(workflows.agenda, runtime.clone()))
-        .merge(dashboard::router(workflows.dashboard, runtime.clone()))
-        .merge(audit_events::router(
-            workflows.audit_events,
-            runtime.clone(),
-        ))
-        .merge(case_reports::router(
-            workflows.case_reports,
-            runtime.clone(),
-        ))
-        .merge(alerts::router(workflows.alerts, runtime.clone()))
-        .merge(document_content::router(
-            workflows.document_content,
-            runtime.clone(),
-        ))
-        .merge(document_integrity::router(
-            workflows.document_integrity,
-            runtime.clone(),
-        ))
-        .merge(judicial_calendars::router(calendars, runtime.clone()))
-        .merge(deadline_profiles::router(profiles, runtime.clone()));
-    protect(routes, runtime).route("/healthz", get(health))
 }
 
 async fn health() -> &'static str {

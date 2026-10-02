@@ -2,8 +2,10 @@
 
 ## Alcance
 
-El trabajo de `application::identity::password_reset` es interno. No hay rutas,
-formulario, flags de servidor ni correo operativo para restablecer contraseñas.
+El núcleo `application::identity::password_reset` separa la capacidad y su
+consumo de la activación operativa. Los adaptadores de correo, HTTP y formulario
+se describen en [el transporte público](password-reset-public.md); su aceptación
+local no habilita recuperación en el despliegue.
 La API de recuperación MFA existente sigue consumiendo un código después de
 verificar la contraseña; no debe presentarse como recuperación de contraseña.
 La [decisión transaccional](adr/0066-atomic-password-recovery.md) explica el diseño.
@@ -136,8 +138,10 @@ sombreado de funciones a través del `search_path` recibido.
 
 Es una primitiva interna para un controlador administrativo. El llamador debe
 mantener detenidos los escritores y cerrado el acceso durante toda la restauración
-SQL/Redis. El controlador de despliegue todavía no la invoca, no existe comando
-público y no se ha demostrado la recuperación operacional completa. Restaurar SQL
+SQL/Redis. El [CLI administrativo](database-restore-commands.md) expone la
+primitiva con un predecesor e identificador explícitos; el controlador de
+despliegue todavía no la invoca ni se ha demostrado la recuperación operacional
+completa. Restaurar SQL
 puede recuperar una contraseña antigua; cancelar enlaces no corrige ese efecto.
 
 ## Activación pendiente

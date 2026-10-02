@@ -172,7 +172,12 @@ fn scenario(bind: &'static str, consumer_started: bool) {
             reported.fetch_add(1, SeqCst);
             Ok(application::case_reports::CaseReportWorkerRun::Idle)
         });
-        let result = serve_start::run(bind, router, dispatch, worker, config, consumers, reports);
+        let server = serve_start::ServerComponents {
+            router,
+            stop: Arc::new(crate::serve_stop::Stop::default()),
+            password_reset: None,
+        };
+        let result = serve_start::run(bind, server, dispatch, worker, config, consumers, reports);
         let _ = sender.send((thread::current().id(), result));
     });
     let (owner_thread, result) = finished

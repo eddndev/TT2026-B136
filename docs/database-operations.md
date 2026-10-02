@@ -1090,3 +1090,21 @@ un comando de despliegue: el controlador actual no la invoca. Antes de activar l
 recuperación pública debe integrarse con la restauración SQL/Redis manteniendo
 escritores detenidos y admisión cerrada hasta completar la reconciliación. La
 primitiva no modifica contraseñas restauradas, generaciones ni sesiones Redis.
+
+## Recuperacion publica y consumidores
+
+La [recuperacion publica de contrasena](password-reset-public.md) usa el mismo
+rol SQL validado y presupuesto de trabajo bloqueante de HTTP. La emision y el
+consumo poseen conexiones independientes, con un solo consumidor de emision.
+La configuracion se valida antes de abrir los adaptadores y no se activa por
+la mera presencia de `RESEND_API_KEY`. El modo predeterminado permanece deshabilitado.
+
+Cerrar HTTP no cancela una llamada sincrona ya iniciada. El supervisor cierra
+la admision, descarta las solicitudes aun no iniciadas y conserva el trabajo
+iniciado hasta su terminacion. Una respuesta 202 no garantiza entrega durable.
+La restauracion debe mantener cerrado el ingreso y coordinar la invalidacion
+de capacidades descrita en [el contrato interno](password-reset-internal.md)
+antes de volver a habilitar consumidores o HTTP. Los
+[comandos administrativos](database-restore-commands.md) permiten validar el
+rol runtime sin DDL y ejecutar la invalidacion con el recibo original; no
+implementan por si solos ese bloqueo operacional.

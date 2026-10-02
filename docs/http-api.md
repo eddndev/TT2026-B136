@@ -5,6 +5,13 @@ El [tablero operativo](dashboard-api.md) agrega indicadores mediante
 para Litigante, con una instantánea auditada y sin caché. Paralegal y Cliente
 no acceden al agregado. Su aceptación incluye revocación y restauración.
 
+La [recuperacion publica de contrasena](password-reset-public.md) incorpora dos
+rutas sin sesion para solicitar un enlace y consumirlo. La solicitud publica no
+confirma existencia de cuenta ni entrega; el cambio conserva MFA y requiere nuevo
+inicio de sesion. Su composicion exige activacion y configuracion expresas; el
+modo predeterminado responde que el servicio no esta disponible. La aceptacion
+focal y los pendientes operativos se distinguen en ese contrato.
+
 La [API de miembros y acceso de cuentas](members-api.md) incorpora el directorio
 exclusivo de Owner, selección de asignados/disponibles y cambios de rol o estado
 con revisión esperada. La revocación durable alcanza sesiones y desafíos previos;
