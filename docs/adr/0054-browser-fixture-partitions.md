@@ -33,6 +33,18 @@ deadline/agenda families on the first partition and hearing-related families
 on the second. Validate the full union and concurrent runtime after moving
 a family; a focused pass alone does not establish full-campaign stability.
 
+Place document classification on that same third partition. Its complete
+workflow performs three logins, concurrent metadata edits, two seals and a
+final persisted-history reload. It exhausted the unchanged 60-second total
+on the support server after earlier passing measurements near 50 seconds;
+the final history request was still loading and its only recorded API error
+was the expected metadata conflict. The scenario creates its own case and
+uses reserved bootstrap recovery codes 2 through 4, so this move needs no
+additional fixture family. Keep the ordinary document workflow on partition
+one and retain every assertion and timeout. The placement addresses a
+measured lack of timing margin; it does not establish a specific resource
+bottleneck or improved runtime until the concurrent campaign is measured.
+
 When stage fixtures exist, their Owner uses reserved recovery code 7 to
 provision optional families. Otherwise bootstrap code 6 remains available
 because stage setup did not consume it. Bootstrap codes 0 through 4 remain

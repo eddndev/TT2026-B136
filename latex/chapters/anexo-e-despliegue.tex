@@ -1,0 +1,15 @@
+\section{Operación privada por etiquetas}\label{sec:anexo-despliegue}
+
+La guía \rutarepo{docs/deployment.md} especifica secretos, conexión, preparación
+del host y publicación. El operador etiqueta una revisión verificada con una
+versión como \texttt{v1.0.0}, sin mover etiquetas existentes. El artefacto y
+\texttt{/version.json} identifican versión y commit.
+
+La instalación objetivo utiliza VPS3, cuenta \texttt{qadra} y raíz
+\texttt{/home/qadra/qadra}; el frontend usa un túnel SSH por el puerto 22022.
+\texttt{journalctl --user} muestra registros; el controlador permite consultar el estado y recuperar la versión anterior,
+preservando datos actuales. Una restauración SQL exige los controles de identidad
+de \rutarepo{docs/database-operations.md}. Certificados, CRL y respaldos requieren
+mantenimiento explícito. Cada versión incluye qpdf y FFmpeg/ffprobe fijados;
+la preparación de servicios y la compilación del paquete conservan evidencia
+separada de la primera activación y de una restauración real.

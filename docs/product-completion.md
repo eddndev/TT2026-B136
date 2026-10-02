@@ -9,8 +9,9 @@ confirmación natural en `main` está comprobada. PR48 quedó integrada en
 11m24s y 7m43s: 3156 pruebas Rust, 396 de navegador controlado, 47 reales y
 dos ignoradas. Los informes aprobaron su aceptación local HTTP/restauración,
 pero conservan pendiente el cierre global. La adaptación de PR43 a VPS3 está
-publicada en `37087b8`; CI y Documents aprobaron, Web sigue en curso en el
-último corte. Todavía no hay una release activada.
+integrada por squash en `3a67a6a`, con CI, Web y Documents aprobados para
+`37087b8` y ambos coautores humanos. Su confirmación natural en main está
+en curso. Todavía no hay una release activada.
 Las referencias históricas a aceptación local o CI pendiente de esas entregas
 no significan que su código siga fuera de `main`.
 
@@ -47,8 +48,8 @@ no significan que su código siga fuera de `main`.
   La navegación de Inicio y la verificación de la cadena de auditoría no
   completan esos flujos.
 - Despliegue: PR43 conserva la propuesta de la compañera y añade la adaptación
-  a VPS3. El cambio `37087b8` está publicado; CI y Documents aprobaron y Web
-  sigue en curso en el último corte. PostgreSQL y Redis están preparados; API
+  a VPS3. Se integró como `3a67a6a` después de aprobar CI, Web y Documents,
+  con confirmación natural de main en curso. PostgreSQL y Redis están preparados; API
   y frontend siguen inactivos, sin release desplegada. Preparación no equivale a activación ni
   aceptación de producción.
 - Cierre académico posterior: conciliación del manuscrito con las entregas,
@@ -57,7 +58,8 @@ no significan que su código siga fuera de `main`.
 El tablero operativo implementa una instantánea autorizada y su interfaz Qadra,
 con aceptación focal y restauración aprobadas. La
 [PR 45](https://github.com/eddndev/TT2026-B136/pull/45) ya está integrada y su
-regresión natural en `main` aprobó CI, Web y Documents; su contrato está en
+regresión natural en `main`, revisión `0cf1f295`, aprobó CI, Web y Documents;
+su contrato está en
 [dashboard-api.md](dashboard-api.md).
 
 La entrega integrada de
@@ -527,6 +529,24 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 La validación final incluye usabilidad con participantes reales. Ningún resultado
 de cobertura ni una demostración parcial cambia automáticamente estos estados.
 
+## Estado del cronograma
+
+El [plan de diez semanas](../latex/chapters/03-analisis-diseno.tex) reserva la
+semana 9 para persistencia, autorización, gestión procesal/documental e interfaz,
+y la semana 10 para aceptación final, usabilidad, correcciones y manuales.
+El núcleo criptográfico y gran parte del producto están integrados, pero el
+cierre funcional de la semana 9 continúa con los pendientes de esta matriz.
+La infraestructura de CI y la preparación de VPS3 facilitan ese trabajo; no
+cierran por sí mismas los módulos restantes.
+
+La semana 10 conserva pendientes la validación con participantes reales,
+los manuales finales y la conciliación de resultados y conclusiones. Las
+pruebas automáticas y la inspección visual ya disponibles aportan evidencia
+técnica, pero no sustituyen el estudio de usabilidad. Los capítulos y los
+objetivos aprobados se conservan; el cronograma se informa por entregas y
+condiciones de aceptación, sin convertirlo en un porcentaje ni asignarle
+fechas de cierre nuevas no acordadas.
+
 ## Conciliación de alcance
 
 - El prototipo atiende un solo despacho. Registro y selección de planes deben
@@ -676,7 +696,7 @@ HTTP controlado y nueve del planificador. Un recorrido real aprobó en 11.6 s
 de escenario y 15.5 s de ejecutor; se inspeccionaron sus capturas a 1440 y
 390 píxeles. La campaña API/restauración aprobó con salida cero, conservando
 las capturas exactas y los filtros tras recuperar el respaldo. Clippy aprobó
-y el PDF final de 347 páginas se compiló e inspeccionó. La entrega quedó
+y el PDF final de esa entrega, de 345 páginas, se compiló e inspeccionó. La entrega quedó
 integrada por PR48 en `5020707`; CI, Web y Documents de la confirmación natural
 aprobaron en 6m41s, 11m24s y 7m43s, con 3156 Rust, 396 escenarios controlados
 y 47 reales, además de dos ignorados. Se conserva separada
