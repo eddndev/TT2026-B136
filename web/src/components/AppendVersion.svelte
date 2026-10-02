@@ -1,4 +1,5 @@
 <script>
+  import { uploadOutcomeUncertain } from '../lib/document-upload-outcome.mjs';
   import CaseClosedNotice from './CaseClosedNotice.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
@@ -197,7 +198,7 @@
       if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;
       if (failure.code === 'case_closed') restoredClosed = true;
-      if (failure.status >= 400 && failure.status < 500) unconfirmed = false;
+      unconfirmed = uploadOutcomeUncertain(failure);
       deny(failure);
       const versionConflict = failure.code === 'document_version_conflict';
       conflict = versionConflict || restored;

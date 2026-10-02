@@ -151,6 +151,14 @@ recuperación de un borrador en un caso todavía cerrado conserva su modo de lec
 El caso de reapertura y el caso de recuperación cerrada aprobaron focalmente;
 la campaña cancelada no acredita el inventario completo ni la integración.
 
+La segunda campaña detectó que la respuesta explícita HTTP 503
+`document_validator_unavailable` se trataba como resultado de escritura incierto.
+Ese rechazo de admisión ocurre antes de la escritura. La clasificación compartida
+por carga y versiones distingue ese rechazo de los errores 5xx desconocidos o
+de red. Tres pruebas unitarias aprobaron en 150 ms. Ocho escenarios existentes
+de rechazo y dos de envío incierto aprobaron focalmente, sin reducir assertions
+ni tiempos de espera. La regresión global sigue pendiente de la cabeza corregida.
+
 ## Activación y rollback real de v0.1.1: 2 de octubre de 2026
 
 La etiqueta exacta de `e3aa87a` aprobó Deploy version en **17m44s**. Se verificaron
