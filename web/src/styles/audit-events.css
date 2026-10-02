@@ -1,0 +1,47 @@
+.audit-events {
+  margin-top: 24px;
+  min-width: 0;
+}
+.audit-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.audit-filters .action-row {
+  grid-column: 1 / -1;
+}
+.audit-records {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.audit-record {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.audit-record time,
+.audit-events > .hint time {
+  overflow-wrap: anywhere;
+}
+.audit-record dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+}
+.audit-record dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.audit-record dd {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .audit-filters,
+  .audit-record dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

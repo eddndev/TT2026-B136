@@ -14,6 +14,8 @@ mod alerts_postgres;
 pub mod archive;
 pub mod audit;
 mod audit_postgres;
+mod audit_query_postgres;
+mod audit_query_schema;
 pub mod case_stages;
 pub mod cases;
 pub mod certificates;
@@ -106,6 +108,7 @@ pub use tools::openssl_version;
 pub use totp::{decode_base32_secret, TotpRsProvider};
 
 pub use audit_postgres::PostgresAuditLog;
+pub use audit_query_postgres::PostgresAuditEventStore;
 pub use document_postgres::PostgresCaseDocumentStore;
 pub use legacy::{ImportReport, LegacyImport};
 pub use postgres::initialize_database;

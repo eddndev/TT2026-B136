@@ -18,6 +18,9 @@ pub enum PortFailureKind {
 /// retain a diagnostic and optionally a neutral category, without adapter types.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    #[error("audit page exceeds its text capacity")]
+    AuditQueryCapacityExceeded,
+
     #[error(transparent)]
     CaseReport(#[from] crate::case_reports::CaseReportError),
     #[error(transparent)]

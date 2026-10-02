@@ -56,7 +56,7 @@ impl Database {
     }
 
     pub fn snapshot(&mut self) -> serde_json::Value {
-        self.client.query_one("SELECT jsonb_build_object('documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a))", &[]).unwrap().get(0)
+        self.client.query_one("SELECT jsonb_build_object('documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM (SELECT sequence,timestamp,actor,action,resource,chain FROM audit_events) a))", &[]).unwrap().get(0)
     }
 }
 
