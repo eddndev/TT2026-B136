@@ -199,6 +199,35 @@ rutas respecto al módulo que las declara y rechaza un inventario vacío o ajeno
 a `migrations/`. La comprobación SQL corregida aprobó sus 21 casos en 5.369 s
 con PostgreSQL desechable; el cierre global requiere la nueva cabeza publicada.
 
+La segunda campaña se canceló al rechazar la política de dependencias
+`rustybuzz` 0.20.1 y `ttf-parser` 0.25.1, sin mantenimiento según
+[RUSTSEC-2026-0206](https://rustsec.org/advisories/RUSTSEC-2026-0206.html) y
+[RUSTSEC-2026-0192](https://rustsec.org/advisories/RUSTSEC-2026-0192.html).
+Se sustituyeron por HarfRust 0.13.3 y Skrifa 0.46.2, con un único parser
+`read-fonts` 0.43.3; no se añadieron excepciones a la política. Los vectores
+fijos capturados del motor anterior conservan métricas, glifos, clústeres,
+avances, posiciones y líneas de ambas fuentes Noto originales.
+
+| Comprobación posterior del motor tipográfico | Resultado nuevo |
+| --- | --- |
+| Captura de referencia sobre el motor anterior | 1/1; 0.32 s, generador temporal retirado |
+| Equivalencia completa y reutilización del plan | 2/2; 0.38 s |
+| Renderizado, paginación, límites y texto original | 15/15; 1.96 s |
+| Política de avisos, licencias, fuentes y restricciones | `cargo deny check`: PASS |
+| Clippy workspace y todos los targets | PASS; 2 min 17 s |
+| PDF representativo mediante el proceso aislado | 1/1; 0.566156 s de renderizado, compilación separada de 59.44 s |
+
+La última comprobación reutilizó la captura exacta de 60 expedientes, 179
+asignaciones y 120 filas de carga. Conservó los **1654401 bytes**, las 25 páginas,
+el texto extraído, todas las identidades y las continuaciones; su SHA-256 sigue
+siendo `32659e0008fefdf7565ba66d60708cc3e117871e11d4affb23bfb26c808a4674`.
+Los 0.566156 s nuevos y 1.604057 s anteriores son observaciones individuales
+sobre esa captura, con los mismos límites del worker. No se repitió la captura
+máxima ni se extrapola esta diferencia al tiempo total de CI. La inspección
+visual previa corresponde a esos mismos bytes. La aceptación API y de navegador
+registrada abajo precede a esta sustitución; los gates de la nueva cabeza
+publicada deben confirmar la regresión global.
+
 | Comprobación de esta entrega | Resultado observado |
 | --- | --- |
 | Aplicación: contratos, autorización, trabajos y avisos | 26 casos aprobados |

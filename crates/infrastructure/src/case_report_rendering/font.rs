@@ -1,5 +1,9 @@
 use super::*;
 use pdf_writer::{Content, Finish, Name, Str, TextStr};
+use skrifa::{
+    instance::{LocationRef, Size},
+    MetadataProvider,
+};
 use std::collections::BTreeMap;
 
 #[cfg(test)]
@@ -14,10 +18,14 @@ pub(super) struct EncodedGlyph {
 
 pub(super) struct Font<'a> {
     pub bytes: &'a [u8],
-    pub face: rustybuzz::Face<'a>,
+    face: skrifa::FontRef<'a>,
+    pub metrics: skrifa::metrics::Metrics,
+    charmap: skrifa::charmap::Charmap<'a>,
+    glyph_metrics: skrifa::metrics::GlyphMetrics<'a>,
+    shaping: harfrust::ShaperData,
     pub glyphs: Vec<EncodedGlyph>,
     map: BTreeMap<(u16, String), u16>,
-    plan: rustybuzz::ShapePlan,
+    plan: harfrust::ShapePlan,
 }
 
 struct Shaped {
@@ -31,27 +39,38 @@ struct Shaped {
 
 impl<'a> Font<'a> {
     pub fn new(bytes: &'a [u8]) -> Result<Self, ApplicationError> {
-        let face = rustybuzz::Face::from_slice(bytes, 0).ok_or_else(unavailable)?;
-        if face.units_per_em() == 0 {
+        let face = skrifa::FontRef::new(bytes).map_err(|_| unavailable())?;
+        let metrics = face.metrics(Size::unscaled(), LocationRef::default());
+        if metrics.units_per_em == 0 || metrics.glyph_count == 0 || metrics.bounds.is_none() {
             return Err(unavailable());
         }
-        let plan = shape_plan(&face);
+        let charmap = face.charmap();
+        let glyph_metrics = face.glyph_metrics(Size::unscaled(), LocationRef::default());
+        let shaping = harfrust::ShaperData::new(&face);
+        let plan = shape_plan(&shaping.shaper(&face).build());
         Ok(Self {
             bytes,
             face,
+            metrics,
+            charmap,
+            glyph_metrics,
+            shaping,
             glyphs: Vec::new(),
             map: BTreeMap::new(),
             plan,
         })
     }
 
-    fn shaped_buffer(&self, text: &str) -> rustybuzz::GlyphBuffer {
-        let mut buffer = rustybuzz::UnicodeBuffer::new();
+    fn shaped_buffer(&self, text: &str) -> harfrust::GlyphBuffer {
+        let mut buffer = harfrust::UnicodeBuffer::new();
         buffer.push_str(text);
-        buffer.set_direction(rustybuzz::Direction::LeftToRight);
-        buffer.set_script(rustybuzz::script::LATIN);
-        buffer.set_cluster_level(rustybuzz::BufferClusterLevel::MonotoneGraphemes);
-        rustybuzz::shape_with_plan(&self.face, &self.plan, buffer)
+        buffer.set_direction(harfrust::Direction::LeftToRight);
+        buffer.set_script(harfrust::script::LATIN);
+        buffer.set_cluster_level(harfrust::BufferClusterLevel::MonotoneGraphemes);
+        self.shaping
+            .shaper(&self.face)
+            .build()
+            .shape(buffer, harfrust::ShapeOptions::new().plan(Some(&self.plan)))
     }
 
     fn shape(&self, text: &str) -> Result<Vec<Shaped>, ApplicationError> {
@@ -65,7 +84,7 @@ impl<'a> Font<'a> {
             let combining = (0x300..=0x36f).contains(&code);
             let allowed = matches!(code, 0x20..=0x7e | 0xa0..=0x2af | 0x300..=0x36f
                 | 0x2010..=0x2027 | 0x2030..=0x205e | 0x20a0..=0x20cf | 0x2212);
-            if !allowed || ch.is_control() || self.face.glyph_index(ch).is_none() {
+            if !allowed || ch.is_control() || self.charmap.map(ch).is_none() {
                 return Err(failed());
             }
             if combining {
@@ -121,7 +140,7 @@ impl<'a> Font<'a> {
         if shaped.is_empty() {
             return Ok(vec![String::new()]);
         }
-        let scale = size / self.face.units_per_em() as f32;
+        let scale = size / self.metrics.units_per_em as f32;
         let mut clusters: Vec<(usize, usize, f32)> = Vec::new();
         for glyph in shaped {
             if let Some(last) = clusters.last_mut().filter(|last| last.0 == glyph.start) {
@@ -170,11 +189,11 @@ impl<'a> Font<'a> {
         }
         let cid = u16::try_from(self.glyphs.len() + 1).map_err(|_| capacity())?;
         let width = self
-            .face
-            .glyph_hor_advance(ttf_parser::GlyphId(glyph))
-            .ok_or_else(failed)? as f32
+            .glyph_metrics
+            .advance_width(skrifa::GlyphId::new(u32::from(glyph)))
+            .ok_or_else(failed)?
             * 1000.0
-            / self.face.units_per_em() as f32;
+            / self.metrics.units_per_em as f32;
         self.glyphs.push(EncodedGlyph {
             glyph,
             original: source.to_owned(),
@@ -195,7 +214,7 @@ impl<'a> Font<'a> {
     ) -> Result<usize, ApplicationError> {
         let (x, y) = origin;
         let shaped = self.shape(text)?;
-        let scale = size / self.face.units_per_em() as f32;
+        let scale = size / self.metrics.units_per_em as f32;
         let advance: f32 = shaped.iter().map(|glyph| glyph.advance * scale).sum();
         if !advance.is_finite() || advance > width {
             return Err(failed());
@@ -226,7 +245,8 @@ impl<'a> Font<'a> {
             for (glyph, cid) in shaped.iter().zip(&cids) {
                 pending.extend_from_slice(&cid.to_be_bytes());
                 let nominal = self.glyphs[*cid as usize - 1].width;
-                let adjustment = nominal - glyph.advance * 1000.0 / self.face.units_per_em() as f32;
+                let adjustment =
+                    nominal - glyph.advance * 1000.0 / self.metrics.units_per_em as f32;
                 if adjustment.abs() > 0.01 {
                     items.show(Str(&pending)).adjust(adjustment);
                     pending.clear();
@@ -258,12 +278,12 @@ impl<'a> Font<'a> {
     }
 }
 
-fn shape_plan(face: &rustybuzz::Face<'_>) -> rustybuzz::ShapePlan {
+fn shape_plan(face: &harfrust::Shaper<'_>) -> harfrust::ShapePlan {
     // Every report buffer uses Latin, left-to-right text and default features.
-    let plan = rustybuzz::ShapePlan::new(
+    let plan = harfrust::ShapePlan::new(
         face,
-        rustybuzz::Direction::LeftToRight,
-        Some(rustybuzz::script::LATIN),
+        harfrust::Direction::LeftToRight,
+        Some(harfrust::script::LATIN),
         None,
         &[],
     );

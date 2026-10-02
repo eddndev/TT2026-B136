@@ -43,21 +43,21 @@ pub(super) fn font(
         .widths()
         .consecutive(1, font.glyphs.iter().map(|glyph| glyph.width));
     descendant.finish();
-    let scale = 1000.0 / font.face.units_per_em() as f32;
-    let bounds = font.face.global_bounding_box();
+    let scale = 1000.0 / font.metrics.units_per_em as f32;
+    let bounds = font.metrics.bounds.ok_or_else(unavailable)?;
     pdf.font_descriptor(descriptor)
         .name(name)
         .flags(FontFlags::NON_SYMBOLIC)
         .bbox(Rect::new(
-            bounds.x_min as f32 * scale,
-            bounds.y_min as f32 * scale,
-            bounds.x_max as f32 * scale,
-            bounds.y_max as f32 * scale,
+            bounds.x_min * scale,
+            bounds.y_min * scale,
+            bounds.x_max * scale,
+            bounds.y_max * scale,
         ))
         .italic_angle(0.0)
-        .ascent(font.face.ascender() as f32 * scale)
-        .descent(font.face.descender() as f32 * scale)
-        .cap_height(font.face.capital_height().unwrap_or(font.face.ascender()) as f32 * scale)
+        .ascent(font.metrics.ascent * scale)
+        .descent(font.metrics.descent * scale)
+        .cap_height(font.metrics.cap_height.unwrap_or(font.metrics.ascent) * scale)
         .stem_v(if bold { 120.0 } else { 80.0 })
         .font_file2(data);
     pdf.stream(data, font.bytes)

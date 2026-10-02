@@ -72,7 +72,14 @@ No document identity, signature or legal timestamp is fabricated for an export.
 The renderer uses typed PDF primitives, bounded layout and bundled licensed fonts,
 with no HTML, URL loading, host font lookup or arbitrary template language.
 PDF must preserve supported Spanish/Latin text and reject missing glyphs rather
-than substitute or omit characters. CSV uses uniform RFC 4180 records and prefixes
+than substitute or omit characters. HarfRust 0.13.3 shapes Latin text and Skrifa
+0.46.2 reads metrics through their shared read-fonts parser. These maintained
+implementations replace dependencies retired under RUSTSEC-2026-0206 and
+RUSTSEC-2026-0192; the advisory gate has no exception for them. Each pinned font
+keeps one shaping cache and plan. Fixed reference vectors preserve original
+font metrics, glyphs, clusters, advances, offsets and wrapped lines, including
+Spanish combining accents and ligatures. See
+`crates/infrastructure/src/case_report_rendering/font-reference/README.md`. CSV uses uniform RFC 4180 records and prefixes
 untrusted text with an apostrophe to prevent spreadsheet formula evaluation.
 Explicit rows preserve capture identity and filters even when no case matches.
 PDF layout also caps output at 512 pages and one million glyphs. These budgets

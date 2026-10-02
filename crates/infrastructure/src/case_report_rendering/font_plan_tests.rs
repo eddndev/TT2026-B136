@@ -16,48 +16,86 @@ fn font_bytes() -> [&'static [u8]; 2] {
     ]
 }
 
-fn reference(face: &rustybuzz::Face<'_>, text: &str) -> rustybuzz::GlyphBuffer {
-    let mut buffer = rustybuzz::UnicodeBuffer::new();
-    buffer.push_str(text);
-    buffer.set_direction(rustybuzz::Direction::LeftToRight);
-    buffer.set_script(rustybuzz::script::LATIN);
-    buffer.set_cluster_level(rustybuzz::BufferClusterLevel::MonotoneGraphemes);
-    rustybuzz::shape(face, &[], buffer)
+fn reference_texts() -> Vec<String> {
+    let accents = "\u{00c1}rea jur\u{00ed}dica: ni\u{00f1}ez, acci\u{00f3}n, a\u{0301}\u{0327}.";
+    let ligatures = "office affinity efficient afflict fi ffi fl";
+    vec![
+        String::new(),
+        "AV To office".into(),
+        accents.into(),
+        ligatures.into(),
+        format!("{accents} {ligatures}; expediente 0042. ").repeat(48),
+    ]
 }
 
-fn glyphs(buffer: &rustybuzz::GlyphBuffer) -> Vec<(u32, u32, i32, i32, i32, i32)> {
-    buffer
-        .glyph_infos()
+fn reference_hex(text: &str) -> String {
+    text.as_bytes()
         .iter()
-        .zip(buffer.glyph_positions())
-        .map(|(info, position)| {
-            (
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
+}
+
+fn shape_reference(font: &Font<'_>) -> String {
+    use std::fmt::Write;
+    let bounds = font.metrics.bounds.expect("pinned font bounds");
+    let mut out = format!(
+        "metrics:{},{},{},{},{},{},{},{}\n",
+        font.metrics.units_per_em,
+        font.metrics.ascent,
+        font.metrics.descent,
+        font.metrics.cap_height.unwrap_or(font.metrics.ascent),
+        bounds.x_min,
+        bounds.y_min,
+        bounds.x_max,
+        bounds.y_max
+    );
+    for text in reference_texts() {
+        let shaped = font.shaped_buffer(&text);
+        write!(out, "text:{}|", reference_hex(&text)).unwrap();
+        for (info, position) in shaped.glyph_infos().iter().zip(shaped.glyph_positions()) {
+            let width = font
+                .glyph_metrics
+                .advance_width(skrifa::GlyphId::new(info.glyph_id))
+                .unwrap();
+            write!(
+                out,
+                "{},{},{},{},{},{},{};",
                 info.glyph_id,
                 info.cluster,
                 position.x_advance,
                 position.y_advance,
                 position.x_offset,
                 position.y_offset,
+                width
             )
-        })
-        .collect()
+            .unwrap();
+        }
+        out.push('\n');
+        for line in font
+            .lines(&text, 10.0, 440.0)
+            .expect("bounded reference lines")
+        {
+            write!(out, "line:{};", reference_hex(&line)).unwrap();
+        }
+        out.push('\n');
+    }
+    out
 }
 
 #[test]
-fn reused_plan_preserves_glyphs_clusters_and_all_positions() {
-    let accents = "\u{00c1}rea jur\u{00ed}dica: ni\u{00f1}ez, acci\u{00f3}n, a\u{0301}\u{0327}.";
-    let ligatures = "office affinity efficient afflict fi ffi fl";
-    let long = format!("{accents} {ligatures}; expediente 0042. ").repeat(48);
-    assert!(long.len() > 4096 && long.len() < bounds::MAX_FIELD_BYTES);
-    for bytes in font_bytes() {
+fn maintained_shaping_preserves_pinned_metrics_glyphs_clusters_positions_and_lines() {
+    let expected = [
+        include_str!("font-reference/regular-shaping.txt"),
+        include_str!("font-reference/bold-shaping.txt"),
+    ];
+    for (bytes, expected) in font_bytes().into_iter().zip(expected) {
         let font = Font::new(bytes).expect("bundled font");
-        for text in ["", "AV To office", accents, ligatures, long.as_str()] {
-            let expected = reference(&font.face, text);
-            let actual = font.shaped_buffer(text);
-            assert_eq!(glyphs(&actual), glyphs(&expected));
-            let rendered = font.shape(text).expect("supported text");
-            assert_eq!(rendered.len(), expected.glyph_infos().len());
-            let mut clusters: Vec<usize> = expected
+        assert_eq!(shape_reference(&font), expected);
+        for text in reference_texts() {
+            let shaped = font.shaped_buffer(&text);
+            let rendered = font.shape(&text).expect("supported text");
+            assert_eq!(rendered.len(), shaped.glyph_infos().len());
+            let mut clusters: Vec<usize> = shaped
                 .glyph_infos()
                 .iter()
                 .map(|info| info.cluster as usize)
@@ -67,8 +105,8 @@ fn reused_plan_preserves_glyphs_clusters_and_all_positions() {
             clusters.dedup();
             for ((glyph, info), position) in rendered
                 .iter()
-                .zip(expected.glyph_infos())
-                .zip(expected.glyph_positions())
+                .zip(shaped.glyph_infos())
+                .zip(shaped.glyph_positions())
             {
                 assert_eq!(u32::from(glyph.glyph), info.glyph_id);
                 assert_eq!(glyph.start, info.cluster as usize);
@@ -79,11 +117,10 @@ fn reused_plan_preserves_glyphs_clusters_and_all_positions() {
                 assert_eq!(glyph.y, position.y_offset as f32);
             }
         }
-        let shaped = reference(&font.face, ligatures);
-        assert!(shaped.glyph_infos().len() < ligatures.chars().count());
+        let ligatures = "office affinity efficient afflict fi ffi fl";
+        assert!(font.shaped_buffer(ligatures).glyph_infos().len() < ligatures.chars().count());
     }
 }
-
 #[test]
 fn measuring_and_drawing_many_lines_builds_only_one_plan_per_font() {
     PLAN_BUILDS.with(|count| count.set(0));
