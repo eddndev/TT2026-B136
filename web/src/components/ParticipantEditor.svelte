@@ -217,9 +217,22 @@
         : await api.create(values);
       if (!admitted()) return;
       unconfirmed = false;
-      busy = false;
-      close();
-      await onconfirmed(record);
+      const editing = original !== null;
+      if (editing) {
+        recovery?.close();
+        ondraftchange();
+      } else {
+        busy = false;
+        close();
+      }
+      try {
+        await onconfirmed(record);
+      } finally {
+        if (editing && alive) {
+          busy = false;
+          close();
+        }
+      }
     } catch (failure) {
       if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;

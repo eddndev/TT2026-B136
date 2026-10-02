@@ -1,5 +1,20 @@
 # Informe de verificación local
 
+## Refresco confirmado de participantes: correccion del 2 de octubre de 2026
+
+La regresion remota detecto que una edicion confirmada cerraba el dialogo antes
+de finalizar las lecturas de lista e historial. La prueba existente reprodujo
+el fallo localmente. Ahora el registro del borrador se retira inmediatamente,
+pero el dialogo de edicion permanece ocupado hasta terminar ambas lecturas.
+La creacion conserva su cierre inmediato y no puede resucitar tras otro vencimiento.
+
+Doce escenarios focales aprobaron en 30.1 s con un worker. Ademas se completo el
+contrato exacto de identidad historica de una ficha tipificada en una fixture;
+ambas aperturas exigen ahora el control habilitado y conservan los rechazos de
+solicitudes inesperadas. No se cambiaron timeouts ni se eliminaron assertions.
+La campaña fallida fue cancelada automaticamente; no acredita el inventario completo.
+
+
 ## Reingreso en etapas: aceptacion focal del 2 de octubre de 2026
 
 Ocho escenarios de navegador controlado aprobaron en 28.4 s con un worker,

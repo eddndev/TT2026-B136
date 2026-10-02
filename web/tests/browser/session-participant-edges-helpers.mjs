@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { caseRecord } from './helpers.mjs';
 import { administration } from './case-administration-helpers.mjs';
+import { subject } from './typed-participant-helpers.mjs';
 import { casePath } from './session-inactivity-helpers.mjs';
 import {
   participantDraftSetup,
@@ -66,6 +67,21 @@ function captureRequest(state, request) {
   expect(state.allowed).toBe(true);
   expect(['owner', 'litigator']).toContain(state.current.user.role);
   return call;
+}
+
+export async function exactTypedSubjectRead(page, state) {
+  const path = `/api/v1/cases/${caseRecord.id}/subjects/${subject.id}/revisions/${subject.revision}`;
+  await page.route(
+    (url) => url.pathname === path,
+    (route) => {
+      const call = captureRequest(state, route.request());
+      expect(call).toMatchObject({ method: 'GET', body: null, search: '' });
+      return route.fulfill({
+        json: structuredClone(subject),
+        headers: { 'Cache-Control': 'no-store' },
+      });
+    },
+  );
 }
 
 export async function caseStatusReads(page, state, current) {

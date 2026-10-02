@@ -28,6 +28,7 @@ import {
   holdEdgeRead,
   caseStatusReads,
   rejectClosedReplacement,
+  exactTypedSubjectRead,
 } from './session-participant-edges-helpers.mjs';
 
 const validRaw = [rawFields[0], '  Defensa declarada  ', rawFields[2], rawFields[3]];
@@ -93,6 +94,7 @@ test('concurrent typing keeps normal typed editing separate from the readonly ma
   page,
 }) => {
   const state = await edgeSetup(page);
+  await exactTypedSubjectRead(page, state);
   await login(page);
   await openParticipants(page);
   await expire(page, state, await fillManual(await editManual(page)));
@@ -104,6 +106,9 @@ test('concurrent typing keeps normal typed editing separate from the readonly ma
   await detail(page).getByRole('button', { name: 'Editar participante', exact: true }).click();
   const typedDialog = page.getByRole('dialog', { name: 'Editar ficha tipificada', exact: true });
   await expect(typedDialog).toBeVisible();
+  await expect(
+    typedDialog.getByRole('button', { name: 'Revisar identidad y coincidencias', exact: true }),
+  ).toBeEnabled();
   await expect(manualDialog(page)).toBeHidden();
   await typedDialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
   const before = state.calls.length;
@@ -122,6 +127,9 @@ test('concurrent typing keeps normal typed editing separate from the readonly ma
   await expect(resume(page)).toHaveCount(0);
   await detail(page).getByRole('button', { name: 'Editar participante', exact: true }).click();
   await expect(typedDialog).toBeVisible();
+  await expect(
+    typedDialog.getByRole('button', { name: 'Revisar identidad y coincidencias', exact: true }),
+  ).toBeEnabled();
   await expect(typedDialog.getByText(rawFields[0], { exact: true })).toHaveCount(0);
 });
 
