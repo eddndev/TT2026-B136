@@ -6,6 +6,7 @@ import {
   fillDate,
   initial,
   caseId,
+  document,
 } from './stage-helpers.mjs';
 test('stage head is independent of initial registration and history is on demand', async ({
   page,
@@ -46,21 +47,38 @@ test('ordinary transition awaits readers and commits only an explicitly selected
   page,
 }) => {
   const { state } = await setupStages(page);
+  const stageRead = { method: 'GET', path: `/api/v1/cases/${caseId}/stage` };
   await openStages(page);
+  expect(state.requests).toEqual([stageRead]);
   await page.getByRole('button', { name: 'Registrar paso a Intermedia' }).click();
+  await expect(page.locator('.stage-form')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.getByRole('button', { name: 'Revisar registro' })).toBeEnabled();
+  expect(state.requests).toEqual([stageRead, stageRead]);
+  expect(state.posts).toEqual([]);
   await fillDate(page, 'Fecha de la acusaci\u00f3n');
   await chooseSupport(page);
+  expect(state.requests).toEqual([stageRead, stageRead, stageRead]);
+  expect(state.posts).toEqual([]);
   await page.getByRole('button', { name: 'Revisar registro' }).click();
+  await expect(page.locator('.stage-confirmation')).toBeVisible();
+  expect(state.requests).toEqual([stageRead, stageRead, stageRead]);
+  expect(state.posts).toEqual([]);
   await page.getByRole('button', { name: 'Registrar transici\u00f3n', exact: true }).click();
   await expect(page.locator('.stage-current')).toContainText('Intermedia');
-  expect(state.posts[0].expected_revision).toBe(initial.stage_revision);
-  expect(Object.keys(state.posts[0]).sort()).toEqual([
-    'accusation',
-    'accusation_declared_at',
-    'expected_revision',
-    'target',
+  expect(state.posts).toEqual([
+    {
+      expected_revision: initial.stage_revision,
+      target: 'intermediate',
+      accusation_declared_at: { precision: 'date', date: '2026-09-01', offset: '-06:00' },
+      accusation: { document_id: document.id, version: document.version, digest: document.digest },
+    },
   ]);
-  expect(state.requests.filter((r) => r.path.endsWith('/stage'))).toHaveLength(1);
+  expect(state.requests).toEqual([
+    stageRead,
+    stageRead,
+    stageRead,
+    { method: 'POST', path: `/api/v1/cases/${caseId}/stage/transitions` },
+  ]);
 });
 for (const mode of ['pending', 'closed', 'paralegal'])
   test(`stage ${mode} permits consultation without mutations`, async ({ page }) => {
