@@ -30,6 +30,29 @@ campaña se registra por separado en el
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
+## Capacidades internas de recuperación de contraseña
+
+Las migraciones `0028_password_reset_*.sql` añaden capacidades privadas y sus
+operaciones de emisión, inspección, cancelación y consumo. Extienden el guard de
+identidad para permitir exclusivamente la transición autorizada de contraseña,
+revisión y generación; el consumo exige su recibo auditado en la transacción.
+`database migrate --runtime-role` concede sólo EXECUTE sobre las operaciones
+necesarias. El runtime no obtiene SELECT/DML de capacidades ni UPDATE de hashes.
+El arranque valida también catálogo e inventario. Véase
+[la frontera interna](password-reset-internal.md).
+
+Migrar el esquema no habilita rutas ni correo de recuperación. La huella del
+esquema cambia; un binario que sólo conoce el guard anterior no es un rollback
+compatible. La activación debe seguir el procedimiento de mantenimiento de
+esquema, sin sustituir una huella para saltarse su comprobación.
+
+Un dump puede contener enlaces pendientes, y una restauración puede revivir un
+enlace consumido después de la captura. Antes de habilitar el futuro transporte
+se debe aceptar una invalidación administrativa auditada con el servicio cerrado,
+además de la invalidación selectiva de sesiones y desafíos Redis. La restauración
+no recupera contraseñas cambiadas después de la fecha del respaldo. La política
+operativa de restauración y retención de estas capacidades sigue pendiente.
+
 ## Recursos y actos declarados
 
 Las migraciones `0022_procedural_resources.sql` y
@@ -1057,3 +1080,13 @@ No añade tablas, migraciones ni un proceso de alertas; aún no está compuesto
 en una ruta HTTP. Se aplica el respaldo completo de fuentes y auditoría descrito
 arriba. Una segunda autenticación denegada puede impedir la entrega después
 de confirmar la lectura; no borrar ese evento como supuesto cálculo fallido.
+
+### Capacidades recuperadas desde un respaldo
+
+La frontera interna ofrece `invalidate_restored_password_resets` para el
+propietario administrativo. Su contrato, recibo estable y precondiciones están en
+[recuperación de contraseña](password-reset-internal.md). No es una migración ni
+un comando de despliegue: el controlador actual no la invoca. Antes de activar la
+recuperación pública debe integrarse con la restauración SQL/Redis manteniendo
+escritores detenidos y admisión cerrada hasta completar la reconciliación. La
+primitiva no modifica contraseñas restauradas, generaciones ni sesiones Redis.

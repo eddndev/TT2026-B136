@@ -244,6 +244,14 @@ name = "password_hashing"
 path = "tests/password_hashing.rs"
 
 [[test]]
+name = "password_reset_backend"
+path = "tests/password_reset_backend.rs"
+
+[[test]]
+name = "password_reset_identity"
+path = "tests/password_reset_identity.rs"
+
+[[test]]
 name = "postgres_document_concurrency"
 path = "tests/postgres_document_concurrency.rs"
 

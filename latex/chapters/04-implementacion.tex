@@ -449,6 +449,8 @@ Cada operación protegida consulta la sesión en Redis, contrasta cuenta activa,
 
 Si falla la auditoría después de crear un desafío o sesión, la aplicación intenta retirar la credencial y devuelve error sin token. Si también falla la limpieza, la clave puede permanecer hasta su expiración. Logout revoca primero y no restaura la sesión si falla el evento posterior. La pérdida de la respuesta de enrolamiento tampoco dispone todavía de un procedimiento completo de recuperación del ciclo de alta.
 
+\input{chapters/04-recuperacion-password}
+
 \subsection{Expedientes, pertenencia y aislamiento}\label{sec:impl-http-expedientes}
 
 El dominio identifica cada expediente mediante \texttt{CaseId} y valida título y referencia con \texttt{Case\allowbreak Metadata}: ambos son obligatorios, se recortan espacios exteriores, se rechazan controles y se limitan a 200 y 100 caracteres, respectivamente. La referencia es una etiqueta libre, no un identificador único. PostgreSQL conserva una raíz inmutable con creador, fecha y metadatos originales; sus revisiones administrativas proporcionan título y referencia actuales. Las asignaciones regulan acceso y permanecen separadas de fichas de participantes, audiencias y plazos.

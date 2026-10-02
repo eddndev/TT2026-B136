@@ -75,6 +75,9 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
 }
 
 fn expected_body(name: &str, schema: &str) -> Option<String> {
+    if name == "guard_member_access" {
+        return crate::password_reset_schema::guard_body(schema);
+    }
     let mut effective = None;
     for sql in MIGRATIONS {
         for definition in sql.split("CREATE OR REPLACE FUNCTION ").skip(1) {

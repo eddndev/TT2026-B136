@@ -1,6 +1,7 @@
 //! Multi-user enrollment, authentication, sessions, and authorization.
 
 mod model;
+pub mod password_reset;
 mod port;
 mod service;
 mod session;

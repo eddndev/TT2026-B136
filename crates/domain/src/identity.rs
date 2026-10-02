@@ -41,6 +41,22 @@ impl fmt::Display for UserId {
     }
 }
 
+/// Identifies one durable password-reset issuance, independently of its account or token.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ResetId(Uuid);
+
+impl ResetId {
+    /// Wraps the issuance UUID assigned by the persistence adapter.
+    pub const fn from_uuid(value: Uuid) -> Self {
+        Self(value)
+    }
+
+    /// Returns the exact persisted issuance UUID.
+    pub const fn as_uuid(self) -> Uuid {
+        self.0
+    }
+}
+
 /// A user's authorization role.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -162,4 +178,22 @@ pub enum Permission {
     ExportEvidence,
     VerifyAudit,
     CreateUser,
+}
+
+#[cfg(test)]
+mod reset_id_tests {
+    use super::{ResetId, UserId};
+    use uuid::Uuid;
+
+    #[test]
+    fn reset_issuance_round_trips_without_deriving_its_identity_from_the_account() {
+        let account = UserId::from_uuid(Uuid::from_u128(41));
+        let first = ResetId::from_uuid(Uuid::from_u128(101));
+        let second = ResetId::from_uuid(Uuid::from_u128(202));
+
+        assert_eq!(first.as_uuid(), Uuid::from_u128(101));
+        assert_eq!(ResetId::from_uuid(first.as_uuid()), first);
+        assert_ne!(first, second);
+        assert_ne!(first.as_uuid(), account.as_uuid());
+    }
 }
