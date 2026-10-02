@@ -1,5 +1,6 @@
 <script>
-  import { onDestroy } from 'svelte';
+  import { getContext, onDestroy } from 'svelte';
+  import { pendingHearingDrafts, resultDraftIntent } from '../lib/hearing-draft.mjs';
   import HearingResultEditor from './HearingResultEditor.svelte';
   import HearingResultDetail from './HearingResultDetail.svelte';
   import { caseState } from '../lib/case-state.mjs';
@@ -18,7 +19,10 @@
     intent = null,
     onintent = () => {};
   const scoped = api.caseHearingResults(caseId, hearing.id),
-    administration = caseState();
+    administration = caseState(),
+    session = getContext('session-drafts');
+  let savedDraft = null,
+    drafts = pendingHearingDrafts(session, caseId, true, hearing.id);
   let expanded = false,
     rows = [],
     selected = null,
@@ -122,8 +126,42 @@
           status: previous.status,
         }
       : null;
+    savedDraft =
+      drafts.find(
+        (row) =>
+          row.action === next &&
+          row.resourceId === (editorBase?.id ?? null) &&
+          (next !== 'record' || row.instanceId === resultDraftIntent(hearing.id, continuation)),
+      ) ?? null;
     action = next;
     editorKey++;
+  }
+  async function resume(saved) {
+    if (pending || disabled) return;
+    opening = true;
+    try {
+      editorBase = saved.resourceId ? await scoped.get(saved.resourceId) : null;
+      if (!alive || !session?.canAdmit()) return;
+      savedDraft = saved;
+      continuation = null;
+      action = saved.action;
+      editorKey++;
+    } catch (failure) {
+      if (alive) {
+        if (failure.status === 404 && failure.code === 'hearing_result_not_found') {
+          session?.registry.closeEditor(saved.key);
+          drafts = pendingHearingDrafts(session, caseId, true, hearing.id);
+        }
+        fail(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
+  function closedEditor() {
+    action = null;
+    savedDraft = null;
+    drafts = pendingHearingDrafts(session, caseId, true, hearing.id);
   }
   async function confirmed(value, exact) {
     if (!alive) return;
@@ -139,7 +177,7 @@
     notice = 'Resultado declarado guardado.';
     cursors = [undefined];
     await load();
-    if (alive) action = null;
+    if (alive) closedEditor();
   }
   function previous(value) {
     onopenhearing(value.hearing_id, null, { result_id: value.result_id, revision: value.revision });
@@ -194,14 +232,20 @@
           {user}
           {hearing}
           {action}
+          {savedDraft}
           record={editorBase}
           {continuation}
           {ondenied}
           {disabled}
           onconfirmed={confirmed}
-          oncancel={() => (action = null)}
+          oncancel={closedEditor}
           bind:pending={editorBusy}
         />{/key}{/if}
+    {#if !action}{#each drafts as saved (saved.key)}<button
+          class="secondary"
+          disabled={disabled || pending}
+          onclick={() => resume(saved)}>Retomar borrador de resultado</button
+        >{/each}{/if}
     <section class="card" aria-label="Registros de sesiones y actos" aria-busy={busy || opening}>
       <div class="section-heading">
         <h3>Registros de esta audiencia</h3>

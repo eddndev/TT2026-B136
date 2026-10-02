@@ -11,7 +11,8 @@
     oncancel,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    canApply = () => true;
   let roots = [],
     revisions = [],
     selected = null,
@@ -23,15 +24,15 @@
     alive = true,
     generation = 0;
   async function work(fn) {
-    if (busy || disabled) return;
+    if (busy || disabled || !canApply()) return;
     const request = ++generation;
     busy = true;
     error = '';
     try {
       const value = await fn();
-      if (alive && generation === request) return value;
+      if (alive && canApply() && generation === request) return value;
     } catch (failure) {
-      if (alive && generation === request) {
+      if (alive && canApply() && generation === request) {
         error = failure.message;
         if (hearingDenied(failure)) ondenied(failure);
       }

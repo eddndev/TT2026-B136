@@ -15,12 +15,27 @@
     ondenied,
     onreviewed,
     disabled = false,
-    pending = false;
+    pending = false,
+    supportContext = () => null,
+    discardSupport = () => {},
+    selectors = null,
+    canApply = () => true,
+    onsupportdenied = ondenied;
   let picking = false,
     pickerBusy = false,
-    supportBusy = false;
+    supportBusy = false,
+    picker,
+    pickerDraft = selectors?.participants ?? null;
+  export function captureDraft() {
+    return { participants: picker?.captureDraft() ?? pickerDraft };
+  }
+  function closePicker() {
+    pickerDraft = picker?.captureDraft() ?? pickerDraft;
+    picking = false;
+  }
   $: pending = pickerBusy || supportBusy;
   function select(record) {
+    if (!canApply()) return;
     if (
       draft.participants.length >= 32 ||
       draft.participants.some((item) => item.participant_id === record.id)
@@ -34,7 +49,7 @@
       ...rows,
       { ...record, profile: record.profile ? 'typed' : 'manual', kind: record.profile?.kind },
     ];
-    picking = false;
+    closePicker();
     onreviewed('participants');
   }
   function remove(id) {
@@ -51,6 +66,7 @@
         bind:value={draft.kind}
         disabled={disabled || pending || !!base}
         onchange={() => {
+          discardSupport();
           draft.statement = '';
           draft.support = null;
         }}
@@ -90,19 +106,24 @@
     {#if picking}<HearingParticipantPicker
         {api}
         {typedApi}
+        bind:this={picker}
+        draft={pickerDraft}
+        {canApply}
         {ondenied}
         selectedIds={draft.participants.map((row) => row.participant_id)}
         disabled={disabled || supportBusy}
         bind:busy={pickerBusy}
         onselected={select}
-        oncancel={() => (picking = false)}
+        oncancel={closePicker}
       />{/if}
   </fieldset>
   {#if draft.kind === 'sentencing'}<HearingAntecedent
       api={documents}
       {caseId}
       bind:draft
-      {ondenied}
+      draftContext={supportContext()}
+      ondiscard={discardSupport}
+      ondenied={onsupportdenied}
       onreviewed={() => onreviewed('support')}
       disabled={disabled || pickerBusy}
       bind:pending={supportBusy}

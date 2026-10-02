@@ -10,26 +10,31 @@
     ondenied,
     selectedIds = [],
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   let rows = [],
     exact = null,
-    name = '',
-    query = '',
+    name = draft?.name ?? '',
+    query = draft?.query ?? '',
     cursor,
     more = false,
     alive = true,
     error = '',
     generation = 0;
+  export function captureDraft() {
+    return { name, query };
+  }
   async function work(operation) {
-    if (disabled || busy) return;
+    if (disabled || busy || !canApply()) return;
     const request = ++generation;
     busy = true;
     error = '';
     try {
       const result = await operation();
-      if (alive && request === generation) return result;
+      if (alive && canApply() && request === generation) return result;
     } catch (failure) {
-      if (alive && request === generation) {
+      if (alive && canApply() && request === generation) {
         error = failure.message;
         if (hearingDenied(failure)) ondenied(failure);
       }

@@ -13,9 +13,18 @@
     documents,
     ondenied,
     disabled = false,
-    pending = false;
+    pending = false,
+    supportContext = () => null,
+    discardSupport = () => {},
+    selectors = null,
+    canApply = () => true,
+    onsupportdenied = ondenied;
   let attendanceBusy = false,
-    sourceBusy = false;
+    sourceBusy = false,
+    attendance;
+  export function captureDraft() {
+    return { attendees: attendance?.captureDraft() ?? selectors?.attendees ?? null };
+  }
   $: pending = attendanceBusy || sourceBusy;
 </script>
 
@@ -52,7 +61,9 @@
     bind:draft
     {caseId}
     {documents}
-    {ondenied}
+    ondenied={onsupportdenied}
+    draftContext={supportContext()}
+    ondiscard={discardSupport}
     disabled={disabled || attendanceBusy}
     bind:pending={sourceBusy}
   />
@@ -63,6 +74,9 @@
     api={participants}
     typedApi={typed}
     {ondenied}
+    {canApply}
+    selectors={selectors?.attendees ?? null}
+    bind:this={attendance}
     disabled={disabled || sourceBusy}
     bind:pending={attendanceBusy}
   />

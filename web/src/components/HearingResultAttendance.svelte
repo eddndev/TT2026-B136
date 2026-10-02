@@ -8,9 +8,21 @@
     typedApi,
     ondenied,
     disabled = false,
-    pending = false;
-  let picking = false;
+    pending = false,
+    selectors = null,
+    canApply = () => true;
+  let picking = false,
+    picker,
+    pickerDraft = selectors;
+  export function captureDraft() {
+    return picker?.captureDraft() ?? pickerDraft;
+  }
+  function closePicker() {
+    pickerDraft = captureDraft();
+    picking = false;
+  }
   function selected(row) {
+    if (!canApply()) return;
     if (
       draft.attendees.length >= 32 ||
       draft.attendees.some((item) => item.participant_id === row.id)
@@ -21,7 +33,7 @@
       ...draft.attendees,
       { participant_id: row.id, revision: row.revision, capacity: '', observation: '' },
     ];
-    picking = false;
+    closePicker();
   }
   function remove(id) {
     draft.attendees = draft.attendees.filter((item) => item.participant_id !== id);
@@ -73,11 +85,14 @@
       {api}
       {typedApi}
       {candidates}
+      {canApply}
+      draft={pickerDraft}
+      bind:this={picker}
       {ondenied}
       {disabled}
       selectedIds={draft.attendees.map((item) => item.participant_id)}
       bind:busy={pending}
       onselected={selected}
-      oncancel={() => (picking = false)}
+      oncancel={closePicker}
     />{/if}
 </details>

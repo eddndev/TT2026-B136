@@ -1,5 +1,21 @@
 # Informe de verificación local
 
+## Reingreso en audiencias y resultados: aceptacion local del 2 de octubre de 2026
+
+Diez escenarios nuevos aprobaron en 33.8 s con un worker. Conservan programacion,
+correccion, cancelacion, sesiones, continuaciones y retiro, junto con campos
+crudos, base original, participantes historicos y archivos de cada propietario.
+La autorizacion y las referencias se consultan de nuevo; otra revision exige
+comparacion y decision explicitas. La conciliacion de un envio incierto exige
+su recibo exacto y no deriva exito de una cabecera similar. La confirmacion
+retira raiz e hijos antes del refresco del padre.
+
+Trece escenarios existentes de programacion, referencias y selector compartido
+aprobaron por separado en 30 s. No se cambiaron los contratos procesales ni los
+timeouts. Estos resultados usan HTTP controlado; la campaña remota completa y
+la aceptacion de estas familias con servicios reales siguen separadas.
+
+
 ## Refresco confirmado de participantes: correccion del 2 de octubre de 2026
 
 La regresion remota detecto que una edicion confirmada cerraba el dialogo antes
