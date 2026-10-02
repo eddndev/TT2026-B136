@@ -9,6 +9,7 @@ import secrets
 import shutil
 import socket
 import subprocess
+import sys
 
 
 def validate_root(value):
@@ -29,6 +30,9 @@ http {{
     access_log {root}/logs/nginx-access.log;
     client_body_temp_path {root}/run/client-body;
     proxy_temp_path {root}/run/proxy;
+    fastcgi_temp_path {root}/run/fastcgi;
+    uwsgi_temp_path {root}/run/uwsgi;
+    scgi_temp_path {root}/run/scgi;
     server_tokens off;
     server {{
         listen 127.0.0.1:{config['web_port']};
@@ -54,11 +58,12 @@ http {{
 """
 
 
-def service_units(root, postgres_bin):
+def service_units(root, postgres_bin, python_bin=None, redis_bin="/usr/bin/redis-server"):
+    python_bin = python_bin or sys.executable
     commands = {
         "qadra-postgres": f"{postgres_bin}/postgres -D {root}/data/postgres",
-        "qadra-redis": f"/usr/bin/redis-server {root}/config/redis.conf",
-        "qadra-api": f"/usr/bin/python3 {root}/tools/runtime.py {root}",
+        "qadra-redis": f"{redis_bin} {root}/config/redis.conf",
+        "qadra-api": f"{python_bin} {root}/tools/runtime.py {root}",
         "qadra-web": f"/usr/sbin/nginx -c {root}/config/nginx.conf -g 'daemon off;'",
     }
     units = {}
@@ -68,7 +73,7 @@ def service_units(root, postgres_bin):
             dependencies = "Requires=qadra-postgres.service qadra-redis.service\nAfter=qadra-postgres.service qadra-redis.service\n"
         elif name == "qadra-web":
             dependencies = "Requires=qadra-api.service\nAfter=qadra-api.service\n"
-        prestart = (f"ExecStartPre=/usr/bin/python3 {root}/tools/runtime.py {root} --wait-api\n"
+        prestart = (f"ExecStartPre={python_bin} {root}/tools/runtime.py {root} --wait-api\n"
                     if name == "qadra-web" else "")
         memory = {"qadra-api": "2G", "qadra-postgres": "768M", "qadra-redis": "256M", "qadra-web": "128M"}[name]
         units[name] = f"""[Unit]
@@ -106,7 +111,8 @@ def prepare(root):
         if not (Path(postgres_bin) / name).is_file():
             raise ValueError(f"missing PostgreSQL server tool: {name}")
     for name in ("config", "data/tmp", "data/legacy", "backups", "releases", "incoming",
-                 "tools", "logs", "run/client-body", "run/proxy", "run/pg"):
+                 "tools", "logs", "run/client-body", "run/proxy", "run/fastcgi",
+                 "run/uwsgi", "run/scgi", "run/pg"):
         (root / name).mkdir(parents=True, exist_ok=True, mode=0o700)
     (root / "data/.env").touch()
     config_file = root / "config/settings.json"
@@ -131,7 +137,8 @@ def prepare(root):
             shutil.copyfile(source, destination)
     units = Path.home() / ".config/systemd/user"
     units.mkdir(parents=True, exist_ok=True)
-    for name, content in service_units(root, postgres_bin).items():
+    for name, content in service_units(
+            root, postgres_bin, sys.executable, shutil.which("redis-server")).items():
         (units / f"{name}.service").write_text(content)
     subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
     print(f"Prepared private deployment in {root}; no application was started")

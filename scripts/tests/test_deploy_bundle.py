@@ -25,6 +25,7 @@ class BundleTests(unittest.TestCase):
         commit = "a" * 40
         files = {"bin/despacho-cli": b"binary", "web/index.html": b"page",
                  "lib/libqpdf.so.30.4.1": b"native", "pki/tsa.cnf": b"tsa",
+                 "bin/ffmpeg": b"decoder", "bin/ffprobe": b"probe",
                  "migrations/0001.sql": b"sql"}
         manifest = {"version": "v1.2.3", "commit": commit,
                     "schema": hashlib.sha256(b"0001.sql\0sql").hexdigest(),
@@ -49,6 +50,27 @@ class BundleTests(unittest.TestCase):
             manifest = extract_bundle(archive, root / "dest", "v1.2.3", "a" * 40)
             self.assertEqual(manifest["version"], "v1.2.3")
             self.assertEqual((root / "dest/web/index.html").read_bytes(), b"page")
+
+    def test_rejects_a_bundle_missing_either_media_tool(self):
+        for program in ("ffmpeg", "ffprobe"):
+            with self.subTest(program=program), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                original = self.archive(root)
+                filtered = root / "without-media.tar.gz"
+                with tarfile.open(original, "r:gz") as source:
+                    files = {item.name: source.extractfile(item).read()
+                             for item in source.getmembers()
+                             if item.name != "bin/" + program}
+                manifest = json.loads(files["release.json"])
+                del manifest["files"]["bin/" + program]
+                files["release.json"] = json.dumps(manifest).encode()
+                with tarfile.open(filtered, "w:gz") as archive:
+                    for name, data in files.items():
+                        member = tarfile.TarInfo(name)
+                        member.size = len(data)
+                        archive.addfile(member, io.BytesIO(data))
+                with self.assertRaisesRegex(ValueError, "inventory"):
+                    extract_bundle(filtered, root / "dest", "v1.2.3", "a" * 40)
 
     def test_rejects_modified_payload_wrong_commit_and_extra_files(self):
         for mode in ("changed", "commit", "extra", "duplicate"):

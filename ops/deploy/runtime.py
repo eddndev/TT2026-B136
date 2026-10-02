@@ -137,6 +137,8 @@ def serve(root):
     args = [str(binary), "serve", "--bind", f"127.0.0.1:{config['api_port']}",
             "--data-dir", str(root / "data/legacy"),
             "--qpdf-library", str(target / "lib/libqpdf.so.30.4.1"),
+            "--ffprobe-path", str(target / "bin/ffprobe"),
+            "--ffmpeg-path", str(target / "bin/ffmpeg"),
             "--signer-cert", str(ca / "certs/qadra-server.crt.pem"),
             "--signer-key", str(ca / "private/qadra-server.key.pem"),
             "--ca-cert", str(ca / "ca.crt.pem"), "--crl", str(ca / "crl/crl.pem"),

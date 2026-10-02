@@ -10,6 +10,7 @@ mkdir -p output/tmp
 chmod 700 output/tmp
 export TMPDIR="$PWD/output/tmp"
 library=$(bash scripts/setup-document-formats.sh)
+python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media
 cargo build --workspace --release --locked
 size=$(stat -c %s target/release/despacho-cli)
 test "$size" -le $((25 * 1024 * 1024))

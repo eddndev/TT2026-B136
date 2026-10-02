@@ -4,15 +4,20 @@ El proceso de entrega utiliza etiquetas de tres componentes numéricos con el
 prefijo \texttt{v}. La automatización valida su formato y resuelve la etiqueta
 al commit de origen antes de reutilizar las comprobaciones de Rust y de la
 interfaz. Solamente después de su aprobación compila y empaqueta el ejecutable,
-los archivos estáticos y la biblioteca qpdf fijada. Un manifiesto conserva
-versión, commit, huellas de archivos y huella de migraciones; no contiene
+los archivos estáticos, la biblioteca qpdf y los ejecutables FFmpeg/ffprobe
+fijados. La compilación nativa se realiza en el runner de VPS3, compatible con
+la ABI de su Ubuntu 22.04; los otros jobs conservan runners propios. Un
+manifiesto conserva versión, commit, huellas de archivos y huella de migraciones; no contiene
 credenciales ni material criptográfico privado.
 
 La transferencia usa una identidad Ed25519 y una llave de servidor verificada
 previamente. PostgreSQL, Redis, Rust y nginx se ejecutan como servicios del
-usuario de despliegue, con puertos limitados a la interfaz de retorno local.
-El navegador accede por un túnel SSH. Los datos, la clave de protección y el
-material de firma y sellado permanecen fuera de los directorios de versiones.
+usuario de despliegue \texttt{qadra} en VPS3, bajo
+\texttt{/home/qadra/qadra}, con puertos limitados a la interfaz de retorno local.
+El navegador accede por un túnel SSH al puerto 22022. La identidad Ed25519 de
+despliegue pertenece a esa cuenta; no se entrega la clave administrativa al
+workflow. CI y la aplicación comparten el servidor con servicios separados.
+Los datos, la clave de protección y el material de firma y sellado permanecen fuera de los directorios de versiones.
 La preparación del host no crea automáticamente una cuenta Owner ni publica
 la aplicación en Internet.
 

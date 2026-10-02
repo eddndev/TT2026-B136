@@ -59,7 +59,8 @@ def extract_bundle(archive, destination, version, commit):
         if manifest.get("version") != version or manifest.get("commit") != commit:
             raise ValueError("release identity mismatch")
         files = manifest.get("files", {})
-        required = {"bin/despacho-cli", "web/index.html", "lib/libqpdf.so.30.4.1", "pki/tsa.cnf"}
+        required = {"bin/despacho-cli", "web/index.html", "lib/libqpdf.so.30.4.1", "pki/tsa.cnf",
+                    "bin/ffmpeg", "bin/ffprobe"}
         if set(files) != seen - {"release.json"} or not required.issubset(files):
             raise ValueError("release inventory mismatch")
         destination.mkdir(parents=True)
@@ -97,6 +98,8 @@ def build(root, version, commit, library, output):
         stage = Path(temp)
         (stage / "bin").mkdir()
         shutil.copy2(root / "target/release/despacho-cli", stage / "bin/despacho-cli")
+        for program in ("ffmpeg", "ffprobe"):
+            shutil.copyfile(Path("/opt/tt-media/bin") / program, stage / "bin" / program)
         for source, name in ((root / "web/dist", "web"),
                              (root / "migrations", "migrations")):
             shutil.copytree(source, stage / name)
