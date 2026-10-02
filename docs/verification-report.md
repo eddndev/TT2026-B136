@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+
+## 2026-10-02: ubicación del recorrido de clasificación documental
+
+La ejecución de cierre del navegador agotó los 60 segundos totales del escenario
+de clasificación en VPS2, durante la recarga final del historial. La revisión 5
+ya era visible; el único rechazo HTTP registrado fue el conflicto 409 esperado.
+Los resultados anteriores del mismo escenario fueron 47.478–50.075 segundos en
+las entregas funcionales recientes. No se atribuye la variación a una causa de
+CPU concreta sin una medición controlada.
+
+Se asignó únicamente este escenario a la tercera partición, en VPS3. El recorrido,
+sus aserciones, sus tiempos y sus datos permanecen iguales; no requiere otra
+familia de preparación. La nueva prueba de asignación falló primero y después
+aprobó junto con las demás comprobaciones del plan: **11/11**, incluida la unión
+exacta de los archivos descubiertos sin duplicados. Esto acredita la asignación;
+la estabilidad y el tiempo del recorrido concurrente quedan pendientes del CI.
+Rust y documentación habían aprobado en la cabeza anterior; la campaña de
+navegador cancelada no acredita la regresión completa.
+
 La actualización académica posterior de estos resultados y la comprobación del
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
