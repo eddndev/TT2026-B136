@@ -1,6 +1,8 @@
 #[path = "case_administration_support/mod.rs"]
 mod case_administration_support;
+#[path = "password_reset_cases/password_reset_identity_doubles.rs"]
 mod password_reset_identity_doubles;
+#[path = "password_reset_cases/password_reset_identity_support.rs"]
 mod password_reset_identity_support;
 
 use application::identity::password_reset::{ResetCompletion, ResetRequestAccepted};

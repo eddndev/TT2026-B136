@@ -1,9 +1,12 @@
 #[path = "case_administration_support/mod.rs"]
 mod case_administration_support;
+#[path = "password_reset_cases/password_reset_identity_doubles.rs"]
 mod password_reset_identity_doubles;
 #[allow(dead_code)]
+#[path = "password_reset_cases/password_reset_identity_support.rs"]
 mod password_reset_identity_support;
 #[allow(dead_code, unused_imports)]
+#[path = "password_reset_cases/password_reset_runtime_support.rs"]
 mod password_reset_runtime_support;
 
 use std::sync::Arc;
