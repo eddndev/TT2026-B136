@@ -210,9 +210,8 @@ forman parte del despliegue automático. Seguir [operación de base de datos](da
 
 El controlador ampliado, integrado por PR51, captura PostgreSQL, Redis y la
 configuración privada CA/TSA antes de activar, con API/web detenidas;
-`COMPLETE` se publica al terminar correctamente. Los controladores `673b9ec`
-ya están instalados en VPS3 bajo `deploy.lock`; la aplicación sigue en
-`v0.1.0` sobre `a8dc3dd`.
+`COMPLETE` se publica al terminar correctamente. Los controladores de mantenimiento `2de3326` están instalados en VPS3 bajo
+`deploy.lock`; la aplicación activa es `v0.1.1` sobre `e3aa87a`.
 La [guía de respaldos](deployment-backups.md) concreta permisos, fallos,
 copias antiguas sin Redis, transferencia fuera del servidor y restauración manual
 con invalidación de sesiones/desafíos y conservación de controles TOTP/límites.
@@ -251,14 +250,37 @@ El 2 de octubre se activó `v0.1.0` sobre `a8dc3dd`. Deploy version aprobó en
 comprobados. PostgreSQL, Redis, API y frontend están activos. La restauración
 inicial SQL/PKI conservó cero usuarios y un evento de auditoría, y el binario
 aceptado arrancó y respondió 401. No acredita continuidad Redis ni datos poblados.
-Owner todavía espera el correo administrativo; el recorrido autenticado y la
-recuperación entre dos versiones reales requieren evidencia propia.
+Owner todavía espera el correo administrativo; el recorrido autenticado
+permanece pendiente. La recuperación entre releases se comprobó posteriormente
+como se indica abajo.
 
 PR51 se integró como `673b9ec` tras CI de 7m57s y Documents de 1m18s sobre
 `177fe1f`. La confirmación natural de `673b9ece` aprobó CI `36996915839` en
 6m52s y Documents `36996915909` en 7m55s, con 3340 pruebas Rust, dos ignoradas,
 una nativa Redis y cobertura 97/95/93 %. Los controladores ya se actualizaron
-en VPS3; la release activa y los cero usuarios permanecen sin cambio.
+en VPS3; esa instalación conservó la release activa y los cero usuarios.
+
+
+El 2 de octubre se activó después `v0.1.1`, etiqueta exacta de `e3aa87a`.
+Deploy version aprobó en 17m44s, con 3340 pruebas Rust, 419 controladas y 51
+reales, conservando sus identidades respecto de main. El paquete de 19142052
+bytes y 119 archivos coincidió con el manifiesto y el esquema; salud, versión,
+CA, CRL y respaldo de cuatro piezas aprobaron. Incluye la duración observada de
+informes y el aislamiento de respuestas tardías de acceso. No habilita idle.
+
+Se ejecutó rollback real a `v0.1.0` y retorno a `v0.1.1`: 7.936 s y 8.020 s,
+respectivamente, incluyendo respaldo, salud y comprobación de estado. SQL,
+configuración y claves conservaron sus huellas; ambos respaldos publicaron
+`COMPLETE`, y los RDB aprobaron su verificador. Quedó activa `v0.1.1`. La
+instalación tenía cero usuarios: no es una prueba de recuperación de datos
+poblados ni de un recorrido autenticado.
+
+PR54 integró el mantenimiento de CRL como `2de3326`. Su cabeza aprobó CI en
+6m45s y Documents en 7m50s; main confirmó 7m55s y 1m15s, con las mismas 3340
+pruebas Rust y cobertura 97/95/93 %. Los nueve controladores de esa revisión se
+instalaron en 5.754 s, conservando copias privadas, claves y estado; la aplicación
+permaneció en `v0.1.1`. La renovación y su evidencia se registran por separado
+[en el procedimiento](deployment-crl.md).
 
 Referencias: [Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax),
 [respaldo PostgreSQL](https://www.postgresql.org/docs/16/backup-dump.html),
