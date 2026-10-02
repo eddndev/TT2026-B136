@@ -46,6 +46,7 @@
   $: if (blockedByCase && !$administration.closed) {
     error = '';
     blockedByCase = false;
+    restoredClosed = false;
   }
   let dragging = false;
   let input;

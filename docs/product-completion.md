@@ -62,7 +62,7 @@ del correo de la primera cuenta Owner.
   aprobaron CI y Documents; Web se canceló tras fallar una medición geométrica
   del historial móvil mientras se reemplazaba su fila. PR56 corrigió esa carrera:
   CI 7m28s y Web 12m02s, mismas identidades y gates; se integró como `8ce25fd`.
-  Su confirmación natural de main permanece pendiente.
+  Su confirmación natural aprobó CI en 7m26s y Web en 11m55s, con el mismo inventario.
 - Reingreso y borradores, incremento de interfaz todavía local: el monitor ya
   está conectado a la frontera autenticada, con bloqueo de peticiones, aviso,
   captura antes del desmontaje y nueva consulta de sesión al volver a una

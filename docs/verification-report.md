@@ -143,6 +143,14 @@ para este incremento, CI completo ni aceptación de la interfaz en VPS3. La
 instalación operativa conserva `v0.1.1`; no se habilitó inactividad ni se fijó
 su duración por estas pruebas.
 
+La primera campaña de PR57 aprobó las **604 pruebas Node** en 9.642 s. El
+navegador detectó un bloqueo persistente de la carga tras consultar un expediente
+reabierto: se limpiaba el aviso, pero no el indicador local de cierre. La
+corrección libera ese indicador sólo después de esa consulta explícita; la
+recuperación de un borrador en un caso todavía cerrado conserva su modo de lectura.
+El caso de reapertura y el caso de recuperación cerrada aprobaron focalmente;
+la campaña cancelada no acredita el inventario completo ni la integración.
+
 ## Activación y rollback real de v0.1.1: 2 de octubre de 2026
 
 La etiqueta exacta de `e3aa87a` aprobó Deploy version en **17m44s**. Se verificaron
