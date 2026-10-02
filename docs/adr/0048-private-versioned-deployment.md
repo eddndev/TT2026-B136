@@ -50,6 +50,16 @@ stopping ingress. Stop the API, back up the database/private state, initialize a
 new installation once, switch the current symlink and check dependencies, API,
 proxy, frontend and served identity. Record the previous link after success.
 
+Capture Redis identity state together with SQL and private material while API
+and web are stopped. Match Redis process and directory to the private service,
+validate its RDB and publish a completion marker only after durable writes.
+A Redis failure aborts activation; an older SQL-only backup is not a complete
+identity backup. Restoring historical SQL requires invalidating sessions and
+challenges while preserving current failure/replay controls. Restoring a lost
+Redis instance also requires handling AOF precedence and preserving absolute
+expiry times. A historical snapshot cannot recover later security state;
+`docs/deployment-backups.md` defines the maintenance boundary and acceptance.
+
 If initial trust publication committed before the schema marker was written,
 reconcile it before generating PKI material. Resume only for revision 1 valid
 at PostgreSQL's current time with exact local/persisted CA and CRL DER bytes;

@@ -103,7 +103,7 @@ WantedBy=default.target
 def prepare(root):
     os.umask(0o077)
     for executable in ("psql", "pg_dump", "pg_restore", "pg_config", "redis-server",
-                       "redis-cli", "nginx", "openssl", "python3", "systemctl"):
+                       "redis-cli", "redis-check-rdb", "nginx", "openssl", "python3", "systemctl"):
         if shutil.which(executable) is None:
             raise ValueError(f"missing host dependency: {executable}")
     postgres_bin = subprocess.check_output(["pg_config", "--bindir"], text=True).strip()

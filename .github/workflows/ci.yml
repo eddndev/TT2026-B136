@@ -1,16 +1,4 @@
-# Continuous integration for the Rust workspace.
-#
-# Jobs:
-#   format       - rustfmt check
-#   lint         - clippy with warnings denied
-#   test         - isolated tests and coverage on repository runners
-#   dispatch-measurement - manual extended dispatch timing campaign
-#   msrv         - build check on the minimum supported Rust version (1.88)
-#   coverage     - merge the required reports and gate at 90 percent
-#                  per cryptographic crate by scripts/coverage-gate.sh
-#   deny         - dependency policy (advisories, licenses, bans, sources)
-#   binary-size  - release binary of despacho-cli must stay under 25 MB
-
+# Runner isolation: docs/adr/0052-owned-ci-runners.md.
 name: CI
 
 on:
@@ -59,6 +47,19 @@ jobs:
           node-version: '24'
       - name: Verify cancellation scope
         run: node --test scripts/tests/test_cancel_ci_campaign.cjs
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
+
+  deployment-backup:
+    if: ${{ !inputs.dispatch_measurement }}
+    name: Deployment backup
+    runs-on: [self-hosted, Linux, X64, tt-ci-live-primary]
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify native Redis snapshot and restart
+        run: python3 -B scripts/tests/test_deployment_redis_snapshot.py
       - name: Cancel the failed campaign
         if: ${{ failure() && !cancelled() }}
         uses: ./.github/actions/cancel-ci-campaign
@@ -335,7 +336,7 @@ jobs:
 
   coverage:
     name: Coverage
-    needs: test
+    needs: [test, deployment-backup]
     if: ${{ !inputs.dispatch_measurement }}
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:

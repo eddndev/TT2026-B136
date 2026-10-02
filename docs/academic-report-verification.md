@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+
+## Respaldo Redis de despliegue: 2 de octubre de 2026
+
+La ampliación del apartado de despliegue compiló con salida cero: **355 páginas,
+5858478 bytes**, SHA-256
+`9e679fb38271a617379ec0817270490ef930b5f84dda3621158e15111ac22ff8`.
+Se inspeccionaron las páginas físicas **210, 211 y 212**, incluida la continuidad
+del párrafo nuevo: texto legible, sin recortes ni solapamientos. No se detectaron
+referencias/citas indefinidas, etiquetas múltiples ni caracteres ausentes.
+Resumen, objetivos, teoría y conclusiones conservan sus hashes anteriores.
+Esta muestra documenta captura y límites de recuperación; no acredita restauración
+integral del servidor ni resultados con participantes humanos.
+
+
 ## Consulta de actividad y protocolo de usabilidad: 2 de octubre de 2026
 
 LuaLaTeX terminó con código cero y generó **355 páginas y 5857918 bytes**,
