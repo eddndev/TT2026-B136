@@ -1,5 +1,21 @@
 # Verificación de la actualización académica
 
+## Participantes y etapas al reingresar: 2 de octubre de 2026
+
+La implementación conserva las acciones y revisiones originales por editor,
+autorización nueva, incertidumbre sin reenvío y soportes por propietario. El
+apartado de pruebas separa 25 escenarios controlados de participantes, ocho de
+etapas y el recorrido real de dos vencimientos y tres MFA.
+
+LuaLaTeX aprobó con **360 páginas y 5882387 bytes**, SHA-256
+`be8ba2a3afdbb00ed1a979528f4475038f0b024da863063eae8ba35e6e9e7478`. Se inspeccionaron las páginas físicas **191 y 256**:
+párrafos, encabezados y continuidad legibles, sin recortes ni solapamientos.
+No hay referencias/citas indefinidas ni glifos ausentes; permanecen las
+sustituciones históricas de versalitas y el exceso histórico de 0.11754 pt.
+Resumen, introducción, marco teórico y conclusiones conservaron sus hashes.
+Este resultado acredita el manuscrito local, no la activación de inactividad
+ni la recuperación universal de formularios.
+
 ## Reingreso y borradores por editor: 2 de octubre de 2026
 
 La implementación y las pruebas describen el bloqueo temporal del navegador,
