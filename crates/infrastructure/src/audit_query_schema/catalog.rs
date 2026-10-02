@@ -22,8 +22,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         AND c.relkind='r' AND c.relpersistence='p' AND NOT c.relispartition
         AND NOT c.relrowsecurity AND NOT c.relforcerowsecurity
         AND NOT EXISTS(SELECT 1 FROM pg_inherits WHERE inhrelid=c.oid OR inhparent=c.oid)
-        AND NOT EXISTS(SELECT 1 FROM pg_rewrite WHERE ev_class=c.oid)
-        AND NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=c.oid))",
+        AND NOT EXISTS(SELECT 1 FROM pg_rewrite WHERE ev_class=c.oid))",
             &[],
         )
         .map_err(port)?
@@ -31,6 +30,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     if !valid {
         return Err(incomplete());
     }
+    crate::password_reset_schema::validate_audit_triggers(client)?;
     functions::validate(client)?;
     let schema: String = client
         .query_one(

@@ -75,6 +75,14 @@ del correo de la primera cuenta Owner.
   completa, integración ni despliegue de la interfaz. No habilitan inactividad
   operativa. Véanse [el contrato](http-api.md), [la decisión de recuperación](adr/0065-session-reentry-and-memory-drafts.md)
   y [los resultados y límites](verification-report.md).
+- Recuperación de contraseña, frontera interna todavía local: emisión y consumo
+  tienen contrato de aplicación y adaptador PostgreSQL con digest de propósito,
+  capacidad de un solo uso y cambio de contraseña/generación auditado en una
+  transacción. Focales SQL y un recorrido con criptografía y Redis reales
+  aprobaron; no hay rutas, correo ni composición en servidor. La invalidación administrativa de capacidades restauradas aprobó doce pruebas
+  focales; su coordinación operativa, limitación pública, entrega y formulario
+  siguen pendientes antes de activarla.
+  Véanse [alcance y límites](password-reset-internal.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de

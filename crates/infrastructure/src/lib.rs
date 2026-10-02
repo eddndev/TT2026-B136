@@ -47,6 +47,7 @@ pub use judicial_calendar_postgres::PostgresJudicialCalendarStore;
 pub mod identity;
 mod member_schema;
 mod members_postgres;
+mod password_reset_schema;
 pub use members_postgres::PostgresMemberStore;
 pub mod legacy;
 pub mod participant_postgres;

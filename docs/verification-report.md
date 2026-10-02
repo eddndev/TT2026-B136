@@ -22,6 +22,82 @@ estabilidad concurrente ni mejora del tiempo total; eso corresponde al cierre CI
 Véanse [la decisión](adr/0058-bounded-general-document-admission.md) y
 [la operación del decoder](media-decoder-setup.md).
 
+## Entropía y límites de recuperación: focal del 2 de octubre de 2026
+
+El target de once pruebas falló primero por los adaptadores todavía ausentes.
+Después de implementar fuente OS y cuatro cupos Redis explícitos, aprobó 11/11
+en 0.46 s; compilación de 14.84 s. El servicio desechable local fue Valkey 8.1.10,
+con autenticación, memoria acotada y limpieza comprobada. Dos unitarias de
+entropía aprobaron por separado, tras compilar 11.34 s: llenado exacto y error
+posterior a un llenado parcial. No se imprimieron tokens.
+
+Se verificaron admisiones concurrentes, vencimiento real, rechazo sin cargar
+el otro cupo ni extender su TTL, estado corrupto, cambios incompatibles de
+política, conservación de claves de identidad, autenticación/base seleccionada
+y fallo de I/O establecido. Tres pruebas adicionales de ACL aprobaron en 0.02 s:
+la denegación de una escritura o de su expiración conserva ambos contadores.
+Primero falló la preparación del ensayo porque trataba cualquier respuesta textual
+de `ACL DRYRUN` como permiso; ahora sólo admite la respuesta exacta `OK`. No se
+cambió el producto para corregir esa interpretación. La combinación con SQL y MFA del apartado siguiente
+conserva sus dobles declarados: no se atribuye retrospectivamente a estos nuevos
+adaptadores. Rutas, correo, formulario y configuración operativa siguen pendientes.
+
+La aceptación combinada posterior aprobó 1/1 en 10.98 s (compilación 2.10 s),
+con PostgreSQL 18.6 y Valkey 8.1.10 desechables. Reutilizó la preparación de
+identidad, sustituyendo sólo fuente y limitador antes de invocar recuperación.
+Comprobó una emisión OS/SQL, rechazo de otra solicitud sin mover DUMP ni TTL,
+consumo auditado, Argon2id, credenciales viejas rechazadas por generación y nuevo
+TOTP. El doble de entrega quedó en memoria; no hubo proveedor externo. El replay
+no alteró SQL y el límite posterior no cargó ningún contador. Clippy de la biblioteca
+y ambos targets aprobó con advertencias denegadas en 1.15 s. Los ensayos anteriores
+con dobles conservan su alcance original.
+
+## Recuperación interna de contraseña: aceptación local del 2 de octubre de 2026
+
+Este incremento implementa aplicación y persistencia, todavía sin rutas HTTP,
+formulario, envío de correo ni activación en el servidor. Sus contratos y límites
+se describen en [la frontera interna](password-reset-internal.md) y
+[ADR-0066](adr/0066-atomic-password-recovery.md).
+
+| Comprobación ejecutada | Resultado | Alcance |
+| --- | --- | --- |
+| Aplicación y política de emisión | 21/21 aprobadas | Dobles explícitos; propósito del digest, entrega incierta, límites, consumo y cancelación por ID y digest exactos. |
+| Identidad de emisión de dominio | 1/1 aprobada | Tipo `ResetId` y conservación del UUID. |
+| Primer recorrido PostgreSQL | 19/19 en 48.11 s | Cupo y consumo concurrentes, generaciones, expiración tras bloqueos, permisos, catálogo y atomicidad con auditoría. |
+| Namespace y espera de fila | 2/2 en 5.07 s | El namespace se obtiene de la tabla validada; el consumo vuelve a comprobar expiración después de esperar el bloqueo del usuario. |
+| Identidad con adaptadores reales | 1/1 en 11.79 s | Argon2id, AES, TOTP, PostgreSQL y Redis reales; contraseña nueva con MFA conservado y credenciales anteriores rechazadas por generación. |
+| Cancelación tardía de una capacidad consumida | 1/1 en 2.48 s | Dos cancelaciones conservan contraseña, contadores, recibo y único evento ya confirmados. |
+| Regresión afectada de miembros | 12/12 en 16.24 s | Último Owner, generaciones, roles, membresías, permisos y dump/restore siguen pasando tras extender el guard de identidad. |
+| Restauración administrativa | 12/12 en 46.46 s | Dump/restore real, cancelación exacta de pendientes, recibo idempotente, predecesor, reloj tras bloqueos, rollback, propietarios, permisos, cadena y resolución segura. |
+| Clippy de targets de recuperación | salida 0 en 11.14 s | Los tres targets nuevos de aplicación, persistencia e identidad real, con advertencias denegadas. |
+| Clippy de bibliotecas modificadas | salida 0 en 30.57 s | `domain`, `application` e `infrastructure`, con advertencias denegadas; no equivale todavía a Clippy de todos los targets. |
+
+La prueba de namespace reprodujo una llamada al esquema vacío que precedía al
+esquema validado en `search_path`. Se corrigió la selección del namespace sin
+ampliar privilegios. La prueba de identidad inicialmente no alcanzó el caso de
+uso porque el Owner de preparación heredado tenía una estructura de códigos MFA
+inválida; se corrigió exclusivamente esa preparación antes de la ejecución
+aceptada. El Owner autoriza el enrolamiento y no demuestra un login propio.
+
+El usuario objetivo sí tiene contraseña, MFA y sesiones reales. Después del
+restablecimiento la sesión antigua seguía presente en Redis, pero el servicio
+la rechazó; también rechazó los desafíos anteriores sin gastar otro código de
+recuperación. La contraseña nueva permitió TOTP y recuperación existentes.
+Entrega, entropía y limitador fueron dobles declarados. No se enviaron mensajes
+externos. Estos resultados son campañas focales separadas y no se suman como un
+cierre completo de CI. La primitiva administrativa de restauración tiene su
+aceptación focal; su composición con el bloqueo durable de acceso y la
+restauración SQL/Redis del despliegue sigue pendiente.
+
+La revisión de restauración reprodujo primero una función de bloqueo homónima
+invocada desde un prefijo de `search_path`: la tabla señuelo recibió una escritura
+que debía permanecer ausente. El adaptador fija ahora `pg_catalog`, el esquema
+esperado citado y `pg_temp` antes de resolver relaciones o adquirir bloqueos.
+La prueba pasó junto con las once de restauración. Tres fallos previos de esas
+once pruebas procedían de un URL de fixture que codificaba un espacio como `+`;
+PostgreSQL no lo interpreta como separación de opciones. Se corrigió el URL del
+fixture sin relajar los bloqueos, tiempos ni assertions.
+
 ## Política temporal de sesión y actividad explícita: 2 de octubre de 2026
 
 El backend conserva `absolute_only` por defecto: 24 horas desde la emisión,
