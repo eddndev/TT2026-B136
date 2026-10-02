@@ -30,3 +30,13 @@ retroceder el ejecutable no implica que una base migrada sea compatible.
 \rutarepo{docs/deployment.md} documenta mantenimiento, consulta de registros y
 recuperación; \rutarepo{docs/adr/0048-private-versioned-deployment.md} fundamenta
 esta separación entre versiones de aplicación y estado persistente.
+
+El respaldo reúne PostgreSQL, una instantánea Redis validada y el material
+privado disponible, con la API y la entrada detenidas. La comprobación del
+proceso y directorio Redis evita capturar otra instancia; permisos restringidos
+y sincronización preceden a la publicación del marcador de finalización.
+La restauración exige invalidar sesiones y desafíos, conservar los controles
+vigentes y verificar la persistencia AOF antes de reabrir el ingreso.
+Una copia histórica no recupera cambios posteriores ni demuestra por sí sola
+una recuperación integral; \rutarepo{docs/deployment-backups.md} delimita el
+procedimiento y sus condiciones de aceptación.

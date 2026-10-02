@@ -208,12 +208,13 @@ ingreso/API, migrar con el binario nuevo y conexión admin, validar inventario y
 definir qué revisión admite esa base antes de registrar una nueva huella. No
 forman parte del despliegue automático. Seguir [operación de base de datos](database-operations.md).
 
-Antes de activar, se crea un `pg_dump` y un archivo privado de configuración,
-CA y TSA, con API detenida; `COMPLETE` identifica un respaldo terminado. Copiar
-respaldos a almacenamiento externo protegido, comprobar restauración y definir
-retención. No se borran automáticamente releases ni respaldos. Tras restaurar
-SQL histórico, seguir la invalidación de sesiones/desafíos de la guía de base
-de datos y conservar controles TOTP/límites. Rollback de aplicación no restaura SQL.
+Antes de activar, con API/web detenidas, se capturan PostgreSQL, Redis y la
+configuración privada CA/TSA; `COMPLETE` se publica al terminar correctamente.
+La [guía de respaldos](deployment-backups.md) concreta permisos, fallos,
+copias antiguas sin Redis, transferencia fuera del servidor y restauración manual
+con invalidación de sesiones/desafíos y conservación de controles TOTP/límites.
+Su aceptación focal real permanece pendiente. No se borran automáticamente
+releases ni respaldos. Rollback de aplicación conserva SQL y Redis actuales.
 
 Los certificados y CRL requieren mantenimiento: los guiones generan certificados
 de un año y CRL de siete días. Seguir [PKI](../pki/README.md) y la publicación de

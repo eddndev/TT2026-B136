@@ -1,5 +1,70 @@
 # Informe de verificación local
 
+
+## Primera release privada en VPS3: 2 de octubre de 2026
+
+La etiqueta `v0.1.0` identifica exactamente
+`a8dc3dd84bece708e45f6a6c3dbe16ffb247e582`, que integra despliegue, informes y
+consulta de actividad. Antes de etiquetar, CI/Web/Documents naturales de main
+aprobaron en 8m44s/10m37s/1m15s, con 3340 Rust, 418 controladas y 51 reales.
+El workflow Deploy version 36991060228 aprobó en **17m28s**: empaquetado nativo
+365 s y transferencia/activación 16 s, después de volver a pasar CI y Web.
+Conservó exactamente las identidades de esas pruebas. El tiempo de empaquetado
+no se presenta como duración exclusiva de compilación ni como tiempo habitual
+warm de CI.
+
+El archivo publicado tiene 19141404 bytes, 119 archivos inventariados y SHA-256
+`504ff76ca9c2db98a741240cb2c42c8e18bcbd7b4102e12799683a41d10585e1`.
+La comprobación independiente del host confirmó versión/commit, hashes de todos
+los archivos, huella de esquema con migración0027, cuatro listeners loopback,
+PostgreSQL/Redis, API401, HTML/proxy y bootstrap403. Las claves coinciden con
+certificados, cadenas y CRL; la confianza persistida conserva revisión1 exacta.
+Los cuatro servicios están activos, sin reinicios automáticos observados.
+
+La captura anterior a inicializar no contenía aún PKI; se creó otra con ingreso
+cerrado y deploy.lock exclusivo, se reinició la misma versión y se confirmó
+respaldo completo del material inicializado. Había cero usuarios y cero Owners.
+Este controlador todavía realiza SQL y material privado: la ampliación Redis
+que acompaña este informe no está instalada por ese tag. No se afirma respaldo
+Redis, copia externa/restauración comprobada, aceptación autenticada ni rollback
+entre versiones reales. La CRL conserva su mantenimiento de siete días.
+
+
+
+## Respaldo de seguridad Redis: 2 de octubre de 2026
+
+La captura de despliegue ahora exige API/web detenidas y confirma PID y directorio
+Redis. Incorpora un RDB no vacío, validado con `redis-check-rdb`, conserva SQL y
+material privado y sólo publica `COMPLETE` tras sincronizar archivos. Directorio
+0700 y archivos 0600, incluso con umask permisivo. La publicación fallida retira
+el marcador; ningún error de Redis se convierte en un respaldo aceptado.
+
+TDD: se reprodujeron ausencia de RDB, aceptación de servicios activos y errores
+de captura ignorados. Después se reprodujeron un marcador que sobrevivía al
+último fallo de sincronización y la aceptación de otra instancia Redis. Las ocho
+pruebas focales corregidas aprobaron en 0.034 s. La suite de despliegue completa
+aprobó 40/40 en 7.673 s; no se repitió la regresión Rust local.
+
+El ensayo nativo aislado aprobó 1/1 en 5.543 s usando los ejecutables compatibles
+Valkey 8.1.10 de esta estación. Capturó cinco claves sintéticas y restauró sus
+valores y fechas de expiración exactos desde el RDB. Eliminó sólo sesión y
+desafío, habilitó AOF y reinició con un RDB anterior presente: los dos tokens
+continuaron ausentes, y bloqueo, reclamo TOTP y clave ajena conservaron valores
+y expiraciones. Los tres procesos fueron secuenciales y retirados con sus datos.
+SQL y systemd se sustituyeron por fixtures; esta prueba acredita la captura y
+persistencia Redis, no una restauración PostgreSQL ni de datos reales de VPS3.
+Una comprobación focal posterior añadió la espera explícita de reescrituras AOF
+programadas y aprobó 1/1 en 5.548 s.
+El primer intento del arnés no interpretó la salida textual de `INFO`; se
+corrigió su lectura raw, sin modificar código de producto para resolverlo.
+
+Redis 7.4.11 está instalado en VPS3; la comprobación anterior corresponde al
+entorno local indicado, no a ese servidor. La comprobación remota y la
+instalación de los controladores actualizados permanecen pendientes. Las copias
+antiguas sin RDB conservan su alcance anterior. Una copia histórica no cubre
+controles creados después; no se afirma recuperación integral ni un RTO.
+
+
 ## Consulta Owner de actividad: aceptación local del 2 de octubre de 2026
 
 La consulta acotada conserva los eventos históricos y la verificación

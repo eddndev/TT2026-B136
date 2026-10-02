@@ -14,6 +14,14 @@ def run(arguments, **kwargs):
     return subprocess.run([str(x) for x in arguments], check=True, **kwargs)
 
 
+def sync_directory(path):
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def settings(root):
     return json.loads((root / "config/settings.json").read_text())
 
@@ -41,15 +49,62 @@ class Runtime:
         run(["systemctl", "--user", "stop", "qadra-web.service", "qadra-api.service"])
 
     def backup(self):
+        state = run(["systemctl", "--user", "show", "qadra-api.service",
+                     "qadra-web.service", "--property=ActiveState", "--value"],
+                    capture_output=True, text=True, timeout=15)
+        if state.stdout.split() != ["inactive", "inactive"]:
+            raise RuntimeError("API and web must be stopped before backup")
+        redis = ["redis-cli", "-h", "127.0.0.1", "-p", str(self.config["redis_port"])]
+        redis_env = {**os.environ, "REDISCLI_AUTH": self.config["redis_password"]}
+        expected_pid = run(["systemctl", "--user", "show", "qadra-redis.service",
+                            "--property=MainPID", "--value"],
+                           capture_output=True, text=True, timeout=15).stdout.strip()
+        info = run(redis + ["--raw", "INFO", "server"], env=redis_env,
+                   capture_output=True, text=True, timeout=10).stdout
+        directory = run(redis + ["--raw", "CONFIG", "GET", "dir"], env=redis_env,
+                        capture_output=True, text=True, timeout=10).stdout.splitlines()
+        actual = dict(line.split(":", 1) for line in info.splitlines() if ":" in line)
+        if (not expected_pid.isdecimal() or int(expected_pid) <= 0
+                or actual.get("process_id") != expected_pid
+                or directory != ["dir", str(self.root / "data")]):
+            raise RuntimeError("Redis identity differs from the private service")
         backup = self.root / "backups" / (time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "-" + uuid.uuid4().hex[:8])
         backup.mkdir(mode=0o700)
+        sync_directory(backup.parent)
+        # Exclusive private files remain unreadable even under a permissive shell umask.
+        def private_file(name):
+            return os.fdopen(os.open(backup / name, os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                                     0o600), "wb")
+
+        for name in ("database.dump", "redis.rdb"):
+            with private_file(name):
+                pass
         run(["pg_dump", "--format=custom", "--file", backup / "database.dump"],
-            env=environment(self.root, admin=True), timeout=300)
-        with tarfile.open(backup / "private-state.tar.gz", "w:gz") as tar:
-            for path in (self.root / "config", self.root / "data/ca", self.root / "data/tsa"):
-                if path.exists():
-                    tar.add(path, arcname=path.relative_to(self.root))
-        (backup / "COMPLETE").write_text("database and private state captured while API stopped\n")
+            env=environment(self.root, admin=True), capture_output=True, timeout=300)
+        run(redis + ["--rdb", backup / "redis.rdb"], env=redis_env,
+            capture_output=True, timeout=300)
+        if any((backup / name).stat().st_size == 0 for name in ("database.dump", "redis.rdb")):
+            raise RuntimeError("database or Redis backup is empty")
+        run(["redis-check-rdb", backup / "redis.rdb"], capture_output=True, timeout=60)
+        with private_file("private-state.tar.gz") as stream:
+            with tarfile.open(fileobj=stream, mode="w:gz") as tar:
+                for path in (self.root / "config", self.root / "data/ca", self.root / "data/tsa"):
+                    if path.exists():
+                        tar.add(path, arcname=path.relative_to(self.root))
+        for name in ("database.dump", "redis.rdb", "private-state.tar.gz"):
+            with (backup / name).open("rb") as stream:
+                os.fsync(stream.fileno())
+        with private_file(".complete.tmp") as marker:
+            marker.write(b"database, Redis and private state captured while API stopped\n")
+            marker.flush()
+            os.fsync(marker.fileno())
+        (backup / ".complete.tmp").rename(backup / "COMPLETE")
+        try:
+            sync_directory(backup)
+        except OSError:
+            (backup / "COMPLETE").unlink()
+            sync_directory(backup)
+            raise
 
     def initialize(self, target):
         from provision import initialize

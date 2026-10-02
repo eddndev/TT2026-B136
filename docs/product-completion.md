@@ -13,7 +13,9 @@ natural en `main` aprobó CI en 8m36s, Web en 11m46s y Documents en 1m13s,
 con las mismas 3299 pruebas Rust, 409 controladas y 49 reales. La adaptación de PR43 a VPS3 está
 integrada por squash en `3a67a6a`, con CI, Web y Documents aprobados para
 `37087b8` y ambos coautores humanos. Su confirmación natural en main aprobó
-CI en 6m42s, Web en 11m25s y Documents en 7m43s. Todavía no hay una release activada.
+CI en 6m42s, Web en 11m25s y Documents en 7m43s. La primera release privada `v0.1.0` quedó activada en VPS3 sobre `a8dc3dd`;
+la salud, identidad del paquete y PKI aprobaron. La cuenta Owner todavía no está
+creada y la aceptación autenticada permanece pendiente.
 Las referencias históricas a aceptación local o CI pendiente de esas entregas
 no significan que su código siga fuera de `main`.
 
@@ -46,11 +48,12 @@ no significan que su código siga fuera de `main`.
   Los filtros usan creación y estado actual,
   no un censo histórico. Correo, estimación de terminación, otros tipos de
   informe y métricas de desempeño permanecen pendientes del alcance aprobado.
-- Consulta de actividad en verificación: selección Owner por intervalo UTC,
+- Consulta de actividad integrada por PR50: selección Owner por intervalo UTC,
   actor histórico, operación y recurso, con paginación de instantánea y lectura
   auditada. Aplicación, PostgreSQL, HTTP, cliente y navegador controlado aprobaron.
   La aceptación API/restauración aprobó en 376.459967 s y el navegador real,
-  2/2 en 13.7 s; CI, integración y activación siguen pendientes. CU-17/RF-20 conservan
+  2/2 en 13.7 s; CI y confirmación natural de `main` aprobaron tras integrar PR50.
+  La activación continúa separada. CU-17/RF-20 conservan
   pendientes identificador estable de cuenta, IP y el criterio de registro
   menor de 500 ms; el anclaje externo sigue separado.
 - Pendientes operativos: firma personal y calificación jurídica de urgencia
@@ -59,9 +62,11 @@ no significan que su código siga fuera de `main`.
 - Despliegue: PR43 conserva la propuesta de la compañera y añade la adaptación
   a VPS3. Se integró como `3a67a6a` después de aprobar CI, Web y Documents,
   con confirmación natural de main aprobada: CI 6m42s, Web 11m25s y Documents
-  7m43s. PostgreSQL y Redis están preparados; API
-  y frontend siguen inactivos, sin release desplegada. Preparación no equivale a activación ni
-  aceptación de producción.
+  7m43s. La release `v0.1.0` aprobó el workflow de despliegue en 17m28s,
+  incluyendo 6m05s de empaquetado y 16s de activación. PostgreSQL, Redis, API y
+  frontend están activos en loopback; salud, identidad y PKI se comprobaron y
+  se capturó un respaldo posterior a inicializar las claves. Owner y aceptación
+  autenticada siguen pendientes; salud no equivale a validación de todos los flujos.
 - Cierre académico posterior: conciliación del manuscrito con las entregas,
   evaluación formal con participantes reales y conclusiones basadas en resultados.
 
@@ -85,12 +90,20 @@ automática ni la creación de audiencias de
 recursos. Ninguna de estas entregas cambia los objetivos aprobados ni declara
 completos los otros pendientes.
 
+La consulta de actividad se integró por PR50 como `a8dc3dd`, después de aprobar
+CI, Web y Documents sobre `b8e4a53`. Su confirmación natural aprobó en 8m44s,
+10m37s y 1m15s, respectivamente: 3340 pruebas Rust, dos ignoradas, 418 de
+navegador controlado y 51 reales, con las identidades anteriores conservadas y
+cobertura 97/95/93 %. Esto cierra esa entrega de consulta; no completa la captura
+uniforme de actor/IP, el anclaje externo ni los demás requisitos de bitácora.
+
 ## Avance del cronograma y aceptación de informes
 
 La semana 9 continúa en cierre funcional: los incrementos integrados de tablero,
 plazos contextuales, admisión documental y consulta inversa de recursos se
-incluyen ahora los informes integrados y confirmados en `main`; el cierre global
-de consulta de actividad y la primera activación del despliegue siguen pendientes. La semana 10 mantiene
+incluyen ahora los informes integrados y confirmados en `main`; la consulta de actividad integrada por PR50 también confirmó su
+regresión en `main`. La primera activación privada del despliegue está comprobada; falta su
+aceptación autenticada. La semana 10 mantiene
 la evaluación con participantes reales, consolidación de manuales, conciliación
 final del manuscrito y conclusiones derivadas de resultados. Preparar un manual
 no completa el estudio de usabilidad; no se asigna un porcentaje nuevo por
@@ -488,7 +501,7 @@ separada de las campañas de hechos y plazos.
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
 | Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, perfiles, evaluación persistente, responsable, atención e historia están integrados; Qadra V1 y el selector de responsables se integraron por PR 33. Sus campañas globales y API/restauración conservan su alcance histórico. La ampliación V2 implementa observaciones verificadas, continuidad, preparación humana y técnica, persistencia y reconstrucción exacta. Servicio humano y HTTP V2, detalle actual y listado con vigencia están implementados con evidencia focal local. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP controlado y 25 con backend real, incluidos dos Follow de escritorio y móvil, con seis capturas inspeccionadas. Despacho y consumo durables conservan resultados, intentos e historia. La composición aprobó 31 unitarias y cuatro de ayuda CLI; la campaña API real comprobó TERM/INT, reinicios y restauración de R1-R5. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34, según el informe de verificación. La agenda conjunta se integró por PR 35. Las alertas durables, Qadra y su composición en servidor se integraron por PR 36 como `8261c51`, con aceptación propia registrada en el informe. Activación y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
-| Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | Tablero operativo integrado por PR 45 con aceptación focal, navegador real y restauración; CI, Web y Documents de su confirmación natural en main aprobados. Informes durables integrados por PR49 en `f3bfed8`, con consumidor supervisado, captura cifrada común a PDF/CSV, avisos propios y selector autorizado que incluye membresías de casos cerrados; trece escenarios distintos de navegador controlado y dos con servicios reales aprobados, con descargas exactas tras nuevo ingreso; aceptación HTTP/restauración aprobada con reinicios y revocación completa; gates de PR49 aprobados y confirmación natural de main pendiente. Capacidad CSV máxima aprobada y PDF máximo rechazado de forma tipada; no equivale a generación satisfactoria a todos los máximos. Correo, estimación de terminación, otros tipos de informe y desempeño permanecen pendientes. Véase [el contrato](case-reports-api.md). La descarga exige acceso a toda la captura. La consulta filtrada Owner aprobó sus pruebas focales, API/restauración y dos escenarios reales; CI e integración del incremento pendientes. No incorpora aún identificador estable de cuenta ni IP; tampoco demuestra el límite de registro de 500 ms o anclaje externo. No presentar una página como total del despacho ni la captura actual como un censo histórico. |
+| Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | Tablero operativo integrado por PR 45 con aceptación focal, navegador real y restauración; CI, Web y Documents de su confirmación natural en main aprobados. Informes durables integrados por PR49 en `f3bfed8`, con consumidor supervisado, captura cifrada común a PDF/CSV, avisos propios y selector autorizado que incluye membresías de casos cerrados; trece escenarios distintos de navegador controlado y dos con servicios reales aprobados, con descargas exactas tras nuevo ingreso; aceptación HTTP/restauración aprobada con reinicios y revocación completa; gates de PR49 y confirmación natural de main aprobados. Capacidad CSV máxima aprobada y PDF máximo rechazado de forma tipada; no equivale a generación satisfactoria a todos los máximos. Correo, estimación de terminación, otros tipos de informe y desempeño permanecen pendientes. Véase [el contrato](case-reports-api.md). La descarga exige acceso a toda la captura. La consulta filtrada Owner aprobó sus pruebas focales, API/restauración y dos escenarios reales; PR50 integrada en `a8dc3dd`, con confirmación natural de main aprobada. No incorpora aún identificador estable de cuenta ni IP; tampoco demuestra el límite de registro de 500 ms o anclaje externo. No presentar una página como total del despacho ni la captura actual como un censo histórico. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
 Las entregas se implementan en ramas `feat/` y se integran mediante PR y squash
@@ -538,7 +551,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
 | Tablero de control | Indicadores integrados por PR 45; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados. CI, Web y Documents aprobaron también para su merge en main. Firma personal pendiente y naturaleza fatal de plazos no se infieren de estos indicadores. |
 | Informes | Estado/carga integrados por PR49; alcance completo parcial | Estado y carga de asignaciones, captura común cifrada PDF/CSV, selector autorizado, avisos internos y consumidor supervisado. Trece escenarios controlados y dos reales aprobados; cuatro capturas inspeccionadas y formatos exactos tras reingreso. Capacidad y presentación medidas por separado; aceptación HTTP/restauración aprobada con artefactos y avisos exactos y captura revocada; CI, Web y Documents de PR49 y su confirmación natural de main aprobados. Correo, estimación de terminación, demás tipos de reporte y desempeño conservan el alcance de CU-16/RF-19. |
-| Consulta de actividad | Aceptación local completa; CI e integración pendientes | Owner global, filtros exactos, UTC con nanosegundos, páginas con máximo de secuencia fijo, preflight de texto y lectura auditada. Aplicación 20, PostgreSQL 14, HTTP 6, runtime 1, Node 12 y navegador controlado 9 aprobados. API/restauración exit0 en 376.459967 s y navegador real 2/2 en 13.7 s; Clippy aprobado. CU-17/RF-20 conservan identificador estable de cuenta, IP, cobertura uniforme de operaciones y registro menor de 500 ms. La verificación de la cadena es separada; el anclaje externo sigue pendiente. |
+| Consulta de actividad | Integrada por PR50 y confirmada en main | Owner global, filtros exactos, UTC con nanosegundos, páginas con máximo de secuencia fijo, preflight de texto y lectura auditada. Aplicación 20, PostgreSQL 14, HTTP 6, runtime 1, Node 12 y navegador controlado 9 aprobados. API/restauración exit0 en 376.459967 s y navegador real 2/2 en 13.7 s; Clippy aprobado. CU-17/RF-20 conservan identificador estable de cuenta, IP, cobertura uniforme de operaciones y registro menor de 500 ms. La verificación de la cadena es separada; el anclaje externo sigue pendiente. |
 
 La validación final incluye usabilidad con participantes reales. Ningún resultado
 de cobertura ni una demostración parcial cambia automáticamente estos estados.
