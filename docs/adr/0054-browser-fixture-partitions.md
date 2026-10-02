@@ -28,9 +28,8 @@ Assign administration and participant scenarios to the primary server's
 third partition. The long administration workflow exceeded its unchanged
 timeout on the shared support server, while the primary completed its
 participant family alongside Rust. Move administration and its fixture
-together, without preparing stage accounts there. Keep stage/adoption and
-deadline/agenda families on the first partition and hearing-related families
-on the second. Validate the full union and concurrent runtime after moving
+together. Keep deadline/agenda families on the first partition and
+hearing-related families on the second. Validate the full union and concurrent runtime after moving
 a family; a focused pass alone does not establish full-campaign stability.
 
 Place document classification on that same third partition. Its complete
@@ -44,6 +43,15 @@ additional fixture family. Keep the ordinary document workflow on partition
 one and retain every assertion and timeout. The placement addresses a
 measured lack of timing margin; it does not establish a specific resource
 bottleneck or improved runtime until the concurrent campaign is measured.
+
+Stage transitions and adoption also belong to the third partition, together
+with their shared case-stage fixtures. The complete transition scenario uses
+concurrent authors, sealed historical evidence, closure and a final login. It
+passed in 37.102 seconds on the support host and later exhausted its unchanged
+60-second total during that final password request. Move the complete family
+to the primary while retaining all three logins, every assertion and the
+original timeout. This addresses insufficient timing margin on the support
+host; concurrent acceptance must still establish stability and total duration.
 
 When stage fixtures exist, their Owner uses reserved recovery code 7 to
 provision optional families. Otherwise bootstrap code 6 remains available
