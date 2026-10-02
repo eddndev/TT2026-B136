@@ -1,5 +1,17 @@
 # Verificación de la actualización académica
 
+## Renovación recuperable de la CRL: 2 de octubre de 2026
+
+El apartado de despliegue explica el respaldo del estado original, el marcador
+durable y la recuperación por concordancia entre archivos y SQL. LuaLaTeX aprobó:
+**356 páginas y 5861646 bytes**, SHA-256
+`1780699358a7e6308a77d1444fc7636642ccaa0812d9e97bc48ac1a908bda0fe`.
+La página física **212** se inspeccionó sin recortes ni solapamientos. No hay
+referencias/citas indefinidas, etiquetas múltiples ni glifos ausentes; permanecen
+las sustituciones históricas de versalitas. Resumen, introducción, teoría y
+conclusiones conservan sus hashes. La instalación y aceptación operativa de
+este controlador en VPS3 siguen separadas de la compilación del manuscrito.
+
 ## Intentos de acceso y recuperación inicial: 2 de octubre de 2026
 
 Los apartados de implementación y despliegue describen la exclusión de respuestas

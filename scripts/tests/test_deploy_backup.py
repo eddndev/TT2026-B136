@@ -52,15 +52,16 @@ class BackupTests(unittest.TestCase):
 
     def backup(self):
         with patch.object(runtime, "run", side_effect=self.execute):
-            runtime.Runtime(self.root).backup()
+            return runtime.Runtime(self.root).backup()
 
     def test_complete_backup_contains_private_checked_redis_and_database(self):
         original = os.umask(0o022)
         try:
-            self.backup()
+            reported_backup = self.backup()
         finally:
             os.umask(original)
         backup, = (self.root / "backups").iterdir()
+        self.assertEqual(reported_backup, backup)
         self.assertEqual((backup / "redis.rdb").read_bytes(), b"REDIS-fixture")
         self.assertTrue((backup / "COMPLETE").is_file())
         for path in backup.iterdir():

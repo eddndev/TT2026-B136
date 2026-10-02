@@ -42,8 +42,10 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   está integrada por PR47 en `ac34b34`, con aceptación API/restauración,
   navegador real y confirmación natural de `main` comprobados.
   El aislamiento de respuestas tardías de contraseña y MFA tiene aceptación
-  local: 524 pruebas Node y ocho recorridos de navegador aprobados. Su CI e
-  integración están pendientes; no implementa todavía inactividad o borradores.
+  local: 524 pruebas Node y ocho recorridos de navegador aprobados. Se integró
+  por PR53 como `e3aa87a`; CI y Web de main confirmaron 9m02s y 10m56s, con
+  3340 Rust, 419 controladas y 51 reales. No implementa todavía inactividad o
+  borradores. Su primera versión de despliegue aún debe confirmarse.
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de
@@ -87,6 +89,11 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   persistencia AOF, confianza y auditoría; conservó cero usuarios y Redis vacío.
   La recuperación poblada y el ensayo de cinco claves sintéticas siguen separados. Owner espera el correo elegido
   por el operador; siguen cero usuarios y la aceptación autenticada pendiente.
+- Mantenimiento de CRL: el controlador manual tiene 96 pruebas aprobadas y
+  aceptación aislada PostgreSQL/OpenSSL de tres renovaciones, respuesta perdida
+  y recuperación tras fallo de salud. Preserva autoridad, claves, series revocadas
+  y auditoría. La instalación en VPS3, aceptación operativa y programación
+  automática siguen pendientes; véase [el procedimiento](deployment-crl.md).
 - Cierre académico posterior: conciliación del manuscrito con las entregas,
   evaluación formal con participantes reales y conclusiones basadas en resultados.
 

@@ -1,5 +1,36 @@
 # Informe de verificación local
 
+## Renovación recuperable de CRL: 2 de octubre de 2026
+
+El controlador de mantenimiento conserva CA, claves, identidad de instalación
+y series revocadas. Sus pruebas focales reprodujeron fallos antes de implementar
+la recuperación. La suite final de controladores aprobó **96/96 en 3.791 s**,
+con un solo ejecutor. Cubre publicación incierta, arranque fallido, escrituras
+interrumpidas, respaldos ausentes o alterados, contador monotónico y bloqueos
+de arranque/activación. Las pruebas de material ejecutan OpenSSL real.
+
+Cinco casos adicionales fallaron antes de corregir el orden del respaldo:
+la configuración archivada conservaba un marcador cuyo registro no estaba en
+el archivo. Ahora sólo el estado original exacto admite esa captura antes de
+instalar el marcador. Se extrajo el archivo real de `Runtime.backup` y se
+comparó configuración y PKI; SQL, Redis y systemd se simularon en esos cinco
+casos. Los tres negativos niegan capturar si contador, CRL o SQL ya avanzaron.
+
+La aceptación aislada usa PostgreSQL 16.15, OpenSSL y el binario aceptado
+`a8dc3dd` de `v0.1.0`: tres renovaciones avanzaron de la revisión inicial 1 a 4.
+Se recuperaron una respuesta perdida tras commit y un fallo de salud sin
+publicación duplicada. La cadena de cuatro eventos y su prefijo histórico
+se verificaron con el CLI; claves, autoridad y revocaciones permanecieron.
+Este ensayo se repitió tras corregir el orden del respaldo y aprobó. Servicios
+y directorios propios fueron retirados. Su frontera de servicios, captura del
+respaldo y salud es simulada: no acredita renovación operativa en VPS3.
+
+El primer intento nativo falló en una consulta del arnés, que usó `operation`
+en vez de la columna `action`; no fue un fallo del producto. El arnés corregido
+verificó además la cadena con el ejecutable independiente. No se cambiaron
+producto, criptografía, límites, esquema ni gates de CI. La regresión remota y
+la instalación del controlador permanecen pendientes; no hay timer automático.
+
 ## Restauración conjunta SQL, Redis y PKI: 2 de octubre de 2026
 
 El conjunto real de cuatro archivos `20261002T105313Z-886940db` se restauró
@@ -40,7 +71,7 @@ existentes de sesión y sincronización MFA aprobaron en 23.1 s con un worker.
 Se preservaron todas sus assertions y límites; sólo un mock de login recibió
 el campo de desafío que la respuesta HTTP real ya contiene. No cambian rutas,
 permisos, cifrado ni presentación. La regresión remota de esta corrección
-permanece pendiente; no completa inactividad ni recuperación de borradores.
+aprobó como se indica abajo; no completa inactividad ni recuperación de borradores.
 
 La primera campaña de la cabeza `facbe30` se canceló al fallar la generación
 aleatoria de una clave en `rsa_modulus_and_exponent_have_exact_bounds`, antes
@@ -53,7 +84,11 @@ El fixture corregido construye claves públicas controladas para los negativos,
 conserva el certificado real del positivo y añade los límites vecinos de 3071
 y 3073 bits. Con el mismo fallo inyectado pasó 1/1 en 0.61 s; el módulo completo
 normal aprobó 24/24 en 1.19 s. No se cambian criptografía de producción,
-assertions, reintentos, timeouts ni gates. La nueva campaña remota sigue pendiente.
+assertions, reintentos, timeouts ni gates. La cabeza `f6a58e4` aprobó CI en
+8m55s, Web en 10m44s y Documents en 1m24s. PR53 se integró como `e3aa87a`;
+la confirmación natural aprobó CI en 9m02s, Web en 10m56s y Documents en
+8m30s. Conservó 3340 Rust, 419 de navegador simulado, 51 reales, gate Redis
+nativo y cobertura 97/95/93%. Su activación en VPS3 se verifica por separado.
 
 ## Duración observada de informes: 2 de octubre de 2026
 
