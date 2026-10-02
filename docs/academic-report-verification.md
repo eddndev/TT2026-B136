@@ -1,5 +1,40 @@
 # Verificación de la actualización académica
 
+## Despliegue reconciliado: PDF del 2 de octubre de 2026
+
+La compilación con LuaLaTeX terminó con código 0 después de incorporar la
+consulta inversa desde actividades y la corrección de reinicio tras reprogramar
+audiencias. El PDF tiene **347 páginas y 5924645 bytes**, SHA-256
+`97a9d896224d01d01a7de293766e081c00d8570d374c0d2dfb1fff87175934f5`.
+Se inspeccionaron las páginas físicas **207, 249, 250, 346 y 347**, con
+implementación, verificación del despliegue y anexo operativo. La muestra es
+legible, sin recortes ni solapamientos. No hay referencias sin resolver ni
+glifos ausentes; permanecen las sustituciones históricas de versalitas y el
+desborde de 0.11754 pt. Esta revisión no acredita una activación del servidor
+ni el cierre integral del manuscrito.
+
+## Despliegue privado: 25 de septiembre de 2026
+
+Se añadieron apartados de implementación, verificación focal y operación por
+etiquetas. Distinguen preparación del host, 17 pruebas del controlador y
+configuración de Actions de una primera activación real todavía pendiente.
+No se modificaron resumen, objetivos, estado del arte ni conclusiones.
+
+La compilación local con TeX Live 2026, LuaLaTeX, latexmk 4.87, biber y
+makeglossaries en Windows terminó con código 0. El PDF final tiene **340 páginas
+y 5998802 bytes**, SHA-256
+`c3f9247fed6dd5c80d77c0da9c9ddfb1eb93f9822b6679762b257d33d57dad82`.
+El resultado permanece fuera de Git; no se sustituyeron entregables anteriores.
+
+Se renderizaron e inspeccionaron **seis páginas físicas: 4, 6, 205, 206, 244 y
+340**, que incluyen entradas de índice, apartados nuevos y transiciones.
+Una primera revisión detectó dos líneas aisladas al final del anexo; se condensó
+su prosa y se repitieron compilación e inspección del resultado final. Los
+apartados comprobados son legibles, sin recortes, solapamientos ni glifos ausentes.
+El log final no contiene referencias o citas indefinidas ni caracteres faltantes;
+conserva cajas subllenas, el desborde histórico de 0.11754 pt y el destino duplicado
+`page.1`. Esta comprobación documental no acredita CI, cobertura o despliegue.
+
 ## Reinicio después de reprogramar audiencias: PDF del 2 de octubre de 2026
 
 LuaLaTeX generó **345 páginas y 5917634 bytes**, SHA-256

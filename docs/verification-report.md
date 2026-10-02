@@ -1,5 +1,125 @@
 # Informe de verificación local
 
+## Integración de navegación desde actividades y recuperación de audiencias
+
+La cabeza `02f33f5` aprobó CI en 7:42, Web en 13:03 y Documents en 8:45.
+Se conservaron 3156 pruebas Rust y dos ignoradas, 396 de navegador controlado y
+47 reales, sin perder identidades de la campaña integrada anterior. PR48 se
+integró por squash como `5020707ebdb65e85ab913f0252bf319ca2f52931`.
+La confirmación natural de main está en curso; estos resultados no sustituyen
+las aceptaciones pendientes de informes ni del despliegue.
+
+## Adaptación del despliegue a VPS3: 1 de octubre de 2026
+
+La adaptación conserva el controlador por tags y los límites del despliegue
+privado. El paquete se compila en el runner de VPS3 para su ABI de Ubuntu 22.04;
+validación y transferencia usan VPS1. qpdf 12.4.1 y FFmpeg/ffprobe 9.0.2 quedan
+incluidos en el inventario del paquete y seleccionados mediante rutas explícitas.
+Las credenciales y el estado persistente permanecen fuera de cada release.
+
+| Comprobación nueva | Resultado registrado |
+| --- | --- |
+| Suite del controlador de despliegue, con recuperación de confianza | 30/30 aprobadas en 2.069 s; sustituye el corte anterior de 22 en 2.052 s |
+| Regresión focal de configuración del host, tras fijar temporales nginx | 5/5 aprobadas; incluidas en la suite del controlador |
+| Recuperación de publicación inicial interrumpida, TDD | RED observado y 7/7 aprobadas en 0.009 s; incluidas en la suite del controlador |
+| Recuperación de confianza con PostgreSQL y OpenSSL reales | Cinco comprobaciones aprobadas sobre la migración 0009 exacta |
+| Sintaxis de todos los workflows con `actionlint` 1.7.12 | PASS |
+| Cuatro unidades systemd de usuario en VPS3 | `systemd-analyze --user verify`: PASS |
+| Configuración nginx ejecutada como `qadra` | `nginx -t`: PASS tras corregir rutas temporales |
+
+VPS3 tiene la cuenta `qadra` (UID 1001) y raíz privada `/home/qadra/qadra`.
+PostgreSQL y Redis propios están activos en `127.0.0.1:15486` y
+`127.0.0.1:16386`. La provisión selecciona Python 3.12.14 y el ejecutable Redis
+instalado para las unidades, sin depender del Python ni Redis antiguos del
+sistema base. La primera comprobación real de nginx falló por intentar usar
+`/var/lib/nginx/fastcgi`, inaccesible para la cuenta sin privilegios. Ahora los
+cinco directorios temporales (`client-body`, `proxy`, `fastcgi`, `uwsgi`, `scgi`)
+son propios bajo `run/`; la repetición sobre el host aprobó.
+
+API y frontend permanecen inactivos: no se ha activado una release ni creado un
+Owner. El enrolamiento espera el correo administrativo elegido por el operador.
+Estas pruebas no acreditan todavía el workflow completo por tag, la primera
+activación, el recorrido autenticado ni la restauración y recuperación real entre
+dos releases. Los 17 ensayos originales del 25 de septiembre se conservan abajo
+como evidencia histórica independiente.
+
+La colisión de actualizaciones Rust entre runners que compartían usuario y
+`RUSTUP_HOME` se corrigió operacionalmente mediante seis homes separados bajo
+`/home/tt-runner/.rustup-runners/`, uno por runner nativo. Se verificaron las seis
+unidades activas en los tres VPS, con stable 1.99.0, `rustfmt`, `clippy`,
+`llvm-tools-preview` y actualización automática de rustup deshabilitada; el
+runner nativo de VPS1 dispone además de Rust 1.88. Los caches y targets Cargo
+conservaron sus rutas. Véase [operación de runners](ci-runner-operations.md).
+La campaña CI/Web posterior se inició nuevamente a las 04:59:33 UTC; su
+resultado completo sigue pendiente. La corrección verificada del host no se
+presenta como una campaña aprobada.
+
+La recuperación tras una publicación de confianza confirmada y una escritura
+interrumpida del marcador de esquema se verificó por separado. La aceptación
+PostgreSQL/OpenSSL aplicó `0009_participant_credential_trust.sql` y comprobó:
+ausencia inicial, coincidencia exacta del DER, rechazo de CRL diferente, rechazo
+de CA local ausente y conservación de una autoridad y una revisión sin nueva
+publicación. El primer intento de preparar el ensayo usó una URI incorrecta y
+falló antes de crear el esquema; se corrigieron los campos de conexión del
+ensayo y las cinco comprobaciones aprobaron. No fue un fallo del producto.
+La recuperación solo admite revisión inicial 1 vigente al tiempo de PostgreSQL,
+con CA y CRL locales idénticas a las almacenadas, antes de ejecutar la generación
+de material; una diferencia o ausencia de esos archivos exige mantenimiento.
+No acredita rotación, restauración general ni recuperación entre dos releases.
+
+El corte documental anterior a esta ampliación produjo un PDF de 345 páginas.
+Se inspeccionaron visualmente las páginas físicas 206, 207, 247, 344 y 345 con
+resultado aprobado. La nueva redacción de recuperación requiere reconstruir e
+inspeccionar el PDF final; no se atribuye esa comprobación a fuentes posteriores.
+
+Una regresión adicional retiró, por separado, siete archivos de firma y TSA
+sobre una publicación ya confirmada. Primero fallaron los siete casos; tras
+exigir el material completo antes de generar archivos, las ocho pruebas focales
+de inicialización aprobaron. La recuperación exige restaurar el material faltante
+sin rotar claves ni escribir el marcador. El controlador contiene ahora 31 casos;
+el corte completo de 30 y el focal posterior de ocho se informan por separado.
+
+## Despliegue privado por tags: 25 de septiembre de 2026
+
+Se implementaron el workflow de tags exactos, empaquetado por versión/commit,
+transferencia SSH con llave de host fijada, servicios privados y recuperación
+conservando la base actual. Véanse [operación](deployment.md) y
+[ADR 0048](adr/0048-private-versioned-deployment.md).
+
+Verificación focal nueva en Windows con Python 3.14: **17 pruebas aprobadas**
+mediante `python -B -m unittest discover -s scripts/tests -p 'test_deploy_*.py'`.
+Cubren versión canónica, identidad y checksum, rutas/enlaces de archivo inseguros,
+configuración privada, activación, recuperación ante error de salud/respaldo,
+rechazo de esquema diferente o versión retrasada y respuestas HTTP locales.
+Las transiciones usan dobles de servicios/enlaces; la comprobación HTTP usa un
+servidor de prueba y sustituye la base de datos. No se acredita recuperación
+real de dos versiones ni un recorrido autenticado del producto.
+
+`actionlint` 1.7.12, descargado con verificación SHA-256, aprobó los tres
+workflows afectados; se deshabilitaron sus analizadores externos shellcheck y
+pyflakes, no instalados. `bash -n` aprobó ambos guiones nuevos. Los archivos de
+lógica nuevos son ASCII y menores de 400 líneas. No se modificó código Rust ni
+se actualizaron cifras históricas de cobertura. No se inició otra campaña
+Cargo: el runner `vps2-tt2026-b136` ya tenía una ejecución de cobertura activa.
+
+En Ubuntu 24.04 x86_64, mediante el acceso existente, se preparó
+`/home/hat/qadra` (0700), con configuración privada 0600, servicios systemd de
+usuario y lingering habilitado. `systemd-analyze --user verify` y `nginx -t`
+aprobaron. PostgreSQL 16 y Redis propios quedaron activos y habilitados, con
+listeners exclusivamente `127.0.0.1:15486` y `127.0.0.1:16386`. Los servicios API
+y web están preparados pero inactivos hasta recibir una versión verificada.
+La consulta `SELECT 1` con el rol runtime y `PING` autenticado de Redis aprobaron.
+Se confirmó que la llave Ed25519 proporcionada coincide con la configurada y
+ya autorizada. Los dos secretos cifrados y cuatro variables de Actions quedaron
+configurados; se verificaron sus nombres por API, sin publicar valores privados.
+
+No se publicó un tag ni se ejecutó el workflow completo de despliegue. Quedan
+por acreditar la compilación del paquete en Actions, su primera activación,
+el recorrido autenticado y la recuperación entre dos versiones reales. El
+workflow exige CI y Web exitosos para el tag; cualquier fallo bloquea el cambio.
+La actualización y comprobación académica se registran por separado en
+[el informe documental](academic-report-verification.md).
+
 ## Reprogramación próxima de audiencias: planes compatibles con el inventario
 
 La aceptación HTTP con servicios reales detectó un fallo al reabrir `serve`

@@ -1,0 +1,44 @@
+\section{Verificación del controlador de despliegue}\label{sec:pruebas-despliegue}
+
+La comprobación focal del 25 de septiembre de 2026 comprende 17 pruebas Python
+del formato de versión, identidad e integridad del paquete, rechazo de rutas
+inseguras, configuración privada, recuperación y respuestas HTTP de salud.
+Los ensayos de activación sustituyen las operaciones de servicio y los enlaces
+por dobles controlados; los de HTTP utilizan un servidor local de prueba y
+sustituyen las dependencias de base de datos. No demuestran una recuperación
+real entre dos ejecutables publicados ni un recorrido de negocio autenticado.
+
+En esa entrega, la revisión con \texttt{actionlint} validó la sintaxis de los
+workflows. En el servidor original se comprobaron las unidades de usuario, la
+configuración nginx y las instancias independientes de PostgreSQL y Redis, limitadas a retorno local.
+Las credenciales SSH y los parámetros de conexión se configuraron en Actions.
+Esas comprobaciones son históricas: la adaptación a VPS3 requiere comprobar
+su ABI, las dependencias multimedia fijadas, los servicios privados y el acceso
+SSH de la nueva cuenta. No acreditan una activación en el nuevo servidor.
+La primera publicación de una etiqueta y su campaña completa constituyen
+evidencia distinta: un fallo previo de CI debe impedir el despliegue y no puede
+omitirse para obtener una activación. Los resultados focales no actualizan los
+conteos históricos de Rust ni sus porcentajes de cobertura.
+
+La adaptación a VPS3 del 1 de octubre de 2026 aprobó inicialmente 22 pruebas
+del controlador en 2.052 s. El cierre, con recuperación de confianza, aprobó
+30 de 30 en 2.069 s. Incluye las cinco comprobaciones focales de configuración
+y siete de recuperación que pasaron en 0.009 s después del fallo inicial
+esperado; estos grupos no se suman nuevamente al total. \texttt{actionlint} 1.7.12 aprobó los workflows. En el host,
+las cuatro unidades de usuario y \texttt{nginx -t} aprobaron; esta última
+comprobación falló primero por una ruta temporal global sin permisos y aprobó
+al ubicar los cinco directorios bajo la raíz privada. La provisión seleccionó
+Python 3.12.14, y el paquete incluye las versiones fijadas de qpdf y
+FFmpeg/ffprobe. PostgreSQL y Redis de \texttt{qadra} están activos en retorno
+local. API y frontend permanecen inactivos: no hay una release activada ni
+Owner enrolado. La ejecución completa por tag, el recorrido autenticado y una
+recuperación real conservan su aceptación pendiente.
+
+Un ensayo adicional con PostgreSQL y OpenSSL reales comprobó cinco condiciones
+sobre el esquema de confianza versionado: ausencia inicial, coincidencia DER
+exacta, rechazo de CRL diferente, rechazo de CA ausente y conservación de una
+sola autoridad y revisión. La reanudación de una publicación inicial confirmada
+con marcador interrumpido exige revisión 1 vigente al tiempo de PostgreSQL y
+CA/CRL locales idénticas antes de generar material. No se vuelve a publicar
+la confianza ni se regeneran CA/CRL para eludir una discrepancia. Esta evidencia
+no sustituye una restauración completa ni un rollback entre releases reales.
