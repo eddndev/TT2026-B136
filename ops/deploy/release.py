@@ -35,6 +35,8 @@ def point(root, name, target):
 
 
 def activate(root, target, runtime, allow_older=False):
+    from crl_journal import guard
+    guard(root)
     previous = linked(root, "current")
     info = metadata(target)
     schema_file = root / "config/schema"
@@ -71,6 +73,8 @@ def activate(root, target, runtime, allow_older=False):
 
 
 def rollback(root, runtime):
+    from crl_journal import guard
+    guard(root)
     target = linked(root, "previous")
     if target is None:
         raise ValueError("no previous healthy release")

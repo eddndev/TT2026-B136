@@ -48,3 +48,27 @@ peticiones sin credenciales. La instantánea Redis se cargó y se comprobó su
 persistencia tras reiniciar con AOF. El conjunto tenía cero usuarios y ninguna
 clave Redis vigente: esta evidencia acredita la recuperación del estado inicial,
 no la recuperación de un despacho poblado ni un tiempo objetivo de recuperación.
+
+
+El mantenimiento de la lista de revocación coordina tres estados distintos:
+los archivos de la CA, la revisión de confianza publicada en PostgreSQL y el
+material cargado por la API. Un controlador manual prepara una candidata con
+la clave existente, conserva los números de serie revocados y exige una
+revisión esperada. Bajo el mismo bloqueo del despliegue, detiene el ingreso y
+comprueba que la identidad, revisión SQL, CA, CRL y contador originales coincidan.
+Respalda ese estado y registra huellas de sus cuatro archivos antes de instalar
+el marcador de mantenimiento: así, restaurar la configuración no deja una
+referencia a un registro externo al respaldo. La detención y la concordancia
+se comprueban otra vez antes de avanzar el contador e instalar la candidata.
+Un marcador durable impide arrancar API,
+proxy o cambiar de versión mientras la concordancia permanezca sin confirmar.
+
+La publicación usa el caso de uso administrativo existente y conserva su
+transacción de auditoría. Una respuesta perdida se resuelve consultando la
+sucesora exacta en SQL; no se publica otra revisión si ya fue confirmada.
+La reanudación comprueba también los archivos registrados y el respaldo antes
+de reiniciar la misma versión. Un fallo de salud mantiene cerrado el ingreso,
+sin retroceder la confianza ni el contador. Este protocolo no es una transacción
+distribuida ni programa renovaciones automáticas; sus condiciones operativas
+se detallan en \rutarepo{docs/deployment-crl.md} y
+\rutarepo{docs/adr/0063-recoverable-crl-maintenance.md}.

@@ -226,10 +226,14 @@ despacho poblado. La prueba Redis de cinco claves sintéticas es evidencia separ
 ni respaldos. Rollback de aplicación conserva SQL y Redis actuales.
 
 Los certificados y CRL requieren mantenimiento: los guiones generan certificados
-de un año y CRL de siete días. Seguir [PKI](../pki/README.md) y la publicación de
-confianza de [participantes](typed-participants-api.md), con revisión esperada
-explícita, antes de expirar. Conservar evidencia histórica y reiniciar el servicio
-para cargar el material operativo actualizado.
+de un año y CRL de siete días. La [renovación manual recuperable](deployment-crl.md)
+coordina revisión esperada, respaldo, contador, archivos, publicación auditada y
+reinicio de la misma release, con un marcador persistente que bloquea ingreso
+mientras haya incertidumbre. Preserva la CA y las revocaciones existentes.
+Su instalación y aceptación en el servidor son independientes de su presencia
+en el repositorio; no hay aún una programación automática de renovaciones.
+La emisión de certificados sigue en [PKI](../pki/README.md) y la publicación de
+confianza en [participantes](typed-participants-api.md).
 
 ## Evidencia y límites
 

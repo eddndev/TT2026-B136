@@ -105,6 +105,7 @@ class Runtime:
             (backup / "COMPLETE").unlink()
             sync_directory(backup)
             raise
+        return backup
 
     def initialize(self, target):
         from provision import initialize
@@ -156,6 +157,8 @@ class Runtime:
         raise RuntimeError("reverse proxy readiness failed")
 
     def start(self, target):
+        from crl_journal import guard
+        guard(self.root)
         run(["systemctl", "--user", "start", "qadra-api.service"])
         self.wait_api()
         run(["systemctl", "--user", "start", "qadra-web.service"])
@@ -169,8 +172,11 @@ class Runtime:
         raise RuntimeError("frontend did not become ready")
 
     def wait_api(self):
+        from crl_journal import guard
+        guard(self.root)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
+            guard(self.root)
             try:
                 self.dependencies()
                 if self.api_ready():
@@ -183,6 +189,8 @@ class Runtime:
 
 
 def serve(root):
+    from crl_journal import guard
+    guard(root)
     target = (root / "current").resolve(strict=True)
     config = settings(root)
     env = environment(root)
