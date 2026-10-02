@@ -57,9 +57,91 @@ conversión más conservadora entre ambos relojes; sólo un nuevo plazo de
 inactividad confirmado puede prolongar la vigencia local, siempre dentro del
 límite absoluto. No hace consultas periódicas, actividad autónoma ni reintentos.
 
-Estas verificaciones no acreditan regresión global, CI ni despliegue del cambio.
-No se activó inactividad operativa y no se probó aún recuperación de borradores
-o reingreso en el navegador.
+La cabeza `695f49a` aprobó CI en **10m00s**, Web en **13m59s** y Documents
+en **10m17s**. Se comprobaron **3381 identidades Rust, 419 de navegador
+controlado y 51 reales**, conservando todas las identidades de la entrega
+anterior; las coberturas por crate fueron **97/95/93 %**. PR55 se integró por
+squash como `e5c8363`.
+Esta entrega de backend no activa inactividad operativa ni acredita por sí
+misma recuperación de borradores o reingreso en el navegador.
+
+La confirmación natural de `e5c8363` aprobó CI y Documents. Web quedó cancelado
+tras fallar `versions.spec.mjs`: una fila del historial móvil se reemplazaba
+durante la medición y `boundingBox()` devolvía `null`. La corrección espera
+la nueva cabecera, el fin de `aria-busy` y las dos filas, y toma ambas medidas
+en una sola lectura del DOM; conserva las assertions originales. El focal
+aprobó **1/1 en 7.1 s**. La cabeza `4c591a6` de PR56 aprobó CI en **7m28s** y
+Web en **12m02s**, conservando las 3381/419/51 identidades y todos los gates.
+Se integró como `8ce25fd`; su confirmación natural aprobó CI en **7m26s** y
+Web en **11m55s**, con las mismas 3381/419/51 identidades y todos los gates.
+Documents no se ejecutó porque esa corrección no modificó sus rutas.
+
+## Reingreso y borradores de interfaz: evidencia local del 2 de octubre de 2026
+
+Este incremento todavía no está integrado ni desplegado. Conecta el monitor
+temporal a la interfaz y cierra la admisión de peticiones antes de capturar los
+borradores y desmontar la aplicación protegida. Al volver a una pestaña visible
+consulta la sesión antes de admitir trabajo; un fallo de red mantiene el bloqueo
+y requiere reintento explícito. Foco, eventos sintéticos y lecturas no generan
+actividad. El logout descarta acceso y borradores localmente antes de esperar
+la respuesta remota. Los límites y las obligaciones de cada editor están en
+[ADR-0065](adr/0065-session-reentry-and-memory-drafts.md).
+
+Las campañas focales locales se ejecutaron con un solo worker. Son grupos
+parcialmente superpuestos y no se suman como un inventario único ni como una
+regresión completa:
+
+| Frontera | Resultado observado | Alcance |
+| --- | --- | --- |
+| Ciclo de sesión, registro de borradores y admisión documental | 45/45 en 565.315 ms | Captura síncrona, exclusión de secretos y objetos de ejecución, conservación de texto incompleto y File/Blob, y descarte acotado por recurso o expediente. |
+| Admisión en el cliente HTTP | 50/50 en 891.718 ms | Bloqueo previo a peticiones de negocio, rutas de control y respuestas de sesiones anteriores. |
+| Metadatos, visibilidad y carrera de recuperación | 11 aprobadas de 12 en 26.7 s | Cinco recorridos de metadatos, cinco de visibilidad y la carrera de autorización aprobaron. El último encontró un localizador ambiguo de clasificación; se acotó al modal. |
+| Navegación durante confirmación y logout sin red | 2/2 en 9.3 s | Conservación del mismo editor durante un cambio de hash, descarte inmediato y respuesta tardía de logout incapaz de alterar un acceso nuevo. Incluye la verificación posterior del recorrido cuyo localizador se corrigió. |
+| Borradores de expediente | 3/3 en 11.0 s | Alta parcial, texto de delito aún sin confirmar, descarte al cambiar de cuenta o salir y comparación de revisiones antes de un reemplazo explícito. |
+| Carga documental principal, campaña inicial | 3 aprobadas, 1 fallida y 2 no ejecutadas en 22.2 s | Los tres recorridos base aprobaron. El siguiente falló porque el selector buscaba Cargar documento cuando el botón deshabilitado mostraba Cargando documento. Fue un error del selector, no un envío habilitado. |
+| Carga documental principal, reingreso con selector corregido | 3/3 en 11.7 s | Envío incierto sin reenvío automático, listado fresco y decisión explícita de posible duplicación; expediente cerrado sólo de lectura y denegación que descarta el archivo. Con los tres casos base, son seis recorridos aceptados en dos campañas. |
+| MFA oculta y nuevas versiones | 4/4 en 16.2 s | El primer montaje espera confirmación visible de sesión; archivo y nombre de una versión se recuperan con autorización fresca, base original conservada, comparación explícita y descarte al cancelar o cambiar de cuenta. |
+| Cierre y compatibilidad de versiones | 3/3 en 11.0 s | Borrador de versión sólo de lectura al cerrar el expediente; se conservan los recorridos previos de conflicto y agotamiento del contador. |
+| Versión enviada sin respuesta | 1/1 en 8.2 s | Tras expirar durante el POST, incluso una cabeza sin cambios exige comparar y decidir antes de un nuevo envío; la respuesta anterior no lo dispara. |
+
+La campaña general Node ejecutada con concurrencia uno aprobó **603 de 604**
+en **16.260 s**. El caso restante esperaba una petición sin bearer después de
+revocar el acceso propio. El contrato nuevo la rechaza localmente antes de
+fetch; corregida esa expectativa, las **10/10** pruebas del módulo de miembros
+aprobaron en **248.869 ms**. Se conserva este resultado por separado de la
+regresión global pendiente de la cabeza publicada.
+
+La compilación de producción de Astro aprobó en **2.34 s**. Conserva el aviso
+de tamaño del chunk principal; no hubo errores de compilación. Formato, ASCII,
+límite de líneas y diff aprobaron en los archivos modificados. El PDF actualizado
+y su muestra visual se registran por separado en [la verificación académica](academic-report-verification.md).
+
+Los RED de navegador reprodujeron problemas concretos: un diálogo modal escapaba
+al bloqueo de su ancestro y tapaba los controles de sesión; un cambio de hash
+destruía el editor durante la confirmación; un logout anterior mantenía
+deshabilitada la salida después de una nueva MFA; y ocultar la pestaña durante
+la autorización de metadatos dejaba habilitado Guardar sin restaurar valores.
+Las correcciones conservan el diálogo durante la consulta, bloquean navegación
+y envío hasta autorización vigente y separan el logout anterior del nuevo acceso.
+No amplían timeouts ni relajan assertions. La primera falla por instalar el reloj
+después de navegar fue del fixture y se corrigió instalándolo antes del arranque;
+no se cuenta como un RED del producto.
+
+La recuperación exige MFA de la misma persona y autorización fresca del destino.
+Un expediente cerrado permite consultar el borrador, pero no mutarlo; una
+denegación elimina sólo el contexto correspondiente. Los valores y archivos se
+conservan exclusivamente en memoria de la pestaña, sin almacenamiento persistente
+ni reenvío automático. Se pierden al recargar o cerrar esa pestaña.
+
+La nueva versión documental reprodujo primero la ausencia de consulta fresca
+tras el reingreso y después aprobó los tres recorridos correspondientes. Otro
+RED comprobó que completar MFA con la pestaña oculta montaba las vistas antes
+de admitir sus lecturas; ahora ese primer montaje espera la confirmación al
+volver. Los demás editores y las cargas anidadas requieren adaptación propia.
+Estos focales no prueban recuperación universal, navegador con backend real
+para este incremento, CI completo ni aceptación de la interfaz en VPS3. La
+instalación operativa conserva `v0.1.1`; no se habilitó inactividad ni se fijó
+su duración por estas pruebas.
 
 ## Activación y rollback real de v0.1.1: 2 de octubre de 2026
 

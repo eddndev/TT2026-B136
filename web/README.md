@@ -441,21 +441,34 @@ de repetir una alta o edición. Esta interfaz no usa claves de idempotencia.
   Iniciar otro acceso o cerrar sesión invalida las respuestas anteriores de
   contraseña y MFA, incluso si su cuerpo tarda en recibirse. Una respuesta
   obsoleta no reemplaza el bearer ni propaga su error remoto a otro intento.
-  Esto no cancela una operación ya admitida por el servidor ni completa
-  el cierre por inactividad o la conservación de borradores, aún pendientes.
-- La ampliación local del backend expone estado y actividad explícita con
-  plazos del servidor. Conserva `absolute_only` de 24 horas por defecto;
+  Esto no cancela una operación ya admitida por el servidor. El vencimiento
+  y la recuperación de borradores tienen controles separados, descritos abajo.
+- El backend integrado expone estado y actividad explícita con plazos del
+  servidor. Conserva `absolute_only` de 24 horas por defecto;
   `--session-idle-seconds` o `TT_SESSION_IDLE_SECONDS` requiere una duración
-  explícita para habilitar idle. Hay métodos de consulta y actividad en el
-  cliente HTTP, un reloj y un monitor monotónicos independientes, probados
-  por separado. El monitor vence sin actividad autónoma; las lecturas de estado
-  no renuevan y una respuesta tardía no revive la sesión. La conversión
-  conservadora del reloj se mantiene aunque una respuesta posterior sea más rápida.
-  Aún no hay temporizador conectado a la interfaz, aviso y bloqueo, ni reingreso
-  con restauración de borradores. Este incremento sigue local, sin integración
-  ni despliegue; no activa inactividad operativa ni fija una duración aprobada.
-  Véanse el [contrato HTTP](../docs/http-api.md) y la
-  [verificación focal](../docs/verification-report.md).
+  explícita para habilitar inactividad. Las consultas no renuevan; la actividad
+  confirmada no puede superar el límite absoluto.
+- La interfaz en desarrollo conecta el reloj monotónico al bloqueo de acciones
+  y al aviso de reingreso. Sólo la entrada humana explícita solicita actividad.
+  Al volver a la pestaña se comprueba la sesión por lectura antes de admitir
+  acciones; un fallo de red permite un reintento explícito, sin sondeo periódico.
+  Los diálogos quedan temporalmente suspendidos durante esa comprobación.
+- El registro de borradores conserva proyecciones explícitas en memoria de la
+  pestaña antes de desmontar el contenido protegido. Una cuenta distinta o
+  **Cerrar sesión** las descarta. La misma cuenta debe volver a abrir el editor
+  y autorizar su contexto actual. No se envía una operación automáticamente y
+  las revisiones distintas exigen comparar y decidir de nuevo.
+  Clasificación documental, alta y edición de expedientes, carga documental
+  principal y nuevas versiones tienen adaptadores explícitos. Una carga sin respuesta confirmada
+  exige consultar el listado actual y aceptar el riesgo de duplicación antes
+  de iniciar otro envío. Un expediente cerrado permite consultar el borrador
+  autorizado, sin enviarlo.
+  Cada familia requiere su adaptador y aceptación: este registro no acredita
+  recuperación universal. La recarga o cierre de la pestaña pierde borradores
+  y archivos seleccionados. Contraseñas y secretos de enrolamiento se excluyen.
+  La inactividad operativa permanece desactivada en VPS3 mientras se completa
+  ese inventario. Véanse [ADR-0065](../docs/adr/0065-session-reentry-and-memory-drafts.md)
+  y la [verificación](../docs/verification-report.md).
 - Las páginas no forman una instantánea conjunta: pueden cambiar si otro
   usuario agrega documentos o modifica asignaciones entre consultas.
 - La búsqueda abarca los nombres del expediente, no el contenido cifrado.

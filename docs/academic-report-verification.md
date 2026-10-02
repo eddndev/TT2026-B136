@@ -1,5 +1,23 @@
 # Verificación de la actualización académica
 
+## Reingreso y borradores por editor: 2 de octubre de 2026
+
+La implementación y las pruebas describen el bloqueo temporal del navegador,
+MFA completada en segundo plano y recuperación autorizada de expedientes,
+clasificación, carga principal y nuevas versiones. Distinguen los recorridos
+simulados de las pruebas del backend y mantienen pendiente la adaptación del
+resto de formularios y la activación operativa de inactividad.
+LuaLaTeX aprobó con **358 páginas y 5874427 bytes**, SHA-256
+`fccfcf62e80bb8fbc5b4933ab3a89fbbe62bac366637b818d35e248659e3fed6`.
+
+Se inspeccionaron las páginas físicas **190, 216, 254 y 255**: párrafos, tabla
+ADR y continuidad legibles, sin solapamientos ni recortes. No se detectaron
+referencias/citas indefinidas, etiquetas múltiples ni glifos ausentes. Se
+conservan las sustituciones históricas de versalitas de Times New Roman.
+Resumen, introducción con objetivos, marco teórico y conclusiones conservan
+sus hashes. Las conclusiones permanecen pendientes; esta revisión del PDF no
+acredita aceptación humana ni una campaña global de la interfaz nueva.
+
 ## Sesiones temporales y operación privada: 2 de octubre de 2026
 
 Los apartados de implementación y pruebas incorporan la política explícita de

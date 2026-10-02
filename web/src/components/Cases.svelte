@@ -1,11 +1,12 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, getContext } from 'svelte';
   import Icon from './Icon.svelte';
   import Pagination from './Pagination.svelte';
   import CaseFilters from './CaseFilters.svelte';
   import CaseEditor from './CaseEditor.svelte';
   import { staffCase, manageCase, basicCase } from '../lib/case-administration.mjs';
   export let api, user, onselect;
+  const drafts = getContext('session-drafts');
   let cases = [],
     offset = 0,
     hasMore = false,
@@ -51,6 +52,7 @@
       if (alive && current === generation) onselect(basicCase(detail));
     } catch (failure) {
       if (alive && current === generation) {
+        if ([403, 404].includes(failure.status)) drafts?.registry.denyContext(record.id);
         cases = cases.filter((item) => item.id !== record.id);
         error = failure.message;
       }

@@ -174,7 +174,7 @@
   </div>
   {#if can(user.role, 'documents')}<button
       class="primary"
-      disabled={$administration.closed}
+      disabled={$administration.closed && !upload?.hasSuspendedDraft()}
       onclick={() => upload.open()}><Icon name="plus" size={18} />Subir documento</button
     >{/if}
 </div>
@@ -187,7 +187,13 @@
     </p>
   </section>
 {:else}
-  <UploadDocument bind:this={upload} api={scoped} onuploaded={uploaded} />
+  <UploadDocument
+    bind:this={upload}
+    api={scoped}
+    onuploaded={uploaded}
+    ondenied={denyAccess}
+    draftContext={{ caseId: caseRecord.id }}
+  />
   <section class="card document-list" aria-busy={busy}>
     <div class="section-heading">
       <div>
@@ -225,7 +231,7 @@
             }}>Limpiar filtros</button
           >{:else}<button
             class="secondary"
-            disabled={$administration.closed}
+            disabled={$administration.closed && !upload?.hasSuspendedDraft()}
             onclick={() => upload.open()}>Seleccionar un archivo</button
           >{/if}
       </div>{/if}

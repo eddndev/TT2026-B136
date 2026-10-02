@@ -37,6 +37,7 @@
   let historyGeneration = 0;
   let detailGeneration = 0;
   function denyAccess(failure) {
+    append?.discardDraft(failure);
     ondenied(failure);
     unavailable = true;
     selected = null;
@@ -179,7 +180,7 @@
   </div>
   {#if !unavailable && can(user.role, 'documents')}<button
       class="primary"
-      disabled={disabled || $administration.closed || pending}
+      disabled={disabled || pending || ($administration.closed && !append?.hasSuspendedDraft())}
       onclick={() => append.open()}><Icon name="plus" size={18} />Agregar versi&#243;n</button
     >{/if}
 </div>
@@ -190,7 +191,7 @@
     document={current}
     disabled={disabled || busy || !!refreshing || !!detailBusy || selections > 0}
     onappended={appended}
-    {ondenied}
+    ondenied={denyAccess}
     oncurrent={refreshedCurrent}
   />{/if}
 <VersionHistory
@@ -219,5 +220,5 @@
       document={selected}
       disabled={disabled || busy || !!refreshing || appendBusy || selections > 0}
       onupdate={update}
-      {ondenied}
+      ondenied={denyAccess}
     />{/key}{/if}
