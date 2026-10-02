@@ -11,6 +11,17 @@ use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest, identit
 /// deadline current projection and read audit. Application checks it against
 /// Clock after the store returns, including one common instant across the page.
 pub trait ResourceActivityStore: Send + Sync {
+    /// Require an existing authorized target even for an empty page. Filter the
+    /// latest association heads before UUID pagination. Return one post-lock
+    /// observation for the entire page and verify exact captured endpoints.
+    fn list_for_target(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        target: ResourceActivityTargetId,
+        query: ResourceActivityTargetQuery,
+        at: OffsetDateTime,
+    ) -> Result<ResourceActivityTargetPage, ApplicationError>;
     fn list(
         &self,
         actor: UserId,
@@ -59,6 +70,13 @@ pub trait ResourceActivityStore: Send + Sync {
     ) -> Result<ResourceActivityDetail, ApplicationError>;
 }
 pub trait ResourceActivityWorkflow: Send + Sync {
+    fn list_for_target(
+        &self,
+        token: &str,
+        case: CaseId,
+        target: ResourceActivityTargetId,
+        query: ResourceActivityTargetQuery,
+    ) -> Result<ResourceActivityTargetPage, ApplicationError>;
     fn list(
         &self,
         token: &str,

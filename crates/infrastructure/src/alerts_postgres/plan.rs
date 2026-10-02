@@ -36,7 +36,7 @@ pub(super) fn state(
         }
     }
     if let (Some(before), Some(after)) = (old_due, due) {
-        if before != after {
+        if matches!(current.subject, AlertSubject::Deadline { .. }) && before != after {
             result["changed_episode"] = if [before, after]
                 .iter()
                 .any(|at| *at >= now && (*at - now) <= Duration::hours(48))
@@ -189,3 +189,7 @@ pub(super) fn channels(
         AlertKind::DueChangedSoon { .. } => prefs.due_changed_soon,
     }
 }
+
+#[cfg(test)]
+#[path = "plan_tests.rs"]
+mod tests;

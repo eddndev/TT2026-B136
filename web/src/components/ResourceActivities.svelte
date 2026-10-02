@@ -17,6 +17,15 @@
     ondenied,
     disabled = false,
     pending = false;
+  export let intent = null,
+    onintent = () => {};
+  let initialized = false,
+    consumed;
+  $: if (initialized && intent && intent !== consumed) {
+    consumed = intent;
+    open(intent.id, intent.revision, intent.capture_digest);
+    onintent();
+  }
   const scoped = api.caseResourceActivities(caseId, resource.id),
     resources = api.caseResources(caseId),
     administration = caseState();
@@ -73,7 +82,7 @@
       if (alive && request === generation) busy = false;
     }
   }
-  async function open(id, exact) {
+  async function open(id, exact, captureDigest) {
     const request = ++generation;
     opening = true;
     selected = null;
@@ -81,6 +90,11 @@
     try {
       const view = exact === undefined ? await scoped.get(id) : await scoped.revision(id, exact);
       if (alive && request === generation) {
+        if (
+          captureDigest !== undefined &&
+          view.association.receipt.capture_digest !== captureDigest
+        )
+          throw new Error('La captura del v\u00ednculo no coincide con la selecci\u00f3n.');
         selected = view;
         historical = exact !== undefined;
       }
@@ -131,7 +145,11 @@
     cursors = [undefined];
     load();
   }
-  onMount(() => load());
+  onMount(() => {
+    load().then(() => {
+      if (alive) initialized = true;
+    });
+  });
   onDestroy(() => {
     alive = false;
     generation++;

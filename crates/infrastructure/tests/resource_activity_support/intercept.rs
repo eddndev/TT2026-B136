@@ -7,6 +7,16 @@ pub struct BeforeCommit {
     pub callback: Box<dyn Fn() + Send + Sync>,
 }
 impl ResourceActivityStore for BeforeCommit {
+    fn list_for_target(
+        &self,
+        actor: UserId,
+        case: CaseId,
+        target: ResourceActivityTargetId,
+        query: ResourceActivityTargetQuery,
+        at: OffsetDateTime,
+    ) -> Result<ResourceActivityTargetPage, ApplicationError> {
+        self.store.list_for_target(actor, case, target, query, at)
+    }
     fn list(
         &self,
         actor: UserId,

@@ -1,3 +1,4 @@
+import { activityResourcesApi } from './activity-resources-api.mjs';
 import { deadlinesApi } from './deadline-api.mjs';
 import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
 import { proceduralFactsApi } from './procedural-facts-api.mjs';
@@ -61,6 +62,7 @@ export function caseApi(transport) {
     caseResolutions: (id) => proceduralFactsApi(request, id, 'resolution'),
     caseResources: (id) => proceduralResourcesApi(request, id),
     caseResourceActivities: (id, resourceId) => resourceActivitiesApi(request, id, resourceId),
+    caseActivityResources: (id, target) => activityResourcesApi(request, id, target),
     caseResourceDeadlines: (id, resourceId) => resourceDeadlinesApi(request, id, resourceId),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),

@@ -1,5 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
+  import ActivityResources from './ActivityResources.svelte';
   import DeadlineEditor from './DeadlineEditor.svelte';
   import DeadlineDetail from './DeadlineDetail.svelte';
   import { caseState } from '../lib/case-state.mjs';
@@ -9,6 +10,7 @@
   export let api, user, caseId, ondenied;
   export let intent = null,
     onintent = () => {};
+  export let onresource = () => {};
   const scoped = api.deadlines(caseId),
     administration = caseState();
   let rows = [],
@@ -239,5 +241,13 @@
         onedit={edit}
         onselect={open}
         ondenied={fail}
+      /><ActivityResources
+        {api}
+        {caseId}
+        kind="deadline"
+        record={selected}
+        ondenied={fail}
+        onopen={onresource}
+        disabled={pending}
       />{/key}{/if}
 </section>

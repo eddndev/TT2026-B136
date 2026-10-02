@@ -330,3 +330,7 @@ path = "tests/dashboard_backend.rs"
 [[test]]
 name = "resource_deadline_backend"
 path = "tests/resource_deadline_backend.rs"
+
+[[test]]
+name = "resource_activity_target"
+path = "tests/resource_activity_target.rs"

@@ -13,6 +13,7 @@ mod reads;
 mod request;
 mod selection;
 mod sources;
+mod targets;
 use crate::{error::ApiError, runtime::HttpRuntime};
 use application::resource_activities::{ResourceActivityId, ResourceActivityWorkflow, ResourceId};
 use axum::{
@@ -30,6 +31,14 @@ struct ResourceActivityState {
 pub(crate) fn router(workflow: Arc<dyn ResourceActivityWorkflow>, runtime: HttpRuntime) -> Router {
     let base = "/api/v1/cases/:case/procedural-resources/:id/activities";
     Router::new()
+        .route(
+            "/api/v1/cases/:case/hearings/:id/resource-associations",
+            get(targets::hearing),
+        )
+        .route(
+            "/api/v1/cases/:case/deadlines/:id/resource-associations",
+            get(targets::deadline),
+        )
         .route(base, get(reads::list).post(mutations::link))
         .route(&format!("{base}/prepare"), post(mutations::prepare))
         .route(&format!("{base}/:association"), get(reads::detail))

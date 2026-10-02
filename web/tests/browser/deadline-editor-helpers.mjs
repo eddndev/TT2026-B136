@@ -1,3 +1,4 @@
+import { activityResourcePage } from './activity-resources-fixtures.mjs';
 import { expect } from '@playwright/test';
 import { setupFacts } from './procedural-facts-helpers.mjs';
 import { login, navigate, caseId } from './helpers.mjs';
@@ -143,6 +144,8 @@ export async function setupDeadlines(
     }
     const rows = state.records.get(parts[0]);
     if (!rows) return deadlineError(route, 'deadline_not_found', 404);
+    if (parts[1] === 'resource-associations')
+      return route.fulfill({ json: activityResourcePage(caseId, 'deadline', parts[0], url) });
     if (parts[1] === 'history') {
       const before = Number(url.searchParams.get('before_revision') || 4294967296);
       const eligible = rows.filter((row) => row.revision < before).toReversed(),

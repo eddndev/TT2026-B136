@@ -26,4 +26,44 @@ Owner gestiona todos los expedientes; Litigator asignado gestiona y Paralegal as
 
 Qadra incorpora selectores de actividad, revisión y acto opcional, revisión previa a confirmar, listado filtrado, detalle e historia. La captura vinculada y la actividad actual ocupan áreas separadas. Ante conflicto conserva selección y motivo hasta comparar y aceptar una nueva base. La consulta de un recibo exacto permite conciliar una respuesta perdida sin inferir éxito a partir de una coincidencia visual. Cuando el resultado sigue incierto, el reenvío explícito conserva el mismo comando, operación y digest, sin preparar otra identidad automáticamente. Los permisos y la revocación también se reflejan en la retirada de los datos protegidos.
 
-Esta entrega vincula actividades existentes. Permanecen pendientes la creación de actividades desde un contexto procesal de recurso, la calificación del corpus jurídico, la activación durable de sus términos y completar la navegación y trazabilidad de alertas en ese flujo. Los enlaces disponibles no sustituyen esas obligaciones ni modifican los objetivos aprobados.
+La creación conjunta de un plazo y su asociación tiene el contrato independiente de la \cref{sec:impl-plazo-contextual}. La consulta inversa descrita a continuación completa un recorrido de lectura desde actividades y avisos; no crea actividades adicionales. Permanecen pendientes las audiencias propias de recursos, la calificación del corpus jurídico y la activación automática durable de sus términos. Los enlaces disponibles no sustituyen esas obligaciones ni modifican los objetivos aprobados.
+
+\subsection{Consulta inversa y regreso a la actividad}\label{sec:impl-recursos-desde-actividad}
+
+La nueva lectura parte de una audiencia o plazo identificado dentro del
+expediente y devuelve las asociaciones actuales de sus recursos. Utiliza las
+rutas de audiencia y plazo con sufijo \texttt{resource-associations}, sin
+recorrer en el navegador todos los recursos del expediente. La lista muestra
+vínculos activos de manera predeterminada, permite consultar los desvinculados
+o ambos estados y pagina por UUID ascendente con un límite de 1 a 100. El
+estado se filtra después de seleccionar la cabeza de cada asociación y antes
+de aplicar el límite. Cada continuación conserva expediente, destino y filtro;
+las páginas son observaciones independientes, no una instantánea histórica
+retenida entre peticiones.
+
+Cada respuesta incluye un instante UTC común incluso cuando no contiene filas.
+La transacción comprueba el destino, las capturas de recurso, acto y actividad,
+sus cabezas actuales y la auditoría de lectura; el servicio reautentica al
+principal antes de entregar datos. Owner consulta todos los expedientes y
+Litigator o Paralegal necesitan asignación vigente. Client permanece denegado.
+El cierre del expediente y el archivo del recurso conservan las lecturas
+autorizadas. Un error de acceso no se representa como ausencia de relaciones.
+
+Qadra incorpora el panel \enquote{Recursos relacionados} en el detalle de
+actividad. Se distinguen la revisión abierta, la revisión de actividad capturada
+por cada vínculo y la cabeza actual observada. La lista representa el estado
+actual de las asociaciones: una relación registrada después de emitir una
+alerta puede aparecer, sin afirmar que existiera entonces ni que causara el
+aviso. La selección conserva la identidad, revisión y digest tanto del recurso
+como de la asociación, y su apertura comprueba las capturas exactas. Consultar
+el recurso actual sigue siendo una acción diferente.
+
+El recorrido conserva el regreso a la revisión de actividad desde la que se
+abrió el recurso. Si comenzó en una alerta, mantiene también el regreso a la
+bandeja y sus filtros. Las consultas no marcan el aviso como leído ni modifican
+su origen. Ante revocación se retiran los datos protegidos; las respuestas
+pendientes se descartan al cambiar el contexto o cerrar la sesión. El contrato
+está en \rutarepo{docs/activity-resource-links-api.md} y la decisión en
+\rutarepo{docs/adr/0059-activity-resource-navigation.md}. La aceptación propia de
+este incremento se distingue de los resultados históricos de asociación en
+la \cref{sec:pruebas-recursos-desde-actividad}.

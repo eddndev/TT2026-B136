@@ -37,6 +37,31 @@ impl Page {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+pub(super) struct TargetPage {
+    limit: Option<String>,
+    after_id: Option<String>,
+    status: Option<String>,
+}
+impl TargetPage {
+    pub(super) fn validate(self) -> Result<ResourceActivityTargetQuery, ApiError> {
+        let status = match self.status.as_deref() {
+            None | Some("linked") => Some(ResourceActivityStatus::Linked),
+            Some("unlinked") => Some(ResourceActivityStatus::Unlinked),
+            Some("all") => None,
+            _ => return Err(invalid()),
+        };
+        ResourceActivityTargetQuery::new(
+            self.limit.map(|v| number(&v)).transpose()?.unwrap_or(20),
+            self.after_id
+                .map(|v| uuid(&v).map(ResourceActivityId::from_uuid))
+                .transpose()?,
+            status,
+        )
+        .map_err(|_| invalid())
+    }
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct History {
     limit: Option<String>,
     before_revision: Option<String>,

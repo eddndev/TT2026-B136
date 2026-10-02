@@ -140,7 +140,7 @@ impl PostgresResourceActivityStore {
             next_before_revision,
         })
     }
-    fn observation_time(
+    pub(super) fn observation_time(
         &self,
         started: OffsetDateTime,
     ) -> Result<OffsetDateTime, ApplicationError> {
@@ -169,32 +169,77 @@ fn view(
     hasher: &dyn DocumentHasher,
     at: OffsetDateTime,
 ) -> Result<ResourceActivityView, ApplicationError> {
-    if association.recorded_at > at {
-        return Err(inconsistent("association observation predates capture"));
-    }
-    let case = association.case_id;
-    let current_target = match association.selection.target {
-        ResourceActivityTarget::Hearing { id, revision, .. } => {
+    let target = match association.selection.target {
+        ResourceActivityTarget::Hearing { id, .. } => ResourceActivityTargetId::Hearing(id),
+        ResourceActivityTarget::Deadline { id, .. } => ResourceActivityTargetId::Deadline(id),
+    };
+    let current = current_target(tx, association.case_id, target, hasher, at)?;
+    with_current_target(association, current, at)
+}
+pub(super) fn current_target(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    target: ResourceActivityTargetId,
+    hasher: &dyn DocumentHasher,
+    at: OffsetDateTime,
+) -> Result<ResourceActivityCurrentTarget, ApplicationError> {
+    match target {
+        ResourceActivityTargetId::Hearing(id) => {
             let current = crate::hearing_postgres::storage::detail(tx, case, id, None, hasher)?;
-            if current.snapshot.revision < revision || current.snapshot.recorded_at > at {
-                return Err(inconsistent("current hearing head contradicts association"));
-            }
-            ResourceActivityCurrentTarget::Hearing(Box::new(current))
-        }
-        ResourceActivityTarget::Deadline { id, revision, .. } => {
-            let head = crate::deadline_postgres::storage::detail(tx, case, id, None, hasher)?;
-            if head.revision < revision || head.recorded_at > at {
+            if current.snapshot.recorded_at > at {
                 return Err(inconsistent(
-                    "current deadline head contradicts association",
+                    "hearing head postdates association observation",
+                ));
+            }
+            Ok(ResourceActivityCurrentTarget::Hearing(Box::new(current)))
+        }
+        ResourceActivityTargetId::Deadline(id) => {
+            let head = crate::deadline_postgres::storage::detail(tx, case, id, None, hasher)?;
+            if head.recorded_at > at {
+                return Err(inconsistent(
+                    "deadline head postdates association observation",
                 ));
             }
             let current = crate::deadline_postgres::current_in_transaction(tx, &head, hasher, at)?;
-            ResourceActivityCurrentTarget::Deadline(Box::new(current))
+            Ok(ResourceActivityCurrentTarget::Deadline(Box::new(current)))
         }
+    }
+}
+pub(super) fn with_current_target(
+    association: ResourceActivityDetail,
+    current: ResourceActivityCurrentTarget,
+    at: OffsetDateTime,
+) -> Result<ResourceActivityView, ApplicationError> {
+    if association.recorded_at > at {
+        return Err(inconsistent("association observation predates capture"));
+    }
+    let matches = match (association.selection.target, &current) {
+        (
+            ResourceActivityTarget::Hearing { id, revision, .. },
+            ResourceActivityCurrentTarget::Hearing(value),
+        ) => {
+            value.snapshot.id == id
+                && value.snapshot.case_id == association.case_id
+                && value.snapshot.revision >= revision
+        }
+        (
+            ResourceActivityTarget::Deadline { id, revision, .. },
+            ResourceActivityCurrentTarget::Deadline(value),
+        ) => {
+            value.detail().id == id
+                && value.detail().case_id == association.case_id
+                && value.detail().revision >= revision
+        }
+        _ => false,
     };
+    if !matches {
+        return Err(inconsistent(
+            "current target contradicts association capture",
+        ));
+    }
     Ok(ResourceActivityView {
         association,
         checked_at: at,
-        current_target,
+        current_target: current,
     })
 }

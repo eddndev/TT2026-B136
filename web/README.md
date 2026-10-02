@@ -841,3 +841,17 @@ no reciben ni consultan ese buzón. Un error de servicio se muestra como error,
 no como lista vacía; los avisos no atribuyen una causa ni confirman un ataque.
 Véanse [el contrato](../docs/document-content-api.md) y
 [la evidencia de aceptación](../docs/verification-report.md).
+
+## Recursos relacionados desde una actividad
+
+El detalle de una audiencia o plazo muestra los vínculos actuales con recursos
+del mismo expediente. Puede filtrarlos por estado y recorrer sus páginas. Cada
+fila distingue la revisión consultada de la actividad, la capturada por el
+vínculo y la observada actualmente. Abrirla consulta exactamente el recurso y
+la asociación capturados; el botón de regreso conserva la actividad de origen.
+
+Cuando el recorrido empieza en Alertas, volver a la bandeja conserva sus filtros
+y no marca el aviso como leído. La lista no reconstruye las relaciones existentes
+al emitirse la alerta. Cada consulta vuelve a comprobar acceso; los rechazos
+retiran la información privada y los resultados tardíos no restauran otra sesión
+o expediente. Véase [el contrato](../docs/activity-resource-links-api.md).

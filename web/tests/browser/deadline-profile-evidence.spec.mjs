@@ -83,7 +83,9 @@ test('exact profile examples expose their complete embedded calendar and declare
   await expect(first).toContainText('Dia computable del ejemplo');
   await expect(second).toContainText('Sin calendario declarado en este ejemplo.');
   expect(state.calls.filter((call) => call.path.includes('/judicial-calendars'))).toHaveLength(0);
-  expect(state.calls.at(-1).path).toBe(
-    `/api/v1/cases/${caseId}/deadline-profiles/${exact.id}/revisions/1`,
-  );
+  expect(state.calls.filter((call) => call.path.includes('/deadline-profiles/'))).toEqual([
+    expect.objectContaining({
+      path: `/api/v1/cases/${caseId}/deadline-profiles/${exact.id}/revisions/1`,
+    }),
+  ]);
 });
