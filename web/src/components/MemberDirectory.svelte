@@ -1,10 +1,13 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import MemberFilters from './MemberFilters.svelte';
   import MemberCard from './MemberCard.svelte';
   import MemberAccessEditor from './MemberAccessEditor.svelte';
+  import { discardMemberAccess, freshMemberAccess } from '../lib/member-access-draft.mjs';
   export let api, user;
   const scoped = api.members();
+  const session = getContext('session-drafts'),
+    principalId = user.id;
   let rows = [],
     next = null,
     more = false,
@@ -18,7 +21,14 @@
     message = '',
     alive = true,
     generation = 0;
+  const admitted = () =>
+    alive &&
+    (!session ||
+      (session.principal()?.id === principalId &&
+        session.principal()?.role === 'owner' &&
+        session.canAdmit()));
   function deny(failure, id) {
+    discardMemberAccess(session, principalId, failure, id);
     generation++;
     selected = null;
     busy = false;
@@ -35,7 +45,7 @@
     if (alive) await load();
   }
   async function load(append = false) {
-    if (denied || selected || (append && (busy || !more))) return;
+    if (!admitted() || denied || selected || (append && (busy || !more))) return;
     const request = ++generation;
     busy = true;
     error = '';
@@ -47,7 +57,7 @@
     }
     try {
       const value = await scoped.list({ ...query, ...(append ? { cursor: next } : {}) });
-      if (!alive || request !== generation) return;
+      if (!admitted() || request !== generation) return;
       if (append && rows.length && value.items.length && rows.at(-1).id >= value.items[0].id)
         throw new Error(
           'La continuaci\u00f3n del directorio no conserva el orden. Vuelve a buscar.',
@@ -57,7 +67,7 @@
       more = value.has_more;
       loaded = true;
     } catch (failure) {
-      if (alive && request === generation) {
+      if (admitted() && request === generation) {
         error = failure.message;
         if (failure.status === 403) deny(failure);
       }
@@ -66,24 +76,34 @@
     }
   }
   async function open(row) {
-    if (busy || opening || selected || denied) return;
+    if (!admitted() || busy || opening || selected || denied) return;
     const request = ++generation;
     opening = true;
     error = '';
     message = '';
     try {
-      const value = await scoped.get(row.id);
-      if (alive && request === generation) selected = value;
+      const value = await freshMemberAccess({
+        api,
+        members: scoped,
+        principalId,
+        id: row.id,
+        admitted: () => admitted() && request === generation,
+      });
+      if (value && admitted() && request === generation) selected = value;
     } catch (failure) {
-      if (alive && request === generation) deny(failure, row.id);
+      if (admitted() && request === generation) {
+        error = failure.message;
+        if ([403, 404].includes(failure.status)) deny(failure, row.id);
+      }
     } finally {
       if (alive && request === generation) opening = false;
     }
   }
   async function confirmed() {
+    if (!alive || (session && session.principal()?.id !== principalId)) return;
     selected = null;
     message = 'Los permisos de la cuenta se confirmaron.';
-    await load();
+    if (admitted()) await load();
   }
   onMount(() => {
     load();

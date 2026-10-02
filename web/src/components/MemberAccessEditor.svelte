@@ -1,21 +1,96 @@
 <script>
-  import { onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import { roles } from '../lib/documents.mjs';
   import { memberAccessChange } from '../lib/members-values.mjs';
+  import { createMemberAccessDraft, freshMemberAccess } from '../lib/member-access-draft.mjs';
   export let api, user, record, onconfirmed, oncancel, ondenied;
-  const scoped = api.members();
+  const scoped = api.members(),
+    session = getContext('session-drafts'),
+    principalId = user.id;
   let base = structuredClone(record),
-    role = record.role,
-    status = record.active ? 'active' : 'inactive';
-  let mode = 'draft',
+    role = '',
+    status = '';
+  let mode = 'blocked',
     prepared = null,
     candidate = null,
-    busy = false,
+    busy = true,
     error = '',
-    alive = true;
+    alive = true,
+    finished = false,
+    unconfirmed = false;
+  const recovery = session
+    ? createMemberAccessDraft({
+        session,
+        principalId,
+        id: record.id,
+        capture: () => ({ base, role, status, unconfirmed }),
+      })
+    : null;
+  const admitted = () => alive && !finished && (!recovery || recovery.admitted());
+  async function initialize(current) {
+    if (!admitted()) return;
+    busy = true;
+    error = '';
+    prepared = candidate = null;
+    try {
+      if (recovery?.pending()) {
+        const result = await recovery.restore(current, (value) => {
+          ({ base, role, status, unconfirmed } = value);
+          mode = unconfirmed
+            ? 'uncertain'
+            : current.revision !== base.revision
+              ? 'conflict'
+              : 'draft';
+        });
+        if (!admitted()) return;
+        if (result.status !== 'restored')
+          throw new Error(
+            'No se pudo recuperar el borrador de acceso. Vuelve a consultar la cuenta.',
+          );
+      } else {
+        base = structuredClone(current);
+        role = current.role;
+        status = current.active ? 'active' : 'inactive';
+        recovery?.register();
+        mode = 'draft';
+      }
+    } catch (failure) {
+      if (admitted()) {
+        mode = 'blocked';
+        error = failure.message;
+      }
+    } finally {
+      if (alive) busy = false;
+    }
+  }
+  function fresh() {
+    return freshMemberAccess({ api, members: scoped, principalId, id: record.id, admitted });
+  }
+  async function retry() {
+    if (busy || mode !== 'blocked' || !admitted()) return;
+    busy = true;
+    error = '';
+    try {
+      const current = await fresh();
+      if (current && admitted()) await initialize(current);
+    } catch (failure) {
+      if (admitted()) {
+        error = failure.message;
+        if ([403, 404].includes(failure.status)) ondenied(failure, record.id);
+      }
+    } finally {
+      if (alive) busy = false;
+    }
+  }
+  function close() {
+    if (busy || !admitted()) return;
+    recovery?.close();
+    finished = true;
+    oncancel();
+  }
   function review(event) {
     event?.preventDefault();
-    if (busy || mode !== 'draft') return;
+    if (busy || mode !== 'draft' || !admitted()) return;
     try {
       prepared = memberAccessChange({
         expected_revision: base.revision,
@@ -32,6 +107,7 @@
     error = failure.message;
     prepared = null;
     candidate = null;
+    if (writing) unconfirmed = !failure.status || failure.status >= 500;
     if ([403, 404].includes(failure.status)) {
       ondenied(failure, base.id);
       return;
@@ -41,27 +117,39 @@
     else mode = 'draft';
   }
   async function confirm() {
-    if (busy || mode !== 'review' || !prepared) return;
+    if (busy || mode !== 'review' || !prepared || !admitted()) return;
     busy = true;
+    unconfirmed = true;
     error = '';
     try {
-      const confirmed = await scoped.changeAccess(base.id, prepared);
+      const confirmed = await scoped.changeAccess(base.id, prepared, () => {
+        if (!alive) return;
+        recovery?.close();
+        unconfirmed = false;
+        finished = true;
+        prepared = null;
+        mode = 'confirmed';
+      });
       if (alive) await onconfirmed(confirmed);
     } catch (failure) {
-      if (alive) fail(failure, true);
+      if (admitted()) fail(failure, true);
     } finally {
       if (alive) busy = false;
     }
   }
   async function consult() {
-    if (busy) return;
+    if (busy || !admitted() || !['conflict', 'uncertain'].includes(mode)) return;
     busy = true;
     error = '';
+    candidate = null;
     try {
-      const current = await scoped.get(base.id);
-      if (alive) candidate = structuredClone(current);
+      const current = await fresh();
+      if (!current || !admitted()) return;
+      if (BigInt(current.revision) < BigInt(base.revision))
+        throw new Error('La cuenta actual no confirma la revisi\u00f3n del borrador.');
+      candidate = structuredClone(current);
     } catch (failure) {
-      if (alive) {
+      if (admitted()) {
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure, base.id);
       }
@@ -70,15 +158,20 @@
     }
   }
   function accept() {
-    if (busy || !candidate) return;
+    if (busy || !candidate || !admitted()) return;
     base = candidate;
     candidate = null;
     prepared = null;
+    unconfirmed = false;
     mode = 'draft';
     error = '';
   }
+  onMount(() => {
+    initialize(record);
+  });
   onDestroy(() => {
     alive = false;
+    recovery?.dispose();
     scoped.dispose();
     prepared = null;
     candidate = null;
@@ -92,7 +185,7 @@
       <h2>{base.email}</h2>
       <p class="hint">Revisi&#243;n consultada {base.revision}</p>
     </div>
-    <button class="text-button" disabled={busy} onclick={oncancel}>Cerrar acceso de cuenta</button>
+    <button class="text-button" disabled={busy} onclick={close}>Cerrar acceso de cuenta</button>
   </div>
   <p class="notice">
     Desactivar conserva las asignaciones y bloquea el acceso. Reactivar conserva esas asignaciones y
@@ -102,6 +195,9 @@
       Un cambio efectivo de tu propio rol o estado cerrar&#225; esta sesi&#243;n.
     </p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
+  {#if mode === 'blocked'}<button class="secondary" disabled={busy} onclick={retry}
+      >Volver a consultar el acceso de cuenta</button
+    >{/if}
   <form class="stack" onsubmit={review}>
     <div class="case-field-grid">
       <label
