@@ -1,5 +1,45 @@
 # Informe de verificación local
 
+## Reprogramación próxima de audiencias: planes compatibles con el inventario
+
+La aceptación HTTP con servicios reales detectó un fallo al reabrir `serve`
+después de una parada SIGTERM con salida cero. El inventario persistido rechazó
+una alerta de audiencia con el motivo `notification kind does not apply to
+hearing`. El fallo ocurrió antes de generar informes. El planificador creaba
+un episodio `DueChangedSoon` al cambiar una fecha próxima sin distinguir
+entre audiencia y plazo. Ese plan podía guardarse, aunque la activación y el
+inventario de arranque exigen que una audiencia sólo tenga `Upcoming`, como
+establece [el contrato de alertas](alerts-api.md).
+
+La reproducción focal del planificador obtuvo **dos fallos y un control positivo
+aprobado**. Una segunda reproducción con PostgreSQL aislado obtuvo **dos fallos
+y un control positivo aprobado en 14.55 s**: los casos de audiencia fallaron al
+activar o reabrir, con el mismo error observado por HTTP. El control de plazo
+conservó su aviso de cambio de vencimiento. Las pruebas de reapertura comparan
+el estado persistido antes y después de abrir el adaptador; no emplean reparación
+de filas para superar el inventario.
+
+La corrección limita la creación del episodio de cambio a sujetos de plazo.
+La reprogramación de una audiencia conserva la reconciliación de anticipaciones
+con la nueva fecha y su origen. No cambian preferencias, tiempos, validadores,
+contrato HTTP ni datos existentes. Las guardas SQL vigentes comprueban tamaño y
+digest del contenido, relaciones e inmutabilidad; no comprueban la combinación
+semántica audiencia/tipo de aviso dentro de ese contenido. La corrección evita
+producirla, sin omitir la validación estricta al activar o iniciar el servidor.
+
+Después de la corrección aprobaron los **tres casos unitarios y los tres casos
+PostgreSQL**, estos últimos en **14.96 s**: seis casos distintos en total.
+Incluyen planes pendientes y avisos activados de audiencia, reapertura sin
+reescritura de filas y conservación de `DueChangedSoon` para plazos. Son los
+mismos casos de la reproducción anterior, no seis pruebas adicionales a ella.
+Sigue pendiente repetir el reinicio del servidor compuesto y la aceptación HTTP
+que detectó el problema. El resultado focal no modifica los totales históricos
+de pruebas o cobertura ni acredita ese cierre integrado.
+
+La prevención no sanea registros incompatibles ya persistidos. Un inventario
+con ellos debe seguir rechazándose; no se borran planes, se reinterpretan como
+anticipaciones ni se relaja el arranque. Cualquier recuperación de datos no
+desechables requiere un procedimiento explícito y verificable por separado.
 
 ## 2026-10-02: ubicación del recorrido de clasificación documental
 

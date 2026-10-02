@@ -1,5 +1,15 @@
 # Verificación de la actualización académica
 
+## Reinicio después de reprogramar audiencias: PDF del 2 de octubre de 2026
+
+LuaLaTeX generó **345 páginas y 5917634 bytes**, SHA-256
+`e9b7d267cd4d5c3552e00fdc0e62abb00fdc98d60f1ea08108e3825a0da090dd`.
+Se inspeccionaron las páginas físicas **242 y 243**, con la reproducción y
+corrección del plan incompatible y su continuación. Son legibles, sin recortes
+ni solapamientos. No aparecen referencias indefinidas ni glifos ausentes;
+permanecen las sustituciones históricas de versalitas y el desborde de 0.11754 pt.
+La muestra acredita esta adición, no una revisión integral del manuscrito.
+
 ## Consulta inversa desde actividades: PDF del 27 de septiembre de 2026
 
 El PDF local final tiene **344 páginas y 5915321 bytes**, SHA-256
