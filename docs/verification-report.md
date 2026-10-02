@@ -45,6 +45,1128 @@ La actualización académica posterior de estos resultados y la comprobación de
 PDF se documentan en [la revisión del reporte](academic-report-verification.md).
 Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
+## Admisión documental general: aceptación local del 27 de septiembre de 2026
+
+La nueva admisión valida PDF, DOCX, TXT, JPEG, PNG, MP3, WAV y MP4 en cargas
+iniciales y nuevas versiones de hasta 16 MiB. La política inspecciona el contenido
+antes de cifrarlo, exige decodificación multimedia completa en procesos acotados
+y reautentica al principal antes del commit auditado. Conserva los bytes
+originales, la clasificación atómica, los permisos y la política independiente
+de soportes procesales PDF/DOCX. Su contrato está en
+[document-upload-admission-api.md](document-upload-admission-api.md) y su diseño
+en [ADR 0058](adr/0058-bounded-general-document-admission.md).
+
+| Comprobación nueva | Resultado registrado |
+| --- | --- |
+| Aplicación: tres ingresos, rechazo y reautenticación | 8 aprobadas |
+| Infraestructura: estructuras, inventario y supervisor | 29 casos distintos aprobados |
+| HTTP: categorías y transporte de errores | 1 prueba unitaria y 1 de rutas aprobadas |
+| Adaptador nativo con formatos reales y corrupción comprimida interna | 5 casos distintos aprobados |
+| Worker privado: límites, descriptores y protocolo | 5 aprobadas |
+| Cliente Node: errores tipados, sesión y envío único | 12 aprobadas |
+| Navegador con HTTP controlado: rechazo y borrador conservado | 8 aprobadas |
+| Instalador: fuente, configuración y provisión | 15 aprobadas en VPS3 |
+| Aceptación API completa, respaldo y restauración | `scripts/api-demo.sh`: PASS completo, salida 0 |
+| Navegador con servicios reales | 4/4 en 27.2 s; escenario nuevo de admisión en 8.4 s |
+
+La aceptación API restauró las ocho familias y comprobó sus bytes originales
+exactos. El grupo de navegador real contiene un escenario nuevo de admisión y
+tres regresiones del flujo de contenido existente; no son cuatro casos nuevos
+de formatos. Se inspeccionaron las capturas a 1440 y 390 píxeles sin
+desbordamiento horizontal. Estas comprobaciones no sustituyen una evaluación
+de usabilidad con participantes reales.
+
+Los conteos de infraestructura y del adaptador nativo corresponden a casos
+distintos aprobados; las repeticiones focales no se suman como pruebas nuevas.
+Las pruebas nativas incluyen daño interno del contenido comprimido y la
+supervisión separa rechazo de formato, exceso de recursos e indisponibilidad.
+No se declara una regresión global ni se actualizan porcentajes históricos de
+cobertura con estos resultados.
+
+La dependencia quedó verificada con el usuario del runner en los tres VPS.
+VPS1, con AlmaLinux, requirió una compilación nativa porque el binario de Ubuntu
+22 exige GLIBC 2.35; VPS2 reutiliza el binario compatible preparado en VPS3.
+Cada instalación comprobó su manifiesto, configuración y capacidades sin
+escribir ni recompilar durante la verificación. Clippy del workspace y todos
+los targets aprobó con advertencias denegadas. El PDF de 343 páginas compiló; se inspeccionaron las páginas físicas 171, 172,
+223, 224 y 225 sin desbordamiento visible ni referencias sin resolver en las
+secciones nuevas. CI general e integración permanecen pendientes.
+Esta sección registra únicamente la admisión documental; la evidencia de la
+creación contextual de plazos se conserva separada a continuación.
+
+## Creación contextual de plazos: aceptación local del 27 de septiembre de 2026
+
+La entrega añade preparación y confirmación conjuntas de un plazo y su vínculo
+con un recurso. Reutiliza perfil, fuente temporal, calendario y políticas
+explícitas; el acto seleccionado aporta contexto histórico y no infiere una
+regla jurídica. El contrato está en [resource-deadlines-api.md](resource-deadlines-api.md)
+y la transacción y el marcador de origen en
+[ADR 0057](adr/0057-atomic-resource-deadline-creation.md).
+
+| Comprobación nueva | Resultado local |
+| --- | --- |
+| Aplicación: preparación, recibos y permisos | 5/5 |
+| PostgreSQL desechable: atomicidad, concurrencia, replay y revalidación | 9 casos distintos aprobados |
+| HTTP: comando conjunto, padres, autenticación y límites | 3/3 |
+| Cliente, comparación temporal y conciliación en Node | 11/11 |
+| Navegador con HTTP controlado, un worker | 11/11, 28.8 s |
+| Navegador con servicios reales, un worker | 1/1, 13.6 s de escenario y 17.8 s del ejecutor |
+| Aceptación HTTP integrada y respaldo/restauración | PASS completo, salida 0 |
+| Clippy, workspace y todos los targets, con advertencias denegadas | PASS |
+| LuaLaTeX y revisión visual de las secciones modificadas | PASS, PDF de 341 páginas |
+
+El grupo PostgreSQL aprobó ocho casos en la primera ejecución y el noveno en
+una repetición focal tras corregir su fixture de roles. Son nueve pruebas
+distintas; no se presenta esa repetición como otra campaña completa. Las
+comprobaciones incluyen fallo de auditoría dentro de la transacción, ausencia
+de escrituras parciales, dos confirmaciones concurrentes, rechazo de una
+operación ordinaria previa y nueva comprobación de pertenencia y fuente vigente.
+La repetición exacta conserva los recibos originales incluso tras cerrar el
+expediente; una nueva creación permanece impedida por el cierre.
+
+La aceptación HTTP comprobó confirmación conjunta, repetición exacta, agenda y
+rechazo de una preparación obsoleta. Después de restaurar PostgreSQL y renovar
+la sesión, comparó las capturas del plazo y la asociación, sus recibos y su
+proyección en agenda. La demostración completa terminó con salida cero. El
+rechazo previo por conflicto no sustituye la prueba de atomicidad con fallo
+inyectado dentro de la transacción.
+
+Las regresiones se observaron fallar antes de corregirlas. La preparación real
+reveló que la administración del recurso exponía el instante como RFC 3339 y la
+del plazo como segundos y nanosegundos: el cliente ahora compara el mismo
+instante sin perder nanosegundos ni normalizar fechas civiles inválidas. La
+conciliación también aceptaba dos recibos ordinarios coincidentes sin acreditar
+su origen conjunto. Ahora conserva ese par como no confirmado y exige una
+acción explícita con el mismo comando y digest; el servidor comprueba el
+marcador auditado antes de devolver éxito. Otro fallo reproducido impedía esa
+comprobación histórica tras cerrar el expediente: se permite confirmar el
+origen del par existente, pero se mantiene bloqueado reintentar una creación
+cuando ambos registros están ausentes y el expediente está cerrado.
+
+El recorrido real creó el plazo desde un acto histórico, confirmó ambos recibos,
+repitió la operación y abrió la revisión exacta desde la agenda. Se inspeccionaron
+las capturas de escritorio y móvil, sin desbordamiento horizontal. Las suites
+se ejecutaron secuencialmente con un compilador y un worker. Estos resultados
+son focales y de aceptación; no constituyen una nueva regresión global ni una
+medición de usabilidad con personas. El PDF final tiene 341 páginas; se revisaron
+visualmente las páginas físicas 203, 205, 206, 243, 244, 245, 335 y 337, sin
+desbordamientos ni referencias sin resolver en esas secciones. Persisten avisos
+de sustitución de versalitas de la fuente, sin impedir la compilación. El cierre
+global y la integración de esta entrega permanecen pendientes. No se consideran completados
+el corpus jurídico, la activación automática ni las audiencias propias de recursos.
+
+### Cierre global de la creación contextual
+
+La cabeza `a9a3a331b403547d79494dc3d5b7edb2d7da0db4` aprobó CI en 6 min
+48 s, Web en 11 min 39 s y Documents en 7 min 50 s. Se conservaron todas las
+identidades de pruebas previas: 3084 Rust, dos ignoradas, 378 de navegador
+controlado y 45 con servicios reales. Los gates de cobertura conservaron
+97/95/93 % para domain/application/infrastructure. PR46 se integró por squash
+como `23970cc516854688da587e878d4304fa52068ecf`; la ejecución natural de main
+sigue siendo su comprobación final independiente.
+
+La primera campaña se canceló al fallar un helper de navegador: confundía una
+lista de hechos históricos con un estado compartido ya inicializado y omitía
+preparar la página de login. El fallo se reprodujo localmente; se separaron los
+parámetros y aprobaron 15 casos afectados en 34.6 s sin alterar los tiempos,
+assertions ni comportamiento del producto. Esa campaña cancelada no acredita
+el inventario completo; las cifras anteriores corresponden a la cabeza verde.
+
+## Tablero operativo: verificacion focal del 27 de septiembre de 2026
+
+Esta entrega anade `GET /api/v1/dashboard` y los indicadores de Inicio para
+Owner y Litigante. La consulta usa una sola transaccion auditada y verifica
+la cuenta, las pertenencias, las cabezas actuales y los limites completos del
+agregado. Paralegal y Cliente no reciben estos indicadores. No se consideran
+cerrados los pendientes de firma personal, calificacion juridica de plazos,
+informes exportables ni otros modulos por incorporar este tablero.
+
+| Comprobacion nueva | Resultado local |
+| --- | --- |
+| Aplicacion, autorizacion y reautenticacion | 5/5 |
+| PostgreSQL desechable: scope, contratos, plazos, limites y revocacion concurrente | 8/8, 25.45 s |
+| HTTP: autenticacion, filtros estrictos y contrato | 3/3 |
+| Cliente y valores del tablero en Node | 7/7 |
+| Navegador con HTTP controlado, un worker | 8/8, 14.5 s |
+| Navegador con servidor real y cuentas independientes | 1/1, 6.5 s de escenario |
+| Planificador de particiones y autenticacion de fixtures | 11/11 |
+| Cancelacion del conjunto CI, Web y Documents | 6/6 |
+| Aceptacion API integrada y respaldo/restauracion | PASS completo, salida 0 |
+| LuaLaTeX y revision visual de las secciones nuevas | PASS, PDF de 340 paginas |
+
+Las pruebas focales se escribieron antes de la implementacion. Se observaron
+fallos por ausencia del modulo, adaptador y panel; se corrigio tambien el
+rechazo HTTP de consultas desconocidas para conservar el contrato de 400.
+La regresion de cancelacion fallo primero cuando Documents quedaba fuera del
+conjunto. Las suites locales se ejecutaron secuencialmente con un compilador
+y un worker, sin repetir la regresion Rust completa.
+
+El recorrido real inicia Owner y Litigante, comprueba el despacho completo
+frente a un expediente asignado con su contrato, retira la pertenencia y exige
+cero indicadores y ninguna carga al actualizar. Para esta comprobacion local
+se prepararon exclusivamente sus fixtures; la particion remota conserva el
+resto de familias. Se inspeccionaron capturas de 1440 y 390 px, tanto con HTTP
+controlado como con servidor real. No hubo desbordamiento horizontal. El PDF se compilo con `make -B -C latex`;
+se renderizaron e inspeccionaron las paginas fisicas 205, 244 y 336
+(implementacion, pruebas y trazabilidad), con referencias resueltas, texto
+legible y transiciones sin recortes. No se afirma una nueva revision visual
+integral de las 340 paginas.
+
+El indicador documental significa contrato de la version actual pendiente de
+sello interno. La urgencia visual usa vencimiento y proximidad de 48 horas;
+no atribuye una calificacion juridica fatal. Las ventanas de siete dias
+incluyen la de 48 horas; los plazos retirados o atendidos no cuentan como
+trabajo pendiente, y los que requieren revision no reutilizan una fecha
+historica como vencimiento operativo.
+
+La regresion integrada detecto una rafaga de navegacion que agotaba los dos
+trabajadores y devolvia `503 server_busy` a una peticion ya admitida. La admision
+ahora conserva como maximo ocho peticiones y espera asincronamente un trabajador,
+sin aumentar los dos trabajadores ni agregar reintentos. La regresion fallo
+primero en cuatro comprobaciones y despues aprobo 7/7: dos operaciones activas,
+seis en espera, novena rechazada, cancelacion antes/despues de iniciar y liberacion
+tras errores. Los permisos de contenido verificado conservan su limite separado. El recorrido
+real que abria una segunda sesion y navegaba entre expedientes aprobo en
+24.1 s con las mismas assertions y limite total.
+
+La aceptacion HTTP integrada con respaldo/restauracion aprobo: contadores y
+carga exactos tras restaurar PostgreSQL, lectura UTC nueva, MFA nuevo, ambito
+vacio del litigante revocado y denegacion de Paralegal/Cliente. Tambien
+aprobaron los recorridos existentes de la misma demostracion y la igualdad
+de evidencia ZIP. La campana completa de CI/Web/Documents queda pendiente. Los
+resultados historicos inferiores describen otras revisiones y no sustituyen
+la comprobacion de esta entrega. Documents se traslada a los servidores
+propios, con herramientas provisionadas y el mismo control de fuentes y PDF;
+no se requieren minutos adicionales de maquinas alojadas por GitHub.
+
+## Cierre de rendimiento con PostgreSQL nativo: 27 de septiembre de 2026
+
+La cabeza `793c8de` aprobo [CI 36300194908](https://github.com/eddndev/TT2026-B136/actions/runs/36300194908)
+y [Web 36300194936](https://github.com/eddndev/TT2026-B136/actions/runs/36300194936)
+con todos sus checks y gates. Los JUnit conservan exactamente las mismas
+identidades del checkpoint completo anterior: **3049 Rust**, **359 simuladas**
+y **43 reales**, sin duplicados ni fallos. Las dos pruebas Rust ignoradas
+siguen declaradas aparte. Cobertura: domain **5512/5629, 97%**, application
+**17215/17963, 95%**, infrastructure **30656/32701, 93%**; todos los umbrales de 90%
+aprobaron. El chequeo SQL del calendario tambien aprobo antes de Nextest.
+
+| Medicion | Resultado |
+| --- | --- |
+| CI completo, creacion a ultimo check | **6m23s** |
+| Web completo, creacion a ultimo check | **10m26s** |
+| Compilacion Rust instrumentada caliente | 0.23s |
+| Ejecucion de las 3049 pruebas Rust | 328.404s |
+| Generacion del reporte de cobertura | aproximadamente 6.4s |
+| Gate agregado de cobertura | 9s |
+| Jobs reales completos, particiones 1/2/3 | 10m12s / 10m17s / 6m50s |
+| Compilacion real caliente, particiones 1/2/3 | 2.09s / 2.10s / 0.14s |
+| Ejecucion navegador real, particiones 1/2/3 | 315.659s / 326.224s / 193.942s |
+| Ejecucion navegador simulado, particiones 1/2 | 413.140s / 452.772s |
+
+Frente al checkpoint completo anterior de **13m12s / 11m15s**, CI bajo a
+**6m23s** y Web a **10m26s**. El objetivo aproximado de diez minutos queda
+reproducido en esta campana. La preparacion de fixtures sigue separada de
+la ejecucion del navegador: el comando real de la particion 2 tomo 585s,
+con 326.224s de navegador y 2.10s de compilacion; el resto incluye servicios,
+criptografia y fixtures. Los logs conservan los tiempos por familia. La
+provision inicial de cache fria de VPS3 (1m54s) fue un coste anterior y no
+forma parte de esta medicion caliente.
+
+Durante ventanas activas, VPS3 promedio **6.60 CPU** y alcanzo **27.87 GiB**,
+con 14 eventos MemoryHigh y sin OOM ni swap. Su PostgreSQL nativo mantuvo el
+limite de 6 GiB y alcanzo **4.04 GiB**, sin eventos de memoria en esa unidad;
+se observaron hasta 55 conexiones. VPS2 promedio **3.08 CPU**, pico de 5.01 GiB,
+sin OOM ni throttling de cuota. VPS1 promedio 1.82 CPU, pico de 4.47 GiB,
+1217 eventos MemoryHigh, 113 eventos max y 18.83s de throttling, sin OOM;
+su swap pico fue de 0.36 GiB. No se aumentaron recursos para esta campana.
+
+No se requieren nuevos ajustes para perseguir segundos adicionales antes
+de integrar. La confirmacion de estabilidad corresponde a la ejecucion
+natural de main posterior a la integracion; esta campana no acredita esa
+ejecucion posterior.
+
+## PostgreSQL para el chequeo SQL previo: 27 de septiembre de 2026
+
+La cabeza `fe8053d` detuvo [CI 36299431042](https://github.com/eddndev/TT2026-B136/actions/runs/36299431042)
+antes de Nextest: el chequeo SQL independiente del calendario requeria
+`DOCUMENT_TEST_DATABASE_URL`, pero el servicio nativo se iniciaba solamente
+al ejecutar la cobertura. Las tres clases fallaron en preparacion; no se
+ejecutaron sus pruebas ni la suite Rust. La cancelacion automatica detuvo CI
+y Web; el ultimo job termino 18 segundos despues del error. No hay artefactos
+de resultados ni una medicion valida de mejora para esta campana.
+
+El paso previo ahora invoca el mismo supervisor para ejecutar el chequeo SQL
+con su propio cluster desechable. La cobertura sigue obteniendo otro cluster
+nuevo; el modo no dedicado conserva su servicio anterior. El comando corregido
+aprobo **21/21 pruebas SQL en 3.477s** en VPS3 con el usuario del runner,
+PostgreSQL16, SCRAM y limite6GiB. El supervisor termino correctamente y elimino
+su servicio y cluster. Formato YAML, ASCII, limite de lineas y diff aprobaron.
+No se modificaron assertions, limites de tiempo, producto ni recursos.
+La nueva campana completa sigue pendiente.
+
+## PostgreSQL nativo para CI: 27 de septiembre de 2026
+
+Una comparacion focal secuencial uso el mismo ejecutable instrumentado, una
+base nueva por variante y las mismas opciones desechables de durabilidad.
+La prueba de alteraciones del catalogo aprobo **1/1** en cada variante:
+
+| Servicio PostgreSQL 16 | Prueba | Llamadas SQL | Ejecucion SQL | Trabajo JIT |
+| --- | --- | --- | --- | --- |
+| Contenedor rootless Alpine | 40.747s | 53718 | 10.010s | 0 |
+| Paquete nativo Ubuntu | 21.103s | 53718 | 4.925s | 0 |
+
+La reduccion focal fue **48.2%**. Cambian transporte, distribucion y ubicacion
+de datos; la comparacion no atribuye toda la diferencia a la red. Tampoco
+acredita una reduccion equivalente del CI completo bajo concurrencia.
+La optimizacion temporal de compilacion anterior no mostro una ganancia:
+82.59s de compilacion y 40.86s en la prueba; no se aplico al repositorio.
+
+El nuevo supervisor conserva PostgreSQL16, SCRAM, loopback, limite6GiB y
+bases independientes. Las cinco pruebas de control se escribieron primero,
+fallaron por ausencia del helper y luego aprobaron **5/5**. Cubren fallo de
+arranque, propagacion del resultado, cancelacion, rechazo de limpieza ajena
+y estado de salida por SIGTERM.
+
+En VPS3, el supervisor real verifico rechazo de una contrasena incorrecta,
+aislamiento entre sus tres bases, SCRAM, loopback sin socket Unix y el limite
+systemd de 6GiB. La prueba de catalogo aprobo **1/1**; supervisor mas prueba y
+limpieza tardaron **21.45s**. Otros dos recorridos focales confirmaron que un
+comando fallido conserva salida **7** y SIGTERM conserva salida **143**.
+En los tres casos se cerraron el puerto y el servicio, se retiro el marcador
+y se elimino solo el cluster propio. La campana completa con Rust y navegador
+simultaneos queda pendiente; no se aplican nuevas cifras de cobertura aun.
+
+## Campana completa en servidores propios: 27 de septiembre de 2026
+
+La cabeza `5e1bc9b` aprobo [CI 36295738154](https://github.com/eddndev/TT2026-B136/actions/runs/36295738154)
+y [Web 36295738149](https://github.com/eddndev/TT2026-B136/actions/runs/36295738149),
+incluidos sus checks agregados. Los JUnit contienen **3049 Rust**, **359 de
+navegador simulado** y **43 reales** aprobados, sin fallos ni duplicados.
+Nextest conserva las dos pruebas ignoradas previamente declaradas; no forman
+parte de las 3049 ejecutadas. La cobertura por lineas aprobo los umbrales de
+90%: domain **97%**, application **95%**, infrastructure **93%**.
+
+| Medicion | Tiempo |
+| --- | --- |
+| CI completo, desde creacion hasta ultimo check | 13m12s |
+| Web completo, desde creacion hasta ultimo check | 11m15s |
+| Ejecucion Rust instrumentada | 738.57s |
+| Compilacion instrumentada caliente | 0.19s |
+| Generacion del reporte de cobertura | aproximadamente 6s |
+| Gate agregado de cobertura | 8s |
+| Navegador real en VPS3, 13 casos, job completo | 6m46s |
+
+El coste dominante sigue siendo ejecutar Rust, no compilar ni generar el
+reporte. Los slots acumulan 11653.64 segundos de pruebas; divididos entre
+16 dan 728.35s, cercanos a los 738.57s medidos. Reordenar las mismas pruebas
+sin reducir su coste dificilmente eliminaria los tres minutos restantes.
+El objetivo aproximado de diez minutos sigue pendiente; esta campana es el
+checkpoint completo reproducido para comparar cambios posteriores.
+
+Durante sus ventanas de jobs, VPS3 promedio **6.59 CPU**, alcanzo **27.73 GiB**
+y registro ocho eventos MemoryHigh, sin OOM ni swap. VPS2 promedio **3.12 CPU**,
+alcanzo **5.78 GiB**, sin MemoryHigh u OOM. VPS1 alcanzo **4.49 GiB**, registro
+918 eventos MemoryHigh y un evento max, sin OOM; su swap pico fue 0.29 GiB.
+No se aumentaron recursos. La cache y los artefactos permanecen conservados.
+
+Una comprobacion focal posterior ejecuto exactamente una prueba costosa de
+integridad del catalogo con PostgreSQL desechable y pg_stat_statements:
+**1/1 PASS en 40.80s**, 53718 llamadas y cero funciones compiladas mediante
+JIT. No acredita el conjunto ni reproduce la concurrencia de CI; no aporta
+evidencia para desactivar JIT y ese ajuste no se aplico.
+
+## Sincronizacion de respuesta MFA: 27 de septiembre de 2026
+
+[Web 36294895911](https://github.com/eddndev/TT2026-B136/actions/runs/36294895911)
+aprobo los **13 escenarios** de VPS3 simultaneamente con Rust en **6m42s**.
+La compilacion caliente tardo 0.15s y el navegador 224.96s; administracion
+aprobo en 37.18s y participantes en 29.44s, ambos dentro de sus 60s originales.
+VPS3 promedio 6.61 CPU y alcanzo 27.21 GiB sin MemoryHigh, OOM ni swap. Esto
+confirma esa particion, no el conjunto: la cancelacion posterior interrumpio
+los demas gates.
+
+La segunda particion en VPS2 aprobo nueve escenarios y fallo al iniciar
+`hearing-sentencing.spec.mjs`. El helper comprobo el encabezado de inicio
+durante cinco segundos mientras la pagina seguia mostrando MFA en estado
+`Verificando...`; no se habia recibido una respuesta de autenticacion fallida.
+La captura no permite afirmar que esa solicitud finalmente habria aprobado.
+Una regresion controlada usando el helper real reprodujo el fallo con una
+respuesta MFA valida demorada seis segundos.
+
+El helper ahora espera la respuesta POST de recuperacion, exige HTTP 200 y
+despues comprueba el mismo encabezado. La espera HTTP usa el presupuesto
+existente de Playwright; la assertion visual conserva cinco segundos y cada
+escenario real conserva su limite total de 60s. No reintenta solicitudes ni
+cambia producto, criptografia o recursos. La regresion fallo antes del cambio
+y luego aprobo **1/1 en 13.0s**, incluido el arranque local, con un worker.
+Formato, ASCII, limite de lineas y diff aprobaron. El listado conserva los
+358 casos simulados anteriores y agrega solo esta regresion: **359** en total.
+Los 43 escenarios reales no cambian; la validacion real conjunta sigue pendiente.
+
+## Reequilibrio de familias reales: 27 de septiembre de 2026
+
+[Web 36293965586](https://github.com/eddndev/TT2026-B136/actions/runs/36293965586)
+confirmo el checkout corregido y aprobo los **12 escenarios** de la tercera
+particion en VPS3, simultaneamente con Rust. Su job completo tardo **6m52s**:
+47.43s de compilacion y 191.58s de navegador, mas preparacion, servicios y
+publicacion de resultados. Participantes aprobo en **35.23s**, dentro de sus
+60s originales. Esto acredita esa particion, no la campana completa.
+
+La primera particion en VPS2 agoto los 60s de administracion de expedientes
+tras recorrer conflictos y cierre; sus respuestas fallidas fueron solo los
+409 esperados. La cancelacion detuvo el resto. La preparacion administrativa
+habia tardado 50s. VPS2 promedio **2.94 CPU**, alcanzo **5.32 GiB**, sin eventos
+MemoryHigh, OOM ni throttling de cuota; registro 53.99s de presion CPU parcial
+y 15.95s completa durante la ventana de jobs. En VPS3 el conjunto promedio
+**6.74 CPU**, alcanzo **26.96 GiB**, sin MemoryHigh, OOM ni swap. No se aumentan
+recursos ni slots a partir de esta campana parcial.
+
+Se mueve solo la familia administrativa, con su preparacion, a la tercera
+particion. Etapas/plazos permanecen en la primera. No se agrega otro runner
+ni se modifican escenarios, timeouts, assertions, producto o criptografia.
+La comprobacion nueva del plan fallo antes del cambio y despues aprobaron
+**11/11** comprobaciones focales de seleccion y autenticacion de fixtures.
+Los listados reales de Playwright preservan las mismas **43 identidades** de
+la referencia completa, ahora **13/17/13**, sin duplicados. Formato, ASCII,
+limite de lineas y diff aprobaron. El escenario administrativo sin cambios
+aprobo **1/1 en 22.3s** en VPS3, usando la nueva preparacion de su particion y
+el limite original de 60s. Esta comprobacion focal fue aislada de Rust;
+la campana conjunta sigue pendiente.
+
+## Permisos del checkout del runner: 27 de septiembre de 2026
+
+[Web 36293132814](https://github.com/eddndev/TT2026-B136/actions/runs/36293132814)
+fallo en ocho segundos durante el checkout del nuevo runner de VPS3, antes
+de ejecutar pruebas. La preparacion manual habia dejado `output/` con
+propietario root y modo 0755, aunque su hijo `output/tmp` pertenecia al runner.
+Una comprobacion como `tt-runner` reprodujo `PermissionError` al crear un
+directorio dentro de ese padre. Se corrigio exclusivamente su propietario;
+despues aprobaron la creacion y eliminacion recursiva de un directorio de
+prueba y la comprobacion de escritura/recorrido de todos los directorios.
+El target persistente de Cargo permanece intacto.
+
+La cancelacion automatica detuvo los demas jobs; el ultimo termino 38 segundos
+despues del job fallido. Los diagnosticos de navegador subidos por ese job
+eran restos de la comprobacion focal anterior, no resultados de esta campana;
+se retiraron del checkout. Esta ejecucion no acredita pruebas ni rendimiento.
+No se cambiaron producto, pruebas, timeouts o recursos. El checkout completo
+y la ejecucion concurrente quedan pendientes de la siguiente campana.
+
+## Reparto de navegador entre servidores: 27 de septiembre de 2026
+
+[Web 36291943072](https://github.com/eddndev/TT2026-B136/actions/runs/36291943072)
+repitio el timeout total de participantes, ahora al final de los controles de
+permisos. La cancelacion automatica detuvo ambos workflows. En la ventana
+activa muestreada, VPS2 obtuvo **4.15 CPU** y alcanzo **6.33 GiB**, con cero
+eventos nuevos MemoryHigh u OOM y 0.04 GiB de swap. La prioridad elimino la
+presion de memoria observada antes, pero no resolvio el tiempo del escenario.
+No se acredita una campana completa ni una mejora del total.
+
+La matriz ahora asigna las particiones reales 1 y 2 a VPS2 y la 3 a un runner
+independiente de VPS3. Conserva los mismos 43 escenarios, fixtures, un worker
+por job y todos los gates. VPS3 mantiene sus 16 slots Rust y ocho CPU; el
+presupuesto conjunto pasa a MemoryHigh 28 GiB y MemoryMax 30 GiB para incluir
+el navegador, dejando 2 GiB fuera del limite para el sistema. La ventana Rust
+anterior alcanzo 24 GiB, sin OOM ni swap. Se medira la contencion conjunta en
+la siguiente campana antes de acreditar el cambio.
+
+Se prepara una sola vez el target independiente del nuevo runner antes de
+medir ejecuciones calientes. Ese coste de instalacion y compilacion se
+registra aparte; no se presenta como parte de una mejora del tiempo frio.
+La compilacion inicial del target nuevo termino en **1m54s** usando un
+compilador. Chromium abrio una pagina y PostgreSQL/Redis desechables pasaron
+la comprobacion con el usuario real del runner. La matriz paso Actionlint;
+no se repitio una suite local. La comprobacion focal inicial detecto Redis
+6.0 del sistema sin `GETDEL` y fallo en MFA antes del navegador; se actualiza
+la dependencia a **Redis 7.4.11** desde el repositorio oficial, sin alterar
+el adaptador de identidad. El mismo escenario completo de participantes
+aprobo **1/1 en 21.7s** con su presupuesto original de 60s. Las familias
+participantes, hechos, recursos y actividades se prepararon en 35s, 16.00s,
+16.26s y 17.40s respectivamente; hechos/recursos compartieron un lote. Esta
+comprobacion fue aislada, sin la suite Rust simultanea, por lo que no demuestra
+todavia el tiempo del reparto completo.
+
+## Sincronizacion de navegacion del cliente: 27 de septiembre de 2026
+
+[Web 36291240886](https://github.com/eddndev/TT2026-B136/actions/runs/36291240886)
+se detuvo en `deadline-navigation.spec.mjs`: el test forzaba el hash de plazos
+inmediatamente despues del clic en un expediente. Comprobar que no existia
+un enlace privado podia cumplirse antes de terminar `Cases.open`, que espera
+la respuesta de detalle y despues navega al resumen. Esa respuesta pendiente
+podia sobrescribir la redireccion a Inicio del hash denegado.
+
+La prueba ahora espera el encabezado del resumen antes de forzar el hash.
+Mantiene el enlace privado ausente, Inicio seleccionado y cero solicitudes
+privadas; no se cambio el producto, el timeout ni la cantidad de pruebas.
+La ejecucion focal con un worker aprobo **1/1** (19.9s incluyendo arranque);
+formato, ASCII y diff tambien pasaron. No se repitio una suite completa.
+La cancelacion cruzada detuvo Web y CI; esta campana no permite concluir si
+las prioridades nuevas resuelven el timeout previo del navegador real.
+
+## Preparacion reducida y contencion del host: 27 de septiembre de 2026
+
+En [Web 36290455092](https://github.com/eddndev/TT2026-B136/actions/runs/36290455092)
+las tres particiones superaron la autenticacion corregida y llegaron al
+navegador. La tercera preparo sus familias y servicios en aproximadamente
+cinco minutos, frente a los quince anteriores; la primera llego al navegador
+6m46s despues del inicio del workflow. No es todavia una medicion de Web
+completo: participantes agoto su presupuesto total de 60s al volver a iniciar
+sesion despues de verificar ediciones, archivo, historial y evidencia. Los
+unicos errores HTTP registrados fueron los conflictos 409 esperados.
+El mismo escenario habia aprobado en 30.113s en la campana completa previa.
+
+Durante la ventana muestreada del fallo, el grupo de CI en VPS2 obtuvo
+**4.05 CPU** de seis, sin throttling de cuota. El host tenia **8.5%** de CPU
+ociosa y el grupo acumulo **21.45s** de presion parcial de CPU. Alcanzar
+MemoryHigh de 6 GiB produjo **440** eventos y **0.60s** de presion completa
+de memoria, con un pico de **0.14 GiB** de swap y sin OOM. La presion de CPU
+es mayor que la de memoria. El runner original conservaba Nice=5; los dos
+adicionales usaban Nice=0. Esto no prueba por si solo la causa de todo el
+retraso, pero justifica medir prioridad consistente en el host compartido.
+
+La siguiente configuracion iguala Nice=0, aplica CPUWeight=1000 al slice de
+CI y mueve MemoryHigh a 6.5 GiB. Conserva seis CPU de cuota, MemoryMax=7 GiB,
+los tres workers, las pruebas y sus timeouts. Se comprobara su efecto en la
+siguiente ejecucion; no se acredita aun una reduccion del total ni un pase.
+Ambos workflows anteriores se cancelaron automaticamente tras el fallo.
+No se repitieron suites locales por este cambio operativo.
+
+## Recuperacion del provisionador y cancelacion cruzada: 27 de septiembre de 2026
+
+La preparacion selectiva publicada en `3ccf617` fallo antes del navegador:
+solicitaba el indice 8 de un conjunto de ocho codigos (indices 0 a 7), por
+lo que la peticion MFA omitia el campo y recibia HTTP 422. La correccion usa
+el codigo reservado del Owner de etapas cuando ese fixture existe; cuando
+no existe, usa el codigo de bootstrap que etapas no consumio.
+
+Cuatro pruebas focales importan el script real con transporte HTTP simulado,
+una por particion y otra sin particion. Las cuatro reprodujeron primero el
+codigo inexistente; tras la correccion pasaron **4/4**. Comprueban pertenencia
+al conjunto emitido, ausencia de colision con otros consumidores, uso de la
+sesion y cierre al fallar la preparacion. No ejecutan PostgreSQL ni acreditan
+la regresion completa remota, que sigue pendiente.
+
+El hook de [Web 36289758863](https://github.com/eddndev/TT2026-B136/actions/runs/36289758863)
+solicito cancelar ambos workflows a las 02:53:50 UTC. Web y
+[CI 36289758856](https://github.com/eddndev/TT2026-B136/actions/runs/36289758856)
+terminaron cancelados a las 02:54:07. Esta ejecucion confirma la cancelacion
+cruzada con CI todavia activo; no representa suites completas aprobadas.
+
+## Cache caliente y preparacion selectiva del navegador: 27 de septiembre de 2026
+
+[CI 36287708210](https://github.com/eddndev/TT2026-B136/actions/runs/36287708210)
+aprobo en **11m47s**; las **3049** pruebas Rust y los gates pasaron.
+Las **358** pruebas simuladas tambien aprobaron. En
+[Web 36287708222](https://github.com/eddndev/TT2026-B136/actions/runs/36287708222),
+el escenario real completo de administracion agoto sus 60s al llegar a la
+comprobacion de permisos. No se observo una respuesta de acceso indebido:
+el diagnostico registra los dos conflictos 409 esperados. La cancelacion
+automatica se solicito a las 02:27:53 UTC y los jobs restantes terminaron
+a las 02:28:12. CI ya habia concluido; se observo la cancelacion del workflow
+actual, no una cancelacion cruzada de otro workflow activo.
+
+La primera particion compilo en **2.93s**, pero luego preparo datos durante
+aproximadamente **15m17s**. En esa ventana VPS2 promedio **4.03 CPU**, con
+solo **0.01s** de throttling, 79.57s de presion completa de CPU y 0.55% de
+espera de E/S del host. Memoria maxima 5.95 GiB, swap 0.13 GiB y cero OOM.
+La cuota mayor elimino la limitacion anterior; no elimino la preparacion
+duplicada de todas las familias en los tres jobs.
+
+La nueva seleccion prepara solo las familias de los archivos asignados.
+Diez comprobaciones focales de planificacion y lotes aprobaron; se verifico
+primero el fallo de los nuevos casos. Playwright enumero **14 + 17 + 12 = 43**
+pruebas con las mismas identidades de la ultima campana real completa, sin
+duplicados. La extraccion de los comandos de preparacion de audiencias
+conserva su contenido. No se ejecuto una regresion completa local ni se
+cambiaron timeouts, aserciones o costes de credenciales. La ejecucion real y
+la mejora de tiempo con esta preparacion selectiva quedan pendientes.
+
+## Primera medicion en los tres VPS y cancelacion: 27 de septiembre de 2026
+
+[CI 36286314852](https://github.com/eddndev/TT2026-B136/actions/runs/36286314852)
+aprobo en **13m13s**. El job Rust duro **11m42s**; Coverage espero al runner
+de soporte. La compilacion release fria tomo **7m10s**, seguida por los
+checks restantes en ese mismo runner. No fue una regresion Rust de veinte
+minutos.
+
+[Web 36286314906](https://github.com/eddndev/TT2026-B136/actions/runs/36286314906)
+tuvo el fallo de sincronizacion descrito abajo y se cancelo. Los jobs reales
+seguian preparando servicios y fixtures. En el primero, compilar Rust desde
+cero tomo **6m57s**. Las tres particiones repetian esa preparacion bajo una
+cuota conjunta de cuatro CPU. Durante la ventana de fixtures muestreada,
+VPS2 promedio **3.62 CPU**, acumulo **276.35s** de throttling y **107.98s** de
+presion completa de CPU; la espera de E/S del host fue **0.45%** y no hubo
+OOM. El muestreo completo registro 4141 eventos MemoryHigh y hasta 0.31 GiB
+de swap en el grupo del runner. CPU y compilacion fria explican el retraso;
+no hay evidencia de disco como cuello dominante.
+
+La siguiente campana conserva los targets ya compilados y eleva el presupuesto
+conjunto de VPS2 a **6 CPU**, MemoryHigh **6 GiB** y MemoryMax **7 GiB**,
+dentro de sus seis vCPU y aproximadamente doce GiB fisicos. El efecto sobre
+tiempo, presion y servicios compartidos sigue pendiente de medicion.
+
+Se configuro cancelacion de CI/Web de la misma revision al fallar un check,
+fail-fast de matrices/Nextest y un fallo maximo de Playwright. La suite focal de cinco casos
+del helper de cancelacion fallo antes de implementarlo y aprobo despues, cubriendo alcance y errores de API; no cancelan runs reales. La
+cancelacion automatica completa aun debe observarse en Actions cuando haya
+un fallo. No se redujo ningun test, asercion ni umbral de cobertura.
+
+## Espera de preparacion de actividades: 27 de septiembre de 2026
+
+La primera campana completamente alojada en los VPS encontro un fallo en
+`resource-activities-conflict.spec.mjs`: esperaba revision 4 pero leyo 3 de
+la peticion anterior. El test inspeccionaba inmediatamente el registro de
+peticiones despues del click de preparacion asincrona. La interfaz solo
+muestra `Confirmar vinculo` cuando recibe y valida el nuevo borrador.
+
+La correccion espera ese boton antes de inspeccionar el comando, igual que
+la prueba existente de recuperacion del mismo flujo. Mantiene todas las
+aserciones sobre revision actual, fuentes historicas y confirmacion, sin
+cambiar producto, timeouts ni reintentos. La prueba exacta aprobo **1/1 en
+9.4s**, con un worker local y temporales en disco. Prettier, ASCII, tamano y
+diff checks aprobaron. La regresion remota de esta correccion queda pendiente;
+la campana previa continua para conservar sus resultados y caches frias.
+
+## Regresion completa y bloqueo de jobs finales: 27 de septiembre de 2026
+
+En la cabeza `14dcf1d`, [CI 36284539265](https://github.com/eddndev/TT2026-B136/actions/runs/36284539265)
+ejecuto correctamente las **3049** pruebas Rust en **652.355s**, con dos
+ignoradas y compilacion instrumentada reutilizada de **0.16s**, y
+[Web 36284539264](https://github.com/eddndev/TT2026-B136/actions/runs/36284539264)
+ejecuto correctamente las **358** simuladas y **43** reales. La comparacion
+de JUnit confirma las mismas identidades, sin duplicados ni fallos, respecto
+a la campana completa anterior. La correccion de sincronizacion de
+`stage-adoption.spec.mjs` queda asi verificada en el navegador real.
+
+Ambos workflows terminaron con fallo porque **Coverage** y el agregado
+**Browser with real services** no iniciaron. GitHub atribuyo el rechazo a
+pagos recientes fallidos o al limite de gasto; ambos jobs carecen de pasos
+ejecutados. No es un fallo de las pruebas. Como comprobacion adicional se
+ejecuto el gate local sobre el LCOV descargado de esa misma cabeza:
+domain **97%**, application **95%**, infrastructure **93%**, todos sobre
+el umbral de 90%. Esa comprobacion no sustituye los gates de Actions.
+
+La siguiente configuracion traslada CI y Web a los servidores propios, segun
+[ADR 0052](adr/0052-owned-ci-runners.md). Los siete runners se registraron
+en linea. Chromium abrio una pagina tanto en el contenedor de VPS1 como
+nativamente en VPS2. Actionlint y la sintaxis del nuevo helper de cache
+aprobaron; el helper tambien creo caches y temporales accesibles con las
+cuentas reales de los runners. No se repitieron suites completas locales.
+Quedan pendientes la
+campana remota con esta topologia y la comparacion de tiempos frios/calientes;
+no se atribuye una mejora de rendimiento a la migracion sin medirla.
+
+## Dieciseis slots y sincronizacion de navegacion: 27 de septiembre de 2026
+
+[CI 36283718718](https://github.com/eddndev/TT2026-B136/actions/runs/36283718718)
+aprobo en **11m54s**. Las **3049** pruebas Rust pasaron, con dos ignoradas,
+en **665.174s** y compilacion instrumentada reutilizada de **0.15s**. Todos
+los gates de CI aprobaron. La mejora frente a doce slots fue de veinte
+segundos; no justifica seguir aumentando paralelismo sin otra causa medida.
+
+CPU promedio **6.56**, mayor promedio de muestra **7.14**, memoria cargada
+maxima **21.05 GiB**, PostgreSQL **3.79 GiB** y conexiones maximas **56**.
+No hubo OOM, swap ni eventos de limite de memoria. El throttling acumulado
+fue 0.0015s. PSI de memoria registro menos de un milisegundo de presion; el
+muestreo no muestra saturacion de memoria o E/S. Estos datos no equivalen a
+que todas las pruebas usen ocho cores de forma continua.
+
+[Web 36283718728](https://github.com/eddndev/TT2026-B136/actions/runs/36283718728)
+termino con fallo: las **358** pruebas simuladas y **42 de 43** reales pasaron.
+La identidad exacta de las suites se conserva. `stage-adoption.spec.mjs`
+esperaba el inicio tras forzar una ruta de personal para un cliente, pero la
+captura mostro el resumen del expediente. El test cambiaba el hash justo
+despues del click que inicia una consulta asincrona; comprobar que el enlace
+no existe no esperaba a que concluyera esa apertura. Su finalizacion podia
+sobrescribir la navegacion que la prueba intentaba comprobar.
+
+La correccion espera el encabezado del resumen antes de comprobar los enlaces
+y forzar la ruta. Conserva el retorno esperado al inicio y la asercion de cero
+consultas a etapas, sin ampliar timeouts ni agregar reintentos. La prueba
+focal existente `Client neither navigates nor requests staff stages` aprobo
+con un worker local; ya empleaba esa misma espera. Prettier y diff checks
+aprobaron. La prueba real corregida y la regresion de la nueva cabeza quedan
+pendientes en CI; no se repitio una suite completa local.
+
+## Doce slots y cache Web caliente: 27 de septiembre de 2026
+
+[CI 36282244911](https://github.com/eddndev/TT2026-B136/actions/runs/36282244911)
+aprobo en **12m14s** desde creacion hasta actualizacion final. Las **3049**
+pruebas Rust pasaron, con dos ignoradas, en **683.441s**; la compilacion
+instrumentada reutilizada tomo **0.17s**. La generacion de cobertura tomo
+unos seis segundos y los gates continuaron aprobados. La identidad exacta
+de todas las pruebas coincide con la campana anterior.
+
+[Web 36282244873](https://github.com/eddndev/TT2026-B136/actions/runs/36282244873)
+aprobo en **10m03s**, con las mismas **358** pruebas simuladas y **43** reales.
+La cache caliente redujo la compilacion real a **22.43-50.48s**. El job real
+mas lento compilo en 43.32s, preparo fixtures en aproximadamente 4m44s y
+corrio el navegador en 3.4 minutos. Web alcanzo el objetivo aproximado una
+vez; falta confirmar estabilidad tras integrar. Rust todavia supera ese tiempo.
+
+El muestreo de pruebas registro CPU promedio **6.19**, maximo promedio de
+muestra **6.69**, y throttling acumulado **11.42s**. PostgreSQL alcanzo
+**46** conexiones: predominan estados de espera del cliente y trabajo activo,
+con solo dos observaciones de espera por bloqueo consultivo. Los intervalos
+son muestras de 15s, no un registro exhaustivo de cada espera.
+
+La memoria cargada al padre alcanzo **23.93 GiB**: aproximadamente 21.02 GiB
+de archivos, 2.44 GiB de memoria de kernel recuperable y 0.44 GiB anonima.
+Hubo nueve eventos MemoryHigh y ninguno de limite maximo u OOM, sin swap.
+PostgreSQL alcanzo 3.64 GiB dentro de sus 6 GiB. El host registro 0.032% de
+espera por E/S y 0.003% de steal; no se atribuye el retraso a disco saturado.
+
+La siguiente medicion usa **16 slots** y una cuota de **8 CPU**, manteniendo
+26 GiB de memoria maxima y 24 GiB para MemoryHigh. Las cinco comprobaciones
+focales de aislamiento y rechazo de indices invalidos fallaron primero con
+el limite anterior y luego aprobaron. Actionlint aprobo. La regresion remota
+y las mediciones con esta configuracion siguen pendientes; no se afirma que
+16 slots cumplan ya el objetivo ni se repitio una suite completa local.
+
+## Memoria PostgreSQL y tres particiones Web: 27 de septiembre de 2026
+
+La ejecucion [CI 36281044569](https://github.com/eddndev/TT2026-B136/actions/runs/36281044569)
+aprobo en **13m52s**, con **3049** pruebas aprobadas y dos ignoradas. Las
+pruebas instrumentadas tomaron **781.391s**, compilacion reutilizada **0.25s**
+y generacion del informe unos seis segundos. Los gates conservaron el 90%
+por crate; dominio, aplicacion e infraestructura mostraron **97/95/93%**.
+No hay mejora material de Rust respecto de la ejecucion anterior.
+
+[Web 36281044607](https://github.com/eddndev/TT2026-B136/actions/runs/36281044607)
+aprobo en **11m33s**, frente a 13m25s. La union JUnit conserva **358** pruebas
+simuladas y **43** reales, sin duplicados ni fallos. El reparto real fue
+**15+16+12**. Los jobs reales compilaron en 2m10s a 2m15s; el mas lento preparo
+fixtures en unos cinco minutos y ejecuto navegador en 3.3 minutos. La cache
+con clave nueva estaba fria y quedo guardada; su mejora con cache caliente
+sigue pendiente de medir.
+
+La memoria cargada al cgroup padre alcanzo **21.35 GiB** y PostgreSQL
+**3.44 GiB**, con limite de 6 GiB. No hubo eventos de limite, OOM ni swap.
+CPU promedio **5.44 cores**, mayor promedio de muestra de 15s **5.97**, y
+throttling acumulado **1.06s**. La ampliacion elimino la presion del limite
+previo, pero no redujo el tiempo de Rust. Docker/rootless uso 1.06 cores.
+
+Una microprueba desechable de ocho clientes consultando `SELECT 1` comparo
+TCP con socket Unix, alternando dos muestras de diez segundos por transporte.
+TCP obtuvo 40.3-41.3 mil consultas/s y socket 42.1-43.2 mil consultas/s. La
+pequena diferencia no demuestra un cuello de botella de transporte en la
+suite real; no se cambia su conexion basandose solo en esa microprueba.
+
+Siguiente medicion: doce slots, mismos limites de 7 CPU y 26 GiB, PostgreSQL
+6 GiB. Cinco comprobaciones focales de URLs independientes, indices Redis y
+rechazo de configuraciones invalidas pasaron tras comprobar primero el fallo
+con doce slots. Actionlint aprobo. La regresion remota y el muestreo de esperas
+PostgreSQL quedan pendientes; no se repitio una suite completa local.
+
+## Ocho slots y limites por servicio: 26 de septiembre de 2026
+
+La ejecucion [36279736231](https://github.com/eddndev/TT2026-B136/actions/runs/36279736231)
+aprobo todas las pruebas y cobertura, en aproximadamente **13m50s** desde la
+creacion hasta finalizar Coverage. Los **3049** casos pasaron, con dos
+ignorados, en **782.456s**; el build instrumentado reutilizado tomo **0.17s**.
+La union de reportes Web conserva **358** pruebas simuladas y **43** reales,
+todas aprobadas. El [workflow Web](https://github.com/eddndev/TT2026-B136/actions/runs/36279736239)
+tardo aproximadamente **13m25s**: no mejoro materialmente frente a 13m22s.
+En el shard real mas lento, la compilacion tomo 2m16s, la preparacion posterior
+5m04s y las pruebas cinco minutos. La nueva concurrencia de fixtures paso la
+regresion, pero no se acredita como mejora de tiempo global.
+
+El muestreo de ocho slots registro **5.39 CPU** de promedio, maximo promedio
+de muestra **6.16**, y **0.82s** acumulados de throttling durante el intervalo.
+La memoria cargada al grupo llego a **18.18 GiB**, sin OOM ni swap. Los contadores
+locales identificaron al contenedor PostgreSQL: llego a su limite de **2 GiB**
+y registro **9175** eventos `memory.events.local:max`. El cgroup padre no
+registro eventos max locales. El contenedor PostgreSQL uso unas 3.23 CPU y el
+servicio Docker/rootless alrededor de 1.03 CPU. Son observaciones; el efecto
+de ampliar el limite aun requiere una nueva medicion.
+
+El siguiente ajuste aumenta PostgreSQL a **6 GiB**, dentro del presupuesto
+conjunto de 26 GiB, y conserva ocho slots. Web real pasa a tres shards con
+cache de crates del workspace ademas de dependencias; siempre ejecuta Cargo
+sobre la revision seleccionada. Actionlint y la enumeracion disjunta de todas
+las pruebas reales validan el reparto; la regresion remota queda pendiente.
+No se cambiaron tests, umbrales de cobertura ni limites de produccion.
+
+## Seis slots y navegador dividido: 26 de septiembre de 2026
+
+La ejecucion [36278172116](https://github.com/eddndev/TT2026-B136/actions/runs/36278172116)
+aprobo en **14m47s**, con **3049/3049** pruebas y dos ignoradas. La ejecucion
+instrumentada tomo **839.417s** y reutilizo compilacion (0.16s). La mejora
+sobre los 16m45s calientes anteriores fue de 1m58s; no alcanzo diez minutos.
+
+El [workflow Web](https://github.com/eddndev/TT2026-B136/actions/runs/36278172087)
+aprobo en **13m22s**. Los reportes JUnit confirman las **358** pruebas simuladas
+y **43** reales sin fallos. El gate de las simuladas termino en 6m46s. En la
+particion real mas lenta, la compilacion tomo 2m27s, la preparacion posterior
+unos 5m12s y el navegador 4.6 minutos. La preparacion domina ahora ese camino.
+
+Durante el tramo de pruebas, el cgroup conjunto de VPS3 uso **4.79 CPU** de
+promedio y **5.24 CPU** como mayor promedio de muestra de 15 segundos. No hubo
+throttling de CPU, OOM ni swap. El maximo de memoria cargada al cgroup fue
+**16.60 GiB**, incluyendo hasta 14.80 GiB de cache de archivos; no equivale a
+RSS. Aumentaron eventos jerarquicos de limite de memoria sin alcanzar el
+limite agregado: la siguiente medicion recoge tambien los subgrupos para
+identificar su origen. No se atribuyen esos eventos a un servicio sin evidencia.
+
+Siguiente ajuste: ocho slots Rust conservando limites del host, preparacion
+remota de fixtures independientes en lotes de dos y debug de lineas para el
+build del navegador. Cuatro tests focales de concurrencia, orden local,
+rechazo de limites y drenaje ante fallo fallaron antes de agregar el helper y
+aprobaron despues. Actionlint y diff checks aprobaron. La siguiente regresion
+remota queda pendiente; no se repitio una suite completa local.
+
+## Medicion completa y siguiente ajuste de CI: 26 de septiembre de 2026
+
+La campana [36275446647](https://github.com/eddndev/TT2026-B136/actions/runs/36275446647)
+aprobo con cuatro slots: **19m55s** con compilacion fria, **3049/3049** pruebas
+ordinarias aprobadas y dos ignoradas, **953.784s** de ejecucion instrumentada.
+Los gates por crate conservaron el 90% exigido; los porcentajes mostrados
+fueron 97% dominio, 95% aplicacion y 93% infraestructura.
+
+La siguiente ejecucion de main,
+[36276646491](https://github.com/eddndev/TT2026-B136/actions/runs/36276646491),
+aprobo en **16m45s** con cache reutilizada. Su
+[workflow Web](https://github.com/eddndev/TT2026-B136/actions/runs/36276646536)
+aprobo en **14m01s**: 358 pruebas con API simulada tomaron 12 minutos; 43
+pruebas con servicios reales tomaron 7.5 minutos, mas preparacion de fixtures.
+Estas mediciones sustituyen el estado pendiente de las secciones historicas.
+
+El siguiente ajuste propone seis slots Rust y dos particiones por suite de
+navegador, manteniendo los gates y un worker por particion. La validacion
+estatica de workflows y los **19/19** tests de helpers CI aprobaron localmente.
+La enumeracion de Playwright comprueba que las particiones son disjuntas y
+que su union conserva las 358 y 43 pruebas originales. Esto comprueba la
+seleccion, no sustituye la ejecucion remota. El tiempo con seis slots sigue
+pendiente; no se afirma todavia un CI de diez minutos.
+
+## Validacion del nuevo host principal de CI: 26 de septiembre de 2026
+
+El nuevo host Ubuntu 22.04, con 8 vCPU y 32 GB, cuenta con un runner exclusivo
+del repositorio y Docker rootless bajo la misma slice de systemd: 7 CPU,
+`MemoryHigh=24G`, `MemoryMax=26G`. Una cuenta independiente queda disponible
+para futuros servicios. Los runners anteriores se conservan como respaldo.
+
+Se instalaron CPython 3.12.14 separado del interprete del sistema, clientes
+PostgreSQL 16.15, Rust 1.98.1, cargo-llvm-cov 0.9.1, Nextest 0.9.146 y qpdf
+12.4.1. El interprete satisface la comprobacion con entorno vacio. Los
+archivos de Python, runner, herramientas Cargo y qpdf se verificaron contra
+los hashes de sus publicaciones antes de utilizarlos.
+
+`scripts/tests/check_nextest_pipeline.py --slots 4` aprobo **6/6 pruebas en
+0.604 s**, con **0.32 s** de compilacion del workspace pequeno. Cuatro casos
+de backend se sincronizaron para ejecutar simultaneamente y tomaron la misma
+clave consultiva contra bases distintas, sin superar el limite de bloqueo.
+PostgreSQL y Redis fueron contenedores desechables; ambos se retiraron al
+finalizar. Tambien se verificaron LCOV fresco y seis resultados JUnit.
+Es una comprobacion del aislamiento y del entorno, no un tiempo de CI del
+proyecto. La regresion completa y el objetivo de 10-20 minutos siguen pendientes.
+
+## Preparacion del runner dedicado: 26 de septiembre de 2026
+
+El modo opcional de [ADR 0050](adr/0050-isolated-test-slots.md) programa pruebas
+individuales con Nextest 0.9.146 y bases PostgreSQL e indices Redis por slot.
+La configuracion inicial usa cuatro slots, conserva todos los tests ordinarios
+y la cobertura requerida, y deja activos los dos runners anteriores mientras
+la variable `TT_CI_DEDICATED` no sea `true`. La provision del nuevo host y su
+regresion completa siguen pendientes; no hay una mejora de tiempo global
+medida ni se declara alcanzado el objetivo de 10-20 minutos.
+
+Verificacion fresca, con una sola suite local a la vez y `output/tmp` sobre
+el filesystem de disco del checkout:
+
+- Los nuevos casos de aislamiento y conteo de reportes fallaron antes de su
+  implementacion; tambien fallo inicialmente el caso que permite cuatro
+  compiladores conservando el limite de memoria. Despues aprobaron **19/19**
+  tests de los helpers CI.
+- `scripts/tests/check_nextest_pipeline.py`, ejecutado mediante
+  `scripts/test-backends.sh`, compilo un workspace pequeno y aprobo **3/3**
+  pruebas reales con un slot, PostgreSQL, Redis y cargo-llvm-cov. Verifico los
+  URLs aislados, el reporte LCOV y tres resultados JUnit. La primera prueba
+  detecto una ruta equivocada para JUnit; se fijo explicitamente el directorio
+  de Nextest y la comprobacion completa posterior aprobo.
+- La prueba real de infraestructura
+  `deadline_worker_guards::completion_audit_failure_rolls_back_revision_and_result_but_records_retry`
+  aprobo **1/1 en 6.641 s** bajo Nextest, con un slot y los servicios
+  desechables. Las otras 34 pruebas del ejecutable se filtraron para esta
+  comprobacion focal. La compilacion reutilizada tomo 0.16 s. Es evidencia
+  local del caso, no una medida de coverage ni de la campana remota completa.
+- actionlint, sintaxis Python/TOML, ASCII de scripts y `git diff --check`
+  aprobaron. No se repitio la suite completa ni el navegador por este cambio
+  de infraestructura de pruebas.
+
+## Sincronizacion de la navegacion del Cliente: 26 de septiembre de 2026
+
+El job de navegador de la ejecucion
+[36264358697](https://github.com/eddndev/TT2026-B136/actions/runs/36264358697)
+aprobo 42 de 43 pruebas. La comprobacion de permisos de participantes
+cambiaba el hash inmediatamente despues de pulsar un expediente, sin esperar
+la consulta asincrona de su detalle. La captura del fallo mostro el resumen
+del expediente donde se esperaba el inicio: la apertura pendiente podia
+competir con la navegacion de prueba hacia una ruta no permitida.
+
+El helper espera ahora que aparezca `Resumen del expediente` antes de
+intentar esa ruta como Cliente. Conserva la exigencia de volver al inicio,
+la ausencia de solicitudes de participantes y los limites de espera. No
+cambia la navegacion ni la autorizacion de la aplicacion.
+
+La prueba integrada `case-participants.spec.mjs` aprobo **1/1**, con un
+worker de navegador y servicios Rust, PostgreSQL y Redis desechables. El caso
+tomo 24.6 s y Playwright completo su ejecucion en 29.8 s; esos tiempos no
+incluyen la compilacion ni la preparacion de los servicios y fixtures.
+Prettier, la comprobacion sintactica de Node y `git diff --check` aprobaron.
+La campana completa del navegador sigue pendiente para esta correccion.
+
+## Contencion entre fixtures de infraestructura: 26 de septiembre de 2026
+
+En la ejecucion [36262186578](https://github.com/eddndev/TT2026-B136/actions/runs/36262186578),
+`Test (1/2)` y ambos jobs de Web aprobaron. `Test (2/2)` fallo en
+`deadline_worker_guards::completion_audit_failure_rolls_back_revision_and_result_but_records_retry`:
+la preparacion de su despacho encontro `ClassifiedPort::Busy` antes de
+inyectar el fallo de auditoria. PostgreSQL registro `lock_timeout` en
+`pg_advisory_xact_lock`; las otras 34 pruebas del ejecutable aprobaron.
+Coverage se omitio por la dependencia fallida.
+
+Los esquemas de prueba comparten una base de datos y el candado global de
+mutaciones auditadas. Dos pruebas independientes pueden retenerlo el tiempo
+suficiente para agotar el limite de un segundo del adaptador de despacho.
+El reparto de CI ahora pasa `--test-threads=1` a los ejecutables de
+infraestructura; conserva el paralelismo entre runners con bases separadas,
+los hilos propios de las pruebas concurrentes y los dos hilos del harness
+en los otros crates. No se cambia el protocolo de bloqueo de la aplicacion.
+
+La regresion del comando fallo antes del cambio y los 12 tests de helpers
+de CI aprobaron despues. La prueba Rust que habia fallado aprobo 1/1 en
+5.75 s con PostgreSQL y Redis locales desechables, un hilo de harness y
+directorio temporal sobre disco btrfs. Esta ejecucion focal no reproduce
+la carga completa del VPS. La suite completa y la union de cobertura deben
+aprobar en la nueva revision antes de integrar.
+
+## Python de los workers aislados: 26 de septiembre de 2026
+
+En la primera campaña distribuida,
+[Test (1/2)](https://github.com/eddndev/TT2026-B136/actions/runs/36258835813/job/108450635744)
+falló tras unos 38 minutos en
+`document_formats::isolated::tests::continuously_readable_input_does_not_pay_a_delay_per_pipe_chunk`.
+El worker de prueba encontró Python 3.9.25 después de limpiar su entorno;
+esa versión no expone `fcntl.F_SETPIPE_SZ`. Python 3.12 ya estaba instalado,
+pero solo se seleccionaba mediante el PATH de la sesión del runner.
+
+La prueba original reprodujo el fallo aisladamente en VPS1 en 0.03 s. Se
+seleccionó Python 3.12.14 mediante `/usr/local/bin/python3`, conservando el
+intérprete de la distribución en `/usr/bin/python3`. Después, el mismo binario
+instrumentado original aprobó las cinco pruebas de aislamiento en **0.31 s**,
+con dos hilos, directorio temporal en disco y el usuario acotado del runner.
+No se modificó el código Rust ni se amplió el límite de la prueba. VPS2
+también aprobó la comprobación con entorno vacío usando Python 3.12.3.
+
+El workflow comprueba ahora Python 3.12 o posterior y la constante de Linux
+antes de compilar. La preparación de nuevos hosts está documentada en
+[las operaciones del runner](ci-runner-operations.md). `actionlint` y
+`git diff --check` aprobaron. Estos resultados focales no sustituyen la
+suite completa ni el umbral de cobertura, todavía pendientes.
+
+## Distribucion del CI entre dos runners: 26 de septiembre de 2026
+
+El repositorio es privado y cuenta con dos runners dedicados en linea. El
+runner de VPS1 tiene un limite de 2 CPU y 4 GiB para su usuario y Docker
+rootless; el de VPS2 tiene 4 CPU y 6 GiB. El workflow propuesto asigna grupos
+de pruebas Rust disjuntos a `Test (1/2)` y `Test (2/2)`, cada uno con PostgreSQL
+y Redis desechables. El job Coverage solo inicia cuando ambos han aprobado y
+une la cobertura por linea antes de aplicar los umbrales actuales. La campaña
+extendida de despacho sigue siendo manual. Todavia no hay una medicion de
+duracion ni una aprobacion de CI para esta distribucion.
+La asignacion usa una proporcion de capacidad 2:3: VPS1 recibe los ejecutables
+rapidos y 27 grupos de infraestructura; VPS2 recibe los otros 39. Esa
+proporcion es inicial y debera contrastarse con la duracion real de ambos jobs.
+
+Antes de la primera ejecucion distribuida se detecto que VPS1 tenia las
+herramientas cliente de PostgreSQL 17, mientras el servicio de pruebas usa
+PostgreSQL 16. Se instalaron las herramientas 16 junto a las existentes y el
+workflow ahora exige esa version antes de iniciar la suite. La reproduccion
+local con cliente 18 y servidor 16 fallo en `pg_restore` por
+`transaction_timeout`; la misma prueba aprobo 1/1 en 5.97 s con cliente 16.
+La primera suite local se detuvo al encontrar esa incompatibilidad. La nueva
+ejecucion con herramientas compatibles aprobo la restauracion y la prueba
+concurrente corregida, pero fue interrumpida por el apagado del equipo; no es
+una aprobacion completa. Se publica con la campana completa pendiente en CI.
+Los 12 tests de los helpers de CI aprobaron. Una prueba minima con dos crates
+y dos ejecutables verifico que `cargo llvm-cov --no-report` acumula sus perfiles
+y que un unico reporte LCOV final incluye las seis lineas cubiertas de ambos.
+La generacion del reporte queda fuera del bucle de ejecutables para evitar
+repetir la agregacion de perfiles durante toda la campana.
+
+## Sincronizacion de la prueba concurrente: 26 de septiembre de 2026
+
+La ejecucion [36217187390](https://github.com/eddndev/TT2026-B136/actions/runs/36217187390)
+fallo despues de 79 minutos en
+`deadline_backend_concurrency::simultaneous_connections_commit_one_successor_and_one_audit_event`.
+El primer hilo esperaba al segundo con un limite de cinco segundos, pero la
+prueba abria y validaba la segunda conexion despues de iniciar el primero.
+Ambos participantes agotaron ese limite antes de probar la escritura
+concurrente. Las otras 38 pruebas del ejecutable aprobaron; Coverage se omitio
+al depender de Test. Los otros cinco checks de Rust y ambos de Web aprobaron
+para la misma cabeza. El fallo no demuestra un defecto en la escritura de
+revisiones ni una mejora de tiempo de CI.
+
+La prueba prepara ambas conexiones antes de iniciar los hilos y permite hasta
+30 segundos para que el sistema programe a ambos participantes. Ese limite no
+agrega espera cuando llegan normalmente. La prueba focal aprobo 1/1 en 9.90 s
+con PostgreSQL 16 desechable. La campana instrumentada completa sigue
+pendiente.
+
+## Bloqueo de migraciones por esquema: 26 de septiembre de 2026
+
+La apertura PostgreSQL tomaba un candado de migracion comun a todos los
+esquemas de una base de datos. Las pruebas de integracion crean esquemas
+independientes, por lo que dos aperturas se serializaban aunque sus tablas no
+se compartieran. La prueba nueva retuvo el candado anterior y el candado de un
+primer esquema: con el codigo previo, abrir un segundo esquema fallo por
+`lock_timeout` en 3.11 s. Con la clave basada en el OID del esquema, esa misma
+prueba aprobo en 0.43 s. Las dos pruebas del ejecutable
+`postgres_startup` aprobaron en 2.26 s con PostgreSQL desechable. El build
+ordinario del workspace tambien aprobo. El alcance y la limitacion de
+despliegues que mezclen binarios antiguos y nuevos estan en
+[ADR 0048](adr/0048-schema-scoped-migration-lock.md).
+
+La suite completa local con PostgreSQL y Redis desechables aprobo **3049
+pruebas**, con **2 ignoradas**, en **212 ejecutables**. Despues del ultimo
+ajuste de claridad en la prueba de arranque, su ejecutable aprobo de nuevo
+las 2 pruebas. `cargo fmt --all`, `cargo build --workspace --locked` y
+`cargo clippy --workspace --all-targets --locked -- -D warnings` aprobaron.
+Los tiempos de CI se mediran antes de atribuir una mejora global.
+
+## Diagnostico de la PR42: 25 de septiembre de 2026
+
+La ejecucion [35572138875](https://github.com/eddndev/TT2026-B136/actions/runs/35572138875)
+termino cancelada exactamente al limite de 90 minutos del job Test. Format,
+Lint, MSRV, Dependency policy, Release binary size y los dos jobs Web aprobaron;
+Coverage se omitio porque dependia de Test. No se observo una asercion fallida.
+La compilacion instrumentada de la primera campana tomo 13 min 47 s. Los
+primeros 121 ejecutables completos sumaron 75.39 min de pruebas, y el job se
+cancelo al empezar otro. Los grupos mas costosos fueron `deadline_suite_1`
+(989.84 s), `deadline_suite_2` (637.44 s), `deadline_suite_3` (529.28 s),
+`alert_suite_1` (527.04 s) y los dos grupos `case_suite` (350.38 y 340.10 s).
+Esta es evidencia historica de una campana incompleta, no un resultado global.
+
+La siguiente campana, con configuracion desechable de PostgreSQL y tres hilos,
+fallo en `alert_suite_1`: 24 pruebas aprobaron y
+`activation_audit_failure_rolls_back_inbox_outbox_and_plan_together` recibio
+un error `Busy` al adquirir el candado de auditoria antes de inyectar su fallo.
+El job termino en 15 min 35 s; Coverage se omitio. El grupo de alertas tardo
+538.23 s, frente a 527.04 s con dos hilos en la campana anterior. El candado
+de auditoria es comun a todos los esquemas de esa base de datos y el adaptador
+de alertas limita su espera a un segundo. Por eso se retiran los tres hilos;
+no hay evidencia de que hayan acelerado esa prueba. Web aprobo ambos jobs en
+[la ejecucion 36205760409](https://github.com/eddndev/TT2026-B136/actions/runs/36205760409)
+para la cabeza `9fd5110`. El resultado completo de Rust sigue pendiente.
+
+El build ordinario reutilizo su cache y registro 0 MiB como pico medido, por lo
+que la seleccion conservadora mantuvo un compilador. El grupo de memoria del
+runner registro cero eventos OOM, aunque supero el umbral MemoryHigh. Los logs
+de PostgreSQL muestran checkpoints frecuentes de miles de archivos. Para la
+siguiente campana se configuran solo sus bases desechables sin durabilidad de
+caida, se conservan dos hilos de pruebas dentro del mismo tope 3 CPU/5 GiB y se
+amplia temporalmente el tiempo maximo a 180 minutos para obtener el resultado
+completo. La razon y el riesgo estan en [ADR 0047](adr/0047-disposable-postgres-ci.md).
+Se medira el tiempo completo antes de afirmar una aceleracion o reducir el
+limite de tiempo. En una base PostgreSQL local desechable, la comprobacion
+previa de configuracion fallo con `on|on|on` y aprobo con `off|off|off` despues
+de aplicar el ajuste. Con esa configuracion, 17 pruebas focales de despacho
+aprobaron en **100.22 s de pruebas** (105.49 s incluyendo preparacion). Esta
+medicion local no reemplaza la regresion instrumentada del VPS.
+Tras volver a dos hilos, la suite local de alertas con PostgreSQL y Redis
+desechables y la misma configuracion no durable aprobo **25 pruebas en 79.78 s**,
+incluida la que habia fallado en CI. La diferencia de equipo e instrumentacion
+impide usar ese tiempo para estimar la duracion del VPS.
+
+La campana [36207460783](https://github.com/eddndev/TT2026-B136/actions/runs/36207460783),
+con dos hilos y PostgreSQL desechable, fue cancelada exactamente al limite de
+180 minutos. El ultimo grupo completo, `typed_suite_1`, aprobo 31 pruebas a
+las 04:09:21 UTC; el job entro en `typed_suite_2` y se detuvo 25 segundos
+despues. No aparece una asercion fallida. Los otros cinco checks de Rust y los
+dos de Web aprobaron para la misma cabeza `4649d43`; Coverage se omitio al
+depender de Test. El limite se amplia a 210 minutos para completar la campana
+y producir el reporte de cobertura. El candado de migracion pasa a ser por
+esquema segun [ADR 0048](adr/0048-schema-scoped-migration-lock.md), con la
+regresion local completa descrita arriba. El tiempo total nuevo sigue sin
+medirse: el aumento de limite no cuenta como una aceleracion.
+
+## Reduccion del costo de CI: 21 de septiembre de 2026
+
+Se sustituyen 537 ejecutables de integración por 203, conservando los archivos
+originales y sus casos. El inventario automatizado comprueba que cada archivo
+está registrado exactamente una vez. La revisión del cambio conserva los
+nombres de funciones y atributos de prueba e ignorado existentes.
+
+La caché instrumentada se conserva por configuración compatible; cada campaña
+elimina perfiles y reportes previos. La compilación posterior usa uno o dos
+trabajadores según la memoria medida durante el build ordinario, dentro del
+mismo límite de 5 GiB. Los fixtures de despacho reutilizan un repositorio durante
+la siembra sin compartir esquemas entre pruebas ni retirar validación de
+producción. Véase [ADR 0046](adr/0046-cached-ci-test-suites.md).
+
+La campaña anterior fue cancelada para aplicar esta corrección. No se cuenta
+como aprobada ni se promete un tiempo final hasta medir la nueva ejecución.
+El navegador permanece sin cambios en esta corrección.
+
+Comprobaciones ejecutadas en esta corrección:
+
+- Resolución y compilación de comprobación de todos los targets Rust mediante
+  `cargo fix --workspace --tests --locked --allow-dirty`, seguida de la misma
+  comprobación para la agrupación final de infraestructura. Solo se aplicaron
+  sugerencias de imports sobrantes introducidos al compartir fixtures.
+- 17 escenarios de despacho agrupados, con PostgreSQL/Redis desechables, un
+  compilador y un hilo: **17 aprobados en 108.23 s de pruebas**. Incluyen
+  rollback, concurrencia, permisos, corrupción del catálogo y reapertura.
+- `cargo clippy --workspace --all-targets --locked -- -D warnings`: aprobado
+  después de resolver atributos duplicados y módulos anidados compartidos.
+- Siete pruebas Python de limpieza/invalidez de caché y límites de memoria.
+- Dos ejecuciones de un proyecto mínimo: el binario conserva su fecha de
+  compilación y la cobertura baja de 11 a 8 líneas cuando la segunda campaña
+  deja de ejecutar una función. La prueba local usó cargo-llvm-cov 0.8.7;
+  CI fija 0.9.1 y valida allí el workspace completo.
+- Inventario de 203 ejecutables, `cargo fmt --all -- --check`, `git diff
+  --check` y actionlint. La regresión global y el umbral de cobertura quedan
+  para la nueva campaña de CI; no se presentan como aprobados todavía.
+
+## Preparacion de la prueba de despacho y CI: 21 de septiembre de 2026
+
+La prueba `deadline_dispatch_measurement` reutiliza un repositorio abierto al
+sembrar los plazos. Se mantienen una muestra obligatoria de 21 registros y una
+campaña manual de 240, ambas con límites 1, 20 y 100, igualdad de identificadores,
+cantidad de páginas y total de trabajos. La campaña extensa queda ignorada en
+la ejecución normal y se puede activar explícitamente; no se retiraron las
+pruebas de corrupción, permisos, reapertura o restauración.
+
+Comprobación focal local, PostgreSQL y Redis desechables, `CARGO_BUILD_JOBS=1`,
+`RUST_TEST_THREADS=1` y temporales privados en disco Btrfs:
+
+- RED: el target no compiló al solicitar el helper de repositorio reutilizable
+  antes de incorporarlo (`E0425`).
+- GREEN: `scripts/test-backends.sh cargo test -p infrastructure --test
+  deadline_dispatch_measurement -- --include-ignored --nocapture` aprobó los
+  dos casos en **25.32 s de ejecución de pruebas**, sin incluir compilación.
+  La campaña de 240 creó los 720 trabajos esperados y la de 21 creó 63.
+- Los logs locales quedaron en `output/ci-runner-verification/`. Este resultado
+  es una ejecución focal; no acredita todavía el tiempo de la suite completa
+  en el VPS ni permite comparar directamente velocidades de equipos distintos.
+
+El flujo de CI de [ADR 0045](adr/0045-single-pass-ci-and-dispatch-measurements.md)
+ejecuta la batería instrumentada una vez y entrega su reporte al control de
+cobertura. La campaña manual en vps2, con un hilo y el límite compartido de tres CPU y
+5 GiB, aprobó los 240 registros y 720 trabajos en **149.01 s de pruebas**.
+El job completo, incluida la primera compilación, tomó **7 min 34 s**.
+El control posterior falló antes de las pruebas porque la limpieza de caché
+había eliminado `rustup`. Se retiró esa acción del runner persistente y se
+conservan los artefactos de Cargo fuera del checkout. El cierre de la suite
+completa con esta corrección aún está pendiente. La primera compilación
+instrumentada terminó y la ejecución avanzó a infraestructura, pero se canceló
+la campaña que forzaba un solo hilo por su duración. Se conserva un solo
+compilador y una sola suite, con dos hilos de pruebas dentro de los mismos
+límites de CPU y memoria. No se contabiliza la campaña cancelada como aprobada.
+El recorrido de navegador real de la corrección del selector de responsables
+aprobó sus 43 escenarios en una campaña separada; no sustituye el cierre Rust.
+
 ## Costo de contrasenas: calibracion del 19 de septiembre de 2026
 
 El adaptador genera hashes Argon2id con tres pasadas, conservando 262144 KiB

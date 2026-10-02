@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod credential_trust_database_support;
-
+use crate::credential_trust_database_support;
 use std::process::Command;
 
 use application::credential_trust::{CredentialTrustExpectation, CredentialTrustStore};

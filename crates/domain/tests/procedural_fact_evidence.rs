@@ -1,4 +1,4 @@
-mod procedural_fact_support;
+use crate::procedural_fact_support;
 use domain::{procedural_facts::*, DomainError};
 use procedural_fact_support::*;
 

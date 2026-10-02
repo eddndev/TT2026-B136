@@ -3,7 +3,9 @@
 La política de admisión de soportes procesales se describe en
 [ADR-0024](adr/0024-isolated-document-format-admission.md). El entorno soportado
 es Linux x86_64. El servidor requiere una biblioteca qpdf 12.4.1 y realiza una
-comprobación real en el worker antes de abrir el puerto HTTP.
+comprobación real en el worker antes de abrir el puerto HTTP. Las nuevas cargas
+y versiones también requieren el decodificador multimedia descrito abajo;
+su política general está en [ADR-0058](adr/0058-bounded-general-document-admission.md).
 
 ## Preparar la biblioteca
 
@@ -39,10 +41,43 @@ Si el instalador o la comprobación de arranque falla, corregir la preparación
 antes de abrir tráfico. No sustituir la validación por una respuesta de éxito
 ni eliminar la verificación de versión para hacer pasar un documento.
 
+## Preparar el decodificador multimedia
+
+Seguir los requisitos y el origen fijado de
+[la guía de instalación multimedia](media-decoder-setup.md). Preparar una sola
+vez el prefijo con una cuenta que pueda escribirlo, fuera de la campaña de CI:
+
+```bash
+sudo python3 -B scripts/install_media_decoder.py \
+  --prefix /opt/tt-media --cache /var/cache/tt-media
+```
+
+En los siguientes arranques y campañas, verificar la instalación existente:
+
+```bash
+python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media
+```
+
+`--verify` es de solo lectura y comprueba ambos ejecutables y sus capacidades;
+no descarga, compila ni requiere acceso de escritura. No reemplazar un fallo
+por otro `ffmpeg` encontrado en el sistema ni recompilar esta dependencia en
+cada job. Para otro prefijo, usarlo también en la verificación y configurar
+rutas absolutas en el entorno de `serve`:
+
+- `TT_FFPROBE_PATH`, predeterminado `/opt/tt-media/bin/ffprobe`.
+- `TT_FFMPEG_PATH`, predeterminado `/opt/tt-media/bin/ffmpeg`.
+
+Los argumentos `--ffprobe-path` y `--ffmpeg-path` permiten indicar esas mismas
+rutas. La instalación y su verificación no sustituyen la validación del archivo
+cargado. Si la dependencia no está preparada, resolverlo antes de iniciar la API.
+
 ## Ejecutar las pruebas
 
-Las pruebas nativas requieren una biblioteca real. Una variable ausente no
-convierte sus pruebas en omisiones silenciosas:
+Las pruebas nativas PDF/DOCX requieren una biblioteca real. Las campañas de
+admisión general, API y navegador real requieren además el decodificador
+multimedia preparado y verificado, con las rutas anteriores si no se usa el
+prefijo predeterminado. Una variable ausente no convierte pruebas en omisiones
+silenciosas:
 
 ```bash
 export TT_TEST_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
@@ -60,7 +95,9 @@ sesiones PostgreSQL/Redis son desechables, según las instrucciones de
 
 ## Límites y diagnóstico
 
-Cada operación valida hasta dos soportes distintos. El worker recibe como
+Los límites de esta sección corresponden al validador PDF/DOCX de soportes
+procesales; los de admisión de nuevas cargas están en el ADR-0058 enlazado arriba.
+Cada operación de soportes valida hasta dos archivos distintos. El worker recibe como
 máximo 16 MiB por archivo, con 5 segundos de CPU, 256 MiB de espacio de
 direcciones y 10 segundos de tiempo transcurrido. Los DOCX comparten además
 64 MiB de expansión real y un millón de eventos XML. Una máquina cargada puede

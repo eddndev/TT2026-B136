@@ -1,9 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_support;
+use crate::{case_support, deadline_support};
 use application::{cases::*, deadlines::*};
 use deadline_support::{evaluation::inputs, *};
 use domain::{

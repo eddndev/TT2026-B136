@@ -1,5 +1,4 @@
-#[path = "procedural_fact_hearing_support/mod.rs"]
-mod support;
+use crate::support;
 use application::{hearing_results::*, procedural_facts::*};
 use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest, identity::UserId};
 use support::*;

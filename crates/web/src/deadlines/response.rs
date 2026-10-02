@@ -3,7 +3,7 @@ use crate::error::ApiError;
 use application::{deadline_currentness::DeadlineCurrent, deadlines::*};
 use domain::{cases::CaseId, crypto::Sha256Digest};
 use serde_json::{json, Value};
-pub(super) fn draft(
+pub(crate) fn draft(
     v: DeadlineDraft,
     case: CaseId,
     expected: &DeadlineHumanCommand,
@@ -57,7 +57,7 @@ pub(super) fn draft(
         "submission_digest":v.submission_digest.to_hex()
     }))
 }
-pub(super) fn submitted(
+pub(crate) fn submitted(
     v: &DeadlineDetail,
     expected: &DeadlineHumanCommand,
     digest: Sha256Digest,

@@ -49,14 +49,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         application::deadline_dispatch::DeadlineDispatchLimit::new(args.deadline_page_limit)?,
         std::time::Duration::from_millis(u64::from(args.deadline_poll_ms.get())),
     )?;
-    let format_validator = infrastructure::document_formats::IsolatedDocumentFormatValidator::new(
-        std::env::current_exe().context("cannot locate document validation worker")?,
-        fs::canonicalize(&args.qpdf_library).context("cannot locate native qpdf library")?,
-    )
-    .context("cannot configure document format validation")?;
-    format_validator
-        .check_configuration()
-        .context("document format startup check failed")?;
+    let (format_validator, admission) = crate::serve_document_validation::open(args)?;
     let signer_certificate = read(&args.signer_cert, "signer certificate")?;
     let signer_key = Zeroizing::new(read(&args.signer_key, "signer private key")?);
     let issuer_certificate = read(&args.ca_cert, "issuer certificate")?;
@@ -273,6 +266,17 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         deadline_clock.clone(),
     )
     .context("cannot open PostgreSQL deadline worker")?;
+    let dashboard = application::dashboard::DashboardService::new(
+        Arc::new(
+            infrastructure::PostgresDashboardStore::open(
+                &database_url,
+                deadline_hasher.clone(),
+                deadline_clock.clone(),
+            )
+            .context("cannot open PostgreSQL dashboard store")?,
+        ),
+        identity.clone(),
+    );
     let agenda = application::agenda::AgendaService::new(
         Arc::new(
             infrastructure::PostgresAgendaStore::open(
@@ -313,6 +317,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         repository,
         identity.clone(),
         processor,
+        Arc::new(admission),
         Arc::new(SystemClock::new()),
     );
     let alerts = crate::serve_alert_composition::open(
@@ -331,6 +336,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         identity.clone(),
         Arc::new(SystemClock::new()),
     );
+    let resource_deadlines =
+        crate::serve_resource_activities::open_deadlines(&database_url, identity.clone())?;
     let router = web::api_router(
         Arc::new(workflow),
         identity,
@@ -345,8 +352,10 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             procedural_facts: Arc::new(procedural_facts),
             procedural_resources: Arc::new(procedural_resources),
             resource_activities,
+            resource_deadlines,
             deadlines: Arc::new(deadlines),
             agenda: Arc::new(agenda),
+            dashboard: Arc::new(dashboard),
             alerts: alerts.workflow,
             document_content: Arc::new(document_content),
             document_integrity: Arc::new(document_integrity),

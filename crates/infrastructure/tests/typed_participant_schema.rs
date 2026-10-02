@@ -1,4 +1,4 @@
-mod case_administration_support;
+use crate::case_administration_support;
 use case_administration_support::Fixture;
 use infrastructure::{PostgresCaseRepository, RingSha256Hasher};
 use std::sync::Arc;

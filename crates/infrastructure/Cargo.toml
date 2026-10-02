@@ -1,4 +1,5 @@
 [package]
+autotests = false
 name = "infrastructure"
 version.workspace = true
 edition.workspace = true
@@ -61,3 +62,271 @@ crc32fast.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+
+[[test]]
+name = "aead_properties"
+path = "tests/aead_properties.rs"
+
+[[test]]
+name = "aes_gcm_vectors"
+path = "tests/aes_gcm_vectors.rs"
+
+[[test]]
+name = "agenda_suite_1"
+path = "tests/suites/agenda_suite_1.rs"
+
+[[test]]
+name = "alert_suite_1"
+path = "tests/suites/alert_suite_1.rs"
+
+[[test]]
+name = "audit_suite_1"
+path = "tests/suites/audit_suite_1.rs"
+
+[[test]]
+name = "case_closure"
+path = "tests/case_closure.rs"
+
+[[test]]
+name = "case_suite_1"
+path = "tests/suites/case_suite_1.rs"
+
+[[test]]
+name = "case_suite_2"
+path = "tests/suites/case_suite_2.rs"
+
+[[test]]
+name = "certificate_validation"
+path = "tests/certificate_validation.rs"
+
+[[test]]
+name = "cincel_stub"
+path = "tests/cincel_stub.rs"
+
+[[test]]
+name = "credential_suite_1"
+path = "tests/suites/credential_suite_1.rs"
+
+[[test]]
+name = "deadline_backend"
+path = "tests/deadline_backend.rs"
+
+[[test]]
+name = "deadline_dispatch_measurement"
+path = "tests/deadline_dispatch_measurement.rs"
+
+[[test]]
+name = "deadline_input_backend"
+path = "tests/deadline_input_backend.rs"
+
+[[test]]
+name = "deadline_profile_harness"
+path = "tests/deadline_profile_harness.rs"
+
+[[test]]
+name = "deadline_profile_revalidation"
+path = "tests/deadline_profile_revalidation.rs"
+
+[[test]]
+name = "deadline_source_events"
+path = "tests/deadline_source_events.rs"
+
+[[test]]
+name = "deadline_suite_1"
+path = "tests/suites/deadline_suite_1.rs"
+
+[[test]]
+name = "deadline_suite_2"
+path = "tests/suites/deadline_suite_2.rs"
+
+[[test]]
+name = "deadline_suite_3"
+path = "tests/suites/deadline_suite_3.rs"
+
+[[test]]
+name = "deadline_suite_4"
+path = "tests/suites/deadline_suite_4.rs"
+
+[[test]]
+name = "deadline_suite_5"
+path = "tests/suites/deadline_suite_5.rs"
+
+[[test]]
+name = "document_content_backend"
+path = "tests/document_content_backend.rs"
+
+[[test]]
+name = "document_query_concurrency"
+path = "tests/document_query_concurrency.rs"
+
+[[test]]
+name = "document_suite_1"
+path = "tests/suites/document_suite_1.rs"
+
+[[test]]
+name = "document_suite_2"
+path = "tests/suites/document_suite_2.rs"
+
+[[test]]
+name = "document_version_encryption"
+path = "tests/document_version_encryption.rs"
+
+[[test]]
+name = "document_version_failures"
+path = "tests/document_version_failures.rs"
+
+[[test]]
+name = "file_document_repository"
+path = "tests/file_document_repository.rs"
+
+[[test]]
+name = "hearing_result_revalidation"
+path = "tests/hearing_result_revalidation.rs"
+
+[[test]]
+name = "hearing_suite_1"
+path = "tests/suites/hearing_suite_1.rs"
+
+[[test]]
+name = "hearing_suite_2"
+path = "tests/suites/hearing_suite_2.rs"
+
+[[test]]
+name = "hearing_suite_3"
+path = "tests/suites/hearing_suite_3.rs"
+
+[[test]]
+name = "identity_backends"
+path = "tests/identity_backends.rs"
+
+[[test]]
+name = "identity_suite_1"
+path = "tests/suites/identity_suite_1.rs"
+
+[[test]]
+name = "internal_declaration"
+path = "tests/internal_declaration.rs"
+
+[[test]]
+name = "issuer_validity_window"
+path = "tests/issuer_validity_window.rs"
+
+[[test]]
+name = "judicial_suite_1"
+path = "tests/suites/judicial_suite_1.rs"
+
+[[test]]
+name = "legacy_suite_1"
+path = "tests/suites/legacy_suite_1.rs"
+
+[[test]]
+name = "local_tsa_rfc3161"
+path = "tests/local_tsa_rfc3161.rs"
+
+[[test]]
+name = "member_suite_1"
+path = "tests/suites/member_suite_1.rs"
+
+[[test]]
+name = "openssl_ca_adapter"
+path = "tests/openssl_ca_adapter.rs"
+
+[[test]]
+name = "participant_suite_1"
+path = "tests/suites/participant_suite_1.rs"
+
+[[test]]
+name = "password_hashing"
+path = "tests/password_hashing.rs"
+
+[[test]]
+name = "postgres_document_concurrency"
+path = "tests/postgres_document_concurrency.rs"
+
+[[test]]
+name = "postgres_document_failures"
+path = "tests/postgres_document_failures.rs"
+
+[[test]]
+name = "postgres_document_metadata"
+path = "tests/postgres_document_metadata.rs"
+
+[[test]]
+name = "postgres_document_queries"
+path = "tests/postgres_document_queries.rs"
+
+[[test]]
+name = "postgres_document_versions"
+path = "tests/postgres_document_versions.rs"
+
+[[test]]
+name = "postgres_documents"
+path = "tests/postgres_documents.rs"
+
+[[test]]
+name = "postgres_runtime_permissions"
+path = "tests/postgres_runtime_permissions.rs"
+
+[[test]]
+name = "postgres_startup"
+path = "tests/postgres_startup.rs"
+
+[[test]]
+name = "procedural_fact_codec"
+path = "tests/procedural_fact_codec.rs"
+
+[[test]]
+name = "procedural_fact_source_guards"
+path = "tests/procedural_fact_source_guards.rs"
+
+[[test]]
+name = "procedural_fact_sql_values"
+path = "tests/procedural_fact_sql_values.rs"
+
+[[test]]
+name = "procedural_suite_1"
+path = "tests/suites/procedural_suite_1.rs"
+
+[[test]]
+name = "procedural_suite_2"
+path = "tests/suites/procedural_suite_2.rs"
+
+[[test]]
+name = "redis_suite_1"
+path = "tests/suites/redis_suite_1.rs"
+
+[[test]]
+name = "resource_suite_1"
+path = "tests/suites/resource_suite_1.rs"
+
+[[test]]
+name = "rsa_signing"
+path = "tests/rsa_signing.rs"
+
+[[test]]
+name = "typed_suite_1"
+path = "tests/suites/typed_suite_1.rs"
+
+[[test]]
+name = "typed_suite_2"
+path = "tests/suites/typed_suite_2.rs"
+
+[[test]]
+name = "zip_archive"
+path = "tests/zip_archive.rs"
+
+[[test]]
+name = "deadline_profile_schema"
+path = "tests/deadline_profile_schema.rs"
+
+[[test]]
+name = "deadline_tracking_schema_upgrade"
+path = "tests/deadline_tracking_schema_upgrade.rs"
+
+[[test]]
+name = "dashboard_backend"
+path = "tests/dashboard_backend.rs"
+
+[[test]]
+name = "resource_deadline_backend"
+path = "tests/resource_deadline_backend.rs"

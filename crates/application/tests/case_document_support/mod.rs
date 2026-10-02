@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use application::documents::{
-    CaseDocumentService, CaseDocumentStore, CaseDocumentSummary, CurrentDocumentMetadata,
-    DocumentAction, DocumentMetadata, DocumentOverview, DocumentPage, DocumentQuery,
-    DocumentRecord, MetadataPage, MetadataQuery, MetadataRevision, VersionPage, VersionQuery,
-    VersionSelection,
+    AdmittedDocumentFormat, CaseDocumentService, CaseDocumentStore, CaseDocumentSummary,
+    CurrentDocumentMetadata, DocumentAction, DocumentMetadata, DocumentOverview, DocumentPage,
+    DocumentQuery, DocumentRecord, DocumentUploadAdmission, MetadataPage, MetadataQuery,
+    MetadataRevision, VersionPage, VersionQuery, VersionSelection,
 };
 use application::identity::{
     EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
@@ -73,6 +73,16 @@ pub fn service(store: MockStore, identity: MockIdentity) -> CaseDocumentService 
         Arc::new(store),
         Arc::new(identity),
         Arc::new(super::crypto::processor()),
+        Arc::new(AdmittedFixture),
         Arc::new(super::crypto::TestClock),
     )
+}
+
+// These workflow fixtures have a controlled admission result. Native content
+// recognition and rejection are exercised by the document admission adapters.
+struct AdmittedFixture;
+impl DocumentUploadAdmission for AdmittedFixture {
+    fn validate(&self, _: &[u8]) -> Result<AdmittedDocumentFormat, ApplicationError> {
+        Ok(AdmittedDocumentFormat::Txt)
+    }
 }

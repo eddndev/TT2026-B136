@@ -1,5 +1,4 @@
-mod deadline_days_support;
-
+use crate::deadline_days_support;
 use deadline_days_support::{calendar, date, quantity};
 use domain::{
     deadline_arithmetic::{

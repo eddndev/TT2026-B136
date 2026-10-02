@@ -1,12 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod hearing_database_support;
-mod hearing_revalidation_support;
-mod typed_participant_service_support;
-
+use crate::{
+    case_stage_database_support, hearing_database_support, hearing_revalidation_support,
+    typed_participant_service_support,
+};
 use application::{
     case_stages::{CaseStageWorkflow, DeclaredStageTime, StageTransition},
     cases::*,

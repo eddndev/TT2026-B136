@@ -1,4 +1,4 @@
-mod member_support;
+use crate::member_support;
 use infrastructure::PostgresMemberStore;
 use member_support::{store, Fixture};
 use std::sync::Arc;

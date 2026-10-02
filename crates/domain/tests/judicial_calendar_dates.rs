@@ -1,4 +1,4 @@
-mod judicial_calendar_support;
+use crate::judicial_calendar_support;
 use domain::judicial_calendars::*;
 use judicial_calendar_support::*;
 

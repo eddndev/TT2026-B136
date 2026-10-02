@@ -18,6 +18,7 @@ mod alerts;
 mod case_administration;
 mod case_stages;
 mod cases;
+mod dashboard;
 mod deadline_profiles;
 mod deadlines;
 mod document_content;
@@ -33,6 +34,7 @@ mod procedural_facts;
 mod procedural_resources;
 mod request;
 mod resource_activities;
+mod resource_deadlines;
 mod routes;
 mod runtime;
 mod typed_participants;
@@ -117,6 +119,12 @@ pub fn typed_participant_router(
     )
 }
 
+/// Builds the authorized operational dashboard.
+pub fn dashboard_router(workflow: Arc<dyn application::dashboard::DashboardWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(dashboard::router(workflow, runtime.clone()), runtime)
+}
+
 /// Builds the combined authorized hearing and operational deadline agenda.
 pub fn agenda_router(workflow: Arc<dyn application::agenda::AgendaWorkflow>) -> Router {
     let runtime = HttpRuntime::new(HttpLimits::default());
@@ -173,6 +181,17 @@ pub fn resource_activity_router(
     )
 }
 
+/// Builds atomic contextual deadline creation over an authorized workflow.
+pub fn resource_deadline_router(
+    workflow: Arc<dyn application::resource_deadlines::ResourceDeadlineWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        resource_deadlines::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds global staff calendar routes with application authorization.
 pub fn judicial_calendar_router(
     workflow: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
@@ -197,8 +216,10 @@ pub struct CaseWorkflows {
     pub procedural_resources:
         Arc<dyn application::procedural_resources::ProceduralResourceWorkflow>,
     pub resource_activities: Arc<dyn application::resource_activities::ResourceActivityWorkflow>,
+    pub resource_deadlines: Arc<dyn application::resource_deadlines::ResourceDeadlineWorkflow>,
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
+    pub dashboard: Arc<dyn application::dashboard::DashboardWorkflow>,
     pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
     pub document_content: Arc<dyn application::document_content::DocumentContentWorkflow>,
     pub document_integrity: Arc<dyn application::document_integrity::DocumentIntegrityWorkflow>,
@@ -261,8 +282,13 @@ pub fn api_router(
             workflows.resource_activities,
             runtime.clone(),
         ))
+        .merge(resource_deadlines::router(
+            workflows.resource_deadlines,
+            runtime.clone(),
+        ))
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))
         .merge(agenda::router(workflows.agenda, runtime.clone()))
+        .merge(dashboard::router(workflows.dashboard, runtime.clone()))
         .merge(alerts::router(workflows.alerts, runtime.clone()))
         .merge(document_content::router(
             workflows.document_content,

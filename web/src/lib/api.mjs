@@ -1,3 +1,4 @@
+import { dashboardApi } from './dashboard-api.mjs';
 import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
 import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
@@ -29,6 +30,14 @@ const messages = {
   permission_denied: 'No tienes permiso para realizar esta acci\u00f3n.',
   account_locked: 'Demasiados intentos. Espera 15 minutos antes de volver a intentarlo.',
   document_not_found: 'No se encontr\u00f3 un documento con ese identificador.',
+  document_format_unsupported:
+    'El formato del archivo no est\u00e1 admitido. Elige un archivo de un formato compatible.',
+  document_format_invalid:
+    'El archivo no es v\u00e1lido o su contenido est\u00e1 da\u00f1ado. Revisa el archivo o elige otro.',
+  document_validation_limit:
+    'El archivo supera el l\u00edmite de validaci\u00f3n. Elige un archivo de menor complejidad o duraci\u00f3n.',
+  document_validator_unavailable:
+    'El validador no est\u00e1 disponible temporalmente. Conserva el archivo e int\u00e9ntalo de nuevo cuando est\u00e9 disponible.',
   document_version_required:
     'Selecciona una versi\u00f3n del historial para realizar esta acci\u00f3n.',
   document_version_exhausted:
@@ -150,6 +159,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     },
     createUser: (email, password, role) => post('/users', { email, password, role }),
     ...caseApi(request),
+    dashboard: () => dashboardApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
     alerts: (actorId) => alertsApi(request, actorId),
     integrityIncidents: () => integrityIncidentsApi(request),

@@ -1,12 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod hearing_database_support;
-mod hearing_result_database_support;
-mod hearing_result_restore_support;
-
+use crate::{
+    case_stage_database_support, hearing_database_support, hearing_result_database_support,
+    hearing_result_restore_support,
+};
 use application::{cases::*, hearing_results::*, hearings::*, participants::*};
 use domain::{crypto::DocumentVersionRef, identity::Role};
 use hearing_result_database_support::{persist, service, store, values, Fixture};

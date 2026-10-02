@@ -1,14 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-mod deadline_profile_database_support;
-mod procedural_fact_backend_support;
-#[allow(dead_code)]
-mod procedural_fact_concurrency_support;
-
+use crate::{
+    case_stage_database_support, deadline_backend_support, procedural_fact_backend_support,
+    procedural_fact_concurrency_support,
+};
 use application::{
     deadline_currentness::DeadlineFreshness::{Changed, Current},
     deadline_tracking::TrackingDependency,

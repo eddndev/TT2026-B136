@@ -1,4 +1,4 @@
-mod hearing_result_support;
+use crate::hearing_result_support;
 use domain::crypto::{DocumentId, DocumentVersion, DocumentVersionRef, Sha256Digest};
 use domain::hearing_results::*;
 use domain::participants::{ParticipantId, ParticipantRevision};

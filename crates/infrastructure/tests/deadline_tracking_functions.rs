@@ -1,8 +1,6 @@
-mod case_administration_support;
-mod deadline_schema_support;
-#[allow(dead_code)]
-mod deadline_tracking_receipt_support;
-
+use crate::{
+    case_administration_support, deadline_schema_support, deadline_tracking_receipt_support,
+};
 use case_administration_support::Fixture;
 use deadline_schema_support::open;
 use deadline_tracking_receipt_support::{assert_projection, register};

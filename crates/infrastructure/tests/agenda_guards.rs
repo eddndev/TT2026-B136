@@ -1,14 +1,4 @@
-mod agenda_backend_support;
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-mod deadline_profile_database_support;
-mod hearing_database_support;
-mod procedural_fact_backend_support;
-
+use crate::agenda_backend_support;
 use agenda_backend_support::*;
 use application::{agenda::*, deadlines::DeadlineError, ApplicationError};
 

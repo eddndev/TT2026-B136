@@ -1,4 +1,4 @@
-mod typed_participant_vectors_support;
+use crate::typed_participant_vectors_support;
 use serde_json::Value;
 use typed_participant_vectors_support::{participant, subject};
 

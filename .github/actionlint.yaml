@@ -1,0 +1,8 @@
+self-hosted-runner:
+  labels:
+    - tt-ci-vps1
+    - tt-ci-vps2
+    - tt-ci-dedicated
+    - tt-ci-mock
+    - tt-ci-live
+    - tt-ci-live-primary

@@ -1,5 +1,4 @@
-mod case_administration_support;
-
+use crate::case_administration_support;
 use application::cases::CaseRepository;
 use application::ApplicationError;
 use case_administration_support::Fixture;

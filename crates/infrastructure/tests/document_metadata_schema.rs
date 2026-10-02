@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod version_database_support;
-
+use crate::version_database_support;
 use application::ApplicationError;
 use infrastructure::{initialize_database, PostgresCaseDocumentStore};
 use version_database_support::Database;

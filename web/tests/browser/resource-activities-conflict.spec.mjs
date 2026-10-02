@@ -41,6 +41,9 @@ test('accepts a new resource head explicitly while retaining the selected histor
     .getByRole('button', { name: 'Usar base actual y conservar borrador', exact: true })
     .click();
   await editor.getByRole('button', { name: 'Preparar v\u00ednculo', exact: true }).click();
+  await expect(
+    editor.getByRole('button', { name: 'Confirmar v\u00ednculo', exact: true }),
+  ).toBeVisible();
   const prepared = state.calls.findLast((row) => row.path.endsWith('/prepare')).body;
   expect(prepared.expected_resource_revision).toBe(4);
   expect(prepared.change.resource).toEqual({

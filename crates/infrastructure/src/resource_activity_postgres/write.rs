@@ -3,7 +3,7 @@ use application::{cases::CurrentCaseAdministration, resource_activities::*, Appl
 use domain::crypto::DocumentHasher;
 use postgres::Transaction;
 
-pub(super) fn resource(detail: &ResourceActivityDetail) -> String {
+pub(crate) fn resource(detail: &ResourceActivityDetail) -> String {
     format!(
         "case:{}:resource:{}:association:{}:revision:{}:operation:{}:sha256:{}",
         detail.case_id,
@@ -14,7 +14,7 @@ pub(super) fn resource(detail: &ResourceActivityDetail) -> String {
         detail.receipt.capture_digest.to_hex()
     )
 }
-pub(super) fn insert(
+pub(crate) fn insert(
     tx: &mut Transaction<'_>,
     d: &ResourceActivityDetail,
     hasher: &dyn DocumentHasher,

@@ -1,5 +1,4 @@
-mod case_administration_support;
-
+use crate::case_administration_support;
 use case_administration_support::Fixture;
 use postgres::{error::SqlState, GenericClient};
 use uuid::Uuid;

@@ -5,6 +5,8 @@ import hashlib
 import json
 import sys
 from uuid import uuid4
+from pathlib import Path
+import api_document_admission
 from api_document_content_support import (
     INBOX, STATE, TOKEN, content, content_path, corrupted_ciphertext,
     counts, enroll, incident_pages, request,
@@ -83,16 +85,17 @@ def capture():
     users, tokens = {}, {}
     for role in ['litigator', 'paralegal', 'client']:
         users[role], tokens[role] = enroll(role, route)
-    payloads = [b'Original unsealed content\x00\xff\n', b'Second unsealed content\x01\xfe\n']
+    media = Path(__file__).resolve().parents[1] / 'crates/infrastructure/tests/fixtures/media-admission'
+    payloads = [(media / 'tiny.png').read_bytes(), (media / 'tiny.jpg').read_bytes()]
     first = request('POST', route + '/documents', payloads[0], 201,
-                    headers={'X-Document-Name': 'unsealed-content.bin'})
+                    headers={'X-Document-Name': 'unsealed-content.png'})
     assert first['version'] == 1 and first['sealed'] is False
     before = counts(first)
     content(content_path(route, first), first, payloads[0])
     assert counts(first) == {**before, 'authorized': before['authorized'] + 1}
     document_path = route + '/documents/' + first['id']
     second = request('POST', document_path + '/versions?expected_version=1', payloads[1], 201,
-                     headers={'X-Document-Name': 'unsealed-content-v2.bin'})
+                     headers={'X-Document-Name': 'unsealed-content-v2.jpg'})
     assert second['version'] == 2 and second['sealed'] is False and second['id'] == first['id']
     assert request('GET', document_path) == second
     for row, payload in zip([first, second], payloads):
@@ -117,6 +120,7 @@ def capture():
     assert request('GET', '/api/v1/audit/verify')['valid'] is True
     STATE.write_text(json.dumps({
         'route': route, 'rows': [first, second], 'snapshots': snapshots,
+        'admission': api_document_admission.capture(),
         'payloads': [base64.b64encode(value).decode('ascii') for value in payloads],
     }, ensure_ascii=True, sort_keys=True))
     print('Content API passed: unsealed V1/V2, exact history, roles, closure, revocation and audited rejection.')
@@ -125,6 +129,7 @@ def capture():
 
 def restore():
     saved = json.loads(STATE.read_text())
+    api_document_admission.restore(saved['admission'])
     for path, response in saved['snapshots'].items():
         assert request('GET', path) == response, ('Restored content/incident response changed', path)
     for row, encoded in zip(saved['rows'], saved['payloads']):

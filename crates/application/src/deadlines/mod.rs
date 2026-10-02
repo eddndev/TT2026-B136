@@ -79,3 +79,5 @@ pub(crate) use successor::validate_administration_capture;
 mod preparation_tracked;
 mod profile_selection;
 pub use preparation_tracked::prepare_tracked_deadline_change;
+
+pub(crate) use service::draft as prepared_draft;

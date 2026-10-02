@@ -1,5 +1,4 @@
-mod agenda_support;
-
+use crate::agenda_support;
 use agenda_support::*;
 use application::{agenda::*, hearings::*};
 use time::{Duration, UtcOffset};

@@ -1,12 +1,4 @@
-#[allow(dead_code)]
-mod case_support;
-#[allow(dead_code)]
-#[path = "support/document_workflow.rs"]
-mod crypto;
-mod deadline_observation_support;
-mod deadline_support;
-mod deadline_tracked_support;
-
+use crate::{deadline_observation_support, deadline_support, deadline_tracked_support};
 use application::{
     deadline_evaluations::{evaluate_profiled_deadline, DeadlineEvaluationRecord},
     deadline_inputs::{DeadlineInputMaterial, DeadlineSourceDetail},

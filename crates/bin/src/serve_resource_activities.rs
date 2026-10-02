@@ -22,3 +22,25 @@ pub(crate) fn open(
         clock,
     )))
 }
+
+pub(crate) fn open_deadlines(
+    database_url: &str,
+    identity: Arc<dyn IdentityWorkflow>,
+) -> anyhow::Result<Arc<dyn application::resource_deadlines::ResourceDeadlineWorkflow>> {
+    let hasher = Arc::new(RingSha256Hasher::new());
+    let clock = Arc::new(SystemClock::new());
+    let store = infrastructure::PostgresResourceDeadlineStore::open(
+        database_url,
+        hasher.clone(),
+        clock.clone(),
+    )
+    .context("cannot open PostgreSQL contextual deadline store")?;
+    Ok(Arc::new(
+        application::resource_deadlines::ResourceDeadlineService::new(
+            Arc::new(store),
+            identity,
+            hasher,
+            clock,
+        ),
+    ))
+}

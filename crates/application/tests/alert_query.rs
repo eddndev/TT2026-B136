@@ -1,4 +1,4 @@
-mod alert_support;
+use crate::alert_support;
 use alert_support::*;
 use application::{alerts::*, ApplicationError};
 use domain::identity::UserId;

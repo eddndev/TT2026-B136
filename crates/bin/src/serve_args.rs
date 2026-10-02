@@ -8,6 +8,20 @@ pub struct ServeArgs {
     /// Absolute or relative path to the pinned native qpdf library.
     #[arg(long, env = "DOCUMENT_QPDF_LIBRARY")]
     pub qpdf_library: PathBuf,
+    /// Absolute path to the reviewed multimedia probe.
+    #[arg(
+        long,
+        env = "TT_FFPROBE_PATH",
+        default_value = "/opt/tt-media/bin/ffprobe"
+    )]
+    pub ffprobe_path: PathBuf,
+    /// Absolute path to the reviewed multimedia decoder.
+    #[arg(
+        long,
+        env = "TT_FFMPEG_PATH",
+        default_value = "/opt/tt-media/bin/ffmpeg"
+    )]
+    pub ffmpeg_path: PathBuf,
     /// TCP address listened on by the HTTP server.
     #[arg(long, default_value = "127.0.0.1:3000")]
     pub bind: String,

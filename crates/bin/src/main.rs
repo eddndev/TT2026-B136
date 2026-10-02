@@ -22,6 +22,7 @@ mod serve_alert_supervisor;
 mod serve_args;
 mod serve_cmd;
 mod serve_deadline_runtime;
+mod serve_document_validation;
 mod serve_resource_activities;
 mod serve_runtime;
 mod serve_signals;
@@ -40,6 +41,9 @@ use crate::config::AppConfig;
 
 fn main() -> anyhow::Result<()> {
     if let Some(code) = infrastructure::document_formats::worker_entry() {
+        std::process::exit(code);
+    }
+    if let Some(code) = infrastructure::document_admission::worker_entry() {
         std::process::exit(code);
     }
     dotenvy::dotenv().ok();

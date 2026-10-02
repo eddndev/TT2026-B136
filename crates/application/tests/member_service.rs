@@ -1,7 +1,6 @@
 #![allow(dead_code)]
-mod case_support;
-mod member_support;
 
+use crate::{case_support, member_support};
 use application::members::*;
 use application::ApplicationError;
 use case_support::{identity, instant, MockIdentity};

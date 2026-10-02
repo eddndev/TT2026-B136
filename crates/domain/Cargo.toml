@@ -1,4 +1,5 @@
 [package]
+autotests = false
 name = "domain"
 version.workspace = true
 edition.workspace = true
@@ -17,3 +18,75 @@ zeroize.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
+
+[[test]]
+name = "alert_timing"
+path = "tests/alert_timing.rs"
+
+[[test]]
+name = "case_suite_1"
+path = "tests/suites/case_suite_1.rs"
+
+[[test]]
+name = "cases"
+path = "tests/cases.rs"
+
+[[test]]
+name = "deadline_days_boundaries"
+path = "tests/deadline_days_boundaries.rs"
+
+[[test]]
+name = "deadline_suite_1"
+path = "tests/suites/deadline_suite_1.rs"
+
+[[test]]
+name = "deadline_trigger_arithmetic"
+path = "tests/deadline_trigger_arithmetic.rs"
+
+[[test]]
+name = "deadline_trigger_fields"
+path = "tests/deadline_trigger_fields.rs"
+
+[[test]]
+name = "deadline_trigger_qualification"
+path = "tests/deadline_trigger_qualification.rs"
+
+[[test]]
+name = "document_metadata"
+path = "tests/document_metadata.rs"
+
+[[test]]
+name = "hearing_suite_1"
+path = "tests/suites/hearing_suite_1.rs"
+
+[[test]]
+name = "identity"
+path = "tests/identity.rs"
+
+[[test]]
+name = "judicial_suite_1"
+path = "tests/suites/judicial_suite_1.rs"
+
+[[test]]
+name = "participants"
+path = "tests/participants.rs"
+
+[[test]]
+name = "persisted_invariants"
+path = "tests/persisted_invariants.rs"
+
+[[test]]
+name = "procedural_fact_vectors"
+path = "tests/procedural_fact_vectors.rs"
+
+[[test]]
+name = "procedural_suite_1"
+path = "tests/suites/procedural_suite_1.rs"
+
+[[test]]
+name = "resource_activity_values"
+path = "tests/resource_activity_values.rs"
+
+[[test]]
+name = "typed_suite_1"
+path = "tests/suites/typed_suite_1.rs"

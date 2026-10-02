@@ -63,6 +63,24 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       });
     if (path.endsWith('/me')) return route.fulfill({ json: user });
     if (path.endsWith('/logout')) return route.fulfill({ status: 204 });
+    if (path === '/api/v1/dashboard')
+      return route.fulfill(
+        ['owner', 'litigator'].includes(role)
+          ? {
+              json: {
+                checked_at: '2026-09-27T00:00:00Z',
+                scope: role === 'owner' ? 'office' : 'assigned_cases',
+                active_cases: 2,
+                pending_contracts: 0,
+                deadlines_overdue: 0,
+                deadlines_due_48h: 0,
+                deadlines_due_7d: 0,
+                deadlines_unresolved: 0,
+                workload: [],
+              },
+            }
+          : { status: 403, json: { error: { code: 'permission_denied' } } },
+      );
     if (path === '/api/v1/document-integrity-incidents')
       return route.fulfill(
         role === 'owner'

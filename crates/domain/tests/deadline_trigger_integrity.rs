@@ -1,7 +1,4 @@
-mod deadline_trigger_integrity_support;
-mod hearing_result_support;
-mod procedural_fact_support;
-
+use crate::{deadline_trigger_integrity_support, hearing_result_support, procedural_fact_support};
 use deadline_trigger_integrity_support::*;
 use domain::{deadline_triggers::*, hearing_results::HearingResultValues, procedural_facts::*};
 use procedural_fact_support::{notification_input, resolution_input, text};

@@ -50,12 +50,18 @@ pub fn command(
 }
 
 pub fn legacy(
+    repository: &dyn application::deadlines::DeadlineStore,
     db: &dl::Fixture,
     profile: &DeadlineProfileDetail,
     source: &FactDetail,
     value: u128,
 ) -> DeadlineDetail {
-    dl::persist_legacy(db, db.owner, command(db, profile, source, value))
+    dl::persist_legacy_in_repository(
+        repository,
+        db,
+        db.owner,
+        command(db, profile, source, value),
+    )
 }
 
 pub fn advance(db: &dl::Fixture, source: &FactDetail) -> FactDetail {

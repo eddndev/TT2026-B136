@@ -10,9 +10,10 @@ pub fn setup(ids: &[u128]) -> Option<(dl::Fixture, FactDetail, Vec<DeadlineDetai
     let mut db = dl::Fixture::new()?;
     let profile = dl::profile(&db);
     let source = dl::source(&db);
+    let repository = dl::store(&db);
     let deadlines = ids
         .iter()
-        .map(|id| dispatch::legacy(&db, &profile, &source, *id))
+        .map(|id| dispatch::legacy(repository.as_ref(), &db, &profile, &source, *id))
         .collect();
     let store = dispatch::open(&db);
     dispatch::drain_existing(&mut db, &store);

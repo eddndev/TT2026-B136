@@ -1,19 +1,8 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod deadline_backend_support;
-mod deadline_dispatch_family_support;
-#[allow(dead_code)]
-mod deadline_dispatch_support;
-mod deadline_input_support;
-mod deadline_profile_database_support;
-mod hearing_database_support;
-mod hearing_result_database_support;
-mod judicial_calendar_database_support;
-mod procedural_fact_backend_support;
-
+use crate::{
+    case_stage_database_support, deadline_backend_support, deadline_dispatch_family_support,
+    deadline_dispatch_support, deadline_input_support, deadline_profile_database_support,
+    judicial_calendar_database_support, procedural_fact_backend_support,
+};
 use application::{
     cases::*, deadline_inputs::DeadlineCalendarRef, deadline_profiles::*,
     deadline_reevaluation::DependencyFamily, deadlines::*, procedural_facts::*,
@@ -33,6 +22,7 @@ fn global_and_case_profiles_and_calendar_select_current_heads_even_after_closure
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     case_stage_database_support::complete(&db);
     let first_case = db.case;
     let responsible = db.user("paralegal", true);
@@ -55,7 +45,7 @@ fn global_and_case_profiles_and_calendar_select_current_heads_even_after_closure
         if id == 10 {
             definition.responsible = responsible;
         }
-        let value = family::persist(&db, command);
+        let value = family::persist(seed_repository.as_ref(), &db, command);
         if id == 30 {
             let mut command = dl::correct(&value);
             let definition = dl::definition_mut(&mut command);
@@ -67,7 +57,7 @@ fn global_and_case_profiles_and_calendar_select_current_heads_even_after_closure
                 id: other_calendar.id,
                 revision: other_calendar.revision,
             });
-            family::persist(&db, command);
+            family::persist(seed_repository.as_ref(), &db, command);
         }
     }
     let second_case = family::new_case(&db);
@@ -83,7 +73,7 @@ fn global_and_case_profiles_and_calendar_select_current_heads_even_after_closure
             id: calendar.id,
             revision: calendar.revision,
         });
-        family::persist(&db, command);
+        family::persist(seed_repository.as_ref(), &db, command);
     }
     db.case = first_case;
     let store = dispatch::open(&db);
@@ -169,6 +159,7 @@ fn resolution_parent_and_notification_events_keep_family_identity_and_ignore_old
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let parent = dl::source(&db);
     let other_parent = dl::source(&db);
     let same_uuid = facts::resolution_ref(&parent).id.as_uuid();
@@ -176,16 +167,16 @@ fn resolution_parent_and_notification_events_keep_family_identity_and_ignore_old
     let other_notice = family::notice(&db, &other_parent, Uuid::new_v4());
     let direct = family::publish(&db, Some(db.case), TriggerField::ResolutionIssuedAt);
     let notification = family::publish(&db, Some(db.case), TriggerField::NotificationPracticedAt);
-    dispatch::legacy(&db, &direct, &parent, 10);
+    dispatch::legacy(seed_repository.as_ref(), &db, &direct, &parent, 10);
     for (id, selected) in [(20, &notice), (30, &other_notice), (40, &notice)] {
         let mut command = dispatch::command(&db, &notification, &parent, id);
         dl::definition_mut(&mut command).input.selection = inputs::fact_request(selected).trigger;
-        let value = family::persist(&db, command);
+        let value = family::persist(seed_repository.as_ref(), &db, command);
         if id == 40 {
             let mut command = dl::correct(&value);
             dl::definition_mut(&mut command).input.selection =
                 inputs::fact_request(&other_notice).trigger;
-            family::persist(&db, command);
+            family::persist(seed_repository.as_ref(), &db, command);
         }
     }
     let store = dispatch::open(&db);
@@ -251,13 +242,20 @@ fn hearing_result_events_bind_the_hearing_and_current_selected_source_with_cross
     let Some(mut db) = dl::Fixture::new() else {
         return;
     };
+    let seed_repository = dl::store(&db);
     let first = inputs::hearing_result(&mut db, true);
     let second = family::result_in_current_case(&db);
     assert_ne!(first.snapshot.hearing_id, second.snapshot.hearing_id);
     let source = family::resolution(&db, first.snapshot.id.as_uuid());
     let profile = family::publish(&db, Some(db.case), TriggerField::HearingSessionEventTime);
     let resolution_profile = family::publish(&db, Some(db.case), TriggerField::ResolutionIssuedAt);
-    dispatch::legacy(&db, &resolution_profile, &source, 40);
+    dispatch::legacy(
+        seed_repository.as_ref(),
+        &db,
+        &resolution_profile,
+        &source,
+        40,
+    );
     let reference = |value: &application::hearing_results::HearingResultDetail| {
         TriggerSourceRef::HearingResult(FactHearingRef {
             hearing_id: value.snapshot.hearing_id,
@@ -272,12 +270,12 @@ fn hearing_result_events_bind_the_hearing_and_current_selected_source_with_cross
         let mut command = dispatch::command(&db, &profile, &source, id);
         dl::definition_mut(&mut command).input.selection =
             inputs::request(db.case, reference(selected)).trigger;
-        let value = family::persist(&db, command);
+        let value = family::persist(seed_repository.as_ref(), &db, command);
         if id == 30 {
             let mut command = dl::correct(&value);
             dl::definition_mut(&mut command).input.selection =
                 inputs::request(db.case, reference(&second)).trigger;
-            family::persist(&db, command);
+            family::persist(seed_repository.as_ref(), &db, command);
         }
     }
     let store = dispatch::open(&db);

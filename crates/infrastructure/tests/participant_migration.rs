@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod participant_database_support;
-
+use crate::participant_database_support;
 use participant_database_support::Fixture;
 use postgres::error::SqlState;
 

@@ -1,5 +1,4 @@
-#[allow(dead_code)]
-mod legacy_database_support;
+use crate::legacy_database_support;
 use application::cases::{CaseAdministrativeStatus, CaseRepository, CaseRevisionExpectation};
 use application::documents::CaseDocumentStore;
 use domain::identity::UserId;

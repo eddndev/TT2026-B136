@@ -8,7 +8,7 @@ use time::{OffsetDateTime, UtcOffset};
 pub(super) fn previous(v: Option<ResourceActivityRevisionRef>) -> Value {
     json!(v.map(|p| json!({"revision":p.revision.get(),"capture_digest":p.capture_digest.to_hex()})))
 }
-fn context(
+pub(crate) fn context(
     selection: ResourceActivitySelection,
     head: ResourceCaptureRef,
     resource: ResourceId,
@@ -41,7 +41,7 @@ pub(super) fn instant(v: OffsetDateTime) -> Result<Value, ApiError> {
     }
     Ok(json!({"unix_seconds":v.unix_timestamp(),"nanosecond":v.nanosecond(),"offset_seconds":0}))
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     row: ResourceActivityDetail,
     case: CaseId,
     resource: ResourceId,

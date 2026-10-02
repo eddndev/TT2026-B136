@@ -5,20 +5,25 @@ use std::sync::Arc;
 use domain::audit::ChainVerification;
 use domain::cases::CaseId;
 use domain::clock::Clock;
-use domain::crypto::{DocumentId, DocumentVersion, DocumentVersionRef};
+use domain::crypto::{ArchiveEntry, DocumentId, DocumentVersion, DocumentVersionRef};
 use domain::identity::{Permission, UserId};
 
 use super::{
     CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata,
     DocumentAction, DocumentMetadata, DocumentOverview, DocumentPage, DocumentProcessor,
-    DocumentQuery, EvidenceExport, MetadataPage, MetadataQuery, MetadataRevision, VersionPage,
-    VersionQuery, VersionSelection,
+    DocumentQuery, DocumentUploadAdmission, EvidenceExport, MetadataPage, MetadataQuery,
+    MetadataRevision, VersionPage, VersionQuery, VersionSelection, MAX_DOCUMENT_UPLOAD_BYTES,
 };
-use crate::{identity::IdentityWorkflow, verification::VerificationReport, ApplicationError};
+use crate::{
+    identity::{IdentityWorkflow, Principal},
+    verification::VerificationReport,
+    ApplicationError,
+};
 
 pub struct CaseDocumentService {
     pub(super) store: Arc<dyn CaseDocumentStore>,
     identity: Arc<dyn IdentityWorkflow>,
+    admission: Arc<dyn DocumentUploadAdmission>,
     pub(super) processor: Arc<DocumentProcessor>,
     pub(super) clock: Arc<dyn Clock + Send + Sync>,
 }
@@ -28,12 +33,14 @@ impl CaseDocumentService {
         store: Arc<dyn CaseDocumentStore>,
         identity: Arc<dyn IdentityWorkflow>,
         processor: impl Into<Arc<DocumentProcessor>>,
+        admission: Arc<dyn DocumentUploadAdmission>,
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Self {
         Self {
             store,
             identity,
             processor: processor.into(),
+            admission,
             clock,
         }
     }
@@ -51,6 +58,14 @@ impl CaseDocumentService {
         token: &str,
         permissions: &[Permission],
     ) -> Result<UserId, ApplicationError> {
+        Ok(self.principal_permissions(token, permissions)?.id)
+    }
+
+    pub(super) fn principal_permissions(
+        &self,
+        token: &str,
+        permissions: &[Permission],
+    ) -> Result<Principal, ApplicationError> {
         let principal = self.identity.authenticate(token)?;
         if permissions
             .iter()
@@ -58,7 +73,28 @@ impl CaseDocumentService {
         {
             return Err(ApplicationError::PermissionDenied);
         }
-        Ok(principal.id)
+        Ok(principal)
+    }
+
+    pub(super) fn admit_upload(&self, name: &str, bytes: &[u8]) -> Result<(), ApplicationError> {
+        if bytes.len() > MAX_DOCUMENT_UPLOAD_BYTES {
+            return Err(ApplicationError::DocumentContentTooLarge);
+        }
+        ArchiveEntry::new(name.to_owned(), Vec::new())?;
+        self.admission.validate(bytes)?;
+        Ok(())
+    }
+
+    pub(super) fn reauthenticate_principal(
+        &self,
+        token: &str,
+        expected: &Principal,
+        permissions: &[Permission],
+    ) -> Result<(), ApplicationError> {
+        if self.principal_permissions(token, permissions)? != *expected {
+            return Err(ApplicationError::InvalidSession);
+        }
+        Ok(())
     }
 
     pub(super) fn reauthenticate(
@@ -120,15 +156,15 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         metadata: DocumentMetadata,
     ) -> Result<DocumentOverview, ApplicationError> {
         let permissions = [Permission::CreateDocument, Permission::ClassifyDocument];
-        let actor = self.actor_permissions(token, &permissions)?;
+        let principal = self.principal_permissions(token, &permissions)?;
+        let actor = principal.id;
         self.store
             .check_access(actor, case_id, DocumentAction::Upload)?;
         self.store
             .check_access(actor, case_id, DocumentAction::Classify)?;
+        self.admit_upload(name, bytes)?;
         let record = self.processor.prepare(name, bytes)?;
-        if self.actor_permissions(token, &permissions)? != actor {
-            return Err(ApplicationError::InvalidSession);
-        }
+        self.reauthenticate_principal(token, &principal, &permissions)?;
         self.store
             .insert_with_metadata(actor, case_id, record, metadata, self.clock.now())
     }
@@ -243,11 +279,14 @@ impl CaseDocumentWorkflow for CaseDocumentService {
         name: &str,
         bytes: &[u8],
     ) -> Result<DocumentOverview, ApplicationError> {
-        let actor = self.actor(token, DocumentAction::Upload.permission())?;
+        let principal =
+            self.principal_permissions(token, &[DocumentAction::Upload.permission()])?;
+        let actor = principal.id;
         self.store
             .check_access(actor, case_id, DocumentAction::Upload)?;
+        self.admit_upload(name, bytes)?;
         let record = self.processor.prepare(name, bytes)?;
-        self.reauthenticate(token, actor, DocumentAction::Upload.permission())?;
+        self.reauthenticate_principal(token, &principal, &[DocumentAction::Upload.permission()])?;
         self.store.insert(actor, case_id, record, self.clock.now())
     }
 

@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod metadata_database_support;
-
+use crate::metadata_database_support;
 use application::documents::{
     CaseDocumentStore, DocumentMetadata, MetadataQuery, MetadataRevision,
 };

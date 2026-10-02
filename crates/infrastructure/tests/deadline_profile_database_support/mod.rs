@@ -2,7 +2,7 @@
 pub use crate::case_administration_support::Fixture;
 use crate::case_stage_database_support::{FixedClock, TestIdentity};
 #[path = "../../../application/tests/deadline_profile_catalog_support/values.rs"]
-mod values;
+pub(crate) mod values;
 use application::{deadline_profiles::*, identity::Principal};
 use domain::{
     cases::CaseId,

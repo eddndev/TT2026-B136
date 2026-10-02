@@ -109,7 +109,7 @@ impl DeadlineService {
         Ok(committed)
     }
 }
-fn draft(prepared: &PreparedDeadlineChange) -> Result<DeadlineDraft, ApplicationError> {
+pub(crate) fn draft(prepared: &PreparedDeadlineChange) -> Result<DeadlineDraft, ApplicationError> {
     Ok(DeadlineDraft {
         case_id: prepared.case_id(),
         actor: prepared.actor(),

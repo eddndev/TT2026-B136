@@ -1,5 +1,4 @@
-mod document_content_support;
-
+use crate::document_content_support;
 use application::document_integrity::{
     DocumentIntegrityFailure, DocumentIntegrityQuery, DocumentIntegrityStore,
 };

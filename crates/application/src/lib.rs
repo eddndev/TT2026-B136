@@ -11,6 +11,7 @@ pub mod auth;
 pub mod case_stages;
 pub mod cases;
 pub mod credential_trust;
+pub mod dashboard;
 pub mod deadline_currentness;
 pub mod deadline_inputs;
 pub mod deadline_profiles;
@@ -51,3 +52,5 @@ pub mod deadline_dispatch;
 
 pub mod document_content;
 pub mod document_integrity;
+
+pub mod resource_deadlines;

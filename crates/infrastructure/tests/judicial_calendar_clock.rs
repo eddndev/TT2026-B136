@@ -1,10 +1,7 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod judicial_calendar_database_support;
-mod judicial_calendar_interleaved_support;
+use crate::{
+    case_stage_database_support, judicial_calendar_database_support,
+    judicial_calendar_interleaved_support,
+};
 use application::{identity::Principal, judicial_calendars::*};
 use domain::{
     clock::{Clock, OffsetDateTime},

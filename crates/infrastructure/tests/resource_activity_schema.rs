@@ -1,4 +1,4 @@
-mod case_administration_support;
+use crate::case_administration_support;
 use case_administration_support::Fixture;
 
 const TABLES: [&str; 2] = [

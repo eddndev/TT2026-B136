@@ -1,5 +1,4 @@
-#[allow(dead_code)]
-mod legacy_database_support;
+use crate::legacy_database_support;
 use legacy_database_support::{Database, Source};
 
 #[test]

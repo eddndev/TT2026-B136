@@ -1,4 +1,4 @@
-mod member_support;
+use crate::member_support;
 use application::members::{MemberStore, UserAccessChange};
 use domain::identity::Role;
 use member_support::{snapshot, store, user, Fixture};

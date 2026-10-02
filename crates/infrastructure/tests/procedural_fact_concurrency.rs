@@ -1,10 +1,4 @@
-mod case_administration_support;
-mod case_stage_database_support;
-#[allow(dead_code)]
-#[path = "../../application/tests/support/document_workflow.rs"]
-mod crypto;
-mod procedural_fact_backend_support;
-mod procedural_fact_concurrency_support;
+use crate::{procedural_fact_backend_support, procedural_fact_concurrency_support};
 use application::{cases::*, procedural_facts::*, ApplicationError};
 use domain::{
     cases::CaseMetadata,
