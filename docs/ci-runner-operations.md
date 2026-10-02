@@ -19,7 +19,7 @@ maquinas de GitHub. El reparto es:
 | Servidor | Runners y etiquetas | Trabajo | Presupuesto compartido |
 | --- | --- | --- | --- |
 | VPS3 | Uno, `tt-ci-dedicated` | Rust y generacion de cobertura | 8 CPU, MemoryHigh 28 GiB, MemoryMax 30 GiB |
-| VPS3 | Uno, `tt-ci-live-primary` | Tercera particion real | Incluido en el presupuesto de VPS3 |
+| VPS3 | Uno, `tt-ci-live-primary` | Tercera particion real y respaldo Redis | Incluido en el presupuesto de VPS3 |
 | VPS1 | Uno, `tt-ci-vps1` | Checks nativos y agregados de CI/Web | 3 CPU, MemoryHigh 4608 MiB, MemoryMax 5 GiB |
 | VPS1 | Dos, `tt-ci-mock` | Dos shards de navegador simulado | Incluido en el presupuesto de VPS1 |
 | VPS2 | Tres, `tt-ci-live` | Dos particiones reales; un runner de reserva | 6 CPU, MemoryHigh 6.5 GiB, MemoryMax 7 GiB |
@@ -30,6 +30,14 @@ a `user-$(id -u tt-runner).slice`, igual que Docker rootless. No multiplicar
 los limites por el numero de servicios. El runner original de VPS2 conserva
 ademas `tt-ci-vps2` para las tareas manuales y el modo Rust alternativo.
 Evitar solapar una campana manual con la regresion completa.
+
+El job obligatorio `Deployment backup` ejecuta
+`scripts/tests/test_deployment_redis_snapshot.py` en `tt-ci-live-primary`.
+Requiere Python 3.12 o posterior y Redis servidor y CLI 7.4 o posterior; el
+test rechaza versiones inferiores antes de iniciar procesos temporales.
+Coverage depende de este job y de los tests Rust. Deploy version reutiliza
+ese mismo CI antes de empaquetar. Las pruebas simuladas de despliegue siguen
+en VPS1; su servicio Redis 6.2 no necesita modificarse para este gate.
 
 En VPS2, usar `CPUWeight=1000` en el slice compartido de `tt-runner` para
 priorizar CI frente a otros usuarios cuando compitan por CPU. Configurar
@@ -220,6 +228,15 @@ con ese `RUSTUP_HOME` explicito y como `tt-runner`. Deshabilitar la actualizacio
 automatica del ejecutable rustup evita que los jobs actualicen sus proxies
 compartidos; las actualizaciones administrativas se realizan sin jobs activos.
 No cambiar `CARGO_HOME` ni borrar caches para aislar los toolchains.
+
+No usar `Swatinem/rust-cache` con el `CARGO_HOME` persistente compartido,
+incluido el empaquetado de releases. Su limpieza posterior elimina binarios
+regulares preexistentes, incluido `rustup`, y conserva sus enlaces simbolicos;
+tambien depura el registro. Separar `RUSTUP_HOME` y deshabilitar la
+autoactualizacion no evita esa limpieza. Conservar los caches locales sin la
+accion; comprobar `rustup`, sus proxies y las herramientas Cargo instaladas
+al reparar el host, antes de reanudar los jobs. La decision queda en
+`docs/adr/0052-owned-ci-runners.md`.
 
 Aplicar cambios con los servicios sin trabajo, reiniciarlos y comprobar en cada
 proceso activo el home efectivo, `rustc --version` y los componentes instalados.

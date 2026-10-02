@@ -17,7 +17,8 @@ execution as a fallback. Other workflows are outside this decision.
 - The dedicated server retains one `tt-ci-dedicated` runner for Rust tests
   and coverage generation, with sixteen isolated test slots. A separate
   `tt-ci-live-primary` runner executes the third real-browser partition, with
-  its own workspace, native backends and compiler target.
+  its own workspace, native backends and compiler target. It also runs the
+  mandatory deployment backup test with Redis server and CLI 7.4 or newer.
 - The first support server has one `tt-ci-vps1` runner for native format,
   Clippy, MSRV, dependency, binary-size and aggregate checks. Two additional
   `tt-ci-mock` runners each execute a simulated-browser shard in the official
@@ -47,6 +48,18 @@ browser and compiler caches across jobs. Temporary backend data remains in
 the current workspace's disk-backed `output/tmp` and is removed by the
 existing service cleanup traps. The binary-size check resolves its executable
 from the configured Cargo target directory.
+
+Do not run `Swatinem/rust-cache` against these persistent shared Cargo homes,
+including the release packaging job. Its save cleanup removes pre-existing
+regular executables from `CARGO_HOME/bin` and prunes registry contents. Runner
+toolchain isolation does not protect those shared files. Keep the existing
+local caches without that cleanup action.
+
+Run `scripts/tests/test_deployment_redis_snapshot.py` in the CI job
+`Deployment backup`, separately from the simulated deployment helper tests.
+Fail explicitly when the Redis server or CLI is older than 7.4. The required
+Coverage job depends on both Rust tests and this integration check; the
+reusable CI workflow applies the same gate before release packaging.
 
 Preserve every test, coverage threshold, dependency policy and aggregate
 condition. Collect a full campaign after migration, including time spent

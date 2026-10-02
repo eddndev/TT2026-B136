@@ -61,7 +61,6 @@ jobs:
           ref: ${{ needs.version.outputs.commit }}
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

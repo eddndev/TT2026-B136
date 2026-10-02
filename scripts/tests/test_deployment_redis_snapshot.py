@@ -1,6 +1,7 @@
 """Exercise backup bytes and expiry with disposable native Redis processes."""
 import json
 import os
+import re
 from pathlib import Path
 import secrets
 import shutil
@@ -17,6 +18,15 @@ import runtime
 
 
 class RedisSnapshotTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        for executable in ("redis-server", "redis-cli"):
+            result = subprocess.run([executable, "--version"], capture_output=True,
+                                    text=True, check=True, timeout=5)
+            version = re.search(r"(?:v=|cli )([0-9]+)\.([0-9]+)", result.stdout)
+            if version is None or tuple(map(int, version.groups())) < (7, 4):
+                raise RuntimeError("native snapshot acceptance requires Redis 7.4 or newer")
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

@@ -26,9 +26,35 @@ cerrado y deploy.lock exclusivo, se reinició la misma versión y se confirmó
 respaldo completo del material inicializado. Había cero usuarios y cero Owners.
 Este controlador todavía realiza SQL y material privado: la ampliación Redis
 que acompaña este informe no está instalada por ese tag. No se afirma respaldo
-Redis, copia externa/restauración comprobada, aceptación autenticada ni rollback
-entre versiones reales. La CRL conserva su mantenimiento de siete días.
+Redis, aceptación autenticada ni rollback entre versiones reales. La copia
+externa y restauración inicial ejecutadas posteriormente se detallan abajo. La CRL conserva su mantenimiento de siete días.
 
+
+
+## Restauración inicial fuera de VPS3: 2 de octubre de 2026
+
+El respaldo posterior a inicializar PKI se transfirió por SSH fijado a una ruta
+local privada fuera del repositorio. Los tamaños y SHA-256 coincidieron; se
+conservó intacto el original. Los permisos 0700/0600 no equivalen a cifrado del
+disco ni a una política automática de retención externa.
+
+Se restauró una sola captura SQL en PostgreSQL 16.15 desechable, con roles,
+propietarios y ACL originales, sin ejecutar migraciones ni reparar el esquema.
+Se conservaron cero usuarios, la revisión de confianza, certificados/claves/CRL,
+el evento inicial de auditoría y su proyección exacta. La cadena original se
+verificó antes y después de arrancar el binario aceptado de v0.1.0; el endpoint
+sin credenciales respondió 401. Los servicios y volumen propios se retiraron.
+
+La instancia rootless tenía un CPU, 768 MiB y publicación exclusiva loopback.
+El arnés necesitó corregir el etiquetado SELinux del montaje privado y permitir
+el socket interno que usa el entrypoint durante initdb; esos intentos fallaron
+antes de restaurar y se retiraron. Ninguno tocó la base desplegada.
+
+Redis fue una instancia local Valkey 8.1.10 vacía: este respaldo inicial aún no
+contenía RDB. La prueba demuestra recuperación del estado privado inicial y
+arranque, no conservación de sesiones, restauración poblada, recorrido
+funcional autenticado ni un RTO de producción. La aceptación autenticada espera
+la creación del primer Owner.
 
 
 ## Respaldo de seguridad Redis: 2 de octubre de 2026
@@ -58,11 +84,40 @@ programadas y aprobó 1/1 en 5.548 s.
 El primer intento del arnés no interpretó la salida textual de `INFO`; se
 corrigió su lectura raw, sin modificar código de producto para resolverlo.
 
-Redis 7.4.11 está instalado en VPS3; la comprobación anterior corresponde al
-entorno local indicado, no a ese servidor. La comprobación remota y la
-instalación de los controladores actualizados permanecen pendientes. Las copias
+La comprobación inicial corresponde al entorno local indicado. El ensayo
+posterior con Redis 7.4.11 en VPS3 se registra en la sección siguiente; la
+instalación de los controladores actualizados permanece pendiente. Las copias
 antiguas sin RDB conservan su alcance anterior. Una copia histórica no cubre
 controles creados después; no se afirma recuperación integral ni un RTO.
+
+
+## Corrección de prerrequisitos CI: verificación focal
+
+La primera campaña del cambio de respaldo falló antes de ejecutar la regresión
+Rust. Format ejecutó la prueba nativa con Redis 6.2.24 de VPS1: el CLI no admite
+`--json` y el servidor tampoco `PEXPIRETIME`; el arnés agotó la espera de
+disponibilidad. La prueba se conserva como
+`scripts/tests/test_deployment_redis_snapshot.py`, en el job obligatorio
+`Deployment backup` de `tt-ci-live-primary`, con rechazo explícito de servidor
+o CLI anteriores a 7.4. Coverage depende de ese resultado y de los tests Rust;
+Deploy version reutiliza el mismo CI. El servicio Redis de VPS1 no se modifica.
+
+En VPS3 faltaba el ejecutable compartido `rustup`, con sus proxies todavía
+presentes como enlaces rotos. La limpieza de `Swatinem/rust-cache` del
+empaquetado anterior se ejecutó de 09:56:43 a 09:56:49 UTC; la modificación de
+`.cargo/bin` a las 09:56:45 coincide con ese intervalo. El código de la acción
+elimina binarios regulares preexistentes y conserva los enlaces, lo que explica
+el estado observado. Los dos homes Rust seguían con autoactualización
+deshabilitada y la acción de toolchain usaba `--no-self-update`. Se retira la
+acción de cache del empaquetado para conservar binarios y registro compartidos;
+véase `docs/adr/0052-owned-ci-runners.md`.
+
+Se restauró rustup 1.28.2 desde el archivo oficial con checksum y se comprobó
+rustc/cargo 1.99.0 en los dos homes aislados, sin borrar toolchains ni caches.
+La suite simulada separada aprobó 39/39 en 2.125 s. La prueba nativa
+corregida aprobó 1/1 en 5.528 s como tt-runner en VPS3, con Redis 7.4.11 real
+y puertos/datos desechables. La nueva campaña CI y la
+instalación de los controladores de respaldo actualizados siguen pendientes.
 
 
 ## Consulta Owner de actividad: aceptación local del 2 de octubre de 2026

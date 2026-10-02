@@ -105,6 +105,20 @@ reescritura siguen la [documentación de persistencia](https://redis.io/docs/lat
 No usar comandos de respaldo de versiones Redis posteriores sin verificar que
 existen en la versión desplegada.
 
+## Prueba obligatoria de persistencia Redis
+
+`scripts/tests/test_deployment_redis_snapshot.py` captura claves sintéticas en
+procesos desechables, comprueba valores y expiraciones del RDB restaurado e
+invalida sesiones y desafíos antes de generar un AOF. El reinicio con un RDB
+anterior presente debe conservar esa invalidación y los demás controles.
+Requiere Redis servidor y CLI 7.4 o posterior y falla explícitamente si no
+están disponibles; sustituye PostgreSQL y systemd por fixtures.
+
+CI ejecuta esta prueba en el job `Deployment backup`, en `tt-ci-live-primary`.
+Coverage depende de su resultado y de los tests Rust; Deploy version reutiliza
+el mismo gate. La prueba no acredita restauración PostgreSQL, datos reales ni
+la actualización de los controladores instalados en el servidor.
+
 ## Límites del punto de recuperación
 
 Una copia histórica no contiene intentos fallidos, reclamos TOTP ni otros cambios
