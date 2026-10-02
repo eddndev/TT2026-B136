@@ -1,0 +1,45 @@
+\subsection{Consulta autorizada de actividad}\label{sec:impl-bitacora}
+La aplicación define selección y autorización en
+\rutarepo{crates/application/src/audit_query/}. El adaptador PostgreSQL reside
+en \rutarepo{crates/infrastructure/src/audit_query_postgres/}.
+El servicio comprueba
+Owner antes de consultar y vuelve a autenticar el principal completo antes de
+entregar la página. Rechaza respuestas del puerto que contradigan filtros,
+orden, límite, instantánea o continuación; la autorización no se deduce del cursor.
+
+La migración \rutarepo{migrations/0027_audit_query_projection.sql} conserva las
+seis columnas originales y añade dos claves generadas: segundos y nanosegundos
+de la marca temporal canónica. Su cálculo emplea fecha y aritmética entera, sin
+convertir el texto a una precisión menor ni reescribirlo. Un índice ordena ambas
+claves y la secuencia. La consulta pública admite años de 1 a 9999; la migración
+preserva también el año cero representable en eventos históricos canónicos.
+
+El adaptador adquiere el bloqueo auditado y recarga la cuenta activa antes de
+seleccionar. Captura el máximo de secuencia antes de anexar su propio evento de
+lectura. Los filtros y la posición de continuación se aplican antes del límite;
+una fila adicional determina si existe otra página. Un historial inicialmente
+vacío se distingue de un historial cuyo primer evento tiene secuencia cero.
+
+Una primera consulta sólo recupera claves y longitudes. La suma de actor,
+operación y recurso de las filas devueltas no puede superar 262144 bytes UTF-8;
+la fila adicional no consume ese presupuesto. Sólo después se recuperan los
+textos seleccionados, se contrastan con las claves originales y se confirma el
+evento \texttt{audit.events\_read} en la misma transacción. El exceso de capacidad
+rechaza la página completa: no trunca campos históricos ni devuelve resultados
+parciales. Una selección fallida o un fallo al registrar la lectura revierte
+la transacción.
+
+El rol operativo conserva permisos de consulta e inserción en la historia;
+no obtiene modificación, borrado, DDL ni delegación de esos privilegios. La
+apertura valida columnas, expresiones generadas, índice, función, inventario y
+permisos mediante \rutarepo{crates/infrastructure/src/audit_query_schema/}.
+La construcción compuesta reutiliza la capacidad sellada de arranque; una
+apertura independiente mantiene la validación completa. Estos controles no
+convierten a un administrador de PostgreSQL en un adversario excluido de la
+base de confianza.
+
+La decisión \rutarepo{docs/adr/0007-audit-chain-anchoring.md} mantiene pendiente
+el anclaje externo de la cabeza. Tampoco se añaden identificadores de cuenta o
+IP a eventos históricos. La aceptación local del incremento
+incluye HTTP compuesto, restauración y navegador real; la regresión global,
+la integración y la activación mantienen su comprobación separada.

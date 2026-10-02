@@ -1,15 +1,84 @@
 # Informe de verificación local
 
+## Consulta Owner de actividad: aceptación local del 2 de octubre de 2026
+
+La consulta acotada conserva los eventos históricos y la verificación
+independiente de su cadena. Los resultados corresponden a la entrega local;
+no son resultados de CI, integración en main ni despliegue.
+
+| Comprobación ejecutada | Resultado |
+| --- | --- |
+| Contrato, cursor y servicio de aplicación | 20/20 aprobadas. |
+| PostgreSQL, migración poblada, esquema y restauración focal | 14/14 aprobadas, 37.01 s. |
+| Contrato HTTP | 6/6 aprobadas. |
+| Uso del límite compartido de solicitudes | 1/1 aprobada. |
+| Cliente Node | 12/12 aprobadas. |
+| Navegador con HTTP controlado | 9/9 aprobadas, 17.1 s. |
+| Revisión visual local | Escritorio de 1440 px y móvil de 390 px aprobados. |
+| Clippy del workspace y todos los targets, advertencias como errores | Aprobó, 2 min 12 s. |
+| API compuesta con respaldo/restauración | Salida cero, 376.459967 s; 3198 archivos fuente idénticos durante la campaña. |
+| Navegador con servicios reales | 2/2 aprobadas: Owner 6.2 s y Litigator 2.4 s; Playwright 13.7 s, comando completo 185.7532 s; 3198 archivos fuente idénticos. |
+
+La revisión posterior reprodujo una pérdida de precisión al aceptar más de nueve
+dígitos fraccionarios en fechas HTTP: cinco casos pasaron y uno falló porque el
+parser descartaba el décimo dígito. El límite explícito corrigió ambos extremos
+y las mismas seis pruebas HTTP aprobaron en 0.01 s (8.15 s de compilación),
+conservando nueve dígitos y la equivalencia de desplazamientos UTC. La aceptación
+API y de navegador anterior no se atribuye a esta corrección; CI comprobará la
+regresión de la cabeza publicada.
+
+La campaña `scripts/api-audit-events-demo.py`, invocada por
+`scripts/api-demo.sh`, comparó los eventos con filas PostgreSQL mediante un
+oráculo de lectura independiente: campos históricos y marcas temporales
+exactas, cadena almacenada y selección paginada. Comprobó que un anexado
+posterior queda fuera de la continuación original y aparece en una consulta
+nueva, rechazó cursores incompatibles y parámetros inválidos, y denegó roles
+ajenos sobre selecciones tanto pobladas como vacías. La consulta no reescribió
+las filas originales ni sus hashes. Tras respaldo y restauración reales,
+con nueva autenticación, conservaron sus resultados la selección y la
+continuación previas; la verificación independiente de la cadena aprobó.
+
+`web/tests/live/audit-events.spec.mjs` aprobó el recorrido Owner de filtros,
+fechas y filas exactas, páginas estables ante un nuevo evento, actualización,
+selección vacía, verificación separada y limpieza al cerrar sesión. El recorrido
+Litigator rechazó acceso tanto por navegación como por HTTP. La duración de
+Playwright se distingue de la preparación y ejecución completas del comando.
+
+Los veinte casos de aplicación permanecen registrados bajo
+`crates/application/tests/audit_query/{contract,service}.rs`; el cambio de
+ubicación conserva su identidad. PostgreSQL mantiene catorce casos en
+`crates/infrastructure/tests/audit_query_postgres.rs`, `audit_query_schema.rs`
+y `audit_query_restore.rs`. Los conteos focales se informan por grupo y no se
+suman como una suite global.
+
+Los gates de la revisión exacta de auditoría, su integración y activación
+siguen pendientes. El CI de PR49 de informes o del despliegue no acredita esta
+entrega. Tampoco se completa la captura uniforme de UUID e IP del actor, el
+registro de todas las operaciones en menos de 500 ms ni el anclaje externo de
+la cabeza. No se reconstruyen datos ausentes sobre eventos históricos ni se
+cambia su representación canónica. El kit de usabilidad está preparado; no
+contiene participantes ni resultados y la evaluación humana sigue pendiente.
+
 ## Integración de navegación desde actividades y recuperación de audiencias
 
 La cabeza `02f33f5` aprobó CI en 7:42, Web en 13:03 y Documents en 8:45.
 Se conservaron 3156 pruebas Rust y dos ignoradas, 396 de navegador controlado y
 47 reales, sin perder identidades de la campaña integrada anterior. PR48 se
 integró por squash como `5020707ebdb65e85ab913f0252bf319ca2f52931`.
-La confirmación natural de main está en curso; estos resultados no sustituyen
-las aceptaciones pendientes de informes ni del despliegue.
+La confirmación natural de ese main aprobó CI en 6:41, Web en 11:24 y
+Documents en 7:43, conservando las mismas identidades de pruebas. Son
+resultados de esa revisión; no sustituyen las aceptaciones de informes,
+auditoría ni activación del despliegue.
 
 ## Adaptación del despliegue a VPS3: 1 de octubre de 2026
+
+La PR43 se integró por squash como
+`3a67a6ae45ef53010278056b79ac9279517b1e5c`, conservando las coautorías de
+Hatziry Vitales Herrera y Eduardo Alonso Sánchez. Su confirmación natural en
+main aprobó CI en 6:42, Web en 11:25 y Documents en 7:43, con 3156 pruebas
+Rust, dos ignoradas, 396 de navegador controlado y 47 reales. Esta aceptación
+corresponde al código de despliegue: la primera activación por tag y el
+recorrido autenticado de VPS3 siguen pendientes.
 
 La adaptación conserva el controlador por tags y los límites del despliegue
 privado. El paquete se compila en el runner de VPS3 para su ABI de Ubuntu 22.04;
@@ -50,9 +119,9 @@ unidades activas en los tres VPS, con stable 1.99.0, `rustfmt`, `clippy`,
 `llvm-tools-preview` y actualización automática de rustup deshabilitada; el
 runner nativo de VPS1 dispone además de Rust 1.88. Los caches y targets Cargo
 conservaron sus rutas. Véase [operación de runners](ci-runner-operations.md).
-La campaña CI/Web posterior se inició nuevamente a las 04:59:33 UTC; su
-resultado completo sigue pendiente. La corrección verificada del host no se
-presenta como una campaña aprobada.
+La campaña posterior y la confirmación natural de main aprobaron como se
+registra al comienzo de este apartado. La corrección del host por sí sola no
+se contabiliza como otra campaña ni como evidencia de activación del producto.
 
 La recuperación tras una publicación de confianza confirmada y una escritura
 interrumpida del marcador de esquema se verificó por separado. La aceptación
@@ -187,9 +256,33 @@ Esa revisión documental no constituye una nueva ejecución de la suite Rust.
 
 La entrega de [informes](case-reports-api.md) conserva una captura autorizada y
 cifrada, publica juntos PDF y CSV, y mantiene avisos propios durables. Estas
-comprobaciones son locales; no acreditan todavía una cabeza global integrada
-ni una activación de VPS3. Los grupos focales son distintos y no se suman como
-si fueran una ejecución completa de CI.
+comprobaciones locales se distinguen del cierre global de PR49 descrito abajo.
+La integración no equivale a activar una release en VPS3. Los grupos focales
+son distintos y no se suman como si fueran una ejecución completa de CI.
+
+### Integración de PR49 y gates de su cabeza exacta
+
+[PR49](https://github.com/eddndev/TT2026-B136/pull/49) se integró por squash como
+`f3bfed888b93d8692ec6bb49e7f0cdcc728ed1a4`, verificando la cabeza exacta
+`6e1ae2b968885e1097edbf4c1a55c75c0b470a61`. Aprobaron
+[CI 36982091763](https://github.com/eddndev/TT2026-B136/actions/runs/36982091763)
+en 9m13s, [Web 36982091735](https://github.com/eddndev/TT2026-B136/actions/runs/36982091735)
+en 12m32s y [Documents 36982091741](https://github.com/eddndev/TT2026-B136/actions/runs/36982091741)
+en 10m16s. El inventario fue de 3299 pruebas Rust más dos ignoradas, 409 de
+navegador controlado y 49 reales. Los gates de cobertura aprobaron con
+97 % en dominio, 95 % en aplicación y 93 % en infraestructura.
+
+La confirmación natural del merge en `main` también aprobó:
+[CI 36984334281](https://github.com/eddndev/TT2026-B136/actions/runs/36984334281)
+en 8m36s, [Web 36984334256](https://github.com/eddndev/TT2026-B136/actions/runs/36984334256)
+en 11m46s y [Documents 36984334244](https://github.com/eddndev/TT2026-B136/actions/runs/36984334244)
+en 1m13s. Se conservaron las identidades exactas de las 3299 pruebas Rust,
+409 controladas y 49 reales; las dos Rust ignoradas permanecen separadas.
+Estos resultados corresponden a informes y su motor tipográfico actualizado;
+no acreditan el CI ni la integración de la consulta Owner de actividad, que
+conserva su aceptación local separada al inicio de este informe.
+
+### Correcciones y comprobaciones previas al cierre
 
 La primera campaña global detectó un fallo de preparación en el verificador SQL
 del calendario: todavía extraía las migraciones de `postgres.rs`, aunque las
@@ -197,7 +290,7 @@ constantes habían pasado a `postgres/migrations.rs`. CI y Web se cancelaron
 automáticamente antes de completar la regresión. El helper ahora resuelve las
 rutas respecto al módulo que las declara y rechaza un inventario vacío o ajeno
 a `migrations/`. La comprobación SQL corregida aprobó sus 21 casos en 5.369 s
-con PostgreSQL desechable; el cierre global requiere la nueva cabeza publicada.
+con PostgreSQL desechable; el cierre de la cabeza corregida se registra arriba.
 
 La segunda campaña se canceló al rechazar la política de dependencias
 `rustybuzz` 0.20.1 y `ttf-parser` 0.25.1, sin mantenimiento según
@@ -225,8 +318,8 @@ Los 0.566156 s nuevos y 1.604057 s anteriores son observaciones individuales
 sobre esa captura, con los mismos límites del worker. No se repitió la captura
 máxima ni se extrapola esta diferencia al tiempo total de CI. La inspección
 visual previa corresponde a esos mismos bytes. La aceptación API y de navegador
-registrada abajo precede a esta sustitución; los gates de la nueva cabeza
-publicada deben confirmar la regresión global.
+registrada abajo precede a esta sustitución; los gates de `6e1ae2b` confirmaron
+la regresión global del motor actualizado antes de integrar PR49.
 
 | Comprobación de esta entrega | Resultado observado |
 | --- | --- |

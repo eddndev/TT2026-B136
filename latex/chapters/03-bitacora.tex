@@ -1,0 +1,29 @@
+\paragraph{Alcance de la consulta implementada.}\label{sec:diseno-bitacora}
+El incremento de consulta desarrolla la selección cronológica prevista en la
+\cref{tab:cu-17}: un Owner autenticado puede solicitar un intervalo temporal y
+filtros exactos de actor registrado, operación y recurso. La consulta exige
+permisos vigentes incluso cuando no existen coincidencias. Las páginas conservan
+el máximo de secuencia de su primera lectura, por lo que los anexados posteriores
+no se incorporan a esa misma navegación aunque tengan una fecha anterior.
+
+El intervalo incluye su límite inicial y excluye el final, tiene como máximo
+366 días y usa instantes UTC con precisión de nanosegundos. El orden se define
+por segundos, nanosegundos y secuencia; esta última resuelve eventos con la misma
+marca temporal. Cada página contiene hasta cien eventos completos. El cursor
+vincula intervalo, filtros, última posición y máximo de secuencia: selecciona
+una continuación, pero no acredita identidad, permisos ni integridad de la cadena.
+
+La lectura de actividad y la verificación criptográfica tienen responsabilidades
+distintas. La primera selecciona registros autorizados y registra su propia
+consulta; la segunda recalcula los eslabones. Una página no es una verificación
+del historial completo, y ninguna de ambas demuestra por sí sola que no se haya
+retirado el extremo final de una cadena válida.
+
+Las \cref{tab:cu-17,tab:rf-20} mantienen su alcance aprobado. El actor histórico
+es el texto que ya forma parte del evento, habitualmente un correo; no se presenta
+como identificador estable de la cuenta. Los eventos actuales no incorporan la
+dirección IP exigida por esas tablas. Migrar la consulta no autoriza reconstruir
+identidades o direcciones ausentes ni modificar el contenido encadenado. El
+criterio de registro en menos de 500 milisegundos y la cobertura de todas las
+operaciones requieren evidencia propia. La consulta parcial no declara cumplido
+el caso de uso completo.

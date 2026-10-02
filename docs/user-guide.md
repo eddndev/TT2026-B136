@@ -279,10 +279,11 @@ Cuando esté habilitado, el correo contiene un aviso genérico y acceso a Qadra,
 sin datos del expediente. Consultar una audiencia o activar una preferencia no
 confirma que se haya enviado un aviso. Véanse [alertas](alerts-api.md).
 
-## 9. Informes: nueva entrega local pendiente
+## 9. Informes: entrega en verificación de integración
 
-Esta sección describe la interfaz en preparación. Su aceptación y publicación
-siguen pendientes; no la uses como evidencia de una función desplegada.
+La entrega de informes ya tiene comprobación local de API y navegador con
+servicios reales. Su integración y activación siguen pendientes; comprueba la
+versión disponible antes de usarla como una función desplegada.
 
 Administrador y Litigante podrán abrir **Informes** para solicitar una captura del
 estado administrativo observado. Cada persona consulta únicamente sus propias
@@ -313,7 +314,55 @@ y filtros. Si se excede la capacidad, reduce el conjunto y solicita otro informe
 no se recortan filas para aparentar un resultado completo. Consulta
 [el alcance de informes](case-reports-api.md).
 
-## 10. Resolver incidencias sin duplicar operaciones
+## 10. Auditoría: consulta de actividad
+
+**Sólo el Administrador** puede abrir **Auditoría**. La nueva consulta tiene
+aceptación local de API con restauración y navegador con servicios reales.
+Su CI, integración y activación siguen pendientes; comprueba que esta función
+esté disponible en la versión que utilizas. La acción **Verificar cadena**
+es independiente y conserva su funcionamiento.
+
+### Consultar eventos registrados
+
+1. En **Actividad registrada**, elige **Desde (UTC, incluido)** y **Hasta (UTC,
+   excluido)**. Las fechas empiezan a las 00:00 UTC y el periodo debe ser positivo,
+   de hasta 366 días. Para consultar un día completo, usa ese día como inicio y
+   el siguiente como final.
+2. Opcionalmente completa **Actor registrado**, **Operación registrada** y
+   **Recurso registrado**. Copia el texto exacto de un evento conocido: mayúsculas
+   y espacios cuentan. No son búsquedas por parte del nombre. Dejar un campo
+   vacío omite ese filtro.
+3. Elige 20, 50 o 100 eventos por página y pulsa **Consultar actividad**.
+4. Revisa la fecha exacta, actor, operación, recurso y secuencia que quedaron
+   registrados. Si no hay coincidencias, amplía el periodo o revisa los filtros;
+   una página vacía no demuestra que la bitácora completa esté vacía.
+5. Usa **Cargar siguiente página** mientras esté disponible. Cada página
+   reemplaza la anterior y conserva el mismo corte de actividad; los eventos
+   añadidos después no se incorporan a mitad del recorrido.
+6. Usa **Actualizar actividad** para iniciar un corte nuevo desde la primera
+   página. Cambiar cualquier filtro también borra el resultado anterior; pulsa
+   **Consultar actividad** para obtener otro resultado.
+
+El actor y el recurso son textos históricos. No se deduce una identidad personal
+comprobada ni una dirección IP a partir de ellos. La pantalla conserva la fecha
+exacta del registro; no la presenta como una fecha de verificación criptográfica.
+Cerrar sesión elimina los resultados privados de la pantalla. Si pierdes permiso,
+solicita al administrador que revise tu cuenta; no compartas sesiones para abrirlos.
+
+Si aparece un límite de capacidad, reduce los eventos por página o acota fechas
+y filtros. El sistema rechaza esa respuesta completa: no recorta el contenido de
+un evento para aparentar que devolvió toda su información. Si incluso la selección
+mínima falla, comunica el mensaje a soporte sin adjuntar datos privados innecesarios.
+
+### Comprobar la cadena completa
+
+Pulsa **Verificar cadena** y revisa **Cadena íntegra** o **Alteración detectada**.
+Ante una alteración, conserva el resultado y comunica el índice indicado. Consultar
+una página de actividad no sustituye esta comprobación ni verifica por sí sola los
+documentos mencionados. La cadena local tampoco acredita anclaje externo de su
+cabecera. Consulta [el alcance de auditoría](audit-events-api.md).
+
+## 11. Resolver incidencias sin duplicar operaciones
 
 | Situación | Qué hacer |
 | --- | --- |
@@ -331,7 +380,7 @@ las identidades del expediente o registro necesarias. Mantén fuera del reporte
 contraseñas, códigos y claves privadas; evita adjuntar contenido sensible si no es
 necesario para atender el problema.
 
-## 11. Alcance del manual y evaluación pendiente
+## 12. Alcance del manual y evaluación pendiente
 
 Este documento permite preparar recorridos de acceso, asignación, carga,
 versionado, sellado, verificación, registro procesal y consulta. Las funciones
@@ -339,8 +388,10 @@ pendientes —invitaciones, restablecimiento autónomo, política documental de
 Cliente y las entregas señaladas expresamente— no deben incluirse como tareas
 completadas en una demostración.
 
-La evaluación con usuarios requiere un protocolo separado: participantes y
-consentimiento, tareas, criterios de éxito, observaciones y resultados reales.
+La evaluación con usuarios dispone de un [kit y protocolo de observación](usability/README.md):
+participantes y consentimiento, tareas, criterios de éxito, observaciones y
+resultados reales por registrar. El material está preparado; la evaluación
+humana sigue pendiente.
 Esta guía no registra participantes, tiempos, satisfacción ni conclusiones de
 una evaluación que todavía no se haya realizado. El estado funcional y su
 verificación se consultan en [cierre del producto](product-completion.md) y

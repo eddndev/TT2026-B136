@@ -1,0 +1,53 @@
+\section{Verificación de consulta de actividad}\label{sec:pruebas-bitacora}
+La aplicación aprobó veinte pruebas focales del contrato y del servicio. Incluyen
+límites del intervalo y de texto, precisión temporal, cursor canónico ligado a
+filtros, autorización aun sobre resultados vacíos, rechazo de respuestas
+incoherentes y reautenticación previa a la entrega. Los campos históricos no
+se truncan ni reciben los límites propios de los filtros de entrada.
+
+El grupo PostgreSQL aprobó catorce pruebas en 37.01 segundos con una base
+real desechable. Comprobó extremos de intervalo, diferencias de un nanosegundo,
+desempate por secuencia, filtros anteriores al límite y exclusión de anexados
+posteriores, incluidos eventos con fecha anterior y las propias lecturas.
+También rechazó roles ajenos, identidad desactualizada, cambios de cuenta
+concurrentes, páginas que exceden capacidad y confirmaciones cuya auditoría falla.
+
+La migración sobre historia poblada preservó los textos canónicos y la cadena,
+incluidos año cero, instantes anteriores a 1970 y fracciones extremas. Se
+comprobaron reaplicación, rechazo de historia malformada y alteraciones del
+esquema, índice, función, proyección y privilegios. El respaldo y la restauración
+focales mediante herramientas PostgreSQL conservaron los eventos seleccionados
+y la cadena, y permitieron anexar un sucesor. Esa prueba del adaptador no equivale
+al recorrido de restauración de toda la aplicación mediante HTTP.
+
+La inspección del plan SQL comprobó que existe un acceso utilizable por el
+índice cronológico. Ni ese plan ni los 37.01 segundos de ejecución de pruebas
+miden la latencia del registro de una operación. El criterio de menos de
+500 milisegundos de la \cref{tab:rf-20} requiere delimitar operaciones, volumen
+de historial, concurrencia, equipo y punto de confirmación, y registrar tiempos
+por operación en ese entorno; no se deduce del número de casos aprobados.
+
+El contrato HTTP aprobó seis pruebas y el presupuesto compartido de solicitudes,
+una; el cliente Node aprobó doce. Los nueve escenarios de navegador con HTTP
+controlado aprobaron en 17.1 segundos. La presentación local a 1440 y 390 píxeles
+fue inspeccionada satisfactoriamente. Clippy del workspace y todos sus targets,
+con advertencias tratadas como errores, aprobó en dos minutos y doce segundos.
+
+La campaña integrada API con respaldo y restauración terminó con salida cero
+en 376.459967 segundos. Comparó eventos y marcas temporales exactas contra
+PostgreSQL, verificó filtros, continuaciones entre nuevos anexados y rechazos de
+roles ajenos, y conservó la historia original y su cadena después de restaurar.
+Los 3198 archivos fuente controlados permanecieron idénticos durante la ejecución.
+
+Con servicios reales aprobaron dos recorridos de navegador: Owner en 6.2 segundos
+y Litigante en 2.4. Playwright duró 13.7 segundos; el comando completo, incluida
+la preparación del entorno, 185.7532 segundos. El Owner consultó filtros y páginas
+consistentes, actualizó la selección y verificó la cadena por separado; Litigante
+no pudo acceder mediante navegación ni HTTP. Los mismos 3198 archivos fuente
+permanecieron idénticos. Estos tiempos son duraciones de aceptación, no la
+latencia de registro exigida por la \cref{tab:rf-20}.
+
+El CI, la integración y la activación del incremento continúan pendientes. También
+permanecen la identificación estable del usuario, la dirección IP y el anclaje
+externo delimitados en la \cref{sec:diseno-bitacora}. La aceptación local no
+completa el catálogo ni sustituye la evaluación con usuarios del despacho.

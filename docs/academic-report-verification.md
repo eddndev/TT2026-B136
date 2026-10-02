@@ -1,5 +1,24 @@
 # Verificación de la actualización académica
 
+## Consulta de actividad y protocolo de usabilidad: 2 de octubre de 2026
+
+LuaLaTeX terminó con código cero y generó **355 páginas y 5857918 bytes**,
+SHA-256 `d14e16155aa5a1bd4aa7ced5f3adea7a4dae56e145c83e7ecb7b42ac5e28b080`.
+Se inspeccionaron las páginas físicas **78, 80, 210, 211, 255, 256, 270 y 350**:
+diagramas, implementación, pruebas, protocolo humano y trazabilidad. Las
+correcciones de diagramas usan fuentes TikZ y conservan los PNG anteriores; sus
+referencias coinciden con las tablas aprobadas de informes y bitácora. Se
+corrigieron solapamientos intermedios y rutas desbordadas antes de esta revisión.
+La muestra final es legible, sin recortes ni solapamientos. No quedan referencias
+o citas indefinidas, etiquetas múltiples ni caracteres ausentes; permanecen la
+sustitución histórica de versalitas y el desborde anterior de 0.11754 pt.
+
+Resumen, introducción con objetivos, marco teórico y conclusiones conservan sus
+huellas previas. El protocolo y las plantillas de usabilidad están preparados,
+sin participantes ni resultados inventados. Esta revisión acredita el PDF
+local y su muestra visual; no sustituye la regresión global de auditoría,
+la activación del servidor ni el cierre de conclusiones.
+
 ## Conciliación de informes y despliegue: PDF final del 2 de octubre de 2026
 
 La base integrada genera **350 páginas y 5943775 bytes**, SHA-256

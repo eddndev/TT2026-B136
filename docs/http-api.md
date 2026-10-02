@@ -1050,6 +1050,19 @@ integraron en `main` por PR 36 como `8261c51`; la aceptación API/restauración 
 el navegador real aprobados se registran por separado de las pruebas con HTTP
 controlado en el [informe de verificación](verification-report.md).
 
+## Consulta Owner de actividad registrada
+
+`GET /api/v1/audit/events` consulta eventos existentes mediante un intervalo
+RFC3339 exacto, filtros de texto y continuación estable. Es exclusiva de Owner,
+acota cada página y conserva nanosegundos y secuencias sin redondeo. La página no
+infiere UUID de actor ni dirección IP histórica. La operación independiente
+`GET /api/v1/audit/verify` sigue verificando la cadena completa.
+
+La aceptación local de API/restauración y navegador real aprobó; CI, integración
+y activación de esta entrega conservan comprobación separada. El contrato,
+límites y errores están en [consulta de actividad](audit-events-api.md) y en
+[la decisión de diseño](adr/0061-bounded-owner-audit-query.md).
+
 ## Errores
 
 La envoltura es estable:
