@@ -27,9 +27,14 @@ test('root pagination keeps applied status and summaries do not expose private n
   ).toBeVisible();
   expect(state.calls.at(-1).search).toContain('status=all');
   expect(state.calls.at(-1).search).toContain(`after_id=${first.id}`);
+  const filtered = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname.endsWith('/results') && url.searchParams.get('status') === 'withdrawn';
+  });
   await resultPanel(page)
     .getByRole('button', { name: 'Aplicar estado del resultado', exact: true })
     .click();
+  expect((await filtered).ok()).toBe(true);
   await expect(
     list.getByRole('button', { name: `Consultar resultado ${second.id}`, exact: true }),
   ).toBeVisible();
@@ -62,6 +67,7 @@ test('light history pages descending metadata and reads exact content only on se
   await history
     .getByRole('button', { name: 'Cargar cambios anteriores del resultado', exact: true })
     .click();
+  await expect(history.getByRole('button', { name: /^Consultar resultado revisi/ })).toHaveCount(2);
   expect(state.calls.at(-1).search).toContain('before_revision=2');
   expect(state.calls.at(-1).search).toContain('limit=10');
   await history
