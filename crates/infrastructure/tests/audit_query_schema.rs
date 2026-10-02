@@ -106,6 +106,7 @@ fn startup_rejects_index_function_rls_expression_and_privilege_damage() {
     let Some(mut db) = Fixture::new() else { return };
     for (damage, repair) in [
         ("DROP INDEX audit_events_chronological".to_owned(), "CREATE INDEX audit_events_chronological ON audit_events(timestamp_seconds,timestamp_nanos,sequence)".to_owned()),
+        ("CREATE FUNCTION unexpected_audit_trigger() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$; CREATE TRIGGER unexpected_audit_trigger BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION unexpected_audit_trigger()".to_owned(), "DROP TRIGGER unexpected_audit_trigger ON audit_events; DROP FUNCTION unexpected_audit_trigger()".to_owned()),
         ("ALTER TABLE audit_events ENABLE ROW LEVEL SECURITY".to_owned(), "ALTER TABLE audit_events DISABLE ROW LEVEL SECURITY".to_owned()),
         ("ALTER FUNCTION audit_timestamp_parts(text) VOLATILE".to_owned(), "ALTER FUNCTION audit_timestamp_parts(text) IMMUTABLE".to_owned()),
         ("GRANT SELECT ON audit_events TO PUBLIC".to_owned(), "REVOKE SELECT ON audit_events FROM PUBLIC".to_owned()),

@@ -186,12 +186,16 @@ fn failed_audit_rolls_back_new_root_and_followup_revision() {
         prepared_legacy(&db, db.owner, &register),
         prepared_legacy(&db, db.owner, &correct(&first)),
     ];
+    let repository = store(&db);
     db.admin.batch_execute("CREATE FUNCTION reject_deadline_audit() RETURNS trigger LANGUAGE plpgsql AS $$
         BEGIN RAISE EXCEPTION 'injected audit failure'; END; $$;
         CREATE TRIGGER reject_deadline_audit BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION reject_deadline_audit()").unwrap();
     let before = snapshot(&mut db);
     for prepared in changes {
-        assert!(store(&db).commit(db.owner, prepared).is_err());
+        assert!(matches!(
+            repository.commit(db.owner, prepared),
+            Err(ApplicationError::Port(_))
+        ));
         assert_eq!(snapshot(&mut db), before);
     }
 }

@@ -95,8 +95,12 @@ fn failed_current_read_audit_returns_no_projection_or_partial_changes() {
         return;
     };
     let (_, base) = worker::accepted(&mut db, 50);
+    let repository = dl::store(&db);
     db.admin.batch_execute("CREATE FUNCTION reject_current_read_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='deadline.current_read' THEN RAISE EXCEPTION 'injected audit failure'; END IF; RETURN NEW; END; $$; CREATE TRIGGER reject_current_read_audit BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION reject_current_read_audit()").unwrap();
     let before = worker::snapshot(&mut db);
-    assert!(dl::store(&db).current(db.owner, db.case, base.id).is_err());
+    assert!(matches!(
+        repository.current(db.owner, db.case, base.id),
+        Err(ApplicationError::Port(_))
+    ));
     assert_eq!(worker::snapshot(&mut db), before);
 }

@@ -51,6 +51,16 @@ ubicación conserva su identidad. PostgreSQL mantiene catorce casos en
 y `audit_query_restore.rs`. Los conteos focales se informan por grupo y no se
 suman como una suite global.
 
+La primera campaña global de auditoría se detuvo en una prueba de rollback de
+plazos: el fixture instalaba un trigger de fallo antes de abrir el adaptador,
+y el nuevo guard de esquema lo rechazaba al arrancar. Se reprodujo el mismo
+fallo localmente. Los tres fixtures equivalentes ahora abren antes de inyectar
+el fallo y exigen un error de persistencia; conservan las comparaciones completas
+de estado sin cambios. Una comprobación adicional mantiene el rechazo de un
+arranque con trigger no previsto. Las cuatro pruebas focales aprobaron de forma
+secuencial contra PostgreSQL desechable. No se modificó código de producto,
+permisos, timeouts ni gates; la campaña cancelada no acredita la suite completa.
+
 Los gates de la revisión exacta de auditoría, su integración y activación
 siguen pendientes. El CI de PR49 de informes o del despliegue no acredita esta
 entrega. Tampoco se completa la captura uniforme de UUID e IP del actor, el
