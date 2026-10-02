@@ -1,6 +1,8 @@
 #[path = "identity_support/generation_cases.rs"]
 mod generation_cases;
 mod identity_support;
+#[path = "identity_support/session_policy_cases.rs"]
+mod session_policy_cases;
 
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::Duration;

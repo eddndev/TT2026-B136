@@ -1,5 +1,5 @@
 use application::identity::{
-    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionResult, SessionStatus,
 };
 use application::ApplicationError;
 use domain::identity::{Permission, Role};
@@ -51,6 +51,14 @@ impl IdentityWorkflow for StubIdentity {
 
     fn authenticate(&self, token: &str) -> Result<Principal, ApplicationError> {
         panic!("document authentication must run in the workflow: {token}")
+    }
+
+    fn session_status(&self, _token: &str) -> Result<SessionStatus, ApplicationError> {
+        unreachable!("document routes do not query session status")
+    }
+
+    fn record_activity(&self, _token: &str) -> Result<SessionStatus, ApplicationError> {
+        unreachable!("document routes do not record session activity")
     }
 
     fn authorize(

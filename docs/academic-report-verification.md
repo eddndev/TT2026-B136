@@ -1,5 +1,23 @@
 # Verificación de la actualización académica
 
+## Sesiones temporales y operación privada: 2 de octubre de 2026
+
+Los apartados de implementación y pruebas incorporan la política explícita de
+inactividad, su aceptación HTTP y los límites del monitor todavía independiente.
+El despliegue registra `v0.1.1`, rollback real y renovación de CRL con servicios
+reales, distinguidos de ensayos simulados y de la instalación sin usuarios.
+LuaLaTeX aprobó con **358 páginas y 5870734 bytes**, SHA-256
+`ddfac6a60712ed150e6363381e4a0cdc1245ffba4ee3a04d16fb2491e3869772`.
+
+Se inspeccionaron las páginas físicas **164, 165, 166, 190, 213, 214, 216, 217,
+254 y 255**: tablas, párrafos y continuidad legibles, sin recortes ni
+solapamientos. No hay citas o referencias indefinidas, etiquetas múltiples ni
+glifos ausentes; permanecen las sustituciones históricas de versalitas.
+Resumen, introducción con objetivos, marco teórico y conclusiones conservaron
+sus huellas. Este resultado acredita el documento local; no demuestra todavía
+reingreso con borradores, inactividad operativa ni evaluación humana.
+
+
 ## Renovación recuperable de la CRL: 2 de octubre de 2026
 
 El apartado de despliegue explica el respaldo del estado original, el marcador

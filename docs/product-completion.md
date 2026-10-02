@@ -21,7 +21,13 @@ el 2 de octubre a las 10:42 UTC. Su cabeza `177fe1f` aprobó CI en 7m57s y
 Documents en 1m18s. La confirmación natural de `673b9ece` aprobó CI
 `36996915839` en 6m52s y Documents `36996915909` en 7m55s: 3340 pruebas Rust,
 dos ignoradas, una nativa Redis y cobertura 97/95/93 %. Los controladores de
-esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
+esa revisión se instalaron en VPS3. Posteriormente se aceptó `v0.1.1` sobre
+`e3aa87a`, incluido rollback real a `v0.1.0` y retorno sin cambiar SQL ni claves.
+Los nueve controladores de PR54/main `2de3326` ya están instalados, con CI y
+Documents confirmados. La renovación real de CRL avanzó confianza 1 a 2,
+preservó CA/claves/revocaciones y confirmó respaldo, reinicio y auditoría.
+La aceptación autenticada sigue pendiente por falta
+del correo de la primera cuenta Owner.
 
 - Integrados: plazos persistentes y reevaluación durable, agenda conjunta,
   alertas, recursos y actos declarados, asociaciones a actividades existentes,
@@ -37,15 +43,27 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   de audiencias. Las continuaciones declaradas y la creación contextual explícita
   de plazos ya están integradas; no equivalen a activación jurídica automática.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
-  restablecimiento de contraseña, inactividad, autenticación por certificado y
+  restablecimiento de contraseña, recorrido de inactividad y reingreso,
+  autenticación por certificado y
   firma individual y política documental Client. La admisión general de formatos
   está integrada por PR47 en `ac34b34`, con aceptación API/restauración,
   navegador real y confirmación natural de `main` comprobados.
   El aislamiento de respuestas tardías de contraseña y MFA tiene aceptación
   local: 524 pruebas Node y ocho recorridos de navegador aprobados. Se integró
   por PR53 como `e3aa87a`; CI y Web de main confirmaron 9m02s y 10m56s, con
-  3340 Rust, 419 controladas y 51 reales. No implementa todavía inactividad o
-  borradores. Su primera versión de despliegue aún debe confirmarse.
+  3340 Rust, 419 controladas y 51 reales. Ese aislamiento de respuestas no
+  completa el recorrido de inactividad ni los borradores. Está desplegado en
+  `v0.1.1`, con identidad y salud confirmadas.
+- Sesiones, ampliación local: el backend temporal y sus rutas explícitas de
+  estado/actividad aprobaron focales de aplicación, HTTP, configuración y Redis.
+  Conserva `absolute_only` de 24 horas por defecto; idle exige configuración
+  explícita, sin duración aprobada. El cliente HTTP y el cálculo conservador de
+  vigencia, junto con el monitor monotónico independiente, aprobaron 53 pruebas
+  focales. La aceptación HTTP real con inactividad explícita aprobó 139
+  comprobaciones; el monitor aún no está conectado a la interfaz ni a los editores. Faltan aviso, bloqueo, reingreso y conservación
+  de borradores. Este incremento no está integrado ni desplegado y no habilita
+  inactividad operativa; véanse [el contrato](http-api.md) y
+  [la evidencia local](verification-report.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de
@@ -59,8 +77,8 @@ esa revisión ya están instalados en VPS3; la aplicación conserva `v0.1.0`.
   informe y métricas de desempeño permanecen pendientes del alcance aprobado.
   La duración observada se integró por PR52 en `2621755`, con CI 9m26s, Web
   10m30s y Documents 1m14s; conserva 3340 pruebas Rust, 419 controladas y 51
-  reales. La confirmación natural de main aprobó; el despliegue de esta
-  ampliación sigue pendiente. Ese tiempo observado no estima la terminación.
+  reales. La confirmación natural de main aprobó y esta ampliación quedó
+  incluida en `v0.1.1`, con identidad y salud comprobadas. Ese tiempo observado no estima la terminación.
 - Consulta de actividad integrada por PR50: selección Owner por intervalo UTC,
   actor histórico, operación y recurso, con paginación de instantánea y lectura
   auditada. Aplicación, PostgreSQL, HTTP, cliente y navegador controlado aprobaron.
@@ -564,7 +582,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada; conservar la evidencia académica por revisión. Invitaciones y enrolamiento recuperable siguen pendientes. |
-| Inicio de sesión y sesiones | Parcial | Contraseña/MFA y logout implementados; la generación durable impide reutilizar sesiones o desafíos anteriores tras reactivación, con evidencia focal propia. Certificado de socio, recuperación de contraseña e inactividad siguen pendientes. |
+| Inicio de sesión y sesiones | Parcial | Contraseña/MFA, logout y revocación durable integrados. Backend local de plazos absolutos/idle explícito y estado/actividad con focales aprobados, todavía sin integración ni despliegue; conserva `absolute_only` predeterminado. Faltan el recorrido de aviso, bloqueo y reingreso con borradores, duración idle aprobada, certificado de socio y recuperación de contraseña. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |

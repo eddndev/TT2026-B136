@@ -1,9 +1,11 @@
 use std::env;
 
-use application::identity::{LoginChallengeIdentity, SessionStore};
+use application::identity::{
+    LoginChallengeIdentity, Principal, SessionIdentity, SessionPolicy, SessionStore,
+};
 use application::ApplicationError;
 use domain::crypto::DocumentHasher;
-use domain::identity::UserId;
+use domain::identity::{Role, UserId};
 use infrastructure::{RedisSessionStore, RingSha256Hasher};
 use redis::Commands;
 
@@ -22,6 +24,96 @@ fn failure_key(email: &str) -> String {
             .hash_bytes(email.as_bytes())
             .to_hex()
     )
+}
+
+fn session_identity() -> SessionIdentity {
+    SessionIdentity {
+        principal: Principal {
+            id: UserId::new(),
+            email: "owner@example.com".to_string(),
+            role: Role::Owner,
+        },
+        auth_generation: 0,
+    }
+}
+
+fn session_key(token: &str) -> String {
+    format!(
+        "identity:session:{}",
+        RingSha256Hasher::new()
+            .hash_bytes(token.as_bytes())
+            .to_hex()
+    )
+}
+
+#[test]
+fn legacy_sessions_without_deadlines_require_reauthentication() {
+    let Some(url) = redis_url() else { return };
+    let store = RedisSessionStore::connect(&url).unwrap();
+    let identity = session_identity();
+    let policy = SessionPolicy::new(60, None).unwrap();
+    let token = store
+        .create_session(&identity, policy)
+        .unwrap()
+        .access_token;
+    let key = session_key(&token);
+    let legacy = serde_json::json!({
+        "principal": {
+            "id": identity.principal.id,
+            "email": identity.principal.email,
+            "role": "owner"
+        },
+        "auth_generation": 0
+    })
+    .to_string();
+    let mut connection = redis::Client::open(url).unwrap().get_connection().unwrap();
+    connection.set_ex::<_, _, ()>(&key, legacy, 60).unwrap();
+    let initial_ttl: i64 = connection.pttl(&key).unwrap();
+
+    let result = store.find_session(&token, policy);
+    let remaining_ttl: redis::RedisResult<i64> = connection.pttl(&key);
+    connection.del::<_, ()>(&key).unwrap();
+
+    assert!(
+        result.unwrap().is_none(),
+        "legacy identity was authenticated"
+    );
+    let remaining_ttl = remaining_ttl.unwrap();
+    assert!(
+        remaining_ttl == -2 || (0..=initial_ttl).contains(&remaining_ttl),
+        "legacy session expiration was extended"
+    );
+}
+
+#[test]
+fn sessions_without_expiration_are_rejected_without_repairing_their_ttl() {
+    let Some(url) = redis_url() else { return };
+    let store = RedisSessionStore::connect(&url).unwrap();
+    let policy = SessionPolicy::new(60, None).unwrap();
+    let token = store
+        .create_session(&session_identity(), policy)
+        .unwrap()
+        .access_token;
+    let key = session_key(&token);
+    let mut connection = redis::Client::open(url).unwrap().get_connection().unwrap();
+    let removed_expiration: bool = connection.persist(&key).unwrap();
+
+    let result = store.find_session(&token, policy);
+    let remaining_ttl: redis::RedisResult<i64> = connection.pttl(&key);
+    connection.del::<_, ()>(&key).unwrap();
+
+    assert!(
+        removed_expiration,
+        "fixture session did not have an expiration"
+    );
+    assert!(
+        result.unwrap().is_none(),
+        "session without TTL was authenticated"
+    );
+    assert!(
+        matches!(remaining_ttl.unwrap(), -2 | -1),
+        "session lookup assigned a new expiration"
+    );
 }
 
 #[test]

@@ -4,6 +4,7 @@ use domain::identity::{Permission, Role};
 
 use super::{
     EnrollmentResult, IdentityService, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
+    SessionStatus,
 };
 use crate::ApplicationError;
 
@@ -48,6 +49,14 @@ impl IdentityWorkflow for IdentityService {
 
     fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
         Self::authenticate(self, access_token)
+    }
+
+    fn session_status(&self, access_token: &str) -> Result<SessionStatus, ApplicationError> {
+        Self::session_status(self, access_token)
+    }
+
+    fn record_activity(&self, access_token: &str) -> Result<SessionStatus, ApplicationError> {
+        Self::record_activity(self, access_token)
     }
 
     fn authorize(

@@ -18,7 +18,7 @@ mod versions;
 use documents::{export_evidence, seal_document, upload_document, verify_audit, verify_document};
 use identity::{
     bootstrap_owner, complete_recovery, complete_totp, create_user, current_user, logout,
-    start_login,
+    record_activity, session_status, start_login,
 };
 use queries::{get_document, list_documents};
 use versions::{
@@ -46,6 +46,8 @@ pub fn router(
         .route("/api/v1/auth/mfa/recovery", post(complete_recovery))
         .route("/api/v1/auth/logout", post(logout))
         .route("/api/v1/auth/me", get(current_user))
+        .route("/api/v1/auth/session", get(session_status))
+        .route("/api/v1/auth/activity", post(record_activity))
         .route("/api/v1/users", post(create_user))
         .layer(DefaultBodyLimit::max(16 * 1024));
     Router::new()

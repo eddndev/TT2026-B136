@@ -1,0 +1,34 @@
+\subsection{Plazos de sesión y actividad explícita}\label{sec:pruebas-sesiones}
+
+La aceptación del 2 de octubre de 2026 distingue la política predeterminada
+de veinticuatro horas del límite opcional de inactividad. Las pruebas iniciales
+reprodujeron rutas ausentes, aceptación de claves antiguas o sin expiración,
+metadatos MFA incompletos y configuración desconocida. Después de implementar
+el contrato aprobaron 31 pruebas de aplicación, 13 del contrato HTTP y cuatro
+del parser real de configuración. Estos grupos utilizan dobles cuando cruzan
+los puertos de identidad y persistencia.
+
+Otras 23 pruebas ejercitaron el adaptador contra Valkey 8.1.10 desechable,
+autenticado y restringido a retorno local. Comprobaron formato, política,
+expiración exacta, precisión de generaciones, revocación concurrente y ausencia
+de renovación por lectura. El uso de \texttt{PEXPIRETIME} requiere Redis 7 o
+posterior; esta ejecución local no se presenta como una medición de Redis 7.4.
+
+La demostración API integrada aprobó en 320.859~s, incluida compilación,
+preparación y restauración, con la política predeterminada. Una aceptación
+focal posterior habilitó cinco segundos de inactividad sólo en una instalación
+aislada con PostgreSQL, Valkey y material criptográfico real. Aprobó
+139 comprobaciones sobre 29 peticiones en 18.306~s: MFA mediante TOTP y código
+de recuperación, metadatos públicos, lecturas sin renovación, rechazo de cuerpo
+y consulta, extensión explícita hasta el límite absoluto, expiración y logout
+sin recreación de claves. Se retiraron los procesos y archivos temporales
+propios. Los cinco segundos son un parámetro de prueba, no una decisión de
+operación del despacho.
+
+El cliente HTTP, reloj y monitor independientes aprobaron 53 pruebas.
+Dos casos reprodujeron primero la recuperación indebida de tiempo descontado
+por latencia cuando una respuesta posterior era más rápida. El monitor
+corregido mantiene la conversión temporal más conservadora durante la sesión;
+no genera actividad autónoma, consultas periódicas ni reintentos. Estos
+resultados no acreditan todavía la integración del temporizador en las vistas,
+la conservación de borradores, el reingreso ni el cierre global de CI.

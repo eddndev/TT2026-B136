@@ -180,9 +180,11 @@ transacción.
 | `GET /healthz` | Público | Estado del proceso. |
 | `POST /api/v1/auth/bootstrap` | Público hasta el primer usuario | Crea el owner y devuelve material TOTP y recuperación una sola vez; `201`. |
 | `POST /api/v1/auth/login` | Público | Verifica contraseña y devuelve un desafío MFA de 5 minutos. |
-| `POST /api/v1/auth/mfa/totp` | Desafío | Consume un intento MFA y devuelve una sesión de 24 horas. |
+| `POST /api/v1/auth/mfa/totp` | Desafío | Consume un intento MFA y devuelve sesión con límite absoluto de 24 horas y metadatos de vigencia. |
 | `POST /api/v1/auth/mfa/recovery` | Desafío | Consume un código de recuperación y devuelve una sesión. |
 | `GET /api/v1/auth/me` | Bearer | Devuelve la identidad vigente. |
+| `GET /api/v1/auth/session` | Bearer, cualquier rol | Devuelve identidad, política y plazos vigentes sin renovar; `200`. |
+| `POST /api/v1/auth/activity` | Bearer, cualquier rol | Registra actividad explícita dentro de la misma sesión vigente; `200`. |
 | `POST /api/v1/auth/logout` | Bearer | Revoca la sesión; `204`. |
 | `POST /api/v1/users` | Owner | Crea otro usuario y devuelve su material de enrolamiento; `201`. |
 
@@ -201,7 +203,10 @@ curl --fail-with-body -X POST "$base/api/v1/auth/login" \
 
 El segundo paso envía `challenge_token` y `code` a la ruta TOTP o recovery. La
 respuesta contiene `access_token`, `token_type: "Bearer"` y
-`expires_in_seconds`. Las peticiones protegidas usan:
+`expires_in_seconds`, `user` y los mismos metadatos de política y plazos que
+`GET /api/v1/auth/session`. `expires_in_seconds` es el número entero de segundos
+restantes hasta el primer vencimiento respecto de `server_now_unix_ms`.
+Las peticiones protegidas usan:
 
 ```text
 Authorization: Bearer <access_token>
@@ -210,7 +215,43 @@ Authorization: Bearer <access_token>
 Los tokens son 256 bits aleatorios y opacos. Redis conserva únicamente una
 clave derivada por SHA-256, por lo que logout puede revocarlos de inmediato sin
 persistir el token en claro. Cada petición protegida recarga desde PostgreSQL el
-estado activo y el rol actual del usuario.
+estado activo, principal y generación de autenticación del usuario. Después de
+esa lectura vuelve a confirmar en Redis que la misma sesión sigue vigente.
+
+Estado y actividad devuelven esta forma, sin bearer nuevo ni generación interna:
+
+```json
+{
+  "user": {"id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "email": "owner@example.com", "role": "owner"},
+  "policy": {"absolute_ttl_seconds": 86400, "idle_ttl_seconds": null},
+  "server_now_unix_ms": 1790899200000,
+  "absolute_expires_at_unix_ms": 1790985600000,
+  "idle_expires_at_unix_ms": null
+}
+```
+
+Ambas rutas exigen exactamente un bearer válido y cuerpo vacío, sin parámetros
+de consulta. Un cuerpo o query, incluso `?` vacío, responde
+`400 invalid_session_request`; una sesión ausente, vencida o revocada responde
+`401 invalid_session`. Las respuestas usan `Cache-Control: no-store`. El POST
+no acepta reloj, identidad ni duración enviados por el cliente. Solo amplía el
+plazo de inactividad de una sesión todavía válida, sin superar el absoluto ni
+recrear una clave retirada.
+
+Sin configuración, `idle_ttl_seconds` y `idle_expires_at_unix_ms` son `null`:
+el modo `absolute_only` conserva el máximo absoluto de 24 horas y la actividad
+no lo prolonga. `serve --session-idle-seconds N` o `TT_SESSION_IDLE_SECONDS`
+habilita explícitamente inactividad con un entero de 1 a 86400; un valor inválido
+impide el arranque. No hay duración de inactividad predeterminada ni aprobada.
+`/me`, estado y peticiones ordinarias nunca renuevan plazos. La activación
+operativa espera el recorrido de reingreso y conservación de borradores del
+frontend; este contrato backend no acredita ese recorrido.
+
+Las sesiones usan una hash versionada con expiración comprobada por Redis 7 o
+posterior. El formato anterior, una clave sin TTL o una política distinta exige
+volver a entrar; no se repara asignando un plazo nuevo. Véase
+[ADR-0064](adr/0064-explicit-session-activity.md). La exigencia de Redis 7.4 para
+capturas y restauraciones es independiente de este mínimo de la API.
 
 El cliente Qadra controla por separado la vigencia de los intentos de acceso:
 una respuesta de contraseña o MFA reemplazada por un intento posterior no

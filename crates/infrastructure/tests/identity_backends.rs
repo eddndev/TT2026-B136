@@ -2,7 +2,8 @@ use domain::clock::OffsetDateTime;
 use std::env;
 
 use application::identity::{
-    LoginChallengeIdentity, Principal, SessionIdentity, SessionStore, UserRecord, UserRepository,
+    LoginChallengeIdentity, Principal, SessionIdentity, SessionPolicy, SessionStore, UserRecord,
+    UserRepository,
 };
 use application::ApplicationError;
 use domain::crypto::{RecoveryCodeSet, RECOVERY_CODE_COUNT};
@@ -125,10 +126,20 @@ fn redis_sessions_are_opaque_replay_safe_and_revocable() {
         principal: principal.clone(),
         auth_generation: 0,
     };
-    let token = store.create_session(&identity, 60).unwrap();
-    assert!(store.find_session(&token).unwrap() == Some(identity));
+    let policy = SessionPolicy::new(60, None).unwrap();
+    let token = store
+        .create_session(&identity, policy)
+        .unwrap()
+        .access_token;
+    assert!(
+        store
+            .find_session(&token, policy)
+            .unwrap()
+            .map(|state| state.identity)
+            == Some(identity)
+    );
     store.revoke_session(&token).unwrap();
-    assert!(store.find_session(&token).unwrap().is_none());
+    assert!(store.find_session(&token, policy).unwrap().is_none());
 
     assert_eq!(
         store

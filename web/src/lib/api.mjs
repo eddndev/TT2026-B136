@@ -216,6 +216,8 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       );
     },
     me: () => request('/auth/me'),
+    sessionStatus: () => request('/auth/session'),
+    recordActivity: () => post('/auth/activity'),
     async logout() {
       const version = sessionVersion;
       invalidateAuthentication();

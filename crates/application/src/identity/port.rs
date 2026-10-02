@@ -6,8 +6,8 @@ use domain::identity::{Permission, Role, UserId};
 use zeroize::Zeroizing;
 
 use super::{
-    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionIdentity,
-    SessionResult, UserRecord,
+    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionGrant,
+    SessionIdentity, SessionPolicy, SessionResult, SessionState, SessionStatus, UserRecord,
 };
 use crate::ApplicationError;
 
@@ -37,6 +37,10 @@ pub trait IdentityWorkflow: Send + Sync {
         code: &str,
     ) -> Result<SessionResult, ApplicationError>;
     fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError>;
+    /// Reads current deadlines without treating a request as human activity.
+    fn session_status(&self, access_token: &str) -> Result<SessionStatus, ApplicationError>;
+    /// Records explicit activity only while the same session remains valid.
+    fn record_activity(&self, access_token: &str) -> Result<SessionStatus, ApplicationError>;
     fn authorize(
         &self,
         access_token: &str,
@@ -88,9 +92,23 @@ pub trait SessionStore: Send + Sync {
     fn create_session(
         &self,
         identity: &SessionIdentity,
-        ttl: u64,
-    ) -> Result<String, ApplicationError>;
-    fn find_session(&self, token: &str) -> Result<Option<SessionIdentity>, ApplicationError>;
+        policy: SessionPolicy,
+    ) -> Result<SessionGrant, ApplicationError>;
+    /// Atomically rejects expired, malformed, or differently configured sessions.
+    /// Reading never extends deadlines or repairs a missing expiration.
+    fn find_session(
+        &self,
+        token: &str,
+        policy: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError>;
+    /// Atomically checks identity and liveness before extending only idle time.
+    /// Missing or revoked sessions remain absent and absolute time never grows.
+    fn record_activity(
+        &self,
+        token: &str,
+        expected: &SessionIdentity,
+        policy: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError>;
     fn revoke_session(&self, token: &str) -> Result<(), ApplicationError>;
     /// Reads the failure count and repairs missing expiration using the supplied window.
     /// Existing expirations are preserved; absent counters remain absent.

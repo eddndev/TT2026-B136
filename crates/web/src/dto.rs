@@ -1,7 +1,9 @@
 //! Request and response values for the identity and document API.
 
 use application::documents::CaseDocumentSummary;
-use application::identity::{EnrollmentResult, LoginChallenge, Principal, SessionResult};
+use application::identity::{
+    EnrollmentResult, LoginChallenge, Principal, SessionPolicy, SessionResult, SessionStatus,
+};
 use application::verification::{ComponentReport, ComponentStatus, Verdict, VerificationReport};
 use domain::audit::ChainVerification;
 use serde::{Deserialize, Serialize};
@@ -94,7 +96,8 @@ pub struct SessionResponse {
     access_token: String,
     token_type: &'static str,
     expires_in_seconds: u64,
-    user: PrincipalResponse,
+    #[serde(flatten)]
+    session: SessionStatusResponse,
 }
 
 impl From<SessionResult> for SessionResponse {
@@ -103,7 +106,43 @@ impl From<SessionResult> for SessionResponse {
             access_token: session.access_token,
             token_type: "Bearer",
             expires_in_seconds: session.expires_in_seconds,
+            session: session.session.into(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct SessionStatusResponse {
+    user: PrincipalResponse,
+    policy: SessionPolicyResponse,
+    server_now_unix_ms: i64,
+    absolute_expires_at_unix_ms: i64,
+    idle_expires_at_unix_ms: Option<i64>,
+}
+
+impl From<SessionStatus> for SessionStatusResponse {
+    fn from(session: SessionStatus) -> Self {
+        Self {
             user: session.principal.into(),
+            policy: session.policy.into(),
+            server_now_unix_ms: session.server_now_unix_ms,
+            absolute_expires_at_unix_ms: session.absolute_expires_at_unix_ms,
+            idle_expires_at_unix_ms: session.idle_expires_at_unix_ms,
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct SessionPolicyResponse {
+    absolute_ttl_seconds: u64,
+    idle_ttl_seconds: Option<u64>,
+}
+
+impl From<SessionPolicy> for SessionPolicyResponse {
+    fn from(policy: SessionPolicy) -> Self {
+        Self {
+            absolute_ttl_seconds: policy.absolute_ttl_seconds(),
+            idle_ttl_seconds: policy.idle_ttl_seconds(),
         }
     }
 }
