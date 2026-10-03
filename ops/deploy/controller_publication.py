@@ -134,12 +134,10 @@ def _complete(value, root, operation, lock):
     return records.receipt(value, operation)
 
 
-def publish_controllers(root, operation_id, staged_directory, *,
-                        expected_manifest_sha256, expected_previous_sha256):
-    """Publish or reconcile exact source generations under the deployment lock."""
+def _inputs(root, operation_id, staged_directory, manifest_sha256, previous_sha256):
     operation_id = _identifier(operation_id)
-    hexadecimal(expected_manifest_sha256, 64)
-    hexadecimal(expected_previous_sha256, 64)
+    hexadecimal(manifest_sha256, 64)
+    hexadecimal(previous_sha256, 64)
     expected = files.located(root)
     lock = files.identity(root / "deploy.lock", directory=False)
     files.exact_path(staged_directory)
@@ -147,15 +145,33 @@ def publish_controllers(root, operation_id, staged_directory, *,
             or staged_directory.is_relative_to(root / "maintenance/controllers")
             or Path(__file__).resolve().is_relative_to(root / "tools")):
         raise ValueError("controller publisher and staging must remain outside exchanged generations")
-    operation = root / "maintenance/controllers" / operation_id
+    return expected, lock, root / "maintenance/controllers" / operation_id
+
+
+def _publish_locked(root, operation_id, staged_directory, *,
+                    expected_manifest_sha256, expected_previous_sha256):
+    """Publish exact generations while the caller holds the deployment lock."""
+    expected, lock, operation = _inputs(root, operation_id, staged_directory,
+                                       expected_manifest_sha256, expected_previous_sha256)
+    _root_unchanged(root, expected, lock)
+    manifest, staging, sources, contents = files.package(staged_directory, expected_manifest_sha256)
+    _parents(root)
+    if os.path.lexists(operation):
+        value = _resume(root, operation, expected, lock, staging, sources, manifest,
+                        expected_manifest_sha256, expected_previous_sha256)
+    else:
+        value = _prepare(root, operation, expected, lock, staging, sources, manifest, contents,
+                         expected_manifest_sha256, expected_previous_sha256)
+    return _complete(value, root, operation, lock)
+
+
+def publish_controllers(root, operation_id, staged_directory, *,
+                        expected_manifest_sha256, expected_previous_sha256):
+    """Publish or reconcile exact source generations under the deployment lock."""
+    expected, lock, _ = _inputs(root, operation_id, staged_directory,
+                                expected_manifest_sha256, expected_previous_sha256)
     with journal.locked(root):
         _root_unchanged(root, expected, lock)
-        manifest, staging, sources, contents = files.package(staged_directory, expected_manifest_sha256)
-        _parents(root)
-        if os.path.lexists(operation):
-            value = _resume(root, operation, expected, lock, staging, sources, manifest,
-                            expected_manifest_sha256, expected_previous_sha256)
-        else:
-            value = _prepare(root, operation, expected, lock, staging, sources, manifest, contents,
-                             expected_manifest_sha256, expected_previous_sha256)
-        return _complete(value, root, operation, lock)
+        return _publish_locked(root, operation_id, staged_directory,
+                               expected_manifest_sha256=expected_manifest_sha256,
+                               expected_previous_sha256=expected_previous_sha256)

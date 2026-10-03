@@ -12,10 +12,14 @@ import controller_publication_record as publications
 import crl_journal as journal
 
 
-def _publication(root, operation, expected_root, lock, publication_sha256, installed_sha256):
+def _root_unchanged(root, expected_root, lock):
     if files.located(root) != expected_root:
         raise ValueError("controller approval root changed")
     files.unchanged(root / "deploy.lock", lock, directory=False)
+
+
+def _publication(root, operation, expected_root, lock, publication_sha256, installed_sha256):
+    _root_unchanged(root, expected_root, lock)
     files.identity(operation)
     observed, raw = files.read(operation / "journal.json", MAX_MANIFEST)
     if observed["sha256"] != publication_sha256 or not raw.isascii():
@@ -120,69 +124,88 @@ def _publish_record(path, raw, reobserve, *, exclusive):
     files.sync_directory(path.parent)
 
 
-def approve_controllers(root, operation_id, *, expected_publication_sha256,
-                        expected_installed_sha256, expected_previous_approval_sha256):
-    """Promote exact publication evidence with an explicit previous selection."""
+def _inputs(root, operation_id, publication_sha256, installed_sha256, previous_approval_sha256):
     operation_id = approvals.identifier(operation_id)
-    hexadecimal(expected_publication_sha256, 64)
-    hexadecimal(expected_installed_sha256, 64)
-    if expected_previous_approval_sha256 is not None:
-        hexadecimal(expected_previous_approval_sha256, 64)
+    hexadecimal(publication_sha256, 64)
+    hexadecimal(installed_sha256, 64)
+    if previous_approval_sha256 is not None:
+        hexadecimal(previous_approval_sha256, 64)
     expected_root = files.located(root)
     lock = files.identity(root / "deploy.lock", directory=False)
     operation = root / "maintenance/controllers" / operation_id
+    return operation_id, expected_root, lock, operation
+
+
+def _approve_locked(root, operation_id, *, expected_publication_sha256,
+                    expected_installed_sha256, expected_previous_approval_sha256):
+    """Promote exact evidence while the caller holds the deployment lock."""
+    operation_id, expected_root, lock, operation = _inputs(
+        root, operation_id, expected_publication_sha256, expected_installed_sha256,
+        expected_previous_approval_sha256)
     history_path = operation / "approval.json"
     current_path = operation.parent / "approved.json"
-    with journal.locked(root):
-        def published():
-            return _publication(root, operation, expected_root, lock,
-                                expected_publication_sha256, expected_installed_sha256)
 
-        publication = published()
-        value = approvals.from_publication(publication, expected_publication_sha256,
-                                           expected_previous_approval_sha256)
-        raw = approvals.validate(value)
-        history = _existing(history_path, expected_root)
-        current = _existing(current_path, expected_root)
-        if history is not None and history["raw"] != raw:
-            raise ValueError("controller operation already records another approval")
-        already_current = current is not None and current["raw"] == raw
-        if already_current:
-            if history is None:
-                raise ValueError("current controller approval lacks its operation evidence")
-        else:
-            _predecessor(current, expected_previous_approval_sha256)
-            if current is not None and current["value"]["operation_id"] == operation_id:
-                raise ValueError("controller operation cannot replace its own different approval")
+    def published():
+        return _publication(root, operation, expected_root, lock,
+                            expected_publication_sha256, expected_installed_sha256)
 
-        def reobserve():
-            if published() != publication or _existing(current_path, expected_root) != current:
-                raise ValueError("controller publication or selected approval changed")
-
+    publication = published()
+    value = approvals.from_publication(publication, expected_publication_sha256,
+                                       expected_previous_approval_sha256)
+    raw = approvals.validate(value)
+    history = _existing(history_path, expected_root)
+    current = _existing(current_path, expected_root)
+    if history is not None and history["raw"] != raw:
+        raise ValueError("controller operation already records another approval")
+    already_current = current is not None and current["raw"] == raw
+    if already_current:
         if history is None:
-            _publish_record(history_path, raw, reobserve, exclusive=True)
-            history = _existing(history_path, expected_root)
-        if history is None or history["raw"] != raw:
-            raise ValueError("controller operation evidence differs after publication")
-        _sync_file(history_path, history["identity"])
-        files.sync_directory(operation)
+            raise ValueError("current controller approval lacks its operation evidence")
+    else:
+        _predecessor(current, expected_previous_approval_sha256)
+        if current is not None and current["value"]["operation_id"] == operation_id:
+            raise ValueError("controller operation cannot replace its own different approval")
 
-        def ready():
-            reobserve()
-            if _existing(history_path, expected_root) != history:
-                raise ValueError("controller operation evidence changed before selection")
+    def reobserve():
+        if published() != publication or _existing(current_path, expected_root) != current:
+            raise ValueError("controller publication or selected approval changed")
 
-        ready()
-        if already_current:
-            _sync_file(current_path, current["identity"])
-            files.sync_directory(operation.parent)
-        else:
-            _publish_record(current_path, raw, ready, exclusive=False)
-        if published() != publication:
-            raise ValueError("controller publication changed during approval promotion")
-        observed_history = _existing(history_path, expected_root)
-        observed_current = _existing(current_path, expected_root)
-        if (observed_history != history or observed_current is None
-                or observed_current["raw"] != raw):
-            raise ValueError("controller approval changed during durable promotion")
-        return approvals.receipt(value)
+    if history is None:
+        _publish_record(history_path, raw, reobserve, exclusive=True)
+        history = _existing(history_path, expected_root)
+    if history is None or history["raw"] != raw:
+        raise ValueError("controller operation evidence differs after publication")
+    _sync_file(history_path, history["identity"])
+    files.sync_directory(operation)
+
+    def ready():
+        reobserve()
+        if _existing(history_path, expected_root) != history:
+            raise ValueError("controller operation evidence changed before selection")
+
+    ready()
+    if already_current:
+        _sync_file(current_path, current["identity"])
+        files.sync_directory(operation.parent)
+    else:
+        _publish_record(current_path, raw, ready, exclusive=False)
+    if published() != publication:
+        raise ValueError("controller publication changed during approval promotion")
+    observed_history = _existing(history_path, expected_root)
+    observed_current = _existing(current_path, expected_root)
+    if (observed_history != history or observed_current is None
+            or observed_current["raw"] != raw):
+        raise ValueError("controller approval changed during durable promotion")
+    return approvals.receipt(value)
+
+
+def approve_controllers(root, operation_id, *, expected_publication_sha256,
+                        expected_installed_sha256, expected_previous_approval_sha256):
+    """Promote exact publication evidence with an explicit previous selection."""
+    _, expected_root, lock, _ = _inputs(root, operation_id, expected_publication_sha256,
+                                       expected_installed_sha256, expected_previous_approval_sha256)
+    with journal.locked(root):
+        _root_unchanged(root, expected_root, lock)
+        return _approve_locked(root, operation_id, expected_publication_sha256=expected_publication_sha256,
+                               expected_installed_sha256=expected_installed_sha256,
+                               expected_previous_approval_sha256=expected_previous_approval_sha256)

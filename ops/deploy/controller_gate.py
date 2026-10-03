@@ -125,6 +125,89 @@ def _state(operation, value, state):
     return changed
 
 
+def _close_locked(root, operation_id, *, target_path, expected_target_sha256,
+                  deadline, prepare_only=False):
+    """Prepare or finish exact masks while the caller continuously owns deploy.lock."""
+    expected_root = files.located(root)
+    lock = files.identity(root / "deploy.lock", directory=False)
+    operation = root / "maintenance/controller-installation" / operation_id
+    marker = operation.parent / "active.json"
+    active = {"operation_id": operation_id, "target_sha256": expected_target_sha256}
+    target_context = _live(root, target_path, expected_target_sha256, expected_root, lock)
+    target, environment, unit_directory = target_context
+    unit_identity = files.located(unit_directory)
+    for path in (root / "maintenance", operation.parent):
+        if present(path):
+            files.identity(path)
+    marked = _active(marker, active)
+    value = None
+    if present(operation):
+        files.identity(operation)
+        value = gate_files.read(operation / "journal.json")
+        orientations = gate_files.validate_record(value, root, operation, target,
+            expected_target_sha256, lock, unit_directory, UNITS)
+        targets.attest_originals(value["units"], target)
+        if not marked and value["state"] != "prepared":
+            raise ValueError("controller gate journal lost its active operation marker")
+    else:
+        if marked:
+            raise ValueError("controller gate active operation lacks its journal")
+        originals = _originals(unit_directory, target)
+        orientations = dict.fromkeys(UNITS, "original")
+    _observe(target, environment, deadline, orientations)
+
+    def recheck():
+        _remaining(deadline)
+        _live(root, target_path, expected_target_sha256, expected_root, lock, target_context)
+        if files.located(unit_directory) != unit_identity:
+            raise ValueError("controller gate unit directory changed")
+        _remaining(deadline)
+
+    recheck()
+    if value is None:
+        value = _prepare(root, operation, target, expected_target_sha256, lock,
+                         unit_directory, originals, recheck)
+    if prepare_only:
+        return value
+    if not marked:
+        gate_files.save(marker, active, sync_directory)
+    gate_files.sync_file(marker)
+    sync_directory(operation.parent)
+
+    def orientation():
+        recheck()
+        if not _active(marker, active) or gate_files.read(operation / "journal.json") != value:
+            raise ValueError("controller gate durable intention changed")
+        observed = gate_files.validate_record(value, root, operation, target,
+            expected_target_sha256, lock, unit_directory, UNITS)
+        targets.attest_originals(value["units"], target)
+        return observed
+
+    orientations = orientation()
+    if "original" in orientations.values():
+        value = _state(operation, value, "masking")
+        for unit in UNITS:
+            if orientation()[unit] == "original":
+                _exchange(unit_directory / unit, operation / "slots" / unit)
+            sync_directory(unit_directory)
+            sync_directory(operation / "slots")
+            orientation()
+    sync_directory(unit_directory)
+    sync_directory(operation / "slots")
+    if set(orientation().values()) != {"masked"}:
+        raise ValueError("controller gate still contains an open entry")
+    if value["state"] != "gated":
+        value = _state(operation, value, "reload_pending")
+    orientation()
+    _command(target, environment, deadline, "daemon-reload")
+    _observe(target, environment, deadline, orientation(), complete=True)
+    orientation()
+    value = _state(operation, value, "gated")
+    orientation()
+    _remaining(deadline)
+    return {**active, "state": "gated"}
+
+
 def close_entries(root, operation_id, *, target_path, expected_target_sha256, timeout=30):
     """Establish persistent masks and fresh manager evidence under one local lock."""
     try:
@@ -134,81 +217,12 @@ def close_entries(root, operation_id, *, target_path, expected_target_sha256, ti
         operation_id = _identifier(operation_id)
         hexadecimal(expected_target_sha256, 64)
         expected_root = files.located(root)
-        lock = files.identity(root / "deploy.lock", directory=False)
-        operation = root / "maintenance/controller-installation" / operation_id
-        marker = operation.parent / "active.json"
-        active = {"operation_id": operation_id, "target_sha256": expected_target_sha256}
+        expected_lock = files.identity(root / "deploy.lock", directory=False)
         with journal.locked(root):
-            target_context = _live(root, target_path, expected_target_sha256, expected_root, lock)
-            target, environment, unit_directory = target_context
-            unit_identity = files.located(unit_directory)
-            for path in (root / "maintenance", operation.parent):
-                if present(path):
-                    files.identity(path)
-            marked = _active(marker, active)
-            value = None
-            if present(operation):
-                files.identity(operation)
-                value = gate_files.read(operation / "journal.json")
-                orientations = gate_files.validate_record(value, root, operation, target,
-                    expected_target_sha256, lock, unit_directory, UNITS)
-                targets.attest_originals(value["units"], target)
-                if not marked and value["state"] != "prepared":
-                    raise ValueError("controller gate journal lost its active operation marker")
-            else:
-                if marked:
-                    raise ValueError("controller gate active operation lacks its journal")
-                originals = _originals(unit_directory, target)
-                orientations = dict.fromkeys(UNITS, "original")
-            _observe(target, environment, deadline, orientations)
-
-            def recheck():
-                _remaining(deadline)
-                _live(root, target_path, expected_target_sha256, expected_root, lock, target_context)
-                if files.located(unit_directory) != unit_identity:
-                    raise ValueError("controller gate unit directory changed")
-                _remaining(deadline)
-
-            recheck()
-            if value is None:
-                value = _prepare(root, operation, target, expected_target_sha256, lock,
-                                 unit_directory, originals, recheck)
-            if not marked:
-                gate_files.save(marker, active, sync_directory)
-            gate_files.sync_file(marker)
-            sync_directory(operation.parent)
-
-            def orientation():
-                recheck()
-                if not _active(marker, active) or gate_files.read(operation / "journal.json") != value:
-                    raise ValueError("controller gate durable intention changed")
-                observed = gate_files.validate_record(value, root, operation, target,
-                    expected_target_sha256, lock, unit_directory, UNITS)
-                targets.attest_originals(value["units"], target)
-                return observed
-
-            orientations = orientation()
-            if "original" in orientations.values():
-                value = _state(operation, value, "masking")
-                for unit in UNITS:
-                    if orientation()[unit] == "original":
-                        _exchange(unit_directory / unit, operation / "slots" / unit)
-                    sync_directory(unit_directory)
-                    sync_directory(operation / "slots")
-                    orientation()
-            sync_directory(unit_directory)
-            sync_directory(operation / "slots")
-            if set(orientation().values()) != {"masked"}:
-                raise ValueError("controller gate still contains an open entry")
-            if value["state"] != "gated":
-                value = _state(operation, value, "reload_pending")
-            orientation()
-            _command(target, environment, deadline, "daemon-reload")
-            _observe(target, environment, deadline, orientation(), complete=True)
-            orientation()
-            value = _state(operation, value, "gated")
-            orientation()
-            _remaining(deadline)
-            return {**active, "state": "gated"}
+            if files.located(root) != expected_root:
+                raise ValueError("controller entry gate root changed before locking")
+            files.unchanged(root / "deploy.lock", expected_lock, directory=False)
+            return _close_locked(root, operation_id, target_path=target_path,
+                                 expected_target_sha256=expected_target_sha256, deadline=deadline)
     except (OSError, ValueError, RuntimeError, KeyError, TypeError, UnicodeError, RecursionError):
         raise RuntimeError(ERROR) from None

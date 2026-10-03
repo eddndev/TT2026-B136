@@ -188,3 +188,17 @@ aprobado y su versión mínima antes de transferir. El nuevo caso reprodujo seis
 rechazos ausentes y el conjunto final de cuatro aprobó en 0.738~s, manteniendo
 la ejecución remota sustituida por registros locales. No se asumió que el
 Python predeterminado del sistema operativo cumpliera el contrato del paquete.
+
+
+El coordinador integrado de controladores aprobó diez pruebas focales en
+4.159~s y 52 regresiones de sus fronteras en 3.021~s. Antes se reprodujeron
+por separado un presupuesto de arranque incompatible y dos fallos de reentrada:
+publicación ajena después de preparar y sincronización pendiente tras retirar
+el marcador. El bootstrap y las regresiones del lanzador aprobaron ocho casos
+en 1.703~s. El ensayo nativo aprobó un recorrido en 3.461~s, con cuatro servicios
+inocuos de una cuenta desechable, gestor y listeners reales. Verificó cambio de
+generación, cierre por defecto, autoridad de reapertura y reentrada sin nuevos
+arranques; preservó los centinelas y retiró sus recursos propios. Las sondas de
+bases fueron sintéticas y no acreditan PostgreSQL o Redis reales, restauración
+ni instalación operativa del producto. El informe versionado distingue esos
+resultados del cierre remoto pendiente de la entrega.

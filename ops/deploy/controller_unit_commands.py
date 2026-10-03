@@ -75,8 +75,34 @@ def _unit(name, raw, root, python, prefix):
     return b"".join(lines)
 
 
+def _original_units(root, current_units, python_executable, legacy_absent_prestarts=()):
+    """Validate captured commands and explicitly approved legacy prestart absence."""
+    root_name, python = _path(root), _path(python_executable)
+    if type(current_units) is not dict or set(current_units) != set(UNITS):
+        raise ValueError("controller unit inventory is incomplete or unknown")
+    allowed = ("qadra-postgres.service", "qadra-redis.service")
+    if (type(legacy_absent_prestarts) not in (list, tuple)
+            or len(set(legacy_absent_prestarts)) != len(legacy_absent_prestarts)
+            or any(name not in allowed for name in legacy_absent_prestarts)):
+        raise ValueError("legacy prestart absence requires exact database unit names")
+    result = dict(current_units)
+    for name, raw in current_units.items():
+        lines, commands = _commands(raw)
+        if name in legacy_absent_prestarts:
+            if set(commands) != {b"ExecStart"}:
+                raise ValueError("legacy prestart absence differs from its approval")
+            positions = [i for i, line in enumerate(lines) if line.startswith(b"MemoryMax=")]
+            if len(positions) != 1:
+                raise ValueError("legacy unit lacks its unambiguous resource limit")
+            lines.insert(positions[0], f"ExecStartPre={python} {root_name}/tools/restore_fence.py {root_name}\n".encode())
+            result[name] = b"".join(lines)
+        _unit(name, result[name], root_name, python, "")
+    return result
+
+
 def render_units(root, current_units, approval, *, expected_approval_sha256,
-                 expected_root_identity, python_executable, launcher_path):
+                 expected_root_identity, python_executable, launcher_path,
+                 legacy_absent_prestarts=()):
     """Return candidates only; the caller validates current files and manager state."""
     root_name, python, launcher = _path(root), _path(python_executable), _path(launcher_path)
     if launcher_path.is_relative_to(root / "tools"):
@@ -88,8 +114,7 @@ def render_units(root, current_units, approval, *, expected_approval_sha256,
         raise ValueError("controller approval differs from its external expected digest")
     if approval["root"] != {"path": root_name, **expected_root_identity}:
         raise ValueError("controller approval differs from the external target identity")
-    if type(current_units) is not dict or set(current_units) != set(UNITS):
-        raise ValueError("controller unit inventory is incomplete or unknown")
+    current_units = _original_units(root, current_units, python_executable, legacy_absent_prestarts)
     prefix = (f"{python} -I -B -S {launcher} --root {root_name} "
               f"--inventory-sha256 {approval['installed_sha256']} --entrypoint ")
     return {name: _unit(name, current_units[name], root_name, python, prefix) for name in UNITS}
