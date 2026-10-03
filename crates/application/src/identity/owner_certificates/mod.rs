@@ -10,6 +10,7 @@ mod port;
 mod prepared;
 mod registration;
 mod service;
+mod submission;
 mod withdrawal;
 
 pub use model::{
@@ -19,3 +20,4 @@ pub use model::{
 pub use port::{OwnerBindingVerifier, OwnerCertificatePorts, OwnerCertificateStore};
 pub use prepared::{PreparedOwnerRegistration, PreparedOwnerWithdrawal, VerifiedOwnerRegistration};
 pub use service::OwnerCertificateService;
+pub use submission::OwnerRegistrationSubmission;
