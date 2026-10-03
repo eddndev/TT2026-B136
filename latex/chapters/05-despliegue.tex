@@ -140,3 +140,17 @@ rechazo de la reentrada en 0.096~s. El rename exclusivo elimina esa ventana sin
 relajar el guard de enlaces externos. El grupo corregido aprobó siete pruebas
 en 0.979~s, preservando temporales ajenos, registros originales y fuentes.
 Los hijos Python son inocuos: no se operaron servicios ni se instalaron unidades.
+
+
+El cierre persistente de entradas aprobó seis pruebas de fixture en 0.963~s y
+un recorrido nativo aislado en 1.091~s. Cuatro trabajadores inocuos conservaron
+sus identidades y listeners durante la muerte del controlador tras dos
+intercambios, la pérdida de confirmación de recarga y dos reentradas nuevas.
+El primer intento falló sólo en el observador de limpieza: la recarga de
+unidades enmascaradas ya no conservaba el código histórico de salida.
+La comprobación corregida exige recibo cooperativo ligado al trabajador,
+ausencia de proceso y listener, estado inactivo e inventario ajeno intacto;
+no infiere una salida normal del sistema operativo de metadata vacía.
+Se retiraron únicamente las cuatro unidades desechables y se restauró el modo
+previo del directorio. No se reinició el host ni su gestor y no se instalaron
+controladores en el usuario de despliegue.
