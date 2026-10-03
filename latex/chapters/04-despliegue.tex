@@ -153,3 +153,14 @@ perdida sin sustituir el inode original. Los candidatos de cuatro unidades
 incorporan el lanzador aislado y la huella literal aprobada, preservando los demás
 bytes. Esto no instala unidades ni reabre servicios; véase
 \rutarepo{docs/deployment-controller-approval.md}.
+
+
+El cierre de entradas de controladores agrega máscaras persistentes para las
+cuatro unidades atestadas bajo el mismo bloqueo de despliegue. Conserva cada
+fragmento original por identidad y bytes, publica intención antes del intercambio
+y exige recarga confirmada y observación efectiva de las cuatro máscaras.
+Cada reentrada vuelve a observar el gestor, incluso con un diario que diga
+completado. Impide entradas posteriores sin afirmar que los trabajadores
+existentes hayan terminado. No instala fuentes, promueve una generación ni
+reabre servicios; esas operaciones conservan fronteras independientes. Véase
+\rutarepo{docs/deployment-controller-entry-gate.md}.

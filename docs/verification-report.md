@@ -106,6 +106,30 @@ Son puertos controlados, no RSA/SQL/Redis reales ni activación del ejecutable.
 Véase el [contrato HTTP](owner-certificate-login-http.md).
 
 
+## Cierre persistente de entradas de controladores: 3 de octubre de 2026
+
+Los seis casos de archivos/procesos Python locales aprobaron en 0.963 s tras
+reproducir el módulo ausente. Comprueban inodes, bloqueo, diario durable,
+intercambios parciales, reload incierto y reentrada sin detener servicios.
+
+La aceptación nativa aislada en el usuario de CI de VPS3 aprobó 1/1 en 1.091 s
+(1.219 s con preparación externa). Cuatro trabajadores inocuos mantuvieron PID,
+UID, tiempo de inicio, cgroups y listeners durante las máscaras persistentes,
+una muerte tras dos intercambios, pérdida de confirmación del reload y dos
+intérpretes nuevos. La limpieza preservó el inventario ajeno, retiró sólo sus
+objetos y restauró el modo previo del directorio de unidades.
+
+El primer intento llegó al cierre de entradas, pero su limpieza exigía un código
+de salida que el reload de unidades enmascaradas ya no conservaba. Los recibos,
+procesos ausentes y estado inactivo se inspeccionaron antes de retirar sus cuatro
+máscaras exactas. El observador corregido liga el recibo cooperativo a PID, UID,
+inicio y cgroup, exige desaparición del grupo/listener y estado inactivo; no
+interpreta metadata borrada como prueba de exit 0. El producto no cambió.
+No se acredita reboot, parada del gestor, instalación, reapertura ni alteración
+de los servicios del usuario real de despliegue. Véase la
+[frontera operacional](deployment-controller-entry-gate.md).
+
+
 ## Aplicación y adaptadores del primer factor Owner: 3 de octubre de 2026
 
 Los RED observaron el módulo de aplicación, cuatro métodos de sesión y los
