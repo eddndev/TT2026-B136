@@ -1,5 +1,8 @@
 # API HTTP local autenticada
 
+El contrato HTTP independiente de [vínculos del Owner](http-owner-certificates.md)
+describe evidencia de registro y retiro; su composición en el servidor se verifica por separado.
+
 El [tablero operativo](dashboard-api.md) agrega indicadores mediante
 `GET /api/v1/dashboard`: despacho completo para Owner y expedientes asignados
 para Litigante, con una instantánea auditada y sin caché. Paralegal y Cliente

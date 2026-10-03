@@ -31,6 +31,7 @@ mod hearing_results;
 mod hearings;
 mod judicial_calendars;
 mod members;
+mod owner_certificates;
 mod participants;
 pub mod password_reset;
 mod procedural_facts;
@@ -52,6 +53,18 @@ pub fn password_reset_router(
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
     protect(password_reset::router(components, runtime.clone()), runtime)
+}
+
+/// Builds self-Owner certificate binding routes with bounded blocking work.
+pub fn owner_certificate_router(
+    service: Arc<application::identity::owner_certificates::OwnerCertificateService>,
+    limits: HttpLimits,
+) -> Router {
+    let runtime = HttpRuntime::new(limits);
+    protect(
+        owner_certificates::router(service, runtime.clone()),
+        runtime,
+    )
 }
 
 /// Builds the inbound HTTP router.

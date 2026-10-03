@@ -17,6 +17,7 @@ mod hearing;
 mod hearing_result;
 mod judicial_calendar;
 mod members;
+mod owner_certificate;
 mod procedural_fact;
 mod procedural_resource;
 mod resource_activity;
@@ -133,7 +134,8 @@ impl ApiError {
 
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
-        let error = match members::map(error)
+        let error = match owner_certificate::map(error)
+            .or_else(members::map)
             .or_else(document_content::map)
             .or_else(document_upload::map)
             .or_else(alerts::map)
