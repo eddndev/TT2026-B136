@@ -7,8 +7,27 @@ use domain::{
     owner_certificates::Uuid,
 };
 
-use super::{CertificateLoginContext, StoredCertificateLogin};
-use crate::{credential_trust::CredentialTrustSnapshot, ApplicationError};
+use super::{CertificateLoginChallenge, CertificateLoginContext, StoredCertificateLogin};
+use crate::{
+    credential_trust::CredentialTrustSnapshot, identity::LoginChallenge, ApplicationError,
+};
+
+/// Public certificate first factor, separate from password and mandatory MFA.
+pub trait OwnerLoginWorkflow: Send + Sync {
+    /// Captures the explicitly selected Owner binding without issuing a session.
+    fn start_certificate_login(
+        &self,
+        owner: UserId,
+        binding: Uuid,
+    ) -> Result<CertificateLoginChallenge, ApplicationError>;
+
+    /// Consumes one proof and returns only a challenge for the existing MFA flow.
+    fn prove_certificate_login(
+        &self,
+        token: &str,
+        signature: &[u8],
+    ) -> Result<LoginChallenge, ApplicationError>;
+}
 
 /// Loads a consistent active Owner, live binding and current published trust.
 pub trait OwnerLoginAuthority: Send + Sync {

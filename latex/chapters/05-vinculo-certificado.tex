@@ -223,3 +223,15 @@ capturas retiradas. La lectura de hashes del observador fija RESP2; el primer
 intento había recibido el objeto JSON de RESP3 antes del respaldo. El contenido
 capturado es público y sintético: esta prueba de persistencia no reemplaza una
 restauración completa de autenticación HTTP con RSA y MFA reales.
+
+
+\subsubsection{Transporte opcional del primer factor}
+
+El transporte HTTP aprobó 19 casos en 0.26~s, tras 33.57~s de compilación;
+Clippy focal aprobó en 14.30~s. Se observaron primero los exports y el puerto
+faltantes. Las comprobaciones incluyen proyecciones exactas, rechazo de entradas
+ambiguas y cuerpos excesivos, errores opacos, compatibilidad de acceso existente
+y conservación del presupuesto mientras termina un trabajador cuya respuesta
+fue cancelada. La firma admitida sólo entrega un desafío MFA nuevo. El flujo
+controlado no acredita RSA, PostgreSQL, Redis, restauración ni activación en
+el servidor compuesto; esas fronteras se verifican por separado.

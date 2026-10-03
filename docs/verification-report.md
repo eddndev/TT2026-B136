@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Transporte del primer factor Owner: 3 de octubre de 2026
+
+El target HTTP reprodujo los exports y el puerto de entrada ausentes. Tras la
+implementación aprobó **19/19 en 0.26 s**, con 33.57 s de compilación. Clippy
+focal aprobó después en 14.30 s con advertencias como errores. Se ejecutaron
+serialmente, con un compilador y un trabajador.
+
+La suite verifica los bytes públicos exactos y respuesta sólo MFA; JSON objeto
+estricto, UUID/token/firma canónicos, límites reales 1024/2048 bytes y errores
+opacos; compatibilidad de constructores y de contraseña/MFA/recuperación; y un
+presupuesto compartido que sigue ocupado al cancelar la respuesta HTTP mientras
+trabaja el hilo bloqueante. No se cambió el inventario ni los cuerpos de las
+19 pruebas; el target sólo silencia un import no usado de la fixture heredada.
+Son puertos controlados, no RSA/SQL/Redis reales ni activación del ejecutable.
+Véase el [contrato HTTP](owner-certificate-login-http.md).
+
+
 ## Cierre persistente de entradas de controladores: 3 de octubre de 2026
 
 Los seis casos de archivos/procesos Python locales aprobaron en 0.963 s tras
