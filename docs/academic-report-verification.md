@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Composición y restauración del acceso Owner: 3 de octubre de 2026
+
+`make -C latex` aprobó: 377 páginas, 5947542 bytes, SHA-256
+`0a780a79081e550ee5c3c85a372a1771a5f385d07d42d4dd2fae8107dbb9d0d4`.
+Se revisaron visualmente las páginas PDF 170 y 271: configuración explícita,
+disponibilidad y restauración, junto con evidencia nativa y la campaña HTTP
+completa de 365.645 s. No se observaron recortes ni superposiciones en esos
+apartados; el PDF anterior quedó respaldado. Resumen, introducción, marco y
+conclusiones protegidos conservaron sus hashes. Permanecen las advertencias
+tipográficas históricas; no se detectaron referencias indefinidas ni glifos
+ausentes. No es aceptación de la interfaz ni activación del despliegue.
+
+
 ## Transporte opcional del primer factor: 3 de octubre de 2026
 
 `make -C latex` aprobó: 375 páginas, 5942418 bytes, SHA-256

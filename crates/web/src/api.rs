@@ -174,10 +174,7 @@ pub fn api_router_with_authentication_budget(
         ))
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()))
-        .merge(password_reset::router(password_reset, runtime.clone()));
-    let routes = match certificate_login {
-        Some(workflow) => routes.merge(owner_login::router(workflow, runtime.clone())),
-        None => routes,
-    };
+        .merge(password_reset::router(password_reset, runtime.clone()))
+        .merge(owner_login::router(certificate_login, runtime.clone()));
     Ok(protect(routes, runtime).route("/healthz", get(health)))
 }

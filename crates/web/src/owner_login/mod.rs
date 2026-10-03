@@ -7,8 +7,9 @@ use std::sync::Arc;
 
 use application::identity::certificate_login::OwnerLoginWorkflow;
 use axum::{
+    body::to_bytes,
     extract::{Request, State},
-    routing::post,
+    routing::{get, post},
     Json, Router,
 };
 
@@ -20,11 +21,45 @@ struct LoginState {
     runtime: HttpRuntime,
 }
 
-pub(crate) fn router(workflow: Arc<dyn OwnerLoginWorkflow>, runtime: HttpRuntime) -> Router {
-    Router::new()
-        .route("/api/v1/auth/certificate-login/start", post(start))
-        .route("/api/v1/auth/certificate-login/proof", post(proof))
-        .with_state(LoginState { workflow, runtime })
+pub(crate) fn router(
+    workflow: Option<Arc<dyn OwnerLoginWorkflow>>,
+    runtime: HttpRuntime,
+) -> Router {
+    let enabled = workflow.is_some();
+    let availability = Router::new().route(
+        "/api/v1/auth/certificate-login/availability",
+        get(move |request: Request| availability(request, enabled)),
+    );
+    let Some(workflow) = workflow else {
+        return availability;
+    };
+    availability.merge(
+        Router::new()
+            .route("/api/v1/auth/certificate-login/start", post(start))
+            .route("/api/v1/auth/certificate-login/proof", post(proof))
+            .with_state(LoginState { workflow, runtime }),
+    )
+}
+
+#[derive(serde::Serialize)]
+struct Availability {
+    enabled: bool,
+}
+
+async fn availability(request: Request, enabled: bool) -> Result<Json<Availability>, ApiError> {
+    let invalid = || {
+        ApiError::invalid_body(
+            "owner_login_invalid_input",
+            "certificate login availability requires an empty body and no query string",
+        )
+    };
+    if request.uri().query().is_some() {
+        return Err(invalid());
+    }
+    to_bytes(request.into_body(), 0)
+        .await
+        .map_err(|_| invalid())?;
+    Ok(Json(Availability { enabled }))
 }
 
 async fn start(

@@ -19,6 +19,45 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Composición Owner y controles de restauración: 3 de octubre de 2026
+
+La configuración y composición aprobaron siete casos en 0.09 s y Clippy focal
+en 20.99 s. Un ensayo nativo del router ejecutable aprobó en 12.63 s, después
+de 12.42 s de compilación, con PostgreSQL 16.15 y Valkey 8.1.10 desechables.
+Firmó externamente con OpenSSL, exigió TOTP real y verificó consumo/replay,
+procedencia, revisión de confianza, retirada y continuidad de contraseña.
+El recorrido CLI completo `scripts/demo.sh` aprobó en 25.997 s.
+No es una aceptación de listener, interfaz, restauración completa o despliegue;
+el alcance se describe en [la composición operativa](owner-certificate-login-operations.md).
+
+Dos regresiones independientes reprodujeron que el guion de invalidación omitía
+capturas de certificado y que la consulta SQL de evidencia mezclaba varios Owner.
+Tras corregir sus fronteras aprobaron un caso de protocolo en 0.013 s y un caso
+SQL en 0.096 s. Se preservaron los controles de límites y las aserciones previas
+de registro/retiro. La invocación conjunta de CI con los guardas SQL del calendario
+aprobó los diez casos en 2.255 s, sin servicios compartidos ni pruebas omitidas.
+
+La aceptación focal posterior con listener real, firma OpenSSL, MFA y
+restauración SQL aprobó en 23.248 s. Rechazó sesión, MFA y captura anteriores
+antes de expirar, conservó los controles Redis y admitió una nueva firma con
+MFA, además del acceso independiente por contraseña. Los procesos y datos
+desechables se retiraron al terminar.
+
+El primer intento HTTP completo falló en el observador al interpretar INFO
+RESP3 como JSON; la regresión nativa reprodujo ese fallo y aprobó después en
+0.117 s al tratar sólo esa respuesta como texto. Un segundo intento terminó
+en 36.970 s con MFA401 en la preparación de restauración anterior a esta
+funcionalidad. Ese código no identifica por sí solo la causa. Un caso controlado
+reprodujo que el guion reutilizaba el TOTP del intervalo actual; tres pruebas
+aprobaron en 0.021 s después de esperar una vez el intervalo siguiente, antes de
+crear desafíos. No se eliminan marcas de uso ni se reintentan peticiones MFA.
+La campaña HTTP completa corregida aprobó en **365.645 s**, con PostgreSQL
+16.15, Valkey 8.1.10, qpdf 12.4.1 y decodificadores multimedia verificados.
+Incluyó los recorridos existentes, registro y retiro Owner, sesión y capturas
+de certificado, restauración exacta y nuevos ingresos RSA/MFA y contraseña/MFA.
+Se ejecutó con un compilador y un trabajador; `cargo fmt --all -- --check`
+aprobó después. CI de esta entrega y su activación operativa siguen pendientes.
+
 ## Transporte del primer factor Owner: 3 de octubre de 2026
 
 El target HTTP reprodujo los exports y el puerto de entrada ausentes. Tras la

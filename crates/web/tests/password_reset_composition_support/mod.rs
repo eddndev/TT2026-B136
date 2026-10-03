@@ -221,3 +221,25 @@ pub fn router_with_identity_reset(
     )
     .unwrap()
 }
+
+// Native authentication acceptance reuses the same unused case workflow wiring.
+#[allow(dead_code)]
+pub fn router_with_authentication(
+    identity: Arc<dyn application::identity::IdentityWorkflow>,
+    owner: Arc<OwnerCertificateService>,
+    authentication: web::AuthenticationHttp,
+    limits: HttpLimits,
+    budget: HttpWorkBudget,
+) -> Router {
+    web::api_router_with_authentication_budget(
+        Arc::new(auth::UnusedDocuments),
+        identity,
+        workflows(Arc::new(Dashboard::default()), Some(owner)),
+        Arc::new(calendars::Workflow::default()),
+        Arc::new(profiles::Workflow::default()),
+        limits,
+        authentication,
+        budget,
+    )
+    .unwrap()
+}

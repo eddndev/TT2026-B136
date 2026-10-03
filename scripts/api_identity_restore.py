@@ -3,6 +3,7 @@ import base64
 import hashlib
 import hmac
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -29,7 +30,7 @@ def invalidate():
     assert process['process_id'] == os.environ['TT_RESTORE_REDIS_PID']
     directory = redis('CONFIG', 'GET', 'dir').splitlines()
     assert directory[0] == 'dir' and Path(directory[1]).resolve() == WORK
-    for namespace in ['session', 'challenge']:
+    for namespace in ['session', 'challenge', 'certificate-login']:
         cursor, keys = '0', set()
         for _ in range(1000):
             page = redis('SCAN', cursor, 'MATCH', f'identity:{namespace}:*', 'COUNT', '100').splitlines()
@@ -45,8 +46,8 @@ def invalidate():
         ordered = sorted(keys)
         for start in range(0, len(ordered), 100):
             redis('DEL', *ordered[start:start + 100])
-    # Password limits and TOTP replay claims are intentionally retained.
-    print('Disposable restore: prior sessions and challenges invalidated; replay claims retained.')
+    # Password and certificate budgets and TOTP replay claims are retained.
+    print('Disposable restore: sessions, MFA and certificate captures invalidated; controls retained.')
 
 
 def request(method, path, body=None, token=None, expected=200):
@@ -77,9 +78,26 @@ def fresh(email, password, secret):
     return session['access_token']
 
 
+def wait_for_fresh_totp_window():
+    # Restored accounts retain earlier replay claims. Start the whole login
+    # batch in a new interval, before creating any one-use MFA challenge.
+    started = time.monotonic()
+    previous = time.time()
+    assert math.isfinite(started) and math.isfinite(previous) and previous >= 0, 'Invalid authentication clock'
+    boundary = (int(previous) // 30 + 1) * 30
+    delay = boundary - previous
+    assert 0 < delay <= 30, 'Invalid TOTP boundary wait'
+    time.sleep(delay)
+    elapsed = time.monotonic() - started
+    current = time.time()
+    assert math.isfinite(elapsed) and 0 <= elapsed <= 31, 'TOTP boundary wait exceeded its clock budget'
+    assert math.isfinite(current) and boundary <= current < boundary + 30, 'TOTP clock did not enter the expected interval'
+
+
 def login():
     for name in ['TT_RESTORE_OLD_OWNER', 'TT_RESTORE_OLD_HELPER']:
         request('GET', '/auth/me', token=os.environ[name], expected=401)
+    wait_for_fresh_totp_window()
     result = {
         'owner': fresh('owner@example.com', 'correct horse battery staple', os.environ['TT_RESTORE_OWNER_SECRET']),
         'helper': fresh('helper@example.com', 'another safe password', os.environ['TT_RESTORE_HELPER_SECRET']),

@@ -157,3 +157,38 @@ comparte la admisión HTTP y el trabajo bloqueante con el resto de la API. Si
 se abandona una respuesta, el trabajador conserva su permiso hasta terminar.
 La composición ejecutable y la interfaz requieren aceptación independiente.
 Véase \rutarepo{docs/owner-certificate-login-http.md}.
+
+
+\subsubsection{Composición explícita del acceso por certificado}
+
+El ejecutable permite habilitar el primer factor mediante una opción desactivada
+por defecto. Antes de abrir adaptadores valida cuatro cuotas y sus ventanas,
+además de dos tiempos de transporte Redis, suministrados explícitamente. La
+configuración ausente o incompleta no habilita el canal. Contraseña y certificado
+comparten la misma instancia del servicio de identidad y los presupuestos HTTP
+existentes; no hay una segunda implementación de MFA.
+
+La composición utiliza la autoridad PostgreSQL actual, el verificador Partner
+y el runtime Redis de capturas de un uso. Una prueba correcta sólo entrega MFA;
+la sesión posterior conserva la procedencia del vínculo y la revisión de
+confianza. El cambio de confianza o retiro del vínculo invalida sus capacidades
+derivadas sin degradarlas a contraseña. La habilitación del ejecutable no
+registra titulares, publica confianza ni activa por sí misma la interfaz.
+Las condiciones operativas están en
+\rutarepo{docs/owner-certificate-login-operations.md}.
+
+
+La interfaz puede consultar disponibilidad mediante una lectura pública derivada
+exclusivamente del flujo compuesto. La respuesta contiene sólo un booleano, no
+consulta cuentas ni vínculos y comparte la admisión HTTP sin solicitar otro
+trabajador bloqueante. Los constructores sin ese flujo anuncian indisponibilidad
+y mantienen ausentes las rutas de preparación y prueba; no hay una segunda
+opción de configuración para habilitarlas desde el navegador.
+
+
+La restauración desechable elimina sesiones, desafíos MFA y capturas pendientes
+de certificado, conservando presupuestos y marcas TOTP utilizadas. La
+comprobación distingue ausencia de capacidades de su vencimiento natural:
+exige rechazo mientras el plazo capturado todavía está abierto. El vínculo y
+su evidencia permanecen en SQL; después de restaurar, una firma nueva sólo
+concede MFA nueva y no reutiliza la autoridad de una sesión anterior.
