@@ -25,7 +25,7 @@
     savedDraft = null;
   const session = getContext('session-drafts'),
     administration = caseState();
-  const scoped = api.deadlines(caseId);
+  const scoped = canDeadlines(user?.role, 'manage') ? api.deadlines(caseId) : null;
   let current = base,
     id = base?.id || crypto.randomUUID();
   let definition = base ? structuredClone(base.definition) : initialDeadline(caseId);
@@ -71,7 +71,13 @@
       })
     : null;
   function admitted() {
-    return alive && !finished && (!recovery || recovery.admitted());
+    return (
+      alive &&
+      !!scoped &&
+      canDeadlines(user?.role, 'manage') &&
+      !finished &&
+      (!recovery || recovery.admitted())
+    );
   }
   function saveInputs() {
     if (!blocked) inputs = view?.captureInputs() ?? inputs;
@@ -298,7 +304,7 @@
     recovery?.dispose();
     alive = false;
     pending = false;
-    scoped.dispose();
+    scoped?.dispose();
   });
 </script>
 
