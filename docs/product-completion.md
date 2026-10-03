@@ -81,14 +81,22 @@ del correo de la primera cuenta Owner.
   de editores todavía pendientes está en [recuperación de editores](session-editor-recovery.md).
   La duración operativa sigue sin aprobarse; estos resultados no habilitan
   inactividad en VPS3 ni demuestran recuperación universal de formularios.
-- Recuperación de contraseña, frontera interna todavía local: emisión y consumo
-  tienen contrato de aplicación y adaptador PostgreSQL con digest de propósito,
-  capacidad de un solo uso y cambio de contraseña/generación auditado en una
-  transacción. Focales SQL y un recorrido con criptografía y Redis reales
-  aprobaron; no hay rutas, correo ni composición en servidor. La invalidación administrativa de capacidades restauradas aprobó doce pruebas
-  focales; su coordinación operativa, adopción operativa de los límites, entrega y formulario
-  siguen pendientes antes de activarla.
-  Véanse [alcance y límites](password-reset-internal.md).
+- Recuperación de contraseña: la frontera interna está integrada por PR59 como
+  `f29ea91`, con emisión de capacidad de un solo uso y cambio de contraseña,
+  generación y auditoría en una transacción. Su cabeza aprobó CI en 9m21s, Web
+  en 12m26s y Documents en 1m15s: 3457 pruebas Rust, 447 de navegador controlado
+  y 51 reales, con cobertura 97/95/93 % e identidades anteriores conservadas.
+  La confirmación natural de main aprobó CI en 10m26s, Web en 12m02s y Documents
+  en 1m15s, con el mismo inventario y gates. La invalidación
+  administrativa de capacidades restauradas tiene doce focales aprobadas.
+  Transporte de correo, rutas, formulario y consumidor del servidor tienen
+  verificación local separada; todavía no están publicados ni activados en VPS3.
+  La aceptación HTTP integrada aprobó con PostgreSQL, Redis, entropía OS,
+  Argon2id y MFA reales; sólo la entrega fue capturada. Faltan la regresión de
+  esta ampliación, configuración operativa y coordinación del controlador de
+  restauración antes de habilitar la recuperación pública.
+  Véanse [contrato interno](password-reset-internal.md) y
+  [transporte público](password-reset-public.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de

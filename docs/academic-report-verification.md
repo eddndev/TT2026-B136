@@ -1,5 +1,21 @@
 # Verificación de la actualización académica
 
+## Recuperacion publica y comandos administrativos: 2 de octubre de 2026
+
+Se actualizaron los apartados de implementacion y pruebas de recuperacion de
+contrasena con el consumidor, transporte, formulario, composicion HTTP real y
+comandos de comprobacion e invalidacion administrativa. La evidencia local se
+separa de la frontera interna integrada, el correo externo y la activacion.
+
+`make -C latex` aprobo: 362 paginas y 5886794 bytes. Se inspeccionaron las
+paginas fisicas 167 y 258; el texto y la tabla contigua son legibles y no hay
+superposiciones. No aparecieron referencias o citas sin resolver ni glifos
+faltantes. Persisten las sustituciones historicas de versalitas Times y la
+caja de 0.11754 pt ya conocida. Resumen, introduccion, marco teorico y conclusiones
+conservaron sus hashes. El PDF previo quedo preservado; el generado sigue sin
+versionarse.
+
+
 ## Participantes y etapas al reingresar: 2 de octubre de 2026
 
 La implementación conserva las acciones y revisiones originales por editor,

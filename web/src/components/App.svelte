@@ -18,6 +18,7 @@
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
+  import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
   import { createDraftRegistry } from '../lib/draft-registry.mjs';
   import { createSessionLifecycle } from '../lib/session-lifecycle.mjs';
   import { createSessionDialogs } from '../lib/session-dialogs.mjs';
@@ -39,6 +40,7 @@
   let incidentReturn = false,
     integrityNotice;
   let notice = '';
+  let recoveryLink = null;
   let error = '';
   let sidebar;
   let main;
@@ -176,6 +178,14 @@
   }
   onMount(() => {
     const onHash = () => {
+      if (user || pendingUser) {
+        const link = takePasswordResetLink();
+        if (link) {
+          recoveryLink = link;
+          lifecycle.expire('rejected');
+          return;
+        }
+      }
       if (user && location.hash !== `#${view}`) go(location.hash);
     };
     const onVisibility = () => lifecycle.visibilityChanged(document.visibilityState);
@@ -202,7 +212,15 @@
       oncheck={() => lifecycle.visibilityChanged('visible')}
       onlogout={logout}
     />
-  {:else}<Auth {api} {notice} onlogin={login} />{/if}
+  {:else}<Auth
+      {api}
+      {notice}
+      onlogin={login}
+      initialResetLink={recoveryLink}
+      onresetconsumed={() => {
+        recoveryLink = null;
+      }}
+    />{/if}
 {:else}
   {#if sessionState.phase === 'checking'}
     <SessionNotice

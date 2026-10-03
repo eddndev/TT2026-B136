@@ -24,7 +24,11 @@ mod serve_audit_composition;
 mod serve_cmd;
 mod serve_deadline_runtime;
 mod serve_document_validation;
+mod serve_email_credentials;
 mod serve_identity_composition;
+mod serve_password_reset_composition;
+mod serve_password_reset_config;
+mod serve_password_reset_runtime;
 mod serve_report_composition;
 mod serve_report_runtime;
 mod serve_resource_activities;
@@ -42,6 +46,17 @@ use clap::Parser;
 
 use crate::cli::{Cli, Command, CryptoAction};
 use crate::config::AppConfig;
+
+#[cfg(test)]
+mod serve_password_reset_config_test_support;
+#[cfg(test)]
+mod serve_password_reset_config_tests;
+#[cfg(test)]
+mod serve_password_reset_runtime_test_support;
+#[cfg(test)]
+mod serve_password_reset_runtime_tests;
+#[cfg(test)]
+mod serve_password_reset_supervisor_tests;
 
 fn main() -> anyhow::Result<()> {
     if let Some(code) = infrastructure::case_report_isolation::worker_entry() {
@@ -90,3 +105,36 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Audit { action } => audit_cmd::run(action, cli.json),
     }
 }
+
+#[cfg(test)]
+mod serve_password_reset_start_support;
+#[cfg(test)]
+mod serve_password_reset_start_tests;
+
+#[cfg(test)]
+#[path = "../../infrastructure/tests/case_administration_support/mod.rs"]
+mod case_administration_support;
+#[cfg(test)]
+#[allow(dead_code, unused_imports, clippy::duplicate_mod)]
+#[path = "../../web/tests/password_reset_composition_support/mod.rs"]
+mod password_reset_composition_support;
+#[cfg(test)]
+#[allow(dead_code, unused_imports)]
+#[path = "../../web/tests/password_reset_http_support/mod.rs"]
+mod password_reset_http_support;
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../infrastructure/tests/password_reset_cases/password_reset_identity_doubles.rs"]
+mod password_reset_identity_doubles;
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../infrastructure/tests/password_reset_cases/password_reset_identity_support.rs"]
+mod password_reset_identity_support;
+#[cfg(test)]
+#[allow(dead_code, unused_imports)]
+#[path = "../../infrastructure/tests/password_reset_cases/password_reset_runtime_support.rs"]
+mod password_reset_runtime_support;
+#[cfg(test)]
+mod serve_password_reset_http_acceptance;
+#[cfg(test)]
+mod serve_password_reset_http_acceptance_support;

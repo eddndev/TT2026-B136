@@ -1,13 +1,19 @@
 //! Administrative schema setup and offline legacy import composition.
 
 use crate::cli::DatabaseAction;
-use anyhow::Context;
 use infrastructure::{initialize_database, LegacyImport};
 
+#[path = "database_restore_cmd.rs"]
+mod restore;
+
 pub fn run(action: DatabaseAction, json: bool) -> anyhow::Result<()> {
-    let database_url =
-        std::env::var("DATABASE_URL").context("DATABASE_URL must name the target database")?;
+    let database_url = std::env::var("DATABASE_URL")
+        .map_err(|_| anyhow::anyhow!("DATABASE_URL must name the target database"))?;
     match action {
+        DatabaseAction::Check => restore::check(&database_url, json)?,
+        DatabaseAction::InvalidateRestoredPasswordResets(args) => {
+            restore::invalidate(&database_url, args, json)?;
+        }
         DatabaseAction::Migrate { runtime_role } => {
             initialize_database(&database_url, &runtime_role)?;
             if json {

@@ -2,6 +2,10 @@
 
 use std::path::PathBuf;
 
+#[path = "serve_password_reset_args.rs"]
+mod password_reset;
+pub use password_reset::PasswordResetArgs;
+
 /// Runtime paths, address, and resource limits for the HTTP application.
 #[derive(Debug, clap::Args)]
 pub struct ServeArgs {
@@ -56,6 +60,8 @@ pub struct ServeArgs {
     /// Public login URL used in generic alert emails.
     #[arg(long, env = "ALERT_LOGIN_URL")]
     pub alert_login_url: Option<String>,
+    #[command(flatten)]
+    pub password_reset: PasswordResetArgs,
     /// Legacy storage directory checked for a completed import before startup.
     #[arg(long, default_value = "runtime-data")]
     pub data_dir: PathBuf,

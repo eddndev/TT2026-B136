@@ -1,9 +1,6 @@
 //! Share the durable alert store between HTTP and supervised consumers.
 
-use crate::{
-    serve_alert_config::AlertEmailSettings, serve_alert_runtime::AlertRuntimeConfig,
-    serve_args::ServeArgs,
-};
+use crate::{serve_alert_config::AlertEmailSettings, serve_alert_runtime::AlertRuntimeConfig};
 use anyhow::Context;
 use application::{
     alerts::{
@@ -14,7 +11,7 @@ use application::{
 use infrastructure::{
     alert_email::ResendAlertEmailSender, PostgresAlertStore, RingSha256Hasher, SystemClock,
 };
-use std::{env::VarError, sync::Arc};
+use std::sync::Arc;
 
 pub(crate) struct AlertConsumers {
     pub scheduler: Arc<dyn AlertSchedulerStore>,
@@ -26,20 +23,6 @@ pub(crate) struct AlertConsumers {
 pub(crate) struct AlertComponents {
     pub workflow: Arc<dyn AlertWorkflow>,
     pub consumers: AlertConsumers,
-}
-
-pub(crate) fn email_settings(args: &ServeArgs) -> anyhow::Result<Option<AlertEmailSettings>> {
-    let api_key = match std::env::var("RESEND_API_KEY") {
-        Ok(value) => Some(value),
-        Err(VarError::NotPresent) => None,
-        Err(VarError::NotUnicode(_)) => anyhow::bail!("RESEND_API_KEY must be valid text"),
-    };
-    AlertEmailSettings::from_optional(
-        api_key,
-        args.alert_email_from.clone(),
-        args.alert_login_url.clone(),
-    )
-    .context("cannot configure alert email")
 }
 
 pub(crate) fn open(

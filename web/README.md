@@ -913,3 +913,16 @@ y no marca el aviso como leído. La lista no reconstruye las relaciones existent
 al emitirse la alerta. Cada consulta vuelve a comprobar acceso; los rechazos
 retiran la información privada y los resultados tardíos no restauran otra sesión
 o expediente. Véase [el contrato](../docs/activity-resource-links-api.md).
+
+## Recuperacion publica de contrasena
+
+Qadra permite solicitar un enlace con respuesta neutra y consumirlo mediante
+confirmacion de nueva contrasena. El token llega en un fragmento que se retira
+antes de mostrar el formulario, sin persistirlo en storage o borradores. No se
+envia una solicitud automaticamente ni se repite un cambio de resultado incierto.
+Un enlace abierto durante una sesion captura los borradores antes de exigir un
+nuevo acceso; el enlace no sustituye MFA ni crea una sesion.
+
+La configuracion predeterminada del servidor conserva la recuperacion deshabilitada.
+La [guia del transporte publico](../docs/password-reset-public.md) separa las
+pruebas focales locales de la aceptacion integrada y de la activacion operativa.

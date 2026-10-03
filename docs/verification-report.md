@@ -15,6 +15,73 @@ solicitudes inesperadas. No se cambiaron timeouts ni se eliminaron assertions.
 La campaña fallida fue cancelada automaticamente; no acredita el inventario completo.
 
 
+## CLI de restauracion: aceptacion focal del 2 de octubre de 2026
+
+Nueve pruebas aprobaron en 19.21 s mediante el binario compilado y PostgreSQL
+desechable. Incluyen argumentos, recibo exacto y reintento de una operacion ya
+confirmada, denegacion al rol runtime y validacion sin cambios con conexion de
+solo lectura. Comparan las filas y catalogo completos y rechazan alteraciones
+sin repararlas. No restauran un despliegue ni limpian Redis.
+
+Otra prueba Unix reprodujo que un valor DATABASE_URL no UTF-8 aparecia en la
+cadena de error. Tras descartar esa causa y conservar un diagnostico fijo,
+aprobo 1/1 en 0.01 s para ambos comandos. El test no imprime sus datos privados.
+Los handlers de migracion e importacion permanecen intactos; la lectura del
+entorno comparte el saneamiento. La documentacion separa esta pieza del bloqueo
+durable y el controlador operacional todavia pendientes.
+
+## Recuperacion publica: verificacion focal del 2 de octubre de 2026
+
+El transporte y la composicion del servidor tienen aceptacion local separada de
+la frontera interna integrada. No se han enviado correos externos ni activado
+recuperacion en VPS3. El contrato publico describe los requisitos operativos.
+
+| Comprobacion | Resultado | Alcance |
+| --- | --- | --- |
+| Adaptador de correo | 14/14 en 0.38 s | Proveedor simulado, clasificacion de resultados, limites, redirecciones y JSON objeto; arrays rechazados tras reproduccion RED. |
+| HTTP aislado | 10/10 en 0.01 s | Entradas acotadas, errores publicos, ausencia de sesiones y resultado incierto. |
+| Composicion HTTP y presupuesto externo | 5/5 en 0.33 s | Rutas antiguas y recuperacion comparten permisos retenidos despues de cancelar la espera. |
+| Extraccion de enlace | 5/5 Node | Canonicalidad, retiro del fragmento y fallo de historial sin admitir el token. |
+| Formulario | 11 escenarios distintos en cuatro focales de 6, 2, 2 y 1 | Sin envio automatico, reemplazo de enlaces, respuestas tardias descartadas y borradores conservados antes de nuevo MFA. |
+| Configuracion, consumidor y supervision | 19/19 | Canal acotado, un trabajo pendiente o activo, presupuesto comun y cierre que une el trabajo iniciado. |
+| HTTP con adaptadores reales | 1/1 en 13.31 s; compilacion 10.53 s | PostgreSQL, Redis, entropia OS, Argon2id y MFA; entrega capturada, sin proveedor externo. |
+| Arranque compuesto | 2/2 | Bind fallido no inicia solicitudes; cierre y propietarios sincronos sobreviven al runtime. |
+| Opciones CLI y entorno | 6/6 en 0.16 s | Activacion expresa, configuracion completa antes de abrir adaptadores y ausencia de argumento de clave secreta. |
+| Regresion de arranque y politica de sesion | 2/2 y 4/4 | Conserva comportamiento anterior y configuracion explicita de inactividad. |
+
+Clippy focal de HTTP y del binario con sus tests aprobo con advertencias
+denegadas. La composicion mantiene una cola no durable: 202 no garantiza envio
+ni que una solicitud sobreviva al apagado. La detencion espera el driver real;
+estas pruebas no prueban un plazo maximo frente a un socket SQL que no responde.
+La demostracion completa de CLI aprobo. La demostracion API existente tambien
+aprobo: restauracion de cuatro documentos, setenta eventos auditados y ZIP de
+evidencia identico, manteniendo recuperacion deshabilitada. El primer intento
+termino antes de las pruebas por no configurar las rutas de los decodificadores;
+se repitio con los mismos binarios locales verificados, sin cambiar el producto.
+La aceptacion HTTP compuesta tambien aprobo. Retuvo el presupuesto compartido,
+confirmo una capacidad mediante cambio auditado y rechazo la repeticion, la
+contrasena anterior, sesiones y desafios anteriores. La nueva contrasena exigio
+TOTP y recuperacion MFA ya enrolados; no se alteraron rol ni asignaciones.
+Falta la regresion completa de esta entrega. La activacion tambien requiere coordinar restauracion y elegir los
+parametros operativos; ninguna configuracion de correo se ha aplicado al VPS.
+
+## Recuperacion interna: cierre de integracion del 2 de octubre de 2026
+
+La cabeza `3f66c5b` aprobo CI en 9m21s, Web en 12m26s y Documents en 1m15s.
+Los JUnit conservan todas las identidades anteriores y contienen 3457 pruebas
+Rust, 447 de navegador controlado y 51 reales; las dos ignoradas historicas
+permanecen separadas. Los gates de cobertura aprobaron con domain 97 %,
+application 95 % e infrastructure 93 %. La PR59 se integro por squash como
+`f29ea91`; su arbol coincide con la cabeza verificada. La confirmacion natural
+de main aprobo CI en 10m26s, Web en 12m02s y Documents en 1m15s, con las mismas
+3457/447/51 identidades de pruebas y todos los gates.
+
+Dos fallos previos se corrigieron sin eliminar casos: los auxiliares de pruebas
+se agruparon para mantener su registro unico, y una preparacion de importacion
+legacy vacia ahora las capacidades dependientes antes de la auditoria. La prueba
+exacta de importacion aprobo 1/1 en 9.38 s antes de la campaña completa. Estas
+correcciones no cambian producto ni relajan timeouts o assertions.
+
 ## Reingreso en etapas: aceptacion focal del 2 de octubre de 2026
 
 Ocho escenarios de navegador controlado aprobaron en 28.4 s con un worker,

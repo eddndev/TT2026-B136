@@ -7,9 +7,7 @@ use application::case_stages::CaseStageService;
 use application::cases::CaseService;
 use application::deadline_profiles::DeadlineProfileService;
 use application::deadlines::DeadlineService;
-use application::documents::{
-    CaseDocumentService, DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial,
-};
+use application::documents::CaseDocumentService;
 use application::hearing_results::HearingResultService;
 use application::hearings::HearingService;
 use application::identity::SessionPolicy;
@@ -20,21 +18,19 @@ use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{
-    openssl_version, EnvelopeKeyManager, LocalOpensslTsa, PostgresCaseDocumentStore,
-    PostgresCaseRepository, PostgresHearingResultStore, PostgresHearingStore,
-    PostgresJudicialCalendarStore, PostgresParticipantStore, PostgresTypedParticipantStore,
-    Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier,
-    StoredZipWriter, SystemClock, X509ChainValidator,
+    PostgresCaseDocumentStore, PostgresCaseRepository, PostgresHearingResultStore,
+    PostgresHearingStore, PostgresJudicialCalendarStore, PostgresParticipantStore,
+    PostgresTypedParticipantStore, RingSha256Hasher, SystemClock,
 };
 use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
-use zeroize::Zeroizing;
 
 use crate::cli::ServeArgs;
 
+mod documents;
 mod inputs;
 use crate::serve_deadline_runtime::DeadlineRuntimeConfig;
 use crate::vault_cmd::load_kek;
-use inputs::{read, required_env};
+use inputs::required_env;
 
 const KEK_VAR: &str = "KEK_BASE64";
 
@@ -44,7 +40,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         SessionPolicy::default().absolute_ttl_seconds(),
         args.session_idle_seconds,
     )?;
-    let alert_email = crate::serve_alert_composition::email_settings(args)?;
+    let email = crate::serve_email_credentials::load(args)?;
     let alert_config = crate::serve_alert_runtime::AlertRuntimeConfig::new(
         args.alert_page_limit,
         std::time::Duration::from_millis(u64::from(args.alert_poll_ms.get())),
@@ -54,44 +50,25 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         std::time::Duration::from_millis(u64::from(args.deadline_poll_ms.get())),
     )?;
     let (format_validator, admission) = crate::serve_document_validation::open(args)?;
-    let signer_certificate = read(&args.signer_cert, "signer certificate")?;
-    let signer_key = Zeroizing::new(read(&args.signer_key, "signer private key")?);
-    let issuer_certificate = read(&args.ca_cert, "issuer certificate")?;
-    let crl = read(&args.crl, "certificate revocation list")?;
-    let tsa_chain_path = args.tsa_dir.join("tsa-chain.pem");
-    let tsa_chain = read(&tsa_chain_path, "timestamp authority chain")?;
     let kek = load_kek(KEK_VAR)?;
+    let processor = Arc::new(documents::open(args, kek.clone())?);
     let database_url = required_env("DATABASE_URL")?;
     let redis_url = required_env("REDIS_URL")?;
 
     infrastructure::legacy::require_completed_import(&args.data_dir, &database_url)
         .context("legacy storage has not completed database cutover")?;
-    let (router, dispatch, worker, alerts, reports) =
+    let stop = Arc::new(crate::serve_stop::Stop::default());
+    let limits = web::HttpLimits {
+        max_requests: args.max_in_flight_requests,
+        max_blocking_operations: args.max_blocking_operations,
+    };
+    let budget = web::HttpWorkBudget::new(limits.max_blocking_operations);
+    let (server, dispatch, worker, alerts, reports) =
         infrastructure::with_validated_postgres(&database_url, |database| -> anyhow::Result<_> {
             let repository = Arc::new(
                 PostgresCaseDocumentStore::open(database)
                     .context("cannot open PostgreSQL document store")?,
             );
-            let signer =
-                RsaPkcs1Signer::new(signer_key).context("cannot load signer private key")?;
-            let ports = DocumentProcessorPorts {
-                hasher: Box::new(RingSha256Hasher::new()),
-                cipher: Box::new(RingAesGcmCipher::new()),
-                keys: Box::new(EnvelopeKeyManager::new()),
-                signer: Box::new(signer),
-                timestamp_service: Box::new(LocalOpensslTsa::new(&args.tsa_config, &args.tsa_dir)),
-                signature_verifier: Box::new(RsaPkcs1Verifier::new()),
-                certificate_validator: Box::new(X509ChainValidator::new()),
-                timestamp_verifier: Box::new(Rfc3161Verifier::new()),
-                archiver: Box::new(StoredZipWriter::new()),
-            };
-            let material = EvidenceMaterial {
-                signer_certificate_pem: signer_certificate,
-                issuer_certificate_pem: issuer_certificate,
-                crl_pem: crl,
-                tsa_chain_pem: Some(tsa_chain),
-                openssl_version: openssl_version().context("cannot inspect openssl version")?,
-            };
             let case_repository = Arc::new(
                 PostgresCaseRepository::open(database, Arc::new(RingSha256Hasher::new()))
                     .context("cannot initialize PostgreSQL case repository")?,
@@ -117,10 +94,6 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             );
             let reports =
                 crate::serve_report_composition::open(database, identity.clone(), kek.clone())?;
-            let processor = Arc::new(
-                DocumentProcessor::new(ports, material, kek)
-                    .context("cannot initialize document cryptography")?,
-            );
             let format_validator = Arc::new(format_validator);
             let stages = CaseStageService::new(
                 Arc::new(
@@ -318,7 +291,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             let alerts = crate::serve_alert_composition::open(
                 database,
                 identity.clone(),
-                alert_email,
+                email.alerts,
                 alert_config,
             )?;
             let resource_activities =
@@ -337,7 +310,18 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
             let resource_deadlines =
                 crate::serve_resource_activities::open_deadlines(database, identity.clone())?;
             let audit_events = crate::serve_audit_composition::open(database, identity.clone())?;
-            let router = web::api_router(
+            let recovery = crate::serve_password_reset_composition::open(
+                database,
+                &redis_url,
+                email.password_reset,
+                budget.clone(),
+                stop.clone(),
+            )?;
+            let (recovery_http, recovery_runtime) = match recovery {
+                Some(value) => (Some(value.http), Some(value.runtime)),
+                None => (None, None),
+            };
+            let router = web::api_router_with_password_reset_budget(
                 Arc::new(workflow),
                 identity,
                 web::CaseWorkflows {
@@ -363,17 +347,21 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 },
                 Arc::new(calendars),
                 Arc::new(profiles),
-                web::HttpLimits {
-                    max_requests: args.max_in_flight_requests,
-                    max_blocking_operations: args.max_blocking_operations,
-                },
-            );
-            Ok((router, dispatch, worker, alerts.consumers, reports.consumer))
+                limits,
+                recovery_http,
+                budget,
+            )?;
+            let server = crate::serve_start::ServerComponents {
+                router,
+                stop,
+                password_reset: recovery_runtime,
+            };
+            Ok((server, dispatch, worker, alerts.consumers, reports.consumer))
         })?;
 
     crate::serve_start::run(
         &args.bind,
-        router,
+        server,
         dispatch,
         worker,
         deadline_config,

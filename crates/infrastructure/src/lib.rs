@@ -153,3 +153,9 @@ pub use case_reports::PostgresCaseReportStore;
 mod case_report_schema;
 
 pub mod case_report_isolation;
+
+pub mod password_reset_email;
+
+#[cfg(test)]
+#[path = "password_reset_email/tests.rs"]
+mod password_reset_email_tests;

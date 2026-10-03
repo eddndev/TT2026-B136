@@ -2,8 +2,10 @@
 
 ## Estado
 
-En implementación interna. No compuesta en HTTP, CLI ni servidor, sin envío de
-correo ni activación operativa. Véase [el alcance interno](../password-reset-internal.md).
+Frontera interna integrada. El transporte HTTP, formulario y consumidor tienen
+verificación focal local; no hay correo operativo ni activación en el despliegue.
+Véanse [el alcance interno](../password-reset-internal.md) y
+[la composición pública](../password-reset-public.md).
 
 ## Contexto
 
@@ -37,7 +39,7 @@ La vigencia y el cupo por cuenta son políticas internas explícitas. Solicitude
 nuevas no reemplazan enlaces vigentes. Cuenta inexistente, inactiva, limitada o
 sin capacidad disponible produce el mismo resultado lógico de solicitud. Este
 resultado interno no demuestra todavía uniformidad temporal ni anti-enumeración
-del futuro transporte público.
+de todo el transporte público.
 
 PostgreSQL decide la identidad, generación y tiempo de emisión. El consumo
 revalida vencimiento, identidad, actividad y generación después de adquirir los
@@ -58,6 +60,21 @@ Una entrega con resultado incierto conserva la capacidad hasta su vencimiento;
 no la cancela ni repite automáticamente. El consumo no emite sesión ni cambia
 TOTP, códigos de recuperación restantes, rol, asignaciones o material documental.
 La persona deberá autenticarse nuevamente con la contraseña nueva y su MFA.
+
+La solicitud HTTP solo admite una entrada en memoria, con un cupo conjunto de
+espera y ejecución. No espera consultas de cuenta, límites remotos o correo para
+responder y conserva el mismo resultado para admisión y ocupación. El consumidor
+comparte con HTTP un presupuesto de trabajo bloqueante; el permiso pertenece al
+trabajo real aun cuando se cancele la espera HTTP. El apagado descarta entradas
+no iniciadas y une las operaciones iniciadas. No se promete que una future
+cancelada detenga el driver síncrono ni que 202 represente una entrega durable.
+
+La entrega utiliza un origen HTTPS configurado y token en fragmento, retirado por
+el formulario antes de habilitar el cambio. El cliente no adjunta una sesión ni
+almacena la capacidad. Un resultado incierto no permite repetir automáticamente
+el POST y un enlace nuevo invalida respuestas locales del formulario anterior.
+Remitente, cuotas, ventanas, tiempos y activación son explícitos; la clave del
+proveedor compartida no habilita ningún canal de correo por sí sola.
 
 ## Consecuencias
 

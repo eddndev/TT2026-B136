@@ -6,10 +6,21 @@ use std::{
     time::Duration,
 };
 
-#[derive(Default)]
 pub(crate) struct Stop {
     stopped: Mutex<bool>,
     wake: Condvar,
+    asynchronous: tokio::sync::watch::Sender<bool>,
+}
+
+impl Default for Stop {
+    fn default() -> Self {
+        let (asynchronous, _) = tokio::sync::watch::channel(false);
+        Self {
+            stopped: Mutex::new(false),
+            wake: Condvar::new(),
+            asynchronous,
+        }
+    }
 }
 
 impl Stop {
@@ -19,7 +30,27 @@ impl Stop {
             .lock()
             .unwrap_or_else(|error| error.into_inner());
         *stopped = true;
+        self.asynchronous.send_replace(true);
         self.wake.notify_all();
+    }
+
+    /// Shares the stop linearization point with short, nonblocking admission work.
+    pub(crate) fn while_running<T>(&self, action: impl FnOnce() -> T) -> Option<T> {
+        let stopped = self
+            .stopped
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if *stopped {
+            None
+        } else {
+            Some(action())
+        }
+    }
+
+    /// A subscriber created after the stop request also observes it immediately.
+    pub(crate) async fn stopped(&self) {
+        let mut receiver = self.asynchronous.subscribe();
+        let _ = receiver.wait_for(|stopped| *stopped).await;
     }
 }
 

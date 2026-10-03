@@ -14,6 +14,9 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 use crate::error::ApiError;
 
+mod budget;
+pub use budget::{HttpWorkBudget, HttpWorkPermit};
+
 /// Per-server bounds shared by identity, document, case and participant routes.
 #[derive(Debug, Clone, Copy)]
 pub struct HttpLimits {
@@ -34,17 +37,31 @@ impl Default for HttpLimits {
 #[derive(Clone)]
 pub(crate) struct HttpRuntime {
     request_slots: Arc<Semaphore>,
-    blocking_slots: Arc<Semaphore>,
+    blocking_slots: HttpWorkBudget,
     content_slots: Arc<Semaphore>,
 }
 
 impl HttpRuntime {
     pub(crate) fn new(limits: HttpLimits) -> Self {
-        Self {
-            request_slots: Arc::new(Semaphore::new(limits.max_requests.get())),
-            blocking_slots: Arc::new(Semaphore::new(limits.max_blocking_operations.get())),
-            content_slots: Arc::new(Semaphore::new(limits.max_requests.get())),
+        let budget = HttpWorkBudget::new(limits.max_blocking_operations);
+        Self::with_budget(limits, budget)
+            .expect("a newly created work budget matches its declared capacity")
+    }
+
+    pub(crate) fn with_budget(
+        limits: HttpLimits,
+        budget: HttpWorkBudget,
+    ) -> Result<Self, ApplicationError> {
+        if budget.capacity() != limits.max_blocking_operations.get() {
+            return Err(ApplicationError::InvalidInput(
+                "HTTP work budget capacity does not match limits".into(),
+            ));
         }
+        Ok(Self {
+            request_slots: Arc::new(Semaphore::new(limits.max_requests.get())),
+            blocking_slots: budget,
+            content_slots: Arc::new(Semaphore::new(limits.max_requests.get())),
+        })
     }
 
     /// The content owner keeps this permit through preparation and final byte release.
@@ -63,7 +80,6 @@ impl HttpRuntime {
         // HTTP admission bounds the requests waiting for a blocking worker.
         let permit = self
             .blocking_slots
-            .clone()
             .acquire_owned()
             .await
             .map_err(|_| ApiError::internal())?;

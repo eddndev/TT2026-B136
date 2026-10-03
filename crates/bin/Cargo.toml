@@ -32,5 +32,9 @@ time = { workspace = true, features = ["parsing"] }
 tokio = { workspace = true, features = ["net", "signal", "sync", "time"] }
 
 [dev-dependencies]
+redis.workspace = true
+tower = { version = "0.5", features = ["util"] }
+postgres.workspace = true
+reqwest.workspace = true
 rustix.workspace = true
 tempfile.workspace = true

@@ -3,9 +3,17 @@
   import Icon from './Icon.svelte';
   import Brand from './Brand.svelte';
   import Enrollment from './Enrollment.svelte';
+  import PasswordReset from './PasswordReset.svelte';
+  import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
   export let api;
   export let onlogin;
   export let notice = '';
+  export let initialResetLink = null;
+  export let onresetconsumed = () => {};
+  let resetLink = initialResetLink ?? takePasswordResetLink();
+  let resettingPassword = resetLink !== null;
+  let resetGeneration = 0;
+  let authGeneration = 0;
   let email = '';
   let password = '';
   let code = '';
@@ -18,9 +26,27 @@
   let error = '';
   let showPassword = false;
   let emailInput;
-  onMount(() => emailInput?.focus());
+  onMount(() => {
+    emailInput?.focus();
+    const openRecovery = () => {
+      const next = takePasswordResetLink();
+      if (!next) return;
+      authGeneration++;
+      api.invalidateSession();
+      busy = false;
+      password = code = '';
+      challenge = enrollment = null;
+      showPassword = bootstrap = false;
+      resetLink = next;
+      resetGeneration++;
+      resettingPassword = true;
+    };
+    window.addEventListener('hashchange', openRecovery);
+    return () => window.removeEventListener('hashchange', openRecovery);
+  });
   async function submit(event) {
     event.preventDefault();
+    const generation = authGeneration;
     busy = true;
     error = '';
     try {
@@ -33,23 +59,31 @@
           code.trim(),
           recovery ? 'recovery' : 'totp',
         );
+        if (generation !== authGeneration) return;
         onlogin(session, { startedAt, receivedAt: performance.now() });
       } else if (bootstrap) {
-        enrollment = await api.bootstrap(email.trim(), password);
+        const value = await api.bootstrap(email.trim(), password);
+        if (generation !== authGeneration) return;
+        enrollment = value;
       } else {
-        challenge = await api.login(email.trim(), password);
+        const value = await api.login(email.trim(), password);
+        if (generation !== authGeneration) return;
+        challenge = value;
         deadline = Date.now() + challenge.expires_in_seconds * 1000;
       }
     } catch (failure) {
+      if (generation !== authGeneration) return;
       error = failure.message;
       if (challenge) {
         challenge = null;
         code = '';
       }
     } finally {
-      password = '';
-      showPassword = false;
-      busy = false;
+      if (generation === authGeneration) {
+        password = '';
+        showPassword = false;
+        busy = false;
+      }
     }
   }
 </script>
@@ -96,7 +130,21 @@
         <span class="badge neutral">Prototipo local</span><span>Despacho digital</span>
       </div>
       <div class="auth-form">
-        {#if enrollment}
+        {#if resettingPassword}
+          {#key resetGeneration}
+            <PasswordReset
+              link={resetLink}
+              onconsumed={() => {
+                resetLink = null;
+                initialResetLink = null;
+                onresetconsumed();
+              }}
+              onclose={() => {
+                resettingPassword = false;
+              }}
+            />
+          {/key}
+        {:else if enrollment}
           <Enrollment
             {enrollment}
             ondone={() => {
@@ -227,6 +275,19 @@
                   }}>{bootstrap ? 'Iniciar sesi\u00f3n' : 'Configurar acceso inicial'}</button
                 >
               </div>
+              {#if !bootstrap}
+                <button
+                  class="text-button"
+                  type="button"
+                  disabled={busy}
+                  onclick={() => {
+                    password = '';
+                    showPassword = false;
+                    error = '';
+                    resettingPassword = true;
+                  }}>Olvid&eacute; mi contrase&ntilde;a</button
+                >
+              {/if}
             {/if}
           </form>
           <div class="auth-assurance">
