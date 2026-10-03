@@ -19,6 +19,19 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Declaración de primer factor Owner: 3 de octubre de 2026
+
+El RED reprodujo dos importaciones `E0432` del módulo ausente. El dominio
+implementado aprobó **9/9 en 0.00 s**, tras **1.73 s** de compilación. Dos
+vectores literales completos e independientes fijan los 182 bytes; se probaron
+Clippy focal aprobó con advertencias como errores en **1.43 s**. Se verificaron
+identidad y generación, copia del nonce, ventana de 1 a 300 segundos, extremos
+enteros, vencimiento exclusivo y separación de registro y retiro. El tipo no
+consulta reloj, genera entropía ni verifica firmas. Esta evidencia estructural
+no habilita login, MFA derivada ni sesiones. El cierre pendiente se define en
+[ADR-0068](adr/0068-owner-certificate-first-factor.md).
+
+
 ## Interfaz del vínculo Owner: 3 de octubre de 2026
 
 El RED inicial del cliente observó tres métodos ausentes y dos importaciones

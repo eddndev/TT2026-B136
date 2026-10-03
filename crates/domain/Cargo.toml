@@ -72,6 +72,10 @@ name = "owner_certificate_binding"
 path = "tests/owner_certificate_binding.rs"
 
 [[test]]
+name = "owner_certificate_login"
+path = "tests/owner_certificate_login.rs"
+
+[[test]]
 name = "participants"
 path = "tests/participants.rs"
 
