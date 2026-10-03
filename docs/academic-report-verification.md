@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Interfaz del certificado Owner: 3 de octubre de 2026
+
+Implementación y pruebas incorporan la interfaz Qadra, su recuperación pública
+y la aceptación con servicios reales, separando los límites de cada ensayo.
+`make -C latex` aprobó: 372 páginas, 5930253 bytes, SHA-256
+`7910032b89623cd89dfcf9a2d7320335d130d70615c9df2b16fa21b7f9e81fe6`.
+Se revisaron las páginas físicas 168, 169 y 267, legibles, sin recortes ni
+superposiciones. Las fuentes protegidas conservaron sus hashes y el PDF previo
+quedó respaldado. No hubo referencias pendientes ni glifos ausentes; persiste
+la sustitución conocida de versalitas. El PDF acumulado no se versiona ni
+acredita integración o despliegue de esta entrega local.
+
+
 ## Consulta propia del vínculo Owner: 3 de octubre de 2026
 
 Se documentaron la lectura sin retirar y su evidencia focal separada.

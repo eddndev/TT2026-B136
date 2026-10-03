@@ -5,7 +5,8 @@
 Accepted for structural domain values, canonical bytes, strict cryptographic
 verification, application authorization, audited PostgreSQL persistence,
 authenticated HTTP composition and local real-service HTTP/MFA/SQL-restore
-acceptance. Publication, Qadra UI, installation, certificate login and
+acceptance. The Qadra interface additionally has controlled-browser acceptance.
+Publication, installation, certificate login and
 operational SQL/RDB/PKI recovery remain separate.
 
 ## Context
@@ -272,6 +273,24 @@ new events or reactivation. This does not establish private-key custody, a
 browser workflow or operational recovery of the installed deployment.
 That campaign covers the four UUID-based operations. The later current-binding
 query has separate application, HTTP and native PostgreSQL focal evidence.
+
+### Qadra public evidence workflow
+
+The Owner-only interface uses the authenticated shared transport and a
+session-bound client. It reads the current principal before discovering the
+unwithdrawn binding, then prepares a public certificate and downloads the exact
+statement for external signing. Only public certificate/statement/signature
+material reaches HTTP. Current discovery is distinct from exact-UUID receipt
+reconciliation and does not assert certificate validity.
+
+The client captures an immutable command before awaiting a mutation. A late
+or uncertain response cannot trigger an automatic resend or discard its proof.
+Reentry restores admitted public evidence from memory only after fresh same-Owner
+authorization; logout, another account and explicit cancel discard it. Exact
+receipt identity and original proof are required for both registration and
+terminal withdrawal. Controlled-browser evidence and native acceptance remain
+separate in `docs/verification-report.md`. The user procedure is in
+`docs/owner-certificate-interface.md`.
 
 ## Consequences
 

@@ -19,6 +19,67 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Interfaz del vínculo Owner: 3 de octubre de 2026
+
+El RED inicial del cliente observó tres métodos ausentes y dos importaciones
+faltantes; sus diez casos escritos aprobaron después **10/10 en 502.558 ms**.
+El navegador reprodujo primero la ausencia de **Mi certificado**; los demás
+casos no se ejecutaron al detenerse en el primer fallo. La implementación
+aprobó **6/6 recorridos en 16.8 s**, con un worker y HTTP controlado. El sexto
+caso se añadió durante la revisión para rechazar un recibo terminal con otra
+firma original; no se acredita como un RED separado.
+
+Se comprobaron PEM público acotado, descarga exacta de 150 bytes, firma separada
+de 384 bytes, registro y retiro con evidencia coincidente, permisos por cuenta,
+reingreso y consulta exacta de envíos inciertos sin repetición automática. Otra
+cuenta y el cierre explícito descartan el borrador. Las capturas conservan sólo
+material público admitido en memoria; no sobreviven al cierre de la pestaña.
+El cliente usa el transporte y la generación de sesión existentes.
+
+El planificador real reprodujo dos fallos antes del nuevo registro de familia;
+aprobó **2/2 en 143.671 ms**. Sitúa el caso nuevo en la tercera partición sin
+cambiar las asignaciones anteriores. Es evidencia de selección, no de ejecución
+del nuevo recorrido real, registrado por separado a continuación. El ejemplo OpenSSL del manual
+reutiliza el comando aceptado en la campaña HTTP anterior; no se repitió ésta.
+
+
+Para revisar presentación se repitió sólo el primer caso: **1/1 en 8.5 s**.
+Se ajustó exclusivamente la captura para volver al inicio y quitar el foco de
+campos; no cambió el producto. Cuatro imágenes de preparación y recibo, a
+1440 y 390 píxeles de ancho, se inspeccionaron legibles, sin superposiciones ni
+desbordamiento horizontal.
+
+## Navegador Owner con servicios reales: 3 de octubre de 2026
+
+El comando focal `bash scripts/web-demo.sh tests/live/owner-certificates.spec.mjs --workers=1 --max-failures=1 --reporter=line` aprobó **1/1 en 12.1 s** de
+Playwright y terminó con salida cero en **252.134 s** totales. La compilación
+`dev` duró **38.39 s**; el filtro limitó la ejecución del navegador, pero la
+preparación conservó las familias de datos de su partición. La familia nueva
+Owner tardó **4.77 s**. Hubo un compilador, un hilo y un worker.
+
+Se usaron PostgreSQL **16.15**, **Valkey 8.1.10** a través del ejecutable
+`redis-server`, qpdf **12.4.1** y los decodificadores multimedia previamente
+verificados. Valkey implementa el almacén compatible con Redis de este ensayo;
+no se presenta como una medición ejecutada con Redis 7.4. Un Owner y una hoja
+Partner desechables propios evitaron reutilizar cuentas o códigos de otras
+familias. La hoja se emitió antes de la única confianza inicial: no hubo
+rotación ni revocación durante el recorrido.
+
+La interfaz consultó identidad y `/current`, preparó el certificado y descargó
+los 150 bytes exactos, reconstruidos de forma independiente. OpenSSL firmó fuera
+del navegador y una verificación independiente comprobó la firma antes de
+seleccionar sus 384 bytes. El registro, la lectura por UUID y el recibo descargado
+conservaron la prueba pública. Tras cerrar sesión y completar otra MFA,
+`/current` descubrió el mismo registro sin otro prepare/register. El retiro
+produjo la declaración terminal exacta, conservó el registro original y permitió
+su descarga histórica; una nueva consulta actual devolvió `null`.
+
+El entorno y la clave pertenecieron a la campaña desechable y su cleanup normal;
+no se modificó VPS3 ni se creó un Owner operativo. Esta aceptación no repitió
+SQL restore, no probó una CRL sucesora, no validó custodia exclusiva de la clave
+ni habilitó login por certificado. La prueba nueva se añade al inventario real;
+la conservación global de identidades queda para CI de la entrega publicada.
+
 ## Consulta del vínculo Owner sin retirar: 3 de octubre de 2026
 
 El ensayo RED reprodujo `E0407` y `E0599` por ausencia de `find_current` y
