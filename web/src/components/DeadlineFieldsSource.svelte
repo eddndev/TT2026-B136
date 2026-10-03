@@ -9,13 +9,22 @@
     policy = '',
     policyPresent = false,
     disabled = false,
-    pending = false;
+    pending = false,
+    recoverable = false,
+    savedInputs = null;
   let choosing = false,
     sourceName = '';
+  let timeFields;
+  export function captureInputs() {
+    return {
+      time: value.qualification ? (timeFields?.captureDraft() ?? savedInputs?.time ?? null) : null,
+    };
+  }
   $: family = value.source?.kind === 'known' ? value.source.value.family : value.source?.kind || '';
   function selectFamily(next) {
     choosing = false;
     sourceName = '';
+    savedInputs = null;
     value = {
       ...value,
       source:
@@ -103,13 +112,15 @@
     ><input
       type="checkbox"
       checked={value.qualification !== null}
-      onchange={(event) =>
-        (value = {
+      onchange={(event) => {
+        savedInputs = null;
+        value = {
           ...value,
           qualification: event.currentTarget.checked
             ? { purpose: '', at: { precision: '' }, statement: '', locator: '' }
             : null,
-        })}
+        };
+      }}
     />Declarar un inicio calificado</label
   >
   {#if value.qualification}<label
@@ -121,6 +132,9 @@
       </select></label
     >
     <FactTimeFields
+      bind:this={timeFields}
+      {recoverable}
+      draft={savedInputs?.time ?? null}
       bind:value={value.qualification.at}
       label="inicio calificado"
       disabled={disabled || pending}

@@ -8,9 +8,14 @@
     selection,
     ondenied,
     disabled = false,
-    busy = false;
-  let choosing = false,
+    busy = false,
+    savedInputs = null;
+  let choosing = savedInputs?.choosing ?? false,
     selected = null;
+  let picker;
+  export function captureInputs() {
+    return { choosing, picker: picker?.captureInputs() ?? savedInputs?.picker ?? null };
+  }
   function select(row) {
     selection = {
       ...selection,
@@ -23,11 +28,13 @@
     };
     selected = row;
     choosing = false;
+    savedInputs = null;
   }
   function clear() {
     selection = { ...selection, act: null };
     selected = null;
     choosing = false;
+    savedInputs = null;
   }
   onDestroy(() => {
     busy = false;
@@ -53,6 +60,8 @@
   {:else}<p class="case-muted">Sin acto seleccionado.</p>{/if}
   {#if choosing}
     <ResourceActivityActPicker
+      bind:this={picker}
+      savedInputs={savedInputs?.picker ?? null}
       {api}
       {caseId}
       {resource}

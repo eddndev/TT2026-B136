@@ -18,7 +18,9 @@
     profile = null,
     policies = null,
     disabled = false,
-    pending = false;
+    pending = false,
+    recoverable = false,
+    savedInputs = null;
   const scoped = api.deadlineProfiles(caseId);
   let choosing = '',
     pickerBusy = false,
@@ -27,7 +29,11 @@
     alive = true,
     error = '',
     calendarName = '',
-    profileKey = '';
+    profileKey = recoverable && profile ? `${profile.id}:${profile.revision}` : '';
+  let sourceFields;
+  export function captureInputs() {
+    return { source: sourceFields?.captureInputs() ?? savedInputs?.source ?? null };
+  }
   $: pending = pickerBusy || sourceBusy || loading;
   $: locked = disabled || pending;
   $: synchronizePolicies(value, policies);
@@ -110,7 +116,9 @@
       },
     };
   }
-  onMount(() => loadProfile());
+  onMount(() => {
+    if (!recoverable || !profile) loadProfile();
+  });
   onDestroy(() => {
     alive = false;
     pending = false;
@@ -216,6 +224,9 @@
       oncancel={() => (choosing = '')}
     />{/if}
   <DeadlineFieldsSource
+    bind:this={sourceFields}
+    {recoverable}
+    savedInputs={savedInputs?.source ?? null}
     bind:value={value.input.selection}
     {api}
     {caseId}
