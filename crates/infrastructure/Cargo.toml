@@ -374,3 +374,7 @@ path = "tests/password_reset_runtime.rs"
 [[test]]
 name = "password_reset_runtime_identity"
 path = "tests/password_reset_runtime_identity.rs"
+
+[[test]]
+name = "owner_certificate_backend"
+path = "tests/owner_certificate_backend.rs"
