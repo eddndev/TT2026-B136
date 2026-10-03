@@ -131,3 +131,14 @@ parada; un fallo conserva la barrera. Reentrar con el mismo identificador vuelve
 a observar incluso si existe recibo previo. No restaura, promueve ni reabre
 datos y no establece la política de recuperación. Su frontera se describe en
 \rutarepo{docs/deployment-restore-quiesce.md}.
+
+
+La publicación de controladores intercambia directorios completos y conserva
+la generación anterior. Un lanzador separado fija un descriptor de directorio,
+comprueba el inventario completo contra una huella aprobada y ejecuta desde ese
+descriptor. Las importaciones tardías conservan así las mismas fuentes aunque
+cambie la ruta nominal. El intérprete aislado inhibe bytecode, conserva argumentos
+y señales y cierra los descriptores al terminar o reemplazar el proceso. Esta
+primitiva no selecciona por sí sola una generación confiable ni modifica unidades;
+la instalación operativa y su transición desde lectores anteriores permanecen
+separadas. Véase \rutarepo{docs/deployment-controller-launcher.md}.

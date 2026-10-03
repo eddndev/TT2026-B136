@@ -63,10 +63,12 @@ Un proceso que cargó A antes del intercambio puede importar B después. Tomar e
 lock sólo en el publicador o censar procesos no fija los imports de sus lectores.
 
 La caracterización nativa ejecuta intérpretes inocuos: la ruta nominal observa
-A/B y un descriptor de directorio fijado observa A/A. Esto demuestra la frontera;
-no implementa un launcher completo ni modifica las unidades instaladas. Antes
-de instalar operativamente hace falta excluir lanzadores/lectores durante el
-cambio o integrar y aceptar un mecanismo que fije la generación de cada proceso.
+A/B y un descriptor de directorio fijado observa A/A. El
+[launcher independiente](deployment-controller-launcher.md) tiene aceptación
+local de esa fijación, con inventario aprobado obligatorio y ciclo de vida del
+descriptor. Las unidades instaladas siguen separadas: falta seleccionar la
+generación aprobada para cada arranque y aceptar la transición de lectores
+antiguos, la conservación de su caché y la reapertura explícita.
 El procedimiento de `host.prepare` no sirve como sustituto: además de copiar
 fuentes reescribe otras partes de la instalación.
 

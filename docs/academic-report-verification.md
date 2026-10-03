@@ -85,6 +85,16 @@ la sustitución conocida de versalitas. El PDF acumulado no se versiona ni
 acredita integración o despliegue de esta entrega local.
 
 
+## Lanzador de controladores: 3 de octubre de 2026
+
+Implementación, pruebas y anexo distinguen el descriptor de generación de la
+instalación operativa. `make -C latex` aprobó: 372 páginas, 5926372 bytes, SHA-256
+`4f6f3b9e04ef2bc0d7f8d0dfce77b93ae1eafd82a59e9dc87c75547cb6cf8f3a`.
+Se revisaron las páginas físicas 219, 268 y 372, legibles y sin recortes
+ni superposiciones. No se observaron referencias pendientes ni caracteres
+ausentes; se conservaron los hashes protegidos y el PDF previo. El resultado
+acumulado no se versiona ni acredita instalación remota.
+
 ## Consulta propia del vínculo Owner: 3 de octubre de 2026
 
 Se documentaron la lectura sin retirar y su evidencia focal separada.
