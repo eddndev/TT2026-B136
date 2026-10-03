@@ -115,7 +115,28 @@ export async function openResourceDeadline(page, state) {
     .selectOption('follow');
 }
 export async function prepareResourceDeadline(page) {
-  await editor(page).getByRole('button', { name: 'Preparar plazo y vinculo', exact: true }).click();
+  const prepared = page.waitForResponse((response) => {
+    const request = response.request();
+    if (request.method() !== 'POST' || response.status() !== 200) return false;
+    const url = new URL(response.url());
+    if (
+      url.search ||
+      !new RegExp(
+        `^/api/v1/cases/${caseId}/procedural-resources/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}/activities/deadlines/prepare$`,
+      ).test(url.pathname)
+    )
+      return false;
+    const command = request.postDataJSON();
+    return (
+      command.case_id === caseId &&
+      url.pathname ===
+        `/api/v1/cases/${caseId}/procedural-resources/${command.resource_id}/activities/deadlines/prepare`
+    );
+  });
+  await Promise.all([
+    prepared,
+    editor(page).getByRole('button', { name: 'Preparar plazo y vinculo', exact: true }).click(),
+  ]);
   await expect(
     editor(page).getByRole('button', { name: 'Confirmar plazo y vinculo', exact: true }),
   ).toBeDisabled();
