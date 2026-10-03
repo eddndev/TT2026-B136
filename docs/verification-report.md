@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Plazos desde recursos: recuperación local del 3 de octubre de 2026
+
+El caso inicial reprodujo la ausencia de autorización fresca al reingresar.
+Ocho escenarios nuevos aprobaron en 34.9 s; trece regresiones existentes,
+incluidos selectores compartidos y diseño móvil/escritorio, aprobaron en 34.0 s.
+Se usó un worker con HTTP controlado y los límites originales.
+
+Conserva texto y tiempo crudos, dos UUID nuevos, capturas históricas y base
+original. Recuperar la sesión invalida la preparación y su aprobación. Un envío
+incierto conserva el sobre antes de esperar; exige consultar ambos recibos y
+confirmar con el servidor su origen conjunto. No confunde una pareja registrada
+por separado con la operación compuesta. Otra expiración pierde la habilitación
+previa de reintento. Una confirmación limpia antes del refresco; la clausura del
+expediente permite confirmar registros existentes, pero impide crear otros.
+No hay carga de archivo en este editor ni se inventó una. CI y aceptación con
+servicios reales de esta ampliación siguen pendientes.
+
 ## Confirmación integrada de participantes: 3 de octubre de 2026
 
 PR60 se integró por squash como `21729ce`, después de aprobar la cabeza exacta

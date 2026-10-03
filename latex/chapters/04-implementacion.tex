@@ -813,6 +813,17 @@ permite decidir un reenvío idéntico, pero esa habilitación vence con la sesi�
 La confirmación retira el borrador antes de refrescar el listado. No se crean
 actividades ni se activan plazos por recuperar estas capturas.
 
+La creación de un plazo desde un recurso conserva por separado los dos
+identificadores nuevos, la revisión que autoriza escribir y las capturas
+históricas seleccionadas. Al recuperar el borrador consulta de nuevo el
+expediente y recurso y pierde cualquier aprobación anterior. Si el envío pudo
+confirmarse, conserva su sobre exacto antes de esperar. La lectura coincidente
+de plazo y vínculo no prueba su origen conjunto: éste requiere confirmación
+explícita del servidor. Un expediente cerrado permite confirmar una operación
+ya registrada, pero no repetir una creación ausente. El resultado confirmado
+retira la captura antes del refresco; otra expiración nunca conserva un permiso
+previo para reenviar.
+
 Los adaptadores de clasificación documental, alta y edición de expedientes, carga documental principal y nuevas versiones preservan texto incompleto y selecciones todavía no confirmadas. Una revisión concurrente requiere comparar los valores actuales y decidir de nuevo; un expediente cerrado admite consultar el borrador autorizado sin enviarlo. Si una carga pudo haberse confirmado antes de perder su respuesta, la interfaz exige revisar el listado vigente y reconocer el riesgo de duplicación antes de iniciar otra carga explícita. No reproduce escrituras automáticamente. Los editores anidados y las demás familias de formularios requieren adaptadores y aceptación propios; la existencia del registro no demuestra recuperación universal. La activación operativa de inactividad permanece pendiente hasta completar ese inventario y seleccionar su duración. La decisión se documenta en \rutarepo{docs/adr/0065-session-reentry-and-memory-drafts.md}.
 
 \subsection{Límites de ejecución y verificación integrada}\label{sec:impl-http-limites}

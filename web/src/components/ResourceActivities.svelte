@@ -1,6 +1,7 @@
 <script>
   import { getContext, onMount, onDestroy } from 'svelte';
   import { pendingActivityDrafts } from '../lib/resource-activity-draft.mjs';
+  import { pendingResourceDeadlineDrafts } from '../lib/resource-deadline-draft.mjs';
   import ResourceActivityEditor from './ResourceActivityEditor.svelte';
   import ResourceDeadlineEditor from './ResourceDeadlineEditor.svelte';
   import ResourceActivityDetail from './ResourceActivityDetail.svelte';
@@ -19,8 +20,12 @@
     disabled = false,
     pending = false;
   const session = getContext('session-drafts');
+  const pendingDrafts = () => [
+    ...pendingActivityDrafts(session, caseId, resource.id),
+    ...pendingResourceDeadlineDrafts(session, caseId, resource.id),
+  ];
   let savedDraft = null,
-    drafts = pendingActivityDrafts(session, caseId, resource.id);
+    drafts = pendingDrafts();
   export let intent = null,
     onintent = () => {};
   let initialized = false,
@@ -59,6 +64,8 @@
   function fail(failure) {
     error = resourceActivityFailure(failure);
     if (resourceDenied(failure)) {
+      if (failure.code === 'case_not_found' || failure.status === 403)
+        session?.registry.denyContext(caseId);
       generation++;
       rows = [];
       selected = null;
@@ -115,7 +122,7 @@
     notice = '';
     try {
       const value = await resources.get(resource.id);
-      if (!alive) return;
+      if (!alive || (createDeadline && session && !session.canAdmit())) return;
       if (!record && value.status !== 'active') {
         error = 'El recurso esta archivado. Consulta su historia o reactivalo para vincular.';
         return;
@@ -124,11 +131,19 @@
       editorRecord = record;
       action = createDeadline ? 'create-deadline' : record ? 'unlink' : 'link';
       savedDraft = createDeadline
-        ? null
-        : (drafts.find((row) => row.action === action && row.instanceId === (record?.id ?? null)) ??
-          null);
+        ? (drafts.find((row) => row.editorKind === 'resource-deadline') ?? null)
+        : (drafts.find(
+            (row) =>
+              row.editorKind === 'resource-activity' &&
+              row.action === action &&
+              row.instanceId === (record?.id ?? null),
+          ) ?? null);
       editorKey++;
     } catch (failure) {
+      if (alive && createDeadline && session?.canAdmit() && failure.status === 404)
+        pendingResourceDeadlineDrafts(session, caseId, resource.id).forEach((saved) =>
+          session?.registry.closeEditor(saved.key),
+        );
       if (alive) fail(failure);
     } finally {
       if (alive) opening = false;
@@ -138,7 +153,7 @@
     action = null;
     savedDraft = null;
     editorBusy = false;
-    drafts = pendingActivityDrafts(session, caseId, resource.id);
+    drafts = pendingDrafts();
   }
   async function resume(saved) {
     if (pending || disabled || !session?.canAdmit()) return;
@@ -151,7 +166,7 @@
         saved.action === 'unlink' ? (await scoped.get(saved.instanceId)).association : null;
       if (!alive || !session.canAdmit()) return;
       savedDraft = saved;
-      action = saved.action;
+      action = saved.editorKind === 'resource-deadline' ? 'create-deadline' : saved.action;
       editorKey++;
     } catch (failure) {
       if (alive) {
@@ -218,7 +233,10 @@
   {#if !action}{#each drafts as saved (saved.key)}<button
         class="secondary"
         disabled={pending || disabled}
-        onclick={() => resume(saved)}>Retomar borrador de actividad</button
+        onclick={() => resume(saved)}
+        >{saved.editorKind === 'resource-deadline'
+          ? 'Retomar borrador de plazo'
+          : 'Retomar borrador de actividad'}</button
       >{/each}{/if}
   {#if action === 'create-deadline'}{#key editorKey}<ResourceDeadlineEditor
         {api}
@@ -228,6 +246,7 @@
         {head}
         {ondenied}
         {disabled}
+        {savedDraft}
         onconfirmed={confirmed}
         oncancel={closeEditor}
         bind:pending={editorBusy}
