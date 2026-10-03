@@ -185,3 +185,9 @@ fn new_hearing_review_binds_identity_and_all_declared_values() {
 
 #[path = "resource_hearing_boundaries.rs"]
 mod boundaries;
+
+#[path = "resource_hearing_submission.rs"]
+mod submission;
+
+#[path = "resource_hearing_recovery.rs"]
+mod recovery;

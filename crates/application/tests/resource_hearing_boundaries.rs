@@ -141,3 +141,52 @@ fn foreign_preparation_scope_is_rejected_before_a_review_is_returned() {
         ))
     ));
 }
+
+#[test]
+fn participant_provenance_cannot_move_to_another_identity_by_permutation() {
+    use application::resource_hearings::{
+        prepare_resource_hearing_change, resource_hearing_creation_matches,
+    };
+    let mut f = with_people(2);
+    for (index, p) in f.material.participants.iter_mut().enumerate() {
+        let ParticipantRevisionSnapshot::Manual(s) = &mut p.revision else {
+            unreachable!()
+        };
+        s.changed_by.email = format!("author{index}@example.com");
+        s.changed_at -= time::Duration::seconds(index as i64);
+    }
+    let saved = prepare_resource_hearing_change(
+        hearing_support::hasher(),
+        &f.actor,
+        f.case(),
+        f.resource(),
+        f.command.clone(),
+        f.material.clone(),
+    )
+    .unwrap()
+    .into_creation(case_support::instant())
+    .unwrap();
+    let mut changed = saved.clone();
+    let sources = &mut changed.hearing.material.participants;
+    let mut provenance = Vec::new();
+    for p in sources.iter() {
+        let ParticipantRevisionSnapshot::Manual(s) = &p.revision else {
+            unreachable!()
+        };
+        provenance.push((s.changed_by.clone(), s.changed_at));
+    }
+    sources.reverse();
+    for (p, (actor, at)) in sources.iter_mut().zip(provenance) {
+        let ParticipantRevisionSnapshot::Manual(s) = &mut p.revision else {
+            unreachable!()
+        };
+        s.changed_by = actor;
+        s.changed_at = at;
+    }
+    assert!(
+        resource_hearing_creation_matches(hearing_support::hasher().as_ref(), &changed).is_err()
+    );
+    let mut reordered = saved;
+    reordered.hearing.material.participants.reverse();
+    resource_hearing_creation_matches(hearing_support::hasher().as_ref(), &reordered).unwrap();
+}

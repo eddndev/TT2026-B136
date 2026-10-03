@@ -14,7 +14,8 @@ use std::sync::Arc;
 mock! {
     pub Store {}
     impl ResourceHearingStore for Store {
-        fn prepare(&self, actor: UserId, case: CaseId, resource: ResourceId, command: &ResourceHearingCommand) -> Result<ResourceHearingMaterial, ApplicationError>;
+        fn prepare(&self, actor: UserId, case: CaseId, resource: ResourceId, command: &ResourceHearingCommand) -> Result<ResourceHearingPreparation, ApplicationError>;
+        fn commit(&self, actor: UserId, case: CaseId, resource: ResourceId, prepared: PreparedResourceHearing) -> Result<ResourceHearingCreation, ApplicationError>;
     }
 }
 pub fn service(
@@ -25,6 +26,7 @@ pub fn service(
         Arc::new(store),
         Arc::new(identity),
         crate::hearing_support::hasher(),
+        Arc::new(crate::case_support::CountingClock::default()),
     )
 }
 #[derive(Clone)]
@@ -62,8 +64,8 @@ impl Fixture {
         Self {
             actor,
             command: ResourceHearingCommand {
-                operation_id: HearingOperationId::new(),
-                hearing_id: HearingId::new(),
+                operation_id: ResourceHearingOperationId::new(),
+                hearing_id: ResourceHearingId::new(),
                 association_id: fixture.command.association_id,
                 expected_resource_revision: fixture.command.expected_resource_revision,
                 resource: selection.resource,
@@ -92,7 +94,9 @@ impl Fixture {
         store
             .expect_prepare()
             .times(1)
-            .return_once(move |_, _, _, _| Ok(material));
+            .return_once(move |_, _, _, _| {
+                Ok(ResourceHearingPreparation::Ready(Box::new(material)))
+            });
         store
     }
     pub fn prepare(&self) -> Result<ResourceHearingDraft, ApplicationError> {

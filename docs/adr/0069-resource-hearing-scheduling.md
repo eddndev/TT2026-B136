@@ -2,12 +2,13 @@
 
 ## Status
 
-Accepted architecture; implementation remains in progress. The local domain
-values and application preparation service exist and have focused checks with
-controlled ports. There is no resource-hearing persistence adapter, HTTP route,
-idempotent creation, agenda projection, alert integration or user interface yet.
-These remain subsequent work in the same delivery. Neither global CI nor a new
-deployment is asserted here. The current contract is in
+Accepted architecture; implementation remains in progress. Local domain values,
+application preparation, exact-digest submission and replay validation exist.
+Focused checks use controlled ports and an in-memory store. There is no
+resource-hearing PostgreSQL adapter, HTTP route, agenda projection, alert
+integration or user interface yet. Durable atomic creation and recovery remain
+subsequent work in the same delivery. Neither global CI nor a new deployment is
+asserted here. The current contract is in
 [resource-hearings.md](../resource-hearings.md).
 
 ## Context
@@ -35,7 +36,9 @@ Use a separate `resource_hearings` domain family with exactly
 `AppealArguments` and `WrittenRevocation`. Require an explicit compatible written
 resource mode. Reuse the bounded time, modality, venue, note, participant and
 support values, but do not change ordinary `HearingKind`, its stage policy or
-`HEAR1`.
+`HEAR1`. Give resource hearings their own hearing identity, operation identity and
+positive revision type. A creation begins at revision one; these types do not
+supply a replacement or cancellation workflow by themselves.
 
 Scheduling requires a declared instant with its original offset and a basis
 statement with an exact document-version reference and digest. The application
@@ -44,36 +47,67 @@ or selected act. It does not upload, re-admit or infer a judicial determination
 from that content. Participant selection is bounded to 32, unique by identity,
 and normalized by UUID; each selection retains its revision.
 
-`ResourceHearingStore::prepare` must authorize the current case before loading
-material, resolve historical resource/act captures independently from the current
-head, and return current selected participant revisions. This is a read-only
-contract, not an implemented database authorization boundary. The application
-checks receipts, exact references, current resource revision and active status,
-administrative coherence, compatible classifications, support and participant
-projections. It rejects archived participants.
+`ResourceHearingStore::prepare` must authorize the current case before lookup.
+It returns either exact prior creation evidence with its origin marker, or
+material for a new preparation. The latter resolves historical resource/act
+captures independently from the current head and returns current selected
+participant revisions. The application checks receipts, exact references,
+resource revision and active status, administrative coherence, compatible
+classifications, support and participant projections. It rejects archived
+participants. Current case authorization and current participant selection are
+port obligations; a PostgreSQL boundary has not been implemented for this flow.
 
-`ResourceHearingService` admits Owner or Litigator before calling the port.
-After preparation it authenticates again and requires equality of the complete
-`Principal`, including its captured email. A valid role alone cannot justify
-returning a review prepared for another principal or changed identity.
+Construct `PreparedResourceHearing` only through validated preparation. It keeps
+the full material and principal as well as the review. Submission requires the
+exact reviewed digest, reauthenticates the complete current `Principal` before
+commit, validates the returned creation against the complete review, and
+reauthenticates before returning evidence. Only Owner or Litigator may enter
+this flow. A changed principal cannot receive the prior result merely because
+its role remains allowed.
+
+Require the store commit to reauthorize and revalidate all reviewed material
+under the shared audit lock, then write the hearing, initial resource association,
+origin marker and audit in one transaction. An exact raced operation must return
+the original creation and timestamp; a conflict must write nothing. This is an
+explicit adapter contract, not evidence of durable atomicity from application
+tests. Converting a prepared value into creation evidence does not itself persist
+anything.
 
 Use domain-separated representations. `RHEAR1` commits normalized scheduling
-values without a stage or receipt. `RHPR1` hashes the prepared review, including
-command identities, selected captures, observed resource head, actor,
-administration, support and participant projections. The exposed
-`submission_digest` is review evidence only; it is not a durable operation receipt
-and does not reserve an identifier, resource revision or appointment slot.
+values without a stage or receipt. `RHPR1` hashes the reviewed command identities,
+selected captures, observed head, actor, administration, support and participant
+projections. `RHCR1` binds that review digest, initial revision, recording time and
+additional participant provenance, sorted and explicitly bound to each
+participant identity and revision. The creation includes the full historical
+material and a matching origin marker. Neither credential provenance nor a
+successful capture check certifies legal authority or grants current access.
+
+Recover an uncertain response only from the original immutable creation and its
+origin, never from the mere presence of an independently created hearing or
+association. Replay requires the exact command, scope and original actor identity;
+submission also requires the reviewed digest. It preserves original evidence and
+timestamp without another commit. A historical author email is not overwritten
+with the current email. Current authorization and equality of the current full
+principal before and after the call remain required. Removing a current
+association must not remove origin evidence or enable a duplicate creation.
+
+Propagate an uncertain commit result without automatic retry. The caller may
+explicitly reconcile the same operation. A post-commit authentication failure
+can withhold the response without proving that the write did not happen.
 
 ## Consequences
 
-The caller can review declared scheduling against exact existing evidence without
-fabricating ordinary procedural progress. The preparation is deterministic for
-the same validated material, while changes to reviewed data alter its digest.
-Missing or unknown resource mode cannot be inferred from hearing classification.
+The caller can review declared scheduling against exact existing evidence and
+confirm that same review without fabricating ordinary procedural progress.
+Changes to reviewed data alter the digest. Missing or unknown resource mode
+cannot be inferred from hearing classification. Support remains restricted to
+already admitted evidence in the selected resource or act; this path does not
+admit an arbitrary new summons.
 
-The future write path must define and implement durable authorization,
-revalidation, atomic creation with its association, idempotent reconciliation,
-history and queries. No successful preparation proves those properties. Agenda,
-alerts and Qadra must compose that completed path, not manufacture an ordinary
-hearing from this draft. Those pending implementations require their own failing
-tests and evidence; the present controlled-port checks cannot substitute for them.
+Controlled-port checks establish the application protocol and an in-memory
+recovery example. They do not prove real process-restart recovery, database
+rollback, locking or durability. The PostgreSQL adapter, initial association
+write, immutable origin storage, history and queries still require implementation
+and verification. HTTP, agenda, alerts and Qadra must compose that completed path;
+they must not manufacture an ordinary hearing from the draft. These pending
+parts remain within the same functional delivery.

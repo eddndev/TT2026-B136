@@ -2,12 +2,14 @@
 
 ## Estado y alcance
 
-Implementación local en curso: existen valores de dominio y preparación mediante
-`ResourceHearingService` y `ResourceHearingStore`. La preparación produce una
-revisión en memoria; no crea todavía una audiencia ni una asociación persistida.
-Persistencia, creación idempotente, consultas propias, ruta HTTP, agenda, alertas
-e interfaz siguen pendientes dentro de esta misma entrega. Las comprobaciones
-focales no acreditan un nuevo despliegue ni CI global.
+Implementación local en curso: el dominio y `ResourceHearingService` disponen de
+preparación, confirmación con huella exacta y recuperación de una creación previa
+mediante `ResourceHearingStore`. La aplicación comprueba la captura devuelta y su
+origen. Estos recorridos se verifican con puertos controlados y memoria; todavía
+no existe adaptador PostgreSQL para estas audiencias. La creación durable con su
+asociación y auditoría, consultas propias, HTTP, agenda, alertas e interfaz siguen
+pendientes dentro de esta misma entrega. No se atribuye atomicidad durable,
+un nuevo despliegue ni CI global a esas comprobaciones.
 
 La decisión está en [ADR-0069](adr/0069-resource-hearing-scheduling.md). Este
 contrato complementa los [recursos](procedural-resources-api.md) y sus
@@ -49,8 +51,12 @@ a calificación jurídica del caso.
 | `scheduling_basis` | Declaración obligatoria `HearingNote` y `HearingSupportRef`: documento, versión exacta y digest. No es certificación judicial. |
 
 Los textos recortan espacios exteriores y rechazan controles; el texto multilineal
-normaliza CRLF a LF. El dominio no contiene etapa, raíz de audiencia, autor,
-recibo ni estado persistido. Tampoco decide si el instante ya pasó.
+normaliza CRLF a LF. Los valores no contienen etapa, autor,
+recibo ni estado persistido. Tampoco deciden si el instante ya pasó. La familia
+dispone de `ResourceHearingId`, `ResourceHearingOperationId` y
+`ResourceHearingRevision` propios, separados de los de audiencia ordinaria. La
+revisión comienza en uno, rechaza cero y no desborda al agotarse; su existencia
+no incorpora todavía un flujo de reemplazo o cancelación.
 
 ## Comando y material del puerto
 
@@ -64,19 +70,34 @@ opcional añade su identidad/revisión, la revisión del recurso que lo contiene
 su huella. La revisión esperada corresponde a la cabeza actual; no sustituye la
 revisión histórica elegida.
 
-`ResourceHearingStore::prepare(actor, case, resource, command)` debe:
+`ResourceHearingStore::prepare(actor, case, resource, command)` debe autorizar
+pertenencia y acceso vigentes al expediente antes de la búsqueda. Devuelve una
+de dos alternativas:
 
-- Autorizar pertenencia y acceso vigentes al expediente antes de cargar material.
-- Resolver el recurso y acto exactos y, por separado, la cabeza actual del recurso.
-- Resolver la administración del expediente y las revisiones seleccionadas de
-  participantes, exigiendo que estas últimas sean actuales.
-- Limitar los participantes y devolver los soportes ya admitidos dentro de las
-  capturas seleccionadas. No realizar escrituras.
+- `Ready(ResourceHearingMaterial)`: recurso y acto exactos, cabeza actual del
+  recurso resuelta por separado, administración observada y revisiones actuales
+  de los participantes seleccionados, limitadas a 32. Los soportes proceden de
+  las capturas ya admitidas. Esta lectura no escribe.
+- `Replay(ResourceHearingCreation)`: creación original identificada por su
+  captura inmutable y su marcador de origen. La existencia aislada de una
+  audiencia o asociación no acredita que proceda de la misma operación.
 
-El puerto devuelve `ResourceHearingMaterial`. Aún no existe su adaptador de
-persistencia: las obligaciones de acceso vigente y cabeza actual de participantes
-son parte del contrato del puerto, no evidencia de una comprobación PostgreSQL
-ya ejecutada por este módulo.
+La recuperación conserva la creación original aunque su asociación ya no esté
+vinculada; esa independencia debe sostenerla el marcador durable del adaptador.
+No reconstruye la evidencia histórica desde cabezas nuevas.
+
+`ResourceHearingStore::commit` recibe un `PreparedResourceHearing`. Su contrato
+exige, bajo el bloqueo compartido de auditoría, reautorizar expediente y principal
+completo, revalidar caso y recurso activos y las cabezas revisadas del recurso y
+participantes, y comparar todo el material preparado. Debe escribir audiencia,
+asociación inicial, marcador de origen y auditoría en **una transacción**. Un
+conflicto no escribe; una carrera de la misma operación exacta devuelve la
+creación original, incluida su fecha de registro.
+
+Estas obligaciones delimitan el futuro adaptador. No hay migración SQL ni
+comprobación transaccional PostgreSQL de este flujo. En particular, autorización
+vigente por expediente y actualidad de las revisiones de participantes siguen
+siendo obligaciones del puerto, no garantías demostradas por los dobles de prueba.
 
 ## Validación y revisión previa
 
@@ -107,6 +128,45 @@ No se exige ni se fabrica una etapa ordinaria. La comprobación de una referenci
 histórica no la convierte en la cabeza ni demuestra que una autoridad haya
 confirmado la declaración del usuario.
 
+## Confirmación y recuperación explícita
+
+`prepare_resource_hearing_change` ordena el material de participantes y construye
+`PreparedResourceHearing` después de validar el comando y las fuentes. Sus campos
+privados conservan revisión, material y principal; no puede construirse omitiendo
+esa preparación. `into_creation(recorded_at)` produce y valida la captura inicial
+en memoria. No escribe por sí mismo.
+
+`submit`, cuando recibe material `Ready`, vuelve a preparar el comando y compara
+`submission_digest` con la huella confirmada por el llamador. Una diferencia impide invocar `commit`. Si coincide,
+reautentica el principal completo, realiza una sola llamada a `commit`, verifica
+la creación devuelta y exige que su revisión previa sea exactamente la preparada.
+Antes de devolverla vuelve a reautenticar. Un error posterior al commit no prueba
+que no hubo escritura; el servicio no inicia un reintento automático.
+
+`ResourceHearingCreation` reúne dos piezas:
+
+- `ResourceHearingDetail`: revisión previa, material histórico exacto, revisión
+  inicial de audiencia, instante de registro y `capture_digest`.
+- `ResourceHearingOrigin`: expediente, recurso, audiencia, operación, asociación
+  y huellas de envío y captura. Debe coincidir completamente con el detalle.
+
+El verificador reconstruye la revisión desde el material histórico y contrasta
+sus huellas. El registro debe ser UTC, representable entre los años 1 y 9999 y no
+anterior a las fuentes capturadas. El servicio rechaza además una captura fechada
+después de su reloj. La validación histórica no concede autorización de acceso.
+
+Cuando el puerto devuelve `Replay`, el servicio comprueba creación, origen,
+expediente, recurso, identidad del autor y comando completo. En `submit` exige
+además la huella confirmada. Devuelve la captura original sin llamar a `commit`.
+El correo histórico se conserva aunque haya cambiado antes de esta nueva llamada;
+el principal actual debe permanecer idéntico durante la llamada y mantener un
+rol permitido. Una autoridad perdida impide devolver la evidencia.
+
+El llamador puede iniciar expresamente esa conciliación tras una respuesta
+incierta usando la misma operación y contenido. Los ensayos en memoria conservan
+una sola creación entre dos instancias del servicio; no demuestran recuperación
+tras reiniciar un proceso ni supervivencia de datos en un servidor real.
+
 ## Representaciones canónicas
 
 Todos los enteros usan big-endian. UUID y SHA-256 se conservan como bytes crudos.
@@ -126,10 +186,23 @@ ampliar los cupos de fuentes de hechos para acomodar el cupo de esta audiencia.
 La implementación está en
 [`canonical.rs`](../crates/application/src/resource_hearings/canonical.rs).
 
-`submission_digest` identifica esta revisión para su inspección. No es un recibo
-de confirmación, ni hay decodificador o API de importación de estas dos
-representaciones en este módulo. La futura persistencia debe definir su propio
-contrato de confirmación y conciliación antes de tratar el borrador como creado.
+`submission_digest` identifica la revisión que el llamador confirma. Por sí solo
+no es un recibo durable ni reserva identificadores o un horario.
+
+`RHCR1` vincula esa huella `RHPR1`, la revisión inicial y el instante de registro
+con la procedencia histórica de cada participante. Los bloques se ordenan por
+UUID y revisión, y cada uno incluye ambos campos para impedir intercambiar
+procedencias entre fichas. Distingue ficha manual o tipificada e incorpora los datos de autoría y tiempo no proyectados en la revisión
+previa; para fichas tipificadas incluye el envío y la referencia de origen de
+credencial, cuando existe, y para sujetos vinculados su autoría y fecha. Esta
+vinculación no certifica validez jurídica de la credencial. El detalle conserva
+el material necesario para reconstruir y comprobar la revisión. La implementación
+del recibo y del marcador de origen está en
+[`receipt.rs`](../crates/application/src/resource_hearings/receipt.rs).
+
+No existe decodificador ni API de importación de estas representaciones en este
+módulo. Las huellas y el contrato de confirmación de aplicación no sustituyen la
+persistencia transaccional que debe conservar sus capturas y origen.
 
 ## Comprobación y trabajo siguiente
 
@@ -138,10 +211,20 @@ catálogo cerrado, compatibilidad, cupo y duplicados, vector independiente y
 variación de campos canónicos. Las pruebas del
 [servicio](../crates/application/tests/resource_hearing_service.rs) usan puertos
 controlados para comparar fuentes, soporte, cabeza, permisos y reautenticación.
+Los casos de [confirmación](../crates/application/tests/resource_hearing_submission.rs)
+contrastan huella, captura completa, origen, reloj y cambios de principal. Los de
+[recuperación](../crates/application/tests/resource_hearing_recovery.rs) simulan una
+respuesta perdida y una conciliación explícita sin segunda escritura, preservan
+el autor histórico y rechazan intentos distintos o autoridad perdida. La
+regresión de procedencia altera autoría y orden de participantes sin permitir
+que el intercambio conserve una captura válida.
 Los resultados ejecutados se registran en [el informe técnico](verification-report.md).
 No se reutilizan como evidencia de persistencia, transporte o navegador.
 
-Los siguientes pasos de la entrega son resolver material con autorización real,
-confirmar audiencia y asociación atómicamente, conservar historia y conciliación
-idempotente, y conectar consultas, HTTP, agenda, alertas y Qadra. Sus garantías
-no se deducen del éxito de la preparación local.
+Los siguientes pasos son implementar el adaptador con autorización y transacción
+reales, conservar historia y origen durable, y conectar consultas, HTTP, agenda,
+alertas y Qadra. La asociación inicial prevista pertenece a este contrato de
+creación; aún no se ha implementado su registro SQL ni se ha ampliado el flujo
+genérico de asociaciones para crear estas audiencias. El soporte sólo puede ser
+uno ya admitido en el recurso o acto seleccionado: no se incorpora una citación
+nueva y arbitraria mediante esta confirmación.

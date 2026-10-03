@@ -19,6 +19,39 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Confirmación de audiencias de recursos: 3 de octubre de 2026
+
+Se añadieron identidades y revisiones propias, confirmación de una revisión exacta,
+captura `RHCR1` y marcador de origen. El contrato de almacenamiento exige conservar
+la audiencia, asociación inicial, origen y auditoría juntos; todavía no existe el
+adaptador PostgreSQL de este flujo. El servicio confirma el digest revisado,
+reautentica el principal completo antes de escribir y antes de devolver evidencia,
+y concilia una operación previa conservando su autor y fecha originales.
+
+El RED inicial confirmó APIs ausentes. Las pruebas finales aprobaron **22/22 de
+aplicación en 0.07 s**, con 3.50 s de compilación, y **10/10 de dominio en 0.00 s**,
+con 1.87 s de compilación. Son diez casos nuevos de aplicación y uno de dominio
+respecto del corte anterior; las 49 regresiones ordinarias de ese corte permanecen
+como evidencia histórica y no se ejecutaron de nuevo. Se comprobaron resumen
+alterado, marcador o captura manipulados, reloj anterior o futuro, principal
+cambiado, respuesta de almacenamiento distinta y respuesta perdida tras guardar.
+Una nueva instancia del servicio recupera el mismo objeto mediante un puerto en
+memoria, sin nueva llamada de escritura ni reintento automático. No equivale a
+reiniciar PostgreSQL ni demuestra atomicidad o durabilidad de disco.
+
+La revisión focal identificó una reasignación de procedencia entre participantes
+por permutación del material. Una regresión reprodujo el fallo antes del arreglo:
+`RHCR1` ahora ordena por identidad/revisión y vincula ambas antes de cada bloque
+de procedencia. Se rechazó el intercambio y se conservó el reordenamiento
+legítimo. La revisión posterior confirmó la corrección por lectura.
+
+Clippy focal de las bibliotecas y de esos dos grupos de pruebas aprobó con
+`-D warnings` en 7.37 s. Todas las ejecuciones fueron secuenciales, con un compilador
+y trabajador y `TMPDIR` privado sobre disco. No se repitió una campaña completa
+local ni se actualizó cobertura o despliegue. Persistencia, integración con las
+asociaciones generales, HTTP, agenda, alertas, Qadra y aceptación real continúan
+pendientes; el [contrato](resource-hearings.md) conserva esos límites.
+
 ## Preparación de audiencias propias de recursos: 3 de octubre de 2026
 
 Se implementaron localmente dos tipos explícitos de audiencia y su revisión

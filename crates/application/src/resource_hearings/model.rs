@@ -9,16 +9,15 @@ use crate::{
 use domain::{
     cases::CaseId,
     crypto::Sha256Digest,
-    hearings::{HearingId, HearingOperationId},
     procedural_resources::ResourceRevision,
-    resource_hearings::ResourceHearingValues,
+    resource_hearings::{ResourceHearingId, ResourceHearingOperationId, ResourceHearingValues},
 };
 
 /// Explicit creation intent; dates and the need for a hearing are never inferred.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResourceHearingCommand {
-    pub operation_id: HearingOperationId,
-    pub hearing_id: HearingId,
+    pub operation_id: ResourceHearingOperationId,
+    pub hearing_id: ResourceHearingId,
     pub association_id: ResourceActivityId,
     pub expected_resource_revision: ResourceRevision,
     pub resource: ResourceCaptureRef,

@@ -260,3 +260,27 @@ fn canonical_values_commit_every_field_including_offset_and_scheduling_support()
         );
     }
 }
+
+#[test]
+fn resource_hearing_identifiers_and_revision_do_not_alias_ordinary_roots() {
+    use domain::resource_hearings::{
+        ResourceHearingId, ResourceHearingOperationId, ResourceHearingRevision,
+    };
+    let id = Uuid::from_u128(81);
+    assert_eq!(ResourceHearingId::from_uuid(id).as_uuid(), id);
+    assert_eq!(ResourceHearingOperationId::from_uuid(id).as_uuid(), id);
+    assert_eq!(ResourceHearingRevision::initial().get(), 1);
+    assert!(ResourceHearingRevision::new(0).is_err());
+    assert_eq!(ResourceHearingRevision::initial().next().unwrap().get(), 2);
+    assert!(ResourceHearingRevision::new(u32::MAX)
+        .unwrap()
+        .next()
+        .is_none());
+    assert!(serde_json::from_str::<ResourceHearingRevision>("0").is_err());
+    assert_eq!(
+        serde_json::from_str::<ResourceHearingRevision>("2")
+            .unwrap()
+            .get(),
+        2
+    );
+}

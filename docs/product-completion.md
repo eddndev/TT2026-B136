@@ -82,9 +82,11 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   de audiencias. Las continuaciones declaradas y la creación contextual explícita
   de plazos ya están integradas; no equivalen a activación jurídica automática.
   El catálogo separado de alegatos de apelación y revocación escrita, y la
-  preparación contra recursos/actos exactos, tienen implementación local con
-  pruebas focales. No crean todavía una audiencia persistente ni la incorporan
-  a agenda o alertas; el pendiente continúa abierto. Véase el
+  preparación contra recursos/actos exactos, confirmación de la revisión y
+  conciliación explícita de la creación original tienen implementación local
+  con pruebas focales. El contrato transaccional aún carece de adaptador SQL:
+  no crean una audiencia persistente ni la incorporan a agenda o alertas;
+  el pendiente continúa abierto. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
