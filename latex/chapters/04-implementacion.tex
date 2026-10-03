@@ -784,6 +784,23 @@ retira el conjunto. El expediente cerrado permite consultar el borrador autoriza
 sin enviarlo; su reapertura exige refrescar el estado. Una respuesta incierta se
 concilia mediante recibo exacto, sin deducir confirmación de textos coincidentes.
 
+La edición de acceso de miembros utiliza un contexto global de cuenta. Consulta
+primero al Owner vigente y después el destino exacto antes de recuperar rol,
+estado y revisión originales; no almacena decisiones aprobadas ni crea un
+expediente ficticio. Las revisiones decimales conservan todos sus dígitos, incluso
+fuera del rango entero seguro de JavaScript. Un conflicto exige comparar y
+adoptar otra base; una respuesta incierta exige nueva consulta sin reenvío
+automático. La confirmación elimina el borrador antes del refresco y de invalidar
+la sesión si el usuario cambió su propio rol.
+
+Los calendarios jurisdiccionales conservan por separado la captura global
+del Owner, la revisión original y las fuentes con identificadores estables.
+Antes de proyectar valores se consulta la autorización administrativa y la
+cabecera actual. Una preparación sin enviar pierde su aprobación; un envío
+incierto conserva sólo el sobre necesario para consultar su recibo exacto.
+Ni el expediente seleccionado ni una coincidencia de valores habilitan
+mutaciones o confirman operaciones.
+
 Los adaptadores de clasificación documental, alta y edición de expedientes, carga documental principal y nuevas versiones preservan texto incompleto y selecciones todavía no confirmadas. Una revisión concurrente requiere comparar los valores actuales y decidir de nuevo; un expediente cerrado admite consultar el borrador autorizado sin enviarlo. Si una carga pudo haberse confirmado antes de perder su respuesta, la interfaz exige revisar el listado vigente y reconocer el riesgo de duplicación antes de iniciar otra carga explícita. No reproduce escrituras automáticamente. Los editores anidados y las demás familias de formularios requieren adaptadores y aceptación propios; la existencia del registro no demuestra recuperación universal. La activación operativa de inactividad permanece pendiente hasta completar ese inventario y seleccionar su duración. La decisión se documenta en \rutarepo{docs/adr/0065-session-reentry-and-memory-drafts.md}.
 
 \subsection{Límites de ejecución y verificación integrada}\label{sec:impl-http-limites}

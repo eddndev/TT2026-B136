@@ -97,3 +97,23 @@ y cambios de estado del expediente. El caso de reapertura reprodujo un estado
 cerrado obsoleto en la vista contenedora y aprobó después de sincronizarlo,
 sin modificar su aserción ni plazo. Estas pruebas no acreditan todavía el
 recorrido de ambas familias contra servicios reales ni su integración remota.
+
+
+La recuperación de acceso de miembros aprobó seis escenarios nuevos en
+18.3~s; once recorridos existentes aprobaron en 25.1~s y dieciséis pruebas
+Node de clientes en 0.232~s. Se comprobó autorización Owner y destino antes
+de mostrar valores, revisión decimal exacta, resultado incierto sin repetición,
+limpieza anterior a la expiración por cambio del propio rol y descarte ante
+pérdida de permiso, otra cuenta o cierre explícito. Estos resultados utilizan
+HTTP controlado y no completan invitaciones ni enrolamiento recuperable.
+
+Los calendarios jurisdiccionales aprobaron seis escenarios nuevos en 19.1~s
+con respuestas HTTP controladas. La recuperación consulta primero el Owner
+y el catálogo o la cabecera vigente; conserva campos parciales, identidad de
+fuentes y excepciones, base original y envío incierto. Una revisión ajena no
+confirma la operación y un recibo propio retira el borrador antes del refresco.
+El contexto es global y no hereda acceso de un expediente seleccionado.
+Esta evidencia no valida jurídicamente las fuentes declaradas ni habilita
+la política de inactividad del servidor.
+Diecinueve recorridos anteriores aprobaron por separado en 38.8~s, incluidos
+permisos, conflictos, historia, fuentes y diseño a 390 y 1440 píxeles.

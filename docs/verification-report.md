@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Calendarios: recuperacion local del 2 de octubre de 2026
+
+Seis escenarios nuevos aprobaron en 19.1 s con un worker, despues de observar
+el fallo inicial por falta de consulta del Owner antes de recuperar. El contexto
+es global y conserva campos crudos, fuentes y excepciones con identidad estable,
+base original y sobre de envio incierto. No conserva una preparacion aprobada
+ni interpreta como confirmacion un recibo de otra operacion.
+
+Una confirmacion exacta retira el borrador antes del refresco del catalogo.
+Respuestas tardias, otra cuenta, logout, cierre explicito o permiso retirado
+no reviven la captura. Las pruebas usan HTTP controlado; no acreditan aun
+regresion remota ni restauracion de todos los formularios.
+
+Diecinueve escenarios anteriores de calendarios aprobaron en 38.8 s: flujo
+completo, permisos, conflictos, fuentes, fechas, paginacion, historia y diseno
+a 390 y 1440 pixeles. Conservan los limites y aserciones anteriores.
+
 ## Borradores de acceso de miembros: aceptacion local del 2 de octubre de 2026
 
 Seis escenarios nuevos aprobaron en 18.3 s tras observar el fallo inicial por
