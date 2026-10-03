@@ -1,11 +1,19 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import CalendarList from './CalendarList.svelte';
   import CalendarDetail from './CalendarDetail.svelte';
   import CalendarEditor from './CalendarEditor.svelte';
   import { calendarDenied, canCalendars } from '../lib/judicial-calendar-labels.mjs';
+  import {
+    pendingCalendarDrafts,
+    denyCalendarDrafts,
+    freshCalendarOwner,
+  } from '../lib/calendar-draft.mjs';
   export let api, user;
   const scoped = api.judicialCalendars();
+  const session = getContext('session-drafts');
+  let savedDraft = null,
+    drafts = pendingCalendarDrafts(session);
   let filters = { status: 'published', jurisdiction: '', entityCode: '' },
     applied = { ...filters },
     rows = [],
@@ -29,9 +37,13 @@
     detailGeneration = 0;
   $: pending = busy || opening || editorBusy || !!action;
   $: manage = canCalendars(user.role, 'manage') && !denied;
+  const admitted = () =>
+    alive && (!session || (session.principal()?.id === user.id && session.canAdmit()));
   function fail(failure) {
     error = failure.message;
     if (calendarDenied(failure)) {
+      denyCalendarDrafts(session);
+      drafts = [];
       listGeneration++;
       detailGeneration++;
       rows = [];
@@ -89,11 +101,50 @@
     }
   }
   function edit(next) {
-    if (pending || !manage) return;
+    if (pending || !manage || !admitted()) return;
     action = next;
     editorBase = next === 'publish' ? null : selected;
+    savedDraft =
+      drafts.find((row) => row.action === next && row.resourceId === (editorBase?.id ?? null)) ??
+      null;
     editorKey++;
     notice = '';
+  }
+  async function resume(saved) {
+    if (pending || !manage || !admitted()) return;
+    opening = true;
+    error = '';
+    try {
+      const context = await freshCalendarOwner({
+        api,
+        scoped,
+        principalId: user.id,
+        resourceId: saved.resourceId,
+        admitted,
+      });
+      if (!context || !admitted()) return;
+      editorBase = context.current;
+      savedDraft = saved;
+      action = saved.action;
+      editorKey++;
+    } catch (failure) {
+      if (admitted()) {
+        if (failure.status === 404) session?.registry.closeEditor(saved.key);
+        drafts = pendingCalendarDrafts(session);
+        fail(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
+  function closedEditor() {
+    action = null;
+    savedDraft = null;
+    drafts = pendingCalendarDrafts(session);
+  }
+  function editorDenied(failure) {
+    closedEditor();
+    fail(failure);
   }
   async function confirmed(row, exact) {
     if (!alive) return;
@@ -102,7 +153,7 @@
     notice = 'Calendario guardado con revisi\u00f3n y recibo.';
     cursors = [undefined];
     await load();
-    if (alive) action = null;
+    if (alive) closedEditor();
   }
   function apply() {
     applied = { ...filters };
@@ -153,15 +204,26 @@
   onnew={() => edit('publish')}
 />
 {#if opening}<p role="status">Consultando revisi&#243;n del calendario...</p>{/if}
+{#if !action && manage}{#each drafts as saved (saved.key)}<button
+      class="secondary"
+      disabled={pending}
+      onclick={() => resume(saved)}
+      >Retomar borrador de calendario ({saved.action === 'publish'
+        ? 'publicar'
+        : saved.action === 'replace'
+          ? 'reemplazar'
+          : 'retirar'})</button
+    >{/each}{/if}
 {#if action}{#key editorKey}<CalendarEditor
       {api}
       {user}
       {action}
+      {savedDraft}
       record={editorBase}
       bind:busy={editorBusy}
       onconfirmed={confirmed}
-      oncancel={() => (action = null)}
-      ondenied={fail}
+      oncancel={closedEditor}
+      ondenied={editorDenied}
     />{/key}{/if}
 {#if selected && !action}{#key `${selected.id}/${selected.revision}`}<CalendarDetail
       api={scoped}

@@ -43,7 +43,9 @@ export function membersApi(request, onAccessChanged = () => {}) {
       memberUuid(id);
       return memberSummary(await scope.call(`/users/${id}`), id);
     },
-    async changeAccess(id, input) {
+    async changeAccess(id, input, onConfirmed = () => {}) {
+      if (typeof onConfirmed !== 'function')
+        throw new TypeError('A confirmation callback is required.');
       memberUuid(id);
       const change = memberAccessChange(input);
       const result = memberAccessResult(
@@ -54,7 +56,11 @@ export function membersApi(request, onAccessChanged = () => {}) {
         id,
         change,
       );
-      if (result.revision !== change.expected_revision) onAccessChanged(result);
+      try {
+        onConfirmed(result);
+      } finally {
+        if (result.revision !== change.expected_revision) onAccessChanged(result);
+      }
       return result;
     },
   };

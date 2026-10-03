@@ -58,6 +58,8 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Etapa procesal | Adopción y transición originales, fechas y textos crudos, soportes y cargas por propietario; consulta completa de historia ante incertidumbre. | Las etapas no tienen recibo técnico consultable: una coincidencia no confirma un envío ni acredita procedencia jurídica. |
 | Audiencias y resultados | Programación, corrección, cancelación, sesiones, continuaciones y retiro; campos crudos, bases originales, referencias históricas y cargas separadas por propietario. | Un envío incierto sólo se confirma por su recibo de revisión exacta; una cabecera o valores parecidos no bastan. |
 | Resoluciones y notificaciones | Textos y tiempos crudos, referencias históricas, base original y archivos separados por campo y representación. | El envío incierto requiere el recibo exacto; reabrir el expediente no prepara ni envía automáticamente. |
+| Acceso de miembros | Selección de rol y estado, cuenta exacta y revisión decimal original; Owner y destino consultados de nuevo. | Un cambio incierto exige consultar y decidir; un cambio propio confirmado retira el borrador antes de cerrar la sesión. |
+| Calendarios jurisdiccionales | Ámbito, fuentes estables, excepciones parciales, motivo y base original; Owner y catálogo o cabecera consultados antes de recuperar. | Su contexto es global; el retiro incierto se concilia por recibo exacto y no por pertenencia a un expediente. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
 focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
@@ -70,8 +72,18 @@ Ocho escenarios de resoluciones y notificaciones aprobaron en 29,0 segundos; inc
 recorrido adicional con servicios reales aceptó dos vencimientos y nueva MFA,
 conservando campos de un alta de expediente y un archivo de carga principal.
 Ese recorrido no valida contra servicios reales todos los editores de la tabla.
-Los inventarios y resultados integrados se registran separadamente en
+La recuperación de acceso de miembros aprobó seis escenarios en 18,3 segundos;
+las once regresiones existentes aprobaron en 25,1 segundos. Conserva revisiones
+decimales superiores al rango entero seguro de JavaScript y limpia el borrador
+antes de invalidar una sesión cuyo propio rol cambia. Los inventarios y
+resultados integrados se registran separadamente en
 [el informe de verificación](verification-report.md).
+
+Seis escenarios nuevos de calendarios aprobaron en 19,1 segundos con HTTP
+controlado. Comprueban autorización administrativa fresca, campos parciales,
+fuentes y filas estables, comparación explícita de revisión, incertidumbre,
+recibo ajeno rechazado y descarte antes del refresco confirmado. No validan la
+interpretación jurídica de las fuentes ni una activación operativa.
 
 La duración operativa del límite de inactividad sigue sin aprobarse. El backend
 mantiene por defecto su límite absoluto de veinticuatro horas. La configuración
@@ -88,8 +100,6 @@ asumiendo que todos los formularios conservan sus cambios.
 | --- | --- | --- |
 | Recursos y actividades | `ResourceEditor.svelte`, `ResourceActivityEditor.svelte`, `ResourceDeadlineEditor.svelte` | Recurso propietario, actividad o plazo elegible, asociaciones y resultado incierto. |
 | Plazos | `DeadlineEditor.svelte` | Plazo, fuentes de cómputo y versión consultada. |
-| Calendarios | `CalendarEditor.svelte` | Permiso administrativo y revisión del calendario. |
-| Acceso de miembros | `MemberAccessEditor.svelte` | Cuenta exacta, revisión, rol vigente y restricciones de administración. |
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus
 resultados privados después de autenticar de nuevo. Sus filtros o selecciones

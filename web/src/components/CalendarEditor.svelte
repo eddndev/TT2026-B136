@@ -1,7 +1,12 @@
 <script>
-  import { onDestroy } from 'svelte';
-  import CalendarFields from './CalendarFields.svelte';
-  import CalendarValues from './CalendarValues.svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import CalendarEditorBody from './CalendarEditorBody.svelte';
+  import {
+    createCalendarDraft,
+    freshCalendarOwner,
+    denyCalendarDrafts,
+  } from '../lib/calendar-draft.mjs';
+  import { captureCalendarDraft } from '../lib/calendar-draft-values.mjs';
   import { calendarDraft, calendarCommand } from '../lib/judicial-calendar-values.mjs';
   import {
     calendarDenied,
@@ -16,9 +21,11 @@
     onconfirmed,
     oncancel,
     ondenied,
-    busy = false;
+    busy = false,
+    savedDraft = null;
   const scoped = api.judicialCalendars(),
-    calendarId = record?.id || crypto.randomUUID();
+    session = getContext('session-drafts');
+  let calendarId = record?.id || crypto.randomUUID();
   let base = record,
     draft = calendarDraft(record),
     prepared = null,
@@ -28,10 +35,83 @@
     mode = 'draft',
     error = '',
     alive = true;
-  $: frozen = busy || ['uncertain', 'exhausted', 'confirmed'].includes(mode);
+  let blocked = true,
+    loaded = false,
+    finished = false;
+  const recovery = session
+    ? createCalendarDraft({
+        session,
+        principalId: user.id,
+        capture: () => captureCalendarDraft({ id: calendarId, action, base, draft, mode, last }),
+      })
+    : null;
+  function admitted() {
+    return alive && !finished && (!recovery || recovery.admitted());
+  }
+  function fresh(resourceId = savedDraft?.resourceId ?? base?.id ?? null) {
+    return freshCalendarOwner({ api, scoped, principalId: user.id, resourceId, admitted });
+  }
+  async function initialize() {
+    if (busy || !admitted()) return;
+    blocked = busy = true;
+    error = '';
+    try {
+      let context;
+      if (savedDraft && !loaded && recovery) {
+        const outcome = await recovery.restore(savedDraft, fresh, (value, current) => {
+          ({ id: calendarId, action, base, draft, mode, last } = value);
+          loaded = true;
+          context = current;
+        });
+        if (!admitted()) return;
+        if (outcome.status !== 'restored')
+          throw new Error('No se pudo recuperar el borrador del calendario.');
+      } else {
+        context = await fresh();
+        if (!context || !admitted()) return;
+        if (!loaded) {
+          recovery?.register(action, base?.id ?? null, base?.revision ?? 0);
+          loaded = true;
+        }
+      }
+      if (context.current && context.current.revision < base.revision)
+        throw new Error('La cabeza actual no confirma la revision original del calendario.');
+      if (
+        mode !== 'uncertain' &&
+        ((context.current?.revision ?? 0) !== (base?.revision ?? 0) ||
+          context.current?.status === 'retired')
+      )
+        mode = 'conflict';
+      blocked = false;
+    } catch (failure) {
+      if (admitted()) {
+        error = calendarFailure(failure);
+        if (calendarDenied(failure) || failure.status === 404) deny(failure);
+      }
+    } finally {
+      if (alive) busy = false;
+    }
+  }
+  function deny(failure) {
+    if (calendarDenied(failure)) denyCalendarDrafts(session);
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    recovery?.close();
+    blocked = true;
+    finished = true;
+    ondenied(failure);
+  }
+  function close() {
+    if (busy) return;
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    recovery?.close();
+    finished = true;
+    oncancel();
+  }
+  $: frozen =
+    busy || blocked || !admitted() || ['uncertain', 'exhausted', 'confirmed'].includes(mode);
   function fail(failure, writing = false) {
     if (calendarDenied(failure)) {
-      ondenied(failure);
+      deny(failure);
       return;
     }
     error = calendarFailure(failure);
@@ -56,7 +136,7 @@
     } else mode = 'draft';
   }
   async function prepare() {
-    if (frozen || mode !== 'draft') return;
+    if (!admitted() || frozen || mode !== 'draft') return;
     busy = true;
     error = '';
     try {
@@ -67,17 +147,19 @@
         operationId: crypto.randomUUID(),
       });
       const row = await scoped.prepare(command, user.id);
-      if (alive) {
+      if (admitted()) {
         prepared = structuredClone(row);
         mode = 'review';
       }
     } catch (failure) {
-      if (alive) fail(failure);
+      if (admitted()) fail(failure);
     } finally {
       if (alive) busy = false;
     }
   }
   async function finish(row, exact = false) {
+    recovery?.close();
+    finished = true;
     mode = 'confirmed';
     prepared = null;
     try {
@@ -89,26 +171,27 @@
     }
   }
   async function submit() {
-    if (frozen || mode !== 'review' || !prepared) return;
+    if (!admitted() || frozen || mode !== 'review' || !prepared) return;
     busy = true;
     error = '';
     last = structuredClone(prepared);
+    mode = 'uncertain';
     try {
       const row = await scoped.submit(last);
-      if (alive) await finish(row);
+      if (admitted()) await finish(row);
     } catch (failure) {
-      if (alive) fail(failure, true);
+      if (admitted()) fail(failure, true);
     } finally {
       if (alive) busy = false;
     }
   }
   async function check() {
-    if (busy || !last) return;
+    if (busy || blocked || !admitted() || !last) return;
     busy = true;
     error = '';
     try {
       const result = await readCalendarSubmission(scoped, last);
-      if (!alive) return;
+      if (!admitted()) return;
       if (result.state === 'matched') await finish(result.record, true);
       else if (result.state === 'absent')
         error =
@@ -120,141 +203,84 @@
         error = 'La revisi\u00f3n corresponde a otro env\u00edo. Tu borrador se conserva.';
       }
     } catch (failure) {
-      if (alive) {
+      if (admitted()) {
         error = calendarFailure(failure);
-        if (calendarDenied(failure)) ondenied(failure);
+        if (calendarDenied(failure)) deny(failure);
       }
     } finally {
       if (alive) busy = false;
     }
   }
   async function compare() {
-    if (busy) return;
+    if (busy || blocked || !admitted()) return;
     busy = true;
     error = '';
     compared = false;
     try {
-      const row = await scoped.get(calendarId);
-      if (alive) {
+      const context = await fresh(calendarId);
+      if (context && admitted()) {
+        const row = context.current;
         candidate = row;
         compared = true;
       }
     } catch (failure) {
-      if (alive) {
+      if (admitted()) {
         error = calendarFailure(failure);
-        if (calendarDenied(failure)) ondenied(failure);
+        if (calendarDenied(failure)) deny(failure);
       }
     } finally {
       if (alive) busy = false;
     }
   }
   function accept() {
-    if (!compared || candidate?.status !== 'published' || action === 'publish' || busy) return;
+    if (
+      !admitted() ||
+      blocked ||
+      !compared ||
+      candidate?.status !== 'published' ||
+      action === 'publish' ||
+      busy
+    )
+      return;
     base = candidate;
+    recovery?.register(action, base.id, base.revision);
     mode = 'draft';
     compared = false;
     error = '';
   }
+  onMount(initialize);
   onDestroy(() => {
+    recovery?.dispose();
     alive = false;
     busy = false;
     scoped.dispose();
   });
 </script>
 
-<section class="card calendar-editor" aria-label="Formulario de calendario" aria-busy={busy}>
-  <h2>
-    {action === 'publish'
-      ? 'Publicar calendario'
-      : action === 'replace'
-        ? 'Reemplazar calendario'
-        : 'Retirar calendario'}
-  </h2>
-  <p class="hint">
-    Clasificaci&#243;n declarada por &#225;mbito. Esta captura no calcula plazos ni acredita el
-    contenido de las fuentes.
-  </p>
-  {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if mode === 'uncertain'}<div class="case-comparison">
-      <h3>Resultado incierto</h3>
-      <p>Consulta el recibo del env&#237;o. La ausencia temporal no confirma que fall&#243;.</p>
-      <button class="primary" disabled={busy} onclick={check}>Consultar env&#237;o exacto</button>
-      <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
-    </div>{/if}
-  {#if last}<details>
-      <summary>Identidad del &#250;ltimo env&#237;o</summary>
-      <p>
-        Calendario: <code>{last.command.calendar_id}</code> / Revisi&#243;n objetivo {last.result_revision}
-      </p>
-      <p>Operaci&#243;n: <code>{last.command.operation_id}</code></p>
-      <p>Recibo: <code>{last.submission_digest}</code></p>
-    </details>{/if}
-  {#if mode === 'conflict'}<div class="case-comparison">
-      <h3>Comparar con la base actual</h3>
-      <p>
-        Tu borrador se conserva. Consulta los valores actuales antes de preparar una nueva
-        operaci&#243;n.
-      </p>
-      <button class="secondary" disabled={busy} onclick={compare}
-        >Consultar base actual del calendario</button
-      >
-      {#if compared && candidate}<p>
-          Revisi&#243;n {candidate.revision} / {candidate.status === 'retired'
-            ? 'Retirado'
-            : 'Publicado'}
-        </p>
-        <CalendarValues values={candidate.values} />
-        {#if action !== 'publish' && candidate.status === 'published'}<button
-            class="primary"
-            disabled={busy}
-            onclick={accept}>Usar esta base y conservar borrador</button
-          >{:else}<p>
-            Esta base no admite reenviar el borrador. Cierra el formulario y consulta su historia.
-          </p>{/if}
-      {/if}
-    </div>{/if}
-  {#if prepared}<div class="case-comparison">
-      <h3>Revisa el calendario a registrar</h3>
-      <p>Revisi&#243;n a registrar: {prepared.result_revision}</p>
-      <CalendarValues values={prepared.values} />{#if prepared.command.change.reason}<p
-          class="case-multiline"
-        >
-          Motivo: {prepared.command.change.reason}
-        </p>{/if}
-      <details>
-        <summary>Recibo de la preparaci&#243;n</summary>
-        <p>Operaci&#243;n: <code>{prepared.command.operation_id}</code></p>
-        <p>Valores: <code>{prepared.values_digest}</code></p>
-        <p>Recibo: <code>{prepared.submission_digest}</code></p>
-      </details>
-      <div class="action-row">
-        <button
-          class="secondary"
-          disabled={busy}
-          onclick={() => {
-            prepared = null;
-            mode = 'draft';
-          }}>Volver al borrador del calendario</button
-        ><button class="primary" disabled={frozen} onclick={submit}>Confirmar calendario</button>
-      </div>
-    </div>{:else if mode !== 'confirmed'}
-    {#if action === 'retire'}<CalendarValues values={base.values} />
-      <p class="notice">
-        Retirar conserva todos los valores e historia. Es terminal y no declara derogaci&#243;n.
-      </p>
-    {:else}<CalendarFields
-        bind:draft
-        disabled={frozen}
-        immutableScope={action !== 'publish'}
-      />{/if}
-    {#if action !== 'publish'}<label
-        >Motivo<textarea rows="3" bind:value={draft.reason} disabled={frozen}></textarea></label
-      >{/if}
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={prepare}
-      >Revisar calendario</button
-    >
-  {/if}
-  <button class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar formulario de calendario</button
-  >
-</section>
+<CalendarEditorBody
+  {action}
+  {base}
+  bind:draft
+  {prepared}
+  {last}
+  {candidate}
+  {compared}
+  {mode}
+  {error}
+  {busy}
+  {frozen}
+  {blocked}
+  {prepare}
+  {submit}
+  {check}
+  {compare}
+  {accept}
+  {close}
+  retry={initialize}
+  back={() => {
+    if (admitted() && !busy) {
+      prepared = null;
+      mode = 'draft';
+    }
+  }}
+/>
