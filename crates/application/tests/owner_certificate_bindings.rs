@@ -1,6 +1,8 @@
 #[allow(dead_code)]
 #[path = "case_support/mod.rs"]
 mod case_support;
+#[path = "owner_certificate_cases/current.rs"]
+mod current;
 #[path = "owner_certificate_cases/preparation.rs"]
 mod preparation;
 #[path = "owner_certificate_cases/receipt_guards.rs"]

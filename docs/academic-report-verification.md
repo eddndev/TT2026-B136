@@ -1,5 +1,16 @@
 # Verificación de la actualización académica
 
+## Consulta propia del vínculo Owner: 3 de octubre de 2026
+
+Se documentaron la lectura sin retirar y su evidencia focal separada.
+`make -C latex` aprobó: 371 páginas, 5924332 bytes, SHA-256
+`dd1baeb8524c707582bd3be93109e272a9b7354b566631514a63d98f2c4c8d6a`.
+Se inspeccionaron las páginas físicas 168 y 266, legibles y sin recortes
+ni superposiciones. Se conservaron los hashes protegidos y el PDF previo.
+La primera búsqueda de texto no encontró una palabra dividida al final de
+línea; se ajustó sólo la selección de páginas, sin repetir la compilación.
+El PDF acumulado no se versiona ni acredita despliegue.
+
 ## Vínculo Owner con servicios reales: 3 de octubre de 2026
 
 Se incorporó la aceptación HTTP, MFA, firma pública y restauración SQL,

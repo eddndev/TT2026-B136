@@ -159,6 +159,9 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   Redis, MFA y RSA reales; tras restaurar SQL y renovar MFA conservó el recibo
   terminal, la prueba pública y la auditoría exactos. Esta extensión todavía
   no está publicada ni integrada en main; no se instaló en VPS3 ni tiene interfaz Qadra.
+  La consulta posterior `/current` descubre el recibo propio sin retirar o
+  su ausencia, con aceptación focal separada de aplicación, HTTP y PostgreSQL;
+  no formó parte de aquella campaña real ni acredita vigencia del certificado.
   No habilita autenticación por certificado ni firma documental individual. Véanse
   [ADR-0067](adr/0067-owner-certificate-bindings.md) y
   [el contrato HTTP](http-owner-certificates.md).

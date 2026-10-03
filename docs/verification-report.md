@@ -1,5 +1,32 @@
 # Informe de verificación local
 
+## Consulta del vínculo Owner sin retirar: 3 de octubre de 2026
+
+El ensayo RED reprodujo `E0407` y `E0599` por ausencia de `find_current` y
+`current_receipt`. Tras añadir la consulta, aprobaron **27/27** pruebas de
+aplicación en **0.01 s** y **15/15** HTTP en **0.04 s**, con puertos controlados.
+Los dos casos nuevos de PostgreSQL real aprobaron **2/2 en 6.13 s**, tras
+**13.03 s** de compilación; el ejecutor completo duró **20.472 s** y confirmó
+la retirada del clúster desechable. Clippy focal aprobó en **24.01 s** con
+advertencias como errores. Son nueve casos nuevos: cuatro de aplicación,
+tres HTTP y dos PostgreSQL; los totales anteriores incluyen sus regresiones.
+
+La ruta literal `GET /api/v1/auth/certificate-bindings/current` devuelve el recibo
+propio sin retiro o JSON `null`, ambos con 200. Se comprobaron identidad inicial
+y final incluso para ausencia, rechazo de evidencia ajena/retirada/incoherente,
+entrada estricta, errores neutrales y `no-store`. PostgreSQL comprobó aislamiento
+entre Owners, retiro y renovación, conservación de historia con confianza
+vencida y lecturas sin cambios de filas ni auditoría. Una espera real del bloqueo
+de auditoría permitió desactivar la cuenta antes de leer: la consulta rechazó
+la nueva autoridad tanto con vínculo como sin él.
+
+Esta quinta ruta no formó parte de la campaña HTTP/MFA/restauración de 334.419 s
+descrita a continuación. Su evidencia usa HTTP con puertos controlados y, por
+separado, PostgreSQL real; no acredita otra campaña integrada, interfaz Qadra,
+autenticación por certificado, publicación o instalación. La ampliación del
+manuscrito aprobó compilación e inspección del PDF; véase
+`docs/academic-report-verification.md`.
+
 ## Vínculo Owner con HTTP, MFA y restauración SQL reales: 3 de octubre de 2026
 
 La campaña completa `bash scripts/api-demo.sh` terminó con **salida 0 en

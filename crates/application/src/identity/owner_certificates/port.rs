@@ -51,6 +51,10 @@ pub trait OwnerCertificateStore: Send + Sync {
         actor: UserId,
         binding: Uuid,
     ) -> Result<Option<OwnerBindingReceipt>, ApplicationError>;
+    /// Reads only the actor's unwithdrawn receipt, after current Owner authority
+    /// is checked under the audit/account locks. Multiple live rows are an error.
+    /// Certificate expiry does not hide history; this read appends no audit event.
+    fn find_current(&self, actor: UserId) -> Result<Option<OwnerBindingReceipt>, ApplicationError>;
     fn commit_registration(
         &self,
         verified: VerifiedOwnerRegistration,
