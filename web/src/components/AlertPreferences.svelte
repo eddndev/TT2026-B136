@@ -1,11 +1,16 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import AlertPreferenceFields from './AlertPreferenceFields.svelte';
   import AlertPreferenceSummary from './AlertPreferenceSummary.svelte';
   import { alertPreferenceCommand } from '../lib/alerts-preference-values.mjs';
   import { same } from '../lib/alerts-primitives.mjs';
   import { alertFailure } from '../lib/alerts-presentation.mjs';
-  export let api, onconfirmed, oncancel, ondenied;
+  import {
+    createAlertPreferenceDraft,
+    freshAlertPreferences,
+  } from '../lib/alert-preference-draft.mjs';
+  export let api, principalId, authorize, onconfirmed, oncancel, ondenied;
+  const session = getContext('session-drafts');
   let current = null,
     values = null,
     hours = {},
@@ -14,8 +19,22 @@
   let mode = 'editing',
     busy = false,
     alive = true,
+    completed = false,
+    generation = 0,
     error = '';
+  const recovery = session ? createAlertPreferenceDraft({ session, principalId, capture }) : null;
+  const admitted = () => alive && !completed && (!recovery || recovery.admitted());
+  const active = (request) => request === generation && admitted();
   $: frozen = mode === 'uncertain' || mode === 'not_observed';
+  function capture() {
+    return structuredClone({
+      base: current,
+      values,
+      hours,
+      command,
+      mode: mode === 'not_observed' ? 'uncertain' : mode,
+    });
+  }
   function apply(value) {
     current = value;
     values = structuredClone(value.values);
@@ -27,20 +46,70 @@
     );
   }
   function denied(failure) {
-    if ([403, 404].includes(failure.status)) ondenied(failure);
+    if ([403, 404].includes(failure.status)) {
+      recovery?.deny();
+      completed = true;
+      generation++;
+      ondenied(failure);
+    }
+  }
+  function close() {
+    if (busy || !admitted()) return;
+    recovery?.close();
+    completed = true;
+    generation++;
+    oncancel();
+  }
+  function confirmed(value) {
+    recovery?.close();
+    completed = true;
+    generation++;
+    onconfirmed(value);
+  }
+  function fresh(request) {
+    return freshAlertPreferences({
+      api,
+      authorize,
+      principalId,
+      admitted: () => active(request),
+    });
+  }
+  function restore(value, latest) {
+    current = value.base;
+    values = value.values;
+    hours = value.hours;
+    command = value.command;
+    candidate = null;
+    mode =
+      value.mode === 'editing' && latest.revision !== current.revision ? 'conflict' : value.mode;
   }
   async function load() {
+    if (busy || !admitted()) return;
+    const request = ++generation;
     busy = true;
+    error = '';
     try {
-      const result = await api.preferences();
-      if (alive) apply(result.preferences);
+      const saved = recovery?.pending();
+      if (saved) {
+        const outcome = await recovery.restore(saved, () => fresh(request), restore);
+        if (!active(request)) return;
+        if (outcome.status !== 'restored')
+          throw new Error(
+            'No fue posible recuperar el borrador. Vuelve a consultar las preferencias.',
+          );
+      } else {
+        const result = await fresh(request);
+        if (!result || !active(request)) return;
+        apply(result);
+        recovery?.register(current.revision);
+      }
     } catch (failure) {
-      if (alive) {
+      if (active(request)) {
         error = alertFailure(failure);
         denied(failure);
       }
     } finally {
-      if (alive) busy = false;
+      if (alive && request === generation) busy = false;
     }
   }
   function leadHours(text) {
@@ -52,7 +121,14 @@
   }
   async function save(event) {
     event?.preventDefault();
-    if (busy || !current || mode === 'uncertain' || (mode === 'conflict' && !candidate)) return;
+    if (
+      busy ||
+      !admitted() ||
+      !current ||
+      mode === 'uncertain' ||
+      (mode === 'conflict' && !candidate)
+    )
+      return;
     error = '';
     if (mode !== 'not_observed') {
       try {
@@ -69,37 +145,44 @@
         return;
       }
     }
+    const request = ++generation;
     busy = true;
+    mode = 'uncertain';
     try {
       const result = await api.savePreferences(command);
-      if (alive) onconfirmed(result.preferences);
+      if (active(request)) confirmed(result.preferences);
     } catch (failure) {
-      if (!alive) return;
+      if (!active(request)) return;
       error = alertFailure(failure);
       if (failure.status === 409) {
         mode = 'conflict';
         candidate = null;
-      } else if ([400, 422].includes(failure.status)) mode = 'editing';
-      else mode = 'uncertain';
+      } else if ([400, 422].includes(failure.status)) {
+        mode = 'editing';
+        command = null;
+      } else mode = 'uncertain';
       denied(failure);
     } finally {
-      if (alive) busy = false;
+      if (alive && request === generation) busy = false;
     }
   }
   async function check() {
-    if (busy) return;
+    if (busy || !admitted() || !current) return;
+    const request = ++generation;
     busy = true;
     error = '';
     try {
-      const result = (await api.preferences()).preferences;
-      if (!alive) return;
+      const result = await fresh(request);
+      if (!result || !active(request)) return;
       if (
         mode === 'uncertain' &&
         result.receipt?.operation_id === command.operation_id &&
         result.receipt.expected_revision === command.expected_revision &&
+        result.revision === command.expected_revision + 1 &&
+        result.user_id === principalId &&
         same(result.values, command.values)
       ) {
-        onconfirmed(result);
+        confirmed(result);
         return;
       }
       if (mode === 'uncertain' && result.revision === command.expected_revision) {
@@ -111,17 +194,19 @@
         mode = 'conflict';
       }
     } catch (failure) {
-      if (alive) {
+      if (active(request)) {
         error = alertFailure(failure);
         denied(failure);
       }
     } finally {
-      if (alive) busy = false;
+      if (alive && request === generation) busy = false;
     }
   }
   onMount(load);
   onDestroy(() => {
     alive = false;
+    generation++;
+    recovery?.dispose();
   });
 </script>
 
@@ -159,7 +244,7 @@
         >{/if}
       {#if candidate}<AlertPreferenceSummary current={candidate} />{/if}
       <div class="action-row">
-        <button class="secondary" type="button" disabled={busy} onclick={oncancel}>Cancelar</button>
+        <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button>
         <button
           class="primary"
           disabled={busy || mode === 'uncertain' || (mode === 'conflict' && !candidate)}
@@ -176,6 +261,6 @@
     </form>
   {:else if !busy}<div class="action-row">
       <button class="secondary" onclick={load}>Consultar preferencias</button>
-      <button class="text-button" onclick={oncancel}>Cerrar preferencias</button>
+      <button class="text-button" onclick={close}>Cerrar preferencias</button>
     </div>{/if}
 </section>
