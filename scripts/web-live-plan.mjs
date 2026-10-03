@@ -21,9 +21,11 @@ export const fixtureNames = [
   "deadlines",
   "deadlineReevaluation",
   "combinedAgenda",
+  "ownerCertificates",
 ];
 
 const families = [
+  [/^owner-certificates\./, 3, ["ownerCertificates"]],
   [/^(case-stages|stage-adoption)\./, 3, ["caseStages"]],
   [/^case-administration\./, 3, ["caseAdministration"]],
   [/^dashboard\./, 3, ["dashboard"]],

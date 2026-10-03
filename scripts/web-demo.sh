@@ -77,6 +77,7 @@ export TSA_DIR="$WORK_DIR/tsa"
 export KEK_BASE64
 KEK_BASE64="$(openssl rand -base64 32)"
 unset CINCEL_BASE_URL CINCEL_API_KEY RESEND_API_KEY ALERT_EMAIL_FROM ALERT_LOGIN_URL
+unset TT_LIVE_OWNER_CERTIFICATE TT_LIVE_OWNER_CERTIFICATE_PRIVATE_KEY
 TT_BROWSER_DATABASE_PASSWORD="$(openssl rand -hex 24)"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
   -v runtime_password="$TT_BROWSER_DATABASE_PASSWORD" >/dev/null <<'SQL'
@@ -98,6 +99,14 @@ export DATABASE_URL
   --purpose participant-declaration >/dev/null
 mkdir -m 700 "$WORK_DIR/client-credentials" "$WORK_DIR/server"
 mv "$PKI_CA_DIR/private/browser-participant.key.pem" "$WORK_DIR/client-credentials/participant.key.pem"
+OWNER_CERTIFICATE_SELECTED=0
+if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ] && \
+  node "$REPO_ROOT/scripts/web-live-plan.mjs" --has ownerCertificates; then
+  "$CLI" pki --scripts-dir "$REPO_ROOT/pki" issue --cn 'Browser Owner Binding' \
+    --purpose partner >/dev/null
+  mv "$PKI_CA_DIR/private/browser-owner-binding.key.pem" "$WORK_DIR/client-credentials/owner-binding.key.pem"
+  OWNER_CERTIFICATE_SELECTED=1
+fi
 bash "$REPO_ROOT/pki/issue-tsa-cert.sh" >/dev/null
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" gen-crl >/dev/null
 DATABASE_URL="$IDENTITY_TEST_DATABASE_URL" "$CLI" credential-trust publish \
@@ -129,6 +138,10 @@ export API_PROXY_TARGET="http://$SERVER_ADDRESS"
 export TT_WEB_FIXTURES="$WORK_DIR/browser-fixtures.json"
 export TT_LIVE_PARTICIPANT_CERTIFICATE="$PKI_CA_DIR/certs/browser-participant.crt.pem"
 export TT_LIVE_PARTICIPANT_PRIVATE_KEY="$WORK_DIR/client-credentials/participant.key.pem"
+if [ "$OWNER_CERTIFICATE_SELECTED" = 1 ]; then
+  export TT_LIVE_OWNER_CERTIFICATE="$PKI_CA_DIR/certs/browser-owner-binding.crt.pem"
+  export TT_LIVE_OWNER_CERTIFICATE_PRIVATE_KEY="$WORK_DIR/client-credentials/owner-binding.key.pem"
+fi
 umask 077
 curl -fsS -X POST "$API_PROXY_TARGET/api/v1/auth/bootstrap" \
   -H 'Content-Type: application/json' \

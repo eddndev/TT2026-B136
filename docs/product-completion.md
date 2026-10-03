@@ -158,10 +158,16 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   completa `scripts/api-demo.sh` aprobó en 334.419 s con HTTP, PostgreSQL,
   Redis, MFA y RSA reales; tras restaurar SQL y renovar MFA conservó el recibo
   terminal, la prueba pública y la auditoría exactos. Esta extensión todavía
-  no está publicada ni integrada en main; no se instaló en VPS3 ni tiene interfaz Qadra.
+  no está publicada ni integrada en main; no se instaló en VPS3. La interfaz
+  Qadra posterior aprobó seis recorridos con HTTP controlado en 16.8 s; conserva
+  intención y recibos públicos, sin recibir claves privadas. La aceptación
+  del navegador con servicios reales aprobó después 1/1 en 12.1 s, con
+  PostgreSQL, Valkey compatible con Redis, MFA y OpenSSL reales. El comando
+  completo duró 252.134 s; no repitió la restauración anterior.
   La consulta posterior `/current` descubre el recibo propio sin retirar o
   su ausencia, con aceptación focal separada de aplicación, HTTP y PostgreSQL;
-  no formó parte de aquella campaña real ni acredita vigencia del certificado.
+  no formó parte de aquella campaña HTTP/restauración, pero sí del navegador
+  real posterior. Descubrirlo no acredita vigencia del certificado.
   No habilita autenticación por certificado ni firma documental individual. Véanse
   [ADR-0067](adr/0067-owner-certificate-bindings.md) y
   [el contrato HTTP](http-owner-certificates.md).

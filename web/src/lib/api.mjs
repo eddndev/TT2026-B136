@@ -6,6 +6,7 @@ import { alertsApi } from './alerts-api.mjs';
 import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
 import { membersApi } from './members-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
+import { ownerCertificatesApi } from './owner-certificates-api.mjs';
 
 const messages = {
   audit_query_capacity_exceeded:
@@ -266,6 +267,15 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     auditEvents: () => auditEventsApi(request),
     reports: () => caseReportsApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
+    ownerCertificates(ownerId) {
+      const version = sessionVersion;
+      return ownerCertificatesApi((path, options) => {
+        assertSession(version);
+        if (principalId !== null && principalId !== ownerId)
+          throw new Error('La cuenta del certificado no corresponde a la sesion.');
+        return request(path, options);
+      }, ownerId);
+    },
     alerts: (actorId) => alertsApi(request, actorId),
     integrityIncidents: () => integrityIncidentsApi(request),
     members: () =>

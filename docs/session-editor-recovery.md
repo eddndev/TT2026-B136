@@ -171,6 +171,23 @@ cambiar producto: resultado aplicado y no aplicado, misma cuenta o cambio de
 cuenta, nueva MFA, bearer nuevo, consulta exacta y denegación. No sustituyen
 aceptación de esas rutas con servicios reales ni activan inactividad operativa.
 
+## Vínculo público de certificado Owner
+
+El editor conserva sólo la declaración pública, certificado y firma admitidos,
+en memoria y para el mismo Owner. Una nueva MFA consulta identidad y vínculo
+actual antes de recuperar el editor. La lectura actual no confirma un envío
+incierto: éste requiere el recibo del UUID original y comparación de toda la
+prueba. Un 404 no provoca otro envío automático. Cambiar de cuenta, cancelar o
+cerrar sesión descarta el borrador; no se conserva una clave privada ni el
+objeto de archivo seleccionado.
+
+Seis recorridos con HTTP controlado aceptaron estas reglas y rechazaron un
+recibo terminal que alteraba la firma original. Un recorrido adicional con
+servicios reales aceptó preparación, firma externa, registro, nueva MFA, lectura
+actual y retiro; no simuló expiración durante ese retiro. Los resultados y sus
+límites están separados en [el informe de verificación](verification-report.md).
+Véase el [manual del vínculo](owner-certificate-interface.md).
+
 ## Alcance que conserva aceptación pendiente
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus
