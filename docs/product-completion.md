@@ -171,6 +171,13 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   No habilita autenticación por certificado ni firma documental individual. Véanse
   [ADR-0067](adr/0067-owner-certificate-bindings.md) y
   [el contrato HTTP](http-owner-certificates.md).
+- Primer factor Owner, aceptación interna local: aplicación con MFA obligatorio,
+  autoridad vigente PostgreSQL, verificador tipificado y capacidades Redis con
+  procedencia explícita. Aprobaron 22 casos de aplicación, 31 previos de identidad,
+  ocho criptográficos, seis SQL, 11 de procedencia, 23 regresiones de sesiones y
+  21 de captura/presupuestos. Las rutas, composición HTTP, interfaz y cierre de
+  restauración permanecen pendientes; no está publicado ni activado. Véase
+  [autenticación interna](owner-certificate-authentication.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de

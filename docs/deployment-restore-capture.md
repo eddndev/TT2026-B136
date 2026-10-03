@@ -3,8 +3,9 @@
 `ops/deploy/restore_capture.py` conecta la captura existente con las observaciones
 locales de PostgreSQL y Redis y produce el descriptor descrito en
 [deployment-restore-compatibility.md](deployment-restore-compatibility.md).
-`ops/deploy/restore_redis.py` invalida únicamente sesiones y desafíos en un destino
-privado explícito. Son entradas internas; no restauran ni publican un despliegue.
+`ops/deploy/restore_redis.py` invalida sesiones, desafíos MFA y capturas previas
+al login por certificado en un destino privado explícito. Son entradas internas;
+no restauran ni publican un despliegue.
 
 ## Captura
 
@@ -91,18 +92,58 @@ directorio y límites explícitos. Selecciona DB0 y RESP2 para las respuestas JS
 La observación `INFO server` usa el formato textual propio de redis-cli y se
 valida por separado con los mismos límites de salida. Verifica PING, PID y directorio antes de inspeccionar claves.
 
-Recorre por completo ambos espacios antes del primer `DEL`. Solo admite las
-claves `identity:session:` e `identity:challenge:` seguidas de 64 dígitos
-hexadecimales minúsculos. Deduplica observaciones y comparte el presupuesto de
-SCAN entre los recorridos previos y finales. Los máximos son 1000 SCAN, 10000
-claves únicas, lotes de 100 y 10 segundos por comando; cada llamada proporciona
-valores positivos dentro de esos límites.
+Recorre por completo tres espacios antes del primer `DEL`. Solo admite las claves
+`identity:session:`, `identity:challenge:` e `identity:certificate-login:` seguidas
+de 64 dígitos hexadecimales minúsculos. Elimina también una captura corrupta de
+otro tipo Redis bajo ese nombre exacto: no lee ni interpreta su JSON o evidencia
+criptográfica. Deduplica observaciones y comparte los presupuestos de SCAN y
+claves únicas entre los tres espacios. Los máximos son 1000 SCAN, 10000 claves
+únicas, lotes de 100 y 10 segundos por comando; cada llamada proporciona valores
+positivos dentro de esos límites. Antes del borrado reserva al menos un SCAN final
+por espacio dentro del mismo presupuesto.
 
-Después del borrado exige un recorrido vacío de ambos espacios. Un error o una
-clave nueva impide devolver éxito; puede haber ocurrido borrado parcial y el
-reintento es seguro. No elimina límites de contraseña/reset, protección TOTP ni
-datos ajenos, y no modifica vencimientos, AOF o servicios. Persistencia y reinicio
-siguen siendo responsabilidad del ensayo o controlador llamador.
+Después del borrado exige un recorrido vacío de los tres espacios. Un error o
+una clave nueva impide devolver éxito; puede haber ocurrido borrado parcial y
+el reintento explícito sobre el mismo destino es seguro. Conserva límites de
+contraseña/reset, protección TOTP, datos ajenos y los cuatro contadores bajo
+`identity:certificate-login-rate:v1:`: inicio global, inicio por Owner/vínculo,
+prueba global y prueba por token. Sus tipos, valores y vencimientos absolutos
+permanecen intactos. El patrón de captura termina en `certificate-login:*` y no
+incluye el prefijo distinto `certificate-login-rate:`.
+
+El resultado siempre contiene `sessions_removed`, `challenges_removed` y
+`certificate_logins_removed`, incluso si son cero. Cuenta eliminaciones efectivas,
+no observaciones repetidas de SCAN. Los llamadores que comparan el conjunto exacto
+de campos deben aceptar el nuevo contador. Un recibo histórico con sólo los dos
+primeros campos no acredita que se hayan inspeccionado capturas por certificado;
+no se modifica ni se interpreta su ausencia como un cero comprobado.
+
+La operación no cambia vencimientos, AOF ni servicios. Persistencia, reinicio y
+cierre de escritores siguen siendo responsabilidad del ensayo o controlador
+llamador. Retirar estas capturas no habilita el login por certificado.
+
+### Caso nativo de capturas por certificado
+
+`scripts/tests/test_deploy_restore_certificate_login.py` expresa cinco recorridos
+con dobles de comando: inventario inicial y final, límites compartidos, aparición
+de una captura durante el borrado, fallo de transporte parcial y reintento vacío.
+Conserva las comprobaciones previas de identidad del proceso y directorio.
+
+`scripts/tests/test_deployment_certificate_login_snapshot.py` reutiliza la fixture
+de procesos de Redis y llama al invalidador real después de recuperar un RDB.
+Compara tipos, campos ordenados y expiraciones absolutas; luego regenera AOF,
+vuelve a colocar el RDB antiguo y comprueba el estado tras reiniciar. Los valores
+de captura son material público sintético opaco, incluida una captura de tipo
+incorrecto. El caso no acredita emisión por el adaptador Rust, RSA ni ingreso HTTP.
+La observación de systemd y el dump PostgreSQL siguen siendo dobles explícitos;
+los procesos Redis y la persistencia pertenecen al entorno desechable.
+
+CI registra ese caso junto al ensayo nativo anterior. Su invocación independiente,
+con las mismas herramientas compatibles y `TMPDIR` privado en disco, es:
+
+```bash
+python3 -B scripts/tests/test_deployment_certificate_login_snapshot.py
+```
 
 ## Verificación y alcance pendiente
 
@@ -184,3 +225,20 @@ reconciliación tras fallo, confianza PKI y contadores vigentes,
 instalación verificada y decisión sobre la fuente Redis y controles perdidos.
 Estas entradas no autorizan instalar, habilitar, limpiar la barrera ni activar
 correo de recuperación.
+
+
+### Aceptación focal de capturas de certificado, 3 de octubre de 2026
+
+Los cinco casos nuevos reprodujeron la omisión del tercer espacio de claves.
+Después aprobaron junto con las cinco regresiones de comando: 10/10 en
+0.016 s. Una prueba nativa separada aprobó 1/1 en 7.006 s con Valkey 8.1.10
+compatible con Redis. Conservó bytes, tipos y expiraciones a través de RDB,
+retiró sesiones, MFA y capturas de certificado, y confirmó después que el AOF
+limpio impedía su resurrección al reiniciar con el RDB anterior. Los cuatro
+presupuestos nuevos, controles previos y claves ajenas permanecieron exactos.
+La lectura de hashes de la prueba fija RESP2 explícitamente; el primer intento
+había recibido el objeto JSON de RESP3, antes de generar el respaldo.
+
+La captura de esa prueba contiene material público sintético opaco. La emisión
+y el consumo del runtime Rust se verificaron por separado; aquí no se acredita
+RSA, sesión HTTP ni restauración completa de una cuenta autenticada.

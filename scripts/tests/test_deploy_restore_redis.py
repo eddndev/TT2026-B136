@@ -9,20 +9,25 @@ class RestoreRedisTests(RedisInvalidationFixture):
     def test_only_sessions_and_challenges_are_removed_and_retry_is_empty(self):
         before = copy.deepcopy(self.redis.values)
         result = self.invoke()
-        self.assertEqual(result, {"sessions_removed": 2, "challenges_removed": 1})
+        self.assertEqual(result, {"sessions_removed": 2, "challenges_removed": 1,
+                                  "certificate_logins_removed": 0})
         preserved = {key: value for key, value in before.items()
-                     if not key.startswith(("identity:session:", "identity:challenge:"))}
+                     if not key.startswith(("identity:session:", "identity:challenge:",
+                                            "identity:certificate-login:"))}
         self.assertTrue(self.redis.values == preserved, "values or absolute expiries changed")
         first_delete = next(index for index, call in enumerate(self.redis.calls) if call[0] == "DEL")
         initial = self.redis.calls[:first_delete]
-        self.assertTrue(any(call[0] == "SCAN" and "identity:challenge:*" in call for call in initial),
-                        "deletion began before both namespaces were inspected")
+        patterns = ("identity:session:*", "identity:challenge:*", "identity:certificate-login:*")
+        for pattern in patterns:
+            self.assertTrue(any(call[0] == "SCAN" and pattern in call for call in initial),
+                            "deletion began before all namespaces were inspected")
         last_delete = max(index for index, call in enumerate(self.redis.calls) if call[0] == "DEL")
         final = self.redis.calls[last_delete + 1:]
-        for pattern in ("identity:session:*", "identity:challenge:*"):
+        for pattern in patterns:
             self.assertTrue(any(call[0] == "SCAN" and pattern in call for call in final),
                             "removal was acknowledged without an empty final scan")
-        self.assertEqual(self.invoke(), {"sessions_removed": 0, "challenges_removed": 0})
+        self.assertEqual(self.invoke(), {"sessions_removed": 0, "challenges_removed": 0,
+                                        "certificate_logins_removed": 0})
         self.assertTrue(self.redis.values == preserved)
 
     def test_wrong_target_bad_second_namespace_and_exhausted_scan_have_no_deletions(self):
@@ -53,9 +58,11 @@ class RestoreRedisTests(RedisInvalidationFixture):
         self.redis.appear_after_delete = True
         self.rejection()
         self.assertIn(self.redis.extra, self.redis.values)
-        self.assertEqual(self.invoke(), {"sessions_removed": 1, "challenges_removed": 0})
+        self.assertEqual(self.invoke(), {"sessions_removed": 1, "challenges_removed": 0,
+                                        "certificate_logins_removed": 0})
         for key, value in before.items():
-            if not key.startswith(("identity:session:", "identity:challenge:")):
+            if not key.startswith(("identity:session:", "identity:challenge:",
+                                   "identity:certificate-login:")):
                 self.assertTrue(self.redis.values.get(key) == value, "retained state changed")
 
     def test_transport_failure_and_invalid_limits_never_emit_success_or_sensitive_errors(self):
@@ -63,7 +70,8 @@ class RestoreRedisTests(RedisInvalidationFixture):
         self.redis.fail_delete = True
         self.rejection()
         self.assertTrue(self.redis.values == before, "failed first removal changed state")
-        self.assertEqual(self.invoke(), {"sessions_removed": 2, "challenges_removed": 1})
+        self.assertEqual(self.invoke(), {"sessions_removed": 2, "challenges_removed": 1,
+                                        "certificate_logins_removed": 0})
         for field, value in (("timeout", 0), ("timeout", float("inf")), ("max_scan_calls", 0),
                              ("max_keys", 0), ("batch_size", 0), ("max_keys", 2**63),
                              ("expected_pid", True), ("host", "198.51.100.1")):

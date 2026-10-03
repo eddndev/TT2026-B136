@@ -58,8 +58,8 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Verify native Redis snapshot and restart
-        run: python3 -B scripts/tests/test_deployment_redis_snapshot.py
+      - name: Verify native Redis snapshots, invalidation and restart
+        run: PYTHONPATH=scripts/tests python3 -B -m unittest test_deployment_redis_snapshot test_deployment_certificate_login_snapshot
       - name: Cancel the failed campaign
         if: ${{ failure() && !cancelled() }}
         uses: ./.github/actions/cancel-ci-campaign

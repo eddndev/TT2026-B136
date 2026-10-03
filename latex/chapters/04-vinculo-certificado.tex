@@ -123,7 +123,7 @@ cerrar sesión expresamente o cambiar de cuenta descarta el borrador. El archivo
 original y el PEM todavía no admitido quedan fuera de la captura. La función
 no habilita autenticación por certificado ni firma individual de documentos.
 
-\subsubsection{Prueba separada para un primer factor futuro}
+\subsubsection{Prueba separada y admisión interna del primer factor}
 
 El dominio incorpora una declaración distinta de 182 bytes, con separador de
 propósito propio, cuenta Owner, generación de autenticación, vínculo y confianza
@@ -133,6 +133,16 @@ no genera azar ni autentica una cuenta. El adaptador Partner verifica la firma
 sobre esos bytes, recalcula la inspección de confianza y contrasta el material
 exacto y el instante. El plazo del nonce limita presentar la prueba, mientras
 la validez de certificado y confianza conserva una frontera independiente.
-No se habilita un endpoint: consumo único, autoridad viva, MFA obligatoria y
-procedencia de sesiones deben completarse antes de activar ese primer factor.
+La aplicación consulta autoridad actual en PostgreSQL y conserva en Redis una
+captura pública estricta, con vencimiento exactamente igual al instante firmado.
+La reclamación consume esa captura antes de verificar RSA; la prueba sólo
+concede otro desafío MFA. Cuenta, vínculo y confianza se comprueban de nuevo
+antes de devolver capacidades y al admitir una sesión de origen certificado.
+La revisión de cuenta puede avanzar al consumir un código de recuperación,
+pero su generación de revocación y procedencia deben seguir coincidiendo.
+Los plazos de sesión quedan acotados por la vigencia de la credencial; los
+registros de contraseña conservan su formato y semántica. Hay presupuestos
+independientes y compartidos para inicio y presentación, sin reintentos de
+escrituras inciertas. La ruta HTTP, la interfaz y el cierre de restauración
+siguen separados: esta frontera interna no habilita acceso público.
 Véase \rutarepo{docs/adr/0068-owner-certificate-first-factor.md}.

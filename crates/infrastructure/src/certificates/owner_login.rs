@@ -68,3 +68,26 @@ impl InternalRsaOwnerLoginVerifier {
         Ok(check)
     }
 }
+
+impl application::identity::certificate_login::OwnerLoginVerifier
+    for InternalRsaOwnerLoginVerifier
+{
+    fn verify_login(
+        &self,
+        statement: &LoginStatement,
+        certificate: &[u8],
+        signature: &Signature,
+        trust: &CredentialTrustSnapshot,
+        at: i64,
+    ) -> Result<CredentialCheck, application::ApplicationError> {
+        InternalRsaOwnerLoginVerifier::verify_login(
+            self,
+            statement,
+            certificate,
+            signature,
+            trust,
+            at,
+        )
+        .map_err(|_| application::ApplicationError::InvalidCredentials)
+    }
+}

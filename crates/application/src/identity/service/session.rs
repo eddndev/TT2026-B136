@@ -1,11 +1,13 @@
-//! Session admission, explicit activity, and MFA session issuance.
+//! Session admission and activity preserve the exact authentication origin.
 
-use super::IdentityService;
-use crate::identity::{
-    Principal, SessionIdentity, SessionPolicy, SessionResult, SessionState, SessionStatus,
-    UserRecord,
+use super::{certificate_authority::session_error, IdentityService};
+use crate::{
+    identity::{
+        certificate_login::SessionAuthentication, Principal, SessionPolicy, SessionState,
+        SessionStatus,
+    },
+    ApplicationError,
 };
-use crate::ApplicationError;
 
 impl IdentityService {
     pub fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
@@ -21,24 +23,54 @@ impl IdentityService {
 
     pub fn record_activity(&self, access_token: &str) -> Result<SessionStatus, ApplicationError> {
         let admitted = self.admit_session(access_token)?;
-        let updated = self
-            .ports
-            .sessions
-            .record_activity(access_token, &admitted.identity, self.session_policy)?
-            .filter(|state| state.identity == admitted.identity)
-            .ok_or(ApplicationError::InvalidSession)?;
+        let updated = match &admitted.authentication {
+            SessionAuthentication::Password => self.ports.sessions.record_activity(
+                access_token,
+                &admitted.identity,
+                self.session_policy,
+            )?,
+            SessionAuthentication::Certificate(origin) => {
+                self.ports.sessions.record_certificate_activity(
+                    access_token,
+                    &admitted.identity,
+                    origin,
+                    self.session_policy,
+                )?
+            }
+        }
+        .filter(|value| same_session(value, &admitted))
+        .ok_or(ApplicationError::InvalidSession)?;
+        self.validate_session_state(&updated)?;
+        let updated = if matches!(
+            updated.authentication,
+            SessionAuthentication::Certificate(_)
+        ) {
+            let confirmed = self.admit_session(access_token)?;
+            if !same_session(&confirmed, &updated) {
+                return Err(ApplicationError::InvalidSession);
+            }
+            confirmed
+        } else {
+            updated
+        };
         Ok(status(updated, self.session_policy))
     }
 
-    fn admit_session(&self, access_token: &str) -> Result<SessionState, ApplicationError> {
+    pub(super) fn admit_session(
+        &self,
+        access_token: &str,
+    ) -> Result<SessionState, ApplicationError> {
         let cached = self
             .ports
             .sessions
             .find_session(access_token, self.session_policy)?
             .ok_or(ApplicationError::InvalidSession)?;
-        let Some(user) = self.ports.users.find_by_id(cached.identity.principal.id)? else {
-            return Err(ApplicationError::InvalidSession);
-        };
+        self.validate_session_state(&cached)?;
+        let user = self
+            .ports
+            .users
+            .find_by_id(cached.identity.principal.id)?
+            .ok_or(ApplicationError::InvalidSession)?;
         if !user.active
             || user.auth_generation > i64::MAX as u64
             || cached.identity.auth_generation != user.auth_generation
@@ -46,64 +78,75 @@ impl IdentityService {
         {
             return Err(ApplicationError::InvalidSession);
         }
-        self.ports
+        if let SessionAuthentication::Certificate(origin) = &cached.authentication {
+            self.guard_certificate(origin).map_err(session_error)?;
+        }
+        let mut confirmed = self
+            .ports
             .sessions
             .find_session(access_token, self.session_policy)?
-            .filter(|confirmed| confirmed.identity == cached.identity)
-            .ok_or(ApplicationError::InvalidSession)
+            .filter(|value| same_session(value, &cached))
+            .ok_or(ApplicationError::InvalidSession)?;
+        if let SessionAuthentication::Certificate(origin) = &confirmed.authentication {
+            self.guard_certificate(origin).map_err(session_error)?;
+            let now = i64::try_from(
+                self.ports
+                    .clock
+                    .now()
+                    .unix_timestamp_nanos()
+                    .div_euclid(1_000_000),
+            )
+            .map_err(|_| ApplicationError::InvalidSession)?;
+            confirmed.server_now_unix_ms = confirmed.server_now_unix_ms.max(now);
+        }
+        self.validate_session_state(&confirmed)?;
+        Ok(confirmed)
     }
 
-    pub(super) fn issue_session(
+    pub(super) fn validate_session_state(
         &self,
-        user: &UserRecord,
-        action: &str,
-    ) -> Result<SessionResult, ApplicationError> {
-        let current = self
-            .ports
-            .users
-            .find_by_id(user.id)?
-            .filter(|current| {
-                current.active
-                    && current.auth_generation <= i64::MAX as u64
-                    && current.auth_generation == user.auth_generation
-                    && Principal::from(current) == Principal::from(user)
-            })
-            .ok_or(ApplicationError::MfaRejected)?;
-        let principal = Principal::from(&current);
-        let grant = self.ports.sessions.create_session(
-            &SessionIdentity {
-                principal: principal.clone(),
-                auth_generation: user.auth_generation,
-            },
-            self.session_policy,
-        )?;
-        let access_token = grant.access_token;
-        if let Err(error) = self.audit(&principal.email, action, &principal.id.to_string()) {
-            self.ports
-                .sessions
-                .revoke_session(&access_token)
-                .map_err(|_| {
-                    ApplicationError::Port("session cleanup failed after audit failure".into())
-                })?;
-            return Err(error);
+        value: &SessionState,
+    ) -> Result<(), ApplicationError> {
+        let now = value.server_now_unix_ms;
+        let absolute = value.absolute_expires_at_unix_ms;
+        if now < 0
+            || absolute <= now
+            || value.idle_expires_at_unix_ms.is_some()
+                != self.session_policy.idle_ttl_seconds().is_some()
+            || value
+                .idle_expires_at_unix_ms
+                .is_some_and(|idle| idle <= now || idle > absolute)
+        {
+            return Err(ApplicationError::InvalidSession);
         }
-        let session = status(grant.state, self.session_policy);
-        let deadline = session
-            .idle_expires_at_unix_ms
-            .unwrap_or(session.absolute_expires_at_unix_ms)
-            .min(session.absolute_expires_at_unix_ms);
-        let expires_in_seconds =
-            deadline.saturating_sub(session.server_now_unix_ms).max(0) as u64 / 1000;
-        Ok(SessionResult {
-            access_token,
-            expires_in_seconds,
-            session,
-            principal,
-        })
+        if let SessionAuthentication::Certificate(origin) = &value.authentication {
+            let ceiling = origin
+                .valid_until_unix_seconds
+                .checked_mul(1000)
+                .ok_or(ApplicationError::InvalidSession)?;
+            let begins = origin
+                .valid_from_unix_seconds
+                .checked_mul(1000)
+                .ok_or(ApplicationError::InvalidSession)?;
+            if value.identity.principal != origin.principal
+                || value.identity.auth_generation != origin.auth_generation
+                || now < begins
+                || absolute > ceiling
+            {
+                return Err(ApplicationError::InvalidSession);
+            }
+        }
+        Ok(())
     }
 }
 
-fn status(state: SessionState, policy: SessionPolicy) -> SessionStatus {
+pub(super) fn same_session(left: &SessionState, right: &SessionState) -> bool {
+    left.identity == right.identity
+        && left.authentication == right.authentication
+        && left.absolute_expires_at_unix_ms == right.absolute_expires_at_unix_ms
+}
+
+pub(super) fn status(state: SessionState, policy: SessionPolicy) -> SessionStatus {
     SessionStatus {
         principal: state.identity.principal,
         policy,

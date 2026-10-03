@@ -2,10 +2,11 @@
 
 ## Status
 
-Accepted protocol direction. The structural statement is implemented and tested;
-the typed internal cryptographic adapter is also implemented. The application,
-live authority checks, storage adapters, session provenance and HTTP/UI
-activation are not yet complete. No certificate login endpoint is enabled.
+Accepted. The structural statement, typed cryptographic verifier, application
+admission, current PostgreSQL authority, Redis captures and session provenance
+have focused local acceptance. HTTP/UI composition and integrated authenticated restoration
+remain separate closing work. Selective Redis restoration has native acceptance. No certificate login endpoint is enabled. See
+`docs/owner-certificate-authentication.md` for the implemented internal boundary.
 
 ## Context
 
@@ -73,4 +74,6 @@ exclusive challenge window. It returns credential validity independently of the
 nonce deadline. Its tests use an OpenSSL-generated proof, cross-purpose rejection
 and a signed revocation. They do not establish freshness, one-use behavior,
 current SQL authority, Redis expiration, MFA completion or session admission.
-Those are required closing checks before exposing the alternative first factor.
+The application and real PostgreSQL/Redis adapter checks are now recorded in
+`docs/owner-certificate-authentication.md`. Integrated HTTP, restoration and
+operator-facing acceptance remain required before exposing this first factor.
