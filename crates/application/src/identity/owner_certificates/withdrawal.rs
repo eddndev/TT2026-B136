@@ -66,6 +66,7 @@ impl OwnerCertificateService {
         {
             return Err(Error::Inconsistent.into());
         }
+        self.reauthenticate(token, &principal)?;
         Ok(receipt)
     }
 }

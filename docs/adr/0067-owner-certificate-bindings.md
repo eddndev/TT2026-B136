@@ -136,6 +136,9 @@ reconciliation compares original statement, certificate, signature and whole
 trust before returning history. A concurrent terminal withdrawal preserves the
 first withdrawal's original counters and time; it cannot replace another
 registration or produce another revision. Errors do not trigger implicit retry.
+Withdrawal reauthenticates the original full principal after an applied or
+existing commit and before returning evidence; rejection leaves the committed
+history intact and never starts a rollback or retry.
 
 The repository port is implemented by `PostgresOwnerCertificateStore`, with
 separate local evidence for transaction atomicity, concurrent receipts, unique

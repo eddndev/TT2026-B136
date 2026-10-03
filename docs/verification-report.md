@@ -1,5 +1,18 @@
 # Informe de verificación local
 
+## Autoridad al devolver un retiro Owner: 3 de octubre de 2026
+
+Una regresión reprodujo cuatro variantes de autoridad perdida después de
+`commit_withdrawal`: escritura nueva o recibo concurrente, con sesión revocada
+o correo de Principal cambiado. Todas devolvían evidencia antes de la corrección.
+La barrera final ahora reautentica el Principal completo antes de responder;
+conserva la escritura ya confirmada y no la repite ni revierte.
+
+El target de aplicación aprobó 23/23 en 0.01 s y HTTP 12/12 en 0.03 s, con
+9.37 s de compilación. Clippy focal aprobó en 3.33 s. Cada variante comprueba
+un único commit, una carga y evidencia terminal retenida por el doble. Esta
+aceptación usa puertos controlados, no simula una reversión de PostgreSQL.
+
 ## Publicación de controladores: 3 de octubre de 2026
 
 Seis casos reprodujeron la ausencia del publicador interno; después aprobaron
