@@ -9,6 +9,12 @@ mod receipt_guards;
 mod reconciliation;
 #[path = "owner_certificate_cases/registration.rs"]
 mod registration;
+#[path = "owner_certificate_cases/submission.rs"]
+mod submission;
+#[path = "owner_certificate_cases/submission_races.rs"]
+mod submission_races;
+#[path = "owner_certificate_cases/submission_support.rs"]
+mod submission_support;
 #[path = "owner_certificate_cases/support.rs"]
 mod support;
 #[path = "owner_certificate_cases/withdrawal.rs"]
