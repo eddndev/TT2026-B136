@@ -5,6 +5,9 @@ use std::path::PathBuf;
 #[path = "serve_password_reset_args.rs"]
 mod password_reset;
 pub use password_reset::PasswordResetArgs;
+#[path = "serve_owner_login_args.rs"]
+mod owner_login;
+pub use owner_login::OwnerLoginArgs;
 
 /// Runtime paths, address, and resource limits for the HTTP application.
 #[derive(Debug, clap::Args)]
@@ -62,6 +65,8 @@ pub struct ServeArgs {
     pub alert_login_url: Option<String>,
     #[command(flatten)]
     pub password_reset: PasswordResetArgs,
+    #[command(flatten)]
+    pub owner_login: OwnerLoginArgs,
     /// Legacy storage directory checked for a completed import before startup.
     #[arg(long, default_value = "runtime-data")]
     pub data_dir: PathBuf,

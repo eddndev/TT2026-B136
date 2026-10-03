@@ -103,3 +103,11 @@ resultados de CI, restauración autenticada ni despliegue. La primera comparaci�
 de no escritura usaba `DUMP`; el diagnóstico comprobó igualdad de campos y plazo
 con bytes RDB distintos. La prueba compara ahora tipo, todos los bytes de campos
 y expiración absoluta, sin depender del orden interno de serialización.
+
+## Composición ejecutable
+
+El binario comparte una única instancia de identidad para contraseña y certificado,
+con habilitación explícita y validación previa de sus límites. La aceptación
+nativa del router y las condiciones operativas están en
+[composición del acceso](owner-certificate-login-operations.md); sus resultados
+no convierten las campañas focales anteriores en una restauración autenticada.

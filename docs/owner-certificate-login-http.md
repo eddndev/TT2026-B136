@@ -6,12 +6,23 @@ Estas rutas opcionales exponen la [admisión interna](owner-certificate-authenti
 El constructor `api_router_with_authentication_budget` recibe un
 `AuthenticationHttp` con el flujo de certificado opcional y comparte el presupuesto
 existente de solicitudes y trabajo bloqueante. Los constructores previos y la
-opción ausente conservan 404 en ambas rutas. La composición ejecutable y la
-interfaz de acceso requieren su propia aceptación; exponer el router no las activa.
+opción ausente conservan 404 en ambas rutas. El binario incorpora una [composición explícita y deshabilitada por defecto](owner-certificate-login-operations.md).
+La interfaz de acceso requiere su propia aceptación; exponer el router no la activa.
 
 No se recibe clave privada, contraseña ni secreto MFA. El inicio por certificado
 es una alternativa al primer factor; su prueba correcta entrega únicamente un
 nuevo desafío MFA. La sesión se obtiene por las rutas MFA existentes.
+
+## Disponibilidad del método
+
+`GET /api/v1/auth/certificate-login/availability` devuelve únicamente
+`{"enabled": true}` o `{"enabled": false}`, derivado de la composición efectiva.
+No consulta cuentas, vínculos o certificados. No exige bearer, admite sólo cuerpo
+vacío y ninguna query; su respuesta usa `no-store`. Comparte la admisión HTTP y
+no necesita permiso de trabajo bloqueante para informar esta configuración.
+Los constructores anteriores devuelven `false`; inicio y prueba siguen devolviendo
+404 cuando el flujo está deshabilitado. No existe otra opción de frontend que
+pueda habilitar un canal ausente en el servidor.
 
 ## Solicitar declaración
 
@@ -71,6 +82,11 @@ se permite trabajo adicional por haber desaparecido el cliente.
 Las pruebas de transporte usan un flujo controlado y los constructores reales.
 Comprueban proyecciones, entradas estrictas, límites de cuerpos, errores,
 compatibilidad con contraseña/MFA/recuperación y conservación del presupuesto
-ante cancelación. No prueban RSA, PostgreSQL, Redis ni restauración a través del
-servidor compuesto. Los resultados ejecutados se registran por separado en el
+ante cancelación. Su flujo controlado no prueba RSA, PostgreSQL, Redis ni restauración.
+La aceptación nativa adicional de la composición ejecutable sí ejercita RSA,
+MFA y ambos almacenes mediante el router real; mantiene separadas las fronteras
+de listener HTTP, restauración e interfaz. Los resultados ejecutados se registran por separado en el
 [informe de verificación](verification-report.md).
+
+Tres regresiones de disponibilidad reprodujeron primero la ausencia de la ruta.
+La suite HTTP posterior aprobó 22 casos en 0.29 s, incluidos los 19 anteriores.

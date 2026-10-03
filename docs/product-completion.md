@@ -186,8 +186,12 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   ocho criptográficos, seis SQL, 11 de procedencia, 23 regresiones de sesiones y
   21 de captura/presupuestos. El router opcional posterior aprobó 19 casos de
   transporte; su prueba concede sólo MFA y comparte el presupuesto de la API.
-  Composición ejecutable, interfaz y cierre de restauración permanecen pendientes;
-  no está publicado ni activado. Véase
+  La composición ejecutable posterior aprobó siete casos y un recorrido nativo
+  RSA/MFA/PostgreSQL/Redis con confianza sucesora y retirada. Permanece opt-in
+  y deshabilitada por defecto. El cierre HTTP y de restauración posterior aprobó
+  en 365.645 s, conservando vínculos y controles e invalidando las capacidades
+  antiguas antes de expirar. La interfaz conserva su aceptación separada pendiente.
+  No está publicada ni activada. Véase
   [autenticación interna](owner-certificate-authentication.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están

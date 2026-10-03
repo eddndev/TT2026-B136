@@ -77,7 +77,10 @@ pub fn owner_login_router(
     limits: HttpLimits,
 ) -> Router {
     let runtime = HttpRuntime::new(limits);
-    protect(owner_login::router(workflow, runtime.clone()), runtime)
+    protect(
+        owner_login::router(Some(workflow), runtime.clone()),
+        runtime,
+    )
 }
 
 /// Builds the inbound HTTP router.

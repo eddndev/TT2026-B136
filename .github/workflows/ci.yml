@@ -190,15 +190,15 @@ jobs:
       - name: Create isolated case and document test databases
         if: ${{ matrix.slots == 0 }}
         run: psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE DATABASE case_tests' -c 'CREATE DATABASE document_tests'
-      - name: Verify independent judicial calendar vectors and SQL guards
+      - name: Verify calendar SQL and identity restoration guards
         if: ${{ matrix.shard == 1 }}
         run: |
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
           if [ '${{ matrix.slots }}' -gt 0 ]; then
-            python3 -B scripts/ci_native_postgres.py -- python3 -B scripts/tests/test_judicial_calendar_sql.py
+            python3 -B scripts/ci_native_postgres.py -- env PYTHONPATH=scripts/tests python3 -B -m unittest test_judicial_calendar_sql test_api_certificate_restore test_api_owner_evidence_scope test_api_owner_login_restore test_api_owner_login_transport test_api_identity_restore_totp
           else
-            python3 -B scripts/tests/test_judicial_calendar_sql.py
+            PYTHONPATH=scripts/tests python3 -B -m unittest test_judicial_calendar_sql test_api_certificate_restore test_api_owner_evidence_scope test_api_owner_login_restore test_api_owner_login_transport test_api_identity_restore_totp
           fi
       - name: Select bounded compiler count
         env:
