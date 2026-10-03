@@ -102,6 +102,7 @@ jobs:
           DEPLOY_PORT: ${{ vars.QADRA_PORT }}
           DEPLOY_USER: ${{ vars.QADRA_USER }}
           DEPLOY_ROOT: ${{ vars.QADRA_ROOT }}
+          DEPLOY_CONTROLLER_SHA256: ${{ vars.QADRA_CONTROLLER_SHA256 }}
           DEPLOY_SSH_KEY: ${{ secrets.QADRA_SSH_KEY }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.QADRA_KNOWN_HOSTS }}
         run: bash scripts/deploy-via-ssh.sh
