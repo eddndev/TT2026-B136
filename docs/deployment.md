@@ -191,8 +191,13 @@ nginx: realizarlo localmente sobre la API siguiendo [identidad](http-api.md),
 con email/contraseña elegidos por el operador. La respuesta MFA y los códigos
 de recuperación deben conservarse como secretos.
 
+Para invocar controladores, sustituir `SHA256_APROBADO` por el inventario externo
+aceptado de esa instalación. El launcher estable debe estar instalado y aceptado
+antes de estos comandos; no usar la ruta directa de `tools` si falta esa condición.
+Las consultas a systemd y logs son independientes de esa entrada.
+
 ```bash
-ssh -l qadra vps3 'python3 /home/qadra/qadra/tools/release.py --root /home/qadra/qadra status'
+ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint release.py -- --root /home/qadra/qadra status'
 ssh -l qadra vps3 'systemctl --user status qadra-api qadra-web qadra-postgres qadra-redis'
 ssh -l qadra vps3 'journalctl --user -u qadra-api -n 100 --no-pager'
 ssh -l qadra vps3 'tail -n 100 /home/qadra/qadra/logs/nginx-error.log'
@@ -212,7 +217,7 @@ a Actions. Si tampoco logra recuperarla, detiene la entrada web. La primera
 instalación no tiene versión anterior. Para volver explícitamente:
 
 ```bash
-ssh -l qadra vps3 'python3 /home/qadra/qadra/tools/release.py --root /home/qadra/qadra rollback'
+ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint release.py -- --root /home/qadra/qadra rollback'
 ```
 
 Se conservan las escrituras de la base actual; `current` y `previous` se
