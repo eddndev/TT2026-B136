@@ -106,7 +106,19 @@ conserva un identificador explícito al reintentar y rechaza cualquier presencia
 inválida sin borrar el registro. Su consulta precede a los arranques normales,
 las operaciones de release y el mantenimiento CRL; las unidades generadas de
 PostgreSQL y Redis también la consultan. Esta pieza no detiene escritores ya
-admitidos ni copia bases: aún requiere composición y ensayo de restauración
-poblada antes de autorizar la reapertura. Véanse
+admitidos ni copia bases: aún requiere una composición operacional durable
+antes de autorizar la reapertura. Véanse
 \rutarepo{docs/backup-capture-manifest.md} y
 \rutarepo{docs/deployment-restore-fence.md}.
+
+
+La captura privada registra hechos observados de PostgreSQL y Redis, herramientas
+exactas y cabeza original de auditoría. Requiere escritores detenidos, compara
+hechos antes y después y publica un descriptor nuevo sin sustituir recibos.
+La auditoría conserva sus fechas RFC~3339 exactas y se verifica con la CLI,
+sin redondear nanosegundos. La invalidación Redis retira únicamente sesiones y
+desafíos del destino explícito; conserva cuotas, protección TOTP y vencimientos.
+El ensayo poblado y desechable compone esas primitivas con restauración SQL,
+archivos privados, reinicio AOF y nueva autenticación. No equivale a un
+controlador de reapertura ni fija una política para controles perdidos después
+del punto de respaldo; véase \rutarepo{docs/deployment-restore-capture.md}.

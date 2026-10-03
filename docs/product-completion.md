@@ -2,7 +2,7 @@
 
 ## Checkpoint funcional reconciliado
 
-Revisión del 2 de octubre de 2026 contra el código y los resultados disponibles.
+Revisión del 3 de octubre de 2026 contra el código y los resultados disponibles.
 PR45 y PR46 están integradas; PR47 quedó integrada como `ac34b34` y su
 confirmación natural en `main` está comprobada. PR48 quedó integrada en
 `5020707`; CI, Web y Documents de su confirmación natural aprobaron en 6m41s,
@@ -74,8 +74,12 @@ del correo de la primera cuenta Owner.
   PR58 se integró como `14e7eec`, después de aprobar CI en 8m20s y Web en 11m46s:
   3382 Rust, 447 controladas y 51 reales. CI y Web de su confirmación natural
   también aprobaron; los tiempos e inventarios quedan en el informe de verificación.
-  La ampliación de participantes manuales, identidades y fichas tipificadas tiene
-  25 escenarios distintos aceptados localmente; aún no integra su regresión completa.
+  La ampliación de participantes manuales, identidades y fichas tipificadas quedó
+  integrada por PR60 como `21729ce`. CI, Web y Documents naturales de main
+  aprobaron en 9m21s, 12m45s y 1m15s, con 3457 Rust, 482 recorridos controlados
+  y 52 reales; se conservaron las identidades previas y cobertura 97/95/93 %.
+  Audiencias/resultados, hechos, miembros, calendarios, recursos y asociaciones
+  tienen aceptación focal local adicional; sus entregas aún esperan integración.
   Un recorrido con servicios desechables aceptó dos vencimientos y tres MFA,
   conservando campos de expediente y archivo principal. El inventario explícito
   de editores todavía pendientes está en [recuperación de editores](session-editor-recovery.md).
@@ -90,7 +94,8 @@ del correo de la primera cuenta Owner.
   en 1m15s, con el mismo inventario y gates. La invalidación
   administrativa de capacidades restauradas tiene doce focales aprobadas.
   Transporte de correo, rutas, formulario y consumidor del servidor tienen
-  verificación local separada; todavía no están publicados ni activados en VPS3.
+  verificación local separada y están publicados en PR61, cabeza `40f9d33`.
+  Su campaña completa está pendiente y permanecen deshabilitados en VPS3.
   La aceptación HTTP integrada aprobó con PostgreSQL, Redis, entropía OS,
   Argon2id y MFA reales; sólo la entrega fue capturada. Faltan la regresión de
   esta ampliación, configuración operativa y coordinación del controlador de
@@ -138,7 +143,12 @@ del correo de la primera cuenta Owner.
   externa de cuatro archivos coincidió por hash y tamaño. Su restauración
   conjunta SQL/RDB/PKI con PostgreSQL 16.15 y Redis 7.4.11 aprobó, incluida
   persistencia AOF, confianza y auditoría; conservó cero usuarios y Redis vacío.
-  La recuperación poblada y el ensayo de cinco claves sintéticas siguen separados. Owner espera el correo elegido
+  La captura y restauración poblada tienen ahora aceptación local separada:
+  1/1 en 27.424 s con dos usuarios, dos asignaciones, cuatro estados de reset,
+  invalidación idempotente, cadena y PKI restauradas y reinicio Redis sin
+  resurrección. Se usó un paquete interno desechable y observación systemd
+  sustituida, sin cambiar la instalación. Los controladores nuevos aún requieren
+  integración e instalación; la coordinación operacional sigue pendiente. Owner espera el correo elegido
   por el operador; siguen cero usuarios y la aceptación autenticada pendiente.
 - Mantenimiento de CRL: el controlador manual tiene 96 pruebas aprobadas y
   aceptación aislada PostgreSQL/OpenSSL de tres renovaciones, respuesta perdida
