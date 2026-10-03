@@ -1,6 +1,6 @@
 //! Server-selected lifetime limits and authenticated session deadlines.
 
-use super::{Principal, SessionIdentity};
+use super::{certificate_login::SessionAuthentication, Principal, SessionIdentity};
 use crate::ApplicationError;
 
 /// Lifetime limits selected by the server, never by a bearer request.
@@ -41,6 +41,7 @@ impl SessionPolicy {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionState {
     pub identity: SessionIdentity,
+    pub authentication: SessionAuthentication,
     pub server_now_unix_ms: i64,
     pub absolute_expires_at_unix_ms: i64,
     pub idle_expires_at_unix_ms: Option<i64>,

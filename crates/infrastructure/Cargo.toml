@@ -382,3 +382,11 @@ path = "tests/password_reset_runtime_identity.rs"
 [[test]]
 name = "owner_certificate_backend"
 path = "tests/owner_certificate_backend.rs"
+
+[[test]]
+name = "redis_certificate_sessions"
+path = "tests/redis_certificate_sessions.rs"
+
+[[test]]
+name = "owner_login_runtime"
+path = "tests/owner_login_runtime.rs"

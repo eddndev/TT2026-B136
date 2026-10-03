@@ -2,6 +2,9 @@
 
 use std::time::Duration;
 
+use application::identity::certificate_login::{
+    CertificateMfaChallenge, CertificateSessionProvenance, MfaChallenge,
+};
 use application::identity::{
     LoginChallengeIdentity, SessionGrant, SessionIdentity, SessionPolicy, SessionState,
     SessionStore,
@@ -15,7 +18,10 @@ use redis::Commands;
 
 use crate::RingSha256Hasher;
 
+mod certificate_wire;
+mod challenge;
 mod session;
+mod wire;
 
 const DEFAULT_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const DEFAULT_IO_TIMEOUT: Duration = Duration::from_secs(5);
@@ -108,14 +114,21 @@ impl SessionStore for RedisSessionStore {
         &self,
         token: &str,
     ) -> Result<Option<LoginChallengeIdentity>, ApplicationError> {
-        let key = self.digest_key("challenge", token.as_bytes());
-        let value: Option<String> = redis::cmd("GETDEL")
-            .arg(key)
-            .query(&mut self.connection()?)
-            .map_err(port_error)?;
-        Ok(value
-            .and_then(|raw| serde_json::from_str::<LoginChallengeIdentity>(&raw).ok())
-            .filter(|identity| identity.auth_generation <= i64::MAX as u64))
+        Ok(match self.take_typed_mfa(token)? {
+            Some(MfaChallenge::Password(identity)) => Some(identity),
+            _ => None,
+        })
+    }
+
+    fn create_certificate_challenge(
+        &self,
+        value: &CertificateMfaChallenge,
+    ) -> Result<String, ApplicationError> {
+        self.create_certificate_mfa(value)
+    }
+
+    fn take_mfa_challenge(&self, token: &str) -> Result<Option<MfaChallenge>, ApplicationError> {
+        self.take_typed_mfa(token)
     }
 
     fn create_session(
@@ -132,6 +145,26 @@ impl SessionStore for RedisSessionStore {
         policy: SessionPolicy,
     ) -> Result<Option<SessionState>, ApplicationError> {
         self.read_timed_session(token, policy)
+    }
+
+    fn create_certificate_session(
+        &self,
+        identity: &SessionIdentity,
+        provenance: &CertificateSessionProvenance,
+        policy: SessionPolicy,
+        ceiling_unix_ms: i64,
+    ) -> Result<SessionGrant, ApplicationError> {
+        self.create_certificate_timed_session(identity, provenance, policy, ceiling_unix_ms)
+    }
+
+    fn record_certificate_activity(
+        &self,
+        token: &str,
+        expected: &SessionIdentity,
+        provenance: &CertificateSessionProvenance,
+        policy: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError> {
+        self.touch_certificate_timed_session(token, expected, provenance, policy)
     }
 
     fn record_activity(

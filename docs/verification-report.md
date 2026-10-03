@@ -24,6 +24,46 @@ de los servicios del usuario real de despliegue. Véase la
 [frontera operacional](deployment-controller-entry-gate.md).
 
 
+## Aplicación y adaptadores del primer factor Owner: 3 de octubre de 2026
+
+Los RED observaron el módulo de aplicación, cuatro métodos de sesión y los
+puertos criptográfico/SQL/runtime ausentes. Con la implementación aprobaron
+22 casos nuevos de aplicación y 31 del recorrido existente (0.01/0.00 s),
+ocho criptográficos (0.77 s), seis SQL (13.88 s), 11 de procedencia Redis
+(0.12 s), 23 regresiones de sesiones (0.07 s) y 21 de captura y presupuestos
+(2.71 s). Clippy focal de los adaptadores aprobó con advertencias como errores
+en 11.11 s. PostgreSQL 16.15 y Valkey 8.1.10 fueron instancias privadas,
+autenticadas, desechables y retiradas después de cada campaña; sólo una suite
+local y un compilador estuvieron activos a la vez.
+
+La revisión posterior encontró una pérdida de precisión al convertir segundos
+enteros a milisegundos después de la última consulta de autoridad. Dos regresiones
+reprodujeron la admisión indebida al cruzar el plazo dentro del mismo segundo;
+la lectura precisa corrigió ambos límites sin ampliar plazos. El cierre aprobó
+22/22 casos nuevos y 31/31 previos, tras 4.71 s de compilación.
+Clippy focal de aplicación aprobó después en 3.49 s.
+
+La comprobación SQL necesitó preparar una revocación/reactivación legal para
+cambiar la generación; el guard rechazó correctamente su incremento aislado.
+La comparación de no escritura Redis cambió de bytes RDB no canónicos a tipo,
+campos byte a byte y vencimiento absoluto después de reproducir campos y plazo
+iguales. No se modificaron producto ni permisos para aceptar esas preparaciones.
+Los dos intentos de compilación durante el registro incompleto del runtime no
+produjeron evidencia funcional; los resultados anteriores corresponden a
+campañas completas posteriores.
+
+La frontera admite sólo un nuevo desafío MFA después de la firma; conserva
+procedencia y revalida autoridad en sesiones. Véase el
+[contrato interno y sus límites](owner-certificate-authentication.md).
+El invalidador de restauración adicional reprodujo cinco casos con doce fallos
+de subcaso por el espacio de capturas omitido. Luego aprobaron diez casos de
+comando en 0.016 s. Su caso nativo aprobó 1/1 en 7.006 s: RDB, invalidación
+selectiva, AOF y reinicio conservaron presupuestos y no resucitaron capturas.
+El primer intento del observador recibió JSON RESP3 donde esperaba pares RESP2;
+la prueba fijó RESP2, sin cambiar el producto. No acredita todavía HTTP integral,
+restauración autenticada completa ni activación del primer factor.
+
+
 ## Verificador del primer factor Owner: 3 de octubre de 2026
 
 Se reprodujo `E0432` por ausencia del adaptador y su error tipificado. La

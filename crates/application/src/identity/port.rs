@@ -6,6 +6,7 @@ use domain::identity::{Permission, Role, UserId};
 use zeroize::Zeroizing;
 
 use super::{
+    certificate_login::{CertificateMfaChallenge, CertificateSessionProvenance, MfaChallenge},
     EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionGrant,
     SessionIdentity, SessionPolicy, SessionResult, SessionState, SessionStatus, UserRecord,
 };
@@ -89,16 +90,40 @@ pub trait SessionStore: Send + Sync {
         &self,
         token: &str,
     ) -> Result<Option<LoginChallengeIdentity>, ApplicationError>;
+    /// Stores a strict certificate-origin MFA record with its absolute deadline.
+    fn create_certificate_challenge(
+        &self,
+        value: &CertificateMfaChallenge,
+    ) -> Result<String, ApplicationError>;
+    /// Atomically claims either exact password JSON or a strict certificate record.
+    /// Unknown or malformed origin must never be interpreted as Password.
+    fn take_mfa_challenge(&self, token: &str) -> Result<Option<MfaChallenge>, ApplicationError>;
     fn create_session(
         &self,
         identity: &SessionIdentity,
         policy: SessionPolicy,
+    ) -> Result<SessionGrant, ApplicationError>;
+    /// Atomically creates a certificate session capped by the supplied immutable ceiling.
+    fn create_certificate_session(
+        &self,
+        identity: &SessionIdentity,
+        provenance: &CertificateSessionProvenance,
+        policy: SessionPolicy,
+        ceiling_unix_ms: i64,
     ) -> Result<SessionGrant, ApplicationError>;
     /// Atomically rejects expired, malformed, or differently configured sessions.
     /// Reading never extends deadlines or repairs a missing expiration.
     fn find_session(
         &self,
         token: &str,
+        policy: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError>;
+    /// Compares full identity and provenance before updating only idle time.
+    fn record_certificate_activity(
+        &self,
+        token: &str,
+        expected: &SessionIdentity,
+        provenance: &CertificateSessionProvenance,
         policy: SessionPolicy,
     ) -> Result<Option<SessionState>, ApplicationError>;
     /// Atomically checks identity and liveness before extending only idle time.

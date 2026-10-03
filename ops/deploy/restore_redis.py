@@ -10,7 +10,11 @@ from restore_commands import run
 
 
 MAXIMUM_OUTPUT = 65536
-NAMESPACES = ("session", "challenge")
+NAMESPACES = {
+    "session": "sessions_removed",
+    "challenge": "challenges_removed",
+    "certificate-login": "certificate_logins_removed",
+}
 FAILED = "Redis restore-session invalidation did not complete"
 
 
@@ -132,7 +136,7 @@ def invalidate_sessions(*, redis_cli, host, port, password, expected_pid,
                         batch_size, timeout):
     """Invalidate exact authentication keys with the caller's writers closed.
 
-    Both initial traversals finish before deletion. A failed command or final
+    All initial traversals finish before deletion. A failed command or final
     traversal may follow partial deletion; retrying the same target is safe.
     Persistence and service admission remain the caller's responsibility.
     """
@@ -158,7 +162,7 @@ def invalidate_sessions(*, redis_cli, host, port, password, expected_pid,
             if type(deleted) is not int or not 0 <= deleted <= len(batch):
                 raise RuntimeError(FAILED)
             count += deleted
-        removed[namespace + "s_removed"] = count
+        removed[NAMESPACES[namespace]] = count
     for namespace in NAMESPACES:
         connection.collect(namespace, collected, max_keys, require_empty=True)
     return removed

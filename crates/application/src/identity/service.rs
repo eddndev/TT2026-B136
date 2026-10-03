@@ -5,18 +5,23 @@ use std::sync::{Arc, Mutex};
 use domain::audit::AuditLog;
 use domain::clock::Clock;
 use domain::crypto::{
-    PasswordHasher, PasswordVerification, RecoveryCodeGenerator, RecoveryCodeOutcome,
-    RecoveryCodeSet, TotpProvider, TotpVerification, RECOVERY_CODE_COUNT,
+    PasswordHasher, PasswordVerification, RecoveryCodeGenerator, RecoveryCodeSet, TotpProvider,
+    RECOVERY_CODE_COUNT,
 };
 use domain::identity::{Permission, Role, UserId};
 
 use super::validation::{normalize_email, validate_password};
 use super::{
-    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SecretProtector,
-    SessionPolicy, SessionResult, SessionStore, UserRecord, UserRepository,
+    certificate_login::CertificateLoginPorts, EnrollmentResult, LoginChallenge,
+    LoginChallengeIdentity, Principal, SecretProtector, SessionPolicy, SessionStore, UserRecord,
+    UserRepository,
 };
 use crate::ApplicationError;
 
+mod certificate;
+mod certificate_authority;
+mod issuance;
+mod mfa;
 mod session;
 
 const CHALLENGE_TTL_SECONDS: u64 = 300;
@@ -50,6 +55,7 @@ struct RuntimePorts {
 pub struct IdentityService {
     ports: RuntimePorts,
     session_policy: SessionPolicy,
+    certificate_login: Option<CertificateLoginPorts>,
     audit_log: Mutex<Box<dyn AuditLog + Send + Sync>>,
 }
 
@@ -80,6 +86,7 @@ impl IdentityService {
                 clock,
             },
             session_policy,
+            certificate_login: None,
             audit_log: Mutex::new(audit_log),
         }
     }
@@ -175,51 +182,6 @@ impl IdentityService {
         })
     }
 
-    pub fn complete_totp(
-        &self,
-        challenge_token: &str,
-        code: &str,
-    ) -> Result<SessionResult, ApplicationError> {
-        let user = self.take_challenge_user(challenge_token)?;
-        let secret = self
-            .ports
-            .secrets
-            .expose(user.id, &user.protected_totp_secret)?;
-        let unix = self.ports.clock.now().unix_timestamp().max(0) as u64;
-        let accepted = self.ports.totp.verify(&secret, code, unix)? == TotpVerification::Accepted
-            && self
-                .ports
-                .sessions
-                .claim_totp(user.id, code, TOTP_REPLAY_TTL_SECONDS)?;
-        if !accepted {
-            return Err(ApplicationError::MfaRejected);
-        }
-        self.issue_session(&user, "identity.totp_accepted")
-    }
-
-    pub fn complete_recovery(
-        &self,
-        challenge_token: &str,
-        code: &str,
-    ) -> Result<SessionResult, ApplicationError> {
-        let mut user = self.take_challenge_user(challenge_token)?;
-        let expected_revision = user.revision;
-        if user
-            .recovery_codes
-            .consume(code, self.ports.passwords.as_ref())?
-            != RecoveryCodeOutcome::Accepted
-        {
-            return Err(ApplicationError::MfaRejected);
-        }
-        self.ports.users.replace_recovery_codes(
-            user.id,
-            expected_revision,
-            user.recovery_codes.clone(),
-            self.ports.clock.now(),
-        )?;
-        self.issue_session(&user, "identity.recovery_accepted")
-    }
-
     pub fn authorize(
         &self,
         access_token: &str,
@@ -281,23 +243,6 @@ impl IdentityService {
             recovery_codes: plain_codes,
         };
         Ok((record, result))
-    }
-
-    fn take_challenge_user(&self, token: &str) -> Result<UserRecord, ApplicationError> {
-        let challenge = self
-            .ports
-            .sessions
-            .take_challenge(token)?
-            .ok_or(ApplicationError::MfaRejected)?;
-        self.ports
-            .users
-            .find_by_id(challenge.user_id)?
-            .filter(|user| {
-                user.active
-                    && user.auth_generation <= i64::MAX as u64
-                    && user.auth_generation == challenge.auth_generation
-            })
-            .ok_or(ApplicationError::MfaRejected)
     }
 
     fn reject_password(&self, email: &str) -> Result<(), ApplicationError> {

@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Admisión interna Owner y cierre de controladores: 3 de octubre de 2026
+
+`make -C latex` aprobó los capítulos de implementación y pruebas con los
+resultados de aplicación, adaptadores y cierre persistente de entradas. El PDF
+final tiene 375 páginas, 5940789 bytes y SHA-256
+`d0833233bbaaef9c9ee1f26b45daa9ba0a0716dbd6801f81291e647768af8109`.
+Se revisaron las páginas físicas 169, 220, 269, 271 y 272. La última compilación
+incorporó las dos regresiones de precisión temporal y se volvió a inspeccionar
+la página 269: texto legible sin recortes ni superposición. Las fuentes protegidas
+conservaron sus hashes y el PDF anterior quedó respaldado. El documento distingue
+las pruebas focales de la aceptación HTTP y del despliegue todavía pendientes.
+
+
 ## Recuperación de altas: 3 de octubre de 2026
 
 `make -C latex` aprobó la incorporación de los campos públicos recuperables y

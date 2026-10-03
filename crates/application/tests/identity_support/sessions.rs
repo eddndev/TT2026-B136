@@ -1,4 +1,7 @@
 use application::identity::{
+    certificate_login::{
+        CertificateMfaChallenge, CertificateSessionProvenance, MfaChallenge, SessionAuthentication,
+    },
     LoginChallengeIdentity, SessionGrant, SessionIdentity, SessionPolicy, SessionState,
     SessionStore,
 };
@@ -50,6 +53,37 @@ impl SessionStore for MemorySessions {
         Ok(self.challenges.lock().unwrap().remove(token))
     }
 
+    fn create_certificate_challenge(
+        &self,
+        _: &CertificateMfaChallenge,
+    ) -> Result<String, ApplicationError> {
+        Err(ApplicationError::InvalidCredentials)
+    }
+
+    fn take_mfa_challenge(&self, token: &str) -> Result<Option<MfaChallenge>, ApplicationError> {
+        Ok(self.take_challenge(token)?.map(MfaChallenge::Password))
+    }
+
+    fn create_certificate_session(
+        &self,
+        _: &SessionIdentity,
+        _: &CertificateSessionProvenance,
+        _: SessionPolicy,
+        _: i64,
+    ) -> Result<SessionGrant, ApplicationError> {
+        Err(ApplicationError::InvalidSession)
+    }
+
+    fn record_certificate_activity(
+        &self,
+        _: &str,
+        _: &SessionIdentity,
+        _: &CertificateSessionProvenance,
+        _: SessionPolicy,
+    ) -> Result<Option<SessionState>, ApplicationError> {
+        Err(ApplicationError::InvalidSession)
+    }
+
     fn create_session(
         &self,
         identity: &SessionIdentity,
@@ -60,6 +94,7 @@ impl SessionStore for MemorySessions {
         let now = self.now.load(Ordering::SeqCst);
         let state = SessionState {
             identity: identity.clone(),
+            authentication: SessionAuthentication::Password,
             server_now_unix_ms: now,
             absolute_expires_at_unix_ms: now + policy.absolute_ttl_seconds() as i64 * 1000,
             idle_expires_at_unix_ms: policy
@@ -105,7 +140,7 @@ impl SessionStore for MemorySessions {
         let Some(mut state) = lookup(&mut sessions, token, policy, now) else {
             return Ok(None);
         };
-        if &state.identity != expected {
+        if &state.identity != expected || state.authentication != SessionAuthentication::Password {
             return Ok(None);
         }
         state.idle_expires_at_unix_ms = policy

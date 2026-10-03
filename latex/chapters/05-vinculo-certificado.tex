@@ -184,3 +184,42 @@ un Partner verificó el formato; registro, retiro, nonce o generación alterados
 confianza discordante, revocación firmada y entradas mal formadas se rechazaron.
 Estos resultados no demuestran consumo único del desafío, MFA, sesiones derivadas
 ni activación de acceso por certificado.
+
+
+\subsubsection{Admisión interna, autoridad y capacidades temporales}
+
+La aplicación aprobó inicialmente 20 casos nuevos y 31 del recorrido de identidad
+existente. Dos regresiones posteriores reprodujeron vencimiento absoluto y de
+inactividad durante una consulta final de autoridad dentro del mismo segundo.
+La admisión conserva ahora milisegundos y el cierre aprobó los 22 casos nuevos
+y los 31 previos, en 0.01 y 0.00~s, tras 4.71~s de compilación.
+El puerto criptográfico conservó la evidencia y neutralizó fallos internos en
+ocho pruebas, incluidas las seis previas, en 0.77~s. La autoridad PostgreSQL
+16.15 desechable aprobó seis casos en 13.88~s: observa cambios de cuenta y CRL
+después de esperar el bloqueo auditado, distingue ausencia de fallo SQL y
+conserva los recibos históricos. La preparación del cambio de generación se
+corrigió para usar revocación y reactivación legales; no se alteró el guard de
+base de datos.
+
+Con Valkey 8.1.10 aislado y autenticado, compatible con Redis, aprobaron once
+casos de procedencia y sesiones en 0.12~s, 23 regresiones de sesiones de
+contraseña en 0.07~s y 21 casos de captura y presupuestos en 2.71~s. Se verificó
+consumo con un ganador, vencimiento exclusivo, enteros exactos, límites
+compartidos, permisos fallidos sin escritura parcial y rechazo de DTO corruptos.
+La primera comparación de no escritura usaba serialización RDB; el diagnóstico
+mostró campos y expiración idénticos con orden binario distinto. La comprobación
+corregida compara tipo, todos los bytes de campos y plazo absoluto.
+
+Estas campañas focales se ejecutaron en serie con un compilador y un trabajador.
+No son una campaña HTTP integral, una restauración autenticada ni una activación
+en el servidor. El detalle y la frontera pendiente se conservan en
+\rutarepo{docs/owner-certificate-authentication.md}.
+
+
+La invalidación selectiva de capturas de certificado aprobó diez casos de
+comando en 0.016~s y un recorrido nativo en 7.006~s. RDB, AOF y reinicio
+conservaron los controles y presupuestos, sin resucitar sesiones, MFA o
+capturas retiradas. La lectura de hashes del observador fija RESP2; el primer
+intento había recibido el objeto JSON de RESP3 antes del respaldo. El contenido
+capturado es público y sintético: esta prueba de persistencia no reemplaza una
+restauración completa de autenticación HTTP con RSA y MFA reales.

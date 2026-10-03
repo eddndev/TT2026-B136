@@ -245,3 +245,45 @@ fn malformed_public_material_and_wrong_signature_size_fail_neutrally() {
         .unwrap_err();
     assert!(!error.to_string().contains("Synthetic"));
 }
+
+#[test]
+fn application_port_preserves_verified_public_evidence() {
+    use application::identity::certificate_login::OwnerLoginVerifier;
+    let fx = fixture();
+    let statement = statement();
+    let signature = sign(&statement.canonical_bytes());
+    let verifier = InternalRsaOwnerLoginVerifier::new();
+    let port: &dyn OwnerLoginVerifier = &verifier;
+    let value = port
+        .verify_login(&statement, &fx.leaf, &signature, &fx.trust, fx.at)
+        .unwrap();
+    assert_eq!(value.signature, signature);
+    assert_eq!(value.certificate.der, fx.leaf_der);
+    assert_eq!(value.trust, fx.trust.inspection);
+    assert_eq!(
+        value.statement_digest,
+        RingSha256Hasher.hash_bytes(&statement.canonical_bytes())
+    );
+}
+
+#[test]
+fn application_port_neutralizes_all_typed_proof_failures() {
+    use application::{identity::certificate_login::OwnerLoginVerifier, ApplicationError};
+    let fx = fixture();
+    let statement = statement();
+    let signature = sign(&statement.canonical_bytes());
+    let verifier = InternalRsaOwnerLoginVerifier::new();
+    let port: &dyn OwnerLoginVerifier = &verifier;
+    let mut foreign = fx.trust.clone();
+    foreign.deployment_id = Uuid::from_bytes([0x12; 16]);
+    for (leaf, trust, at) in [
+        (&[][..], &fx.trust, fx.at),
+        (&fx.leaf[..], &foreign, fx.at),
+        (&fx.leaf[..], &fx.trust, statement.expires_at_unix_seconds()),
+    ] {
+        assert!(matches!(
+            port.verify_login(&statement, leaf, &signature, trust, at),
+            Err(ApplicationError::InvalidCredentials)
+        ));
+    }
+}

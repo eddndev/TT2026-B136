@@ -1,7 +1,8 @@
-//! Audited immutable Owner certificate evidence, without certificate login.
+//! Audited Owner certificate evidence and consistent current login authority.
 mod account;
 mod decode;
 mod inventory;
+mod login;
 mod query;
 mod registration;
 mod validation;
