@@ -1,5 +1,16 @@
 # Informe de verificación local
 
+## Publicación de controladores: 3 de octubre de 2026
+
+Seis casos reprodujeron la ausencia del publicador interno; después aprobaron
+6/6 en 0.450 s con intercambio Linux, locks y archivos reales. Las fallas
+inyectadas verifican durabilidad, identidad y reconciliación sin repetir un
+intercambio incierto. Una caracterización independiente aprobó 1/1 en 0.041 s:
+imports por ruta pueden mezclar generaciones A/B y un fd fijado conserva A/A.
+No se modificaron servicios, datos, unidades ni la instalación VPS3. El
+[contrato de publicación](deployment-controller-publication.md) mantiene
+pendiente la fijación de generación y aceptación operativa.
+
 ## Composición HTTP del vínculo Owner: 3 de octubre de 2026
 
 El ensayo inicial reprodujo `E0560` por ausencia del servicio Owner en la
