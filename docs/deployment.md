@@ -1,8 +1,11 @@
 # Despliegue privado por versiones
 
 La [publicación completa de controladores](deployment-controller-publication.md)
-tiene aceptación local de directorios; la coherencia de imports y su instalación
-operativa se verifican por separado.
+tiene aceptación local de directorios. El
+[launcher independiente](deployment-controller-launcher.md) fija una generación
+aprobada para los imports Python; su integración con las unidades, la selección
+del hash y la transición de lectores antiguos siguen pendientes de aceptación
+operativa.
 
 [Deploy version](../.github/workflows/deploy.yml) se activa al publicar tags
 `vMAJOR.MINOR.PATCH`, por ejemplo `v1.0.0`, `v1.1.0` y `v1.1.1`. No despliega

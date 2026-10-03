@@ -1,5 +1,19 @@
 # Informe de verificación local
 
+## Lanzador de controladores por generación: 3 de octubre de 2026
+
+Seis pruebas reprodujeron primero la ausencia del lanzador con
+`FileNotFoundError` en 0.003 s. La implementación aprobó **6/6 en 1.669 s**,
+con intérpretes aislados locales y archivos desechables. Se comprobaron imports
+tardíos tras intercambio real, inventario/huella/permisos estrictos, argumentos
+y PID conservados, salida y errores, cierre de descriptores en exec y SIGTERM.
+Los procesos de ensayo son inocuos: no se ejecutaron controladores desplegados
+ni se tocaron servicios. La revisión independiente no encontró defectos concretos
+dentro de ese contrato. No prueba instalación, selección operativa de la huella
+aprobada, reapertura ni aislamiento frente al mismo UID. Véase
+`docs/deployment-controller-launcher.md`. La evidencia académica se registra
+separadamente en `docs/academic-report-verification.md`.
+
 ## Consulta del vínculo Owner sin retirar: 3 de octubre de 2026
 
 El ensayo RED reprodujo `E0407` y `E0599` por ausencia de `find_current` y
