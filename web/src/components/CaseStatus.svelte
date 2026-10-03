@@ -4,7 +4,7 @@
   import CaseValues from './CaseValues.svelte';
   import { caseFailure } from '../lib/case-administration.mjs';
   export let api, record, onconfirmed, onobserved, ondenied;
-  let uncertain = false;
+  export let uncertain = false;
   let dialog,
     candidate,
     intended = 'closed',

@@ -2,6 +2,20 @@
 
 ## Confirmaciones inciertas: verificación local del 3 de octubre de 2026
 
+Una revisión posterior reprodujo dos fallos al cancelar un cambio administrativo
+incierto, pasar a Participantes y volver al Resumen: se habilitaba otra escritura
+sin consultar. El estado de incertidumbre ahora pertenece al expediente abierto
+y sobrevive al desmontaje de su sección. Los dos casos nuevos, con cambio aplicado
+y no aplicado, aprobaron junto a diez regresiones relacionadas: **12/12 en 26.2 s**,
+con un trabajador y temporales sobre btrfs. Durante una consulta retenida sigue
+bloqueado el envío; sólo una lectura exitosa y otro clic permiten repetir el
+cambio no aplicado. La primera comprobación posterior al arreglo detectó un
+selector de prueba incorrecto durante la espera; se corrigió para exigir el mismo
+botón deshabilitado bajo su nombre transitorio `Guardando...`. No se ampliaron
+tiempos ni se modificaron aserciones de admisión. La revisión focal no encontró
+otros defectos. Esta ejecución usa HTTP controlado, no servicios reales, y no
+actualiza las mediciones históricas siguientes ni la cobertura del backend.
+
 Trece casos nuevos reprodujeron y corrigieron el reenvío de confirmaciones sin
 consultar tras una respuesta perdida o 5xx. Cubren cierre/reactivación de expediente,
 archivo/reactivación de participante y sellado, con y sin efecto aplicado. Cancelar
