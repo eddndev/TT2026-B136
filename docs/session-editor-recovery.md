@@ -64,6 +64,7 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Actividades vinculadas | Recurso, acto y actividad históricos, selección parcial, motivo y base originales. | No crea actividades; sólo el recibo exacto confirma el vínculo y un reenvío requiere consultar su ausencia de nuevo. |
 | Plazos creados desde recursos | Ambos identificadores nuevos, campos crudos, referencias históricas y sobre incierto conservados tras nueva autorización. | Dos recibos separados no prueban origen conjunto; el servidor debe confirmar explícitamente la operación compuesta. |
 | Plazos ordinarios | Alta, corrección, atención y retiro: campos crudos, referencias, base y comando incierto exactos tras nueva autorización. | La preparación pierde aprobación y una coincidencia no confirma el resultado; se consulta el recibo exacto. |
+| Solicitud de informes | Fechas parciales, filtros y solicitud incierta exacta; cuenta y selector autorizado consultados antes de recuperar. | Una fila similar o un informe en cola no concilian la respuesta perdida: repetir es una decisión explícita con el mismo identificador. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
 focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
@@ -115,6 +116,12 @@ atención con hora parcial, revisión concurrente, cierre y reapertura, recibo
 ajeno y limpieza antes del refresco. No añaden un reenvío automático ni atribuyen
 al autor una revisión por coincidencia de valores.
 
+Seis casos nuevos de solicitudes de informes aprobaron en 16,5 segundos con
+HTTP controlado. Conservan el filtro de litigante si deja de estar autorizado,
+bloquean la solicitud y permiten consultar de nuevo sin sustituirlo por todos.
+La confirmación retira la captura; sólo una edición posterior crea otro borrador.
+No incluyen envío de correo ni una nueva aceptación de generación PDF/CSV real.
+
 La duración operativa del límite de inactividad sigue sin aprobarse. El backend
 mantiene por defecto su límite absoluto de veinticuatro horas. La configuración
 de doce segundos del [ensayo reproducible](../web/README.md#reingreso-con-vencimiento-real)
@@ -129,7 +136,6 @@ asumiendo que todos los formularios conservan sus cambios.
 | Familia | Componentes | Contexto que debe consultarse de nuevo |
 | --- | --- | --- |
 | Preferencias de alertas | `AlertPreferences.svelte` | Cuenta, preferencias vigentes, revisión y recibo del guardado. |
-| Solicitud de informes | `CaseReports.svelte` | Solicitante, filtros, destinatario seleccionado e identidad de solicitud incierta. |
 | Confirmaciones administrativas | `CaseMembers.svelte`, `CaseStatus.svelte`, `ParticipantStatus.svelte` | Cuenta o ficha destino, intención, estado vigente e incertidumbre sin atribuir un resultado por coincidencia. |
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus

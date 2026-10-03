@@ -1,5 +1,31 @@
 # Informe de verificación local
 
+## Solicitudes de informes: recuperación local del 3 de octubre de 2026
+
+La prueba inicial reprodujo la ausencia de una acción para recuperar filtros.
+Los seis escenarios nuevos aprobaron en 16.5 s con un worker y HTTP controlado.
+Se exige consultar de nuevo cuenta y selector completo antes de mostrar campos;
+un litigante ausente mantiene la selección bloqueada en vez de convertirla en
+un filtro general. Fechas parciales y solicitudes inciertas conservan sus valores.
+Dos vencimientos no repiten el POST. El reintento explícito conserva el mismo
+identificador y filtros; una confirmación cierra la captura antes de actualizar
+la vista y una edición posterior genera una operación nueva. Otra cuenta,
+cancelación o permiso revocado descartan la captura. La compatibilidad detectó
+un aviso de revocación duplicado entre padre e hijo; después de corregirlo,
+once escenarios existentes y tres nuevos de resultado aprobaron juntos en
+26.2 s. La regresión remota sigue pendiente; esta evidencia usa HTTP controlado.
+
+## Recuperación pública integrada: confirmación del 3 de octubre de 2026
+
+PR61 se integró por squash como `4ea2fba` tras aprobar la cabeza `40f9d33`:
+CI 10m27s, Web 14m11s y Documents 11m31s totales (72 s de compilación y resto
+principalmente en cola). La ejecución natural de main aprobó CI 11m26s,
+Web 12m36s y Documents 1m16s. Ambas conservaron 3524 pruebas Rust, 493 de
+navegador controlado y 52 reales, además de los gates de cobertura 97/95/93 %.
+Se verificaron las identidades anteriores y el artefacto real de inactividad.
+La configuración y el envío de correo operativo permanecen deshabilitados.
+
+
 ## Verificador de certificado Owner: 3 de octubre de 2026
 
 El target nuevo reprodujo primero la ausencia del verificador. Sus ocho pruebas
