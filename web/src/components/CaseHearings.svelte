@@ -1,5 +1,6 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import { pendingHearingDrafts } from '../lib/hearing-draft.mjs';
   import ActivityResources from './ActivityResources.svelte';
   import HearingList from './HearingList.svelte';
   import HearingDetail from './HearingDetail.svelte';
@@ -19,7 +20,10 @@
     participants = api.caseParticipants(record.id),
     typed = api.caseTypedParticipants(record.id),
     documents = api.caseDocuments(record.id),
-    administration = caseState();
+    administration = caseState(),
+    session = getContext('session-drafts');
+  let savedDraft = null,
+    drafts = pendingHearingDrafts(session, record.id);
   let context = null,
     rows = [],
     selected = null,
@@ -142,10 +146,40 @@
       opening = false;
       if (nextContext) {
         editorBase = next === 'schedule' ? null : selected;
+        savedDraft =
+          drafts.find(
+            (row) => row.action === next && row.resourceId === (editorBase?.id ?? null),
+          ) ?? null;
         action = next;
         editorGeneration++;
       }
     }
+  }
+  async function resume(saved) {
+    if (locked) return;
+    opening = true;
+    try {
+      editorBase = saved.resourceId ? await scoped.get(saved.resourceId) : null;
+      if (!alive || !session?.canAdmit()) return;
+      savedDraft = saved;
+      action = saved.action;
+      editorGeneration++;
+    } catch (failure) {
+      if (alive) {
+        error = failure.message;
+        if (failure.status === 404 && failure.code === 'hearing_not_found') {
+          session?.registry.closeEditor(saved.key);
+          drafts = pendingHearingDrafts(session, record.id);
+        } else if (hearingDenied(failure)) deny(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
+  function closedEditor() {
+    action = null;
+    savedDraft = null;
+    drafts = pendingHearingDrafts(session, record.id);
   }
   async function confirmed(result, exact = false) {
     if (!alive) return;
@@ -155,7 +189,7 @@
     cursors = [undefined];
     notice = 'Audiencia guardada. Su programaci\u00f3n no determina un resultado.';
     await Promise.all([load(), detailView?.refreshHistory()]);
-    if (alive) action = null;
+    if (alive) closedEditor();
   }
   function apply() {
     appliedStatus = status;
@@ -209,14 +243,20 @@
       caseId={record.id}
       {user}
       {action}
+      {savedDraft}
       record={editorBase}
       initialContext={context}
       ondenied={deny}
       onconfirmed={confirmed}
       oncontext={observeContext}
-      oncancel={() => (action = null)}
+      oncancel={closedEditor}
       bind:pending={editorBusy}
     />{/key}{/if}
+{#if !action}{#each drafts as saved (saved.key)}<button
+      class="secondary"
+      disabled={locked}
+      onclick={() => resume(saved)}>Retomar borrador de audiencia</button
+    >{/each}{/if}
 <section class="card hearing-index" aria-label="Audiencias registradas" aria-busy={busy || opening}>
   <div class="section-heading">
     <h2>Audiencias registradas</h2>

@@ -765,13 +765,32 @@ y firmas públicas previos no vuelven a habilitar por sí solos una declaración
 y el registro nunca conserva claves privadas, contraseñas ni códigos MFA.
 
 
+Los formularios de audiencias y resultados conservan la acción original, su base,
+referencias históricas de participantes, sesiones y continuaciones, y archivos
+pendientes por propietario. Revalidan autorización y versiones antes de permitir
+otra preparación. La conciliación de una respuesta incierta compara el recibo
+exacto, incluidos actor, operación, expediente, revisión y huellas: una cabecera
+parecida no confirma la propia escritura. Un resultado confirmado retira raíz e
+hijos del registro antes de esperar la actualización de la vista. El contrato
+procesal se conserva.
+
+Los editores de resoluciones y notificaciones conservan campos y tiempos crudos,
+base original y referencias históricas exactas de resolución, participante y
+resultado de audiencia. Una falla transitoria al consultar un soporte mantiene
+el borrador bloqueado para reintento explícito. Los archivos de procedencia y
+representación conservan propietarios separados, incluso si tienen el mismo
+nombre. Cambiar una declaración descarta sólo sus descendientes; cerrar el editor
+retira el conjunto. El expediente cerrado permite consultar el borrador autorizado
+sin enviarlo; su reapertura exige refrescar el estado. Una respuesta incierta se
+concilia mediante recibo exacto, sin deducir confirmación de textos coincidentes.
+
 Los adaptadores de clasificación documental, alta y edición de expedientes, carga documental principal y nuevas versiones preservan texto incompleto y selecciones todavía no confirmadas. Una revisión concurrente requiere comparar los valores actuales y decidir de nuevo; un expediente cerrado admite consultar el borrador autorizado sin enviarlo. Si una carga pudo haberse confirmado antes de perder su respuesta, la interfaz exige revisar el listado vigente y reconocer el riesgo de duplicación antes de iniciar otra carga explícita. No reproduce escrituras automáticamente. Los editores anidados y las demás familias de formularios requieren adaptadores y aceptación propios; la existencia del registro no demuestra recuperación universal. La activación operativa de inactividad permanece pendiente hasta completar ese inventario y seleccionar su duración. La decisión se documenta en \rutarepo{docs/adr/0065-session-reentry-and-memory-drafts.md}.
 
 \subsection{Límites de ejecución y verificación integrada}\label{sec:impl-http-limites}
 
 Los adaptadores PostgreSQL y Redis son síncronos. HTTP ejecuta los casos de uso en trabajadores bloqueantes de Tokio con un presupuesto compartido: ocho peticiones admitidas y dos operaciones bloqueantes por defecto, configurables mediante \texttt{-{}-max-in-flight-requests} y \texttt{-{}-max-blocking-operations}. La cancelación del cliente no libera el permiso hasta que termina el trabajo subyacente ni revierte una mutación ya confirmada. Sin cupo se responde \texttt{503 server\_busy}; \texttt{/healthz} permanece fuera de admisión. Los cuerpos JSON de identidad y expedientes básicos se limitan a 16~KiB; el directorio usa 8~KiB, las etapas 32~KiB y la administración penal 64~KiB. La carga documental tiene un límite de 16~MiB. El consumo por hash Argon2id obliga a dimensionar la concurrencia con mediciones del entorno.
 
-Los errores de credenciales o sesión usan \texttt{401}; permisos, \texttt{403}; ausencia o aislamiento, \texttt{404}; conflictos, \texttt{409}; entradas inválidas, \texttt{400} o \texttt{422}; límite de login, \texttt{429}; y fallos internos sin secretos, \texttt{500}. El contrato se documenta en \rutarepo{docs/http-api.md}; sus límites y transacciones, en \rutarepo{docs/adr/0015-backend-concurrency-and-invariants.md} y \rutarepo{docs/adr/0016-case-document-transactions.md}. Quedan pendientes TLS, límites de transporte, pooling, plazos operativos completos, pruebas de carga, apagado ordenado y anclaje externo de auditoría.
+Los errores de credenciales o sesión usan \texttt{401}; permisos, \texttt{403}; ausencia o aislamiento, \texttt{404}; conflictos, \texttt{409}; entradas inválidas, \texttt{400} o \texttt{422}; límite de login, \texttt{429}; y fallos internos sin secretos, \texttt{500}. El contrato se documenta en \rutarepo{docs/http-api.md}; sus límites y transacciones, en \rutarepo{docs/adr/0015-backend-concurrency-and-invariants.md} y \rutarepo{docs/adr/0016-case-document-transactions.md}. El servidor coordina la detención HTTP y de consumidores ante señales, retiene el trabajo bloqueante iniciado y deja de admitir solicitudes nuevas. Esa coordinación no garantiza un plazo máximo frente a una dependencia síncrona que no responde. El despliegue privado usa retorno local y túnel SSH; TLS público, pooling, evaluación de capacidad, plazos operativos de todas las dependencias y anclaje externo de auditoría conservan aceptación pendiente.
 
 \rutarepo{scripts/api-demo.sh} crea servicios desechables, usuarios de los cuatro roles, expedientes y documentos. Comprueba autenticación, permisos, consultas filtradas, retirada de pertenencia con la misma sesión y ausencia de accesos documentales del Cliente. Recorre firma, sello, exportación y verificación independiente con OpenSSL; ensaya también importación y restauración con evidencia sellada. \rutarepo{scripts/test-backends.sh} prepara las bases aisladas y Redis para pruebas reales. Sus ejecuciones y resultados se distinguen de la descripción funcional en el Capítulo~\ref{cap:pruebas}.
 
@@ -863,7 +882,7 @@ Las elecciones de bibliotecas, protocolos y adaptadores delimitan las propiedade
   \item \textbf{Sesiones revocables.} El puerto \texttt{Session\allowbreak Store} abstrae la gestión de credenciales opacas revocables y plazos comprobados atómicamente en Redis. La admisión revalida en PostgreSQL el principal completo y la generación, y confirma después la vigencia de la misma sesión. El modo absoluto es predeterminado; la inactividad requiere configuración y actividad explícitas. Las decisiones se documentan en los ADR~0012 y 0064 de \rutarepo{docs/adr/}.
   \item \textbf{Clientes de datos.} Los adaptadores utilizan los clientes síncronos \texttt{postgres} y \texttt{redis}, con versiones compatibles con Rust 1.88. La frontera HTTP ejecuta los casos de uso en el pool bloqueante de Tokio. Antes del despliegue público deberán evaluarse pooling, TLS interno y clientes asíncronos.
   \item \textbf{Fitness functions.} Las comprobaciones arquitectónicas incluyen el umbral de cobertura del 90\,\% por crate criptográfico (FF-4, \cref{sec:fitness-functions,tab:impl-fitness}). La instrumentación de un span de \texttt{tracing} por handler HTTP permanece pendiente.
-  \item \textbf{Autorización por recurso.} El acceso combina rol, usuario activo, pertenencia vigente y asociación documental exacta. Cliente puede consultar metadatos asignados, pero conserva denegado el acceso documental. Las asignaciones regulan permisos de usuarios; el directorio y la clasificación conservan información organizativa sin conceder acceso. Cliente tampoco accede al directorio ni al perfil penal. La administración y el cierre conservan reglas y revisiones propias; la etapa dispone de adopción y dos avances ordinarios, mientras la acreditación jurídica, los recursos, los resultados de audiencias y los plazos requieren funcionalidad adicional.
+  \item \textbf{Autorización por recurso.} El acceso combina rol, usuario activo, pertenencia vigente y asociación documental exacta. Cliente puede consultar metadatos asignados, pero conserva denegado el acceso documental. Las asignaciones regulan permisos de usuarios; el directorio y la clasificación conservan información organizativa sin conceder acceso. Cliente tampoco accede al directorio ni al perfil penal. La administración y el cierre conservan reglas y revisiones propias; la etapa dispone de adopción y dos avances ordinarios. Recursos, resultados de audiencias y plazos cuentan con registros declarados, referencias exactas y consultas autorizadas descritos en sus apartados. Permanecen separados la acreditación jurídica, la activación automática de plazos y el catálogo procesal todavía incompleto; registrar un hecho no demuestra su efecto jurídico.
 \end{itemize}
 
 La separación por puertos permitió ampliar la persistencia y el acceso documental conservando la dirección de dependencias \cite{ford2023}.

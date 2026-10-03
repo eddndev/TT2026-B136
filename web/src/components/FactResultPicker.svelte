@@ -8,7 +8,9 @@
     oncancel,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   const hearingsApi = api.caseHearings(caseId);
   let resultsApi = null,
     hearings = [],
@@ -26,15 +28,18 @@
     agreement = '',
     error = '',
     alive = true;
+  export function captureDraft() {
+    return { hearingId, resultId, revision: exact?.revision ?? null, agreement };
+  }
   async function work(task) {
-    if (busy || disabled) return;
+    if (busy || disabled || !canApply()) return;
     busy = true;
     error = '';
     try {
       const value = await task();
-      if (alive) return value;
+      if (alive && canApply()) return value;
     } catch (failure) {
-      if (alive) {
+      if (alive && canApply()) {
         error = failure.message;
         if ([401, 403].includes(failure.status) || failure.code === 'case_not_found')
           ondenied(failure);
@@ -52,7 +57,7 @@
     }
   }
   async function listResults(id, afterId) {
-    if (busy || disabled) return;
+    if (busy || disabled || !canApply()) return;
     if (hearingId !== id) {
       resultsApi?.dispose();
       resultsApi = api.caseHearingResults(caseId, id);
@@ -89,7 +94,7 @@
     }
   }
   function select() {
-    if (!exact || busy || disabled) return;
+    if (!exact || busy || disabled || !canApply()) return;
     onselected({
       reference: {
         hearing_id: exact.hearing_id,
@@ -100,7 +105,17 @@
       record: exact,
     });
   }
-  onMount(() => listHearings());
+  onMount(async () => {
+    await listHearings();
+    if (!alive || !canApply() || !draft?.hearingId) return;
+    await listResults(draft.hearingId);
+    if (!alive || !canApply() || !draft.resultId) return;
+    await history(draft.resultId);
+    if (!alive || !canApply() || !draft.revision) return;
+    await read(draft.revision);
+    if (alive && canApply() && exact?.values.agreements.some((row) => row.id === draft.agreement))
+      agreement = draft.agreement;
+  });
   onDestroy(() => {
     alive = false;
     hearingsApi.dispose();

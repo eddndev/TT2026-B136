@@ -1,25 +1,26 @@
 <script>
   import { getContext, onDestroy } from 'svelte';
-  import { createStageSupportDraft, stageSupportKey } from '../lib/stage-support-draft.mjs';
   import StagePicker from './StagePicker.svelte';
   import StageSupportSummary from './StageSupportSummary.svelte';
   import UploadDocument from './UploadDocument.svelte';
-  export let value = null,
-    api,
+  import { createStageSupportDraft, stageSupportKey } from '../lib/stage-support-draft.mjs';
+  export let api,
     caseId,
     label,
+    chooseLabel,
+    uploadLabel,
+    value,
     ondenied,
     disabled = false,
+    optional = false,
     pending = false,
-    required = false,
     draftContext = null,
-    ondiscard = () => {};
-  const documents = api.caseDocuments(caseId);
-  let choosing = false,
+    ondiscard = () => {},
+    onselected = () => {};
+  let picking = false,
     pickerBusy = false,
     uploadBusy = false,
     uploader,
-    selected = null,
     uploaded = false;
   const session = getContext('session-drafts');
   let recovery = null,
@@ -49,7 +50,7 @@
     generation++;
     recoveryKey = key;
     pickerDraft = null;
-    choosing = false;
+    picking = false;
     recovery = key
       ? createStageSupportDraft({
           session,
@@ -63,7 +64,6 @@
   }
   async function prepare(operation) {
     if (pending || disabled || !admitted()) return;
-    if (!recovery) return operation();
     const ticket = generation,
       valid = () => admitted() && ticket === generation;
     preparing = true;
@@ -92,77 +92,83 @@
   }
   function closePicker() {
     pickerDraft = picker?.captureDraft() ?? pickerDraft;
-    choosing = false;
+    picking = false;
+  }
+  function selected(record) {
+    if (!admitted() || record.case_id !== caseId) return;
+    value = {
+      case_id: record.case_id,
+      id: record.id,
+      version: record.version,
+      digest: record.digest,
+      name: record.name,
+      uploaded: false,
+    };
+    closePicker();
+    uploaded = false;
+    onselected(value);
+  }
+  function loaded(record) {
+    if (!admitted() || record.case_id !== caseId) return;
+    selected(record);
+    value = { ...value, uploaded: true };
+    uploaded = true;
+    onselected(value);
   }
   function remove() {
     if (pending || disabled || !admitted()) return;
     recovery?.close();
     ondiscard();
     pickerDraft = null;
-    choosing = false;
+    picking = false;
     value = null;
-    selected = null;
     uploaded = false;
-  }
-  function select(row, created = false) {
-    if (!admitted() || row.case_id !== caseId) return;
-    selected = row;
-    uploaded = created;
-    value = {
-      document_id: row.id,
-      version: row.version,
-      digest: row.digest,
-      locator: value?.locator || '',
-    };
-    closePicker();
   }
   onDestroy(() => {
     alive = false;
     generation++;
     recovery?.dispose();
-    documents.dispose();
     pending = false;
   });
 </script>
 
-<section class="fact-support-fields" aria-label={`Soporte: ${label}`}>
+<fieldset class="case-offenses hearing-support" aria-label={label}>
+  <legend>{label}{optional ? ' (opcional)' : ''}</legend>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  <h4>Soporte documental de {label} ({required ? 'obligatorio' : 'opcional'})</h4>
-  {#if value}
-    <StageSupportSummary record={{ ...value, name: selected?.name }} />
-    <label
-      >Localizador documental: {label}<input
-        bind:value={value.locator}
-        disabled={disabled || pending}
-      /></label
-    >
-    <details><summary>Identidad del soporte</summary><code>{value.document_id}</code></details>
-    {#if uploaded}<p class="notice" role="status">
-        El documento se guard&#243;. Falta confirmar este registro.
-      </p>{/if}
-    <button type="button" class="text-button" disabled={disabled || pending} onclick={remove}
-      >Quitar soporte: {label}</button
-    >
-  {/if}
+  {#if value}<StageSupportSummary record={value} />{/if}
+  {#if uploaded || value?.uploaded}<p class="notice" role="status">
+      Documento guardado: {value.name} / versi&#243;n {value.version}. Falta confirmar el registro
+      propietario.
+    </p>{/if}
+  <p class="hint">
+    Selecciona una versi&#243;n exacta de un PDF o DOCX. El servidor validar&#225; el soporte al
+    confirmar el registro.
+  </p>
   <div class="action-row">
     <button
-      type="button"
       class="secondary"
+      type="button"
       disabled={disabled || pending}
       onclick={() =>
         prepare(() => {
-          choosing = true;
-        })}>Elegir soporte: {label}</button
+          picking = true;
+        })}>{chooseLabel}</button
     >
     <button
-      type="button"
       class="secondary"
+      type="button"
       disabled={disabled || pending}
-      onclick={() => prepare(() => uploader.open())}>Cargar soporte: {label}</button
+      onclick={() => prepare(() => uploader.open())}>{uploadLabel}</button
     >
+    {#if optional && value}<button
+        class="text-button"
+        type="button"
+        disabled={disabled || pending}
+        onclick={remove}>Quitar soporte del borrador</button
+      >{/if}
   </div>
-  {#if choosing}<StagePicker
-      api={documents}
+  {#if picking}<StagePicker
+      {api}
       {caseId}
       {ondenied}
       {disabled}
@@ -170,20 +176,16 @@
       draft={pickerDraft}
       canApply={admitted}
       bind:busy={pickerBusy}
-      onselected={(row) => select(row)}
+      onselected={selected}
       oncancel={closePicker}
     />{/if}
-  <p class="hint">
-    La preparaci&#243;n admite PDF o DOCX. El soporte conserva su versi&#243;n y localizador
-    exactos.
-  </p>
-</section>
+</fieldset>
 <UploadDocument
-  api={documents}
+  {api}
   {ondenied}
   {disabled}
   draftContext={childContext}
   bind:this={uploader}
   bind:busy={uploadBusy}
-  onuploaded={(row) => select(row, true)}
+  onuploaded={loaded}
 />

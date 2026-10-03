@@ -56,11 +56,17 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Soportes anidados de identidad | Búsqueda sin aplicar, versión seleccionada y archivo pendiente, separados por campo y candidato propietario. | La autorización del documento se revalida; otra versión o una denegación no hereda permisos. |
 | Participante tipificado | Alta, completar ficha manual y reemplazo con identidad exacta, rol, soportes y envío incierto separados. | La revisión de coincidencias y la declaración se preparan de nuevo; una firma anterior sólo queda como evidencia inerte. |
 | Etapa procesal | Adopción y transición originales, fechas y textos crudos, soportes y cargas por propietario; consulta completa de historia ante incertidumbre. | Las etapas no tienen recibo técnico consultable: una coincidencia no confirma un envío ni acredita procedencia jurídica. |
+| Audiencias y resultados | Programación, corrección, cancelación, sesiones, continuaciones y retiro; campos crudos, bases originales, referencias históricas y cargas separadas por propietario. | Un envío incierto sólo se confirma por su recibo de revisión exacta; una cabecera o valores parecidos no bastan. |
+| Resoluciones y notificaciones | Textos y tiempos crudos, referencias históricas, base original y archivos separados por campo y representación. | El envío incierto requiere el recibo exacto; reabrir el expediente no prepara ni envía automáticamente. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
 focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
 soportes independientes, incertidumbre y descarte posterior a una confirmación.
-Estos resultados son locales y no afirman integración ni despliegue. Un
+Otro focal aceptó diez escenarios de audiencias y resultados en 33,8 segundos,
+con autorización fresca, referencias originales, comparación explícita, archivos
+propietarios y recibos exactos ante incertidumbre. Ninguno de estos focales
+constituye aceptación de CI ni una campaña de esas familias con servicios reales.
+Ocho escenarios de resoluciones y notificaciones aprobaron en 29,0 segundos; incluyen recuperación tras fallo transitorio de referencia, cierre y reapertura del expediente, aislamiento de archivos y conciliación por recibo. Estos resultados son locales y no afirman integración ni despliegue. Un
 recorrido adicional con servicios reales aceptó dos vencimientos y nueva MFA,
 conservando campos de un alta de expediente y un archivo de carga principal.
 Ese recorrido no valida contra servicios reales todos los editores de la tabla.
@@ -80,8 +86,6 @@ asumiendo que todos los formularios conservan sus cambios.
 
 | Familia | Componentes | Contexto que debe consultarse de nuevo |
 | --- | --- | --- |
-| Audiencias y resultados | `HearingEditor.svelte`, `HearingResultEditor.svelte` | Audiencia o continuación exacta, participantes, soportes y declaración preparada. |
-| Resoluciones y notificaciones | `FactEditor.svelte` | Resolución propietaria, hechos registrados, soportes y revisión base. |
 | Recursos y actividades | `ResourceEditor.svelte`, `ResourceActivityEditor.svelte`, `ResourceDeadlineEditor.svelte` | Recurso propietario, actividad o plazo elegible, asociaciones y resultado incierto. |
 | Plazos | `DeadlineEditor.svelte` | Plazo, fuentes de cómputo y versión consultada. |
 | Calendarios | `CalendarEditor.svelte` | Permiso administrativo y revisión del calendario. |

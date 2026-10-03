@@ -1,13 +1,13 @@
 <script>
-  import { onDestroy } from 'svelte';
-  import FactFields from './FactFields.svelte';
-  import FactValues from './FactValues.svelte';
-  import FactSources from './FactSources.svelte';
-  import FactAdministrativeCapture from './FactAdministrativeCapture.svelte';
-  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import FactEditorBody from './FactEditorBody.svelte';
+  import { createFactDraft } from '../lib/fact-draft.mjs';
+  import { factDraftFailure } from '../lib/fact-draft-failure.mjs';
+  import { captureFactDraft } from '../lib/fact-draft-values.mjs';
+  import { readFactOwner, refreshFactReferences } from '../lib/fact-draft-references.mjs';
   import { caseState } from '../lib/case-state.mjs';
   import { factDraft, factCommand } from '../lib/procedural-fact-values.mjs';
-  import { factFailure, factDenied, factUncertain } from '../lib/procedural-fact-errors.mjs';
+  import { factFailure, factDenied } from '../lib/procedural-fact-errors.mjs';
   import { readFactSubmission } from '../lib/procedural-fact-submission.mjs';
   export let api,
     caseId,
@@ -20,14 +20,16 @@
     onconfirmed,
     oncancel,
     disabled = false,
-    pending = false;
+    pending = false,
+    savedDraft = null;
   const administration = caseState(),
-    id = record?.id || crypto.randomUUID();
+    session = getContext('session-drafts');
+  const parentId = resolution?.id ?? null;
+  let id = record?.id || crypto.randomUUID();
   const scoped =
     family === 'resolution'
       ? api.caseResolutions(caseId)
       : api.caseNotifications(caseId, resolution.id);
-  const singular = family === 'resolution' ? 'resoluci\u00f3n' : 'notificaci\u00f3n';
   let base = record,
     draft = factDraft(family, record, resolution),
     alive = true,
@@ -39,37 +41,134 @@
     candidate = null,
     compared = false,
     error = '';
-  $: pending = busy || fieldsBusy;
-  $: frozen =
-    disabled || pending || $administration.closed || ['uncertain', 'exhausted'].includes(mode);
-  function fail(failure, writing = false) {
-    if (factDenied(failure)) {
-      ondenied(failure);
-      return;
+  let blocked = true,
+    restoredClosed = false,
+    loaded = false,
+    finished = false,
+    inputs = null,
+    view;
+  const recovery = session
+    ? createFactDraft({
+        session,
+        caseId,
+        family,
+        parentId,
+        capture: () =>
+          captureFactDraft({
+            id,
+            family,
+            parentId,
+            action,
+            base,
+            draft,
+            mode,
+            last,
+            inputs: (blocked ? null : view?.captureInputs()) ?? inputs,
+          }),
+        read: () => readFactOwner(api, scoped, caseId, parentId, base, admitted),
+      })
+    : null;
+  function admitted() {
+    return alive && !finished && (!recovery || recovery.admitted());
+  }
+  function observe(value) {
+    restoredClosed = value.closed;
+    if (mode !== 'uncertain' && (value.current?.revision ?? 0) !== (base?.revision ?? 0))
+      mode = 'conflict';
+  }
+  async function initialize() {
+    if (pending || !admitted()) return;
+    if (!blocked) inputs = view?.captureInputs() ?? inputs;
+    blocked = busy = true;
+    error = '';
+    try {
+      let fresh;
+      if (savedDraft && !loaded && recovery) {
+        const result = await recovery.restore(savedDraft, (value, context) => {
+          ({ id, action, base, draft, mode, last, inputs } = value);
+          loaded = true;
+          fresh = context;
+        });
+        if (!admitted()) return;
+        if (result.status !== 'restored') throw new Error('No se pudo recuperar la declaracion.');
+      } else {
+        fresh = recovery
+          ? await recovery.fresh()
+          : { current: base, closed: $administration.closed };
+        if (!fresh || !admitted()) return;
+        if (!loaded) {
+          recovery?.register(action, base?.id ?? null, base?.revision ?? 0);
+          loaded = true;
+        }
+      }
+      observe(fresh);
+      if (!fresh.closed && $administration.closed) {
+        await $administration.refresh?.();
+        if (!admitted()) return;
+      }
+      if (!savedDraft || (await refreshFactReferences(api, caseId, draft.values, admitted)))
+        blocked = false;
+    } catch (failure) {
+      if (admitted()) {
+        error = factFailure(failure);
+        if (failure.draftSupport && [403, 404].includes(failure.status))
+          supportDenied(failure, failure.draftSupport);
+        else if (failure.draftOwner || factDenied(failure)) deny(failure);
+      }
+    } finally {
+      if (alive) busy = false;
     }
+  }
+  function deny(failure) {
+    recovery?.deny(failure);
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    ondenied(failure);
+  }
+  function supportDenied(failure, path) {
+    if (failure.code === 'case_not_found') return deny(failure);
     error = factFailure(failure);
     prepared = null;
-    if (
-      writing &&
-      (factUncertain(failure) || failure.code === 'procedural_fact_operation_conflict')
-    ) {
-      mode = 'uncertain';
-      error =
-        'No se pudo confirmar el resultado. Conservamos el env\u00edo para consultar su revisi\u00f3n exacta.';
-    } else if (failure.code === 'procedural_fact_revision_exhausted') mode = 'exhausted';
-    else if (
-      [
-        'procedural_fact_revision_conflict',
-        'procedural_fact_already_withdrawn',
-        'procedural_fact_not_found',
-      ].includes(failure.code)
-    ) {
-      mode = 'conflict';
-      compared = false;
-    } else mode = 'draft';
+    if (mode === 'review') mode = 'draft';
+    recovery?.discardSupport(path);
+    if (path[0] === 'representation') draft.values.representation.provenance.support = null;
+    else draft.values.provenance.support = null;
   }
+  function supportContext(path) {
+    return blocked ? null : (recovery?.supportContext(path, () => !blocked, observe, deny) ?? null);
+  }
+  function discardSupport(path) {
+    recovery?.discardSupport(path);
+  }
+  function close() {
+    if (pending) return;
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    recovery?.close();
+    finished = true;
+    oncancel();
+  }
+  $: pending = busy || fieldsBusy;
+  $: frozen =
+    disabled ||
+    pending ||
+    blocked ||
+    restoredClosed ||
+    !admitted() ||
+    $administration.closed ||
+    ['uncertain', 'exhausted'].includes(mode);
+  function fail(failure, writing = false) {
+    if (factDenied(failure)) {
+      deny(failure);
+      return;
+    }
+    ({ error, mode } = factDraftFailure(failure, writing));
+    if (failure.code === 'case_closed') restoredClosed = true;
+    prepared = null;
+    if (mode === 'conflict') compared = false;
+  }
+
   async function prepare() {
-    if (frozen || mode !== 'draft') return;
+    if (!admitted() || frozen || mode !== 'draft') return;
+    inputs = view?.captureInputs() ?? inputs;
     busy = true;
     error = '';
     try {
@@ -82,17 +181,19 @@
         resolutionId: resolution?.id,
       });
       const value = await scoped.prepare(command, user.id);
-      if (alive) {
+      if (admitted()) {
         prepared = structuredClone(value);
         mode = 'review';
       }
     } catch (failure) {
-      if (alive) fail(failure);
+      if (admitted()) fail(failure);
     } finally {
       if (alive) busy = false;
     }
   }
   async function finish(value, exact = false) {
+    recovery?.close();
+    finished = true;
     prepared = null;
     mode = 'confirmed';
     try {
@@ -104,26 +205,27 @@
     }
   }
   async function submit() {
-    if (frozen || !prepared || mode !== 'review') return;
+    if (!admitted() || frozen || !prepared || mode !== 'review') return;
     busy = true;
     error = '';
     last = structuredClone(prepared);
+    mode = 'uncertain';
     try {
       const value = await scoped.submit(last);
-      if (alive) await finish(value);
+      if (admitted()) await finish(value);
     } catch (failure) {
-      if (alive) fail(failure, true);
+      if (admitted()) fail(failure, true);
     } finally {
       if (alive) busy = false;
     }
   }
   async function check() {
-    if (pending || !last) return;
+    if (pending || blocked || !admitted() || !last) return;
     busy = true;
     error = '';
     try {
       const value = await readFactSubmission(scoped, last);
-      if (!alive) return;
+      if (!admitted()) return;
       if (value.state === 'matched') await finish(value.record, true);
       else if (value.state === 'absent')
         error =
@@ -135,134 +237,100 @@
         error = 'La revisi\u00f3n corresponde a otro env\u00edo. Tu borrador se conserva.';
       }
     } catch (failure) {
-      if (alive) {
+      if (admitted()) {
         error = factFailure(failure);
-        if (factDenied(failure)) ondenied(failure);
+        if (factDenied(failure)) deny(failure);
       }
     } finally {
       if (alive) busy = false;
     }
   }
   async function compare() {
-    if (pending) return;
+    if (pending || blocked || !admitted()) return;
     busy = true;
     error = '';
     compared = false;
     try {
       const value = await scoped.get(id);
-      if (alive) {
+      if (admitted()) {
         candidate = value;
         compared = true;
       }
     } catch (failure) {
-      if (alive) {
+      if (admitted()) {
         error = factFailure(failure);
-        if (factDenied(failure)) ondenied(failure);
+        if (factDenied(failure)) deny(failure);
       }
     } finally {
       if (alive) busy = false;
     }
   }
   function accept() {
-    if (!compared || !candidate || candidate.status !== 'recorded' || action === 'record' || frozen)
+    if (
+      !admitted() ||
+      !compared ||
+      !candidate ||
+      candidate.status !== 'recorded' ||
+      action === 'record' ||
+      frozen
+    )
       return;
     base = candidate;
+    recovery?.register(action, base.id, base.revision);
     mode = 'draft';
     compared = false;
     error = '';
   }
+  onMount(initialize);
   onDestroy(() => {
+    recovery?.dispose();
     alive = false;
     pending = false;
     scoped.dispose();
   });
 </script>
 
-<section
-  class="card case-editor fact-editor"
-  aria-label={`Formulario de ${singular}`}
-  aria-busy={pending}
->
-  <h2>
-    {action === 'record' ? 'Registrar' : action === 'correct' ? 'Corregir' : 'Retirar'}
-    {singular}
-  </h2>
-  <p class="hint">
-    Registra lo declarado con sus fuentes. La captura no determina efectos jur&#237;dicos ni inicia
-    plazos.
-  </p>
-  <CaseClosedNotice />
-  {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if mode === 'uncertain'}<div class="case-comparison">
-      <h3>Resultado incierto</h3>
-      <p>Consulta el recibo del env&#237;o. Una ausencia temporal no confirma que fall&#243;.</p>
-      <button class="primary" disabled={pending} onclick={check}>Consultar env&#237;o exacto</button
-      >
-      <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
-    </div>{/if}
-  {#if mode === 'conflict'}<div class="case-comparison">
-      <h3>Comparar con el registro actual</h3>
-      <button class="secondary" disabled={pending} onclick={compare}>Consultar base actual</button>
-      {#if compared && candidate}<p>
-          Base consultada: revisi&#243;n {candidate.revision} / {candidate.status === 'withdrawn'
-            ? 'Retirado'
-            : 'Registrado'}
-        </p>
-        <FactValues values={candidate.values} {family} /><FactSources sources={candidate.sources} />
-        {#if action !== 'record' && candidate.status === 'recorded'}<button
-            class="primary"
-            disabled={frozen}
-            onclick={accept}>Usar esta base y conservar borrador</button
-          >
-        {:else}<p>
-            Esta captura no permite reenviar sobre la base consultada. Puedes cerrar y revisar sus
-            fuentes.
-          </p>{/if}
-      {/if}
-    </div>{/if}
-  {#if prepared}<div class="case-comparison">
-      <h3>Revisa el registro a confirmar</h3>
-      <p>Revisi&#243;n a registrar: {prepared.result_revision}</p>
-      <FactValues values={prepared.values} {family} /><FactSources
-        sources={prepared.sources}
-      /><FactAdministrativeCapture value={prepared.observed_administration} />
-      {#if prepared.command.change.reason}<p class="case-multiline">
-          Motivo: {prepared.command.change.reason}
-        </p>{/if}
-      <div class="action-row">
-        <button
-          class="secondary"
-          disabled={pending}
-          onclick={() => {
-            prepared = null;
-            mode = 'draft';
-          }}>Volver al borrador</button
-        ><button class="primary" disabled={frozen} onclick={submit}>Confirmar registro</button>
-      </div>
-    </div>{:else if mode !== 'confirmed'}
-    {#if action === 'withdraw'}<FactValues values={base.values} {family} /><FactSources
-        sources={base.sources}
-      />
-      <p class="notice">Retirar conserva la captura y su historia; no anula el acto declarado.</p>
-    {:else}<FactFields
-        bind:values={draft.values}
-        {family}
-        {api}
-        {caseId}
-        {resolution}
-        {ondenied}
-        disabled={disabled ||
-          busy ||
-          $administration.closed ||
-          ['uncertain', 'exhausted'].includes(mode)}
-        bind:pending={fieldsBusy}
-      />{/if}
-    {#if action !== 'record'}<label
-        >Motivo<textarea rows="3" bind:value={draft.reason} disabled={frozen}></textarea></label
-      >{/if}
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={prepare}
-      >Preparar registro</button
-    >
-  {/if}
-  <button class="text-button" disabled={pending} onclick={oncancel}>Cerrar formulario</button>
-</section>
+<FactEditorBody
+  {api}
+  {caseId}
+  {family}
+  {resolution}
+  {action}
+  {base}
+  bind:draft
+  {mode}
+  {prepared}
+  {last}
+  {candidate}
+  {compared}
+  {error}
+  {pending}
+  {frozen}
+  fieldsDisabled={disabled ||
+    busy ||
+    blocked ||
+    restoredClosed ||
+    $administration.closed ||
+    ['uncertain', 'exhausted'].includes(mode)}
+  bind:fieldsBusy
+  {blocked}
+  {restoredClosed}
+  {inputs}
+  {supportContext}
+  {discardSupport}
+  {supportDenied}
+  canApply={admitted}
+  ondenied={deny}
+  {prepare}
+  {submit}
+  {check}
+  {compare}
+  {accept}
+  {close}
+  retry={initialize}
+  back={() => {
+    prepared = null;
+    mode = 'draft';
+  }}
+  bind:this={view}
+/>

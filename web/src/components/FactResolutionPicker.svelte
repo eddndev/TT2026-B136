@@ -9,7 +9,9 @@
     oncancel,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   const scoped = api.caseResolutions(caseId);
   let revisions = [],
     exact = null,
@@ -17,15 +19,18 @@
     cursor,
     alive = true,
     error = '';
+  export function captureDraft() {
+    return { revision: exact?.revision ?? null };
+  }
   async function work(task) {
-    if (busy || disabled) return;
+    if (busy || disabled || !canApply()) return;
     busy = true;
     error = '';
     try {
       const value = await task();
-      if (alive) return value;
+      if (alive && canApply()) return value;
     } catch (failure) {
-      if (alive) {
+      if (alive && canApply()) {
         error = failure.message;
         if ([401, 403].includes(failure.status) || failure.code === 'case_not_found')
           ondenied(failure);
@@ -49,7 +54,10 @@
     const value = await work(() => scoped.revision(resolutionId, revision));
     if (value) exact = value;
   }
-  onMount(() => history());
+  onMount(async () => {
+    await history();
+    if (alive && canApply() && draft?.revision) await read(draft.revision);
+  });
   onDestroy(() => {
     alive = false;
     scoped.dispose();
@@ -95,7 +103,9 @@
       type="button"
       class="primary"
       disabled={disabled || busy}
-      onclick={() => onselected(exact)}>Vincular esta revisi&#243;n de resoluci&#243;n</button
+      onclick={() => {
+        if (canApply()) onselected(exact);
+      }}>Vincular esta revisi&#243;n de resoluci&#243;n</button
     >
   {/if}
   <button type="button" class="text-button" disabled={busy} onclick={oncancel}

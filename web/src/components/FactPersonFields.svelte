@@ -9,14 +9,27 @@
     declared = true,
     ondenied,
     disabled = false,
-    pending = false;
+    pending = false,
+    draft = null,
+    canApply = () => true;
   const participants = api.caseParticipants(caseId),
     typed = api.caseTypedParticipants(caseId);
   let choosing = false,
-    selected = null;
+    selected = null,
+    picker,
+    pickerDraft = draft;
   $: person = declared ? value?.value : value;
   $: mode = declared && value?.kind === 'unknown' ? 'unknown' : person?.kind || '';
+  export function captureDraft() {
+    return picker?.captureDraft() ?? pickerDraft;
+  }
+  function closePicker() {
+    pickerDraft = captureDraft();
+    choosing = false;
+  }
   function change(kind) {
+    if (!canApply()) return;
+    pickerDraft = null;
     selected = null;
     choosing = false;
     if (declared && kind === 'unknown') {
@@ -32,10 +45,11 @@
     value = declared ? { kind: kind ? 'known' : '', value: next } : next;
   }
   function select(row) {
+    if (!canApply()) return;
     const next = { kind: 'participant', id: row.id, revision: row.revision };
     value = declared ? { kind: 'known', value: next } : next;
     selected = row;
-    choosing = false;
+    closePicker();
   }
   function text(field, content) {
     const next = { ...person, [field]: content };
@@ -99,9 +113,12 @@
         typedApi={typed}
         {ondenied}
         {disabled}
+        {canApply}
+        draft={pickerDraft}
+        bind:this={picker}
         bind:busy={pending}
         onselected={select}
-        oncancel={() => (choosing = false)}
+        oncancel={closePicker}
         selectLabel="Vincular esta revisi&#243;n"
       />{/if}
   {/if}

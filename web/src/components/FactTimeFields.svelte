@@ -1,7 +1,9 @@
 <script>
   export let value,
     label,
-    disabled = false;
+    disabled = false,
+    recoverable = false,
+    draft = null;
   const pad = (n) => String(n).padStart(2, '0');
   const dateText = (v) =>
     Number.isInteger(v?.year) && Number.isInteger(v.month) && Number.isInteger(v.day)
@@ -17,7 +19,24 @@
     Number.isInteger(n)
       ? `${n < 0 ? '-' : '+'}${pad(Math.floor(Math.abs(n) / 3600))}:${pad((Math.abs(n) % 3600) / 60)}`
       : '';
+  let dateInput, clockInput, offsetInput;
+  let rawDate = draft?.date ?? null,
+    rawClock = draft?.clock ?? null,
+    rawOffset = draft?.offset ?? null;
+  export function captureDraft() {
+    return {
+      precision: value?.precision,
+      date: dateInput?.value ?? rawDate ?? dateText(value),
+      clock: clockInput?.value ?? rawClock ?? clockText(value),
+      offset: offsetInput?.value ?? rawOffset ?? offsetText(value?.offset_seconds),
+    };
+  }
+  function offsetMode(kind) {
+    rawOffset = null;
+    value = { ...value, offset_seconds: kind === 'absent' ? null : NaN };
+  }
   function precision(next) {
+    rawDate = rawClock = rawOffset = null;
     const old = value || {};
     if (!next || next === 'unknown') {
       value = { precision: next };
@@ -35,6 +54,7 @@
     if (next === 'second') value = { ...value, second: old.second };
   }
   function date(raw) {
+    if (recoverable) rawDate = raw;
     const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
     value = {
       ...value,
@@ -44,6 +64,7 @@
     };
   }
   function clock(raw) {
+    if (recoverable) rawClock = raw;
     const parts = raw.split(':');
     value = {
       ...value,
@@ -54,6 +75,7 @@
       value = { ...value, second: parts[2] ? Number(parts[2]) : undefined };
   }
   function offset(raw) {
+    if (recoverable) rawOffset = raw;
     const parts = /^([+-])(\d{2}):(\d{2})$/.exec(raw);
     const total =
       parts && Number(parts[3]) < 60
@@ -85,7 +107,8 @@
           type="date"
           min="0001-01-01"
           max="9999-12-31"
-          value={dateText(value)}
+          bind:this={dateInput}
+          value={recoverable ? (rawDate ?? dateText(value)) : dateText(value)}
           oninput={(event) => date(event.currentTarget.value)}
         /></label
       >
@@ -93,18 +116,15 @@
           >Hora de {label}<input
             type="time"
             step={value.precision === 'second' ? 1 : 60}
-            value={clockText(value)}
+            bind:this={clockInput}
+            value={recoverable ? (rawClock ?? clockText(value)) : clockText(value)}
             oninput={(event) => clock(event.currentTarget.value)}
           /></label
         >{/if}
       <label
         >Desfase de {label}<select
           value={value.offset_seconds === null ? 'absent' : 'declared'}
-          onchange={(event) =>
-            (value = {
-              ...value,
-              offset_seconds: event.currentTarget.value === 'absent' ? null : NaN,
-            })}
+          onchange={(event) => offsetMode(event.currentTarget.value)}
         >
           <option value="absent">No declarado</option><option value="declared"
             >Declarado expresamente</option
@@ -114,7 +134,13 @@
       {#if value.offset_seconds !== null}<label
           >Desfase UTC de {label}<input
             placeholder="-06:00"
-            value={offsetText(value.offset_seconds)}
+            bind:this={offsetInput}
+            value={recoverable
+              ? (rawOffset ?? offsetText(value.offset_seconds))
+              : offsetText(value.offset_seconds)}
+            oninput={(event) => {
+              if (recoverable) offset(event.currentTarget.value);
+            }}
             onchange={(event) => offset(event.currentTarget.value)}
             aria-invalid={!Number.isInteger(value.offset_seconds) ||
               Math.abs(value.offset_seconds) > 50400}

@@ -7,13 +7,32 @@
     caseId,
     ondenied,
     disabled = false,
-    pending = false;
+    pending = false,
+    draftContext = null,
+    ondiscard = () => {},
+    onsupportdenied = ondenied,
+    draft = null,
+    canApply = () => true;
   let picking = false,
     resultBusy = false,
     supportBusy = false,
-    selected = null;
+    selected = null,
+    picker,
+    pickerDraft = draft,
+    supportEpoch = 0;
   $: pending = resultBusy || supportBusy;
+  export function captureDraft() {
+    return picker?.captureDraft() ?? pickerDraft;
+  }
+  function closePicker() {
+    pickerDraft = captureDraft();
+    picking = false;
+  }
   function kind(next) {
+    if (!canApply()) return;
+    ondiscard();
+    supportEpoch++;
+    pickerDraft = null;
     picking = false;
     selected = null;
     value =
@@ -26,9 +45,10 @@
             : { kind: '' };
   }
   function select(selection) {
+    if (!canApply()) return;
     value = { ...value, reference: selection.reference };
     selected = selection.record;
-    picking = false;
+    closePicker();
   }
 </script>
 
@@ -78,10 +98,13 @@
         {api}
         {caseId}
         {ondenied}
+        {canApply}
+        draft={pickerDraft}
+        bind:this={picker}
         disabled={disabled || supportBusy}
         bind:busy={resultBusy}
         onselected={select}
-        oncancel={() => (picking = false)}
+        oncancel={closePicker}
       />{/if}
     <label
       >Localizador en el resultado: {label}<input
@@ -90,13 +113,15 @@
       /></label
     >
   {/if}
-  {#if ['external_reference', 'hearing_result'].includes(value?.kind)}<FactSupportFields
-      bind:value={value.support}
-      {api}
-      {caseId}
-      {label}
-      {ondenied}
-      disabled={disabled || resultBusy}
-      bind:pending={supportBusy}
-    />{/if}
+  {#if ['external_reference', 'hearing_result'].includes(value?.kind)}{#key supportEpoch}<FactSupportFields
+        bind:value={value.support}
+        {api}
+        {caseId}
+        {label}
+        {draftContext}
+        {ondiscard}
+        ondenied={onsupportdenied}
+        disabled={disabled || resultBusy}
+        bind:pending={supportBusy}
+      />{/key}{/if}
 </fieldset>
