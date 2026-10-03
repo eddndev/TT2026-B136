@@ -82,12 +82,23 @@ En Settings > Secrets and variables > Actions del repositorio:
 | Variable | `QADRA_PORT` | Puerto SSH `22022` |
 | Variable | `QADRA_USER` | `qadra` |
 | Variable | `QADRA_ROOT` | `/home/qadra/qadra` |
+| Variable | `QADRA_CONTROLLER_SHA256` | SHA-256 del inventario completo de controladores aprobado externamente para esa instalación |
 
 La pública debe estar en `~/.ssh/authorized_keys` (0600; `.ssh` 0700), conservando
 otras entradas. Utilizar una identidad Ed25519 exclusiva para la cuenta `qadra`
 y el despliegue; no entregar la clave administrativa de root al workflow. Los
 secretos se configuran cifrados en GitHub y no se guardan en Git. La configuración
 del servidor original no acredita que estas variables ya apunten a VPS3.
+
+La activación usa `/usr/bin/python3 -I -B -S` y el launcher estable
+`$QADRA_ROOT/controller_launcher.py`; el SHA se pasa literalmente. La variable
+de inventario es obligatoria: un valor ausente o distinto de 64 dígitos
+hexadecimales minúsculos bloquea antes de preparar las credenciales SSH. El job
+no deduce la aprobación leyendo los archivos del servidor ni recurre al
+controlador antiguo cuando falta el launcher. Instalar y aceptar primero la
+generación completa según [su contrato](deployment-controller-launcher.md),
+y registrar después el SHA aprobado en Actions. Esta adaptación del workflow no
+acredita que esa instalación o variable ya existan en VPS3.
 
 Obtener la identidad del servidor por una conexión previamente verificada o
 su consola, contrastando la huella. No crear confianza dentro del job mediante

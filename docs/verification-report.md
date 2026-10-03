@@ -19,6 +19,20 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Entrada SSH con generación aprobada: 3 de octubre de 2026
+
+La prueba del script de entrega falló inicialmente en seis aserciones de tres
+casos: se admitía una aprobación ausente o inválida y se invocaba directamente
+el controlador por su ruta mutable. Tras exigir el SHA externo y usar el launcher
+aislado aprobaron los tres casos en 0.463 s; la ejecución RED duró 1.098 s.
+El shell real se ejecutó con binarios locales que registran SSH, SCP y preparación
+de claves. Se comprobó rechazo previo a preparar credenciales, argumentos exactos,
+ausencia de transferencia tras preflight fallido y limpieza de temporales propios.
+La sintaxis Bash y `git diff --check` aprobaron. No hubo conexión remota ni cambio
+de credenciales, variables de Actions, controles instalados o aplicación privada.
+La instalación del launcher y la configuración del inventario aprobado siguen
+siendo requisitos operativos antes de usar esta entrada en el servidor.
+
 ## Interfaz de acceso Owner con certificado: 3 de octubre de 2026
 
 Después de observar los RED del cliente y la interfaz aprobaron 36 pruebas Node
