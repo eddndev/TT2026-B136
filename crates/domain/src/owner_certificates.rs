@@ -3,7 +3,7 @@
 //! These values do not authenticate an account, verify a signature or commit a
 //! registration. Rationale: docs/adr/0067-owner-certificate-bindings.md.
 
-use uuid::Uuid;
+pub use uuid::Uuid;
 
 use crate::{
     crypto::Sha256Digest,
@@ -40,6 +40,21 @@ pub struct OwnerAccount {
 }
 
 impl OwnerAccount {
+    /// Returns the captured account identity.
+    pub const fn id(&self) -> UserId {
+        self.id
+    }
+
+    /// Returns the captured account revision.
+    pub const fn revision(&self) -> u64 {
+        self.revision
+    }
+
+    /// Returns the captured authentication generation without changing it.
+    pub const fn generation(&self) -> u64 {
+        self.generation
+    }
+
     /// Restricts supplied facts to an active Owner and persisted counter ranges.
     pub fn new(
         id: UserId,
@@ -133,6 +148,11 @@ pub struct BindingStatement {
 }
 
 impl BindingStatement {
+    /// Returns the account facts covered by the registration signature.
+    pub const fn owner(&self) -> &OwnerAccount {
+        &self.owner
+    }
+
     /// Returns the immutable public references covered by the canonical record.
     pub const fn material(&self) -> &BindingMaterial {
         &self.material
@@ -169,6 +189,11 @@ pub struct BindingWithdrawal {
 }
 
 impl BindingWithdrawal {
+    /// Returns the account facts captured by the terminal withdrawal.
+    pub const fn owner(&self) -> &OwnerAccount {
+        &self.owner
+    }
+
     /// Encodes withdrawal purpose 2 and the terminal revision-1-to-2 transition.
     pub fn canonical_bytes(&self) -> [u8; 150] {
         canonical(&self.owner, &self.material, 2, 1, 2)

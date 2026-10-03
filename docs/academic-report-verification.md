@@ -1,6 +1,18 @@
 # Verificación de la actualización académica
 
 
+## Aplicación del vínculo Owner: 3 de octubre de 2026
+
+Se añadieron preparación, reautenticación, conciliación exacta y retiro histórico,
+con evidencia local separada de la persistencia todavía pendiente.
+`make -C latex` aprobó: 367 páginas, 5910411 bytes, SHA-256
+`80c29f213fd67a49a9ea1791c2a0201f4e8772a30b91105825d144902c2434ff`.
+Las páginas físicas 167 y 262 son legibles, sin recortes ni superposiciones.
+Las fuentes protegidas conservaron sus hashes; el PDF anterior quedó respaldado.
+El PDF acumulado no se versiona y no demuestra integración de las entregas.
+
+
+
 ## Confirmaciones tras caducar la sesión: 3 de octubre de 2026
 
 Implementación y pruebas documentan trece escenarios de incertidumbre, diecinueve

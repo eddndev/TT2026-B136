@@ -16,10 +16,19 @@ La declaración personal mantiene un perfil distinto que rechaza usos extendidos
 El adaptador recibe sólo evidencia pública, nunca la clave privada del titular.
 
 Una verificación satisfactoria establece consistencia criptográfica con la
-confianza aportada, no su publicación o vigencia futura. La aplicación debe
-obtenerla del estado autorizado y comprobarla nuevamente después de esperar
-los bloqueos de escritura. La asociación auditada, su unicidad y la protección
+confianza aportada, no su publicación o vigencia futura. La aplicación obtiene una captura mediante el puerto de repositorio, vuelve a
+autenticar el principal completo y entrega un comando opaco verificado. El
+adaptador durable deberá comprobarla nuevamente después de esperar los bloqueos
+de escritura. La asociación auditada, su unicidad y la protección
 contra reutilización siguen pendientes de persistencia. Tampoco se habilita
 acceso por certificado, se sustituye MFA ni se atribuye una firma documental
 individual. La política y sus límites están en
 \rutarepo{docs/adr/0067-owner-certificate-bindings.md}.
+
+El servicio separa preparación, registro, consulta y retiro. Un recibo debe
+corresponder al UUID exacto y a la cuenta actual; el retiro histórico conserva
+los contadores y tiempo de su primera confirmación incluso ante concurrencia.
+El token de sesión no se retiene en los comandos y no hay reintentos implícitos.
+La expiración del certificado no impide retirar el vínculo mediante la sesión
+MFA existente. Esta capa todavía no expone rutas HTTP ni reemplaza la obligación
+transaccional del repositorio.

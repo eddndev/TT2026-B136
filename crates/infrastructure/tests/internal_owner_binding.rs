@@ -1,3 +1,5 @@
+#[path = "owner_binding_cases/application_port.rs"]
+mod application_port;
 #[allow(dead_code)]
 #[path = "declaration_fixture/mod.rs"]
 mod declaration_fixture;

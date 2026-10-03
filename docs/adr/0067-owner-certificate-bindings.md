@@ -3,8 +3,8 @@
 ## Status
 
 Accepted for structural domain values, canonical bytes and strict cryptographic
-verification. Application authorization and audited persistence still need their
-own accepted implementations before a binding can be registered.
+verification and application authorization. Audited persistence still needs its
+own accepted implementation before a binding can be registered durably.
 
 ## Context
 
@@ -117,6 +117,29 @@ verification proves consistency with supplied material at the supplied time;
 it does not prove that a public Rust snapshot came from the current published
 database state. The caller must load that state and recheck it at commit.
 No private key is received, generated or persisted by this verifier.
+
+### Application boundary
+
+`OwnerCertificateService` authenticates the current MFA session through the
+existing identity port. Preparation loads the account and published trust through
+the repository port, then constructs an opaque registration containing the exact
+canonical statement and inspected public certificate. Registration verifies the
+signature outside persistence locks, reads time after verification and compares
+the full authenticated principal again before committing the opaque verified
+command. Session tokens are borrowed for the call and are not retained in it.
+
+Receipt and withdrawal operations require the current active Owner and exact
+binding UUID. An expired certificate or superseded trust does not prevent reading
+an original receipt or withdrawing that credential. Exact uncertain-registration
+reconciliation compares original statement, certificate, signature and whole
+trust before returning history. A concurrent terminal withdrawal preserves the
+first withdrawal's original counters and time; it cannot replace another
+registration or produce another revision. Errors do not trigger implicit retry.
+
+These service checks and real verifier dispatch are covered locally. Repository
+methods remain ports: their database transaction, serialization, unique live
+binding and permanent fingerprint ownership require separate backend evidence.
+The service does not expose an HTTP endpoint or enable certificate login.
 
 ### Persistence and admission obligations
 
