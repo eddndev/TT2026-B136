@@ -156,8 +156,11 @@ convivencia con CI requiere medir presión de memoria y CPU durante la aceptaci�
 La raíz contiene `config/` (secretos/huella), `data/` (bases/CA/TSA/temporales),
 `tools/` (controlador instalado), `incoming/`, `releases/`, `backups/`, `logs/`
 y `run/`. `current` y `previous` apuntan a releases admitidas. Actualizar el
-controlador o las unidades exige repetir la instalación desde una revisión
-revisada, fuera de una activación. Los tags cambian el paquete de aplicación;
+controlador o las unidades requiere el [instalador recuperable](deployment-controller-installation.md)
+y su [bootstrap privado](deployment-controller-bootstrap.md), desde una revisión
+aprobada y fuera de una activación. La provisión inicial anterior no sustituye
+esa transición sobre servicios existentes. La aceptación aislada del instalador
+no significa que ya esté instalado en la cuenta `qadra`. Los tags cambian el paquete de aplicación;
 la activación no accede al repositorio ni compila bajo la cuenta `qadra`.
 
 ## Crear y publicar un tag
