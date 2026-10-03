@@ -63,6 +63,7 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Recursos procesales y actos | Texto y motivo crudos, base original, resolución y participantes históricos, soportes y archivos por fila. | Corregir un acto conserva su identidad y revisión separadas de la cabecera; sólo el recibo exacto confirma un envío incierto. |
 | Actividades vinculadas | Recurso, acto y actividad históricos, selección parcial, motivo y base originales. | No crea actividades; sólo el recibo exacto confirma el vínculo y un reenvío requiere consultar su ausencia de nuevo. |
 | Plazos creados desde recursos | Ambos identificadores nuevos, campos crudos, referencias históricas y sobre incierto conservados tras nueva autorización. | Dos recibos separados no prueban origen conjunto; el servidor debe confirmar explícitamente la operación compuesta. |
+| Plazos ordinarios | Alta, corrección, atención y retiro: campos crudos, referencias, base y comando incierto exactos tras nueva autorización. | La preparación pierde aprobación y una coincidencia no confirma el resultado; se consulta el recibo exacto. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
 focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
@@ -108,6 +109,12 @@ preparación recuperada pierde aprobación. Cada vencimiento exige otra consulta
 antes de decidir un reenvío; un expediente cerrado permite confirmar el origen
 conjunto de registros existentes, pero no repetir una creación ausente.
 
+Ocho casos nuevos del editor ordinario de plazos aprobaron en 27,0 segundos y
+siete regresiones existentes en 19,7 segundos, con HTTP controlado. Incluyen
+atención con hora parcial, revisión concurrente, cierre y reapertura, recibo
+ajeno y limpieza antes del refresco. No añaden un reenvío automático ni atribuyen
+al autor una revisión por coincidencia de valores.
+
 La duración operativa del límite de inactividad sigue sin aprobarse. El backend
 mantiene por defecto su límite absoluto de veinticuatro horas. La configuración
 de doce segundos del [ensayo reproducible](../web/README.md#reingreso-con-vencimiento-real)
@@ -121,7 +128,6 @@ asumiendo que todos los formularios conservan sus cambios.
 
 | Familia | Componentes | Contexto que debe consultarse de nuevo |
 | --- | --- | --- |
-| Plazos | `DeadlineEditor.svelte` | Plazo, fuentes de cómputo y versión consultada. |
 | Preferencias de alertas | `AlertPreferences.svelte` | Cuenta, preferencias vigentes, revisión y recibo del guardado. |
 | Solicitud de informes | `CaseReports.svelte` | Solicitante, filtros, destinatario seleccionado e identidad de solicitud incierta. |
 | Confirmaciones administrativas | `CaseMembers.svelte`, `CaseStatus.svelte`, `ParticipantStatus.svelte` | Cuenta o ficha destino, intención, estado vigente e incertidumbre sin atribuir un resultado por coincidencia. |

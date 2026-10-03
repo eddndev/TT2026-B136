@@ -824,6 +824,17 @@ ya registrada, pero no repetir una creación ausente. El resultado confirmado
 retira la captura antes del refresco; otra expiración nunca conserva un permiso
 previo para reenviar.
 
+El editor ordinario de plazos conserva por separado alta, corrección, atención
+y retiro. Sus campos de fecha, hora y desplazamiento pueden permanecer
+incompletos; recuperar acceso no los convierte en valores válidos. Se consultan
+autorización del expediente, revisión vigente y referencias históricas antes
+de proyectar el borrador, manteniendo la base original y retirando cualquier
+aprobación anterior. Una respuesta incierta conserva el comando exacto y se
+resuelve mediante su recibo; una revisión ajena no acredita el envío propio.
+El cierre permite inspeccionar, pero bloquea mutaciones. La confirmación elimina
+la captura antes de esperar la actualización del listado.
+
+
 Los adaptadores de clasificación documental, alta y edición de expedientes, carga documental principal y nuevas versiones preservan texto incompleto y selecciones todavía no confirmadas. Una revisión concurrente requiere comparar los valores actuales y decidir de nuevo; un expediente cerrado admite consultar el borrador autorizado sin enviarlo. Si una carga pudo haberse confirmado antes de perder su respuesta, la interfaz exige revisar el listado vigente y reconocer el riesgo de duplicación antes de iniciar otra carga explícita. No reproduce escrituras automáticamente. Los editores anidados y las demás familias de formularios requieren adaptadores y aceptación propios; la existencia del registro no demuestra recuperación universal. La activación operativa de inactividad permanece pendiente hasta completar ese inventario y seleccionar su duración. La decisión se documenta en \rutarepo{docs/adr/0065-session-reentry-and-memory-drafts.md}.
 
 \subsection{Límites de ejecución y verificación integrada}\label{sec:impl-http-limites}

@@ -1,9 +1,6 @@
 <script>
-  import { onDestroy } from 'svelte';
-  import DeadlineFields from './DeadlineFields.svelte';
-  import DeadlineFieldsAttention from './DeadlineFieldsAttention.svelte';
-  import DeadlineFieldsReview from './DeadlineFieldsReview.svelte';
-  import CaseClosedNotice from './CaseClosedNotice.svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import DeadlineEditorBody from './DeadlineEditorBody.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import {
     canDeadlines,
@@ -11,13 +8,10 @@
     deadlineFailure,
     deadlineUncertain,
   } from '../lib/deadline-errors.mjs';
-  import { readDeadlineSubmission } from '../lib/deadline-submission.mjs';
-  import {
-    initialDeadlinePolicies,
-    reconcileDeadlinePolicies,
-    deadlinePoliciesCommand,
-    adoptDeadlineDefinition,
-  } from '../lib/deadline-editor-policies.mjs';
+  import { initialDeadlinePolicies } from '../lib/deadline-editor-policies.mjs';
+  import { initialDeadline, captureDeadline, createDeadlineDraft } from '../lib/deadline-draft.mjs';
+  import { refreshDeadlineReferences } from '../lib/deadline-draft-references.mjs';
+  import { createDeadlineActions } from '../lib/deadline-editor-actions.mjs';
   export let api,
     user,
     caseId,
@@ -27,140 +21,259 @@
     oncancel,
     ondenied = () => {},
     pending = false,
-    disabled = false;
-  const administration = caseState();
-  let scoped = null,
-    seen = '',
-    generation = 0,
-    alive = true,
-    current = null,
-    id = '',
-    definition,
-    policies,
-    fieldsVersion = 0,
-    attention = { status: '' },
+    disabled = false,
+    savedDraft = null;
+  const session = getContext('session-drafts'),
+    administration = caseState();
+  const scoped = api.deadlines(caseId);
+  let current = base,
+    id = base?.id || crypto.randomUUID();
+  let definition = base ? structuredClone(base.definition) : initialDeadline(caseId);
+  let policies = initialDeadlinePolicies(definition, base?.tracking?.policies);
+  let attention = { status: '' },
     reason = '',
     profile = null,
-    responsible = null,
+    responsible = base?.responsible || null;
+  let inputs = null,
+    view,
+    fieldsVersion = 0;
+  let alive = true,
     busy = false,
     fieldsBusy = false,
-    step = 'draft',
+    blocked = true,
+    loaded = false,
+    finished = false,
+    restoredClosed = false;
+  let step = 'draft',
     prepared = null,
     last = null,
     candidate = null,
     compared = false,
     error = '',
     acknowledge = false;
-  $: allowed = canDeadlines(user?.role, 'manage');
-  $: identity = `${caseId}:${user?.id}:${user?.email}:${user?.role}:${mode}:${base?.id || ''}:${base?.revision || ''}`;
-  $: if (identity !== seen) reset(identity);
-  $: pending = busy || fieldsBusy;
-  $: frozen =
-    disabled ||
-    pending ||
-    $administration.closed ||
-    !allowed ||
-    ['uncertain', 'exhausted'].includes(step);
-  function reset(identity) {
-    seen = identity;
-    generation++;
-    scoped?.dispose();
-    scoped = null;
-    busy = false;
-    fieldsBusy = false;
-    step = 'draft';
-    prepared = null;
-    last = null;
-    candidate = null;
-    compared = false;
-    error = '';
-    acknowledge = false;
-    profile = null;
-    current = base;
-    responsible = base?.responsible || null;
-    id = base?.id || crypto.randomUUID();
-    reason = '';
-    attention = { status: '' };
-    definition = base
-      ? structuredClone(base.definition)
-      : {
-          title: '',
-          profile: null,
-          responsible_id: '',
-          input: {
-            selection: { case_id: caseId, source: { kind: '' }, qualification: null },
-            calendar: null,
-            ordered_quantity: null,
-            qualification: {
-              statement: '',
-              locator: '',
-              scope_applies: { kind: '' },
-              unresolved_incident: { kind: '' },
-              conditions: [],
-            },
-          },
-        };
-    policies = initialDeadlinePolicies(definition, base?.tracking?.policies);
-    fieldsVersion++;
-    if (canDeadlines(user?.role, 'manage')) scoped = api.deadlines(caseId);
+  const recovery = session
+    ? createDeadlineDraft({
+        session,
+        caseId,
+        action: mode,
+        capture: () =>
+          captureDeadline({
+            id,
+            current,
+            definition,
+            policies,
+            attention,
+            reason,
+            step,
+            last,
+            inputs: (blocked ? null : view?.captureInputs()) ?? inputs,
+          }),
+      })
+    : null;
+  function admitted() {
+    return alive && !finished && (!recovery || recovery.admitted());
   }
-  const currentRequest = (token) => alive && token === generation;
+  function saveInputs() {
+    if (!blocked) inputs = view?.captureInputs() ?? inputs;
+  }
+  function update(next) {
+    if (!alive) return;
+    ({
+      busy,
+      error,
+      acknowledge,
+      prepared,
+      step,
+      last,
+      current,
+      candidate,
+      compared,
+      definition,
+      policies,
+      profile,
+      responsible,
+      fieldsVersion,
+      inputs,
+    } = {
+      busy,
+      error,
+      acknowledge,
+      prepared,
+      step,
+      last,
+      current,
+      candidate,
+      compared,
+      definition,
+      policies,
+      profile,
+      responsible,
+      fieldsVersion,
+      inputs,
+      ...next,
+    });
+  }
+  const actions = createDeadlineActions({
+    read: () => ({
+      user,
+      mode,
+      id,
+      current,
+      definition,
+      policies,
+      attention,
+      reason,
+      pending,
+      disabled,
+      blocked,
+      frozen,
+      step,
+      prepared,
+      acknowledge,
+      last,
+      candidate,
+      compared,
+      fieldsVersion,
+      inputs,
+    }),
+    update,
+    admitted,
+    scoped,
+    saveInputs,
+    finish,
+    fail,
+    report,
+    register: (resourceId, revision) => recovery?.register(resourceId, revision),
+  });
+  async function fresh() {
+    if (!admitted()) return null;
+    if (!session) return { current: base, closed: $administration.closed };
+    const record = await session.authorizeCase(caseId);
+    if (!admitted()) return null;
+    const currentAdministration = record.administration;
+    if (
+      record.id !== caseId ||
+      currentAdministration?.case_id !== caseId ||
+      !['active', 'closed'].includes(currentAdministration.administrative_status)
+    )
+      throw new Error('No se pudo confirmar el expediente actual.');
+    let head = null;
+    if (mode !== 'register') {
+      try {
+        head = await scoped.get(id);
+      } catch (failure) {
+        if (failure.status === 404) failure.deadlineOwnerDenied = true;
+        throw failure;
+      }
+    }
+    return admitted()
+      ? { current: head, closed: currentAdministration.administrative_status === 'closed' }
+      : null;
+  }
+  async function initialize() {
+    if (session?.canAdmit() && !canDeadlines(session.principal()?.role, 'manage')) {
+      deny({ status: 403, code: 'permission_denied' });
+      return;
+    }
+    if (busy || !admitted()) return;
+    saveInputs();
+    blocked = busy = true;
+    error = '';
+    acknowledge = compared = false;
+    prepared = candidate = null;
+    if (step === 'review') step = 'draft';
+    try {
+      let context;
+      if (savedDraft && !loaded && recovery) {
+        const result = await recovery.restore(savedDraft, fresh, (value, freshContext) => {
+          ({ id, current, definition, policies, attention, reason, step, last, inputs } = value);
+          context = freshContext;
+          loaded = true;
+        });
+        if (!admitted()) return;
+        if (result.status !== 'restored')
+          throw new Error('No se pudo recuperar el borrador de plazo.');
+      } else {
+        context = await fresh();
+        if (!context || !admitted()) return;
+        if (!loaded) {
+          recovery?.register(mode === 'register' ? null : id, current?.revision ?? 0);
+          loaded = true;
+        }
+      }
+      restoredClosed = context.closed;
+      if (
+        current &&
+        step !== 'uncertain' &&
+        (context.current.revision !== current.revision || context.current.status !== 'active')
+      )
+        step = 'conflict';
+      if (!context.closed && $administration.closed) {
+        await $administration.refresh?.();
+        if (!admitted()) return;
+      }
+      if (savedDraft && ['register', 'correct'].includes(mode)) {
+        const references = await refreshDeadlineReferences(api, caseId, definition, admitted);
+        if (!references || !admitted()) return;
+        ({ profile, responsible } = references);
+      }
+      if (admitted()) {
+        fieldsVersion++;
+        blocked = false;
+      }
+    } catch (failure) {
+      if (admitted()) report(failure);
+    } finally {
+      if (alive) busy = false;
+    }
+  }
+  function deny(failure) {
+    if (failure.code === 'case_not_found' || failure.status === 403)
+      session?.registry.denyContext(caseId);
+    recovery?.close();
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    finished = blocked = true;
+    ondenied(failure);
+  }
+  function report(failure) {
+    error = deadlineFailure(failure);
+    if (deadlineDenied(failure) || failure.deadlineOwnerDenied) deny(failure);
+  }
   function fail(failure, writing = false) {
     prepared = null;
     acknowledge = false;
+    if (deadlineDenied(failure)) return deny(failure);
     error = deadlineFailure(failure);
-    if (deadlineDenied(failure)) {
-      ondenied(failure);
-      return;
-    }
     if (writing && (deadlineUncertain(failure) || failure.code === 'deadline_operation_conflict')) {
       step = 'uncertain';
       error =
         'No se pudo confirmar el resultado. Conservamos el envio para consultar su revision exacta.';
-    } else if (failure.code === 'deadline_revision_exhausted') step = 'exhausted';
-    else if (
-      ['deadline_revision_conflict', 'deadline_retired', 'deadline_not_found'].includes(
-        failure.code,
-      )
-    ) {
-      step = 'conflict';
-      candidate = null;
-      compared = false;
-    } else step = 'draft';
-  }
-  async function prepare() {
-    if (frozen || step !== 'draft') return;
-    const token = generation;
-    busy = true;
-    error = '';
-    acknowledge = false;
-    try {
-      const change = {
-        action: mode,
-        expected_revision: mode === 'register' ? 0 : current.revision,
-      };
-      if (['register', 'correct'].includes(mode)) {
-        change.definition = structuredClone(definition);
-        change.tracking = deadlinePoliciesCommand(policies, definition);
-      }
-      if (mode === 'set_attention') change.attention = structuredClone(attention);
-      if (mode !== 'register') change.reason = reason;
-      const value = await scoped.prepare(
-        { operation_id: crypto.randomUUID(), deadline_id: id, change },
-        { id: user.id, email: user.email, role: user.role },
-      );
-      if (currentRequest(token)) {
-        prepared = structuredClone(value);
-        step = 'review';
-      }
-    } catch (failure) {
-      if (currentRequest(token)) fail(failure);
-    } finally {
-      if (currentRequest(token)) busy = false;
+    } else {
+      last = null;
+      if (failure.code === 'deadline_revision_exhausted') step = 'exhausted';
+      else if (
+        ['deadline_revision_conflict', 'deadline_retired', 'deadline_not_found'].includes(
+          failure.code,
+        )
+      ) {
+        step = 'conflict';
+        candidate = null;
+        compared = false;
+      } else step = 'draft';
     }
   }
+  function close() {
+    if (pending || disabled) return;
+    recovery?.close();
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    finished = true;
+    oncancel();
+  }
   async function finish(value, exact = false) {
-    prepared = null;
+    recovery?.close();
+    if (savedDraft) session?.registry.closeEditor(savedDraft.key);
+    finished = true;
+    prepared = last = null;
     step = 'confirmed';
     try {
       await onsaved(value, exact);
@@ -169,206 +282,66 @@
         error = 'El plazo se guardo. Consulta de nuevo sin reenviar si faltan datos en pantalla.';
     }
   }
-  async function submit() {
-    if (frozen || step !== 'review' || !prepared || !acknowledge) return;
-    const token = generation;
-    busy = true;
-    error = '';
-    last = structuredClone(prepared);
-    try {
-      const value = await scoped.submit(last);
-      if (currentRequest(token)) await finish(value);
-    } catch (failure) {
-      if (currentRequest(token)) fail(failure, true);
-    } finally {
-      if (currentRequest(token)) busy = false;
-    }
-  }
-  async function check() {
-    if (pending || !last || !allowed) return;
-    const token = generation;
-    busy = true;
-    error = '';
-    try {
-      const value = await readDeadlineSubmission(scoped, last);
-      if (!currentRequest(token)) return;
-      if (value.state === 'matched') await finish(value.record, true);
-      else if (value.state === 'absent')
-        error =
-          'La revision aun no esta disponible. El resultado sigue incierto; puedes consultar de nuevo.';
-      else {
-        step = 'conflict';
-        candidate = value.record;
-        compared = false;
-        error = 'La revision pertenece a otro envio. Conservamos tu borrador.';
-      }
-    } catch (failure) {
-      if (currentRequest(token)) {
-        error = deadlineFailure(failure);
-        if (deadlineDenied(failure)) ondenied(failure);
-      }
-    } finally {
-      if (currentRequest(token)) busy = false;
-    }
-  }
-  async function compare() {
-    if (pending || !allowed) return;
-    const token = generation;
-    busy = true;
-    error = '';
-    compared = false;
-    try {
-      const value = await scoped.get(id);
-      if (currentRequest(token)) {
-        candidate = value;
-        compared = true;
-      }
-    } catch (failure) {
-      if (currentRequest(token)) {
-        error = deadlineFailure(failure);
-        if (deadlineDenied(failure)) ondenied(failure);
-      }
-    } finally {
-      if (currentRequest(token)) busy = false;
-    }
-  }
-  function accept() {
-    if (frozen || !compared || !candidate || candidate.status !== 'active' || mode === 'register')
-      return;
-    if (mode === 'correct') {
-      definition = adoptDeadlineDefinition(current.definition, definition, candidate.definition);
-      if (definition.responsible_id === candidate.responsible.id)
-        responsible = candidate.responsible;
-      policies = reconcileDeadlinePolicies(policies, definition);
-      profile = null;
-      fieldsVersion++;
-    }
-    current = candidate;
-    prepared = null;
-    step = 'draft';
-    compared = false;
-    error = '';
-    acknowledge = false;
-  }
+  $: allowed = canDeadlines(user?.role, 'manage');
+  $: closed = restoredClosed || $administration.closed;
+  $: pending = busy || fieldsBusy;
+  $: frozen =
+    disabled ||
+    blocked ||
+    !admitted() ||
+    pending ||
+    closed ||
+    !allowed ||
+    ['uncertain', 'exhausted', 'confirmed'].includes(step);
+  onMount(initialize);
   onDestroy(() => {
+    recovery?.dispose();
     alive = false;
-    generation++;
     pending = false;
-    scoped?.dispose();
+    scoped.dispose();
   });
 </script>
 
 {#if allowed}
-  <section
-    class="card case-editor fact-editor"
-    aria-label="Formulario de plazo"
-    aria-busy={pending}
-  >
-    <h2>
-      {mode === 'register'
-        ? 'Registrar plazo'
-        : mode === 'correct'
-          ? 'Corregir plazo'
-          : mode === 'set_attention'
-            ? 'Declarar atencion'
-            : 'Retirar plazo'}
-    </h2>
-    <p class="hint">
-      La captura conserva una evaluaci&#243;n de datos declarados. La revisi&#243;n de aplicabilidad
-      corresponde a la persona operadora.
-    </p>
-    <CaseClosedNotice />
-    {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-    {#if step === 'uncertain'}<section
-        class="case-comparison"
-        aria-label="Resultado incierto del plazo"
-      >
-        <h3>Resultado incierto</h3>
-        <p>Una ausencia temporal no confirma que la escritura haya fallado.</p>
-        <button class="primary" disabled={pending} onclick={check}>Consultar envio exacto</button>
-        <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
-      </section>{/if}
-    {#if step === 'conflict'}<section class="case-comparison" aria-label="Comparar base del plazo">
-        <h3>Comparar con el plazo actual</h3>
-        <button class="secondary" disabled={pending} onclick={compare}>Consultar base actual</button
-        >
-        {#if compared && candidate}<p>
-            Base consultada: revisi&#243;n {candidate.revision} / {candidate.status === 'retired'
-              ? 'Retirado'
-              : 'Activo'}
-          </p>
-          <DeadlineFieldsReview value={candidate} />
-          {#if candidate.status === 'active' && mode !== 'register'}<button
-              class="primary"
-              disabled={frozen}
-              onclick={accept}>Usar esta base y conservar borrador</button
-            >
-          {:else}<p>
-              Esta captura no permite reenviar sobre la base consultada. Cierra el formulario para
-              revisar su historia.
-            </p>{/if}
-        {/if}
-      </section>{/if}
-    {#if prepared}<section class="case-comparison" aria-label="Revision del plazo a confirmar">
-        <h3>Revisa el plazo a confirmar</h3>
-        <p>Revisi&#243;n a registrar: {prepared.result_revision}</p>
-        <DeadlineFieldsReview value={prepared} {profile} />
-        {#if prepared.command.change.reason}<p class="case-multiline">
-            Motivo: {prepared.command.change.reason}
-          </p>{/if}
-        <label class="checkbox"
-          ><input type="checkbox" bind:checked={acknowledge} disabled={frozen} />
-          {prepared.calculation.result.blocks.length
-            ? 'Revise las declaraciones, fuentes y politicas; confirmo guardar el plazo con estos bloqueos'
-            : 'Revise las declaraciones, fuentes, politicas y el resultado a guardar'}</label
-        >
-        <div class="action-row">
-          <button
-            class="secondary"
-            disabled={pending}
-            onclick={() => {
-              prepared = null;
-              step = 'draft';
-              acknowledge = false;
-            }}>Volver al borrador</button
-          >
-          <button class="primary" disabled={frozen || !acknowledge} onclick={submit}
-            >Confirmar plazo</button
-          >
-        </div>
-      </section>{:else if step !== 'confirmed'}
-      {#key `${identity}:${fieldsVersion}`}
-        {#if ['register', 'correct'].includes(mode)}<DeadlineFields
-            {api}
-            {caseId}
-            {ondenied}
-            bind:value={definition}
-            bind:profile
-            bind:responsible
-            bind:policies
-            bind:pending={fieldsBusy}
-            disabled={disabled ||
-              busy ||
-              $administration.closed ||
-              ['uncertain', 'exhausted'].includes(step)}
-          />
-        {:else if mode === 'set_attention'}<DeadlineFieldsAttention
-            bind:value={attention}
-            disabled={frozen}
-          />
-        {:else}<p class="notice">
-            El retiro es terminal. Conserva el c&#225;lculo y la historia; no anula el acto ni
-            declara extinguido el plazo.
-          </p>{/if}
-      {/key}
-      {#if mode !== 'register'}<label
-          >Motivo<textarea rows="3" maxlength="1000" bind:value={reason} disabled={frozen}
-          ></textarea></label
-        >{/if}
-      <button class="primary" disabled={frozen || step !== 'draft'} onclick={prepare}
-        >Preparar plazo</button
-      >
-    {/if}
-    <button class="text-button" disabled={pending} onclick={oncancel}>Cerrar formulario</button>
-  </section>
+  <DeadlineEditorBody
+    bind:this={view}
+    {api}
+    {caseId}
+    {mode}
+    {pending}
+    {frozen}
+    {step}
+    {error}
+    {blocked}
+    {closed}
+    {fieldsVersion}
+    {prepared}
+    {last}
+    {candidate}
+    {compared}
+    {inputs}
+    recoverable={!!recovery}
+    bind:definition
+    bind:policies
+    bind:attention
+    bind:reason
+    bind:profile
+    bind:responsible
+    bind:acknowledge
+    bind:fieldsBusy
+    fieldsDisabled={disabled ||
+      blocked ||
+      busy ||
+      closed ||
+      ['uncertain', 'exhausted'].includes(step)}
+    ondenied={deny}
+    {actions}
+    oncontext={initialize}
+    onclose={close}
+    onback={() => {
+      prepared = null;
+      step = 'draft';
+      acknowledge = false;
+    }}
+  />
 {/if}

@@ -1,5 +1,23 @@
 # Informe de verificación local
 
+## Plazos ordinarios: recuperación local del 3 de octubre de 2026
+
+El caso inicial reprodujo la falta de consulta fresca del expediente antes de
+recuperar campos. Tras añadir el adaptador se corrigió una variable local que
+ocultaba el store Svelte de administración. Ocho escenarios nuevos aprobaron
+en 27.0 s y siete regresiones existentes en 19.7 s, con un trabajador y HTTP
+controlado, sin ampliar límites ni modificar las aserciones de aceptación.
+
+Se conservaron texto, fechas y desplazamientos incompletos, referencias
+históricas y base original para alta, corrección, atención y retiro. Una
+preparación anterior perdió aprobación; una base concurrente exigió decisión.
+El cierre permitió inspección sin mutar y la reapertura necesitó consulta nueva.
+El envío incierto conservó el comando antes de esperar y sólo el recibo exacto
+confirmó su resultado. Otro recibo mantuvo incertidumbre; una confirmación
+retiró el borrador antes del refresco, incluso si volvía a vencer la sesión.
+CI y el recorrido ampliado con servicios reales permanecen pendientes.
+
+
 ## Vínculo estructural de certificado propio: 3 de octubre de 2026
 
 El target explícito `owner_certificate_binding` reprodujo primero la ausencia
