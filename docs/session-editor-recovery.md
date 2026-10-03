@@ -136,21 +136,41 @@ mantiene por defecto su límite absoluto de veinticuatro horas. La configuració
 de doce segundos del [ensayo reproducible](../web/README.md#reingreso-con-vencimiento-real)
 pertenece exclusivamente a sus servicios desechables.
 
-## Editores que todavía requieren adaptación
+## Confirmaciones sin campos editables
 
-El vencimiento cierra también los editores siguientes, pero su contenido no tiene
-una aceptación de recuperación. No debe habilitarse la inactividad operativa
-asumiendo que todos los formularios conservan sus cambios.
+Cambiar estado administrativo o de participante y confirmar un sellado son
+intenciones explícitas, no borradores de texto. Si se pierde su respuesta o el
+servidor devuelve un error 5xx, consulta el estado actual antes de decidir otra
+operación. Cancelar y reabrir la confirmación no elimina esa obligación; una
+consulta no reenvía el comando ni demuestra por sí sola qué envío produjo el
+estado observado. En sellado se consulta la versión exacta, se cierra la intención
+anterior y, si sigue pendiente, hace falta iniciar otra confirmación.
 
-| Familia | Componentes | Contexto que debe consultarse de nuevo |
-| --- | --- | --- |
-| Confirmaciones administrativas | `CaseMembers.svelte`, `CaseStatus.svelte`, `ParticipantStatus.svelte` | Cuenta o ficha destino, intención, estado vigente e incertidumbre sin atribuir un resultado por coincidencia. |
+En el estado del expediente, esa barrera también se conserva al pasar a otra
+sección y volver al resumen. La navegación no consulta ni reenvía el comando:
+la confirmación permanece bloqueada hasta completar la consulta explícita.
+El estado se limita al expediente abierto y se descarta con su sesión.
+
+Trece casos nuevos y diecinueve regresiones relacionadas aceptaron ese
+comportamiento localmente con HTTP controlado. Otros cuatro escenarios aceptaron
+vencimiento durante cambio administrativo, cambio de participante, retiro de
+asignación y sellado: la nueva sesión consulta el estado vigente y no repite el
+comando. La confirmación anterior se descarta y su respuesta tardía no modifica
+la intención nueva. Los filtros de Asignaciones vuelven a su estado inicial;
+no contienen texto de una mutación que deba recuperarse.
+
+## Alcance que conserva aceptación pendiente
+
+La lectura de avisos en `AlertCard.svelte` y `CaseReports.svelte` no contiene texto
+de una mutación. Su aceptación específica de vencimiento sigue pendiente; no se
+supone acreditada por los cuatro recorridos administrativos y documentales.
+Tampoco debe habilitarse la inactividad operativa asumiendo que todos los
+formularios conservan sus cambios.
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus
 resultados privados después de autenticar de nuevo. Sus filtros o selecciones
 sólo pueden formar parte del borrador del editor propietario mediante una
-proyección explícita. La revisión encontró también las superficies administrativas e informes de la
-tabla. El alta de integrantes conserva aparte su pendiente de enrolamiento:
+proyección explícita. El alta de integrantes conserva aparte su pendiente de enrolamiento:
 contraseña inicial, secreto MFA y códigos de recuperación no deben entrar al
 registro de borradores. La aceptación de los editores no demuestra recuperación
 de esos secretos ni de todos los controles que confirman escrituras.

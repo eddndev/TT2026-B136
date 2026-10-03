@@ -31,6 +31,7 @@
     refresh,
   });
   setContext('case-administration', state);
+  let statusUncertain = false;
   let current = record,
     alive = true,
     generation = 0,
@@ -104,6 +105,7 @@
   {#if busy}<p class="hint" role="status">Consultando estado del expediente...</p>{/if}
   {#if view === 'case-summary'}
     {#if staff}<CaseAdministration
+        bind:statusUncertain
         {api}
         {scoped}
         {user}

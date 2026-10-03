@@ -15,6 +15,7 @@
   let candidate;
   let intended = 'archived';
   let conflict = false;
+  let uncertain = false;
   let refreshed = false;
   let exhausted = false;
   let busy = false;
@@ -27,7 +28,7 @@
   let alive = true;
   $: already = refreshed && candidate?.directory_status === intended;
   export function open() {
-    if ($administration.closed) return;
+    if (busy || $administration.closed) return;
     candidate = current;
     intended = current.directory_status === 'active' ? 'archived' : 'active';
     conflict = false;
@@ -41,6 +42,7 @@
   }
   async function refresh() {
     busy = true;
+    refreshed = false;
     try {
       const result = await api.get(current.id);
       if (!alive) return;
@@ -49,8 +51,8 @@
       refreshed = true;
       await onobserved(result);
     } catch (failure) {
-      if (failure.code === 'case_closed') blockedByCase = true;
       if (alive) {
+        if (failure.code === 'case_closed') blockedByCase = true;
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure);
       }
@@ -59,22 +61,35 @@
     }
   }
   async function confirm() {
-    if (busy || exhausted || already || $administration.closed || (conflict && !refreshed)) return;
+    if (
+      busy ||
+      exhausted ||
+      already ||
+      $administration.closed ||
+      ((conflict || uncertain) && !refreshed)
+    )
+      return;
     busy = true;
     error = '';
+    uncertain = true;
+    refreshed = false;
+    let confirmed = false;
     try {
       const record = await api.changeStatus(current.id, candidate.revision, intended);
       if (!alive) return;
+      uncertain = false;
+      confirmed = true;
+      dialog.close();
       await onconfirmed(record);
-      if (!alive) return;
-      busy = false;
-      close();
     } catch (failure) {
-      if (failure.code === 'case_closed') blockedByCase = true;
       if (!alive) return;
-      conflict = failure.code === 'participant_revision_conflict';
-      exhausted = failure.code === 'participant_revision_exhausted';
-      refreshed = false;
+      if (failure.code === 'case_closed') blockedByCase = true;
+      if (!confirmed) {
+        uncertain = !failure.status || failure.status >= 500;
+        conflict = failure.code === 'participant_revision_conflict';
+        exhausted = failure.code === 'participant_revision_exhausted';
+        refreshed = false;
+      }
       error = conflict
         ? 'El participante cambi\u00f3. Consulta sus datos actuales antes de confirmar de nuevo.'
         : participantFailure(failure);
@@ -112,7 +127,7 @@
   {#if candidate}<ParticipantSummary record={candidate} />
     <p class="hint">Revisi&#243;n {candidate.revision}</p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if conflict}<button class="secondary" disabled={busy} onclick={refresh}
+  {#if conflict || uncertain}<button class="secondary" disabled={busy} onclick={refresh}
       >Consultar datos actuales</button
     >{/if}
   {#if refreshed && !already}<p class="notice" role="status">
@@ -129,7 +144,11 @@
     >
     <button
       class="primary"
-      disabled={busy || exhausted || already || $administration.closed || (conflict && !refreshed)}
+      disabled={busy ||
+        exhausted ||
+        already ||
+        $administration.closed ||
+        ((conflict || uncertain) && !refreshed)}
       onclick={confirm}
       >{busy
         ? 'Guardando...'

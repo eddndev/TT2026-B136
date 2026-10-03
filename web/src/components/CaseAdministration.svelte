@@ -6,6 +6,7 @@
   import { manageCase } from '../lib/case-administration.mjs';
   import { caseState } from '../lib/case-state.mjs';
   export let api, scoped, user, record, onupdate, ondenied, onrefresh, onnavigate;
+  export let statusUncertain = false;
   const state = caseState();
   let editing = null,
     statusDialog,
@@ -105,6 +106,7 @@
 </section>
 {#if manageCase(user.role)}<CaseStatus
     bind:this={statusDialog}
+    bind:uncertain={statusUncertain}
     api={scoped}
     {record}
     onconfirmed={onupdate}

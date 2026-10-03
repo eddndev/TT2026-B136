@@ -1,5 +1,48 @@
 # Informe de verificación local
 
+## Confirmaciones inciertas: verificación local del 3 de octubre de 2026
+
+Una revisión posterior reprodujo dos fallos al cancelar un cambio administrativo
+incierto, pasar a Participantes y volver al Resumen: se habilitaba otra escritura
+sin consultar. El estado de incertidumbre ahora pertenece al expediente abierto
+y sobrevive al desmontaje de su sección. Los dos casos nuevos, con cambio aplicado
+y no aplicado, aprobaron junto a diez regresiones relacionadas: **12/12 en 26.2 s**,
+con un trabajador y temporales sobre btrfs. Durante una consulta retenida sigue
+bloqueado el envío; sólo una lectura exitosa y otro clic permiten repetir el
+cambio no aplicado. La primera comprobación posterior al arreglo detectó un
+selector de prueba incorrecto durante la espera; se corrigió para exigir el mismo
+botón deshabilitado bajo su nombre transitorio `Guardando...`. No se ampliaron
+tiempos ni se modificaron aserciones de admisión. La revisión focal no encontró
+otros defectos. Esta ejecución usa HTTP controlado, no servicios reales, y no
+actualiza las mediciones históricas siguientes ni la cobertura del backend.
+
+Trece casos nuevos reprodujeron y corrigieron el reenvío de confirmaciones sin
+consultar tras una respuesta perdida o 5xx. Cubren cierre/reactivación de expediente,
+archivo/reactivación de participante y sellado, con y sin efecto aplicado. Cancelar
+y reabrir ya no elimina la necesidad de consultar. El sellado lee la versión exacta
+y retira la intención anterior antes de permitir una nueva; no atribuye esa lectura
+al resultado de su envío anterior ni hace una consulta automática.
+
+Los trece aprobaron junto a cuatro casos de preferencias en 34.8 s. Diecinueve
+regresiones relacionadas aprobaron dentro de un focal de 21 casos en 39.3 s,
+con un worker y HTTP controlado. Conservan conflicto, agotamiento de revisión,
+expediente cerrado, bloqueo durante refrescos y descarte ante denegación. Una
+confirmación se retira antes del callback de refresco: su fallo posterior no
+convierte en incierta la escritura ya confirmada. Los límites y aserciones previos
+no se ampliaron. Estos resultados son locales, con integración remota pendiente.
+
+Cuatro escenarios adicionales aprobaron en 14.0 s: vencimiento durante cierre de
+expediente, archivo de participante, retiro de asignación y sellado. Comprueban
+nueva MFA, lecturas con el bearer nuevo, una sola escritura original y descarte
+de la respuesta tardía antes de otra intención. Se corrigieron dos errores del
+harness: una fixture de cuenta disponible sobrescribía `assigned_at: null`, y
+la espera de presentación usaba un reloj pausado. El ensayo final entrega la
+respuesta observada y avanza 20 ms del reloj controlado de la prueba; no cambia
+timeouts del producto ni de Playwright. Estos escenarios no añaden adaptadores
+para intenciones sin campos editables ni demuestran aceptación con servicios reales.
+
+
+
 ## Manual de acceso: revisión documental del 3 de octubre de 2026
 
 Se contrastó el manual con los controles de `Auth.svelte`, `PasswordReset.svelte`
