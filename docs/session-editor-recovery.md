@@ -65,7 +65,6 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Plazos creados desde recursos | Ambos identificadores nuevos, campos crudos, referencias históricas y sobre incierto conservados tras nueva autorización. | Dos recibos separados no prueban origen conjunto; el servidor debe confirmar explícitamente la operación compuesta. |
 | Plazos ordinarios | Alta, corrección, atención y retiro: campos crudos, referencias, base y comando incierto exactos tras nueva autorización. | La preparación pierde aprobación y una coincidencia no confirma el resultado; se consulta el recibo exacto. |
 | Solicitud de informes | Fechas parciales, filtros y solicitud incierta exacta; cuenta y selector autorizado consultados antes de recuperar. | Una fila similar o un informe en cola no concilian la respuesta perdida: repetir es una decisión explícita con el mismo identificador. |
-
 | Preferencias de alertas | Horas y canales crudos, revisión original y comando incierto; cuenta y preferencias consultadas antes de mostrar campos. | Sólo el recibo exacto confirma; una denegación global de la bandeja descarta incluso capturas sin abrir. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
@@ -159,13 +158,20 @@ comando. La confirmación anterior se descarta y su respuesta tardía no modific
 la intención nueva. Los filtros de Asignaciones vuelven a su estado inicial;
 no contienen texto de una mutación que deba recuperarse.
 
-## Alcance que conserva aceptación pendiente
+## Lectura de avisos
 
-La lectura de avisos en `AlertCard.svelte` y `CaseReports.svelte` no contiene texto
-de una mutación. Su aceptación específica de vencimiento sigue pendiente; no se
-supone acreditada por los cuatro recorridos administrativos y documentales.
-Tampoco debe habilitarse la inactividad operativa asumiendo que todos los
-formularios conservan sus cambios.
+Marcar una alerta o un aviso de informe como leído no contiene campos que
+conservar. Tras autenticar de nuevo se consulta la lista autorizada; el informe
+requiere abrir su detalle exacto antes de otro acuse explícito. La interfaz no
+repite el acuse anterior, ni infiere qué petición produjo el estado consultado.
+Una respuesta vieja no termina otra intención ni recupera un detalle denegado.
+
+Cuatro escenarios aprobaron en 13.8 s con HTTP controlado y un worker, sin
+cambiar producto: resultado aplicado y no aplicado, misma cuenta o cambio de
+cuenta, nueva MFA, bearer nuevo, consulta exacta y denegación. No sustituyen
+aceptación de esas rutas con servicios reales ni activan inactividad operativa.
+
+## Alcance que conserva aceptación pendiente
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus
 resultados privados después de autenticar de nuevo. Sus filtros o selecciones

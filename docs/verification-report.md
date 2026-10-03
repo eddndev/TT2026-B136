@@ -1,6 +1,19 @@
 # Informe de verificación local
 
 
+## Lectura de avisos tras reingreso: 3 de octubre de 2026
+
+Cuatro escenarios nuevos aprobaron en 13.8 s con un worker y HTTP controlado,
+sin cambios de producto. Alertas aplicadas y no aplicadas se consultan mediante
+la lista personal vigente; cambiar de cuenta no recupera la tarjeta anterior.
+Los informes exigen detalle exacto autorizado antes de otro acuse explícito.
+Un éxito tardío no restaura un informe denegado y un fallo anterior no termina
+la intención nueva que todavía espera respuesta. No se repite automáticamente
+ningún POST tras MFA ni se amplían aserciones, timeouts o políticas operativas.
+Estos resultados locales no acreditan una nueva campaña con servicios reales.
+
+
+
 ## Aplicación de vínculo Owner: verificación local del 3 de octubre de 2026
 
 El target nuevo reprodujo primero la ausencia de la API. Catorce pruebas con

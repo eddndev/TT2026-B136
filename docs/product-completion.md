@@ -29,6 +29,39 @@ preservó CA/claves/revocaciones y confirmó respaldo, reinicio y auditoría.
 La aceptación autenticada sigue pendiente por falta
 del correo de la primera cuenta Owner.
 
+PR66–72 están integradas y su cierre posterior en `main` está confirmado:
+recuperación de recursos/asociaciones, captura de restauración y su corrección
+de observación, plazos contextuales, dominio del vínculo Owner y plazos ordinarios.
+PR72 corrigió la espera del historial de audiencias tras el fallo natural de
+PR71; `8db60f8` confirmó CI en 662 s y Web en 985 s, con 3532 pruebas Rust,
+556 controladas y 52 reales. PR73 integró el verificador del vínculo Owner como
+`6a574373b801dd6e40b8c459a35bc9461391444a` el 3 de octubre a las 11:32:33 UTC.
+Su cabeza `1f6a0bb` aprobó CI en 751 s, Web en 1076 s y Documents en 80 s:
+3540 pruebas Rust, 556 controladas y 52 reales, con cobertura 97/95/93 %.
+La confirmación natural de `6a574373` aprobó CI en 656 s, Web en 988 s
+y Documents en 555 s, con el mismo inventario y cobertura. Documents incluye
+la espera de runner; su compilación duró 63 s.
+
+PR74 integró la recuperación de informes como `309a0a73` y PR75 la de
+preferencias de alertas como `81e525a0`, ambas con confirmación natural aprobada.
+El último inventario completo de esas integraciones contiene 3540 pruebas Rust,
+572 de navegador controlado y 52 reales, con cobertura de
+`domain/application/infrastructure` de 97/95/93 %.
+PR76 integró la conciliación del manual de acceso como `c300fed`; su CI natural
+aprobó en 438 s. PR77 integró confirmaciones administrativas y de sellado como
+`2ca02f9`: su cabeza aprobó CI en 565 s, Web en 1055 s y Documents en 75 s,
+con 3540 pruebas Rust, 591 controladas y 52 reales. Su confirmación natural
+también aprobó CI en 648 s, Web en 1049 s y Documents en 547 s, con el mismo
+inventario. Esta evidencia no modifica
+la release privada ni activa la política de inactividad.
+
+PR78 integró el servicio de aplicación y los puertos del vínculo Owner como
+`f8122205`. Su confirmación natural aprobó CI en 567 s, Web en 1065 s
+y Documents en 76 s, con 3555 pruebas Rust, 591 controladas y 52 reales.
+La cobertura de `domain/application/infrastructure` fue 98/95/93 %.
+La persistencia, el transporte HTTP, la composición y la interfaz del vínculo
+corresponden a entregas posteriores; esta integración no los habilita en VPS3.
+
 - Integrados: plazos persistentes y reevaluación durable, agenda conjunta,
   alertas, recursos y actos declarados, asociaciones a actividades existentes,
   contenido documental y avisos de integridad, directorio y administración de
@@ -78,8 +111,22 @@ del correo de la primera cuenta Owner.
   integrada por PR60 como `21729ce`. CI, Web y Documents naturales de main
   aprobaron en 9m21s, 12m45s y 1m15s, con 3457 Rust, 482 recorridos controlados
   y 52 reales; se conservaron las identidades previas y cobertura 97/95/93 %.
-  Audiencias/resultados, hechos, miembros, calendarios, recursos y asociaciones
-  tienen aceptación focal local adicional; sus entregas aún esperan integración.
+  Audiencias/resultados y hechos se integraron por PR62 como `83bc9f7`.
+  Su confirmación natural aprobó CI en 8m11s, Web en 14m12s y Documents en
+  9m14s, incluyendo espera de cola: 3524 Rust, 511 controladas y 52 reales,
+  con cobertura 97/95/93 % e identidades previas conservadas. La recuperación
+  de miembros y calendarios se integró por PR63 como `710c41b`; su confirmación
+  natural falló en el helper de preparación de un plazo contextual. PR64 corrigió
+  la espera de esa respuesta y se integró como `9ad4539`. Su confirmación natural
+  aprobó CI en 655 s y Web en 883 s, con 3524 pruebas Rust, 524 recorridos
+  controlados y 52 reales. Recursos y asociaciones quedaron integrados por PR66;
+  los plazos contextuales, por PR69, y los ordinarios, por PR71, con el cierre
+  natural corregido por PR72. La recuperación de informes y preferencias quedó
+  integrada por PR74 y PR75, con confirmación natural aprobada. PR77 integró
+  confirmaciones administrativas y de sellado después de aprobar sus tres gates;
+  su confirmación natural también está aprobada. La lectura de avisos conserva
+  cuatro recorridos locales de vencimiento aceptados; ese
+  incremento sigue pendiente de integración y de su propia campaña remota.
   Un recorrido con servicios desechables aceptó dos vencimientos y tres MFA,
   conservando campos de expediente y archivo principal. El inventario explícito
   de editores todavía pendientes está en [recuperación de editores](session-editor-recovery.md).
@@ -630,7 +677,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada; conservar la evidencia académica por revisión. Invitaciones y enrolamiento recuperable siguen pendientes. |
-| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Los editores de documentos, expedientes y participantes tienen integración propia; otras familias conservan focales locales e integración pendiente, según el inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo, cierre de las familias restantes y autenticación con certificado. El dominio y verificador del vínculo Owner son fundamentos locales; no habilitan acceso. |
+| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos conserva aceptación focal local y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. Persistencia, HTTP, interfaz y acceso por certificado conservan entregas separadas; este checkpoint no los acredita como integrados ni instalados. El vínculo por sí solo no habilita autenticación por certificado ni firma documental individual. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |

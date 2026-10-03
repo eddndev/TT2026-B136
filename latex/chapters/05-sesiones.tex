@@ -136,7 +136,7 @@ identificadores, capturas y base; no se recuperó una aprobación anterior.
 La ausencia, un recibo ajeno y una pareja creada por separado conservaron la
 incertidumbre. Sólo la confirmación explícita del origen conjunto retiró el
 borrador antes de refrescar. La aceptación es local con HTTP controlado; las
-confirmaciones administrativas restantes conservan su aceptación pendiente.
+confirmaciones administrativas tienen evidencia separada más adelante.
 
 La recuperación del editor ordinario de plazos aprobó ocho casos nuevos en
 27.0~s y siete regresiones en 19.7~s, con un trabajador y HTTP controlado.
@@ -182,3 +182,11 @@ a las lecturas actuales; una sola escritura original quedó registrada y su
 respuesta tardía no reemplazó el contexto o la intención nuevos. Las confirmaciones
 sin campos editables se descartaron. El reloj del harness se avanzó 20 ms tras
 observar la respuesta, conservando los límites del producto y del corredor.
+
+Cuatro escenarios de lectura de avisos aprobaron en 13.8~s con HTTP controlado,
+sin modificar el producto. Alertas e informes aplicados o no aplicados exigieron
+consultas con la sesión nueva, sin repetir el acuse anterior. Cambiar de cuenta
+retiró la tarjeta previa; el informe requirió detalle exacto autorizado. Un éxito
+tardío no recuperó un informe denegado y un fallo antiguo no terminó otra
+intención pendiente. Estos recorridos conservan separada la aceptación con
+servicios reales y no habilitan inactividad operativa.
