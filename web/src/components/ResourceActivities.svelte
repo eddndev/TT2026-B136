@@ -1,5 +1,6 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import { pendingActivityDrafts } from '../lib/resource-activity-draft.mjs';
   import ResourceActivityEditor from './ResourceActivityEditor.svelte';
   import ResourceDeadlineEditor from './ResourceDeadlineEditor.svelte';
   import ResourceActivityDetail from './ResourceActivityDetail.svelte';
@@ -17,6 +18,9 @@
     ondenied,
     disabled = false,
     pending = false;
+  const session = getContext('session-drafts');
+  let savedDraft = null,
+    drafts = pendingActivityDrafts(session, caseId, resource.id);
   export let intent = null,
     onintent = () => {};
   let initialized = false,
@@ -119,6 +123,10 @@
       head = value;
       editorRecord = record;
       action = createDeadline ? 'create-deadline' : record ? 'unlink' : 'link';
+      savedDraft = createDeadline
+        ? null
+        : (drafts.find((row) => row.action === action && row.instanceId === (record?.id ?? null)) ??
+          null);
       editorKey++;
     } catch (failure) {
       if (alive) fail(failure);
@@ -126,9 +134,37 @@
       if (alive) opening = false;
     }
   }
+  function closeEditor() {
+    action = null;
+    savedDraft = null;
+    editorBusy = false;
+    drafts = pendingActivityDrafts(session, caseId, resource.id);
+  }
+  async function resume(saved) {
+    if (pending || disabled || !session?.canAdmit()) return;
+    opening = true;
+    error = '';
+    try {
+      head = await resources.get(resource.id);
+      if (!alive || !session.canAdmit()) return;
+      editorRecord =
+        saved.action === 'unlink' ? (await scoped.get(saved.instanceId)).association : null;
+      if (!alive || !session.canAdmit()) return;
+      savedDraft = saved;
+      action = saved.action;
+      editorKey++;
+    } catch (failure) {
+      if (alive) {
+        if (failure.status === 404) session.registry.closeEditor(saved.key);
+        fail(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
   async function confirmed(record, exact, confirmedView = null) {
     if (!alive) return;
-    action = null;
+    closeEditor();
     selected = null;
     notice = 'Vinculo guardado.';
     cursors = [undefined];
@@ -179,6 +215,11 @@
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
+  {#if !action}{#each drafts as saved (saved.key)}<button
+        class="secondary"
+        disabled={pending || disabled}
+        onclick={() => resume(saved)}>Retomar borrador de actividad</button
+      >{/each}{/if}
   {#if action === 'create-deadline'}{#key editorKey}<ResourceDeadlineEditor
         {api}
         {caseId}
@@ -188,7 +229,7 @@
         {ondenied}
         {disabled}
         onconfirmed={confirmed}
-        oncancel={() => (action = null)}
+        oncancel={closeEditor}
         bind:pending={editorBusy}
       />{/key}
   {:else if action}{#key editorKey}<ResourceActivityEditor
@@ -198,10 +239,11 @@
         {resource}
         {head}
         record={editorRecord}
+        {savedDraft}
         {ondenied}
         {disabled}
         onconfirmed={confirmed}
-        oncancel={() => (action = null)}
+        oncancel={closeEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
   <section class="card" aria-label="Vinculos registrados" aria-busy={busy || opening}>

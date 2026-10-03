@@ -60,6 +60,8 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Resoluciones y notificaciones | Textos y tiempos crudos, referencias históricas, base original y archivos separados por campo y representación. | El envío incierto requiere el recibo exacto; reabrir el expediente no prepara ni envía automáticamente. |
 | Acceso de miembros | Selección de rol y estado, cuenta exacta y revisión decimal original; Owner y destino consultados de nuevo. | Un cambio incierto exige consultar y decidir; un cambio propio confirmado retira el borrador antes de cerrar la sesión. |
 | Calendarios jurisdiccionales | Ámbito, fuentes estables, excepciones parciales, motivo y base original; Owner y catálogo o cabecera consultados antes de recuperar. | Su contexto es global; el retiro incierto se concilia por recibo exacto y no por pertenencia a un expediente. |
+| Recursos procesales y actos | Texto y motivo crudos, base original, resolución y participantes históricos, soportes y archivos por fila. | Corregir un acto conserva su identidad y revisión separadas de la cabecera; sólo el recibo exacto confirma un envío incierto. |
+| Actividades vinculadas | Recurso, acto y actividad históricos, selección parcial, motivo y base originales. | No crea actividades; sólo el recibo exacto confirma el vínculo y un reenvío requiere consultar su ausencia de nuevo. |
 
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
 focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
@@ -85,6 +87,20 @@ fuentes y filas estables, comparación explícita de revisión, incertidumbre,
 recibo ajeno rechazado y descarte antes del refresco confirmado. No validan la
 interpretación jurídica de las fuentes ni una activación operativa.
 
+Ocho escenarios de recursos procesales aprobaron en 27,8 segundos con HTTP
+controlado. Incluyen conservación del acto histórico al cambiar la cabecera,
+pérdida de aprobación de una preparación anterior, lectura de soportes, archivos
+por fila y cierre o reapertura del expediente. La recuperación no determina
+procedencia jurídica ni activa plazos. Las doce regresiones existentes de
+campos, permisos, conflicto y conciliación aprobaron en 26,6 segundos, con
+recorridos de escritorio y móvil.
+
+La recuperación de actividades vinculadas aprobó ocho escenarios nuevos en dos
+focales: dos de contexto y seis de selección o resultado (21,5 segundos para
+estos últimos). Doce recorridos existentes aprobaron en 21,8 y 11,2 segundos.
+Conserva las referencias históricas, exige nueva consulta antes del reenvío
+exacto y elimina el borrador confirmado antes de refrescar el listado.
+
 La duración operativa del límite de inactividad sigue sin aprobarse. El backend
 mantiene por defecto su límite absoluto de veinticuatro horas. La configuración
 de doce segundos del [ensayo reproducible](../web/README.md#reingreso-con-vencimiento-real)
@@ -98,7 +114,7 @@ asumiendo que todos los formularios conservan sus cambios.
 
 | Familia | Componentes | Contexto que debe consultarse de nuevo |
 | --- | --- | --- |
-| Recursos y actividades | `ResourceEditor.svelte`, `ResourceActivityEditor.svelte`, `ResourceDeadlineEditor.svelte` | Recurso propietario, actividad o plazo elegible, asociaciones y resultado incierto. |
+| Plazos creados desde recursos | `ResourceDeadlineEditor.svelte` | Recurso propietario, plazo nuevo, asociaciones y ambos recibos de la operación compuesta. |
 | Plazos | `DeadlineEditor.svelte` | Plazo, fuentes de cómputo y versión consultada. |
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus

@@ -10,19 +10,31 @@
     selectedIds = [],
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   const participants = api.caseParticipants(caseId),
     typed = api.caseTypedParticipants(caseId);
   let choosing = false,
-    selected = null;
+    selected = null,
+    picker,
+    pickerDraft = draft;
+  export function captureDraft() {
+    return picker?.captureDraft() ?? pickerDraft;
+  }
+  function closePicker() {
+    pickerDraft = captureDraft();
+    choosing = false;
+  }
   function select(row) {
+    if (!canApply()) return;
     value = {
       ...value,
       name: row.display_name,
       participant: { id: row.id, revision: row.revision },
     };
     selected = row;
-    choosing = false;
+    closePicker();
   }
   onDestroy(() => {
     participants.dispose();
@@ -49,6 +61,7 @@
       type="button"
       class="text-button"
       onclick={() => {
+        if (!canApply()) return;
         value = { ...value, participant: null };
         selected = null;
       }}>Quitar ficha de recurrente {number}</button
@@ -56,8 +69,12 @@
   {:else}<p class="hint">
       Sin ficha vinculada. El nombre y rol se conservan como declaraci&#243;n.
     </p>{/if}
-  <button type="button" class="secondary" onclick={() => (choosing = true)}
-    >Elegir ficha de recurrente {number}</button
+  <button
+    type="button"
+    class="secondary"
+    onclick={() => {
+      if (canApply()) choosing = true;
+    }}>Elegir ficha de recurrente {number}</button
   >
 </fieldset>
 {#if choosing}
@@ -66,10 +83,13 @@
     typedApi={typed}
     {ondenied}
     {disabled}
+    {canApply}
+    draft={pickerDraft}
+    bind:this={picker}
     selectedIds={selectedIds.filter((id) => id !== value.participant?.id)}
     bind:busy
     onselected={select}
-    oncancel={() => (choosing = false)}
+    oncancel={closePicker}
     selectLabel="Vincular esta ficha recurrente"
   />
 {/if}

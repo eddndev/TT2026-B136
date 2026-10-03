@@ -10,10 +10,11 @@
     oncancel,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    savedInputs = null;
   const scoped = api.caseResources(caseId);
   let rows = [],
-    revision = '',
+    revision = savedInputs?.revision ?? '',
     candidate = null,
     more = false,
     cursor;
@@ -52,12 +53,20 @@
     const value = await work(() => scoped.revision(resource.id, Number(revision)));
     if (value?.act) candidate = value;
   }
-  onMount(() => history());
+  export function captureInputs() {
+    return { revision };
+  }
+  onMount(async () => {
+    await history();
+    if (!alive || !revision) return;
+    const value = await work(() => scoped.revision(resource.id, Number(revision)));
+    if (value?.act) candidate = value;
+  });
   onDestroy(() => {
     alive = false;
     generation++;
     scoped.dispose();
-    busy = false;
+    ((busy = false), (savedInputs = null));
   });
 </script>
 

@@ -1,5 +1,40 @@
 # Informe de verificación local
 
+## Actividades vinculadas: recuperacion local del 3 de octubre de 2026
+
+El primer escenario fallo al no existir recuperacion tras vencer la sesion.
+La ampliacion acepto ocho casos nuevos: dos de contexto en el primer focal y
+seis de referencias, selector parcial y resultados en 21.5 s. Se corrigio el
+rotulo del control bloqueado entre ambos focales; las doce pruebas existentes
+aprobaron en dos grupos (9 en 21.8 s, 3 en 11.2 s), incluidos escritorio y movil.
+Todos usaron un worker y HTTP controlado.
+
+Se separan la cabeza que autoriza escribir y las capturas historicas del recurso,
+acto y actividad. No se conserva una preparacion aprobada ni se selecciona una
+vista previa por recuperarla. El envio incierto se conserva antes de esperar;
+consultar su ausencia solo habilita un reenvio deliberado del mismo sobre y esa
+habilitacion se pierde al vencer otra vez. Una confirmacion exacta elimina la
+captura antes del refresco. No se crean ni modifican audiencias o plazos, no hay
+carga documental en este editor y no se alteran limites temporales. CI completo
+y servicios reales para esta ampliacion permanecen pendientes.
+
+## Reingreso en recursos procesales: aceptacion local del 2 de octubre de 2026
+
+Ocho escenarios nuevos aprobaron en 27.8 s con un worker y HTTP controlado.
+El caso inicial reprodujo la falta de autorizacion fresca antes de mostrar
+valores. Ahora el expediente, la cabecera y las referencias se revalidan antes
+de aplicar texto parcial, motivo, base y archivos. La correccion de un acto
+historico conserva su revision e identidad separadas de la cabecera vigente.
+
+Una preparacion anterior no queda aprobada tras reingreso. El envio incierto
+se captura antes de esperar la respuesta y solo su recibo exacto lo confirma;
+un resultado ausente o ajeno no provoca repeticion. La confirmacion limpia
+antes del refresco. Los archivos pertenecen a filas estables y no pasan a una
+fila nueva en la misma posicion. Se mantuvieron reglas de dominio y timeouts.
+Las doce pruebas existentes de campos, permisos, conflicto y conciliacion
+aprobaron en 26.6 s, incluido el recorrido movil. Esta aceptacion local no
+acredita aun CI completo ni servicios reales.
+
 ## Calendarios: recuperacion local del 2 de octubre de 2026
 
 Seis escenarios nuevos aprobaron en 19.1 s con un worker, despues de observar

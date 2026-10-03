@@ -12,12 +12,13 @@
     onselected,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    savedInputs = null;
   const scoped = kind === 'hearing' ? api.caseHearings(caseId) : api.deadlines(caseId);
   let roots = [],
     revisions = [],
-    rootId = '',
-    revision = '',
+    rootId = savedInputs?.rootId ?? '',
+    revision = savedInputs?.revision ?? '',
     candidate = null;
   let rootMore = false,
     historyMore = false,
@@ -30,7 +31,18 @@
     initialRequested = false;
   $: if (mounted && !disabled && !busy && !initialRequested) {
     initialRequested = true;
-    list();
+    initialize();
+  }
+  export function captureInputs() {
+    return { rootId, revision };
+  }
+  async function initialize() {
+    await list();
+    if (!alive || !rootId) return;
+    await history();
+    if (!alive || !revision) return;
+    const value = await work(() => scoped.revision(rootId, Number(revision)));
+    if (value) candidate = value;
   }
   function title(row) {
     return kind === 'hearing'
@@ -97,7 +109,7 @@
     alive = false;
     generation++;
     scoped.dispose();
-    busy = false;
+    ((busy = false), (savedInputs = null));
   });
 </script>
 
