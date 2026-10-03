@@ -84,3 +84,28 @@ separadamente en 1.280~s. Estos conjuntos pueden compartir comprobaciones y no
 se suman para presentar un inventario único. La campaña remota y la instalación
 de los módulos nuevos siguen pendientes; ninguna de estas pruebas equivale a
 un restore operacional ni a un drenaje de escritores.
+
+
+El ensayo nativo poblado del 3 de octubre de 2026 aprobó en 27.424~s, incluidos
+preparación y limpieza. PostgreSQL 16.15 y Redis 7.4.11 conservaron dos usuarios,
+un expediente y dos asignaciones. Las cuatro capacidades sembradas por funciones
+SQL reales representaron estados consumido, vencido, cancelado y pendiente.
+Se conservaron quince eventos auditados; una cabeza falsa se rechazó sin cambios,
+y la invalidación correcta añadió un evento y canceló dos capacidades. El mismo
+identificador devolvió el recibo original al reintentar.
+
+Los archivos privados restaurados coincidieron por inventario y hash y se usaron
+en el arranque posterior. Redis conservó tipos, valores y vencimientos absolutos;
+tras retirar dos sesiones y un desafío, siete controles y claves ajenas
+sobrevivieron al reinicio AOF, incluso con un RDB anterior presente. Las cuotas
+admitieron un consumo posterior sin renovar su vencimiento. La API rechazó las
+credenciales antiguas y aceptó un nuevo login y MFA. Sólo se sustituyó la
+observación de systemd; no hubo correo externo ni ingreso público. El paquete
+interno de desarrollo no fue instalado en VPS3 y la barrera se mantuvo activa.
+
+La preparación reprodujo y corrigió dos incompatibilidades: tratar la fecha
+SQL como entero y pedir JSON al comando \texttt{INFO} de redis-cli, que entrega
+texto. Las regresiones focales conservaron la precisión temporal y comprobaron
+el formato real y la limpieza de archivos temporales. Esta aceptación no cubre
+reapertura operacional, pérdida de controles posteriores al respaldo ni emisión
+y consumo de un nuevo enlace mediante HTTP después de restaurar.

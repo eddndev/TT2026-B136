@@ -1,5 +1,38 @@
 # Informe de verificación local
 
+## Confirmación integrada de participantes: 3 de octubre de 2026
+
+PR60 se integró por squash como `21729ce`, después de aprobar la cabeza exacta
+`7cbbcca`: CI 9m19s, Web 12m43s y Documents 1m15s. La ejecución natural de main
+aprobó CI 9m21s, Web 12m45s y Documents 1m15s. Ambas conservaron 3457 pruebas
+Rust, 482 de navegador controlado y 52 reales, además de dos ignoradas,
+con cobertura 97/95/93 %. Se preservaron identidades anteriores y el artefacto
+del recorrido real de inactividad. Las ampliaciones locales posteriores siguen
+separadas de estos resultados.
+
+## Captura y restauración poblada: aceptación local del 3 de octubre de 2026
+
+Captura e invalidación Redis aprobaron ocho pruebas nuevas en 0.190 s y veinte
+de compatibilidad de backup en 0.165 s. Tres pruebas con procesos reales aprobaron
+límites, plazos y limpieza en 1.061 s. Dos regresiones reprodujeron la fecha SQL
+RFC 3339 rechazada y el `.lock` residual; seis casos después del arreglo aprobaron
+en 0.229 s. El ensayo nativo detectó luego `INFO` crudo aun bajo `redis-cli --json`;
+la regresión y ocho casos relacionados aprobaron en 0.191 s tras corregir el
+formato específico, sin cambiar seguridad ni límites.
+
+El ensayo poblado con PostgreSQL 16.15 y Redis 7.4.11 aprobó 1/1 en 27.424 s,
+con dos usuarios, dos asignaciones y cuatro estados de recuperación. Conservó
+quince eventos originales, rechazó un predecesor falso sin efectos y añadió uno
+al invalidar dos capacidades; el reintento exacto fue idempotente. Tras restaurar
+archivos PKI, SQL y Redis, retirar dos sesiones y un desafío y reiniciar con AOF,
+permanecieron siete controles, valores y vencimientos. El login nuevo y MFA
+aprobaron, las credenciales anteriores no. Se comprobó el conjunto completo de
+filas y el resultado final incluye la limpieza. La preparación usa un paquete
+interno de desarrollo; no es una release instalada. El procedimiento y los límites
+operativos están en [captura privada](deployment-restore-capture.md).
+El manuscrito resultante tiene 365 páginas; las tres páginas modificadas fueron
+inspeccionadas y las fuentes académicas protegidas conservaron sus hashes.
+
 ## Actividades vinculadas: recuperacion local del 3 de octubre de 2026
 
 El primer escenario fallo al no existir recuperacion tras vencer la sesion.

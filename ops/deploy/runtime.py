@@ -50,22 +50,24 @@ class Runtime:
     def stop(self):
         run(["systemctl", "--user", "stop", "qadra-web.service", "qadra-api.service"])
 
-    def backup(self):
+    def backup(self, *, tools=None, command=None):
         from restore_fence import guard
         guard(self.root)
-        state = run(["systemctl", "--user", "show", "qadra-api.service",
+        execute = run if command is None else command
+        selected = {} if tools is None else tools
+        state = execute(["systemctl", "--user", "show", "qadra-api.service",
                      "qadra-web.service", "--property=ActiveState", "--value"],
                     capture_output=True, text=True, timeout=15)
         if state.stdout.split() != ["inactive", "inactive"]:
             raise RuntimeError("API and web must be stopped before backup")
-        redis = ["redis-cli", "-h", "127.0.0.1", "-p", str(self.config["redis_port"])]
+        redis = [selected.get("redis_cli", "redis-cli"), "-h", "127.0.0.1", "-p", str(self.config["redis_port"])]
         redis_env = {**os.environ, "REDISCLI_AUTH": self.config["redis_password"]}
-        expected_pid = run(["systemctl", "--user", "show", "qadra-redis.service",
+        expected_pid = execute(["systemctl", "--user", "show", "qadra-redis.service",
                             "--property=MainPID", "--value"],
                            capture_output=True, text=True, timeout=15).stdout.strip()
-        info = run(redis + ["--raw", "INFO", "server"], env=redis_env,
+        info = execute(redis + ["--raw", "INFO", "server"], env=redis_env,
                    capture_output=True, text=True, timeout=10).stdout
-        directory = run(redis + ["--raw", "CONFIG", "GET", "dir"], env=redis_env,
+        directory = execute(redis + ["--raw", "CONFIG", "GET", "dir"], env=redis_env,
                         capture_output=True, text=True, timeout=10).stdout.splitlines()
         actual = dict(line.split(":", 1) for line in info.splitlines() if ":" in line)
         if (not expected_pid.isdecimal() or int(expected_pid) <= 0
@@ -83,13 +85,14 @@ class Runtime:
         for name in ("database.dump", "redis.rdb"):
             with private_file(name):
                 pass
-        run(["pg_dump", "--format=custom", "--file", backup / "database.dump"],
+        execute([selected.get("pg_dump", "pg_dump"), "--format=custom", "--file", backup / "database.dump"],
             env=environment(self.root, admin=True), capture_output=True, timeout=300)
-        run(redis + ["--rdb", backup / "redis.rdb"], env=redis_env,
+        execute(redis + ["--rdb", backup / "redis.rdb"], env=redis_env,
             capture_output=True, timeout=300)
         if any((backup / name).stat().st_size == 0 for name in ("database.dump", "redis.rdb")):
             raise RuntimeError("database or Redis backup is empty")
-        run(["redis-check-rdb", backup / "redis.rdb"], capture_output=True, timeout=60)
+        execute([selected.get("redis_check_rdb", "redis-check-rdb"), backup / "redis.rdb"],
+                capture_output=True, timeout=60)
         with private_file("private-state.tar.gz") as stream:
             with tarfile.open(fileobj=stream, mode="w:gz") as tar:
                 for path in (self.root / "config", self.root / "data/ca", self.root / "data/tsa"):

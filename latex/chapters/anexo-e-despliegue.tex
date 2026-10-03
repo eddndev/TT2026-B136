@@ -24,3 +24,12 @@ y mantiene cerrado el ingreso normal cuando está presente. La guía
 la restauración todavía por componer: no ofrece un comando para borrar el
 registro, ignorarlo o reabrir automáticamente. Actualizar el paquete de la
 aplicación tampoco instala controladores ni cambia unidades de servicio.
+
+
+El ensayo explícito \rutarepo{scripts/tests/native_restore_acceptance.py} requiere
+un paquete interno vigente, PostgreSQL 16, Redis 7.4.11 y dependencias Python.
+Usa únicamente procesos propios y un directorio privado desechable. La guía
+\rutarepo{docs/deployment-restore-capture.md} separa su reproducción de la
+instalación activa, declara el doble de observación y conserva los límites
+operacionales pendientes. El resultado final incluye la limpieza de procesos;
+una comprobación aislada de datos no autoriza publicar un despliegue.
