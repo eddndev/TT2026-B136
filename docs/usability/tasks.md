@@ -67,9 +67,13 @@ crea los eventos con acciones autorizadas sobre datos de práctica.
 
 ## Pendientes excluidos de las tarjetas
 
-No se solicita invitación por correo, restablecimiento autónomo de contraseña,
-recuperación del enrolamiento perdido, login por certificado, sello personal,
+El conjunto actual de tarjetas no solicita invitación por correo, recuperación
+de contraseña o del enrolamiento perdido, login por certificado, sello personal,
 expiración por inactividad con conservación de borradores, acceso documental de
-Cliente ni activación jurídica automática de plazos. Tampoco se asume envío de
+Cliente ni activación jurídica automática de plazos. La recuperación de contraseña
+y varias familias de borradores tienen implementación posterior; excluirlas de
+estas tarjetas no significa que carezcan de código. Su evaluación humana requiere
+seleccionar y comprobar una versión, un entorno habilitado y tareas propias antes
+de incorporarlas; no se añaden resultados de participantes que no se hayan observado. Tampoco se asume envío de
 correo o estimación de terminación de informes. Su exclusión no los elimina del
 [alcance pendiente](../product-completion.md).
