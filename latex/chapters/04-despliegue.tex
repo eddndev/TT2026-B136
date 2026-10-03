@@ -141,7 +141,7 @@ guardada y una nueva comprobación de ausencia permiten continuar. Un código ce
 del gestor no sustituye esa evidencia; un fallo conserva la barrera. La unidad
 que volvió a arrancar requiere capturar y detener su nuevo proceso. Esta pieza
 no restaura, promueve ni reabre datos y no establece la política de recuperación.
-La instalación integrada de controladores permanece pendiente; véase
+El coordinador de instalación compone esta frontera con publicación y aprobación; véase
 \rutarepo{docs/deployment-restore-quiesce.md}.
 
 
@@ -193,3 +193,18 @@ El mismo contrato guía la renovación manual de CRL. Una huella ausente o invá
 bloquea antes de preparar credenciales; no se deduce aprobación de las fuentes
 presentes ni se recurre a su invocación directa. La instalación del lanzador y la
 configuración de esa huella conservan aceptación operativa independiente.
+
+
+El coordinador de instalación ejecuta desde una generación privada independiente,
+bajo una sola adquisición del bloqueo. Valida la intención externa antes de
+parar servicios, conserva salida normal tipada y máscaras efectivas, retiene la
+caché exacta y publica la generación aprobada. El resultado inicial mantiene los
+servicios cerrados. La reapertura exige otra autorización que fija el recibo
+cerrado; arranca bases, API y web en ese orden y exige disponibilidad dentro del
+presupuesto compartido. Conserva originales, candidatos y recibos para reentrada
+sin rollback ciego. Las entradas administrativas externas deben permanecer
+suspendidas durante la transición, incluso ante interrupción: las máscaras no
+bloquean lectores SSH. La aceptación operativa del producto se distingue de los
+ensayos aislados del coordinador. Véanse
+\rutarepo{docs/deployment-controller-installation.md} y
+\rutarepo{docs/deployment-controller-bootstrap.md}.

@@ -14,7 +14,7 @@ import stat
 import sys
 
 
-ENTRYPOINTS = ("runtime.py", "release.py", "restore_fence.py", "renew_crl.py")
+ENTRYPOINTS = ("runtime.py", "release.py", "restore_fence.py", "renew_crl.py", "controller_installation.py")
 PYTHON_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\.py")
 MAX_FILES = 64
 MAX_FILE_BYTES = 256 * 1024

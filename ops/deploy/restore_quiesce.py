@@ -144,11 +144,11 @@ def receipt(target, unit, value):
             raise ValueError("restore captured service exit is invalid")
 
 
-def saved(root, operation_id, digest, target):
-    operation = root / "maintenance/restore" / operation_id
+def saved(root, operation_id, digest, target, *, path=None):
+    path = root / "maintenance/restore" / operation_id / "journal.json" if path is None else path
+    operation = path.parent
     if present(operation):
         target_files.directory(operation, private=True)
-    path = operation / "journal.json"
     record = {"operation_id": operation_id, "target_sha256": digest, "state": "closing", "units": {}}
     if present(path):
         target_files.exact_path(path)
@@ -249,6 +249,31 @@ def close_units(root, target_path, digest, target, env, deadline, references, pa
         journal.save(path, record)
 
 
+def _close_locked(root, target_path, digest, target, env, deadline, operation,
+                  path, record, close_admission):
+    """Capture exact exits while the caller continuously owns deploy.lock."""
+    with retain_units(env, UNITS, timeout=remaining(deadline)) as references:
+        references.check(timeout=remaining(deadline))
+        rows = snapshot(target, env, deadline, UNITS)
+        for unit, row in rows.items():
+            record["units"][unit] = capture(target, deadline, references, unit, row, record["units"].get(unit))
+        target_files.load(root, target_path, digest)
+        remaining(deadline)
+        close_admission()
+        if not operation.exists():
+            journal.directory(operation)
+        record["state"] = "closing"
+        journal.save(path, record)
+        close_units(root, target_path, digest, target, env, deadline, references, path, record)
+        target_files.load(root, target_path, digest)
+        observe_exits(target, env, deadline, references, UNITS, record)
+        remaining(deadline)
+        record["state"] = "stopped"
+        journal.save(path, record)
+        references.check(timeout=remaining(deadline))
+        return {key: record[key] for key in ("operation_id", "target_sha256", "state")}
+
+
 def quiesce(root, operation_id, *, target_path, expected_target_sha256, timeout=240):
     try:
         if type(timeout) not in (int, float) or not math.isfinite(timeout) or not 90 <= timeout <= 300:
@@ -260,25 +285,7 @@ def quiesce(root, operation_id, *, target_path, expected_target_sha256, timeout=
         with fence.maintenance(root, operation_id) as close_admission:
             target, env = target_files.load(root, target_path, expected_target_sha256)
             operation, path, record = saved(root, operation_id, expected_target_sha256, target)
-            with retain_units(env, UNITS, timeout=remaining(deadline)) as references:
-                references.check(timeout=remaining(deadline))
-                rows = snapshot(target, env, deadline, UNITS)
-                for unit, row in rows.items():
-                    record["units"][unit] = capture(target, deadline, references, unit, row, record["units"].get(unit))
-                target_files.load(root, target_path, expected_target_sha256)
-                remaining(deadline)
-                close_admission()
-                if not operation.exists():
-                    journal.directory(operation)
-                record["state"] = "closing"
-                journal.save(path, record)
-                close_units(root, target_path, expected_target_sha256, target, env, deadline, references, path, record)
-                target_files.load(root, target_path, expected_target_sha256)
-                observe_exits(target, env, deadline, references, UNITS, record)
-                remaining(deadline)
-                record["state"] = "stopped"
-                journal.save(path, record)
-                references.check(timeout=remaining(deadline))
-                return {key: record[key] for key in ("operation_id", "target_sha256", "state")}
+            return _close_locked(root, target_path, expected_target_sha256, target, env,
+                                 deadline, operation, path, record, close_admission)
     except (OSError, ValueError, RuntimeError, KeyError, TypeError, UnicodeError, RecursionError):
         raise RuntimeError(ERROR) from None

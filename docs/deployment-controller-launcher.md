@@ -22,13 +22,14 @@ launch(root, entrypoint, arguments, *, expected_inventory_sha256)
 ```
 
 `root` debe ser un `Path` absoluto. `arguments` es una lista de cadenas. Las
-entradas admitidas son `runtime.py`, `release.py`, `restore_fence.py` y
-`renew_crl.py`. Los demás módulos son dependencias internas, no entradas del
-launcher. Se requiere un intérprete nuevo con aislamiento y sin importar site.
+entradas admitidas son `runtime.py`, `release.py`, `restore_fence.py`,
+`renew_crl.py` y `controller_installation.py`. Los demás módulos son dependencias
+internas, no entradas del launcher. Se requiere un intérprete absoluto aprobado
+de Python 3.11 o posterior, nuevo, con aislamiento y sin importar site.
 La forma de la CLI es:
 
 ```text
-python3 -I -B -S /ruta/estable/controller_launcher.py \
+/ruta/absoluta/aprobada/python3 -I -B -S /ruta/estable/controller_launcher.py \
   --root /raiz/privada --inventory-sha256 SHA256_APROBADO \
   --entrypoint ENTRADA -- ARGUMENTOS_DEL_CONTROLADOR
 ```
@@ -47,8 +48,12 @@ presente no establece su procedencia ni convierte su contenido en aprobado.
 
 Las cadenas posteriores a `--` pasan sin interpolación. El launcher no añade la
 raíz a los argumentos del controlador: runtime y restore_fence la reciben como
-argumento posicional; release y renew_crl utilizan `--root`. El llamador sigue
-siendo responsable de proporcionar la raíz prevista para esa operación.
+argumento posicional; release, renew_crl y controller_installation utilizan
+`--root`. El llamador sigue siendo responsable de proporcionar la raíz prevista
+para esa operación. El [bootstrap del instalador](deployment-controller-bootstrap.md)
+usa dos raíces: la del launcher fija el código privado; la del instalador, tras
+`--`, identifica el despliegue. Su candidato `sources` permanece separado de
+`bootstrap/tools`. La CLI del núcleo instalador sigue bajo aceptación.
 
 ## Admisión por descriptor
 
@@ -108,6 +113,13 @@ La prueba de `execve` utiliza otro intérprete Python, no el binario Rust. No se
 ejecutaron los controladores operativos, servicios ni acciones remotas en esta
 aceptación. La caracterización previa de imports y las pruebas del publicador
 conservan su evidencia separada.
+
+La quinta entrada tiene un RED independiente: dos casos en 0.091 s, con rechazo
+del caso positivo por entrada no admitida. Después de añadirla, esos casos y las
+regresiones anteriores aprobaron **8/8 en 1.703 s**. Se verifican argumentos de
+instalación con dos raíces, imports desde bootstrap y rechazo del hash incorrecto;
+no se ejecuta el instalador real. Véase el procedimiento de bootstrap para su
+preparación desde fuentes versionadas y los límites de esa evidencia.
 
 ## Integración pendiente
 

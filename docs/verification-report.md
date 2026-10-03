@@ -1,5 +1,37 @@
 # Informe de verificación local
 
+## Instalación integrada de controladores: 3 de octubre de 2026
+
+El RED inicial de seis pruebas duró 0.117 s y mostró la ausencia del coordinador.
+Tras componer las fronteras reales, la revisión detectó tres defectos concretos:
+el plazo de arranque excedía el máximo del ejecutor, una publicación ajena podía
+aparecer entre preparación y reentrada, y faltaba repetir el fsync del padre tras
+una eliminación de marcador cuya confirmación se perdía. Un comando inocuo real
+reprodujo el primero (dos casos, un error, 0.028 s); dos regresiones reprodujeron
+los restantes en 0.569 s. No se cambiaron las aserciones para aprobarlos.
+
+El grupo final aprobó **10/10 en 4.159 s**; **52 regresiones en 3.021 s** comprobaron
+publicación, aprobación, renderer, máscaras, quiesce y barrera. El bootstrap y los
+seis casos previos del launcher aprobaron juntos **8/8 en 1.703 s** después del
+RED de su nueva entrada. Son grupos separados y no constituyen otra ejecución
+completa de Rust ni actualizan su cobertura.
+
+La aceptación nativa aprobó **1/1 en 3.461 s**, con 3.573 s del wrapper remoto.
+Usó cuatro servicios inocuos bajo la cuenta desechable `tt-runner`, systemd real,
+referencias al gestor, procesos, listeners, launcher y CLI mediante un bootstrap
+privado. Verificó generación A y B, cierre y reentrada cerrada, rechazo de una
+autorización incorrecta, reapertura exacta, disponibilidad y reentrada sin
+reiniciar procesos. Conservó configuración, datos y PKI sintéticos; retiró sus
+servicios y scratch, restauró el modo previo del directorio y confirmó inventario
+ajeno intacto. Sus sondas de PostgreSQL/Redis fueron CLIs sintéticas contra los
+trabajadores del ensayo: no acredita bases reales ni instalación del producto.
+
+La aplicación privada, sus controladores y las variables remotas de entrega no
+se modificaron. Véanse [instalación](deployment-controller-installation.md) y
+[bootstrap](deployment-controller-bootstrap.md). El cierre remoto de esta entrega
+local permanece pendiente de su publicación e integración.
+
+
 ## Presupuesto compartido de disponibilidad: 3 de octubre de 2026
 
 Cinco pruebas reprodujeron inicialmente la ausencia del argumento `deadline`.
