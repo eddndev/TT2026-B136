@@ -122,3 +122,17 @@ una decisión anterior de ausencia y vuelve a exigir consulta exacta. Cancelar,
 cerrar sesión expresamente o cambiar de cuenta descarta el borrador. El archivo
 original y el PEM todavía no admitido quedan fuera de la captura. La función
 no habilita autenticación por certificado ni firma individual de documentos.
+
+\subsubsection{Prueba separada para un primer factor futuro}
+
+El dominio incorpora una declaración distinta de 182 bytes, con separador de
+propósito propio, cuenta Owner, generación de autenticación, vínculo y confianza
+exactos, nonce de 32 bytes e intervalo no negativo de uno a 300 segundos.
+El vencimiento es exclusivo. El tipo sólo fija estructura y copia valores;
+no genera azar ni autentica una cuenta. El adaptador Partner verifica la firma
+sobre esos bytes, recalcula la inspección de confianza y contrasta el material
+exacto y el instante. El plazo del nonce limita presentar la prueba, mientras
+la validez de certificado y confianza conserva una frontera independiente.
+No se habilita un endpoint: consumo único, autoridad viva, MFA obligatoria y
+procedencia de sesiones deben completarse antes de activar ese primer factor.
+Véase \rutarepo{docs/adr/0068-owner-certificate-first-factor.md}.
