@@ -26,7 +26,8 @@ Ejecutar como la cuenta `qadra`, con el intérprete usado por sus servicios.
 El procedimiento siguiente requiere el [launcher estable y una generación
 completa aprobada](deployment-controller-launcher.md), incluyendo todos los
 controladores y sus dependencias. Sustituir `SHA256_APROBADO` por el SHA de su
-inventario aprobado externamente, no por un hash calculado del destino para
+inventario aprobado externamente y `/RUTA/PYTHON_APROBADO` por la ruta absoluta
+del intérprete Python 3.11+ aceptado. No usar un hash calculado del destino para
 eludir una discrepancia. Conservar las fuentes anteriores y sus permisos privados.
 La instalación histórica descrita arriba precede a esta entrada; no acredita
 su migración. Mientras falte la aceptación de esa instalación, estos comandos
@@ -42,13 +43,13 @@ requiere otro procedimiento, no regeneración silenciosa.
 Desde el host administrativo:
 
 ```bash
-ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra status'
+ssh -l qadra vps3 '/RUTA/PYTHON_APROBADO -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra status'
 ```
 
 Después de revisar la identidad, reemplazar `REVISION` por el entero observado:
 
 ```bash
-ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra renew --expected-revision REVISION'
+ssh -l qadra vps3 '/RUTA/PYTHON_APROBADO -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra renew --expected-revision REVISION'
 ```
 
 ## Qué ocurre
@@ -86,7 +87,7 @@ No compartir el directorio privado ni el respaldo en issues o logs públicos.
 Tras inspeccionar el estado, usar el UUID exacto de la operación:
 
 ```bash
-ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra resume UUID'
+ssh -l qadra vps3 '/RUTA/PYTHON_APROBADO -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra resume UUID'
 ```
 
 Si la revisión original sigue vigente, se publica el mismo candidato. Si la

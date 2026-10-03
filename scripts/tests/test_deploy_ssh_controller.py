@@ -47,6 +47,7 @@ class SshControllerTests(unittest.TestCase):
             "DEPLOY_PORT": "22022", "DEPLOY_USER": "qadra", "DEPLOY_ROOT": "/home/qadra/qadra",
             "DEPLOY_SSH_KEY": "synthetic-private-key", "DEPLOY_KNOWN_HOSTS": "synthetic-host-key",
             "DEPLOY_CONTROLLER_SHA256": INVENTORY,
+            "DEPLOY_PYTHON": "/opt/python/bin/python3.12",
             "GITHUB_STEP_SUMMARY": str(self.root / "summary")}
 
     def invoke(self, **changes):
@@ -74,7 +75,9 @@ class SshControllerTests(unittest.TestCase):
         ssh = [call for call in calls if call[0] == "ssh"]
         self.assertEqual(len(ssh), 2)
         self.assertIn("test -f '/home/qadra/qadra/controller_launcher.py'", ssh[0][-1])
-        self.assertEqual(ssh[1][-1], "umask 077; /usr/bin/python3 -I -B -S "
+        self.assertIn("test -x '/opt/python/bin/python3.12'", ssh[0][-1])
+        self.assertIn("sys.version_info >= (3, 11)", ssh[0][-1])
+        self.assertEqual(ssh[1][-1], "umask 077; '/opt/python/bin/python3.12' -I -B -S "
             "'/home/qadra/qadra/controller_launcher.py' --root '/home/qadra/qadra' "
             "--inventory-sha256 '" + INVENTORY + "' --entrypoint release.py -- "
             "--root '/home/qadra/qadra' activate '/home/qadra/qadra/incoming/" + "c" * 32
@@ -92,3 +95,11 @@ class SshControllerTests(unittest.TestCase):
         self.assertFalse(any(call[0] == "scp" for call in calls))
         self.assertFalse((self.root / "summary").exists())
         self.assertEqual(list(self.root.glob("qadra-ssh.*")), [])
+
+    def test_approved_python_path_is_required_before_preparing_credentials(self):
+        for value in (None, "", "python3", "/", "/opt/../bin/python3", "/opt/python3;false"):
+            with self.subTest(value=value):
+                result = self.invoke(DEPLOY_PYTHON=value)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(self.recorded(), [])
+                self.assertEqual(list(self.root.glob("qadra-ssh.*")), [])
