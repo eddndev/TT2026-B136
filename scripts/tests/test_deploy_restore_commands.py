@@ -11,6 +11,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'ops/deploy'))
 from restore_commands import run
 
 
+def process_is_running(status):
+    try:
+        record = status.read_text()
+    except (FileNotFoundError, ProcessLookupError):
+        return False
+    return record.rsplit(')', 1)[1].split()[0] != 'Z'
+
+
 class RestoreCommandTests(unittest.TestCase):
     def test_success_drains_stderr_and_retains_only_stdout(self):
         result = run([sys.executable, '-c', 'import sys;print("value");print("private",file=sys.stderr)'], text=True)
@@ -38,9 +46,9 @@ class RestoreCommandTests(unittest.TestCase):
                 child = int(path.read_text())
                 status = Path(f'/proc/{child}/stat')
                 deadline = time.monotonic() + 2
-                while status.exists() and status.read_text().split()[2] != 'Z' and time.monotonic() < deadline:
+                while process_is_running(status) and time.monotonic() < deadline:
                     time.sleep(.01)
-                self.assertTrue(not status.exists() or status.read_text().split()[2] == 'Z')
+                self.assertFalse(process_is_running(status))
                 self.assertIsNone(unrelated.poll())
             finally:
                 unrelated.terminate()
