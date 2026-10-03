@@ -2,9 +2,9 @@
 
 ## Status
 
-Accepted for structural domain values and canonical bytes only.
-Application authorization, cryptographic admission and audited persistence still
-need their own accepted implementations before a binding can be registered.
+Accepted for structural domain values, canonical bytes and strict cryptographic
+verification. Application authorization and audited persistence still need their
+own accepted implementations before a binding can be registered.
 
 ## Context
 
@@ -95,6 +95,28 @@ participant declarations or document-signing payloads. Byte identity is tested
 against literal independent hexadecimal vectors, including nontrivial integer
 byte order. Cryptographic verification and anti-replay persistence are separate
 obligations; changing canonical bytes alone is not evidence of their enforcement.
+
+### Strict public-material verification
+
+`InternalRsaOwnerBindingVerifier` accepts a typed registration statement, public
+leaf certificate, detached signature, supplied trust snapshot and explicit time.
+It computes SHA-256 over the 150 canonical bytes internally. It cannot accept
+an arbitrary digest or change the statement purpose.
+
+The Partner profile requires RSA-3072 with exponent 65537, exact SHA-256/RSA
+algorithm parameters, critical digitalSignature/nonRepudiation key usage and
+exactly the two noncritical clientAuth/emailProtection extended usages. The
+participant-declaration profile continues to reject any extended key usage.
+Private profile selection shares bounded DER/PEM parsing, issuer and CRL checks
+without broadening either profile. A signed current CRL remains mandatory.
+
+The verifier recomputes the complete trust inspection and compares it with the
+supplied snapshot, including derived fingerprints and validity bounds. The
+statement must match deployment, trust revision, root and leaf. Successful
+verification proves consistency with supplied material at the supplied time;
+it does not prove that a public Rust snapshot came from the current published
+database state. The caller must load that state and recheck it at commit.
+No private key is received, generated or persisted by this verifier.
 
 ### Persistence and admission obligations
 

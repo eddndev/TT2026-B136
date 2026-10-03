@@ -1,3 +1,5 @@
+//! Mandatory signed revocation lists for the fixed internal authority profile.
+
 use std::collections::HashSet;
 
 use der::oid::AssociatedOid;

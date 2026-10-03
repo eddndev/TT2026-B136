@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Verificador de certificado Owner: 3 de octubre de 2026
+
+El target nuevo reprodujo primero la ausencia del verificador. Sus ocho pruebas
+aprobaron en 1.00 s tras 19.02 s de compilación; las 24 pruebas existentes de
+declaraciones aprobaron en 1.15 s. Clippy focal de biblioteca y ambos targets
+aprobó en 11.38 s con advertencias como errores. Se aplicó formato Rust.
+
+Se usaron certificados, CRL y firmas RSA reales con OpenSSL. Se comprobaron
+bytes canónicos, firma separada, perfil Partner exacto, rechazo de otras cuentas
+y propósitos, instantáneas alteradas, límites de material, codificaciones,
+extensiones, revocación y vigencias inclusivas. La declaración personal sigue
+rechazando EKU. El resultado no autentica al Owner, prueba publicación de la
+confianza ni registra una fila: aplicación, transacción y acceso siguen separados.
+La dependencia Redis conserva su aviso previo de incompatibilidad futura;
+no produjo un fallo de estos targets. CI completo de esta entrega está pendiente.
+
+
 ## Plazos ordinarios: recuperación local del 3 de octubre de 2026
 
 El caso inicial reprodujo la falta de consulta fresca del expediente antes de

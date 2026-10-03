@@ -212,6 +212,10 @@ name = "internal_declaration"
 path = "tests/internal_declaration.rs"
 
 [[test]]
+name = "internal_owner_binding"
+path = "tests/internal_owner_binding.rs"
+
+[[test]]
 name = "issuer_validity_window"
 path = "tests/issuer_validity_window.rs"
 

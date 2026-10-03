@@ -451,6 +451,8 @@ Si falla la auditoría después de crear un desafío o sesión, la aplicación i
 
 \input{chapters/04-recuperacion-password}
 
+\input{chapters/04-vinculo-certificado}
+
 \subsection{Expedientes, pertenencia y aislamiento}\label{sec:impl-http-expedientes}
 
 El dominio identifica cada expediente mediante \texttt{CaseId} y valida título y referencia con \texttt{Case\allowbreak Metadata}: ambos son obligatorios, se recortan espacios exteriores, se rechazan controles y se limitan a 200 y 100 caracteres, respectivamente. La referencia es una etiqueta libre, no un identificador único. PostgreSQL conserva una raíz inmutable con creador, fecha y metadatos originales; sus revisiones administrativas proporcionan título y referencia actuales. Las asignaciones regulan acceso y permanecen separadas de fichas de participantes, audiencias y plazos.

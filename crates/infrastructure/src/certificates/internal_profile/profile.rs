@@ -1,3 +1,6 @@
+//! Exact certificate profiles sharing their key, issuer and validity mechanics.
+
+use der::asn1::ObjectIdentifier;
 use der::oid::AssociatedOid;
 use der::Decode;
 use domain::crypto::{CertificateSummary, CredentialCertificate, CredentialFailure};
@@ -5,7 +8,8 @@ use rsa::pkcs8::DecodePublicKey;
 use rsa::traits::PublicKeyParts;
 use rsa::RsaPublicKey;
 use x509_cert::ext::pkix::{
-    AuthorityKeyIdentifier, BasicConstraints, KeyUsage, KeyUsages, SubjectKeyIdentifier,
+    AuthorityKeyIdentifier, BasicConstraints, ExtendedKeyUsage, KeyUsage, KeyUsages,
+    SubjectKeyIdentifier,
 };
 use x509_cert::{Certificate, Version};
 
@@ -13,6 +17,7 @@ use super::material::{
     der_bytes, digest, encoded, extension, inventory, signature_matches, CERTIFICATE_LIMIT,
     RSA_ENCRYPTION, RSA_SHA256,
 };
+use super::Profile;
 use crate::certificates::parse::{serial_hex, time_to_unix};
 
 pub(super) struct ParsedCertificate {
@@ -69,8 +74,9 @@ impl ParsedCertificate {
 
 pub(super) fn certificate(
     input: &[u8],
-    root: bool,
+    profile: Profile,
 ) -> Result<ParsedCertificate, CredentialFailure> {
+    let root = profile == Profile::Root;
     let malformed = CredentialFailure::MalformedCertificate;
     let unsupported = CredentialFailure::UnsupportedCertificate;
     let der = der_bytes(input, CERTIFICATE_LIMIT, "CERTIFICATE", malformed)?;
@@ -122,11 +128,33 @@ pub(super) fn certificate(
         SubjectKeyIdentifier::OID,
         AuthorityKeyIdentifier::OID,
     ];
+    let partner_oids = [
+        BasicConstraints::OID,
+        KeyUsage::OID,
+        SubjectKeyIdentifier::OID,
+        AuthorityKeyIdentifier::OID,
+        ExtendedKeyUsage::OID,
+    ];
     inventory(
         extensions,
-        if root { &root_oids } else { &leaf_oids },
+        match profile {
+            Profile::Root => &root_oids,
+            Profile::Declaration => &leaf_oids,
+            Profile::Partner => &partner_oids,
+        },
         unsupported,
     )?;
+    if profile == Profile::Partner {
+        let usage: ExtendedKeyUsage = extension(extensions, false, unsupported)?;
+        let client_auth = ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.2");
+        let email_protection = ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.4");
+        if usage.0.len() != 2
+            || !usage.0.contains(&client_auth)
+            || !usage.0.contains(&email_protection)
+        {
+            return Err(unsupported);
+        }
+    }
     let constraints: BasicConstraints = extension(extensions, true, unsupported)?;
     let usage: KeyUsage = extension(extensions, true, unsupported)?;
     let expected_usage = if root {
