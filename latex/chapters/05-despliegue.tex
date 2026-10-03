@@ -122,6 +122,19 @@ tuvo 64~MiB y vida máxima de 60~s; no se tocaron servicios desplegados.
 La prueba nativa no sustituye aceptación del controlador completo instalado,
 staging, promoción durable ni reapertura de la restauración.
 
+La retención de referencias y salidas tipadas añadió seis regresiones; el grupo
+completo de parada aprobó 27 casos en 0.832~s y la barrera conservó seis en
+0.259~s. Se ejercitaron referencias parciales, plazo agotado, sustitución del
+gestor, fallo de sincronización, metadatos eliminados y reentrada con evidencia
+durable, sin relajar las aserciones anteriores. La API pública corregida aprobó
+un recorrido nativo en 1.103~s con systemd 249; la preparación externa completa
+tardó 1.221~s. Cuatro servicios inocuos de \texttt{tt-runner} recibieron SIGINT;
+el controlador exigió PID e inicio exactos, código uno y estado cero antes de
+liberar sus referencias. Se comprobaron reentrada, barrera, ausencia y archivo
+privado conservado. La limpieza retiró sus fragmentos, restauró el modo del
+directorio y preservó el inventario ajeno. No se tocaron servicios del usuario
+de despliegue ni se restauraron bases o instalaron nuevos controladores.
+
 
 La aceptación del lanzador de controladores reprodujo primero su ausencia y
 aprobó seis pruebas en 1.669~s. Intérpretes locales inocuos verificaron imports

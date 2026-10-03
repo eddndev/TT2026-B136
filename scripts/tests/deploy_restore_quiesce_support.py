@@ -29,6 +29,26 @@ def fingerprint(path):
     return {"path": str(path), "size": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
+class ManagerReferences:
+    manager = ":1.55"
+
+    def __init__(self, fixture):
+        self.fixture = fixture
+
+    def check(self, *, timeout):
+        self.fixture.assert_locked()
+        self.fixture.assertTrue(0 < timeout <= self.fixture.timeout)
+
+    def status(self, unit, *, timeout):
+        self.check(timeout=timeout)
+        row = self.fixture.units[unit]
+        if row["MainPID"] != "0":
+            self.fixture.reference_pids[unit] = int(row["MainPID"])
+        pid = self.fixture.reference_pids[unit]
+        return {"pid": pid, "code": int(row["ExecMainCode"]), "status": int(row["ExecMainStatus"]),
+                "started_usec": pid * 1000, "exited_usec": pid * 1000 + 500 if row["MainPID"] == "0" else 0}
+
+
 class QuiesceFixture(unittest.TestCase):
     def setUp(self):
         self.scratch = tempfile.TemporaryDirectory()
@@ -88,6 +108,7 @@ class QuiesceFixture(unittest.TestCase):
         self.show_override = None
         self.leftovers, self.foreign_ports = {}, set()
         self.process_override = None
+        self.reference_pids = {unit: int(row["MainPID"]) for unit, row in self.units.items()}
         self.before_data = {path: path.read_bytes() for path in (self.config, self.root / "data/preserved.bin")}
 
     def private_json(self, path, value):
@@ -199,6 +220,17 @@ class QuiesceFixture(unittest.TestCase):
         return sorted((active | self.foreign_ports) & set(ports))
 
     @contextmanager
+    def retain_units(self, environment, units, *, timeout):
+        self.assert_locked()
+        self.assertEqual(environment, {**self.environment, "LC_ALL": "C"})
+        self.assertEqual(tuple(units), UNITS)
+        self.assertTrue(0 < timeout <= self.timeout)
+        try:
+            yield ManagerReferences(self)
+        finally:
+            self.assert_locked()
+
+    @contextmanager
     def controller(self, timeout=240):
         module = importlib.import_module("restore_quiesce")
         self.timeout = timeout
@@ -209,6 +241,7 @@ class QuiesceFixture(unittest.TestCase):
             stack.enter_context(patch.object(module, "run", side_effect=self.execute))
             stack.enter_context(patch.object(module, "process_snapshot", side_effect=self.processes))
             stack.enter_context(patch.object(module, "listening_ports", side_effect=self.listeners))
+            stack.enter_context(patch.object(module, "retain_units", side_effect=self.retain_units))
             stack.enter_context(patch.object(module, "monotonic", side_effect=lambda: self.now))
             stack.enter_context(patch.object(journal, "locked", side_effect=self.lock))
             stack.enter_context(patch.object(journal, "sync_directory", side_effect=self.sync))

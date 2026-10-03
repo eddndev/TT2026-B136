@@ -27,25 +27,58 @@ unidades que necesitan recargarse y observaciones incompletas.
 ## Secuencia y reentrada
 
 1. Adquirir una vez `deploy.lock` y mantenerlo durante toda la operación.
-2. Validar la identidad fijada y observar unidades y procesos propios antes de
-   detener nada.
+2. Validar la identidad fijada y retener las cuatro unidades con `RefUnit` en una
+   sola conexión persistente al gestor local. Observar unidades y procesos propios
+   antes de detener nada.
 3. Publicar y sincronizar `maintenance/restore/active.json` y el diario
-   `maintenance/restore/<operation_id>/journal.json` en estado `closing`.
-4. Detener web y API; exigir estado inactivo, terminación normal, cgroups vacíos
-   y ausencia de listeners antes de detener PostgreSQL y Redis.
+   `maintenance/restore/<operation_id>/journal.json` en estado `closing`, con la
+   identidad de cada proceso y su instante monotónico de inicio.
+4. Detener web y API; exigir el PID e inicio capturados, `ExecMainCode=1`,
+   `ExecMainStatus=0`, instante de salida coherente, estado inactivo exitoso,
+   cgroups vacíos y ausencia de listeners antes de detener PostgreSQL y Redis.
 5. Reobservar los cuatro servicios y sus puertos, y publicar `stopped` mediante
-   sincronización de archivo y directorio.
+   sincronización de archivo y directorio. Las referencias permanecen vivas
+   hasta esa sincronización; después se liberan y se cierra la conexión.
 
 El presupuesto monotónico total admite de 90 a 300 segundos. Una parada sólo
 comienza si quedan al menos los 90 segundos de gracia de las unidades. Cada
 consulta y observación consume ese mismo presupuesto. Un timeout, señal forzada,
 salida anómala o error al sincronizar conserva la barrera y devuelve fallo.
 El controlador nunca busca procesos para matarlos ni adopta listeners ajenos.
+La liberación de referencias tiene un presupuesto adicional máximo de ocho
+segundos, incluso después de agotar el plazo principal; no hace un flush ilimitado.
 
 Reentrar con el mismo UUID y descriptor vuelve a observar el estado real,
 incluso si el diario ya dice `stopped`. Una unidad propia que volvió a arrancar
-se detiene de nuevo siguiendo el protocolo. Otro UUID o digest no adopta el
-recibo. No se deshace la parada mediante un rollback de aplicación.
+se captura y detiene de nuevo siguiendo el protocolo. Si el gestor ya eliminó
+los metadatos del proceso, sólo un recibo exacto previamente guardado permite
+continuar tras comprobar de nuevo su ausencia. Un código cero o una unidad
+inactiva no demuestran salida normal. Sin ese recibo, ni los diarios antiguos
+de tres campos ni una respuesta de stop perdida autorizan inventar evidencia.
+Otro UUID o digest no adopta el recibo. No se deshace la parada mediante un
+rollback de aplicación.
+
+## Dependencia del gestor local
+
+`restore_quiesce_bus.py` carga `libsystemd.so.0` desde ubicaciones explícitas del
+sistema, incluidas las rutas multiarch compatibles. Comprueba enlaces, directorios
+y archivo final controlados por root, ausencia de escritura para grupo u otros,
+tamaño acotado e identidad antes de cargar mediante el mismo descriptor abierto.
+No fija el nombre de una versión de apt ni el hash de una biblioteca experimental.
+Rechaza selección por entorno, símbolos ausentes y capacidades no disponibles.
+
+La ABI de ctypes es fija. Las llamadas usan el bus Unix local del usuario y la
+identidad única del gestor; cada consulta está acotada y las propiedades de
+salida se leen con sus tipos D-Bus exactos. Una sustitución del gestor,
+desconexión, respuesta incompatible o adquisición parcial causa fallo y limpieza;
+no hay reconexión que pueda adoptar otra observación. `RefUnit` impide que el gestor
+descarte una unidad inactiva mientras el cliente la retiene. No impide que otro
+administrador la reinicie.
+
+El diario privado conserva PID, UID, ticks de inicio y cgroup junto a la identidad
+del gestor y los instantes monotónicos tipados. Los ticks del proceso y los
+microsegundos del gestor son observaciones distintas; no se comparan como si
+tuvieran la misma escala. El recibo público conserva sus tres campos originales.
 
 ## Frontera de observación
 
@@ -93,13 +126,24 @@ SQL, Redis, PKI o configuración de la instalación. Véanse la
 
 ## Aceptación nativa del controlador completo
 
-El 3 de octubre de 2026, una aceptación adicional aprobó 1/1 en 0.360 s en
-el gestor de usuario de `tt-runner` de VPS3. Ejecutó el controlador completo
-con cuatro unidades desechables que atendían puertos loopback y terminaban
-normalmente. Comprobó el recibo durable, reentrada exacta, barrera conservada,
-ausencia final de procesos/listeners y preservación de un archivo privado.
-Los fragmentos creados se retiraron al terminar. El usuario del despliegue y
-sus servicios no participaron; los procesos de prueba no eran bases de datos.
+El ensayo inicial del 3 de octubre de 2026 aprobó 1/1 en 0.360 s con cuatro
+unidades desechables en `tt-runner`, VPS3. Comprobó secuencia, recibos cooperativos,
+reentrada y ausencia, pero no conservaba una prueba tipada del estado de salida
+frente a la recolección del gestor. La corrección añade seis regresiones de
+referencias y evidencia; el grupo completo aprobó **27/27 en 0.832 s**, y la
+compatibilidad de la barrera **6/6 en 0.259 s**. Los casos incluyen adquisición
+parcial, fallo de stop, agotamiento de plazo, cambio de gestor, fsync fallido y
+metadatos borrados o discordantes, conservando las aserciones anteriores.
+
+La API pública corregida aprobó **1/1 en 1.103 s** con systemd 249 en el gestor
+de `tt-runner` (**1.221 s** incluyendo la preparación externa). Usó cuatro
+unidades inocuas con sockets loopback, parada mediante SIGINT y reentrada exacta.
+El propio controlador exigió y guardó PID/inicio y código 1/estado 0 antes de
+liberar sus referencias. El ensayo comprobó la barrera conservada, ausencia final,
+preservación del archivo privado y retirada de sus fragmentos. La preparación
+externa confirmó el inventario ajeno intacto y restauró el modo previo del
+directorio de unidades. Los servicios del usuario de despliegue no participaron;
+los trabajadores de prueba no eran bases de datos.
 
 ```bash
 TT_RESTORE_QUIESCE_NATIVE=1 python3 -B scripts/tests/native_restore_quiesce_acceptance.py -v

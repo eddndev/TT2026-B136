@@ -50,6 +50,31 @@ remoto y no modifica la instalación privada ni la política operativa. Véase
 [la guía del recorrido](owner-certificate-login-interface.md).
 
 
+
+## Evidencia durable de parada y reentrada: 3 de octubre de 2026
+
+Se reprodujo la pérdida de metadatos de salida al descargar systemd una unidad
+inactiva. La corrección conserva referencias a las cuatro unidades en una única
+conexión al gestor hasta sincronizar el recibo de terminación normal. No acepta
+estado inactivo o código cero como sustitutos de esa prueba. La reentrada exige
+el recibo exacto de la operación y observación nueva de ausencia de procesos y
+listeners; los reinicios se capturan y detienen de nuevo.
+
+Después del RED focal aprobaron 27 pruebas de quiesce en 0.832 s y seis de la
+barrera en 0.259 s. La aceptación nativa del controlador público aprobó 1/1 en
+1.103 s (1.221 s incluyendo la preparación externa), en el usuario `tt-runner`
+de VPS3, con cuatro servicios inocuos desechables. Conservó el archivo privado,
+comprobó reentrada y dejó intacto el inventario ajeno. La dependencia se resuelve
+como `libsystemd.so.0` desde rutas del sistema verificadas; no fija la versión
+ni el hash de la biblioteca de ese VPS. La revisión independiente de código no
+identificó defectos adicionales; no cuenta como otra ejecución de pruebas.
+
+El recibo público conserva su forma. Esta aceptación no instala controladores,
+restaura las bases activas ni reabre la aplicación privada. El coordinador de
+instalación y la aceptación operativa de restauración mantienen su alcance
+pendiente en [la parada observada](deployment-restore-quiesce.md).
+
+
 ## Composición Owner y controles de restauración: 3 de octubre de 2026
 
 La configuración y composición aprobaron siete casos en 0.09 s y Clippy focal
