@@ -237,8 +237,9 @@ pub fn judicial_calendar_router(
     )
 }
 
-/// Related case workflows injected together into the shared HTTP runtime.
+/// Identity evidence and case workflows injected into the shared HTTP runtime.
 pub struct CaseWorkflows {
+    pub owner_certificates: Arc<application::identity::owner_certificates::OwnerCertificateService>,
     pub members: Arc<dyn application::members::MemberWorkflow>,
     pub cases: Arc<dyn CaseWorkflow>,
     pub participants: Arc<dyn ParticipantWorkflow>,

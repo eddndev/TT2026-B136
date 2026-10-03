@@ -1,9 +1,11 @@
 # Owner certificate binding HTTP contract
 
-The standalone `web::owner_certificate_router` exposes registration evidence for
-the currently authenticated Owner. It does not enable certificate login or
-personal document signing. The binary composition is a separate delivery; a
-standalone router test does not establish that these routes are deployed.
+The full API and standalone `web::owner_certificate_router` expose registration
+evidence for the currently authenticated Owner. The `serve` binary composes the
+real application service with its existing identity and validated PostgreSQL
+store. These operations do not enable certificate login or personal document
+signing. Router acceptance does not establish an installed deployment or a real
+HTTP/RSA/PostgreSQL workflow.
 
 ## Routes and input
 
@@ -64,12 +66,37 @@ state (409), rejected credential (422), oversized input (413), exhausted
 admission (503) and internal failure (500). Conflict and credential groups use
 neutral messages rather than publishing internal verification details.
 
-The standalone factory installs its HTTP admission protection once. Blocking
-application work uses its bounded runtime; the bearer remains inside a
-zeroizing allocation captured by the worker. Composition into an existing API
-must share that API's runtime and admission instead of adding another budget.
+The full API merges these routes into its existing `HttpRuntime` before the
+single admission layer. They share request and blocking-work limits with the
+other routes. Blocking capacity also covers consumers using the injected
+`HttpWorkBudget`. Exhausted
+HTTP admission returns the same `503 server_busy` before reading a request body.
+Authentication through the application service also waits for a blocking-work
+permit. Cancelling the HTTP request does not release a permit held by a running
+synchronous operation; that worker retains it until completion.
+
+The standalone factory creates its own bounded runtime and installs protection
+once. Full composition uses the private route group, not this standalone factory.
+The 32 KiB body limit applies only to Owner binding input. The bearer remains
+inside a zeroizing allocation captured by the worker.
+
+## Server composition and evidence limits
+
+`CaseWorkflows.owner_certificates` supplies the required
+`Arc<OwnerCertificateService>`. All full-API constructors use it, including the
+constructor accepting an external work budget. In `serve`, the service uses the
+existing identity instance, `PostgresOwnerCertificateStore`, the strict Partner
+verifier and SHA-256 implementation. Application and store share a clock instance.
+The store opens inside `with_validated_postgres` without migrations or grant
+repair. No new activation flag, issuer selection or private-key input is added.
+
+New registrations still require current published trust. Historical receipt and
+withdrawal keep their existing authority requirements and do not require a
+currently valid certificate. These routes do not change MFA or session admission.
 
 See [the binding decision](adr/0067-owner-certificate-bindings.md) for canonical
 evidence, PostgreSQL transactions, trust and the separate certificate-login
-boundary. Local HTTP acceptance uses the real application service with controlled
-ports; it does not substitute for real RSA/PostgreSQL transport acceptance.
+boundary. The [verification report](verification-report.md) records standalone
+and shared-runtime HTTP tests separately from the real PostgreSQL/RSA backend
+campaign. The HTTP tests use the real application service with controlled ports;
+they do not substitute for an integrated real-service transport acceptance.
