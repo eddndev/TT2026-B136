@@ -142,3 +142,14 @@ y señales y cierra los descriptores al terminar o reemplazar el proceso. Esta
 primitiva no selecciona por sí sola una generación confiable ni modifica unidades;
 la instalación operativa y su transición desde lectores anteriores permanecen
 separadas. Véase \rutarepo{docs/deployment-controller-launcher.md}.
+
+La aprobación de una generación publicada conserva un registro privado e
+inmutable por operación y una selección actual separada. Exige hashes externos
+exactos y predecesor explícito bajo el bloqueo administrativo; no adopta como
+aprobada una huella encontrada después de una discrepancia. Publica el registro
+con rename exclusivo y sincroniza archivo y directorio; la selección usa
+reemplazo atómico con comparación fresca. La reentrada concilia una respuesta
+perdida sin sustituir el inode original. Los candidatos de cuatro unidades
+incorporan el lanzador aislado y la huella literal aprobada, preservando los demás
+bytes. Esto no instala unidades ni reabre servicios; véase
+\rutarepo{docs/deployment-controller-approval.md}.

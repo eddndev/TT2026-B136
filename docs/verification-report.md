@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Aprobación durable de controladores: 3 de octubre de 2026
+
+Seis casos reprodujeron los módulos ausentes y luego aprobaron **6/6 en 0.863 s**.
+Una revisión posterior encontró la ventana entre crear un hard link y retirar
+su temporal: un hijo terminado con `os._exit` dejó dos enlaces y la reentrada
+rechazó su propio registro. La regresión reprodujo ese fallo **1/1 en 0.096 s**.
+La publicación exclusiva pasó a `renameat2(RENAME_NOREPLACE)`, sin fallback ni
+relajación del guard; el grupo completo aprobó **7/7 en 0.979 s**.
+
+Se verificaron predecesor explícito, bloqueo, identidad/hash de publicación,
+confirmación incierta, inode estable, temporal ajeno conservado, hard link externo
+rechazado y candidatos de unidades con aprobación independiente. El renderer
+conserva bytes ajenos a los comandos y el lanzador mantiene fuentes A/A después
+del intercambio. Son archivos y procesos Python locales inocuos: no hubo
+instalación, systemd ni controladores operativos. Véase el
+[procedimiento y sus límites](deployment-controller-approval.md).
+
+
+
 ## Declaración de primer factor Owner: 3 de octubre de 2026
 
 El RED reprodujo dos importaciones `E0432` del módulo ausente. El dominio
