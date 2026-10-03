@@ -1,6 +1,23 @@
 # Informe de verificación local
 
 
+## Parada nativa completa: verificación del 3 de octubre de 2026
+
+Una aceptación aislada del controlador aprobó 1/1 en 0.360 s en VPS3, bajo
+`tt-runner`, con cuatro servicios de usuario desechables y puertos loopback.
+Comprobó cierre normal, cgroups y puertos vacíos, recibo durable, reentrada
+exacta y barrera conservada. Los fragmentos desaparecieron y un archivo
+privado de prueba mantuvo su huella. Ninguna unidad del despliegue real fue
+operada; esos cuatro procesos no eran PostgreSQL, Redis ni la aplicación.
+
+El intento previo en Fedora se rechazó por un drop-in global de systemd;
+incluso su máscara seguía declarada en la observación. No se flexibilizó el
+controlador. Ambos intentos locales limpiaron sus propios fragmentos. El
+ensayo final requiere un gestor sin unidades Qadra ni overrides existentes.
+La evidencia amplía la aceptación nativa de observadores, sin atribuirle
+restauración de bases ni actualización de controladores instalados.
+
+
 ## Parada previa a restauración: 3 de octubre de 2026
 
 Trece pruebas de protocolo y ocho de observación reprodujeron la ausencia de sus
