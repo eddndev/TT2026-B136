@@ -8,6 +8,8 @@ from runtime import environment, run, settings
 
 
 def create_databases(root):
+    from restore_fence import guard
+    guard(root)
     config = settings(root)
     directory = root / "data/postgres"
     postgres_bin = subprocess.check_output(["pg_config", "--bindir"], text=True).strip()
@@ -81,6 +83,8 @@ def initial_trust_is_published(root, env):
 
 
 def initialize(root, target):
+    from restore_fence import guard
+    guard(root)
     marker = root / "config/schema"
     if marker.exists():
         return

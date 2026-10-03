@@ -42,6 +42,8 @@ def environment(root, admin=False):
 
 class Runtime:
     def __init__(self, root):
+        from restore_fence import guard
+        guard(root)
         self.root = root
         self.config = settings(root)
 
@@ -49,6 +51,8 @@ class Runtime:
         run(["systemctl", "--user", "stop", "qadra-web.service", "qadra-api.service"])
 
     def backup(self):
+        from restore_fence import guard
+        guard(self.root)
         state = run(["systemctl", "--user", "show", "qadra-api.service",
                      "qadra-web.service", "--property=ActiveState", "--value"],
                     capture_output=True, text=True, timeout=15)
@@ -94,6 +98,8 @@ class Runtime:
         for name in ("database.dump", "redis.rdb", "private-state.tar.gz"):
             with (backup / name).open("rb") as stream:
                 os.fsync(stream.fileno())
+        from backup_manifest import publish
+        publish(self.root, backup, controller_directory=Path(__file__).resolve().parent)
         with private_file(".complete.tmp") as marker:
             marker.write(b"database, Redis and private state captured while API stopped\n")
             marker.flush()
@@ -108,6 +114,8 @@ class Runtime:
         return backup
 
     def initialize(self, target):
+        from restore_fence import guard
+        guard(self.root)
         from provision import initialize
         initialize(self.root, target)
 

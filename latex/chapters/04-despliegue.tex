@@ -89,3 +89,24 @@ privado. La aplicación \texttt{v0.1.1} reinició con salud comprobada, el regis
 terminó aceptado y su respaldo exacto conservó las cuatro piezas. Se verificó
 la cadena de auditoría completa y el prefijo previo sin modificaciones.
 Esta comprobación usó una instalación sin usuarios y no programó un timer.
+
+
+Los respaldos prospectivos incorporan un manifiesto privado de captura con
+identidad declarada de aplicación y controlador, tamaños y huellas SHA-256 de
+los tres archivos de datos. Se publica y sincroniza antes del marcador final.
+El recibo CRL incluye ese quinto archivo cuando existe y rechaza su aparición,
+retirada o cambio respecto del inventario aceptado. Una captura histórica no
+se convierte silenciosamente al formato nuevo. Estas huellas detectan cambios
+respecto de un recibo conservado por una vía confiable; no autentican por sí
+solas datos y manifiesto que el mismo operador pueda sustituir.
+
+La primitiva de admisión para restauración mantiene un registro durable fuera
+de la configuración respaldada. Comparte el bloqueo administrativo con CRL,
+conserva un identificador explícito al reintentar y rechaza cualquier presencia
+inválida sin borrar el registro. Su consulta precede a los arranques normales,
+las operaciones de release y el mantenimiento CRL; las unidades generadas de
+PostgreSQL y Redis también la consultan. Esta pieza no detiene escritores ya
+admitidos ni copia bases: aún requiere composición y ensayo de restauración
+poblada antes de autorizar la reapertura. Véanse
+\rutarepo{docs/backup-capture-manifest.md} y
+\rutarepo{docs/deployment-restore-fence.md}.

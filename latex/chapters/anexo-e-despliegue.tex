@@ -13,3 +13,14 @@ de \rutarepo{docs/database-operations.md}. Certificados, CRL y respaldos requier
 mantenimiento explícito. Cada versión incluye qpdf y FFmpeg/ffprobe fijados;
 la preparación de servicios y la compilación del paquete conservan evidencia
 separada de la primera activación y de una restauración real.
+
+
+El manifiesto prospectivo se especifica en
+\rutarepo{docs/backup-capture-manifest.md}. Debe ligarse a un recibo externo
+confiable; conservar datos y huellas juntos no prueba autenticidad. El registro
+\texttt{maintenance/restore/active.json} queda fuera del archivo de configuración
+y mantiene cerrado el ingreso normal cuando está presente. La guía
+\rutarepo{docs/deployment-restore-fence.md} distingue esa consulta de admisión de
+la restauración todavía por componer: no ofrece un comando para borrar el
+registro, ignorarlo o reabrir automáticamente. Actualizar el paquete de la
+aplicación tampoco instala controladores ni cambia unidades de servicio.

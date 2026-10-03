@@ -20,6 +20,8 @@ def pending(root):
 
 
 def guard(root):
+    from restore_fence import guard as restore_guard
+    restore_guard(root)
     if pending(root):
         raise RuntimeError("CRL maintenance is pending; ingress must remain stopped")
 
@@ -41,7 +43,7 @@ def directory(path):
 
 
 def read(path, maximum=8 * 1024 * 1024):
-    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(descriptor, "rb") as stream:
         if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
             raise ValueError("maintenance input must be a regular file")

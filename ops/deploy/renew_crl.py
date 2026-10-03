@@ -67,6 +67,8 @@ def validate_candidate(before, candidate, next_counter):
 
 
 def prepared(root, target, info, expected):
+    from restore_fence import guard
+    guard(root)
     before = material.read_head(root)
     if type(expected) is not int or not 1 <= expected < 2**32 - 1 or before["revision"] != expected:
         raise ValueError("expected credential trust revision differs")
@@ -133,6 +135,8 @@ def reconcile(root, operation, record, target):
 
 
 def continue_operation(root, operation, record, target, runtime):
+    from restore_fence import guard
+    guard(root)
     identifier = operation.name
     try:
         if record["backup"]:
@@ -192,6 +196,8 @@ def renew(root, expected_revision, runtime=None):
 def resume(root, operation_id, runtime=None):
     root = Path(root).resolve(strict=True)
     with journal.locked(root):
+        from restore_fence import guard
+        guard(root)
         operation = journal.operation(root, operation_id)
         if journal.pending(root) and journal.load(journal.fence_path(root)).get("operation_id") != operation_id:
             raise ValueError("another CRL maintenance operation holds the fence")

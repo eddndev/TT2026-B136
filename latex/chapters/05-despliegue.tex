@@ -66,3 +66,21 @@ VPS3 y se ejecutó una renovación real, sin fallos inducidos. Aprobó
 1 a 2, CRL 4096 a 4097, mismas claves y revocaciones, un único evento añadido
 y cadena completa de dos entradas válida. Los servicios y el respaldo eran
 reales; la ausencia de usuarios limita el alcance de esta aceptación.
+
+
+El manifiesto prospectivo aprobó doce pruebas focales en 0.135~s, incluyendo
+publicación, límites, rechazo de cambios y copia/importación aislada de sus
+módulos. Otras 22 pruebas anteriores de captura y recuperación CRL aprobaron
+en 0.121~s. Utilizan archivos y hashes reales con servicios sustituidos por
+dobles controlados; no actualizan la aceptación de la instalación privada.
+
+La primitiva de bloqueo para restauración aprobó siete pruebas nuevas en
+0.319~s. Comprueban identidad y reentrada, persistencia ante fallo de
+sincronización, rechazo de rutas inválidas, cierre previo a efectos y las dos
+guardas de arranque de bases. Un FIFO real reprodujo primero una lectura
+bloqueada; el lector corregido lo rechaza sin esperar un escritor ni retirarlo.
+La regresión de 76 pruebas de controladores existentes y manifiesto aprobó
+separadamente en 1.280~s. Estos conjuntos pueden compartir comprobaciones y no
+se suman para presentar un inventario único. La campaña remota y la instalación
+de los módulos nuevos siguen pendientes; ninguna de estas pruebas equivale a
+un restore operacional ni a un drenaje de escritores.

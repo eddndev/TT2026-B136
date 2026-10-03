@@ -93,9 +93,13 @@ candidato expirado o SQL inaccesible mantiene detenido el ingreso y requiere
 investigación. Nunca se rebaja el contador ni se restaura SQL para deshacer una
 publicación confirmada.
 
-La reanudación comprueba otra vez los cuatro archivos del respaldo contra sus
+La reanudación comprueba otra vez el inventario del respaldo contra sus
 huellas SHA-256 registradas; un archivo ausente, alterado o sustituido por un
 enlace impide reabrir el ingreso.
+El recibo incluye los cuatro archivos históricos o esos cuatro y el nuevo
+[manifiesto de captura](backup-capture-manifest.md), cuando está presente. Su
+aparición, desaparición o cambio después de guardar el recibo provoca rechazo;
+no se actualiza automáticamente el inventario para admitirlo.
 
 Si la captura inicial falló y aún no existe un respaldo registrado, el controlador
 puede intentarla otra vez únicamente con servicios detenidos y con la identidad,

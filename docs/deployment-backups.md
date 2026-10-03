@@ -35,7 +35,13 @@ Cada directorio bajo `<root>/backups` contiene:
 | `database.dump` | Respaldo PostgreSQL de formato custom, tomado con el rol administrativo. |
 | `redis.rdb` | Instantánea Redis, incluidos controles de identidad y sus vencimientos. |
 | `private-state.tar.gz` | Configuración y material privado CA/TSA existente al capturar. |
+| `backup-manifest.json` | Metadatos de capturas nuevas: tamaños, hashes e identidad local declarada. |
 | `COMPLETE` | Marcador publicado al terminar las capturas, validación y sincronización. |
+
+El [manifiesto de captura](backup-capture-manifest.md) se publica y sincroniza
+antes de `COMPLETE`. Su ausencia distingue los respaldos históricos; no se añade
+retrospectivamente. Una identidad declarada no demuestra compatibilidad para
+restaurar ni autentica los datos frente a quien puede cambiar ambos.
 
 El directorio tiene modo `0700` y los archivos `0600`, independientemente del
 umask del operador. Redis se captura con `redis-cli --rdb`, autenticación por
@@ -54,6 +60,7 @@ con API/web detenidas y el mismo bloqueo, que incluya las claves ya inicializada
 
 Copiar el conjunto fuera del servidor mediante SSH con clave de host verificada,
 a almacenamiento restringido ajeno al repositorio y a artefactos públicos.
+Incluir el manifiesto cuando exista y ligar también su hash al recibo externo.
 Registrar tamaños y SHA-256 antes y después de transferir; no imprimir contenidos
 privados. El marcador no es una firma ni protege contra modificación posterior.
 No se borran automáticamente respaldos o versiones anteriores.

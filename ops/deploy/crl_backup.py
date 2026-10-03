@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import stat
 
+import backup_manifest
+
 
 FILES = ("database.dump", "redis.rdb", "private-state.tar.gz", "COMPLETE")
 
@@ -33,7 +35,11 @@ def capture(root, backup):
         raise ValueError("maintenance backup must be a local managed directory")
     if not backup.is_dir() or backup.stat().st_mode & 0o777 != 0o700:
         raise ValueError("maintenance backup directory must remain private")
-    return {"path": str(backup), "files": {name: fingerprint(backup / name) for name in FILES}}
+    names = FILES
+    if os.path.lexists(backup / backup_manifest.NAME):
+        backup_manifest.validate(root, backup)
+        names = (*FILES, backup_manifest.NAME)
+    return {"path": str(backup), "files": {name: fingerprint(backup / name) for name in names}}
 
 
 def validate(root, manifest):
