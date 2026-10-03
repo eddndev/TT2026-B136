@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Parada observada y conservación de evidencia: 3 de octubre de 2026
+
+La compilación conjunta de los apartados modificados aprobó con `make -C latex`:
+378 páginas, 5953085 bytes, SHA-256
+`3ed09add891575965afe8ef3fac3ae06af5462529fef2e5026f7bb81be97532b`.
+Las páginas físicas 221 y 274 se inspeccionaron visualmente: referencias al
+gestor, recibo durable, reentrada y evidencia 27/6/nativa legibles, sin recortes
+ni superposición. El PDF anterior quedó respaldado. Resumen, introducción, marco
+y conclusiones conservaron sus hashes. Las advertencias tipográficas históricas
+no cambiaron; no hubo referencias indefinidas ni glifos ausentes. No acredita
+instalación del coordinador ni restauración de bases activas.
+
+
 ## Composición y restauración del acceso Owner: 3 de octubre de 2026
 
 `make -C latex` aprobó: 377 páginas, 5947542 bytes, SHA-256

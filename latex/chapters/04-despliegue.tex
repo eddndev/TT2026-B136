@@ -125,11 +125,23 @@ del punto de respaldo; véase \rutarepo{docs/deployment-restore-capture.md}.
 
 El controlador interno de parada retiene el bloqueo administrativo, valida una
 identidad fijada de instalación y publica la barrera y su diario antes de
-actuar. Detiene primero web y API y comprueba sus procesos y puertos antes de
-las bases. Exige salida normal y observación completa antes de registrar la
-parada; un fallo conserva la barrera. Reentrar con el mismo identificador vuelve
-a observar incluso si existe recibo previo. No restaura, promueve ni reabre
-datos y no establece la política de recuperación. Su frontera se describe en
+actuar. Una conexión persistente al gestor conserva las cuatro unidades mediante
+\texttt{RefUnit}; evita que la recolección de unidades inactivas descarte su
+evidencia de salida. Detiene primero web y API y comprueba sus procesos y puertos
+antes de las bases. Exige PID e inicio coincidentes, código de terminación normal
+igual a uno y estado de salida cero, obtenidos con tipos D-Bus exactos. Guarda
+esas observaciones y sincroniza el diario antes de liberar las referencias.
+La dependencia \texttt{libsystemd.so.0} se resuelve en ubicaciones controladas por
+root y se valida antes de cargarla mediante descriptor; no depende del hash ni
+del nombre de una versión particular de la biblioteca.
+
+Reentrar con el mismo identificador vuelve a observar incluso si existe recibo
+previo. Si el gestor ya eliminó sus metadatos, sólo la salida exacta previamente
+guardada y una nueva comprobación de ausencia permiten continuar. Un código cero
+del gestor no sustituye esa evidencia; un fallo conserva la barrera. La unidad
+que volvió a arrancar requiere capturar y detener su nuevo proceso. Esta pieza
+no restaura, promueve ni reabre datos y no establece la política de recuperación.
+La instalación integrada de controladores permanece pendiente; véase
 \rutarepo{docs/deployment-restore-quiesce.md}.
 
 
