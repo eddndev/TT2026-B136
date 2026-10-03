@@ -216,6 +216,10 @@ name = "internal_owner_binding"
 path = "tests/internal_owner_binding.rs"
 
 [[test]]
+name = "internal_owner_login"
+path = "tests/internal_owner_login.rs"
+
+[[test]]
 name = "issuer_validity_window"
 path = "tests/issuer_validity_window.rs"
 

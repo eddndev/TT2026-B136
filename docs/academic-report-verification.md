@@ -1,5 +1,17 @@
 # Verificación de la actualización académica
 
+## Aprobación y primer factor de certificado: 3 de octubre de 2026
+
+Una compilación reunió la aprobación durable de controladores y la declaración
+y verificación tipificadas del primer factor, manteniendo explícita su activación
+pendiente. `make -C latex` aprobó: 373 páginas, 5933914 bytes, SHA-256
+`4a370227ef67afe39dff71007e3f75f0424ce74c89de7822e2c8be4c994b1820`.
+Se inspeccionaron las páginas físicas 169, 219, 220, 267, 269 y 270, legibles
+sin recortes ni superposiciones. El PDF previo y los hashes de fuentes protegidas
+se conservaron. No se observaron referencias pendientes ni glifos ausentes.
+El PDF acumulado no se versiona ni acredita instalación remota.
+
+
 ## Interfaz del certificado Owner: 3 de octubre de 2026
 
 Implementación y pruebas incorporan la interfaz Qadra, su recuperación pública

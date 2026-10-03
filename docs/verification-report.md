@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Verificador del primer factor Owner: 3 de octubre de 2026
+
+Se reprodujo `E0432` por ausencia del adaptador y su error tipificado. La
+implementación aprobó **6/6 en 1.13 s**, tras **13.88 s** de compilación. Un
+certificado Partner y una firma producida por OpenSSL verificaron los 182 bytes
+exactos; DER y PEM dieron el mismo resultado. El vencimiento del desafío es
+exclusivo y no se usa como fecha de vencimiento de una futura sesión.
+
+Clippy detectó una copia expresada como `clone` en la prueba; tras usar copia
+explícita, el focal aprobó con advertencias como errores.
+
+Se rechazaron firmas de registro, retiro y otro propósito, nonce/generación
+alterados, confianza o huella discordante, revocación firmada, perfil de
+certificado distinto, material mal formado y tamaños de firma incorrectos.
+La inspección completa de confianza se recalcula y compara. El adaptador reutiliza
+el perfil interno existente y no acredita publicación SQL, consumo único,
+entropía, MFA ni sesiones derivadas; aún no habilita acceso por certificado.
+
+
 ## Aprobación durable de controladores: 3 de octubre de 2026
 
 Seis casos reprodujeron los módulos ausentes y luego aprobaron **6/6 en 0.863 s**.
@@ -16,7 +35,6 @@ conserva bytes ajenos a los comandos y el lanzador mantiene fuentes A/A después
 del intercambio. Son archivos y procesos Python locales inocuos: no hubo
 instalación, systemd ni controladores operativos. Véase el
 [procedimiento y sus límites](deployment-controller-approval.md).
-
 
 
 ## Declaración de primer factor Owner: 3 de octubre de 2026

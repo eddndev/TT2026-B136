@@ -3,7 +3,8 @@
 ## Status
 
 Accepted protocol direction. The structural statement is implemented and tested;
-the application, live authority checks, adapters, session provenance and HTTP/UI
+the typed internal cryptographic adapter is also implemented. The application,
+live authority checks, storage adapters, session provenance and HTTP/UI
 activation are not yet complete. No certificate login endpoint is enabled.
 
 ## Context
@@ -66,6 +67,10 @@ before a later withdrawal.
 Registration and withdrawal statements cannot become login statements: their
 purpose, byte layout and typed interfaces differ. Two independent complete
 literal vectors and field/window boundary tests cover the structural format.
-Their success alone does not prove RSA rejection, freshness, one-use behavior,
+The adapter additionally verifies Partner proofs with the shared internal profile,
+recomputes trust inspection, requires exact statement material and checks the
+exclusive challenge window. It returns credential validity independently of the
+nonce deadline. Its tests use an OpenSSL-generated proof, cross-purpose rejection
+and a signed revocation. They do not establish freshness, one-use behavior,
 current SQL authority, Redis expiration, MFA completion or session admission.
 Those are required closing checks before exposing the alternative first factor.

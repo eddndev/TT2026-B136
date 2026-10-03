@@ -11,10 +11,12 @@ mod authority;
 mod internal_declaration;
 mod internal_profile;
 mod owner_binding;
+mod owner_login;
 mod parse;
 mod validator;
 
 pub use authority::OpensslCaAdapter;
 pub use internal_declaration::InternalRsaDeclarationVerifier;
 pub use owner_binding::{InternalRsaOwnerBindingVerifier, OwnerBindingFailure};
+pub use owner_login::{InternalRsaOwnerLoginVerifier, OwnerLoginFailure};
 pub use validator::X509ChainValidator;
