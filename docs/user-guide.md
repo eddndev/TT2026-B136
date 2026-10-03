@@ -3,7 +3,11 @@
 **Tu despacho, en orden.** Esta guía describe cómo trabajar con el prototipo
 Qadra y reconocer el resultado de cada operación. Los menús disponibles dependen
 de tu cuenta y de los expedientes asignados. **Informes** y la consulta de
-**Auditoría** están incluidos en la release privada `v0.1.0`.
+**Auditoría** están incluidos en la instalación privada. La versión desplegada
+`v0.1.1` todavía no incorpora las entregas posteriores de recuperación de contraseña
+y reingreso. Los apartados que las describen requieren una versión que las incluya
+y, cuando corresponda, su habilitación por el administrador; ver
+[estado de entregas e instalación](product-completion.md).
 
 Este manual se basa en las pantallas y contratos del producto. No es un informe
 de evaluación de usabilidad con personas ni acredita por sí mismo la puesta en
@@ -39,11 +43,61 @@ del dispositivo está desajustado, corrígelo antes de intentarlo nuevamente.
 
 Si no dispones de la aplicación, selecciona **Usar código de recuperación** e
 introduce uno que no hayas utilizado. Cada código permite un solo uso. Si perdiste
-ambos medios o la contraseña, contacta al administrador: todavía no existe un
-flujo de restablecimiento autónomo ni de recuperación del enrolamiento.
+ambos medios, contacta al administrador: cambiar la contraseña no recupera el
+segundo factor perdido ni genera nuevos códigos. Si sólo perdiste la contraseña,
+usa el procedimiento siguiente cuando esté habilitado en tu instalación.
 
 Usa **Cerrar sesión** al terminar. Cerrar sesión conserva los expedientes y sus
 archivos. No dependas de un cierre por inactividad para proteger una sesión abierta.
+
+### Si olvidaste la contraseña
+
+La recuperación está implementada e integrada en una versión posterior a
+`v0.1.1`; la instalación privada actual necesita actualizarse y configurarse
+antes de habilitarla. Confirma su disponibilidad con el administrador:
+ver el enlace del formulario no demuestra que el servicio de correo esté activo.
+
+1. En la pantalla de acceso, selecciona **Olvidé mi contraseña**, escribe tu correo
+   y pulsa **Solicitar enlace**. La respuesta es neutra: no confirma que exista una
+   cuenta ni que se haya enviado o entregado un mensaje.
+2. Abre el enlace privado recibido. En **Elige una nueva contraseña.**, completa
+   **Nueva contraseña** y **Repite la nueva contraseña** con el mismo valor. La
+   interfaz admite de 12 a 1024 bytes y señala valores fuera del límite.
+3. Pulsa **Cambiar contraseña** una sola vez. Ante **Contraseña actualizada.**,
+   vuelve al inicio de sesión y usa la nueva contraseña junto con tu segundo
+   factor habitual. El enlace no abre una sesión ni sustituye el MFA.
+4. Si el enlace ya no puede usarse, solicita otro desde el acceso. Si Qadra no
+   pudo confirmar el cambio, prueba iniciar sesión con la contraseña nueva o
+   solicita otro enlace; no des por fallido el cambio ni repitas el mismo envío.
+
+Mantén privados el enlace y las contraseñas; no los incluyas en capturas de
+soporte. Cambiar la contraseña invalida el acceso anterior. El procedimiento no
+reactiva una cuenta deshabilitada ni modifica su rol o sus asignaciones.
+
+### Volver después de que venza la sesión
+
+En una versión que incluya reingreso, el vencimiento bloquea las peticiones y
+vuelve a mostrar el acceso. Autentícate con la **misma cuenta** y completa MFA;
+abre de nuevo el expediente y el editor. Los editores aceptados consultan tus
+permisos y los registros vigentes antes de mostrar lo que habías escrito. Esa
+consulta puede fallar o revelar un cambio de acceso; recuperar la sesión no
+conserva permisos anteriores.
+
+Los borradores admitidos se mantienen sólo en memoria de esa pestaña. **No la
+recargues ni la cierres si quieres recuperarlos.** Cerrar sesión expresamente,
+cancelar el editor o entrar con otra cuenta descarta la captura. Las contraseñas,
+claves y códigos MFA nunca forman parte de ella. La lista de editores aceptados
+y sus límites está en [recuperación de editores](session-editor-recovery.md);
+no supongas que todos los formularios ofrecen la misma recuperación.
+
+Si cambió la revisión, consulta y compara los valores actuales antes de decidir.
+Una aprobación anterior no se conserva. Si el envío perdió su respuesta, usa la
+comprobación que ofrece ese editor: recuperar el acceso no reenvía cambios ni
+confirma una operación por encontrar datos parecidos. Los archivos y cambios
+que el servidor ya confirmó permanecen guardados aunque venza la sesión.
+La duración de inactividad depende de la configuración explícita del servicio;
+la instalación privada conserva el límite absoluto actual y no tiene activada
+la política de inactividad pendiente de selección.
 
 ## 2. Qué permite cada cuenta
 
@@ -364,7 +418,7 @@ cabecera. Consulta [el alcance de auditoría](audit-events-api.md).
 
 | Situación | Qué hacer |
 | --- | --- |
-| Sesión vencida o acceso invalidado | Inicia sesión de nuevo. Si desapareció un permiso o expediente, pide al administrador que revise rol y asignación. |
+| Sesión vencida o acceso invalidado | Entra de nuevo con la misma cuenta y MFA; en versiones con reingreso, abre el editor para consultar su contexto y recuperar el borrador admitido. Si desapareció un permiso o expediente, pide al administrador que revise rol y asignación. |
 | Otra persona modificó el registro | Conserva el borrador, consulta el estado y la historia actuales, compara y confirma de nuevo cuando corresponda. No des por aplicado el envío rechazado. |
 | Se perdió la respuesta de una escritura | Usa la consulta o comprobación ofrecida para ese envío. No repitas automáticamente altas, sellados o confirmaciones. Si sigue incierto, conserva los datos y pide ayuda. |
 | Archivo rechazado | Lee el motivo, verifica formato y tamaño, conserva el original y vuelve a enviar sólo tras decidir la corrección. Cambiar el nombre no repara el contenido. |
@@ -382,9 +436,11 @@ necesario para atender el problema.
 
 Este documento permite preparar recorridos de acceso, asignación, carga,
 versionado, sellado, verificación, registro procesal y consulta. Las funciones
-pendientes —invitaciones, restablecimiento autónomo, política documental de
+pendientes —invitaciones, recuperación del enrolamiento, política documental de
 Cliente y las entregas señaladas expresamente— no deben incluirse como tareas
-completadas en una demostración.
+completadas en una demostración. La recuperación de contraseña implementada y
+los borradores requieren comprobar la versión y la habilitación concretas antes
+de demostrarlos; no se atribuyen a la release privada anterior.
 
 La evaluación con usuarios dispone de un [kit y protocolo de observación](usability/README.md):
 participantes y consentimiento, tareas, criterios de éxito, observaciones y

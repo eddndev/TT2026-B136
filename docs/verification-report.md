@@ -1,5 +1,18 @@
 # Informe de verificación local
 
+## Manual de acceso: revisión documental del 3 de octubre de 2026
+
+Se contrastó el manual con los controles de `Auth.svelte`, `PasswordReset.svelte`
+y el contrato de recuperación de editores. Se corrigió la afirmación obsoleta de
+que no existía restablecimiento autónomo: está integrado en una versión posterior
+a la instalación privada `v0.1.1`, que requiere actualización y habilitación.
+El manual distingue contraseña y MFA, respuesta
+neutra, resultado incierto, versión instalada y captura sólo en memoria.
+Las tarjetas de usabilidad conservan su alcance sin inventar nuevas sesiones
+humanas. Esta revisión de texto no ejecutó pruebas ni modificó el manuscrito;
+no aporta una medición de funcionamiento, rendimiento o usabilidad adicional.
+
+
 ## Preferencias personales: recuperación local del 3 de octubre de 2026
 
 El RED inicial reprodujo la falta de autorización fresca al recuperar campos.
