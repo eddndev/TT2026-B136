@@ -75,6 +75,8 @@ def service_units(root, postgres_bin, python_bin=None, redis_bin="/usr/bin/redis
             dependencies = "Requires=qadra-api.service\nAfter=qadra-api.service\n"
         prestart = (f"ExecStartPre={python_bin} {root}/tools/runtime.py {root} --wait-api\n"
                     if name == "qadra-web" else "")
+        if name in ("qadra-postgres", "qadra-redis"):
+            prestart = f"ExecStartPre={python_bin} {root}/tools/restore_fence.py {root}\n"
         memory = {"qadra-api": "2G", "qadra-postgres": "768M", "qadra-redis": "256M", "qadra-web": "128M"}[name]
         units[name] = f"""[Unit]
 Description=Qadra private {name}
@@ -101,6 +103,8 @@ WantedBy=default.target
 
 
 def prepare(root):
+    from restore_fence import guard
+    guard(root)
     os.umask(0o077)
     for executable in ("psql", "pg_dump", "pg_restore", "pg_config", "redis-server",
                        "redis-cli", "redis-check-rdb", "nginx", "openssl", "python3", "systemctl"):
@@ -145,6 +149,8 @@ def prepare(root):
 
 
 def start_databases(root):
+    from restore_fence import guard
+    guard(root)
     from provision import create_databases
     create_databases(root)
 

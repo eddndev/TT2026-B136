@@ -82,6 +82,8 @@ def rollback(root, runtime):
 
 
 def admit(root, archive, checksum, version, commit):
+    from crl_journal import guard
+    guard(root)
     validate_version(version)
     if not re.fullmatch(r"[0-9a-f]{64}", checksum) or digest(archive) != checksum:
         raise ValueError("archive SHA-256 mismatch")
