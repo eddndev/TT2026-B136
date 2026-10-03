@@ -1,5 +1,20 @@
 # Informe de verificación local
 
+## HTTP independiente del vínculo Owner: 3 de octubre de 2026
+
+Doce pruebas reprodujeron primero la ausencia del router. Tras implementarlo,
+el target `owner_certificate_http` aprobó **12/12 en 0.03 s**, con **28.12 s**
+de compilación. Clippy focal aprobó en **14.72 s** con advertencias como errores.
+Comprueban cuatro rutas, entrada JSON estricta y acotada, Base64 canónico,
+identidad actual, recibos históricos, precisión de contadores y fechas,
+respuestas neutrales y `no-store`.
+
+Se usa el servicio real de aplicación con puertos controlados. Esta aceptación
+no ejecuta RSA ni PostgreSQL reales, no prueba la composición completa del
+servidor y no habilita acceso por certificado. No se repitió el workspace ni
+se modificaron fuentes académicas en este corte. Los resultados SQL previos
+permanecen como evidencia separada.
+
 ## Persistencia del vínculo Owner: verificación local del 3 de octubre de 2026
 
 El target `owner_certificate_backend` aprobó **12/12** en **47.39 s**, tras

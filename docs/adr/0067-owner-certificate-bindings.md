@@ -221,6 +221,16 @@ revocation/expiry checks against current published trust. Publishing a CRL does
 not currently advance users.auth_generation. A binding registry alone must not
 enable access or be reported as completed certificate authentication.
 
+### HTTP evidence boundary
+
+The standalone router described in `docs/http-owner-certificates.md` accepts
+strict bounded public input and delegates to the application service. It
+preserves exact historical evidence, full-width counters and timestamp
+precision, and uses neutral error groups and no-store responses. It never
+accepts private keys or a client assertion of successful verification. The
+standalone delivery does not yet establish composition in the binary or an
+installed deployment; those require their own shared-admission acceptance.
+
 ## Consequences
 
 - Registration and withdrawal have deterministic, purpose-separated records
