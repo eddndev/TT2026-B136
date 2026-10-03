@@ -56,6 +56,9 @@ before current trust or certificate expiry. Different evidence conflicts;
 withdrawal is terminal and cannot revive the registration. Current Owner
 session/authority is still required for every reconciliation. The adapter does
 not automatically retry an uncertain commit.
+Withdrawal reauthenticates the original full principal after an applied or
+concurrent-existing commit before releasing evidence; lost authority rejects the
+response without undoing or retrying a confirmed mutation.
 
 ## Errors and work limits
 

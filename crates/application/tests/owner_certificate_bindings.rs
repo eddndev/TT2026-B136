@@ -19,3 +19,5 @@ mod submission_support;
 mod support;
 #[path = "owner_certificate_cases/withdrawal.rs"]
 mod withdrawal;
+#[path = "owner_certificate_cases/withdrawal_authority.rs"]
+mod withdrawal_authority;

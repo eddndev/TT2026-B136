@@ -107,14 +107,15 @@ fn concurrent_withdrawal_preserves_the_original_terminal_receipt_only() {
         } else {
             assert_eq!(kind(&failure(result)), &OwnerCertificateError::Inconsistent);
         }
-        assert_eq!(
-            observed.lock().unwrap().calls,
-            [
-                "authenticate",
-                "load_withdrawal",
-                "authenticate",
-                "commit_withdrawal"
-            ]
-        );
+        let mut expected = vec![
+            "authenticate",
+            "load_withdrawal",
+            "authenticate",
+            "commit_withdrawal",
+        ];
+        if variant == 0 {
+            expected.push("authenticate");
+        }
+        assert_eq!(observed.lock().unwrap().calls, expected);
     }
 }
