@@ -3,9 +3,10 @@
 ## Status
 
 Accepted for structural domain values, canonical bytes, strict cryptographic
-verification, application authorization, audited PostgreSQL persistence and
-authenticated HTTP composition. Integrated real-service HTTP acceptance,
-certificate login and complete restore acceptance remain separate.
+verification, application authorization, audited PostgreSQL persistence,
+authenticated HTTP composition and local real-service HTTP/MFA/SQL-restore
+acceptance. Publication, Qadra UI, installation, certificate login and
+operational SQL/RDB/PKI recovery remain separate.
 
 ## Context
 
@@ -215,9 +216,10 @@ The recomputed cryptographic inspection must equal the stored inspection.
 This inventory establishes the new rows' exact audit associations; it does not
 replace the existing global audit-chain verifier. Backend tests separately use
 that verifier. They exercise real PostgreSQL and RSA with a controlled identity
-port, not a complete password/MFA login. Inventory rejection of inconsistent
-state is not evidence of a completed dump/restore campaign; that operational
-acceptance and broader adversarial catalog coverage remain separate.
+port, not a complete password/MFA login. Inventory rejection alone does not prove
+a dump/restore campaign; the local HTTP/SQL-restore acceptance below supplies
+separate evidence. Operational recovery and broader adversarial catalog coverage
+remain separate.
 
 Certificate login is a later delivery. It needs a fresh single-attempt challenge,
 explicit limits, the binding's origin through MFA and session admission, and
@@ -247,6 +249,16 @@ verifier, SHA-256 and one application/store clock. It performs no DDL, trust
 publication or private-key selection. Shared-budget tests with controlled ports
 establish router admission and cancellation behavior; they do not establish a
 real HTTP/RSA/PostgreSQL workflow or an installed deployment.
+
+The separate real-service acceptance in `scripts/api-demo.sh` reuses the
+existing disposable identity, Redis, PostgreSQL and internal CA. It reconstructs
+canonical bytes independently, signs outside HTTP, verifies the public receipt
+with OpenSSL and checks its exact SQL/audit links. A successor CRL rejects stale
+preparation and fresh registration with a revoked leaf, while historical receipt
+and terminal withdrawal remain available under current Owner authority. After
+SQL restoration and fresh MFA, exact replay preserves public evidence without
+new events or reactivation. This does not establish private-key custody, a
+browser workflow or operational recovery of the installed deployment.
 
 ## Consequences
 

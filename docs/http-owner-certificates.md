@@ -4,8 +4,9 @@ The full API and standalone `web::owner_certificate_router` expose registration
 evidence for the currently authenticated Owner. The `serve` binary composes the
 real application service with its existing identity and validated PostgreSQL
 store. These operations do not enable certificate login or personal document
-signing. Router acceptance does not establish an installed deployment or a real
-HTTP/RSA/PostgreSQL workflow.
+signing. Local acceptance includes the real HTTP/MFA/RSA/PostgreSQL workflow and
+SQL restoration described below. This extension is not yet published, installed
+or exposed through a Qadra interface.
 
 ## Routes and input
 
@@ -100,6 +101,25 @@ currently valid certificate. These routes do not change MFA or session admission
 See [the binding decision](adr/0067-owner-certificate-bindings.md) for canonical
 evidence, PostgreSQL transactions, trust and the separate certificate-login
 boundary. The [verification report](verification-report.md) records standalone
-and shared-runtime HTTP tests separately from the real PostgreSQL/RSA backend
-campaign. The HTTP tests use the real application service with controlled ports;
-they do not substitute for an integrated real-service transport acceptance.
+and shared-runtime tests with controlled ports separately from backend and
+integrated real-service acceptance.
+
+## Real-service acceptance
+
+On 3 October 2026, `bash scripts/api-demo.sh` completed with exit 0 in 334.419 s,
+including setup, against disposable PostgreSQL 16.15, Redis, real password/MFA
+identity and the internal CA. The Owner extension reuses that campaign's server,
+trust publication and SQL restore. It independently reconstructs the 150-byte
+statement, signs outside HTTP and verifies the returned public proof with OpenSSL.
+
+The campaign checked one audited registration, exact replay, altered-signature
+rejection and byte conflicts. Publishing a successor CRL made an old preparation
+conflict and a new proof from the revoked certificate fail; the historical receipt
+remained exact and terminal withdrawal required no fresh signature. SQL rows,
+digests, audit sequences and timestamps matched the receipt. All four routes
+rejected the revoked bearer and a current Paralegal without mutation.
+
+After SQL restoration and fresh MFA, the terminal receipt, original public proof
+and audit evidence stayed identical. Replaying registration or withdrawal added
+no event and did not revive the binding. This is not certificate login, private
+key custody validation, a browser acceptance or operational SQL/RDB/PKI recovery.
