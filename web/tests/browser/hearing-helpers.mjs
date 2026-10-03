@@ -37,11 +37,17 @@ export async function setupHearings(
   await page.route(`**/api/v1/cases/${caseId}/administration`, (route) =>
     route.fulfill({ json: admin }),
   );
+  const participantHistory = new Map();
+  function rememberParticipant(row) {
+    const key = `${row.id}:${row.revision}`;
+    if (!participantHistory.has(key)) participantHistory.set(key, structuredClone(row));
+  }
   await page.route(`**/api/v1/cases/${caseId}/participants**`, (route) => {
     const url = new URL(route.request().url()),
       rest = url.pathname.split('/participants')[1].split('/').filter(Boolean);
     if (state.denied)
       return route.fulfill({ status: 403, json: { error: { code: 'permission_denied' } } });
+    state.participants.forEach(rememberParticipant);
     if (!rest.length)
       return route.fulfill({
         json: {
@@ -50,7 +56,12 @@ export async function setupHearings(
           next_after_id: null,
         },
       });
-    const row = state.participants.find((value) => value.id === rest[0]);
+    const row =
+      rest.length === 3 && rest[1] === 'revisions'
+        ? participantHistory.get(`${rest[0]}:${Number(rest[2])}`)
+        : rest.length === 1
+          ? state.participants.find((value) => value.id === rest[0])
+          : null;
     return row
       ? route.fulfill({ json: row })
       : route.fulfill({ status: 404, json: { error: { code: 'participant_not_found' } } });
