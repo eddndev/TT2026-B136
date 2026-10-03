@@ -50,3 +50,32 @@ comprobador existente. La modificación administrativa de una fila simuló un
 inventario incoherente; no se ejecutó un volcado y restauración completos. Estos
 resultados no acreditan enrolamiento, un ingreso MFA real, rutas HTTP, acceso por
 certificado ni firma documental individual.
+
+La aceptación independiente del adaptador HTTP añadió doce pruebas con el
+servicio real de aplicación y puertos controlados. Aprobaron en 0.03~s después
+de 28.12~s de compilación; comprobaron las cuatro rutas, JSON estricto, límites
+y Base64 canónico, autoridad actual, precisión de evidencia, errores neutrales
+y respuestas sin almacenamiento en caché. Estas solicitudes se ejecutan contra
+el router en proceso, sin RSA ni PostgreSQL reales.
+
+La composición reprodujo primero la ausencia del campo requerido para inyectar
+el servicio. La campaña posterior aprobó veinte de veinte casos, tras 22.78~s
+de compilación: tres nuevos de composición en 0.33~s, doce del adaptador
+independiente en 0.03~s y cinco regresiones de composición de recuperación de
+contraseña en 0.34~s. Los nuevos casos retienen trabajo síncrono mediante puertos
+controlados para comprobar el mismo presupuesto externo, cancelación HTTP en
+ambos sentidos entre rutas Owner y existentes, rechazo antes de leer un cuerpo
+y autorización actual dentro del permiso compartido.
+
+El binario aprobó diez pruebas de opciones después de 68~s de compilación:
+seis de recuperación de contraseña en 0.17~s y cuatro de sesión en 0.00~s.
+Clippy de composición y binario aprobó en 26.34~s con advertencias como errores;
+permaneció el aviso conocido de compatibilidad futura de Redis. Las pruebas de
+opciones no iniciaron el servidor.
+
+La composición del binario utiliza los adaptadores reales, pero esta campaña
+no inicia el proceso servidor ni reúne autenticación MFA, PostgreSQL y RSA en
+un recorrido HTTP. La evidencia de persistencia y criptografía anterior conserva
+sus propios controles y límites; los resultados no se suman como si probaran
+esa integración ni una instalación operativa. El acceso por certificado y la
+firma documental individual permanecen fuera de estos ensayos.

@@ -3,8 +3,9 @@
 ## Status
 
 Accepted for structural domain values, canonical bytes, strict cryptographic
-verification, application authorization and audited PostgreSQL persistence.
-Certificate login, HTTP exposure and complete restore acceptance remain separate.
+verification, application authorization, audited PostgreSQL persistence and
+authenticated HTTP composition. Integrated real-service HTTP acceptance,
+certificate login and complete restore acceptance remain separate.
 
 ## Context
 
@@ -138,8 +139,8 @@ registration or produce another revision. Errors do not trigger implicit retry.
 
 The repository port is implemented by `PostgresOwnerCertificateStore`, with
 separate local evidence for transaction atomicity, concurrent receipts, unique
-live bindings and permanent fingerprint ownership. The service does not expose
-an HTTP endpoint or enable certificate login.
+live bindings and permanent fingerprint ownership. The service remains
+independent of transport and does not enable certificate login.
 
 ### Untrusted public submission
 
@@ -223,13 +224,26 @@ enable access or be reported as completed certificate authentication.
 
 ### HTTP evidence boundary
 
-The standalone router described in `docs/http-owner-certificates.md` accepts
-strict bounded public input and delegates to the application service. It
+The router described in `docs/http-owner-certificates.md` accepts strict bounded
+public input and delegates to the application service. It
 preserves exact historical evidence, full-width counters and timestamp
 precision, and uses neutral error groups and no-store responses. It never
-accepts private keys or a client assertion of successful verification. The
-standalone delivery does not yet establish composition in the binary or an
-installed deployment; those require their own shared-admission acceptance.
+accepts private keys or a client assertion of successful verification.
+
+Full API construction supplies the required application service and merges the
+private routes into the existing runtime before one shared admission layer.
+Blocking application calls, including current Owner authentication, use the same
+work budget as other routes and externally composed consumers. A worker keeps
+its permit after HTTP cancellation until the synchronous operation finishes.
+The standalone factory creates its own runtime for independent callers; it is
+not merged into the full API.
+
+The binary opens the store inside the existing validated PostgreSQL composition
+boundary, shares its current identity instance, and injects the strict Partner
+verifier, SHA-256 and one application/store clock. It performs no DDL, trust
+publication or private-key selection. Shared-budget tests with controlled ports
+establish router admission and cancellation behavior; they do not establish a
+real HTTP/RSA/PostgreSQL workflow or an installed deployment.
 
 ## Consequences
 

@@ -1,5 +1,37 @@
 # Informe de verificación local
 
+## Composición HTTP del vínculo Owner: 3 de octubre de 2026
+
+El ensayo inicial reprodujo `E0560` por ausencia del servicio Owner en la
+colección de workflows. Tras componer el servicio, aprobaron **20/20** casos en una campaña
+con **22.78 s** de compilación: los tres nuevos de `owner_certificate_composition`
+en **0.33 s**, los doce de `owner_certificate_http` en **0.03 s** y los cinco
+existentes de `password_reset_composition` en **0.34 s**.
+
+Los nuevos casos comprueban que las rutas Owner usan el presupuesto externo
+compartido, que una operación conserva su permiso al cancelar HTTP y que una
+ruta anterior y la nueva se bloquean mutuamente mientras ese trabajo continúa.
+La admisión HTTP común rechaza un cuerpo aún no leído con `server_busy`; las
+respuestas conservan `no-store`. La identidad ausente y el rol no autorizado
+se consultan dentro del mismo presupuesto, sin acceder al repositorio.
+
+El binario aprobó **10/10** pruebas de opciones: seis de recuperación de
+contraseña en **0.17 s** y cuatro de sesión en **0.00 s**, tras **68 s** de
+compilación. Clippy de composición y binario aprobó en **26.34 s** con
+advertencias como errores. Permanece el aviso conocido de compatibilidad
+futura de `redis 0.25.4`. Las pruebas de opciones no inician `serve`.
+
+Se usa el servicio real de aplicación con puertos controlados y solicitudes al
+router en proceso. La composición de `serve` inyecta los adaptadores aceptados,
+pero esta campaña no arranca el servidor ni ejecuta un ingreso MFA, RSA o
+PostgreSQL reales. Los doce casos previos del backend mantienen su evidencia
+separada. No se declara una aceptación integrada HTTP/Partner, despliegue,
+autenticación por certificado ni firma documental individual.
+
+El manuscrito de esta composición compiló con 370 páginas y 5,919,474 bytes; SHA-256
+`e36b2306ac1783c5e4966f4839ede3e4f24efc84ca89e0ccff8f47e94e0103f2`. Se inspeccionaron las páginas PDF 168 y 264,
+sin cambios en los capítulos protegidos.
+
 ## HTTP independiente del vínculo Owner: 3 de octubre de 2026
 
 Doce pruebas reprodujeron primero la ausencia del router. Tras implementarlo,

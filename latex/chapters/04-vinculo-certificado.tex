@@ -48,6 +48,30 @@ actividad no invalida esa historia. La admisión rechaza un rol de ejecución qu
 disponga, directamente o mediante otro rol alcanzable, del permiso para omitir
 disparadores con \texttt{session\_replication\_role}. Esta admisión no sustituye
 el verificador global de la cadena de auditoría ni acredita una restauración
-completa. No se habilita enrolamiento, acceso por certificado, rutas HTTP o
-firma documental individual. La política y sus límites están en
+completa.
+
+El adaptador HTTP expone preparación, registro, consulta exacta y retiro propio
+bajo la sesión MFA vigente. Recibe objetos JSON estrictos y acotados a 32~KiB,
+con Base64 canónico para los 150 bytes del registro, el certificado público y
+la firma separada. No deserializa un comando verificado ni acepta una clave
+privada. La preparación devuelve los bytes exactos por firmar; la respuesta no
+incorpora un digest como expectativa alternativa. Los recibos conservan el
+digest comprobado, la evidencia histórica, los contadores completos y la
+precisión temporal original. Un resultado incierto se reconcilia por UUID y
+bytes exactos, sin reintento automático.
+
+Las rutas se incorporan al mismo límite de admisión y presupuesto de trabajo
+del resto de la API. La autenticación del Owner dentro del servicio espera un
+permiso de trabajo, y la operación síncrona lo conserva hasta terminar aunque
+se cancele la solicitud HTTP. El agotamiento de admisión rechaza la solicitud
+antes de leer su cuerpo. Las respuestas usan \texttt{no-store}; el límite de
+cuerpo de este grupo no modifica el de las demás rutas.
+
+El binario compone el servicio con la identidad existente, el repositorio
+PostgreSQL abierto tras validar el esquema, el verificador Partner y SHA-256.
+La aplicación y el repositorio comparten la instancia de reloj. Esta composición
+no ejecuta migraciones ni publica confianza; el alta requiere la publicación
+vigente y el retiro conserva su independencia de la validez actual del
+certificado. No se habilita enrolamiento, acceso por certificado ni firma
+documental individual. La política y sus límites están en
 \rutarepo{docs/adr/0067-owner-certificate-bindings.md}.
