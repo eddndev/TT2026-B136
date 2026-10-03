@@ -1,5 +1,16 @@
 # Verificación de la actualización académica
 
+## Recuperación de altas: 3 de octubre de 2026
+
+`make -C latex` aprobó la incorporación de los campos públicos recuperables y
+sus límites de incertidumbre: 373 páginas, 5935739 bytes, SHA-256
+`3b5864900febdd03ce9af063b74857dc396055294b58e647609e5a18978209a0`.
+Las páginas físicas 193, 261 y 262 se revisaron visualmente: texto legible sin
+recortes ni superposiciones. El PDF anterior quedó respaldado y las fuentes
+protegidas conservaron sus hashes. La evidencia de esta aceptación local no
+representa una integración, un despliegue ni una recuperación de material MFA.
+
+
 ## Aprobación y primer factor de certificado: 3 de octubre de 2026
 
 Una compilación reunió la aprobación durable de controladores y la declaración

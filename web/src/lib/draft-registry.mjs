@@ -53,6 +53,25 @@ export function createDraftRegistry() {
     adapters.set(key, adapter);
     return {
       key,
+      capture() {
+        const expected = epoch;
+        const current = () =>
+          enabled &&
+          epoch === expected &&
+          principalId === adapter.descriptor.principalId &&
+          adapters.get(key) === adapter;
+        if (!current()) return { status: 'stale' };
+        if (snapshots.has(key)) return { status: 'existing' };
+        try {
+          const values = captureProjection(adapter.capture, adapter.fields);
+          if (!current()) return { status: 'stale' };
+          if (snapshots.has(key)) return { status: 'existing' };
+          snapshots.set(key, { descriptor: adapter.descriptor, values });
+          return { status: 'captured' };
+        } catch {
+          return { status: current() ? 'failed' : 'stale' };
+        }
+      },
       dispose() {
         if (adapters.get(key) === adapter) adapters.delete(key);
       },

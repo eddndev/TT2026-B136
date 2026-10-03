@@ -1,46 +1,34 @@
 <script>
   import { onDestroy } from 'svelte';
-  import Enrollment from './Enrollment.svelte';
+  import MemberEnrollment from './MemberEnrollment.svelte';
   import MemberDirectory from './MemberDirectory.svelte';
   import Icon from './Icon.svelte';
   import AuditEvents from './AuditEvents.svelte';
   export let api;
   export let view;
   export let user;
-  let email = '';
-  let password = '';
-  let role = 'paralegal';
-  let enrollment = null;
   let audit = null;
   let busy = false;
   let error = '';
   let alive = true,
-    directory;
+    directory,
+    directoryRoot;
   async function submit(event) {
     event?.preventDefault();
     busy = true;
     error = '';
     try {
-      if (view === 'users') {
-        const value = await api.createUser(email.trim(), password, role);
-        if (alive) enrollment = value;
-      } else {
-        audit = null;
-        const value = await api.audit();
-        if (alive) audit = value;
-      }
+      audit = null;
+      const value = await api.audit();
+      if (alive) audit = value;
     } catch (failure) {
       if (alive) error = failure.message;
     } finally {
-      password = '';
       busy = false;
     }
   }
   onDestroy(() => {
     alive = false;
-    enrollment = null;
-    password = '';
-    email = '';
   });
 </script>
 
@@ -55,62 +43,19 @@
     </p>
   </div>
 </div>
-{#if view === 'users'}<MemberDirectory bind:this={directory} {api} {user} />{/if}
-<section class="card admin-panel">
-  {#if view === 'users'}
-    {#if enrollment}<Enrollment
-        {enrollment}
-        ondone={() => {
-          enrollment = null;
-          email = '';
-          directory?.refresh();
-        }}
-      />
-    {:else}<span class="tile-icon"><Icon name="users" size={26} /></span>
-      <h2>Nuevo integrante</h2>
-      <p>
-        La clave y los c&oacute;digos de recuperaci&oacute;n se mostrar&aacute;n una sola vez.
-        Entr&eacute;galos de forma segura al nuevo integrante.
-      </p>
-      <form class="stack" onsubmit={submit}>
-        <label
-          >Correo del nuevo usuario<input
-            type="email"
-            required
-            autocomplete="off"
-            bind:value={email}
-          /></label
-        ><label
-          >Contrase&ntilde;a inicial<input
-            type="password"
-            minlength="12"
-            required
-            autocomplete="new-password"
-            bind:value={password}
-          /></label
-        ><small
-          >M&iacute;nimo 12 caracteres. Por ahora, la contrase&ntilde;a no se puede cambiar desde
-          esta interfaz.</small
-        ><label
-          >Rol<select bind:value={role}
-            ><option value="paralegal">Asistente legal</option><option value="litigator"
-              >Litigante</option
-            ><option value="owner">Administrador</option><option value="client">Cliente</option
-            ></select
-          ></label
-        >
-        <p class="notice">
-          {role === 'owner'
-            ? 'Acceso a documentos, sellado, auditor\u00eda y alta de usuarios.'
-            : role === 'litigator'
-              ? 'Puede cargar, sellar, verificar y exportar documentos.'
-              : role === 'paralegal'
-                ? 'Puede cargar, verificar y exportar documentos. No puede sellar.'
-                : 'El rol cliente no tiene acceso documental en esta interfaz.'}
-        </p>
-        <button class="primary" disabled={busy}>{busy ? 'Creando...' : 'Crear usuario'}</button>
-      </form>{/if}
-  {:else}<span class="tile-icon"><Icon name="shield" size={28} /></span>
+{#if view === 'users'}
+  <div tabindex="-1" bind:this={directoryRoot}>
+    <MemberDirectory bind:this={directory} {api} {user} />
+  </div>
+  <MemberEnrollment
+    {api}
+    {user}
+    oncomplete={() => directory?.refresh()}
+    onreturn={() => directoryRoot?.focus()}
+  />
+{:else}
+  <section class="card admin-panel">
+    <span class="tile-icon"><Icon name="shield" size={28} /></span>
     <h2>Integridad de la bit&aacute;cora</h2>
     <p>
       Verifica la cadena completa de eventos registrados por el servidor y detecta el primer enlace
@@ -138,8 +83,8 @@
       La verificaci&oacute;n comprueba la cadena local; no certifica un anclaje externo de la
       bit&aacute;cora.
     </p>
-  {/if}
-  {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-</section>
+    {#if error}<p class="notice error" role="alert">{error}</p>{/if}
+  </section>
+{/if}
 
 {#if view === 'audit'}<AuditEvents {api} {user} />{/if}

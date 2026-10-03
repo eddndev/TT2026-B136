@@ -55,6 +55,15 @@ No draft is written to browser storage or uploaded as a recovery mechanism.
 API clients, promises, permission flags, cached private rows and callback functions
 are reconstructed after authentication instead of entering the capture.
 
+An adapter may explicitly capture its exact registration handle before ordinary
+unmounting. This synchronous operation uses the same field projection and clone
+rules. It checks the live adapter identity, principal and registry generation
+before and after projection; a stale or failed capture publishes no snapshot.
+An existing snapshot wins without replacement. The operation does not suspend
+the registry, change its global generation or invalidate another editor's pending
+authorization. Disposal remains separate and cannot remove a saved snapshot.
+This is opt-in behavior, not automatic persistence of every editor on navigation.
+
 A same-principal MFA makes descriptors available without automatically restoring
 an editor. A different principal or explicit logout discards them. Applying values
 requires new authorization for the destination and action. The asynchronous
@@ -67,6 +76,16 @@ that case's drafts. A closed case or changed revision is not a loss of read acce
 authorized comparisons preserve the original values and require a new decision
 before submission. An uncertain earlier submission must be reconciled with current
 records or its exact operation receipt before a further explicit command.
+
+Member enrollment has no operation receipt or MFA recovery path. Its adapter
+captures only raw email, selected role and uncertainty. It opts into capture on
+unmount only for an uncertain creation, including after a previous restore.
+Returning offers explicit recovery or discard and checks the same current Owner
+before showing values. A directory lookup is informational: neither a matching
+account nor absence authorizes resubmission of that attempt. A new manual entry
+requires explicit discard; a confirmed creation closes capture before showing
+one-time enrollment material and refreshing the directory. Passwords and MFA
+material remain excluded.
 
 ## Consequences
 
