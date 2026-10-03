@@ -71,4 +71,22 @@ impl OwnerCertificateService {
         self.reauthenticate(token, &principal)?;
         Ok(receipt)
     }
+
+    /// Current means unwithdrawn, not currently valid certificate or trust material.
+    pub fn current_receipt(
+        &self,
+        token: &str,
+    ) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
+        let principal = self.owner(token)?;
+        let receipt = self.ports.store.find_current(principal.id)?;
+        if let Some(value) = &receipt {
+            let binding = value.record.registration().material().binding();
+            self.validate_receipt(value, principal.id, binding)?;
+            if value.record.withdrawal().is_some() {
+                return Err(OwnerCertificateError::Inconsistent.into());
+            }
+        }
+        self.reauthenticate(token, &principal)?;
+        Ok(receipt)
+    }
 }

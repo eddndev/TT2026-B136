@@ -77,6 +77,9 @@ impl OwnerCertificateStore for Capture {
     ) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
         self.inner.find(actor, binding)
     }
+    fn find_current(&self, actor: UserId) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
+        self.inner.find_current(actor)
+    }
     fn load_withdrawal(
         &self,
         actor: UserId,

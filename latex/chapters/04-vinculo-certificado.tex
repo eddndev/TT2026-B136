@@ -60,6 +60,17 @@ digest comprobado, la evidencia histórica, los contadores completos y la
 precisión temporal original. Un resultado incierto se reconcilia por UUID y
 bytes exactos, sin reintento automático.
 
+La consulta adicional \texttt{GET /api/v1/auth/}\allowbreak
+\texttt{certificate-bindings/current} permite descubrir el vínculo propio sin
+conocer su UUID. Devuelve el recibo completo sin retirar o \texttt{null}, con
+estado 200. PostgreSQL toma el bloqueo común de auditoría y relee al Owner
+activo antes de resolver la historia en la misma transacción; múltiples
+vínculos sin retirar se rechazan. La aplicación vuelve a autenticar el principal
+completo incluso si no hay resultado. La lectura no añade auditoría ni exige
+otra verificación RSA o confianza vigente: describe la ausencia de retiro al
+consultar, sin reservar ese estado ni acreditar vigencia del certificado. El
+UUID exacto conserva la consulta del recibo terminal después del retiro.
+
 Las rutas se incorporan al mismo límite de admisión y presupuesto de trabajo
 del resto de la API. La autenticación del Owner dentro del servicio espera un
 permiso de trabajo, y la operación síncrona lo conserva hasta terminar aunque

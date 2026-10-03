@@ -35,6 +35,9 @@ impl OwnerCertificateStore for Unused {
     fn find(&self, _: UserId, _: Uuid) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
         unreachable!("composition fixture does not query Owner certificates")
     }
+    fn find_current(&self, _: UserId) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
+        unreachable!("composition fixture does not discover current Owner certificates")
+    }
     fn commit_registration(
         &self,
         _: VerifiedOwnerRegistration,

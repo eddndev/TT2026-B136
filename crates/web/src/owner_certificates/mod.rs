@@ -25,6 +25,7 @@ struct BindingState {
 
 pub(crate) fn router(service: Arc<OwnerCertificateService>, runtime: HttpRuntime) -> Router {
     Router::new()
+        .route("/api/v1/auth/certificate-bindings/current", get(current))
         .route(
             "/api/v1/auth/certificate-bindings/:binding/prepare",
             post(prepare),
@@ -108,6 +109,27 @@ async fn receipt(
             ))
         })?;
     Ok(Json(response::receipt(receipt)?))
+}
+
+async fn current(
+    State(state): State<BindingState>,
+    request: Request,
+) -> Result<Json<Value>, ApiError> {
+    let token = Zeroizing::new(bearer_token(request.headers())?);
+    if request.uri().query().is_some() {
+        return Err(input::invalid());
+    }
+    input::empty(request).await?;
+    let receipt = state
+        .runtime
+        .run(move || state.service.current_receipt(&token))
+        .await?;
+    Ok(Json(
+        receipt
+            .map(response::receipt)
+            .transpose()?
+            .unwrap_or(Value::Null),
+    ))
 }
 
 async fn withdraw(

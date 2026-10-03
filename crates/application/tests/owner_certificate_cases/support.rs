@@ -23,6 +23,7 @@ use crate::case_support::MockIdentity;
 mock! { pub Store {} impl OwnerCertificateStore for Store {
     fn load_registration(&self, actor: UserId) -> Result<OwnerRegistrationContext, ApplicationError>;
     fn find(&self, actor: UserId, binding: Uuid) -> Result<Option<OwnerBindingReceipt>, ApplicationError>;
+    fn find_current(&self, actor: UserId) -> Result<Option<OwnerBindingReceipt>, ApplicationError>;
     fn commit_registration(&self, verified: VerifiedOwnerRegistration) -> Result<OwnerBindingCommit, ApplicationError>;
     fn load_withdrawal(&self, actor: UserId, binding: Uuid) -> Result<OwnerWithdrawalContext, ApplicationError>;
     fn commit_withdrawal(&self, prepared: PreparedOwnerWithdrawal) -> Result<OwnerBindingCommit, ApplicationError>;
