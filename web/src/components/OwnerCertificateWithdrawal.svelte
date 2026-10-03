@@ -180,7 +180,8 @@
   <p class="identifier">{bindingId}</p>
   <p>
     El retiro es terminal para este v&#237;nculo. Conserva su evidencia hist&#243;rica; no revoca el
-    certificado ni cambia tu sesi&#243;n con MFA.
+    certificado. Las sesiones abiertas con este v&#237;nculo quedan inv&#225;lidas; el acceso por
+    contrase&#241;a y MFA es independiente.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !ready}<p role="status">Comprobando acceso y estado de la cuenta...</p>

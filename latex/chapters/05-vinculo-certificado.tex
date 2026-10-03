@@ -283,3 +283,32 @@ Se comprobaron recibos históricos, controles retenidos, invalidación anterior 
 vencimiento y nuevos accesos RSA/MFA y contraseña/MFA. Fue una campaña serial
 con un compilador y un trabajador. La interfaz, la regresión CI de la revisión
 publicada y la activación operativa conservan fronteras de aceptación separadas.
+
+\subsubsection{Comprobaciones de la interfaz del primer factor}
+
+La verificación del cliente aprobó 36 pruebas Node: once del acceso por
+certificado y 25 de intentos de autenticación existentes. Los casos comprobaron
+el contenedor público acotado, la descarga exacta de 182 bytes, separación de
+propósito, vencimiento y consumo local previo al envío. También exigieron que
+una respuesta MFA coherente de otra cuenta o de otro rol no instalara acceso,
+y conservaron el descarte de respuestas de intentos anteriores.
+
+Cinco recorridos de navegador con HTTP controlado aprobaron en 20.9~s. Incluyeron
+indisponibilidad del servidor, rechazo de contenedores privados, selección de
+recibo histórico, firma separada, MFA compartida, respuestas tardías al cambiar
+de método y preparación explícita después de un resultado incierto o vencido.
+Siete regresiones de autenticación previas también aprobaron. La revisión visual
+de cuatro capturas de escritorio y móvil conservó el diseño Qadra sin
+desbordamiento observado. Estas comprobaciones no realizan una evaluación de
+usabilidad con personas ni sustituyen el recorrido de navegador con RSA,
+PostgreSQL y Redis reales o la instalación del servicio.
+
+El recorrido posterior con servicios reales aprobó 1/1 en 14.0~s; el comando
+completo, incluida la preparación, duró 208.382~s. PostgreSQL 16.15,
+Valkey 8.1.10 y OpenSSL conservaron la firma externa de 182 bytes, MFA obligatoria
+y selección de la misma cuenta. El ensayo cerró después esa sesión y volvió
+mediante contraseña y otro código de recuperación antes del retiro y consulta
+histórica. Conservó las aserciones anteriores. El primer intento había recibido
+401 al retirar bajo la autoridad del mismo vínculo; corregir esa preparación
+no alteró permisos ni límites. La invalidez por retirada permanece comprobada
+por los ensayos propios del backend, sin atribuirla al logout de este recorrido.

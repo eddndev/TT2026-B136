@@ -125,8 +125,9 @@
   </div>
 </div>
 <p class="notice">
-  Perfil interno de demostraci&#243;n. El v&#237;nculo no habilita inicio de sesi&#243;n por
-  certificado ni firma individual de documentos.
+  Perfil interno de demostraci&#243;n. Registrar el v&#237;nculo no abre una sesi&#243;n ni firma
+  documentos. Si el servidor habilita el acceso por certificado, requiere una firma externa nueva y
+  tu segundo factor.
 </p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if !ready}

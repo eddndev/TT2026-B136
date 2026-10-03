@@ -1,5 +1,17 @@
 # Verificación de la actualización académica
 
+## Interfaz de firma externa y MFA: 3 de octubre de 2026
+
+La misma compilación conjunta documentada en el apartado siguiente incluye las
+fuentes de la interfaz y su aceptación real: 378 páginas, 5953085 bytes, SHA-256
+`3ed09add891575965afe8ef3fac3ae06af5462529fef2e5026f7bb81be97532b`.
+Se inspeccionaron las páginas físicas 170, 271 y 272; controles, fronteras y
+resultados de 36/5/7 pruebas locales y del recorrido real 1/1 están legibles,
+sin recortes ni superposición. No se repitió la compilación sólo para añadir
+este registro Markdown. Se conservaron el respaldo y los hashes protegidos;
+no acredita usabilidad humana, integración remota ni habilitación en VPS3.
+
+
 ## Composición y restauración del acceso Owner: 3 de octubre de 2026
 
 `make -C latex` aprobó: 377 páginas, 5947542 bytes, SHA-256

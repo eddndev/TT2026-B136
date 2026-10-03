@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { fixture, loginAs } from './helpers.mjs';
+import { loginWithOwnerCertificate } from './owner-login-helpers.mjs';
 import {
   bindingsPath,
   button,
@@ -67,7 +68,7 @@ test('Owner registers public proof, discovers it after fresh MFA and withdraws i
   const logout = responseTo(page, '/api/v1/auth/logout', 'POST');
   await navigate(page, 'Cerrar sesi\u00f3n');
   expect((await logout).status()).toBe(204);
-  await loginAs(page, own.owner, 1);
+  await loginWithOwnerCertificate(page, own, original, testInfo);
   expect(await openOwner(page, own.owner)).toEqual(original);
   await expect(receiptRegion(page)).toContainText(id);
   expect(await readReceipt(page, id)).toEqual(original);
@@ -75,6 +76,12 @@ test('Owner registers public proof, discovers it after fresh MFA and withdraws i
     `${bindingsPath}/${id}/prepare`,
     `${bindingsPath}/${id}/register`,
   ]);
+
+  const certificateLogout = responseTo(page, '/api/v1/auth/logout', 'POST');
+  await navigate(page, 'Cerrar sesi\u00f3n');
+  expect((await certificateLogout).status()).toBe(204);
+  await loginAs(page, own.owner, 2);
+  expect(await openOwner(page, own.owner)).toEqual(original);
 
   expect(
     await freshOwner(page, own.owner, () =>

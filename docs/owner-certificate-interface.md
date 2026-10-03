@@ -19,8 +19,10 @@ Véanse [el contrato HTTP](http-owner-certificates.md) y
 ## Qué representa el vínculo
 
 “Mi certificado” está reservado al Owner autenticado y relaciona un certificado
-público con esa misma cuenta. Mantiene la sesión existente de contraseña y MFA.
-No permite entrar mediante certificado ni firmar documentos del expediente.
+público con esa misma cuenta. El registro no abre una sesión ni firma documentos
+del expediente. El [acceso por certificado](owner-certificate-login-interface.md)
+es un recorrido separado, habilitado expresamente por el servidor, que exige una
+firma externa nueva y MFA.
 La CA interna es una autoridad de demostración; no equivale a FIREL, e.firma o
 un prestador de servicios de certificación.
 
@@ -31,7 +33,9 @@ venza o sea revocado posteriormente, la cuenta autorizada puede consultar la
 historia exacta y retirar el vínculo.
 
 El retiro es terminal: conserva el recibo original y no revoca el certificado en
-la CA. Un registro posterior usa una intención nueva y su propia firma explícita;
+la CA. Invalida las sesiones derivadas de ese vínculo; el acceso por contraseña
+y MFA conserva su independencia. Un registro posterior usa una intención nueva
+y su propia firma explícita;
 no reactiva el UUID retirado. La gestión de revocación y custodia de claves tiene
 un procedimiento distinto.
 
