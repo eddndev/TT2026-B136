@@ -182,3 +182,9 @@ grupo inicial. Se ejecutó el shell real con binarios locales de registro para
 SSH, SCP y claves sintéticas. Se comprobaron huella obligatoria, argumentos del
 lanzador aislado y ausencia de transferencia tras fallo previo. No hubo conexión,
 cambio de secretos o variables de Actions ni instalación en el servidor.
+
+La conciliación posterior exigió también una ruta absoluta de intérprete
+aprobado y su versión mínima antes de transferir. El nuevo caso reprodujo seis
+rechazos ausentes y el conjunto final de cuatro aprobó en 0.738~s, manteniendo
+la ejecución remota sustituida por registros locales. No se asumió que el
+Python predeterminado del sistema operativo cumpliera el contrato del paquete.

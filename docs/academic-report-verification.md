@@ -1,5 +1,15 @@
 # Verificación de la actualización académica
 
+## Intérprete administrativo explícito: 3 de octubre de 2026
+
+La ampliación de pruebas del intérprete produjo 379 páginas y 5955737 bytes,
+SHA-256 `2977f9bd6c02cff69bbf1058238aed40a0e5333d941998cc4190639905010d7a`.
+La página física 276 fue inspeccionada y mantiene legibles el resultado nuevo
+y los apartados vecinos, sin superposición o recorte. Se preservaron el PDF
+anterior y los hashes protegidos; permanecen las advertencias tipográficas
+históricas, sin referencias indefinidas ni caracteres faltantes. No acredita
+la configuración del intérprete o del launcher en el servidor.
+
 ## Disponibilidad y entradas administrativas: 3 de octubre de 2026
 
 La compilación LuaLaTeX de los apartados de implementación y pruebas produjo

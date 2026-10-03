@@ -32,6 +32,14 @@ de credenciales, variables de Actions, controles instalados o aplicación privad
 La instalación del launcher y la configuración del inventario aprobado siguen
 siendo requisitos operativos antes de usar esta entrada en el servidor.
 
+La conciliación de la guía detectó después que `/usr/bin/python3` no garantiza
+Python 3.11 o posterior en el host admitido. Se añadió el intérprete absoluto
+externo `QADRA_PYTHON`, con validación local previa a preparar SSH y comprobación
+de versión en el mismo preflight remoto anterior a SCP. El caso nuevo rechazó
+seis valores inválidos en RED (1.010 s); el grupo final aprobó cuatro pruebas
+en 0.738 s. La revisión independiente confirmó argumentos, pin y documentación;
+no se cambiaron variables remotas ni el intérprete de ningún servicio.
+
 ## Interfaz de acceso Owner con certificado: 3 de octubre de 2026
 
 Después de observar los RED del cliente y la interfaz aprobaron 36 pruebas Node

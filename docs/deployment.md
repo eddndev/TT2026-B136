@@ -82,6 +82,7 @@ En Settings > Secrets and variables > Actions del repositorio:
 | Variable | `QADRA_PORT` | Puerto SSH `22022` |
 | Variable | `QADRA_USER` | `qadra` |
 | Variable | `QADRA_ROOT` | `/home/qadra/qadra` |
+| Variable | `QADRA_PYTHON` | Ruta absoluta del interprete Python 3.11+ aceptado para los servicios privados |
 | Variable | `QADRA_CONTROLLER_SHA256` | SHA-256 del inventario completo de controladores aprobado externamente para esa instalación |
 
 La pública debe estar en `~/.ssh/authorized_keys` (0600; `.ssh` 0700), conservando
@@ -90,11 +91,12 @@ y el despliegue; no entregar la clave administrativa de root al workflow. Los
 secretos se configuran cifrados en GitHub y no se guardan en Git. La configuración
 del servidor original no acredita que estas variables ya apunten a VPS3.
 
-La activación usa `/usr/bin/python3 -I -B -S` y el launcher estable
+La activación usa el intérprete absoluto `QADRA_PYTHON` con `-I -B -S` y el launcher estable
 `$QADRA_ROOT/controller_launcher.py`; el SHA se pasa literalmente. La variable
 de inventario es obligatoria: un valor ausente o distinto de 64 dígitos
 hexadecimales minúsculos bloquea antes de preparar las credenciales SSH. El job
-no deduce la aprobación leyendo los archivos del servidor ni recurre al
+valida la ruta del intérprete antes de preparar SSH y comprueba Python 3.11 o
+posterior antes de transferir el paquete. No deduce la aprobación leyendo los archivos del servidor ni recurre al
 controlador antiguo cuando falta el launcher. Instalar y aceptar primero la
 generación completa según [su contrato](deployment-controller-launcher.md),
 y registrar después el SHA aprobado en Actions. Esta adaptación del workflow no
@@ -192,12 +194,13 @@ con email/contraseña elegidos por el operador. La respuesta MFA y los códigos
 de recuperación deben conservarse como secretos.
 
 Para invocar controladores, sustituir `SHA256_APROBADO` por el inventario externo
-aceptado de esa instalación. El launcher estable debe estar instalado y aceptado
+aceptado de esa instalación y `/RUTA/PYTHON_APROBADO` por el intérprete absoluto
+aceptado, igual a `QADRA_PYTHON`. El launcher estable debe estar instalado y aceptado
 antes de estos comandos; no usar la ruta directa de `tools` si falta esa condición.
 Las consultas a systemd y logs son independientes de esa entrada.
 
 ```bash
-ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint release.py -- --root /home/qadra/qadra status'
+ssh -l qadra vps3 '/RUTA/PYTHON_APROBADO -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint release.py -- --root /home/qadra/qadra status'
 ssh -l qadra vps3 'systemctl --user status qadra-api qadra-web qadra-postgres qadra-redis'
 ssh -l qadra vps3 'journalctl --user -u qadra-api -n 100 --no-pager'
 ssh -l qadra vps3 'tail -n 100 /home/qadra/qadra/logs/nginx-error.log'
@@ -217,7 +220,7 @@ a Actions. Si tampoco logra recuperarla, detiene la entrada web. La primera
 instalación no tiene versión anterior. Para volver explícitamente:
 
 ```bash
-ssh -l qadra vps3 '/usr/bin/python3 -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint release.py -- --root /home/qadra/qadra rollback'
+ssh -l qadra vps3 '/RUTA/PYTHON_APROBADO -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint release.py -- --root /home/qadra/qadra rollback'
 ```
 
 Se conservan las escrituras de la base actual; `current` y `previous` se
