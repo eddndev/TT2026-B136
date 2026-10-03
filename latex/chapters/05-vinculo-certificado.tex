@@ -14,3 +14,13 @@ focal aprobó con advertencias tratadas como errores. Estos resultados locales
 no prueban la procedencia de una instantánea construida por un llamador,
 transacciones auditadas, una asociación persistida ni autenticación por
 certificado. La comprobación remota completa corresponde a una entrega posterior.
+
+La capa de aplicación añadió catorce pruebas con puertos controlados, aprobadas
+en 0.00~s después de 9.58~s de compilación. Verificaron identidad actual,
+reautenticación del principal completo, tiempo posterior a la comprobación
+criptográfica, evidencia exacta, UUID solicitado y conservación del primer
+retiro concurrente. Una regresión adicional ejercitó el puerto de aplicación
+con el verificador real: nueve casos aprobaron en 1.11~s; las 24 regresiones de
+declaraciones aprobaron en 1.27~s. Clippy focal aprobó en 14.54~s. Estos ensayos
+no sustituyen la aceptación del adaptador PostgreSQL, su auditoría atómica ni
+un recorrido HTTP de autenticación por certificado.

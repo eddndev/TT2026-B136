@@ -74,3 +74,38 @@ impl InternalRsaOwnerBindingVerifier {
         Ok(check)
     }
 }
+
+impl application::identity::owner_certificates::OwnerBindingVerifier
+    for InternalRsaOwnerBindingVerifier
+{
+    fn inspect_certificate(
+        &self,
+        certificate: &[u8],
+    ) -> Result<CredentialCertificate, CredentialFailure> {
+        InternalRsaOwnerBindingVerifier::inspect_certificate(self, certificate)
+    }
+
+    fn verify_registration(
+        &self,
+        statement: &BindingStatement,
+        certificate: &[u8],
+        signature: &Signature,
+        trust: &CredentialTrustSnapshot,
+        at: i64,
+    ) -> Result<CredentialCheck, application::identity::owner_certificates::OwnerCertificateError>
+    {
+        use application::identity::owner_certificates::OwnerCertificateError;
+        InternalRsaOwnerBindingVerifier::verify_registration(
+            self,
+            statement,
+            certificate,
+            signature,
+            trust,
+            at,
+        )
+        .map_err(|error| match error {
+            OwnerBindingFailure::Credential(value) => OwnerCertificateError::Credential(value),
+            OwnerBindingFailure::MaterialMismatch => OwnerCertificateError::MaterialMismatch,
+        })
+    }
+}

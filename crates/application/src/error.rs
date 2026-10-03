@@ -18,6 +18,8 @@ pub enum PortFailureKind {
 /// retain a diagnostic and optionally a neutral category, without adapter types.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
+    #[error(transparent)]
+    OwnerCertificate(#[from] crate::identity::owner_certificates::OwnerCertificateError),
     #[error("audit page exceeds its text capacity")]
     AuditQueryCapacityExceeded,
 

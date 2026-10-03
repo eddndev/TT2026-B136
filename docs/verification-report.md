@@ -1,5 +1,28 @@
 # Informe de verificación local
 
+
+## Aplicación de vínculo Owner: verificación local del 3 de octubre de 2026
+
+El target nuevo reprodujo primero la ausencia de la API. Catorce pruebas con
+puertos controlados aprobaron en 0.00 s tras 9.58 s de compilación. Comprueban
+Owner actual, principal completo antes del commit, datos opacos, tiempo posterior
+a RSA, igualdad de evidencia, UUID exacto y preservación del primer retiro
+concurrente. Los recibos y retiros históricos no exigen confianza vigente.
+
+La adaptación real del verificador se ejercitó como objeto del puerto de
+aplicación: las nueve pruebas con OpenSSL aprobaron en 1.11 s, incluidas la firma
+válida y su rechazo al cambiar de Owner. Las 24 regresiones de declaraciones
+aprobaron en 1.27 s. Clippy focal aprobó en 14.54 s con advertencias como errores;
+el aviso de compatibilidad futura conocido de Redis permanece. Un primer comando
+Clippy repitió `--lib` y fue rechazado antes de analizar código; se corrigió la
+invocación. No se repitió una suite completa local.
+
+Esta evidencia local no acredita persistencia, unicidad concurrente en SQL,
+inventario de restauración, HTTP, acceso por certificado o firma documental.
+Esas obligaciones siguen separadas en el ADR del vínculo y no se habilita una
+política operativa ni cambia el acceso con contraseña y MFA.
+
+
 ## Confirmaciones inciertas: verificación local del 3 de octubre de 2026
 
 Una revisión posterior reprodujo dos fallos al cancelar un cambio administrativo
