@@ -1,5 +1,5 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import ActivityResources from './ActivityResources.svelte';
   import DeadlineEditor from './DeadlineEditor.svelte';
   import DeadlineDetail from './DeadlineDetail.svelte';
@@ -7,18 +7,22 @@
   import { canDeadlines, deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
   import { deadlineOperationalLabel, deadlineReviewLabels } from './deadline-view-labels.mjs';
+  import { pendingDeadlineDrafts } from '../lib/deadline-draft.mjs';
   export let api, user, caseId, ondenied;
   export let intent = null,
     onintent = () => {};
   export let onresource = () => {};
-  const scoped = api.deadlines(caseId),
+  const session = getContext('session-drafts'),
+    scoped = api.deadlines(caseId),
     administration = caseState();
   let rows = [],
     selected = null,
     historical = false,
     mode = null,
     base = null,
-    editorKey = 0;
+    editorKey = 0,
+    savedDraft = null,
+    drafts = pendingDeadlineDrafts(session, caseId);
   let status = 'active',
     applied = 'active',
     cursors = [undefined],
@@ -100,8 +104,36 @@
   function edit(action) {
     if (pending || !manage) return;
     base = action === 'register' ? null : selected;
+    savedDraft =
+      drafts.find((row) => row.action === action && row.resourceId === (base?.id ?? null)) ?? null;
     mode = action;
     editorKey++;
+  }
+  async function resume(saved) {
+    if (pending) return;
+    opening = true;
+    try {
+      base = saved.resourceId ? await scoped.get(saved.resourceId) : null;
+      if (!alive || !session?.canAdmit()) return;
+      savedDraft = saved;
+      mode = saved.action;
+      editorKey++;
+    } catch (failure) {
+      if (alive) {
+        if (failure.status === 404 && failure.code === 'deadline_not_found') {
+          session?.registry.closeEditor(saved.key);
+          drafts = pendingDeadlineDrafts(session, caseId);
+        }
+        fail(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
+  function closedEditor() {
+    mode = null;
+    savedDraft = null;
+    drafts = pendingDeadlineDrafts(session, caseId);
   }
   async function saved(value, exact = false) {
     if (!alive) return;
@@ -110,7 +142,7 @@
     notice = 'Plazo guardado.';
     cursors = [undefined];
     await load();
-    if (alive) mode = null;
+    if (alive) closedEditor();
   }
   function reset() {
     selected = null;
@@ -142,15 +174,23 @@
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
+  {#if !mode && canDeadlines(user.role, 'manage')}
+    {#each drafts as draft (draft.key)}
+      <button class="secondary" disabled={pending} onclick={() => resume(draft)}
+        >Retomar borrador de plazo</button
+      >
+    {/each}
+  {/if}
   {#if mode}{#key editorKey}<DeadlineEditor
         {api}
         {user}
         {caseId}
         {base}
         {mode}
+        {savedDraft}
         {ondenied}
         onsaved={saved}
-        oncancel={() => (mode = null)}
+        oncancel={closedEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
   <section class="card" aria-label="Plazos registrados" aria-busy={busy || opening}>

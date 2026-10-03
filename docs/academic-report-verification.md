@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Recuperación de plazos ordinarios: 3 de octubre de 2026
+
+Implementación y pruebas describen la recuperación de alta, corrección, atención
+y retiro, con campos parciales, bases originales y consulta del recibo exacto.
+Se mantienen separadas la evidencia local y la aceptación con servicios reales.
+
+`make -C latex` aprobó: 365 páginas, 5902108 bytes, SHA-256
+`27d82bc887ca937e599bb1b9c7947733bcadb5550dd82cfd226bff84dc3fccc8`. Se inspeccionaron las páginas físicas 192 y 259: legibles,
+sin recortes ni superposiciones. Las fuentes protegidas conservaron sus hashes;
+el PDF previo quedó respaldado y el generado sigue sin versionarse. Persisten
+únicamente los avisos históricos de versalitas y la caja de 0.11754 pt.
+El PDF corresponde al manuscrito local acumulado, con entregas por integrar.
+
+
 ## Recuperación de plazos desde recursos: 3 de octubre de 2026
 
 Se añadieron la recuperación de la creación compuesta, los dos recibos y la

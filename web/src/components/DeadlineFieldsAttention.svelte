@@ -1,8 +1,15 @@
 <script>
   import FactTimeFields from './FactTimeFields.svelte';
   export let value,
-    disabled = false;
+    disabled = false,
+    recoverable = false,
+    savedInputs = null;
+  let timeFields;
+  export function captureInputs() {
+    return { time: timeFields?.captureDraft() ?? savedInputs?.time ?? null };
+  }
   function choose(status) {
+    savedInputs = null;
     value =
       status === 'recorded'
         ? { status, occurred_at: { precision: '' }, statement: '', locator: '' }
@@ -22,7 +29,14 @@
     </select></label
   >
   {#if value.status === 'recorded'}
-    <FactTimeFields bind:value={value.occurred_at} label="atenci&#243;n" {disabled} />
+    <FactTimeFields
+      bind:this={timeFields}
+      bind:value={value.occurred_at}
+      label="atenci&#243;n"
+      {disabled}
+      {recoverable}
+      draft={savedInputs?.time}
+    />
     <label
       >Declaraci&#243;n de atenci&#243;n<textarea
         rows="3"

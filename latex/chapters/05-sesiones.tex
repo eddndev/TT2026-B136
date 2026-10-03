@@ -135,6 +135,13 @@ en 34.9~s y trece regresiones en 34.0~s. Se conservaron campos parciales,
 identificadores, capturas y base; no se recuperó una aprobación anterior.
 La ausencia, un recibo ajeno y una pareja creada por separado conservaron la
 incertidumbre. Sólo la confirmación explícita del origen conjunto retiró el
-borrador antes de refrescar. La aceptación es local con HTTP controlado; los
-plazos ordinarios y las confirmaciones administrativas restantes conservan
-su adaptación pendiente.
+borrador antes de refrescar. La aceptación es local con HTTP controlado; las
+confirmaciones administrativas restantes conservan su aceptación pendiente.
+
+La recuperación del editor ordinario de plazos aprobó ocho casos nuevos en
+27.0~s y siete regresiones en 19.7~s, con un trabajador y HTTP controlado.
+Incluyó atención con desplazamiento parcial, cambio de revisión, pérdida de
+aprobación, cierre y reapertura, ausencia de resultado, recibo ajeno y retirada
+del borrador confirmado antes de refrescar. La corrección conservó límites y
+aserciones. Estos recorridos locales no acreditan integración ni el recorrido
+ampliado con servicios reales.
