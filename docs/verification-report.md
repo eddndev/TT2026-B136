@@ -19,6 +19,52 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Vínculo Owner con HTTP, MFA y restauración SQL reales: 3 de octubre de 2026
+
+La campaña completa `bash scripts/api-demo.sh` terminó con **salida 0 en
+334.419 s**, incluyendo compilación y preparación del entorno desechable.
+Usó PostgreSQL **16.15**, Redis real, la identidad existente con contraseña y
+MFA, el verificador RSA y la CA interna. Se reutilizaron qpdf **12.4.1** y los
+binarios multimedia previamente verificados por SHA-256; la evidencia no
+registra la versión del servidor Redis. La ejecución fue secuencial, con un
+trabajo de compilación y un hilo de pruebas.
+
+Los scripts `api-owner-certificates-demo.sh`, `api-owner-certificates-demo.py`
+y `api_owner_certificate_evidence.py`, bajo `scripts/`, ampliaron la misma
+campaña y su restauración, sin repetir la provisión. Se comprobó:
+
+- Preparación sin escritura, reconstrucción independiente de los 150 bytes
+  canónicos y certificado DER exacto; firma externa RSA-3072 y comprobación
+  independiente con OpenSSL. Una firma alterada produjo 422 sin mutación.
+- Un alta auditada, lectura y repetición exactas sin eventos adicionales, y
+  conflicto 409 al cambiar los bytes bajo el mismo UUID. Los contadores de
+  cuenta permanecieron intactos.
+- Publicación de una CRL sucesora que revoca sólo la hoja de ensayo. La captura
+  previa de otra intención produjo 409; una preparación actual con ese
+  certificado revocado produjo 422 y no creó otro vínculo. El recibo original
+  siguió disponible con su confianza histórica y pudo retirarse sin otra firma.
+- Correspondencia exacta de filas, declaraciones, digests, secuencias y fechas
+  con la auditoría, además de la validez de la cadena global. Las cuatro rutas
+  rechazaron la sesión anterior con 401 y al Paralegal vigente con 403, sin
+  modificar evidencia.
+- Volcado y restauración SQL de ambas tablas Owner y sus eventos. Después de
+  invalidar sesiones y desafíos anteriores y obtener MFA nueva, consulta y
+  repetición conservaron el mismo recibo terminal y la prueba pública original,
+  sin resucitar el vínculo ni añadir eventos. El certificado revocado siguió
+  rechazado. Los recorridos preexistentes de documentos, roles, reinicios y
+  restauración también aprobaron; conservaron cuatro documentos y los 70 eventos
+  del prefijo importado, con ZIP de evidencia idéntico.
+
+Esta aceptación local reúne las capas que los focales anteriores ejercitaban
+por separado; no reemplaza sus mediciones ni una regresión global. La extensión
+Owner aún no está publicada, no tiene interfaz Qadra y no se instaló en VPS3.
+No prueba autenticación por certificado, firma documental individual, custodia
+personal exclusiva ni servicios de un PSC. La restauración SQL desechable no
+equivale a restauración operacional conjunta de SQL, RDB y PKI. El aviso conocido
+de compatibilidad futura de `redis 0.25.4` permaneció visible. La actualización
+documental de este resultado aprobó compilación e inspección del PDF; véase
+`docs/academic-report-verification.md`.
+
 ## Autoridad al devolver un retiro Owner: 3 de octubre de 2026
 
 Una regresión reprodujo cuatro variantes de autoridad perdida después de

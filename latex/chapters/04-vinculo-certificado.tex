@@ -75,3 +75,13 @@ vigente y el retiro conserva su independencia de la validez actual del
 certificado. No se habilita enrolamiento, acceso por certificado ni firma
 documental individual. La política y sus límites están en
 \rutarepo{docs/adr/0067-owner-certificate-bindings.md}.
+
+La aceptación HTTP reutiliza el servidor, las sesiones Redis, PostgreSQL y la
+CA interna de \rutarepo{scripts/api-demo.sh}. Un titular sintético firma fuera
+de HTTP una declaración reconstruida independientemente; el ensayo compara
+la prueba pública con las filas y los eventos auditados. La publicación de una
+CRL sucesora permite contrastar una captura obsoleta con el recibo histórico
+exacto. Tras restaurar SQL se invalidan las sesiones y desafíos previos y se
+obtiene MFA nueva antes de consultar o conciliar ese recibo. Este recorrido no
+incluye una interfaz Qadra, custodia personal exclusiva ni recuperación
+operacional conjunta de SQL, RDB y PKI.

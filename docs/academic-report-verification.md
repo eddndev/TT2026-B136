@@ -1,5 +1,16 @@
 # Verificación de la actualización académica
 
+## Vínculo Owner con servicios reales: 3 de octubre de 2026
+
+Se incorporó la aceptación HTTP, MFA, firma pública y restauración SQL,
+distinguiéndola de los focales y del despliegue todavía pendiente.
+`make -C latex` aprobó: 370 páginas, 5921839 bytes, SHA-256
+`2072ad264056eaba0b1483f14dcd6d4f449b19fcf30d532aff093b7978c0b00d`.
+Se inspeccionaron las páginas físicas 168, 264 y 265, legibles y sin recortes
+ni superposiciones. Se conservaron las fuentes protegidas y el PDF previo.
+No se observaron referencias pendientes ni caracteres ausentes; persiste la
+sustitución conocida de versalitas de Times New Roman. El PDF no se versiona.
+
 
 ## Parada interna para restaurar: 3 de octubre de 2026
 

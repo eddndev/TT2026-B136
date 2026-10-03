@@ -13,6 +13,8 @@ source "$REPO_ROOT/scripts/api-case-administration-demo.sh"
 source "$REPO_ROOT/scripts/api-case-stage-demo.sh"
 # shellcheck source=scripts/api-typed-participant-demo.sh
 source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
+# shellcheck source=scripts/api-owner-certificates-demo.sh
+source "$REPO_ROOT/scripts/api-owner-certificates-demo.sh"
 # shellcheck source=scripts/api-deadline-reevaluation-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
 
@@ -60,93 +62,8 @@ migration_demo_start() {
   curl -fsS "$BASE_URL/healthz" | rg -x 'ok' >/dev/null
 }
 
-migration_demo_state() {
-  psql "$1" -v ON_ERROR_STOP=1 -Atc \
-    "SELECT jsonb_build_object(
-      'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),
-      'document_integrity_incidents',(SELECT jsonb_agg(to_jsonb(i) ORDER BY id)
-        FROM document_integrity_incidents i),
-      'series',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM document_series s),
-      'metadata',(SELECT jsonb_agg(to_jsonb(m) ORDER BY document_id,metadata_revision)
-        FROM document_metadata_revisions m),
-      'participants',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM case_participants p),
-      'participant_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
-        FROM case_participant_revisions p),
-      'subjects',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM case_subjects s),
-      'subject_revisions',(SELECT jsonb_agg(to_jsonb(s) ORDER BY subject_id,revision)
-        FROM case_subject_revisions s),
-      'typed_participants',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
-        FROM case_participant_typed_revisions p),
-      'subject_reviews',(SELECT jsonb_agg(to_jsonb(s) ORDER BY subject_id,revision)
-        FROM subject_identity_reviews s),
-      'participant_reviews',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
-        FROM participant_identity_reviews p),
-      'participant_credentials',(SELECT jsonb_agg(to_jsonb(p) ORDER BY participant_id,revision)
-        FROM participant_credential_evidence p),
-      'credential_trust',(SELECT jsonb_agg(to_jsonb(t) ORDER BY deployment_id,revision)
-        FROM participant_credential_trust_revisions t),
-      'credential_authority',(SELECT jsonb_agg(to_jsonb(a) ORDER BY deployment_id)
-        FROM participant_credential_authority a),
-      'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a),
-      'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY fingerprint) FROM migration_receipts r),
-      'users',(SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u),
-      'cases',(SELECT jsonb_agg(to_jsonb(c) ORDER BY id) FROM cases c),
-      'case_administration',(SELECT jsonb_agg(to_jsonb(c) ORDER BY case_id,revision)
-        FROM case_administration_revisions c),
-      'initial_stages',(SELECT jsonb_agg(to_jsonb(s) ORDER BY case_id)
-        FROM case_initial_stage_registrations s),
-      'stage_revisions',(SELECT jsonb_agg(to_jsonb(s) ORDER BY case_id,revision)
-        FROM case_stage_revisions s),
-      'hearings',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearings h),
-      'hearing_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY hearing_id,revision)
-        FROM case_hearing_revisions h),
-      'hearing_results',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id) FROM case_hearing_results h),
-      'hearing_result_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY result_id,revision)
-        FROM case_hearing_result_revisions h),
-      'judicial_calendars',(SELECT jsonb_agg(to_jsonb(c) ORDER BY id) FROM judicial_calendars c),
-      'judicial_calendar_revisions',(SELECT jsonb_agg(to_jsonb(c) ORDER BY calendar_id,revision)
-        FROM judicial_calendar_revisions c),
-      'procedural_facts',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id) FROM case_procedural_facts f),
-      'procedural_fact_revisions',(SELECT jsonb_agg(to_jsonb(f) ORDER BY family,id,revision)
-        FROM case_procedural_fact_revisions f),
-      'procedural_resources',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id) FROM case_procedural_resources r),
-      'procedural_resource_acts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM case_procedural_resource_acts a),
-      'procedural_resource_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY resource_id,revision)
-        FROM case_procedural_resource_revisions r),
-      'resource_activity_associations',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id)
-        FROM case_resource_activity_associations r),
-      'resource_activity_revisions',(SELECT jsonb_agg(to_jsonb(r) ORDER BY association_id,revision)
-        FROM case_resource_activity_association_revisions r),
-      'deadline_profiles',(SELECT jsonb_agg(to_jsonb(p) ORDER BY id) FROM deadline_profiles p),
-      'deadline_profile_revisions',(SELECT jsonb_agg(to_jsonb(p) ORDER BY profile_id,revision)
-        FROM deadline_profile_revisions p),
-      'deadlines',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id) FROM case_deadlines d),
-      'deadline_revisions',(SELECT jsonb_agg(to_jsonb(d) ORDER BY deadline_id,revision)
-        FROM case_deadline_revisions d),
-      'deadline_source_events',(SELECT jsonb_agg(to_jsonb(e) ORDER BY sequence)
-        FROM deadline_source_events e),
-      'deadline_source_sequence',(SELECT jsonb_build_object(
-        'last_value',last_value,'is_called',is_called)
-        FROM deadline_source_events_sequence),
-      'alert_preferences',(SELECT jsonb_agg(to_jsonb(a) ORDER BY user_id,revision)
-        FROM alert_preferences a),
-      'alert_subject_state',(SELECT jsonb_agg(to_jsonb(a) ORDER BY kind,id)
-        FROM alert_subject_state a),
-      'alert_scan_cursor',(SELECT jsonb_agg(to_jsonb(a) ORDER BY singleton)
-        FROM alert_scan_cursor a),
-      'alert_schedule',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id)
-        FROM alert_schedule a),
-      'alert_notifications',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id)
-        FROM alert_notifications a),
-      'alert_read_receipts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY operation_id)
-        FROM alert_read_receipts a),
-      'alert_email_outbox',(SELECT jsonb_agg(to_jsonb(a) ORDER BY id)
-        FROM alert_email_outbox a),
-      'alert_email_attempts',(SELECT jsonb_agg(to_jsonb(a) ORDER BY delivery_id,sequence)
-        FROM alert_email_attempts a),
-      'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
-    )" | jq -Sc .
-}
+# shellcheck source=scripts/api-migration-state-demo.sh
+source "$REPO_ROOT/scripts/api-migration-state-demo.sh"
 
 migration_demo_export() {
   local case_id="$1" destination="$2"
@@ -279,6 +196,7 @@ PY
   administration_demo "$case_id"
   stage_demo
   typed_participant_demo "$imported_url"
+  owner_certificate_demo "$imported_url"
   hearing_demo "$imported_url"
   calendar_demo
   procedural_facts_demo
@@ -330,6 +248,7 @@ PY
   administration_demo_restored
   stage_demo_restored
   typed_participant_demo_restored
+  owner_certificate_demo_restored "$restored_url"
   hearing_demo_restored
   calendar_demo_restored
   procedural_facts_demo_restored
@@ -381,6 +300,7 @@ unset -f administration_demo administration_demo_request administration_demo_bod
 unset -f administration_demo_closed administration_demo_capture administration_demo_restored
 unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
 unset -f typed_participant_demo typed_participant_demo_restored typed_participant_demo_python
+unset -f owner_certificate_demo owner_certificate_demo_restored owner_certificate_demo_python
 unset -f hearing_demo hearing_demo_restored hearing_demo_python
 unset -f calendar_demo calendar_demo_restored calendar_demo_python
 unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_demo_python

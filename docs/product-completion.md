@@ -151,6 +151,17 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   restauración antes de habilitar la recuperación pública.
   Véanse [contrato interno](password-reset-internal.md) y
   [transporte público](password-reset-public.md).
+- Vínculo de certificado Owner: dominio, verificación RSA, aplicación,
+  persistencia PostgreSQL auditada, rutas HTTP y composición del servidor tienen
+  aceptación local por capa. Conservan declaración canónica, firma separada,
+  recibos exactos y retirada terminal con autorización vigente. La campaña
+  completa `scripts/api-demo.sh` aprobó en 334.419 s con HTTP, PostgreSQL,
+  Redis, MFA y RSA reales; tras restaurar SQL y renovar MFA conservó el recibo
+  terminal, la prueba pública y la auditoría exactos. Esta extensión todavía
+  no está publicada ni integrada en main; no se instaló en VPS3 ni tiene interfaz Qadra.
+  No habilita autenticación por certificado ni firma documental individual. Véanse
+  [ADR-0067](adr/0067-owner-certificate-bindings.md) y
+  [el contrato HTTP](http-owner-certificates.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,
   PDF/CSV, avisos internos, selector paginado y consumidor supervisado están
   integrados en `main`. Se acreditaron trece escenarios distintos de
@@ -196,9 +207,16 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   1/1 en 27.424 s con dos usuarios, dos asignaciones, cuatro estados de reset,
   invalidación idempotente, cadena y PKI restauradas y reinicio Redis sin
   resurrección. Se usó un paquete interno desechable y observación systemd
-  sustituida, sin cambiar la instalación. Los controladores nuevos aún requieren
-  integración e instalación; la coordinación operacional sigue pendiente. Owner espera el correo elegido
-  por el operador; siguen cero usuarios y la aceptación autenticada pendiente.
+  sustituida, sin cambiar la instalación. La admisión de compatibilidad se integró
+  por PR65 como `ffdee8f` el 3 de octubre a las 05:08:42 UTC. Su cabeza aprobó
+  CI en 513 s con 3524 pruebas Rust y Documents en 76 s; Web no aplicaba.
+  La confirmación natural de main permanece pendiente. La parada
+  observada y reentrante y la publicación de controladores tienen aceptación local
+  separada; la primera incluye cuatro unidades systemd desechables, sin operar
+  los servicios instalados. Estas ampliaciones aún requieren integración e
+  instalación; staging, promoción y reapertura operacionales siguen pendientes.
+  Owner espera el correo elegido por el operador; siguen cero usuarios y la
+  aceptación autenticada pendiente.
 - Mantenimiento de CRL: el controlador manual tiene 96 pruebas aprobadas y
   aceptación aislada PostgreSQL/OpenSSL de tres renovaciones, respuesta perdida
   y recuperación tras fallo de salud. Preserva autoridad, claves, series revocadas
@@ -677,7 +695,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada; conservar la evidencia académica por revisión. Invitaciones y enrolamiento recuperable siguen pendientes. |
-| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos conserva aceptación focal local y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. Persistencia, HTTP, interfaz y acceso por certificado conservan entregas separadas; este checkpoint no los acredita como integrados ni instalados. El vínculo por sí solo no habilita autenticación por certificado ni firma documental individual. |
+| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos conserva aceptación focal local y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL y HTTP compuesto conservan aceptación local por capa y campaña HTTP/MFA/restauración SQL aprobada; su integración e instalación siguen pendientes. Esa evidencia no habilita autenticación por certificado ni firma documental individual. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
