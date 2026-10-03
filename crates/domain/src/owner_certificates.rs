@@ -76,6 +76,31 @@ pub struct BindingMaterial {
 }
 
 impl BindingMaterial {
+    /// Returns the exact intended trust deployment.
+    pub const fn deployment(&self) -> Uuid {
+        self.deployment
+    }
+
+    /// Returns the immutable registration identity supplied by the caller.
+    pub const fn binding(&self) -> Uuid {
+        self.binding
+    }
+
+    /// Returns the intended root DER fingerprint without proving its origin.
+    pub const fn root(&self) -> Sha256Digest {
+        self.root
+    }
+
+    /// Returns the intended leaf DER fingerprint without parsing a certificate.
+    pub const fn leaf(&self) -> Sha256Digest {
+        self.leaf
+    }
+
+    /// Returns the positive intended trust revision.
+    pub const fn trust_revision(&self) -> u32 {
+        self.trust_revision
+    }
+
     /// Accepts opaque fingerprints and exact non-nil identities without generating them.
     pub fn new(
         deployment: Uuid,
@@ -108,6 +133,11 @@ pub struct BindingStatement {
 }
 
 impl BindingStatement {
+    /// Returns the immutable public references covered by the canonical record.
+    pub const fn material(&self) -> &BindingMaterial {
+        &self.material
+    }
+
     /// Requires the target account to be the supplied active Owner.
     pub fn new(
         actor: OwnerAccount,

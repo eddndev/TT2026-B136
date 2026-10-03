@@ -1,5 +1,18 @@
 # Verificación de la actualización académica
 
+## Vínculo canónico y verificador Owner: 3 de octubre de 2026
+
+Se incorporaron dos apartados sobre el dominio y la verificación criptográfica,
+con evidencia focal y separación explícita de persistencia, autenticación y firma
+individual todavía pendientes. `make -C latex` aprobó: 366 páginas,
+5905408 bytes, SHA-256 `3c3f5a7f75f108e500e44cf1bef94bcf97d0aa54dacc24c6a988781e6cc032fd`.
+Se inspeccionaron las páginas físicas 167, 260 y 261: legibles, sin recortes ni
+superposiciones. Las fuentes protegidas conservaron sus hashes y el PDF anterior
+quedó respaldado. Los avisos de versalitas y la caja histórica de 0.11754 pt
+permanecen; no aparecieron referencias sin resolver ni glifos faltantes.
+El PDF local acumulado sigue sin versionarse y no prueba integración de entregas.
+
+
 ## Recuperación de plazos ordinarios: 3 de octubre de 2026
 
 Implementación y pruebas describen la recuperación de alta, corrección, atención

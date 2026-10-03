@@ -1,0 +1,25 @@
+\subsection{Vínculo explícito de certificado del Owner}
+
+El vínculo propuesto relaciona una cuenta Owner consigo misma, un despliegue,
+una raíz, una revisión de confianza y un certificado público. El dominio define
+un registro canónico de 150 bytes con propósito separado de alta y retiro,
+revisión de cuenta y generación de autenticación. La transición de retiro es
+terminal y conserva la captura original. Estos valores comprueban datos
+suministrados; por sí solos no autentican ni acreditan una escritura durable.
+
+La infraestructura incorpora un verificador estricto del perfil interno Partner.
+Exige RSA de 3072 bits, exponente 65537, algoritmo SHA-256/RSA y usos de clave
+exactos, incluidos clientAuth y emailProtection. Recalcula el digest del registro
+y verifica su firma separada, la raíz y la CRL obligatoria al instante solicitado.
+También compara la inspección completa de confianza y las huellas del material.
+La declaración personal mantiene un perfil distinto que rechaza usos extendidos.
+El adaptador recibe sólo evidencia pública, nunca la clave privada del titular.
+
+Una verificación satisfactoria establece consistencia criptográfica con la
+confianza aportada, no su publicación o vigencia futura. La aplicación debe
+obtenerla del estado autorizado y comprobarla nuevamente después de esperar
+los bloqueos de escritura. La asociación auditada, su unicidad y la protección
+contra reutilización siguen pendientes de persistencia. Tampoco se habilita
+acceso por certificado, se sustituye MFA ni se atribuye una firma documental
+individual. La política y sus límites están en
+\rutarepo{docs/adr/0067-owner-certificate-bindings.md}.

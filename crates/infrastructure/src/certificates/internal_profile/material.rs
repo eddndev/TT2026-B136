@@ -1,3 +1,5 @@
+//! Bounded public material parsing and fixed RSA/SHA-256 verification.
+
 use der::asn1::ObjectIdentifier;
 use der::oid::AssociatedOid;
 use der::{Decode, Encode};
