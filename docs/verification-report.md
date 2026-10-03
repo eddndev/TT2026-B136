@@ -15,6 +15,14 @@ un aviso de revocación duplicado entre padre e hijo; después de corregirlo,
 once escenarios existentes y tres nuevos de resultado aprobaron juntos en
 26.2 s. La regresión remota sigue pendiente; esta evidencia usa HTTP controlado.
 
+La revisión posterior reprodujo una consulta de detalle anterior que reemplazaba
+el informe recién confirmado: el RED falló en 8.7 s dentro del navegador.
+Al recibir la confirmación se invalida esa lectura y se limpia su estado pendiente.
+La regresión nueva y los seis escenarios de borradores y resultados aprobaron
+juntos, 7/7 en 17.8 s con un worker. Se conservaron dos envíos explícitos y los
+límites anteriores; no se añadió un reintento automático ni se repitió la
+aceptación con servicios reales.
+
 ## Recuperación pública integrada: confirmación del 3 de octubre de 2026
 
 PR61 se integró por squash como `4ea2fba` tras aprobar la cabeza `40f9d33`:

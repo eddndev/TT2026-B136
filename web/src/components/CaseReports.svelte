@@ -150,6 +150,7 @@
   }
   function requested(value) {
     if (!alive) return;
+    requestStarted();
     receive(value);
     if (!rows.some((row) => row.id === value.id)) rows = [value, ...rows];
   }
