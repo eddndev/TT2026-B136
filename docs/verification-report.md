@@ -1,5 +1,59 @@
 # Informe de verificación local
 
+## Persistencia del vínculo Owner: verificación local del 3 de octubre de 2026
+
+El target `owner_certificate_backend` aprobó **12/12** en **47.39 s**, tras
+**3.68 s** de compilación, con PostgreSQL **16.15** real en un clúster privado,
+autenticación SCRAM y rol de ejecución restringido. La preparación y limpieza
+elevaron el tiempo total a 52.73 s; el clúster propio se retiró. La identidad es
+un doble explícito (`FixedIdentity`) y el reloj es controlado; la publicación de confianza, las
+transacciones y el verificador RSA usan implementaciones reales. Esta campaña
+no prueba ingreso MFA, sesiones Redis ni transporte HTTP.
+
+Los ocho casos iniciales aprobaron en 30.39 s, tras 18.23 s de compilación.
+Cubren alta, retiro y renovación con evidencia pública exacta; recibos históricos
+después de cambios de cuenta o confianza; huellas que no se transfieren a otra
+cuenta; carreras de UUID, vínculo vigente y retiro terminal; rollback ante fallo
+de auditoría; y relectura de autoridad, confianza y tiempo después de esperar
+bloqueos reales. Comprueban que los campos de usuario permanecen intactos y
+verifican los eventos con el comprobador existente de la cadena global.
+
+Cuatro casos adicionales delimitaron la admisión de inventario y permisos:
+
+- El ensayo de contadores reprodujo un fallo y una regresión aprobada en
+  14.64 s. Tras la corrección, el arranque rechaza contadores actuales inferiores
+  a las capturas de alta o retiro, sin alterar evidencia. Cambiar posteriormente
+  el rol o la actividad conserva un historial válido y exige autoridad actual
+  para consultarlo. La fixture modela una fila de usuario incoherente mediante
+  una modificación administrativa; no ejecuta una restauración completa.
+- Dos ensayos de privilegios fallaron en 5.20 s antes de la corrección. El
+  arranque ahora rechaza el permiso para establecer `session_replication_role`,
+  tanto directo como alcanzable mediante `SET ROLE` con `NOINHERIT`. Los casos
+  comprueban el permiso efectivo, sin cambiar el modo de replicación ni escribir
+  evidencia omitiendo disparadores. Ambos aprobaron en la corrida final.
+
+La admisión revalida RSA con la confianza y el instante históricos, compara toda
+la inspección criptográfica y comprueba los enlaces exactos de cada fila con su
+evento auditado. Ese inventario no sustituye la verificación de la cadena global.
+Los bloqueos compartidos de auditoría serializan las inserciones; el rol de
+ejecución recibe SELECT e INSERT por columnas sobre las tablas de evidencia,
+sin permiso UPDATE.
+Clippy focal del backend aprobó en **6.751 s** con advertencias como errores;
+permanece el aviso conocido de compatibilidad futura de `redis 0.25.4`.
+
+No se repitió una regresión completa del workspace ni una campaña de volcado y
+restauración poblada. La evidencia no habilita enrolamiento, acceso por
+certificado, rutas HTTP ni firma documental individual. No se reciben claves
+privadas por esta frontera. Los cortes anteriores conservan sus resultados y
+límites propios.
+
+
+El manuscrito compiló con 369 páginas y 5,916,115 bytes; SHA-256
+`d91a9c7dac3fac6bbcf61db16b9081e5e867bb28fc4a347f8411dcbfa9688295`.
+Se inspeccionaron las páginas PDF 167, 168 y 264; las fuentes académicas
+protegidas conservaron sus huellas. Se corrigió antes de entregar una confusión
+de redacción entre los 30.39 s de ejecución inicial y sus 18.23 s de compilación.
+
 
 ## Envío público del vínculo Owner: verificación local del 3 de octubre de 2026
 

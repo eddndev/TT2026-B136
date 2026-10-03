@@ -24,3 +24,29 @@ con el verificador real: nueve casos aprobaron en 1.11~s; las 24 regresiones de
 declaraciones aprobaron en 1.27~s. Clippy focal aprobó en 14.54~s. Estos ensayos
 no sustituyen la aceptación del adaptador PostgreSQL, su auditoría atómica ni
 un recorrido HTTP de autenticación por certificado.
+
+La campaña posterior de persistencia, del 3 de octubre de 2026, aprobó doce de
+doce pruebas en 47.39~s, tras 3.68~s de compilación, con PostgreSQL~16.15 privado,
+autenticación SCRAM y rol restringido. Ejercitó altas, retiros y renovación,
+recibos exactos, carreras entre transacciones, huellas permanentes por cuenta,
+rollback ante rechazo de auditoría y relectura de autoridad, confianza y reloj
+después de esperar bloqueos. Los ocho casos iniciales habían aprobado en
+30.39~s, tras 18.23~s de compilación; la corrida final incorpora cuatro casos
+adicionales.
+
+Un ensayo reprodujo contadores actuales inferiores a las capturas históricas;
+la regresión de cambio legítimo de rol y actividad ya aprobaba. Otros dos
+reprodujeron la admisión indebida del permiso para omitir disparadores mediante
+el modo de replicación, directo o alcanzable con otro rol. Las correcciones
+rechazan esas configuraciones sin cambiar el historial. La comprobación estática
+focal aprobó en 6.751~s. El aviso conocido de compatibilidad futura de Redis
+permanece separado de estos resultados.
+
+La identidad y el reloj se controlaron en las pruebas; PostgreSQL, la publicación
+de confianza y RSA fueron reales. La admisión vuelve a verificar las firmas con
+su confianza e instante capturados y comprueba la correspondencia exacta con
+los eventos. Las pruebas verifican además la cadena global mediante su
+comprobador existente. La modificación administrativa de una fila simuló un
+inventario incoherente; no se ejecutó un volcado y restauración completos. Estos
+resultados no acreditan enrolamiento, un ingreso MFA real, rutas HTTP, acceso por
+certificado ni firma documental individual.

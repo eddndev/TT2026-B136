@@ -2,10 +2,12 @@
 mod catalog;
 mod functions;
 mod permissions;
+mod references;
 
 use application::ApplicationError;
 pub(crate) use catalog::validate;
 pub(crate) use permissions::{grant_runtime, validate_runtime_role};
+pub(crate) use references::validate as validate_reference_triggers;
 pub(crate) const MIGRATION: &str =
     include_str!("../../../../migrations/0027_audit_query_projection.sql");
 
