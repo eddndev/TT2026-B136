@@ -168,7 +168,7 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   Redis, MFA y RSA reales; tras restaurar SQL y renovar MFA conservó el recibo
   terminal, la prueba pública y la auditoría exactos. El dominio quedó integrado
   por PR70 como `fb8b01e`, con confirmación natural aprobada; el verificador,
-  por PR73, con confirmación natural pendiente. Aplicación, persistencia,
+  por PR73, con confirmación natural aprobada. Aplicación, persistencia,
   HTTP compuesto e interfaz conservan integración pendiente; no se instalaron
   en VPS3. La interfaz
   Qadra posterior aprobó seis recorridos con HTTP controlado en 16.8 s; conserva
