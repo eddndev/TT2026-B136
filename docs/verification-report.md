@@ -1,6 +1,21 @@
 # Informe de verificación local
 
 
+## Envío público del vínculo Owner: verificación local del 3 de octubre de 2026
+
+Ocho casos nuevos reprodujeron la ausencia del DTO y del método de aplicación.
+Tras implementarlos, el target completo de esta frontera aprobó 22/22 en 0.01 s
+con 4.27 s de compilación: ocho nuevos y catorce regresiones. Clippy focal
+aprobó en 8.596 s con advertencias como errores. Usa puertos
+controlados, no demuestra otra ejecución de RSA, SQL ni HTTP.
+
+Comprueba límites previos a cargar material, igualdad de declaración/DER/firma,
+recibo histórico antes de confianza actual, rechazo de captura obsoleta, carreras
+de publicación y Principal completo, y un único commit ante resultado incierto.
+La preparación y el comando verificado siguen opacos; no se deserializa una
+verificación declarada por el cliente ni se habilita acceso por certificado.
+
+
 ## Parada nativa completa: verificación del 3 de octubre de 2026
 
 Una aceptación aislada del controlador aprobó 1/1 en 0.360 s en VPS3, bajo

@@ -141,6 +141,21 @@ methods remain ports: their database transaction, serialization, unique live
 binding and permanent fingerprint ownership require separate backend evidence.
 The service does not expose an HTTP endpoint or enable certificate login.
 
+### Untrusted public submission
+
+A public submission carries exactly the 150 prepared statement bytes, canonical
+leaf DER and detached 384-byte signature. It cannot deserialize an opaque
+preparation or assert successful verification. The application checks an own
+receipt by exact binding UUID first and compares all public bytes, preserving
+original evidence after expiry, trust rotation or terminal withdrawal.
+
+Without a receipt, it reconstructs preparation from the current account and
+published trust and requires byte identity before verification. A changed
+capture conflicts rather than replacing the signed intention. The original full
+Principal remains stable across nested service calls and before return. A failed
+or uncertain commit is not retried. This bridge does not expose HTTP, enable
+certificate login or change document signing.
+
 ### Persistence and admission obligations
 
 The domain models a supplied registration and its terminal withdrawal without
