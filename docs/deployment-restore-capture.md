@@ -177,8 +177,10 @@ base, sesión o clave de la instalación activa.
 
 ## Pendiente operacional
 
-Una restauración operacional requiere además parada y drenaje, staging y promoción
-durables, reconciliación tras fallo, confianza PKI y contadores vigentes,
+La [parada interna observada](deployment-restore-quiesce.md) añade una frontera
+conservadora y reentrante; aún no acredita la parada de toda la instalación.
+Una restauración operacional requiere además staging y promoción durables,
+reconciliación tras fallo, confianza PKI y contadores vigentes,
 instalación verificada y decisión sobre la fuente Redis y controles perdidos.
 Estas entradas no autorizan instalar, habilitar, limpiar la barrera ni activar
 correo de recuperación.

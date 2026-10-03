@@ -109,3 +109,15 @@ texto. Las regresiones focales conservaron la precisión temporal y comprobaron
 el formato real y la limpieza de archivos temporales. Esta aceptación no cubre
 reapertura operacional, pérdida de controles posteriores al respaldo ni emisión
 y consumo de un nuevo enlace mediante HTTP después de restaurar.
+
+La parada interna añadió trece casos de protocolo y ocho de observadores,
+aprobados en 0.223~s; las seis regresiones de admisión aprobaron en 0.261~s.
+Se ejercitaron bloqueo continuo, publicación durable, parada parcial, identidad
+ajena, salida forzada, presupuesto agotado y reentrada. Las fronteras de
+servicios y observación fueron dobles controlados; los archivos y locks fueron
+reales. Una aceptación adicional de observadores aprobó en 0.215~s con systemd,
+un proceso y su hijo y listeners IPv4/IPv6 reales en una unidad exclusiva.
+Comprobó cierre normal, retirada del cgroup y ausencia de puertos. Esa unidad
+tuvo 64~MiB y vida máxima de 60~s; no se tocaron servicios desplegados.
+La prueba nativa no sustituye aceptación del controlador completo instalado,
+staging, promoción durable ni reapertura de la restauración.

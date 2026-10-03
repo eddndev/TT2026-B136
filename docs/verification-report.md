@@ -1,6 +1,24 @@
 # Informe de verificación local
 
 
+## Parada previa a restauración: 3 de octubre de 2026
+
+Trece pruebas de protocolo y ocho de observación reprodujeron la ausencia de sus
+módulos. Los 21 casos aprobaron en 0.223 s con lock, archivos y sincronización
+reales, y fronteras controladas de servicios, procesos y puertos. Las seis
+regresiones existentes de la barrera aprobaron en 0.261 s. El controlador mantiene
+la admisión cerrada ante parada parcial, identidad distinta o fsync incierto;
+la reentrada observa el estado incluso con recibo previo de parada.
+
+Una aceptación nativa separada aprobó 1/1 en 0.215 s. Usó una unidad systemd de
+usuario exclusiva, dos listeners loopback IPv4/IPv6 y un hijo. Comprobó identidad,
+limite de 64 MiB, cierre normal, cgroup retirado y puertos ausentes. El servicio
+se limitó a 60 s; no se detuvieron unidades de Qadra ni se modificaron bases.
+Esta evidencia acredita los observadores, no el controlador completo instalado,
+restauración poblada, promoción de datos o reapertura operativa.
+
+
+
 ## Lectura de avisos tras reingreso: 3 de octubre de 2026
 
 Cuatro escenarios nuevos aprobaron en 13.8 s con un worker y HTTP controlado,
