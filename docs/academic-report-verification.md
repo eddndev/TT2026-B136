@@ -1,6 +1,20 @@
 # Verificación de la actualización académica
 
 
+## Avisos leídos después del reingreso: 3 de octubre de 2026
+
+El capítulo de pruebas incorpora cuatro escenarios locales de avisos y distingue
+su aceptación de las campañas con servicios reales. `make -C latex` aprobó:
+368 páginas, 5911416 bytes, SHA-256
+`a0c31c8f608b7f6b0047cf7773a06f82fdaf91f0894df0bf28e162ff91922ef4`.
+La página física 261 es legible, sin recortes ni superposiciones. Se conservaron
+los hashes de las fuentes protegidas y se respaldó el PDF anterior.
+Una extracción prematura intentó leer el PDF mientras LuaLaTeX aún lo escribía;
+al completar correctamente la compilación se repitió sólo la extracción y
+revisión. El PDF acumulado no se versiona ni acredita integración pendiente.
+
+
+
 ## Aplicación del vínculo Owner: 3 de octubre de 2026
 
 Se añadieron preparación, reautenticación, conciliación exacta y retiro histórico,

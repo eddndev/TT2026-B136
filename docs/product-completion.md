@@ -78,8 +78,14 @@ del correo de la primera cuenta Owner.
   integrada por PR60 como `21729ce`. CI, Web y Documents naturales de main
   aprobaron en 9m21s, 12m45s y 1m15s, con 3457 Rust, 482 recorridos controlados
   y 52 reales; se conservaron las identidades previas y cobertura 97/95/93 %.
-  Audiencias/resultados, hechos, miembros, calendarios, recursos y asociaciones
-  tienen aceptación focal local adicional; sus entregas aún esperan integración.
+  Audiencias/resultados y hechos se integraron por PR62 como `83bc9f7`.
+  Su confirmación natural aprobó CI en 8m11s, Web en 14m12s y Documents en
+  9m14s, incluyendo espera de cola: 3524 Rust, 511 controladas y 52 reales,
+  con cobertura 97/95/93 % e identidades previas conservadas. Miembros,
+  calendarios, recursos, asociaciones, plazos, informes y preferencias tienen
+  aceptación local adicional; sus entregas aún esperan integración. Las
+  confirmaciones administrativas, de sellado y de lectura de avisos también
+  tienen recorridos locales de vencimiento aceptados, separados de CI.
   Un recorrido con servicios desechables aceptó dos vencimientos y tres MFA,
   conservando campos de expediente y archivo principal. El inventario explícito
   de editores todavía pendientes está en [recuperación de editores](session-editor-recovery.md).
