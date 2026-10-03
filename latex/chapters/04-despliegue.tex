@@ -122,3 +122,12 @@ El ensayo poblado y desechable compone esas primitivas con restauración SQL,
 archivos privados, reinicio AOF y nueva autenticación. No equivale a un
 controlador de reapertura ni fija una política para controles perdidos después
 del punto de respaldo; véase \rutarepo{docs/deployment-restore-capture.md}.
+
+El controlador interno de parada retiene el bloqueo administrativo, valida una
+identidad fijada de instalación y publica la barrera y su diario antes de
+actuar. Detiene primero web y API y comprueba sus procesos y puertos antes de
+las bases. Exige salida normal y observación completa antes de registrar la
+parada; un fallo conserva la barrera. Reentrar con el mismo identificador vuelve
+a observar incluso si existe recibo previo. No restaura, promueve ni reabre
+datos y no establece la política de recuperación. Su frontera se describe en
+\rutarepo{docs/deployment-restore-quiesce.md}.

@@ -1,6 +1,18 @@
 # Verificación de la actualización académica
 
 
+## Parada interna para restaurar: 3 de octubre de 2026
+
+Se incorporaron el protocolo de cierre y su aceptación focal, diferenciando
+los observadores nativos del controlador completo aún no instalado.
+`make -C latex` aprobó: 368 páginas, 5912680 bytes, SHA-256
+`cd9e701e782ee1dc92fb9fe403097096f187ec211bd8208e6ef4278ec1c097f8`.
+Se inspeccionaron las páginas físicas 217, 264 y 265, legibles y sin recortes
+ni superposiciones. Las fuentes protegidas conservaron sus hashes y el PDF
+previo quedó respaldado. El PDF acumulado no se versiona ni acredita despliegue.
+
+
+
 ## Avisos leídos después del reingreso: 3 de octubre de 2026
 
 El capítulo de pruebas incorpora cuatro escenarios locales de avisos y distingue

@@ -70,9 +70,11 @@ lock que abarque todos sus efectos. El administrador Unix puede eludir o cambiar
 archivos. Por ello esta primitiva no prueba ausencia de escritores concurrentes
 ni constituye una frontera frente al propietario del host.
 
-Un controlador de restore posterior deberá conservar el lock, cerrar y verificar
-servicios y listeners, admitir la compatibilidad del respaldo, restaurar en su
-ámbito privado y validar el resultado antes de poder retirar el bloqueo. Esta
+El [controlador interno de parada](deployment-restore-quiesce.md) conserva el
+lock y comprueba unidades, procesos y listeners, con reentrada al mismo UUID.
+Su aceptación de protocolo usa fronteras controladas; los observadores tienen
+un ensayo nativo separado. La coordinación completa todavía debe admitir la
+compatibilidad, restaurar en ámbito privado y validar antes de retirar la barrera. Esta
 entrega no ofrece retirada pública, copia de datos, restauración SQL/Redis,
 invalidación automática ni relajación del ingreso.
 

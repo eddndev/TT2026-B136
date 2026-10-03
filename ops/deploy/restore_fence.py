@@ -1,5 +1,6 @@
 """Durable admission closure for normal services during pending restoration."""
 import json
+from contextlib import contextmanager
 from pathlib import Path
 import stat
 import sys
@@ -73,33 +74,45 @@ def _record(path, info):
     return record
 
 
-def enter(root, operation_id):
+def _enter_locked(root, operation_id):
     operation_id = _identifier(operation_id)
     _directories_exist(root)
-    with journal.locked(root):
-        _directories_exist(root)
-        if journal.pending(root):
-            raise RuntimeError("CRL maintenance must finish before restore admission closes")
-        path = fence_path(root)
-        try:
-            info = path.lstat()
-        except FileNotFoundError:
-            info = None
-        if info is not None:
-            record = _record(path, info)
-            if record["operation_id"] != operation_id:
-                raise ValueError("another restore operation holds admission closed")
-            for directory in (root / "maintenance", path.parent):
-                if stat.S_IMODE(directory.lstat().st_mode) != 0o700:
-                    raise ValueError("restore maintenance directories must remain private")
-            # A prior rename may have succeeded while its directory fsync failed.
-            journal.sync_directory(path.parent)
-            return record
+    if journal.pending(root):
+        raise RuntimeError("CRL maintenance must finish before restore admission closes")
+    path = fence_path(root)
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        info = None
+    if info is not None:
+        record = _record(path, info)
+        if record["operation_id"] != operation_id:
+            raise ValueError("another restore operation holds admission closed")
         for directory in (root / "maintenance", path.parent):
-            journal.directory(directory)
-        record = {"operation_id": operation_id}
-        journal.save(path, record)
+            if stat.S_IMODE(directory.lstat().st_mode) != 0o700:
+                raise ValueError("restore maintenance directories must remain private")
+        # A prior rename may have succeeded while its directory fsync failed.
+        journal.sync_directory(path.parent)
         return record
+    for directory in (root / "maintenance", path.parent):
+        journal.directory(directory)
+    record = {"operation_id": operation_id}
+    journal.save(path, record)
+    return record
+
+
+@contextmanager
+def maintenance(root, operation_id):
+    """Retain the existing deployment lock while a caller closes owned services."""
+    _identifier(operation_id)
+    _directories_exist(root)
+    with journal.locked(root):
+        yield lambda: _enter_locked(root, operation_id)
+
+
+def enter(root, operation_id):
+    with maintenance(root, operation_id) as close_admission:
+        return close_admission()
 
 
 if __name__ == "__main__":
