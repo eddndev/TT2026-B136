@@ -16,18 +16,18 @@ function validate(value) {
     throw new TypeError('Invalid upload draft.');
 }
 
-export function createRootUploadDraft({ session, caseId, capture }) {
+export function createRootUploadDraft({ session, caseId, capture, owner = null }) {
   const principalId = session.principal()?.id;
   const descriptor = {
     principalId,
     contextId: caseId,
-    editorKind: 'root-upload',
+    editorKind: owner ? 'support-upload' : 'root-upload',
     resourceId: null,
     action: 'create',
-    instanceId: 'documents-upload',
-    ownerDraftKey: null,
-    fieldPath: [],
-    rowId: null,
+    instanceId: owner ? 'support-upload' : 'documents-upload',
+    ownerDraftKey: owner?.ownerDraftKey ?? null,
+    fieldPath: owner?.fieldPath ?? [],
+    rowId: owner?.rowId ?? null,
     schemaVersion: 1,
     baseRevision: null,
   };
@@ -42,11 +42,14 @@ export function createRootUploadDraft({ session, caseId, capture }) {
       principal?.id === principalId &&
       can(principal?.role, 'documents') &&
       can(principal?.role, 'classify') &&
+      (!owner || (owner.principalId === principalId && owner.canApply())) &&
       session.canAdmit()
     );
   }
 
   async function freshContext() {
+    if (!admitted()) return null;
+    if (owner && (await owner.authorize()) !== true) return null;
     if (!admitted()) return null;
     const current = await session.authorizeCase(caseId);
     if (!admitted()) return null;

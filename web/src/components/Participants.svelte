@@ -1,7 +1,7 @@
 <script>
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import ParticipantFilters from './ParticipantFilters.svelte';
   import ParticipantList from './ParticipantList.svelte';
@@ -15,6 +15,7 @@
   const scoped = api.caseParticipants(caseRecord.id);
   const typedApi = api.caseTypedParticipants(caseRecord.id);
   const docs = api.caseDocuments(caseRecord.id);
+  const drafts = getContext('session-drafts');
   let typedEditor;
   let rows = [],
     selected = null,
@@ -34,12 +35,26 @@
     editor,
     participantDetail;
   let refreshing = 0;
+  let manualDrafts = [];
+  let typedDrafts = [];
+  $: manualDrafts = editor?.pendingDraftIds() ?? [];
+  $: typedDrafts = typedEditor?.pendingDrafts() ?? [];
   function invalidateDetail() {
     detailGeneration++;
     opening = false;
     selected = null;
   }
-  function denied(failure) {
+  function denied(failure, participantId = selected?.id ?? null) {
+    if (failure.code === 'case_not_found') drafts?.registry.denyContext(caseRecord.id);
+    else if ([403, 404].includes(failure.status) && participantId)
+      for (const entry of drafts?.registry.pending() ?? []) {
+        if (
+          entry.contextId === caseRecord.id &&
+          ['participant-manual', 'participant-typed'].includes(entry.editorKind) &&
+          entry.resourceId === participantId
+        )
+          drafts.registry.closeEditor(entry.key);
+      }
     listGeneration++;
     invalidateDetail();
     editorGeneration++;
@@ -116,7 +131,7 @@
       if (alive && generation === detailGeneration) selected = detail;
     } catch (failure) {
       if (alive && generation === detailGeneration) {
-        if ([403, 404].includes(failure.status)) denied(failure);
+        if ([403, 404].includes(failure.status)) denied(failure, record.id);
         else error = failure.message;
       }
     } finally {
@@ -165,6 +180,11 @@
       onclick={() => typedEditor.open()}><Icon name="plus" size={18} />Agregar participante</button
     >{/if}
 </div>
+{#if canParticipants(user.role, 'manage') && $administration.closed && typedDrafts.some((entry) => entry.id === null)}<button
+    class="secondary"
+    disabled={!!refreshing}
+    onclick={() => typedEditor.resume()}>Retomar borrador tipificado</button
+  >{/if}
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 <section class="card participant-directory" aria-label="Directorio del expediente" aria-busy={busy}>
@@ -179,7 +199,7 @@
   </div>
   {#if canParticipants(user.role, 'manage')}<button
       class="text-button"
-      disabled={$administration.closed || !!refreshing}
+      disabled={($administration.closed && !manualDrafts.includes(null)) || !!refreshing}
       onclick={() => editor.open()}>Registrar ficha pendiente</button
     >{/if}
   <ParticipantFilters onapply={apply} busy={busy || !!refreshing} />
@@ -218,6 +238,14 @@
       caseId={caseRecord.id}
       record={selected}
       onedit={(record) => (record.profile ? typedEditor.open(record) : editor.open(record))}
+      manualDraft={manualDrafts.includes(selected.id)}
+      onmanual={(record) => editor.open(record)}
+      typedDraft={typedDrafts.some(
+        (entry) =>
+          entry.id === selected.id &&
+          ($administration.closed || (entry.action === 'complete' && selected.profile)),
+      )}
+      ontyped={(record) => typedEditor.resume(record)}
       oncomplete={(record) => typedEditor.open(record)}
       onobserved={observed}
       onstatus={statusChanged}
@@ -227,6 +255,9 @@
 {#if canParticipants(user.role, 'manage')}{#key editorGeneration}<ParticipantEditor
       bind:this={editor}
       api={scoped}
+      caseId={caseRecord.id}
+      disabled={!!refreshing}
+      ondraftchange={() => (manualDrafts = editor?.pendingDraftIds() ?? [])}
       onconfirmed={confirmed}
       onobserved={observed}
       ondenied={denied}
@@ -238,6 +269,7 @@
       manualApi={scoped}
       {docs}
       caseId={caseRecord.id}
+      ondraftchange={() => (typedDrafts = typedEditor?.pendingDrafts() ?? [])}
       onconfirmed={confirmed}
       onobserved={observed}
       ondenied={denied}

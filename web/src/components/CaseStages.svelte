@@ -1,11 +1,12 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import StageEntry from './StageEntry.svelte';
   import StageHistory from './StageHistory.svelte';
   import StageForm from './StageForm.svelte';
   import { stageAction, stageLabels } from '../lib/case-stages.mjs';
   import { manageCase } from '../lib/case-administration.mjs';
   import { caseState } from '../lib/case-state.mjs';
+  import { pendingStageDrafts } from '../lib/stage-draft.mjs';
   export let api,
     user,
     record,
@@ -15,6 +16,10 @@
   const state = caseState(),
     scoped = api.caseStages(record.id),
     documents = api.caseDocuments(record.id);
+  const session = getContext('session-drafts');
+  let saved = pendingStageDrafts(session, record.id),
+    selectedDraft = null;
+  const admitted = () => alive && (!session || session.canAdmit());
   let alive = true,
     mounted = false,
     started = false,
@@ -30,13 +35,14 @@
   $: pending = busy || historyBusy || formBusy || loading;
   $: canManage = manageCase(user.role) && record.administration.profile && !$state.closed;
   $: action = stageAction(current);
+  $: recoverOnly = saved.length > 0 && (!canManage || saved[0].action !== action);
   $: if (mounted && !started && !loading) {
     started = true;
     load();
   }
   function observe(result) {
     if (
-      !alive ||
+      !admitted() ||
       result.case_id !== record.id ||
       (current?.stage_revision || 0) > (result.current?.stage_revision || 0)
     )
@@ -44,17 +50,17 @@
     current = result.current;
   }
   async function load() {
-    if (!alive || pending) return;
+    if (!admitted() || pending) return;
     busy = true;
     error = '';
     try {
       const result = await scoped.get();
-      if (alive) {
+      if (admitted()) {
         observe(result);
         ready = true;
       }
     } catch (failure) {
-      if (!alive) return;
+      if (!admitted()) return;
       error = failure.message;
       if ([403, 404].includes(failure.status)) ondenied(failure);
     } finally {
@@ -62,10 +68,21 @@
     }
   }
   async function confirmed(result) {
-    if (!alive) return;
+    if (!admitted()) return;
     observe(result);
+    saved = pendingStageDrafts(session, record.id);
     if (historyView) await historyView.refresh();
     if (alive) editing = false;
+  }
+  function open() {
+    if (pending || !admitted() || editing) return;
+    selectedDraft = saved[0] ?? null;
+    editing = true;
+  }
+  function close() {
+    editing = false;
+    selectedDraft = null;
+    saved = pendingStageDrafts(session, record.id);
   }
   onMount(() => {
     mounted = true;
@@ -101,10 +118,10 @@
           Completa la ficha penal para registrar una etapa.
         </p>
         <button class="secondary" onclick={() => onnavigate('case-summary')}>Ir al resumen</button>
-      {:else if canManage && action && !editing}<button
+      {:else if canManage && action && !editing && !recoverOnly}<button
           class="primary"
           disabled={pending}
-          onclick={() => (editing = true)}
+          onclick={open}
           >{action === 'adoption'
             ? 'Registrar etapa actual'
             : `Registrar paso a ${stageLabels[action]}`}</button
@@ -112,6 +129,11 @@
       {:else if current?.stage === 'trial'}<p class="hint">
           No hay otro avance ordinario disponible.
         </p>{/if}
+      {#if recoverOnly && !editing && manageCase(user.role)}<button
+          class="secondary"
+          disabled={pending}
+          onclick={open}>Retomar borrador de etapa</button
+        >{/if}
       <button
         class="text-button"
         disabled={pending}
@@ -126,11 +148,13 @@
       {documents}
       caseId={record.id}
       {current}
+      savedDraft={selectedDraft}
       {ondenied}
       onobserved={observe}
       onconfirmed={confirmed}
-      oncancel={() => (editing = false)}
+      oncancel={close}
       disabled={!canManage || busy || historyBusy || loading}
+      readBlocked={busy || historyBusy || loading}
       bind:pending={formBusy}
     />{/if}
   {#if history}<section class="card case-stage">

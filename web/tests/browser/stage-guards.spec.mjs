@@ -77,7 +77,24 @@ test('closure during registration preserves draft and queries only administratio
   await chooseSupport(page);
   await page.getByLabel('Nota (opcional)').fill('Guardar mi borrador');
   await page.getByRole('button', { name: 'Revisar registro' }).click();
+  const stageReads = state.requests.filter((request) => request.method === 'GET');
+  const administrationReads = [],
+    transitions = [];
+  await page.route(`**/api/v1/cases/${caseId}/administration`, (route) => {
+    const request = route.request(),
+      url = new URL(request.url());
+    administrationReads.push({ method: request.method(), path: url.pathname, search: url.search });
+    return route.fallback();
+  });
   await page.route(`**/api/v1/cases/${caseId}/stage/transitions`, async (route) => {
+    const request = route.request(),
+      url = new URL(request.url());
+    transitions.push({
+      method: request.method(),
+      path: url.pathname,
+      search: url.search,
+      body: request.postDataJSON(),
+    });
     detail.administration = {
       ...detail.administration,
       revision: 2,
@@ -89,7 +106,18 @@ test('closure during registration preserves draft and queries only administratio
   await expect(page.getByText(/Expediente cerrado administrativamente\. Puedes/)).toBeVisible();
   await expect(page.getByLabel('Nota (opcional)')).toHaveValue('Guardar mi borrador');
   await expect(page.getByRole('button', { name: 'Revisar registro' })).toBeDisabled();
-  expect(state.requests.filter((r) => r.method === 'GET')).toHaveLength(1);
+  expect(state.requests.filter((request) => request.method === 'GET')).toEqual(stageReads);
+  expect(administrationReads).toEqual([
+    { method: 'GET', path: `/api/v1/cases/${caseId}/administration`, search: '' },
+  ]);
+  expect(transitions).toEqual([
+    {
+      method: 'POST',
+      path: `/api/v1/cases/${caseId}/stage/transitions`,
+      search: '',
+      body: { ...command, note: 'Guardar mi borrador' },
+    },
+  ]);
 });
 test('history uses exclusive revision cursor and retains initial original provenance', async ({
   page,

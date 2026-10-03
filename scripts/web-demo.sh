@@ -3,6 +3,26 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+case "${TT_WEB_SESSION_ACCEPTANCE:-0}" in
+  0) WEB_BROWSER_CONFIG=playwright.live.config.mjs ;;
+  1)
+    WEB_BROWSER_CONFIG=playwright.session.config.mjs
+    export TT_SESSION_IDLE_SECONDS=12
+    if [ -n "${TT_WEB_LIVE_SHARD:-}" ]; then
+      printf 'session acceptance requires its own disposable backend campaign\n' >&2
+      exit 2
+    fi
+    for argument in "$@"; do
+      case "$argument" in
+        --shard|--shard=*)
+          printf 'session acceptance requires its own disposable backend campaign\n' >&2
+          exit 2
+          ;;
+      esac
+    done
+    ;;
+  *) printf 'TT_WEB_SESSION_ACCEPTANCE must be 0 or 1\n' >&2; exit 2 ;;
+esac
 if [ "${1:-}" != "--with-backends" ]; then
   if [ -n "${TT_WEB_LIVE_SHARD:-}" ]; then
     for argument in "$@"; do
@@ -11,7 +31,9 @@ if [ "${1:-}" != "--with-backends" ]; then
       esac
     done
   fi
-  node "$REPO_ROOT/scripts/web-live-plan.mjs"
+  if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ]; then
+    node "$REPO_ROOT/scripts/web-live-plan.mjs"
+  fi
   exec bash "$REPO_ROOT/scripts/test-backends.sh" bash "$0" --with-backends "$@"
 fi
 shift
@@ -120,11 +142,13 @@ provision_fixture() {
     printf 'Fixture %s: %ss\n' "$1" "$((SECONDS - started))"
   fi
 }
-provision_fixture participants web-participant-fixtures.mjs
-provision_fixture caseAdministration web-case-administration-fixtures.mjs
-provision_fixture caseStages web-case-stage-fixtures.mjs
-node "$REPO_ROOT/scripts/web-hearing-fixtures.mjs"
+if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ]; then
+  provision_fixture participants web-participant-fixtures.mjs
+  provision_fixture caseAdministration web-case-administration-fixtures.mjs
+  provision_fixture caseStages web-case-stage-fixtures.mjs
+  node "$REPO_ROOT/scripts/web-hearing-fixtures.mjs"
+fi
 export TT_WEB_PORT
 TT_WEB_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 cd "$REPO_ROOT/web"
-node node_modules/@playwright/test/cli.js test -c playwright.live.config.mjs "$@"
+node node_modules/@playwright/test/cli.js test -c "$WEB_BROWSER_CONFIG" "$@"

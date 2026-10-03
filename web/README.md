@@ -777,6 +777,28 @@ estado HTTP y código de error. El diagnóstico excluye consultas, cabeceras y
 cuerpos completos; sustituye los UUID de la ruta. No uses bases de datos ni
 credenciales de usuarios reales para esta prueba.
 
+### Reingreso con vencimiento real
+
+Desde la raíz, con las mismas dependencias y temporales en disco, ejecutar:
+
+```sh
+TT_WEB_SESSION_ACCEPTANCE=1 bash scripts/web-demo.sh --workers=1
+```
+
+Este modo usa `playwright.session.config.mjs` y `tests/session-live/`, prepara
+servicios desechables y configura doce segundos de inactividad exclusivamente
+para la prueba. No acepta particiones de fixtures ni `--shard`: se ejecuta como
+un recorrido independiente. El modo ordinario y su política de sesión no cambian.
+Requiere qpdf y los decodificadores verificados, igual que la campaña real común.
+
+El recorrido vence dos sesiones, verifica el rechazo del bearer anterior y
+completa nueva MFA. Conserva texto sin normalizar de un expediente y un archivo
+de carga principal hasta sendos envíos explícitos; no reenvía al autenticarse.
+Las capturas quedan en `web/test-results-session/`, o en el directorio indicado
+por `TT_IDLE_BROWSER_OUTPUT`. La aceptación local aprobó 1/1 en 37.5 s; el total
+fue 102.735 s, con 51.80 s de compilación. No acredita todos los editores ni
+habilita inactividad en una instalación operativa.
+
 Las pruebas focales de plazos separan validación de contratos, renderizado de
 campos y recorridos con HTTP simulado. Cubren declaraciones sin valores
 inventados, confirmación explícita de bloqueos, selección paginada de

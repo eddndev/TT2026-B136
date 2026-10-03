@@ -1,5 +1,62 @@
 # Informe de verificación local
 
+## Refresco confirmado de participantes: correccion del 2 de octubre de 2026
+
+La regresion remota detecto que una edicion confirmada cerraba el dialogo antes
+de finalizar las lecturas de lista e historial. La prueba existente reprodujo
+el fallo localmente. Ahora el registro del borrador se retira inmediatamente,
+pero el dialogo de edicion permanece ocupado hasta terminar ambas lecturas.
+La creacion conserva su cierre inmediato y no puede resucitar tras otro vencimiento.
+
+Doce escenarios focales aprobaron en 30.1 s con un worker. Ademas se completo el
+contrato exacto de identidad historica de una ficha tipificada en una fixture;
+ambas aperturas exigen ahora el control habilitado y conservan los rechazos de
+solicitudes inesperadas. No se cambiaron timeouts ni se eliminaron assertions.
+La campaña fallida fue cancelada automaticamente; no acredita el inventario completo.
+
+
+## Reingreso en etapas: aceptacion focal del 2 de octubre de 2026
+
+Ocho escenarios de navegador controlado aprobaron en 28.4 s con un worker,
+despues de reproducir la falta de autorizacion fresca antes de recuperar el
+borrador. Conservan adopcion o transicion originales, campos incompletos,
+referencias exactas y archivos separados por campo y propietario. Una revision
+mas reciente exige consulta del historial completo y decision explicita; una
+coincidencia no demuestra que el envio anterior haya quedado confirmado.
+La confirmacion elimina el borrador antes de esperar el refresco posterior.
+Se comprobaron expediente cerrado, acceso denegado, otra cuenta y cierre
+explicito, sin modificar tiempos, producto procesal ni numero de escenarios.
+Son resultados locales; falta la regresion completa de la cabeza publicada.
+
+## Reingreso en participantes: aceptación focal del 2 de octubre de 2026
+
+La ampliación local añade ocho escenarios distintos de ficha manual, nueve de
+identidad representada y ocho de participante tipificado. Se comprobaron en
+campañas focales separadas; no se presentan como una única suite de 25 casos.
+Conservan textos incompletos, revisiones, archivos y propietarios estructurales;
+exigen autorización y consulta vigentes antes de recuperar o confirmar. Cierre,
+denegación, cambio de cuenta e incertidumbre de escritura mantienen sus decisiones
+explícitas. Una confirmación retira el borrador antes de esperar otra lectura.
+
+Cuatro pruebas Node adicionales aprobaron restauraciones de certificados públicos
+interrumpidas por revocación, otro restore, retirada del dueño o limpieza explícita.
+Una firma anterior queda como evidencia inerte, sin preparar ni aprobar una nueva
+declaración. Los dos ajustes de localizadores de las pruebas Typed conservaron
+aserciones y tiempos: el select tiene nombre accesible propio y el botón bloqueado
+muestra «Procesando...» durante la lectura.
+
+El ensayo de sesión real aceptó dos vencimientos y tres autenticaciones MFA,
+con un alta de expediente y un archivo principal conservados: 1/1 en 37.5 s;
+campaña total 102.735 s, incluida compilación de 51.80 s. Tres pruebas Node
+verificaron la invocación aislada del ensayo. El modo de doce segundos es exclusivo
+de servicios desechables. Su incorporación a Web no habilita la política operativa.
+Véanse [alcance e inventario pendiente](session-editor-recovery.md).
+
+La estabilización previa de CI quedó integrada como `14e7eec`: CI natural aprobó
+en 7m28s y Web en 11m09s, con 3382 Rust, 447 controladas y 51 reales, preservando
+las identidades anteriores. Esta evidencia pertenece a la base anterior a la
+ampliación de participantes; la regresión completa de esta ampliación sigue pendiente.
+
 ## Arranque del decodificador nativo: corrección focal del 2 de octubre de 2026
 
 Una ejecución en VPS3 rechazó el MP4 positivo durante el arranque, antes de

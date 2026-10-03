@@ -36,6 +36,7 @@
       ? createRootUploadDraft({
           session: sessionDrafts,
           caseId: draftContext.caseId,
+          owner: draftContext.ownerDraftKey ? draftContext : null,
           capture: () => ({ file, name, draft, rawFields: fields.captureDraft(), unconfirmed }),
         })
       : null;

@@ -6,24 +6,31 @@
     oncancel,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   let rows = [],
     current = null,
     name = '',
     query = '',
     kind = '',
+    appliedKind = '',
     more = false,
     cursor,
     error = '',
     alive = true;
+  const admitted = () => alive && canApply() === true;
+  export function captureDraft() {
+    return { name, query, kind, appliedKind };
+  }
   async function work(operation) {
-    if (busy || disabled) return;
+    if (busy || disabled || !admitted()) return;
     busy = true;
     error = '';
     try {
       await operation();
     } catch (failure) {
-      if (alive) {
+      if (admitted()) {
         error = failure.message;
         if ([403, 404].includes(failure.status)) ondenied(failure);
       }
@@ -36,10 +43,10 @@
       const page = await api.subjects({
         limit: 20,
         name: query || undefined,
-        kind: kind || undefined,
+        kind: appliedKind || undefined,
         afterId,
       });
-      if (!alive) return;
+      if (!admitted()) return;
       rows = afterId ? [...rows, ...page.subjects] : page.subjects;
       more = page.has_more;
       cursor = page.next_after_id;
@@ -49,10 +56,19 @@
   function select(row) {
     return work(async () => {
       const result = await api.subject(row.id);
-      if (alive) current = result;
+      if (admitted()) current = result;
     });
   }
-  onMount(() => load());
+  onMount(() => {
+    if (draft !== null) {
+      if (['name', 'query', 'kind', 'appliedKind'].some((key) => typeof draft[key] !== 'string')) {
+        error = 'No se pudo recuperar la consulta de identidad.';
+        return;
+      }
+      ({ name, query, kind, appliedKind } = draft);
+    }
+    load();
+  });
   onDestroy(() => {
     alive = false;
     busy = false;
@@ -77,6 +93,7 @@
     disabled={disabled || busy}
     onclick={() => {
       query = name;
+      appliedKind = kind;
       load();
     }}>Buscar identidades</button
   >
@@ -98,7 +115,9 @@
       type="button"
       class="primary"
       disabled={disabled || busy}
-      onclick={() => onselected(current)}>Usar esta identidad</button
+      onclick={() => {
+        if (admitted()) onselected(current);
+      }}>Usar esta identidad</button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <button type="button" class="text-button" disabled={disabled || busy} onclick={oncancel}

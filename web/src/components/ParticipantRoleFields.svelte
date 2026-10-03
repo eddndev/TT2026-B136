@@ -8,11 +8,14 @@
     ondenied,
     disabled = false,
     pending = false;
+  export let supportContext = () => null,
+    discardPath = () => {};
   let supportBusy = false,
     fieldsBusy = {};
   $: pending = supportBusy || Object.values(fieldsBusy).some(Boolean);
   $: fields = profileKinds.find((item) => item.key === draft.profile.kind)?.fields || [];
   function kind(value) {
+    discardPath(['role', 'profile']);
     draft = { ...draft, profile: roleDraft(value).profile };
     fieldsBusy = {};
   }
@@ -32,17 +35,25 @@
           >{/each}</select
       ></label
     >
-    {#each fields as field (field.key)}<ParticipantDeclaredField
-        {field}
-        bind:value={draft.profile[field.key]}
-        {docs}
-        {caseId}
-        {ondenied}
-        disabled={disabled ||
-          supportBusy ||
-          Object.entries(fieldsBusy).some(([key, value]) => key !== field.key && value)}
-        bind:pending={fieldsBusy[field.key]}
-      />{/each}
+    {#key draft.profile.kind}{#each fields as field (field.key)}<ParticipantDeclaredField
+          {field}
+          bind:value={draft.profile[field.key]}
+          {docs}
+          {caseId}
+          {ondenied}
+          draftContext={supportContext([
+            'role',
+            'profile',
+            draft.profile.kind,
+            field.key,
+            'support',
+          ])}
+          ondiscard={() => discardPath(['role', 'profile', draft.profile.kind, field.key])}
+          disabled={disabled ||
+            supportBusy ||
+            Object.entries(fieldsBusy).some(([key, value]) => key !== field.key && value)}
+          bind:pending={fieldsBusy[field.key]}
+        />{/each}{/key}
     <label
       >Organizaci&#243;n (opcional)<input
         bind:value={draft.organization}
@@ -59,6 +70,7 @@
       api={docs}
       {caseId}
       label="Soporte del rol"
+      draftContext={supportContext(['role', 'role_support'])}
       bind:value={draft.role_support}
       {ondenied}
       disabled={disabled || Object.values(fieldsBusy).some(Boolean)}

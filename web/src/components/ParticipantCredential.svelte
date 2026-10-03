@@ -29,6 +29,12 @@
   export function failPreparation(ticket, message) {
     return selection.failPreparation(ticket, message);
   }
+  export function captureDraft() {
+    return selection.captureDraft();
+  }
+  export function restoreDraft(materials, canApply) {
+    return selection.restoreDraft(materials, canApply);
+  }
   onDestroy(() => {
     selection.dispose();
     value = null;
@@ -132,6 +138,43 @@
     Cambiar los datos, la revisi&#243;n base o el certificado requiere preparar y firmar otra
     declaraci&#243;n. La preparaci&#243;n no guarda una ficha.
   </p>
+  {#if $selection.retained}<section
+      class="participant-comparison"
+      aria-label="Material de firma conservado"
+    >
+      <h3>Material de firma conservado</h3>
+      <p>
+        Estos archivos pertenecen a una preparaci&#243;n anterior. Revisa y prepara de nuevo;
+        selecciona expl&#237;citamente otra firma para confirmar.
+      </p>
+      {#if $selection.retained.signature}<p class="hint participant-provenance">
+          {$selection.retained.signature.name} / {$selection.retained.signature.blob.size} bytes
+        </p>{/if}
+      <div class="action-row">
+        {#if $selection.retained.statement}<button
+            class="secondary"
+            type="button"
+            disabled={disabled || pending || !$selection.available}
+            onclick={() => download($selection.retained.statement, 'declaracion-anterior.bin')}
+            >Descargar declaraci&#243;n anterior</button
+          >{/if}
+        {#if $selection.retained.signature}<button
+            class="secondary"
+            type="button"
+            disabled={disabled || pending || !$selection.available}
+            onclick={() =>
+              download($selection.retained.signature.blob, $selection.retained.signature.name)}
+            >Descargar firma anterior</button
+          >{/if}
+        {#if $selection.retained.receipt}<button
+            class="secondary"
+            type="button"
+            disabled={disabled || pending || !$selection.available}
+            onclick={() => download($selection.retained.receipt, 'recibo-anterior.json')}
+            >Descargar recibo anterior</button
+          >{/if}
+      </div>
+    </section>{/if}
   {#if pending}<p class="hint" role="status">
       Preparando materiales de la declaraci&#243;n...
     </p>{/if}

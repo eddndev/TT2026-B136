@@ -63,24 +63,30 @@ del correo de la primera cuenta Owner.
   del historial móvil mientras se reemplazaba su fila. PR56 corrigió esa carrera:
   CI 7m28s y Web 12m02s, mismas identidades y gates; se integró como `8ce25fd`.
   Su confirmación natural aprobó CI en 7m26s y Web en 11m55s, con el mismo inventario.
-- Reingreso y borradores, incremento de interfaz todavía local: el monitor ya
-  está conectado a la frontera autenticada, con bloqueo de peticiones, aviso,
-  captura antes del desmontaje y nueva consulta de sesión al volver a una
-  pestaña visible. Metadatos y expedientes tienen aceptación focal; la carga
-  documental principal tiene seis recorridos aceptados en dos campañas focales:
-  tres base y tres de envío incierto, cierre y denegación. Tres recorridos de
-  nuevas versiones y uno de MFA completada con la pestaña oculta aprobaron.
-  Faltan los demás adaptadores,
-  incluidos editores anidados. Estos resultados locales no acreditan regresión
-  completa, integración ni despliegue de la interfaz. No habilitan inactividad
-  operativa. Véanse [el contrato](http-api.md), [la decisión de recuperación](adr/0065-session-reentry-and-memory-drafts.md)
-  y [los resultados y límites](verification-report.md).
+- Reingreso y borradores: PR57 quedó integrada como `1eae3ef`. El monitor
+  autenticado bloquea peticiones, captura antes del desmontaje y consulta la
+  sesión al volver a una pestaña visible. Recupera metadatos, expedientes, carga
+  principal y nuevas versiones después de autorizar de nuevo, sin reenviar
+  escrituras. Su cabeza aprobó CI en 9m26s y Web en 10m47s, con 3381 pruebas Rust,
+  447 controladas y 51 reales. El navegador natural de main agotó el tiempo de
+  un recorrido de etapas; PR58 trasladó esa familia a VPS3 y acotó las arenas
+  del decoder nativo que falló después en una comprobación de arranque.
+  PR58 se integró como `14e7eec`, después de aprobar CI en 8m20s y Web en 11m46s:
+  3382 Rust, 447 controladas y 51 reales. CI y Web de su confirmación natural
+  también aprobaron; los tiempos e inventarios quedan en el informe de verificación.
+  La ampliación de participantes manuales, identidades y fichas tipificadas tiene
+  25 escenarios distintos aceptados localmente; aún no integra su regresión completa.
+  Un recorrido con servicios desechables aceptó dos vencimientos y tres MFA,
+  conservando campos de expediente y archivo principal. El inventario explícito
+  de editores todavía pendientes está en [recuperación de editores](session-editor-recovery.md).
+  La duración operativa sigue sin aprobarse; estos resultados no habilitan
+  inactividad en VPS3 ni demuestran recuperación universal de formularios.
 - Recuperación de contraseña, frontera interna todavía local: emisión y consumo
   tienen contrato de aplicación y adaptador PostgreSQL con digest de propósito,
   capacidad de un solo uso y cambio de contraseña/generación auditado en una
   transacción. Focales SQL y un recorrido con criptografía y Redis reales
   aprobaron; no hay rutas, correo ni composición en servidor. La invalidación administrativa de capacidades restauradas aprobó doce pruebas
-  focales; su coordinación operativa, limitación pública, entrega y formulario
+  focales; su coordinación operativa, adopción operativa de los límites, entrega y formulario
   siguen pendientes antes de activarla.
   Véanse [alcance y límites](password-reset-internal.md).
 - Informes integrados por PR49: solicitudes propias durables, captura cifrada,

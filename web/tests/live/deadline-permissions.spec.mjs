@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers.mjs';
+import { observeFrontendEntry } from '../frontend-entry-diagnostics.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -12,11 +13,24 @@ import {
   accountAction,
 } from './deadline-helpers.mjs';
 
+const entries = new WeakMap();
+test.afterEach(async ({ page }, testInfo) => {
+  const entry = entries.get(page);
+  if (!entry) return;
+  try {
+    if (testInfo.status !== testInfo.expectedStatus) await entry.attach(testInfo);
+  } finally {
+    await entry.dispose();
+    entries.delete(page);
+  }
+});
+
 test('real deadline roles retain closed history and clear private state after membership revocation', async ({
   page,
   browser,
 }, testInfo) => {
   test.setTimeout(90000);
+  entries.set(page, await observeFrontendEntry(page));
   await page.goto('/');
   await loginAs(page, accounts.litigator, 0);
   await openDeadlines(page, accounts.policyCase);

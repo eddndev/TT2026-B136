@@ -7,7 +7,9 @@
     oncancel,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   let rows = [],
     versions = [],
     document = null,
@@ -20,14 +22,20 @@
     query = '',
     error = '',
     alive = true;
+  function admitted() {
+    return alive && canApply() === true;
+  }
+  export function captureDraft() {
+    return { name, query };
+  }
   async function work(operation) {
-    if (busy || disabled || !alive) return;
+    if (busy || disabled || !admitted()) return;
     busy = true;
     error = '';
     try {
       await operation();
     } catch (failure) {
-      if (!alive) return;
+      if (!admitted()) return;
       error = failure.message;
       if ([403, 404].includes(failure.status)) {
         rows = [];
@@ -42,7 +50,7 @@
   const list = (next = 0) =>
     work(async () => {
       const result = await api.list({ limit: 20, offset: next, name: query || undefined });
-      if (!alive) return;
+      if (!admitted()) return;
       rows = result.documents;
       more = result.has_more;
       offset = next;
@@ -52,7 +60,7 @@
   const history = (record, beforeVersion) =>
     work(async () => {
       const result = await api.versions(record.id, { limit: 20, beforeVersion });
-      if (!alive) return;
+      if (!admitted()) return;
       document = record;
       exact = null;
       versions = beforeVersion ? [...versions, ...result.versions] : result.versions;
@@ -65,7 +73,7 @@
       const scoped = api.version(record.id, record.version);
       try {
         const result = await scoped.detail();
-        if (!alive) return;
+        if (!admitted()) return;
         if (
           result.case_id !== caseId ||
           result.id !== record.id ||
@@ -77,7 +85,17 @@
         scoped.dispose();
       }
     });
-  onMount(() => list());
+  onMount(() => {
+    if (draft !== null) {
+      if (typeof draft.name !== 'string' || typeof draft.query !== 'string') {
+        error = 'No se pudo recuperar la b\u00fasqueda del soporte.';
+        return;
+      }
+      name = draft.name;
+      query = draft.query;
+    }
+    list();
+  });
   onDestroy(() => {
     alive = false;
     busy = false;
@@ -152,7 +170,9 @@
         type="button"
         class="primary"
         disabled={busy || disabled}
-        onclick={() => onselected(exact)}>Usar esta versi&#243;n</button
+        onclick={() => {
+          if (admitted()) onselected(exact);
+        }}>Usar esta versi&#243;n</button
       >{/if}
     <button
       type="button"

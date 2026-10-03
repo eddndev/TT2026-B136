@@ -219,12 +219,26 @@ jobs:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
           TT_WEB_FIXTURE_WORKERS: '2'
         run: bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
+      - name: Verify idle expiry and authorized reentry
+        if: ${{ matrix.shard == 3 }}
+        env:
+          TT_WEB_SESSION_ACCEPTANCE: '1'
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-session/browser-junit.xml
+        run: env -u TT_WEB_LIVE_SHARD bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
       - name: Publish real browser durations
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: real-browser-durations-${{ matrix.shard }}
           path: web/test-results-live/browser-junit.xml
+          if-no-files-found: error
+          retention-days: 7
+      - name: Publish real session browser durations
+        if: ${{ always() && matrix.shard == 3 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-browser-session-durations
+          path: web/test-results-session/browser-junit.xml
           if-no-files-found: error
           retention-days: 7
       - name: Preserve failed browser screenshots and diagnostics
@@ -236,6 +250,9 @@ jobs:
             web/test-results-live/**/*.png
             web/test-results-live/**/error-context.md
             web/test-results-live/**/api-failures.json
+            web/test-results-session/**/*.png
+            web/test-results-session/**/error-context.md
+            web/test-results-session/**/api-failures.json
           if-no-files-found: ignore
           retention-days: 7
       - name: Cancel the failed campaign

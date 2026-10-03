@@ -3,6 +3,7 @@ import {
   readDetachedSignature,
   declarationDownloads,
 } from './participant-credential-files.mjs';
+import { captureCredentialDraft, readCredentialDraft } from './participant-credential-draft.mjs';
 
 export function credentialSelection() {
   let scope, basis;
@@ -12,6 +13,7 @@ export function credentialSelection() {
   let certificate = null,
     signature = null,
     prepared = null,
+    retained = null,
     busy = false,
     error = '';
   const listeners = new Set();
@@ -22,6 +24,7 @@ export function credentialSelection() {
       certificate,
       signature,
       prepared,
+      retained,
       busy,
       error,
       ready: !!(certificate && prepared && signature && !busy),
@@ -34,7 +37,16 @@ export function credentialSelection() {
   function invalidate(clearCertificate = false) {
     generation++;
     preparing = null;
-    if (clearCertificate) certificate = null;
+    if (clearCertificate) {
+      certificate = null;
+      retained = null;
+    } else if (prepared || signature) {
+      retained = Object.freeze({
+        signature,
+        statement: prepared?.statement ?? null,
+        receipt: prepared?.receipt ?? null,
+      });
+    }
     prepared = null;
     signature = null;
     busy = false;
@@ -79,6 +91,32 @@ export function credentialSelection() {
   }
   return {
     snapshot,
+    captureDraft() {
+      return captureCredentialDraft(certificate, prepared, signature, retained);
+    },
+    async restoreDraft(value, canApply) {
+      if (!available() || typeof canApply !== 'function' || canApply() !== true) return false;
+      invalidate(true);
+      const ticket = generation;
+      const admitted = () => current(ticket) && available() && canApply() === true;
+      busy = true;
+      notify();
+      try {
+        const restored = await readCredentialDraft(value, admitted);
+        if (!restored || !admitted()) return false;
+        certificate = restored.certificate;
+        retained = restored.retained;
+        return true;
+      } catch (failure) {
+        if (admitted()) error = failure.message;
+        return false;
+      } finally {
+        if (current(ticket)) {
+          busy = false;
+          notify();
+        }
+      }
+    },
     subscribe(listener) {
       listener(snapshot());
       if (alive) listeners.add(listener);
