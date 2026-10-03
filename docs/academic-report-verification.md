@@ -1,5 +1,16 @@
 # Verificación de la actualización académica
 
+## Transporte opcional del primer factor: 3 de octubre de 2026
+
+`make -C latex` aprobó: 375 páginas, 5942418 bytes, SHA-256
+`ca2bf67fd72bbc9de17c506fe1c9c3398001cae706831adde5fe7b9fe5a6049c`.
+Las páginas físicas 169 y 269 muestran el contrato HTTP y sus 19 pruebas,
+con texto legible sin recortes ni superposiciones. La compilación final incorporó
+el comando literal de ruta corregido antes de terminar. El PDF anterior quedó
+respaldado y los hashes de las fuentes protegidas permanecieron iguales.
+La evidencia de transporte conserva separada la aceptación del servidor real.
+
+
 ## Admisión interna Owner y cierre de controladores: 3 de octubre de 2026
 
 `make -C latex` aprobó los capítulos de implementación y pruebas con los

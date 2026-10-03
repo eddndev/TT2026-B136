@@ -11,4 +11,7 @@ pub use model::{
     CertificateLoginChallenge, CertificateLoginContext, CertificateMfaChallenge,
     CertificateSessionProvenance, MfaChallenge, SessionAuthentication, StoredCertificateLogin,
 };
-pub use port::{CertificateLoginPorts, OwnerLoginAuthority, OwnerLoginRuntime, OwnerLoginVerifier};
+pub use port::{
+    CertificateLoginPorts, OwnerLoginAuthority, OwnerLoginRuntime, OwnerLoginVerifier,
+    OwnerLoginWorkflow,
+};

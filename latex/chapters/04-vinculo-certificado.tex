@@ -143,6 +143,17 @@ pero su generación de revocación y procedencia deben seguir coincidiendo.
 Los plazos de sesión quedan acotados por la vigencia de la credencial; los
 registros de contraseña conservan su formato y semántica. Hay presupuestos
 independientes y compartidos para inicio y presentación, sin reintentos de
-escrituras inciertas. La ruta HTTP, la interfaz y el cierre de restauración
-siguen separados: esta frontera interna no habilita acceso público.
+escrituras inciertas. La interfaz y el cierre de restauración siguen separados;
+esta frontera interna no activa por sí misma el acceso público.
 Véase \rutarepo{docs/adr/0068-owner-certificate-first-factor.md}.
+
+
+El transporte opcional distingue solicitar declaración y presentar prueba. Cada
+ruta exige un objeto JSON estricto, identificadores canónicos y un cuerpo real
+acotado a 1024 o 2048 bytes, respectivamente. La segunda conserva la respuesta
+MFA existente y nunca devuelve sesión ni acepta una clave privada. Los
+constructores anteriores mantienen ambas rutas ausentes; la composición nueva
+comparte la admisión HTTP y el trabajo bloqueante con el resto de la API. Si
+se abandona una respuesta, el trabajador conserva su permiso hasta terminar.
+La composición ejecutable y la interfaz requieren aceptación independiente.
+Véase \rutarepo{docs/owner-certificate-login-http.md}.

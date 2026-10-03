@@ -5,7 +5,7 @@ use crate::{
     identity::{
         certificate_login::{
             validation, CertificateLoginChallenge, CertificateLoginPorts, CertificateMfaChallenge,
-            StoredCertificateLogin,
+            OwnerLoginWorkflow, StoredCertificateLogin,
         },
         LoginChallenge, LoginChallengeIdentity, SessionPolicy,
     },
@@ -164,5 +164,23 @@ impl IdentityService {
             challenge_token: mfa_token,
             expires_in_seconds,
         })
+    }
+}
+
+impl OwnerLoginWorkflow for IdentityService {
+    fn start_certificate_login(
+        &self,
+        owner: UserId,
+        binding: Uuid,
+    ) -> Result<CertificateLoginChallenge, ApplicationError> {
+        IdentityService::start_certificate_login(self, owner, binding)
+    }
+
+    fn prove_certificate_login(
+        &self,
+        token: &str,
+        signature: &[u8],
+    ) -> Result<LoginChallenge, ApplicationError> {
+        IdentityService::prove_certificate_login(self, token, signature)
     }
 }
