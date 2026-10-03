@@ -1,5 +1,23 @@
 # Informe de verificación local
 
+## Actividades vinculadas: recuperacion local del 3 de octubre de 2026
+
+El primer escenario fallo al no existir recuperacion tras vencer la sesion.
+La ampliacion acepto ocho casos nuevos: dos de contexto en el primer focal y
+seis de referencias, selector parcial y resultados en 21.5 s. Se corrigio el
+rotulo del control bloqueado entre ambos focales; las doce pruebas existentes
+aprobaron en dos grupos (9 en 21.8 s, 3 en 11.2 s), incluidos escritorio y movil.
+Todos usaron un worker y HTTP controlado.
+
+Se separan la cabeza que autoriza escribir y las capturas historicas del recurso,
+acto y actividad. No se conserva una preparacion aprobada ni se selecciona una
+vista previa por recuperarla. El envio incierto se conserva antes de esperar;
+consultar su ausencia solo habilita un reenvio deliberado del mismo sobre y esa
+habilitacion se pierde al vencer otra vez. Una confirmacion exacta elimina la
+captura antes del refresco. No se crean ni modifican audiencias o plazos, no hay
+carga documental en este editor y no se alteran limites temporales. CI completo
+y servicios reales para esta ampliacion permanecen pendientes.
+
 ## Reingreso en recursos procesales: aceptacion local del 2 de octubre de 2026
 
 Ocho escenarios nuevos aprobaron en 27.8 s con un worker y HTTP controlado.

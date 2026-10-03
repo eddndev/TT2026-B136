@@ -801,6 +801,18 @@ incierto conserva sólo el sobre necesario para consultar su recibo exacto.
 Ni el expediente seleccionado ni una coincidencia de valores habilitan
 mutaciones o confirman operaciones.
 
+Los recursos procesales conservan texto parcial, motivo, soportes y archivos
+con propietarios estables. Corregir un acto mantiene su identidad y revisión
+separadas de la cabecera vigente; otra fila no hereda su archivo. Los vínculos
+de actividades conservan además las capturas históricas del recurso, acto y
+actividad, distintas de la revisión que autoriza escribir. Reabrir consulta
+permisos y referencias antes de proyectar campos; una vista previa recuperada
+no equivale a seleccionarla. La incertidumbre se registra antes de esperar
+la respuesta y sólo un recibo exacto confirma el envío. Una ausencia consultada
+permite decidir un reenvío idéntico, pero esa habilitación vence con la sesión.
+La confirmación retira el borrador antes de refrescar el listado. No se crean
+actividades ni se activan plazos por recuperar estas capturas.
+
 Los adaptadores de clasificación documental, alta y edición de expedientes, carga documental principal y nuevas versiones preservan texto incompleto y selecciones todavía no confirmadas. Una revisión concurrente requiere comparar los valores actuales y decidir de nuevo; un expediente cerrado admite consultar el borrador autorizado sin enviarlo. Si una carga pudo haberse confirmado antes de perder su respuesta, la interfaz exige revisar el listado vigente y reconocer el riesgo de duplicación antes de iniciar otra carga explícita. No reproduce escrituras automáticamente. Los editores anidados y las demás familias de formularios requieren adaptadores y aceptación propios; la existencia del registro no demuestra recuperación universal. La activación operativa de inactividad permanece pendiente hasta completar ese inventario y seleccionar su duración. La decisión se documenta en \rutarepo{docs/adr/0065-session-reentry-and-memory-drafts.md}.
 
 \subsection{Límites de ejecución y verificación integrada}\label{sec:impl-http-limites}

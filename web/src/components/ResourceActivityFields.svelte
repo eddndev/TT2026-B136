@@ -9,15 +9,26 @@
     selection,
     ondenied,
     disabled = false,
-    busy = false;
-  let kind = selection.target?.kind || '',
+    busy = false,
+    savedInputs = null;
+  let kind = savedInputs?.kind ?? selection.target?.kind ?? '',
     targetBusy = false,
     actBusy = false;
-  let choosingAct = false,
+  let choosingAct = savedInputs?.choosingAct ?? false,
     selectedAct = null;
+  let targetPicker, actPicker;
+  export function captureInputs() {
+    return {
+      kind,
+      choosingAct,
+      target: targetPicker?.captureInputs() ?? savedInputs?.target ?? null,
+      act: actPicker?.captureInputs() ?? savedInputs?.act ?? null,
+    };
+  }
   $: busy = targetBusy || actBusy;
   function changeKind(event) {
     kind = event.currentTarget.value;
+    savedInputs = null;
     selection = { ...selection, target: null };
   }
   function selectTarget(row) {
@@ -71,6 +82,8 @@
 {#if kind}
   {#key `${caseId}:${kind}`}
     <ResourceActivityTargetPicker
+      bind:this={targetPicker}
+      savedInputs={savedInputs?.target ?? null}
       {api}
       {caseId}
       {kind}
@@ -99,6 +112,8 @@
   {#if choosingAct}
     {#key `${caseId}:${resource.id}`}
       <ResourceActivityActPicker
+        bind:this={actPicker}
+        savedInputs={savedInputs?.act ?? null}
         {api}
         {caseId}
         {resource}
