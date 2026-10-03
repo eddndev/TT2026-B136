@@ -68,6 +68,10 @@ name = "judicial_suite_1"
 path = "tests/suites/judicial_suite_1.rs"
 
 [[test]]
+name = "owner_certificate_binding"
+path = "tests/owner_certificate_binding.rs"
+
+[[test]]
 name = "participants"
 path = "tests/participants.rs"
 
