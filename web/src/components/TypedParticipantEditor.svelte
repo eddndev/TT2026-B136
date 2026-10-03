@@ -283,6 +283,7 @@
     generation++;
     dialog.close();
     state = empty();
+    pending = false;
     root = null;
     value = null;
     ondraftchange();
