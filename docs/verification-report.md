@@ -1,5 +1,21 @@
 # Informe de verificación local
 
+## Vínculo estructural de certificado propio: 3 de octubre de 2026
+
+El target explícito `owner_certificate_binding` reprodujo primero la ausencia
+del módulo y después aprobó ocho pruebas de dominio (2.06 s de compilación,
+menos de 0.01 s de ejecución). Clippy focal aprobó en 7.78 s con advertencias
+tratadas como errores; se aplicó el formato Rust.
+
+Los vectores literales independientes comprueban 150 bytes, propósito separado
+para registro y retiro, identidad de despliegue/cuenta/vínculo, huellas y
+revisiones. Se rechazan cuenta inactiva o distinta, UUID nulo, confianza ausente,
+contadores fuera del rango persistido, generaciones mayores a la revisión y
+retiro repetido o con contadores anteriores. El retiro preserva el registro.
+Estos valores no autentican, verifican certificados ni escriben una asociación.
+La admisión criptográfica, persistencia auditada, HTTP y acceso por certificado
+permanecen pendientes; el alcance está en [ADR-0067](adr/0067-owner-certificate-bindings.md).
+
 ## Plazos desde recursos: recuperación local del 3 de octubre de 2026
 
 El caso inicial reprodujo la ausencia de autorización fresca al reingresar.
