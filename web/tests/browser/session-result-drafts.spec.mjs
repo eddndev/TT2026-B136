@@ -171,12 +171,25 @@ test('a continuation keeps its historical scheduling and previous result even wh
   await enterHearings(page);
   await openResultList(page);
   const before = state.calls.length;
+  const historicalHearing = holdHearingRead(state, 'GET', `${hearingPath}/revisions/1`);
+  const historicalResult = holdHearingRead(
+    state,
+    'GET',
+    `${hearingPath}/results/${resultId}/revisions/1`,
+  );
   await page.getByRole('button', { name: 'Retomar borrador de resultado', exact: true }).click();
   form = resultForm(page);
   await expect(form.getByLabel('Relato del operador', { exact: true })).toHaveValue(
     rawResult.summary,
   );
   await expect(form.locator('.hearing-result-sources')).toContainText('Revisi\u00f3n 1 exacta');
+  await expect.poll(() => historicalHearing.entered).toBe(true);
+  await expect(reviewResult(form)).toBeDisabled();
+  historicalHearing.release();
+  await expect.poll(() => historicalResult.entered).toBe(true);
+  await expect(reviewResult(form)).toBeDisabled();
+  historicalResult.release();
+  await expect(reviewResult(form)).toBeEnabled();
   expect(state.calls.slice(before).some((row) => row.path === `${hearingPath}/revisions/1`)).toBe(
     true,
   );
