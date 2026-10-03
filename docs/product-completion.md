@@ -132,6 +132,15 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   de editores todavía pendientes está en [recuperación de editores](session-editor-recovery.md).
   La duración operativa sigue sin aprobarse; estos resultados no habilitan
   inactividad en VPS3 ni demuestran recuperación universal de formularios.
+- Alta de integrantes, entrega local aún no integrada en `main`: recupera correo
+  crudo y rol de la misma cuenta Owner sin contraseña ni material MFA. Conserva
+  el intento incierto al navegar y exige consulta de autoridad antes de mostrarlo;
+  ni presencia ni ausencia en el directorio permiten reenviarlo. El registro
+  aprobó 20/20 casos Node en 298.159 ms y el navegador 9/9 en 22.5 s, incluidos
+  ocho nuevos y la regresión móvil de alta MFA/auditoría. Es HTTP controlado,
+  sin aceptación nueva con servicios reales, CI ni despliegue. Véase
+  [recuperación de altas](member-enrollment-recovery.md). Invitaciones y
+  recuperación del enrolamiento conservan su condición pendiente.
 - Recuperación de contraseña: la frontera interna está integrada por PR59 como
   `f29ea91`, con emisión de capacidad de un solo uso y cambio de contraseña,
   generación y auditoría en una transacción. Su cabeza aprobó CI en 9m21s, Web
@@ -720,7 +729,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Caso de uso | Estado | Alcance y condición pendiente para cierre |
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
-| Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada; conservar la evidencia académica por revisión. Invitaciones y enrolamiento recuperable siguen pendientes. |
+| Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada. La recuperación de correo/rol e intención incierta del alta tiene aceptación local controlada, todavía separada de `main`; no recupera contraseña ni MFA. Invitaciones y enrolamiento recuperable siguen pendientes. |
 | Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos conserva aceptación focal local y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL y HTTP compuesto conservan aceptación local por capa y campaña HTTP/MFA/restauración SQL aprobada. La interfaz del vínculo tiene aceptación local con servicios reales; estas capas conservan integración e instalación pendientes. El primer factor por certificado y su interfaz tienen aceptación local RSA/MFA y restauración; faltan integración y activación explícita, y permanecen desactivados en VPS3. La firma documental individual sigue pendiente. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
