@@ -48,6 +48,30 @@ revalida esa autoridad al admitir MFA, consultar la identidad y renovar activida
 Cambiar la revisión de confianza o retirar el vínculo rechaza las capacidades
 anteriores, sin convertirlas a sesiones de contraseña.
 
+## Disponibilidad en la interfaz
+
+Qadra consulta `GET /api/v1/auth/certificate-login/availability` al seleccionar
+**Ingresar con certificado**. La respuesta pública y sin caché contiene sólo
+`enabled`, derivado del flujo compuesto. No consulta titulares ni garantiza
+que una cuenta concreta pueda entrar. Una composición deshabilitada anuncia
+`false` y mantiene ausentes las rutas de inicio y prueba; la interfaz también
+deniega el recorrido ante una respuesta ausente, inválida o fallida. No hay
+otra bandera de frontend.
+
+El usuario selecciona un recibo público histórico, descarga una declaración
+nueva de 182 bytes y aporta su firma separada antes de completar MFA. El
+recorrido y las diferencias respecto del registro de 150 bytes están en
+[la guía de acceso](owner-certificate-login-interface.md). La clave se utiliza
+fuera del navegador; habilitar esta composición no establece una política de
+custodia o entrega de claves.
+
+El lanzador desechable `scripts/web-demo.sh` habilita el acceso sólo cuando se
+selecciona la familia de aceptación Owner que prepara su certificado y cuenta
+propios. Suministra las cuatro cuotas y ventanas y los dos tiempos de Redis;
+los demás recorridos conservan la composición deshabilitada. Sus valores son
+condiciones explícitas del ensayo, no una política propuesta para el servidor
+operativo. La configuración del despliegue activo permanece independiente.
+
 ## Evidencia reproducida
 
 El 3 de octubre de 2026 aprobaron siete pruebas de configuración y composición en

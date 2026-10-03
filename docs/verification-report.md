@@ -1,5 +1,36 @@
 # Informe de verificación local
 
+## Interfaz de acceso Owner con certificado: 3 de octubre de 2026
+
+Después de observar los RED del cliente y la interfaz aprobaron 36 pruebas Node
+(once nuevas y 25 previas) en 0.840 s, cinco recorridos con HTTP controlado en
+20.9 s y siete regresiones del acceso anterior en 15.6 s. Se usó un trabajador.
+Cuatro capturas de escritorio y móvil fueron inspeccionadas: conservan Qadra,
+selección pública, descarga binaria y formulario MFA, sin desbordamiento observado.
+
+La aceptación real de navegador aprobó 1/1 en 14.0 s, con 208.382 s del comando
+completo incluida la preparación. Ejecutó PostgreSQL 16.15, Valkey 8.1.10, qpdf
+12.4.1 y decodificadores verificados, con un compilador y un trabajador. Registró
+el vínculo, firmó externamente los 182 bytes exactos con OpenSSL, verificó la
+firma de 384 bytes, exigió MFA y abrió la misma cuenta Owner. Conservó el recibo
+y las aserciones de retiro y consulta histórica bajo acceso independiente por
+contraseña. Las claves privadas permanecieron fuera del navegador y del servidor.
+
+El primer intento duró 206.774 s y recibió 401 al retirar usando la sesión
+derivada del vínculo retirado. La preparación corregida cierra expresamente
+esa sesión y vuelve mediante contraseña y otro código de recuperación antes
+del retiro. No se atribuye a éste una invalidación posterior al logout ni se
+modificaron producto, permisos, tiempos límite o aserciones para aprobarlo.
+La copia visible del retiro ahora explica la invalidez de las sesiones derivadas.
+La invalidación específica por retiro conserva su aceptación backend propia.
+
+El opt-in de `scripts/web-demo.sh` sólo habilita el flujo cuando la fixture Owner
+está seleccionada, con todas sus cuotas y tiempos explícitos. El preflight nativo
+reprodujo antes la disponibilidad deshabilitada. La entrega aún necesita cierre
+remoto y no modifica la instalación privada ni la política operativa. Véase
+[la guía del recorrido](owner-certificate-login-interface.md).
+
+
 
 ## Evidencia durable de parada y reentrada: 3 de octubre de 2026
 

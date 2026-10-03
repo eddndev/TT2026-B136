@@ -121,7 +121,8 @@ identidad y vínculo; no prepara ni envía otra operación. El reingreso descart
 una decisión anterior de ausencia y vuelve a exigir consulta exacta. Cancelar,
 cerrar sesión expresamente o cambiar de cuenta descarta el borrador. El archivo
 original y el PEM todavía no admitido quedan fuera de la captura. La función
-no habilita autenticación por certificado ni firma individual de documentos.
+de registro no abre por sí misma una sesión ni firma documentos. El acceso por
+certificado usa la declaración separada y el recorrido descritos a continuación.
 
 \subsubsection{Prueba separada y admisión interna del primer factor}
 
@@ -192,3 +193,32 @@ comprobación distingue ausencia de capacidades de su vencimiento natural:
 exige rechazo mientras el plazo capturado todavía está abierto. El vínculo y
 su evidencia permanecen en SQL; después de restaurar, una firma nueva sólo
 concede MFA nueva y no reutiliza la autoridad de una sesión anterior.
+
+\subsubsection{Acceso visible mediante firma externa y MFA}
+
+La pantalla de acceso conserva la composición visual Qadra y el formulario MFA
+existente. Al elegir \emph{Ingresar con certificado}, consulta la disponibilidad
+pública del servidor; una respuesta negativa, ausente o inválida conserva la
+alternativa de contraseña. El usuario selecciona el recibo público JSON de su
+vínculo sin retirar. El navegador limita y valida el contenedor y mantiene sólo
+la selección de cuenta, vínculo, huella y nombre declarado. No utiliza ese recibo
+histórico como prueba de vigencia ni envía su contenido completo al preparar.
+
+La decisión explícita de preparar solicita una declaración nueva de 182 bytes.
+El usuario descarga sus bytes exactos y los firma fuera del navegador; selecciona
+únicamente una firma binaria separada de 384 bytes. La declaración de registro
+de 150 bytes y su firma conservan un propósito distinto. La interfaz no recibe
+claves privadas ni realiza una validación ASN.1 o RSA alternativa al servidor.
+La prueba admitida conduce al MFA habitual y sólo su resultado correcto abre la
+sesión de la misma cuenta Owner seleccionada.
+
+El cliente consume localmente la captura antes de esperar la respuesta y descarta
+token y firma ante vencimiento o fallo. Un resultado incierto exige preparar y
+firmar otra declaración por decisión expresa; no recupera ni reenvía el intento.
+El cambio de método o apertura de recuperación de contraseña invalida las
+respuestas pendientes. Antes de instalar el acceso, la identidad devuelta por
+MFA debe coincidir con el Owner seleccionado y conservar ese rol. El plazo local
+usa tiempo monotónico y descuenta latencia sin reemplazar el control temporal
+del servidor. Estas capacidades efímeras no participan en los borradores de
+editores. El recorrido se documenta en
+\rutarepo{docs/owner-certificate-login-interface.md}.

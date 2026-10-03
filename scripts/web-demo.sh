@@ -100,12 +100,21 @@ export DATABASE_URL
 mkdir -m 700 "$WORK_DIR/client-credentials" "$WORK_DIR/server"
 mv "$PKI_CA_DIR/private/browser-participant.key.pem" "$WORK_DIR/client-credentials/participant.key.pem"
 OWNER_CERTIFICATE_SELECTED=0
+OWNER_CERTIFICATE_LOGIN_ARGS=()
 if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ] && \
   node "$REPO_ROOT/scripts/web-live-plan.mjs" --has ownerCertificates; then
   "$CLI" pki --scripts-dir "$REPO_ROOT/pki" issue --cn 'Browser Owner Binding' \
     --purpose partner >/dev/null
   mv "$PKI_CA_DIR/private/browser-owner-binding.key.pem" "$WORK_DIR/client-credentials/owner-binding.key.pem"
   OWNER_CERTIFICATE_SELECTED=1
+  OWNER_CERTIFICATE_LOGIN_ARGS=(
+    --owner-login-enabled
+    --owner-login-start-global-max 64 --owner-login-start-global-window-seconds 3600
+    --owner-login-start-owner-binding-max 64 --owner-login-start-owner-binding-window-seconds 3600
+    --owner-login-proof-global-max 64 --owner-login-proof-global-window-seconds 3600
+    --owner-login-proof-token-max 8 --owner-login-proof-token-window-seconds 3600
+    --owner-login-redis-connect-ms 1000 --owner-login-redis-io-ms 1000
+  )
 fi
 bash "$REPO_ROOT/pki/issue-tsa-cert.sh" >/dev/null
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" gen-crl >/dev/null
@@ -116,6 +125,7 @@ DATABASE_URL="$IDENTITY_TEST_DATABASE_URL" "$CLI" credential-trust publish \
 (
   cd "$WORK_DIR/server"
   exec "$CLI" serve --bind 127.0.0.1:0 --data-dir "$WORK_DIR/data" \
+  "${OWNER_CERTIFICATE_LOGIN_ARGS[@]}" \
   --deadline-page-limit 2 --deadline-poll-ms 50 \
   --signer-cert "$PKI_CA_DIR/certs/browser-demo.crt.pem" \
   --signer-key "$PKI_CA_DIR/private/browser-demo.key.pem" \
