@@ -166,8 +166,11 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   recibos exactos y retirada terminal con autorización vigente. La campaña
   completa `scripts/api-demo.sh` aprobó en 334.419 s con HTTP, PostgreSQL,
   Redis, MFA y RSA reales; tras restaurar SQL y renovar MFA conservó el recibo
-  terminal, la prueba pública y la auditoría exactos. Esta extensión todavía
-  no está publicada ni integrada en main; no se instaló en VPS3. La interfaz
+  terminal, la prueba pública y la auditoría exactos. El dominio quedó integrado
+  por PR70 como `fb8b01e`, con confirmación natural aprobada; el verificador,
+  por PR73, con confirmación natural pendiente. Aplicación, persistencia,
+  HTTP compuesto e interfaz conservan integración pendiente; no se instalaron
+  en VPS3. La interfaz
   Qadra posterior aprobó seis recorridos con HTTP controlado en 16.8 s; conserva
   intención y recibos públicos, sin recibir claves privadas. La aceptación
   del navegador con servicios reales aprobó después 1/1 en 12.1 s, con
@@ -245,13 +248,24 @@ corresponden a entregas posteriores; esta integración no los habilita en VPS3.
   sustituida, sin cambiar la instalación. La admisión de compatibilidad se integró
   por PR65 como `ffdee8f` el 3 de octubre a las 05:08:42 UTC. Su cabeza aprobó
   CI en 513 s con 3524 pruebas Rust y Documents en 76 s; Web no aplicaba.
-  La confirmación natural de main permanece pendiente. La parada
+  La confirmación natural de main aprobó CI en 513 s y Documents en 75 s,
+  con las mismas 3524 pruebas Rust; Web no aplicaba. La captura posterior se
+  integró por PR67 como `a208051` y su corrección de observación por PR68 como
+  `c95f245`, cuya confirmación natural aprobó CI en 443 s. La parada
   observada y reentrante y la publicación de controladores tienen aceptación local
   separada; la primera incluye cuatro unidades systemd desechables, sin operar
   los servicios instalados. Estas ampliaciones aún requieren integración e
-  instalación; staging, promoción y reapertura operacionales siguen pendientes.
+  instalación y no acreditan staging, promoción o reapertura del producto instalado.
   Owner espera el correo elegido por el operador; siguen cero usuarios y la
   aceptación autenticada pendiente.
+- Instalador recuperable de controladores: `ffce66c` está publicado en rama,
+  sin PR ni integración en `main` ni instalación del producto. La composición
+  local aprobó 10 casos en 4.159 s y 52 regresiones en 3.021 s; el bootstrap,
+  ocho en 1.703 s. El ensayo nativo aprobó 1/1 en 3.461 s con cuatro servicios
+  inocuos de `tt-runner`, generaciones A/B, launcher real y reapertura explícita.
+  Sus sondas de datos son sintéticas: no acredita PostgreSQL/Redis reales ni
+  restauración o instalación operacional. Véase
+  [instalación de controladores](deployment-controller-installation.md).
 - Mantenimiento de CRL: el controlador manual tiene 96 pruebas aprobadas y
   aceptación aislada PostgreSQL/OpenSSL de tres renovaciones, respuesta perdida
   y recuperación tras fallo de salud. Preserva autoridad, claves, series revocadas
@@ -730,7 +744,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada. La recuperación de correo/rol e intención incierta del alta tiene aceptación local controlada, todavía separada de `main`; no recupera contraseña ni MFA. Invitaciones y enrolamiento recuperable siguen pendientes. |
-| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos conserva aceptación focal local y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL y HTTP compuesto conservan aceptación local por capa y campaña HTTP/MFA/restauración SQL aprobada. La interfaz del vínculo tiene aceptación local con servicios reales; estas capas conservan integración e instalación pendientes. El primer factor por certificado y su interfaz tienen aceptación local RSA/MFA y restauración; faltan integración y activación explícita, y permanecen desactivados en VPS3. La firma documental individual sigue pendiente. |
+| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos conserva aceptación focal local y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL, HTTP compuesto e interfaz conservan aceptación local por capa y con servicios reales, sin integración del conjunto ni instalación. El primer factor por certificado y su interfaz tienen aceptación local RSA/MFA y restauración; faltan integración y activación explícita, y permanecen desactivados en VPS3. La firma documental individual sigue pendiente. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
@@ -797,12 +811,14 @@ aprobados ni produce un nuevo porcentaje global del TT.
   conciliarse con esta delimitación antes de introducir facturación o aislamiento
   multiinquilino. Ninguna de esas ampliaciones es requisito implícito para
   conectar la interfaz existente.
-- La autenticación implementada usa contraseña y MFA. El sello documental usa
+- La autenticación integrada en `main` usa contraseña y MFA; el primer factor
+  Owner por certificado tiene aceptación local y conserva integración y activación
+  pendientes. El sello documental usa
   la credencial configurada al arrancar el servidor. Las declaraciones internas
   de participantes verifican una firma externa de 384 bytes sobre una declaración
   de 218 bytes; no reciben la clave privada. Ese flujo no vincula automáticamente
-  la identidad representada con una cuenta de acceso. La autenticación por
-  certificado y la firma documental individual de usuarios continúan pendientes.
+  la identidad representada con una cuenta de acceso. La firma documental
+  individual de usuarios continúa pendiente.
 - El corte histórico de sesiones declaradas midió Argon2id en 409.6 ms sobre
   cinco corridas con dos iteraciones. La medición aislada posterior del mismo
   costo promedió 400.3851816 ms, también por debajo de 500--1000 ms. El ajuste
