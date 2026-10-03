@@ -1,5 +1,21 @@
 # Verificación de la actualización académica
 
+
+## Confirmaciones tras caducar la sesión: 3 de octubre de 2026
+
+Implementación y pruebas documentan trece escenarios de incertidumbre, diecinueve
+regresiones relacionadas y cuatro recorridos con expiración y nueva autenticación.
+Se distingue consultar el estado actual de repetir una mutación cuyo resultado
+no se conoce; los resultados tardíos no sustituyen una confirmación nueva.
+`make -C latex` aprobó: 367 páginas, 5909046 bytes, SHA-256
+`7d5357169dc9e649c85b8e217eb93e2f6f283aae4e8aacc3848bccc9b5f09da7`.
+Las páginas físicas 193, 260 y 261 son legibles, sin recortes ni superposiciones.
+Las fuentes protegidas conservaron sus hashes; se respaldó el PDF previo.
+Persisten los avisos históricos de versalitas y la caja de 0.11754 pt, sin
+referencias sin resolver ni glifos faltantes. El PDF acumulado no se versiona y
+la aceptación local se mantiene separada de la integración pendiente.
+
+
 ## Preferencias de alertas: 3 de octubre de 2026
 
 Implementación y pruebas incorporan conservación de horas y canales parciales,

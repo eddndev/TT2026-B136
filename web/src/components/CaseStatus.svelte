@@ -16,10 +16,10 @@
     alive = true;
   $: already = refreshed && candidate?.administration.administrative_status === intended;
   export function open() {
+    if (busy) return;
     candidate = record;
     intended = record.administration.administrative_status === 'active' ? 'closed' : 'active';
     conflict = false;
-    uncertain = false;
     refreshed = false;
     exhausted = false;
     error = '';
@@ -30,6 +30,7 @@
   }
   async function refresh() {
     busy = true;
+    refreshed = false;
     try {
       const result = await api.get();
       if (alive) {
@@ -51,19 +52,25 @@
     if (busy || exhausted || already || ((conflict || uncertain) && !refreshed)) return;
     busy = true;
     error = '';
+    uncertain = true;
+    refreshed = false;
+    let confirmed = false;
     try {
       const result = await api.status(candidate.administration.revision, intended);
       if (alive) {
-        busy = false;
-        close();
-        onconfirmed(result);
+        uncertain = false;
+        confirmed = true;
+        dialog.close();
+        await onconfirmed(result);
       }
     } catch (failure) {
       if (alive) {
-        uncertain = !failure.status;
-        conflict = failure.code === 'case_revision_conflict';
-        exhausted = failure.code === 'case_revision_exhausted';
-        refreshed = false;
+        if (!confirmed) {
+          uncertain = !failure.status || failure.status >= 500;
+          conflict = failure.code === 'case_revision_conflict';
+          exhausted = failure.code === 'case_revision_exhausted';
+          refreshed = false;
+        }
         error = caseFailure(failure);
         if ([403, 404].includes(failure.status)) ondenied(failure);
       }

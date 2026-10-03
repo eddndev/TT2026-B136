@@ -4,6 +4,7 @@
   const administration = caseState();
   import Icon from './Icon.svelte';
   import DocumentContentAction from './DocumentContentAction.svelte';
+  import DocumentSealAction from './DocumentSealAction.svelte';
   import { can, download } from '../lib/documents.mjs';
   export let api;
   export let user;
@@ -22,7 +23,8 @@
   let error = '';
   let message = '';
   let copyMessage = '';
-  let confirmSeal = false;
+  let sealAction;
+  let sealUncertain = false;
   $: report = document.report || null;
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: 'file' },
@@ -75,25 +77,12 @@
     }
   }
   async function run(action) {
-    if (
-      busy ||
-      disabled ||
-      (action === 'seal' && $administration.closed) ||
-      (document.sealed === false && action !== 'seal')
-    )
-      return;
+    if (busy || disabled || document.sealed === false) return;
     busy = action;
     error = '';
     message = '';
     try {
-      if (action === 'seal') {
-        const result = await api.seal(document.id);
-        report = null;
-        await onupdate({ ...document, ...result, report: null });
-        if (!alive) return;
-        message = 'Documento sellado correctamente.';
-        confirmSeal = false;
-      } else if (action === 'verify') {
+      if (action === 'verify') {
         activeTab = 'verification';
         report = null;
         onupdate({ ...document, report: null });
@@ -161,8 +150,8 @@
     />
     {#if can(user.role, 'seal') && document.sealed !== true}<button
         class="primary"
-        disabled={disabled || !!busy || $administration.closed}
-        onclick={() => (confirmSeal = true)}><Icon name="lock" size={17} />Sellar documento</button
+        disabled={disabled || !!busy || sealUncertain || $administration.closed}
+        onclick={() => sealAction.open()}><Icon name="lock" size={17} />Sellar documento</button
       >{/if}
     <button
       class="secondary"
@@ -191,23 +180,18 @@
           : 'Solicita al administrador o a un litigante que selle el documento para verificarlo o descargar su evidencia.'}</span
       >
     </p>{/if}
-  {#if confirmSeal}<div class="notice stack seal-confirmation">
-      <strong>&#191;Firmar y sellar este documento?</strong>
-      <p>
-        Se registrar&#225; la operaci&#243;n con tu identidad y se generar&#225; evidencia con la
-        autoridad de sellado local. Esta acci&#243;n no se puede deshacer desde la interfaz.
-      </p>
-      <div class="action-row">
-        <button
-          class="primary"
-          disabled={disabled || !!busy || $administration.closed}
-          onclick={() => run('seal')}
-          >{busy === 'seal' ? 'Sellando...' : 'Confirmar sellado'}</button
-        ><button class="secondary" disabled={!!busy} onclick={() => (confirmSeal = false)}
-          >Cancelar</button
-        >
-      </div>
-    </div>{/if}
+  <DocumentSealAction
+    bind:this={sealAction}
+    {api}
+    {document}
+    {disabled}
+    {onupdate}
+    {ondenied}
+    bind:busy
+    bind:error
+    bind:message
+    bind:uncertain={sealUncertain}
+  />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if message}<p class="notice success" role="status">{message}</p>{/if}
   <div class="detail-tabs" role="tablist" aria-label="Informaci&#243;n del documento">
