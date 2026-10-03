@@ -1,5 +1,9 @@
 # Despliegue privado por versiones
 
+La [publicación completa de controladores](deployment-controller-publication.md)
+tiene aceptación local de directorios; la coherencia de imports y su instalación
+operativa se verifican por separado.
+
 [Deploy version](../.github/workflows/deploy.yml) se activa al publicar tags
 `vMAJOR.MINOR.PATCH`, por ejemplo `v1.0.0`, `v1.1.0` y `v1.1.1`. No despliega
 por pushes de rama ni por publicar una GitHub Release. El filtro inicial `v*`
