@@ -90,3 +90,25 @@ SQL, Redis, PKI o configuración de la instalación. Véanse la
 [barrera de admisión](deployment-restore-fence.md), la
 [captura consistente](deployment-restore-capture.md) y la
 [compatibilidad del respaldo](deployment-restore-compatibility.md).
+
+## Aceptación nativa del controlador completo
+
+El 3 de octubre de 2026, una aceptación adicional aprobó 1/1 en 0.360 s en
+el gestor de usuario de `tt-runner` de VPS3. Ejecutó el controlador completo
+con cuatro unidades desechables que atendían puertos loopback y terminaban
+normalmente. Comprobó el recibo durable, reentrada exacta, barrera conservada,
+ausencia final de procesos/listeners y preservación de un archivo privado.
+Los fragmentos creados se retiraron al terminar. El usuario del despliegue y
+sus servicios no participaron; los procesos de prueba no eran bases de datos.
+
+```bash
+TT_RESTORE_QUIESCE_NATIVE=1 python3 -B scripts/tests/native_restore_quiesce_acceptance.py -v
+```
+
+Este ensayo exige que las cuatro unidades no existan en el gestor de usuario,
+ni tengan fragmentos o drop-ins previos. Aborta antes de usarlas si encuentra
+una instalación existente. Fedora añadió un drop-in global y el intento local
+fue rechazado; no se relajó esa validación ni se cambió la configuración del
+host para conseguir un resultado verde. La prueba nativa en Ubuntu acredita
+la secuencia del controlador con systemd, no la restauración de SQL/Redis ni
+la instalación de nuevos controladores en el servicio privado.
