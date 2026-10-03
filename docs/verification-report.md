@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Preferencias personales: recuperación local del 3 de octubre de 2026
+
+El RED inicial reprodujo la falta de autorización fresca al recuperar campos.
+Cinco casos de captura/contexto y dos de resultado aprobaron inicialmente; el
+tercer resultado mostró una carrera del propio fixture al retener el GET inicial
+antes de terminar la reapertura. Se añadió una espera por los campos recuperados
+antes de retener la consulta explícita, conservando aserciones y tiempos.
+Un RED separado comprobó que una denegación global de la bandeja dejaba reaparecer
+una captura todavía sin abrir; la denegación ahora elimina ese contexto.
+
+Los tres resultados y la denegación aprobaron en una campaña de 17 escenarios
+en 34.8 s, junto a trece confirmaciones administrativas y documentales descritas
+por separado. Son nueve casos nuevos distintos de preferencias en total, con
+un worker y HTTP controlado. Dos regresiones existentes de preferencias y
+paginación aprobaron dentro de otro focal de 21 recorridos en 39.3 s. No hay
+reenvío automático, cambios de timeouts ni activación del correo o inactividad.
+La integración remota permanece pendiente.
+
+
 ## Solicitudes de informes: recuperación local del 3 de octubre de 2026
 
 La prueba inicial reprodujo la ausencia de una acción para recuperar filtros.

@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Preferencias de alertas: 3 de octubre de 2026
+
+Implementación y pruebas incorporan conservación de horas y canales parciales,
+autorización fresca, recibo exacto y descarte ante denegación global. Se separan
+los nueve escenarios locales de la integración y la activación operativa.
+`make -C latex` aprobó: 367 páginas, 5907905 bytes, SHA-256
+`12f992f9c2bcba9e39dadcc384c504f2f4606027cf74ad01bf338bd89533075e`.
+Las páginas físicas 193 y 260 son legibles, sin recortes ni superposición.
+Las fuentes protegidas conservaron sus hashes y el PDF previo quedó respaldado.
+No aparecieron referencias sin resolver ni glifos faltantes; persisten los
+avisos históricos de versalitas y la caja de 0.11754 pt. El PDF acumulado no se
+versiona y mantiene explícita la integración pendiente.
+
+
 ## Recuperación de solicitudes de informes: 3 de octubre de 2026
 
 Se incorporaron la conservación de filtros parciales, la consulta de autorización

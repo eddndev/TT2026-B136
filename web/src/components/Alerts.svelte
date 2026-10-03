@@ -1,16 +1,18 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
   import AlertCard from './AlertCard.svelte';
   import AlertPreferences from './AlertPreferences.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
   import { alertFailure, alertTimeLabel } from '../lib/alerts-presentation.mjs';
   import { alertKey, compareAlertKeys } from '../lib/alerts-primitives.mjs';
+  import { denyAlertPreferenceDrafts } from '../lib/alert-preference-draft.mjs';
   export let api,
     user,
     onopen,
     filters = null;
   const scoped = api.alerts(user.id);
+  const session = getContext('session-drafts');
   let read = filters?.read ?? 'all',
     state = filters?.state ?? 'active';
   let applied = { read, state },
@@ -36,6 +38,7 @@
     error = alertFailure(failure);
     if (row) rows = rows.filter((value) => value.subject.case_id !== row.subject.case_id);
     else {
+      denyAlertPreferenceDrafts(session);
       rows = [];
       denied = true;
       preferencesOpen = false;
@@ -162,6 +165,8 @@
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
   {#if preferencesOpen}<AlertPreferences
       api={scoped}
+      principalId={user.id}
+      authorize={() => api.me()}
       ondenied={deny}
       oncancel={() => {
         preferencesOpen = false;

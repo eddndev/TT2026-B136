@@ -156,3 +156,13 @@ campaña no envió correo ni repitió la aceptación PDF/CSV con servicios reale
 Once recorridos existentes y tres de resultado recuperado aprobaron en 26.2~s
 tras retirar un aviso duplicado de revocación. Se conservaron las descargas,
 permisos, paginación, estados durables y descarte de respuestas tardías.
+
+Nueve escenarios distintos aceptaron la recuperación de preferencias personales
+con HTTP controlado y un trabajador. Cinco verificaron contexto y campos;
+los tres resultados y una denegación aprobaron en un focal de 17 recorridos
+en 34.8 s, junto a trece confirmaciones independientes. Una carrera del fixture
+se corrigió esperando los campos recuperados antes de retener otra consulta.
+La denegación de la bandeja descartó la captura todavía sin abrir. Dos regresiones
+anteriores de preferencias y paginación aprobaron dentro de otro focal de
+21 recorridos en 39.3 s. Estas mediciones no acreditan correo externo ni
+activación operativa de inactividad.

@@ -66,6 +66,8 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Plazos ordinarios | Alta, corrección, atención y retiro: campos crudos, referencias, base y comando incierto exactos tras nueva autorización. | La preparación pierde aprobación y una coincidencia no confirma el resultado; se consulta el recibo exacto. |
 | Solicitud de informes | Fechas parciales, filtros y solicitud incierta exacta; cuenta y selector autorizado consultados antes de recuperar. | Una fila similar o un informe en cola no concilian la respuesta perdida: repetir es una decisión explícita con el mismo identificador. |
 
+| Preferencias de alertas | Horas y canales crudos, revisión original y comando incierto; cuenta y preferencias consultadas antes de mostrar campos. | Sólo el recibo exacto confirma; una denegación global de la bandeja descarta incluso capturas sin abrir. |
+
 El alcance de la tabla procede de focales con respuestas HTTP controladas. Un
 focal de etapas aceptó ocho escenarios en 28,4 segundos, incluidos reingreso,
 soportes independientes, incertidumbre y descarte posterior a una confirmación.
@@ -122,6 +124,13 @@ bloquean la solicitud y permiten consultar de nuevo sin sustituirlo por todos.
 La confirmación retira la captura; sólo una edición posterior crea otro borrador.
 No incluyen envío de correo ni una nueva aceptación de generación PDF/CSV real.
 
+Nueve escenarios nuevos de preferencias aprobaron en focales con HTTP controlado:
+cinco de contexto y captura, tres de resultado y uno de denegación de la bandeja.
+Conservan horas incompletas y canales; cada vencimiento retira una aprobación de
+reenvío anterior. Ni valores iguales ni un recibo ajeno confirman el guardado.
+La confirmación elimina la captura antes de refrescar la bandeja. Se conservaron
+los recorridos existentes de conflicto y paginación.
+
 La duración operativa del límite de inactividad sigue sin aprobarse. El backend
 mantiene por defecto su límite absoluto de veinticuatro horas. La configuración
 de doce segundos del [ensayo reproducible](../web/README.md#reingreso-con-vencimiento-real)
@@ -135,7 +144,6 @@ asumiendo que todos los formularios conservan sus cambios.
 
 | Familia | Componentes | Contexto que debe consultarse de nuevo |
 | --- | --- | --- |
-| Preferencias de alertas | `AlertPreferences.svelte` | Cuenta, preferencias vigentes, revisión y recibo del guardado. |
 | Confirmaciones administrativas | `CaseMembers.svelte`, `CaseStatus.svelte`, `ParticipantStatus.svelte` | Cuenta o ficha destino, intención, estado vigente e incertidumbre sin atribuir un resultado por coincidencia. |
 
 Una consulta o un selector que no confirma escrituras no necesita conservar sus
