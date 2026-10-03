@@ -11,16 +11,33 @@
     values,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    inputs = null,
+    supportContext = () => null,
+    discardSupport = () => {},
+    supportDenied = ondenied,
+    canApply = () => true;
+  let actTime;
+  let supportRows = inputs?.supportRows ?? values.evidence.map(() => crypto.randomUUID());
+  const supportPath = ['evidence'];
+  export function captureDraft() {
+    return {
+      supportRows: [...supportRows],
+      actTime: actTime?.captureDraft() ?? inputs?.actTime ?? null,
+    };
+  }
   let supportBusy = [];
   $: busy = supportBusy.some(Boolean);
   function add() {
-    if (disabled || busy || values.evidence.length >= 2) return;
+    if (disabled || busy || !canApply() || values.evidence.length >= 2) return;
+    supportRows = [...supportRows, crypto.randomUUID()];
     values = { ...values, evidence: [...values.evidence, null] };
   }
   function remove(index) {
-    if (disabled || busy || values.evidence.length <= 1 || index === 0) return;
+    if (disabled || busy || !canApply() || values.evidence.length <= 1 || index === 0) return;
+    discardSupport(supportPath, supportRows[index]);
     values = { ...values, evidence: values.evidence.filter((_, i) => i !== index) };
+    supportRows = supportRows.filter((_, i) => i !== index);
     supportBusy = [];
   }
   onDestroy(() => (busy = false));
@@ -40,7 +57,14 @@
     disabled={disabled || busy}
   />
 </div>
-<FactTimeFields bind:value={values.occurred_at} label="este acto" disabled={disabled || busy} />
+<FactTimeFields
+  bind:value={values.occurred_at}
+  label="este acto"
+  disabled={disabled || busy}
+  recoverable
+  draft={inputs?.actTime ?? null}
+  bind:this={actTime}
+/>
 <FactDeclarationFields
   bind:value={values.authority}
   label="Autoridad del acto"
@@ -54,12 +78,14 @@
     disabled={disabled || busy}></textarea></label
 >
 {#key `${caseId}:${user?.id}`}
-  {#each values.evidence as support, index}
+  {#each values.evidence as support, index (supportRows[index])}
     <FactSupportFields
       {api}
       {caseId}
       bind:value={values.evidence[index]}
-      {ondenied}
+      ondenied={(failure) => supportDenied(failure, supportPath, supportRows[index])}
+      draftContext={supportContext(supportPath, supportRows[index])}
+      ondiscard={() => discardSupport(supportPath, supportRows[index])}
       required
       label={`acto ${index + 1}`}
       disabled={disabled || supportBusy.some((v, i) => v && i !== index)}

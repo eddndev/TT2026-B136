@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Reingreso en recursos procesales: aceptacion local del 2 de octubre de 2026
+
+Ocho escenarios nuevos aprobaron en 27.8 s con un worker y HTTP controlado.
+El caso inicial reprodujo la falta de autorizacion fresca antes de mostrar
+valores. Ahora el expediente, la cabecera y las referencias se revalidan antes
+de aplicar texto parcial, motivo, base y archivos. La correccion de un acto
+historico conserva su revision e identidad separadas de la cabecera vigente.
+
+Una preparacion anterior no queda aprobada tras reingreso. El envio incierto
+se captura antes de esperar la respuesta y solo su recibo exacto lo confirma;
+un resultado ausente o ajeno no provoca repeticion. La confirmacion limpia
+antes del refresco. Los archivos pertenecen a filas estables y no pasan a una
+fila nueva en la misma posicion. Se mantuvieron reglas de dominio y timeouts.
+Las doce pruebas existentes de campos, permisos, conflicto y conciliacion
+aprobaron en 26.6 s, incluido el recorrido movil. Esta aceptacion local no
+acredita aun CI completo ni servicios reales.
+
 ## Calendarios: recuperacion local del 2 de octubre de 2026
 
 Seis escenarios nuevos aprobaron en 19.1 s con un worker, despues de observar

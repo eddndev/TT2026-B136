@@ -9,7 +9,9 @@
     onselected = () => {},
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    draft = null,
+    canApply = () => true;
   const scoped = api.caseResolutions(caseId);
   let choosing = false,
     roots = [],
@@ -21,21 +23,29 @@
     cursor,
     error = '',
     alive = true;
+  let picker,
+    pickerDraft = draft;
+  export function captureDraft() {
+    return {
+      selectedId: selectedId ?? pickerDraft?.selectedId ?? null,
+      revision: picker?.captureDraft()?.revision ?? pickerDraft?.revision ?? null,
+    };
+  }
   $: busy = pending || pickerBusy;
   async function list(afterId) {
-    if (pending || pickerBusy || disabled) return;
+    if (pending || pickerBusy || disabled || !canApply()) return;
     choosing = true;
     pending = true;
     error = '';
     selectedId = null;
     try {
       const page = await scoped.list({ limit: 20, status: 'all', afterId });
-      if (!alive) return;
+      if (!alive || !canApply()) return;
       roots = page.resolutions;
       more = page.has_more;
       cursor = page.next_after_id;
     } catch (failure) {
-      if (!alive) return;
+      if (!alive || !canApply()) return;
       error = failure.message;
       if ([401, 403].includes(failure.status) || failure.code === 'case_not_found') {
         roots = [];
@@ -49,11 +59,13 @@
     }
   }
   function select(row) {
+    if (!canApply()) return;
     const changed = value?.id !== row.id || value?.revision !== row.revision;
     value = { id: row.id, revision: row.revision };
     selected = row;
     choosing = false;
     selectedId = null;
+    pickerDraft = null;
     if (changed) onselected(row);
   }
   onDestroy(() => {
@@ -93,7 +105,9 @@
             class="secondary"
             disabled={disabled || busy}
             aria-label={`Consultar revisiones de resoluci\u00f3n ${row.id}`}
-            onclick={() => (selectedId = row.id)}>Consultar revisiones de la resoluci&#243;n</button
+            onclick={() => {
+              if (canApply()) selectedId = row.id;
+            }}>Consultar revisiones de la resoluci&#243;n</button
           >
         </div>
       {/each}
@@ -114,9 +128,15 @@
         resolutionId={selectedId}
         {ondenied}
         {disabled}
+        {canApply}
+        draft={pickerDraft?.selectedId === selectedId ? pickerDraft : null}
+        bind:this={picker}
         bind:busy={pickerBusy}
         onselected={select}
-        oncancel={() => (selectedId = null)}
+        oncancel={() => {
+          pickerDraft = captureDraft();
+          selectedId = null;
+        }}
       />
     {/if}
   {/if}

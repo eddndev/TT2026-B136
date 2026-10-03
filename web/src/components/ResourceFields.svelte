@@ -13,22 +13,49 @@
     values,
     ondenied,
     disabled = false,
-    busy = false;
+    busy = false,
+    inputs = null,
+    supportContext = () => null,
+    discardSupport = () => {},
+    supportDenied = ondenied,
+    canApply = () => true;
+  let resolutionPicker,
+    resolutionTime,
+    notificationTime,
+    appellantFields = [];
+  let appellantRows = inputs?.appellantRows ?? values.appellants.map(() => crypto.randomUUID());
+  let appellantDrafts = inputs?.appellants ?? [];
+  const supportPath = ['resolution_evidence'];
+  export function captureDraft() {
+    return {
+      resolution: resolutionPicker?.captureDraft() ?? inputs?.resolution ?? null,
+      resolutionTime: resolutionTime?.captureDraft() ?? null,
+      notificationTime: values.notification_at ? (notificationTime?.captureDraft() ?? null) : null,
+      appellantRows: [...appellantRows],
+      appellants: values.appellants.map(
+        (_, index) => appellantFields[index]?.captureDraft() ?? appellantDrafts[index] ?? null,
+      ),
+    };
+  }
   let resolutionBusy = false,
     supportBusy = false,
     appellantBusy = [];
   $: busy = resolutionBusy || supportBusy || appellantBusy.some(Boolean);
   $: selectedIds = values.appellants.map((v) => v.participant?.id).filter(Boolean);
   function addAppellant() {
-    if (disabled || busy || values.appellants.length >= 32) return;
+    if (disabled || busy || !canApply() || values.appellants.length >= 32) return;
+    appellantRows = [...appellantRows, crypto.randomUUID()];
     values = {
       ...values,
       appellants: [...values.appellants, { name: '', role: { kind: '' }, participant: null }],
     };
   }
   function removeAppellant(index) {
-    if (disabled || busy || values.appellants.length <= 1) return;
+    if (disabled || busy || !canApply() || values.appellants.length <= 1) return;
     values = { ...values, appellants: values.appellants.filter((_, i) => i !== index) };
+    appellantRows = appellantRows.filter((_, i) => i !== index);
+    appellantDrafts = appellantDrafts.filter((_, i) => i !== index);
+    appellantFields = appellantFields.filter((_, i) => i !== index);
     appellantBusy = [];
   }
   onDestroy(() => (busy = false));
@@ -63,18 +90,26 @@
     {ondenied}
     disabled={disabled || supportBusy || appellantBusy.some(Boolean)}
     bind:busy={resolutionBusy}
-    onselected={() => (values.resolution_evidence = null)}
+    draft={inputs?.resolution ?? null}
+    {canApply}
+    bind:this={resolutionPicker}
+    onselected={() => {
+      discardSupport(supportPath);
+      values.resolution_evidence = null;
+    }}
   />
-  <FactSupportFields
-    {api}
-    {caseId}
-    bind:value={values.resolution_evidence}
-    {ondenied}
-    required
-    label="la resoluci&#243;n impugnada"
-    disabled={disabled || resolutionBusy || appellantBusy.some(Boolean)}
-    bind:pending={supportBusy}
-  />
+  {#key `${values.resolution?.id ?? ''}:${values.resolution?.revision ?? ''}`}<FactSupportFields
+      {api}
+      {caseId}
+      bind:value={values.resolution_evidence}
+      ondenied={(failure) => supportDenied(failure, supportPath)}
+      draftContext={supportContext(supportPath)}
+      ondiscard={() => discardSupport(supportPath)}
+      required
+      label="la resoluci&#243;n impugnada"
+      disabled={disabled || resolutionBusy || appellantBusy.some(Boolean)}
+      bind:pending={supportBusy}
+    />{/key}
 {/key}
 <div class="case-field-grid">
   <FactDeclarationFields
@@ -104,6 +139,9 @@
     disabled={disabled || busy}
   />{/if}
 <FactTimeFields
+  recoverable
+  draft={inputs?.resolutionTime ?? null}
+  bind:this={resolutionTime}
   bind:value={values.resolution_at}
   label="la resoluci&#243;n"
   disabled={disabled || busy}
@@ -119,6 +157,9 @@
   Registrar tiempo declarado de notificaci&#243;n</label
 >
 {#if values.notification_at !== null}<FactTimeFields
+    recoverable
+    draft={inputs?.notificationTime ?? null}
+    bind:this={notificationTime}
     bind:value={values.notification_at}
     label="la notificaci&#243;n"
     disabled={disabled || busy}
@@ -138,7 +179,7 @@
     disabled={disabled || busy}></textarea></label
 >
 {#key `${caseId}:${user?.id}`}
-  {#each values.appellants as appellant, index (appellant)}
+  {#each values.appellants as appellant, index (appellantRows[index])}
     <ResourceAppellantFields
       {api}
       {caseId}
@@ -151,6 +192,9 @@
         supportBusy ||
         appellantBusy.some((v, i) => v && i !== index)}
       bind:busy={appellantBusy[index]}
+      draft={appellantDrafts[index] ?? null}
+      {canApply}
+      bind:this={appellantFields[index]}
     />
     {#if values.appellants.length > 1}<button
         type="button"

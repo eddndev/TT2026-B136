@@ -1,5 +1,6 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
+  import { pendingResourceDrafts } from '../lib/resource-draft.mjs';
   import ResourceEditor from './ResourceEditor.svelte';
   import ResourceDetail from './ResourceDetail.svelte';
   import ResourceActivities from './ResourceActivities.svelte';
@@ -24,7 +25,10 @@
   }
   const caseId = record.id,
     scoped = api.caseResources(caseId),
-    administration = caseState();
+    administration = caseState(),
+    session = getContext('session-drafts');
+  let savedDraft = null,
+    drafts = pendingResourceDrafts(session, caseId);
   let rows = [],
     selected = null,
     historical = false,
@@ -108,7 +112,10 @@
   async function edit(nextAction) {
     if (pending || !manage) return;
     editorBase = nextAction === 'register' ? null : selected;
-    selectedAct = nextAction === 'correct_act' ? selected.act : null;
+    selectedAct =
+      nextAction === 'correct_act'
+        ? { ...selected.act, resourceRevision: selected.revision }
+        : null;
     if (nextAction === 'correct_act') {
       opening = true;
       error = '';
@@ -128,9 +135,44 @@
       }
     }
     if (alive) {
+      savedDraft =
+        drafts.find(
+          (row) =>
+            row.action === nextAction &&
+            row.resourceId === (editorBase?.id ?? null) &&
+            row.instanceId === (nextAction === 'correct_act' ? selectedAct?.id : null),
+        ) ?? null;
       action = nextAction;
       editorKey++;
     }
+  }
+  async function resume(saved) {
+    if (pending || !session?.canAdmit()) return;
+    opening = true;
+    error = '';
+    try {
+      editorBase = saved.resourceId ? await scoped.get(saved.resourceId) : null;
+      if (!alive || !session.canAdmit()) return;
+      selectedAct = null;
+      savedDraft = saved;
+      action = saved.action;
+      editorKey++;
+    } catch (failure) {
+      if (alive) {
+        if (failure.status === 404) {
+          session.registry.closeEditor(saved.key);
+          drafts = pendingResourceDrafts(session, caseId);
+        }
+        fail(failure);
+      }
+    } finally {
+      if (alive) opening = false;
+    }
+  }
+  function closeEditor() {
+    action = null;
+    savedDraft = null;
+    drafts = pendingResourceDrafts(session, caseId);
   }
   async function confirmed(value, exact = false) {
     if (!alive) return;
@@ -139,7 +181,7 @@
     notice = 'Registro guardado.';
     cursors = [undefined];
     await load();
-    if (alive) action = null;
+    if (alive) closeEditor();
   }
   function reset() {
     selected = null;
@@ -183,13 +225,19 @@
         {caseId}
         {user}
         {action}
+        {savedDraft}
         record={editorBase}
         {selectedAct}
         {ondenied}
         onconfirmed={confirmed}
-        oncancel={() => (action = null)}
+        oncancel={closeEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
+  {#if !action}{#each drafts as saved (saved.key)}<button
+        class="secondary"
+        disabled={pending}
+        onclick={() => resume(saved)}>Retomar borrador de recurso</button
+      >{/each}{/if}
   <section class="card" aria-label="Recursos registrados" aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
