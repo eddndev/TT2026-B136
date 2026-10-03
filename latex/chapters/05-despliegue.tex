@@ -132,3 +132,11 @@ y entrega directa de SIGTERM. Se usaron archivos y procesos reales desechables;
 no se ejecutaron controladores desplegados ni se modificaron servicios.
 El resultado no acredita selección operacional de la huella, instalación de
 unidades, restauración de datos ni aislamiento frente al mismo usuario Unix.
+
+La aprobación y generación de candidatos de unidades aprobaron inicialmente
+seis pruebas en 0.863~s. Una revisión identificó la muerte del proceso entre
+crear un enlace al registro y retirar el temporal; la regresión reprodujo el
+rechazo de la reentrada en 0.096~s. El rename exclusivo elimina esa ventana sin
+relajar el guard de enlaces externos. El grupo corregido aprobó siete pruebas
+en 0.979~s, preservando temporales ajenos, registros originales y fuentes.
+Los hijos Python son inocuos: no se operaron servicios ni se instalaron unidades.

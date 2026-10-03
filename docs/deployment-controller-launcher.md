@@ -112,9 +112,11 @@ conservan su evidencia separada.
 ## Integración pendiente
 
 Las unidades actuales aún invocan los controladores instalados por su ruta
-nominal. Antes de cambiarlas falta un protocolo que seleccione el hash aprobado
-para cada generación y conserve esa aprobación ante respuestas inciertas. No
-debe sustituir un hash discrepante por el que encuentre al arrancar.
+nominal. La [aprobación de generaciones](deployment-controller-approval.md)
+selecciona un hash externo y prepara candidatos de unidades, con evidencia
+persistente y reentrada exacta ante respuestas inciertas. Su aceptación local
+no instala los candidatos. No debe sustituirse un hash discrepante por el que
+se encuentre al arrancar.
 
 También quedan pendientes la transición desde lectores antiguos, la exclusión
 de entradas durante esa transición y la reapertura explícita tras verificarla.
