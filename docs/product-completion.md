@@ -81,6 +81,11 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   durable de un plazo nuevo, audiencias propias de recursos y catálogo restante
   de audiencias. Las continuaciones declaradas y la creación contextual explícita
   de plazos ya están integradas; no equivalen a activación jurídica automática.
+  El catálogo separado de alegatos de apelación y revocación escrita, y la
+  preparación contra recursos/actos exactos, tienen implementación local con
+  pruebas focales. No crean todavía una audiencia persistente ni la incorporan
+  a agenda o alertas; el pendiente continúa abierto. Véase el
+  [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,

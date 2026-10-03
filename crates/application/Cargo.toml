@@ -290,3 +290,7 @@ path = "tests/owner_certificate_bindings.rs"
 [[test]]
 name = "owner_certificate_login"
 path = "tests/owner_certificate_login.rs"
+
+[[test]]
+name = "resource_hearing_service"
+path = "tests/resource_hearing_service.rs"

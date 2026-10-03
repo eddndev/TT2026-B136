@@ -29,6 +29,7 @@ pub mod procedural_facts;
 pub mod procedural_resources;
 pub mod procedural_time;
 pub mod resource_activities;
+pub mod resource_hearings;
 pub mod typed_participants;
 
 pub use error::DomainError;

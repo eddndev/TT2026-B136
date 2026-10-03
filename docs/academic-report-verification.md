@@ -1,5 +1,24 @@
 # Verificación de la actualización académica
 
+## Preparación de audiencias propias de recursos: 3 de octubre de 2026
+
+La actualización de implementación y pruebas aprobó `make -C latex` y produjo
+381 páginas y 5963790 bytes, SHA-256
+`bfb11621910f00dfcd33e369901295c883bdfb5075a59a1d1a3c8a238f482a2f`.
+Se inspeccionaron las páginas físicas 215, 216 y 263. Durante la revisión se
+corrigió la jerarquía de la nueva subsección de implementación para conservar
+los apartados vecinos bajo su sección original; el PDF final se recompiló y
+volvió a inspeccionar. Texto, referencias y transiciones quedan legibles, sin
+recortes ni superposición en esas páginas.
+
+Se preservaron el PDF anterior y los hashes de resumen, introducción, marco
+teórico y conclusiones. No aparecen referencias indefinidas ni glifos ausentes;
+permanecen las sustituciones de versalitas y dos advertencias de desbordamiento
+históricas. Los nuevos apartados distinguen dominio y preparación con puertos
+controlados de la creación persistente, HTTP, agenda, alertas e interfaz aún
+pendientes. La compilación documental no acredita esos componentes.
+
+
 ## Intérprete administrativo explícito: 3 de octubre de 2026
 
 La ampliación de pruebas del intérprete produjo 379 páginas y 5955737 bytes,

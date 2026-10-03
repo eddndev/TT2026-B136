@@ -19,6 +19,35 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Preparación de audiencias propias de recursos: 3 de octubre de 2026
+
+Se implementaron localmente dos tipos explícitos de audiencia y su revisión
+previa a la creación. Las pruebas iniciales de dominio y aplicación fallaron
+por la ausencia de las APIs propuestas. Después aprobaron **9/9 pruebas nuevas
+de dominio** y **49/49 regresiones de las audiencias ordinarias**, con 3.19 s de
+compilación y 0.00/0.08 s de ejecución respectivamente. El vector independiente
+`RHEAR1` conserva fecha con desfase, participantes ordenados y soporte exacto;
+los valores `HEAR1` existentes permanecen intactos.
+
+El primer grupo de aplicación aprobó 8/8 en 0.03 s. Al ampliar las fronteras,
+el grupo final aprobó **12/12 en 0.04 s**, con 1.48 s de compilación. Comprueba
+recurso/acto históricos exactos frente a la cabeza activa esperada, soporte ya
+admitido, compatibilidad de tipo y modalidad escrita, expediente cerrado,
+participantes ajenos, archivados, ausentes o corruptos, selección de 32 personas,
+compromiso del resumen y cambio del principal autenticado durante la consulta.
+Se utilizaron puertos controlados y un solo compilador/trabajador. La revisión
+focal de validación y framing no encontró defectos reproducibles.
+Clippy focal de ambos crates aprobó con `-D warnings` en 7.61 s.
+
+Esta evidencia acredita la preparación, no la escritura de una audiencia.
+Permanecen pendientes persistencia transaccional con asociación y origen,
+reconciliación idempotente, HTTP, agenda, alertas, interfaz y aceptación con
+servicios reales. No se ejecutó otra regresión completa local ni se actualiza
+la cobertura global o el estado de despliegue. El alcance se precisa en
+[audiencias de recursos](resource-hearings.md) y en la
+[decisión de arquitectura](adr/0069-resource-hearing-scheduling.md).
+
+
 ## Instalación integrada de controladores: 3 de octubre de 2026
 
 El RED inicial de seis pruebas duró 0.117 s y mostró la ausencia del coordinador.
