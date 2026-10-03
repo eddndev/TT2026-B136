@@ -1,5 +1,21 @@
 # Verificación de la actualización académica
 
+## Recuperación de solicitudes de informes: 3 de octubre de 2026
+
+Se incorporaron la conservación de filtros parciales, la consulta de autorización
+actual y la conciliación explícita de solicitudes inciertas. Las pruebas distinguen
+seis escenarios nuevos y once regresiones junto a tres resultados recuperados,
+sin atribuirles aceptación con servicios reales ni entrega de correo externo.
+
+`make -C latex` aprobó: 367 páginas, 5907100 bytes, SHA-256
+`c0ccb1ff711a3930852cd2dd208c85210a8140c3dae4d16778181b3bae8e0c63`.
+Se inspeccionaron las páginas físicas 192, 193 y 260: el párrafo continúa legible
+entre páginas, sin recortes ni superposiciones. Las fuentes protegidas conservaron
+sus hashes; el PDF anterior quedó respaldado. Persisten únicamente las advertencias
+históricas de versalitas y la caja de 0.11754 pt. El PDF local acumulado sigue sin
+versionarse y no demuestra integración de las entregas pendientes.
+
+
 ## Vínculo canónico y verificador Owner: 3 de octubre de 2026
 
 Se incorporaron dos apartados sobre el dominio y la verificación criptográfica,

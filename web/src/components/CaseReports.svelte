@@ -7,8 +7,6 @@
     canReports,
     reportScope,
     scopeLabel,
-    initialReportFilters,
-    reportFilters,
     reportFailure,
   } from '../lib/case-reports-presentation.mjs';
   import '../styles/case-reports.css';
@@ -19,23 +17,16 @@
     epoch = 0;
   let scoped = null,
     listRevision = 0,
-    detailRevision = 0,
-    pickerRevision = 0;
+    detailRevision = 0;
   let rows = [],
     more = false,
     next = null,
     loaded = false,
     listBusy = false;
-  let lawyers = [],
-    pickerBusy = false,
-    pickerError = '',
-    pickerMore = false,
-    pickerNext = null,
-    error = '';
-  let draft = initialReportFilters(),
-    pending = null,
+  let pickerBusy = false,
     requestBusy = false,
-    requestError = '';
+    requestView,
+    error = '';
   let selected = null,
     selectedId = null,
     detailBusy = false,
@@ -54,21 +45,14 @@
     epoch++;
     listRevision++;
     detailRevision++;
-    pickerRevision++;
     rows = [];
     more = false;
     next = null;
     loaded = false;
-    lawyers = [];
-    pickerMore = false;
-    pickerNext = null;
     selected = null;
     selectedId = null;
-    pending = null;
     listBusy = false;
     detailBusy = false;
-    requestBusy = false;
-    pickerBusy = false;
     reading = false;
     downloading = '';
     releaseUrls();
@@ -77,15 +61,9 @@
     scoped?.dispose();
     clear();
     seen = identity;
-    draft = initialReportFilters();
     error = '';
-    requestError = '';
-    pickerError = '';
     scoped = allowed ? api.reports() : null;
-    if (scoped) {
-      load();
-      loadPicker();
-    }
+    if (scoped) load();
   }
   function scopeCheck(value) {
     if (value.scope !== reportScope(user.role))
@@ -102,6 +80,7 @@
   function fail(failure) {
     if ([403, 404].includes(failure.status)) {
       clear();
+      requestView?.deny(failure);
       error = reportFailure(failure);
     } else error = reportFailure(failure);
   }
@@ -140,38 +119,6 @@
       if (current(context) && revision === listRevision) listBusy = false;
     }
   }
-  async function loadPicker(append = false) {
-    if (!scoped || pickerBusy || requestBusy || (append && !pickerMore)) return;
-    const context = epoch,
-      revision = ++pickerRevision;
-    pickerBusy = true;
-    pickerError = '';
-    if (!append) {
-      lawyers = [];
-      pickerMore = false;
-      pickerNext = null;
-    }
-    try {
-      const value = await scoped.litigators({
-        limit: 20,
-        ...(append ? { after_id: pickerNext } : {}),
-      });
-      if (!current(context) || revision !== pickerRevision) return;
-      scopeCheck(value);
-      lawyers = append ? [...lawyers, ...value.litigators] : value.litigators;
-      pickerMore = value.has_more;
-      pickerNext = value.next_after_id;
-      if (draft.assigned && !lawyers.some((row) => row.user_id === draft.assigned))
-        draft = { ...draft, assigned: '' };
-    } catch (failure) {
-      if (current(context) && revision === pickerRevision) {
-        pickerError = reportFailure(failure);
-        if (failure.status === 403) fail(failure);
-      }
-    } finally {
-      if (current(context) && revision === pickerRevision) pickerBusy = false;
-    }
-  }
   async function open(id) {
     if (!scoped || detailBusy || downloading || reading) return;
     const context = epoch,
@@ -191,28 +138,8 @@
       if (current(context) && revision === detailRevision) detailBusy = false;
     }
   }
-  async function request(retry = false) {
-    if (!scoped || requestBusy || pickerBusy || pickerError) return;
-    let command;
-    try {
-      if (retry) command = pending;
-      else {
-        const filters = reportFilters(draft, lawyers);
-        command =
-          pending && JSON.stringify(pending.filters) === JSON.stringify(filters)
-            ? pending
-            : { operation_id: crypto.randomUUID(), filters };
-      }
-      if (!command) return;
-    } catch (failure) {
-      requestError = reportFailure(failure);
-      return;
-    }
-    const context = epoch;
-    requestBusy = true;
-    requestError = '';
+  function requestStarted() {
     error = '';
-    pending = command;
     detailRevision++;
     selected = null;
     selectedId = null;
@@ -220,22 +147,12 @@
     reading = false;
     downloading = '';
     releaseUrls();
-    try {
-      const value = await scoped.request(command);
-      if (!current(context)) return;
-      scopeCheck(value);
-      receive(value);
-      pending = null;
-      if (!rows.some((row) => row.id === value.id)) rows = [value, ...rows];
-    } catch (failure) {
-      if (current(context)) {
-        requestError = reportFailure(failure);
-        if ([403, 404].includes(failure.status)) fail(failure);
-        else if (failure.status && failure.status < 500) pending = null;
-      }
-    } finally {
-      if (current(context)) requestBusy = false;
-    }
+  }
+  function requested(value) {
+    if (!alive) return;
+    requestStarted();
+    receive(value);
+    if (!rows.some((row) => row.id === value.id)) rows = [value, ...rows];
   }
   async function acknowledge() {
     if (!selected?.notice || selected.notice.read_at || reading || downloading || detailBusy)
@@ -318,20 +235,16 @@
     </p>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="report-layout">
-      <CaseReportRequest
-        bind:draft
-        {lawyers}
-        {pickerBusy}
-        {pickerError}
-        {pickerMore}
-        busy={requestBusy}
-        error={requestError}
-        {pending}
-        onrequest={() => request()}
-        onretry={() => request(true)}
-        onrefresh={() => loadPicker()}
-        onmore={() => loadPicker(true)}
-      />
+      {#key identity}<CaseReportRequest
+          bind:this={requestView}
+          {api}
+          {user}
+          bind:busy={requestBusy}
+          bind:pickerBusy
+          onstart={requestStarted}
+          onrequested={requested}
+          ondenied={fail}
+        />{/key}
       <CaseReportList
         {rows}
         busy={listBusy}

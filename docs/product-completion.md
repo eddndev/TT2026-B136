@@ -43,8 +43,8 @@ del correo de la primera cuenta Owner.
   de audiencias. Las continuaciones declaradas y la creación contextual explícita
   de plazos ya están integradas; no equivalen a activación jurídica automática.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
-  restablecimiento de contraseña, recorrido de inactividad y reingreso,
-  autenticación por certificado y
+  activación operativa de recuperación de contraseña e inactividad, cierre
+  de las familias restantes de reingreso, autenticación por certificado y
   firma individual y política documental Client. La admisión general de formatos
   está integrada por PR47 en `ac34b34`, con aceptación API/restauración,
   navegador real y confirmación natural de `main` comprobados.
@@ -94,11 +94,13 @@ del correo de la primera cuenta Owner.
   en 1m15s, con el mismo inventario y gates. La invalidación
   administrativa de capacidades restauradas tiene doce focales aprobadas.
   Transporte de correo, rutas, formulario y consumidor del servidor tienen
-  verificación local separada y están publicados en PR61, cabeza `40f9d33`.
-  Su campaña completa está pendiente y permanecen deshabilitados en VPS3.
+  verificación local separada y se integraron por PR61 como `4ea2fba`.
+  CI, Web y Documents naturales de main aprobaron en 11m26s, 12m36s y 1m16s,
+  con 3524 Rust, 493 controladas, 52 reales y cobertura 97/95/93 %.
+  Permanecen deshabilitados en VPS3.
   La aceptación HTTP integrada aprobó con PostgreSQL, Redis, entropía OS,
-  Argon2id y MFA reales; sólo la entrega fue capturada. Faltan la regresión de
-  esta ampliación, configuración operativa y coordinación del controlador de
+  Argon2id y MFA reales; sólo la entrega fue capturada. Faltan la
+  configuración operativa y coordinación del controlador de
   restauración antes de habilitar la recuperación pública.
   Véanse [contrato interno](password-reset-internal.md) y
   [transporte público](password-reset-public.md).
@@ -272,8 +274,9 @@ usabilidad con personas. La aceptación API completa con restauración aprobó e
 453.174 s con 2553 fuentes estables: preservó cuentas y asignaciones, rechazó
 tokens anteriores y verificó nuevo acceso MFA y evidencia documental exacta.
 Ese incremento y su cierre global se integraron en `main`. Las cifras anteriores describen su aceptación original, no una nueva ejecución.
-Invitaciones, recuperación de acceso y autenticación por certificado siguen fuera
-de esta implementación.
+Invitaciones y autenticación por certificado siguen fuera de esa implementación.
+La recuperación de contraseña se integró posteriormente por PR61; conserva
+sus condiciones de activación operativa y entrega externa.
 
 La entrega integrada de [contenido original e incidentes](document-content-api.md)
 añade descarga de versiones pendientes o selladas, comprobación completa antes
@@ -627,7 +630,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada; conservar la evidencia académica por revisión. Invitaciones y enrolamiento recuperable siguen pendientes. |
-| Inicio de sesión y sesiones | Parcial; backend temporal integrado por PR55, interfaz de reingreso local | Contraseña/MFA, logout, revocación durable y estado/actividad explícitos integrados; se conserva `absolute_only` predeterminado. La cabeza de PR55 aprobó todos los gates; Web de su main se canceló; PR56 corrigió la carrera y aprobó sus gates antes de integrarse. Aviso, bloqueo y recuperación de metadatos, expedientes, carga principal y nuevas versiones tienen focales locales; las demás familias de editores siguen pendientes. Faltan regresión completa e integración de esa interfaz, duración de inactividad aprobada, certificado de socio y recuperación de contraseña. |
+| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Los editores de documentos, expedientes y participantes tienen integración propia; otras familias conservan focales locales e integración pendiente, según el inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo, cierre de las familias restantes y autenticación con certificado. El dominio y verificador del vínculo Owner son fundamentos locales; no habilitan acceso. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
