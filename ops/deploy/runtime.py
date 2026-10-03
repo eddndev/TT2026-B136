@@ -9,6 +9,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 import uuid
 
+from runtime_readiness import read_body, remaining
+
 
 def run(arguments, **kwargs):
     return subprocess.run([str(x) for x in arguments], check=True, **kwargs)
@@ -122,49 +124,93 @@ class Runtime:
         from provision import initialize
         initialize(self.root, target)
 
-    def api_ready(self):
+    def api_ready(self, *, deadline=None):
         try:
-            with urlopen(f"http://127.0.0.1:{self.config['api_port']}/api/v1/auth/me", timeout=5):
+            with urlopen(f"http://127.0.0.1:{self.config['api_port']}/api/v1/auth/me",
+                         timeout=remaining(deadline, 5)):
+                remaining(deadline, 5)
                 return False
         except HTTPError as error:
             try:
-                return error.code == 401 and "application/json" in error.headers.get("Content-Type", "")
+                ready = error.code == 401 and "application/json" in error.headers.get("Content-Type", "")
             finally:
                 error.close()
+            remaining(deadline, 5)
+            return ready
         return False
 
-    def dependencies(self):
+    def dependencies(self, *, deadline=None):
+        remaining(deadline, 10)
+        env = environment(self.root)
         result = run(["psql", "-XAt", "-v", "ON_ERROR_STOP=1", "-c", "SELECT 1"],
-                     env=environment(self.root), capture_output=True, text=True, timeout=10)
+                     env=env, capture_output=True, text=True, timeout=remaining(deadline, 10))
+        remaining(deadline, 10)
         if result.stdout.strip() != "1":
             raise RuntimeError("PostgreSQL readiness failed")
+        remaining(deadline, 10)
+        env = environment(self.root)
         result = run(["redis-cli", "-h", "127.0.0.1", "-p", str(self.config["redis_port"]), "PING"],
-                     env=environment(self.root), capture_output=True, text=True, timeout=10)
+                     env=env, capture_output=True, text=True, timeout=remaining(deadline, 10))
+        remaining(deadline, 10)
         if result.stdout.strip() != "PONG":
             raise RuntimeError("Redis readiness failed")
 
-    def check(self, target):
-        self.dependencies()
-        if not self.api_ready():
+    def check(self, target, *, deadline=None):
+        remaining(deadline, 10)
+        try:
+            self._check(target, deadline)
+        except HTTPError as error:
+            error.close()
+            if deadline is None:
+                raise
+            raise RuntimeError("readiness did not complete within its requested boundary") from None
+        except (OSError, URLError, subprocess.SubprocessError, KeyError, TypeError, ValueError):
+            if deadline is None:
+                raise
+            raise RuntimeError("readiness did not complete within its requested boundary") from None
+
+    def _check(self, target, deadline):
+        if deadline is None:
+            self.dependencies()
+            ready = self.api_ready()
+        else:
+            self.dependencies(deadline=deadline)
+            ready = self.api_ready(deadline=deadline)
+        if not ready:
             raise RuntimeError("API readiness failed")
         base = f"http://127.0.0.1:{self.config['web_port']}"
+        remaining(deadline, 5)
         expected = json.loads((target / "release.json").read_text())
-        with urlopen(base + "/version.json", timeout=5) as response:
-            actual = json.load(response)
+        remaining(deadline, 5)
+        with urlopen(base + "/version.json", timeout=remaining(deadline, 5)) as response:
+            remaining(deadline, 5)
+            actual = (json.load(response) if deadline is None
+                      else json.loads(read_body(response, 65536, deadline)))
+        remaining(deadline, 5)
         if actual != {k: expected[k] for k in ("version", "commit")}:
             raise RuntimeError("served release identity differs from artifact")
-        with urlopen(base, timeout=5) as response:
-            if response.status != 200 or b"<html" not in response.read(1024 * 1024).lower():
+        with urlopen(base, timeout=remaining(deadline, 5)) as response:
+            remaining(deadline, 5)
+            if response.status != 200:
                 raise RuntimeError("frontend readiness failed")
+            content = (response.read(1024 * 1024) if deadline is None
+                       else read_body(response, 1024 * 1024, deadline))
+            remaining(deadline, 5)
+            if b"<html" not in content.lower():
+                raise RuntimeError("frontend readiness failed")
+        remaining(deadline, 5)
         try:
-            with urlopen(base + "/api/v1/auth/me", timeout=5):
+            with urlopen(base + "/api/v1/auth/me", timeout=remaining(deadline, 5)):
+                remaining(deadline, 5)
                 pass
         except HTTPError as error:
             try:
-                if error.code == 401 and "application/json" in error.headers.get("Content-Type", ""):
-                    return
+                ready = error.code == 401 and "application/json" in error.headers.get("Content-Type", "")
             finally:
                 error.close()
+            remaining(deadline, 5)
+            if ready:
+                return
         raise RuntimeError("reverse proxy readiness failed")
 
     def start(self, target):
