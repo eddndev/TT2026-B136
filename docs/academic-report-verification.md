@@ -1,5 +1,17 @@
 # Verificación de la actualización académica
 
+## Disponibilidad y entradas administrativas: 3 de octubre de 2026
+
+La compilación LuaLaTeX de los apartados de implementación y pruebas produjo
+379 páginas y 5955329 bytes, SHA-256
+`43d4fe6ec78e05b0f6c0f3a88a0da43d3a48d17748eafcee2519bd85ac18f069`.
+Se inspeccionaron las páginas físicas 222, 275 y 276: el plazo compartido,
+sus límites, las respuestas de error y el launcher SSH quedan legibles, sin
+recortes ni superposición. Se preservaron el PDF anterior y los hashes de
+resumen, introducción, marco teórico y conclusiones. No hubo referencias
+indefinidas ni glifos ausentes; se mantienen los dos desbordamientos históricos
+y la sustitución tipográfica de versalitas. No acredita instalación operacional.
+
 ## Interfaz de firma externa y MFA: 3 de octubre de 2026
 
 La misma compilación conjunta documentada en el apartado siguiente incluye las

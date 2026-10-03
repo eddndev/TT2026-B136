@@ -176,3 +176,20 @@ completado. Impide entradas posteriores sin afirmar que los trabajadores
 existentes hayan terminado. No instala fuentes, promueve una generación ni
 reabre servicios; esas operaciones conservan fronteras independientes. Véase
 \rutarepo{docs/deployment-controller-entry-gate.md}.
+
+La verificación de disponibilidad admite un plazo monotónico compartido entre
+las sondas de bases, API, identidad de versión, HTML y proxy. Cada operación
+recibe el menor valor entre su límite previo y el remanente; una respuesta válida
+posterior al plazo no acredita disponibilidad. Las lecturas parciales limitan
+los cuerpos y actualizan el timeout del socket. Los encabezados y delimitadores
+internos de HTTP y una lectura bloqueada del filesystem no tienen interrupción
+total garantizada; el controlador rechaza el resultado al recuperar el control.
+Se conserva la interfaz anterior sin plazo explícito. Véase
+\rutarepo{docs/deployment-readiness-deadline.md}.
+
+La entrada administrativa por SSH exige la huella aprobada externamente del
+inventario de controladores y ejecuta el lanzador estable con intérprete aislado.
+El mismo contrato guía la renovación manual de CRL. Una huella ausente o inválida
+bloquea antes de preparar credenciales; no se deduce aprobación de las fuentes
+presentes ni se recurre a su invocación directa. La instalación del lanzador y la
+configuración de esa huella conservan aceptación operativa independiente.

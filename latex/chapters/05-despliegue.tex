@@ -167,3 +167,18 @@ no infiere una salida normal del sistema operativo de metadata vacía.
 Se retiraron únicamente las cuatro unidades desechables y se restauró el modo
 previo del directorio. No se reinició el host ni su gestor y no se instalaron
 controladores en el usuario de despliegue.
+
+El plazo compartido de disponibilidad añadió cinco casos que fallaron primero
+por ausencia del argumento y aprobaron en 1.024~s. Diez regresiones de salud y
+barrera CRL aprobaron en 2.032~s. La revisión detectó después respuestas de error
+HTTP sin cerrar; el caso adicional reprodujo ambas variantes y el grupo final
+de seis aprobó en 1.028~s. Los cuerpos JSON y HTML lentos procedían de un servidor
+loopback real; reloj y otras sondas usaron dobles controlados. Se preservaron las
+llamadas anteriores y se rechazaron respuestas tardías, sin afirmar interrupción
+dura de encabezados, delimitadores internos o filesystem bloqueado.
+
+La entrada SSH aprobó tres casos en 0.463~s tras seis aserciones fallidas del
+grupo inicial. Se ejecutó el shell real con binarios locales de registro para
+SSH, SCP y claves sintéticas. Se comprobaron huella obligatoria, argumentos del
+lanzador aislado y ausencia de transferencia tras fallo previo. No hubo conexión,
+cambio de secretos o variables de Actions ni instalación en el servidor.

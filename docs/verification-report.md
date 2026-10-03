@@ -19,6 +19,24 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Presupuesto compartido de disponibilidad: 3 de octubre de 2026
+
+Cinco pruebas reprodujeron inicialmente la ausencia del argumento `deadline`.
+La implementación aprobó ese grupo en 1.024 s y diez regresiones de salud y
+barrera CRL en 2.032 s. Una revisión posterior identificó cuerpos de HTTPError
+abiertos cuando la versión o el HTML respondían con error. Su caso adicional
+falló en ambas variantes en 0.007 s; tras cerrar la respuesta explícitamente,
+los seis casos del grupo final aprobaron en 1.028 s.
+
+Los cuerpos JSON y HTML lentos se sirvieron desde loopback real; las restantes
+fronteras usan respuestas y reloj controlados. Se comprobaron el remanente por
+operación, respuestas válidas tardías, límites de cuerpo, cierre de respuestas
+y compatibilidad de las llamadas sin plazo. Los límites internos de encabezados,
+framing HTTP y filesystem se explicitan en
+[el contrato de disponibilidad](deployment-readiness-deadline.md): no se afirma
+un plazo total duro para esas operaciones. Esta evidencia no instala servicios
+ni acepta por sí sola la reapertura de un despliegue.
+
 ## Entrada SSH con generación aprobada: 3 de octubre de 2026
 
 La prueba del script de entrega falló inicialmente en seis aserciones de tres
