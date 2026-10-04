@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Fuentes exactas de medidas cautelares: 4 de octubre de 2026
+
+El resolvedor comprueba expediente, identidad, revisión y digest recalculado
+del sujeto y del supervisor declarado. Admite las clases de sujeto existentes,
+supervisores manuales o tipados y fuentes archivadas para historia, sin imponer
+una calidad oficial desde una etiqueta de directorio. Desconocimiento explícito
+rechaza una fuente de supervisor sobrante. Una ficha/revisión compartida exige
+igualdad completa de valores y procedencia; las etiquetas se derivan de ella.
+
+TDD focal: RED por API ausente y después **18/18 pruebas** aprobadas en
+**8.849 s** de comando total, compilación **8.82 s**. Clippy con `-D warnings`
+aprobó en **5.105 s**. Los casos cubren selección exacta, hashes recalculados,
+fuentes ajenas, copias contradictorias, ambas familias de participante y tiempo
+UTC/autor válido en cada fuente retenida. Revisión independiente, formato,
+ASCII, tamaño y espacios limpios. Un compilador y un worker, temporales en disco,
+sin servicios, suites completas, integración, despliegue ni nuevo PDF. Las
+capturas posteriores todavía deben vincular todos estos datos y comparar su
+cronología con el reloj real de captura.
+
 ## Grupos declarados de cambios cautelares: 4 de octubre de 2026
 
 El resultado de dominio distingue cambios de medidas y ausencia declarada de

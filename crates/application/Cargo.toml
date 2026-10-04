@@ -326,3 +326,7 @@ path = "tests/precautionary_history.rs"
 [[test]]
 name = "measure_decision_support"
 path = "tests/measure_decision_support.rs"
+
+[[test]]
+name = "measure_sources"
+path = "tests/measure_sources.rs"

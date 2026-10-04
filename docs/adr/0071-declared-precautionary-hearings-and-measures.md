@@ -24,7 +24,10 @@ Complete declared measure terms (`MEAS1`) and factual decision declarations
 (`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
 The bounded `MEFX1` outcome now normalizes declared effects and rejects duplicate
 or overlapping affected identities. It does not resolve predecessor captures or
-establish hearing anchors, group origins or committed effects.
+establish hearing anchors, group origins or committed effects. Exact measure
+source resolution now checks the declared subject and optional supervisor,
+retaining full captures separately from derived labels; it grants no current
+permission, official appointment or documentary admission.
 Flat imposition capture receipts and adjacent-transition checks are implemented
 locally. Exact origin and supplied-chain validation are implemented too;
 durable existence/current head and Review-purpose measure evidence remain pending.

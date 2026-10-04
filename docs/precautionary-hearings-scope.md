@@ -49,6 +49,10 @@ declarados o una declaración de ausencia de cambios. Rechaza identidades
 repetidas en todos los lugares del grupo, incluidos ambos lados de sustitución,
 y acota a 32 la unión de medidas anteriores y nuevas. Estos valores todavía no
 resuelven predecesores ni confirman efectos o grupos atómicos.
+La resolución local de fuentes comprueba el sujeto exacto y el supervisor
+manual o tipado, cuando se declara. Deriva sus etiquetas, conserva revisiones
+archivadas para historia y rechaza contradicciones de una misma ficha/revisión.
+No certifica identidad civil, designación oficial ni permiso actual.
 
 Los recibos locales `PHPR1`/`PHCR1` conservan los datos completos y procedencia
 de la convocatoria de imposición. Validan digest, tiempo y reemplazo/cancelación
