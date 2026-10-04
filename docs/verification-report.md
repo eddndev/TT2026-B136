@@ -1,5 +1,33 @@
 # Informe de verificación local
 
+## Valores de convocatoria cautelar: 4 de octubre de 2026
+
+El primer bloque de dominio de la [familia cautelar](precautionary-hearings-scope.md)
+separa identidad de convocatoria, operación y medida. Distingue imposición sin
+objetivos de revisión y revisión con una a 32 referencias exactas; conserva
+hora/desfase, lugar, participantes, declaración, localizador y soporte.
+
+TDD focal: el target registrado falló primero porque faltaba el módulo de dominio.
+Después aprobó **11/11 pruebas**, con compilación de **2.27 s** y ejecución
+inferior a la resolución de **0.01 s** del resumen de Cargo; el comando completo
+duró **2.295 s**. Incluye un vector fijo `PHEAR1`, 19 mutaciones de valores,
+normalización de orden, duplicados, límites y revisiones inválidas por serde.
+Clippy del mismo target aprobó con `-D warnings` en **1.695 s** de comando total.
+Las fuentes y vectores históricos `HEAR1`, `RHEAR1` y `HRES1` conservaron sus
+huellas; no se repitieron sus suites. Revisión independiente, formato, ASCII,
+límite de líneas y espacios aprobaron. Un compilador y un worker, temporales en
+disco; sin servicios nativos. No acredita autorización por expediente, soporte
+admitido, transacciones, API, Agenda, interfaz ni restauración cautelar. No se
+ejecutó otra campaña completa o compilación del manuscrito, cuyas fuentes no
+cambiaron. La integración de este bloque sigue pendiente.
+
+Como base independiente, la confirmación natural de main `e9afef8` aprobó CI en
+**10m59s** y Web en **20m41s**. Sus artefactos conservan exactamente **3,926 Rust,
+651 casos de navegador con respuestas simuladas y 60 con servicios reales**;
+Rust mantiene dos pruebas explícitamente ignoradas. Todos los gates aplicables
+aprobaron, con cobertura **98%/95%/93%**. Los tres runners quedaron limpios.
+Estas cifras pertenecen al código integrado anterior al nuevo módulo cautelar.
+
 ## Aislamiento de pruebas de permisos SQL: 4 de octubre de 2026
 
 La campaña remota se canceló al inicializar un segundo rol de ejecución en el

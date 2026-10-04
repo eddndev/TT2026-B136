@@ -88,6 +88,10 @@ name = "procedural_fact_vectors"
 path = "tests/procedural_fact_vectors.rs"
 
 [[test]]
+name = "precautionary_hearings"
+path = "tests/precautionary_hearings.rs"
+
+[[test]]
 name = "procedural_suite_1"
 path = "tests/suites/procedural_suite_1.rs"
 

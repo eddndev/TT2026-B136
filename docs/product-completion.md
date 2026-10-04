@@ -6,8 +6,9 @@ El flujo explícito de **resultado de audiencia y plazo derivado** está
 implementado en aplicación, PostgreSQL, HTTP y Qadra, con origen conjunto
 inmutable y recuperación del envío por la misma identidad. La verificación
 focal conserva cálculo prospectivo, transacción, historia y revisión del
-operador. La aceptación nativa de API, restauración y navegador aprobó; el cierre
-de integración sigue pendiente y se registra por separado en [el contrato](hearing-derived-deadlines.md) y
+operador. La aceptación nativa de API, restauración y navegador aprobó; la
+integración y su confirmación natural en main también aprobaron. El alcance
+se registra en [el contrato](hearing-derived-deadlines.md) y
 [el informe](verification-report.md). Este avance no completa el corpus jurídico
 ni activa consecuencias inferidas de texto, notificaciones u otras familias.
 
@@ -86,32 +87,18 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   regreso a la actividad o bandeja de alertas, con capturas exactas, permisos y
   filtros. Su aceptación API/restauración y navegador real aprobaron. La
   confirmación natural de CI, Web y Documents también aprobó en `main`.
-- Pendientes procesales: corpus jurídico aplicable, activación automática y
-  durable de un plazo nuevo, audiencias propias de recursos y catálogo restante
-  de audiencias. Las continuaciones declaradas y la creación contextual explícita
-  de plazos ya están integradas; no equivalen a activación jurídica automática.
-  El catálogo separado de alegatos de apelación y revocación escrita, y la
-  preparación contra recursos/actos exactos, confirmación de la revisión y
-  conciliación explícita de la creación original tienen implementación local.
-  El adaptador PostgreSQL ya confirma audiencia, asociación inicial y origen
-  auditado atómicamente, con migración `0030_`, inventario estricto y recuperación
-  del vínculo original después de desvincularlo. La API genérica de asociaciones
-  incorpora el DTO `resource_hearing`. Las consultas históricas propias y el router
-  de preparación, envío y lectura están implementados localmente, incluida su
-  composición de servidor. Aprobaron las pruebas focales previas y los nuevos
-  casos de lectura en aplicación y PostgreSQL, el rechazo tipado de evidencia
-  incompleta, las rutas HTTP y su composición. La prueba de humo del servidor
-  con restauración también aprobó; no sustituye la aceptación propia del recorrido.
-  Esta ampliación aún no está integrada ni desplegada;
-  la consulta de agenda incorpora localmente esta tercera familia, sin cambiar
-  los filtros ordinarios. Qadra añade lectura histórica exacta desde esa agenda,
-  conservando filtros y continuación. El formulario local prepara una revisión
-  explícita, conserva fuentes históricas y recupera envíos inciertos con consulta
-  exacta y reenvío solicitado. Las alertas propias y su recuperación tras restaurar
-  tienen aceptación focal real; Qadra aprobó el recorrido a 1440 y 390 píxeles
-  antes del ajuste posterior del scheduler. Restan los gates globales de la
-  revisión final y su integración. Véase el
+- Pendientes procesales: completar el corpus jurídico aplicable y las familias
+  de eventos todavía no cubiertas por la creación explícita de resultado y plazo.
+  Las audiencias propias de recursos ya están integradas, con persistencia,
+  preparación/confirmación, origen exacto, recuperación, Agenda, alertas y Qadra;
+  su confirmación natural en main está acreditada. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
+  El [catálogo finito de audiencias](precautionary-hearings-scope.md) delimita
+  expresamente la familia cautelar pendiente. Sus valores de convocatoria y
+  formato canónico propio tienen verificación focal local; faltan contexto,
+  recibos, decisiones y medidas, aplicación, persistencia, HTTP, Agenda, interfaz
+  y aceptación completa. Ese bloque de dominio no acredita el flujo cautelar
+  terminado ni reglas jurídicas automáticas.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,
