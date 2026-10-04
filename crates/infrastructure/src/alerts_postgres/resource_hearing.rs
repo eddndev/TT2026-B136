@@ -59,3 +59,24 @@ pub(super) fn origin(
     }
     Ok(detail)
 }
+
+pub(super) fn verify_scanned_origin(
+    record: &AlertRecord,
+    current: &super::subject::Verified,
+) -> Result<(), ApplicationError> {
+    if !matches!(current.subject, AlertSubject::ResourceHearing { .. })
+        || record.subject != current.subject
+        || current.origin.revision != 1
+        || record.origin != current.origin
+        || !matches!(record.kind, AlertKind::Upcoming { activity_at, .. }
+            if Some(activity_at) == current.activity_at)
+        || record.subject_title != current.subject_title
+        || record.case_title != current.case_title
+        || record.case_reference != current.case_reference
+    {
+        return Err(stored(
+            "resource hearing alert plan differs from verified source",
+        ));
+    }
+    Ok(())
+}

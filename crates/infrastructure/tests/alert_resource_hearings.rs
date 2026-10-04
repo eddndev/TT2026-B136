@@ -8,6 +8,9 @@ use domain::{case_administration::CaseAdministrativeStatus, identity::Role};
 use std::sync::Arc;
 use time::Duration;
 
+#[path = "alert_resource_hearing_scan.rs"]
+mod scan;
+
 #[test]
 fn own_upcoming_uses_hearing_preferences_and_keeps_one_exact_occurrence_after_restart() {
     let Some(mut db) = Fixture::new() else { return };

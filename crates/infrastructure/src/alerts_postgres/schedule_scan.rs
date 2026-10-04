@@ -132,7 +132,7 @@ fn reconcile(
     let mut superseded = 0;
     for row in existing {
         let saved = schedule_rows::decode(&row, hasher)?;
-        schedule_rows::verify_origin(tx, &saved, hasher)?;
+        verify_origin(tx, &saved, current, hasher)?;
         if !proposals
             .iter()
             .any(|plan| plan.key == saved.plan.key && !plan.superseded)
@@ -150,7 +150,7 @@ fn reconcile(
             .map_err(port)?;
         if let Some(row) = previous {
             let saved = schedule_rows::decode(&row, hasher)?;
-            schedule_rows::verify_origin(tx, &saved, hasher)?;
+            verify_origin(tx, &saved, current, hasher)?;
             if saved.status == "activated" || (saved.status == "superseded" && proposal.superseded)
             {
                 continue;
@@ -187,4 +187,22 @@ fn reconcile(
         }
     }
     Ok((scheduled, superseded))
+}
+
+fn verify_origin(
+    tx: &mut Transaction<'_>,
+    saved: &schedule_rows::Scheduled,
+    current: &subject::Verified,
+    hasher: &dyn domain::crypto::DocumentHasher,
+) -> Result<(), ApplicationError> {
+    if matches!(current.subject, AlertSubject::ResourceHearing { .. }) {
+        // The scan verified this immutable R1 under its audited transaction lock.
+        // Every retained plan must still match that complete historical origin.
+        super::resource_hearing::verify_scanned_origin(
+            &schedule_rows::record(saved, saved.plan.trigger, false),
+            current,
+        )
+    } else {
+        schedule_rows::verify_origin(tx, saved, hasher)
+    }
 }

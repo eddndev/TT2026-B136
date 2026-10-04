@@ -6,6 +6,9 @@ Esta ampliación forma parte de las [audiencias propias de recursos](resource-he
 Su entrega e integración están en curso. Los resultados ejecutados y los controles
 pendientes se registran en [verificación](verification-report.md); una prueba de
 cliente con HTTP controlado no acredita el consumidor real ni la restauración.
+La aceptación focal posterior sí comprobó la ocurrencia real y su recibo tras
+restaurar la base; Qadra pasó antes del ajuste posterior de planificación.
+Permanecen los gates globales del revisionado final.
 No se activa configuración de correo ni se despliega este trabajo al escribirlo.
 
 ## Identidad y evidencia
@@ -48,6 +51,22 @@ expediente no cancela el señalamiento original. La familia no dispone de un
 comando de cancelación o reprogramación. Esos cambios tampoco eliminan su origen
 histórico. Reiniciar el generador no crea otra ocurrencia para el mismo sujeto,
 instante y anticipación, ni pierde una lectura ya confirmada.
+
+## Verificación durante la planificación
+
+Cada reconciliación reconstruye y valida la creación propia R1, su asociación
+inicial y su marcador auditado bajo el bloqueo de la transacción. La evidencia
+validada se reutiliza sólo durante esa pasada: todos los planes conservados deben
+coincidir en sujeto completo, revisión, huella, clase Upcoming, instante y textos
+históricos. La decodificación de cada plan sigue comprobando su checksum, forma
+canónica y columnas persistidas. Se verifica antes de omitir un plan ya activado
+o modificar uno pendiente.
+
+La evidencia no se guarda entre transacciones. La siguiente pasada vuelve a
+cargarla, y activación, lecturas e inventario conservan sus comprobaciones completas.
+Así se evita reconstruir las mismas fuentes por cada destinatario y anticipación
+mientras se mantiene el bloqueo compartido con las consultas de Agenda. Los
+presupuestos de bloqueo y los controles de integridad no cambian.
 
 ## Consulta desde Qadra
 
