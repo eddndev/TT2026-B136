@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Aislamiento de pruebas de permisos SQL: 4 de octubre de 2026
+
+La campaña remota se canceló al inicializar un segundo rol de ejecución en el
+esquema compartido de las pruebas de permisos. El primer escenario conservaba
+autoridad EXECUTE sobre funciones de recuperación de contraseña; el validador
+rechazó correctamente esa autoridad ajena. La campaña alcanzó 3,169 pruebas
+Rust aprobadas, una fallida, dos ignoradas y 755 sin ejecutar en 478.955 s, con
+compilación caliente de 0.12 s. Es evidencia parcial, sin aceptación ni cobertura
+completas. Los hooks cancelaron CI y Web; los tres runners quedaron sin servidores
+de prueba ni workers propios, confirmando la limpieza tras esta cancelación.
+
+La reproducción focal con PostgreSQL 16.15 aprobó dos de los seis casos y falló
+en cuatro: el primero reprodujo la autoridad ajena y los siguientes heredaron
+el mutex invalidado. Cada caso ahora crea su propio esquema y registra únicamente
+sus roles y esquemas para retirarlos al terminar. Los seis escenarios conservan
+sus identidades y rechazos; además comprueban que el arranque vuelve a aceptar
+el estado válido después de retirar la alteración. La prueba de search path
+comprueba que la configuración maliciosa sea efectiva antes de exigir el rechazo.
+
+Una regresión adicional mantiene dos fixtures simultáneas, comprueba que sus
+roles no compartan autoridad y verifica que retirar una conserve operativa la
+otra. También comprueba la ausencia de todos sus roles y esquemas tras la limpieza.
+La batería focal final aprobó **7/7 en 70.94 s**, con compilación de **1.03 s**
+y **73.213 s** incluyendo preparación y retirada del PostgreSQL nativo. Se usaron
+un compilador, un worker y temporales en disco; el cluster desechable fue retirado.
+Formato, ASCII, tamaño de módulos y espacios aprobaron. No cambian los validadores
+de producto, las migraciones, los límites de recursos ni los timeouts. Los gates
+remotos de la corrección permanecen pendientes. Documents no aplica según sus
+filtros de archivos; el manuscrito y su PDF aceptado permanecen sin cambios.
+
 ## Cancelación desde el shell de Actions: 4 de octubre de 2026
 
 Después de cancelar la confirmación natural de main quedaron tres Redis

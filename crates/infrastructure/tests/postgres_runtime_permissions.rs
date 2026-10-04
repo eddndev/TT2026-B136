@@ -1,4 +1,5 @@
 mod document_store_support;
+mod runtime_permission_support;
 
 use application::documents::{CaseDocumentStore, DocumentAction};
 use application::ApplicationError;
@@ -8,28 +9,52 @@ use postgres::error::SqlState;
 use postgres::{Client, NoTls};
 use time::OffsetDateTime;
 
-use document_store_support::{case, database_url, document, evidence, user};
+use document_store_support::{case, document, evidence, user};
+use runtime_permission_support::{without_options, Fixture};
 
-static PERMISSION_TESTS: std::sync::Mutex<()> = std::sync::Mutex::new(());
+#[test]
+fn runtime_permission_fixtures_keep_authority_and_cleanup_independent() {
+    let Some(mut first) = Fixture::new() else {
+        return;
+    };
+    let mut second = Fixture::new().unwrap();
+    let (mut first_admin, first_role, first_runtime) = runtime_role(&mut first);
+    let (mut second_admin, second_role, second_runtime) = runtime_role(&mut second);
+    for (admin, foreign_role) in [
+        (&mut first_admin, &second_role),
+        (&mut second_admin, &first_role),
+    ] {
+        assert!(!admin
+            .query_one(
+                "SELECT has_function_privilege($1,
+             'password_reset_issue(uuid,text,bytea,bigint,bigint)','EXECUTE')",
+                &[foreign_role],
+            )
+            .unwrap()
+            .get::<_, bool>(0));
+    }
+    PostgresCaseDocumentStore::open(&first_runtime).unwrap();
+    PostgresCaseDocumentStore::open(&second_runtime).unwrap();
+    let auxiliary = first.create_role("permission_auxiliary", false);
+    first.create_schema("permission_shadow", &auxiliary);
+    let first_resources = first.resources();
+    let second_resources = second.resources();
+    drop(first_admin);
+    drop(first);
+    first_resources.assert_absent(&mut second_admin);
+    PostgresCaseDocumentStore::open(&second_runtime).unwrap();
+    drop(second);
+    second_resources.assert_absent(&mut second_admin);
+}
 
 #[test]
 fn runtime_can_commit_documents_but_cannot_rewrite_history_or_case_binding() {
-    let _guard = PERMISSION_TESTS.lock().unwrap();
-    let Some(url) = database_url() else { return };
+    let Some(mut db) = Fixture::new() else { return };
+    let url = db.url.clone();
     let owner = user(&url, Role::Owner);
     let actor = user(&url, Role::Litigator);
     let case_id = case(&url, actor);
-    let mut admin = Client::connect(&url, NoTls).unwrap();
-    let role = format!("runtime_{}", uuid::Uuid::new_v4().simple());
-    admin
-        .batch_execute(&format!(
-            "CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE PASSWORD 'runtime-test-only'"
-        ))
-        .unwrap();
-    initialize_database(&url, &role).unwrap();
-    let mut runtime_url = reqwest::Url::parse(&url).unwrap();
-    runtime_url.set_username(&role).unwrap();
-    runtime_url.set_password(Some("runtime-test-only")).unwrap();
+    let (mut admin, role, runtime_url) = runtime_role(&mut db);
     let store = PostgresCaseDocumentStore::open(runtime_url.as_str()).unwrap();
     let mut record = document();
     store
@@ -78,12 +103,16 @@ fn runtime_can_commit_documents_but_cannot_rewrite_history_or_case_binding() {
         PostgresCaseDocumentStore::open(runtime_url.as_str()),
         Err(ApplicationError::InvalidConfiguration(_))
     ));
+    admin
+        .batch_execute(&format!("REVOKE UPDATE(actor) ON audit_events FROM {role}"))
+        .unwrap();
+    PostgresCaseDocumentStore::open(&runtime_url).unwrap();
 }
 
 #[test]
 fn rejected_runtime_role_does_not_leave_partial_grants() {
-    let _guard = PERMISSION_TESTS.lock().unwrap();
-    let Some(url) = database_url() else { return };
+    let Some(db) = Fixture::new() else { return };
+    let url = db.url.clone();
     PostgresCaseDocumentStore::connect(&url).unwrap();
     let mut admin = Client::connect(&url, NoTls).unwrap();
     let owner: String = admin.query_one("SELECT current_user", &[]).unwrap().get(0);
@@ -110,9 +139,8 @@ fn rejected_runtime_role_does_not_leave_partial_grants() {
 
 #[test]
 fn runtime_rejects_ownership_of_document_protection_and_import_receipts() {
-    let _guard = PERMISSION_TESTS.lock().unwrap();
-    let Some(url) = database_url() else { return };
-    let (mut admin, role, runtime_url) = runtime_role(&url);
+    let Some(mut db) = Fixture::new() else { return };
+    let (mut admin, role, runtime_url) = runtime_role(&mut db);
     let owner: String = admin
         .query_one("SELECT quote_ident(current_user)", &[])
         .unwrap()
@@ -142,12 +170,14 @@ fn runtime_rejects_ownership_of_document_protection_and_import_receipts() {
             matches!(result, Err(ApplicationError::InvalidConfiguration(_))),
             "runtime must not own {object}"
         );
+        // Ownership transfers can rewrite the object's explicit runtime ACL.
+        initialize_database(&db.url, &role).unwrap();
+        PostgresCaseDocumentStore::open(&runtime_url).unwrap();
     }
-    let inherited_owner = format!("object_owner_{}", uuid::Uuid::new_v4().simple());
+    let inherited_owner = db.create_role("object_owner", false);
     admin
         .batch_execute(&format!(
-            "CREATE ROLE {inherited_owner} NOLOGIN;
-             ALTER TABLE documents OWNER TO {inherited_owner};
+            "ALTER TABLE documents OWNER TO {inherited_owner};
              GRANT {inherited_owner} TO {role}"
         ))
         .unwrap();
@@ -159,13 +189,17 @@ fn runtime_rejects_ownership_of_document_protection_and_import_receipts() {
         result,
         Err(ApplicationError::InvalidConfiguration(_))
     ));
+    admin
+        .batch_execute(&format!("REVOKE {inherited_owner} FROM {role}"))
+        .unwrap();
+    PostgresCaseDocumentStore::open(&runtime_url).unwrap();
 }
 
 #[test]
 fn runtime_rejects_extra_document_receipt_and_schema_privileges() {
-    let _guard = PERMISSION_TESTS.lock().unwrap();
-    let Some(url) = database_url() else { return };
-    let (mut admin, role, runtime_url) = runtime_role(&url);
+    let Some(mut db) = Fixture::new() else { return };
+    let (mut admin, role, runtime_url) = runtime_role(&mut db);
+    let schema_privilege = format!("CREATE ON SCHEMA {}", db.schema);
     for privilege in [
         "UPDATE(id) ON document_series",
         "UPDATE(case_id) ON document_series",
@@ -191,7 +225,7 @@ fn runtime_rejects_extra_document_receipt_and_schema_privileges() {
         "DELETE ON migration_receipts",
         "TRUNCATE ON migration_receipts",
         "TRIGGER ON migration_receipts",
-        "CREATE ON SCHEMA public",
+        &schema_privilege,
     ] {
         admin
             .batch_execute(&format!("GRANT {privilege} TO {role}"))
@@ -200,23 +234,28 @@ fn runtime_rejects_extra_document_receipt_and_schema_privileges() {
         admin
             .batch_execute(&format!("REVOKE {privilege} FROM {role}"))
             .unwrap();
+        if privilege == "UPDATE ON documents" {
+            admin
+                .batch_execute(&format!("GRANT UPDATE(evidence) ON documents TO {role}"))
+                .unwrap();
+        }
         assert!(
             matches!(result, Err(ApplicationError::InvalidConfiguration(_))),
             "runtime must reject {privilege}"
         );
+        PostgresCaseDocumentStore::open(&runtime_url).unwrap();
     }
 }
 
 #[test]
 fn runtime_rejects_a_writable_schema_before_the_catalog_in_its_search_path() {
-    let _guard = PERMISSION_TESTS.lock().unwrap();
-    let Some(url) = database_url() else { return };
-    let (mut admin, role, runtime_url) = runtime_role(&url);
-    let schema = format!("shadow_{}", uuid::Uuid::new_v4().simple());
+    let Some(mut db) = Fixture::new() else { return };
+    let (mut admin, role, runtime_url) = runtime_role(&mut db);
+    let schema = db.create_schema("shadow", &role);
+    let protected = &db.schema;
     admin
         .batch_execute(&format!(
-            "CREATE SCHEMA {schema} AUTHORIZATION {role};
-             ALTER ROLE {role} SET search_path={schema}, public, pg_catalog;
+            "ALTER ROLE {role} SET search_path={schema}, {protected}, pg_catalog;
              CREATE FUNCTION {schema}.pg_has_role(oid, oid, text) RETURNS boolean
                  LANGUAGE sql AS 'SELECT false';
              CREATE FUNCTION {schema}.false_oid_comparison(oid, oid) RETURNS boolean
@@ -229,21 +268,35 @@ fn runtime_rejects_a_writable_schema_before_the_catalog_in_its_search_path() {
                  FUNCTION={schema}.false_schema_comparison)"
         ))
         .unwrap();
+    // Startup options must not override the malicious role-level search path.
+    let attacked_url = without_options(&runtime_url);
+    let mut runtime = Client::connect(&attacked_url, NoTls).unwrap();
+    assert_eq!(
+        runtime
+            .query_one("SELECT current_setting('search_path')", &[])
+            .unwrap()
+            .get::<_, String>(0),
+        format!("{schema}, {protected}, pg_catalog")
+    );
     assert!(matches!(
-        PostgresCaseDocumentStore::open(&runtime_url),
+        PostgresCaseDocumentStore::open(&attacked_url),
         Err(ApplicationError::InvalidConfiguration(_))
     ));
+    admin
+        .batch_execute(&format!("ALTER ROLE {role} SET search_path={protected}"))
+        .unwrap();
+    PostgresCaseDocumentStore::open(&attacked_url).unwrap();
 }
 
 #[test]
 fn runtime_rejects_a_write_role_it_can_assume_without_inheriting() {
-    let _guard = PERMISSION_TESTS.lock().unwrap();
-    let Some(url) = database_url() else { return };
-    let (mut admin, role, runtime_url) = runtime_role(&url);
-    let writer = format!("writer_{}", uuid::Uuid::new_v4().simple());
+    let Some(mut db) = Fixture::new() else { return };
+    let (mut admin, role, runtime_url) = runtime_role(&mut db);
+    let writer = db.create_role("writer", false);
+    let schema = &db.schema;
     admin
         .batch_execute(&format!(
-            "CREATE ROLE {writer} NOLOGIN;
+            "GRANT USAGE ON SCHEMA {schema} TO {writer};
              GRANT UPDATE(first_available_version) ON document_series TO {writer};
              ALTER ROLE {role} NOINHERIT;
              GRANT {writer} TO {role}"
@@ -260,20 +313,20 @@ fn runtime_rejects_a_write_role_it_can_assume_without_inheriting() {
         PostgresCaseDocumentStore::open(&runtime_url),
         Err(ApplicationError::InvalidConfiguration(_))
     ));
+    runtime.batch_execute("RESET ROLE").unwrap();
+    admin
+        .batch_execute(&format!("REVOKE {writer} FROM {role}"))
+        .unwrap();
+    PostgresCaseDocumentStore::open(&runtime_url).unwrap();
 }
 
-fn runtime_role(url: &str) -> (Client, String, String) {
-    PostgresCaseDocumentStore::connect(url).unwrap();
-    let mut admin = Client::connect(url, NoTls).unwrap();
-    let role = format!("runtime_{}", uuid::Uuid::new_v4().simple());
-    admin
-        .batch_execute(&format!(
-            "CREATE ROLE {role} LOGIN NOSUPERUSER NOCREATEROLE PASSWORD 'runtime-test-only'"
-        ))
-        .unwrap();
-    initialize_database(url, &role).unwrap();
-    let mut runtime_url = reqwest::Url::parse(url).unwrap();
+fn runtime_role(db: &mut Fixture) -> (Client, String, String) {
+    let role = db.create_role("runtime", true);
+    initialize_database(&db.url, &role).unwrap();
+    let admin = Client::connect(&db.url, NoTls).unwrap();
+    let mut runtime_url = reqwest::Url::parse(&db.url).unwrap();
     runtime_url.set_username(&role).unwrap();
     runtime_url.set_password(Some("runtime-test-only")).unwrap();
+    PostgresCaseDocumentStore::open(runtime_url.as_str()).unwrap();
     (admin, role, runtime_url.to_string())
 }
