@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Hidratación del harness de plazo contextual: 4 de octubre de 2026
+
+La confirmación natural de main se canceló por una prueba de cierre administrativo:
+el snapshot conservó `Plazo contextual` en el correo del login y el título real
+vacío. La validación local rechazó correctamente el formulario; no se envió la
+preparación. La segunda navegación de la prueba permitía montar el editor antes
+del enfoque automático de Auth. El harness ahora espera la hidratación de App
+y el ciclo de actualización de Svelte antes de iniciar su sesión independiente.
+
+Una regresión con la carga de App retenida falló al observar el inicio del harness
+sin hidratación ni foco de correo. Tras la corrección aprobó **1/1 en 9.7 s**,
+comprobando también el título, el correo vacío y una única preparación exacta.
+Los dos casos originales de cierre y la preparación lenta aprobaron sin cambios.
+Durante la preparación de la nueva regresión se corrigieron su interceptor MFA
+y una selección de seguimiento omitida; no eran fallos de producto. La ejecución
+fue secuencial, con un worker y temporales en disco. No se cambiaron el foco del
+producto, las assertions existentes, los límites ni las reglas del formulario.
+Los gates remotos de esta corrección siguen pendientes.
+
 
 ## Limpieza de servicios de prueba al cancelar: 4 de octubre de 2026
 
