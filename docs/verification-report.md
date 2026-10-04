@@ -7730,6 +7730,24 @@ Las comprobaciones de navegador mantienen la API simulada; no se probaron
 los servicios reales del backend en esta revisión.
 
 
+## Dependencia de pruebas compartidas del ejecutable
+
+El 4 de octubre de 2026, Clippy remoto detecto que las pruebas del ejecutable
+incluyen un fixture HTTP compartido que ahora utiliza `mockall`, sin declarar
+esa dependencia en el crate consumidor. El ajuste incorpora la dependencia
+existente del workspace exclusivamente a `[dev-dependencies]` de `despacho-cli`;
+`Cargo.lock` agrega esa relacion sin cambiar versiones de paquetes.
+
+- El comando focal `cargo clippy -p despacho-cli --all-targets -- -D warnings`
+  reprodujo los errores de importacion y tipo ausentes en **14.87 s**.
+  Con la declaracion corregida aprobo en **7.56 s**, con un compilador y un hilo.
+- La cancelacion automatica detuvo CI, Web y Documents al fallar Clippy.
+  Ninguno produjo artefactos ni evidencia completa de pruebas o cobertura.
+- Esta comprobacion compila los targets de pruebas y aplica Clippy; no ejecuta
+  las pruebas de aceptacion que requieren servicios ni sustituye los gates
+  completos de la nueva revision. No cambia codigo de producto, fixtures,
+  assertions, timeouts ni recursos. El manuscrito y su PDF aceptado se conservan.
+
 ## Registro de modulos de pruebas incluidos explicitamente
 
 El 4 de octubre de 2026, `scripts/check-test-layout.py` rechazo modulos
