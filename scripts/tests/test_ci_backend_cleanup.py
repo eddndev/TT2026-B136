@@ -6,6 +6,7 @@ Native PostgreSQL acceptance is separate from this process-lifecycle fixture.
 import json
 import os
 from pathlib import Path
+import shlex
 import shutil
 import signal
 import subprocess
@@ -67,8 +68,11 @@ class BackendCleanup(unittest.TestCase):
 
     def tearDown(self):
         if self.process is not None:
-            if self.process.poll() is None:
+            try:
                 os.killpg(self.process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            if self.process.poll() is None:
                 try:
                     self.process.wait(timeout=3)
                 except subprocess.TimeoutExpired:
@@ -85,14 +89,28 @@ class BackendCleanup(unittest.TestCase):
         self.sentinel.wait(timeout=3)
         self.scratch.cleanup()
 
-    def exercise(self, mode, expected, interrupt=None, whole_group=False):
+    def exercise(self, mode, expected, interrupt=None, whole_group=False, workflow_step=None):
         environment = {**os.environ, 'PATH': str(self.tools) + os.pathsep + os.environ['PATH'],
                        'TMPDIR': str(self.directory), 'TT_TEST_QPDF_LIBRARY': 'not-used-by-workload',
                        'OBSERVATION': str(self.observation), 'WORKLOAD_MODE': mode}
         self.log = (self.directory / 'run.log').open('w')
+        command = ['bash', str(ROOT / 'scripts/test-backends.sh'), sys.executable, str(self.workload)]
+        cwd = ROOT
+        if workflow_step is not None:
+            commands = [line.split('run:', 1)[1].strip()
+                        for line in (ROOT / '.github/workflows/web.yml').read_text().splitlines()
+                        if 'run:' in line and 'scripts/web-demo.sh --max-failures' in line]
+            self.assertEqual(len(commands), 2)
+            scripts = self.directory / 'scripts'
+            scripts.mkdir()
+            # Isolate the workflow shell boundary; web-demo delegates with exec.
+            (scripts / 'web-demo.sh').write_text('#!/bin/bash\nexec ' + shlex.join(command) + '\n')
+            step = self.directory / 'step.sh'
+            step.write_text(commands[workflow_step] + '\n')
+            command = ['bash', '--noprofile', '--norc', '-e', '-o', 'pipefail', str(step)]
+            cwd = self.directory
         self.process = subprocess.Popen(
-            ['bash', str(ROOT / 'scripts/test-backends.sh'), sys.executable, str(self.workload)],
-            cwd=ROOT, env=environment, stdout=self.log, stderr=subprocess.STDOUT,
+            command, cwd=cwd, env=environment, stdout=self.log, stderr=subprocess.STDOUT,
             start_new_session=True)
         deadline = time.monotonic() + 5
         while not self.observation.exists() and self.process.poll() is None and time.monotonic() < deadline:
@@ -135,6 +153,18 @@ class BackendCleanup(unittest.TestCase):
 
     def test_term_escalates_for_a_workload_ignoring_the_signal(self):
         self.exercise('stubborn', 143, signal.SIGTERM)
+
+    def test_live_workflow_step_forwards_term_to_backend_owner(self):
+        self.exercise('wait', 143, signal.SIGTERM, workflow_step=0)
+
+    def test_live_workflow_step_forwards_int_to_backend_owner(self):
+        self.exercise('wait', 130, signal.SIGINT, workflow_step=0)
+
+    def test_session_workflow_step_forwards_term_to_backend_owner(self):
+        self.exercise('wait', 143, signal.SIGTERM, workflow_step=1)
+
+    def test_session_workflow_step_forwards_int_to_backend_owner(self):
+        self.exercise('wait', 130, signal.SIGINT, workflow_step=1)
 
 
 if __name__ == '__main__':

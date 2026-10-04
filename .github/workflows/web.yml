@@ -220,13 +220,13 @@ jobs:
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-live/browser-junit.xml
           TT_WEB_FIXTURE_WORKERS: '2'
-        run: bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
+        run: exec bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
       - name: Verify idle expiry and authorized reentry
         if: ${{ matrix.shard == 3 }}
         env:
           TT_WEB_SESSION_ACCEPTANCE: '1'
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results-session/browser-junit.xml
-        run: env -u TT_WEB_LIVE_SHARD bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
+        run: exec env -u TT_WEB_LIVE_SHARD bash scripts/web-demo.sh --max-failures=1 --reporter=line,junit
       - name: Publish real browser durations
         if: always()
         uses: actions/upload-artifact@v4
