@@ -41,3 +41,16 @@ mod hearing_sql_support;
 #[allow(dead_code)]
 #[path = "../legacy_database_support/mod.rs"]
 mod legacy_database_support;
+
+#[path = "../deadline_profile_database_support/mod.rs"]
+mod deadline_profile_database_support;
+#[path = "../hearing_derived_deadline_schema.rs"]
+mod hearing_derived_deadline_schema;
+#[path = "../hearing_derived_deadline_storage_support.rs"]
+mod hearing_derived_deadline_storage_support;
+
+#[path = "../hearing_derived_deadline_catalog.rs"]
+mod hearing_derived_deadline_catalog;
+
+#[path = "../hearing_derived_deadline_guards.rs"]
+mod hearing_derived_deadline_guards;

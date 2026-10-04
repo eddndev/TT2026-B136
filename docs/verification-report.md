@@ -1,5 +1,49 @@
 # Informe de verificación local
 
+## Origen SQL del plazo derivado e inventario histórico: 4 de octubre de 2026
+
+La migración 0032 incorpora un origen inmutable para las revisiones iniciales
+exactas del resultado y del plazo, su evento emitido, autoridad original,
+compromisos HRDL1/HRDC1 y auditoría. El catálogo valida columnas, restricciones,
+índices, cuerpos de funciones, triggers y permisos, incluyendo roles transitivos
+`NOINHERIT`. El arranque reconstruye las capturas históricas completas, sin
+recalcular ni sustituir el perfil observado o el rol original por sus valores
+actuales. El contrato y los límites están en
+[ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md).
+
+TDD sobre PostgreSQL **16.15** real: la primera prueba falló por la tabla ausente.
+Una vez instalada, la ejecución detectó que el catálogo estricto de auditoría
+necesitaba admitir la nueva referencia conocida; se añadió esa referencia con
+sus dos triggers exactos, conservando el rechazo de referencias ajenas. Después
+se reprodujeron dos rechazos ausentes: auditoría compuesta sin origen y
+sustitución del rol original. Ambos quedaron corregidos por el inventario.
+
+Aprobaron **14 pruebas nuevas**: diez de catálogo/inventario en **39.48 s**
+(build **13.28 s**), una matriz de corrupción en **11.05 s** (build **1.41 s**)
+y tres de inserción e historia en **16.41 s** (build **1.71 s**). Incluyen
+bytes alterados con hash recalculado, evento y auditoría sustituidos, compromiso
+de auditoría dañado, permisos públicos o delegables, guards deshabilitados,
+restricciones debilitadas y cambios posteriores de perfil y rol. Siete
+sustituciones de componentes se rechazan antes de llegar a la unicidad; una
+copia idéntica sí llega al rechazo por duplicidad. El aislamiento serializable
+se rechaza antes de insertar. Dos regresiones afectadas de auditoría aprobaron
+en **4.10 s** (build **2.14 s**), manteniendo el rechazo de FK y triggers ajenos.
+
+Los casos positivos usan registros ordinarios persistidos y un origen sembrado
+explícitamente con el rol runtime. Eso acredita el esquema, los guards y la
+reconstrucción de datos reales; **no acredita la creación atómica del par ni la
+conciliación durable**. El servicio compuesto, rollback, concurrencia, HTTP y
+Qadra siguen pendientes. No se ejecutó una regresión completa ni una campaña
+API/browser, no se midió cobertura global ni se reconstruyó el PDF. Cada prueba
+usó una base desechable, un compilador, un hilo y temporales privados sobre disco;
+los clusters propios fueron detenidos y retirados.
+
+Clippy focal con `-D warnings` aprobó en **0.792 s** después de retirar un
+préstamo innecesario en el fixture; el fallo inicial se conserva separado.
+Formato, ASCII, límite de módulos e inventario de 257 ejecutables aprobaron.
+La extracción del validador de roles a un módulo propio conserva literalmente
+su cuerpo anterior y añade únicamente la comprobación del nuevo origen.
+
 ## Captura definitiva del plazo derivado: 4 de octubre de 2026
 
 La aplicación valida que el resultado capturado y su evento exacto correspondan

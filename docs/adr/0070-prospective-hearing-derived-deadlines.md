@@ -4,11 +4,10 @@
 
 Proposed.
 
-Application-only preparation, final capture and historical evidence restoration
-have focused verification.
-The complete compound
-workflow is not yet implemented: atomic storage of the result and deadline,
-durable origin and replay, HTTP and Qadra integration remain pending. This
+Application preparation, final capture, historical evidence restoration and the
+PostgreSQL origin schema have focused verification. The complete compound
+workflow is not yet implemented: atomic creation of the result and deadline,
+durable replay, HTTP and Qadra integration remain pending. This
 record establishes the proposed boundary; it asserts no successful acceptance,
 performance result or deployment. It remains proposed until the complete
 workflow and its evidence can be reviewed.
@@ -133,6 +132,28 @@ The adapter must resolve each original selected revision and observed head, then
 verify the origin, source-event row and audit chain. This record verifier neither
 proves those rows exist nor authorizes their disclosure. Current account access
 is checked separately and never substitutes today's role for captured authority.
+
+The [origin migration](../../migrations/0032_hearing_derived_deadlines.sql) stores
+the exact component identities, operations, R1 revisions, emitted event, original
+actor role, canonical commitments and audit sequence. Unique compound slots
+cover the result and deadline revisions; they do not make ordinary deadline
+sources globally unique. The [row guards](../../migrations/0032_hearing_derived_deadlines_guards.sql)
+require a currently authorized actor, matching components, the shared audit lock
+and READ COMMITTED isolation. They compare the complete HRDC1 encoding, the
+HRDL1 boundary projections and the exact audit marker. Updates, deletion and
+truncation are rejected; runtime permissions allow only reading and named-column
+insertion. These guards do not replace application validation of the full review.
+
+The [startup inventory](../../crates/infrastructure/src/hearing_derived_deadline_schema/inventory.rs)
+loads bounded batches and reconstructs full HRDL1 and HRDC1 bytes from verified
+historical component revisions. It resolves the observed profile head from the
+captured observation, verifies the source-event row and audit commitment, and
+rejects compound audit markers without an origin. Strict catalog checks reject
+changed columns, constraints, indexes, functions, triggers or elevated grants,
+including authority reachable through transitive NOINHERIT roles. A fixture
+which seeds consistent ordinary records and an origin proves this storage
+boundary only; it does not prove atomic creation or authorize adoption of those
+ordinary records by the future compound service.
 
 Use the result's existing source event from
 [the source-event migration](../../migrations/0015_deadline_source_events.sql).

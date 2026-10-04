@@ -1,0 +1,122 @@
+use super::TABLES;
+
+pub(super) const KEYS: &[(&str, &str, &[&str], bool)] = &[
+    (
+        TABLES[0],
+        "hearing_derived_deadline_primary",
+        &["operation_id"],
+        true,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_result_unique",
+        &["result_id", "result_revision"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_deadline_unique",
+        &["deadline_id", "deadline_revision"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_deadline_operation_unique",
+        &["deadline_operation_id"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_event_unique",
+        &["source_event_sequence"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_audit_unique",
+        &["audit_sequence"],
+        false,
+    ),
+];
+type ForeignKey = (
+    &'static str,
+    &'static str,
+    &'static [&'static str],
+    &'static str,
+    &'static [&'static str],
+    bool,
+);
+pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
+    (
+        TABLES[0],
+        "hearing_derived_deadline_result_scope",
+        &["result_id", "case_id", "hearing_id"],
+        "case_hearing_results",
+        &["id", "case_id", "hearing_id"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_result_revision_fk",
+        &["result_id", "result_revision"],
+        "case_hearing_result_revisions",
+        &["result_id", "revision"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_result_operation_fk",
+        &["operation_id"],
+        "case_hearing_result_revisions",
+        &["operation_id"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_deadline_scope",
+        &["deadline_id", "case_id"],
+        "case_deadlines",
+        &["id", "case_id"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_deadline_revision_fk",
+        &["deadline_id", "deadline_revision"],
+        "case_deadline_revisions",
+        &["deadline_id", "revision"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_deadline_operation_fk",
+        &["deadline_operation_id"],
+        "case_deadline_revisions",
+        &["operation_id"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_event_fk",
+        &["source_event_sequence"],
+        "deadline_source_events",
+        &["sequence"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_actor_fk",
+        &["actor_id"],
+        "users",
+        &["id"],
+        false,
+    ),
+    (
+        TABLES[0],
+        "hearing_derived_deadline_audit_fk",
+        &["audit_sequence"],
+        "audit_events",
+        &["sequence"],
+        false,
+    ),
+];
