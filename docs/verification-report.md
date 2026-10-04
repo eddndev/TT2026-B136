@@ -1,5 +1,26 @@
 # Informe de verificación local
 
+## Valores de rectificación de medidas: 4 de octubre de 2026
+
+El dominio limita la corrección a condiciones, vigencia y texto de la supervisión
+existente. Preserva sujeto exacto, clase, presencia del término, variante y
+selección de supervisor; rechaza un resultado normalizado sin cambios. La precisión,
+componentes y desfase pueden corregirse explícitamente sin completar datos ausentes.
+
+TDD: la API ausente falló antes de la implementación. **15 pruebas aprobadas** en
+**2.323 s** de comando, compilación **2.30 s**. Incluyen ambas variantes de
+supervisión, cada campo permitido, las 14 clases y errores de presencia del término.
+Tres vectores independientes de `MCVAL1`, de 40, 62 y 45 bytes, verifican bytes y
+SHA-256 fijos; las mutaciones comprueban texto, componentes y precisión. SHA-256 se
+usa solo como dependencia de pruebas del dominio. Clippy con `-D warnings`
+aprobó en **2.728 s**, compilación **2.68 s**; revisión estática independiente
+sin hallazgos. Un compilador, un hilo y temporales privados en btrfs.
+
+No es una rectificación persistida: recibo, revisión, historial mixto, permisos
+de operación, SQL e interfaz permanecen pendientes. La evidencia no acredita
+una decisión judicial ni fidelidad jurídica de la transcripción. Sin campaña
+global, integración, despliegue o nuevo PDF.
+
 ## Consultas de decisiones cautelares: 4 de octubre de 2026
 
 Las consultas de aplicación recuperan una decisión o su operación original y

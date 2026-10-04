@@ -113,6 +113,14 @@ la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
 ejecutados se registran por separado en [el informe](verification-report.md).
 
+La rectificación tiene ahora valores de dominio y formato `MCVAL1` verificados.
+Permite corregir condiciones, declaración de vigencia, inicio, término ya
+presente y texto de supervisión. Preserva sujeto exacto, clase, presencia de
+terminación y selección/tipo de supervisor. Rechaza cambios vacíos; permite
+componentes y precisión explícitos sin inventar información. Esto aún no crea
+una revisión, recibo administrativo ni persistencia. Sus futuras revisiones
+conservarán por separado el origen y la última declaración judicial real.
+
 ## Fuente primaria y límites de interpretación
 
 La consulta del 4 de octubre de 2026 al

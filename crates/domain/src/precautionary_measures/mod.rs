@@ -2,6 +2,7 @@
 
 mod canonical;
 mod catalog;
+mod correction;
 mod declaration_encoding;
 mod declarations;
 mod effect_encoding;
@@ -10,6 +11,7 @@ mod identity;
 mod validity;
 
 pub use catalog::MeasureKind;
+pub use correction::MeasureCorrectionValues;
 pub use declarations::{
     MeasureDecisionValues, MeasureDecisionValuesInput, MeasureSupervision, MeasureValues,
     MeasureValuesInput,
@@ -17,5 +19,5 @@ pub use declarations::{
 pub use effects::{
     MeasureDecisionOutcome, MeasureDecisionOutcomeInput, MeasureEffect, MeasureProposal,
 };
-pub use identity::{MeasureDecisionId, MeasureDecisionOperationId};
+pub use identity::{MeasureCorrectionOperationId, MeasureDecisionId, MeasureDecisionOperationId};
 pub use validity::{MeasureTime, MeasureValidity};

@@ -55,3 +55,30 @@ impl fmt::Display for MeasureDecisionOperationId {
         self.0.fmt(formatter)
     }
 }
+
+/// Identity of one administrative correction, separate from judicial decisions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct MeasureCorrectionOperationId(Uuid);
+
+impl MeasureCorrectionOperationId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+    pub const fn from_uuid(value: Uuid) -> Self {
+        Self(value)
+    }
+    pub const fn as_uuid(self) -> Uuid {
+        self.0
+    }
+}
+impl Default for MeasureCorrectionOperationId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl fmt::Display for MeasureCorrectionOperationId {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(formatter)
+    }
+}

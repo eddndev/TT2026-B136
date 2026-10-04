@@ -249,6 +249,24 @@ administrative link in one atomic operation, not a judicial substitution.
 Already-dependent history requires explicit reconciliation, not a correction
 cascade.
 
+The local domain correction whitelist is explicit: conditions, validity statement,
+start declaration, an already-present end declaration, and the text of the existing
+supervision variant. Preserve exact subject, class, end presence, supervision
+variant and selected supervisor. An unchanged normalized result is rejected.
+Validated temporal components, precision and optional offsets can change as
+explicitly supplied; precision need not increase, and no missing component is
+invented. Every judicial decision field remains immutable. These checks cannot
+establish faithful transcription of its support.
+
+`MCVAL1` binds the correction conditions, length-framed original-format `MVAL1`
+and supervision text. It creates no revision or judicial effect. Administrative
+records will share the measure revision sequence while retaining a distinct
+receipt/owner family. Exact historical references retain their original meanings.
+The last actual judicial declaration supplies the retained action and support;
+this may differ from the initial imposition after a modification. The local domain
+values do not yet implement administrative receipt, history or persistence.
+
+
 ### Decision anchors and shared dependency evidence
 
 Anchor references discriminate absence, an ordinary Initial revision and a

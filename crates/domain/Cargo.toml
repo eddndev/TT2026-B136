@@ -17,6 +17,7 @@ uuid.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]
+sha2.workspace = true
 serde_json.workspace = true
 
 [[test]]
@@ -118,3 +119,7 @@ path = "tests/precautionary_declarations.rs"
 [[test]]
 name = "measure_effects"
 path = "tests/measure_effects.rs"
+
+[[test]]
+name = "measure_corrections"
+path = "tests/measure_corrections.rs"
