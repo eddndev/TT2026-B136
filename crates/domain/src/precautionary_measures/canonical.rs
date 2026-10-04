@@ -15,12 +15,12 @@ impl MeasureValidity {
     }
 }
 
-fn text(bytes: &mut Vec<u8>, value: &str) {
+pub(super) fn text(bytes: &mut Vec<u8>, value: &str) {
     bytes.extend_from_slice(&(value.len() as u32).to_be_bytes());
     bytes.extend_from_slice(value.as_bytes());
 }
 
-fn measure_time(bytes: &mut Vec<u8>, value: &MeasureTime) {
+pub(super) fn measure_time(bytes: &mut Vec<u8>, value: &MeasureTime) {
     declared_time(bytes, value.declared());
     bytes.push(u8::from(value.unknown_reason().is_some()));
     if let Some(reason) = value.unknown_reason() {

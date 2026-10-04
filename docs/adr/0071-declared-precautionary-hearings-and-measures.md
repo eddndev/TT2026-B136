@@ -18,6 +18,9 @@ validates selected manual or typed historical values and bound subjects; it does
 not establish current access, current heads or documentary admission. A separate
 local direct-support adapter delegates exact selected-document admission to the
 bounded document processor; persisted case association remains a store check.
+Complete declared measure terms (`MEAS1`) and factual decision declarations
+(`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
+These values do not establish decision effects, hearing anchors or group origins.
 Precautionary workflow services, persistence, receipts, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
@@ -111,6 +114,18 @@ has its own stable identity, exact subject capture, closed classification,
 declared conditions, start and validity, original decision and immutable history.
 One decision may affect several measures and subjects. A measure's history is
 independent of rescheduling, cancellation, administrative closure and stage.
+
+`MEAS1` binds the exact subject ID/revision/digest, class, conditions, full
+unchanged `MVAL1` and supervision. Known supervision records an exact participant
+revision and statement; Unknown supervision records a reason. Neither form
+certifies appointment or grants account permissions. Application validation must
+resolve the exact subject and supervisor material in the same case.
+
+`MDVAL1` binds authority text, complete declared time (including an unknown-time
+reason), justification and exact support with locator. The decision identity is
+separate and has no invented revision model. The later group capture binds that
+identity, hearing anchor, effects and measure origins atomically. The factual
+values do not include a group digest that would itself depend on those values.
 
 An optional decision anchor must discriminate an exact existing initial hearing
 and, when available, result from an exact precautionary appointment. An initial

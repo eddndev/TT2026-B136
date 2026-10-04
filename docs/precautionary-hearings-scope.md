@@ -38,7 +38,13 @@ La admisión local del soporte directo verifica una sola versión y digest, y
 utiliza el procesador documental acotado para integridad y formato PDF/DOCX.
 La pertenencia al expediente debe comprobarse en el almacén autorizado.
 
-Aún faltan recibos de captura, decisiones, historia de medidas, servicios del
+Los valores locales de medida (`MEAS1`) conservan sujeto exacto, clase,
+condiciones, vigencia y supervisión: participante exacto con declaración, o
+desconocimiento con motivo. Los datos factuales de decisión (`MDVAL1`) conservan
+autoridad declarada, tiempo, justificación y soporte con localizador. Disponen
+de identidad de decisión separada; todavía no crean efectos ni grupos atómicos.
+
+Aún faltan recibos de captura, decisiones persistidas, historia de medidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados

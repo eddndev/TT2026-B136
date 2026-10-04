@@ -110,3 +110,7 @@ path = "tests/resource_hearing_values.rs"
 [[test]]
 name = "typed_suite_1"
 path = "tests/suites/typed_suite_1.rs"
+
+[[test]]
+name = "precautionary_declarations"
+path = "tests/precautionary_declarations.rs"

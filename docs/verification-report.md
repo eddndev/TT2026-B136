@@ -1,5 +1,25 @@
 # Informe de verificación local
 
+## Declaraciones de medidas y decisiones: 4 de octubre de 2026
+
+Los valores de medida vinculan sujeto exacto, clase, condiciones, vigencia y
+supervisión declarada. Esta última exige participante/revisión con declaración
+o desconocimiento explícito con motivo. Los valores de decisión conservan
+autoridad, tiempo con su precisión, justificación y soporte con localizador.
+Su identidad es distinta de las de medida y convocatoria; no se inventa un
+modelo de revisión judicial ni se crean efectos o grupos desde estos valores.
+
+TDD focal: el target falló por ausencia de estos tipos antes de implementarlos.
+Después aprobaron **16/16 pruebas** y Clippy con `-D warnings`, con **1.851 s**
+y **1.592 s** de comando total. Incluyen cuatro vectores literales independientes
+`MEAS1`/`MDVAL1`, supervisión conocida/desconocida, longitud UTF-8, vínculo de
+cada campo, los catorce tipos y preservación literal de `MVAL1`. ASCII, límites
+de líneas, formato y espacios aprobaron. Un compilador y un worker, temporales
+en disco, sin servicios. No se repitieron las pruebas anteriores ni la campaña
+completa; pertenencia al expediente, soportes admitidos, anclas de audiencia,
+efectos y origen conjunto requieren las capas siguientes. No hay integración
+o despliegue de este bloque.
+
 ## Soporte exacto de convocatorias cautelares: 4 de octubre de 2026
 
 La admisión exige un único documento cuya identidad, versión y digest coincidan
