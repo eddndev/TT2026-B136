@@ -1,5 +1,32 @@
 # Informe de verificación local
 
+## Consultas de decisiones cautelares: 4 de octubre de 2026
+
+Las consultas de aplicación recuperan una decisión o su operación original y
+listan decisiones inmutables en orden UUID, hasta 20 por página. Validan el grupo
+completo, origen y ancestros; permiten personal autorizado, incluido Paralegal,
+y rechazan Client. La reautenticación compara el actor actual completo. La lista
+conserva las decisiones anteriores aunque sus medidas tengan nuevas revisiones.
+
+TDD: la API ausente falló antes de implementar. La revisión independiente
+identificó una operación de audiencia ordinaria compartida por dos identidades
+incompatibles; se reprodujo el fallo antes de corregir el inventario de fuentes.
+La corrección conserva el detalle completo y admite reutilización idéntica.
+
+La verificación final aprobó **35 pruebas nuevas y 173 anteriores afectadas**:
+**208 casos** en **16.127 s** de comando, compilación **13.80 s**. Incluye permisos,
+revocación, selectores, cursores, grupos rehasheados inconsistentes, identidad de
+operación/decisión/medida, fuentes contradictorias y captura completa de anclas.
+También prueba evidencia compartida válida, relojes y rechazo de colecciones
+sobredimensionadas antes de hashear. Clippy de los seis targets con `-D warnings`
+aprobó en **11.107 s**, compilación **11.06 s**. Revisión independiente final
+sin hallazgos. Un compilador, un hilo y temporales privados en btrfs.
+
+Este lector aún usa un puerto sin adaptador SQL. No acredita existencia durable,
+cabezas actuales ni auditoría persistida: el almacén debe comprobarlas junto con
+el acceso. No se ejecutaron campañas globales, servicios, interfaz ni restauración;
+la integración y el despliegue siguen pendientes.
+
 ## Servicio de decisiones cautelares: 4 de octubre de 2026
 
 El servicio prepara y confirma el grupo completo de decisión y medidas con

@@ -16,7 +16,9 @@ while explicit replay preserves the original instruction, actor and timestamp.
 These application ports do not establish a working database or HTTP workflow.
 The authorized decision service also admits exact support, confirms both digests,
 and validates the complete original group and ancestor closure on replay and commit.
-Decision readers, durable storage, administrative correction, HTTP, Agenda,
+Decision readers verify full immutable groups, bounded pagination and shared
+source/ownership consistency with current staff authorization. Durable storage,
+administrative correction, HTTP, Agenda,
 alerts, Qadra and restoration remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).

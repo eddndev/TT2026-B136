@@ -26,6 +26,7 @@ pub(crate) struct SourceInventory<'a> {
     participants: BTreeMap<(SourceId, SourceId, u32), &'a ParticipantDetail>,
     subject_digests: BTreeMap<(SourceId, SourceId, u32), &'a domain::crypto::Sha256Digest>,
     subjects: BTreeMap<(SourceId, SourceId, u32), &'a SubjectSnapshot>,
+    ordinary_operations: BTreeMap<(SourceId, SourceId), &'a crate::hearings::HearingDetail>,
     ordinary_hearings: BTreeMap<(SourceId, SourceId, u32), &'a crate::hearings::HearingDetail>,
     precautionary_hearings:
         BTreeMap<(SourceId, SourceId, u32), &'a super::PrecautionaryHearingCapture>,
@@ -42,6 +43,14 @@ impl<'a> SourceInventory<'a> {
             Anchor::Initial(detail) => {
                 self.commitments.ordinary(detail)?;
                 let s = &detail.snapshot;
+                retain(
+                    &mut self.ordinary_operations,
+                    (
+                        *s.case_id.as_uuid().as_bytes(),
+                        *s.receipt.operation_id.as_uuid().as_bytes(),
+                    ),
+                    detail,
+                )?;
                 retain(
                     &mut self.ordinary_hearings,
                     (

@@ -102,8 +102,13 @@ recuperar o confirmar. Cubre todos los efectos declarados y las anclas admitidas
 la decisión y cada medida se validan juntas. No sustituye la revalidación durable
 ni la transacción que debe implementar el adaptador.
 
-Aún faltan consultas de decisiones, origen durable, decisiones e historia de
-medidas persistidas, rectificación, HTTP, Agenda, alertas e interfaz. Estas capacidades y
+Las consultas locales de decisiones validan el grupo original completo y sus
+ancestros con permisos actuales. La lista conserva decisiones inmutables aunque
+existan revisiones posteriores de sus medidas; pagina hasta 20 decisiones y
+rechaza identidades o fuentes compartidas contradictorias.
+
+Aún faltan origen durable, decisiones e historia de medidas persistidas,
+rectificación, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
 ejecutados se registran por separado en [el informe](verification-report.md).
