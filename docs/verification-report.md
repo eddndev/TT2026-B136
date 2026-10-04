@@ -7793,3 +7793,24 @@ explicitos y rechazar ciclos, archivos huerfanos y registros duplicados.
 Esta comprobacion valida el inventario estatico; no ejecuta esos 257 binarios
 ni sustituye la regresion Rust o de navegador. No se modifican targets Cargo,
 pruebas de producto, assertions, timeouts ni recursos de los runners.
+
+
+## Importación compartida de fixtures HTTP de recursos: 4 de octubre de 2026
+
+La comprobación Clippy remota rechazó una carga duplicada de
+`procedural_resource_http_support/model.rs` desde dos helpers del mismo
+árbol de módulos. El fallo se reprodujo localmente con `-D warnings`
+en **7.316 s**. Ahora `resource_activity_http_support` importa el módulo
+que ya carga `resource_hearing_activity_support`; no se añadieron supresiones
+de lint ni se modificaron datos, assertions o comportamiento del producto.
+
+Clippy focal aprobó los **ocho ejecutables web afectados** en **9.200 s**.
+Los tres consumidores HTTP directos aprobaron sus **16 pruebas**: 6, 2 y 8
+casos, respectivamente, en **0.09 s** de ejecución y **12.37 s** de compilación.
+Formato, ASCII, diff e inventario de 257 ejecutables aprobaron. Esta validación
+focal conserva las suites previas; no constituye una campaña remota completa.
+
+La cancelación automática detuvo CI, Web y Documents dentro de los **19 s**
+posteriores al fallo. La campaña no produjo artefactos ni JUnit o cobertura
+utilizables. Se comprobó la ausencia de procesos de pruebas, compilación y
+navegador de la campaña en los tres VPS antes de publicar la corrección.

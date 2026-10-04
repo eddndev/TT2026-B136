@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 #[path = "../procedural_resource_http_support/model.rs"]
-mod resources;
+pub(super) mod resources;
 use application::{resource_activities::*, resource_hearings::*, ApplicationError};
 use axum::{
     body::{to_bytes, Body},
