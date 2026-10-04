@@ -21,6 +21,8 @@ pub enum ApplicationError {
     #[error(transparent)]
     PrecautionaryHearing(#[from] crate::precautionary_hearings::PrecautionaryHearingError),
     #[error(transparent)]
+    MeasureDecision(#[from] crate::precautionary_measures::MeasureDecisionError),
+    #[error(transparent)]
     OwnerCertificate(#[from] crate::identity::owner_certificates::OwnerCertificateError),
     #[error("audit page exceeds its text capacity")]
     AuditQueryCapacityExceeded,

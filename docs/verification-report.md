@@ -1,5 +1,28 @@
 # Informe de verificación local
 
+## Servicio de decisiones cautelares: 4 de octubre de 2026
+
+El servicio prepara y confirma el grupo completo de decisión y medidas con
+Owner o Litigator actuales. Admite el documento cifrado exacto fuera del bloqueo
+de auditoría y exige los digests de instrucción y revisión. Imposición,
+confirmación, modificación, revocación, cese, sustitución y ausencia declarada de
+cambio conservan fuentes, anclas y ancestros completos. Un replay conserva el
+actor histórico y la captura original, con acceso actual revalidado.
+
+TDD: el target falló por API ausente antes de implementar. La primera ejecución
+aprobó 26 casos; los 17 negativos adicionales completaron **43 pruebas aprobadas**
+en **4.932 s** de comando, compilación **4.73 s**. Incluyen permisos, reintentos,
+relojes, soporte exacto, cambios de procedencia y rechazo de grupos devueltos con
+medidas, origen o ancestros inconsistentes. Clippy con `-D warnings` aprobó en
+**6.158 s**, compilación **6.11 s**. Revisión independiente sin hallazgos.
+Un compilador, un hilo y temporales privados en disco btrfs.
+
+Esta evidencia es focal y local. Los puertos exigen revalidar cabeza, pertenencia,
+anclas y unicidad antes de la transacción durable; todavía no existe ese
+adaptador. Consultas de decisiones, rectificación, SQL, HTTP, Agenda, alertas,
+Qadra y restauración siguen pendientes. No se ejecutó una campaña global ni se
+cambió el manuscrito o PDF; el trabajo no está integrado ni desplegado.
+
 ## Servicios de convocatorias cautelares: 4 de octubre de 2026
 
 El servicio de aplicación prepara y confirma programación, reemplazo y

@@ -33,3 +33,15 @@ pub(crate) use history_inventory::add_sources as add_measure_group_sources;
 pub(crate) use history_validation::resolve_measure_closure;
 
 mod anchor_validation;
+
+mod workflow_error;
+mod workflow_evidence;
+mod workflow_model;
+mod workflow_port;
+mod workflow_prepared;
+mod workflow_service;
+pub use workflow_error::MeasureDecisionError;
+pub use workflow_model::*;
+pub use workflow_port::*;
+pub use workflow_prepared::PreparedMeasureDecision;
+pub use workflow_service::MeasureDecisionService;

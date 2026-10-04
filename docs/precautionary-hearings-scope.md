@@ -96,8 +96,14 @@ antes de guardar con auditoría. Las consultas conservan el prefijo histórico y
 origen completos; admiten personal autorizado y rechazan Client. Todavía no hay
 adaptador persistente ni ruta de producto para esta familia.
 
-Aún faltan origen durable, decisiones e historia de medidas persistidas, el servicio
-de decisiones, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
+El servicio de decisiones también pasó la verificación focal: admite el soporte
+exacto, exige ambos digests y conserva el grupo completo y sus ancestros al
+recuperar o confirmar. Cubre todos los efectos declarados y las anclas admitidas;
+la decisión y cada medida se validan juntas. No sustituye la revalidación durable
+ni la transacción que debe implementar el adaptador.
+
+Aún faltan consultas de decisiones, origen durable, decisiones e historia de
+medidas persistidas, rectificación, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
 ejecutados se registran por separado en [el informe](verification-report.md).

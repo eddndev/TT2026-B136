@@ -370,3 +370,7 @@ path = "tests/precautionary_workflow.rs"
 [[test]]
 name = "precautionary_reads"
 path = "tests/precautionary_reads.rs"
+
+[[test]]
+name = "measure_decision_workflow"
+path = "tests/measure_decision_workflow.rs"
