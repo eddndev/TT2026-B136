@@ -46,7 +46,7 @@ test('exact resource hearing reads preserve original creation through their own 
   assert.equal(Object.hasOwn(value.hearing, 'scheduling_context'), false);
 });
 
-test('case API exposes the isolated read client without mutation methods', async () => {
+test('case API keeps exact reads separate from explicit mutation methods', async () => {
   const value = resourceHearingCreation(),
     calls = [];
   const api = caseApi(async (path, options) => {
@@ -55,8 +55,8 @@ test('case API exposes the isolated read client without mutation methods', async
   });
   const scoped = api.caseResourceHearings(value.hearing.case_id, value.hearing.resource_id);
   assert.deepEqual(await scoped.exact(resourceHearingOverview(value)), value);
-  assert.equal(typeof scoped.prepare, 'undefined');
-  assert.equal(typeof scoped.submit, 'undefined');
+  assert.equal(typeof scoped.prepare, 'function');
+  assert.equal(typeof scoped.submit, 'function');
   assert.equal(calls.length, 1);
   assert.equal(calls[0].options?.method || 'GET', 'GET');
 });

@@ -1,6 +1,7 @@
 import { resourceRecordValue } from './procedural-resource-validation.mjs';
 import { validateHearing } from './hearings-api.mjs';
 import { deadlineRecordValue } from './deadline-validation.mjs';
+import { resourceHearingRecord } from './resource-hearing-record.mjs';
 import {
   factObject as object,
   factInvalid as invalid,
@@ -30,25 +31,36 @@ export function resourceActivitySources(value, selection, caseId, resourceId) {
       invalid();
     if (row.revision === resource.revision && !same(row, resource)) invalid();
   }
-  resourceActivityTargetRecord(value.target, selection.target, caseId, true);
+  resourceActivityTargetRecord(value.target, selection.target, caseId, true, resourceId);
   return value;
 }
-export function resourceActivityTargetRecord(value, reference, caseId, exact) {
+export function resourceActivityTargetRecord(value, reference, caseId, exact, resourceId) {
   object(value, ['kind', 'record']);
   if (value.kind !== reference.kind) invalid();
   const row = value.record;
   if (value.kind === 'hearing')
     validateHearing(row, caseId, reference.id, exact ? reference.revision : undefined);
-  else deadlineRecordValue(row, caseId, reference.id, exact ? reference.revision : undefined);
+  else if (value.kind === 'resource_hearing') {
+    resourceHearingRecord(row, caseId, resourceId);
+    if (row.id !== reference.id || row.revision !== reference.revision) invalid();
+    if (row.capture_digest !== reference.capture_digest) invalid();
+  } else deadlineRecordValue(row, caseId, reference.id, exact ? reference.revision : undefined);
   if (row.revision < reference.revision) invalid();
   const field = value.kind === 'hearing' ? 'submission_digest' : 'capture_digest';
-  if (exact && row.receipt[field] !== reference[field]) invalid();
+  if (exact && value.kind !== 'resource_hearing' && row.receipt[field] !== reference[field])
+    invalid();
   return value;
 }
 export function resourceActivityCurrent(value, association, checkedAt) {
   deadlineInstant(checkedAt);
   if (checkedAt.offset_seconds !== 0) invalid();
-  resourceActivityTargetRecord(value, association.selection.target, association.case_id, false);
+  resourceActivityTargetRecord(
+    value,
+    association.selection.target,
+    association.case_id,
+    false,
+    association.resource_id,
+  );
   if (value.kind === 'deadline') {
     const checked = value.record.operational.checked_at;
     if (checked !== null && !same(checked, checkedAt))

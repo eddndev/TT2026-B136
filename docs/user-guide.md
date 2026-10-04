@@ -329,10 +329,16 @@ el recurso haya causado la alerta. Distingue siempre revisión capturada y regis
 actual, y usa la acción de regreso para volver al contexto abierto. Esta navegación
 está incluida en `v0.1.0`.
 
-La programación propia de audiencias de recursos sigue en desarrollo: su API y
-lectura histórica desde Agenda tienen implementación local, aún sin integración
-ni despliegue. El formulario para crearlas desde Qadra y la activación jurídica
-automática de plazos siguen pendientes. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
+La programación propia de audiencias de recursos tiene implementación local,
+aún sin integración ni despliegue. Desde las actividades, **Crear audiencia de
+recurso** pide fecha, hora, desfase, modalidad, lugar y fundamento con un soporte
+ya admitido. Puedes seleccionar un acto histórico y participantes exactos.
+Prepara, revisa las capturas y reconoce la programación antes de confirmar.
+Si el registro cambió, compara y acepta la base actual; no se reemplazan tus
+fuentes históricas. Si el envío quedó incierto, consulta su resultado antes de
+solicitar un reenvío exacto. La lista propia conserva la audiencia incluso si
+su vínculo se retira. Las alertas propias y la aceptación completa de este
+recorrido siguen pendientes; también la activación jurídica automática de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
 [plazos desde recursos](resource-deadlines-api.md) y
 [navegación desde actividades](activity-resource-links-api.md).
 

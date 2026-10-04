@@ -13,9 +13,9 @@ incluida su composición en `serve`.
 La agenda incorpora localmente esta familia bajo `kind=resource_hearing`, con
 su identidad y origen verificados y orden independiente de audiencias ordinarias
 y plazos. Su contrato está en [agenda](agenda-api.md). Qadra incorpora el filtro,
-la tarjeta y una lectura exacta histórica dentro de Agenda. La programación
-desde Qadra, las alertas y la aceptación integrada siguen pendientes dentro de
-esta entrega. Las pruebas
+la tarjeta y una lectura exacta histórica dentro de Agenda. Qadra incorpora también el formulario de programación, la revisión explícita y
+la recuperación del envío incierto. Las alertas y la aceptación integrada siguen
+pendientes dentro de esta entrega. Las pruebas
 focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
 al final están aprobadas, incluido el rechazo tipado de evidencia persistida
 incompleta, las rutas propias y su composición. No se atribuyen aceptación
@@ -27,6 +27,14 @@ contrato complementa los [recursos](procedural-resources-api.md) y sus
 programación ordinaria ni el formato `HEAR1`.
 
 ## Consulta histórica desde Agenda
+
+Las actividades del recurso reconocen también la familia **Audiencia de recurso**
+en su filtro, lista, detalle e historial. Validan la captura propia con el
+expediente y recurso de la consulta; no la convierten en audiencia ordinaria ni
+buscan su huella en un recibo de otra familia. La revisión de la asociación puede
+avanzar por desvinculación mientras la audiencia conserva su revisión inicial.
+El detalle presenta el señalamiento, soporte y participantes capturados y explica
+que desvincular no cancela esa programación.
 
 La tarjeta **Audiencia de recurso** abre un panel dentro de Agenda. Conserva los
 filtros, las filas acumuladas y la continuación pendiente al abrirlo y cerrarlo.
@@ -47,6 +55,29 @@ invalida una lectura pendiente. Un rechazo de acceso al expediente retira sus
 filas. El cierre administrativo o archivo del recurso no reemplaza las fuentes
 históricas ni impide consultar la evidencia conservada si el lector mantiene
 permiso actual. Esta apertura sólo ejecuta consultas; no reenvía una creación.
+
+## Programar desde las actividades del recurso
+
+Owner y Litigante asignado abren **Crear audiencia de recurso** sobre un expediente
+activo y un recurso escrito compatible. El formulario conserva la revisión
+histórica seleccionada y consulta por separado la cabeza vigente. Solicita fecha,
+hora y desfase explícitos, modalidad, lugar, fundamento declarado y un soporte
+exacto ya admitido en el recurso o acto seleccionado. La selección opcional de
+participantes conserva sus fichas exactas; no altera asignaciones del expediente.
+
+**Preparar audiencia y vínculo** presenta las fuentes, los participantes y la
+programación para revisión. El usuario reconoce esa revisión antes de confirmar.
+Un cambio de cabeza exige compararla y aceptar expresamente la nueva base; no
+reemplaza las fuentes históricas. El envío conserva las identidades originales.
+Si la respuesta no confirma el resultado, **Consultar resultado** hace una lectura
+exacta. Sólo una acción posterior expresa permite reenviar el mismo comando.
+
+La lista **Audiencias del recurso** conserva las creaciones originales aunque se
+desvinculen. Paralegal puede consultarlas con membresía vigente; Client no accede.
+Cierre administrativo o archivo impiden nueva programación, sin borrar historia.
+La expiración de sesión conserva el borrador en memoria para la misma identidad;
+retomarlo vuelve a autorizar y revisar sus referencias, sin restaurar aprobación.
+Salir explícitamente o cambiar de identidad descarta su recuperación.
 
 ## Clasificación declarada y fuente normativa
 
@@ -273,6 +304,24 @@ por una página vacía.
 El router usa el presupuesto HTTP compartido. La composición de servidor
 comparte el mismo adaptador entre los dos servicios y conserva sus propietarios
 fuera del runtime asíncrono; conectar estas rutas no activa agenda ni alertas.
+
+## Preparación y recuperación en el cliente
+
+El cliente de Qadra envía solamente el comando tipado a `prepare`, verifica la
+identidad autora, las fuentes exactas, la administración y la cabeza observada,
+y retiene el comando con el digest recibido. No inventa una huella de captura
+final ni un instante de registro para validar la preparación. `submit` transmite
+ese mismo comando y digest y coteja la respuesta con todo el material revisado,
+la asociación inicial y el marcador de origen.
+
+Tras una respuesta incierta, la consulta exacta de revisión uno compara la
+creación con el envío retenido. Sólo un resultado coincidente permite confirmarla.
+Un 404 específico de actividad mantiene el estado incierto; no demuestra que la
+transacción haya fallado. Los rechazos de expediente, permisos e integridad se
+propagan como errores y no habilitan un reintento automático. Reenviar puede crear
+si antes no hubo commit, por lo que requiere una acción expresa y conserva las
+mismas tres identidades y digest. Cerrar el cliente invalida también una respuesta
+tardía de ausencia. La lista propia no depende del estado actual de la asociación.
 
 ## Persistencia y restauración
 

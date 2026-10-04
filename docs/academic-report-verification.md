@@ -1,5 +1,26 @@
 # Verificación de la actualización académica
 
+## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026
+
+Se actualizaron los apartados propios de implementación y pruebas: preparación y
+confirmación explícitas, fuentes históricas, lista propia, recuperación del envío
+incierto y borradores de sesión. Se documentaron 50 casos Node y 29 recorridos de
+navegador distintos, conservando los límites del transporte controlado y la
+aceptación real todavía pendiente.
+
+`make -C latex` aprobó. La inspección inicial detectó una frase histórica que
+seguía presentando el formulario como pendiente; se precisó el alcance de aquellas
+pruebas de consulta y se recompiló. El PDF final tiene **384 páginas**,
+**5977466 bytes**, SHA-256
+`c1619c840177597d80178a0d34a75ba96bfd4ae624ef6a4099716425a0dad6ea`.
+Las páginas físicas **216, 217 y 266** se inspeccionaron: legibles, sin solapes ni
+recortes, con las pruebas nuevas dentro de su apartado. Resumen, introducción,
+marco teórico, conclusiones y PDF anterior conservaron sus hashes. Persisten dos
+avisos históricos de caja horizontal y la sustitución de versalitas Times New
+Roman; no hubo glifos faltantes ni referencias indefinidas. Este PDF acumulado no
+acredita integración, despliegue o aceptación de alertas.
+
+
 ## Lectura de audiencias de recursos en Qadra: 4 de octubre de 2026
 
 Se actualizaron implementación y pruebas para el panel histórico de Agenda,

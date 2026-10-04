@@ -89,6 +89,10 @@ export function resourceHearingCreation({
     submission_digest: '8'.repeat(64),
     capture_digest: '7'.repeat(64),
   };
+  return creationBundle(hearing);
+}
+
+function creationBundle(hearing) {
   const association = {
     case_id: hearing.case_id,
     resource_id: hearing.resource_id,
@@ -107,8 +111,8 @@ export function resourceHearingCreation({
     status: 'linked',
     reason: null,
     sources: {
-      resource: clone(source),
-      act: clone(act),
+      resource: clone(hearing.sources.resource),
+      act: clone(hearing.sources.act),
       target: {
         kind: 'resource_hearing',
         record: clone(hearing),
@@ -118,7 +122,7 @@ export function resourceHearingCreation({
       operation_id: hearing.operation_id,
       action: 'link',
       expected_revision: 0,
-      expected_resource_revision: 5,
+      expected_resource_revision: hearing.expected_resource_revision,
       previous: null,
       submission_digest: '5'.repeat(64),
       capture_digest: '3'.repeat(64),
@@ -142,6 +146,83 @@ export function resourceHearingCreation({
     },
     submission_digest: hearing.submission_digest,
   };
+}
+
+export function resourceHearingCommand(value = resourceHearingCreation()) {
+  const row = value.hearing;
+  return clone({
+    case_id: row.case_id,
+    resource_id: row.resource_id,
+    operation_id: row.operation_id,
+    hearing_id: row.id,
+    association_id: row.association_id,
+    expected_resource_revision: row.expected_resource_revision,
+    resource: row.resource,
+    act: row.act,
+    values: row.values,
+  });
+}
+
+export function resourceHearingDraft(
+  command,
+  { resource, act = null, head, participants, support, actor, administration },
+) {
+  return clone({
+    command,
+    resource,
+    act,
+    sources: { support, participants },
+    recorded_by: actor,
+    observed_administration: administration,
+    observed_resource_head: head,
+    submission_digest: '8'.repeat(64),
+  });
+}
+
+export function resourceHearingPrepared(value = resourceHearingCreation()) {
+  const row = value.hearing;
+  return resourceHearingDraft(resourceHearingCommand(value), {
+    resource: row.sources.resource,
+    act: row.sources.act,
+    head: row.recorded_resource_head,
+    participants: row.sources.participants,
+    support: row.sources.support,
+    actor: row.recorded_by,
+    administration: row.recorded_administration,
+  });
+}
+
+export function resourceHearingResult(draft) {
+  const c = draft.command;
+  const times = [
+    draft.resource.recorded_at,
+    draft.act?.recorded_at,
+    draft.observed_administration.changed_at,
+  ]
+    .filter(Boolean)
+    .map(Date.parse);
+  const recordedAt = new Date(Math.max(...times) + 1000).toISOString();
+  return creationBundle(
+    clone({
+      case_id: c.case_id,
+      resource_id: c.resource_id,
+      id: c.hearing_id,
+      revision: 1,
+      operation_id: c.operation_id,
+      association_id: c.association_id,
+      expected_resource_revision: c.expected_resource_revision,
+      resource: c.resource,
+      act: c.act,
+      values: c.values,
+      sources: { resource: draft.resource, act: draft.act, ...draft.sources },
+      recorded_by: draft.recorded_by,
+      recorded_at: recordedAt,
+      recorded_administration: draft.observed_administration,
+      recorded_resource_head: draft.observed_resource_head,
+      submission_digest: draft.submission_digest,
+      capture_digest: '7'.repeat(64),
+    }),
+  );
 }
 
 export function resourceHearingOverview(value = resourceHearingCreation()) {

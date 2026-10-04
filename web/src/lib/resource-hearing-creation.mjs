@@ -7,8 +7,8 @@ import { resourceHearingRecord } from './resource-hearing-record.mjs';
 import { resourceHearingDigest as digest } from './resource-hearing-values.mjs';
 
 export function resourceHearingCreation(value, expected) {
-  object(value, ['hearing', 'association', 'origin', 'submission_digest']);
-  const row = resourceHearingRecord(value.hearing, expected.case_id, expected.resource_id);
+  resourceHearingCreationScope(value, expected.case_id, expected.resource_id);
+  const row = value.hearing;
   if (
     !same(expected, {
       case_id: row.case_id,
@@ -24,6 +24,12 @@ export function resourceHearingCreation(value, expected) {
     })
   )
     invalid('La captura no corresponde a la audiencia seleccionada en Agenda.');
+  return value;
+}
+
+export function resourceHearingCreationScope(value, caseId, resourceId) {
+  object(value, ['hearing', 'association', 'origin', 'submission_digest']);
+  const row = resourceHearingRecord(value.hearing, caseId, resourceId);
   if (
     !same(value.origin, {
       case_id: row.case_id,
@@ -101,5 +107,29 @@ export function resourceHearingCreation(value, expected) {
     invalid();
   digest(receipt.submission_digest);
   digest(receipt.capture_digest);
+  return value;
+}
+
+export function resourceHearingSubmission(value, draft) {
+  const command = draft.command;
+  resourceHearingCreationScope(value, command.case_id, command.resource_id);
+  const row = value.hearing;
+  if (
+    row.id !== command.hearing_id ||
+    row.operation_id !== command.operation_id ||
+    row.association_id !== command.association_id ||
+    row.expected_resource_revision !== command.expected_resource_revision ||
+    row.submission_digest !== draft.submission_digest ||
+    !same(row.resource, command.resource) ||
+    !same(row.act, command.act) ||
+    !same(row.values, command.values) ||
+    !same(row.recorded_by, draft.recorded_by) ||
+    !same(row.recorded_administration, draft.observed_administration) ||
+    !same(row.recorded_resource_head, draft.observed_resource_head) ||
+    !same(row.sources, { resource: draft.resource, act: draft.act, ...draft.sources })
+  )
+    invalid(
+      'La captura no corresponde al envio retenido. Conserva el comando para consultar su resultado.',
+    );
   return value;
 }

@@ -7,7 +7,10 @@ Domain values, application preparation/submission, the PostgreSQL adapter,
 initial typed association, durable origin and strict schema/inventory exist.
 Generic association DTOs support this family. Dedicated historical queries and
 their scheduling/read router are implemented locally, including server
-composition. Agenda, alerts and Qadra remain pending.
+composition. The combined agenda and its Qadra historical panel are implemented
+locally. Qadra association queries also recognize the separate hearing family;
+scheduling forms and explicit recovery are implemented locally. Alerts and
+integrated acceptance remain pending.
 Focused schema, application, PostgreSQL adapter and generic HTTP DTO checks
 passed, as did the new application and PostgreSQL read checks, the specific
 stored-integrity error for incomplete creation evidence, dedicated HTTP routes
@@ -160,7 +163,12 @@ selected summary field, including original association and capture digest. Keep
 filters, accumulated rows and continuation when closing that panel; invalidate
 pending reads when the view or query changes. The panel describes original
 association evidence without claiming its current link state. Scheduling forms
-and alerts remain part of the same functional delivery and must not manufacture
-an ordinary hearing from the draft. Generic association endpoints
+retain raw drafts and full-principal ownership, reauthorize before prepare and
+submit, require explicit acknowledgement, and preserve the exact command for
+uncertain outcomes. Recovery reads never post automatically. A missing exact
+creation remains uncertain; only explicit retry may resubmit that same command.
+The independent creation list retains history after unlinking. Alerts and full
+acceptance remain pending in this delivery; do not manufacture an ordinary
+hearing from the draft. Generic association endpoints
 continue to expose the separate `resource_hearing` record with exact evidence.
 This local implementation does not close deployment or CI.

@@ -1,5 +1,65 @@
 # Informe de verificación local
 
+## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026
+
+El cliente de preparación, envío, recuperación y listado se desarrolló con TDD.
+La primera campaña observó doce fallos por métodos ausentes y nueve casos de
+lectura ya aprobados; el listado propio tuvo cuatro fallos antes de implementarse.
+El cliente de asociaciones reprodujo por separado cuatro rechazos de la familia
+propia y un caso negativo aprobado. Tras implementar, **42/42 casos Node aprobaron
+en 1261.504 ms**, con ejecución secuencial: 25 de la API propia y 17 de asociaciones,
+incluidas sus regresiones anteriores. Se conservaron los casos previos de lectura.
+
+Las pruebas cotejan recurso y acto históricos frente a la cabeza esperada,
+soporte admitido, participante exacto, autor, administración, alcance, orden y
+cursor. Verifican que consultar un envío incierto no escribe, que un 404 específico
+mantiene incertidumbre y que un reenvío explícito conserva comando e identidades.
+Una respuesta de otro actor, captura, fuente o resultado no se confirma. El cierre
+del cliente descarta respuestas tardías. La validación del transporte conserva
+la comprobación criptográfica en el servidor.
+
+El helper de borradores añadió ocho casos con TDD: la importación ausente
+impidió ejecutarlos en el RED y después aprobaron **8/8 en 218.317 ms**. Conserva
+campos incompletos, selección e identidades del envío incierto sin restaurar una
+aprobación anterior. Comprueba identidad completa y autorización del expediente
+antes de renovar referencias; el cierre actual se transmite explícitamente.
+Cambio de cuenta, correo o rol, pérdida de admisión y respuestas tardías impiden
+restaurar el material. Un 404 durante recuperación no borra el envío retenido.
+Estos ocho casos son adicionales a los 42 anteriores.
+
+El navegador reprodujo primero la ausencia del panel y del formulario, antes de
+implementar. Durante su conexión aparecieron dos datos simulados incompatibles
+con el contrato: un autor sin UUID y una ficha manual sin `subject: null`. Se
+corrigieron las fixtures, conservando los validadores. Una regresión adicional
+reprodujo que el segundo intento de restauración omitía leer la fuente exacta
+(una consulta observada frente a dos esperadas, 4.6 s). La implementación repite
+esa validación antes de desbloquear, aunque vuelva a fallar temporalmente.
+
+Aprobaron **16 casos nuevos de navegador**, con un worker y HTTP controlado: doce
+quedaron verdes en la campaña parcial de 38.5 s y los cuatro restantes aprobaron
+en 17.8 s tras corregir la fixture de participante. Cubren escritorio de 1440
+píxeles y móvil de 390, recurso y acto históricos, participantes, soporte y base
+obligatorios, comparación explícita de cabeza, respuesta perdida, desvinculación,
+reenvío idéntico solicitado y conservación del borrador en la misma sesión
+reautenticada. Cambio de cuenta, logout, denegación, cierre y archivo conservan
+sus restricciones. El segundo fallo de una fuente mantiene el formulario
+bloqueado; sólo una lectura posterior válida permite retomarlo sin POST.
+
+Las **13 regresiones de Agenda y actividades aprobaron en 32.7 s**. Son 29 casos
+de navegador distintos y 50 Node en este incremento. El resultado es focal y con
+transporte controlado: todavía faltan alertas, aceptación propia con servicios
+reales y restauración, CI global e integración. No se repitieron las suites
+anteriores de Rust o PostgreSQL.
+
+La compilación Web aprobó en **3.25 s**. Las capturas de revisión y creación en
+ambas anchuras se inspeccionaron sin desbordamiento horizontal ni solapes. Se
+repitieron sólo esos dos positivos para quitar el foco y volver al inicio antes
+de capturar (2/2 en 12.6 s); no se suman al inventario. Se conserva el aviso de
+bundle superior a 500 kB, sin cambiar su umbral. Formato, ASCII, límite de líneas y
+comprobación del diff aprobaron; 33 archivos Web revisados, con máximo de 360
+líneas. Las fuentes académicas protegidas y el PDF anterior se conservaron.
+
+
 ## Agenda Qadra para audiencias de recursos: 4 de octubre de 2026
 
 El RED focal del cliente observó dos rechazos de páginas válidas de la tercera

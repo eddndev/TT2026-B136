@@ -96,8 +96,9 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   Esta ampliación aún no está integrada ni desplegada;
   la consulta de agenda incorpora localmente esta tercera familia, sin cambiar
   los filtros ordinarios. Qadra añade lectura histórica exacta desde esa agenda,
-  conservando filtros y continuación. Programación en Qadra, alertas y aceptación
-  integrada del recorrido siguen pendientes. Véase el
+  conservando filtros y continuación. El formulario local prepara una revisión
+  explícita, conserva fuentes históricas y recupera envíos inciertos con consulta
+  exacta y reenvío solicitado. Alertas y aceptación integrada siguen pendientes. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
@@ -995,8 +996,9 @@ durable de sus términos. El backend, el DTO de asociación, las consultas propi
 y el router de programación tienen implementación local según su
 [contrato](resource-hearings.md), incluida su composición de servidor; su aceptación
 integrada sigue pendiente, aún sin integración ni despliegue. Las pruebas focales
-de lecturas de aplicación y PostgreSQL ya aprobaron; el rechazo tipado de evidencia
-incompleta y las rutas propias siguen en validación. Los resultados del corte se
+de lecturas de aplicación y PostgreSQL, evidencia incompleta y rutas propias ya
+aprobaron. Qadra incorpora programación explícita y recuperación del borrador;
+las alertas y la aceptación real completa todavía no se acreditan. Los resultados del corte se
 conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
