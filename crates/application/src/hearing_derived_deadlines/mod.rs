@@ -3,7 +3,10 @@
 //! No source capture or deadline receipt is fabricated during preparation.
 //! See docs/adr/0070-prospective-hearing-derived-deadlines.md.
 mod canonical;
+mod capture;
+mod finalization;
 mod preparation;
+mod recorded_source;
 
 use crate::{
     deadline_evaluations::ProfiledDeadlineEvaluation,
@@ -16,6 +19,8 @@ use crate::{
 };
 use domain::crypto::Sha256Digest;
 
+pub use capture::{hearing_derived_deadline_capture_bytes, HearingDerivedDeadlineCreation};
+pub use finalization::finalize_hearing_derived_deadline;
 pub use preparation::prepare_hearing_derived_deadline;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

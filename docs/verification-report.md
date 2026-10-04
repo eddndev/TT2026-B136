@@ -1,5 +1,32 @@
 # Informe de verificación local
 
+## Captura definitiva del plazo derivado: 4 de octubre de 2026
+
+La aplicación valida que el resultado capturado y su evento exacto correspondan
+a la instrucción revisada. A partir de ese resultado construye el plazo con el
+camino tracked existente y conserva el cálculo aprobado. El compromiso HRDC1
+vincula la revisión, evento, recibos y hora definitiva; no modifica HRES ni los
+recibos históricos. Esta comprobación todavía no acredita una escritura SQL.
+
+TDD focal: la primera ejecución falló porque no existía el finalizador. Después
+aprobaron **8/8** casos. Una revisión detectó que el año local podía estar dentro
+del rango permitido y excederlo en UTC; se reprodujo el rechazo ausente con un
+instante del año 9999 y offset negativo, y se corrigió conservando el offset.
+El grupo final aprobó en **0.02 s**, con compilación de **3.55 s**. Las matrices
+rechazan once sustituciones de fuente con recibo válido, cinco corrupciones y
+once alteraciones del evento; incluyen identidad, operación, autor, ámbito,
+administración, proyecciones, offset, revisión y límites de secuencia. Dos
+capturas con hora diferente conservan la revisión pero producen compromisos
+definitivos distintos. Una evaluación bloqueada conserva su explicación y no
+adquiere fecha operativa. Son fixtures de aplicación, no inserciones reales.
+
+Clippy focal con `-D warnings` aprobó en **3.91 s**. Se usaron un compilador,
+un hilo y `TMPDIR` privado sobre disco; el checker de inventario aprobó los
+257 ejecutables. No se repitieron las suites previas de preparación ni la
+regresión completa, y no se iniciaron servicios ni una compilación del PDF.
+La transacción, origen durable, conciliación, concurrencia, rollback y aceptación
+HTTP/Qadra siguen pendientes dentro de la misma entrega.
+
 ## Preparación prospectiva de resultado y plazo derivado: 4 de octubre de 2026
 
 La aplicación prepara un resultado ordinario nuevo y una consecuencia configurada

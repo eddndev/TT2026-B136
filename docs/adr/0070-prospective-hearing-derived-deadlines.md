@@ -4,7 +4,8 @@
 
 Proposed.
 
-Application-only preparation has focused verification. The complete compound
+Application-only preparation and final capture have focused verification.
+The complete compound
 workflow is not yet implemented: atomic storage of the result and deadline,
 durable origin and replay, HTTP and Qadra integration remain pending. This
 record establishes the proposed boundary; it asserts no successful acceptance,
@@ -86,9 +87,9 @@ It contains no invented persisted timestamp. A change to these choices must not
 reuse the old approval. Existing HRES1/result receipt and deadline encodings
 retain their meanings.
 
-### Final capture and transaction remain to be implemented
+### Final capture and pending transaction
 
-The future confirmation must require both ManageHearingResult and ManageDeadline,
+The storage confirmation must require both ManageHearingResult and ManageDeadline,
 reauthenticate the same actor and revalidate membership, active case,
 responsible and reviewed dependencies under the common audit lock. Preparation
 alone neither authorizes a later write nor reserves a source revision.
@@ -100,6 +101,22 @@ calculation again. The final deadline receipt must bind the actual result detail
 a new compound receipt and immutable origin must link that final capture to the
 approved prospective instruction. The review digest is not falsely presented as
 the final deadline receipt.
+
+`finalize_hearing_derived_deadline` implements this final calculation boundary in
+the application layer. It rejects a result that differs from the reviewed
+instruction, including author, administration, exact projections and offsets,
+and requires an event reference matching that result's R1 and operation. It
+constructs the ordinary tracked deadline from the supplied actual source and
+compares the full calculation with the prospective review. Its immutable
+`HearingDerivedDeadlineCreation` contains an HRDC1 commitment to that review,
+the exact event, both ordinary receipts and the real capture time. Full result
+evidence remains bound through the verified deadline capture. No HRES field or
+historical deadline encoding changes.
+
+This function neither writes to storage nor proves that the supplied event
+exists in a database. The adapter must establish those facts in the transaction.
+It is confirmation logic; historical origin reads must verify captured evidence
+without invoking it to recalculate or overwrite the original calculation.
 
 Use the result's existing source event from
 [the source-event migration](../../migrations/0015_deadline_source_events.sql).
