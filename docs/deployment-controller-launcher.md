@@ -53,7 +53,10 @@ argumento posicional; release, renew_crl y controller_installation utilizan
 para esa operación. El [bootstrap del instalador](deployment-controller-bootstrap.md)
 usa dos raíces: la del launcher fija el código privado; la del instalador, tras
 `--`, identifica el despliegue. Su candidato `sources` permanece separado de
-`bootstrap/tools`. La CLI del núcleo instalador sigue bajo aceptación.
+`bootstrap/tools`. La CLI del instalador tiene aceptación local y un ensayo
+nativo con servicios desechables. Esa evidencia no acredita instalación ni
+reapertura del producto en VPS3; véase el
+[contrato de instalación](deployment-controller-installation.md).
 
 ## Admisión por descriptor
 
