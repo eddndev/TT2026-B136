@@ -7951,6 +7951,56 @@ utilizables. Se comprobó la ausencia de procesos de pruebas, compilación y
 navegador de la campaña en los tres VPS antes de publicar la corrección.
 
 
+## Creacion atomica de resultado de audiencia y consecuencia configurada
+
+El 4 de octubre de 2026 se verificaron el servicio de aplicacion y el adaptador
+PostgreSQL de la instruccion compuesta. El resultado ordinario, su evento ya
+emitido por la base, el plazo configurado, el origen y las tres auditorias de
+creacion se confirman en una sola transaccion. La admision del soporte ocurre
+antes de adquirir el lock de confirmacion; dentro de este se revalidan autoridad,
+entradas exactas y registros cifrados admitidos. El reloj real del resultado se
+conserva en el plazo y la auditoria compuesta.
+
+- TDD: las primeras pruebas de servicio y adaptador fallaron porque las APIs no
+  existian. La capa de aplicacion aprobo **13/13** casos nuevos en **0.03 s**, con
+  **8.51 s** de compilacion: preparacion, reautenticacion, rechazo de soporte,
+  permisos, digest de revision, respuesta de commit y recuperacion historica.
+- PostgreSQL nativo **16.15**, desechable, con autenticacion SCRAM, loopback y
+  temporales privados sobre disco: **8 casos nuevos aprobados**. Seis aprobaron
+  en la primera ejecucion funcional; el caso de revocacion requirio corregir su
+  fixture para incrementar revision/generacion y conservar otro Owner activo.
+  Ese caso aprobo despues aisladamente en **4.25 s**. No se desactivaron los
+  guards ni se repitieron los seis casos ya aprobados. El octavo caso comprobo
+  recuperacion tras retirar la revision vigente del perfil, en **5.60 s**.
+- Los casos PostgreSQL cubren una sola pareja y evento tras reiniciar el store,
+  solicitudes simultaneas, rollback de todos los registros al fallar auditoria
+  u origen, rechazo de componentes ordinarios sin origen compuesto, instrucciones
+  distintas con una operacion reutilizada y revocacion real de autoridad. Otro
+  plazo manual sobre la misma fuente sigue permitido.
+- Por la extraccion de admision y escritura ordinarias se ejecutaron **25/25**
+  regresiones de aplicacion en **0.01 s** y **2/2** de PostgreSQL en **5.73 s**.
+  Incluyen historia, correccion y retiro del resultado ordinario. No se repitio
+  la regresion general del repositorio.
+- Clippy focal aprobo con advertencias denegadas en **12.20 s** para ambos
+  targets; la prueba adicional de recuperacion historica se comprobo despues
+  con Clippy en **0.56 s**. Formato, ASCII, longitud e inventario de los
+  **257 ejecutables** aprobaron.
+- Dos revisiones focales independientes no encontraron problemas accionables en
+  los enlaces de transaccion, autorizacion, captura temporal y recuperacion.
+  Fueron revisiones de lectura, separadas de las ejecuciones anteriores.
+
+Se preservan los bytes originales y la autoria capturada en la recuperacion;
+no se recalcula una captura historica con el perfil actual. Todas las pruebas
+locales usaron un compilador y un hilo del runner; la prueba de concurrencia
+lanzo explicitamente dos solicitudes coordinadas para comprobar el contrato.
+Los clusters PostgreSQL propios se detuvieron y retiraron al concluir.
+
+HTTP, Qadra y la aceptacion completa de restauracion siguen pendientes en esta
+misma entrega. Esta incorporacion interna no esta integrada en main ni desplegada,
+no acredita una nueva cobertura global y no sustituye el PDF aceptado. El ADR
+conserva el estado Proposed hasta cerrar la entrega funcional completa.
+
+
 ## Lectura de audiencias propias durante la recuperacion de recursos
 
 El 4 de octubre de 2026, el navegador simulado rechazo tres consultas GET de

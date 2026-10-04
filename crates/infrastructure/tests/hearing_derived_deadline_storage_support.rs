@@ -18,7 +18,7 @@ use domain::{
 use infrastructure::{PostgresDeadlineStore, RingSha256Hasher};
 use std::sync::Arc;
 
-pub fn record(db: &mut Fixture) -> HearingDerivedDeadlineRecord {
+pub fn draft(db: &mut Fixture) -> HearingDerivedDeadlineDraft {
     hearings::complete(db);
     let hearing = hearings::persist(
         &hearings::service(db, db.owner, Role::Owner),
@@ -102,7 +102,7 @@ pub fn record(db: &mut Fixture) -> HearingDerivedDeadlineRecord {
         }),
     )
     .unwrap();
-    let draft = prepare_hearing_derived_deadline(
+    prepare_hearing_derived_deadline(
         &RingSha256Hasher,
         &actor,
         db.case,
@@ -124,7 +124,15 @@ pub fn record(db: &mut Fixture) -> HearingDerivedDeadlineRecord {
         },
         db.at,
     )
-    .unwrap();
+    .unwrap()
+}
+
+pub fn record(db: &mut Fixture) -> HearingDerivedDeadlineRecord {
+    let draft = draft(db);
+    let actor = draft.actor().clone();
+    let result_command = draft.command().result.clone();
+    let deadline_command = draft.command().deadline.clone();
+    let result_service = results::service(db, db.owner, Role::Owner);
     let result = results::persist(&result_service, db.case, result_command);
     let sequence:i64=db.admin.query_one("SELECT sequence FROM deadline_source_events WHERE source_kind='hearing_result' AND source_id=$1 AND revision=1",&[&result.snapshot.id.as_uuid()]).unwrap().get(0);
     let event = SourceEventReference {

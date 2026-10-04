@@ -4,7 +4,7 @@ use domain::audit::{chain_digest, GENESIS_PREVIOUS};
 use domain::crypto::Sha256Digest;
 use postgres::{Client, Transaction};
 
-const BOUNDS: &str = "octet_length(actor_email)<=1280 AND octet_length(actor_role)<=32
+pub(crate) const BOUNDS: &str = "octet_length(actor_email)<=1280 AND octet_length(actor_role)<=32
     AND octet_length(review_canonical) BETWEEN 5 AND 1048576
     AND octet_length(capture_canonical) BETWEEN 457 AND 5808
     AND octet_length(review_digest)=32 AND octet_length(capture_digest)=32";
@@ -63,7 +63,7 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
     tx.commit().map_err(port)
 }
 
-fn verify_audit(
+pub(crate) fn verify_audit(
     tx: &mut Transaction<'_>,
     sequence: i64,
     record: &HearingDerivedDeadlineRecord,

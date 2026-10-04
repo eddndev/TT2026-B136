@@ -6,7 +6,7 @@ use domain::{
 };
 use postgres::Transaction;
 
-pub(super) fn actor(
+pub(crate) fn actor(
     tx: &mut Transaction<'_>,
     id: UserId,
     write: bool,
@@ -22,7 +22,7 @@ pub(super) fn actor(
     }
     Ok(principal)
 }
-pub(super) fn scope(
+pub(crate) fn scope(
     tx: &mut Transaction<'_>,
     principal: &Principal,
     case: CaseId,
@@ -39,7 +39,7 @@ pub(super) fn scope(
     visible.ok_or(ApplicationError::CaseNotFound)?;
     Ok(())
 }
-pub(super) fn authorize(
+pub(crate) fn authorize(
     tx: &mut Transaction<'_>,
     id: UserId,
     case: CaseId,

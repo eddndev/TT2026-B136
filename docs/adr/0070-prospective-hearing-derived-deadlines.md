@@ -4,13 +4,12 @@
 
 Proposed.
 
-Application preparation, final capture, historical evidence restoration and the
-PostgreSQL origin schema have focused verification. The complete compound
-workflow is not yet implemented: atomic creation of the result and deadline,
-durable replay, HTTP and Qadra integration remain pending. This
-record establishes the proposed boundary; it asserts no successful acceptance,
-performance result or deployment. It remains proposed until the complete
-workflow and its evidence can be reviewed.
+Application preparation, final capture, historical restoration, the PostgreSQL
+origin schema and atomic repository/service have focused verification. HTTP,
+Qadra and complete restore acceptance remain pending. This record establishes
+the delivery boundary; it asserts no complete acceptance, performance result or
+deployment. It remains proposed until the complete workflow and its evidence
+can be reviewed.
 
 ## Context
 
@@ -87,7 +86,7 @@ It contains no invented persisted timestamp. A change to these choices must not
 reuse the old approval. Existing HRES1/result receipt and deadline encodings
 retain their meanings.
 
-### Final capture and pending transaction
+### Final capture and atomic transaction
 
 The storage confirmation must require both ManageHearingResult and ManageDeadline,
 reauthenticate the same actor and revalidate membership, active case,
@@ -153,7 +152,30 @@ changed columns, constraints, indexes, functions, triggers or elevated grants,
 including authority reachable through transitive NOINHERIT roles. A fixture
 which seeds consistent ordinary records and an origin proves this storage
 boundary only; it does not prove atomic creation or authorize adoption of those
-ordinary records by the future compound service.
+ordinary records by the compound service.
+
+The [compound service](../../crates/application/src/hearing_derived_deadlines/service.rs)
+requires both permissions and reauthenticates after support admission. The shared
+ordinary-result admission helper decrypts and validates exact support only after
+the preparation transaction releases its locks. An opaque prepared instruction
+retains both that admitted result and the immutable prospective review.
+
+The [PostgreSQL adapter](../../crates/infrastructure/src/hearing_derived_deadline_postgres/commit.rs)
+reauthorizes under the common audit lock, re-resolves the reviewed inputs and
+compares the admitted encrypted records. It invokes the ordinary result writer
+inside that transaction, resolves the exact emitted event, confirms the ordinary
+tracked deadline calculation, and inserts the deadline and origin with all three
+creation audit entries. The final result clock supplies the deadline and compound
+audit timestamps. A failure in either audit or origin insertion rolls back the
+whole creation. The ordinary result-only workflow uses the same inner writer.
+
+Authorized replay checks bounded identity projections before loading captured
+bytes and verifies the original component receipts, canonical evidence and audit
+chain. It compares the incoming instruction against the original review without
+resolving current dependency heads or rerunning arithmetic. Preparation returns
+an explicit ready draft or an existing record; a historical record is never
+presented as a newly evaluated draft. Concurrent identical submissions serialize
+under the existing lock and return the same immutable origin.
 
 Use the result's existing source event from
 [the source-event migration](../../migrations/0015_deadline_source_events.sql).
@@ -188,7 +210,7 @@ creation worker or invented technical author is required for this bounded action
 
 The design permits reviewing a calculation before its source has a recording
 time while preserving full evidence in the eventual persistent deadline. It
-requires a new prospective commitment and a later transaction-aware adapter;
+requires a prospective commitment and a transaction-aware adapter;
 joining two successful ordinary operations is not proof of atomic creation.
 
 Application tests must distinguish absent persisted source from an actual source,

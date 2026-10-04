@@ -60,3 +60,12 @@ mod hearing_derived_deadline_history_rejections;
 mod hearing_derived_deadline_rejections;
 #[path = "../hearing_derived_deadline_review.rs"]
 mod hearing_derived_deadline_review;
+
+#[path = "../hearing_derived_deadline_workflow.rs"]
+mod hearing_derived_deadline_workflow;
+#[allow(dead_code)]
+#[path = "../hearing_derived_deadline_workflow_support/mod.rs"]
+mod hearing_derived_deadline_workflow_support;
+
+#[path = "../hearing_derived_deadline_workflow_boundaries.rs"]
+mod hearing_derived_deadline_workflow_boundaries;

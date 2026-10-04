@@ -1,18 +1,14 @@
-use super::validation::validate_preparation;
 use super::validation_receipt::inconsistent;
 use super::*;
 use crate::{
-    case_stages::StageSupportSnapshot,
-    documents::{
-        DocumentFormatBatchValidator, DocumentProcessor, StageFormatPolicy, StageSupportReadLimits,
-    },
+    documents::{DocumentFormatBatchValidator, DocumentProcessor, StageSupportReadLimits},
     identity::IdentityWorkflow,
     ApplicationError,
 };
 use domain::{
     cases::CaseId,
     clock::Clock,
-    crypto::{DocumentHasher, DocumentVersionRef, Sha256Digest},
+    crypto::{DocumentHasher, Sha256Digest},
     identity::{Permission, UserId},
 };
 use std::sync::Arc;
@@ -68,49 +64,15 @@ impl HearingResultService {
         command: HearingResultCommand,
     ) -> Result<PreparedHearingResultChange, ApplicationError> {
         command.result_revision()?;
-        let mut preparation = self.store.prepare(actor, case_id, &command, &self.limits)?;
-        let values =
-            validate_preparation(self.hasher.as_ref(), case_id, &command, &mut preparation)?;
-        if command.action() != HearingResultAction::Withdraw
-            && values.event_time().lower_bound() > self.clock.now()
-        {
-            return Err(HearingResultError::FutureTime.into());
+        let preparation = self.store.prepare(actor, case_id, &command, &self.limits)?;
+        HearingResultAdmission {
+            processor: self.processor.as_ref(),
+            validator: self.validator.as_ref(),
+            hasher: self.hasher.as_ref(),
+            clock: self.clock.as_ref(),
+            limits: &self.limits,
         }
-        let formats = if preparation.records.is_empty() {
-            vec![]
-        } else {
-            self.processor.validate_support_batch(
-                &preparation.records,
-                &self.limits,
-                self.validator.as_ref(),
-            )?
-        };
-        let values_digest = hearing_result_values_digest(self.hasher.as_ref(), &values);
-        let anchor = HearingResultAnchorSnapshot::from(&preparation.anchor).reference;
-        let continuation = preparation
-            .continuation
-            .as_ref()
-            .map(HearingResultContinuationSnapshot::from)
-            .map(|p| p.reference);
-        let submission_digest = hearing_result_submission_digest(
-            self.hasher.as_ref(),
-            actor,
-            case_id,
-            &command,
-            &anchor,
-            continuation.as_ref(),
-            values_digest,
-        );
-        Ok(PreparedHearingResultChange {
-            command,
-            preparation,
-            values,
-            formats,
-            values_digest,
-            submission_digest,
-            anchor,
-            continuation,
-        })
+        .prepare(actor, case_id, command, preparation)
     }
     pub(super) fn prepare_command(
         &self,
@@ -121,25 +83,7 @@ impl HearingResultService {
         let actor = self.actor(token, Permission::ManageHearingResult)?;
         let prepared = self.prepared(actor, case_id, command)?;
         self.same_actor(token, actor)?;
-        let support = prepared_support(&prepared)?;
-        Ok(HearingResultDraft {
-            case_id,
-            actor,
-            result_revision: prepared.command.result_revision()?,
-            command: prepared.command,
-            values: prepared.values,
-            values_digest: prepared.values_digest,
-            submission_digest: prepared.submission_digest,
-            anchor: HearingResultAnchorSnapshot::from(&prepared.preparation.anchor),
-            continuation: prepared
-                .preparation
-                .continuation
-                .as_ref()
-                .map(HearingResultContinuationSnapshot::from),
-            observed_administration: prepared.preparation.administration,
-            attendees: prepared.preparation.attendees,
-            support,
-        })
+        draft_from_prepared(actor, &prepared)
     }
     pub(super) fn submit_command(
         &self,
@@ -172,35 +116,7 @@ impl HearingResultService {
         Ok(result)
     }
 }
-fn prepared_support(
-    prepared: &PreparedHearingResultChange,
-) -> Result<Option<StageSupportSnapshot>, ApplicationError> {
-    if prepared.command.action() == HearingResultAction::Withdraw {
-        return Ok(prepared
-            .preparation
-            .base
-            .as_ref()
-            .and_then(|base| base.support.clone()));
-    }
-    match (
-        prepared.preparation.records.as_slice(),
-        prepared.formats.as_slice(),
-    ) {
-        ([], []) => Ok(None),
-        ([record], [format]) => Ok(Some(StageSupportSnapshot {
-            reference: DocumentVersionRef {
-                id: record.id,
-                version: record.version,
-            },
-            digest: record.digest,
-            name: record.name.clone(),
-            format: *format,
-            policy: StageFormatPolicy::PdfDocxV1,
-        })),
-        _ => Err(inconsistent("admitted support projection count differs")),
-    }
-}
-pub(super) fn support_error(error: ApplicationError) -> ApplicationError {
+pub(crate) fn support_error(error: ApplicationError) -> ApplicationError {
     match error {
         ApplicationError::StageSupportTooLarge => HearingResultError::SupportTooLarge.into(),
         ApplicationError::StageSupportFormatRejected => {

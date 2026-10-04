@@ -7,8 +7,11 @@ mod capture;
 mod finalization;
 mod history;
 mod history_validation;
+mod port;
 mod preparation;
+mod prepared;
 mod recorded_source;
+mod service;
 
 use crate::{
     deadline_evaluations::ProfiledDeadlineEvaluation,
@@ -26,7 +29,10 @@ pub use finalization::finalize_hearing_derived_deadline;
 pub use history::{
     restore_hearing_derived_deadline, HearingDerivedDeadlineEvidence, HearingDerivedDeadlineRecord,
 };
+pub use port::*;
 pub use preparation::prepare_hearing_derived_deadline;
+pub use prepared::PreparedHearingDerivedDeadline;
+pub use service::HearingDerivedDeadlineService;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HearingDerivedDeadlineCommand {

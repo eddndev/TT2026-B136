@@ -170,3 +170,6 @@ pub use resource_hearing_postgres::PostgresResourceHearingStore;
 mod resource_hearing_schema;
 
 mod hearing_derived_deadline_schema;
+
+mod hearing_derived_deadline_postgres;
+pub use hearing_derived_deadline_postgres::PostgresHearingDerivedDeadlineStore;

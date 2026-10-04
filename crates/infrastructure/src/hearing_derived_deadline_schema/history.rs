@@ -13,7 +13,7 @@ use postgres::{Row, Transaction};
 
 /// Rebuild only the exact captured revisions. Current roles and dependency heads
 /// never replace the authority or evidence bound by the original review.
-pub(super) fn restore(
+pub(crate) fn restore(
     tx: &mut Transaction<'_>,
     row: &Row,
 ) -> Result<HearingDerivedDeadlineRecord, ApplicationError> {
@@ -130,7 +130,7 @@ pub(super) fn restore(
     Ok(record)
 }
 
-fn event(
+pub(crate) fn event(
     tx: &mut Transaction<'_>,
     sequence: i64,
 ) -> Result<SourceEventReference, ApplicationError> {
