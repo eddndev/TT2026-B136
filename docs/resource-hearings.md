@@ -12,8 +12,10 @@ incluida su composición en `serve`.
 
 La agenda incorpora localmente esta familia bajo `kind=resource_hearing`, con
 su identidad y origen verificados y orden independiente de audiencias ordinarias
-y plazos. Su contrato está en [agenda](agenda-api.md). Alertas, Qadra y aceptación
-integrada de agenda siguen pendientes dentro de esta entrega. Las pruebas
+y plazos. Su contrato está en [agenda](agenda-api.md). Qadra incorpora el filtro,
+la tarjeta y una lectura exacta histórica dentro de Agenda. La programación
+desde Qadra, las alertas y la aceptación integrada siguen pendientes dentro de
+esta entrega. Las pruebas
 focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
 al final están aprobadas, incluido el rechazo tipado de evidencia persistida
 incompleta, las rutas propias y su composición. No se atribuyen aceptación
@@ -23,6 +25,28 @@ La decisión está en [ADR-0069](adr/0069-resource-hearing-scheduling.md). Este
 contrato complementa los [recursos](procedural-resources-api.md) y sus
 [asociaciones con actividades](resource-activities-api.md), sin modificar la
 programación ordinaria ni el formato `HEAR1`.
+
+## Consulta histórica desde Agenda
+
+La tarjeta **Audiencia de recurso** abre un panel dentro de Agenda. Conserva los
+filtros, las filas acumuladas y la continuación pendiente al abrirlo y cerrarlo.
+La apertura consulta primero la administración autorizada del expediente y luego
+la revisión exacta por la ruta propia descrita abajo. La selección liga
+expediente, recurso, audiencia, revisión, tipo, horario, modalidad, cantidad de
+participantes, asociación y digest; no inventa la revisión actual del recurso.
+
+El panel presenta el señalamiento declarado, su soporte admitido, los
+participantes históricos y las fuentes exactas del recurso y del acto opcional.
+Distingue esas capturas de la cabeza observada al registrar. Conserva autor,
+fecha, operación y asociación inicial. Esa asociación original no demuestra que
+el vínculo permanezca activo; el detalle tampoco ofrece cancelación o
+reprogramación de una audiencia ordinaria.
+
+Actualizar Agenda, cambiar filtros, abandonar la vista o terminar la sesión
+invalida una lectura pendiente. Un rechazo de acceso al expediente retira sus
+filas. El cierre administrativo o archivo del recurso no reemplaza las fuentes
+históricas ni impide consultar la evidencia conservada si el lector mantiene
+permiso actual. Esta apertura sólo ejecuta consultas; no reenvía una creación.
 
 ## Clasificación declarada y fuente normativa
 

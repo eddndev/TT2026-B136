@@ -97,3 +97,18 @@ errores generales de saturación y almacenamiento de [la API HTTP](http-api.md).
 La decisión y límites de implementación están en
 [ADR-0038](adr/0038-authorized-combined-agenda.md). Las vistas de Qadra sólo
 transforman el intervalo y su presentación; no activan términos ni envían avisos.
+
+## Lectura de audiencias propias en Qadra
+
+El filtro **Audiencias de recursos** conserva su familia `resource_hearing`.
+Al seleccionarlo desde el estado Canceladas, la interfaz restablece el filtro
+válido de consulta; la familia no tiene un estado de cancelación ordinaria.
+La combinación general con Canceladas sigue excluyendo esta familia y conserva
+los plazos y las audiencias ordinarias canceladas elegibles.
+
+Abrir una tarjeta propia mantiene Agenda y carga su revisión exacta dentro de un
+panel histórico. Consulta antes la administración autorizada del expediente y
+coteja todos los campos del resumen con la creación devuelta, incluido el vínculo
+original y su origen. No usa una ruta de audiencia ordinaria ni de plazo. Cerrar
+el panel conserva filtros, filas y cursor; actualizar o cambiar el contexto
+descarta respuestas tardías. Véase [el detalle propio](resource-hearings.md).

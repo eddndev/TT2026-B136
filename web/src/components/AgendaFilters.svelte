@@ -25,7 +25,10 @@
     draft = {
       ...draft,
       kind,
-      hearing_status: kind === 'deadline' ? 'scheduled' : draft.hearing_status,
+      hearing_status:
+        kind === 'deadline' || (kind === 'resource_hearing' && draft.hearing_status === 'cancelled')
+          ? 'scheduled'
+          : draft.hearing_status,
     };
   }
 </script>
@@ -90,6 +93,7 @@
           <option value="all">Audiencias y plazos</option><option value="hearing">Audiencias</option
           >
           <option value="deadline">Plazos</option>
+          <option value="resource_hearing">Audiencias de recursos</option>
         </select></label
       >
       <label
@@ -97,8 +101,8 @@
           bind:value={draft.hearing_status}
           disabled={draft.kind === 'deadline'}
         >
-          <option value="scheduled">Programadas</option><option value="cancelled">Canceladas</option
-          >
+          <option value="scheduled">Programadas</option>
+          {#if draft.kind !== 'resource_hearing'}<option value="cancelled">Canceladas</option>{/if}
           <option value="all">Todas</option>
         </select></label
       >
@@ -106,7 +110,7 @@
     <p class="hint">
       El periodo empieza a las 00:00 en el desfase indicado y excluye el inicio del d&#237;a final.
       Las semanas empiezan el lunes. M&#225;ximo 366 d&#237;as; el estado s&#243;lo filtra
-      audiencias.
+      audiencias ordinarias. Las audiencias de recurso no tienen un estado de cancelaci&#243;n.
     </p>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="action-row agenda-period-actions">

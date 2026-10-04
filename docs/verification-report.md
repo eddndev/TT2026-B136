@@ -1,5 +1,48 @@
 # Informe de verificación local
 
+## Agenda Qadra para audiencias de recursos: 4 de octubre de 2026
+
+El RED focal del cliente observó dos rechazos de páginas válidas de la tercera
+familia y la ausencia del módulo de lectura exacta; diez casos previos o de rechazo
+ya aprobaban. La importación faltante impidió ejecutar entonces los diez casos del
+nuevo cliente de forma individual. Tras implementar, los **22 casos Node aprobaron
+en 473.128 ms**: ocho anteriores de agenda, cuatro nuevos de agenda y diez del
+cliente. Se ejecutaron secuencialmente con Node 22.22.2.
+
+La lectura coteja los diez campos del resumen y las correspondencias estructurales
+entre captura, origen y asociación inicial, incluyendo autor, fecha con precisión
+de nanosegundos, administración, cabeza y fuentes exactas. Rechaza DTO alterado,
+selección ajena, soporte distinto, participantes desordenados o incoherentes y
+respuestas tardías tras cerrar el cliente. Admite los dos tipos declarados y los
+límites cero y 32 participantes. Esta comprobación del transporte no recalcula
+los cánones criptográficos que verifica el servidor.
+
+El navegador reprodujo primero la ausencia de la tarjeta propia; se detuvo en
+ese fallo y dejó ocho casos nuevos sin ejecutar. La campaña posterior aprobó
+**17/17 en 33.3 s**, con un worker y HTTP controlado: nueve nuevos y ocho anteriores
+de agenda. Incluye escritorio de 1440 píxeles y móvil de 390, tres familias con
+el mismo UUID, fuentes históricas exactas, filtro propio, consulta cancelada mixta,
+continuación parcial, expediente cerrado y revocación antes de leer el detalle.
+Las respuestas retenidas no reaparecieron después de actualizar, cambiar filtros,
+abandonar Agenda o cerrar sesión. La consulta exacta sólo usó GET y no abrió las
+rutas de audiencia ordinaria o plazo.
+
+La compilación web aprobó en **2.90 s**, con el aviso de paquete minificado mayor
+a 500 kB; no se modificó su umbral. La revisión visual ajustó únicamente el
+encuadre de las capturas: se quitó el foco y se volvió al inicio antes de exportar,
+sin cambiar producto, assertions o timeouts. Se repitieron sólo los dos casos de
+captura de escritorio y móvil (**2/2 en 10.3 s**), conservando la campaña de
+17 casos anterior como regresión funcional. Ambas imágenes se inspeccionaron
+legibles, sin superposiciones ni desbordamiento horizontal. Formato, ASCII,
+límite de archivos y comprobación de diferencias aprobaron.
+
+La evidencia de navegador es con HTTP controlado, sin una nueva campaña de
+servicios reales, restauración o cobertura global. El formulario de programación
+y las alertas propias permanecen pendientes; este incremento local no acredita
+su integración o instalación. Las comprobaciones previas de Rust y PostgreSQL
+conservan su alcance histórico y no se repitieron por esta interfaz.
+
+
 ## Audiencias propias en agenda: 3 de octubre de 2026
 
 Implementación local, sin integrar ni desplegar. La consulta añade la familia

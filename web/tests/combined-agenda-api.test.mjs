@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { combinedAgendaApi } from '../src/lib/combined-agenda-api.mjs';
 import { hearingRow } from './fixtures/hearings.mjs';
 import { summary, v2Record, timedPrepared, clone } from './fixtures/deadline-v2-unit.mjs';
+import { resourceHearingAgendaItem } from './fixtures/resource-hearing-unit.mjs';
 
 const query = { from: '2026-01-01T00:00:00Z', until: '2026-01-03T00:00:00Z' };
 const instant = (seconds, nanosecond = 0) => ({
@@ -201,4 +202,108 @@ test('disposing the agenda invalidates delayed results and future requests', asy
   release(page());
   await assert.rejects(pending);
   await assert.rejects(api.list(query));
+});
+
+test('resource hearings are a third family with their own exact overview and no invented status', async () => {
+  for (const kind of ['all', 'resource_hearing']) {
+    for (const hearing_status of ['scheduled', 'all']) {
+      const value = page();
+      value.kind = kind;
+      value.hearing_status = hearing_status;
+      value.items = [resourceHearingAgendaItem(undefined, 'closed')];
+      const { api, calls } = client(value);
+      assert.deepEqual(await api.list({ ...query, kind, hearing_status }), value);
+      assert.equal(new URL(calls[0], 'https://local.test').searchParams.get('kind'), kind);
+      assert.equal(Object.hasOwn(value.items[0].resource_hearing, 'status'), false);
+    }
+  }
+  const { api, calls } = client(page());
+  await assert.rejects(
+    api.list({ ...query, kind: 'resource_hearing', hearing_status: 'cancelled' }),
+  );
+  assert.equal(calls.length, 0);
+});
+
+test('resource hearing overview shape, time and cancellation filtering are checked', async () => {
+  for (const change of [
+    (v) => {
+      v.items[0].resource_hearing.status = 'scheduled';
+    },
+    (v) => {
+      v.items[0].resource_hearing.kind = 'initial';
+    },
+    (v) => {
+      v.items[0].resource_hearing.revision = 2;
+    },
+    (v) => {
+      v.items[0].resource_hearing.resource_id = 'bad';
+    },
+    (v) => {
+      v.items[0].resource_hearing.association_id = 'bad';
+    },
+    (v) => {
+      v.items[0].resource_hearing.capture_digest = 'bad';
+    },
+    (v) => {
+      v.items[0].resource_hearing.participant_count = 33;
+    },
+    (v) => {
+      v.items[0].resource_hearing.scheduled_at = '2026-01-02T00:00:01Z';
+    },
+    (v) => {
+      v.items[0].at.nanosecond = 1;
+    },
+    (v) => {
+      v.items[0].case_status = 'unknown';
+    },
+    (v) => {
+      v.hearing_status = 'cancelled';
+    },
+  ]) {
+    const value = page();
+    value.items = [resourceHearingAgendaItem()];
+    change(value);
+    await assert.rejects(
+      client(value).api.list({ ...query, hearing_status: value.hearing_status }),
+    );
+  }
+});
+
+test('three same-instant UUIDs stay ordered and the rank-two cursor remains query bound', async () => {
+  const value = page(),
+    own = resourceHearingAgendaItem();
+  value.items[0].at = clone(own.at);
+  value.items[0].hearing.scheduled_at = own.resource_hearing.scheduled_at;
+  value.items[0].hearing.id = value.items[1].deadline.id;
+  own.resource_hearing.id = value.items[1].deadline.id;
+  value.items.push(own);
+  value.complete = false;
+  value.next_cursor = `a1:1767225600:1767398400:all:scheduled:1767312000:0:2:${own.resource_hearing.id}`;
+  assert.equal((await client(value).api.list(query)).items.length, 3);
+  const empty = { ...clone(value), items: [], complete: true, next_cursor: null };
+  assert.deepEqual(await client(empty).api.list({ ...query, cursor: value.next_cursor }), empty);
+  for (const mutation of [
+    { kind: 'hearing' },
+    { hearing_status: 'all' },
+    { until: '2026-01-04T00:00:00Z' },
+    { cursor: value.next_cursor.replace(':0:2:', ':0:3:') },
+  ]) {
+    const { api, calls } = client(empty);
+    await assert.rejects(api.list({ ...query, cursor: value.next_cursor, ...mutation }));
+    assert.equal(calls.length, 0);
+  }
+  const duplicate = clone(value);
+  duplicate.items.push(clone(own));
+  await assert.rejects(client(duplicate).api.list(query));
+  value.items.reverse();
+  await assert.rejects(client(value).api.list(query));
+});
+
+test('cancelled combined queries retain ordinary cancelled hearings and deadlines only', async () => {
+  const value = page();
+  value.hearing_status = 'cancelled';
+  value.items[0].hearing.status = 'cancelled';
+  assert.deepEqual(await client(value).api.list({ ...query, hearing_status: 'cancelled' }), value);
+  value.items.push(resourceHearingAgendaItem());
+  await assert.rejects(client(value).api.list({ ...query, hearing_status: 'cancelled' }));
 });

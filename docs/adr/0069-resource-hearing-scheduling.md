@@ -154,7 +154,13 @@ an independent rank after ordinary hearings and deadlines, retaining its existin
 cursor version and ranks. It verifies the original association and audited origin
 inside the authorized read transaction. Unlink, resource archive and case closure
 do not cancel the captured appointment. Its summary exposes no invented stage or
-status. Alerts and Qadra remain part of the same functional delivery and must not
-manufacture an ordinary hearing from the draft. Generic association endpoints
+status. Qadra opens a historical panel inside the combined agenda after reading
+current case administration and the exact creation. Bind the response to every
+selected summary field, including original association and capture digest. Keep
+filters, accumulated rows and continuation when closing that panel; invalidate
+pending reads when the view or query changes. The panel describes original
+association evidence without claiming its current link state. Scheduling forms
+and alerts remain part of the same functional delivery and must not manufacture
+an ordinary hearing from the draft. Generic association endpoints
 continue to expose the separate `resource_hearing` record with exact evidence.
 This local implementation does not close deployment or CI.

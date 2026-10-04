@@ -33,7 +33,11 @@ export function agendaSelection(value) {
   const filters = {
     ...value,
     ...range,
-    hearing_status: value.kind === 'deadline' ? 'scheduled' : value.hearing_status,
+    hearing_status:
+      value.kind === 'deadline' ||
+      (value.kind === 'resource_hearing' && value.hearing_status === 'cancelled')
+        ? 'scheduled'
+        : value.hearing_status,
   };
   const input = {
     from: boundary(range.from),
@@ -76,6 +80,8 @@ export function agendaGroups(rows, offset) {
 }
 
 export function agendaIntent(item) {
+  if (item.kind === 'resource_hearing')
+    throw new Error('Las audiencias de recurso se consultan dentro de Agenda.');
   const record = agendaRecord(item);
   return {
     kind: item.kind,
