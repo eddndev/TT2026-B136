@@ -23,12 +23,8 @@ pub(super) fn shape(group: &MeasureDecisionGroupCapture) -> Result<(), Applicati
     bounded(group.review.material.result_sources.len())?;
     bounded(group.review.material.predecessors.len())?;
     bounded(group.substitutions.len())?;
-    if group.review.command.anchor.is_some()
-        || group.review.material.anchor.is_some()
-        || group.decision.anchor.is_some()
-    {
-        return Err(invalid("linked hearing evidence is not supported"));
-    }
+    super::anchor_validation::shape(&group.review.material.anchor)?;
+    super::anchor_validation::shape(&group.decision.anchor)?;
     for relationship in &group.substitutions {
         bounded(relationship.predecessors.len())?;
         bounded(relationship.successors.len())?;
@@ -140,13 +136,19 @@ impl<'a> GroupIndex<'a> {
     }
 }
 
-pub(super) fn add_sources<'a>(
+pub(crate) fn add_sources<'a>(
     inventory: &mut SourceInventory<'a>,
     review: &'a MeasureDecisionReview,
 ) -> Result<(), ApplicationError> {
     inventory.context(&review.material.context)?;
+    if let Some(anchor) = &review.material.anchor {
+        inventory.anchor(anchor)?;
+    }
     inventory.support(&review.material.support)?;
     for result in &review.results {
+        if let Some(projection) = &result.projection.supervisor {
+            inventory.projection(&projection.overview, projection.snapshot.values_digest)?;
+        }
         inventory.subject(&result.sources.subject)?;
         if let Some(source) = &result.sources.supervisor {
             inventory.participant(source)?;

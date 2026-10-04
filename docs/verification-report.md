@@ -1,5 +1,46 @@
 # Informe de verificación local
 
+## Convocatorias de revisión y anclas de decisiones: 4 de octubre de 2026
+
+La preparación de revisión resuelve capturas reales de medidas y todos sus
+grupos de origen. Reemplazo, cancelación e historial comprueban la unión de
+referencias antiguas y nuevas, incluidas distintas revisiones de una identidad.
+Las decisiones admiten anclas exactas de audiencia inicial ordinaria o cautelar,
+conservando sus datos y procedencia. El recorrido iterativo incluye tanto los
+efectos como las referencias del ancla, sin depender de hashes declarados como
+sustituto de las capturas completas.
+
+TDD: la API de revisión y el ancla ordinaria fallaron antes de implementar el
+soporte. Los **cuatro vectores independientes** nuevos fallaron por anclas no
+soportadas; ahora aprueban sin cambiar sus valores esperados. Conservan 413 y
+381 bytes de instrucción y 1104 y 1877 bytes de decisión para cada familia.
+Los formatos anteriores permanecen idénticos.
+
+La revisión reprodujo **nueve regresiones** antes de corregirlas: tiempo del
+predecesor anterior a sus medidas; dos referencias administrativas ordinarias
+contradictorias; tres proyecciones de participantes contradictorias; dos usos
+incompatibles de una misma revisión de audiencia; y un digest de sujeto que
+contradecía la ficha exacta aportada por otro participante. Ahora un inventario
+compartido compara los campos efectivamente disponibles, sin atribuir al detalle
+ordinario fuentes completas que no contiene.
+
+La ejecución final aprobó **33 casos de anclas, 27 de revisión y cuatro vectores
+nuevos**, junto con **128 pruebas anteriores afectadas**, en **8.490 s** de
+comando, compilación **7.78 s**. Los **30 casos anteriores de historia**, incluida
+la frontera de 256 grupos, aprobaron en **22.241 s**, pruebas **21.71 s**. Son
+**222 casos focales aprobados**, de los que 64 son nuevos. Clippy de los diez
+targets con `-D warnings` aprobó en **1.005 s** tras reemplazar una copia
+innecesaria en una prueba. Los intentos de compilación fallidos y una preparación
+de fixture que ya rechazaba una ruta insegura se conservan como diagnóstico,
+no como aceptación.
+
+Revisión final focal sin hallazgos pendientes; formato, ASCII, límites de líneas
+y diff comprobados. Un compilador, un hilo y temporales privados en disco.
+Continúan pendientes el servicio autorizado, persistencia, rectificación,
+HTTP, Agenda, alertas, Qadra y restauración. No hay campaña global, cobertura
+nueva, integración, despliegue ni modificación del PDF aceptado.
+
+
 ## Efectos posteriores e historia de medidas: 4 de octubre de 2026
 
 La aplicación comprueba el grupo completo que posee cada revisión y todas sus

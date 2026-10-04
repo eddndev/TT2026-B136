@@ -29,16 +29,6 @@ pub(super) fn bounded(count: usize) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-pub(super) fn no_anchor(bytes: &mut Vec<u8>, present: bool) -> Result<(), ApplicationError> {
-    if present {
-        return Err(invalid(
-            "linked decision requires complete hearing evidence",
-        ));
-    }
-    bytes.push(0);
-    Ok(())
-}
-
 pub(super) fn actor(bytes: &mut Vec<u8>, actor: &Principal) -> Result<(), ApplicationError> {
     if actor.email.is_empty()
         || actor.email.trim() != actor.email

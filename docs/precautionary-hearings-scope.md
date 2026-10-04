@@ -58,8 +58,11 @@ Los recibos locales `PHPR1`/`PHCR1` conservan los datos completos y procedencia
 de la convocatoria de imposición. Validan digest, tiempo y reemplazo/cancelación
 contra su predecesor exacto; rechazan copias contradictorias de una misma fuente
 inmutable. Esta comprobación no prueba origen persistido, historial completo,
-autorización actual ni admisión nueva. La convocatoria de revisión aún requiere
-capturas reales de medidas y permanece rechazada en este límite.
+autorización actual ni admisión nueva. La convocatoria de revisión resuelve
+capturas reales de medidas y todos sus grupos de origen. Reemplazo, cancelación
+e historial validan la unión de referencias anteriores y nuevas; sus tiempos no
+pueden preceder las fuentes exactas. Los accesos sin evidencia siguen rechazando
+la revisión.
 
 El validador local de historial exige una cadena desde la captura inicial,
 comprueba todos los campos del origen y rechaza operaciones repetidas o fuentes
@@ -78,8 +81,12 @@ conjunta. Conserva origen y términos de los efectos que no los modifican, recha
 revisiones repetidas y contradicciones, y exige un cierre exacto de dependencias
 sin grupos ajenos. El límite técnico es de 256 grupos y 8192 filas de medidas,
 incluido el candidato; superarlo rechaza evidencia incompleta sin truncarla.
-Las anclas de audiencia siguen pendientes. No acredita persistencia, cabeza
-vigente, acceso ni efectos jurídicos.
+Las anclas distinguen la revisión inicial ordinaria de la cautelar y conservan
+capturas completas. Admiten referencias históricas programadas o canceladas sin
+afirmar celebración. Las dependencias incluyen tanto medidas afectadas como
+medidas citadas por el ancla; ambas selecciones pueden ser diferentes. `MHIA1`
+conserva el detalle ordinario, y la cautelar conserva su `PHCR1` original. No
+acredita persistencia, cabeza vigente, acceso ni efectos jurídicos.
 
 Aún faltan origen durable, decisiones e historia de medidas persistidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y

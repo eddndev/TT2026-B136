@@ -30,7 +30,8 @@ retaining full captures separately from derived labels; it grants no current
 permission, official appointment or documentary admission.
 Flat imposition capture receipts and adjacent-transition checks are implemented
 locally. Exact origin and supplied-chain validation are implemented too;
-durable existence/current head and Review-purpose measure evidence remain pending.
+durable existence and current heads remain store responsibilities. Review-purpose
+appointments now resolve actual target captures through complete owning groups.
 Standalone initial impositions and explicit no-change decisions now build real
 review, decision, measure and group captures (`MDPR1`, `MDCR1`, `MMCR1`, `MDGR1`),
 from the actor-bound `MDTXN1` instruction. Full reconstruction verifies every
@@ -39,8 +40,10 @@ The history-aware extension now resolves complete owning-group ancestry and
 reconstructs confirmation, modification, revocation, cessation and joint
 substitution. It rejects missing, cyclic or contradictory evidence and bounds
 validation to 256 groups and 8192 member rows, including a candidate. Empty-history
-wrappers still reject predecessor effects. Hearing anchors remain pending;
-these checks prove neither durable creation, current heads nor current access.
+wrappers still reject predecessor effects without their evidence. Exact ordinary
+Initial and precautionary anchors are now reconstructed, including Review target
+dependencies; these checks prove neither durable creation, current heads nor
+current access.
 Precautionary workflow services, persistence, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
@@ -147,8 +150,13 @@ source value digest. Actual new revisions remain distinct.
 
 The flat verifier cannot establish predecessor existence or durable origin;
 adjacent validation cannot establish full ancestry or operation uniqueness over
-an entire history. Review-purpose captures reject until their actual measure
-captures can be verified. No fabricated measure source makes them admissible.
+an entire history. Review-purpose captures require actual measure captures and
+all owning-group dependencies. The old empty-evidence entry points reject Review
+values; no fabricated measure source makes them admissible. Replacement,
+cancellation and supplied history resolve the union of all selected revisions,
+including different revisions of one identity. Each individual target list keeps
+its original bound. Capture clocks follow exact selected measure provenance;
+a newly valid capture time cannot repair an invalid predecessor's own clock.
 
 ### Appointment origin and supplied history
 
@@ -266,6 +274,30 @@ validity from judicial status. A correct replacement uses a new identity and an
 administrative link in one atomic operation, not a judicial substitution.
 Already-dependent history requires explicit reconciliation, not a correction
 cascade.
+
+### Decision anchors and shared dependency evidence
+
+Anchor references discriminate absence, an ordinary Initial revision and a
+precautionary revision with tags 0, 1 and 2. `MDTXN1` binds the exact family, ID,
+revision and family commitments. Full `MDPR1` and `MDCR1` material uses `MHIA1`
+for ordinary Initial detail and the unchanged `PHCR1` plus its capture digest
+for precautionary detail. `MHIA1` retains the complete ordinary snapshot,
+receipt, scheduling/recorded context, actor, UTC capture clock, participant
+projections including typed kind and subject reference, and optional support.
+It does not claim full participant source snapshots absent from ordinary detail.
+
+Historical scheduled and cancelled revisions remain valid exact anchors; neither
+proves that a hearing occurred or produced a decision. The decision capture
+cannot predate its anchor. Known context references and immutable source copies
+must agree throughout the supplied evidence. Anchor targets and affected measures
+need not coincide: each selection has its own exact meaning.
+
+Owning-group traversal follows effect predecessors and precautionary Review
+anchor targets together. It checks the bounded graph iteratively and reconstructs
+parents before dependants. Flat anchor validation receives only checked parent
+material; it does not recursively restart public history validation. The exact
+closure rejects missing, unrelated and cyclic groups. Existing no-anchor bytes
+and appointment formats retain their prior meanings and vectors.
 
 ### Exact provenance, current authorization and replay
 

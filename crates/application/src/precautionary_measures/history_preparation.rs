@@ -19,16 +19,21 @@ pub fn prepare_measure_decision_with_history(
 ) -> Result<CheckedMeasureDecisionReview, ApplicationError> {
     bounded(material.predecessors.len())?;
     bounded(material.result_sources.len())?;
-    if command.anchor.is_some() || material.anchor.is_some() {
-        return Err(invalid("linked hearing evidence is not supported"));
-    }
     history_inventory::limits(evidence, 1, command.outcome.affected_ids().len())?;
-    let selections = super::effect_resolution::selections(&command.outcome);
-    let targets = resolve_measure_targets(hasher, case_id, &selections, evidence)?;
+    let effect_selections = super::effect_resolution::selections(&command.outcome);
+    let mut selections = effect_selections.clone();
+    selections.extend_from_slice(super::anchor_validation::selections(&material.anchor));
+    let targets =
+        super::history_validation::resolve_measure_closure(hasher, case_id, &selections, evidence)?;
+    let mut predecessors = effect_selections
+        .iter()
+        .map(|r| targets.member(*r).cloned())
+        .collect::<Result<Vec<_>, _>>()?;
+    predecessors.sort_by_key(|item| item.capture.result.id.as_uuid());
     material
         .predecessors
         .sort_by_key(|item| item.capture.result.id.as_uuid());
-    if material.predecessors != targets.targets {
+    if material.predecessors != predecessors {
         return Err(invalid("supplied predecessors differ from owning groups"));
     }
     check_new_identities(&command, &targets.groups)?;
@@ -44,8 +49,9 @@ pub fn prepare_measure_decision_with_history(
         })
         .collect();
     check_prior_contexts(&material, &direct)?;
-    let checked =
-        super::decision_preparation::prepare_flat(hasher, actor, case_id, command, material)?;
+    let checked = super::decision_preparation::prepare_flat(
+        hasher, actor, case_id, command, material, &targets,
+    )?;
     for result in &checked.review().results {
         if targets.groups.iter().any(|group| {
             group.measures.iter().any(|member| {

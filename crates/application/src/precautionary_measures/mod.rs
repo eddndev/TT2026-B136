@@ -1,5 +1,6 @@
 //! Exact declared measure sources and captures, separate from judicial authority.
 
+mod anchor_encoding;
 mod decision_capture;
 mod decision_encoding;
 mod decision_model;
@@ -27,3 +28,8 @@ pub use history_preparation::prepare_measure_decision_with_history;
 pub use history_validation::{
     measure_decision_group_with_history_matches, measure_group_origin, resolve_measure_targets,
 };
+
+pub(crate) use history_inventory::add_sources as add_measure_group_sources;
+pub(crate) use history_validation::resolve_measure_closure;
+
+mod anchor_validation;

@@ -350,3 +350,15 @@ path = "tests/measure_decision_effects.rs"
 [[test]]
 name = "measure_effect_vectors"
 path = "tests/measure_effect_vectors.rs"
+
+[[test]]
+name = "precautionary_review_hearings"
+path = "tests/precautionary_review_hearings.rs"
+
+[[test]]
+name = "measure_decision_anchors"
+path = "tests/measure_decision_anchors.rs"
+
+[[test]]
+name = "measure_anchor_vectors"
+path = "tests/measure_anchor_vectors.rs"

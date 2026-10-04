@@ -54,12 +54,12 @@ pub(super) fn prepare_flat(
     case_id: CaseId,
     command: MeasureDecisionCommand,
     mut material: MeasureDecisionMaterial,
+    proof: &CheckedMeasureTargets<'_>,
 ) -> Result<CheckedMeasureDecisionReview, ApplicationError> {
     bounded(material.result_sources.len())?;
     bounded(material.predecessors.len())?;
-    if command.anchor.is_some() || material.anchor.is_some() {
-        return Err(invalid("linked hearing evidence is not yet supported"));
-    }
+    let anchor_time =
+        super::anchor_validation::validate(hasher, case_id, &command, &material, proof)?;
     if !matches!(actor.role, Role::Owner | Role::Litigator) {
         return Err(invalid("captured actor role cannot record decisions"));
     }
@@ -104,6 +104,9 @@ pub(super) fn prepare_flat(
         .changed_at
         .max(context.stage.recorded_at())
         .max(context.stage_administration.changed_at);
+    if let Some(at) = anchor_time {
+        earliest_capture = earliest_capture.max(at);
+    }
     let mut results = Vec::with_capacity(effects.len());
     for (effect, material) in effects.iter().zip(&material.result_sources) {
         if material.id != effect.id {

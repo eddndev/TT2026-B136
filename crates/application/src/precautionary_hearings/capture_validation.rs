@@ -6,7 +6,6 @@ use domain::{
     crypto::{ArchiveEntry, DocumentHasher},
     hearings::HearingStatus,
     identity::Role,
-    precautionary_hearings::PrecautionaryHearingPurpose,
 };
 
 pub(super) fn invalid(message: &str) -> ApplicationError {
@@ -48,11 +47,6 @@ pub(super) fn validate_review(
 ) -> Result<(), ApplicationError> {
     if !matches!(review.actor.role, Role::Owner | Role::Litigator) {
         return Err(invalid("captured actor role cannot record appointments"));
-    }
-    if review.resolved_values.purpose() != PrecautionaryHearingPurpose::Imposition {
-        return Err(invalid(
-            "review appointments require verified measure captures",
-        ));
     }
     for context in [&review.scheduling_context, &review.observed_context] {
         let material = context.material();
@@ -159,6 +153,17 @@ pub fn precautionary_hearing_receipt_matches(
     hasher: &dyn DocumentHasher,
     capture: &PrecautionaryHearingCapture,
 ) -> Result<(), ApplicationError> {
+    precautionary_hearing_receipt_with_measure_history_matches(
+        hasher,
+        capture,
+        &crate::precautionary_measures::MeasureHistoryEvidence { groups: vec![] },
+    )
+}
+
+pub(crate) fn receipt_flat(
+    hasher: &dyn DocumentHasher,
+    capture: &PrecautionaryHearingCapture,
+) -> Result<(), ApplicationError> {
     validate_review(hasher, &capture.review)?;
     clock(capture.recorded_at)?;
     if capture.recorded_at < latest_source_time(&capture.review)?
@@ -176,13 +181,12 @@ pub fn precautionary_hearing_transition_matches(
     previous: &PrecautionaryHearingCapture,
     next: &PrecautionaryHearingCapture,
 ) -> Result<(), ApplicationError> {
-    precautionary_hearing_receipt_matches(hasher, previous)?;
-    precautionary_hearing_receipt_matches(hasher, next)?;
-    transition(previous, &next.review)?;
-    if next.recorded_at < previous.recorded_at {
-        return Err(invalid("capture predates its predecessor"));
-    }
-    Ok(())
+    precautionary_hearing_transition_with_measure_history_matches(
+        hasher,
+        previous,
+        next,
+        &crate::precautionary_measures::MeasureHistoryEvidence { groups: vec![] },
+    )
 }
 
 pub(super) fn transition(

@@ -1,4 +1,4 @@
-use super::{capture_validation::invalid, source_inventory::SourceInventory, *};
+use super::{capture_validation::invalid, *};
 use crate::ApplicationError;
 use domain::{
     cases::CaseId,
@@ -7,7 +7,6 @@ use domain::{
         PrecautionaryHearingId, PrecautionaryHearingOperationId, PrecautionaryHearingRevision,
     },
 };
-use std::collections::BTreeSet;
 
 /// Exact initial capture identity. Its existence in durable storage is a store check.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,7 +25,16 @@ pub fn precautionary_hearing_origin(
     hasher: &dyn DocumentHasher,
     capture: &PrecautionaryHearingCapture,
 ) -> Result<PrecautionaryHearingOrigin, ApplicationError> {
-    precautionary_hearing_receipt_matches(hasher, capture)?;
+    precautionary_hearing_origin_with_measure_history(
+        hasher,
+        capture,
+        &crate::precautionary_measures::MeasureHistoryEvidence { groups: vec![] },
+    )
+}
+
+pub(super) fn origin_metadata(
+    capture: &PrecautionaryHearingCapture,
+) -> Result<PrecautionaryHearingOrigin, ApplicationError> {
     let review = &capture.review;
     if review.command.action() != PrecautionaryHearingAction::Schedule
         || review.result_revision != PrecautionaryHearingRevision::initial()
@@ -52,22 +60,10 @@ pub fn precautionary_hearing_history_matches(
     captures: &[PrecautionaryHearingCapture],
     origin: &PrecautionaryHearingOrigin,
 ) -> Result<(), ApplicationError> {
-    let initial = captures
-        .first()
-        .ok_or_else(|| invalid("history lacks its initial capture"))?;
-    if precautionary_hearing_origin(hasher, initial)? != *origin {
-        return Err(invalid("history differs from its original capture"));
-    }
-    let mut operations = BTreeSet::new();
-    let mut inventory = SourceInventory::default();
-    for (index, capture) in captures.iter().enumerate() {
-        if index > 0 {
-            precautionary_hearing_transition_matches(hasher, &captures[index - 1], capture)?;
-        }
-        if !operations.insert(*capture.review.command.operation_id.as_uuid().as_bytes()) {
-            return Err(invalid("operation identity recurs in appointment history"));
-        }
-        inventory.add(&capture.review)?;
-    }
-    Ok(())
+    precautionary_hearing_history_with_measure_history_matches(
+        hasher,
+        captures,
+        origin,
+        &crate::precautionary_measures::MeasureHistoryEvidence { groups: vec![] },
+    )
 }

@@ -33,3 +33,17 @@ pub use history::{
 pub use participants::resolve_precautionary_participants;
 pub use submission::precautionary_hearing_submission_bytes;
 pub use support::admit_precautionary_support;
+
+pub(crate) mod measure_evidence;
+mod measure_history;
+pub use measure_evidence::{
+    prepare_precautionary_hearing_with_history, PrecautionaryHearingPreparationMaterial,
+};
+pub use measure_history::{
+    precautionary_hearing_history_with_measure_history_matches,
+    precautionary_hearing_origin_with_measure_history,
+    precautionary_hearing_receipt_with_measure_history_matches,
+    precautionary_hearing_transition_with_measure_history_matches,
+};
+
+mod context_commitments;

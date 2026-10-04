@@ -16,7 +16,7 @@ pub fn measure_decision_submission_bytes(
     bytes.extend_from_slice(&command.context.stage_revision.get().to_be_bytes());
     bytes.extend_from_slice(command.context.context_digest.as_bytes());
     blob(&mut bytes, &command.values.canonical_bytes())?;
-    no_anchor(&mut bytes, command.anchor.is_some())?;
+    super::anchor_encoding::reference(&mut bytes, command.anchor.as_ref());
     blob(&mut bytes, &command.outcome.canonical_bytes())?;
     Ok(bytes)
 }
@@ -35,7 +35,7 @@ pub fn measure_decision_review_bytes(
     bytes.extend_from_slice(review.submission_digest.as_bytes());
     blob(&mut bytes, &review.material.context.canonical_bytes())?;
     support(&mut bytes, &review.material.support)?;
-    no_anchor(&mut bytes, review.material.anchor.is_some())?;
+    super::anchor_encoding::material(&mut bytes, review.material.anchor.as_ref())?;
     bytes.extend_from_slice(&(review.material.predecessors.len() as u32).to_be_bytes());
     for prior in &review.material.predecessors {
         bytes.extend_from_slice(prior.owner.operation_id.as_uuid().as_bytes());
@@ -62,7 +62,7 @@ pub fn measure_decision_capture_bytes(
     blob(&mut bytes, &capture.context.canonical_bytes())?;
     blob(&mut bytes, &capture.values.canonical_bytes())?;
     support(&mut bytes, &capture.support)?;
-    no_anchor(&mut bytes, capture.anchor.is_some())?;
+    super::anchor_encoding::material(&mut bytes, capture.anchor.as_ref())?;
     timestamp(&mut bytes, capture.recorded_at);
     Ok(bytes)
 }

@@ -10,8 +10,8 @@ use domain::{
 /// Checked historical material, not proof of current access, admission or persistence.
 #[derive(Debug)]
 pub struct CheckedPrecautionaryHearingReview {
-    review: PrecautionaryHearingReview,
-    earliest_capture: OffsetDateTime,
+    pub(super) review: PrecautionaryHearingReview,
+    pub(super) earliest_capture: OffsetDateTime,
 }
 
 impl CheckedPrecautionaryHearingReview {
@@ -33,7 +33,7 @@ impl CheckedPrecautionaryHearingReview {
             capture_digest: Sha256Digest::from_array([0; 32]),
         };
         capture.capture_digest = hasher.hash_bytes(&precautionary_hearing_capture_bytes(&capture)?);
-        precautionary_hearing_receipt_matches(hasher, &capture)?;
+        receipt_flat(hasher, &capture)?;
         Ok(capture)
     }
 }
@@ -46,6 +46,31 @@ pub fn prepare_precautionary_hearing_capture(
     case_id: CaseId,
     command: PrecautionaryHearingCommand,
     observed_context: PrecautionaryContext,
+    sources: PrecautionaryHearingSources,
+    predecessor: Option<&PrecautionaryHearingCapture>,
+) -> Result<CheckedPrecautionaryHearingReview, ApplicationError> {
+    prepare_precautionary_hearing_with_history(
+        hasher,
+        actor,
+        case_id,
+        command,
+        PrecautionaryHearingPreparationMaterial {
+            observed_context,
+            sources,
+            predecessor,
+            measure_history: &crate::precautionary_measures::MeasureHistoryEvidence {
+                groups: vec![],
+            },
+        },
+    )
+}
+
+pub(super) fn prepare_flat(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: PrecautionaryHearingCommand,
+    observed_context: PrecautionaryContext,
     mut sources: PrecautionaryHearingSources,
     predecessor: Option<&PrecautionaryHearingCapture>,
 ) -> Result<CheckedPrecautionaryHearingReview, ApplicationError> {
@@ -53,7 +78,7 @@ pub fn prepare_precautionary_hearing_capture(
         return Err(invalid("instruction predecessor presence differs"));
     }
     if let Some(previous) = predecessor {
-        precautionary_hearing_receipt_matches(hasher, previous)?;
+        receipt_flat(hasher, previous)?;
     }
     if sources.participants.len() > 32 {
         return Err(invalid("too many participant sources"));

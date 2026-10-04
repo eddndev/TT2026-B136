@@ -35,9 +35,23 @@ pub struct CheckedMeasureTargets<'a> {
     pub(super) groups: Vec<&'a MeasureDecisionGroupCapture>,
 }
 
-impl CheckedMeasureTargets<'_> {
+impl<'a> CheckedMeasureTargets<'a> {
     pub fn targets(&self) -> &[OwnedMeasureMaterial] {
         &self.targets
+    }
+
+    pub(crate) fn member(
+        &self,
+        reference: domain::precautionary_hearings::PrecautionaryMeasureRef,
+    ) -> Result<&OwnedMeasureMaterial, crate::ApplicationError> {
+        self.targets
+            .iter()
+            .find(|item| super::effect_resolution::capture_reference(&item.capture) == reference)
+            .ok_or_else(|| super::decision_wire::invalid("exact target proof is absent"))
+    }
+
+    pub(crate) fn groups(&self) -> &[&'a MeasureDecisionGroupCapture] {
+        &self.groups
     }
 }
 

@@ -92,7 +92,7 @@ fn anchors() -> Vec<(MeasureDecisionAnchorRef, MeasureDecisionAnchorMaterial)> {
 }
 
 #[test]
-fn anchor_references_and_material_are_explicitly_rejected_in_either_family() {
+fn anchor_references_and_material_must_match_in_either_family() {
     for (reference, material) in anchors() {
         for selection in 1..=3 {
             for mut fixture in [Fixture::single(), Fixture::no_change()] {
@@ -103,12 +103,17 @@ fn anchor_references_and_material_are_explicitly_rejected_in_either_family() {
                         fixture.case_id,
                         &fixture.command
                     )
-                    .is_err());
+                    .is_ok());
                 }
                 if selection & 2 != 0 {
                     fixture.material.anchor = Some(material.clone());
                 }
-                assert!(fixture.prepare().is_err());
+                if selection == 3 {
+                    let group = fixture.capture();
+                    measure_decision_group_matches(&Hasher, &group).unwrap();
+                } else {
+                    assert!(fixture.prepare().is_err());
+                }
             }
         }
     }
@@ -122,6 +127,8 @@ fn public_groups_cannot_add_an_unvalidated_anchor_after_checked_preparation() {
         group.review.material.anchor = Some(material.clone());
         group.decision.anchor = Some(material);
         assert_invalid(&group);
-        assert!(measure_decision_group_bytes(&group).is_err());
+        assert!(measure_decision_group_bytes(&group).is_ok());
+        // Encoding supplied material does not validate its retained commitments.
+        assert_invalid(&group);
     }
 }
