@@ -10,6 +10,7 @@ pub use encoding::{deadline_input_request_bytes, decode_deadline_input_request};
 pub use heads::DeadlineInputHeads;
 pub use model::*;
 pub use service::{DeadlineInputService, PreparedDeadlineInputs};
+pub(crate) use validation::checked_calendar;
 pub use validation::{
     check_deadline_inputs, extract_checked_deadline_inputs, CheckedDeadlineTrigger,
 };

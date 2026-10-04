@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Preparación prospectiva de resultado y plazo derivado: 4 de octubre de 2026
+
+La aplicación prepara un resultado ordinario nuevo y una consecuencia configurada
+antes de que exista la captura del resultado. El compromiso conserva las decisiones,
+fuentes, proyecciones, perfil, calendario y cálculo revisados, sin fabricar una
+fecha de registro, evento ni recibo final. Esta pieza aún no crea ambos registros
+atómicamente ni expone un recorrido HTTP o Qadra; el contrato completo permanece
+propuesto en [ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md).
+
+Se ejecutaron **18 pruebas nuevas de aplicación**, con un compilador e hilo y
+`TMPDIR` privado sobre disco. La primera ejecución TDD falló por la ausencia de
+la nueva entrada. Dos regresiones posteriores reprodujeron, antes de corregir,
+la aceptación indebida de un calendario seguido que no era su revisión vigente
+y de dos capturas de la misma revisión con distinto offset. Ambas aprobaron
+tras las guardas focales; el grupo de 16 casos pasó en 0.03 s, con build de 6.15 s.
+Las dos comprobaciones adicionales de permisos y equivalencia con la preparación
+tracked también aprobaron. Las matrices cubren cambios de decisiones, referencias,
+recibos y proyecciones; no se infiere un fin de audiencia ni una fecha cuando
+faltan declaraciones. La equivalencia usa fixtures registrados independientes:
+conserva el cálculo y distingue las capturas definitivas con distinto tiempo;
+no constituye una prueba de persistencia real.
+
+Las regresiones de entradas persistidas **13/13**, evaluación por perfil **13/13**
+y evidencia histórica **3/3** aprobaron. Clippy focal aprobó con advertencias como
+errores después de retirar un atributo de fixture duplicado. Formato, ASCII y
+límites de módulos se comprobaron por separado. No se ejecutaron servicios ni
+una campaña API/browser, no se midió cobertura global y no se actualizó el PDF.
+La persistencia, conciliación durable, aceptación completa y actualización del
+manuscrito pertenecen al cierre posterior de esta misma entrega funcional.
+
 ## Aceptación real de audiencias de recursos y bloqueo de Agenda: 4 de octubre de 2026
 
 El recorrido propio tiene aceptación local focal, aún sin integración, despliegue

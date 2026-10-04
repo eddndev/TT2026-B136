@@ -8,7 +8,8 @@ use crate::{
 use domain::{
     crypto::DocumentHasher,
     deadline_arithmetic::{evaluate_deadline_arithmetic, ArithmeticOutcome},
-    deadline_triggers::TriggerOutcome,
+    deadline_triggers::{TriggerExtraction, TriggerOutcome},
+    judicial_calendars::JudicialCalendarValues,
     procedural_facts::FactDeclaration,
 };
 use std::collections::HashSet;
@@ -28,6 +29,22 @@ pub fn evaluate_profiled_deadline(
         input.calendar,
         material,
     )?;
+    evaluate_extracted_deadline(
+        profile,
+        input,
+        checked.extraction().clone(),
+        checked.calendar(),
+    )
+}
+
+/// Evaluate an extraction whose exact source and calendar were already checked.
+/// This stage does not establish authorization or persisted source provenance.
+pub(crate) fn evaluate_extracted_deadline(
+    profile: &DeadlineProfileDefinition,
+    input: &DeadlineEvaluationInput,
+    trigger: TriggerExtraction,
+    calendar: Option<&JudicialCalendarValues>,
+) -> Result<ProfiledDeadlineEvaluation, DeadlineEvaluationError> {
     if matches!(profile.scope(), DeadlineProfileScope::Case(id) if *id != input.selection.case_id) {
         return Err(DeadlineEvaluationError::Invalid("profile.scope"));
     }
@@ -39,10 +56,9 @@ pub fn evaluate_profiled_deadline(
             None
         }
     };
-    let trigger = checked.extraction().clone();
     let arithmetic = match trigger.outcome() {
         TriggerOutcome::Extracted { at } => {
-            rule.map(|rule| evaluate_deadline_arithmetic(rule, *at, checked.calendar()))
+            rule.map(|rule| evaluate_deadline_arithmetic(rule, *at, calendar))
         }
         TriggerOutcome::Blocked(block) => {
             blocks.push(DeadlineEvaluationBlock::Trigger(*block));

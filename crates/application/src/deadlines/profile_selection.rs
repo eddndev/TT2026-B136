@@ -5,7 +5,7 @@ use crate::{
     ApplicationError,
 };
 
-pub(super) fn validate(
+pub(crate) fn validate(
     selected: &DeadlineProfileDetail,
     head: &DeadlineProfileDetail,
     policy: Option<TrackingPolicy>,

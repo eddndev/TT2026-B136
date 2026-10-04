@@ -23,7 +23,9 @@ pub use validation_receipt::{
     hearing_result_snapshot_receipt_matches,
 };
 
+mod draft_validation;
 mod service;
 mod service_workflow;
 mod validation;
+pub(crate) use draft_validation::validate_record_draft;
 pub use service::HearingResultService;

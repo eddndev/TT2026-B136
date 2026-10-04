@@ -1,7 +1,10 @@
 use super::evidence::{actor, instant, optional, text};
 use crate::{
     case_stages::StageSupportSnapshot,
-    hearing_results::{HearingResultAnchor, HearingResultContinuation, HearingResultDetail},
+    hearing_results::{
+        HearingResultAnchor, HearingResultAnchorSnapshot, HearingResultAttendeeSnapshot,
+        HearingResultContinuation, HearingResultContinuationSnapshot, HearingResultDetail,
+    },
     hearings::HearingParticipantSnapshot,
 };
 
@@ -36,7 +39,24 @@ pub(super) fn hearing(bytes: &mut Vec<u8>, detail: &HearingResultDetail) {
         snapshot.recorded_at,
     );
 
-    let view = detail.anchor;
+    projections(
+        bytes,
+        &detail.anchor,
+        detail.continuation.as_ref(),
+        &detail.attendees,
+        detail.support.as_ref(),
+    );
+}
+
+/// Preserve exact projections without adding a recording timestamp or receipt.
+pub(crate) fn projections(
+    bytes: &mut Vec<u8>,
+    anchor_view: &HearingResultAnchorSnapshot,
+    continuation_view: Option<&HearingResultContinuationSnapshot>,
+    attendees: &[HearingResultAttendeeSnapshot],
+    support_view: Option<&StageSupportSnapshot>,
+) {
+    let view = anchor_view;
     anchor(bytes, view.reference);
     bytes.push(view.status.tag());
     bytes.push(view.kind.tag());
@@ -49,18 +69,18 @@ pub(super) fn hearing(bytes: &mut Vec<u8>, detail: &HearingResultDetail) {
     optional(bytes, context.stage_digest, |bytes, digest| {
         bytes.extend_from_slice(digest.as_bytes())
     });
-    optional(bytes, detail.continuation, |bytes, view| {
+    optional(bytes, continuation_view, |bytes, view| {
         continuation(bytes, view.reference);
         bytes.push(view.status.tag());
     });
-    bytes.extend_from_slice(&(detail.attendees.len() as u64).to_be_bytes());
-    for attendee in &detail.attendees {
+    bytes.extend_from_slice(&(attendees.len() as u64).to_be_bytes());
+    for attendee in attendees {
         participant(bytes, &attendee.participant);
         optional(bytes, attendee.subject_digest, |bytes, digest| {
             bytes.extend_from_slice(digest.as_bytes())
         });
     }
-    optional(bytes, detail.support.as_ref(), support);
+    optional(bytes, support_view, support);
 }
 fn anchor(bytes: &mut Vec<u8>, value: HearingResultAnchor) {
     bytes.extend_from_slice(value.hearing_id.as_uuid().as_bytes());
