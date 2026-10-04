@@ -476,6 +476,45 @@ restauración poblada, promoción de datos o reapertura operativa.
 
 
 
+## Recuperación de alta de integrantes: 3 de octubre de 2026
+
+El primer RED de navegador reprodujo la ausencia de **Retomar alta de integrante**;
+los cinco casos restantes no se ejecutaron al detenerse en el primer fallo.
+Seis recorridos nuevos y el existente de alta MFA y auditoría móvil aprobaron
+después en 18.5 s. La revisión encontró que navegar fuera descartaba una
+intención incierta sin elección explícita. Su primer caso parametrizado
+reprodujo la ausencia del control al volver; el segundo no se ejecutó bajo
+fail-fast. Seis pruebas Node reprodujeron además el método `capture` ausente.
+
+La verificación final aprobó **20/20 pruebas Node en 298.159 ms**: seis nuevas
+de captura por registro y catorce regresiones del registro existente. Comprobó
+proyección síncrona clonada, exclusión de secretos, identidad y generación antes
+y después de capturar, rechazo de handles retirados y conservación del snapshot
+anterior. Capturar un editor no suspende el registro ni invalida otra recuperación
+que todavía espera autorización.
+
+El navegador aprobó **9/9 recorridos en 22.5 s**, con un worker y HTTP controlado:
+ocho nuevos y el mismo recorrido existente de alta MFA y auditoría móvil. Conservó
+correo parcial y rol con contraseña vacía, exigió autoridad fresca, descartó por
+otra cuenta, logout o denegación y retiró la captura antes del refresco confirmado.
+Un envío incierto permaneció bloqueado ante cuenta presente o ausente, después
+de consultar todas las páginas. La navegación antes y después de recuperar la
+sesión conservó la intención hasta su descarte explícito. Ninguna respuesta tardía
+recuperó material MFA ni produjo un segundo POST.
+
+Estos grupos finales incluyen los casos anteriores; no se suman las repeticiones
+como identidades nuevas. Las pruebas están en
+`web/tests/draft-handle-capture.test.mjs`, `web/tests/draft-registry.test.mjs` y
+`web/tests/browser/session-member-enrollment-drafts.spec.mjs`,
+`web/tests/browser/session-member-enrollment-outcomes.spec.mjs` y
+`web/tests/browser/session-member-enrollment-navigation.spec.mjs`, con
+la regresión seleccionada de `web/tests/browser/workflow.spec.mjs`.
+Es aceptación local de esta entrega, todavía separada de integración en `main`,
+CI, despliegue y campañas con servicios reales. No acredita recuperación o
+reemisión del enrolamiento ni restauración operativa. El flujo se describe en
+[recuperación de altas](member-enrollment-recovery.md).
+
+
 ## Lectura de avisos tras reingreso: 3 de octubre de 2026
 
 Cuatro escenarios nuevos aprobaron en 13.8 s con un worker y HTTP controlado,

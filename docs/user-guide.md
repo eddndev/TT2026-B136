@@ -161,6 +161,16 @@ Al crearla, conserva y entrega de forma privada la configuración inicial del
 segundo factor. El alta es directa: **no hay invitaciones por correo ni enlaces de
 aceptación implementados**.
 
+Si vence tu sesión mientras completas **Nuevo integrante**, vuelve a entrar con
+la misma cuenta y MFA y pulsa **Retomar alta de integrante**. Qadra comprueba de
+nuevo tu permiso Owner y recupera sólo correo y rol; debes escribir otra vez
+la contraseña inicial. Si el envío quedó incierto, **Crear usuario** permanece
+bloqueado incluso al salir de Equipo y volver. **Consultar directorio para esta
+cuenta** informa si existe el correo exacto: ni presencia ni ausencia confirman
+tu envío o permiten repetirlo. Usa **Descartar alta y volver al directorio**
+para cerrar esa intención. No se recuperan claves ni códigos del nuevo
+integrante. Véase [alcance y límites de recuperación](member-enrollment-recovery.md).
+
 El directorio permite filtrar por correo, rol y estado. Revisa la cuenta antes de
 confirmar cambios de acceso. Cambiar rol o estado invalida el acceso anterior;
 reactivar exige un nuevo inicio de sesión y conserva las asignaciones existentes.

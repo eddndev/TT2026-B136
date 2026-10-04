@@ -107,6 +107,25 @@ limpieza anterior a la expiración por cambio del propio rol y descarte ante
 pérdida de permiso, otra cuenta o cierre explícito. Estos resultados utilizan
 HTTP controlado y no completan invitaciones ni enrolamiento recuperable.
 
+La recuperación del alta de integrantes aprobó veinte pruebas Node en
+298.159~ms: seis nuevas de captura individual y catorce regresiones del
+registro. Comprobaron proyección síncrona clonada, exclusión de secretos,
+rechazo de registros obsoletos y revalidación de cuenta, identidad y generación
+después de proyectar. Capturar una entrada no reemplazó su instantánea pendiente
+ni invalidó la autorización de recuperación de otro editor.
+
+Nueve recorridos de navegador aprobaron en 22.5~s con un trabajador y HTTP
+controlado: ocho nuevos y el existente de alta MFA y auditoría móvil. Incluyeron
+correo parcial y rol sin contraseña, autoridad nueva, descarte por otra cuenta
+o logout, rechazo de permiso y limpieza anterior al refresco confirmado. Un
+envío incierto no se repitió ante presencia o ausencia del correo exacto en el
+directorio paginado. La navegación, antes y después del reingreso, mantuvo la
+intención hasta su descarte explícito; las respuestas tardías no recuperaron
+el material MFA. Los casos finales incluyen los recorridos previos y no se
+suman como identidades adicionales. Esta evidencia local no acredita nueva
+aceptación con servicios reales, restauración operativa, integración remota ni
+recuperación del enrolamiento del nuevo integrante.
+
 Los calendarios jurisdiccionales aprobaron seis escenarios nuevos en 19.1~s
 con respuestas HTTP controladas. La recuperación consulta primero el Owner
 y el catálogo o la cabecera vigente; conserva campos parciales, identidad de

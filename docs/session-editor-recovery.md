@@ -59,6 +59,7 @@ permisos y versiones sin iniciar otro envío ni otra revisión automática.
 | Audiencias y resultados | Programación, corrección, cancelación, sesiones, continuaciones y retiro; campos crudos, bases originales, referencias históricas y cargas separadas por propietario. | Un envío incierto sólo se confirma por su recibo de revisión exacta; una cabecera o valores parecidos no bastan. |
 | Resoluciones y notificaciones | Textos y tiempos crudos, referencias históricas, base original y archivos separados por campo y representación. | El envío incierto requiere el recibo exacto; reabrir el expediente no prepara ni envía automáticamente. |
 | Acceso de miembros | Selección de rol y estado, cuenta exacta y revisión decimal original; Owner y destino consultados de nuevo. | Un cambio incierto exige consultar y decidir; un cambio propio confirmado retira el borrador antes de cerrar la sesión. |
+| Nuevo integrante | Correo crudo, rol e intención incierta tras comprobar de nuevo la misma cuenta Owner; conserva incertidumbre al navegar. | Nunca conserva contraseña ni MFA. Presencia o ausencia en el directorio no confirma el envío ni habilita su repetición; exige descarte explícito. |
 | Calendarios jurisdiccionales | Ámbito, fuentes estables, excepciones parciales, motivo y base original; Owner y catálogo o cabecera consultados antes de recuperar. | Su contexto es global; el retiro incierto se concilia por recibo exacto y no por pertenencia a un expediente. |
 | Recursos procesales y actos | Texto y motivo crudos, base original, resolución y participantes históricos, soportes y archivos por fila. | Corregir un acto conserva su identidad y revisión separadas de la cabecera; sólo el recibo exacto confirma un envío incierto. |
 | Actividades vinculadas | Recurso, acto y actividad históricos, selección parcial, motivo y base originales. | No crea actividades; sólo el recibo exacto confirma el vínculo y un reenvío requiere consultar su ausencia de nuevo. |
@@ -84,6 +85,17 @@ decimales superiores al rango entero seguro de JavaScript y limpia el borrador
 antes de invalidar una sesión cuyo propio rol cambia. Los inventarios y
 resultados integrados se registran separadamente en
 [el informe de verificación](verification-report.md).
+
+El alta de integrantes aprobó ocho escenarios nuevos y la regresión existente
+de alta con MFA y auditoría móvil: nueve en 22,5 segundos con HTTP controlado.
+Veinte pruebas Node del registro aprobaron en 298,159 ms, incluidas seis nuevas
+de captura individual. Esa captura es una opción expresa del adaptador: no
+suspende el registro global, no invalida otras recuperaciones ni sobrescribe
+un snapshot pendiente. El alta incierta la usa al desmontarse; al volver exige
+retomar o descartar. La confirmación retira el borrador antes del refresco y una
+respuesta tardía no vuelve a mostrar el material MFA. Véase
+[recuperación de altas](member-enrollment-recovery.md). Esta aceptación local
+no acredita recuperación del enrolamiento ni una nueva campaña con servicios reales.
 
 Seis escenarios nuevos de calendarios aprobaron en 19,1 segundos con HTTP
 controlado. Comprueban autorización administrativa fresca, campos parciales,
@@ -193,10 +205,11 @@ Véase el [manual del vínculo](owner-certificate-interface.md).
 Una consulta o un selector que no confirma escrituras no necesita conservar sus
 resultados privados después de autenticar de nuevo. Sus filtros o selecciones
 sólo pueden formar parte del borrador del editor propietario mediante una
-proyección explícita. El alta de integrantes conserva aparte su pendiente de enrolamiento:
-contraseña inicial, secreto MFA y códigos de recuperación no deben entrar al
-registro de borradores. La aceptación de los editores no demuestra recuperación
-de esos secretos ni de todos los controles que confirman escrituras.
+proyección explícita. El alta de integrantes recupera sólo correo, rol e
+incertidumbre; contraseña inicial, secreto MFA y códigos de recuperación quedan
+fuera del registro. La recuperación o reemisión del enrolamiento sigue pendiente.
+La aceptación de los editores no demuestra recuperación de esos secretos ni de
+todos los controles que confirman escrituras.
 
 El contrato técnico del registro y las obligaciones de cada adaptador están en
 [ADR-0065](adr/0065-session-reentry-and-memory-drafts.md). La existencia del registro

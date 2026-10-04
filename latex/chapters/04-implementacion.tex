@@ -754,6 +754,25 @@ La política temporal del servidor conserva el modo absoluto como opción predet
 
 El registro de borradores conserva en memoria campos explícitos y archivos seleccionados, sin almacenar contraseñas, credenciales, resultados privados de consultas ni clientes de API. Cada entrada identifica cuenta, expediente, recurso, acción e instancia del editor. Una nueva autenticación MFA de la misma cuenta permite solicitar la recuperación, pero no sustituye la autorización actual: antes de aplicar los valores se consulta de nuevo el destino y se comprueban rol, estado y revisión. Otra cuenta o un cierre voluntario descartan las entradas; cerrar o recargar la pestaña también pierde esos datos no guardados.
 
+El alta de integrantes conserva únicamente correo crudo, rol e incertidumbre;
+la contraseña inicial y el material MFA quedan fuera del borrador. Recuperar
+los campos exige consultar de nuevo la misma cuenta Owner. La respuesta
+incierta mantiene bloqueado el envío: encontrar o no encontrar el correo exacto
+en el directorio no confirma la operación ni habilita repetirla. La consulta
+recorre las páginas autorizadas y no reconstruye la configuración del segundo
+factor. Una confirmación retira la captura antes de mostrar el enrolamiento de
+una sola vez y antes del refresco posterior.
+
+Para conservar esa intención al navegar, el adaptador solicita expresamente
+una captura síncrona de su registro exacto antes de desmontarse. La operación
+comprueba identidad, cuenta y generación antes y después de proyectar los campos;
+no reemplaza una captura pendiente ni cambia la generación global del registro.
+Los otros editores y sus autorizaciones pendientes conservan su estado.
+Al volver se requiere retomar o descartar, con autorización nueva antes de
+mostrar los valores. Los campos ordinarios aún no enviados pueden reiniciarse
+al navegar. Esta retención en memoria no recupera secretos, no envía una
+invitación y no constituye una nueva capacidad de autenticación.
+
 Los adaptadores de participantes distinguen la ficha manual, la identidad
 representada y la ficha tipificada; conservan texto aún inválido, acción y revisión
 originales sin adoptar silenciosamente una base nueva. Al recuperar una etapa,
