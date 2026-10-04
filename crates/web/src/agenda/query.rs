@@ -23,6 +23,7 @@ impl PageQuery {
             "all" => AgendaKind::All,
             "hearing" => AgendaKind::Hearing,
             "deadline" => AgendaKind::Deadline,
+            "resource_hearing" => AgendaKind::ResourceHearing,
             _ => return Err(invalid()),
         };
         let status = match self.hearing_status.as_deref().unwrap_or("scheduled") {
@@ -63,6 +64,7 @@ pub(super) fn kind(value: AgendaKind) -> &'static str {
         AgendaKind::All => "all",
         AgendaKind::Hearing => "hearing",
         AgendaKind::Deadline => "deadline",
+        AgendaKind::ResourceHearing => "resource_hearing",
     }
 }
 pub(super) fn status(value: HearingStatusFilter) -> &'static str {

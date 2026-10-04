@@ -149,8 +149,12 @@ admit an arbitrary new summons.
 The PostgreSQL adapter now preserves capture, original association and audited
 origin atomically. Controlled-port checks remain distinct from database evidence.
 Dedicated hearing queries, scheduling HTTP and server composition have local
-implementation; integrated acceptance remains pending. Agenda,
-alerts and Qadra remain part of the same functional delivery and must not
+implementation; integrated acceptance remains pending. The combined agenda adds
+an independent rank after ordinary hearings and deadlines, retaining its existing
+cursor version and ranks. It verifies the original association and audited origin
+inside the authorized read transaction. Unlink, resource archive and case closure
+do not cancel the captured appointment. Its summary exposes no invented stage or
+status. Alerts and Qadra remain part of the same functional delivery and must not
 manufacture an ordinary hearing from the draft. Generic association endpoints
 continue to expose the separate `resource_hearing` record with exact evidence.
 This local implementation does not close deployment or CI.

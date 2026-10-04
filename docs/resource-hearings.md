@@ -10,7 +10,10 @@ asociaciones incorpora la familia `resource_hearing`. Las consultas propias
 y el router de preparación, envío y lectura están implementados localmente,
 incluida su composición en `serve`.
 
-Agenda, alertas y Qadra siguen pendientes dentro de esta entrega. Las pruebas
+La agenda incorpora localmente esta familia bajo `kind=resource_hearing`, con
+su identidad y origen verificados y orden independiente de audiencias ordinarias
+y plazos. Su contrato está en [agenda](agenda-api.md). Alertas, Qadra y aceptación
+integrada de agenda siguen pendientes dentro de esta entrega. Las pruebas
 focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
 al final están aprobadas, incluido el rechazo tipado de evidencia persistida
 incompleta, las rutas propias y su composición. No se atribuyen aceptación

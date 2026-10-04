@@ -15,6 +15,7 @@ use domain::{
 };
 pub(crate) use inventory::validate_inventory;
 use postgres::{Client, Error};
+pub(crate) use replay::creation;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct PostgresResourceHearingStore {

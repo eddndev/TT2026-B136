@@ -8,12 +8,14 @@ pub enum AgendaKind {
     All,
     Hearing,
     Deadline,
+    ResourceHearing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AgendaItemKind {
     Hearing,
     Deadline,
+    ResourceHearing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -70,6 +72,8 @@ impl AgendaQuery {
             || until <= from
             || until - from > time::Duration::days(366)
             || (kind == AgendaKind::Deadline && hearing_status != HearingStatusFilter::Scheduled)
+            || (kind == AgendaKind::ResourceHearing
+                && hearing_status == HearingStatusFilter::Cancelled)
         {
             return Err(invalid_query());
         }
@@ -111,11 +115,14 @@ impl AgendaQuery {
         valid_instant(cursor.at())
             && cursor.at() >= self.from
             && cursor.at() < self.until
+            && !(cursor.kind() == AgendaItemKind::ResourceHearing
+                && self.hearing_status == HearingStatusFilter::Cancelled)
             && matches!(
                 (self.kind, cursor.kind()),
                 (AgendaKind::All, _)
                     | (AgendaKind::Hearing, AgendaItemKind::Hearing)
                     | (AgendaKind::Deadline, AgendaItemKind::Deadline)
+                    | (AgendaKind::ResourceHearing, AgendaItemKind::ResourceHearing)
             )
     }
 }

@@ -1,5 +1,52 @@
 # Informe de verificación local
 
+## Audiencias propias en agenda: 3 de octubre de 2026
+
+Implementación local, sin integrar ni desplegar. La consulta añade la familia
+`resource_hearing` después de audiencias ordinarias y plazos, conserva la versión
+y los rangos previos del cursor y exige captura, asociación inicial y origen
+verificados bajo la misma transacción de lectura auditada. El cierre del caso,
+archivo del recurso o desvinculación posterior no cancelan el señalamiento.
+La API no fabrica etapa ni estado ordinario. Qadra, alertas y la aceptación real
+completa de esta familia siguen pendientes.
+
+TDD: los tests nuevos de aplicación, SQL y transporte se escribieron primero y
+fallaron al compilar por contratos ausentes. Se corrigieron imports y accesores
+de las fixtures antes de implementar. La comprobación focal incluye los casos
+anteriores de agenda porque la consulta y su orden afectan a las tres familias:
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Aplicación, suite de agenda | 26/26, 0.01 s; incluye siete nuevos. |
+| PostgreSQL 16.15 desechable, suite de agenda | 12/12, 86.71 s; incluye cinco nuevos y la continuación tras cien candidatos omitidos. |
+| Transporte HTTP | 13 casos distintos aprobados: doce en 0.02 s y el caso mixto corregido en 0.00 s; incluye siete nuevos. |
+
+Las pruebas SQL comprobaron identidades e instantes iguales, filtros, orden y
+cursores, permisos, revocación, conservación histórica después de cierre y
+archivo, datos alterados, pérdida del origen y rechazo de auditoría. El clúster
+propio se retiró al terminar. Clippy de aplicación e infraestructura aprobó con
+`-D warnings` en 14.56 s. Clippy de HTTP y composición aprobó con `-D warnings` en 17.65 s.
+El primer caso HTTP mixto falló porque su fixture sólo producía una fecha civil,
+sin hora operativa. Se preparó el cierre sintético explícito por el servicio V2;
+la assertion adicional conserva el instante exacto `2026-01-06T23:30:00Z`, que
+corresponde a las 17:30 con desfase -06:00. Su primer literal esperaba el desfase
+local, aunque la proyección operativa usa UTC; se corrigió el literal, sin alterar
+la producción ni las comprobaciones de las tres familias. Sólo se repitió ese
+caso. No se cambian límites de tiempo, criptografía ni configuración de CI.
+
+`scripts/api-demo.sh` aprobó el recorrido del servidor y la restauración de los
+módulos existentes, incluidas agenda y alertas anteriores, con PostgreSQL y Redis
+locales aislados. El primer intento compiló el workspace en 50.73 s y se detuvo
+antes de servir por rutas multimedia ausentes en el entorno. Se verificaron sin
+recompilar ambos ejecutables fijados de FFmpeg 9.0.2, su configuración y
+capacidades; con las dos rutas explícitas, el recorrido completo aprobó y retiró
+sus servicios temporales. No acredita aún creación propia y navegador con
+restauración. Formato, ASCII, límite de 400 líneas y revisión de diferencias
+aprobaron. Una suite, compilador y trabajador locales por vez; no se repitió una
+regresión global ni se atribuye cobertura nueva a este checkpoint.
+
+
+
 ## API y consultas de audiencias de recursos: 3 de octubre de 2026
 
 Implementación local, aún sin integración, despliegue ni aceptación completa

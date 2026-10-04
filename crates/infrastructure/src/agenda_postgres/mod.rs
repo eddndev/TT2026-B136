@@ -4,6 +4,7 @@ mod authorization;
 mod header;
 mod projection;
 mod query;
+mod resource_hearing;
 
 use application::ApplicationError;
 use domain::{clock::Clock, crypto::DocumentHasher};

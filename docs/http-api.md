@@ -49,8 +49,10 @@ La [API de audiencias](hearings-api.md) define programación, reemplazo,
 cancelación organizativa, historial exacto y agenda autorizada.
 Las [audiencias propias de recursos](resource-hearings.md) incorporan preparación,
 confirmación explícita, listado paginado y lectura histórica bajo cada recurso.
-Se componen en `serve` con el presupuesto compartido; su agenda, alertas y Qadra
-siguen pendientes. La verificación focal no equivale a integración o despliegue.
+Se componen en `serve` con el presupuesto compartido. Su consulta de agenda añade
+la familia `resource_hearing`, con origen verificado, filtro propio y continuación
+compatible. Alertas, Qadra y aceptación integrada propia siguen pendientes.
+La verificación focal no equivale a integración o despliegue.
 La [agenda combinada](agenda-api.md) reúne audiencias y vencimientos operativos
 mediante `GET /api/v1/agenda`, con autorización y observación comunes por página.
 La [API de sesiones y resultados declarados](hearing-results-api.md) añade

@@ -21,7 +21,9 @@ impl AgendaService {
                 actor.role.allows(Permission::ReadHearing)
                     && actor.role.allows(Permission::ReadDeadline)
             }
-            AgendaKind::Hearing => actor.role.allows(Permission::ReadHearing),
+            AgendaKind::Hearing | AgendaKind::ResourceHearing => {
+                actor.role.allows(Permission::ReadHearing)
+            }
             AgendaKind::Deadline => actor.role.allows(Permission::ReadDeadline),
         };
         if !allowed {

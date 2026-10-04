@@ -94,7 +94,9 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   incompleta, las rutas HTTP y su composición. La prueba de humo del servidor
   con restauración también aprobó; no sustituye la aceptación propia del recorrido.
   Esta ampliación aún no está integrada ni desplegada;
-  agenda, alertas y Qadra siguen pendientes. Véase el
+  la consulta de agenda incorpora localmente esta tercera familia, sin cambiar
+  los filtros ordinarios. Alertas, Qadra y aceptación integrada del recorrido
+  siguen pendientes. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor

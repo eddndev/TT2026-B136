@@ -69,7 +69,7 @@ pub(super) fn load(
     }
     creation(tx, hearing, hasher).map(Some)
 }
-pub(super) fn creation(
+pub(crate) fn creation(
     tx: &mut Transaction<'_>,
     hearing: ResourceHearingDetail,
     hasher: &dyn DocumentHasher,

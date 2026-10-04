@@ -1,5 +1,23 @@
 # Verificación de la actualización académica
 
+## Audiencias de recursos en agenda: 3 de octubre de 2026
+
+Los apartados propios de implementación y pruebas aprobaron `make -C latex`:
+382 páginas, 5970897 bytes y SHA-256
+`1bbc3f091d816d9336e31ea4e41ff25e948613166ac6b60741da83333a37dbf7`.
+Se renderizaron e inspeccionaron las páginas físicas 216, 217 y 265: texto,
+referencias y transiciones legibles, sin recortes ni solapes en las páginas
+modificadas. Los PDF anteriores se conservan. Sólo se editaron los apartados
+propios de los capítulos 4 y 5; resumen, introducción, teoría y conclusiones
+permanecen sin cambios.
+
+La ampliación explica las tres familias, orden, cursor y procedencia auditada,
+así como su conservación tras desvinculación, archivo y cierre. Distingue las
+pruebas focales de la aceptación integrada, alertas y Qadra pendientes.
+No hubo referencias indefinidas ni glifos faltantes. Permanecen dos advertencias
+de desbordamiento y la sustitución histórica de versalitas Times New Roman.
+
+
 ## Consultas y API de audiencias de recursos: 3 de octubre de 2026
 
 Los apartados propios de implementación y pruebas aprobaron `make -C latex`:

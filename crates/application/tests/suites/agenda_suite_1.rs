@@ -5,6 +5,8 @@ mod agenda_page;
 mod agenda_projection;
 #[path = "../agenda_query.rs"]
 mod agenda_query;
+#[path = "../agenda_resource_hearings.rs"]
+mod agenda_resource_hearings;
 #[path = "../agenda_service.rs"]
 mod agenda_service;
 #[path = "../agenda_support/mod.rs"]
