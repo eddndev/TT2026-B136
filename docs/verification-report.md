@@ -7728,3 +7728,27 @@ los caracteres correctos y conservar los archivos de código en ASCII.
 
 Las comprobaciones de navegador mantienen la API simulada; no se probaron
 los servicios reales del backend en esta revisión.
+
+
+## Registro de modulos de pruebas incluidos explicitamente
+
+El 4 de octubre de 2026, `scripts/check-test-layout.py` rechazo modulos
+compilados mediante atributos `#[path]`: no recorria hijos de un target que
+fuera tambien un archivo de pruebas, ni inclusiones anidadas bajo los wrappers.
+El control se corrige para contar cada inclusion alcanzable desde los targets
+explicitos y rechazar ciclos, archivos huerfanos y registros duplicados.
+
+- TDD inicial: dos regresiones fallaron entre cinco casos. La primera correccion
+  paso esos cinco, pero el inventario completo detecto dos hijos anidados aun
+  omitidos. Tres casos nuevos reprodujeron la inclusion anidada, los duplicados
+  anidados y la ausencia de rechazo de ciclos.
+- Correccion completa: **8/8** pruebas Python aprobadas en **0.012 s**.
+  El checker verifico **257 ejecutables**: application 70, bin 23, domain 21,
+  infrastructure 83 y web 60, con cada fuente de integracion registrada una vez.
+- La campana remota anterior se cancelo antes de las pruebas Rust; la
+  cancelacion cruzada concluyo CI y Web. No produjo JUnit ni cobertura.
+  Documents aprobo por separado. La nueva revision requiere sus propios gates.
+
+Esta comprobacion valida el inventario estatico; no ejecuta esos 257 binarios
+ni sustituye la regresion Rust o de navegador. No se modifican targets Cargo,
+pruebas de producto, assertions, timeouts ni recursos de los runners.
