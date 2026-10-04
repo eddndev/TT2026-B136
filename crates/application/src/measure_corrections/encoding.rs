@@ -1,0 +1,77 @@
+use super::{wire::*, *};
+use crate::{identity::Principal, ApplicationError};
+use domain::cases::CaseId;
+
+pub fn measure_administrative_submission_bytes(
+    principal: &Principal,
+    case_id: CaseId,
+    command: &MeasureAdministrativeCommand,
+) -> Result<Vec<u8>, ApplicationError> {
+    let mut bytes = b"MATXN1".to_vec();
+    actor(&mut bytes, principal)?;
+    bytes.extend_from_slice(case_id.as_uuid().as_bytes());
+    bytes.extend_from_slice(command.operation_id.as_uuid().as_bytes());
+    reference(&mut bytes, command.target);
+    bytes.extend_from_slice(&command.context.administration_revision.get().to_be_bytes());
+    bytes.extend_from_slice(&command.context.stage_revision.get().to_be_bytes());
+    bytes.extend_from_slice(command.context.context_digest.as_bytes());
+    blob(&mut bytes, command.reason.as_str().as_bytes())?;
+    match &command.action {
+        MeasureAdministrativeAction::Correct(values) => {
+            bytes.push(0);
+            blob(&mut bytes, &values.canonical_bytes())?;
+        }
+    }
+    Ok(bytes)
+}
+
+pub fn measure_administrative_review_bytes(
+    review: &MeasureAdministrativeReview,
+) -> Result<Vec<u8>, ApplicationError> {
+    let mut bytes = b"MAPR1".to_vec();
+    blob(
+        &mut bytes,
+        &measure_administrative_submission_bytes(&review.actor, review.case_id, &review.command)?,
+    )?;
+    bytes.extend_from_slice(review.submission_digest.as_bytes());
+    blob(&mut bytes, &review.context.canonical_bytes())?;
+    support(&mut bytes, &review.support)?;
+    result(&mut bytes, &review.result)?;
+    Ok(bytes)
+}
+
+pub fn measure_administrative_record_bytes(
+    record: &MeasureAdministrativeRecordCapture,
+) -> Result<Vec<u8>, ApplicationError> {
+    let mut bytes = b"MARCR1".to_vec();
+    bytes.extend_from_slice(record.case_id.as_uuid().as_bytes());
+    bytes.extend_from_slice(record.operation_id.as_uuid().as_bytes());
+    result(&mut bytes, &record.result)?;
+    actor(&mut bytes, &record.actor)?;
+    blob(&mut bytes, &record.context.canonical_bytes())?;
+    support(&mut bytes, &record.support)?;
+    bytes.extend_from_slice(record.review_digest.as_bytes());
+    timestamp(&mut bytes, record.recorded_at);
+    Ok(bytes)
+}
+
+pub fn measure_administrative_capture_bytes(
+    capture: &MeasureAdministrativeCapture,
+) -> Result<Vec<u8>, ApplicationError> {
+    if capture.records.len() > 32 {
+        return Err(invalid("administrative row limit exceeded"));
+    }
+    let mut bytes = b"MAGR1".to_vec();
+    blob(
+        &mut bytes,
+        &measure_administrative_review_bytes(&capture.review)?,
+    )?;
+    bytes.extend_from_slice(capture.review.review_digest.as_bytes());
+    bytes.extend_from_slice(&(capture.records.len() as u32).to_be_bytes());
+    for row in &capture.records {
+        blob(&mut bytes, &measure_administrative_record_bytes(row)?)?;
+        bytes.extend_from_slice(row.capture_digest.as_bytes());
+    }
+    timestamp(&mut bytes, capture.recorded_at);
+    Ok(bytes)
+}

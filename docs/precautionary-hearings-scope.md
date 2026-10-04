@@ -107,19 +107,37 @@ ancestros con permisos actuales. La lista conserva decisiones inmutables aunque
 existan revisiones posteriores de sus medidas; pagina hasta 20 decisiones y
 rechaza identidades o fuentes compartidas contradictorias.
 
-Aún faltan origen durable, decisiones e historia de medidas persistidas,
-rectificación, HTTP, Agenda, alertas e interfaz. Estas capacidades y
-la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
-pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
-ejecutados se registran por separado en [el informe](verification-report.md).
-
 La rectificación tiene ahora valores de dominio y formato `MCVAL1` verificados.
 Permite corregir condiciones, declaración de vigencia, inicio, término ya
 presente y texto de supervisión. Preserva sujeto exacto, clase, presencia de
 terminación y selección/tipo de supervisor. Rechaza cambios vacíos; permite
-componentes y precisión explícitos sin inventar información. Esto aún no crea
-una revisión, recibo administrativo ni persistencia. Sus futuras revisiones
-conservarán por separado el origen y la última declaración judicial real.
+componentes y precisión explícitos sin inventar información. Los valores por sí
+solos no crean una revisión ni un efecto judicial; toda decisión histórica queda
+inmutable.
+
+La primera captura administrativa local rectifica una medida judicial exacta y
+exige su grupo completo con todos sus ancestros. Agrega una sola revisión con
+recibo propio, sin inventar otra decisión o grupo judicial. Conserva origen,
+última acción, fuentes completas y referencia exacta a la última medida/grupo
+judiciales. El soporte pertenece a esa última declaración real: después de una
+modificación no se sustituye por el de la imposición inicial. La corrección de
+una declaración terminal conserva su acción terminal.
+
+`MATXN1` vincula autor, expediente, operación, objetivo, contexto esperado, motivo
+y valores; `MAPR1` conserva instrucción, contexto, soporte y resultado completos;
+`MARCR1` compromete la fila administrativa, procedencia y digest de revisión;
+`MAGR1` reúne revisión y fila con sus digests y tiempo de captura sin ciclos.
+Se preservan los canones judiciales anteriores. La reconstrucción exige una fila
+exacta, fuentes inmutables compatibles y reloj UTC no anterior a su procedencia.
+Los límites de 256 propietarios y 8192 filas incluyen la nueva captura.
+
+Esta validación pura no acredita acceso actual, admisión documental nueva,
+existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
+correcciones repetidas, historial mixto y su consumo por revisiones/decisiones,
+`entered_in_error`, servicio autorizado de rectificación, SQL y rutas HTTP de la
+familia. Agenda, alertas, interfaz y restauración también siguen pendientes.
+Los resultados focales se registran en [el informe](verification-report.md);
+no acreditan por sí solos el flujo completo.
 
 ## Fuente primaria y límites de interpretación
 

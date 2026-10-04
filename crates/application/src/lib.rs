@@ -61,3 +61,5 @@ pub mod resource_deadlines;
 pub mod resource_hearings;
 
 pub mod case_reports;
+
+pub mod measure_corrections;

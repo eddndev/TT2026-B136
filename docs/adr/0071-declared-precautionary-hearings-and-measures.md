@@ -17,9 +17,12 @@ These application ports do not establish a working database or HTTP workflow.
 The authorized decision service also admits exact support, confirms both digests,
 and validates the complete original group and ancestor closure on replay and commit.
 Decision readers verify full immutable groups, bounded pagination and shared
-source/ownership consistency with current staff authorization. Durable storage,
-administrative correction, HTTP, Agenda,
-alerts, Qadra and restoration remain pending. The bounded contract and source
+source/ownership consistency with current staff authorization. A first pure
+administrative capture corrects one exact judicial measure using its complete
+group ancestry, retaining the last actual judicial declaration and support.
+Repeated corrections, mixed record history and consumers, entered-in-error,
+authorized correction services, durable storage, HTTP, Agenda, alerts, Qadra and
+restoration remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -259,13 +262,54 @@ invented. Every judicial decision field remains immutable. These checks cannot
 establish faithful transcription of its support.
 
 `MCVAL1` binds the correction conditions, length-framed original-format `MVAL1`
-and supervision text. It creates no revision or judicial effect. Administrative
-records will share the measure revision sequence while retaining a distinct
-receipt/owner family. Exact historical references retain their original meanings.
-The last actual judicial declaration supplies the retained action and support;
-this may differ from the initial imposition after a modification. The local domain
-values do not yet implement administrative receipt, history or persistence.
+and supervision text. Domain values alone create no revision or judicial effect.
+Administrative records share the measure revision sequence while retaining a
+distinct receipt/owner family. Exact historical references retain their original
+meanings.
 
+### First administrative correction capture
+
+The local pure capture accepts one `Correct` command targeting an exact judicial
+M and its complete original G ancestry. It derives the next measure revision,
+retains identity, judicial origin, original record root and last judicial action,
+and applies only the domain whitelist above. Terminal judicial declarations can
+be corrected without changing their terminal action. Every D field and earlier
+M/G capture remains unchanged; no new judicial decision or group is fabricated.
+
+The retained last-judicial reference identifies the actual selected M and its
+owning G. Support comes from that G's decision, including its complete metadata.
+After a modification this is the modification support, not a substitution of
+initial imposition support. Subject and supervisor sources remain exact, and
+their projection is rederived from those same revisions.
+
+The four administrative commitments have separate responsibilities:
+
+- `MATXN1`: recording actor ID/email/role, case, administrative operation, exact
+  target, expected context, reason and `Correct` values in `MCVAL1`.
+- `MAPR1`: complete instruction and digest, complete `PCTX1`, retained support,
+  resulting revision, roots, exact last judicial owner/reference, action,
+  capture validity, complete values, sources and projection.
+- `MARCR1`: one complete resulting row, case/operation, recording actor, context,
+  support, review digest and UTC capture clock. It excludes its own digest and
+  the owning administrative receipt digest.
+- `MAGR1`: complete review and digest, complete owned row and digest, and capture
+  clock. Its own digest is excluded. Original judicial and appointment formats
+  retain their existing bytes.
+
+The checked receipt owns exactly one row. Full reconstruction rejects missing,
+extra or altered rows and provenance even after outer hashes are recomputed.
+The administrative operation cannot reuse a judicial operation in the supplied
+closure. Before hashing history, bound the combined owner count at 256 and rows
+at 8192, including the new administrative owner and row. Compare the new context
+with every supplied immutable source and advance it from the selected judicial
+context. Capture time preserves nanoseconds, requires supported UTC, and cannot
+precede the selected capture or new context provenance.
+
+This is historical consistency checking. It does not freshly admit encrypted
+support, authenticate current access, prove durable origin/current head, or show
+the absence of dependants. Repeated administrative predecessors, mixed consumers,
+entered-in-error, authorized correction workflow and persistence are not part of
+this first capture implementation.
 
 ### Decision anchors and shared dependency evidence
 

@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Primera captura administrativa de rectificación: 4 de octubre de 2026
+
+La aplicación reconstruye una rectificación desde una medida judicial exacta y
+su grupo completo de origen con ancestros. Crea una sola fila administrativa con
+la siguiente revisión, conservando origen judicial, última acción, fuentes y
+soporte de la última declaración real. No crea otra decisión judicial ni cambia
+las anteriores. El motivo, autor capturado, contexto y procedencia quedan ligados
+por `MATXN1`, `MAPR1`, `MARCR1` y `MAGR1`.
+
+TDD: la API ausente falló antes de implementar, en **0.299 s**. La ejecución final
+aprobó **34 pruebas de captura** en **1.133 s** de comando, compilación **0.90 s**.
+Comprueban alcance exacto, propietario y ancestros completos, soporte más reciente,
+las siete acciones judiciales retenidas, fuentes archivadas, límites antes de
+hashear, relojes y reconstrucción completa frente a material rehasheado alterado.
+
+Otra ejecución aprobó **4 vectores administrativos independientes y 16 vectores
+judiciales anteriores** en **1.672 s**, compilación **1.62 s**. Los nuevos marcos
+tienen 202, 1285, 1152 y 2534 bytes; se comparan con literales construidos desde
+escalares explícitos. Sus digests internos usan la dependencia determinista de
+prueba y no se presentan como vectores SHA-256. La revisión estática independiente
+no encontró defectos en esta frontera. Clippy de los targets de captura y vectores
+con `-D warnings` aprobó en **5.015 s**, compilación **4.97 s**, sin advertencias.
+
+La captura sigue siendo una comprobación pura de evidencia suministrada. No
+admite nuevamente soporte cifrado ni prueba permisos actuales, origen durable,
+cabeza vigente o ausencia de dependientes. Correcciones repetidas, historial
+mixto, `entered_in_error`, servicio autorizado de rectificación, SQL y HTTP siguen
+pendientes. No se ejecutó una campaña global, integración, despliegue ni nuevo
+PDF para esta verificación focal.
+
 ## Valores de rectificación de medidas: 4 de octubre de 2026
 
 El dominio limita la corrección a condiciones, vigencia y texto de la supervisión

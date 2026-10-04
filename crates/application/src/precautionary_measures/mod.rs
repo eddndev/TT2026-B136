@@ -5,7 +5,7 @@ mod decision_capture;
 mod decision_encoding;
 mod decision_model;
 mod decision_preparation;
-mod decision_wire;
+pub(crate) mod decision_wire;
 mod sources;
 pub use decision_capture::measure_decision_group_matches;
 pub use decision_encoding::{
