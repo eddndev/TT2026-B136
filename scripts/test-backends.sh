@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Run tests with isolated PostgreSQL databases and a disposable Redis server.
 set -euo pipefail
+set +m
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-for command in cargo initdb pg_ctl pg_dump pg_restore psql python3 redis-cli redis-server; do
+for command in cargo initdb pg_ctl pg_dump pg_restore psql python3 redis-cli redis-server setsid; do
   command -v "$command" >/dev/null || {
     printf 'test-backends.sh: required command not found: %s\n' "$command" >&2
     exit 1
@@ -21,6 +22,7 @@ TEST_DATABASE_USER="tt_backend_test_admin"
 TEST_DATABASE_PASSWORD="$(python3 -c 'import secrets;print(secrets.token_hex(24))')"
 POSTGRES_STARTED=false
 REDIS_PID=""
+WORKLOAD_PID=""
 free_port() {
   python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()'
 }
@@ -30,17 +32,56 @@ while [ "$REDIS_PORT" = "$PG_PORT" ]; do REDIS_PORT="$(free_port)"; done
 
 cleanup() {
   local status=$?
+  trap - EXIT
+  trap '' INT TERM
+  # The workload owns a session; cancellation never targets the caller's group.
+  python3 - "$WORKLOAD_PID" "$REDIS_PID" <<'PY'
+import os
+from pathlib import Path
+import signal
+import sys
+import time
+
+workload, redis = (int(value) if value else None for value in sys.argv[1:])
+
+def terminate(signum):
+    for target in (-workload if workload else None, workload, redis):
+        if target is not None:
+            try:
+                os.kill(target, signum)
+            except ProcessLookupError:
+                pass
+
+def running():
+    for path in Path('/proc').glob('[0-9]*/stat'):
+        try:
+            fields = path.read_text().rsplit(')', 1)[1].split()
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+        pid = int(path.parent.name)
+        if fields[0] != 'Z' and (pid in (workload, redis)
+                               or (workload and int(fields[2]) == workload)):
+            return True
+    return False
+
+terminate(signal.SIGTERM)
+deadline = time.monotonic() + 2
+while running() and time.monotonic() < deadline:
+    time.sleep(0.05)
+if running():
+    terminate(signal.SIGKILL)
+PY
+  if [ -n "$WORKLOAD_PID" ]; then wait "$WORKLOAD_PID" 2>/dev/null || true; fi
+  if [ -n "$REDIS_PID" ]; then wait "$REDIS_PID" 2>/dev/null || true; fi
   if [ "$POSTGRES_STARTED" = true ]; then
     pg_ctl -D "$TEST_DIR/postgres" -m fast -w stop >/dev/null 2>&1 || true
-  fi
-  if [ -n "$REDIS_PID" ]; then
-    kill "$REDIS_PID" 2>/dev/null || true
-    wait "$REDIS_PID" 2>/dev/null || true
   fi
   rm -rf -- "$TEST_DIR"
   return "$status"
 }
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 printf '%s\n' "$TEST_DATABASE_PASSWORD" > "$TEST_DIR/postgres-password"
 initdb -D "$TEST_DIR/postgres" --auth=scram-sha-256 --no-locale --encoding=UTF8 \
@@ -71,7 +112,8 @@ psql "$IDENTITY_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 \
 
 cd "$REPO_ROOT"
 if [ "$#" -eq 0 ]; then
-  cargo test --workspace
-else
-  "$@"
+  set -- cargo test --workspace
 fi
+setsid "$@" &
+WORKLOAD_PID=$!
+wait "$WORKLOAD_PID"

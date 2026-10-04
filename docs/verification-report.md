@@ -1,6 +1,40 @@
 # Informe de verificación local
 
 
+## Limpieza de servicios de prueba al cancelar: 4 de octubre de 2026
+
+La comprobación de los runners después de la cancelación encontró 80 procesos
+Redis temporales en un host y 28 en otro. Se verificaron su usuario, directorio
+privado de pruebas y grupo de control del runner; se terminaron únicamente esos
+procesos mediante identificadores de proceso estables. La inspección posterior
+no encontró procesos de pruebas activos. No se borraron cachés ni datos de producto.
+Esta observación no demuestra que los 108 procesos históricos tuvieran la misma
+secuencia de cancelación.
+
+Cuatro regresiones reprodujeron que `scripts/test-backends.sh` dejaba descendientes
+vivos al terminar el comando y no completaba correctamente el apagado al recibir
+SIGINT o SIGTERM. El supervisor ahora ejecuta el comando en una sesión propia,
+espera de forma interrumpible y conserva el código original. La limpieza ignora
+señales repetidas, termina el grupo propio y Redis antes de esperar PostgreSQL,
+y permite dos segundos de apagado antes de forzar únicamente los procesos propios
+que sigan vivos. Ese límite pertenece a la limpieza, no a pruebas de producto.
+
+La verificación final aprobó **6/6 en 4.205 s**: éxito, fallo con código 7,
+SIGINT con 130, SIGTERM con 143, cancelación del grupo completo y un comando que
+ignora SIGTERM. Todos comprobaron limpieza de Redis, comando, descendiente y
+directorio privado, conservando un proceso ajeno. El marcador de disponibilidad
+se publica después de instalar los manejadores, de modo que el último caso
+comprueba realmente el escalamiento. La batería usa Redis compatible real y
+sustitutos de PostgreSQL/Cargo para aislar el ciclo de vida; entra en el gate
+existente de helpers de CI. Los tres hosts tienen las herramientas requeridas.
+
+Un control separado con PostgreSQL **16.15** y Redis compatible **Valkey 8.1.10**
+aprobó en **1.917 s**, accediendo a las tres bases aisladas y verificando después
+la desaparición de ambos servidores y del directorio temporal. No se repitieron
+la campaña API, navegador, compilación completa o PDF previamente aceptados.
+Los gates remotos de la nueva cabeza siguen pendientes.
+
+
 ## Guardas de esquema con orígenes derivados: 4 de octubre de 2026
 
 La campaña remota se detuvo al preparar una prueba de alteración del esquema:

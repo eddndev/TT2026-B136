@@ -76,6 +76,11 @@ bash scripts/test-backends.sh            # suite con PostgreSQL y Redis desechab
 cargo run --bin despacho-cli -- --help   # ayuda del binario
 ```
 
+El supervisor `scripts/test-backends.sh` requiere Linux, `setsid`, las
+herramientas PostgreSQL y los ejecutables locales `redis-server` y `redis-cli`.
+Ejecuta el comando en una sesión propia y limpia sus servicios desechables al
+terminar, fallar o recibir SIGINT/SIGTERM, conservando el código de salida.
+
 Antes de iniciar `serve` o una demostración con la API real, preparar la
 [biblioteca qpdf](docs/document-format-operations.md) y realizar una sola vez la
 [instalación fijada del decodificador multimedia](docs/media-decoder-setup.md).
