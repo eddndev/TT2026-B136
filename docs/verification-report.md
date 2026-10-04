@@ -7814,3 +7814,28 @@ La cancelación automática detuvo CI, Web y Documents dentro de los **19 s**
 posteriores al fallo. La campaña no produjo artefactos ni JUnit o cobertura
 utilizables. Se comprobó la ausencia de procesos de pruebas, compilación y
 navegador de la campaña en los tres VPS antes de publicar la corrección.
+
+
+## Lectura de audiencias propias durante la recuperacion de recursos
+
+El 4 de octubre de 2026, el navegador simulado rechazo tres consultas GET de
+la nueva lista de audiencias propias al abrir y recuperar el detalle de un
+recurso. El fixture compartido no reconocia esa ruta y las registraba como
+solicitudes inesperadas, haciendo fallar el control de cero escrituras durante
+la reentrada. No se observo un reenvio de una mutacion del producto.
+
+La prueba existente de conservacion del archivo en su acto original reprodujo
+el fallo en **10.765 s**, incluido el arranque. El fixture ahora responde a la
+lectura exacta de audiencias del recurso con una pagina vacia, despues de sus
+controles de autorizacion y existencia. La misma prueba aprobo **1/1 en
+10.470 s** incluido el arranque; las otras siete pruebas consumidoras directas
+aprobaron **7/7 en 25.454 s**, tambien incluido el arranque y con un worker.
+Se conserva la deteccion estricta de solicitudes inesperadas y la assertion
+de cero escrituras; no se filtraron GET para ocultarlas.
+
+Formato, ASCII, limite de longitud y diff aprobaron. La cancelacion automatica
+detuvo la campana remota al fallar el navegador simulado; sus resultados
+parciales no acreditan una regresion completa. Se verifico la ausencia de
+procesos de la campana en los tres VPS antes de publicar la correccion.
+No cambian producto, pruebas contabilizadas, timeouts, permisos, recursos ni
+fuentes del manuscrito; la cabeza corregida requiere nuevos gates remotos.
