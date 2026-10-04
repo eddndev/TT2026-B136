@@ -122,6 +122,7 @@ fn workflows(dashboard: Arc<Dashboard>) -> CaseWorkflows {
         typed: unused.clone(),
         hearings: unused.clone(),
         hearing_results: Arc::new(hearing_results::Workflow::default()),
+        hearing_derived_deadlines: unused.clone(),
         procedural_facts: Arc::new(facts::Workflow::default()),
         procedural_resources: Arc::new(resources::Workflow::default()),
         resource_activities: Arc::new(activities::Workflow::default()),

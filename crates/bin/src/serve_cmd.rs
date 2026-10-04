@@ -26,6 +26,7 @@ use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 
 use crate::cli::ServeArgs;
 
+mod derived_deadlines;
 mod documents;
 mod inputs;
 mod owner_certificates;
@@ -162,6 +163,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 result_hasher,
                 result_clock,
             );
+            let hearing_derived_deadlines = derived_deadlines::open(
+                database,
+                identity.clone(),
+                processor.clone(),
+                format_validator.clone(),
+            )?;
             let fact_hasher = Arc::new(RingSha256Hasher::new());
             let fact_clock = Arc::new(SystemClock::new());
             let procedural_facts = ProceduralFactService::new(
@@ -343,6 +350,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     typed: Arc::new(typed_participants),
                     hearings: Arc::new(hearings),
                     hearing_results: Arc::new(hearing_results),
+                    hearing_derived_deadlines,
                     procedural_facts: Arc::new(procedural_facts),
                     procedural_resources: Arc::new(procedural_resources),
                     resource_activities,

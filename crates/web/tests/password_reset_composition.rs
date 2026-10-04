@@ -241,3 +241,16 @@ async fn resource_hearing_routes_are_composed_with_shared_request_admission() {
     drop(gate);
     blocked.await.unwrap();
 }
+
+#[tokio::test]
+async fn compound_hearing_routes_share_protected_api_composition() {
+    let fixture = Harness::new(1, true);
+    let base = "/api/v1/cases/00000000-0000-4000-8000-000000000001/hearings/00000000-0000-4000-8000-000000000002/results/derived-deadline";
+    for action in ["prepare", "submit"] {
+        let response = post(&fixture.router, &format!("{base}/{action}"), "{}".into()).await;
+        response.error(StatusCode::UNAUTHORIZED, "invalid_session");
+        assert_eq!(response.headers["cache-control"], "no-store");
+    }
+    assert_eq!(fixture.dashboard.calls(), 0);
+    assert!(fixture.ports.calls().is_empty());
+}

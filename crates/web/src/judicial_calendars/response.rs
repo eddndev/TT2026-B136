@@ -24,7 +24,7 @@ pub(super) fn draft(
         json!({"actor_id":v.actor,"command":p::command(&v.command),"result_revision":v.result_revision.get(),"values":p::values(&v.values),"values_digest":v.values_digest.to_hex(),"initial_scope":p::scope(&v.initial_scope),"submission_digest":v.submission_digest.to_hex()}),
     )
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     v: JudicialCalendarDetail,
     id: JudicialCalendarId,
     revision: Option<JudicialCalendarRevision>,

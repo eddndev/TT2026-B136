@@ -14,7 +14,7 @@ pub(super) fn values(v: &HearingResultValues) -> Result<Value, ApiError> {
         "provenance":{"kind":v.provenance().kind().as_str(),"reference":v.provenance().reference().map(|s|s.as_str()),"support":v.provenance().support().map(|s|json!({"document_id":s.reference().id.to_string(),"version":s.reference().version.get(),"digest":s.digest().to_hex()}))}}),
     )
 }
-pub(super) fn command(c: &HearingResultCommand) -> Result<Value, ApiError> {
+pub(crate) fn command(c: &HearingResultCommand) -> Result<Value, ApiError> {
     let mut change =
         json!({"action":c.action().as_str(),"expected_revision":c.expected_revision()});
     match &c.change {
@@ -41,7 +41,7 @@ pub(super) fn command(c: &HearingResultCommand) -> Result<Value, ApiError> {
 pub(super) fn receipt(r: &HearingResultReceipt) -> Value {
     json!({"operation_id":r.operation_id.to_string(),"action":r.action.as_str(),"expected_revision":r.expected_revision,"submission_digest":r.submission_digest.to_hex()})
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     row: HearingResultDetail,
     case: CaseId,
     hearing: HearingId,

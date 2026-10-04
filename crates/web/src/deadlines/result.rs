@@ -13,7 +13,7 @@ use domain::{
 };
 use serde_json::{json, Value};
 
-pub(super) fn project(value: &DeadlineEvaluationRecord) -> Result<Value, ApiError> {
+pub(crate) fn project(value: &DeadlineEvaluationRecord) -> Result<Value, ApiError> {
     let trigger = match value.trigger_outcome() {
         TriggerOutcome::Extracted { at } => json!({"kind":"extracted","at":time::project(*at)?}),
         TriggerOutcome::Blocked(cause) => json!({"kind":"blocked","block":blocks::trigger(*cause)}),

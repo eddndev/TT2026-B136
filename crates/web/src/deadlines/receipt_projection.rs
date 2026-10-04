@@ -82,7 +82,10 @@ fn technical_cause(value: TechnicalCause, case_id: CaseId) -> Result<Value, ApiE
     }
 }
 
-fn source_event(value: SourceEventReference, case_id: CaseId) -> Result<Value, ApiError> {
+pub(crate) fn source_event(
+    value: SourceEventReference,
+    case_id: CaseId,
+) -> Result<Value, ApiError> {
     let valid_scope = match value.family {
         DependencyFamily::Profile => {
             value.case_id.is_none_or(|id| id == case_id) && value.hearing_id.is_none()

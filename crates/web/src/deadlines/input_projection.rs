@@ -35,7 +35,7 @@ pub(super) fn input(v: &DeadlineEvaluationInput) -> Result<Value, ApiError> {
         "conditions":q.conditions.iter().map(|v|json!({"id":v.id.to_string(),"applies":declaration(&v.applies,|v|json!(v)),"locator":v.locator.as_str()})).collect::<Vec<_>>()}}),
     )
 }
-pub(super) fn definition(v: &DeadlineDefinition) -> Result<Value, ApiError> {
+pub(crate) fn definition(v: &DeadlineDefinition) -> Result<Value, ApiError> {
     Ok(
         json!({"title":v.title.as_str(),"profile":{"id":v.profile.id.to_string(),"revision":v.profile.revision.get()},"responsible_id":v.responsible,"input":input(&v.input)?}),
     )
@@ -52,7 +52,7 @@ pub(super) fn attention(v: &DeadlineAttention) -> Result<Value, ApiError> {
         }
     })
 }
-pub(super) fn command(v: &DeadlineCommand) -> Result<Value, ApiError> {
+pub(crate) fn command(v: &DeadlineCommand) -> Result<Value, ApiError> {
     let mut change =
         json!({"action":v.action().as_str(),"expected_revision":v.expected_revision()});
     if let Some(reason) = v.reason() {

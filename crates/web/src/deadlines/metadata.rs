@@ -10,7 +10,7 @@ use serde_json::{json, Value};
 pub(super) fn actor(v: &DeadlineActorSnapshot) -> Result<Value, ApiError> {
     receipt_projection::author(v)
 }
-pub(super) fn responsible(v: &DeadlineResponsibleSnapshot) -> Result<Value, ApiError> {
+pub(crate) fn responsible(v: &DeadlineResponsibleSnapshot) -> Result<Value, ApiError> {
     if v.email.trim().is_empty() || !v.role.allows(Permission::ReadDeadline) {
         return Err(ApiError::internal());
     }

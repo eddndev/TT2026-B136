@@ -5,8 +5,9 @@
 Proposed.
 
 Application preparation, final capture, historical restoration, the PostgreSQL
-origin schema and atomic repository/service have focused verification. HTTP,
-Qadra and complete restore acceptance remain pending. This record establishes
+origin schema, atomic repository/service, HTTP adapter and shared composition
+have focused verification. Qadra and complete restore acceptance remain pending.
+This record establishes
 the delivery boundary; it asserts no complete acceptance, performance result or
 deployment. It remains proposed until the complete workflow and its evidence
 can be reviewed.

@@ -8024,3 +8024,52 @@ parciales no acreditan una regresion completa. Se verifico la ausencia de
 procesos de la campana en los tres VPS antes de publicar la correccion.
 No cambian producto, pruebas contabilizadas, timeouts, permisos, recursos ni
 fuentes del manuscrito; la cabeza corregida requiere nuevos gates remotos.
+
+
+## HTTP de resultado de audiencia con plazo configurado
+
+El 4 de octubre de 2026 se incorporaron las rutas prepare/submit del
+[contrato compuesto](hearing-derived-deadlines.md) y su composición en `serve`.
+Comparten identidad, admisión documental y presupuesto HTTP con los demás
+flujos. La preparación distingue una revisión prospectiva de la recuperación
+del registro original; la confirmación conserva la instrucción y la huella
+revisadas. No modifica el registro ordinario de resultados ni permite crear
+un plazo con otra fuente bajo este contrato.
+
+- TDD: las pruebas nuevas fallaron primero porque no existía el router, en
+  **26.827 s**. La primera ejecución funcional aprobó **14 casos** y rechazó
+  **dos fixtures**, con **29.52 s** de compilación y **0.07 s** de ejecución.
+  La cantidad cero debía esperar el código 400 del parser existente; el caso
+  de fuente desconocida necesitaba una política indeterminada para alcanzar
+  el rechazo de ámbito compuesto. Se corrigieron esas entradas de prueba sin
+  modificar el producto ni los códigos ordinarios. Ambos casos aprobaron
+  individualmente en **0.108 s** y **1.091 s**, incluido Cargo. Así, los **16
+  casos nuevos** aprobaron entre ejecuciones focales; no se presenta aquella
+  primera ejecución como una corrida completa verde.
+- Los casos cubren bearer, errores sin filtración de detalles internos, JSON
+  estricto y acotado, identidad y fuente R1, preparación bloqueada sin captura
+  ficticia, confirmación y recuperación, respuesta ajena al comando, offsets
+  declarados y secuencias de evento superiores al entero seguro de JavaScript.
+  Las huellas simuladas del fixture no constituyen vectores criptográficos.
+- La prueba adicional de composición comprobó ambas rutas dentro de la API
+  protegida, rechazo sin sesión y ausencia de caché: **1/1**, en **4.279 s**
+  incluido Cargo y **0.01 s** de ejecución. Los puertos son simulados; esta
+  prueba no se presenta como persistencia HTTP real.
+- Clippy focal de `web` y `despacho-cli`, con todos sus targets y advertencias
+  denegadas, detectó un tipo complejo en el registro de llamadas del fixture.
+  Se nombró ese tipo sin cambiar comportamiento; la comprobación final aprobó
+  en **18.771 s**. Formato, ASCII de los 32 archivos Rust afectados, límite de
+  400 líneas, diff e inventario de **258 ejecutables** aprobaron.
+- La compilación del ejecutable `despacho-cli` aprobó en **62.582 s**,
+  con el nuevo adaptador compuesto en `serve`. Cargo conservó el aviso previo
+  de compatibilidad futura de `redis 0.25.4`; no fue un fallo de compilación.
+- La revisión independiente del contrato y su composición no encontró fallos
+  accionables de autorización o aislamiento; se precisaron las descripciones
+  de query vacía y huella hexadecimal en minúsculas.
+
+Todas las ejecuciones usaron un compilador y un hilo, con temporales privados
+sobre disco. Qadra, aceptación real con restauración, Agenda/Alertas y gates
+completos permanecen pendientes de esta misma entrega. No hay integración en
+main, despliegue ni nueva medición global de cobertura de este incremento.
+El manuscrito y PDF aceptados se conservan hasta el cierre funcional; el ADR
+sigue Proposed.
