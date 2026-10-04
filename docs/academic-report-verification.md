@@ -1,5 +1,24 @@
 # Verificación de la actualización académica
 
+## Consultas y API de audiencias de recursos: 3 de octubre de 2026
+
+Los apartados propios de implementación y pruebas aprobaron `make -C latex`:
+381 páginas, 5968778 bytes y SHA-256
+`9df92464b10c6ea3ede2561923eadb268f288afcf6a5e52ca6b274418d1bd6c7`.
+Se inspeccionaron las páginas físicas 215, 216, 263 y 264; tras corregir una frase
+que aún presentaba las consultas como pendientes se recompiló y revisó nuevamente
+la página 264. Texto, referencias y transiciones legibles, sin recortes ni solapes.
+El PDF anterior se conserva. Resumen, introducción, marco teórico y conclusiones
+mantienen sus hashes; sólo se editaron los apartados propios de los capítulos.
+
+El texto añade preparación/envío y lecturas históricas compuestos en el servidor,
+autorización y auditoría, cursor y repetición explícita de una operación incierta.
+Distingue las comprobaciones focales de agenda, alertas, Qadra y aceptación del
+recorrido todavía pendientes. No afirma integración ni despliegue.
+Sin glifos faltantes ni referencias indefinidas; permanecen las dos advertencias
+de desbordamiento y la sustitución histórica de versalitas Times New Roman.
+
+
 ## Persistencia de audiencias de recursos: 3 de octubre de 2026
 
 Los apartados propios de implementación y pruebas aprobaron `make -C latex`:

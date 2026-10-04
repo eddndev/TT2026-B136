@@ -44,3 +44,39 @@ pub(crate) fn open_deadlines(
         ),
     ))
 }
+
+use application::resource_hearings::{
+    ResourceHearingReadService, ResourceHearingReadWorkflow, ResourceHearingService,
+    ResourceHearingWorkflow,
+};
+
+type HearingWorkflows = (
+    Arc<dyn ResourceHearingWorkflow>,
+    Arc<dyn ResourceHearingReadWorkflow>,
+);
+
+pub(crate) fn open_hearings(
+    database_url: &(impl infrastructure::PostgresConnectionSource + ?Sized),
+    identity: Arc<dyn IdentityWorkflow>,
+) -> anyhow::Result<HearingWorkflows> {
+    let hasher = Arc::new(RingSha256Hasher::new());
+    let clock = Arc::new(SystemClock::new());
+    let store = Arc::new(
+        infrastructure::PostgresResourceHearingStore::open(
+            database_url,
+            hasher.clone(),
+            clock.clone(),
+        )
+        .context("cannot open PostgreSQL resource hearing store")?,
+    );
+    let writes = Arc::new(ResourceHearingService::new(
+        store.clone(),
+        identity.clone(),
+        hasher.clone(),
+        clock.clone(),
+    ));
+    let reads = Arc::new(ResourceHearingReadService::new(
+        store, identity, hasher, clock,
+    ));
+    Ok((writes, reads))
+}

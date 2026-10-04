@@ -1,5 +1,55 @@
 # Informe de verificación local
 
+## API y consultas de audiencias de recursos: 3 de octubre de 2026
+
+Implementación local, aún sin integración, despliegue ni aceptación completa
+con navegador. Las rutas de preparación, envío, listado y detalle histórico se
+componen en `serve` sobre el mismo almacén PostgreSQL, identidad y presupuesto
+HTTP compartido. La consulta devuelve la creación y asociación iniciales incluso
+tras desvincular, archivar el recurso o cerrar el expediente. Reautoriza acceso,
+verifica la evidencia y confirma auditoría antes de responder.
+
+TDD: antes de implementar los nuevos contratos, los targets de aplicación,
+SQL y HTTP fallaron al compilar por interfaces ausentes. La regresión HTTP de
+procedencia reprodujo 201 ante un recurso histórico distinto; ahora exige
+igualdad completa de recurso y acto entre audiencia y asociación. La prueba de
+composición rechazó la ruta antes de conectar el router. Se conservaron todos
+los casos y límites. El test de integridad almacenada reprodujo que un origen
+perdido se clasificaba como conflicto; las lecturas deben distinguir daño de
+una identidad o revisión inexistente, conservando esta última como 404.
+
+Los resultados frescos se separan de la persistencia comprobada anteriormente:
+
+| Verificación focal | Resultado |
+| --- | --- |
+| Lecturas de aplicación | 13/13, 0.07 s; relojes, principal, ámbito, recibos y paginación. |
+| Consultas PostgreSQL 16.15 aislado | 5/5, 38.80 s; captura original, cierre/archivo/desvinculación, permisos, revocación y auditoría. |
+| Clasificación estricta de origen y asociación ausentes | RED reproducido; final 1/1, 5.66 s, con ambos daños por separado. |
+| Rutas HTTP con puertos controlados | 10/10, 0.04 s; transporte estricto, respuestas, recuperación explícita y consultas. |
+| Composición y regresión de admisión | 6/6, 0.35 s; incluye el caso nuevo de audiencias y cinco anteriores. |
+
+El primer ensayo de la comprobación reforzada pasó los otros cuatro casos,
+pero falló al restaurar su fixture porque intentó insertar una columna generada.
+Se corrigió sólo la lista de columnas de esa restauración y se repitió el caso
+afectado, sin modificar las assertions ni repetir los cuatro aprobados.
+Todos los clústeres PostgreSQL propios fueron retirados al terminar.
+
+Clippy de los targets afectados, librerías y ejecutable aprobó con `-D warnings`
+en 6.78 s; compiló también las fixtures de acceso con certificado y la división
+de los tests de lectura. Se eliminó un `clone` innecesario sobre un valor `Copy`
+del test. Formato, ASCII, límite de 400 líneas y revisión de diferencias pasan.
+`scripts/api-demo.sh` aprobó sobre PostgreSQL y Redis aislados, tras un build
+completo del workspace de 1 min 03 s. El recorrido comprobó el servidor compuesto,
+autenticación, permisos, documentos, módulos existentes y restauración; retiró
+sus servicios temporales. No es todavía una aceptación real de la programación
+de audiencia propia ni del navegador de ese módulo.
+
+Una sola suite y compilador/worker locales, `TMPDIR` privado sobre disco.
+Los resultados no acreditan agenda, alertas, interfaz Qadra ni un recorrido real
+de audiencia con restauración. La campaña completa deberá corresponder a la
+cabeza de la entrega antes de integrar; no se reutiliza la cobertura histórica
+como si midiera estas rutas nuevas.
+
 ## Simulación de auditoría ausente con referencias nuevas: 3 de octubre de 2026
 
 La regresión de arranque tras importación histórica falló en la preparación de

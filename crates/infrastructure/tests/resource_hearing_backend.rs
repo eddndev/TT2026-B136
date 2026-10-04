@@ -6,6 +6,8 @@ mod crypto;
 mod hearing_database_support;
 mod procedural_fact_backend_support;
 mod procedural_resource_support;
+#[path = "resource_hearing_database_support/queries.rs"]
+mod query_cases;
 mod resource_activity_support;
 mod resource_hearing_database_support;
 use application::{resource_activities::*, resource_hearings::*, ApplicationError};

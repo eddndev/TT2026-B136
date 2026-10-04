@@ -5,9 +5,13 @@
 Accepted architecture; implementation remains local, unmerged and undeployed.
 Domain values, application preparation/submission, the PostgreSQL adapter,
 initial typed association, durable origin and strict schema/inventory exist.
-Generic association DTOs support this family without new hearing routes.
-Dedicated queries, scheduling HTTP, agenda, alerts and Qadra remain pending.
-Focused schema, application, PostgreSQL adapter and HTTP DTO checks passed.
+Generic association DTOs support this family. Dedicated historical queries and
+their scheduling/read router are implemented locally, including server
+composition. Agenda, alerts and Qadra remain pending.
+Focused schema, application, PostgreSQL adapter and generic HTTP DTO checks
+passed, as did the new application and PostgreSQL read checks, the specific
+stored-integrity error for incomplete creation evidence, dedicated HTTP routes
+and server composition.
 Neither integrated acceptance nor global CI is asserted here.
 The current contract is in
 [resource-hearings.md](../resource-hearings.md).
@@ -100,6 +104,28 @@ with the current email. Current authorization and equality of the current full
 principal before and after the call remain required. Removing a current
 association must not remove origin evidence or enable a duplicate creation.
 
+Separate `ResourceHearingReadStore` and `ResourceHearingReadWorkflow` from the
+write workflow. Share the existing PostgreSQL adapter; list and get verify the
+complete original creation, including its initial association and durable
+origin. Authorize current account and membership before lookup under the audit
+lock, commit the read audit, then reauthenticate the full principal in the
+application. Owner reads all cases, assigned Litigator and Paralegal read their
+cases, and Client is denied. Closure, resource archive and later unlinking do
+not erase historical access for an otherwise authorized reader.
+
+Bound lists to 1..20 creations, default 10, in ascending UUID order with an
+exclusive cursor. Do not filter by current association state or promise
+chronological order. Validate the complete page scope, order and continuation,
+each creation receipt, and a non-regressing UTC read clock. Return historical
+creations without a field suggesting current operational validation.
+
+Expose prepare/submit and list/get/exact routes in the resource-hearing family,
+binding URL parents to commands and responses. Preserve the existing separate
+DTO; do not transform it into an ordinary hearing. Reuse explicit submission
+for uncertain outcomes, as with contextual deadlines. There is no extra
+reconcile endpoint: a repeated exact submit can create when the first attempt
+did not commit, so callers must request it explicitly. GET never retries writes.
+
 Migration family `0030_` stores hearing roots and captures, extends exact
 association references and updates their guards. Runtime grants permit only
 reading and column-bounded insertion. Startup checks the strict catalog and
@@ -122,8 +148,9 @@ admit an arbitrary new summons.
 
 The PostgreSQL adapter now preserves capture, original association and audited
 origin atomically. Controlled-port checks remain distinct from database evidence.
-Dedicated hearing queries, scheduling HTTP, agenda, alerts and Qadra still need
-composition and acceptance; they must not manufacture an ordinary hearing from
-the draft. Generic association endpoints expose a separate `resource_hearing`
-record with its exact evidence. These pending parts remain within the same
-functional delivery; this local implementation does not close deployment or CI.
+Dedicated hearing queries, scheduling HTTP and server composition have local
+implementation; integrated acceptance remains pending. Agenda,
+alerts and Qadra remain part of the same functional delivery and must not
+manufacture an ordinary hearing from the draft. Generic association endpoints
+continue to expose the separate `resource_hearing` record with exact evidence.
+This local implementation does not close deployment or CI.

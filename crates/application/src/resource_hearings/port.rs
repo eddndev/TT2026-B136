@@ -1,6 +1,8 @@
 use super::*;
 use crate::ApplicationError;
-use domain::{cases::CaseId, identity::UserId, procedural_resources::ResourceId};
+use domain::{
+    cases::CaseId, crypto::Sha256Digest, identity::UserId, procedural_resources::ResourceId,
+};
 
 pub trait ResourceHearingStore: Send + Sync {
     /// Authorize current case membership before lookup. Resolve an exact prior
@@ -29,5 +31,26 @@ pub trait ResourceHearingStore: Send + Sync {
         case: CaseId,
         resource: ResourceId,
         prepared: PreparedResourceHearing,
+    ) -> Result<ResourceHearingCreation, ApplicationError>;
+}
+
+pub trait ResourceHearingWorkflow: Send + Sync {
+    fn prepare(
+        &self,
+        token: &str,
+        case: CaseId,
+        resource: ResourceId,
+        command: ResourceHearingCommand,
+    ) -> Result<ResourceHearingDraft, ApplicationError>;
+
+    /// Explicit repetition preserves the command and digest. An existing origin
+    /// returns its original creation; absence still follows normal creation rules.
+    fn submit(
+        &self,
+        token: &str,
+        case: CaseId,
+        resource: ResourceId,
+        command: ResourceHearingCommand,
+        expected_submission_digest: Sha256Digest,
     ) -> Result<ResourceHearingCreation, ApplicationError>;
 }

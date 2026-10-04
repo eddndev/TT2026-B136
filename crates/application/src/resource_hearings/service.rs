@@ -19,6 +19,36 @@ pub struct ResourceHearingService {
     hasher: Arc<dyn DocumentHasher + Send + Sync>,
     clock: Arc<dyn Clock + Send + Sync>,
 }
+
+impl ResourceHearingWorkflow for ResourceHearingService {
+    fn prepare(
+        &self,
+        token: &str,
+        case: CaseId,
+        resource: ResourceId,
+        command: ResourceHearingCommand,
+    ) -> Result<ResourceHearingDraft, ApplicationError> {
+        ResourceHearingService::prepare(self, token, case, resource, command)
+    }
+
+    fn submit(
+        &self,
+        token: &str,
+        case: CaseId,
+        resource: ResourceId,
+        command: ResourceHearingCommand,
+        expected_submission_digest: Sha256Digest,
+    ) -> Result<ResourceHearingCreation, ApplicationError> {
+        ResourceHearingService::submit(
+            self,
+            token,
+            case,
+            resource,
+            command,
+            expected_submission_digest,
+        )
+    }
+}
 impl ResourceHearingService {
     pub fn new(
         store: Arc<dyn ResourceHearingStore>,

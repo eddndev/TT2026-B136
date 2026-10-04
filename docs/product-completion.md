@@ -87,10 +87,14 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   El adaptador PostgreSQL ya confirma audiencia, asociación inicial y origen
   auditado atómicamente, con migración `0030_`, inventario estricto y recuperación
   del vínculo original después de desvincularlo. La API genérica de asociaciones
-  incorpora el DTO `resource_hearing`, sin añadir rutas propias de programación.
-  Aprobaron las pruebas focales de aplicación, esquema, adaptador y DTO HTTP.
-  Esta ampliación aún no está integrada ni desplegada; consultas propias,
-  programación HTTP, agenda, alertas y Qadra siguen pendientes. Véase el
+  incorpora el DTO `resource_hearing`. Las consultas históricas propias y el router
+  de preparación, envío y lectura están implementados localmente, incluida su
+  composición de servidor. Aprobaron las pruebas focales previas y los nuevos
+  casos de lectura en aplicación y PostgreSQL, el rechazo tipado de evidencia
+  incompleta, las rutas HTTP y su composición. La prueba de humo del servidor
+  con restauración también aprobó; no sustituye la aceptación propia del recorrido.
+  Esta ampliación aún no está integrada ni desplegada;
+  agenda, alertas y Qadra siguen pendientes. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
@@ -982,12 +986,15 @@ aprobaron en 6m41s, 11m24s y 7m43s, con 3156 Rust, 396 escenarios controlados
 y 47 reales, además de dos ignorados. Se conserva separada
 la aceptación de esta entrega de la aceptación de informes integrada por PR49.
 
-Persisten la integración completa de las audiencias propias de recursos
-(consultas, programación HTTP, agenda, alertas y Qadra), el corpus jurídico
-calificado y la activación automática durable de sus términos. El backend y
-el DTO de asociación de esas audiencias están implementados y verificados
-localmente según su [contrato](resource-hearings.md), aún sin integración ni
-despliegue. Asociar o consultar no crea
+Persisten la integración completa de las audiencias propias de recursos,
+agenda, alertas y Qadra, el corpus jurídico calificado y la activación automática
+durable de sus términos. El backend, el DTO de asociación, las consultas propias
+y el router de programación tienen implementación local según su
+[contrato](resource-hearings.md), incluida su composición de servidor; su aceptación
+integrada sigue pendiente, aún sin integración ni despliegue. Las pruebas focales
+de lecturas de aplicación y PostgreSQL ya aprobaron; el rechazo tipado de evidencia
+incompleta y las rutas propias siguen en validación. Los resultados del corte se
+conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
 [la evidencia por entrega](verification-report.md) conservan esos pendientes.

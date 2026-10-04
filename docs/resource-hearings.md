@@ -6,13 +6,15 @@ Implementación local en curso, aún no integrada ni desplegada. El dominio,
 `ResourceHearingService` y `PostgresResourceHearingStore` preparan, confirman y
 recuperan la audiencia con su asociación inicial y origen durable. La migración
 `0030_` y el inventario estricto están implementados. La API genérica de
-asociaciones incorpora la familia `resource_hearing`; esta ampliación de DTO no
-añade rutas para crear o consultar audiencias de recurso por separado.
+asociaciones incorpora la familia `resource_hearing`. Las consultas propias
+y el router de preparación, envío y lectura están implementados localmente,
+incluida su composición en `serve`.
 
-Las consultas propias, HTTP de programación, agenda, alertas y Qadra siguen
-pendientes dentro de esta entrega. Las pruebas focales de esquema, aplicación,
-adaptador PostgreSQL y DTO HTTP indicadas al final están aprobadas. No se
-atribuyen aceptación integrada, CI global ni despliegue.
+Agenda, alertas y Qadra siguen pendientes dentro de esta entrega. Las pruebas
+focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
+al final están aprobadas, incluido el rechazo tipado de evidencia persistida
+incompleta, las rutas propias y su composición. No se atribuyen aceptación
+integrada del recorrido, CI global ni despliegue.
 
 La decisión está en [ADR-0069](adr/0069-resource-hearing-scheduling.md). Este
 contrato complementa los [recursos](procedural-resources-api.md) y sus
@@ -182,6 +184,69 @@ desvinculación R2. Exige el evento original `resource_hearing.registered`, con
 marcador `rhl1`, autor, fecha y compromiso de cadena coincidentes. La mera
 existencia de objetos con esos identificadores no acredita recuperación.
 
+## Consultas propias y contrato HTTP
+
+`ResourceHearingReadStore` separa `list` y `get` de las operaciones de escritura.
+`ResourceHearingReadService` implementa `ResourceHearingReadWorkflow`: autentica
+antes de leer, valida la creación completa y reautentica el principal completo
+antes de devolverla. Owner puede consultar cualquier expediente; Litigator y
+Paralegal necesitan asignación vigente. Client se rechaza antes de invocar el
+puerto. El adaptador repite autorización bajo el bloqueo de auditoría y confirma
+`resource_hearing.list` o `resource_hearing.read` antes de entregar datos.
+
+La lectura sigue disponible con el expediente cerrado, el recurso archivado o
+la asociación desvinculada. Conserva las fuentes históricas sin exigir que el
+autor original mantenga hoy sus permisos. Verifica expediente, recurso, audiencia,
+revisión exacta, captura, vínculo inicial y origen. El reloj de lectura debe ser
+UTC, no retroceder durante la llamada y no preceder la captura devuelta. Una
+respuesta corrupta o una auditoría fallida impiden devolver la evidencia.
+
+La base de rutas es
+`/api/v1/cases/{case}/procedural-resources/{resource}/activities/resource-hearings`:
+
+| Método y sufijo | Contrato |
+| --- | --- |
+| `POST /prepare` | Comando explícito; devuelve revisión previa con `submission_digest`, sin crear audiencia. |
+| `POST /submit` | `{command, expected_submission_digest}`; devuelve 201 con creación completa o repetición exacta. |
+| `GET` base | Página de creaciones históricas del recurso. |
+| `GET /{hearing}` | Creación de la cabeza almacenada. |
+| `GET /{hearing}/revisions/{revision}` | Revisión exacta; otra revisión positiva ausente no se sustituye por la inicial. |
+
+El comando contiene `case_id`, `resource_id`, `operation_id`, `hearing_id`,
+`association_id`, `expected_resource_revision`, `resource`, `act` y `values`.
+`act` es obligatorio y puede ser nulo. Los padres deben coincidir con la URL;
+el servidor resuelve las fuentes, no acepta material capturado aportado por el
+cliente. JSON estricto y acotado a 64 KiB, UUID canónico y huellas hexadecimales
+minúsculas. Las rutas requieren bearer y sus respuestas son `no-store`.
+
+La consulta acepta `limit` entre 1 y 20, predeterminado 10, y `after_id`
+exclusivo. Ordena por UUID ascendente, sin prometer cronología ni filtrar por
+la cabeza del vínculo. Devuelve `case_id`, `resource_id`, `items`, `has_more`
+y `next_after_id`. Sólo una página llena puede declarar continuación, y ésta
+es el último UUID devuelto; una página vacía no tiene continuación. Cada elemento
+contiene `hearing`, `association`, `origin` y `submission_digest`. La asociación
+es siempre la inicial; para su estado e historia actuales se utiliza la API
+de asociaciones. No se añade `checked_at` ni se afirma vigencia operativa.
+
+No existe ruta adicional de conciliación. Tras una respuesta incierta el llamador
+puede repetir **expresamente** `/submit` con el mismo comando y huella. Si ya hay
+origen devuelve la creación original; si no hubo commit, el envío puede crear
+tras comprobar los requisitos actuales. GET nunca inicia esa escritura y su
+resultado no sustituye el cotejo del comando incierto. Tampoco se añaden todavía
+reemplazo, cancelación o una historia ficticia de revisiones de audiencia.
+
+Los errores distinguen sesión ausente o vencida (401), permiso denegado (403),
+expediente o actividad no encontrados (404), conflicto de la operación (409),
+entrada inválida (400), cuerpo excesivo (413) y presupuesto agotado (503).
+Una captura existente con origen o asociación inicial incompletos es un error
+de integridad almacenada (500 opaco), nunca prueba de ausencia ni permiso
+para repetir una creación distinta. Las consultas no sustituyen datos dañados
+por una página vacía.
+
+El router usa el presupuesto HTTP compartido. La composición de servidor
+comparte el mismo adaptador entre los dos servicios y conserva sus propietarios
+fuera del runtime asíncrono; conectar estas rutas no activa agenda ni alertas.
+
 ## Persistencia y restauración
 
 La familia `0030_` crea `case_resource_hearings` y
@@ -267,8 +332,20 @@ contrato existente. Estos resultados no acreditan navegador ni aceptación
 integrada. El [informe técnico](verification-report.md) conserva el registro de
 cada ejecución, incluidos sus tiempos de compilación.
 
-Los siguientes pasos son completar las consultas propias y conectar programación
-HTTP, agenda, alertas y Qadra. La asociación inicial ya pertenece a la creación
+Las nuevas [lecturas de aplicación](../crates/application/tests/resource_hearing_reads.rs)
+aprobaron sus 13 casos en 0,07 s: límites y continuidad, permisos, alcance exacto,
+validación de captura y origen, errores de auditoría, reloj y reautenticación.
+Las consultas PostgreSQL aprobaron cinco casos en PostgreSQL 16.15 en 38,80 s,
+incluidos paginación, permisos, revocación, cierre, archivo, desvinculación,
+fallo de auditoría y rechazo de origen perdido. El caso de origen perdido se
+refuerza para exigir `StoredInconsistent` tanto en lista como en detalle,
+también cuando falta la asociación inicial: rechazar la consulta con cualquier
+error no acredita esa clasificación. La comprobación reforzada aprobó 1/1
+en 5,66 s, después de reproducir el error. HTTP aprobó 10/10 en 0,04 s y
+composición 6/6 en 0,35 s, incluyendo cinco regresiones existentes.
+
+Los siguientes pasos son conectar agenda, alertas y Qadra y cerrar la aceptación
+integrada de este recorrido. La asociación inicial ya pertenece a la creación
 transaccional; el flujo genérico sólo vincula o desvincula audiencias existentes,
 sin crearlas. El soporte sólo puede ser
 uno ya admitido en el recurso o acto seleccionado: no se incorpora una citación

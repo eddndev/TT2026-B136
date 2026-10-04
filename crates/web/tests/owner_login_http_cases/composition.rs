@@ -34,6 +34,8 @@ mod stages;
 mod unused;
 #[path = "../password_reset_composition_support/unused_owner.rs"]
 mod unused_owner;
+#[path = "../password_reset_composition_support/unused_resource_hearings.rs"]
+mod unused_resource_hearings;
 #[path = "../password_reset_composition_support/unused_typed.rs"]
 mod unused_typed;
 
@@ -124,6 +126,8 @@ fn workflows(dashboard: Arc<Dashboard>) -> CaseWorkflows {
         procedural_resources: Arc::new(resources::Workflow::default()),
         resource_activities: Arc::new(activities::Workflow::default()),
         resource_deadlines: unused.clone(),
+        resource_hearings: unused.clone(),
+        resource_hearing_reads: unused.clone(),
         deadlines: Arc::new(deadlines::Workflow::default()),
         agenda: unused.clone(),
         dashboard,

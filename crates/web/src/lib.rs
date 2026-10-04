@@ -40,6 +40,7 @@ mod procedural_resources;
 mod request;
 mod resource_activities;
 mod resource_deadlines;
+mod resource_hearings;
 mod routes;
 mod runtime;
 mod typed_participants;
@@ -242,6 +243,18 @@ pub fn resource_deadline_router(
     )
 }
 
+/// Builds declared resource hearing submission and authorized historical reads.
+pub fn resource_hearing_router(
+    workflow: Arc<dyn application::resource_hearings::ResourceHearingWorkflow>,
+    reads: Arc<dyn application::resource_hearings::ResourceHearingReadWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        resource_hearings::router(workflow, reads, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds global staff calendar routes with application authorization.
 pub fn judicial_calendar_router(
     workflow: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
@@ -268,6 +281,9 @@ pub struct CaseWorkflows {
         Arc<dyn application::procedural_resources::ProceduralResourceWorkflow>,
     pub resource_activities: Arc<dyn application::resource_activities::ResourceActivityWorkflow>,
     pub resource_deadlines: Arc<dyn application::resource_deadlines::ResourceDeadlineWorkflow>,
+    pub resource_hearings: Arc<dyn application::resource_hearings::ResourceHearingWorkflow>,
+    pub resource_hearing_reads:
+        Arc<dyn application::resource_hearings::ResourceHearingReadWorkflow>,
     pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
     pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
     pub dashboard: Arc<dyn application::dashboard::DashboardWorkflow>,

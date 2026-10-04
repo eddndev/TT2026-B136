@@ -13,7 +13,7 @@ use serde_json::{json, Value};
 use time::format_description::well_known::Rfc3339;
 
 /// Project the verified capture as its own family, with no ordinary stage context.
-pub(super) fn detail(
+pub(crate) fn detail(
     row: ResourceHearingDetail,
     case: CaseId,
     resource: ResourceId,
@@ -169,7 +169,7 @@ fn validate(
     Ok(())
 }
 
-fn values(v: &ResourceHearingValues) -> Result<Value, ApiError> {
+pub(crate) fn values(v: &ResourceHearingValues) -> Result<Value, ApiError> {
     let basis = v.scheduling_basis();
     let support = basis.support();
     let scheduled = v

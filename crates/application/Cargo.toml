@@ -294,3 +294,7 @@ path = "tests/owner_certificate_login.rs"
 [[test]]
 name = "resource_hearing_service"
 path = "tests/resource_hearing_service.rs"
+
+[[test]]
+name = "resource_hearing_reads"
+path = "tests/resource_hearing_reads.rs"

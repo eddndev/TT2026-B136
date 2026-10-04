@@ -314,6 +314,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 identity.clone(),
                 Arc::new(SystemClock::new()),
             );
+            let (resource_hearings, resource_hearing_reads) =
+                crate::serve_resource_activities::open_hearings(database, identity.clone())?;
             let resource_deadlines =
                 crate::serve_resource_activities::open_deadlines(database, identity.clone())?;
             let audit_events = crate::serve_audit_composition::open(database, identity.clone())?;
@@ -345,6 +347,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     procedural_resources: Arc::new(procedural_resources),
                     resource_activities,
                     resource_deadlines,
+                    resource_hearings,
+                    resource_hearing_reads,
                     deadlines: Arc::new(deadlines),
                     agenda: Arc::new(agenda),
                     dashboard: Arc::new(dashboard),

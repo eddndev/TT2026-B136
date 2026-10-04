@@ -2,6 +2,7 @@
 mod commit;
 mod inventory;
 mod preparation;
+mod query;
 mod replay;
 pub(crate) mod storage;
 mod write;

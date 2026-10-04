@@ -1,5 +1,8 @@
 //! Exact organizational associations to existing case activities.
 pub(crate) use projection::{context as validate_context, detail as exact_projection};
+pub(crate) use resource_hearing::{
+    detail as resource_hearing_projection, values as resource_hearing_values,
+};
 pub(crate) use selection::{
     command as project_command, resource as project_resource, Act as ActInput,
     Resource as ResourceInput,
