@@ -51,7 +51,13 @@ inmutable. Esta comprobación no prueba origen persistido, historial completo,
 autorización actual ni admisión nueva. La convocatoria de revisión aún requiere
 capturas reales de medidas y permanece rechazada en este límite.
 
-Aún faltan origen e historial completos, decisiones persistidas, historia de medidas, servicios del
+El validador local de historial exige una cadena desde la captura inicial,
+comprueba todos los campos del origen y rechaza operaciones repetidas o fuentes
+contradictorias aunque reaparezcan después de una revisión intermedia. La
+existencia durable, el inventario y la cabeza vigente requieren al almacén; una
+cadena suministrada válida no demuestra que no existan revisiones posteriores.
+
+Aún faltan origen durable, decisiones persistidas, historia de medidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados

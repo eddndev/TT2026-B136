@@ -22,8 +22,8 @@ Complete declared measure terms (`MEAS1`) and factual decision declarations
 (`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
 These values do not establish decision effects, hearing anchors or group origins.
 Flat imposition capture receipts and adjacent-transition checks are implemented
-locally. Full origin/history validation and Review-purpose measure evidence
-remain separate pending checks.
+locally. Exact origin and supplied-chain validation are implemented too;
+durable existence/current head and Review-purpose measure evidence remain pending.
 Precautionary workflow services, persistence, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
@@ -132,6 +132,24 @@ The flat verifier cannot establish predecessor existence or durable origin;
 adjacent validation cannot establish full ancestry or operation uniqueness over
 an entire history. Review-purpose captures reject until their actual measure
 captures can be verified. No fabricated measure source makes them admissible.
+
+### Appointment origin and supplied history
+
+An origin identifies the exact initial scheduling capture through case,
+appointment, operation, revision and instruction/review/capture digests.
+Extraction validates the complete receipt and rejects replacement or cancellation
+as a root. The history validator requires a nonempty ascending chain from that
+initial capture, compares every origin field, verifies every receipt and adjacent
+transition, rejects repeated operations anywhere in the chain, and retains one
+immutable-source inventory across all supplied revisions. A participant or
+support omitted from an intermediate revision cannot return with changed
+same-revision material.
+
+This validates the supplied chain, including a valid initial prefix. It cannot
+detect a missing valid suffix, prove that a referenced source exists in the
+repository, or prove current access. The eventual store must check its inventory,
+durable origin and exact current head separately. Historical reconstruction does
+not change stored captures or replace their sources with current revisions.
 
 ### Decision and measure records
 

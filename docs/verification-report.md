@@ -1,5 +1,25 @@
 # Informe de verificación local
 
+## Origen e historial cautelar suministrado: 4 de octubre de 2026
+
+El origen conserva los siete campos de la captura inicial exacta. La validación
+del historial exige revisiones consecutivas desde el alta, todos los recibos y
+vínculos correctos, operaciones únicas en toda la cadena y fuentes inmutables
+consistentes incluso al retirarlas y seleccionarlas después. La cancelación
+es terminal. El almacén todavía debe acreditar origen durable, inventario y
+cabeza vigente: validar una cadena suministrada no detecta un sufijo válido
+omitido ni concede acceso actual.
+
+TDD focal: fallo inicial por API ausente; después **14/14 casos** aprobaron en
+**5.999 s** de comando total (compilación **5.91 s**, pruebas **0.06 s**).
+Clippy focal con `-D warnings` aprobó en **3.892 s**. Se verificaron campos
+alterados del origen, huecos, orden, duplicación, expedientes ajenos, recibos
+alterados, sucesores de cancelación y contradicciones no consecutivas que pasan
+la validación individual y de pares. Formato, ASCII, tamaño y espacios aprobados.
+Un compilador y un worker, temporales en disco; sin servicios, campaña amplia,
+PDF, integración ni despliegue. La evidencia de 37 casos de recibos se conserva
+por separado y no se repitió.
+
 ## Recibos de convocatoria cautelar: 4 de octubre de 2026
 
 La construcción local conserva instrucción, contextos, fuentes completas y

@@ -8,6 +8,7 @@ mod command;
 mod context;
 mod context_encoding;
 mod encoding;
+mod history;
 mod participants;
 mod source_encoding;
 mod source_inventory;
@@ -26,6 +27,9 @@ pub use capture_validation::{
 };
 pub use command::*;
 pub use context::{PrecautionaryContext, PrecautionaryContextMaterial};
+pub use history::{
+    precautionary_hearing_history_matches, precautionary_hearing_origin, PrecautionaryHearingOrigin,
+};
 pub use participants::resolve_precautionary_participants;
 pub use submission::precautionary_hearing_submission_bytes;
 pub use support::admit_precautionary_support;
