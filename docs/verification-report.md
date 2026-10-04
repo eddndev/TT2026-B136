@@ -7852,6 +7852,40 @@ ni sustituye la regresion Rust o de navegador. No se modifican targets Cargo,
 pruebas de producto, assertions, timeouts ni recursos de los runners.
 
 
+## Lectura historica de la consecuencia configurada de audiencia
+
+El 4 de octubre de 2026 se verifico la restauracion de evidencia en la capa de
+aplicacion. `restore_hearing_derived_deadline` recibe los campos historicos como
+entrada no confiable, comprueba su enlace y devuelve un registro inmutable con
+los bytes HRDL1 y HRDC1 originales. Comparte los codificadores con preparacion y
+captura, y utiliza el resultado de calculo almacenado sin volver a ejecutarlo.
+
+- TDD: los dos primeros casos fallaron por ausencia de la API en **3.14 s**.
+  Tras implementarla aprobaron en **0.01 s**, compilacion **7.11 s**.
+- Comprobacion focal final: **32/32** aprobadas en **0.06 s**, compilacion
+  **1.77 s**. Incluye **6 nuevas** de historia y **26 regresiones** del componente;
+  estas ultimas se repitieron porque comparten los codificadores y la validacion
+  de la fuente que se extrajeron para esta lectura. No se repitieron las suites
+  generales ni las regresiones ajenas al componente.
+- Las nuevas pruebas cubren recibos identicos, bloqueos sin vencimiento operativo,
+  21 alteraciones de material/autor/comando/registros/digests, 11 alteraciones de
+  evento y rechazo de una correccion como si fuera la creacion original.
+- Una fixture sintetica conserva un DRES1 estructuralmente valido cuyo cierre
+  difiere en un segundo del calculo actual. Los codecs ordinarios verifican sus
+  recibos y la restauracion conserva exactamente el resultado y los bytes
+  historicos, aunque el evaluador produciria otra fecha. No representa un caso
+  juridico aprobado ni un resultado observado en produccion.
+- Clippy focal con advertencias denegadas aprobo en **5.43 s**. Verificacion con
+  un compilador y un hilo, temporales privados sobre btrfs; formato, ASCII,
+  inventario de modulos y limite de longitud comprobados por separado.
+
+Esta evidencia no demuestra persistencia, autenticacion de una peticion, replay
+concurrente, rollback, reinicio ni restauracion de base de datos. El adaptador
+atomico, origen inmutable, auditoria y servicio HTTP/Qadra siguen pendientes en
+la misma entrega. No se modifican datos del producto desplegado ni el manuscrito
+aceptado por esta incorporacion interna. El ADR conserva el estado Proposed.
+
+
 ## Importación compartida de fixtures HTTP de recursos: 4 de octubre de 2026
 
 La comprobación Clippy remota rechazó una carga duplicada de

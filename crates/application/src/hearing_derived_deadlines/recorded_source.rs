@@ -13,8 +13,25 @@ pub(super) fn validate(
     actual: &HearingResultDetail,
     event: SourceEventReference,
 ) -> Result<(), ApplicationError> {
+    validate_parts(
+        hasher,
+        draft.actor(),
+        &draft.command().result,
+        draft.result(),
+        actual,
+        event,
+    )
+}
+
+pub(super) fn validate_parts(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    command: &HearingResultCommand,
+    proposed: &HearingResultDraft,
+    actual: &HearingResultDetail,
+    event: SourceEventReference,
+) -> Result<(), ApplicationError> {
     hearing_result_receipt_matches(hasher, actual)?;
-    let proposed = draft.result();
     let admin = proposed
         .observed_administration
         .snapshot()
@@ -27,14 +44,7 @@ pub(super) fn validate(
     {
         return Err(invalid("derived.capture.time"));
     }
-    validate_record_draft(
-        hasher,
-        draft.actor().id,
-        proposed.case_id,
-        &draft.command().result,
-        proposed,
-        at,
-    )?;
+    validate_record_draft(hasher, actor.id, proposed.case_id, command, proposed, at)?;
     let expected = HearingResultDetail {
         snapshot: HearingResultSnapshot {
             case_id: proposed.case_id,
@@ -57,8 +67,8 @@ pub(super) fn validate(
             recorded_administration_digest: admin.values_digest,
             recorded_at: at,
             recorded_by: crate::cases::CaseActorSnapshot {
-                id: draft.actor().id,
-                email: draft.actor().email.clone(),
+                id: actor.id,
+                email: actor.email.clone(),
             },
         },
         anchor: proposed.anchor,

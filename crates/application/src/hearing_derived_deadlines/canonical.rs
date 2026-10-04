@@ -16,6 +16,22 @@ pub(super) fn review_digest(
     material: &HearingDerivedDeadlineMaterial,
     evaluation: &ProfiledDeadlineEvaluation,
 ) -> Result<Sha256Digest, ApplicationError> {
+    Ok(hasher.hash_bytes(&review_bytes(
+        hasher,
+        actor,
+        command,
+        material,
+        &DeadlineEvaluationRecord::capture(evaluation),
+    )?))
+}
+
+pub(super) fn review_bytes(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    command: &HearingDerivedDeadlineCommand,
+    material: &HearingDerivedDeadlineMaterial,
+    evaluation: &DeadlineEvaluationRecord,
+) -> Result<Vec<u8>, ApplicationError> {
     let (deadline, policies) = command.deadline.clone().into_parts();
     let DeadlineChange::Register { definition } = &deadline.change else {
         return Err(invalid("derived.deadline.action"));
@@ -71,12 +87,10 @@ pub(super) fn review_digest(
     }
     bytes.extend_from_slice(
         hasher
-            .hash_bytes(&deadline_evaluation_record_bytes(
-                &DeadlineEvaluationRecord::capture(evaluation),
-            ))
+            .hash_bytes(&deadline_evaluation_record_bytes(evaluation))
             .as_bytes(),
     );
-    Ok(hasher.hash_bytes(&bytes))
+    Ok(bytes)
 }
 
 fn text(bytes: &mut Vec<u8>, value: &str) {

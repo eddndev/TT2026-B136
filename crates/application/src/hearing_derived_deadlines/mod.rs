@@ -5,6 +5,8 @@
 mod canonical;
 mod capture;
 mod finalization;
+mod history;
+mod history_validation;
 mod preparation;
 mod recorded_source;
 
@@ -21,6 +23,9 @@ use domain::crypto::Sha256Digest;
 
 pub use capture::{hearing_derived_deadline_capture_bytes, HearingDerivedDeadlineCreation};
 pub use finalization::finalize_hearing_derived_deadline;
+pub use history::{
+    restore_hearing_derived_deadline, HearingDerivedDeadlineEvidence, HearingDerivedDeadlineRecord,
+};
 pub use preparation::prepare_hearing_derived_deadline;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -4,7 +4,8 @@
 
 Proposed.
 
-Application-only preparation and final capture have focused verification.
+Application-only preparation, final capture and historical evidence restoration
+have focused verification.
 The complete compound
 workflow is not yet implemented: atomic storage of the result and deadline,
 durable origin and replay, HTTP and Qadra integration remain pending. This
@@ -117,6 +118,21 @@ This function neither writes to storage nor proves that the supplied event
 exists in a database. The adapter must establish those facts in the transaction.
 It is confirmation logic; historical origin reads must verify captured evidence
 without invoking it to recalculate or overwrite the original calculation.
+
+`restore_hearing_derived_deadline` verifies an untrusted historical evidence
+envelope and returns an immutable record with the original HRDL1 and HRDC1 bytes.
+It compares the result and deadline R1, authors, recording instants and offsets,
+commands, captured source event, selected material and dependency observations.
+The review commitment is reconstructed using the stored `DeadlineEvaluationRecord`;
+no new `ProfiledDeadlineEvaluation`, evaluator call or finalizer is used during
+restoration. Preparation and restoration share the same canonical encoders.
+
+The origin must retain the actor's original role as well as identity and email:
+HRDL1 binds that role, whereas the ordinary component receipts do not capture it.
+The adapter must resolve each original selected revision and observed head, then
+verify the origin, source-event row and audit chain. This record verifier neither
+proves those rows exist nor authorizes their disclosure. Current account access
+is checked separately and never substitutes today's role for captured authority.
 
 Use the result's existing source event from
 [the source-event migration](../../migrations/0015_deadline_source_events.sql).

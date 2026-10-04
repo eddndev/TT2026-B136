@@ -31,6 +31,18 @@ impl HearingDerivedDeadlineCreation {
     pub const fn capture_digest(&self) -> Sha256Digest {
         self.capture_digest
     }
+    pub fn evidence(&self) -> HearingDerivedDeadlineEvidence {
+        HearingDerivedDeadlineEvidence {
+            actor: self.draft.actor().clone(),
+            command: self.draft.command().clone(),
+            material: self.draft.material().clone(),
+            result: self.result.clone(),
+            deadline: self.deadline.clone(),
+            source_event: self.source_event,
+            review_digest: self.draft.review_digest(),
+            capture_digest: self.capture_digest,
+        }
+    }
 }
 
 /// HRDC1 connects the prospective review, exact event and final ordinary receipts.
@@ -38,9 +50,23 @@ impl HearingDerivedDeadlineCreation {
 pub fn hearing_derived_deadline_capture_bytes(
     creation: &HearingDerivedDeadlineCreation,
 ) -> Result<Vec<u8>, ApplicationError> {
+    capture_bytes(
+        creation.draft.review_digest(),
+        &creation.result,
+        &creation.deadline,
+        creation.source_event,
+    )
+}
+
+pub(super) fn capture_bytes(
+    review_digest: Sha256Digest,
+    result: &HearingResultDetail,
+    deadline: &DeadlineDetail,
+    event: SourceEventReference,
+) -> Result<Vec<u8>, ApplicationError> {
     let mut bytes = b"HRDC1".to_vec();
-    bytes.extend_from_slice(creation.draft.review_digest().as_bytes());
-    let result = &creation.result.snapshot;
+    bytes.extend_from_slice(review_digest.as_bytes());
+    let result = &result.snapshot;
     bytes.extend_from_slice(result.case_id.as_uuid().as_bytes());
     bytes.extend_from_slice(result.hearing_id.as_uuid().as_bytes());
     bytes.extend_from_slice(result.id.as_uuid().as_bytes());
@@ -48,14 +74,12 @@ pub fn hearing_derived_deadline_capture_bytes(
     bytes.extend_from_slice(result.receipt.operation_id.as_uuid().as_bytes());
     bytes.extend_from_slice(result.values_digest.as_bytes());
     bytes.extend_from_slice(result.receipt.submission_digest.as_bytes());
-    let event = creation.source_event;
     bytes.extend_from_slice(&event.sequence.to_be_bytes());
     bytes.push(event.family as u8);
     bytes.extend_from_slice(event.source_id.as_bytes());
     bytes.extend_from_slice(&event.revision.to_be_bytes());
     bytes.extend_from_slice(event.operation_id.as_bytes());
     // Event scope is required to match the result encoded above by finalization.
-    let deadline = &creation.deadline;
     let submission = deadline_record_submission_bytes(deadline)?;
     bytes.extend_from_slice(&(submission.len() as u64).to_be_bytes());
     bytes.extend_from_slice(&submission);

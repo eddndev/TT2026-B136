@@ -50,6 +50,12 @@ mod hearing_derived_deadline_capture;
 mod hearing_derived_deadline_capture_rejections;
 #[path = "../hearing_derived_deadline_capture_support/mod.rs"]
 mod hearing_derived_deadline_capture_support;
+#[path = "../hearing_derived_deadline_history.rs"]
+mod hearing_derived_deadline_history;
+#[path = "../hearing_derived_deadline_history_calculation.rs"]
+mod hearing_derived_deadline_history_calculation;
+#[path = "../hearing_derived_deadline_history_rejections.rs"]
+mod hearing_derived_deadline_history_rejections;
 #[path = "../hearing_derived_deadline_rejections.rs"]
 mod hearing_derived_deadline_rejections;
 #[path = "../hearing_derived_deadline_review.rs"]
