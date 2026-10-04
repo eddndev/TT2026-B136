@@ -43,6 +43,18 @@ duplicados, Agenda del expediente cerrado y la misma ocurrencia y recibo de aler
 tras reiniciar. El cotejo comprende audiencias propias, asociaciones y origen
 auditable; no simula una caída eléctrica ni acredita restauración de producción.
 
+El cierre posterior ejecutó `scripts/api-demo.sh` completo con el scheduler
+corregido: **aprobado en 442.355 s**, incluida compilación caliente de **0.69 s**.
+La campaña volvió a crear datos desechables y completó los recorridos HTTP,
+el respaldo y la restauración en una sola ejecución. Conservó las capturas,
+autores, asociaciones y comandos de audiencias propias, su Agenda y una sola
+ocurrencia leída después de reiniciar el worker. También aprobó los controles
+existentes de roles, documentos, plazos, alertas y miembros; el cierre conservó
+cuatro documentos, 70 eventos de auditoría y el ZIP de evidencia idéntico.
+Se retiraron los servicios de la campaña. Este resultado cierra el recorrido
+API compuesto que antes había fallado; no reemplaza los gates remotos ni la
+prueba de navegador del revisionado final, y no acredita despliegue.
+
 El navegador real aprobó **2/2 casos en 52.6 s**, 292.209 s con preparación y
 build caliente de 0.25 s, antes del ajuste posterior del scheduler. Recorrió
 escritorio de 1440 y móvil de 390 píxeles: programación, respuesta 201 perdida,

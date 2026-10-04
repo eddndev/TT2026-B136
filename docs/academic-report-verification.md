@@ -1,5 +1,21 @@
 # Verificación de la actualización académica
 
+## Cierre API compuesto de audiencias de recursos: 4 de octubre de 2026
+
+El capítulo de pruebas incorpora la primera demostración HTTP compuesta completa
+aprobada después de corregir el scheduler: **442.355 s**, incluida compilación
+caliente de **0.69 s**. Distingue ese cierre de la restauración focal anterior y
+del navegador previo al ajuste, sin atribuir integración ni despliegue.
+
+`make -C latex` aprobó. El PDF conserva **386 páginas**, con **5985962 bytes**
+y SHA-256 `6231fa1b524f14b0df81267861bdba5676f1b2020fb0628c70b19d77dc132032`.
+Se inspeccionaron las páginas físicas **268, 269 y 270**, incluido el párrafo
+nuevo, su continuación y la sección siguiente: texto legible, sin nuevos solapes
+ni recortes. Resumen aprobado, introducción, marco teórico, conclusiones y PDF
+aceptado anterior conservaron sus hashes. Persisten los dos avisos históricos
+de caja horizontal y la sustitución de versalitas Times; no hay glifos faltantes
+ni referencias sin resolver. El nuevo PDF queda fuera del seguimiento Git.
+
 ## Aceptación real de audiencias de recursos: 4 de octubre de 2026
 
 Se actualizaron implementación y pruebas con la verificación de origen dentro de
