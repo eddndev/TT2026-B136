@@ -1,5 +1,36 @@
 # Informe de verificación local
 
+## Contexto e instrucciones cautelares: 4 de octubre de 2026
+
+La capa de aplicación valida el contexto completo de una convocatoria: la
+administración observada, la etapa y la administración exacta referenciada por
+esa etapa. Conserva valores, autores, tiempos y soportes históricos. Reconstruir
+un contexto de expediente cerrado no habilita mutaciones. Las instrucciones de
+alta, reemplazo y cancelación vinculan identidad y rol capturados, expediente,
+operación, convocatoria, revisión, captura anterior, contexto, valores y motivo.
+
+TDD focal: ambos targets fallaron primero por ausencia de los tipos requeridos.
+Tras implementarlos aprobaron **33/33 casos de contexto y 12/12 de instrucciones**,
+con **6.55 s** de compilación y **6.589 s** de comando total. Cargo reportó
+**0.01 s** para contexto y **0.00 s** para instrucciones. La batería conserva
+un vector literal de 242 bytes `PHTXN1` y mutaciones de campos; los casos de
+contexto prueban además que sus valores completos se codifiquen aun usando un
+doble de hash constante. Clippy de ambos targets aprobó con `-D warnings` en
+**5.94 s** de compilación y **5.992 s** de comando total. ASCII, tamaño de archivos,
+formato y espacios aprobaron. Se usó un compilador, un worker y temporales en
+disco, sin servicios nativos.
+
+La revisión independiente no detectó defectos de producción en este límite.
+Su observación sobre vectores `PCTX1` se resolvió con dos vectores literales
+independientes: contexto inicial de 398 bytes y transición a juicio de 729 bytes.
+Ambos aprobaron en una ejecución separada de **0.557 s** de comando total,
+sin repetir los 45 casos anteriores. Clippy del target actualizado aprobó
+en **0.282 s**. El total de este bloque es **47 casos nuevos aprobados**. No se repitieron las 21 pruebas de dominio anteriores,
+la campaña completa ni la cobertura. Los recibos de captura, autorización actual,
+admisión de fuentes, persistencia y flujo de interfaz siguen pendientes. El
+manuscrito conserva su contenido y PDF aceptados; se actualizará con la aceptación
+del flujo completo. Esta evidencia no equivale a integración ni despliegue.
+
 ## Clasificación y vigencia declarada de medidas: 4 de octubre de 2026
 
 El segundo bloque local de la [familia cautelar](precautionary-hearings-scope.md)

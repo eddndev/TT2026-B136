@@ -4,7 +4,7 @@ Estado: **propuesto**. Este contrato fija el alcance funcional; no acredita su
 implementación completa ni aceptación. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
-## Frontera de los valores de dominio
+## Frontera de la implementación local
 
 El primer checkpoint implementa localmente valores de convocatoria: identidad propia,
 operación, revisión positiva, propósito `imposition` o `review`, hora exacta,
@@ -21,8 +21,15 @@ La ampliación local de valores comprende `MeasureKind`, `MeasureTime` y
 aprobaron tras el fallo inicial de las pruebas. Esta evidencia es independiente
 de las once pruebas anteriores de convocatoria; la integración sigue pendiente.
 
-Estos valores no incluyen contexto, recibos, decisiones, historia de medidas,
-aplicación, persistencia, HTTP, Agenda, alertas o interfaz. Estas capacidades y
+La capa de aplicación valida ahora un contexto histórico completo (`PCTX1`):
+administración observada, etapa y administración exacta que originó esa etapa,
+con valores, soportes y procedencia. `PHTXN1` vincula autor y rol capturados,
+expediente, operación, convocatoria, acción, revisiones, digest previo, contexto,
+valores y motivo. Son comprobaciones y compromisos de datos; no acreditan acceso
+vigente, admisión documental nueva ni una operación guardada.
+
+Aún faltan recibos de captura, decisiones, historia de medidas, servicios del
+flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
 ejecutados se registran por separado en [el informe](verification-report.md).

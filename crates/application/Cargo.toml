@@ -298,3 +298,11 @@ path = "tests/resource_hearing_service.rs"
 [[test]]
 name = "resource_hearing_reads"
 path = "tests/resource_hearing_reads.rs"
+
+[[test]]
+name = "precautionary_context"
+path = "tests/precautionary_context.rs"
+
+[[test]]
+name = "precautionary_commands"
+path = "tests/precautionary_commands.rs"

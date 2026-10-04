@@ -11,7 +11,10 @@ remain pending.
 The local value extension comprises `MeasureKind`, `MeasureTime` and
 `MeasureValidity` with `MVAL1`; ten focused tests and target Clippy pass after
 the initial failing tests. Full workflow verification and integration remain pending.
-Precautionary application services, persistence, receipts, HTTP, Agenda, alerts,
+Exact historical context validation (`PCTX1`) and instruction framing (`PHTXN1`)
+are implemented locally. Their focused tests pass; these values are not capture
+receipts or a complete scheduling service.
+Precautionary workflow services, persistence, receipts, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
 belongs in [the verification report](../verification-report.md).
@@ -64,6 +67,37 @@ Intermedia or Trial without determining jurisdiction or legal admissibility from
 the stage. Stale reviewed context, contradictory references and foreign-case
 sources reject confirmation. Replacing or cancelling an appointment preserves
 its previous captures and requires an expected revision and explicit reason.
+
+### Context and instruction commitments
+
+The context retains the complete observed administration, the exact stage entry,
+and the separate historical administration cited by that stage. A later
+administrative revision must not substitute for the stage's original reference.
+Validate scopes, value digests, revision relationships, supported stage shape,
+exact ordered documentary support and captured provenance. Initial registration
+must retain the same author and time as administrative revision one. Changed
+stages retain their declared values, prior stage, support metadata and capture
+facts. UTC capture time and local declared time remain separate.
+
+`PCTX1` commits this complete context. Structural historical validation permits
+a later closed observed administration; it grants no authority to mutate a
+closed case. The administration under which the stage was recorded must be
+active and complete. Current authorization, current-head comparisons and fresh
+source admission remain separate checks of the eventual transaction workflow.
+
+`PHTXN1` binds the actor's ID, email and role, case, operation and appointment
+identities, action, expected appointment revision and prior capture digest,
+expected context revisions and digest, complete normalized appointment values
+and explicit replacement or cancellation reason. Scheduling has no predecessor;
+replacement and cancellation require its positive revision and exact digest.
+Cancellation retains the previous values. A byte commitment does not establish
+that the predecessor exists or that an operation was committed; the eventual
+capture receipt and store must verify those relationships.
+
+Historical framing must use the original actor role without granting that role
+current permission. Never reconstruct an actor as an Owner to make validation
+succeed. Submission bytes and context bytes are separate from persisted capture
+receipts, current authorization and uncertain-response recovery.
 
 A declared decision has its own identity, authority declaration, source locator,
 exact admitted resolution support, declared time and justification. A measure
