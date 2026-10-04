@@ -1,5 +1,28 @@
 # Informe de verificación local
 
+## Cancelación desde el shell de Actions: 4 de octubre de 2026
+
+Después de cancelar la confirmación natural de main quedaron tres Redis
+temporales: dos en VPS2 y uno en VPS3. Sus usuarios, directorios privados,
+grupos de control y horas de inicio correspondían a los runners de esta campaña.
+El log mostró terminación forzada de descendientes. Los tres procesos se
+retiraron mediante identificadores estables, comprobando su salida y sin borrar
+cachés o datos de producto.
+
+Cuatro regresiones focales reprodujeron una frontera no cubierta por las pruebas
+anteriores: al señalar únicamente al shell exterior del paso, SIGTERM lo terminaba
+sin ejecutar la limpieza del supervisor y SIGINT lo dejaba esperando. Los dos
+comandos de navegador real ahora usan `exec`, conservando argumentos y entorno,
+para que el supervisor reciba la señal dirigida al proceso del paso.
+
+La batería completa de ciclo de vida aprobó **10/10 en 5.755 s**, con Redis real
+y sustitutos de PostgreSQL/Cargo. Incluye ambos pasos del workflow, ambas señales,
+salida 0/7, descendientes, cancelación del grupo y escalamiento de un proceso que
+ignora SIGTERM. Verifica la desaparición de los procesos y temporales propios,
+conservando un proceso ajeno. No se repitió una campaña completa de producto ni
+se cambiaron recursos, timeouts o pruebas existentes. La confirmación remota de
+esta revisión sigue pendiente; las pruebas focales no sustituyen sus gates.
+
 ## Hidratación del harness de plazo contextual: 4 de octubre de 2026
 
 La confirmación natural de main se canceló por una prueba de cierre administrativo:
