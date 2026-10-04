@@ -125,9 +125,86 @@ del punto de respaldo; véase \rutarepo{docs/deployment-restore-capture.md}.
 
 El controlador interno de parada retiene el bloqueo administrativo, valida una
 identidad fijada de instalación y publica la barrera y su diario antes de
-actuar. Detiene primero web y API y comprueba sus procesos y puertos antes de
-las bases. Exige salida normal y observación completa antes de registrar la
-parada; un fallo conserva la barrera. Reentrar con el mismo identificador vuelve
-a observar incluso si existe recibo previo. No restaura, promueve ni reabre
-datos y no establece la política de recuperación. Su frontera se describe en
+actuar. Una conexión persistente al gestor conserva las cuatro unidades mediante
+\texttt{RefUnit}; evita que la recolección de unidades inactivas descarte su
+evidencia de salida. Detiene primero web y API y comprueba sus procesos y puertos
+antes de las bases. Exige PID e inicio coincidentes, código de terminación normal
+igual a uno y estado de salida cero, obtenidos con tipos D-Bus exactos. Guarda
+esas observaciones y sincroniza el diario antes de liberar las referencias.
+La dependencia \texttt{libsystemd.so.0} se resuelve en ubicaciones controladas por
+root y se valida antes de cargarla mediante descriptor; no depende del hash ni
+del nombre de una versión particular de la biblioteca.
+
+Reentrar con el mismo identificador vuelve a observar incluso si existe recibo
+previo. Si el gestor ya eliminó sus metadatos, sólo la salida exacta previamente
+guardada y una nueva comprobación de ausencia permiten continuar. Un código cero
+del gestor no sustituye esa evidencia; un fallo conserva la barrera. La unidad
+que volvió a arrancar requiere capturar y detener su nuevo proceso. Esta pieza
+no restaura, promueve ni reabre datos y no establece la política de recuperación.
+El coordinador de instalación compone esta frontera con publicación y aprobación; véase
 \rutarepo{docs/deployment-restore-quiesce.md}.
+
+
+La publicación de controladores intercambia directorios completos y conserva
+la generación anterior. Un lanzador separado fija un descriptor de directorio,
+comprueba el inventario completo contra una huella aprobada y ejecuta desde ese
+descriptor. Las importaciones tardías conservan así las mismas fuentes aunque
+cambie la ruta nominal. El intérprete aislado inhibe bytecode, conserva argumentos
+y señales y cierra los descriptores al terminar o reemplazar el proceso. Esta
+primitiva no selecciona por sí sola una generación confiable ni modifica unidades;
+la instalación operativa y su transición desde lectores anteriores permanecen
+separadas. Véase \rutarepo{docs/deployment-controller-launcher.md}.
+
+La aprobación de una generación publicada conserva un registro privado e
+inmutable por operación y una selección actual separada. Exige hashes externos
+exactos y predecesor explícito bajo el bloqueo administrativo; no adopta como
+aprobada una huella encontrada después de una discrepancia. Publica el registro
+con rename exclusivo y sincroniza archivo y directorio; la selección usa
+reemplazo atómico con comparación fresca. La reentrada concilia una respuesta
+perdida sin sustituir el inode original. Los candidatos de cuatro unidades
+incorporan el lanzador aislado y la huella literal aprobada, preservando los demás
+bytes. Esto no instala unidades ni reabre servicios; véase
+\rutarepo{docs/deployment-controller-approval.md}.
+
+
+El cierre de entradas de controladores agrega máscaras persistentes para las
+cuatro unidades atestadas bajo el mismo bloqueo de despliegue. Conserva cada
+fragmento original por identidad y bytes, publica intención antes del intercambio
+y exige recarga confirmada y observación efectiva de las cuatro máscaras.
+Cada reentrada vuelve a observar el gestor, incluso con un diario que diga
+completado. Impide entradas posteriores sin afirmar que los trabajadores
+existentes hayan terminado. No instala fuentes, promueve una generación ni
+reabre servicios; esas operaciones conservan fronteras independientes. Véase
+\rutarepo{docs/deployment-controller-entry-gate.md}.
+
+La verificación de disponibilidad admite un plazo monotónico compartido entre
+las sondas de bases, API, identidad de versión, HTML y proxy. Cada operación
+recibe el menor valor entre su límite previo y el remanente; una respuesta válida
+posterior al plazo no acredita disponibilidad. Las lecturas parciales limitan
+los cuerpos y actualizan el timeout del socket. Los encabezados y delimitadores
+internos de HTTP y una lectura bloqueada del filesystem no tienen interrupción
+total garantizada; el controlador rechaza el resultado al recuperar el control.
+Se conserva la interfaz anterior sin plazo explícito. Véase
+\rutarepo{docs/deployment-readiness-deadline.md}.
+
+La entrada administrativa por SSH exige la huella aprobada externamente del
+inventario de controladores y ejecuta el lanzador estable con intérprete aislado.
+El mismo contrato guía la renovación manual de CRL. Una huella ausente o inválida
+bloquea antes de preparar credenciales; no se deduce aprobación de las fuentes
+presentes ni se recurre a su invocación directa. La instalación del lanzador y la
+configuración de esa huella conservan aceptación operativa independiente.
+
+
+El coordinador de instalación ejecuta desde una generación privada independiente,
+bajo una sola adquisición del bloqueo. Valida la intención externa antes de
+parar servicios, conserva salida normal tipada y máscaras efectivas, retiene la
+caché exacta y publica la generación aprobada. El resultado inicial mantiene los
+servicios cerrados. La reapertura exige otra autorización que fija el recibo
+cerrado; arranca bases, API y web en ese orden y exige disponibilidad dentro del
+presupuesto compartido. Conserva originales, candidatos y recibos para reentrada
+sin rollback ciego. Las entradas administrativas externas deben permanecer
+suspendidas durante la transición, incluso ante interrupción: las máscaras no
+bloquean lectores SSH. La aceptación operativa del producto se distingue de los
+ensayos aislados del coordinador. Véanse
+\rutarepo{docs/deployment-controller-installation.md} y
+\rutarepo{docs/deployment-controller-bootstrap.md}.

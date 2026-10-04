@@ -1,5 +1,27 @@
 # Verificación de la actualización académica
 
+## Intérprete administrativo explícito: 3 de octubre de 2026
+
+La ampliación de pruebas del intérprete produjo 379 páginas y 5955737 bytes,
+SHA-256 `2977f9bd6c02cff69bbf1058238aed40a0e5333d941998cc4190639905010d7a`.
+La página física 276 fue inspeccionada y mantiene legibles el resultado nuevo
+y los apartados vecinos, sin superposición o recorte. Se preservaron el PDF
+anterior y los hashes protegidos; permanecen las advertencias tipográficas
+históricas, sin referencias indefinidas ni caracteres faltantes. No acredita
+la configuración del intérprete o del launcher en el servidor.
+
+## Disponibilidad y entradas administrativas: 3 de octubre de 2026
+
+La compilación LuaLaTeX de los apartados de implementación y pruebas produjo
+379 páginas y 5955329 bytes, SHA-256
+`43d4fe6ec78e05b0f6c0f3a88a0da43d3a48d17748eafcee2519bd85ac18f069`.
+Se inspeccionaron las páginas físicas 222, 275 y 276: el plazo compartido,
+sus límites, las respuestas de error y el launcher SSH quedan legibles, sin
+recortes ni superposición. Se preservaron el PDF anterior y los hashes de
+resumen, introducción, marco teórico y conclusiones. No hubo referencias
+indefinidas ni glifos ausentes; se mantienen los dos desbordamientos históricos
+y la sustitución tipográfica de versalitas. No acredita instalación operacional.
+
 ## Interfaz de firma externa y MFA: 3 de octubre de 2026
 
 La misma compilación conjunta documentada en el apartado siguiente incluye las
@@ -10,6 +32,19 @@ resultados de 36/5/7 pruebas locales y del recorrido real 1/1 están legibles,
 sin recortes ni superposición. No se repitió la compilación sólo para añadir
 este registro Markdown. Se conservaron el respaldo y los hashes protegidos;
 no acredita usabilidad humana, integración remota ni habilitación en VPS3.
+
+
+## Parada observada y conservación de evidencia: 3 de octubre de 2026
+
+La compilación conjunta de los apartados modificados aprobó con `make -C latex`:
+378 páginas, 5953085 bytes, SHA-256
+`3ed09add891575965afe8ef3fac3ae06af5462529fef2e5026f7bb81be97532b`.
+Las páginas físicas 221 y 274 se inspeccionaron visualmente: referencias al
+gestor, recibo durable, reentrada y evidencia 27/6/nativa legibles, sin recortes
+ni superposición. El PDF anterior quedó respaldado. Resumen, introducción, marco
+y conclusiones conservaron sus hashes. Las advertencias tipográficas históricas
+no cambiaron; no hubo referencias indefinidas ni glifos ausentes. No acredita
+instalación del coordinador ni restauración de bases activas.
 
 
 ## Composición y restauración del acceso Owner: 3 de octubre de 2026
@@ -84,6 +119,16 @@ quedó respaldado. No hubo referencias pendientes ni glifos ausentes; persiste
 la sustitución conocida de versalitas. El PDF acumulado no se versiona ni
 acredita integración o despliegue de esta entrega local.
 
+
+## Lanzador de controladores: 3 de octubre de 2026
+
+Implementación, pruebas y anexo distinguen el descriptor de generación de la
+instalación operativa. `make -C latex` aprobó: 372 páginas, 5926372 bytes, SHA-256
+`4f6f3b9e04ef2bc0d7f8d0dfce77b93ae1eafd82a59e9dc87c75547cb6cf8f3a`.
+Se revisaron las páginas físicas 219, 268 y 372, legibles y sin recortes
+ni superposiciones. No se observaron referencias pendientes ni caracteres
+ausentes; se conservaron los hashes protegidos y el PDF previo. El resultado
+acumulado no se versiona ni acredita instalación remota.
 
 ## Consulta propia del vínculo Owner: 3 de octubre de 2026
 

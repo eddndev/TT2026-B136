@@ -19,6 +19,78 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Instalación integrada de controladores: 3 de octubre de 2026
+
+El RED inicial de seis pruebas duró 0.117 s y mostró la ausencia del coordinador.
+Tras componer las fronteras reales, la revisión detectó tres defectos concretos:
+el plazo de arranque excedía el máximo del ejecutor, una publicación ajena podía
+aparecer entre preparación y reentrada, y faltaba repetir el fsync del padre tras
+una eliminación de marcador cuya confirmación se perdía. Un comando inocuo real
+reprodujo el primero (dos casos, un error, 0.028 s); dos regresiones reprodujeron
+los restantes en 0.569 s. No se cambiaron las aserciones para aprobarlos.
+
+El grupo final aprobó **10/10 en 4.159 s**; **52 regresiones en 3.021 s** comprobaron
+publicación, aprobación, renderer, máscaras, quiesce y barrera. El bootstrap y los
+seis casos previos del launcher aprobaron juntos **8/8 en 1.703 s** después del
+RED de su nueva entrada. Son grupos separados y no constituyen otra ejecución
+completa de Rust ni actualizan su cobertura.
+
+La aceptación nativa aprobó **1/1 en 3.461 s**, con 3.573 s del wrapper remoto.
+Usó cuatro servicios inocuos bajo la cuenta desechable `tt-runner`, systemd real,
+referencias al gestor, procesos, listeners, launcher y CLI mediante un bootstrap
+privado. Verificó generación A y B, cierre y reentrada cerrada, rechazo de una
+autorización incorrecta, reapertura exacta, disponibilidad y reentrada sin
+reiniciar procesos. Conservó configuración, datos y PKI sintéticos; retiró sus
+servicios y scratch, restauró el modo previo del directorio y confirmó inventario
+ajeno intacto. Sus sondas de PostgreSQL/Redis fueron CLIs sintéticas contra los
+trabajadores del ensayo: no acredita bases reales ni instalación del producto.
+
+La aplicación privada, sus controladores y las variables remotas de entrega no
+se modificaron. Véanse [instalación](deployment-controller-installation.md) y
+[bootstrap](deployment-controller-bootstrap.md). El cierre remoto de esta entrega
+local permanece pendiente de su publicación e integración.
+
+
+## Presupuesto compartido de disponibilidad: 3 de octubre de 2026
+
+Cinco pruebas reprodujeron inicialmente la ausencia del argumento `deadline`.
+La implementación aprobó ese grupo en 1.024 s y diez regresiones de salud y
+barrera CRL en 2.032 s. Una revisión posterior identificó cuerpos de HTTPError
+abiertos cuando la versión o el HTML respondían con error. Su caso adicional
+falló en ambas variantes en 0.007 s; tras cerrar la respuesta explícitamente,
+los seis casos del grupo final aprobaron en 1.028 s.
+
+Los cuerpos JSON y HTML lentos se sirvieron desde loopback real; las restantes
+fronteras usan respuestas y reloj controlados. Se comprobaron el remanente por
+operación, respuestas válidas tardías, límites de cuerpo, cierre de respuestas
+y compatibilidad de las llamadas sin plazo. Los límites internos de encabezados,
+framing HTTP y filesystem se explicitan en
+[el contrato de disponibilidad](deployment-readiness-deadline.md): no se afirma
+un plazo total duro para esas operaciones. Esta evidencia no instala servicios
+ni acepta por sí sola la reapertura de un despliegue.
+
+## Entrada SSH con generación aprobada: 3 de octubre de 2026
+
+La prueba del script de entrega falló inicialmente en seis aserciones de tres
+casos: se admitía una aprobación ausente o inválida y se invocaba directamente
+el controlador por su ruta mutable. Tras exigir el SHA externo y usar el launcher
+aislado aprobaron los tres casos en 0.463 s; la ejecución RED duró 1.098 s.
+El shell real se ejecutó con binarios locales que registran SSH, SCP y preparación
+de claves. Se comprobó rechazo previo a preparar credenciales, argumentos exactos,
+ausencia de transferencia tras preflight fallido y limpieza de temporales propios.
+La sintaxis Bash y `git diff --check` aprobaron. No hubo conexión remota ni cambio
+de credenciales, variables de Actions, controles instalados o aplicación privada.
+La instalación del launcher y la configuración del inventario aprobado siguen
+siendo requisitos operativos antes de usar esta entrada en el servidor.
+
+La conciliación de la guía detectó después que `/usr/bin/python3` no garantiza
+Python 3.11 o posterior en el host admitido. Se añadió el intérprete absoluto
+externo `QADRA_PYTHON`, con validación local previa a preparar SSH y comprobación
+de versión en el mismo preflight remoto anterior a SCP. El caso nuevo rechazó
+seis valores inválidos en RED (1.010 s); el grupo final aprobó cuatro pruebas
+en 0.738 s. La revisión independiente confirmó argumentos, pin y documentación;
+no se cambiaron variables remotas ni el intérprete de ningún servicio.
+
 ## Interfaz de acceso Owner con certificado: 3 de octubre de 2026
 
 Después de observar los RED del cliente y la interfaz aprobaron 36 pruebas Node
@@ -48,6 +120,31 @@ está seleccionada, con todas sus cuotas y tiempos explícitos. El preflight nat
 reprodujo antes la disponibilidad deshabilitada. La entrega aún necesita cierre
 remoto y no modifica la instalación privada ni la política operativa. Véase
 [la guía del recorrido](owner-certificate-login-interface.md).
+
+
+
+## Evidencia durable de parada y reentrada: 3 de octubre de 2026
+
+Se reprodujo la pérdida de metadatos de salida al descargar systemd una unidad
+inactiva. La corrección conserva referencias a las cuatro unidades en una única
+conexión al gestor hasta sincronizar el recibo de terminación normal. No acepta
+estado inactivo o código cero como sustitutos de esa prueba. La reentrada exige
+el recibo exacto de la operación y observación nueva de ausencia de procesos y
+listeners; los reinicios se capturan y detienen de nuevo.
+
+Después del RED focal aprobaron 27 pruebas de quiesce en 0.832 s y seis de la
+barrera en 0.259 s. La aceptación nativa del controlador público aprobó 1/1 en
+1.103 s (1.221 s incluyendo la preparación externa), en el usuario `tt-runner`
+de VPS3, con cuatro servicios inocuos desechables. Conservó el archivo privado,
+comprobó reentrada y dejó intacto el inventario ajeno. La dependencia se resuelve
+como `libsystemd.so.0` desde rutas del sistema verificadas; no fija la versión
+ni el hash de la biblioteca de ese VPS. La revisión independiente de código no
+identificó defectos adicionales; no cuenta como otra ejecución de pruebas.
+
+El recibo público conserva su forma. Esta aceptación no instala controladores,
+restaura las bases activas ni reabre la aplicación privada. El coordinador de
+instalación y la aceptación operativa de restauración mantienen su alcance
+pendiente en [la parada observada](deployment-restore-quiesce.md).
 
 
 ## Composición Owner y controles de restauración: 3 de octubre de 2026
@@ -104,6 +201,30 @@ trabaja el hilo bloqueante. No se cambió el inventario ni los cuerpos de las
 19 pruebas; el target sólo silencia un import no usado de la fixture heredada.
 Son puertos controlados, no RSA/SQL/Redis reales ni activación del ejecutable.
 Véase el [contrato HTTP](owner-certificate-login-http.md).
+
+
+## Cierre persistente de entradas de controladores: 3 de octubre de 2026
+
+Los seis casos de archivos/procesos Python locales aprobaron en 0.963 s tras
+reproducir el módulo ausente. Comprueban inodes, bloqueo, diario durable,
+intercambios parciales, reload incierto y reentrada sin detener servicios.
+
+La aceptación nativa aislada en el usuario de CI de VPS3 aprobó 1/1 en 1.091 s
+(1.219 s con preparación externa). Cuatro trabajadores inocuos mantuvieron PID,
+UID, tiempo de inicio, cgroups y listeners durante las máscaras persistentes,
+una muerte tras dos intercambios, pérdida de confirmación del reload y dos
+intérpretes nuevos. La limpieza preservó el inventario ajeno, retiró sólo sus
+objetos y restauró el modo previo del directorio de unidades.
+
+El primer intento llegó al cierre de entradas, pero su limpieza exigía un código
+de salida que el reload de unidades enmascaradas ya no conservaba. Los recibos,
+procesos ausentes y estado inactivo se inspeccionaron antes de retirar sus cuatro
+máscaras exactas. El observador corregido liga el recibo cooperativo a PID, UID,
+inicio y cgroup, exige desaparición del grupo/listener y estado inactivo; no
+interpreta metadata borrada como prueba de exit 0. El producto no cambió.
+No se acredita reboot, parada del gestor, instalación, reapertura ni alteración
+de los servicios del usuario real de despliegue. Véase la
+[frontera operacional](deployment-controller-entry-gate.md).
 
 
 ## Aplicación y adaptadores del primer factor Owner: 3 de octubre de 2026
@@ -163,6 +284,25 @@ certificado distinto, material mal formado y tamaños de firma incorrectos.
 La inspección completa de confianza se recalcula y compara. El adaptador reutiliza
 el perfil interno existente y no acredita publicación SQL, consumo único,
 entropía, MFA ni sesiones derivadas; aún no habilita acceso por certificado.
+
+
+## Aprobación durable de controladores: 3 de octubre de 2026
+
+Seis casos reprodujeron los módulos ausentes y luego aprobaron **6/6 en 0.863 s**.
+Una revisión posterior encontró la ventana entre crear un hard link y retirar
+su temporal: un hijo terminado con `os._exit` dejó dos enlaces y la reentrada
+rechazó su propio registro. La regresión reprodujo ese fallo **1/1 en 0.096 s**.
+La publicación exclusiva pasó a `renameat2(RENAME_NOREPLACE)`, sin fallback ni
+relajación del guard; el grupo completo aprobó **7/7 en 0.979 s**.
+
+Se verificaron predecesor explícito, bloqueo, identidad/hash de publicación,
+confirmación incierta, inode estable, temporal ajeno conservado, hard link externo
+rechazado y candidatos de unidades con aprobación independiente. El renderer
+conserva bytes ajenos a los comandos y el lanzador mantiene fuentes A/A después
+del intercambio. Son archivos y procesos Python locales inocuos: no hubo
+instalación, systemd ni controladores operativos. Véase el
+[procedimiento y sus límites](deployment-controller-approval.md).
+
 
 ## Declaración de primer factor Owner: 3 de octubre de 2026
 
@@ -237,6 +377,20 @@ no se modificó VPS3 ni se creó un Owner operativo. Esta aceptación no repiti�
 SQL restore, no probó una CRL sucesora, no validó custodia exclusiva de la clave
 ni habilitó login por certificado. La prueba nueva se añade al inventario real;
 la conservación global de identidades queda para CI de la entrega publicada.
+
+## Lanzador de controladores por generación: 3 de octubre de 2026
+
+Seis pruebas reprodujeron primero la ausencia del lanzador con
+`FileNotFoundError` en 0.003 s. La implementación aprobó **6/6 en 1.669 s**,
+con intérpretes aislados locales y archivos desechables. Se comprobaron imports
+tardíos tras intercambio real, inventario/huella/permisos estrictos, argumentos
+y PID conservados, salida y errores, cierre de descriptores en exec y SIGTERM.
+Los procesos de ensayo son inocuos: no se ejecutaron controladores desplegados
+ni se tocaron servicios. La revisión independiente no encontró defectos concretos
+dentro de ese contrato. No prueba instalación, selección operativa de la huella
+aprobada, reapertura ni aislamiento frente al mismo UID. Véase
+`docs/deployment-controller-launcher.md`. La evidencia académica se registra
+separadamente en `docs/academic-report-verification.md`.
 
 ## Consulta del vínculo Owner sin retirar: 3 de octubre de 2026
 
@@ -323,6 +477,17 @@ El target de aplicación aprobó 23/23 en 0.01 s y HTTP 12/12 en 0.03 s, con
 9.37 s de compilación. Clippy focal aprobó en 3.33 s. Cada variante comprueba
 un único commit, una carga y evidencia terminal retenida por el doble. Esta
 aceptación usa puertos controlados, no simula una reversión de PostgreSQL.
+
+## Publicación de controladores: 3 de octubre de 2026
+
+Seis casos reprodujeron la ausencia del publicador interno; después aprobaron
+6/6 en 0.450 s con intercambio Linux, locks y archivos reales. Las fallas
+inyectadas verifican durabilidad, identidad y reconciliación sin repetir un
+intercambio incierto. Una caracterización independiente aprobó 1/1 en 0.041 s:
+imports por ruta pueden mezclar generaciones A/B y un fd fijado conserva A/A.
+No se modificaron servicios, datos, unidades ni la instalación VPS3. El
+[contrato de publicación](deployment-controller-publication.md) mantiene
+pendiente la fijación de generación y aceptación operativa.
 
 ## Composición HTTP del vínculo Owner: 3 de octubre de 2026
 

@@ -8,7 +8,9 @@ umask 077
 : "${DEPLOY_PORT:?missing QADRA_PORT}"
 : "${DEPLOY_USER:?missing QADRA_USER}"
 : "${DEPLOY_ROOT:?missing QADRA_ROOT}"
-python3 - <<'PY'
+: "${DEPLOY_CONTROLLER_SHA256:?missing QADRA_CONTROLLER_SHA256}"
+: "${DEPLOY_PYTHON:?missing QADRA_PYTHON}"
+python3 -B - <<'PY'
 import os, re, sys
 sys.path.insert(0, 'ops/deploy')
 from bundle import validate_version, COMMIT
@@ -19,6 +21,8 @@ assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]*', os.environ['DEPLOY_HOST'])
 assert re.fullmatch(r'[a-z_][a-z0-9_-]*', os.environ['DEPLOY_USER'])
 assert os.environ['DEPLOY_PORT'].isdigit() and 1 <= int(os.environ['DEPLOY_PORT']) <= 65535
 validate_root(os.environ['DEPLOY_ROOT'])
+validate_root(os.environ['DEPLOY_PYTHON'])
+assert re.fullmatch(r'[0-9a-f]{64}', os.environ['DEPLOY_CONTROLLER_SHA256'])
 PY
 ssh_dir=$(mktemp -d "${RUNNER_TEMP:-/tmp}/qadra-ssh.XXXXXX")
 trap 'rm -rf -- "$ssh_dir"' EXIT
@@ -38,8 +42,8 @@ checksum=$(sha256sum "$local_file" | cut -d ' ' -f 1)
 transfer=$(openssl rand -hex 16)
 remote_file="$DEPLOY_ROOT/incoming/$transfer.tar.gz"
 ssh "${options[@]}" -p "$DEPLOY_PORT" "$connection" \
-  "test -f '$DEPLOY_ROOT/tools/release.py' && test -d '$DEPLOY_ROOT/incoming'"
+  "test -f '$DEPLOY_ROOT/controller_launcher.py' && test -d '$DEPLOY_ROOT/incoming' && test -x '$DEPLOY_PYTHON' && '$DEPLOY_PYTHON' -I -B -S -c 'import sys; assert sys.version_info >= (3, 11)'"
 scp "${options[@]}" -P "$DEPLOY_PORT" "$local_file" "$connection:$remote_file"
 ssh "${options[@]}" -p "$DEPLOY_PORT" "$connection" \
-  "umask 077; python3 '$DEPLOY_ROOT/tools/release.py' --root '$DEPLOY_ROOT' activate '$remote_file' '$checksum' '$VERSION' '$SOURCE_COMMIT'"
+  "umask 077; '$DEPLOY_PYTHON' -I -B -S '$DEPLOY_ROOT/controller_launcher.py' --root '$DEPLOY_ROOT' --inventory-sha256 '$DEPLOY_CONTROLLER_SHA256' --entrypoint release.py -- --root '$DEPLOY_ROOT' activate '$remote_file' '$checksum' '$VERSION' '$SOURCE_COMMIT'"
 printf 'Deployed %s at commit %s\n' "$VERSION" "$SOURCE_COMMIT" >> "$GITHUB_STEP_SUMMARY"

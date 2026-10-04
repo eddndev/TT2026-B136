@@ -121,3 +121,84 @@ Comprobó cierre normal, retirada del cgroup y ausencia de puertos. Esa unidad
 tuvo 64~MiB y vida máxima de 60~s; no se tocaron servicios desplegados.
 La prueba nativa no sustituye aceptación del controlador completo instalado,
 staging, promoción durable ni reapertura de la restauración.
+
+La retención de referencias y salidas tipadas añadió seis regresiones; el grupo
+completo de parada aprobó 27 casos en 0.832~s y la barrera conservó seis en
+0.259~s. Se ejercitaron referencias parciales, plazo agotado, sustitución del
+gestor, fallo de sincronización, metadatos eliminados y reentrada con evidencia
+durable, sin relajar las aserciones anteriores. La API pública corregida aprobó
+un recorrido nativo en 1.103~s con systemd 249; la preparación externa completa
+tardó 1.221~s. Cuatro servicios inocuos de \texttt{tt-runner} recibieron SIGINT;
+el controlador exigió PID e inicio exactos, código uno y estado cero antes de
+liberar sus referencias. Se comprobaron reentrada, barrera, ausencia y archivo
+privado conservado. La limpieza retiró sus fragmentos, restauró el modo del
+directorio y preservó el inventario ajeno. No se tocaron servicios del usuario
+de despliegue ni se restauraron bases o instalaron nuevos controladores.
+
+
+La aceptación del lanzador de controladores reprodujo primero su ausencia y
+aprobó seis pruebas en 1.669~s. Intérpretes locales inocuos verificaron imports
+iniciales y tardíos de la misma generación después de un intercambio real,
+conservación de argumentos y PID, rechazo de inventarios y permisos inválidos,
+limpieza ante retorno y errores, cierre de descriptores al ejecutar otro programa
+y entrega directa de SIGTERM. Se usaron archivos y procesos reales desechables;
+no se ejecutaron controladores desplegados ni se modificaron servicios.
+El resultado no acredita selección operacional de la huella, instalación de
+unidades, restauración de datos ni aislamiento frente al mismo usuario Unix.
+
+La aprobación y generación de candidatos de unidades aprobaron inicialmente
+seis pruebas en 0.863~s. Una revisión identificó la muerte del proceso entre
+crear un enlace al registro y retirar el temporal; la regresión reprodujo el
+rechazo de la reentrada en 0.096~s. El rename exclusivo elimina esa ventana sin
+relajar el guard de enlaces externos. El grupo corregido aprobó siete pruebas
+en 0.979~s, preservando temporales ajenos, registros originales y fuentes.
+Los hijos Python son inocuos: no se operaron servicios ni se instalaron unidades.
+
+
+El cierre persistente de entradas aprobó seis pruebas de fixture en 0.963~s y
+un recorrido nativo aislado en 1.091~s. Cuatro trabajadores inocuos conservaron
+sus identidades y listeners durante la muerte del controlador tras dos
+intercambios, la pérdida de confirmación de recarga y dos reentradas nuevas.
+El primer intento falló sólo en el observador de limpieza: la recarga de
+unidades enmascaradas ya no conservaba el código histórico de salida.
+La comprobación corregida exige recibo cooperativo ligado al trabajador,
+ausencia de proceso y listener, estado inactivo e inventario ajeno intacto;
+no infiere una salida normal del sistema operativo de metadata vacía.
+Se retiraron únicamente las cuatro unidades desechables y se restauró el modo
+previo del directorio. No se reinició el host ni su gestor y no se instalaron
+controladores en el usuario de despliegue.
+
+El plazo compartido de disponibilidad añadió cinco casos que fallaron primero
+por ausencia del argumento y aprobaron en 1.024~s. Diez regresiones de salud y
+barrera CRL aprobaron en 2.032~s. La revisión detectó después respuestas de error
+HTTP sin cerrar; el caso adicional reprodujo ambas variantes y el grupo final
+de seis aprobó en 1.028~s. Los cuerpos JSON y HTML lentos procedían de un servidor
+loopback real; reloj y otras sondas usaron dobles controlados. Se preservaron las
+llamadas anteriores y se rechazaron respuestas tardías, sin afirmar interrupción
+dura de encabezados, delimitadores internos o filesystem bloqueado.
+
+La entrada SSH aprobó tres casos en 0.463~s tras seis aserciones fallidas del
+grupo inicial. Se ejecutó el shell real con binarios locales de registro para
+SSH, SCP y claves sintéticas. Se comprobaron huella obligatoria, argumentos del
+lanzador aislado y ausencia de transferencia tras fallo previo. No hubo conexión,
+cambio de secretos o variables de Actions ni instalación en el servidor.
+
+La conciliación posterior exigió también una ruta absoluta de intérprete
+aprobado y su versión mínima antes de transferir. El nuevo caso reprodujo seis
+rechazos ausentes y el conjunto final de cuatro aprobó en 0.738~s, manteniendo
+la ejecución remota sustituida por registros locales. No se asumió que el
+Python predeterminado del sistema operativo cumpliera el contrato del paquete.
+
+
+El coordinador integrado de controladores aprobó diez pruebas focales en
+4.159~s y 52 regresiones de sus fronteras en 3.021~s. Antes se reprodujeron
+por separado un presupuesto de arranque incompatible y dos fallos de reentrada:
+publicación ajena después de preparar y sincronización pendiente tras retirar
+el marcador. El bootstrap y las regresiones del lanzador aprobaron ocho casos
+en 1.703~s. El ensayo nativo aprobó un recorrido en 3.461~s, con cuatro servicios
+inocuos de una cuenta desechable, gestor y listeners reales. Verificó cambio de
+generación, cierre por defecto, autoridad de reapertura y reentrada sin nuevos
+arranques; preservó los centinelas y retiró sus recursos propios. Las sondas de
+bases fueron sintéticas y no acreditan PostgreSQL o Redis reales, restauración
+ni instalación operativa del producto. El informe versionado distingue esos
+resultados del cierre remoto pendiente de la entrega.
