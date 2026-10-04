@@ -18,7 +18,10 @@ pub(super) fn sources(
     Ok(())
 }
 
-fn participant(bytes: &mut Vec<u8>, detail: &ParticipantDetail) -> Result<(), ApplicationError> {
+pub(crate) fn participant(
+    bytes: &mut Vec<u8>,
+    detail: &ParticipantDetail,
+) -> Result<(), ApplicationError> {
     bytes.push(match detail.revision {
         ParticipantRevisionSnapshot::Manual(_) => 0,
         ParticipantRevisionSnapshot::Typed(_) => 1,
@@ -48,13 +51,21 @@ fn participant(bytes: &mut Vec<u8>, detail: &ParticipantDetail) -> Result<(), Ap
     }
     bytes.push(u8::from(detail.bound_subject.is_some()));
     if let Some(source) = &detail.bound_subject {
-        bytes.extend_from_slice(source.case_id.as_uuid().as_bytes());
-        bytes.extend_from_slice(source.id.as_uuid().as_bytes());
-        bytes.extend_from_slice(&source.revision.get().to_be_bytes());
-        blob(bytes, &source.values.canonical_bytes());
-        bytes.extend_from_slice(source.values_digest.as_bytes());
-        provenance(bytes, source.changed_at, &source.changed_by)?;
+        subject_snapshot(bytes, source)?;
     }
+    Ok(())
+}
+
+pub(crate) fn subject_snapshot(
+    bytes: &mut Vec<u8>,
+    source: &crate::typed_participants::SubjectSnapshot,
+) -> Result<(), ApplicationError> {
+    bytes.extend_from_slice(source.case_id.as_uuid().as_bytes());
+    bytes.extend_from_slice(source.id.as_uuid().as_bytes());
+    bytes.extend_from_slice(&source.revision.get().to_be_bytes());
+    blob(bytes, &source.values.canonical_bytes());
+    bytes.extend_from_slice(source.values_digest.as_bytes());
+    provenance(bytes, source.changed_at, &source.changed_by)?;
     Ok(())
 }
 
@@ -64,30 +75,38 @@ pub(super) fn projections(
 ) -> Result<(), ApplicationError> {
     count(bytes, participants.len())?;
     for item in participants {
-        let source = &item.snapshot;
-        bytes.extend_from_slice(source.case_id.as_uuid().as_bytes());
-        bytes.extend_from_slice(source.reference.id.as_uuid().as_bytes());
-        bytes.extend_from_slice(&source.reference.revision.get().to_be_bytes());
-        bytes.extend_from_slice(source.values_digest.as_bytes());
-        bytes.push(status(source.status));
-        subject(bytes, source.subject);
-        let view = &item.overview;
-        bytes.extend_from_slice(view.case_id.as_uuid().as_bytes());
-        bytes.extend_from_slice(view.id.as_uuid().as_bytes());
-        bytes.extend_from_slice(&view.revision.get().to_be_bytes());
-        checked_text(bytes, &view.display_name)?;
-        checked_text(bytes, &view.procedural_role)?;
-        bytes.push(u8::from(view.organization.is_some()));
-        if let Some(organization) = &view.organization {
-            checked_text(bytes, organization)?;
-        }
-        bytes.push(status(view.directory_status));
-        bytes.push(u8::from(view.kind.is_some()));
-        if let Some(kind) = view.kind {
-            bytes.push(kind.tag());
-        }
-        subject(bytes, view.subject);
+        projection(bytes, item)?;
     }
+    Ok(())
+}
+
+pub(crate) fn projection(
+    bytes: &mut Vec<u8>,
+    item: &FactParticipantProjection,
+) -> Result<(), ApplicationError> {
+    let source = &item.snapshot;
+    bytes.extend_from_slice(source.case_id.as_uuid().as_bytes());
+    bytes.extend_from_slice(source.reference.id.as_uuid().as_bytes());
+    bytes.extend_from_slice(&source.reference.revision.get().to_be_bytes());
+    bytes.extend_from_slice(source.values_digest.as_bytes());
+    bytes.push(status(source.status));
+    subject(bytes, source.subject);
+    let view = &item.overview;
+    bytes.extend_from_slice(view.case_id.as_uuid().as_bytes());
+    bytes.extend_from_slice(view.id.as_uuid().as_bytes());
+    bytes.extend_from_slice(&view.revision.get().to_be_bytes());
+    checked_text(bytes, &view.display_name)?;
+    checked_text(bytes, &view.procedural_role)?;
+    bytes.push(u8::from(view.organization.is_some()));
+    if let Some(organization) = &view.organization {
+        checked_text(bytes, organization)?;
+    }
+    bytes.push(status(view.directory_status));
+    bytes.push(u8::from(view.kind.is_some()));
+    if let Some(kind) = view.kind {
+        bytes.push(kind.tag());
+    }
+    subject(bytes, view.subject);
     Ok(())
 }
 

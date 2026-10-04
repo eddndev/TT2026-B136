@@ -31,6 +31,12 @@ permission, official appointment or documentary admission.
 Flat imposition capture receipts and adjacent-transition checks are implemented
 locally. Exact origin and supplied-chain validation are implemented too;
 durable existence/current head and Review-purpose measure evidence remain pending.
+Standalone initial impositions and explicit no-change decisions now build real
+review, decision, measure and group captures (`MDPR1`, `MDCR1`, `MMCR1`, `MDGR1`),
+from the actor-bound `MDTXN1` instruction. Full reconstruction verifies every
+member, immutable source and clock while retaining declared time precision.
+This local boundary rejects hearing anchors and predecessor effects until their
+complete histories can be checked; it proves neither durable creation nor access.
 Precautionary workflow services, persistence, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence

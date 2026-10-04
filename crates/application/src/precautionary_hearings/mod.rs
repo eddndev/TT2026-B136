@@ -6,12 +6,12 @@ mod capture_preparation;
 mod capture_validation;
 mod command;
 mod context;
-mod context_encoding;
+pub(crate) mod context_encoding;
 mod encoding;
 mod history;
 mod participants;
-mod source_encoding;
-mod source_inventory;
+pub(crate) mod source_encoding;
+pub(crate) mod source_inventory;
 mod submission;
 mod support;
 

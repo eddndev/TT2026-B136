@@ -67,6 +67,14 @@ contradictorias aunque reaparezcan después de una revisión intermedia. La
 existencia durable, el inventario y la cabeza vigente requieren al almacén; una
 cadena suministrada válida no demuestra que no existan revisiones posteriores.
 
+La captura local de una imposición inicial o una decisión explícita sin cambios
+produce revisión, decisión, medidas y grupo completos. `MDTXN1` vincula la
+instrucción; `MDPR1`, `MDCR1`, `MMCR1` y `MDGR1` conservan sus compromisos sin
+ciclos. La reconstrucción exige todos los miembros, origen y fuentes exactas,
+y tiempos de captura compatibles con su procedencia. Las anclas de audiencia
+y los efectos sobre medidas anteriores permanecen rechazados hasta comprobar
+sus historias completas. No acredita persistencia, acceso ni efectos jurídicos.
+
 Aún faltan origen durable, decisiones persistidas, historia de medidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus

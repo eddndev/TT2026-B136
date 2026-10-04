@@ -55,7 +55,7 @@ fn administration(bytes: &mut Vec<u8>, value: &CaseAdministrationSnapshot) {
     actor(bytes, &value.changed_by);
 }
 
-pub(super) fn timestamp(bytes: &mut Vec<u8>, at: OffsetDateTime) {
+pub(crate) fn timestamp(bytes: &mut Vec<u8>, at: OffsetDateTime) {
     bytes.extend_from_slice(&at.unix_timestamp().to_be_bytes());
     bytes.extend_from_slice(&at.nanosecond().to_be_bytes());
     bytes.extend_from_slice(&at.offset().whole_seconds().to_be_bytes());
@@ -74,7 +74,7 @@ fn stage_tag(value: CaseStage) -> u8 {
     }
 }
 
-pub(super) fn document(bytes: &mut Vec<u8>, support: &StageSupportSnapshot) {
+pub(crate) fn document(bytes: &mut Vec<u8>, support: &StageSupportSnapshot) {
     bytes.extend_from_slice(support.reference.id.as_uuid().as_bytes());
     bytes.extend_from_slice(&support.reference.version.get().to_be_bytes());
     bytes.extend_from_slice(support.digest.as_bytes());

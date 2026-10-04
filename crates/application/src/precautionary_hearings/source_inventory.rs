@@ -1,4 +1,4 @@
-use super::{capture_validation::invalid, PrecautionaryHearingReview};
+use super::{capture_validation::invalid, PrecautionaryContext, PrecautionaryHearingReview};
 use crate::{
     case_stages::{CaseStageEntry, StageSupportSnapshot},
     cases::CaseAdministrationSnapshot,
@@ -10,7 +10,7 @@ type SourceId = [u8; 16];
 
 /// Repeated immutable identities must retain all original values and provenance.
 #[derive(Default)]
-pub(super) struct SourceInventory<'a> {
+pub(crate) struct SourceInventory<'a> {
     administrations: BTreeMap<(SourceId, u32), &'a CaseAdministrationSnapshot>,
     stages: BTreeMap<(SourceId, u32), &'a CaseStageEntry>,
     participants: BTreeMap<(SourceId, SourceId, u32), &'a ParticipantDetail>,
@@ -23,56 +23,78 @@ impl<'a> SourceInventory<'a> {
         &mut self,
         review: &'a PrecautionaryHearingReview,
     ) -> Result<(), ApplicationError> {
-        for context in [&review.scheduling_context, &review.observed_context] {
-            let material = context.material();
-            for source in [&material.administration, &material.stage_administration] {
-                retain(
-                    &mut self.administrations,
-                    (*source.case_id.as_uuid().as_bytes(), source.revision.get()),
-                    source,
-                )?;
-            }
-            let stage = &material.stage;
-            retain(
-                &mut self.stages,
-                (
-                    *stage.case_id().as_uuid().as_bytes(),
-                    stage.stage_revision().get(),
-                ),
-                stage,
-            )?;
-            if let CaseStageEntry::Changed(source) = stage {
-                for support in &source.supports {
-                    self.support(support)?;
-                }
-            }
-        }
+        self.context(&review.scheduling_context)?;
+        self.context(&review.observed_context)?;
         for source in &review.sources.participants {
-            retain(
-                &mut self.participants,
-                (
-                    *source.case_id().as_uuid().as_bytes(),
-                    *source.id().as_uuid().as_bytes(),
-                    source.revision_number().get(),
-                ),
-                source,
-            )?;
-            if let Some(subject) = &source.bound_subject {
-                retain(
-                    &mut self.subjects,
-                    (
-                        *subject.case_id.as_uuid().as_bytes(),
-                        *subject.id.as_uuid().as_bytes(),
-                        subject.revision.get(),
-                    ),
-                    subject,
-                )?;
-            }
+            self.participant(source)?;
         }
         self.support(&review.sources.support)
     }
 
-    fn support(&mut self, source: &'a StageSupportSnapshot) -> Result<(), ApplicationError> {
+    pub(crate) fn context(
+        &mut self,
+        context: &'a PrecautionaryContext,
+    ) -> Result<(), ApplicationError> {
+        let material = context.material();
+        for source in [&material.administration, &material.stage_administration] {
+            retain(
+                &mut self.administrations,
+                (*source.case_id.as_uuid().as_bytes(), source.revision.get()),
+                source,
+            )?;
+        }
+        let stage = &material.stage;
+        retain(
+            &mut self.stages,
+            (
+                *stage.case_id().as_uuid().as_bytes(),
+                stage.stage_revision().get(),
+            ),
+            stage,
+        )?;
+        if let CaseStageEntry::Changed(source) = stage {
+            for support in &source.supports {
+                self.support(support)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn participant(
+        &mut self,
+        source: &'a ParticipantDetail,
+    ) -> Result<(), ApplicationError> {
+        retain(
+            &mut self.participants,
+            (
+                *source.case_id().as_uuid().as_bytes(),
+                *source.id().as_uuid().as_bytes(),
+                source.revision_number().get(),
+            ),
+            source,
+        )?;
+        if let Some(subject) = &source.bound_subject {
+            self.subject(subject)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn subject(&mut self, source: &'a SubjectSnapshot) -> Result<(), ApplicationError> {
+        retain(
+            &mut self.subjects,
+            (
+                *source.case_id.as_uuid().as_bytes(),
+                *source.id.as_uuid().as_bytes(),
+                source.revision.get(),
+            ),
+            source,
+        )
+    }
+
+    pub(crate) fn support(
+        &mut self,
+        source: &'a StageSupportSnapshot,
+    ) -> Result<(), ApplicationError> {
         retain(
             &mut self.documents,
             (

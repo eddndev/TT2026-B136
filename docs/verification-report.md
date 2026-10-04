@@ -1,5 +1,31 @@
 # Informe de verificación local
 
+## Capturas iniciales de decisiones y medidas: 4 de octubre de 2026
+
+La preparación produce una decisión factual, cada medida inicial y su grupo
+completo, sin compromisos circulares. Reconstruye las proyecciones desde fuentes
+exactas; conserva origen, actor y tiempos declarados y rechaza miembros alterados,
+añadidos o faltantes incluso al recalcular sus hashes. Admite imposición y ausencia
+explícita de cambios; las anclas y efectos con predecesores requieren la siguiente
+frontera. No acredita origen durable ni autorización actual.
+
+TDD: ambos targets fallaron por la API ausente antes de implementarla. Tras corregir
+tres errores de fixtures, aprobaron **37 casos semánticos y nueve vectores literales
+independientes**. Los vectores comprueban los cinco formatos sin derivar el valor
+esperado del codificador del producto; sus hashes de prueba no son vectores SHA.
+La extracción compartida de fuentes justificó repetir **37 casos de recibos y
+14 de historial**, incluidos sus vectores anteriores sin cambios. Total de esta
+corrida focal: **97/97**, comando **4.772 s**, compilación **4.52 s**. Clippy de los
+cuatro targets con `-D warnings` aprobó en **6.363 s**.
+
+La revisión identificó una copia de material antes de comprobar su límite o
+rechazar anclas/predecesores no soportados. La validación prestada ahora precede
+a la copia; revisión estática y pruebas de rechazo aprobaron, sin presentar esto
+como una medición de asignaciones. Revisión restante limpia, ASCII, formato,
+límites de líneas y diff aprobados. Un compilador, un hilo y temporales privados
+en disco; sin servicios, campaña completa, integración, despliegue ni nuevo PDF.
+
+
 ## Fuentes exactas de medidas cautelares: 4 de octubre de 2026
 
 El resolvedor comprueba expediente, identidad, revisión y digest recalculado

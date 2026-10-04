@@ -17,5 +17,5 @@ pub use declarations::{
 pub use effects::{
     MeasureDecisionOutcome, MeasureDecisionOutcomeInput, MeasureEffect, MeasureProposal,
 };
-pub use identity::MeasureDecisionId;
+pub use identity::{MeasureDecisionId, MeasureDecisionOperationId};
 pub use validity::{MeasureTime, MeasureValidity};

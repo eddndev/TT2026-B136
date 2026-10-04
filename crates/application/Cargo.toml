@@ -330,3 +330,11 @@ path = "tests/measure_decision_support.rs"
 [[test]]
 name = "measure_sources"
 path = "tests/measure_sources.rs"
+
+[[test]]
+name = "measure_decisions"
+path = "tests/measure_decisions.rs"
+
+[[test]]
+name = "measure_decision_vectors"
+path = "tests/measure_decision_vectors.rs"
