@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Grupos declarados de cambios cautelares: 4 de octubre de 2026
+
+El resultado de dominio distingue cambios de medidas y ausencia declarada de
+cambios. Conserva imposición, confirmación, modificación, revocación, cese y
+sustitución conjunta; ordena por identidad y rechaza repetición o solapamiento
+en cualquier posición. El límite técnico de 32 cuenta tanto medidas anteriores
+como nuevas. No acredita predecesores, persistencia ni efecto jurídico.
+
+TDD focal: tras RED por tipos ausentes aprobaron **21/21 pruebas**, incluidas
+dos representaciones literales independientes `MEFX1` de **13 y 764 bytes**.
+Comando total **2.216 s**, compilación **2.19 s**; Clippy con `-D warnings`
+aprobó en **1.469 s**. Se comprobaron los seis tipos, límites, lados vacíos,
+referencias conflictivas, orden, sustitución de dos medidas por dos y vínculo
+de todos los datos propuestos. Revisión independiente, formato, ASCII, tamaño
+y espacios limpios. Un compilador, un worker, temporales en disco; sin servicios,
+suites completas, integración, despliegue ni PDF nuevo.
+
 ## Admisión del soporte de decisión cautelar: 4 de octubre de 2026
 
 El soporte seleccionado por `MDVAL1` se admite mediante la misma frontera

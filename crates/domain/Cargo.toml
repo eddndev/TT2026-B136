@@ -114,3 +114,7 @@ path = "tests/suites/typed_suite_1.rs"
 [[test]]
 name = "precautionary_declarations"
 path = "tests/precautionary_declarations.rs"
+
+[[test]]
+name = "measure_effects"
+path = "tests/measure_effects.rs"

@@ -44,7 +44,11 @@ Los valores locales de medida (`MEAS1`) conservan sujeto exacto, clase,
 condiciones, vigencia y supervisión: participante exacto con declaración, o
 desconocimiento con motivo. Los datos factuales de decisión (`MDVAL1`) conservan
 autoridad declarada, tiempo, justificación y soporte con localizador. Disponen
-de identidad de decisión separada; todavía no crean efectos ni grupos atómicos.
+de identidad de decisión separada. El resultado `MEFX1` normaliza cambios
+declarados o una declaración de ausencia de cambios. Rechaza identidades
+repetidas en todos los lugares del grupo, incluidos ambos lados de sustitución,
+y acota a 32 la unión de medidas anteriores y nuevas. Estos valores todavía no
+resuelven predecesores ni confirman efectos o grupos atómicos.
 
 Los recibos locales `PHPR1`/`PHCR1` conservan los datos completos y procedencia
 de la convocatoria de imposición. Validan digest, tiempo y reemplazo/cancelación

@@ -22,7 +22,9 @@ resolution selected by `MDVAL1`. Both use one internal integrity/format boundary
 persisted case association remains a store check.
 Complete declared measure terms (`MEAS1`) and factual decision declarations
 (`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
-These values do not establish decision effects, hearing anchors or group origins.
+The bounded `MEFX1` outcome now normalizes declared effects and rejects duplicate
+or overlapping affected identities. It does not resolve predecessor captures or
+establish hearing anchors, group origins or committed effects.
 Flat imposition capture receipts and adjacent-transition checks are implemented
 locally. Exact origin and supplied-chain validation are implemented too;
 durable existence/current head and Review-purpose measure evidence remain pending.
@@ -220,6 +222,14 @@ A decision group affects at most 32 distinct measure identities, counting old
 and new identities together. This is a technical bound, not a legal limit.
 Normalize by UUID and reject duplicate targets; never silently split an oversized
 decision. Every affected existing measure requires its exact expected revision.
+
+The local domain constructor accepts either a supported no-change statement or
+a nonempty effect list. It sorts substitution sides by UUID and effects by their
+smallest affected UUID, rejecting any repeated identity across all old/new
+positions. `MEFX1` binds every effect tag, exact predecessor reference and complete
+proposed `MEAS1`. Modify supplies full values; application checks must preserve
+subject identity, class and origin against the resolved predecessor. Supplied
+intent does not establish existence, current heads or judicial admissibility.
 
 - `impose` creates new identities and their complete declared values.
 - `confirm` appends additional decision evidence with an exact predecessor while
