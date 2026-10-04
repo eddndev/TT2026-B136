@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Simulación de auditoría ausente con referencias nuevas: 3 de octubre de 2026
+
+La regresión de arranque tras importación histórica falló en la preparación de
+un daño administrativo: `TRUNCATE` no permitía vaciar `audit_events` con la nueva
+clave foránea desde `owner_certificate_registrations`, incluso con la sesión en
+modo réplica. El test usa ahora `DELETE FROM audit_events` dentro del mismo bloque
+administrativo y comprueba que quedan cero eventos antes de exigir el rechazo
+del arranque. Conserva los cinco escenarios y sus comprobaciones de integridad;
+no modifica permisos, restricciones ni comportamiento del producto.
+
+El caso exacto aprobó **1/1 en 11.41 s** en PostgreSQL 16.15 aislado, con una sola
+suite y compilador. Su clúster temporal fue retirado. Un primer intento del
+auxiliar local configuró la variable de otra familia de pruebas: el retorno
+inmediato de 0.00 s no acredita adaptadores y se descarta. La ejecución válida
+utilizó `CASE_TEST_DATABASE_URL`. La revisión focal quedó limpia; Clippy del target con `-D warnings`
+aprobó en **11.06 s**, así como formato y ASCII. La campaña
+remota cancelada no acredita inventario completo ni cobertura; su regresión
+completa sigue pendiente de una nueva ejecución.
+
 ## Autoridad al devolver un retiro Owner: 3 de octubre de 2026
 
 Una regresión reprodujo cuatro variantes de autoridad perdida después de
