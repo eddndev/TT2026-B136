@@ -1,5 +1,37 @@
 # Informe de verificación local
 
+## Servicios de convocatorias cautelares: 4 de octubre de 2026
+
+El servicio de aplicación prepara y confirma programación, reemplazo y
+cancelación con el actor actual completo. Admite el soporte cifrado exacto fuera
+del bloqueo de auditoría y exige ambos digests: instrucción y revisión completa.
+Las consultas autorizadas conservan origen, prefijo histórico y dependencias;
+validan identidad, revisión, operación, paginación y fuentes compartidas.
+Los adaptadores de persistencia y las rutas HTTP siguen pendientes.
+
+TDD: las APIs ausentes fallaron antes de implementar. La revisión reprodujo
+**nueve regresiones** antes de corregirlas: tres observaciones de reloj inválidas
+antes del commit; una captura completa contradictoria entre historia y ancla;
+un timestamp nuevo anterior a la confirmación; tres identidades duplicadas entre
+resultados de página; y una operación reutilizada entre audiencia y ancla de su
+dependencia. Se conserva el replay original y la evidencia compartida válida.
+Los fallos de compilación y una fixture que intentaba crear una captura después
+del cierre administrativo se conservaron como diagnóstico, no como aceptación.
+
+Resultado final: **45 pruebas nuevas de comandos y 25 de consultas**, más
+**169 pruebas anteriores afectadas**, todas aprobadas: **239 casos** en
+**36.242 s** de comando, compilación **11.83 s**. Incluye las fronteras de 256 revisiones/grupos y los
+vectores de recibos existentes. Clippy de los ocho targets con `-D warnings`
+aprobó en **8.715 s** de comando, compilación **8.66 s**. Revisión independiente
+final sin hallazgos; formato, ASCII, límites de líneas y diff comprobados.
+Un compilador, un hilo y temporales privados en disco btrfs.
+
+Son verificaciones focales de aplicación. No demuestran transacciones SQL,
+composición HTTP, aceptación de Agenda/alertas/Qadra ni restauración de esta
+familia. Servicio de decisiones, rectificación, almacenamiento y cierre completo
+siguen pendientes; sin campaña global, cobertura nueva, integración, despliegue
+ni cambios en el manuscrito o PDF aceptado.
+
 ## Convocatorias de revisión y anclas de decisiones: 4 de octubre de 2026
 
 La preparación de revisión resuelve capturas reales de medidas y todos sus

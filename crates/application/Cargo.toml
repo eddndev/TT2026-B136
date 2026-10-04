@@ -362,3 +362,11 @@ path = "tests/measure_decision_anchors.rs"
 [[test]]
 name = "measure_anchor_vectors"
 path = "tests/measure_anchor_vectors.rs"
+
+[[test]]
+name = "precautionary_workflow"
+path = "tests/precautionary_workflow.rs"
+
+[[test]]
+name = "precautionary_reads"
+path = "tests/precautionary_reads.rs"

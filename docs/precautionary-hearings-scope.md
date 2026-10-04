@@ -88,8 +88,16 @@ medidas citadas por el ancla; ambas selecciones pueden ser diferentes. `MHIA1`
 conserva el detalle ordinario, y la cautelar conserva su `PHCR1` original. No
 acredita persistencia, cabeza vigente, acceso ni efectos jurídicos.
 
-Aún faltan origen durable, decisiones e historia de medidas persistidas, servicios del
-flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
+El servicio local de convocatorias y sus consultas aprobaron la verificación focal.
+Comprueba permisos del actor actual, admisión del soporte seleccionado, confirmación
+de instrucción y revisión completa, y recuperación de la operación original.
+Los puertos exigen al almacén volver a comprobar acceso, cabeza y material exactos
+antes de guardar con auditoría. Las consultas conservan el prefijo histórico y
+origen completos; admiten personal autorizado y rechazan Client. Todavía no hay
+adaptador persistente ni ruta de producto para esta familia.
+
+Aún faltan origen durable, decisiones e historia de medidas persistidas, el servicio
+de decisiones, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
 ejecutados se registran por separado en [el informe](verification-report.md).

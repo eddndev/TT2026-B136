@@ -1,4 +1,4 @@
-//! Exact precautionary context and instructions, separate from storage and authority.
+//! Exact precautionary evidence and authorized appointment workflows over storage ports.
 
 mod capture_encoding;
 mod capture_model;
@@ -47,3 +47,24 @@ pub use measure_history::{
 };
 
 mod context_commitments;
+
+mod workflow_error;
+mod workflow_evidence;
+mod workflow_model;
+mod workflow_port;
+mod workflow_prepared;
+mod workflow_service;
+pub use workflow_error::PrecautionaryHearingError;
+pub use workflow_model::*;
+pub use workflow_port::*;
+pub use workflow_prepared::PreparedPrecautionaryHearing;
+pub use workflow_service::PrecautionaryHearingService;
+
+mod read_model;
+mod read_port;
+mod reads;
+pub use read_model::*;
+pub use read_port::*;
+pub use reads::PrecautionaryHearingReadService;
+
+mod read_inventory;

@@ -19,6 +19,8 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    PrecautionaryHearing(#[from] crate::precautionary_hearings::PrecautionaryHearingError),
+    #[error(transparent)]
     OwnerCertificate(#[from] crate::identity::owner_certificates::OwnerCertificateError),
     #[error("audit page exceeds its text capacity")]
     AuditQueryCapacityExceeded,

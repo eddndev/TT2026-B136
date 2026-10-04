@@ -4,50 +4,20 @@
 
 Proposed.
 
-Appointment values and their own canonical representation are implemented
-locally with focused domain verification. This first checkpoint does not
-establish the complete workflow or its acceptance; remote gates and integration
-remain pending.
-The local value extension comprises `MeasureKind`, `MeasureTime` and
-`MeasureValidity` with `MVAL1`; ten focused tests and target Clippy pass after
-the initial failing tests. Full workflow verification and integration remain pending.
-Exact historical context validation (`PCTX1`) and instruction framing (`PHTXN1`)
-are implemented locally. Their focused tests pass; these values are not capture
-receipts or a complete scheduling service. Exact participant resolution also
-validates selected manual or typed historical values and bound subjects; it does
-not establish current access, current heads or documentary admission. A separate
-local direct-support adapter delegates exact selected-document admission to the
-bounded document processor; the same exact-source admission also accepts the
-resolution selected by `MDVAL1`. Both use one internal integrity/format boundary;
-persisted case association remains a store check.
-Complete declared measure terms (`MEAS1`) and factual decision declarations
-(`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
-The bounded `MEFX1` outcome now normalizes declared effects and rejects duplicate
-or overlapping affected identities. It does not resolve predecessor captures or
-establish hearing anchors, group origins or committed effects. Exact measure
-source resolution now checks the declared subject and optional supervisor,
-retaining full captures separately from derived labels; it grants no current
-permission, official appointment or documentary admission.
-Flat imposition capture receipts and adjacent-transition checks are implemented
-locally. Exact origin and supplied-chain validation are implemented too;
-durable existence and current heads remain store responsibilities. Review-purpose
-appointments now resolve actual target captures through complete owning groups.
-Standalone initial impositions and explicit no-change decisions now build real
-review, decision, measure and group captures (`MDPR1`, `MDCR1`, `MMCR1`, `MDGR1`),
-from the actor-bound `MDTXN1` instruction. Full reconstruction verifies every
-member, immutable source and clock while retaining declared time precision.
-The history-aware extension now resolves complete owning-group ancestry and
-reconstructs confirmation, modification, revocation, cessation and joint
-substitution. It rejects missing, cyclic or contradictory evidence and bounds
-validation to 256 groups and 8192 member rows, including a candidate. Empty-history
-wrappers still reject predecessor effects without their evidence. Exact ordinary
-Initial and precautionary anchors are now reconstructed, including Review target
-dependencies; these checks prove neither durable creation, current heads nor
-current access.
-Precautionary workflow services, persistence, HTTP, Agenda, alerts,
-Qadra and restoration remain pending. The bounded contract and source catalog
-are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
-belongs in [the verification report](../verification-report.md).
+The local implementation includes appointment and measure values, exact contexts,
+source admission, instruction commitments, complete capture receipts and bounded
+history validation. Review appointments resolve actual target measures; decisions
+reconstruct all declared effects and exact ordinary Initial or precautionary
+anchors. Existing no-anchor and appointment canonical bytes are preserved.
+
+The authorized appointment service and its readers are implemented and verified locally.
+Scheduling, replacement and cancellation retain complete origin-bound prefixes,
+while explicit replay preserves the original instruction, actor and timestamp.
+These application ports do not establish a working database or HTTP workflow.
+The decision service, durable storage, administrative correction, HTTP, Agenda,
+alerts, Qadra and restoration remain pending. The bounded contract and source
+catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
+checks and their limits belong in [the verification report](../verification-report.md).
 
 ## Context
 
@@ -325,6 +295,43 @@ Failure, stale targets and concurrent replay leave neither partial substitution
 nor detached audit evidence. Creating an appointment remains a separate explicit
 intent. Historical reads verify captured evidence without replacing it with
 current source heads or applying current legal interpretations.
+
+### Authorized appointment preparation and confirmation
+
+The scheduling service authenticates the full current principal before lookup.
+Owner and Litigator may prepare and submit. A Ready result retains the exact
+observed context, encrypted document, selected participant captures, complete
+previous appointment prefix and actual measure dependency closure. Cancellation
+retains previous sources; it does not re-admit historical support. Scheduling
+and replacement admit their exact encrypted support outside the audit lock.
+Only the service constructs the private prepared value. Supplied historical
+validity cannot substitute for current membership, case activity or source heads.
+
+Confirmation requires both instruction and full-review digests. This includes
+changed source provenance and cancellation's newly observed context, even when
+the instruction bytes remain unchanged. Prior appointment captures and measure
+anchor captures share a full immutable-source inventory before preparation
+succeeds. Equal review bytes cannot excuse conflicting capture provenance.
+The complete prefix, including the new capture, is bounded to 256 revisions.
+Evidence over a bound is rejected, never silently truncated.
+
+Reauthenticate and check supported UTC observations before commit and before
+disclosure. The fresh capture cannot precede the checked sources or the last
+precommit clock observation. An exact raced replay retains its earlier original
+capture. Replay requires the original recording account ID and complete command;
+its historical email and role remain unchanged after an authorized profile edit.
+Returning a result requires the same full current principal as request admission.
+
+Under the shared audit lock the store must recheck the complete principal,
+membership, active context, current predecessor, source heads, case/document
+association and all reviewed material. It atomically writes capture, head,
+origin, operation and audit, or returns the original exact raced operation.
+Readers require current staff access, including Paralegal, and deny Client.
+Closed cases remain readable; read audits and durable-origin checks belong to
+the store. Exact revision and operation reads return their original complete
+prefix. Lists use at most 20 current heads in strict UUID order, with an exclusive
+cursor and validated continuation. Application readers verify every full receipt
+and shared immutable source, without re-admitting its historical support.
 
 ### Readers, recovery and restoration
 

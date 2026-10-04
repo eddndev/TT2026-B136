@@ -12,6 +12,7 @@ type SourceId = [u8; 16];
 #[derive(Default)]
 pub(crate) struct SourceInventory<'a> {
     commitments: super::context_commitments::ContextCommitments,
+    hearing_operations: BTreeMap<(SourceId, SourceId), &'a PrecautionaryHearingReview>,
     hearing_reviews: BTreeMap<(SourceId, SourceId, u32), &'a PrecautionaryHearingReview>,
     projections: BTreeMap<
         (SourceId, SourceId, u32),
@@ -119,6 +120,14 @@ impl<'a> SourceInventory<'a> {
         &mut self,
         review: &'a PrecautionaryHearingReview,
     ) -> Result<(), ApplicationError> {
+        retain(
+            &mut self.hearing_operations,
+            (
+                *review.case_id.as_uuid().as_bytes(),
+                *review.command.operation_id.as_uuid().as_bytes(),
+            ),
+            review,
+        )?;
         retain(
             &mut self.hearing_reviews,
             (
