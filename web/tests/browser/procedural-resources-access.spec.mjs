@@ -7,7 +7,7 @@ import {
   browserResource,
 } from './procedural-resources-helpers.mjs';
 import { resourceCommandFixture } from '../fixtures/procedural-resource-unit.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, caseId } from './helpers.mjs';
 
 const mutationNames = [
   'Registrar recurso',
@@ -98,12 +98,28 @@ test('revocation clears private resource rows and detail on refresh', async ({ p
   row.values.grounds = 'Motivos reservados del recurso';
   const state = await setupProceduralResources(page, { role: 'litigator', resources: [row] });
   await openResources(page);
+  const refresh = page.getByRole('button', { name: 'Actualizar recursos', exact: true });
+  await expect(refresh).toBeEnabled();
+  let releaseContext;
+  const contextReady = new Promise((resolve) => {
+    releaseContext = resolve;
+  });
+  await page.route(`**/api/v1/cases/${caseId}/administration`, async (route) => {
+    await contextReady;
+    await route.fallback();
+  });
   await openRecord(page, row);
+  await expect(refresh).toBeDisabled();
+  releaseContext();
+  await expect(refresh).toBeEnabled();
   state.facts.results.scheduling.denied = true;
   const denied = page.waitForResponse(
-    (response) => response.url().includes('/procedural-resources') && response.status() === 403,
+    (response) =>
+      new URL(response.url()).pathname === `/api/v1/cases/${caseId}/procedural-resources` &&
+      response.request().method() === 'GET' &&
+      response.status() === 403,
   );
-  await page.getByRole('button', { name: 'Actualizar recursos', exact: true }).click();
+  await refresh.click();
   await denied;
   await expect(resourceDetail(page)).toHaveCount(0);
   await expect(resourceEditor(page)).toHaveCount(0);

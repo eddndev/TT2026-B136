@@ -7730,6 +7730,29 @@ Las comprobaciones de navegador mantienen la API simulada; no se probaron
 los servicios reales del backend en esta revisión.
 
 
+## Revocacion del recurso despues de completar la consulta
+
+El 4 de octubre de 2026, el navegador remoto detecto una carrera en la prueba
+que revoca el acceso antes de actualizar la lista de recursos. La aparicion del
+detalle no implicaba que sus paneles hijos hubieran terminado de consultar el
+contexto. La revocacion prematura hacia que una de esas consultas recibiera 403
+y retirase la pantalla antes del clic de actualizacion previsto por la prueba.
+
+- La prueba original aprobo aisladamente en **9.14 s** incluyendo arranque.
+  Retener la respuesta de administracion hasta mostrar el detalle reprodujo
+  deterministicamente el mismo boton deshabilitado y luego desmontado: fallo
+  **1/1 en 35.05 s**, incluido el limite original de 30 segundos del caso.
+- Con esa misma respuesta controlada, esperar el boton habilitado antes de
+  revocar aprobo **1/1 en 9.04 s** incluyendo arranque, con un worker. Se conserva
+  el inventario y cada comprobacion de retiro de datos privados y cero envios;
+  ademas se exige el 403 del GET exacto de la lista que inicia la actualizacion.
+- Formato, ASCII y diff aprobaron. No se modifica producto, permisos, timeouts,
+  reintentos, recursos ni el manuscrito. No se repitio la suite completa local.
+- La cancelacion automatica termino CI/Web unos 23 segundos despues del fallo;
+  Documents habia aprobado. El JUnit parcial contiene 34 aprobadas, una fallida
+  y 287 no ejecutadas; no acredita el inventario ni la cobertura completos.
+  La correccion publicada requiere una nueva campana remota de cierre.
+
 ## Dependencia de pruebas compartidas del ejecutable
 
 El 4 de octubre de 2026, Clippy remoto detecto que las pruebas del ejecutable
