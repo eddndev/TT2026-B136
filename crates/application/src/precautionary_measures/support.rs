@@ -5,19 +5,19 @@ use crate::{
     },
     ApplicationError,
 };
-use domain::precautionary_hearings::PrecautionaryHearingValues;
+use domain::precautionary_measures::MeasureDecisionValues;
 
-/// Admits the exact scheduling document through bounded cryptographic and format checks.
-/// The authorized store must separately establish and recheck its case association.
-pub fn admit_precautionary_support(
-    values: &PrecautionaryHearingValues,
+/// Admits the exact resolution support through bounded integrity and format checks.
+/// Case association and current access remain the authorized store's responsibility.
+pub fn admit_measure_decision_support(
+    values: &MeasureDecisionValues,
     records: &[DocumentRecord],
     processor: &DocumentProcessor,
     limits: &StageSupportReadLimits,
     validator: &dyn DocumentFormatBatchValidator,
 ) -> Result<StageSupportSnapshot, ApplicationError> {
     crate::documents::admit_exact_stage_support(
-        values.scheduling_basis().support(),
+        values.support(),
         records,
         processor,
         limits,

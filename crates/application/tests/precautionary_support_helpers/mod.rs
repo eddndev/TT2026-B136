@@ -127,6 +127,10 @@ pub struct Fixture {
 }
 
 impl Fixture {
+    pub fn processor(&self) -> &DocumentProcessor {
+        &self.processor
+    }
+
     pub fn new(record: &DocumentRecord) -> Self {
         let (processor, observations) = observed_crypto::processor();
         Self {
@@ -150,7 +154,7 @@ impl Fixture {
         admit_precautionary_support(
             values,
             records,
-            &self.processor,
+            self.processor(),
             &StageSupportReadLimits::standard(),
             &self.validator,
         )

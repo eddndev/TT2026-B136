@@ -17,7 +17,9 @@ receipts or a complete scheduling service. Exact participant resolution also
 validates selected manual or typed historical values and bound subjects; it does
 not establish current access, current heads or documentary admission. A separate
 local direct-support adapter delegates exact selected-document admission to the
-bounded document processor; persisted case association remains a store check.
+bounded document processor; the same exact-source admission also accepts the
+resolution selected by `MDVAL1`. Both use one internal integrity/format boundary;
+persisted case association remains a store check.
 Complete declared measure terms (`MEAS1`) and factual decision declarations
 (`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
 These values do not establish decision effects, hearing anchors or group origins.

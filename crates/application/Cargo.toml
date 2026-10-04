@@ -322,3 +322,7 @@ path = "tests/precautionary_receipts.rs"
 [[test]]
 name = "precautionary_history"
 path = "tests/precautionary_history.rs"
+
+[[test]]
+name = "measure_decision_support"
+path = "tests/measure_decision_support.rs"

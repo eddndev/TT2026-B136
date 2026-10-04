@@ -37,6 +37,8 @@ para una nueva operación.
 La admisión local del soporte directo verifica una sola versión y digest, y
 utiliza el procesador documental acotado para integridad y formato PDF/DOCX.
 La pertenencia al expediente debe comprobarse en el almacén autorizado.
+El soporte de resolución seleccionado por `MDVAL1` utiliza la misma frontera
+interna de integridad y formato, conservando su referencia y metadatos exactos.
 
 Los valores locales de medida (`MEAS1`) conservan sujeto exacto, clase,
 condiciones, vigencia y supervisión: participante exacto con declaración, o

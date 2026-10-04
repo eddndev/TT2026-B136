@@ -1,5 +1,23 @@
 # Informe de verificación local
 
+## Admisión del soporte de decisión cautelar: 4 de octubre de 2026
+
+El soporte seleccionado por `MDVAL1` se admite mediante la misma frontera
+interna de integridad y formato que el soporte de convocatoria. Exige exactamente
+una versión/digest, valida contenido y evidencia sellada antes del formato, y
+conserva nombre, referencia y política. La asociación al expediente y el acceso
+actual corresponden al almacén autorizado.
+
+Tras el fallo por API ausente aprobaron **4 casos nuevos**. Los **12 casos**
+de convocatoria se ejecutaron porque su implementación pasó a compartir esa
+frontera; también aprobaron. Comando total **3.006 s**, compilación **2.98 s**;
+Clippy de ambos targets con `-D warnings` aprobó en **3.258 s**. La prueba inicial
+tenía dos referencias incorrectas a una API existente de tiempo; se corrigieron
+antes de implementar la admisión nueva y se conservó un RED específico por API
+ausente. Un compilador, un worker, temporales en disco y dobles observables;
+sin servicios nativos, integración ni despliegue. La aceptación nativa completa
+sigue pendiente; no se repitieron otras suites ni el PDF.
+
 ## Origen e historial cautelar suministrado: 4 de octubre de 2026
 
 El origen conserva los siete campos de la captura inicial exacta. La validación

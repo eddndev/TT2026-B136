@@ -41,3 +41,6 @@ mod content_validation;
 pub use upload_admission::{
     AdmittedDocumentFormat, DocumentUploadAdmission, DocumentUploadError, MAX_DOCUMENT_UPLOAD_BYTES,
 };
+
+mod exact_support;
+pub(crate) use exact_support::admit_exact_stage_support;
