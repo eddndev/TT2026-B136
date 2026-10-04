@@ -44,6 +44,11 @@ permanecen fuera de él.
 
 ### Workspace de Rust
 
+El [registro conjunto de resultado de audiencia y plazo configurado](docs/hearing-derived-deadlines.md)
+incorpora revisión explícita y recuperación sin duplicar el envío. El contrato
+registra la aceptación nativa de API, restauración y navegador; la integración
+remota y las reglas jurídicas que todavía requieren calificación siguen pendientes.
+
 El prototipo se desarrolla como un workspace de Cargo con arquitectura
 hexagonal. Los crates viven bajo [`crates/`](crates/):
 
@@ -70,6 +75,11 @@ cargo test --workspace                   # pruebas; servicios externos requieren
 bash scripts/test-backends.sh            # suite con PostgreSQL y Redis desechables
 cargo run --bin despacho-cli -- --help   # ayuda del binario
 ```
+
+El supervisor `scripts/test-backends.sh` requiere Linux, `setsid`, las
+herramientas PostgreSQL y los ejecutables locales `redis-server` y `redis-cli`.
+Ejecuta el comando en una sesión propia y limpia sus servicios desechables al
+terminar, fallar o recibir SIGINT/SIGTERM, conservando el código de salida.
 
 Antes de iniciar `serve` o una demostración con la API real, preparar la
 [biblioteca qpdf](docs/document-format-operations.md) y realizar una sola vez la

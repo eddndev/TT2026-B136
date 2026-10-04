@@ -1,7 +1,14 @@
 //! Case-scoped deadline commands and immutable historical calculations.
+pub(crate) use input_projection::{
+    command as command_projection, definition as definition_projection,
+};
+pub(crate) use metadata::responsible as responsible_projection;
+pub(crate) use receipt_projection::source_event as source_event_projection;
 pub(crate) use request::Command as CommandInput;
 pub(crate) use response::{current as current_projection, detail as exact_projection};
 pub(crate) use response::{draft as draft_projection, submitted as validate_submission};
+pub(crate) use result::project as result_projection;
+pub(crate) use tracking_projection::policies as policies_projection;
 mod input;
 mod input_projection;
 #[cfg(test)]

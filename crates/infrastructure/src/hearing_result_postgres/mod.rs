@@ -1,9 +1,9 @@
 //! Transactional declared sessions with exact historical sources and operation receipts.
-mod authorization;
-mod commit;
+pub(crate) mod authorization;
+pub(crate) mod commit;
 mod decode;
 mod port_impl;
-mod preparation;
+pub(crate) mod preparation;
 mod query;
 mod sources;
 pub(crate) mod storage;

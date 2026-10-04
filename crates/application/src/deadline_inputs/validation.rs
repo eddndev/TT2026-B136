@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
-    cases::case_administration_digest, judicial_calendars::judicial_calendar_receipt_matches,
+    cases::case_administration_digest,
+    judicial_calendars::{judicial_calendar_receipt_matches, JudicialCalendarDetail},
 };
 use domain::{
     crypto::DocumentHasher,
@@ -81,15 +82,21 @@ fn checked_material<'a>(
         }
     }
     let source = super::sources::checked_source(hasher, selection, material)?;
-    let calendar = checked_calendar(hasher, calendar, material)?;
+    let calendar = checked_calendar(
+        hasher,
+        calendar,
+        material.calendar.as_ref(),
+        material.calendar_head.as_ref(),
+    )?;
     Ok(CheckedMaterial { source, calendar })
 }
-fn checked_calendar<'a>(
+pub(crate) fn checked_calendar<'a>(
     hasher: &dyn DocumentHasher,
     selected: Option<DeadlineCalendarRef>,
-    material: &'a DeadlineInputMaterial,
+    exact: Option<&'a JudicialCalendarDetail>,
+    head: Option<&'a JudicialCalendarDetail>,
 ) -> Result<Option<&'a JudicialCalendarValues>, ApplicationError> {
-    let (selected, exact, head) = match (selected, &material.calendar, &material.calendar_head) {
+    let (selected, exact, head) = match (selected, exact, head) {
         (None, None, None) => return Ok(None),
         (Some(selected), Some(exact), Some(head)) => (selected, exact, head),
         _ => {

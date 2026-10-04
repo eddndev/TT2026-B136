@@ -9,7 +9,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct Command {
+pub(crate) struct Command {
     operation_id: String,
     hearing_id: String,
     result_id: String,

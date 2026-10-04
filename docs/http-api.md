@@ -436,6 +436,16 @@ y reautentica. Una respuesta incierta se concilia contra la revisión exacta y s
 operación, sin reenvíos automáticos. Comparecencias, acuerdos y procedencia son
 declarados por el operador; no infieren notificación, resolución ni plazos.
 
+El [contrato de resultado y plazo derivado](hearing-derived-deadlines.md) añade
+una instrucción explícita para revisar y crear conjuntamente un resultado R1 y
+un plazo configurado R1. Conserva el registro ordinario de resultados sin plazo,
+exige perfil y políticas seleccionados y distingue preparación prospectiva de
+recuperación del registro original. Su adaptación HTTP y composición tienen
+verificación focal. Qadra incorpora revisión conjunta y recuperación del intento
+por la misma identidad. La aceptación nativa completa de API/restauración y
+navegador aprobó; el contrato enlazado separa esa evidencia de la integración
+remota pendiente.
+
 ## Calendarios jurisdiccionales
 
 El backend, la API y Qadra están verificados localmente, incluida la restauración

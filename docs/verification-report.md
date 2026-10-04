@@ -1,5 +1,258 @@
 # Informe de verificación local
 
+
+## Limpieza de servicios de prueba al cancelar: 4 de octubre de 2026
+
+La comprobación de los runners después de la cancelación encontró 80 procesos
+Redis temporales en un host y 28 en otro. Se verificaron su usuario, directorio
+privado de pruebas y grupo de control del runner; se terminaron únicamente esos
+procesos mediante identificadores de proceso estables. La inspección posterior
+no encontró procesos de pruebas activos. No se borraron cachés ni datos de producto.
+Esta observación no demuestra que los 108 procesos históricos tuvieran la misma
+secuencia de cancelación.
+
+Cuatro regresiones reprodujeron que `scripts/test-backends.sh` dejaba descendientes
+vivos al terminar el comando y no completaba correctamente el apagado al recibir
+SIGINT o SIGTERM. El supervisor ahora ejecuta el comando en una sesión propia,
+espera de forma interrumpible y conserva el código original. La limpieza ignora
+señales repetidas, termina el grupo propio y Redis antes de esperar PostgreSQL,
+y permite dos segundos de apagado antes de forzar únicamente los procesos propios
+que sigan vivos. Ese límite pertenece a la limpieza, no a pruebas de producto.
+
+La verificación final aprobó **6/6 en 4.205 s**: éxito, fallo con código 7,
+SIGINT con 130, SIGTERM con 143, cancelación del grupo completo y un comando que
+ignora SIGTERM. Todos comprobaron limpieza de Redis, comando, descendiente y
+directorio privado, conservando un proceso ajeno. El marcador de disponibilidad
+se publica después de instalar los manejadores, de modo que el último caso
+comprueba realmente el escalamiento. La batería usa Redis compatible real y
+sustitutos de PostgreSQL/Cargo para aislar el ciclo de vida; entra en el gate
+existente de helpers de CI. Los tres hosts tienen las herramientas requeridas.
+
+Un control separado con PostgreSQL **16.15** y Redis compatible **Valkey 8.1.10**
+aprobó en **1.917 s**, accediendo a las tres bases aisladas y verificando después
+la desaparición de ambos servidores y del directorio temporal. No se repitieron
+la campaña API, navegador, compilación completa o PDF previamente aceptados.
+Los gates remotos de la nueva cabeza siguen pendientes.
+
+
+## Guardas de esquema con orígenes derivados: 4 de octubre de 2026
+
+La campaña remota se detuvo al preparar una prueba de alteración del esquema:
+PostgreSQL rechazó retirar una clave única referenciada por la nueva tabla de
+orígenes. Un segundo caso equivalente se reprodujo localmente. Era un fallo de
+preparación de las pruebas, anterior a su comprobación del arranque.
+
+Los dos escenarios conservan sus identidades y todas las alteraciones anteriores.
+Ahora retiran únicamente la referencia dependiente necesaria para poder alterar
+la clave padre, exigen el error específico del esquema padre, restauran esa clave
+y comprueban por separado la referencia de origen ausente. Finalmente restauran
+la referencia exacta y exigen arranque correcto. No se usa eliminación en cascada
+ni se modifican migraciones, validadores, permisos o lógica de producto.
+
+TDD focal con PostgreSQL 16.15 desechable, un compilador y un worker: ambos casos
+fallaron antes de la corrección y aprobaron después, **1/1 en 25.042 s** para
+plazos y **1/1 en 14.453 s** para resultados, incluyendo preparación y limpieza.
+Los clústeres privados terminaron eliminados. La campaña remota cancelada produjo
+2,644 aprobadas, una fallida, dos ignoradas y 1,280 no ejecutadas; esos resultados
+parciales no acreditan el inventario completo ni sustituyen los gates de cierre.
+
+
+## Aceptación nativa del resultado y plazo conjuntos: 4 de octubre de 2026
+
+El navegador contra Rust, PostgreSQL 16.15, Redis compatible y TSA local aprobó
+**5/5 escenarios en 40.6 s**, con un worker y el límite original de cada prueba.
+Cuatro casos recorrieron cálculo de 24 horas y bloqueo por fecha sin hora a
+1440 y 390 píxeles; el quinto descartó una respuesta real HTTP 201 ya confirmada
+y recuperó ambos R1 mediante consulta explícita, sin segundo submit ni otra
+revisión histórica. El ejemplo temporal es sintético y no acredita una regla
+jurídica aprobada.
+
+Los casos calculables comprobaron Agenda por API e interfaz y un aviso real del
+plazo con destinatario, revisión y huella de captura exactos. El caso bloqueado
+no obtuvo vencimiento operativo, entrada de plazo en Agenda ni aviso temporal.
+El correo permaneció deshabilitado. Cuatro capturas de revisión, bloqueo,
+aviso móvil y recuperación fueron inspeccionadas; las assertions comprobaron
+la ausencia de desbordamiento horizontal en ambos tamaños.
+
+El comando completo tardó **440.182 s**, incluyendo la preparación secuencial
+de todas las familias del demo. La compilación caliente informó **0.30 s**;
+la nueva familia independiente, **4.67 s**. No es una medición del CI completo.
+La partición de fixtures preserva los archivos anteriores y sitúa la familia
+nueva en la tercera partición. Su prueba pasó de tres negativos a **3/3 en
+0.252 s**, y las trece regresiones del plan y autenticación aprobaron en
+**0.438 s**. Se conservaron las pruebas existentes y sus límites.
+
+El verificador de evidencia de la campaña API tiene **5/5 pruebas en 0.077 s**.
+Primero falló por ausencia del módulo; una comprobación posterior reprodujo que
+confundía el estado `recorded` del resultado con `active` del plazo. El helper
+corregido exige ambos estados por separado y conserva los negativos de cambios
+en autor, instrucciones, origen y precisión temporal. Se incorporó al gate
+existente de CI. No se modificó el producto para corregir ese error del helper.
+
+La demostración API compuesta completa aprobó en **493.782 s**, incluida
+compilación caliente de **0.26 s**. Dos pares R1 —calculable y bloqueado—
+conservaron instrucciones, autores, recibos, evento y origen exactos. Se
+rechazaron cambios de instrucción y accesos sin permiso; los reintentos y Replay
+conservaron las mismas raíces. Después de captura, reinicios limpios TERM/INT y
+restauración, SQL comprobó dos orígenes y una única auditoría de creación exacta
+por operación. El snapshot íntegro antes y después del respaldo fue idéntico e
+incluyó la nueva tabla de orígenes. Las sesiones previas quedaron invalidadas y
+la reconciliación exigió MFA nuevo. Los servicios desechables terminaron limpios.
+Las fuentes de la campaña permanecieron sin cambios durante la ejecución.
+
+Esta aceptación local no acredita los gates remotos, la integración en main ni
+el despliegue; tampoco completa el corpus jurídico.
+
+## Editor conjunto de resultado y plazo en Qadra: 4 de octubre de 2026
+
+La acción de registrar resultado y plazo conserva una fuente prospectiva R1,
+revisa las dos capturas y confirma mediante el contrato compuesto. No reemplaza
+el registro ordinario de resultados. La sesión recuperable conserva el intento
+incierto, exige reautorización del expediente para la misma identidad y consulta
+su origen exacto antes de cargar fuentes actuales. El contrato está descrito en
+[resultado y plazo derivado](hearing-derived-deadlines.md).
+
+TDD focal: los módulos de acciones y borradores fallaron inicialmente por estar
+ausentes; después aprobaron sus respectivos casos. Una revisión detectó que el
+formulario usa políticas editables `{key,value}` y no cadenas: dos regresiones
+reprodujeron el rechazo y la pérdida del borrador incierto antes de corregir la
+captura. Otra batería verificó la separación entre soporte no disponible y
+denegación del expediente, la conservación del intento incierto y el límite HTTP
+de 1 MiB. Las ejecuciones finales acreditan **31 casos Node nuevos**: acciones
+**12/12 en 0.303 s**, borrador **14/14 en 0.367 s** y errores **5/5 en 0.329 s**.
+Estos tiempos corresponden a ejecuciones focales separadas, no a una suite única.
+
+En navegador con HTTP controlado aprobaron **seis casos nuevos**, siempre con
+un worker: apertura, creación de escritorio/móvil y conciliación de respuesta
+perdida (**4/4 en 15.964 s**); caducidad y reentrada del mismo usuario sin otro
+submit ni lectura anticipada de fuentes (**1/1 en 10.205 s**); revisión completa
+del acuerdo, inicio, cantidad y condiciones (**1/1 en 9.653 s**). Esta última
+prueba falló primero por omitir esas declaraciones en la revisión. La corrección
+las muestra antes de la aprobación, sin inventar vencimiento para el cálculo
+bloqueado del fixture. Los tiempos incluyen el arranque del servidor local.
+
+Dos regresiones de los componentes compartidos aprobaron en **11.848 s**:
+alta ordinaria de plazo con fuente desconocida y resultado ordinario con varias
+sesiones. No se repitieron suites completas ni las 24 pruebas anteriores del
+cliente interno. Cuatro capturas de revisión y confirmación a 1440/390 píxeles
+fueron inspeccionadas: conservaron Qadra, legibilidad y ausencia de desbordamiento
+horizontal. Las capturas iniciales preceden a la ampliación textual de la
+revisión; esa ampliación tiene su prueba focal posterior.
+
+La compilación web final aprobó en **4.276 s**; permanece el aviso de bundle
+mayor de 500 kB, sin fallo de compilación. Formato, ASCII, diff y límite de
+archivos aprobaron en los 21 archivos de código afectados, máximo 378 líneas.
+Se usaron temporales privados sobre disco y una sola suite local a la vez.
+La revisión final focal de recuperación no dejó hallazgos abiertos.
+
+Esta evidencia utiliza respuestas HTTP controladas: no acredita una nueva
+aceptación nativa, restauración, Agenda/Alertas ni despliegue. Esas comprobaciones,
+el manuscrito y los gates completos siguen pendientes para la entrega conjunta.
+El main anterior quedó confirmado separadamente con **3841 Rust, 644 mock y
+55 reales**, CI **674 s**, Web **1213 s**, Documents **77 s** y gates **98/95/93**;
+ese baseline no incluye el editor nuevo descrito aquí.
+
+## Origen SQL del plazo derivado e inventario histórico: 4 de octubre de 2026
+
+La migración 0032 incorpora un origen inmutable para las revisiones iniciales
+exactas del resultado y del plazo, su evento emitido, autoridad original,
+compromisos HRDL1/HRDC1 y auditoría. El catálogo valida columnas, restricciones,
+índices, cuerpos de funciones, triggers y permisos, incluyendo roles transitivos
+`NOINHERIT`. El arranque reconstruye las capturas históricas completas, sin
+recalcular ni sustituir el perfil observado o el rol original por sus valores
+actuales. El contrato y los límites están en
+[ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md).
+
+TDD sobre PostgreSQL **16.15** real: la primera prueba falló por la tabla ausente.
+Una vez instalada, la ejecución detectó que el catálogo estricto de auditoría
+necesitaba admitir la nueva referencia conocida; se añadió esa referencia con
+sus dos triggers exactos, conservando el rechazo de referencias ajenas. Después
+se reprodujeron dos rechazos ausentes: auditoría compuesta sin origen y
+sustitución del rol original. Ambos quedaron corregidos por el inventario.
+
+Aprobaron **14 pruebas nuevas**: diez de catálogo/inventario en **39.48 s**
+(build **13.28 s**), una matriz de corrupción en **11.05 s** (build **1.41 s**)
+y tres de inserción e historia en **16.41 s** (build **1.71 s**). Incluyen
+bytes alterados con hash recalculado, evento y auditoría sustituidos, compromiso
+de auditoría dañado, permisos públicos o delegables, guards deshabilitados,
+restricciones debilitadas y cambios posteriores de perfil y rol. Siete
+sustituciones de componentes se rechazan antes de llegar a la unicidad; una
+copia idéntica sí llega al rechazo por duplicidad. El aislamiento serializable
+se rechaza antes de insertar. Dos regresiones afectadas de auditoría aprobaron
+en **4.10 s** (build **2.14 s**), manteniendo el rechazo de FK y triggers ajenos.
+
+Los casos positivos usan registros ordinarios persistidos y un origen sembrado
+explícitamente con el rol runtime. Eso acredita el esquema, los guards y la
+reconstrucción de datos reales; **no acredita la creación atómica del par ni la
+conciliación durable**. El servicio compuesto, rollback, concurrencia, HTTP y
+Qadra siguen pendientes. No se ejecutó una regresión completa ni una campaña
+API/browser, no se midió cobertura global ni se reconstruyó el PDF. Cada prueba
+usó una base desechable, un compilador, un hilo y temporales privados sobre disco;
+los clusters propios fueron detenidos y retirados.
+
+Clippy focal con `-D warnings` aprobó en **0.792 s** después de retirar un
+préstamo innecesario en el fixture; el fallo inicial se conserva separado.
+Formato, ASCII, límite de módulos e inventario de 257 ejecutables aprobaron.
+La extracción del validador de roles a un módulo propio conserva literalmente
+su cuerpo anterior y añade únicamente la comprobación del nuevo origen.
+
+## Captura definitiva del plazo derivado: 4 de octubre de 2026
+
+La aplicación valida que el resultado capturado y su evento exacto correspondan
+a la instrucción revisada. A partir de ese resultado construye el plazo con el
+camino tracked existente y conserva el cálculo aprobado. El compromiso HRDC1
+vincula la revisión, evento, recibos y hora definitiva; no modifica HRES ni los
+recibos históricos. Esta comprobación todavía no acredita una escritura SQL.
+
+TDD focal: la primera ejecución falló porque no existía el finalizador. Después
+aprobaron **8/8** casos. Una revisión detectó que el año local podía estar dentro
+del rango permitido y excederlo en UTC; se reprodujo el rechazo ausente con un
+instante del año 9999 y offset negativo, y se corrigió conservando el offset.
+El grupo final aprobó en **0.02 s**, con compilación de **3.55 s**. Las matrices
+rechazan once sustituciones de fuente con recibo válido, cinco corrupciones y
+once alteraciones del evento; incluyen identidad, operación, autor, ámbito,
+administración, proyecciones, offset, revisión y límites de secuencia. Dos
+capturas con hora diferente conservan la revisión pero producen compromisos
+definitivos distintos. Una evaluación bloqueada conserva su explicación y no
+adquiere fecha operativa. Son fixtures de aplicación, no inserciones reales.
+
+Clippy focal con `-D warnings` aprobó en **3.91 s**. Se usaron un compilador,
+un hilo y `TMPDIR` privado sobre disco; el checker de inventario aprobó los
+257 ejecutables. No se repitieron las suites previas de preparación ni la
+regresión completa, y no se iniciaron servicios ni una compilación del PDF.
+La transacción, origen durable, conciliación, concurrencia, rollback y aceptación
+HTTP/Qadra siguen pendientes dentro de la misma entrega.
+
+## Preparación prospectiva de resultado y plazo derivado: 4 de octubre de 2026
+
+La aplicación prepara un resultado ordinario nuevo y una consecuencia configurada
+antes de que exista la captura del resultado. El compromiso conserva las decisiones,
+fuentes, proyecciones, perfil, calendario y cálculo revisados, sin fabricar una
+fecha de registro, evento ni recibo final. Esta pieza aún no crea ambos registros
+atómicamente ni expone un recorrido HTTP o Qadra; el contrato completo permanece
+propuesto en [ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md).
+
+Se ejecutaron **18 pruebas nuevas de aplicación**, con un compilador e hilo y
+`TMPDIR` privado sobre disco. La primera ejecución TDD falló por la ausencia de
+la nueva entrada. Dos regresiones posteriores reprodujeron, antes de corregir,
+la aceptación indebida de un calendario seguido que no era su revisión vigente
+y de dos capturas de la misma revisión con distinto offset. Ambas aprobaron
+tras las guardas focales; el grupo de 16 casos pasó en 0.03 s, con build de 6.15 s.
+Las dos comprobaciones adicionales de permisos y equivalencia con la preparación
+tracked también aprobaron. Las matrices cubren cambios de decisiones, referencias,
+recibos y proyecciones; no se infiere un fin de audiencia ni una fecha cuando
+faltan declaraciones. La equivalencia usa fixtures registrados independientes:
+conserva el cálculo y distingue las capturas definitivas con distinto tiempo;
+no constituye una prueba de persistencia real.
+
+Las regresiones de entradas persistidas **13/13**, evaluación por perfil **13/13**
+y evidencia histórica **3/3** aprobaron. Clippy focal aprobó con advertencias como
+errores después de retirar un atributo de fixture duplicado. Formato, ASCII y
+límites de módulos se comprobaron por separado. No se ejecutaron servicios ni
+una campaña API/browser, no se midió cobertura global y no se actualizó el PDF.
+La persistencia, conciliación durable, aceptación completa y actualización del
+manuscrito pertenecen al cierre posterior de esta misma entrega funcional.
+
 ## Aceptación real de audiencias de recursos y bloqueo de Agenda: 4 de octubre de 2026
 
 El recorrido propio tiene aceptación local focal, aún sin integración, despliegue
@@ -7795,6 +8048,40 @@ ni sustituye la regresion Rust o de navegador. No se modifican targets Cargo,
 pruebas de producto, assertions, timeouts ni recursos de los runners.
 
 
+## Lectura historica de la consecuencia configurada de audiencia
+
+El 4 de octubre de 2026 se verifico la restauracion de evidencia en la capa de
+aplicacion. `restore_hearing_derived_deadline` recibe los campos historicos como
+entrada no confiable, comprueba su enlace y devuelve un registro inmutable con
+los bytes HRDL1 y HRDC1 originales. Comparte los codificadores con preparacion y
+captura, y utiliza el resultado de calculo almacenado sin volver a ejecutarlo.
+
+- TDD: los dos primeros casos fallaron por ausencia de la API en **3.14 s**.
+  Tras implementarla aprobaron en **0.01 s**, compilacion **7.11 s**.
+- Comprobacion focal final: **32/32** aprobadas en **0.06 s**, compilacion
+  **1.77 s**. Incluye **6 nuevas** de historia y **26 regresiones** del componente;
+  estas ultimas se repitieron porque comparten los codificadores y la validacion
+  de la fuente que se extrajeron para esta lectura. No se repitieron las suites
+  generales ni las regresiones ajenas al componente.
+- Las nuevas pruebas cubren recibos identicos, bloqueos sin vencimiento operativo,
+  21 alteraciones de material/autor/comando/registros/digests, 11 alteraciones de
+  evento y rechazo de una correccion como si fuera la creacion original.
+- Una fixture sintetica conserva un DRES1 estructuralmente valido cuyo cierre
+  difiere en un segundo del calculo actual. Los codecs ordinarios verifican sus
+  recibos y la restauracion conserva exactamente el resultado y los bytes
+  historicos, aunque el evaluador produciria otra fecha. No representa un caso
+  juridico aprobado ni un resultado observado en produccion.
+- Clippy focal con advertencias denegadas aprobo en **5.43 s**. Verificacion con
+  un compilador y un hilo, temporales privados sobre btrfs; formato, ASCII,
+  inventario de modulos y limite de longitud comprobados por separado.
+
+Esta evidencia no demuestra persistencia, autenticacion de una peticion, replay
+concurrente, rollback, reinicio ni restauracion de base de datos. El adaptador
+atomico, origen inmutable, auditoria y servicio HTTP/Qadra siguen pendientes en
+la misma entrega. No se modifican datos del producto desplegado ni el manuscrito
+aceptado por esta incorporacion interna. El ADR conserva el estado Proposed.
+
+
 ## Importación compartida de fixtures HTTP de recursos: 4 de octubre de 2026
 
 La comprobación Clippy remota rechazó una carga duplicada de
@@ -7814,6 +8101,56 @@ La cancelación automática detuvo CI, Web y Documents dentro de los **19 s**
 posteriores al fallo. La campaña no produjo artefactos ni JUnit o cobertura
 utilizables. Se comprobó la ausencia de procesos de pruebas, compilación y
 navegador de la campaña en los tres VPS antes de publicar la corrección.
+
+
+## Creacion atomica de resultado de audiencia y consecuencia configurada
+
+El 4 de octubre de 2026 se verificaron el servicio de aplicacion y el adaptador
+PostgreSQL de la instruccion compuesta. El resultado ordinario, su evento ya
+emitido por la base, el plazo configurado, el origen y las tres auditorias de
+creacion se confirman en una sola transaccion. La admision del soporte ocurre
+antes de adquirir el lock de confirmacion; dentro de este se revalidan autoridad,
+entradas exactas y registros cifrados admitidos. El reloj real del resultado se
+conserva en el plazo y la auditoria compuesta.
+
+- TDD: las primeras pruebas de servicio y adaptador fallaron porque las APIs no
+  existian. La capa de aplicacion aprobo **13/13** casos nuevos en **0.03 s**, con
+  **8.51 s** de compilacion: preparacion, reautenticacion, rechazo de soporte,
+  permisos, digest de revision, respuesta de commit y recuperacion historica.
+- PostgreSQL nativo **16.15**, desechable, con autenticacion SCRAM, loopback y
+  temporales privados sobre disco: **8 casos nuevos aprobados**. Seis aprobaron
+  en la primera ejecucion funcional; el caso de revocacion requirio corregir su
+  fixture para incrementar revision/generacion y conservar otro Owner activo.
+  Ese caso aprobo despues aisladamente en **4.25 s**. No se desactivaron los
+  guards ni se repitieron los seis casos ya aprobados. El octavo caso comprobo
+  recuperacion tras retirar la revision vigente del perfil, en **5.60 s**.
+- Los casos PostgreSQL cubren una sola pareja y evento tras reiniciar el store,
+  solicitudes simultaneas, rollback de todos los registros al fallar auditoria
+  u origen, rechazo de componentes ordinarios sin origen compuesto, instrucciones
+  distintas con una operacion reutilizada y revocacion real de autoridad. Otro
+  plazo manual sobre la misma fuente sigue permitido.
+- Por la extraccion de admision y escritura ordinarias se ejecutaron **25/25**
+  regresiones de aplicacion en **0.01 s** y **2/2** de PostgreSQL en **5.73 s**.
+  Incluyen historia, correccion y retiro del resultado ordinario. No se repitio
+  la regresion general del repositorio.
+- Clippy focal aprobo con advertencias denegadas en **12.20 s** para ambos
+  targets; la prueba adicional de recuperacion historica se comprobo despues
+  con Clippy en **0.56 s**. Formato, ASCII, longitud e inventario de los
+  **257 ejecutables** aprobaron.
+- Dos revisiones focales independientes no encontraron problemas accionables en
+  los enlaces de transaccion, autorizacion, captura temporal y recuperacion.
+  Fueron revisiones de lectura, separadas de las ejecuciones anteriores.
+
+Se preservan los bytes originales y la autoria capturada en la recuperacion;
+no se recalcula una captura historica con el perfil actual. Todas las pruebas
+locales usaron un compilador y un hilo del runner; la prueba de concurrencia
+lanzo explicitamente dos solicitudes coordinadas para comprobar el contrato.
+Los clusters PostgreSQL propios se detuvieron y retiraron al concluir.
+
+HTTP, Qadra y la aceptacion completa de restauracion siguen pendientes en esta
+misma entrega. Esta incorporacion interna no esta integrada en main ni desplegada,
+no acredita una nueva cobertura global y no sustituye el PDF aceptado. El ADR
+conserva el estado Proposed hasta cerrar la entrega funcional completa.
 
 
 ## Lectura de audiencias propias durante la recuperacion de recursos
@@ -7839,3 +8176,94 @@ parciales no acreditan una regresion completa. Se verifico la ausencia de
 procesos de la campana en los tres VPS antes de publicar la correccion.
 No cambian producto, pruebas contabilizadas, timeouts, permisos, recursos ni
 fuentes del manuscrito; la cabeza corregida requiere nuevos gates remotos.
+
+
+## HTTP de resultado de audiencia con plazo configurado
+
+El 4 de octubre de 2026 se incorporaron las rutas prepare/submit del
+[contrato compuesto](hearing-derived-deadlines.md) y su composición en `serve`.
+Comparten identidad, admisión documental y presupuesto HTTP con los demás
+flujos. La preparación distingue una revisión prospectiva de la recuperación
+del registro original; la confirmación conserva la instrucción y la huella
+revisadas. No modifica el registro ordinario de resultados ni permite crear
+un plazo con otra fuente bajo este contrato.
+
+- TDD: las pruebas nuevas fallaron primero porque no existía el router, en
+  **26.827 s**. La primera ejecución funcional aprobó **14 casos** y rechazó
+  **dos fixtures**, con **29.52 s** de compilación y **0.07 s** de ejecución.
+  La cantidad cero debía esperar el código 400 del parser existente; el caso
+  de fuente desconocida necesitaba una política indeterminada para alcanzar
+  el rechazo de ámbito compuesto. Se corrigieron esas entradas de prueba sin
+  modificar el producto ni los códigos ordinarios. Ambos casos aprobaron
+  individualmente en **0.108 s** y **1.091 s**, incluido Cargo. Así, los **16
+  casos nuevos** aprobaron entre ejecuciones focales; no se presenta aquella
+  primera ejecución como una corrida completa verde.
+- Los casos cubren bearer, errores sin filtración de detalles internos, JSON
+  estricto y acotado, identidad y fuente R1, preparación bloqueada sin captura
+  ficticia, confirmación y recuperación, respuesta ajena al comando, offsets
+  declarados y secuencias de evento superiores al entero seguro de JavaScript.
+  Las huellas simuladas del fixture no constituyen vectores criptográficos.
+- La prueba adicional de composición comprobó ambas rutas dentro de la API
+  protegida, rechazo sin sesión y ausencia de caché: **1/1**, en **4.279 s**
+  incluido Cargo y **0.01 s** de ejecución. Los puertos son simulados; esta
+  prueba no se presenta como persistencia HTTP real.
+- Clippy focal de `web` y `despacho-cli`, con todos sus targets y advertencias
+  denegadas, detectó un tipo complejo en el registro de llamadas del fixture.
+  Se nombró ese tipo sin cambiar comportamiento; la comprobación final aprobó
+  en **18.771 s**. Formato, ASCII de los 32 archivos Rust afectados, límite de
+  400 líneas, diff e inventario de **258 ejecutables** aprobaron.
+- La compilación del ejecutable `despacho-cli` aprobó en **62.582 s**,
+  con el nuevo adaptador compuesto en `serve`. Cargo conservó el aviso previo
+  de compatibilidad futura de `redis 0.25.4`; no fue un fallo de compilación.
+- La revisión independiente del contrato y su composición no encontró fallos
+  accionables de autorización o aislamiento; se precisaron las descripciones
+  de query vacía y huella hexadecimal en minúsculas.
+
+Todas las ejecuciones usaron un compilador y un hilo, con temporales privados
+sobre disco. Qadra, aceptación real con restauración, Agenda/Alertas y gates
+completos permanecen pendientes de esta misma entrega. No hay integración en
+main, despliegue ni nueva medición global de cobertura de este incremento.
+El manuscrito y PDF aceptados se conservan hasta el cierre funcional; el ADR
+sigue Proposed.
+
+
+## Cliente de resultado de audiencia con plazo configurado
+
+El 4 de octubre de 2026 se incorporó el cliente interno de Qadra para preparar,
+confirmar y recuperar la creación conjunta descrita en
+[el contrato compuesto](hearing-derived-deadlines.md). El acceso desde `caseApi`
+conserva el contexto de expediente y audiencia, y comparte la notificación de
+cierre del expediente. No añade todavía una acción visible ni un editor.
+
+- TDD: las pruebas iniciales de transporte, registro, composición y copia del
+  intento fallaron antes de existir el módulo o su acceso desde `caseApi`.
+  La ejecución posterior aprobó **17/17 casos en 0.926 s**, incluido Node,
+  con concurrencia uno y sin omitidos. Comprueban ámbito y fuente R1,
+  autorización actual, recuperación del autor histórico, cuerpos exactos,
+  rechazo de capturas inventadas o contradictorias, descarte de respuestas
+  tardías y copia del intento antes de esperar la red. Se conserva la precisión
+  de nanosegundos y el desfase declarado, además del evento como cadena decimal.
+- La revisión independiente detectó dos defectos del cliente nuevo: confundía
+  el estado histórico de participante `archived` con `retired`, y aplicaba el
+  presupuesto de 1 MiB a toda la revisión recibida, aunque la confirmación sólo
+  envía comando y huella. **Siete regresiones nuevas fallaron primero en
+  0.552 s**. Tras corregir ambos puntos aprobaron **7/7 en 0.670 s**, con
+  concurrencia uno. Cubren asistentes manuales y tipados en preparación,
+  recuperación y confirmación, y una revisión legítima mayor de 1 MiB formada
+  por ejemplos de perfil con calendarios válidos; el cuerpo enviado permanece
+  dentro del límite. No se aumentó el presupuesto HTTP.
+- Los **24 casos nuevos** quedan acreditados entre esas ejecuciones focales;
+  no se presenta la ejecución inicial de 17 como cobertura de las siete
+  regresiones añadidas después. No se repitieron las suites completas.
+- `npm run build` aprobó en **4.288 s** antes de las dos correcciones focales.
+  Se conserva el aviso previo de Vite por un fragmento mayor de 500 kB;
+  no produjo un fallo. Las dos correcciones posteriores están cubiertas por
+  las siete regresiones. Formato, ASCII, límite de 400 líneas y diff aprobaron.
+- Los fixtures simulan respuestas del servidor y contienen huellas sintéticas;
+  prueban el contrato y su coherencia, no criptografía ni persistencia nativa.
+  La revisión restante del contrato no encontró otro fallo accionable.
+
+El editor de Qadra, la conservación del borrador entre sesiones, la aceptación
+real con restauración y Agenda/Alertas, el manuscrito y los gates completos
+siguen pendientes de esta misma entrega. Este incremento no está integrado en
+main ni desplegado y no actualiza la cobertura global ni el PDF aceptado.

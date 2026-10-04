@@ -1,4 +1,5 @@
 //! Declared hearing sessions with exact historical sources and audited receipts.
+mod admission;
 mod canonical;
 mod command;
 mod error;
@@ -23,7 +24,11 @@ pub use validation_receipt::{
     hearing_result_snapshot_receipt_matches,
 };
 
+mod draft_validation;
 mod service;
 mod service_workflow;
 mod validation;
+pub(crate) use admission::{draft_from_prepared, HearingResultAdmission};
+pub(crate) use draft_validation::validate_record_draft;
+pub(crate) use service::support_error;
 pub use service::HearingResultService;

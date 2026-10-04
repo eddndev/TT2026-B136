@@ -20,7 +20,8 @@
     disabled = false,
     pending = false,
     recoverable = false,
-    savedInputs = null;
+    savedInputs = null,
+    prospective = null;
   const scoped = api.deadlineProfiles(caseId);
   let choosing = '',
     pickerBusy = false,
@@ -224,6 +225,7 @@
       oncancel={() => (choosing = '')}
     />{/if}
   <DeadlineFieldsSource
+    {prospective}
     bind:this={sourceFields}
     {recoverable}
     savedInputs={savedInputs?.source ?? null}

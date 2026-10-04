@@ -1,7 +1,7 @@
 //! Immutable deadline evaluations and attention in one audited transaction.
 pub(crate) mod administration;
 mod attention;
-mod authorization;
+pub(crate) mod authorization;
 mod commit;
 mod currentness;
 pub(crate) use currentness::current_in_transaction;

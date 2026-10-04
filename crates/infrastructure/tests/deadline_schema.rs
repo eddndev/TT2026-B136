@@ -1,4 +1,5 @@
 use crate::{case_administration_support, deadline_schema_support};
+use application::ApplicationError;
 use case_administration_support::Fixture;
 use deadline_schema_support::*;
 use serde_json::json;
@@ -168,12 +169,12 @@ fn root_requires_its_first_revision_and_history_is_statement_immutable() {
 
 #[test]
 fn startup_rejects_altered_columns_generated_status_constraints_functions_and_triggers() {
+    assert_missing_operation_unique_is_rejected();
     for alteration in [
         "ALTER TABLE case_deadline_revisions ALTER COLUMN capture_digest DROP NOT NULL",
         "ALTER TABLE case_deadline_revisions ADD COLUMN unexpected text",
         "ALTER TABLE case_deadlines ENABLE ROW LEVEL SECURITY",
         "ALTER TABLE case_deadlines ALTER CONSTRAINT deadline_first_revision NOT DEFERRABLE",
-        "ALTER TABLE case_deadline_revisions DROP CONSTRAINT deadline_operation_unique",
         "ALTER TABLE case_deadline_revisions DROP CONSTRAINT deadline_capture_hash; ALTER TABLE case_deadline_revisions ADD CONSTRAINT deadline_capture_hash CHECK(true)",
         "ALTER TABLE case_deadline_revisions ALTER COLUMN status DROP EXPRESSION",
         "ALTER FUNCTION deadline_submission(bytea) SECURITY DEFINER",
@@ -230,4 +231,29 @@ fn inventory_rejects_an_orphan_nil_root_without_fabricating_a_revision() {
         .batch_execute("SET session_replication_role=origin")
         .unwrap();
     assert!(open(&db).is_err());
+}
+
+fn assert_missing_operation_unique_is_rejected() {
+    let Some(mut db) = Fixture::new() else { return };
+    open(&db).unwrap();
+    // Remove the dependent origin reference only to expose the missing parent key.
+    db.admin.batch_execute(
+        "ALTER TABLE case_hearing_derived_deadline_origins DROP CONSTRAINT hearing_derived_deadline_deadline_operation_fk;
+         ALTER TABLE case_deadline_revisions DROP CONSTRAINT deadline_operation_unique;",
+    ).unwrap();
+    assert!(
+        matches!(open(&db), Err(ApplicationError::InvalidConfiguration(message)) if message.starts_with("deadline constraints:"))
+    );
+    db.admin.batch_execute(
+        "ALTER TABLE case_deadline_revisions ADD CONSTRAINT deadline_operation_unique UNIQUE(operation_id);",
+    ).unwrap();
+    assert!(
+        matches!(open(&db), Err(ApplicationError::InvalidConfiguration(message))
+        if message == "hearing-derived deadline origin schema is incomplete or altered")
+    );
+    db.admin.batch_execute(
+        "ALTER TABLE case_hearing_derived_deadline_origins ADD CONSTRAINT hearing_derived_deadline_deadline_operation_fk
+         FOREIGN KEY(deadline_operation_id) REFERENCES case_deadline_revisions(operation_id);",
+    ).unwrap();
+    open(&db).unwrap();
 }

@@ -1,4 +1,7 @@
 //! Authorized HTTP access to declared hearing sessions and exact historical evidence.
+pub(crate) use projection::{command as command_projection, detail as exact_projection};
+pub(crate) use request::Command as CommandInput;
+pub(crate) use response::draft as draft_projection;
 mod mutations;
 mod object;
 mod projection;

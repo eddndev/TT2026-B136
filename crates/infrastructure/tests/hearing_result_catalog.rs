@@ -1,4 +1,5 @@
 use crate::case_administration_support;
+use application::ApplicationError;
 use case_administration_support::Fixture;
 use infrastructure::{PostgresCaseRepository, RingSha256Hasher};
 use std::sync::Arc;
@@ -90,8 +91,8 @@ fn startup_requires_runtime_execution_of_result_canonical_helpers() {
 
 #[test]
 fn startup_requires_result_foreign_keys_unique_operations_and_active_guards() {
+    assert_missing_operation_unique_is_rejected();
     for alteration in [
-        "ALTER TABLE case_hearing_result_revisions DROP CONSTRAINT hearing_result_operation_unique",
         "ALTER TABLE case_hearing_results DROP CONSTRAINT hearing_result_first_revision",
         "ALTER TABLE case_hearing_results DROP CONSTRAINT hearing_result_anchor",
         "ALTER TABLE case_hearing_results DROP CONSTRAINT hearing_result_continuation",
@@ -129,4 +130,29 @@ fn startup_rejects_result_guard_execution_and_protected_object_ownership() {
             "{alteration}"
         );
     }
+}
+
+fn assert_missing_operation_unique_is_rejected() {
+    let Some(mut db) = Fixture::new() else { return };
+    PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)).unwrap();
+    // Remove the dependent origin reference only to expose the missing parent key.
+    db.admin.batch_execute(
+        "ALTER TABLE case_hearing_derived_deadline_origins DROP CONSTRAINT hearing_derived_deadline_result_operation_fk;
+         ALTER TABLE case_hearing_result_revisions DROP CONSTRAINT hearing_result_operation_unique;",
+    ).unwrap();
+    assert!(
+        matches!(PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)), Err(ApplicationError::InvalidConfiguration(message)) if message == "hearing result schema is incomplete; run database migrate with an administrative role")
+    );
+    db.admin.batch_execute(
+        "ALTER TABLE case_hearing_result_revisions ADD CONSTRAINT hearing_result_operation_unique UNIQUE(operation_id);",
+    ).unwrap();
+    assert!(
+        matches!(PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)), Err(ApplicationError::InvalidConfiguration(message))
+        if message == "hearing-derived deadline origin schema is incomplete or altered")
+    );
+    db.admin.batch_execute(
+        "ALTER TABLE case_hearing_derived_deadline_origins ADD CONSTRAINT hearing_derived_deadline_result_operation_fk
+         FOREIGN KEY(operation_id) REFERENCES case_hearing_result_revisions(operation_id);",
+    ).unwrap();
+    PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)).unwrap();
 }

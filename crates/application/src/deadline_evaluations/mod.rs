@@ -3,6 +3,7 @@ mod encoding;
 mod evaluate;
 mod input_canonical;
 mod model;
+pub(crate) use evaluate::evaluate_extracted_deadline;
 pub use evaluate::evaluate_profiled_deadline;
 pub use model::*;
 

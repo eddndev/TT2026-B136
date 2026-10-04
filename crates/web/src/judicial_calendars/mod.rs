@@ -1,4 +1,5 @@
 //! Global staff calendar references, immutable revisions and civil classification.
+pub(crate) use response::detail as exact_projection;
 mod mutations;
 pub(crate) mod object;
 pub(crate) mod projection;

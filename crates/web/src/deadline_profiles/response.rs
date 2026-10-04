@@ -73,7 +73,7 @@ pub(super) fn submitted(
     }
     Ok(())
 }
-pub(super) fn detail(
+pub(crate) fn detail(
     v: DeadlineProfileDetail,
     c: DeadlineProfileCollection,
     id: DeadlineProfileId,

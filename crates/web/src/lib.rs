@@ -27,6 +27,7 @@ mod document_content;
 mod document_integrity;
 mod dto;
 mod error;
+mod hearing_derived_deadlines;
 mod hearing_results;
 mod hearings;
 mod judicial_calendars;
@@ -266,6 +267,17 @@ pub fn judicial_calendar_router(
     )
 }
 
+/// Builds compound hearing-result creation over one authorized application workflow.
+pub fn hearing_derived_deadline_router(
+    workflow: Arc<dyn application::hearing_derived_deadlines::HearingDerivedDeadlineWorkflow>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        hearing_derived_deadlines::router(workflow, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Identity evidence and case workflows injected into the shared HTTP runtime.
 pub struct CaseWorkflows {
     pub owner_certificates: Arc<application::identity::owner_certificates::OwnerCertificateService>,
@@ -276,6 +288,8 @@ pub struct CaseWorkflows {
     pub typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
     pub hearings: Arc<dyn application::hearings::HearingWorkflow>,
     pub hearing_results: Arc<dyn application::hearing_results::HearingResultWorkflow>,
+    pub hearing_derived_deadlines:
+        Arc<dyn application::hearing_derived_deadlines::HearingDerivedDeadlineWorkflow>,
     pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
     pub procedural_resources:
         Arc<dyn application::procedural_resources::ProceduralResourceWorkflow>,

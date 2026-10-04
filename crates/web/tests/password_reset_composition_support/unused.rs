@@ -116,3 +116,29 @@ impl HearingWorkflow for Unused {
         unreachable!("composition test does not submit hearings")
     }
 }
+
+impl application::hearing_derived_deadlines::HearingDerivedDeadlineWorkflow for Unused {
+    fn prepare(
+        &self,
+        _: &str,
+        _: CaseId,
+        _: application::hearing_derived_deadlines::HearingDerivedDeadlineCommand,
+    ) -> Result<
+        application::hearing_derived_deadlines::HearingDerivedDeadlineReview,
+        ApplicationError,
+    > {
+        unreachable!("composition test does not prepare hearing consequences")
+    }
+    fn submit(
+        &self,
+        _: &str,
+        _: CaseId,
+        _: application::hearing_derived_deadlines::HearingDerivedDeadlineCommand,
+        _: Sha256Digest,
+    ) -> Result<
+        application::hearing_derived_deadlines::HearingDerivedDeadlineRecord,
+        ApplicationError,
+    > {
+        unreachable!("composition test does not submit hearing consequences")
+    }
+}

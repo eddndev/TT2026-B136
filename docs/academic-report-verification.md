@@ -1,5 +1,24 @@
 # Verificación de la actualización académica
 
+
+## Resultado de audiencia y plazo conjuntos: 4 de octubre de 2026
+
+Se incorporaron apartados de implementación, pruebas y trazabilidad para la
+revisión prospectiva, captura conjunta y recuperación exacta. Distinguen los
+ensayos focales de las cinco pruebas de navegador nativo y de la campaña API
+completa de reinicio/restauración, sin afirmar cierre jurídico ni despliegue.
+
+`make -C latex` aprobó en **39.739 s**. El PDF tiene **392 páginas**,
+**6010025 bytes** y SHA-256
+`9e582c971f28ddb07c958a935294fdf2d62997bd6cadbc71948ad3451ebce246`. Se inspeccionaron las páginas físicas **4, 6, 190–192,
+252–255 y 370–372**, con índices, tablas, continuaciones y apartados vecinos:
+texto legible, sin nuevos solapes ni recortes. Resumen aprobado, introducción,
+marco teórico, conclusiones y PDF aceptado previo conservaron sus hashes.
+Persisten dos avisos históricos de caja horizontal y la sustitución de
+versalitas Times; no hay glifos faltantes ni referencias sin resolver.
+El PDF generado se conserva fuera de Git. CI e integración siguen pendientes.
+
+
 ## Cierre API compuesto de audiencias de recursos: 4 de octubre de 2026
 
 El capítulo de pruebas incorpora la primera demostración HTTP compuesta completa

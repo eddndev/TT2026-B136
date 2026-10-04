@@ -32,6 +32,13 @@ together. Keep deadline/agenda families on the first partition and
 hearing-related families on the second. Validate the full union and concurrent runtime after moving
 a family; a focused pass alone does not establish full-campaign stability.
 
+The explicit hearing-result and derived-deadline workflow owns a separate
+`hearingDerivedDeadlines` fixture in partition three. Its private case, profile,
+hearing and account must remain coherent; neither the ordinary hearing fixture
+nor the unrelated deadline fixture can substitute for that context. Match its
+specific filename before the generic hearing family. Existing families retain
+their assignments; this addition makes no runtime improvement claim.
+
 Place document classification on that same third partition. Its complete
 workflow performs three logins, concurrent metadata edits, two seals and a
 final persisted-history reload. It exhausted the unchanged 60-second total

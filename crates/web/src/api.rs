@@ -11,8 +11,9 @@ use axum::{routing::get, Router};
 
 use crate::{
     agenda, alerts, audit_events, case_administration, case_reports, case_stages, cases, dashboard,
-    deadline_profiles, deadlines, document_content, document_integrity, health, hearing_results,
-    hearings, judicial_calendars, members, owner_certificates, owner_login, participants,
+    deadline_profiles, deadlines, document_content, document_integrity, health,
+    hearing_derived_deadlines, hearing_results, hearings, judicial_calendars, members,
+    owner_certificates, owner_login, participants,
     password_reset::{self, PasswordResetHttp},
     procedural_facts, procedural_resources, resource_activities, resource_deadlines,
     resource_hearings, routes,
@@ -135,6 +136,10 @@ pub fn api_router_with_authentication_budget(
         .merge(hearings::router(workflows.hearings, runtime.clone()))
         .merge(hearing_results::router(
             workflows.hearing_results,
+            runtime.clone(),
+        ))
+        .merge(hearing_derived_deadlines::router(
+            workflows.hearing_derived_deadlines,
             runtime.clone(),
         ))
         .merge(procedural_facts::router(

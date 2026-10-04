@@ -3,7 +3,7 @@ use crate::error::ApiError;
 use application::hearing_results::*;
 use domain::{cases::CaseId, hearings::HearingId};
 use serde_json::{json, Value};
-pub(super) fn draft(
+pub(crate) fn draft(
     row: HearingResultDraft,
     case: CaseId,
     expected: &HearingResultCommand,

@@ -12,6 +12,7 @@ mod human_command;
 pub use human_command::DeadlineHumanCommand;
 pub(crate) mod evidence;
 mod evidence_hearing;
+pub(crate) use evidence_hearing::projections as hearing_result_projections;
 mod model;
 mod port;
 mod preparation;
@@ -79,5 +80,6 @@ pub(crate) use successor::validate_administration_capture;
 mod preparation_tracked;
 mod profile_selection;
 pub use preparation_tracked::prepare_tracked_deadline_change;
+pub(crate) use profile_selection::validate as validate_profile_selection;
 
 pub(crate) use service::draft as prepared_draft;

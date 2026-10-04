@@ -47,7 +47,7 @@ pub(super) fn capture(v: &DeadlineTrackingCapture, case: CaseId) -> Result<Value
     }))
 }
 
-pub(super) fn policies(v: &TrackingPolicies) -> Value {
+pub(crate) fn policies(v: &TrackingPolicies) -> Value {
     json!({
         "profile": policy(v.profile),
         "source": policy(v.source),

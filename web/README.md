@@ -926,3 +926,35 @@ nuevo acceso; el enlace no sustituye MFA ni crea una sesion.
 La configuracion predeterminada del servidor conserva la recuperacion deshabilitada.
 La [guia del transporte publico](../docs/password-reset-public.md) separa las
 pruebas focales locales de la aceptacion integrada y de la activacion operativa.
+
+## Resultado de audiencia y plazo configurado
+
+En los resultados de una audiencia ordinaria, **Registrar resultado y plazo**
+prepara ambos registros R1 con una sola instrucción explícita. La opción requiere
+permiso para gestionar resultados y plazos. Conserva el alta ordinaria de un
+resultado sin consecuencia y no interpreta efectos jurídicos a partir del relato.
+
+El plazo conserva el resultado propuesto como fuente; puede seleccionar uno de
+sus acuerdos. Perfil, calendario, responsable, políticas, inicio y aplicabilidad
+son decisiones expresas. La revisión muestra los datos completos y los bloqueos
+del cálculo antes de confirmar. Guardar un plazo bloqueado no inventa una fecha
+para Agenda o Alertas.
+
+Una respuesta perdida conserva las operaciones y revisión originales. Consultar
+el envío exacto puede confirmar su origen mediante Replay; un nuevo intento sólo
+se habilita expresamente para el mismo comando. La reentrada del mismo usuario
+recupera el borrador después de reautorizar el expediente y no recupera una
+aprobación anterior ni consulta fuentes actuales antes de conciliar el envío.
+Véase [el contrato](../docs/hearing-derived-deadlines.md).
+
+La aceptación real tiene una familia independiente `hearingDerivedDeadlines`
+en la tercera partición. El comando focal usa un trabajador:
+
+```bash
+env -u TT_WEB_LIVE_SHARD TT_WEB_FIXTURE_WORKERS=1 \
+  bash scripts/web-demo.sh hearing-derived-deadline-real.spec.mjs --workers=1
+```
+
+Sin partición, el comando prepara el inventario completo de familias, aunque
+seleccione un solo archivo de pruebas. Los resultados ejecutados y los límites
+de esta aceptación se registran en [el informe](../docs/verification-report.md).

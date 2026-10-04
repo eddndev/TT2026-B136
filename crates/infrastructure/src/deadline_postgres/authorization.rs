@@ -54,7 +54,7 @@ fn require_case(
     row.ok_or(ApplicationError::CaseNotFound)?;
     Ok(())
 }
-pub(super) fn responsible(
+pub(crate) fn responsible(
     tx: &mut Transaction<'_>,
     id: UserId,
     case: CaseId,

@@ -11,7 +11,8 @@
     disabled = false,
     pending = false,
     recoverable = false,
-    savedInputs = null;
+    savedInputs = null,
+    prospective = null;
   let choosing = false,
     sourceName = '';
   let timeFields;
@@ -40,52 +41,78 @@
 
 <fieldset class="case-offenses" disabled={disabled || pending}>
   <legend>Fuente exacta del inicio</legend>
-  <label
-    >Tipo de fuente<select
-      value={family}
-      onchange={(event) => selectFamily(event.currentTarget.value)}
+  {#if prospective}
+    <p>Resultado prospectivo / Revision 1</p>
+    <p>El resultado se registra junto con este plazo; no existe una captura previa.</p>
+    <label
+      >Acuerdo del resultado propuesto<select
+        value={value.source.value.agreement_id ?? ''}
+        onchange={(event) => {
+          value = {
+            ...value,
+            source: {
+              kind: 'known',
+              value: {
+                ...value.source.value,
+                agreement_id: event.currentTarget.value || null,
+              },
+            },
+            qualification: null,
+          };
+          savedInputs = null;
+        }}
+        ><option value="">Resultado completo</option>
+        {#each prospective.agreements as agreement, index (agreement.id)}
+          <option value={agreement.id}>Acuerdo {index + 1}: {agreement.text}</option>
+        {/each}
+      </select></label
     >
-      <option value="">Selecciona la fuente</option><option value="unknown"
-        >Fuente no identificada</option
+  {:else}<label
+      >Tipo de fuente<select
+        value={family}
+        onchange={(event) => selectFamily(event.currentTarget.value)}
       >
-      <option value="resolution">Resoluci&#243;n</option><option value="notification"
-        >Notificaci&#243;n</option
-      >
-      <option value="hearing_result">Resultado de audiencia</option>
-    </select></label
-  >
-  {#if family === 'unknown'}<label
-      >Motivo de fuente no identificada<textarea
-        rows="2"
-        maxlength="1000"
-        bind:value={value.source.reason}></textarea></label
-    >
-  {:else if family}
-    {#if value.source.value.revision}<p>
-        {sourceName || 'Fuente seleccionada'} / Revisi&#243;n {value.source.value.revision}
-      </p>
-      {#if family === 'notification'}<p>
-          Resoluci&#243;n vinculada: revisi&#243;n {value.source.value.resolution.revision}
-        </p>{/if}
-      {#if family === 'hearing_result'}<p>
-          {value.source.value.agreement_id === null
-            ? 'Resultado completo, sin acuerdo especifico'
-            : 'Acuerdo exacto seleccionado'}
-        </p>{/if}
-      <details>
-        <summary>Identidad de la fuente</summary><code
-          >{value.source.value.id || value.source.value.result_id}</code
+        <option value="">Selecciona la fuente</option><option value="unknown"
+          >Fuente no identificada</option
         >
-        {#if value.source.value.agreement_id !== null && family === 'hearing_result'}<p>
-            Acuerdo: <code>{value.source.value.agreement_id}</code>
-          </p>{/if}
-      </details>
-    {/if}
-    <button type="button" class="secondary" onclick={() => (choosing = true)}
-      >Elegir fuente exacta</button
+        <option value="resolution">Resoluci&#243;n</option><option value="notification"
+          >Notificaci&#243;n</option
+        >
+        <option value="hearing_result">Resultado de audiencia</option>
+      </select></label
     >
-  {/if}
-  <DeadlinePolicyChoice
+    {#if family === 'unknown'}<label
+        >Motivo de fuente no identificada<textarea
+          rows="2"
+          maxlength="1000"
+          bind:value={value.source.reason}></textarea></label
+      >
+    {:else if family}
+      {#if value.source.value.revision}<p>
+          {sourceName || 'Fuente seleccionada'} / Revisi&#243;n {value.source.value.revision}
+        </p>
+        {#if family === 'notification'}<p>
+            Resoluci&#243;n vinculada: revisi&#243;n {value.source.value.resolution.revision}
+          </p>{/if}
+        {#if family === 'hearing_result'}<p>
+            {value.source.value.agreement_id === null
+              ? 'Resultado completo, sin acuerdo especifico'
+              : 'Acuerdo exacto seleccionado'}
+          </p>{/if}
+        <details>
+          <summary>Identidad de la fuente</summary><code
+            >{value.source.value.id || value.source.value.result_id}</code
+          >
+          {#if value.source.value.agreement_id !== null && family === 'hearing_result'}<p>
+              Acuerdo: <code>{value.source.value.agreement_id}</code>
+            </p>{/if}
+        </details>
+      {/if}
+      <button type="button" class="secondary" onclick={() => (choosing = true)}
+        >Elegir fuente exacta</button
+      >
+    {/if}
+  {/if}<DeadlinePolicyChoice
     dependency="source"
     bind:value={policy}
     present={policyPresent}
