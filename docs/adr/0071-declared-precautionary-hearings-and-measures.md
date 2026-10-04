@@ -35,8 +35,12 @@ Standalone initial impositions and explicit no-change decisions now build real
 review, decision, measure and group captures (`MDPR1`, `MDCR1`, `MMCR1`, `MDGR1`),
 from the actor-bound `MDTXN1` instruction. Full reconstruction verifies every
 member, immutable source and clock while retaining declared time precision.
-This local boundary rejects hearing anchors and predecessor effects until their
-complete histories can be checked; it proves neither durable creation nor access.
+The history-aware extension now resolves complete owning-group ancestry and
+reconstructs confirmation, modification, revocation, cessation and joint
+substitution. It rejects missing, cyclic or contradictory evidence and bounds
+validation to 256 groups and 8192 member rows, including a candidate. Empty-history
+wrappers still reject predecessor effects. Hearing anchors remain pending;
+these checks prove neither durable creation, current heads nor current access.
 Precautionary workflow services, persistence, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence

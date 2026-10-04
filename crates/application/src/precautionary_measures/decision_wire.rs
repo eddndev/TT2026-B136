@@ -110,7 +110,7 @@ pub(super) fn result(
     Ok(())
 }
 
-fn reference(bytes: &mut Vec<u8>, value: PrecautionaryMeasureRef) {
+pub(super) fn reference(bytes: &mut Vec<u8>, value: PrecautionaryMeasureRef) {
     bytes.extend_from_slice(value.id().as_uuid().as_bytes());
     bytes.extend_from_slice(&value.revision().get().to_be_bytes());
     bytes.extend_from_slice(value.digest().as_bytes());

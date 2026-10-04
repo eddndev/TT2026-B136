@@ -1,5 +1,42 @@
 # Informe de verificación local
 
+## Efectos posteriores e historia de medidas: 4 de octubre de 2026
+
+La aplicación comprueba el grupo completo que posee cada revisión y todas sus
+dependencias, incluidas las de miembros no seleccionados. Rechaza ciclos,
+metadatos de origen contradictorios, grupos faltantes o sobrantes y duplicación
+de operaciones, decisiones o revisiones. Confirmación, modificación, revocación,
+cese y sustitución reconstruyen sus miembros y relaciones; conservan origen y
+fuentes exactas. Revocación, cese y salida por sustitución son declaraciones
+terminales para este contrato, sin fabricar fechas de término.
+
+Los targets nuevos fallaron primero por API ausente. Los tres vectores de
+extensión también fallaron por ausencia del encuadre de predecesores. Después
+aprobaron **tres vectores independientes** de 1846, 569 y 5547 bytes en **0.090 s**.
+La revisión encontró dos defectos concretos: se podía generar una revisión que
+ya pertenecía a otro grupo de la evidencia y aumentar revisiones de contexto
+con fechas anteriores. **Cuatro regresiones fallaron antes del arreglo**; ahora
+se comprueba propiedad de cada revisión resultante y se reutiliza la regla de
+avance de contexto de convocatorias, con sus tiempos y datos completos.
+
+Tras corregirlos aprobaron **30/30 casos de historia** en **25.418 s** de comando
+(compilación **4.09 s**, pruebas **21.30 s**). Incluyen la frontera real de 256
+grupos y el rechazo del 257, fuentes contradictorias no consecutivas y revisión
+completa de miembros hermanos. Los **28/28 casos de efectos** aprobaron junto
+con los **46 casos anteriores afectados** en **3.907 s**, compilación **3.62 s**.
+Los nueve vectores iniciales permanecen idénticos. Son **61 pruebas nuevas**
+aprobadas entre esas ejecuciones focales; no una campaña completa nueva.
+Clippy de los cinco targets con `-D warnings` aprobó en **4.812 s**.
+
+Se conservan también los intentos fallidos de compilación por import y fixtures
+de préstamos, y el formato interrumpido por un módulo de pruebas aún en escritura;
+no se contabilizan como aceptación. Revisión final sin hallazgos pendientes,
+formato, ASCII, límites de líneas y diff limpios. Un compilador, un hilo y
+temporales privados en disco. Las anclas, flujo autorizado, persistencia,
+restauración e interfaz siguen pendientes; no hay integración, despliegue,
+cobertura global nueva ni cambios al PDF aceptado.
+
+
 ## Capturas iniciales de decisiones y medidas: 4 de octubre de 2026
 
 La preparación produce una decisión factual, cada medida inicial y su grupo

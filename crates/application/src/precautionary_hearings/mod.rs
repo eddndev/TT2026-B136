@@ -3,7 +3,7 @@
 mod capture_encoding;
 mod capture_model;
 mod capture_preparation;
-mod capture_validation;
+pub(crate) mod capture_validation;
 mod command;
 mod context;
 pub(crate) mod context_encoding;

@@ -71,11 +71,17 @@ La captura local de una imposición inicial o una decisión explícita sin cambi
 produce revisión, decisión, medidas y grupo completos. `MDTXN1` vincula la
 instrucción; `MDPR1`, `MDCR1`, `MMCR1` y `MDGR1` conservan sus compromisos sin
 ciclos. La reconstrucción exige todos los miembros, origen y fuentes exactas,
-y tiempos de captura compatibles con su procedencia. Las anclas de audiencia
-y los efectos sobre medidas anteriores permanecen rechazados hasta comprobar
-sus historias completas. No acredita persistencia, acceso ni efectos jurídicos.
+y tiempos de captura compatibles con su procedencia. La ampliación con historial
+resuelve grupos de origen completos, incluidas las dependencias de medidas
+hermanas, y admite confirmación, modificación, revocación, cese y sustitución
+conjunta. Conserva origen y términos de los efectos que no los modifican, rechaza
+revisiones repetidas y contradicciones, y exige un cierre exacto de dependencias
+sin grupos ajenos. El límite técnico es de 256 grupos y 8192 filas de medidas,
+incluido el candidato; superarlo rechaza evidencia incompleta sin truncarla.
+Las anclas de audiencia siguen pendientes. No acredita persistencia, cabeza
+vigente, acceso ni efectos jurídicos.
 
-Aún faltan origen durable, decisiones persistidas, historia de medidas, servicios del
+Aún faltan origen durable, decisiones e historia de medidas persistidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados

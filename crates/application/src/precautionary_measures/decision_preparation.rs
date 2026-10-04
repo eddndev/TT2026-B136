@@ -14,8 +14,6 @@ use domain::{
     clock::OffsetDateTime,
     crypto::{ArchiveEntry, DocumentHasher, Sha256Digest},
     identity::Role,
-    precautionary_hearings::MeasureRevision,
-    precautionary_measures::MeasureEffect,
 };
 
 /// Checked supplied declaration, not proof of authorization, admission or persistence.
@@ -38,13 +36,29 @@ pub fn prepare_measure_decision_capture(
     actor: &Principal,
     case_id: CaseId,
     command: MeasureDecisionCommand,
+    material: MeasureDecisionMaterial,
+) -> Result<CheckedMeasureDecisionReview, ApplicationError> {
+    prepare_measure_decision_with_history(
+        hasher,
+        actor,
+        case_id,
+        command,
+        material,
+        &MeasureHistoryEvidence { groups: vec![] },
+    )
+}
+
+pub(super) fn prepare_flat(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureDecisionCommand,
     mut material: MeasureDecisionMaterial,
 ) -> Result<CheckedMeasureDecisionReview, ApplicationError> {
     bounded(material.result_sources.len())?;
-    if command.anchor.is_some() || material.anchor.is_some() || !material.predecessors.is_empty() {
-        return Err(invalid(
-            "anchor or predecessor evidence is not yet supported",
-        ));
+    bounded(material.predecessors.len())?;
+    if command.anchor.is_some() || material.anchor.is_some() {
+        return Err(invalid("linked hearing evidence is not yet supported"));
     }
     if !matches!(actor.role, Role::Owner | Role::Litigator) {
         return Err(invalid("captured actor role cannot record decisions"));
@@ -73,7 +87,10 @@ pub fn prepare_measure_decision_capture(
     material
         .result_sources
         .sort_by_key(|item| item.id.as_uuid());
-    let effects = command.outcome.changes().unwrap_or(&[]);
+    material
+        .predecessors
+        .sort_by_key(|item| item.capture.result.id.as_uuid());
+    let effects = super::effect_resolution::effects(&command, &material)?;
     if effects.len() != material.result_sources.len() {
         return Err(invalid(
             "result source inventory differs from declared effects",
@@ -89,16 +106,21 @@ pub fn prepare_measure_decision_capture(
         .max(context.stage_administration.changed_at);
     let mut results = Vec::with_capacity(effects.len());
     for (effect, material) in effects.iter().zip(&material.result_sources) {
-        let MeasureEffect::Impose(proposal) = effect else {
-            return Err(invalid(
-                "existing measure effects require verified owning histories",
-            ));
-        };
-        if material.id != proposal.id {
+        if material.id != effect.id {
             return Err(invalid("measure source identity differs"));
         }
+        if let Some(prior) = effect.prior {
+            earliest_capture = earliest_capture.max(prior.recorded_at);
+            if effect.action != MeasureCaptureAction::Modify
+                && material.sources != prior.result.sources
+            {
+                return Err(invalid(
+                    "unchanged declarations must retain complete prior sources",
+                ));
+            }
+        }
         let projection =
-            resolve_measure_sources(hasher, case_id, &proposal.values, &material.sources)?;
+            resolve_measure_sources(hasher, case_id, effect.values, &material.sources)?;
         inventory.subject(&material.sources.subject)?;
         earliest_capture = earliest_capture.max(material.sources.subject.changed_at);
         if let Some(supervisor) = &material.sources.supervisor {
@@ -113,16 +135,21 @@ pub fn prepare_measure_decision_capture(
             }
         }
         results.push(ReviewedMeasureResult {
-            id: proposal.id,
-            revision: MeasureRevision::initial(),
-            origin: MeasureOriginIds {
-                decision_id: command.decision_id,
-                operation_id: command.operation_id,
-            },
-            effect_key: proposal.id,
-            action: MeasureCaptureAction::Impose,
-            previous: None,
-            values: proposal.values.clone(),
+            id: effect.id,
+            revision: super::effect_resolution::revision(effect.prior)?,
+            origin: effect
+                .prior
+                .map(|prior| prior.result.origin)
+                .unwrap_or(MeasureOriginIds {
+                    decision_id: command.decision_id,
+                    operation_id: command.operation_id,
+                }),
+            effect_key: effect.effect_key,
+            action: effect.action,
+            previous: effect
+                .prior
+                .map(super::effect_resolution::capture_reference),
+            values: effect.values.clone(),
             sources: material.sources.clone(),
             projection,
         });

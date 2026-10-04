@@ -20,7 +20,7 @@ pub(super) fn clock(at: OffsetDateTime) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-pub(super) fn context_advances(
+pub(crate) fn context_advances(
     previous: &PrecautionaryContext,
     next: &PrecautionaryContext,
 ) -> Result<(), ApplicationError> {

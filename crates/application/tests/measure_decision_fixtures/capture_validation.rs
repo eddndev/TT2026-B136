@@ -213,7 +213,7 @@ fn standalone_groups_cannot_append_invented_substitution_relationships() {
         }],
         successors: vec![result],
     });
-    assert!(measure_decision_group_bytes(&group).is_err());
+    refresh_group_digest(&mut group);
     assert_invalid(&group);
 }
 

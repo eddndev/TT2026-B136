@@ -338,3 +338,15 @@ path = "tests/measure_decisions.rs"
 [[test]]
 name = "measure_decision_vectors"
 path = "tests/measure_decision_vectors.rs"
+
+[[test]]
+name = "measure_history"
+path = "tests/measure_history.rs"
+
+[[test]]
+name = "measure_decision_effects"
+path = "tests/measure_decision_effects.rs"
+
+[[test]]
+name = "measure_effect_vectors"
+path = "tests/measure_effect_vectors.rs"

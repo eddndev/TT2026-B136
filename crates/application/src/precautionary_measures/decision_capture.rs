@@ -49,11 +49,12 @@ impl CheckedMeasureDecisionReview {
             capture.capture_digest = hasher.hash_bytes(&measure_capture_bytes(&capture)?);
             measures.push(capture);
         }
+        let substitutions = super::effect_resolution::substitutions(&review.command, &measures)?;
         let mut group = MeasureDecisionGroupCapture {
             review,
             decision,
             measures,
-            substitutions: Vec::new(),
+            substitutions,
             recorded_at,
             capture_digest: empty,
         };
@@ -67,26 +68,9 @@ pub fn measure_decision_group_matches(
     hasher: &dyn DocumentHasher,
     group: &MeasureDecisionGroupCapture,
 ) -> Result<(), ApplicationError> {
-    super::decision_wire::bounded(group.measures.len())?;
-    super::decision_wire::bounded(group.review.results.len())?;
-    super::decision_wire::bounded(group.review.material.result_sources.len())?;
-    if group.review.command.anchor.is_some()
-        || group.review.material.anchor.is_some()
-        || !group.review.material.predecessors.is_empty()
-        || !group.substitutions.is_empty()
-    {
-        return Err(invalid("unsupported linked group evidence"));
-    }
-    let reviewed = prepare_measure_decision_capture(
+    measure_decision_group_with_history_matches(
         hasher,
-        &group.review.actor,
-        group.review.case_id,
-        group.review.command.clone(),
-        group.review.material.clone(),
-    )?;
-    let expected = reviewed.into_group_capture(hasher, group.recorded_at)?;
-    if expected != *group {
-        return Err(invalid("group differs from its complete reviewed capture"));
-    }
-    Ok(())
+        group,
+        &MeasureHistoryEvidence { groups: vec![] },
+    )
 }

@@ -26,9 +26,7 @@ pub fn measure_decision_review_bytes(
 ) -> Result<Vec<u8>, ApplicationError> {
     bounded(review.results.len())?;
     bounded(review.material.result_sources.len())?;
-    if !review.material.predecessors.is_empty() {
-        return Err(invalid("predecessor groups require ancestry validation"));
-    }
+    bounded(review.material.predecessors.len())?;
     let mut bytes = b"MDPR1".to_vec();
     blob(
         &mut bytes,
@@ -38,7 +36,14 @@ pub fn measure_decision_review_bytes(
     blob(&mut bytes, &review.material.context.canonical_bytes())?;
     support(&mut bytes, &review.material.support)?;
     no_anchor(&mut bytes, review.material.anchor.is_some())?;
-    bytes.extend_from_slice(&0u32.to_be_bytes());
+    bytes.extend_from_slice(&(review.material.predecessors.len() as u32).to_be_bytes());
+    for prior in &review.material.predecessors {
+        bytes.extend_from_slice(prior.owner.operation_id.as_uuid().as_bytes());
+        bytes.extend_from_slice(prior.owner.decision_id.as_uuid().as_bytes());
+        bytes.extend_from_slice(prior.owner.group_digest.as_bytes());
+        blob(&mut bytes, &measure_capture_bytes(&prior.capture)?)?;
+        bytes.extend_from_slice(prior.capture.capture_digest.as_bytes());
+    }
     bytes.extend_from_slice(&(review.results.len() as u32).to_be_bytes());
     for value in &review.results {
         result(&mut bytes, value)?;
@@ -78,9 +83,7 @@ pub fn measure_decision_group_bytes(
     group: &MeasureDecisionGroupCapture,
 ) -> Result<Vec<u8>, ApplicationError> {
     bounded(group.measures.len())?;
-    if !group.substitutions.is_empty() {
-        return Err(invalid("substitution groups require ancestry validation"));
-    }
+    bounded(group.substitutions.len())?;
     let mut bytes = b"MDGR1".to_vec();
     blob(&mut bytes, &measure_decision_review_bytes(&group.review)?)?;
     bytes.extend_from_slice(group.review.review_digest.as_bytes());
@@ -94,7 +97,21 @@ pub fn measure_decision_group_bytes(
         blob(&mut bytes, &measure_capture_bytes(value)?)?;
         bytes.extend_from_slice(value.capture_digest.as_bytes());
     }
-    bytes.extend_from_slice(&0u32.to_be_bytes());
+    bytes.extend_from_slice(&(group.substitutions.len() as u32).to_be_bytes());
+    for relation in &group.substitutions {
+        bounded(relation.predecessors.len())?;
+        bounded(relation.successors.len())?;
+        bytes.extend_from_slice(relation.effect_key.as_uuid().as_bytes());
+        bytes.extend_from_slice(&(relation.predecessors.len() as u32).to_be_bytes());
+        for pair in &relation.predecessors {
+            reference(&mut bytes, pair.previous);
+            reference(&mut bytes, pair.result);
+        }
+        bytes.extend_from_slice(&(relation.successors.len() as u32).to_be_bytes());
+        for successor in &relation.successors {
+            reference(&mut bytes, *successor);
+        }
+    }
     timestamp(&mut bytes, group.recorded_at);
     Ok(bytes)
 }

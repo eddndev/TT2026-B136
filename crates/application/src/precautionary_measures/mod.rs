@@ -16,3 +16,14 @@ pub use decision_preparation::{prepare_measure_decision_capture, CheckedMeasureD
 mod support;
 pub use sources::{resolve_measure_sources, MeasureSourceProjection, MeasureSources};
 pub use support::admit_measure_decision_support;
+
+mod effect_resolution;
+mod history_inventory;
+mod history_model;
+mod history_preparation;
+mod history_validation;
+pub use history_model::*;
+pub use history_preparation::prepare_measure_decision_with_history;
+pub use history_validation::{
+    measure_decision_group_with_history_matches, measure_group_origin, resolve_measure_targets,
+};
