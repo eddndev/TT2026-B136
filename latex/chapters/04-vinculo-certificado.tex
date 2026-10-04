@@ -60,6 +60,17 @@ digest comprobado, la evidencia histórica, los contadores completos y la
 precisión temporal original. Un resultado incierto se reconcilia por UUID y
 bytes exactos, sin reintento automático.
 
+La consulta adicional \texttt{GET /api/v1/auth/}\allowbreak
+\texttt{certificate-bindings/current} permite descubrir el vínculo propio sin
+conocer su UUID. Devuelve el recibo completo sin retirar o \texttt{null}, con
+estado 200. PostgreSQL toma el bloqueo común de auditoría y relee al Owner
+activo antes de resolver la historia en la misma transacción; múltiples
+vínculos sin retirar se rechazan. La aplicación vuelve a autenticar el principal
+completo incluso si no hay resultado. La lectura no añade auditoría ni exige
+otra verificación RSA o confianza vigente: describe la ausencia de retiro al
+consultar, sin reservar ese estado ni acreditar vigencia del certificado. El
+UUID exacto conserva la consulta del recibo terminal después del retiro.
+
 Las rutas se incorporan al mismo límite de admisión y presupuesto de trabajo
 del resto de la API. La autenticación del Owner dentro del servicio espera un
 permiso de trabajo, y la operación síncrona lo conserva hasta terminar aunque
@@ -75,3 +86,39 @@ vigente y el retiro conserva su independencia de la validez actual del
 certificado. No se habilita enrolamiento, acceso por certificado ni firma
 documental individual. La política y sus límites están en
 \rutarepo{docs/adr/0067-owner-certificate-bindings.md}.
+
+La aceptación HTTP reutiliza el servidor, las sesiones Redis, PostgreSQL y la
+CA interna de \rutarepo{scripts/api-demo.sh}. Un titular sintético firma fuera
+de HTTP una declaración reconstruida independientemente; el ensayo compara
+la prueba pública con las filas y los eventos auditados. La publicación de una
+CRL sucesora permite contrastar una captura obsoleta con el recibo histórico
+exacto. Tras restaurar SQL se invalidan las sesiones y desafíos previos y se
+obtiene MFA nueva antes de consultar o conciliar ese recibo. Este recorrido no
+incluye una interfaz Qadra, custodia personal exclusiva ni recuperación
+operacional conjunta de SQL, RDB y PKI.
+
+\subsubsection{Interfaz de evidencia pública y reingreso}
+
+La vista \emph{Mi certificado} pertenece a la cuenta Owner autenticada y conserva
+los componentes y estilos de Qadra. Consulta primero la identidad vigente y luego
+el vínculo propio sin retirar. El registro asigna un UUID a la intención y admite
+un único contenedor PEM público de hasta 16~KiB. La preparación devuelve la
+declaración de 150 bytes para descargar; la firma externa se selecciona como
+archivo binario separado de 384 bytes. El navegador no recibe la clave privada
+ni sustituye la admisión criptográfica del servidor.
+
+El comando se captura antes de esperar la respuesta de escritura. Un resultado
+incierto conserva declaración, certificado y firma originales; la consulta del
+UUID exacto debe coincidir con esa evidencia antes de confirmar. La ausencia
+observada habilita sólo una decisión expresa de repetir el mismo comando. El
+retiro exige evidencia terminal del mismo registro, no únicamente una revisión
+con el número esperado. El recibo público puede consultarse y descargarse sin
+presentar la confianza histórica como vigencia actual.
+
+Al vencer la sesión se conserva exclusivamente material público admitido en
+memoria. Retomar exige la misma cuenta, nueva MFA y consultas vigentes de
+identidad y vínculo; no prepara ni envía otra operación. El reingreso descarta
+una decisión anterior de ausencia y vuelve a exigir consulta exacta. Cancelar,
+cerrar sesión expresamente o cambiar de cuenta descarta el borrador. El archivo
+original y el PEM todavía no admitido quedan fuera de la captura. La función
+no habilita autenticación por certificado ni firma individual de documentos.

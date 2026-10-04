@@ -4,22 +4,26 @@ The full API and standalone `web::owner_certificate_router` expose registration
 evidence for the currently authenticated Owner. The `serve` binary composes the
 real application service with its existing identity and validated PostgreSQL
 store. These operations do not enable certificate login or personal document
-signing. Router acceptance does not establish an installed deployment or a real
-HTTP/RSA/PostgreSQL workflow.
+signing. The four UUID-based operations have the real HTTP/MFA/RSA/PostgreSQL and
+SQL-restore acceptance described below; the later `/current` query has separate
+focused acceptance. This extension is not yet published, installed or exposed
+through a Qadra interface.
 
 ## Routes and input
 
-All paths start with `/api/v1/auth/certificate-bindings/{binding_id}`. The binding
-identifier is a non-nil UUID selected once by the caller; it need not be UUID v4.
+All paths start with `/api/v1/auth/certificate-bindings`. A `{binding_id}` is a
+non-nil UUID selected once by the caller; it need not be UUID v4. The literal
+`/current` route discovers the caller's own unwithdrawn binding without that UUID.
 Every operation requires the current MFA-authenticated bearer session and current
 Owner authority for the account. Query strings are rejected.
 
 | Method and suffix | JSON object or body | Result |
 | --- | --- | --- |
-| POST `/prepare` | `certificate_base64` | Canonical statement and current public certificate/trust capture; no mutation |
-| POST `/register` | `statement_base64`, `certificate_der_base64`, `signature_base64` | Original committed receipt or a new registration |
-| GET (no suffix) | Empty body | Own historical receipt; absent binding returns 404 |
-| POST `/withdraw` | `expected_revision` as an unsigned 32-bit integer | Terminal withdrawal receipt |
+| GET `/current` | Empty body | 200 with the complete own unwithdrawn receipt or JSON `null`, without a wrapper |
+| POST `/{binding_id}/prepare` | `certificate_base64` | Canonical statement and current public certificate/trust capture; no mutation |
+| POST `/{binding_id}/register` | `statement_base64`, `certificate_der_base64`, `signature_base64` | Original committed receipt or a new registration |
+| GET `/{binding_id}` | Empty body | Own historical receipt; absent binding returns 404 |
+| POST `/{binding_id}/withdraw` | `expected_revision` as an unsigned 32-bit integer | Terminal withdrawal receipt |
 
 JSON requests use `application/json` and a maximum body of 32 KiB. Objects reject
 unknown or duplicate keys, positional arrays and trailing JSON. Binary values
@@ -35,6 +39,15 @@ The server rebuilds a fresh preparation from current state and requires exact
 byte identity before admitting new evidence.
 
 ## Receipts and reconciliation
+
+`current` means no terminal withdrawal at the serialized read. It does not mean
+that the certificate or trust is currently valid, nor reserve that state after
+the response. The query rechecks active Owner authority under the existing
+audit/account locks and rejects multiple unwithdrawn rows. It appends no audit
+event and requires no new RSA verification or current trust publication.
+The service reauthenticates the full principal before returning either evidence
+or absence. A later withdrawal makes the next query return `null`; the old UUID
+route keeps its exact terminal history. Queries and nonempty bodies are rejected.
 
 A receipt contains binding/owner identifiers, binding revision and policy, the
 original `registration`, and a nullable terminal `withdrawal`. Registration
@@ -64,7 +77,7 @@ response without undoing or retrying a confirmed mutation.
 
 Responses use `Cache-Control: no-store`. Missing/invalid session returns 401 and
 current insufficient permission returns 403. Other stable error groups are
-invalid input (400), absent own binding (404), conflicting account/trust/binding
+invalid input (400), absent own binding at an exact UUID (404), conflicting account/trust/binding
 state (409), rejected credential (422), oversized input (413), exhausted
 admission (503) and internal failure (500). Conflict and credential groups use
 neutral messages rather than publishing internal verification details.
@@ -100,6 +113,31 @@ currently valid certificate. These routes do not change MFA or session admission
 See [the binding decision](adr/0067-owner-certificate-bindings.md) for canonical
 evidence, PostgreSQL transactions, trust and the separate certificate-login
 boundary. The [verification report](verification-report.md) records standalone
-and shared-runtime HTTP tests separately from the real PostgreSQL/RSA backend
-campaign. The HTTP tests use the real application service with controlled ports;
-they do not substitute for an integrated real-service transport acceptance.
+and shared-runtime tests with controlled ports separately from backend and
+integrated real-service acceptance.
+
+## Real-service acceptance
+
+On 3 October 2026, `bash scripts/api-demo.sh` completed with exit 0 in 334.419 s,
+including setup, against disposable PostgreSQL 16.15, Redis, real password/MFA
+identity and the internal CA. The Owner extension reuses that campaign's server,
+trust publication and SQL restore. It independently reconstructs the 150-byte
+statement, signs outside HTTP and verifies the returned public proof with OpenSSL.
+
+The campaign checked one audited registration, exact replay, altered-signature
+rejection and byte conflicts. Publishing a successor CRL made an old preparation
+conflict and a new proof from the revoked certificate fail; the historical receipt
+remained exact and terminal withdrawal required no fresh signature. SQL rows,
+digests, audit sequences and timestamps matched the receipt. All four routes
+rejected the revoked bearer and a current Paralegal without mutation.
+
+After SQL restoration and fresh MFA, the terminal receipt, original public proof
+and audit evidence stayed identical. Replaying registration or withdrawal added
+no event and did not revive the binding. This is not certificate login, private
+key custody validation, a browser acceptance or operational SQL/RDB/PKI recovery.
+
+The later `/current` addition passed application and HTTP tests with controlled
+ports, plus two PostgreSQL tests for own-account isolation, withdrawal/renewal,
+expired trust, mutation-free reads and authority loss during an audit-lock wait.
+It was not included in the 334.419 s integrated campaign above. The
+[verification report](verification-report.md) keeps those focal results separate.

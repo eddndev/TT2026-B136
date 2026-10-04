@@ -84,6 +84,13 @@
         >{/each}{/if}
   </nav>
   <div class="sidebar-bottom">
+    {#if user.role === 'owner'}<button
+        class="guide-link"
+        class:active={view === 'owner-certificates'}
+        aria-current={view === 'owner-certificates' ? 'page' : undefined}
+        onclick={() => go('owner-certificates')}
+        ><Icon name="shield" size={19} />Mi certificado</button
+      >{/if}
     <button class="guide-link" class:active={view === 'guide'} onclick={() => go('guide')}
       ><Icon name="help" size={19} />Gu&#237;a de uso<Icon name="arrow" size={15} /></button
     >

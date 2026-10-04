@@ -63,6 +63,9 @@ impl OwnerCertificateStore for PostgresOwnerCertificateStore {
     ) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
         self.receipt(actor, binding)
     }
+    fn find_current(&self, actor: UserId) -> Result<Option<OwnerBindingReceipt>, ApplicationError> {
+        self.current_receipt(actor)
+    }
     fn load_withdrawal(
         &self,
         actor: UserId,

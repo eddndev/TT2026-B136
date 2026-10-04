@@ -6,6 +6,8 @@ mod capture;
 mod case_administration_support;
 #[path = "owner_certificate_backend_cases/concurrency.rs"]
 mod concurrency;
+#[path = "owner_certificate_backend_cases/current.rs"]
+mod current;
 #[allow(dead_code)]
 #[path = "declaration_fixture/mod.rs"]
 mod declaration_fixture;

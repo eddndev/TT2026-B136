@@ -15,6 +15,7 @@
   import DocumentIntegrityNotice from './DocumentIntegrityNotice.svelte';
   import DocumentIntegrityIncidents from './DocumentIntegrityIncidents.svelte';
   import JudicialCalendars from './JudicialCalendars.svelte';
+  import OwnerCertificates from './OwnerCertificates.svelte';
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
@@ -32,7 +33,6 @@
     agendaFilters = null;
   let alertFilters = null,
     alertReturn = false;
-
   let resourceIntent = null,
     activityReturn = null;
   let view = 'overview';
@@ -53,7 +53,6 @@
     agendaFilters = null;
     alertFilters = null;
     alertReturn = false;
-
     resourceIntent = null;
     activityReturn = null;
     documentIntent = null;
@@ -331,7 +330,6 @@
             onselect={(record) => {
               if (!lifecycle.canAdmit()) return;
               selectedCase = record;
-
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
@@ -379,6 +377,10 @@
               <p>Abre un expediente para consultar sus datos.</p>
               <button class="primary" onclick={() => go('cases')}>Ver expedientes</button>
             </section>{/if}
+        {:else if view === 'owner-certificates' && user.role === 'owner'}<OwnerCertificates
+            {api}
+            {user}
+          />
         {:else if view === 'guide'}<Guide onnavigate={go} />
         {:else if user.role === 'owner'}{#key view}<Admin
               {api}

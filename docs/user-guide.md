@@ -50,6 +50,26 @@ usa el procedimiento siguiente cuando esté habilitado en tu instalación.
 Usa **Cerrar sesión** al terminar. Cerrar sesión conserva los expedientes y sus
 archivos. No dependas de un cierre por inactividad para proteger una sesión abierta.
 
+### Vincular mi certificado público
+
+Esta función pertenece a la ampliación local de identidad y todavía no está en
+la release privada `v0.1.1`. Su aceptación e integración se registran por separado
+en [el estado del producto](product-completion.md).
+
+El Owner dispone de **Mi certificado** para vincular un certificado público a
+su propia cuenta mediante una firma externa. Primero consulta si ya existe un
+vínculo sin retirar. Para registrar otro, prepara la declaración, descarga sus
+150 bytes, fírmala en el equipo que custodia la clave y selecciona únicamente la
+firma separada de 384 bytes. El [recorrido y ejemplo OpenSSL](owner-certificate-interface.md)
+explican cada paso. Nunca adjuntes la clave privada, un archivo PFX o una contraseña.
+
+**Consultar recibo** y **Descargar recibo** conservan la evidencia del registro.
+**Retirar vínculo** exige una confirmación expresa y conserva el historial; no
+revoca el certificado en la autoridad emisora. Si un envío queda sin respuesta,
+comprueba su recibo exacto antes de decidir otro intento. Un vínculo sin retirar
+no demuestra vigencia actual, no permite iniciar sesión por certificado y no
+firma documentos del expediente.
+
 ### Si olvidaste la contraseña
 
 La recuperación está implementada e integrada en una versión posterior a

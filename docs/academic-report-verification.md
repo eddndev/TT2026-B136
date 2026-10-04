@@ -1,5 +1,40 @@
 # Verificación de la actualización académica
 
+## Interfaz del certificado Owner: 3 de octubre de 2026
+
+Implementación y pruebas incorporan la interfaz Qadra, su recuperación pública
+y la aceptación con servicios reales, separando los límites de cada ensayo.
+`make -C latex` aprobó: 372 páginas, 5930253 bytes, SHA-256
+`7910032b89623cd89dfcf9a2d7320335d130d70615c9df2b16fa21b7f9e81fe6`.
+Se revisaron las páginas físicas 168, 169 y 267, legibles, sin recortes ni
+superposiciones. Las fuentes protegidas conservaron sus hashes y el PDF previo
+quedó respaldado. No hubo referencias pendientes ni glifos ausentes; persiste
+la sustitución conocida de versalitas. El PDF acumulado no se versiona ni
+acredita integración o despliegue de esta entrega local.
+
+
+## Consulta propia del vínculo Owner: 3 de octubre de 2026
+
+Se documentaron la lectura sin retirar y su evidencia focal separada.
+`make -C latex` aprobó: 371 páginas, 5924332 bytes, SHA-256
+`dd1baeb8524c707582bd3be93109e272a9b7354b566631514a63d98f2c4c8d6a`.
+Se inspeccionaron las páginas físicas 168 y 266, legibles y sin recortes
+ni superposiciones. Se conservaron los hashes protegidos y el PDF previo.
+La primera búsqueda de texto no encontró una palabra dividida al final de
+línea; se ajustó sólo la selección de páginas, sin repetir la compilación.
+El PDF acumulado no se versiona ni acredita despliegue.
+
+## Vínculo Owner con servicios reales: 3 de octubre de 2026
+
+Se incorporó la aceptación HTTP, MFA, firma pública y restauración SQL,
+distinguiéndola de los focales y del despliegue todavía pendiente.
+`make -C latex` aprobó: 370 páginas, 5921839 bytes, SHA-256
+`2072ad264056eaba0b1483f14dcd6d4f449b19fcf30d532aff093b7978c0b00d`.
+Se inspeccionaron las páginas físicas 168, 264 y 265, legibles y sin recortes
+ni superposiciones. Se conservaron las fuentes protegidas y el PDF previo.
+No se observaron referencias pendientes ni caracteres ausentes; persiste la
+sustitución conocida de versalitas de Times New Roman. El PDF no se versiona.
+
 
 ## Parada interna para restaurar: 3 de octubre de 2026
 

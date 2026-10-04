@@ -3,9 +3,11 @@
 ## Status
 
 Accepted for structural domain values, canonical bytes, strict cryptographic
-verification, application authorization, audited PostgreSQL persistence and
-authenticated HTTP composition. Integrated real-service HTTP acceptance,
-certificate login and complete restore acceptance remain separate.
+verification, application authorization, audited PostgreSQL persistence,
+authenticated HTTP composition and local real-service HTTP/MFA/SQL-restore
+acceptance. The Qadra interface additionally has controlled-browser acceptance.
+Publication, installation, certificate login and
+operational SQL/RDB/PKI recovery remain separate.
 
 ## Context
 
@@ -140,6 +142,17 @@ Withdrawal reauthenticates the original full principal after an applied or
 existing commit and before returning evidence; rejection leaves the committed
 history intact and never starts a rollback or retry.
 
+The additional `current_receipt` query discovers only the authenticated Owner's
+unwithdrawn receipt. PostgreSQL serializes the read with the existing audit lock,
+then rechecks the active account at READ COMMITTED and decodes its history in
+the same transaction. Multiple live rows fail closed. The service validates own
+evidence and reauthenticates the complete principal even when the result is
+absent. HTTP exposes this as GET `/api/v1/auth/certificate-bindings/current`,
+returning the complete receipt or JSON null with status 200. No audit event,
+new RSA verification or current-trust requirement is added. Current denotes
+absence of withdrawal at that read, not current certificate validity or a lease
+against a later withdrawal; the exact UUID route retains terminal history.
+
 The repository port is implemented by `PostgresOwnerCertificateStore`, with
 separate local evidence for transaction atomicity, concurrent receipts, unique
 live bindings and permanent fingerprint ownership. The service remains
@@ -215,9 +228,10 @@ The recomputed cryptographic inspection must equal the stored inspection.
 This inventory establishes the new rows' exact audit associations; it does not
 replace the existing global audit-chain verifier. Backend tests separately use
 that verifier. They exercise real PostgreSQL and RSA with a controlled identity
-port, not a complete password/MFA login. Inventory rejection of inconsistent
-state is not evidence of a completed dump/restore campaign; that operational
-acceptance and broader adversarial catalog coverage remain separate.
+port, not a complete password/MFA login. Inventory rejection alone does not prove
+a dump/restore campaign; the local HTTP/SQL-restore acceptance below supplies
+separate evidence. Operational recovery and broader adversarial catalog coverage
+remain separate.
 
 Certificate login is a later delivery. It needs a fresh single-attempt challenge,
 explicit limits, the binding's origin through MFA and session admission, and
@@ -247,6 +261,36 @@ verifier, SHA-256 and one application/store clock. It performs no DDL, trust
 publication or private-key selection. Shared-budget tests with controlled ports
 establish router admission and cancellation behavior; they do not establish a
 real HTTP/RSA/PostgreSQL workflow or an installed deployment.
+
+The separate real-service acceptance in `scripts/api-demo.sh` reuses the
+existing disposable identity, Redis, PostgreSQL and internal CA. It reconstructs
+canonical bytes independently, signs outside HTTP, verifies the public receipt
+with OpenSSL and checks its exact SQL/audit links. A successor CRL rejects stale
+preparation and fresh registration with a revoked leaf, while historical receipt
+and terminal withdrawal remain available under current Owner authority. After
+SQL restoration and fresh MFA, exact replay preserves public evidence without
+new events or reactivation. This does not establish private-key custody, a
+browser workflow or operational recovery of the installed deployment.
+That campaign covers the four UUID-based operations. The later current-binding
+query has separate application, HTTP and native PostgreSQL focal evidence.
+
+### Qadra public evidence workflow
+
+The Owner-only interface uses the authenticated shared transport and a
+session-bound client. It reads the current principal before discovering the
+unwithdrawn binding, then prepares a public certificate and downloads the exact
+statement for external signing. Only public certificate/statement/signature
+material reaches HTTP. Current discovery is distinct from exact-UUID receipt
+reconciliation and does not assert certificate validity.
+
+The client captures an immutable command before awaiting a mutation. A late
+or uncertain response cannot trigger an automatic resend or discard its proof.
+Reentry restores admitted public evidence from memory only after fresh same-Owner
+authorization; logout, another account and explicit cancel discard it. Exact
+receipt identity and original proof are required for both registration and
+terminal withdrawal. Controlled-browser evidence and native acceptance remain
+separate in `docs/verification-report.md`. The user procedure is in
+`docs/owner-certificate-interface.md`.
 
 ## Consequences
 

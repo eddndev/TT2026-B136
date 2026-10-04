@@ -19,6 +19,140 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Interfaz del vínculo Owner: 3 de octubre de 2026
+
+El RED inicial del cliente observó tres métodos ausentes y dos importaciones
+faltantes; sus diez casos escritos aprobaron después **10/10 en 502.558 ms**.
+El navegador reprodujo primero la ausencia de **Mi certificado**; los demás
+casos no se ejecutaron al detenerse en el primer fallo. La implementación
+aprobó **6/6 recorridos en 16.8 s**, con un worker y HTTP controlado. El sexto
+caso se añadió durante la revisión para rechazar un recibo terminal con otra
+firma original; no se acredita como un RED separado.
+
+Se comprobaron PEM público acotado, descarga exacta de 150 bytes, firma separada
+de 384 bytes, registro y retiro con evidencia coincidente, permisos por cuenta,
+reingreso y consulta exacta de envíos inciertos sin repetición automática. Otra
+cuenta y el cierre explícito descartan el borrador. Las capturas conservan sólo
+material público admitido en memoria; no sobreviven al cierre de la pestaña.
+El cliente usa el transporte y la generación de sesión existentes.
+
+El planificador real reprodujo dos fallos antes del nuevo registro de familia;
+aprobó **2/2 en 143.671 ms**. Sitúa el caso nuevo en la tercera partición sin
+cambiar las asignaciones anteriores. Es evidencia de selección, no de ejecución
+del nuevo recorrido real, registrado por separado a continuación. El ejemplo OpenSSL del manual
+reutiliza el comando aceptado en la campaña HTTP anterior; no se repitió ésta.
+
+
+Para revisar presentación se repitió sólo el primer caso: **1/1 en 8.5 s**.
+Se ajustó exclusivamente la captura para volver al inicio y quitar el foco de
+campos; no cambió el producto. Cuatro imágenes de preparación y recibo, a
+1440 y 390 píxeles de ancho, se inspeccionaron legibles, sin superposiciones ni
+desbordamiento horizontal.
+
+## Navegador Owner con servicios reales: 3 de octubre de 2026
+
+El comando focal `bash scripts/web-demo.sh tests/live/owner-certificates.spec.mjs --workers=1 --max-failures=1 --reporter=line` aprobó **1/1 en 12.1 s** de
+Playwright y terminó con salida cero en **252.134 s** totales. La compilación
+`dev` duró **38.39 s**; el filtro limitó la ejecución del navegador, pero la
+preparación conservó las familias de datos de su partición. La familia nueva
+Owner tardó **4.77 s**. Hubo un compilador, un hilo y un worker.
+
+Se usaron PostgreSQL **16.15**, **Valkey 8.1.10** a través del ejecutable
+`redis-server`, qpdf **12.4.1** y los decodificadores multimedia previamente
+verificados. Valkey implementa el almacén compatible con Redis de este ensayo;
+no se presenta como una medición ejecutada con Redis 7.4. Un Owner y una hoja
+Partner desechables propios evitaron reutilizar cuentas o códigos de otras
+familias. La hoja se emitió antes de la única confianza inicial: no hubo
+rotación ni revocación durante el recorrido.
+
+La interfaz consultó identidad y `/current`, preparó el certificado y descargó
+los 150 bytes exactos, reconstruidos de forma independiente. OpenSSL firmó fuera
+del navegador y una verificación independiente comprobó la firma antes de
+seleccionar sus 384 bytes. El registro, la lectura por UUID y el recibo descargado
+conservaron la prueba pública. Tras cerrar sesión y completar otra MFA,
+`/current` descubrió el mismo registro sin otro prepare/register. El retiro
+produjo la declaración terminal exacta, conservó el registro original y permitió
+su descarga histórica; una nueva consulta actual devolvió `null`.
+
+El entorno y la clave pertenecieron a la campaña desechable y su cleanup normal;
+no se modificó VPS3 ni se creó un Owner operativo. Esta aceptación no repitió
+SQL restore, no probó una CRL sucesora, no validó custodia exclusiva de la clave
+ni habilitó login por certificado. La prueba nueva se añade al inventario real;
+la conservación global de identidades queda para CI de la entrega publicada.
+
+## Consulta del vínculo Owner sin retirar: 3 de octubre de 2026
+
+El ensayo RED reprodujo `E0407` y `E0599` por ausencia de `find_current` y
+`current_receipt`. Tras añadir la consulta, aprobaron **27/27** pruebas de
+aplicación en **0.01 s** y **15/15** HTTP en **0.04 s**, con puertos controlados.
+Los dos casos nuevos de PostgreSQL real aprobaron **2/2 en 6.13 s**, tras
+**13.03 s** de compilación; el ejecutor completo duró **20.472 s** y confirmó
+la retirada del clúster desechable. Clippy focal aprobó en **24.01 s** con
+advertencias como errores. Son nueve casos nuevos: cuatro de aplicación,
+tres HTTP y dos PostgreSQL; los totales anteriores incluyen sus regresiones.
+
+La ruta literal `GET /api/v1/auth/certificate-bindings/current` devuelve el recibo
+propio sin retiro o JSON `null`, ambos con 200. Se comprobaron identidad inicial
+y final incluso para ausencia, rechazo de evidencia ajena/retirada/incoherente,
+entrada estricta, errores neutrales y `no-store`. PostgreSQL comprobó aislamiento
+entre Owners, retiro y renovación, conservación de historia con confianza
+vencida y lecturas sin cambios de filas ni auditoría. Una espera real del bloqueo
+de auditoría permitió desactivar la cuenta antes de leer: la consulta rechazó
+la nueva autoridad tanto con vínculo como sin él.
+
+Esta quinta ruta no formó parte de la campaña HTTP/MFA/restauración de 334.419 s
+descrita a continuación. Su evidencia usa HTTP con puertos controlados y, por
+separado, PostgreSQL real; no acredita otra campaña integrada, interfaz Qadra,
+autenticación por certificado, publicación o instalación. La ampliación del
+manuscrito aprobó compilación e inspección del PDF; véase
+`docs/academic-report-verification.md`.
+
+## Vínculo Owner con HTTP, MFA y restauración SQL reales: 3 de octubre de 2026
+
+La campaña completa `bash scripts/api-demo.sh` terminó con **salida 0 en
+334.419 s**, incluyendo compilación y preparación del entorno desechable.
+Usó PostgreSQL **16.15**, Redis real, la identidad existente con contraseña y
+MFA, el verificador RSA y la CA interna. Se reutilizaron qpdf **12.4.1** y los
+binarios multimedia previamente verificados por SHA-256; la evidencia no
+registra la versión del servidor Redis. La ejecución fue secuencial, con un
+trabajo de compilación y un hilo de pruebas.
+
+Los scripts `api-owner-certificates-demo.sh`, `api-owner-certificates-demo.py`
+y `api_owner_certificate_evidence.py`, bajo `scripts/`, ampliaron la misma
+campaña y su restauración, sin repetir la provisión. Se comprobó:
+
+- Preparación sin escritura, reconstrucción independiente de los 150 bytes
+  canónicos y certificado DER exacto; firma externa RSA-3072 y comprobación
+  independiente con OpenSSL. Una firma alterada produjo 422 sin mutación.
+- Un alta auditada, lectura y repetición exactas sin eventos adicionales, y
+  conflicto 409 al cambiar los bytes bajo el mismo UUID. Los contadores de
+  cuenta permanecieron intactos.
+- Publicación de una CRL sucesora que revoca sólo la hoja de ensayo. La captura
+  previa de otra intención produjo 409; una preparación actual con ese
+  certificado revocado produjo 422 y no creó otro vínculo. El recibo original
+  siguió disponible con su confianza histórica y pudo retirarse sin otra firma.
+- Correspondencia exacta de filas, declaraciones, digests, secuencias y fechas
+  con la auditoría, además de la validez de la cadena global. Las cuatro rutas
+  rechazaron la sesión anterior con 401 y al Paralegal vigente con 403, sin
+  modificar evidencia.
+- Volcado y restauración SQL de ambas tablas Owner y sus eventos. Después de
+  invalidar sesiones y desafíos anteriores y obtener MFA nueva, consulta y
+  repetición conservaron el mismo recibo terminal y la prueba pública original,
+  sin resucitar el vínculo ni añadir eventos. El certificado revocado siguió
+  rechazado. Los recorridos preexistentes de documentos, roles, reinicios y
+  restauración también aprobaron; conservaron cuatro documentos y los 70 eventos
+  del prefijo importado, con ZIP de evidencia idéntico.
+
+Esta aceptación local reúne las capas que los focales anteriores ejercitaban
+por separado; no reemplaza sus mediciones ni una regresión global. La extensión
+Owner aún no está publicada, no tiene interfaz Qadra y no se instaló en VPS3.
+No prueba autenticación por certificado, firma documental individual, custodia
+personal exclusiva ni servicios de un PSC. La restauración SQL desechable no
+equivale a restauración operacional conjunta de SQL, RDB y PKI. El aviso conocido
+de compatibilidad futura de `redis 0.25.4` permaneció visible. La actualización
+documental de este resultado aprobó compilación e inspección del PDF; véase
+`docs/academic-report-verification.md`.
+
 ## Autoridad al devolver un retiro Owner: 3 de octubre de 2026
 
 Una regresión reprodujo cuatro variantes de autoridad perdida después de
