@@ -1,5 +1,54 @@
 # Informe de verificación local
 
+## Editor conjunto de resultado y plazo en Qadra: 4 de octubre de 2026
+
+La acción de registrar resultado y plazo conserva una fuente prospectiva R1,
+revisa las dos capturas y confirma mediante el contrato compuesto. No reemplaza
+el registro ordinario de resultados. La sesión recuperable conserva el intento
+incierto, exige reautorización del expediente para la misma identidad y consulta
+su origen exacto antes de cargar fuentes actuales. El contrato está descrito en
+[resultado y plazo derivado](hearing-derived-deadlines.md).
+
+TDD focal: los módulos de acciones y borradores fallaron inicialmente por estar
+ausentes; después aprobaron sus respectivos casos. Una revisión detectó que el
+formulario usa políticas editables `{key,value}` y no cadenas: dos regresiones
+reprodujeron el rechazo y la pérdida del borrador incierto antes de corregir la
+captura. Otra batería verificó la separación entre soporte no disponible y
+denegación del expediente, la conservación del intento incierto y el límite HTTP
+de 1 MiB. Las ejecuciones finales acreditan **31 casos Node nuevos**: acciones
+**12/12 en 0.303 s**, borrador **14/14 en 0.367 s** y errores **5/5 en 0.329 s**.
+Estos tiempos corresponden a ejecuciones focales separadas, no a una suite única.
+
+En navegador con HTTP controlado aprobaron **seis casos nuevos**, siempre con
+un worker: apertura, creación de escritorio/móvil y conciliación de respuesta
+perdida (**4/4 en 15.964 s**); caducidad y reentrada del mismo usuario sin otro
+submit ni lectura anticipada de fuentes (**1/1 en 10.205 s**); revisión completa
+del acuerdo, inicio, cantidad y condiciones (**1/1 en 9.653 s**). Esta última
+prueba falló primero por omitir esas declaraciones en la revisión. La corrección
+las muestra antes de la aprobación, sin inventar vencimiento para el cálculo
+bloqueado del fixture. Los tiempos incluyen el arranque del servidor local.
+
+Dos regresiones de los componentes compartidos aprobaron en **11.848 s**:
+alta ordinaria de plazo con fuente desconocida y resultado ordinario con varias
+sesiones. No se repitieron suites completas ni las 24 pruebas anteriores del
+cliente interno. Cuatro capturas de revisión y confirmación a 1440/390 píxeles
+fueron inspeccionadas: conservaron Qadra, legibilidad y ausencia de desbordamiento
+horizontal. Las capturas iniciales preceden a la ampliación textual de la
+revisión; esa ampliación tiene su prueba focal posterior.
+
+La compilación web final aprobó en **4.276 s**; permanece el aviso de bundle
+mayor de 500 kB, sin fallo de compilación. Formato, ASCII, diff y límite de
+archivos aprobaron en los 21 archivos de código afectados, máximo 378 líneas.
+Se usaron temporales privados sobre disco y una sola suite local a la vez.
+La revisión final focal de recuperación no dejó hallazgos abiertos.
+
+Esta evidencia utiliza respuestas HTTP controladas: no acredita una nueva
+aceptación nativa, restauración, Agenda/Alertas ni despliegue. Esas comprobaciones,
+el manuscrito y los gates completos siguen pendientes para la entrega conjunta.
+El main anterior quedó confirmado separadamente con **3841 Rust, 644 mock y
+55 reales**, CI **674 s**, Web **1213 s**, Documents **77 s** y gates **98/95/93**;
+ese baseline no incluye el editor nuevo descrito aquí.
+
 ## Origen SQL del plazo derivado e inventario histórico: 4 de octubre de 2026
 
 La migración 0032 incorpora un origen inmutable para las revisiones iniciales

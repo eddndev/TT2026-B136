@@ -8,14 +8,19 @@
   } from './deadline-view-labels.mjs';
   import DeadlineTrace from './DeadlineTrace.svelte';
   export let calculation,
-    compact = false;
+    compact = false,
+    prospective = false;
   let traceOpen = false;
   $: result = calculation.result;
 </script>
 
 <section class="deadline-calculation" aria-label="Resultado del plazo">
   <div class="section-heading">
-    <h3>C&#225;lculo conservado en esta revisi&#243;n</h3>
+    <h3>
+      {prospective
+        ? 'C\u00e1lculo prospectivo, pendiente de registro'
+        : 'C\u00e1lculo conservado en esta revisi\u00f3n'}
+    </h3>
     <span class="badge" class:warning={result.blocks.length > 0} class:info={!!result.due_at}>
       {result.blocks.length ? 'C\u00e1lculo bloqueado' : 'Evaluado'}
     </span>
@@ -58,7 +63,10 @@
       <summary>Ver pasos del c&#243;mputo ({result.arithmetic.trace.length})</summary>
       {#if traceOpen}<DeadlineTrace trace={result.arithmetic.trace} />{/if}
     </details>{/if}
-  {#if !compact}<p class="hint">
+  {#if prospective}<p class="hint">
+      Esta revision no acredita una escritura ni un vencimiento operativo en Agenda o Alertas.
+    </p>
+  {:else if !compact}<p class="hint">
       Resultado conservado al registrar esta revisi&#243;n, junto con el perfil y las fuentes
       utilizadas.
     </p>{/if}

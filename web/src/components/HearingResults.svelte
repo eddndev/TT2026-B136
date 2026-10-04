@@ -2,6 +2,10 @@
   import { getContext, onDestroy } from 'svelte';
   import { pendingHearingDrafts, resultDraftIntent } from '../lib/hearing-draft.mjs';
   import HearingResultEditor from './HearingResultEditor.svelte';
+  import HearingDerivedDeadlineEditor from './HearingDerivedDeadlineEditor.svelte';
+  import HearingDerivedDeadlineConfirmation from './HearingDerivedDeadlineConfirmation.svelte';
+  import { pendingHearingDerivedDeadlineDrafts } from '../lib/hearing-derived-deadline-draft.mjs';
+  import { canDeadlines } from '../lib/deadline-errors.mjs';
   import HearingResultDetail from './HearingResultDetail.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { hearingResultTimeLabel } from '../lib/hearing-result-time.mjs';
@@ -23,6 +27,8 @@
     session = getContext('session-drafts');
   let savedDraft = null,
     drafts = pendingHearingDrafts(session, caseId, true, hearing.id);
+  let derivedDrafts = pendingHearingDerivedDeadlineDrafts(session, caseId, hearing.id),
+    compound = null;
   let expanded = false,
     rows = [],
     selected = null,
@@ -136,10 +142,25 @@
     action = next;
     editorKey++;
   }
+  function createDerived() {
+    if (pending || disabled || !manage || !canDeadlines(user.role, 'manage')) return;
+    savedDraft = derivedDrafts[0] ?? null;
+    action = 'derived';
+    compound = null;
+    editorKey++;
+  }
   async function resume(saved) {
     if (pending || disabled) return;
     opening = true;
     try {
+      if (saved.editorKind === 'hearing-derived-deadline') {
+        if (!alive || !session?.canAdmit() || !canDeadlines(user.role, 'manage')) return;
+        savedDraft = saved;
+        action = 'derived';
+        compound = null;
+        editorKey++;
+        return;
+      }
       editorBase = saved.resourceId ? await scoped.get(saved.resourceId) : null;
       if (!alive || !session?.canAdmit()) return;
       savedDraft = saved;
@@ -162,6 +183,12 @@
     action = null;
     savedDraft = null;
     drafts = pendingHearingDrafts(session, caseId, true, hearing.id);
+    derivedDrafts = pendingHearingDerivedDeadlineDrafts(session, caseId, hearing.id);
+  }
+  async function confirmedCompound(record) {
+    compound = record;
+    await confirmed(record.result, true);
+    if (alive) notice = 'Resultado y plazo guardados.';
   }
   async function confirmed(value, exact) {
     if (!alive) return;
@@ -219,6 +246,11 @@
           disabled={disabled || pending || !manage}
           onclick={() => edit('record')}>Registrar sesi&#243;n o acto</button
         >{/if}
+      {#if canManage && canDeadlines(user.role, 'manage')}<button
+          class="primary"
+          disabled={disabled || pending || !manage}
+          onclick={createDerived}>Registrar resultado y plazo</button
+        >{/if}
     </div>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}{#if notice}<p
         class="notice success"
@@ -226,7 +258,20 @@
       >
         {notice}
       </p>{/if}
-    {#if action}{#key editorKey}<HearingResultEditor
+    {#if compound}<HearingDerivedDeadlineConfirmation record={compound} />{/if}
+    {#if action === 'derived'}{#key editorKey}<HearingDerivedDeadlineEditor
+          {api}
+          {caseId}
+          {user}
+          {hearing}
+          {savedDraft}
+          {ondenied}
+          {disabled}
+          onconfirmed={confirmedCompound}
+          oncancel={closedEditor}
+          bind:pending={editorBusy}
+        />{/key}
+    {:else if action}{#key editorKey}<HearingResultEditor
           {api}
           {caseId}
           {user}
@@ -241,6 +286,11 @@
           oncancel={closedEditor}
           bind:pending={editorBusy}
         />{/key}{/if}
+    {#if !action}{#each derivedDrafts as saved (saved.key)}<button
+          class="secondary"
+          disabled={disabled || pending}
+          onclick={() => resume(saved)}>Recuperar resultado y plazo</button
+        >{/each}{/if}
     {#if !action}{#each drafts as saved (saved.key)}<button
           class="secondary"
           disabled={disabled || pending}

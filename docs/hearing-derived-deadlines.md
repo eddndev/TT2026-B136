@@ -7,8 +7,10 @@ un plazo configurado. El servicio de aplicación y el adaptador PostgreSQL tiene
 verificación focal, al igual que la adaptación HTTP y su composición en `serve`.
 Las 16 pruebas nuevas del contrato y una prueba de rutas de la API completa
 aprobaron en ejecuciones focales. El cliente interno de Qadra suma 24 casos Node
-verificados entre ejecuciones focales. Este documento no acredita
-integración en main, despliegue, interfaz Qadra ni aceptación completa del flujo.
+verificados entre ejecuciones focales. El editor de Qadra y su recuperación de
+sesión tienen verificación focal Node y navegador con HTTP controlado. Este
+documento no acredita integración en main, despliegue ni aceptación completa
+con servicios reales del flujo.
 [ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md) permanece **Proposed**.
 
 La operación registra un `HearingResult` mediante `record`, revisión inicial R1,
@@ -289,9 +291,42 @@ Los asistentes históricos conservan el estado de directorio `active` o
 puede confirmarse si su comando y huella caben en ese presupuesto: no se envía
 la revisión completa como cuerpo de confirmación.
 
-La interfaz de edición, el registro de borradores de sesión y la aceptación con
-navegador real de este flujo siguen pendientes. Este cliente interno no acredita
-que la acción ya esté disponible en Qadra ni desplegada.
+## Edición y recuperación en Qadra
+
+La vista de resultados de una audiencia ordinaria ofrece **Registrar resultado
+y plazo** a quien puede gestionar ambos registros. Mantiene la acción ordinaria
+de registrar sólo el resultado. La nueva acción conserva el ancla exacta de la
+audiencia y fija la fuente del plazo al resultado R1 propuesto, sin consultarlo
+como si ya existiera. Permite seleccionar un acuerdo de ese resultado, el perfil,
+responsable, calendario cuando corresponda y políticas de seguimiento.
+
+La revisión muestra ambos registros, el acuerdo elegido, inicio declarado con
+finalidad, precisión y desfase, cantidad, aplicabilidad, incidencia y condiciones
+con sus localizadores. Separa revisiones seleccionadas y cabezas observadas.
+Expone el cálculo prospectivo y sus bloqueos; requiere confirmación explícita
+antes de enviar el comando y su huella conjunta. La confirmación identifica
+el resultado y plazo R1 originales y su origen, sin adoptar cabezas posteriores.
+
+El borrador conserva declaraciones y entradas parciales bajo la identidad y
+expediente actuales. Al caducar la sesión, la reentrada del mismo usuario vuelve
+a autorizar el expediente y elimina la aprobación anterior. Una identidad
+distinta, denegación del expediente o cierre explícito descarta el borrador
+correspondiente. El soporte documental no disponible se retira sin borrar el
+resto de las declaraciones; su denegación específica no equivale a perder todo
+el expediente.
+
+Si el envío quedó incierto, se preservan el comando, las dos operaciones y la
+revisión enviada. La recuperación consulta explícitamente ese intento antes de
+cargar catálogos o soportes actuales. Un `replay` coincidente confirma la captura
+original. Un `ready` idéntico conserva la incertidumbre y permite un reenvío
+expreso si el expediente admite escritura; no demuestra que el envío anterior
+haya fallado. Una revisión distinta mantiene el conflicto sin cambiar identidades.
+El cierre del expediente bloquea un nuevo envío, pero conserva la conciliación
+autorizada del intento anterior. No hay reenvío automático.
+
+La aceptación completa con HTTP nativo, restauración y consumidores operativos
+permanece pendiente; las pruebas de interfaz con respuestas controladas no la
+sustituyen ni acreditan despliegue.
 
 ## Errores y alcance de la verificación
 
@@ -316,5 +351,5 @@ La prueba de composición verifica ambas rutas dentro de la API protegida y
 `Cache-Control: no-store`; utiliza puertos simulados y no acredita persistencia
 HTTP real. El [informe de verificación](verification-report.md) separa estas
 ejecuciones de las pruebas anteriores de aplicación y PostgreSQL. Permanecen
-pendientes Qadra, la aceptación completa con captura/restauración y los gates
+pendientes la aceptación completa con captura/restauración y los gates
 globales de esta entrega.
