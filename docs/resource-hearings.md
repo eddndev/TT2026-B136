@@ -16,12 +16,12 @@ y plazos. Su contrato está en [agenda](agenda-api.md). Qadra incorpora el filtr
 la tarjeta y una lectura exacta histórica dentro de Agenda. Qadra incorpora también el formulario de programación, la revisión explícita y
 la recuperación del envío incierto. Las alertas de proximidad propias tienen
 implementación local, con origen R1, preferencias de audiencias y panel histórico
-verificado; véase [su contrato](resource-hearing-alerts.md). La aceptación integrada
-continúa pendiente dentro de esta entrega. Las pruebas
+verificado; véase [su contrato](resource-hearing-alerts.md). La captura propia y su restauración HTTP tienen aceptación focal local, y el
+navegador real pasó en escritorio y móvil. El informe distingue el ajuste posterior
+del scheduler y los gates globales todavía pendientes. Las pruebas
 focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
 al final están aprobadas, incluido el rechazo tipado de evidencia persistida
-incompleta, las rutas propias y su composición. No se atribuyen aceptación
-integrada del recorrido, CI global ni despliegue.
+incompleta, las rutas propias y su composición. No se atribuyen CI global del conjunto, integración en main ni despliegue.
 
 La decisión está en [ADR-0069](adr/0069-resource-hearing-scheduling.md). Este
 contrato complementa los [recursos](procedural-resources-api.md) y sus
@@ -422,9 +422,11 @@ error no acredita esa clasificación. La comprobación reforzada aprobó 1/1
 en 5,66 s, después de reproducir el error. HTTP aprobó 10/10 en 0,04 s y
 composición 6/6 en 0,35 s, incluyendo cinco regresiones existentes.
 
-Agenda, Qadra y alertas propias tienen implementación local. El siguiente paso
-es cerrar la aceptación integrada propia de este recorrido, incluida restauración
-y navegador contra servicios reales. La asociación inicial ya pertenece a la creación
+Agenda, Qadra y alertas propias tienen implementación local. La aceptación propia compara capturas, fuentes y autores tras restaurar el
+respaldo, invalida sesiones y confirma los recibos con MFA nuevo. Qadra verificó
+la programación y conciliación real, Agenda y Alertas en escritorio y móvil.
+El siguiente paso son los gates globales de integración del conjunto; los cortes
+y límites están en el informe de verificación. La asociación inicial ya pertenece a la creación
 transaccional; el flujo genérico sólo vincula o desvincula audiencias existentes,
 sin crearlas. El soporte sólo puede ser
 uno ya admitido en el recurso o acto seleccionado: no se incorpora una citación

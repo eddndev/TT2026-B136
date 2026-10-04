@@ -88,6 +88,10 @@ migration_demo_state() {
         FROM alert_email_attempts a),
       'memberships',(SELECT jsonb_agg(to_jsonb(m) ORDER BY case_id,user_id) FROM case_memberships m)
     ) || jsonb_build_object(
+      'resource_hearings',(SELECT jsonb_agg(to_jsonb(h) ORDER BY id)
+        FROM case_resource_hearings h),
+      'resource_hearing_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY hearing_id,revision)
+        FROM case_resource_hearing_revisions h),
       'owner_certificate_registrations',(SELECT jsonb_agg(to_jsonb(r) ORDER BY binding_id)
         FROM owner_certificate_registrations r),
       'owner_certificate_withdrawals',(SELECT jsonb_agg(to_jsonb(w) ORDER BY binding_id)

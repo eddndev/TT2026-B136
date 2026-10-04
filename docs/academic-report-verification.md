@@ -1,5 +1,26 @@
 # Verificación de la actualización académica
 
+## Aceptación real de audiencias de recursos: 4 de octubre de 2026
+
+Se actualizaron implementación y pruebas con la verificación de origen dentro de
+una sola transacción, el timeout de bloqueo reproducido y corregido, y la
+aceptación focal de captura y restauración HTTP. Los dos recorridos reales de
+navegador se identifican como anteriores al ajuste posterior del scheduler;
+no se atribuyen gates globales ni despliegue.
+
+`make -C latex` aprobó. Una revisión documental precisó la aceptación local
+frente al cierre global pendiente y atribuyó la invalidación de sesiones al
+procedimiento previo al arranque; se recompiló. El PDF final tiene **386 páginas**,
+**5985302 bytes**, SHA-256
+`f0e62c4db780cd701bfa85fdc4a58d69d19e75d9d5ec81ffca7b39c666093534`.
+Se inspeccionaron las páginas físicas **217, 218, 268 y 269**: texto legible,
+continuación normal de párrafos, sin nuevos solapes o recortes. Se conservaron
+los hashes del resumen aprobado, introducción, marco teórico, conclusiones y
+PDF aceptado anterior. Persisten dos avisos históricos de caja horizontal y
+sustitución de versalitas Times; no hay glifos faltantes ni referencias sin resolver.
+El PDF permanece fuera del seguimiento Git.
+
+
 ## Alertas de audiencias propias de recursos: 4 de octubre de 2026
 
 Se actualizó implementación y pruebas para las notificaciones de proximidad

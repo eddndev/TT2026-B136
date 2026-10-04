@@ -7,11 +7,18 @@ resource_activities_demo_python() {
 }
 # shellcheck source=scripts/api-contextual-deadline-demo.sh
 source "$REPO_ROOT/scripts/api-contextual-deadline-demo.sh"
+resource_hearings_demo_python() {
+  TT_FACT_API_BASE_URL="$BASE_URL" TT_FACT_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_FACT_API_WORK_DIR="$WORK_DIR" TT_FACT_API_REPO="$REPO_ROOT" \
+    python3 -B "$REPO_ROOT/scripts/api-resource-hearings-demo.py" "$1"
+}
 resource_activities_demo() {
   resource_activities_demo_python capture
   contextual_deadline_demo capture
+  resource_hearings_demo_python capture
 }
 resource_activities_demo_restored() {
   resource_activities_demo_python restore
   contextual_deadline_demo restore
+  resource_hearings_demo_python restore
 }

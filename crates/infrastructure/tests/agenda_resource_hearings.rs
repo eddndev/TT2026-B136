@@ -14,6 +14,9 @@ use domain::{
 };
 use time::{Duration, OffsetDateTime};
 
+#[path = "agenda_resource_hearing_closure.rs"]
+mod closure;
+
 fn query(
     at: OffsetDateTime,
     limit: u32,

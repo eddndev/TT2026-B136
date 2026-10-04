@@ -1,5 +1,71 @@
 # Informe de verificación local
 
+## Aceptación real de audiencias de recursos y bloqueo de Agenda: 4 de octubre de 2026
+
+El recorrido propio tiene aceptación local focal, aún sin integración, despliegue
+o nueva medición global de cobertura. PostgreSQL 16.15, qpdf 12.4.1 y los
+analizadores multimedia fijados se reutilizaron; servicios desechables, un
+compilador, un worker y temporales privados sobre disco. No se habilitó correo.
+
+La primera campaña API compuesta se detuvo en **325.371 s** (build 41.15 s):
+tras crear las audiencias, comprobar permisos y cerrar el expediente, Agenda
+respondió 500. Una captura focal posterior completó los mismos controles propios.
+Su driver de diagnóstico falló después al serializar una secuencia como fila;
+se corrigió la consulta a `last_value` e `is_called`, conservando la base capturada.
+La comparación exacta de todas las tablas públicas y estados lógicos de secuencias
+aprobó tras `pg_dump`/`pg_restore`. La primera continuación HTTP reprodujo otro
+500 y el log PostgreSQL identificó `55P03`, timeout del bloqueo de auditoría.
+
+El muestreo de esa misma base identificó al generador de alertas reteniendo una
+transacción durante **1.361 s** mientras reconstruía repetidamente las fuentes
+propias; una consulta de Agenda agotó su presupuesto de un segundo. No era un
+error exclusivo del filtro combinado. La regresión determinista contó **65
+verificaciones RHCR1 frente a 5** al reconciliar seis planes conservados para
+los mismos tres destinatarios: falló 1/1 en 7.70 s antes de corregir.
+
+La planificación reutiliza ahora la evidencia propia validada dentro de esa
+misma transacción y coteja cada plan con ella. No cambia esperas, reintentos,
+criptografía, permisos ni catálogo. Los **dos casos nuevos aprobaron en 14.61 s**
+(compilación 14.11 s): el recuento vuelve a cinco, se conservan todos los planes,
+se rechazan ocho alteraciones con checksum coherente y se vuelve a validar el
+marcador en una transacción posterior. Las **tres regresiones de inventario e
+integridad aprobaron en 66.02 s**. La revisión independiente no encontró pérdida
+de controles; activación, lecturas y apertura mantienen la verificación completa.
+
+Después del build corregido de **16.14 s**, las cuatro consultas del diagnóstico
+sobre la base conservada aprobaron en **0.281, 0.198, 0.201 y 0.192 s**, sin el
+500 reproducido antes. Es una medición focal, no un porcentaje de mejora global.
+La continuación final de restauración aprobó en **41.265 s**, sin repetir captura
+ni build. Comparó el respaldo antes de iniciar el servidor, revocó sesiones,
+conservó controles de autenticación y obtuvo MFA nuevo. Verificó capturas exactas,
+autores, asociación inicial e historial desvinculado, replay de comandos sin
+duplicados, Agenda del expediente cerrado y la misma ocurrencia y recibo de alerta
+tras reiniciar. El cotejo comprende audiencias propias, asociaciones y origen
+auditable; no simula una caída eléctrica ni acredita restauración de producción.
+
+El navegador real aprobó **2/2 casos en 52.6 s**, 292.209 s con preparación y
+build caliente de 0.25 s, antes del ajuste posterior del scheduler. Recorrió
+escritorio de 1440 y móvil de 390 píxeles: programación, respuesta 201 perdida,
+conciliación sin segundo POST tras desvincular, Agenda, alerta y lectura explícita.
+La primera ejecución falló por una carrera del propio test: el encabezado de
+incertidumbre aparecía antes de acabar el POST y el cleanup revocaba la sesión.
+Esperar explícitamente la petición interceptada corrigió el test conservando
+aserciones y límites. Cuatro capturas visuales se inspeccionaron sin nuevos
+solapes ni desbordamiento horizontal. Las regresiones globales del revisionado
+final quedan para los gates de integración; no se atribuye ese navegador al
+binario posterior del scheduler.
+
+Clippy focal de infraestructura y su target de alertas aprobó con `-D warnings`
+en **5.61 s**. Formato Rust, ASCII, límite de fuentes y comprobación del diff
+aprobaron. Permanece el aviso anterior de compatibilidad futura de Redis 0.25.4.
+
+El helper de Agenda añadió la tercera familia con **6/6 pruebas Python en
+0.041 s**, después de fallar los seis casos. El plan de fixtures pasó **2/2 Node
+en 144.318 ms** tras reproducir la omisión del spec. Una regresión PostgreSQL de
+Agenda aprobó **1/1 en 13.49 s** (build 9.12 s), conservando dos autores y capturas
+tras actualizar participantes, desvincular, archivar y cerrar. Estos resultados
+no se suman como una suite global única ni actualizan denominadores históricos.
+
 ## Alertas de audiencias propias de recursos: 4 de octubre de 2026
 
 Implementación local, sin integración ni despliegue. Se añadió con TDD el sujeto
@@ -45,8 +111,8 @@ y HTTP en 13.49 s. Su primera pasada pidió expresar los tags contiguos como
 `0..=2`; se corrigió la notación sin cambiar el conjunto admitido. Se conservaron
 ASCII, límite de 400 líneas y formato.
 
-Persisten la aceptación propia API/restauración/navegador con servicios reales
-y los gates globales del conjunto antes de integrarlo. No se consultó nuevamente
+En este corte focal aún faltaban API/restauración/navegador reales. La aceptación
+posterior figura al inicio del informe; los gates globales siguen pendientes. No se consultó nuevamente
 Actions ni se activó correo operativo por estas pruebas focales.
 
 ## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026

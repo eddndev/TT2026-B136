@@ -98,7 +98,10 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   los filtros ordinarios. Qadra añade lectura histórica exacta desde esa agenda,
   conservando filtros y continuación. El formulario local prepara una revisión
   explícita, conserva fuentes históricas y recupera envíos inciertos con consulta
-  exacta y reenvío solicitado. Alertas y aceptación integrada siguen pendientes. Véase el
+  exacta y reenvío solicitado. Las alertas propias y su recuperación tras restaurar
+  tienen aceptación focal real; Qadra aprobó el recorrido a 1440 y 390 píxeles
+  antes del ajuste posterior del scheduler. Restan los gates globales de la
+  revisión final y su integración. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
@@ -994,13 +997,15 @@ Persisten la integración completa de las audiencias propias de recursos,
 agenda, alertas y Qadra, el corpus jurídico calificado y la activación automática
 durable de sus términos. El backend, el DTO de asociación, las consultas propias
 y el router de programación tienen implementación local según su
-[contrato](resource-hearings.md), incluida su composición de servidor; su aceptación
-integrada sigue pendiente, aún sin integración ni despliegue. Las pruebas focales
+[contrato](resource-hearings.md), incluida su composición de servidor. La captura y restauración propia tienen
+aceptación focal real, y el navegador conserva su corte anterior al ajuste del
+scheduler. Los gates globales del conjunto, integración y despliegue siguen pendientes. Las pruebas focales
 de lecturas de aplicación y PostgreSQL, evidencia incompleta y rutas propias ya
 aprobaron. Qadra incorpora programación explícita y recuperación del borrador;
 las alertas de proximidad propias tienen implementación local con persistencia,
-permisos, preferencias y lectura histórica en Qadra. Su aceptación real completa
-y la integración aún no se acreditan; véase [su contrato](resource-hearing-alerts.md).
+permisos, preferencias y lectura histórica en Qadra. La restauración conserva
+la misma ocurrencia y recibo; no se atribuye una campaña global del conjunto ni
+su integración; véase [su contrato](resource-hearing-alerts.md).
 Los resultados del corte se
 conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
