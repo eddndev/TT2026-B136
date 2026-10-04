@@ -316,6 +316,16 @@ Una prueba nueva reprodujo un defecto del segundo intento de recuperación de bo
 
 La compilación Web aprobó en 3.25 segundos. Las capturas de revisión y resultado en escritorio y móvil conservaron legibilidad y ausencia de desbordamiento horizontal. Sólo esos dos casos positivos se repitieron para retirar el foco antes de obtener las capturas; aprobaron en 12.6 segundos y no se contaron como casos adicionales. Se mantuvo la advertencia existente sobre tamaño del paquete Web, sin modificar su umbral.
 
+\subsection{Verificación focal de alertas de audiencias de recursos}\label{sec:pruebas-alertas-audiencias-recursos}
+
+El contrato de aplicación incorporó cuatro casos nuevos escritos antes de la variante de sujeto. Verifican identidad propia frente a UUID compartidos, origen inicial y motivo de proximidad, límites temporales exactos y conservación del recibo de lectura. Los cuatro y las dieciséis regresiones de la suite aprobaron. Tres comprobaciones HTTP nuevas y seis anteriores aprobaron proyección del recurso padre, captura e instante, lectura y rechazo cerrado de una revisión o motivo impropios.
+
+El cliente verificó seis casos nuevos y veintiséis anteriores. Una fixture de preferencias modificaba los valores iniciales sin recibo y fue rechazada correctamente; al representarla como revisión persistida con recibo y fecha, ese caso aprobó sin modificar el validador. Los treinta y dos casos distintos quedan acreditados por la campaña parcial y su corrección focal, no como dos regresiones completas.
+
+Cinco recorridos nuevos de navegador con HTTP controlado aprobaron en 16.9 segundos y once regresiones anteriores en 27.8 segundos, con un trabajador. Comprueban apertura histórica a 1440 y 390 píxeles, permiso retirado, huella discordante y descarte de una respuesta tardía tras cambiar filtros. La repetición de dos positivos en 10.2 segundos renovó únicamente las capturas visuales y no añade escenarios distintos. Se conserva la separación entre pruebas de cliente, persistencia real y aceptación integrada del producto; estos resultados no acreditan entrega externa de correo, una restauración completa, cobertura global ni despliegue.
+
+La verificación de persistencia empleó PostgreSQL 16.15 desechable. Quince casos distintos comprobaron columnas y permisos, parentesco exacto, preferencias, destinatarios, reinicio durante la paginación y ausencia de duplicados. Catorce aprobaron en la primera ejecución compilable; la simulación restante fue detenida por una restricción SQL antes de alcanzar el adaptador. Tras conservar una huella coherente con los bytes deliberadamente alterados, el caso comprobó el rechazo del origen reconstruido sin escrituras. Las veintiocho regresiones previas de alertas aprobaron en 200.15 segundos, sin repetir los quince casos nuevos. Tres pruebas adicionales conservaron la representación de las familias anteriores y rechazaron padres malformados. Las pruebas de reapertura e inventario no sustituyen la aceptación completa de respaldo y restauración.
+
 \input{chapters/05-miembros}
 
 \input{chapters/05-sesiones}

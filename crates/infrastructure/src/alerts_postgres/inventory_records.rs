@@ -33,7 +33,7 @@ pub(super) fn schedule(
     }
     let state = tx
         .query_opt(
-            "SELECT generation,case_id FROM alert_subject_state WHERE kind=$1 AND id=$2",
+            "SELECT generation,case_id,resource_id FROM alert_subject_state WHERE kind=$1 AND id=$2",
             &[&kind, &id],
         )
         .map_err(port)?
@@ -42,6 +42,10 @@ pub(super) fn schedule(
         > state.try_get::<_, i64>("generation").map_err(stored)?
         || state.try_get::<_, Uuid>("case_id").map_err(stored)?
             != scheduled.subject.case_id().as_uuid()
+        || state
+            .try_get::<_, Option<Uuid>>("resource_id")
+            .map_err(stored)?
+            != codec::resource_id(scheduled.subject)
     {
         return Err(stored("schedule generation differs"));
     }

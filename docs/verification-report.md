@@ -1,5 +1,54 @@
 # Informe de verificación local
 
+## Alertas de audiencias propias de recursos: 4 de octubre de 2026
+
+Implementación local, sin integración ni despliegue. Se añadió con TDD el sujeto
+propio, su proyección HTTP, persistencia y panel histórico de Qadra. La revisión
+independiente focal de origen/estado y límites de la interfaz no encontró defectos
+concretos; no sustituye la aceptación integrada pendiente.
+
+Aplicación aprobó **20/20** casos (cuatro nuevos y dieciséis regresiones), y HTTP
+**9/9** (tres nuevos y seis anteriores). Los RED iniciales documentaron la variante
+y el brazo de proyección ausentes. Ningún caso modificó límites de tiempo,
+criptografía o reglas jurídicas.
+
+PostgreSQL 16.15 ejecutó **quince casos nuevos distintos** con servicios desechables:
+seis de migración, permisos y restricciones; seis de preferencias, destinatarios,
+reinicio, cursores y ausencia de duplicados; tres de inventario corrupto. La primera
+campaña compilable aprobó catorce en 157.87 s y falló en la preparación del daño:
+el CHECK SQL impedía cambiar sólo el digest. Se modificó exclusivamente esa
+simulación para alterar bytes y recalcular su checksum; el caso restante aprobó
+**1/1 en 14.58 s**, conservando las exigencias de rechazo y ausencia de escrituras.
+Tres pruebas unitarias adicionales del codec aprobaron en menos de 0.01 s
+(compilación de 12.25 s): conservaron literalmente los bytes de las familias
+anteriores y rechazaron padre ausente, no canónico o con aridad incorrecta.
+Antes se corrigieron dos imports faltantes de traits en los tests. Los clusters
+se retiraron después de cada ejecución. Reapertura e inventario no equivalen a
+una campaña completa de `pg_dump`/`pg_restore`.
+Las **28 regresiones PostgreSQL anteriores aprobaron en 200.15 s**, sin repetir
+los quince casos nuevos. Cubren permisos heredados, inventario, destinatarios,
+reprogramación, lecturas y estados de entrega con proveedor simulado.
+
+El cliente comprobó **32 casos Node distintos**: seis nuevos y veintiséis previos.
+La primera ejecución aprobó 31 en 282.294 ms; una fixture de preferencias tenía
+valores personalizados con revisión cero. Corregirla a una revisión persistida,
+sin cambiar el validador, hizo aprobar el caso restante en 189.576 ms. No se
+presenta la suma como una ejecución única de 32 casos. El navegador aprobó
+**5/5 casos nuevos en 16.9 s** y **11/11 regresiones en 27.8 s**, con HTTP controlado
+y un worker. Dos positivos se repitieron exclusivamente para capturas a 1440 y
+390 píxeles, inspeccionadas sin solapes ni desbordamiento horizontal; no cuentan
+como escenarios adicionales. El build Web aprobó en **3.23 s**, con el aviso
+anterior de bundle mayor de 500 kB.
+
+Clippy focal con `-D warnings` aprobó aplicación/infraestructura en 5.93 s
+y HTTP en 13.49 s. Su primera pasada pidió expresar los tags contiguos como
+`0..=2`; se corrigió la notación sin cambiar el conjunto admitido. Se conservaron
+ASCII, límite de 400 líneas y formato.
+
+Persisten la aceptación propia API/restauración/navegador con servicios reales
+y los gates globales del conjunto antes de integrarlo. No se consultó nuevamente
+Actions ni se activó correo operativo por estas pruebas focales.
+
 ## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026
 
 El cliente de preparación, envío, recuperación y listado se desarrolló con TDD.

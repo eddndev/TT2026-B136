@@ -18,6 +18,8 @@ pub(crate) const MIGRATIONS: &[&str] = &[
     include_str!("../../../../migrations/0021_alert_tables.sql"),
     include_str!("../../../../migrations/0021_alert_guards.sql"),
 ];
+pub(crate) const RESOURCE_HEARING_MIGRATION: &str =
+    include_str!("../../../../migrations/0031_resource_hearing_alerts.sql");
 const TABLES: [&str; 8] = [
     "alert_preferences",
     "alert_subject_state",

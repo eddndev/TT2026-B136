@@ -6,6 +6,7 @@ import {
 } from './procedural-fact-primitives.mjs';
 import {
   resourceHearingUuid as uuid,
+  resourceHearingDigest as digest,
   resourceHearingOverview,
 } from './resource-hearing-values.mjs';
 import {
@@ -16,6 +17,7 @@ import {
 import { resourceHearingActor } from './resource-hearing-capture.mjs';
 import { resourceHearingCommand, resourceHearingBudget } from './resource-hearing-command.mjs';
 import { resourceHearingPrepared } from './resource-hearing-prepared.mjs';
+import { alertInstant } from './alerts-primitives.mjs';
 
 export function resourceHearingsApi(request, caseId, resourceId) {
   uuid(caseId);
@@ -58,6 +60,41 @@ export function resourceHearingsApi(request, caseId, resourceId) {
         await call(`/${selected.id}/revisions/${selected.revision}`),
         selected,
       );
+    },
+    async fromAlert(raw) {
+      assertActive();
+      const selected = structuredClone(raw);
+      object(selected.subject, ['kind', 'case_id', 'resource_id', 'id']);
+      const subject = selected.subject;
+      if (subject.kind !== 'resource_hearing') invalid();
+      uuid(subject.case_id);
+      uuid(subject.resource_id);
+      uuid(subject.id);
+      scope(subject);
+      object(selected.origin, ['revision', 'evidence_digest']);
+      if (selected.origin.revision !== 1) invalid();
+      digest(selected.origin.evidence_digest);
+      object(selected.kind, ['kind', 'lead_hours', 'activity_at']);
+      if (
+        selected.kind.kind !== 'upcoming' ||
+        !Number.isInteger(selected.kind.lead_hours) ||
+        selected.kind.lead_hours < 1 ||
+        selected.kind.lead_hours > 720
+      )
+        invalid();
+      const at = alertInstant(selected.kind.activity_at);
+      const value = await call(`/${subject.id}/revisions/1`);
+      resourceHearingCreationScope(value, caseId, resourceId);
+      const hearing = value.hearing;
+      if (
+        hearing.id !== subject.id ||
+        hearing.revision !== selected.origin.revision ||
+        hearing.capture_digest !== selected.origin.evidence_digest ||
+        Date.parse(hearing.values.scheduled_at) / 1000 !== at.unix_seconds ||
+        at.nanosecond !== 0
+      )
+        invalid('La captura de audiencia no corresponde al origen y la fecha del aviso.');
+      return value;
     },
     async prepare(raw, principal) {
       assertActive();

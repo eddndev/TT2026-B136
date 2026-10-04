@@ -101,6 +101,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::resource_hearing_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    transaction
+        .batch_execute(crate::alert_schema::RESOURCE_HEARING_MIGRATION)
+        .map_err(port_error)?;
     crate::password_reset_schema::validate_schema(&mut transaction)?;
     crate::password_reset_schema::validate_inventory(&mut transaction)?;
     crate::owner_certificate_schema::validate_schema(&mut transaction)?;

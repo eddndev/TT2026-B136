@@ -142,7 +142,7 @@ Cada objeto `alert` contiene:
 | Campo | Contenido |
 | --- | --- |
 | `id`, `recipient_id`, `occurrence_id` | Identidad de alerta, cuenta destinataria y ocurrencia. |
-| `subject` | `{kind,case_id,id}`; `kind` es `hearing` o `deadline`. |
+| `subject` | `{kind,case_id,id}` para `hearing` o `deadline`; `resource_hearing` añade `resource_id` obligatorio. |
 | `subject_title`, `case_title`, `case_reference` | Contexto capturado; límites de 200, 200 y 100 escalares Unicode. Texto no vacío, sin controles y sin espacios sobrantes en los extremos. |
 | `kind` | Uno de los cuatro motivos descritos abajo. |
 | `origin` | `{revision,evidence_digest}`; revisión exacta y SHA-256 hexadecimal minúscula de 64 caracteres. |
@@ -158,7 +158,11 @@ Cada objeto `alert` contiene:
 | `review_required` | Ninguna fecha: revisión humana requerida de un plazo. |
 | `due_changed_soon` | `previous_due_at`, `current_due_at`: transición comprobada de fecha próxima de un plazo. |
 
-Sólo `upcoming` admite audiencias. Las fechas y la evidencia pertenecen a la
+Sólo `upcoming` admite audiencias ordinarias y propias de recursos. Estas últimas
+conservan origen R1 y `capture_digest`, y usan las preferencias `hearing_upcoming`.
+El contrato de su ampliación local está en [alertas de audiencias de recursos](resource-hearing-alerts.md).
+
+ Las fechas y la evidencia pertenecen a la
 generación del aviso; `active`, `accepted` en correo y un título capturado no
 acreditan vigencia operativa actual. La huella conserva la referencia de origen;
 su forma no constituye una verificación criptográfica hecha por el navegador.

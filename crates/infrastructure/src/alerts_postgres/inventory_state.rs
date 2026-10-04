@@ -1,4 +1,4 @@
-use super::super::{codec, invalidate, port, stored};
+use super::super::{codec, invalidate, port, resource_hearing, stored};
 use application::{
     alerts::*,
     deadlines::{DeadlineAttention, DeadlineRevision},
@@ -15,20 +15,35 @@ pub(super) fn root(
     kind: i16,
     id: Uuid,
     case: Uuid,
+    resource: Option<Uuid>,
 ) -> Result<AlertSubject, ApplicationError> {
     let table = match kind {
         0 => "case_hearings",
         1 => "case_deadlines",
+        2 => "case_resource_hearings",
         _ => return Err(stored("invalid alert subject family")),
     };
+    let projection = if kind == 2 {
+        "resource_id"
+    } else {
+        "NULL::uuid AS resource_id"
+    };
     let row = tx
-        .query_opt(&format!("SELECT case_id FROM {table} WHERE id=$1"), &[&id])
+        .query_opt(
+            &format!("SELECT case_id,{projection} FROM {table} WHERE id=$1"),
+            &[&id],
+        )
         .map_err(port)?
         .ok_or_else(|| stored("alert subject root absent"))?;
-    if row.try_get::<_, Uuid>("case_id").map_err(stored)? != case {
+    if row.try_get::<_, Uuid>("case_id").map_err(stored)? != case
+        || row
+            .try_get::<_, Option<Uuid>>("resource_id")
+            .map_err(stored)?
+            != resource
+    {
         return Err(stored("alert subject belongs to another case"));
     }
-    codec::read_subject(&json!([kind, case, id]))
+    codec::projected_subject(kind, case, id, resource)
 }
 pub(super) fn validate(
     tx: &mut Transaction<'_>,
@@ -38,7 +53,13 @@ pub(super) fn validate(
     let kind: i16 = row.try_get("kind").map_err(stored)?;
     let id: Uuid = row.try_get("id").map_err(stored)?;
     let case: Uuid = row.try_get("case_id").map_err(stored)?;
-    let target = root(tx, kind, id, case)?;
+    let target = root(
+        tx,
+        kind,
+        id,
+        case,
+        row.try_get("resource_id").map_err(stored)?,
+    )?;
     if row.try_get::<_, i64>("generation").map_err(stored)? < 1 {
         return Err(stored("invalid alert state generation"));
     }
@@ -96,6 +117,22 @@ pub(super) fn validate(
                 Some(detail.definition.responsible),
                 matches!(detail.attention, DeadlineAttention::Pending),
             )
+        }
+        AlertSubject::ResourceHearing { .. } => {
+            let detail = resource_hearing::detail(tx, target, hasher)?;
+            let captured_due = Some(detail.review.command.values.scheduled_at().utc());
+            if origin.revision != 1
+                || due != captured_due
+                || review
+                || attention
+                || responsible.is_some()
+                || !value["changed_episode"].is_null()
+            {
+                return Err(stored(
+                    "resource hearing state has unsupported origin or attributes",
+                ));
+            }
+            (detail.capture_digest, captured_due, None, false)
         }
     };
     if digest != origin.evidence_digest
@@ -155,7 +192,7 @@ pub(super) fn cursor(tx: &mut Transaction<'_>) -> Result<(), ApplicationError> {
         return Err(stored("invalid alert scan counter"));
     }
     let kind: i16 = row.try_get("kind").map_err(stored)?;
-    if !matches!(kind, 0 | 1) {
+    if !matches!(kind, 0..=2) {
         return Err(stored("invalid scan family"));
     }
     let id: Option<Uuid> = row.try_get("id").map_err(stored)?;
@@ -198,6 +235,7 @@ fn cursor_root(tx: &mut Transaction<'_>, kind: i16, id: Uuid) -> Result<(), Appl
     let table = match kind {
         0 => "case_hearings",
         1 => "case_deadlines",
+        2 => "case_resource_hearings",
         _ => return Err(stored("invalid scan subject family")),
     };
     if tx

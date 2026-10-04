@@ -69,7 +69,7 @@ pub(super) fn plans(
     let mut result = Vec::new();
     let (family, id) = codec::subject_key(current.subject);
     let prefix = format!("v1:{family}:{id}");
-    let upcoming = if family == 0 {
+    let upcoming = if family != 1 {
         &prefs.hearing_upcoming
     } else {
         &prefs.deadline_upcoming
@@ -170,7 +170,7 @@ pub(super) fn channels(
 ) -> AlertChannels {
     match kind {
         AlertKind::Upcoming { lead_hours, .. } => {
-            let family = if matches!(subject, AlertSubject::Hearing { .. }) {
+            let family = if !matches!(subject, AlertSubject::Deadline { .. }) {
                 &prefs.hearing_upcoming
             } else {
                 &prefs.deadline_upcoming

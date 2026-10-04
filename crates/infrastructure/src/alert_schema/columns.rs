@@ -21,6 +21,7 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("dirty", "boolean", true),
             ("payload", "bytea", true),
             ("payload_digest", "bytea", true),
+            ("resource_id", "uuid", false),
         ],
         "alert_scan_cursor" => &[
             ("singleton", "boolean", true),
@@ -47,6 +48,7 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("generation", "bigint", true),
             ("payload", "bytea", true),
             ("payload_digest", "bytea", true),
+            ("resource_id", "uuid", false),
         ],
         "alert_notifications" => &[
             ("id", "uuid", true),
@@ -65,6 +67,7 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("resolved_seconds", "bigint", false),
             ("resolved_nanos", "integer", false),
             ("resolved_reason", "text", false),
+            ("resource_id", "uuid", false),
         ],
         "alert_read_receipts" => &[
             ("operation_id", "uuid", true),

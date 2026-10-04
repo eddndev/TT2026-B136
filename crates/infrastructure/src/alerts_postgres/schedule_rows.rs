@@ -50,6 +50,10 @@ pub(super) fn decode(
         || row.try_get::<_, i16>("kind").map_err(stored)? != kind
         || row.try_get::<_, Uuid>("subject_id").map_err(stored)? != id
         || row.try_get::<_, Uuid>("case_id").map_err(stored)? != subject.case_id().as_uuid()
+        || row
+            .try_get::<_, Option<Uuid>>("resource_id")
+            .map_err(stored)?
+            != codec::resource_id(subject)
         || row.try_get::<_, Uuid>("recipient").map_err(stored)? != recipient.as_uuid()
         || row.try_get::<_, Uuid>("occurrence_id").map_err(stored)? != plan.occurrence
         || row.try_get::<_, String>("occurrence_key").map_err(stored)? != plan.key
@@ -116,8 +120,8 @@ pub(super) fn insert_record(
     let (kind, subject_id) = codec::subject_key(record.subject);
     tx.execute(
         "INSERT INTO alert_notifications(id,schedule_id,recipient,kind,subject_id,case_id,
-        created_seconds,created_nanos,internal_enabled,payload,payload_digest)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+        created_seconds,created_nanos,internal_enabled,payload,payload_digest,resource_id)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
         &[
             &record.id.as_uuid(),
             &row.id,
@@ -130,6 +134,7 @@ pub(super) fn insert_record(
             &row.plan.channels.internal,
             &bytes,
             &digest,
+            &codec::resource_id(record.subject),
         ],
     )
     .map_err(port)?;

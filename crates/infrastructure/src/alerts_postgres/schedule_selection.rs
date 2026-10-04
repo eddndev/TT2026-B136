@@ -1,7 +1,6 @@
 use super::{codec, port, stored};
 use application::{alerts::AlertSubject, ApplicationError};
 use postgres::Transaction;
-use serde_json::json;
 use time::{Duration, OffsetDateTime};
 use uuid::Uuid;
 
@@ -23,14 +22,19 @@ pub(super) fn next(
     if let (Some(kind), Some(id)) = (active_kind, active_id) {
         let row = tx
             .query_opt(
-                "SELECT case_id FROM alert_subject_state WHERE kind=$1 AND id=$2",
+                "SELECT case_id,resource_id FROM alert_subject_state WHERE kind=$1 AND id=$2",
                 &[&kind, &id],
             )
             .map_err(port)?
             .ok_or_else(|| stored("active alert scan subject is missing"))?;
         let case: Uuid = row.try_get("case_id").map_err(stored)?;
         return Ok(Some(Selection {
-            subject: codec::read_subject(&json!([kind, case, id]))?,
+            subject: codec::projected_subject(
+                kind,
+                case,
+                id,
+                row.try_get("resource_id").map_err(stored)?,
+            )?,
             after_recipient: cursor.try_get("after_recipient").map_err(stored)?,
         }));
     }
@@ -39,7 +43,7 @@ pub(super) fn next(
     }
     let dirty = tx
         .query_opt(
-            "SELECT kind,id,case_id FROM alert_subject_state WHERE dirty ORDER BY kind,id LIMIT 1",
+            "SELECT kind,id,case_id,resource_id FROM alert_subject_state WHERE dirty ORDER BY kind,id LIMIT 1",
             &[],
         )
         .map_err(port)?;
@@ -54,8 +58,9 @@ pub(super) fn next(
         let row = tx
             .query_opt(
                 "SELECT * FROM (
-            SELECT 0::smallint AS kind,id,case_id FROM case_hearings
-            UNION ALL SELECT 1::smallint AS kind,id,case_id FROM case_deadlines) roots
+            SELECT 0::smallint AS kind,id,case_id,NULL::uuid AS resource_id FROM case_hearings
+            UNION ALL SELECT 1::smallint AS kind,id,case_id,NULL::uuid FROM case_deadlines
+            UNION ALL SELECT 2::smallint AS kind,id,case_id,resource_id FROM case_resource_hearings) roots
             WHERE kind>$1 OR (kind=$1 AND ($2::uuid IS NULL OR id>$2))
             ORDER BY kind,id LIMIT 1",
                 &[&kind, &id],
@@ -84,7 +89,8 @@ pub(super) fn next(
     let kind: i16 = row.try_get("kind").map_err(stored)?;
     let id: Uuid = row.try_get("id").map_err(stored)?;
     let case: Uuid = row.try_get("case_id").map_err(stored)?;
-    let subject = codec::read_subject(&json!([kind, case, id]))?;
+    let subject =
+        codec::projected_subject(kind, case, id, row.try_get("resource_id").map_err(stored)?)?;
     tx.execute("UPDATE alert_scan_cursor SET active_kind=$1,active_id=$2,after_recipient=NULL WHERE singleton", &[&kind,&id]).map_err(port)?;
     Ok(Some(Selection {
         subject,

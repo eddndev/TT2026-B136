@@ -153,6 +153,23 @@ acredita aceptación HTTP integrada, agenda, alertas o Qadra. Véanse
 [el contrato](resource-hearings.md) y el
 [informe de verificación](verification-report.md).
 
+### Alertas de audiencias propias
+
+La migración local `0031_resource_hearing_alerts.sql` se aplica después de `0030_`.
+Añade `resource_id` a estado, programación y notificaciones: debe ser nulo para
+las dos familias anteriores y obligatorio para `kind=2`. Las claves compuestas
+ligan la audiencia al expediente/recurso exactos y las proyecciones a ese estado.
+No convierte avisos anteriores ni cambia sus payloads o claves de ocurrencia.
+El rol runtime puede seleccionar e insertar el padre; no modificarlo.
+
+Al restaurar se requieren también captura, asociación R1, origen auditado y todas
+sus dependencias. Abrir el store valida esquema, permisos e inventario antes de
+admitir trabajo. Un padre o digest cambiado, una asociación inicial ausente o un
+origen no conciliable producen rechazo, sin reparación automática. Los reinicios
+del consumidor conservan el cursor y los recibos sin duplicar avisos. Esta
+ampliación local aún necesita aceptación propia de respaldo/restauración y cierre
+de CI; no habilita correo operativo. Véase [el contrato](resource-hearing-alerts.md).
+
 ## Contenido e incidentes de integridad
 
 `database migrate --runtime-role` instala `0024_document_integrity.sql` sin

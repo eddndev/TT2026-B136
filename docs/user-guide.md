@@ -337,8 +337,11 @@ Prepara, revisa las capturas y reconoce la programación antes de confirmar.
 Si el registro cambió, compara y acepta la base actual; no se reemplazan tus
 fuentes históricas. Si el envío quedó incierto, consulta su resultado antes de
 solicitar un reenvío exacto. La lista propia conserva la audiencia incluso si
-su vínculo se retira. Las alertas propias y la aceptación completa de este
-recorrido siguen pendientes; también la activación jurídica automática de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
+su vínculo se retira. Sus alertas de proximidad también tienen implementación
+local: usan las preferencias de audiencias y permiten abrir la captura original
+desde **Mis alertas**, conservando expediente, recurso y fecha. Retirar el vínculo
+no cancela la cita ni borra el aviso histórico. La aceptación completa de este
+recorrido sigue pendiente; también la activación jurídica automática de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
 [plazos desde recursos](resource-deadlines-api.md) y
 [navegación desde actividades](activity-resource-links-api.md).
 

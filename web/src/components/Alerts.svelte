@@ -3,6 +3,7 @@
   import Icon from './Icon.svelte';
   import AlertCard from './AlertCard.svelte';
   import AlertPreferences from './AlertPreferences.svelte';
+  import ResourceHearingDetail from './ResourceHearingDetail.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
   import { alertFailure, alertTimeLabel } from '../lib/alerts-presentation.mjs';
   import { alertKey, compareAlertKeys } from '../lib/alerts-primitives.mjs';
@@ -30,9 +31,39 @@
     loaded = false,
     generation = 0,
     openGeneration = 0;
+  let ownDetail = null,
+    ownCase = null,
+    ownClient = null,
+    detailTrigger = null;
+  const principal = () => (session ? session.principal() : user);
+  const admitted = () => alive && !denied && (!session || session.canAdmit());
+  function currentOpen(request, list, actor) {
+    const current = principal();
+    return (
+      admitted() &&
+      request === openGeneration &&
+      list === generation &&
+      current?.id === actor?.id &&
+      current?.email === actor?.email &&
+      current?.role === actor?.role
+    );
+  }
+  function invalidateDetail() {
+    openGeneration++;
+    ownClient?.dispose();
+    ownClient = null;
+    ownDetail = null;
+    ownCase = null;
+    opening = false;
+  }
+  function closeDetail() {
+    invalidateDetail();
+    detailTrigger?.focus();
+    detailTrigger = null;
+  }
   function deny(failure, row) {
     generation++;
-    openGeneration++;
+    invalidateDetail();
     busy = false;
     opening = false;
     error = alertFailure(failure);
@@ -47,7 +78,7 @@
   async function load(append = false) {
     if (denied || (append && (!more || busy))) return;
     const request = ++generation;
-    openGeneration++;
+    invalidateDetail();
     opening = false;
     busy = true;
     error = '';
@@ -91,6 +122,7 @@
   function recorded(row, at) {
     if (!alive) return;
     generation++;
+    invalidateDetail();
     busy = false;
     rows = rows
       .map((value) => (value.id === row.id ? row : value))
@@ -99,30 +131,47 @@
     notice = 'Estado de lectura actualizado.';
   }
   async function open(row) {
-    if (busy || opening || denied) return;
-    const request = ++openGeneration;
+    if (busy || opening || !admitted()) return;
+    invalidateDetail();
+    detailTrigger = document.activeElement;
+    const request = ++openGeneration,
+      list = generation,
+      actor = { ...principal() };
     opening = true;
     error = '';
     let administration;
     try {
       const detail = await scoped.get(row.id);
-      if (!alive || request !== openGeneration) return;
+      if (!currentOpen(request, list, actor)) return;
       const captured = detail.alert;
       administration = api.caseAdministration(captured.subject.case_id);
       const record = await administration.get();
-      if (!alive || request !== openGeneration) return;
+      if (!currentOpen(request, list, actor)) return;
       if (record.id !== captured.subject.case_id)
         throw new Error('El expediente no corresponde a esta alerta.');
       const subject = captured.subject;
-      onopen(basicCase(record), {
-        kind: subject.kind,
-        case_id: subject.case_id,
-        revision: captured.origin.revision,
-        ...(subject.kind === 'hearing' ? { hearing_id: subject.id } : { deadline_id: subject.id }),
-      });
+      if (subject.kind === 'resource_hearing') {
+        const client = api.caseResourceHearings(subject.case_id, subject.resource_id);
+        ownClient = client;
+        const creation = await client.fromAlert(captured);
+        if (!currentOpen(request, list, actor)) return;
+        ownCase = basicCase(record);
+        ownDetail = creation;
+      } else {
+        onopen(basicCase(record), {
+          kind: subject.kind,
+          case_id: subject.case_id,
+          revision: captured.origin.revision,
+          ...(subject.kind === 'hearing'
+            ? { hearing_id: subject.id }
+            : { deadline_id: subject.id }),
+        });
+      }
     } catch (failure) {
-      if (alive && request === openGeneration) {
+      if (currentOpen(request, list, actor)) {
         error = alertFailure(failure);
+        ownClient?.dispose();
+        ownClient = null;
         if ([403, 404].includes(failure.status)) deny(failure, row);
       }
     } finally {
@@ -134,7 +183,7 @@
   onDestroy(() => {
     alive = false;
     generation++;
-    openGeneration++;
+    invalidateDetail();
     scoped.dispose();
   });
 </script>
@@ -177,6 +226,11 @@
       }}
     />{/if}
   {#if !denied}
+    {#if ownDetail}<ResourceHearingDetail
+        value={ownDetail}
+        caseRecord={ownCase}
+        onclose={closeDetail}
+      />{/if}
     <section class="card alerts-query" aria-label="Consulta de alertas">
       <form class="alerts-filters" onsubmit={apply}>
         <label

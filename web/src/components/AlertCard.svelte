@@ -118,7 +118,11 @@
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <div class="action-row alert-actions">
     <button class="secondary" disabled={disabled || busy} onclick={() => onopen(row)}>
-      {row.subject.kind === 'hearing' ? 'Abrir audiencia' : 'Abrir plazo'}
+      {row.subject.kind === 'resource_hearing'
+        ? 'Abrir audiencia de recurso'
+        : row.subject.kind === 'hearing'
+          ? 'Abrir audiencia'
+          : 'Abrir plazo'}
     </button>
     {#if row.read_at === null}
       {#if uncertain}<button class="secondary" disabled={disabled || busy} onclick={checkRead}

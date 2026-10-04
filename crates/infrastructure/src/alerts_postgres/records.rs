@@ -47,6 +47,10 @@ pub(super) fn decode(
         || row.try_get::<_, i16>("kind").map_err(stored)? != kind
         || row.try_get::<_, Uuid>("subject_id").map_err(stored)? != id
         || row.try_get::<_, Uuid>("case_id").map_err(stored)? != result.subject.case_id().as_uuid()
+        || row
+            .try_get::<_, Option<Uuid>>("resource_id")
+            .map_err(stored)?
+            != codec::resource_id(result.subject)
         || codec::row_time(row, "created_seconds", "created_nanos")? != Some(result.created_at)
     {
         return Err(stored("alert index projection differs"));

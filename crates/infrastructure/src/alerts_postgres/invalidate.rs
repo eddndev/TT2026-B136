@@ -15,13 +15,18 @@ pub(crate) fn invalidate(
 ) -> Result<(), ApplicationError> {
     let (kind, id) = codec::subject_key(subject);
     let (bytes, digest) = codec::payload(&initial(), hasher)?;
-    tx.execute(
-        "INSERT INTO alert_subject_state(kind,id,case_id,generation,dirty,payload,payload_digest)
-        VALUES($1,$2,$3,1,true,$4,$5) ON CONFLICT(kind,id) DO UPDATE
-        SET generation=alert_subject_state.generation+1,dirty=true",
-        &[&kind, &id, &subject.case_id().as_uuid(), &bytes, &digest],
+    let changed = tx.execute(
+        "INSERT INTO alert_subject_state(kind,id,case_id,generation,dirty,payload,payload_digest,resource_id)
+        VALUES($1,$2,$3,1,true,$4,$5,$6) ON CONFLICT(kind,id) DO UPDATE
+        SET generation=alert_subject_state.generation+1,dirty=true
+        WHERE alert_subject_state.case_id=EXCLUDED.case_id
+        AND alert_subject_state.resource_id IS NOT DISTINCT FROM EXCLUDED.resource_id",
+        &[&kind, &id, &subject.case_id().as_uuid(), &bytes, &digest, &codec::resource_id(subject)],
     )
     .map_err(port)?;
+    if changed != 1 {
+        return Err(stored("alert invalidation parent differs"));
+    }
     Ok(())
 }
 

@@ -4,6 +4,8 @@ use domain::{
     alerts::AlertLeadHours,
     cases::CaseId,
     crypto::{DocumentHasher, Sha256Digest},
+    procedural_resources::ResourceId,
+    resource_hearings::ResourceHearingId,
 };
 use postgres::Row;
 use serde_json::{json, Value};
@@ -112,18 +114,47 @@ pub(super) fn row_time(
 }
 pub(super) fn subject(value: AlertSubject) -> Value {
     let (kind, id) = subject_key(value);
-    json!([kind, value.case_id().as_uuid(), id])
+    match resource_id(value) {
+        Some(resource) => json!([kind, value.case_id().as_uuid(), id, resource]),
+        None => json!([kind, value.case_id().as_uuid(), id]),
+    }
 }
 pub(super) fn subject_key(value: AlertSubject) -> (i16, Uuid) {
     match value {
         AlertSubject::Hearing { id, .. } => (0, id.as_uuid()),
         AlertSubject::Deadline { id, .. } => (1, id.as_uuid()),
+        AlertSubject::ResourceHearing { id, .. } => (2, id.as_uuid()),
+    }
+}
+pub(super) fn resource_id(value: AlertSubject) -> Option<Uuid> {
+    match value {
+        AlertSubject::ResourceHearing { resource_id, .. } => Some(resource_id.as_uuid()),
+        _ => None,
+    }
+}
+pub(super) fn projected_subject(
+    kind: i16,
+    case: Uuid,
+    id: Uuid,
+    resource: Option<Uuid>,
+) -> Result<AlertSubject, ApplicationError> {
+    match (kind, resource) {
+        (2, Some(resource)) => read_subject(&json!([kind, case, id, resource])),
+        (0 | 1, None) => read_subject(&json!([kind, case, id])),
+        _ => Err(stored("alert subject parent shape differs")),
     }
 }
 pub(super) fn read_subject(value: &Value) -> Result<AlertSubject, ApplicationError> {
+    let parts = value
+        .as_array()
+        .ok_or_else(|| stored("invalid alert subject"))?;
+    let tag = integer(&value[0])?;
+    if parts.len() != if tag == 2 { 4 } else { 3 } {
+        return Err(stored("invalid alert subject arity"));
+    }
     let case_id = CaseId::from_uuid(uuid(&value[1])?);
     let id = uuid(&value[2])?;
-    match integer(&value[0])? {
+    match tag {
         0 => Ok(AlertSubject::Hearing {
             case_id,
             id: HearingId::from_uuid(id),
@@ -131,6 +162,11 @@ pub(super) fn read_subject(value: &Value) -> Result<AlertSubject, ApplicationErr
         1 => Ok(AlertSubject::Deadline {
             case_id,
             id: DeadlineId::from_uuid(id),
+        }),
+        2 => Ok(AlertSubject::ResourceHearing {
+            case_id,
+            resource_id: ResourceId::from_uuid(uuid(&value[3])?),
+            id: ResourceHearingId::from_uuid(id),
         }),
         _ => Err(stored("invalid alert family")),
     }
@@ -180,3 +216,7 @@ pub(super) fn read_origin(value: &Value) -> Result<AlertOrigin, ApplicationError
         evidence_digest: digest(&value[1])?,
     })
 }
+
+#[cfg(test)]
+#[path = "resource_hearing_codec_tests.rs"]
+mod resource_hearing_codec_tests;

@@ -1,5 +1,25 @@
 # Verificación de la actualización académica
 
+## Alertas de audiencias propias de recursos: 4 de octubre de 2026
+
+Se actualizó implementación y pruebas para las notificaciones de proximidad
+propias: recurso padre, captura inicial, preferencias, destinatarios, reinicios
+y panel histórico de Qadra. Se distinguieron 75 comprobaciones Rust focales
+(aplicación, HTTP, codec y PostgreSQL), 32 Node y 16 recorridos controlados de
+navegador, sin presentar la aceptación real completa como terminada.
+
+`make -C latex` aprobó. La inspección descubrió dos frases cercanas que todavía
+presentaban las alertas como no implementadas; se corrigieron y recompiló para
+conservar sólo la aceptación integrada como pendiente. El PDF final tiene
+**385 páginas**, **5981773 bytes**, SHA-256
+`abaf68bdbddf18ccdbfbe27f2b90e79469ca815cc2d3223f6839fb8497b95015`. Se inspeccionaron las páginas físicas **217, 218, 267 y 268**:
+texto legible, sin solapes o recortes. Resumen, introducción, marco teórico,
+conclusiones y PDF aceptado anterior permanecieron sin cambios. Persisten los
+dos avisos históricos de caja horizontal y sustitución de versalitas Times;
+no aparecieron glifos faltantes ni referencias indefinidas. El documento sigue
+sin acreditar integración o despliegue del nuevo recorrido.
+
+
 ## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026
 
 Se actualizaron los apartados propios de implementación y pruebas: preparación y

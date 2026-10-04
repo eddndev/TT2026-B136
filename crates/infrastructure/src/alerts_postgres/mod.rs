@@ -8,6 +8,7 @@ mod inventory;
 mod plan;
 mod preferences;
 mod records;
+mod resource_hearing;
 mod schedule_activate;
 mod schedule_rows;
 mod schedule_scan;

@@ -998,7 +998,10 @@ y el router de programación tienen implementación local según su
 integrada sigue pendiente, aún sin integración ni despliegue. Las pruebas focales
 de lecturas de aplicación y PostgreSQL, evidencia incompleta y rutas propias ya
 aprobaron. Qadra incorpora programación explícita y recuperación del borrador;
-las alertas y la aceptación real completa todavía no se acreditan. Los resultados del corte se
+las alertas de proximidad propias tienen implementación local con persistencia,
+permisos, preferencias y lectura histórica en Qadra. Su aceptación real completa
+y la integración aún no se acreditan; véase [su contrato](resource-hearing-alerts.md).
+Los resultados del corte se
 conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y

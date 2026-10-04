@@ -14,8 +14,10 @@ La agenda incorpora localmente esta familia bajo `kind=resource_hearing`, con
 su identidad y origen verificados y orden independiente de audiencias ordinarias
 y plazos. Su contrato está en [agenda](agenda-api.md). Qadra incorpora el filtro,
 la tarjeta y una lectura exacta histórica dentro de Agenda. Qadra incorpora también el formulario de programación, la revisión explícita y
-la recuperación del envío incierto. Las alertas y la aceptación integrada siguen
-pendientes dentro de esta entrega. Las pruebas
+la recuperación del envío incierto. Las alertas de proximidad propias tienen
+implementación local, con origen R1, preferencias de audiencias y panel histórico
+verificado; véase [su contrato](resource-hearing-alerts.md). La aceptación integrada
+continúa pendiente dentro de esta entrega. Las pruebas
 focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
 al final están aprobadas, incluido el rechazo tipado de evidencia persistida
 incompleta, las rutas propias y su composición. No se atribuyen aceptación
@@ -420,8 +422,9 @@ error no acredita esa clasificación. La comprobación reforzada aprobó 1/1
 en 5,66 s, después de reproducir el error. HTTP aprobó 10/10 en 0,04 s y
 composición 6/6 en 0,35 s, incluyendo cinco regresiones existentes.
 
-Los siguientes pasos son conectar agenda, alertas y Qadra y cerrar la aceptación
-integrada de este recorrido. La asociación inicial ya pertenece a la creación
+Agenda, Qadra y alertas propias tienen implementación local. El siguiente paso
+es cerrar la aceptación integrada propia de este recorrido, incluida restauración
+y navegador contra servicios reales. La asociación inicial ya pertenece a la creación
 transaccional; el flujo genérico sólo vincula o desvincula audiencias existentes,
 sin crearlas. El soporte sólo puede ser
 uno ya admitido en el recurso o acto seleccionado: no se incorpora una citación
