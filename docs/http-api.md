@@ -3,8 +3,11 @@
 El contrato de [vínculos del Owner](http-owner-certificates.md) describe
 preparación, registro, consulta y retiro de evidencia propia. El servidor compone
 estas rutas con el servicio real y comparte los límites HTTP y de trabajo de
-la API. La aceptación del router usa puertos controlados; no acredita todavía
-un recorrido integrado con HTTP, PostgreSQL y RSA reales ni acceso por certificado.
+la API. Su aceptación integrada y sus límites constan en el informe.
+La [alternativa de primer factor por certificado](owner-certificate-login-http.md)
+tiene un router opcional separado: la prueba correcta exige MFA y los
+constructores anteriores conservan las rutas deshabilitadas. Su aceptación de
+transporte no acredita la activación en el ejecutable o en VPS3.
 
 El [tablero operativo](dashboard-api.md) agrega indicadores mediante
 `GET /api/v1/dashboard`: despacho completo para Owner y expedientes asignados

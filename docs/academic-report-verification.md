@@ -1,5 +1,66 @@
 # Verificación de la actualización académica
 
+## Interfaz de firma externa y MFA: 3 de octubre de 2026
+
+La misma compilación conjunta documentada en el apartado siguiente incluye las
+fuentes de la interfaz y su aceptación real: 378 páginas, 5953085 bytes, SHA-256
+`3ed09add891575965afe8ef3fac3ae06af5462529fef2e5026f7bb81be97532b`.
+Se inspeccionaron las páginas físicas 170, 271 y 272; controles, fronteras y
+resultados de 36/5/7 pruebas locales y del recorrido real 1/1 están legibles,
+sin recortes ni superposición. No se repitió la compilación sólo para añadir
+este registro Markdown. Se conservaron el respaldo y los hashes protegidos;
+no acredita usabilidad humana, integración remota ni habilitación en VPS3.
+
+
+## Composición y restauración del acceso Owner: 3 de octubre de 2026
+
+`make -C latex` aprobó: 377 páginas, 5947542 bytes, SHA-256
+`0a780a79081e550ee5c3c85a372a1771a5f385d07d42d4dd2fae8107dbb9d0d4`.
+Se revisaron visualmente las páginas PDF 170 y 271: configuración explícita,
+disponibilidad y restauración, junto con evidencia nativa y la campaña HTTP
+completa de 365.645 s. No se observaron recortes ni superposiciones en esos
+apartados; el PDF anterior quedó respaldado. Resumen, introducción, marco y
+conclusiones protegidos conservaron sus hashes. Permanecen las advertencias
+tipográficas históricas; no se detectaron referencias indefinidas ni glifos
+ausentes. No es aceptación de la interfaz ni activación del despliegue.
+
+
+## Transporte opcional del primer factor: 3 de octubre de 2026
+
+`make -C latex` aprobó: 375 páginas, 5942418 bytes, SHA-256
+`ca2bf67fd72bbc9de17c506fe1c9c3398001cae706831adde5fe7b9fe5a6049c`.
+Las páginas físicas 169 y 269 muestran el contrato HTTP y sus 19 pruebas,
+con texto legible sin recortes ni superposiciones. La compilación final incorporó
+el comando literal de ruta corregido antes de terminar. El PDF anterior quedó
+respaldado y los hashes de las fuentes protegidas permanecieron iguales.
+La evidencia de transporte conserva separada la aceptación del servidor real.
+
+
+## Admisión interna Owner y cierre de controladores: 3 de octubre de 2026
+
+`make -C latex` aprobó los capítulos de implementación y pruebas con los
+resultados de aplicación, adaptadores y cierre persistente de entradas. El PDF
+final tiene 375 páginas, 5940789 bytes y SHA-256
+`d0833233bbaaef9c9ee1f26b45daa9ba0a0716dbd6801f81291e647768af8109`.
+Se revisaron las páginas físicas 169, 220, 269, 271 y 272. La última compilación
+incorporó las dos regresiones de precisión temporal y se volvió a inspeccionar
+la página 269: texto legible sin recortes ni superposición. Las fuentes protegidas
+conservaron sus hashes y el PDF anterior quedó respaldado. El documento distingue
+las pruebas focales de la aceptación HTTP y del despliegue todavía pendientes.
+
+
+## Aprobación y primer factor de certificado: 3 de octubre de 2026
+
+Una compilación reunió la aprobación durable de controladores y la declaración
+y verificación tipificadas del primer factor, manteniendo explícita su activación
+pendiente. `make -C latex` aprobó: 373 páginas, 5933914 bytes, SHA-256
+`4a370227ef67afe39dff71007e3f75f0424ce74c89de7822e2c8be4c994b1820`.
+Se inspeccionaron las páginas físicas 169, 219, 220, 267, 269 y 270, legibles
+sin recortes ni superposiciones. El PDF previo y los hashes de fuentes protegidas
+se conservaron. No se observaron referencias pendientes ni glifos ausentes.
+El PDF acumulado no se versiona ni acredita instalación remota.
+
+
 ## Interfaz del certificado Owner: 3 de octubre de 2026
 
 Implementación y pruebas incorporan la interfaz Qadra, su recuperación pública

@@ -19,6 +19,164 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Interfaz de acceso Owner con certificado: 3 de octubre de 2026
+
+Después de observar los RED del cliente y la interfaz aprobaron 36 pruebas Node
+(once nuevas y 25 previas) en 0.840 s, cinco recorridos con HTTP controlado en
+20.9 s y siete regresiones del acceso anterior en 15.6 s. Se usó un trabajador.
+Cuatro capturas de escritorio y móvil fueron inspeccionadas: conservan Qadra,
+selección pública, descarga binaria y formulario MFA, sin desbordamiento observado.
+
+La aceptación real de navegador aprobó 1/1 en 14.0 s, con 208.382 s del comando
+completo incluida la preparación. Ejecutó PostgreSQL 16.15, Valkey 8.1.10, qpdf
+12.4.1 y decodificadores verificados, con un compilador y un trabajador. Registró
+el vínculo, firmó externamente los 182 bytes exactos con OpenSSL, verificó la
+firma de 384 bytes, exigió MFA y abrió la misma cuenta Owner. Conservó el recibo
+y las aserciones de retiro y consulta histórica bajo acceso independiente por
+contraseña. Las claves privadas permanecieron fuera del navegador y del servidor.
+
+El primer intento duró 206.774 s y recibió 401 al retirar usando la sesión
+derivada del vínculo retirado. La preparación corregida cierra expresamente
+esa sesión y vuelve mediante contraseña y otro código de recuperación antes
+del retiro. No se atribuye a éste una invalidación posterior al logout ni se
+modificaron producto, permisos, tiempos límite o aserciones para aprobarlo.
+La copia visible del retiro ahora explica la invalidez de las sesiones derivadas.
+La invalidación específica por retiro conserva su aceptación backend propia.
+
+El opt-in de `scripts/web-demo.sh` sólo habilita el flujo cuando la fixture Owner
+está seleccionada, con todas sus cuotas y tiempos explícitos. El preflight nativo
+reprodujo antes la disponibilidad deshabilitada. La entrega aún necesita cierre
+remoto y no modifica la instalación privada ni la política operativa. Véase
+[la guía del recorrido](owner-certificate-login-interface.md).
+
+
+## Composición Owner y controles de restauración: 3 de octubre de 2026
+
+La configuración y composición aprobaron siete casos en 0.09 s y Clippy focal
+en 20.99 s. Un ensayo nativo del router ejecutable aprobó en 12.63 s, después
+de 12.42 s de compilación, con PostgreSQL 16.15 y Valkey 8.1.10 desechables.
+Firmó externamente con OpenSSL, exigió TOTP real y verificó consumo/replay,
+procedencia, revisión de confianza, retirada y continuidad de contraseña.
+El recorrido CLI completo `scripts/demo.sh` aprobó en 25.997 s.
+No es una aceptación de listener, interfaz, restauración completa o despliegue;
+el alcance se describe en [la composición operativa](owner-certificate-login-operations.md).
+
+Dos regresiones independientes reprodujeron que el guion de invalidación omitía
+capturas de certificado y que la consulta SQL de evidencia mezclaba varios Owner.
+Tras corregir sus fronteras aprobaron un caso de protocolo en 0.013 s y un caso
+SQL en 0.096 s. Se preservaron los controles de límites y las aserciones previas
+de registro/retiro. La invocación conjunta de CI con los guardas SQL del calendario
+aprobó los diez casos en 2.255 s, sin servicios compartidos ni pruebas omitidas.
+
+La aceptación focal posterior con listener real, firma OpenSSL, MFA y
+restauración SQL aprobó en 23.248 s. Rechazó sesión, MFA y captura anteriores
+antes de expirar, conservó los controles Redis y admitió una nueva firma con
+MFA, además del acceso independiente por contraseña. Los procesos y datos
+desechables se retiraron al terminar.
+
+El primer intento HTTP completo falló en el observador al interpretar INFO
+RESP3 como JSON; la regresión nativa reprodujo ese fallo y aprobó después en
+0.117 s al tratar sólo esa respuesta como texto. Un segundo intento terminó
+en 36.970 s con MFA401 en la preparación de restauración anterior a esta
+funcionalidad. Ese código no identifica por sí solo la causa. Un caso controlado
+reprodujo que el guion reutilizaba el TOTP del intervalo actual; tres pruebas
+aprobaron en 0.021 s después de esperar una vez el intervalo siguiente, antes de
+crear desafíos. No se eliminan marcas de uso ni se reintentan peticiones MFA.
+La campaña HTTP completa corregida aprobó en **365.645 s**, con PostgreSQL
+16.15, Valkey 8.1.10, qpdf 12.4.1 y decodificadores multimedia verificados.
+Incluyó los recorridos existentes, registro y retiro Owner, sesión y capturas
+de certificado, restauración exacta y nuevos ingresos RSA/MFA y contraseña/MFA.
+Se ejecutó con un compilador y un trabajador; `cargo fmt --all -- --check`
+aprobó después. CI de esta entrega y su activación operativa siguen pendientes.
+
+## Transporte del primer factor Owner: 3 de octubre de 2026
+
+El target HTTP reprodujo los exports y el puerto de entrada ausentes. Tras la
+implementación aprobó **19/19 en 0.26 s**, con 33.57 s de compilación. Clippy
+focal aprobó después en 14.30 s con advertencias como errores. Se ejecutaron
+serialmente, con un compilador y un trabajador.
+
+La suite verifica los bytes públicos exactos y respuesta sólo MFA; JSON objeto
+estricto, UUID/token/firma canónicos, límites reales 1024/2048 bytes y errores
+opacos; compatibilidad de constructores y de contraseña/MFA/recuperación; y un
+presupuesto compartido que sigue ocupado al cancelar la respuesta HTTP mientras
+trabaja el hilo bloqueante. No se cambió el inventario ni los cuerpos de las
+19 pruebas; el target sólo silencia un import no usado de la fixture heredada.
+Son puertos controlados, no RSA/SQL/Redis reales ni activación del ejecutable.
+Véase el [contrato HTTP](owner-certificate-login-http.md).
+
+
+## Aplicación y adaptadores del primer factor Owner: 3 de octubre de 2026
+
+Los RED observaron el módulo de aplicación, cuatro métodos de sesión y los
+puertos criptográfico/SQL/runtime ausentes. Con la implementación aprobaron
+22 casos nuevos de aplicación y 31 del recorrido existente (0.01/0.00 s),
+ocho criptográficos (0.77 s), seis SQL (13.88 s), 11 de procedencia Redis
+(0.12 s), 23 regresiones de sesiones (0.07 s) y 21 de captura y presupuestos
+(2.71 s). Clippy focal de los adaptadores aprobó con advertencias como errores
+en 11.11 s. PostgreSQL 16.15 y Valkey 8.1.10 fueron instancias privadas,
+autenticadas, desechables y retiradas después de cada campaña; sólo una suite
+local y un compilador estuvieron activos a la vez.
+
+La revisión posterior encontró una pérdida de precisión al convertir segundos
+enteros a milisegundos después de la última consulta de autoridad. Dos regresiones
+reprodujeron la admisión indebida al cruzar el plazo dentro del mismo segundo;
+la lectura precisa corrigió ambos límites sin ampliar plazos. El cierre aprobó
+22/22 casos nuevos y 31/31 previos, tras 4.71 s de compilación.
+Clippy focal de aplicación aprobó después en 3.49 s.
+
+La comprobación SQL necesitó preparar una revocación/reactivación legal para
+cambiar la generación; el guard rechazó correctamente su incremento aislado.
+La comparación de no escritura Redis cambió de bytes RDB no canónicos a tipo,
+campos byte a byte y vencimiento absoluto después de reproducir campos y plazo
+iguales. No se modificaron producto ni permisos para aceptar esas preparaciones.
+Los dos intentos de compilación durante el registro incompleto del runtime no
+produjeron evidencia funcional; los resultados anteriores corresponden a
+campañas completas posteriores.
+
+La frontera admite sólo un nuevo desafío MFA después de la firma; conserva
+procedencia y revalida autoridad en sesiones. Véase el
+[contrato interno y sus límites](owner-certificate-authentication.md).
+El invalidador de restauración adicional reprodujo cinco casos con doce fallos
+de subcaso por el espacio de capturas omitido. Luego aprobaron diez casos de
+comando en 0.016 s. Su caso nativo aprobó 1/1 en 7.006 s: RDB, invalidación
+selectiva, AOF y reinicio conservaron presupuestos y no resucitaron capturas.
+El primer intento del observador recibió JSON RESP3 donde esperaba pares RESP2;
+la prueba fijó RESP2, sin cambiar el producto. No acredita todavía HTTP integral,
+restauración autenticada completa ni activación del primer factor.
+
+
+## Verificador del primer factor Owner: 3 de octubre de 2026
+
+Se reprodujo `E0432` por ausencia del adaptador y su error tipificado. La
+implementación aprobó **6/6 en 1.13 s**, tras **13.88 s** de compilación. Un
+certificado Partner y una firma producida por OpenSSL verificaron los 182 bytes
+exactos; DER y PEM dieron el mismo resultado. El vencimiento del desafío es
+exclusivo y no se usa como fecha de vencimiento de una futura sesión.
+
+Clippy detectó una copia expresada como `clone` en la prueba; tras usar copia
+explícita, el focal aprobó con advertencias como errores.
+
+Se rechazaron firmas de registro, retiro y otro propósito, nonce/generación
+alterados, confianza o huella discordante, revocación firmada, perfil de
+certificado distinto, material mal formado y tamaños de firma incorrectos.
+La inspección completa de confianza se recalcula y compara. El adaptador reutiliza
+el perfil interno existente y no acredita publicación SQL, consumo único,
+entropía, MFA ni sesiones derivadas; aún no habilita acceso por certificado.
+
+## Declaración de primer factor Owner: 3 de octubre de 2026
+
+El RED reprodujo dos importaciones `E0432` del módulo ausente. El dominio
+implementado aprobó **9/9 en 0.00 s**, tras **1.73 s** de compilación. Dos
+vectores literales completos e independientes fijan los 182 bytes; se probaron
+Clippy focal aprobó con advertencias como errores en **1.43 s**. Se verificaron
+identidad y generación, copia del nonce, ventana de 1 a 300 segundos, extremos
+enteros, vencimiento exclusivo y separación de registro y retiro. El tipo no
+consulta reloj, genera entropía ni verifica firmas. Esta evidencia estructural
+no habilita login, MFA derivada ni sesiones. El cierre pendiente se define en
+[ADR-0068](adr/0068-owner-certificate-first-factor.md).
+
+
 ## Interfaz del vínculo Owner: 3 de octubre de 2026
 
 El RED inicial del cliente observó tres métodos ausentes y dos importaciones

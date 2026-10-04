@@ -29,6 +29,8 @@ use crate::cli::ServeArgs;
 mod documents;
 mod inputs;
 mod owner_certificates;
+#[cfg(test)]
+mod owner_login_acceptance;
 use crate::serve_deadline_runtime::DeadlineRuntimeConfig;
 use crate::vault_cmd::load_kek;
 use inputs::required_env;
@@ -41,6 +43,8 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
         SessionPolicy::default().absolute_ttl_seconds(),
         args.session_idle_seconds,
     )?;
+    let owner_login =
+        crate::serve_owner_login_config::OwnerLoginSettings::resolve(&args.owner_login)?;
     let email = crate::serve_email_credentials::load(args)?;
     let alert_config = crate::serve_alert_runtime::AlertRuntimeConfig::new(
         args.alert_page_limit,
@@ -74,12 +78,14 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 PostgresCaseRepository::open(database, Arc::new(RingSha256Hasher::new()))
                     .context("cannot initialize PostgreSQL case repository")?,
             );
-            let identity = crate::serve_identity_composition::open(
+            let identity_components = crate::serve_identity_composition::open(
                 database,
                 &redis_url,
                 kek.clone(),
                 session_policy,
+                owner_login.as_ref(),
             )?;
+            let identity = identity_components.identity;
             let cases = CaseService::new(
                 case_repository,
                 identity.clone(),
@@ -323,7 +329,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 None => (None, None),
             };
             let owner_certificates = owner_certificates::open(database, identity.clone())?;
-            let router = web::api_router_with_password_reset_budget(
+            let router = web::api_router_with_authentication_budget(
                 Arc::new(workflow),
                 identity,
                 web::CaseWorkflows {
@@ -351,7 +357,10 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 Arc::new(calendars),
                 Arc::new(profiles),
                 limits,
-                recovery_http,
+                web::AuthenticationHttp {
+                    password_reset: recovery_http,
+                    certificate_login: identity_components.certificate_login,
+                },
                 budget,
             )?;
             let server = crate::serve_start::ServerComponents {

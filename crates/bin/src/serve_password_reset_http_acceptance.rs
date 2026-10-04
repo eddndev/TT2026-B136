@@ -75,8 +75,10 @@ fn composed_http_reset_uses_real_backends_and_requires_existing_mfa_after_comple
         &keys.url,
         Zeroizing::new(vec![42; 32]),
         flow.policy,
+        None,
     )
-    .unwrap_or_else(|_| panic!("open real HTTP identity"));
+    .unwrap_or_else(|_| panic!("open real HTTP identity"))
+    .identity;
     let router = router_with_identity_reset(
         identity,
         components.http,

@@ -26,6 +26,7 @@ mod serve_deadline_runtime;
 mod serve_document_validation;
 mod serve_email_credentials;
 mod serve_identity_composition;
+mod serve_owner_login_config;
 mod serve_password_reset_composition;
 mod serve_password_reset_config;
 mod serve_password_reset_runtime;

@@ -126,15 +126,22 @@ def verify_receipt(value, intent):
 
 def sql_state(owner):
     identifier = str(UUID(owner))
-    query = """SELECT jsonb_build_object(
+    query = """WITH selected_registrations AS (
+        SELECT * FROM owner_certificate_registrations WHERE owner_id='%s'
+      ), selected_withdrawals AS (
+        SELECT * FROM owner_certificate_withdrawals
+        WHERE binding_id IN (SELECT binding_id FROM selected_registrations)
+      ) SELECT jsonb_build_object(
       'registrations',COALESCE((SELECT jsonb_agg(to_jsonb(r) ORDER BY binding_id)
-        FROM owner_certificate_registrations r),'[]'::jsonb),
+        FROM selected_registrations r),'[]'::jsonb),
       'withdrawals',COALESCE((SELECT jsonb_agg(to_jsonb(w) ORDER BY binding_id)
-        FROM owner_certificate_withdrawals w),'[]'::jsonb),
+        FROM selected_withdrawals w),'[]'::jsonb),
       'events',COALESCE((SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a
-        WHERE action IN ('identity.owner_certificate_registered','identity.owner_certificate_withdrawn')),'[]'::jsonb),
+        WHERE sequence IN (SELECT audit_sequence FROM selected_registrations
+          UNION SELECT audit_sequence FROM selected_withdrawals)
+        AND action IN ('identity.owner_certificate_registered','identity.owner_certificate_withdrawn')),'[]'::jsonb),
       'account',(SELECT jsonb_build_object('id',id,'email',email,'role',role,'active',active,
-        'revision',revision::text,'auth_generation',auth_generation::text) FROM users WHERE id='%s'))""" % identifier
+        'revision',revision::text,'auth_generation',auth_generation::text) FROM users WHERE id='%s'))""" % (identifier, identifier)
     raw = command(['psql', os.environ['TT_OWNER_CERT_DATABASE'], '-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '-c', query])
     return json.loads(raw)
 

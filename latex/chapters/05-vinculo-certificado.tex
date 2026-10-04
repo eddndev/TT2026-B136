@@ -173,3 +173,142 @@ No modifica el despliegue activo ni demuestra custodia personal exclusiva,
 autenticación por certificado o firma documental individual. La campaña no
 repitió la restauración SQL ni la prueba de CRL sucesora del ensayo HTTP
 anterior; ambas conservan su evidencia y alcance independientes.
+
+\subsubsection{Estructura y verificación del primer factor futuro}
+
+Nueve casos de dominio aprobaron tras reproducir la ausencia del módulo. Dos
+vectores literales completos fijaron los 182 bytes y se comprobaron límites,
+copias independientes y separación de propósitos. El adaptador posterior
+aprobó seis pruebas en 1.13~s, con 13.88~s de compilación. Una firma OpenSSL de
+un Partner verificó el formato; registro, retiro, nonce o generación alterados,
+confianza discordante, revocación firmada y entradas mal formadas se rechazaron.
+Estos resultados no demuestran consumo único del desafío, MFA, sesiones derivadas
+ni activación de acceso por certificado.
+
+
+\subsubsection{Admisión interna, autoridad y capacidades temporales}
+
+La aplicación aprobó inicialmente 20 casos nuevos y 31 del recorrido de identidad
+existente. Dos regresiones posteriores reprodujeron vencimiento absoluto y de
+inactividad durante una consulta final de autoridad dentro del mismo segundo.
+La admisión conserva ahora milisegundos y el cierre aprobó los 22 casos nuevos
+y los 31 previos, en 0.01 y 0.00~s, tras 4.71~s de compilación.
+El puerto criptográfico conservó la evidencia y neutralizó fallos internos en
+ocho pruebas, incluidas las seis previas, en 0.77~s. La autoridad PostgreSQL
+16.15 desechable aprobó seis casos en 13.88~s: observa cambios de cuenta y CRL
+después de esperar el bloqueo auditado, distingue ausencia de fallo SQL y
+conserva los recibos históricos. La preparación del cambio de generación se
+corrigió para usar revocación y reactivación legales; no se alteró el guard de
+base de datos.
+
+Con Valkey 8.1.10 aislado y autenticado, compatible con Redis, aprobaron once
+casos de procedencia y sesiones en 0.12~s, 23 regresiones de sesiones de
+contraseña en 0.07~s y 21 casos de captura y presupuestos en 2.71~s. Se verificó
+consumo con un ganador, vencimiento exclusivo, enteros exactos, límites
+compartidos, permisos fallidos sin escritura parcial y rechazo de DTO corruptos.
+La primera comparación de no escritura usaba serialización RDB; el diagnóstico
+mostró campos y expiración idénticos con orden binario distinto. La comprobación
+corregida compara tipo, todos los bytes de campos y plazo absoluto.
+
+Estas campañas focales se ejecutaron en serie con un compilador y un trabajador.
+No son una campaña HTTP integral, una restauración autenticada ni una activación
+en el servidor. El detalle y la frontera pendiente se conservan en
+\rutarepo{docs/owner-certificate-authentication.md}.
+
+
+La invalidación selectiva de capturas de certificado aprobó diez casos de
+comando en 0.016~s y un recorrido nativo en 7.006~s. RDB, AOF y reinicio
+conservaron los controles y presupuestos, sin resucitar sesiones, MFA o
+capturas retiradas. La lectura de hashes del observador fija RESP2; el primer
+intento había recibido el objeto JSON de RESP3 antes del respaldo. El contenido
+capturado es público y sintético: esta prueba de persistencia no reemplaza una
+restauración completa de autenticación HTTP con RSA y MFA reales.
+
+
+\subsubsection{Transporte opcional del primer factor}
+
+El transporte HTTP aprobó 19 casos en 0.26~s, tras 33.57~s de compilación;
+Clippy focal aprobó en 14.30~s. Se observaron primero los exports y el puerto
+faltantes. Las comprobaciones incluyen proyecciones exactas, rechazo de entradas
+ambiguas y cuerpos excesivos, errores opacos, compatibilidad de acceso existente
+y conservación del presupuesto mientras termina un trabajador cuya respuesta
+fue cancelada. La firma admitida sólo entrega un desafío MFA nuevo. El flujo
+controlado no acredita RSA, PostgreSQL, Redis, restauración ni activación en
+el servidor compuesto; esas fronteras se verifican por separado.
+
+
+\subsubsection{Aceptación nativa del primer factor compuesto}
+
+Siete casos de configuración y composición aprobaron en 0.09~s y Clippy focal
+en 20.99~s. Se comprobó la opción deshabilitada, validación previa y una misma
+instancia de identidad para ambos métodos. Un recorrido adicional con
+PostgreSQL 16.15 y Valkey 8.1.10 desechables aprobó en 12.63~s, tras 12.42~s
+de compilación, con un trabajador. Los servicios privados se retiraron al cerrar.
+
+El ensayo abrió la composición real, registró un Partner y firmó externamente
+los 182 bytes. La firma alterada consumió la captura y su repetición fue
+rechazada; una firma válida exigió TOTP real antes de crear la sesión. Se
+comprobó su procedencia y un plazo independiente de los cinco minutos de la
+captura inicial. Una CRL sucesora y el retiro del vínculo rechazaron capturas,
+MFA pendientes y sesiones previas de certificado. La contraseña siguió admitida,
+las credenciales rechazadas no consumieron recuperación y la auditoría conservó
+los recibos originales. Esta prueba usa el router en proceso; listener HTTP,
+restauración autenticada e interfaz requieren evidencia independiente.
+
+
+Tres casos de disponibilidad reprodujeron primero la ausencia de la lectura;
+la suite ampliada aprobó los 22 escenarios HTTP en 0.29~s. Se comprobaron
+composición presente y ausente, rechazo de cuerpos y consultas, ausencia de
+invocación al flujo de identidad y uso del mismo presupuesto de solicitudes.
+El recorrido CLI completo también aprobó en 25.997~s, conservando pruebas
+positivas y negativas de la evidencia criptográfica y la auditoría.
+
+
+Un ensayo focal adicional con listener real aprobó en 23.248~s. Conservó los
+recibos y auditoría tras restaurar SQL, rechazó tres capacidades antiguas antes
+de que expiraran y verificó acceso nuevo con RSA y MFA, junto con contraseña
+y MFA independientes. La lectura INFO del observador Redis se corrigió tras
+reproducir su interpretación indebida como JSON; su caso nativo aprobó en
+0.117~s. Una preparación posterior de restauración rechazó MFA con estado 401.
+El diagnóstico controlado reprodujo la reutilización del intervalo TOTP;
+tres casos aprobaron en 0.021~s al esperar el intervalo siguiente antes de
+crear desafíos, sin borrar marcas de uso ni reintentar MFA rechazada.
+
+
+La campaña HTTP completa posterior aprobó en 365.645~s con PostgreSQL 16.15,
+Valkey 8.1.10, qpdf 12.4.1 y decodificadores multimedia verificados. Conservó
+los recorridos de los módulos existentes y sus comprobaciones posteriores a
+restauración, además del vínculo Owner y las capacidades del primer factor.
+Se comprobaron recibos históricos, controles retenidos, invalidación anterior al
+vencimiento y nuevos accesos RSA/MFA y contraseña/MFA. Fue una campaña serial
+con un compilador y un trabajador. La interfaz, la regresión CI de la revisión
+publicada y la activación operativa conservan fronteras de aceptación separadas.
+
+\subsubsection{Comprobaciones de la interfaz del primer factor}
+
+La verificación del cliente aprobó 36 pruebas Node: once del acceso por
+certificado y 25 de intentos de autenticación existentes. Los casos comprobaron
+el contenedor público acotado, la descarga exacta de 182 bytes, separación de
+propósito, vencimiento y consumo local previo al envío. También exigieron que
+una respuesta MFA coherente de otra cuenta o de otro rol no instalara acceso,
+y conservaron el descarte de respuestas de intentos anteriores.
+
+Cinco recorridos de navegador con HTTP controlado aprobaron en 20.9~s. Incluyeron
+indisponibilidad del servidor, rechazo de contenedores privados, selección de
+recibo histórico, firma separada, MFA compartida, respuestas tardías al cambiar
+de método y preparación explícita después de un resultado incierto o vencido.
+Siete regresiones de autenticación previas también aprobaron. La revisión visual
+de cuatro capturas de escritorio y móvil conservó el diseño Qadra sin
+desbordamiento observado. Estas comprobaciones no realizan una evaluación de
+usabilidad con personas ni sustituyen el recorrido de navegador con RSA,
+PostgreSQL y Redis reales o la instalación del servicio.
+
+El recorrido posterior con servicios reales aprobó 1/1 en 14.0~s; el comando
+completo, incluida la preparación, duró 208.382~s. PostgreSQL 16.15,
+Valkey 8.1.10 y OpenSSL conservaron la firma externa de 182 bytes, MFA obligatoria
+y selección de la misma cuenta. El ensayo cerró después esa sesión y volvió
+mediante contraseña y otro código de recuperación antes del retiro y consulta
+histórica. Conservó las aserciones anteriores. El primer intento había recibido
+401 al retirar bajo la autoridad del mismo vínculo; corregir esa preparación
+no alteró permisos ni límites. La invalidez por retirada permanece comprobada
+por los ensayos propios del backend, sin atribuirla al logout de este recorrido.

@@ -22,6 +22,7 @@ pub mod hearing_results;
 pub mod hearings;
 pub mod identity;
 pub mod judicial_calendars;
+pub mod owner_certificate_login;
 pub mod owner_certificates;
 pub mod participants;
 pub mod procedural_facts;

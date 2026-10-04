@@ -121,4 +121,104 @@ identidad y vínculo; no prepara ni envía otra operación. El reingreso descart
 una decisión anterior de ausencia y vuelve a exigir consulta exacta. Cancelar,
 cerrar sesión expresamente o cambiar de cuenta descarta el borrador. El archivo
 original y el PEM todavía no admitido quedan fuera de la captura. La función
-no habilita autenticación por certificado ni firma individual de documentos.
+de registro no abre por sí misma una sesión ni firma documentos. El acceso por
+certificado usa la declaración separada y el recorrido descritos a continuación.
+
+\subsubsection{Prueba separada y admisión interna del primer factor}
+
+El dominio incorpora una declaración distinta de 182 bytes, con separador de
+propósito propio, cuenta Owner, generación de autenticación, vínculo y confianza
+exactos, nonce de 32 bytes e intervalo no negativo de uno a 300 segundos.
+El vencimiento es exclusivo. El tipo sólo fija estructura y copia valores;
+no genera azar ni autentica una cuenta. El adaptador Partner verifica la firma
+sobre esos bytes, recalcula la inspección de confianza y contrasta el material
+exacto y el instante. El plazo del nonce limita presentar la prueba, mientras
+la validez de certificado y confianza conserva una frontera independiente.
+La aplicación consulta autoridad actual en PostgreSQL y conserva en Redis una
+captura pública estricta, con vencimiento exactamente igual al instante firmado.
+La reclamación consume esa captura antes de verificar RSA; la prueba sólo
+concede otro desafío MFA. Cuenta, vínculo y confianza se comprueban de nuevo
+antes de devolver capacidades y al admitir una sesión de origen certificado.
+La revisión de cuenta puede avanzar al consumir un código de recuperación,
+pero su generación de revocación y procedencia deben seguir coincidiendo.
+Los plazos de sesión quedan acotados por la vigencia de la credencial; los
+registros de contraseña conservan su formato y semántica. Hay presupuestos
+independientes y compartidos para inicio y presentación, sin reintentos de
+escrituras inciertas. La interfaz y el cierre de restauración siguen separados;
+esta frontera interna no activa por sí misma el acceso público.
+Véase \rutarepo{docs/adr/0068-owner-certificate-first-factor.md}.
+
+
+El transporte opcional distingue solicitar declaración y presentar prueba. Cada
+ruta exige un objeto JSON estricto, identificadores canónicos y un cuerpo real
+acotado a 1024 o 2048 bytes, respectivamente. La segunda conserva la respuesta
+MFA existente y nunca devuelve sesión ni acepta una clave privada. Los
+constructores anteriores mantienen ambas rutas ausentes; la composición nueva
+comparte la admisión HTTP y el trabajo bloqueante con el resto de la API. Si
+se abandona una respuesta, el trabajador conserva su permiso hasta terminar.
+La composición ejecutable y la interfaz requieren aceptación independiente.
+Véase \rutarepo{docs/owner-certificate-login-http.md}.
+
+
+\subsubsection{Composición explícita del acceso por certificado}
+
+El ejecutable permite habilitar el primer factor mediante una opción desactivada
+por defecto. Antes de abrir adaptadores valida cuatro cuotas y sus ventanas,
+además de dos tiempos de transporte Redis, suministrados explícitamente. La
+configuración ausente o incompleta no habilita el canal. Contraseña y certificado
+comparten la misma instancia del servicio de identidad y los presupuestos HTTP
+existentes; no hay una segunda implementación de MFA.
+
+La composición utiliza la autoridad PostgreSQL actual, el verificador Partner
+y el runtime Redis de capturas de un uso. Una prueba correcta sólo entrega MFA;
+la sesión posterior conserva la procedencia del vínculo y la revisión de
+confianza. El cambio de confianza o retiro del vínculo invalida sus capacidades
+derivadas sin degradarlas a contraseña. La habilitación del ejecutable no
+registra titulares, publica confianza ni activa por sí misma la interfaz.
+Las condiciones operativas están en
+\rutarepo{docs/owner-certificate-login-operations.md}.
+
+
+La interfaz puede consultar disponibilidad mediante una lectura pública derivada
+exclusivamente del flujo compuesto. La respuesta contiene sólo un booleano, no
+consulta cuentas ni vínculos y comparte la admisión HTTP sin solicitar otro
+trabajador bloqueante. Los constructores sin ese flujo anuncian indisponibilidad
+y mantienen ausentes las rutas de preparación y prueba; no hay una segunda
+opción de configuración para habilitarlas desde el navegador.
+
+
+La restauración desechable elimina sesiones, desafíos MFA y capturas pendientes
+de certificado, conservando presupuestos y marcas TOTP utilizadas. La
+comprobación distingue ausencia de capacidades de su vencimiento natural:
+exige rechazo mientras el plazo capturado todavía está abierto. El vínculo y
+su evidencia permanecen en SQL; después de restaurar, una firma nueva sólo
+concede MFA nueva y no reutiliza la autoridad de una sesión anterior.
+
+\subsubsection{Acceso visible mediante firma externa y MFA}
+
+La pantalla de acceso conserva la composición visual Qadra y el formulario MFA
+existente. Al elegir \emph{Ingresar con certificado}, consulta la disponibilidad
+pública del servidor; una respuesta negativa, ausente o inválida conserva la
+alternativa de contraseña. El usuario selecciona el recibo público JSON de su
+vínculo sin retirar. El navegador limita y valida el contenedor y mantiene sólo
+la selección de cuenta, vínculo, huella y nombre declarado. No utiliza ese recibo
+histórico como prueba de vigencia ni envía su contenido completo al preparar.
+
+La decisión explícita de preparar solicita una declaración nueva de 182 bytes.
+El usuario descarga sus bytes exactos y los firma fuera del navegador; selecciona
+únicamente una firma binaria separada de 384 bytes. La declaración de registro
+de 150 bytes y su firma conservan un propósito distinto. La interfaz no recibe
+claves privadas ni realiza una validación ASN.1 o RSA alternativa al servidor.
+La prueba admitida conduce al MFA habitual y sólo su resultado correcto abre la
+sesión de la misma cuenta Owner seleccionada.
+
+El cliente consume localmente la captura antes de esperar la respuesta y descarta
+token y firma ante vencimiento o fallo. Un resultado incierto exige preparar y
+firmar otra declaración por decisión expresa; no recupera ni reenvía el intento.
+El cambio de método o apertura de recuperación de contraseña invalida las
+respuestas pendientes. Antes de instalar el acceso, la identidad devuelta por
+MFA debe coincidir con el Owner seleccionado y conservar ese rol. El plazo local
+usa tiempo monotónico y descuenta latencia sin reemplazar el control temporal
+del servidor. Estas capacidades efímeras no participan en los borradores de
+editores. El recorrido se documenta en
+\rutarepo{docs/owner-certificate-login-interface.md}.

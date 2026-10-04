@@ -4,9 +4,10 @@
 Qadra y reconocer el resultado de cada operación. Los menús disponibles dependen
 de tu cuenta y de los expedientes asignados. **Informes** y la consulta de
 **Auditoría** están incluidos en la instalación privada. La versión desplegada
-`v0.1.1` todavía no incorpora las entregas posteriores de recuperación de contraseña
-y reingreso. Los apartados que las describen requieren una versión que las incluya
-y, cuando corresponda, su habilitación por el administrador; ver
+`v0.1.1` todavía no incorpora las entregas posteriores de recuperación de contraseña,
+reingreso y acceso por certificado. Los apartados que las describen requieren
+una versión que las incluya y, cuando corresponda, su habilitación por el
+administrador; ver
 [estado de entregas e instalación](product-completion.md).
 
 Este manual se basa en las pantallas y contratos del producto. No es un informe
@@ -67,8 +68,29 @@ explican cada paso. Nunca adjuntes la clave privada, un archivo PFX o una contra
 **Retirar vínculo** exige una confirmación expresa y conserva el historial; no
 revoca el certificado en la autoridad emisora. Si un envío queda sin respuesta,
 comprueba su recibo exacto antes de decidir otro intento. Un vínculo sin retirar
-no demuestra vigencia actual, no permite iniciar sesión por certificado y no
-firma documentos del expediente.
+no demuestra vigencia actual, no abre por sí solo una sesión y no firma
+documentos del expediente. Retirarlo invalida las sesiones abiertas con ese
+vínculo; la contraseña y MFA conservan su recorrido independiente.
+
+### Ingresar con certificado, cuando esté habilitado
+
+El Owner puede elegir **Ingresar con certificado**. La pantalla consulta si el
+servidor habilitó este método; si no está disponible, permite volver a contraseña.
+Selecciona en **Recibo público del vínculo** el JSON descargado desde **Mi
+certificado**. Ese recibo identifica tu selección, pero no acredita vigencia
+actual ni sustituye las comprobaciones del servidor.
+
+Pulsa **Preparar acceso**, descarga los **182 bytes** de **Descargar bytes de
+acceso** y firma el archivo fuera de Qadra con la clave correspondiente. Adjunta sólo la
+firma binaria de **384 bytes** en **Firma separada de acceso** y pulsa
+**Comprobar firma**. Después completa **Un paso más.** con tu TOTP o un código de
+recuperación sin usar. La clave privada nunca se selecciona en el navegador.
+
+La declaración de registro de 150 bytes y su firma no sirven para entrar. Si
+vence el intento, falla la respuesta o se rechaza MFA, **Preparar otro intento**
+genera una declaración nueva que debes volver a firmar. No hay reenvío ni
+recuperación automática del desafío. Consulta el
+[recorrido y ejemplo de firma externa](owner-certificate-login-interface.md).
 
 ### Si olvidaste la contraseña
 

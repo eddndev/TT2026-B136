@@ -2,18 +2,28 @@
 
 use std::sync::Arc;
 
-use application::{documents::CaseDocumentWorkflow, identity::IdentityWorkflow, ApplicationError};
+use application::{
+    documents::CaseDocumentWorkflow,
+    identity::{certificate_login::OwnerLoginWorkflow, IdentityWorkflow},
+    ApplicationError,
+};
 use axum::{routing::get, Router};
 
 use crate::{
     agenda, alerts, audit_events, case_administration, case_reports, case_stages, cases, dashboard,
     deadline_profiles, deadlines, document_content, document_integrity, health, hearing_results,
-    hearings, judicial_calendars, members, owner_certificates, participants,
+    hearings, judicial_calendars, members, owner_certificates, owner_login, participants,
     password_reset::{self, PasswordResetHttp},
     procedural_facts, procedural_resources, resource_activities, resource_deadlines, routes,
     runtime::{protect, HttpRuntime},
     typed_participants, CaseWorkflows, HttpLimits, HttpWorkBudget,
 };
+
+/// Explicit optional authentication capabilities sharing the API's HTTP runtime.
+pub struct AuthenticationHttp {
+    pub password_reset: Option<PasswordResetHttp>,
+    pub certificate_login: Option<Arc<dyn OwnerLoginWorkflow>>,
+}
 
 /// Builds all API routes with password reset unavailable and one shared budget.
 pub fn api_router(
@@ -70,6 +80,39 @@ pub fn api_router_with_password_reset_budget(
     password_reset: Option<PasswordResetHttp>,
     budget: HttpWorkBudget,
 ) -> Result<Router, ApplicationError> {
+    api_router_with_authentication_budget(
+        documents,
+        identity,
+        workflows,
+        calendars,
+        profiles,
+        limits,
+        AuthenticationHttp {
+            password_reset,
+            certificate_login: None,
+        },
+        budget,
+    )
+}
+
+/// Builds optional authentication routes over the same API work budget.
+/// Certificate first-factor routes are absent unless their workflow is supplied.
+/// The caller must inject the same certificate-aware identity into MFA and sessions.
+#[allow(clippy::too_many_arguments)]
+pub fn api_router_with_authentication_budget(
+    documents: Arc<dyn CaseDocumentWorkflow>,
+    identity: Arc<dyn IdentityWorkflow>,
+    workflows: CaseWorkflows,
+    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+    profiles: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
+    limits: HttpLimits,
+    authentication: AuthenticationHttp,
+    budget: HttpWorkBudget,
+) -> Result<Router, ApplicationError> {
+    let AuthenticationHttp {
+        password_reset,
+        certificate_login,
+    } = authentication;
     let runtime = HttpRuntime::with_budget(limits, budget)?;
     let routes = routes::router(documents, identity, runtime.clone())
         .merge(owner_certificates::router(
@@ -131,6 +174,7 @@ pub fn api_router_with_password_reset_budget(
         ))
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()))
-        .merge(password_reset::router(password_reset, runtime.clone()));
+        .merge(password_reset::router(password_reset, runtime.clone()))
+        .merge(owner_login::router(certificate_login, runtime.clone()));
     Ok(protect(routes, runtime).route("/healthz", get(health)))
 }

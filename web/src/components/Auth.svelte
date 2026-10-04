@@ -1,7 +1,8 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import Icon from './Icon.svelte';
-  import Brand from './Brand.svelte';
+  import AuthStory from './AuthStory.svelte';
+  import OwnerCertificateLogin from './OwnerCertificateLogin.svelte';
   import Enrollment from './Enrollment.svelte';
   import PasswordReset from './PasswordReset.svelte';
   import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
@@ -26,6 +27,28 @@
   let error = '';
   let showPassword = false;
   let emailInput;
+  let certificateMode = false;
+  let certificateSelection = null;
+  let certificateDeadline = 0;
+  function changeMethod(certificate = false) {
+    authGeneration++;
+    api.cancelAuthentication();
+    busy = false;
+    password = code = error = '';
+    challenge = enrollment = null;
+    showPassword = recovery = bootstrap = false;
+    certificateMode = certificate;
+    certificateSelection = null;
+    certificateDeadline = 0;
+  }
+  function certificateChallenge(value, selection, until) {
+    if (!certificateMode || resettingPassword) return;
+    certificateSelection = selection;
+    certificateDeadline = until;
+    challenge = value;
+    code = error = '';
+    recovery = false;
+  }
   onMount(() => {
     emailInput?.focus();
     const openRecovery = () => {
@@ -37,12 +60,21 @@
       password = code = '';
       challenge = enrollment = null;
       showPassword = bootstrap = false;
+      certificateMode = false;
+      certificateSelection = null;
+      certificateDeadline = 0;
       resetLink = next;
       resetGeneration++;
       resettingPassword = true;
     };
     window.addEventListener('hashchange', openRecovery);
     return () => window.removeEventListener('hashchange', openRecovery);
+  });
+  onDestroy(() => {
+    authGeneration++;
+    api.cancelAuthentication();
+    password = code = '';
+    challenge = certificateSelection = null;
   });
   async function submit(event) {
     event.preventDefault();
@@ -51,7 +83,7 @@
     error = '';
     try {
       if (challenge) {
-        if (Date.now() >= deadline)
+        if (certificateMode ? performance.now() >= certificateDeadline : Date.now() >= deadline)
           throw new Error('La solicitud de acceso venci\u00f3. Inicia sesi\u00f3n de nuevo.');
         const startedAt = performance.now();
         const session = await api.mfa(
@@ -74,6 +106,7 @@
     } catch (failure) {
       if (generation !== authGeneration) return;
       error = failure.message;
+      api.cancelAuthentication();
       if (challenge) {
         challenge = null;
         code = '';
@@ -90,41 +123,7 @@
 
 <main class="auth-layout">
   <div class="auth-card">
-    <section class="auth-story">
-      <a class="brand" href="/" aria-label="Qadra, inicio"><Brand /></a>
-      <div class="story-copy">
-        <span class="eyebrow">TU DESPACHO, EN ORDEN</span>
-        <h1>Tu trabajo legal,<br /><span>bien resguardado.</span></h1>
-        <p>
-          Del primer archivo a su evidencia. Un espacio claro para cuidar cada documento de tu
-          despacho.
-        </p>
-        <ul class="auth-benefits">
-          <li>
-            <span class="benefit-icon"><Icon name="upload" size={20} /></span>
-            <div>
-              <strong>Documentos bajo resguardo</strong>
-              <p>Carga tus archivos y cons&eacute;rvalos cifrados.</p>
-            </div>
-          </li>
-          <li>
-            <span class="benefit-icon"><Icon name="shield" size={20} /></span>
-            <div>
-              <strong>Integridad verificable</strong>
-              <p>Sella tus documentos y comprueba su integridad.</p>
-            </div>
-          </li>
-          <li>
-            <span class="benefit-icon"><Icon name="download" size={20} /></span>
-            <div>
-              <strong>Evidencia a la mano</strong>
-              <p>Descarga el paquete de evidencia cuando lo necesites.</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <footer><span>Qadra / Evidencia documental</span><span>TT2026-B136</span></footer>
-    </section>
+    <AuthStory />
     <section class="auth-panel">
       <div class="auth-top">
         <span class="badge neutral">Prototipo local</span><span>Despacho digital</span>
@@ -151,6 +150,14 @@
               enrollment = null;
               bootstrap = false;
             }}
+          />
+        {:else if certificateMode && !challenge}
+          <OwnerCertificateLogin
+            {api}
+            initialSelection={certificateSelection}
+            initialError={error}
+            onchallenge={certificateChallenge}
+            onclose={() => changeMethod()}
           />
         {:else}
           <span class="auth-symbol"><Icon name={challenge ? 'shield' : 'lock'} size={24} /></span>
@@ -212,10 +219,7 @@
                 class="text-button"
                 type="button"
                 disabled={busy}
-                onclick={() => {
-                  challenge = null;
-                  code = '';
-                }}>Volver al inicio de sesi&oacute;n</button
+                onclick={() => changeMethod()}>Volver al inicio de sesi&oacute;n</button
               >
             {:else}
               <label
@@ -268,10 +272,9 @@
                   type="button"
                   disabled={busy}
                   onclick={() => {
-                    bootstrap = !bootstrap;
-                    error = '';
-                    password = '';
-                    showPassword = false;
+                    const next = !bootstrap;
+                    changeMethod();
+                    bootstrap = next;
                   }}>{bootstrap ? 'Iniciar sesi\u00f3n' : 'Configurar acceso inicial'}</button
                 >
               </div>
@@ -280,10 +283,14 @@
                   class="text-button"
                   type="button"
                   disabled={busy}
+                  onclick={() => changeMethod(true)}>Ingresar con certificado</button
+                >
+                <button
+                  class="text-button"
+                  type="button"
+                  disabled={busy}
                   onclick={() => {
-                    password = '';
-                    showPassword = false;
-                    error = '';
+                    changeMethod();
                     resettingPassword = true;
                   }}>Olvid&eacute; mi contrase&ntilde;a</button
                 >
@@ -292,7 +299,7 @@
           </form>
           <div class="auth-assurance">
             <Icon name="shield" size={17} /><span
-              >Acceso con contrase&ntilde;a y segundo factor.</span
+              >Acceso con {certificateMode ? 'certificado' : 'contrase\u00f1a'} y segundo factor.</span
             >
           </div>
         {/if}

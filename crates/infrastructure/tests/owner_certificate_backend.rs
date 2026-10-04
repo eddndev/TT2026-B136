@@ -19,6 +19,10 @@ mod inventory;
 mod lock_waits;
 #[path = "owner_certificate_backend_cases/locking.rs"]
 mod locking;
+#[path = "owner_certificate_backend_cases/login_authority.rs"]
+mod login_authority;
+#[path = "owner_certificate_backend_cases/login_authority_races.rs"]
+mod login_authority_races;
 #[allow(dead_code)]
 mod owner_binding_fixture;
 #[path = "owner_certificate_backend_cases/replication_permissions.rs"]

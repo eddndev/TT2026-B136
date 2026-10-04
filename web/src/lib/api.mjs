@@ -7,6 +7,13 @@ import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
 import { membersApi } from './members-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 import { ownerCertificatesApi } from './owner-certificates-api.mjs';
+import { ownerBase64 } from './owner-certificate-binary.mjs';
+import {
+  ownerLoginAvailability,
+  ownerLoginChallenge,
+  ownerLoginMfa,
+  ownerLoginSelection,
+} from './owner-login-values.mjs';
 
 const messages = {
   audit_query_capacity_exceeded:
@@ -78,10 +85,14 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   let authAttemptVersion = 0;
   let observedLogin = false;
   let currentChallenge = null;
+  let certificateCapture = null;
+  let expectedOwnerId = null;
   let locallyClosed = false;
   let sessionGuard = () => true;
   function invalidateAuthentication() {
     currentChallenge = null;
+    certificateCapture = null;
+    expectedOwnerId = null;
     return ++authAttemptVersion;
   }
   function supersededAuthentication() {
@@ -202,11 +213,65 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       return accept(result);
     } catch (failure) {
       assertAttempt();
+      const certificate = expectedOwnerId !== null || path.startsWith('/auth/certificate-login/');
+      invalidateAuthentication();
+      if (certificate)
+        failure.message =
+          'El acceso con certificado no pudo confirmarse. Prepara un nuevo intento.';
       throw failure;
     }
   }
   return {
     invalidateSession,
+    cancelAuthentication() {
+      observedLogin = true;
+      invalidateAuthentication();
+    },
+    async certificateLoginAvailable() {
+      return ownerLoginAvailability(
+        await request('/auth/certificate-login/availability', {
+          protectedRoute: false,
+        }),
+      );
+    },
+    async startCertificateLogin(selection) {
+      observedLogin = true;
+      const attempt = invalidateAuthentication();
+      const selected = ownerLoginSelection(selection);
+      return authenticate(
+        '/auth/certificate-login/start',
+        {
+          owner_id: selected.ownerId,
+          binding_id: selected.bindingId,
+        },
+        attempt,
+        (value) => {
+          const checked = ownerLoginChallenge(value, selected);
+          certificateCapture = checked.challenge_token;
+          expectedOwnerId = selected.ownerId;
+          return checked;
+        },
+      );
+    },
+    async proveCertificateLogin(challenge_token, signature_base64) {
+      if (certificateCapture === null || challenge_token !== certificateCapture)
+        throw supersededAuthentication();
+      ownerBase64(signature_base64, 384);
+      certificateCapture = null;
+      return authenticate(
+        '/auth/certificate-login/proof',
+        {
+          challenge_token,
+          signature_base64,
+        },
+        ++authAttemptVersion,
+        (value) => {
+          const checked = ownerLoginMfa(value);
+          currentChallenge = checked.challenge_token;
+          return checked;
+        },
+      );
+    },
     setSessionGuard(guard) {
       if (typeof guard !== 'function') throw new TypeError('A session guard is required.');
       const installed = () => guard();
@@ -235,16 +300,26 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         throw new Error('M\u00e9todo de verificaci\u00f3n no v\u00e1lido.');
       if (observedLogin && (currentChallenge === null || challenge_token !== currentChallenge))
         throw supersededAuthentication();
+      currentChallenge = null;
       return authenticate(
         `/auth/mfa/${mode}`,
         { challenge_token, code },
         ++authAttemptVersion,
         (session) => {
+          if (
+            expectedOwnerId !== null &&
+            (session?.user?.id !== expectedOwnerId ||
+              session.user.role !== 'owner' ||
+              typeof session.access_token !== 'string' ||
+              !session.access_token)
+          )
+            throw new Error('La sesion no corresponde a la cuenta Owner seleccionada.');
           token = session.access_token;
           principalId = session.user?.id ?? null;
           locallyClosed = false;
           sessionVersion++;
           currentChallenge = null;
+          certificateCapture = expectedOwnerId = null;
           return session;
         },
       );

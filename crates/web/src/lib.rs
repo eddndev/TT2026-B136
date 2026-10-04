@@ -32,6 +32,7 @@ mod hearings;
 mod judicial_calendars;
 mod members;
 mod owner_certificates;
+mod owner_login;
 mod participants;
 pub mod password_reset;
 mod procedural_facts;
@@ -42,7 +43,10 @@ mod resource_deadlines;
 mod routes;
 mod runtime;
 mod typed_participants;
-pub use api::{api_router, api_router_with_password_reset, api_router_with_password_reset_budget};
+pub use api::{
+    api_router, api_router_with_authentication_budget, api_router_with_password_reset,
+    api_router_with_password_reset_budget, AuthenticationHttp,
+};
 use runtime::{protect, HttpRuntime};
 pub use runtime::{HttpLimits, HttpWorkBudget, HttpWorkPermit};
 
@@ -63,6 +67,18 @@ pub fn owner_certificate_router(
     let runtime = HttpRuntime::new(limits);
     protect(
         owner_certificates::router(service, runtime.clone()),
+        runtime,
+    )
+}
+
+/// Builds bounded public certificate first-factor routes that require later MFA.
+pub fn owner_login_router(
+    workflow: Arc<dyn application::identity::certificate_login::OwnerLoginWorkflow>,
+    limits: HttpLimits,
+) -> Router {
+    let runtime = HttpRuntime::new(limits);
+    protect(
+        owner_login::router(Some(workflow), runtime.clone()),
         runtime,
     )
 }

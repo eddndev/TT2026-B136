@@ -183,8 +183,10 @@ class PopulatedRestore(NativeRestore):
         removed = restore_redis.invalidate_sessions(redis_cli=self.tools['redis_cli'], host='127.0.0.1',
             port=self.port, password=self.password, expected_pid=self.process.pid,
             expected_directory=self.root / 'data', max_scan_calls=100, max_keys=1000, batch_size=50, timeout=5)
-        self.assertEqual(removed, {'sessions_removed': 2, 'challenges_removed': 1})
-        remaining = {k:v for k,v in original.items() if not k.startswith(('identity:session:', 'identity:challenge:'))}
+        self.assertEqual(removed, {'sessions_removed': 2, 'challenges_removed': 1,
+                                  'certificate_logins_removed': 0})
+        remaining = {k:v for k,v in original.items() if not k.startswith(
+            ('identity:session:', 'identity:challenge:', 'identity:certificate-login:'))}
         self.assertTrue(redis_snapshot(self) == remaining, 'invalidation changed retained controls')
         self.assertEqual(self.cli('CONFIG', 'SET', 'appendonly', 'yes'), 'OK')
         deadline = time.monotonic() + 15

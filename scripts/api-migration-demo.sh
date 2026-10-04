@@ -15,6 +15,8 @@ source "$REPO_ROOT/scripts/api-case-stage-demo.sh"
 source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
 # shellcheck source=scripts/api-owner-certificates-demo.sh
 source "$REPO_ROOT/scripts/api-owner-certificates-demo.sh"
+# shellcheck source=scripts/api-owner-login-demo.sh
+source "$REPO_ROOT/scripts/api-owner-login-demo.sh"
 # shellcheck source=scripts/api-deadline-reevaluation-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
 
@@ -36,6 +38,7 @@ migration_demo_start() {
   (
     cd "$WORK_DIR"
     RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+      "${OWNER_LOGIN_DEMO_ARGS[@]}" \
       --deadline-page-limit 2 --deadline-poll-ms 50 \
       --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
       --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
@@ -209,10 +212,12 @@ PY
   alert_demo
   document_content_demo "$imported_url"
   member_demo
+  owner_login_demo_prepare "$imported_url"
   calendar_demo_python checkpoint
   case_reports_demo_python capture
   audit_events_demo_python capture "$imported_url"
   dashboard_demo_capture
+  owner_login_demo_python capture "$imported_url"
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
   printf 'Migration restore: capturing the database state.\n'
@@ -236,8 +241,10 @@ PY
   [ "$(jq -Sc '.report' "$WORK_DIR/restored-inspection.json")" = "$import_report" ]
   runtime_url="postgresql://tt_runtime@127.0.0.1:$PG_PORT/restored"
   identity_restore_run invalidate
+  owner_login_demo_python invalidated "$restored_url"
   migration_demo_start "$runtime_url" "$legacy_dir" restored
   identity_restore_login
+  owner_login_demo_python restored "$restored_url"
   dashboard_demo_restored
   case_reports_demo_python restore
   audit_events_demo_python restore "$restored_url"
@@ -301,6 +308,8 @@ unset -f administration_demo_closed administration_demo_capture administration_d
 unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
 unset -f typed_participant_demo typed_participant_demo_restored typed_participant_demo_python
 unset -f owner_certificate_demo owner_certificate_demo_restored owner_certificate_demo_python
+unset -f owner_login_demo_prepare owner_login_demo_python
+unset OWNER_LOGIN_DEMO_ARGS
 unset -f hearing_demo hearing_demo_restored hearing_demo_python
 unset -f calendar_demo calendar_demo_restored calendar_demo_python
 unset -f procedural_facts_demo procedural_facts_demo_restored procedural_facts_demo_python
