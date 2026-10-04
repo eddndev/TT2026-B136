@@ -14,10 +14,18 @@ WITH authorized_hearings AS MATERIALIZED (
           SELECT 1 FROM case_memberships m
           WHERE m.case_id = d.case_id AND m.user_id = $2::uuid
       ))
+), authorized_resource_hearings AS MATERIALIZED (
+    SELECT h.case_id, h.id, h.resource_id
+    FROM case_resource_hearings h
+    WHERE $3::smallint IN (-1, 2)
+      AND ($1::boolean OR EXISTS (
+          SELECT 1 FROM case_memberships m
+          WHERE m.case_id = h.case_id AND m.user_id = $2::uuid
+      ))
 ), heads AS (
     SELECT h.case_id, h.id, r.revision, 0::smallint AS kind_rank,
            (r.values_view->'time'->>'seconds')::bigint AS seconds,
-           0::integer AS nanoseconds, r.status
+           0::integer AS nanoseconds, r.status, NULL::uuid AS resource_id
     FROM authorized_hearings h
     CROSS JOIN LATERAL (
         SELECT revision, values_view, status
@@ -29,7 +37,7 @@ WITH authorized_hearings AS MATERIALIZED (
     UNION ALL
     SELECT d.case_id, d.id, r.revision, 1::smallint AS kind_rank,
            r.due_at_seconds AS seconds, r.due_at_nanoseconds AS nanoseconds,
-           r.status
+           r.status, NULL::uuid AS resource_id
     FROM authorized_deadlines d
     CROSS JOIN LATERAL (
         SELECT revision, status, due_at_seconds, due_at_nanoseconds
@@ -39,8 +47,21 @@ WITH authorized_hearings AS MATERIALIZED (
     ) r
     WHERE r.status = 'active' AND r.due_at_seconds IS NOT NULL
       AND r.due_at_nanoseconds IS NOT NULL
+    UNION ALL
+    SELECT h.case_id, h.id, r.revision, 2::smallint AS kind_rank,
+           (r.values_view->'time'->>'seconds')::bigint AS seconds,
+           0::integer AS nanoseconds, NULL::text AS status, h.resource_id
+    FROM authorized_resource_hearings h
+    CROSS JOIN LATERAL (
+        SELECT revision, values_view
+        FROM case_resource_hearing_revisions
+        WHERE hearing_id = h.id AND case_id = h.case_id
+          AND resource_id = h.resource_id
+        ORDER BY revision DESC LIMIT 1
+    ) r
+    WHERE $4::text IS NULL OR $4 = 'scheduled'
 )
-SELECT case_id, id, revision, kind_rank, seconds, nanoseconds, status
+SELECT case_id, id, revision, kind_rank, seconds, nanoseconds, status, resource_id
 FROM heads
 WHERE (seconds, nanoseconds) >= ($5::bigint, 0::integer)
   AND (seconds, nanoseconds) < ($6::bigint, 0::integer)

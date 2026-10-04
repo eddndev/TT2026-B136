@@ -137,4 +137,25 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["case_id", "revision"],
         false,
     ),
+    (
+        "case_resource_activity_association_revisions",
+        "resource_activity_resource_hearing_root",
+        &["resource_hearing_id", "case_id", "resource_id"],
+        "case_resource_hearings",
+        &["id", "case_id", "resource_id"],
+        false,
+    ),
+    (
+        "case_resource_activity_association_revisions",
+        "resource_activity_resource_hearing_capture",
+        &[
+            "resource_hearing_id",
+            "case_id",
+            "resource_id",
+            "resource_hearing_revision",
+        ],
+        "case_resource_hearing_revisions",
+        &["hearing_id", "case_id", "resource_id", "revision"],
+        false,
+    ),
 ];

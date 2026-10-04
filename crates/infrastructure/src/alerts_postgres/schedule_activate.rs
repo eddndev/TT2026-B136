@@ -83,7 +83,7 @@ fn nearest(
     else {
         return true;
     };
-    let family = if matches!(row.subject, AlertSubject::Hearing { .. }) {
+    let family = if !matches!(row.subject, AlertSubject::Deadline { .. }) {
         &prefs.hearing_upcoming
     } else {
         &prefs.deadline_upcoming

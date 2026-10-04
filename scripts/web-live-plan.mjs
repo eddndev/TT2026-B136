@@ -49,6 +49,7 @@ const families = [
   [/^resource-activities-real\./, 3, ["resourceActivities"]],
   [/^activity-resources-real\./, 3, ["resourceActivities"]],
   [/^resource-activities-contextual-real\./, 3, ["resourceActivities"]],
+  [/^resource-hearings-real\./, 3, ["resourceActivities"]],
 ];
 
 export function planLiveSuite(files, partition) {

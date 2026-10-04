@@ -20,7 +20,7 @@ export function resourceActivityReference(value, act = false) {
   return structuredClone(value);
 }
 export function resourceActivityTarget(value) {
-  if (!['hearing', 'deadline'].includes(value?.kind)) invalid();
+  if (!['hearing', 'deadline', 'resource_hearing'].includes(value?.kind)) invalid();
   const hash = value.kind === 'hearing' ? 'submission_digest' : 'capture_digest';
   object(value, ['kind', 'id', 'revision', hash]);
   canonical(value.id, uuid);
@@ -76,5 +76,9 @@ export function resourceActivityCommand(raw) {
   }
   return { ...raw, change: result };
 }
-export const resourceActivityKinds = { hearing: 'Audiencia', deadline: 'Plazo' };
+export const resourceActivityKinds = {
+  hearing: 'Audiencia',
+  deadline: 'Plazo',
+  resource_hearing: 'Audiencia de recurso',
+};
 export const resourceActivityStatuses = { linked: 'Vinculada', unlinked: 'Desvinculada' };

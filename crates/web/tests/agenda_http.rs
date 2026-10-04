@@ -10,6 +10,10 @@ use std::sync::{Arc, Mutex};
 use tower::ServiceExt;
 use uuid::Uuid;
 
+mod deadline_http_support;
+#[path = "agenda_resource_hearings/mod.rs"]
+mod resource_hearings;
+
 const RANGE: &str = "from=2026-01-01T00:00:00Z&until=2026-01-02T00:00:00Z";
 fn at(seconds: i64) -> OffsetDateTime {
     OffsetDateTime::from_unix_timestamp(seconds).unwrap()

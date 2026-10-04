@@ -157,6 +157,11 @@ fn selection(kind: ResourceActivityKind) -> ResourceActivitySelection {
             revision: DeadlineRevision::initial(),
             capture_digest: digest(),
         },
+        ResourceActivityKind::ResourceHearing => ResourceActivityTarget::ResourceHearing {
+            id: super::resource_hearing::hearing_id(),
+            revision: domain::resource_hearings::ResourceHearingRevision::initial(),
+            capture_digest: digest(),
+        },
     };
     ResourceActivitySelection {
         resource: ResourceCaptureRef {
@@ -190,6 +195,11 @@ pub fn detail(c: &ResourceActivityCommand, kind: ResourceActivityKind) -> Resour
                 }
                 ResourceActivityKind::Deadline => {
                     ResourceActivityTargetDetail::Deadline(Box::new(deadline()))
+                }
+                ResourceActivityKind::ResourceHearing => {
+                    ResourceActivityTargetDetail::ResourceHearing(Box::new(
+                        super::resource_hearing::hearing(),
+                    ))
                 }
             },
         },
@@ -231,6 +241,11 @@ pub fn view(c: &ResourceActivityCommand, kind: ResourceActivityKind) -> Resource
             }
             ResourceActivityKind::Deadline => {
                 ResourceActivityCurrentTarget::Deadline(Box::new(current_deadline()))
+            }
+            ResourceActivityKind::ResourceHearing => {
+                ResourceActivityCurrentTarget::ResourceHearing(Box::new(
+                    super::resource_hearing::hearing(),
+                ))
             }
         },
     }

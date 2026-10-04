@@ -2,12 +2,16 @@ use super::{
     ResourceActivityId, ResourceActivityQuery, ResourceActivityStatus, ResourceActivityView,
 };
 use crate::ApplicationError;
-use domain::{clock::OffsetDateTime, deadlines::DeadlineId, hearings::HearingId};
+use domain::{
+    clock::OffsetDateTime, deadlines::DeadlineId, hearings::HearingId,
+    resource_hearings::ResourceHearingId,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResourceActivityTargetId {
     Hearing(HearingId),
     Deadline(DeadlineId),
+    ResourceHearing(ResourceHearingId),
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ResourceActivityTargetQuery(ResourceActivityQuery);

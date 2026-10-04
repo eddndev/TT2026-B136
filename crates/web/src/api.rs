@@ -14,7 +14,8 @@ use crate::{
     deadline_profiles, deadlines, document_content, document_integrity, health, hearing_results,
     hearings, judicial_calendars, members, owner_certificates, owner_login, participants,
     password_reset::{self, PasswordResetHttp},
-    procedural_facts, procedural_resources, resource_activities, resource_deadlines, routes,
+    procedural_facts, procedural_resources, resource_activities, resource_deadlines,
+    resource_hearings, routes,
     runtime::{protect, HttpRuntime},
     typed_participants, CaseWorkflows, HttpLimits, HttpWorkBudget,
 };
@@ -150,6 +151,11 @@ pub fn api_router_with_authentication_budget(
         ))
         .merge(resource_deadlines::router(
             workflows.resource_deadlines,
+            runtime.clone(),
+        ))
+        .merge(resource_hearings::router(
+            workflows.resource_hearings,
+            workflows.resource_hearing_reads,
             runtime.clone(),
         ))
         .merge(deadlines::router(workflows.deadlines, runtime.clone()))

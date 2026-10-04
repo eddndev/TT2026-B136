@@ -5,6 +5,7 @@
   import ResourceActivityEditor from './ResourceActivityEditor.svelte';
   import ResourceDeadlineEditor from './ResourceDeadlineEditor.svelte';
   import ResourceActivityDetail from './ResourceActivityDetail.svelte';
+  import ResourceHearingScheduling from './ResourceHearingScheduling.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { resourceActivityFailure, resourceDenied } from '../lib/resource-activity-errors.mjs';
   import { canResources } from '../lib/procedural-resource-errors.mjs';
@@ -57,9 +58,10 @@
     busy = false,
     opening = false,
     editorBusy = false,
+    hearingBusy = false,
     alive = true,
     generation = 0;
-  $: pending = busy || opening || editorBusy || !!action;
+  $: pending = busy || opening || editorBusy || hearingBusy || !!action;
   $: manage = canResources(user.role, 'manage') && !$administration.closed;
   function fail(failure) {
     error = resourceActivityFailure(failure);
@@ -228,6 +230,16 @@
     V&#237;nculos organizativos con revisiones exactas. La historia y el estado actual se consultan
     por separado.
   </p>
+  <ResourceHearingScheduling
+    {api}
+    {user}
+    {caseId}
+    {resource}
+    {ondenied}
+    disabled={disabled || busy || opening || !!action}
+    oncreated={(value) => confirmed(value.association, true)}
+    bind:pending={hearingBusy}
+  />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
   {#if !action}{#each drafts as saved (saved.key)}<button

@@ -217,3 +217,27 @@ fn external_budget_capacity_must_match_the_declared_blocking_limit() {
         );
     }
 }
+
+#[tokio::test]
+async fn resource_hearing_routes_are_composed_with_shared_request_admission() {
+    let fixture = Harness::new(1, false);
+    let base = "/api/v1/cases/00000000-0000-4000-8000-000000000001/procedural-resources/00000000-0000-4000-8000-000000000002/activities/resource-hearings";
+    for suffix in [
+        "",
+        "/00000000-0000-4000-8000-000000000003",
+        "/00000000-0000-4000-8000-000000000003/revisions/1",
+    ] {
+        get(&fixture.router, &format!("{base}{suffix}"))
+            .await
+            .error(StatusCode::FORBIDDEN, "permission_denied");
+    }
+    let mut gate = fixture.dashboard.block();
+    let router = fixture.router.clone();
+    let blocked = tokio::spawn(async move { get(&router, DASHBOARD).await });
+    gate.entered().await;
+    get(&fixture.router, base)
+        .await
+        .error(StatusCode::SERVICE_UNAVAILABLE, "server_busy");
+    drop(gate);
+    blocked.await.unwrap();
+}

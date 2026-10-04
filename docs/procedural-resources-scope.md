@@ -21,9 +21,11 @@ por revisión en el [informe](verification-report.md).
 Este incremento no crea audiencias desde un contexto procesal de recurso ni
 activa automáticamente términos. La [creación contextual de plazos](resource-deadlines-api.md)
 prepara y registra conjuntamente un plazo calculado y su vínculo, con fuente
-temporal explícita. Faltan las audiencias contextuales, el
-corpus jurídico calificado y su activación durable, y completar la navegación y
-trazabilidad de las alertas en el flujo de recursos. Los avisos existentes siguen
+temporal explícita. La ampliación de [audiencias propias](resource-hearings.md)
+ya implementa programación explícita y su asociación atómica, Agenda y Alertas.
+Conserva aceptación focal de captura/restauración HTTP y navegador real; faltan
+los gates globales de la revisión final, integración y despliegue. El corpus
+jurídico calificado y la activación automática durable siguen pendientes. Los avisos existentes siguen
 perteneciendo a la actividad y conservan su política de destinatarios y episodios;
 una asociación no representa una suscripción ni una alerta nueva. Estas
 fronteras no reducen los criterios de aceptación completos de esta nota.

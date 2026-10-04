@@ -5,6 +5,7 @@ use crate::{
     deadlines::DeadlineDetail,
     hearings::HearingDetail,
     procedural_resources::ResourceDetail,
+    resource_hearings::ResourceHearingDetail,
 };
 use domain::{
     cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest, procedural_facts::FactText,
@@ -13,6 +14,7 @@ use domain::{
 pub enum ResourceActivityTargetDetail {
     Hearing(Box<HearingDetail>),
     Deadline(Box<DeadlineDetail>),
+    ResourceHearing(Box<ResourceHearingDetail>),
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResourceActivitySources {
@@ -83,6 +85,7 @@ pub enum ResourceActivityPreparation {
 pub enum ResourceActivityCurrentTarget {
     Hearing(Box<HearingDetail>),
     Deadline(Box<DeadlineCurrent>),
+    ResourceHearing(Box<ResourceHearingDetail>),
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResourceActivityView {

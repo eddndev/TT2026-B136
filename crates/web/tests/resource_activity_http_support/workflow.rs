@@ -85,6 +85,9 @@ impl ResourceActivityWorkflow for Workflow {
             ResourceActivityTargetId::Deadline(id) => {
                 json!({"kind":"deadline","id":id.to_string()})
             }
+            ResourceActivityTargetId::ResourceHearing(id) => {
+                json!({"kind":"resource_hearing","id":id.to_string()})
+            }
         };
         self.call(
             token,

@@ -9,7 +9,7 @@ pub(super) fn expected(table: &str) -> Vec<String> {
     let mut result: Vec<String> = [
         r#"((action COLLATE "C") = ANY (ARRAY['link'::text, 'unlink'::text]))"#,
         r#"((status COLLATE "C") = ANY (ARRAY['linked'::text, 'unlinked'::text]))"#,
-        r#"((target_kind COLLATE "C") = ANY (ARRAY['hearing'::text, 'deadline'::text]))"#,
+        r#"((target_kind COLLATE "C") = ANY (ARRAY['hearing'::text, 'deadline'::text, 'resource_hearing'::text]))"#,
         "((reason IS NULL) OR ((char_length(reason) >= 1) AND (char_length(reason) <= 1000) AND (octet_length(reason) <= 4000)))",
         "(octet_length(selection_canonical) = ANY (ARRAY[111, 167]))",
         "((octet_length(submission_canonical) >= 5) AND (octet_length(submission_canonical) <= 1048576))",
@@ -23,7 +23,7 @@ pub(super) fn expected(table: &str) -> Vec<String> {
         "((octet_length(recorded_by_email) >= 1) AND (octet_length(recorded_by_email) <= 1280))",
         "(((recorded_administration_revision IS NULL) AND (recorded_administration_digest IS NULL) AND (recorded_administration_title IS NOT NULL) AND (recorded_administration_reference IS NOT NULL)) OR ((recorded_administration_revision >= 1) AND (recorded_administration_revision <= '4294967295'::bigint) AND (recorded_administration_revision IS NOT NULL) AND (recorded_administration_digest IS NOT NULL) AND (octet_length(recorded_administration_digest) = 32) AND (recorded_administration_title IS NULL) AND (recorded_administration_reference IS NULL)))",
         "(num_nonnulls(act_id, act_revision, act_resource_revision, act_capture_digest) = ANY (ARRAY[0, 4]))",
-        "(((target_kind = 'hearing'::text) AND (num_nonnulls(hearing_id, hearing_revision, hearing_submission_digest) = 3) AND (num_nonnulls(deadline_id, deadline_revision, deadline_capture_digest) = 0)) OR ((target_kind = 'deadline'::text) AND (num_nonnulls(deadline_id, deadline_revision, deadline_capture_digest) = 3) AND (num_nonnulls(hearing_id, hearing_revision, hearing_submission_digest) = 0)))",
+        "(((target_kind = 'hearing'::text) AND (num_nonnulls(hearing_id, hearing_revision, hearing_submission_digest) = 3) AND (num_nonnulls(deadline_id, deadline_revision, deadline_capture_digest, resource_hearing_id, resource_hearing_revision, resource_hearing_capture_digest) = 0)) OR ((target_kind = 'deadline'::text) AND (num_nonnulls(deadline_id, deadline_revision, deadline_capture_digest) = 3) AND (num_nonnulls(hearing_id, hearing_revision, hearing_submission_digest, resource_hearing_id, resource_hearing_revision, resource_hearing_capture_digest) = 0)) OR ((target_kind = 'resource_hearing'::text) AND (num_nonnulls(resource_hearing_id, resource_hearing_revision, resource_hearing_capture_digest) = 3) AND (num_nonnulls(hearing_id, hearing_revision, hearing_submission_digest, deadline_id, deadline_revision, deadline_capture_digest) = 0)))",
         "(((action = 'link'::text) AND (status = 'linked'::text) AND (revision = 1) AND (previous_capture_digest IS NULL) AND (reason IS NULL)) OR ((action = 'unlink'::text) AND (status = 'unlinked'::text) AND (revision = 2) AND (previous_capture_digest IS NOT NULL) AND (reason IS NOT NULL)))",
     ].into_iter().map(str::to_owned).collect();
     for field in [
@@ -32,6 +32,7 @@ pub(super) fn expected(table: &str) -> Vec<String> {
         "act_revision",
         "hearing_revision",
         "deadline_revision",
+        "resource_hearing_revision",
         "recorded_resource_revision",
     ] {
         result.push(format!(
@@ -46,6 +47,7 @@ pub(super) fn expected(table: &str) -> Vec<String> {
         "act_capture_digest",
         "hearing_submission_digest",
         "deadline_capture_digest",
+        "resource_hearing_capture_digest",
         "previous_capture_digest",
         "recorded_resource_capture_digest",
     ] {

@@ -81,6 +81,28 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   durable de un plazo nuevo, audiencias propias de recursos y catálogo restante
   de audiencias. Las continuaciones declaradas y la creación contextual explícita
   de plazos ya están integradas; no equivalen a activación jurídica automática.
+  El catálogo separado de alegatos de apelación y revocación escrita, y la
+  preparación contra recursos/actos exactos, confirmación de la revisión y
+  conciliación explícita de la creación original tienen implementación local.
+  El adaptador PostgreSQL ya confirma audiencia, asociación inicial y origen
+  auditado atómicamente, con migración `0030_`, inventario estricto y recuperación
+  del vínculo original después de desvincularlo. La API genérica de asociaciones
+  incorpora el DTO `resource_hearing`. Las consultas históricas propias y el router
+  de preparación, envío y lectura están implementados localmente, incluida su
+  composición de servidor. Aprobaron las pruebas focales previas y los nuevos
+  casos de lectura en aplicación y PostgreSQL, el rechazo tipado de evidencia
+  incompleta, las rutas HTTP y su composición. La prueba de humo del servidor
+  con restauración también aprobó; no sustituye la aceptación propia del recorrido.
+  Esta ampliación aún no está integrada ni desplegada;
+  la consulta de agenda incorpora localmente esta tercera familia, sin cambiar
+  los filtros ordinarios. Qadra añade lectura histórica exacta desde esa agenda,
+  conservando filtros y continuación. El formulario local prepara una revisión
+  explícita, conserva fuentes históricas y recupera envíos inciertos con consulta
+  exacta y reenvío solicitado. Las alertas propias y su recuperación tras restaurar
+  tienen aceptación focal real; Qadra aprobó el recorrido a 1440 y 390 píxeles
+  antes del ajuste posterior del scheduler. Restan los gates globales de la
+  revisión final y su integración. Véase el
+  [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,
@@ -971,8 +993,21 @@ aprobaron en 6m41s, 11m24s y 7m43s, con 3156 Rust, 396 escenarios controlados
 y 47 reales, además de dos ignorados. Se conserva separada
 la aceptación de esta entrega de la aceptación de informes integrada por PR49.
 
-Persisten las audiencias propias de recursos, el corpus jurídico calificado y
-la activación automática durable de sus términos. Asociar o consultar no crea
+Persisten la integración completa de las audiencias propias de recursos,
+agenda, alertas y Qadra, el corpus jurídico calificado y la activación automática
+durable de sus términos. El backend, el DTO de asociación, las consultas propias
+y el router de programación tienen implementación local según su
+[contrato](resource-hearings.md), incluida su composición de servidor. La captura y restauración propia tienen
+aceptación focal real, y el navegador conserva su corte anterior al ajuste del
+scheduler. Los gates globales del conjunto, integración y despliegue siguen pendientes. Las pruebas focales
+de lecturas de aplicación y PostgreSQL, evidencia incompleta y rutas propias ya
+aprobaron. Qadra incorpora programación explícita y recuperación del borrador;
+las alertas de proximidad propias tienen implementación local con persistencia,
+permisos, preferencias y lectura histórica en Qadra. La restauración conserva
+la misma ocurrencia y recibo; no se atribuye una campaña global del conjunto ni
+su integración; véase [su contrato](resource-hearing-alerts.md).
+Los resultados del corte se
+conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
 [la evidencia por entrega](verification-report.md) conservan esos pendientes.

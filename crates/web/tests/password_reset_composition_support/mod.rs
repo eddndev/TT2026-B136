@@ -37,6 +37,7 @@ mod resources;
 mod stages;
 mod unused;
 mod unused_owner;
+mod unused_resource_hearings;
 mod unused_typed;
 
 use crate::password_reset_http_support::{Ports, RequestAdmission, Requests};
@@ -183,6 +184,8 @@ fn workflows(
         procedural_resources: Arc::new(resources::Workflow::default()),
         resource_activities: Arc::new(activities::Workflow::default()),
         resource_deadlines: unused.clone(),
+        resource_hearings: unused.clone(),
+        resource_hearing_reads: unused.clone(),
         deadlines: Arc::new(deadlines::Workflow::default()),
         agenda: unused.clone(),
         dashboard,

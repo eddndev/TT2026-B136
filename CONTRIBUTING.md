@@ -51,6 +51,11 @@ by its file path (for example `docs/adr/0001-msrv-and-dependency-pinning.md`).
 - Name new branches `feat/<description>` for implementation or
   `progress/<description>` for project documentation and coordination. Use
   descriptive names for the change and integrate through a pull request.
+- Include Hatziry Vitales Herrera as a co-author in every new assistant-created
+  commit and squash merge message, preserving the primary author and existing
+  co-authors. Use this exact GitHub-linked trailer, after a blank line:
+
+      Co-authored-by: Hatziry Vitales Herrera <118234336+vhhatziry@users.noreply.github.com>
 
 ## Architecture: dependency direction
 

@@ -25,6 +25,9 @@ fn target(row: &ResourceActivityDetail) -> ResourceActivityTargetId {
     match row.selection.target {
         ResourceActivityTarget::Hearing { id, .. } => ResourceActivityTargetId::Hearing(id),
         ResourceActivityTarget::Deadline { id, .. } => ResourceActivityTargetId::Deadline(id),
+        ResourceActivityTarget::ResourceHearing { id, .. } => {
+            ResourceActivityTargetId::ResourceHearing(id)
+        }
     }
 }
 fn page(rows: Vec<ResourceActivityView>) -> ResourceActivityTargetPage {

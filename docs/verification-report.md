@@ -1,5 +1,332 @@
 # Informe de verificación local
 
+## Aceptación real de audiencias de recursos y bloqueo de Agenda: 4 de octubre de 2026
+
+El recorrido propio tiene aceptación local focal, aún sin integración, despliegue
+o nueva medición global de cobertura. PostgreSQL 16.15, qpdf 12.4.1 y los
+analizadores multimedia fijados se reutilizaron; servicios desechables, un
+compilador, un worker y temporales privados sobre disco. No se habilitó correo.
+
+La primera campaña API compuesta se detuvo en **325.371 s** (build 41.15 s):
+tras crear las audiencias, comprobar permisos y cerrar el expediente, Agenda
+respondió 500. Una captura focal posterior completó los mismos controles propios.
+Su driver de diagnóstico falló después al serializar una secuencia como fila;
+se corrigió la consulta a `last_value` e `is_called`, conservando la base capturada.
+La comparación exacta de todas las tablas públicas y estados lógicos de secuencias
+aprobó tras `pg_dump`/`pg_restore`. La primera continuación HTTP reprodujo otro
+500 y el log PostgreSQL identificó `55P03`, timeout del bloqueo de auditoría.
+
+El muestreo de esa misma base identificó al generador de alertas reteniendo una
+transacción durante **1.361 s** mientras reconstruía repetidamente las fuentes
+propias; una consulta de Agenda agotó su presupuesto de un segundo. No era un
+error exclusivo del filtro combinado. La regresión determinista contó **65
+verificaciones RHCR1 frente a 5** al reconciliar seis planes conservados para
+los mismos tres destinatarios: falló 1/1 en 7.70 s antes de corregir.
+
+La planificación reutiliza ahora la evidencia propia validada dentro de esa
+misma transacción y coteja cada plan con ella. No cambia esperas, reintentos,
+criptografía, permisos ni catálogo. Los **dos casos nuevos aprobaron en 14.61 s**
+(compilación 14.11 s): el recuento vuelve a cinco, se conservan todos los planes,
+se rechazan ocho alteraciones con checksum coherente y se vuelve a validar el
+marcador en una transacción posterior. Las **tres regresiones de inventario e
+integridad aprobaron en 66.02 s**. La revisión independiente no encontró pérdida
+de controles; activación, lecturas y apertura mantienen la verificación completa.
+
+Después del build corregido de **16.14 s**, las cuatro consultas del diagnóstico
+sobre la base conservada aprobaron en **0.281, 0.198, 0.201 y 0.192 s**, sin el
+500 reproducido antes. Es una medición focal, no un porcentaje de mejora global.
+La continuación final de restauración aprobó en **41.265 s**, sin repetir captura
+ni build. Comparó el respaldo antes de iniciar el servidor, revocó sesiones,
+conservó controles de autenticación y obtuvo MFA nuevo. Verificó capturas exactas,
+autores, asociación inicial e historial desvinculado, replay de comandos sin
+duplicados, Agenda del expediente cerrado y la misma ocurrencia y recibo de alerta
+tras reiniciar. El cotejo comprende audiencias propias, asociaciones y origen
+auditable; no simula una caída eléctrica ni acredita restauración de producción.
+
+El cierre posterior ejecutó `scripts/api-demo.sh` completo con el scheduler
+corregido: **aprobado en 442.355 s**, incluida compilación caliente de **0.69 s**.
+La campaña volvió a crear datos desechables y completó los recorridos HTTP,
+el respaldo y la restauración en una sola ejecución. Conservó las capturas,
+autores, asociaciones y comandos de audiencias propias, su Agenda y una sola
+ocurrencia leída después de reiniciar el worker. También aprobó los controles
+existentes de roles, documentos, plazos, alertas y miembros; el cierre conservó
+cuatro documentos, 70 eventos de auditoría y el ZIP de evidencia idéntico.
+Se retiraron los servicios de la campaña. Este resultado cierra el recorrido
+API compuesto que antes había fallado; no reemplaza los gates remotos ni la
+prueba de navegador del revisionado final, y no acredita despliegue.
+
+El navegador real aprobó **2/2 casos en 52.6 s**, 292.209 s con preparación y
+build caliente de 0.25 s, antes del ajuste posterior del scheduler. Recorrió
+escritorio de 1440 y móvil de 390 píxeles: programación, respuesta 201 perdida,
+conciliación sin segundo POST tras desvincular, Agenda, alerta y lectura explícita.
+La primera ejecución falló por una carrera del propio test: el encabezado de
+incertidumbre aparecía antes de acabar el POST y el cleanup revocaba la sesión.
+Esperar explícitamente la petición interceptada corrigió el test conservando
+aserciones y límites. Cuatro capturas visuales se inspeccionaron sin nuevos
+solapes ni desbordamiento horizontal. Las regresiones globales del revisionado
+final quedan para los gates de integración; no se atribuye ese navegador al
+binario posterior del scheduler.
+
+Clippy focal de infraestructura y su target de alertas aprobó con `-D warnings`
+en **5.61 s**. Formato Rust, ASCII, límite de fuentes y comprobación del diff
+aprobaron. Permanece el aviso anterior de compatibilidad futura de Redis 0.25.4.
+
+El helper de Agenda añadió la tercera familia con **6/6 pruebas Python en
+0.041 s**, después de fallar los seis casos. El plan de fixtures pasó **2/2 Node
+en 144.318 ms** tras reproducir la omisión del spec. Una regresión PostgreSQL de
+Agenda aprobó **1/1 en 13.49 s** (build 9.12 s), conservando dos autores y capturas
+tras actualizar participantes, desvincular, archivar y cerrar. Estos resultados
+no se suman como una suite global única ni actualizan denominadores históricos.
+
+## Alertas de audiencias propias de recursos: 4 de octubre de 2026
+
+Implementación local, sin integración ni despliegue. Se añadió con TDD el sujeto
+propio, su proyección HTTP, persistencia y panel histórico de Qadra. La revisión
+independiente focal de origen/estado y límites de la interfaz no encontró defectos
+concretos; no sustituye la aceptación integrada pendiente.
+
+Aplicación aprobó **20/20** casos (cuatro nuevos y dieciséis regresiones), y HTTP
+**9/9** (tres nuevos y seis anteriores). Los RED iniciales documentaron la variante
+y el brazo de proyección ausentes. Ningún caso modificó límites de tiempo,
+criptografía o reglas jurídicas.
+
+PostgreSQL 16.15 ejecutó **quince casos nuevos distintos** con servicios desechables:
+seis de migración, permisos y restricciones; seis de preferencias, destinatarios,
+reinicio, cursores y ausencia de duplicados; tres de inventario corrupto. La primera
+campaña compilable aprobó catorce en 157.87 s y falló en la preparación del daño:
+el CHECK SQL impedía cambiar sólo el digest. Se modificó exclusivamente esa
+simulación para alterar bytes y recalcular su checksum; el caso restante aprobó
+**1/1 en 14.58 s**, conservando las exigencias de rechazo y ausencia de escrituras.
+Tres pruebas unitarias adicionales del codec aprobaron en menos de 0.01 s
+(compilación de 12.25 s): conservaron literalmente los bytes de las familias
+anteriores y rechazaron padre ausente, no canónico o con aridad incorrecta.
+Antes se corrigieron dos imports faltantes de traits en los tests. Los clusters
+se retiraron después de cada ejecución. Reapertura e inventario no equivalen a
+una campaña completa de `pg_dump`/`pg_restore`.
+Las **28 regresiones PostgreSQL anteriores aprobaron en 200.15 s**, sin repetir
+los quince casos nuevos. Cubren permisos heredados, inventario, destinatarios,
+reprogramación, lecturas y estados de entrega con proveedor simulado.
+
+El cliente comprobó **32 casos Node distintos**: seis nuevos y veintiséis previos.
+La primera ejecución aprobó 31 en 282.294 ms; una fixture de preferencias tenía
+valores personalizados con revisión cero. Corregirla a una revisión persistida,
+sin cambiar el validador, hizo aprobar el caso restante en 189.576 ms. No se
+presenta la suma como una ejecución única de 32 casos. El navegador aprobó
+**5/5 casos nuevos en 16.9 s** y **11/11 regresiones en 27.8 s**, con HTTP controlado
+y un worker. Dos positivos se repitieron exclusivamente para capturas a 1440 y
+390 píxeles, inspeccionadas sin solapes ni desbordamiento horizontal; no cuentan
+como escenarios adicionales. El build Web aprobó en **3.23 s**, con el aviso
+anterior de bundle mayor de 500 kB.
+
+Clippy focal con `-D warnings` aprobó aplicación/infraestructura en 5.93 s
+y HTTP en 13.49 s. Su primera pasada pidió expresar los tags contiguos como
+`0..=2`; se corrigió la notación sin cambiar el conjunto admitido. Se conservaron
+ASCII, límite de 400 líneas y formato.
+
+En este corte focal aún faltaban API/restauración/navegador reales. La aceptación
+posterior figura al inicio del informe; los gates globales siguen pendientes. No se consultó nuevamente
+Actions ni se activó correo operativo por estas pruebas focales.
+
+## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026
+
+El cliente de preparación, envío, recuperación y listado se desarrolló con TDD.
+La primera campaña observó doce fallos por métodos ausentes y nueve casos de
+lectura ya aprobados; el listado propio tuvo cuatro fallos antes de implementarse.
+El cliente de asociaciones reprodujo por separado cuatro rechazos de la familia
+propia y un caso negativo aprobado. Tras implementar, **42/42 casos Node aprobaron
+en 1261.504 ms**, con ejecución secuencial: 25 de la API propia y 17 de asociaciones,
+incluidas sus regresiones anteriores. Se conservaron los casos previos de lectura.
+
+Las pruebas cotejan recurso y acto históricos frente a la cabeza esperada,
+soporte admitido, participante exacto, autor, administración, alcance, orden y
+cursor. Verifican que consultar un envío incierto no escribe, que un 404 específico
+mantiene incertidumbre y que un reenvío explícito conserva comando e identidades.
+Una respuesta de otro actor, captura, fuente o resultado no se confirma. El cierre
+del cliente descarta respuestas tardías. La validación del transporte conserva
+la comprobación criptográfica en el servidor.
+
+El helper de borradores añadió ocho casos con TDD: la importación ausente
+impidió ejecutarlos en el RED y después aprobaron **8/8 en 218.317 ms**. Conserva
+campos incompletos, selección e identidades del envío incierto sin restaurar una
+aprobación anterior. Comprueba identidad completa y autorización del expediente
+antes de renovar referencias; el cierre actual se transmite explícitamente.
+Cambio de cuenta, correo o rol, pérdida de admisión y respuestas tardías impiden
+restaurar el material. Un 404 durante recuperación no borra el envío retenido.
+Estos ocho casos son adicionales a los 42 anteriores.
+
+El navegador reprodujo primero la ausencia del panel y del formulario, antes de
+implementar. Durante su conexión aparecieron dos datos simulados incompatibles
+con el contrato: un autor sin UUID y una ficha manual sin `subject: null`. Se
+corrigieron las fixtures, conservando los validadores. Una regresión adicional
+reprodujo que el segundo intento de restauración omitía leer la fuente exacta
+(una consulta observada frente a dos esperadas, 4.6 s). La implementación repite
+esa validación antes de desbloquear, aunque vuelva a fallar temporalmente.
+
+Aprobaron **16 casos nuevos de navegador**, con un worker y HTTP controlado: doce
+quedaron verdes en la campaña parcial de 38.5 s y los cuatro restantes aprobaron
+en 17.8 s tras corregir la fixture de participante. Cubren escritorio de 1440
+píxeles y móvil de 390, recurso y acto históricos, participantes, soporte y base
+obligatorios, comparación explícita de cabeza, respuesta perdida, desvinculación,
+reenvío idéntico solicitado y conservación del borrador en la misma sesión
+reautenticada. Cambio de cuenta, logout, denegación, cierre y archivo conservan
+sus restricciones. El segundo fallo de una fuente mantiene el formulario
+bloqueado; sólo una lectura posterior válida permite retomarlo sin POST.
+
+Las **13 regresiones de Agenda y actividades aprobaron en 32.7 s**. Son 29 casos
+de navegador distintos y 50 Node en este incremento. El resultado es focal y con
+transporte controlado: todavía faltan alertas, aceptación propia con servicios
+reales y restauración, CI global e integración. No se repitieron las suites
+anteriores de Rust o PostgreSQL.
+
+La compilación Web aprobó en **3.25 s**. Las capturas de revisión y creación en
+ambas anchuras se inspeccionaron sin desbordamiento horizontal ni solapes. Se
+repitieron sólo esos dos positivos para quitar el foco y volver al inicio antes
+de capturar (2/2 en 12.6 s); no se suman al inventario. Se conserva el aviso de
+bundle superior a 500 kB, sin cambiar su umbral. Formato, ASCII, límite de líneas y
+comprobación del diff aprobaron; 33 archivos Web revisados, con máximo de 360
+líneas. Las fuentes académicas protegidas y el PDF anterior se conservaron.
+
+
+## Agenda Qadra para audiencias de recursos: 4 de octubre de 2026
+
+El RED focal del cliente observó dos rechazos de páginas válidas de la tercera
+familia y la ausencia del módulo de lectura exacta; diez casos previos o de rechazo
+ya aprobaban. La importación faltante impidió ejecutar entonces los diez casos del
+nuevo cliente de forma individual. Tras implementar, los **22 casos Node aprobaron
+en 473.128 ms**: ocho anteriores de agenda, cuatro nuevos de agenda y diez del
+cliente. Se ejecutaron secuencialmente con Node 22.22.2.
+
+La lectura coteja los diez campos del resumen y las correspondencias estructurales
+entre captura, origen y asociación inicial, incluyendo autor, fecha con precisión
+de nanosegundos, administración, cabeza y fuentes exactas. Rechaza DTO alterado,
+selección ajena, soporte distinto, participantes desordenados o incoherentes y
+respuestas tardías tras cerrar el cliente. Admite los dos tipos declarados y los
+límites cero y 32 participantes. Esta comprobación del transporte no recalcula
+los cánones criptográficos que verifica el servidor.
+
+El navegador reprodujo primero la ausencia de la tarjeta propia; se detuvo en
+ese fallo y dejó ocho casos nuevos sin ejecutar. La campaña posterior aprobó
+**17/17 en 33.3 s**, con un worker y HTTP controlado: nueve nuevos y ocho anteriores
+de agenda. Incluye escritorio de 1440 píxeles y móvil de 390, tres familias con
+el mismo UUID, fuentes históricas exactas, filtro propio, consulta cancelada mixta,
+continuación parcial, expediente cerrado y revocación antes de leer el detalle.
+Las respuestas retenidas no reaparecieron después de actualizar, cambiar filtros,
+abandonar Agenda o cerrar sesión. La consulta exacta sólo usó GET y no abrió las
+rutas de audiencia ordinaria o plazo.
+
+La compilación web aprobó en **2.90 s**, con el aviso de paquete minificado mayor
+a 500 kB; no se modificó su umbral. La revisión visual ajustó únicamente el
+encuadre de las capturas: se quitó el foco y se volvió al inicio antes de exportar,
+sin cambiar producto, assertions o timeouts. Se repitieron sólo los dos casos de
+captura de escritorio y móvil (**2/2 en 10.3 s**), conservando la campaña de
+17 casos anterior como regresión funcional. Ambas imágenes se inspeccionaron
+legibles, sin superposiciones ni desbordamiento horizontal. Formato, ASCII,
+límite de archivos y comprobación de diferencias aprobaron.
+
+La evidencia de navegador es con HTTP controlado, sin una nueva campaña de
+servicios reales, restauración o cobertura global. El formulario de programación
+y las alertas propias permanecen pendientes; este incremento local no acredita
+su integración o instalación. Las comprobaciones previas de Rust y PostgreSQL
+conservan su alcance histórico y no se repitieron por esta interfaz.
+
+
+## Audiencias propias en agenda: 3 de octubre de 2026
+
+Implementación local, sin integrar ni desplegar. La consulta añade la familia
+`resource_hearing` después de audiencias ordinarias y plazos, conserva la versión
+y los rangos previos del cursor y exige captura, asociación inicial y origen
+verificados bajo la misma transacción de lectura auditada. El cierre del caso,
+archivo del recurso o desvinculación posterior no cancelan el señalamiento.
+La API no fabrica etapa ni estado ordinario. Qadra, alertas y la aceptación real
+completa de esta familia siguen pendientes.
+
+TDD: los tests nuevos de aplicación, SQL y transporte se escribieron primero y
+fallaron al compilar por contratos ausentes. Se corrigieron imports y accesores
+de las fixtures antes de implementar. La comprobación focal incluye los casos
+anteriores de agenda porque la consulta y su orden afectan a las tres familias:
+
+| Comprobación | Resultado fresco |
+| --- | --- |
+| Aplicación, suite de agenda | 26/26, 0.01 s; incluye siete nuevos. |
+| PostgreSQL 16.15 desechable, suite de agenda | 12/12, 86.71 s; incluye cinco nuevos y la continuación tras cien candidatos omitidos. |
+| Transporte HTTP | 13 casos distintos aprobados: doce en 0.02 s y el caso mixto corregido en 0.00 s; incluye siete nuevos. |
+
+Las pruebas SQL comprobaron identidades e instantes iguales, filtros, orden y
+cursores, permisos, revocación, conservación histórica después de cierre y
+archivo, datos alterados, pérdida del origen y rechazo de auditoría. El clúster
+propio se retiró al terminar. Clippy de aplicación e infraestructura aprobó con
+`-D warnings` en 14.56 s. Clippy de HTTP y composición aprobó con `-D warnings` en 17.65 s.
+El primer caso HTTP mixto falló porque su fixture sólo producía una fecha civil,
+sin hora operativa. Se preparó el cierre sintético explícito por el servicio V2;
+la assertion adicional conserva el instante exacto `2026-01-06T23:30:00Z`, que
+corresponde a las 17:30 con desfase -06:00. Su primer literal esperaba el desfase
+local, aunque la proyección operativa usa UTC; se corrigió el literal, sin alterar
+la producción ni las comprobaciones de las tres familias. Sólo se repitió ese
+caso. No se cambian límites de tiempo, criptografía ni configuración de CI.
+
+`scripts/api-demo.sh` aprobó el recorrido del servidor y la restauración de los
+módulos existentes, incluidas agenda y alertas anteriores, con PostgreSQL y Redis
+locales aislados. El primer intento compiló el workspace en 50.73 s y se detuvo
+antes de servir por rutas multimedia ausentes en el entorno. Se verificaron sin
+recompilar ambos ejecutables fijados de FFmpeg 9.0.2, su configuración y
+capacidades; con las dos rutas explícitas, el recorrido completo aprobó y retiró
+sus servicios temporales. No acredita aún creación propia y navegador con
+restauración. Formato, ASCII, límite de 400 líneas y revisión de diferencias
+aprobaron. Una suite, compilador y trabajador locales por vez; no se repitió una
+regresión global ni se atribuye cobertura nueva a este checkpoint.
+
+
+
+## API y consultas de audiencias de recursos: 3 de octubre de 2026
+
+Implementación local, aún sin integración, despliegue ni aceptación completa
+con navegador. Las rutas de preparación, envío, listado y detalle histórico se
+componen en `serve` sobre el mismo almacén PostgreSQL, identidad y presupuesto
+HTTP compartido. La consulta devuelve la creación y asociación iniciales incluso
+tras desvincular, archivar el recurso o cerrar el expediente. Reautoriza acceso,
+verifica la evidencia y confirma auditoría antes de responder.
+
+TDD: antes de implementar los nuevos contratos, los targets de aplicación,
+SQL y HTTP fallaron al compilar por interfaces ausentes. La regresión HTTP de
+procedencia reprodujo 201 ante un recurso histórico distinto; ahora exige
+igualdad completa de recurso y acto entre audiencia y asociación. La prueba de
+composición rechazó la ruta antes de conectar el router. Se conservaron todos
+los casos y límites. El test de integridad almacenada reprodujo que un origen
+perdido se clasificaba como conflicto; las lecturas deben distinguir daño de
+una identidad o revisión inexistente, conservando esta última como 404.
+
+Los resultados frescos se separan de la persistencia comprobada anteriormente:
+
+| Verificación focal | Resultado |
+| --- | --- |
+| Lecturas de aplicación | 13/13, 0.07 s; relojes, principal, ámbito, recibos y paginación. |
+| Consultas PostgreSQL 16.15 aislado | 5/5, 38.80 s; captura original, cierre/archivo/desvinculación, permisos, revocación y auditoría. |
+| Clasificación estricta de origen y asociación ausentes | RED reproducido; final 1/1, 5.66 s, con ambos daños por separado. |
+| Rutas HTTP con puertos controlados | 10/10, 0.04 s; transporte estricto, respuestas, recuperación explícita y consultas. |
+| Composición y regresión de admisión | 6/6, 0.35 s; incluye el caso nuevo de audiencias y cinco anteriores. |
+
+El primer ensayo de la comprobación reforzada pasó los otros cuatro casos,
+pero falló al restaurar su fixture porque intentó insertar una columna generada.
+Se corrigió sólo la lista de columnas de esa restauración y se repitió el caso
+afectado, sin modificar las assertions ni repetir los cuatro aprobados.
+Todos los clústeres PostgreSQL propios fueron retirados al terminar.
+
+Clippy de los targets afectados, librerías y ejecutable aprobó con `-D warnings`
+en 6.78 s; compiló también las fixtures de acceso con certificado y la división
+de los tests de lectura. Se eliminó un `clone` innecesario sobre un valor `Copy`
+del test. Formato, ASCII, límite de 400 líneas y revisión de diferencias pasan.
+`scripts/api-demo.sh` aprobó sobre PostgreSQL y Redis aislados, tras un build
+completo del workspace de 1 min 03 s. El recorrido comprobó el servidor compuesto,
+autenticación, permisos, documentos, módulos existentes y restauración; retiró
+sus servicios temporales. No es todavía una aceptación real de la programación
+de audiencia propia ni del navegador de ese módulo.
+
+Una sola suite y compilador/worker locales, `TMPDIR` privado sobre disco.
+Los resultados no acreditan agenda, alertas, interfaz Qadra ni un recorrido real
+de audiencia con restauración. La campaña completa deberá corresponder a la
+cabeza de la entrega antes de integrar; no se reutiliza la cobertura histórica
+como si midiera estas rutas nuevas.
+
 ## Simulación de auditoría ausente con referencias nuevas: 3 de octubre de 2026
 
 La regresión de arranque tras importación histórica falló en la preparación de
@@ -18,6 +345,135 @@ utilizó `CASE_TEST_DATABASE_URL`. La revisión focal quedó limpia; Clippy del 
 aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
+
+## Persistencia y asociación de audiencias de recursos: 3 de octubre de 2026
+
+Implementación local, pendiente de integración y aceptación completa del flujo.
+`PostgresResourceHearingStore` guarda audiencia, asociación inicial y origen
+auditable en una transacción bajo el bloqueo compartido de auditoría. Revalida
+principal, administración, recurso y participantes; concilia exactamente la
+operación original incluso después de desvincular y archivar. La migración 0030
+agrega catálogo verificado, permisos de sólo lectura/inserción e historial
+inmutable. La familia `resource_hearing` usa el tag 2 de `RASL1`; los tags y bytes
+de audiencia ordinaria y plazo se conservan. Los endpoints generales de
+asociaciones transportan la nueva familia; no se añadieron rutas propias de
+programación de audiencias.
+
+El RED de esquema ejecutó cuatro casos en PostgreSQL 16.15 aislado y falló por
+las tablas ausentes. Tras implementar, **4/4** aprobaron en **19.66 s**, con
+17.60 s de compilación. Verifican migración repetida sin recrear restricciones,
+catálogo, funciones, claves exactas, permisos y rechazo de modificaciones.
+La ejecución final del backend aprobó **9/9 en 61.47 s**, con 12.09 s de
+compilación. Incluye rollback ante fallo de auditoría de asociación y origen,
+recuperación con conexión nueva, origen conservado después de desvincular,
+cambio de contexto, revocación de pertenencia, dos conexiones concurrentes,
+revisión de participante cambiada entre preparación y escritura, y recuperación
+de la captura histórica sin sustituirla por esa revisión nueva.
+
+Una revisión focal encontró que el inventario comprobaba audiencia hacia origen,
+pero no el sentido inverso. Una prueba reprodujo una restauración incompleta que
+perdía audiencia y asociación conservando el origen. Se agregó inventario inverso
+paginado y rechazo del marcador existente al buscar una operación sin objetos.
+La regresión pasó dentro de los nueve casos y la revisión posterior quedó limpia.
+El primer intento de pruebas tuvo además dos errores del propio test: la falta de
+membresía debía esperar `CaseNotFound`, según la política anti-enumeración vigente,
+y la alteración de auditoría necesitaba terminar sus eventos diferidos antes de
+reactivar triggers. Se corrigieron esas preparaciones sin modificar el producto.
+No se acredita una caída eléctrica ni un ejercicio completo de restauración del
+producto con estos casos de reconstrucción y daños controlados.
+
+La representación de asociación aprobó **6/6 casos de dominio** en 0.00 s.
+El servicio de audiencias de recursos aprobó **28/28 en 0.13 s** y la consulta
+inversa existente **5/5 en 0.01 s**. El RED inicial mostró variantes y contratos
+faltantes; una regresión previa detectó que comparar estructuralmente el material
+rechazaba reordenar participantes. Se normaliza sólo ese orden al comparar,
+conservando el vínculo criptográfico de toda su procedencia con cada identidad.
+Los diez casos del catálogo específico y las 49 regresiones ordinarias del corte
+anterior permanecen como evidencia histórica y no se repitieron por rutina.
+
+Las regresiones PostgreSQL de asociaciones ordinarias aprobaron **6/6 en
+39.40 s** y las de plazos contextuales **9/9 en 74.22 s**, sin cambios en sus
+expectativas. Cada campaña usó su propio clúster PostgreSQL 16.15 desechable,
+un compilador y un hilo; los clústeres quedaron retirados al terminar.
+
+Clippy focal de las cuatro bibliotecas y los targets modificados aprobó con
+`-D warnings` en **25.93 s**. El primer comando nombró por error un submódulo
+como target independiente y Cargo lo rechazó antes de compilar; se corrigió
+la selección. Formato, ASCII, límite de archivos y `git diff --check` aprobaron.
+Se conserva el aviso de incompatibilidad futura de la dependencia Redis 0.25.4,
+sin modificar dependencias en esta entrega.
+
+HTTP aprobó **5/5 nuevos casos en 0.02 s** y **10/10 regresiones** de comandos y
+proyecciones en 0.06 s; la compilación conjunta duró 42.16 s. Verifica familia,
+referencias, soporte, ámbito y separación entre captura y estado actual mediante
+puertos controlados. No equivale a una campaña de navegador contra el servicio
+compuesto. Todas las suites fueron secuenciales, con un compilador y trabajador,
+`TMPDIR` privado en disco y PostgreSQL desechable retirado al finalizar. No se
+actualizan cobertura global, CI ni despliegue; siguen pendientes consultas propias,
+HTTP de programación, agenda, alertas y Qadra. Véase el
+[contrato de audiencias de recursos](resource-hearings.md).
+
+## Confirmación de audiencias de recursos: 3 de octubre de 2026
+
+Se añadieron identidades y revisiones propias, confirmación de una revisión exacta,
+captura `RHCR1` y marcador de origen. El contrato de almacenamiento exige conservar
+la audiencia, asociación inicial, origen y auditoría juntos; todavía no existe el
+adaptador PostgreSQL de este flujo. El servicio confirma el digest revisado,
+reautentica el principal completo antes de escribir y antes de devolver evidencia,
+y concilia una operación previa conservando su autor y fecha originales.
+
+El RED inicial confirmó APIs ausentes. Las pruebas finales aprobaron **22/22 de
+aplicación en 0.07 s**, con 3.50 s de compilación, y **10/10 de dominio en 0.00 s**,
+con 1.87 s de compilación. Son diez casos nuevos de aplicación y uno de dominio
+respecto del corte anterior; las 49 regresiones ordinarias de ese corte permanecen
+como evidencia histórica y no se ejecutaron de nuevo. Se comprobaron resumen
+alterado, marcador o captura manipulados, reloj anterior o futuro, principal
+cambiado, respuesta de almacenamiento distinta y respuesta perdida tras guardar.
+Una nueva instancia del servicio recupera el mismo objeto mediante un puerto en
+memoria, sin nueva llamada de escritura ni reintento automático. No equivale a
+reiniciar PostgreSQL ni demuestra atomicidad o durabilidad de disco.
+
+La revisión focal identificó una reasignación de procedencia entre participantes
+por permutación del material. Una regresión reprodujo el fallo antes del arreglo:
+`RHCR1` ahora ordena por identidad/revisión y vincula ambas antes de cada bloque
+de procedencia. Se rechazó el intercambio y se conservó el reordenamiento
+legítimo. La revisión posterior confirmó la corrección por lectura.
+
+Clippy focal de las bibliotecas y de esos dos grupos de pruebas aprobó con
+`-D warnings` en 7.37 s. Todas las ejecuciones fueron secuenciales, con un compilador
+y trabajador y `TMPDIR` privado sobre disco. No se repitió una campaña completa
+local ni se actualizó cobertura o despliegue. Persistencia, integración con las
+asociaciones generales, HTTP, agenda, alertas, Qadra y aceptación real continúan
+pendientes; el [contrato](resource-hearings.md) conserva esos límites.
+
+## Preparación de audiencias propias de recursos: 3 de octubre de 2026
+
+Se implementaron localmente dos tipos explícitos de audiencia y su revisión
+previa a la creación. Las pruebas iniciales de dominio y aplicación fallaron
+por la ausencia de las APIs propuestas. Después aprobaron **9/9 pruebas nuevas
+de dominio** y **49/49 regresiones de las audiencias ordinarias**, con 3.19 s de
+compilación y 0.00/0.08 s de ejecución respectivamente. El vector independiente
+`RHEAR1` conserva fecha con desfase, participantes ordenados y soporte exacto;
+los valores `HEAR1` existentes permanecen intactos.
+
+El primer grupo de aplicación aprobó 8/8 en 0.03 s. Al ampliar las fronteras,
+el grupo final aprobó **12/12 en 0.04 s**, con 1.48 s de compilación. Comprueba
+recurso/acto históricos exactos frente a la cabeza activa esperada, soporte ya
+admitido, compatibilidad de tipo y modalidad escrita, expediente cerrado,
+participantes ajenos, archivados, ausentes o corruptos, selección de 32 personas,
+compromiso del resumen y cambio del principal autenticado durante la consulta.
+Se utilizaron puertos controlados y un solo compilador/trabajador. La revisión
+focal de validación y framing no encontró defectos reproducibles.
+Clippy focal de ambos crates aprobó con `-D warnings` en 7.61 s.
+
+Esta evidencia acredita la preparación, no la escritura de una audiencia.
+Permanecen pendientes persistencia transaccional con asociación y origen,
+reconciliación idempotente, HTTP, agenda, alertas, interfaz y aceptación con
+servicios reales. No se ejecutó otra regresión completa local ni se actualiza
+la cobertura global o el estado de despliegue. El alcance se precisa en
+[audiencias de recursos](resource-hearings.md) y en la
+[decisión de arquitectura](adr/0069-resource-hearing-scheduling.md).
+
 
 ## Instalación integrada de controladores: 3 de octubre de 2026
 
@@ -7272,3 +7728,114 @@ los caracteres correctos y conservar los archivos de código en ASCII.
 
 Las comprobaciones de navegador mantienen la API simulada; no se probaron
 los servicios reales del backend en esta revisión.
+
+
+## Revocacion del recurso despues de completar la consulta
+
+El 4 de octubre de 2026, el navegador remoto detecto una carrera en la prueba
+que revoca el acceso antes de actualizar la lista de recursos. La aparicion del
+detalle no implicaba que sus paneles hijos hubieran terminado de consultar el
+contexto. La revocacion prematura hacia que una de esas consultas recibiera 403
+y retirase la pantalla antes del clic de actualizacion previsto por la prueba.
+
+- La prueba original aprobo aisladamente en **9.14 s** incluyendo arranque.
+  Retener la respuesta de administracion hasta mostrar el detalle reprodujo
+  deterministicamente el mismo boton deshabilitado y luego desmontado: fallo
+  **1/1 en 35.05 s**, incluido el limite original de 30 segundos del caso.
+- Con esa misma respuesta controlada, esperar el boton habilitado antes de
+  revocar aprobo **1/1 en 9.04 s** incluyendo arranque, con un worker. Se conserva
+  el inventario y cada comprobacion de retiro de datos privados y cero envios;
+  ademas se exige el 403 del GET exacto de la lista que inicia la actualizacion.
+- Formato, ASCII y diff aprobaron. No se modifica producto, permisos, timeouts,
+  reintentos, recursos ni el manuscrito. No se repitio la suite completa local.
+- La cancelacion automatica termino CI/Web unos 23 segundos despues del fallo;
+  Documents habia aprobado. El JUnit parcial contiene 34 aprobadas, una fallida
+  y 287 no ejecutadas; no acredita el inventario ni la cobertura completos.
+  La correccion publicada requiere una nueva campana remota de cierre.
+
+## Dependencia de pruebas compartidas del ejecutable
+
+El 4 de octubre de 2026, Clippy remoto detecto que las pruebas del ejecutable
+incluyen un fixture HTTP compartido que ahora utiliza `mockall`, sin declarar
+esa dependencia en el crate consumidor. El ajuste incorpora la dependencia
+existente del workspace exclusivamente a `[dev-dependencies]` de `despacho-cli`;
+`Cargo.lock` agrega esa relacion sin cambiar versiones de paquetes.
+
+- El comando focal `cargo clippy -p despacho-cli --all-targets -- -D warnings`
+  reprodujo los errores de importacion y tipo ausentes en **14.87 s**.
+  Con la declaracion corregida aprobo en **7.56 s**, con un compilador y un hilo.
+- La cancelacion automatica detuvo CI, Web y Documents al fallar Clippy.
+  Ninguno produjo artefactos ni evidencia completa de pruebas o cobertura.
+- Esta comprobacion compila los targets de pruebas y aplica Clippy; no ejecuta
+  las pruebas de aceptacion que requieren servicios ni sustituye los gates
+  completos de la nueva revision. No cambia codigo de producto, fixtures,
+  assertions, timeouts ni recursos. El manuscrito y su PDF aceptado se conservan.
+
+## Registro de modulos de pruebas incluidos explicitamente
+
+El 4 de octubre de 2026, `scripts/check-test-layout.py` rechazo modulos
+compilados mediante atributos `#[path]`: no recorria hijos de un target que
+fuera tambien un archivo de pruebas, ni inclusiones anidadas bajo los wrappers.
+El control se corrige para contar cada inclusion alcanzable desde los targets
+explicitos y rechazar ciclos, archivos huerfanos y registros duplicados.
+
+- TDD inicial: dos regresiones fallaron entre cinco casos. La primera correccion
+  paso esos cinco, pero el inventario completo detecto dos hijos anidados aun
+  omitidos. Tres casos nuevos reprodujeron la inclusion anidada, los duplicados
+  anidados y la ausencia de rechazo de ciclos.
+- Correccion completa: **8/8** pruebas Python aprobadas en **0.012 s**.
+  El checker verifico **257 ejecutables**: application 70, bin 23, domain 21,
+  infrastructure 83 y web 60, con cada fuente de integracion registrada una vez.
+- La campana remota anterior se cancelo antes de las pruebas Rust; la
+  cancelacion cruzada concluyo CI y Web. No produjo JUnit ni cobertura.
+  Documents aprobo por separado. La nueva revision requiere sus propios gates.
+
+Esta comprobacion valida el inventario estatico; no ejecuta esos 257 binarios
+ni sustituye la regresion Rust o de navegador. No se modifican targets Cargo,
+pruebas de producto, assertions, timeouts ni recursos de los runners.
+
+
+## Importación compartida de fixtures HTTP de recursos: 4 de octubre de 2026
+
+La comprobación Clippy remota rechazó una carga duplicada de
+`procedural_resource_http_support/model.rs` desde dos helpers del mismo
+árbol de módulos. El fallo se reprodujo localmente con `-D warnings`
+en **7.316 s**. Ahora `resource_activity_http_support` importa el módulo
+que ya carga `resource_hearing_activity_support`; no se añadieron supresiones
+de lint ni se modificaron datos, assertions o comportamiento del producto.
+
+Clippy focal aprobó los **ocho ejecutables web afectados** en **9.200 s**.
+Los tres consumidores HTTP directos aprobaron sus **16 pruebas**: 6, 2 y 8
+casos, respectivamente, en **0.09 s** de ejecución y **12.37 s** de compilación.
+Formato, ASCII, diff e inventario de 257 ejecutables aprobaron. Esta validación
+focal conserva las suites previas; no constituye una campaña remota completa.
+
+La cancelación automática detuvo CI, Web y Documents dentro de los **19 s**
+posteriores al fallo. La campaña no produjo artefactos ni JUnit o cobertura
+utilizables. Se comprobó la ausencia de procesos de pruebas, compilación y
+navegador de la campaña en los tres VPS antes de publicar la corrección.
+
+
+## Lectura de audiencias propias durante la recuperacion de recursos
+
+El 4 de octubre de 2026, el navegador simulado rechazo tres consultas GET de
+la nueva lista de audiencias propias al abrir y recuperar el detalle de un
+recurso. El fixture compartido no reconocia esa ruta y las registraba como
+solicitudes inesperadas, haciendo fallar el control de cero escrituras durante
+la reentrada. No se observo un reenvio de una mutacion del producto.
+
+La prueba existente de conservacion del archivo en su acto original reprodujo
+el fallo en **10.765 s**, incluido el arranque. El fixture ahora responde a la
+lectura exacta de audiencias del recurso con una pagina vacia, despues de sus
+controles de autorizacion y existencia. La misma prueba aprobo **1/1 en
+10.470 s** incluido el arranque; las otras siete pruebas consumidoras directas
+aprobaron **7/7 en 25.454 s**, tambien incluido el arranque y con un worker.
+Se conserva la deteccion estricta de solicitudes inesperadas y la assertion
+de cero escrituras; no se filtraron GET para ocultarlas.
+
+Formato, ASCII, limite de longitud y diff aprobaron. La cancelacion automatica
+detuvo la campana remota al fallar el navegador simulado; sus resultados
+parciales no acreditan una regresion completa. Se verifico la ausencia de
+procesos de la campana en los tres VPS antes de publicar la correccion.
+No cambian producto, pruebas contabilizadas, timeouts, permisos, recursos ni
+fuentes del manuscrito; la cabeza corregida requiere nuevos gates remotos.

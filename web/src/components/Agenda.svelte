@@ -1,8 +1,9 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy } from 'svelte';
   import AgendaFilters from './AgendaFilters.svelte';
   import AgendaList from './AgendaList.svelte';
   import AgendaCalendar from './AgendaCalendar.svelte';
+  import ResourceHearingDetail from './ResourceHearingDetail.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
   import {
@@ -19,6 +20,7 @@
     oncalendars = () => {},
     filters = null;
   const scoped = api.agenda();
+  const session = getContext('session-drafts');
   const initial = agendaSelection(initialAgendaSelection(filters));
   let chosen = initial.filters,
     applied = initial.query,
@@ -33,13 +35,43 @@
   let alive = true,
     generation = 0,
     openGeneration = 0;
+  let ownDetail = null,
+    ownCase = null,
+    ownClient = null,
+    detailTrigger = null;
+
+  const principal = () => session?.principal();
+  const admitted = () => alive && (!session || session.canAdmit());
+  const currentOpen = (request, list, actor) => {
+    const current = principal();
+    return (
+      admitted() &&
+      request === openGeneration &&
+      list === generation &&
+      current?.id === actor?.id &&
+      current?.email === actor?.email &&
+      current?.role === actor?.role
+    );
+  };
+  function invalidateDetail() {
+    openGeneration++;
+    ownClient?.dispose();
+    ownClient = null;
+    ownDetail = null;
+    ownCase = null;
+    opening = false;
+  }
+  function closeDetail() {
+    invalidateDetail();
+    detailTrigger?.focus();
+    detailTrigger = null;
+  }
 
   async function load(append = false) {
     if (append && (busy || complete || next === null)) return;
     const request = ++generation;
     const cursor = append ? next : undefined;
-    openGeneration++;
-    opening = false;
+    invalidateDetail();
     busy = true;
     error = '';
     if (!append) {
@@ -72,7 +104,7 @@
 
   function apply(value) {
     generation++;
-    openGeneration++;
+    invalidateDetail();
     busy = false;
     opening = false;
     try {
@@ -88,21 +120,36 @@
   }
 
   async function open(item) {
+    if (!admitted()) return;
+    invalidateDetail();
+    detailTrigger = document.activeElement;
     const record = agendaRecord(item);
     const request = ++openGeneration,
-      list = generation;
+      list = generation,
+      actor = principal() ? { ...principal() } : null;
     const administration = api.caseAdministration(record.case_id);
     opening = true;
     error = '';
     try {
       const detail = await administration.get();
-      if (!alive || request !== openGeneration || list !== generation) return;
+      if (!currentOpen(request, list, actor)) return;
       if (detail.id !== record.case_id)
         throw new Error('El expediente no corresponde a la actividad seleccionada.');
-      onopen(basicCase(detail), agendaIntent(item));
+      if (item.kind === 'resource_hearing') {
+        const client = api.caseResourceHearings(record.case_id, record.resource_id);
+        ownClient = client;
+        const creation = await client.exact(record);
+        if (!currentOpen(request, list, actor)) return;
+        ownCase = basicCase(detail);
+        ownDetail = creation;
+      } else {
+        onopen(basicCase(detail), agendaIntent(item));
+      }
     } catch (failure) {
-      if (alive && request === openGeneration && list === generation) {
+      if (currentOpen(request, list, actor)) {
         error = failure.message;
+        ownDetail = null;
+        ownCase = null;
         if ([403, 404].includes(failure.status))
           rows = rows.filter((value) => agendaRecord(value).case_id !== record.case_id);
       }
@@ -119,7 +166,7 @@
   onDestroy(() => {
     alive = false;
     generation++;
-    openGeneration++;
+    invalidateDetail();
     scoped.dispose();
   });
 </script>
@@ -144,9 +191,7 @@
       <h2>Actividades en el periodo</h2>
       <p class="hint">{range.from} hasta {range.until} (excluido) / UTC{chosen.offset}</p>
     </div>
-    <button class="secondary" disabled={busy || opening} onclick={() => load()}
-      >Actualizar Agenda</button
-    >
+    <button class="secondary" disabled={busy} onclick={() => load()}>Actualizar Agenda</button>
   </div>
   {#if checkedAt}<p class="hint">&#218;ltima consulta: {deadlineInstantLabel(checkedAt)}</p>{/if}
   {#if busy}<p role="status">Consultando Agenda...</p>{/if}
@@ -190,3 +235,6 @@
     que requieren revisi&#243;n se consultan dentro de su expediente.
   </p>
 </section>
+{#if ownDetail}
+  <ResourceHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
+{/if}

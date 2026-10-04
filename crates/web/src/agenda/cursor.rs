@@ -8,6 +8,7 @@ pub(super) fn encode(cursor: AgendaCursor, query: AgendaQuery) -> String {
     let rank = match cursor.kind() {
         AgendaItemKind::Hearing => 0,
         AgendaItemKind::Deadline => 1,
+        AgendaItemKind::ResourceHearing => 2,
     };
     format!(
         "a1:{}:{}:{}:{}:{}:{}:{}:{}",
@@ -38,6 +39,7 @@ pub(super) fn decode(value: &str, query: AgendaQuery) -> Result<AgendaCursor, Ap
     let kind = match fields[7] {
         "0" => AgendaItemKind::Hearing,
         "1" => AgendaItemKind::Deadline,
+        "2" => AgendaItemKind::ResourceHearing,
         _ => return Err(invalid()),
     };
     let id = Uuid::parse_str(fields[8]).map_err(|_| invalid())?;

@@ -58,6 +58,29 @@ pub(super) fn view(
             }
             json!({"kind":"deadline","record":crate::deadlines::current_projection(*current,case,id)?})
         }
+        (
+            ResourceActivityTarget::ResourceHearing { id, revision, .. },
+            ResourceActivityTargetDetail::ResourceHearing(captured),
+            ResourceActivityCurrentTarget::ResourceHearing(current),
+        ) => {
+            if current.revision < revision || current.recorded_at > value.checked_at {
+                return Err(ApiError::internal());
+            }
+            let projected = super::resource_hearing::detail(*current, case, resource, id, None)?;
+            if projected["revision"] == json!(revision.get())
+                && projected
+                    != super::resource_hearing::detail(
+                        *captured.clone(),
+                        case,
+                        resource,
+                        id,
+                        Some(revision),
+                    )?
+            {
+                return Err(ApiError::internal());
+            }
+            json!({"kind":"resource_hearing","record":projected})
+        }
         _ => return Err(ApiError::internal()),
     };
     Ok(

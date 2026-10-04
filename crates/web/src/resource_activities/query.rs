@@ -16,6 +16,7 @@ impl Page {
             None => None,
             Some("hearing") => Some(ResourceActivityKind::Hearing),
             Some("deadline") => Some(ResourceActivityKind::Deadline),
+            Some("resource_hearing") => Some(ResourceActivityKind::ResourceHearing),
             _ => return Err(invalid()),
         };
         let status = match self.status.as_deref() {

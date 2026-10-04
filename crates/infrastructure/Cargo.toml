@@ -390,3 +390,9 @@ path = "tests/redis_certificate_sessions.rs"
 [[test]]
 name = "owner_login_runtime"
 path = "tests/owner_login_runtime.rs"
+[[test]]
+name = "resource_hearing_backend"
+path = "tests/resource_hearing_backend.rs"
+[[test]]
+name = "resource_hearing_schema"
+path = "tests/resource_hearing_schema.rs"

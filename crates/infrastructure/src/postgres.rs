@@ -98,6 +98,12 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::owner_certificate_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in crate::resource_hearing_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
+    transaction
+        .batch_execute(crate::alert_schema::RESOURCE_HEARING_MIGRATION)
+        .map_err(port_error)?;
     crate::password_reset_schema::validate_schema(&mut transaction)?;
     crate::password_reset_schema::validate_inventory(&mut transaction)?;
     crate::owner_certificate_schema::validate_schema(&mut transaction)?;
@@ -156,6 +162,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::alert_schema::validate(client)?;
     crate::procedural_resource_schema::validate(client)?;
     crate::resource_activity_schema::validate(client)?;
+    crate::resource_hearing_schema::validate(client)?;
     crate::document_integrity_schema::validate(client)?;
     crate::member_schema::validate(client)?;
     crate::case_report_schema::validate(client)?;
@@ -186,6 +193,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::alerts_postgres::validate_inventory(client)?;
     crate::procedural_resource_schema::validate_inventory(client)?;
     crate::resource_activity_schema::validate_inventory(client)?;
+    crate::resource_hearing_schema::validate_inventory(client)?;
     crate::document_integrity_schema::validate_inventory(client)?;
     crate::member_schema::validate_inventory(client)?;
     crate::case_report_schema::validate_inventory(client)?;
@@ -270,6 +278,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::alert_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::procedural_resource_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::resource_activity_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::resource_hearing_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::document_integrity_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::member_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::case_report_schema::grant_runtime(&mut transaction, runtime_role)?;
@@ -298,6 +307,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::alert_schema::validate_runtime_role(client, role)?;
     crate::procedural_resource_schema::validate_runtime_role(client, role)?;
     crate::resource_activity_schema::validate_runtime_role(client, role)?;
+    crate::resource_hearing_schema::validate_runtime_role(client, role)?;
     crate::document_integrity_schema::validate_runtime_role(client, role)?;
     crate::member_schema::validate_runtime_role(client, role)?;
     crate::case_report_schema::validate_runtime_role(client, role)?;

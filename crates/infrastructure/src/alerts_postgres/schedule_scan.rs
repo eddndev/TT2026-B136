@@ -32,7 +32,12 @@ pub(super) fn run(
             .map_err(port)?;
     }
     let row = row.ok_or_else(|| stored("alert subject state disappeared"))?;
-    if row.try_get::<_, Uuid>("case_id").map_err(stored)? != selection.subject.case_id().as_uuid() {
+    if row.try_get::<_, Uuid>("case_id").map_err(stored)? != selection.subject.case_id().as_uuid()
+        || row
+            .try_get::<_, Option<Uuid>>("resource_id")
+            .map_err(stored)?
+            != codec::resource_id(selection.subject)
+    {
         return Err(stored("alert subject case differs"));
     }
     let generation: i64 = row.try_get("generation").map_err(stored)?;
@@ -127,7 +132,7 @@ fn reconcile(
     let mut superseded = 0;
     for row in existing {
         let saved = schedule_rows::decode(&row, hasher)?;
-        schedule_rows::verify_origin(tx, &saved, hasher)?;
+        verify_origin(tx, &saved, current, hasher)?;
         if !proposals
             .iter()
             .any(|plan| plan.key == saved.plan.key && !plan.superseded)
@@ -145,7 +150,7 @@ fn reconcile(
             .map_err(port)?;
         if let Some(row) = previous {
             let saved = schedule_rows::decode(&row, hasher)?;
-            schedule_rows::verify_origin(tx, &saved, hasher)?;
+            verify_origin(tx, &saved, current, hasher)?;
             if saved.status == "activated" || (saved.status == "superseded" && proposal.superseded)
             {
                 continue;
@@ -169,11 +174,11 @@ fn reconcile(
                 "planned"
             };
             tx.execute("INSERT INTO alert_schedule(id,kind,subject_id,case_id,recipient,occurrence_key,
-                occurrence_id,trigger_seconds,trigger_nanos,status,generation,payload,payload_digest)
-                VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+                occurrence_id,trigger_seconds,trigger_nanos,status,generation,payload,payload_digest,resource_id)
+                VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)",
                 &[&Uuid::new_v4(),&kind,&id,&current.subject.case_id().as_uuid(),&recipient.as_uuid(),
                   &proposal.key,&proposal.occurrence,&proposal.trigger.unix_timestamp(),&(proposal.trigger.nanosecond() as i32),
-                  &status,&generation,&bytes,&digest]).map_err(port)?;
+                  &status,&generation,&bytes,&digest,&codec::resource_id(current.subject)]).map_err(port)?;
             if proposal.superseded {
                 superseded += 1;
             } else {
@@ -182,4 +187,22 @@ fn reconcile(
         }
     }
     Ok((scheduled, superseded))
+}
+
+fn verify_origin(
+    tx: &mut Transaction<'_>,
+    saved: &schedule_rows::Scheduled,
+    current: &subject::Verified,
+    hasher: &dyn domain::crypto::DocumentHasher,
+) -> Result<(), ApplicationError> {
+    if matches!(current.subject, AlertSubject::ResourceHearing { .. }) {
+        // The scan verified this immutable R1 under its audited transaction lock.
+        // Every retained plan must still match that complete historical origin.
+        super::resource_hearing::verify_scanned_origin(
+            &schedule_rows::record(saved, saved.plan.trigger, false),
+            current,
+        )
+    } else {
+        schedule_rows::verify_origin(tx, saved, hasher)
+    }
 }

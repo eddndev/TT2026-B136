@@ -162,3 +162,9 @@ pub mod password_reset_email;
 #[cfg(test)]
 #[path = "password_reset_email/tests.rs"]
 mod password_reset_email_tests;
+
+mod resource_hearing_codec;
+mod resource_hearing_postgres;
+pub use resource_hearing_postgres::PostgresResourceHearingStore;
+
+mod resource_hearing_schema;

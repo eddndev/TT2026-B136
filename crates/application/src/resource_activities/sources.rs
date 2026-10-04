@@ -3,6 +3,7 @@ use crate::{
     deadlines::deadline_receipt_matches,
     hearings::hearing_receipt_matches,
     procedural_resources::{resource_receipt_matches, ResourceDetail},
+    resource_hearings::resource_hearing_receipt_matches,
     ApplicationError,
 };
 use domain::{cases::CaseId, clock::OffsetDateTime, crypto::DocumentHasher};
@@ -65,6 +66,24 @@ pub(super) fn verify(
                 return Err(ResourceActivityError::SourceMismatch.into());
             }
         }
+        (
+            ResourceActivityTarget::ResourceHearing {
+                id,
+                revision,
+                capture_digest,
+            },
+            ResourceActivityTargetDetail::ResourceHearing(row),
+        ) => {
+            resource_hearing_receipt_matches(hasher, row)?;
+            if row.review.case_id != case
+                || row.review.command.resource.id != resource
+                || row.review.command.hearing_id != id
+                || row.revision != revision
+                || row.capture_digest != capture_digest
+            {
+                return Err(ResourceActivityError::SourceMismatch.into());
+            }
+        }
         _ => return Err(ResourceActivityError::SourceMismatch.into()),
     }
     Ok(())
@@ -73,6 +92,7 @@ pub(super) fn latest_time(sources: &ResourceActivitySources) -> OffsetDateTime {
     let target = match &sources.target {
         ResourceActivityTargetDetail::Hearing(value) => value.snapshot.recorded_at,
         ResourceActivityTargetDetail::Deadline(value) => value.recorded_at,
+        ResourceActivityTargetDetail::ResourceHearing(value) => value.recorded_at,
     };
     let act = sources
         .act

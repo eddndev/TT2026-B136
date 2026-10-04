@@ -67,6 +67,13 @@ fn record(value: AlertRecord, checked_at: OffsetDateTime) -> Result<Value, ApiEr
         AlertSubject::Deadline { case_id, id } => {
             json!({"kind":"deadline","case_id":case_id.to_string(),"id":id.to_string()})
         }
+        AlertSubject::ResourceHearing {
+            case_id,
+            resource_id,
+            id,
+        } => {
+            json!({"kind":"resource_hearing","case_id":case_id.to_string(),"resource_id":resource_id.to_string(),"id":id.to_string()})
+        }
     };
     let kind = match value.kind {
         AlertKind::Upcoming {

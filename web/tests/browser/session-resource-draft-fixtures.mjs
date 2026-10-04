@@ -69,6 +69,19 @@ export async function resourceDraftSetup(page, { resources = [], facts = [factRe
       } else if (!rows) return fail(route, 'procedural_resource_not_found', 404);
       else if (parts.length === 1 && !call.search) result = rows.at(-1);
       else if (
+        parts.length === 3 &&
+        parts[1] === 'activities' &&
+        parts[2] === 'resource-hearings' &&
+        call.search === '?limit=10'
+      )
+        result = {
+          case_id: caseId,
+          resource_id: parts[0],
+          items: [],
+          has_more: false,
+          next_after_id: null,
+        };
+      else if (
         parts.length === 2 &&
         parts[1] === 'activities' &&
         call.search === '?limit=20&status=linked'

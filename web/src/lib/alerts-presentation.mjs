@@ -15,8 +15,10 @@ export const alertPreferenceGroups = [
   { key: 'due_changed_soon', label: 'Cambio de fecha pr\u00f3xima', noun: 'cambio de fecha' },
 ];
 export function alertKindLabel(row) {
-  if (row.kind.kind === 'upcoming')
+  if (row.kind.kind === 'upcoming') {
+    if (row.subject.kind === 'resource_hearing') return 'Audiencia de recurso pr\u00f3xima';
     return row.subject.kind === 'hearing' ? 'Audiencia pr\u00f3xima' : 'Plazo pr\u00f3ximo';
+  }
   return {
     overdue_unattended: 'Vencido sin atenci\u00f3n declarada',
     review_required: 'Revisi\u00f3n requerida',

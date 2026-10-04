@@ -26,6 +26,10 @@ impl AlertRecord {
         if self.recipient_id != actor || self.origin.revision == 0 {
             return Err(stored("notification identity differs"));
         }
+        if matches!(self.subject, AlertSubject::ResourceHearing { .. }) && self.origin.revision != 1
+        {
+            return Err(stored("resource hearing notification revision differs"));
+        }
         let label = FactLabel::new(&self.subject_title).map_err(|_| stored("subject title"))?;
         let case = CaseMetadata::new(&self.case_title, &self.case_reference)
             .map_err(|_| stored("case context"))?;
@@ -54,8 +58,10 @@ impl AlertRecord {
                 return Err(stored("email acceptance chronology differs"));
             }
         }
-        if matches!(self.subject, AlertSubject::Hearing { .. })
-            && !matches!(self.kind, AlertKind::Upcoming { .. })
+        if matches!(
+            self.subject,
+            AlertSubject::Hearing { .. } | AlertSubject::ResourceHearing { .. }
+        ) && !matches!(self.kind, AlertKind::Upcoming { .. })
         {
             return Err(stored("notification kind does not apply to hearing"));
         }

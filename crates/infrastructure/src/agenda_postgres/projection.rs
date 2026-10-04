@@ -14,6 +14,9 @@ pub(super) fn item(
     match header.key.kind() {
         AgendaItemKind::Hearing => hearing(tx, header, case, hasher).map(Some),
         AgendaItemKind::Deadline => deadline(tx, header, case, hasher, checked_at),
+        AgendaItemKind::ResourceHearing => {
+            super::resource_hearing::item(tx, header, case, hasher, checked_at).map(Some)
+        }
     }
 }
 
@@ -35,7 +38,7 @@ fn hearing(
         || case.case_id != header.case
         || snapshot.id.as_uuid() != header.key.id()
         || snapshot.revision.get() != header.revision
-        || snapshot.status.as_str() != header.status
+        || Some(snapshot.status.as_str()) != header.status.as_deref()
         || snapshot.values.scheduled_at().utc() != header.key.at()
     {
         return Err(inconsistent(
@@ -75,7 +78,7 @@ fn deadline(
         || case.case_id != header.case
         || detail.id.as_uuid() != header.key.id()
         || detail.revision.get() != header.revision
-        || detail.status.as_str() != header.status
+        || Some(detail.status.as_str()) != header.status.as_deref()
         || detail
             .calculation
             .result

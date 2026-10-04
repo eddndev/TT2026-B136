@@ -21,19 +21,20 @@ impl PostgresResourceActivityStore {
         let (kind, target_id) = match target {
             ResourceActivityTargetId::Hearing(id) => ("hearing", id.as_uuid()),
             ResourceActivityTargetId::Deadline(id) => ("deadline", id.as_uuid()),
+            ResourceActivityTargetId::ResourceHearing(id) => ("resource_hearing", id.as_uuid()),
         };
         let rows = tx
             .query(
                 "SELECT p.id,p.resource_id,r.revision FROM case_resource_activity_associations p
             CROSS JOIN LATERAL (
-                SELECT revision,target_kind,hearing_id,deadline_id,status
+                SELECT revision,target_kind,hearing_id,deadline_id,resource_hearing_id,status
                 FROM case_resource_activity_association_revisions
                 WHERE association_id=p.id AND case_id=p.case_id AND resource_id=p.resource_id
                 ORDER BY revision DESC LIMIT 1
             ) r
             WHERE p.case_id=$1 AND ($2::uuid IS NULL OR p.id>$2)
                 AND r.target_kind=$3
-                AND (($3='hearing' AND r.hearing_id=$4) OR ($3='deadline' AND r.deadline_id=$4))
+                AND (($3='hearing' AND r.hearing_id=$4) OR ($3='deadline' AND r.deadline_id=$4) OR ($3='resource_hearing' AND r.resource_hearing_id=$4))
                 AND ($5::text IS NULL OR r.status=$5)
             ORDER BY p.id LIMIT $6",
                 &[

@@ -1,5 +1,193 @@
 # Verificación de la actualización académica
 
+## Cierre API compuesto de audiencias de recursos: 4 de octubre de 2026
+
+El capítulo de pruebas incorpora la primera demostración HTTP compuesta completa
+aprobada después de corregir el scheduler: **442.355 s**, incluida compilación
+caliente de **0.69 s**. Distingue ese cierre de la restauración focal anterior y
+del navegador previo al ajuste, sin atribuir integración ni despliegue.
+
+`make -C latex` aprobó. El PDF conserva **386 páginas**, con **5985962 bytes**
+y SHA-256 `6231fa1b524f14b0df81267861bdba5676f1b2020fb0628c70b19d77dc132032`.
+Se inspeccionaron las páginas físicas **268, 269 y 270**, incluido el párrafo
+nuevo, su continuación y la sección siguiente: texto legible, sin nuevos solapes
+ni recortes. Resumen aprobado, introducción, marco teórico, conclusiones y PDF
+aceptado anterior conservaron sus hashes. Persisten los dos avisos históricos
+de caja horizontal y la sustitución de versalitas Times; no hay glifos faltantes
+ni referencias sin resolver. El nuevo PDF queda fuera del seguimiento Git.
+
+## Aceptación real de audiencias de recursos: 4 de octubre de 2026
+
+Se actualizaron implementación y pruebas con la verificación de origen dentro de
+una sola transacción, el timeout de bloqueo reproducido y corregido, y la
+aceptación focal de captura y restauración HTTP. Los dos recorridos reales de
+navegador se identifican como anteriores al ajuste posterior del scheduler;
+no se atribuyen gates globales ni despliegue.
+
+`make -C latex` aprobó. Una revisión documental precisó la aceptación local
+frente al cierre global pendiente y atribuyó la invalidación de sesiones al
+procedimiento previo al arranque; se recompiló. El PDF final tiene **386 páginas**,
+**5985302 bytes**, SHA-256
+`f0e62c4db780cd701bfa85fdc4a58d69d19e75d9d5ec81ffca7b39c666093534`.
+Se inspeccionaron las páginas físicas **217, 218, 268 y 269**: texto legible,
+continuación normal de párrafos, sin nuevos solapes o recortes. Se conservaron
+los hashes del resumen aprobado, introducción, marco teórico, conclusiones y
+PDF aceptado anterior. Persisten dos avisos históricos de caja horizontal y
+sustitución de versalitas Times; no hay glifos faltantes ni referencias sin resolver.
+El PDF permanece fuera del seguimiento Git.
+
+
+## Alertas de audiencias propias de recursos: 4 de octubre de 2026
+
+Se actualizó implementación y pruebas para las notificaciones de proximidad
+propias: recurso padre, captura inicial, preferencias, destinatarios, reinicios
+y panel histórico de Qadra. Se distinguieron 75 comprobaciones Rust focales
+(aplicación, HTTP, codec y PostgreSQL), 32 Node y 16 recorridos controlados de
+navegador, sin presentar la aceptación real completa como terminada.
+
+`make -C latex` aprobó. La inspección descubrió dos frases cercanas que todavía
+presentaban las alertas como no implementadas; se corrigieron y recompiló para
+conservar sólo la aceptación integrada como pendiente. El PDF final tiene
+**385 páginas**, **5981773 bytes**, SHA-256
+`abaf68bdbddf18ccdbfbe27f2b90e79469ca815cc2d3223f6839fb8497b95015`. Se inspeccionaron las páginas físicas **217, 218, 267 y 268**:
+texto legible, sin solapes o recortes. Resumen, introducción, marco teórico,
+conclusiones y PDF aceptado anterior permanecieron sin cambios. Persisten los
+dos avisos históricos de caja horizontal y sustitución de versalitas Times;
+no aparecieron glifos faltantes ni referencias indefinidas. El documento sigue
+sin acreditar integración o despliegue del nuevo recorrido.
+
+
+## Programación de audiencias de recursos en Qadra: 4 de octubre de 2026
+
+Se actualizaron los apartados propios de implementación y pruebas: preparación y
+confirmación explícitas, fuentes históricas, lista propia, recuperación del envío
+incierto y borradores de sesión. Se documentaron 50 casos Node y 29 recorridos de
+navegador distintos, conservando los límites del transporte controlado y la
+aceptación real todavía pendiente.
+
+`make -C latex` aprobó. La inspección inicial detectó una frase histórica que
+seguía presentando el formulario como pendiente; se precisó el alcance de aquellas
+pruebas de consulta y se recompiló. El PDF final tiene **384 páginas**,
+**5977466 bytes**, SHA-256
+`c1619c840177597d80178a0d34a75ba96bfd4ae624ef6a4099716425a0dad6ea`.
+Las páginas físicas **216, 217 y 266** se inspeccionaron: legibles, sin solapes ni
+recortes, con las pruebas nuevas dentro de su apartado. Resumen, introducción,
+marco teórico, conclusiones y PDF anterior conservaron sus hashes. Persisten dos
+avisos históricos de caja horizontal y la sustitución de versalitas Times New
+Roman; no hubo glifos faltantes ni referencias indefinidas. Este PDF acumulado no
+acredita integración, despliegue o aceptación de alertas.
+
+
+## Lectura de audiencias de recursos en Qadra: 4 de octubre de 2026
+
+Se actualizaron implementación y pruebas para el panel histórico de Agenda,
+la selección exacta y el descarte de respuestas tardías, con la evidencia de
+22 casos Node y 17 recorridos de navegador controlado. El formulario de creación,
+las alertas y la aceptación completa con servicios reales siguen pendientes.
+
+`make -C latex` aprobó. La revisión inicial detectó que el texto nuevo de pruebas
+había quedado después de otros apartados incluidos; se reubicó dentro de las
+pruebas de audiencias de recursos y se recompiló. El PDF final tiene **383 páginas**,
+**5972964 bytes**, SHA-256
+`c0ac3cd893a7b17e19e028cdd4e3c7d2868bbf810d51a133b62a27be3c5bf879`.
+Se inspeccionaron las páginas físicas **216, 217, 265 y 266**: legibles, sin
+superposiciones ni recortes. Se conservaron las fuentes protegidas y el PDF previo.
+Permanecen dos avisos históricos de caja horizontal y la sustitución conocida de
+versalitas de Times New Roman; no aparecen caracteres faltantes ni referencias
+indefinidas. El PDF acumulado no acredita integración o despliegue.
+
+
+## Audiencias de recursos en agenda: 3 de octubre de 2026
+
+Los apartados propios de implementación y pruebas aprobaron `make -C latex`:
+382 páginas, 5970897 bytes y SHA-256
+`1bbc3f091d816d9336e31ea4e41ff25e948613166ac6b60741da83333a37dbf7`.
+Se renderizaron e inspeccionaron las páginas físicas 216, 217 y 265: texto,
+referencias y transiciones legibles, sin recortes ni solapes en las páginas
+modificadas. Los PDF anteriores se conservan. Sólo se editaron los apartados
+propios de los capítulos 4 y 5; resumen, introducción, teoría y conclusiones
+permanecen sin cambios.
+
+La ampliación explica las tres familias, orden, cursor y procedencia auditada,
+así como su conservación tras desvinculación, archivo y cierre. Distingue las
+pruebas focales de la aceptación integrada, alertas y Qadra pendientes.
+No hubo referencias indefinidas ni glifos faltantes. Permanecen dos advertencias
+de desbordamiento y la sustitución histórica de versalitas Times New Roman.
+
+
+## Consultas y API de audiencias de recursos: 3 de octubre de 2026
+
+Los apartados propios de implementación y pruebas aprobaron `make -C latex`:
+381 páginas, 5968778 bytes y SHA-256
+`9df92464b10c6ea3ede2561923eadb268f288afcf6a5e52ca6b274418d1bd6c7`.
+Se inspeccionaron las páginas físicas 215, 216, 263 y 264; tras corregir una frase
+que aún presentaba las consultas como pendientes se recompiló y revisó nuevamente
+la página 264. Texto, referencias y transiciones legibles, sin recortes ni solapes.
+El PDF anterior se conserva. Resumen, introducción, marco teórico y conclusiones
+mantienen sus hashes; sólo se editaron los apartados propios de los capítulos.
+
+El texto añade preparación/envío y lecturas históricas compuestos en el servidor,
+autorización y auditoría, cursor y repetición explícita de una operación incierta.
+Distingue las comprobaciones focales de agenda, alertas, Qadra y aceptación del
+recorrido todavía pendientes. No afirma integración ni despliegue.
+Sin glifos faltantes ni referencias indefinidas; permanecen las dos advertencias
+de desbordamiento y la sustitución histórica de versalitas Times New Roman.
+
+
+## Persistencia de audiencias de recursos: 3 de octubre de 2026
+
+Los apartados propios de implementación y pruebas aprobaron `make -C latex`:
+381 páginas, 5967300 bytes y SHA-256
+`6be9494606dd22d70970051e577320e348d1e438fdb2e58982d2308eb016be12`.
+Se renderizaron e inspeccionaron las páginas físicas 215, 216, 263 y 264:
+texto, referencias, jerarquía y transiciones legibles, sin recortes ni superposición.
+El PDF anterior se preservó; resumen, introducción, marco teórico y conclusiones
+conservan sus hashes y los cambios de capítulos se limitan a los apartados propios.
+
+El texto incorpora creación SQL atómica, asociación tipada, comprobación inversa
+del origen y evidencia focal de PostgreSQL, distinguiéndolas de las rutas propias,
+agenda, alertas e interfaz pendientes. No acredita integración ni despliegue.
+No hubo referencias indefinidas ni glifos faltantes. Permanecen dos advertencias
+de desbordamiento y la sustitución de versalitas históricas. La compilación
+académica es independiente de las pruebas de software.
+
+## Confirmación de audiencias de recursos: 3 de octubre de 2026
+
+La ampliación de los apartados propios de implementación y pruebas aprobó
+`make -C latex`: 381 páginas, 5965891 bytes y SHA-256
+`e0efc4fd037de30e7afe02e20402e81c4a5264bfc5cce9dbf309b106e7b11eaf`.
+Se renderizaron e inspeccionaron las páginas físicas 215, 216, 263 y 264:
+texto, jerarquía, referencias y transiciones legibles, sin recortes ni superposición.
+Se conserva el PDF aceptado anterior. Los hashes de resumen, introducción,
+marco teórico y conclusiones permanecen intactos y ambos capítulos conservan
+sin cambios el contenido ajeno a sus apartados de audiencias de recursos.
+
+El texto distingue confirmación y conciliación con puertos controlados de SQL,
+asociación transaccional, HTTP, agenda, alertas y navegación todavía pendientes.
+Registra diez pruebas de dominio y 22 de aplicación sin refrescar las 49
+regresiones ordinarias históricas. No hay referencias indefinidas ni glifos
+faltantes; siguen las dos advertencias de desbordamiento y la sustitución de
+versalitas históricas. La compilación no acredita ejecución del producto.
+
+## Preparación de audiencias propias de recursos: 3 de octubre de 2026
+
+La actualización de implementación y pruebas aprobó `make -C latex` y produjo
+381 páginas y 5963790 bytes, SHA-256
+`bfb11621910f00dfcd33e369901295c883bdfb5075a59a1d1a3c8a238f482a2f`.
+Se inspeccionaron las páginas físicas 215, 216 y 263. Durante la revisión se
+corrigió la jerarquía de la nueva subsección de implementación para conservar
+los apartados vecinos bajo su sección original; el PDF final se recompiló y
+volvió a inspeccionar. Texto, referencias y transiciones quedan legibles, sin
+recortes ni superposición en esas páginas.
+
+Se preservaron el PDF anterior y los hashes de resumen, introducción, marco
+teórico y conclusiones. No aparecen referencias indefinidas ni glifos ausentes;
+permanecen las sustituciones de versalitas y dos advertencias de desbordamiento
+históricas. Los nuevos apartados distinguen dominio y preparación con puertos
+controlados de la creación persistente, HTTP, agenda, alertas e interfaz aún
+pendientes. La compilación documental no acredita esos componentes.
+
+
 ## Intérprete administrativo explícito: 3 de octubre de 2026
 
 La ampliación de pruebas del intérprete produjo 379 páginas y 5955737 bytes,

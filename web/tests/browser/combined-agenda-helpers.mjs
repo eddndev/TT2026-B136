@@ -87,6 +87,7 @@ export async function setupCombinedAgenda(page) {
         item.at.unix_seconds >= from &&
         item.at.unix_seconds < until &&
         (kind === 'all' || item.kind === kind) &&
+        !(item.kind === 'resource_hearing' && status === 'cancelled') &&
         (item.kind !== 'hearing' || status === 'all' || item.hearing.status === status),
     );
     await route.fulfill({ json: agendaPage(url, rows) });

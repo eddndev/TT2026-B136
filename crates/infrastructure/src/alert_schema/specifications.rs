@@ -14,6 +14,12 @@ pub(super) const KEYS: &[Key] = &[
         true,
     ),
     (
+        "alert_subject_state",
+        "alert_subject_resource_scope",
+        &["kind", "id", "case_id", "resource_id"],
+        false,
+    ),
+    (
         "alert_scan_cursor",
         "alert_scan_cursor_pkey",
         &["singleton"],
@@ -92,6 +98,13 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["id"],
     ),
     (
+        "alert_subject_state",
+        "alert_subject_resource_hearing",
+        &["id", "case_id", "resource_id"],
+        "case_resource_hearings",
+        &["id", "case_id", "resource_id"],
+    ),
+    (
         "alert_schedule",
         "alert_schedule_case_id_fkey",
         &["case_id"],
@@ -111,6 +124,13 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["kind", "subject_id"],
         "alert_subject_state",
         &["kind", "id"],
+    ),
+    (
+        "alert_schedule",
+        "alert_schedule_resource_subject",
+        &["kind", "subject_id", "case_id", "resource_id"],
+        "alert_subject_state",
+        &["kind", "id", "case_id", "resource_id"],
     ),
     (
         "alert_notifications",
@@ -139,6 +159,13 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["kind", "subject_id"],
         "alert_subject_state",
         &["kind", "id"],
+    ),
+    (
+        "alert_notifications",
+        "alert_notifications_resource_subject",
+        &["kind", "subject_id", "case_id", "resource_id"],
+        "alert_subject_state",
+        &["kind", "id", "case_id", "resource_id"],
     ),
     (
         "alert_read_receipts",

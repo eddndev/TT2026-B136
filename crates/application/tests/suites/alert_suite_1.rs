@@ -3,6 +3,8 @@
 mod alert_preferences;
 #[path = "../alert_query.rs"]
 mod alert_query;
+#[path = "../alert_resource_hearings.rs"]
+mod alert_resource_hearings;
 #[path = "../alert_service.rs"]
 mod alert_service;
 #[path = "../alert_support/mod.rs"]

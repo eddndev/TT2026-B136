@@ -24,3 +24,12 @@ mod deadline_profile_database_support;
 mod hearing_database_support;
 #[path = "../procedural_fact_backend_support/mod.rs"]
 mod procedural_fact_backend_support;
+
+#[path = "../agenda_resource_hearings.rs"]
+mod agenda_resource_hearings;
+#[path = "../procedural_resource_support/mod.rs"]
+mod procedural_resource_support;
+#[path = "../resource_activity_support/mod.rs"]
+mod resource_activity_support;
+#[path = "../resource_hearing_database_support/mod.rs"]
+mod resource_hearing_database_support;

@@ -8,8 +8,11 @@ use crate::{
     ApplicationError,
 };
 use domain::{
-    cases::CaseMetadata, clock::OffsetDateTime, hearings::MAX_HEARING_PARTICIPANTS,
+    cases::CaseMetadata,
+    clock::OffsetDateTime,
+    hearings::MAX_HEARING_PARTICIPANTS,
     identity::Permission,
+    resource_hearings::{ResourceHearingRevision, MAX_RESOURCE_HEARING_PARTICIPANTS},
 };
 use std::collections::HashSet;
 use time::UtcOffset;
@@ -38,6 +41,20 @@ pub(super) fn item_key(item: &AgendaItem) -> Result<AgendaCursor, ApplicationErr
                 deadline.id.as_uuid(),
             )
         }
+        AgendaItem::ResourceHearing { case, hearing } => {
+            metadata(&case.title, &case.reference)?;
+            if case.case_id != hearing.case_id
+                || hearing.revision != ResourceHearingRevision::initial()
+                || usize::from(hearing.participant_count) > MAX_RESOURCE_HEARING_PARTICIPANTS
+            {
+                return Err(inconsistent());
+            }
+            (
+                hearing.scheduled_at.utc(),
+                AgendaItemKind::ResourceHearing,
+                hearing.id.as_uuid(),
+            )
+        }
     };
     AgendaCursor::new(at, kind, id).map_err(|_| inconsistent())
 }
@@ -59,6 +76,7 @@ pub(super) fn validate_page(
         let family = match key.kind() {
             AgendaItemKind::Hearing => 0_u8,
             AgendaItemKind::Deadline => 1_u8,
+            AgendaItemKind::ResourceHearing => 2_u8,
         };
         if !query.accepts(key)
             || previous.is_some_and(|value| key <= value)
@@ -84,6 +102,7 @@ pub(super) fn validate_page(
                     return Err(inconsistent());
                 }
             }
+            AgendaItem::ResourceHearing { .. } => {}
         }
         previous = Some(key);
     }

@@ -8,6 +8,7 @@ use domain::{
     crypto::Sha256Digest,
     deadlines::{DeadlineId, DeadlineRevision},
     hearings::{HearingId, HearingRevision},
+    resource_hearings::{ResourceHearingId, ResourceHearingRevision},
 };
 use postgres::Row;
 
@@ -58,6 +59,12 @@ pub(super) fn decode(row: &Row) -> Result<ResourceActivitySelection, Application
         "hearing" => {
             absent_target(
                 row,
+                "resource_hearing_id",
+                "resource_hearing_revision",
+                "resource_hearing_capture_digest",
+            )?;
+            absent_target(
+                row,
                 "deadline_id",
                 "deadline_revision",
                 "deadline_capture_digest",
@@ -72,6 +79,12 @@ pub(super) fn decode(row: &Row) -> Result<ResourceActivitySelection, Application
         "deadline" => {
             absent_target(
                 row,
+                "resource_hearing_id",
+                "resource_hearing_revision",
+                "resource_hearing_capture_digest",
+            )?;
+            absent_target(
+                row,
                 "hearing_id",
                 "hearing_revision",
                 "hearing_submission_digest",
@@ -81,6 +94,28 @@ pub(super) fn decode(row: &Row) -> Result<ResourceActivitySelection, Application
                 revision: DeadlineRevision::new(counter(row, "deadline_revision")?)
                     .map_err(inconsistent)?,
                 capture_digest: digest(row, "deadline_capture_digest")?,
+            }
+        }
+        "resource_hearing" => {
+            absent_target(
+                row,
+                "hearing_id",
+                "hearing_revision",
+                "hearing_submission_digest",
+            )?;
+            absent_target(
+                row,
+                "deadline_id",
+                "deadline_revision",
+                "deadline_capture_digest",
+            )?;
+            ResourceActivityTarget::ResourceHearing {
+                id: ResourceHearingId::from_uuid(
+                    row.try_get("resource_hearing_id").map_err(inconsistent)?,
+                ),
+                revision: ResourceHearingRevision::new(counter(row, "resource_hearing_revision")?)
+                    .map_err(inconsistent)?,
+                capture_digest: digest(row, "resource_hearing_capture_digest")?,
             }
         }
         _ => return Err(inconsistent("association target kind differs")),

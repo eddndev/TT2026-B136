@@ -329,8 +329,19 @@ el recurso haya causado la alerta. Distingue siempre revisión capturada y regis
 actual, y usa la acción de regreso para volver al contexto abierto. Esta navegación
 está incluida en `v0.1.0`.
 
-No hay creación de audiencias propias del recurso ni activación jurídica automática
-de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
+La programación propia de audiencias de recursos tiene implementación local,
+aún sin integración ni despliegue. Desde las actividades, **Crear audiencia de
+recurso** pide fecha, hora, desfase, modalidad, lugar y fundamento con un soporte
+ya admitido. Puedes seleccionar un acto histórico y participantes exactos.
+Prepara, revisa las capturas y reconoce la programación antes de confirmar.
+Si el registro cambió, compara y acepta la base actual; no se reemplazan tus
+fuentes históricas. Si el envío quedó incierto, consulta su resultado antes de
+solicitar un reenvío exacto. La lista propia conserva la audiencia incluso si
+su vínculo se retira. Sus alertas de proximidad también tienen implementación
+local: usan las preferencias de audiencias y permiten abrir la captura original
+desde **Mis alertas**, conservando expediente, recurso y fecha. Retirar el vínculo
+no cancela la cita ni borra el aviso histórico. La aceptación completa de este
+recorrido sigue pendiente; también la activación jurídica automática de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
 [plazos desde recursos](resource-deadlines-api.md) y
 [navegación desde actividades](activity-resource-links-api.md).
 
@@ -383,6 +394,20 @@ indica que el correo está deshabilitado, guardar la preferencia no enviará men
 Cuando esté habilitado, el correo contiene un aviso genérico y acceso a Qadra,
 sin datos del expediente. Consultar una audiencia o activar una preferencia no
 confirma que se haya enviado un aviso. Véanse [alertas](alerts-api.md).
+
+### Audiencias de recursos en la entrega local
+
+Selecciona **Audiencias de recursos** para limitar la consulta a esa familia.
+Abre su tarjeta para consultar la fecha declarada con su desfase, el lugar, la
+base del señalamiento y sus soportes y participantes históricos. El detalle
+permanece dentro de Agenda; cerrarlo conserva filtros y páginas cargadas.
+
+La asociación mostrada es la original. No prueba que hoy siga vinculada ni que
+el señalamiento haya sido confirmado por una autoridad. El expediente cerrado
+o recurso archivado conserva consulta histórica cuando tienes permiso actual.
+Actualizar o cambiar la consulta descarta un detalle pendiente. Esta lectura
+no crea, cancela ni reprograma la audiencia. Véase el
+[contrato propio](resource-hearings.md).
 
 ## 9. Informes
 

@@ -64,7 +64,7 @@ export function resourceActivitiesApi(request, caseId, resourceId) {
     async list({ kind = 'all', status = 'linked', limit = 20, afterId } = {}) {
       revision(limit, 100);
       if (
-        !['all', 'hearing', 'deadline'].includes(kind) ||
+        !['all', 'hearing', 'deadline', 'resource_hearing'].includes(kind) ||
         !['all', 'linked', 'unlinked'].includes(status)
       )
         invalid();

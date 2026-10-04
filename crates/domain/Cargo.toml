@@ -96,5 +96,9 @@ name = "resource_activity_values"
 path = "tests/resource_activity_values.rs"
 
 [[test]]
+name = "resource_hearing_values"
+path = "tests/resource_hearing_values.rs"
+
+[[test]]
 name = "typed_suite_1"
 path = "tests/suites/typed_suite_1.rs"

@@ -91,3 +91,58 @@ fn changing_any_historical_capture_changes_the_selection_bytes() {
         assert_ne!(original.canonical_bytes(), changed.canonical_bytes());
     }
 }
+
+#[test]
+fn resource_hearing_target_has_its_own_exact_canonical_tag() {
+    use domain::resource_hearings::{ResourceHearingId, ResourceHearingRevision};
+    let mut value = selection();
+    value.target = ResourceActivityTarget::ResourceHearing {
+        id: ResourceHearingId::from_uuid(Uuid::from_u128(5)),
+        revision: ResourceHearingRevision::new(3).unwrap(),
+        capture_digest: Sha256Digest::from_array([6; 32]),
+    };
+    let mut expected = b"RASL1".to_vec();
+    expected.extend_from_slice(Uuid::from_u128(1).as_bytes());
+    expected.extend_from_slice(&1_u32.to_be_bytes());
+    expected.extend_from_slice(&[2; 32]);
+    expected.push(1);
+    expected.extend_from_slice(Uuid::from_u128(3).as_bytes());
+    expected.extend_from_slice(&1_u32.to_be_bytes());
+    expected.extend_from_slice(&2_u32.to_be_bytes());
+    expected.extend_from_slice(&[4; 32]);
+    expected.push(2);
+    expected.extend_from_slice(Uuid::from_u128(5).as_bytes());
+    expected.extend_from_slice(&3_u32.to_be_bytes());
+    expected.extend_from_slice(&[6; 32]);
+    assert_eq!(value.canonical_bytes(), expected);
+    assert_eq!(value.target.kind(), ResourceActivityKind::ResourceHearing);
+    assert_eq!(value.target.kind().as_str(), "resource_hearing");
+    assert_ne!(value.canonical_bytes(), selection().canonical_bytes());
+    let mut deadline = value;
+    deadline.target = ResourceActivityTarget::Deadline {
+        id: DeadlineId::from_uuid(Uuid::from_u128(5)),
+        revision: DeadlineRevision::new(3).unwrap(),
+        capture_digest: Sha256Digest::from_array([6; 32]),
+    };
+    assert_ne!(value.canonical_bytes(), deadline.canonical_bytes());
+}
+
+#[test]
+fn resource_hearing_target_commits_identity_revision_and_capture() {
+    use domain::resource_hearings::{ResourceHearingId, ResourceHearingRevision};
+    let mut original = selection();
+    original.target = ResourceActivityTarget::ResourceHearing {
+        id: ResourceHearingId::from_uuid(Uuid::from_u128(5)),
+        revision: ResourceHearingRevision::initial(),
+        capture_digest: Sha256Digest::from_array([6; 32]),
+    };
+    for (id, revision, digest) in [(7, 1, 6), (5, 2, 6), (5, 1, 9)] {
+        let mut changed = original;
+        changed.target = ResourceActivityTarget::ResourceHearing {
+            id: ResourceHearingId::from_uuid(Uuid::from_u128(id)),
+            revision: ResourceHearingRevision::new(revision).unwrap(),
+            capture_digest: Sha256Digest::from_array([digest; 32]),
+        };
+        assert_ne!(original.canonical_bytes(), changed.canonical_bytes());
+    }
+}

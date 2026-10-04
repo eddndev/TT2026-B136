@@ -1,4 +1,4 @@
-use super::{codec, stored};
+use super::{codec, resource_hearing, stored};
 use application::{
     alerts::*,
     deadlines::{DeadlineAttention, DeadlineRevision, DeadlineStatus},
@@ -81,6 +81,24 @@ pub(super) fn load(
                 result.ended = Some(AlertResolutionReason::TargetRetired);
             }
         }
+        AlertSubject::ResourceHearing { .. } => {
+            let detail = resource_hearing::detail(tx, subject, hasher)?;
+            if detail.recorded_at > now {
+                return Err(stored(
+                    "resource hearing capture is newer than alert observation",
+                ));
+            }
+            let administration = detail.review.observed_administration.values();
+            let metadata = administration.metadata();
+            result.case_title = metadata.title().into();
+            result.case_reference = metadata.reference().into();
+            result.subject_title = resource_hearing::title(&detail);
+            result.origin = AlertOrigin {
+                revision: 1,
+                evidence_digest: detail.capture_digest,
+            };
+            result.activity_at = Some(detail.review.command.values.scheduled_at().utc());
+        }
     }
     Ok(result)
 }
@@ -121,6 +139,19 @@ pub(super) fn verify_origin(
                     .calculation
                     .material
                     .administration
+                    .values()
+                    .metadata()
+                    .clone(),
+            )
+        }
+        AlertSubject::ResourceHearing { .. } => {
+            let detail = resource_hearing::origin(tx, record, hasher)?;
+            (
+                detail.capture_digest,
+                resource_hearing::title(&detail),
+                detail
+                    .review
+                    .observed_administration
                     .values()
                     .metadata()
                     .clone(),

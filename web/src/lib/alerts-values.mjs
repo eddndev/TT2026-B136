@@ -100,15 +100,18 @@ export function alertRecordValue(row, actor, checked, id) {
   uuid(row.id);
   uuid(row.occurrence_id);
   if (uuid(row.recipient_id) !== actor || (id !== undefined && row.id !== id)) invalid();
-  object(row.subject, ['kind', 'case_id', 'id']);
-  if (!['hearing', 'deadline'].includes(row.subject.kind)) invalid();
+  const ownHearing = row.subject?.kind === 'resource_hearing';
+  object(row.subject, ['kind', 'case_id', 'id', ...(ownHearing ? ['resource_id'] : [])]);
+  if (!['hearing', 'deadline', 'resource_hearing'].includes(row.subject.kind)) invalid();
   uuid(row.subject.case_id);
   uuid(row.subject.id);
+  if (ownHearing) uuid(row.subject.resource_id);
   capturedText(row.subject_title, 200);
   capturedText(row.case_title, 200);
   capturedText(row.case_reference, 100);
   object(row.origin, ['revision', 'evidence_digest']);
   revision(row.origin.revision, 1);
+  if (ownHearing && row.origin.revision !== 1) invalid();
   if (
     typeof row.origin.evidence_digest !== 'string' ||
     !/^[0-9a-f]{64}$/.test(row.origin.evidence_digest)

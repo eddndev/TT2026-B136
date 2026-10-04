@@ -88,7 +88,9 @@ fabricar vínculos para datos anteriores. Las dos tablas nuevas son:
 
 Las referencias de recurso y acto identifican revisiones independientes. El
 acto conserva además la revisión del recurso que contiene su captura. La
-audiencia se liga a su digest de envío y el plazo a su digest de captura.
+audiencia ordinaria se liga a su digest de envío y el plazo a su digest de captura.
+La ampliación local `0030_` añade la audiencia propia de recurso mediante su
+identidad, revisión y digest de captura, sin cambiar las referencias anteriores.
 La transacción verifica las fuentes históricas, la cabeza esperada, la cuenta
 activa y los permisos bajo el bloqueo compartido de auditoría. La escritura no
 modifica las tablas de actividades ni genera otro episodio de alerta.
@@ -115,6 +117,58 @@ comparó 26 respuestas restauradas, con los instantes de lectura validados apart
 `scripts/api-migration-demo.sh` conservó idénticas las tres raíces y cuatro
 revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos. CI del incremento
 permanece pendiente en el [corte de verificación](verification-report.md).
+
+## Audiencias propias de recursos
+
+Implementación local, todavía no integrada ni desplegada. La familia de migración
+`0030_resource_hearings*.sql` se instala mediante
+`database migrate --runtime-role`, junto al resto del esquema. Añade
+`case_resource_hearings` y `case_resource_hearing_revisions`, y amplía las
+columnas, claves y guardas de asociaciones para `resource_hearing`. No crea citas
+para expedientes anteriores ni transforma audiencias ordinarias. Conserva JSON
+y canon de valores, envío y captura; los formatos `RHPR1` y `RHCR1` no cambian.
+
+`PostgresResourceHearingStore` autoriza cuenta y expediente antes de buscar.
+La preparación registra su lectura auditada. Al confirmar reautoriza el
+principal completo, recarga cabezas y fuentes y compara el material revisado
+bajo el bloqueo compartido. Captura, vínculo inicial y origen auditado se
+confirman en una sola transacción. La conciliación recupera la asociación R1
+original aun después de desvincularla; no fabrica otra creación.
+
+El rol runtime recibe SELECT e INSERT por columnas, sin UPDATE, DELETE,
+TRUNCATE ni ejecución directa de funciones de guarda. La apertura valida catálogo,
+privilegios e inventario en lotes de 64. Reconstruye capturas y verifica el
+marcador auditado `rhl1` en ambas direcciones: captura hacia origen y origen hacia
+captura. Un origen huérfano o una captura sin origen válido impiden abrir; no hay
+reparación automática ni escrituras de inventario.
+
+Respaldar las dos tablas, las asociaciones completas y todas sus dependencias,
+incluida la cadena de auditoría que conserva `resource_hearing.registered`.
+Después de restaurar, reponer permisos y ejecutar la apertura validada antes de
+admitir tráfico. El esquema aprobó cuatro pruebas en PostgreSQL 16.15 y el
+adaptador nueve, incluyendo concurrencia con dos conexiones, referencias
+históricas y rechazo de origen huérfano y restauración parcial simulada. No es
+una campaña completa de `pg_dump`/`pg_restore`. Esa evidencia focal no
+acredita aceptación HTTP integrada, agenda, alertas o Qadra. Véanse
+[el contrato](resource-hearings.md) y el
+[informe de verificación](verification-report.md).
+
+### Alertas de audiencias propias
+
+La migración local `0031_resource_hearing_alerts.sql` se aplica después de `0030_`.
+Añade `resource_id` a estado, programación y notificaciones: debe ser nulo para
+las dos familias anteriores y obligatorio para `kind=2`. Las claves compuestas
+ligan la audiencia al expediente/recurso exactos y las proyecciones a ese estado.
+No convierte avisos anteriores ni cambia sus payloads o claves de ocurrencia.
+El rol runtime puede seleccionar e insertar el padre; no modificarlo.
+
+Al restaurar se requieren también captura, asociación R1, origen auditado y todas
+sus dependencias. Abrir el store valida esquema, permisos e inventario antes de
+admitir trabajo. Un padre o digest cambiado, una asociación inicial ausente o un
+origen no conciliable producen rechazo, sin reparación automática. Los reinicios
+del consumidor conservan el cursor y los recibos sin duplicar avisos. Esta
+ampliación local aún necesita aceptación propia de respaldo/restauración y cierre
+de CI; no habilita correo operativo. Véase [el contrato](resource-hearing-alerts.md).
 
 ## Contenido e incidentes de integridad
 

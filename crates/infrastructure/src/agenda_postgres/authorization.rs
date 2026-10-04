@@ -18,7 +18,9 @@ pub(super) fn actor(
             principal.role.allows(Permission::ReadHearing)
                 && principal.role.allows(Permission::ReadDeadline)
         }
-        AgendaKind::Hearing => principal.role.allows(Permission::ReadHearing),
+        AgendaKind::Hearing | AgendaKind::ResourceHearing => {
+            principal.role.allows(Permission::ReadHearing)
+        }
         AgendaKind::Deadline => principal.role.allows(Permission::ReadDeadline),
     };
     if !allowed {
