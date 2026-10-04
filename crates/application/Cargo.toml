@@ -310,3 +310,7 @@ path = "tests/precautionary_commands.rs"
 [[test]]
 name = "precautionary_participants"
 path = "tests/precautionary_participants.rs"
+
+[[test]]
+name = "precautionary_support"
+path = "tests/precautionary_support.rs"

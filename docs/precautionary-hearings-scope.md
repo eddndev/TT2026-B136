@@ -34,6 +34,10 @@ ajenas, faltantes, duplicadas o alteradas y deriva las etiquetas de esas mismas
 revisiones. Permite reconstruir capturas archivadas sin autorizar su selección
 para una nueva operación.
 
+La admisión local del soporte directo verifica una sola versión y digest, y
+utiliza el procesador documental acotado para integridad y formato PDF/DOCX.
+La pertenencia al expediente debe comprobarse en el almacén autorizado.
+
 Aún faltan recibos de captura, decisiones, historia de medidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus

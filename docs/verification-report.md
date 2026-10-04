@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Soporte exacto de convocatorias cautelares: 4 de octubre de 2026
+
+La admisión exige un único documento cuya identidad, versión y digest coincidan
+con el soporte declarado. Delega descifrado, integridad, evidencia capturada y
+formato al procesador documental existente, en un solo lote acotado. Conserva
+referencia, nombre y formato detectado; la extensión del nombre no lo determina.
+La asociación del documento al expediente requiere comprobación independiente
+del almacén autorizado, pues el registro documental no contiene ese expediente.
+
+El target falló primero por ausencia de la función. Tras implementarla aprobaron
+**12/12 pruebas** y Clippy focal con `-D warnings`, en **4.164 s** y **3.025 s**
+de comando total, respectivamente. Dobles observables comprobaron el orden de
+validación, rechazo previo a criptografía de selecciones incorrectas, integridad
+aunque dos hashes declarados coincidan, evidencia sellada, nombres y tamaños,
+fallos de formato y cardinalidad, sin reintentos. Esta ejecución no sustituyó
+la futura aceptación con bibliotecas nativas. ASCII, tamaño, formato y espacios
+aprobaron. Un compilador y un worker, temporales en disco, sin servicios.
+No se repitieron suites anteriores ni se afirma integración o despliegue.
+
 ## Participantes exactos de convocatorias cautelares: 4 de octubre de 2026
 
 El resolvedor acepta de cero a 32 referencias únicas y devuelve proyecciones

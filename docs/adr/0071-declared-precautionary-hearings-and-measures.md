@@ -15,7 +15,9 @@ Exact historical context validation (`PCTX1`) and instruction framing (`PHTXN1`)
 are implemented locally. Their focused tests pass; these values are not capture
 receipts or a complete scheduling service. Exact participant resolution also
 validates selected manual or typed historical values and bound subjects; it does
-not establish current access, current heads or documentary admission.
+not establish current access, current heads or documentary admission. A separate
+local direct-support adapter delegates exact selected-document admission to the
+bounded document processor; persisted case association remains a store check.
 Precautionary workflow services, persistence, receipts, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
