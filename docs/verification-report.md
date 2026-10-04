@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Participantes exactos de convocatorias cautelares: 4 de octubre de 2026
+
+El resolvedor acepta de cero a 32 referencias únicas y devuelve proyecciones
+ordenadas por identidad, calculadas desde sus revisiones históricas completas.
+Verifica expediente, identidad, revisión, digest de valores y sujeto exacto de
+participantes tipados. Conserva capturas archivadas para lectura histórica. No
+prueba acceso actual, cabezas vigentes, firmas de credenciales ni documentos
+admitidos; esas verificaciones pertenecen a la preparación y transacción futuras.
+
+TDD focal: el target falló por ausencia del resolvedor antes de implementarlo.
+Después aprobaron **14/14 pruebas**, sin omitidas, con **5.10 s** de compilación
+y **5.125 s** de comando total; ejecución inferior a la resolución de **0.01 s**
+de Cargo. Clippy focal aprobó con `-D warnings`: **2.94 s** de compilación y
+**2.990 s** de comando total. Se verificaron orden, límites, ambos tipos de
+participante, datos alterados, fuentes ajenas y vínculos incompatibles.
+ASCII, límite de líneas, formato y espacios aprobaron. Un compilador y un worker,
+temporales en disco, sin servicios ni repetición de las pruebas anteriores.
+La integración y el flujo completo permanecen pendientes.
+
 ## Contexto e instrucciones cautelares: 4 de octubre de 2026
 
 La capa de aplicación valida el contexto completo de una convocatoria: la

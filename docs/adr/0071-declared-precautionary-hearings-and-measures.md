@@ -13,7 +13,9 @@ The local value extension comprises `MeasureKind`, `MeasureTime` and
 the initial failing tests. Full workflow verification and integration remain pending.
 Exact historical context validation (`PCTX1`) and instruction framing (`PHTXN1`)
 are implemented locally. Their focused tests pass; these values are not capture
-receipts or a complete scheduling service.
+receipts or a complete scheduling service. Exact participant resolution also
+validates selected manual or typed historical values and bound subjects; it does
+not establish current access, current heads or documentary admission.
 Precautionary workflow services, persistence, receipts, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
@@ -98,6 +100,8 @@ Historical framing must use the original actor role without granting that role
 current permission. Never reconstruct an actor as an Owner to make validation
 succeed. Submission bytes and context bytes are separate from persisted capture
 receipts, current authorization and uncertain-response recovery.
+
+### Decision and measure records
 
 A declared decision has its own identity, authority declaration, source locator,
 exact admitted resolution support, declared time and justification. A measure

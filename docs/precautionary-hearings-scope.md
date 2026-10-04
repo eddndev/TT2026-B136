@@ -28,6 +28,12 @@ expediente, operación, convocatoria, acción, revisiones, digest previo, contex
 valores y motivo. Son comprobaciones y compromisos de datos; no acreditan acceso
 vigente, admisión documental nueva ni una operación guardada.
 
+La resolución local de participantes verifica de cero a 32 capturas exactas,
+manuales o tipadas, con sus valores y sujeto histórico vinculado. Rechaza fuentes
+ajenas, faltantes, duplicadas o alteradas y deriva las etiquetas de esas mismas
+revisiones. Permite reconstruir capturas archivadas sin autorizar su selección
+para una nueva operación.
+
 Aún faltan recibos de captura, decisiones, historia de medidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
