@@ -3,6 +3,7 @@ use crate::{
     deadline_tracking::DeadlineReviewState,
     deadlines::{deadline_receipt_matches, DeadlineStatus},
     hearings::hearing_receipt_matches,
+    resource_hearings::resource_hearing_receipt_matches,
     ApplicationError,
 };
 use domain::{cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest};
@@ -218,6 +219,24 @@ impl ResourceActivityService {
                 {
                     return Err(inconsistent(
                         "current deadline head or observation contradicts its linked capture",
+                    ));
+                }
+            }
+            (
+                ResourceActivityTarget::ResourceHearing { id, revision, .. },
+                ResourceActivityTargetDetail::ResourceHearing(captured),
+                ResourceActivityCurrentTarget::ResourceHearing(current),
+            ) => {
+                resource_hearing_receipt_matches(self.hasher.as_ref(), current)?;
+                if current.review.case_id != case
+                    || current.review.command.resource.id != resource
+                    || current.review.command.hearing_id != id
+                    || current.revision < revision
+                    || current.recorded_at > at
+                    || (current.revision == revision && current != captured)
+                {
+                    return Err(inconsistent(
+                        "current resource hearing head contradicts its linked capture",
                     ));
                 }
             }

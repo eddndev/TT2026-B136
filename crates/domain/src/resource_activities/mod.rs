@@ -5,6 +5,7 @@ use crate::{
     deadlines::{DeadlineId, DeadlineRevision},
     hearings::{HearingId, HearingRevision},
     procedural_resources::{ResourceActId, ResourceActRevision, ResourceId, ResourceRevision},
+    resource_hearings::{ResourceHearingId, ResourceHearingRevision},
 };
 pub use identity::*;
 
@@ -12,12 +13,14 @@ pub use identity::*;
 pub enum ResourceActivityKind {
     Hearing,
     Deadline,
+    ResourceHearing,
 }
 impl ResourceActivityKind {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Hearing => "hearing",
             Self::Deadline => "deadline",
+            Self::ResourceHearing => "resource_hearing",
         }
     }
 }
@@ -65,12 +68,18 @@ pub enum ResourceActivityTarget {
         revision: DeadlineRevision,
         capture_digest: Sha256Digest,
     },
+    ResourceHearing {
+        id: ResourceHearingId,
+        revision: ResourceHearingRevision,
+        capture_digest: Sha256Digest,
+    },
 }
 impl ResourceActivityTarget {
     pub const fn kind(self) -> ResourceActivityKind {
         match self {
             Self::Hearing { .. } => ResourceActivityKind::Hearing,
             Self::Deadline { .. } => ResourceActivityKind::Deadline,
+            Self::ResourceHearing { .. } => ResourceActivityKind::ResourceHearing,
         }
     }
 }
@@ -104,6 +113,11 @@ impl ResourceActivitySelection {
                 revision,
                 capture_digest,
             } => (1, id.as_uuid(), revision.get(), capture_digest),
+            ResourceActivityTarget::ResourceHearing {
+                id,
+                revision,
+                capture_digest,
+            } => (2, id.as_uuid(), revision.get(), capture_digest),
         };
         bytes.push(tag);
         bytes.extend_from_slice(id.as_bytes());

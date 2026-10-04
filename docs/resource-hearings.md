@@ -2,14 +2,17 @@
 
 ## Estado y alcance
 
-Implementación local en curso: el dominio y `ResourceHearingService` disponen de
-preparación, confirmación con huella exacta y recuperación de una creación previa
-mediante `ResourceHearingStore`. La aplicación comprueba la captura devuelta y su
-origen. Estos recorridos se verifican con puertos controlados y memoria; todavía
-no existe adaptador PostgreSQL para estas audiencias. La creación durable con su
-asociación y auditoría, consultas propias, HTTP, agenda, alertas e interfaz siguen
-pendientes dentro de esta misma entrega. No se atribuye atomicidad durable,
-un nuevo despliegue ni CI global a esas comprobaciones.
+Implementación local en curso, aún no integrada ni desplegada. El dominio,
+`ResourceHearingService` y `PostgresResourceHearingStore` preparan, confirman y
+recuperan la audiencia con su asociación inicial y origen durable. La migración
+`0030_` y el inventario estricto están implementados. La API genérica de
+asociaciones incorpora la familia `resource_hearing`; esta ampliación de DTO no
+añade rutas para crear o consultar audiencias de recurso por separado.
+
+Las consultas propias, HTTP de programación, agenda, alertas y Qadra siguen
+pendientes dentro de esta entrega. Las pruebas focales de esquema, aplicación,
+adaptador PostgreSQL y DTO HTTP indicadas al final están aprobadas. No se
+atribuyen aceptación integrada, CI global ni despliegue.
 
 La decisión está en [ADR-0069](adr/0069-resource-hearing-scheduling.md). Este
 contrato complementa los [recursos](procedural-resources-api.md) y sus
@@ -77,13 +80,14 @@ de dos alternativas:
 - `Ready(ResourceHearingMaterial)`: recurso y acto exactos, cabeza actual del
   recurso resuelta por separado, administración observada y revisiones actuales
   de los participantes seleccionados, limitadas a 32. Los soportes proceden de
-  las capturas ya admitidas. Esta lectura no escribe.
+  las capturas ya admitidas. No modifica datos de negocio; el adaptador confirma
+  el evento auditado `resource_hearing.prepare` antes de devolver el material.
 - `Replay(ResourceHearingCreation)`: creación original identificada por su
   captura inmutable y su marcador de origen. La existencia aislada de una
   audiencia o asociación no acredita que proceda de la misma operación.
 
 La recuperación conserva la creación original aunque su asociación ya no esté
-vinculada; esa independencia debe sostenerla el marcador durable del adaptador.
+vinculada; el adaptador conserva esa independencia mediante el marcador durable.
 No reconstruye la evidencia histórica desde cabezas nuevas.
 
 `ResourceHearingStore::commit` recibe un `PreparedResourceHearing`. Su contrato
@@ -94,10 +98,11 @@ asociación inicial, marcador de origen y auditoría en **una transacción**. Un
 conflicto no escribe; una carrera de la misma operación exacta devuelve la
 creación original, incluida su fecha de registro.
 
-Estas obligaciones delimitan el futuro adaptador. No hay migración SQL ni
-comprobación transaccional PostgreSQL de este flujo. En particular, autorización
-vigente por expediente y actualidad de las revisiones de participantes siguen
-siendo obligaciones del puerto, no garantías demostradas por los dobles de prueba.
+El adaptador PostgreSQL implementa estas obligaciones: autoriza antes de buscar,
+carga referencias exactas y cabezas por separado y vuelve a comparar el material
+al confirmar. El resultado de su verificación focal se registra separadamente
+en el [informe técnico](verification-report.md); las pruebas con dobles no se
+presentan como evidencia de transacciones reales.
 
 ## Validación y revisión previa
 
@@ -143,12 +148,20 @@ la creación devuelta y exige que su revisión previa sea exactamente la prepara
 Antes de devolverla vuelve a reautenticar. Un error posterior al commit no prueba
 que no hubo escritura; el servicio no inicia un reintento automático.
 
-`ResourceHearingCreation` reúne dos piezas:
+`ResourceHearingCreation` reúne tres piezas:
 
 - `ResourceHearingDetail`: revisión previa, material histórico exacto, revisión
   inicial de audiencia, instante de registro y `capture_digest`.
 - `ResourceHearingOrigin`: expediente, recurso, audiencia, operación, asociación
   y huellas de envío y captura. Debe coincidir completamente con el detalle.
+- `ResourceActivityDetail`: vínculo inicial R1 real, construido mediante
+  `prepare_activity_change`, con destino `ResourceHearing` y la captura exacta
+  de la audiencia. Comparte autor, administración, cabeza observada e instante;
+  su operación usa el mismo UUID bajo el tipo de operación de asociaciones.
+
+El detalle de audiencia no contiene la asociación. Su verificador independiente
+comprueba sólo el detalle; el de creación completa comprueba además asociación
+y origen. Así la validación de una fuente no vuelve recursivamente a su creación.
 
 El verificador reconstruye la revisión desde el material histórico y contrasta
 sus huellas. El registro debe ser UTC, representable entre los años 1 y 9999 y no
@@ -163,9 +176,28 @@ el principal actual debe permanecer idéntico durante la llamada y mantener un
 rol permitido. Una autoridad perdida impide devolver la evidencia.
 
 El llamador puede iniciar expresamente esa conciliación tras una respuesta
-incierta usando la misma operación y contenido. Los ensayos en memoria conservan
-una sola creación entre dos instancias del servicio; no demuestran recuperación
-tras reiniciar un proceso ni supervivencia de datos en un servidor real.
+incierta usando la misma operación y contenido. El adaptador reconstruye la
+audiencia y el vínculo original R1, aunque la cabeza de la asociación sea una
+desvinculación R2. Exige el evento original `resource_hearing.registered`, con
+marcador `rhl1`, autor, fecha y compromiso de cadena coincidentes. La mera
+existencia de objetos con esos identificadores no acredita recuperación.
+
+## Persistencia y restauración
+
+La familia `0030_` crea `case_resource_hearings` y
+`case_resource_hearing_revisions`, amplía las referencias de asociaciones y
+actualiza sus guardas. Conserva valores JSON junto a `RHEAR1` y los bytes
+`RHPR1`/`RHCR1` con sus digests; los lectores reconstruyen las fuentes históricas
+desde sus tablas exactas. Sólo se admite la revisión inicial de audiencia.
+
+La confirmación escribe captura, asociación y eventos de auditoría bajo el mismo
+bloqueo y transacción. La apertura comprueba catálogo, privilegios e inventario
+en lotes acotados, sin reparar datos. Verifica ambas direcciones: cada captura
+debe tener asociación y origen válidos, y cada origen registrado debe reconstruir
+su captura completa. Una restauración parcial, un origen huérfano o una captura
+sin origen se rechazan. El rol runtime recibe lectura e inserción por columnas,
+sin actualización, borrado, truncado ni facultad de alterar guardas. Véase el
+[procedimiento de base de datos](database-operations.md#audiencias-propias-de-recursos).
 
 ## Representaciones canónicas
 
@@ -200,9 +232,13 @@ el material necesario para reconstruir y comprobar la revisión. La implementaci
 del recibo y del marcador de origen está en
 [`receipt.rs`](../crates/application/src/resource_hearings/receipt.rs).
 
-No existe decodificador ni API de importación de estas representaciones en este
-módulo. Las huellas y el contrato de confirmación de aplicación no sustituyen la
-persistencia transaccional que debe conservar sus capturas y origen.
+La extensión de asociaciones añade la etiqueta 2 de `RASL1` para
+`ResourceHearing {id, revision, capture_digest}`. Las etiquetas 0/1 y los bytes
+anteriores permanecen intactos. Las funciones públicas
+`resource_hearing_submission_bytes(hasher, draft)` y
+`resource_hearing_capture_bytes(detail)` exponen los mismos bytes `RHPR1` y
+`RHCR1`; no cambian sus formatos. La persistencia los contrasta al reconstruir
+el detalle. No se añade una API de importación de canon binario.
 
 ## Comprobación y trabajo siguiente
 
@@ -218,13 +254,22 @@ respuesta perdida y una conciliación explícita sin segunda escritura, preserva
 el autor histórico y rechazan intentos distintos o autoridad perdida. La
 regresión de procedencia altera autoría y orden de participantes sin permitir
 que el intercambio conserve una captura válida.
-Los resultados ejecutados se registran en [el informe técnico](verification-report.md).
-No se reutilizan como evidencia de persistencia, transporte o navegador.
+La extensión tiene seis pruebas de dominio de asociaciones, 28 de aplicación
+de audiencias de recurso y cinco de consulta inversa aprobadas. El esquema
+aprobó cuatro casos en PostgreSQL 16.15 en 19,66 s. El adaptador aprobó nueve
+casos en 61,47 s, incluidos rollback, concurrencia real con dos conexiones,
+conciliación tras desvinculación, cambios de cabeza de participante y rechazo
+de origen huérfano e inventario parcial simulado. No se presenta ese último
+caso como una campaña completa de `pg_dump`/`pg_restore`.
 
-Los siguientes pasos son implementar el adaptador con autorización y transacción
-reales, conservar historia y origen durable, y conectar consultas, HTTP, agenda,
-alertas y Qadra. La asociación inicial prevista pertenece a este contrato de
-creación; aún no se ha implementado su registro SQL ni se ha ampliado el flujo
-genérico de asociaciones para crear estas audiencias. El soporte sólo puede ser
+El DTO HTTP aprobó cinco casos nuevos, junto con dos de cuerpos y ocho del
+contrato existente. Estos resultados no acreditan navegador ni aceptación
+integrada. El [informe técnico](verification-report.md) conserva el registro de
+cada ejecución, incluidos sus tiempos de compilación.
+
+Los siguientes pasos son completar las consultas propias y conectar programación
+HTTP, agenda, alertas y Qadra. La asociación inicial ya pertenece a la creación
+transaccional; el flujo genérico sólo vincula o desvincula audiencias existentes,
+sin crearlas. El soporte sólo puede ser
 uno ya admitido en el recurso o acto seleccionado: no se incorpora una citación
 nueva y arbitraria mediante esta confirmación.

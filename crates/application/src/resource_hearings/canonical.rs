@@ -6,6 +6,14 @@ pub(super) fn digest(
     hasher: &dyn DocumentHasher,
     draft: &ResourceHearingDraft,
 ) -> Result<Sha256Digest, ApplicationError> {
+    Ok(hasher.hash_bytes(&resource_hearing_submission_bytes(hasher, draft)?))
+}
+
+/// Stable review framing independent of JSON storage and commit time.
+pub fn resource_hearing_submission_bytes(
+    hasher: &dyn DocumentHasher,
+    draft: &ResourceHearingDraft,
+) -> Result<Vec<u8>, ApplicationError> {
     let mut bytes = b"RHPR1".to_vec();
     let command = &draft.command;
     for id in [
@@ -67,7 +75,7 @@ pub(super) fn digest(
         sources.views.participants = vec![person.overview.clone()];
         blob(&mut bytes, &fact_sources_bytes(&sources)?);
     }
-    Ok(hasher.hash_bytes(&bytes))
+    Ok(bytes)
 }
 fn blob(bytes: &mut Vec<u8>, value: &[u8]) {
     bytes.extend_from_slice(&(value.len() as u64).to_be_bytes());

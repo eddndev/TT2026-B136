@@ -11,6 +11,7 @@ mod projection;
 mod query;
 mod reads;
 mod request;
+mod resource_hearing;
 mod selection;
 mod sources;
 mod targets;

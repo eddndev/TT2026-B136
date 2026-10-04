@@ -1,5 +1,22 @@
 # Verificación de la actualización académica
 
+## Persistencia de audiencias de recursos: 3 de octubre de 2026
+
+Los apartados propios de implementación y pruebas aprobaron `make -C latex`:
+381 páginas, 5967300 bytes y SHA-256
+`6be9494606dd22d70970051e577320e348d1e438fdb2e58982d2308eb016be12`.
+Se renderizaron e inspeccionaron las páginas físicas 215, 216, 263 y 264:
+texto, referencias, jerarquía y transiciones legibles, sin recortes ni superposición.
+El PDF anterior se preservó; resumen, introducción, marco teórico y conclusiones
+conservan sus hashes y los cambios de capítulos se limitan a los apartados propios.
+
+El texto incorpora creación SQL atómica, asociación tipada, comprobación inversa
+del origen y evidencia focal de PostgreSQL, distinguiéndolas de las rutas propias,
+agenda, alertas e interfaz pendientes. No acredita integración ni despliegue.
+No hubo referencias indefinidas ni glifos faltantes. Permanecen dos advertencias
+de desbordamiento y la sustitución de versalitas históricas. La compilación
+académica es independiente de las pruebas de software.
+
 ## Confirmación de audiencias de recursos: 3 de octubre de 2026
 
 La ampliación de los apartados propios de implementación y pruebas aprobó

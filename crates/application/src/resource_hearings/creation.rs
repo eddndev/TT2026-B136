@@ -1,5 +1,8 @@
 use super::*;
-use crate::resource_activities::ResourceActivityId;
+use crate::resource_activities::{
+    ResourceActivityChange, ResourceActivityCommand, ResourceActivityDetail, ResourceActivityId,
+    ResourceActivityOperationId, ResourceActivitySelection, ResourceActivityTarget,
+};
 use domain::{
     cases::CaseId,
     clock::OffsetDateTime,
@@ -33,7 +36,28 @@ pub struct ResourceHearingOrigin {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResourceHearingCreation {
     pub hearing: ResourceHearingDetail,
+    pub association: ResourceActivityDetail,
     pub origin: ResourceHearingOrigin,
+}
+
+pub(super) fn association_command(hearing: &ResourceHearingDetail) -> ResourceActivityCommand {
+    let command = &hearing.review.command;
+    ResourceActivityCommand {
+        operation_id: ResourceActivityOperationId::from_uuid(command.operation_id.as_uuid()),
+        association_id: command.association_id,
+        expected_resource_revision: command.expected_resource_revision,
+        change: ResourceActivityChange::Link {
+            selection: ResourceActivitySelection {
+                resource: command.resource,
+                act: command.act,
+                target: ResourceActivityTarget::ResourceHearing {
+                    id: command.hearing_id,
+                    revision: hearing.revision,
+                    capture_digest: hearing.capture_digest,
+                },
+            },
+        },
+    }
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResourceHearingPreparation {

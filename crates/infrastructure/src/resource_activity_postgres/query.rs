@@ -172,6 +172,9 @@ fn view(
     let target = match association.selection.target {
         ResourceActivityTarget::Hearing { id, .. } => ResourceActivityTargetId::Hearing(id),
         ResourceActivityTarget::Deadline { id, .. } => ResourceActivityTargetId::Deadline(id),
+        ResourceActivityTarget::ResourceHearing { id, .. } => {
+            ResourceActivityTargetId::ResourceHearing(id)
+        }
     };
     let current = current_target(tx, association.case_id, target, hasher, at)?;
     with_current_target(association, current, at)
@@ -184,6 +187,16 @@ pub(super) fn current_target(
     at: OffsetDateTime,
 ) -> Result<ResourceActivityCurrentTarget, ApplicationError> {
     match target {
+        ResourceActivityTargetId::ResourceHearing(id) => {
+            let current =
+                crate::resource_hearing_postgres::storage::detail(tx, case, id, None, hasher)?;
+            if current.recorded_at > at {
+                return Err(inconsistent("resource hearing head postdates observation"));
+            }
+            Ok(ResourceActivityCurrentTarget::ResourceHearing(Box::new(
+                current,
+            )))
+        }
         ResourceActivityTargetId::Hearing(id) => {
             let current = crate::hearing_postgres::storage::detail(tx, case, id, None, hasher)?;
             if current.snapshot.recorded_at > at {
@@ -229,6 +242,15 @@ pub(super) fn with_current_target(
             value.detail().id == id
                 && value.detail().case_id == association.case_id
                 && value.detail().revision >= revision
+        }
+        (
+            ResourceActivityTarget::ResourceHearing { id, revision, .. },
+            ResourceActivityCurrentTarget::ResourceHearing(value),
+        ) => {
+            value.review.command.hearing_id == id
+                && value.review.case_id == association.case_id
+                && value.review.command.resource.id == association.resource_id
+                && value.revision >= revision
         }
         _ => false,
     };

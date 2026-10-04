@@ -48,6 +48,9 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("recorded_at_nanoseconds", "integer", true),
             ("recorded_by", "uuid", true),
             ("recorded_by_email", "text", true),
+            ("resource_hearing_id", "uuid", false),
+            ("resource_hearing_revision", "bigint", false),
+            ("resource_hearing_capture_digest", "bytea", false),
         ],
         _ => &[],
     }

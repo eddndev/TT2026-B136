@@ -24,7 +24,7 @@ fn mismatch() -> ApplicationError {
     ResourceActivityError::SourceMismatch.into()
 }
 
-pub(super) fn prepare(
+pub fn prepare(
     hasher: &dyn DocumentHasher,
     actor: &Principal,
     case: CaseId,

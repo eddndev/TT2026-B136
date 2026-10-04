@@ -19,6 +19,7 @@ pub(super) fn page(
     let kind = match target {
         ResourceActivityTargetId::Hearing(_) => ResourceActivityKind::Hearing,
         ResourceActivityTargetId::Deadline(_) => ResourceActivityKind::Deadline,
+        ResourceActivityTargetId::ResourceHearing(_) => ResourceActivityKind::ResourceHearing,
     };
     let mut page = ResourceActivityTargetPage {
         checked_at: now(),
@@ -52,11 +53,17 @@ pub(super) fn page(
             ResourceActivityTarget::Deadline { id, .. } => {
                 *id = application::deadlines::DeadlineId::from_uuid(FOREIGN.parse().unwrap())
             }
+            ResourceActivityTarget::ResourceHearing { id, .. } => {
+                *id = domain::resource_hearings::ResourceHearingId::from_uuid(
+                    FOREIGN.parse().unwrap(),
+                )
+            }
         },
         "wrong_kind" => {
             let other = match kind {
                 ResourceActivityKind::Hearing => ResourceActivityKind::Deadline,
                 ResourceActivityKind::Deadline => ResourceActivityKind::Hearing,
+                ResourceActivityKind::ResourceHearing => ResourceActivityKind::Hearing,
             };
             row = view(&model::command(other, false), other);
         }

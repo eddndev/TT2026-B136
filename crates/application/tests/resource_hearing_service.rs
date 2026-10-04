@@ -191,3 +191,6 @@ mod submission;
 
 #[path = "resource_hearing_recovery.rs"]
 mod recovery;
+
+#[path = "resource_hearing_association.rs"]
+mod association;

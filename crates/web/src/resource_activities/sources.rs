@@ -37,6 +37,19 @@ pub(super) fn project(
             }
             json!({"kind":"deadline","record":crate::deadlines::exact_projection(*row,case,id,Some(revision))?})
         }
+        (
+            ResourceActivityTarget::ResourceHearing {
+                id,
+                revision,
+                capture_digest,
+            },
+            ResourceActivityTargetDetail::ResourceHearing(row),
+        ) => {
+            if row.capture_digest != capture_digest {
+                return Err(ApiError::internal());
+            }
+            json!({"kind":"resource_hearing","record":super::resource_hearing::detail(*row,case,resource,id,Some(revision))?})
+        }
         _ => return Err(ApiError::internal()),
     };
     Ok(json!({"resource":source,"act":act,"target":target}))
@@ -45,6 +58,7 @@ pub(super) fn latest_time(values: &ResourceActivitySources) -> time::OffsetDateT
     let target = match &values.target {
         ResourceActivityTargetDetail::Hearing(v) => v.snapshot.recorded_at,
         ResourceActivityTargetDetail::Deadline(v) => v.recorded_at,
+        ResourceActivityTargetDetail::ResourceHearing(v) => v.recorded_at,
     };
     values
         .resource

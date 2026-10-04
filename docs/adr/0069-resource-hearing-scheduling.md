@@ -2,13 +2,14 @@
 
 ## Status
 
-Accepted architecture; implementation remains in progress. Local domain values,
-application preparation, exact-digest submission and replay validation exist.
-Focused checks use controlled ports and an in-memory store. There is no
-resource-hearing PostgreSQL adapter, HTTP route, agenda projection, alert
-integration or user interface yet. Durable atomic creation and recovery remain
-subsequent work in the same delivery. Neither global CI nor a new deployment is
-asserted here. The current contract is in
+Accepted architecture; implementation remains local, unmerged and undeployed.
+Domain values, application preparation/submission, the PostgreSQL adapter,
+initial typed association, durable origin and strict schema/inventory exist.
+Generic association DTOs support this family without new hearing routes.
+Dedicated queries, scheduling HTTP, agenda, alerts and Qadra remain pending.
+Focused schema, application, PostgreSQL adapter and HTTP DTO checks passed.
+Neither integrated acceptance nor global CI is asserted here.
+The current contract is in
 [resource-hearings.md](../resource-hearings.md).
 
 ## Context
@@ -54,8 +55,9 @@ captures independently from the current head and returns current selected
 participant revisions. The application checks receipts, exact references,
 resource revision and active status, administrative coherence, compatible
 classifications, support and participant projections. It rejects archived
-participants. Current case authorization and current participant selection are
-port obligations; a PostgreSQL boundary has not been implemented for this flow.
+participants. The PostgreSQL adapter enforces current case authorization and
+current participant selection under the shared audit lock. Preparation changes
+no business data but commits its authorized read audit before returning.
 
 Construct `PreparedResourceHearing` only through validated preparation. It keeps
 the full material and principal as well as the review. Submission requires the
@@ -68,10 +70,10 @@ its role remains allowed.
 Require the store commit to reauthorize and revalidate all reviewed material
 under the shared audit lock, then write the hearing, initial resource association,
 origin marker and audit in one transaction. An exact raced operation must return
-the original creation and timestamp; a conflict must write nothing. This is an
-explicit adapter contract, not evidence of durable atomicity from application
-tests. Converting a prepared value into creation evidence does not itself persist
-anything.
+the original creation and timestamp; a conflict must write nothing. The adapter
+implements this transaction. Its database tests are reported separately from
+controlled application checks. Converting a prepared value into creation
+evidence does not itself persist anything.
 
 Use domain-separated representations. `RHEAR1` commits normalized scheduling
 values without a stage or receipt. `RHPR1` hashes the reviewed command identities,
@@ -79,7 +81,14 @@ selected captures, observed head, actor, administration, support and participant
 projections. `RHCR1` binds that review digest, initial revision, recording time and
 additional participant provenance, sorted and explicitly bound to each
 participant identity and revision. The creation includes the full historical
-material and a matching origin marker. Neither credential provenance nor a
+material, the initial real association and a matching origin marker. Construct
+the association with `prepare_activity_change`, using the same actor, context,
+timestamp and operation UUID under its own type. Add `ResourceHearing` as tag 2
+in `RASL1`; preserve the existing tags and bytes. `RHPR1` and `RHCR1` remain
+unchanged and expose their canonical bytes to storage validation. Keep the
+hearing detail independent of its association: validate the detail first, then
+the complete creation, avoiding a recursive receipt dependency.
+Neither credential provenance nor a
 successful capture check certifies legal authority or grants current access.
 
 Recover an uncertain response only from the original immutable creation and its
@@ -90,6 +99,13 @@ timestamp without another commit. A historical author email is not overwritten
 with the current email. Current authorization and equality of the current full
 principal before and after the call remain required. Removing a current
 association must not remove origin evidence or enable a duplicate creation.
+
+Migration family `0030_` stores hearing roots and captures, extends exact
+association references and updates their guards. Runtime grants permit only
+reading and column-bounded insertion. Startup checks the strict catalog and
+replays bounded inventory without writes or repairs. It checks both capture to
+origin and origin to capture, including the original association and audited
+`rhl1` marker; an orphan on either side rejects startup after restore.
 
 Propagate an uncertain commit result without automatic retry. The caller may
 explicitly reconcile the same operation. A post-commit authentication failure
@@ -104,10 +120,10 @@ cannot be inferred from hearing classification. Support remains restricted to
 already admitted evidence in the selected resource or act; this path does not
 admit an arbitrary new summons.
 
-Controlled-port checks establish the application protocol and an in-memory
-recovery example. They do not prove real process-restart recovery, database
-rollback, locking or durability. The PostgreSQL adapter, initial association
-write, immutable origin storage, history and queries still require implementation
-and verification. HTTP, agenda, alerts and Qadra must compose that completed path;
-they must not manufacture an ordinary hearing from the draft. These pending
-parts remain within the same functional delivery.
+The PostgreSQL adapter now preserves capture, original association and audited
+origin atomically. Controlled-port checks remain distinct from database evidence.
+Dedicated hearing queries, scheduling HTTP, agenda, alerts and Qadra still need
+composition and acceptance; they must not manufacture an ordinary hearing from
+the draft. Generic association endpoints expose a separate `resource_hearing`
+record with its exact evidence. These pending parts remain within the same
+functional delivery; this local implementation does not close deployment or CI.

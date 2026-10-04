@@ -83,10 +83,14 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   de plazos ya están integradas; no equivalen a activación jurídica automática.
   El catálogo separado de alegatos de apelación y revocación escrita, y la
   preparación contra recursos/actos exactos, confirmación de la revisión y
-  conciliación explícita de la creación original tienen implementación local
-  con pruebas focales. El contrato transaccional aún carece de adaptador SQL:
-  no crean una audiencia persistente ni la incorporan a agenda o alertas;
-  el pendiente continúa abierto. Véase el
+  conciliación explícita de la creación original tienen implementación local.
+  El adaptador PostgreSQL ya confirma audiencia, asociación inicial y origen
+  auditado atómicamente, con migración `0030_`, inventario estricto y recuperación
+  del vínculo original después de desvincularlo. La API genérica de asociaciones
+  incorpora el DTO `resource_hearing`, sin añadir rutas propias de programación.
+  Aprobaron las pruebas focales de aplicación, esquema, adaptador y DTO HTTP.
+  Esta ampliación aún no está integrada ni desplegada; consultas propias,
+  programación HTTP, agenda, alertas y Qadra siguen pendientes. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
@@ -978,8 +982,12 @@ aprobaron en 6m41s, 11m24s y 7m43s, con 3156 Rust, 396 escenarios controlados
 y 47 reales, además de dos ignorados. Se conserva separada
 la aceptación de esta entrega de la aceptación de informes integrada por PR49.
 
-Persisten las audiencias propias de recursos, el corpus jurídico calificado y
-la activación automática durable de sus términos. Asociar o consultar no crea
+Persisten la integración completa de las audiencias propias de recursos
+(consultas, programación HTTP, agenda, alertas y Qadra), el corpus jurídico
+calificado y la activación automática durable de sus términos. El backend y
+el DTO de asociación de esas audiencias están implementados y verificados
+localmente según su [contrato](resource-hearings.md), aún sin integración ni
+despliegue. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
 [la evidencia por entrega](verification-report.md) conservan esos pendientes.

@@ -1,6 +1,12 @@
 use super::*;
 use crate::{
-    identity::Principal, typed_participants::ParticipantRevisionSnapshot, ApplicationError,
+    identity::Principal,
+    resource_activities::{
+        resource_activity_command_from_detail, resource_activity_receipt_matches,
+        ResourceActivityTargetDetail,
+    },
+    typed_participants::ParticipantRevisionSnapshot,
+    ApplicationError,
 };
 use domain::{
     clock::OffsetDateTime,
@@ -24,29 +30,78 @@ pub(super) fn origin(h: &ResourceHearingDetail) -> ResourceHearingOrigin {
         capture_digest: h.capture_digest,
     }
 }
-/// Validates historical material without consulting current heads or requiring
-/// the association to remain linked. Authorization belongs to the store call.
+/// Validates the original creation without consulting the current association
+/// head. Later organizational unlinking does not replace its initial receipt.
 pub fn resource_hearing_creation_matches(
     hasher: &dyn DocumentHasher,
     result: &ResourceHearingCreation,
 ) -> Result<(), ApplicationError> {
-    verify(hasher, result)
+    verify_creation(hasher, result)
         .map_err(|_| inconsistent("resource hearing creation or origin differs from its evidence"))
 }
-fn verify(
+fn verify_creation(
     hasher: &dyn DocumentHasher,
     result: &ResourceHearingCreation,
 ) -> Result<(), ApplicationError> {
     let h = &result.hearing;
+    resource_hearing_receipt_matches(hasher, h)?;
+    let a = &result.association;
+    resource_activity_receipt_matches(hasher, a)?;
+    if result.origin != origin(h)
+        || a.case_id != h.review.case_id
+        || a.resource_id != h.review.command.resource.id
+        || resource_activity_command_from_detail(a)? != super::creation::association_command(h)
+        || a.sources.resource != h.review.resource
+        || a.sources.act != h.review.act
+        || !matches!(&a.sources.target,
+            ResourceActivityTargetDetail::ResourceHearing(captured) if same_capture(captured, h))
+        || a.recorded_at != h.recorded_at
+        || a.recorded_by != h.review.recorded_by
+        || a.recorded_administration != h.review.observed_administration
+        || a.recorded_resource_head != h.review.observed_resource_head
+    {
+        return Err(inconsistent(
+            "initial association differs from resource hearing creation",
+        ));
+    }
+    Ok(())
+}
+
+fn same_capture(left: &ResourceHearingDetail, right: &ResourceHearingDetail) -> bool {
+    let mut left = left.clone();
+    let mut right = right.clone();
+    // Material order is incidental; each person's exact provenance remains
+    // attached to its identity and is independently committed by RHCR1.
+    for hearing in [&mut left, &mut right] {
+        hearing
+            .material
+            .participants
+            .sort_by_key(|person| (person.id().as_uuid(), person.revision_number().get()));
+    }
+    left == right
+}
+
+/// Validates a historical hearing without an association or origin lookup.
+/// This is the finite source boundary used by association receipt validation.
+pub fn resource_hearing_receipt_matches(
+    hasher: &dyn DocumentHasher,
+    hearing: &ResourceHearingDetail,
+) -> Result<(), ApplicationError> {
+    verify_detail(hasher, hearing)
+        .map_err(|_| inconsistent("resource hearing capture differs from its evidence"))
+}
+fn verify_detail(
+    hasher: &dyn DocumentHasher,
+    h: &ResourceHearingDetail,
+) -> Result<(), ApplicationError> {
     let d = &h.review;
     if h.revision != ResourceHearingRevision::initial()
-        || result.origin != origin(h)
         || d.recorded_by.email.is_empty()
         || d.recorded_by.email.trim() != d.recorded_by.email
         || d.recorded_by.email.chars().any(char::is_control)
     {
         return Err(inconsistent(
-            "resource hearing origin, revision or author is invalid",
+            "resource hearing revision or author is invalid",
         ));
     }
     let actor = Principal {
@@ -99,6 +154,11 @@ pub(super) fn capture_digest(
     hasher: &dyn DocumentHasher,
     h: &ResourceHearingDetail,
 ) -> Sha256Digest {
+    hasher.hash_bytes(&resource_hearing_capture_bytes(h))
+}
+
+/// Stable capture framing commits the review, timestamp and source provenance.
+pub fn resource_hearing_capture_bytes(h: &ResourceHearingDetail) -> Vec<u8> {
     let mut bytes = b"RHCR1".to_vec();
     bytes.extend_from_slice(h.review.submission_digest.as_bytes());
     bytes.extend_from_slice(&h.revision.get().to_be_bytes());
@@ -137,7 +197,7 @@ pub(super) fn capture_digest(
             actor(&mut bytes, s.changed_by.id, &s.changed_by.email);
         }
     }
-    hasher.hash_bytes(&bytes)
+    bytes
 }
 fn timestamp(bytes: &mut Vec<u8>, at: OffsetDateTime) {
     bytes.extend_from_slice(&at.unix_timestamp().to_be_bytes());

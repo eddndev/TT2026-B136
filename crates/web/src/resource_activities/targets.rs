@@ -45,6 +45,7 @@ async fn list(
         ResourceActivityKind::Deadline => {
             ResourceActivityTargetId::Deadline(DeadlineId::from_uuid(id))
         }
+        ResourceActivityKind::ResourceHearing => return Err(ApiError::internal()),
     };
     let Query(input) = input.map_err(|_| query::invalid())?;
     let query = input.validate()?;

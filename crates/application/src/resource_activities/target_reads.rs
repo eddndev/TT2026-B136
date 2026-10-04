@@ -61,6 +61,10 @@ fn same_target(wanted: ResourceActivityTargetId, actual: ResourceActivityTarget)
             ResourceActivityTargetId::Deadline(wanted),
             ResourceActivityTarget::Deadline { id, .. },
         ) => wanted == id,
+        (
+            ResourceActivityTargetId::ResourceHearing(wanted),
+            ResourceActivityTarget::ResourceHearing { id, .. },
+        ) => wanted == id,
         _ => false,
     }
 }

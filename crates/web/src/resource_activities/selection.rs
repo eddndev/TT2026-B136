@@ -5,6 +5,7 @@ use domain::{
     deadlines::{DeadlineId, DeadlineRevision},
     hearings::{HearingId, HearingRevision},
     procedural_resources::{ResourceActId, ResourceActRevision},
+    resource_hearings::{ResourceHearingId, ResourceHearingRevision},
 };
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -58,6 +59,11 @@ pub(super) enum Target {
         revision: u32,
         capture_digest: String,
     },
+    ResourceHearing {
+        id: String,
+        revision: u32,
+        capture_digest: String,
+    },
 }
 impl Target {
     pub(super) fn validate(self) -> Result<ResourceActivityTarget, ApiError> {
@@ -82,6 +88,16 @@ impl Target {
                     .map_err(|_| invalid("invalid deadline revision"))?,
                 capture_digest: digest(&capture_digest)?,
             },
+            Self::ResourceHearing {
+                id,
+                revision,
+                capture_digest,
+            } => ResourceActivityTarget::ResourceHearing {
+                id: ResourceHearingId::from_uuid(uuid(&id)?),
+                revision: ResourceHearingRevision::new(revision)
+                    .map_err(|_| invalid("invalid resource hearing revision"))?,
+                capture_digest: digest(&capture_digest)?,
+            },
         })
     }
 }
@@ -104,6 +120,13 @@ pub(crate) fn project(v: ResourceActivitySelection) -> Value {
             capture_digest,
         } => {
             json!({"kind":"deadline","id":id.to_string(),"revision":revision.get(),"capture_digest":capture_digest.to_hex()})
+        }
+        ResourceActivityTarget::ResourceHearing {
+            id,
+            revision,
+            capture_digest,
+        } => {
+            json!({"kind":"resource_hearing","id":id.to_string(),"revision":revision.get(),"capture_digest":capture_digest.to_hex()})
         }
     };
     json!({"resource":resource(v.resource),"act":act,"target":target})

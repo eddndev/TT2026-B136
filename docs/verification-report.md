@@ -19,6 +19,73 @@ aprobó en **11.06 s**, así como formato y ASCII. La campaña
 remota cancelada no acredita inventario completo ni cobertura; su regresión
 completa sigue pendiente de una nueva ejecución.
 
+## Persistencia y asociación de audiencias de recursos: 3 de octubre de 2026
+
+Implementación local, pendiente de integración y aceptación completa del flujo.
+`PostgresResourceHearingStore` guarda audiencia, asociación inicial y origen
+auditable en una transacción bajo el bloqueo compartido de auditoría. Revalida
+principal, administración, recurso y participantes; concilia exactamente la
+operación original incluso después de desvincular y archivar. La migración 0030
+agrega catálogo verificado, permisos de sólo lectura/inserción e historial
+inmutable. La familia `resource_hearing` usa el tag 2 de `RASL1`; los tags y bytes
+de audiencia ordinaria y plazo se conservan. Los endpoints generales de
+asociaciones transportan la nueva familia; no se añadieron rutas propias de
+programación de audiencias.
+
+El RED de esquema ejecutó cuatro casos en PostgreSQL 16.15 aislado y falló por
+las tablas ausentes. Tras implementar, **4/4** aprobaron en **19.66 s**, con
+17.60 s de compilación. Verifican migración repetida sin recrear restricciones,
+catálogo, funciones, claves exactas, permisos y rechazo de modificaciones.
+La ejecución final del backend aprobó **9/9 en 61.47 s**, con 12.09 s de
+compilación. Incluye rollback ante fallo de auditoría de asociación y origen,
+recuperación con conexión nueva, origen conservado después de desvincular,
+cambio de contexto, revocación de pertenencia, dos conexiones concurrentes,
+revisión de participante cambiada entre preparación y escritura, y recuperación
+de la captura histórica sin sustituirla por esa revisión nueva.
+
+Una revisión focal encontró que el inventario comprobaba audiencia hacia origen,
+pero no el sentido inverso. Una prueba reprodujo una restauración incompleta que
+perdía audiencia y asociación conservando el origen. Se agregó inventario inverso
+paginado y rechazo del marcador existente al buscar una operación sin objetos.
+La regresión pasó dentro de los nueve casos y la revisión posterior quedó limpia.
+El primer intento de pruebas tuvo además dos errores del propio test: la falta de
+membresía debía esperar `CaseNotFound`, según la política anti-enumeración vigente,
+y la alteración de auditoría necesitaba terminar sus eventos diferidos antes de
+reactivar triggers. Se corrigieron esas preparaciones sin modificar el producto.
+No se acredita una caída eléctrica ni un ejercicio completo de restauración del
+producto con estos casos de reconstrucción y daños controlados.
+
+La representación de asociación aprobó **6/6 casos de dominio** en 0.00 s.
+El servicio de audiencias de recursos aprobó **28/28 en 0.13 s** y la consulta
+inversa existente **5/5 en 0.01 s**. El RED inicial mostró variantes y contratos
+faltantes; una regresión previa detectó que comparar estructuralmente el material
+rechazaba reordenar participantes. Se normaliza sólo ese orden al comparar,
+conservando el vínculo criptográfico de toda su procedencia con cada identidad.
+Los diez casos del catálogo específico y las 49 regresiones ordinarias del corte
+anterior permanecen como evidencia histórica y no se repitieron por rutina.
+
+Las regresiones PostgreSQL de asociaciones ordinarias aprobaron **6/6 en
+39.40 s** y las de plazos contextuales **9/9 en 74.22 s**, sin cambios en sus
+expectativas. Cada campaña usó su propio clúster PostgreSQL 16.15 desechable,
+un compilador y un hilo; los clústeres quedaron retirados al terminar.
+
+Clippy focal de las cuatro bibliotecas y los targets modificados aprobó con
+`-D warnings` en **25.93 s**. El primer comando nombró por error un submódulo
+como target independiente y Cargo lo rechazó antes de compilar; se corrigió
+la selección. Formato, ASCII, límite de archivos y `git diff --check` aprobaron.
+Se conserva el aviso de incompatibilidad futura de la dependencia Redis 0.25.4,
+sin modificar dependencias en esta entrega.
+
+HTTP aprobó **5/5 nuevos casos en 0.02 s** y **10/10 regresiones** de comandos y
+proyecciones en 0.06 s; la compilación conjunta duró 42.16 s. Verifica familia,
+referencias, soporte, ámbito y separación entre captura y estado actual mediante
+puertos controlados. No equivale a una campaña de navegador contra el servicio
+compuesto. Todas las suites fueron secuenciales, con un compilador y trabajador,
+`TMPDIR` privado en disco y PostgreSQL desechable retirado al finalizar. No se
+actualizan cobertura global, CI ni despliegue; siguen pendientes consultas propias,
+HTTP de programación, agenda, alertas y Qadra. Véase el
+[contrato de audiencias de recursos](resource-hearings.md).
+
 ## Confirmación de audiencias de recursos: 3 de octubre de 2026
 
 Se añadieron identidades y revisiones propias, confirmación de una revisión exacta,

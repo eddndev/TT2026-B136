@@ -3,6 +3,8 @@ mod act;
 #[path = "../deadline_http_support/mod.rs"]
 mod deadlines;
 mod model;
+#[path = "../resource_hearing_activity_support/mod.rs"]
+mod resource_hearing;
 #[path = "../procedural_resource_http_support/model.rs"]
 mod resources;
 mod target;

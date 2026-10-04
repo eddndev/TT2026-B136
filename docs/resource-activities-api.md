@@ -1,18 +1,26 @@
 # Asociaciones entre recursos y actividades existentes
 
 Este contrato vincula un recurso o uno de sus actos con una revisión exacta de
-una audiencia o un plazo ya registrados en el mismo expediente. La asociación
+una audiencia ordinaria, una audiencia propia de recurso o un plazo ya
+registrados en el mismo expediente. La asociación
 conserva su propia historia y recibo. No crea audiencias contextuales, activa
 plazos, cambia su cálculo ni genera otro episodio de alerta.
 
-Las asociaciones pueden coexistir: una actividad puede vincularse con varios
-recursos. Quitar un vínculo es una revisión organizativa, sin borrar evidencia,
+Las asociaciones pueden coexistir: audiencias ordinarias y plazos pueden
+vincularse con varios recursos. Una audiencia propia de recurso conserva además
+el recurso de su creación y no se vincula a otro. Quitar un vínculo es una
+revisión organizativa, sin borrar evidencia,
 cancelar la audiencia, retirar el plazo, registrar atención o resolver avisos.
 El archivo del recurso tampoco realiza esas operaciones.
 
 La [creación contextual de plazos](resource-deadlines-api.md) tiene un contrato
 separado que registra plazo y vínculo juntos; las operaciones de asociación de
 este documento continúan seleccionando actividades existentes.
+La [programación de audiencias de recurso](resource-hearings.md) implementa
+localmente otra creación atómica con vínculo inicial. Su nueva familia de DTO
+`resource_hearing` está implementada en estos endpoints genéricos, sin añadir
+rutas propias de programación o consulta de audiencias. La extensión tiene
+pruebas focales aprobadas; aún no está integrada ni desplegada.
 
 ## Autorización y confirmación
 
@@ -54,7 +62,7 @@ Los cuerpos tienen máximo técnico de 16 KiB. No contienen documentos ni copias
 de los objetos vinculados: éstos se resuelven y verifican en el servidor.
 
 La lista admite `limit` de 1 a 100, predeterminado 20; `after_id` exclusivo;
-`kind=hearing|deadline` y `status=linked|unlinked` opcionales. Sin filtro de
+`kind=hearing|deadline|resource_hearing` y `status=linked|unlinked` opcionales. Sin filtro de
 estado incluye ambos. Los filtros se aplican a las cabezas antes de paginar.
 La historia admite `limit` de 1 a 20, predeterminado 20, y
 `before_revision` exclusivo, en orden descendente. Claves desconocidas,
@@ -105,6 +113,11 @@ revisión del recurso que contiene ese acto exacto. Puede seleccionarse un
 recurso R1 y un acto declarado en R2; no se infiere cronología o efecto jurídico.
 Para plazo, `target` contiene
 `{kind:"deadline", id, revision, capture_digest}`.
+Para audiencia propia de recurso contiene
+`{kind:"resource_hearing", id, revision, capture_digest}` con identidad y
+revisión de esa familia; no admite el `submission_digest` de una audiencia
+ordinaria. Su representación `RASL1` utiliza etiqueta 2 sin alterar las etiquetas
+0/1 ni los recibos históricos de las otras familias.
 
 Desvincular conserva las referencias y fuentes anteriores. Su `change` contiene
 `{action:"unlink", expected_revision, reason}`; no admite reemplazos de fuente.
@@ -122,8 +135,9 @@ ausentes, duplicados o representaciones posicionales son inválidos.
 - `sources.resource` reutiliza el detalle de recurso existente.
   `sources.act` es null o el detalle de la revisión que contiene el acto.
   `sources.target` es `{kind, record}` con el detalle histórico existente de
-  audiencia o plazo. Véanse [recursos](procedural-resources-api.md),
-  [audiencias](hearings-api.md) y [plazos](deadlines-api.md).
+  la familia indicada. Véanse [recursos](procedural-resources-api.md),
+  [audiencias ordinarias](hearings-api.md),
+  [audiencias de recurso](resource-hearings.md) y [plazos](deadlines-api.md).
 - `receipt` contiene `operation_id`, `action`, `expected_revision`,
   `expected_resource_revision`, `previous`, `submission_digest` y
   `capture_digest`. `previous` es null o `{revision, capture_digest}`.
@@ -136,7 +150,7 @@ GET detalle y revisión exacta devuelven:
 {
   association: Association,
   checked_at: {unix_seconds, nanosecond, offset_seconds: 0},
-  current_target: {kind: "hearing" | "deadline", record: detalle_actual}
+  current_target: {kind: "hearing" | "deadline" | "resource_hearing", record: detalle_actual}
 }
 ```
 
@@ -147,6 +161,17 @@ transacción. Un `operational.checked_at` no nulo coincide con `checked_at`.
 Los casos retirados o legados conservan su proyección no comprobada y fecha
 operativa nula. Nunca se usa `calculation.result.due_at` histórica como sustituto.
 La [API de seguimiento](deadline-tracking-api.md) define esos estados.
+
+El `record` de `resource_hearing` conserva `case_id`, `resource_id`, `id`,
+`revision`, `operation_id`, `association_id`, `expected_resource_revision`,
+referencias exactas `resource`/`act`, `values`, `sources`, `recorded_by`,
+`recorded_at`, `recorded_administration`, `recorded_resource_head`,
+`submission_digest` y `capture_digest`. Los valores incluyen tipo, fecha RFC 3339
+con desfase declarado, modalidad, sede, nota, participantes y
+`scheduling_basis:{statement,support}`. Las fuentes contienen el recurso y acto
+históricos, soporte admitido y participantes capturados. No contiene etapa ni
+`scheduling_context` ordinarios. La captura y la cabeza se exponen separadamente
+aunque, en este corte, la audiencia sólo tiene revisión inicial.
 
 La lista devuelve
 `{case_id, resource_id, associations:[vista], has_more, next_after_id}`.
@@ -194,4 +219,8 @@ existentes, crea recursos propios para las asociaciones y comprueba las
 respuestas después de restaurar las dos tablas de asociaciones. Sólo normaliza
 el instante de lectura después de comprobar su formato y vínculo con la
 proyección operativa; las capturas y recibos se comparan completos. La presencia
-del guion no acredita su ejecución.
+del guion no acredita su ejecución ni cubre por sí sola la familia nueva.
+
+La extensión `resource_hearing` aprobó cinco pruebas HTTP focales, junto a dos
+de validación del cuerpo y ocho del contrato existente. Son pruebas con puertos
+controlados; no constituyen aceptación integrada ni de Qadra para esta familia.

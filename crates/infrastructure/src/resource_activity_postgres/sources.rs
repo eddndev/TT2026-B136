@@ -18,6 +18,23 @@ pub(super) fn load(
         hasher,
     )?;
     let target = match selection.target {
+        ResourceActivityTarget::ResourceHearing {
+            id,
+            revision,
+            capture_digest,
+        } => {
+            let row = crate::resource_hearing_postgres::storage::detail(
+                tx,
+                case,
+                id,
+                Some(revision),
+                hasher,
+            )?;
+            if row.capture_digest != capture_digest || row.review.command.resource.id != resource {
+                return Err(ResourceActivityError::SourceMismatch.into());
+            }
+            ResourceActivityTargetDetail::ResourceHearing(Box::new(row))
+        }
         ResourceActivityTarget::Hearing {
             id,
             revision,

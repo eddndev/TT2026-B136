@@ -1,5 +1,12 @@
 use super::*;
-use crate::{identity::Principal, ApplicationError};
+use crate::{
+    identity::Principal,
+    resource_activities::{
+        prepare_activity_change, ResourceActivityMaterial, ResourceActivitySources,
+        ResourceActivityTargetDetail,
+    },
+    ApplicationError,
+};
 use domain::{
     cases::CaseId, clock::OffsetDateTime, crypto::DocumentHasher, procedural_resources::ResourceId,
     resource_hearings::ResourceHearingRevision,
@@ -35,9 +42,33 @@ impl PreparedResourceHearing {
             capture_digest: domain::crypto::Sha256Digest::from_array([0; 32]),
         };
         hearing.capture_digest = super::receipt::capture_digest(self.hasher.as_ref(), &hearing);
+        resource_hearing_receipt_matches(self.hasher.as_ref(), &hearing)?;
+        let material = &hearing.material;
+        let association = prepare_activity_change(
+            self.hasher.clone(),
+            &self.actor,
+            hearing.review.case_id,
+            hearing.review.command.resource.id,
+            super::creation::association_command(&hearing),
+            ResourceActivityMaterial {
+                case_id: material.case_id,
+                base: None,
+                administration: material.administration.clone(),
+                resource_head: material.resource_head.clone(),
+                sources: ResourceActivitySources {
+                    resource: material.resource.clone(),
+                    act: material.act.clone(),
+                    target: ResourceActivityTargetDetail::ResourceHearing(Box::new(
+                        hearing.clone(),
+                    )),
+                },
+            },
+        )?
+        .into_detail(recorded_at)?;
         let result = ResourceHearingCreation {
             origin: super::receipt::origin(&hearing),
             hearing,
+            association,
         };
         resource_hearing_creation_matches(self.hasher.as_ref(), &result)?;
         Ok(result)
