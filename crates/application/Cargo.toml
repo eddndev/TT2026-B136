@@ -314,3 +314,7 @@ path = "tests/precautionary_participants.rs"
 [[test]]
 name = "precautionary_support"
 path = "tests/precautionary_support.rs"
+
+[[test]]
+name = "precautionary_receipts"
+path = "tests/precautionary_receipts.rs"

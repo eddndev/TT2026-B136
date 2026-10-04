@@ -44,7 +44,14 @@ desconocimiento con motivo. Los datos factuales de decisión (`MDVAL1`) conserva
 autoridad declarada, tiempo, justificación y soporte con localizador. Disponen
 de identidad de decisión separada; todavía no crean efectos ni grupos atómicos.
 
-Aún faltan recibos de captura, decisiones persistidas, historia de medidas, servicios del
+Los recibos locales `PHPR1`/`PHCR1` conservan los datos completos y procedencia
+de la convocatoria de imposición. Validan digest, tiempo y reemplazo/cancelación
+contra su predecesor exacto; rechazan copias contradictorias de una misma fuente
+inmutable. Esta comprobación no prueba origen persistido, historial completo,
+autorización actual ni admisión nueva. La convocatoria de revisión aún requiere
+capturas reales de medidas y permanece rechazada en este límite.
+
+Aún faltan origen e historial completos, decisiones persistidas, historia de medidas, servicios del
 flujo, persistencia, HTTP, Agenda, alertas e interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados

@@ -21,7 +21,10 @@ bounded document processor; persisted case association remains a store check.
 Complete declared measure terms (`MEAS1`) and factual decision declarations
 (`MDVAL1`) are also implemented locally, with a distinct immutable decision ID.
 These values do not establish decision effects, hearing anchors or group origins.
-Precautionary workflow services, persistence, receipts, HTTP, Agenda, alerts,
+Flat imposition capture receipts and adjacent-transition checks are implemented
+locally. Full origin/history validation and Review-purpose measure evidence
+remain separate pending checks.
+Precautionary workflow services, persistence, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
 belongs in [the verification report](../verification-report.md).
@@ -105,6 +108,30 @@ Historical framing must use the original actor role without granting that role
 current permission. Never reconstruct an actor as an Owner to make validation
 succeed. Submission bytes and context bytes are separate from persisted capture
 receipts, current authorization and uncertain-response recovery.
+
+### Flat appointment captures and immutable sources
+
+`PHPR1` binds the full instruction and its digest, resulting revision/status,
+both scheduling and observed contexts, complete participant and subject sources,
+exact support metadata and derived participant projections. `PHCR1` binds the
+full review, its digest and the UTC capture clock; it excludes its own digest.
+The checked review owns this material and rejects a capture before its sources
+or checked predecessor. It is structural historical evidence, not proof of
+current access, fresh documentary admission or storage.
+
+Scheduling creates revision one. Replacement and cancellation require the exact
+scheduled predecessor; cancellation is terminal and preserves its original
+values, scheduling context and sources while recording the newly observed
+context. Full source identities remain immutable within and between supplied
+captures: case/revision for administrations and stages; case/ID/revision for
+participants and subjects; document ID/version for support. Equal keys require
+complete value and provenance equality, including metadata not present in the
+source value digest. Actual new revisions remain distinct.
+
+The flat verifier cannot establish predecessor existence or durable origin;
+adjacent validation cannot establish full ancestry or operation uniqueness over
+an entire history. Review-purpose captures reject until their actual measure
+captures can be verified. No fabricated measure source makes them admissible.
 
 ### Decision and measure records
 

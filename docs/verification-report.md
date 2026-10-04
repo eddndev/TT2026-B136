@@ -1,5 +1,32 @@
 # Informe de verificación local
 
+## Recibos de convocatoria cautelar: 4 de octubre de 2026
+
+La construcción local conserva instrucción, contextos, fuentes completas y
+proyecciones, con compromisos separados para revisión (`PHPR1`) y captura
+(`PHCR1`). Reemplazo y cancelación exigen predecesor exacto; cancelar mantiene
+la evidencia original y registra el contexto observado. No acredita operación
+persistida, autorización vigente o admisión nueva. La revisión de medidas sigue
+rechazada hasta contar con capturas reales comprobables.
+
+TDD focal: primero falló el target por ausencia de la API. Aprobaron después
+27 casos semánticos y dos vectores literales independientes. Una revisión
+independiente identificó fuentes contradictorias bajo la misma identidad y
+revisión; las ocho regresiones nuevas fallaron antes de corregirlas. Tras la
+corrección, **37/37 pruebas** aprobaron en **4.623 s** de comando total
+(compilación **4.52 s**, pruebas **0.07 s**). Los vectores de 3024 y 3081 bytes
+permanecen iguales. Clippy focal con `-D warnings` aprobó en **3.121 s** de
+comando total. Se conservan los fallos iniciales y el fallo intermedio de
+compilación por un import, sin contabilizarlos como verificaciones aprobadas.
+
+La corrección exige igualdad de valores y procedencia para una misma revisión
+de administración, etapa, participante o sujeto, y una misma versión documental,
+incluso cuando el soporte aparece en contextos distintos. Cambiar efectivamente
+la revisión sigue permitido. Un compilador, un worker, temporales en disco y
+ningún servicio. No se repitieron suites anteriores, campaña completa, cobertura
+ni PDF; el origen y la validación del historial completo son el siguiente límite.
+Este bloque permanece local y no está integrado ni desplegado.
+
 ## Declaraciones de medidas y decisiones: 4 de octubre de 2026
 
 Los valores de medida vinculan sujeto exacto, clase, condiciones, vigencia y

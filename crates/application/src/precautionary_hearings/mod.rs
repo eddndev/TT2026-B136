@@ -1,13 +1,29 @@
 //! Exact precautionary context and instructions, separate from storage and authority.
 
+mod capture_encoding;
+mod capture_model;
+mod capture_preparation;
+mod capture_validation;
 mod command;
 mod context;
 mod context_encoding;
 mod encoding;
 mod participants;
+mod source_encoding;
+mod source_inventory;
 mod submission;
 mod support;
 
+pub use capture_encoding::{
+    precautionary_hearing_capture_bytes, precautionary_hearing_review_bytes,
+};
+pub use capture_model::*;
+pub use capture_preparation::{
+    prepare_precautionary_hearing_capture, CheckedPrecautionaryHearingReview,
+};
+pub use capture_validation::{
+    precautionary_hearing_receipt_matches, precautionary_hearing_transition_matches,
+};
 pub use command::*;
 pub use context::{PrecautionaryContext, PrecautionaryContextMaterial};
 pub use participants::resolve_precautionary_participants;
