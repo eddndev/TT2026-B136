@@ -1,6 +1,28 @@
 # Informe de verificación local
 
 
+## Guardas de esquema con orígenes derivados: 4 de octubre de 2026
+
+La campaña remota se detuvo al preparar una prueba de alteración del esquema:
+PostgreSQL rechazó retirar una clave única referenciada por la nueva tabla de
+orígenes. Un segundo caso equivalente se reprodujo localmente. Era un fallo de
+preparación de las pruebas, anterior a su comprobación del arranque.
+
+Los dos escenarios conservan sus identidades y todas las alteraciones anteriores.
+Ahora retiran únicamente la referencia dependiente necesaria para poder alterar
+la clave padre, exigen el error específico del esquema padre, restauran esa clave
+y comprueban por separado la referencia de origen ausente. Finalmente restauran
+la referencia exacta y exigen arranque correcto. No se usa eliminación en cascada
+ni se modifican migraciones, validadores, permisos o lógica de producto.
+
+TDD focal con PostgreSQL 16.15 desechable, un compilador y un worker: ambos casos
+fallaron antes de la corrección y aprobaron después, **1/1 en 25.042 s** para
+plazos y **1/1 en 14.453 s** para resultados, incluyendo preparación y limpieza.
+Los clústeres privados terminaron eliminados. La campaña remota cancelada produjo
+2,644 aprobadas, una fallida, dos ignoradas y 1,280 no ejecutadas; esos resultados
+parciales no acreditan el inventario completo ni sustituyen los gates de cierre.
+
+
 ## Aceptación nativa del resultado y plazo conjuntos: 4 de octubre de 2026
 
 El navegador contra Rust, PostgreSQL 16.15, Redis compatible y TSA local aprobó
