@@ -118,6 +118,32 @@ comparó 26 respuestas restauradas, con los instantes de lectura validados apart
 revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos. CI del incremento
 permanece pendiente en el [corte de verificación](verification-report.md).
 
+## Origen conjunto de resultado y plazo
+
+La migración `0032_hearing_derived_deadlines.sql` y sus guardas añaden
+`case_hearing_derived_deadline_origins`. Debe respaldarse con las revisiones R1
+del resultado y plazo, sus fuentes exactas, evento, perfiles, calendario,
+administración, autor y auditoría. La tabla conserva las dos operaciones y los
+compromisos prospectivo y definitivo; dos registros ordinarios sin ese origen
+no acreditan una creación conjunta.
+
+El arranque verifica esquema, privilegios e inventario histórico reconstruido.
+La restauración preserva las capturas originales sin recalcularlas ni sustituir
+sus dependencias por cabezas actuales. La comparación SQL de
+`scripts/api-migration-state-demo.sh` incluye estos orígenes ordenados por
+operación. Después de restaurar, invalidar las sesiones anteriores y autenticar
+de nuevo conforme al procedimiento de identidad: el respaldo PostgreSQL no
+acredita vigencia de tokens Redis. La conciliación autorizada usa el comando
+conservado y debe devolver el origen exacto, sin crear otro resultado o plazo.
+Véanse [el contrato compuesto](hearing-derived-deadlines.md) y
+[su evidencia de verificación](verification-report.md).
+
+La campaña integrada de `scripts/api-demo.sh` crea dos pares sintéticos,
+consulta su Replay después de reinicios TERM/INT y de `pg_dump`/`pg_restore`,
+y exige una sola auditoría de creación por operación. El snapshot completo
+incluye el origen conjunto. El [informe de verificación](verification-report.md)
+registra su aceptación nativa; el ejemplo no publica perfiles operativos.
+
 ## Audiencias propias de recursos
 
 Implementación local, todavía no integrada ni desplegada. La familia de migración

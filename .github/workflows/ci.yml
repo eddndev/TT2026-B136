@@ -196,9 +196,9 @@ jobs:
           python3 -B crates/domain/tests/fixtures/generate_judicial_calendar_vectors.py --check
           python3 -B scripts/tests/test_judicial_calendar_generator.py
           if [ '${{ matrix.slots }}' -gt 0 ]; then
-            python3 -B scripts/ci_native_postgres.py -- env PYTHONPATH=scripts/tests python3 -B -m unittest test_judicial_calendar_sql test_api_certificate_restore test_api_owner_evidence_scope test_api_owner_login_restore test_api_owner_login_transport test_api_identity_restore_totp
+            python3 -B scripts/ci_native_postgres.py -- env PYTHONPATH=scripts/tests python3 -B -m unittest test_judicial_calendar_sql test_api_certificate_restore test_api_owner_evidence_scope test_api_owner_login_restore test_api_owner_login_transport test_api_identity_restore_totp test_api_hearing_derived_deadline
           else
-            PYTHONPATH=scripts/tests python3 -B -m unittest test_judicial_calendar_sql test_api_certificate_restore test_api_owner_evidence_scope test_api_owner_login_restore test_api_owner_login_transport test_api_identity_restore_totp
+            PYTHONPATH=scripts/tests python3 -B -m unittest test_judicial_calendar_sql test_api_certificate_restore test_api_owner_evidence_scope test_api_owner_login_restore test_api_owner_login_transport test_api_identity_restore_totp test_api_hearing_derived_deadline
           fi
       - name: Select bounded compiler count
         env:

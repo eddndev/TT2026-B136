@@ -14,6 +14,7 @@ import { provisionResourceActivities } from "./web-resource-activity-fixtures.mj
 // Provision hearing scenarios using independent accounts in disposable services.
 import { provisionCalendars } from "./web-calendar-fixtures.mjs";
 import { provisionHearingResults } from "./web-hearing-result-fixtures.mjs";
+import { provisionHearingDerivedDeadlines } from "./web-hearing-derived-deadline-fixtures.mjs";
 import { provisionFixtures } from "./web-fixture-provisioning.mjs";
 import { provisionHearings } from "./web-hearing-base-fixture.mjs";
 import { currentLivePlan } from "./web-live-plan.mjs";
@@ -88,6 +89,8 @@ try {
       Object.fromEntries(
         Object.entries({
           hearingResults: () => provisionHearingResults(request),
+          hearingDerivedDeadlines: () =>
+            provisionHearingDerivedDeadlines(request),
           proceduralFacts: () => provisionProceduralFacts(request),
           proceduralResources: () => provisionResources(request),
           resourceActivities: () => provisionResourceActivities(request),

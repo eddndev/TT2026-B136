@@ -2,6 +2,15 @@
 
 ## Checkpoint funcional reconciliado
 
+El flujo explícito de **resultado de audiencia y plazo derivado** está
+implementado en aplicación, PostgreSQL, HTTP y Qadra, con origen conjunto
+inmutable y recuperación del envío por la misma identidad. La verificación
+focal conserva cálculo prospectivo, transacción, historia y revisión del
+operador. La aceptación nativa de API, restauración y navegador aprobó; el cierre
+de integración sigue pendiente y se registra por separado en [el contrato](hearing-derived-deadlines.md) y
+[el informe](verification-report.md). Este avance no completa el corpus jurídico
+ni activa consecuencias inferidas de texto, notificaciones u otras familias.
+
 Estado conciliado contra el código y los resultados disponibles; las mediciones
 históricas conservan el alcance de cada campaña.
 PR45 y PR46 están integradas; PR47 quedó integrada como `ac34b34` y su

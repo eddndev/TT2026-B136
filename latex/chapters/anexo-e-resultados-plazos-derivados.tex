@@ -1,0 +1,33 @@
+\section{Trazabilidad del registro conjunto de resultado y plazo}\label{sec:matriz-resultado-plazo-derivado}
+
+La composición descrita en la \cref{sec:impl-resultado-plazo-derivado} conserva una instrucción humana explícita, su preparación prospectiva y el registro original de ambos componentes. La matriz siguiente distingue las propiedades que se comprueban por capa. La presencia de un archivo de prueba no sustituye su ejecución, y los resultados focales no se presentan como aceptación del flujo completo.
+
+\begin{table}[H]
+  \centering
+  \caption{Fronteras de verificación del resultado y plazo conjuntos.}
+  \label{tab:matriz-resultado-plazo-derivado}
+  \begin{tabularx}{\linewidth}{@{}L{2.8cm} X X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Propiedad comprobable} & \textbf{Distinción conservada} \\
+    \midrule
+    Preparación & Referencias exactas, políticas, cálculo y huella revisada. & No existe aún fuente persistida ni instante de captura. \\
+    Captura e historia & Correspondencia del cálculo, recibos, autor y evento originales. & Reconstrucción de evidencia sin recalcular ni adoptar cabezas actuales. \\
+    Persistencia & Bloqueo auditado, revalidación, confirmación conjunta y retroceso ante fallos. & Dos altas independientes no acreditan una creación compuesta. \\
+    Transporte & Ámbito, JSON estricto, precisión y respuestas preparadas o recuperadas. & La prueba con un puerto simulado no acredita servicios reales. \\
+    Editor & Revisión explícita, incertidumbre, borrador y reautenticación del mismo usuario. & Recuperar datos no recupera una aprobación ni provoca otro envío. \\
+    Consumidores & Consulta operativa autorizada y avisos del plazo correspondiente. & Cálculo almacenado, vigencia y entrega de avisos son comprobaciones distintas. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+{\raggedright Las fuentes de aplicación residen en \rutarepo{crates/application/src/hearing_derived_deadlines/}. Sus pruebas se encuentran en \rutarepo{crates/application/tests/}, con prefijo \texttt{hearing\_derived\_deadline\_} y extensión \texttt{.rs}: \texttt{preparation}, \texttt{rejections} y \texttt{review} cubren la instrucción; \texttt{capture} y \texttt{capture\_rejections}, su confirmación; \texttt{history}, \texttt{history\_rejections} y \texttt{history\_calculation}, la recuperación histórica; \texttt{workflow} y \texttt{workflow\_boundaries}, autenticación y orquestación. Esta separación evita atribuir escritura durable al verificador puro.\par}
+
+{\raggedright El adaptador se encuentra en \rutarepo{crates/infrastructure/src/hearing_derived_deadline_postgres/}; la validación de apertura, en el directorio hermano \texttt{hearing\_derived\_deadline\_schema/}. En \rutarepo{crates/infrastructure/tests/}, los archivos del mismo prefijo y sufijos \texttt{schema}, \texttt{catalog}, \texttt{guards} y \texttt{backend} ejercitan restricciones, permisos, inventario y transacciones con PostgreSQL. Los negativos incluyen material inconsistente, operaciones ajenas, rollback y conciliación sin adoptar registros ordinarios independientes.\par}
+
+{\raggedright El transporte se comprueba en \rutarepo{crates/web/tests/}, archivo \texttt{hearing\_derived\_deadlines\_http.rs}; la composición de rutas tiene su caso en \texttt{password\_reset\_composition.rs}. Los casos del cliente se ubican en \rutarepo{web/tests/}, bajo el prefijo \texttt{hearing-derived-deadline-}. Comprueban respuesta histórica, límites, estado en vuelo, acciones y borradores. En \rutarepo{web/tests/browser/}, los archivos \texttt{hearing-derived-deadline-workflow}, \texttt{-submission} y \texttt{-review}, con extensión \texttt{.spec.mjs}, recorren el editor con respuestas controladas. \texttt{session-hearing-derived-deadline.spec.mjs} comprueba la recuperación del intento incierto tras reautenticación.\par}
+
+{\raggedright El navegador nativo tiene su recorrido en \rutarepo{web/tests/live/}, archivo \texttt{hearing-derived-deadline-real.spec.mjs}. Sus cinco escenarios aprobaron registros calculables y bloqueados en escritorio y móvil, así como la recuperación de una respuesta perdida. Contrastaron Agenda y avisos internos del plazo; su alcance y tiempos se registran en la \cref{sec:pruebas-resultado-plazo-derivado}. Estas pruebas mantienen sus resultados separados del navegador con respuestas controladas y no amplían el corpus de reglas jurídicas.\par}
+
+La campaña completa de API y restauración aprobó conservando dos pares iniciales, calculable y bloqueado, con sus orígenes conjuntos, recibos, evento y auditoría. La comparación SQL incluyó la tabla de orígenes de la migración \texttt{0032} y mantuvo el estado idéntico después de restaurar; las sesiones anteriores se rechazaron y se requirió nueva autenticación multifactor. La conciliación tras cierre del proceso y restauración conservó una única entrada de auditoría de creación conjunta por operación. Agenda y alertas identifican el plazo y su evidencia exactos; un aviso de la audiencia no demuestra un aviso del plazo derivado. Esta comprobación de respaldo se registra separada del navegador real. El cierre de integración continua, la integración remota y el despliegue permanecen pendientes.
+
+{\raggedright La decisión técnica y el contrato se conservan en \rutarepo{docs/adr/0070-prospective-hearing-derived-deadlines.md} y \rutarepo{docs/hearing-derived-deadlines.md}. Las ejecuciones y sus límites corresponden a \rutarepo{docs/verification-report.md}; las operaciones de respaldo, a \rutarepo{docs/database-operations.md}. No se modifican los conteos históricos de otros módulos ni se atribuyen a este bloque aprobación jurídica, evaluación de usabilidad o despliegue.\par}

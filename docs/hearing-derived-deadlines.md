@@ -3,15 +3,16 @@
 ## Estado y alcance
 
 Contrato HTTP de la creación conjunta de un resultado ordinario de audiencia y
-un plazo configurado. El servicio de aplicación y el adaptador PostgreSQL tienen
-verificación focal, al igual que la adaptación HTTP y su composición en `serve`.
-Las 16 pruebas nuevas del contrato y una prueba de rutas de la API completa
-aprobaron en ejecuciones focales. El cliente interno de Qadra suma 24 casos Node
-verificados entre ejecuciones focales. El editor de Qadra y su recuperación de
-sesión tienen verificación focal Node y navegador con HTTP controlado. Este
-documento no acredita integración en main, despliegue ni aceptación completa
-con servicios reales del flujo.
-[ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md) permanece **Proposed**.
+un plazo configurado. Preparación, captura, historia, persistencia atómica,
+transporte y editor tienen pruebas focales reproducidas. La aceptación nativa
+completa de API, reinicio y respaldo/restauración aprobó; también cinco escenarios
+de navegador real con Agenda y alertas del plazo, incluida recuperación explícita
+de una respuesta perdida. Los resultados y límites están en el
+[informe de verificación](verification-report.md).
+
+[ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md) está **Accepted**.
+El cierre remoto y la integración de esta entrega siguen pendientes; la evidencia
+local no acredita despliegue ni aprobación de los perfiles jurídicos.
 
 La operación registra un `HearingResult` mediante `record`, revisión inicial R1,
 y un plazo mediante `register`, también R1. Requiere una instrucción explícita

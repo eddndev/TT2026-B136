@@ -1,5 +1,52 @@
 # Informe de verificación local
 
+
+## Aceptación nativa del resultado y plazo conjuntos: 4 de octubre de 2026
+
+El navegador contra Rust, PostgreSQL 16.15, Redis compatible y TSA local aprobó
+**5/5 escenarios en 40.6 s**, con un worker y el límite original de cada prueba.
+Cuatro casos recorrieron cálculo de 24 horas y bloqueo por fecha sin hora a
+1440 y 390 píxeles; el quinto descartó una respuesta real HTTP 201 ya confirmada
+y recuperó ambos R1 mediante consulta explícita, sin segundo submit ni otra
+revisión histórica. El ejemplo temporal es sintético y no acredita una regla
+jurídica aprobada.
+
+Los casos calculables comprobaron Agenda por API e interfaz y un aviso real del
+plazo con destinatario, revisión y huella de captura exactos. El caso bloqueado
+no obtuvo vencimiento operativo, entrada de plazo en Agenda ni aviso temporal.
+El correo permaneció deshabilitado. Cuatro capturas de revisión, bloqueo,
+aviso móvil y recuperación fueron inspeccionadas; las assertions comprobaron
+la ausencia de desbordamiento horizontal en ambos tamaños.
+
+El comando completo tardó **440.182 s**, incluyendo la preparación secuencial
+de todas las familias del demo. La compilación caliente informó **0.30 s**;
+la nueva familia independiente, **4.67 s**. No es una medición del CI completo.
+La partición de fixtures preserva los archivos anteriores y sitúa la familia
+nueva en la tercera partición. Su prueba pasó de tres negativos a **3/3 en
+0.252 s**, y las trece regresiones del plan y autenticación aprobaron en
+**0.438 s**. Se conservaron las pruebas existentes y sus límites.
+
+El verificador de evidencia de la campaña API tiene **5/5 pruebas en 0.077 s**.
+Primero falló por ausencia del módulo; una comprobación posterior reprodujo que
+confundía el estado `recorded` del resultado con `active` del plazo. El helper
+corregido exige ambos estados por separado y conserva los negativos de cambios
+en autor, instrucciones, origen y precisión temporal. Se incorporó al gate
+existente de CI. No se modificó el producto para corregir ese error del helper.
+
+La demostración API compuesta completa aprobó en **493.782 s**, incluida
+compilación caliente de **0.26 s**. Dos pares R1 —calculable y bloqueado—
+conservaron instrucciones, autores, recibos, evento y origen exactos. Se
+rechazaron cambios de instrucción y accesos sin permiso; los reintentos y Replay
+conservaron las mismas raíces. Después de captura, reinicios limpios TERM/INT y
+restauración, SQL comprobó dos orígenes y una única auditoría de creación exacta
+por operación. El snapshot íntegro antes y después del respaldo fue idéntico e
+incluyó la nueva tabla de orígenes. Las sesiones previas quedaron invalidadas y
+la reconciliación exigió MFA nuevo. Los servicios desechables terminaron limpios.
+Las fuentes de la campaña permanecieron sin cambios durante la ejecución.
+
+Esta aceptación local no acredita los gates remotos, la integración en main ni
+el despliegue; tampoco completa el corpus jurídico.
+
 ## Editor conjunto de resultado y plazo en Qadra: 4 de octubre de 2026
 
 La acción de registrar resultado y plazo conserva una fuente prospectiva R1,

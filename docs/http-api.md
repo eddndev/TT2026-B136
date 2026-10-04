@@ -441,7 +441,10 @@ una instrucción explícita para revisar y crear conjuntamente un resultado R1 y
 un plazo configurado R1. Conserva el registro ordinario de resultados sin plazo,
 exige perfil y políticas seleccionados y distingue preparación prospectiva de
 recuperación del registro original. Su adaptación HTTP y composición tienen
-verificación focal; Qadra y la aceptación completa siguen pendientes.
+verificación focal. Qadra incorpora revisión conjunta y recuperación del intento
+por la misma identidad. La aceptación nativa completa de API/restauración y
+navegador aprobó; el contrato enlazado separa esa evidencia de la integración
+remota pendiente.
 
 ## Calendarios jurisdiccionales
 

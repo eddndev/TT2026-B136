@@ -44,6 +44,11 @@ permanecen fuera de él.
 
 ### Workspace de Rust
 
+El [registro conjunto de resultado de audiencia y plazo configurado](docs/hearing-derived-deadlines.md)
+incorpora revisión explícita y recuperación sin duplicar el envío. El contrato
+registra la aceptación nativa de API, restauración y navegador; la integración
+remota y las reglas jurídicas que todavía requieren calificación siguen pendientes.
+
 El prototipo se desarrolla como un workspace de Cargo con arquitectura
 hexagonal. Los crates viven bajo [`crates/`](crates/):
 

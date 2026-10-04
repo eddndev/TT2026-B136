@@ -2,17 +2,15 @@
 
 ## Status
 
-Proposed.
+Accepted.
 
-Application preparation, final capture, historical restoration, the PostgreSQL
-origin schema, atomic repository/service, HTTP adapter, shared composition and
-internal Qadra client contract have focused verification. The Qadra editor and
-same-user session draft recovery also have focused Node and controlled-HTTP
-browser evidence. Complete native HTTP, restore and consumer acceptance remain pending.
-This record establishes
-the delivery boundary; it asserts no complete acceptance, performance result or
-deployment. It remains proposed until the complete workflow and its evidence
-can be reviewed.
+Application, storage, HTTP and Qadra have focused verification. Native API
+acceptance preserves both initial records and their exact origin across restart
+and backup restoration, including authenticated replay and unique creation audit
+entries. Five real-browser scenarios cover desktop/mobile, calculable and blocked
+results, Agenda, deadline alerts and recovery of a committed response without
+another submit. See [the verification report](../verification-report.md).
+Remote closing gates, integration and deployment remain separate checks.
 
 ## Context
 
@@ -219,8 +217,9 @@ joining two successful ordinary operations is not proof of atomic creation.
 Application tests must distinguish absent persisted source from an actual source,
 preserve explicit precision and blocking, and reject changed reviewed material.
 Durability, concurrent reconciliation, rollback, restart and restore require
-separate storage evidence. HTTP and desktop/mobile acceptance remain subsequent
-work; no such result follows from an application-only draft.
+separate storage evidence. The native HTTP, restore and desktop/mobile campaigns
+provide that additional acceptance; no such result follows from an
+application-only draft.
 
 This decision does not approve a legal profile or complete automatic activation
 for notifications, resource acts or other sources. The resource-hearing family

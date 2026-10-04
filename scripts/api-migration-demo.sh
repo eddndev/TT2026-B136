@@ -19,6 +19,8 @@ source "$REPO_ROOT/scripts/api-owner-certificates-demo.sh"
 source "$REPO_ROOT/scripts/api-owner-login-demo.sh"
 # shellcheck source=scripts/api-deadline-reevaluation-demo.sh
 source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
+# shellcheck source=scripts/api-hearing-derived-deadline-demo.sh
+source "$REPO_ROOT/scripts/api-hearing-derived-deadline-demo.sh"
 
 # shellcheck source=scripts/api-identity-restore.sh
 source "$REPO_ROOT/scripts/api-identity-restore.sh"
@@ -208,7 +210,9 @@ PY
   deadline_demo
   agenda_demo
   resource_activities_demo
+  hearing_derived_deadline_demo capture "$imported_url"
   deadline_worker_demo "$runtime_url" "$legacy_dir"
+  hearing_derived_deadline_demo verify "$imported_url"
   alert_demo
   document_content_demo "$imported_url"
   member_demo
@@ -264,6 +268,7 @@ PY
   deadline_demo_restored
   agenda_demo
   resource_activities_demo_restored
+  hearing_derived_deadline_demo restore "$restored_url"
   deadline_worker_demo_python verify
   alert_demo_restored
   document_content_demo_restored
@@ -322,6 +327,7 @@ unset -f agenda_demo
 unset -f alert_demo alert_demo_restored alert_demo_python
 unset -f document_content_demo document_content_demo_restored document_content_demo_python
 unset -f deadline_worker_demo deadline_worker_demo_python deadline_worker_demo_stop
+unset -f hearing_derived_deadline_demo
 
 unset -f member_demo member_demo_restored member_demo_python identity_restore_run identity_restore_login
 unset -f dashboard_demo_capture dashboard_demo_restored dashboard_demo_python
