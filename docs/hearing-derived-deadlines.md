@@ -6,7 +6,8 @@ Contrato HTTP de la creación conjunta de un resultado ordinario de audiencia y
 un plazo configurado. El servicio de aplicación y el adaptador PostgreSQL tienen
 verificación focal, al igual que la adaptación HTTP y su composición en `serve`.
 Las 16 pruebas nuevas del contrato y una prueba de rutas de la API completa
-aprobaron en ejecuciones focales. Este documento no acredita
+aprobaron en ejecuciones focales. El cliente interno de Qadra suma 24 casos Node
+verificados entre ejecuciones focales. Este documento no acredita
 integración en main, despliegue, interfaz Qadra ni aceptación completa del flujo.
 [ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md) permanece **Proposed**.
 
@@ -263,6 +264,34 @@ El detalle ordinario del plazo conserva `operational.freshness: "not_checked"`
 hasta la comprobación operativa correspondiente. Agenda y alertas mantienen sus
 controles de permiso, aceptación y dependencias. Guardar una instrucción bloqueada
 no la convierte en un vencimiento operativo.
+
+## Cliente de Qadra: contrato interno
+
+`caseApi(...).caseHearingDerivedDeadlines(caseId, hearingId)` expone la
+preparación y confirmación compuestas al cliente. Comprueba el expediente,
+audiencia, fuente R1, instrucciones, identidad actual y ambas respuestas, sin
+consultar un resultado prospectivo que todavía no existe. Una respuesta `replay`
+requiere el origen conjunto y los componentes exactos; dos recibos ordinarios
+separados no bastan para acreditar esa creación.
+
+El cliente copia la instrucción y la aprobación antes de esperar la respuesta.
+Los cambios posteriores al formulario no alteran el intento enviado. Una sesión
+con otra identidad o un contexto cerrado no puede aceptar respuestas tardías.
+El cierre del expediente se comunica por el observador compartido, sin impedir
+por sí mismo la consulta explícita de una captura anterior autorizada.
+
+La comparación de captura conserva segundos, nanosegundos y desfase; el evento
+permanece como cadena decimal. Las comprobaciones son de contrato y coherencia:
+el navegador no recalcula el plazo ni verifica criptográficamente las huellas.
+Los asistentes históricos conservan el estado de directorio `active` o
+`archived`; no se sustituyen por las revisiones actuales. El presupuesto de
+1 MiB se aplica al JSON enviado. Una revisión con capturas de catálogos mayores
+puede confirmarse si su comando y huella caben en ese presupuesto: no se envía
+la revisión completa como cuerpo de confirmación.
+
+La interfaz de edición, el registro de borradores de sesión y la aceptación con
+navegador real de este flujo siguen pendientes. Este cliente interno no acredita
+que la acción ya esté disponible en Qadra ni desplegada.
 
 ## Errores y alcance de la verificación
 

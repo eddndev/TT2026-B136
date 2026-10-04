@@ -8073,3 +8073,45 @@ completos permanecen pendientes de esta misma entrega. No hay integración en
 main, despliegue ni nueva medición global de cobertura de este incremento.
 El manuscrito y PDF aceptados se conservan hasta el cierre funcional; el ADR
 sigue Proposed.
+
+
+## Cliente de resultado de audiencia con plazo configurado
+
+El 4 de octubre de 2026 se incorporó el cliente interno de Qadra para preparar,
+confirmar y recuperar la creación conjunta descrita en
+[el contrato compuesto](hearing-derived-deadlines.md). El acceso desde `caseApi`
+conserva el contexto de expediente y audiencia, y comparte la notificación de
+cierre del expediente. No añade todavía una acción visible ni un editor.
+
+- TDD: las pruebas iniciales de transporte, registro, composición y copia del
+  intento fallaron antes de existir el módulo o su acceso desde `caseApi`.
+  La ejecución posterior aprobó **17/17 casos en 0.926 s**, incluido Node,
+  con concurrencia uno y sin omitidos. Comprueban ámbito y fuente R1,
+  autorización actual, recuperación del autor histórico, cuerpos exactos,
+  rechazo de capturas inventadas o contradictorias, descarte de respuestas
+  tardías y copia del intento antes de esperar la red. Se conserva la precisión
+  de nanosegundos y el desfase declarado, además del evento como cadena decimal.
+- La revisión independiente detectó dos defectos del cliente nuevo: confundía
+  el estado histórico de participante `archived` con `retired`, y aplicaba el
+  presupuesto de 1 MiB a toda la revisión recibida, aunque la confirmación sólo
+  envía comando y huella. **Siete regresiones nuevas fallaron primero en
+  0.552 s**. Tras corregir ambos puntos aprobaron **7/7 en 0.670 s**, con
+  concurrencia uno. Cubren asistentes manuales y tipados en preparación,
+  recuperación y confirmación, y una revisión legítima mayor de 1 MiB formada
+  por ejemplos de perfil con calendarios válidos; el cuerpo enviado permanece
+  dentro del límite. No se aumentó el presupuesto HTTP.
+- Los **24 casos nuevos** quedan acreditados entre esas ejecuciones focales;
+  no se presenta la ejecución inicial de 17 como cobertura de las siete
+  regresiones añadidas después. No se repitieron las suites completas.
+- `npm run build` aprobó en **4.288 s** antes de las dos correcciones focales.
+  Se conserva el aviso previo de Vite por un fragmento mayor de 500 kB;
+  no produjo un fallo. Las dos correcciones posteriores están cubiertas por
+  las siete regresiones. Formato, ASCII, límite de 400 líneas y diff aprobaron.
+- Los fixtures simulan respuestas del servidor y contienen huellas sintéticas;
+  prueban el contrato y su coherencia, no criptografía ni persistencia nativa.
+  La revisión restante del contrato no encontró otro fallo accionable.
+
+El editor de Qadra, la conservación del borrador entre sesiones, la aceptación
+real con restauración y Agenda/Alertas, el manuscrito y los gates completos
+siguen pendientes de esta misma entrega. Este incremento no está integrado en
+main ni desplegado y no actualiza la cobertura global ni el PDF aceptado.
