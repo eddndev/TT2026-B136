@@ -28,6 +28,7 @@ use crate::cli::ServeArgs;
 
 mod documents;
 mod inputs;
+mod owner_certificates;
 use crate::serve_deadline_runtime::DeadlineRuntimeConfig;
 use crate::vault_cmd::load_kek;
 use inputs::required_env;
@@ -321,10 +322,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 Some(value) => (Some(value.http), Some(value.runtime)),
                 None => (None, None),
             };
+            let owner_certificates = owner_certificates::open(database, identity.clone())?;
             let router = web::api_router_with_password_reset_budget(
                 Arc::new(workflow),
                 identity,
                 web::CaseWorkflows {
+                    owner_certificates,
                     members: Arc::new(members),
                     cases: Arc::new(cases),
                     participants: Arc::new(participants),

@@ -272,7 +272,7 @@ fn retry_rejects_corrupted_post_import_history_without_recreating_markers() {
 fn startup_rejects_missing_or_corrupted_import_data_despite_a_matching_receipt() {
     for sql in [
         "DELETE FROM documents",
-        "TRUNCATE password_reset_capabilities, audit_events",
+        "DELETE FROM audit_events",
         "UPDATE audit_events SET actor='tampered' WHERE sequence=0",
         "UPDATE audit_events SET actor='tampered' WHERE action='migration.imported'",
         "ALTER TABLE documents DISABLE TRIGGER documents_preserve_evidence;          UPDATE documents SET case_id=(SELECT id FROM cases WHERE title='Other case')",
@@ -288,6 +288,13 @@ fn startup_rejects_missing_or_corrupted_import_data_despite_a_matching_receipt()
         infrastructure::legacy::require_completed_import(source.dir.path(), &runtime_url).unwrap();
         // Simulate an incomplete administrative restore, bypassing normal constraints.
         database.client.batch_execute(&format!("SET session_replication_role=replica; {sql}; SET session_replication_role=origin")).unwrap();
+
+        if sql == "DELETE FROM audit_events" {
+            let remaining: i64 = database.client.query_one(
+                "SELECT count(*) FROM audit_events", &[]
+            ).unwrap().get(0);
+            assert_eq!(remaining, 0, "restore simulation must remove the audit chain");
+        }
 
         assert!(infrastructure::legacy::require_completed_import(
             source.dir.path(), &runtime_url

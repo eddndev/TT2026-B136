@@ -2,9 +2,10 @@
 
 ## Status
 
-Accepted for structural domain values, canonical bytes and strict cryptographic
-verification and application authorization. Audited persistence still needs its
-own accepted implementation before a binding can be registered durably.
+Accepted for structural domain values, canonical bytes, strict cryptographic
+verification, application authorization, audited PostgreSQL persistence and
+authenticated HTTP composition. Integrated real-service HTTP acceptance,
+certificate login and complete restore acceptance remain separate.
 
 ## Context
 
@@ -29,7 +30,7 @@ document signing or the existing server signing credential.
 ### Scope and authority
 
 Allow only an active Owner to bind a certificate to that same Owner account.
-Future application callers must obtain these facts from the current authenticated
+Application callers obtain these facts from the current authenticated
 principal and durable account, and revalidate them when committing. A pure
 domain constructor checks the supplied facts; it does not authenticate them.
 
@@ -77,16 +78,16 @@ enters the canonical record.
 | 118 | 32 | Leaf certificate DER SHA-256 |
 
 Registration uses expected/proposed binding revisions 0/1. Its account and trust
-fields describe the intended registration capture. Future cryptographic admission
-must reconstruct these bytes from validated inputs, hash them once with SHA-256
-and verify the external signature under the registered Partner profile. An
+fields describe the intended registration capture. Cryptographic admission
+reconstructs these bytes from validated inputs, hashes them once with SHA-256
+and verifies the external signature under the registered Partner profile. An
 untrusted client cannot provide a successful verification result.
 
 Withdrawal uses expected/proposed binding revisions 1/2. It retains the original
 deployment, root, trust revision, binding UUID and leaf fingerprint; its account
 revision/generation describe the current Owner performing the withdrawal. The
 original registration bytes remain intact. Withdrawal bytes identify the
-authenticated decision for a future audit receipt; they are not a request to
+authenticated decision for its audit receipt; they are not a request to
 sign with the lost key and do not claim a fresh trust inspection.
 
 The prefix, purpose and policy form one fixed domain separator. Constructors
@@ -135,11 +136,14 @@ reconciliation compares original statement, certificate, signature and whole
 trust before returning history. A concurrent terminal withdrawal preserves the
 first withdrawal's original counters and time; it cannot replace another
 registration or produce another revision. Errors do not trigger implicit retry.
+Withdrawal reauthenticates the original full principal after an applied or
+existing commit and before returning evidence; rejection leaves the committed
+history intact and never starts a rollback or retry.
 
-These service checks and real verifier dispatch are covered locally. Repository
-methods remain ports: their database transaction, serialization, unique live
-binding and permanent fingerprint ownership require separate backend evidence.
-The service does not expose an HTTP endpoint or enable certificate login.
+The repository port is implemented by `PostgresOwnerCertificateStore`, with
+separate local evidence for transaction atomicity, concurrent receipts, unique
+live bindings and permanent fingerprint ownership. The service remains
+independent of transport and does not enable certificate login.
 
 ### Untrusted public submission
 
@@ -156,31 +160,64 @@ Principal remains stable across nested service calls and before return. A failed
 or uncertain commit is not retried. This bridge does not expose HTTP, enable
 certificate login or change document signing.
 
-### Persistence and admission obligations
+### Audited PostgreSQL boundary
 
-The domain models a supplied registration and its terminal withdrawal without
-claiming that a signature was verified, a row committed or a session issued.
-The later application/repository boundary must establish all of the following:
+The three `0029_owner_certificate_*.sql` migrations persist registrations and
+terminal withdrawals in separate append-only tables. The adapter accepts the
+application's opaque commands and begins an audited READ COMMITTED transaction.
+It obtains the shared audit transaction lock and locks the user row before
+rechecking that the actor is the same active Owner. A fresh mutation requires
+the exact prepared account counters and principal. Fresh registration also
+compares the complete currently published trust with the prepared snapshot.
 
-- A current authenticated Owner, the same account, and exact expected account
-  revision/generation are rechecked under the mutation locks.
-- A dedicated strict Partner verifier enforces certificate purpose and mandatory
-  published root/CRL trust. The declaration profile must keep its existing EKU
-  rejection. Uploaded leaf material never selects a trust anchor.
-- Cryptographic work occurs outside the audit lock; trust and the validity
-  interval are checked again using time read after waiting for that lock.
-- Only one binding is current for an account, and an exact certificate
-  fingerprint cannot move between accounts. These are global persistence
-  invariants, not promises made by a single in-memory domain value.
-- Registration, public evidence and audit commit together. The same binding UUID
-  resolves an uncertain registration by exact stored evidence; different bytes
-  conflict. Withdrawal keeps the registration history and is committed with its
-  audit event under the expected binding revision. A repeated domain transition
-  rejects; repository receipt reconciliation does not repeat the mutation.
-- Runtime cannot publish trust, change the authority or bypass existing member
-  guards. Schema validation and restoration preserve the exact records and
-  public evidence. No user counter changes are needed for the initial inert
-  binding registry.
+Mutation-time RSA verification occurs before these persistence locks. The
+adapter reads time after all authority waits and rechecks the admitted interval
+before inserting. A later registration cannot precede its account's previous
+terminal withdrawal. SQL guards repeat structural, account, trust and audit
+checks; they do not perform RSA or authenticate an MFA session.
+
+Only one unwithdrawn binding may exist per account. A leaf fingerprint cannot
+move to another account, even after withdrawal. The shared audit lock serializes
+both adapter commits and direct INSERT guards, including checks for absent
+UUIDs, fingerprints and live bindings. Immutable evidence rows need no UPDATE
+row lock or UPDATE grant; the current user row still receives its own lock.
+
+Each mutation appends its exact audit event and evidence in the same transaction.
+The two audit foreign keys are nondeferrable. Actor email, action, binding and
+Owner UUIDs, statement digest, seconds and nanoseconds must match the linked
+event. A rejected audit insertion rolls back the mutation. No user field or
+authentication generation changes when registering or withdrawing a binding.
+
+Exact UUID reconciliation requires current Owner authority, then compares the
+original public evidence before checking mutable counters, current trust or
+expiry. It returns the first receipt without writing another event or reviving
+a withdrawn binding. Different evidence conflicts. Concurrent withdrawal keeps
+the first terminal statement, counters and time; it requires neither current
+trust nor a still-valid certificate.
+
+Runtime receives SELECT and explicit INSERT column grants on these tables, with
+no UPDATE, DELETE, TRUNCATE or direct trigger-function EXECUTE. INVOKER guards
+use a fixed `pg_catalog` search path. Catalog validation checks exact columns,
+constraints, indexes, functions, triggers and audit attachments. Privilege checks
+include roles reachable through MEMBER, even with NOINHERIT, and reject authority
+to SET `session_replication_role` directly or through SET ROLE. Such authority
+could bypass ordinary guards and foreign-key triggers. Existing trust publication
+and member restrictions remain in force.
+
+Migration and runtime admission validate historical inventory. Structural checks
+reconstruct canonical bytes, digests, validity intervals, history ordering and
+exact audit links. Current account counters cannot precede any captured
+registration or withdrawal counter; a later role or activity change does not
+invalidate historical evidence. The public certificate and signature are then
+reverified using the captured trust and `checked_at`, not today's trust or clock.
+The recomputed cryptographic inspection must equal the stored inspection.
+
+This inventory establishes the new rows' exact audit associations; it does not
+replace the existing global audit-chain verifier. Backend tests separately use
+that verifier. They exercise real PostgreSQL and RSA with a controlled identity
+port, not a complete password/MFA login. Inventory rejection of inconsistent
+state is not evidence of a completed dump/restore campaign; that operational
+acceptance and broader adversarial catalog coverage remain separate.
 
 Certificate login is a later delivery. It needs a fresh single-attempt challenge,
 explicit limits, the binding's origin through MFA and session admission, and
@@ -188,10 +225,33 @@ revocation/expiry checks against current published trust. Publishing a CRL does
 not currently advance users.auth_generation. A binding registry alone must not
 enable access or be reported as completed certificate authentication.
 
+### HTTP evidence boundary
+
+The router described in `docs/http-owner-certificates.md` accepts strict bounded
+public input and delegates to the application service. It
+preserves exact historical evidence, full-width counters and timestamp
+precision, and uses neutral error groups and no-store responses. It never
+accepts private keys or a client assertion of successful verification.
+
+Full API construction supplies the required application service and merges the
+private routes into the existing runtime before one shared admission layer.
+Blocking application calls, including current Owner authentication, use the same
+work budget as other routes and externally composed consumers. A worker keeps
+its permit after HTTP cancellation until the synchronous operation finishes.
+The standalone factory creates its own runtime for independent callers; it is
+not merged into the full API.
+
+The binary opens the store inside the existing validated PostgreSQL composition
+boundary, shares its current identity instance, and injects the strict Partner
+verifier, SHA-256 and one application/store clock. It performs no DDL, trust
+publication or private-key selection. Shared-budget tests with controlled ports
+establish router admission and cancellation behavior; they do not establish a
+real HTTP/RSA/PostgreSQL workflow or an installed deployment.
+
 ## Consequences
 
 - Registration and withdrawal have deterministic, purpose-separated records
-  with bounded values and terminal local transitions before SQL or HTTP design.
+  with bounded values, immutable audited storage and terminal withdrawals.
 - Domain tests can prove exact bytes, account authority checks over supplied
   facts, counter bounds and preservation of registration on withdrawal. They do
   not prove MFA, RSA, trust publication, concurrency or persistence.

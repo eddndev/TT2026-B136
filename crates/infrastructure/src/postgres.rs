@@ -95,8 +95,14 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::password_reset_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in crate::owner_certificate_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     crate::password_reset_schema::validate_schema(&mut transaction)?;
     crate::password_reset_schema::validate_inventory(&mut transaction)?;
+    crate::owner_certificate_schema::validate_schema(&mut transaction)?;
+    crate::owner_certificate_schema::validate_inventory(&mut transaction)?;
+    crate::owner_certificate_postgres::validate_inventory(&mut transaction)?;
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -155,6 +161,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::case_report_schema::validate(client)?;
     crate::audit_query_schema::validate(client)?;
     crate::password_reset_schema::validate_schema(client)?;
+    crate::owner_certificate_schema::validate_schema(client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -184,6 +191,8 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::case_report_schema::validate_inventory(client)?;
     crate::audit_query_schema::validate_inventory(client)?;
     crate::password_reset_schema::validate_inventory(client)?;
+    crate::owner_certificate_schema::validate_inventory(client)?;
+    crate::owner_certificate_postgres::validate_inventory(client)?;
     Ok(())
 }
 
@@ -266,6 +275,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::case_report_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::audit_query_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::password_reset_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::owner_certificate_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }
@@ -293,6 +303,7 @@ fn validate_runtime_role<C: postgres::GenericClient>(
     crate::case_report_schema::validate_runtime_role(client, role)?;
     crate::audit_query_schema::validate_runtime_role(client, role)?;
     crate::password_reset_schema::validate_runtime(client, role)?;
+    crate::owner_certificate_schema::validate_runtime(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

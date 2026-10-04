@@ -36,9 +36,11 @@ mod resources;
 #[path = "../case_stage_support/mod.rs"]
 mod stages;
 mod unused;
+mod unused_owner;
 mod unused_typed;
 
 use crate::password_reset_http_support::{Ports, RequestAdmission, Requests};
+use application::identity::owner_certificates::OwnerCertificateService;
 use application::identity::password_reset::{
     PasswordResetPorts, PasswordResetService, ResetPolicy,
 };
@@ -64,7 +66,7 @@ pub struct Harness {
 
 impl Harness {
     pub fn new(max_requests: usize, legacy: bool) -> Self {
-        Self::build(max_requests, 1, legacy, None).unwrap()
+        Self::build(max_requests, 1, legacy, None, None).unwrap()
     }
 
     pub fn with_budget(
@@ -72,7 +74,22 @@ impl Harness {
         max_blocking: usize,
         budget: HttpWorkBudget,
     ) -> Result<Self, ApplicationError> {
-        Self::build(max_requests, max_blocking, false, Some(budget))
+        Self::build(max_requests, max_blocking, false, Some(budget), None)
+    }
+
+    #[allow(dead_code)]
+    pub fn with_owner_certificate(
+        max_requests: usize,
+        budget: HttpWorkBudget,
+        owner: Arc<OwnerCertificateService>,
+    ) -> Result<Self, ApplicationError> {
+        Self::build(
+            max_requests,
+            budget.capacity(),
+            false,
+            Some(budget),
+            Some(owner),
+        )
     }
 
     fn build(
@@ -80,6 +97,7 @@ impl Harness {
         max_blocking: usize,
         legacy: bool,
         budget: Option<HttpWorkBudget>,
+        owner: Option<Arc<OwnerCertificateService>>,
     ) -> Result<Self, ApplicationError> {
         let dashboard = Arc::new(Dashboard::default());
         let requests = Arc::new(Requests {
@@ -105,7 +123,7 @@ impl Harness {
         };
         let documents = Arc::new(auth::UnusedDocuments);
         let identity = Arc::new(identity::StubIdentity);
-        let workflows = workflows(dashboard.clone());
+        let workflows = workflows(dashboard.clone(), owner);
         let calendars = Arc::new(calendars::Workflow::default());
         let profiles = Arc::new(profiles::Workflow::default());
         let router = if legacy {
@@ -147,9 +165,13 @@ impl Harness {
     }
 }
 
-fn workflows(dashboard: Arc<Dashboard>) -> CaseWorkflows {
+fn workflows(
+    dashboard: Arc<Dashboard>,
+    owner: Option<Arc<OwnerCertificateService>>,
+) -> CaseWorkflows {
     let unused = Arc::new(unused::Unused);
     CaseWorkflows {
+        owner_certificates: owner.unwrap_or_else(unused_owner::service),
         members: members::Workflow::new(),
         cases: Arc::new(cases::Workflow::default()),
         participants: Arc::new(participants::Workflow::default()),
@@ -190,7 +212,7 @@ pub fn router_with_identity_reset(
     api_router_with_password_reset_budget(
         Arc::new(auth::UnusedDocuments),
         identity,
-        workflows(Arc::new(Dashboard::default())),
+        workflows(Arc::new(Dashboard::default()), None),
         Arc::new(calendars::Workflow::default()),
         Arc::new(profiles::Workflow::default()),
         limits,

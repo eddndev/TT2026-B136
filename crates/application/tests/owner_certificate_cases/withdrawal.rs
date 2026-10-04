@@ -40,7 +40,8 @@ fn withdrawal_preserves_original_evidence_after_expiry_without_crypto_or_current
             "authenticate",
             "load_withdrawal",
             "authenticate",
-            "commit_withdrawal"
+            "commit_withdrawal",
+            "authenticate"
         ]
     );
 }

@@ -1,5 +1,138 @@
 # Informe de verificación local
 
+## Simulación de auditoría ausente con referencias nuevas: 3 de octubre de 2026
+
+La regresión de arranque tras importación histórica falló en la preparación de
+un daño administrativo: `TRUNCATE` no permitía vaciar `audit_events` con la nueva
+clave foránea desde `owner_certificate_registrations`, incluso con la sesión en
+modo réplica. El test usa ahora `DELETE FROM audit_events` dentro del mismo bloque
+administrativo y comprueba que quedan cero eventos antes de exigir el rechazo
+del arranque. Conserva los cinco escenarios y sus comprobaciones de integridad;
+no modifica permisos, restricciones ni comportamiento del producto.
+
+El caso exacto aprobó **1/1 en 11.41 s** en PostgreSQL 16.15 aislado, con una sola
+suite y compilador. Su clúster temporal fue retirado. Un primer intento del
+auxiliar local configuró la variable de otra familia de pruebas: el retorno
+inmediato de 0.00 s no acredita adaptadores y se descarta. La ejecución válida
+utilizó `CASE_TEST_DATABASE_URL`. La revisión focal quedó limpia; Clippy del target con `-D warnings`
+aprobó en **11.06 s**, así como formato y ASCII. La campaña
+remota cancelada no acredita inventario completo ni cobertura; su regresión
+completa sigue pendiente de una nueva ejecución.
+
+## Autoridad al devolver un retiro Owner: 3 de octubre de 2026
+
+Una regresión reprodujo cuatro variantes de autoridad perdida después de
+`commit_withdrawal`: escritura nueva o recibo concurrente, con sesión revocada
+o correo de Principal cambiado. Todas devolvían evidencia antes de la corrección.
+La barrera final ahora reautentica el Principal completo antes de responder;
+conserva la escritura ya confirmada y no la repite ni revierte.
+
+El target de aplicación aprobó 23/23 en 0.01 s y HTTP 12/12 en 0.03 s, con
+9.37 s de compilación. Clippy focal aprobó en 3.33 s. Cada variante comprueba
+un único commit, una carga y evidencia terminal retenida por el doble. Esta
+aceptación usa puertos controlados, no simula una reversión de PostgreSQL.
+
+## Composición HTTP del vínculo Owner: 3 de octubre de 2026
+
+El ensayo inicial reprodujo `E0560` por ausencia del servicio Owner en la
+colección de workflows. Tras componer el servicio, aprobaron **20/20** casos en una campaña
+con **22.78 s** de compilación: los tres nuevos de `owner_certificate_composition`
+en **0.33 s**, los doce de `owner_certificate_http` en **0.03 s** y los cinco
+existentes de `password_reset_composition` en **0.34 s**.
+
+Los nuevos casos comprueban que las rutas Owner usan el presupuesto externo
+compartido, que una operación conserva su permiso al cancelar HTTP y que una
+ruta anterior y la nueva se bloquean mutuamente mientras ese trabajo continúa.
+La admisión HTTP común rechaza un cuerpo aún no leído con `server_busy`; las
+respuestas conservan `no-store`. La identidad ausente y el rol no autorizado
+se consultan dentro del mismo presupuesto, sin acceder al repositorio.
+
+El binario aprobó **10/10** pruebas de opciones: seis de recuperación de
+contraseña en **0.17 s** y cuatro de sesión en **0.00 s**, tras **68 s** de
+compilación. Clippy de composición y binario aprobó en **26.34 s** con
+advertencias como errores. Permanece el aviso conocido de compatibilidad
+futura de `redis 0.25.4`. Las pruebas de opciones no inician `serve`.
+
+Se usa el servicio real de aplicación con puertos controlados y solicitudes al
+router en proceso. La composición de `serve` inyecta los adaptadores aceptados,
+pero esta campaña no arranca el servidor ni ejecuta un ingreso MFA, RSA o
+PostgreSQL reales. Los doce casos previos del backend mantienen su evidencia
+separada. No se declara una aceptación integrada HTTP/Partner, despliegue,
+autenticación por certificado ni firma documental individual.
+
+El manuscrito de esta composición compiló con 370 páginas y 5,919,474 bytes; SHA-256
+`e36b2306ac1783c5e4966f4839ede3e4f24efc84ca89e0ccff8f47e94e0103f2`. Se inspeccionaron las páginas PDF 168 y 264,
+sin cambios en los capítulos protegidos.
+
+## HTTP independiente del vínculo Owner: 3 de octubre de 2026
+
+Doce pruebas reprodujeron primero la ausencia del router. Tras implementarlo,
+el target `owner_certificate_http` aprobó **12/12 en 0.03 s**, con **28.12 s**
+de compilación. Clippy focal aprobó en **14.72 s** con advertencias como errores.
+Comprueban cuatro rutas, entrada JSON estricta y acotada, Base64 canónico,
+identidad actual, recibos históricos, precisión de contadores y fechas,
+respuestas neutrales y `no-store`.
+
+Se usa el servicio real de aplicación con puertos controlados. Esta aceptación
+no ejecuta RSA ni PostgreSQL reales, no prueba la composición completa del
+servidor y no habilita acceso por certificado. No se repitió el workspace ni
+se modificaron fuentes académicas en este corte. Los resultados SQL previos
+permanecen como evidencia separada.
+
+## Persistencia del vínculo Owner: verificación local del 3 de octubre de 2026
+
+El target `owner_certificate_backend` aprobó **12/12** en **47.39 s**, tras
+**3.68 s** de compilación, con PostgreSQL **16.15** real en un clúster privado,
+autenticación SCRAM y rol de ejecución restringido. La preparación y limpieza
+elevaron el tiempo total a 52.73 s; el clúster propio se retiró. La identidad es
+un doble explícito (`FixedIdentity`) y el reloj es controlado; la publicación de confianza, las
+transacciones y el verificador RSA usan implementaciones reales. Esta campaña
+no prueba ingreso MFA, sesiones Redis ni transporte HTTP.
+
+Los ocho casos iniciales aprobaron en 30.39 s, tras 18.23 s de compilación.
+Cubren alta, retiro y renovación con evidencia pública exacta; recibos históricos
+después de cambios de cuenta o confianza; huellas que no se transfieren a otra
+cuenta; carreras de UUID, vínculo vigente y retiro terminal; rollback ante fallo
+de auditoría; y relectura de autoridad, confianza y tiempo después de esperar
+bloqueos reales. Comprueban que los campos de usuario permanecen intactos y
+verifican los eventos con el comprobador existente de la cadena global.
+
+Cuatro casos adicionales delimitaron la admisión de inventario y permisos:
+
+- El ensayo de contadores reprodujo un fallo y una regresión aprobada en
+  14.64 s. Tras la corrección, el arranque rechaza contadores actuales inferiores
+  a las capturas de alta o retiro, sin alterar evidencia. Cambiar posteriormente
+  el rol o la actividad conserva un historial válido y exige autoridad actual
+  para consultarlo. La fixture modela una fila de usuario incoherente mediante
+  una modificación administrativa; no ejecuta una restauración completa.
+- Dos ensayos de privilegios fallaron en 5.20 s antes de la corrección. El
+  arranque ahora rechaza el permiso para establecer `session_replication_role`,
+  tanto directo como alcanzable mediante `SET ROLE` con `NOINHERIT`. Los casos
+  comprueban el permiso efectivo, sin cambiar el modo de replicación ni escribir
+  evidencia omitiendo disparadores. Ambos aprobaron en la corrida final.
+
+La admisión revalida RSA con la confianza y el instante históricos, compara toda
+la inspección criptográfica y comprueba los enlaces exactos de cada fila con su
+evento auditado. Ese inventario no sustituye la verificación de la cadena global.
+Los bloqueos compartidos de auditoría serializan las inserciones; el rol de
+ejecución recibe SELECT e INSERT por columnas sobre las tablas de evidencia,
+sin permiso UPDATE.
+Clippy focal del backend aprobó en **6.751 s** con advertencias como errores;
+permanece el aviso conocido de compatibilidad futura de `redis 0.25.4`.
+
+No se repitió una regresión completa del workspace ni una campaña de volcado y
+restauración poblada. La evidencia no habilita enrolamiento, acceso por
+certificado, rutas HTTP ni firma documental individual. No se reciben claves
+privadas por esta frontera. Los cortes anteriores conservan sus resultados y
+límites propios.
+
+
+El manuscrito compiló con 369 páginas y 5,916,115 bytes; SHA-256
+`d91a9c7dac3fac6bbcf61db16b9081e5e867bb28fc4a347f8411dcbfa9688295`.
+Se inspeccionaron las páginas PDF 167, 168 y 264; las fuentes académicas
+protegidas conservaron sus huellas. Se corrigió antes de entregar una confusión
+de redacción entre los 30.39 s de ejecución inicial y sus 18.23 s de compilación.
+
 
 ## Envío público del vínculo Owner: verificación local del 3 de octubre de 2026
 

@@ -1,6 +1,6 @@
 \subsection{Vínculo explícito de certificado del Owner}
 
-El vínculo propuesto relaciona una cuenta Owner consigo misma, un despliegue,
+El vínculo relaciona una cuenta Owner consigo misma, un despliegue,
 una raíz, una revisión de confianza y un certificado público. El dominio define
 un registro canónico de 150 bytes con propósito separado de alta y retiro,
 revisión de cuenta y generación de autenticación. La transición de retiro es
@@ -16,19 +16,62 @@ La declaración personal mantiene un perfil distinto que rechaza usos extendidos
 El adaptador recibe sólo evidencia pública, nunca la clave privada del titular.
 
 Una verificación satisfactoria establece consistencia criptográfica con la
-confianza aportada, no su publicación o vigencia futura. La aplicación obtiene una captura mediante el puerto de repositorio, vuelve a
-autenticar el principal completo y entrega un comando opaco verificado. El
-adaptador durable deberá comprobarla nuevamente después de esperar los bloqueos
-de escritura. La asociación auditada, su unicidad y la protección
-contra reutilización siguen pendientes de persistencia. Tampoco se habilita
-acceso por certificado, se sustituye MFA ni se atribuye una firma documental
-individual. La política y sus límites están en
-\rutarepo{docs/adr/0067-owner-certificate-bindings.md}.
+confianza aportada, no su publicación o vigencia futura. La aplicación obtiene
+una captura mediante el puerto de repositorio, vuelve a autenticar el principal
+completo y entrega un comando opaco verificado. El adaptador PostgreSQL obtiene
+el bloqueo transaccional compartido de auditoría y el bloqueo de la cuenta antes
+de releer el Owner activo, sus contadores y la confianza publicada. Para una
+alta nueva, lee el reloj después de las esperas y comprueba nuevamente la
+vigencia; la verificación RSA de la mutación ocurre antes de estos bloqueos.
+
+El alta y el retiro se almacenan en tablas separadas que sólo admiten nuevas
+filas, junto con sus eventos auditados en la misma transacción. El bloqueo
+compartido serializa también las inserciones directas y las comprobaciones de
+ausencia: sólo puede existir un vínculo sin retirar por cuenta y una huella no
+puede transferirse a otro Owner. Las tablas de evidencia no requieren permiso
+UPDATE. Los disparadores y la validación del catálogo exigen estructura,
+privilegios y enlaces auditados exactos; no realizan RSA ni autentican una sesión.
 
 El servicio separa preparación, registro, consulta y retiro. Un recibo debe
 corresponder al UUID exacto y a la cuenta actual; el retiro histórico conserva
 los contadores y tiempo de su primera confirmación incluso ante concurrencia.
 El token de sesión no se retiene en los comandos y no hay reintentos implícitos.
 La expiración del certificado no impide retirar el vínculo mediante la sesión
-MFA existente. Esta capa todavía no expone rutas HTTP ni reemplaza la obligación
-transaccional del repositorio.
+MFA existente. La reconciliación exacta conserva el primer recibo sin otra
+escritura, aunque hayan cambiado los contadores o la confianza, y no reactiva
+un vínculo retirado. Estas operaciones no modifican los campos de usuario.
+
+La admisión de inventario reconstruye registros y enlaces auditados, rechaza
+contadores de cuenta anteriores a las capturas y vuelve a verificar la evidencia
+pública con su confianza e instante históricos. Un cambio posterior de rol o
+actividad no invalida esa historia. La admisión rechaza un rol de ejecución que
+disponga, directamente o mediante otro rol alcanzable, del permiso para omitir
+disparadores con \texttt{session\_replication\_role}. Esta admisión no sustituye
+el verificador global de la cadena de auditoría ni acredita una restauración
+completa.
+
+El adaptador HTTP expone preparación, registro, consulta exacta y retiro propio
+bajo la sesión MFA vigente. Recibe objetos JSON estrictos y acotados a 32~KiB,
+con Base64 canónico para los 150 bytes del registro, el certificado público y
+la firma separada. No deserializa un comando verificado ni acepta una clave
+privada. La preparación devuelve los bytes exactos por firmar; la respuesta no
+incorpora un digest como expectativa alternativa. Los recibos conservan el
+digest comprobado, la evidencia histórica, los contadores completos y la
+precisión temporal original. Un resultado incierto se reconcilia por UUID y
+bytes exactos, sin reintento automático.
+
+Las rutas se incorporan al mismo límite de admisión y presupuesto de trabajo
+del resto de la API. La autenticación del Owner dentro del servicio espera un
+permiso de trabajo, y la operación síncrona lo conserva hasta terminar aunque
+se cancele la solicitud HTTP. El agotamiento de admisión rechaza la solicitud
+antes de leer su cuerpo. Las respuestas usan \texttt{no-store}; el límite de
+cuerpo de este grupo no modifica el de las demás rutas.
+
+El binario compone el servicio con la identidad existente, el repositorio
+PostgreSQL abierto tras validar el esquema, el verificador Partner y SHA-256.
+La aplicación y el repositorio comparten la instancia de reloj. Esta composición
+no ejecuta migraciones ni publica confianza; el alta requiere la publicación
+vigente y el retiro conserva su independencia de la validez actual del
+certificado. No se habilita enrolamiento, acceso por certificado ni firma
+documental individual. La política y sus límites están en
+\rutarepo{docs/adr/0067-owner-certificate-bindings.md}.

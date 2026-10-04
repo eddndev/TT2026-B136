@@ -82,24 +82,5 @@ fn foreign_key<C: GenericClient>(
 pub(crate) fn validate_audit_triggers<C: GenericClient>(
     client: &mut C,
 ) -> Result<(), ApplicationError> {
-    let valid: bool = client.query_one(
-        "SELECT (SELECT count(*) FROM pg_trigger WHERE tgrelid='audit_events'::regclass)=2
-        AND NOT EXISTS(SELECT 1 FROM pg_trigger g LEFT JOIN pg_constraint c ON c.oid=g.tgconstraint
-        WHERE g.tgrelid='audit_events'::regclass AND NOT COALESCE(
-            g.tgisinternal AND g.tgenabled IN ('O','A') AND g.tgdeferrable AND g.tginitdeferred
-            AND c.conrelid=to_regclass('password_reset_capabilities')
-            AND c.conname='password_reset_capabilities_audit_sequence_fkey' AND c.contype='f'
-            AND c.confrelid=g.tgrelid AND c.convalidated AND c.condeferrable AND c.condeferred
-            AND c.confupdtype='a' AND c.confdeltype='a' AND c.confmatchtype='s'
-            AND g.tgconstrrelid=c.conrelid AND g.tgconstrindid=c.conindid
-            AND g.tgqual IS NULL AND g.tgnargs=0 AND octet_length(g.tgargs)=0
-            AND g.tgattr=''::int2vector AND g.tgoldtable IS NULL AND g.tgnewtable IS NULL
-            AND ((g.tgtype=9 AND g.tgfoid='pg_catalog.\"RI_FKey_noaction_del\"()'::regprocedure)
-                OR (g.tgtype=17 AND g.tgfoid='pg_catalog.\"RI_FKey_noaction_upd\"()'::regprocedure)),false))",
-        &[],
-    ).map_err(port)?.get(0);
-    if !valid {
-        return Err(incomplete());
-    }
-    Ok(())
+    crate::audit_query_schema::validate_reference_triggers(client)
 }

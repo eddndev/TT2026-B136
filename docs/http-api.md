@@ -1,5 +1,11 @@
 # API HTTP local autenticada
 
+El contrato de [vínculos del Owner](http-owner-certificates.md) describe
+preparación, registro, consulta y retiro de evidencia propia. El servidor compone
+estas rutas con el servicio real y comparte los límites HTTP y de trabajo de
+la API. La aceptación del router usa puertos controlados; no acredita todavía
+un recorrido integrado con HTTP, PostgreSQL y RSA reales ni acceso por certificado.
+
 El [tablero operativo](dashboard-api.md) agrega indicadores mediante
 `GET /api/v1/dashboard`: despacho completo para Owner y expedientes asignados
 para Litigante, con una instantánea auditada y sin caché. Paralegal y Cliente

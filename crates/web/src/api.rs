@@ -8,7 +8,7 @@ use axum::{routing::get, Router};
 use crate::{
     agenda, alerts, audit_events, case_administration, case_reports, case_stages, cases, dashboard,
     deadline_profiles, deadlines, document_content, document_integrity, health, hearing_results,
-    hearings, judicial_calendars, members, participants,
+    hearings, judicial_calendars, members, owner_certificates, participants,
     password_reset::{self, PasswordResetHttp},
     procedural_facts, procedural_resources, resource_activities, resource_deadlines, routes,
     runtime::{protect, HttpRuntime},
@@ -72,6 +72,10 @@ pub fn api_router_with_password_reset_budget(
 ) -> Result<Router, ApplicationError> {
     let runtime = HttpRuntime::with_budget(limits, budget)?;
     let routes = routes::router(documents, identity, runtime.clone())
+        .merge(owner_certificates::router(
+            workflows.owner_certificates,
+            runtime.clone(),
+        ))
         .merge(members::router(workflows.members, runtime.clone()))
         .merge(cases::router(workflows.cases.clone(), runtime.clone()))
         .merge(case_administration::router(
