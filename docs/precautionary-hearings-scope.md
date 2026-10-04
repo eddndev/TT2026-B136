@@ -4,7 +4,7 @@ Estado: **propuesto**. Este contrato fija el alcance funcional; no acredita su
 implementación completa ni aceptación. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
-## Frontera del primer checkpoint de dominio
+## Frontera de los valores de dominio
 
 El primer checkpoint implementa localmente valores de convocatoria: identidad propia,
 operación, revisión positiva, propósito `imposition` o `review`, hora exacta,
@@ -16,7 +16,12 @@ revisión. `PHEAR1` debe comprometer todos esos valores sin cambiar `HEAR1` ni
 `RHEAR1`. La verificación focal de dominio está aprobada; las comprobaciones
 remotas y la integración siguen pendientes.
 
-Ese checkpoint no incluye contexto, recibos, decisiones, historia de medidas,
+La ampliación local de valores comprende `MeasureKind`, `MeasureTime` y
+`MeasureValidity`, con el compromiso `MVAL1`. Diez pruebas focales y Clippy
+aprobaron tras el fallo inicial de las pruebas. Esta evidencia es independiente
+de las once pruebas anteriores de convocatoria; la integración sigue pendiente.
+
+Estos valores no incluyen contexto, recibos, decisiones, historia de medidas,
 aplicación, persistencia, HTTP, Agenda, alertas o interfaz. Estas capacidades y
 la restauración de la familia cautelar siguen pendientes. Un catálogo o sus
 pruebas unitarias no cumplen por sí solos el flujo completo. Los resultados
@@ -120,11 +125,26 @@ en el directorio no prueba nombramiento oficial.
 
 Separar fecha declarada de decisión, inicio declarado, fin declarado y captura
 real del servidor. Una fecha civil y un instante con desfase no son
-intercambiables. Desconocido requiere una razón; no equivale a medianoche, UTC o
-la hora de captura. Rechazar límites contradictorios de precisión comparable.
+intercambiables. `MeasureTime` conserva precisión, componentes y desfase opcional.
+`Unknown` exige motivo; `Date`, `Minute` y `Second` prohíben el motivo de valor
+desconocido. No inventar medianoche, UTC, duración o la hora de captura.
 
-La vigencia conserva texto expreso y, solo cuando consta, un término con su
-precisión propia. Ausencia de término no significa perpetuidad ni conclusión.
+`MeasureValidity` compara inicio y término solo con estas reglas:
+
+| Precisiones declaradas | Comparación permitida |
+| --- | --- |
+| `Date` / `Date` | Orden civil cuando los desfases opcionales son iguales, incluidos ambos ausentes; sin convertir la fecha en un instante. |
+| `Minute` / `Minute` o `Second` / `Second` | Orden en UTC únicamente con ambos desfases explícitos; conserva componentes y desfases originales. |
+| Precisión mezclada, hora sin desfase, fechas civiles con desfases opcionales distintos o un valor desconocido | Conserva las declaraciones y deja el orden sin resolver. |
+
+Rechazar un término anterior al inicio si la pareja es comparable. Conservar una
+pareja no comparable no acredita que su orden cronológico sea correcto.
+
+La vigencia conserva texto expreso. El término ausente difiere de un término
+declarado `Unknown` con motivo; ninguno significa perpetuidad ni conclusión.
+`MVAL1` vincula precisión, componentes, desfase opcional y motivo del inicio,
+la declaración de vigencia y la presencia y valor completo del término opcional.
+Es un compromiso de valores, sin recibo, decisión o medida persistida.
 La interfaz debe decir **última declaración registrada**; el reloj, cierre del
 expediente y cambio de etapa no modifican el estado jurídico. Obligaciones
 periódicas y términos requieren un contrato expreso adicional; no se extraen

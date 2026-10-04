@@ -8,6 +8,9 @@ Appointment values and their own canonical representation are implemented
 locally with focused domain verification. This first checkpoint does not
 establish the complete workflow or its acceptance; remote gates and integration
 remain pending.
+The local value extension comprises `MeasureKind`, `MeasureTime` and
+`MeasureValidity` with `MVAL1`; ten focused tests and target Clippy pass after
+the initial failing tests. Full workflow verification and integration remain pending.
 Precautionary application services, persistence, receipts, HTTP, Agenda, alerts,
 Qadra and restoration remain pending. The bounded contract and source catalog
 are in [the scope document](../precautionary-hearings-scope.md). Executed evidence
@@ -83,9 +86,27 @@ authenticate judicial authority or certify supervision. Unclassified or unknown
 material remains a document or draft, without an invented `other` measure.
 
 Keep declared decision time, declared measure start/end and actual server capture
-time separate. Retain civil-date and instant precision, explicit offsets and
-reasons for unknown values. Reject contradictory comparable bounds; do not
-invent midnight, a duration, time zone or termination. Display the latest
+time separate. `MeasureTime` preserves the supplied precision, components and
+optional offset. `Unknown` requires a reason; `Date`, `Minute` and `Second`
+prohibit an unknown-value reason. Never substitute midnight, the capture clock,
+a time zone or a duration for missing evidence.
+
+`MeasureValidity` compares a declared start and end only under these rules:
+
+- `Date` with `Date`: compare civil dates only when their optional offsets are
+  equal, including two absent offsets. Do not convert a civil date to an instant.
+- `Minute` with `Minute`, or `Second` with `Second`: compare in UTC only when
+  both offsets are explicit, while preserving the original values and offsets.
+- Mixed precision, a clock value without an offset, unequal optional offsets
+  for civil dates, or an unknown value leave ordering unresolved. Preserve the
+  declarations without filling gaps or reporting them as chronologically valid.
+
+Reject an end before the start when the pair is comparable. An absent end is
+distinct from an explicitly `Unknown` end with its reason; neither establishes
+indefinite validity or termination. `MVAL1` binds the declared start and its
+precision, components, optional offset and reason, the validity statement, and
+both presence and complete value of the optional end. This value commitment
+does not create a decision, receipt or persisted measure. Display the latest
 recorded declaration rather than a finding of present legal force or compliance.
 
 `measure_changes` requires at least one change. `no_measure_change` requires no

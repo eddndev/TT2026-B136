@@ -92,6 +92,10 @@ name = "precautionary_hearings"
 path = "tests/precautionary_hearings.rs"
 
 [[test]]
+name = "precautionary_measure_values"
+path = "tests/precautionary_measure_values.rs"
+
+[[test]]
 name = "procedural_suite_1"
 path = "tests/suites/procedural_suite_1.rs"
 

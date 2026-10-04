@@ -1,5 +1,31 @@
 # Informe de verificación local
 
+## Clasificación y vigencia declarada de medidas: 4 de octubre de 2026
+
+El segundo bloque local de la [familia cautelar](precautionary-hearings-scope.md)
+conserva las catorce clases declaradas y los componentes originales de inicio y
+fin. Un valor desconocido exige motivo; uno conocido no lo acepta. Un término
+ausente permanece distinto de un término desconocido. El orden se comprueba
+solo entre fechas civiles con el mismo desfase opcional, o entre minutos o
+segundos de igual precisión con ambos desfases explícitos. No se infiere zona,
+precisión faltante ni vigencia jurídica a partir del reloj.
+
+TDD focal: las pruebas fallaron primero por ausencia del módulo. Tras implementar
+los valores aprobaron **10/10**, con compilación de **2.31 s**, ejecución inferior
+a la resolución de **0.01 s** del resumen de Cargo y **2.340 s** de comando total.
+Incluyen tres vectores fijos `MVAL1`, mutaciones de sus campos, precisiones,
+desfases, motivos, catálogo y extremos comparables. Clippy del mismo target
+aprobó con `-D warnings`: **1.58 s** de compilación y **1.625 s** de comando total.
+Revisión independiente, formato, ASCII, tamaño de módulos y espacios aprobaron.
+Se utilizó un compilador,
+un worker y temporales en disco; no se levantaron servicios.
+
+Las once pruebas del bloque de convocatoria son evidencia anterior y no se
+repitieron. Tampoco se ejecutó una campaña completa, nueva cobertura o
+compilación del manuscrito. Estos valores aún no crean medidas, decisiones,
+recibos ni registros persistidos, y no acreditan aplicación, HTTP, Agenda,
+interfaz, restauración o integración de la familia cautelar.
+
 ## Valores de convocatoria cautelar: 4 de octubre de 2026
 
 El primer bloque de dominio de la [familia cautelar](precautionary-hearings-scope.md)
