@@ -68,3 +68,15 @@ pub use read_port::*;
 pub use reads::PrecautionaryHearingReadService;
 
 mod read_inventory;
+mod record_evidence;
+mod record_history;
+pub use record_evidence::{
+    prepare_precautionary_hearing_with_record_history,
+    PrecautionaryHearingRecordPreparationMaterial,
+};
+pub use record_history::{
+    precautionary_hearing_history_with_record_history_matches,
+    precautionary_hearing_origin_with_record_history,
+    precautionary_hearing_receipt_with_record_history_matches,
+    precautionary_hearing_transition_with_record_history_matches,
+};

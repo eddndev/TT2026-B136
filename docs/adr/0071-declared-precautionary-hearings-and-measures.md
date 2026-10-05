@@ -23,8 +23,10 @@ group ancestry, retaining the last actual judicial declaration and support.
 The mixed record resolver also validates repeated corrections with complete
 judicial and administrative owners. A pure mark-only operation appends an
 entered-in-error capture while retaining the recorded terms and judicial evidence.
-Judicial decisions and fresh Review appointments do not yet consume administrative
-records. Optional administrative replacement, current mutation eligibility,
+Pure Review preparation and historical proof now resolve exact Valid
+administrative records with their effective context and time. Judicial decisions
+do not yet consume administrative predecessors. Optional administrative replacement,
+current mutation eligibility,
 authorized correction services, durable storage, HTTP, Agenda, alerts, Qadra and
 restoration remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
@@ -342,9 +344,9 @@ the same reconstruction and provenance checks.
 
 The judicial-only entry points remain wrappers over borrowed history; existing
 `MATXN1`, `MAPR1`, `MARCR1`, `MAGR1` and judicial bytes are unchanged. Current
-heads and absence of dependants still require an authorized store. This resolver
-does not yet extend judicial G predecessors or fresh Review consumption to
-administrative records, implement joint replacement, or establish persistence.
+heads and absence of dependants still require an authorized store. The Review
+proof extension below uses this resolver. Judicial G predecessors, joint
+replacement and persistence remain separate work.
 
 ### Entered-in-error capture validity
 
@@ -374,10 +376,48 @@ Its existence does not rewrite older Valid captures or their exact references.
 The supplied closure proves neither a current head nor absence of later
 dependants. Storage admission must establish both under the mutation lock, with
 current authorization and atomic audit. Those checks and SQL remain pending.
-Fresh Review and judicial consumers of administrative records, and the optional
-atomic replacement with a fresh identity and explicit administrative link, remain
-pending. Their future admission must distinguish capture validity from retained
-judicial status without invalidating earlier historical receipts.
+Judicial consumers of administrative records and the optional atomic replacement
+with a fresh identity and explicit administrative link remain pending. Their
+future admission must distinguish capture validity from retained judicial status
+without invalidating earlier historical receipts.
+
+### Review appointments over mixed records
+
+`prepare_precautionary_hearing_with_record_history` accepts a
+`PrecautionaryHearingRecordPreparationMaterial` containing the observed context,
+exact hearing sources, optional hearing predecessor and complete mixed record
+history. The receipt, transition, origin and hearing-history validators have
+matching `_with_record_history` entry points. They retain the existing checked
+review and capture shapes; PHEAR1/PHTXN1/PHPR1/PHCR1 bytes do not change.
+
+Every exact selected target must have capture validity Valid, including targets
+retained by cancellation or reconstructed by historical proof. A hearing that
+selects an already EnteredInError record is inconsistent even if its hashes are
+recomputed. An older hearing selecting an older Valid M or C remains valid and
+cancellable after a later mark when supplied with its original exact closure.
+These checks do not consult current heads or substitute the marked revision.
+Terminal judicial actions remain selectable: capture validity and the retained
+judicial action are separate facts.
+
+Preparation advances context from the effective selected C/M and the capture
+clock cannot precede that exact record. The older actual last M is retained as
+judicial evidence; its context or time cannot replace those of a selected C.
+Replacement, transition and hearing-history checks validate the union of all
+exact target references, including different revisions of one identity. Each
+hearing keeps its own 32-target limit. Full G/A owners, hearing captures and
+their copied contexts, participants, subjects and supports share one immutable
+source inventory.
+
+The new mixed-record proof calls accept at most 256 supplied hearing captures
+and an exact target union of at most 8192 references. These bounds are independent
+of the existing 256 G/A-owner and 8192 measure-row limits. Each hearing's source
+participants and derived projections remain bounded at 32. Oversized nested
+material rejects before hashing or cloning. This extension does not change the
+older public hearing-history entry points' bounds or behavior.
+
+This is a pure proof and capture API. The authorized hearing services and ports
+have not yet been extended to mixed records. Judicial decisions after correction,
+current-head/dependant admission, SQL and HTTP integration remain pending.
 
 ### Decision anchors and shared dependency evidence
 

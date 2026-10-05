@@ -21,4 +21,7 @@ pub use capture::{
 pub use preparation::prepare_measure_administrative_record_with_history;
 pub use preparation::prepare_measure_record_correction_with_history;
 pub use record_history::resolve_measure_records;
+pub(crate) use record_history::{
+    checked_record_closure, record_history_bounds, CheckedRecordClosure,
+};
 pub use record_model::*;

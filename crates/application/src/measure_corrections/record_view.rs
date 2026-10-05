@@ -10,10 +10,10 @@ use domain::{
 
 /// Borrowed material is exposed internally only after parent-first reconstruction.
 #[derive(Clone, Copy)]
-pub(super) struct RecordView<'a> {
-    pub group: &'a MeasureDecisionGroupCapture,
-    pub member: usize,
-    pub administrative: Option<&'a MeasureAdministrativeCapture>,
+pub(crate) struct RecordView<'a> {
+    pub(super) group: &'a MeasureDecisionGroupCapture,
+    pub(super) member: usize,
+    pub(super) administrative: Option<&'a MeasureAdministrativeCapture>,
 }
 impl<'a> RecordView<'a> {
     pub fn judicial(&self) -> &'a MeasureCapture {

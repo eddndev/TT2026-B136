@@ -13,6 +13,39 @@ use domain::{
 };
 use std::collections::BTreeSet;
 
+pub(crate) struct CheckedRecordClosure<'a> {
+    index: RecordIndex<'a>,
+}
+impl<'a> CheckedRecordClosure<'a> {
+    pub(crate) fn member(
+        &self,
+        reference: PrecautionaryMeasureRef,
+    ) -> Result<super::record_view::RecordView<'a>, ApplicationError> {
+        self.index.view(self.index.selected(reference)?)
+    }
+}
+
+pub(crate) fn record_history_bounds(
+    evidence: &MeasureRecordHistoryEvidence,
+) -> Result<(), ApplicationError> {
+    super::record_index::bounds(evidence.into(), 0)
+}
+
+pub(crate) fn checked_record_closure<'a>(
+    hasher: &dyn DocumentHasher,
+    case_id: CaseId,
+    selections: &[PrecautionaryMeasureRef],
+    evidence: &'a MeasureRecordHistoryEvidence,
+    inventory: &mut SourceInventory<'a>,
+) -> Result<CheckedRecordClosure<'a>, ApplicationError> {
+    if selections.len() > 8192 {
+        return Err(invalid("record target union budget exceeded"));
+    }
+    Ok(CheckedRecordClosure {
+        index: validate(hasher, case_id, selections, evidence.into(), 0, inventory)?,
+    })
+}
+
 pub fn resolve_measure_records(
     hasher: &dyn DocumentHasher,
     case_id: CaseId,

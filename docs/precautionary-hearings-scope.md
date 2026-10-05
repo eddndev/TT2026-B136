@@ -167,10 +167,39 @@ los bytes anteriores de Correct. El resolvedor mixto, los recibos y los orígene
 reconstruyen una marca válida como evidencia histórica aunque su registro esté
 declarado EnteredInError; no alteran capturas anteriores ni sus referencias.
 
+La preparación pura de convocatorias Review admite ahora registros judiciales
+y administrativos exactos mediante
+`prepare_precautionary_hearing_with_record_history`. Sus verificadores de recibo,
+transición, origen e historial tienen entradas `_with_record_history`; conservan
+los valores, estructuras y bytes anteriores de la convocatoria.
+
+Todo objetivo exacto debe tener validez de captura Valid, incluso en prueba
+histórica o cancelación. Se rechaza una convocatoria que seleccione una revisión
+ya declarada EnteredInError aunque se recalculen sus hashes. Una convocatoria
+anterior que seleccionó una revisión Valid sigue siendo válida y cancelable tras
+una marca posterior, con su cierre exacto original y sin consultar la cabeza
+vigente. Las acciones judiciales terminales siguen siendo seleccionables; no se
+confunden con la validez de captura.
+
+El contexto y tiempo efectivos de una corrección seleccionada rigen las
+comprobaciones de avance y procedencia de la convocatoria. No se sustituyen por
+los de la última medida judicial retenida. Reemplazos e historiales validan la
+unión de referencias exactas anteriores y nuevas, incluidas distintas revisiones
+de una misma identidad, y comparan todas las fuentes compartidas de G, registros
+administrativos y convocatorias. Cada convocatoria conserva su límite de 32
+objetivos y de 32 participantes/fuentes y proyecciones.
+
+Las nuevas entradas de prueba mixta acotan a 256 las capturas de convocatoria y
+a 8192 la unión de objetivos exactos, además del límite independiente de 256
+propietarios G/administrativos y 8192 filas de medida. Rechazan material excesivo
+antes de hashear o copiar; no cambian los límites de las entradas históricas
+anteriores. Los servicios autorizados de convocatorias todavía no incorporan
+este material mixto.
+
 Esta validación pura no acredita acceso actual, admisión documental nueva,
 existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
-el consumo de registros administrativos por nuevas convocatorias de revisión o
-decisiones judiciales, el reemplazo administrativo opcional con identidad nueva
+las decisiones judiciales con predecesores administrativos, el reemplazo
+administrativo opcional con identidad nueva
 y enlace atómico, la admisión por cabeza y dependencias vigentes, el servicio
 autorizado de rectificación, SQL y rutas HTTP de la familia. Agenda, alertas,
 interfaz y restauración siguen pendientes.

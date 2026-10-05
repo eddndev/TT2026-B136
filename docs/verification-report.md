@@ -1,5 +1,36 @@
 # Informe de verificación local
 
+## Convocatorias Review con registros mixtos: 4 de octubre de 2026
+
+Las entradas puras `_with_record_history` preparan y verifican convocatorias
+sobre medidas judiciales o administrativas exactas. Exigen validez de captura
+Valid en preparación, recibo, origen, transición, historial y referencias
+retenidas por cancelación. Una convocatoria anterior conserva su revisión Valid
+original tras una marca posterior; las acciones judiciales terminales siguen
+siendo seleccionables. No se sustituyen fuentes por cabezas actuales ni se
+cambian los formatos de la convocatoria.
+
+TDD: el target falló por API ausente antes de la implementación. La ejecución
+nueva aprobó **23 casos en 2.282 s** de comando, compilación **1.64 s**. Cubren
+contexto y tiempo efectivos de C, reemplazo/cancelación entre revisiones de una
+identidad, historia anterior a una marca posterior, fuentes compartidas,
+material alterado y límites antes de hashear. Dos convocatorias de 32 objetivos
+conservan correctamente una unión de 64 referencias históricas exactas.
+
+La comprobación anterior afectada aprobó **27 casos de Review y 4 vectores de
+anclas**, **31 casos en 1.327 s**, compilación **1.11 s**. Son **54 casos aprobados entre ambas
+ejecuciones**, no una única campaña. Clippy de los tres targets con `-D warnings`
+aprobó en **4.150 s**, compilación **4.09 s**. La revisión independiente del
+contrato y código no encontró defectos accionables en esta frontera.
+
+Los nuevos accesos acotan 256 capturas de audiencia y 8192 objetivos en su unión,
+independientemente de los límites de propietarios y filas G/administrativos.
+Las entradas históricas anteriores conservan sus límites y bytes. Esta evidencia
+no incluye decisiones judiciales posteriores a correcciones, ampliación de los
+servicios autorizados para material mixto, cabeza vigente, ausencia de dependientes,
+SQL o HTTP. No constituye una regresión global, integración, despliegue o cierre
+del flujo completo; el ADR y alcance general permanecen propuestos.
+
 ## Validez de captura entered-in-error: 4 de octubre de 2026
 
 La preparación administrativa genérica admite `MarkEnteredInError` sobre un
