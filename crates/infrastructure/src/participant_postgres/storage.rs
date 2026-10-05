@@ -119,7 +119,7 @@ pub(super) fn insert(
     Ok(())
 }
 
-pub(super) fn decode(
+pub(crate) fn decode(
     row: &Row,
     hasher: &dyn DocumentHasher,
 ) -> Result<ParticipantSnapshot, ApplicationError> {

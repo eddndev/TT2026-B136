@@ -1,8 +1,35 @@
 # Alcance de audiencias y medidas cautelares declaradas
 
-Estado: **propuesto**. Este contrato fija el alcance funcional; no acredita su
-implementación completa ni aceptación. La decisión de arquitectura se conserva
+Estado: **dominio y servicios de aplicación verificados localmente**. El trabajo local
+comprende esos componentes y sus contratos. El adaptador PostgreSQL conserva
+convocatorias de imposición, sustitución de programación y cancelación; su alcance
+se detalla abajo. La persistencia de decisiones y revisiones de medidas, HTTP,
+Agenda, alertas e interfaz conservan sus propias comprobaciones pendientes. Este contrato no
+acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
+
+## Persistencia local de convocatorias de imposición
+
+`PostgresPrecautionaryHearingStore` implementa los puertos existentes de comandos
+y lecturas mediante PostgreSQL. Las migraciones `0033_` conservan una raíz y
+revisiones inmutables con procedencia exacta, autor y rol históricos, reloj UTC
+con nanosegundos, soporte admitido y referencia a su evento de auditoría. Cada
+consulta reconstruye el prefijo completo, limitado a 256 revisiones, y compara
+sus valores y compromisos; un digest almacenado no sustituye esa comprobación.
+La autorización vigente precede a la consulta de operaciones. Un reintento exacto
+conserva su captura original incluso después del cierre administrativo.
+
+El arranque valida catálogo, permisos e inventario. El runtime sólo puede leer
+y anexar columnas explícitas; no puede actualizar o borrar capturas ni alterar
+el esquema. Las escrituras y la auditoría comparten transacción y bloqueo. Una
+operación rechazada no deja raíces, revisiones ni eventos parciales. La evidencia
+de auditoría impide reutilizar una identidad tras perder sus registros y evita
+presentar una revisión anterior o una página vacía como estado actual válido.
+
+Este adaptador admite sólo el propósito `imposition`. Las convocatorias `review`
+se rechazan hasta disponer de su historia durable real de medidas. La existencia
+del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita restauración
+integral o despliegue. Véase [operación de base de datos](database-operations.md).
 
 ## Frontera de la implementación local
 

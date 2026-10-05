@@ -103,6 +103,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::resource_hearing_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    for migration in crate::precautionary_hearing_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     for migration in crate::hearing_derived_deadline_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
@@ -168,6 +171,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::procedural_resource_schema::validate(client)?;
     crate::resource_activity_schema::validate(client)?;
     crate::resource_hearing_schema::validate(client)?;
+    crate::precautionary_hearing_schema::validate(client)?;
     crate::hearing_derived_deadline_schema::validate(client)?;
     crate::document_integrity_schema::validate(client)?;
     crate::member_schema::validate(client)?;
@@ -200,6 +204,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::procedural_resource_schema::validate_inventory(client)?;
     crate::resource_activity_schema::validate_inventory(client)?;
     crate::resource_hearing_schema::validate_inventory(client)?;
+    crate::precautionary_hearing_schema::validate_inventory(client)?;
     crate::hearing_derived_deadline_schema::validate_inventory(client)?;
     crate::document_integrity_schema::validate_inventory(client)?;
     crate::member_schema::validate_inventory(client)?;
@@ -286,6 +291,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::procedural_resource_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::resource_activity_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::resource_hearing_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::precautionary_hearing_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::hearing_derived_deadline_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::document_integrity_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::member_schema::grant_runtime(&mut transaction, runtime_role)?;

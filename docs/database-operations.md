@@ -196,6 +196,61 @@ del consumidor conservan el cursor y los recibos sin duplicar avisos. Esta
 ampliación local aún necesita aceptación propia de respaldo/restauración y cierre
 de CI; no habilita correo operativo. Véase [el contrato](resource-hearing-alerts.md).
 
+## Audiencias cautelares de imposición
+
+Implementación local, todavía no integrada ni desplegada. La familia
+`0033_precautionary_hearings*.sql` se instala con
+`database migrate --runtime-role`. Añade `case_precautionary_hearings` y
+`case_precautionary_hearing_revisions` para programar, reemplazar y cancelar
+citas de propósito Imposition. Cada raíz exige su revisión inicial; las
+operaciones y las asociaciones con auditoría son únicas. No genera audiencias
+para expedientes anteriores ni persiste decisiones o medidas. El adaptador
+rechaza Review mientras no exista su historial durable de medidas.
+
+Las tablas conservan valores canónicos y una proyección estricta y acotada,
+referencias exactas de administración y etapa, digest del contexto, metadatos
+de admisión del soporte, autor completo, segundos y nanosegundos UTC y los
+compromisos del recibo. El decodificador rechaza campos desconocidos,
+normalización de textos o referencias, orden no canónico y diferencias entre
+proyección y bytes. Los formatos PHEAR1, PHTXN1, PHPR1 y PHCR1 se conservan.
+
+`PostgresPrecautionaryHearingStore` reconstruye cada prefijo completo desde R1,
+con un máximo de 256 revisiones y sin truncamiento. Recupera las revisiones
+históricas exactas de administración, la administración original de la etapa,
+participantes manuales o tipificados, sujeto vinculado y metadatos documentales.
+Conserva autoría, perfiles y fuentes capturados, sin reemplazarlos por cabezas
+actuales. La cancelación retiene valores, contexto de programación y fuentes
+del predecesor. Un reemplazo puede conservar participantes archivados cuando
+mantiene su selección exacta; una selección nueva requiere la cabeza activa.
+
+La preparación no escribe auditoría antes de admitir el soporte y confirmar
+ambos digests. Bajo el bloqueo compartido, la confirmación reautoriza al
+principal completo, comprueba acceso al expediente, contexto, cabeza y fuentes,
+y compara todo el material revisado. Raíz inicial cuando corresponde, revisión
+y una auditoría de mutación se confirman juntos. El replay exacto conserva la
+captura, el autor y el reloj originales, sin crear otra revisión. Los relojes
+del almacén deben usar UTC soportado; no se normaliza silenciosamente otro
+offset. Las capturas frescas respetan el mínimo temporal revisado y los eventos
+de acceso no pueden preceder las capturas devueltas.
+
+La apertura valida catálogo, restricciones, índices, funciones, disparadores,
+privilegios e inventario completo. El runtime recibe SELECT e INSERT por columnas,
+sin UPDATE, DELETE, TRUNCATE ni ejecución de guardas; también se revisa la
+autoridad alcanzable mediante otros roles. Los recibos se contrastan con su
+marcador `ph1`, acción, actor, tiempo y predecesor exacto de auditoría. Las
+consultas en conexiones ya abiertas rechazan orígenes o revisiones perdidos:
+no permiten reutilizar una identidad desaparecida, aceptar una cabeza anterior
+tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida.
+
+El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
+auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
+para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
+pendiente, al igual que persistencia Review y de decisiones/medidas/correcciones,
+HTTP, Agenda, alertas y Qadra. Esta implementación no acredita su integración
+ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
+y [el informe de verificación](verification-report.md), que distingue las
+pruebas ejecutadas de la aceptación todavía pendiente.
+
 ## Contenido e incidentes de integridad
 
 `database migrate --runtime-role` instala `0024_document_integrity.sql` sin

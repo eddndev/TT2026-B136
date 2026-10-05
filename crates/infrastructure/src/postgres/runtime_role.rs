@@ -20,6 +20,7 @@ pub(super) fn validate_runtime_role<C: postgres::GenericClient>(
     crate::procedural_resource_schema::validate_runtime_role(client, role)?;
     crate::resource_activity_schema::validate_runtime_role(client, role)?;
     crate::resource_hearing_schema::validate_runtime_role(client, role)?;
+    crate::precautionary_hearing_schema::validate_runtime_role(client, role)?;
     crate::hearing_derived_deadline_schema::validate_runtime_role(client, role)?;
     crate::document_integrity_schema::validate_runtime_role(client, role)?;
     crate::member_schema::validate_runtime_role(client, role)?;

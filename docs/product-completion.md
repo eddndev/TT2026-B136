@@ -94,11 +94,15 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   su confirmación natural en main está acreditada. Véase el
   [contrato de audiencias de recursos](resource-hearings.md).
   El [catálogo finito de audiencias](precautionary-hearings-scope.md) delimita
-  expresamente la familia cautelar pendiente. Sus valores de convocatoria y
-  formato canónico propio tienen verificación focal local; faltan contexto,
-  recibos, decisiones y medidas, aplicación, persistencia, HTTP, Agenda, interfaz
-  y aceptación completa. Ese bloque de dominio no acredita el flujo cautelar
-  terminado ni reglas jurídicas automáticas.
+  expresamente la familia cautelar. El dominio y la aplicación cuentan con
+  verificación focal de convocatorias, contexto y fuentes exactas, recibos,
+  decisiones y grupos de medidas, correcciones administrativas e historias
+  mixtas, autorización y recuperación mediante puertos. El adaptador PostgreSQL
+  añade programación, reemplazo y cancelación de convocatorias de imposición.
+  La persistencia de decisiones y medidas, las convocatorias de revisión, HTTP,
+  Agenda, alertas, interfaz y aceptación completa siguen pendientes. Estos
+  componentes no acreditan el flujo cautelar terminado ni reglas jurídicas
+  automáticas.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,

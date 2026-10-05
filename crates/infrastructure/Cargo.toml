@@ -66,27 +66,21 @@ skrifa = { version = "=0.46.2", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 proptest.workspace = true
-
 [[test]]
 name = "aead_properties"
 path = "tests/aead_properties.rs"
-
 [[test]]
 name = "aes_gcm_vectors"
 path = "tests/aes_gcm_vectors.rs"
-
 [[test]]
 name = "agenda_suite_1"
 path = "tests/suites/agenda_suite_1.rs"
-
 [[test]]
 name = "alert_suite_1"
 path = "tests/suites/alert_suite_1.rs"
-
 [[test]]
 name = "audit_suite_1"
 path = "tests/suites/audit_suite_1.rs"
-
 [[test]]
 name = "case_closure"
 path = "tests/case_closure.rs"
@@ -396,3 +390,11 @@ path = "tests/resource_hearing_backend.rs"
 [[test]]
 name = "resource_hearing_schema"
 path = "tests/resource_hearing_schema.rs"
+
+[[test]]
+name = "precautionary_hearing_codec"
+path = "tests/precautionary_hearing_codec.rs"
+
+[[test]]
+name = "precautionary_hearing_backend"
+path = "tests/precautionary_hearing_backend.rs"

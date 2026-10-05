@@ -26,6 +26,11 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "hearing_derived_deadline_audit_fk",
             false,
         ),
+        (
+            "case_precautionary_hearing_revisions",
+            "precautionary_hearing_audit_event",
+            true,
+        ),
     ] {
         let rows = client.query("SELECT g.tgtype,
             g.tgisinternal AND g.tgenabled IN ('O','A') AND g.tgdeferrable=$3 AND g.tginitdeferred=$3
@@ -62,7 +67,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         )
         .map_err(port)?
         .get(0);
-    if count != 8 {
+    if count != 10 {
         return Err(incomplete());
     }
     Ok(())

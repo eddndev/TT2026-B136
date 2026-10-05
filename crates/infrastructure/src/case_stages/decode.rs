@@ -32,7 +32,7 @@ fn actor(row: &Row) -> Result<CaseActorSnapshot, ApplicationError> {
         email,
     })
 }
-pub(super) fn initial(row: &Row) -> Result<CaseInitialStageRegistration, ApplicationError> {
+pub(crate) fn initial(row: &Row) -> Result<CaseInitialStageRegistration, ApplicationError> {
     if !row.get::<_, bool>("canonical")
         || row.get::<_, i64>("stage_revision") != 1
         || row.get::<_, i64>("administration_revision") != 1

@@ -13,7 +13,9 @@ anchors. Existing no-anchor and appointment canonical bytes are preserved.
 The authorized appointment service and its readers are implemented and verified locally.
 Scheduling, replacement and cancellation retain complete origin-bound prefixes,
 while explicit replay preserves the original instruction, actor and timestamp.
-These application ports do not establish a working database or HTTP workflow.
+A local PostgreSQL adapter now persists Imposition appointments with their exact
+source history and atomic audit. It is not integrated into HTTP or deployed;
+Review appointment persistence and the complete workflow remain pending.
 The authorized decision service also admits exact support, confirms both digests,
 and validates the complete original group and ancestor closure on replay and commit.
 Decision readers verify full immutable groups, bounded pagination and shared
@@ -37,8 +39,9 @@ MarkEnteredInError using the observed exact head, full supplied dependency
 inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
 service cannot establish those facts by itself. Optional administrative
-replacement, mixed-record appointment/decision services, durable storage, HTTP,
-Agenda, alerts, Qadra and restoration remain pending. The bounded contract and source
+replacement, mixed-record appointment/decision services, Review and measure
+decision/administrative persistence, HTTP, Agenda, alerts, Qadra and restoration
+acceptance remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -697,6 +700,59 @@ the store. Exact revision and operation reads return their original complete
 prefix. Lists use at most 20 current heads in strict UUID order, with an exclusive
 cursor and validated continuation. Application readers verify every full receipt
 and shared immutable source, without re-admitting its historical support.
+
+### PostgreSQL persistence of Imposition appointments
+
+The local `PostgresPrecautionaryHearingStore` implements the existing write and
+read ports for Imposition scheduling, replacement and cancellation. Migrations
+`0033_precautionary_hearings.sql` and `0033_precautionary_hearings_guards.sql`
+add append-only `case_precautionary_hearings` roots and
+`case_precautionary_hearing_revisions`. A root requires its initial revision;
+operation UUIDs and audit associations are unique. This adapter rejects Review
+values until their actual measure history has durable storage. It neither creates
+measure records nor changes PHEAR1, PHTXN1, PHPR1 or PHCR1.
+
+Persist canonical appointment values with a strict bounded projection, the
+observed administration/stage references and context digest, support admission
+format/policy, complete recording principal, UTC seconds/nanoseconds and all
+receipt commitments. The projection rejects unknown fields, noncanonical values,
+reordered selections and disagreement with the independent canonical bytes.
+Cancellation has no new selected values or admission columns; reconstruction
+retains them from the exact predecessor.
+
+Decode complete prefixes from R1 with at most 256 revisions, without truncation.
+Load the exact historical administration, the stage's original administration,
+manual or typed participants, the typed participant's original bound subject,
+and documentary support metadata by their historical keys. Do not substitute
+current sources or actor profiles. Recompute the complete receipt and origin,
+check every transition and immutable-source identity, and compare all persisted
+commitments. Archived sources remain valid historical material; an unchanged
+exact participant selection can be retained on replacement, while a newly selected
+revision must be current and active.
+
+The shared audit lock serializes authorization, current-head/source rechecks and
+commit. Preparation writes no event before admission and confirmation succeed.
+A fresh revision, initial root when required, and one mutation audit event commit
+together. Exact replay preserves its original capture and prefix; reuse of its
+operation for another command rejects. Reads and raced replay append only their
+own access events. Store clocks require supported UTC and preserve nanoseconds;
+fresh captures respect the prepared time floor, and access events cannot predate
+the returned captures.
+
+The strict catalog validates columns, constraints, indexes, functions, triggers
+and runtime privileges. The runtime receives SELECT and column-scoped INSERT,
+without update, deletion, truncation or guard-execution authority, including
+authority reachable through other roles. Startup validates the complete stored
+inventory. Each capture binds its exact `ph1` audit marker, mutation action,
+actor, time and chain predecessor. Live lookups also reject orphan audit evidence:
+a lost root cannot be recreated, a lost suffix cannot become a shorter current
+history, and pagination cannot conceal a lost hearing as an empty page.
+
+This local adapter does not establish acceptance of backup restoration or the
+integrated HTTP, Agenda, alerts and Qadra workflow. Durable Review targets,
+decision groups and administrative records remain separate pending work.
+Operational requirements are in [database operations](../database-operations.md);
+executed checks are recorded independently in the verification report.
 
 ### Readers, recovery and restoration
 

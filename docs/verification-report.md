@@ -9067,3 +9067,40 @@ The candidate owner limit is checked before copying its exact ancestor closure.
 The subsequent focused check repeated the same 30 service cases in 3.432 s and
 Clippy for that target passed in 4.028 s (3.98 s compilation); these are not
 additional unique cases. Independent service review found no concrete defect.
+
+
+## Persistencia de convocatorias cautelares de imposicion
+
+Comprobación local del 5 de octubre de 2026, todavía sin integración ni despliegue.
+El adaptador PostgreSQL implementa programación, reemplazo y cancelación de
+convocatorias `imposition` y la recuperación de sus capturas originales. Las
+convocatorias `review` siguen rechazadas hasta resolver historia durable real de
+medidas; esta comprobación no acredita el flujo completo de producto.
+
+- `precautionary_hearing_codec`: 16 pruebas aprobadas; 12.912 s incluyendo
+  compilación. Comprueban proyección estricta, bytes canónicos y límites.
+- `precautionary_hearing_backend`: 25 pruebas aprobadas, ninguna omitida;
+  183.08 s de pruebas y 197.259 s incluyendo preparación y compilación. PostgreSQL
+  nativo 16.15 se ejecutó en un clúster privado eliminado al terminar.
+- Clippy de ambos targets con advertencias como errores: aprobado en 18.61 s.
+  La advertencia de compatibilidad futura de `redis 0.25.4` permanece histórica.
+- Un compilador y un hilo de pruebas, con temporales en btrfs. No se repitió
+  la regresión completa de workspace ni las campañas ya confirmadas de main.
+
+Ocho regresiones se reprodujeron antes de corregir el producto: reloj no UTC en
+captura y lectura, reloj anterior a la captura en lectura y replay concurrente,
+selección histórica nueva de un participante archivado, reutilización de raíz
+perdida, truncamiento de sufijo y falsa página vacía tras pérdida de registros.
+Las pruebas conservan los eventos de auditoría durante las alteraciones y exigen
+rechazo sin nuevas filas o eventos. Dos ajustes adicionales corrigieron fixtures:
+la actualización de rol debe avanzar revisión/generación y la revocación de un
+permiso de tabla debe restaurar los permisos originales de columnas.
+
+También se comprobaron reconstrucción de prefijos, cierre administrativo,
+perfil histórico del autor, fuentes archivadas retenidas, aislamiento y
+reautorización, rollback de auditoría o captura, idempotencia de migración,
+mutaciones SQL directas y alteraciones de catálogo, triggers y privilegios.
+La revisión estática independiente no dejó hallazgos pendientes en este alcance.
+Los soportes cifrados y PostgreSQL son reales; la admisión de formato usa fixtures
+controlados. HTTP, parser nativo en aceptación integral, Agenda, alertas, Qadra,
+restauración completa y cierre documental siguen pendientes.
