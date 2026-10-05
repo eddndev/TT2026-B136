@@ -5,8 +5,7 @@ comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
-de G2/M2 y registros
-administrativos, HTTP, Agenda, alertas e interfaz
+de G2/M2 y sus consumidores mixtos, HTTP, Agenda, alertas e interfaz
 conservan sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
@@ -66,7 +65,8 @@ antecedentes de medidas y audiencias y rechaza ciclos antes de reconstruirlos.
 La historia devuelta conserva sólo los ancestros del efecto y los objetivos del
 ancla elegida; las dependencias de revisiones anteriores se prueban aparte. La
 captura candidata participa en la comparación conjunta de fuentes antes de
-escribir. G2/M2 y correcciones administrativas siguen pendientes.
+escribir. G2/M2 y los consumidores mixtos siguen pendientes; las correcciones
+administrativas disponen del adaptador descrito abajo.
 
 La preparación admite el soporte exacto fuera del bloqueo; la confirmación exige
 ambos digests y vuelve a comprobar principal, acceso, contexto y fuentes. Todas
@@ -80,6 +80,29 @@ también rechazan grupos incompletos y auditoría huérfana; perder filas no lib
 sus identidades. Se conservan los canones existentes. La aceptación de restauración,
 la integración HTTP, Agenda, alertas e interfaz siguen pendientes; este adaptador
 no acredita el cierre del flujo completo.
+
+## Persistencia local de correcciones administrativas
+
+`PostgresMeasureAdministrativeStore` registra Correct y Mark de forma atómica
+con su auditoría. Exige la cabeza exacta con captura válida y rechaza una
+corrección si ya existe un uso de esa revisión por una decisión, otra corrección
+o una audiencia. Conserva usos históricos aunque la audiencia cambie después;
+un uso de otra revisión o medida no produce un bloqueo falso. Permite corregir
+registros de medidas terminadas sin cambiar su condición jurídica.
+
+Las migraciones `0039_` conservan una carga administrativa y una revisión C por
+operación, sin crear raíz ni decisión judicial. Comparten las identidades globales
+y el presupuesto de historia con G1. El recibo conserva valores efectivos,
+fuentes originales, raíz judicial y último soporte judicial real, incluso tras
+correcciones sucesivas o modificaciones anteriores. El replay exacto conserva
+la captura original después del cierre del expediente, con autorización vigente.
+
+El catálogo y las conexiones abiertas rechazan cargas, filas o auditorías
+perdidas; no presentan una revisión anterior como cabeza válida. La admisión
+se repite bajo el bloqueo antes de escribir y detecta nuevos dependientes.
+Las lecturas y listas administrativas autorizadas, Review nuevo de C/M2 y la
+persistencia G2/M2 todavía no están conectados. Este alcance local no acredita
+HTTP, Agenda, alertas, Qadra, restauración integral ni despliegue.
 
 ## Frontera de la implementación local
 

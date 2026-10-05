@@ -1,20 +1,26 @@
 use super::inconsistent;
-use application::{precautionary_measures::*, ApplicationError};
+use application::{
+    measure_corrections::MeasureAdministrativeEvidence, precautionary_measures::*, ApplicationError,
+};
 use domain::{crypto::Sha256Digest, precautionary_hearings::PrecautionaryMeasureRef};
 use std::collections::{BTreeMap, BTreeSet};
 use uuid::Uuid;
 
 pub(crate) struct LoadedMeasureHistory {
     pub(super) groups: BTreeMap<Uuid, MeasureGroupEvidence>,
-    parents: BTreeMap<Uuid, BTreeSet<Uuid>>,
+    pub(super) administrations: BTreeMap<Uuid, MeasureAdministrativeEvidence>,
+    pub(super) parents: BTreeMap<Uuid, BTreeSet<Uuid>>,
     pub(super) hearings:
         BTreeMap<(Uuid, u32), application::precautionary_hearings::PrecautionaryHearingCapture>,
+    pub(super) hearing_origins:
+        BTreeMap<Uuid, application::precautionary_hearings::PrecautionaryHearingOrigin>,
     members: BTreeMap<(Uuid, u32), (Sha256Digest, Uuid)>,
 }
 
 impl LoadedMeasureHistory {
     pub(super) fn new(
         groups: BTreeMap<Uuid, MeasureGroupEvidence>,
+        administrations: BTreeMap<Uuid, MeasureAdministrativeEvidence>,
         parents: BTreeMap<Uuid, BTreeSet<Uuid>>,
     ) -> Result<Self, ApplicationError> {
         let mut members = BTreeMap::new();
@@ -32,10 +38,37 @@ impl LoadedMeasureHistory {
                 }
             }
         }
+        for (owner, administration) in &administrations {
+            if *owner != administration.origin.operation_id.as_uuid()
+                || !parents.contains_key(owner)
+                || groups.contains_key(owner)
+                || administration.capture.records.len() != 1
+            {
+                return Err(inconsistent(
+                    "loaded administrative owner identity or shape differs",
+                ));
+            }
+            for capture in &administration.capture.records {
+                let key = (capture.result.id.as_uuid(), capture.result.revision.get());
+                if members
+                    .insert(key, (capture.capture_digest, *owner))
+                    .is_some()
+                {
+                    return Err(inconsistent("one measure revision has multiple owners"));
+                }
+            }
+        }
+        if parents.len() != groups.len() + administrations.len() {
+            return Err(inconsistent(
+                "loaded dependency inventory has another owner",
+            ));
+        }
         Ok(Self {
             groups,
+            administrations,
             parents,
             hearings: BTreeMap::new(),
+            hearing_origins: BTreeMap::new(),
             members,
         })
     }
@@ -113,6 +146,22 @@ pub(super) fn evidence_for(
     groups: &BTreeMap<Uuid, MeasureGroupEvidence>,
     parents: &BTreeMap<Uuid, BTreeSet<Uuid>>,
 ) -> Result<MeasureHistoryEvidence, ApplicationError> {
+    let groups = selected_owners(roots, parents)?
+        .into_iter()
+        .map(|owner| {
+            groups
+                .get(&owner)
+                .cloned()
+                .ok_or_else(|| inconsistent("legacy proof requires a judicial owner"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(MeasureHistoryEvidence { groups })
+}
+
+pub(super) fn selected_owners(
+    roots: &BTreeSet<Uuid>,
+    parents: &BTreeMap<Uuid, BTreeSet<Uuid>>,
+) -> Result<BTreeSet<Uuid>, ApplicationError> {
     let mut selected = BTreeSet::new();
     let mut pending: Vec<_> = roots.iter().copied().collect();
     while let Some(owner) = pending.pop() {
@@ -124,14 +173,5 @@ pub(super) fn evidence_for(
             .ok_or_else(|| inconsistent("loaded owner dependencies are absent"))?;
         pending.extend(dependencies.iter().copied());
     }
-    let groups = selected
-        .into_iter()
-        .map(|owner| {
-            groups
-                .get(&owner)
-                .cloned()
-                .ok_or_else(|| inconsistent("loaded ancestor owner is absent"))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(MeasureHistoryEvidence { groups })
+    Ok(selected)
 }

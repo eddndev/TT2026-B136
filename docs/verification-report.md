@@ -1,5 +1,50 @@
 # Informe de verificación local
 
+## Correcciones administrativas persistidas: 4 de octubre de 2026
+
+El adaptador PostgreSQL conserva Correct y MarkEnteredInError como una operación
+con un único registro administrativo y auditoría atómica. Reconstruye los
+propietarios reales G/A, sus fuentes y las dependencias históricas de audiencias.
+Una nueva corrección exige cabeza válida exacta y ausencia de usos de esa revisión;
+lectura histórica y replay conservan el recibo original. Los espacios de identidad
+y los límites de historia siguen compartidos. Las migraciones `0039_` comprueban
+catálogo, permisos, fuentes y completitud sin modificar los formatos previos.
+
+El RED por API ausente se conservó antes de implementar el adaptador: **7.303 s**.
+Aprobaron **32 pruebas nativas nuevas**, sin casos omitidos: 18 de flujo e
+integridad en **145.38 s**, 9 de esquema y SQL directo en **62.96 s**, y 5 de
+corrupción en **94.42 s**. Sus comandos con preparación del entorno duraron
+**159.814 s**, **67.471 s** y **96.364 s**, respectivamente. Los recorridos
+parciales de desarrollo no se suman nuevamente a estos 32 casos.
+
+Los casos verifican correcciones sucesivas, marcas, replay tras cierre y cambio
+de perfil, último soporte judicial real, fuentes archivadas, identidades G/A,
+cabezas obsoletas, dependencias de revisiones anteriores y carreras de admisión.
+También comprueban migraciones repetibles, restricciones diferidas reales,
+permisos por columna, rollback, relojes, pérdida de la última fila, carga o
+auditoría y valores alterados con hashes coherentes. Las pruebas negativas
+parten de capturas reales aceptadas y comprueban que el rechazo no escribe datos.
+
+La regresión focal aprobó **115 pruebas existentes**, conservando todas las
+identidades del baseline: decisiones 33 en **293.82 s**, anclas Initial 20 en
+**168.92 s**, anclas cautelares 24 en **197.27 s**, audiencias 25 en **166.16 s**
+y Review 13 en **112.18 s**. El comando completo, incluido entorno, duró
+**952.589 s**. Son **147 casos nativos** entre las pruebas nuevas y la regresión,
+sin sumar nuevamente los recorridos parciales ni campañas anteriores.
+
+Aprobaron **16 unidades de límites y orden del grafo en 9.470 s** de comando.
+Clippy de infraestructura, biblioteca y seis targets afectados aprobó con
+`-D warnings` en **11.309 s**. Las revisiones independientes del comando y del
+grafo, fuentes e inventario no encontraron defectos pendientes.
+
+Se utilizó PostgreSQL **16.15** con SCRAM y fuentes cifradas reales; la admisión
+de formato fue controlada. Un compilador, un thread de pruebas y temporales
+privados sobre btrfs; los clusters propios se retiraron. Esta evidencia no
+sustituye la aceptación HTTP, restauración, Qadra ni una campaña nativa de tamaño
+máximo. Las lecturas administrativas autorizadas y los consumidores mixtos H/G2
+se desarrollan por separado dentro de la misma entrega completa. No se ejecutó
+una suite global ni se generó PDF; no acredita integración ni despliegue.
+
 ## Formato de valores de corrección cautelar: 4 de octubre de 2026
 
 El codec de infraestructura reconstruye los valores MCVAL1 y comprueba igualdad

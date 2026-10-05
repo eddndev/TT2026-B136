@@ -135,6 +135,7 @@ pub(super) fn member(
         || row.get::<_, uuid::Uuid>("case_id") != capture.case_id.as_uuid()
         || row.get::<_, uuid::Uuid>("owner_operation") != capture.operation_id.as_uuid()
         || row.get::<_, String>("family") != "m1"
+        || row.get::<_, String>("validity") != "valid"
         || row.get::<_, String>("action") != action_name(result.action)
     {
         return Err(inconsistent("member identity or owner differs"));

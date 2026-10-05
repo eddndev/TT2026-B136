@@ -18,10 +18,15 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "preserve_measure_decision_history()",
             58,
         )?;
-        complete(client, table)?;
+        complete(client, table, "measure_decision_complete")?;
+        if table == "case_measure_operations" {
+            complete(client, table, "measure_operation_payload")?;
+        }
         let expected: i64 = match table {
             "case_measure_decisions" => 5,
-            "case_measure_revisions" => 4,
+            "case_measure_revisions"
+            | "case_measure_administrations"
+            | "case_measure_operations" => 4,
             _ => 3,
         };
         let altered: bool = client.query_one(
@@ -45,6 +50,13 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         "case_measure_decisions",
         "measure_decision_hearing_anchor",
         "enforce_measure_decision_hearing_anchor()",
+        7,
+    )?;
+    ordinary(
+        client,
+        "case_measure_administrations",
+        "measure_administration_capture",
+        "enforce_measure_administration_capture()",
         7,
     )?;
     ordinary(
@@ -81,12 +93,16 @@ fn ordinary<C: GenericClient>(
     Ok(())
 }
 
-fn complete<C: GenericClient>(client: &mut C, table: &str) -> Result<(), ApplicationError> {
+fn complete<C: GenericClient>(
+    client: &mut C,
+    table: &str,
+    name: &str,
+) -> Result<(), ApplicationError> {
     let valid: bool = client
         .query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_trigger t JOIN pg_constraint c ON c.oid=t.tgconstraint
             JOIN pg_class r ON r.oid=t.tgrelid
-            WHERE t.tgrelid=$1::text::regclass AND t.tgname='measure_decision_complete'
+            WHERE t.tgrelid=$1::text::regclass AND t.tgname=$2
                 AND t.tgfoid='enforce_measure_decision_complete()'::regprocedure AND t.tgtype=5
                 AND t.tgenabled IN ('O','A') AND NOT t.tgisinternal
                 AND t.tgdeferrable AND t.tginitdeferred AND t.tgconstrrelid=0 AND t.tgconstrindid=0
@@ -98,7 +114,7 @@ fn complete<C: GenericClient>(client: &mut C, table: &str) -> Result<(), Applica
                 AND c.connoinherit AND c.conindid=0 AND c.confrelid=0 AND c.conbin IS NULL
                 AND (to_jsonb(c)->>'conenforced') IS DISTINCT FROM 'false'
                 AND (SELECT count(*) FROM pg_trigger linked WHERE linked.tgconstraint=c.oid)=1)",
-            &[&table],
+            &[&table, &name],
         )
         .map_err(port)?
         .get(0);

@@ -65,6 +65,32 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("subject_values_digest", "bytea", true),
             ("supervisor_id", "uuid", false),
             ("supervisor_revision", "bigint", false),
+            ("validity", "text", true),
+        ],
+        "case_measure_administrations" => &[
+            ("operation_id", "uuid", true),
+            ("case_id", "uuid", true),
+            ("action", "text", true),
+            ("target_measure_id", "uuid", true),
+            ("target_revision", "bigint", true),
+            ("target_capture_digest", "bytea", true),
+            ("reason", "text", true),
+            ("correction_canonical", "bytea", false),
+            ("correction_view", "jsonb", false),
+            ("correction_digest", "bytea", false),
+            ("observed_administration_revision", "bigint", true),
+            ("observed_stage_revision", "bigint", true),
+            ("observed_context_digest", "bytea", true),
+            ("support_format", "text", true),
+            ("support_policy", "text", true),
+            ("recorded_by", "uuid", true),
+            ("recorded_by_email", "text", true),
+            ("recorded_by_role", "text", true),
+            ("recorded_at_seconds", "bigint", true),
+            ("recorded_at_nanoseconds", "integer", true),
+            ("submission_digest", "bytea", true),
+            ("review_digest", "bytea", true),
+            ("capture_digest", "bytea", true),
         ],
         _ => &[],
     }
@@ -102,6 +128,8 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
                                 Some("1")
                             } else if table == "case_measure_decisions" && *name == "anchor_kind" {
                                 Some("'none'::text")
+                            } else if table == "case_measure_revisions" && *name == "validity" {
+                                Some("'valid'::text")
                             } else {
                                 None
                             }

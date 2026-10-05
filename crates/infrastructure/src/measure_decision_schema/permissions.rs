@@ -87,7 +87,7 @@ fn exposed_acl<C: GenericClient>(client: &mut C, role: &str) -> Result<bool, App
 
 fn unsafe_role() -> ApplicationError {
     ApplicationError::InvalidConfiguration(
-        "runtime must only read and append measure decisions without public or delegated authority"
+        "runtime must only read and append measure records without public or delegated authority"
             .into(),
     )
 }

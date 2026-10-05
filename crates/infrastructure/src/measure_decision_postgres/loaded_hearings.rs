@@ -73,18 +73,26 @@ impl LoadedMeasureHistory {
         group: Option<&MeasureDecisionStoredOperation>,
         hearing: Option<&PrecautionaryHearingStoredOperation>,
     ) -> Result<(), ApplicationError> {
-        let mut groups: Vec<_> = self.groups.values().cloned().collect();
+        let mut inventory = self.dependency_inventory()?;
         if let Some(group) = group {
             if self
                 .groups
                 .contains_key(&group.origin.operation_id.as_uuid())
+                || self
+                    .administrations
+                    .contains_key(&group.origin.operation_id.as_uuid())
             {
                 return Err(inconsistent("candidate group already owns history"));
             }
-            groups.push(MeasureGroupEvidence {
-                origin: group.origin.clone(),
-                capture: group.group.clone(),
-            });
+            inventory
+                .records
+                .records
+                .judicial
+                .groups
+                .push(MeasureGroupEvidence {
+                    origin: group.origin.clone(),
+                    capture: group.group.clone(),
+                });
         }
         let mut captures = self.hearings.clone();
         if let Some(hearing) = hearing {
@@ -103,38 +111,34 @@ impl LoadedMeasureHistory {
                 }
             }
         }
+        inventory.hearings = self.hearing_histories(&captures, hearing)?;
+        validate_measure_dependency_inventory(hasher, case, &inventory).map_err(inconsistent)
+    }
+
+    pub(super) fn hearing_histories(
+        &self,
+        captures: &BTreeMap<(Uuid, u32), PrecautionaryHearingCapture>,
+        candidate: Option<&PrecautionaryHearingStoredOperation>,
+    ) -> Result<Vec<MeasureAdministrativeHearingHistory>, ApplicationError> {
         let mut prefixes: BTreeMap<Uuid, Vec<PrecautionaryHearingCapture>> = BTreeMap::new();
         for ((id, _), capture) in captures {
-            prefixes.entry(id).or_default().push(capture);
+            prefixes.entry(*id).or_default().push(capture.clone());
         }
         let mut histories = Vec::new();
         for captures in prefixes.into_values() {
             let first = &captures[0];
             let origin = if let Some(candidate) =
-                hearing.filter(|h| h.history.origin.hearing_id == first.review.command.hearing_id)
+                candidate.filter(|h| h.history.origin.hearing_id == first.review.command.hearing_id)
             {
                 candidate.history.origin.clone()
             } else {
-                let proof = self.subclosure(first.review.resolved_values.review_targets())?;
-                precautionary_hearing_origin_with_measure_history(hasher, first, &proof)
-                    .map_err(inconsistent)?
+                self.hearing_origins
+                    .get(&first.review.command.hearing_id.as_uuid())
+                    .cloned()
+                    .ok_or_else(|| inconsistent("loaded hearing origin is absent"))?
             };
             histories.push(MeasureAdministrativeHearingHistory { origin, captures });
         }
-        validate_measure_dependency_inventory(
-            hasher,
-            case,
-            &MeasureAdministrativeDependencyInventory {
-                records: MeasureDecisionRecordHistoryEvidence {
-                    records: MeasureRecordHistoryEvidence {
-                        judicial: MeasureHistoryEvidence { groups },
-                        administrative: Vec::new(),
-                    },
-                    decisions: Vec::new(),
-                },
-                hearings: histories,
-            },
-        )
-        .map_err(inconsistent)
+        Ok(histories)
     }
 }

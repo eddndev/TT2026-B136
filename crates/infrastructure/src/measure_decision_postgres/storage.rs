@@ -45,7 +45,7 @@ pub(super) fn detail(
         hasher,
     )
 }
-pub(super) fn raw(
+pub(crate) fn raw(
     tx: &mut Transaction<'_>,
     case: CaseId,
     op: MeasureDecisionOperationId,
@@ -89,18 +89,23 @@ pub(super) fn operation(
     hasher: &dyn DocumentHasher,
 ) -> Result<Option<MeasureDecisionStoredOperation>, ApplicationError> {
     audit::inventory_intact(tx)?;
-    let row=tx.query_opt("SELECT o.case_id,d.decision_id FROM case_measure_operations o JOIN case_measure_decisions d ON d.operation_id=o.operation_id AND d.case_id=o.case_id WHERE o.operation_id=$1",&[&op.as_uuid()]).map_err(port)?;
+    let row=tx.query_opt("SELECT o.case_id,o.family,d.decision_id FROM case_measure_operations o LEFT JOIN case_measure_decisions d ON d.operation_id=o.operation_id AND d.case_id=o.case_id WHERE o.operation_id=$1",&[&op.as_uuid()]).map_err(port)?;
     let Some(row) = row else {
         audit::operation_absent(tx, op)?;
         return Ok(None);
     };
-    if row.get::<_, uuid::Uuid>("case_id") != case.as_uuid() {
+    if row.get::<_, uuid::Uuid>("case_id") != case.as_uuid()
+        || row.get::<_, String>("family") != "g1"
+    {
         return Err(MeasureDecisionError::OperationConflict.into());
     }
     detail(
         tx,
         case,
-        MeasureDecisionId::from_uuid(row.get("decision_id")),
+        MeasureDecisionId::from_uuid(
+            row.get::<_, Option<uuid::Uuid>>("decision_id")
+                .ok_or_else(|| inconsistent("judicial owner has no payload"))?,
+        ),
         hasher,
     )
     .map(Some)

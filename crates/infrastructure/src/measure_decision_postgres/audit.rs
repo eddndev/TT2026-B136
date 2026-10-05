@@ -128,29 +128,40 @@ fn absent(tx: &mut Transaction<'_>, pattern: &str) -> Result<(), ApplicationErro
 }
 
 /// Check retained ownership markers and every bounded advertised member set.
-pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), ApplicationError> {
+pub(crate) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), ApplicationError> {
     let broken: bool = tx.query_one(
         "SELECT
          EXISTS(SELECT 1 FROM case_measure_operations o
             LEFT JOIN case_measure_decisions d ON d.operation_id=o.operation_id
                 AND d.case_id=o.case_id AND d.group_digest=o.owner_digest
+            LEFT JOIN case_measure_administrations c ON c.operation_id=o.operation_id
+                AND c.case_id=o.case_id AND c.capture_digest=o.owner_digest
             LEFT JOIN audit_events a ON a.sequence=o.audit_sequence
-            WHERE o.family<>'g1' OR octet_length(o.owner_digest)<>32 OR o.audit_sequence<0
-                OR d.decision_id IS NULL OR a.sequence IS NULL
-                OR a.action<>'measure_decision.recorded')
+            WHERE o.family NOT IN ('g1','a1') OR octet_length(o.owner_digest)<>32 OR o.audit_sequence<0
+                OR a.sequence IS NULL
+                OR (o.family='g1' AND (d.decision_id IS NULL OR c.operation_id IS NOT NULL
+                    OR a.action<>'measure_decision.recorded'))
+                OR (o.family='a1' AND (c.operation_id IS NULL OR d.operation_id IS NOT NULL
+                    OR a.action<>'measure_administrative.recorded')))
          OR EXISTS(SELECT 1 FROM case_measure_decisions d
             LEFT JOIN case_measure_operations o ON o.operation_id=d.operation_id
                 AND o.case_id=d.case_id AND o.owner_digest=d.group_digest
-            WHERE o.operation_id IS NULL)
+            WHERE o.operation_id IS NULL OR o.family<>'g1')
+         OR EXISTS(SELECT 1 FROM case_measure_administrations c
+            LEFT JOIN case_measure_operations o ON o.operation_id=c.operation_id
+                AND o.case_id=c.case_id AND o.owner_digest=c.capture_digest
+            WHERE o.operation_id IS NULL OR o.family<>'a1')
          OR EXISTS(SELECT 1 FROM case_measures m
             LEFT JOIN case_measure_operations o ON o.operation_id=m.root_operation AND o.case_id=m.case_id
             LEFT JOIN case_measure_revisions r ON r.measure_id=m.id AND r.case_id=m.case_id
                 AND r.revision=m.initial_revision AND r.owner_operation=m.root_operation
-            WHERE m.initial_revision<>1 OR o.operation_id IS NULL OR r.measure_id IS NULL)
+            WHERE m.initial_revision<>1 OR o.operation_id IS NULL OR o.family<>'g1' OR r.measure_id IS NULL OR r.family<>'m1')
          OR EXISTS(SELECT 1 FROM case_measure_revisions r
             LEFT JOIN case_measures m ON m.id=r.measure_id AND m.case_id=r.case_id
             LEFT JOIN case_measure_operations o ON o.operation_id=r.owner_operation AND o.case_id=r.case_id
-            WHERE r.revision NOT BETWEEN 1 AND 4294967295 OR r.family<>'m1' OR r.action NOT IN ('impose','confirm','modify','revoke','cease','substitute_out','substitute_in')
+            WHERE r.revision NOT BETWEEN 1 AND 4294967295 OR r.family NOT IN ('m1','c1') OR r.validity NOT IN ('valid','entered_in_error')
+                OR (r.family='m1' AND (o.family<>'g1' OR r.validity<>'valid'))
+                OR (r.family='c1' AND o.family<>'a1') OR r.action NOT IN ('impose','confirm','modify','revoke','cease','substitute_out','substitute_in')
                 OR m.id IS NULL OR o.operation_id IS NULL)
          OR EXISTS(SELECT 1 FROM audit_events a
             WHERE a.action='measure_decision.recorded' AND NOT EXISTS(
@@ -164,6 +175,19 @@ pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), Applicati
                     ||':decision:'||d.decision_id::text||':submission:'||encode(d.submission_digest,'hex')
                     ||':review:'||encode(d.review_digest,'hex')||':decision_digest:'||encode(d.decision_digest,'hex')
                     ||':group:'||encode(d.group_digest,'hex') ELSE FALSE END))
+         OR EXISTS(SELECT 1 FROM audit_events a
+            WHERE a.action='measure_administrative.recorded' AND NOT EXISTS(
+                SELECT 1 FROM case_measure_operations o JOIN case_measure_administrations c
+                    ON c.operation_id=o.operation_id AND c.case_id=o.case_id AND c.capture_digest=o.owner_digest
+                WHERE o.family='a1' AND o.audit_sequence=a.sequence AND CASE WHEN
+                    octet_length(c.submission_digest)=32 AND octet_length(c.review_digest)=32
+                    AND octet_length(c.capture_digest)=32 AND c.target_revision BETWEEN 1 AND 4294967294
+                    THEN a.resource=
+                    'ma1:case:'||c.case_id::text||':operation:'||c.operation_id::text
+                    ||':measure:'||c.target_measure_id::text||':revision:'||(c.target_revision+1)::text
+                    ||':submission:'||encode(c.submission_digest,'hex')
+                    ||':review:'||encode(c.review_digest,'hex')||':capture:'||encode(c.capture_digest,'hex')
+                    ELSE FALSE END))
          OR EXISTS(SELECT 1 FROM case_measure_decisions d WHERE
             octet_length(d.outcome_view::text)>1048576
             OR octet_length(d.outcome_canonical) NOT BETWEEN 11 AND 645450
@@ -175,5 +199,6 @@ pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), Applicati
             "measure ownership inventory is incomplete or contradictory",
         ));
     }
-    super::inventory_shape::validate(tx)
+    super::inventory_shape::validate(tx)?;
+    crate::measure_administrative_postgres::inventory::validate(tx)
 }

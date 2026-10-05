@@ -185,3 +185,6 @@ mod precautionary_hearing_schema;
 mod measure_decision_postgres;
 pub use measure_decision_postgres::PostgresMeasureDecisionStore;
 mod measure_decision_schema;
+
+mod measure_administrative_postgres;
+pub use measure_administrative_postgres::PostgresMeasureAdministrativeStore;

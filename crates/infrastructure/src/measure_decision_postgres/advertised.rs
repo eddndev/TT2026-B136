@@ -15,7 +15,7 @@ use domain::{
 use postgres::Row;
 
 /// Bind advertised members to the submission retained by the original audit marker.
-pub(super) fn outcome(row: &Row) -> Result<MeasureDecisionOutcome, ApplicationError> {
+pub(crate) fn outcome(row: &Row) -> Result<MeasureDecisionOutcome, ApplicationError> {
     let anchor = anchors::reference(row)?;
     let case = CaseId::from_uuid(row.get("case_id"));
     let revision = |name| u32::try_from(row.get::<_, i64>(name)).map_err(inconsistent);

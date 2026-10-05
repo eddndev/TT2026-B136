@@ -67,7 +67,11 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         let expected = KEYS.iter().filter(|key| key.0 == table).count()
             + FOREIGN_KEYS.iter().filter(|key| key.0 == table).count()
             + checks::expected(table).len()
-            + 1;
+            + if table == "case_measure_operations" {
+                2
+            } else {
+                1
+            };
         // PostgreSQL 18 also exposes NOT NULL constraints through pg_constraint.
         let count: i64 = client.query_one(
             "SELECT count(*) FROM pg_constraint WHERE conrelid=$1::text::regclass AND contype<>'n'",

@@ -61,7 +61,7 @@ pub(super) fn columns(
     }
 }
 
-pub(super) fn reference(row: &Row) -> Result<Option<MeasureDecisionAnchorRef>, ApplicationError> {
+pub(crate) fn reference(row: &Row) -> Result<Option<MeasureDecisionAnchorRef>, ApplicationError> {
     let kind: String = row.get("anchor_kind");
     let id: Option<Uuid> = row.get("anchor_hearing_id");
     let revision: Option<i64> = row.get("anchor_revision");

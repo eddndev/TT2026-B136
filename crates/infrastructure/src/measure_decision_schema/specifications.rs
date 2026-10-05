@@ -60,6 +60,24 @@ pub(super) const KEYS: &[(&str, &str, &[&str], bool)] = &[
         &["measure_id", "revision", "case_id", "owner_operation"],
         false,
     ),
+    (
+        "case_measure_revisions",
+        "measure_revision_capture_scope",
+        &["measure_id", "revision", "case_id", "capture_digest"],
+        false,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_primary",
+        &["operation_id"],
+        true,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_scope",
+        &["operation_id", "case_id", "capture_digest"],
+        false,
+    ),
 ];
 
 type ForeignKey = (
@@ -85,14 +103,6 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["audit_sequence"],
         "audit_events",
         &["sequence"],
-        true,
-    ),
-    (
-        "case_measure_operations",
-        "measure_operation_payload",
-        &["operation_id", "case_id", "owner_digest"],
-        "case_measure_decisions",
-        &["operation_id", "case_id", "group_digest"],
         true,
     ),
     (
@@ -173,6 +183,43 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["subject_id", "subject_revision"],
         "case_subject_revisions",
         &["subject_id", "revision"],
+        false,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_owner",
+        &["operation_id", "case_id", "capture_digest"],
+        "case_measure_operations",
+        &["operation_id", "case_id", "owner_digest"],
+        true,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_target",
+        &[
+            "target_measure_id",
+            "target_revision",
+            "case_id",
+            "target_capture_digest",
+        ],
+        "case_measure_revisions",
+        &["measure_id", "revision", "case_id", "capture_digest"],
+        false,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_administration",
+        &["case_id", "observed_administration_revision"],
+        "case_administration_revisions",
+        &["case_id", "revision"],
+        false,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_author",
+        &["recorded_by"],
+        "users",
+        &["id"],
         false,
     ),
 ];

@@ -160,7 +160,7 @@ pub(super) fn hearing_intact(
 }
 
 /// Pagination must not hide an appointment whose root was lost after opening.
-pub(super) fn case_intact(tx: &mut Transaction<'_>, case: CaseId) -> Result<(), ApplicationError> {
+pub(crate) fn case_intact(tx: &mut Transaction<'_>, case: CaseId) -> Result<(), ApplicationError> {
     let pattern = format!("ph1:case:{case}:hearing:%");
     let orphan: bool = tx
         .query_one(

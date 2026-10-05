@@ -23,7 +23,7 @@ Decision readers verify full immutable groups, bounded pagination and shared
 source/ownership consistency with current staff authorization. A local PostgreSQL
 adapter persists all G1 predecessor effects, initial Impose groups and
 NoMeasureChange, with their original group and atomic audit. It also resolves
-exact ordinary Initial hearing anchors; precautionary anchors remain pending. A first pure
+exact ordinary Initial and precautionary hearing anchors. A first pure
 administrative capture corrects one exact judicial measure using its complete
 group ancestry, retaining the last actual judicial declaration and support.
 The mixed record resolver also validates repeated corrections with complete
@@ -42,10 +42,11 @@ The authorized administrative service prepares and confirms Correct and
 MarkEnteredInError using the observed exact head, full supplied dependency
 inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
-service cannot establish those facts by itself. Optional administrative
-replacement, mixed-record appointment/decision services, precautionary-anchored decisions,
-G2/M2 and administrative persistence, HTTP, Agenda, alerts,
-Qadra and restoration acceptance remain pending. The bounded contract and source
+service cannot establish those facts by itself. Its local PostgreSQL adapter
+now verifies those durable facts and atomically preserves A/C captures with their
+exact G/H ancestry. Authorized administrative reads, optional administrative
+replacement, mixed-record appointment/decision services, G2/M2 persistence, HTTP,
+Agenda, alerts, Qadra and restoration acceptance remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -343,7 +344,7 @@ This is historical consistency checking. It does not freshly admit encrypted
 support, authenticate current access, prove durable origin/current head, or show
 the absence of dependants. The mixed resolver and mark-only extension below
 reuse these receipt shapes. The authorized administrative service described below
-adds current admission checks around them; durable persistence remains pending.
+adds current admission checks around them; the durable A/C adapter below preserves those checks.
 
 ### Mixed record history and repeated correction
 
@@ -375,7 +376,7 @@ The judicial-only entry points remain wrappers over borrowed history; existing
 heads and absence of dependants still require an authorized store. The Review
 proof extension below retains its G1/administrative evidence input. Additive G2
 entry points accept the extended inventory without changing the old signatures.
-Joint replacement and persistence remain separate work.
+Joint replacement remains separate work; the durable A/C adapter below covers correction and erroneous-capture marking.
 
 ### Entered-in-error capture validity
 
@@ -404,7 +405,7 @@ Its existence does not rewrite older Valid captures or their exact references.
 
 The supplied closure proves neither a current head nor absence of later
 dependants. Storage admission must establish both under the mutation lock, with
-current authorization and atomic audit. Those checks and SQL remain pending.
+current authorization and atomic audit. The durable A/C adapter below implements those admission checks and SQL persistence.
 The optional atomic replacement with a fresh identity and explicit administrative
 link remains pending. Its future admission must distinguish capture validity
 from retained judicial status without invalidating earlier historical receipts.
@@ -624,8 +625,8 @@ head, complete durable absence of dependants and exact admitted support/sources,
 and prevent a dependency from racing with the write. It must atomically commit
 receipt, row, origin, operation, head and one audit event, or write nothing.
 Unrelated forest changes alone do not invalidate a review. The port specifies
-these obligations; the PostgreSQL adapter, HTTP route and restoration acceptance
-are not implemented by this application service.
+these obligations. The durable A/C adapter below implements them; HTTP routing
+and restoration acceptance remain pending.
 
 ### Decision anchors and shared dependency evidence
 
@@ -771,8 +772,8 @@ a lost root cannot be recreated, a lost suffix cannot become a shorter current
 history, and pagination cannot conceal a lost hearing as an empty page.
 
 This local adapter does not establish acceptance of backup restoration or the
-integrated HTTP, Agenda, alerts and Qadra workflow. G2/M2 and administrative
-records remain separate pending work. The durable anchor graph is described below.
+integrated HTTP, Agenda, alerts and Qadra workflow. G2/M2 and mixed H consumers
+remain pending; administrative commands use the A/C adapter below. The durable anchor graph is described below.
 Operational requirements are in [database operations](../database-operations.md);
 executed checks are recorded independently in the verification report.
 
@@ -835,8 +836,8 @@ measure row cannot silently expose an older head. Bind that advertised outcome
 to its strict original submission and the retained audit marker before using it
 to establish completeness. A self-consistent changed outcome digest alone does
 not prove it belongs to that original operation. Keep this bounded check free
-of current source-head or current actor assumptions. The backend still rejects
-mixed administrative records; HTTP, Agenda, alerts, Qadra and
+of current source-head or current actor assumptions. The legacy G1 path retains
+its narrow proof contract. G2/M2 consumers, HTTP, Agenda, alerts, Qadra and
 restoration require their own integration and acceptance.
 
 ### Readers, recovery and restoration
@@ -901,8 +902,8 @@ Review target references, plus at most 256 measure owners and 8192 members.
 Resolve the complete selected prefix union once, then validate each capture with
 its exact current and predecessor target closure. Original-operation replay
 reconstructs its original prefix and excludes unrelated later decisions. These
-checks supply the Review side of the durable anchor graph below; mixed
-administrative persistence remains pending.
+checks supply the Review side of the durable anchor graph below. Fresh Review
+of administrative records requires the separate mixed consumer path.
 
 
 ### Durable ordinary Initial hearing anchors
@@ -928,9 +929,8 @@ not inferred. Reconstruct MDTXN1 with the original anchor selectors before using
 surviving outcomes to reserve identities; self-consistent replacement selectors
 cannot free the original group from its retained submission and audit evidence.
 
-This remains a local G1 adapter capability. Mixed administrative persistence,
-HTTP, Agenda, alerts, Qadra and restoration
-acceptance have separate pending work.
+This remains a local G1 adapter capability. G2/M2 consumers, HTTP, Agenda,
+alerts, Qadra and restoration acceptance have separate pending work.
 
 
 ### Durable precautionary anchors and the shared dependency graph
@@ -965,3 +965,53 @@ once; limits remain 256 G owners/8192 members and, independently, 256 H captures
 latest hearing commitment fails at that exact head and cannot expose an older
 revision as current. Authorized reads and atomic mutation/audit retain their
 existing transaction boundaries.
+
+
+### Durable administrative corrections and captured validity
+
+The `0039_measure_administrative_` migrations add one immutable administrative
+payload table and widen the shared operation/member families to G1/A1 and M1/C1.
+An A operation owns exactly one C revision, no judicial decision and no new
+measure root. Global operation UUIDs and `(measure_id, revision)` identities
+remain shared. The original judicial root and latest actual judicial support
+remain distinct from the corrected effective values. MCVAL1 decoding is strict;
+MAGR1, MARCR1 and every previous canonical format keep their original bytes.
+
+`PostgresMeasureAdministrativeStore` prepares and atomically records Correct or
+Mark under the same audit lock as the judicial and hearing adapters. A fresh
+command requires the exact current Valid record and no already recorded direct
+use of that exact revision. Terminal judicial captures may be corrected as
+records without reactivating a legal measure. Bounded keyset scans bind every
+advertised dependency to its original command, capture and mutation audit.
+Older Review targets remain dependencies after later replacement or cancellation;
+uses of another sibling or another exact revision are not false blockers.
+
+Resolve actual complete G/A owners and H prefixes in the shared transaction
+graph before material reconstruction. G and A share the 256-owner/8192-member
+budget, including the fresh one-owner/one-member candidate. H retains its
+independent capture/target bounds. The final source inventory includes every
+retained ancestor and prefix-only owner before insertion. Under the lock, check
+current principal, access, context, target head, actual judicial support, admitted
+encrypted record and absence of dependencies again. Unrelated valid inventory
+changes do not invalidate an otherwise unchanged reviewed operation.
+
+The `ma1` marker binds the original operation, measure revision, submission,
+review and capture to exactly one mutation audit event. Replay reconstructs that
+original capture, author, time, context, effective values and all historical
+sources. Current authorization still applies, but later closure or dependencies
+do not retroactively revoke an exact original receipt. Missing payloads, latest
+rows or mutation events fail closed in both existing and newly opened stores;
+a surviving older row cannot substitute for a lost current head.
+
+The deferred `measure_operation_payload` constraint is a real family-aware
+constraint trigger. It preserves the historical migration's constraint-name
+contract while checking complete G or A payloads at commit. Startup verifies
+its body, exact tables/columns, foreign keys, constraints, grants and inventory.
+Repeated migration preserves actual G/A data and constraint identities. The
+runtime has no update, delete, schema or guard-execution capability.
+
+This supplies the administrative command adapter only. Authorized A listing and
+reads, fresh H Review of C/M2, durable G2/M2 decisions, HTTP composition, Agenda,
+alerts, Qadra and restoration acceptance remain distinct uncompleted parts of
+the same full delivery. The local G1/H paths remain compatible when unrelated
+A records exist; they never repackage a selected C as a judicial M1.

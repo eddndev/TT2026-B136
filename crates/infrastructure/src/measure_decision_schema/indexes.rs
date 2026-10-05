@@ -15,6 +15,11 @@ const LOOKUPS: &[(&str, &str, &[&str])] = &[
         &["owner_operation", "measure_id", "revision"],
     ),
     (
+        "case_measure_administrations",
+        "measure_administration_case_order",
+        &["case_id", "operation_id"],
+    ),
+    (
         "case_measures",
         "measure_root_case_order",
         &["case_id", "id"],

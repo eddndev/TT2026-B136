@@ -1,8 +1,11 @@
 use super::{
-    anchors, graph_discovery, history_budget::Budget, inconsistent, loaded_history, storage,
-    LoadedMeasureHistory,
+    anchors, graph_discovery, history_budget::Budget, inconsistent, loaded_administrations,
+    loaded_history, storage, LoadedMeasureHistory,
 };
-use application::{precautionary_hearings::*, precautionary_measures::*, ApplicationError};
+use application::{
+    measure_corrections::MeasureAdministrativeEvidence, precautionary_hearings::*,
+    precautionary_measures::*, ApplicationError,
+};
 use domain::{
     cases::CaseId,
     crypto::{DocumentHasher, Sha256Digest},
@@ -22,6 +25,7 @@ pub(crate) struct HearingProofRef {
 pub(crate) enum HistoryRoot {
     Measure(PrecautionaryMeasureRef),
     Decision(domain::precautionary_measures::MeasureDecisionOperationId),
+    Administrative(domain::precautionary_measures::MeasureCorrectionOperationId),
     Hearing(HearingProofRef),
 }
 #[derive(Default)]
@@ -36,11 +40,17 @@ pub(super) enum Key {
     Group(Uuid),
     Hearing(Uuid, u32),
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum OwnerFamily {
+    Judicial,
+    Administrative,
+}
 pub(super) struct Node {
     pub row: Row,
     pub dependencies: BTreeSet<Key>,
     pub wire_parents: BTreeSet<Uuid>,
     pub targets: Vec<PrecautionaryMeasureRef>,
+    pub family: Option<OwnerFamily>,
 }
 
 pub(crate) fn load_precautionary_history(
@@ -58,8 +68,10 @@ pub(crate) fn load_precautionary_history(
         reserve,
     )?;
     let mut groups = BTreeMap::new();
+    let mut administrations = BTreeMap::new();
     let mut parents = BTreeMap::new();
     let mut hearings: BTreeMap<(Uuid, u32), PrecautionaryHearingCapture> = BTreeMap::new();
+    let mut hearing_origins = BTreeMap::new();
     let order = super::graph_order::order(
         rows.iter()
             .map(|(key, node)| (*key, node.dependencies.clone()))
@@ -69,9 +81,31 @@ pub(crate) fn load_precautionary_history(
         let node = rows
             .remove(&key)
             .ok_or_else(|| inconsistent("durable graph node disappeared"))?;
-        let proof = loaded_history::evidence_for(&node.wire_parents, &groups, &parents)?;
         match key {
+            Key::Group(op) if node.family == Some(OwnerFamily::Administrative) => {
+                let proof = loaded_administrations::record_evidence_for(
+                    &node.wire_parents,
+                    &groups,
+                    &administrations,
+                    &parents,
+                )?;
+                let result = crate::measure_administrative_postgres::storage::reconstruct(
+                    tx, &node.row, proof, hasher,
+                )?;
+                parents.insert(op, node.wire_parents);
+                administrations.insert(
+                    op,
+                    MeasureAdministrativeEvidence {
+                        origin: result.origin,
+                        capture: result.capture,
+                    },
+                );
+            }
             Key::Group(op) => {
+                if node.family != Some(OwnerFamily::Judicial) {
+                    return Err(inconsistent("loaded owner family is absent"));
+                }
+                let proof = loaded_history::evidence_for(&node.wire_parents, &groups, &parents)?;
                 let reference = anchors::reference(&node.row)?;
                 let anchor = match reference {
                     Some(MeasureDecisionAnchorRef::Precautionary {
@@ -102,17 +136,26 @@ pub(crate) fn load_precautionary_history(
                 );
             }
             Key::Hearing(id, revision) => {
+                let proof = loaded_history::evidence_for(&node.wire_parents, &groups, &parents)?;
                 let previous = revision.checked_sub(1).and_then(|r| hearings.get(&(id, r)));
                 let capture = crate::precautionary_hearing_postgres::decode::capture(
                     tx, &node.row, previous, &proof, hasher,
                 )?;
                 crate::precautionary_hearing_postgres::audit::verify(tx, &capture, hasher)?;
+                if revision == 1 {
+                    hearing_origins.insert(
+                        id,
+                        precautionary_hearing_origin_with_measure_history(hasher, &capture, &proof)
+                            .map_err(inconsistent)?,
+                    );
+                }
                 hearings.insert((id, revision), capture);
             }
         }
     }
-    let mut loaded = LoadedMeasureHistory::new(groups, parents)?;
+    let mut loaded = LoadedMeasureHistory::new(groups, administrations, parents)?;
     loaded.hearings = hearings;
+    loaded.hearing_origins = hearing_origins;
     loaded.validate_forest(case, hasher, None, None)?;
     Ok(loaded)
 }

@@ -259,7 +259,7 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente, al igual que G2/M2 y correcciones, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
+pendiente, al igual que los consumidores G2/M2 mixtos, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
 su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
 pruebas ejecutadas de la aceptación todavía pendiente.
@@ -272,9 +272,8 @@ sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
 adaptador conserva también confirmación, modificación, revocación, cese y
 sustitución desde predecesores exactos. Review consume sus revisiones exactas,
 propietarios completos y ancestros. Admite anclas iniciales ordinarias y cautelares
-exactas; G2/M2 y registros administrativos
-siguen pendientes. No está compuesto en
-HTTP ni desplegado.
+exactas. El adaptador administrativo conserva Correct y Mark; G2/M2 y sus
+consumidores mixtos siguen pendientes. No está compuesto en HTTP ni desplegado.
 
 `database migrate --runtime-role` instala `0034_measure_decisions.sql`,
 `0034_measure_decisions_guards.sql`, `0034_measure_decisions_sources.sql` y
@@ -292,10 +291,19 @@ revisión de ese prefijo y sus fuentes/auditorías originales. Las conexiones
 reconstruyen ese grafo con límites independientes de audiencias y medidas, sin
 reemplazar selecciones históricas por cabezas actuales. No actualizar compromisos
 para reparar una selección perdida.
-Las tablas `case_measure_operations`,
-`case_measure_decisions`, `case_measures` y `case_measure_revisions` son inmutables.
-Las relaciones diferidas exigen un propietario con decisión completa, incluso
-sin medidas, y cada raíz con su revisión inicial del mismo propietario. Las
+Las cinco migraciones `0039_measure_administrative_` añaden la carga de
+corrección y sus guardas de captura, fuentes y completitud. La restricción
+diferida `measure_operation_payload` pasa a ser un disparador de restricción
+real que comprueba la familia G1 o A1, conservando su identidad durante nuevas
+ejecuciones de migración. El catálogo valida esa forma exacta.
+Las tablas `case_measure_operations`, `case_measure_decisions`,
+`case_measure_administrations`, `case_measures` y `case_measure_revisions` son
+inmutables. Las relaciones diferidas exigen una decisión completa para G1,
+incluso sin medidas, o una carga administrativa y un único miembro C para A1.
+Cada raíz conserva su revisión inicial del mismo propietario judicial; A no
+crea raíces. El respaldo debe incluir las correcciones y toda su ascendencia,
+sus valores efectivos, fuentes y eventos originales `ma1`, además de los `mg1`
+y `ph1` previos. Perder una corrección no autoriza volver a la revisión anterior. Las
 revisiones posteriores pertenecen al grupo nuevo sin reasignar esa raíz. El
 runtime recibe SELECT e INSERT por columnas explícitas, sin modificación,
 eliminación, delegación ni ejecución de guardas. La apertura valida también

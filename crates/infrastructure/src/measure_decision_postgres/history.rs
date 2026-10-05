@@ -1,11 +1,10 @@
-use super::{graph::*, inconsistent, port};
+use super::{graph::*, inconsistent};
 use application::{precautionary_measures::*, ApplicationError};
 use domain::{
     cases::CaseId, crypto::DocumentHasher, precautionary_hearings::PrecautionaryMeasureRef,
     precautionary_measures::*,
 };
 use postgres::Transaction;
-use uuid::Uuid;
 
 pub(super) fn selections(outcome: &MeasureDecisionOutcome) -> Vec<PrecautionaryMeasureRef> {
     let mut result = Vec::new();
@@ -55,14 +54,6 @@ pub(super) fn predecessors(
     result.sort_by_key(|m| m.capture.result.id.as_uuid());
     Ok(result)
 }
-pub(super) fn owner(
-    tx: &mut Transaction<'_>,
-    case: CaseId,
-    reference: PrecautionaryMeasureRef,
-) -> Result<Uuid, ApplicationError> {
-    tx.query_opt("SELECT owner_operation FROM case_measure_revisions WHERE case_id=$1 AND measure_id=$2 AND revision=$3 AND capture_digest=$4 AND family='m1'",&[&case.as_uuid(),&reference.id().as_uuid(),&i64::from(reference.revision().get()),&reference.digest().as_bytes().as_slice()]).map_err(port)?.map(|r|r.get(0)).ok_or_else(||inconsistent("exact predecessor row is absent or inconsistent"))
-}
-
 pub(super) fn operation(
     tx: &mut Transaction<'_>,
     case: CaseId,

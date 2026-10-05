@@ -1,7 +1,7 @@
 //! Atomic judicial decisions and their original measure ownership.
-mod advertised;
-mod anchors;
-mod audit;
+pub(crate) mod advertised;
+pub(crate) mod anchors;
+pub(crate) mod audit;
 mod commit;
 mod decode;
 mod graph;
@@ -13,12 +13,13 @@ mod history;
 mod history_budget;
 mod inventory;
 mod inventory_shape;
+mod loaded_administrations;
 mod loaded_hearings;
 mod loaded_history;
 mod preparation;
 mod query;
 mod sources;
-mod storage;
+pub(crate) mod storage;
 mod write;
 use crate::precautionary_hearing_postgres::authorization::authorize;
 use application::{precautionary_measures::MeasureDecisionError, ApplicationError};
