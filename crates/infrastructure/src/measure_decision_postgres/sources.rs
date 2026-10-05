@@ -10,7 +10,8 @@ use domain::{
     cases::CaseId,
     crypto::DocumentHasher,
     hearings::HearingSupportRef,
-    precautionary_measures::{MeasureSupervision, MeasureValues},
+    precautionary_hearings::PrecautionaryMeasureRef,
+    precautionary_measures::{MeasureEffect, MeasureSupervision, MeasureValues},
     typed_participants::SubjectRevisionRef,
 };
 use postgres::Transaction;
@@ -19,23 +20,66 @@ pub(super) fn result_sources(
     tx: &mut Transaction<'_>,
     case: CaseId,
     command: &MeasureDecisionCommand,
+    predecessors: &[OwnedMeasureMaterial],
     hasher: &dyn DocumentHasher,
 ) -> Result<Vec<MeasureResultSources>, ApplicationError> {
     let mut result = Vec::new();
     if let Some(effects) = command.outcome.changes() {
         for effect in effects {
-            let domain::precautionary_measures::MeasureEffect::Impose(proposal) = effect else {
-                return Err(inconsistent(
-                    "durable predecessor effects are not available",
-                ));
-            };
-            result.push(MeasureResultSources {
-                id: proposal.id,
-                sources: selected(tx, case, &proposal.values, hasher)?,
-            });
+            match effect {
+                MeasureEffect::Impose(proposal) => result.push(MeasureResultSources {
+                    id: proposal.id,
+                    sources: selected(tx, case, &proposal.values, hasher)?,
+                }),
+                MeasureEffect::Confirm { previous }
+                | MeasureEffect::Revoke { previous }
+                | MeasureEffect::Cease { previous } => {
+                    result.push(retained(case, *previous, predecessors)?);
+                }
+                MeasureEffect::Modify { previous, values } => result.push(MeasureResultSources {
+                    id: previous.id(),
+                    sources: selected(tx, case, values, hasher)?,
+                }),
+                MeasureEffect::Substitute {
+                    predecessors: selected_previous,
+                    successors,
+                } => {
+                    for reference in selected_previous {
+                        result.push(retained(case, *reference, predecessors)?);
+                    }
+                    for proposal in successors {
+                        result.push(MeasureResultSources {
+                            id: proposal.id,
+                            sources: selected(tx, case, &proposal.values, hasher)?,
+                        });
+                    }
+                }
+            }
         }
     }
+    result.sort_by_key(|item| item.id.as_uuid());
     Ok(result)
+}
+
+fn retained(
+    case: CaseId,
+    reference: PrecautionaryMeasureRef,
+    predecessors: &[OwnedMeasureMaterial],
+) -> Result<MeasureResultSources, ApplicationError> {
+    let capture = predecessors
+        .iter()
+        .map(|item| &item.capture)
+        .find(|capture| {
+            capture.case_id == case
+                && capture.result.id == reference.id()
+                && capture.result.revision == reference.revision()
+                && capture.capture_digest == reference.digest()
+        })
+        .ok_or_else(|| inconsistent("retained result lacks its exact predecessor"))?;
+    Ok(MeasureResultSources {
+        id: reference.id(),
+        sources: capture.result.sources.clone(),
+    })
 }
 fn selected(
     tx: &mut Transaction<'_>,

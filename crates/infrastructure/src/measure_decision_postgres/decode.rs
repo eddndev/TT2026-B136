@@ -1,4 +1,4 @@
-use super::{inconsistent, preparation, sources};
+use super::{history, inconsistent, preparation, sources};
 use application::{
     case_stages::StageDocumentFormat, identity::Principal,
     precautionary_hearings::PrecautionaryContextExpectation, precautionary_measures::*,
@@ -22,6 +22,7 @@ fn revision(row: &Row, name: &str) -> Result<u32, ApplicationError> {
 pub(super) fn group(
     tx: &mut Transaction<'_>,
     row: &Row,
+    measure_history: MeasureHistoryEvidence,
     hasher: &dyn DocumentHasher,
 ) -> Result<MeasureDecisionStoredOperation, ApplicationError> {
     let case = CaseId::from_uuid(row.get("case_id"));
@@ -71,12 +72,15 @@ pub(super) fn group(
     if row.get::<_, String>("support_policy") != "pdf_docx_v1" {
         return Err(inconsistent("invalid admission policy"));
     }
+    let predecessors =
+        history::predecessors(&history::selections(&command.outcome), &measure_history)?;
+    let result_sources = sources::result_sources(tx, case, &command, &predecessors, hasher)?;
     let material = MeasureDecisionMaterial {
         context,
         support: sources::support(tx, case, command.values.support(), format)?,
         anchor: None,
-        predecessors: vec![],
-        result_sources: sources::result_sources(tx, case, &command, hasher)?,
+        predecessors,
+        result_sources,
     };
     let actor = Principal {
         id: UserId::from_uuid(row.get("recorded_by")),
@@ -92,7 +96,6 @@ pub(super) fn group(
             u32::try_from(row.get::<_, i32>("recorded_at_nanoseconds")).map_err(inconsistent)?,
         )
         .map_err(inconsistent)?;
-    let measure_history = MeasureHistoryEvidence { groups: vec![] };
     let group = prepare_measure_decision_with_history(
         hasher,
         &actor,
@@ -127,11 +130,11 @@ pub(super) fn member(
 ) -> Result<(), ApplicationError> {
     let result = &capture.result;
     if row.get::<_, uuid::Uuid>("measure_id") != result.id.as_uuid()
-        || row.get::<_, i64>("revision") != 1
+        || row.get::<_, i64>("revision") != i64::from(result.revision.get())
         || row.get::<_, uuid::Uuid>("case_id") != capture.case_id.as_uuid()
         || row.get::<_, uuid::Uuid>("owner_operation") != capture.operation_id.as_uuid()
         || row.get::<_, String>("family") != "m1"
-        || row.get::<_, String>("action") != "impose"
+        || row.get::<_, String>("action") != action_name(result.action)
     {
         return Err(inconsistent("member identity or owner differs"));
     }
@@ -165,11 +168,23 @@ pub(super) fn member(
         return Err(inconsistent("member supervisor selectors differ"));
     }
     if row.get::<_, i64>("initial_revision") != 1
-        || row.get::<_, uuid::Uuid>("root_operation") != capture.operation_id.as_uuid()
+        || row.get::<_, uuid::Uuid>("root_operation") != result.origin.operation_id.as_uuid()
     {
         return Err(inconsistent(
             "measure root does not belong to original member",
         ));
     }
     Ok(())
+}
+
+pub(super) fn action_name(action: MeasureCaptureAction) -> &'static str {
+    match action {
+        MeasureCaptureAction::Impose => "impose",
+        MeasureCaptureAction::Confirm => "confirm",
+        MeasureCaptureAction::Modify => "modify",
+        MeasureCaptureAction::Revoke => "revoke",
+        MeasureCaptureAction::Cease => "cease",
+        MeasureCaptureAction::SubstituteOut => "substitute_out",
+        MeasureCaptureAction::SubstituteIn => "substitute_in",
+    }
 }

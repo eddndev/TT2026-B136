@@ -9164,3 +9164,46 @@ historia mixta administrativa, Review durable, HTTP, Agenda, alertas, Qadra ni
 restauracion completa. La regresion global, el manuscrito de la entrega completa
 y su integracion conservan sus gates separados. No se repitieron las campanas
 historicas de codecs ni de main.
+
+
+## Historia PostgreSQL de decisiones cautelares con predecesores
+
+Verificacion focal local del 5 de octubre de 2026: el target
+`measure_decision_backend` aprobo sus 33 pruebas, ninguna omitida, en 372.63 s
+(396.439 s incluyendo compilacion y preparacion). Son las 23 comprobaciones
+previas del adaptador y diez nuevas de historia. PostgreSQL nativo 16.15 uso
+SCRAM en un cluster privado, eliminado al terminar. Un compilador y un hilo
+usaron temporales en btrfs. Clippy de biblioteca y target aprobo con advertencias
+como errores en 6.65 s; la advertencia futura de Redis es preexistente.
+
+Se comprobaron confirmacion, modificacion con soporte y supervisor reales,
+revocacion, cese y sustitucion de dos medidas por dos. Las raices conservan su
+propietario original; la reconstruccion incluye todos los hermanos y sus
+ancestros independientes. Lectura, reapertura y replay conservan bytes y origen
+anteriores tras agregar nuevas revisiones. La admision fresca rechaza una
+revision antigua, referencias falsas y grupos o ancestros perdidos, sin dejar
+filas ni auditoria parciales. Se conservaron permisos, rollback, catalogo estricto
+y las comprobaciones anteriores del reloj de origen de etapa.
+
+Antes de implementar, la confirmacion real fallo por efecto durable no soportado.
+Una regresion posterior reprodujo en 9.43 s un fallo de integridad: sustituir el
+resultado de una confirmacion por un resultado NoMeasureChange valido de otra
+operacion y eliminar su ultimo miembro podia habilitar una revision anterior.
+El inventario ahora vincula la solicitud completa al compromiso original retenido
+en la auditoria antes de confiar en sus miembros anunciados. La regresion paso
+en 9.66 s y nuevamente en la campana final; la revision independiente fue limpia.
+
+Cinco pruebas unitarias adicionales comprobaron reserva de la captura candidata
+antes de leer y reconstruir los propietarios: limites inclusivos de 256 grupos
+y 8192 miembros, decision sin miembros y contadores intactos tras rechazo.
+El fallo por API ausente se conservo antes de implementar la reserva. Esta prueba
+de frontera es unitaria; no acredita una campana PostgreSQL con 256 propietarios.
+La campana nativa si ejercito el camino nuevo de preparacion con grupos reales.
+
+Los soportes cifrados y PostgreSQL son reales; la admision de formato usa fixtures
+controlados. Dos ejecuciones intermedias no acreditan aceptacion: un filtro exacto
+no selecciono pruebas y un registro de modulo produjo un error de compilacion;
+ambos quedaron corregidos antes de la comprobacion final. No se repitieron codecs,
+las suites generales ni la evidencia confirmada de main. Persistencia con anclas,
+G2/M2 y registros administrativos, Review durable, API, Agenda, alertas, Qadra,
+restauracion, manuscrito e integracion siguen pendientes para la entrega completa.

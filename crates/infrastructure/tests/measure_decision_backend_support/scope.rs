@@ -8,15 +8,17 @@ use domain::{
 };
 
 #[test]
-fn predecessor_effects_reject_without_partial_group_or_audit_until_loaders_exist() {
+fn predecessor_effects_reject_wrong_capture_digest_without_partial_group_or_audit() {
     let Some(mut db) = Fixture::new() else { return };
     let seed = setup(&mut db);
     let first = persist(&db, seed.actor.clone(), seed.command.clone());
     let captured = &first.group.measures[0];
+    let mut digest = *captured.capture_digest.as_bytes();
+    digest[0] ^= 1;
     let previous = PrecautionaryMeasureRef::new(
         captured.result.id,
         captured.result.revision,
-        captured.capture_digest,
+        Sha256Digest::from_array(digest),
     );
     for effect in [
         MeasureEffect::Confirm { previous },

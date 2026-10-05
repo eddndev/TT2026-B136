@@ -31,11 +31,9 @@ pub(super) fn insert(
     let review = &group.review;
     let command = &review.command;
     super::preparation::supported(command)?;
-    if !operation.measure_history.groups.is_empty()
-        || measure_group_origin(hasher, group, &operation.measure_history)? != operation.origin
-    {
+    if measure_group_origin(hasher, group, &operation.measure_history)? != operation.origin {
         return Err(inconsistent(
-            "standalone group differs from its original evidence",
+            "measure group differs from its original evidence",
         ));
     }
     let entry = crate::audit_postgres::append_transaction(
@@ -96,25 +94,28 @@ pub(super) fn insert(
         let canonical = result.values.canonical_bytes();
         let projection = crate::measure_decision_codec::measure_view(&result.values);
         let digest = hasher.hash_bytes(&canonical);
-        tx.execute(
-            "INSERT INTO case_measures(id,case_id,root_operation) VALUES($1,$2,$3)",
-            &[
-                &result.id.as_uuid(),
-                &review.case_id.as_uuid(),
-                &command.operation_id.as_uuid(),
-            ],
-        )
-        .map_err(port)?;
+        if result.previous.is_none() {
+            tx.execute(
+                "INSERT INTO case_measures(id,case_id,root_operation) VALUES($1,$2,$3)",
+                &[
+                    &result.id.as_uuid(),
+                    &review.case_id.as_uuid(),
+                    &result.origin.operation_id.as_uuid(),
+                ],
+            )
+            .map_err(port)?;
+        }
         tx.execute(
             "INSERT INTO case_measure_revisions(measure_id,revision,case_id,owner_operation,
                 family,action,values_canonical,values_view,values_digest,capture_digest,
                 subject_id,subject_revision,subject_values_digest,supervisor_id,supervisor_revision)
-             VALUES($1,$2,$3,$4,'m1','impose',$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+             VALUES($1,$2,$3,$4,'m1',$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)",
             &[
                 &result.id.as_uuid(),
                 &i64::from(result.revision.get()),
                 &review.case_id.as_uuid(),
                 &command.operation_id.as_uuid(),
+                &super::decode::action_name(result.action),
                 &canonical,
                 &projection,
                 &digest.as_bytes().as_slice(),

@@ -127,7 +127,7 @@ fn absent(tx: &mut Transaction<'_>, pattern: &str) -> Result<(), ApplicationErro
     Ok(())
 }
 
-/// Detect detached durable ownership without fetching source or canonical payloads.
+/// Check retained ownership markers and every bounded advertised member set.
 pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), ApplicationError> {
     let broken: bool = tx.query_one(
         "SELECT
@@ -149,9 +149,8 @@ pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), Applicati
             WHERE m.initial_revision<>1 OR o.operation_id IS NULL OR r.measure_id IS NULL)
          OR EXISTS(SELECT 1 FROM case_measure_revisions r
             LEFT JOIN case_measures m ON m.id=r.measure_id AND m.case_id=r.case_id
-                AND m.root_operation=r.owner_operation
             LEFT JOIN case_measure_operations o ON o.operation_id=r.owner_operation AND o.case_id=r.case_id
-            WHERE r.revision<>1 OR r.family<>'m1' OR r.action<>'impose'
+            WHERE r.revision NOT BETWEEN 1 AND 4294967295 OR r.family<>'m1' OR r.action NOT IN ('impose','confirm','modify','revoke','cease','substitute_out','substitute_in')
                 OR m.id IS NULL OR o.operation_id IS NULL)
          OR EXISTS(SELECT 1 FROM audit_events a
             WHERE a.action='measure_decision.recorded' AND NOT EXISTS(
@@ -166,17 +165,9 @@ pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), Applicati
                     ||':review:'||encode(d.review_digest,'hex')||':decision_digest:'||encode(d.decision_digest,'hex')
                     ||':group:'||encode(d.group_digest,'hex') ELSE FALSE END))
          OR EXISTS(SELECT 1 FROM case_measure_decisions d WHERE
-            CASE WHEN octet_length(d.outcome_view::text)>1048576 THEN TRUE
-            WHEN d.outcome_view->>'kind'='no_measure_change' THEN
-                EXISTS(SELECT 1 FROM case_measure_revisions r WHERE r.owner_operation=d.operation_id)
-                OR EXISTS(SELECT 1 FROM case_measures m WHERE m.root_operation=d.operation_id)
-            WHEN d.outcome_view->>'kind'='changes' AND jsonb_typeof(d.outcome_view->'effects')='array' THEN
-                jsonb_array_length(d.outcome_view->'effects') NOT BETWEEN 1 AND 32
-                OR (SELECT count(*) FROM (SELECT measure_id FROM case_measure_revisions
-                    WHERE owner_operation=d.operation_id LIMIT 33) members) <> jsonb_array_length(d.outcome_view->'effects')
-                OR (SELECT count(*) FROM (SELECT id FROM case_measures
-                    WHERE root_operation=d.operation_id LIMIT 33) roots) <> jsonb_array_length(d.outcome_view->'effects')
-            ELSE TRUE END)",
+            octet_length(d.outcome_view::text)>1048576
+            OR octet_length(d.outcome_canonical) NOT BETWEEN 11 AND 645450
+            OR d.outcome_digest<>sha256(d.outcome_canonical))",
         &[],
     ).map_err(port)?.get(0);
     if broken {
@@ -184,5 +175,5 @@ pub(super) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), Applicati
             "measure ownership inventory is incomplete or contradictory",
         ));
     }
-    Ok(())
+    super::inventory_shape::validate(tx)
 }

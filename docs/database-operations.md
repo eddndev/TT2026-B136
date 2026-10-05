@@ -246,7 +246,7 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente, al igual que persistencia Review, decisiones con anclas o predecesores,
+pendiente, al igual que persistencia Review y decisiones con anclas,
 G2/M2 y correcciones, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
 su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
@@ -257,16 +257,19 @@ pruebas ejecutadas de la aceptación todavía pendiente.
 `PostgresMeasureDecisionStore` implementa localmente escritura y lectura de
 grupos con 1 a 32 imposiciones iniciales y decisiones NoMeasureChange. Una decisión
 sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
-adaptador rechaza anclas y efectos con predecesores; G2/M2, registros administrativos
+adaptador conserva también confirmación, modificación, revocación, cese y
+sustitución desde predecesores exactos. Rechaza anclas; G2/M2, registros administrativos
 y consumo durable de objetivos Review siguen pendientes. No está compuesto en
 HTTP ni desplegado.
 
 `database migrate --runtime-role` instala `0034_measure_decisions.sql`,
 `0034_measure_decisions_guards.sql`, `0034_measure_decisions_sources.sql` y
-`0034_measure_decisions_complete.sql`. Las tablas `case_measure_operations`,
+`0034_measure_decisions_complete.sql`, seguidas por las cuatro migraciones
+`0035_measure_decision_` de historia, captura, fuentes y completitud. Las tablas `case_measure_operations`,
 `case_measure_decisions`, `case_measures` y `case_measure_revisions` son inmutables.
 Las relaciones diferidas exigen un propietario con decisión completa, incluso
-sin medidas, y cada raíz con su revisión inicial del mismo propietario. El
+sin medidas, y cada raíz con su revisión inicial del mismo propietario. Las
+revisiones posteriores pertenecen al grupo nuevo sin reasignar esa raíz. El
 runtime recibe SELECT e INSERT por columnas explícitas, sin modificación,
 eliminación, delegación ni ejecución de guardas. La apertura valida también
 restricciones, funciones, disparadores e inventario completo.
@@ -286,6 +289,15 @@ operación, decisión y compromisos originales. Replay conserva autoría y tiemp
 también en expediente cerrado con acceso actual. Los relojes usan UTC soportado
 con nanosegundos; las capturas respetan el mínimo preparado y las auditorías de
 acceso no preceden al grupo devuelto.
+
+La reconstrucción recorre propietarios completos, comprueba cada referencia y
+conserva toda la ascendencia de sus miembros. Los límites de 256 propietarios y
+8192 miembros incluyen la captura candidata. Las operaciones históricas pueden
+usar el presupuesto completo; una captura nueva debe reservar su espacio antes
+de reconstruir fuentes. No se acepta una revisión anterior como cabeza cuando
+queda evidencia de un resultado posterior perdido. Antes de confiar en el
+inventario anunciado, se vinculan valores, actor y resultado con el compromiso
+de solicitud original conservado en la auditoría.
 
 Respaldar juntas las cuatro tablas, sus fuentes exactas, usuarios y auditoría.
 Las conexiones abiertas rechazan miembros, raíces o decisiones perdidos. Una

@@ -32,9 +32,9 @@ pub(super) fn expected(table: &str) -> Vec<(String, String)> {
         ]),
         "case_measures" => ("measure_root", &[("initial", "(initial_revision = 1)")]),
         "case_measure_revisions" => ("measure_revision", &[
-            ("initial", "(revision = 1)"),
+            ("range", "((revision >= 1) AND (revision <= '4294967295'::bigint))"),
             ("family", r#"((family COLLATE "C") = 'm1'::text)"#),
-            ("action", r#"((action COLLATE "C") = 'impose'::text)"#),
+            ("action", r#"((action COLLATE "C") = ANY (ARRAY['impose'::text, 'confirm'::text, 'modify'::text, 'revoke'::text, 'cease'::text, 'substitute_out'::text, 'substitute_in'::text]))"#),
             ("values_size", "(((octet_length(values_canonical) >= 91) AND (octet_length(values_canonical) <= 20113)) AND (SUBSTRING(values_canonical FROM 1 FOR 5) = convert_to('MEAS1'::text, 'UTF8'::name)))"),
             ("values_view", "((jsonb_typeof(values_view) = 'object'::text) AND (octet_length((values_view)::text) <= 32768))"),
             ("values_hash", "(values_digest = sha256(values_canonical))"),

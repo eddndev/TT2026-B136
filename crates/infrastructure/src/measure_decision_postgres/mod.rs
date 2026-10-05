@@ -1,8 +1,12 @@
 //! Atomic standalone judicial decisions and their original measure ownership.
+mod advertised;
 mod audit;
 mod commit;
 mod decode;
+mod history;
+mod history_budget;
 mod inventory;
+mod inventory_shape;
 mod preparation;
 mod query;
 mod sources;

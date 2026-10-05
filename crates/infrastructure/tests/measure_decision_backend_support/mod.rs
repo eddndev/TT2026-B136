@@ -257,3 +257,5 @@ mod schema;
 
 mod commit_races;
 mod schema_time;
+
+mod history;

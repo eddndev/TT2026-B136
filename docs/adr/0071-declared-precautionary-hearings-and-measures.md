@@ -764,7 +764,7 @@ history, and pagination cannot conceal a lost hearing as an empty page.
 
 This local adapter does not establish acceptance of backup restoration or the
 integrated HTTP, Agenda, alerts and Qadra workflow. Durable Review consumption,
-anchored and predecessor decisions, G2/M2 and administrative records remain
+anchored decisions, G2/M2 and administrative records remain
 separate pending work.
 Operational requirements are in [database operations](../database-operations.md);
 executed checks are recorded independently in the verification report.
@@ -774,8 +774,7 @@ executed checks are recorded independently in the verification report.
 `PostgresMeasureDecisionStore` implements the existing decision write and read
 ports for standalone Impose groups of 1..32 new measure identities and explicit
 NoMeasureChange decisions. The latter retain a real decision, group origin and
-audit event with zero measure rows. All anchors and effects requiring predecessors
-reject until their durable loaders are implemented. The `0034_measure_decisions`
+audit event with zero measure rows. Anchors remain rejected. The `0034_measure_decisions`
 migrations add append-only operation owners, decisions, measure roots and measure
 revisions; this boundary stores G1/M1 and preserves existing canonical bytes.
 
@@ -806,6 +805,31 @@ payload is lost, its digest cannot reveal the consumed identities, so orphan
 group audit evidence blocks fresh identity admission globally. Reopening never
 repairs or replaces original receipts. These local capabilities do not establish
 HTTP integration, deployment or backup/restoration acceptance.
+
+### Durable predecessor effects and complete ownership
+
+The `0035_measure_decision_` migrations extend the same tables and canonical
+formats to Confirm, Modify, Revoke, Cease and atomic many-to-many Substitute.
+Only Impose and SubstituteIn create roots. Later revisions retain the original
+root owner while belonging to their actual current decision group. Unchanged
+effects retain exact prior values and sources; Modify resolves its declared
+sources while preserving the exact subject and measure class. Substitution
+requires the same subject identity without inventing an identity revision rule.
+
+Discover every owning group and all sibling dependencies before reconstructing
+in topological order. Reject cycles, missing exact members, conflicting digests
+and incomplete roots. The 256-owner and 8192-member limits include the candidate
+for fresh preparation; historical reads retain the entire original allowance.
+Current head admission is distinct from original reconstruction and replay.
+
+A surviving decision advertises every expected result, so losing its latest
+measure row cannot silently expose an older head. Bind that advertised outcome
+to its strict original submission and the retained audit marker before using it
+to establish completeness. A self-consistent changed outcome digest alone does
+not prove it belongs to that original operation. Keep this bounded check free
+of current source-head or current actor assumptions. The backend still rejects
+anchors and mixed administrative records; Review, HTTP, Agenda, alerts, Qadra and
+restoration require their own integration and acceptance.
 
 ### Readers, recovery and restoration
 

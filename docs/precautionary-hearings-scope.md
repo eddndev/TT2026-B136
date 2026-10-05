@@ -3,8 +3,8 @@
 Estado: **dominio y servicios de aplicación verificados localmente**. El trabajo local
 comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
 convocatorias de imposición, sustitución de programación y cancelación, así como
-decisiones independientes de imposición inicial o ausencia de cambios. Su alcance
-se detalla abajo. La persistencia con anclas, predecesores, G2/M2 y registros
+decisiones independientes con historia exacta y ausencia de cambios. Su alcance
+se detalla abajo. La persistencia con anclas, G2/M2 y registros
 administrativos, las convocatorias Review, HTTP, Agenda, alertas e interfaz
 conservan sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
@@ -29,7 +29,7 @@ de auditoría impide reutilizar una identidad tras perder sus registros y evita
 presentar una revisión anterior o una página vacía como estado actual válido.
 
 Este adaptador admite sólo el propósito `imposition`. Las convocatorias `review`
-se rechazan porque todavía falta su cargador de historia durable de medidas;
+se rechazan hasta conectar y comprobar su selección de historia durable de medidas;
 persistir decisiones independientes no habilita esa selección. La existencia
 del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita restauración
 integral o despliegue. Véase [operación de base de datos](database-operations.md).
@@ -40,8 +40,12 @@ integral o despliegue. Véase [operación de base de datos](database-operations.
 decisiones explícitas NoMeasureChange. Estas últimas tienen decisión, propietario
 de grupo y auditoría reales, sin filas de medidas. Las migraciones `0034_` guardan
 operaciones, decisiones, raíces y revisiones iniciales en cuatro tablas inmutables.
-Rechaza anclas y efectos con predecesores; no transforma evidencia suministrada
-en historia durable ni habilita G2/M2 o correcciones administrativas.
+Las migraciones `0035_` amplían las guardas para confirmar, modificar, revocar,
+cesar y sustituir medidas desde predecesores exactos. Las raíces conservan su
+propietario inicial; cada grupo retiene todos sus miembros y ancestros, incluso
+los de hermanos no seleccionados. Una captura nueva exige la cabeza vigente;
+lectura y replay reconstruyen la historia original. Se rechazan anclas y no se
+habilitan G2/M2 ni correcciones administrativas.
 
 La preparación admite el soporte exacto fuera del bloqueo; la confirmación exige
 ambos digests y vuelve a comprobar principal, acceso, contexto y fuentes. Todas
