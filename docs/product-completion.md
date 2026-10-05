@@ -91,8 +91,8 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   regreso a la actividad o bandeja de alertas, con capturas exactas, permisos y
   filtros. Su aceptación API/restauración y navegador real aprobaron. La
   confirmación natural de CI, Web y Documents también aprobó en `main`.
-- Pendientes procesales: completar el corpus jurídico aplicable y las familias
-  de eventos todavía no cubiertas por la creación explícita de resultado y plazo.
+- Pendientes procesales: completar el corpus jurídico finito y el flujo cautelar
+  delimitados en la lista de cierre de los cuatro frentes.
   Las audiencias propias de recursos ya están integradas, con persistencia,
   preparación/confirmación, origen exacto, recuperación, Agenda, alertas y Qadra;
   su confirmación natural en main está acreditada. Véase el
@@ -112,8 +112,10 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   Qadra desde ambas aprobó recorridos de escritorio/móvil con HTTP controlado.
   La gestión de convocatorias de imposición/revisión y su recuperación también
   aprobó focales controlados. Las decisiones agrupadas y sin cambios también
-  tienen formulario, consulta y recuperación verificados con HTTP controlado;
-  rectificaciones y aceptación integrada completa siguen pendientes. Estos componentes no acreditan el flujo cautelar
+  tienen formulario, consulta y recuperación verificados con HTTP controlado.
+  Las tres rectificaciones administrativas también cuentan con esa aceptación,
+  incluida historia exacta y recuperación de borrador y operación original. La
+  aceptación integrada completa con servicios reales y restauración sigue pendiente. Estos componentes no acreditan el flujo cautelar
   terminado ni reglas jurídicas automáticas. La lista de cierre es
   [finita y explícita](four-front-closure.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,

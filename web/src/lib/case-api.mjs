@@ -1,3 +1,4 @@
+import { measureAdministrationsApi } from './measure-administrations-api.mjs';
 import { activityResourcesApi } from './activity-resources-api.mjs';
 import { deadlinesApi } from './deadline-api.mjs';
 import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
@@ -72,6 +73,7 @@ export function caseApi(transport) {
     caseResourceHearings: (id, resourceId) => resourceHearingsApi(request, id, resourceId),
     casePrecautionaryHearings: (id) => precautionaryHearingsApi(request, id),
     caseMeasures: (id) => measureRecordsApi(request, id),
+    caseMeasureAdministrations: (caseId) => measureAdministrationsApi(request, caseId),
     caseMeasureDecisions: (id) => measureDecisionsApi(request, id),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),

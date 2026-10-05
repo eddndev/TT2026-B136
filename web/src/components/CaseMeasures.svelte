@@ -22,6 +22,7 @@
     selected = null,
     busy = false,
     editorBusy = false,
+    recordsBusy = false,
     editing = false,
     savedDraft = null,
     error = '',
@@ -32,7 +33,7 @@
     more = false,
     nextId;
   let drafts = pendingMeasureDecisionDrafts(session, record.id);
-  $: locked = busy || editorBusy || editing;
+  $: locked = busy || editorBusy || editing || recordsBusy;
   $: manage =
     canFacts(user.role, 'manage') &&
     !$administration.closed &&
@@ -194,6 +195,9 @@
 {#key refreshRecords}<CaseMeasureRecords
     {api}
     caseId={record.id}
-    disabled={locked}
+    {user}
+    {manage}
+    bind:pending={recordsBusy}
+    disabled={busy || editorBusy || editing}
     ondenied={fail}
   />{/key}

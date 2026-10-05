@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Rectificaciones cautelares en Qadra: 5 de octubre de 2026
+
+La interfaz permite corregir texto y vigencia declarada, marcar una captura por
+error y reemplazar una identidad registrada. Conserva el origen judicial,
+los registros anteriores y el enlace del reemplazo; cada acción exige revisión
+expresa. Paralegal y expedientes cerrados conservan consulta. La historia permite
+abrir el recibo original y no ofrece nuevas rectificaciones sobre una revisión
+histórica seleccionada.
+
+La verificación focal aprobó seis grupos del cliente, tres del constructor del
+formulario y seis de conservación del borrador. Los seis recorridos de acciones,
+respuesta perdida tras cambio de cabeza y consulta restringida aprobaron en
+27.0 s (28.485 s completos). Los seis recorridos existentes de decisiones
+compartiendo esta pantalla también aprobaron, en 29.7 s (31.189 s completos).
+
+La recuperación de un reemplazo incierto al navegar pasó sin repetir el POST ni
+cambiar las identidades o confirmaciones originales. Otros dos recorridos
+mostraron que faltaba exponer la referencia exacta en el editor recuperado:
+se añadió esa consulta dentro del formulario y aprobaron en 17.7 s (19.171 s
+completos). Conservan texto y desfase incompleto, bloquean un cierre posterior
+a preparar y no convierten una fecha incompleta en una hora calculada. La
+captura móvil de 390 px fue inspeccionada, sin desbordamiento de controles.
+
+La revisión adicional reprodujo acciones habilitadas al consultar una revisión
+histórica. El guard de referencia actual corrigió el defecto; el recorrido de
+historia y consulta del recibo original aprobó en 12.2 s (13.681 s completos).
+Esta aceptación usa HTTP controlado. La campaña con servicios reales,
+restauración, manuscrito y gates de la entrega aún está pendiente. No se ejecutó
+otra regresión global ni se modificó el PDF aceptado.
+
 ## Decisiones cautelares en Qadra: 5 de octubre de 2026
 
 La sección de medidas registra imposición, confirmación, modificación, revocación,
