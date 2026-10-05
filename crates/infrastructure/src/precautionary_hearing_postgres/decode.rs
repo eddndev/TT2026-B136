@@ -1,7 +1,10 @@
 use super::{inconsistent, sources};
 use application::{
-    case_stages::StageDocumentFormat, identity::Principal, precautionary_hearings::*,
-    precautionary_measures::MeasureHistoryEvidence, ApplicationError,
+    case_stages::StageDocumentFormat,
+    identity::Principal,
+    precautionary_hearings::*,
+    precautionary_measures::{MeasureDecisionRecordHistoryEvidence, MeasureHistoryEvidence},
+    ApplicationError,
 };
 use domain::{
     case_administration::{CaseRevision, CaseStageRevision},
@@ -38,6 +41,27 @@ pub(crate) fn capture(
     row: &Row,
     previous: Option<&PrecautionaryHearingCapture>,
     measure_history: &MeasureHistoryEvidence,
+    hasher: &dyn DocumentHasher,
+) -> Result<PrecautionaryHearingCapture, ApplicationError> {
+    record_capture(
+        tx,
+        row,
+        previous,
+        &MeasureDecisionRecordHistoryEvidence {
+            records: application::measure_corrections::MeasureRecordHistoryEvidence {
+                judicial: measure_history.clone(),
+                administrative: Vec::new(),
+            },
+            decisions: Vec::new(),
+        },
+        hasher,
+    )
+}
+pub(crate) fn record_capture(
+    tx: &mut Transaction<'_>,
+    row: &Row,
+    previous: Option<&PrecautionaryHearingCapture>,
+    record_history: &MeasureDecisionRecordHistoryEvidence,
     hasher: &dyn DocumentHasher,
 ) -> Result<PrecautionaryHearingCapture, ApplicationError> {
     let case = CaseId::from_uuid(row.get("case_id"));
@@ -163,16 +187,16 @@ pub(crate) fn capture(
         .map_err(inconsistent)?
         .replace_nanosecond(nanos)
         .map_err(inconsistent)?;
-    let capture = prepare_precautionary_hearing_with_history(
+    let capture = prepare_precautionary_hearing_with_decision_history(
         hasher,
         &actor,
         case,
         command,
-        PrecautionaryHearingPreparationMaterial {
+        PrecautionaryHearingDecisionPreparationMaterial {
             observed_context: context,
             sources,
             predecessor: previous,
-            measure_history,
+            decision_history: record_history,
         },
     )
     .map_err(inconsistent)?

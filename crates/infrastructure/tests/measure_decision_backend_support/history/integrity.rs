@@ -75,12 +75,20 @@ fn lost_latest_member_cannot_restore_an_older_head_or_hide_the_committed_owner()
     remove_member(&mut db, &latest.group.measures[0]);
     let before = snapshot(&mut db);
 
-    assert!(storage
-        .get(&seed.actor, db.case, latest.origin.decision_id)
-        .is_err());
-    assert!(storage
-        .get_operation(&seed.actor, db.case, latest.origin.operation_id)
-        .is_err());
+    assert!(MeasureDecisionReadStore::get(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        latest.origin.decision_id
+    )
+    .is_err());
+    assert!(MeasureDecisionReadStore::get_operation(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        latest.origin.operation_id
+    )
+    .is_err());
     assert!(query
         .get("session", db.case, latest.origin.decision_id)
         .is_err());
@@ -146,12 +154,20 @@ fn missing_sibling_ancestor_rejects_even_when_the_selected_members_own_branch_su
     remove_member(&mut db, &second.group.measures[0]);
     let before = snapshot(&mut db);
 
-    assert!(storage
-        .get(&seed.actor, db.case, joined.origin.decision_id)
-        .is_err());
-    assert!(storage
-        .get_operation(&seed.actor, db.case, joined.origin.operation_id)
-        .is_err());
+    assert!(MeasureDecisionReadStore::get(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        joined.origin.decision_id
+    )
+    .is_err());
+    assert!(MeasureDecisionReadStore::get_operation(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        joined.origin.operation_id
+    )
+    .is_err());
     assert!(workflow.prepare("session", db.case, next).is_err());
     assert_eq!(snapshot(&mut db), before);
 }
@@ -232,14 +248,14 @@ fn substituted_no_change_outcome_cannot_hide_a_lost_latest_member_from_live_admi
     assert_eq!(after_damage, retained);
     let before = snapshot(&mut db);
 
-    assert!(storage
-        .prepare(
-            &seed.actor,
-            db.case,
-            &stale,
-            &application::documents::StageSupportReadLimits::default(),
-        )
-        .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        &stale,
+        &application::documents::StageSupportReadLimits::default(),
+    )
+    .is_err());
     assert!(workflow.prepare("session", db.case, stale).is_err());
     assert_eq!(snapshot(&mut db), before);
 }

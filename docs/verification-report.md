@@ -1,5 +1,48 @@
 # Informe de verificación local
 
+## Persistencia mixta y lecturas cautelares: 5 de octubre de 2026
+
+Aprobaron **37 identidades nativas nuevas** con PostgreSQL **16.15/SCRAM**:
+22 de decisiones G2, cuatro de convocatorias mixtas, ocho de sus consultas y
+tres de contexto. Las 22 decisiones se verificaron como 19 casos iniciales
+correctos y tres casos corregidos; no se repitieron ni sumaron dos veces los
+casos verdes. Las consultas nativas de decisiones y convocatorias duraron
+**42.76 s** y **55.11 s**; el contexto, **10.63 s**. Los clusters privados
+se retiraron después de cada ejecución. Fuentes y cifrado son reales; la
+admisión de formato es controlada.
+
+Las pruebas conservan familias originales G1/M1, G2/M2 y A1/C1, propietarios
+completos, anclas y objetivos históricos exactos, soporte judicial real después
+de correcciones y nuevas decisiones, así como replay original después de marcas
+y cierre. Verifican cabeza vigente para efectos nuevos, aislamiento, principal
+completo, auditoría y rollback, catálogo estricto y pérdida de cargas, filas o
+pruebas sin sustituir la cabeza por una anterior. La consulta de contexto prueba
+el par administrativo/etapa y el origen administrativo de la etapa, incluso tras
+cerrar el expediente, con auditoría atómica y rechazo de fuentes corruptas.
+
+En aplicación aprobaron **53 identidades nuevas**: 22 de lecturas de decisiones,
+23 de convocatorias y ocho de contexto. Los dos primeros conjuntos se cerraron
+con 21+1 y 21+2 casos: se corrigieron un contexto de fixture y dos nombres de
+archivo de prueba inválidos, conservando sus comprobaciones. Incluyen cierres
+mixtos completos, fuentes compartidas, límites previos al hashing, cursores,
+reautorización y relojes. Las **16 unidades afectadas del grafo** aprobaron;
+Clippy de aplicación aprobó con `-D warnings` en **8.079 s**. Clippy de
+infraestructura y nueve targets aprobó en **4.048 s** después de corregir dos
+lints y calificar explícitamente llamadas a los traits anteriores en los fixtures.
+Las aserciones e identidades de esas pruebas se conservaron.
+
+Los RED de puertos ausentes precedieron a cada implementación. La campaña
+nativa detectó y corrigió una condición CASE sin paréntesis, el uso del cargador
+antiguo en el inventario de convocatorias y un alias SQL ambiguo en las anclas.
+Las revisiones independientes de SQL, grafo, lecturas y contexto no dejaron
+hallazgos. Un compilador y un thread, temporales privados sobre btrfs.
+
+Las 165 pruebas nativas anteriores de adaptadores afectados se comprobarán una
+vez después de completar la extensión administrativa de reemplazo de identidad;
+esta sección no las declara ejecutadas sobre el código mixto. Tampoco acredita
+la regresión global de cierre, HTTP, Agenda, alertas, Qadra, restauración,
+manuscrito, integración ni despliegue. El PDF aceptado permanece intacto.
+
 ## Consulta persistida de registros actuales e históricos: 4 de octubre de 2026
 
 Aprobaron **9 pruebas nativas PostgreSQL en 95.36 s**, sin omisiones; **98.213 s**

@@ -68,14 +68,7 @@ pub(super) fn reconstruct(
         .iter()
         .filter(|m| m.result.previous.is_none())
         .count();
-    let counts=tx.query_one("SELECT (SELECT count(*) FROM (SELECT 1 FROM case_measure_revisions WHERE owner_operation=$1 LIMIT 33) r),(SELECT count(*) FROM (SELECT 1 FROM case_measures WHERE root_operation=$1 LIMIT 33) h)",&[&op]).map_err(port)?;
-    if counts.get::<_, i64>(0) != expected as i64 || counts.get::<_, i64>(1) != new_roots as i64 {
-        return Err(inconsistent("group sibling or root count differs"));
-    }
-    let rows=tx.query(&format!("SELECT r.*,h.initial_revision,h.root_operation FROM case_measure_revisions r JOIN case_measures h ON h.id=r.measure_id AND h.case_id=r.case_id WHERE r.owner_operation=$1 AND {MEMBER_BOUNDS} ORDER BY r.measure_id,r.revision LIMIT 33"),&[&op]).map_err(port)?;
-    if rows.len() != expected {
-        return Err(inconsistent("group sibling source is missing or oversized"));
-    }
+    let rows = member_rows(tx, op, expected, new_roots)?;
     for (row, capture) in rows.iter().zip(&result.group.measures) {
         decode::member(row, capture, hasher)?;
     }
@@ -109,4 +102,21 @@ pub(super) fn operation(
         hasher,
     )
     .map(Some)
+}
+
+pub(super) fn member_rows(
+    tx: &mut Transaction<'_>,
+    op: uuid::Uuid,
+    expected: usize,
+    new_roots: usize,
+) -> Result<Vec<postgres::Row>, ApplicationError> {
+    let counts=tx.query_one("SELECT (SELECT count(*) FROM (SELECT 1 FROM case_measure_revisions WHERE owner_operation=$1 LIMIT 33) r),(SELECT count(*) FROM (SELECT 1 FROM case_measures WHERE root_operation=$1 LIMIT 33) h)",&[&op]).map_err(port)?;
+    if counts.get::<_, i64>(0) != expected as i64 || counts.get::<_, i64>(1) != new_roots as i64 {
+        return Err(inconsistent("group sibling or root count differs"));
+    }
+    let rows=tx.query(&format!("SELECT r.*,h.initial_revision,h.root_operation FROM case_measure_revisions r JOIN case_measures h ON h.id=r.measure_id AND h.case_id=r.case_id WHERE r.owner_operation=$1 AND {MEMBER_BOUNDS} ORDER BY r.measure_id,r.revision LIMIT 33"),&[&op]).map_err(port)?;
+    if rows.len() != expected {
+        return Err(inconsistent("group sibling source is missing or oversized"));
+    }
+    Ok(rows)
 }

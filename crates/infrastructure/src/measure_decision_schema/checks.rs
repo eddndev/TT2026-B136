@@ -5,7 +5,7 @@ use postgres::GenericClient;
 pub(super) fn expected(table: &str) -> Vec<(String, String)> {
     let (prefix, expressions): (&str, &[(&str, &str)]) = match table {
         "case_measure_operations" => ("measure_operation", &[
-            ("family", r#"((family COLLATE "C") = ANY (ARRAY['g1'::text, 'a1'::text]))"#),
+            ("family", r#"((family COLLATE "C") = ANY (ARRAY['g1'::text, 'g2'::text, 'a1'::text]))"#),
             ("digest", "(octet_length(owner_digest) = 32)"),
             ("sequence", "(audit_sequence >= 0)"),
         ]),
@@ -34,8 +34,8 @@ pub(super) fn expected(table: &str) -> Vec<(String, String)> {
         "case_measures" => ("measure_root", &[("initial", "(initial_revision = 1)")]),
         "case_measure_revisions" => ("measure_revision", &[
             ("range", "((revision >= 1) AND (revision <= '4294967295'::bigint))"),
-            ("family", r#"((family COLLATE "C") = ANY (ARRAY['m1'::text, 'c1'::text]))"#),
-            ("validity", r#"((((family COLLATE "C") = 'm1'::text) AND ((validity COLLATE "C") = 'valid'::text)) OR (((family COLLATE "C") = 'c1'::text) AND ((validity COLLATE "C") = ANY (ARRAY['valid'::text, 'entered_in_error'::text]))))"#),
+            ("family", r#"((family COLLATE "C") = ANY (ARRAY['m1'::text, 'm2'::text, 'c1'::text]))"#),
+            ("validity", r#"((((family COLLATE "C") = ANY (ARRAY['m1'::text, 'm2'::text])) AND ((validity COLLATE "C") = 'valid'::text)) OR (((family COLLATE "C") = 'c1'::text) AND ((validity COLLATE "C") = ANY (ARRAY['valid'::text, 'entered_in_error'::text]))))"#),
             ("action", r#"((action COLLATE "C") = ANY (ARRAY['impose'::text, 'confirm'::text, 'modify'::text, 'revoke'::text, 'cease'::text, 'substitute_out'::text, 'substitute_in'::text]))"#),
             ("values_size", "(((octet_length(values_canonical) >= 91) AND (octet_length(values_canonical) <= 20113)) AND (SUBSTRING(values_canonical FROM 1 FOR 5) = convert_to('MEAS1'::text, 'UTF8'::name)))"),
             ("values_view", "((jsonb_typeof(values_view) = 'object'::text) AND (octet_length((values_view)::text) <= 32768))"),

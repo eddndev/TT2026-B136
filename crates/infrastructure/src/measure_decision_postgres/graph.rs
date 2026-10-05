@@ -42,7 +42,8 @@ pub(super) enum Key {
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum OwnerFamily {
-    Judicial,
+    JudicialV1,
+    JudicialV2,
     Administrative,
 }
 pub(super) struct Node {
@@ -68,6 +69,7 @@ pub(crate) fn load_precautionary_history(
         reserve,
     )?;
     let mut groups = BTreeMap::new();
+    let mut decisions = BTreeMap::new();
     let mut administrations = BTreeMap::new();
     let mut parents = BTreeMap::new();
     let mut hearings: BTreeMap<(Uuid, u32), PrecautionaryHearingCapture> = BTreeMap::new();
@@ -87,6 +89,7 @@ pub(crate) fn load_precautionary_history(
                     &node.wire_parents,
                     &groups,
                     &administrations,
+                    &decisions,
                     &parents,
                 )?;
                 let result = crate::measure_administrative_postgres::storage::reconstruct(
@@ -102,10 +105,12 @@ pub(crate) fn load_precautionary_history(
                 );
             }
             Key::Group(op) => {
-                if node.family != Some(OwnerFamily::Judicial) {
+                if !matches!(
+                    node.family,
+                    Some(OwnerFamily::JudicialV1 | OwnerFamily::JudicialV2)
+                ) {
                     return Err(inconsistent("loaded owner family is absent"));
                 }
-                let proof = loaded_history::evidence_for(&node.wire_parents, &groups, &parents)?;
                 let reference = anchors::reference(&node.row)?;
                 let anchor = match reference {
                     Some(MeasureDecisionAnchorRef::Precautionary {
@@ -125,35 +130,75 @@ pub(crate) fn load_precautionary_history(
                     }
                     _ => anchors::load(tx, case, &reference, hasher)?,
                 };
-                let result = storage::reconstruct(tx, &node.row, proof, anchor, hasher)?;
+                if node.family == Some(OwnerFamily::JudicialV1) {
+                    let proof =
+                        loaded_history::evidence_for(&node.wire_parents, &groups, &parents)?;
+                    let result = storage::reconstruct(tx, &node.row, proof, anchor, hasher)?;
+                    groups.insert(
+                        op,
+                        MeasureGroupEvidence {
+                            origin: result.origin,
+                            capture: result.group,
+                        },
+                    );
+                } else {
+                    let proof = loaded_administrations::record_evidence_for(
+                        &node.wire_parents,
+                        &groups,
+                        &administrations,
+                        &decisions,
+                        &parents,
+                    )?;
+                    let result =
+                        super::record_storage::reconstruct(tx, &node.row, proof, anchor, hasher)?;
+                    decisions.insert(
+                        op,
+                        MeasureGroupEvidenceV2 {
+                            origin: result.origin,
+                            capture: result.group,
+                        },
+                    );
+                }
                 parents.insert(op, node.wire_parents);
-                groups.insert(
-                    op,
-                    MeasureGroupEvidence {
-                        origin: result.origin,
-                        capture: result.group,
-                    },
-                );
             }
             Key::Hearing(id, revision) => {
-                let proof = loaded_history::evidence_for(&node.wire_parents, &groups, &parents)?;
-                let previous = revision.checked_sub(1).and_then(|r| hearings.get(&(id, r)));
-                let capture = crate::precautionary_hearing_postgres::decode::capture(
-                    tx, &node.row, previous, &proof, hasher,
+                let proof = loaded_administrations::record_evidence_for(
+                    &node.wire_parents,
+                    &groups,
+                    &administrations,
+                    &decisions,
+                    &parents,
                 )?;
+                let previous = revision.checked_sub(1).and_then(|r| hearings.get(&(id, r)));
+                let capture =
+                    if proof.records.administrative.is_empty() && proof.decisions.is_empty() {
+                        crate::precautionary_hearing_postgres::decode::capture(
+                            tx,
+                            &node.row,
+                            previous,
+                            &proof.records.judicial,
+                            hasher,
+                        )?
+                    } else {
+                        crate::precautionary_hearing_postgres::decode::record_capture(
+                            tx, &node.row, previous, &proof, hasher,
+                        )?
+                    };
                 crate::precautionary_hearing_postgres::audit::verify(tx, &capture, hasher)?;
                 if revision == 1 {
                     hearing_origins.insert(
                         id,
-                        precautionary_hearing_origin_with_measure_history(hasher, &capture, &proof)
-                            .map_err(inconsistent)?,
+                        precautionary_hearing_origin_with_decision_history(
+                            hasher, &capture, &proof,
+                        )
+                        .map_err(inconsistent)?,
                     );
                 }
                 hearings.insert((id, revision), capture);
             }
         }
     }
-    let mut loaded = LoadedMeasureHistory::new(groups, administrations, parents)?;
+    let mut loaded = LoadedMeasureHistory::new(groups, decisions, administrations, parents)?;
     loaded.hearings = hearings;
     loaded.hearing_origins = hearing_origins;
     loaded.validate_forest(case, hasher, None, None)?;

@@ -33,13 +33,19 @@ pub(super) fn reject_original(
     case: CaseId,
     command: &MeasureDecisionCommand,
 ) {
-    assert!(storage.get(actor, case, command.decision_id).is_err());
-    assert!(storage
-        .get_operation(actor, case, command.operation_id)
-        .is_err());
-    assert!(storage
-        .prepare(actor, case, command, &StageSupportReadLimits::default())
-        .is_err());
+    assert!(MeasureDecisionReadStore::get(storage, actor, case, command.decision_id).is_err());
+    assert!(
+        MeasureDecisionReadStore::get_operation(storage, actor, case, command.operation_id)
+            .is_err()
+    );
+    assert!(MeasureDecisionStore::prepare(
+        storage,
+        actor,
+        case,
+        command,
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
 }
 
 pub(super) fn marker(hearing: &HearingDetail) -> String {

@@ -46,6 +46,18 @@ pub(crate) fn current_context(
     case: CaseId,
     hasher: &dyn DocumentHasher,
 ) -> Result<PrecautionaryContext, ApplicationError> {
+    let context = current_observed_context(tx, case, hasher)?;
+    if context.material().administration.values.status() != CaseAdministrativeStatus::Active {
+        return Err(ApplicationError::CaseClosed);
+    }
+    Ok(context)
+}
+
+pub(super) fn current_observed_context(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    hasher: &dyn DocumentHasher,
+) -> Result<PrecautionaryContext, ApplicationError> {
     let admin = tx.query_opt("SELECT revision FROM case_administration_revisions WHERE case_id=$1 ORDER BY revision DESC LIMIT 1", &[&case.as_uuid()])
         .map_err(port)?.ok_or(ApplicationError::CaseStageProfileIncomplete)?;
     let admin = CaseRevision::new(u32::try_from(admin.get::<_, i64>(0)).map_err(inconsistent)?)
@@ -54,11 +66,7 @@ pub(crate) fn current_context(
         .map_err(port)?.and_then(|row| row.get::<_, Option<i64>>(0)).ok_or(ApplicationError::CaseStageRequired)?;
     let stage = CaseStageRevision::new(u32::try_from(stage).map_err(inconsistent)?)
         .map_err(inconsistent)?;
-    let context = exact_context(tx, case, admin, stage, hasher)?;
-    if context.material().administration.values.status() != CaseAdministrativeStatus::Active {
-        return Err(ApplicationError::CaseClosed);
-    }
-    Ok(context)
+    exact_context(tx, case, admin, stage, hasher)
 }
 
 pub(crate) fn exact_context(

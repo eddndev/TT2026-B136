@@ -390,3 +390,11 @@ path = "tests/measure_administrative_backend.rs"
 [[test]]
 name = "measure_record_backend"
 path = "tests/measure_record_backend.rs"
+
+[[test]]
+name = "precautionary_hearing_record_backend"
+path = "tests/precautionary_hearing_record_backend.rs"
+
+[[test]]
+name = "measure_decision_record_backend"
+path = "tests/measure_decision_record_backend.rs"

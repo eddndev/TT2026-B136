@@ -60,7 +60,7 @@ pub(super) fn load_with_proof(
     if target_head != command.target {
         return Err(MeasureAdministrativeError::StaleHead.into());
     }
-    if !matches!(row.get::<_, String>("family").as_str(), "m1" | "c1")
+    if !matches!(row.get::<_, String>("family").as_str(), "m1" | "m2" | "c1")
         || row.get::<_, String>("validity") != "valid"
     {
         return Err(inconsistent(

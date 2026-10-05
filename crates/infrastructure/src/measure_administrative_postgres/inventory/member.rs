@@ -36,10 +36,16 @@ pub(super) fn validate(
         &[&case.as_uuid(), &command.target.id().as_uuid(), &i64::from(command.target.revision().get())],
     ).map_err(port)?.ok_or_else(|| inconsistent("administrative target declaration is absent or oversized"))?;
     if decode::digest(previous.get("capture_digest"))? != command.target.digest()
-        || !matches!(previous.get::<_, String>("family").as_str(), "m1" | "c1")
+        || !matches!(
+            previous.get::<_, String>("family").as_str(),
+            "m1" | "m2" | "c1"
+        )
         || previous.get::<_, String>("validity") != "valid"
         || previous.get::<_, i64>("initial_revision") != 1
-        || previous.get::<_, String>("root_family") != "g1"
+        || !matches!(
+            previous.get::<_, String>("root_family").as_str(),
+            "g1" | "g2"
+        )
     {
         return Err(inconsistent(
             "administrative target identity, validity or root differs",

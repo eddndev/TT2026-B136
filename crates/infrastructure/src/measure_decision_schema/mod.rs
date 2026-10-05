@@ -33,6 +33,12 @@ pub(crate) const MIGRATIONS: &[&str] = &[
     include_str!("../../../../migrations/0039_measure_administrative_sources.sql"),
     include_str!("../../../../migrations/0039_measure_administrative_complete.sql"),
     include_str!("../../../../migrations/0039_measure_administrative_guards.sql"),
+    include_str!("../../../../migrations/0040_measure_record_families.sql"),
+    include_str!("../../../../migrations/0040_measure_decision_capture.sql"),
+    include_str!("../../../../migrations/0040_measure_record_sources.sql"),
+    include_str!("../../../../migrations/0040_measure_record_complete.sql"),
+    include_str!("../../../../migrations/0040_measure_administration_capture.sql"),
+    include_str!("../../../../migrations/0040_measure_decision_hearing_records.sql"),
 ];
 const TABLES: [&str; 5] = [
     "case_measure_operations",

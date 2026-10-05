@@ -44,9 +44,14 @@ inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
 service cannot establish those facts by itself. Its local PostgreSQL adapter
 now verifies those durable facts and atomically preserves A/C captures with their
-exact G/H ancestry. Authorized administrative reads, optional administrative
-replacement, mixed-record appointment/decision services, G2/M2 persistence, HTTP,
-Agenda, alerts, Qadra and restoration acceptance remain pending. The bounded contract and source
+exact G/H ancestry. Authorized administrative and measure-record reads are also
+implemented. The additive mixed command adapters and forward `0040_` migrations
+store genuine G2/M2 and resolve H Review over M1/C/M2. Mixed operation readers
+and the atomic current-context reader also have native PostgreSQL verification.
+Optional administrative identity replacement and its SQL, HTTP, Agenda, alerts,
+Qadra, restoration acceptance and manuscript reconciliation remain pending.
+The affected regression campaign and full closing checks remain separate from
+these focused results. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -465,9 +470,9 @@ older public hearing-history entry points' bounds or behavior. The additive
 decision-history calls keep the same bounds across all three owner families
 and all supplied hearing material, including nested anchor shapes.
 
-This is a pure proof and capture API. The authorized hearing services and ports
-have not yet been extended to mixed records. Current-head/dependant admission,
-SQL and HTTP integration remain pending.
+This section defines the pure proof and capture API. The authorized mixed
+services and additive SQL adapters described below also have focused native
+verification. HTTP and product acceptance remain separate work.
 
 ### Judicial decisions over corrected records
 
@@ -772,8 +777,9 @@ a lost root cannot be recreated, a lost suffix cannot become a shorter current
 history, and pagination cannot conceal a lost hearing as an empty page.
 
 This local adapter does not establish acceptance of backup restoration or the
-integrated HTTP, Agenda, alerts and Qadra workflow. G2/M2 and mixed H consumers
-remain pending; administrative commands use the A/C adapter below. The durable anchor graph is described below.
+integrated HTTP, Agenda, alerts and Qadra workflow. The additive mixed H/G2
+implementation is described below with focused native verification;
+administrative commands use the A/C adapter. The durable anchor graph is described below.
 Operational requirements are in [database operations](../database-operations.md);
 executed checks are recorded independently in the verification report.
 
@@ -837,8 +843,9 @@ to its strict original submission and the retained audit marker before using it
 to establish completeness. A self-consistent changed outcome digest alone does
 not prove it belongs to that original operation. Keep this bounded check free
 of current source-head or current actor assumptions. The legacy G1 path retains
-its narrow proof contract. G2/M2 consumers, HTTP, Agenda, alerts, Qadra and
-restoration require their own integration and acceptance.
+its narrow proof contract. The additive G2/M2 path below preserves it; native
+verification of that extension, HTTP, Agenda, alerts, Qadra and restoration
+acceptance remain separate.
 
 ### Readers, recovery and restoration
 
@@ -929,8 +936,9 @@ not inferred. Reconstruct MDTXN1 with the original anchor selectors before using
 surviving outcomes to reserve identities; self-consistent replacement selectors
 cannot free the original group from its retained submission and audit evidence.
 
-This remains a local G1 adapter capability. G2/M2 consumers, HTTP, Agenda,
-alerts, Qadra and restoration acceptance have separate pending work.
+The mixed decision adapter reuses this exact Initial-anchor contract for G2,
+with focused native verification. HTTP, Agenda, alerts, Qadra and restoration
+acceptance remain pending.
 
 
 ### Durable precautionary anchors and the shared dependency graph
@@ -1010,10 +1018,11 @@ its body, exact tables/columns, foreign keys, constraints, grants and inventory.
 Repeated migration preserves actual G/A data and constraint identities. The
 runtime has no update, delete, schema or guard-execution capability.
 
-Fresh H Review of C/M2, durable G2/M2 decisions, HTTP composition, Agenda,
-alerts, Qadra and restoration acceptance remain distinct uncompleted parts of
-the same full delivery. The local G1/H paths remain compatible when unrelated
-A records exist; they never repackage a selected C as a judicial M1.
+The additive mixed implementation below extends fresh H Review and durable G2/M2
+while preserving this administrative receipt family. It has focused native
+verification; HTTP composition, Agenda, alerts, Qadra and restoration acceptance
+remain pending. Legacy G1/H paths remain compatible when
+unrelated A/G2 records exist; they never repackage a selected C or M2 as M1.
 
 ### Authorized administrative operation reads
 
@@ -1055,7 +1064,8 @@ or V2 family with its retained author profile, without new document admission.
 A fresh V2 commit cannot return a V1 group. Both services reauthenticate the full
 current principal and enforce supported UTC observations before disclosure and
 commit; a returned original raced replay cannot erase the observed clock floor.
-Their PostgreSQL mixed ports remain pending independently of these services.
+Their additive PostgreSQL command ports are implemented and natively verified
+as described below.
 
 `MeasureRecordReadService` supplies list, current and exact record reads through
 a dedicated port. A detail contains its exact reference, complete typed owned
@@ -1068,14 +1078,17 @@ that head. Exact historical records retain their original captured validity,
 including terminal and marked entries, without inventing current legal status.
 Page proofs share source and ownership checks but no new aggregate history cap.
 Client access is denied and staff reads require full principal reauthentication
-and a monotonic observation no earlier than the disclosed capture. SQL and
-HTTP adapters remain required before product use.
+and a monotonic observation no earlier than the disclosed capture. The durable
+record adapter is described below; HTTP composition remains required before
+product use.
 
 ### Durable current and exact measure record reads
 
 `PostgresMeasureDecisionStore` implements the record read port over actual
-G1/A owners. It checks advertised global ownership before resolving the selected
-case, measure and revision, including empty or missing results. Current reads
+G1/A/G2 owners through the natively verified mixed loader. It checks advertised
+global ownership before
+resolving the selected case, measure and revision, including empty or missing
+results. Current reads
 select the highest revision before digest or validity validation; malformed or
 lost latest evidence cannot expose an older row as current. Exact reads require
 the requested digest and preserve old Valid, terminal and marked captures with
@@ -1085,5 +1098,91 @@ zero-row decision groups without inventing a measure identity.
 The shared audited transaction validates current full authority and the entire
 selected graph, then commits a read event no earlier than the returned capture.
 Audit failure rolls back disclosure. This requires no new migration, permission
-or wire family. G2 support depends on its mixed loader extension, and product
-routes, restoration and browser acceptance remain pending.
+or wire family for G1/A. The forward mixed extension preserves that read
+contract. Product routes, restoration and browser acceptance remain pending.
+
+### Durable mixed G2/M2 decisions and H Review consumers
+
+The additive local adapters implement `MeasureDecisionRecordStore` on
+`PostgresMeasureDecisionStore` and `PrecautionaryHearingRecordStore` on
+`PostgresPrecautionaryHearingStore`, with focused native verification.
+A fresh mixed decision writes G2/M2, including standalone Impose and
+zero-member NoMeasureChange; original replay retains G1 or G2. The legacy
+command ports retain their original wire family and proof contract.
+
+The forward `0040_` migrations widen the existing operation/member constraints
+to G1/G2/A1 and M1/M2/C1, with exact paired owner/payload/member guards. They add
+no table or runtime authority. A judicial owner retains its full decision,
+complete member set and original roots; A owns one C and never creates a
+judicial decision or new identity. The real deferred completeness constraint,
+source guards, both hearing-target guards and exact catalog checks follow
+these families without changing older migrations.
+
+Fresh judicial effects require the actual current Valid M1/M2/C predecessor and
+reject retained terminal actions. A selected C supplies its effective values,
+context and time. Correct or Mark after M2 retains that actual last judicial
+capture, owner and support. Optional administrative identity replacement and
+its atomic link remain unimplemented; no existing action changes that identity.
+H Review and precautionary decision anchors resolve exact Valid M1/M2/C targets,
+including old revisions and terminal judicial results. They do not impose a
+current measure-head requirement. A later mark does not invalidate an older
+Valid selection; selecting the marked C itself is rejected.
+
+One iterative transaction graph discovers complete owners, all siblings and
+selected hearing prefixes before topological reconstruction. It distinguishes
+the durable proof from each returned receipt's exact ancestor closure, retaining
+prefix-only dependencies for validation without adding them to canonical receipts.
+G1/G2/A share the 256-owner/8192-member bound, with the candidate charged for fresh
+work; hearing captures and target occurrences retain independent 256/8192 bounds.
+Shared source and identity validation includes the candidate before insertion.
+The same graph supports current/exact record reads and administrative admission.
+
+Full current-principal, access, context, exact-head and admitted-source checks
+repeat under the audit lock before mutation. The original `mg1`, `ma1` and `ph1`
+markers remain unchanged; genuine G2 uses `mg2` with the same operation, decision
+and receipt commitments. All rows and one mutation audit commit atomically.
+Live inventory checks bind advertised G1/G2/A results to original submissions
+and audit evidence, so missing latest members cannot reveal an older head.
+
+MDPR2/MMCR2/MDGR2 retain their existing V2 definitions. MDTXN1/MDCR1,
+MATXN1/MAPR1/MARCR1/MAGR1 and PHEAR1/PHTXN1/PHPR1/PHCR1 retain their bytes.
+Remaining identity-replacement SQL, HTTP, Agenda, alerts, Qadra, restore/restart
+acceptance, manuscript reconciliation and the affected and full closing checks
+remain required before the full delivery closes.
+
+### Mixed operation readers and current context
+
+`MeasureDecisionRecordReadService` lists immutable decisions and reads one exact
+decision or original operation with its actual V1/V2 receipt family and complete
+ancestor closure. Zero-member decisions remain visible. This is separate from
+the measure-record reader, which selects current or exact member revisions.
+`PrecautionaryHearingRecordReadService` lists current hearing heads and reads
+the current or an exact revision, or the original operation. It retains the
+selected full prefix and G1/A/G2 proof, including cancellations. Neither reader
+substitutes later sources or a surviving older capture for missing evidence.
+
+Both PostgreSQL adapters reauthorize the full current staff principal and case
+access under the shared audit lock, including reads on closed cases. Lists use
+exclusive identity cursors and bounded pages. Original receipt origins, audit evidence
+and selected source closures are validated before returning the result. Read
+events commit atomically before disclosure; failure returns no receipt or partial
+page. These additive ports preserve the existing read action names and exact
+`mg1`, `mg2` and `ph1` resource markers. Their native verification includes
+original mixed history, current/cancelled and exact older selections, current
+authority, lost proof and audit rollback.
+
+`PrecautionaryContextReadService` and its PostgreSQL port return the current
+administration and stage together with the exact administration captured by
+that stage. Selection, complete source validation and access audit share one
+transaction. A consistent Closed observed administration is readable; the
+stage's captured administration remains Active. Command preparation continues
+to require an Active current administration. The context response is an
+observation, not a new receipt or permission to mutate.
+
+The `precautionary_context.read` audit resource binds case, administration and
+stage revisions and the reconstructed PCTX1 digest. The supported UTC access
+clock cannot precede any retained source, and application reauthentication
+compares the complete current principal before disclosure. Native verification
+covers changed stages, closed cases, exact historical stage administration,
+authorization, source corruption and audit rollback. This requires no additional
+migration or change to PCTX1 or existing capture frames.

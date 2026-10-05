@@ -259,7 +259,9 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente, al igual que los consumidores G2/M2 mixtos, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
+pendiente. Los consumidores mixtos G2/M2 y sus consultas tienen implementación
+local y verificación nativa focal; HTTP, Agenda, alertas y Qadra siguen sin integrar.
+Esta implementación no acredita
 su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
 pruebas ejecutadas de la aceptación todavía pendiente.
@@ -272,8 +274,9 @@ sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
 adaptador conserva también confirmación, modificación, revocación, cese y
 sustitución desde predecesores exactos. Review consume sus revisiones exactas,
 propietarios completos y ancestros. Admite anclas iniciales ordinarias y cautelares
-exactas. El adaptador administrativo conserva Correct y Mark; G2/M2 y sus
-consumidores mixtos siguen pendientes. No está compuesto en HTTP ni desplegado.
+exactas. El adaptador administrativo conserva Correct y Mark. La extensión
+G2/M2 y sus consumidores mixtos está implementada localmente, con verificación
+nativa focal. No está compuesto en HTTP ni desplegado.
 
 `database migrate --runtime-role` instala `0034_measure_decisions.sql`,
 `0034_measure_decisions_guards.sql`, `0034_measure_decisions_sources.sql` y
@@ -298,12 +301,12 @@ real que comprueba la familia G1 o A1, conservando su identidad durante nuevas
 ejecuciones de migración. El catálogo valida esa forma exacta.
 Las tablas `case_measure_operations`, `case_measure_decisions`,
 `case_measure_administrations`, `case_measures` y `case_measure_revisions` son
-inmutables. Las relaciones diferidas exigen una decisión completa para G1,
+inmutables. Las relaciones diferidas exigen una decisión completa para G1/G2,
 incluso sin medidas, o una carga administrativa y un único miembro C para A1.
 Cada raíz conserva su revisión inicial del mismo propietario judicial; A no
 crea raíces. El respaldo debe incluir las correcciones y toda su ascendencia,
-sus valores efectivos, fuentes y eventos originales `ma1`, además de los `mg1`
-y `ph1` previos. Perder una corrección no autoriza volver a la revisión anterior. Las
+sus valores efectivos, fuentes y eventos originales `ma1`, además de los `mg1`,
+`mg2` y `ph1`. Perder una corrección no autoriza volver a la revisión anterior. Las
 revisiones posteriores pertenecen al grupo nuevo sin reasignar esa raíz. El
 runtime recibe SELECT e INSERT por columnas explícitas, sin modificación,
 eliminación, delegación ni ejecución de guardas. La apertura valida también
@@ -329,8 +332,8 @@ de devolver una ausencia o página vacía.
 Admisión del soporte y confirmación de ambos digests preceden a la escritura.
 Bajo el bloqueo compartido se revalidan principal completo, acceso, contexto
 activo y material revisado. Operación, decisión, raíces, revisiones y un evento
-`measure_decision.recorded` se confirman juntos. El marcador `mg1` vincula la
-operación, decisión y compromisos originales. Replay conserva autoría y tiempo,
+`measure_decision.recorded` se confirman juntos. El marcador `mg1` para G1 o
+`mg2` para G2 vincula la operación, decisión y compromisos originales. Replay conserva autoría y tiempo,
 también en expediente cerrado con acceso actual. Los relojes usan UTC soportado
 con nanosegundos; las capturas respetan el mínimo preparado y las auditorías de
 acceso no preceden al grupo devuelto.
@@ -344,7 +347,7 @@ queda evidencia de un resultado posterior perdido. Antes de confiar en el
 inventario anunciado, se vinculan valores, actor y resultado con el compromiso
 de solicitud original conservado en la auditoría.
 
-Respaldar juntas las cuatro tablas, sus fuentes exactas, usuarios y auditoría.
+Respaldar juntas las cinco tablas de medidas, sus fuentes exactas, usuarios y auditoría.
 Las conexiones abiertas rechazan miembros, raíces o decisiones perdidos. Una
 decisión superviviente conserva la reserva de las identidades de su resultado.
 Si desaparece todo el grupo, el digest no revela cuáles eran esas identidades:
@@ -353,6 +356,73 @@ eliminar eventos ni desactivar guardas para forzar una apertura o reutilización
 La aceptación propia de `pg_dump`/`pg_restore`, HTTP, Agenda, alertas e interfaz
 sigue pendiente; los resultados ejecutados se registran por separado en el
 [informe de verificación](verification-report.md).
+
+### Migración y adaptadores mixtos G2/M2
+
+La familia nueva `0040_` amplía los CHECK de propietarios y miembros a G1/G2/A1
+y M1/M2/C1. Sustituye únicamente las guardas vigentes de captura, fuentes,
+completitud y objetivos de audiencias/anclas; las migraciones anteriores se
+conservan. El catálogo exige las formas y cuerpos exactos. No añade tablas ni
+permisos de runtime y mantiene el disparador diferido real de completitud.
+La extensión dispone de verificación nativa focal; la regresión afectada y los
+controles de cierre completos se registrarán por separado.
+
+`PostgresMeasureDecisionStore` implementa el puerto mixto de comandos y resuelve
+M2 en las lecturas de registros. `PostgresPrecautionaryHearingStore` implementa
+el puerto mixto de programación, reemplazo, cancelación y replay. Una decisión
+nueva por el puerto mixto guarda G2/M2; una recuperación original conserva G1 o
+G2. Nunca convertir C o M2 a M1 para compatibilidad. Un efecto judicial nuevo
+exige la cabeza actual exacta Valid; Review admite objetivos históricos Valid,
+incluso terminales. El reloj/contexto de una C es el de esa captura, mientras
+su última evidencia y soporte judiciales permanecen separados.
+
+Al respaldar, incluir todos los propietarios G1/G2/A, sus miembros completos,
+raíces originales, prefijos de audiencias y fuentes inmutables. El cargador
+compartido descubre primero el grafo acotado y rechaza ciclos antes de reconstruir.
+Los límites de 256 propietarios/8192 miembros y 256 capturas de audiencia/8192
+objetivos son independientes. Los prefijos antiguos pueden exigir propietarios
+que no aparecen en el cierre canónico de la operación seleccionada; tampoco
+se pueden omitir del respaldo.
+
+Las guardas mantienen pares reales G1/M1, G2/M2 y A1/C1. Correct o Mark después
+de M2 conserva ese propietario judicial y su soporte exacto. Una cabeza C perdida
+no habilita una captura judicial nueva desde una revisión anterior. La admisión
+bajo el bloqueo revalida fuentes y material confirmado antes del append atómico.
+Los formatos históricos y los recibos V2 existentes no cambian; `mg2` distingue
+únicamente el marcador de auditoría de una operación G2 genuina.
+
+Los puertos mixtos de lectura ya tienen adaptadores y verificación nativa. El
+de decisiones lista grupos inmutables y recupera una decisión u operación exacta,
+conservando G1/G2, incluso si no tiene miembros. El de convocatorias lista cabezas
+y recupera la revisión actual, una revisión exacta o la operación original, con
+su prefijo completo y cierre G1/A/G2. Las listas usan cursor exclusivo por UUID
+y hasta 20 elementos. Estas consultas no sustituyen la lectura de cabeza de
+medida ni incorporan descendientes ajenos al recibo seleccionado.
+
+En cada consulta, el bloqueo de auditoría protege autorización vigente, inventario
+y reconstrucción. El evento de acceso se confirma antes de devolver datos; un
+fallo no revela recibos ni páginas parciales. Se conservan las acciones de
+lectura existentes y los marcadores originales `mg1`, `mg2` y `ph1`. Un expediente
+cerrado admite lecturas autorizadas; perder un sufijo, propietario o fuente
+requerida no permite responder con evidencia anterior.
+
+La consulta de contexto del mismo almacén obtiene la administración y etapa
+actuales junto con la administración histórica de esa etapa en una transacción.
+Permite una administración observada Closed consistente y conserva Active la
+capturada por la etapa; no relaja la exigencia de contexto activo de los comandos.
+El evento `precautionary_context.read` usa el recurso
+`case:{case}:administration:{adminrev}:stage:{stagerev}:context:{digest_hex}`,
+con SHA-256 hexadecimal en minúsculas. Su instante UTC conserva nanosegundos y
+no precede a las fuentes. La reconstrucción y el digest PCTX1 se verifican antes
+de confirmar el acceso. No añade tablas, recibos ni formatos; su verificación
+nativa incluye cierre, fuentes exactas, autorización, corrupción y rollback.
+
+No reparar familias o compromisos a mano ni borrar auditorías para abrir un
+almacén. Faltan la persistencia de reemplazo administrativo con identidad nueva
+y enlace atómico, HTTP, Agenda, alertas, Qadra, aceptación de reinicio/restauración
+y conciliación del manuscrito. Registrar resultados ejecutados en el informe de
+verificación; las pruebas focales y la presencia de estas migraciones no acreditan
+esas comprobaciones ni sustituyen la regresión y los controles de cierre pendientes.
 
 ## Contenido e incidentes de integridad
 

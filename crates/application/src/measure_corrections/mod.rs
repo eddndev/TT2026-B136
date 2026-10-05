@@ -80,3 +80,5 @@ pub use record_read_error::MeasureRecordReadError;
 pub use record_read_model::*;
 pub use record_read_port::*;
 pub use record_read_service::MeasureRecordReadService;
+
+pub(crate) use read_inventory::ReadInventory as MeasureReadInventory;

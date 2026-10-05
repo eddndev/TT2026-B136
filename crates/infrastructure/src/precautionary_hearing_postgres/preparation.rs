@@ -163,7 +163,7 @@ pub(super) fn load_with_proof(
     ))
 }
 
-fn cancellation_target_count(
+pub(super) fn cancellation_target_count(
     tx: &mut Transaction<'_>,
     case: CaseId,
     id: PrecautionaryHearingId,

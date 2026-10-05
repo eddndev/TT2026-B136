@@ -62,15 +62,27 @@ fn unsupported_or_regressed_store_read_clocks_do_not_append_access_audits() {
         )
         .unwrap();
         let before = snapshot(&mut db);
-        assert!(storage
-            .get(&seed.actor, db.case, seed.command.decision_id)
-            .is_err());
-        assert!(storage
-            .get_operation(&seed.actor, db.case, seed.command.operation_id)
-            .is_err());
-        assert!(storage
-            .list(&seed.actor, db.case, MeasureDecisionReadQuery::default())
-            .is_err());
+        assert!(MeasureDecisionReadStore::get(
+            &storage,
+            &seed.actor,
+            db.case,
+            seed.command.decision_id
+        )
+        .is_err());
+        assert!(MeasureDecisionReadStore::get_operation(
+            &storage,
+            &seed.actor,
+            db.case,
+            seed.command.operation_id
+        )
+        .is_err());
+        assert!(MeasureDecisionReadStore::list(
+            &storage,
+            &seed.actor,
+            db.case,
+            MeasureDecisionReadQuery::default()
+        )
+        .is_err());
         assert_eq!(snapshot(&mut db), before);
     }
 }

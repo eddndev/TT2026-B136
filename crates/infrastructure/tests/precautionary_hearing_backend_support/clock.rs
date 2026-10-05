@@ -44,15 +44,28 @@ fn non_utc_store_read_clocks_cannot_append_successful_access_audits() {
     for method in 0..3 {
         let before = snapshot(&mut db);
         let result = match method {
-            0 => store
-                .get(&actor, db.case, command.hearing_id, None)
-                .map(|_| ()),
-            1 => store
-                .get_operation(&actor, db.case, command.operation_id)
-                .map(|_| ()),
-            _ => store
-                .list(&actor, db.case, PrecautionaryHearingReadQuery::default())
-                .map(|_| ()),
+            0 => PrecautionaryHearingReadStore::get(
+                store.as_ref(),
+                &actor,
+                db.case,
+                command.hearing_id,
+                None,
+            )
+            .map(|_| ()),
+            1 => PrecautionaryHearingReadStore::get_operation(
+                store.as_ref(),
+                &actor,
+                db.case,
+                command.operation_id,
+            )
+            .map(|_| ()),
+            _ => PrecautionaryHearingReadStore::list(
+                store.as_ref(),
+                &actor,
+                db.case,
+                PrecautionaryHearingReadQuery::default(),
+            )
+            .map(|_| ()),
         };
         assert!(result.is_err(), "read method {method}");
         assert_eq!(snapshot(&mut db), before);

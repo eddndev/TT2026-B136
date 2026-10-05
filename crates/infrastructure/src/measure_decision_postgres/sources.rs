@@ -81,7 +81,7 @@ fn retained(
         sources: capture.result.sources.clone(),
     })
 }
-fn selected(
+pub(super) fn selected(
     tx: &mut Transaction<'_>,
     case: CaseId,
     values: &MeasureValues,

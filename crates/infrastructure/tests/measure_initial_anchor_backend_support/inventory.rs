@@ -11,9 +11,13 @@ fn anchored_surviving_outcome_reserves_identity_after_root_and_latest_member_los
     let other = crate::measure_fixture::setup(&mut db);
     let storage = store(&db);
     assert_eq!(
-        storage
-            .get(&seed.actor, original_case, original.origin.decision_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get(
+            storage.as_ref(),
+            &seed.actor,
+            original_case,
+            original.origin.decision_id
+        )
+        .unwrap(),
         original
     );
     let id = original.group.measures[0].result.id;
@@ -52,14 +56,14 @@ fn anchored_surviving_outcome_reserves_identity_after_root_and_latest_member_los
     .unwrap();
     let before = snapshot(&mut db);
 
-    assert!(storage
-        .prepare(
-            &other.actor,
-            db.case,
-            &command,
-            &StageSupportReadLimits::default()
-        )
-        .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage.as_ref(),
+        &other.actor,
+        db.case,
+        &command,
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
 
     assert_eq!(snapshot(&mut db), before);
     let retained: i64 = db
@@ -84,9 +88,13 @@ fn another_real_anchor_cannot_replace_stored_selectors_without_changing_original
     let replacement = super::history::replace(&db, &seed.hearing);
     let storage = store(&db);
     assert_eq!(
-        storage
-            .get(&seed.actor, db.case, original.origin.decision_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            original.origin.decision_id
+        )
+        .unwrap(),
         original
     );
     let operation = original.origin.operation_id.as_uuid();
@@ -137,28 +145,36 @@ fn another_real_anchor_cannot_replace_stored_selectors_without_changing_original
     unrelated.anchor = None;
     let before = snapshot(&mut db);
 
-    assert!(storage
-        .prepare(
-            &seed.actor,
-            db.case,
-            &unrelated,
-            &StageSupportReadLimits::default()
-        )
-        .is_err());
-    assert!(storage
-        .get(&seed.actor, db.case, original.origin.decision_id)
-        .is_err());
-    assert!(storage
-        .get_operation(&seed.actor, db.case, original.origin.operation_id)
-        .is_err());
-    assert!(storage
-        .prepare(
-            &seed.actor,
-            db.case,
-            &seed.command,
-            &StageSupportReadLimits::default()
-        )
-        .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        &unrelated,
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
+    assert!(MeasureDecisionReadStore::get(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        original.origin.decision_id
+    )
+    .is_err());
+    assert!(MeasureDecisionReadStore::get_operation(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        original.origin.operation_id
+    )
+    .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        &seed.command,
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
 
     assert_eq!(snapshot(&mut db), before);
 }

@@ -23,6 +23,7 @@ pub(super) fn validate(tx: &mut Transaction<'_>) -> Result<(), ApplicationError>
                 MeasureDecisionOperationId::from_uuid(op),
             )?;
             let outcome = advertised::outcome(&payload)?;
+            let family: String = payload.get("family");
             let mut expected: Vec<(Uuid, i64, String)> = Vec::new();
             let mut roots = Vec::new();
             for effect in outcome.changes().unwrap_or(&[]) {
@@ -41,14 +42,14 @@ pub(super) fn validate(tx: &mut Transaction<'_>) -> Result<(), ApplicationError>
                             MeasureEffect::Revoke { .. } => "revoke",
                             _ => "cease",
                         };
-                        expected.push(prior(tx, case, *previous, action)?);
+                        expected.push(prior(tx, case, *previous, action, &family)?);
                     }
                     MeasureEffect::Substitute {
                         predecessors,
                         successors,
                     } => {
                         for reference in predecessors {
-                            expected.push(prior(tx, case, *reference, "substitute_out")?);
+                            expected.push(prior(tx, case, *reference, "substitute_out", &family)?);
                         }
                         for proposal in successors {
                             expected.push((proposal.id.as_uuid(), 1, "substitute_in".into()));
@@ -76,13 +77,16 @@ fn prior(
     case: Uuid,
     reference: PrecautionaryMeasureRef,
     action: &str,
+    family: &str,
 ) -> Result<(Uuid, i64, String), ApplicationError> {
     let revision = reference
         .revision()
         .get()
         .checked_add(1)
         .ok_or_else(|| inconsistent("predecessor revision overflows"))?;
-    let exists:bool=tx.query_one("SELECT EXISTS(SELECT 1 FROM case_measure_revisions WHERE case_id=$1 AND measure_id=$2 AND revision=$3 AND capture_digest=$4 AND family='m1' AND action NOT IN ('revoke','cease','substitute_out'))",&[&case,&reference.id().as_uuid(),&i64::from(reference.revision().get()),&reference.digest().as_bytes().as_slice()]).map_err(port)?.get(0);
+    let exists:bool=tx.query_one("SELECT EXISTS(SELECT 1 FROM case_measure_revisions WHERE case_id=$1 AND measure_id=$2 AND revision=$3 AND capture_digest=$4
+        AND (($5='g1' AND family='m1') OR ($5='g2' AND family IN ('m1','m2','c1')))
+        AND validity='valid' AND action NOT IN ('revoke','cease','substitute_out'))",&[&case,&reference.id().as_uuid(),&i64::from(reference.revision().get()),&reference.digest().as_bytes().as_slice(),&family]).map_err(port)?.get(0);
     if !exists {
         return Err(inconsistent(
             "advertised predecessor is absent, terminal or contradictory",

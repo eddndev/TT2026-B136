@@ -16,6 +16,7 @@ impl LoadedMeasureHistory {
             &self.owner_ids(refs)?,
             &self.groups,
             &self.administrations,
+            &self.decisions,
             &self.parents,
         )
     }
@@ -29,8 +30,13 @@ impl LoadedMeasureHistory {
             .parents
             .get(&id)
             .ok_or_else(|| inconsistent("selected administrative dependencies are absent"))?;
-        let record_history =
-            record_evidence_for(roots, &self.groups, &self.administrations, &self.parents)?;
+        let record_history = record_evidence_for(
+            roots,
+            &self.groups,
+            &self.administrations,
+            &self.decisions,
+            &self.parents,
+        )?;
         let entry = self
             .administrations
             .remove(&id)
@@ -53,7 +59,7 @@ impl LoadedMeasureHistory {
                     },
                     administrative: self.administrations.values().cloned().collect(),
                 },
-                decisions: Vec::new(),
+                decisions: self.decisions.values().cloned().collect(),
             },
             hearings: self.hearing_histories(&self.hearings, None)?,
         })
@@ -66,7 +72,10 @@ impl LoadedMeasureHistory {
         candidate: &MeasureAdministrativeStoredOperation,
     ) -> Result<(), ApplicationError> {
         let operation = candidate.origin.operation_id.as_uuid();
-        if self.groups.contains_key(&operation) || self.administrations.contains_key(&operation) {
+        if self.groups.contains_key(&operation)
+            || self.administrations.contains_key(&operation)
+            || self.decisions.contains_key(&operation)
+        {
             return Err(inconsistent(
                 "candidate administrative operation already owns history",
             ));
@@ -88,14 +97,21 @@ pub(super) fn record_evidence_for(
     roots: &BTreeSet<Uuid>,
     groups: &BTreeMap<Uuid, MeasureGroupEvidence>,
     administrations: &BTreeMap<Uuid, MeasureAdministrativeEvidence>,
+    decisions: &BTreeMap<Uuid, MeasureGroupEvidenceV2>,
     parents: &BTreeMap<Uuid, BTreeSet<Uuid>>,
 ) -> Result<MeasureDecisionRecordHistoryEvidence, ApplicationError> {
     let mut judicial = Vec::new();
     let mut administrative = Vec::new();
+    let mut judicial_v2 = Vec::new();
     for owner in selected_owners(roots, parents)? {
-        match (groups.get(&owner), administrations.get(&owner)) {
-            (Some(group), None) => judicial.push(group.clone()),
-            (None, Some(capture)) => administrative.push(capture.clone()),
+        match (
+            groups.get(&owner),
+            administrations.get(&owner),
+            decisions.get(&owner),
+        ) {
+            (Some(group), None, None) => judicial.push(group.clone()),
+            (None, Some(capture), None) => administrative.push(capture.clone()),
+            (None, None, Some(group)) => judicial_v2.push(group.clone()),
             _ => {
                 return Err(inconsistent(
                     "loaded ancestor has missing or conflicting owner family",
@@ -108,6 +124,6 @@ pub(super) fn record_evidence_for(
             judicial: MeasureHistoryEvidence { groups: judicial },
             administrative,
         },
-        decisions: Vec::new(),
+        decisions: judicial_v2,
     })
 }

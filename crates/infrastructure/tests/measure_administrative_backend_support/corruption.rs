@@ -64,22 +64,26 @@ fn losing_the_latest_corrected_row_cannot_expose_an_older_judicial_or_corrected_
             .is_err());
         assert!(workflow.prepare("session", db.case, fresh).is_err());
     }
-    assert!(judicial_store
-        .get(&seed.actor, db.case, judicial.origin.decision_id)
-        .is_err());
-    assert!(judicial_store
-        .prepare(
-            &seed.actor,
-            db.case,
-            &effect_command(
-                &seed.command,
-                vec![MeasureEffect::Confirm {
-                    previous: reference(&judicial.group.measures[0]),
-                }]
-            ),
-            &StageSupportReadLimits::standard()
-        )
-        .is_err());
+    assert!(MeasureDecisionReadStore::get(
+        judicial_store.as_ref(),
+        &seed.actor,
+        db.case,
+        judicial.origin.decision_id
+    )
+    .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        judicial_store.as_ref(),
+        &seed.actor,
+        db.case,
+        &effect_command(
+            &seed.command,
+            vec![MeasureEffect::Confirm {
+                previous: reference(&judicial.group.measures[0]),
+            }]
+        ),
+        &StageSupportReadLimits::standard()
+    )
+    .is_err());
     assert_eq!(snapshot(&mut db), before);
     reject_original(&mut db, &storage, &workflow, &seed.actor, &first);
     reject_original(&mut db, &storage, &workflow, &seed.actor, &latest);

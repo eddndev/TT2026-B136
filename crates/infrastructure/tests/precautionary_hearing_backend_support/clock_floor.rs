@@ -28,15 +28,28 @@ fn utc_read_clock_before_capture_rejects_before_committing_access_audit() {
         for method in 0..3 {
             let before = snapshot(&mut db);
             let result = match (direct, method) {
-                (true, 0) => storage
-                    .get(&actor, db.case, command.hearing_id, None)
-                    .map(|_| ()),
-                (true, 1) => storage
-                    .get_operation(&actor, db.case, command.operation_id)
-                    .map(|_| ()),
-                (true, _) => storage
-                    .list(&actor, db.case, PrecautionaryHearingReadQuery::default())
-                    .map(|_| ()),
+                (true, 0) => PrecautionaryHearingReadStore::get(
+                    storage.as_ref(),
+                    &actor,
+                    db.case,
+                    command.hearing_id,
+                    None,
+                )
+                .map(|_| ()),
+                (true, 1) => PrecautionaryHearingReadStore::get_operation(
+                    storage.as_ref(),
+                    &actor,
+                    db.case,
+                    command.operation_id,
+                )
+                .map(|_| ()),
+                (true, _) => PrecautionaryHearingReadStore::list(
+                    storage.as_ref(),
+                    &actor,
+                    db.case,
+                    PrecautionaryHearingReadQuery::default(),
+                )
+                .map(|_| ()),
                 (false, 0) => reader
                     .get("session", db.case, command.hearing_id, None)
                     .map(|_| ()),

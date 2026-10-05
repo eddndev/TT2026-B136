@@ -124,8 +124,17 @@ fn judicial_audit(
     hasher: &dyn DocumentHasher,
 ) -> Result<(), ApplicationError> {
     let group = super::decode::digest(row.get("group_digest"))?;
-    if row.get::<_, String>("family") != "g1"
-        || group != super::decode::digest(row.get("owner_digest"))?
+    let family: String = row.get("family");
+    let prefix = match family.as_str() {
+        "g1" => "mg1",
+        "g2" => "mg2",
+        _ => {
+            return Err(inconsistent(
+                "judicial declaration has another owner family",
+            ))
+        }
+    };
+    if group != super::decode::digest(row.get("owner_digest"))?
         || !matches!(
             row.get::<_, String>("recorded_by_role").as_str(),
             "owner" | "litigator"
@@ -136,7 +145,7 @@ fn judicial_audit(
         ));
     }
     let marker = format!(
-        "mg1:case:{}:operation:{}:decision:{}:submission:{}:review:{}:decision_digest:{}:group:{}",
+        "{prefix}:case:{}:operation:{}:decision:{}:submission:{}:review:{}:decision_digest:{}:group:{}",
         row.get::<_, Uuid>("case_id"),
         row.get::<_, Uuid>("operation_id"),
         row.get::<_, Uuid>("decision_id"),

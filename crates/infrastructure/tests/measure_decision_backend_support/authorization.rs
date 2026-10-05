@@ -18,23 +18,31 @@ fn complete_current_principal_is_reloaded_before_replay_or_disclosure() {
         },
     ] {
         let before = snapshot(&mut db);
-        assert!(storage
-            .prepare(
-                &stale,
-                db.case,
-                &seed.command,
-                &StageSupportReadLimits::standard()
-            )
-            .is_err());
-        assert!(storage
-            .get_operation(&stale, db.case, seed.command.operation_id)
-            .is_err());
+        assert!(MeasureDecisionStore::prepare(
+            storage.as_ref(),
+            &stale,
+            db.case,
+            &seed.command,
+            &StageSupportReadLimits::standard()
+        )
+        .is_err());
+        assert!(MeasureDecisionReadStore::get_operation(
+            storage.as_ref(),
+            &stale,
+            db.case,
+            seed.command.operation_id
+        )
+        .is_err());
         assert_eq!(snapshot(&mut db), before);
     }
     assert_eq!(
-        storage
-            .get_operation(&seed.actor, db.case, seed.command.operation_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get_operation(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            seed.command.operation_id
+        )
+        .unwrap(),
         original
     );
 }

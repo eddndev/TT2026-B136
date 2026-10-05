@@ -19,13 +19,42 @@ enum Owner<'a> {
 /// Compare individually validated page closures without imposing a new page-wide
 /// proof budget. Shared complete owners and sources must retain exact equality.
 #[derive(Default)]
-pub(super) struct ReadInventory<'a> {
+pub(crate) struct ReadInventory<'a> {
     sources: SourceInventory<'a>,
     owners: BTreeMap<Id, Owner<'a>>,
     decisions: BTreeMap<Id, Id>,
     members: BTreeMap<(Id, u32), Id>,
 }
 impl<'a> ReadInventory<'a> {
+    pub fn add_hearing_operation(
+        &mut self,
+        row: &'a crate::precautionary_hearings::PrecautionaryHearingRecordStoredOperation,
+    ) -> Result<(), ApplicationError> {
+        self.add_history(&row.history.record_history)?;
+        for capture in &row.history.captures {
+            self.sources.capture(capture)?;
+        }
+        Ok(())
+    }
+
+    pub fn add_decision_receipt(
+        &mut self,
+        row: &'a MeasureDecisionRecordReceipt,
+    ) -> Result<(), ApplicationError> {
+        match row {
+            MeasureDecisionRecordReceipt::V1(row) => {
+                for owner in &row.measure_history.groups {
+                    self.judicial(&owner.capture, &owner.origin)?;
+                }
+                self.judicial(&row.group, &row.origin)
+            }
+            MeasureDecisionRecordReceipt::V2(row) => {
+                self.add_history(&row.record_history)?;
+                self.decision(&row.group, &row.origin)
+            }
+        }
+    }
+
     pub fn add(
         &mut self,
         row: &'a MeasureAdministrativeStoredOperation,

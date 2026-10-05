@@ -1,12 +1,14 @@
 # Alcance de audiencias y medidas cautelares declaradas
 
-Estado: **dominio y servicios de aplicación verificados localmente**. El trabajo local
-comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
+Estado: **implementación local con verificación focal de dominio, aplicación y
+PostgreSQL**. El trabajo local comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
-de G2/M2 y sus consumidores mixtos, HTTP, Agenda, alertas e interfaz
-conservan sus propias comprobaciones pendientes. Este contrato no
+de G2/M2 y sus consumidores mixtos tiene implementación local aditiva y
+verificación nativa focal, incluidas las consultas de operaciones y contexto.
+HTTP, Agenda, alertas e interfaz conservan
+sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
@@ -65,8 +67,9 @@ antecedentes de medidas y audiencias y rechaza ciclos antes de reconstruirlos.
 La historia devuelta conserva sólo los ancestros del efecto y los objetivos del
 ancla elegida; las dependencias de revisiones anteriores se prueban aparte. La
 captura candidata participa en la comparación conjunta de fuentes antes de
-escribir. G2/M2 y los consumidores mixtos siguen pendientes; las correcciones
-administrativas disponen del adaptador descrito abajo.
+escribir. La extensión G2/M2 y los consumidores mixtos se describen abajo,
+con verificación nativa focal; las correcciones administrativas disponen
+del adaptador propio.
 
 La preparación admite el soporte exacto fuera del bloqueo; la confirmación exige
 ambos digests y vuelve a comprobar principal, acceso, contexto y fuentes. Todas
@@ -104,9 +107,9 @@ Las lecturas y listas administrativas autorizadas reconstruyen las operaciones
 originales, con acceso vigente, auditoría atómica y paginación exclusiva por UUID
 de operación, hasta 20 elementos. Conservan la captura histórica después de
 correcciones, marcas y cierre del expediente; no aplican otra vez reglas de
-cabeza o dependencias de un comando nuevo. Review nuevo de C/M2 y la
-persistencia G2/M2 todavía no están conectados. Este alcance local no acredita
-HTTP, Agenda, alertas, Qadra, restauración integral ni despliegue.
+cabeza o dependencias de un comando nuevo. La extensión local para Review
+nuevo de C/M2 y persistencia G2/M2 tiene verificación nativa focal. Este
+alcance no acredita HTTP, Agenda, alertas, Qadra, restauración integral ni despliegue.
 
 ## Servicios mixtos y consulta de registros
 
@@ -119,10 +122,70 @@ cabeza por identidad y revisión exacta, con prueba completa del propietario.
 Incluye cabezas marcadas y no infiere vigencia jurídica a partir de ellas.
 Autorización completa, doble confirmación, fuentes y relojes se comprueban en
 la aplicación. La consulta de cabezas y revisiones exactas ya tiene adaptador
-PostgreSQL para G1/C, con auditoría atómica y comprobación de inventario antes
-de resolver la selección. Nunca sustituye una cabeza perdida o inválida por
-una anterior. Los comandos mixtos, su extensión G2, rutas y aceptación de
-producto permanecen pendientes; las pruebas puras no acreditan esas capas.
+PostgreSQL para G1/C, ampliado localmente a G2, con auditoría atómica y
+comprobación de inventario antes de resolver la selección. Nunca sustituye una
+cabeza perdida o inválida por una anterior. Los puertos de comandos mixtos
+también incorporan G2 y tienen verificación nativa focal. Esa evidencia no
+acredita rutas ni aceptación de producto.
+
+Las consultas mixtas de decisiones ofrecen lista por UUID, detalle de decisión
+y recuperación de operación original, conservando la familia G1/G2 y su cierre
+completo. Incluyen decisiones sin filas de medidas. Las consultas de convocatorias
+ofrecen cabezas actuales, revisiones exactas y operación original con su prefijo
+y prueba G1/A/G2; incluyen cancelaciones. Son lecturas distintas de la consulta
+de cabeza o revisión exacta de una medida. Ambas reautorizan al principal completo
+y el acceso vigente, admiten expedientes cerrados y confirman auditoría antes de
+devolver el resultado. Las pruebas nativas incluyen historia original, referencias
+antiguas, pruebas perdidas, autorización y rollback de auditoría.
+
+La consulta de contexto reúne en una transacción la administración y etapa
+actuales con la administración histórica exacta que originó esa etapa. Devuelve
+un contexto observado y su digest reproducible, sin crear otro recibo. Permite
+una administración observada Closed consistente, manteniendo Active la capturada
+por la etapa; los comandos siguen exigiendo contexto activo. La auditoría
+`precautionary_context.read` vincula expediente, ambas revisiones actuales y
+digest PCTX1. El reloj UTC no precede ninguna fuente retenida. La verificación
+nativa cubre etapa cambiada, cierre, autorización, corrupción y fallo de auditoría.
+
+## Extensión durable mixta G2/M2
+
+Las migraciones nuevas `0040_` amplían las familias de las mismas tablas a
+G1/G2/A1 y M1/M2/C1, sin reescribir migraciones previas ni añadir permisos de
+runtime. Cada propietario exige su carga y conjunto completo de filas reales.
+El puerto mixto de decisiones produce G2 incluso para imposición o ausencia
+de cambios; el replay conserva la familia original. Los puertos anteriores
+mantienen G1 y los bytes históricos.
+
+Los efectos judiciales nuevos requieren la cabeza exacta Valid entre M1/M2/C
+y rechazan acciones judiciales terminales. Una C aporta sus valores, contexto
+y reloj efectivos. Correct y Mark posteriores a M2 conservan la última medida,
+grupo y soporte judiciales reales. No crean otra identidad ni implementan el
+reemplazo administrativo opcional con enlace atómico.
+
+El puerto mixto de convocatorias programa, reemplaza, cancela y recupera
+operaciones con objetivos exactos M1/M2/C y prefijos completos. Review y sus
+anclas admiten revisiones antiguas y acciones terminales sin exigir cabeza
+actual de medida; la captura seleccionada debe ser Valid. Una marca posterior
+no altera una selección anterior válida. La cancelación conserva sus referencias
+y contexto de programación.
+
+El grafo transaccional compartido comprueba propietarios, hermanas, fuentes,
+anclas y ciclos antes de reconstruir los recibos. Conserva aparte el cierre
+exacto devuelto y las dependencias de prefijos anteriores. Aplica límites
+independientes de 256 propietarios/8192 miembros y 256 capturas/8192 objetivos,
+con reserva para cada candidato nuevo. Se revalidan principal, acceso, contexto,
+cabeza y fuentes bajo el bloqueo antes de confirmar filas y auditoría.
+
+G2 usa el marcador `mg2`; `mg1`, `ma1` y `ph1` no cambian. Tampoco cambian
+MDTXN1/MDCR1, los recibos V2 MDPR2/MMCR2/MDGR2, los administrativos ni
+PHEAR1/PHTXN1/PHPR1/PHCR1. El inventario detecta resultados anunciados perdidos
+y evita retroceder silenciosamente la cabeza.
+
+La extensión y sus consultas mixtas tienen verificación nativa focal. Faltan la
+persistencia del reemplazo administrativo opcional, HTTP, Agenda, alertas, Qadra,
+aceptación de reinicio y restauración, y conciliación del manuscrito. La regresión
+afectada y los controles de cierre completos siguen pendientes. La implementación
+local no acredita esas partes ni cambia el estado propuesto de la entrega completa.
 
 ## Frontera de la implementación local
 
@@ -330,8 +393,8 @@ Las nuevas entradas de prueba mixta acotan a 256 las capturas de convocatoria y
 a 8192 la unión de objetivos exactos, además del límite independiente de 256
 propietarios G/administrativos y 8192 filas de medida. Rechazan material excesivo
 antes de hashear o copiar; no cambian los límites de las entradas históricas
-anteriores. Los servicios autorizados de convocatorias todavía no incorporan
-este material mixto. Las entradas con historial de decisiones V2 mantienen los
+anteriores. Los servicios autorizados mixtos incorporan este material mediante
+sus puertos propios. Las entradas con historial de decisiones V2 mantienen los
 mismos límites para las tres familias y las formas anidadas de sus anclas.
 
 Las decisiones judiciales puras admiten ahora predecesores administrativos
@@ -441,9 +504,9 @@ por un inventario suministrado sin usos conocidos.
 
 La persistencia administrativa, su admisión transaccional y las lecturas
 autorizadas se describen arriba. Siguen pendientes rutas HTTP y aceptación de
-restauración, la ampliación de los servicios de convocatorias y decisiones para
-material mixto y el reemplazo administrativo opcional con identidad nueva y
-enlace atómico. Agenda, alertas e interfaz siguen pendientes. Los formatos
+restauración, la regresión de cierre y el reemplazo
+administrativo opcional con identidad nueva, enlace atómico y su persistencia.
+Agenda, alertas e interfaz siguen pendientes. Los formatos
 MATXN1/MAPR1/MARCR1/MAGR1 no cambian.
 
 Los resultados focales se registran en [el informe](verification-report.md);

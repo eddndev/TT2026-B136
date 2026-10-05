@@ -2,6 +2,7 @@
 pub(crate) mod audit;
 pub(crate) mod authorization;
 mod commit;
+mod context_reads;
 pub(crate) mod decode;
 mod inventory;
 mod preparation;
@@ -65,3 +66,9 @@ fn port(error: Error) -> ApplicationError {
 fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
     PrecautionaryHearingError::StoredInconsistent(error.to_string()).into()
 }
+
+mod record_commit;
+mod record_preparation;
+mod record_storage;
+
+mod record_reads;

@@ -398,3 +398,15 @@ path = "tests/measure_decision_record_workflow.rs"
 [[test]]
 name = "measure_record_reads"
 path = "tests/measure_record_reads.rs"
+
+[[test]]
+name = "measure_decision_record_reads"
+path = "tests/measure_decision_record_reads.rs"
+
+[[test]]
+name = "precautionary_hearing_record_reads"
+path = "tests/precautionary_hearing_record_reads.rs"
+
+[[test]]
+name = "precautionary_context_reads"
+path = "tests/precautionary_context_reads.rs"

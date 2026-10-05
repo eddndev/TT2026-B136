@@ -19,9 +19,13 @@ fn missing_older_initial_prefix_or_root_rejects_existing_reads_and_replay() {
         let original = persist(&db, seed.actor.clone(), seed.command.clone());
         let storage = store(&db);
         assert_eq!(
-            storage
-                .get(&seed.actor, db.case, original.origin.decision_id)
-                .unwrap(),
+            MeasureDecisionReadStore::get(
+                storage.as_ref(),
+                &seed.actor,
+                db.case,
+                original.origin.decision_id
+            )
+            .unwrap(),
             original
         );
         let sql = if missing == "prefix" {
@@ -37,14 +41,14 @@ fn missing_older_initial_prefix_or_root_rejects_existing_reads_and_replay() {
         let before = snapshot(&mut db);
 
         reject_original(&storage, &seed.actor, db.case, &seed.command);
-        assert!(storage
-            .prepare(
-                &seed.actor,
-                db.case,
-                &no_change(&seed.command),
-                &StageSupportReadLimits::default()
-            )
-            .is_err());
+        assert!(MeasureDecisionStore::prepare(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            &no_change(&seed.command),
+            &StageSupportReadLimits::default()
+        )
+        .is_err());
         assert!(open(&db).is_err(), "accepted a lost ordinary {missing}");
         assert_eq!(snapshot(&mut db), before);
     }
@@ -91,9 +95,13 @@ fn duplicate_original_hearing_marker_is_rejected_even_with_a_valid_new_chain_lin
     let original = persist(&db, seed.actor.clone(), seed.command.clone());
     let storage = store(&db);
     assert_eq!(
-        storage
-            .get(&seed.actor, db.case, original.origin.decision_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            original.origin.decision_id
+        )
+        .unwrap(),
         original
     );
     duplicate_audit(&db, &seed.hearing);
@@ -160,9 +168,13 @@ fn changed_exact_historical_participant_values_cannot_rewrite_the_captured_initi
     assert_anchor(&original, &selected);
     let storage = store(&db);
     assert_eq!(
-        storage
-            .get(&seed.actor, db.case, original.origin.decision_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            original.origin.decision_id
+        )
+        .unwrap(),
         original
     );
     damage(

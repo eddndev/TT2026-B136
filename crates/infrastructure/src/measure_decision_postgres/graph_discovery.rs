@@ -43,7 +43,7 @@ fn record_owner(
     tx.query_opt(
         "SELECT owner_operation FROM case_measure_revisions
         WHERE case_id=$1 AND measure_id=$2 AND revision=$3 AND capture_digest=$4
-        AND family IN ('m1','c1')",
+        AND family IN ('m1','m2','c1')",
         &[
             &case.as_uuid(),
             &reference.id().as_uuid(),
@@ -69,7 +69,8 @@ fn owner_family(
         .map_err(port)?
         .ok_or_else(|| inconsistent("exact owner is absent or oversized"))?;
     match row.get::<_, String>(0).as_str() {
-        "g1" => Ok(OwnerFamily::Judicial),
+        "g1" => Ok(OwnerFamily::JudicialV1),
+        "g2" => Ok(OwnerFamily::JudicialV2),
         "a1" => Ok(OwnerFamily::Administrative),
         _ => Err(inconsistent("stored owner family is unsupported")),
     }
@@ -104,7 +105,12 @@ pub(super) fn discover(
     for root in roots {
         pending.push(match *root {
             HistoryRoot::Measure(r) => Key::Group(record_owner(tx, case, r)?),
-            HistoryRoot::Decision(op) => typed_root(tx, case, op.as_uuid(), OwnerFamily::Judicial)?,
+            HistoryRoot::Decision(op) => {
+                if owner_family(tx, case, op.as_uuid())? == OwnerFamily::Administrative {
+                    return Err(inconsistent("requested decision has another owner family"));
+                }
+                Key::Group(op.as_uuid())
+            }
             HistoryRoot::Administrative(op) => {
                 typed_root(tx, case, op.as_uuid(), OwnerFamily::Administrative)?
             }
@@ -247,20 +253,27 @@ pub(super) fn discover(
     let additions: Vec<_> = rows
         .iter()
         .filter_map(|(key, node)| match key {
-            Key::Group(_) if node.family == Some(OwnerFamily::Judicial) => Some((|| {
-                let Some(MeasureDecisionAnchorRef::Precautionary {
-                    hearing_id,
-                    revision,
-                    ..
-                }) = anchors::reference(&node.row)?
-                else {
-                    return Ok(None);
-                };
-                let hearing = rows
-                    .get(&Key::Hearing(hearing_id.as_uuid(), revision.get()))
-                    .ok_or_else(|| inconsistent("anchor node is absent"))?;
-                Ok(Some((*key, owners(tx, case, &hearing.targets)?)))
-            })()),
+            Key::Group(_)
+                if matches!(
+                    node.family,
+                    Some(OwnerFamily::JudicialV1 | OwnerFamily::JudicialV2)
+                ) =>
+            {
+                Some((|| {
+                    let Some(MeasureDecisionAnchorRef::Precautionary {
+                        hearing_id,
+                        revision,
+                        ..
+                    }) = anchors::reference(&node.row)?
+                    else {
+                        return Ok(None);
+                    };
+                    let hearing = rows
+                        .get(&Key::Hearing(hearing_id.as_uuid(), revision.get()))
+                        .ok_or_else(|| inconsistent("anchor node is absent"))?;
+                    Ok(Some((*key, owners(tx, case, &hearing.targets)?)))
+                })())
+            }
             _ => None,
         })
         .collect::<Result<Vec<_>, ApplicationError>>()?

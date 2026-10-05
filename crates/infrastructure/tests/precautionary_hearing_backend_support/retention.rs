@@ -167,23 +167,31 @@ fn the_store_reloads_complete_principal_before_operation_lookup() {
             stale.role = Role::Litigator;
         }
         let before = snapshot(&mut db);
-        assert!(storage
-            .prepare(
-                &stale,
-                db.case,
-                &command,
-                &StageSupportReadLimits::standard()
-            )
-            .is_err());
-        assert!(storage
-            .get_operation(&stale, db.case, command.operation_id)
-            .is_err());
+        assert!(PrecautionaryHearingStore::prepare(
+            storage.as_ref(),
+            &stale,
+            db.case,
+            &command,
+            &StageSupportReadLimits::standard()
+        )
+        .is_err());
+        assert!(PrecautionaryHearingReadStore::get_operation(
+            storage.as_ref(),
+            &stale,
+            db.case,
+            command.operation_id
+        )
+        .is_err());
         assert_eq!(snapshot(&mut db), before);
     }
     assert_eq!(
-        storage
-            .get_operation(&actor, db.case, command.operation_id)
-            .unwrap(),
+        PrecautionaryHearingReadStore::get_operation(
+            storage.as_ref(),
+            &actor,
+            db.case,
+            command.operation_id
+        )
+        .unwrap(),
         first
     );
 }

@@ -1,4 +1,4 @@
-use super::{inconsistent, port, storage};
+use super::{inconsistent, port, record_storage};
 use application::ApplicationError;
 use domain::{cases::CaseId, precautionary_hearings::PrecautionaryHearingId};
 use postgres::Client;
@@ -17,7 +17,7 @@ pub(crate) fn validate_inventory(client: &mut Client) -> Result<(), ApplicationE
         }
         for row in rows {
             let id: uuid::Uuid = row.get("id");
-            storage::detail(
+            record_storage::detail(
                 &mut tx,
                 CaseId::from_uuid(row.get("case_id")),
                 PrecautionaryHearingId::from_uuid(id),

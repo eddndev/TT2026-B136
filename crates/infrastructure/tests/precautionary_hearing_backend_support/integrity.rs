@@ -17,12 +17,17 @@ fn rejected_reads_and_reopen(
     storage: &PostgresPrecautionaryHearingStore,
 ) {
     let before = snapshot(db);
-    assert!(storage
-        .get(actor, db.case, command.hearing_id, None)
-        .is_err());
-    assert!(storage
-        .get_operation(actor, db.case, command.operation_id)
-        .is_err());
+    assert!(
+        PrecautionaryHearingReadStore::get(storage, actor, db.case, command.hearing_id, None)
+            .is_err()
+    );
+    assert!(PrecautionaryHearingReadStore::get_operation(
+        storage,
+        actor,
+        db.case,
+        command.operation_id
+    )
+    .is_err());
     assert!(PostgresPrecautionaryHearingStore::open(
         &db.runtime_url,
         Arc::new(RingSha256Hasher),

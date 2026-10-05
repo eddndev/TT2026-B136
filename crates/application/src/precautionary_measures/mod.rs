@@ -93,3 +93,10 @@ pub use record_workflow_model::*;
 pub use record_workflow_port::*;
 pub use record_workflow_prepared::PreparedMeasureDecisionRecord;
 pub use record_workflow_service::MeasureDecisionRecordService;
+
+mod record_read_model;
+mod record_read_port;
+mod record_reads;
+pub use record_read_model::*;
+pub use record_read_port::*;
+pub use record_reads::MeasureDecisionRecordReadService;

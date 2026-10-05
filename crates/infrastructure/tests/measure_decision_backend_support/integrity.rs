@@ -36,16 +36,26 @@ fn reject_reads_and_replay(
     case: CaseId,
     command: &MeasureDecisionCommand,
 ) {
-    assert!(storage.get(actor, case, command.decision_id).is_err());
-    assert!(storage
-        .get_operation(actor, case, command.operation_id)
-        .is_err());
-    assert!(storage
-        .list(actor, case, MeasureDecisionReadQuery::default())
-        .is_err());
-    assert!(storage
-        .prepare(actor, case, command, &StageSupportReadLimits::default())
-        .is_err());
+    assert!(MeasureDecisionReadStore::get(storage, actor, case, command.decision_id).is_err());
+    assert!(
+        MeasureDecisionReadStore::get_operation(storage, actor, case, command.operation_id)
+            .is_err()
+    );
+    assert!(MeasureDecisionReadStore::list(
+        storage,
+        actor,
+        case,
+        MeasureDecisionReadQuery::default()
+    )
+    .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage,
+        actor,
+        case,
+        command,
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
 }
 
 #[test]
@@ -85,14 +95,14 @@ fn orphan_zero_row_audit_blocks_false_empty_lists_and_global_fresh_identity_admi
     let before = snapshot(&mut db);
     reject_reads_and_replay(&storage, &old.actor, old_case, &command);
     assert!(
-        storage
-            .prepare(
-                &other.actor,
-                db.case,
-                &other.command,
-                &StageSupportReadLimits::default(),
-            )
-            .is_err(),
+        MeasureDecisionStore::prepare(
+            storage.as_ref(),
+            &other.actor,
+            db.case,
+            &other.command,
+            &StageSupportReadLimits::default(),
+        )
+        .is_err(),
         "another case cannot certify global measure identity freshness after owner loss"
     );
     assert!(open(&db).is_err());

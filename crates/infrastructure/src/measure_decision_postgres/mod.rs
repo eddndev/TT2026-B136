@@ -78,3 +78,16 @@ fn port(error: Error) -> ApplicationError {
     }
     crate::postgres_port::error("measure decision database", error)
 }
+
+mod decision_input;
+mod loaded_records;
+mod member_fields;
+mod record_commit;
+mod record_decode;
+mod record_preparation;
+mod record_sources;
+mod record_storage;
+mod record_write;
+mod write_common;
+
+mod record_reads;

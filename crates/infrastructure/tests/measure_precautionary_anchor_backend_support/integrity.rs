@@ -28,20 +28,24 @@ fn reject_original(
     case: CaseId,
     original: &MeasureDecisionStoredOperation,
 ) {
-    assert!(storage
-        .get(actor, case, original.origin.decision_id)
-        .is_err());
-    assert!(storage
-        .get_operation(actor, case, original.origin.operation_id)
-        .is_err());
-    assert!(storage
-        .prepare(
-            actor,
-            case,
-            &original.group.review.command,
-            &StageSupportReadLimits::default(),
-        )
-        .is_err());
+    assert!(
+        MeasureDecisionReadStore::get(storage, actor, case, original.origin.decision_id).is_err()
+    );
+    assert!(MeasureDecisionReadStore::get_operation(
+        storage,
+        actor,
+        case,
+        original.origin.operation_id
+    )
+    .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage,
+        actor,
+        case,
+        &original.group.review.command,
+        &StageSupportReadLimits::default(),
+    )
+    .is_err());
 }
 
 fn hidden_prefix(
@@ -79,9 +83,13 @@ fn missing_earlier_review_revision_invalidates_an_imposition_anchor_with_empty_w
     let (seed, _, hearing, stored) = hidden_prefix(&mut db);
     let storage = store(&db);
     assert_eq!(
-        storage
-            .get(&seed.actor, db.case, stored.origin.decision_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            stored.origin.decision_id
+        )
+        .unwrap(),
         stored
     );
     damage(
@@ -107,9 +115,13 @@ fn missing_prefix_only_group_invalidates_the_later_imposition_anchor() {
     let (seed, first, hearing, stored) = hidden_prefix(&mut db);
     let storage = store(&db);
     assert_eq!(
-        storage
-            .get(&seed.actor, db.case, stored.origin.decision_id)
-            .unwrap(),
+        MeasureDecisionReadStore::get(
+            storage.as_ref(),
+            &seed.actor,
+            db.case,
+            stored.origin.decision_id
+        )
+        .unwrap(),
         stored
     );
     damage(

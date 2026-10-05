@@ -78,7 +78,13 @@ fn an_open_store_cannot_recreate_a_lost_hearing_under_a_fresh_operation() {
     remove_rows(&mut db, fresh.hearing_id, true);
     let before = snapshot(&mut db);
 
-    let direct = storage.prepare(&actor, db.case, &fresh, &StageSupportReadLimits::standard());
+    let direct = PrecautionaryHearingStore::prepare(
+        storage.as_ref(),
+        &actor,
+        db.case,
+        &fresh,
+        &StageSupportReadLimits::standard(),
+    );
     let prepared = workflow.prepare("session", db.case, fresh.clone());
     let submitted = workflow.submit("session", db.case, fresh, expected);
 
@@ -107,8 +113,20 @@ fn an_open_store_cannot_expose_or_replace_an_older_head_after_losing_a_suffix() 
     remove_rows(&mut db, command.hearing_id, false);
     let before = snapshot(&mut db);
 
-    let current = storage.get(&actor, db.case, command.hearing_id, None);
-    let direct = storage.prepare(&actor, db.case, &fresh, &StageSupportReadLimits::standard());
+    let current = PrecautionaryHearingReadStore::get(
+        storage.as_ref(),
+        &actor,
+        db.case,
+        command.hearing_id,
+        None,
+    );
+    let direct = PrecautionaryHearingStore::prepare(
+        storage.as_ref(),
+        &actor,
+        db.case,
+        &fresh,
+        &StageSupportReadLimits::standard(),
+    );
     let prepared = workflow.prepare("session", db.case, fresh.clone());
     let submitted = workflow.submit("session", db.case, fresh, expected);
 
@@ -146,7 +164,12 @@ fn an_open_store_cannot_report_an_empty_page_after_losing_a_hearing_root() {
     remove_rows(&mut db, command.hearing_id, true);
     let before = snapshot(&mut db);
 
-    let direct = storage.list(&actor, db.case, PrecautionaryHearingReadQuery::default());
+    let direct = PrecautionaryHearingReadStore::list(
+        storage.as_ref(),
+        &actor,
+        db.case,
+        PrecautionaryHearingReadQuery::default(),
+    );
     let result = workflow.list("session", db.case, PrecautionaryHearingReadQuery::default());
 
     assert!(direct.is_err(), "lost root must not produce an empty page");

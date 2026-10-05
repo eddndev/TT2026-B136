@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 pub(crate) struct LoadedMeasureHistory {
     pub(super) groups: BTreeMap<Uuid, MeasureGroupEvidence>,
+    pub(super) decisions: BTreeMap<Uuid, MeasureGroupEvidenceV2>,
     pub(super) administrations: BTreeMap<Uuid, MeasureAdministrativeEvidence>,
     pub(super) parents: BTreeMap<Uuid, BTreeSet<Uuid>>,
     pub(super) hearings:
@@ -20,6 +21,7 @@ pub(crate) struct LoadedMeasureHistory {
 impl LoadedMeasureHistory {
     pub(super) fn new(
         groups: BTreeMap<Uuid, MeasureGroupEvidence>,
+        decisions: BTreeMap<Uuid, MeasureGroupEvidenceV2>,
         administrations: BTreeMap<Uuid, MeasureAdministrativeEvidence>,
         parents: BTreeMap<Uuid, BTreeSet<Uuid>>,
     ) -> Result<Self, ApplicationError> {
@@ -38,10 +40,30 @@ impl LoadedMeasureHistory {
                 }
             }
         }
+        for (owner, group) in &decisions {
+            if *owner != group.origin.operation_id.as_uuid()
+                || !parents.contains_key(owner)
+                || groups.contains_key(owner)
+            {
+                return Err(inconsistent(
+                    "loaded V2 owner identity or dependencies differ",
+                ));
+            }
+            for capture in &group.capture.measures {
+                let key = (capture.result.id.as_uuid(), capture.result.revision.get());
+                if members
+                    .insert(key, (capture.capture_digest, *owner))
+                    .is_some()
+                {
+                    return Err(inconsistent("one measure revision has multiple owners"));
+                }
+            }
+        }
         for (owner, administration) in &administrations {
             if *owner != administration.origin.operation_id.as_uuid()
                 || !parents.contains_key(owner)
                 || groups.contains_key(owner)
+                || decisions.contains_key(owner)
                 || administration.capture.records.len() != 1
             {
                 return Err(inconsistent(
@@ -58,13 +80,14 @@ impl LoadedMeasureHistory {
                 }
             }
         }
-        if parents.len() != groups.len() + administrations.len() {
+        if parents.len() != groups.len() + decisions.len() + administrations.len() {
             return Err(inconsistent(
                 "loaded dependency inventory has another owner",
             ));
         }
         Ok(Self {
             groups,
+            decisions,
             administrations,
             parents,
             hearings: BTreeMap::new(),

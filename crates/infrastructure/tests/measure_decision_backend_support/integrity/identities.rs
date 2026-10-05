@@ -52,13 +52,13 @@ fn surviving_decision_outcome_reserves_a_measure_id_after_its_root_and_row_are_l
     ]))
     .unwrap();
     let before = snapshot(&mut db);
-    assert!(storage
-        .prepare(
-            &other.actor,
-            db.case,
-            &command,
-            &StageSupportReadLimits::default()
-        )
-        .is_err());
+    assert!(MeasureDecisionStore::prepare(
+        storage.as_ref(),
+        &other.actor,
+        db.case,
+        &command,
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
     assert_eq!(snapshot(&mut db), before);
 }

@@ -25,34 +25,29 @@ impl LoadedMeasureHistory {
         reference: HearingProofRef,
         hasher: &dyn DocumentHasher,
     ) -> Result<PrecautionaryHearingStoredOperation, ApplicationError> {
-        let capture = self.hearing_capture(reference)?.clone();
-        let captures = self.prefix(reference.hearing_id.as_uuid(), reference.revision.get())?;
-        let first = &captures[0];
-        let first_proof = self.subclosure(first.review.resolved_values.review_targets())?;
-        let origin = precautionary_hearing_origin_with_measure_history(hasher, first, &first_proof)
-            .map_err(inconsistent)?;
-        let refs: Vec<_> = captures
-            .iter()
-            .flat_map(|c| c.review.resolved_values.review_targets().iter().copied())
-            .collect();
-        let measure_history = self.subclosure(&refs)?;
-        precautionary_hearing_history_with_measure_history_matches(
-            hasher,
-            &captures,
-            &origin,
-            &measure_history,
-        )
-        .map_err(inconsistent)?;
+        let operation = self.hearing_record_operation(reference, hasher)?;
+        if !operation
+            .history
+            .record_history
+            .records
+            .administrative
+            .is_empty()
+            || !operation.history.record_history.decisions.is_empty()
+        {
+            return Err(inconsistent(
+                "legacy hearing proof requires only V1 judicial owners",
+            ));
+        }
         Ok(PrecautionaryHearingStoredOperation {
-            capture,
+            capture: operation.capture,
             history: PrecautionaryHearingHistoryEvidence {
-                origin,
-                captures,
-                measure_history,
+                origin: operation.history.origin,
+                captures: operation.history.captures,
+                measure_history: operation.history.record_history.records.judicial,
             },
         })
     }
-    fn prefix(
+    pub(super) fn prefix(
         &self,
         id: Uuid,
         revision: u32,
@@ -81,6 +76,9 @@ impl LoadedMeasureHistory {
                 || self
                     .administrations
                     .contains_key(&group.origin.operation_id.as_uuid())
+                || self
+                    .decisions
+                    .contains_key(&group.origin.operation_id.as_uuid())
             {
                 return Err(inconsistent("candidate group already owns history"));
             }
@@ -94,9 +92,24 @@ impl LoadedMeasureHistory {
                     capture: group.group.clone(),
                 });
         }
+        self.check_forest(
+            case,
+            hasher,
+            inventory,
+            hearing.map(|h| (&h.history.origin, h.history.captures.as_slice())),
+        )
+    }
+
+    pub(super) fn check_forest(
+        &self,
+        case: CaseId,
+        hasher: &dyn DocumentHasher,
+        mut inventory: MeasureAdministrativeDependencyInventory,
+        hearing: Option<(&PrecautionaryHearingOrigin, &[PrecautionaryHearingCapture])>,
+    ) -> Result<(), ApplicationError> {
         let mut captures = self.hearings.clone();
-        if let Some(hearing) = hearing {
-            for capture in &hearing.history.captures {
+        if let Some((_, prefix)) = hearing {
+            for capture in prefix {
                 let key = (
                     capture.review.command.hearing_id.as_uuid(),
                     capture.review.result_revision.get(),
@@ -111,14 +124,14 @@ impl LoadedMeasureHistory {
                 }
             }
         }
-        inventory.hearings = self.hearing_histories(&captures, hearing)?;
+        inventory.hearings = self.hearing_histories(&captures, hearing.map(|h| h.0))?;
         validate_measure_dependency_inventory(hasher, case, &inventory).map_err(inconsistent)
     }
 
     pub(super) fn hearing_histories(
         &self,
         captures: &BTreeMap<(Uuid, u32), PrecautionaryHearingCapture>,
-        candidate: Option<&PrecautionaryHearingStoredOperation>,
+        candidate: Option<&PrecautionaryHearingOrigin>,
     ) -> Result<Vec<MeasureAdministrativeHearingHistory>, ApplicationError> {
         let mut prefixes: BTreeMap<Uuid, Vec<PrecautionaryHearingCapture>> = BTreeMap::new();
         for ((id, _), capture) in captures {
@@ -128,9 +141,9 @@ impl LoadedMeasureHistory {
         for captures in prefixes.into_values() {
             let first = &captures[0];
             let origin = if let Some(candidate) =
-                candidate.filter(|h| h.history.origin.hearing_id == first.review.command.hearing_id)
+                candidate.filter(|h| h.hearing_id == first.review.command.hearing_id)
             {
-                candidate.history.origin.clone()
+                candidate.clone()
             } else {
                 self.hearing_origins
                     .get(&first.review.command.hearing_id.as_uuid())
