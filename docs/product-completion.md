@@ -2,6 +2,10 @@
 
 ## Checkpoint funcional reconciliado
 
+La lista finita de esta entrega y sus criterios de término están en
+[cierre de los cuatro frentes](four-front-closure.md). Los estados históricos
+posteriores no amplían ese alcance ni reabren funciones ya integradas.
+
 El flujo explícito de **resultado de audiencia y plazo derivado** está
 implementado en aplicación, PostgreSQL, HTTP y Qadra, con origen conjunto
 inmutable y recuperación del envío por la misma identidad. La verificación
@@ -100,11 +104,13 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   mixtas, autorización y recuperación mediante puertos. Los adaptadores PostgreSQL
   añaden programación, reemplazo y cancelación de convocatorias de imposición,
   y decisiones independientes con 1 a 32 imposiciones iniciales o sin cambios,
-  conservando el grupo completo y su auditoría atómica. Persistencia con anclas,
-  efectos sobre predecesores, G2/M2 y registros administrativos, convocatorias de
-  revisión, HTTP, Agenda, alertas, interfaz y aceptación completa siguen pendientes.
-  Estos componentes no acreditan el flujo cautelar terminado ni reglas jurídicas
-  automáticas.
+  conservando el grupo completo y su auditoría atómica. Persistencia con anclas, efectos sobre predecesores, historias mixtas,
+  registros administrativos y convocatorias de revisión también tienen
+  implementación y evidencia focal local. HTTP de convocatorias, rectificaciones, lecturas y decisiones declaradas está
+  compuesto con los servicios existentes y tiene comprobaciones focales aprobadas. Agenda, alertas, Qadra y aceptación
+  completa siguen pendientes. Estos componentes no acreditan el flujo cautelar
+  terminado ni reglas jurídicas automáticas. La lista de cierre es
+  [finita y explícita](four-front-closure.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,

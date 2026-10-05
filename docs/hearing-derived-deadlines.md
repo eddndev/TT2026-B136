@@ -11,8 +11,10 @@ de una respuesta perdida. Los resultados y límites están en el
 [informe de verificación](verification-report.md).
 
 [ADR-0070](adr/0070-prospective-hearing-derived-deadlines.md) está **Accepted**.
-El cierre remoto y la integración de esta entrega siguen pendientes; la evidencia
-local no acredita despliegue ni aprobación de los perfiles jurídicos.
+El flujo quedó integrado y su confirmación natural en main está acreditada
+por el informe de verificación. Esto no acredita despliegue ni aprobación de
+los perfiles jurídicos; su cierre se delimita en
+[los cuatro frentes](four-front-closure.md).
 
 La operación registra un `HearingResult` mediante `record`, revisión inicial R1,
 y un plazo mediante `register`, también R1. Requiere una instrucción explícita
