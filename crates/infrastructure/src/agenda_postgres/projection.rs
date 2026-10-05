@@ -14,6 +14,9 @@ pub(super) fn item(
     match header.key.kind() {
         AgendaItemKind::Hearing => hearing(tx, header, case, hasher).map(Some),
         AgendaItemKind::Deadline => deadline(tx, header, case, hasher, checked_at),
+        AgendaItemKind::PrecautionaryHearing => {
+            super::precautionary_hearing::item(tx, header, case, hasher, checked_at).map(Some)
+        }
         AgendaItemKind::ResourceHearing => {
             super::resource_hearing::item(tx, header, case, hasher, checked_at).map(Some)
         }

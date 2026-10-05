@@ -4,7 +4,7 @@ use application::{precautionary_hearings::*, ApplicationError};
 use domain::{cases::CaseId, crypto::DocumentHasher, precautionary_hearings::*};
 use postgres::Transaction;
 
-pub(super) fn detail(
+pub(crate) fn detail(
     tx: &mut Transaction<'_>,
     case: CaseId,
     id: PrecautionaryHearingId,

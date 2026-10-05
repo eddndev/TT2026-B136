@@ -12,6 +12,7 @@ use domain::{
     clock::OffsetDateTime,
     hearings::MAX_HEARING_PARTICIPANTS,
     identity::Permission,
+    precautionary_hearings::MAX_PRECAUTIONARY_HEARING_PARTICIPANTS,
     resource_hearings::{ResourceHearingRevision, MAX_RESOURCE_HEARING_PARTICIPANTS},
 };
 use std::collections::HashSet;
@@ -55,6 +56,19 @@ pub(super) fn item_key(item: &AgendaItem) -> Result<AgendaCursor, ApplicationErr
                 hearing.id.as_uuid(),
             )
         }
+        AgendaItem::PrecautionaryHearing { case, hearing } => {
+            metadata(&case.title, &case.reference)?;
+            if case.case_id != hearing.case_id
+                || usize::from(hearing.participant_count) > MAX_PRECAUTIONARY_HEARING_PARTICIPANTS
+            {
+                return Err(inconsistent());
+            }
+            (
+                hearing.scheduled_at.utc(),
+                AgendaItemKind::PrecautionaryHearing,
+                hearing.id.as_uuid(),
+            )
+        }
     };
     AgendaCursor::new(at, kind, id).map_err(|_| inconsistent())
 }
@@ -77,6 +91,7 @@ pub(super) fn validate_page(
             AgendaItemKind::Hearing => 0_u8,
             AgendaItemKind::Deadline => 1_u8,
             AgendaItemKind::ResourceHearing => 2_u8,
+            AgendaItemKind::PrecautionaryHearing => 3_u8,
         };
         if !query.accepts(key)
             || previous.is_some_and(|value| key <= value)
@@ -103,6 +118,15 @@ pub(super) fn validate_page(
                 }
             }
             AgendaItem::ResourceHearing { .. } => {}
+            AgendaItem::PrecautionaryHearing { hearing, .. } => {
+                if query
+                    .hearing_status()
+                    .status()
+                    .is_some_and(|status| hearing.status != status)
+                {
+                    return Err(inconsistent());
+                }
+            }
         }
         previous = Some(key);
     }

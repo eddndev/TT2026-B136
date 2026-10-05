@@ -11,6 +11,8 @@ use tower::ServiceExt;
 use uuid::Uuid;
 
 mod deadline_http_support;
+#[path = "agenda_precautionary_hearings.rs"]
+mod precautionary_hearings;
 #[path = "agenda_resource_hearings/mod.rs"]
 mod resource_hearings;
 

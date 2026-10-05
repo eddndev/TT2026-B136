@@ -5,7 +5,10 @@ use domain::{
     cases::CaseId,
     clock::OffsetDateTime,
     crypto::Sha256Digest,
-    hearings::{HearingModality, HearingTime},
+    hearings::{HearingModality, HearingStatus, HearingTime},
+    precautionary_hearings::{
+        PrecautionaryHearingId, PrecautionaryHearingPurpose, PrecautionaryHearingRevision,
+    },
     procedural_resources::ResourceId,
     resource_activities::ResourceActivityId,
     resource_hearings::{ResourceHearingId, ResourceHearingKind, ResourceHearingRevision},
@@ -34,6 +37,19 @@ pub struct ResourceHearingAgendaOverview {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PrecautionaryHearingAgendaOverview {
+    pub case_id: CaseId,
+    pub id: PrecautionaryHearingId,
+    pub revision: PrecautionaryHearingRevision,
+    pub purpose: PrecautionaryHearingPurpose,
+    pub scheduled_at: HearingTime,
+    pub modality: HearingModality,
+    pub status: HearingStatus,
+    pub participant_count: u8,
+    pub capture_digest: Sha256Digest,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AgendaItem {
     Hearing(HearingOverview),
     Deadline {
@@ -43,6 +59,10 @@ pub enum AgendaItem {
     ResourceHearing {
         case: AgendaCaseSummary,
         hearing: Box<ResourceHearingAgendaOverview>,
+    },
+    PrecautionaryHearing {
+        case: AgendaCaseSummary,
+        hearing: Box<PrecautionaryHearingAgendaOverview>,
     },
 }
 impl AgendaItem {

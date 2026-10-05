@@ -1,5 +1,30 @@
 # Informe de verificación local
 
+## Agenda cautelar: 5 de octubre de 2026
+
+Verificación fresca del recorrido de consulta, sin nueva integración. La Agenda
+selecciona la revisión vigente de la convocatoria cautelar, conserva su horario
+al cancelar, filtra antes de paginar y reconstruye sus dependencias mixtas. Una
+decisión anclada en audiencia inicial conserva sólo aquella cita ordinaria.
+Se mantiene el acceso por expediente y la lectura después del cierre.
+
+TDD focal: aplicación declaró primero la familia ausente y aprobó después la
+suite de Agenda (33 casos). HTTP declaró los matches ausentes y aprobó después
+sus 17 casos. El cliente reprodujo tres fallos y aprobó sus 16 casos tras admitir
+fila, filtro y cursor cautelares; aún no conecta el panel de detalle de Qadra.
+
+PostgreSQL 16.15/SCRAM real: tres casos cautelares aprobaron inicialmente. El
+cuarto detectó la dependencia corrupta al abrir el store, antes del punto que
+pretendía comprobar el fixture. Se conservó el adaptador abierto antes de alterar
+los datos: el caso corregido aprobó sin repetir los otros tres. La suite nativa
+afectada de Agenda aprobó sus 13 casos. Ambos clusters privados se retiraron.
+No hubo fallo de producto sin resolver en esta campaña. La evidencia anterior
+de cautelares y los demás frentes se conserva sin repetir sus campañas.
+
+Clippy focal de aplicación, infraestructura y HTTP aprobó con `-D warnings`.
+Un compilador/thread y temporales privados en disco. Alertas, detalle Qadra,
+aceptación HTTP/navegador/restauración y regresión de cierre siguen pendientes.
+
 ## Reconciliación de alcance y HTTP cautelar: 5 de octubre de 2026
 
 Se contrastaron main remoto `e9afef8` y los respaldos `3ba0c816` con el código y

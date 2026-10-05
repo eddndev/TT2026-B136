@@ -1,6 +1,9 @@
 use super::{cursor, query};
 use crate::error::ApiError;
-use application::agenda::{AgendaItem, AgendaPage, AgendaQuery, ResourceHearingAgendaOverview};
+use application::agenda::{
+    AgendaItem, AgendaPage, AgendaQuery, PrecautionaryHearingAgendaOverview,
+    ResourceHearingAgendaOverview,
+};
 use serde_json::{json, Value};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
@@ -17,6 +20,12 @@ pub(super) fn page(page: AgendaPage, query: AgendaQuery) -> Result<Value, ApiErr
                 "case_title":case.title, "case_reference":case.reference,
                 "case_status":case.status.as_str(),
                 "resource_hearing":resource_hearing(*hearing)?,
+            }),
+            AgendaItem::PrecautionaryHearing { case, hearing } => json!({
+                "kind":"precautionary_hearing", "at":at,
+                "case_title":case.title, "case_reference":case.reference,
+                "case_status":case.status.as_str(),
+                "precautionary_hearing":precautionary_hearing(*hearing)?,
             }),
         });
     }
@@ -36,6 +45,20 @@ fn resource_hearing(value: ResourceHearingAgendaOverview) -> Result<Value, ApiEr
         "kind":value.kind.as_str(), "scheduled_at":scheduled_at,
         "modality":value.modality.as_str(), "participant_count":value.participant_count,
         "association_id":value.association_id.to_string(),
+        "capture_digest":value.capture_digest.to_hex(),
+    }))
+}
+fn precautionary_hearing(value: PrecautionaryHearingAgendaOverview) -> Result<Value, ApiError> {
+    let scheduled_at = value
+        .scheduled_at
+        .value()
+        .format(&Rfc3339)
+        .map_err(|_| ApiError::internal())?;
+    Ok(json!({
+        "case_id":value.case_id.to_string(), "id":value.id.to_string(),
+        "revision":value.revision.get(), "purpose":value.purpose.as_str(),
+        "scheduled_at":scheduled_at, "modality":value.modality.as_str(),
+        "status":value.status.as_str(), "participant_count":value.participant_count,
         "capture_digest":value.capture_digest.to_hex(),
     }))
 }

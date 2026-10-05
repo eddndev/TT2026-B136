@@ -2,6 +2,7 @@
 
 mod authorization;
 mod header;
+mod precautionary_hearing;
 mod projection;
 mod query;
 mod resource_hearing;

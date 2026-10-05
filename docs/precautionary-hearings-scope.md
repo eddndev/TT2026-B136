@@ -1,14 +1,14 @@
 # Alcance de audiencias y medidas cautelares declaradas
 
 Estado: **implementación local con verificación focal de dominio, aplicación y
-PostgreSQL**. El trabajo local comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
+PostgreSQL y HTTP**. El trabajo local comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
 de G2/M2 y sus consumidores mixtos tiene implementación local aditiva y
 verificación nativa focal, incluidas las consultas de operaciones y contexto.
-HTTP, Agenda, alertas e interfaz conservan
-sus propias comprobaciones pendientes. Este contrato no
+HTTP compuesto tiene comprobaciones focales aprobadas. Agenda está en verificación
+focal; alertas, interfaz y aceptación integrada permanecen pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
@@ -44,7 +44,8 @@ contexto de programación anteriores. Los límites son independientes: hasta 256
 capturas de audiencia y 8192 objetivos; hasta 256 grupos y 8192 miembros en la
 historia de medidas. No se cargan grupos cuando no existen objetivos.
 
-La existencia del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita
+Los adaptadores ya están compuestos en las rutas HTTP. Esa composición no acredita
+por sí sola Agenda, alertas o Qadra, ni acredita
 restauración integral o despliegue. Véase [operación de base de datos](database-operations.md).
 
 ## Persistencia local de decisiones cautelares
@@ -80,15 +81,14 @@ decisiones inmutables, incluidas las que no cambian medidas, hasta 20 por págin
 
 El arranque comprueba catálogo, privilegios e inventario. Las conexiones abiertas
 también rechazan grupos incompletos y auditoría huérfana; perder filas no libera
-sus identidades. Se conservan los canones existentes. La aceptación de restauración,
-la integración HTTP, Agenda, alertas e interfaz siguen pendientes; este adaptador
+sus identidades. Se conservan los canones existentes. La aceptación de restauración, Agenda, alertas e interfaz siguen pendientes; este adaptador
 no acredita el cierre del flujo completo.
 
 ## Persistencia local de correcciones administrativas
 
 `PostgresMeasureAdministrativeStore` registra Correct, Mark y el reemplazo
-administrativo conjunto con su auditoría atómica. La verificación nativa del
-nuevo reemplazo está en curso. Exige la cabeza exacta con captura válida y rechaza
+administrativo conjunto con su auditoría atómica. La verificación nativa focal del
+reemplazo está aprobada. Exige la cabeza exacta con captura válida y rechaza
 una corrección si ya existe un uso de esa revisión por una decisión, otra corrección
 o una audiencia. Conserva usos históricos aunque la audiencia cambie después;
 un uso de otra revisión o medida no produce un bloqueo falso. Permite corregir
@@ -110,7 +110,8 @@ de operación, hasta 20 elementos. Conservan la captura histórica después de
 correcciones, marcas y cierre del expediente; no aplican otra vez reglas de
 cabeza o dependencias de un comando nuevo. La extensión local para Review
 nuevo de C/M2 y persistencia G2/M2 tiene verificación nativa focal. Este
-alcance no acredita HTTP, Agenda, alertas, Qadra, restauración integral ni despliegue.
+alcance por sí solo no acredita Agenda, alertas, Qadra, restauración integral ni
+despliegue. El transporte HTTP compuesto tiene evidencia focal propia.
 
 ## Servicios mixtos y consulta de registros
 

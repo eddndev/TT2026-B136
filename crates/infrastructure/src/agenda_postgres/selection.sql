@@ -22,6 +22,14 @@ WITH authorized_hearings AS MATERIALIZED (
           SELECT 1 FROM case_memberships m
           WHERE m.case_id = h.case_id AND m.user_id = $2::uuid
       ))
+), authorized_precautionary_hearings AS MATERIALIZED (
+    SELECT h.case_id, h.id
+    FROM case_precautionary_hearings h
+    WHERE $3::smallint IN (-1, 3)
+      AND ($1::boolean OR EXISTS (
+          SELECT 1 FROM case_memberships m
+          WHERE m.case_id = h.case_id AND m.user_id = $2::uuid
+      ))
 ), heads AS (
     SELECT h.case_id, h.id, r.revision, 0::smallint AS kind_rank,
            (r.values_view->'time'->>'seconds')::bigint AS seconds,
@@ -60,6 +68,26 @@ WITH authorized_hearings AS MATERIALIZED (
         ORDER BY revision DESC LIMIT 1
     ) r
     WHERE $4::text IS NULL OR $4 = 'scheduled'
+    UNION ALL
+    SELECT h.case_id, h.id, r.revision, 3::smallint AS kind_rank,
+           (v.values_view->'time'->>'seconds')::bigint AS seconds,
+           0::integer AS nanoseconds, r.status, NULL::uuid AS resource_id
+    FROM authorized_precautionary_hearings h
+    CROSS JOIN LATERAL (
+        SELECT revision,
+               CASE WHEN action = 'cancel' THEN 'cancelled' ELSE 'scheduled' END AS status
+        FROM case_precautionary_hearing_revisions
+        WHERE hearing_id = h.id AND case_id = h.case_id
+        ORDER BY revision DESC LIMIT 1
+    ) r
+    CROSS JOIN LATERAL (
+        SELECT values_view
+        FROM case_precautionary_hearing_revisions
+        WHERE hearing_id = h.id AND case_id = h.case_id
+          AND revision <= r.revision AND values_view IS NOT NULL
+        ORDER BY revision DESC LIMIT 1
+    ) v
+    WHERE $4::text IS NULL OR r.status = $4
 )
 SELECT case_id, id, revision, kind_rank, seconds, nanoseconds, status, resource_id
 FROM heads

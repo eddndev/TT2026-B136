@@ -69,6 +69,6 @@ fn inconsistent(error: impl std::fmt::Display) -> ApplicationError {
 
 mod record_commit;
 mod record_preparation;
-mod record_storage;
+pub(crate) mod record_storage;
 
 mod record_reads;

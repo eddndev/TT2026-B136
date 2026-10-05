@@ -10,7 +10,7 @@ export function utcSeconds(value) {
   return Date.parse(value) / 1000;
 }
 export function agendaKey(at, kind, id) {
-  const rank = ['hearing', 'deadline', 'resource_hearing'].indexOf(kind);
+  const rank = ['hearing', 'deadline', 'resource_hearing', 'precautionary_hearing'].indexOf(kind);
   if (rank < 0) agendaInvalid();
   uuid(id);
   return [at.unix_seconds, at.nanosecond, rank, id];
@@ -41,13 +41,13 @@ export function agendaCursor(token, query) {
     seconds >= query.end ||
     nanos < 0 ||
     nanos > 999999999 ||
-    ![0, 1, 2].includes(rank) ||
+    ![0, 1, 2, 3].includes(rank) ||
     (rank === 2 && query.hearing_status === 'cancelled')
   )
     agendaInvalid();
   if (
     query.kind !== 'all' &&
-    rank !== ['hearing', 'deadline', 'resource_hearing'].indexOf(query.kind)
+    rank !== ['hearing', 'deadline', 'resource_hearing', 'precautionary_hearing'].indexOf(query.kind)
   )
     agendaInvalid();
   uuid(parts[8]);
@@ -69,7 +69,7 @@ export function combinedAgendaQuery({
     !Number.isInteger(limit) ||
     limit < 1 ||
     limit > 100 ||
-    !['all', 'hearing', 'deadline', 'resource_hearing'].includes(kind) ||
+    !['all', 'hearing', 'deadline', 'resource_hearing', 'precautionary_hearing'].includes(kind) ||
     !['scheduled', 'cancelled', 'all'].includes(hearing_status) ||
     (kind === 'deadline' && hearing_status !== 'scheduled') ||
     (kind === 'resource_hearing' && hearing_status === 'cancelled')

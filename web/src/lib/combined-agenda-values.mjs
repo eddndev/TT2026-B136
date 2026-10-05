@@ -7,6 +7,7 @@ import { deadlineInstant } from './deadline-time.mjs';
 import { deadlineListRow } from './deadline-validation.mjs';
 import { validateHearing } from './hearings-api.mjs';
 import { resourceHearingOverview } from './resource-hearing-values.mjs';
+import { precautionaryHearingAgendaOverview } from './precautionary-agenda-values.mjs';
 import {
   agendaInvalid,
   agendaKey,
@@ -130,6 +131,25 @@ export function combinedAgendaPage(value, query) {
       const hearing = resourceHearingOverview(item.resource_hearing);
       caseMetadata(item);
       if (query.hearing_status === 'cancelled') agendaInvalid();
+      expected = {
+        unix_seconds: Date.parse(hearing.scheduled_at) / 1000,
+        nanosecond: 0,
+        offset_seconds: 0,
+      };
+      id = hearing.id;
+    } else if (item.kind === 'precautionary_hearing') {
+      object(item, [
+        'kind',
+        'at',
+        'case_title',
+        'case_reference',
+        'case_status',
+        'precautionary_hearing',
+      ]);
+      const hearing = precautionaryHearingAgendaOverview(item.precautionary_hearing);
+      caseMetadata(item);
+      if (query.hearing_status !== 'all' && hearing.status !== query.hearing_status)
+        agendaInvalid();
       expected = {
         unix_seconds: Date.parse(hearing.scheduled_at) / 1000,
         nanosecond: 0,

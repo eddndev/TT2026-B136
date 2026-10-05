@@ -1,6 +1,8 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
 #[path = "../agenda_page.rs"]
 mod agenda_page;
+#[path = "../agenda_precautionary_hearings.rs"]
+mod agenda_precautionary_hearings;
 #[path = "../agenda_projection.rs"]
 mod agenda_projection;
 #[path = "../agenda_query.rs"]
