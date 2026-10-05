@@ -350,19 +350,15 @@ path = "tests/measure_decision_effects.rs"
 [[test]]
 name = "measure_effect_vectors"
 path = "tests/measure_effect_vectors.rs"
-
 [[test]]
 name = "precautionary_review_hearings"
 path = "tests/precautionary_review_hearings.rs"
-
 [[test]]
 name = "measure_decision_anchors"
 path = "tests/measure_decision_anchors.rs"
-
 [[test]]
 name = "measure_anchor_vectors"
 path = "tests/measure_anchor_vectors.rs"
-
 [[test]]
 name = "precautionary_workflow"
 path = "tests/precautionary_workflow.rs"
@@ -398,3 +394,7 @@ path = "tests/measure_record_decisions.rs"
 [[test]]
 name = "precautionary_decision_reviews"
 path = "tests/precautionary_decision_reviews.rs"
+
+[[test]]
+name = "measure_dependencies"
+path = "tests/measure_dependencies.rs"

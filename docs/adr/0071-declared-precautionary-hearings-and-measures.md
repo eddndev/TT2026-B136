@@ -29,6 +29,9 @@ captures consume those exact records through one bounded judicial/administrative
 history graph; a subsequent correction retains the actual M2 as judicial evidence.
 Additive hearing proof entry points also select genuine M2 and post-M2
 administrative records through that graph without changing hearing receipts.
+The pure dependency inspector validates a supplied owner forest and hearing
+prefixes, then reports direct uses of an exact record. It does not establish
+complete durable absence or current permission to mutate that record.
 Optional administrative replacement, current mutation eligibility, authorized
 mixed-record services, durable storage, HTTP, Agenda, alerts, Qadra and
 restoration remain pending. The bounded contract and source
@@ -488,6 +491,59 @@ the candidate, with at most 32 affected/selected identities and shape checks
 before hashing or cloning. A Review appointment over G1/C can anchor G2 using
 the same exact proof. These pure functions do not extend authorized workflow
 ports, prove current heads or dependent absence, or persist a transaction.
+
+### Inspection of supplied direct dependants
+
+`inspect_measure_administrative_dependencies` accepts an exact measure reference,
+case and `MeasureAdministrativeDependencyInventory`. The inventory contains
+complete G1/G2/administrative owners and one origin-bound, nonempty ascending
+prefix per supplied precautionary hearing identity. The checked result exposes
+only case, target and a bounded list of direct uses. Its construction remains
+private; it has no eligibility, authorization, current-head or completeness flag.
+
+After validating the whole supplied forest, report four distinct direct uses:
+
+- Judicial: a G1/G2 command effect selects the exact predecessor reference.
+- Administrative: an administrative command selects that exact target.
+- Review: one supplied historical hearing capture selects it, including retained
+  cancellation targets and earlier replaced revisions.
+- ReviewAnchor: a G1/G2 anchors an exact Review capture that selects it, including
+  NoMeasureChange groups and decisions affecting different measures.
+
+Retained last-judicial or root pointers, unrelated siblings, shared sources and
+different revisions are not additional target uses. Review and ReviewAnchor
+remain separate edges. Reports have deterministic variant/family/identity order
+and remove identical edges only after inconsistent evidence has been rejected.
+They are direct-use reports, not transitive descendant lists.
+
+Inspection validates every supplied owner once in parent-first order, including
+disconnected roots and groups with no measure rows. Required ancestors, origins,
+families, siblings, substitution links and immutable sources must all agree.
+The existing exact-closure APIs still reject unrelated extra owners; inspection
+has a separate forest mode and does not weaken historical receipt validation.
+Every embedded precautionary anchor must equal its full capture at the exact
+revision in a supplied prefix. Every prefix is validated once with the same
+checked record index and shared source inventory, preserving R1 origin,
+continuity, operation uniqueness, target clocks and cancellation retention.
+
+The selected inspection target may be terminal or EnteredInError: inspection
+does not admit a correction or mark. All Review targets within the supplied
+evidence still require their exact captured Valid status. A later mark does not
+invalidate an older hearing selecting an older Valid record. Duplicate owners
+or hearing prefixes reject, and an error outside the target's own ancestry
+invalidates the whole inspection.
+
+Before hashing or substantive cloning, bound the forest at 256 G1/G2/administrative
+owners and 8192 rows; bound hearing material at 256 prefixes, 256 total captures
+and 8192 total Review target occurrences. Keep existing per-owner and per-hearing
+32-item shape bounds. At most 768 direct edges can result; there is no truncation
+or pagination. No digest or wire format is added or changed.
+
+An empty report says only that the validated supplied forest contains no listed
+direct use. The store must separately establish current heads, complete durable
+dependent inventory and current access under the mutation lock with atomic audit.
+This inspector grants no mutation capability and does not implement that admission,
+administrative replacement, SQL or HTTP.
 
 ### Decision anchors and shared dependency evidence
 

@@ -22,10 +22,36 @@ pub(super) fn validate<'a>(
         return Err(invalid("record target union budget exceeded"));
     }
     let index = RecordIndex::new(case, evidence, reserve)?;
+    let roots = selections
+        .iter()
+        .map(|r| index.selected(*r).map(|m| index.owner(m)))
+        .collect::<Result<Vec<_>, _>>()?;
+    reconstruct(hasher, case, index, roots, &[], inventory)
+}
+
+pub(super) fn validate_forest<'a>(
+    hasher: &dyn DocumentHasher,
+    case: CaseId,
+    index: RecordIndex<'a>,
+    additional: &[Vec<usize>],
+    inventory: &mut SourceInventory<'a>,
+) -> Result<RecordIndex<'a>, ApplicationError> {
+    let roots = (0..index.owners()).collect();
+    reconstruct(hasher, case, index, roots, additional, inventory)
+}
+
+fn reconstruct<'a>(
+    hasher: &dyn DocumentHasher,
+    case: CaseId,
+    index: RecordIndex<'a>,
+    roots: Vec<usize>,
+    additional: &[Vec<usize>],
+    inventory: &mut SourceInventory<'a>,
+) -> Result<RecordIndex<'a>, ApplicationError> {
+    let evidence = index.evidence;
     let mut state = vec![0u8; index.owners()];
     let mut order = Vec::new();
-    for selection in selections {
-        let root = index.owner(index.selected(*selection)?);
+    for root in roots {
         let mut stack = vec![(root, false)];
         while let Some((owner, finish)) = stack.pop() {
             if finish {
@@ -41,7 +67,11 @@ pub(super) fn validate<'a>(
             }
             state[owner] = 1;
             stack.push((owner, true));
-            for parent in dependencies(&index, owner)?.into_iter().rev() {
+            let mut parents = dependencies(&index, owner)?;
+            if let Some(extra) = additional.get(owner) {
+                parents.extend_from_slice(extra);
+            }
+            for parent in parents.into_iter().rev() {
                 stack.push((parent, false));
             }
         }

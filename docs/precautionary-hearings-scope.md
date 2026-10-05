@@ -244,6 +244,39 @@ siendo 256 propietarios y 8192 filas, incluido el candidato, con hasta 32
 identidades afectadas y rechazo de exceso antes de hashear o copiar. Una
 convocatoria Review sobre G1/C puede anclar G2 con su cierre exacto.
 
+El inspector puro `inspect_measure_administrative_dependencies` valida un bosque
+suministrado de propietarios G1/G2/administrativos y prefijos de convocatorias,
+y devuelve los usos directos de una referencia exacta. Distingue predecesores
+en efectos judiciales, objetivos de comandos administrativos, selecciones de
+cada captura Review histórica y decisiones que anclan una captura Review exacta.
+Incluye cancelaciones, revisiones reemplazadas y decisiones NoMeasureChange con
+ancla; no convierte raíces, última evidencia judicial, fuentes compartidas o
+revisiones distintas en nuevos usos del objetivo.
+
+Comprueba una vez cada propietario completo, incluidos grupos sin medidas y
+raíces desconectadas. Toda dependencia requerida, origen, familia, hermana y
+fuente debe ser consistente. Las consultas anteriores de cierre exacto siguen
+rechazando propietarios sobrantes. Cada audiencia suministrada tiene un único
+prefijo no vacío desde R1 con su origen, y toda ancla cautelar debe coincidir con
+la captura completa de su revisión dentro de ese prefijo. Los prefijos comparten
+el índice comprobado y el inventario de fuentes del bosque; errores ajenos a la
+ascendencia del objetivo también invalidan la inspección completa.
+
+El objetivo inspeccionado puede ser terminal o EnteredInError sin que eso autorice
+corregirlo. Los objetivos Review conservan la exigencia de validez exacta Valid.
+El informe ordena y elimina solo usos idénticos después de validar; distingue
+la selección por una convocatoria de su uso como ancla y no enumera descendientes
+transitivos. Antes de hashear o copiar se acotan 256 propietarios y 8192 filas,
+256 prefijos y 256 capturas totales, y 8192 ocurrencias de objetivos Review,
+además de las formas individuales de hasta 32 elementos. Hay como máximo 768
+usos directos, sin truncamiento ni nuevos digests o formatos.
+
+Un informe vacío solo declara que no hay esos usos en el bosque suministrado.
+No prueba que el inventario durable esté completo, que el objetivo sea la cabeza
+vigente ni que exista permiso de modificación. El resultado comprobado no
+expone una bandera de elegibilidad y el almacén debe resolver esas obligaciones
+durante la admisión atómica con autorización y auditoría.
+
 Esta validación pura no acredita acceso actual, admisión documental nueva,
 existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
 servicios autorizados para material mixto, el reemplazo administrativo opcional

@@ -43,3 +43,9 @@ pub use preparation::prepare_measure_administrative_record_with_decision_history
 pub use record_history::resolve_measure_records_with_decision_history;
 
 pub(crate) use record_index::HistoryView as RecordHistoryView;
+
+mod dependencies;
+mod dependency_model;
+mod dependency_report;
+pub use dependencies::inspect_measure_administrative_dependencies;
+pub use dependency_model::*;

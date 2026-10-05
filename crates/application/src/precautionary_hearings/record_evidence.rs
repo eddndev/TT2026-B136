@@ -3,7 +3,7 @@ use crate::{
     identity::Principal,
     measure_corrections::{
         checked_record_closure, record_history_bounds, CheckedRecordClosure,
-        MeasureCaptureValidity, MeasureRecordHistoryEvidence, RecordHistoryView,
+        MeasureCaptureValidity, MeasureRecordHistoryEvidence, RecordHistoryView, RecordView,
     },
     ApplicationError,
 };
@@ -118,9 +118,16 @@ fn target_clock(
     review: &PrecautionaryHearingReview,
     proof: &CheckedRecordClosure<'_>,
 ) -> Result<OffsetDateTime, ApplicationError> {
+    target_clock_with_lookup(review, &|r| proof.member(r))
+}
+
+pub(super) fn target_clock_with_lookup<'a>(
+    review: &PrecautionaryHearingReview,
+    lookup: &impl Fn(PrecautionaryMeasureRef) -> Result<RecordView<'a>, ApplicationError>,
+) -> Result<OffsetDateTime, ApplicationError> {
     let mut floor = latest_source_time(review)?;
     for reference in review.resolved_values.review_targets() {
-        let target = proof.member(*reference)?;
+        let target = lookup(*reference)?;
         if target.validity() != MeasureCaptureValidity::Valid {
             return Err(invalid(
                 "review selects a record captured as entered in error",

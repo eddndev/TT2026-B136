@@ -76,6 +76,19 @@ pub(super) fn history_with_view(
         return Err(invalid("history differs from original capture"));
     }
     check_captures(hasher, &captures.iter().collect::<Vec<_>>(), evidence)?;
+    sequence(captures, origin)
+}
+
+fn sequence(
+    captures: &[PrecautionaryHearingCapture],
+    origin: &PrecautionaryHearingOrigin,
+) -> Result<(), ApplicationError> {
+    let first = captures
+        .first()
+        .ok_or_else(|| invalid("history lacks its initial capture"))?;
+    if super::history::origin_metadata(first)? != *origin {
+        return Err(invalid("history differs from original capture"));
+    }
     let mut operations = BTreeSet::new();
     for (index, capture) in captures.iter().enumerate() {
         if !operations.insert(capture.review.command.operation_id.as_uuid()) {
@@ -87,6 +100,31 @@ pub(super) fn history_with_view(
             if capture.recorded_at < previous.recorded_at {
                 return Err(invalid("capture predates its predecessor"));
             }
+        }
+    }
+    Ok(())
+}
+
+/// Verifies hearing prefixes using an already reconstructed shared record forest.
+pub(crate) fn check_history_with_records<'a>(
+    hasher: &dyn DocumentHasher,
+    case: domain::cases::CaseId,
+    captures: &'a [PrecautionaryHearingCapture],
+    origin: &PrecautionaryHearingOrigin,
+    inventory: &mut source_inventory::SourceInventory<'a>,
+    lookup: &impl Fn(
+        domain::precautionary_hearings::PrecautionaryMeasureRef,
+    ) -> Result<crate::measure_corrections::RecordView<'a>, ApplicationError>,
+) -> Result<(), ApplicationError> {
+    sequence(captures, origin)?;
+    for capture in captures {
+        inventory.capture(capture)?;
+        receipt_flat(hasher, capture)?;
+        if capture.review.case_id != case
+            || capture.recorded_at
+                < super::record_evidence::target_clock_with_lookup(&capture.review, lookup)?
+        {
+            return Err(invalid("appointment case or record chronology differs"));
         }
     }
     Ok(())

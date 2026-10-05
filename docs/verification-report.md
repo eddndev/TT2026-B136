@@ -1,5 +1,42 @@
 # Informe de verificación local
 
+## Inspección de dependientes cautelares suministrados: 4 de octubre de 2026
+
+El inspector puro valida un bosque completo suministrado de propietarios
+G1/G2/administrativos y prefijos históricos de convocatorias. Informa cuatro
+usos directos del objetivo exacto: predecesor judicial, objetivo administrativo,
+selección Review y ancla Review de una decisión. Incluye revisiones reemplazadas,
+canceladas y grupos NoMeasureChange con ancla, sin inventar usos por fuentes
+compartidas o referencias a raíces y última evidencia judicial.
+
+TDD: la API ausente produjo el fallo esperado en **0.424 s** antes de implementar.
+El intento anterior con un archivo de fixture incompleto se conservó por separado
+y no se usa como evidencia de ese fallo. La ejecución nueva aprobó **27 casos en
+10.627 s** de comando, compilación **10.43 s**. Cubre objetivos M1/M2/C, cuatro
+clases de usos, prefijos completos, anclas exactas, raíces desconectadas válidas,
+ausencia de usos en la evidencia suministrada, evidencia contradictoria o
+incompleta y límites comprobados antes de hashear.
+
+La verificación de cuatro targets anteriores afectados aprobó **117 casos en
+17.082 s**, compilación **3.97 s**: 39 de decisiones sobre registros, 32 de
+historial mixto, 23 de Review sobre registros y 23 de Review sobre M2. Son
+**144 casos aprobados entre dos comandos**. Clippy de los cinco targets con
+`-D warnings` aprobó en **6.156 s**, compilación **6.10 s**. La revisión estática
+independiente final no encontró defectos concretos pendientes.
+
+La inspección usa un índice y un inventario de fuentes compartidos para validar
+cada propietario y prefijo. Rechaza errores incluso en ramas ajenas al objetivo;
+las consultas anteriores conservan su exigencia de cierre exacto. Los límites
+son 256 propietarios/8192 filas y, por separado, 256 prefijos/256 capturas/8192
+ocurrencias de objetivos Review, con las formas individuales acotadas. No se
+agregan ni cambian digests, instrucciones o formatos de recibo.
+
+Un informe vacío no prueba ausencia durable, inventario completo, cabeza vigente
+ni permiso de mutación. El inspector no implementa elegibilidad actual,
+autorización de escritura, reemplazo administrativo, servicio, SQL, HTTP o
+restauración. Esta evidencia local y focal no equivale a regresión global,
+integración, despliegue o aceptación del flujo completo.
+
 ## Convocatorias Review sobre medidas M2: 4 de octubre de 2026
 
 Las entradas puras `_with_decision_history` preparan y verifican convocatorias
@@ -8983,3 +9020,7 @@ El editor de Qadra, la conservación del borrador entre sesiones, la aceptación
 real con restauración y Agenda/Alertas, el manuscrito y los gates completos
 siguen pendientes de esta misma entrega. Este incremento no está integrado en
 main ni desplegado y no actualiza la cobertura global ni el PDF aceptado.
+
+Independent focused review of the supplied dependency inspector found no
+concrete defect; the original exact-closure behavior and capture formats remain
+unchanged. Durable mutation admission is still pending.

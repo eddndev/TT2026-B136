@@ -90,3 +90,5 @@ pub use decision_history::{
     prepare_precautionary_hearing_with_decision_history,
     PrecautionaryHearingDecisionPreparationMaterial,
 };
+
+pub(crate) use record_history::check_history_with_records;
