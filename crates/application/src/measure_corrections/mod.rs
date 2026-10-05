@@ -35,6 +35,7 @@ pub(crate) use record_view::RecordView;
 
 pub(crate) mod decision_history;
 mod record_bounds;
+pub use record_bounds::validate_measure_record_history_shape;
 mod record_graph;
 
 pub use capture::{

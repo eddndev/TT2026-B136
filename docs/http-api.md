@@ -53,6 +53,11 @@ Se componen en `serve` con el presupuesto compartido. Su consulta de agenda aña
 la familia `resource_hearing`, con origen verificado, filtro propio y continuación
 compatible. Alertas, Qadra y aceptación integrada propia siguen pendientes.
 La verificación focal no equivale a integración o despliegue.
+La [API de audiencias cautelares](precautionary-hearings-api.md) permite observar
+el contexto, preparar y confirmar convocatorias, reemplazarlas, cancelarlas y
+recuperar su evidencia exacta. Comparte el presupuesto de trabajo y la admisión
+HTTP del servidor; la aceptación con servicios reales y el flujo de medidas,
+Agenda, alertas e interfaz siguen pendientes.
 La [agenda combinada](agenda-api.md) reúne audiencias y vencimientos operativos
 mediante `GET /api/v1/agenda`, con autorización y observación comunes por página.
 La [API de sesiones y resultados declarados](hearing-results-api.md) añade
@@ -1190,3 +1195,12 @@ case_backends`. Una ejecución directa de Cargo sin
 `IDENTITY_TEST_DATABASE_URL`, `IDENTITY_TEST_REDIS_URL`,
 `CASE_TEST_DATABASE_URL` y `DOCUMENT_TEST_DATABASE_URL` omite las pruebas de
 los servicios cuyas variables falten.
+
+
+## Decisiones cautelares declaradas
+
+El [contrato de decisiones](measure-decisions-api.md) describe preparación,
+confirmación, consulta y recuperación de los grupos originales. Se complementa
+con [convocatorias](precautionary-hearings-api.md) y
+[rectificaciones y registros](measure-records-api.md). La aceptación completa
+permanece delimitada por [los cuatro frentes](four-front-closure.md).

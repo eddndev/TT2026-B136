@@ -1,5 +1,48 @@
 # Informe de verificación local
 
+## Reconciliación de alcance y HTTP cautelar: 5 de octubre de 2026
+
+Se contrastaron main remoto `e9afef8` y los respaldos `3ba0c816` con el código y
+la evidencia conservada. Las audiencias de recursos y el flujo explícito de
+resultado/plazo derivado están integrados; sus resúmenes de alcance se corrigieron
+sin repetir las campañas. El [cierre de cuatro frentes](four-front-closure.md)
+fija los recorridos y exclusiones antes de continuar la implementación.
+
+Evidencia fresca de HTTP con puertos controlados: el primer target administrativo
+aprobó 22 casos y reprodujo un fallo de rechazo de campos ajenos en la acción de
+marcar error. Convertir su variante de entrada a objeto cerrado corrigió el caso,
+que aprobó focalmente. Lecturas de medidas aprobaron 15 casos y reprodujeron un
+mapeo incorrecto: NotFound e IncompleteHistory devolvían 500. La comprobación focal
+aprobó después del mapeo 404/422, manteniendo opacos los fallos de integridad.
+
+La composición reprodujo dos fallos por rutas administrativas y de medidas no
+fusionadas en el servidor. Tras conectarlas aprobaron los tres casos focales de
+bearer/no-store, admisión compartida y presupuesto de trabajo. El target de
+decisiones declaró el router ausente antes de implementarlo; la corrección de
+una captura movida en su fixture se comprobó antes de conservar ese RED limpio.
+Un compilador y un thread, temporales privados en btrfs. Estos resultados no son
+aceptación nueva con PostgreSQL real, Agenda, alertas, navegador ni restauración.
+
+El transporte de decisiones aprobó sus 23 casos focales en 37.234 s incluyendo
+compilación (0.57 s de pruebas). Conserva todas las acciones existentes, familias,
+anclas, historial y recuperación original; una revisión independiente no detectó
+hallazgos accionables. La composición ampliada a esas rutas reprodujo ausencia
+de registro y aprobó después sus tres casos en 19.972 s incluyendo compilación.
+La fábrica del servidor utiliza los servicios PostgreSQL existentes. Clippy de
+web y binario, todos sus targets y `-D warnings`, aprobó en 58.703 s. Formato,
+ASCII y límite de archivos inferiores a 400 líneas comprobados; no se ejecutó
+la regresión global. El aviso de compatibilidad futura de redis 0.25.4 es de la
+dependencia existente y no implica una migración dentro de esta entrega.
+
+Evidencia anterior recuperada, no ejecutada nuevamente: la campaña nativa que
+seguía activa en el traspaso terminó con salida cero y retirada de su cluster
+PostgreSQL 16.15. El registro contiene siete targets completos sin omisiones:
+decisiones mixtas, anclas iniciales/cautelares, consulta de medidas, convocatorias
+ordinarias/mixtas y revisión. No se repitió la regresión global ni se modificó
+el PDF aceptado. La aceptación cautelar con servicios reales y su integración
+siguen pendientes; no hay una nueva PR, integración o despliegue.
+
+
 ## Persistencia mixta y lecturas cautelares: 5 de octubre de 2026
 
 Aprobaron **37 identidades nativas nuevas** con PostgreSQL **16.15/SCRAM**:
@@ -9551,3 +9594,29 @@ consultas para usar la revisión seleccionada por el bucle de participantes.
 El caso afectado pasó después en PostgreSQL nativo (10.62 s), conservando las
 fuentes originales tras cambios del directorio y de la audiencia. Los demás
 adaptadores afectados siguen en verificación; no se declara una campaña global.
+
+### Contexto y convocatorias cautelares por HTTP: 5 de octubre de 2026
+
+Las catorce pruebas de rutas con puertos controlados pasaron: doce casos iniciales
+y dos regresiones que primero reprodujeron la exposición de un prefijo superior
+a 256 revisiones o con una captura intermedia de otro expediente/audiencia.
+El transporte conserva el comando normalizado, los dos digests de confirmación,
+las fuentes originales, la precisión temporal y la evidencia completa G1/G2/A.
+También permite recuperar operaciones y consultar revisiones históricas sin
+inferir elegibilidad para nuevas modificaciones.
+
+Tres pruebas de composición fallaron antes de conectar las rutas y pasaron
+tras compartir la admisión y el presupuesto de trabajo existentes. Comprueban
+sesión, denegación de acceso, ausencia de caché y espera por el mismo presupuesto
+bloqueante. Los cuatro casos del mapper de errores pasaron; las inconsistencias
+almacenadas conservan el error genérico. Clippy focal para la biblioteca web,
+los tres objetivos HTTP afectados y el ejecutable pasó con advertencias del
+proyecto tratadas como errores (30.682 s). La advertencia futura de la dependencia
+Redis es histórica y no representa una prueba de compatibilidad futura.
+
+La composición usa un almacén PostgreSQL compartido para contexto, comandos y
+lecturas cautelares, con la identidad y la admisión documental existentes.
+Estas comprobaciones de transporte no sustituyen la aceptación HTTP nativa,
+el recorrido completo de medidas, Agenda, alertas, Qadra, restauración, manuscrito
+ni los gates de cierre. La revisión adicional de límites de proyección de pruebas
+históricas sigue en curso.

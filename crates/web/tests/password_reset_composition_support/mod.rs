@@ -37,6 +37,7 @@ mod resources;
 mod stages;
 mod unused;
 mod unused_owner;
+mod unused_precautionary;
 mod unused_resource_hearings;
 mod unused_typed;
 
@@ -172,6 +173,17 @@ fn workflows(
 ) -> CaseWorkflows {
     let unused = Arc::new(unused::Unused);
     CaseWorkflows {
+        precautionary: web::PrecautionaryWorkflows {
+            context: unused.clone(),
+            hearings: unused.clone(),
+            hearing_reads: unused.clone(),
+            administrative: unused.clone(),
+            administrative_reads: unused.clone(),
+            records: unused.clone(),
+            decisions: unused.clone(),
+            decision_reads: unused.clone(),
+            hasher: unused.clone(),
+        },
         owner_certificates: owner.unwrap_or_else(unused_owner::service),
         members: members::Workflow::new(),
         cases: Arc::new(cases::Workflow::default()),

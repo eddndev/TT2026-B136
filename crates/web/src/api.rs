@@ -15,7 +15,7 @@ use crate::{
     hearing_derived_deadlines, hearing_results, hearings, judicial_calendars, members,
     owner_certificates, owner_login, participants,
     password_reset::{self, PasswordResetHttp},
-    procedural_facts, procedural_resources, resource_activities, resource_deadlines,
+    precautionary, procedural_facts, procedural_resources, resource_activities, resource_deadlines,
     resource_hearings, routes,
     runtime::{protect, HttpRuntime},
     typed_participants, CaseWorkflows, HttpLimits, HttpWorkBudget,
@@ -134,6 +134,26 @@ pub fn api_router_with_authentication_budget(
         .merge(case_stages::router(workflows.stages, runtime.clone()))
         .merge(typed_participants::router(workflows.typed, runtime.clone()))
         .merge(hearings::router(workflows.hearings, runtime.clone()))
+        .merge(precautionary::decision_router(
+            workflows.precautionary.decisions,
+            workflows.precautionary.decision_reads,
+            workflows.precautionary.hasher.clone(),
+            runtime.clone(),
+        ))
+        .merge(precautionary::administrative_router(
+            workflows.precautionary.administrative,
+            workflows.precautionary.administrative_reads,
+            workflows.precautionary.records,
+            workflows.precautionary.hasher.clone(),
+            runtime.clone(),
+        ))
+        .merge(precautionary::router(
+            workflows.precautionary.context,
+            workflows.precautionary.hearings,
+            workflows.precautionary.hearing_reads,
+            workflows.precautionary.hasher,
+            runtime.clone(),
+        ))
         .merge(hearing_results::router(
             workflows.hearing_results,
             runtime.clone(),

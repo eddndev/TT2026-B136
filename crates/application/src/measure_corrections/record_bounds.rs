@@ -83,3 +83,11 @@ pub(super) fn administrative_shape(
     }
     Ok(())
 }
+
+/// Check bounded proof shape without hashing, resolving sources or validating authority.
+/// Success alone does not establish that the history is genuine or consistent.
+pub fn validate_measure_record_history_shape(
+    history: &MeasureDecisionRecordHistoryEvidence,
+) -> Result<(), ApplicationError> {
+    limits(history.into(), 0, 0)
+}

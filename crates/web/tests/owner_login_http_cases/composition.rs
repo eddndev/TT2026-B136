@@ -34,6 +34,8 @@ mod stages;
 mod unused;
 #[path = "../password_reset_composition_support/unused_owner.rs"]
 mod unused_owner;
+#[path = "../password_reset_composition_support/unused_precautionary.rs"]
+mod unused_precautionary;
 #[path = "../password_reset_composition_support/unused_resource_hearings.rs"]
 mod unused_resource_hearings;
 #[path = "../password_reset_composition_support/unused_typed.rs"]
@@ -114,6 +116,17 @@ pub fn composed(
 fn workflows(dashboard: Arc<Dashboard>) -> CaseWorkflows {
     let unused = Arc::new(unused::Unused);
     CaseWorkflows {
+        precautionary: web::PrecautionaryWorkflows {
+            context: unused.clone(),
+            hearings: unused.clone(),
+            hearing_reads: unused.clone(),
+            administrative: unused.clone(),
+            administrative_reads: unused.clone(),
+            records: unused.clone(),
+            decisions: unused.clone(),
+            decision_reads: unused.clone(),
+            hasher: unused.clone(),
+        },
         owner_certificates: unused_owner::service(),
         members: members::Workflow::new(),
         cases: Arc::new(cases::Workflow::default()),

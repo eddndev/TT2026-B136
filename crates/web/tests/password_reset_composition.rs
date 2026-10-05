@@ -3,6 +3,8 @@
 mod password_reset_composition_support;
 #[allow(dead_code, unused_imports)]
 mod password_reset_http_support;
+#[path = "password_reset_composition_support/precautionary_composition.rs"]
+mod precautionary_composition;
 
 use axum::{
     body::{Body, Bytes},
