@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Registro de auxiliares cautelares en CI: 5 de octubre de 2026
+
+La primera campaña de cierre se detuvo antes de ejecutar la regresión: el
+verificador de distribución encontró dos auxiliares Rust en la raíz de
+`tests/` sin registro como ejecutables. La política de cancelación propagó ese
+fallo a CI, Web y Documents; los avisos posteriores de artefactos de navegador
+faltantes no acreditan un defecto funcional del recorrido.
+
+El mismo verificador reprodujo el fallo localmente. Los auxiliares de Agenda y
+alertas cautelares se trasladaron a sus directorios de soporte, conservando
+exactamente su contenido y los módulos y casos existentes. No se modificó ni
+exceptuó el verificador. Después del cambio aprobaron la distribución completa,
+el formato Rust y la compilación de ambos ejecutables afectados con `--no-run`.
+Esta compilación no se presenta como una nueva ejecución de pruebas nativas:
+se conservan las aceptaciones API, restauración, navegador y PDF ya registradas.
+La regresión de cierre del HEAD corregido continúa pendiente.
+
 ## Aceptación cautelar completa por API: 5 de octubre de 2026
 
 La demostración HTTP compuesta aprobó en **843.832 s**, incluida compilación y
