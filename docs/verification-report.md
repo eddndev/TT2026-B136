@@ -27,7 +27,9 @@ consulta de Agenda. Python, Bash, ASCII y límites de archivo aprobaron.
 
 Los servicios fueron aislados; el correo externo permaneció deshabilitado.
 Esta aceptación no acredita procedencia jurídica, despliegue ni integración.
-La conciliación del PDF y la regresión de cierre en CI permanecen pendientes.
+El PDF separado compiló y sus páginas modificadas fueron inspeccionadas;
+[la verificación académica](academic-report-verification.md) registra el artefacto
+y los PDF preservados. La regresión de cierre en CI permanece pendiente.
 
 
 ## Restauración del catálogo cautelar: 5 de octubre de 2026

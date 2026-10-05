@@ -4,10 +4,12 @@ El router HTTP y Qadra implementan preferencias personales, consulta de bandeja,
 detalle y lectura explícita. `web::api_router` reúne las rutas sobre
 `AlertWorkflow` con el presupuesto HTTP compartido; `web::alert_router` conserva
 el router aislado. `serve` comparte un `PostgresAlertStore` entre el servicio,
-el generador periódico y el consumidor de correo. La composición conserva
-su aceptación integrada pendiente.
-Las pruebas del cliente y del navegador con HTTP controlado no acreditan ese
-recorrido real. La decisión está en
+el generador periódico y el consumidor de correo. La composición existente
+conserva su aceptación integrada. La ampliación cautelar tiene verificación focal
+y recorridos de escritorio y móvil con servicios reales aprobados.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+La decisión está en
 [ADR-0039](adr/0039-durable-activity-alerts.md).
 
 ## Acceso y alcance
@@ -171,8 +173,10 @@ el mismo horario no vuelve a generar un aviso ya activado. El escaneo incorpora
 raíces no observadas en sus ciclos periódicos. Una medida individual no es un
 sujeto de alerta, y vincular una decisión a una inicial conserva aquella audiencia.
 La migración aditiva `0042_precautionary_hearing_alerts.sql` admite la familia tres
-sin crear tablas ni preferencias. El detalle cautelar de Qadra y la aceptación
-integrada con restauración permanecen pendientes.
+sin crear tablas ni preferencias. El detalle cautelar de Qadra está implementado.
+El recorrido real de generación, origen exacto y lectura aprobó en escritorio y móvil.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
 
  Las fechas y la evidencia pertenecen a la
 generación del aviso; `active`, `accepted` en correo y un título capturado no

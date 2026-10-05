@@ -2,9 +2,11 @@
 
 `GET /api/v1/agenda` reúne audiencias ordinarias, audiencias propias de recursos,
 convocatorias cautelares y fechas operativas de plazos. Las audiencias de recursos
-ya están integradas con Qadra. La familia cautelar tiene implementación local de
-Agenda; su detalle en Qadra y aceptación integrada siguen pendientes. Usa
-sesión bearer revocable y respuestas `Cache-Control: no-store`. Owner consulta
+ya están integradas con Qadra. Agenda cautelar y su detalle exacto en Qadra están
+implementados, con verificación focal y navegador real de escritorio y móvil aprobado.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Usa sesión bearer revocable y respuestas `Cache-Control: no-store`. Owner consulta
 el despacho; Litigator y Paralegal sólo expedientes asignados. Client recibe
 403. La ruta de audiencias `GET /api/v1/hearings` conserva su contrato anterior.
 

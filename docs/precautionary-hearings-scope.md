@@ -1,7 +1,7 @@
 # Alcance de audiencias y medidas cautelares declaradas
 
-Estado: **implementación local con verificación focal de dominio, aplicación y
-PostgreSQL y HTTP**. El trabajo local comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
+Estado: **implementación local de dominio, aplicación, PostgreSQL, HTTP, Agenda,
+alertas y Qadra con verificación focal**. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
@@ -14,10 +14,20 @@ convocatorias de imposición/revisión, reprogramación, cancelación y recupera
 con esa clase de evidencia. Las decisiones agrupadas y sin cambios, su consulta
 original y recuperación también cuentan con aceptación focal Qadra. Las tres
 rectificaciones administrativas, su historia, borrador y recuperación original
-también aprobaron la aceptación focal de interfaz. La aceptación integrada
-con servicios reales y restauración permanece pendiente. Este contrato no
-acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
-en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
+también aprobaron la aceptación focal de interfaz. Dos recorridos de navegador
+con servicios reales aprobaron a 1440 y 390 píxeles: convocatoria, Agenda, alerta
+leída, decisión y recuperación de rectificación textual o reemplazo de identidad.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Un ensayo API anterior comprobó reinicios y recibos, pero falló al abrir el
+catálogo restaurado por la representación equivalente de cinco CHECK. Su
+corrección focal y el fallo histórico se conservan en el informe; la campaña
+completa posterior abrió la base restaurada sin reparar su esquema y conservó
+operaciones, historia, Agenda y la lectura de la alerta. El manuscrito separado
+está verificado; los controles de integración siguen pendientes. Esta aceptación
+no acredita despliegue.
+La decisión de arquitectura se conserva en
+[ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
 ## Persistencia local de convocatorias cautelares
 
@@ -88,8 +98,11 @@ decisiones inmutables, incluidas las que no cambian medidas, hasta 20 por págin
 
 El arranque comprueba catálogo, privilegios e inventario. Las conexiones abiertas
 también rechazan grupos incompletos y auditoría huérfana; perder filas no libera
-sus identidades. Se conservan los canones existentes. La aceptación de restauración, Agenda, alertas e interfaz siguen pendientes; este adaptador
-no acredita el cierre del flujo completo.
+sus identidades. Se conservan los canones existentes. Agenda, alertas y Qadra
+están implementados, con verificación focal y navegador real aprobado.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Este adaptador no acredita por sí solo el cierre del flujo completo.
 
 ## Persistencia local de correcciones administrativas
 
@@ -191,12 +204,15 @@ MDTXN1/MDCR1, los recibos V2 MDPR2/MMCR2/MDGR2, los administrativos ni
 PHEAR1/PHTXN1/PHPR1/PHCR1. El inventario detecta resultados anunciados perdidos
 y evita retroceder silenciosamente la cabeza.
 
-La extensión mixta y sus consultas tienen verificación nativa focal. El
-reemplazo administrativo y sus migraciones `0041_` están implementados, con
-verificación nativa en curso. Faltan HTTP, Agenda, alertas, Qadra, aceptación de
-reinicio y restauración, y conciliación del manuscrito. La regresión
-afectada y los controles de cierre completos siguen pendientes. La implementación
-local no acredita esas partes ni cambia el estado propuesto de la entrega completa.
+La extensión mixta, sus consultas y el reemplazo administrativo con sus
+migraciones `0041_` están implementados y tienen verificación nativa focal.
+HTTP, Agenda, alertas y Qadra tienen evidencia focal propia; el navegador real
+aprobó sus recorridos de escritorio y móvil.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+El manuscrito separado está verificado; quedan los controles de cierre completos.
+Las regresiones afectadas se registran por separado en el informe de verificación;
+esta implementación local no acredita integración ni despliegue.
 
 ## Reemplazo administrativo atómico de identidad
 
@@ -254,26 +270,33 @@ judicial real. Review y sus anclas admiten C/M2 de reemplazo Valid, incluso
 revisiones antiguas y acciones terminales, sin exigir cabeza de medida. Las
 consultas muestran la cabeza marcada anterior y la nueva identidad con su
 propietario completo; las referencias históricas Valid siguen siendo exactas.
-La consulta administrativa conserva ambas filas y el enlace. La verificación
-nativa del reemplazo pasó diez casos focales; la regresión afectada sigue en curso. HTTP, Agenda, alertas, Qadra, aceptación de
-reinicio y restauración, y conciliación del manuscrito siguen pendientes.
+La consulta administrativa conserva ambas filas y el enlace. La campaña inicial
+de verificación nativa del reemplazo pasó diez casos focales; las comprobaciones
+posteriores de los adaptadores afectados se conservan en el informe de verificación.
+HTTP, Agenda, alertas y Qadra están implementados y verificados focalmente,
+con recorridos de escritorio y móvil aprobados sobre servicios reales.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+El manuscrito separado está verificado; los controles de cierre siguen pendientes.
 
 ## Frontera de la implementación local
 
-El primer checkpoint implementa localmente valores de convocatoria: identidad propia,
+Como antecedente histórico, el primer checkpoint implementó localmente valores
+de convocatoria: identidad propia,
 operación, revisión positiva, propósito `imposition` o `review`, hora exacta,
 modalidad, lugar, nota opcional, participantes con identidad/revisión exactas,
 únicos y ordenados, y soporte exacto
 con declaración y localizador obligatorios. Una revisión selecciona de una a 32
 medidas por identidad, revisión y digest; una imposición no acepta objetivos de
 revisión. `PHEAR1` debe comprometer todos esos valores sin cambiar `HEAR1` ni
-`RHEAR1`. La verificación focal de dominio está aprobada; las comprobaciones
-remotas y la integración siguen pendientes.
+`RHEAR1`. En aquel corte, la verificación focal de dominio estaba aprobada;
+las comprobaciones remotas y la integración seguían pendientes.
 
-La ampliación local de valores comprende `MeasureKind`, `MeasureTime` y
+La ampliación inicial de valores comprendió `MeasureKind`, `MeasureTime` y
 `MeasureValidity`, con el compromiso `MVAL1`. Diez pruebas focales y Clippy
-aprobaron tras el fallo inicial de las pruebas. Esta evidencia es independiente
-de las once pruebas anteriores de convocatoria; la integración sigue pendiente.
+aprobaron tras el fallo inicial de las pruebas. Esta evidencia histórica es
+independiente de las once pruebas anteriores de convocatoria; no acredita
+integración. El estado actual se distingue al inicio de este documento.
 
 La capa de aplicación valida ahora un contexto histórico completo (`PCTX1`):
 administración observada, etapa y administración exacta que originó esa etapa,
@@ -575,10 +598,13 @@ no queda demostrada por un inventario suministrado sin usos conocidos.
 
 La persistencia administrativa, su admisión transaccional y las lecturas
 autorizadas se describen arriba. El reemplazo conjunto está implementado y su
-verificación nativa está en curso. Siguen pendientes rutas HTTP, aceptación de
-restauración, regresión de cierre, Agenda, alertas e interfaz. Los bytes previos
-de MATXN1/MAPR1/MARCR1/MAGR1 se preservan; el tag nuevo compromete sus dos
-resultados y enlace.
+verificación nativa focal está aprobada. HTTP, Agenda, alertas y Qadra están
+implementados, con evidencia focal y navegador real de escritorio y móvil aprobado.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+La regresión de cierre también permanece pendiente. Los bytes previos de
+MATXN1/MAPR1/MARCR1/MAGR1 se preservan; el tag nuevo compromete sus dos resultados
+y enlace.
 
 Los resultados focales se registran en [el informe](verification-report.md);
 no acreditan por sí solos el flujo completo.
@@ -728,7 +754,7 @@ automáticamente del texto de condiciones.
   atómico; no se presenta como revocación o sustitución judicial. Las decisiones
   posteriores requieren conciliación expresa, sin cascadas inferidas.
 
-## Autorización, evidencia y recuperación pendientes
+## Autorización, evidencia y recuperación
 
 Owner y Litigator con asignación vigente preparan/confirman; Paralegal asignado
 consulta; Client permanece denegado. Mutar requiere administración activa.
@@ -748,13 +774,13 @@ las revisiones, enlaces, origen y un evento de auditoría del grupo se confirman
 todo o nada, incluso ante concurrencia o fallo. El evento enlaza la decisión y
 cada revisión; la cita nueva es una intención separada.
 
-Agenda necesita `precautionary_hearing`, orden y cursor estables con familia,
+Agenda incluye `precautionary_hearing`, orden y cursor estables con familia,
 identidad y revisión, además de detalle autorizado propio. Una decisión sobre
 inicial reutiliza su fila; no agrega otra cita ni filas de medidas. Las alertas
 conservan el origen de la cita y no infieren incumplimientos o términos.
 
-La interfaz debe conservar borradores solo para la misma identidad al reingresar,
-retirar aprobación y reautorizar. Respuestas inciertas exigen conciliación exacta
+La interfaz conserva borradores solo para la misma identidad al reingresar,
+retira aprobación y reautoriza. Respuestas inciertas exigen conciliación exacta
 antes de un reintento expreso; sin reenvío automático. Cambio de usuario, logout
 o expediente invalida respuestas tardías y no recupera borradores ajenos.
 

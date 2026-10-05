@@ -4,8 +4,12 @@ These routes expose declared administrative changes and actual persisted measure
 records. They are implemented in the precautionary delivery branch; focused HTTP
 verification is complete. Qadra exposes the three existing administrative actions,
 exact history, reviewed confirmation and recoverable drafts with focused browser
-evidence. Integrated service/restart/restore acceptance remains pending; this is
-not yet a completed or integrated precautionary delivery.
+evidence. Real desktop and mobile acceptance also passed for correction, identity
+replacement and recovery after an applied response was lost. This is not yet a
+completed or integrated precautionary delivery.
+
+API acceptance with restart and restoration passed; see the
+[verification report](verification-report.md).
 
 All paths below start with `/api/v1/cases/{case_id}`. Requests require the current
 bearer identity. The services recheck case access: Owner and assigned Litigator

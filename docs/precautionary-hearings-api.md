@@ -5,8 +5,11 @@ autorizados de aplicación. Comparte el presupuesto de trabajo de la API.
 Agenda y alertas PostgreSQL/HTTP tienen evidencia focal propia. La consulta
 exacta Qadra desde ambas aprobó recorridos de escritorio/móvil con HTTP
 controlado. Los formularios Qadra de imposición/revisión, reprogramación, cancelación
-y recuperación de operación aprobaron aceptación focal controlada. La aceptación
-HTTP integrada con reinicio/restauración permanece pendiente. Este documento describe contexto y convocatorias; decisiones
+y recuperación de operación aprobaron aceptación focal controlada. Dos recorridos
+con servicios reales aprobaron a 1440 y 390 píxeles.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Este documento describe contexto y convocatorias; decisiones
 y rectificaciones tienen sus contratos propios en [la API HTTP](http-api.md). Véanse
 [el alcance](precautionary-hearings-scope.md),
 [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md) y
@@ -164,4 +167,5 @@ Ambas aperturas reautorizan el expediente y vinculan identidad, revisión y
 digest a la selección original. Un 403/404 retira sus filas y detalle. Cambiar
 filtros o sesión invalida consultas pendientes; no hay reintentos automáticos.
 La consulta no marca lectura del aviso ni presenta acciones de escritura.
-Los formularios de convocatoria/decisión/rectificación continúan pendientes.
+Los formularios de convocatoria, decisión y rectificación están implementados y
+cuentan con verificación focal. El recorrido real de escritorio y móvil aprobó.

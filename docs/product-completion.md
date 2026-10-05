@@ -886,23 +886,26 @@ aprobados ni produce un nuevo porcentaje global del TT.
   del CNPP y recursos vinculados a resoluciones, sin modificar ese criterio.
   Corregirlo literalmente requiere autorización explícita; implementar las dos
   transiciones no cierra recursos ni el cómputo automático exigido.
-- El catálogo de programación distingue cuatro tipos de audiencia; el marco
-  también menciona medidas cautelares y continuaciones. Las sesiones declaradas
-  modelan continuidad mediante otra raíz con antecedente exacto preexistente,
-  con comparecencias y acuerdos propios. Esto no amplía el catálogo de citas ni
-  cubre las reglas específicas de medidas cautelares. CU-08 y RF-07 permanecen
-  parciales: sus criterios aprobados incluyen activación de plazos y alertas,
-  además de la captura implementada y la aceptación integral.
+- El catálogo finito distingue siete familias: las cuatro ordinarias,
+  cautelares, alegatos de apelación y revocación escrita. La continuación
+  conserva antecedente exacto; no constituye otra familia. Audiencias de
+  recursos y creación explícita de resultado/plazo derivado están integradas.
+  El flujo cautelar completo aprobó navegador real y API con reinicios y
+  restauración; el manuscrito separado está verificado y los gates de integración
+  siguen pendientes.
+  CU-08 y RF-07 conservan el cierre jurídico de los ocho supuestos de
+  [la lista finita](four-front-closure.md), sin desarrollo universal de términos.
 - CU-09 permanece parcial. El catálogo distingue fechas `countable`, `excluded`,
   `unresolved` y `outside_coverage` según el ámbito declarado. No adopta un
   calendario universal, no descarga normas ni asigna calendarios comparando el
   nombre de una autoridad. El registro explícito ya evalúa y conserva el
   resultado de fuentes y perfiles exactos. Los cambios durables se procesan en
   servidor y la agenda conjunta está integrada por PR 35.
-  El flujo automático completo requiere cerrar perfiles jurídicos con fuentes
-  primarias y corpus de aceptación, activar términos y comprobar su enlace con
-  las alertas integradas y verificadas por separado en PR 36. La selección y calificación manuales implementadas no completan esos pendientes
-  ni la aceptación integral de los demás casos del catálogo.
+  El pendiente actual consiste en cerrar los ocho perfiles jurídicos aceptados
+  con fuentes primarias y corpus, aplicándolos al recorrido explícito de
+  resultado/plazo derivado ya integrado y sus alertas. La aritmética sintética
+  y la selección manual no acreditan ese fundamento. Este pendiente no autoriza
+  activación universal ni términos adicionales.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,

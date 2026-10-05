@@ -258,13 +258,15 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
-para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente. Los consumidores mixtos G2/M2 y sus consultas tienen implementación
-local y verificación nativa focal; HTTP, Agenda, alertas y Qadra siguen sin integrar.
-Esta implementación no acredita
-su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
+para forzar la apertura. Los consumidores mixtos G2/M2 y sus consultas tienen
+implementación local y verificación nativa focal. HTTP, Agenda, alertas y Qadra
+están compuestos en la rama y verificados focalmente; los recorridos de escritorio
+y móvil con servicios reales aprobaron.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Esta implementación no acredita su integración en main ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
-pruebas ejecutadas de la aceptación todavía pendiente.
+pruebas ejecutadas y los controles de integración todavía pendientes.
 
 ## Decisiones cautelares y anclas históricas
 
@@ -277,7 +279,8 @@ propietarios completos y ancestros. Admite anclas iniciales ordinarias y cautela
 exactas. El adaptador administrativo conserva Correct, Mark y el reemplazo
 conjunto con identidad nueva descrito en la migración `0041_`. La extensión
 G2/M2 y sus consumidores mixtos está implementada localmente, con verificación
-nativa focal. No está compuesto en HTTP ni desplegado.
+nativa focal. Está compuesta en HTTP y Qadra, con verificación focal y recorridos
+de escritorio y móvil con servicios reales aprobados. No está desplegada.
 
 `database migrate --runtime-role` instala `0034_measure_decisions.sql`,
 `0034_measure_decisions_guards.sql`, `0034_measure_decisions_sources.sql` y
@@ -355,8 +358,11 @@ decisión superviviente conserva la reserva de las identidades de su resultado.
 Si desaparece todo el grupo, el digest no revela cuáles eran esas identidades:
 una auditoría de mutación huérfana bloquea nuevas identidades globalmente. No
 eliminar eventos ni desactivar guardas para forzar una apertura o reutilización.
-La aceptación propia de `pg_dump`/`pg_restore`, HTTP, Agenda, alertas e interfaz
-sigue pendiente; los resultados ejecutados se registran por separado en el
+HTTP, Agenda, alertas y Qadra están implementados y verificados focalmente;
+los recorridos de escritorio y móvil con servicios reales aprobaron.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Los resultados ejecutados se registran por separado en el
 [informe de verificación](verification-report.md).
 
 ### Migración y adaptadores mixtos G2/M2
@@ -420,13 +426,14 @@ de confirmar el acceso. No añade tablas, recibos ni formatos; su verificación
 nativa incluye cierre, fuentes exactas, autorización, corrupción y rollback.
 
 No reparar familias o compromisos a mano ni borrar auditorías para abrir un
-almacén. La integración HTTP completa, Agenda, alertas, Qadra, aceptación de
-reinicio/restauración y conciliación del manuscrito siguen pendientes. El router
-local de contexto y audiencias tiene su
-[contrato propio](precautionary-hearings-api.md); su presencia no acredita la
-composición en servidor ni la aceptación del flujo completo. Registrar resultados
-ejecutados en el informe de verificación; las pruebas focales y la presencia de
-estas migraciones no sustituyen la regresión y los controles de cierre pendientes.
+almacén. Contexto, HTTP, Agenda, alertas y Qadra están compuestos y verificados
+focalmente; los recorridos reales de escritorio y móvil aprobaron.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+El contexto y las audiencias conservan su
+[contrato propio](precautionary-hearings-api.md). Los resultados ejecutados se
+registran en el informe de verificación; las pruebas focales y la presencia de
+estas migraciones no sustituyen la regresión y los controles de integración.
 
 ### Reemplazo administrativo conjunto con identidad nueva
 
@@ -479,9 +486,9 @@ permite volver a una cabeza anterior ni reutilizar la identidad anunciada.
 El marcador `ma1` sigue vinculando el resultado de la identidad original y los
 digests de envío, revisión y captura. Los formatos anteriores conservan sus
 bytes; la acción conjunta usa el tag 2 y añade sus resultados y enlace explícitos.
-Esta descripción de almacenamiento no declara aprobada la aceptación integrada
-HTTP, de reinicio o restauración; consultar su evidencia en el
-[informe de verificación](verification-report.md).
+La aceptación API con reinicio y restauración aprobó y conservó las dos filas
+C1 y su enlace administrativo original. Su evidencia se registra en el
+[informe de verificación](verification-report.md); no acredita integración ni despliegue.
 
 ## Contenido e incidentes de integridad
 

@@ -5,8 +5,11 @@
 Transporte implementado en la rama cautelar y comprobado con puertos controlados.
 Qadra permite registrar los efectos agrupados y el resultado sin cambios,
 consultar el recibo original y recuperar borradores/envios inciertos con HTTP
-controlado. La aceptación completa con servicios reales y restauración permanece
-pendiente. El [cierre finito](four-front-closure.md) conserva esas distinciones.
+controlado. Los recorridos de escritorio y móvil con servicios reales aprobaron
+el registro de imposición con ancla cautelar e inicial, respectivamente.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+El [cierre finito](four-front-closure.md) conserva esas distinciones.
 Este contrato expone decisiones declaradas; no establece procedencia judicial.
 
 Base: `/api/v1/cases/{case_id}/measure-decisions`. Bearer obligatorio y respuestas
