@@ -7,6 +7,7 @@ import { resourceDeadlinesApi } from './resource-deadline-api.mjs';
 import { resourceHearingsApi } from './resource-hearing-api.mjs';
 import { precautionaryHearingsApi } from './precautionary-hearing-api.mjs';
 import { measureRecordsApi } from './measure-records-api.mjs';
+import { measureDecisionsApi } from './measure-decisions-api.mjs';
 import { resourceActivitiesApi } from './resource-activities-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingDerivedDeadlinesApi } from './hearing-derived-deadline-api.mjs';
@@ -71,6 +72,7 @@ export function caseApi(transport) {
     caseResourceHearings: (id, resourceId) => resourceHearingsApi(request, id, resourceId),
     casePrecautionaryHearings: (id) => precautionaryHearingsApi(request, id),
     caseMeasures: (id) => measureRecordsApi(request, id),
+    caseMeasureDecisions: (id) => measureDecisionsApi(request, id),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),

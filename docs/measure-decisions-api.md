@@ -3,7 +3,9 @@
 ## Estado y acceso
 
 Transporte implementado en la rama cautelar y comprobado con puertos controlados.
-La aceptación completa con servicios reales, Agenda, alertas y Qadra permanece
+Qadra permite registrar los efectos agrupados y el resultado sin cambios,
+consultar el recibo original y recuperar borradores/envios inciertos con HTTP
+controlado. La aceptación completa con servicios reales y restauración permanece
 pendiente. El [cierre finito](four-front-closure.md) conserva esas distinciones.
 Este contrato expone decisiones declaradas; no establece procedencia judicial.
 
@@ -98,3 +100,26 @@ Integridad persistida inconsistente devuelve el mensaje interno opaco con 500.
 Estas respuestas no sustituyen la prueba de atomicidad y restauración del flujo
 completo. Las [rectificaciones administrativas](measure-records-api.md) conservan
 sus rutas y significado separados.
+
+## Recorrido de Qadra
+
+La sección **Medidas cautelares** del expediente conserva decisiones y registros
+de medidas. Owner y Litigator pueden preparar los seis tipos de efectos
+existentes, incluidos grupos de varios sujetos y sustituciones múltiples, o
+declarar expresamente que no hubo cambios. La modificación conserva sujeto y
+clase; una selección explícita de otra base reemplaza sus valores visibles.
+Paralegal y expedientes cerrados conservan lecturas.
+
+Los selectores conservan soporte, sujeto, supervisor y audiencia por revisión
+exacta. El vínculo inicial reutiliza la audiencia; una convocatoria cautelar
+puede seleccionarse por una captura histórica. La revisión presenta lo declarado,
+sus fuentes y ambas confirmaciones antes del envío. No determina vigencia
+jurídica por el reloj ni impone consecuencias a partir de texto libre.
+
+Navegar conserva el borrador, incluso tiempos incompletos. Recuperarlo exige
+la misma identidad completa y autorización actual; retira la aprobación anterior.
+Un envío incierto conserva comando, operación y confirmaciones, y solo se
+reintenta expresamente después de consultar el resultado. La recuperación puede
+devolver una captura anterior a la cabeza actual sin sustituirla silenciosamente.
+Las rectificaciones administrativas y la aceptación real completa siguen su
+propio criterio de cierre en [la lista finita](four-front-closure.md).

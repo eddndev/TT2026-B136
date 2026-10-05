@@ -1,5 +1,40 @@
 # Informe de verificación local
 
+## Decisiones cautelares en Qadra: 5 de octubre de 2026
+
+La sección de medidas registra imposición, confirmación, modificación, revocación,
+cese y sustitución múltiple en un grupo, o una decisión explícita sin cambios.
+Conserva fuentes, origen judicial y recibo original, con permisos de consulta
+y bloqueo de escritura para Paralegal o expediente cerrado. El enlace a la
+audiencia inicial conserva participantes históricos y no crea otra cita.
+
+La evidencia focal Node aprobó siete grupos del cliente, cinco del constructor
+de formulario, seis de borradores y uno de referencias descartadas. La
+navegación afectada aprobó sus siete grupos existentes. Los doce recorridos
+controlados de escritorio aprobaron por unión de ejecuciones focales: ciclo de
+decisiones, lectura restringida, respuesta perdida, recuperación del borrador,
+cierre posterior, cambio explícito de base y grupos de efectos. No se repitió
+la campaña completa después de cada corrección.
+
+Los RED nuevos demostraron una referencia incorrecta al recibo inicial, una
+selección incompleta convertida indebidamente en decisión independiente, la
+reconsulta de un predecesor descartado, un desfase incompleto perdido al navegar,
+una fecha visible de la base anterior y participantes iniciales sin aplanar
+para su presentación. Los casos focales aprobaron después de corregirlos.
+Otros primeros intentos se detuvieron por selectores de prueba exactos que
+incluían texto de opciones; se cambiaron a la identidad accesible del combobox
+y se repitieron solo los casos afectados.
+
+El recorrido móvil adicional a 390 px aprobó en 8.8 s (9.540 s completos).
+El formulario no desborda y conserva una audiencia cautelar histórica R1 aunque
+la cabeza sea R2; no crea otra convocatoria. Se inspeccionó la captura de página
+completa. La evidencia total incluye trece recorridos controlados de decisiones.
+
+Esta aceptación utiliza transporte controlado: no acredita PostgreSQL/HTTP
+reales, restauración, manuscrito ni gates de integración de esta entrega. Las
+rectificaciones administrativas permanecen pendientes en la interfaz. No se
+modificó el PDF aceptado ni se repitió la regresión global.
+
 ## Gestión de convocatorias cautelares en Qadra: 5 de octubre de 2026
 
 El expediente permite programar una convocatoria de imposición, reprogramarla y

@@ -11,8 +11,9 @@ HTTP compuesto tiene comprobaciones focales aprobadas. Agenda y alertas tienen v
 focal PostgreSQL/HTTP y del parser cliente. La consulta exacta Qadra desde ambas
 tiene evidencia de escritorio/móvil con HTTP controlado. Qadra ya gestiona
 convocatorias de imposición/revisión, reprogramación, cancelación y recuperación
-con esa clase de evidencia. Formularios de decisión/rectificación y aceptación
-integrada permanecen pendientes. Este contrato no
+con esa clase de evidencia. Las decisiones agrupadas y sin cambios, su consulta
+original y recuperación también cuentan con aceptación focal Qadra. Formularios
+de rectificación y aceptación integrada permanecen pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 

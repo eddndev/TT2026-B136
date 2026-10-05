@@ -144,6 +144,7 @@
         'participants',
         'stages',
         'hearings',
+        'case-measures',
         'resolutions',
         'resources',
         'deadlines',
@@ -333,7 +334,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'case-members', 'documents', 'participants', 'stages', 'hearings', 'resolutions', 'resources', 'deadlines'].includes(view)}
+        {:else if ['case-summary', 'case-members', 'documents', 'participants', 'stages', 'hearings', 'case-measures', 'resolutions', 'resources', 'deadlines'].includes(view)}
           {#if incidentReturn}<button
               class="text-button alerts-return"
               onclick={() => go('integrity-incidents')}>Volver a incidentes</button

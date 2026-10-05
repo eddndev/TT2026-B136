@@ -68,7 +68,7 @@
   aria-busy={busy}
 >
   <h4>Seleccionar medida exacta</h4>
-  <p>Consulta la captura elegida antes de vincularla a la convocatoria.</p>
+  <p>Consulta la captura elegida antes de utilizarla como referencia.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each rows as row (row.reference.id)}
     <div class="case-comparison">

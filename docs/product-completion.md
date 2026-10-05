@@ -111,8 +111,9 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   y alertas tienen consulta PostgreSQL/HTTP y parser verificados. El detalle exacto
   Qadra desde ambas aprobó recorridos de escritorio/móvil con HTTP controlado.
   La gestión de convocatorias de imposición/revisión y su recuperación también
-  aprobó focales controlados; decisiones/rectificaciones y aceptación integrada
-  completa siguen pendientes. Estos componentes no acreditan el flujo cautelar
+  aprobó focales controlados. Las decisiones agrupadas y sin cambios también
+  tienen formulario, consulta y recuperación verificados con HTTP controlado;
+  rectificaciones y aceptación integrada completa siguen pendientes. Estos componentes no acreditan el flujo cautelar
   terminado ni reglas jurídicas automáticas. La lista de cierre es
   [finita y explícita](four-front-closure.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
