@@ -9,7 +9,10 @@ de G2/M2 y sus consumidores mixtos tiene implementación local aditiva y
 verificación nativa focal, incluidas las consultas de operaciones y contexto.
 HTTP compuesto tiene comprobaciones focales aprobadas. Agenda y alertas tienen verificación
 focal PostgreSQL/HTTP y del parser cliente. La consulta exacta Qadra desde ambas
-tiene evidencia de escritorio/móvil con HTTP controlado. Formularios y aceptación integrada permanecen pendientes. Este contrato no
+tiene evidencia de escritorio/móvil con HTTP controlado. Qadra ya gestiona
+convocatorias de imposición/revisión, reprogramación, cancelación y recuperación
+con esa clase de evidencia. Formularios de decisión/rectificación y aceptación
+integrada permanecen pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 

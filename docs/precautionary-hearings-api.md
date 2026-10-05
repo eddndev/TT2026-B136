@@ -4,8 +4,9 @@ Estado: router local implementado y compuesto en `serve` sobre los puertos
 autorizados de aplicación. Comparte el presupuesto de trabajo de la API.
 Agenda y alertas PostgreSQL/HTTP tienen evidencia focal propia. La consulta
 exacta Qadra desde ambas aprobó recorridos de escritorio/móvil con HTTP
-controlado. Formularios y aceptación HTTP integrada con reinicio/restauración
-permanecen pendientes. Este documento describe contexto y convocatorias; decisiones
+controlado. Los formularios Qadra de imposición/revisión, reprogramación, cancelación
+y recuperación de operación aprobaron aceptación focal controlada. La aceptación
+HTTP integrada con reinicio/restauración permanece pendiente. Este documento describe contexto y convocatorias; decisiones
 y rectificaciones tienen sus contratos propios en [la API HTTP](http-api.md). Véanse
 [el alcance](precautionary-hearings-scope.md),
 [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md) y

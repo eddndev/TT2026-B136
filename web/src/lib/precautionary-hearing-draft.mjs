@@ -237,6 +237,7 @@ export function createPrecautionaryHearingDraft({ session, caseId, action, heari
       root = registration = null;
     },
     dispose() {
+      if (admitted()) registration?.capture();
       alive = false;
       registration?.dispose();
       registration = null;

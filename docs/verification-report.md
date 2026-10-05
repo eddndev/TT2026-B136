@@ -1,5 +1,44 @@
 # Informe de verificación local
 
+## Gestión de convocatorias cautelares en Qadra: 5 de octubre de 2026
+
+El expediente permite programar una convocatoria de imposición, reprogramarla y
+cancelarla, con soporte exacto, revisión explícita y ambos compromisos de
+confirmación. Un envío aplicado cuya respuesta se pierde se recupera por su
+operación original, aun si después cambia la cabeza. Paralegal y expedientes
+cerrados conservan consulta sin habilitar mutaciones.
+
+La aceptación focal con HTTP controlado aprobó los cuatro recorridos en 13.8 s
+(14.561 s del comando). Dos nuevos RED demostraron pérdida del borrador al navegar;
+la captura al desmontar corrigió el defecto y los tres recorridos de recuperación
+aprobaron en 11.8 s (12.529 s completos). Conservan campos incompletos, soporte,
+operación incierta y consulta sin POST automático; el tercero impide confirmar si
+el expediente se cerró después de preparar. Los seis grupos Node del registro de
+borradores siguieron aprobados en 0.333 s del comando.
+
+Las audiencias ordinarias afectadas aprobaron sus nueve recorridos en 19.6 s
+(20.321 s completos). La primera ejecución falló en ocho por un glob del fixture
+que interceptaba rutas cautelares y dividía una ruta inexistente; se acotó a la
+familia ordinaria antes de repetir. No fue un fallo del servicio real.
+
+El selector de revisión aprobó el recorrido que consulta una medida exacta,
+conserva esa captura al avanzar su cabeza y la mantiene al confirmar y reprogramar
+la convocatoria: 8.6 s de navegador y 9.278 s del comando. El lector de medidas
+aprobó sus once grupos focales después del RED de API ausente (0.491 s completos);
+conserva familias judiciales y administrativas sin replicar el grafo de validación
+del servidor.
+
+La presentación a 1440 y 390 px aprobó ausencia de desbordamiento y controles
+accesibles. Se repitió el encuadre como página completa para evitar que la captura
+de elemento reposicionara el enlace fijo de accesibilidad. Una importación dinámica
+de Astro falló antes del acceso en esa repetición; se conservó el móvil verde y
+se repitió sólo escritorio, sin cambiar el producto. Ambas páginas se inspeccionaron.
+
+Esta evidencia es local y controlada. Registrar decisiones/rectificaciones,
+aceptación real con restauración, manuscrito y gates siguen pendientes del cierre
+cautelar completo. No se repitió la regresión global
+ni se modificó el PDF aceptado.
+
 ## Cliente y borrador de convocatoria cautelar: 5 de octubre de 2026
 
 El cliente ya consulta contexto/lista/cabeza, prepara el comando normalizado
