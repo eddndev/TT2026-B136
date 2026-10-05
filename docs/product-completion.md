@@ -108,8 +108,9 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   registros administrativos y convocatorias de revisión también tienen
   implementación y evidencia focal local. HTTP de convocatorias, rectificaciones, lecturas y decisiones declaradas está
   compuesto con los servicios existentes y tiene comprobaciones focales aprobadas. Agenda
-  y alertas tienen consulta PostgreSQL/HTTP y parser verificados; el detalle
-  Qadra y la aceptación completa siguen pendientes. Estos componentes no acreditan el flujo cautelar
+  y alertas tienen consulta PostgreSQL/HTTP y parser verificados. El detalle exacto
+  Qadra desde ambas aprobó recorridos de escritorio/móvil con HTTP controlado;
+  formularios y aceptación integrada completa siguen pendientes. Estos componentes no acreditan el flujo cautelar
   terminado ni reglas jurídicas automáticas. La lista de cierre es
   [finita y explícita](four-front-closure.md).
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,

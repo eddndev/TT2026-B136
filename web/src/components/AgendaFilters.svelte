@@ -94,6 +94,7 @@
           >
           <option value="deadline">Plazos</option>
           <option value="resource_hearing">Audiencias de recursos</option>
+          <option value="precautionary_hearing">Audiencias cautelares</option>
         </select></label
       >
       <label
@@ -110,7 +111,8 @@
     <p class="hint">
       El periodo empieza a las 00:00 en el desfase indicado y excluye el inicio del d&#237;a final.
       Las semanas empiezan el lunes. M&#225;ximo 366 d&#237;as; el estado s&#243;lo filtra
-      audiencias ordinarias. Las audiencias de recurso no tienen un estado de cancelaci&#243;n.
+      audiencias ordinarias y cautelares. Las audiencias de recurso no tienen un estado de
+      cancelaci&#243;n.
     </p>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="action-row agenda-period-actions">

@@ -4,6 +4,7 @@
   import AgendaList from './AgendaList.svelte';
   import AgendaCalendar from './AgendaCalendar.svelte';
   import ResourceHearingDetail from './ResourceHearingDetail.svelte';
+  import PrecautionaryHearingDetail from './PrecautionaryHearingDetail.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
   import {
@@ -36,6 +37,7 @@
     generation = 0,
     openGeneration = 0;
   let ownDetail = null,
+    ownKind = null,
     ownCase = null,
     ownClient = null,
     detailTrigger = null;
@@ -58,6 +60,7 @@
     ownClient?.dispose();
     ownClient = null;
     ownDetail = null;
+    ownKind = null;
     ownCase = null;
     opening = false;
   }
@@ -135,12 +138,16 @@
       if (!currentOpen(request, list, actor)) return;
       if (detail.id !== record.case_id)
         throw new Error('El expediente no corresponde a la actividad seleccionada.');
-      if (item.kind === 'resource_hearing') {
-        const client = api.caseResourceHearings(record.case_id, record.resource_id);
+      if (['resource_hearing', 'precautionary_hearing'].includes(item.kind)) {
+        const client =
+          item.kind === 'precautionary_hearing'
+            ? api.casePrecautionaryHearings(record.case_id)
+            : api.caseResourceHearings(record.case_id, record.resource_id);
         ownClient = client;
         const creation = await client.exact(record);
         if (!currentOpen(request, list, actor)) return;
         ownCase = basicCase(detail);
+        ownKind = item.kind;
         ownDetail = creation;
       } else {
         onopen(basicCase(detail), agendaIntent(item));
@@ -236,5 +243,9 @@
   </p>
 </section>
 {#if ownDetail}
-  <ResourceHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
+  {#if ownKind === 'precautionary_hearing'}
+    <PrecautionaryHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
+  {:else}
+    <ResourceHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
+  {/if}
 {/if}

@@ -1,5 +1,26 @@
 # Informe de verificación local
 
+## Consulta cautelar en Qadra: 5 de octubre de 2026
+
+La apertura desde Agenda y alertas ya conserva la revisión exacta, su horario,
+estado, participantes, soporte e historia. Una alerta anterior abre su captura
+original aunque la cabeza posterior esté cancelada. Rechazo de acceso retira
+las filas y el detalle; respuestas tardías no reabren datos después de cambiar
+filtros, sesión o principal. No se consulta otra familia ni la cabeza como
+sustituto de la revisión seleccionada.
+
+El cliente tuvo RED de API ausente y aprobó 12 casos. El navegador reprodujo
+la ausencia de tarjeta/apertura y aprobó después siete recorridos con HTTP
+controlado, incluidos escritorio y móvil. Los clientes afectados aprobaron
+32 casos y la navegación afectada de recursos aprobó 12. Las dos capturas
+visuales se repitieron sólo para corregir foco/scroll del encuadre, sin cambiar
+CSS del producto; ambas fueron inspeccionadas sin desbordamiento ni texto
+recortado. Los demás casos verdes se conservaron.
+
+Esto cierra la consulta desde Agenda/alertas con transporte controlado. Quedan
+formularios cautelares, aceptación integrada con servicios reales y restauración,
+manuscrito y la única regresión global de cierre. No es integración ni despliegue.
+
 ## Alertas cautelares: 5 de octubre de 2026
 
 Verificación fresca: las alertas de proximidad conservan la captura y revisión

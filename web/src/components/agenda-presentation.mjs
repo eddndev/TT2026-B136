@@ -80,8 +80,8 @@ export function agendaGroups(rows, offset) {
 }
 
 export function agendaIntent(item) {
-  if (item.kind === 'resource_hearing')
-    throw new Error('Las audiencias de recurso se consultan dentro de Agenda.');
+  if (['resource_hearing', 'precautionary_hearing'].includes(item.kind))
+    throw new Error('Esta familia de audiencias se consulta dentro de Agenda.');
   const record = agendaRecord(item);
   return {
     kind: item.kind,

@@ -2,8 +2,9 @@
 
 Estado: router local implementado y compuesto en `serve` sobre los puertos
 autorizados de aplicación. Comparte el presupuesto de trabajo de la API.
-La consulta de Agenda PostgreSQL/HTTP tiene evidencia focal propia. Alertas están
-en verificación; Qadra y aceptación HTTP integrada con reinicio/restauración
+Agenda y alertas PostgreSQL/HTTP tienen evidencia focal propia. La consulta
+exacta Qadra desde ambas aprobó recorridos de escritorio/móvil con HTTP
+controlado. Formularios y aceptación HTTP integrada con reinicio/restauración
 permanecen pendientes. Este documento describe contexto y convocatorias; decisiones
 y rectificaciones tienen sus contratos propios en [la API HTTP](http-api.md). Véanse
 [el alcance](precautionary-hearings-scope.md),
@@ -149,3 +150,17 @@ El mapper común también define los prefijos `measure_decision_` y
 Las inconsistencias almacenadas, errores de persistencia/auditoría y respuestas
 del puerto que contradigan los selectores solicitados devuelven el 500 genérico,
 sin diagnósticos SQL ni material privado.
+
+## Consulta exacta en Qadra
+
+Agenda permite filtrar convocatorias cautelares programadas/canceladas y abre
+la revisión seleccionada. La bandeja de alertas abre la revisión de origen del
+aviso; no reemplaza una captura histórica por la cabeza posterior. El panel
+muestra horario y desfase, propósito, estado, sede, participantes, soporte y
+las capturas hasta esa revisión. Mantiene filtros al cerrar.
+
+Ambas aperturas reautorizan el expediente y vinculan identidad, revisión y
+digest a la selección original. Un 403/404 retira sus filas y detalle. Cambiar
+filtros o sesión invalida consultas pendientes; no hay reintentos automáticos.
+La consulta no marca lectura del aviso ni presenta acciones de escritura.
+Los formularios de convocatoria/decisión/rectificación continúan pendientes.
