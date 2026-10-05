@@ -196,17 +196,24 @@ del consumidor conservan el cursor y los recibos sin duplicar avisos. Esta
 ampliación local aún necesita aceptación propia de respaldo/restauración y cierre
 de CI; no habilita correo operativo. Véase [el contrato](resource-hearing-alerts.md).
 
-## Audiencias cautelares de imposición
+## Audiencias cautelares de imposición y revisión
 
 Implementación local, todavía no integrada ni desplegada. La familia
 `0033_precautionary_hearings*.sql` se instala con
 `database migrate --runtime-role`. Añade `case_precautionary_hearings` y
 `case_precautionary_hearing_revisions` para programar, reemplazar y cancelar
-citas de propósito Imposition. Cada raíz exige su revisión inicial; las
+citas de propósito Imposition. La migración `0036_precautionary_hearing_review.sql`
+extiende la guarda para objetivos Review exactos sin añadir tablas ni permisos.
+Cada raíz exige su revisión inicial; las
 operaciones y las asociaciones con auditoría son únicas. No genera audiencias
-para expedientes anteriores ni persiste decisiones o medidas. El adaptador
-rechaza Review porque falta su cargador de historia durable; el almacenamiento
-separado de decisiones iniciales no habilita esa selección.
+para expedientes anteriores ni persiste decisiones o medidas al programar una cita.
+Review carga los propietarios completos y ancestros de cada objetivo M1, con
+sus fuentes originales, en la misma transacción. No exige la cabeza actual de
+una medida ni rechaza por sí misma capturas terminales. Cada consulta histórica
+retiene sólo el cierre del prefijo seleccionado; una cancelación conserva los
+objetivos y el contexto de programación anterior. Los límites de audiencia
+(256 capturas, 8192 objetivos) y de medidas (256 grupos, 8192 miembros) se aplican
+por separado y el exceso se rechaza sin truncar.
 
 Las tablas conservan valores canónicos y una proyección estricta y acotada,
 referencias exactas de administración y etapa, digest del contexto, metadatos
@@ -234,6 +241,12 @@ del almacén deben usar UTC soportado; no se normaliza silenciosamente otro
 offset. Las capturas frescas respetan el mínimo temporal revisado y los eventos
 de acceso no pueden preceder las capturas devueltas.
 
+La guarda SQL también contrasta el reloj de captura con la administración que
+originó la etapa inicial, aunque la administración vigente tenga una fecha
+anterior. Un reemplazo o una cancelación tampoco puede retroceder las revisiones
+ni los relojes observados de administración y etapa respecto de su predecesor.
+La comprobación conserva nanosegundos y aplica a ambos propósitos.
+
 La apertura valida catálogo, restricciones, índices, funciones, disparadores,
 privilegios e inventario completo. El runtime recibe SELECT e INSERT por columnas,
 sin UPDATE, DELETE, TRUNCATE ni ejecución de guardas; también se revisa la
@@ -246,7 +259,7 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente, al igual que persistencia Review y decisiones con anclas,
+pendiente, al igual que decisiones con anclas,
 G2/M2 y correcciones, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
 su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
@@ -258,8 +271,9 @@ pruebas ejecutadas de la aceptación todavía pendiente.
 grupos con 1 a 32 imposiciones iniciales y decisiones NoMeasureChange. Una decisión
 sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
 adaptador conserva también confirmación, modificación, revocación, cese y
-sustitución desde predecesores exactos. Rechaza anclas; G2/M2, registros administrativos
-y consumo durable de objetivos Review siguen pendientes. No está compuesto en
+sustitución desde predecesores exactos. Review consume sus revisiones exactas,
+propietarios completos y ancestros. Rechaza anclas; G2/M2 y registros administrativos
+siguen pendientes. No está compuesto en
 HTTP ni desplegado.
 
 `database migrate --runtime-role` instala `0034_measure_decisions.sql`,

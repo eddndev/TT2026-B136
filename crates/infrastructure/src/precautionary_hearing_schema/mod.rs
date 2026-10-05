@@ -17,6 +17,7 @@ pub(crate) use permissions::{grant_runtime, validate_runtime_role};
 pub(crate) const MIGRATIONS: &[&str] = &[
     include_str!("../../../../migrations/0033_precautionary_hearings.sql"),
     include_str!("../../../../migrations/0033_precautionary_hearings_guards.sql"),
+    include_str!("../../../../migrations/0036_precautionary_hearing_review.sql"),
 ];
 const TABLES: [&str; 2] = [
     "case_precautionary_hearings",

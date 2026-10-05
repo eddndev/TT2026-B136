@@ -8,6 +8,7 @@ mod preparation;
 mod query;
 pub(crate) mod sources;
 mod storage;
+mod targets;
 mod write;
 use application::{precautionary_hearings::PrecautionaryHearingError, ApplicationError};
 use domain::{clock::Clock, crypto::DocumentHasher};

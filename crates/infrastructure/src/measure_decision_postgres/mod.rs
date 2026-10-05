@@ -7,6 +7,7 @@ mod history;
 mod history_budget;
 mod inventory;
 mod inventory_shape;
+mod loaded_history;
 mod preparation;
 mod query;
 mod sources;
@@ -15,7 +16,9 @@ mod write;
 use crate::precautionary_hearing_postgres::authorization::authorize;
 use application::{precautionary_measures::MeasureDecisionError, ApplicationError};
 use domain::{clock::Clock, crypto::DocumentHasher};
+pub(crate) use history::load_measure_targets;
 pub(crate) use inventory::validate_inventory;
+pub(crate) use loaded_history::LoadedMeasureHistory;
 use postgres::{Client, Error};
 use std::sync::{Arc, Mutex, MutexGuard};
 

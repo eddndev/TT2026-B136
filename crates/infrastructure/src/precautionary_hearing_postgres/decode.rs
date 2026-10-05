@@ -1,7 +1,7 @@
 use super::{inconsistent, sources};
 use application::{
     case_stages::StageDocumentFormat, identity::Principal, precautionary_hearings::*,
-    ApplicationError,
+    precautionary_measures::MeasureHistoryEvidence, ApplicationError,
 };
 use domain::{
     case_administration::{CaseRevision, CaseStageRevision},
@@ -37,6 +37,7 @@ pub(super) fn capture(
     tx: &mut Transaction<'_>,
     row: &Row,
     previous: Option<&PrecautionaryHearingCapture>,
+    measure_history: &MeasureHistoryEvidence,
     hasher: &dyn DocumentHasher,
 ) -> Result<PrecautionaryHearingCapture, ApplicationError> {
     let case = CaseId::from_uuid(row.get("case_id"));
@@ -93,11 +94,6 @@ pub(super) fn capture(
             .get::<_, Option<serde_json::Value>>("values_view")
             .ok_or_else(|| inconsistent("missing selected projection"))?;
         let values = crate::precautionary_hearing_codec::values(&canonical, &projection)?;
-        if values.purpose() != PrecautionaryHearingPurpose::Imposition {
-            return Err(inconsistent(
-                "review hearing requires durable measure history",
-            ));
-        }
         if hasher.hash_bytes(&canonical)
             != digest(
                 row.get::<_, Option<Vec<u8>>>("values_digest")
@@ -167,8 +163,17 @@ pub(super) fn capture(
         .map_err(inconsistent)?
         .replace_nanosecond(nanos)
         .map_err(inconsistent)?;
-    let capture = prepare_precautionary_hearing_capture(
-        hasher, &actor, case, command, context, sources, previous,
+    let capture = prepare_precautionary_hearing_with_history(
+        hasher,
+        &actor,
+        case,
+        command,
+        PrecautionaryHearingPreparationMaterial {
+            observed_context: context,
+            sources,
+            predecessor: previous,
+            measure_history,
+        },
     )
     .map_err(inconsistent)?
     .into_capture(hasher, at)

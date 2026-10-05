@@ -1,4 +1,5 @@
-use super::{history_budget::Budget, inconsistent, port, storage};
+use super::LoadedMeasureHistory;
+use super::{audit, history_budget::Budget, inconsistent, loaded_history, port, storage};
 use application::{precautionary_measures::*, ApplicationError};
 use domain::{
     cases::CaseId, crypto::DocumentHasher, precautionary_hearings::PrecautionaryMeasureRef,
@@ -63,6 +64,27 @@ fn owner(
 ) -> Result<Uuid, ApplicationError> {
     tx.query_opt("SELECT owner_operation FROM case_measure_revisions WHERE case_id=$1 AND measure_id=$2 AND revision=$3 AND capture_digest=$4 AND family='m1'",&[&case.as_uuid(),&reference.id().as_uuid(),&i64::from(reference.revision().get()),&reference.digest().as_bytes().as_slice()]).map_err(port)?.map(|r|r.get(0)).ok_or_else(||inconsistent("exact predecessor row is absent or inconsistent"))
 }
+
+pub(crate) fn load_measure_targets(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    refs: &[PrecautionaryMeasureRef],
+    hasher: &dyn DocumentHasher,
+) -> Result<LoadedMeasureHistory, ApplicationError> {
+    let refs = loaded_history::references(refs)?;
+    if refs.is_empty() {
+        return LoadedMeasureHistory::new(BTreeMap::new(), BTreeMap::new());
+    }
+    audit::inventory_intact(tx)?;
+    let roots = refs
+        .iter()
+        .map(|reference| owner(tx, case, *reference))
+        .collect::<Result<Vec<_>, _>>()?;
+    let loaded = load(tx, case, roots, Budget::new(0, 0), hasher)?;
+    loaded.owner_ids(&refs)?;
+    Ok(loaded)
+}
+
 pub(super) fn candidate(
     tx: &mut Transaction<'_>,
     case: CaseId,
@@ -74,22 +96,15 @@ pub(super) fn candidate(
         .iter()
         .map(|r| owner(tx, case, *r))
         .collect::<Result<Vec<_>, _>>()?;
-    let groups = load(
+    let loaded = load(
         tx,
         case,
         roots,
         Budget::new(1, outcome.affected_ids().len()),
         hasher,
-    )?
-    .into_values()
-    .map(|g| MeasureGroupEvidence {
-        origin: g.origin,
-        capture: g.group,
-    })
-    .collect();
-    let evidence = MeasureHistoryEvidence { groups };
-    predecessors(&refs, &evidence)?;
-    Ok(evidence)
+    )?;
+    loaded.owner_ids(&refs)?;
+    Ok(loaded.into_evidence())
 }
 pub(super) fn operation(
     tx: &mut Transaction<'_>,
@@ -97,9 +112,7 @@ pub(super) fn operation(
     op: MeasureDecisionOperationId,
     hasher: &dyn DocumentHasher,
 ) -> Result<MeasureDecisionStoredOperation, ApplicationError> {
-    load(tx, case, vec![op.as_uuid()], Budget::new(0, 0), hasher)?
-        .remove(&op.as_uuid())
-        .ok_or_else(|| inconsistent("selected owner was not reconstructed"))
+    load(tx, case, vec![op.as_uuid()], Budget::new(0, 0), hasher)?.into_operation(op.as_uuid())
 }
 fn load(
     tx: &mut Transaction<'_>,
@@ -107,7 +120,7 @@ fn load(
     mut pending: Vec<Uuid>,
     mut budget: Budget,
     hasher: &dyn DocumentHasher,
-) -> Result<BTreeMap<Uuid, MeasureDecisionStoredOperation>, ApplicationError> {
+) -> Result<LoadedMeasureHistory, ApplicationError> {
     let mut rows: BTreeMap<Uuid, (Row, BTreeSet<Uuid>)> = BTreeMap::new();
     while let Some(op) = pending.pop() {
         if rows.contains_key(&op) {
@@ -130,7 +143,8 @@ fn load(
         pending.extend(parents.iter().copied());
         rows.insert(op, (row, parents));
     }
-    let mut built: BTreeMap<Uuid, MeasureDecisionStoredOperation> = BTreeMap::new();
+    let mut built: BTreeMap<Uuid, MeasureGroupEvidence> = BTreeMap::new();
+    let mut dependencies = BTreeMap::new();
     while !rows.is_empty() {
         let ready = rows
             .iter()
@@ -140,29 +154,16 @@ fn load(
         let (row, deps) = rows
             .remove(&ready)
             .ok_or_else(|| inconsistent("measure owner disappeared"))?;
-        let mut ancestry = BTreeMap::new();
-        for parent in deps {
-            let stored = &built[&parent];
-            for older in &stored.measure_history.groups {
-                ancestry.insert(older.origin.operation_id.as_uuid(), older.clone());
-            }
-            ancestry.insert(
-                parent,
-                MeasureGroupEvidence {
-                    origin: stored.origin.clone(),
-                    capture: stored.group.clone(),
-                },
-            );
-        }
-        let result = storage::reconstruct(
-            tx,
-            &row,
-            MeasureHistoryEvidence {
-                groups: ancestry.into_values().collect(),
+        let ancestry = loaded_history::evidence_for(&deps, &built, &dependencies)?;
+        let result = storage::reconstruct(tx, &row, ancestry, hasher)?;
+        dependencies.insert(ready, deps);
+        built.insert(
+            ready,
+            MeasureGroupEvidence {
+                origin: result.origin,
+                capture: result.group,
             },
-            hasher,
-        )?;
-        built.insert(ready, result);
+        );
     }
-    Ok(built)
+    LoadedMeasureHistory::new(built, dependencies)
 }

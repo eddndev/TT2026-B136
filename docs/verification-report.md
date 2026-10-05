@@ -9207,3 +9207,44 @@ ambos quedaron corregidos antes de la comprobacion final. No se repitieron codec
 las suites generales ni la evidencia confirmada de main. Persistencia con anclas,
 G2/M2 y registros administrativos, Review durable, API, Agenda, alertas, Qadra,
 restauracion, manuscrito e integracion siguen pendientes para la entrega completa.
+
+
+## Persistencia de revisiones cautelares con medidas exactas
+
+Comprobacion focal local del 5 de octubre de 2026: el nuevo target
+`precautionary_review_backend` aprobo 13 pruebas en 116.18 s y el target afectado
+`precautionary_hearing_backend` conservo sus 25 pruebas, aprobadas en 179.56 s.
+La campana conjunta tardo 300.281 s incluyendo preparacion y compilacion.
+El cargador compartido tambien conservo las 33 identidades de pruebas de
+`measure_decision_backend`, todas aprobadas en 298.90 s, 303.531 s con preparacion.
+Clippy de la biblioteca y los tres targets aprobo con advertencias como errores
+en 7.03 s. La advertencia futura de `redis 0.25.4` es preexistente.
+Las 71 pruebas usaron PostgreSQL nativo 16.15, SCRAM y clusters privados retirados
+al terminar; ninguna fue omitida. Un compilador y un hilo usaron temporales btrfs.
+
+La prueba inicial reprodujo el rechazo de Review por falta de historia durable.
+Los casos positivos ahora comprueban programacion, reemplazo, cancelacion,
+consulta historica y replay exacto sobre grupos reales. Incluyen revisiones
+antiguas de una medida, objetivos terminales y hermanos con ancestros propios.
+La historia devuelta conserva el cierre del prefijo seleccionado y excluye
+capturas posteriores ajenas; los bytes originales de la audiencia no cambian.
+Los negativos rechazan referencias de otro expediente, digests contradictorios,
+ancestros ausentes o alterados, perdida de un hermano durante la admision y
+corrupcion posterior de fuentes, sin escrituras parciales de audiencia o auditoria.
+
+Tres regresiones SQL fallaron antes de corregir sus guardas: una captura anterior
+al origen de su etapa inicial tras una administracion retrodatada, y reemplazo
+o cancelacion con un reloj administrativo observado menor al del predecesor.
+La primera fallo en 4.25 s; las otras dos en 15.10 s y aprobaron juntas en
+15.98 s tras la correccion. Los controles de insercion valida y los recibos
+recalculados impiden confundir esos fallos con restricciones ajenas al reloj.
+La revision independiente de carga, cierres, fixtures y SQL no dejo hallazgos.
+
+Los documentos cifrados, participantes tipificados y transacciones son reales;
+la admision de formato usa fixtures controlados. No se ejecuto una historia
+nativa de tamano maximo 256/8192. Un intento intermedio no compilo por usar un
+metodo privado; otro fallo al preparar una alteracion que la propia restriccion
+SQL de hash rechazaba. Ambos se corrigieron antes de las campanas finales.
+No se repitieron codecs, pruebas generales ni evidencia confirmada de main.
+Anclas, G2/M2, registros administrativos durables, HTTP, Agenda, alertas, Qadra,
+restauracion, manuscrito e integracion siguen pendientes del flujo completo.

@@ -1,12 +1,10 @@
-use super::{audit, inconsistent, port, sources, storage};
+use super::{audit, inconsistent, port, sources, storage, targets};
+use crate::measure_decision_postgres::load_measure_targets;
 use application::{
     case_stages::StageSupportRef, documents::StageSupportReadLimits, precautionary_hearings::*,
-    precautionary_measures::MeasureHistoryEvidence, ApplicationError,
+    ApplicationError,
 };
-use domain::{
-    cases::CaseId, crypto::DocumentHasher, hearings::HearingStatus,
-    precautionary_hearings::PrecautionaryHearingPurpose,
-};
+use domain::{cases::CaseId, crypto::DocumentHasher, hearings::HearingStatus};
 use postgres::Transaction;
 
 pub(super) fn load(
@@ -17,7 +15,7 @@ pub(super) fn load(
     hasher: &dyn DocumentHasher,
 ) -> Result<PrecautionaryHearingReady, ApplicationError> {
     let context = sources::current_context(tx, case, hasher)?;
-    let history = if command.action() == PrecautionaryHearingAction::Schedule {
+    let prefix = if command.action() == PrecautionaryHearingAction::Schedule {
         if tx
             .query_opt(
                 "SELECT id FROM case_precautionary_hearings WHERE id=$1",
@@ -31,7 +29,30 @@ pub(super) fn load(
         audit::hearing_absent(tx, command.hearing_id)?;
         None
     } else {
-        let previous = storage::detail(tx, case, command.hearing_id, None, hasher)?;
+        let prefix = storage::prefix(tx, case, command.hearing_id, None)?;
+        if prefix.len() >= 256 {
+            return Err(PrecautionaryHearingError::OperationConflict.into());
+        }
+        Some(prefix)
+    };
+    let previous_targets = prefix.as_ref().map(|p| p.last_targets()).unwrap_or(&[]);
+    let selected_targets = match &command.change {
+        PrecautionaryHearingChange::Schedule { values, .. }
+        | PrecautionaryHearingChange::Replace { values, .. } => values.review_targets(),
+        PrecautionaryHearingChange::Cancel { .. } => previous_targets,
+    };
+    let immediate = targets::union([selected_targets, previous_targets])?;
+    let refs = targets::union([
+        immediate.as_slice(),
+        prefix.as_ref().map(|p| p.refs.as_slice()).unwrap_or(&[]),
+    ])?;
+    let measures = load_measure_targets(tx, case, &refs, hasher)?;
+    let history = prefix
+        .as_ref()
+        .map(|prefix| storage::reconstruct(tx, prefix, &measures, hasher))
+        .transpose()?
+        .map(|stored| stored.history);
+    if let Some(previous) = history.as_ref().and_then(|h| h.captures.last()) {
         let expected = match command.change {
             PrecautionaryHearingChange::Replace {
                 expected_capture_digest,
@@ -41,17 +62,16 @@ pub(super) fn load(
                 expected_capture_digest,
                 ..
             } => expected_capture_digest,
-            _ => unreachable!(),
+            PrecautionaryHearingChange::Schedule { .. } => unreachable!(),
         };
-        if previous.capture.review.result_revision.get() != command.expected_revision()
-            || previous.capture.capture_digest != expected
-            || previous.capture.review.status != HearingStatus::Scheduled
-            || previous.history.captures.len() >= 256
+        if previous.review.result_revision.get() != command.expected_revision()
+            || previous.capture_digest != expected
+            || previous.review.status != HearingStatus::Scheduled
         {
             return Err(PrecautionaryHearingError::OperationConflict.into());
         }
-        Some(previous.history)
-    };
+    }
+    let measure_history = measures.subclosure(&immediate)?;
     let previous = history.as_ref().and_then(|v| v.captures.last());
     let selected_sources = match &command.change {
         PrecautionaryHearingChange::Schedule {
@@ -63,11 +83,6 @@ pub(super) fn load(
             context: expected,
             ..
         } => {
-            if values.purpose() != PrecautionaryHearingPurpose::Imposition {
-                return Err(ApplicationError::InvalidInput(
-                    "review hearing requires durable measure history".into(),
-                ));
-            }
             if expected.administration_revision != context.material().administration.revision
                 || expected.stage_revision != context.material().stage.stage_revision()
                 || expected.context_digest != context.digest(hasher)
@@ -94,6 +109,6 @@ pub(super) fn load(
         observed_context: context,
         history,
         selected_sources,
-        measure_history: MeasureHistoryEvidence { groups: vec![] },
+        measure_history,
     })
 }

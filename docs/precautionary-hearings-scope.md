@@ -2,15 +2,15 @@
 
 Estado: **dominio y servicios de aplicación verificados localmente**. El trabajo local
 comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
-convocatorias de imposición, sustitución de programación y cancelación, así como
+convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones independientes con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo. La persistencia con anclas, G2/M2 y registros
-administrativos, las convocatorias Review, HTTP, Agenda, alertas e interfaz
+administrativos, HTTP, Agenda, alertas e interfaz
 conservan sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
-## Persistencia local de convocatorias de imposición
+## Persistencia local de convocatorias cautelares
 
 `PostgresPrecautionaryHearingStore` implementa los puertos existentes de comandos
 y lecturas mediante PostgreSQL. Las migraciones `0033_` conservan una raíz y
@@ -28,11 +28,22 @@ operación rechazada no deja raíces, revisiones ni eventos parciales. La eviden
 de auditoría impide reutilizar una identidad tras perder sus registros y evita
 presentar una revisión anterior o una página vacía como estado actual válido.
 
-Este adaptador admite sólo el propósito `imposition`. Las convocatorias `review`
-se rechazan hasta conectar y comprobar su selección de historia durable de medidas;
-persistir decisiones independientes no habilita esa selección. La existencia
-del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita restauración
-integral o despliegue. Véase [operación de base de datos](database-operations.md).
+La migración `0036_precautionary_hearing_review.sql` admite objetivos `review`
+por identidad, revisión y digest exactos. El cargador recupera todos sus grupos
+propietarios y ancestros en la misma transacción, incluidos hermanos no
+seleccionados. Un prefijo puede conservar revisiones distintas de una medida;
+no sustituye las selecciones antiguas por su cabeza actual. También admite
+capturas terminales, sin reactivarlas ni atribuirles efectos jurídicos nuevos.
+
+Cada revisión se reconstruye con su cierre exacto; la historia devuelve la unión
+del prefijo seleccionado. Una lectura o replay de la primera captura no incorpora
+decisiones posteriores ajenas. La cancelación conserva objetivos, fuentes y
+contexto de programación anteriores. Los límites son independientes: hasta 256
+capturas de audiencia y 8192 objetivos; hasta 256 grupos y 8192 miembros en la
+historia de medidas. No se cargan grupos cuando no existen objetivos.
+
+La existencia del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita
+restauración integral o despliegue. Véase [operación de base de datos](database-operations.md).
 
 ## Persistencia local de decisiones independientes
 

@@ -386,15 +386,15 @@ path = "tests/resource_hearing_schema.rs"
 [[test]]
 name = "precautionary_hearing_codec"
 path = "tests/precautionary_hearing_codec.rs"
-
 [[test]]
 name = "precautionary_hearing_backend"
 path = "tests/precautionary_hearing_backend.rs"
-
 [[test]]
 name = "measure_decision_codec"
 path = "tests/measure_decision_codec.rs"
-
 [[test]]
 name = "measure_decision_backend"
 path = "tests/measure_decision_backend.rs"
+[[test]]
+name = "precautionary_review_backend"
+path = "tests/precautionary_review_backend.rs"

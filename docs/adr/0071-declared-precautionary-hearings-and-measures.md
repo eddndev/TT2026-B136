@@ -15,7 +15,8 @@ Scheduling, replacement and cancellation retain complete origin-bound prefixes,
 while explicit replay preserves the original instruction, actor and timestamp.
 A local PostgreSQL adapter now persists Imposition appointments with their exact
 source history and atomic audit. It is not integrated into HTTP or deployed;
-Review appointment persistence and the complete workflow remain pending.
+Review appointment persistence now resolves actual exact M1 targets and their
+complete G1 ancestry; the complete workflow remains pending.
 The authorized decision service also admits exact support, confirms both digests,
 and validates the complete original group and ancestor closure on replay and commit.
 Decision readers verify full immutable groups, bounded pagination and shared
@@ -42,8 +43,8 @@ MarkEnteredInError using the observed exact head, full supplied dependency
 inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
 service cannot establish those facts by itself. Optional administrative
-replacement, mixed-record appointment/decision services, Review, anchored and
-predecessor decisions, G2/M2 and administrative persistence, HTTP, Agenda, alerts,
+replacement, mixed-record appointment/decision services, anchored decisions,
+G2/M2 and administrative persistence, HTTP, Agenda, alerts,
 Qadra and restoration acceptance remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
@@ -714,17 +715,17 @@ prefix. Lists use at most 20 current heads in strict UUID order, with an exclusi
 cursor and validated continuation. Application readers verify every full receipt
 and shared immutable source, without re-admitting its historical support.
 
-### PostgreSQL persistence of Imposition appointments
+### PostgreSQL persistence of precautionary appointments
 
 The local `PostgresPrecautionaryHearingStore` implements the existing write and
 read ports for Imposition scheduling, replacement and cancellation. Migrations
 `0033_precautionary_hearings.sql` and `0033_precautionary_hearings_guards.sql`
 add append-only `case_precautionary_hearings` roots and
 `case_precautionary_hearing_revisions`. A root requires its initial revision;
-operation UUIDs and audit associations are unique. This adapter rejects Review
-values because its durable target-history loader is not implemented. Standalone
-decision storage alone does not enable that path. It neither creates
-measure records nor changes PHEAR1, PHTXN1, PHPR1 or PHCR1.
+operation UUIDs and audit associations are unique. Migration
+`0036_precautionary_hearing_review.sql` extends the existing guard to exact Review
+targets. This path neither creates measure records nor changes PHEAR1, PHTXN1,
+PHPR1 or PHCR1.
 
 Persist canonical appointment values with a strict bounded projection, the
 observed administration/stage references and context digest, support admission
@@ -753,6 +754,13 @@ own access events. Store clocks require supported UTC and preserve nanoseconds;
 fresh captures respect the prepared time floor, and access events cannot predate
 the returned captures.
 
+The SQL clock floor includes the original administration of an initial stage,
+not only the currently observed administration. Preserve exact nanoseconds so
+a later administrative revision with an earlier timestamp cannot admit a
+capture preceding that stage's origin. Replacement and cancellation also
+compare observed administration/stage revisions and source clocks with their
+exact predecessor; a newer revision counter cannot conceal a regressed clock.
+
 The strict catalog validates columns, constraints, indexes, functions, triggers
 and runtime privileges. The runtime receives SELECT and column-scoped INSERT,
 without update, deletion, truncation or guard-execution authority, including
@@ -763,8 +771,8 @@ a lost root cannot be recreated, a lost suffix cannot become a shorter current
 history, and pagination cannot conceal a lost hearing as an empty page.
 
 This local adapter does not establish acceptance of backup restoration or the
-integrated HTTP, Agenda, alerts and Qadra workflow. Durable Review consumption,
-anchored decisions, G2/M2 and administrative records remain
+integrated HTTP, Agenda, alerts and Qadra workflow. Anchored decisions, G2/M2
+and administrative records remain
 separate pending work.
 Operational requirements are in [database operations](../database-operations.md);
 executed checks are recorded independently in the verification report.
@@ -828,7 +836,7 @@ to its strict original submission and the retained audit marker before using it
 to establish completeness. A self-consistent changed outcome digest alone does
 not prove it belongs to that original operation. Keep this bounded check free
 of current source-head or current actor assumptions. The backend still rejects
-anchors and mixed administrative records; Review, HTTP, Agenda, alerts, Qadra and
+anchors and mixed administrative records; HTTP, Agenda, alerts, Qadra and
 restoration require their own integration and acceptance.
 
 ### Readers, recovery and restoration
@@ -867,3 +875,30 @@ failure and concurrency checks, HTTP restart/restoration acceptance, and Qadra
 desktop/mobile recovery evidence. API, operations, verification and affected
 academic documentation must describe the reproduced behavior. Legal deadline
 qualification, legal adjudication and official supervision remain separate.
+
+
+### Exact durable Review target closure
+
+Load Review targets by case, measure identity, revision and capture digest in the
+same database transaction as the hearing prefix. Include each entire actual G1
+owner and every effect predecessor owner; a selected sibling does not permit
+dropping the other members or their ancestry. Preserve one loaded owner entry
+and direct parent identities, deriving exact subclosures for each capture, its
+origin and the returned prefix. A nonempty selection checks the durable inventory;
+an empty selection does not acquire unrelated measure dependencies.
+
+A Review may select an older exact measure revision after a later revision exists,
+or an exact terminal capture. It declares a scheduling target and does not claim
+current legal effectiveness. One hearing prefix may therefore contain different
+revisions of the same measure. Conflicting digests for the same exact revision
+reject. Fresh changes still require the current scheduled hearing predecessor.
+Cancel retains prior targets, sources and scheduling context while checking the
+current observed context independently. SQL checks exact case ownership, target
+shape/order, source context and time; it does not impose a measure-head rule.
+
+The existing independent bounds remain: at most 256 hearing captures and 8192
+Review target references, plus at most 256 measure owners and 8192 members.
+Resolve the complete selected prefix union once, then validate each capture with
+its exact current and predecessor target closure. Original-operation replay
+reconstructs its original prefix and excludes unrelated later decisions. These
+checks do not enable anchored decisions or mixed administrative persistence.
