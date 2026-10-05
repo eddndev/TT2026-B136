@@ -11,3 +11,13 @@ pub use encoding::{
 };
 pub use model::*;
 pub use preparation::{prepare_measure_record_correction, CheckedMeasureAdministrativeReview};
+mod record_history;
+mod record_index;
+mod record_model;
+mod record_view;
+pub use capture::{
+    measure_administrative_capture_with_history_matches, measure_administrative_origin_with_history,
+};
+pub use preparation::prepare_measure_record_correction_with_history;
+pub use record_history::resolve_measure_records;
+pub use record_model::*;

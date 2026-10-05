@@ -51,11 +51,35 @@ pub fn measure_administrative_capture_matches(
     capture: &MeasureAdministrativeCapture,
     history: &MeasureHistoryEvidence,
 ) -> Result<(), ApplicationError> {
+    matches_view(
+        hasher,
+        capture,
+        super::record_index::HistoryView {
+            judicial: history,
+            administrative: &[],
+        },
+    )
+}
+
+pub fn measure_administrative_capture_with_history_matches(
+    hasher: &dyn DocumentHasher,
+    capture: &MeasureAdministrativeCapture,
+    history: &MeasureRecordHistoryEvidence,
+) -> Result<(), ApplicationError> {
+    matches_view(hasher, capture, history.into())
+}
+
+fn matches_view(
+    hasher: &dyn DocumentHasher,
+    capture: &MeasureAdministrativeCapture,
+    history: super::record_index::HistoryView<'_>,
+) -> Result<(), ApplicationError> {
     if capture.records.len() != 1 {
         return Err(invalid("correction must own exactly one row"));
     }
+    super::record_index::bounds(history, 1)?;
     let review = &capture.review;
-    let expected = prepare_measure_record_correction(
+    let expected = super::preparation::prepare_with_view(
         hasher,
         &review.actor,
         review.case_id,
@@ -78,11 +102,24 @@ pub fn measure_administrative_origin(
     history: &MeasureHistoryEvidence,
 ) -> Result<MeasureAdministrativeOrigin, ApplicationError> {
     measure_administrative_capture_matches(hasher, capture, history)?;
-    Ok(MeasureAdministrativeOrigin {
+    Ok(origin(capture))
+}
+
+pub fn measure_administrative_origin_with_history(
+    hasher: &dyn DocumentHasher,
+    capture: &MeasureAdministrativeCapture,
+    history: &MeasureRecordHistoryEvidence,
+) -> Result<MeasureAdministrativeOrigin, ApplicationError> {
+    measure_administrative_capture_with_history_matches(hasher, capture, history)?;
+    Ok(origin(capture))
+}
+
+pub(super) fn origin(capture: &MeasureAdministrativeCapture) -> MeasureAdministrativeOrigin {
+    MeasureAdministrativeOrigin {
         case_id: capture.review.case_id,
         operation_id: capture.review.command.operation_id,
         submission_digest: capture.review.submission_digest,
         review_digest: capture.review.review_digest,
         capture_digest: capture.capture_digest,
-    })
+    }
 }

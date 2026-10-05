@@ -17,7 +17,7 @@ pub(super) struct GroupIndex<'a> {
     members: BTreeMap<MemberKey, (usize, usize)>,
 }
 
-pub(super) fn shape(group: &MeasureDecisionGroupCapture) -> Result<(), ApplicationError> {
+pub(crate) fn shape(group: &MeasureDecisionGroupCapture) -> Result<(), ApplicationError> {
     bounded(group.measures.len())?;
     bounded(group.review.results.len())?;
     bounded(group.review.material.result_sources.len())?;

@@ -5,10 +5,7 @@ use crate::{
         capture_validation::context_advances, source_inventory::SourceInventory,
         PrecautionaryContext,
     },
-    precautionary_measures::{
-        add_measure_group_sources, resolve_measure_sources, resolve_measure_targets,
-        MeasureHistoryEvidence,
-    },
+    precautionary_measures::{resolve_measure_sources, MeasureHistoryEvidence},
     ApplicationError,
 };
 use domain::{
@@ -39,29 +36,68 @@ pub fn prepare_measure_record_correction(
     context: PrecautionaryContext,
     history: &MeasureHistoryEvidence,
 ) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
-    bounds(history)?;
+    prepare_with_view(
+        hasher,
+        actor,
+        case_id,
+        command,
+        context,
+        super::record_index::HistoryView {
+            judicial: history,
+            administrative: &[],
+        },
+    )
+}
+
+pub fn prepare_measure_record_correction_with_history(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    evidence: &MeasureRecordHistoryEvidence,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    prepare_with_view(hasher, actor, case_id, command, context, evidence.into())
+}
+
+pub(super) fn prepare_with_view(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    evidence: super::record_index::HistoryView<'_>,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    let mut inventory = SourceInventory::default();
+    let index = super::record_history::validate(
+        hasher,
+        case_id,
+        &[command.target],
+        evidence,
+        1,
+        &mut inventory,
+    )?;
+    index.candidate(&command)?;
+    let previous = index.view(index.selected(command.target)?)?;
+    let checked = prepare_from_record(hasher, actor, case_id, command, context, previous)?;
+    super::record_history::add_sources(&mut inventory, &checked.review)?;
+    Ok(checked)
+}
+
+pub(super) fn prepare_from_record(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    previous: super::record_view::RecordView<'_>,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
     if !matches!(actor.role, Role::Owner | Role::Litigator) {
         return Err(invalid("captured actor role cannot correct records"));
     }
-    if history
-        .groups
-        .iter()
-        .any(|g| g.origin.operation_id.as_uuid() == command.operation_id.as_uuid())
-    {
-        return Err(invalid(
-            "administrative operation reuses judicial ownership",
-        ));
+    if previous.validity() != MeasureCaptureValidity::Valid {
+        return Err(invalid("entered-in-error record cannot be corrected"));
     }
-    let targets = resolve_measure_targets(hasher, case_id, &[command.target], history)?;
-    let previous = targets
-        .targets()
-        .first()
-        .ok_or_else(|| invalid("missing exact predecessor"))?;
-    let group = history
-        .groups
-        .iter()
-        .find(|entry| entry.origin.operation_id == previous.owner.operation_id)
-        .ok_or_else(|| invalid("missing last judicial owner"))?;
     PrecautionaryContext::new(hasher, context.material().clone())?;
     let observed = context.material();
     if observed.case_id != case_id
@@ -72,51 +108,32 @@ pub fn prepare_measure_record_correction(
     {
         return Err(invalid("active exact context differs"));
     }
-    context_advances(&group.capture.review.material.context, &context)?;
-    let prior = &previous.capture;
-    let revision = prior
-        .result
-        .revision
+    context_advances(previous.context(), &context)?;
+    let revision = previous
+        .reference()
+        .revision()
         .next()
         .ok_or_else(|| invalid("measure revision overflow"))?;
-    if history.groups.iter().any(|g| {
-        g.capture
-            .measures
-            .iter()
-            .any(|m| m.result.id == prior.result.id && m.result.revision == revision)
-    }) {
-        return Err(invalid("administrative result already has an owner"));
-    }
     let values = match &command.action {
-        MeasureAdministrativeAction::Correct(values) => {
-            prior.result.values.correct_record(values)?
-        }
+        MeasureAdministrativeAction::Correct(values) => previous.values().correct_record(values)?,
     };
-    let projection = resolve_measure_sources(hasher, case_id, &values, &prior.result.sources)?;
-    let mut inventory = SourceInventory::default();
-    for group in &history.groups {
-        add_measure_group_sources(&mut inventory, &group.capture.review)?;
-    }
-    inventory.context(&context)?;
-    let earliest_capture = prior
-        .recorded_at
+    let projection = resolve_measure_sources(hasher, case_id, &values, previous.sources())?;
+    let earliest_capture = previous
+        .recorded_at()
         .max(observed.administration.changed_at)
         .max(observed.stage.recorded_at())
         .max(observed.stage_administration.changed_at);
     let result = MeasureAdministrativeResult {
-        id: prior.result.id,
+        id: previous.reference().id(),
         revision,
         previous: command.target,
-        record_root: MeasureRecordRoot::Judicial(prior.result.origin),
-        judicial_origin: prior.result.origin,
-        last_judicial: MeasureJudicialRef {
-            owner: previous.owner.clone(),
-            reference: command.target,
-        },
-        last_action: prior.result.action,
+        record_root: previous.record_root(),
+        judicial_origin: previous.judicial().result.origin,
+        last_judicial: previous.judicial_reference(),
+        last_action: previous.judicial().result.action,
         validity: MeasureCaptureValidity::Valid,
         values,
-        sources: prior.result.sources.clone(),
+        sources: previous.sources().clone(),
         projection,
     };
     let submission_digest = hasher.hash_bytes(&measure_administrative_submission_bytes(
@@ -127,7 +144,7 @@ pub fn prepare_measure_record_correction(
         actor: actor.clone(),
         command,
         context,
-        support: group.capture.decision.support.clone(),
+        support: previous.support().clone(),
         result,
         submission_digest,
         review_digest: Sha256Digest::from_array([0; 32]),
@@ -137,20 +154,4 @@ pub fn prepare_measure_record_correction(
         review,
         earliest_capture,
     })
-}
-
-fn bounds(history: &MeasureHistoryEvidence) -> Result<(), ApplicationError> {
-    if history.groups.len() >= 256 {
-        return Err(invalid("combined owner budget exceeded"));
-    }
-    let mut rows = 1usize;
-    for group in &history.groups {
-        rows = rows
-            .checked_add(group.capture.measures.len())
-            .ok_or_else(|| invalid("row count overflow"))?;
-        if rows > 8192 {
-            return Err(invalid("combined measure row budget exceeded"));
-        }
-    }
-    Ok(())
 }

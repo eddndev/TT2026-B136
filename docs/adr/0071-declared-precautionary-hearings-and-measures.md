@@ -20,9 +20,11 @@ Decision readers verify full immutable groups, bounded pagination and shared
 source/ownership consistency with current staff authorization. A first pure
 administrative capture corrects one exact judicial measure using its complete
 group ancestry, retaining the last actual judicial declaration and support.
-Repeated corrections, mixed record history and consumers, entered-in-error,
-authorized correction services, durable storage, HTTP, Agenda, alerts, Qadra and
-restoration remain pending. The bounded contract and source
+The mixed record resolver also validates repeated corrections with complete
+judicial and administrative owners. Judicial decisions and Review appointments
+do not yet consume administrative predecessors. Entered-in-error, authorized
+correction services, durable storage, HTTP, Agenda, alerts, Qadra and restoration
+remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -310,6 +312,36 @@ support, authenticate current access, prove durable origin/current head, or show
 the absence of dependants. Repeated administrative predecessors, mixed consumers,
 entered-in-error, authorized correction workflow and persistence are not part of
 this first capture implementation.
+
+### Mixed record history and repeated correction
+
+The mixed resolver accepts exact judicial or administrative measure references,
+with up to 32 selected identities and a complete flat owner inventory. It keeps
+the same measure ID/revision/digest selector and preserves each historical
+meaning. A private checked projection exposes the selected record's values,
+sources, context and capture time separately from the actual last judicial M/G,
+its action, origin and support. It never fabricates a judicial M to represent a
+correction.
+
+Combined operation UUIDs and measure ID/revision ownership must be unique across
+G and administrative receipts. Check nested shapes and the combined limits of
+256 owners and 8192 rows before hashing or cloning; a new correction reserves
+its owner and row. Reject missing, extra, foreign, cyclic or contradictory
+evidence and reconstruct every unselected sibling of an owning group too.
+
+Administrative dependencies are discovered iteratively. The existing judicial
+closure is validated once, followed by one reconstruction of each administrative
+owner in predecessor order. A shared inventory compares immutable sources across
+all owners. A repeated correction advances from the selected correction's exact
+revision, context and time, while retaining the original root and actual last
+judicial declaration/support. Its complete one-row receipt remains subject to
+the same reconstruction and provenance checks.
+
+The judicial-only entry points remain wrappers over borrowed history; existing
+`MATXN1`, `MAPR1`, `MARCR1`, `MAGR1` and judicial bytes are unchanged. Current
+heads and absence of dependants still require an authorized store. This resolver
+does not yet extend judicial G predecessors or fresh Review consumption to
+administrative records, implement entered-in-error, or establish persistence.
 
 ### Decision anchors and shared dependency evidence
 

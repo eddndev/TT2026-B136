@@ -131,11 +131,26 @@ Se preservan los canones judiciales anteriores. La reconstrucción exige una fil
 exacta, fuentes inmutables compatibles y reloj UTC no anterior a su procedencia.
 Los límites de 256 propietarios y 8192 filas incluyen la nueva captura.
 
+El resolvedor mixto local acepta referencias exactas a registros judiciales o
+administrativos y permite rectificaciones repetidas. Valida el inventario plano
+completo, con operaciones y revisiones de medida únicas entre ambas familias;
+rechaza dependencias faltantes, ajenas, sobrantes, cíclicas o contradictorias.
+Descubre dependencias administrativas sin recursión, comprueba el cierre judicial
+una sola vez y reconstruye cada recibo administrativo después de su predecesor.
+El inventario de fuentes se comparte entre todos los propietarios.
+
+La proyección comprobada conserva el tiempo/contexto/valores del registro exacto
+seleccionado y, por separado, la última medida/grupo judiciales reales. Una
+corrección repetida avanza desde su predecesora administrativa sin cambiar origen,
+acción judicial ni soporte. Los límites combinados incluyen al candidato; los
+selectores públicos admiten hasta 32 identidades. Las entradas anteriores usan
+la misma validación sin copiar anticipadamente el historial ni cambiar sus bytes.
+
 Esta validación pura no acredita acceso actual, admisión documental nueva,
 existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
-correcciones repetidas, historial mixto y su consumo por revisiones/decisiones,
-`entered_in_error`, servicio autorizado de rectificación, SQL y rutas HTTP de la
-familia. Agenda, alertas, interfaz y restauración también siguen pendientes.
+el consumo de registros administrativos por nuevas convocatorias de revisión o
+decisiones judiciales, `entered_in_error`, servicio autorizado de rectificación,
+SQL y rutas HTTP de la familia. Agenda, alertas, interfaz y restauración siguen pendientes.
 Los resultados focales se registran en [el informe](verification-report.md);
 no acreditan por sí solos el flujo completo.
 

@@ -30,6 +30,7 @@ pub use history_validation::{
 };
 
 pub(crate) use history_inventory::add_sources as add_measure_group_sources;
+pub(crate) use history_inventory::shape as measure_group_shape;
 pub(crate) use history_validation::resolve_measure_closure;
 
 mod anchor_validation;

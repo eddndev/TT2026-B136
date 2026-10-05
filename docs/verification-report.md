@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Historial mixto y rectificación repetida: 4 de octubre de 2026
+
+El resolvedor de aplicación valida propietarios judiciales y administrativos
+completos mediante referencias exactas de medida. Conserva la procedencia de la
+corrección seleccionada y la de la última medida judicial como datos separados.
+Las rectificaciones repetidas avanzan revisión, contexto y tiempo desde su
+predecesora, sin inventar una medida judicial ni cambiar su origen o soporte.
+
+La verificación focal aprobó **32 pruebas** en **21.821 s** de comando,
+compilación **10.81 s**. Incluye una cadena real en la frontera combinada de
+256 propietarios, exceso de límites antes de hashear, referencias y propietarios
+ambiguos, evidencia incompleta/cíclica, relojes, fuentes compartidas y conservación
+de la procedencia administrativa/judicial. La revisión estática independiente
+no encontró defectos. El motor valida el cierre judicial una vez y reconstruye
+cada propietario administrativo en orden de predecesores; las entradas anteriores
+usan una vista prestada sin copiar el historial completo.
+
+Esta evidencia no implementa todavía decisiones judiciales posteriores a una
+corrección ni su selección por nuevas convocatorias de revisión. Tampoco acredita
+origen durable, cabeza vigente, ausencia de dependientes, `entered_in_error`,
+servicio autorizado de rectificación, SQL, HTTP o restauración. La verificación
+es local y focal; no constituye una campaña global ni aceptación del flujo completo.
+
+Después de representar las dos variantes de registro mediante `Box`, la
+comprobación final conservó **32/32** casos en **16.843 s**, compilación **6.05 s**.
+Las **34 capturas y 4 vectores anteriores** afectados aprobaron en **1.524 s**.
+Clippy de los tres targets con `-D warnings` aprobó en **5.184 s**, compilación
+**5.14 s**, y la revisión independiente quedó limpia. El cambio de representación
+no modifica los bytes históricos ni los datos comparados.
+
 ## Primera captura administrativa de rectificación: 4 de octubre de 2026
 
 La aplicación reconstruye una rectificación desde una medida judicial exacta y
