@@ -1,5 +1,18 @@
 # Informe de verificación local
 
+## Identidad del aprovisionador en la prueba web: 5 de octubre de 2026
+
+El paso JavaScript de cierre reprodujo un fallo en el simulador de autenticación
+de fixtures: el escenario cautelar consulta la identidad autenticada antes de
+crear usuarios y la prueba sólo esperaba la segunda operación. El simulador
+responde ahora exclusivamente a ese GET con una identidad Owner sintética de
+la cuenta que inició sesión. Comprueba sesión previa, método y bearer exactos;
+conserva el rechazo de otras rutas, el límite de aprovisionamiento, la selección
+de un código emitido no reservado y el cierre de sesión.
+Los cuatro escenarios focales aprobaron; el paso JavaScript completo pasó de
+847 aprobados y un fallo a 848 aprobados. El formato del archivo también aprobó.
+Estos resultados verifican el harness; los gates remotos de cierre siguen pendientes.
+
 ## Composición de pruebas HTTP cautelares: 5 de octubre de 2026
 
 Clippy detectó que el módulo de casos cautelares de Agenda se descubría también

@@ -58,6 +58,16 @@ for (const partition of ['1/3', '2/3', '3/3', '']) {
         loggedOut = true;
         return new Response(null, { status: 204 });
       }
+      if (path === '/api/v1/auth/me') {
+        assert.equal(authenticated, true);
+        assert.equal(options.method, 'GET');
+        assert.equal(options.headers.Authorization, 'Bearer synthetic-session');
+        return Response.json({
+          id: '00000000-0000-0000-0000-000000000001',
+          email: selected.email,
+          role: 'owner',
+        });
+      }
       assert.equal(path, '/api/v1/users');
       assert.equal(options.headers.Authorization, 'Bearer synthetic-session');
       throw new Error('fixture provisioning boundary');
