@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the three agenda families using existing disposable activity records."""
+"""Verify the four agenda families using existing disposable activity records."""
 from datetime import datetime, timezone
 import json
 import os
@@ -13,7 +13,7 @@ from api_deadlines_support import STATE, TOKEN, request
 
 RANGE = {'from': '2026-01-01T00:00:00Z', 'until': '2027-01-01T00:00:00Z',
          'kind': 'all', 'hearing_status': 'all'}
-FAMILY_RANK = {'hearing': 0, 'deadline': 1, 'resource_hearing': 2}
+FAMILY_RANK = {'hearing': 0, 'deadline': 1, 'resource_hearing': 2, 'precautionary_hearing': 3}
 
 
 def endpoint(params):
@@ -66,8 +66,8 @@ def key(row):
 def selected(row, kind, status):
     if kind != 'all' and row['kind'] != kind:
         return False
-    if row['kind'] == 'hearing':
-        return status == 'all' or row['hearing']['status'] == status
+    if row['kind'] in {'hearing', 'precautionary_hearing'}:
+        return status == 'all' or row[row['kind']]['status'] == status
     return row['kind'] != 'resource_hearing' or status != 'cancelled'
 
 
@@ -84,6 +84,27 @@ def resource_hearing(row):
         canonical_uuid(hearing[field])
     assert type(hearing['revision']) is int and hearing['revision'] == 1
     assert hearing['kind'] in {'appeal_arguments', 'written_revocation'}
+    assert hearing['modality'] in {'in_person', 'videoconference'}
+    assert type(hearing['participant_count']) is int and 0 <= hearing['participant_count'] <= 32
+    assert isinstance(hearing['capture_digest'], str)
+    assert re.fullmatch(r'[0-9a-f]{64}', hearing['capture_digest'])
+    assert scheduled_time(hearing['scheduled_at']) == instant(row['at'])
+
+
+def precautionary_hearing(row):
+    assert set(row) == {'kind', 'at', 'case_title', 'case_reference', 'case_status',
+                        'precautionary_hearing'}
+    for field in ['case_title', 'case_reference']:
+        assert isinstance(row[field], str) and row[field] and row[field].strip() == row[field]
+    assert row['case_status'] in {'active', 'closed'}
+    hearing = row['precautionary_hearing']
+    assert set(hearing) == {'case_id', 'id', 'revision', 'purpose', 'scheduled_at',
+                            'modality', 'status', 'participant_count', 'capture_digest'}
+    for field in ['case_id', 'id']:
+        canonical_uuid(hearing[field])
+    assert type(hearing['revision']) is int and 1 <= hearing['revision'] <= 256
+    assert hearing['purpose'] in {'imposition', 'review'}
+    assert hearing['status'] in {'scheduled', 'cancelled'}
     assert hearing['modality'] in {'in_person', 'videoconference'}
     assert type(hearing['participant_count']) is int and 0 <= hearing['participant_count'] <= 32
     assert isinstance(hearing['capture_digest'], str)
@@ -116,6 +137,9 @@ def page(params, token=TOKEN):
             continue
         if row['kind'] == 'resource_hearing':
             resource_hearing(row)
+            continue
+        if row['kind'] == 'precautionary_hearing':
+            precautionary_hearing(row)
             continue
         deadline = row['deadline']
         assert deadline['status'] == 'active' and deadline['receipt_kind'] == 'v2'
@@ -161,7 +185,8 @@ def verify():
     for kind, status in [('all', 'scheduled'), ('all', 'cancelled'),
                          ('hearing', 'all'), ('hearing', 'scheduled'), ('hearing', 'cancelled'),
                          ('deadline', 'scheduled'), ('resource_hearing', 'all'),
-                         ('resource_hearing', 'scheduled')]:
+                         ('resource_hearing', 'scheduled'), ('precautionary_hearing', 'all'),
+                         ('precautionary_hearing', 'scheduled'), ('precautionary_hearing', 'cancelled')]:
         filtered = page({**RANGE, 'kind': kind, 'hearing_status': status, 'limit': 100})
         assert filtered['complete']
         expected = [row for row in full['items'] if selected(row, kind, status)]
@@ -182,7 +207,7 @@ def verify():
                    expected=403, code='permission_denied') == denied
     assert set(denied) == {'error'} and 'items' not in denied
     assert request('GET', '/api/v1/audit/verify')['valid']
-    print('Combined agenda API passed: three family projections, exact cursor order, filters, '
+    print('Combined agenda API passed: four family projections, exact cursor order, filters, '
           'current-only deadlines, assigned staff, revoked membership and non-disclosing Client denial.')
 
 

@@ -94,6 +94,20 @@ migration_demo_state() {
         FROM case_resource_hearings h),
       'resource_hearing_revisions',(SELECT jsonb_agg(to_jsonb(h) ORDER BY hearing_id,revision)
         FROM case_resource_hearing_revisions h),
+      'precautionary_hearings',(SELECT jsonb_agg(to_jsonb(c) ORDER BY id)
+        FROM case_precautionary_hearings c),
+      'precautionary_hearing_revisions',(SELECT jsonb_agg(to_jsonb(c) ORDER BY hearing_id,revision)
+        FROM case_precautionary_hearing_revisions c),
+      'measure_operations',(SELECT jsonb_agg(to_jsonb(c) ORDER BY operation_id)
+        FROM case_measure_operations c),
+      'measure_decisions',(SELECT jsonb_agg(to_jsonb(c) ORDER BY decision_id)
+        FROM case_measure_decisions c),
+      'measures',(SELECT jsonb_agg(to_jsonb(c) ORDER BY id)
+        FROM case_measures c),
+      'measure_revisions',(SELECT jsonb_agg(to_jsonb(c) ORDER BY measure_id,revision)
+        FROM case_measure_revisions c),
+      'measure_administrations',(SELECT jsonb_agg(to_jsonb(c) ORDER BY operation_id)
+        FROM case_measure_administrations c),
       'owner_certificate_registrations',(SELECT jsonb_agg(to_jsonb(r) ORDER BY binding_id)
         FROM owner_certificate_registrations r),
       'owner_certificate_withdrawals',(SELECT jsonb_agg(to_jsonb(w) ORDER BY binding_id)

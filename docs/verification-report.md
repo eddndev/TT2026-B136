@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Aceptación cautelar completa por API: 5 de octubre de 2026
+
+La demostración HTTP compuesta aprobó en **843.832 s**, incluida compilación y
+preparación de PostgreSQL 16.15, Valkey 8.1.10, qpdf 12.4.1 y decodificadores
+verificados. El guion `scripts/api-precautionary-demo.py` conserva siete
+operaciones: convocatoria de imposición, decisión judicial, corrección textual,
+reemplazo administrativo de identidad, convocatoria de revisión, reprogramación
+y cancelación. Verifica confirmaciones alteradas rechazadas, acceso por roles,
+lecturas históricas y recuperación mediante la operación original.
+
+Los recibos, autores, revisiones, fuentes y enlaces de reemplazo sobrevivieron
+los reinicios ordenados por TERM e INT y el respaldo/restauración PostgreSQL.
+Las siete tablas cautelares conservaron exactamente sus filas. La Agenda mantuvo
+sus cuatro familias y la ocurrencia de alerta conservó su lectura, sin duplicados.
+El procedimiento invalidó credenciales de sesión/MFA antes del arranque
+restaurado y exigió nueva autenticación. Esa comprobación no afirma restauración
+RDB de Redis; su aceptación separada permanece en la evidencia histórica.
+
+La corrección del catálogo descrita abajo resolvió el fallo del intento anterior;
+esta campaña abrió la base restaurada sin reparar su esquema. Se conservó la
+aceptación previa de navegador real a 1440 y 390 px. Los guiones focales habían
+reproducido y corregido dos incompatibilidades de observación: comparar un
+`checked_at` nuevo con el recibo estable y omitir la cuarta familia/UTC `Z` en la
+consulta de Agenda. Python, Bash, ASCII y límites de archivo aprobaron.
+
+Los servicios fueron aislados; el correo externo permaneció deshabilitado.
+Esta aceptación no acredita procedencia jurídica, despliegue ni integración.
+La conciliación del PDF y la regresión de cierre en CI permanecen pendientes.
+
+
 ## Restauración del catálogo cautelar: 5 de octubre de 2026
 
 La aceptación API detectó un defecto real después de restaurar PostgreSQL:
