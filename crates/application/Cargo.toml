@@ -49,47 +49,36 @@ path = "tests/case_stage_failures.rs"
 [[test]]
 name = "case_stage_workflow"
 path = "tests/case_stage_workflow.rs"
-
 [[test]]
 name = "case_suite_1"
 path = "tests/suites/case_suite_1.rs"
-
 [[test]]
 name = "classified_document_upload"
 path = "tests/classified_document_upload.rs"
-
 [[test]]
 name = "deadline_checked_trigger"
 path = "tests/deadline_checked_trigger.rs"
-
 [[test]]
 name = "deadline_evaluation_input_encoding"
 path = "tests/deadline_evaluation_input_encoding.rs"
-
 [[test]]
 name = "deadline_input_encoding"
 path = "tests/deadline_input_encoding.rs"
-
 [[test]]
 name = "deadline_input_heads"
 path = "tests/deadline_input_heads.rs"
-
 [[test]]
 name = "deadline_input_material"
 path = "tests/deadline_input_material.rs"
-
 [[test]]
 name = "deadline_profile_definition"
 path = "tests/deadline_profile_definition.rs"
-
 [[test]]
 name = "deadline_profile_encoding"
 path = "tests/deadline_profile_encoding.rs"
-
 [[test]]
 name = "deadline_service"
 path = "tests/deadline_service.rs"
-
 [[test]]
 name = "deadline_service_administration"
 path = "tests/deadline_service_administration.rs"
@@ -397,3 +386,15 @@ path = "tests/measure_dependency_inventory.rs"
 [[test]]
 name = "measure_administrative_reads"
 path = "tests/measure_administrative_reads.rs"
+
+[[test]]
+name = "precautionary_hearing_record_workflow"
+path = "tests/precautionary_hearing_record_workflow.rs"
+
+[[test]]
+name = "measure_decision_record_workflow"
+path = "tests/measure_decision_record_workflow.rs"
+
+[[test]]
+name = "measure_record_reads"
+path = "tests/measure_record_reads.rs"

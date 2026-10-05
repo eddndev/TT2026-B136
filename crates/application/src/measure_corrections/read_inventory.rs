@@ -30,17 +30,25 @@ impl<'a> ReadInventory<'a> {
         &mut self,
         row: &'a MeasureAdministrativeStoredOperation,
     ) -> Result<(), ApplicationError> {
-        for g in &row.record_history.records.judicial.groups {
-            self.judicial(&g.capture, &g.origin)?;
-        }
-        for g in &row.record_history.decisions {
-            self.decision(&g.capture, &g.origin)?;
-        }
-        for a in &row.record_history.records.administrative {
-            self.administrative(&a.capture, &a.origin)?;
-        }
+        self.add_history(&row.record_history)?;
         self.administrative(&row.capture, &row.origin)
     }
+    pub fn add_history(
+        &mut self,
+        history: &'a MeasureDecisionRecordHistoryEvidence,
+    ) -> Result<(), ApplicationError> {
+        for g in &history.records.judicial.groups {
+            self.judicial(&g.capture, &g.origin)?;
+        }
+        for g in &history.decisions {
+            self.decision(&g.capture, &g.origin)?;
+        }
+        for a in &history.records.administrative {
+            self.administrative(&a.capture, &a.origin)?;
+        }
+        Ok(())
+    }
+
     fn owner(&mut self, id: Id, value: Owner<'a>) -> Result<(), ApplicationError> {
         if let Some(old) = self.owners.get(&id) {
             if *old != value {

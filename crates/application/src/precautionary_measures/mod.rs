@@ -83,3 +83,13 @@ pub use record_decision_preparation::CheckedMeasureDecisionReviewV2;
 pub(crate) use record_decision_encoding::record_decision_group_shape;
 
 pub(crate) use record_decision_preparation::add_record_decision_sources;
+
+mod record_workflow_evidence;
+mod record_workflow_model;
+mod record_workflow_port;
+mod record_workflow_prepared;
+mod record_workflow_service;
+pub use record_workflow_model::*;
+pub use record_workflow_port::*;
+pub use record_workflow_prepared::PreparedMeasureDecisionRecord;
+pub use record_workflow_service::MeasureDecisionRecordService;

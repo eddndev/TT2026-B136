@@ -108,6 +108,19 @@ cabeza o dependencias de un comando nuevo. Review nuevo de C/M2 y la
 persistencia G2/M2 todavía no están conectados. Este alcance local no acredita
 HTTP, Agenda, alertas, Qadra, restauración integral ni despliegue.
 
+## Servicios mixtos y consulta de registros
+
+Los servicios autorizados de convocatorias y decisiones ya aceptan pruebas
+completas G1/C/G2, sin convertir una corrección en decisión judicial. Las nuevas
+decisiones del servicio mixto siempre producen G2; el replay conserva la familia
+original. Reemplazo y cancelación de convocatoria retienen el prefijo y sus
+objetivos exactos. La nueva consulta de registros distingue lista de cabezas,
+cabeza por identidad y revisión exacta, con prueba completa del propietario.
+Incluye cabezas marcadas y no infiere vigencia jurídica a partir de ellas.
+Autorización completa, doble confirmación, fuentes y relojes se comprueban en
+la aplicación. Sus adaptadores PostgreSQL, rutas y aceptación de producto
+permanecen pendientes; las pruebas puras no acreditan esas capas.
+
 ## Frontera de la implementación local
 
 El primer checkpoint implementa localmente valores de convocatoria: identidad propia,

@@ -1035,3 +1035,38 @@ reapplying fresh-command head or dependency rules. Missing latest records,
 payloads or mutation events fail closed, including on already open connections.
 This API lists immutable operations; it does not establish the latest measure
 record or a measure's legal eligibility. Product routes remain pending.
+
+### Authorized mixed command services and exact record queries
+
+`PrecautionaryHearingRecordService` uses the unchanged hearing command, review,
+capture and confirmation frames with a complete G1/A/G2 proof. Its separate
+store port supplies the original full prefix and the exact selected record
+closure. Preparation merges complete equal owners, checks independent hearing
+and record bounds before material copying, admits new support only when needed,
+and validates shared historical sources. Replace and Cancel retain the exact
+prior targets and original scheduling context. A later mark never invalidates
+an older Valid selected capture; selecting the marked capture itself fails.
+
+`MeasureDecisionRecordService` always prepares a genuine V2 review for a fresh
+command, including standalone imposition and NoMeasureChange. The opaque prepared
+value commits actual typed M1/C/M2 predecessors and complete owners. Both
+confirmation digests are required. Original replay can return the original V1
+or V2 family with its retained author profile, without new document admission.
+A fresh V2 commit cannot return a V1 group. Both services reauthenticate the full
+current principal and enforce supported UTC observations before disclosure and
+commit; a returned original raced replay cannot erase the observed clock floor.
+Their PostgreSQL mixed ports remain pending independently of these services.
+
+`MeasureRecordReadService` supplies list, current and exact record reads through
+a dedicated port. A detail contains its exact reference, complete typed owned
+record and proof including that owner. The existing mixed resolver reconstructs
+the proof and the returned record must match it completely. Lists order stable
+measure identities with an exclusive cursor and at most 20 items. They include
+heads marked entered in error; the store must select the actual highest revision
+before any field or validity filter. An immutable operation list cannot establish
+that head. Exact historical records retain their original captured validity,
+including terminal and marked entries, without inventing current legal status.
+Page proofs share source and ownership checks but no new aggregate history cap.
+Client access is denied and staff reads require full principal reauthentication
+and a monotonic observation no earlier than the disclosed capture. SQL and
+HTTP adapters remain required before product use.

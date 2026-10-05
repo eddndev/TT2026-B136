@@ -1,5 +1,30 @@
 # Informe de verificación local
 
+## Servicios autorizados de registros mixtos: 4 de octubre de 2026
+
+Aprobaron **85 pruebas nuevas**: 30 de convocatorias mixtas en **0.36 s**, 28 de
+comandos G2 en **0.28 s** y 27 de consultas de registros en **1.55 s**. Las
+**28 lecturas administrativas afectadas** aprobaron en **1.72 s** después de
+extraer su inventario compartido. El comando focal completo duró **11.942 s**;
+Clippy de los cuatro targets y biblioteca, con `-D warnings`, **10.704 s**.
+Se conservaron los RED iniciales por APIs ausentes. Tres intentos de compilación
+intermedios detectaron importación/desreferencia de UUID y una constante temporal
+inexistente; no se cuentan como pruebas ejecutadas.
+
+Los comandos verifican historias reales generadas por las funciones puras,
+G1/C/G2 sucesivos, efectos y sustitución completos, Review/Replace/Cancel con
+objetivos exactos, marcas, datos históricos, confirmaciones, admisión cifrada,
+replay original y carreras, permisos, fuentes, límites antes de hashing y relojes.
+Las consultas comprueban cabezas marcadas, revisiones terminales e históricas,
+ausencias y contradicciones de propietarios/fuentes, cursores, reloj y principal.
+Aceptan páginas válidas cuya unión supera 256 propietarios sin ampliar el límite
+individual de cada prueba. La revisión focal de los comandos G2 no dejó defectos.
+
+Un compilador y un thread sobre temporales privados en btrfs. Los puertos son
+controlados; esta campaña no acredita persistencia mixta, HTTP, Agenda, alertas,
+Qadra, restauración, integración ni despliegue. No se repitió la suite global ni
+se generó PDF; esos cierres pertenecen al flujo completo.
+
 ## Lecturas administrativas originales: 4 de octubre de 2026
 
 Aprobaron **28 pruebas de aplicación en 1.80 s** y **9 pruebas nativas en

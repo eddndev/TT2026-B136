@@ -92,3 +92,14 @@ pub use decision_history::{
 };
 
 pub(crate) use record_history::check_history_with_records;
+
+mod record_workflow_checks;
+mod record_workflow_evidence;
+mod record_workflow_model;
+mod record_workflow_port;
+mod record_workflow_prepared;
+mod record_workflow_service;
+pub use record_workflow_model::*;
+pub use record_workflow_port::*;
+pub use record_workflow_prepared::PreparedPrecautionaryHearingRecord;
+pub use record_workflow_service::PrecautionaryHearingRecordService;

@@ -64,10 +64,19 @@ pub use workflow_port::*;
 pub use workflow_prepared::PreparedMeasureAdministrative;
 pub use workflow_service::MeasureAdministrativeService;
 
+mod read_inventory;
 mod read_model;
 mod read_port;
-mod read_inventory;
 mod reads;
 pub use read_model::*;
 pub use read_port::*;
 pub use reads::MeasureAdministrativeReadService;
+
+mod record_read_error;
+mod record_read_model;
+mod record_read_port;
+mod record_read_service;
+pub use record_read_error::MeasureRecordReadError;
+pub use record_read_model::*;
+pub use record_read_port::*;
+pub use record_read_service::MeasureRecordReadService;
