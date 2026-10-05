@@ -7,43 +7,16 @@ import {
 import {
   resourceHearingUuid as uuid,
   resourceHearingDigest as digest,
-  resourceHearingText as text,
   resourceHearingUtc as utc,
 } from './resource-hearing-values.mjs';
-import {
-  precautionaryHearingValues,
-  precautionaryHearingSources,
-  precautionaryHearingContext,
-} from './precautionary-hearing-values.mjs';
+import { precautionaryHearingPrepared } from './precautionary-hearing-prepared.mjs';
 
 function capture(value, caseId, hearingId, expectedRevision) {
   object(value, ['review', 'recorded_at', 'capture_digest']);
   digest(value.capture_digest);
   utc(value.recorded_at);
-  const review = value.review;
-  object(review, [
-    'case_id',
-    'actor',
-    'command',
-    'resolved_values',
-    'result_revision',
-    'status',
-    'scheduling_context',
-    'observed_context',
-    'sources',
-    'participants',
-    'submission_digest',
-    'review_digest',
-  ]);
-  object(review.actor, ['id', 'email', 'role']);
-  uuid(review.actor.id);
-  text(review.actor.email, 320, false);
-  if (!['owner', 'litigator'].includes(review.actor.role)) invalid();
-  digest(review.submission_digest);
-  digest(review.review_digest);
+  const review = precautionaryHearingPrepared(value.review);
   const command = review.command;
-  object(command, ['case_id', 'operation_id', 'hearing_id', 'change']);
-  uuid(command.operation_id);
   if (
     review.case_id !== caseId ||
     command.case_id !== caseId ||
@@ -51,33 +24,6 @@ function capture(value, caseId, hearingId, expectedRevision) {
     review.result_revision !== expectedRevision
   )
     invalid();
-  const change = command.change,
-    action = change?.action;
-  if (!['schedule', 'replace', 'cancel'].includes(action)) invalid();
-  object(change, [
-    'action',
-    ...(action === 'schedule' ? [] : ['expected_revision', 'expected_capture_digest', 'reason']),
-    ...(action === 'cancel' ? [] : ['context', 'values']),
-  ]);
-  if (action === 'schedule') {
-    if (expectedRevision !== 1) invalid();
-  } else {
-    if (change.expected_revision !== expectedRevision - 1 || expectedRevision === 1) invalid();
-    digest(change.expected_capture_digest);
-    text(change.reason);
-  }
-  if (review.status !== (action === 'cancel' ? 'cancelled' : 'scheduled')) invalid();
-  precautionaryHearingValues(review.resolved_values);
-  precautionaryHearingContext(review.scheduling_context, caseId);
-  precautionaryHearingContext(review.observed_context, caseId);
-  if (
-    action !== 'cancel' &&
-    (!same(change.values, review.resolved_values) ||
-      !same(change.context, review.observed_context.expectation) ||
-      !same(review.scheduling_context, review.observed_context))
-  )
-    invalid();
-  precautionaryHearingSources(review);
   return value;
 }
 

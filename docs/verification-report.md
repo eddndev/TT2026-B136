@@ -1,5 +1,21 @@
 # Informe de verificación local
 
+## Cliente y borrador de convocatoria cautelar: 5 de octubre de 2026
+
+El cliente ya consulta contexto/lista/cabeza, prepara el comando normalizado
+con principal completo, confirma ambos digests y recupera la operación original
+sin repetir POST automáticamente. Contexto cerrado sigue disponible para
+consulta. El borrador conserva entradas incompletas y envío incierto; reingreso
+reautoriza el expediente e invalida la aprobación anterior.
+
+RED de métodos ausentes precedió a 22 casos nuevos y 12 lecturas afectadas
+aprobados. RED del módulo de borrador precedió a seis grupos aprobados con el
+registro real de borradores. Formato, ASCII y límites de archivo comprobados.
+El navegador reprodujo el botón de programación cautelar ausente: los cuatro
+recorridos de formularios preparados siguen pendientes, sin implementación
+de interfaz ni una falsa aceptación. Este checkpoint no agrega otra campaña
+nativa ni sustituye la consulta exacta Qadra ya verificada.
+
 ## Consulta cautelar en Qadra: 5 de octubre de 2026
 
 La apertura desde Agenda y alertas ya conserva la revisión exacta, su horario,

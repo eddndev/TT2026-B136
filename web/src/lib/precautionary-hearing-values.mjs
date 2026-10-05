@@ -174,7 +174,7 @@ export function precautionaryHearingSources(review) {
   }
 }
 
-export function precautionaryHearingContext(value, caseId) {
+export function precautionaryHearingContext(value, caseId, allowClosed = false) {
   object(value, [
     'case_id',
     'administration',
@@ -186,7 +186,9 @@ export function precautionaryHearingContext(value, caseId) {
   digest(value.context_digest);
   const { administration, stage, stage_administration: stageAdministration } = value;
   for (const entry of [administration, stageAdministration]) {
-    if (!entry || entry.case_id !== caseId || entry.administrative_status !== 'active') invalid();
+    const statuses = allowClosed && entry === administration ? ['active', 'closed'] : ['active'];
+    if (!entry || entry.case_id !== caseId || !statuses.includes(entry.administrative_status))
+      invalid();
     revision(entry.revision);
     digest(entry.values_digest);
     text(entry.title, 200, false);
