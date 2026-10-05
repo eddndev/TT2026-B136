@@ -2,10 +2,11 @@
 
 ## Estado y alcance
 
-Implementación local de aplicación, persistencia, protección, renderizado, HTTP,
-interfaz y composición supervisada en el servidor. La aceptación integrada y el
-cierre global siguen pendientes; esta descripción no acredita un despliegue ni
-una campaña global aprobados. Véase la
+Implementación integrada por PR49 de aplicación, persistencia, protección,
+renderizado, HTTP, interfaz y composición supervisada en el servidor. La aceptación
+y confirmación de main están registradas en el [estado del producto](product-completion.md).
+Esa evidencia no acredita un despliegue ni completa las ampliaciones expresamente
+pendientes del informe. Véase la
 [decisión de diseño](adr/0060-durable-authorized-case-reports.md).
 
 Una solicitud produce un PDF y un CSV del **estado administrativo observado** de

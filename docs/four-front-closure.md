@@ -2,9 +2,10 @@
 
 ## Frontera y estado reconciliado
 
-Esta entrega termina los cuatro frentes de la tabla siguiente. No equivale al
-cierre de todos los objetivos académicos ni autoriza funciones nuevas a partir
-de decisiones técnicas. El código existente se conserva. Un pendiente solo se
+Esta entrega termina los cuatro frentes de la tabla siguiente. La continuación
+del resto de pendientes técnicos autorizados se delimita por separado en
+[el inventario de cierre técnico](technical-closure.md); no autoriza funciones
+nuevas a partir de decisiones técnicas. El código existente se conserva. Un pendiente solo se
 agrega si impide una aceptación de esta lista o corrige un defecto reproducido;
 se identifica el comportamiento afectado antes de implementar.
 

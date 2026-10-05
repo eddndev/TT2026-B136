@@ -294,12 +294,12 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   `c95f245`, cuya confirmación natural aprobó CI en 443 s. La parada
   observada y reentrante y la publicación de controladores tienen aceptación local
   separada; la primera incluye cuatro unidades systemd desechables, sin operar
-  los servicios instalados. Estas ampliaciones aún requieren integración e
-  instalación y no acreditan staging, promoción o reapertura del producto instalado.
+  los servicios instalados. La instalación recuperable se integró por PR86 (`90b27f20`); su instalación
+  operativa sigue pendiente y no acredita staging, promoción o reapertura del producto instalado.
   Owner espera el correo elegido por el operador; siguen cero usuarios y la
   aceptación autenticada pendiente.
-- Instalador recuperable de controladores: tiene aceptación local; la publicación
-  e integración del grupo completo y su instalación en VPS3 siguen pendientes.
+- Instalador recuperable de controladores: integrado por PR86 (`90b27f20`),
+  presente en main confirmado. Su instalación en VPS3 sigue pendiente.
   La composición local aprobó 10 casos en 4.159 s y 52 regresiones en 3.021 s; el bootstrap,
   ocho en 1.703 s. El ensayo nativo aprobó 1/1 en 3.461 s con cuatro servicios
   inocuos de `tt-runner`, generaciones A/B, launcher real y reapertura explícita.
@@ -1018,3 +1018,7 @@ conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
 [la evidencia por entrega](verification-report.md) conservan esos pendientes.
+
+Los pendientes técnicos reconciliados y sus criterios observables se delimitan en
+[el inventario de cierre](technical-closure.md). Los estados históricos anteriores
+no abren por sí solos otra entrega.

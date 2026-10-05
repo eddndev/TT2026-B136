@@ -11,8 +11,8 @@ todos los targets aprobó en 2m12s.
 La campaña API con respaldo/restauración terminó con salida cero en 376.459967 s.
 Los dos recorridos con servicios reales aprobaron: Owner 6.2 s y Litigator 2.4 s,
 con 13.7 s de Playwright y 185.7532 s del comando completo. En cada campaña los
-3198 archivos del inventario fuente permanecieron idénticos. CI de esta entrega,
-integración y activación siguen pendientes; estos tiempos no miden latencia
+3198 archivos del inventario fuente permanecieron idénticos. La consulta quedó integrada por PR50 con confirmación de main, registrada en
+[el estado del producto](product-completion.md). Estos tiempos no miden latencia
 por registro ni acreditan un despliegue.
 
 La consulta presenta eventos ya registrados. No modifica sus datos, no atribuye
