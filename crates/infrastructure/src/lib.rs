@@ -180,3 +180,7 @@ pub mod precautionary_hearing_codec;
 mod precautionary_hearing_postgres;
 pub use precautionary_hearing_postgres::PostgresPrecautionaryHearingStore;
 mod precautionary_hearing_schema;
+
+mod measure_decision_postgres;
+pub use measure_decision_postgres::PostgresMeasureDecisionStore;
+mod measure_decision_schema;

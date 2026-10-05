@@ -3,7 +3,7 @@ use application::{identity::Principal, ApplicationError};
 use domain::{cases::CaseId, identity::Role};
 use postgres::Transaction;
 
-pub(super) fn authorize(
+pub(crate) fn authorize(
     tx: &mut Transaction<'_>,
     actor: &Principal,
     case: CaseId,

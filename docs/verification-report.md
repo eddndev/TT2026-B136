@@ -9123,3 +9123,44 @@ negativos rechazan campos adicionales o ausentes, aliases, valores normalizados,
 identidades repetidas, orden alterado, cantidades agregadas mayores de 32,
 arrays sobredimensionados y bytes truncados o sobrantes. No se deduce de estos
 resultados existencia de fuentes, autoridad jurídica o persistencia completa.
+
+
+## Persistencia de decisiones cautelares independientes
+
+Comprobacion focal local del 5 de octubre de 2026: `measure_decision_backend`
+aprobo 23 pruebas, ninguna omitida, en 246.35 s de ejecucion y 249.967 s
+incluyendo preparacion y compilacion. PostgreSQL nativo 16.15 uso un cluster
+privado con SCRAM eliminado al terminar. Clippy del target aprobo con
+advertencias como errores en 6.57 s. Un compilador y un hilo de pruebas usaron
+temporales en btrfs; la advertencia futura de `redis 0.25.4` es preexistente.
+
+La API ausente produjo el fallo inicial antes de implementar el adaptador.
+Una prueba SQL independiente reprodujo la aceptacion de una captura anterior
+al origen de su etapa inicial cuando la administracion posterior tenia un
+reloj anterior. La guarda ahora compara tambien el instante exacto de esa
+administracion de origen, con nanosegundos. Su prueba negativa y control valido
+aprobaron antes de la campana final. La revision independiente posterior no
+dejo hallazgos en el alcance comprobado.
+
+La campana inicial obtuvo 19 aprobadas y un fallo de fixture: al restaurar un
+CHECK mediante SQL decompilado cambiaba su arbol de expresion. El fixture ahora
+restaura la expresion BETWEEN original; la igualdad estricta del catalogo se
+conserva. La comprobacion de arranque tambien se ajusto a la forma real del
+constraint trigger diferido observada en PostgreSQL, sin relajar sus guardas.
+
+Se comprobaron grupos de 32 imposiciones, decisiones sin filas de medidas,
+fuentes tipificadas exactas, paginacion, reapertura, replay original tras cierre
+y cambio del perfil del autor, aislamiento, roles y pertenencia vigente.
+Revocar una asignacion o alterar la procedencia del sujeto despues de admitir
+el soporte impide el commit completo. Los fallos inmediatos o diferidos de
+SQL revierten todas las filas y auditoria. Las lecturas y nuevas capturas
+rechazan fuentes, miembros, raices, decisiones o evidencia de origen perdidos,
+asi como relojes incompatibles y reutilizacion de identidades. Se conservaron
+las comprobaciones de alteracion de restricciones, funciones y privilegios.
+
+PostgreSQL y soportes cifrados son reales; la admision de formato usa fixtures
+controlados. Estos resultados no acreditan anclas, efectos sobre predecesores,
+historia mixta administrativa, Review durable, HTTP, Agenda, alertas, Qadra ni
+restauracion completa. La regresion global, el manuscrito de la entrega completa
+y su integracion conservan sus gates separados. No se repitieron las campanas
+historicas de codecs ni de main.

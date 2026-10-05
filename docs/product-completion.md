@@ -97,11 +97,13 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   expresamente la familia cautelar. El dominio y la aplicación cuentan con
   verificación focal de convocatorias, contexto y fuentes exactas, recibos,
   decisiones y grupos de medidas, correcciones administrativas e historias
-  mixtas, autorización y recuperación mediante puertos. El adaptador PostgreSQL
-  añade programación, reemplazo y cancelación de convocatorias de imposición.
-  La persistencia de decisiones y medidas, las convocatorias de revisión, HTTP,
-  Agenda, alertas, interfaz y aceptación completa siguen pendientes. Estos
-  componentes no acreditan el flujo cautelar terminado ni reglas jurídicas
+  mixtas, autorización y recuperación mediante puertos. Los adaptadores PostgreSQL
+  añaden programación, reemplazo y cancelación de convocatorias de imposición,
+  y decisiones independientes con 1 a 32 imposiciones iniciales o sin cambios,
+  conservando el grupo completo y su auditoría atómica. Persistencia con anclas,
+  efectos sobre predecesores, G2/M2 y registros administrativos, convocatorias de
+  revisión, HTTP, Agenda, alertas, interfaz y aceptación completa siguen pendientes.
+  Estos componentes no acreditan el flujo cautelar terminado ni reglas jurídicas
   automáticas.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor

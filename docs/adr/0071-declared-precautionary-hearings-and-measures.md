@@ -19,7 +19,10 @@ Review appointment persistence and the complete workflow remain pending.
 The authorized decision service also admits exact support, confirms both digests,
 and validates the complete original group and ancestor closure on replay and commit.
 Decision readers verify full immutable groups, bounded pagination and shared
-source/ownership consistency with current staff authorization. A first pure
+source/ownership consistency with current staff authorization. A local PostgreSQL
+adapter persists standalone decisions declaring 1..32 initial Impose effects or
+NoMeasureChange, with their original group and atomic audit. It rejects anchors
+and predecessor effects. A first pure
 administrative capture corrects one exact judicial measure using its complete
 group ancestry, retaining the last actual judicial declaration and support.
 The mixed record resolver also validates repeated corrections with complete
@@ -39,9 +42,9 @@ MarkEnteredInError using the observed exact head, full supplied dependency
 inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
 service cannot establish those facts by itself. Optional administrative
-replacement, mixed-record appointment/decision services, Review and measure
-decision/administrative persistence, HTTP, Agenda, alerts, Qadra and restoration
-acceptance remain pending. The bounded contract and source
+replacement, mixed-record appointment/decision services, Review, anchored and
+predecessor decisions, G2/M2 and administrative persistence, HTTP, Agenda, alerts,
+Qadra and restoration acceptance remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -719,7 +722,8 @@ read ports for Imposition scheduling, replacement and cancellation. Migrations
 add append-only `case_precautionary_hearings` roots and
 `case_precautionary_hearing_revisions`. A root requires its initial revision;
 operation UUIDs and audit associations are unique. This adapter rejects Review
-values until their actual measure history has durable storage. It neither creates
+values because its durable target-history loader is not implemented. Standalone
+decision storage alone does not enable that path. It neither creates
 measure records nor changes PHEAR1, PHTXN1, PHPR1 or PHCR1.
 
 Persist canonical appointment values with a strict bounded projection, the
@@ -759,10 +763,49 @@ a lost root cannot be recreated, a lost suffix cannot become a shorter current
 history, and pagination cannot conceal a lost hearing as an empty page.
 
 This local adapter does not establish acceptance of backup restoration or the
-integrated HTTP, Agenda, alerts and Qadra workflow. Durable Review targets,
-decision groups and administrative records remain separate pending work.
+integrated HTTP, Agenda, alerts and Qadra workflow. Durable Review consumption,
+anchored and predecessor decisions, G2/M2 and administrative records remain
+separate pending work.
 Operational requirements are in [database operations](../database-operations.md);
 executed checks are recorded independently in the verification report.
+
+### PostgreSQL persistence of standalone decisions
+
+`PostgresMeasureDecisionStore` implements the existing decision write and read
+ports for standalone Impose groups of 1..32 new measure identities and explicit
+NoMeasureChange decisions. The latter retain a real decision, group origin and
+audit event with zero measure rows. All anchors and effects requiring predecessors
+reject until their durable loaders are implemented. The `0034_measure_decisions`
+migrations add append-only operation owners, decisions, measure roots and measure
+revisions; this boundary stores G1/M1 and preserves existing canonical bytes.
+
+Store strict bounded MDVAL1, MEAS1 and MEFX1 projections alongside their canonical
+values, exact context references, admitted support format/policy, captured actor
+and UTC seconds/nanoseconds. Reconstruction loads the original administrative and
+stage sources, subject, optional manual or typed supervisor and document metadata.
+It retains archived historical sources and the typed supervisor's original bound
+subject. Rebuild the complete review, decision, every member and group, then
+compare all commitments and the origin. Lists paginate immutable decision IDs,
+including zero-row groups, with at most 20 entries.
+
+Preparation and commit reauthorize the full current principal. Fresh work requires
+an active complete context and exact sources; support admission occurs outside
+the shared audit lock. Confirmation checks both digests and rechecks the reviewed
+material under that lock. The operation, decision, all roots/revisions and one
+`measure_decision.recorded` audit event commit atomically. Its `mg1` marker binds
+the original operation, decision and receipt commitments. Exact authorized replay
+preserves the recording profile and capture time, including on a closed case.
+Store clocks use supported UTC; fresh captures respect their prepared time floor
+and access events cannot precede returned captures.
+
+Startup validates the exact catalog, guard bodies, privileges and complete owner
+inventory. Runtime authority is SELECT and explicit column INSERT only. Live
+checks reject missing siblings, lost roots/decisions and orphan mutation audits.
+A surviving outcome still reserves a lost measure identity. If the complete
+payload is lost, its digest cannot reveal the consumed identities, so orphan
+group audit evidence blocks fresh identity admission globally. Reopening never
+repairs or replaces original receipts. These local capabilities do not establish
+HTTP integration, deployment or backup/restoration acceptance.
 
 ### Readers, recovery and restoration
 

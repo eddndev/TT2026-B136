@@ -41,7 +41,7 @@ fn administration(
     crate::cases::values::decode(&row, hasher)
 }
 
-pub(super) fn current_context(
+pub(crate) fn current_context(
     tx: &mut Transaction<'_>,
     case: CaseId,
     hasher: &dyn DocumentHasher,
@@ -61,7 +61,7 @@ pub(super) fn current_context(
     Ok(context)
 }
 
-pub(super) fn exact_context(
+pub(crate) fn exact_context(
     tx: &mut Transaction<'_>,
     case: CaseId,
     admin: CaseRevision,
@@ -165,7 +165,7 @@ pub(super) fn participants(
     Ok(result)
 }
 
-fn exact_participant(
+pub(crate) fn exact_participant(
     tx: &mut Transaction<'_>,
     case: CaseId,
     reference: HearingParticipantRef,
@@ -228,7 +228,7 @@ pub(super) fn support(
     document(tx, case, values.scheduling_basis().support(), format)
 }
 
-fn document(
+pub(crate) fn document(
     tx: &mut Transaction<'_>,
     case: CaseId,
     selected: HearingSupportRef,

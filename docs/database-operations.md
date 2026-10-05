@@ -205,7 +205,8 @@ Implementación local, todavía no integrada ni desplegada. La familia
 citas de propósito Imposition. Cada raíz exige su revisión inicial; las
 operaciones y las asociaciones con auditoría son únicas. No genera audiencias
 para expedientes anteriores ni persiste decisiones o medidas. El adaptador
-rechaza Review mientras no exista su historial durable de medidas.
+rechaza Review porque falta su cargador de historia durable; el almacenamiento
+separado de decisiones iniciales no habilita esa selección.
 
 Las tablas conservan valores canónicos y una proyección estricta y acotada,
 referencias exactas de administración y etapa, digest del contexto, metadatos
@@ -245,11 +246,56 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente, al igual que persistencia Review y de decisiones/medidas/correcciones,
-HTTP, Agenda, alertas y Qadra. Esta implementación no acredita su integración
-ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
+pendiente, al igual que persistencia Review, decisiones con anclas o predecesores,
+G2/M2 y correcciones, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
+su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
 pruebas ejecutadas de la aceptación todavía pendiente.
+
+## Decisiones cautelares independientes
+
+`PostgresMeasureDecisionStore` implementa localmente escritura y lectura de
+grupos con 1 a 32 imposiciones iniciales y decisiones NoMeasureChange. Una decisión
+sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
+adaptador rechaza anclas y efectos con predecesores; G2/M2, registros administrativos
+y consumo durable de objetivos Review siguen pendientes. No está compuesto en
+HTTP ni desplegado.
+
+`database migrate --runtime-role` instala `0034_measure_decisions.sql`,
+`0034_measure_decisions_guards.sql`, `0034_measure_decisions_sources.sql` y
+`0034_measure_decisions_complete.sql`. Las tablas `case_measure_operations`,
+`case_measure_decisions`, `case_measures` y `case_measure_revisions` son inmutables.
+Las relaciones diferidas exigen un propietario con decisión completa, incluso
+sin medidas, y cada raíz con su revisión inicial del mismo propietario. El
+runtime recibe SELECT e INSERT por columnas explícitas, sin modificación,
+eliminación, delegación ni ejecución de guardas. La apertura valida también
+restricciones, funciones, disparadores e inventario completo.
+
+Los valores MDVAL1, MEAS1 y MEFX1 se guardan con proyecciones estrictas y acotadas.
+La reconstrucción compara los bytes canónicos, carga el contexto y las fuentes
+históricas exactas, y verifica decisión, todas las medidas, grupo y origen.
+Conserva autor y rol capturados, soporte admitido, sujetos, supervisores y su
+sujeto vinculado original. No reemplaza esas fuentes por sus cabezas actuales.
+Las listas ordenan decisiones inmutables por UUID, hasta 20 por página.
+
+Admisión del soporte y confirmación de ambos digests preceden a la escritura.
+Bajo el bloqueo compartido se revalidan principal completo, acceso, contexto
+activo y material revisado. Operación, decisión, raíces, revisiones y un evento
+`measure_decision.recorded` se confirman juntos. El marcador `mg1` vincula la
+operación, decisión y compromisos originales. Replay conserva autoría y tiempo,
+también en expediente cerrado con acceso actual. Los relojes usan UTC soportado
+con nanosegundos; las capturas respetan el mínimo preparado y las auditorías de
+acceso no preceden al grupo devuelto.
+
+Respaldar juntas las cuatro tablas, sus fuentes exactas, usuarios y auditoría.
+Las conexiones abiertas rechazan miembros, raíces o decisiones perdidos. Una
+decisión superviviente conserva la reserva de las identidades de su resultado.
+Si desaparece todo el grupo, el digest no revela cuáles eran esas identidades:
+una auditoría de mutación huérfana bloquea nuevas identidades globalmente. No
+eliminar eventos ni desactivar guardas para forzar una apertura o reutilización.
+La aceptación propia de `pg_dump`/`pg_restore`, HTTP, Agenda, alertas e interfaz
+sigue pendiente; los resultados ejecutados se registran por separado en el
+[informe de verificación](verification-report.md).
 
 ## Contenido e incidentes de integridad
 

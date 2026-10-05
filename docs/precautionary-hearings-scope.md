@@ -1,10 +1,12 @@
 # Alcance de audiencias y medidas cautelares declaradas
 
 Estado: **dominio y servicios de aplicación verificados localmente**. El trabajo local
-comprende esos componentes y sus contratos. El adaptador PostgreSQL conserva
-convocatorias de imposición, sustitución de programación y cancelación; su alcance
-se detalla abajo. La persistencia de decisiones y revisiones de medidas, HTTP,
-Agenda, alertas e interfaz conservan sus propias comprobaciones pendientes. Este contrato no
+comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
+convocatorias de imposición, sustitución de programación y cancelación, así como
+decisiones independientes de imposición inicial o ausencia de cambios. Su alcance
+se detalla abajo. La persistencia con anclas, predecesores, G2/M2 y registros
+administrativos, las convocatorias Review, HTTP, Agenda, alertas e interfaz
+conservan sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
@@ -27,9 +29,32 @@ de auditoría impide reutilizar una identidad tras perder sus registros y evita
 presentar una revisión anterior o una página vacía como estado actual válido.
 
 Este adaptador admite sólo el propósito `imposition`. Las convocatorias `review`
-se rechazan hasta disponer de su historia durable real de medidas. La existencia
+se rechazan porque todavía falta su cargador de historia durable de medidas;
+persistir decisiones independientes no habilita esa selección. La existencia
 del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita restauración
 integral o despliegue. Véase [operación de base de datos](database-operations.md).
+
+## Persistencia local de decisiones independientes
+
+`PostgresMeasureDecisionStore` admite grupos de 1 a 32 imposiciones iniciales y
+decisiones explícitas NoMeasureChange. Estas últimas tienen decisión, propietario
+de grupo y auditoría reales, sin filas de medidas. Las migraciones `0034_` guardan
+operaciones, decisiones, raíces y revisiones iniciales en cuatro tablas inmutables.
+Rechaza anclas y efectos con predecesores; no transforma evidencia suministrada
+en historia durable ni habilita G2/M2 o correcciones administrativas.
+
+La preparación admite el soporte exacto fuera del bloqueo; la confirmación exige
+ambos digests y vuelve a comprobar principal, acceso, contexto y fuentes. Todas
+las filas del grupo y un evento de auditoría se confirman juntos. Las lecturas
+reconstruyen el grupo completo con las fuentes históricas y su origen `mg1`;
+el replay autorizado conserva autoría y tiempo originales. Las listas paginan
+decisiones inmutables, incluidas las que no cambian medidas, hasta 20 por página.
+
+El arranque comprueba catálogo, privilegios e inventario. Las conexiones abiertas
+también rechazan grupos incompletos y auditoría huérfana; perder filas no libera
+sus identidades. Se conservan los canones existentes. La aceptación de restauración,
+la integración HTTP, Agenda, alertas e interfaz siguen pendientes; este adaptador
+no acredita el cierre del flujo completo.
 
 ## Frontera de la implementación local
 
@@ -346,7 +371,7 @@ fuentes/soporte exactos; debe impedir carreras y guardar recibo, fila, origen,
 operación, cabeza y auditoría atómicamente. Esa obligación no queda demostrada
 por un inventario suministrado sin usos conocidos.
 
-La aplicación y sus puertos no acreditan todavía persistencia ni admisión
+El servicio administrativo y sus puertos no acreditan todavía persistencia ni admisión
 transaccional real. Siguen pendientes PostgreSQL, rutas HTTP y aceptación de
 restauración, la ampliación de los servicios de convocatorias y decisiones para
 material mixto y el reemplazo administrativo opcional con identidad nueva y

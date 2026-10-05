@@ -96,19 +96,15 @@ path = "tests/certificate_validation.rs"
 [[test]]
 name = "cincel_stub"
 path = "tests/cincel_stub.rs"
-
 [[test]]
 name = "credential_suite_1"
 path = "tests/suites/credential_suite_1.rs"
-
 [[test]]
 name = "deadline_backend"
 path = "tests/deadline_backend.rs"
-
 [[test]]
 name = "deadline_dispatch_measurement"
 path = "tests/deadline_dispatch_measurement.rs"
-
 [[test]]
 name = "deadline_input_backend"
 path = "tests/deadline_input_backend.rs"
@@ -398,3 +394,7 @@ path = "tests/precautionary_hearing_backend.rs"
 [[test]]
 name = "measure_decision_codec"
 path = "tests/measure_decision_codec.rs"
+
+[[test]]
+name = "measure_decision_backend"
+path = "tests/measure_decision_backend.rs"
