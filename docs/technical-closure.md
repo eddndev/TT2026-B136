@@ -20,12 +20,15 @@ su rama hasta terminar el flujo completo. Los respaldos no son integraciones.
 | Corpus de cálculo | Ocho supuestos de investigación complementaria y recursos, sin los términos que sólo aparecen en teoría. | Cada supuesto tiene fuente primaria, ámbito, entradas y resultado independiente; fecha operativa explicada o falta de datos identificada; recorrido existente sin duplicados. |
 | Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
 | Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). El firmante global y el acceso Owner por certificado no completan la identidad del Litigante firmante. | Confirmación explícita del documento exacto; firma ligada al certificado del usuario autorizado; rechazo de certificado expirado/revocado; evidencia verificable de identidad, contenido y sello. Sin exigir PSC externo. |
-| Informe comprometido restante | RF-19 y CU-16, conservando los informes de estado/carga ya integrados. | Tipos y métricas de desempeño definidos en una lista finita antes de implementarlos, PDF/CSV coincidentes, progreso y estimación explícita cuando aplica, aviso de terminación. Correo público sujeto a la decisión operativa pendiente. |
+| Informe comprometido restante | RF-19 y CU-16, conservando los informes de estado/carga ya integrados. | Informe de actividad registrada con tres cantidades por Litigante y periodo: documentos cargados, actuaciones procesales registradas y plazos marcados como atendidos. Atribución a la cuenta autora y fecha de la operación, sin cambiarla por reasignaciones posteriores. PDF/CSV coincidentes, progreso y estimación cuando aplica, aviso de terminación. Correo público sujeto a la decisión operativa pendiente. |
 | Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20, conservando cadena y registros históricos. | Accesos concedidos/denegados cubiertos por una matriz de operaciones; identidad estable y origen de red registrados para eventos nuevos sin atribuirlos retrospectivamente; confirmación durable medida contra el límite de 500 ms en un entorno declarado. |
 | Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Contratos, operación y manuscrito coinciden; se reutiliza evidencia válida y se ejecuta una regresión completa al cierre de cada entrega funcional, gates para HEAD exacto, squash y main confirmado. |
 
-La fila de informes necesita concretar métricas antes de desarrollo; la palabra
-«desempeño» no autoriza puntuaciones de abogados ni inferencias de éxito jurídico.
+El informe de desempeño queda delimitado a las tres cantidades
+de actividad registrada anteriores. Sólo cuentan escrituras confirmadas: lecturas,
+preparaciones y reintentos de la misma operación no agregan actividad. No se
+añaden puntuaciones, comparaciones de éxito jurídico ni métricas distintas.
+Los informes de estado y carga existentes se conservan.
 La fila jurídica conserva la necesidad de identificar entidad, fuero y canal de
 recepción. Los datos faltantes se presentan como decisiones concretas, no como
 permiso para investigar o implementar indefinidamente.
@@ -48,7 +51,7 @@ permiso para investigar o implementar indefinidamente.
 La cuenta/correo Owner, remitente y activación de correo, duración de inactividad
 y activación en VPS3 siguen pendientes humanos. No se cambian por el avance de
 código. Una evaluación con participantes reales también requiere personas y
-resultados reales; las pruebas automáticas no la sustituyen.
+resultados reales; las pruebas automáticas no la sustituyen>50K.
 
 El acceso documental Client requiere resolver su política explícita. No se abre
 por analogía con los roles internos. Los planes comerciales se concilian con el
