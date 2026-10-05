@@ -1,5 +1,43 @@
 # Informe de verificación local
 
+## Servicio administrativo cautelar: 4 de octubre de 2026
+
+El servicio de aplicación prepara y confirma Correct y MarkEnteredInError con
+principal actual completo y doble digest. Ready conserva contexto, soporte cifrado,
+cabeza exacta observada e inventario de propietarios y prefijos. Se comprueban
+todos los propietarios y usos conocidos antes de admitir el soporte de la última
+declaración judicial real. Un objetivo EnteredInError, cabeza distinta, uso
+judicial/administrativo/Review o decisión sin filas con ancla Review bloquea la
+operación nueva; una declaración judicial terminal no se reinterpreta.
+
+La captura conserva el cierre original del objetivo, extraído del índice
+comprobado sin guardar raíces ajenas ni volver a resolver cada referencia.
+La recuperación conserva autoría y tiempo originales, valida recibo/origen/cierre
+y no readmite soporte ni exige ausencia de dependientes posteriores. Las fuentes
+retenidas, la confirmación y los relojes se verifican antes del commit y la
+identidad actual se comprueba nuevamente antes de devolver el resultado.
+
+TDD: la API ausente produjo el fallo esperado antes de implementar en **0.748 s**.
+La ejecución focal final aprobó **30 casos nuevos**, **27 del inspector de
+dependencias** y **23 de validez de registro**: **80 casos en 4.448 s** de comando,
+compilación **3.82 s**. Comprueban Correct/Mark desde M1, C y M2, soporte exacto
+retenido por la última declaración, cabezas y usos conocidos, límites antes de
+admisión, confirmación, principal completo, relojes y devolución de recibos,
+orígenes o cierres alterados, incluso con hashes recalculados.
+
+Las ejecuciones de desarrollo anteriores aprobaron primero **1 caso en 12.999 s**
+y luego **19 casos en 1.842 s**; son subconjuntos del target final y no se suman
+nuevamente. Clippy de los tres targets con `-D warnings` aprobó en **7.763 s**,
+compilación **7.71 s**. La revisión estática independiente del servicio no encontró
+fallos funcionales concretos. Los formatos administrativos y sus bytes históricos
+se conservan. No se ejecutó una regresión global para esta comprobación focal.
+
+Los stores e identidades de estas pruebas son simulados. El puerto exige que una
+implementación durable compruebe acceso, cabeza, ausencia completa de dependientes
+y fuentes exactas bajo el bloqueo, impida carreras y confirme filas y auditoría
+atómicamente. PostgreSQL, HTTP y restauración siguen pendientes; esta frontera no
+acredita aceptación del flujo completo, integración, despliegue ni cobertura global.
+
 ## Inspección de dependientes cautelares suministrados: 4 de octubre de 2026
 
 El inspector puro valida un bosque completo suministrado de propietarios
@@ -9024,3 +9062,8 @@ main ni desplegado y no actualiza la cobertura global ni el PDF aceptado.
 Independent focused review of the supplied dependency inspector found no
 concrete defect; the original exact-closure behavior and capture formats remain
 unchanged. Durable mutation admission is still pending.
+
+The candidate owner limit is checked before copying its exact ancestor closure.
+The subsequent focused check repeated the same 30 service cases in 3.432 s and
+Clippy for that target passed in 4.028 s (3.98 s compilation); these are not
+additional unique cases. Independent service review found no concrete defect.

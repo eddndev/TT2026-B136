@@ -19,6 +19,8 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    MeasureAdministrative(#[from] crate::measure_corrections::MeasureAdministrativeError),
+    #[error(transparent)]
     PrecautionaryHearing(#[from] crate::precautionary_hearings::PrecautionaryHearingError),
     #[error(transparent)]
     MeasureDecision(#[from] crate::precautionary_measures::MeasureDecisionError),

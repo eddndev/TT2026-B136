@@ -198,3 +198,50 @@ fn dependencies(index: &RecordIndex<'_>, owner: usize) -> Result<Vec<usize>, App
         .map(|r| index.selected(r).map(|m| index.owner(m)))
         .collect()
 }
+
+/// Extracts the old exact record closure from an already checked forest.
+pub(super) fn extract_closure(
+    index: &RecordIndex<'_>,
+    target: PrecautionaryMeasureRef,
+) -> Result<MeasureDecisionRecordHistoryEvidence, ApplicationError> {
+    let mut owners = std::collections::BTreeSet::new();
+    let mut stack = vec![index.owner(index.selected(target)?)];
+    while let Some(owner) = stack.pop() {
+        if owners.insert(owner) {
+            stack.extend(dependencies(index, owner)?);
+        }
+    }
+    // Reserve the candidate before cloning already bounded owner material.
+    if owners.len() >= 256 {
+        return Err(invalid("combined owner budget exceeded"));
+    }
+    let evidence = index.evidence;
+    let mut result = MeasureDecisionRecordHistoryEvidence {
+        records: super::MeasureRecordHistoryEvidence {
+            judicial: MeasureHistoryEvidence { groups: Vec::new() },
+            administrative: Vec::new(),
+        },
+        decisions: Vec::new(),
+    };
+    for owner in owners {
+        if owner < evidence.judicial.groups.len() {
+            result
+                .records
+                .judicial
+                .groups
+                .push(evidence.judicial.groups[owner].clone());
+        } else if owner < evidence.judicial.groups.len() + evidence.decisions.len() {
+            result
+                .decisions
+                .push(evidence.decisions[owner - evidence.judicial.groups.len()].clone());
+        } else {
+            result.records.administrative.push(
+                evidence.administrative
+                    [owner - evidence.judicial.groups.len() - evidence.decisions.len()]
+                .clone(),
+            );
+        }
+    }
+    super::record_bounds::bounds((&result).into(), 1)?;
+    Ok(result)
+}

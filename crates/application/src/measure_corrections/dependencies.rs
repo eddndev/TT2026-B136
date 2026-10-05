@@ -16,22 +16,7 @@ pub fn inspect_measure_administrative_dependencies(
     target: PrecautionaryMeasureRef,
     inventory: &MeasureAdministrativeDependencyInventory,
 ) -> Result<CheckedMeasureAdministrativeDependencies, ApplicationError> {
-    bounds(inventory)?;
-    let index = RecordIndex::new(case_id, (&inventory.records).into(), 0)?;
-    index.selected(target)?;
-    let additional = anchor_dependencies(&index, inventory)?;
-    let mut sources = SourceInventory::default();
-    let index = record_graph::validate_forest(hasher, case_id, index, &additional, &mut sources)?;
-    for hearing in &inventory.hearings {
-        check_history_with_records(
-            hasher,
-            case_id,
-            &hearing.captures,
-            &hearing.origin,
-            &mut sources,
-            &|r| index.view(index.selected(r)?),
-        )?;
-    }
+    checked_forest(hasher, case_id, target, inventory)?;
     Ok(CheckedMeasureAdministrativeDependencies {
         case_id,
         target,
@@ -125,4 +110,29 @@ fn anchor_dependencies(
         additional[owner] = parents.into_iter().collect();
     }
     Ok(additional)
+}
+
+pub(super) fn checked_forest<'a>(
+    hasher: &dyn DocumentHasher,
+    case_id: CaseId,
+    target: PrecautionaryMeasureRef,
+    inventory: &'a MeasureAdministrativeDependencyInventory,
+) -> Result<(RecordIndex<'a>, SourceInventory<'a>), ApplicationError> {
+    bounds(inventory)?;
+    let index = RecordIndex::new(case_id, (&inventory.records).into(), 0)?;
+    index.selected(target)?;
+    let additional = anchor_dependencies(&index, inventory)?;
+    let mut sources = SourceInventory::default();
+    let index = record_graph::validate_forest(hasher, case_id, index, &additional, &mut sources)?;
+    for hearing in &inventory.hearings {
+        check_history_with_records(
+            hasher,
+            case_id,
+            &hearing.captures,
+            &hearing.origin,
+            &mut sources,
+            &|r| index.view(index.selected(r)?),
+        )?;
+    }
+    Ok((index, sources))
 }

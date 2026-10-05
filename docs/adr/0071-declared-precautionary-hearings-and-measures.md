@@ -32,9 +32,13 @@ administrative records through that graph without changing hearing receipts.
 The pure dependency inspector validates a supplied owner forest and hearing
 prefixes, then reports direct uses of an exact record. It does not establish
 complete durable absence or current permission to mutate that record.
-Optional administrative replacement, current mutation eligibility, authorized
-mixed-record services, durable storage, HTTP, Agenda, alerts, Qadra and
-restoration remain pending. The bounded contract and source
+The authorized administrative service prepares and confirms Correct and
+MarkEnteredInError using the observed exact head, full supplied dependency
+inventory, retained support admission and original-receipt replay. Its store
+contract requires durable current-head and dependency checks; the application
+service cannot establish those facts by itself. Optional administrative
+replacement, mixed-record appointment/decision services, durable storage, HTTP,
+Agenda, alerts, Qadra and restoration remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -321,8 +325,8 @@ precede the selected capture or new context provenance.
 This is historical consistency checking. It does not freshly admit encrypted
 support, authenticate current access, prove durable origin/current head, or show
 the absence of dependants. The mixed resolver and mark-only extension below
-reuse these receipt shapes. Authorized administrative workflow and persistence
-remain separate work.
+reuse these receipt shapes. The authorized administrative service described below
+adds current admission checks around them; durable persistence remains pending.
 
 ### Mixed record history and repeated correction
 
@@ -544,6 +548,67 @@ direct use. The store must separately establish current heads, complete durable
 dependent inventory and current access under the mutation lock with atomic audit.
 This inspector grants no mutation capability and does not implement that admission,
 administrative replacement, SQL or HTTP.
+
+### Authorized administrative preparation and confirmation
+
+`MeasureAdministrativeService` implements Correct and MarkEnteredInError through
+the `MeasureAdministrativeStore` and `MeasureAdministrativeWorkflow` ports. It
+uses the current identity, document processor, format validator, hasher and clock.
+Owner and Litigator may prepare and submit; Paralegal and Client cannot. Current
+case access remains an audited store obligation. Historical participant and
+subject captures, including archived sources, retain their original material.
+
+`MeasureAdministrativeReady` contains the exact observed context, one encrypted
+`support_record`, the observed `target_head`, and a `dependency_inventory` of
+complete G1/G2/administrative owners and hearing prefixes. The service requires
+the command's exact target to equal that observed head, validates the whole
+bounded inventory once, and rejects every known direct dependant, including
+historical Review uses and zero-row decisions with Review anchors. The selected
+record must have captured Valid status. Retained terminal judicial actions remain
+admissible administrative targets without being revived or reinterpreted.
+
+The checked index supplies both effective predecessor material and the original
+exact ancestor closure. Preparation checks the command, active context and all
+immutable sources against that same inventory. It extracts the target's original
+closure without rehashing the forest or adding unrelated roots and hearing-prefix
+ancestry to the receipt. The candidate owner and row must fit within the existing
+256-owner/8192-row returned-closure limits. The observed forest independently
+retains the inspector's owner, hearing-prefix and nested shape bounds.
+
+Admit the exact support of the last actual judicial declaration using the bounded
+document processor outside the transaction lock. Compare its entire admitted
+snapshot with the retained support, including identity, version, digest, name,
+format and policy. Correct and Mark both require this admission. They do not
+select current replacement participant or subject sources, manufacture a new
+decision, or alter MATXN1/MAPR1/MARCR1/MAGR1.
+
+Only the authorized service constructs `PreparedMeasureAdministrative`.
+Confirmation requires both submission and complete-review digests. Reauthenticate
+the full current principal after preparation, before commit and before disclosure;
+service observations use supported UTC and cannot regress. A fresh capture must
+not precede its checked target/sources or the precommit observation. Validate the
+complete returned capture, origin, instruction, recording account and original
+closure, comparing validated closures independently of transport order.
+
+Exact replay returns `MeasureAdministrativeStoredOperation` with the original
+capture, origin and ancestor closure excluding the new owner. It preserves the
+recorded actor email, role and time after authorized profile changes. It neither
+re-admits historical support nor requires the historical operation to remain
+free of later dependants. The store must reauthorize replay before lookup,
+including on a closed case; current revocation still denies disclosure. An exact
+raced replay may retain its earlier capture time.
+
+`StaleHead`, `KnownDependants`, `OperationConflict`, `SubmissionMismatch`,
+`ReviewMismatch`, `IncompleteHistory`, `NotFound` and `StoredInconsistent`
+distinguish admission, confirmation and stored-evidence failures. They do not
+create new historical capture-validity states. Under the shared audit lock, the
+store must establish current full-principal access, active context, exact Valid
+head, complete durable absence of dependants and exact admitted support/sources,
+and prevent a dependency from racing with the write. It must atomically commit
+receipt, row, origin, operation, head and one audit event, or write nothing.
+Unrelated forest changes alone do not invalidate a review. The port specifies
+these obligations; the PostgreSQL adapter, HTTP route and restoration acceptance
+are not implemented by this application service.
 
 ### Decision anchors and shared dependency evidence
 

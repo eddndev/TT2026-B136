@@ -18,19 +18,15 @@ time = { workspace = true, features = ["parsing"] }
 mockall.workspace = true
 uuid.workspace = true
 serde_json.workspace = true
-
 [[test]]
 name = "agenda_suite_1"
 path = "tests/suites/agenda_suite_1.rs"
-
 [[test]]
 name = "alert_suite_1"
 path = "tests/suites/alert_suite_1.rs"
-
 [[test]]
 name = "case_document_metadata"
 path = "tests/case_document_metadata.rs"
-
 [[test]]
 name = "case_document_queries"
 path = "tests/case_document_queries.rs"
@@ -398,3 +394,7 @@ path = "tests/precautionary_decision_reviews.rs"
 [[test]]
 name = "measure_dependencies"
 path = "tests/measure_dependencies.rs"
+
+[[test]]
+name = "measure_administrative_workflow"
+path = "tests/measure_administrative_workflow.rs"

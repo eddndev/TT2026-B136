@@ -277,13 +277,55 @@ vigente ni que exista permiso de modificación. El resultado comprobado no
 expone una bandera de elegibilidad y el almacén debe resolver esas obligaciones
 durante la admisión atómica con autorización y auditoría.
 
-Esta validación pura no acredita acceso actual, admisión documental nueva,
-existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
-servicios autorizados para material mixto, el reemplazo administrativo opcional
-con identidad nueva y enlace atómico,
-la admisión por cabeza y dependencias vigentes, el servicio autorizado de
-rectificación, SQL y rutas HTTP de la familia. Agenda, alertas,
-interfaz y restauración siguen pendientes.
+El servicio autorizado `MeasureAdministrativeService` prepara y confirma Correct
+y MarkEnteredInError para Owner y Litigator; Paralegal y Client no pueden escribir.
+`MeasureAdministrativeReady` conserva contexto observado, un documento cifrado,
+cabeza exacta observada e inventario completo suministrado de propietarios y
+prefijos. La referencia del comando debe coincidir con `target_head`; se valida
+una vez todo `dependency_inventory` y se rechaza cualquier uso directo conocido,
+incluidos Review históricos y decisiones sin filas que anclan Review. El registro
+seleccionado debe conservar validez Valid. Una acción judicial terminal sigue
+siendo rectificable administrativamente sin cambiar ni revivir su declaración.
+
+El mismo índice comprobado aporta el registro efectivo y su cierre original de
+ancestros. La revisión contrasta contexto activo, comando y fuentes inmutables;
+conserva las fuentes históricas, incluso archivadas. Extrae el cierre exacto del
+objetivo sin volver a hashear el bosque ni guardar raíces ajenas o la ascendencia
+adicional del prefijo como ancestros del recibo. El candidato cuenta en los
+límites de 256 propietarios y 8192 filas del cierre devuelto. El inventario
+observado mantiene, por separado, los límites completos del inspector.
+
+Ambas acciones admiten fuera del bloqueo de auditoría la versión cifrada exacta
+del soporte de la última declaración judicial real. El procesador comprueba
+integridad y formato; la captura admitida debe coincidir íntegramente con el
+soporte retenido. No se sustituyen sujetos o supervisores por sus cabezas actuales.
+Solo el servicio construye el valor preparado privado. La confirmación exige
+los digests de instrucción y revisión completa, reautentica al actor actual
+completo y exige observaciones UTC compatibles y monótonas. La captura nueva no
+puede preceder las fuentes comprobadas ni la observación previa al commit.
+
+La recuperación devuelve captura, origen y cierre original, sin el nuevo
+propietario dentro de sus ancestros. Conserva autor, rol, correo y hora históricos,
+no readmite el soporte ni exige ausencia eterna de usos posteriores. Se valida
+todo recibo devuelto, incluso una operación concurrente idéntica. El almacén debe
+autorizar el acceso actual antes de buscar la operación, también en expediente
+cerrado, y la revocación sigue impidiendo su devolución.
+
+El servicio distingue cabeza obsoleta, dependientes conocidos, operación en
+conflicto, confirmaciones distintas e historia incompleta o inconsistente.
+El puerto exige revalidar bajo el bloqueo de auditoría principal, acceso,
+contexto activo, cabeza Valid, ausencia durable completa de dependientes y
+fuentes/soporte exactos; debe impedir carreras y guardar recibo, fila, origen,
+operación, cabeza y auditoría atómicamente. Esa obligación no queda demostrada
+por un inventario suministrado sin usos conocidos.
+
+La aplicación y sus puertos no acreditan todavía persistencia ni admisión
+transaccional real. Siguen pendientes PostgreSQL, rutas HTTP y aceptación de
+restauración, la ampliación de los servicios de convocatorias y decisiones para
+material mixto y el reemplazo administrativo opcional con identidad nueva y
+enlace atómico. Agenda, alertas e interfaz siguen pendientes. Los formatos
+MATXN1/MAPR1/MARCR1/MAGR1 no cambian.
+
 Los resultados focales se registran en [el informe](verification-report.md);
 no acreditan por sí solos el flujo completo.
 
