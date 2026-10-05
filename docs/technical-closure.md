@@ -51,7 +51,7 @@ permiso para investigar o implementar indefinidamente.
 La cuenta/correo Owner, remitente y activación de correo, duración de inactividad
 y activación en VPS3 siguen pendientes humanos. No se cambian por el avance de
 código. Una evaluación con participantes reales también requiere personas y
-resultados reales; las pruebas automáticas no la sustituyen>50K.
+resultados reales; las pruebas automáticas no la sustituyen.
 
 El acceso documental Client requiere resolver su política explícita. No se abre
 por analogía con los roles internos. Los planes comerciales se concilian con el
