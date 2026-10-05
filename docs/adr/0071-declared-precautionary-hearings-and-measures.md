@@ -1010,8 +1010,28 @@ its body, exact tables/columns, foreign keys, constraints, grants and inventory.
 Repeated migration preserves actual G/A data and constraint identities. The
 runtime has no update, delete, schema or guard-execution capability.
 
-This supplies the administrative command adapter only. Authorized A listing and
-reads, fresh H Review of C/M2, durable G2/M2 decisions, HTTP composition, Agenda,
+Fresh H Review of C/M2, durable G2/M2 decisions, HTTP composition, Agenda,
 alerts, Qadra and restoration acceptance remain distinct uncompleted parts of
 the same full delivery. The local G1/H paths remain compatible when unrelated
 A records exist; they never repackage a selected C as a judicial M1.
+
+### Authorized administrative operation reads
+
+`MeasureAdministrativeReadService` lists and recovers original A operations
+through a separate read port. It validates every complete capture, origin and
+ancestor proof, current staff identity before and after loading, and a supported
+UTC observation no earlier than the returned capture. Client access is denied.
+Pages order operation UUIDs with an exclusive cursor, a limit from 1 to 20 and
+an exact continuation. Shared complete owners, member identities and historical
+sources must agree across items; independently bounded proofs do not acquire
+an additional page-wide owner limit.
+
+`PostgresMeasureAdministrativeStore` implements that port in the shared audited
+transaction. Current access, advertised inventory and original mutation evidence
+are checked before disclosure; the access audit commits before results return.
+Closed cases remain readable with current authority. Reads preserve old Valid
+records and their original sources after later corrections or marks, rather than
+reapplying fresh-command head or dependency rules. Missing latest records,
+payloads or mutation events fail closed, including on already open connections.
+This API lists immutable operations; it does not establish the latest measure
+record or a measure's legal eligibility. Product routes remain pending.

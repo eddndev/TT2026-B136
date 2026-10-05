@@ -315,6 +315,11 @@ históricas exactas, y verifica decisión, todas las medidas, grupo y origen.
 Conserva autor y rol capturados, soporte admitido, sujetos, supervisores y su
 sujeto vinculado original. No reemplaza esas fuentes por sus cabezas actuales.
 Las listas ordenan decisiones inmutables por UUID, hasta 20 por página.
+Las consultas administrativas también ordenan operaciones inmutables por UUID
+con cursor exclusivo. Comprueban inventario y pruebas originales, y confirman
+auditoría de acceso antes de devolver resultados. El cierre del expediente no
+cambia los recibos históricos; requiere autorización vigente. Una marca posterior
+no sustituye una corrección anterior al recuperar su operación exacta.
 
 Admisión del soporte y confirmación de ambos digests preceden a la escritura.
 Bajo el bloqueo compartido se revalidan principal completo, acceso, contexto

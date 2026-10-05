@@ -1,5 +1,34 @@
 # Informe de verificación local
 
+## Lecturas administrativas originales: 4 de octubre de 2026
+
+Aprobaron **28 pruebas de aplicación en 1.80 s** y **9 pruebas nativas en
+93.37 s**, sin casos omitidos. Los comandos completos duraron **4.599 s** y
+**110.095 s**, respectivamente. Clippy de ambos targets y sus bibliotecas aprobó
+con `-D warnings` en **13.648 s**. Una revisión independiente de autorización,
+pruebas originales, cursores, inventario compartido y auditoría no encontró
+defectos pendientes.
+
+Antes de implementar se conservaron los RED de API ausente: **0.819 s** en
+aplicación y **30.597 s** en infraestructura. Un primer intento de compilación
+detectó una desreferencia sobrante de UUID en el fixture; se corrigió sin alterar
+el contrato y no se contabiliza como ejecución de pruebas.
+
+La aplicación verifica identidad completa antes y después, reloj UTC monótono,
+orden y continuación exactos, propietarios y fuentes compartidos, y pruebas
+mixtas G1/C/G2/C. Acepta veinte pruebas individuales válidas cuya unión supera
+256 propietarios, sin introducir un límite agregado de página. La campaña
+PostgreSQL conserva operaciones Correct y Mark reales después de archivado,
+cambio de audiencia y cierre; comprueba aislamiento, pérdida de carga, última
+fila o auditoría, reloj inválido y rollback si falla la auditoría de lectura.
+
+Se utilizó PostgreSQL **16.15** con SCRAM y fuentes cifradas reales; admisión de
+formato controlada, un compilador y un thread, temporales privados sobre btrfs.
+El cluster propio se retiró. Son **37 casos nuevos**; no se repitieron los 147
+nativos ni las 16 unidades de la persistencia previa. Esta evidencia local no
+acredita consumidores mixtos durables, HTTP, Qadra, restauración, integración ni
+despliegue. El manuscrito y su PDF se cierran con el flujo completo.
+
 ## Correcciones administrativas persistidas: 4 de octubre de 2026
 
 El adaptador PostgreSQL conserva Correct y MarkEnteredInError como una operación

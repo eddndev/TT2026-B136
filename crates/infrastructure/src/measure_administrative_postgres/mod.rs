@@ -5,6 +5,7 @@ pub(crate) mod decode;
 mod dependencies;
 pub(crate) mod inventory;
 mod preparation;
+mod query;
 pub(crate) mod storage;
 mod write;
 

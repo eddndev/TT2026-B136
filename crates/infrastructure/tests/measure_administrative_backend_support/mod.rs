@@ -10,3 +10,5 @@ mod lifecycle;
 mod replay;
 mod retention;
 mod schema;
+
+mod read;

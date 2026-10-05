@@ -100,7 +100,11 @@ la captura original después del cierre del expediente, con autorización vigent
 El catálogo y las conexiones abiertas rechazan cargas, filas o auditorías
 perdidas; no presentan una revisión anterior como cabeza válida. La admisión
 se repite bajo el bloqueo antes de escribir y detecta nuevos dependientes.
-Las lecturas y listas administrativas autorizadas, Review nuevo de C/M2 y la
+Las lecturas y listas administrativas autorizadas reconstruyen las operaciones
+originales, con acceso vigente, auditoría atómica y paginación exclusiva por UUID
+de operación, hasta 20 elementos. Conservan la captura histórica después de
+correcciones, marcas y cierre del expediente; no aplican otra vez reglas de
+cabeza o dependencias de un comando nuevo. Review nuevo de C/M2 y la
 persistencia G2/M2 todavía no están conectados. Este alcance local no acredita
 HTTP, Agenda, alertas, Qadra, restauración integral ni despliegue.
 
@@ -419,8 +423,8 @@ fuentes/soporte exactos; debe impedir carreras y guardar recibo, fila, origen,
 operación, cabeza y auditoría atómicamente. Esa obligación no queda demostrada
 por un inventario suministrado sin usos conocidos.
 
-El servicio administrativo y sus puertos no acreditan todavía persistencia ni admisión
-transaccional real. Siguen pendientes PostgreSQL, rutas HTTP y aceptación de
+La persistencia administrativa, su admisión transaccional y las lecturas
+autorizadas se describen arriba. Siguen pendientes rutas HTTP y aceptación de
 restauración, la ampliación de los servicios de convocatorias y decisiones para
 material mixto y el reemplazo administrativo opcional con identidad nueva y
 enlace atómico. Agenda, alertas e interfaz siguen pendientes. Los formatos
