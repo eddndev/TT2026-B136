@@ -1,7 +1,7 @@
 //! Strict persisted values; encoding consistency does not establish durable source provenance.
 mod outcome;
 mod primitives;
-mod temporal;
+pub(crate) mod temporal;
 mod values;
 
 use application::ApplicationError;

@@ -390,3 +390,7 @@ path = "tests/measure_initial_anchor_backend.rs"
 [[test]]
 name = "measure_precautionary_anchor_backend"
 path = "tests/measure_precautionary_anchor_backend.rs"
+
+[[test]]
+name = "measure_correction_codec"
+path = "tests/measure_correction_codec.rs"

@@ -1,5 +1,23 @@
 # Informe de verificación local
 
+## Formato de valores de corrección cautelar: 4 de octubre de 2026
+
+El codec de infraestructura reconstruye los valores MCVAL1 y comprueba igualdad
+exacta de bytes y proyección JSON cerrada. Conserva precisiones, offset ausente,
+fin desconocido o ausente y texto canónico; rechaza campos adicionales, valores
+normalizados al leer, frames truncados y límites excedidos. Comparte el codec
+temporal existente sin modificar sus bytes históricos.
+
+El RED por API ausente ocurrió antes de la implementación en **0.7445 s**.
+Aprobaron **16 pruebas nuevas** y **24 afectadas del codec de decisiones**:
+**40 casos en 15.311 s** de comando, compilación **15.12 s**. Incluyen vectores
+independientes mínimo de 38 bytes, fecha de 40 bytes y máximo de 20040 bytes,
+Unicode canónico y controles de forma y dominio. El Clippy focal de biblioteca
+y targets que incluyó ambos codecs aprobó en **10.195 s** con `-D warnings`;
+es la misma ejecución registrada en la sección de anclas, no otra campaña.
+La revisión independiente no encontró defectos. Estas pruebas puras no acreditan
+aún almacenamiento PostgreSQL administrativo, HTTP ni aceptación completa.
+
 ## Decisiones con ancla cautelar exacta: 4 de octubre de 2026
 
 La persistencia reconstruye un único grafo de propietarios y revisiones de

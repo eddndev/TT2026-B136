@@ -8,7 +8,7 @@ use domain::{
 use serde_json::{json, Value};
 use time::{Date, Month, UtcOffset};
 
-pub(super) fn decode(value: &Value) -> Result<MeasureTime> {
+pub(crate) fn decode(value: &Value) -> Result<MeasureTime> {
     let precision = string(&value["precision"])?;
     let declared = match precision {
         "unknown" => {
@@ -99,7 +99,7 @@ fn offset(value: &Value) -> Result<Option<UtcOffset>> {
         .map_err(|_| inconsistent())
 }
 
-pub(super) fn view(value: &MeasureTime) -> Value {
+pub(crate) fn view(value: &MeasureTime) -> Value {
     let declared = value.declared();
     let precision = match declared.precision() {
         Precision::Unknown => {

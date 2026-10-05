@@ -174,6 +174,7 @@ mod hearing_derived_deadline_schema;
 mod hearing_derived_deadline_postgres;
 pub use hearing_derived_deadline_postgres::PostgresHearingDerivedDeadlineStore;
 
+pub mod measure_correction_codec;
 pub mod measure_decision_codec;
 pub mod precautionary_hearing_codec;
 
