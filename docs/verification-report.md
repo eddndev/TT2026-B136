@@ -1,5 +1,32 @@
 # Informe de verificación local
 
+## Restauración del catálogo cautelar: 5 de octubre de 2026
+
+La aceptación API detectó un defecto real después de restaurar PostgreSQL:
+las filas y la auditoría coincidían, pero el servidor rechazaba el catálogo al
+abrirlo. `pg_dump` representa `BETWEEN` mediante comparaciones y la restauración
+aplana el `AND` exterior de cinco restricciones. La comparación literal del
+catálogo rechazaba esas expresiones equivalentes.
+
+Una prueba focal reprodujo el rechazo antes de corregirlo. El validador admite
+ahora exclusivamente las dos representaciones completas de esos cinco CHECK,
+con los mismos límites, prefijos, nombres y banderas obligatorias. No cambia
+las migraciones ni repara el respaldo. La nueva prueba restaura un esquema
+privado, lo abre con el rol de ejecución sin migrar y contrasta las revisiones,
+operaciones originales y reintento de la convocatoria. Aprobó con PostgreSQL
+16.15 junto con las pruebas afectadas de persistencia: 26 casos, 180.34 s de
+pruebas y 195.695 s del comando. La negativa adicional de medidas rechazó una
+restricción debilitada y guardas sustituidas, y aceptó su reparación: un caso
+en 17.76 s. El lint focal con advertencias denegadas y el formato aprobaron.
+Los servicios privados fueron retirados al terminar.
+
+El recorrido API anterior sí comprobó reinicios ordenados por TERM e INT,
+recibos, historia, Agenda y aviso leído; falló al abrir la base restaurada.
+Por ello no se acredita todavía aceptación API completa ni cierre de entrega.
+Se conserva la aceptación del navegador y se repetirá sólo el recorrido API
+afectado antes del manuscrito y los gates de integración.
+
+
 ## Navegador cautelar con servicios reales: 5 de octubre de 2026
 
 Los recorridos reales de Qadra aprobaron a 1440 y 390 px: convocatoria,

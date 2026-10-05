@@ -61,9 +61,27 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         let mut expected = expected(table);
         actual.sort();
         expected.sort();
-        if actual != expected || rows.iter().any(|row| !row.get::<_, bool>(2)) {
+        let matches = actual.len() == expected.len()
+            && actual
+                .iter()
+                .zip(&expected)
+                .all(|((name, expression), (key, original))| {
+                    name == key
+                        && (expression == original
+                            || restored_expression(table, name) == Some(expression.as_str()))
+                });
+        if !matches || rows.iter().any(|row| !row.get::<_, bool>(2)) {
             return Err(incomplete());
         }
     }
     Ok(())
+}
+
+// pg_dump deparses BETWEEN into comparisons; restore flattens the outer AND.
+// Accept only these complete equivalent expressions, preserving every bound.
+fn restored_expression(table: &str, name: &str) -> Option<&'static str> {
+    match (table, name) {
+        ("case_precautionary_hearing_revisions", "precautionary_hearing_values_size") => Some("((octet_length(values_canonical) >= 6) AND (octet_length(values_canonical) <= 16395) AND (SUBSTRING(values_canonical FROM 1 FOR 6) = convert_to('PHEAR1'::text, 'UTF8'::name)))"),
+        _ => None,
+    }
 }

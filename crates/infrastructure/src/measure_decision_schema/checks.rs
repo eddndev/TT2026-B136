@@ -96,9 +96,30 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         let mut expected = expected(table);
         actual.sort();
         expected.sort();
-        if actual != expected || rows.iter().any(|row| !row.get::<_, bool>(2)) {
+        let matches = actual.len() == expected.len()
+            && actual
+                .iter()
+                .zip(&expected)
+                .all(|((name, expression), (key, original))| {
+                    name == key
+                        && (expression == original
+                            || restored_expression(table, name) == Some(expression.as_str()))
+                });
+        if !matches || rows.iter().any(|row| !row.get::<_, bool>(2)) {
             return Err(incomplete());
         }
     }
     Ok(())
+}
+
+// pg_dump deparses BETWEEN into comparisons; restore flattens the outer AND.
+// Accept only these complete equivalent expressions, preserving every bound.
+fn restored_expression(table: &str, name: &str) -> Option<&'static str> {
+    match (table, name) {
+        ("case_measure_administrations", "measure_administration_correction_size") => Some("((octet_length(correction_canonical) >= 38) AND (octet_length(correction_canonical) <= 20040) AND (SUBSTRING(correction_canonical FROM 1 FOR 6) = convert_to('MCVAL1'::text, 'UTF8'::name)))"),
+        ("case_measure_decisions", "measure_decision_outcome_size") => Some("((octet_length(outcome_canonical) >= 11) AND (octet_length(outcome_canonical) <= 645450) AND (SUBSTRING(outcome_canonical FROM 1 FOR 5) = convert_to('MEFX1'::text, 'UTF8'::name)))"),
+        ("case_measure_decisions", "measure_decision_values_size") => Some("((octet_length(values_canonical) >= 80) AND (octet_length(values_canonical) <= 16076) AND (SUBSTRING(values_canonical FROM 1 FOR 6) = convert_to('MDVAL1'::text, 'UTF8'::name)))"),
+        ("case_measure_revisions", "measure_revision_values_size") => Some("((octet_length(values_canonical) >= 91) AND (octet_length(values_canonical) <= 20113) AND (SUBSTRING(values_canonical FROM 1 FOR 5) = convert_to('MEAS1'::text, 'UTF8'::name)))"),
+        _ => None,
+    }
 }
