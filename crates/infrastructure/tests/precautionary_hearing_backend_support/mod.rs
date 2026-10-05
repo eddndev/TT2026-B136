@@ -5,8 +5,8 @@ pub use fixture::*;
 mod integrity;
 mod lifecycle;
 mod origin;
-mod retention;
 mod restore;
+mod retention;
 mod rollback;
 mod schema;
 
