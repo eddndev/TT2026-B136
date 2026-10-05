@@ -141,51 +141,39 @@ path = "tests/suites/document_suite_1.rs"
 [[test]]
 name = "document_suite_2"
 path = "tests/suites/document_suite_2.rs"
-
 [[test]]
 name = "document_version_encryption"
 path = "tests/document_version_encryption.rs"
-
 [[test]]
 name = "document_version_failures"
 path = "tests/document_version_failures.rs"
-
 [[test]]
 name = "file_document_repository"
 path = "tests/file_document_repository.rs"
-
 [[test]]
 name = "hearing_result_revalidation"
 path = "tests/hearing_result_revalidation.rs"
-
 [[test]]
 name = "hearing_suite_1"
 path = "tests/suites/hearing_suite_1.rs"
-
 [[test]]
 name = "hearing_suite_2"
 path = "tests/suites/hearing_suite_2.rs"
-
 [[test]]
 name = "hearing_suite_3"
 path = "tests/suites/hearing_suite_3.rs"
-
 [[test]]
 name = "identity_backends"
 path = "tests/identity_backends.rs"
-
 [[test]]
 name = "identity_suite_1"
 path = "tests/suites/identity_suite_1.rs"
-
 [[test]]
 name = "internal_declaration"
 path = "tests/internal_declaration.rs"
-
 [[test]]
 name = "internal_owner_binding"
 path = "tests/internal_owner_binding.rs"
-
 [[test]]
 name = "internal_owner_login"
 path = "tests/internal_owner_login.rs"
@@ -398,3 +386,7 @@ path = "tests/measure_correction_codec.rs"
 [[test]]
 name = "measure_administrative_backend"
 path = "tests/measure_administrative_backend.rs"
+
+[[test]]
+name = "measure_record_backend"
+path = "tests/measure_record_backend.rs"

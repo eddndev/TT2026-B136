@@ -118,8 +118,11 @@ objetivos exactos. La nueva consulta de registros distingue lista de cabezas,
 cabeza por identidad y revisión exacta, con prueba completa del propietario.
 Incluye cabezas marcadas y no infiere vigencia jurídica a partir de ellas.
 Autorización completa, doble confirmación, fuentes y relojes se comprueban en
-la aplicación. Sus adaptadores PostgreSQL, rutas y aceptación de producto
-permanecen pendientes; las pruebas puras no acreditan esas capas.
+la aplicación. La consulta de cabezas y revisiones exactas ya tiene adaptador
+PostgreSQL para G1/C, con auditoría atómica y comprobación de inventario antes
+de resolver la selección. Nunca sustituye una cabeza perdida o inválida por
+una anterior. Los comandos mixtos, su extensión G2, rutas y aceptación de
+producto permanecen pendientes; las pruebas puras no acreditan esas capas.
 
 ## Frontera de la implementación local
 

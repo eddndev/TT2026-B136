@@ -1070,3 +1070,20 @@ Page proofs share source and ownership checks but no new aggregate history cap.
 Client access is denied and staff reads require full principal reauthentication
 and a monotonic observation no earlier than the disclosed capture. SQL and
 HTTP adapters remain required before product use.
+
+### Durable current and exact measure record reads
+
+`PostgresMeasureDecisionStore` implements the record read port over actual
+G1/A owners. It checks advertised global ownership before resolving the selected
+case, measure and revision, including empty or missing results. Current reads
+select the highest revision before digest or validity validation; malformed or
+lost latest evidence cannot expose an older row as current. Exact reads require
+the requested digest and preserve old Valid, terminal and marked captures with
+their original complete owner closure. Lists paginate stable roots and omit
+zero-row decision groups without inventing a measure identity.
+
+The shared audited transaction validates current full authority and the entire
+selected graph, then commits a read event no earlier than the returned capture.
+Audit failure rolls back disclosure. This requires no new migration, permission
+or wire family. G2 support depends on its mixed loader extension, and product
+routes, restoration and browser acceptance remain pending.

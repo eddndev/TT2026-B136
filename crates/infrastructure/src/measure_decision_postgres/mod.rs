@@ -18,6 +18,7 @@ mod loaded_hearings;
 mod loaded_history;
 mod preparation;
 mod query;
+mod record_query;
 mod sources;
 pub(crate) mod storage;
 mod write;

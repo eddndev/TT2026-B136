@@ -320,6 +320,11 @@ con cursor exclusivo. Comprueban inventario y pruebas originales, y confirman
 auditoría de acceso antes de devolver resultados. El cierre del expediente no
 cambia los recibos históricos; requiere autorización vigente. Una marca posterior
 no sustituye una corrección anterior al recuperar su operación exacta.
+La lectura de registros por identidad selecciona la revisión más alta antes
+de validar sus campos. Incluye marcas y declaraciones terminales; no establece
+vigencia jurídica. Cada revisión exacta reconstruye su propietario completo y
+confirma la auditoría de acceso. El inventario global se comprueba incluso antes
+de devolver una ausencia o página vacía.
 
 Admisión del soporte y confirmación de ambos digests preceden a la escritura.
 Bajo el bloqueo compartido se revalidan principal completo, acceso, contexto

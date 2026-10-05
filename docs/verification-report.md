@@ -1,5 +1,28 @@
 # Informe de verificación local
 
+## Consulta persistida de registros actuales e históricos: 4 de octubre de 2026
+
+Aprobaron **9 pruebas nativas PostgreSQL en 95.36 s**, sin omisiones; **98.213 s**
+incluyendo el entorno. El caso inicial G1/Correct/Mark aprobó en **7.00 s** y no
+se suma nuevamente. Clippy del target y biblioteca aprobó con `-D warnings` en
+**14.668 s**. La revisión independiente de la consulta no dejó defectos.
+El RED de API ausente precedió al adaptador (**33.637 s**); un error de tipo del
+digest detectado al compilar se corrigió antes del recorrido nativo.
+
+Los casos conservan cabeza marcada y todas sus revisiones originales, declaraciones
+terminales, UUID/cursor exactos y grupos sin medidas. Verifican principal completo,
+aislamiento y NotFound para selección ajena o inexacta, fuentes archivadas,
+expediente cerrado, pérdida de carga/última fila/auditoría y digest de cabeza
+malformado sin fallback. También prueban relojes inválidos y rollback de todas las
+lecturas cuando falla la auditoría. Las fuentes y PostgreSQL **16.15/SCRAM** son
+reales; la admisión de formato es controlada. Un compilador y un thread, temporales
+privados en btrfs y cluster propio retirado. No hubo cambio de esquema.
+
+Esta evidencia cubre G1/C persistidos; las pruebas de G2 de aplicación no sustituyen
+su comprobación durable. Siguen pendientes los comandos mixtos SQL, HTTP, Agenda,
+alertas, Qadra, restauración y cierre documental. No acredita integración ni
+despliegue y no repite las campañas anteriores.
+
 ## Servicios autorizados de registros mixtos: 4 de octubre de 2026
 
 Aprobaron **85 pruebas nuevas**: 30 de convocatorias mixtas en **0.36 s**, 28 de
