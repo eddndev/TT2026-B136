@@ -25,3 +25,19 @@ pub(crate) use record_history::{
     checked_record_closure, record_history_bounds, CheckedRecordClosure,
 };
 pub use record_model::*;
+
+mod judicial_record;
+mod judicial_view;
+pub use judicial_record::OwnedJudicialMeasure;
+pub(crate) use record_view::RecordView;
+
+pub(crate) mod decision_history;
+mod record_bounds;
+mod record_graph;
+
+pub use capture::{
+    measure_administrative_capture_with_decision_history_matches,
+    measure_administrative_origin_with_decision_history,
+};
+pub use preparation::prepare_measure_administrative_record_with_decision_history;
+pub use record_history::resolve_measure_records_with_decision_history;

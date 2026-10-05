@@ -59,9 +59,12 @@ fn judicial_only_forests_resolve_like_legacy_targets_and_sort_selected_identitie
         assert_eq!(record.reference(), reference(prior));
         assert_eq!(
             record.record(),
-            &OwnedMeasureRecord::Judicial(Box::new(owned(group)))
+            &OwnedMeasureRecord::Judicial(OwnedJudicialMeasure::V1(Box::new(owned(group))))
         );
-        assert_eq!(record.last_judicial(), &owned(group));
+        assert_eq!(
+            record.last_judicial(),
+            &OwnedJudicialMeasure::V1(Box::new(owned(group)))
+        );
         assert_eq!(record.context(), &group.review.material.context);
         assert_eq!(record.recorded_at(), prior.recorded_at);
         assert_eq!(record.values(), &prior.result.values);
@@ -141,7 +144,7 @@ fn original_bare_measure_remains_selectable_with_its_own_exact_historical_closur
     .unwrap();
     assert_eq!(
         historical.targets()[0].record(),
-        &OwnedMeasureRecord::Judicial(Box::new(judicial.clone()))
+        &OwnedMeasureRecord::Judicial(OwnedJudicialMeasure::V1(Box::new(judicial.clone())))
     );
     assert_eq!(
         historical.targets()[0].values(),
@@ -155,5 +158,8 @@ fn original_bare_measure_remains_selectable_with_its_own_exact_historical_closur
         historical.targets()[0].values(),
         current.targets()[0].values()
     );
-    assert_eq!(current.targets()[0].last_judicial(), &judicial);
+    assert_eq!(
+        current.targets()[0].last_judicial(),
+        &OwnedJudicialMeasure::V1(Box::new(judicial))
+    );
 }

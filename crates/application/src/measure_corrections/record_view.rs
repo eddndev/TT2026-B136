@@ -11,14 +11,10 @@ use domain::{
 /// Borrowed material is exposed internally only after parent-first reconstruction.
 #[derive(Clone, Copy)]
 pub(crate) struct RecordView<'a> {
-    pub(super) group: &'a MeasureDecisionGroupCapture,
-    pub(super) member: usize,
+    pub(super) judicial: super::judicial_view::JudicialView<'a>,
     pub(super) administrative: Option<&'a MeasureAdministrativeCapture>,
 }
 impl<'a> RecordView<'a> {
-    pub fn judicial(&self) -> &'a MeasureCapture {
-        &self.group.measures[self.member]
-    }
     fn row(&self) -> Option<&'a MeasureAdministrativeRecordCapture> {
         self.administrative.map(|a| &a.records[0])
     }
@@ -26,59 +22,53 @@ impl<'a> RecordView<'a> {
         if let Some(c) = self.row() {
             PrecautionaryMeasureRef::new(c.result.id, c.result.revision, c.capture_digest)
         } else {
-            let m = self.judicial();
-            PrecautionaryMeasureRef::new(m.result.id, m.result.revision, m.capture_digest)
+            self.judicial.reference()
         }
     }
     pub fn context(&self) -> &'a PrecautionaryContext {
-        self.row()
-            .map_or(&self.group.review.material.context, |c| &c.context)
+        self.row().map_or(self.judicial.context(), |c| &c.context)
     }
     pub fn support(&self) -> &'a StageSupportSnapshot {
-        &self.group.decision.support
+        self.judicial.support()
     }
     pub fn recorded_at(&self) -> OffsetDateTime {
         self.row()
-            .map_or(self.judicial().recorded_at, |c| c.recorded_at)
+            .map_or(self.judicial.recorded_at(), |c| c.recorded_at)
     }
     pub fn values(&self) -> &'a MeasureValues {
         self.row()
-            .map_or(&self.judicial().result.values, |c| &c.result.values)
+            .map_or(self.judicial.values(), |c| &c.result.values)
     }
     pub fn sources(&self) -> &'a MeasureSources {
         self.row()
-            .map_or(&self.judicial().result.sources, |c| &c.result.sources)
+            .map_or(self.judicial.sources(), |c| &c.result.sources)
     }
     pub fn record_root(&self) -> MeasureRecordRoot {
-        self.row().map_or_else(
-            || MeasureRecordRoot::Judicial(self.judicial().result.origin),
-            |c| c.result.record_root.clone(),
-        )
+        self.row()
+            .map_or_else(|| self.judicial.root(), |c| c.result.record_root.clone())
     }
     pub fn validity(&self) -> MeasureCaptureValidity {
         self.row()
             .map_or(MeasureCaptureValidity::Valid, |c| c.result.validity)
     }
     pub fn judicial_reference(&self) -> MeasureJudicialRef {
-        let m = self.judicial();
         MeasureJudicialRef {
-            owner: MeasureGroupRef {
-                operation_id: self.group.review.command.operation_id,
-                decision_id: self.group.review.command.decision_id,
-                group_digest: self.group.capture_digest,
-            },
-            reference: PrecautionaryMeasureRef::new(
-                m.result.id,
-                m.result.revision,
-                m.capture_digest,
-            ),
+            owner: self.judicial.owner(),
+            reference: self.judicial.reference(),
         }
     }
+    pub fn judicial_origin(&self) -> MeasureOriginIds {
+        self.judicial.judicial_origin()
+    }
+    pub fn last_action(&self) -> MeasureCaptureAction {
+        self.judicial.action()
+    }
+    pub fn projection(&self) -> &'a MeasureSourceProjection {
+        self.row()
+            .map_or(self.judicial.projection(), |c| &c.result.projection)
+    }
     pub fn to_owned(self) -> ResolvedMeasureRecord {
-        let last_judicial = OwnedMeasureMaterial {
-            owner: self.judicial_reference().owner,
-            capture: self.judicial().clone(),
-        };
+        let last_judicial = self.judicial.to_owned();
         let record = if let Some(a) = self.administrative {
             OwnedMeasureRecord::Administrative {
                 owner: MeasureAdministrativeRef {
@@ -88,7 +78,7 @@ impl<'a> RecordView<'a> {
                 capture: Box::new(a.records[0].clone()),
             }
         } else {
-            OwnedMeasureRecord::Judicial(Box::new(last_judicial.clone()))
+            OwnedMeasureRecord::Judicial(last_judicial.clone())
         };
         ResolvedMeasureRecord {
             record,

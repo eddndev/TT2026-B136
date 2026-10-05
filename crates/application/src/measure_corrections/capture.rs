@@ -57,6 +57,7 @@ pub fn measure_administrative_capture_matches(
         super::record_index::HistoryView {
             judicial: history,
             administrative: &[],
+            decisions: &[],
         },
     )
 }
@@ -122,4 +123,20 @@ pub(super) fn origin(capture: &MeasureAdministrativeCapture) -> MeasureAdministr
         review_digest: capture.review.review_digest,
         capture_digest: capture.capture_digest,
     }
+}
+
+pub fn measure_administrative_capture_with_decision_history_matches(
+    hasher: &dyn DocumentHasher,
+    capture: &MeasureAdministrativeCapture,
+    evidence: &crate::precautionary_measures::MeasureDecisionRecordHistoryEvidence,
+) -> Result<(), ApplicationError> {
+    matches_view(hasher, capture, evidence.into())
+}
+pub fn measure_administrative_origin_with_decision_history(
+    hasher: &dyn DocumentHasher,
+    capture: &MeasureAdministrativeCapture,
+    evidence: &crate::precautionary_measures::MeasureDecisionRecordHistoryEvidence,
+) -> Result<MeasureAdministrativeOrigin, ApplicationError> {
+    measure_administrative_capture_with_decision_history_matches(hasher, capture, evidence)?;
+    Ok(origin(capture))
 }

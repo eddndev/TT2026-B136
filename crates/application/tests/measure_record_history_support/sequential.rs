@@ -38,7 +38,10 @@ fn three_corrections_advance_exact_records_while_retaining_the_actual_judicial_e
         let record = &checked.targets()[0];
         assert_eq!(record.reference(), selected);
         assert_eq!(record.reference().revision().get(), revision);
-        assert_eq!(record.last_judicial(), &judicial);
+        assert_eq!(
+            record.last_judicial(),
+            &OwnedJudicialMeasure::V1(Box::new(judicial.clone()))
+        );
         assert_eq!(record.judicial_origin(), judicial.capture.result.origin);
         assert_eq!(
             record.record_root(),
@@ -94,8 +97,11 @@ fn effective_context_and_clock_advance_without_rewriting_the_last_judicial_captu
     assert_eq!(record.context(), &next_fixture.context);
     assert_eq!(record.recorded_at(), next_fixture.recorded_at);
     assert_ne!(record.context(), &judicial_group.review.material.context);
-    assert!(record.recorded_at() > record.last_judicial().capture.recorded_at);
-    assert_eq!(record.last_judicial(), &judicial);
+    assert!(record.recorded_at() > record.last_judicial().recorded_at());
+    assert_eq!(
+        record.last_judicial(),
+        &OwnedJudicialMeasure::V1(Box::new(judicial))
+    );
     assert_eq!(judicial_group, evidence.judicial.groups[0].capture);
 }
 
@@ -168,7 +174,10 @@ fn repeated_corrections_of_terminal_judicial_records_remain_terminal() {
         assert_eq!(record.last_action(), expected);
         assert_eq!(record.validity(), MeasureCaptureValidity::Valid);
         assert!(record.values().validity().end().is_none());
-        assert_eq!(record.last_judicial(), &owned(&group));
+        assert_eq!(
+            record.last_judicial(),
+            &OwnedJudicialMeasure::V1(Box::new(owned(&group)))
+        );
     }
 }
 

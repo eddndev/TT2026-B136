@@ -46,6 +46,7 @@ pub fn prepare_measure_record_correction(
         super::record_index::HistoryView {
             judicial: history,
             administrative: &[],
+            decisions: &[],
         },
     )
 }
@@ -158,9 +159,9 @@ pub(super) fn prepare_from_record(
         revision,
         previous: command.target,
         record_root: previous.record_root(),
-        judicial_origin: previous.judicial().result.origin,
+        judicial_origin: previous.judicial_origin(),
         last_judicial: previous.judicial_reference(),
-        last_action: previous.judicial().result.action,
+        last_action: previous.last_action(),
         validity,
         values,
         sources: previous.sources().clone(),
@@ -184,4 +185,15 @@ pub(super) fn prepare_from_record(
         review,
         earliest_capture,
     })
+}
+
+pub fn prepare_measure_administrative_record_with_decision_history(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    evidence: &crate::precautionary_measures::MeasureDecisionRecordHistoryEvidence,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    prepare_with_view(hasher, actor, case_id, command, context, evidence.into())
 }

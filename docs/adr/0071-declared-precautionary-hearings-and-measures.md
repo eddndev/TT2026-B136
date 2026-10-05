@@ -24,10 +24,11 @@ The mixed record resolver also validates repeated corrections with complete
 judicial and administrative owners. A pure mark-only operation appends an
 entered-in-error capture while retaining the recorded terms and judicial evidence.
 Pure Review preparation and historical proof now resolve exact Valid
-administrative records with their effective context and time. Judicial decisions
-do not yet consume administrative predecessors. Optional administrative replacement,
-current mutation eligibility,
-authorized correction services, durable storage, HTTP, Agenda, alerts, Qadra and
+administrative records with their effective context and time. Additive G2/M2
+captures consume those exact records through one bounded judicial/administrative
+history graph; a subsequent correction retains the actual M2 as judicial evidence.
+Optional administrative replacement, current mutation eligibility, authorized
+mixed-record services, durable storage, HTTP, Agenda, alerts, Qadra and
 restoration remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
@@ -334,10 +335,11 @@ G and administrative receipts. Check nested shapes and the combined limits of
 its owner and row. Reject missing, extra, foreign, cyclic or contradictory
 evidence and reconstruct every unselected sibling of an owning group too.
 
-Administrative dependencies are discovered iteratively. The existing judicial
-closure is validated once, followed by one reconstruction of each administrative
-owner in predecessor order. A shared inventory compares immutable sources across
-all owners. A repeated correction advances from the selected correction's exact
+Dependencies are discovered iteratively across legacy judicial G1, new judicial
+G2 and administrative owners. Each complete owner is reconstructed once after
+its parents, including effect, administrative-target and Review-anchor edges.
+A shared inventory compares immutable sources across all owners. A repeated
+correction advances from the selected correction's exact
 revision, context and time, while retaining the original root and actual last
 judicial declaration/support. Its complete one-row receipt remains subject to
 the same reconstruction and provenance checks.
@@ -345,8 +347,9 @@ the same reconstruction and provenance checks.
 The judicial-only entry points remain wrappers over borrowed history; existing
 `MATXN1`, `MAPR1`, `MARCR1`, `MAGR1` and judicial bytes are unchanged. Current
 heads and absence of dependants still require an authorized store. The Review
-proof extension below uses this resolver. Judicial G predecessors, joint
-replacement and persistence remain separate work.
+proof extension below retains its G1/administrative evidence input. Additive G2
+entry points accept the extended inventory without changing the old signatures.
+Joint replacement and persistence remain separate work.
 
 ### Entered-in-error capture validity
 
@@ -376,10 +379,9 @@ Its existence does not rewrite older Valid captures or their exact references.
 The supplied closure proves neither a current head nor absence of later
 dependants. Storage admission must establish both under the mutation lock, with
 current authorization and atomic audit. Those checks and SQL remain pending.
-Judicial consumers of administrative records and the optional atomic replacement
-with a fresh identity and explicit administrative link remain pending. Their
-future admission must distinguish capture validity from retained judicial status
-without invalidating earlier historical receipts.
+The optional atomic replacement with a fresh identity and explicit administrative
+link remains pending. Its future admission must distinguish capture validity
+from retained judicial status without invalidating earlier historical receipts.
 
 ### Review appointments over mixed records
 
@@ -416,8 +418,53 @@ material rejects before hashing or cloning. This extension does not change the
 older public hearing-history entry points' bounds or behavior.
 
 This is a pure proof and capture API. The authorized hearing services and ports
-have not yet been extended to mixed records. Judicial decisions after correction,
+have not yet been extended to mixed records. New Review receipts selecting M2,
 current-head/dependant admission, SQL and HTTP integration remain pending.
+
+### Judicial decisions over corrected records
+
+`prepare_measure_decision_with_record_history` accepts
+`MeasureDecisionMaterialV2` and `MeasureDecisionRecordHistoryEvidence`. Its
+checked review produces a `MeasureDecisionGroupCaptureV2`; matching and origin
+functions reconstruct the complete group from its exact ancestor closure.
+The evidence wrapper contains the existing G1/administrative inventory and a
+flat list of complete G2 owners. It does not recursively embed ancestor groups.
+
+`OwnedJudicialMeasure` distinguishes the actual M1 and M2 captures.
+`OwnedMeasureRecord` retains that judicial family or the exact administrative
+row and owner. Each M2 result records its root independently of its judicial
+origin. Confirm, Modify, Revoke, Cease and outgoing substitution advance from
+the selected effective M/C revision and retain its root and origin. Retaining
+effects preserve corrected values and complete sources; Modify preserves exact
+subject and class while resolving declared replacement terms. Impose and
+incoming substitution create fresh R1 identities with the new judicial origin.
+Many-to-many substitution preserves one complete relation. NoMeasureChange
+records a factual decision and group without inventing a measure.
+
+Effects reject an EnteredInError predecessor and cannot follow a terminal judicial
+action. These rules do not change terminal-target eligibility for Review.
+Preparation advances context and capture time from the selected effective record,
+not from the older judicial capture retained by a correction. The additive
+administrative `_with_decision_history` entry points allow Correct and Mark
+after M2, retaining its real owner/reference and latest judicial support. They
+preserve the existing administrative receipt structures and canonical bytes.
+
+MDPR2 frames family-tagged complete predecessors and results with separate root
+and judicial origin. MMCR2 commits each complete new judicial row; MDGR2 binds
+the review, factual decision, rows, substitution relations and capture time.
+MDTXN1 instructions and MDCR1 factual decisions remain unchanged, as do all old
+judicial, administrative and hearing frames. The new entry point always emits
+V2, including cases with only legacy predecessors; old entry points still emit
+V1. No conversion synthesizes an M1 from corrected values or an M2 capture.
+
+The unified graph compares operation UUIDs across all owner families, decision
+IDs across G1/G2, and exact measure revision ownership. It rejects cycles,
+incomplete siblings, missing or extra owners, family mismatches and conflicting
+immutable sources. Limits remain 256 combined owners and 8192 rows including
+the candidate, with at most 32 affected/selected identities and shape checks
+before hashing or cloning. A Review appointment over G1/C can anchor G2 using
+the same exact proof. These pure functions do not extend authorized workflow
+ports, prove current heads or dependent absence, or persist a transaction.
 
 ### Decision anchors and shared dependency evidence
 

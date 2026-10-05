@@ -137,9 +137,10 @@ El resolvedor mixto local acepta referencias exactas a registros judiciales o
 administrativos y permite rectificaciones repetidas. Valida el inventario plano
 completo, con operaciones y revisiones de medida únicas entre ambas familias;
 rechaza dependencias faltantes, ajenas, sobrantes, cíclicas o contradictorias.
-Descubre dependencias administrativas sin recursión, comprueba el cierre judicial
-una sola vez y reconstruye cada recibo administrativo después de su predecesor.
-El inventario de fuentes se comparte entre todos los propietarios.
+Descubre dependencias sin recursión entre propietarios judiciales G1/G2 y
+administrativos; reconstruye una vez cada propietario completo después de sus
+padres. Incluye las relaciones de efectos, objetivos administrativos y anclas
+Review. El inventario de fuentes se comparte entre todos los propietarios.
 
 La proyección comprobada conserva el tiempo/contexto/valores del registro exacto
 seleccionado y, por separado, la última medida/grupo judiciales reales. Una
@@ -196,12 +197,42 @@ antes de hashear o copiar; no cambian los límites de las entradas históricas
 anteriores. Los servicios autorizados de convocatorias todavía no incorporan
 este material mixto.
 
+Las decisiones judiciales puras admiten ahora predecesores administrativos
+mediante `prepare_measure_decision_with_record_history`, material V2 y un
+inventario plano que agrega grupos G2 completos al historial G1/administrativo.
+El resolvedor común conserva la familia real M1/M2 o C; nunca fabrica una medida
+judicial para representar una corrección. Cada resultado M2 conserva raíz de
+registro y origen judicial como datos separados.
+
+Confirmar, revocar, cesar y sustituir como salida preservan términos corregidos
+y fuentes completas. Modificar conserva sujeto exacto, clase, raíz y origen,
+con nuevos términos y fuentes verificadas. Imponer y sustituir como entrada
+crean identidades R1 con origen judicial nuevo. Las relaciones muchos-a-muchos
+conservan sus conjuntos completos; NoMeasureChange produce decisión y grupo
+sin medida. Los efectos rechazan predecesores EnteredInError y acciones
+judiciales terminales; esto no cambia la selección de terminales para Review.
+
+La nueva decisión avanza revisión, contexto y tiempo desde el registro efectivo
+seleccionado. Las entradas administrativas `_with_decision_history` permiten
+corregir o marcar después de M2 y conservan esa medida/grupo judiciales reales
+como última declaración, con su soporte. La historia unificada comprueba
+operaciones únicas entre familias, decisiones únicas entre G1/G2, propietarios
+exactos de revisión, hermanas completas y fuentes inmutables compatibles.
+
+`MDPR2`, `MMCR2` y `MDGR2` vinculan predecesores con etiqueta de familia, raíz
+separada, resultados y recibo completo. Se mantienen `MDTXN1`, `MDCR1` y todos
+los formatos anteriores judiciales, administrativos y de convocatoria. La entrada
+V2 siempre emite V2; las anteriores conservan V1. Sus límites combinados siguen
+siendo 256 propietarios y 8192 filas, incluido el candidato, con hasta 32
+identidades afectadas y rechazo de exceso antes de hashear o copiar. Una
+convocatoria Review sobre G1/C puede anclar G2 con su cierre exacto.
+
 Esta validación pura no acredita acceso actual, admisión documental nueva,
 existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
-las decisiones judiciales con predecesores administrativos, el reemplazo
-administrativo opcional con identidad nueva
-y enlace atómico, la admisión por cabeza y dependencias vigentes, el servicio
-autorizado de rectificación, SQL y rutas HTTP de la familia. Agenda, alertas,
+convocatorias nuevas que seleccionen M2, servicios autorizados para material
+mixto, el reemplazo administrativo opcional con identidad nueva y enlace atómico,
+la admisión por cabeza y dependencias vigentes, el servicio autorizado de
+rectificación, SQL y rutas HTTP de la familia. Agenda, alertas,
 interfaz y restauración siguen pendientes.
 Los resultados focales se registran en [el informe](verification-report.md);
 no acreditan por sí solos el flujo completo.

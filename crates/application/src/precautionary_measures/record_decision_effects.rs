@@ -1,50 +1,38 @@
-use super::{decision_wire::invalid, *};
-use crate::ApplicationError;
+use super::{decision_wire::invalid, record_decision_wire::capture_reference, *};
+use crate::{
+    measure_corrections::{MeasureCaptureValidity, RecordView},
+    ApplicationError,
+};
 use domain::{
     precautionary_hearings::{MeasureId, MeasureRevision, PrecautionaryMeasureRef},
-    precautionary_measures::{MeasureDecisionOutcome, MeasureEffect, MeasureValues},
+    precautionary_measures::{MeasureEffect, MeasureValues},
 };
 
-pub(crate) fn selections(outcome: &MeasureDecisionOutcome) -> Vec<PrecautionaryMeasureRef> {
-    let mut selected = Vec::new();
-    for effect in outcome.changes().unwrap_or(&[]) {
-        match effect {
-            MeasureEffect::Impose(_) => {}
-            MeasureEffect::Confirm { previous }
-            | MeasureEffect::Modify { previous, .. }
-            | MeasureEffect::Revoke { previous }
-            | MeasureEffect::Cease { previous } => selected.push(*previous),
-            MeasureEffect::Substitute { predecessors, .. } => {
-                selected.extend_from_slice(predecessors)
-            }
-        }
-    }
-    selected.sort_by_key(|item| item.id().as_uuid());
-    selected
-}
-
-pub(super) struct EffectResult<'a> {
+pub(super) struct RecordEffect<'a> {
     pub id: MeasureId,
     pub effect_key: MeasureId,
     pub action: MeasureCaptureAction,
     pub values: &'a MeasureValues,
-    pub prior: Option<&'a MeasureCapture>,
+    pub prior: Option<RecordView<'a>>,
 }
 
 pub(super) fn effects<'a>(
     command: &'a MeasureDecisionCommand,
-    material: &'a MeasureDecisionMaterial,
-) -> Result<Vec<EffectResult<'a>>, ApplicationError> {
-    let selected = selections(&command.outcome);
-    if selected.len() != material.predecessors.len() {
+    predecessors: &[RecordView<'a>],
+) -> Result<Vec<RecordEffect<'a>>, ApplicationError> {
+    let selected = super::effect_resolution::selections(&command.outcome);
+    if selected.len() != predecessors.len() {
         return Err(invalid("predecessor inventory differs"));
     }
-    for (reference, prior) in selected.iter().zip(&material.predecessors) {
-        if *reference != capture_reference(&prior.capture) {
+    for (reference, prior) in selected.iter().zip(predecessors) {
+        if *reference != prior.reference() {
             return Err(invalid("predecessor selection differs"));
         }
+        if prior.validity() != MeasureCaptureValidity::Valid {
+            return Err(invalid("entered-in-error record cannot acquire effects"));
+        }
         if matches!(
-            prior.capture.result.action,
+            prior.last_action(),
             MeasureCaptureAction::Revoke
                 | MeasureCaptureAction::Cease
                 | MeasureCaptureAction::SubstituteOut
@@ -52,19 +40,17 @@ pub(super) fn effects<'a>(
             return Err(invalid("terminal declaration cannot acquire effects"));
         }
     }
-    let previous =
-        |reference: PrecautionaryMeasureRef| -> Result<&'a MeasureCapture, ApplicationError> {
-            material
-                .predecessors
-                .iter()
-                .find(|item| capture_reference(&item.capture) == reference)
-                .map(|item| &item.capture)
-                .ok_or_else(|| invalid("missing exact predecessor"))
-        };
+    let previous = |reference: PrecautionaryMeasureRef| {
+        predecessors
+            .iter()
+            .copied()
+            .find(|prior| prior.reference() == reference)
+            .ok_or_else(|| invalid("missing exact predecessor"))
+    };
     let mut results = Vec::new();
     for effect in command.outcome.changes().unwrap_or(&[]) {
         match effect {
-            MeasureEffect::Impose(proposal) => results.push(EffectResult {
+            MeasureEffect::Impose(proposal) => results.push(RecordEffect {
                 id: proposal.id,
                 effect_key: proposal.id,
                 action: MeasureCaptureAction::Impose,
@@ -74,30 +60,26 @@ pub(super) fn effects<'a>(
             MeasureEffect::Confirm {
                 previous: reference,
             }
+            | MeasureEffect::Modify {
+                previous: reference,
+                ..
+            }
             | MeasureEffect::Revoke {
                 previous: reference,
             }
             | MeasureEffect::Cease {
                 previous: reference,
-            }
-            | MeasureEffect::Modify {
-                previous: reference,
-                ..
             } => {
                 let prior = previous(*reference)?;
                 let (action, values) = match effect {
                     MeasureEffect::Confirm { .. } => {
-                        (MeasureCaptureAction::Confirm, &prior.result.values)
+                        (MeasureCaptureAction::Confirm, prior.values())
                     }
-                    MeasureEffect::Revoke { .. } => {
-                        (MeasureCaptureAction::Revoke, &prior.result.values)
-                    }
-                    MeasureEffect::Cease { .. } => {
-                        (MeasureCaptureAction::Cease, &prior.result.values)
-                    }
+                    MeasureEffect::Revoke { .. } => (MeasureCaptureAction::Revoke, prior.values()),
+                    MeasureEffect::Cease { .. } => (MeasureCaptureAction::Cease, prior.values()),
                     MeasureEffect::Modify { values, .. } => {
-                        if values.subject() != prior.result.values.subject()
-                            || values.kind() != prior.result.values.kind()
+                        if values.subject() != prior.values().subject()
+                            || values.kind() != prior.values().kind()
                         {
                             return Err(invalid(
                                 "modification cannot change exact subject or class",
@@ -107,7 +89,7 @@ pub(super) fn effects<'a>(
                     }
                     _ => unreachable!(),
                 };
-                results.push(EffectResult {
+                results.push(RecordEffect {
                     id: reference.id(),
                     effect_key: reference.id(),
                     action,
@@ -119,7 +101,7 @@ pub(super) fn effects<'a>(
                 predecessors,
                 successors,
             } => {
-                let subject = previous(predecessors[0])?.result.values.subject().id;
+                let subject = previous(predecessors[0])?.values().subject().id;
                 let key = predecessors
                     .iter()
                     .map(|item| item.id())
@@ -128,14 +110,14 @@ pub(super) fn effects<'a>(
                     .ok_or_else(|| invalid("empty substitution"))?;
                 for reference in predecessors {
                     let prior = previous(*reference)?;
-                    if prior.result.values.subject().id != subject {
+                    if prior.values().subject().id != subject {
                         return Err(invalid("substitution crosses subjects"));
                     }
-                    results.push(EffectResult {
+                    results.push(RecordEffect {
                         id: reference.id(),
                         effect_key: key,
                         action: MeasureCaptureAction::SubstituteOut,
-                        values: &prior.result.values,
+                        values: prior.values(),
                         prior: Some(prior),
                     });
                 }
@@ -143,7 +125,7 @@ pub(super) fn effects<'a>(
                     if proposal.values.subject().id != subject {
                         return Err(invalid("substitution crosses subjects"));
                     }
-                    results.push(EffectResult {
+                    results.push(RecordEffect {
                         id: proposal.id,
                         effect_key: key,
                         action: MeasureCaptureAction::SubstituteIn,
@@ -154,25 +136,15 @@ pub(super) fn effects<'a>(
             }
         }
     }
-    results.sort_by_key(|item| item.id.as_uuid());
+    results.sort_by_key(|result| result.id.as_uuid());
     Ok(results)
 }
 
-pub(super) fn capture_reference(capture: &MeasureCapture) -> PrecautionaryMeasureRef {
-    PrecautionaryMeasureRef::new(
-        capture.result.id,
-        capture.result.revision,
-        capture.capture_digest,
-    )
-}
-
-pub(super) fn revision(
-    prior: Option<&MeasureCapture>,
-) -> Result<MeasureRevision, ApplicationError> {
+pub(super) fn revision(prior: Option<RecordView<'_>>) -> Result<MeasureRevision, ApplicationError> {
     match prior {
         Some(prior) => prior
-            .result
-            .revision
+            .reference()
+            .revision()
             .next()
             .ok_or_else(|| invalid("measure revision overflow")),
         None => Ok(MeasureRevision::initial()),
@@ -181,12 +153,12 @@ pub(super) fn revision(
 
 pub(super) fn substitutions(
     command: &MeasureDecisionCommand,
-    measures: &[MeasureCapture],
+    measures: &[MeasureCaptureV2],
 ) -> Result<Vec<MeasureSubstitutionCapture>, ApplicationError> {
     let lookup = |id| {
         measures
             .iter()
-            .find(|item| item.result.id == id)
+            .find(|member| member.result.id == id)
             .map(capture_reference)
             .ok_or_else(|| invalid("substitution member missing"))
     };
@@ -216,10 +188,11 @@ pub(super) fn substitutions(
                     .collect::<Result<_, ApplicationError>>()?,
                 successors: successors
                     .iter()
-                    .map(|item| lookup(item.id))
+                    .map(|proposal| lookup(proposal.id))
                     .collect::<Result<_, _>>()?,
             });
         }
     }
+    relationships.sort_by_key(|relation| relation.effect_key.as_uuid());
     Ok(relationships)
 }

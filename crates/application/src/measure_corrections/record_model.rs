@@ -17,7 +17,7 @@ pub struct MeasureAdministrativeRef {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OwnedMeasureRecord {
-    Judicial(Box<OwnedMeasureMaterial>),
+    Judicial(OwnedJudicialMeasure),
     Administrative {
         owner: MeasureAdministrativeRef,
         capture: Box<MeasureAdministrativeRecordCapture>,
@@ -40,7 +40,7 @@ pub struct ResolvedMeasureRecord {
     pub(super) record: OwnedMeasureRecord,
     pub(super) context: PrecautionaryContext,
     pub(super) support: StageSupportSnapshot,
-    pub(super) last_judicial: OwnedMeasureMaterial,
+    pub(super) last_judicial: OwnedJudicialMeasure,
 }
 impl ResolvedMeasureRecord {
     pub fn record(&self) -> &OwnedMeasureRecord {
@@ -52,16 +52,12 @@ impl ResolvedMeasureRecord {
     pub fn support(&self) -> &StageSupportSnapshot {
         &self.support
     }
-    pub fn last_judicial(&self) -> &OwnedMeasureMaterial {
+    pub fn last_judicial(&self) -> &OwnedJudicialMeasure {
         &self.last_judicial
     }
     pub fn reference(&self) -> PrecautionaryMeasureRef {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => PrecautionaryMeasureRef::new(
-                m.capture.result.id,
-                m.capture.result.revision,
-                m.capture.capture_digest,
-            ),
+            OwnedMeasureRecord::Judicial(m) => m.reference(),
             OwnedMeasureRecord::Administrative { capture: c, .. } => {
                 PrecautionaryMeasureRef::new(c.result.id, c.result.revision, c.capture_digest)
             }
@@ -69,31 +65,31 @@ impl ResolvedMeasureRecord {
     }
     pub fn recorded_at(&self) -> OffsetDateTime {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => m.capture.recorded_at,
+            OwnedMeasureRecord::Judicial(m) => m.recorded_at(),
             OwnedMeasureRecord::Administrative { capture, .. } => capture.recorded_at,
         }
     }
     pub fn values(&self) -> &MeasureValues {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => &m.capture.result.values,
+            OwnedMeasureRecord::Judicial(m) => m.values(),
             OwnedMeasureRecord::Administrative { capture, .. } => &capture.result.values,
         }
     }
     pub fn sources(&self) -> &MeasureSources {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => &m.capture.result.sources,
+            OwnedMeasureRecord::Judicial(m) => m.sources(),
             OwnedMeasureRecord::Administrative { capture, .. } => &capture.result.sources,
         }
     }
     pub fn projection(&self) -> &MeasureSourceProjection {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => &m.capture.result.projection,
+            OwnedMeasureRecord::Judicial(m) => m.projection(),
             OwnedMeasureRecord::Administrative { capture, .. } => &capture.result.projection,
         }
     }
     pub fn record_root(&self) -> MeasureRecordRoot {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => MeasureRecordRoot::Judicial(m.capture.result.origin),
+            OwnedMeasureRecord::Judicial(m) => m.record_root(),
             OwnedMeasureRecord::Administrative { capture, .. } => {
                 capture.result.record_root.clone()
             }
@@ -101,7 +97,7 @@ impl ResolvedMeasureRecord {
     }
     pub fn judicial_origin(&self) -> MeasureOriginIds {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => m.capture.result.origin,
+            OwnedMeasureRecord::Judicial(m) => m.judicial_origin(),
             OwnedMeasureRecord::Administrative { capture, .. } => capture.result.judicial_origin,
         }
     }
@@ -113,7 +109,7 @@ impl ResolvedMeasureRecord {
     }
     pub fn last_action(&self) -> MeasureCaptureAction {
         match &self.record {
-            OwnedMeasureRecord::Judicial(m) => m.capture.result.action,
+            OwnedMeasureRecord::Judicial(m) => m.last_action(),
             OwnedMeasureRecord::Administrative { capture, .. } => capture.result.last_action,
         }
     }

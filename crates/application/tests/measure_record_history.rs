@@ -45,7 +45,7 @@ fn exact_administrative_record_resolves_with_its_actual_judicial_antecedent() {
     assert_eq!(result.recorded_at(), capture.recorded_at);
     assert_eq!(
         result.last_judicial(),
-        &owned(&fixture.history.judicial.groups[0].capture)
+        &OwnedJudicialMeasure::V1(Box::new(owned(&fixture.history.judicial.groups[0].capture)))
     );
     assert_eq!(result.last_action(), MeasureCaptureAction::Impose);
     assert_eq!(result.validity(), MeasureCaptureValidity::Valid);

@@ -54,3 +54,32 @@ mod reads;
 pub use read_model::*;
 pub use read_port::*;
 pub use reads::MeasureDecisionReadService;
+
+mod record_legacy;
+pub(crate) use anchor_validation::{
+    selections as record_anchor_selections, shape as record_anchor_shape,
+};
+pub(crate) use effect_resolution::selections as record_effect_selections;
+pub(crate) use history_model::origin as legacy_group_origin;
+pub(crate) use record_legacy::validate_legacy_record_node;
+mod record_decision_anchor;
+mod record_decision_capture;
+mod record_decision_effects;
+mod record_decision_encoding;
+mod record_decision_model;
+mod record_decision_preparation;
+mod record_decision_wire;
+pub use crate::measure_corrections::decision_history::{
+    measure_decision_group_v2_matches, measure_group_origin_v2,
+    prepare_measure_decision_with_record_history,
+};
+pub use record_decision_encoding::{
+    measure_capture_v2_bytes, measure_decision_group_v2_bytes, measure_decision_review_v2_bytes,
+};
+pub use record_decision_model::*;
+pub(crate) use record_decision_preparation::prepare_record_flat;
+pub use record_decision_preparation::CheckedMeasureDecisionReviewV2;
+
+pub(crate) use record_decision_encoding::record_decision_group_shape;
+
+pub(crate) use record_decision_preparation::add_record_decision_sources;

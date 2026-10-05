@@ -1,5 +1,42 @@
 # Informe de verificación local
 
+## Decisiones judiciales sobre registros corregidos: 4 de octubre de 2026
+
+Las entradas puras V2 producen decisiones y medidas judiciales desde registros
+G1, G2 o administrativos exactos. Un único grafo valida propietarios completos
+en orden de dependencias; mantiene separados valores/contexto/tiempo efectivos,
+raíz del registro y última declaración judicial real. La rectificación posterior
+a M2 conserva esa familia y su soporte, sin fabricar una medida M1.
+
+TDD: la API ausente falló antes de implementar en **0.664 s**. Una ejecución
+posterior reprodujo **12 fallos y 3 aprobaciones** porque la imposición histórica
+confundía sus propias revisiones descendientes con una identidad nueva duplicada.
+La corrección mantuvo la unicidad del origen y permitió sus revisiones posteriores.
+La ejecución focal aprobó **39 casos en 6.022 s** de comando, compilación
+**5.67 s**. Cubre todos los efectos, NoMeasureChange, cadena G1/C/C/G2/C,
+fuentes y contexto efectivos, familia real, terminales, ancla Review sobre C,
+normalización de 32 identidades y rechazo de cierres alterados o excesivos.
+
+Cuatro vectores independientes comparan bytes completos de `MDPR2` (2499 bytes),
+`MMCR2` (602), `MDGR2` (3881) y `MAGR1` posterior a M2 (2534). Se construyeron
+desde escalares y literales previos independientes, sin generar expectativas con
+codificadores de producción. Los digests del fixture determinista comprueban
+el encadenamiento y no son vectores criptográficos SHA-256. `MDTXN1`, `MDCR1`
+y los formatos anteriores conservan su significado y sus bytes.
+
+La ejecución de ocho targets anteriores afectados aprobó **132 casos en
+19.407 s**, compilación **6.94 s**. Sumada a la ejecución nueva, son **171 casos
+aprobados entre dos comandos**, no una campaña única. Clippy de los nueve
+targets con `-D warnings` aprobó en **7.186 s**, compilación **7.13 s**. La
+revisión independiente del grafo unificado quedó limpia después de resolver
+la regresión reproducida.
+
+Esta comprobación es local y focal. No acredita servicios autorizados con material
+mixto, selección nueva de M2 por convocatorias, cabeza vigente, ausencia de
+dependientes, reemplazo administrativo, SQL, HTTP, interfaz ni restauración.
+El alcance completo sigue propuesto; no se ejecutó una campaña global,
+integración, despliegue o nuevo PDF para esta evidencia.
+
 ## Convocatorias Review con registros mixtos: 4 de octubre de 2026
 
 Las entradas puras `_with_record_history` preparan y verifican convocatorias

@@ -66,7 +66,10 @@ fn mixed_chain_accepts_256_total_owners_and_rejects_the_next_correction_candidat
     let checked =
         resolve_measure_records(&Hasher, fixture.case_id, &[selected], &evidence).unwrap();
     assert_eq!(checked.targets()[0].reference().revision().get(), 256);
-    assert_eq!(checked.targets()[0].last_judicial(), &owned(&group));
+    assert_eq!(
+        checked.targets()[0].last_judicial(),
+        &OwnedJudicialMeasure::V1(Box::new(owned(&group)))
+    );
     let over_budget = RecordFixture::next(&capture, &fixture.history, 255);
     assert_eq!(over_budget.history.administrative.len(), 255);
     assert!(over_budget.prepare().is_err());

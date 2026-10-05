@@ -13,7 +13,7 @@ use domain::{
     precautionary_hearings::PrecautionaryMeasureRef, typed_participants::ParticipantText,
 };
 
-pub(super) fn selections(
+pub(crate) fn selections(
     anchor: &Option<MeasureDecisionAnchorMaterial>,
 ) -> &[PrecautionaryMeasureRef] {
     match anchor {
@@ -24,7 +24,7 @@ pub(super) fn selections(
     }
 }
 
-pub(super) fn shape(
+pub(crate) fn shape(
     anchor: &Option<MeasureDecisionAnchorMaterial>,
 ) -> Result<(), ApplicationError> {
     match anchor {
@@ -102,7 +102,7 @@ pub(super) fn validate(
     Ok(Some(at))
 }
 
-fn ordinary(
+pub(super) fn ordinary(
     hasher: &dyn DocumentHasher,
     detail: &HearingDetail,
     context: &PrecautionaryContext,

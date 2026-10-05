@@ -55,7 +55,7 @@ impl<'a> CheckedMeasureTargets<'a> {
     }
 }
 
-pub(super) fn origin(group: &MeasureDecisionGroupCapture) -> MeasureGroupOrigin {
+pub(crate) fn origin(group: &MeasureDecisionGroupCapture) -> MeasureGroupOrigin {
     MeasureGroupOrigin {
         case_id: group.review.case_id,
         operation_id: group.review.command.operation_id,

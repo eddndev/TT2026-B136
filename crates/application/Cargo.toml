@@ -378,15 +378,12 @@ path = "tests/measure_decision_workflow.rs"
 [[test]]
 name = "measure_decision_reads"
 path = "tests/measure_decision_reads.rs"
-
 [[test]]
 name = "measure_correction_captures"
 path = "tests/measure_correction_captures.rs"
-
 [[test]]
 name = "measure_correction_vectors"
 path = "tests/measure_correction_vectors.rs"
-
 [[test]]
 name = "measure_record_history"
 path = "tests/measure_record_history.rs"
@@ -396,3 +393,7 @@ path = "tests/measure_record_validity.rs"
 [[test]]
 name = "precautionary_record_reviews"
 path = "tests/precautionary_record_reviews.rs"
+
+[[test]]
+name = "measure_record_decisions"
+path = "tests/measure_record_decisions.rs"
