@@ -3,6 +3,7 @@ mod capture;
 mod encoding;
 mod model;
 mod preparation;
+mod replacement;
 mod wire;
 pub use capture::{measure_administrative_capture_matches, measure_administrative_origin};
 pub use encoding::{
@@ -11,6 +12,7 @@ pub use encoding::{
 };
 pub use model::*;
 pub use preparation::{prepare_measure_record_correction, CheckedMeasureAdministrativeReview};
+pub use replacement::prepare_measure_administrative_replacement_with_decision_history;
 mod record_history;
 mod record_index;
 mod record_model;

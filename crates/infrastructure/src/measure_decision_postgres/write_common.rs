@@ -105,7 +105,7 @@ pub(super) fn member(
             &[
                 &fields.id.as_uuid(),
                 &fields.case.as_uuid(),
-                &fields.root_operation.as_uuid(),
+                &fields.root_operation,
             ],
         )
         .map_err(port)?;

@@ -86,9 +86,10 @@ no acredita el cierre del flujo completo.
 
 ## Persistencia local de correcciones administrativas
 
-`PostgresMeasureAdministrativeStore` registra Correct y Mark de forma atómica
-con su auditoría. Exige la cabeza exacta con captura válida y rechaza una
-corrección si ya existe un uso de esa revisión por una decisión, otra corrección
+`PostgresMeasureAdministrativeStore` registra Correct, Mark y el reemplazo
+administrativo conjunto con su auditoría atómica. La verificación nativa del
+nuevo reemplazo está en curso. Exige la cabeza exacta con captura válida y rechaza
+una corrección si ya existe un uso de esa revisión por una decisión, otra corrección
 o una audiencia. Conserva usos históricos aunque la audiencia cambie después;
 un uso de otra revisión o medida no produce un bloqueo falso. Permite corregir
 registros de medidas terminadas sin cambiar su condición jurídica.
@@ -159,8 +160,9 @@ mantienen G1 y los bytes históricos.
 Los efectos judiciales nuevos requieren la cabeza exacta Valid entre M1/M2/C
 y rechazan acciones judiciales terminales. Una C aporta sus valores, contexto
 y reloj efectivos. Correct y Mark posteriores a M2 conservan la última medida,
-grupo y soporte judiciales reales. No crean otra identidad ni implementan el
-reemplazo administrativo opcional con enlace atómico.
+grupo y soporte judiciales reales. Correct y Mark conservan la identidad; el
+reemplazo conjunto descrito abajo añade una identidad administrativa nueva con
+enlace atómico, sin modificar esas declaraciones judiciales.
 
 El puerto mixto de convocatorias programa, reemplaza, cancela y recupera
 operaciones con objetivos exactos M1/M2/C y prefijos completos. Review y sus
@@ -181,11 +183,72 @@ MDTXN1/MDCR1, los recibos V2 MDPR2/MMCR2/MDGR2, los administrativos ni
 PHEAR1/PHTXN1/PHPR1/PHCR1. El inventario detecta resultados anunciados perdidos
 y evita retroceder silenciosamente la cabeza.
 
-La extensión y sus consultas mixtas tienen verificación nativa focal. Faltan la
-persistencia del reemplazo administrativo opcional, HTTP, Agenda, alertas, Qadra,
-aceptación de reinicio y restauración, y conciliación del manuscrito. La regresión
+La extensión mixta y sus consultas tienen verificación nativa focal. El
+reemplazo administrativo y sus migraciones `0041_` están implementados, con
+verificación nativa en curso. Faltan HTTP, Agenda, alertas, Qadra, aceptación de
+reinicio y restauración, y conciliación del manuscrito. La regresión
 afectada y los controles de cierre completos siguen pendientes. La implementación
 local no acredita esas partes ni cambia el estado propuesto de la entrega completa.
+
+## Reemplazo administrativo atómico de identidad
+
+`MarkEnteredInErrorAndReplace` recibe el objetivo exacto Valid, una identidad de
+medida nueva y una referencia exacta de sujeto. La preparación pura exige la
+ficha completa del sujeto; el servicio autorizado la recibe en
+`MeasureAdministrativeReady.replacement_subject`. No exige una persona distinta,
+una revisión actual del sujeto ni una regla judicial adicional. Correct y Mark
+sin reemplazo conservan sus contratos y rechazan material de reemplazo inesperado.
+
+Una operación A conserva dos registros y un enlace explícito por función. La
+identidad anterior avanza una revisión, queda EnteredInError y conserva valores,
+fuentes, raíz, origen y última declaración judicial, acción y soporte. La nueva
+identidad comienza en R1 Valid, con raíz Administrative de esta operación. Sus
+valores efectivos solo cambian en el sujeto seleccionado: clase, condiciones,
+tiempos declarados, variante de supervisión y supervisor exacto se conservan.
+Una acción terminal no se reactiva y ninguna decisión judicial se reescribe.
+
+La fila nueva apunta como predecesor al objetivo original, aunque sea otra
+identidad. Ese salto solo pertenece al R1 de reemplazo de esta operación; los
+sucesores posteriores avanzan normalmente en la nueva identidad. Las filas se
+ordenan por UUID/revisión y el enlace identifica por separado la marca y el
+reemplazo. Elegir cualquiera de ellas obliga a reconstruir el propietario
+completo y ambas filas; el enlace de salida no crea una dependencia consigo mismo.
+
+El candidato reserva un propietario y dos filas en los límites de 256/8192,
+antes de hashear o copiar material sustantivo. La identidad nueva debe estar
+libre, además de la operación y la siguiente revisión anterior. El historial
+permite sucesores auténticos de esa nueva raíz sin confundirlos con reutilización.
+El inventario comparte ambas fuentes y rechaza contradicciones. La hora de
+captura no precede al registro efectivo, al contexto observado, a `changed_at`
+de la nueva ficha de sujeto ni a la observación previa al commit autorizado.
+No se inventa precisión ni se cambia el supervisor por su cabeza actual.
+
+MATXN1 usa el tag 2 para identidad nueva y sujeto exacto. Solo esta acción agrega
+el resultado de reemplazo a MAPR1 y el enlace de los dos resultados a MAGR1,
+después de las filas ordenadas y antes del reloj. MARCR1 mantiene su formato.
+Cada fila se compromete antes del propietario, sin ciclo de digests. Los bytes
+anteriores de Correct y Mark, así como todos los formatos G y H, se preservan.
+
+Las migraciones `0041_` añaden cuatro selectores opcionales a la carga A; no
+crean otra familia de tablas ni de recibos. Los controles de captura, fuentes y
+completitud requieren exactamente dos C y una raíz nueva para reemplazo, y una
+C sin raíz nueva para los comandos anteriores. Admiten una raíz a1/c1 únicamente
+cuando su carga nombra el reemplazo y conserva el objetivo y la fila marcada
+exactos. El soporte retenido se obtiene de la última declaración judicial real,
+siguiendo el salto de identidad de un C/R1 cuando corresponda. Autorización,
+cabeza Valid, ausencia de dependientes, identidad libre y fuentes se vuelven a
+comprobar bajo el bloqueo. Ambas filas, raíz, carga, propietario y evento ma1 se
+confirman juntos; el replay conserva el recibo original y sus dos registros.
+
+G2 puede consumir el reemplazo válido conservando la raíz Administrative y el
+origen judicial por separado; una M2 posterior pasa a ser la última declaración
+judicial real. Review y sus anclas admiten C/M2 de reemplazo Valid, incluso
+revisiones antiguas y acciones terminales, sin exigir cabeza de medida. Las
+consultas muestran la cabeza marcada anterior y la nueva identidad con su
+propietario completo; las referencias históricas Valid siguen siendo exactas.
+La consulta administrativa conserva ambas filas y el enlace. La verificación
+nativa del reemplazo pasó diez casos focales; la regresión afectada sigue en curso. HTTP, Agenda, alertas, Qadra, aceptación de
+reinicio y restauración, y conciliación del manuscrito siguen pendientes.
 
 ## Frontera de la implementación local
 
@@ -460,11 +523,11 @@ vigente ni que exista permiso de modificación. El resultado comprobado no
 expone una bandera de elegibilidad y el almacén debe resolver esas obligaciones
 durante la admisión atómica con autorización y auditoría.
 
-El servicio autorizado `MeasureAdministrativeService` prepara y confirma Correct
-y MarkEnteredInError para Owner y Litigator; Paralegal y Client no pueden escribir.
+El servicio autorizado `MeasureAdministrativeService` prepara y confirma Correct,
+MarkEnteredInError y MarkEnteredInErrorAndReplace para Owner y Litigator; Paralegal y Client no pueden escribir.
 `MeasureAdministrativeReady` conserva contexto observado, un documento cifrado,
 cabeza exacta observada e inventario completo suministrado de propietarios y
-prefijos. La referencia del comando debe coincidir con `target_head`; se valida
+prefijos. El reemplazo requiere además la ficha completa del sujeto seleccionado. La referencia del comando debe coincidir con `target_head`; se valida
 una vez todo `dependency_inventory` y se rechaza cualquier uso directo conocido,
 incluidos Review históricos y decisiones sin filas que anclan Review. El registro
 seleccionado debe conservar validez Valid. Una acción judicial terminal sigue
@@ -474,11 +537,11 @@ El mismo índice comprobado aporta el registro efectivo y su cierre original de
 ancestros. La revisión contrasta contexto activo, comando y fuentes inmutables;
 conserva las fuentes históricas, incluso archivadas. Extrae el cierre exacto del
 objetivo sin volver a hashear el bosque ni guardar raíces ajenas o la ascendencia
-adicional del prefijo como ancestros del recibo. El candidato cuenta en los
-límites de 256 propietarios y 8192 filas del cierre devuelto. El inventario
+adicional del prefijo como ancestros del recibo. El candidato cuenta como un propietario y una o dos filas en los
+límites de 256 propietarios y 8192 filas antes de reconstruir o copiar el cierre. El inventario
 observado mantiene, por separado, los límites completos del inspector.
 
-Ambas acciones admiten fuera del bloqueo de auditoría la versión cifrada exacta
+Las tres acciones admiten fuera del bloqueo de auditoría la versión cifrada exacta
 del soporte de la última declaración judicial real. El procesador comprueba
 integridad y formato; la captura admitida debe coincidir íntegramente con el
 soporte retenido. No se sustituyen sujetos o supervisores por sus cabezas actuales.
@@ -498,16 +561,16 @@ El servicio distingue cabeza obsoleta, dependientes conocidos, operación en
 conflicto, confirmaciones distintas e historia incompleta o inconsistente.
 El puerto exige revalidar bajo el bloqueo de auditoría principal, acceso,
 contexto activo, cabeza Valid, ausencia durable completa de dependientes y
-fuentes/soporte exactos; debe impedir carreras y guardar recibo, fila, origen,
-operación, cabeza y auditoría atómicamente. Esa obligación no queda demostrada
-por un inventario suministrado sin usos conocidos.
+fuentes/soporte exactos; debe impedir carreras y guardar recibo, todas las filas y
+raíces propias, origen, operación, cabezas y auditoría atómicamente. Esa obligación
+no queda demostrada por un inventario suministrado sin usos conocidos.
 
 La persistencia administrativa, su admisión transaccional y las lecturas
-autorizadas se describen arriba. Siguen pendientes rutas HTTP y aceptación de
-restauración, la regresión de cierre y el reemplazo
-administrativo opcional con identidad nueva, enlace atómico y su persistencia.
-Agenda, alertas e interfaz siguen pendientes. Los formatos
-MATXN1/MAPR1/MARCR1/MAGR1 no cambian.
+autorizadas se describen arriba. El reemplazo conjunto está implementado y su
+verificación nativa está en curso. Siguen pendientes rutas HTTP, aceptación de
+restauración, regresión de cierre, Agenda, alertas e interfaz. Los bytes previos
+de MATXN1/MAPR1/MARCR1/MAGR1 se preservan; el tag nuevo compromete sus dos
+resultados y enlace.
 
 Los resultados focales se registran en [el informe](verification-report.md);
 no acreditan por sí solos el flujo completo.

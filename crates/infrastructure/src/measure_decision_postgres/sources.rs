@@ -105,7 +105,7 @@ pub(super) fn selected(
     resolve_measure_sources(hasher, case, values, &sources).map_err(inconsistent)?;
     Ok(sources)
 }
-fn subject(
+pub(crate) fn subject(
     tx: &mut Transaction<'_>,
     case: CaseId,
     reference: SubjectRevisionRef,

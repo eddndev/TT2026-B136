@@ -22,6 +22,16 @@ pub fn measure_administrative_submission_bytes(
             blob(&mut bytes, &values.canonical_bytes())?;
         }
         MeasureAdministrativeAction::MarkEnteredInError => bytes.push(1),
+        MeasureAdministrativeAction::MarkEnteredInErrorAndReplace {
+            replacement_id,
+            subject,
+        } => {
+            bytes.push(2);
+            bytes.extend_from_slice(replacement_id.as_uuid().as_bytes());
+            bytes.extend_from_slice(subject.id.as_uuid().as_bytes());
+            bytes.extend_from_slice(&subject.revision.get().to_be_bytes());
+            bytes.extend_from_slice(subject.values_digest.as_bytes());
+        }
     }
     Ok(bytes)
 }
@@ -29,6 +39,13 @@ pub fn measure_administrative_submission_bytes(
 pub fn measure_administrative_review_bytes(
     review: &MeasureAdministrativeReview,
 ) -> Result<Vec<u8>, ApplicationError> {
+    let replaces = matches!(
+        review.command.action,
+        MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. }
+    );
+    if replaces != review.replacement.is_some() {
+        return Err(invalid("replacement review shape differs from action"));
+    }
     let mut bytes = b"MAPR1".to_vec();
     blob(
         &mut bytes,
@@ -38,6 +55,9 @@ pub fn measure_administrative_review_bytes(
     blob(&mut bytes, &review.context.canonical_bytes())?;
     support(&mut bytes, &review.support)?;
     result(&mut bytes, &review.result)?;
+    if let Some(replacement) = &review.replacement {
+        result(&mut bytes, replacement)?;
+    }
     Ok(bytes)
 }
 
@@ -59,8 +79,12 @@ pub fn measure_administrative_record_bytes(
 pub fn measure_administrative_capture_bytes(
     capture: &MeasureAdministrativeCapture,
 ) -> Result<Vec<u8>, ApplicationError> {
-    if capture.records.len() > 32 {
-        return Err(invalid("administrative row limit exceeded"));
+    let replaces = matches!(
+        capture.review.command.action,
+        MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. }
+    );
+    if capture.records.len() > 32 || replaces != capture.replacement_link.is_some() {
+        return Err(invalid("administrative capture shape differs from action"));
     }
     let mut bytes = b"MAGR1".to_vec();
     blob(
@@ -72,6 +96,10 @@ pub fn measure_administrative_capture_bytes(
     for row in &capture.records {
         blob(&mut bytes, &measure_administrative_record_bytes(row)?)?;
         bytes.extend_from_slice(row.capture_digest.as_bytes());
+    }
+    if let Some(link) = &capture.replacement_link {
+        reference(&mut bytes, link.entered_in_error);
+        reference(&mut bytes, link.replacement);
     }
     timestamp(&mut bytes, capture.recorded_at);
     Ok(bytes)

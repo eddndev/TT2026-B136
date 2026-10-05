@@ -42,6 +42,7 @@ impl Fixture {
                 context: fixture.context,
                 support_record,
                 target_head: fixture.command.target,
+                replacement_subject: None,
                 dependency_inventory: MeasureAdministrativeDependencyInventory {
                     records: fixture.history.clone(),
                     hearings: vec![],
@@ -83,6 +84,7 @@ impl Fixture {
             case_id: previous.case_id,
             material: MeasureAdministrativeReady {
                 target_head: command.target,
+                replacement_subject: None,
                 dependency_inventory: MeasureAdministrativeDependencyInventory {
                     records: history.clone(),
                     hearings: vec![],

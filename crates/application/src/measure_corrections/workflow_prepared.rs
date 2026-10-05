@@ -59,6 +59,11 @@ pub(super) fn prepare(
     if material.target_head != command.target {
         return Err(MeasureAdministrativeError::StaleHead.into());
     }
+    super::record_bounds::limits(
+        (&material.dependency_inventory.records).into(),
+        1,
+        super::record_bounds::candidate_rows(&command),
+    )?;
     let (index, mut sources) = super::dependencies::checked_forest(
         services.hasher.as_ref(),
         case_id,
@@ -70,15 +75,16 @@ pub(super) fn prepare(
         return Err(MeasureAdministrativeError::KnownDependants.into());
     }
     index.candidate(&command)?;
-    let record_history = super::record_graph::extract_closure(&index, command.target)?;
+    let record_history = super::record_graph::extract_closure(&index, &command)?;
     let previous = index.view(index.selected(command.target)?)?;
-    let checked = super::preparation::prepare_from_record(
+    let checked = super::preparation::prepare_from_record_with_subject(
         services.hasher.as_ref(),
         actor,
         case_id,
         command,
         material.context.clone(),
         previous,
+        material.replacement_subject.clone(),
     )?;
     super::record_history::add_sources(&mut sources, checked.review())?;
     let retained = &checked.review().support;

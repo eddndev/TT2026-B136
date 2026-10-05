@@ -274,7 +274,8 @@ sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
 adaptador conserva también confirmación, modificación, revocación, cese y
 sustitución desde predecesores exactos. Review consume sus revisiones exactas,
 propietarios completos y ancestros. Admite anclas iniciales ordinarias y cautelares
-exactas. El adaptador administrativo conserva Correct y Mark. La extensión
+exactas. El adaptador administrativo conserva Correct, Mark y el reemplazo
+conjunto con identidad nueva descrito en la migración `0041_`. La extensión
 G2/M2 y sus consumidores mixtos está implementada localmente, con verificación
 nativa focal. No está compuesto en HTTP ni desplegado.
 
@@ -302,9 +303,10 @@ ejecuciones de migración. El catálogo valida esa forma exacta.
 Las tablas `case_measure_operations`, `case_measure_decisions`,
 `case_measure_administrations`, `case_measures` y `case_measure_revisions` son
 inmutables. Las relaciones diferidas exigen una decisión completa para G1/G2,
-incluso sin medidas, o una carga administrativa y un único miembro C para A1.
-Cada raíz conserva su revisión inicial del mismo propietario judicial; A no
-crea raíces. El respaldo debe incluir las correcciones y toda su ascendencia,
+incluso sin medidas. Correct y Mark conservan una carga administrativa y un
+único miembro C sin crear raíces; el reemplazo conjunto de `0041_` exige dos
+miembros C y una raíz nueva del mismo propietario A. Cada raíz conserva su
+revisión inicial y propietario original. El respaldo debe incluir las correcciones y toda su ascendencia,
 sus valores efectivos, fuentes y eventos originales `ma1`, además de los `mg1`,
 `mg2` y `ph1`. Perder una corrección no autoriza volver a la revisión anterior. Las
 revisiones posteriores pertenecen al grupo nuevo sin reasignar esa raíz. El
@@ -418,11 +420,68 @@ de confirmar el acceso. No añade tablas, recibos ni formatos; su verificación
 nativa incluye cierre, fuentes exactas, autorización, corrupción y rollback.
 
 No reparar familias o compromisos a mano ni borrar auditorías para abrir un
-almacén. Faltan la persistencia de reemplazo administrativo con identidad nueva
-y enlace atómico, HTTP, Agenda, alertas, Qadra, aceptación de reinicio/restauración
-y conciliación del manuscrito. Registrar resultados ejecutados en el informe de
-verificación; las pruebas focales y la presencia de estas migraciones no acreditan
-esas comprobaciones ni sustituyen la regresión y los controles de cierre pendientes.
+almacén. La integración HTTP completa, Agenda, alertas, Qadra, aceptación de
+reinicio/restauración y conciliación del manuscrito siguen pendientes. El router
+local de contexto y audiencias tiene su
+[contrato propio](precautionary-hearings-api.md); su presencia no acredita la
+composición en servidor ni la aceptación del flujo completo. Registrar resultados
+ejecutados en el informe de verificación; las pruebas focales y la presencia de
+estas migraciones no sustituyen la regresión y los controles de cierre pendientes.
+
+### Reemplazo administrativo conjunto con identidad nueva
+
+`database migrate --runtime-role` instala los siete archivos de la familia
+`0041_`, conservando las migraciones anteriores:
+
+- `0041_measure_administrative_replacement.sql` añade los cuatro selectores
+  de identidad/sujeto de reemplazo y sus restricciones y claves foráneas.
+- `0041_measure_administration_capture.sql` valida la captura administrativa,
+  cabeza exacta, dependientes declarados, sujeto seleccionado y auditoría.
+- `0041_measure_record_sources.sql` valida los valores y fuentes de cada miembro.
+- `0041_measure_record_complete.sql` exige el propietario completo, sus dos
+  miembros y la raíz nueva cuando la acción es `replace_entered_in_error`.
+- `0041_measure_decision_capture.sql` conserva la reserva de identidades
+  declaradas por un reemplazo al admitir propuestas judiciales nuevas.
+- `0041_precautionary_hearing_records.sql` y
+  `0041_measure_decision_hearing_records.sql` admiten raíces administrativas
+  auténticas al verificar objetivos de Review y anclas cautelares.
+
+No se añaden tablas ni se transforman recibos anteriores. Los selectores son
+`replacement_measure_id`, `replacement_subject_id`,
+`replacement_subject_revision` y `replacement_subject_values_digest`.
+Correct y Mark los mantienen NULL; `replace_entered_in_error` exige los cuatro
+y no contiene valores MCVAL1. El catálogo comprueba columnas, forma cerrada,
+claves y cuerpos de guardas; los permisos de INSERT se amplían sólo a esas
+columnas, sin habilitar UPDATE, DELETE, TRUNCATE ni ejecución directa de guardas.
+
+La operación conjunta marca la revisión siguiente de la identidad original
+como EnteredInError y crea otra identidad en R1 Valid. Ambas filas C1, su raíz
+nueva, carga A1 y evento `measure_administrative.recorded` se confirman en la
+misma transacción. El enlace del recibo identifica expresamente cada papel;
+el orden por UUID de las filas no lo determina. La identidad nueva debe estar
+libre en el inventario global. El sujeto se carga por expediente, identidad,
+revisión y digest exactos, sin sustituirlo por la revisión vigente. El reloj de
+captura no puede preceder a ese sujeto ni a las demás fuentes retenidas.
+
+Sólo cambian la identidad y el sujeto seleccionados para la fila nueva. Se
+conservan términos, supervisión, fuentes retenidas, origen judicial y último
+soporte judicial real. No se fabrica una decisión ni una medida judicial para
+esta operación administrativa. Un efecto G2 posterior, otra corrección y una
+Review conservan la raíz administrativa original y sus pruebas completas.
+Cada captura nueva reserva un propietario y dos miembros dentro de los límites
+existentes. La admisión sigue exigiendo cabeza Valid actual, autorización vigente
+y ausencia de dependientes declarados; el replay conserva la operación original.
+
+Respaldar ambas filas y la raíz nueva junto con el propietario, sus selectores,
+fuentes y auditoría. La reconstrucción compara los compromisos originales y
+rechaza pérdida de cualquiera de esos componentes; una fila superviviente no
+permite volver a una cabeza anterior ni reutilizar la identidad anunciada.
+El marcador `ma1` sigue vinculando el resultado de la identidad original y los
+digests de envío, revisión y captura. Los formatos anteriores conservan sus
+bytes; la acción conjunta usa el tag 2 y añade sus resultados y enlace explícitos.
+Esta descripción de almacenamiento no declara aprobada la aceptación integrada
+HTTP, de reinicio o restauración; consultar su evidencia en el
+[informe de verificación](verification-report.md).
 
 ## Contenido e incidentes de integridad
 

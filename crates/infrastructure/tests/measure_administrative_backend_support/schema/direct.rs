@@ -26,6 +26,9 @@ pub(super) fn payload(capture: &MeasureAdministrativeCapture) -> Value {
             )
         }
         MeasureAdministrativeAction::MarkEnteredInError => ("entered_in_error", None, None, None),
+        MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. } => {
+            panic!("identity replacement requires the two-member SQL fixture")
+        }
     };
     let context = review.context.material();
     json!({

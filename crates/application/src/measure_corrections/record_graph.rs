@@ -29,6 +29,24 @@ pub(super) fn validate<'a>(
     reconstruct(hasher, case, index, roots, &[], inventory)
 }
 
+pub(super) fn validate_administrative<'a>(
+    hasher: &dyn DocumentHasher,
+    case: CaseId,
+    command: &super::MeasureAdministrativeCommand,
+    evidence: HistoryView<'a>,
+    inventory: &mut SourceInventory<'a>,
+) -> Result<RecordIndex<'a>, ApplicationError> {
+    let index = RecordIndex::with_reserved_rows(
+        case,
+        evidence,
+        1,
+        super::record_bounds::candidate_rows(command),
+    )?;
+    index.candidate(command)?;
+    let roots = vec![index.owner(index.selected(command.target)?)];
+    reconstruct(hasher, case, index, roots, &[], inventory)
+}
+
 pub(super) fn validate_forest<'a>(
     hasher: &dyn DocumentHasher,
     case: CaseId,
@@ -125,14 +143,19 @@ fn reconstruct<'a>(
             let a = &evidence.administrative
                 [owner - evidence.judicial.groups.len() - evidence.decisions.len()]
             .capture;
+            index.administrative_candidate(&a.review.command, Some(owner))?;
             let previous = index.view(index.selected(a.review.command.target)?)?;
-            let checked = super::preparation::prepare_from_record(
+            let checked = super::preparation::prepare_from_record_with_subject(
                 hasher,
                 &a.review.actor,
                 case,
                 a.review.command.clone(),
                 a.review.context.clone(),
                 previous,
+                a.review
+                    .replacement
+                    .as_ref()
+                    .map(|r| r.sources.subject.clone()),
             )?;
             if checked.into_capture(hasher, a.recorded_at)? != *a {
                 return Err(invalid(
@@ -188,7 +211,14 @@ fn dependencies(index: &RecordIndex<'_>, owner: usize) -> Result<Vec<usize>, App
     } else {
         let a = &e.administrative[owner - e.judicial.groups.len() - e.decisions.len()].capture;
         index.judicial(&a.review.result.last_judicial)?;
-        if a.records[0].result.last_judicial != a.review.result.last_judicial {
+        if a.records
+            .iter()
+            .any(|row| row.result.last_judicial != a.review.result.last_judicial)
+            || a.review
+                .replacement
+                .as_ref()
+                .is_some_and(|result| result.last_judicial != a.review.result.last_judicial)
+        {
             return Err(invalid("administrative judicial claims differ"));
         }
         refs.push(a.review.command.target);
@@ -202,10 +232,10 @@ fn dependencies(index: &RecordIndex<'_>, owner: usize) -> Result<Vec<usize>, App
 /// Extracts the old exact record closure from an already checked forest.
 pub(super) fn extract_closure(
     index: &RecordIndex<'_>,
-    target: PrecautionaryMeasureRef,
+    command: &super::MeasureAdministrativeCommand,
 ) -> Result<MeasureDecisionRecordHistoryEvidence, ApplicationError> {
     let mut owners = std::collections::BTreeSet::new();
-    let mut stack = vec![index.owner(index.selected(target)?)];
+    let mut stack = vec![index.owner(index.selected(command.target)?)];
     while let Some(owner) = stack.pop() {
         if owners.insert(owner) {
             stack.extend(dependencies(index, owner)?);
@@ -216,6 +246,26 @@ pub(super) fn extract_closure(
         return Err(invalid("combined owner budget exceeded"));
     }
     let evidence = index.evidence;
+    let mut rows = super::record_bounds::candidate_rows(command);
+    for owner in &owners {
+        rows += if *owner < evidence.judicial.groups.len() {
+            evidence.judicial.groups[*owner].capture.measures.len()
+        } else if *owner < evidence.judicial.groups.len() + evidence.decisions.len() {
+            evidence.decisions[*owner - evidence.judicial.groups.len()]
+                .capture
+                .measures
+                .len()
+        } else {
+            evidence.administrative
+                [*owner - evidence.judicial.groups.len() - evidence.decisions.len()]
+            .capture
+            .records
+            .len()
+        };
+        if rows > 8192 {
+            return Err(invalid("combined row budget exceeded"));
+        }
+    }
     let mut result = MeasureDecisionRecordHistoryEvidence {
         records: super::MeasureRecordHistoryEvidence {
             judicial: MeasureHistoryEvidence { groups: Vec::new() },
@@ -242,6 +292,10 @@ pub(super) fn extract_closure(
             );
         }
     }
-    super::record_bounds::bounds((&result).into(), 1)?;
+    super::record_bounds::limits(
+        (&result).into(),
+        1,
+        super::record_bounds::candidate_rows(command),
+    )?;
     Ok(result)
 }

@@ -224,8 +224,17 @@ pub(crate) fn inventory_intact(tx: &mut Transaction<'_>) -> Result<(), Applicati
             LEFT JOIN case_measure_operations o ON o.operation_id=m.root_operation AND o.case_id=m.case_id
             LEFT JOIN case_measure_revisions r ON r.measure_id=m.id AND r.case_id=m.case_id
                 AND r.revision=m.initial_revision AND r.owner_operation=m.root_operation
-            WHERE m.initial_revision<>1 OR o.operation_id IS NULL OR o.family NOT IN ('g1','g2') OR r.measure_id IS NULL
-                OR r.family<>CASE o.family WHEN 'g1' THEN 'm1' WHEN 'g2' THEN 'm2' END)
+            WHERE m.initial_revision<>1 OR o.operation_id IS NULL OR o.family NOT IN ('g1','g2','a1') OR r.measure_id IS NULL
+                OR r.family<>CASE o.family WHEN 'g1' THEN 'm1' WHEN 'g2' THEN 'm2' ELSE 'c1' END
+                OR (o.family='a1' AND (r.validity<>'valid' OR NOT EXISTS(
+                    SELECT 1 FROM case_measure_administrations replacement
+                    JOIN case_measure_revisions marked ON marked.owner_operation=replacement.operation_id
+                        AND marked.case_id=replacement.case_id AND marked.measure_id=replacement.target_measure_id
+                        AND marked.revision=replacement.target_revision+1 AND marked.family='c1'
+                        AND marked.validity='entered_in_error'
+                    WHERE replacement.operation_id=o.operation_id AND replacement.case_id=m.case_id
+                        AND replacement.capture_digest=o.owner_digest AND replacement.action='replace_entered_in_error'
+                        AND replacement.replacement_measure_id=m.id))))
          OR EXISTS(SELECT 1 FROM case_measure_revisions r
             LEFT JOIN case_measures m ON m.id=r.measure_id AND m.case_id=r.case_id
             LEFT JOIN case_measure_operations o ON o.operation_id=r.owner_operation AND o.case_id=r.case_id

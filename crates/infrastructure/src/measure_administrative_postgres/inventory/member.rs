@@ -3,7 +3,7 @@ use application::{measure_corrections::*, ApplicationError};
 use domain::{
     cases::CaseId,
     crypto::DocumentHasher,
-    precautionary_measures::{MeasureSupervision, MeasureValues},
+    precautionary_measures::{MeasureSupervision, MeasureValues, MeasureValuesInput},
 };
 use postgres::{Row, Transaction};
 
@@ -19,15 +19,6 @@ pub(super) fn validate(
     hasher: &dyn DocumentHasher,
 ) -> Result<(), ApplicationError> {
     let op = command.operation_id.as_uuid();
-    let counts = tx.query_one("SELECT
-        (SELECT count(*) FROM (SELECT 1 FROM case_measure_revisions WHERE owner_operation=$1 LIMIT 2) members),
-        (SELECT count(*) FROM (SELECT 1 FROM case_measures WHERE root_operation=$1 LIMIT 1) roots)",
-        &[&op]).map_err(port)?;
-    if counts.get::<_, i64>(0) != 1 || counts.get::<_, i64>(1) != 0 {
-        return Err(inconsistent(
-            "advertised administrative owner has missing or extra members or roots",
-        ));
-    }
     let previous = tx.query_opt(&format!("SELECT r.*,root.root_operation,root.initial_revision,o.family AS root_family
         FROM case_measure_revisions r JOIN case_measures root ON root.id=r.measure_id AND root.case_id=r.case_id
         JOIN case_measure_operations o ON o.operation_id=root.root_operation AND o.case_id=root.case_id
@@ -44,7 +35,7 @@ pub(super) fn validate(
         || previous.get::<_, i64>("initial_revision") != 1
         || !matches!(
             previous.get::<_, String>("root_family").as_str(),
-            "g1" | "g2"
+            "g1" | "g2" | "a1"
         )
     {
         return Err(inconsistent(
@@ -52,39 +43,88 @@ pub(super) fn validate(
         ));
     }
     let original = values(&previous, hasher)?;
-    let (expected, validity) = match &command.action {
-        MeasureAdministrativeAction::Correct(correction) => (
-            original.correct_record(correction).map_err(inconsistent)?,
-            "valid",
-        ),
-        MeasureAdministrativeAction::MarkEnteredInError => (original, "entered_in_error"),
-    };
-    let row = tx
-        .query_opt(
-            &format!(
-                "SELECT r.* FROM case_measure_revisions r
-        WHERE r.owner_operation=$1 AND {BOUNDS}"
-            ),
-            &[&op],
-        )
-        .map_err(port)?
-        .ok_or_else(|| inconsistent("advertised administrative member exceeds bounds"))?;
     let revision = command
         .target
         .revision()
         .next()
         .ok_or_else(|| inconsistent("administrative result revision overflows"))?;
-    if row.get::<_, uuid::Uuid>("case_id") != case.as_uuid()
-        || row.get::<_, uuid::Uuid>("measure_id") != command.target.id().as_uuid()
-        || row.get::<_, i64>("revision") != i64::from(revision.get())
-        || row.get::<_, String>("family") != "c1"
-        || row.get::<_, String>("validity") != validity
-        || row.get::<_, String>("action") != previous.get::<_, String>("action")
-        || values(&row, hasher)? != expected
+    let (old_values, old_validity) = match &command.action {
+        MeasureAdministrativeAction::Correct(correction) => (
+            original.correct_record(correction).map_err(inconsistent)?,
+            "valid",
+        ),
+        MeasureAdministrativeAction::MarkEnteredInError
+        | MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. } => {
+            (original.clone(), "entered_in_error")
+        }
+    };
+    let mut expected = vec![(
+        command.target.id().as_uuid(),
+        i64::from(revision.get()),
+        old_values,
+        old_validity,
+    )];
+    let mut roots = Vec::new();
+    if let MeasureAdministrativeAction::MarkEnteredInErrorAndReplace {
+        replacement_id,
+        subject,
+    } = &command.action
+    {
+        roots.push(replacement_id.as_uuid());
+        expected.push((
+            replacement_id.as_uuid(),
+            1,
+            MeasureValues::new(MeasureValuesInput {
+                subject: *subject,
+                kind: original.kind(),
+                conditions: original.conditions().clone(),
+                validity: original.validity().clone(),
+                supervision: original.supervision().clone(),
+            }),
+            "valid",
+        ));
+    }
+    expected.sort_by_key(|row| (row.0, row.1));
+    let actual_roots = tx.query("SELECT id FROM case_measures WHERE root_operation=$1 AND case_id=$2 AND initial_revision=1 ORDER BY id LIMIT 2", &[&op,&case.as_uuid()])
+        .map_err(port)?.iter().map(|row|row.get::<_,uuid::Uuid>(0)).collect::<Vec<_>>();
+    let counts = tx.query_one("SELECT
+        (SELECT count(*) FROM (SELECT 1 FROM case_measure_revisions WHERE owner_operation=$1 LIMIT 3) members),
+        (SELECT count(*) FROM (SELECT 1 FROM case_measures WHERE root_operation=$1 LIMIT 2) roots)", &[&op]).map_err(port)?;
+    if actual_roots != roots
+        || counts.get::<_, i64>(0) != expected.len() as i64
+        || counts.get::<_, i64>(1) != roots.len() as i64
     {
         return Err(inconsistent(
-            "advertised administrative member differs from the exact command",
+            "advertised administrative owner has missing or extra members or roots",
         ));
+    }
+    let rows = tx
+        .query(
+            &format!(
+                "SELECT r.* FROM case_measure_revisions r
+        WHERE r.owner_operation=$1 AND {BOUNDS} ORDER BY measure_id,revision LIMIT 3"
+            ),
+            &[&op],
+        )
+        .map_err(port)?;
+    if rows.len() != expected.len() {
+        return Err(inconsistent(
+            "advertised administrative member exceeds bounds",
+        ));
+    }
+    for (row, (id, revision, expected, validity)) in rows.iter().zip(expected) {
+        if row.get::<_, uuid::Uuid>("case_id") != case.as_uuid()
+            || row.get::<_, uuid::Uuid>("measure_id") != id
+            || row.get::<_, i64>("revision") != revision
+            || row.get::<_, String>("family") != "c1"
+            || row.get::<_, String>("validity") != validity
+            || row.get::<_, String>("action") != previous.get::<_, String>("action")
+            || values(row, hasher)? != expected
+        {
+            return Err(inconsistent(
+                "advertised administrative member differs from the exact command",
+            ));
+        }
     }
     Ok(())
 }

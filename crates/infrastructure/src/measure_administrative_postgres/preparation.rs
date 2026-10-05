@@ -3,8 +3,10 @@ use crate::measure_decision_postgres::{
     load_precautionary_history, HistoryReserve, HistoryRoot, LoadedMeasureHistory,
 };
 use application::{
-    case_stages::StageSupportRef, documents::StageSupportReadLimits, measure_corrections::*,
-    ApplicationError,
+    case_stages::StageSupportRef, documents::StageSupportReadLimits, identity::Principal,
+    measure_corrections::*, precautionary_hearings::PrecautionaryContext,
+    precautionary_measures::MeasureDecisionRecordHistoryEvidence,
+    typed_participants::SubjectSnapshot, ApplicationError,
 };
 use domain::{
     cases::CaseId,
@@ -31,6 +33,7 @@ pub(super) fn load_with_proof(
     hasher: &dyn DocumentHasher,
 ) -> Result<(MeasureAdministrativeReady, LoadedMeasureHistory), ApplicationError> {
     crate::measure_decision_postgres::audit::inventory_intact(tx)?;
+    fresh_replacement(tx, command)?;
     let context =
         crate::precautionary_hearing_postgres::sources::current_context(tx, case, hasher)?;
     if command.context.administration_revision != context.material().administration.revision
@@ -75,7 +78,14 @@ pub(super) fn load_with_proof(
         &roots,
         HistoryReserve {
             groups: 1,
-            members: 1,
+            members: if matches!(
+                command.action,
+                MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. }
+            ) {
+                2
+            } else {
+                1
+            },
             ..HistoryReserve::default()
         },
         hasher,
@@ -112,8 +122,80 @@ pub(super) fn load_with_proof(
             context,
             support_record,
             target_head,
+            replacement_subject: replacement_subject(tx, case, command, hasher)?,
             dependency_inventory,
         },
         loaded,
     ))
+}
+
+pub(super) fn replacement_subject(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    command: &MeasureAdministrativeCommand,
+    hasher: &dyn DocumentHasher,
+) -> Result<Option<SubjectSnapshot>, ApplicationError> {
+    match &command.action {
+        MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { subject, .. } => {
+            crate::measure_decision_postgres::exact_measure_subject(tx, case, *subject, hasher)
+                .map(Some)
+                .map_err(inconsistent)
+        }
+        _ => Ok(None),
+    }
+}
+
+pub(super) fn checked(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    subject: Option<SubjectSnapshot>,
+    history: &MeasureDecisionRecordHistoryEvidence,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    if let Some(subject) = subject {
+        prepare_measure_administrative_replacement_with_decision_history(
+            hasher,
+            actor,
+            case,
+            command,
+            MeasureAdministrativeReplacementMaterial { context, subject },
+            history,
+        )
+    } else {
+        prepare_measure_administrative_record_with_decision_history(
+            hasher, actor, case, command, context, history,
+        )
+    }
+}
+
+fn fresh_replacement(
+    tx: &mut Transaction<'_>,
+    command: &MeasureAdministrativeCommand,
+) -> Result<(), ApplicationError> {
+    let MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { replacement_id, .. } =
+        &command.action
+    else {
+        return Ok(());
+    };
+    let exists: bool = tx
+        .query_one(
+            "SELECT EXISTS(SELECT 1 FROM case_measures WHERE id=$1)
+         OR EXISTS(SELECT 1 FROM case_measure_revisions WHERE measure_id=$1)
+         OR EXISTS(SELECT 1 FROM case_measure_administrations WHERE replacement_measure_id=$1)
+         OR EXISTS(SELECT 1 FROM case_measure_decisions WHERE
+            outcome_view @> jsonb_build_object('kind','changes','effects',jsonb_build_array(
+                jsonb_build_object('action','impose','proposal',jsonb_build_object('id',$2::text))))
+            OR outcome_view @> jsonb_build_object('kind','changes','effects',jsonb_build_array(
+                jsonb_build_object('action','substitute','successors',jsonb_build_array(
+                    jsonb_build_object('id',$2::text))))))",
+            &[&replacement_id.as_uuid(), &replacement_id.to_string()],
+        )
+        .map_err(port)?
+        .get(0);
+    if exists {
+        return Err(MeasureAdministrativeError::OperationConflict.into());
+    }
+    Ok(())
 }

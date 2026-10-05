@@ -35,7 +35,7 @@ impl<'a> From<&'a MeasureDecisionRecordHistoryEvidence> for HistoryView<'a> {
 pub(super) enum Member {
     Judicial(usize, usize),
     Decision(usize, usize),
-    Administrative(usize),
+    Administrative(usize, usize),
 }
 type MemberKey = ([u8; 16], u32);
 pub(super) struct RecordIndex<'a> {
@@ -50,7 +50,15 @@ impl<'a> RecordIndex<'a> {
         evidence: HistoryView<'a>,
         reserve: usize,
     ) -> Result<Self, ApplicationError> {
-        bounds(evidence, reserve)?;
+        Self::with_reserved_rows(case, evidence, reserve, reserve)
+    }
+    pub fn with_reserved_rows(
+        case: CaseId,
+        evidence: HistoryView<'a>,
+        owners: usize,
+        rows: usize,
+    ) -> Result<Self, ApplicationError> {
+        super::record_bounds::limits(evidence, owners, rows)?;
         let mut result = Self {
             evidence,
             operations: BTreeSet::new(),
@@ -90,11 +98,12 @@ impl<'a> RecordIndex<'a> {
                 return Err(invalid("administrative case or origin differs"));
             }
             result.operation(*a.capture.review.command.operation_id.as_uuid().as_bytes())?;
-            let c = &a.capture.records[0];
-            result.member(
-                (*c.result.id.as_uuid().as_bytes(), c.result.revision.get()),
-                Member::Administrative(position),
-            )?;
+            for (row, c) in a.capture.records.iter().enumerate() {
+                result.member(
+                    (*c.result.id.as_uuid().as_bytes(), c.result.revision.get()),
+                    Member::Administrative(position, row),
+                )?;
+            }
         }
         Ok(result)
     }
@@ -118,9 +127,17 @@ impl<'a> RecordIndex<'a> {
         Ok(())
     }
     pub fn candidate(&self, c: &MeasureAdministrativeCommand) -> Result<(), ApplicationError> {
-        if self
-            .operations
-            .contains(c.operation_id.as_uuid().as_bytes())
+        self.administrative_candidate(c, None)
+    }
+    pub fn administrative_candidate(
+        &self,
+        c: &MeasureAdministrativeCommand,
+        exclude: Option<usize>,
+    ) -> Result<(), ApplicationError> {
+        if exclude.is_none()
+            && self
+                .operations
+                .contains(c.operation_id.as_uuid().as_bytes())
         {
             return Err(invalid("administrative operation already has an owner"));
         }
@@ -131,9 +148,26 @@ impl<'a> RecordIndex<'a> {
             .ok_or_else(|| invalid("measure revision overflow"))?;
         if self
             .members
-            .contains_key(&(*c.target.id().as_uuid().as_bytes(), revision.get()))
+            .get(&(*c.target.id().as_uuid().as_bytes(), revision.get()))
+            .is_some_and(|member| Some(self.owner(*member)) != exclude)
         {
             return Err(invalid("administrative result already has an owner"));
+        }
+        if let MeasureAdministrativeAction::MarkEnteredInErrorAndReplace {
+            replacement_id, ..
+        } = &c.action
+        {
+            if *replacement_id == c.target.id() {
+                return Err(invalid("replacement must use a new measure identity"));
+            }
+            for ((id, revision), member) in &self.members {
+                if id == replacement_id.as_uuid().as_bytes()
+                    && (exclude.is_none() || *revision == 1)
+                    && Some(self.owner(*member)) != exclude
+                {
+                    return Err(invalid("replacement measure identity already owned"));
+                }
+            }
         }
         Ok(())
     }
@@ -196,8 +230,8 @@ impl<'a> RecordIndex<'a> {
                 self.evidence.judicial.groups[g].capture.measures[m].capture_digest
             }
             Member::Decision(g, m) => self.evidence.decisions[g].capture.measures[m].capture_digest,
-            Member::Administrative(a) => {
-                self.evidence.administrative[a].capture.records[0].capture_digest
+            Member::Administrative(a, row) => {
+                self.evidence.administrative[a].capture.records[row].capture_digest
             }
         };
         if digest != r.digest() {
@@ -211,7 +245,7 @@ impl<'a> RecordIndex<'a> {
                 JudicialView::V1(&self.evidence.judicial.groups[g].capture, m)
             }
             Member::Decision(g, m) => JudicialView::V2(&self.evidence.decisions[g].capture, m),
-            Member::Administrative(_) => {
+            Member::Administrative(..) => {
                 return Err(invalid("judicial reference selects administrative row"))
             }
         };
@@ -230,9 +264,12 @@ impl<'a> RecordIndex<'a> {
                 JudicialView::V2(&self.evidence.decisions[g].capture, m),
                 None,
             ),
-            Member::Administrative(a) => {
+            Member::Administrative(a, row) => {
                 let a = &self.evidence.administrative[a].capture;
-                (self.judicial(&a.records[0].result.last_judicial)?, Some(a))
+                (
+                    self.judicial(&a.records[row].result.last_judicial)?,
+                    Some((a, row)),
+                )
             }
         };
         Ok(RecordView {
@@ -244,7 +281,7 @@ impl<'a> RecordIndex<'a> {
         match m {
             Member::Judicial(g, _) => g,
             Member::Decision(g, _) => self.evidence.judicial.groups.len() + g,
-            Member::Administrative(a) => {
+            Member::Administrative(a, _) => {
                 self.evidence.judicial.groups.len() + self.evidence.decisions.len() + a
             }
         }

@@ -6,6 +6,7 @@ use crate::{
         MeasureCaptureAction, MeasureGroupRef, MeasureOriginIds, MeasureSourceProjection,
         MeasureSources,
     },
+    typed_participants::SubjectSnapshot,
 };
 use domain::{
     cases::CaseId,
@@ -16,12 +17,29 @@ use domain::{
     precautionary_measures::{
         MeasureCorrectionOperationId, MeasureCorrectionValues, MeasureValues,
     },
+    typed_participants::SubjectRevisionRef,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MeasureAdministrativeAction {
     Correct(MeasureCorrectionValues),
     MarkEnteredInError,
+    MarkEnteredInErrorAndReplace {
+        replacement_id: MeasureId,
+        subject: SubjectRevisionRef,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MeasureAdministrativeReplacementMaterial {
+    pub context: PrecautionaryContext,
+    pub subject: SubjectSnapshot,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MeasureAdministrativeReplacementLink {
+    pub entered_in_error: PrecautionaryMeasureRef,
+    pub replacement: PrecautionaryMeasureRef,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MeasureAdministrativeCommand {
@@ -72,6 +90,7 @@ pub struct MeasureAdministrativeReview {
     pub context: PrecautionaryContext,
     pub support: StageSupportSnapshot,
     pub result: MeasureAdministrativeResult,
+    pub replacement: Option<MeasureAdministrativeResult>,
     pub submission_digest: Sha256Digest,
     pub review_digest: Sha256Digest,
 }
@@ -92,6 +111,7 @@ pub struct MeasureAdministrativeRecordCapture {
 pub struct MeasureAdministrativeCapture {
     pub review: MeasureAdministrativeReview,
     pub records: Vec<MeasureAdministrativeRecordCapture>,
+    pub replacement_link: Option<MeasureAdministrativeReplacementLink>,
     pub recorded_at: OffsetDateTime,
     pub capture_digest: Sha256Digest,
 }

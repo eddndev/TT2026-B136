@@ -70,7 +70,7 @@ pub(super) fn insert(
                 action: result.action,
                 values: &result.values,
                 digest: capture.capture_digest,
-                root_operation: root.operation_id,
+                root_operation: root.operation_id.as_uuid(),
             },
             result.previous.is_none(),
             hasher,

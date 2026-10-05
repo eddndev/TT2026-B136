@@ -5,6 +5,7 @@ use super::{
 use crate::{
     documents::DocumentRecord, precautionary_hearings::PrecautionaryContext,
     precautionary_measures::MeasureDecisionRecordHistoryEvidence,
+    typed_participants::SubjectSnapshot,
 };
 use domain::{crypto::Sha256Digest, precautionary_hearings::PrecautionaryMeasureRef};
 
@@ -14,6 +15,7 @@ pub struct MeasureAdministrativeReady {
     pub context: PrecautionaryContext,
     pub support_record: DocumentRecord,
     pub target_head: PrecautionaryMeasureRef,
+    pub replacement_subject: Option<SubjectSnapshot>,
     pub dependency_inventory: MeasureAdministrativeDependencyInventory,
 }
 

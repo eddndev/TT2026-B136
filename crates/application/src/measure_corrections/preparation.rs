@@ -6,6 +6,7 @@ use crate::{
         PrecautionaryContext,
     },
     precautionary_measures::{resolve_measure_sources, MeasureHistoryEvidence},
+    typed_participants::SubjectSnapshot,
     ApplicationError,
 };
 use domain::{
@@ -92,18 +93,39 @@ pub(super) fn prepare_with_view(
     context: PrecautionaryContext,
     evidence: super::record_index::HistoryView<'_>,
 ) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    prepare_with_view_with_subject(hasher, actor, case_id, command, context, evidence, None)
+}
+
+pub(super) fn prepare_with_view_with_subject(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    evidence: super::record_index::HistoryView<'_>,
+    subject: Option<SubjectSnapshot>,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
     let mut inventory = SourceInventory::default();
-    let index = super::record_history::validate(
+    let index = super::record_history::validate_administrative(
         hasher,
         case_id,
-        &[command.target],
+        &command,
         evidence,
-        1,
         &mut inventory,
     )?;
-    index.candidate(&command)?;
     let previous = index.view(index.selected(command.target)?)?;
-    let checked = prepare_from_record(hasher, actor, case_id, command, context, previous)?;
+    let checked = match subject {
+        Some(subject) => prepare_from_record_with_subject(
+            hasher,
+            actor,
+            case_id,
+            command,
+            context,
+            previous,
+            Some(subject),
+        ),
+        None => prepare_from_record(hasher, actor, case_id, command, context, previous),
+    }?;
     super::record_history::add_sources(&mut inventory, &checked.review)?;
     Ok(checked)
 }
@@ -115,6 +137,18 @@ pub(super) fn prepare_from_record(
     command: MeasureAdministrativeCommand,
     context: PrecautionaryContext,
     previous: super::record_view::RecordView<'_>,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    prepare_from_record_with_subject(hasher, actor, case_id, command, context, previous, None)
+}
+
+pub(super) fn prepare_from_record_with_subject(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    previous: super::record_view::RecordView<'_>,
+    subject: Option<SubjectSnapshot>,
 ) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
     if !matches!(actor.role, Role::Owner | Role::Litigator) {
         return Err(invalid("captured actor role cannot correct records"));
@@ -143,17 +177,22 @@ pub(super) fn prepare_from_record(
             previous.values().correct_record(values)?,
             MeasureCaptureValidity::Valid,
         ),
-        MeasureAdministrativeAction::MarkEnteredInError => (
+        MeasureAdministrativeAction::MarkEnteredInError
+        | MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. } => (
             previous.values().clone(),
             MeasureCaptureValidity::EnteredInError,
         ),
     };
     let projection = resolve_measure_sources(hasher, case_id, &values, previous.sources())?;
-    let earliest_capture = previous
+    let replacement = super::replacement::result(hasher, case_id, &command, previous, subject)?;
+    let mut earliest_capture = previous
         .recorded_at()
         .max(observed.administration.changed_at)
         .max(observed.stage.recorded_at())
         .max(observed.stage_administration.changed_at);
+    if let Some(replacement) = &replacement {
+        earliest_capture = earliest_capture.max(replacement.sources.subject.changed_at);
+    }
     let result = MeasureAdministrativeResult {
         id: previous.reference().id(),
         revision,
@@ -177,6 +216,7 @@ pub(super) fn prepare_from_record(
         context,
         support: previous.support().clone(),
         result,
+        replacement,
         submission_digest,
         review_digest: Sha256Digest::from_array([0; 32]),
     };

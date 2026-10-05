@@ -17,7 +17,7 @@ pub(super) struct MemberFields<'a> {
     pub action: MeasureCaptureAction,
     pub values: &'a MeasureValues,
     pub digest: Sha256Digest,
-    pub root_operation: MeasureDecisionOperationId,
+    pub root_operation: uuid::Uuid,
 }
 pub(super) fn validate(
     row: &Row,
@@ -64,7 +64,7 @@ pub(super) fn validate(
         return Err(inconsistent("member supervisor selectors differ"));
     }
     if row.get::<_, i64>("initial_revision") != 1
-        || row.get::<_, uuid::Uuid>("root_operation") != expected.root_operation.as_uuid()
+        || row.get::<_, uuid::Uuid>("root_operation") != expected.root_operation
     {
         return Err(inconsistent(
             "measure root does not belong to original member",

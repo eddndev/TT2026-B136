@@ -64,7 +64,8 @@ impl LoadedMeasureHistory {
                 || !parents.contains_key(owner)
                 || groups.contains_key(owner)
                 || decisions.contains_key(owner)
-                || administration.capture.records.len() != 1
+                || administration.capture.records.len()
+                    != 1 + usize::from(administration.capture.review.replacement.is_some())
             {
                 return Err(inconsistent(
                     "loaded administrative owner identity or shape differs",

@@ -133,9 +133,9 @@ pub(super) fn discover(
                     return Err(inconsistent("measure owner exceeds 32 members"));
                 }
                 let family = owner_family(tx, case, op)?;
-                if family == OwnerFamily::Administrative && count != 1 {
+                if family == OwnerFamily::Administrative && !(1..=2).contains(&count) {
                     return Err(inconsistent(
-                        "administrative owner must contain exactly one member",
+                        "administrative owner must contain one or two members",
                     ));
                 }
                 budget.admit(count as usize)?;

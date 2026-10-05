@@ -77,7 +77,7 @@ pub(super) fn member(
             action: capture.result.action,
             values: &capture.result.values,
             digest: capture.capture_digest,
-            root_operation: capture.result.origin.operation_id,
+            root_operation: capture.result.origin.operation_id.as_uuid(),
         },
         hasher,
     )

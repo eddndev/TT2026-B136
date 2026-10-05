@@ -169,7 +169,13 @@ pub fn assert_retained(
         administrative.capture.review.support,
         judicial.group.decision.support
     );
-    assert_eq!(administrative.capture.records[0].result, *result);
+    let target = administrative
+        .capture
+        .records
+        .iter()
+        .find(|row| row.result.id == result.id)
+        .expect("the original target must remain in the captured owner");
+    assert_eq!(target.result, *result);
 }
 
 pub fn same_operation(

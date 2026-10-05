@@ -67,12 +67,14 @@ pub(super) fn member(
     capture: &MeasureCaptureV2,
     hasher: &dyn DocumentHasher,
 ) -> Result<(), ApplicationError> {
-    let application::measure_corrections::MeasureRecordRoot::Judicial(root) =
-        &capture.result.record_root
-    else {
-        return Err(inconsistent(
-            "administrative replacement roots are unsupported",
-        ));
+    let root_operation = match &capture.result.record_root {
+        application::measure_corrections::MeasureRecordRoot::Judicial(root) => {
+            root.operation_id.as_uuid()
+        }
+        application::measure_corrections::MeasureRecordRoot::Administrative {
+            operation_id,
+            ..
+        } => operation_id.as_uuid(),
     };
     super::member_fields::validate(
         row,
@@ -85,7 +87,7 @@ pub(super) fn member(
             action: capture.result.action,
             values: &capture.result.values,
             digest: capture.capture_digest,
-            root_operation: root.operation_id,
+            root_operation,
         },
         hasher,
     )

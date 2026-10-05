@@ -21,21 +21,42 @@ impl CheckedMeasureAdministrativeReview {
         }
         let review = self.review;
         let empty = Sha256Digest::from_array([0; 32]);
-        let mut row = MeasureAdministrativeRecordCapture {
-            case_id: review.case_id,
-            operation_id: review.command.operation_id,
-            result: review.result.clone(),
-            actor: review.actor.clone(),
-            context: review.context.clone(),
-            support: review.support.clone(),
-            review_digest: review.review_digest,
-            recorded_at,
-            capture_digest: empty,
-        };
-        row.capture_digest = hasher.hash_bytes(&measure_administrative_record_bytes(&row)?);
+        let mut records = Vec::with_capacity(2);
+        for result in std::iter::once(&review.result).chain(review.replacement.iter()) {
+            let mut row = MeasureAdministrativeRecordCapture {
+                case_id: review.case_id,
+                operation_id: review.command.operation_id,
+                result: result.clone(),
+                actor: review.actor.clone(),
+                context: review.context.clone(),
+                support: review.support.clone(),
+                review_digest: review.review_digest,
+                recorded_at,
+                capture_digest: empty,
+            };
+            row.capture_digest = hasher.hash_bytes(&measure_administrative_record_bytes(&row)?);
+            records.push(row);
+        }
+        let replacement_link = records.get(1).map(|replacement| {
+            let marked = &records[0];
+            MeasureAdministrativeReplacementLink {
+                entered_in_error: domain::precautionary_hearings::PrecautionaryMeasureRef::new(
+                    marked.result.id,
+                    marked.result.revision,
+                    marked.capture_digest,
+                ),
+                replacement: domain::precautionary_hearings::PrecautionaryMeasureRef::new(
+                    replacement.result.id,
+                    replacement.result.revision,
+                    replacement.capture_digest,
+                ),
+            }
+        });
+        records.sort_by_key(|row| (row.result.id.as_uuid(), row.result.revision.get()));
         let mut capture = MeasureAdministrativeCapture {
             review,
-            records: vec![row],
+            records,
+            replacement_link,
             recorded_at,
             capture_digest: empty,
         };
@@ -75,18 +96,24 @@ fn matches_view(
     capture: &MeasureAdministrativeCapture,
     history: super::record_index::HistoryView<'_>,
 ) -> Result<(), ApplicationError> {
-    if capture.records.len() != 1 {
-        return Err(invalid("correction must own exactly one row"));
-    }
-    super::record_index::bounds(history, 1)?;
+    super::record_bounds::administrative_shape(capture)?;
+    super::record_bounds::limits(
+        history,
+        1,
+        super::record_bounds::candidate_rows(&capture.review.command),
+    )?;
     let review = &capture.review;
-    let expected = super::preparation::prepare_with_view(
+    let expected = super::preparation::prepare_with_view_with_subject(
         hasher,
         &review.actor,
         review.case_id,
         review.command.clone(),
         review.context.clone(),
         history,
+        review
+            .replacement
+            .as_ref()
+            .map(|result| result.sources.subject.clone()),
     )?
     .into_capture(hasher, capture.recorded_at)?;
     if expected != *capture {

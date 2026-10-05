@@ -1,4 +1,7 @@
-use super::{record_index::HistoryView, wire::invalid};
+use super::{
+    record_index::HistoryView, wire::invalid, MeasureAdministrativeAction,
+    MeasureAdministrativeCapture, MeasureAdministrativeCommand,
+};
 use crate::{precautionary_measures::*, ApplicationError};
 
 pub(super) fn bounds(e: HistoryView<'_>, reserve: usize) -> Result<(), ApplicationError> {
@@ -30,9 +33,7 @@ pub(super) fn limits(
         rows += g.capture.measures.len();
     }
     for a in e.administrative {
-        if a.capture.records.len() != 1 {
-            return Err(invalid("administrative owner must contain exactly one row"));
-        }
+        administrative_shape(&a.capture)?;
         rows += a.capture.records.len();
     }
     if rows > 8192 {
@@ -54,4 +55,31 @@ fn bounded(n: usize) -> Result<(), ApplicationError> {
     } else {
         Ok(())
     }
+}
+
+pub(super) fn candidate_rows(command: &MeasureAdministrativeCommand) -> usize {
+    match &command.action {
+        MeasureAdministrativeAction::MarkEnteredInErrorAndReplace { .. } => 2,
+        MeasureAdministrativeAction::Correct(_)
+        | MeasureAdministrativeAction::MarkEnteredInError => 1,
+    }
+}
+
+pub(super) fn administrative_shape(
+    capture: &MeasureAdministrativeCapture,
+) -> Result<(), ApplicationError> {
+    let replacement = candidate_rows(&capture.review.command) == 2;
+    if capture.records.len() != candidate_rows(&capture.review.command)
+        || capture.review.replacement.is_some() != replacement
+        || capture.replacement_link.is_some() != replacement
+    {
+        return Err(invalid("administrative action and owned row shape differ"));
+    }
+    if capture.records.windows(2).any(|rows| {
+        (rows[0].result.id.as_uuid(), rows[0].result.revision)
+            >= (rows[1].result.id.as_uuid(), rows[1].result.revision)
+    }) {
+        return Err(invalid("administrative rows are not strictly ordered"));
+    }
+    Ok(())
 }

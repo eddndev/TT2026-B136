@@ -59,12 +59,14 @@ pub(super) fn insert(
     )?;
     for capture in &group.measures {
         let result = &capture.result;
-        let application::measure_corrections::MeasureRecordRoot::Judicial(root) =
-            &result.record_root
-        else {
-            return Err(inconsistent(
-                "administrative replacement roots are unsupported",
-            ));
+        let root_operation = match &result.record_root {
+            application::measure_corrections::MeasureRecordRoot::Judicial(root) => {
+                root.operation_id.as_uuid()
+            }
+            application::measure_corrections::MeasureRecordRoot::Administrative {
+                operation_id,
+                ..
+            } => operation_id.as_uuid(),
         };
         write_common::member(
             tx,
@@ -77,7 +79,7 @@ pub(super) fn insert(
                 action: result.action,
                 values: &result.values,
                 digest: capture.capture_digest,
-                root_operation: root.operation_id,
+                root_operation,
             },
             result.previous.is_none(),
             hasher,

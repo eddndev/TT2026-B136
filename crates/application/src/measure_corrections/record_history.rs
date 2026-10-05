@@ -82,7 +82,7 @@ fn resolve_view(
     Ok(CheckedMeasureRecords { targets })
 }
 
-pub(super) use super::record_graph::validate;
+pub(super) use super::record_graph::{validate, validate_administrative};
 
 pub(super) fn add_sources<'a>(
     inventory: &mut SourceInventory<'a>,
@@ -90,12 +90,14 @@ pub(super) fn add_sources<'a>(
 ) -> Result<(), ApplicationError> {
     inventory.context(&r.context)?;
     inventory.support(&r.support)?;
-    inventory.subject(&r.result.sources.subject)?;
-    if let Some(p) = &r.result.sources.supervisor {
-        inventory.participant(p)?;
-    }
-    if let Some(p) = &r.result.projection.supervisor {
-        inventory.projection(&p.overview, p.snapshot.values_digest)?;
+    for result in std::iter::once(&r.result).chain(r.replacement.as_ref()) {
+        inventory.subject(&result.sources.subject)?;
+        if let Some(p) = &result.sources.supervisor {
+            inventory.participant(p)?;
+        }
+        if let Some(p) = &result.projection.supervisor {
+            inventory.projection(&p.overview, p.snapshot.values_digest)?;
+        }
     }
     Ok(())
 }

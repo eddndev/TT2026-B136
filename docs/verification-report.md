@@ -9504,3 +9504,50 @@ SQL de hash rechazaba. Ambos se corrigieron antes de las campanas finales.
 No se repitieron codecs, pruebas generales ni evidencia confirmada de main.
 Anclas, G2/M2, registros administrativos durables, HTTP, Agenda, alertas, Qadra,
 restauracion, manuscrito e integracion siguen pendientes del flujo completo.
+
+
+## Reemplazo administrativo atomico de medidas: 5 de octubre de 2026
+
+La extension permite marcar una captura erronea y crear una identidad de medida
+con otro sujeto exacto en la misma transaccion. Conserva los terminos, la fuente
+judicial original y el supervisor; el enlace administrativo identifica ambas
+filas aunque su orden por UUID coloque primero el reemplazo. No constituye una
+sustitucion judicial ni calcula efectos juridicos.
+
+La verificacion focal nueva aprobo 11 pruebas de modelo y siete de servicio.
+La regresion de aplicacion afectada conserva 308 identidades: 27 consultas
+aprobaron inicialmente, una expectativa de codificacion cruda se corrigio y
+aprobo de forma aislada, y las otras 280 aprobaron en 22.909 s. La forma exacta
+de cada propietario sigue comprobada antes del hash y de reconstruir evidencia.
+Los vectores anteriores de Correct y Mark conservaron sus bytes.
+
+Diez pruebas nativas usaron PostgreSQL 16.15 con autenticacion SCRAM y fuentes
+reales; dos aprobaron en el primer recorrido y las ocho restantes aprobaron
+despues de corregir el limite del nombre de accion de 23 a 24 bytes. La union
+conserva las diez identidades, sin contar intentos fallidos como aprobaciones.
+Cubren dos filas y una raiz atomicas, enlace por funcion, sujeto seleccionado,
+reapertura y replay, origen G1/C/G2, consumo posterior por G2 y Review, rechazo
+de evidencia perdida, revocacion de membresia y rollback ante fallo de auditoria.
+El control SQL directo exige ambas filas y la raiz correcta. La admision de
+formato documental usa un puerto controlado; no es aceptacion del parser nativo
+ni de HTTP. Cada cluster desechable propio se elimino al terminar.
+
+La primera verificacion detecto errores de sintaxis CASE en PL/pgSQL y de
+representacion exacta de una restriccion de catalogo, ademas de dos supuestos
+obsoletos en fixtures sobre candidatos y orden de filas. Los diagnosticos se
+conservaron y las correcciones se comprobaron con los casos afectados. Los
+16 casos de grafo aprobaron en 11.320 s. Clippy de aplicacion aprobo en 1.541 s
+tras eliminar un atributo duplicado de prueba; Clippy de infraestructura y los
+nueve objetivos afectados aprobo en 16.093 s. Una revision independiente de
+propiedad atomica, fuentes, relojes, inventario, recuperacion y limites no encontro
+hallazgos. La regresion nativa afectada esta en curso y no se presenta como
+aprobada. HTTP, Agenda, alertas, Qadra, aceptacion integral de reinicio y
+restauracion, manuscrito y controles completos de cierre siguen pendientes.
+
+En la regresión de los adaptadores afectados, cuarenta casos administrativos
+pasaron y uno detectó una referencia SQL fuera de alcance al reconstruir los
+participantes de una audiencia histórica. La migración siguiente corrige ambas
+consultas para usar la revisión seleccionada por el bucle de participantes.
+El caso afectado pasó después en PostgreSQL nativo (10.62 s), conservando las
+fuentes originales tras cambios del directorio y de la audiencia. Los demás
+adaptadores afectados siguen en verificación; no se declara una campaña global.

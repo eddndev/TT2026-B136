@@ -10,9 +10,10 @@ use domain::{
 };
 use postgres::{Row, Transaction};
 
-const BOUNDS:&str="octet_length(a.action)<=16 AND octet_length(a.reason) BETWEEN 1 AND 4000
+const BOUNDS:&str="octet_length(a.action)<=24 AND octet_length(a.reason) BETWEEN 1 AND 4000
  AND COALESCE(octet_length(a.correction_canonical),38) BETWEEN 38 AND 20040
  AND COALESCE(octet_length(a.correction_view::text),0)<=32768 AND COALESCE(octet_length(a.correction_digest),32)=32
+ AND COALESCE(octet_length(a.replacement_subject_values_digest),32)=32
  AND octet_length(a.target_capture_digest)=32 AND octet_length(a.observed_context_digest)=32
  AND octet_length(a.support_format)<=4 AND octet_length(a.support_policy)<=11
  AND octet_length(a.recorded_by_email) BETWEEN 1 AND 1280 AND octet_length(a.recorded_by_role)<=9
@@ -35,25 +36,33 @@ pub(crate) fn reconstruct(
     hasher: &dyn DocumentHasher,
 ) -> Result<MeasureAdministrativeStoredOperation, ApplicationError> {
     let operation = decode::capture(tx, row, history, hasher)?;
-    if operation.capture.records.len() != 1 {
-        return Err(inconsistent("administrative owner must contain one record"));
-    }
     let id = operation.origin.operation_id.as_uuid();
     let counts=tx.query_one("SELECT
-        (SELECT count(*) FROM (SELECT 1 FROM case_measure_revisions WHERE owner_operation=$1 LIMIT 2) rows),
-        (SELECT count(*) FROM (SELECT 1 FROM case_measures WHERE root_operation=$1 LIMIT 1) roots)",&[&id]).map_err(port)?;
-    if counts.get::<_, i64>(0) != 1 || counts.get::<_, i64>(1) != 0 {
+        (SELECT count(*) FROM (SELECT 1 FROM case_measure_revisions WHERE owner_operation=$1 LIMIT 3) rows),
+        (SELECT count(*) FROM (SELECT 1 FROM case_measures WHERE root_operation=$1 LIMIT 2) roots)",&[&id]).map_err(port)?;
+    let expected_roots = i64::from(operation.capture.review.replacement.is_some());
+    if counts.get::<_, i64>(0) != operation.capture.records.len() as i64
+        || counts.get::<_, i64>(1) != expected_roots
+    {
         return Err(inconsistent(
-            "administrative ownership is incomplete or creates a root",
+            "administrative ownership is incomplete or has extra roots",
         ));
     }
-    let row=tx.query_opt("SELECT r.*,root.initial_revision,root.root_operation FROM case_measure_revisions r
+    let rows=tx.query("SELECT r.*,root.initial_revision,root.root_operation FROM case_measure_revisions r
         JOIN case_measures root ON root.id=r.measure_id AND root.case_id=r.case_id WHERE r.owner_operation=$1
         AND octet_length(r.values_canonical) BETWEEN 91 AND 20113 AND octet_length(r.values_view::text)<=32768
         AND octet_length(r.values_digest)=32 AND octet_length(r.capture_digest)=32 AND octet_length(r.subject_values_digest)=32
-        AND octet_length(r.family)<=2 AND octet_length(r.action)<=14 AND octet_length(r.validity)<=16",
-        &[&id]).map_err(port)?.ok_or_else(||inconsistent("administrative record source is absent or oversized"))?;
-    member(&row, &operation.capture.records[0], hasher)?;
+        AND octet_length(r.family)<=2 AND octet_length(r.action)<=14 AND octet_length(r.validity)<=16
+        ORDER BY r.measure_id,r.revision LIMIT 3",
+        &[&id]).map_err(port)?;
+    if rows.len() != operation.capture.records.len() {
+        return Err(inconsistent(
+            "administrative record source is absent or oversized",
+        ));
+    }
+    for (row, capture) in rows.iter().zip(&operation.capture.records) {
+        member(row, capture, hasher)?;
+    }
     audit::verify(tx, &operation.capture, hasher)?;
     Ok(operation)
 }

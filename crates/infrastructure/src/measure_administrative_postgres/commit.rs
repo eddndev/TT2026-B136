@@ -90,6 +90,7 @@ impl MeasureAdministrativeStore for PostgresMeasureAdministrativeStore {
         if material.context != prepared.material().context
             || material.target_head != prepared.material().target_head
             || material.support_record != prepared.material().support_record
+            || material.replacement_subject != prepared.material().replacement_subject
         {
             return Err(MeasureAdministrativeError::SubmissionMismatch.into());
         }
@@ -103,12 +104,13 @@ impl MeasureAdministrativeStore for PostgresMeasureAdministrativeStore {
             return Err(MeasureAdministrativeError::KnownDependants.into());
         }
         let history = proof.record_subclosure(&[command.target])?;
-        let reviewed = prepare_measure_administrative_record_with_decision_history(
+        let reviewed = preparation::checked(
             self.hasher.as_ref(),
             actor,
             case,
             command.clone(),
             material.context,
+            material.replacement_subject,
             &history,
         )?;
         if reviewed.review() != prepared.review() {

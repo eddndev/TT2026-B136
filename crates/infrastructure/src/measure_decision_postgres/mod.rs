@@ -91,3 +91,5 @@ mod record_write;
 mod write_common;
 
 mod record_reads;
+
+pub(crate) use sources::subject as exact_measure_subject;

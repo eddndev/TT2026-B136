@@ -222,4 +222,20 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         &["id"],
         false,
     ),
+    (
+        "case_measure_administrations",
+        "measure_administration_replacement_subject",
+        &["replacement_subject_id", "replacement_subject_revision"],
+        "case_subject_revisions",
+        &["subject_id", "revision"],
+        false,
+    ),
+    (
+        "case_measure_administrations",
+        "measure_administration_replacement_root",
+        &["replacement_measure_id", "case_id"],
+        "case_measures",
+        &["id", "case_id"],
+        true,
+    ),
 ];

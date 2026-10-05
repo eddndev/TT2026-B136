@@ -38,8 +38,8 @@ administrative records through that graph without changing hearing receipts.
 The pure dependency inspector validates a supplied owner forest and hearing
 prefixes, then reports direct uses of an exact record. It does not establish
 complete durable absence or current permission to mutate that record.
-The authorized administrative service prepares and confirms Correct and
-MarkEnteredInError using the observed exact head, full supplied dependency
+The authorized administrative service prepares and confirms Correct,
+MarkEnteredInError and joint identity replacement using the observed exact head, full supplied dependency
 inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
 service cannot establish those facts by itself. Its local PostgreSQL adapter
@@ -48,7 +48,8 @@ exact G/H ancestry. Authorized administrative and measure-record reads are also
 implemented. The additive mixed command adapters and forward `0040_` migrations
 store genuine G2/M2 and resolve H Review over M1/C/M2. Mixed operation readers
 and the atomic current-context reader also have native PostgreSQL verification.
-Optional administrative identity replacement and its SQL, HTTP, Agenda, alerts,
+Atomic administrative identity replacement is implemented in the application and
+forward `0041_` SQL; its native verification is in progress. HTTP, Agenda, alerts,
 Qadra, restoration acceptance and manuscript reconciliation remain pending.
 The affected regression campaign and full closing checks remain separate from
 these focused results. The bounded contract and source
@@ -381,7 +382,8 @@ The judicial-only entry points remain wrappers over borrowed history; existing
 heads and absence of dependants still require an authorized store. The Review
 proof extension below retains its G1/administrative evidence input. Additive G2
 entry points accept the extended inventory without changing the old signatures.
-Joint replacement remains separate work; the durable A/C adapter below covers correction and erroneous-capture marking.
+The joint replacement extension below reuses this resolver and administrative
+receipt family while validating both owned output rows.
 
 ### Entered-in-error capture validity
 
@@ -411,9 +413,84 @@ Its existence does not rewrite older Valid captures or their exact references.
 The supplied closure proves neither a current head nor absence of later
 dependants. Storage admission must establish both under the mutation lock, with
 current authorization and atomic audit. The durable A/C adapter below implements those admission checks and SQL persistence.
-The optional atomic replacement with a fresh identity and explicit administrative
-link remains pending. Its future admission must distinguish capture validity
-from retained judicial status without invalidating earlier historical receipts.
+The joint replacement operation below adds a fresh identity and explicit
+administrative link while preserving the independent capture validity of each
+output and all earlier historical receipts.
+
+### Atomic administrative identity replacement
+
+`MarkEnteredInErrorAndReplace { replacement_id, subject }` combines marking one
+exact Valid record with creation of a new identity. It uses the existing
+administrative command, confirmation and receipt family. The pure source-bearing
+entry point `prepare_measure_administrative_replacement_with_decision_history`
+requires an exact `SubjectSnapshot` in addition to the observed context and
+complete ancestor evidence. The authorized service obtains that snapshot through
+`MeasureAdministrativeReady.replacement_subject`; Correct and mark-only reject
+unexpected replacement material. The selector does not require a new subject
+UUID or today's subject revision.
+
+One A owns exactly two records. The old identity advances one revision with
+EnteredInError validity and retains its complete values, sources, root, judicial
+origin, actual last judicial capture, action and support. The fresh identity
+starts at revision one with Valid validity and an Administrative record root
+containing this operation and the new measure ID. It preserves all effective
+terms except the explicitly selected subject reference, including class,
+conditions, complete temporal declarations and exact supervision. Both rows
+retain the actual last judicial declaration and its support; neither is a new
+judicial decision or substitution. A terminal action remains terminal.
+
+The new row's exact previous reference is the original command target even
+though the identities differ. That cross-identity edge is admitted only for
+this operation's fresh replacement row. Later corrections and judicial effects
+use ordinary consecutive revisions of the new identity. The explicit
+`replacement_link` identifies the two exact output references by role; owned
+rows are sorted by UUID/revision, so their position does not determine their
+meaning. Selection of either row reconstructs the complete owning A, both
+siblings and the link. The output link is not a self-dependency in the graph.
+
+Before hashing or cloning, reserve one owner and two member rows within the
+existing 256/8192 bounds. Candidate validation rejects a reused operation,
+occupied old successor or previously owned replacement ID. Historical checking
+excludes the operation's own root when checking root uniqueness and permits
+later genuine revisions. Shared source inventory includes both results and
+rejects contradictory old/new subject or supervisor evidence. Capture time must
+not precede the effective predecessor, observed context, selected replacement
+subject's `changed_at`, or the authorized precommit observation. No source time,
+precision or current-directory substitution is invented.
+
+Canonical compatibility is action-specific: MATXN1 tag 2 binds replacement ID
+and exact subject ID/revision/digest. For this action only, MAPR1 appends the
+complete replacement result after the marked result. Each MARCR1 retains its
+existing complete-row format. MAGR1 binds both ordered row captures, then the
+role-ordered output link before its capture clock. Correct and mark-only retain
+every previous byte; judicial and hearing formats also remain unchanged. The
+row commitments exclude the owning A digest, avoiding a digest cycle.
+
+Forward `0041_` migrations add four nullable replacement selectors to the same
+A payload and preserve a1/c1/g1/m1/g2/m2 families. Closed action shapes, exact
+subject selection, a deferred same-case root reference and complete owner guards
+require two C rows and one new root for replacement, or the existing one C/no
+new root for Correct and mark-only. The old row retains exact content; the new
+row differs only in its selected subject. An a1/c1 root is admitted only through
+its complete replacement payload, exact target and marked sibling. SQL traversal
+of retained judicial support follows the actual cross-identity target of a
+replacement C/R1, never a fabricated judicial row. Full current authorization,
+Valid head, no dependants, fresh global ID and source checks repeat under the
+audit lock. Both rows, root, owner, payload and the original ma1 event commit
+atomically. Historical replay preserves the complete original receipt after
+later changes or case closure under current read authorization.
+
+G2 can consume a Valid replacement record and preserve its Administrative root
+separately from the original judicial origin; a later real M2 becomes the retained
+last judicial declaration for subsequent correction. H Review and its anchors
+can select exact Valid replacement C/M2 records, including old revisions and
+retained terminal actions, without a current measure-head requirement. Current
+and exact record readers expose the actual selected row with the full owner
+proof; the old marked head remains visible, and old Valid references retain
+their historical meaning. Administrative operation reads retain both rows and
+their link. Native replacement verification is in progress; this implementation
+does not establish HTTP, Agenda, alerts, Qadra, restart/restoration acceptance or
+manuscript reconciliation.
 
 ### Review appointments over mixed records
 
@@ -574,8 +651,8 @@ administrative replacement, SQL or HTTP.
 
 ### Authorized administrative preparation and confirmation
 
-`MeasureAdministrativeService` implements Correct and MarkEnteredInError through
-the `MeasureAdministrativeStore` and `MeasureAdministrativeWorkflow` ports. It
+`MeasureAdministrativeService` implements Correct, MarkEnteredInError and
+`MarkEnteredInErrorAndReplace` through the `MeasureAdministrativeStore` and `MeasureAdministrativeWorkflow` ports. It
 uses the current identity, document processor, format validator, hasher and clock.
 Owner and Litigator may prepare and submit; Paralegal and Client cannot. Current
 case access remains an audited store obligation. Historical participant and
@@ -583,7 +660,8 @@ subject captures, including archived sources, retain their original material.
 
 `MeasureAdministrativeReady` contains the exact observed context, one encrypted
 `support_record`, the observed `target_head`, and a `dependency_inventory` of
-complete G1/G2/administrative owners and hearing prefixes. The service requires
+complete G1/G2/administrative owners and hearing prefixes. A replacement also
+requires the explicitly selected full subject snapshot. The service requires
 the command's exact target to equal that observed head, validates the whole
 bounded inventory once, and rejects every known direct dependant, including
 historical Review uses and zero-row decisions with Review anchors. The selected
@@ -594,16 +672,18 @@ The checked index supplies both effective predecessor material and the original
 exact ancestor closure. Preparation checks the command, active context and all
 immutable sources against that same inventory. It extracts the target's original
 closure without rehashing the forest or adding unrelated roots and hearing-prefix
-ancestry to the receipt. The candidate owner and row must fit within the existing
-256-owner/8192-row returned-closure limits. The observed forest independently
-retains the inspector's owner, hearing-prefix and nested shape bounds.
+ancestry to the receipt. The candidate owner and its one or two rows must fit
+within the existing 256-owner/8192-row limits before substantive reconstruction
+and closure copying. The observed forest independently retains the inspector's
+owner, hearing-prefix and nested shape bounds.
 
 Admit the exact support of the last actual judicial declaration using the bounded
 document processor outside the transaction lock. Compare its entire admitted
 snapshot with the retained support, including identity, version, digest, name,
-format and policy. Correct and Mark both require this admission. They do not
-select current replacement participant or subject sources, manufacture a new
-decision, or alter MATXN1/MAPR1/MARCR1/MAGR1.
+format and policy. All three actions require this admission. Correct and mark-only
+retain their exact sources; replacement resolves only its explicitly selected
+subject and preserves the supervisor. None manufactures a judicial decision.
+Existing Correct/Mark canonical bytes remain unchanged.
 
 Only the authorized service constructs `PreparedMeasureAdministrative`.
 Confirmation requires both submission and complete-review digests. Reauthenticate
@@ -628,7 +708,8 @@ create new historical capture-validity states. Under the shared audit lock, the
 store must establish current full-principal access, active context, exact Valid
 head, complete durable absence of dependants and exact admitted support/sources,
 and prevent a dependency from racing with the write. It must atomically commit
-receipt, row, origin, operation, head and one audit event, or write nothing.
+receipt, all owned rows and roots, origin, operation, heads and one audit event,
+or write nothing.
 Unrelated forest changes alone do not invalidate a review. The port specifies
 these obligations. The durable A/C adapter below implements them; HTTP routing
 and restoration acceptance remain pending.
@@ -1113,16 +1194,18 @@ command ports retain their original wire family and proof contract.
 The forward `0040_` migrations widen the existing operation/member constraints
 to G1/G2/A1 and M1/M2/C1, with exact paired owner/payload/member guards. They add
 no table or runtime authority. A judicial owner retains its full decision,
-complete member set and original roots; A owns one C and never creates a
-judicial decision or new identity. The real deferred completeness constraint,
+complete member set and original roots; Correct and mark-only A each own one C
+and create no judicial decision or new identity. The forward replacement
+extension above adds its explicit two-record administrative owner. The real deferred completeness constraint,
 source guards, both hearing-target guards and exact catalog checks follow
 these families without changing older migrations.
 
 Fresh judicial effects require the actual current Valid M1/M2/C predecessor and
 reject retained terminal actions. A selected C supplies its effective values,
 context and time. Correct or Mark after M2 retains that actual last judicial
-capture, owner and support. Optional administrative identity replacement and
-its atomic link remain unimplemented; no existing action changes that identity.
+capture, owner and support. Those actions keep the selected identity; the
+separate joint replacement action creates the new Administrative root described
+above without changing the original judicial capture.
 H Review and precautionary decision anchors resolve exact Valid M1/M2/C targets,
 including old revisions and terminal judicial results. They do not impose a
 current measure-head requirement. A later mark does not invalidate an older
@@ -1146,7 +1229,8 @@ and audit evidence, so missing latest members cannot reveal an older head.
 
 MDPR2/MMCR2/MDGR2 retain their existing V2 definitions. MDTXN1/MDCR1,
 MATXN1/MAPR1/MARCR1/MAGR1 and PHEAR1/PHTXN1/PHPR1/PHCR1 retain their bytes.
-Remaining identity-replacement SQL, HTTP, Agenda, alerts, Qadra, restore/restart
+Replacement SQL has been implemented in the forward `0041_` migrations and its
+native verification is in progress. HTTP, Agenda, alerts, Qadra, restore/restart
 acceptance, manuscript reconciliation and the affected and full closing checks
 remain required before the full delivery closes.
 

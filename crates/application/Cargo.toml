@@ -410,3 +410,11 @@ path = "tests/precautionary_hearing_record_reads.rs"
 [[test]]
 name = "precautionary_context_reads"
 path = "tests/precautionary_context_reads.rs"
+
+[[test]]
+name = "measure_administrative_replacements"
+path = "tests/measure_administrative_replacements.rs"
+
+[[test]]
+name = "measure_administrative_replacement_workflow"
+path = "tests/measure_administrative_replacement_workflow.rs"

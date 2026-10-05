@@ -12,11 +12,11 @@ use domain::{
 #[derive(Clone, Copy)]
 pub(crate) struct RecordView<'a> {
     pub(super) judicial: super::judicial_view::JudicialView<'a>,
-    pub(super) administrative: Option<&'a MeasureAdministrativeCapture>,
+    pub(super) administrative: Option<(&'a MeasureAdministrativeCapture, usize)>,
 }
 impl<'a> RecordView<'a> {
     fn row(&self) -> Option<&'a MeasureAdministrativeRecordCapture> {
-        self.administrative.map(|a| &a.records[0])
+        self.administrative.map(|(a, row)| &a.records[row])
     }
     pub fn reference(&self) -> PrecautionaryMeasureRef {
         if let Some(c) = self.row() {
@@ -69,13 +69,13 @@ impl<'a> RecordView<'a> {
     }
     pub fn to_owned(self) -> ResolvedMeasureRecord {
         let last_judicial = self.judicial.to_owned();
-        let record = if let Some(a) = self.administrative {
+        let record = if let Some((a, row)) = self.administrative {
             OwnedMeasureRecord::Administrative {
                 owner: MeasureAdministrativeRef {
                     operation_id: a.review.command.operation_id,
                     capture_digest: a.capture_digest,
                 },
-                capture: Box::new(a.records[0].clone()),
+                capture: Box::new(a.records[row].clone()),
             }
         } else {
             OwnedMeasureRecord::Judicial(last_judicial.clone())

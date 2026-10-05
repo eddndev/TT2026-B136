@@ -12,6 +12,7 @@ use domain::{
     identity::UserId,
     precautionary_hearings::{MeasureId, MeasureRevision, PrecautionaryMeasureRef},
     precautionary_measures::MeasureCorrectionOperationId,
+    typed_participants::{CaseSubjectId, SubjectRevision, SubjectRevisionRef},
 };
 use postgres::{Row, Transaction};
 
@@ -37,8 +38,9 @@ pub(crate) fn command(
     let bytes = row.get::<_, Option<Vec<u8>>>("correction_canonical");
     let view = row.get::<_, Option<serde_json::Value>>("correction_view");
     let commitment = row.get::<_, Option<Vec<u8>>>("correction_digest");
-    let action = match (action.as_str(), bytes, view, commitment) {
-        ("correct", Some(bytes), Some(view), Some(commitment)) => {
+    let replacement = replacement(row)?;
+    let action = match (action.as_str(), bytes, view, commitment, replacement) {
+        ("correct", Some(bytes), Some(view), Some(commitment), None) => {
             if hasher.hash_bytes(&bytes) != digest(commitment)? {
                 return Err(inconsistent("correction values digest differs"));
             }
@@ -46,7 +48,15 @@ pub(crate) fn command(
                 &bytes, &view,
             )?)
         }
-        ("entered_in_error", None, None, None) => MeasureAdministrativeAction::MarkEnteredInError,
+        ("entered_in_error", None, None, None, None) => {
+            MeasureAdministrativeAction::MarkEnteredInError
+        }
+        ("replace_entered_in_error", None, None, None, Some((replacement_id, subject))) => {
+            MeasureAdministrativeAction::MarkEnteredInErrorAndReplace {
+                replacement_id,
+                subject,
+            }
+        }
         _ => {
             return Err(inconsistent(
                 "administrative action and values shape differ",
@@ -106,10 +116,10 @@ pub(crate) fn capture(
         hasher,
     )
     .map_err(inconsistent)?;
-    let checked = prepare_measure_administrative_record_with_decision_history(
-        hasher, &actor, case, command, context, &history,
-    )
-    .map_err(inconsistent)?;
+    let subject = super::preparation::replacement_subject(tx, case, &command, hasher)?;
+    let checked =
+        super::preparation::checked(hasher, &actor, case, command, context, subject, &history)
+            .map_err(inconsistent)?;
     let at = time::OffsetDateTime::from_unix_timestamp(row.get("recorded_at_seconds"))
         .map_err(inconsistent)?
         .replace_nanosecond(
@@ -136,4 +146,28 @@ pub(crate) fn capture(
         origin,
         record_history: history,
     })
+}
+
+fn replacement(row: &Row) -> Result<Option<(MeasureId, SubjectRevisionRef)>, ApplicationError> {
+    let tuple = (
+        row.get::<_, Option<uuid::Uuid>>("replacement_measure_id"),
+        row.get::<_, Option<uuid::Uuid>>("replacement_subject_id"),
+        row.get::<_, Option<i64>>("replacement_subject_revision"),
+        row.get::<_, Option<Vec<u8>>>("replacement_subject_values_digest"),
+    );
+    match tuple {
+        (None, None, None, None) => Ok(None),
+        (Some(id), Some(subject), Some(revision), Some(bytes)) => Ok(Some((
+            MeasureId::from_uuid(id),
+            SubjectRevisionRef {
+                id: CaseSubjectId::from_uuid(subject),
+                revision: SubjectRevision::new(u32::try_from(revision).map_err(inconsistent)?)
+                    .map_err(inconsistent)?,
+                values_digest: digest(bytes)?,
+            },
+        ))),
+        _ => Err(inconsistent(
+            "replacement selectors require one complete exact tuple",
+        )),
+    }
 }
