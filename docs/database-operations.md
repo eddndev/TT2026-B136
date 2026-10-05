@@ -259,21 +259,20 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. La aceptación propia de `pg_dump`/`pg_restore` sigue
-pendiente, al igual que decisiones con anclas cautelares,
-G2/M2 y correcciones, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
+pendiente, al igual que G2/M2 y correcciones, HTTP, Agenda, alertas y Qadra. Esta implementación no acredita
 su integración ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
 pruebas ejecutadas de la aceptación todavía pendiente.
 
-## Decisiones cautelares y anclas iniciales
+## Decisiones cautelares y anclas históricas
 
 `PostgresMeasureDecisionStore` implementa localmente escritura y lectura de
 grupos con 1 a 32 imposiciones iniciales y decisiones NoMeasureChange. Una decisión
 sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
 adaptador conserva también confirmación, modificación, revocación, cese y
 sustitución desde predecesores exactos. Review consume sus revisiones exactas,
-propietarios completos y ancestros. Admite anclas iniciales ordinarias exactas;
-las anclas cautelares, G2/M2 y registros administrativos
+propietarios completos y ancestros. Admite anclas iniciales ordinarias y cautelares
+exactas; G2/M2 y registros administrativos
 siguen pendientes. No está compuesto en
 HTTP ni desplegado.
 
@@ -285,7 +284,14 @@ migraciones `0037_measure_decision_` añaden selectores exactos de ancla inicial
 y su guarda. Conservar raíz, todas las revisiones del prefijo seleccionado y
 sus fuentes y eventos originales de auditoría al respaldar una decisión anclada.
 El catálogo verifica el default `none`, la forma cerrada y la clave foránea de
-esos selectores. No actualizar compromisos para reparar una selección perdida.
+esos selectores. Las tres migraciones `0038_measure_decision_` incorporan los dos
+selectores propios de audiencia cautelar, la guarda de captura y una guarda
+obligatoria de ancla. Su clave foránea exige la revisión exacta. El respaldo debe
+conservar todo su prefijo, los grupos de medidas referenciados por cualquier
+revisión de ese prefijo y sus fuentes/auditorías originales. Las conexiones
+reconstruyen ese grafo con límites independientes de audiencias y medidas, sin
+reemplazar selecciones históricas por cabezas actuales. No actualizar compromisos
+para reparar una selección perdida.
 Las tablas `case_measure_operations`,
 `case_measure_decisions`, `case_measures` y `case_measure_revisions` son inmutables.
 Las relaciones diferidas exigen un propietario con decisión completa, incluso

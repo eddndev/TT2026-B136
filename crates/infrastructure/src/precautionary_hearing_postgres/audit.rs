@@ -8,7 +8,7 @@ use domain::{
 };
 use postgres::Transaction;
 
-pub(super) fn verify(
+pub(crate) fn verify(
     tx: &mut Transaction<'_>,
     capture: &PrecautionaryHearingCapture,
     hasher: &dyn DocumentHasher,

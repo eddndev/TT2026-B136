@@ -771,9 +771,8 @@ a lost root cannot be recreated, a lost suffix cannot become a shorter current
 history, and pagination cannot conceal a lost hearing as an empty page.
 
 This local adapter does not establish acceptance of backup restoration or the
-integrated HTTP, Agenda, alerts and Qadra workflow. Anchored decisions, G2/M2
-and administrative records remain
-separate pending work.
+integrated HTTP, Agenda, alerts and Qadra workflow. G2/M2 and administrative
+records remain separate pending work. The durable anchor graph is described below.
 Operational requirements are in [database operations](../database-operations.md);
 executed checks are recorded independently in the verification report.
 
@@ -783,7 +782,7 @@ executed checks are recorded independently in the verification report.
 ports for standalone Impose groups of 1..32 new measure identities and explicit
 NoMeasureChange decisions. The latter retain a real decision, group origin and
 audit event with zero measure rows. Ordinary Initial anchors are supported as
-described below; precautionary anchors remain pending. The `0034_measure_decisions`
+described below, together with precautionary anchors. The `0034_measure_decisions`
 migrations add append-only operation owners, decisions, measure roots and measure
 revisions; this boundary stores G1/M1 and preserves existing canonical bytes.
 
@@ -837,7 +836,7 @@ to its strict original submission and the retained audit marker before using it
 to establish completeness. A self-consistent changed outcome digest alone does
 not prove it belongs to that original operation. Keep this bounded check free
 of current source-head or current actor assumptions. The backend still rejects
-precautionary anchors and mixed administrative records; HTTP, Agenda, alerts, Qadra and
+mixed administrative records; HTTP, Agenda, alerts, Qadra and
 restoration require their own integration and acceptance.
 
 ### Readers, recovery and restoration
@@ -902,7 +901,8 @@ Review target references, plus at most 256 measure owners and 8192 members.
 Resolve the complete selected prefix union once, then validate each capture with
 its exact current and predecessor target closure. Original-operation replay
 reconstructs its original prefix and excludes unrelated later decisions. These
-checks do not enable precautionary-anchored decisions or mixed administrative persistence.
+checks supply the Review side of the durable anchor graph below; mixed
+administrative persistence remains pending.
 
 
 ### Durable ordinary Initial hearing anchors
@@ -928,6 +928,40 @@ not inferred. Reconstruct MDTXN1 with the original anchor selectors before using
 surviving outcomes to reserve identities; self-consistent replacement selectors
 cannot free the original group from its retained submission and audit evidence.
 
-This remains a local G1 adapter capability. Full precautionary anchor traversal,
-mixed administrative persistence, HTTP, Agenda, alerts, Qadra and restoration
+This remains a local G1 adapter capability. Mixed administrative persistence,
+HTTP, Agenda, alerts, Qadra and restoration
 acceptance have separate pending work.
+
+
+### Durable precautionary anchors and the shared dependency graph
+
+The `0038_measure_decision_` migrations add the exact precautionary hearing ID
+and capture digest, reusing the common anchor revision. A closed family shape
+keeps ordinary and precautionary selectors separate; the latter has its own
+foreign key and mandatory bounded source guard. Existing canonical formats and
+ordinary Initial validation remain unchanged.
+
+One transaction-local graph uses decision-operation and hearing-ID/revision
+keys. Each decision depends on its effect owners and exact selected hearing;
+each hearing depends on its previous revision and resolved Review target owners.
+Scalar prefix and member probes charge independent G and H budgets before payload
+loading. The complete graph must be acyclic before source reconstruction. A later
+Review of a decision anchored to an earlier revision of that same hearing is
+valid because revisions remain distinct nodes.
+
+Durable dependencies include the complete selected hearing prefix. Returned
+wire history includes only effect ancestors and targets of the selected anchor.
+Thus an Imposition replacing an earlier Review still proves that older Review's
+targets without adding unrelated owners to its own decision receipt. Zero-row
+decisions remain explicit owners. Historical and cancelled exact anchors remain
+selectable without a current-head or hearing-occurrence gate.
+
+Reconstruct each original capture, its sources and mutation audit before exposing
+it. A target-free application inventory validator compares all retained sources,
+including owners needed only by an older prefix. Fresh commit includes the actual
+candidate in this forest before inserting anything. Candidate reservations count
+once; limits remain 256 G owners/8192 members and, independently, 256 H captures/
+8192 Review target occurrences. Historical reads reserve no candidate. A malformed
+latest hearing commitment fails at that exact head and cannot expose an older
+revision as current. Authorized reads and atomic mutation/audit retain their
+existing transaction boundaries.

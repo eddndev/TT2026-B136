@@ -80,7 +80,7 @@ impl MeasureDecisionStore for PostgresMeasureDecisionStore {
             tx.commit().map_err(port)?;
             return Ok(result);
         }
-        let material = preparation::load(
+        let (material, proof) = preparation::load_with_proof(
             &mut tx,
             case,
             command,
@@ -91,6 +91,7 @@ impl MeasureDecisionStore for PostgresMeasureDecisionStore {
             return Err(MeasureDecisionError::SubmissionMismatch.into());
         }
         let result = prepared.into_operation(self.now(None)?)?;
+        proof.validate_forest(case, self.hasher.as_ref(), Some(&result), None)?;
         write::insert(&mut tx, &result, self.hasher.as_ref())?;
         tx.commit().map_err(port)?;
         Ok(result)

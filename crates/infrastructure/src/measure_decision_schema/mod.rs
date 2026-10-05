@@ -25,6 +25,9 @@ pub(crate) const MIGRATIONS: &[&str] = &[
     include_str!("../../../../migrations/0035_measure_decision_complete.sql"),
     include_str!("../../../../migrations/0037_measure_decision_initial_anchor.sql"),
     include_str!("../../../../migrations/0037_measure_decision_anchor_guard.sql"),
+    include_str!("../../../../migrations/0038_measure_decision_precautionary_anchor.sql"),
+    include_str!("../../../../migrations/0038_measure_decision_capture_guard.sql"),
+    include_str!("../../../../migrations/0038_measure_decision_hearing_anchor.sql"),
 ];
 const TABLES: [&str; 4] = [
     "case_measure_operations",

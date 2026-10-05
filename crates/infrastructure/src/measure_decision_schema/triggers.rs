@@ -19,11 +19,10 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             58,
         )?;
         complete(client, table)?;
-        let expected: i64 = if matches!(table, "case_measure_decisions" | "case_measure_revisions")
-        {
-            4
-        } else {
-            3
+        let expected: i64 = match table {
+            "case_measure_decisions" => 5,
+            "case_measure_revisions" => 4,
+            _ => 3,
         };
         let altered: bool = client.query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=$1::text::regclass AND tgenabled NOT IN ('O','A'))
@@ -39,6 +38,13 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         "case_measure_decisions",
         "measure_decision_capture",
         "enforce_measure_decision_capture()",
+        7,
+    )?;
+    ordinary(
+        client,
+        "case_measure_decisions",
+        "measure_decision_hearing_anchor",
+        "enforce_measure_decision_hearing_anchor()",
         7,
     )?;
     ordinary(

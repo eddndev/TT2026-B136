@@ -6,7 +6,6 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-
 [dependencies]
 domain = { path = "../domain" }
 application = { path = "../application" }
@@ -59,11 +58,9 @@ quick-xml.workspace = true
 rustix.workspace = true
 flate2.workspace = true
 crc32fast.workspace = true
-
 pdf-writer = "=0.15.0"
 harfrust = "=0.13.3"
 skrifa = { version = "=0.46.2", default-features = false, features = ["std"] }
-
 [dev-dependencies]
 proptest.workspace = true
 [[test]]
@@ -117,39 +114,30 @@ path = "tests/deadline_profile_revalidation.rs"
 [[test]]
 name = "deadline_source_events"
 path = "tests/deadline_source_events.rs"
-
 [[test]]
 name = "deadline_suite_1"
 path = "tests/suites/deadline_suite_1.rs"
-
 [[test]]
 name = "deadline_suite_2"
 path = "tests/suites/deadline_suite_2.rs"
-
 [[test]]
 name = "deadline_suite_3"
 path = "tests/suites/deadline_suite_3.rs"
-
 [[test]]
 name = "deadline_suite_4"
 path = "tests/suites/deadline_suite_4.rs"
-
 [[test]]
 name = "deadline_suite_5"
 path = "tests/suites/deadline_suite_5.rs"
-
 [[test]]
 name = "document_content_backend"
 path = "tests/document_content_backend.rs"
-
 [[test]]
 name = "document_query_concurrency"
 path = "tests/document_query_concurrency.rs"
-
 [[test]]
 name = "document_suite_1"
 path = "tests/suites/document_suite_1.rs"
-
 [[test]]
 name = "document_suite_2"
 path = "tests/suites/document_suite_2.rs"
@@ -398,3 +386,7 @@ path = "tests/precautionary_review_backend.rs"
 [[test]]
 name = "measure_initial_anchor_backend"
 path = "tests/measure_initial_anchor_backend.rs"
+
+[[test]]
+name = "measure_precautionary_anchor_backend"
+path = "tests/measure_precautionary_anchor_backend.rs"

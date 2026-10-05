@@ -40,6 +40,8 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("anchor_revision", "bigint", false),
             ("anchor_values_digest", "bytea", false),
             ("anchor_submission_digest", "bytea", false),
+            ("anchor_precautionary_hearing_id", "uuid", false),
+            ("anchor_capture_digest", "bytea", false),
         ],
         "case_measures" => &[
             ("id", "uuid", true),

@@ -5,8 +5,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use uuid::Uuid;
 
 pub(crate) struct LoadedMeasureHistory {
-    groups: BTreeMap<Uuid, MeasureGroupEvidence>,
+    pub(super) groups: BTreeMap<Uuid, MeasureGroupEvidence>,
     parents: BTreeMap<Uuid, BTreeSet<Uuid>>,
+    pub(super) hearings:
+        BTreeMap<(Uuid, u32), application::precautionary_hearings::PrecautionaryHearingCapture>,
     members: BTreeMap<(Uuid, u32), (Sha256Digest, Uuid)>,
 }
 
@@ -33,6 +35,7 @@ impl LoadedMeasureHistory {
         Ok(Self {
             groups,
             parents,
+            hearings: BTreeMap::new(),
             members,
         })
     }
@@ -64,12 +67,6 @@ impl LoadedMeasureHistory {
             owners.insert(*owner);
         }
         Ok(owners)
-    }
-
-    pub(super) fn into_evidence(self) -> MeasureHistoryEvidence {
-        MeasureHistoryEvidence {
-            groups: self.groups.into_values().collect(),
-        }
     }
 
     pub(super) fn into_operation(

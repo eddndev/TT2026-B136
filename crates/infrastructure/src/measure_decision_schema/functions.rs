@@ -1,10 +1,11 @@
 use super::{incomplete, port, MIGRATIONS, TABLES};
-pub(super) const TRIGGERS: [&str; 5] = [
+pub(super) const TRIGGERS: [&str; 6] = [
     "preserve_measure_decision_history()",
     "lock_measure_decision_history()",
     "enforce_measure_decision_capture()",
     "enforce_measure_revision_source()",
     "enforce_measure_decision_complete()",
+    "enforce_measure_decision_hearing_anchor()",
 ];
 use application::ApplicationError;
 use postgres::GenericClient;

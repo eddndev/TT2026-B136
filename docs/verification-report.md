@@ -1,5 +1,45 @@
 # Informe de verificación local
 
+## Decisiones con ancla cautelar exacta: 4 de octubre de 2026
+
+La persistencia reconstruye un único grafo de propietarios y revisiones de
+agenda cautelar. Distingue el cierre de antecedentes de la decisión de los
+prefijos de audiencia necesarios para comprobar sus fuentes. Valida el orden
+completo antes de reconstruir recibos, conserva decisiones sin filas y rechaza
+ciclos, fuentes contradictorias, referencias incompletas y límites excedidos.
+Las migraciones `0038_` conservan los formatos históricos y las anclas Initial.
+El inventario de aplicación puede validarse sin inventar una medida objetivo.
+
+TDD reprodujo el rechazo anterior del ancla real en **6.05 s**. También detectó
+un defecto concreto: un digest corrupto en la última revisión podía hacer que
+una consulta seleccionara la revisión anterior. El caso falló en **7.97 s** y,
+al seleccionar primero la cabeza real, aprobó en **7.33 s**. No se acepta una
+revisión anterior como sustituto de una cabeza corrupta.
+
+La campaña nueva aprobó **24 pruebas PostgreSQL en 223.37 s**, sin omitidos;
+**243.581 s** con preparación. Incluye captura, reapertura, prefijos, dependencias,
+corrupción, permisos, migraciones repetibles y rechazos SQL atómicos. La regresión
+focal aprobó **91 pruebas existentes**: decisiones 33 en **298.10 s**, anclas
+Initial 20 en **174.34 s**, audiencias 25 en **173.20 s** y Review 13 en
+**109.07 s**; **765.688 s** con entorno. Conserva las 91 identidades previas.
+En total son **115 pruebas nativas** entre estas dos campañas, sin duplicar los
+recorridos parciales de desarrollo.
+
+La API de inventario tuvo un RED por ausencia antes de implementarse. Aprobó
+**8 casos nuevos, 27 del inspector y 30 del servicio administrativo**, 65 en total;
+los dos comandos duraron **6.928 s** y **1.327 s**. Los **11 casos unitarios**
+de orden y límites aprobaron en **5.984 s**. Clippy de aplicación aprobó en
+**6.053 s**; el de infraestructura y targets afectados aprobó en **10.195 s**,
+ambos con `-D warnings`. La revisión independiente no encontró defectos pendientes.
+
+Se usó PostgreSQL **16.15**, SCRAM, fuentes cifradas reales, un compilador y un
+thread de pruebas, con temporales privados sobre btrfs. Se retiraron los clusters
+propios. La admisión de formato fue controlada. Los máximos agregados se probaron
+con unidades, no mediante un historial nativo gigante. No se repitieron suites
+globales ni se generó PDF. La persistencia administrativa, consumidores mixtos,
+HTTP, Agenda, alertas, Qadra, restauración y manuscrito de la entrega completa
+siguen pendientes. Este checkpoint no acredita integración ni despliegue.
+
 ## Decisiones con ancla inicial ordinaria: 4 de octubre de 2026
 
 El adaptador PostgreSQL conserva referencias exactas a audiencias Initial, con

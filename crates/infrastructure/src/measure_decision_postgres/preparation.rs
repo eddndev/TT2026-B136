@@ -1,4 +1,4 @@
-use super::{anchors, audit, history, inconsistent, port, sources};
+use super::{anchors, audit, graph::*, history, inconsistent, port, sources, LoadedMeasureHistory};
 use application::{
     case_stages::StageSupportRef, documents::StageSupportReadLimits, precautionary_measures::*,
     ApplicationError,
@@ -6,17 +6,6 @@ use application::{
 use domain::{cases::CaseId, crypto::DocumentHasher, precautionary_measures::MeasureEffect};
 use postgres::Transaction;
 
-pub(super) fn supported(command: &MeasureDecisionCommand) -> Result<(), ApplicationError> {
-    if matches!(
-        command.anchor,
-        Some(MeasureDecisionAnchorRef::Precautionary { .. })
-    ) {
-        return Err(ApplicationError::InvalidInput(
-            "durable precautionary hearing anchors are not available".into(),
-        ));
-    }
-    Ok(())
-}
 pub(super) fn load(
     tx: &mut Transaction<'_>,
     case: CaseId,
@@ -24,7 +13,15 @@ pub(super) fn load(
     limits: &StageSupportReadLimits,
     hasher: &dyn DocumentHasher,
 ) -> Result<MeasureDecisionReady, ApplicationError> {
-    supported(command)?;
+    load_with_proof(tx, case, command, limits, hasher).map(|(ready, _)| ready)
+}
+pub(super) fn load_with_proof(
+    tx: &mut Transaction<'_>,
+    case: CaseId,
+    command: &MeasureDecisionCommand,
+    limits: &StageSupportReadLimits,
+    hasher: &dyn DocumentHasher,
+) -> Result<(MeasureDecisionReady, LoadedMeasureHistory), ApplicationError> {
     audit::inventory_intact(tx)?;
     let context = sources::current_context(tx, case, hasher)?;
     if command.context.administration_revision != context.material().administration.revision
@@ -45,7 +42,48 @@ pub(super) fn load(
     }
     audit::decision_absent(tx, command.decision_id)?;
     let selections = history::selections(&command.outcome);
-    let measure_history = history::candidate(tx, case, &command.outcome, hasher)?;
+    let mut roots: Vec<_> = selections
+        .iter()
+        .copied()
+        .map(HistoryRoot::Measure)
+        .collect();
+    let selected_hearing = match command.anchor {
+        Some(MeasureDecisionAnchorRef::Precautionary {
+            hearing_id,
+            revision,
+            capture_digest,
+        }) => Some(HearingProofRef {
+            hearing_id,
+            revision,
+            capture_digest,
+        }),
+        _ => None,
+    };
+    if let Some(reference) = selected_hearing {
+        roots.push(HistoryRoot::Hearing(reference));
+    }
+    let loaded = load_precautionary_history(
+        tx,
+        case,
+        &roots,
+        HistoryReserve {
+            groups: 1,
+            members: command.outcome.affected_ids().len(),
+            ..HistoryReserve::default()
+        },
+        hasher,
+    )?;
+    let anchor = match selected_hearing {
+        Some(reference) => Some(MeasureDecisionAnchorMaterial::Precautionary(Box::new(
+            loaded.hearing_capture(reference)?.clone(),
+        ))),
+        None => anchors::load(tx, case, &command.anchor, hasher)?,
+    };
+    let mut refs = selections.clone();
+    if let Some(MeasureDecisionAnchorMaterial::Precautionary(capture)) = &anchor {
+        refs.extend_from_slice(capture.review.resolved_values.review_targets());
+    }
+    let measure_history = loaded.subclosure(&refs)?;
     let predecessors = history::predecessors(&selections, &measure_history)?;
     for reference in &selections {
         let head: Option<i64> = tx.query_one(
@@ -92,7 +130,7 @@ pub(super) fn load(
             StageSupportRef::new(support.reference(), support.digest()),
             limits,
         )?,
-        anchor: anchors::load(tx, case, &command.anchor, hasher)?,
+        anchor,
         predecessors,
         result_sources,
         measure_history,
@@ -100,5 +138,5 @@ pub(super) fn load(
     if ready.context.material().case_id != case {
         return Err(inconsistent("current context scope differs"));
     }
-    Ok(ready)
+    Ok((ready, loaded))
 }

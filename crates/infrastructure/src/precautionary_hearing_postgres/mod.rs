@@ -1,13 +1,13 @@
 //! Audited immutable precautionary appointment revisions and exact historical recovery.
-mod audit;
+pub(crate) mod audit;
 pub(crate) mod authorization;
 mod commit;
-mod decode;
+pub(crate) mod decode;
 mod inventory;
 mod preparation;
 mod query;
 pub(crate) mod sources;
-mod storage;
+pub(crate) mod storage;
 mod targets;
 mod write;
 use application::{precautionary_hearings::PrecautionaryHearingError, ApplicationError};

@@ -47,7 +47,9 @@ pub(crate) use record_index::HistoryView as RecordHistoryView;
 mod dependencies;
 mod dependency_model;
 mod dependency_report;
-pub use dependencies::inspect_measure_administrative_dependencies;
+pub use dependencies::{
+    inspect_measure_administrative_dependencies, validate_measure_dependency_inventory,
+};
 pub use dependency_model::*;
 
 mod workflow_error;

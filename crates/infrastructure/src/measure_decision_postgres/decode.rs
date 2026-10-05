@@ -1,4 +1,4 @@
-use super::{anchors, history, inconsistent, preparation, sources};
+use super::{anchors, history, inconsistent, sources};
 use application::{
     case_stages::StageDocumentFormat, identity::Principal,
     precautionary_hearings::PrecautionaryContextExpectation, precautionary_measures::*,
@@ -23,6 +23,7 @@ pub(super) fn group(
     tx: &mut Transaction<'_>,
     row: &Row,
     measure_history: MeasureHistoryEvidence,
+    resolved_anchor: Option<MeasureDecisionAnchorMaterial>,
     hasher: &dyn DocumentHasher,
 ) -> Result<MeasureDecisionStoredOperation, ApplicationError> {
     let case = CaseId::from_uuid(row.get("case_id"));
@@ -64,7 +65,6 @@ pub(super) fn group(
         anchor,
         outcome,
     };
-    preparation::supported(&command).map_err(inconsistent)?;
     let format = match row.get::<_, String>("support_format").as_str() {
         "pdf" => StageDocumentFormat::Pdf,
         "docx" => StageDocumentFormat::Docx,
@@ -79,7 +79,7 @@ pub(super) fn group(
     let material = MeasureDecisionMaterial {
         context,
         support: sources::support(tx, case, command.values.support(), format)?,
-        anchor: anchors::load(tx, case, &command.anchor, hasher)?,
+        anchor: resolved_anchor,
         predecessors,
         result_sources,
     };

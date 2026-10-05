@@ -6,14 +6,12 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-
 [dependencies]
 domain = { path = "../domain" }
 thiserror.workspace = true
 zeroize.workspace = true
 serde.workspace = true
 time = { workspace = true, features = ["parsing"] }
-
 [dev-dependencies]
 mockall.workspace = true
 uuid.workspace = true
@@ -30,11 +28,9 @@ path = "tests/case_document_metadata.rs"
 [[test]]
 name = "case_document_queries"
 path = "tests/case_document_queries.rs"
-
 [[test]]
 name = "case_document_version_actions"
 path = "tests/case_document_version_actions.rs"
-
 [[test]]
 name = "case_document_versions"
 path = "tests/case_document_versions.rs"
@@ -398,3 +394,7 @@ path = "tests/measure_dependencies.rs"
 [[test]]
 name = "measure_administrative_workflow"
 path = "tests/measure_administrative_workflow.rs"
+
+[[test]]
+name = "measure_dependency_inventory"
+path = "tests/measure_dependency_inventory.rs"

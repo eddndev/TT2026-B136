@@ -4,8 +4,8 @@ Estado: **dominio y servicios de aplicación verificados localmente**. El trabaj
 comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones con historia exacta y ausencia de cambios. Su alcance
-se detalla abajo e incluye anclas iniciales ordinarias exactas. La persistencia
-con anclas cautelares, G2/M2 y registros
+se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
+de G2/M2 y registros
 administrativos, HTTP, Agenda, alertas e interfaz
 conservan sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
@@ -60,8 +60,13 @@ lectura y replay reconstruyen la historia original. Las migraciones `0037_`
 añaden anclas iniciales ordinarias exactas: se comprueban raíz, prefijo completo
 hasta la revisión elegida, fuentes, recibos y auditoría original. Se conservan
 revisiones antiguas y canceladas, sin exigir que sean cabeza vigente. El prefijo
-seleccionado admite hasta 256 revisiones. Las anclas cautelares, G2/M2 y
-correcciones administrativas siguen pendientes.
+seleccionado admite hasta 256 revisiones. Las migraciones `0038_` añaden anclas
+cautelares con prefijo, fuentes y auditoría completos. Un solo grafo resuelve
+antecedentes de medidas y audiencias y rechaza ciclos antes de reconstruirlos.
+La historia devuelta conserva sólo los ancestros del efecto y los objetivos del
+ancla elegida; las dependencias de revisiones anteriores se prueban aparte. La
+captura candidata participa en la comparación conjunta de fuentes antes de
+escribir. G2/M2 y correcciones administrativas siguen pendientes.
 
 La preparación admite el soporte exacto fuera del bloqueo; la confirmación exige
 ambos digests y vuelve a comprobar principal, acceso, contexto y fuentes. Todas

@@ -82,7 +82,7 @@ impl PrecautionaryHearingStore for PostgresPrecautionaryHearingStore {
             tx.commit().map_err(port)?;
             return Ok(result);
         }
-        let material = preparation::load(
+        let (material, proof) = preparation::load_with_proof(
             &mut tx,
             case,
             command,
@@ -93,6 +93,7 @@ impl PrecautionaryHearingStore for PostgresPrecautionaryHearingStore {
             return Err(PrecautionaryHearingError::SubmissionMismatch.into());
         }
         let result = prepared.into_operation(self.now()?)?;
+        proof.validate_forest(case, self.hasher.as_ref(), None, Some(&result))?;
         write::insert(&mut tx, &result.capture, self.hasher.as_ref())?;
         tx.commit().map_err(port)?;
         Ok(result)

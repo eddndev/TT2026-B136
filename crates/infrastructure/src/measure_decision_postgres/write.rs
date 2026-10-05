@@ -30,7 +30,6 @@ pub(super) fn insert(
     let group = &operation.group;
     let review = &group.review;
     let command = &review.command;
-    super::preparation::supported(command)?;
     if measure_group_origin(hasher, group, &operation.measure_history)? != operation.origin {
         return Err(inconsistent(
             "measure group differs from its original evidence",
@@ -68,8 +67,8 @@ pub(super) fn insert(
             support_format,support_policy,recorded_by,recorded_by_email,recorded_by_role,
             recorded_at_seconds,recorded_at_nanoseconds,submission_digest,review_digest,
             decision_digest,group_digest,anchor_kind,anchor_hearing_id,anchor_revision,
-            anchor_values_digest,anchor_submission_digest)
-         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)",
+            anchor_values_digest,anchor_submission_digest,anchor_precautionary_hearing_id,anchor_capture_digest)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)",
         &[
             &command.decision_id.as_uuid(), &command.operation_id.as_uuid(), &review.case_id.as_uuid(),
             &values, &values_view, &values_digest.as_bytes().as_slice(),
@@ -82,7 +81,7 @@ pub(super) fn insert(
             &review.submission_digest.as_bytes().as_slice(), &review.review_digest.as_bytes().as_slice(),
             &group.decision.capture_digest.as_bytes().as_slice(), &group.capture_digest.as_bytes().as_slice(),
             &anchor.kind, &anchor.hearing_id, &anchor.revision,
-            &anchor.values_digest, &anchor.submission_digest,
+            &anchor.values_digest, &anchor.submission_digest, &anchor.precautionary_hearing_id, &anchor.capture_digest,
         ],
     ).map_err(port)?;
     for capture in &group.measures {

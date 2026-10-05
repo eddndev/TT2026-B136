@@ -24,6 +24,16 @@ pub fn inspect_measure_administrative_dependencies(
     })
 }
 
+/// Validates supplied owners and hearing prefixes without asserting durable completeness.
+pub fn validate_measure_dependency_inventory(
+    hasher: &dyn DocumentHasher,
+    case_id: CaseId,
+    inventory: &MeasureAdministrativeDependencyInventory,
+) -> Result<(), ApplicationError> {
+    checked_inventory(hasher, case_id, None, inventory)?;
+    Ok(())
+}
+
 fn bounds(inventory: &MeasureAdministrativeDependencyInventory) -> Result<(), ApplicationError> {
     record_bounds::bounds((&inventory.records).into(), 0)?;
     if inventory.hearings.len() > 256 {
@@ -118,9 +128,20 @@ pub(super) fn checked_forest<'a>(
     target: PrecautionaryMeasureRef,
     inventory: &'a MeasureAdministrativeDependencyInventory,
 ) -> Result<(RecordIndex<'a>, SourceInventory<'a>), ApplicationError> {
+    checked_inventory(hasher, case_id, Some(target), inventory)
+}
+
+fn checked_inventory<'a>(
+    hasher: &dyn DocumentHasher,
+    case_id: CaseId,
+    target: Option<PrecautionaryMeasureRef>,
+    inventory: &'a MeasureAdministrativeDependencyInventory,
+) -> Result<(RecordIndex<'a>, SourceInventory<'a>), ApplicationError> {
     bounds(inventory)?;
     let index = RecordIndex::new(case_id, (&inventory.records).into(), 0)?;
-    index.selected(target)?;
+    if let Some(target) = target {
+        index.selected(target)?;
+    }
     let additional = anchor_dependencies(&index, inventory)?;
     let mut sources = SourceInventory::default();
     let index = record_graph::validate_forest(hasher, case_id, index, &additional, &mut sources)?;

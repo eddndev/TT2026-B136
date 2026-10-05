@@ -33,7 +33,7 @@ fn reason(row: &Row) -> Result<HearingNote, ApplicationError> {
     }
     Ok(value)
 }
-pub(super) fn capture(
+pub(crate) fn capture(
     tx: &mut Transaction<'_>,
     row: &Row,
     previous: Option<&PrecautionaryHearingCapture>,

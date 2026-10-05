@@ -128,6 +128,14 @@ pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
         false,
     ),
     (
+        "case_measure_decisions",
+        "measure_decision_anchor_precautionary",
+        &["anchor_precautionary_hearing_id", "anchor_revision"],
+        "case_precautionary_hearing_revisions",
+        &["hearing_id", "revision"],
+        false,
+    ),
+    (
         "case_measures",
         "measure_root_owner",
         &["root_operation", "case_id"],
