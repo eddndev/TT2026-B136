@@ -1,5 +1,16 @@
 # Informe de verificación local
 
+## Formato de la Agenda cautelar web: 5 de octubre de 2026
+
+El gate de formato del cliente detectó dos archivos pendientes de Prettier:
+la validación de cursores de Agenda y sus pruebas cautelares. El comando exacto
+reprodujo el fallo local. Se aplicó el formateador exclusivamente a esos dos
+archivos; la revisión comparada confirmó que no cambiaron condiciones, valores,
+llamadas ni aserciones. Después aprobaron `npm run format:check` y la prueba
+focal de Agenda cautelar. Ambos archivos conservan ASCII y menos de 400 líneas.
+Se mantienen las aceptaciones funcionales y documentales anteriores; el cierre
+remoto del HEAD corregido sigue pendiente.
+
 ## Registro de auxiliares cautelares en CI: 5 de octubre de 2026
 
 La primera campaña de cierre se detuvo antes de ejecutar la regresión: el

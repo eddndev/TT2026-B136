@@ -67,8 +67,12 @@ test('precautionary Agenda retains exact current captures and declared cancellat
     }
   }
   const selected = agendaSelection({
-    view: 'custom', from: '2026-01-01', until: '2026-01-02', offset: '+00:00',
-    kind: 'precautionary_hearing', hearing_status: 'cancelled',
+    view: 'custom',
+    from: '2026-01-01',
+    until: '2026-01-02',
+    offset: '+00:00',
+    kind: 'precautionary_hearing',
+    hearing_status: 'cancelled',
   });
   assert.equal(selected.query.hearing_status, 'cancelled');
   assert.equal(selected.filters.kind, 'precautionary_hearing');
@@ -83,7 +87,10 @@ test('precautionary cursor uses rank three and remains bound to range family and
   const empty = { ...clone(value), items: [], complete: true, next_cursor: null };
   const { api, calls } = client(empty);
   assert.deepEqual(await api.list({ ...input, limit: 2, cursor: value.next_cursor }), empty);
-  assert.equal(new URL(calls[0], 'https://local.test').searchParams.get('cursor'), value.next_cursor);
+  assert.equal(
+    new URL(calls[0], 'https://local.test').searchParams.get('cursor'),
+    value.next_cursor,
+  );
   for (const mutation of [
     { kind: 'all' },
     { hearing_status: 'cancelled' },
@@ -100,23 +107,57 @@ test('precautionary cursor uses rank three and remains bound to range family and
 
 test('precautionary overview rejects malformed shape time revision and status mismatches', async () => {
   for (const mutate of [
-    (v) => { v.items[0].precautionary_hearing.case_id = 'foreign'; },
-    (v) => { v.items[0].precautionary_hearing.id = 'bad'; },
-    (v) => { v.items[0].precautionary_hearing.revision = 0; },
-    (v) => { v.items[0].precautionary_hearing.revision = 1.5; },
-    (v) => { v.items[0].precautionary_hearing.purpose = 'initial'; },
-    (v) => { v.items[0].precautionary_hearing.status = 'expired'; },
-    (v) => { v.items[0].precautionary_hearing.status = 'cancelled'; },
-    (v) => { v.items[0].precautionary_hearing.modality = 'automatic'; },
-    (v) => { v.items[0].precautionary_hearing.participant_count = 33; },
-    (v) => { v.items[0].precautionary_hearing.capture_digest = 'bad'; },
-    (v) => { v.items[0].precautionary_hearing.capture_digest = 'AB'.repeat(32); },
-    (v) => { v.items[0].precautionary_hearing.scheduled_at = '2025-12-31T18:00:02-06:00'; },
-    (v) => { v.items[0].precautionary_hearing.scheduled_at = '2025-12-31T18:00:01'; },
-    (v) => { v.items[0].precautionary_hearing.measure_id = id; },
-    (v) => { v.items[0].at.nanosecond = 1; },
-    (v) => { v.items[0].case_status = 'unknown'; },
-    (v) => { v.items.push(clone(v.items[0])); },
+    (v) => {
+      v.items[0].precautionary_hearing.case_id = 'foreign';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.id = 'bad';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.revision = 0;
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.revision = 1.5;
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.purpose = 'initial';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.status = 'expired';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.status = 'cancelled';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.modality = 'automatic';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.participant_count = 33;
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.capture_digest = 'bad';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.capture_digest = 'AB'.repeat(32);
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.scheduled_at = '2025-12-31T18:00:02-06:00';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.scheduled_at = '2025-12-31T18:00:01';
+    },
+    (v) => {
+      v.items[0].precautionary_hearing.measure_id = id;
+    },
+    (v) => {
+      v.items[0].at.nanosecond = 1;
+    },
+    (v) => {
+      v.items[0].case_status = 'unknown';
+    },
+    (v) => {
+      v.items.push(clone(v.items[0]));
+    },
   ]) {
     const value = page();
     mutate(value);
@@ -124,7 +165,13 @@ test('precautionary overview rejects malformed shape time revision and status mi
   }
   const cancelled = page('precautionary_hearing', 'cancelled');
   cancelled.items[0].precautionary_hearing.status = 'scheduled';
-  await assert.rejects(client(cancelled).api.list({ ...query, kind: 'precautionary_hearing', hearing_status: 'cancelled' }));
+  await assert.rejects(
+    client(cancelled).api.list({
+      ...query,
+      kind: 'precautionary_hearing',
+      hearing_status: 'cancelled',
+    }),
+  );
   for (const kind of ['hearing', 'deadline', 'resource_hearing']) {
     const wrongFamily = page(kind);
     await assert.rejects(client(wrongFamily).api.list({ ...query, kind }));
@@ -132,7 +179,8 @@ test('precautionary overview rejects malformed shape time revision and status mi
 });
 
 test('Agenda merges a newer cancelled precautionary head without colliding with an ordinary hearing', () => {
-  const earlier = item(), later = item('cancelled');
+  const earlier = item(),
+    later = item('cancelled');
   earlier.precautionary_hearing.revision = 2;
   earlier.precautionary_hearing.capture_digest = '07'.repeat(32);
   const ordinary = hearingRow();

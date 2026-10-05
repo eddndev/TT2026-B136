@@ -47,7 +47,8 @@ export function agendaCursor(token, query) {
     agendaInvalid();
   if (
     query.kind !== 'all' &&
-    rank !== ['hearing', 'deadline', 'resource_hearing', 'precautionary_hearing'].indexOf(query.kind)
+    rank !==
+      ['hearing', 'deadline', 'resource_hearing', 'precautionary_hearing'].indexOf(query.kind)
   )
     agendaInvalid();
   uuid(parts[8]);
