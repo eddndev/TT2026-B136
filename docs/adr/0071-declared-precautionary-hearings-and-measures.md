@@ -70,6 +70,16 @@ must remain distinguishable from legal conclusions the prototype cannot make.
 
 ## Decision
 
+### Strict decision persistence values
+
+The infrastructure codec reconstructs MDVAL1, MEAS1 and MEFX1 from exact bounded
+projections and compares the original canonical bytes. It preserves all declared
+time precisions, absent offsets, unknown reasons and existing effect ordering.
+It rejects constructor-normalized text or identifiers. Outcome shape and the
+combined 32-identity limit are checked before decoding nested measure values.
+This establishes encoding consistency only; durable sources, current ownership,
+authorization and judicial effect require the separate application/store checks.
+
 ### Separate appointment, decision and measure identities
 
 Introduce a precautionary appointment family with a closed declared purpose:

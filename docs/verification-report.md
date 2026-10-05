@@ -9104,3 +9104,22 @@ La revisión estática independiente no dejó hallazgos pendientes en este alcan
 Los soportes cifrados y PostgreSQL son reales; la admisión de formato usa fixtures
 controlados. HTTP, parser nativo en aceptación integral, Agenda, alertas, Qadra,
 restauración completa y cierre documental siguen pendientes.
+
+
+## Reconstruccion estricta de valores de decisiones y medidas
+
+Comprobación focal local del 5 de octubre de 2026: `measure_decision_codec`
+aprobó 24 pruebas, ninguna omitida, en 0.12 s de ejecución y 14.81 s de
+compilación. Clippy del target aprobó en 5.21 s. La API ausente produjo el fallo
+inicial antes de implementar el codec. La revisión independiente de campos,
+normalización, orden y límites no dejó hallazgos.
+
+Los casos incluyen vectores independientes MDVAL1/MEAS1/MEFX1, catorce tipos de
+medida, todos los efectos declarados, las cuatro precisiones temporales con y
+sin offset, sustituciones múltiples, ausencia de cambios, supervisión conocida
+o desconocida y texto Unicode. Se comprobaron máximos canónicos de 16076 bytes
+para decisión, 20113 para medida y 645450 para 32 modificaciones. Diez casos
+negativos rechazan campos adicionales o ausentes, aliases, valores normalizados,
+identidades repetidas, orden alterado, cantidades agregadas mayores de 32,
+arrays sobredimensionados y bytes truncados o sobrantes. No se deduce de estos
+resultados existencia de fuentes, autoridad jurídica o persistencia completa.

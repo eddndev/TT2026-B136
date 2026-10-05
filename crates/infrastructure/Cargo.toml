@@ -84,19 +84,15 @@ path = "tests/suites/audit_suite_1.rs"
 [[test]]
 name = "case_closure"
 path = "tests/case_closure.rs"
-
 [[test]]
 name = "case_suite_1"
 path = "tests/suites/case_suite_1.rs"
-
 [[test]]
 name = "case_suite_2"
 path = "tests/suites/case_suite_2.rs"
-
 [[test]]
 name = "certificate_validation"
 path = "tests/certificate_validation.rs"
-
 [[test]]
 name = "cincel_stub"
 path = "tests/cincel_stub.rs"
@@ -398,3 +394,7 @@ path = "tests/precautionary_hearing_codec.rs"
 [[test]]
 name = "precautionary_hearing_backend"
 path = "tests/precautionary_hearing_backend.rs"
+
+[[test]]
+name = "measure_decision_codec"
+path = "tests/measure_decision_codec.rs"
