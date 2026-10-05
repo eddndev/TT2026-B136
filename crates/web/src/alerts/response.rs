@@ -64,6 +64,9 @@ fn record(value: AlertRecord, checked_at: OffsetDateTime) -> Result<Value, ApiEr
         AlertSubject::Hearing { case_id, id } => {
             json!({"kind":"hearing","case_id":case_id.to_string(),"id":id.to_string()})
         }
+        AlertSubject::PrecautionaryHearing { case_id, id } => {
+            json!({"kind":"precautionary_hearing","case_id":case_id.to_string(),"id":id.to_string()})
+        }
         AlertSubject::Deadline { case_id, id } => {
             json!({"kind":"deadline","case_id":case_id.to_string(),"id":id.to_string()})
         }

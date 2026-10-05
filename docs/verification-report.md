@@ -1,5 +1,28 @@
 # Informe de verificación local
 
+## Alertas cautelares: 5 de octubre de 2026
+
+Verificación fresca: las alertas de proximidad conservan la captura y revisión
+cautelar originales, con invalidación transaccional al reprogramar o cancelar.
+Mantienen destinatarios y preferencias existentes. Las familias ordinaria, de
+recurso y cautelar siguen distintas aunque compartan UUID y fecha; una decisión
+sobre audiencia inicial no crea otra alerta de cita.
+
+TDD focal de aplicación, HTTP y cliente pasó después de declarar la familia
+ausente. PostgreSQL 16.15/SCRAM real aprobó cuatro identidades nuevas por unión
+de tres casos iniciales y uno corregido. El fixture de descubrimiento necesitaba
+avanzar el reloj al siguiente ciclo antes de exigir las tres familias; se corrigió
+ese supuesto, sin modificar la política del scheduler ni repetir los otros casos.
+Se comprobaron cambios con igual fecha, reintento, reinicio, migración idempotente,
+acceso y rollback. La suite nativa afectada de alertas aprobó sus 45 casos.
+
+Clippy focal de aplicación, infraestructura y HTTP aprobó con `-D warnings`;
+formato comprobado. Todos los clusters privados se retiraron. Los fallos
+intermedios y su corrección se conservan; no quedan fallos focales pendientes.
+Esto verifica el backend y contrato cliente, no la aceptación integrada de
+Qadra, restauración del producto ni la regresión global de cierre. La evidencia
+previa de Agenda y demás frentes se conserva sin repetir sus campañas.
+
 ## Agenda cautelar: 5 de octubre de 2026
 
 Verificación fresca del recorrido de consulta, sin nueva integración. La Agenda

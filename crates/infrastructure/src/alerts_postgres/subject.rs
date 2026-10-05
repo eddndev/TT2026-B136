@@ -1,4 +1,4 @@
-use super::{codec, resource_hearing, stored};
+use super::{codec, precautionary_hearing, resource_hearing, stored};
 use application::{
     alerts::*,
     deadlines::{DeadlineAttention, DeadlineRevision, DeadlineStatus},
@@ -81,6 +81,27 @@ pub(super) fn load(
                 result.ended = Some(AlertResolutionReason::TargetRetired);
             }
         }
+        AlertSubject::PrecautionaryHearing { .. } => {
+            let detail = precautionary_hearing::detail(tx, subject, None, hasher)?;
+            if detail.recorded_at > now {
+                return Err(stored(
+                    "precautionary capture is newer than alert observation",
+                ));
+            }
+            let metadata = precautionary_hearing::metadata(&detail);
+            result.case_title = metadata.title().into();
+            result.case_reference = metadata.reference().into();
+            result.subject_title = precautionary_hearing::title(&detail);
+            result.origin = AlertOrigin {
+                revision: detail.review.result_revision.get(),
+                evidence_digest: detail.capture_digest,
+            };
+            if detail.review.status == HearingStatus::Scheduled {
+                result.activity_at = Some(detail.review.resolved_values.scheduled_at().utc());
+            } else {
+                result.ended = Some(AlertResolutionReason::CancelledHearing);
+            }
+        }
         AlertSubject::ResourceHearing { .. } => {
             let detail = resource_hearing::detail(tx, subject, hasher)?;
             if detail.recorded_at > now {
@@ -108,6 +129,14 @@ pub(super) fn verify_origin(
     hasher: &dyn DocumentHasher,
 ) -> Result<(), ApplicationError> {
     let (digest, title, metadata) = match record.subject {
+        AlertSubject::PrecautionaryHearing { .. } => {
+            let detail = precautionary_hearing::origin(tx, record, hasher)?;
+            (
+                detail.capture_digest,
+                precautionary_hearing::title(&detail),
+                precautionary_hearing::metadata(&detail).clone(),
+            )
+        }
         AlertSubject::Hearing { case_id, id } => {
             let snapshot = crate::hearing_postgres::storage::detail(
                 tx,

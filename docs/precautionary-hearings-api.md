@@ -2,10 +2,10 @@
 
 Estado: router local implementado y compuesto en `serve` sobre los puertos
 autorizados de aplicación. Comparte el presupuesto de trabajo de la API.
-La aceptación HTTP con servicios reales, reinicio/restauración, Agenda, alertas
-y Qadra permanecen pendientes. Este
-documento describe únicamente contexto y convocatorias; no declara disponibles
-rutas de decisiones o correcciones administrativas. Véanse
+La consulta de Agenda PostgreSQL/HTTP tiene evidencia focal propia. Alertas están
+en verificación; Qadra y aceptación HTTP integrada con reinicio/restauración
+permanecen pendientes. Este documento describe contexto y convocatorias; decisiones
+y rectificaciones tienen sus contratos propios en [la API HTTP](http-api.md). Véanse
 [el alcance](precautionary-hearings-scope.md),
 [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md) y
 [la evidencia ejecutada](verification-report.md).
@@ -145,7 +145,7 @@ El mapper común también define los prefijos `measure_decision_` y
 `measure_administrative_`, con los mismos sufijos `not_found` (404),
 `operation_conflict`, `submission_mismatch`, `review_mismatch` (409) e
 `incomplete_history` (422). La familia administrativa añade `stale_head` y
-`known_dependants` (409). Esos códigos no implican que sus rutas estén compuestas.
+`known_dependants` (409). Sus rutas están compuestas con evidencia focal propia.
 Las inconsistencias almacenadas, errores de persistencia/auditoría y respuestas
 del puerto que contradigan los selectores solicitados devuelven el 500 genérico,
 sin diagnósticos SQL ni material privado.

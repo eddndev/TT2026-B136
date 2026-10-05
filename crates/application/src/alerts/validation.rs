@@ -60,7 +60,9 @@ impl AlertRecord {
         }
         if matches!(
             self.subject,
-            AlertSubject::Hearing { .. } | AlertSubject::ResourceHearing { .. }
+            AlertSubject::Hearing { .. }
+                | AlertSubject::ResourceHearing { .. }
+                | AlertSubject::PrecautionaryHearing { .. }
         ) && !matches!(self.kind, AlertKind::Upcoming { .. })
         {
             return Err(stored("notification kind does not apply to hearing"));

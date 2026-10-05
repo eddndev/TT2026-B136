@@ -1,4 +1,4 @@
-use super::super::{codec, invalidate, port, resource_hearing, stored};
+use super::super::{codec, invalidate, port, precautionary_hearing, resource_hearing, stored};
 use application::{
     alerts::*,
     deadlines::{DeadlineAttention, DeadlineRevision},
@@ -21,6 +21,7 @@ pub(super) fn root(
         0 => "case_hearings",
         1 => "case_deadlines",
         2 => "case_resource_hearings",
+        3 => "case_precautionary_hearings",
         _ => return Err(stored("invalid alert subject family")),
     };
     let projection = if kind == 2 {
@@ -118,6 +119,22 @@ pub(super) fn validate(
                 matches!(detail.attention, DeadlineAttention::Pending),
             )
         }
+        AlertSubject::PrecautionaryHearing { .. } => {
+            let detail = precautionary_hearing::detail(tx, target, Some(origin.revision), hasher)?;
+            let captured_due = (detail.review.status == HearingStatus::Scheduled)
+                .then_some(detail.review.resolved_values.scheduled_at().utc());
+            if due != captured_due
+                || review
+                || attention
+                || responsible.is_some()
+                || !value["changed_episode"].is_null()
+            {
+                return Err(stored(
+                    "precautionary hearing state has unsupported attributes",
+                ));
+            }
+            (detail.capture_digest, captured_due, None, false)
+        }
         AlertSubject::ResourceHearing { .. } => {
             let detail = resource_hearing::detail(tx, target, hasher)?;
             let captured_due = Some(detail.review.command.values.scheduled_at().utc());
@@ -192,7 +209,7 @@ pub(super) fn cursor(tx: &mut Transaction<'_>) -> Result<(), ApplicationError> {
         return Err(stored("invalid alert scan counter"));
     }
     let kind: i16 = row.try_get("kind").map_err(stored)?;
-    if !matches!(kind, 0..=2) {
+    if !matches!(kind, 0..=3) {
         return Err(stored("invalid scan family"));
     }
     let id: Option<Uuid> = row.try_get("id").map_err(stored)?;
@@ -236,6 +253,7 @@ fn cursor_root(tx: &mut Transaction<'_>, kind: i16, id: Uuid) -> Result<(), Appl
         0 => "case_hearings",
         1 => "case_deadlines",
         2 => "case_resource_hearings",
+        3 => "case_precautionary_hearings",
         _ => return Err(stored("invalid scan subject family")),
     };
     if tx

@@ -114,5 +114,13 @@ pub(super) fn insert(
         ],
     )
     .map_err(port)?;
+    crate::alerts_postgres::invalidate(
+        tx,
+        application::alerts::AlertSubject::PrecautionaryHearing {
+            case_id: review.case_id,
+            id: command.hearing_id,
+        },
+        hasher,
+    )?;
     Ok(())
 }

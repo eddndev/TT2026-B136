@@ -7,8 +7,8 @@ decisiones con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
 de G2/M2 y sus consumidores mixtos tiene implementación local aditiva y
 verificación nativa focal, incluidas las consultas de operaciones y contexto.
-HTTP compuesto tiene comprobaciones focales aprobadas. Agenda está en verificación
-focal; alertas, interfaz y aceptación integrada permanecen pendientes. Este contrato no
+HTTP compuesto tiene comprobaciones focales aprobadas. Agenda y alertas tienen verificación
+focal PostgreSQL/HTTP y del parser cliente. Interfaz y aceptación integrada permanecen pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
 en [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 

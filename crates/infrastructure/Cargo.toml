@@ -390,3 +390,7 @@ path = "tests/measure_decision_record_backend.rs"
 [[test]]
 name = "agenda_precautionary_hearings"
 path = "tests/agenda_precautionary_hearings.rs"
+
+[[test]]
+name = "alert_precautionary_hearings"
+path = "tests/alert_precautionary_hearings.rs"

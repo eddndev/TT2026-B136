@@ -1,4 +1,6 @@
 mod alert_http_support;
+#[path = "alert_resource_hearing_http/precautionary.rs"]
+mod precautionary;
 use alert_http_support::*;
 use application::{alerts::*, ApplicationError};
 use axum::http::StatusCode;
