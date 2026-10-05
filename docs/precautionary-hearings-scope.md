@@ -3,8 +3,9 @@
 Estado: **dominio y servicios de aplicación verificados localmente**. El trabajo local
 comprende esos componentes y sus contratos. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
-decisiones independientes con historia exacta y ausencia de cambios. Su alcance
-se detalla abajo. La persistencia con anclas, G2/M2 y registros
+decisiones con historia exacta y ausencia de cambios. Su alcance
+se detalla abajo e incluye anclas iniciales ordinarias exactas. La persistencia
+con anclas cautelares, G2/M2 y registros
 administrativos, HTTP, Agenda, alertas e interfaz
 conservan sus propias comprobaciones pendientes. Este contrato no
 acredita la implementación completa ni la aceptación del flujo de producto. La decisión de arquitectura se conserva
@@ -45,7 +46,7 @@ historia de medidas. No se cargan grupos cuando no existen objetivos.
 La existencia del adaptador no habilita rutas, Agenda, alertas o Qadra, ni acredita
 restauración integral o despliegue. Véase [operación de base de datos](database-operations.md).
 
-## Persistencia local de decisiones independientes
+## Persistencia local de decisiones cautelares
 
 `PostgresMeasureDecisionStore` admite grupos de 1 a 32 imposiciones iniciales y
 decisiones explícitas NoMeasureChange. Estas últimas tienen decisión, propietario
@@ -55,8 +56,12 @@ Las migraciones `0035_` amplían las guardas para confirmar, modificar, revocar,
 cesar y sustituir medidas desde predecesores exactos. Las raíces conservan su
 propietario inicial; cada grupo retiene todos sus miembros y ancestros, incluso
 los de hermanos no seleccionados. Una captura nueva exige la cabeza vigente;
-lectura y replay reconstruyen la historia original. Se rechazan anclas y no se
-habilitan G2/M2 ni correcciones administrativas.
+lectura y replay reconstruyen la historia original. Las migraciones `0037_`
+añaden anclas iniciales ordinarias exactas: se comprueban raíz, prefijo completo
+hasta la revisión elegida, fuentes, recibos y auditoría original. Se conservan
+revisiones antiguas y canceladas, sin exigir que sean cabeza vigente. El prefijo
+seleccionado admite hasta 256 revisiones. Las anclas cautelares, G2/M2 y
+correcciones administrativas siguen pendientes.
 
 La preparación admite el soporte exacto fuera del bloqueo; la confirmación exige
 ambos digests y vuelve a comprobar principal, acceso, contexto y fuentes. Todas

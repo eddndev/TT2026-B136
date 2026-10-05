@@ -1,4 +1,4 @@
-use super::{inconsistent, port};
+use super::{anchors, inconsistent, port};
 use application::{
     precautionary_measures::{
         measure_group_origin, MeasureDecisionGroupCapture, MeasureDecisionStoredOperation,
@@ -60,14 +60,16 @@ pub(super) fn insert(
     let context = &review.material.context;
     let context_digest = context.digest(hasher);
     let support = &review.material.support;
+    let anchor = anchors::columns(&command.anchor)?;
     tx.execute(
         "INSERT INTO case_measure_decisions(decision_id,operation_id,case_id,
             values_canonical,values_view,values_digest,outcome_canonical,outcome_view,outcome_digest,
             observed_administration_revision,observed_stage_revision,observed_context_digest,
             support_format,support_policy,recorded_by,recorded_by_email,recorded_by_role,
             recorded_at_seconds,recorded_at_nanoseconds,submission_digest,review_digest,
-            decision_digest,group_digest)
-         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)",
+            decision_digest,group_digest,anchor_kind,anchor_hearing_id,anchor_revision,
+            anchor_values_digest,anchor_submission_digest)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)",
         &[
             &command.decision_id.as_uuid(), &command.operation_id.as_uuid(), &review.case_id.as_uuid(),
             &values, &values_view, &values_digest.as_bytes().as_slice(),
@@ -79,6 +81,8 @@ pub(super) fn insert(
             &group.recorded_at.unix_timestamp(), &(group.recorded_at.nanosecond() as i32),
             &review.submission_digest.as_bytes().as_slice(), &review.review_digest.as_bytes().as_slice(),
             &group.decision.capture_digest.as_bytes().as_slice(), &group.capture_digest.as_bytes().as_slice(),
+            &anchor.kind, &anchor.hearing_id, &anchor.revision,
+            &anchor.values_digest, &anchor.submission_digest,
         ],
     ).map_err(port)?;
     for capture in &group.measures {

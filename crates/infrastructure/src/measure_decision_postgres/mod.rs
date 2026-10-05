@@ -1,5 +1,6 @@
-//! Atomic standalone judicial decisions and their original measure ownership.
+//! Atomic judicial decisions and their original measure ownership.
 mod advertised;
+mod anchors;
 mod audit;
 mod commit;
 mod decode;

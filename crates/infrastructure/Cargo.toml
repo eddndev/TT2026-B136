@@ -108,15 +108,12 @@ path = "tests/deadline_dispatch_measurement.rs"
 [[test]]
 name = "deadline_input_backend"
 path = "tests/deadline_input_backend.rs"
-
 [[test]]
 name = "deadline_profile_harness"
 path = "tests/deadline_profile_harness.rs"
-
 [[test]]
 name = "deadline_profile_revalidation"
 path = "tests/deadline_profile_revalidation.rs"
-
 [[test]]
 name = "deadline_source_events"
 path = "tests/deadline_source_events.rs"
@@ -398,3 +395,6 @@ path = "tests/measure_decision_backend.rs"
 [[test]]
 name = "precautionary_review_backend"
 path = "tests/precautionary_review_backend.rs"
+[[test]]
+name = "measure_initial_anchor_backend"
+path = "tests/measure_initial_anchor_backend.rs"

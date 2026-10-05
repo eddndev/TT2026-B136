@@ -1,5 +1,38 @@
 # Informe de verificación local
 
+## Decisiones con ancla inicial ordinaria: 4 de octubre de 2026
+
+El adaptador PostgreSQL conserva referencias exactas a audiencias Initial, con
+sus valores y recibo originales. Comprueba raíz, prefijo seleccionado completo,
+fuentes y eventos de auditoría antes de reconstruir la decisión. Las selecciones
+antiguas, reemplazadas y canceladas permanecen válidas; no se exige la cabeza
+actual ni se interpreta la fecha programada como celebración de la audiencia.
+NoMeasureChange conserva una decisión real aun cuando no produce medidas.
+
+TDD reprodujo el rechazo previo de una audiencia Initial auténtica en **6.38 s**.
+El primer recorrido implementado detectó una referencia SQL ambigua a `actor`
+en **5.14 s**; tras calificar las columnas del evento aprobó en **6.61 s**.
+La ejecución focal aprobó **16 casos en 141.32 s**, sin omitidos, y otros
+**4 casos de esquema en 27.35 s**, sin omitidos. Estos últimos comprueban
+migración repetible sin reemplazar restricciones, default y forma cerrada,
+clave foránea, privilegios por columna y rechazos directos atómicos con un
+control positivo real. Las dos campañas duraron **143.270 s** y **30.114 s**
+incluyendo preparación del entorno; no se suman los recorridos parciales otra vez.
+
+Las pruebas usan PostgreSQL **16.15** real con SCRAM, un único compilador y
+thread de pruebas, y directorio temporal privado sobre btrfs. Los clusters
+propios se retiraron al terminar. Expedientes, sujetos y soportes cifrados son
+reales; la admisión de formato permanece controlada. La revisión independiente
+de los cargadores y de la integración del ancla no encontró defectos concretos.
+No se ejecutó un historial nativo de 256 revisiones ni una regresión global.
+Los **33 casos afectados de decisiones existentes** aprobaron en **304.98 s**
+(**309.944 s** con entorno), conservando sus 33 identidades previas: **53 casos
+nativos** entre las tres campañas. Clippy de la biblioteca y ambos targets
+aprobó con `-D warnings` en **6.375 s**, compilación **6.28 s**.
+Las anclas cautelares, registros administrativos durables, HTTP,
+Agenda, alertas, Qadra y restauración integral siguen pendientes; esta evidencia
+no acredita integración a main, despliegue ni aceptación del producto completo.
+
 ## Servicio administrativo cautelar: 4 de octubre de 2026
 
 El servicio de aplicación prepara y confirma Correct y MarkEnteredInError con

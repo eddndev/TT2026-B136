@@ -29,6 +29,7 @@ pub(super) fn expected(table: &str) -> Vec<(String, String)> {
             ("review_size", "(octet_length(review_digest) = 32)"),
             ("capture_size", "(octet_length(decision_digest) = 32)"),
             ("group_size", "(octet_length(group_digest) = 32)"),
+            ("anchor_shape", r#"((((anchor_kind COLLATE "C") = 'none'::text) AND (num_nonnulls(anchor_hearing_id, anchor_revision, anchor_values_digest, anchor_submission_digest) = 0)) OR (((anchor_kind COLLATE "C") = 'initial'::text) AND (num_nonnulls(anchor_hearing_id, anchor_revision, anchor_values_digest, anchor_submission_digest) = 4) AND (anchor_revision >= 1) AND (anchor_revision <= '4294967295'::bigint) AND (octet_length(anchor_values_digest) = 32) AND (octet_length(anchor_submission_digest) = 32)))"#),
         ]),
         "case_measures" => ("measure_root", &[("initial", "(initial_revision = 1)")]),
         "case_measure_revisions" => ("measure_revision", &[

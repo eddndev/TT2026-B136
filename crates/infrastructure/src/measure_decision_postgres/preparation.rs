@@ -1,4 +1,4 @@
-use super::{audit, history, inconsistent, port, sources};
+use super::{anchors, audit, history, inconsistent, port, sources};
 use application::{
     case_stages::StageSupportRef, documents::StageSupportReadLimits, precautionary_measures::*,
     ApplicationError,
@@ -7,9 +7,12 @@ use domain::{cases::CaseId, crypto::DocumentHasher, precautionary_measures::Meas
 use postgres::Transaction;
 
 pub(super) fn supported(command: &MeasureDecisionCommand) -> Result<(), ApplicationError> {
-    if command.anchor.is_some() {
+    if matches!(
+        command.anchor,
+        Some(MeasureDecisionAnchorRef::Precautionary { .. })
+    ) {
         return Err(ApplicationError::InvalidInput(
-            "durable anchored measure decisions are not available".into(),
+            "durable precautionary hearing anchors are not available".into(),
         ));
     }
     Ok(())
@@ -89,7 +92,7 @@ pub(super) fn load(
             StageSupportRef::new(support.reference(), support.digest()),
             limits,
         )?,
-        anchor: None,
+        anchor: anchors::load(tx, case, &command.anchor, hasher)?,
         predecessors,
         result_sources,
         measure_history,

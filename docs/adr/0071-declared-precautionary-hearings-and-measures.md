@@ -21,9 +21,9 @@ The authorized decision service also admits exact support, confirms both digests
 and validates the complete original group and ancestor closure on replay and commit.
 Decision readers verify full immutable groups, bounded pagination and shared
 source/ownership consistency with current staff authorization. A local PostgreSQL
-adapter persists standalone decisions declaring 1..32 initial Impose effects or
-NoMeasureChange, with their original group and atomic audit. It rejects anchors
-and predecessor effects. A first pure
+adapter persists all G1 predecessor effects, initial Impose groups and
+NoMeasureChange, with their original group and atomic audit. It also resolves
+exact ordinary Initial hearing anchors; precautionary anchors remain pending. A first pure
 administrative capture corrects one exact judicial measure using its complete
 group ancestry, retaining the last actual judicial declaration and support.
 The mixed record resolver also validates repeated corrections with complete
@@ -43,7 +43,7 @@ MarkEnteredInError using the observed exact head, full supplied dependency
 inventory, retained support admission and original-receipt replay. Its store
 contract requires durable current-head and dependency checks; the application
 service cannot establish those facts by itself. Optional administrative
-replacement, mixed-record appointment/decision services, anchored decisions,
+replacement, mixed-record appointment/decision services, precautionary-anchored decisions,
 G2/M2 and administrative persistence, HTTP, Agenda, alerts,
 Qadra and restoration acceptance remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
@@ -782,7 +782,8 @@ executed checks are recorded independently in the verification report.
 `PostgresMeasureDecisionStore` implements the existing decision write and read
 ports for standalone Impose groups of 1..32 new measure identities and explicit
 NoMeasureChange decisions. The latter retain a real decision, group origin and
-audit event with zero measure rows. Anchors remain rejected. The `0034_measure_decisions`
+audit event with zero measure rows. Ordinary Initial anchors are supported as
+described below; precautionary anchors remain pending. The `0034_measure_decisions`
 migrations add append-only operation owners, decisions, measure roots and measure
 revisions; this boundary stores G1/M1 and preserves existing canonical bytes.
 
@@ -836,7 +837,7 @@ to its strict original submission and the retained audit marker before using it
 to establish completeness. A self-consistent changed outcome digest alone does
 not prove it belongs to that original operation. Keep this bounded check free
 of current source-head or current actor assumptions. The backend still rejects
-anchors and mixed administrative records; HTTP, Agenda, alerts, Qadra and
+precautionary anchors and mixed administrative records; HTTP, Agenda, alerts, Qadra and
 restoration require their own integration and acceptance.
 
 ### Readers, recovery and restoration
@@ -901,4 +902,32 @@ Review target references, plus at most 256 measure owners and 8192 members.
 Resolve the complete selected prefix union once, then validate each capture with
 its exact current and predecessor target closure. Original-operation replay
 reconstructs its original prefix and excludes unrelated later decisions. These
-checks do not enable anchored decisions or mixed administrative persistence.
+checks do not enable precautionary-anchored decisions or mixed administrative persistence.
+
+
+### Durable ordinary Initial hearing anchors
+
+The `0037_measure_decision_` migrations add five strict selector columns to the
+existing decision table: anchor kind, exact hearing identity/revision and both
+ordinary receipt commitments. Unanchored decisions retain their previous bytes
+and default to `none`; Initial selectors are complete and refer to an existing
+ordinary revision. Runtime INSERT privileges include only those explicit columns.
+The startup catalog checks the default, closed shape, foreign key and guard body.
+
+Resolve the selected Initial revision in the same audited transaction as the
+G1 operation. Bound the selected prefix to 256 revisions before payload loads,
+then verify its root, contiguous Schedule/Replace/Cancel history, exact sources,
+original commands and original mutation audit events. Keep ordinary ID/email
+provenance; do not invent a captured role. The selected detail, including its
+participants and historical programming, supplies the unchanged MHIA1 material.
+
+A replaced or cancelled exact revision remains selectable; a later current head
+does not replace it. Decision capture cannot predate the selected anchor, and its
+observed context cannot regress relative to that anchor. Scheduled occurrence is
+not inferred. Reconstruct MDTXN1 with the original anchor selectors before using
+surviving outcomes to reserve identities; self-consistent replacement selectors
+cannot free the original group from its retained submission and audit evidence.
+
+This remains a local G1 adapter capability. Full precautionary anchor traversal,
+mixed administrative persistence, HTTP, Agenda, alerts, Qadra and restoration
+acceptance have separate pending work.

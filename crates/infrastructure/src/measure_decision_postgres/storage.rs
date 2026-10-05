@@ -12,7 +12,10 @@ const DECISION_BOUNDS:&str="octet_length(d.values_canonical) BETWEEN 80 AND 1607
  AND octet_length(d.support_format)<=4 AND octet_length(d.support_policy)<=11
  AND octet_length(d.recorded_by_email) BETWEEN 1 AND 1280 AND octet_length(d.recorded_by_role)<=9
  AND octet_length(d.submission_digest)=32 AND octet_length(d.review_digest)=32 AND octet_length(d.decision_digest)=32
- AND octet_length(d.group_digest)=32 AND octet_length(o.owner_digest)=32 AND octet_length(o.family)<=2";
+ AND octet_length(d.group_digest)=32 AND octet_length(o.owner_digest)=32 AND octet_length(o.family)<=2
+ AND octet_length(d.anchor_kind) BETWEEN 4 AND 7
+ AND COALESCE(octet_length(d.anchor_values_digest),32)=32
+ AND COALESCE(octet_length(d.anchor_submission_digest),32)=32";
 const MEMBER_BOUNDS:&str="octet_length(r.values_canonical) BETWEEN 91 AND 20113 AND octet_length(r.values_view::text)<=32768
  AND octet_length(r.values_digest)=32 AND octet_length(r.capture_digest)=32 AND octet_length(r.subject_values_digest)=32
  AND octet_length(r.family)<=2 AND octet_length(r.action)<=14";

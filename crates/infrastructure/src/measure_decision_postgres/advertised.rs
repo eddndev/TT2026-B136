@@ -1,4 +1,4 @@
-use super::{decode, inconsistent};
+use super::{anchors, decode, inconsistent};
 use application::{
     identity::Principal,
     precautionary_hearings::PrecautionaryContextExpectation,
@@ -16,6 +16,7 @@ use postgres::Row;
 
 /// Bind advertised members to the submission retained by the original audit marker.
 pub(super) fn outcome(row: &Row) -> Result<MeasureDecisionOutcome, ApplicationError> {
+    let anchor = anchors::reference(row)?;
     let case = CaseId::from_uuid(row.get("case_id"));
     let revision = |name| u32::try_from(row.get::<_, i64>(name)).map_err(inconsistent);
     let values_bytes: Vec<u8> = row.get("values_canonical");
@@ -42,7 +43,7 @@ pub(super) fn outcome(row: &Row) -> Result<MeasureDecisionOutcome, ApplicationEr
             &values_bytes,
             &row.get("values_view"),
         )?,
-        anchor: None,
+        anchor,
         outcome: crate::measure_decision_codec::outcome(&outcome_bytes, &row.get("outcome_view"))?,
     };
     let actor = Principal {

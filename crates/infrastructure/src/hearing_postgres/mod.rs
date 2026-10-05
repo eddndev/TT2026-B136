@@ -1,5 +1,7 @@
 //! Transactional hearing scheduling with exact history and explicit operation receipts.
 
+mod anchor;
+mod anchor_audit;
 mod authorization;
 mod commit;
 mod decode;
@@ -7,6 +9,7 @@ mod port_impl;
 mod preparation;
 mod query;
 mod sources;
+pub(crate) use anchor::load_initial_hearing_anchor;
 pub(crate) use sources::{administration, participant};
 pub(crate) mod storage;
 mod write;

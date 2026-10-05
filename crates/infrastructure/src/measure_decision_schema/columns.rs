@@ -35,6 +35,11 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("review_digest", "bytea", true),
             ("decision_digest", "bytea", true),
             ("group_digest", "bytea", true),
+            ("anchor_kind", "text", true),
+            ("anchor_hearing_id", "uuid", false),
+            ("anchor_revision", "bigint", false),
+            ("anchor_values_digest", "bytea", false),
+            ("anchor_submission_digest", "bytea", false),
         ],
         "case_measures" => &[
             ("id", "uuid", true),
@@ -93,6 +98,8 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
                         || row.get::<_, Option<String>>(6).as_deref()
                             != if table == "case_measures" && *name == "initial_revision" {
                                 Some("1")
+                            } else if table == "case_measure_decisions" && *name == "anchor_kind" {
+                                Some("'none'::text")
                             } else {
                                 None
                             }

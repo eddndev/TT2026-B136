@@ -1,4 +1,4 @@
-use super::{history, inconsistent, preparation, sources};
+use super::{anchors, history, inconsistent, preparation, sources};
 use application::{
     case_stages::StageDocumentFormat, identity::Principal,
     precautionary_hearings::PrecautionaryContextExpectation, precautionary_measures::*,
@@ -29,6 +29,7 @@ pub(super) fn group(
     if row.get::<_, String>("family") != "g1" {
         return Err(inconsistent("unsupported owner family"));
     }
+    let anchor = anchors::reference(row)?;
     let context = sources::exact_context(
         tx,
         case,
@@ -60,7 +61,7 @@ pub(super) fn group(
         decision_id: MeasureDecisionId::from_uuid(row.get("decision_id")),
         context: expectation,
         values,
-        anchor: None,
+        anchor,
         outcome,
     };
     preparation::supported(&command).map_err(inconsistent)?;
@@ -78,7 +79,7 @@ pub(super) fn group(
     let material = MeasureDecisionMaterial {
         context,
         support: sources::support(tx, case, command.values.support(), format)?,
-        anchor: None,
+        anchor: anchors::load(tx, case, &command.anchor, hasher)?,
         predecessors,
         result_sources,
     };
