@@ -36,6 +36,7 @@ pub fn prepare_measure_record_correction(
     context: PrecautionaryContext,
     history: &MeasureHistoryEvidence,
 ) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    require_correction(&command)?;
     prepare_with_view(
         hasher,
         actor,
@@ -50,6 +51,28 @@ pub fn prepare_measure_record_correction(
 }
 
 pub fn prepare_measure_record_correction_with_history(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: MeasureAdministrativeCommand,
+    context: PrecautionaryContext,
+    evidence: &MeasureRecordHistoryEvidence,
+) -> Result<CheckedMeasureAdministrativeReview, ApplicationError> {
+    require_correction(&command)?;
+    prepare_measure_administrative_record_with_history(
+        hasher, actor, case_id, command, context, evidence,
+    )
+}
+
+fn require_correction(command: &MeasureAdministrativeCommand) -> Result<(), ApplicationError> {
+    if !matches!(command.action, MeasureAdministrativeAction::Correct(_)) {
+        return Err(invalid("correction entry point requires correction values"));
+    }
+    Ok(())
+}
+
+/// Captures declared recording validity without asserting a judicial effect or live eligibility.
+pub fn prepare_measure_administrative_record_with_history(
     hasher: &dyn DocumentHasher,
     actor: &Principal,
     case_id: CaseId,
@@ -114,8 +137,15 @@ pub(super) fn prepare_from_record(
         .revision()
         .next()
         .ok_or_else(|| invalid("measure revision overflow"))?;
-    let values = match &command.action {
-        MeasureAdministrativeAction::Correct(values) => previous.values().correct_record(values)?,
+    let (values, validity) = match &command.action {
+        MeasureAdministrativeAction::Correct(values) => (
+            previous.values().correct_record(values)?,
+            MeasureCaptureValidity::Valid,
+        ),
+        MeasureAdministrativeAction::MarkEnteredInError => (
+            previous.values().clone(),
+            MeasureCaptureValidity::EnteredInError,
+        ),
     };
     let projection = resolve_measure_sources(hasher, case_id, &values, previous.sources())?;
     let earliest_capture = previous
@@ -131,7 +161,7 @@ pub(super) fn prepare_from_record(
         judicial_origin: previous.judicial().result.origin,
         last_judicial: previous.judicial_reference(),
         last_action: previous.judicial().result.action,
-        validity: MeasureCaptureValidity::Valid,
+        validity,
         values,
         sources: previous.sources().clone(),
         projection,

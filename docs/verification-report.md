@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Validez de captura entered-in-error: 4 de octubre de 2026
+
+La preparación administrativa genérica admite `MarkEnteredInError` sobre un
+predecesor exacto con validez de captura Valid. Agrega una revisión conservando
+valores, fuentes, proyección, origen, última medida y acción judiciales, y soporte.
+No crea un reemplazo ni modifica efectos judiciales. Las entradas de preparación
+de corrección siguen limitadas a Correct; recibos, orígenes y consultas históricas
+reconstruyen ambas acciones sin exigir ausencia eterna de dependientes.
+
+TDD: las pruebas fallaron primero por la API ausente. La ejecución focal final
+aprobó **23 casos nuevos y 70 anteriores afectados**, **93 casos** en
+**13.817 s** de comando, compilación **2.38 s**. Comprueban retención completa,
+marcado posterior a correcciones, acciones terminales, aislamiento entre medidas
+hermanas, actores, motivos y relojes; rechazan correcciones o nuevas marcas desde
+un registro EnteredInError y material alterado con hashes recalculados.
+
+Cuatro vectores nuevos independientes verifican las instrucciones, revisiones,
+filas y recibos de marcado completos. La etiqueta 1 no incluye carga `MCVAL1`;
+las estructuras y los bytes anteriores de Correct se conservan. Los digests del
+fixture determinista no son vectores criptográficos SHA-256. La revisión estática
+independiente no encontró defectos. Clippy de los cuatro targets con
+`-D warnings` aprobó en **4.108 s**, compilación **4.05 s**.
+
+Esta evidencia local no acredita cabeza vigente, inventario durable completo de
+dependientes, elegibilidad actual ni transacción SQL. Siguen pendientes el consumo
+administrativo por nuevas decisiones y convocatorias Review, el reemplazo
+administrativo opcional, el servicio autorizado, persistencia y aceptación del
+flujo completo. No se ejecutó una regresión global, integración, despliegue o nuevo
+PDF para esta comprobación focal; el alcance completo permanece propuesto.
+
 ## Historial mixto y rectificación repetida: 4 de octubre de 2026
 
 El resolvedor de aplicación valida propietarios judiciales y administrativos
@@ -24,7 +54,7 @@ servicio autorizado de rectificación, SQL, HTTP o restauración. La verificaci�
 es local y focal; no constituye una campaña global ni aceptación del flujo completo.
 
 Después de representar las dos variantes de registro mediante `Box`, la
-comprobación final conservó **32/32** casos en **16.843 s**, compilación **6.05 s**.
+comprobación final conservó **32/32** casos en **16.843 s**, compilación **6.06 s**.
 Las **34 capturas y 4 vectores anteriores** afectados aprobaron en **1.524 s**.
 Clippy de los tres targets con `-D warnings` aprobó en **5.184 s**, compilación
 **5.14 s**, y la revisión independiente quedó limpia. El cambio de representación

@@ -21,6 +21,7 @@ pub fn measure_administrative_submission_bytes(
             bytes.push(0);
             blob(&mut bytes, &values.canonical_bytes())?;
         }
+        MeasureAdministrativeAction::MarkEnteredInError => bytes.push(1),
     }
     Ok(bytes)
 }

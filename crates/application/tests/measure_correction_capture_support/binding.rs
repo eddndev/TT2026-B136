@@ -51,7 +51,9 @@ fn submission_bytes_bind_actor_scope_operation_target_context_reason_and_correct
             10 => fixture.command.context.context_digest = Sha256Digest::from_array([99; 32]),
             11 => fixture.command.reason = note("Another transcription explanation"),
             _ => {
-                let MeasureAdministrativeAction::Correct(values) = &fixture.command.action;
+                let MeasureAdministrativeAction::Correct(values) = &fixture.command.action else {
+                    panic!("correction fixture expected");
+                };
                 let conditions = if mutation == 12 {
                     note("Other conditions")
                 } else {

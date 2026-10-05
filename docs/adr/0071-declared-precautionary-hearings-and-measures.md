@@ -21,10 +21,12 @@ source/ownership consistency with current staff authorization. A first pure
 administrative capture corrects one exact judicial measure using its complete
 group ancestry, retaining the last actual judicial declaration and support.
 The mixed record resolver also validates repeated corrections with complete
-judicial and administrative owners. Judicial decisions and Review appointments
-do not yet consume administrative predecessors. Entered-in-error, authorized
-correction services, durable storage, HTTP, Agenda, alerts, Qadra and restoration
-remain pending. The bounded contract and source
+judicial and administrative owners. A pure mark-only operation appends an
+entered-in-error capture while retaining the recorded terms and judicial evidence.
+Judicial decisions and fresh Review appointments do not yet consume administrative
+records. Optional administrative replacement, current mutation eligibility,
+authorized correction services, durable storage, HTTP, Agenda, alerts, Qadra and
+restoration remain pending. The bounded contract and source
 catalog are in [the scope document](../precautionary-hearings-scope.md). Executed
 checks and their limits belong in [the verification report](../verification-report.md).
 
@@ -287,7 +289,8 @@ their projection is rederived from those same revisions.
 The four administrative commitments have separate responsibilities:
 
 - `MATXN1`: recording actor ID/email/role, case, administrative operation, exact
-  target, expected context, reason and `Correct` values in `MCVAL1`.
+  target, expected context, reason and action. `Correct` uses tag 0 followed by
+  its `MCVAL1` values; `MarkEnteredInError` uses tag 1 without a values payload.
 - `MAPR1`: complete instruction and digest, complete `PCTX1`, retained support,
   resulting revision, roots, exact last judicial owner/reference, action,
   capture validity, complete values, sources and projection.
@@ -309,9 +312,9 @@ precede the selected capture or new context provenance.
 
 This is historical consistency checking. It does not freshly admit encrypted
 support, authenticate current access, prove durable origin/current head, or show
-the absence of dependants. Repeated administrative predecessors, mixed consumers,
-entered-in-error, authorized correction workflow and persistence are not part of
-this first capture implementation.
+the absence of dependants. The mixed resolver and mark-only extension below
+reuse these receipt shapes. Authorized administrative workflow and persistence
+remain separate work.
 
 ### Mixed record history and repeated correction
 
@@ -341,7 +344,40 @@ The judicial-only entry points remain wrappers over borrowed history; existing
 `MATXN1`, `MAPR1`, `MARCR1`, `MAGR1` and judicial bytes are unchanged. Current
 heads and absence of dependants still require an authorized store. This resolver
 does not yet extend judicial G predecessors or fresh Review consumption to
-administrative records, implement entered-in-error, or establish persistence.
+administrative records, implement joint replacement, or establish persistence.
+
+### Entered-in-error capture validity
+
+The pure `MarkEnteredInError` action declares that an exact captured record was
+entered in error. It accepts a Valid judicial or administrative predecessor and
+appends the next revision of the same measure identity. Its one owned row retains
+complete values, sources, projection, record root, judicial origin, actual last
+M/G, judicial action and support. Only capture validity becomes EnteredInError;
+the new operation also records its actor, context, reason and capture time.
+Terminal judicial actions remain terminal. This action does not revoke, cease,
+substitute or annul a judicial decision and creates no replacement identity.
+
+`prepare_measure_administrative_record_with_history` accepts Correct and
+MarkEnteredInError. The existing `prepare_measure_record_correction` and
+`prepare_measure_record_correction_with_history` entry points remain Correct-only
+and reject Mark. Both actions reject an EnteredInError predecessor; there is no
+reactivation through correction or another mark. Preparation retains the same
+context, source, ownership, revision and supported UTC clock checks, including
+the selected administrative record's context and time.
+
+MATXN1/MAPR1/MARCR1/MAGR1 retain their existing layouts and Correct bytes. The
+mark uses its distinct instruction action tag and the existing capture-validity
+discriminator. Matchers, origins and mixed historical resolution reconstruct the
+complete marked receipt; an EnteredInError record is readable historical evidence.
+Its existence does not rewrite older Valid captures or their exact references.
+
+The supplied closure proves neither a current head nor absence of later
+dependants. Storage admission must establish both under the mutation lock, with
+current authorization and atomic audit. Those checks and SQL remain pending.
+Fresh Review and judicial consumers of administrative records, and the optional
+atomic replacement with a fresh identity and explicit administrative link, remain
+pending. Their future admission must distinguish capture validity from retained
+judicial status without invalidating earlier historical receipts.
 
 ### Decision anchors and shared dependency evidence
 

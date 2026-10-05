@@ -390,3 +390,7 @@ path = "tests/measure_correction_vectors.rs"
 [[test]]
 name = "measure_record_history"
 path = "tests/measure_record_history.rs"
+
+[[test]]
+name = "measure_record_validity"
+path = "tests/measure_record_validity.rs"

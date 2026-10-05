@@ -124,7 +124,9 @@ modificación no se sustituye por el de la imposición inicial. La corrección d
 una declaración terminal conserva su acción terminal.
 
 `MATXN1` vincula autor, expediente, operación, objetivo, contexto esperado, motivo
-y valores; `MAPR1` conserva instrucción, contexto, soporte y resultado completos;
+y acción; `Correct` usa la etiqueta 0 y valores `MCVAL1`, mientras
+`MarkEnteredInError` usa la etiqueta 1 sin carga de valores. `MAPR1` conserva
+instrucción, contexto, soporte y resultado completos;
 `MARCR1` compromete la fila administrativa, procedencia y digest de revisión;
 `MAGR1` reúne revisión y fila con sus digests y tiempo de captura sin ciclos.
 Se preservan los canones judiciales anteriores. La reconstrucción exige una fila
@@ -146,11 +148,32 @@ acción judicial ni soporte. Los límites combinados incluyen al candidato; los
 selectores públicos admiten hasta 32 identidades. Las entradas anteriores usan
 la misma validación sin copiar anticipadamente el historial ni cambiar sus bytes.
 
+La declaración pura `MarkEnteredInError` agrega una revisión desde un registro
+exacto con validez de captura Valid. Conserva valores, fuentes, proyección,
+identidad, raíz, origen judicial, última medida/grupo judiciales, acción y soporte;
+la validez de captura pasa a EnteredInError. Registra autor, contexto, motivo y
+tiempo propios sin revocar, cesar, sustituir ni anular una decisión judicial.
+También conserva las acciones judiciales terminales y no crea un reemplazo.
+
+La preparación genérica `prepare_measure_administrative_record_with_history`
+admite Correct y MarkEnteredInError. Las dos entradas anteriores de preparación
+de corrección siguen limitadas a Correct y rechazan Mark. Ninguna acción admite
+como predecesor un registro EnteredInError: no hay reactivación mediante otra
+marca o corrección. Se mantienen los límites combinados, las fuentes exactas y
+las comprobaciones de contexto y reloj desde el registro seleccionado.
+
+Los formatos `MATXN1`, `MAPR1`, `MARCR1` y `MAGR1` conservan sus estructuras y
+los bytes anteriores de Correct. El resolvedor mixto, los recibos y los orígenes
+reconstruyen una marca válida como evidencia histórica aunque su registro esté
+declarado EnteredInError; no alteran capturas anteriores ni sus referencias.
+
 Esta validación pura no acredita acceso actual, admisión documental nueva,
 existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
 el consumo de registros administrativos por nuevas convocatorias de revisión o
-decisiones judiciales, `entered_in_error`, servicio autorizado de rectificación,
-SQL y rutas HTTP de la familia. Agenda, alertas, interfaz y restauración siguen pendientes.
+decisiones judiciales, el reemplazo administrativo opcional con identidad nueva
+y enlace atómico, la admisión por cabeza y dependencias vigentes, el servicio
+autorizado de rectificación, SQL y rutas HTTP de la familia. Agenda, alertas,
+interfaz y restauración siguen pendientes.
 Los resultados focales se registran en [el informe](verification-report.md);
 no acreditan por sí solos el flujo completo.
 

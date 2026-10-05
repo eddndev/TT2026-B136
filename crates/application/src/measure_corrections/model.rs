@@ -21,6 +21,7 @@ use domain::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MeasureAdministrativeAction {
     Correct(MeasureCorrectionValues),
+    MarkEnteredInError,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MeasureAdministrativeCommand {
