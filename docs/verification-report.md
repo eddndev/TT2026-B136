@@ -1,5 +1,16 @@
 # Informe de verificación local
 
+## Composición de pruebas HTTP cautelares: 5 de octubre de 2026
+
+Clippy detectó que el módulo de casos cautelares de Agenda se descubría también
+como un ejecutable independiente; `super::*` no tenía padre en ese contexto.
+La compilación focal reprodujo el rechazo. Se trasladó el módulo sin cambiar
+su contenido a un directorio propio y se actualizó su inclusión en `agenda_http`.
+Los cuatro casos cautelares mantienen su padre y sus nombres completos.
+Después aprobaron Clippy de todos los targets del crate web con advertencias
+denegadas, los 17 casos HTTP de Agenda, el formato Rust y la distribución de
+pruebas. No cambia el comportamiento del producto ni la aceptación nativa previa.
+
 ## Formato de la Agenda cautelar web: 5 de octubre de 2026
 
 El gate de formato del cliente detectó dos archivos pendientes de Prettier:
