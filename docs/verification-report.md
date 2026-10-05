@@ -1,5 +1,30 @@
 # Informe de verificación local
 
+## Navegador cautelar con servicios reales: 5 de octubre de 2026
+
+Los recorridos reales de Qadra aprobaron a 1440 y 390 px: convocatoria,
+Agenda, alerta interna leída, decisión declarada y rectificación administrativa.
+El escritorio conserva una decisión anclada a la convocatoria cautelar; el móvil
+reutiliza la audiencia inicial sin crear otra cita. Se verificó una respuesta
+perdida después de confirmar en el servidor: consultar la operación original
+recuperó la rectificación textual o el reemplazo de identidad, sin otro POST.
+El reemplazo conserva el original marcado por error, su sucesor y el enlace.
+
+Playwright informó **dos recorridos aprobados en 55.8 s**; el comando completo,
+con compilación y preparación de servicios, terminó en **411.014 s**. Se usaron
+PostgreSQL 16.15, Valkey 8.1.10, qpdf 12.4.1 y los decodificadores verificados,
+un compilador, un hilo Rust y un trabajador de navegador. Se inspeccionaron
+las ocho capturas de Agenda, alerta, decisión y recuperación, sin errores
+visibles ni desbordamiento. Los recibos completos fueron contrastados mediante
+aserciones; el reportero de línea no conservó su adjunto JSON. El guion ahora
+lo escribe a un archivo antes de adjuntarlo para las siguientes campañas.
+
+La asignación de esta familia a la tercera partición aprobó nueve grupos del
+plan de navegación, tras reproducir su ausencia. La aceptación API con reinicio
+y restauración, el manuscrito y los gates de integración todavía están pendientes.
+No se repitió el navegador por el cambio de persistencia del adjunto ni se
+sustituyeron los resultados históricos o el PDF aceptado.
+
 ## Rectificaciones cautelares en Qadra: 5 de octubre de 2026
 
 La interfaz permite corregir texto y vigencia declarada, marcar una captura por
