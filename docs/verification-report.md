@@ -1,5 +1,40 @@
 # Informe de verificación local
 
+## Convocatorias Review sobre medidas M2: 4 de octubre de 2026
+
+Las entradas puras `_with_decision_history` preparan y verifican convocatorias
+con objetivos M2 reales y correcciones que conservan M2. Recibo, transición,
+origen e historial usan el mismo cierre completo G1/G2/administrativo. La validez
+Valid se exige al registro exacto en todas las rutas; las declaraciones judiciales
+terminales permanecen seleccionables. No se consulta una cabeza actual ni se
+reemplaza una referencia histórica.
+
+TDD: la API ausente falló antes de implementar en **0.391 s**. La ejecución
+inicial aprobó **10 pruebas del núcleo en 7.563 s** de comando, compilación
+**7.33 s**. La ejecución final aprobó **23 casos nuevos en 1.387 s**, compilación
+**1.00 s**. Comprueba una secuencia de convocatoria M1/C/M2/C y su cancelación,
+contexto y reloj efectivos de C posterior a M2, referencia Valid anterior a una
+marca posterior, terminales, hermanas mixtas y rechazo de evidencia incoherente
+o excesiva antes de hashear. Dos listas de 32 objetivos conservan su unión
+histórica de 64 referencias. La equivalencia con las entradas anteriores confirma
+capturas y bytes sin cambios en PHEAR1/PHTXN1/PHPR1/PHCR1; no hay nuevos formatos
+de convocatoria.
+
+La comprobación de la entrada anterior afectada aprobó **23 casos en 1.236 s**,
+compilación **0.56 s**. Son **46 casos entre las dos ejecuciones finales**, sin
+sumar nuevamente el núcleo inicial. Clippy de los dos targets con `-D warnings`
+aprobó en **4.137 s**, compilación **4.08 s**. La compilación intermedia de las
+pruebas suplementarias requirió agregar una importación ausente; no se reprodujo
+una regresión de producción en esta comprobación. La revisión estática
+independiente del límite de prueba y sus adaptadores no encontró defectos
+concretos pendientes.
+
+La evidencia es local y focal. Los servicios autorizados y sus puertos no aceptan
+todavía el material mixto; no acredita cabeza vigente, ausencia de dependientes,
+elegibilidad de escritura, reemplazo administrativo, SQL, HTTP, interfaz ni
+restauración. No representa regresión global, integración, despliegue o cierre
+del flujo completo.
+
 ## Decisiones judiciales sobre registros corregidos: 4 de octubre de 2026
 
 Las entradas puras V2 producen decisiones y medidas judiciales desde registros

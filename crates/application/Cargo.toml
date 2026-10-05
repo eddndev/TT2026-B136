@@ -366,15 +366,12 @@ path = "tests/measure_anchor_vectors.rs"
 [[test]]
 name = "precautionary_workflow"
 path = "tests/precautionary_workflow.rs"
-
 [[test]]
 name = "precautionary_reads"
 path = "tests/precautionary_reads.rs"
-
 [[test]]
 name = "measure_decision_workflow"
 path = "tests/measure_decision_workflow.rs"
-
 [[test]]
 name = "measure_decision_reads"
 path = "tests/measure_decision_reads.rs"
@@ -397,3 +394,7 @@ path = "tests/precautionary_record_reviews.rs"
 [[test]]
 name = "measure_record_decisions"
 path = "tests/measure_record_decisions.rs"
+
+[[test]]
+name = "precautionary_decision_reviews"
+path = "tests/precautionary_decision_reviews.rs"

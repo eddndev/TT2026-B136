@@ -3,7 +3,7 @@ use crate::{
     identity::Principal,
     measure_corrections::{
         checked_record_closure, record_history_bounds, CheckedRecordClosure,
-        MeasureCaptureValidity, MeasureRecordHistoryEvidence,
+        MeasureCaptureValidity, MeasureRecordHistoryEvidence, RecordHistoryView,
     },
     ApplicationError,
 };
@@ -27,7 +27,34 @@ pub fn prepare_precautionary_hearing_with_record_history(
     command: PrecautionaryHearingCommand,
     material: PrecautionaryHearingRecordPreparationMaterial<'_>,
 ) -> Result<CheckedPrecautionaryHearingReview, ApplicationError> {
-    record_history_bounds(material.record_history)?;
+    prepare_with_view(
+        hasher,
+        actor,
+        case_id,
+        command,
+        PreparationView {
+            observed_context: material.observed_context,
+            sources: material.sources,
+            predecessor: material.predecessor,
+            history: material.record_history.into(),
+        },
+    )
+}
+
+pub(super) struct PreparationView<'a> {
+    pub observed_context: PrecautionaryContext,
+    pub sources: PrecautionaryHearingSources,
+    pub predecessor: Option<&'a PrecautionaryHearingCapture>,
+    pub history: RecordHistoryView<'a>,
+}
+pub(super) fn prepare_with_view(
+    hasher: &dyn DocumentHasher,
+    actor: &Principal,
+    case_id: CaseId,
+    command: PrecautionaryHearingCommand,
+    material: PreparationView<'_>,
+) -> Result<CheckedPrecautionaryHearingReview, ApplicationError> {
+    record_history_bounds(material.history)?;
     if material.sources.participants.len() > 32 {
         return Err(invalid("too many participant sources"));
     }
@@ -44,13 +71,7 @@ pub fn prepare_precautionary_hearing_with_record_history(
         .map_or(&[][..], |p| p.review.resolved_values.review_targets());
     let refs = union(new_targets.iter().chain(old_targets))?;
     let mut inventory = SourceInventory::default();
-    let proof = checked_record_closure(
-        hasher,
-        case_id,
-        &refs,
-        material.record_history,
-        &mut inventory,
-    )?;
+    let proof = checked_record_closure(hasher, case_id, &refs, material.history, &mut inventory)?;
     if let Some(previous) = material.predecessor {
         inventory.capture(previous)?;
     }
@@ -121,7 +142,7 @@ pub(super) fn shape(capture: &PrecautionaryHearingCapture) -> Result<(), Applica
 pub(super) fn check_captures(
     hasher: &dyn DocumentHasher,
     captures: &[&PrecautionaryHearingCapture],
-    evidence: &MeasureRecordHistoryEvidence,
+    evidence: RecordHistoryView<'_>,
 ) -> Result<(), ApplicationError> {
     if captures.len() > 256 {
         return Err(invalid("appointment history budget exceeded"));

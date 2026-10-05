@@ -80,3 +80,13 @@ pub use record_history::{
     precautionary_hearing_receipt_with_record_history_matches,
     precautionary_hearing_transition_with_record_history_matches,
 };
+
+mod decision_history;
+pub use decision_history::{
+    precautionary_hearing_history_with_decision_history_matches,
+    precautionary_hearing_origin_with_decision_history,
+    precautionary_hearing_receipt_with_decision_history_matches,
+    precautionary_hearing_transition_with_decision_history_matches,
+    prepare_precautionary_hearing_with_decision_history,
+    PrecautionaryHearingDecisionPreparationMaterial,
+};

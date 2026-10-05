@@ -3,7 +3,10 @@ use super::{
     record_evidence::{check_captures, shape},
     *,
 };
-use crate::{measure_corrections::MeasureRecordHistoryEvidence, ApplicationError};
+use crate::{
+    measure_corrections::{MeasureRecordHistoryEvidence, RecordHistoryView},
+    ApplicationError,
+};
 use domain::crypto::DocumentHasher;
 use std::collections::BTreeSet;
 
@@ -12,7 +15,7 @@ pub fn precautionary_hearing_receipt_with_record_history_matches(
     capture: &PrecautionaryHearingCapture,
     evidence: &MeasureRecordHistoryEvidence,
 ) -> Result<(), ApplicationError> {
-    check_captures(hasher, &[capture], evidence)
+    check_captures(hasher, &[capture], evidence.into())
 }
 
 pub fn precautionary_hearing_transition_with_record_history_matches(
@@ -20,6 +23,14 @@ pub fn precautionary_hearing_transition_with_record_history_matches(
     previous: &PrecautionaryHearingCapture,
     next: &PrecautionaryHearingCapture,
     evidence: &MeasureRecordHistoryEvidence,
+) -> Result<(), ApplicationError> {
+    transition_with_view(hasher, previous, next, evidence.into())
+}
+pub(super) fn transition_with_view(
+    hasher: &dyn DocumentHasher,
+    previous: &PrecautionaryHearingCapture,
+    next: &PrecautionaryHearingCapture,
+    evidence: RecordHistoryView<'_>,
 ) -> Result<(), ApplicationError> {
     check_captures(hasher, &[previous, next], evidence)?;
     transition(previous, &next.review)?;
@@ -43,6 +54,14 @@ pub fn precautionary_hearing_history_with_record_history_matches(
     captures: &[PrecautionaryHearingCapture],
     origin: &PrecautionaryHearingOrigin,
     evidence: &MeasureRecordHistoryEvidence,
+) -> Result<(), ApplicationError> {
+    history_with_view(hasher, captures, origin, evidence.into())
+}
+pub(super) fn history_with_view(
+    hasher: &dyn DocumentHasher,
+    captures: &[PrecautionaryHearingCapture],
+    origin: &PrecautionaryHearingOrigin,
+    evidence: RecordHistoryView<'_>,
 ) -> Result<(), ApplicationError> {
     if captures.len() > 256 {
         return Err(invalid("appointment history budget exceeded"));

@@ -174,6 +174,15 @@ y administrativos exactos mediante
 transición, origen e historial tienen entradas `_with_record_history`; conservan
 los valores, estructuras y bytes anteriores de la convocatoria.
 
+La entrada adicional `prepare_precautionary_hearing_with_decision_history`
+acepta también M2 y correcciones posteriores a M2 con sus propietarios G2
+reales. Su material conserva contexto observado, fuentes exactas, predecesor
+opcional e historial prestado `MeasureDecisionRecordHistoryEvidence`. Los
+verificadores de recibo, transición, origen e historial tienen versiones
+`_with_decision_history`; las firmas públicas anteriores permanecen disponibles.
+No se agregan instrucciones ni formatos: PHEAR1/PHTXN1/PHPR1/PHCR1 conservan sus
+bytes, y entradas históricas equivalentes producen la misma captura.
+
 Todo objetivo exacto debe tener validez de captura Valid, incluso en prueba
 histórica o cancelación. Se rechaza una convocatoria que seleccione una revisión
 ya declarada EnteredInError aunque se recalculen sus hashes. Una convocatoria
@@ -190,12 +199,20 @@ de una misma identidad, y comparan todas las fuentes compartidas de G, registros
 administrativos y convocatorias. Cada convocatoria conserva su límite de 32
 objetivos y de 32 participantes/fuentes y proyecciones.
 
+La prueba con decisiones V2 usa un solo cierre compartido G1/G2/administrativo,
+incluidas hermanas, relaciones de sustitución y anclas. Una C que conserva M2
+aporta su contexto, tiempo y validez efectivos; M2 sigue siendo evidencia judicial
+separada. Se comprueba nuevamente el predecesor completo antes de reemplazar o
+cancelar. El historial puede conservar referencias M1/C/M2/C de la misma identidad
+y una unión de objetivos vacía exige evidencia de propietarios vacía.
+
 Las nuevas entradas de prueba mixta acotan a 256 las capturas de convocatoria y
 a 8192 la unión de objetivos exactos, además del límite independiente de 256
 propietarios G/administrativos y 8192 filas de medida. Rechazan material excesivo
 antes de hashear o copiar; no cambian los límites de las entradas históricas
 anteriores. Los servicios autorizados de convocatorias todavía no incorporan
-este material mixto.
+este material mixto. Las entradas con historial de decisiones V2 mantienen los
+mismos límites para las tres familias y las formas anidadas de sus anclas.
 
 Las decisiones judiciales puras admiten ahora predecesores administrativos
 mediante `prepare_measure_decision_with_record_history`, material V2 y un
@@ -229,8 +246,8 @@ convocatoria Review sobre G1/C puede anclar G2 con su cierre exacto.
 
 Esta validación pura no acredita acceso actual, admisión documental nueva,
 existencia durable, cabeza vigente ni ausencia de dependientes. Aún faltan
-convocatorias nuevas que seleccionen M2, servicios autorizados para material
-mixto, el reemplazo administrativo opcional con identidad nueva y enlace atómico,
+servicios autorizados para material mixto, el reemplazo administrativo opcional
+con identidad nueva y enlace atómico,
 la admisión por cabeza y dependencias vigentes, el servicio autorizado de
 rectificación, SQL y rutas HTTP de la familia. Agenda, alertas,
 interfaz y restauración siguen pendientes.

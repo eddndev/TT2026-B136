@@ -27,6 +27,8 @@ Pure Review preparation and historical proof now resolve exact Valid
 administrative records with their effective context and time. Additive G2/M2
 captures consume those exact records through one bounded judicial/administrative
 history graph; a subsequent correction retains the actual M2 as judicial evidence.
+Additive hearing proof entry points also select genuine M2 and post-M2
+administrative records through that graph without changing hearing receipts.
 Optional administrative replacement, current mutation eligibility, authorized
 mixed-record services, durable storage, HTTP, Agenda, alerts, Qadra and
 restoration remain pending. The bounded contract and source
@@ -392,6 +394,16 @@ history. The receipt, transition, origin and hearing-history validators have
 matching `_with_record_history` entry points. They retain the existing checked
 review and capture shapes; PHEAR1/PHTXN1/PHPR1/PHCR1 bytes do not change.
 
+`prepare_precautionary_hearing_with_decision_history` adds the same preparation
+over `MeasureDecisionRecordHistoryEvidence`, including complete G2 owners.
+`PrecautionaryHearingDecisionPreparationMaterial` supplies the observed context,
+exact hearing sources, optional predecessor and borrowed decision history.
+Receipt, transition, origin and hearing-history validators have parallel
+`_with_decision_history` entry points. Existing public signatures remain intact;
+the new functions return the same checked review, hearing capture and origin.
+They do not add a command or canonical format. Identical old-family inputs
+produce identical hearing captures and bytes through either proof entry point.
+
 Every exact selected target must have capture validity Valid, including targets
 retained by cancellation or reconstructed by historical proof. A hearing that
 selects an already EnteredInError record is inconsistent even if its hashes are
@@ -410,16 +422,27 @@ hearing keeps its own 32-target limit. Full G/A owners, hearing captures and
 their copied contexts, participants, subjects and supports share one immutable
 source inventory.
 
+The decision-history variant resolves genuine M1/M2/C records through one shared
+borrowed graph proof, including full owning groups, siblings, substitution links
+and anchored hearing dependencies. A C retaining M2 uses its own effective
+context, time and captured validity; M2 remains separate judicial evidence.
+Preparation revalidates the complete predecessor hearing and its original exact
+targets before accepting replacement or cancellation. A prefix may bind M1, C,
+M2 and a later C of one identity without substituting any reference. An empty
+target union requires empty G1/G2/administrative evidence.
+
 The new mixed-record proof calls accept at most 256 supplied hearing captures
 and an exact target union of at most 8192 references. These bounds are independent
 of the existing 256 G/A-owner and 8192 measure-row limits. Each hearing's source
 participants and derived projections remain bounded at 32. Oversized nested
 material rejects before hashing or cloning. This extension does not change the
-older public hearing-history entry points' bounds or behavior.
+older public hearing-history entry points' bounds or behavior. The additive
+decision-history calls keep the same bounds across all three owner families
+and all supplied hearing material, including nested anchor shapes.
 
 This is a pure proof and capture API. The authorized hearing services and ports
-have not yet been extended to mixed records. New Review receipts selecting M2,
-current-head/dependant admission, SQL and HTTP integration remain pending.
+have not yet been extended to mixed records. Current-head/dependant admission,
+SQL and HTTP integration remain pending.
 
 ### Judicial decisions over corrected records
 

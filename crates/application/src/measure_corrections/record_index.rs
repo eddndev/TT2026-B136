@@ -8,7 +8,7 @@ use domain::{
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy)]
-pub(super) struct HistoryView<'a> {
+pub(crate) struct HistoryView<'a> {
     pub judicial: &'a MeasureHistoryEvidence,
     pub administrative: &'a [MeasureAdministrativeEvidence],
     pub decisions: &'a [MeasureGroupEvidenceV2],
