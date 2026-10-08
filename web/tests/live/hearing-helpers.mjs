@@ -10,7 +10,9 @@ export async function openHearings(page) {
   await expect(
     page.getByRole('heading', { name: 'Audiencias del expediente', exact: true }),
   ).toBeVisible();
-  await expect(page.locator('.hearing-index')).toHaveAttribute('aria-busy', 'false');
+  await expect(
+    page.getByRole('region', { name: 'Audiencias registradas', exact: true }),
+  ).toHaveAttribute('aria-busy', 'false');
 }
 export async function openHearing(page, id) {
   await page.getByRole('button', { name: `Consultar audiencia ${id}`, exact: true }).click();

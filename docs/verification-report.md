@@ -1,5 +1,15 @@
 # Informe de verificación local
 
+## Selector de audiencias ordinarias: 8 de octubre de 2026
+
+La campaña remota encontró dos regiones con la clase `hearing-index` al convivir
+las listas ordinaria y cautelar. Una reproducción focal con Chromium confirmó
+el fallo del helper de navegación antes de cambiarlo. El helper selecciona ahora
+la región accesible exacta «Audiencias registradas». La misma reproducción aprobó
+con ambas regiones presentes y la cautelar todavía ocupada. El formato aprobó;
+la regresión remota de cierre queda pendiente. No cambia el producto ni invalida
+la aceptación nativa cautelar ya conservada.
+
 ## Identidad del aprovisionador en la prueba web: 5 de octubre de 2026
 
 El paso JavaScript de cierre reprodujo un fallo en el simulador de autenticación
