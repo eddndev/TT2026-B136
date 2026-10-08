@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Tamaño del ejecutable release: 8 de octubre de 2026
+
+El gate remoto de tamaño rechazó el ejecutable de la entrega cautelar combinada.
+El límite permanece en 26 214 400 bytes tanto en CI como en el empaquetador.
+Una compilación focal con una sola unidad de generación produjo 27 340 960 bytes:
+ese ajuste aislado no bastó. El perfil final optimiza por tamaño los cinco crates
+del workspace y conserva nivel 3 en las dependencias externas, incluidos los
+kernels criptográficos. Se mantienen LTO y eliminación de símbolos.
+
+La compilación nueva con Rust 1.98.1 produjo **22 846 360 bytes**, por debajo del
+límite, en 604 s. El recorrido existente de `scripts/demo.sh`, seleccionando ese
+binario release en lugar de compilar el debug, aprobó en **11.022 s**: PKI,
+cifrado, firma, sello, verificación integral, exportación, revocación, autenticación
+y auditoría, incluidos los rechazos de alteraciones. No se cambiaron sus escenarios.
+Un compilador y temporales persistentes evitaron campañas locales concurrentes.
+Esta comprobación acredita funcionamiento y tamaño; no constituye una nueva
+medición de latencia del servidor. La regresión remota del HEAD corregido sigue
+siendo el gate de cierre, sin repetir aceptaciones nativas ni el manuscrito.
+
 ## Recorrido de vectores hexadecimales: 8 de octubre de 2026
 
 Clippy 1.99 rechazó `chunks_exact(2)` en un auxiliar de fixtures durante el
