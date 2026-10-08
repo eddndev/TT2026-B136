@@ -2,12 +2,27 @@
 
 ## Checkpoint funcional reconciliado
 
+La lista finita de esta entrega y sus criterios de término están en
+[cierre de los cuatro frentes](four-front-closure.md). Los estados históricos
+posteriores no amplían ese alcance ni reabren funciones ya integradas.
+
+El corte del 8 de octubre incorpora el flujo cautelar completo entregado por
+PR90: HTTP, Agenda, alertas y Qadra, con navegador real, recuperación y restauración
+aceptados y manuscrito separado. La integración de esta revisión cierra ese
+catálogo; sigue pendiente el corpus jurídico de ocho supuestos.
+PR91 está integrada en main `46dc1c1` y añade diagnósticos operativos saneados para
+TOTP y recuperación, con correlación por petición y UUID disponible. Estos logs
+no sustituyen la auditoría transaccional ni completan IP, cobertura uniforme o
+la medición durable de 500 ms. La [lista técnica finita](technical-closure.md)
+conserva los pendientes y sus criterios, sin autorizar despliegue.
+
 El flujo explícito de **resultado de audiencia y plazo derivado** está
 implementado en aplicación, PostgreSQL, HTTP y Qadra, con origen conjunto
 inmutable y recuperación del envío por la misma identidad. La verificación
 focal conserva cálculo prospectivo, transacción, historia y revisión del
-operador. La aceptación nativa de API, restauración y navegador aprobó; el cierre
-de integración sigue pendiente y se registra por separado en [el contrato](hearing-derived-deadlines.md) y
+operador. La aceptación nativa de API, restauración y navegador aprobó; la
+integración y su confirmación natural en main también aprobaron. El alcance
+se registra en [el contrato](hearing-derived-deadlines.md) y
 [el informe](verification-report.md). Este avance no completa el corpus jurídico
 ni activa consecuencias inferidas de texto, notificaciones u otras familias.
 
@@ -86,32 +101,15 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   regreso a la actividad o bandeja de alertas, con capturas exactas, permisos y
   filtros. Su aceptación API/restauración y navegador real aprobaron. La
   confirmación natural de CI, Web y Documents también aprobó en `main`.
-- Pendientes procesales: corpus jurídico aplicable, activación automática y
-  durable de un plazo nuevo, audiencias propias de recursos y catálogo restante
-  de audiencias. Las continuaciones declaradas y la creación contextual explícita
-  de plazos ya están integradas; no equivalen a activación jurídica automática.
-  El catálogo separado de alegatos de apelación y revocación escrita, y la
-  preparación contra recursos/actos exactos, confirmación de la revisión y
-  conciliación explícita de la creación original tienen implementación local.
-  El adaptador PostgreSQL ya confirma audiencia, asociación inicial y origen
-  auditado atómicamente, con migración `0030_`, inventario estricto y recuperación
-  del vínculo original después de desvincularlo. La API genérica de asociaciones
-  incorpora el DTO `resource_hearing`. Las consultas históricas propias y el router
-  de preparación, envío y lectura están implementados localmente, incluida su
-  composición de servidor. Aprobaron las pruebas focales previas y los nuevos
-  casos de lectura en aplicación y PostgreSQL, el rechazo tipado de evidencia
-  incompleta, las rutas HTTP y su composición. La prueba de humo del servidor
-  con restauración también aprobó; no sustituye la aceptación propia del recorrido.
-  Esta ampliación aún no está integrada ni desplegada;
-  la consulta de agenda incorpora localmente esta tercera familia, sin cambiar
-  los filtros ordinarios. Qadra añade lectura histórica exacta desde esa agenda,
-  conservando filtros y continuación. El formulario local prepara una revisión
-  explícita, conserva fuentes históricas y recupera envíos inciertos con consulta
-  exacta y reenvío solicitado. Las alertas propias y su recuperación tras restaurar
-  tienen aceptación focal real; Qadra aprobó el recorrido a 1440 y 390 píxeles
-  antes del ajuste posterior del scheduler. Restan los gates globales de la
-  revisión final y su integración. Véase el
-  [contrato de audiencias de recursos](resource-hearings.md).
+- Pendiente procesal confirmado: el corpus jurídico de ocho supuestos de
+  [la lista finita](four-front-closure.md). Las audiencias propias de recursos y
+  el flujo explícito de resultado/plazo derivado conservan su integración.
+  PR90 entrega el flujo cautelar completo de convocatorias, decisiones y
+  rectificaciones, con permisos, historia, Agenda, alertas y recuperación Qadra.
+  La aceptación con navegador real, API, reinicios y restauración aprobó; el
+  manuscrito separado está verificado. Integrar esta revisión cierra el
+  [catálogo cautelar](precautionary-hearings-scope.md), sin acreditar reglas
+  jurídicas automáticas adicionales.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,
@@ -248,8 +246,10 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   con artefactos y avisos exactos, reinicios y revocación de toda la captura.
   Los gates de PR49 y su confirmación natural en `main` aprobaron.
   Los filtros usan creación y estado actual,
-  no un censo histórico. Correo, estimación de terminación, otros tipos de
-  informe y métricas de desempeño permanecen pendientes del alcance aprobado.
+  no un censo histórico. El informe restante se limita a las tres cantidades
+  de actividad registrada por Litigante y periodo; conserva correo de prueba,
+  progreso, estimación cuando aplica y aviso según el
+  [inventario finito](technical-closure.md), sin otras métricas.
   La duración observada se integró por PR52 en `2621755`, con CI 9m26s, Web
   10m30s y Documents 1m14s; conserva 3340 pruebas Rust, 419 controladas y 51
   reales. La confirmación natural de main aprobó y esta ampliación quedó
@@ -293,12 +293,12 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   `c95f245`, cuya confirmación natural aprobó CI en 443 s. La parada
   observada y reentrante y la publicación de controladores tienen aceptación local
   separada; la primera incluye cuatro unidades systemd desechables, sin operar
-  los servicios instalados. Estas ampliaciones aún requieren integración e
-  instalación y no acreditan staging, promoción o reapertura del producto instalado.
+  los servicios instalados. La instalación recuperable se integró por PR86 (`90b27f20`); su instalación
+  operativa sigue pendiente y no acredita staging, promoción o reapertura del producto instalado.
   Owner espera el correo elegido por el operador; siguen cero usuarios y la
   aceptación autenticada pendiente.
-- Instalador recuperable de controladores: tiene aceptación local; la publicación
-  e integración del grupo completo y su instalación en VPS3 siguen pendientes.
+- Instalador recuperable de controladores: integrado por PR86 (`90b27f20`),
+  presente en main confirmado. Su instalación en VPS3 sigue pendiente.
   La composición local aprobó 10 casos en 4.159 s y 52 regresiones en 3.021 s; el bootstrap,
   ocho en 1.703 s. El ensayo nativo aprobó 1/1 en 3.461 s con cuatro servicios
   inocuos de `tt-runner`, generaciones A/B, launcher real y reapertura explícita.
@@ -741,13 +741,13 @@ separada de las campañas de hechos y plazos.
 | Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
 | Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
 | Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
-| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Registro declarado implementado con aceptación real; asociaciones a audiencias/plazos existentes implementadas con evidencia focal y aceptación API/restauración y navegador real aprobados; incremento integrado en main. La creación contextual explícita de plazos aprobó aceptación local y CI y quedó integrada mediante PR46; su confirmación natural de main aprobó CI, Web y Documents. La consulta inversa desde actividad o alerta y el regreso a sus capturas tienen aceptación API/restauración y navegador real aprobados. PR48 está integrada en `5020707`; CI, Web y Documents de su confirmación natural aprobaron. Faltan audiencias contextuales, corpus calificado y activación automática durable, según [el alcance](procedural-resources-scope.md); consultar vínculos actuales no demuestra causalidad del aviso. No es una cuarta transición ni se satisface con documentos o fechas manuales. |
+| Recursos procesales | Resoluciones y soportes exactos, actos e historia propios, audiencias, términos calculados y alertas asociados. | Registro declarado implementado con aceptación real; asociaciones a audiencias/plazos existentes implementadas con evidencia focal y aceptación API/restauración y navegador real aprobados; incremento integrado en main. La creación contextual explícita de plazos aprobó aceptación local y CI y quedó integrada mediante PR46; su confirmación natural de main aprobó CI, Web y Documents. La consulta inversa desde actividad o alerta y el regreso a sus capturas tienen aceptación API/restauración y navegador real aprobados. PR48 está integrada en `5020707`; CI, Web y Documents de su confirmación natural aprobaron. Las audiencias propias y su Agenda/alertas/Qadra quedaron integradas por PR87. Falta aceptar el corpus jurídico finito de recursos según [el cierre vigente](four-front-closure.md); consultar vínculos actuales no demuestra causalidad del aviso. No es una cuarta transición ni se satisface con documentos o fechas manuales. |
 | Programación de audiencias | Cuatro tipos, reemplazo/cancelación con recibos propios, contexto y participantes exactos, historia y agenda autorizada. | ADR-0028; persistencia, autorización, auditoría y Qadra implementados. Evidencias de concurrencia, soporte histórico, resultados inciertos, restauración y navegador en el informe de verificación. No registra celebración, asistentes reales ni acuerdos. |
 | Sesiones y resultados declarados | Raíces propias, ancla y continuidad exactas, comparecencias, acuerdos, procedencia, rectificación, retiro e historia; Qadra y persistencia auditada. | ADR-0029; implementado, verificado e integrado en `main`. Fuentes históricas admitidas, soporte readmitido al rectificar, recibos y recuperación; no acredita actos ni efectos jurídicos. |
 | Catálogo de calendarios jurisdiccionales | Ámbito inmutable, revisiones, cobertura, reglas semanales, excepciones y referencias públicas; consulta civil exacta y retiro con recibo. | ADR-0030; backend, API, Qadra, cobertura y restauración verificados localmente. Código integrado en `main`; actualización integral del manuscrito pendiente; conservar evidencia de autorización global, canon independiente, concurrencia e inventario. Las referencias no preservan contenido remoto ni acreditan aplicabilidad. |
 | Hechos declarados de resolución y notificación | Dos familias por expediente, padre fijo, tiempos y personas declarados, fuentes exactas, corrección, retiro terminal, recibos e historia. | ADR-0031; dominio, aplicación, backend y API implementados. Backend, pruebas focales, suite global y comprobacion HTTP con servicios reales y restauracion aprobados localmente; Qadra implementada, con verificación de navegador aprobada localmente. No acredita efectos jurídicos ni habilita cálculos o recursos. |
 | Plazos y calendario | Plazos vinculados, calendario configurable, vencimientos y alertas persistentes. | Aritmética, perfiles, evaluación persistente, responsable, atención e historia están integrados; Qadra V1 y el selector de responsables se integraron por PR 33. Sus campañas globales y API/restauración conservan su alcance histórico. La ampliación V2 implementa observaciones verificadas, continuidad, preparación humana y técnica, persistencia y reconstrucción exacta. Servicio humano y HTTP V2, detalle actual y listado con vigencia están implementados con evidencia focal local. Qadra V2 aprobó 88 pruebas Node, 36 recorridos con HTTP controlado y 25 con backend real, incluidos dos Follow de escritorio y móvil, con seis capturas inspeccionadas. Despacho y consumo durables conservan resultados, intentos e historia. La composición aprobó 31 unitarias y cuatro de ayuda CLI; la campaña API real comprobó TERM/INT, reinicios y restauración de R1-R5. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34, según el informe de verificación. La agenda conjunta se integró por PR 35. Las alertas durables, Qadra y su composición en servidor se integraron por PR 36 como `8261c51`, con aceptación propia registrada en el informe. Activación y corpus jurídico aplicable siguen pendientes. Los resultados se identifican por entrega; no sustituir el cómputo por fechas manuales ni una suma indiscriminada de días. |
-| Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | Tablero operativo integrado por PR 45 con aceptación focal, navegador real y restauración; CI, Web y Documents de su confirmación natural en main aprobados. Informes durables integrados por PR49 en `f3bfed8`, con consumidor supervisado, captura cifrada común a PDF/CSV, avisos propios y selector autorizado que incluye membresías de casos cerrados; trece escenarios distintos de navegador controlado y dos con servicios reales aprobados, con descargas exactas tras nuevo ingreso; aceptación HTTP/restauración aprobada con reinicios y revocación completa; gates de PR49 y confirmación natural de main aprobados. Capacidad CSV máxima aprobada y PDF máximo rechazado de forma tipada; no equivale a generación satisfactoria a todos los máximos. Correo, estimación de terminación, otros tipos de informe y desempeño permanecen pendientes. Véase [el contrato](case-reports-api.md). La descarga exige acceso a toda la captura. La consulta filtrada Owner aprobó sus pruebas focales, API/restauración y dos escenarios reales; PR50 integrada en `a8dc3dd`, con confirmación natural de main aprobada. No incorpora aún identificador estable de cuenta ni IP; tampoco demuestra el límite de registro de 500 ms o anclaje externo. No presentar una página como total del despacho ni la captura actual como un censo histórico. |
+| Tablero, informes y bitácora | Indicadores obtenidos de datos autorizados, filtros y exportaciones; consulta de auditoría separada de su verificación criptográfica. | Tablero operativo integrado por PR 45 con aceptación focal, navegador real y restauración; CI, Web y Documents de su confirmación natural en main aprobados. Informes durables integrados por PR49 en `f3bfed8`, con consumidor supervisado, captura cifrada común a PDF/CSV, avisos propios y selector autorizado que incluye membresías de casos cerrados; trece escenarios distintos de navegador controlado y dos con servicios reales aprobados, con descargas exactas tras nuevo ingreso; aceptación HTTP/restauración aprobada con reinicios y revocación completa; gates de PR49 y confirmación natural de main aprobados. Capacidad CSV máxima aprobada y PDF máximo rechazado de forma tipada; no equivale a generación satisfactoria a todos los máximos. El informe restante conserva las tres cantidades de actividad registrada, progreso, estimación cuando aplica y aviso delimitados en [el inventario finito](technical-closure.md). Véase [el contrato](case-reports-api.md). La descarga exige acceso a toda la captura. La consulta filtrada Owner aprobó sus pruebas focales, API/restauración y dos escenarios reales; PR50 integrada en `a8dc3dd`, con confirmación natural de main aprobada. No incorpora aún identificador estable de cuenta ni IP; tampoco demuestra el límite de registro de 500 ms o anclaje externo. No presentar una página como total del despacho ni la captura actual como un censo histórico. |
 | Validación integral | Casos positivos y negativos del catálogo completo, flujos reales desde navegador, rendimiento, fallos y recuperación; usabilidad con personal del despacho. | PostgreSQL y Redis aislados, TSA local, evidencias reproducibles, comparación visual de escritorio y móvil, métricas con entorno y fecha. Usabilidad requiere participantes reales y resultados observados. |
 
 Las entregas se implementan en ramas `feat/` y se integran mediante PR y squash
@@ -788,16 +788,16 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
 | Transición de etapa procesal | Implementado para adopción y dos avances ordinarios | Perfil completo, documentos/versiones exactos, fechas declaradas, admisión PDF/DOCX, historia, conflictos, cierre y revocación tienen flujo persistente en Qadra. El registro no certifica la procedencia jurídica del acto ni implementa recursos o plazos. La programación de audiencias usa su propio historial. |
-| Audiencia y activación de plazos | Parcial; programación y sesiones declaradas integradas | Programación, agenda de audiencias, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron y el código está integrado en `main`. La agenda combinada posterior se integró por PR 35. Las alertas se integraron por PR 36. Faltan activación consistente de plazos, catálogo restante y aceptación integral; registrar texto no calcula efectos jurídicos. |
+| Audiencia y activación de plazos | Parcial; programación y sesiones declaradas integradas | Programación, agenda de audiencias, resultados declarados, comparecencias, acuerdos, continuidad, rectificación y retiro tienen flujo propio. Sus campañas locales concluyeron y el código está integrado en `main`. La agenda combinada posterior se integró por PR 35. Las alertas se integraron por PR 36. La creación explícita conjunta de resultado y plazo derivado quedó integrada por PR88, con corrección y confirmación de main por PR89. El flujo cautelar completo se entrega por PR90 dentro del [catálogo finito](four-front-closure.md). Faltan los ocho perfiles jurídicos aceptados; registrar texto no calcula efectos jurídicos. |
 | Calendario judicial | Parcial; catálogo con backend, API y Qadra verificados | Configuración global de cobertura, reglas y excepciones con fuentes declaradas, restauración, cobertura y recorridos de navegador aprobados; CI de calendarios aprobado. La selección exacta y la evaluación por perfil ya alimentan plazos persistentes; Qadra V1 de plazos tiene campañas locales completas aprobadas; V2 tiene recorridos API con restauración y navegador con backend real aprobados. La aceptación API final y el cierre global aprobaron; PR 34 integró la reevaluación en `main`. Faltan el cierre del corpus jurídico aplicable y la aceptación de los objetivos restantes del flujo completo; la actualización académica conserva su seguimiento propio. El conteo civil puro aporta una candidata; una URL o la clasificación de una fecha no acredita la regla normativa. |
-| Monitoreo de plazos y alertas | Parcial; base V1 integrada y servicio/HTTP/Qadra V2 con recorridos reales aprobados | Registro, revisión exacta, responsable y atención tienen flujo web integrado. La ampliación humana/HTTP V2 declara políticas, conserva observaciones y continuidad y representa historia humana/técnica. Detalle actual y listado verifican vigencia sin usar la cola como prueba de actualidad. Despacho y consumo confirman trabajos, cursores, resultados e intentos con auditoría. Qadra V2 tiene pruebas Node y navegador con HTTP controlado y backend real aprobadas. La composición en servidor aprobó pruebas unitarias y una campaña API con TERM/INT, reinicios y restauración. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34. La agenda conjunta se integró por PR 35. PR 36 integró alertas con persistencia, reintentos, control de duplicados, Qadra y composición en servidor como `8261c51`; su aceptación API/restauración, navegador real y cierre de CI conservan evidencia propia. La activación automática continúa pendiente. Los recorridos reales de reevaluación no completan esos objetivos restantes del caso de uso. |
+| Monitoreo de plazos y alertas | Parcial; base V1 integrada y servicio/HTTP/Qadra V2 con recorridos reales aprobados | Registro, revisión exacta, responsable y atención tienen flujo web integrado. La ampliación humana/HTTP V2 declara políticas, conserva observaciones y continuidad y representa historia humana/técnica. Detalle actual y listado verifican vigencia sin usar la cola como prueba de actualidad. Despacho y consumo confirman trabajos, cursores, resultados e intentos con auditoría. Qadra V2 tiene pruebas Node y navegador con HTTP controlado y backend real aprobadas. La composición en servidor aprobó pruebas unitarias y una campaña API con TERM/INT, reinicios y restauración. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34. La agenda conjunta se integró por PR 35. PR 36 integró alertas con persistencia, reintentos, control de duplicados, Qadra y composición en servidor como `8261c51`; su aceptación API/restauración, navegador real y cierre de CI conservan evidencia propia. El flujo explícito de resultado/plazo derivado está integrado por PR88/89; falta calificar los ocho perfiles jurídicos delimitados. Los recorridos reales de reevaluación no completan esos objetivos restantes del caso de uso. |
 | Carga y clasificación documental | Admisión general integrada por PR47; main confirmado | Ocho familias admitidas antes de cifrar nuevas cargas o versiones, hasta 16 MiB, con inspección acotada y decodificación multimedia completa. Clasificación atómica, filtros y versiones conservados; rechazo tipado sin borrar el borrador ni reenvío automático. Focales, API/restauración y navegador real aprobados; Clippy, PDF y provisión en los tres VPS aprobados; integrado por PR47 como `ac34b34`, con confirmación natural de main comprobada. Soportes procesales PDF/DOCX independientes e históricos sin readmisión. |
 | Consulta e integridad documental | Parcial | Contenido sin sello y buzón interno Owner integrados con aceptación del incremento y cierre global aprobados. Los avisos describen fallos de validación, no causas demostradas. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
 | Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
 | Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
 | Tablero de control | Indicadores integrados por PR 45; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados. CI, Web y Documents aprobaron también para su merge en main. Firma personal pendiente y naturaleza fatal de plazos no se infieren de estos indicadores. |
-| Informes | Estado/carga integrados por PR49; alcance completo parcial | Estado y carga de asignaciones, captura común cifrada PDF/CSV, selector autorizado, avisos internos y consumidor supervisado. Trece escenarios controlados y dos reales aprobados; cuatro capturas inspeccionadas y formatos exactos tras reingreso. Capacidad y presentación medidas por separado; aceptación HTTP/restauración aprobada con artefactos y avisos exactos y captura revocada; CI, Web y Documents de PR49 y su confirmación natural de main aprobados. Correo, estimación de terminación, demás tipos de reporte y desempeño conservan el alcance de CU-16/RF-19. |
-| Consulta de actividad | Integrada por PR50 y confirmada en main | Owner global, filtros exactos, UTC con nanosegundos, páginas con máximo de secuencia fijo, preflight de texto y lectura auditada. Aplicación 20, PostgreSQL 14, HTTP 6, runtime 1, Node 12 y navegador controlado 9 aprobados. API/restauración exit0 en 376.459967 s y navegador real 2/2 en 13.7 s; Clippy aprobado. CU-17/RF-20 conservan identificador estable de cuenta, IP, cobertura uniforme de operaciones y registro menor de 500 ms. La verificación de la cadena es separada; el anclaje externo sigue pendiente. |
+| Informes | Estado/carga integrados por PR49; alcance completo parcial | Estado y carga de asignaciones, captura común cifrada PDF/CSV, selector autorizado, avisos internos y consumidor supervisado. Trece escenarios controlados y dos reales aprobados; cuatro capturas inspeccionadas y formatos exactos tras reingreso. Capacidad y presentación medidas por separado; aceptación HTTP/restauración aprobada con artefactos y avisos exactos y captura revocada; CI, Web y Documents de PR49 y su confirmación natural de main aprobados. El pendiente CU-16/RF-19 queda limitado a documentos cargados, actuaciones registradas y plazos atendidos por Litigante y periodo, con atribución histórica a la cuenta autora; progreso, estimación cuando aplica y aviso según [el inventario finito](technical-closure.md). |
+| Consulta de actividad | Integrada por PR50 y confirmada en main | Owner global, filtros exactos, UTC con nanosegundos, páginas con máximo de secuencia fijo, preflight de texto y lectura auditada. Aplicación 20, PostgreSQL 14, HTTP 6, runtime 1, Node 12 y navegador controlado 9 aprobados. API/restauración exit0 en 376.459967 s y navegador real 2/2 en 13.7 s; Clippy aprobado. PR91 añade logs operativos saneados para TOTP y recuperación. CU-17/RF-20 conservan identidad estable uniforme, IP, matriz de accesos y registro durable menor de 500 ms; esos logs no cierran la auditoría transaccional. La verificación de la cadena es separada; el anclaje externo sigue pendiente. |
 
 La validación final incluye usabilidad con participantes reales. Ningún resultado
 de cobertura ni una demostración parcial cambia automáticamente estos estados.
@@ -880,23 +880,26 @@ aprobados ni produce un nuevo porcentaje global del TT.
   del CNPP y recursos vinculados a resoluciones, sin modificar ese criterio.
   Corregirlo literalmente requiere autorización explícita; implementar las dos
   transiciones no cierra recursos ni el cómputo automático exigido.
-- El catálogo de programación distingue cuatro tipos de audiencia; el marco
-  también menciona medidas cautelares y continuaciones. Las sesiones declaradas
-  modelan continuidad mediante otra raíz con antecedente exacto preexistente,
-  con comparecencias y acuerdos propios. Esto no amplía el catálogo de citas ni
-  cubre las reglas específicas de medidas cautelares. CU-08 y RF-07 permanecen
-  parciales: sus criterios aprobados incluyen activación de plazos y alertas,
-  además de la captura implementada y la aceptación integral.
+- El catálogo finito distingue siete familias: las cuatro ordinarias,
+  cautelares, alegatos de apelación y revocación escrita. La continuación
+  conserva antecedente exacto; no constituye otra familia. Audiencias de
+  recursos y creación explícita de resultado/plazo derivado están integradas.
+  PR90 entrega el flujo cautelar completo con navegador real, API con reinicios
+  y restauración, y manuscrito separado verificados. Su integración se controla
+  por HEAD exacto; no queda otra ampliación funcional cautelar autorizada.
+  CU-08 y RF-07 conservan el cierre jurídico de los ocho supuestos de
+  [la lista finita](four-front-closure.md), sin desarrollo universal de términos.
 - CU-09 permanece parcial. El catálogo distingue fechas `countable`, `excluded`,
   `unresolved` y `outside_coverage` según el ámbito declarado. No adopta un
   calendario universal, no descarga normas ni asigna calendarios comparando el
   nombre de una autoridad. El registro explícito ya evalúa y conserva el
   resultado de fuentes y perfiles exactos. Los cambios durables se procesan en
   servidor y la agenda conjunta está integrada por PR 35.
-  El flujo automático completo requiere cerrar perfiles jurídicos con fuentes
-  primarias y corpus de aceptación, activar términos y comprobar su enlace con
-  las alertas integradas y verificadas por separado en PR 36. La selección y calificación manuales implementadas no completan esos pendientes
-  ni la aceptación integral de los demás casos del catálogo.
+  El pendiente actual consiste en cerrar los ocho perfiles jurídicos aceptados
+  con fuentes primarias y corpus, aplicándolos al recorrido explícito de
+  resultado/plazo derivado ya integrado y sus alertas. La aritmética sintética
+  y la selección manual no acreditan ese fundamento. Este pendiente no autoriza
+  activación universal ni términos adicionales.
 - Las alertas internas y la entrega por correo tienen contratos distintos. No se
   da por completada una notificación por persistir únicamente un vencimiento.
 - El archivo de una ficha es organizativo. No prueba una transición jurídica,
@@ -1002,21 +1005,22 @@ aprobaron en 6m41s, 11m24s y 7m43s, con 3156 Rust, 396 escenarios controlados
 y 47 reales, además de dos ignorados. Se conserva separada
 la aceptación de esta entrega de la aceptación de informes integrada por PR49.
 
-Persisten la integración completa de las audiencias propias de recursos,
-agenda, alertas y Qadra, el corpus jurídico calificado y la activación automática
-durable de sus términos. El backend, el DTO de asociación, las consultas propias
-y el router de programación tienen implementación local según su
-[contrato](resource-hearings.md), incluida su composición de servidor. La captura y restauración propia tienen
-aceptación focal real, y el navegador conserva su corte anterior al ajuste del
-scheduler. Los gates globales del conjunto, integración y despliegue siguen pendientes. Las pruebas focales
-de lecturas de aplicación y PostgreSQL, evidencia incompleta y rutas propias ya
-aprobaron. Qadra incorpora programación explícita y recuperación del borrador;
-las alertas de proximidad propias tienen implementación local con persistencia,
-permisos, preferencias y lectura histórica en Qadra. La restauración conserva
-la misma ocurrencia y recibo; no se atribuye una campaña global del conjunto ni
-su integración; véase [su contrato](resource-hearing-alerts.md).
+Las audiencias propias de recursos, su Agenda, alertas y Qadra quedaron
+integradas mediante PR87; la aceptación conservada incluye permisos, fuentes
+históricas y recuperación. El flujo explícito de resultado/plazo derivado se
+integró por PR88 y su corrección de aceptación por PR89 confirmó main `e9afef8`.
+Los cortes locales anteriores del informe son evidencia histórica, no pendientes
+actuales de esos mecanismos. Falta el corpus jurídico calificado de los supuestos
+nombrados en [el cierre finito](four-front-closure.md); ninguna de esas
+integraciones acredita cobertura jurídica universal ni autoriza otro motor.
+Véanse [el contrato](resource-hearings.md) y
+[las alertas propias](resource-hearing-alerts.md).
 Los resultados del corte se
 conservan por separado en el informe técnico. Asociar o consultar no crea
 otro aviso ni cambia los destinatarios de la actividad. El [alcance completo](procedural-resources-scope.md),
 el [contrato de registro](procedural-resources-api.md) y
 [la evidencia por entrega](verification-report.md) conservan esos pendientes.
+
+Los pendientes técnicos reconciliados y sus criterios observables se delimitan en
+[el inventario de cierre](technical-closure.md). Los estados históricos anteriores
+no abren por sí solos otra entrega.

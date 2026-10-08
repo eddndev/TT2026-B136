@@ -27,6 +27,7 @@ impl AgendaStore for PostgresAgendaStore {
             AgendaKind::Hearing => 0,
             AgendaKind::Deadline => 1,
             AgendaKind::ResourceHearing => 2,
+            AgendaKind::PrecautionaryHearing => 3,
         };
         let status = query.hearing_status().status().map(|value| value.as_str());
         let after = query.after();
@@ -107,6 +108,7 @@ fn resource(query: AgendaQuery, page: &AgendaPage) -> String {
         AgendaKind::Hearing => "hearing",
         AgendaKind::Deadline => "deadline",
         AgendaKind::ResourceHearing => "resource_hearing",
+        AgendaKind::PrecautionaryHearing => "precautionary_hearing",
     };
     let status = match query.hearing_status() {
         HearingStatusFilter::Scheduled => "scheduled",

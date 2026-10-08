@@ -11,21 +11,21 @@ pub(super) fn expected(table: &str) -> &'static [&'static str] {
             "alert_payload_valid(payload, payload_digest)",
         ],
         "alert_subject_state" => &[
-            "(kind = ANY (ARRAY[0, 1, 2]))", "(generation > 0)",
+            "(kind = ANY (ARRAY[0, 1, 2, 3]))", "(generation > 0)",
             "alert_payload_valid(payload, payload_digest)",
-            "(((kind = ANY (ARRAY[0, 1])) AND (resource_id IS NULL)) OR ((kind = 2) AND (resource_id IS NOT NULL)))",
+            "(((kind = ANY (ARRAY[0, 1, 3])) AND (resource_id IS NULL)) OR ((kind = 2) AND (resource_id IS NOT NULL)))",
         ],
         "alert_scan_cursor" => &[
-            "singleton", "(kind = ANY (ARRAY[0, 1, 2]))", "(cycle >= 0)",
+            "singleton", "(kind = ANY (ARRAY[0, 1, 2, 3]))", "(cycle >= 0)",
             "alert_optional_time_valid(next_seconds, next_nanos)",
-            "(((active_kind IS NULL) AND (active_id IS NULL) AND (after_recipient IS NULL)) OR ((active_kind = ANY (ARRAY[0, 1, 2])) AND (active_id IS NOT NULL)))",
+            "(((active_kind IS NULL) AND (active_id IS NULL) AND (after_recipient IS NULL)) OR ((active_kind = ANY (ARRAY[0, 1, 2, 3])) AND (active_id IS NOT NULL)))",
         ],
         "alert_schedule" => &[
             "((length(occurrence_key) >= 1) AND (length(occurrence_key) <= 200))",
             "(status = ANY (ARRAY['planned'::text, 'activated'::text, 'superseded'::text]))",
             "(generation > 0)", "alert_time_valid(trigger_seconds, trigger_nanos)",
             "alert_payload_valid(payload, payload_digest)",
-            "(((kind = ANY (ARRAY[0, 1])) AND (resource_id IS NULL)) OR ((kind = 2) AND (resource_id IS NOT NULL)))",
+            "(((kind = ANY (ARRAY[0, 1, 3])) AND (resource_id IS NULL)) OR ((kind = 2) AND (resource_id IS NOT NULL)))",
         ],
         "alert_notifications" => &[
             "alert_time_valid(created_seconds, created_nanos)",
@@ -34,7 +34,7 @@ pub(super) fn expected(table: &str) -> &'static [&'static str] {
             "((resolved_seconds IS NULL) = (resolved_reason IS NULL))",
             "((resolved_reason IS NULL) OR (resolved_reason = ANY (ARRAY['superseded'::text, 'attention_recorded'::text, 'target_retired'::text, 'cancelled_hearing'::text, 'no_longer_eligible'::text])))",
             "alert_payload_valid(payload, payload_digest)",
-            "(((kind = ANY (ARRAY[0, 1])) AND (resource_id IS NULL)) OR ((kind = 2) AND (resource_id IS NOT NULL)))",
+            "(((kind = ANY (ARRAY[0, 1, 3])) AND (resource_id IS NULL)) OR ((kind = 2) AND (resource_id IS NOT NULL)))",
         ],
         "alert_read_receipts" => &["alert_time_valid(read_seconds, read_nanos)"],
         "alert_email_outbox" => &[

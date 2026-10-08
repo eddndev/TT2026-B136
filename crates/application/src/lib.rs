@@ -30,6 +30,8 @@ pub mod judicial_calendars;
 pub mod members;
 pub mod participants;
 pub mod pki;
+pub mod precautionary_hearings;
+pub mod precautionary_measures;
 pub mod procedural_facts;
 pub mod procedural_resources;
 pub mod resource_activities;
@@ -59,3 +61,5 @@ pub mod resource_deadlines;
 pub mod resource_hearings;
 
 pub mod case_reports;
+
+pub mod measure_corrections;

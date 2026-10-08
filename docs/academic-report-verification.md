@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Composición de cautelares y MFA: 8 de octubre de 2026
+
+Se compiló una copia separada de las fuentes combinadas de PR90 y PR91 con el
+Makefile versionado, sin reemplazar los PDF aceptados. Aprobó en **92.203 s**:
+**396 páginas**, **6026528 bytes**, SHA-256
+`1183f9728ceef8238308a90586ecdb4ab4ed3784b3cb5a8e8016a5d46e278861`.
+Se comparó el texto por página con el manuscrito cautelar aceptado y se
+inspeccionaron todas las páginas modificadas: **159–162, 164–176, 234–235 y
+395–396**. Texto, tablas, encabezados y continuaciones legibles, sin nuevos
+recortes o solapes. Sin glifos faltantes ni referencias sin resolver; permanecen
+las dos cajas horizontales y la sustitución de versalitas históricas. Las tres
+copias de PDF previas verificadas conservan sus hashes. No se editaron las
+fuentes del resumen aprobado, introducción, marco teórico ni conclusiones.
+
 ## Diagnóstico operativo MFA: 7 de octubre de 2026
 
 Se actualizaron implementación, pruebas y anexo operativo con el registro saneado
@@ -16,6 +30,25 @@ texto legible, referencias resueltas y sin recortes ni solapes en los cambios.
 No hay glifos faltantes ni referencias indefinidas en el log final. Permanecen
 dos avisos de caja horizontal en contenido ajeno al cambio (0.11754 y 24.62556 pt).
 Resumen aprobado, objetivos, estado del arte y conclusiones no se modificaron.
+
+## Flujo cautelar completo: 5 de octubre de 2026
+
+Diseño, implementación, pruebas y anexos incorporan el catálogo finito de siete
+familias, las tres partes del flujo cautelar, Agenda/alertas y recuperación.
+El manuscrito distingue la aceptación real de escritorio/móvil de la campaña
+API con reinicios y restauración aprobada en 843.832 s. Conserva las cifras
+históricas y deja pendientes integración, corpus jurídico y decisiones humanas.
+
+Se compiló una copia separada de las fuentes con el Makefile versionado y caché
+TeX propia: **96.923 s**, **396 páginas**, **6024968 bytes** y SHA-256
+`7d015756926912fe9e2a8fa197239874c7f48cadca1ce5ca613eddc5adb3aaf4`.
+Se inspeccionaron las páginas físicas **4–6, 11, 138–139, 190–192, 199, 210,
+232–233, 254–256 y 373–375**, incluidos índices, tablas y continuaciones: texto
+legible, sin nuevos solapes ni recortes. Persisten los dos avisos históricos
+horizontales y la sustitución de versalitas Times; no hay glifos faltantes ni
+referencias sin resolver. Resumen, introducción, marco teórico y conclusiones
+conservan sus fuentes; ambos PDF aceptados conservan su hash anterior.
+El PDF nuevo queda fuera de Git. CI y confirmación de main permanecen pendientes.
 
 
 ## Resultado de audiencia y plazo conjuntos: 4 de octubre de 2026

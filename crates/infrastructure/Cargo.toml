@@ -6,7 +6,6 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-
 [dependencies]
 domain = { path = "../domain" }
 application = { path = "../application" }
@@ -59,210 +58,158 @@ quick-xml.workspace = true
 rustix.workspace = true
 flate2.workspace = true
 crc32fast.workspace = true
-
 pdf-writer = "=0.15.0"
 harfrust = "=0.13.3"
 skrifa = { version = "=0.46.2", default-features = false, features = ["std"] }
-
 [dev-dependencies]
 proptest.workspace = true
-
 [[test]]
 name = "aead_properties"
 path = "tests/aead_properties.rs"
-
 [[test]]
 name = "aes_gcm_vectors"
 path = "tests/aes_gcm_vectors.rs"
-
 [[test]]
 name = "agenda_suite_1"
 path = "tests/suites/agenda_suite_1.rs"
-
 [[test]]
 name = "alert_suite_1"
 path = "tests/suites/alert_suite_1.rs"
-
 [[test]]
 name = "audit_suite_1"
 path = "tests/suites/audit_suite_1.rs"
-
 [[test]]
 name = "case_closure"
 path = "tests/case_closure.rs"
-
 [[test]]
 name = "case_suite_1"
 path = "tests/suites/case_suite_1.rs"
-
 [[test]]
 name = "case_suite_2"
 path = "tests/suites/case_suite_2.rs"
-
 [[test]]
 name = "certificate_validation"
 path = "tests/certificate_validation.rs"
-
 [[test]]
 name = "cincel_stub"
 path = "tests/cincel_stub.rs"
-
 [[test]]
 name = "credential_suite_1"
 path = "tests/suites/credential_suite_1.rs"
-
 [[test]]
 name = "deadline_backend"
 path = "tests/deadline_backend.rs"
-
 [[test]]
 name = "deadline_dispatch_measurement"
 path = "tests/deadline_dispatch_measurement.rs"
-
 [[test]]
 name = "deadline_input_backend"
 path = "tests/deadline_input_backend.rs"
-
 [[test]]
 name = "deadline_profile_harness"
 path = "tests/deadline_profile_harness.rs"
-
 [[test]]
 name = "deadline_profile_revalidation"
 path = "tests/deadline_profile_revalidation.rs"
-
 [[test]]
 name = "deadline_source_events"
 path = "tests/deadline_source_events.rs"
-
 [[test]]
 name = "deadline_suite_1"
 path = "tests/suites/deadline_suite_1.rs"
-
 [[test]]
 name = "deadline_suite_2"
 path = "tests/suites/deadline_suite_2.rs"
-
 [[test]]
 name = "deadline_suite_3"
 path = "tests/suites/deadline_suite_3.rs"
-
 [[test]]
 name = "deadline_suite_4"
 path = "tests/suites/deadline_suite_4.rs"
-
 [[test]]
 name = "deadline_suite_5"
 path = "tests/suites/deadline_suite_5.rs"
-
 [[test]]
 name = "document_content_backend"
 path = "tests/document_content_backend.rs"
-
 [[test]]
 name = "document_query_concurrency"
 path = "tests/document_query_concurrency.rs"
-
 [[test]]
 name = "document_suite_1"
 path = "tests/suites/document_suite_1.rs"
-
 [[test]]
 name = "document_suite_2"
 path = "tests/suites/document_suite_2.rs"
-
 [[test]]
 name = "document_version_encryption"
 path = "tests/document_version_encryption.rs"
-
 [[test]]
 name = "document_version_failures"
 path = "tests/document_version_failures.rs"
-
 [[test]]
 name = "file_document_repository"
 path = "tests/file_document_repository.rs"
-
 [[test]]
 name = "hearing_result_revalidation"
 path = "tests/hearing_result_revalidation.rs"
-
 [[test]]
 name = "hearing_suite_1"
 path = "tests/suites/hearing_suite_1.rs"
-
 [[test]]
 name = "hearing_suite_2"
 path = "tests/suites/hearing_suite_2.rs"
-
 [[test]]
 name = "hearing_suite_3"
 path = "tests/suites/hearing_suite_3.rs"
-
 [[test]]
 name = "identity_backends"
 path = "tests/identity_backends.rs"
-
 [[test]]
 name = "identity_suite_1"
 path = "tests/suites/identity_suite_1.rs"
-
 [[test]]
 name = "internal_declaration"
 path = "tests/internal_declaration.rs"
-
 [[test]]
 name = "internal_owner_binding"
 path = "tests/internal_owner_binding.rs"
-
 [[test]]
 name = "internal_owner_login"
 path = "tests/internal_owner_login.rs"
-
 [[test]]
 name = "issuer_validity_window"
 path = "tests/issuer_validity_window.rs"
-
 [[test]]
 name = "judicial_suite_1"
 path = "tests/suites/judicial_suite_1.rs"
-
 [[test]]
 name = "legacy_suite_1"
 path = "tests/suites/legacy_suite_1.rs"
-
 [[test]]
 name = "local_tsa_rfc3161"
 path = "tests/local_tsa_rfc3161.rs"
-
 [[test]]
 name = "member_suite_1"
 path = "tests/suites/member_suite_1.rs"
-
 [[test]]
 name = "openssl_ca_adapter"
 path = "tests/openssl_ca_adapter.rs"
-
 [[test]]
 name = "participant_suite_1"
 path = "tests/suites/participant_suite_1.rs"
-
 [[test]]
 name = "password_hashing"
 path = "tests/password_hashing.rs"
-
 [[test]]
 name = "password_reset_backend"
 path = "tests/password_reset_backend.rs"
-
 [[test]]
 name = "password_reset_identity"
 path = "tests/password_reset_identity.rs"
-
 [[test]]
 name = "postgres_document_concurrency"
 path = "tests/postgres_document_concurrency.rs"
-
 [[test]]
 name = "postgres_document_failures"
 path = "tests/postgres_document_failures.rs"
@@ -396,3 +343,54 @@ path = "tests/resource_hearing_backend.rs"
 [[test]]
 name = "resource_hearing_schema"
 path = "tests/resource_hearing_schema.rs"
+
+[[test]]
+name = "precautionary_hearing_codec"
+path = "tests/precautionary_hearing_codec.rs"
+[[test]]
+name = "precautionary_hearing_backend"
+path = "tests/precautionary_hearing_backend.rs"
+[[test]]
+name = "measure_decision_codec"
+path = "tests/measure_decision_codec.rs"
+[[test]]
+name = "measure_decision_backend"
+path = "tests/measure_decision_backend.rs"
+[[test]]
+name = "precautionary_review_backend"
+path = "tests/precautionary_review_backend.rs"
+[[test]]
+name = "measure_initial_anchor_backend"
+path = "tests/measure_initial_anchor_backend.rs"
+
+[[test]]
+name = "measure_precautionary_anchor_backend"
+path = "tests/measure_precautionary_anchor_backend.rs"
+
+[[test]]
+name = "measure_correction_codec"
+path = "tests/measure_correction_codec.rs"
+
+[[test]]
+name = "measure_administrative_backend"
+path = "tests/measure_administrative_backend.rs"
+
+[[test]]
+name = "measure_record_backend"
+path = "tests/measure_record_backend.rs"
+
+[[test]]
+name = "precautionary_hearing_record_backend"
+path = "tests/precautionary_hearing_record_backend.rs"
+
+[[test]]
+name = "measure_decision_record_backend"
+path = "tests/measure_decision_record_backend.rs"
+
+[[test]]
+name = "agenda_precautionary_hearings"
+path = "tests/agenda_precautionary_hearings.rs"
+
+[[test]]
+name = "alert_precautionary_hearings"
+path = "tests/alert_precautionary_hearings.rs"

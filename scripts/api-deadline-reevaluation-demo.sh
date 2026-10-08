@@ -30,7 +30,9 @@ deadline_worker_demo() {
   deadline_worker_demo_stop TERM
   migration_demo_start "$url" "$directory" worker-after-term
   deadline_worker_demo_python restarted
+  precautionary_demo verify
   deadline_worker_demo_stop INT
   migration_demo_start "$url" "$directory" worker-after-int
   deadline_worker_demo_python verify
+  precautionary_demo verify
 }

@@ -6,6 +6,7 @@ mod inbox;
 mod invalidate;
 mod inventory;
 mod plan;
+mod precautionary_hearing;
 mod preferences;
 mod records;
 mod resource_hearing;

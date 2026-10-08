@@ -9,6 +9,7 @@ pub enum AgendaKind {
     Hearing,
     Deadline,
     ResourceHearing,
+    PrecautionaryHearing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -16,6 +17,7 @@ pub enum AgendaItemKind {
     Hearing,
     Deadline,
     ResourceHearing,
+    PrecautionaryHearing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -123,6 +125,10 @@ impl AgendaQuery {
                     | (AgendaKind::Hearing, AgendaItemKind::Hearing)
                     | (AgendaKind::Deadline, AgendaItemKind::Deadline)
                     | (AgendaKind::ResourceHearing, AgendaItemKind::ResourceHearing)
+                    | (
+                        AgendaKind::PrecautionaryHearing,
+                        AgendaItemKind::PrecautionaryHearing
+                    )
             )
     }
 }

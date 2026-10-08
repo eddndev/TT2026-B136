@@ -81,6 +81,11 @@ redis = "=0.25.4"
 [profile.release]
 strip = true
 lto = true
+codegen-units = 1
+opt-level = "s"
+
+[profile.release.package."*"]
+opt-level = 3
 
 # Argon2id is memory-hard by design, so an unoptimized build of its kernel
 # makes every hash take seconds and the test suite take minutes. Optimize

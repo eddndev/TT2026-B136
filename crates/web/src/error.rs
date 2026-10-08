@@ -18,6 +18,7 @@ mod hearing_result;
 mod judicial_calendar;
 mod members;
 mod owner_certificate;
+mod precautionary;
 mod procedural_fact;
 mod procedural_resource;
 mod resource_activity;
@@ -32,6 +33,8 @@ mod document_upload_tests;
 mod hearing_tests;
 #[cfg(test)]
 mod port_tests;
+#[cfg(test)]
+mod precautionary_tests;
 #[cfg(test)]
 mod procedural_fact_tests;
 #[cfg(test)]
@@ -148,6 +151,7 @@ impl From<ApplicationError> for ApiError {
             .or_else(judicial_calendar::map)
             .or_else(hearing_result::map)
             .or_else(hearing::map)
+            .or_else(precautionary::map)
             .or_else(stage::map)
             .or_else(typed_participant::map)
         {

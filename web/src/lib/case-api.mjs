@@ -1,3 +1,4 @@
+import { measureAdministrationsApi } from './measure-administrations-api.mjs';
 import { activityResourcesApi } from './activity-resources-api.mjs';
 import { deadlinesApi } from './deadline-api.mjs';
 import { deadlineProfilesApi } from './deadline-profiles-api.mjs';
@@ -5,6 +6,9 @@ import { proceduralFactsApi } from './procedural-facts-api.mjs';
 import { proceduralResourcesApi } from './procedural-resources-api.mjs';
 import { resourceDeadlinesApi } from './resource-deadline-api.mjs';
 import { resourceHearingsApi } from './resource-hearing-api.mjs';
+import { precautionaryHearingsApi } from './precautionary-hearing-api.mjs';
+import { measureRecordsApi } from './measure-records-api.mjs';
+import { measureDecisionsApi } from './measure-decisions-api.mjs';
 import { resourceActivitiesApi } from './resource-activities-api.mjs';
 import { hearingResultsApi } from './hearing-results-api.mjs';
 import { hearingDerivedDeadlinesApi } from './hearing-derived-deadline-api.mjs';
@@ -67,6 +71,10 @@ export function caseApi(transport) {
     caseActivityResources: (id, target) => activityResourcesApi(request, id, target),
     caseResourceDeadlines: (id, resourceId) => resourceDeadlinesApi(request, id, resourceId),
     caseResourceHearings: (id, resourceId) => resourceHearingsApi(request, id, resourceId),
+    casePrecautionaryHearings: (id) => precautionaryHearingsApi(request, id),
+    caseMeasures: (id) => measureRecordsApi(request, id),
+    caseMeasureAdministrations: (caseId) => measureAdministrationsApi(request, caseId),
+    caseMeasureDecisions: (id) => measureDecisionsApi(request, id),
     caseNotifications: (id, resolutionId) =>
       proceduralFactsApi(request, id, 'notification', resolutionId),
     caseHearingResults: (id, hearingId) => hearingResultsApi(request, id, hearingId),

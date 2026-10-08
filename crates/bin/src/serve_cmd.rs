@@ -8,8 +8,6 @@ use application::cases::CaseService;
 use application::deadline_profiles::DeadlineProfileService;
 use application::deadlines::DeadlineService;
 use application::documents::CaseDocumentService;
-use application::hearing_results::HearingResultService;
-use application::hearings::HearingService;
 use application::identity::SessionPolicy;
 use application::judicial_calendars::JudicialCalendarService;
 use application::participants::ParticipantService;
@@ -18,9 +16,8 @@ use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{
-    PostgresCaseDocumentStore, PostgresCaseRepository, PostgresHearingResultStore,
-    PostgresHearingStore, PostgresJudicialCalendarStore, PostgresParticipantStore,
-    PostgresTypedParticipantStore, RingSha256Hasher, SystemClock,
+    PostgresCaseDocumentStore, PostgresCaseRepository, PostgresJudicialCalendarStore,
+    PostgresParticipantStore, PostgresTypedParticipantStore, RingSha256Hasher, SystemClock,
 };
 use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 
@@ -28,6 +25,7 @@ use crate::cli::ServeArgs;
 
 mod derived_deadlines;
 mod documents;
+mod hearings;
 mod inputs;
 mod owner_certificates;
 #[cfg(test)]
@@ -129,40 +127,18 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 Arc::new(InternalRsaDeclarationVerifier::new()),
                 Arc::new(SystemClock::new()),
             );
-            let hearing_hasher = Arc::new(RingSha256Hasher::new());
-            let hearing_clock = Arc::new(SystemClock::new());
-            let hearings = HearingService::new(
-                Arc::new(
-                    PostgresHearingStore::open(
-                        database,
-                        hearing_hasher.clone(),
-                        hearing_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL hearing store")?,
-                ),
+            let (hearings, hearing_results) = hearings::open(
+                database,
                 identity.clone(),
                 processor.clone(),
                 format_validator.clone(),
-                hearing_hasher,
-                hearing_clock,
-            );
-            let result_hasher = Arc::new(RingSha256Hasher::new());
-            let result_clock = Arc::new(SystemClock::new());
-            let hearing_results = HearingResultService::new(
-                Arc::new(
-                    PostgresHearingResultStore::open(
-                        database,
-                        result_hasher.clone(),
-                        result_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL hearing result store")?,
-                ),
+            )?;
+            let precautionary = crate::serve_precautionary::open_hearings(
+                database,
                 identity.clone(),
                 processor.clone(),
                 format_validator.clone(),
-                result_hasher,
-                result_clock,
-            );
+            )?;
             let hearing_derived_deadlines = derived_deadlines::open(
                 database,
                 identity.clone(),
@@ -342,6 +318,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 Arc::new(workflow),
                 identity,
                 web::CaseWorkflows {
+                    precautionary,
                     owner_certificates,
                     members: Arc::new(members),
                     cases: Arc::new(cases),

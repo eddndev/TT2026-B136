@@ -4,6 +4,7 @@
   import AlertCard from './AlertCard.svelte';
   import AlertPreferences from './AlertPreferences.svelte';
   import ResourceHearingDetail from './ResourceHearingDetail.svelte';
+  import PrecautionaryHearingDetail from './PrecautionaryHearingDetail.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
   import { alertFailure, alertTimeLabel } from '../lib/alerts-presentation.mjs';
   import { alertKey, compareAlertKeys } from '../lib/alerts-primitives.mjs';
@@ -32,6 +33,7 @@
     generation = 0,
     openGeneration = 0;
   let ownDetail = null,
+    ownKind = null,
     ownCase = null,
     ownClient = null,
     detailTrigger = null;
@@ -53,6 +55,7 @@
     ownClient?.dispose();
     ownClient = null;
     ownDetail = null;
+    ownKind = null;
     ownCase = null;
     opening = false;
   }
@@ -150,12 +153,16 @@
       if (record.id !== captured.subject.case_id)
         throw new Error('El expediente no corresponde a esta alerta.');
       const subject = captured.subject;
-      if (subject.kind === 'resource_hearing') {
-        const client = api.caseResourceHearings(subject.case_id, subject.resource_id);
+      if (['resource_hearing', 'precautionary_hearing'].includes(subject.kind)) {
+        const client =
+          subject.kind === 'precautionary_hearing'
+            ? api.casePrecautionaryHearings(subject.case_id)
+            : api.caseResourceHearings(subject.case_id, subject.resource_id);
         ownClient = client;
         const creation = await client.fromAlert(captured);
         if (!currentOpen(request, list, actor)) return;
         ownCase = basicCase(record);
+        ownKind = subject.kind;
         ownDetail = creation;
       } else {
         onopen(basicCase(record), {
@@ -226,11 +233,13 @@
       }}
     />{/if}
   {#if !denied}
-    {#if ownDetail}<ResourceHearingDetail
-        value={ownDetail}
-        caseRecord={ownCase}
-        onclose={closeDetail}
-      />{/if}
+    {#if ownDetail}
+      {#if ownKind === 'precautionary_hearing'}
+        <PrecautionaryHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
+      {:else}
+        <ResourceHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
+      {/if}
+    {/if}
     <section class="card alerts-query" aria-label="Consulta de alertas">
       <form class="alerts-filters" onsubmit={apply}>
         <label

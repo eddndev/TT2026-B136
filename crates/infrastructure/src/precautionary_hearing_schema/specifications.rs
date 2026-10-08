@@ -1,0 +1,96 @@
+pub(super) const KEYS: &[(&str, &str, &[&str], bool)] = &[
+    (
+        "case_precautionary_hearings",
+        "precautionary_hearing_root_primary",
+        &["id"],
+        true,
+    ),
+    (
+        "case_precautionary_hearings",
+        "precautionary_hearing_root_scope",
+        &["id", "case_id"],
+        false,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_revision_primary",
+        &["hearing_id", "revision"],
+        true,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_revision_scope",
+        &["hearing_id", "case_id", "revision"],
+        false,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_operation",
+        &["operation_id"],
+        false,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_audit",
+        &["audit_sequence"],
+        false,
+    ),
+];
+type ForeignKey = (
+    &'static str,
+    &'static str,
+    &'static [&'static str],
+    &'static str,
+    &'static [&'static str],
+    bool,
+);
+pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
+    (
+        "case_precautionary_hearings",
+        "precautionary_hearing_case",
+        &["case_id"],
+        "cases",
+        &["id"],
+        false,
+    ),
+    (
+        "case_precautionary_hearings",
+        "precautionary_hearing_first_revision",
+        &["id", "initial_revision"],
+        "case_precautionary_hearing_revisions",
+        &["hearing_id", "revision"],
+        true,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_revision_root",
+        &["hearing_id", "case_id"],
+        "case_precautionary_hearings",
+        &["id", "case_id"],
+        false,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_administration",
+        &["case_id", "observed_administration_revision"],
+        "case_administration_revisions",
+        &["case_id", "revision"],
+        false,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_author",
+        &["recorded_by"],
+        "users",
+        &["id"],
+        false,
+    ),
+    (
+        "case_precautionary_hearing_revisions",
+        "precautionary_hearing_audit_event",
+        &["audit_sequence"],
+        "audit_events",
+        &["sequence"],
+        true,
+    ),
+];

@@ -1,3 +1,4 @@
+import { provisionPrecautionaryHearings } from "./web-precautionary-fixtures.mjs";
 import { provisionAuditEvents } from "./web-audit-event-fixtures.mjs";
 import { provisionOwnerCertificates } from "./web-owner-certificate-fixtures.mjs";
 import { provisionCaseReports } from "./web-case-report-fixtures.mjs";
@@ -88,6 +89,7 @@ try {
     await provisionFixtures(
       Object.fromEntries(
         Object.entries({
+          precautionaryHearings: () => provisionPrecautionaryHearings(request),
           hearingResults: () => provisionHearingResults(request),
           hearingDerivedDeadlines: () =>
             provisionHearingDerivedDeadlines(request),

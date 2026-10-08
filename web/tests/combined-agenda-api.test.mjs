@@ -286,7 +286,7 @@ test('three same-instant UUIDs stay ordered and the rank-two cursor remains quer
     { kind: 'hearing' },
     { hearing_status: 'all' },
     { until: '2026-01-04T00:00:00Z' },
-    { cursor: value.next_cursor.replace(':0:2:', ':0:3:') },
+    { cursor: value.next_cursor.replace(':0:2:', ':0:4:') },
   ]) {
     const { api, calls } = client(empty);
     await assert.rejects(api.list({ ...query, cursor: value.next_cursor, ...mutation }));

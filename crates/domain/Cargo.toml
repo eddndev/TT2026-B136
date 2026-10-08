@@ -17,6 +17,7 @@ uuid.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]
+sha2.workspace = true
 serde_json.workspace = true
 
 [[test]]
@@ -88,6 +89,14 @@ name = "procedural_fact_vectors"
 path = "tests/procedural_fact_vectors.rs"
 
 [[test]]
+name = "precautionary_hearings"
+path = "tests/precautionary_hearings.rs"
+
+[[test]]
+name = "precautionary_measure_values"
+path = "tests/precautionary_measure_values.rs"
+
+[[test]]
 name = "procedural_suite_1"
 path = "tests/suites/procedural_suite_1.rs"
 
@@ -102,3 +111,15 @@ path = "tests/resource_hearing_values.rs"
 [[test]]
 name = "typed_suite_1"
 path = "tests/suites/typed_suite_1.rs"
+
+[[test]]
+name = "precautionary_declarations"
+path = "tests/precautionary_declarations.rs"
+
+[[test]]
+name = "measure_effects"
+path = "tests/measure_effects.rs"
+
+[[test]]
+name = "measure_corrections"
+path = "tests/measure_corrections.rs"

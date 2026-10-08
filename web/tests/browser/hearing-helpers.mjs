@@ -117,6 +117,7 @@ export async function setupHearings(
     const request = route.request(),
       url = new URL(request.url()),
       path = url.pathname;
+    if (!/\/hearings(?:\/|$)/.test(path)) return route.fallback();
     state.calls.push({
       path,
       search: url.search,

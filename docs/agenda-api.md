@@ -1,9 +1,12 @@
 # Agenda autorizada de audiencias y vencimientos
 
-`GET /api/v1/agenda` reúne audiencias ordinarias, audiencias propias de recursos
-y fechas operativas de plazos. La tercera familia tiene implementación local;
-su presentación en Qadra y aceptación integrada aún están pendientes. Usa
-sesión bearer revocable y respuestas `Cache-Control: no-store`. Owner consulta
+`GET /api/v1/agenda` reúne audiencias ordinarias, audiencias propias de recursos,
+convocatorias cautelares y fechas operativas de plazos. Las audiencias de recursos
+ya están integradas con Qadra. Agenda cautelar y su detalle exacto en Qadra están
+implementados, con verificación focal y navegador real de escritorio y móvil aprobado.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Usa sesión bearer revocable y respuestas `Cache-Control: no-store`. Owner consulta
 el despacho; Litigator y Paralegal sólo expedientes asignados. Client recibe
 403. La ruta de audiencias `GET /api/v1/hearings` conserva su contrato anterior.
 
@@ -12,7 +15,7 @@ el despacho; Litigator y Paralegal sólo expedientes asignados. Client recibe
 | Parámetro | Valores |
 | --- | --- |
 | `from`, `until` | Requeridos: RFC 3339 UTC terminado en `Z`, segundos enteros y años 0001–9999. Intervalo positivo `[from,until)` de hasta 366 días. |
-| `kind` | `all` (predeterminado), `hearing`, `deadline` o `resource_hearing`. |
+| `kind` | `all` (predeterminado), `hearing`, `deadline`, `resource_hearing` o `precautionary_hearing`. |
 | `hearing_status` | `scheduled` (predeterminado), `cancelled` o `all`. Para `kind=deadline` sólo se acepta `scheduled`; `resource_hearing` rechaza `cancelled`. |
 | `limit` | Entre 1 y 100, predeterminado 20. Limita actividades emitidas. |
 | `cursor` | Continuación opaca devuelta por esta ruta, máximo 512 bytes ASCII. Se omite en la primera página. |
@@ -46,9 +49,15 @@ son UTC. Cada elemento es uno de los siguientes:
   inicial y la huella verificada; no inventa estado ni etapa ordinaria.
   `scheduled_at` es RFC 3339 con el desfase original.
 
-`kind=hearing` conserva sólo audiencias ordinarias. `all` reúne las tres familias;
-con `hearing_status=cancelled` excluye las audiencias propias y conserva la
-selección anterior de audiencias ordinarias canceladas y plazos operativos.
+- `{kind:"precautionary_hearing",at,case_title,case_reference,case_status,precautionary_hearing}`:
+  resumen cautelar con `case_id`, `id`, `revision`, `purpose`, `scheduled_at`,
+  `modality`, `status`, `participant_count` y `capture_digest`. El propósito es
+  `imposition` o `review`; conserva el desfase original y la captura verificada
+  de la revisión actual, incluida una cancelación. No contiene filas por medida.
+
+`kind=hearing` conserva sólo audiencias ordinarias. `all` reúne las cuatro familias;
+con `hearing_status=cancelled` excluye las audiencias de recursos y conserva
+audiencias ordinarias/cautelares canceladas y plazos operativos.
 Desvincular la asociación, archivar el recurso o cerrar administrativamente el
 expediente no cancela una audiencia propia ni la elimina de la agenda autorizada.
 
@@ -60,8 +69,9 @@ administrativo no eliminan por sí solos una fecha vigente autorizada.
 
 ## Orden y continuación
 
-El orden es segundo UTC, nanosegundo, familia (`hearing`, `deadline`, `resource_hearing`, en ese orden) y
-UUID. Un identificador igual en las tres familias representa tres actividades.
+El orden es segundo UTC, nanosegundo, familia (`hearing`, `deadline`,
+`resource_hearing`, `precautionary_hearing`, en ese orden) y UUID. Un identificador
+igual en familias diferentes representa actividades distintas.
 El servidor examina como máximo 100 candidatos por llamada y puede devolver
 menos de `limit`. El cursor avanza hasta el último candidato examinado; no salta
 una actividad elegible que no haya devuelto.
@@ -78,7 +88,7 @@ Cambiar intervalo o filtros descarta la continuación y las respuestas tardías.
 
 La versión de transporte `a1` codifica límites, filtros y clave; el cliente debe
 tratarla como continuación, no como una credencial ni una fecha de vencimiento.
-Los rangos anteriores cero y uno se conservan; la audiencia propia añade el rango dos.
+Los rangos anteriores cero, uno y dos se conservan; la convocatoria cautelar usa tres.
 
 ## Consistencia y errores
 
@@ -89,6 +99,12 @@ El servicio reautentica después de leer y rechaza cambios del principal.
 La audiencia propia reconstruye dentro de esa transacción su captura, asociación
 inicial y marcador de origen. Una proyección alterada o un origen ausente rechaza
 la página completa; no se transforma en una omisión ni una audiencia ordinaria.
+
+La convocatoria cautelar reconstruye la revisión seleccionada y sus dependencias
+mixtas exactas mediante el cargador existente. Reprogramar mueve la actividad
+antes de aplicar rango y límite; cancelar conserva el último horario declarado.
+Una decisión anclada en audiencia inicial conserva aquella cita ordinaria sin
+crear otra fila cautelar. Cerrar el expediente no elimina las lecturas autorizadas.
 
 401 identifica sesión ausente o inválida; 403, permiso insuficiente. Consultar
 un rango sin membresías devuelve una página vacía autorizada. Se conservan los

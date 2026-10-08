@@ -112,7 +112,7 @@ fn resource_hearing_alert_shape_and_exact_parent_keys_reject_invalid_rows() {
         (0, Some(resource)),
         (1, Some(resource)),
         (2, None),
-        (3, None),
+        (4, None),
     ] {
         let error = insert_state(&mut db, kind, subject, parent).unwrap_err();
         assert_eq!(error.code(), Some(&SqlState::CHECK_VIOLATION));
@@ -128,7 +128,7 @@ fn resource_hearing_alert_shape_and_exact_parent_keys_reject_invalid_rows() {
             (0, Some(resource)),
             (1, Some(resource)),
             (2, None),
-            (3, None),
+            (4, None),
         ] {
             let error = insert_child(&mut db, table, kind, subject, parent, schedule).unwrap_err();
             assert_eq!(error.code(), Some(&SqlState::CHECK_VIOLATION), "{table}");
@@ -158,7 +158,7 @@ fn resource_hearing_alert_shape_and_exact_parent_keys_reject_invalid_rows() {
 }
 
 #[test]
-fn resource_hearing_alert_cursor_accepts_only_the_three_subject_families() {
+fn resource_hearing_alert_cursor_accepts_only_the_supported_subject_families() {
     let Some(mut db) = Fixture::new() else { return };
     db.runtime()
         .execute(
@@ -166,7 +166,7 @@ fn resource_hearing_alert_cursor_accepts_only_the_three_subject_families() {
             &[&Uuid::new_v4()],
         )
         .expect("the scanner must be able to resume a resource hearing");
-    for change in ["kind=3", "active_kind=3"] {
+    for change in ["kind=4", "active_kind=4"] {
         let error = db
             .admin
             .batch_execute(&format!("UPDATE alert_scan_cursor SET {change}"))

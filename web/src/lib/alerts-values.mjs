@@ -102,7 +102,10 @@ export function alertRecordValue(row, actor, checked, id) {
   if (uuid(row.recipient_id) !== actor || (id !== undefined && row.id !== id)) invalid();
   const ownHearing = row.subject?.kind === 'resource_hearing';
   object(row.subject, ['kind', 'case_id', 'id', ...(ownHearing ? ['resource_id'] : [])]);
-  if (!['hearing', 'deadline', 'resource_hearing'].includes(row.subject.kind)) invalid();
+  if (
+    !['hearing', 'deadline', 'resource_hearing', 'precautionary_hearing'].includes(row.subject.kind)
+  )
+    invalid();
   uuid(row.subject.case_id);
   uuid(row.subject.id);
   if (ownHearing) uuid(row.subject.resource_id);

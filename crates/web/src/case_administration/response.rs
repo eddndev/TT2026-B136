@@ -21,7 +21,7 @@ impl From<CaseActorSnapshot> for Actor {
 }
 
 #[derive(Serialize)]
-pub(super) struct Administration {
+pub(crate) struct Administration {
     case_id: CaseId,
     revision: u32,
     title: String,

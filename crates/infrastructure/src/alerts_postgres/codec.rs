@@ -4,6 +4,7 @@ use domain::{
     alerts::AlertLeadHours,
     cases::CaseId,
     crypto::{DocumentHasher, Sha256Digest},
+    precautionary_hearings::PrecautionaryHearingId,
     procedural_resources::ResourceId,
     resource_hearings::ResourceHearingId,
 };
@@ -124,6 +125,7 @@ pub(super) fn subject_key(value: AlertSubject) -> (i16, Uuid) {
         AlertSubject::Hearing { id, .. } => (0, id.as_uuid()),
         AlertSubject::Deadline { id, .. } => (1, id.as_uuid()),
         AlertSubject::ResourceHearing { id, .. } => (2, id.as_uuid()),
+        AlertSubject::PrecautionaryHearing { id, .. } => (3, id.as_uuid()),
     }
 }
 pub(super) fn resource_id(value: AlertSubject) -> Option<Uuid> {
@@ -140,7 +142,7 @@ pub(super) fn projected_subject(
 ) -> Result<AlertSubject, ApplicationError> {
     match (kind, resource) {
         (2, Some(resource)) => read_subject(&json!([kind, case, id, resource])),
-        (0 | 1, None) => read_subject(&json!([kind, case, id])),
+        (0 | 1 | 3, None) => read_subject(&json!([kind, case, id])),
         _ => Err(stored("alert subject parent shape differs")),
     }
 }
@@ -167,6 +169,10 @@ pub(super) fn read_subject(value: &Value) -> Result<AlertSubject, ApplicationErr
             case_id,
             resource_id: ResourceId::from_uuid(uuid(&value[3])?),
             id: ResourceHearingId::from_uuid(id),
+        }),
+        3 => Ok(AlertSubject::PrecautionaryHearing {
+            case_id,
+            id: PrecautionaryHearingId::from_uuid(id),
         }),
         _ => Err(stored("invalid alert family")),
     }

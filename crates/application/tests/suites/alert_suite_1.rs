@@ -1,4 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
+#[path = "../alert_precautionary_hearings.rs"]
+mod alert_precautionary_hearings;
 #[path = "../alert_preferences.rs"]
 mod alert_preferences;
 #[path = "../alert_query.rs"]

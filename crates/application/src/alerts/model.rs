@@ -2,7 +2,8 @@ use super::{AlertCursor, AlertId, AlertOccurrenceId, AlertOperationId};
 use crate::{deadlines::DeadlineId, hearings::HearingId};
 use domain::{
     alerts::AlertLeadHours, cases::CaseId, clock::OffsetDateTime, crypto::Sha256Digest,
-    identity::UserId, procedural_resources::ResourceId, resource_hearings::ResourceHearingId,
+    identity::UserId, precautionary_hearings::PrecautionaryHearingId,
+    procedural_resources::ResourceId, resource_hearings::ResourceHearingId,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,13 +21,18 @@ pub enum AlertSubject {
         resource_id: ResourceId,
         id: ResourceHearingId,
     },
+    PrecautionaryHearing {
+        case_id: CaseId,
+        id: PrecautionaryHearingId,
+    },
 }
 impl AlertSubject {
     pub const fn case_id(self) -> CaseId {
         match self {
             Self::Hearing { case_id, .. }
             | Self::Deadline { case_id, .. }
-            | Self::ResourceHearing { case_id, .. } => case_id,
+            | Self::ResourceHearing { case_id, .. }
+            | Self::PrecautionaryHearing { case_id, .. } => case_id,
         }
     }
 }

@@ -60,7 +60,8 @@ pub(super) fn next(
                 "SELECT * FROM (
             SELECT 0::smallint AS kind,id,case_id,NULL::uuid AS resource_id FROM case_hearings
             UNION ALL SELECT 1::smallint AS kind,id,case_id,NULL::uuid FROM case_deadlines
-            UNION ALL SELECT 2::smallint AS kind,id,case_id,resource_id FROM case_resource_hearings) roots
+            UNION ALL SELECT 2::smallint AS kind,id,case_id,resource_id FROM case_resource_hearings
+            UNION ALL SELECT 3::smallint AS kind,id,case_id,NULL::uuid FROM case_precautionary_hearings) roots
             WHERE kind>$1 OR (kind=$1 AND ($2::uuid IS NULL OR id>$2))
             ORDER BY kind,id LIMIT 1",
                 &[&kind, &id],

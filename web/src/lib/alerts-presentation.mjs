@@ -16,6 +16,7 @@ export const alertPreferenceGroups = [
 ];
 export function alertKindLabel(row) {
   if (row.kind.kind === 'upcoming') {
+    if (row.subject.kind === 'precautionary_hearing') return 'Audiencia cautelar pr\u00f3xima';
     if (row.subject.kind === 'resource_hearing') return 'Audiencia de recurso pr\u00f3xima';
     return row.subject.kind === 'hearing' ? 'Audiencia pr\u00f3xima' : 'Plazo pr\u00f3ximo';
   }

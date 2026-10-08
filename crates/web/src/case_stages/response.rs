@@ -160,3 +160,8 @@ fn utc(value: OffsetDateTime) -> Result<String, ApiError> {
         .format(&Rfc3339)
         .map_err(|_| ApiError::internal())
 }
+
+pub(crate) fn entry(value: CaseStageEntry) -> Result<serde_json::Value, ApiError> {
+    let case_id = value.case_id();
+    serde_json::to_value(Entry::from_row(value, case_id)?).map_err(|_| ApiError::internal())
+}

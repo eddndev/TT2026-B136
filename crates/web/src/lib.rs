@@ -37,12 +37,16 @@ mod owner_certificates;
 mod owner_login;
 mod participants;
 pub mod password_reset;
+mod precautionary;
 mod procedural_facts;
 mod procedural_resources;
 mod request;
 mod resource_activities;
 mod resource_deadlines;
 mod resource_hearings;
+pub use precautionary::{
+    measure_administrative_router, measure_decision_router, PrecautionaryWorkflows,
+};
 mod routes;
 mod runtime;
 mod typed_participants;
@@ -257,6 +261,20 @@ pub fn resource_hearing_router(
     )
 }
 
+/// Builds exact precautionary appointments and context routes over authorized workflows.
+pub fn precautionary_hearing_router(
+    context: Arc<dyn application::precautionary_hearings::PrecautionaryContextReadWorkflow>,
+    workflow: Arc<dyn application::precautionary_hearings::PrecautionaryHearingRecordWorkflow>,
+    reads: Arc<dyn application::precautionary_hearings::PrecautionaryHearingRecordReadWorkflow>,
+    hasher: Arc<dyn domain::crypto::DocumentHasher + Send + Sync>,
+) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(
+        precautionary::router(context, workflow, reads, hasher, runtime.clone()),
+        runtime,
+    )
+}
+
 /// Builds global staff calendar routes with application authorization.
 pub fn judicial_calendar_router(
     workflow: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
@@ -281,6 +299,7 @@ pub fn hearing_derived_deadline_router(
 
 /// Identity evidence and case workflows injected into the shared HTTP runtime.
 pub struct CaseWorkflows {
+    pub precautionary: PrecautionaryWorkflows,
     pub owner_certificates: Arc<application::identity::owner_certificates::OwnerCertificateService>,
     pub members: Arc<dyn application::members::MemberWorkflow>,
     pub cases: Arc<dyn CaseWorkflow>,

@@ -1,5 +1,71 @@
 # Informe de verificación local
 
+## Contrato cautelar en recuperación de sesión: 8 de octubre de 2026
+
+La campaña de navegador detectó que el auxiliar de borradores de audiencia no
+había declarado las dos lecturas cautelares de la pantalla compuesta. El primer
+caso reprodujo localmente el rechazo de peticiones sin contrato. El auxiliar
+ahora atiende exclusivamente el contexto y la lista vacía con su método, cuerpo
+y consulta exactos, pasando por la misma autorización de sesión, expediente y
+rol. El contexto refleja estado y revisiones vigentes; las escrituras y demás
+peticiones inesperadas siguen rechazadas por el control de cada escenario.
+
+Los dos casos de contexto aprobaron en 15.5 s. Los otros 19 archivos consumidores,
+incluidos los auxiliares transitivos de hechos, recursos, actividad y plazos,
+aprobaron sus 48 casos en 2.7 min con un único worker. El formato y la revisión
+independiente del contrato aprobaron. No se modificó el producto ni se relajaron
+las aserciones de recuperación, aislamiento o ausencia de envíos automáticos.
+El HEAD corregido conserva el cierre remoto pendiente.
+
+## Tamaño del ejecutable release: 8 de octubre de 2026
+
+El gate remoto de tamaño rechazó el ejecutable de la entrega cautelar combinada.
+El límite permanece en 26 214 400 bytes tanto en CI como en el empaquetador.
+Una compilación focal con una sola unidad de generación produjo 27 340 960 bytes:
+ese ajuste aislado no bastó. El perfil final optimiza por tamaño los cinco crates
+del workspace y conserva nivel 3 en las dependencias externas, incluidos los
+kernels criptográficos. Se mantienen LTO y eliminación de símbolos.
+
+La compilación nueva con Rust 1.98.1 produjo **22 846 360 bytes**, por debajo del
+límite, en 604 s. El recorrido existente de `scripts/demo.sh`, seleccionando ese
+binario release en lugar de compilar el debug, aprobó en **11.022 s**: PKI,
+cifrado, firma, sello, verificación integral, exportación, revocación, autenticación
+y auditoría, incluidos los rechazos de alteraciones. No se cambiaron sus escenarios.
+Un compilador y temporales persistentes evitaron campañas locales concurrentes.
+Esta comprobación acredita funcionamiento y tamaño; no constituye una nueva
+medición de latencia del servidor. La regresión remota del HEAD corregido sigue
+siendo el gate de cierre, sin repetir aceptaciones nativas ni el manuscrito.
+
+## Recorrido de vectores hexadecimales: 8 de octubre de 2026
+
+Clippy 1.99 rechazó `chunks_exact(2)` en un auxiliar de fixtures durante el
+cierre remoto. Se sustituyeron las tres apariciones equivalentes por
+`as_chunks::<2>().0.iter()`: conservan los pares, su orden y la conversión,
+así como el descarte del resto incompleto. No cambian datos ni aserciones.
+
+Las 56 pruebas de los tres codecs afectados aprobaron con Rust 1.94.0:
+convocatorias cautelares, decisiones y correcciones de medidas. Una compilación
+y ejecución focal con Rust 1.88.0 confirmó la disponibilidad del recorrido en
+el MSRV. El formato y Clippy 1.98.1 de todo el workspace y todos los targets
+aprobaron con advertencias denegadas (259 s). La advertencia futura de Redis
+0.25.4 es preexistente. Se usaron un compilador, un hilo y temporales en disco.
+La comprobación remota con Clippy 1.99 queda pendiente del HEAD corregido;
+se conservan las aceptaciones nativas y el PDF combinado, sin repetirlos.
+
+## Cierre de diagnósticos MFA: 8 de octubre de 2026
+
+PR91 aprobó CI `37731688956`, Web `37731688844` y Documents `37731688905`
+para `28964b6b7710aa4d4c22559f2728b8b61eae4c2c`. La demostración HTTP completa
+se ejecutó además en Linux con PostgreSQL 16.15, Valkey compatible, qpdf 12.4.1,
+decodificadores admitidos, un compilador y temporales persistentes. Aprobó en
+**600.299 s**, incluidos reinicios, nueva autenticación MFA y restauración de
+historia, permisos y recibos. No se repitió localmente la regresión cubierta por CI.
+El squash de PR91 es `46dc1c14a13d48fc2689245b08c22b93ce064a51`, confirmado
+como punta de main. Su confirmación natural también aprobó CI `37737032241`,
+Web `37737032130` y Documents `37737032223`; esos resultados corresponden al
+squash integrado, separados de las ejecuciones de la PR.
+Los logs operativos no completan la auditoría transaccional ni acreditan despliegue.
+
 ## Diagnósticos internos MFA: 7 de octubre de 2026
 
 Verificación focal en Windows, volumen C: persistente, Cargo 1.98.1,
@@ -29,6 +95,1362 @@ local: quedan como verificaciones de cierre en Linux/CI antes de integrar.
 El cambio no fue desplegado. El informe PDF tiene evidencia separada en
 `docs/academic-report-verification.md`; la consulta operativa se documenta en
 `docs/mfa-access-logs.md`.
+
+## Selector de audiencias ordinarias: 8 de octubre de 2026
+
+La campaña remota encontró dos regiones con la clase `hearing-index` al convivir
+las listas ordinaria y cautelar. Una reproducción focal con Chromium confirmó
+el fallo del helper de navegación antes de cambiarlo. El helper selecciona ahora
+la región accesible exacta «Audiencias registradas». La misma reproducción aprobó
+con ambas regiones presentes y la cautelar todavía ocupada. El formato aprobó;
+los cinco recorridos nativos afectados de resultado/plazo derivado aprobaron
+sobre la combinación con MFA: calculable y bloqueado en escritorio/móvil, más
+recuperación de respuesta perdida sin otro envío. Los escenarios tomaron 40.1 s
+y la campaña con provisión 382.764 s. La regresión remota de cierre queda pendiente.
+No cambia el producto ni invalida la aceptación nativa cautelar ya conservada.
+
+## Identidad del aprovisionador en la prueba web: 5 de octubre de 2026
+
+El paso JavaScript de cierre reprodujo un fallo en el simulador de autenticación
+de fixtures: el escenario cautelar consulta la identidad autenticada antes de
+crear usuarios y la prueba sólo esperaba la segunda operación. El simulador
+responde ahora exclusivamente a ese GET con una identidad Owner sintética de
+la cuenta que inició sesión. Comprueba sesión previa, método y bearer exactos;
+conserva el rechazo de otras rutas, el límite de aprovisionamiento, la selección
+de un código emitido no reservado y el cierre de sesión.
+Los cuatro escenarios focales aprobaron; el paso JavaScript completo pasó de
+847 aprobados y un fallo a 848 aprobados. El formato del archivo también aprobó.
+Estos resultados verifican el harness; los gates remotos de cierre siguen pendientes.
+
+## Composición de pruebas HTTP cautelares: 5 de octubre de 2026
+
+Clippy detectó que el módulo de casos cautelares de Agenda se descubría también
+como un ejecutable independiente; `super::*` no tenía padre en ese contexto.
+La compilación focal reprodujo el rechazo. Se trasladó el módulo sin cambiar
+su contenido a un directorio propio y se actualizó su inclusión en `agenda_http`.
+Los cuatro casos cautelares mantienen su padre y sus nombres completos.
+Después aprobaron Clippy de todos los targets del crate web con advertencias
+denegadas, los 17 casos HTTP de Agenda, el formato Rust y la distribución de
+pruebas. No cambia el comportamiento del producto ni la aceptación nativa previa.
+
+## Formato de la Agenda cautelar web: 5 de octubre de 2026
+
+El gate de formato del cliente detectó dos archivos pendientes de Prettier:
+la validación de cursores de Agenda y sus pruebas cautelares. El comando exacto
+reprodujo el fallo local. Se aplicó el formateador exclusivamente a esos dos
+archivos; la revisión comparada confirmó que no cambiaron condiciones, valores,
+llamadas ni aserciones. Después aprobaron `npm run format:check` y la prueba
+focal de Agenda cautelar. Ambos archivos conservan ASCII y menos de 400 líneas.
+Se mantienen las aceptaciones funcionales y documentales anteriores; el cierre
+remoto del HEAD corregido sigue pendiente.
+
+## Registro de auxiliares cautelares en CI: 5 de octubre de 2026
+
+La primera campaña de cierre se detuvo antes de ejecutar la regresión: el
+verificador de distribución encontró dos auxiliares Rust en la raíz de
+`tests/` sin registro como ejecutables. La política de cancelación propagó ese
+fallo a CI, Web y Documents; los avisos posteriores de artefactos de navegador
+faltantes no acreditan un defecto funcional del recorrido.
+
+El mismo verificador reprodujo el fallo localmente. Los auxiliares de Agenda y
+alertas cautelares se trasladaron a sus directorios de soporte, conservando
+exactamente su contenido y los módulos y casos existentes. No se modificó ni
+exceptuó el verificador. Después del cambio aprobaron la distribución completa,
+el formato Rust y la compilación de ambos ejecutables afectados con `--no-run`.
+Esta compilación no se presenta como una nueva ejecución de pruebas nativas:
+se conservan las aceptaciones API, restauración, navegador y PDF ya registradas.
+La regresión de cierre del HEAD corregido continúa pendiente.
+
+## Aceptación cautelar completa por API: 5 de octubre de 2026
+
+La demostración HTTP compuesta aprobó en **843.832 s**, incluida compilación y
+preparación de PostgreSQL 16.15, Valkey 8.1.10, qpdf 12.4.1 y decodificadores
+verificados. El guion `scripts/api-precautionary-demo.py` conserva siete
+operaciones: convocatoria de imposición, decisión judicial, corrección textual,
+reemplazo administrativo de identidad, convocatoria de revisión, reprogramación
+y cancelación. Verifica confirmaciones alteradas rechazadas, acceso por roles,
+lecturas históricas y recuperación mediante la operación original.
+
+Los recibos, autores, revisiones, fuentes y enlaces de reemplazo sobrevivieron
+los reinicios ordenados por TERM e INT y el respaldo/restauración PostgreSQL.
+Las siete tablas cautelares conservaron exactamente sus filas. La Agenda mantuvo
+sus cuatro familias y la ocurrencia de alerta conservó su lectura, sin duplicados.
+El procedimiento invalidó credenciales de sesión/MFA antes del arranque
+restaurado y exigió nueva autenticación. Esa comprobación no afirma restauración
+RDB de Redis; su aceptación separada permanece en la evidencia histórica.
+
+La corrección del catálogo descrita abajo resolvió el fallo del intento anterior;
+esta campaña abrió la base restaurada sin reparar su esquema. Se conservó la
+aceptación previa de navegador real a 1440 y 390 px. Los guiones focales habían
+reproducido y corregido dos incompatibilidades de observación: comparar un
+`checked_at` nuevo con el recibo estable y omitir la cuarta familia/UTC `Z` en la
+consulta de Agenda. Python, Bash, ASCII y límites de archivo aprobaron.
+
+Los servicios fueron aislados; el correo externo permaneció deshabilitado.
+Esta aceptación no acredita procedencia jurídica, despliegue ni integración.
+El PDF separado compiló y sus páginas modificadas fueron inspeccionadas;
+[la verificación académica](academic-report-verification.md) registra el artefacto
+y los PDF preservados. La regresión de cierre en CI permanece pendiente.
+
+
+## Restauración del catálogo cautelar: 5 de octubre de 2026
+
+La aceptación API detectó un defecto real después de restaurar PostgreSQL:
+las filas y la auditoría coincidían, pero el servidor rechazaba el catálogo al
+abrirlo. `pg_dump` representa `BETWEEN` mediante comparaciones y la restauración
+aplana el `AND` exterior de cinco restricciones. La comparación literal del
+catálogo rechazaba esas expresiones equivalentes.
+
+Una prueba focal reprodujo el rechazo antes de corregirlo. El validador admite
+ahora exclusivamente las dos representaciones completas de esos cinco CHECK,
+con los mismos límites, prefijos, nombres y banderas obligatorias. No cambia
+las migraciones ni repara el respaldo. La nueva prueba restaura un esquema
+privado, lo abre con el rol de ejecución sin migrar y contrasta las revisiones,
+operaciones originales y reintento de la convocatoria. Aprobó con PostgreSQL
+16.15 junto con las pruebas afectadas de persistencia: 26 casos, 180.34 s de
+pruebas y 195.695 s del comando. La negativa adicional de medidas rechazó una
+restricción debilitada y guardas sustituidas, y aceptó su reparación: un caso
+en 17.76 s. El lint focal con advertencias denegadas y el formato aprobaron.
+Los servicios privados fueron retirados al terminar.
+
+El recorrido API anterior sí comprobó reinicios ordenados por TERM e INT,
+recibos, historia, Agenda y aviso leído; falló al abrir la base restaurada.
+Por ello no se acredita todavía aceptación API completa ni cierre de entrega.
+Se conserva la aceptación del navegador y se repetirá sólo el recorrido API
+afectado antes del manuscrito y los gates de integración.
+
+
+## Navegador cautelar con servicios reales: 5 de octubre de 2026
+
+Los recorridos reales de Qadra aprobaron a 1440 y 390 px: convocatoria,
+Agenda, alerta interna leída, decisión declarada y rectificación administrativa.
+El escritorio conserva una decisión anclada a la convocatoria cautelar; el móvil
+reutiliza la audiencia inicial sin crear otra cita. Se verificó una respuesta
+perdida después de confirmar en el servidor: consultar la operación original
+recuperó la rectificación textual o el reemplazo de identidad, sin otro POST.
+El reemplazo conserva el original marcado por error, su sucesor y el enlace.
+
+Playwright informó **dos recorridos aprobados en 55.8 s**; el comando completo,
+con compilación y preparación de servicios, terminó en **411.014 s**. Se usaron
+PostgreSQL 16.15, Valkey 8.1.10, qpdf 12.4.1 y los decodificadores verificados,
+un compilador, un hilo Rust y un trabajador de navegador. Se inspeccionaron
+las ocho capturas de Agenda, alerta, decisión y recuperación, sin errores
+visibles ni desbordamiento. Los recibos completos fueron contrastados mediante
+aserciones; el reportero de línea no conservó su adjunto JSON. El guion ahora
+lo escribe a un archivo antes de adjuntarlo para las siguientes campañas.
+
+La asignación de esta familia a la tercera partición aprobó nueve grupos del
+plan de navegación, tras reproducir su ausencia. La aceptación API con reinicio
+y restauración, el manuscrito y los gates de integración todavía están pendientes.
+No se repitió el navegador por el cambio de persistencia del adjunto ni se
+sustituyeron los resultados históricos o el PDF aceptado.
+
+## Rectificaciones cautelares en Qadra: 5 de octubre de 2026
+
+La interfaz permite corregir texto y vigencia declarada, marcar una captura por
+error y reemplazar una identidad registrada. Conserva el origen judicial,
+los registros anteriores y el enlace del reemplazo; cada acción exige revisión
+expresa. Paralegal y expedientes cerrados conservan consulta. La historia permite
+abrir el recibo original y no ofrece nuevas rectificaciones sobre una revisión
+histórica seleccionada.
+
+La verificación focal aprobó seis grupos del cliente, tres del constructor del
+formulario y seis de conservación del borrador. Los seis recorridos de acciones,
+respuesta perdida tras cambio de cabeza y consulta restringida aprobaron en
+27.0 s (28.485 s completos). Los seis recorridos existentes de decisiones
+compartiendo esta pantalla también aprobaron, en 29.7 s (31.189 s completos).
+
+La recuperación de un reemplazo incierto al navegar pasó sin repetir el POST ni
+cambiar las identidades o confirmaciones originales. Otros dos recorridos
+mostraron que faltaba exponer la referencia exacta en el editor recuperado:
+se añadió esa consulta dentro del formulario y aprobaron en 17.7 s (19.171 s
+completos). Conservan texto y desfase incompleto, bloquean un cierre posterior
+a preparar y no convierten una fecha incompleta en una hora calculada. La
+captura móvil de 390 px fue inspeccionada, sin desbordamiento de controles.
+
+La revisión adicional reprodujo acciones habilitadas al consultar una revisión
+histórica. El guard de referencia actual corrigió el defecto; el recorrido de
+historia y consulta del recibo original aprobó en 12.2 s (13.681 s completos).
+Esta aceptación usa HTTP controlado. La campaña con servicios reales,
+restauración, manuscrito y gates de la entrega aún está pendiente. No se ejecutó
+otra regresión global ni se modificó el PDF aceptado.
+
+## Decisiones cautelares en Qadra: 5 de octubre de 2026
+
+La sección de medidas registra imposición, confirmación, modificación, revocación,
+cese y sustitución múltiple en un grupo, o una decisión explícita sin cambios.
+Conserva fuentes, origen judicial y recibo original, con permisos de consulta
+y bloqueo de escritura para Paralegal o expediente cerrado. El enlace a la
+audiencia inicial conserva participantes históricos y no crea otra cita.
+
+La evidencia focal Node aprobó siete grupos del cliente, cinco del constructor
+de formulario, seis de borradores y uno de referencias descartadas. La
+navegación afectada aprobó sus siete grupos existentes. Los doce recorridos
+controlados de escritorio aprobaron por unión de ejecuciones focales: ciclo de
+decisiones, lectura restringida, respuesta perdida, recuperación del borrador,
+cierre posterior, cambio explícito de base y grupos de efectos. No se repitió
+la campaña completa después de cada corrección.
+
+Los RED nuevos demostraron una referencia incorrecta al recibo inicial, una
+selección incompleta convertida indebidamente en decisión independiente, la
+reconsulta de un predecesor descartado, un desfase incompleto perdido al navegar,
+una fecha visible de la base anterior y participantes iniciales sin aplanar
+para su presentación. Los casos focales aprobaron después de corregirlos.
+Otros primeros intentos se detuvieron por selectores de prueba exactos que
+incluían texto de opciones; se cambiaron a la identidad accesible del combobox
+y se repitieron solo los casos afectados.
+
+El recorrido móvil adicional a 390 px aprobó en 8.8 s (9.540 s completos).
+El formulario no desborda y conserva una audiencia cautelar histórica R1 aunque
+la cabeza sea R2; no crea otra convocatoria. Se inspeccionó la captura de página
+completa. La evidencia total incluye trece recorridos controlados de decisiones.
+
+Esta aceptación utiliza transporte controlado: no acredita PostgreSQL/HTTP
+reales, restauración, manuscrito ni gates de integración de esta entrega. Las
+rectificaciones administrativas permanecen pendientes en la interfaz. No se
+modificó el PDF aceptado ni se repitió la regresión global.
+
+## Gestión de convocatorias cautelares en Qadra: 5 de octubre de 2026
+
+El expediente permite programar una convocatoria de imposición, reprogramarla y
+cancelarla, con soporte exacto, revisión explícita y ambos compromisos de
+confirmación. Un envío aplicado cuya respuesta se pierde se recupera por su
+operación original, aun si después cambia la cabeza. Paralegal y expedientes
+cerrados conservan consulta sin habilitar mutaciones.
+
+La aceptación focal con HTTP controlado aprobó los cuatro recorridos en 13.8 s
+(14.561 s del comando). Dos nuevos RED demostraron pérdida del borrador al navegar;
+la captura al desmontar corrigió el defecto y los tres recorridos de recuperación
+aprobaron en 11.8 s (12.529 s completos). Conservan campos incompletos, soporte,
+operación incierta y consulta sin POST automático; el tercero impide confirmar si
+el expediente se cerró después de preparar. Los seis grupos Node del registro de
+borradores siguieron aprobados en 0.333 s del comando.
+
+Las audiencias ordinarias afectadas aprobaron sus nueve recorridos en 19.6 s
+(20.321 s completos). La primera ejecución falló en ocho por un glob del fixture
+que interceptaba rutas cautelares y dividía una ruta inexistente; se acotó a la
+familia ordinaria antes de repetir. No fue un fallo del servicio real.
+
+El selector de revisión aprobó el recorrido que consulta una medida exacta,
+conserva esa captura al avanzar su cabeza y la mantiene al confirmar y reprogramar
+la convocatoria: 8.6 s de navegador y 9.278 s del comando. El lector de medidas
+aprobó sus once grupos focales después del RED de API ausente (0.491 s completos);
+conserva familias judiciales y administrativas sin replicar el grafo de validación
+del servidor.
+
+La presentación a 1440 y 390 px aprobó ausencia de desbordamiento y controles
+accesibles. Se repitió el encuadre como página completa para evitar que la captura
+de elemento reposicionara el enlace fijo de accesibilidad. Una importación dinámica
+de Astro falló antes del acceso en esa repetición; se conservó el móvil verde y
+se repitió sólo escritorio, sin cambiar el producto. Ambas páginas se inspeccionaron.
+
+Esta evidencia es local y controlada. Registrar decisiones/rectificaciones,
+aceptación real con restauración, manuscrito y gates siguen pendientes del cierre
+cautelar completo. No se repitió la regresión global
+ni se modificó el PDF aceptado.
+
+## Cliente y borrador de convocatoria cautelar: 5 de octubre de 2026
+
+El cliente ya consulta contexto/lista/cabeza, prepara el comando normalizado
+con principal completo, confirma ambos digests y recupera la operación original
+sin repetir POST automáticamente. Contexto cerrado sigue disponible para
+consulta. El borrador conserva entradas incompletas y envío incierto; reingreso
+reautoriza el expediente e invalida la aprobación anterior.
+
+RED de métodos ausentes precedió a 22 casos nuevos y 12 lecturas afectadas
+aprobados. RED del módulo de borrador precedió a seis grupos aprobados con el
+registro real de borradores. Formato, ASCII y límites de archivo comprobados.
+El navegador reprodujo el botón de programación cautelar ausente: los cuatro
+recorridos de formularios preparados siguen pendientes, sin implementación
+de interfaz ni una falsa aceptación. Este checkpoint no agrega otra campaña
+nativa ni sustituye la consulta exacta Qadra ya verificada.
+
+## Consulta cautelar en Qadra: 5 de octubre de 2026
+
+La apertura desde Agenda y alertas ya conserva la revisión exacta, su horario,
+estado, participantes, soporte e historia. Una alerta anterior abre su captura
+original aunque la cabeza posterior esté cancelada. Rechazo de acceso retira
+las filas y el detalle; respuestas tardías no reabren datos después de cambiar
+filtros, sesión o principal. No se consulta otra familia ni la cabeza como
+sustituto de la revisión seleccionada.
+
+El cliente tuvo RED de API ausente y aprobó 12 casos. El navegador reprodujo
+la ausencia de tarjeta/apertura y aprobó después siete recorridos con HTTP
+controlado, incluidos escritorio y móvil. Los clientes afectados aprobaron
+32 casos y la navegación afectada de recursos aprobó 12. Las dos capturas
+visuales se repitieron sólo para corregir foco/scroll del encuadre, sin cambiar
+CSS del producto; ambas fueron inspeccionadas sin desbordamiento ni texto
+recortado. Los demás casos verdes se conservaron.
+
+Esto cierra la consulta desde Agenda/alertas con transporte controlado. Quedan
+formularios cautelares, aceptación integrada con servicios reales y restauración,
+manuscrito y la única regresión global de cierre. No es integración ni despliegue.
+
+## Alertas cautelares: 5 de octubre de 2026
+
+Verificación fresca: las alertas de proximidad conservan la captura y revisión
+cautelar originales, con invalidación transaccional al reprogramar o cancelar.
+Mantienen destinatarios y preferencias existentes. Las familias ordinaria, de
+recurso y cautelar siguen distintas aunque compartan UUID y fecha; una decisión
+sobre audiencia inicial no crea otra alerta de cita.
+
+TDD focal de aplicación, HTTP y cliente pasó después de declarar la familia
+ausente. PostgreSQL 16.15/SCRAM real aprobó cuatro identidades nuevas por unión
+de tres casos iniciales y uno corregido. El fixture de descubrimiento necesitaba
+avanzar el reloj al siguiente ciclo antes de exigir las tres familias; se corrigió
+ese supuesto, sin modificar la política del scheduler ni repetir los otros casos.
+Se comprobaron cambios con igual fecha, reintento, reinicio, migración idempotente,
+acceso y rollback. La suite nativa afectada de alertas aprobó sus 45 casos.
+
+Clippy focal de aplicación, infraestructura y HTTP aprobó con `-D warnings`;
+formato comprobado. Todos los clusters privados se retiraron. Los fallos
+intermedios y su corrección se conservan; no quedan fallos focales pendientes.
+Esto verifica el backend y contrato cliente, no la aceptación integrada de
+Qadra, restauración del producto ni la regresión global de cierre. La evidencia
+previa de Agenda y demás frentes se conserva sin repetir sus campañas.
+
+## Agenda cautelar: 5 de octubre de 2026
+
+Verificación fresca del recorrido de consulta, sin nueva integración. La Agenda
+selecciona la revisión vigente de la convocatoria cautelar, conserva su horario
+al cancelar, filtra antes de paginar y reconstruye sus dependencias mixtas. Una
+decisión anclada en audiencia inicial conserva sólo aquella cita ordinaria.
+Se mantiene el acceso por expediente y la lectura después del cierre.
+
+TDD focal: aplicación declaró primero la familia ausente y aprobó después la
+suite de Agenda (33 casos). HTTP declaró los matches ausentes y aprobó después
+sus 17 casos. El cliente reprodujo tres fallos y aprobó sus 16 casos tras admitir
+fila, filtro y cursor cautelares; aún no conecta el panel de detalle de Qadra.
+
+PostgreSQL 16.15/SCRAM real: tres casos cautelares aprobaron inicialmente. El
+cuarto detectó la dependencia corrupta al abrir el store, antes del punto que
+pretendía comprobar el fixture. Se conservó el adaptador abierto antes de alterar
+los datos: el caso corregido aprobó sin repetir los otros tres. La suite nativa
+afectada de Agenda aprobó sus 13 casos. Ambos clusters privados se retiraron.
+No hubo fallo de producto sin resolver en esta campaña. La evidencia anterior
+de cautelares y los demás frentes se conserva sin repetir sus campañas.
+
+Clippy focal de aplicación, infraestructura y HTTP aprobó con `-D warnings`.
+Un compilador/thread y temporales privados en disco. Alertas, detalle Qadra,
+aceptación HTTP/navegador/restauración y regresión de cierre siguen pendientes.
+
+## Reconciliación de alcance y HTTP cautelar: 5 de octubre de 2026
+
+Se contrastaron main remoto `e9afef8` y los respaldos `3ba0c816` con el código y
+la evidencia conservada. Las audiencias de recursos y el flujo explícito de
+resultado/plazo derivado están integrados; sus resúmenes de alcance se corrigieron
+sin repetir las campañas. El [cierre de cuatro frentes](four-front-closure.md)
+fija los recorridos y exclusiones antes de continuar la implementación.
+
+Evidencia fresca de HTTP con puertos controlados: el primer target administrativo
+aprobó 22 casos y reprodujo un fallo de rechazo de campos ajenos en la acción de
+marcar error. Convertir su variante de entrada a objeto cerrado corrigió el caso,
+que aprobó focalmente. Lecturas de medidas aprobaron 15 casos y reprodujeron un
+mapeo incorrecto: NotFound e IncompleteHistory devolvían 500. La comprobación focal
+aprobó después del mapeo 404/422, manteniendo opacos los fallos de integridad.
+
+La composición reprodujo dos fallos por rutas administrativas y de medidas no
+fusionadas en el servidor. Tras conectarlas aprobaron los tres casos focales de
+bearer/no-store, admisión compartida y presupuesto de trabajo. El target de
+decisiones declaró el router ausente antes de implementarlo; la corrección de
+una captura movida en su fixture se comprobó antes de conservar ese RED limpio.
+Un compilador y un thread, temporales privados en btrfs. Estos resultados no son
+aceptación nueva con PostgreSQL real, Agenda, alertas, navegador ni restauración.
+
+El transporte de decisiones aprobó sus 23 casos focales en 37.234 s incluyendo
+compilación (0.57 s de pruebas). Conserva todas las acciones existentes, familias,
+anclas, historial y recuperación original; una revisión independiente no detectó
+hallazgos accionables. La composición ampliada a esas rutas reprodujo ausencia
+de registro y aprobó después sus tres casos en 19.972 s incluyendo compilación.
+La fábrica del servidor utiliza los servicios PostgreSQL existentes. Clippy de
+web y binario, todos sus targets y `-D warnings`, aprobó en 58.703 s. Formato,
+ASCII y límite de archivos inferiores a 400 líneas comprobados; no se ejecutó
+la regresión global. El aviso de compatibilidad futura de redis 0.25.4 es de la
+dependencia existente y no implica una migración dentro de esta entrega.
+
+Evidencia anterior recuperada, no ejecutada nuevamente: la campaña nativa que
+seguía activa en el traspaso terminó con salida cero y retirada de su cluster
+PostgreSQL 16.15. El registro contiene siete targets completos sin omisiones:
+decisiones mixtas, anclas iniciales/cautelares, consulta de medidas, convocatorias
+ordinarias/mixtas y revisión. No se repitió la regresión global ni se modificó
+el PDF aceptado. La aceptación cautelar con servicios reales y su integración
+siguen pendientes; no hay una nueva PR, integración o despliegue.
+
+
+## Persistencia mixta y lecturas cautelares: 5 de octubre de 2026
+
+Aprobaron **37 identidades nativas nuevas** con PostgreSQL **16.15/SCRAM**:
+22 de decisiones G2, cuatro de convocatorias mixtas, ocho de sus consultas y
+tres de contexto. Las 22 decisiones se verificaron como 19 casos iniciales
+correctos y tres casos corregidos; no se repitieron ni sumaron dos veces los
+casos verdes. Las consultas nativas de decisiones y convocatorias duraron
+**42.76 s** y **55.11 s**; el contexto, **10.63 s**. Los clusters privados
+se retiraron después de cada ejecución. Fuentes y cifrado son reales; la
+admisión de formato es controlada.
+
+Las pruebas conservan familias originales G1/M1, G2/M2 y A1/C1, propietarios
+completos, anclas y objetivos históricos exactos, soporte judicial real después
+de correcciones y nuevas decisiones, así como replay original después de marcas
+y cierre. Verifican cabeza vigente para efectos nuevos, aislamiento, principal
+completo, auditoría y rollback, catálogo estricto y pérdida de cargas, filas o
+pruebas sin sustituir la cabeza por una anterior. La consulta de contexto prueba
+el par administrativo/etapa y el origen administrativo de la etapa, incluso tras
+cerrar el expediente, con auditoría atómica y rechazo de fuentes corruptas.
+
+En aplicación aprobaron **53 identidades nuevas**: 22 de lecturas de decisiones,
+23 de convocatorias y ocho de contexto. Los dos primeros conjuntos se cerraron
+con 21+1 y 21+2 casos: se corrigieron un contexto de fixture y dos nombres de
+archivo de prueba inválidos, conservando sus comprobaciones. Incluyen cierres
+mixtos completos, fuentes compartidas, límites previos al hashing, cursores,
+reautorización y relojes. Las **16 unidades afectadas del grafo** aprobaron;
+Clippy de aplicación aprobó con `-D warnings` en **8.079 s**. Clippy de
+infraestructura y nueve targets aprobó en **4.048 s** después de corregir dos
+lints y calificar explícitamente llamadas a los traits anteriores en los fixtures.
+Las aserciones e identidades de esas pruebas se conservaron.
+
+Los RED de puertos ausentes precedieron a cada implementación. La campaña
+nativa detectó y corrigió una condición CASE sin paréntesis, el uso del cargador
+antiguo en el inventario de convocatorias y un alias SQL ambiguo en las anclas.
+Las revisiones independientes de SQL, grafo, lecturas y contexto no dejaron
+hallazgos. Un compilador y un thread, temporales privados sobre btrfs.
+
+Las 165 pruebas nativas anteriores de adaptadores afectados se comprobarán una
+vez después de completar la extensión administrativa de reemplazo de identidad;
+esta sección no las declara ejecutadas sobre el código mixto. Tampoco acredita
+la regresión global de cierre, HTTP, Agenda, alertas, Qadra, restauración,
+manuscrito, integración ni despliegue. El PDF aceptado permanece intacto.
+
+## Consulta persistida de registros actuales e históricos: 4 de octubre de 2026
+
+Aprobaron **9 pruebas nativas PostgreSQL en 95.36 s**, sin omisiones; **98.213 s**
+incluyendo el entorno. El caso inicial G1/Correct/Mark aprobó en **7.00 s** y no
+se suma nuevamente. Clippy del target y biblioteca aprobó con `-D warnings` en
+**14.668 s**. La revisión independiente de la consulta no dejó defectos.
+El RED de API ausente precedió al adaptador (**33.637 s**); un error de tipo del
+digest detectado al compilar se corrigió antes del recorrido nativo.
+
+Los casos conservan cabeza marcada y todas sus revisiones originales, declaraciones
+terminales, UUID/cursor exactos y grupos sin medidas. Verifican principal completo,
+aislamiento y NotFound para selección ajena o inexacta, fuentes archivadas,
+expediente cerrado, pérdida de carga/última fila/auditoría y digest de cabeza
+malformado sin fallback. También prueban relojes inválidos y rollback de todas las
+lecturas cuando falla la auditoría. Las fuentes y PostgreSQL **16.15/SCRAM** son
+reales; la admisión de formato es controlada. Un compilador y un thread, temporales
+privados en btrfs y cluster propio retirado. No hubo cambio de esquema.
+
+Esta evidencia cubre G1/C persistidos; las pruebas de G2 de aplicación no sustituyen
+su comprobación durable. Siguen pendientes los comandos mixtos SQL, HTTP, Agenda,
+alertas, Qadra, restauración y cierre documental. No acredita integración ni
+despliegue y no repite las campañas anteriores.
+
+## Servicios autorizados de registros mixtos: 4 de octubre de 2026
+
+Aprobaron **85 pruebas nuevas**: 30 de convocatorias mixtas en **0.36 s**, 28 de
+comandos G2 en **0.28 s** y 27 de consultas de registros en **1.55 s**. Las
+**28 lecturas administrativas afectadas** aprobaron en **1.72 s** después de
+extraer su inventario compartido. El comando focal completo duró **11.942 s**;
+Clippy de los cuatro targets y biblioteca, con `-D warnings`, **10.704 s**.
+Se conservaron los RED iniciales por APIs ausentes. Tres intentos de compilación
+intermedios detectaron importación/desreferencia de UUID y una constante temporal
+inexistente; no se cuentan como pruebas ejecutadas.
+
+Los comandos verifican historias reales generadas por las funciones puras,
+G1/C/G2 sucesivos, efectos y sustitución completos, Review/Replace/Cancel con
+objetivos exactos, marcas, datos históricos, confirmaciones, admisión cifrada,
+replay original y carreras, permisos, fuentes, límites antes de hashing y relojes.
+Las consultas comprueban cabezas marcadas, revisiones terminales e históricas,
+ausencias y contradicciones de propietarios/fuentes, cursores, reloj y principal.
+Aceptan páginas válidas cuya unión supera 256 propietarios sin ampliar el límite
+individual de cada prueba. La revisión focal de los comandos G2 no dejó defectos.
+
+Un compilador y un thread sobre temporales privados en btrfs. Los puertos son
+controlados; esta campaña no acredita persistencia mixta, HTTP, Agenda, alertas,
+Qadra, restauración, integración ni despliegue. No se repitió la suite global ni
+se generó PDF; esos cierres pertenecen al flujo completo.
+
+## Lecturas administrativas originales: 4 de octubre de 2026
+
+Aprobaron **28 pruebas de aplicación en 1.80 s** y **9 pruebas nativas en
+93.37 s**, sin casos omitidos. Los comandos completos duraron **4.599 s** y
+**110.095 s**, respectivamente. Clippy de ambos targets y sus bibliotecas aprobó
+con `-D warnings` en **13.648 s**. Una revisión independiente de autorización,
+pruebas originales, cursores, inventario compartido y auditoría no encontró
+defectos pendientes.
+
+Antes de implementar se conservaron los RED de API ausente: **0.819 s** en
+aplicación y **30.597 s** en infraestructura. Un primer intento de compilación
+detectó una desreferencia sobrante de UUID en el fixture; se corrigió sin alterar
+el contrato y no se contabiliza como ejecución de pruebas.
+
+La aplicación verifica identidad completa antes y después, reloj UTC monótono,
+orden y continuación exactos, propietarios y fuentes compartidos, y pruebas
+mixtas G1/C/G2/C. Acepta veinte pruebas individuales válidas cuya unión supera
+256 propietarios, sin introducir un límite agregado de página. La campaña
+PostgreSQL conserva operaciones Correct y Mark reales después de archivado,
+cambio de audiencia y cierre; comprueba aislamiento, pérdida de carga, última
+fila o auditoría, reloj inválido y rollback si falla la auditoría de lectura.
+
+Se utilizó PostgreSQL **16.15** con SCRAM y fuentes cifradas reales; admisión de
+formato controlada, un compilador y un thread, temporales privados sobre btrfs.
+El cluster propio se retiró. Son **37 casos nuevos**; no se repitieron los 147
+nativos ni las 16 unidades de la persistencia previa. Esta evidencia local no
+acredita consumidores mixtos durables, HTTP, Qadra, restauración, integración ni
+despliegue. El manuscrito y su PDF se cierran con el flujo completo.
+
+## Correcciones administrativas persistidas: 4 de octubre de 2026
+
+El adaptador PostgreSQL conserva Correct y MarkEnteredInError como una operación
+con un único registro administrativo y auditoría atómica. Reconstruye los
+propietarios reales G/A, sus fuentes y las dependencias históricas de audiencias.
+Una nueva corrección exige cabeza válida exacta y ausencia de usos de esa revisión;
+lectura histórica y replay conservan el recibo original. Los espacios de identidad
+y los límites de historia siguen compartidos. Las migraciones `0039_` comprueban
+catálogo, permisos, fuentes y completitud sin modificar los formatos previos.
+
+El RED por API ausente se conservó antes de implementar el adaptador: **7.303 s**.
+Aprobaron **32 pruebas nativas nuevas**, sin casos omitidos: 18 de flujo e
+integridad en **145.38 s**, 9 de esquema y SQL directo en **62.96 s**, y 5 de
+corrupción en **94.42 s**. Sus comandos con preparación del entorno duraron
+**159.814 s**, **67.471 s** y **96.364 s**, respectivamente. Los recorridos
+parciales de desarrollo no se suman nuevamente a estos 32 casos.
+
+Los casos verifican correcciones sucesivas, marcas, replay tras cierre y cambio
+de perfil, último soporte judicial real, fuentes archivadas, identidades G/A,
+cabezas obsoletas, dependencias de revisiones anteriores y carreras de admisión.
+También comprueban migraciones repetibles, restricciones diferidas reales,
+permisos por columna, rollback, relojes, pérdida de la última fila, carga o
+auditoría y valores alterados con hashes coherentes. Las pruebas negativas
+parten de capturas reales aceptadas y comprueban que el rechazo no escribe datos.
+
+La regresión focal aprobó **115 pruebas existentes**, conservando todas las
+identidades del baseline: decisiones 33 en **293.82 s**, anclas Initial 20 en
+**168.92 s**, anclas cautelares 24 en **197.27 s**, audiencias 25 en **166.16 s**
+y Review 13 en **112.18 s**. El comando completo, incluido entorno, duró
+**952.589 s**. Son **147 casos nativos** entre las pruebas nuevas y la regresión,
+sin sumar nuevamente los recorridos parciales ni campañas anteriores.
+
+Aprobaron **16 unidades de límites y orden del grafo en 9.470 s** de comando.
+Clippy de infraestructura, biblioteca y seis targets afectados aprobó con
+`-D warnings` en **11.309 s**. Las revisiones independientes del comando y del
+grafo, fuentes e inventario no encontraron defectos pendientes.
+
+Se utilizó PostgreSQL **16.15** con SCRAM y fuentes cifradas reales; la admisión
+de formato fue controlada. Un compilador, un thread de pruebas y temporales
+privados sobre btrfs; los clusters propios se retiraron. Esta evidencia no
+sustituye la aceptación HTTP, restauración, Qadra ni una campaña nativa de tamaño
+máximo. Las lecturas administrativas autorizadas y los consumidores mixtos H/G2
+se desarrollan por separado dentro de la misma entrega completa. No se ejecutó
+una suite global ni se generó PDF; no acredita integración ni despliegue.
+
+## Formato de valores de corrección cautelar: 4 de octubre de 2026
+
+El codec de infraestructura reconstruye los valores MCVAL1 y comprueba igualdad
+exacta de bytes y proyección JSON cerrada. Conserva precisiones, offset ausente,
+fin desconocido o ausente y texto canónico; rechaza campos adicionales, valores
+normalizados al leer, frames truncados y límites excedidos. Comparte el codec
+temporal existente sin modificar sus bytes históricos.
+
+El RED por API ausente ocurrió antes de la implementación en **0.7445 s**.
+Aprobaron **16 pruebas nuevas** y **24 afectadas del codec de decisiones**:
+**40 casos en 15.311 s** de comando, compilación **15.12 s**. Incluyen vectores
+independientes mínimo de 38 bytes, fecha de 40 bytes y máximo de 20040 bytes,
+Unicode canónico y controles de forma y dominio. El Clippy focal de biblioteca
+y targets que incluyó ambos codecs aprobó en **10.195 s** con `-D warnings`;
+es la misma ejecución registrada en la sección de anclas, no otra campaña.
+La revisión independiente no encontró defectos. Estas pruebas puras no acreditan
+aún almacenamiento PostgreSQL administrativo, HTTP ni aceptación completa.
+
+## Decisiones con ancla cautelar exacta: 4 de octubre de 2026
+
+La persistencia reconstruye un único grafo de propietarios y revisiones de
+agenda cautelar. Distingue el cierre de antecedentes de la decisión de los
+prefijos de audiencia necesarios para comprobar sus fuentes. Valida el orden
+completo antes de reconstruir recibos, conserva decisiones sin filas y rechaza
+ciclos, fuentes contradictorias, referencias incompletas y límites excedidos.
+Las migraciones `0038_` conservan los formatos históricos y las anclas Initial.
+El inventario de aplicación puede validarse sin inventar una medida objetivo.
+
+TDD reprodujo el rechazo anterior del ancla real en **6.05 s**. También detectó
+un defecto concreto: un digest corrupto en la última revisión podía hacer que
+una consulta seleccionara la revisión anterior. El caso falló en **7.97 s** y,
+al seleccionar primero la cabeza real, aprobó en **7.33 s**. No se acepta una
+revisión anterior como sustituto de una cabeza corrupta.
+
+La campaña nueva aprobó **24 pruebas PostgreSQL en 223.37 s**, sin omitidos;
+**243.581 s** con preparación. Incluye captura, reapertura, prefijos, dependencias,
+corrupción, permisos, migraciones repetibles y rechazos SQL atómicos. La regresión
+focal aprobó **91 pruebas existentes**: decisiones 33 en **298.10 s**, anclas
+Initial 20 en **174.34 s**, audiencias 25 en **173.20 s** y Review 13 en
+**109.07 s**; **765.688 s** con entorno. Conserva las 91 identidades previas.
+En total son **115 pruebas nativas** entre estas dos campañas, sin duplicar los
+recorridos parciales de desarrollo.
+
+La API de inventario tuvo un RED por ausencia antes de implementarse. Aprobó
+**8 casos nuevos, 27 del inspector y 30 del servicio administrativo**, 65 en total;
+los dos comandos duraron **6.928 s** y **1.327 s**. Los **11 casos unitarios**
+de orden y límites aprobaron en **5.984 s**. Clippy de aplicación aprobó en
+**6.053 s**; el de infraestructura y targets afectados aprobó en **10.195 s**,
+ambos con `-D warnings`. La revisión independiente no encontró defectos pendientes.
+
+Se usó PostgreSQL **16.15**, SCRAM, fuentes cifradas reales, un compilador y un
+thread de pruebas, con temporales privados sobre btrfs. Se retiraron los clusters
+propios. La admisión de formato fue controlada. Los máximos agregados se probaron
+con unidades, no mediante un historial nativo gigante. No se repitieron suites
+globales ni se generó PDF. La persistencia administrativa, consumidores mixtos,
+HTTP, Agenda, alertas, Qadra, restauración y manuscrito de la entrega completa
+siguen pendientes. Este checkpoint no acredita integración ni despliegue.
+
+## Decisiones con ancla inicial ordinaria: 4 de octubre de 2026
+
+El adaptador PostgreSQL conserva referencias exactas a audiencias Initial, con
+sus valores y recibo originales. Comprueba raíz, prefijo seleccionado completo,
+fuentes y eventos de auditoría antes de reconstruir la decisión. Las selecciones
+antiguas, reemplazadas y canceladas permanecen válidas; no se exige la cabeza
+actual ni se interpreta la fecha programada como celebración de la audiencia.
+NoMeasureChange conserva una decisión real aun cuando no produce medidas.
+
+TDD reprodujo el rechazo previo de una audiencia Initial auténtica en **6.38 s**.
+El primer recorrido implementado detectó una referencia SQL ambigua a `actor`
+en **5.14 s**; tras calificar las columnas del evento aprobó en **6.61 s**.
+La ejecución focal aprobó **16 casos en 141.32 s**, sin omitidos, y otros
+**4 casos de esquema en 27.35 s**, sin omitidos. Estos últimos comprueban
+migración repetible sin reemplazar restricciones, default y forma cerrada,
+clave foránea, privilegios por columna y rechazos directos atómicos con un
+control positivo real. Las dos campañas duraron **143.270 s** y **30.114 s**
+incluyendo preparación del entorno; no se suman los recorridos parciales otra vez.
+
+Las pruebas usan PostgreSQL **16.15** real con SCRAM, un único compilador y
+thread de pruebas, y directorio temporal privado sobre btrfs. Los clusters
+propios se retiraron al terminar. Expedientes, sujetos y soportes cifrados son
+reales; la admisión de formato permanece controlada. La revisión independiente
+de los cargadores y de la integración del ancla no encontró defectos concretos.
+No se ejecutó un historial nativo de 256 revisiones ni una regresión global.
+Los **33 casos afectados de decisiones existentes** aprobaron en **304.98 s**
+(**309.944 s** con entorno), conservando sus 33 identidades previas: **53 casos
+nativos** entre las tres campañas. Clippy de la biblioteca y ambos targets
+aprobó con `-D warnings` en **6.375 s**, compilación **6.28 s**.
+Las anclas cautelares, registros administrativos durables, HTTP,
+Agenda, alertas, Qadra y restauración integral siguen pendientes; esta evidencia
+no acredita integración a main, despliegue ni aceptación del producto completo.
+
+## Servicio administrativo cautelar: 4 de octubre de 2026
+
+El servicio de aplicación prepara y confirma Correct y MarkEnteredInError con
+principal actual completo y doble digest. Ready conserva contexto, soporte cifrado,
+cabeza exacta observada e inventario de propietarios y prefijos. Se comprueban
+todos los propietarios y usos conocidos antes de admitir el soporte de la última
+declaración judicial real. Un objetivo EnteredInError, cabeza distinta, uso
+judicial/administrativo/Review o decisión sin filas con ancla Review bloquea la
+operación nueva; una declaración judicial terminal no se reinterpreta.
+
+La captura conserva el cierre original del objetivo, extraído del índice
+comprobado sin guardar raíces ajenas ni volver a resolver cada referencia.
+La recuperación conserva autoría y tiempo originales, valida recibo/origen/cierre
+y no readmite soporte ni exige ausencia de dependientes posteriores. Las fuentes
+retenidas, la confirmación y los relojes se verifican antes del commit y la
+identidad actual se comprueba nuevamente antes de devolver el resultado.
+
+TDD: la API ausente produjo el fallo esperado antes de implementar en **0.748 s**.
+La ejecución focal final aprobó **30 casos nuevos**, **27 del inspector de
+dependencias** y **23 de validez de registro**: **80 casos en 4.448 s** de comando,
+compilación **3.82 s**. Comprueban Correct/Mark desde M1, C y M2, soporte exacto
+retenido por la última declaración, cabezas y usos conocidos, límites antes de
+admisión, confirmación, principal completo, relojes y devolución de recibos,
+orígenes o cierres alterados, incluso con hashes recalculados.
+
+Las ejecuciones de desarrollo anteriores aprobaron primero **1 caso en 12.999 s**
+y luego **19 casos en 1.842 s**; son subconjuntos del target final y no se suman
+nuevamente. Clippy de los tres targets con `-D warnings` aprobó en **7.763 s**,
+compilación **7.71 s**. La revisión estática independiente del servicio no encontró
+fallos funcionales concretos. Los formatos administrativos y sus bytes históricos
+se conservan. No se ejecutó una regresión global para esta comprobación focal.
+
+Los stores e identidades de estas pruebas son simulados. El puerto exige que una
+implementación durable compruebe acceso, cabeza, ausencia completa de dependientes
+y fuentes exactas bajo el bloqueo, impida carreras y confirme filas y auditoría
+atómicamente. PostgreSQL, HTTP y restauración siguen pendientes; esta frontera no
+acredita aceptación del flujo completo, integración, despliegue ni cobertura global.
+
+## Inspección de dependientes cautelares suministrados: 4 de octubre de 2026
+
+El inspector puro valida un bosque completo suministrado de propietarios
+G1/G2/administrativos y prefijos históricos de convocatorias. Informa cuatro
+usos directos del objetivo exacto: predecesor judicial, objetivo administrativo,
+selección Review y ancla Review de una decisión. Incluye revisiones reemplazadas,
+canceladas y grupos NoMeasureChange con ancla, sin inventar usos por fuentes
+compartidas o referencias a raíces y última evidencia judicial.
+
+TDD: la API ausente produjo el fallo esperado en **0.424 s** antes de implementar.
+El intento anterior con un archivo de fixture incompleto se conservó por separado
+y no se usa como evidencia de ese fallo. La ejecución nueva aprobó **27 casos en
+10.627 s** de comando, compilación **10.43 s**. Cubre objetivos M1/M2/C, cuatro
+clases de usos, prefijos completos, anclas exactas, raíces desconectadas válidas,
+ausencia de usos en la evidencia suministrada, evidencia contradictoria o
+incompleta y límites comprobados antes de hashear.
+
+La verificación de cuatro targets anteriores afectados aprobó **117 casos en
+17.082 s**, compilación **3.97 s**: 39 de decisiones sobre registros, 32 de
+historial mixto, 23 de Review sobre registros y 23 de Review sobre M2. Son
+**144 casos aprobados entre dos comandos**. Clippy de los cinco targets con
+`-D warnings` aprobó en **6.156 s**, compilación **6.10 s**. La revisión estática
+independiente final no encontró defectos concretos pendientes.
+
+La inspección usa un índice y un inventario de fuentes compartidos para validar
+cada propietario y prefijo. Rechaza errores incluso en ramas ajenas al objetivo;
+las consultas anteriores conservan su exigencia de cierre exacto. Los límites
+son 256 propietarios/8192 filas y, por separado, 256 prefijos/256 capturas/8192
+ocurrencias de objetivos Review, con las formas individuales acotadas. No se
+agregan ni cambian digests, instrucciones o formatos de recibo.
+
+Un informe vacío no prueba ausencia durable, inventario completo, cabeza vigente
+ni permiso de mutación. El inspector no implementa elegibilidad actual,
+autorización de escritura, reemplazo administrativo, servicio, SQL, HTTP o
+restauración. Esta evidencia local y focal no equivale a regresión global,
+integración, despliegue o aceptación del flujo completo.
+
+## Convocatorias Review sobre medidas M2: 4 de octubre de 2026
+
+Las entradas puras `_with_decision_history` preparan y verifican convocatorias
+con objetivos M2 reales y correcciones que conservan M2. Recibo, transición,
+origen e historial usan el mismo cierre completo G1/G2/administrativo. La validez
+Valid se exige al registro exacto en todas las rutas; las declaraciones judiciales
+terminales permanecen seleccionables. No se consulta una cabeza actual ni se
+reemplaza una referencia histórica.
+
+TDD: la API ausente falló antes de implementar en **0.391 s**. La ejecución
+inicial aprobó **10 pruebas del núcleo en 7.563 s** de comando, compilación
+**7.33 s**. La ejecución final aprobó **23 casos nuevos en 1.387 s**, compilación
+**1.00 s**. Comprueba una secuencia de convocatoria M1/C/M2/C y su cancelación,
+contexto y reloj efectivos de C posterior a M2, referencia Valid anterior a una
+marca posterior, terminales, hermanas mixtas y rechazo de evidencia incoherente
+o excesiva antes de hashear. Dos listas de 32 objetivos conservan su unión
+histórica de 64 referencias. La equivalencia con las entradas anteriores confirma
+capturas y bytes sin cambios en PHEAR1/PHTXN1/PHPR1/PHCR1; no hay nuevos formatos
+de convocatoria.
+
+La comprobación de la entrada anterior afectada aprobó **23 casos en 1.236 s**,
+compilación **0.56 s**. Son **46 casos entre las dos ejecuciones finales**, sin
+sumar nuevamente el núcleo inicial. Clippy de los dos targets con `-D warnings`
+aprobó en **4.137 s**, compilación **4.08 s**. La compilación intermedia de las
+pruebas suplementarias requirió agregar una importación ausente; no se reprodujo
+una regresión de producción en esta comprobación. La revisión estática
+independiente del límite de prueba y sus adaptadores no encontró defectos
+concretos pendientes.
+
+La evidencia es local y focal. Los servicios autorizados y sus puertos no aceptan
+todavía el material mixto; no acredita cabeza vigente, ausencia de dependientes,
+elegibilidad de escritura, reemplazo administrativo, SQL, HTTP, interfaz ni
+restauración. No representa regresión global, integración, despliegue o cierre
+del flujo completo.
+
+## Decisiones judiciales sobre registros corregidos: 4 de octubre de 2026
+
+Las entradas puras V2 producen decisiones y medidas judiciales desde registros
+G1, G2 o administrativos exactos. Un único grafo valida propietarios completos
+en orden de dependencias; mantiene separados valores/contexto/tiempo efectivos,
+raíz del registro y última declaración judicial real. La rectificación posterior
+a M2 conserva esa familia y su soporte, sin fabricar una medida M1.
+
+TDD: la API ausente falló antes de implementar en **0.664 s**. Una ejecución
+posterior reprodujo **12 fallos y 3 aprobaciones** porque la imposición histórica
+confundía sus propias revisiones descendientes con una identidad nueva duplicada.
+La corrección mantuvo la unicidad del origen y permitió sus revisiones posteriores.
+La ejecución focal aprobó **39 casos en 6.022 s** de comando, compilación
+**5.67 s**. Cubre todos los efectos, NoMeasureChange, cadena G1/C/C/G2/C,
+fuentes y contexto efectivos, familia real, terminales, ancla Review sobre C,
+normalización de 32 identidades y rechazo de cierres alterados o excesivos.
+
+Cuatro vectores independientes comparan bytes completos de `MDPR2` (2499 bytes),
+`MMCR2` (602), `MDGR2` (3881) y `MAGR1` posterior a M2 (2534). Se construyeron
+desde escalares y literales previos independientes, sin generar expectativas con
+codificadores de producción. Los digests del fixture determinista comprueban
+el encadenamiento y no son vectores criptográficos SHA-256. `MDTXN1`, `MDCR1`
+y los formatos anteriores conservan su significado y sus bytes.
+
+La ejecución de ocho targets anteriores afectados aprobó **132 casos en
+19.407 s**, compilación **6.94 s**. Sumada a la ejecución nueva, son **171 casos
+aprobados entre dos comandos**, no una campaña única. Clippy de los nueve
+targets con `-D warnings` aprobó en **7.186 s**, compilación **7.13 s**. La
+revisión independiente del grafo unificado quedó limpia después de resolver
+la regresión reproducida.
+
+Esta comprobación es local y focal. No acredita servicios autorizados con material
+mixto, selección nueva de M2 por convocatorias, cabeza vigente, ausencia de
+dependientes, reemplazo administrativo, SQL, HTTP, interfaz ni restauración.
+El alcance completo sigue propuesto; no se ejecutó una campaña global,
+integración, despliegue o nuevo PDF para esta evidencia.
+
+## Convocatorias Review con registros mixtos: 4 de octubre de 2026
+
+Las entradas puras `_with_record_history` preparan y verifican convocatorias
+sobre medidas judiciales o administrativas exactas. Exigen validez de captura
+Valid en preparación, recibo, origen, transición, historial y referencias
+retenidas por cancelación. Una convocatoria anterior conserva su revisión Valid
+original tras una marca posterior; las acciones judiciales terminales siguen
+siendo seleccionables. No se sustituyen fuentes por cabezas actuales ni se
+cambian los formatos de la convocatoria.
+
+TDD: el target falló por API ausente antes de la implementación. La ejecución
+nueva aprobó **23 casos en 2.282 s** de comando, compilación **1.64 s**. Cubren
+contexto y tiempo efectivos de C, reemplazo/cancelación entre revisiones de una
+identidad, historia anterior a una marca posterior, fuentes compartidas,
+material alterado y límites antes de hashear. Dos convocatorias de 32 objetivos
+conservan correctamente una unión de 64 referencias históricas exactas.
+
+La comprobación anterior afectada aprobó **27 casos de Review y 4 vectores de
+anclas**, **31 casos en 1.327 s**, compilación **1.11 s**. Son **54 casos aprobados entre ambas
+ejecuciones**, no una única campaña. Clippy de los tres targets con `-D warnings`
+aprobó en **4.150 s**, compilación **4.09 s**. La revisión independiente del
+contrato y código no encontró defectos accionables en esta frontera.
+
+Los nuevos accesos acotan 256 capturas de audiencia y 8192 objetivos en su unión,
+independientemente de los límites de propietarios y filas G/administrativos.
+Las entradas históricas anteriores conservan sus límites y bytes. Esta evidencia
+no incluye decisiones judiciales posteriores a correcciones, ampliación de los
+servicios autorizados para material mixto, cabeza vigente, ausencia de dependientes,
+SQL o HTTP. No constituye una regresión global, integración, despliegue o cierre
+del flujo completo; el ADR y alcance general permanecen propuestos.
+
+## Validez de captura entered-in-error: 4 de octubre de 2026
+
+La preparación administrativa genérica admite `MarkEnteredInError` sobre un
+predecesor exacto con validez de captura Valid. Agrega una revisión conservando
+valores, fuentes, proyección, origen, última medida y acción judiciales, y soporte.
+No crea un reemplazo ni modifica efectos judiciales. Las entradas de preparación
+de corrección siguen limitadas a Correct; recibos, orígenes y consultas históricas
+reconstruyen ambas acciones sin exigir ausencia eterna de dependientes.
+
+TDD: las pruebas fallaron primero por la API ausente. La ejecución focal final
+aprobó **23 casos nuevos y 70 anteriores afectados**, **93 casos** en
+**13.817 s** de comando, compilación **2.38 s**. Comprueban retención completa,
+marcado posterior a correcciones, acciones terminales, aislamiento entre medidas
+hermanas, actores, motivos y relojes; rechazan correcciones o nuevas marcas desde
+un registro EnteredInError y material alterado con hashes recalculados.
+
+Cuatro vectores nuevos independientes verifican las instrucciones, revisiones,
+filas y recibos de marcado completos. La etiqueta 1 no incluye carga `MCVAL1`;
+las estructuras y los bytes anteriores de Correct se conservan. Los digests del
+fixture determinista no son vectores criptográficos SHA-256. La revisión estática
+independiente no encontró defectos. Clippy de los cuatro targets con
+`-D warnings` aprobó en **4.108 s**, compilación **4.05 s**.
+
+Esta evidencia local no acredita cabeza vigente, inventario durable completo de
+dependientes, elegibilidad actual ni transacción SQL. Siguen pendientes el consumo
+administrativo por nuevas decisiones y convocatorias Review, el reemplazo
+administrativo opcional, el servicio autorizado, persistencia y aceptación del
+flujo completo. No se ejecutó una regresión global, integración, despliegue o nuevo
+PDF para esta comprobación focal; el alcance completo permanece propuesto.
+
+## Historial mixto y rectificación repetida: 4 de octubre de 2026
+
+El resolvedor de aplicación valida propietarios judiciales y administrativos
+completos mediante referencias exactas de medida. Conserva la procedencia de la
+corrección seleccionada y la de la última medida judicial como datos separados.
+Las rectificaciones repetidas avanzan revisión, contexto y tiempo desde su
+predecesora, sin inventar una medida judicial ni cambiar su origen o soporte.
+
+La verificación focal aprobó **32 pruebas** en **21.821 s** de comando,
+compilación **10.81 s**. Incluye una cadena real en la frontera combinada de
+256 propietarios, exceso de límites antes de hashear, referencias y propietarios
+ambiguos, evidencia incompleta/cíclica, relojes, fuentes compartidas y conservación
+de la procedencia administrativa/judicial. La revisión estática independiente
+no encontró defectos. El motor valida el cierre judicial una vez y reconstruye
+cada propietario administrativo en orden de predecesores; las entradas anteriores
+usan una vista prestada sin copiar el historial completo.
+
+Esta evidencia no implementa todavía decisiones judiciales posteriores a una
+corrección ni su selección por nuevas convocatorias de revisión. Tampoco acredita
+origen durable, cabeza vigente, ausencia de dependientes, `entered_in_error`,
+servicio autorizado de rectificación, SQL, HTTP o restauración. La verificación
+es local y focal; no constituye una campaña global ni aceptación del flujo completo.
+
+Después de representar las dos variantes de registro mediante `Box`, la
+comprobación final conservó **32/32** casos en **16.843 s**, compilación **6.06 s**.
+Las **34 capturas y 4 vectores anteriores** afectados aprobaron en **1.524 s**.
+Clippy de los tres targets con `-D warnings` aprobó en **5.184 s**, compilación
+**5.14 s**, y la revisión independiente quedó limpia. El cambio de representación
+no modifica los bytes históricos ni los datos comparados.
+
+## Primera captura administrativa de rectificación: 4 de octubre de 2026
+
+La aplicación reconstruye una rectificación desde una medida judicial exacta y
+su grupo completo de origen con ancestros. Crea una sola fila administrativa con
+la siguiente revisión, conservando origen judicial, última acción, fuentes y
+soporte de la última declaración real. No crea otra decisión judicial ni cambia
+las anteriores. El motivo, autor capturado, contexto y procedencia quedan ligados
+por `MATXN1`, `MAPR1`, `MARCR1` y `MAGR1`.
+
+TDD: la API ausente falló antes de implementar, en **0.299 s**. La ejecución final
+aprobó **34 pruebas de captura** en **1.133 s** de comando, compilación **0.90 s**.
+Comprueban alcance exacto, propietario y ancestros completos, soporte más reciente,
+las siete acciones judiciales retenidas, fuentes archivadas, límites antes de
+hashear, relojes y reconstrucción completa frente a material rehasheado alterado.
+
+Otra ejecución aprobó **4 vectores administrativos independientes y 16 vectores
+judiciales anteriores** en **1.672 s**, compilación **1.62 s**. Los nuevos marcos
+tienen 202, 1285, 1152 y 2534 bytes; se comparan con literales construidos desde
+escalares explícitos. Sus digests internos usan la dependencia determinista de
+prueba y no se presentan como vectores SHA-256. La revisión estática independiente
+no encontró defectos en esta frontera. Clippy de los targets de captura y vectores
+con `-D warnings` aprobó en **5.015 s**, compilación **4.97 s**, sin advertencias.
+
+La captura sigue siendo una comprobación pura de evidencia suministrada. No
+admite nuevamente soporte cifrado ni prueba permisos actuales, origen durable,
+cabeza vigente o ausencia de dependientes. Correcciones repetidas, historial
+mixto, `entered_in_error`, servicio autorizado de rectificación, SQL y HTTP siguen
+pendientes. No se ejecutó una campaña global, integración, despliegue ni nuevo
+PDF para esta verificación focal.
+
+## Valores de rectificación de medidas: 4 de octubre de 2026
+
+El dominio limita la corrección a condiciones, vigencia y texto de la supervisión
+existente. Preserva sujeto exacto, clase, presencia del término, variante y
+selección de supervisor; rechaza un resultado normalizado sin cambios. La precisión,
+componentes y desfase pueden corregirse explícitamente sin completar datos ausentes.
+
+TDD: la API ausente falló antes de la implementación. **15 pruebas aprobadas** en
+**2.323 s** de comando, compilación **2.30 s**. Incluyen ambas variantes de
+supervisión, cada campo permitido, las 14 clases y errores de presencia del término.
+Tres vectores independientes de `MCVAL1`, de 40, 62 y 45 bytes, verifican bytes y
+SHA-256 fijos; las mutaciones comprueban texto, componentes y precisión. SHA-256 se
+usa solo como dependencia de pruebas del dominio. Clippy con `-D warnings`
+aprobó en **2.728 s**, compilación **2.68 s**; revisión estática independiente
+sin hallazgos. Un compilador, un hilo y temporales privados en btrfs.
+
+No es una rectificación persistida: recibo, revisión, historial mixto, permisos
+de operación, SQL e interfaz permanecen pendientes. La evidencia no acredita
+una decisión judicial ni fidelidad jurídica de la transcripción. Sin campaña
+global, integración, despliegue o nuevo PDF.
+
+## Consultas de decisiones cautelares: 4 de octubre de 2026
+
+Las consultas de aplicación recuperan una decisión o su operación original y
+listan decisiones inmutables en orden UUID, hasta 20 por página. Validan el grupo
+completo, origen y ancestros; permiten personal autorizado, incluido Paralegal,
+y rechazan Client. La reautenticación compara el actor actual completo. La lista
+conserva las decisiones anteriores aunque sus medidas tengan nuevas revisiones.
+
+TDD: la API ausente falló antes de implementar. La revisión independiente
+identificó una operación de audiencia ordinaria compartida por dos identidades
+incompatibles; se reprodujo el fallo antes de corregir el inventario de fuentes.
+La corrección conserva el detalle completo y admite reutilización idéntica.
+
+La verificación final aprobó **35 pruebas nuevas y 173 anteriores afectadas**:
+**208 casos** en **16.127 s** de comando, compilación **13.80 s**. Incluye permisos,
+revocación, selectores, cursores, grupos rehasheados inconsistentes, identidad de
+operación/decisión/medida, fuentes contradictorias y captura completa de anclas.
+También prueba evidencia compartida válida, relojes y rechazo de colecciones
+sobredimensionadas antes de hashear. Clippy de los seis targets con `-D warnings`
+aprobó en **11.107 s**, compilación **11.06 s**. Revisión independiente final
+sin hallazgos. Un compilador, un hilo y temporales privados en btrfs.
+
+Este lector aún usa un puerto sin adaptador SQL. No acredita existencia durable,
+cabezas actuales ni auditoría persistida: el almacén debe comprobarlas junto con
+el acceso. No se ejecutaron campañas globales, servicios, interfaz ni restauración;
+la integración y el despliegue siguen pendientes.
+
+## Servicio de decisiones cautelares: 4 de octubre de 2026
+
+El servicio prepara y confirma el grupo completo de decisión y medidas con
+Owner o Litigator actuales. Admite el documento cifrado exacto fuera del bloqueo
+de auditoría y exige los digests de instrucción y revisión. Imposición,
+confirmación, modificación, revocación, cese, sustitución y ausencia declarada de
+cambio conservan fuentes, anclas y ancestros completos. Un replay conserva el
+actor histórico y la captura original, con acceso actual revalidado.
+
+TDD: el target falló por API ausente antes de implementar. La primera ejecución
+aprobó 26 casos; los 17 negativos adicionales completaron **43 pruebas aprobadas**
+en **4.932 s** de comando, compilación **4.73 s**. Incluyen permisos, reintentos,
+relojes, soporte exacto, cambios de procedencia y rechazo de grupos devueltos con
+medidas, origen o ancestros inconsistentes. Clippy con `-D warnings` aprobó en
+**6.158 s**, compilación **6.11 s**. Revisión independiente sin hallazgos.
+Un compilador, un hilo y temporales privados en disco btrfs.
+
+Esta evidencia es focal y local. Los puertos exigen revalidar cabeza, pertenencia,
+anclas y unicidad antes de la transacción durable; todavía no existe ese
+adaptador. Consultas de decisiones, rectificación, SQL, HTTP, Agenda, alertas,
+Qadra y restauración siguen pendientes. No se ejecutó una campaña global ni se
+cambió el manuscrito o PDF; el trabajo no está integrado ni desplegado.
+
+## Servicios de convocatorias cautelares: 4 de octubre de 2026
+
+El servicio de aplicación prepara y confirma programación, reemplazo y
+cancelación con el actor actual completo. Admite el soporte cifrado exacto fuera
+del bloqueo de auditoría y exige ambos digests: instrucción y revisión completa.
+Las consultas autorizadas conservan origen, prefijo histórico y dependencias;
+validan identidad, revisión, operación, paginación y fuentes compartidas.
+Los adaptadores de persistencia y las rutas HTTP siguen pendientes.
+
+TDD: las APIs ausentes fallaron antes de implementar. La revisión reprodujo
+**nueve regresiones** antes de corregirlas: tres observaciones de reloj inválidas
+antes del commit; una captura completa contradictoria entre historia y ancla;
+un timestamp nuevo anterior a la confirmación; tres identidades duplicadas entre
+resultados de página; y una operación reutilizada entre audiencia y ancla de su
+dependencia. Se conserva el replay original y la evidencia compartida válida.
+Los fallos de compilación y una fixture que intentaba crear una captura después
+del cierre administrativo se conservaron como diagnóstico, no como aceptación.
+
+Resultado final: **45 pruebas nuevas de comandos y 25 de consultas**, más
+**169 pruebas anteriores afectadas**, todas aprobadas: **239 casos** en
+**36.242 s** de comando, compilación **11.83 s**. Incluye las fronteras de 256 revisiones/grupos y los
+vectores de recibos existentes. Clippy de los ocho targets con `-D warnings`
+aprobó en **8.715 s** de comando, compilación **8.66 s**. Revisión independiente
+final sin hallazgos; formato, ASCII, límites de líneas y diff comprobados.
+Un compilador, un hilo y temporales privados en disco btrfs.
+
+Son verificaciones focales de aplicación. No demuestran transacciones SQL,
+composición HTTP, aceptación de Agenda/alertas/Qadra ni restauración de esta
+familia. Servicio de decisiones, rectificación, almacenamiento y cierre completo
+siguen pendientes; sin campaña global, cobertura nueva, integración, despliegue
+ni cambios en el manuscrito o PDF aceptado.
+
+## Convocatorias de revisión y anclas de decisiones: 4 de octubre de 2026
+
+La preparación de revisión resuelve capturas reales de medidas y todos sus
+grupos de origen. Reemplazo, cancelación e historial comprueban la unión de
+referencias antiguas y nuevas, incluidas distintas revisiones de una identidad.
+Las decisiones admiten anclas exactas de audiencia inicial ordinaria o cautelar,
+conservando sus datos y procedencia. El recorrido iterativo incluye tanto los
+efectos como las referencias del ancla, sin depender de hashes declarados como
+sustituto de las capturas completas.
+
+TDD: la API de revisión y el ancla ordinaria fallaron antes de implementar el
+soporte. Los **cuatro vectores independientes** nuevos fallaron por anclas no
+soportadas; ahora aprueban sin cambiar sus valores esperados. Conservan 413 y
+381 bytes de instrucción y 1104 y 1877 bytes de decisión para cada familia.
+Los formatos anteriores permanecen idénticos.
+
+La revisión reprodujo **nueve regresiones** antes de corregirlas: tiempo del
+predecesor anterior a sus medidas; dos referencias administrativas ordinarias
+contradictorias; tres proyecciones de participantes contradictorias; dos usos
+incompatibles de una misma revisión de audiencia; y un digest de sujeto que
+contradecía la ficha exacta aportada por otro participante. Ahora un inventario
+compartido compara los campos efectivamente disponibles, sin atribuir al detalle
+ordinario fuentes completas que no contiene.
+
+La ejecución final aprobó **33 casos de anclas, 27 de revisión y cuatro vectores
+nuevos**, junto con **128 pruebas anteriores afectadas**, en **8.490 s** de
+comando, compilación **7.78 s**. Los **30 casos anteriores de historia**, incluida
+la frontera de 256 grupos, aprobaron en **22.241 s**, pruebas **21.71 s**. Son
+**222 casos focales aprobados**, de los que 64 son nuevos. Clippy de los diez
+targets con `-D warnings` aprobó en **1.005 s** tras reemplazar una copia
+innecesaria en una prueba. Los intentos de compilación fallidos y una preparación
+de fixture que ya rechazaba una ruta insegura se conservan como diagnóstico,
+no como aceptación.
+
+Revisión final focal sin hallazgos pendientes; formato, ASCII, límites de líneas
+y diff comprobados. Un compilador, un hilo y temporales privados en disco.
+Continúan pendientes el servicio autorizado, persistencia, rectificación,
+HTTP, Agenda, alertas, Qadra y restauración. No hay campaña global, cobertura
+nueva, integración, despliegue ni modificación del PDF aceptado.
+
+
+## Efectos posteriores e historia de medidas: 4 de octubre de 2026
+
+La aplicación comprueba el grupo completo que posee cada revisión y todas sus
+dependencias, incluidas las de miembros no seleccionados. Rechaza ciclos,
+metadatos de origen contradictorios, grupos faltantes o sobrantes y duplicación
+de operaciones, decisiones o revisiones. Confirmación, modificación, revocación,
+cese y sustitución reconstruyen sus miembros y relaciones; conservan origen y
+fuentes exactas. Revocación, cese y salida por sustitución son declaraciones
+terminales para este contrato, sin fabricar fechas de término.
+
+Los targets nuevos fallaron primero por API ausente. Los tres vectores de
+extensión también fallaron por ausencia del encuadre de predecesores. Después
+aprobaron **tres vectores independientes** de 1846, 569 y 5547 bytes en **0.090 s**.
+La revisión encontró dos defectos concretos: se podía generar una revisión que
+ya pertenecía a otro grupo de la evidencia y aumentar revisiones de contexto
+con fechas anteriores. **Cuatro regresiones fallaron antes del arreglo**; ahora
+se comprueba propiedad de cada revisión resultante y se reutiliza la regla de
+avance de contexto de convocatorias, con sus tiempos y datos completos.
+
+Tras corregirlos aprobaron **30/30 casos de historia** en **25.418 s** de comando
+(compilación **4.09 s**, pruebas **21.30 s**). Incluyen la frontera real de 256
+grupos y el rechazo del 257, fuentes contradictorias no consecutivas y revisión
+completa de miembros hermanos. Los **28/28 casos de efectos** aprobaron junto
+con los **46 casos anteriores afectados** en **3.907 s**, compilación **3.62 s**.
+Los nueve vectores iniciales permanecen idénticos. Son **61 pruebas nuevas**
+aprobadas entre esas ejecuciones focales; no una campaña completa nueva.
+Clippy de los cinco targets con `-D warnings` aprobó en **4.812 s**.
+
+Se conservan también los intentos fallidos de compilación por import y fixtures
+de préstamos, y el formato interrumpido por un módulo de pruebas aún en escritura;
+no se contabilizan como aceptación. Revisión final sin hallazgos pendientes,
+formato, ASCII, límites de líneas y diff limpios. Un compilador, un hilo y
+temporales privados en disco. Las anclas, flujo autorizado, persistencia,
+restauración e interfaz siguen pendientes; no hay integración, despliegue,
+cobertura global nueva ni cambios al PDF aceptado.
+
+
+## Capturas iniciales de decisiones y medidas: 4 de octubre de 2026
+
+La preparación produce una decisión factual, cada medida inicial y su grupo
+completo, sin compromisos circulares. Reconstruye las proyecciones desde fuentes
+exactas; conserva origen, actor y tiempos declarados y rechaza miembros alterados,
+añadidos o faltantes incluso al recalcular sus hashes. Admite imposición y ausencia
+explícita de cambios; las anclas y efectos con predecesores requieren la siguiente
+frontera. No acredita origen durable ni autorización actual.
+
+TDD: ambos targets fallaron por la API ausente antes de implementarla. Tras corregir
+tres errores de fixtures, aprobaron **37 casos semánticos y nueve vectores literales
+independientes**. Los vectores comprueban los cinco formatos sin derivar el valor
+esperado del codificador del producto; sus hashes de prueba no son vectores SHA.
+La extracción compartida de fuentes justificó repetir **37 casos de recibos y
+14 de historial**, incluidos sus vectores anteriores sin cambios. Total de esta
+corrida focal: **97/97**, comando **4.772 s**, compilación **4.52 s**. Clippy de los
+cuatro targets con `-D warnings` aprobó en **6.363 s**.
+
+La revisión identificó una copia de material antes de comprobar su límite o
+rechazar anclas/predecesores no soportados. La validación prestada ahora precede
+a la copia; revisión estática y pruebas de rechazo aprobaron, sin presentar esto
+como una medición de asignaciones. Revisión restante limpia, ASCII, formato,
+límites de líneas y diff aprobados. Un compilador, un hilo y temporales privados
+en disco; sin servicios, campaña completa, integración, despliegue ni nuevo PDF.
+
+
+## Fuentes exactas de medidas cautelares: 4 de octubre de 2026
+
+El resolvedor comprueba expediente, identidad, revisión y digest recalculado
+del sujeto y del supervisor declarado. Admite las clases de sujeto existentes,
+supervisores manuales o tipados y fuentes archivadas para historia, sin imponer
+una calidad oficial desde una etiqueta de directorio. Desconocimiento explícito
+rechaza una fuente de supervisor sobrante. Una ficha/revisión compartida exige
+igualdad completa de valores y procedencia; las etiquetas se derivan de ella.
+
+TDD focal: RED por API ausente y después **18/18 pruebas** aprobadas en
+**8.849 s** de comando total, compilación **8.82 s**. Clippy con `-D warnings`
+aprobó en **5.105 s**. Los casos cubren selección exacta, hashes recalculados,
+fuentes ajenas, copias contradictorias, ambas familias de participante y tiempo
+UTC/autor válido en cada fuente retenida. Revisión independiente, formato,
+ASCII, tamaño y espacios limpios. Un compilador y un worker, temporales en disco,
+sin servicios, suites completas, integración, despliegue ni nuevo PDF. Las
+capturas posteriores todavía deben vincular todos estos datos y comparar su
+cronología con el reloj real de captura.
+
+## Grupos declarados de cambios cautelares: 4 de octubre de 2026
+
+El resultado de dominio distingue cambios de medidas y ausencia declarada de
+cambios. Conserva imposición, confirmación, modificación, revocación, cese y
+sustitución conjunta; ordena por identidad y rechaza repetición o solapamiento
+en cualquier posición. El límite técnico de 32 cuenta tanto medidas anteriores
+como nuevas. No acredita predecesores, persistencia ni efecto jurídico.
+
+TDD focal: tras RED por tipos ausentes aprobaron **21/21 pruebas**, incluidas
+dos representaciones literales independientes `MEFX1` de **13 y 764 bytes**.
+Comando total **2.216 s**, compilación **2.19 s**; Clippy con `-D warnings`
+aprobó en **1.469 s**. Se comprobaron los seis tipos, límites, lados vacíos,
+referencias conflictivas, orden, sustitución de dos medidas por dos y vínculo
+de todos los datos propuestos. Revisión independiente, formato, ASCII, tamaño
+y espacios limpios. Un compilador, un worker, temporales en disco; sin servicios,
+suites completas, integración, despliegue ni PDF nuevo.
+
+## Admisión del soporte de decisión cautelar: 4 de octubre de 2026
+
+El soporte seleccionado por `MDVAL1` se admite mediante la misma frontera
+interna de integridad y formato que el soporte de convocatoria. Exige exactamente
+una versión/digest, valida contenido y evidencia sellada antes del formato, y
+conserva nombre, referencia y política. La asociación al expediente y el acceso
+actual corresponden al almacén autorizado.
+
+Tras el fallo por API ausente aprobaron **4 casos nuevos**. Los **12 casos**
+de convocatoria se ejecutaron porque su implementación pasó a compartir esa
+frontera; también aprobaron. Comando total **3.006 s**, compilación **2.98 s**;
+Clippy de ambos targets con `-D warnings` aprobó en **3.258 s**. La prueba inicial
+tenía dos referencias incorrectas a una API existente de tiempo; se corrigieron
+antes de implementar la admisión nueva y se conservó un RED específico por API
+ausente. Un compilador, un worker, temporales en disco y dobles observables;
+sin servicios nativos, integración ni despliegue. La aceptación nativa completa
+sigue pendiente; no se repitieron otras suites ni el PDF.
+
+## Origen e historial cautelar suministrado: 4 de octubre de 2026
+
+El origen conserva los siete campos de la captura inicial exacta. La validación
+del historial exige revisiones consecutivas desde el alta, todos los recibos y
+vínculos correctos, operaciones únicas en toda la cadena y fuentes inmutables
+consistentes incluso al retirarlas y seleccionarlas después. La cancelación
+es terminal. El almacén todavía debe acreditar origen durable, inventario y
+cabeza vigente: validar una cadena suministrada no detecta un sufijo válido
+omitido ni concede acceso actual.
+
+TDD focal: fallo inicial por API ausente; después **14/14 casos** aprobaron en
+**5.999 s** de comando total (compilación **5.91 s**, pruebas **0.06 s**).
+Clippy focal con `-D warnings` aprobó en **3.892 s**. Se verificaron campos
+alterados del origen, huecos, orden, duplicación, expedientes ajenos, recibos
+alterados, sucesores de cancelación y contradicciones no consecutivas que pasan
+la validación individual y de pares. Formato, ASCII, tamaño y espacios aprobados.
+Un compilador y un worker, temporales en disco; sin servicios, campaña amplia,
+PDF, integración ni despliegue. La evidencia de 37 casos de recibos se conserva
+por separado y no se repitió.
+
+## Recibos de convocatoria cautelar: 4 de octubre de 2026
+
+La construcción local conserva instrucción, contextos, fuentes completas y
+proyecciones, con compromisos separados para revisión (`PHPR1`) y captura
+(`PHCR1`). Reemplazo y cancelación exigen predecesor exacto; cancelar mantiene
+la evidencia original y registra el contexto observado. No acredita operación
+persistida, autorización vigente o admisión nueva. La revisión de medidas sigue
+rechazada hasta contar con capturas reales comprobables.
+
+TDD focal: primero falló el target por ausencia de la API. Aprobaron después
+27 casos semánticos y dos vectores literales independientes. Una revisión
+independiente identificó fuentes contradictorias bajo la misma identidad y
+revisión; las ocho regresiones nuevas fallaron antes de corregirlas. Tras la
+corrección, **37/37 pruebas** aprobaron en **4.623 s** de comando total
+(compilación **4.52 s**, pruebas **0.07 s**). Los vectores de 3024 y 3081 bytes
+permanecen iguales. Clippy focal con `-D warnings` aprobó en **3.121 s** de
+comando total. Se conservan los fallos iniciales y el fallo intermedio de
+compilación por un import, sin contabilizarlos como verificaciones aprobadas.
+
+La corrección exige igualdad de valores y procedencia para una misma revisión
+de administración, etapa, participante o sujeto, y una misma versión documental,
+incluso cuando el soporte aparece en contextos distintos. Cambiar efectivamente
+la revisión sigue permitido. Un compilador, un worker, temporales en disco y
+ningún servicio. No se repitieron suites anteriores, campaña completa, cobertura
+ni PDF; el origen y la validación del historial completo son el siguiente límite.
+Este bloque permanece local y no está integrado ni desplegado.
+
+## Declaraciones de medidas y decisiones: 4 de octubre de 2026
+
+Los valores de medida vinculan sujeto exacto, clase, condiciones, vigencia y
+supervisión declarada. Esta última exige participante/revisión con declaración
+o desconocimiento explícito con motivo. Los valores de decisión conservan
+autoridad, tiempo con su precisión, justificación y soporte con localizador.
+Su identidad es distinta de las de medida y convocatoria; no se inventa un
+modelo de revisión judicial ni se crean efectos o grupos desde estos valores.
+
+TDD focal: el target falló por ausencia de estos tipos antes de implementarlos.
+Después aprobaron **16/16 pruebas** y Clippy con `-D warnings`, con **1.851 s**
+y **1.592 s** de comando total. Incluyen cuatro vectores literales independientes
+`MEAS1`/`MDVAL1`, supervisión conocida/desconocida, longitud UTF-8, vínculo de
+cada campo, los catorce tipos y preservación literal de `MVAL1`. ASCII, límites
+de líneas, formato y espacios aprobaron. Un compilador y un worker, temporales
+en disco, sin servicios. No se repitieron las pruebas anteriores ni la campaña
+completa; pertenencia al expediente, soportes admitidos, anclas de audiencia,
+efectos y origen conjunto requieren las capas siguientes. No hay integración
+o despliegue de este bloque.
+
+## Soporte exacto de convocatorias cautelares: 4 de octubre de 2026
+
+La admisión exige un único documento cuya identidad, versión y digest coincidan
+con el soporte declarado. Delega descifrado, integridad, evidencia capturada y
+formato al procesador documental existente, en un solo lote acotado. Conserva
+referencia, nombre y formato detectado; la extensión del nombre no lo determina.
+La asociación del documento al expediente requiere comprobación independiente
+del almacén autorizado, pues el registro documental no contiene ese expediente.
+
+El target falló primero por ausencia de la función. Tras implementarla aprobaron
+**12/12 pruebas** y Clippy focal con `-D warnings`, en **4.164 s** y **3.025 s**
+de comando total, respectivamente. Dobles observables comprobaron el orden de
+validación, rechazo previo a criptografía de selecciones incorrectas, integridad
+aunque dos hashes declarados coincidan, evidencia sellada, nombres y tamaños,
+fallos de formato y cardinalidad, sin reintentos. Esta ejecución no sustituyó
+la futura aceptación con bibliotecas nativas. ASCII, tamaño, formato y espacios
+aprobaron. Un compilador y un worker, temporales en disco, sin servicios.
+No se repitieron suites anteriores ni se afirma integración o despliegue.
+
+## Participantes exactos de convocatorias cautelares: 4 de octubre de 2026
+
+El resolvedor acepta de cero a 32 referencias únicas y devuelve proyecciones
+ordenadas por identidad, calculadas desde sus revisiones históricas completas.
+Verifica expediente, identidad, revisión, digest de valores y sujeto exacto de
+participantes tipados. Conserva capturas archivadas para lectura histórica. No
+prueba acceso actual, cabezas vigentes, firmas de credenciales ni documentos
+admitidos; esas verificaciones pertenecen a la preparación y transacción futuras.
+
+TDD focal: el target falló por ausencia del resolvedor antes de implementarlo.
+Después aprobaron **14/14 pruebas**, sin omitidas, con **5.10 s** de compilación
+y **5.125 s** de comando total; ejecución inferior a la resolución de **0.01 s**
+de Cargo. Clippy focal aprobó con `-D warnings`: **2.94 s** de compilación y
+**2.990 s** de comando total. Se verificaron orden, límites, ambos tipos de
+participante, datos alterados, fuentes ajenas y vínculos incompatibles.
+ASCII, límite de líneas, formato y espacios aprobaron. Un compilador y un worker,
+temporales en disco, sin servicios ni repetición de las pruebas anteriores.
+La integración y el flujo completo permanecen pendientes.
+
+## Contexto e instrucciones cautelares: 4 de octubre de 2026
+
+La capa de aplicación valida el contexto completo de una convocatoria: la
+administración observada, la etapa y la administración exacta referenciada por
+esa etapa. Conserva valores, autores, tiempos y soportes históricos. Reconstruir
+un contexto de expediente cerrado no habilita mutaciones. Las instrucciones de
+alta, reemplazo y cancelación vinculan identidad y rol capturados, expediente,
+operación, convocatoria, revisión, captura anterior, contexto, valores y motivo.
+
+TDD focal: ambos targets fallaron primero por ausencia de los tipos requeridos.
+Tras implementarlos aprobaron **33/33 casos de contexto y 12/12 de instrucciones**,
+con **6.55 s** de compilación y **6.589 s** de comando total. Cargo reportó
+**0.01 s** para contexto y **0.00 s** para instrucciones. La batería conserva
+un vector literal de 242 bytes `PHTXN1` y mutaciones de campos; los casos de
+contexto prueban además que sus valores completos se codifiquen aun usando un
+doble de hash constante. Clippy de ambos targets aprobó con `-D warnings` en
+**5.94 s** de compilación y **5.992 s** de comando total. ASCII, tamaño de archivos,
+formato y espacios aprobaron. Se usó un compilador, un worker y temporales en
+disco, sin servicios nativos.
+
+La revisión independiente no detectó defectos de producción en este límite.
+Su observación sobre vectores `PCTX1` se resolvió con dos vectores literales
+independientes: contexto inicial de 398 bytes y transición a juicio de 729 bytes.
+Ambos aprobaron en una ejecución separada de **0.557 s** de comando total,
+sin repetir los 45 casos anteriores. Clippy del target actualizado aprobó
+en **0.282 s**. El total de este bloque es **47 casos nuevos aprobados**. No se repitieron las 21 pruebas de dominio anteriores,
+la campaña completa ni la cobertura. Los recibos de captura, autorización actual,
+admisión de fuentes, persistencia y flujo de interfaz siguen pendientes. El
+manuscrito conserva su contenido y PDF aceptados; se actualizará con la aceptación
+del flujo completo. Esta evidencia no equivale a integración ni despliegue.
+
+## Clasificación y vigencia declarada de medidas: 4 de octubre de 2026
+
+El segundo bloque local de la [familia cautelar](precautionary-hearings-scope.md)
+conserva las catorce clases declaradas y los componentes originales de inicio y
+fin. Un valor desconocido exige motivo; uno conocido no lo acepta. Un término
+ausente permanece distinto de un término desconocido. El orden se comprueba
+solo entre fechas civiles con el mismo desfase opcional, o entre minutos o
+segundos de igual precisión con ambos desfases explícitos. No se infiere zona,
+precisión faltante ni vigencia jurídica a partir del reloj.
+
+TDD focal: las pruebas fallaron primero por ausencia del módulo. Tras implementar
+los valores aprobaron **10/10**, con compilación de **2.31 s**, ejecución inferior
+a la resolución de **0.01 s** del resumen de Cargo y **2.340 s** de comando total.
+Incluyen tres vectores fijos `MVAL1`, mutaciones de sus campos, precisiones,
+desfases, motivos, catálogo y extremos comparables. Clippy del mismo target
+aprobó con `-D warnings`: **1.58 s** de compilación y **1.625 s** de comando total.
+Revisión independiente, formato, ASCII, tamaño de módulos y espacios aprobaron.
+Se utilizó un compilador,
+un worker y temporales en disco; no se levantaron servicios.
+
+Las once pruebas del bloque de convocatoria son evidencia anterior y no se
+repitieron. Tampoco se ejecutó una campaña completa, nueva cobertura o
+compilación del manuscrito. Estos valores aún no crean medidas, decisiones,
+recibos ni registros persistidos, y no acreditan aplicación, HTTP, Agenda,
+interfaz, restauración o integración de la familia cautelar.
+
+## Valores de convocatoria cautelar: 4 de octubre de 2026
+
+El primer bloque de dominio de la [familia cautelar](precautionary-hearings-scope.md)
+separa identidad de convocatoria, operación y medida. Distingue imposición sin
+objetivos de revisión y revisión con una a 32 referencias exactas; conserva
+hora/desfase, lugar, participantes, declaración, localizador y soporte.
+
+TDD focal: el target registrado falló primero porque faltaba el módulo de dominio.
+Después aprobó **11/11 pruebas**, con compilación de **2.27 s** y ejecución
+inferior a la resolución de **0.01 s** del resumen de Cargo; el comando completo
+duró **2.295 s**. Incluye un vector fijo `PHEAR1`, 19 mutaciones de valores,
+normalización de orden, duplicados, límites y revisiones inválidas por serde.
+Clippy del mismo target aprobó con `-D warnings` en **1.695 s** de comando total.
+Las fuentes y vectores históricos `HEAR1`, `RHEAR1` y `HRES1` conservaron sus
+huellas; no se repitieron sus suites. Revisión independiente, formato, ASCII,
+límite de líneas y espacios aprobaron. Un compilador y un worker, temporales en
+disco; sin servicios nativos. No acredita autorización por expediente, soporte
+admitido, transacciones, API, Agenda, interfaz ni restauración cautelar. No se
+ejecutó otra campaña completa o compilación del manuscrito, cuyas fuentes no
+cambiaron. La integración de este bloque sigue pendiente.
+
+Como base independiente, la confirmación natural de main `e9afef8` aprobó CI en
+**10m59s** y Web en **20m41s**. Sus artefactos conservan exactamente **3,926 Rust,
+651 casos de navegador con respuestas simuladas y 60 con servicios reales**;
+Rust mantiene dos pruebas explícitamente ignoradas. Todos los gates aplicables
+aprobaron, con cobertura **98%/95%/93%**. Los tres runners quedaron limpios.
+Estas cifras pertenecen al código integrado anterior al nuevo módulo cautelar.
 
 ## Aislamiento de pruebas de permisos SQL: 4 de octubre de 2026
 
@@ -8369,3 +9791,266 @@ El editor de Qadra, la conservación del borrador entre sesiones, la aceptación
 real con restauración y Agenda/Alertas, el manuscrito y los gates completos
 siguen pendientes de esta misma entrega. Este incremento no está integrado en
 main ni desplegado y no actualiza la cobertura global ni el PDF aceptado.
+
+Independent focused review of the supplied dependency inspector found no
+concrete defect; the original exact-closure behavior and capture formats remain
+unchanged. Durable mutation admission is still pending.
+
+The candidate owner limit is checked before copying its exact ancestor closure.
+The subsequent focused check repeated the same 30 service cases in 3.432 s and
+Clippy for that target passed in 4.028 s (3.98 s compilation); these are not
+additional unique cases. Independent service review found no concrete defect.
+
+
+## Persistencia de convocatorias cautelares de imposicion
+
+Comprobación local del 5 de octubre de 2026, todavía sin integración ni despliegue.
+El adaptador PostgreSQL implementa programación, reemplazo y cancelación de
+convocatorias `imposition` y la recuperación de sus capturas originales. Las
+convocatorias `review` siguen rechazadas hasta resolver historia durable real de
+medidas; esta comprobación no acredita el flujo completo de producto.
+
+- `precautionary_hearing_codec`: 16 pruebas aprobadas; 12.912 s incluyendo
+  compilación. Comprueban proyección estricta, bytes canónicos y límites.
+- `precautionary_hearing_backend`: 25 pruebas aprobadas, ninguna omitida;
+  183.08 s de pruebas y 197.259 s incluyendo preparación y compilación. PostgreSQL
+  nativo 16.15 se ejecutó en un clúster privado eliminado al terminar.
+- Clippy de ambos targets con advertencias como errores: aprobado en 18.61 s.
+  La advertencia de compatibilidad futura de `redis 0.25.4` permanece histórica.
+- Un compilador y un hilo de pruebas, con temporales en btrfs. No se repitió
+  la regresión completa de workspace ni las campañas ya confirmadas de main.
+
+Ocho regresiones se reprodujeron antes de corregir el producto: reloj no UTC en
+captura y lectura, reloj anterior a la captura en lectura y replay concurrente,
+selección histórica nueva de un participante archivado, reutilización de raíz
+perdida, truncamiento de sufijo y falsa página vacía tras pérdida de registros.
+Las pruebas conservan los eventos de auditoría durante las alteraciones y exigen
+rechazo sin nuevas filas o eventos. Dos ajustes adicionales corrigieron fixtures:
+la actualización de rol debe avanzar revisión/generación y la revocación de un
+permiso de tabla debe restaurar los permisos originales de columnas.
+
+También se comprobaron reconstrucción de prefijos, cierre administrativo,
+perfil histórico del autor, fuentes archivadas retenidas, aislamiento y
+reautorización, rollback de auditoría o captura, idempotencia de migración,
+mutaciones SQL directas y alteraciones de catálogo, triggers y privilegios.
+La revisión estática independiente no dejó hallazgos pendientes en este alcance.
+Los soportes cifrados y PostgreSQL son reales; la admisión de formato usa fixtures
+controlados. HTTP, parser nativo en aceptación integral, Agenda, alertas, Qadra,
+restauración completa y cierre documental siguen pendientes.
+
+
+## Reconstruccion estricta de valores de decisiones y medidas
+
+Comprobación focal local del 5 de octubre de 2026: `measure_decision_codec`
+aprobó 24 pruebas, ninguna omitida, en 0.12 s de ejecución y 14.81 s de
+compilación. Clippy del target aprobó en 5.21 s. La API ausente produjo el fallo
+inicial antes de implementar el codec. La revisión independiente de campos,
+normalización, orden y límites no dejó hallazgos.
+
+Los casos incluyen vectores independientes MDVAL1/MEAS1/MEFX1, catorce tipos de
+medida, todos los efectos declarados, las cuatro precisiones temporales con y
+sin offset, sustituciones múltiples, ausencia de cambios, supervisión conocida
+o desconocida y texto Unicode. Se comprobaron máximos canónicos de 16076 bytes
+para decisión, 20113 para medida y 645450 para 32 modificaciones. Diez casos
+negativos rechazan campos adicionales o ausentes, aliases, valores normalizados,
+identidades repetidas, orden alterado, cantidades agregadas mayores de 32,
+arrays sobredimensionados y bytes truncados o sobrantes. No se deduce de estos
+resultados existencia de fuentes, autoridad jurídica o persistencia completa.
+
+
+## Persistencia de decisiones cautelares independientes
+
+Comprobacion focal local del 5 de octubre de 2026: `measure_decision_backend`
+aprobo 23 pruebas, ninguna omitida, en 246.35 s de ejecucion y 249.967 s
+incluyendo preparacion y compilacion. PostgreSQL nativo 16.15 uso un cluster
+privado con SCRAM eliminado al terminar. Clippy del target aprobo con
+advertencias como errores en 6.57 s. Un compilador y un hilo de pruebas usaron
+temporales en btrfs; la advertencia futura de `redis 0.25.4` es preexistente.
+
+La API ausente produjo el fallo inicial antes de implementar el adaptador.
+Una prueba SQL independiente reprodujo la aceptacion de una captura anterior
+al origen de su etapa inicial cuando la administracion posterior tenia un
+reloj anterior. La guarda ahora compara tambien el instante exacto de esa
+administracion de origen, con nanosegundos. Su prueba negativa y control valido
+aprobaron antes de la campana final. La revision independiente posterior no
+dejo hallazgos en el alcance comprobado.
+
+La campana inicial obtuvo 19 aprobadas y un fallo de fixture: al restaurar un
+CHECK mediante SQL decompilado cambiaba su arbol de expresion. El fixture ahora
+restaura la expresion BETWEEN original; la igualdad estricta del catalogo se
+conserva. La comprobacion de arranque tambien se ajusto a la forma real del
+constraint trigger diferido observada en PostgreSQL, sin relajar sus guardas.
+
+Se comprobaron grupos de 32 imposiciones, decisiones sin filas de medidas,
+fuentes tipificadas exactas, paginacion, reapertura, replay original tras cierre
+y cambio del perfil del autor, aislamiento, roles y pertenencia vigente.
+Revocar una asignacion o alterar la procedencia del sujeto despues de admitir
+el soporte impide el commit completo. Los fallos inmediatos o diferidos de
+SQL revierten todas las filas y auditoria. Las lecturas y nuevas capturas
+rechazan fuentes, miembros, raices, decisiones o evidencia de origen perdidos,
+asi como relojes incompatibles y reutilizacion de identidades. Se conservaron
+las comprobaciones de alteracion de restricciones, funciones y privilegios.
+
+PostgreSQL y soportes cifrados son reales; la admision de formato usa fixtures
+controlados. Estos resultados no acreditan anclas, efectos sobre predecesores,
+historia mixta administrativa, Review durable, HTTP, Agenda, alertas, Qadra ni
+restauracion completa. La regresion global, el manuscrito de la entrega completa
+y su integracion conservan sus gates separados. No se repitieron las campanas
+historicas de codecs ni de main.
+
+
+## Historia PostgreSQL de decisiones cautelares con predecesores
+
+Verificacion focal local del 5 de octubre de 2026: el target
+`measure_decision_backend` aprobo sus 33 pruebas, ninguna omitida, en 372.63 s
+(396.439 s incluyendo compilacion y preparacion). Son las 23 comprobaciones
+previas del adaptador y diez nuevas de historia. PostgreSQL nativo 16.15 uso
+SCRAM en un cluster privado, eliminado al terminar. Un compilador y un hilo
+usaron temporales en btrfs. Clippy de biblioteca y target aprobo con advertencias
+como errores en 6.65 s; la advertencia futura de Redis es preexistente.
+
+Se comprobaron confirmacion, modificacion con soporte y supervisor reales,
+revocacion, cese y sustitucion de dos medidas por dos. Las raices conservan su
+propietario original; la reconstruccion incluye todos los hermanos y sus
+ancestros independientes. Lectura, reapertura y replay conservan bytes y origen
+anteriores tras agregar nuevas revisiones. La admision fresca rechaza una
+revision antigua, referencias falsas y grupos o ancestros perdidos, sin dejar
+filas ni auditoria parciales. Se conservaron permisos, rollback, catalogo estricto
+y las comprobaciones anteriores del reloj de origen de etapa.
+
+Antes de implementar, la confirmacion real fallo por efecto durable no soportado.
+Una regresion posterior reprodujo en 9.43 s un fallo de integridad: sustituir el
+resultado de una confirmacion por un resultado NoMeasureChange valido de otra
+operacion y eliminar su ultimo miembro podia habilitar una revision anterior.
+El inventario ahora vincula la solicitud completa al compromiso original retenido
+en la auditoria antes de confiar en sus miembros anunciados. La regresion paso
+en 9.66 s y nuevamente en la campana final; la revision independiente fue limpia.
+
+Cinco pruebas unitarias adicionales comprobaron reserva de la captura candidata
+antes de leer y reconstruir los propietarios: limites inclusivos de 256 grupos
+y 8192 miembros, decision sin miembros y contadores intactos tras rechazo.
+El fallo por API ausente se conservo antes de implementar la reserva. Esta prueba
+de frontera es unitaria; no acredita una campana PostgreSQL con 256 propietarios.
+La campana nativa si ejercito el camino nuevo de preparacion con grupos reales.
+
+Los soportes cifrados y PostgreSQL son reales; la admision de formato usa fixtures
+controlados. Dos ejecuciones intermedias no acreditan aceptacion: un filtro exacto
+no selecciono pruebas y un registro de modulo produjo un error de compilacion;
+ambos quedaron corregidos antes de la comprobacion final. No se repitieron codecs,
+las suites generales ni la evidencia confirmada de main. Persistencia con anclas,
+G2/M2 y registros administrativos, Review durable, API, Agenda, alertas, Qadra,
+restauracion, manuscrito e integracion siguen pendientes para la entrega completa.
+
+
+## Persistencia de revisiones cautelares con medidas exactas
+
+Comprobacion focal local del 5 de octubre de 2026: el nuevo target
+`precautionary_review_backend` aprobo 13 pruebas en 116.18 s y el target afectado
+`precautionary_hearing_backend` conservo sus 25 pruebas, aprobadas en 179.56 s.
+La campana conjunta tardo 300.281 s incluyendo preparacion y compilacion.
+El cargador compartido tambien conservo las 33 identidades de pruebas de
+`measure_decision_backend`, todas aprobadas en 298.90 s, 303.531 s con preparacion.
+Clippy de la biblioteca y los tres targets aprobo con advertencias como errores
+en 7.03 s. La advertencia futura de `redis 0.25.4` es preexistente.
+Las 71 pruebas usaron PostgreSQL nativo 16.15, SCRAM y clusters privados retirados
+al terminar; ninguna fue omitida. Un compilador y un hilo usaron temporales btrfs.
+
+La prueba inicial reprodujo el rechazo de Review por falta de historia durable.
+Los casos positivos ahora comprueban programacion, reemplazo, cancelacion,
+consulta historica y replay exacto sobre grupos reales. Incluyen revisiones
+antiguas de una medida, objetivos terminales y hermanos con ancestros propios.
+La historia devuelta conserva el cierre del prefijo seleccionado y excluye
+capturas posteriores ajenas; los bytes originales de la audiencia no cambian.
+Los negativos rechazan referencias de otro expediente, digests contradictorios,
+ancestros ausentes o alterados, perdida de un hermano durante la admision y
+corrupcion posterior de fuentes, sin escrituras parciales de audiencia o auditoria.
+
+Tres regresiones SQL fallaron antes de corregir sus guardas: una captura anterior
+al origen de su etapa inicial tras una administracion retrodatada, y reemplazo
+o cancelacion con un reloj administrativo observado menor al del predecesor.
+La primera fallo en 4.25 s; las otras dos en 15.10 s y aprobaron juntas en
+15.98 s tras la correccion. Los controles de insercion valida y los recibos
+recalculados impiden confundir esos fallos con restricciones ajenas al reloj.
+La revision independiente de carga, cierres, fixtures y SQL no dejo hallazgos.
+
+Los documentos cifrados, participantes tipificados y transacciones son reales;
+la admision de formato usa fixtures controlados. No se ejecuto una historia
+nativa de tamano maximo 256/8192. Un intento intermedio no compilo por usar un
+metodo privado; otro fallo al preparar una alteracion que la propia restriccion
+SQL de hash rechazaba. Ambos se corrigieron antes de las campanas finales.
+No se repitieron codecs, pruebas generales ni evidencia confirmada de main.
+Anclas, G2/M2, registros administrativos durables, HTTP, Agenda, alertas, Qadra,
+restauracion, manuscrito e integracion siguen pendientes del flujo completo.
+
+
+## Reemplazo administrativo atomico de medidas: 5 de octubre de 2026
+
+La extension permite marcar una captura erronea y crear una identidad de medida
+con otro sujeto exacto en la misma transaccion. Conserva los terminos, la fuente
+judicial original y el supervisor; el enlace administrativo identifica ambas
+filas aunque su orden por UUID coloque primero el reemplazo. No constituye una
+sustitucion judicial ni calcula efectos juridicos.
+
+La verificacion focal nueva aprobo 11 pruebas de modelo y siete de servicio.
+La regresion de aplicacion afectada conserva 308 identidades: 27 consultas
+aprobaron inicialmente, una expectativa de codificacion cruda se corrigio y
+aprobo de forma aislada, y las otras 280 aprobaron en 22.909 s. La forma exacta
+de cada propietario sigue comprobada antes del hash y de reconstruir evidencia.
+Los vectores anteriores de Correct y Mark conservaron sus bytes.
+
+Diez pruebas nativas usaron PostgreSQL 16.15 con autenticacion SCRAM y fuentes
+reales; dos aprobaron en el primer recorrido y las ocho restantes aprobaron
+despues de corregir el limite del nombre de accion de 23 a 24 bytes. La union
+conserva las diez identidades, sin contar intentos fallidos como aprobaciones.
+Cubren dos filas y una raiz atomicas, enlace por funcion, sujeto seleccionado,
+reapertura y replay, origen G1/C/G2, consumo posterior por G2 y Review, rechazo
+de evidencia perdida, revocacion de membresia y rollback ante fallo de auditoria.
+El control SQL directo exige ambas filas y la raiz correcta. La admision de
+formato documental usa un puerto controlado; no es aceptacion del parser nativo
+ni de HTTP. Cada cluster desechable propio se elimino al terminar.
+
+La primera verificacion detecto errores de sintaxis CASE en PL/pgSQL y de
+representacion exacta de una restriccion de catalogo, ademas de dos supuestos
+obsoletos en fixtures sobre candidatos y orden de filas. Los diagnosticos se
+conservaron y las correcciones se comprobaron con los casos afectados. Los
+16 casos de grafo aprobaron en 11.320 s. Clippy de aplicacion aprobo en 1.541 s
+tras eliminar un atributo duplicado de prueba; Clippy de infraestructura y los
+nueve objetivos afectados aprobo en 16.093 s. Una revision independiente de
+propiedad atomica, fuentes, relojes, inventario, recuperacion y limites no encontro
+hallazgos. La regresion nativa afectada esta en curso y no se presenta como
+aprobada. HTTP, Agenda, alertas, Qadra, aceptacion integral de reinicio y
+restauracion, manuscrito y controles completos de cierre siguen pendientes.
+
+En la regresión de los adaptadores afectados, cuarenta casos administrativos
+pasaron y uno detectó una referencia SQL fuera de alcance al reconstruir los
+participantes de una audiencia histórica. La migración siguiente corrige ambas
+consultas para usar la revisión seleccionada por el bucle de participantes.
+El caso afectado pasó después en PostgreSQL nativo (10.62 s), conservando las
+fuentes originales tras cambios del directorio y de la audiencia. Los demás
+adaptadores afectados siguen en verificación; no se declara una campaña global.
+
+### Contexto y convocatorias cautelares por HTTP: 5 de octubre de 2026
+
+Las catorce pruebas de rutas con puertos controlados pasaron: doce casos iniciales
+y dos regresiones que primero reprodujeron la exposición de un prefijo superior
+a 256 revisiones o con una captura intermedia de otro expediente/audiencia.
+El transporte conserva el comando normalizado, los dos digests de confirmación,
+las fuentes originales, la precisión temporal y la evidencia completa G1/G2/A.
+También permite recuperar operaciones y consultar revisiones históricas sin
+inferir elegibilidad para nuevas modificaciones.
+
+Tres pruebas de composición fallaron antes de conectar las rutas y pasaron
+tras compartir la admisión y el presupuesto de trabajo existentes. Comprueban
+sesión, denegación de acceso, ausencia de caché y espera por el mismo presupuesto
+bloqueante. Los cuatro casos del mapper de errores pasaron; las inconsistencias
+almacenadas conservan el error genérico. Clippy focal para la biblioteca web,
+los tres objetivos HTTP afectados y el ejecutable pasó con advertencias del
+proyecto tratadas como errores (30.682 s). La advertencia futura de la dependencia
+Redis es histórica y no representa una prueba de compatibilidad futura.
+
+La composición usa un almacén PostgreSQL compartido para contexto, comandos y
+lecturas cautelares, con la identidad y la admisión documental existentes.
+Estas comprobaciones de transporte no sustituyen la aceptación HTTP nativa,
+el recorrido completo de medidas, Agenda, alertas, Qadra, restauración, manuscrito
+ni los gates de cierre. La revisión adicional de límites de proyección de pruebas
+históricas sigue en curso.

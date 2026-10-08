@@ -18,6 +18,7 @@ impl Header {
             0 => AgendaItemKind::Hearing,
             1 => AgendaItemKind::Deadline,
             2 => AgendaItemKind::ResourceHearing,
+            3 => AgendaItemKind::PrecautionaryHearing,
             _ => return Err(inconsistent("unknown agenda candidate kind")),
         };
         let seconds: i64 = row.try_get("seconds").map_err(inconsistent)?;
@@ -47,5 +48,6 @@ pub(super) const fn kind_rank(kind: AgendaItemKind) -> i16 {
         AgendaItemKind::Hearing => 0,
         AgendaItemKind::Deadline => 1,
         AgendaItemKind::ResourceHearing => 2,
+        AgendaItemKind::PrecautionaryHearing => 3,
     }
 }

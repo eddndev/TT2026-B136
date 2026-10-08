@@ -2,7 +2,8 @@
 
 ## Estado y alcance
 
-Implementación local en curso, aún no integrada ni desplegada. El dominio,
+El flujo está integrado y su confirmación natural en main está acreditada en
+el informe de verificación. No acredita despliegue. El dominio,
 `ResourceHearingService` y `PostgresResourceHearingStore` preparan, confirman y
 recuperan la audiencia con su asociación inicial y origen durable. La migración
 `0030_` y el inventario estricto están implementados. La API genérica de
@@ -17,11 +18,12 @@ la tarjeta y una lectura exacta histórica dentro de Agenda. Qadra incorpora tam
 la recuperación del envío incierto. Las alertas de proximidad propias tienen
 implementación local, con origen R1, preferencias de audiencias y panel histórico
 verificado; véase [su contrato](resource-hearing-alerts.md). La captura propia y su restauración HTTP tienen aceptación focal local, y el
-navegador real pasó en escritorio y móvil. El informe distingue el ajuste posterior
-del scheduler y los gates globales todavía pendientes. Las pruebas
+navegador real pasó en escritorio y móvil. El informe conserva el ajuste posterior
+del scheduler y los gates globales aprobados para la integración. Las pruebas
 focales anteriores y las nuevas lecturas de aplicación y PostgreSQL indicadas
 al final están aprobadas, incluido el rechazo tipado de evidencia persistida
-incompleta, las rutas propias y su composición. No se atribuyen CI global del conjunto, integración en main ni despliegue.
+incompleta, las rutas propias y su composición. Las campañas focales no se confunden con los gates de integración; ninguno
+de esos resultados acredita despliegue.
 
 La decisión está en [ADR-0069](adr/0069-resource-hearing-scheduling.md). Este
 contrato complementa los [recursos](procedural-resources-api.md) y sus

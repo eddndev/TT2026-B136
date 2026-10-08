@@ -8,6 +8,9 @@ use thiserror::Error;
 /// detail for a caller to report the cause without inspecting internals.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("invalid precautionary measure {0}")]
+    InvalidPrecautionaryMeasure(&'static str),
+
     #[error("invalid procedural resource {0}")]
     InvalidProceduralResource(&'static str),
 

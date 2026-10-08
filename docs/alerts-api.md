@@ -4,10 +4,12 @@ El router HTTP y Qadra implementan preferencias personales, consulta de bandeja,
 detalle y lectura explícita. `web::api_router` reúne las rutas sobre
 `AlertWorkflow` con el presupuesto HTTP compartido; `web::alert_router` conserva
 el router aislado. `serve` comparte un `PostgresAlertStore` entre el servicio,
-el generador periódico y el consumidor de correo. La composición conserva
-su aceptación integrada pendiente.
-Las pruebas del cliente y del navegador con HTTP controlado no acreditan ese
-recorrido real. La decisión está en
+el generador periódico y el consumidor de correo. La composición existente
+conserva su aceptación integrada. La ampliación cautelar tiene verificación focal
+y recorridos de escritorio y móvil con servicios reales aprobados.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+La decisión está en
 [ADR-0039](adr/0039-durable-activity-alerts.md).
 
 ## Acceso y alcance
@@ -142,7 +144,7 @@ Cada objeto `alert` contiene:
 | Campo | Contenido |
 | --- | --- |
 | `id`, `recipient_id`, `occurrence_id` | Identidad de alerta, cuenta destinataria y ocurrencia. |
-| `subject` | `{kind,case_id,id}` para `hearing` o `deadline`; `resource_hearing` añade `resource_id` obligatorio. |
+| `subject` | `{kind,case_id,id}` para `hearing`, `deadline` o `precautionary_hearing`; `resource_hearing` añade `resource_id` obligatorio. |
 | `subject_title`, `case_title`, `case_reference` | Contexto capturado; límites de 200, 200 y 100 escalares Unicode. Texto no vacío, sin controles y sin espacios sobrantes en los extremos. |
 | `kind` | Uno de los cuatro motivos descritos abajo. |
 | `origin` | `{revision,evidence_digest}`; revisión exacta y SHA-256 hexadecimal minúscula de 64 caracteres. |
@@ -158,9 +160,23 @@ Cada objeto `alert` contiene:
 | `review_required` | Ninguna fecha: revisión humana requerida de un plazo. |
 | `due_changed_soon` | `previous_due_at`, `current_due_at`: transición comprobada de fecha próxima de un plazo. |
 
-Sólo `upcoming` admite audiencias ordinarias y propias de recursos. Estas últimas
-conservan origen R1 y `capture_digest`, y usan las preferencias `hearing_upcoming`.
-El contrato de su ampliación local está en [alertas de audiencias de recursos](resource-hearing-alerts.md).
+Sólo `upcoming` admite audiencias ordinarias, propias de recursos y cautelares.
+Las de recursos conservan origen R1 y `capture_digest`; las cautelares conservan
+la revisión positiva y `capture_digest` exactos que originaron el aviso. Ambas
+usan las preferencias `hearing_upcoming` y los destinatarios asignados existentes.
+Las [alertas de audiencias de recursos](resource-hearing-alerts.md) están integradas.
+
+La conexión cautelar local invalida el estado junto con programar, reemplazar o
+cancelar una convocatoria, en la misma transacción. Un replay exacto no incrementa
+la generación. Reprogramar o cancelar conserva los avisos históricos y su origen;
+el mismo horario no vuelve a generar un aviso ya activado. El escaneo incorpora
+raíces no observadas en sus ciclos periódicos. Una medida individual no es un
+sujeto de alerta, y vincular una decisión a una inicial conserva aquella audiencia.
+La migración aditiva `0042_precautionary_hearing_alerts.sql` admite la familia tres
+sin crear tablas ni preferencias. El detalle cautelar de Qadra está implementado.
+El recorrido real de generación, origen exacto y lectura aprobó en escritorio y móvil.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
 
  Las fechas y la evidencia pertenecen a la
 generación del aviso; `active`, `accepted` en correo y un título capturado no

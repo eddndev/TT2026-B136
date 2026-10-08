@@ -5,6 +5,7 @@
   import CaseFacts from './CaseFacts.svelte';
   import CaseResources from './CaseResources.svelte';
   import CaseDeadlines from './CaseDeadlines.svelte';
+  import CaseMeasures from './CaseMeasures.svelte';
   import CaseHearings from './CaseHearings.svelte';
   import CaseContext from './CaseContext.svelte';
   import CaseAdministration from './CaseAdministration.svelte';
@@ -143,6 +144,12 @@
       intent={hearingIntent}
       onintent={onhearingintent}
       {onresource}
+    />
+  {:else if view === 'case-measures' && staff}<CaseMeasures
+      {api}
+      {user}
+      record={current}
+      ondenied={deny}
     />
   {:else if view === 'resolutions' && staff}<CaseFacts
       {api}

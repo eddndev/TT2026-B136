@@ -229,3 +229,13 @@ con servidor real aprobó 25 escenarios, incluidos dos de seguimiento en
 escritorio y móvil. La regresión local se interrumpió antes de completar la
 serie; el cierre mediante CI está en curso. La repetición final de la campaña
 API terminó satisfactoriamente con el guion corregido. Las alertas mantienen un alcance independiente pendiente.
+
+
+El cierre cautelar del 5 de octubre de 2026 incorpora el catálogo finito de siete
+familias y los recorridos de convocatoria, decisión y rectificación, con Agenda,
+alertas, recuperación y aceptación real de navegador y API/restauración. La copia
+separada del manuscrito compiló y se inspeccionó visualmente: 396 páginas,
+6024968 bytes, SHA-256
+`7d015756926912fe9e2a8fa197239874c7f48cadca1ce5ca613eddc5adb3aaf4`.
+Los PDF aceptados se conservaron. Los detalles de entorno, páginas inspeccionadas
+y límites están en [la verificación académica](../docs/academic-report-verification.md).

@@ -17,6 +17,7 @@ import {
 } from '../fixtures/hearings.mjs';
 import { installResultDraftRoutes } from './session-result-draft-fixtures.mjs';
 import { createHearingDraftIo } from './session-hearing-draft-io.mjs';
+import { precautionaryBrowserRecord } from '../fixtures/precautionary-hearing-browser.mjs';
 
 export { casePath, hearingId, participant };
 export const hearingsPath = `/api/v1/cases/${caseId}/hearings`;
@@ -69,6 +70,34 @@ export async function hearingDraftSetup(
     state.results.set(row.id, [...(state.results.get(row.id) || []), structuredClone(row)]);
   states.set(page, state);
   const { authorize, reply, fail, unexpected, wait } = createHearingDraftIo(state);
+  const precautionaryContextPath = `/api/v1/cases/${caseId}/precautionary-context`;
+  const precautionaryListPath = `/api/v1/cases/${caseId}/precautionary-hearings`;
+  await page.route(
+    (url) => [precautionaryContextPath, precautionaryListPath].includes(url.pathname),
+    async (route) => {
+      const call = await authorize(route);
+      if (!call) return;
+      const isContext = call.path === precautionaryContextPath;
+      if (
+        call.method !== 'GET' ||
+        call.body !== null ||
+        call.search !== (isContext ? '' : '?limit=10')
+      )
+        return unexpected(route, call);
+      const context = precautionaryBrowserRecord(caseId).capture.review.observed_context;
+      context.administration.revision = state.caseRevision;
+      context.administration.administrative_status = state.caseStatus;
+      context.stage.stage = state.hearingContext.stage;
+      context.stage.stage_revision = state.hearingContext.stage_revision;
+      context.expectation.administration_revision = state.caseRevision;
+      context.expectation.stage_revision = state.hearingContext.stage_revision;
+      await wait(call);
+      return reply(
+        route,
+        isContext ? context : { case_id: caseId, items: [], has_more: false, next_after_id: null },
+      );
+    },
+  );
   state.hearingPrepare = (command) => {
     const prepared = hearingPrepared(command),
       previous = state.hearings.get(command.hearing_id)?.at(-1);

@@ -30,6 +30,7 @@ mod serve_owner_login_config;
 mod serve_password_reset_composition;
 mod serve_password_reset_config;
 mod serve_password_reset_runtime;
+mod serve_precautionary;
 mod serve_report_composition;
 mod serve_report_runtime;
 mod serve_resource_activities;

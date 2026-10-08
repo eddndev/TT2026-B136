@@ -22,6 +22,9 @@ source "$REPO_ROOT/scripts/api-deadline-reevaluation-demo.sh"
 # shellcheck source=scripts/api-hearing-derived-deadline-demo.sh
 source "$REPO_ROOT/scripts/api-hearing-derived-deadline-demo.sh"
 
+# shellcheck source=scripts/api-precautionary-demo.sh
+source "$REPO_ROOT/scripts/api-precautionary-demo.sh"
+
 # shellcheck source=scripts/api-identity-restore.sh
 source "$REPO_ROOT/scripts/api-identity-restore.sh"
 
@@ -211,6 +214,7 @@ PY
   agenda_demo
   resource_activities_demo
   hearing_derived_deadline_demo capture "$imported_url"
+  precautionary_demo capture
   deadline_worker_demo "$runtime_url" "$legacy_dir"
   hearing_derived_deadline_demo verify "$imported_url"
   alert_demo
@@ -269,6 +273,7 @@ PY
   agenda_demo
   resource_activities_demo_restored
   hearing_derived_deadline_demo restore "$restored_url"
+  precautionary_demo restore
   deadline_worker_demo_python verify
   alert_demo_restored
   document_content_demo_restored

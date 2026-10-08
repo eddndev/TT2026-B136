@@ -1,6 +1,7 @@
 <script>
   import { getContext, onMount, onDestroy } from 'svelte';
   import { pendingHearingDrafts } from '../lib/hearing-draft.mjs';
+  import CasePrecautionaryHearings from './CasePrecautionaryHearings.svelte';
   import ActivityResources from './ActivityResources.svelte';
   import HearingList from './HearingList.svelte';
   import HearingDetail from './HearingDetail.svelte';
@@ -42,6 +43,7 @@
     opening = false,
     editorBusy = false,
     resultBusy = false,
+    precautionaryBusy = false,
     resultIntent = null,
     alive = true;
   let listGeneration = 0,
@@ -51,7 +53,7 @@
     detailView,
     consumed,
     initialized = false;
-  $: locked = busy || opening || editorBusy || resultBusy || !!action;
+  $: locked = busy || opening || editorBusy || resultBusy || precautionaryBusy || !!action;
   $: manage =
     canHearings(user.role, 'manage') &&
     !$administration.closed &&
@@ -332,7 +334,7 @@
       hearing={selected}
       canManage={canHearings(user.role, 'manage')}
       ondenied={deny}
-      disabled={busy || opening || editorBusy || !!action}
+      disabled={busy || opening || editorBusy || precautionaryBusy || !!action}
       bind:pending={resultBusy}
       intent={resultIntent}
       onintent={() => (resultIntent = null)}
@@ -341,4 +343,12 @@
         open(id, revision ?? undefined);
       }}
     />{/key}{/if}
+<CasePrecautionaryHearings
+  {api}
+  {user}
+  {record}
+  ondenied={deny}
+  disabled={busy || opening || editorBusy || resultBusy || !!action}
+  bind:pending={precautionaryBusy}
+/>
 <button class="text-button" onclick={() => onnavigate('agenda')}>Ir a Agenda</button>

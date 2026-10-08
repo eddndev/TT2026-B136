@@ -3,6 +3,7 @@
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
   import { agendaRecord } from './agenda-presentation.mjs';
   import { resourceHearingKinds } from '../lib/resource-hearing-values.mjs';
+  import { precautionaryHearingPurposes } from '../lib/precautionary-hearing-presentation.mjs';
   export let item,
     offset = '+00:00',
     onselect,
@@ -11,16 +12,25 @@
   $: record = agendaRecord(item);
   $: hearing = item.kind === 'hearing';
   $: resourceHearing = item.kind === 'resource_hearing';
-  $: label = resourceHearing ? 'Audiencia de recurso' : hearing ? 'Audiencia' : 'Plazo';
+  $: precautionary = item.kind === 'precautionary_hearing';
+  $: label = precautionary
+    ? 'Audiencia cautelar'
+    : resourceHearing
+      ? 'Audiencia de recurso'
+      : hearing
+        ? 'Audiencia'
+        : 'Plazo';
   $: context = hearing ? record : item;
   $: minutes =
     (Number(offset.slice(1, 3)) * 60 + Number(offset.slice(4))) * (offset[0] === '-' ? -1 : 1);
   $: projected = deadlineInstantLabel({ ...item.at, offset_seconds: minutes * 60 });
-  $: title = resourceHearing
-    ? resourceHearingKinds[record.kind]
-    : hearing
-      ? hearingKinds[record.kind]?.label || record.kind
-      : record.title;
+  $: title = precautionary
+    ? precautionaryHearingPurposes[record.purpose]
+    : resourceHearing
+      ? resourceHearingKinds[record.kind]
+      : hearing
+        ? hearingKinds[record.kind]?.label || record.kind
+        : record.title;
   $: compactTime = projected.split(' ')[1].replace(/\.0{9}$/, '');
   $: descriptionId = `agenda-${item.kind}-${record.id}-description`;
 </script>
@@ -45,16 +55,18 @@
       class="agenda-item-case agenda-item-reference"
       title={`${context.case_title} / ${context.case_reference}`}>{context.case_reference}</span
     >
-    {#if hearing && record.status === 'cancelled'}
+    {#if (hearing || precautionary) && record.status === 'cancelled'}
       <small class="agenda-item-state">Cancelada</small>
     {/if}
   {:else}
     <strong>{title}</strong>
     <span class="agenda-item-time"
-      >{hearing || resourceHearing ? 'Hora en la agenda' : 'Vencimiento operativo'}: {projected}</span
+      >{hearing || resourceHearing || precautionary
+        ? 'Hora en la agenda'
+        : 'Vencimiento operativo'}: {projected}</span
     >
     <span class="agenda-item-case">{context.case_title} / {context.case_reference}</span>
-    {#if hearing}
+    {#if hearing || precautionary}
       <small>{hearingStatus[record.status]} / {hearingTimeLabel(record.scheduled_at)}</small>
     {:else if resourceHearing}
       <small>Horario declarado / {hearingTimeLabel(record.scheduled_at)}</small>
@@ -69,7 +81,7 @@
   {#if compact}
     <span class="sr-only" id={descriptionId}>
       {title}. {projected}. {context.case_title} / {context.case_reference}. Revisi&#243;n {record.revision}.
-      {#if hearing}{hearingStatus[record.status]}.{/if}
+      {#if hearing || precautionary}{hearingStatus[record.status]}.{/if}
     </span>
   {/if}
 </button>

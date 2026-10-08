@@ -34,8 +34,9 @@ La [API de informes de expedientes](case-reports-api.md) define solicitudes
 durables propias para Owner y Litigator, una captura administrativa compartida por
 PDF y CSV, y avisos internos de lectura explícita. El servidor compone su consumidor
 supervisado y un selector paginado de litigantes con el alcance propio del informe,
-incluidos colegas de expedientes cerrados. La aceptación integrada y el cierre
-global siguen pendientes. El intervalo filtra fechas de creación y la captura
+incluidos colegas de expedientes cerrados. Los informes de estado/carga y su
+recuperación están integrados; el informe restante tiene el límite explícito de
+[cierre técnico](technical-closure.md). El intervalo filtra fechas de creación y la captura
 observa el estado actual; no representa efectividad histórica ni constancia externa.
 
 La [API de contenido documental e incidentes](document-content-api.md) añade
@@ -51,8 +52,15 @@ Las [audiencias propias de recursos](resource-hearings.md) incorporan preparaci�
 confirmación explícita, listado paginado y lectura histórica bajo cada recurso.
 Se componen en `serve` con el presupuesto compartido. Su consulta de agenda añade
 la familia `resource_hearing`, con origen verificado, filtro propio y continuación
-compatible. Alertas, Qadra y aceptación integrada propia siguen pendientes.
-La verificación focal no equivale a integración o despliegue.
+compatible. Alertas, Qadra y aceptación integrada propia forman parte del
+recorrido ya integrado en main, delimitado en [los cuatro frentes](four-front-closure.md).
+La [API de audiencias cautelares](precautionary-hearings-api.md) permite observar
+el contexto, preparar y confirmar convocatorias, reemplazarlas, cancelarlas y
+recuperar su evidencia exacta. Comparte el presupuesto de trabajo y la admisión
+HTTP del servidor. El flujo de medidas, Agenda, alertas y Qadra está implementado
+y aprobó navegador real y API con reinicios/restauración. El manuscrito separado
+está verificado; los gates de integración conservan su seguimiento en el
+[informe de verificación](verification-report.md).
 La [agenda combinada](agenda-api.md) reúne audiencias y vencimientos operativos
 mediante `GET /api/v1/agenda`, con autorización y observación comunes por página.
 La [API de sesiones y resultados declarados](hearing-results-api.md) añade
@@ -1195,3 +1203,12 @@ case_backends`. Una ejecución directa de Cargo sin
 `IDENTITY_TEST_DATABASE_URL`, `IDENTITY_TEST_REDIS_URL`,
 `CASE_TEST_DATABASE_URL` y `DOCUMENT_TEST_DATABASE_URL` omite las pruebas de
 los servicios cuyas variables falten.
+
+
+## Decisiones cautelares declaradas
+
+El [contrato de decisiones](measure-decisions-api.md) describe preparación,
+confirmación, consulta y recuperación de los grupos originales. Se complementa
+con [convocatorias](precautionary-hearings-api.md) y
+[rectificaciones y registros](measure-records-api.md). La aceptación completa
+permanece delimitada por [los cuatro frentes](four-front-closure.md).

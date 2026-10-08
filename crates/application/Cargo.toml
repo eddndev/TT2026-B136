@@ -6,103 +6,79 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-
 [dependencies]
 domain = { path = "../domain" }
 thiserror.workspace = true
 zeroize.workspace = true
 serde.workspace = true
 time = { workspace = true, features = ["parsing"] }
-
 [dev-dependencies]
 mockall.workspace = true
 uuid.workspace = true
 serde_json.workspace = true
-
 [[test]]
 name = "agenda_suite_1"
 path = "tests/suites/agenda_suite_1.rs"
-
 [[test]]
 name = "alert_suite_1"
 path = "tests/suites/alert_suite_1.rs"
-
 [[test]]
 name = "case_document_metadata"
 path = "tests/case_document_metadata.rs"
-
 [[test]]
 name = "case_document_queries"
 path = "tests/case_document_queries.rs"
-
 [[test]]
 name = "case_document_version_actions"
 path = "tests/case_document_version_actions.rs"
-
 [[test]]
 name = "case_document_versions"
 path = "tests/case_document_versions.rs"
-
 [[test]]
 name = "case_document_workflow"
 path = "tests/case_document_workflow.rs"
-
 [[test]]
 name = "document_upload_admission"
 path = "tests/document_upload_admission.rs"
-
 [[test]]
 name = "case_stage_boundaries"
 path = "tests/case_stage_boundaries.rs"
-
 [[test]]
 name = "case_stage_failures"
 path = "tests/case_stage_failures.rs"
-
 [[test]]
 name = "case_stage_workflow"
 path = "tests/case_stage_workflow.rs"
-
 [[test]]
 name = "case_suite_1"
 path = "tests/suites/case_suite_1.rs"
-
 [[test]]
 name = "classified_document_upload"
 path = "tests/classified_document_upload.rs"
-
 [[test]]
 name = "deadline_checked_trigger"
 path = "tests/deadline_checked_trigger.rs"
-
 [[test]]
 name = "deadline_evaluation_input_encoding"
 path = "tests/deadline_evaluation_input_encoding.rs"
-
 [[test]]
 name = "deadline_input_encoding"
 path = "tests/deadline_input_encoding.rs"
-
 [[test]]
 name = "deadline_input_heads"
 path = "tests/deadline_input_heads.rs"
-
 [[test]]
 name = "deadline_input_material"
 path = "tests/deadline_input_material.rs"
-
 [[test]]
 name = "deadline_profile_definition"
 path = "tests/deadline_profile_definition.rs"
-
 [[test]]
 name = "deadline_profile_encoding"
 path = "tests/deadline_profile_encoding.rs"
-
 [[test]]
 name = "deadline_service"
 path = "tests/deadline_service.rs"
-
 [[test]]
 name = "deadline_service_administration"
 path = "tests/deadline_service_administration.rs"
@@ -298,3 +274,147 @@ path = "tests/resource_hearing_service.rs"
 [[test]]
 name = "resource_hearing_reads"
 path = "tests/resource_hearing_reads.rs"
+
+[[test]]
+name = "precautionary_context"
+path = "tests/precautionary_context.rs"
+
+[[test]]
+name = "precautionary_commands"
+path = "tests/precautionary_commands.rs"
+
+[[test]]
+name = "precautionary_participants"
+path = "tests/precautionary_participants.rs"
+
+[[test]]
+name = "precautionary_support"
+path = "tests/precautionary_support.rs"
+
+[[test]]
+name = "precautionary_receipts"
+path = "tests/precautionary_receipts.rs"
+
+[[test]]
+name = "precautionary_history"
+path = "tests/precautionary_history.rs"
+
+[[test]]
+name = "measure_decision_support"
+path = "tests/measure_decision_support.rs"
+
+[[test]]
+name = "measure_sources"
+path = "tests/measure_sources.rs"
+
+[[test]]
+name = "measure_decisions"
+path = "tests/measure_decisions.rs"
+
+[[test]]
+name = "measure_decision_vectors"
+path = "tests/measure_decision_vectors.rs"
+
+[[test]]
+name = "measure_history"
+path = "tests/measure_history.rs"
+
+[[test]]
+name = "measure_decision_effects"
+path = "tests/measure_decision_effects.rs"
+
+[[test]]
+name = "measure_effect_vectors"
+path = "tests/measure_effect_vectors.rs"
+[[test]]
+name = "precautionary_review_hearings"
+path = "tests/precautionary_review_hearings.rs"
+[[test]]
+name = "measure_decision_anchors"
+path = "tests/measure_decision_anchors.rs"
+[[test]]
+name = "measure_anchor_vectors"
+path = "tests/measure_anchor_vectors.rs"
+[[test]]
+name = "precautionary_workflow"
+path = "tests/precautionary_workflow.rs"
+[[test]]
+name = "precautionary_reads"
+path = "tests/precautionary_reads.rs"
+[[test]]
+name = "measure_decision_workflow"
+path = "tests/measure_decision_workflow.rs"
+[[test]]
+name = "measure_decision_reads"
+path = "tests/measure_decision_reads.rs"
+[[test]]
+name = "measure_correction_captures"
+path = "tests/measure_correction_captures.rs"
+[[test]]
+name = "measure_correction_vectors"
+path = "tests/measure_correction_vectors.rs"
+[[test]]
+name = "measure_record_history"
+path = "tests/measure_record_history.rs"
+[[test]]
+name = "measure_record_validity"
+path = "tests/measure_record_validity.rs"
+[[test]]
+name = "precautionary_record_reviews"
+path = "tests/precautionary_record_reviews.rs"
+
+[[test]]
+name = "measure_record_decisions"
+path = "tests/measure_record_decisions.rs"
+
+[[test]]
+name = "precautionary_decision_reviews"
+path = "tests/precautionary_decision_reviews.rs"
+
+[[test]]
+name = "measure_dependencies"
+path = "tests/measure_dependencies.rs"
+
+[[test]]
+name = "measure_administrative_workflow"
+path = "tests/measure_administrative_workflow.rs"
+
+[[test]]
+name = "measure_dependency_inventory"
+path = "tests/measure_dependency_inventory.rs"
+
+[[test]]
+name = "measure_administrative_reads"
+path = "tests/measure_administrative_reads.rs"
+
+[[test]]
+name = "precautionary_hearing_record_workflow"
+path = "tests/precautionary_hearing_record_workflow.rs"
+
+[[test]]
+name = "measure_decision_record_workflow"
+path = "tests/measure_decision_record_workflow.rs"
+
+[[test]]
+name = "measure_record_reads"
+path = "tests/measure_record_reads.rs"
+
+[[test]]
+name = "measure_decision_record_reads"
+path = "tests/measure_decision_record_reads.rs"
+
+[[test]]
+name = "precautionary_hearing_record_reads"
+path = "tests/precautionary_hearing_record_reads.rs"
+
+[[test]]
+name = "precautionary_context_reads"
+path = "tests/precautionary_context_reads.rs"
+
+[[test]]
+name = "measure_administrative_replacements"
+path = "tests/measure_administrative_replacements.rs"
+
+[[test]]
+name = "measure_administrative_replacement_workflow"
+path = "tests/measure_administrative_replacement_workflow.rs"

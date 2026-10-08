@@ -196,6 +196,300 @@ del consumidor conservan el cursor y los recibos sin duplicar avisos. Esta
 ampliación local aún necesita aceptación propia de respaldo/restauración y cierre
 de CI; no habilita correo operativo. Véase [el contrato](resource-hearing-alerts.md).
 
+## Audiencias cautelares de imposición y revisión
+
+Implementación local, todavía no integrada ni desplegada. La familia
+`0033_precautionary_hearings*.sql` se instala con
+`database migrate --runtime-role`. Añade `case_precautionary_hearings` y
+`case_precautionary_hearing_revisions` para programar, reemplazar y cancelar
+citas de propósito Imposition. La migración `0036_precautionary_hearing_review.sql`
+extiende la guarda para objetivos Review exactos sin añadir tablas ni permisos.
+Cada raíz exige su revisión inicial; las
+operaciones y las asociaciones con auditoría son únicas. No genera audiencias
+para expedientes anteriores ni persiste decisiones o medidas al programar una cita.
+Review carga los propietarios completos y ancestros de cada objetivo M1, con
+sus fuentes originales, en la misma transacción. No exige la cabeza actual de
+una medida ni rechaza por sí misma capturas terminales. Cada consulta histórica
+retiene sólo el cierre del prefijo seleccionado; una cancelación conserva los
+objetivos y el contexto de programación anterior. Los límites de audiencia
+(256 capturas, 8192 objetivos) y de medidas (256 grupos, 8192 miembros) se aplican
+por separado y el exceso se rechaza sin truncar.
+
+Las tablas conservan valores canónicos y una proyección estricta y acotada,
+referencias exactas de administración y etapa, digest del contexto, metadatos
+de admisión del soporte, autor completo, segundos y nanosegundos UTC y los
+compromisos del recibo. El decodificador rechaza campos desconocidos,
+normalización de textos o referencias, orden no canónico y diferencias entre
+proyección y bytes. Los formatos PHEAR1, PHTXN1, PHPR1 y PHCR1 se conservan.
+
+`PostgresPrecautionaryHearingStore` reconstruye cada prefijo completo desde R1,
+con un máximo de 256 revisiones y sin truncamiento. Recupera las revisiones
+históricas exactas de administración, la administración original de la etapa,
+participantes manuales o tipificados, sujeto vinculado y metadatos documentales.
+Conserva autoría, perfiles y fuentes capturados, sin reemplazarlos por cabezas
+actuales. La cancelación retiene valores, contexto de programación y fuentes
+del predecesor. Un reemplazo puede conservar participantes archivados cuando
+mantiene su selección exacta; una selección nueva requiere la cabeza activa.
+
+La preparación no escribe auditoría antes de admitir el soporte y confirmar
+ambos digests. Bajo el bloqueo compartido, la confirmación reautoriza al
+principal completo, comprueba acceso al expediente, contexto, cabeza y fuentes,
+y compara todo el material revisado. Raíz inicial cuando corresponde, revisión
+y una auditoría de mutación se confirman juntos. El replay exacto conserva la
+captura, el autor y el reloj originales, sin crear otra revisión. Los relojes
+del almacén deben usar UTC soportado; no se normaliza silenciosamente otro
+offset. Las capturas frescas respetan el mínimo temporal revisado y los eventos
+de acceso no pueden preceder las capturas devueltas.
+
+La guarda SQL también contrasta el reloj de captura con la administración que
+originó la etapa inicial, aunque la administración vigente tenga una fecha
+anterior. Un reemplazo o una cancelación tampoco puede retroceder las revisiones
+ni los relojes observados de administración y etapa respecto de su predecesor.
+La comprobación conserva nanosegundos y aplica a ambos propósitos.
+
+La apertura valida catálogo, restricciones, índices, funciones, disparadores,
+privilegios e inventario completo. El runtime recibe SELECT e INSERT por columnas,
+sin UPDATE, DELETE, TRUNCATE ni ejecución de guardas; también se revisa la
+autoridad alcanzable mediante otros roles. Los recibos se contrastan con su
+marcador `ph1`, acción, actor, tiempo y predecesor exacto de auditoría. Las
+consultas en conexiones ya abiertas rechazan orígenes o revisiones perdidos:
+no permiten reutilizar una identidad desaparecida, aceptar una cabeza anterior
+tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida.
+
+El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
+auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
+para forzar la apertura. Los consumidores mixtos G2/M2 y sus consultas tienen
+implementación local y verificación nativa focal. HTTP, Agenda, alertas y Qadra
+están compuestos en la rama y verificados focalmente; los recorridos de escritorio
+y móvil con servicios reales aprobaron.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Esta implementación no acredita su integración en main ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
+y [el informe de verificación](verification-report.md), que distingue las
+pruebas ejecutadas y los controles de integración todavía pendientes.
+
+## Decisiones cautelares y anclas históricas
+
+`PostgresMeasureDecisionStore` implementa localmente escritura y lectura de
+grupos con 1 a 32 imposiciones iniciales y decisiones NoMeasureChange. Una decisión
+sin cambios conserva su propietario, captura y auditoría, con cero medidas. El
+adaptador conserva también confirmación, modificación, revocación, cese y
+sustitución desde predecesores exactos. Review consume sus revisiones exactas,
+propietarios completos y ancestros. Admite anclas iniciales ordinarias y cautelares
+exactas. El adaptador administrativo conserva Correct, Mark y el reemplazo
+conjunto con identidad nueva descrito en la migración `0041_`. La extensión
+G2/M2 y sus consumidores mixtos está implementada localmente, con verificación
+nativa focal. Está compuesta en HTTP y Qadra, con verificación focal y recorridos
+de escritorio y móvil con servicios reales aprobados. No está desplegada.
+
+`database migrate --runtime-role` instala `0034_measure_decisions.sql`,
+`0034_measure_decisions_guards.sql`, `0034_measure_decisions_sources.sql` y
+`0034_measure_decisions_complete.sql`, seguidas por las cuatro migraciones
+`0035_measure_decision_` de historia, captura, fuentes y completitud. Las dos
+migraciones `0037_measure_decision_` añaden selectores exactos de ancla inicial
+y su guarda. Conservar raíz, todas las revisiones del prefijo seleccionado y
+sus fuentes y eventos originales de auditoría al respaldar una decisión anclada.
+El catálogo verifica el default `none`, la forma cerrada y la clave foránea de
+esos selectores. Las tres migraciones `0038_measure_decision_` incorporan los dos
+selectores propios de audiencia cautelar, la guarda de captura y una guarda
+obligatoria de ancla. Su clave foránea exige la revisión exacta. El respaldo debe
+conservar todo su prefijo, los grupos de medidas referenciados por cualquier
+revisión de ese prefijo y sus fuentes/auditorías originales. Las conexiones
+reconstruyen ese grafo con límites independientes de audiencias y medidas, sin
+reemplazar selecciones históricas por cabezas actuales. No actualizar compromisos
+para reparar una selección perdida.
+Las cinco migraciones `0039_measure_administrative_` añaden la carga de
+corrección y sus guardas de captura, fuentes y completitud. La restricción
+diferida `measure_operation_payload` pasa a ser un disparador de restricción
+real que comprueba la familia G1 o A1, conservando su identidad durante nuevas
+ejecuciones de migración. El catálogo valida esa forma exacta.
+Las tablas `case_measure_operations`, `case_measure_decisions`,
+`case_measure_administrations`, `case_measures` y `case_measure_revisions` son
+inmutables. Las relaciones diferidas exigen una decisión completa para G1/G2,
+incluso sin medidas. Correct y Mark conservan una carga administrativa y un
+único miembro C sin crear raíces; el reemplazo conjunto de `0041_` exige dos
+miembros C y una raíz nueva del mismo propietario A. Cada raíz conserva su
+revisión inicial y propietario original. El respaldo debe incluir las correcciones y toda su ascendencia,
+sus valores efectivos, fuentes y eventos originales `ma1`, además de los `mg1`,
+`mg2` y `ph1`. Perder una corrección no autoriza volver a la revisión anterior. Las
+revisiones posteriores pertenecen al grupo nuevo sin reasignar esa raíz. El
+runtime recibe SELECT e INSERT por columnas explícitas, sin modificación,
+eliminación, delegación ni ejecución de guardas. La apertura valida también
+restricciones, funciones, disparadores e inventario completo.
+
+Los valores MDVAL1, MEAS1 y MEFX1 se guardan con proyecciones estrictas y acotadas.
+La reconstrucción compara los bytes canónicos, carga el contexto y las fuentes
+históricas exactas, y verifica decisión, todas las medidas, grupo y origen.
+Conserva autor y rol capturados, soporte admitido, sujetos, supervisores y su
+sujeto vinculado original. No reemplaza esas fuentes por sus cabezas actuales.
+Las listas ordenan decisiones inmutables por UUID, hasta 20 por página.
+Las consultas administrativas también ordenan operaciones inmutables por UUID
+con cursor exclusivo. Comprueban inventario y pruebas originales, y confirman
+auditoría de acceso antes de devolver resultados. El cierre del expediente no
+cambia los recibos históricos; requiere autorización vigente. Una marca posterior
+no sustituye una corrección anterior al recuperar su operación exacta.
+La lectura de registros por identidad selecciona la revisión más alta antes
+de validar sus campos. Incluye marcas y declaraciones terminales; no establece
+vigencia jurídica. Cada revisión exacta reconstruye su propietario completo y
+confirma la auditoría de acceso. El inventario global se comprueba incluso antes
+de devolver una ausencia o página vacía.
+
+Admisión del soporte y confirmación de ambos digests preceden a la escritura.
+Bajo el bloqueo compartido se revalidan principal completo, acceso, contexto
+activo y material revisado. Operación, decisión, raíces, revisiones y un evento
+`measure_decision.recorded` se confirman juntos. El marcador `mg1` para G1 o
+`mg2` para G2 vincula la operación, decisión y compromisos originales. Replay conserva autoría y tiempo,
+también en expediente cerrado con acceso actual. Los relojes usan UTC soportado
+con nanosegundos; las capturas respetan el mínimo preparado y las auditorías de
+acceso no preceden al grupo devuelto.
+
+La reconstrucción recorre propietarios completos, comprueba cada referencia y
+conserva toda la ascendencia de sus miembros. Los límites de 256 propietarios y
+8192 miembros incluyen la captura candidata. Las operaciones históricas pueden
+usar el presupuesto completo; una captura nueva debe reservar su espacio antes
+de reconstruir fuentes. No se acepta una revisión anterior como cabeza cuando
+queda evidencia de un resultado posterior perdido. Antes de confiar en el
+inventario anunciado, se vinculan valores, actor y resultado con el compromiso
+de solicitud original conservado en la auditoría.
+
+Respaldar juntas las cinco tablas de medidas, sus fuentes exactas, usuarios y auditoría.
+Las conexiones abiertas rechazan miembros, raíces o decisiones perdidos. Una
+decisión superviviente conserva la reserva de las identidades de su resultado.
+Si desaparece todo el grupo, el digest no revela cuáles eran esas identidades:
+una auditoría de mutación huérfana bloquea nuevas identidades globalmente. No
+eliminar eventos ni desactivar guardas para forzar una apertura o reutilización.
+HTTP, Agenda, alertas y Qadra están implementados y verificados focalmente;
+los recorridos de escritorio y móvil con servicios reales aprobaron.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+Los resultados ejecutados se registran por separado en el
+[informe de verificación](verification-report.md).
+
+### Migración y adaptadores mixtos G2/M2
+
+La familia nueva `0040_` amplía los CHECK de propietarios y miembros a G1/G2/A1
+y M1/M2/C1. Sustituye únicamente las guardas vigentes de captura, fuentes,
+completitud y objetivos de audiencias/anclas; las migraciones anteriores se
+conservan. El catálogo exige las formas y cuerpos exactos. No añade tablas ni
+permisos de runtime y mantiene el disparador diferido real de completitud.
+La extensión dispone de verificación nativa focal; la regresión afectada y los
+controles de cierre completos se registrarán por separado.
+
+`PostgresMeasureDecisionStore` implementa el puerto mixto de comandos y resuelve
+M2 en las lecturas de registros. `PostgresPrecautionaryHearingStore` implementa
+el puerto mixto de programación, reemplazo, cancelación y replay. Una decisión
+nueva por el puerto mixto guarda G2/M2; una recuperación original conserva G1 o
+G2. Nunca convertir C o M2 a M1 para compatibilidad. Un efecto judicial nuevo
+exige la cabeza actual exacta Valid; Review admite objetivos históricos Valid,
+incluso terminales. El reloj/contexto de una C es el de esa captura, mientras
+su última evidencia y soporte judiciales permanecen separados.
+
+Al respaldar, incluir todos los propietarios G1/G2/A, sus miembros completos,
+raíces originales, prefijos de audiencias y fuentes inmutables. El cargador
+compartido descubre primero el grafo acotado y rechaza ciclos antes de reconstruir.
+Los límites de 256 propietarios/8192 miembros y 256 capturas de audiencia/8192
+objetivos son independientes. Los prefijos antiguos pueden exigir propietarios
+que no aparecen en el cierre canónico de la operación seleccionada; tampoco
+se pueden omitir del respaldo.
+
+Las guardas mantienen pares reales G1/M1, G2/M2 y A1/C1. Correct o Mark después
+de M2 conserva ese propietario judicial y su soporte exacto. Una cabeza C perdida
+no habilita una captura judicial nueva desde una revisión anterior. La admisión
+bajo el bloqueo revalida fuentes y material confirmado antes del append atómico.
+Los formatos históricos y los recibos V2 existentes no cambian; `mg2` distingue
+únicamente el marcador de auditoría de una operación G2 genuina.
+
+Los puertos mixtos de lectura ya tienen adaptadores y verificación nativa. El
+de decisiones lista grupos inmutables y recupera una decisión u operación exacta,
+conservando G1/G2, incluso si no tiene miembros. El de convocatorias lista cabezas
+y recupera la revisión actual, una revisión exacta o la operación original, con
+su prefijo completo y cierre G1/A/G2. Las listas usan cursor exclusivo por UUID
+y hasta 20 elementos. Estas consultas no sustituyen la lectura de cabeza de
+medida ni incorporan descendientes ajenos al recibo seleccionado.
+
+En cada consulta, el bloqueo de auditoría protege autorización vigente, inventario
+y reconstrucción. El evento de acceso se confirma antes de devolver datos; un
+fallo no revela recibos ni páginas parciales. Se conservan las acciones de
+lectura existentes y los marcadores originales `mg1`, `mg2` y `ph1`. Un expediente
+cerrado admite lecturas autorizadas; perder un sufijo, propietario o fuente
+requerida no permite responder con evidencia anterior.
+
+La consulta de contexto del mismo almacén obtiene la administración y etapa
+actuales junto con la administración histórica de esa etapa en una transacción.
+Permite una administración observada Closed consistente y conserva Active la
+capturada por la etapa; no relaja la exigencia de contexto activo de los comandos.
+El evento `precautionary_context.read` usa el recurso
+`case:{case}:administration:{adminrev}:stage:{stagerev}:context:{digest_hex}`,
+con SHA-256 hexadecimal en minúsculas. Su instante UTC conserva nanosegundos y
+no precede a las fuentes. La reconstrucción y el digest PCTX1 se verifican antes
+de confirmar el acceso. No añade tablas, recibos ni formatos; su verificación
+nativa incluye cierre, fuentes exactas, autorización, corrupción y rollback.
+
+No reparar familias o compromisos a mano ni borrar auditorías para abrir un
+almacén. Contexto, HTTP, Agenda, alertas y Qadra están compuestos y verificados
+focalmente; los recorridos reales de escritorio y móvil aprobaron.
+La aceptación API con reinicio y restauración aprobó; véase el
+[informe de verificación](verification-report.md).
+El contexto y las audiencias conservan su
+[contrato propio](precautionary-hearings-api.md). Los resultados ejecutados se
+registran en el informe de verificación; las pruebas focales y la presencia de
+estas migraciones no sustituyen la regresión y los controles de integración.
+
+### Reemplazo administrativo conjunto con identidad nueva
+
+`database migrate --runtime-role` instala los siete archivos de la familia
+`0041_`, conservando las migraciones anteriores:
+
+- `0041_measure_administrative_replacement.sql` añade los cuatro selectores
+  de identidad/sujeto de reemplazo y sus restricciones y claves foráneas.
+- `0041_measure_administration_capture.sql` valida la captura administrativa,
+  cabeza exacta, dependientes declarados, sujeto seleccionado y auditoría.
+- `0041_measure_record_sources.sql` valida los valores y fuentes de cada miembro.
+- `0041_measure_record_complete.sql` exige el propietario completo, sus dos
+  miembros y la raíz nueva cuando la acción es `replace_entered_in_error`.
+- `0041_measure_decision_capture.sql` conserva la reserva de identidades
+  declaradas por un reemplazo al admitir propuestas judiciales nuevas.
+- `0041_precautionary_hearing_records.sql` y
+  `0041_measure_decision_hearing_records.sql` admiten raíces administrativas
+  auténticas al verificar objetivos de Review y anclas cautelares.
+
+No se añaden tablas ni se transforman recibos anteriores. Los selectores son
+`replacement_measure_id`, `replacement_subject_id`,
+`replacement_subject_revision` y `replacement_subject_values_digest`.
+Correct y Mark los mantienen NULL; `replace_entered_in_error` exige los cuatro
+y no contiene valores MCVAL1. El catálogo comprueba columnas, forma cerrada,
+claves y cuerpos de guardas; los permisos de INSERT se amplían sólo a esas
+columnas, sin habilitar UPDATE, DELETE, TRUNCATE ni ejecución directa de guardas.
+
+La operación conjunta marca la revisión siguiente de la identidad original
+como EnteredInError y crea otra identidad en R1 Valid. Ambas filas C1, su raíz
+nueva, carga A1 y evento `measure_administrative.recorded` se confirman en la
+misma transacción. El enlace del recibo identifica expresamente cada papel;
+el orden por UUID de las filas no lo determina. La identidad nueva debe estar
+libre en el inventario global. El sujeto se carga por expediente, identidad,
+revisión y digest exactos, sin sustituirlo por la revisión vigente. El reloj de
+captura no puede preceder a ese sujeto ni a las demás fuentes retenidas.
+
+Sólo cambian la identidad y el sujeto seleccionados para la fila nueva. Se
+conservan términos, supervisión, fuentes retenidas, origen judicial y último
+soporte judicial real. No se fabrica una decisión ni una medida judicial para
+esta operación administrativa. Un efecto G2 posterior, otra corrección y una
+Review conservan la raíz administrativa original y sus pruebas completas.
+Cada captura nueva reserva un propietario y dos miembros dentro de los límites
+existentes. La admisión sigue exigiendo cabeza Valid actual, autorización vigente
+y ausencia de dependientes declarados; el replay conserva la operación original.
+
+Respaldar ambas filas y la raíz nueva junto con el propietario, sus selectores,
+fuentes y auditoría. La reconstrucción compara los compromisos originales y
+rechaza pérdida de cualquiera de esos componentes; una fila superviviente no
+permite volver a una cabeza anterior ni reutilizar la identidad anunciada.
+El marcador `ma1` sigue vinculando el resultado de la identidad original y los
+digests de envío, revisión y captura. Los formatos anteriores conservan sus
+bytes; la acción conjunta usa el tag 2 y añade sus resultados y enlace explícitos.
+La aceptación API con reinicio y restauración aprobó y conservó las dos filas
+C1 y su enlace administrativo original. Su evidencia se registra en el
+[informe de verificación](verification-report.md); no acredita integración ni despliegue.
+
 ## Contenido e incidentes de integridad
 
 `database migrate --runtime-role` instala `0024_document_integrity.sql` sin

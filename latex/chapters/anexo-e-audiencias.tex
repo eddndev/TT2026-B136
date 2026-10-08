@@ -16,14 +16,21 @@
     \toprule
     \textbf{Criterio} & \textbf{Base implementada} & \textbf{Alcance restante} \\
     \midrule
-    CU-08 y RF-07 & Programación, reemplazo motivado, cancelación, historia y participantes exactos. & Resultados, asistentes efectivos, acuerdos y activación de plazos. \\
-    Catálogo & Inicial, intermedia, debate e individualización con antecedente declarado. & Medidas cautelares y relación entre continuación y sesión original; validación de los actos procesales. \\
-    RF-08 & Fecha explícita con desfase y orden UTC. & Reglas de cómputo, días hábiles, vencimientos y validación jurídica. \\
-    RF-09 & Sin emisión de notificaciones en este módulo. & Alertas y sus canales, programación y seguimiento. \\
-    RF-10 & Agenda transversal autorizada, intervalo, filtros y cursores. & Integración con plazos y vistas completas del calendario aprobado. \\
-    Objetivo de gestión & Citas vinculadas a expediente, etapa y directorio. & Integrar los comportamientos pendientes y probar su aceptación conjunta. \\
+    CU-08 y RF-07 & Programaci\'on e historia, resultados declarados y plazo derivado expl\'icito para el supuesto cubierto; cautelares aceptadas con reinicio y restauraci\'on. & Calificaci\'on jur\'idica de los supuestos comprometidos y controles finales de integraci\'on. \\
+    Cat\'alogo & Siete familias de audiencias; cautelar con imposici\'on o revisi\'on. Continuaci\'on como relaci\'on entre sesiones. & Controles finales e integraci\'on de esta entrega; sin inferir procedencia ni otras familias. \\
+    RF-08 & Fechas expresas, evaluaciones persistentes e historia del plazo derivado cubierto. & Cotejo jur\'idico de inicio, notificaci\'on, inh\'abiles y cierre; sin plazos cautelares autom\'aticos. \\
+    RF-09 & Alertas persistentes y origen propio para convocatorias cautelares; consulta hist\'orica y lectura conservada tras restauraci\'on. & Activaci\'on de correo externo sujeta a decisi\'on humana. \\
+    RF-10 & Agenda conjunta de audiencias ordinarias, plazos, audiencias de recursos y cautelares, conservada tras reinicio y restauraci\'on. & Controles finales de integraci\'on; sin filas adicionales por cada medida. \\
+    Objetivo de gesti\'on & Recorridos declarados con fuentes, permisos, historia y recuperaci\'on propios. & Cierre integrado y documental de esta entrega; evaluaci\'on de uso por personal del despacho. \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 Las referencias exactas protegen la interpretación histórica del registro interno, pero no sustituyen un acta judicial ni acreditan la identidad o representación de sus participantes. El recibo de operación permite conciliar un envío; no constituye firma personal, sellado de tiempo ni constancia de notificación. Estas diferencias impiden declarar completo el caso de uso por contar únicamente con formularios y una agenda.
+
+
+{\raggedright El alcance cautelar finito y sus contratos est\'an en \rutarepo{docs/precautionary-hearings-scope.md}, \rutarepo{docs/precautionary-hearings-api.md}, \rutarepo{docs/measure-decisions-api.md} y \rutarepo{docs/measure-records-api.md}. Las pruebas HTTP \rutarepo{crates/web/tests/precautionary_hearings_http.rs}, \rutarepo{measure_decisions_http.rs}, \rutarepo{measure_administrative_http.rs} y \rutarepo{measure_records_http.rs} contrastan rutas, referencias, confirmaciones y lecturas exactas.\par}
+
+{\raggedright Las pruebas PostgreSQL bajo \rutarepo{crates/infrastructure/tests/} separan convocatorias en \rutarepo{precautionary_hearing_record_backend.rs}, decisiones en \rutarepo{measure_decision_record_backend.rs}, rectificaciones en \rutarepo{measure_administrative_backend.rs} y registros en \rutarepo{measure_record_backend.rs}. \rutarepo{agenda_precautionary_hearings.rs} y \rutarepo{alert_precautionary_hearings.rs} verifican sus proyecciones y origen propios. La \cref{sec:pruebas-cautelares} delimita los resultados focales sin equipararlos a la aceptaci\'on integrada.\par}
+
+{\raggedright En \rutarepo{web/tests/browser/}, las familias \texttt{precautionary-hearing-*}, \texttt{measure-decision-*} y \texttt{measure-administration-*} comprueban el flujo con HTTP controlado, historia, permisos y recuperaci\'on. El guion \rutarepo{scripts/api-precautionary-demo.py} y \rutarepo{web/tests/live/precautionary-hearings-real.spec.mjs} definen la aceptaci\'on con servicios reales. El navegador real aprob\'o dos recorridos a 1440 y 390 p\'ixeles. La aceptaci\'on mediante API aprob\'o con reinicios y restauraci\'on, conservando siete operaciones cautelares, historia, recibos, Agenda y lectura de alerta. La \cref{sec:pruebas-cautelares} separa sus mediciones de los controles e integraci\'on pendientes.\par}

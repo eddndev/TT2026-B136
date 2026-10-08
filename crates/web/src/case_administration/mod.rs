@@ -21,7 +21,7 @@ use response::{Detail, HistoryPage, Page};
 
 mod query;
 mod request;
-mod response;
+pub(crate) mod response;
 
 #[derive(Clone)]
 struct AdministrationState {
