@@ -1,5 +1,21 @@
 # Informe de verificación local
 
+## Recorrido de vectores hexadecimales: 8 de octubre de 2026
+
+Clippy 1.99 rechazó `chunks_exact(2)` en un auxiliar de fixtures durante el
+cierre remoto. Se sustituyeron las tres apariciones equivalentes por
+`as_chunks::<2>().0.iter()`: conservan los pares, su orden y la conversión,
+así como el descarte del resto incompleto. No cambian datos ni aserciones.
+
+Las 56 pruebas de los tres codecs afectados aprobaron con Rust 1.94.0:
+convocatorias cautelares, decisiones y correcciones de medidas. Una compilación
+y ejecución focal con Rust 1.88.0 confirmó la disponibilidad del recorrido en
+el MSRV. El formato y Clippy 1.98.1 de todo el workspace y todos los targets
+aprobaron con advertencias denegadas (259 s). La advertencia futura de Redis
+0.25.4 es preexistente. Se usaron un compilador, un hilo y temporales en disco.
+La comprobación remota con Clippy 1.99 queda pendiente del HEAD corregido;
+se conservan las aceptaciones nativas y el PDF combinado, sin repetirlos.
+
 ## Cierre de diagnósticos MFA: 8 de octubre de 2026
 
 PR91 aprobó CI `37731688956`, Web `37731688844` y Documents `37731688905`
