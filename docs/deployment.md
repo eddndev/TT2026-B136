@@ -216,6 +216,10 @@ catálogo/inventario.
 Esto prueba disponibilidad, no todos los flujos de negocio. Web conserva sus
 pruebas independientes contra servicios desechables.
 
+Los intentos TOTP y de recuperación se consultan en el journal de `qadra-api`.
+La [guía de registros MFA](mfa-access-logs.md) documenta campos, motivos agrupados,
+correlación mediante `X-Request-Id`, filtros y permisos de consulta.
+
 ## Recuperación y esquema
 
 Una activación fallida restaura y comprueba la versión anterior, y devuelve fallo

@@ -75,13 +75,19 @@ fn role_change_during_totp_verification_prevents_session_issuance() {
         .start_login("owner@example.com", "correct horse battery")
         .unwrap();
     let result = std::thread::scope(|scope| {
-        let attempt = scope.spawn(|| service.complete_totp(&challenge.challenge_token, "123456"));
+        let attempt =
+            scope.spawn(|| service.complete_totp_observed(&challenge.challenge_token, "123456"));
         entered_rx.recv_timeout(Duration::from_secs(5)).unwrap();
         users.set_access(owner.principal.id, Role::Paralegal, true);
         resume_tx.send(()).unwrap();
         attempt.join().unwrap()
     });
-    assert!(matches!(result, Err(ApplicationError::MfaRejected)));
+    assert_eq!(
+        result.reason,
+        application::identity::MfaReason::CredentialsChanged
+    );
+    assert_eq!(result.user_id, Some(owner.principal.id));
+    assert!(matches!(result.result, Err(ApplicationError::MfaRejected)));
     assert_eq!(sessions.issued_session_count(), 0);
 }
 

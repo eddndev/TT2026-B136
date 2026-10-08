@@ -1,5 +1,22 @@
 # Verificación de la actualización académica
 
+## Diagnóstico operativo MFA: 7 de octubre de 2026
+
+Se actualizaron implementación, pruebas y anexo operativo con el registro saneado
+de intentos MFA, correlación por petición y ambigüedades explícitas. Se separan
+las pruebas con adaptadores de memoria de la aceptación Linux y del despliegue.
+
+En Windows con TeX Live 2026, `latexmk -lualatex -outdir=../output/mfa-report main.tex`
+aprobó desde `latex/`. El argumento de salida se pasó entre comillas para evitar
+que PowerShell lo separara. PDF generado fuera de Git: **392 páginas**,
+**6115674 bytes**, SHA-256
+`cc3fd3a4b2cbfb0cc547f3235aa1ff7d02490fb930ff31b7d0ea3b0208b08c0c`.
+Se renderizaron e inspeccionaron las páginas físicas **159, 232, 391 y 392**:
+texto legible, referencias resueltas y sin recortes ni solapes en los cambios.
+No hay glifos faltantes ni referencias indefinidas en el log final. Permanecen
+dos avisos de caja horizontal en contenido ajeno al cambio (0.11754 y 24.62556 pt).
+Resumen aprobado, objetivos, estado del arte y conclusiones no se modificaron.
+
 
 ## Resultado de audiencia y plazo conjuntos: 4 de octubre de 2026
 

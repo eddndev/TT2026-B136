@@ -1,3 +1,5 @@
+#[path = "auth_support/access_log_cases.rs"]
+mod access_log_cases;
 mod auth_support;
 #[path = "auth_support/session_cases.rs"]
 mod session_cases;
@@ -94,6 +96,9 @@ impl IdentityWorkflow for StubIdentity {
         challenge_token: &str,
         code: &str,
     ) -> Result<SessionResult, ApplicationError> {
+        if challenge_token == "internal-failure" {
+            return Err(ApplicationError::Port("PRIVATE-ERROR-TOKEN".into()));
+        }
         if challenge_token != "challenge-token" || code != "123456" {
             return Err(ApplicationError::MfaRejected);
         }

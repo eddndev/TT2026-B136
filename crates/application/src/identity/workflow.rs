@@ -9,6 +9,12 @@ use super::{
 use crate::ApplicationError;
 
 impl IdentityWorkflow for IdentityService {
+    fn complete_totp_observed(&self, challenge_token: &str, code: &str) -> super::MfaAttempt {
+        Self::complete_totp_observed(self, challenge_token, code)
+    }
+    fn complete_recovery_observed(&self, challenge_token: &str, code: &str) -> super::MfaAttempt {
+        Self::complete_recovery_observed(self, challenge_token, code)
+    }
     fn bootstrap_owner(
         &self,
         email: &str,

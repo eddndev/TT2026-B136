@@ -6,7 +6,8 @@ use super::{
 };
 use crate::{
     identity::{
-        certificate_login::SessionAuthentication, Principal, SessionIdentity, SessionResult,
+        certificate_login::SessionAuthentication, MfaReason, Principal, SessionIdentity,
+        SessionResult,
     },
     ApplicationError,
 };
@@ -16,20 +17,29 @@ impl IdentityService {
         &self,
         admission: &MfaAdmission,
         action: &str,
+        reason: &mut MfaReason,
     ) -> Result<SessionResult, ApplicationError> {
         let user = &admission.user;
+        *reason = MfaReason::AccountUnavailable;
         let current = self
             .ports
             .users
             .find_by_id(user.id)?
-            .filter(|current| {
-                current.active
-                    && current.auth_generation <= i64::MAX as u64
-                    && current.auth_generation == user.auth_generation
-                    && Principal::from(current) == Principal::from(user)
-            })
             .ok_or(ApplicationError::MfaRejected)?;
+        *reason = MfaReason::AccountInactive;
+        if !current.active {
+            return Err(ApplicationError::MfaRejected);
+        }
+        *reason = MfaReason::CredentialsChanged;
+        if current.auth_generation > i64::MAX as u64
+            || current.auth_generation != user.auth_generation
+            || Principal::from(&current) != Principal::from(user)
+        {
+            return Err(ApplicationError::MfaRejected);
+        }
+        *reason = MfaReason::CertificateAuthorityInvalidOrExpired;
         self.check_mfa_authority(admission)?;
+        *reason = MfaReason::SessionAdmissionRejected;
         let principal = Principal::from(&current);
         let identity = SessionIdentity {
             principal: principal.clone(),
