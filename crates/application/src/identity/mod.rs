@@ -2,6 +2,7 @@
 
 pub mod certificate_login;
 mod model;
+mod observation;
 pub mod owner_certificates;
 pub mod password_reset;
 mod port;
@@ -14,6 +15,7 @@ pub use model::{
     EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionIdentity,
     SessionResult, UserRecord,
 };
+pub use observation::{MfaAttempt, MfaReason};
 pub use port::{IdentityWorkflow, SecretProtector, SessionStore, UserRepository};
 pub use service::{IdentityPorts, IdentityService};
 pub use session::{SessionGrant, SessionPolicy, SessionState, SessionStatus};

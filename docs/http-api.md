@@ -231,6 +231,11 @@ curl --fail-with-body -X POST "$base/api/v1/auth/login" \
   --data '{"email":"owner@example.com","password":"correct horse battery staple"}'
 ```
 
+Las respuestas de las rutas MFA incluyen `X-Request-Id`, generado por el servidor.
+El resultado y los motivos internos se consultan en los
+[registros de acceso MFA](mfa-access-logs.md); los rechazos públicos conservan
+`mfa_rejected` sin revelar el diagnóstico interno.
+
 El segundo paso envía `challenge_token` y `code` a la ruta TOTP o recovery. La
 respuesta contiene `access_token`, `token_type: "Bearer"` y
 `expires_in_seconds`, `user` y los mismos metadatos de política y plazos que

@@ -1,6 +1,8 @@
 #[path = "identity_support/generation_cases.rs"]
 mod generation_cases;
 mod identity_support;
+#[path = "identity_support/mfa_observation_cases.rs"]
+mod mfa_observation_cases;
 #[path = "identity_support/session_policy_cases.rs"]
 mod session_policy_cases;
 

@@ -60,13 +60,19 @@ pub(super) async fn start_login(
 
 pub(super) async fn complete_totp(
     State(state): State<AppState>,
+    axum::Extension(access): axum::Extension<crate::access_log::AccessAttempt>,
     Json(request): Json<ChallengeCodeRequest>,
 ) -> Result<Json<SessionResponse>, ApiError> {
     let identity = state.identity.clone();
     Ok(Json(
         state
             .runtime
-            .run(move || identity.complete_totp(&request.challenge_token, &request.code))
+            .run(move || {
+                let attempt =
+                    identity.complete_totp_observed(&request.challenge_token, &request.code);
+                access.record(&attempt);
+                attempt.result
+            })
             .await?
             .into(),
     ))
@@ -74,13 +80,19 @@ pub(super) async fn complete_totp(
 
 pub(super) async fn complete_recovery(
     State(state): State<AppState>,
+    axum::Extension(access): axum::Extension<crate::access_log::AccessAttempt>,
     Json(request): Json<ChallengeCodeRequest>,
 ) -> Result<Json<SessionResponse>, ApiError> {
     let identity = state.identity.clone();
     Ok(Json(
         state
             .runtime
-            .run(move || identity.complete_recovery(&request.challenge_token, &request.code))
+            .run(move || {
+                let attempt =
+                    identity.complete_recovery_observed(&request.challenge_token, &request.code);
+                access.record(&attempt);
+                attempt.result
+            })
             .await?
             .into(),
     ))

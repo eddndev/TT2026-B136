@@ -14,6 +14,12 @@ use crate::ApplicationError;
 
 /// Inbound boundary consumed by delivery adapters.
 pub trait IdentityWorkflow: Send + Sync {
+    fn complete_totp_observed(&self, challenge_token: &str, code: &str) -> super::MfaAttempt {
+        super::MfaAttempt::unspecified(self.complete_totp(challenge_token, code))
+    }
+    fn complete_recovery_observed(&self, challenge_token: &str, code: &str) -> super::MfaAttempt {
+        super::MfaAttempt::unspecified(self.complete_recovery(challenge_token, code))
+    }
     fn bootstrap_owner(
         &self,
         email: &str,

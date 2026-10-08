@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Diagnósticos internos MFA: 7 de octubre de 2026
+
+Verificación focal en Windows, volumen C: persistente, Cargo 1.98.1,
+`CARGO_BUILD_JOBS=1` y `RUST_TEST_THREADS=1`, sin campañas concurrentes.
+Las pruebas nuevas fallaron primero: faltaban las observaciones tipadas en la
+aplicación y `X-Request-Id` en la respuesta HTTP. Después de implementar:
+
+- `cargo test -p application --test identity_workflow`: **34 aprobadas**.
+  Incluye TOTP válido, inválido, reutilizado, desafío consumido/desconocido,
+  cuenta inactiva y generación cambiada; confirma cambio durante la verificación,
+  recuperación consumida y error de auditoría sin sesión utilizable.
+- `cargo test -p web --test auth_api`: **14 aprobadas**. La captura de tracing
+  verifica seis escenarios HTTP: TOTP y recuperación aceptados/rechazados, JSON
+  inválido y error interno. Comprueba UUID distinto por petición, coincidencia
+  con la cabecera de respuesta, hora, resultado, motivo, campos permitidos y
+  ausencia de secretos de prueba, incluido el texto de un error de adaptador.
+- `cargo test -p application --test owner_certificate_login`: **22 aprobadas**,
+  conservando las comprobaciones de autoridad y admisión de sesión por certificado.
+- `cargo clippy -p application -p web --lib --test identity_workflow --test auth_api -- -D warnings`:
+  aprobado sin advertencias; `cargo fmt --all -- --check` y `git diff --check` aprobados.
+
+Estas **70 pruebas** usan adaptadores de memoria o sustitutos HTTP; no acreditan
+PostgreSQL, Redis, reloj o journal del servidor desplegado. Las ambigüedades
+de código/ventana y desafío ausente son explícitas, no diagnósticos inferidos.
+No se ejecutó la demostración HTTP con servicios reales ni una regresión global
+local: quedan como verificaciones de cierre en Linux/CI antes de integrar.
+El cambio no fue desplegado. El informe PDF tiene evidencia separada en
+`docs/academic-report-verification.md`; la consulta operativa se documenta en
+`docs/mfa-access-logs.md`.
+
 ## Selector de audiencias ordinarias: 8 de octubre de 2026
 
 La campaña remota encontró dos regiones con la clase `hearing-index` al convivir

@@ -270,6 +270,16 @@ El puerto \texttt{Totp\allowbreak Provider} (\rutarepo{crates/domain/src/crypto/
 
 {\emergencystretch=2em El enrolamiento completo lo orquesta el caso de uso \texttt{EnrollTotp}, que además emite los ocho códigos de recuperación de un solo uso previstos por el diseño. El generador \texttt{Random\allowbreak Recovery\allowbreak Code\allowbreak Generator} produce códigos de diez símbolos en la forma \texttt{XXXXX-XXXXX} sobre un alfabeto de 32 símbolos que excluye los caracteres confundibles I, L, O y U; cada símbolo aporta cinco bits extraídos sin sesgo de módulo, para un total de 50 bits de entropía por código. Los códigos en claro se muestran una única vez (viajan como \texttt{Zeroizing}); lo que se almacena es el value object \texttt{Recovery\allowbreak Code\allowbreak Set}: ocho ranuras con hashes PHC producidos por el mismo puerto \texttt{Password\allowbreak Hasher} de S7, cuya operación \texttt{consume} verifica un código contra las ranuras no usadas y consume la que coincide.\par}
 
+Los intentos HTTP de segundo factor producen un registro operativo con hora UTC,
+identificador de petición generado por el servidor, UUID de cuenta cuando está
+disponible, resultado y motivo interno. La respuesta pública mantiene el rechazo
+genérico. El registro distingue reutilización, inactividad y cambio de generación;
+agrupa código incorrecto o fuera de ventana y desafío vencido, consumido o desconocido,
+pues las interfaces no permiten separarlos. No incorpora códigos, secretos,
+contraseñas ni tokens. Estos eventos se consultan en el journal del servicio y
+permanecen separados de la cadena transaccional, según
+\rutarepo{docs/mfa-access-logs.md}.
+
 \subsection{S9. Cadena de auditoría}\label{sec:impl-s9-auditoria}
 
 La bitácora de auditoría es lógica de dominio pura (\rutarepo{crates/domain/src/audit/}). Cada evento registra secuencia, timestamp, actor, acción y recurso, y la cadena se define por la regla

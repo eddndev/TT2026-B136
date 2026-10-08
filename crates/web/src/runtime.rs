@@ -98,7 +98,8 @@ pub(crate) fn protect(router: Router, runtime: HttpRuntime) -> Router {
     router.layer(middleware::from_fn_with_state(runtime, admit))
 }
 
-async fn admit(State(runtime): State<HttpRuntime>, request: Request, next: Next) -> Response {
+async fn admit(State(runtime): State<HttpRuntime>, mut request: Request, next: Next) -> Response {
+    let access = crate::access_log::AccessAttempt::begin(&mut request);
     let mut response = match runtime.request_slots.try_acquire_owned() {
         Ok(_permit) => next.run(request).await,
         Err(_) => ApiError::busy().into_response(),
@@ -106,6 +107,9 @@ async fn admit(State(runtime): State<HttpRuntime>, request: Request, next: Next)
     response
         .headers_mut()
         .insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    if let Some(access) = access {
+        access.finish(&mut response);
+    }
     response
 }
 

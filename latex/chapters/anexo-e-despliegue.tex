@@ -1,5 +1,12 @@
 \section{Operación privada por etiquetas}\label{sec:anexo-despliegue}
 
+Para investigar un rechazo de segundo factor, el operador obtiene el identificador
+\texttt{X-Request-Id} de la respuesta y lo busca en el journal de
+\texttt{qadra-api}. La guía \rutarepo{docs/mfa-access-logs.md} especifica
+comandos y motivos internos, incluidas las causas que no pueden distinguirse.
+La consulta requiere permisos del usuario de ejecución y una versión que incluya
+estos registros; no requiere recopilar códigos ni credenciales del usuario.
+
 La guía \rutarepo{docs/deployment.md} especifica secretos, conexión, preparación
 del host y publicación. El operador etiqueta una revisión verificada con una
 versión como \texttt{v1.0.0}, sin mover etiquetas existentes. El artefacto y
