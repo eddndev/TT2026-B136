@@ -1,7 +1,7 @@
 # Alcance de audiencias y medidas cautelares declaradas
 
-Estado: **implementación local de dominio, aplicación, PostgreSQL, HTTP, Agenda,
-alertas y Qadra con verificación focal**. Los adaptadores PostgreSQL conservan
+Estado de la entrega PR90: **flujo completo de dominio, aplicación, PostgreSQL,
+HTTP, Agenda, alertas y Qadra con aceptación nativa**. Los adaptadores PostgreSQL conservan
 convocatorias de imposición y revisión, sustitución de programación y cancelación, así como
 decisiones con historia exacta y ausencia de cambios. Su alcance
 se detalla abajo e incluye anclas iniciales ordinarias y cautelares exactas. La persistencia
@@ -24,8 +24,8 @@ catálogo restaurado por la representación equivalente de cinco CHECK. Su
 corrección focal y el fallo histórico se conservan en el informe; la campaña
 completa posterior abrió la base restaurada sin reparar su esquema y conservó
 operaciones, historia, Agenda y la lectura de la alerta. El manuscrito separado
-está verificado; los controles de integración siguen pendientes. Esta aceptación
-no acredita despliegue.
+está verificado. La integración se acredita con los gates del HEAD exacto de
+PR90 y la confirmación posterior de main. Esta aceptación no acredita despliegue.
 La decisión de arquitectura se conserva en
 [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md).
 
@@ -644,7 +644,7 @@ impugnaciones. Tampoco convierte un máximo legal en una duración concedida.
 | Intermedia | Familia ordinaria existente; admisión o exclusión probatoria es contenido de actos, no otra etiqueta de cita. |
 | Juicio oral | Familia ordinaria existente; sus sesiones/resultados no acreditan firma judicial por usar la firma interna del prototipo. |
 | Individualización y reparación | Familia ordinaria existente; conserva el contexto condenatorio declarado y su soporte. |
-| Medidas cautelares | Familia propia propuesta: convocatoria de imposición o revisión, decisiones y medidas con historia. |
+| Medidas cautelares | Familia propia implementada: convocatoria de imposición o revisión, decisiones y medidas con historia. |
 | Alegatos de apelación | [Familia propia de recurso](resource-hearings.md), con su origen independiente. |
 | Audiencia de revocación escrita | Familia propia de recurso; la revocación oral no crea una cita separada. |
 | Continuación | Relación exacta con sesión/resultado anterior, no una octava especie de audiencia. |

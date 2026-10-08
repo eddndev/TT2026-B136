@@ -1,5 +1,19 @@
 # Verificación de la actualización académica
 
+## Composición de cautelares y MFA: 8 de octubre de 2026
+
+Se compiló una copia separada de las fuentes combinadas de PR90 y PR91 con el
+Makefile versionado, sin reemplazar los PDF aceptados. Aprobó en **92.203 s**:
+**396 páginas**, **6026528 bytes**, SHA-256
+`1183f9728ceef8238308a90586ecdb4ab4ed3784b3cb5a8e8016a5d46e278861`.
+Se comparó el texto por página con el manuscrito cautelar aceptado y se
+inspeccionaron todas las páginas modificadas: **159–162, 164–176, 234–235 y
+395–396**. Texto, tablas, encabezados y continuaciones legibles, sin nuevos
+recortes o solapes. Sin glifos faltantes ni referencias sin resolver; permanecen
+las dos cajas horizontales y la sustitución de versalitas históricas. Las tres
+copias de PDF previas verificadas conservan sus hashes. No se editaron las
+fuentes del resumen aprobado, introducción, marco teórico ni conclusiones.
+
 ## Diagnóstico operativo MFA: 7 de octubre de 2026
 
 Se actualizaron implementación, pruebas y anexo operativo con el registro saneado

@@ -2,23 +2,25 @@
 
 ## Frontera y estado reconciliado
 
-Esta entrega termina los cuatro frentes de la tabla siguiente. La continuación
+La tabla siguiente delimita los cuatro frentes y distingue su cierre del
+corpus jurídico todavía pendiente. La continuación
 del resto de pendientes técnicos autorizados se delimita por separado en
 [el inventario de cierre técnico](technical-closure.md); no autoriza funciones
 nuevas a partir de decisiones técnicas. El código existente se conserva. Un pendiente solo se
 agrega si impide una aceptación de esta lista o corrige un defecto reproducido;
 se identifica el comportamiento afectado antes de implementar.
 
-Estado contrastado el 5 de octubre de 2026 con main remoto `e9afef8`, el código
-de la rama cautelar y la evidencia conservada en el informe de verificación.
-Los respaldos de la rama cautelar no son integraciones ni despliegues.
+Corte del 8 de octubre de 2026: la tabla describe el estado entregado con la
+integración de PR90 sobre main `46dc1c1`, que ya incorpora PR91. La evidencia
+funcional está conservada en el informe de verificación; los gates se contrastan
+con el HEAD exacto de cada PR. Los respaldos no son integraciones ni despliegues.
 
 | Frente | Integrado | Implementado sin integrar | Faltante concreto |
 | --- | --- | --- | --- |
 | Reglas de cálculo | Motor de horas/días/meses, perfiles versionados, calendario, explicación, reevaluación, Agenda y alertas. | No se acredita un corpus jurídico adicional terminado. | Calificar y aceptar los supuestos finitos indicados abajo; la aritmética sintética no prueba la regla aplicable. |
 | Resultado y plazo derivado | Creación explícita conjunta, origen exacto, regla seleccionada, historial, Agenda, alertas y recuperación sin duplicados. | Ningún incremento necesario para rehacer este mecanismo. | Aplicar los perfiles jurídicos aceptados al recorrido existente. La falta de esos perfiles pertenece al primer frente. |
 | Audiencias de recursos | Alegatos de apelación y revocación escrita, permisos, origen, historia, Agenda, alertas y Qadra. | Ningún incremento necesario dentro de su contrato. | Preservar su aceptación; corregir resúmenes antiguos que todavía dicen no integrado. |
-| Cautelares y catálogo | Las seis familias ordinarias y de recursos ya disponibles. | Dominio, servicios y PostgreSQL cautelares; HTTP compuesto, Agenda y alertas PostgreSQL/HTTP; consulta exacta Qadra desde ambas y gestión de convocatorias, decisiones agrupadas y rectificaciones con recuperación en Qadra, navegador real y aceptación API completa con reinicios y restauración. | Gates de integración y confirmación posterior de main; manuscrito separado ya verificado. |
+| Cautelares y catálogo | Flujo completo de PR90: dominio, servicios, PostgreSQL, HTTP, Agenda, alertas y Qadra; convocatorias, decisiones y rectificaciones con recuperación, navegador real, reinicios/restauración y manuscrito separado aceptados. | Ningún incremento funcional pendiente dentro del catálogo cerrado. | Ninguno tras integrar esta revisión y confirmar main. No incluye el corpus jurídico del primer frente ni despliegue. |
 
 Los [resultados/plazos derivados](hearing-derived-deadlines.md) y las
 [audiencias de recursos](resource-hearings.md) conservan sus contratos. No se
@@ -110,16 +112,15 @@ Owner, correo, inactividad o activación en VPS3.
 
 ## Secuencia y condición de término
 
-Primero terminar el HTTP cautelar compuesto; después conectar Agenda/alertas y
-Qadra sobre los servicios existentes; luego aceptar el recorrido real con
-restauración y conciliar API, operación y manuscrito. El corpus jurídico se
-cierra sobre el mecanismo de plazos ya integrado, sin reescribirlo.
+HTTP, Agenda/alertas y Qadra cautelares completaron sus recorridos; la aceptación
+real incluye restauración y conciliación de API, operación y manuscrito. PR90
+entrega el flujo unido. El siguiente pendiente procesal es el corpus jurídico
+sobre el mecanismo de plazos ya integrado, sin reescribirlo.
 
-Una demostración parcial de HTTP es avance funcional, no cierre de la entrega.
-La rama cautelar permanece unida hasta completar su recorrido. Se ejecuta la
-regresión completa una vez al cierre, con todos los gates para el HEAD exacto,
-squash y confirmación posterior de main. El PDF aceptado se preserva; cualquier
-nuevo manuscrito se construye y revisa como resultado separado antes de sustituirlo.
+La integración exige todos los gates para el HEAD exacto, squash y confirmación
+posterior de main. No se repiten aceptaciones válidas por una actualización del
+inventario. El PDF aceptado se preserva; un nuevo manuscrito se construye y revisa
+como resultado separado antes de sustituirlo.
 
 El cierre se mide por las filas anteriores aceptadas y por main confirmado,
 no por tamaño del código, commits, número de pruebas o consumo. Una aceptación

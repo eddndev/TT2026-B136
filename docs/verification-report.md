@@ -1,5 +1,19 @@
 # Informe de verificación local
 
+## Cierre de diagnósticos MFA: 8 de octubre de 2026
+
+PR91 aprobó CI `37731688956`, Web `37731688844` y Documents `37731688905`
+para `28964b6b7710aa4d4c22559f2728b8b61eae4c2c`. La demostración HTTP completa
+se ejecutó además en Linux con PostgreSQL 16.15, Valkey compatible, qpdf 12.4.1,
+decodificadores admitidos, un compilador y temporales persistentes. Aprobó en
+**600.299 s**, incluidos reinicios, nueva autenticación MFA y restauración de
+historia, permisos y recibos. No se repitió localmente la regresión cubierta por CI.
+El squash de PR91 es `46dc1c14a13d48fc2689245b08c22b93ce064a51`, confirmado
+como punta de main. Su confirmación natural también aprobó CI `37737032241`,
+Web `37737032130` y Documents `37737032223`; esos resultados corresponden al
+squash integrado, separados de las ejecuciones de la PR.
+Los logs operativos no completan la auditoría transaccional ni acreditan despliegue.
+
 ## Diagnósticos internos MFA: 7 de octubre de 2026
 
 Verificación focal en Windows, volumen C: persistente, Cargo 1.98.1,
@@ -37,8 +51,11 @@ las listas ordinaria y cautelar. Una reproducción focal con Chromium confirmó
 el fallo del helper de navegación antes de cambiarlo. El helper selecciona ahora
 la región accesible exacta «Audiencias registradas». La misma reproducción aprobó
 con ambas regiones presentes y la cautelar todavía ocupada. El formato aprobó;
-la regresión remota de cierre queda pendiente. No cambia el producto ni invalida
-la aceptación nativa cautelar ya conservada.
+los cinco recorridos nativos afectados de resultado/plazo derivado aprobaron
+sobre la combinación con MFA: calculable y bloqueado en escritorio/móvil, más
+recuperación de respuesta perdida sin otro envío. Los escenarios tomaron 40.1 s
+y la campaña con provisión 382.764 s. La regresión remota de cierre queda pendiente.
+No cambia el producto ni invalida la aceptación nativa cautelar ya conservada.
 
 ## Identidad del aprovisionador en la prueba web: 5 de octubre de 2026
 

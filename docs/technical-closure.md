@@ -8,15 +8,16 @@ se termina una aceptación observable antes de abrir la siguiente. Una frase
 antigua de «pendiente» no basta: se contrasta con main, código y evidencia.
 
 Este inventario complementa, sin ampliar su catálogo, el
-[cierre de los cuatro frentes procesales](four-front-closure.md). La referencia
-integrada contrastada es main `e9afef8`; la implementación cautelar permanece en
-su rama hasta terminar el flujo completo. Los respaldos no son integraciones.
+[cierre de los cuatro frentes procesales](four-front-closure.md). Este corte del
+8 de octubre de 2026 describe el estado que entrega la integración de PR90
+(cautelares completas), sobre PR91 (diagnóstico MFA, squash `46dc1c1`). Los gates
+y la confirmación de main se comprueban por revisión exacta; los respaldos no
+son integraciones ni despliegues.
 
 ## Lista de cierre
 
 | Pendiente confirmado | Compromiso y límite | Criterio observable de término |
 | --- | --- | --- |
-| Cautelares | Los recorridos y acciones congelados en [su lista finita](four-front-closure.md). | Convocatoria, declaración, cambios y rectificaciones utilizables desde Qadra; permisos, Agenda, alertas y recuperación; aceptación real con restauración y manuscrito. |
 | Corpus de cálculo | Ocho supuestos de investigación complementaria y recursos, sin los términos que sólo aparecen en teoría. | Cada supuesto tiene fuente primaria, ámbito, entradas y resultado independiente; fecha operativa explicada o falta de datos identificada; recorrido existente sin duplicados. |
 | Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
 | Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). El firmante global y el acceso Owner por certificado no completan la identidad del Litigante firmante. | Confirmación explícita del documento exacto; firma ligada al certificado del usuario autorizado; rechazo de certificado expirado/revocado; evidencia verificable de identidad, contenido y sello. Sin exigir PSC externo. |
@@ -33,7 +34,21 @@ La fila jurídica conserva la necesidad de identificar entidad, fuero y canal de
 recepción. Los datos faltantes se presentan como decisiones concretas, no como
 permiso para investigar o implementar indefinidamente.
 
-## Trabajo ya integrado que no se reabre
+## Trabajo entregado que no se reabre
+
+- Flujo cautelar completo de PR90: HTTP, Qadra, Agenda, alertas, decisiones y
+  rectificaciones con historia y recuperación; navegador real, reinicios,
+  restauración y manuscrito separado aceptados. Se conservan siete familias
+  de audiencias y catorce clases de medidas; no hay otra ampliación del catálogo.
+- Diagnóstico operativo MFA de PR91: intentos TOTP y recuperación con hora,
+  `X-Request-Id`, resultado, motivo saneado y UUID de cuenta cuando está disponible.
+  Conserva el rechazo público genérico y excluye secretos. Véase
+  [el contrato de logs](mfa-access-logs.md).
+
+Los logs MFA son operativos y están separados de la auditoría transaccional.
+No completan la matriz general de accesos, el origen de red, la identidad estable
+uniforme ni la medición durable de 500 ms; esa fila permanece pendiente. Su
+integración tampoco acredita activación o retención del journal en VPS3.
 
 - Audiencias propias de recursos, creación explícita de resultado/plazo derivado,
   Agenda, alertas y las familias ordinarias aceptadas de recuperación de editores.
