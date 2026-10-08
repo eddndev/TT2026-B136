@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Contrato cautelar en recuperación de sesión: 8 de octubre de 2026
+
+La campaña de navegador detectó que el auxiliar de borradores de audiencia no
+había declarado las dos lecturas cautelares de la pantalla compuesta. El primer
+caso reprodujo localmente el rechazo de peticiones sin contrato. El auxiliar
+ahora atiende exclusivamente el contexto y la lista vacía con su método, cuerpo
+y consulta exactos, pasando por la misma autorización de sesión, expediente y
+rol. El contexto refleja estado y revisiones vigentes; las escrituras y demás
+peticiones inesperadas siguen rechazadas por el control de cada escenario.
+
+Los dos casos de contexto aprobaron en 15.5 s. Los otros 19 archivos consumidores,
+incluidos los auxiliares transitivos de hechos, recursos, actividad y plazos,
+aprobaron sus 48 casos en 2.7 min con un único worker. El formato y la revisión
+independiente del contrato aprobaron. No se modificó el producto ni se relajaron
+las aserciones de recuperación, aislamiento o ausencia de envíos automáticos.
+El HEAD corregido conserva el cierre remoto pendiente.
+
 ## Tamaño del ejecutable release: 8 de octubre de 2026
 
 El gate remoto de tamaño rechazó el ejecutable de la entrega cautelar combinada.
