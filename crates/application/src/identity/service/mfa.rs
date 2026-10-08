@@ -7,7 +7,7 @@ use super::{
 use crate::{
     identity::{
         certificate_login::{MfaChallenge, SessionAuthentication},
-        Principal, SessionResult, UserRecord,
+        MfaAttempt, MfaReason, Principal, SessionResult, UserRecord,
     },
     ApplicationError,
 };
@@ -24,21 +24,34 @@ impl IdentityService {
         challenge_token: &str,
         code: &str,
     ) -> Result<SessionResult, ApplicationError> {
-        let admission = self.take_challenge_user(challenge_token)?;
-        let secret = self
-            .ports
-            .secrets
-            .expose(admission.user.id, &admission.user.protected_totp_secret)?;
-        let unix = self.now_seconds().max(0) as u64;
-        let accepted = self.ports.totp.verify(&secret, code, unix)? == TotpVerification::Accepted
-            && self
+        self.complete_totp_observed(challenge_token, code).result
+    }
+
+    pub fn complete_totp_observed(&self, challenge_token: &str, code: &str) -> MfaAttempt {
+        let mut user_id = None;
+        let mut reason = MfaReason::ChallengeExpiredConsumedOrUnknown;
+        let result = (|| {
+            let admission = self.take_challenge_user(challenge_token, &mut user_id, &mut reason)?;
+            let secret = self
                 .ports
-                .sessions
-                .claim_totp(admission.user.id, code, TOTP_REPLAY_TTL_SECONDS)?;
-        if !accepted {
-            return Err(ApplicationError::MfaRejected);
-        }
-        self.issue_session(&admission, "identity.totp_accepted")
+                .secrets
+                .expose(admission.user.id, &admission.user.protected_totp_secret)?;
+            let unix = self.now_seconds().max(0) as u64;
+            reason = MfaReason::InvalidCodeOrOutsideWindow;
+            if self.ports.totp.verify(&secret, code, unix)? != TotpVerification::Accepted {
+                return Err(ApplicationError::MfaRejected);
+            }
+            reason = MfaReason::CodeAlreadyUsed;
+            let accepted =
+                self.ports
+                    .sessions
+                    .claim_totp(admission.user.id, code, TOTP_REPLAY_TTL_SECONDS)?;
+            if !accepted {
+                return Err(ApplicationError::MfaRejected);
+            }
+            self.issue_session(&admission, "identity.totp_accepted", &mut reason)
+        })();
+        MfaAttempt::finish(user_id, reason, result)
     }
 
     pub fn complete_recovery(
@@ -46,26 +59,43 @@ impl IdentityService {
         challenge_token: &str,
         code: &str,
     ) -> Result<SessionResult, ApplicationError> {
-        let mut admission = self.take_challenge_user(challenge_token)?;
-        let expected_revision = admission.user.revision;
-        if admission
-            .user
-            .recovery_codes
-            .consume(code, self.ports.passwords.as_ref())?
-            != RecoveryCodeOutcome::Accepted
-        {
-            return Err(ApplicationError::MfaRejected);
-        }
-        self.ports.users.replace_recovery_codes(
-            admission.user.id,
-            expected_revision,
-            admission.user.recovery_codes.clone(),
-            self.ports.clock.now(),
-        )?;
-        self.issue_session(&admission, "identity.recovery_accepted")
+        self.complete_recovery_observed(challenge_token, code)
+            .result
     }
 
-    fn take_challenge_user(&self, token: &str) -> Result<MfaAdmission, ApplicationError> {
+    pub fn complete_recovery_observed(&self, challenge_token: &str, code: &str) -> MfaAttempt {
+        let mut user_id = None;
+        let mut reason = MfaReason::ChallengeExpiredConsumedOrUnknown;
+        let result = (|| {
+            let mut admission =
+                self.take_challenge_user(challenge_token, &mut user_id, &mut reason)?;
+            let expected_revision = admission.user.revision;
+            reason = MfaReason::RecoveryInvalidOrUsed;
+            if admission
+                .user
+                .recovery_codes
+                .consume(code, self.ports.passwords.as_ref())?
+                != RecoveryCodeOutcome::Accepted
+            {
+                return Err(ApplicationError::MfaRejected);
+            }
+            self.ports.users.replace_recovery_codes(
+                admission.user.id,
+                expected_revision,
+                admission.user.recovery_codes.clone(),
+                self.ports.clock.now(),
+            )?;
+            self.issue_session(&admission, "identity.recovery_accepted", &mut reason)
+        })();
+        MfaAttempt::finish(user_id, reason, result)
+    }
+
+    fn take_challenge_user(
+        &self,
+        token: &str,
+        user_id: &mut Option<domain::identity::UserId>,
+        reason: &mut MfaReason,
+    ) -> Result<MfaAdmission, ApplicationError> {
         let challenge = self
             .ports
             .sessions
@@ -74,6 +104,8 @@ impl IdentityService {
         let (identity, authentication, expires_at) = match challenge {
             MfaChallenge::Password(value) => (value, SessionAuthentication::Password, None),
             MfaChallenge::Certificate(value) => {
+                *user_id = Some(value.identity.user_id);
+                *reason = MfaReason::CertificateAuthorityInvalidOrExpired;
                 if value.identity.user_id != value.provenance.principal.id
                     || value.identity.auth_generation != value.provenance.auth_generation
                     || value.expires_at_unix_seconds > value.provenance.valid_until_unix_seconds
@@ -87,21 +119,29 @@ impl IdentityService {
                 )
             }
         };
+        *user_id = Some(identity.user_id);
+        *reason = MfaReason::AccountUnavailable;
         let user = self
             .ports
             .users
             .find_by_id(identity.user_id)?
-            .filter(|user| {
-                user.active
-                    && user.auth_generation <= i64::MAX as u64
-                    && user.auth_generation == identity.auth_generation
-            })
             .ok_or(ApplicationError::MfaRejected)?;
+        *reason = MfaReason::AccountInactive;
+        if !user.active {
+            return Err(ApplicationError::MfaRejected);
+        }
+        *reason = MfaReason::CredentialsChanged;
+        if user.auth_generation > i64::MAX as u64
+            || user.auth_generation != identity.auth_generation
+        {
+            return Err(ApplicationError::MfaRejected);
+        }
         let admission = MfaAdmission {
             user,
             authentication,
             expires_at,
         };
+        *reason = MfaReason::CertificateAuthorityInvalidOrExpired;
         self.check_mfa_authority(&admission)?;
         Ok(admission)
     }

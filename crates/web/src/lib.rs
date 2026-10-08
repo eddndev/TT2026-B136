@@ -13,6 +13,7 @@ use application::identity::IdentityWorkflow;
 use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
+mod access_log;
 mod agenda;
 mod alerts;
 mod api;

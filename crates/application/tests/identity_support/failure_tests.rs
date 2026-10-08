@@ -87,11 +87,16 @@ fn audit_failure_discards_sessions_created_by_either_second_factor() {
         fail.store(true, Ordering::SeqCst);
 
         let result = if recovery {
-            service.complete_recovery(&challenge.challenge_token, &owner.recovery_codes[0])
+            service.complete_recovery_observed(&challenge.challenge_token, &owner.recovery_codes[0])
         } else {
-            service.complete_totp(&challenge.challenge_token, "123456")
+            service.complete_totp_observed(&challenge.challenge_token, "123456")
         };
-        let error = result.err().unwrap();
+        assert_eq!(
+            result.reason,
+            application::identity::MfaReason::OperationalError
+        );
+        assert_eq!(result.user_id, Some(owner.principal.id));
+        let error = result.result.err().unwrap();
         assert!(matches!(
             error,
             ApplicationError::Domain(DomainError::AuditStorageFailure(_))
