@@ -8,7 +8,7 @@ mismo ejecutable aceptado. No cambia certificados, permisos, esquema ni release.
 La decisión y el límite entre archivos, SQL y arranque están en
 [ADR 0063](adr/0063-recoverable-crl-maintenance.md).
 
-Los nueve controladores aceptados de `2de3326` están instalados en VPS3. La
+Los nueve controladores aceptados de `2de3326` se instalaron en VPS3. La
 aceptación real del 2 de octubre renovó la revisión de confianza 1 a 2 y la CRL
 4096 a 4097, conservando CA, claves y revocaciones. La aplicación `v0.1.1`
 reinició con salud válida; se comprobó el journal aceptado, el respaldo exacto
@@ -16,9 +16,19 @@ de cuatro piezas y un único evento nuevo en una cadena de auditoría válida.
 La verificación completa tardó 8.246 s en el servidor, 10.146 s con transporte,
 y aprobó 172 comprobaciones. El export temporal de auditoría se eliminó.
 
-Esta instalación todavía tiene cero usuarios: no acredita aceptación funcional
-autenticada ni recuperación poblada. El procedimiento no programa renovaciones
-automáticas.
+Ese ensayo se realizó con cero usuarios: no acredita aceptación funcional
+autenticada ni recuperación poblada.
+
+El 9 de octubre se renovó de revisión 2 a 3 y CRL 4097 a 4098 usando el launcher
+y la generación de controladores aceptados en [despliegue](deployment.md).
+La vigencia termina el 16 de octubre de 2026 a las 05:58:03 UTC. El journal quedó
+aceptado, sin mantenimiento pendiente, y el respaldo SQL/Redis/material privado
+aprobó la comprobación de sus huellas. Se conservaron CA y revocaciones; la
+configuración y once tablas de cuentas, expedientes, documentos, participantes
+y audiencias conservaron sus huellas antes/después. Había una cuenta, tres
+expedientes, tres documentos y cuatro versiones; esto acredita conservación,
+no un ensayo nuevo de todos los recorridos autenticados. La release siguió en
+`v0.1.1`. El procedimiento no programa renovaciones automáticas.
 
 ## Preparación
 
@@ -29,9 +39,9 @@ controladores y sus dependencias. Sustituir `SHA256_APROBADO` por el SHA de su
 inventario aprobado externamente y `/RUTA/PYTHON_APROBADO` por la ruta absoluta
 del intérprete Python 3.11+ aceptado. No usar un hash calculado del destino para
 eludir una discrepancia. Conservar las fuentes anteriores y sus permisos privados.
-La instalación histórica descrita arriba precede a esta entrada; no acredita
-su migración. Mientras falte la aceptación de esa instalación, estos comandos
-no deben ejecutarse ni sustituirse por una invocación directa de `tools`.
+La aceptación del 2 de octubre precedía a esta entrada; su instalación real
+se completó el 9 de octubre. En otra instalación que no cumpla ese prerrequisito,
+no sustituir estos comandos por una invocación directa de `tools`.
 
 Debe existir una release aceptada en `current`, el esquema inicializado, la CA
 original, su índice, contador y CRL, y la misma autoridad y CRL en PostgreSQL.

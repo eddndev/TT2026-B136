@@ -1,5 +1,30 @@
 # Informe de verificación local
 
+## Instalación de controladores y preparación de release: 9 de octubre de 2026
+
+La instalación real en la cuenta `qadra` de VPS3 pasó el preflight de identidades,
+materiales, fuentes, caché y procesos antes del cierre. Completó los recibos
+`installed_closed` e `installed` con generación de `c99574a2`, conservó originales
+y reabrió PostgreSQL, Redis, API y web con salud válida. Las dos referencias de
+Python de las unidades se normalizaron previamente a la ruta canónica del mismo
+ejecutable; la recarga conservó los PID, estados y cgroups. Se configuraron y
+consultaron las variables de intérprete e inventario para futuros despliegues.
+
+La renovación posterior de CRL confirmó revisión 3, número 4098 y vigencia hasta
+el 16 de octubre a las 05:58:03 UTC. Su journal quedó aceptado y la captura completa
+SQL/Redis/material privado aprobó la validación de huellas. Once tablas de cuentas,
+expedientes, documentos, participantes y audiencias, además de configuración,
+conservaron sus huellas antes/después. La aplicación sigue en `v0.1.1`; estos
+resultados no acreditan despliegue de PR92 ni migración o restauración nueva.
+
+La preparación manual del workflow tuvo un RED por ausencia de entrada manual y
+después tres pruebas focales verdes. La suite de controladores aprobó 219 pruebas
+en 15.752 s. Comprueba que el candidato conserva CI/Web y el commit exacto, y que
+sólo un push de tag puede alcanzar transferencia/activación. Son comprobaciones
+locales de configuración y controladores; la ejecución remota del nuevo modo y
+los gates de su revisión publicada siguen pendientes. No se repitió una regresión
+Rust/Web ni se reconstruyó el manuscrito, cuyas fuentes no cambiaron.
+
 ## Expiracion conservadora con latencia: comprobacion del 8 de octubre de 2026
 
 La siguiente campana de `adaeff52` supero el acceso inicial, pero rechazo un

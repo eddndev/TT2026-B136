@@ -23,6 +23,14 @@ locked release build. Identify artifacts by version and full commit, with an
 archive checksum, file inventory and migration fingerprint. Recheck the remote
 tag before transfer. Failed prerequisites prevent packaging or deployment.
 
+Allow manual preparation of a candidate before explicit schema maintenance.
+Require an unused canonical version, bind it to the dispatch event's exact
+checkout, and run the same reusable gates and native packaging. Publish the
+artifact without creating a tag or entering the deployment job. The candidate
+supports isolated migration/restoration rehearsal; it does not authorize a
+schema-marker change or establish that the installed application can use the
+migrated database. Automatic SSH activation remains exclusive to tag pushes.
+
 Use the existing self-hosted runners: validation and transfer on VPS1 and package
 build on VPS3. Reused Rust/Web workflows retain their distributed jobs. Build
 the native release on the Ubuntu 22.04 target host to match its GLIBC ABI. Bundle

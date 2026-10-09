@@ -11,6 +11,8 @@ El transporte de argumentos y fuentes tiene aceptación local. El núcleo y la C
 aprobaron también el ensayo nativo con cuatro servicios inocuos descrito en el
 [informe de verificación](verification-report.md). Esa aceptación aislada no
 acredita una instalación ni aceptación operativa del producto en VPS3.
+La instalación real posterior del 9 de octubre de 2026 se registra por separado
+en [instalación de controladores](deployment-controller-installation.md).
 No sustituye los contratos de [publicación](deployment-controller-publication.md),
 [aprobación](deployment-controller-approval.md) y
 [cierre de entradas](deployment-controller-entry-gate.md).

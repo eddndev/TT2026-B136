@@ -1,11 +1,11 @@
 # Despliegue privado por versiones
 
-La [publicación completa de controladores](deployment-controller-publication.md)
-tiene aceptación local de directorios. El
-[launcher independiente](deployment-controller-launcher.md) fija una generación
-aprobada para los imports Python; su integración con las unidades, la selección
-del hash y la transición de lectores antiguos siguen pendientes de aceptación
-operativa.
+El [launcher independiente](deployment-controller-launcher.md) fija una generación
+aprobada para los imports Python. El 9 de octubre de 2026 se completó la
+[instalación recuperable](deployment-controller-installation.md) en la cuenta
+`qadra` de VPS3 desde `c99574a25dba7653208318a360ce0bee243658e4`. Se conservaron
+fuentes, caché y unidades anteriores; los cuatro servicios reabrieron con salud
+válida y la misma aplicación `v0.1.1`. Esto no actualizó el esquema ni la release.
 
 [Deploy version](../.github/workflows/deploy.yml) se activa al publicar tags
 `vMAJOR.MINOR.PATCH`, por ejemplo `v1.0.0`, `v1.1.0` y `v1.1.1`. No despliega
@@ -24,6 +24,30 @@ VPS3 mantiene la compatibilidad con su ABI de Ubuntu 22.04; un binario compilado
 en Ubuntu 24.04 puede exigir símbolos de GLIBC que ese servidor no ofrece.
 Antes de transferir se comprueba que el tag remoto no cambió ni desapareció.
 Véase [ADR 0048](adr/0048-private-versioned-deployment.md).
+
+## Preparar un candidato antes de migrar
+
+La ejecución manual de `Deploy version` recibe `prepare_version`, una versión
+estricta todavía sin tag, y construye un candidato desde el commit del evento.
+Reutiliza los mismos gates CI/Web y el mismo empaquetado nativo en VPS3. Publica
+el artefacto y su SHA-256 en Actions; el job de transferencia y activación sólo
+admite eventos `push` de tags. La preparación manual no crea tags, abre SSH,
+modifica bases ni cambia la versión instalada.
+
+```bash
+gh workflow run deploy.yml --ref main -f prepare_version=v0.1.2
+```
+
+Antes de usar el resultado, comparar el commit del evento y del manifiesto con
+la revisión integrada elegida; no asumir que `main` permanece inmóvil. Descargar
+el artefacto de esa ejecución exacta y validar su checksum. Si cambia la huella
+del esquema, usarlo para el ensayo aislado y el mantenimiento explícito descritos
+abajo. Obtener un paquete no acredita migración, restauración ni activación.
+La validación remota de este modo queda pendiente hasta su ejecución aceptada.
+
+Las activaciones por tag conservan su comprobación del tag remoto y todos sus
+gates. No publicar un tag para intentar eludir una migración pendiente ni alterar
+`config/schema` para forzar la ruta automática.
 
 ## Instalación objetivo
 
@@ -84,6 +108,14 @@ En Settings > Secrets and variables > Actions del repositorio:
 | Variable | `QADRA_ROOT` | `/home/qadra/qadra` |
 | Variable | `QADRA_PYTHON` | Ruta absoluta del interprete Python 3.11+ aceptado para los servicios privados |
 | Variable | `QADRA_CONTROLLER_SHA256` | SHA-256 del inventario completo de controladores aprobado externamente para esa instalación |
+
+La instalación aceptada el 9 de octubre usa
+`/opt/cpython/3.12.14/bin/python3.12` y el inventario
+`c6896e7a58307950c05b05e039bd836bb2cb23abd206c5b00c00a924a022052f`.
+Ambas variables de Actions se configuraron y consultaron para confirmar esos
+valores. Antes de instalar se sustituyeron sólo las dos referencias de unidad
+al alias `/usr/local/bin/python3` por la ruta canónica del mismo ejecutable,
+con copia privada de los originales y sin cambiar los procesos activos.
 
 La pública debe estar en `~/.ssh/authorized_keys` (0600; `.ssh` 0700), conservando
 otras entradas. Utilizar una identidad Ed25519 exclusiva para la cuenta `qadra`
@@ -160,7 +192,8 @@ controlador o las unidades requiere el [instalador recuperable](deployment-contr
 y su [bootstrap privado](deployment-controller-bootstrap.md), desde una revisión
 aprobada y fuera de una activación. La provisión inicial anterior no sustituye
 esa transición sobre servicios existentes. La aceptación aislada del instalador
-no significa que ya esté instalado en la cuenta `qadra`. Los tags cambian el paquete de aplicación;
+no sustituye la aceptación real del 9 de octubre en la cuenta `qadra`.
+Los tags cambian el paquete de aplicación;
 la activación no accede al repositorio ni compila bajo la cuenta `qadra`.
 
 ## Crear y publicar un tag
@@ -243,8 +276,10 @@ forman parte del despliegue automático. Seguir [operación de base de datos](da
 
 El controlador ampliado, integrado por PR51, captura PostgreSQL, Redis y la
 configuración privada CA/TSA antes de activar, con API/web detenidas;
-`COMPLETE` se publica al terminar correctamente. Los controladores de mantenimiento `2de3326` están instalados en VPS3 bajo
-`deploy.lock`; la aplicación activa es `v0.1.1` sobre `e3aa87a`.
+`COMPLETE` se publica al terminar correctamente. Los controladores de mantenimiento
+`2de3326` se instalaron el 2 de octubre y fueron sustituidos por la generación
+aceptada del 9 de octubre indicada arriba. Se conserva `deploy.lock`; la aplicación
+activa es `v0.1.1` sobre `e3aa87a`.
 La [guía de respaldos](deployment-backups.md) concreta permisos, fallos,
 copias antiguas sin Redis, transferencia fuera del servidor y restauración manual
 con invalidación de sesiones/desafíos y conservación de controles TOTP/límites.

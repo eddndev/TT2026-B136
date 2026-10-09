@@ -9,10 +9,12 @@ antigua de «pendiente» no basta: se contrasta con main, código y evidencia.
 
 Este inventario complementa, sin ampliar su catálogo, el
 [cierre de los cuatro frentes procesales](four-front-closure.md). Este corte del
-8 de octubre de 2026 describe el estado que entrega la integración de PR90
-(cautelares completas), sobre PR91 (diagnóstico MFA, squash `46dc1c1`). Los gates
-y la confirmación de main se comprueban por revisión exacta; los respaldos no
-son integraciones ni despliegues.
+8 de octubre de 2026 incluye PR90 (cautelares completas), PR91 (diagnóstico MFA,
+squash `46dc1c1`) y PR92 (informe de actividad), cuya integración en main está
+confirmada con el squash `c99574a25dba7653208318a360ce0bee243658e4`. Esta integración
+no acredita por sí sola la aprobación de CI en main ni un despliegue nuevo. Los
+gates se comprueban por revisión exacta; los respaldos no son integraciones ni
+despliegues.
 
 ## Lista de cierre
 
@@ -20,19 +22,51 @@ son integraciones ni despliegues.
 | --- | --- | --- |
 | Corpus de cálculo | Ocho supuestos de investigación complementaria y recursos, sin los términos que sólo aparecen en teoría. | Cada supuesto tiene fuente primaria, ámbito, entradas y resultado independiente; fecha operativa explicada o falta de datos identificada; recorrido existente sin duplicados. |
 | Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
-| Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). El firmante global y el acceso Owner por certificado no completan la identidad del Litigante firmante. | Confirmación explícita del documento exacto; firma ligada al certificado del usuario autorizado; rechazo de certificado expirado/revocado; evidencia verificable de identidad, contenido y sello. Sin exigir PSC externo. |
-| Informe comprometido restante | RF-19 y CU-16, conservando los informes de estado/carga ya integrados. | Informe de actividad registrada con tres cantidades por Litigante y periodo: documentos cargados, actuaciones procesales registradas y plazos marcados como atendidos. Atribución a la cuenta autora y fecha de la operación, sin cambiarla por reasignaciones posteriores. PDF/CSV coincidentes, progreso y estimación cuando aplica, aviso de terminación. Correo público sujeto a la decisión operativa pendiente. |
+| Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). El firmante global y el acceso Owner por certificado no completan la identidad del Litigante firmante. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. |
+| Estimación y correo de informes | Pendientes de CU-16, conservando los informes de estado/carga y el catálogo finito de actividad ya integrados. | Estimación de terminación validada cuando aplica y aviso por correo comprobado con transporte de prueba; activación pública sujeta a la decisión operativa pendiente. Los avisos internos y la duración observada no sustituyen estos criterios. |
 | Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20, conservando cadena y registros históricos. | Accesos concedidos/denegados cubiertos por una matriz de operaciones; identidad estable y origen de red registrados para eventos nuevos sin atribuirlos retrospectivamente; confirmación durable medida contra el límite de 500 ms en un entorno declarado. |
 | Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Contratos, operación y manuscrito coinciden; se reutiliza evidencia válida y se ejecuta una regresión completa al cierre de cada entrega funcional, gates para HEAD exacto, squash y main confirmado. |
 
+## Criterios de firma individual
+
+1. El certificado público se vincula a la cuenta del Litigante mediante prueba
+   de posesión externa, con registro, consulta y retiro auditados. No se deduce
+   identidad de un correo, del subject del certificado ni de un participante.
+2. El usuario ve y confirma el PDF, expediente, documento, versión, huella y
+   certificado exactos. Se rechazan firmas de otra cuenta, versión o propósito.
+3. La clave privada permanece bajo custodia del firmante fuera del servidor.
+   El flujo recibe certificado y firma separados, nunca `.key`, contraseñas de
+   clave ni PKCS#12; conserva la decisión de custodia del análisis de CU-13.
+4. Sesión, rol, acceso, expediente activo, vinculación y confianza se comprueban
+   al confirmar la operación. Certificado expirado/revocado, retiro, CRL no
+   vigente o pérdida de autorización impiden completar la firma.
+5. La firma valida contra el certificado y contenido exactos; el sello RFC3161
+   valida contra el digest y la autoridad configurados. Un timeout o token
+   inválido no deja una firma completa ni provoca cambio silencioso de TSA.
+6. Versión, identidad, firma, certificado, confianza capturada y sello se
+   conservan con auditoría atómica y evidencia exportable. La recuperación de
+   una respuesta incierta y los reintentos no duplican firmas.
+7. La verificación autorizada distingue integridad, firma, certificado y sello,
+   así como validez histórica y estado actual. Un byte alterado invalida su
+   comprobación; se declara qué acredita el tiempo sellado y que la TSA local
+   demuestra el flujo técnico, sin atribuirle una constancia de PSC autorizado.
+
+El cierre exige los siete criterios. Una vinculación de certificado entregada
+por separado es un prerrequisito, no el cierre de CU-13 y CU-14.
+
+## Estado del informe de actividad
+
 El informe de desempeño queda delimitado a las tres cantidades
-de actividad registrada anteriores. Sólo cuentan escrituras confirmadas: lecturas,
-preparaciones y reintentos de la misma operación no agregan actividad. No se
-añaden puntuaciones, comparaciones de éxito jurídico ni métricas distintas.
+de actividad registrada por Litigante y periodo: documentos cargados, actuaciones
+procesales registradas y plazos marcados como atendidos. Sólo cuentan escrituras
+confirmadas: lecturas, preparaciones y reintentos de la misma operación no
+agregan actividad. No se añaden puntuaciones, comparaciones de éxito jurídico ni
+métricas distintas.
 Los informes de estado y carga existentes se conservan.
 
-El informe de actividad está implementado localmente, con aceptación focal y
-recorridos reales. Su [decisión de diseño](adr/0073-author-attributed-activity-reports.md)
+El informe de actividad está integrado mediante PR92 y su catálogo finito de
+tres contadores queda cerrado, con aceptación focal y recorridos reales.
+Su [decisión de diseño](adr/0073-author-attributed-activity-reports.md)
 conserva exactamente las tres cantidades y declara la cobertura documental
 histórica incompleta. El catálogo definitivo comprende registros originales de
 resoluciones/notificaciones, cinco actos de recursos, sesiones/resultados y
@@ -44,15 +78,19 @@ de restaurar, avisos tras renovar sesión y PDF/CSV coincidentes. El recorrido
 positivo del catálogo completo obtuvo 1 documento, 9 actuaciones y 1 plazo
 atendido. HTTP/restauración y manuscrito separado también aprobaron. La
 [verificación](verification-report.md) distingue estos cortes y sus límites.
-La integración exige los gates de la revisión publicada. Los avisos internos
-y la duración observada no resuelven el correo ni la estimación validada de
-CU-16; esos pendientes se conservan explícitos y no se atribuyen a los contadores.
+La integración confirmada no acredita CI posterior en main ni un despliegue
+nuevo. Los avisos internos y la duración observada no resuelven el correo ni la
+estimación validada de CU-16; esos pendientes se conservan explícitos y no se
+atribuyen a los contadores.
 La fila jurídica conserva la necesidad de identificar entidad, fuero y canal de
 recepción. Los datos faltantes se presentan como decisiones concretas, no como
 permiso para investigar o implementar indefinidamente.
 
 ## Trabajo entregado que no se reabre
 
+- Informe de actividad de PR92: tres contadores por autor y periodo, con el
+  catálogo finito completo, sin inflación por correcciones, reintentos o medidas
+  contenidas. Quedan separados los pendientes de estimación y correo de CU-16.
 - Flujo cautelar completo de PR90: HTTP, Qadra, Agenda, alertas, decisiones y
   rectificaciones con historia y recuperación; navegador real, reinicios,
   restauración y manuscrito separado aceptados. Se conservan siete familias
@@ -80,10 +118,12 @@ integración tampoco acredita activación o retención del journal en VPS3.
 
 ## Fronteras humanas y trabajo excluido
 
-La cuenta/correo Owner, remitente y activación de correo, duración de inactividad
-y activación en VPS3 siguen pendientes humanos. No se cambian por el avance de
-código. Una evaluación con participantes reales también requiere personas y
-resultados reales; las pruebas automáticas no la sustituyen.
+La cuenta/correo Owner, remitente y activación de correo, y duración de
+inactividad siguen pendientes humanos. La continuación autoriza despliegues
+con la configuración vigente preservada; no autoriza inferir esos valores.
+La producción observada conserva la versión anterior `v0.1.1`; este corte no
+declara un despliegue nuevo. Una evaluación con participantes reales también
+requiere personas y resultados reales; las pruebas automáticas no la sustituyen.
 
 El acceso documental Client requiere resolver su política explícita. No se abre
 por analogía con los roles internos. Los planes comerciales se concilian con el
