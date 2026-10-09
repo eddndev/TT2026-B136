@@ -177,8 +177,8 @@ fn filters_use_original_half_open_creation_interval_and_current_state_and_assign
     let owner = owner(&mut db);
     let store = store(&db, clock(observed));
     let mut filtered = command(at);
-    filtered.filters.created_before = at + Duration::days(1);
-    filtered.filters.assigned_litigator = Some(litigator);
+    filtered.filters.period_before = at + Duration::days(1);
+    filtered.filters.litigator = Some(litigator);
     let snapshot = capture_request(&store, &owner, filtered.clone(), observed);
     assert_eq!(
         snapshot

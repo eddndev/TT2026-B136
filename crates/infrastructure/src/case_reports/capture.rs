@@ -36,7 +36,7 @@ impl PostgresCaseReportStore {
         now: OffsetDateTime,
     ) -> Result<CaseReportSnapshot, ApplicationError> {
         let f = &report.command.filters;
-        access::filter_member(tx, &report.requester.principal, f.assigned_litigator)?;
+        access::filter_member(tx, &report.requester.principal, f.litigator, f.kind)?;
         let status = match f.status {
             CaseStatusFilter::All => "all",
             CaseStatusFilter::Active => "active",
@@ -44,15 +44,15 @@ impl PostgresCaseReportStore {
         };
         let rows = tx.query("SELECT c.id FROM cases c LEFT JOIN LATERAL
             (SELECT administrative_status FROM case_administration_revisions r WHERE r.case_id=c.id ORDER BY revision DESC LIMIT 1) h ON true
-            WHERE c.created_at >= $1::text::timestamptz AND c.created_at < $2::text::timestamptz
+            WHERE ($9::boolean OR (c.created_at >= $1::text::timestamptz AND c.created_at < $2::text::timestamptz))
             AND c.created_at <= $3::text::timestamptz
             AND ($4::boolean OR EXISTS(SELECT 1 FROM case_memberships m WHERE m.case_id=c.id AND m.user_id=$5))
             AND ($6='all' OR coalesce(h.administrative_status,'active')=$6)
-            AND ($7::uuid IS NULL OR EXISTS(SELECT 1 FROM case_memberships m JOIN users u ON u.id=m.user_id
+            AND ($9::boolean OR $7::uuid IS NULL OR EXISTS(SELECT 1 FROM case_memberships m JOIN users u ON u.id=m.user_id
                 WHERE m.case_id=c.id AND u.id=$7 AND u.active AND u.role='litigator'))
-            ORDER BY c.id LIMIT $8", &[&timestamp(f.created_from)?, &timestamp(f.created_before)?, &timestamp(now)?,
+            ORDER BY c.id LIMIT $8", &[&timestamp(f.period_from)?, &timestamp(f.period_before)?, &timestamp(now)?,
             &(report.scope == CaseReportScope::Office), &report.requester.principal.id.as_uuid(), &status,
-            &f.assigned_litigator.map(UserId::as_uuid), &((MAX_REPORT_CASES + 1) as i64)]).map_err(port)?;
+            &f.litigator.map(UserId::as_uuid), &((MAX_REPORT_CASES + 1) as i64), &(f.kind == CaseReportKind::LitigatorActivity)]).map_err(port)?;
         if rows.len() > MAX_REPORT_CASES {
             return Err(CaseReportError::CapacityExceeded.into());
         }
@@ -116,14 +116,28 @@ impl PostgresCaseReportStore {
                 assigned_litigators,
             });
         }
+        let activity = if f.kind == CaseReportKind::LitigatorActivity {
+            let ids = cases
+                .iter()
+                .map(|row| row.case_id.as_uuid())
+                .collect::<Vec<_>>();
+            Some(activity_capture::capture(tx, report, &ids, now)?)
+        } else {
+            None
+        };
         let mut snapshot = CaseReportSnapshot {
+            activity,
             report_id: report.id,
             requester: report.requester.clone(),
             scope: report.scope,
             filters: f.clone(),
             checked_at: now,
             cases,
-            workload: workloads.into_values().collect(),
+            workload: if f.kind == CaseReportKind::CaseState {
+                workloads.into_values().collect()
+            } else {
+                vec![]
+            },
             digest: Sha256Digest::from_array([0; 32]),
         };
         snapshot.digest = case_report_snapshot_digest(self.hasher.as_ref(), &snapshot)?;

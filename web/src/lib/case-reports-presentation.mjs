@@ -1,5 +1,14 @@
 import { reportInstant, reportValue } from './case-report-values.mjs';
 
+export const activityReport = (value) => value?.report_type === 'litigator_activity';
+export const reportTypeLabel = (value) =>
+  activityReport(value) ? 'Actividad por litigante' : 'Estado y carga de expedientes';
+export const reportPeriod = (value) => ({
+  from: activityReport(value) ? value.filters.occurred_from : value.filters.created_from,
+  before: activityReport(value) ? value.filters.occurred_before : value.filters.created_before,
+});
+export const reportAuthor = (value) =>
+  activityReport(value) ? value.filters.author_litigator : value.filters.assigned_litigator;
 export const canReports = (role) => ['owner', 'litigator'].includes(role);
 export const reportScope = (role) => (role === 'owner' ? 'office' : 'assigned_cases');
 export const scopeLabel = (scope) =>
@@ -9,7 +18,11 @@ export const statusLabel = (value) =>
 export function phaseLabel(value) {
   if (value.state === 'queued') return 'En cola';
   if (value.state === 'processing')
-    return value.phase === 'capturing' ? 'Capturando expedientes' : 'Generando PDF y CSV';
+    return value.phase === 'capturing'
+      ? activityReport(value)
+        ? 'Capturando actividad'
+        : 'Capturando expedientes'
+      : 'Generando PDF y CSV';
   if (value.state === 'retry_waiting') return 'Reintento pendiente';
   if (value.state === 'ready') return 'Disponible';
   if (value.state === 'access_revoked') return 'Acceso retirado';
@@ -67,22 +80,27 @@ export function initialReportFilters() {
   const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const before = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
   return {
+    reportType: 'case_state',
     from: from.toISOString().slice(0, 10),
     before: before.toISOString().slice(0, 10),
     status: 'all',
     assigned: '',
   };
 }
-function utcDay(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Indica ambas fechas de creaci\u00f3n.');
+function utcDay(value, activity) {
+  const label = activity ? 'actividad' : 'creaci\u00f3n';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`Indica ambas fechas de ${label}.`);
   const date = new Date(`${value}T00:00:00Z`);
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value)
-    throw new Error('La fecha de creaci\u00f3n no es v\u00e1lida.');
+    throw new Error(`La fecha de ${label} no es v\u00e1lida.`);
   return date;
 }
 export function reportFilters(draft, lawyers) {
-  const from = utcDay(draft.from),
-    before = utcDay(draft.before);
+  if (![undefined, 'case_state', 'litigator_activity'].includes(draft.reportType))
+    throw new Error('Selecciona un tipo de informe disponible.');
+  const activity = draft.reportType === 'litigator_activity',
+    from = utcDay(draft.from, activity),
+    before = utcDay(draft.before, activity);
   const duration = before.getTime() - from.getTime();
   if (duration <= 0 || duration > 366 * 86400000)
     throw new Error('El intervalo debe ser positivo y no superar 366 d\u00edas.');
@@ -91,10 +109,10 @@ export function reportFilters(draft, lawyers) {
   if (draft.assigned && !lawyers.some((row) => row.user_id === draft.assigned))
     throw new Error('Selecciona un litigante disponible en tu alcance.');
   return {
-    created_from: from.toISOString().replace('.000Z', 'Z'),
-    created_before: before.toISOString().replace('.000Z', 'Z'),
+    [activity ? 'occurred_from' : 'created_from']: from.toISOString().replace('.000Z', 'Z'),
+    [activity ? 'occurred_before' : 'created_before']: before.toISOString().replace('.000Z', 'Z'),
     status: draft.status,
-    assigned_litigator: draft.assigned || null,
+    [activity ? 'author_litigator' : 'assigned_litigator']: draft.assigned || null,
   };
 }
 export const reportFailure = (error) =>

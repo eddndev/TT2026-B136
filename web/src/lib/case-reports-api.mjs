@@ -1,7 +1,7 @@
 import { reportLitigatorQuery, reportLitigatorPage } from './case-report-litigators.mjs';
 import {
   reportCommand,
-  reportFilters,
+  reportType,
   reportQuery,
   reportValue,
   reportPage,
@@ -42,9 +42,8 @@ export function caseReportsApi(request) {
       const value = reportValue(await read('/case-reports', { method: 'POST', data: command }));
       if (
         value.operation_id !== command.operation_id ||
-        Object.keys(reportFilters(command.filters)).some(
-          (key) => value.filters[key] !== command.filters[key],
-        )
+        reportType(value) !== reportType(command) ||
+        Object.keys(command.filters).some((key) => value.filters[key] !== command.filters[key])
       )
         reportInvalid();
       return value;
@@ -62,6 +61,7 @@ export function caseReportsApi(request) {
       const query = reportLitigatorQuery(raw),
         params = new URLSearchParams({ limit: String(query.limit) });
       if (query.after_id !== null) params.set('after_id', query.after_id);
+      if (query.report_type) params.set('report_type', query.report_type);
       return reportLitigatorPage(await read(`/case-reports/litigators?${params}`), query);
     },
     get: (id) => detail(id),

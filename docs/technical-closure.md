@@ -30,6 +30,23 @@ de actividad registrada anteriores. Sólo cuentan escrituras confirmadas: lectur
 preparaciones y reintentos de la misma operación no agregan actividad. No se
 añaden puntuaciones, comparaciones de éxito jurídico ni métricas distintas.
 Los informes de estado y carga existentes se conservan.
+
+El informe de actividad está implementado localmente, con aceptación focal y
+recorridos reales. Su [decisión de diseño](adr/0073-author-attributed-activity-reports.md)
+conserva exactamente las tres cantidades y declara la cobertura documental
+histórica incompleta. El catálogo definitivo comprende registros originales de
+resoluciones/notificaciones, cinco actos de recursos, sesiones/resultados y
+decisiones judiciales cautelares. Cada original cuenta una vez; sus acuerdos o
+medidas contenidos no aportan actuaciones adicionales.
+
+La aceptación conserva autoría tras reasignaciones, captura y archivos después
+de restaurar, avisos tras renovar sesión y PDF/CSV coincidentes. El recorrido
+positivo del catálogo completo obtuvo 1 documento, 9 actuaciones y 1 plazo
+atendido. HTTP/restauración y manuscrito separado también aprobaron. La
+[verificación](verification-report.md) distingue estos cortes y sus límites.
+La integración exige los gates de la revisión publicada. Los avisos internos
+y la duración observada no resuelven el correo ni la estimación validada de
+CU-16; esos pendientes se conservan explícitos y no se atribuyen a los contadores.
 La fila jurídica conserva la necesidad de identificar entidad, fuero y canal de
 recepción. Los datos faltantes se presentan como decisiones concretas, no como
 permiso para investigar o implementar indefinidamente.

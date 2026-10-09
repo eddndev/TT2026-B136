@@ -8,3 +8,6 @@ mod pagination;
 mod pdf;
 #[path = "case_report_rendering/support.rs"]
 mod support;
+
+#[path = "case_report_rendering/activity.rs"]
+mod activity;

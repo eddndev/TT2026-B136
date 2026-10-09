@@ -32,6 +32,7 @@ export async function reportDraftSetup(page) {
     reportRole: null,
     reportDenied: false,
     reportLawyers: [{ user_id: lawyerId, email: 'lawyer@example.test' }],
+    reportAuthors: null,
   });
   states.set(page, state);
   await page.route(
@@ -85,12 +86,20 @@ export async function reportDraftSetup(page) {
         let value;
         if (
           call.path === `${reportPath}/litigators` &&
-          [...url.searchParams.keys()].every((k) => ['limit', 'after_id'].includes(k))
+          [...url.searchParams.keys()].every((k) =>
+            ['limit', 'after_id', 'report_type'].includes(k),
+          ) &&
+          (!url.searchParams.has('report_type') ||
+            url.searchParams.get('report_type') === 'litigator_activity')
         )
           value = {
             scope,
             checked_at: '2026-10-02T18:00:00Z',
-            litigators: structuredClone(state.reportLawyers),
+            litigators: structuredClone(
+              url.searchParams.get('report_type') === 'litigator_activity'
+                ? (state.reportAuthors ?? state.reportLawyers)
+                : state.reportLawyers,
+            ),
             has_more: false,
             next_after_id: null,
           };
@@ -137,13 +146,18 @@ export async function reportDraftSetup(page) {
       state.reportWrites.push(structuredClone(command));
       const key = state.current.user.id + ':' + command.operation_id;
       let record = state.reportRecords.get(key);
-      if (record && JSON.stringify(record.filters) !== JSON.stringify(command.filters))
+      if (
+        record &&
+        (record.report_type !== command.report_type ||
+          JSON.stringify(record.filters) !== JSON.stringify(command.filters))
+      )
         return fail('case_report_operation_conflict', 409);
       if (!record) {
         record = {
           ...pending({
             id: `81000000-0000-4000-8000-${String(state.reportRecords.size + 1).padStart(12, '0')}`,
             operation_id: command.operation_id,
+            ...(command.report_type ? { report_type: command.report_type } : {}),
             filters: structuredClone(command.filters),
             scope,
             request_digest: createHash('sha256').update(JSON.stringify(command)).digest('hex'),

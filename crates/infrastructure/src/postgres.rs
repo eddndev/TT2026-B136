@@ -118,6 +118,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     transaction
         .batch_execute(crate::alert_schema::PRECAUTIONARY_HEARING_MIGRATION)
         .map_err(port_error)?;
+    for migration in crate::document_upload_origin_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     crate::password_reset_schema::validate_schema(&mut transaction)?;
     crate::password_reset_schema::validate_inventory(&mut transaction)?;
     crate::owner_certificate_schema::validate_schema(&mut transaction)?;
@@ -159,6 +162,7 @@ pub(crate) fn unlock_startup_schema(
 pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationError> {
     crate::postgres_version_schema::validate(client)?;
     crate::postgres_metadata_schema::validate(client)?;
+    crate::document_upload_origin_schema::validate(client)?;
     crate::postgres_participant_schema::validate(client)?;
     crate::postgres_case_administration_schema::validate(client)?;
     crate::postgres_case_stages_schema::validate(client)?;
@@ -193,6 +197,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     validate_runtime_role(client, &role)?;
     crate::postgres_version_schema::validate_inventory(client)?;
     crate::postgres_metadata_schema::validate_inventory(client)?;
+    crate::document_upload_origin_schema::validate_inventory(client)?;
     crate::postgres_participant_schema::validate_inventory(client)?;
     crate::postgres_case_administration_inventory::validate(client)?;
     crate::postgres_case_stages_inventory::validate(client)?;
@@ -303,6 +308,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::measure_decision_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::hearing_derived_deadline_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::document_integrity_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::document_upload_origin_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::member_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::case_report_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::audit_query_schema::grant_runtime(&mut transaction, runtime_role)?;

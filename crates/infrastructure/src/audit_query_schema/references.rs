@@ -36,6 +36,11 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "measure_operation_audit_event",
             true,
         ),
+        (
+            "document_upload_origins",
+            "document_upload_origin_audit",
+            false,
+        ),
     ] {
         let rows = client.query("SELECT g.tgtype,
             g.tgisinternal AND g.tgenabled IN ('O','A') AND g.tgdeferrable=$3 AND g.tginitdeferred=$3
@@ -72,7 +77,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         )
         .map_err(port)?
         .get(0);
-    if count != 12 {
+    if count != 14 {
         return Err(incomplete());
     }
     Ok(())

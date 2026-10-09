@@ -11,14 +11,54 @@ neutralizados por conservar una sesión o por devolver a la cuenta su rol
 anterior. El consumo de recuperación que sólo incrementa la revisión de cuenta
 no invalida por sí mismo el informe.
 
-El intervalo filtra la creación original y el estado se observa al capturar,
-según la \cref{sec:diseno-informes}. El filtro opcional por litigante limita los
+En la modalidad de estado, el intervalo filtra la creación original y el estado
+se observa al capturar, según la \cref{sec:diseno-informes}. El filtro opcional por litigante limita los
 expedientes; no elimina del resumen a otros litigantes asignados a esos mismos
 casos. La captura conserva filtros, instante de observación, identificadores,
 revisiones administrativas, asignaciones y carga derivada. Repetir una operación
 con sus mismos filtros devuelve el trabajo original; cambiar los filtros con
 el mismo identificador produce conflicto. La interfaz conserva esa identidad
 ante una respuesta incierta y permite reintentar explícitamente.
+
+\paragraph{Atribución de actividad.}
+La modalidad de actividad reutiliza las rutas, permisos, cola, captura cifrada,
+renderizado y avisos del informe de estado. La solicitud distingue el tipo
+\texttt{litigator\_activity} y un intervalo del instante de operación, independiente
+del intervalo de creación de expedientes. Cambiar de tipo o filtros bajo una
+identidad de operación existente produce conflicto. La representación HTTP,
+el almacenamiento y los bytes canónicos de los informes de estado conservan
+su forma; la actividad utiliza una captura de versión dos y dominios canónicos
+separados para la solicitud y el resultado.
+
+La migración \rutarepo{migrations/0043_document_upload_origins.sql} conserva el
+origen de cada carga documental nueva en la misma transacción que el documento
+y su auditoría. Registra documento, expediente, UUID y correo capturado del autor,
+instante de registro y secuencia del evento de carga. Las versiones de contenido
+y las clasificaciones posteriores no crean otro origen. Los registros antiguos
+sin ese origen permanecen identificados como cobertura incompleta; no se les
+atribuye retrospectivamente una cuenta por coincidencia de correo.
+
+La agregación se delimita a tres cantidades por expediente y autor: documentos
+originales cargados, actuaciones originales registradas y plazos atendidos.
+Las actuaciones comprenden resoluciones/notificaciones, los cinco tipos de actos
+de recursos, sesiones/resultados de audiencias y decisiones judiciales cautelares.
+Se utiliza la identidad del registro original, su cuenta autora y su instante
+de confirmación; una corrección, un reintento exacto o una medida contenida en
+una decisión no produce otra actuación. Los acuerdos de una sesión o resultado
+tampoco se cuentan por separado. La atención aporta una cantidad por plazo y
+autor dentro del periodo cuando cambia de pendiente a registrada, sin sumar
+las ediciones posteriores de su texto. Las pruebas de la
+\cref{sec:pruebas-informes} contrastan estas cantidades con los registros
+originales y los reintentos recuperados por revisión exacta.
+
+El selector de actividad incluye autores de fuentes capturables en expedientes
+accesibles aunque ya no estén asignados a ellos, conservando la elegibilidad
+actual de cuenta activa y rol Litigante. El acceso del solicitante a todos los
+expedientes se comprueba de nuevo al consultar o descargar. La captura conserva
+las filas por expediente y autor; PDF y CSV derivan de ellas los mismos totales
+y el mismo digest. El CSV incorpora la marca \texttt{documents\_complete} y el
+PDF presenta el aviso de cobertura cuando faltan orígenes documentales. Así,
+una reasignación posterior no modifica la autoría ni los archivos ya generados.
 
 \paragraph{Persistencia y recuperación.}
 La migración \rutarepo{migrations/0026_case_reports.sql} añade solicitudes,
@@ -58,9 +98,11 @@ los volcados de memoria tienen límite cero; la salida se acota al artefacto de
 16 MiB y su cabecera. Estos controles limitan recursos y separan la ejecución,
 pero no crean un aislamiento adicional de permisos, archivos o red.
 
-La captura admite hasta mil expedientes, diez mil pares de asignación y mil
-litigantes en el resumen, con un máximo canónico de 8 MiB. El PDF limita además
-la composición a 512 páginas y un millón de glifos, con fuentes incorporadas y
+La captura de estado admite hasta mil expedientes, diez mil pares de asignación
+y mil litigantes en el resumen, con un máximo canónico de 8 MiB. La actividad
+conserva los presupuestos comunes y admite hasta mil autores y diez mil pares
+de expediente y autor. El PDF limita además la composición a 512 páginas y un
+millón de glifos, con fuentes incorporadas y
 rechazo explícito de caracteres no soportados. El CSV utiliza registros RFC
 4180 y protege textos no confiables frente a fórmulas de hoja de cálculo. Los
 presupuestos se aplican conjuntamente: el máximo de filas no garantiza que
@@ -79,8 +121,9 @@ Para un resultado disponible o fallido presenta la duración observada entre la
 solicitud y su aviso terminal, incluida la espera en cola y los reintentos.
 El acuse posterior del aviso no amplía ese intervalo. Esta medición de un trabajo
 terminado no constituye una predicción para solicitudes pendientes.
-El selector paginado conserva los colegas compartidos sólo en expedientes
-cerrados. Antes de ofrecer una descarga, el cliente contrasta identificador,
+El selector paginado de estado conserva también los colegas compartidos sólo
+en expedientes cerrados. La actividad conserva el selector de autores descrito
+anteriormente. Antes de ofrecer una descarga, el cliente contrasta identificador,
 captura, tamaño y digest con el detalle autorizado.
 
 El contrato \rutarepo{docs/case-reports-api.md} y la operación de respaldo en
@@ -88,7 +131,10 @@ El contrato \rutarepo{docs/case-reports-api.md} y la operación de respaldo en
 \rutarepo{docs/adr/0060-durable-authorized-case-reports.md} documenta las decisiones de autorización,
 persistencia y publicación conjunta verificadas en la aceptación integrada. La composición local
 no acredita por sí sola un despliegue, una campaña global aprobada, efectividad
-jurídica, firma personal o constancia emitida por un PSC. El aviso por correo y
-la estimación de terminación de la \cref{tab:cu-16}, junto con otros tipos de
-informe y las métricas de desempeño de la \cref{tab:rf-19}, conservan su alcance
-pendiente. La exportación de estado y carga no completa esos criterios.
+jurídica, firma personal o constancia emitida por un PSC. La atribución y el
+catálogo finito de actividad se delimitan en
+\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. El aviso por correo
+y la estimación de terminación de la \cref{tab:cu-16} conservan su alcance
+pendiente. La \cref{sec:pruebas-informes} distingue la aceptación reproducida
+de las tres cantidades de actividad de una evaluación de éxito jurídico o
+de usabilidad con personas.

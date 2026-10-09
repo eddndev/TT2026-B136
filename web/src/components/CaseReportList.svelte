@@ -1,5 +1,5 @@
 <script>
-  import { phaseLabel } from '../lib/case-reports-presentation.mjs';
+  import { activityReport, reportPeriod, phaseLabel } from '../lib/case-reports-presentation.mjs';
   export let rows = [],
     busy = false,
     loaded = false,
@@ -16,13 +16,17 @@
     </div>
   </div>
   {#if busy}<p role="status">Consultando informes...</p>{/if}
-  {#each rows as row (row.id)}<article class="report-row">
+  {#each rows as row (row.id)}{@const period = reportPeriod(row)}
+    <article class="report-row">
       <div class="report-row-content">
         <span class="report-phase" class:report-ready={row.state === 'ready'}
           >{phaseLabel(row)}</span
         >
-        <h3>Expedientes creados del {row.filters.created_from.slice(0, 10)}</h3>
-        <p>Hasta {row.filters.created_before.slice(0, 10)}, sin incluir ese d&#237;a.</p>
+        <h3>
+          {activityReport(row) ? 'Actividad registrada del' : 'Expedientes creados del'}
+          {period.from.slice(0, 10)}
+        </h3>
+        <p>Hasta {period.before.slice(0, 10)}, sin incluir ese d&#237;a.</p>
         <p class="hint">Solicitud <time datetime={row.requested_at}>{row.requested_at}</time></p>
         {#if row.notice}<span class="report-notice"
             >{row.notice.read_at ? 'Aviso le\u00eddo' : 'Aviso sin leer'}</span

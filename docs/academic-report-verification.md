@@ -1,5 +1,28 @@
 # Verificación de la actualización académica
 
+## Informe de actividad atribuida: 8 de octubre de 2026
+
+Diseño, implementación, pruebas y trazabilidad describen las tres cantidades
+por cuenta y periodo, el catálogo completo de originales y la cobertura documental
+histórica incompleta. Conservan las mediciones previas y distinguen la aceptación
+focal, el recorrido real PDF/CSV 1/9/1 y la campaña HTTP/restauración.
+
+La copia separada compiló en **92.519 s**. La inspección detectó una ruta que
+sobresalía del anexo y una frase de implementación en curso ya superada; se
+corrigieron y recompilaron en **19.674 s** y **19.826 s**, respectivamente.
+El resultado final tiene **396 páginas**, **6034869 bytes** y SHA-256
+`574a84ff5ed52905a6803aa4fce1824904ffef83284e655ff8813f87d3453717`.
+Se inspeccionaron las páginas físicas **4, 6, 78–79, 223–226, 292–294 y 389–390**;
+las páginas 224 y 226 se revisaron de nuevo tras la última corrección. Texto,
+rutas, encabezados y continuaciones legibles, sin nuevos recortes o solapes.
+No hay glifos faltantes ni referencias sin resolver; permanecen únicamente las
+dos cajas horizontales históricas de 0.11754 y 24.62556 pt y la sustitución de
+versalitas existente. El PDF exportado por Qadra con 1/9/1 también quedó legible.
+
+Las cuatro copias de PDF previamente conservadas mantienen sus hashes. Resumen
+aprobado, introducción, marco teórico y conclusiones no se modificaron. Esta
+verificación documental no atribuye integración ni despliegue a la entrega.
+
 ## Composición de cautelares y MFA: 8 de octubre de 2026
 
 Se compiló una copia separada de las fuentes combinadas de PR90 y PR91 con el

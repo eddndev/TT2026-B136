@@ -5,7 +5,13 @@ import { canReports, reportScope } from './case-reports-presentation.mjs';
 
 export function reportDraftValue(value, role) {
   factObject(value, ['draft', 'pending', 'role']);
-  factObject(value.draft, ['from', 'before', 'status', 'assigned']);
+  const fields = ['from', 'before', 'status', 'assigned'];
+  factObject(value.draft, [...fields, 'reportType'], fields);
+  if (
+    Object.hasOwn(value.draft, 'reportType') &&
+    !['case_state', 'litigator_activity'].includes(value.draft.reportType)
+  )
+    throw new Error('La solicitud pendiente no corresponde a un tipo de informe disponible.');
   if (value.role !== role) {
     const error = new Error('La solicitud pendiente corresponde a otro rol de la cuenta.');
     error.status = 403;
@@ -18,7 +24,7 @@ export function reportDraftValue(value, role) {
   return structuredClone(value);
 }
 
-export async function freshReportRequest(api, scoped, user, admitted) {
+export async function freshReportRequest(api, scoped, user, admitted, types = ['case_state']) {
   if (!admitted()) return null;
   const principal = await api.me();
   if (!admitted()) return null;
@@ -29,20 +35,28 @@ export async function freshReportRequest(api, scoped, user, admitted) {
     error.status = 403;
     throw error;
   }
-  const lawyers = [];
-  let afterId;
-  do {
-    const page = await scoped.litigators({ limit: 20, ...(afterId ? { after_id: afterId } : {}) });
-    if (!admitted()) return null;
-    if (page.scope !== reportScope(principal.role)) {
-      const error = new Error('El alcance de litigantes no corresponde al acceso actual.');
-      error.status = 403;
-      throw error;
-    }
-    lawyers.push(...page.litigators);
-    afterId = page.has_more ? page.next_after_id : null;
-  } while (afterId !== null);
-  return admitted() ? lawyers : null;
+  const choices = {};
+  for (const type of types) {
+    const lawyers = [];
+    let afterId;
+    do {
+      const page = await scoped.litigators({
+        limit: 20,
+        ...(afterId ? { after_id: afterId } : {}),
+        ...(type === 'litigator_activity' ? { report_type: type } : {}),
+      });
+      if (!admitted()) return null;
+      if (page.scope !== reportScope(principal.role)) {
+        const error = new Error('El alcance de litigantes no corresponde al acceso actual.');
+        error.status = 403;
+        throw error;
+      }
+      lawyers.push(...page.litigators);
+      afterId = page.has_more ? page.next_after_id : null;
+    } while (afterId !== null);
+    choices[type] = lawyers;
+  }
+  return admitted() ? choices : null;
 }
 
 export function createReportRequestDraft({ session, user, capture }) {

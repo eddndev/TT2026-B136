@@ -206,3 +206,69 @@ Además de los errores de autenticación y permisos, se distinguen
 `403 case_report_access_revoked`, `503 case_report_render_unavailable` y
 `500 case_report_render_failed`. Un trabajo asíncrono fallido puede devolver
 `200` con `state=failed`: ese estado no equivale a una descarga disponible.
+
+## Modalidad de actividad registrada
+
+La ampliación descrita en la
+[decisión de autoría](adr/0073-author-attributed-activity-reports.md) conserva
+las rutas, permisos, cola y avisos anteriores. El catálogo definitivo de
+actuaciones está implementado, incluidas sesiones/resultados de audiencias y
+decisiones judiciales cautelares. La aceptación focal y el recorrido real del
+catálogo completo aprobaron. La integración requiere los gates de la revisión
+publicada, según el [inventario de cierre](technical-closure.md).
+La solicitud nueva es:
+
+```json
+{
+  "operation_id": "82000000-0000-4000-8000-000000000001",
+  "report_type": "litigator_activity",
+  "filters": {
+    "occurred_from": "2026-09-01T00:00:00Z",
+    "occurred_before": "2026-10-01T00:00:00Z",
+    "status": "all",
+    "author_litigator": null
+  }
+}
+```
+
+El detalle de actividad conserva `report_type` y esos mismos filtros. Los
+informes de estado siguen omitiendo el discriminador y usando `created_*` y
+`assigned_litigator`. Mezclar las dos familias, usar otro tipo o cambiar tipo y
+filtros bajo una operación existente se rechaza. El intervalo de actividad es
+UTC, semiabierto y de hasta 366 días; se aplica al instante de registro confirmado,
+no a creación del expediente ni a la fecha judicial declarada. `status` conserva
+su significado de estado administrativo observado al capturar.
+
+El selector añade `report_type=litigator_activity`. Owner conserva el directorio
+de litigantes activos; para Litigator se incluyen también los autores de registros
+originales en expedientes actualmente accesibles aunque ya no estén asignados a
+ellos. El selector anterior mantiene su semántica. Rol y actividad de la cuenta
+se observan en la captura; no se reconstruye el rol histórico. PDF y CSV conservan
+la misma cuenta autora y no transfieren sus cantidades por una reasignación.
+
+La captura guarda exactamente tres cantidades: documentos originales cargados,
+actuaciones originales registradas y plazos marcados como atendidos. El catálogo
+de actuaciones comprende resoluciones/notificaciones, los cinco actos de recursos
+(`interposition`, `admission`, `inadmissibility`, `withdrawal`, `resolution`),
+sesiones/resultados de audiencias y decisiones judiciales cautelares. Cada
+registro original cuenta una vez por su identidad estable; los acuerdos de una
+sesión/resultado y las medidas de una decisión no aportan cantidades separadas.
+Programar una audiencia no registra una sesión/resultado. Una nueva versión o
+clasificación documental no es otro documento original. El registro de un recurso,
+las correcciones, las preparaciones y los reintentos exactos no son nuevos actos.
+La atención se cuenta una vez por plazo y autor dentro del periodo cuando pasa
+de pendiente a registrada; corregir su texto no añade otra cantidad. Las
+operaciones posteriores a la captura no se incorporan a ese informe.
+
+El CSV de actividad usa filas `capture`, `litigator` y `case_activity`, con los
+contadores `documents_uploaded`, `procedural_activities` y `deadlines_attended`.
+Incluye identidad, periodo, filtros, digest común y `documents_complete` en cada
+fila. Los totales se derivan de las mismas filas caso/autor que presenta el PDF.
+Se conservan escape RFC 4180 y protección de fórmulas para textos no confiables.
+Admite hasta 1000 autores y 10000 filas caso/autor, además de los límites anteriores.
+
+Si un expediente incluido conserva documentos sin origen de autor estable, el
+PDF indica cobertura documental incompleta y el CSV marca `documents_complete=false`.
+Los números entonces representan cargas identificadas, no un total histórico
+exhaustivo. La comprobación es conservadora incluso cuando el documento antiguo
+pudiera ser anterior al periodo. La migración no infiere cuentas por correo.

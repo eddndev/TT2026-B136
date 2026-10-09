@@ -35,9 +35,12 @@ durables propias para Owner y Litigator, una captura administrativa compartida p
 PDF y CSV, y avisos internos de lectura explícita. El servidor compone su consumidor
 supervisado y un selector paginado de litigantes con el alcance propio del informe,
 incluidos colegas de expedientes cerrados. Los informes de estado/carga y su
-recuperación están integrados; el informe restante tiene el límite explícito de
-[cierre técnico](technical-closure.md). El intervalo filtra fechas de creación y la captura
-observa el estado actual; no representa efectividad histórica ni constancia externa.
+recuperación están integrados. En esa modalidad el intervalo filtra fechas de
+creación y la captura observa el estado actual. La modalidad de actividad en
+implementación usa el instante de registro y la cuenta autora para tres cantidades;
+su contrato y cobertura histórica incompleta están en la misma API y su aceptación
+pendiente en el [cierre técnico](technical-closure.md). Ninguna modalidad representa
+efectividad jurídica ni constancia externa.
 
 La [API de contenido documental e incidentes](document-content-api.md) añade
 la descarga de una versión exacta, pendiente o sellada, y el buzón interno

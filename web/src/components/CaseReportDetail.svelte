@@ -1,5 +1,9 @@
 <script>
   import {
+    activityReport,
+    reportPeriod,
+    reportAuthor,
+    reportTypeLabel,
     phaseLabel,
     statusLabel,
     scopeLabel,
@@ -14,6 +18,8 @@
     ondownload,
     onread;
   $: duration = reportDuration(value);
+  $: activity = activityReport(value);
+  $: period = value ? reportPeriod(value) : null;
 </script>
 
 <section class="card report-detail" aria-label="Detalle de informe" aria-busy={busy}>
@@ -37,24 +43,28 @@
     </div>
     <dl class="report-facts">
       <div>
+        <dt>Tipo de informe</dt>
+        <dd>{reportTypeLabel(value)}</dd>
+      </div>
+      <div>
         <dt>Alcance</dt>
         <dd>{scopeLabel(value.scope)}</dd>
       </div>
       <div>
-        <dt>Creaci&#243;n desde (incluida)</dt>
-        <dd><time datetime={value.filters.created_from}>{value.filters.created_from}</time></dd>
+        <dt>{activity ? 'Actividad desde (incluida)' : 'Creaci\u00f3n desde (incluida)'}</dt>
+        <dd><time datetime={period.from}>{period.from}</time></dd>
       </div>
       <div>
-        <dt>Creaci&#243;n hasta (excluida)</dt>
-        <dd><time datetime={value.filters.created_before}>{value.filters.created_before}</time></dd>
+        <dt>{activity ? 'Actividad hasta (excluida)' : 'Creaci\u00f3n hasta (excluida)'}</dt>
+        <dd><time datetime={period.before}>{period.before}</time></dd>
       </div>
       <div>
         <dt>Estado administrativo</dt>
         <dd>{statusLabel(value.filters.status)}</dd>
       </div>
       <div>
-        <dt>Filtro de litigante</dt>
-        <dd>{value.filters.assigned_litigator || 'Todos los permitidos'}</dd>
+        <dt>{activity ? 'Litigante autor' : 'Filtro de litigante'}</dt>
+        <dd>{reportAuthor(value) || 'Todos los permitidos'}</dd>
       </div>
       <div>
         <dt>Solicitud</dt>

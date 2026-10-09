@@ -30,11 +30,11 @@ pub(super) fn render(
         ),
         format!(
             "Creaci\u{f3}n desde (incluido): {}",
-            bounds::utc(snapshot.filters.created_from)?
+            bounds::utc(snapshot.filters.period_from)?
         ),
         format!(
             "Creaci\u{f3}n hasta (excluido): {}",
-            bounds::utc(snapshot.filters.created_before)?
+            bounds::utc(snapshot.filters.period_before)?
         ),
         format!(
             "Filtro de estado: {}",
@@ -44,7 +44,7 @@ pub(super) fn render(
             "Filtro de litigante: {}",
             snapshot
                 .filters
-                .assigned_litigator
+                .litigator
                 .map(|id| id.to_string())
                 .unwrap_or_else(|| "Todos los permitidos".into())
         ),
@@ -142,13 +142,17 @@ pub(super) fn render(
         )?;
         layout.gap(9.0);
     }
+    finish(layout, "Estado actual de expedientes")
+}
+
+pub(super) fn finish(layout: Layout<'_>, title: &str) -> Result<Vec<u8>, ApplicationError> {
     let layout = layout.finish()?;
     let mut pdf = Pdf::new();
     let catalog = Ref::new(1);
     let tree = Ref::new(2);
     pdf.catalog(catalog).pages(tree);
     pdf.document_info(Ref::new(15))
-        .title(TextStr("Estado actual de expedientes"))
+        .title(TextStr(title))
         .creator(TextStr("Qadra"));
     super::embed::font(&mut pdf, &layout.fonts[0], 3, false)?;
     super::embed::font(&mut pdf, &layout.fonts[1], 9, true)?;

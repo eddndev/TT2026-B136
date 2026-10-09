@@ -15,6 +15,7 @@ fn id(value: u128) -> UserId {
 }
 fn query() -> CaseReportLitigatorQuery {
     CaseReportLitigatorQuery {
+        kind: CaseReportKind::CaseState,
         limit: 2,
         after_id: Some(id(1)),
     }
@@ -78,14 +79,17 @@ fn litigator_picker_invalid_limits_and_nil_cursor_never_reach_store() {
     let who = actor(Role::Owner);
     for query in [
         CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 0,
             after_id: None,
         },
         CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 101,
             after_id: None,
         },
         CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 2,
             after_id: Some(id(0)),
         },

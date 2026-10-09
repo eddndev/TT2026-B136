@@ -1,3 +1,4 @@
+use super::codec_activity::{Activity, StoredKind};
 use super::*;
 use application::cases::CaseStatusFilter;
 use domain::{
@@ -11,6 +12,8 @@ use serde_json::Value;
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Filters {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    kind: Option<StoredKind>,
     from: String,
     before: String,
     status: String,
@@ -19,28 +22,34 @@ struct Filters {
 impl Filters {
     fn write(value: &CaseReportFilters) -> Result<Self, ApplicationError> {
         Ok(Self {
-            from: timestamp(value.created_from)?,
-            before: timestamp(value.created_before)?,
+            kind: (value.kind == CaseReportKind::LitigatorActivity).then_some(StoredKind::Activity),
+            from: timestamp(value.period_from)?,
+            before: timestamp(value.period_before)?,
             status: match value.status {
                 CaseStatusFilter::All => "all",
                 CaseStatusFilter::Active => "active",
                 CaseStatusFilter::Closed => "closed",
             }
             .into(),
-            litigator: value.assigned_litigator.map(UserId::as_uuid),
+            litigator: value.litigator.map(UserId::as_uuid),
         })
     }
     fn read(self) -> Result<CaseReportFilters, ApplicationError> {
         Ok(CaseReportFilters {
-            created_from: parse_time(&self.from)?,
-            created_before: parse_time(&self.before)?,
+            kind: if self.kind.is_some() {
+                CaseReportKind::LitigatorActivity
+            } else {
+                CaseReportKind::CaseState
+            },
+            period_from: parse_time(&self.from)?,
+            period_before: parse_time(&self.before)?,
             status: match self.status.as_str() {
                 "all" => CaseStatusFilter::All,
                 "active" => CaseStatusFilter::Active,
                 "closed" => CaseStatusFilter::Closed,
                 _ => return Err(inconsistent("unknown report status filter")),
             },
-            assigned_litigator: self.litigator.map(UserId::from_uuid),
+            litigator: self.litigator.map(UserId::from_uuid),
         })
     }
 }
@@ -106,6 +115,8 @@ struct Workload {
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Snapshot {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    activity: Option<Activity>,
     version: u32,
     report_id: Uuid,
     principal: Principal,
@@ -136,7 +147,12 @@ pub(crate) fn snapshot(value: &CaseReportSnapshot) -> Result<Vec<u8>, Applicatio
         })
         .collect::<Result<Vec<_>, ApplicationError>>()?;
     let wire = Snapshot {
-        version: 1,
+        activity: value.activity.as_ref().map(Activity::write),
+        version: if value.filters.kind == CaseReportKind::CaseState {
+            1
+        } else {
+            2
+        },
         report_id: value.report_id.as_uuid(),
         principal: value.requester.principal.clone(),
         account_revision: value.requester.account_revision,
@@ -167,7 +183,12 @@ pub(crate) fn read_snapshot(bytes: &[u8]) -> Result<CaseReportSnapshot, Applicat
         return Err(CaseReportError::CapacityExceeded.into());
     }
     let wire: Snapshot = serde_json::from_slice(bytes).map_err(inconsistent)?;
-    if wire.version != 1
+    let expected = match (&wire.filters.kind, &wire.activity) {
+        (None, None) => 1,
+        (Some(StoredKind::Activity), Some(_)) => 2,
+        _ => return Err(inconsistent("report capture kind and payload differ")),
+    };
+    if wire.version != expected
         || wire.cases.len() > MAX_REPORT_CASES
         || wire.workload.len() > MAX_REPORT_WORKLOAD
         || wire
@@ -202,6 +223,7 @@ pub(crate) fn read_snapshot(bytes: &[u8]) -> Result<CaseReportSnapshot, Applicat
         })
         .collect::<Result<Vec<_>, ApplicationError>>()?;
     Ok(CaseReportSnapshot {
+        activity: wire.activity.map(Activity::read),
         report_id: CaseReportId::from_uuid(wire.report_id),
         requester: CaseReportRequester {
             principal: wire.principal,

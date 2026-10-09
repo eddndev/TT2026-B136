@@ -34,7 +34,23 @@ pub(super) fn capture(snapshot: &CaseReportSnapshot) -> Result<(), ApplicationEr
     for row in &snapshot.workload {
         field(&row.litigator.email)?;
     }
-    let overhead = snapshot.cases.len() * 256 + assignments * 64 + snapshot.workload.len() * 96;
+    let activity_overhead = if let Some(activity) = &snapshot.activity {
+        if activity.actors.len() > MAX_REPORT_WORKLOAD
+            || activity.rows.len() > MAX_REPORT_ASSIGNMENTS
+        {
+            return Err(capacity());
+        }
+        for who in &activity.actors {
+            field(&who.email)?;
+        }
+        activity.actors.len() * 64 + activity.rows.len() * 64
+    } else {
+        0
+    };
+    let overhead = snapshot.cases.len() * 256
+        + assignments * 64
+        + snapshot.workload.len() * 96
+        + activity_overhead;
     if bytes.checked_add(overhead).ok_or_else(capacity)? > MAX_REPORT_SNAPSHOT_BYTES {
         return Err(capacity());
     }

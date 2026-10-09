@@ -222,7 +222,9 @@
       <div>
         <span class="eyebrow">SEGUIMIENTO DEL DESPACHO</span>
         <h1>Informes de expedientes</h1>
-        <p>Estado actual de los expedientes creados durante el periodo seleccionado.</p>
+        <p>
+          Estado actual de expedientes o actividad por litigante durante el periodo seleccionado.
+        </p>
       </div>
       <button class="secondary" disabled={listBusy || requestBusy} onclick={() => load()}
         >Actualizar informes</button
@@ -230,8 +232,9 @@
     </div>
     <p class="report-scope">{scopeLabel(reportScope(user.role))}</p>
     <p class="notice">
-      Los informes conservan una captura administrativa. El periodo filtra la creaci&#243;n del
-      expediente; no mide la actividad del periodo ni reconstruye su estado pasado.
+      Los informes conservan una captura administrativa. Estado y carga incluye expedientes creados
+      durante el periodo; actividad cuenta registros por su autor y fecha de operaci&#243;n. Ninguna
+      modalidad reconstruye el estado pasado del expediente ni califica resultados jur&#237;dicos.
     </p>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="report-layout">

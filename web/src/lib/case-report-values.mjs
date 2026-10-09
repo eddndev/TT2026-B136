@@ -13,26 +13,37 @@ export function reportInstant(value) {
   return Date.parse(value);
 }
 export function reportUuid(value) {
-  if (factUuid(value) !== value) reportInvalid();
+  if (factUuid(value) !== value || value === '00000000-0000-0000-0000-000000000000')
+    reportInvalid();
   return value;
 }
-export function reportFilters(value) {
-  factObject(value, ['created_from', 'created_before', 'status', 'assigned_litigator']);
-  const from = reportInstant(value.created_from),
-    before = reportInstant(value.created_before);
+export function reportType(value) {
+  if (!Object.hasOwn(value, 'report_type')) return undefined;
+  if (value.report_type !== 'litigator_activity') reportInvalid();
+  return value.report_type;
+}
+export function reportFilters(value, type) {
+  const activity = type === 'litigator_activity',
+    fromKey = activity ? 'occurred_from' : 'created_from',
+    beforeKey = activity ? 'occurred_before' : 'created_before',
+    actorKey = activity ? 'author_litigator' : 'assigned_litigator';
+  if (type !== undefined && !activity) reportInvalid();
+  factObject(value, [fromKey, beforeKey, 'status', actorKey]);
+  const from = reportInstant(value[fromKey]),
+    before = reportInstant(value[beforeKey]);
   if (
     before <= from ||
     before - from > 366 * 86400000 ||
     !['all', 'active', 'closed'].includes(value.status)
   )
     reportInvalid();
-  if (value.assigned_litigator !== null) reportUuid(value.assigned_litigator);
+  if (value[actorKey] !== null) reportUuid(value[actorKey]);
   return value;
 }
 export function reportCommand(value) {
-  factObject(value, ['operation_id', 'filters']);
+  factObject(value, ['operation_id', 'report_type', 'filters'], ['operation_id', 'filters']);
   reportUuid(value.operation_id);
-  reportFilters(value.filters);
+  reportFilters(value.filters, reportType(value));
   return structuredClone(value);
 }
 export function reportQuery(value = {}) {
@@ -59,7 +70,7 @@ export function reportQuery(value = {}) {
   return result;
 }
 export function reportValue(value) {
-  factObject(value, [
+  const keys = [
     'id',
     'operation_id',
     'request_digest',
@@ -73,11 +84,12 @@ export function reportValue(value) {
     'failure',
     'ready',
     'notice',
-  ]);
+  ];
+  factObject(value, [...keys, 'report_type'], keys);
   reportUuid(value.id);
   reportUuid(value.operation_id);
   factDigest(value.request_digest);
-  reportFilters(value.filters);
+  reportFilters(value.filters, reportType(value));
   const requested = reportInstant(value.requested_at),
     updated = reportInstant(value.updated_at);
   if (updated < requested || !['office', 'assigned_cases'].includes(value.scope)) reportInvalid();

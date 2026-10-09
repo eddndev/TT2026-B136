@@ -9,6 +9,15 @@ pub(super) fn validate(value: &CaseReportSnapshot) -> Result<(), ApplicationErro
     if value.cases.len() > MAX_REPORT_CASES || value.workload.len() > MAX_REPORT_WORKLOAD {
         return Err(CaseReportError::CapacityExceeded.into());
     }
+    match value.filters.kind {
+        CaseReportKind::CaseState if value.activity.is_some() => {
+            return Err(inconsistent("case state snapshot contains activity"));
+        }
+        CaseReportKind::LitigatorActivity if !value.workload.is_empty() => {
+            return Err(inconsistent("activity snapshot contains case workload"));
+        }
+        _ => {}
+    }
     let mut assignments = 0usize;
     for case in &value.cases {
         assignments = assignments
@@ -58,6 +67,9 @@ pub(super) fn validate(value: &CaseReportSnapshot) -> Result<(), ApplicationErro
             }
         }
     }
+    if value.filters.kind == CaseReportKind::LitigatorActivity {
+        return super::activity::validate(value);
+    }
     if workload.len() != value.workload.len() {
         return Err(inconsistent("snapshot workload omits or invents members"));
     }
@@ -92,17 +104,19 @@ fn row(snapshot: &CaseReportSnapshot, case: &CaseReportRow) -> Result<(), Applic
     }
     time(case.created_at)?;
     let filters = &snapshot.filters;
-    if case.created_at < filters.created_from
-        || case.created_at >= filters.created_before
+    let outside_state_filter = filters.kind == CaseReportKind::CaseState
+        && (case.created_at < filters.period_from
+            || case.created_at >= filters.period_before
+            || filters
+                .litigator
+                .is_some_and(|id| !case.assigned_litigators.iter().any(|who| who.user_id == id)));
+    if outside_state_filter
         || case.created_at > snapshot.checked_at
         || matches!(
             (filters.status, case.status),
             (CaseStatusFilter::Active, CaseAdministrativeStatus::Closed)
                 | (CaseStatusFilter::Closed, CaseAdministrativeStatus::Active)
         )
-        || filters
-            .assigned_litigator
-            .is_some_and(|id| !case.assigned_litigators.iter().any(|who| who.user_id == id))
         || (snapshot.scope == CaseReportScope::AssignedCases
             && !case
                 .assigned_litigators

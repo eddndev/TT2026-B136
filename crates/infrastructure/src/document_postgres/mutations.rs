@@ -46,12 +46,20 @@ pub(super) fn insert(
         )?,
         None => metadata_storage::current(&mut transaction, record.id)?,
     };
-    append_transaction(
+    let uploaded = append_transaction(
         &mut transaction,
         &principal.email,
         DocumentAction::Upload.audit_action(),
         &resource(case, record.id, record.version, &record.digest.to_hex()),
         at,
+    )?;
+    super::upload_origin::insert(
+        &mut transaction,
+        record.id,
+        case,
+        &principal,
+        at,
+        uploaded.event.sequence,
     )?;
     if current_metadata.metadata_revision.get() > 0 {
         append_transaction(

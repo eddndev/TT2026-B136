@@ -9,6 +9,7 @@ mod metadata;
 mod metadata_storage;
 mod mutations;
 mod query;
+mod upload_origin;
 use authorization::{authorize, authorize_document};
 mod storage;
 pub(crate) use storage::decode_record;

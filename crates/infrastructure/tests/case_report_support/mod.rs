@@ -108,10 +108,11 @@ pub fn command(at: OffsetDateTime) -> CaseReportCommand {
     CaseReportCommand {
         operation_id: CaseReportOperationId::new(),
         filters: CaseReportFilters {
-            created_from: at,
-            created_before: at + Duration::days(2),
+            kind: CaseReportKind::CaseState,
+            period_from: at,
+            period_before: at + Duration::days(2),
             status: CaseStatusFilter::All,
-            assigned_litigator: None,
+            litigator: None,
         },
     }
 }
@@ -202,3 +203,7 @@ pub fn audits(db: &mut Fixture, action: &str) -> i64 {
         .unwrap()
         .get(0)
 }
+
+mod activity;
+mod activity_hearings;
+mod activity_measures;

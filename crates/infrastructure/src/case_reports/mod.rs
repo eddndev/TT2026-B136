@@ -1,7 +1,10 @@
 //! Durable report requests, captures and paired exports in audited transactions.
 mod access;
+mod activity_capture;
+mod activity_sources;
 mod capture;
 pub(crate) mod codec;
+mod codec_activity;
 mod completion;
 mod payload;
 mod reads;
@@ -119,3 +122,6 @@ fn format_parse(value: &str) -> Result<CaseReportFormat, ApplicationError> {
         _ => Err(inconsistent("unknown report artifact format")),
     }
 }
+
+#[cfg(test)]
+mod codec_activity_tests;

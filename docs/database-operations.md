@@ -1482,3 +1482,23 @@ antes de volver a habilitar consumidores o HTTP. Los
 [comandos administrativos](database-restore-commands.md) permiten validar el
 rol runtime sin DDL y ejecutar la invalidacion con el recibo original; no
 implementan por si solos ese bloqueo operacional.
+
+### Origen de cargas para informes de actividad
+
+`0043_document_upload_origins.sql` agrega el origen inmutable de cada documento
+original nuevo: expediente, cuenta autora, correo capturado, instante de operación
+y secuencia exacta del evento `document.uploaded`. Se inserta en la misma
+transacción que documento y auditoría; fallos en cualquiera de ellos revierten
+el conjunto. Las versiones posteriores y la clasificación no cambian ese origen.
+
+El migrador no completa orígenes históricos por coincidencia de correo. Las
+series anteriores siguen legibles y producen cobertura documental incompleta en
+el informe de actividad cuando están dentro de sus expedientes capturados.
+Respaldos/restauraciones deben conservar `document_upload_origins` con documentos,
+cuentas y auditoría. El rol de ejecución sólo lee e inserta esos orígenes; la
+apertura valida catálogo, permisos y correspondencia con documento/evento.
+
+Las capturas de actividad usan representación cifrada de versión 2. Se conserva
+la lectura y serialización de versión 1 para informes de estado. El periodo de
+actividad y tipo forman parte de la identidad canónica de solicitud y captura;
+no se reinterpretan solicitudes existentes al actualizar el servidor.

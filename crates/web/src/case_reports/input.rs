@@ -24,21 +24,61 @@ pub(super) fn id(value: &str) -> Result<CaseReportId, ApiError> {
 #[serde(deny_unknown_fields)]
 pub(super) struct Empty {}
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(super) struct RequestBody {
-    operation_id: String,
-    filters: Filters,
+#[serde(untagged)]
+pub(super) enum RequestBody {
+    State(StateRequest),
+    Activity(ActivityRequest),
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Filters {
+pub(super) struct StateRequest {
+    operation_id: String,
+    filters: StateFilters,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StateFilters {
     created_from: String,
     created_before: String,
     status: String,
     assigned_litigator: Option<String>,
 }
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct ActivityRequest {
+    operation_id: String,
+    report_type: String,
+    filters: ActivityFilters,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ActivityFilters {
+    occurred_from: String,
+    occurred_before: String,
+    status: String,
+    author_litigator: Option<String>,
+}
 impl RequestBody {
     pub(super) fn command(self) -> Result<CaseReportCommand, ApiError> {
+        let (operation, kind, from, before, status, litigator) = match self {
+            Self::State(v) => (
+                v.operation_id,
+                CaseReportKind::CaseState,
+                v.filters.created_from,
+                v.filters.created_before,
+                v.filters.status,
+                v.filters.assigned_litigator,
+            ),
+            Self::Activity(v) if v.report_type == "litigator_activity" => (
+                v.operation_id,
+                CaseReportKind::LitigatorActivity,
+                v.filters.occurred_from,
+                v.filters.occurred_before,
+                v.filters.status,
+                v.filters.author_litigator,
+            ),
+            _ => return Err(invalid()),
+        };
         let parse = |s: &str| -> Result<OffsetDateTime, ApiError> {
             let at = OffsetDateTime::parse(s, &Rfc3339).map_err(|_| invalid())?;
             if at.offset() != UtcOffset::UTC || !(1..=9999).contains(&at.year()) {
@@ -46,31 +86,28 @@ impl RequestBody {
             }
             Ok(at)
         };
-        let created_from = parse(&self.filters.created_from)?;
-        let created_before = parse(&self.filters.created_before)?;
-        if created_from >= created_before
-            || created_before - created_from > time::Duration::days(366)
-        {
+        let period_from = parse(&from)?;
+        let period_before = parse(&before)?;
+        if period_from >= period_before || period_before - period_from > time::Duration::days(366) {
             return Err(invalid());
         }
-        let status = match self.filters.status.as_str() {
+        let status = match status.as_str() {
             "all" => CaseStatusFilter::All,
             "active" => CaseStatusFilter::Active,
             "closed" => CaseStatusFilter::Closed,
             _ => return Err(invalid()),
         };
-        let assigned_litigator = self
-            .filters
-            .assigned_litigator
+        let litigator = litigator
             .map(|s| uuid(&s).map(domain::identity::UserId::from_uuid))
             .transpose()?;
         Ok(CaseReportCommand {
-            operation_id: CaseReportOperationId::from_uuid(uuid(&self.operation_id)?),
+            operation_id: CaseReportOperationId::from_uuid(uuid(&operation)?),
             filters: CaseReportFilters {
-                created_from,
-                created_before,
+                kind,
+                period_from,
+                period_before,
                 status,
-                assigned_litigator,
+                litigator,
             },
         })
     }
@@ -113,6 +150,7 @@ impl Download {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Litigators {
+    report_type: Option<String>,
     limit: Option<u32>,
     after_id: Option<String>,
 }
@@ -122,7 +160,13 @@ impl Litigators {
         if !(1..=100).contains(&limit) {
             return Err(invalid());
         }
+        let kind = match self.report_type.as_deref() {
+            None => CaseReportKind::CaseState,
+            Some("litigator_activity") => CaseReportKind::LitigatorActivity,
+            _ => return Err(invalid()),
+        };
         Ok(CaseReportLitigatorQuery {
+            kind,
             limit,
             after_id: self
                 .after_id

@@ -80,6 +80,7 @@ pub fn snapshot(count: usize) -> CaseReportSnapshot {
         })
         .collect();
     CaseReportSnapshot {
+        activity: None,
         report_id: CaseReportId::from_uuid(Uuid::from_u128(1)),
         requester: CaseReportRequester {
             principal: Principal {
@@ -92,10 +93,11 @@ pub fn snapshot(count: usize) -> CaseReportSnapshot {
         },
         scope: CaseReportScope::Office,
         filters: CaseReportFilters {
-            created_from: instant("2026-01-01T00:00:00Z"),
-            created_before: instant("2026-10-01T00:00:00Z"),
+            kind: CaseReportKind::CaseState,
+            period_from: instant("2026-01-01T00:00:00Z"),
+            period_before: instant("2026-10-01T00:00:00Z"),
             status: CaseStatusFilter::All,
-            assigned_litigator: None,
+            litigator: None,
         },
         checked_at: instant("2026-09-27T12:34:56Z"),
         cases,

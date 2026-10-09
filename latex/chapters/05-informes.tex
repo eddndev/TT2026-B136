@@ -80,9 +80,57 @@ cuando la generación supera tres segundos, conservando la sesión y la consulta
 de progreso. La notificación interna no demuestra el canal de correo ni la
 estimación de terminación previstos por la \cref{tab:cu-16}; ambos requieren
 implementación y aceptación propias. Tampoco la carga de expedientes acredita
-por sí sola desempeño de abogados ni los demás tipos de reporte.
+por sí sola la actividad atribuida a cada cuenta ni los demás tipos de reporte.
 
 Estas comprobaciones no sustituyen la regresión global ni la validación de
 usabilidad con participantes del despacho. La
 \cref{anexo:informes} identifica las fuentes reproducibles; su existencia no
 acredita ejecución, aprobación o despliegue.
+
+
+\paragraph{Actividad atribuida por cuenta y periodo.}
+El informe de actividad contrasta tres cantidades contra los registros originales,
+usando el instante de operación y no la fecha judicial declarada. La comprobación
+focal con PostgreSQL 16.15 aislado aprobó diez casos: cargas, hechos, actos de
+recursos, sesiones/resultados, decisiones cautelares y atención de plazos, además
+de selección de autores, reasignación y restauración de capturas y artefactos.
+Las pruebas nuevas contrastaron los extremos inclusivo y exclusivo del periodo,
+varios acuerdos dentro de una sesión y varias medidas dentro de una decisión.
+Correcciones, retiros administrativos y reintentos no añadieron actuaciones;
+una contribución original permaneció atribuida a su cuenta aunque terminara su
+asignación. Un autor de otro expediente no quedó disponible para el solicitante.
+
+La comprobación de audiencias respetó el conflicto de operación ya existente:
+la recuperación de la revisión original conservó el recibo exacto. La decisión
+cautelar repetida conservó su resultado original, conforme a su propio contrato.
+No se alteraron estos flujos para adaptar sus recibos al informe. La restauración
+probó las capturas y archivos existentes; la incorporación de fuentes nuevas no
+recalcula una captura previamente guardada. Esta campaña focal no sustituye la
+regresión global, la aceptación HTTP completa ni la observación de Qadra.
+
+
+El recorrido ampliado con servidor real obtuvo un documento, nueve actuaciones
+y un plazo atendido, con identidad, periodo y digest coincidentes en PDF y CSV.
+Las actuaciones fueron una resolución, una notificación, los cinco tipos de
+actos de recursos, un resultado de audiencia y una decisión cautelar. La sesión
+contenía dos acuerdos y la decisión, dos medidas; sus contenidos no alteraron
+el conteo esperado. La prueba confirmó los rechazos o recibos de los reintentos
+según cada contrato y recuperó las revisiones originales. El navegador informó
+26.8 segundos; la campaña completa, incluida preparación y compilación, duró
+279.147 segundos, con un único worker y temporales en disco.
+
+La evidencia previa de reasignación conserva un recorrido diferente: un autor
+cargó un documento, perdió su asignación y fue seleccionado por otro litigante
+con acceso vigente. Su informe de un documento, cero actuaciones y cero plazos
+conservó PDF, CSV y aviso tras nueva autenticación. Esa ejecución duró
+14.3 segundos de navegador y 330.290 segundos de campaña. No se suman ambas
+observaciones como si fueran una única ejecución ni una evaluación de usabilidad.
+
+
+La campaña compuesta de \texttt{api-demo.sh} aprobó en 562.754 segundos con
+PostgreSQL 16.15 y servicios privados. Conservó el flujo HTTP de informes de
+estado, sus archivos y avisos, y las comprobaciones de acceso después de
+reiniciar y restaurar. Esta aceptación verifica la compatibilidad del servidor
+compuesto; las cantidades positivas del catálogo de actividad corresponden al
+recorrido de Qadra descrito anteriormente. Los PDF académicos previamente
+aceptados se conservaron al compilar una copia separada de estas fuentes.

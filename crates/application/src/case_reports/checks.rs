@@ -63,16 +63,14 @@ pub(super) fn window(
     Ok(())
 }
 pub(super) fn filters(value: &CaseReportFilters) -> Result<(), ApplicationError> {
-    if time(value.created_from).is_err()
-        || time(value.created_before).is_err()
-        || value.created_from >= value.created_before
-        || value.created_before - value.created_from > time::Duration::days(366)
-        || value
-            .assigned_litigator
-            .is_some_and(|id| id.as_uuid().is_nil())
+    if time(value.period_from).is_err()
+        || time(value.period_before).is_err()
+        || value.period_from >= value.period_before
+        || value.period_before - value.period_from > time::Duration::days(366)
+        || value.litigator.is_some_and(|id| id.as_uuid().is_nil())
     {
         return Err(ApplicationError::InvalidInput(
-            "report creation range must be UTC, nonempty and at most 366 days".into(),
+            "report period must be UTC, nonempty and at most 366 days".into(),
         ));
     }
     Ok(())

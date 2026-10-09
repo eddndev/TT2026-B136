@@ -1,4 +1,5 @@
 //! Durable operational reports over authorized current case snapshots.
+mod activity;
 mod canonical;
 mod checks;
 mod ids;

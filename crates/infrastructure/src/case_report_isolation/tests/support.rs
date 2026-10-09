@@ -11,6 +11,7 @@ use uuid::Uuid;
 pub fn snapshot() -> CaseReportSnapshot {
     let at = OffsetDateTime::from_unix_timestamp(1_735_689_600).unwrap();
     let mut value = CaseReportSnapshot {
+        activity: None,
         report_id: CaseReportId::from_uuid(Uuid::from_u128(1)),
         requester: CaseReportRequester {
             principal: Principal {
@@ -23,10 +24,11 @@ pub fn snapshot() -> CaseReportSnapshot {
         },
         scope: CaseReportScope::Office,
         filters: CaseReportFilters {
-            created_from: at,
-            created_before: at + time::Duration::days(1),
+            kind: CaseReportKind::CaseState,
+            period_from: at,
+            period_before: at + time::Duration::days(1),
             status: CaseStatusFilter::All,
-            assigned_litigator: None,
+            litigator: None,
         },
         checked_at: at,
         cases: Vec::new(),
