@@ -28,6 +28,7 @@ mod deadline_source_event_schema;
 pub use deadline_input_postgres::PostgresDeadlineInputStore;
 mod document_integrity_schema;
 pub mod document_postgres;
+mod document_upload_origin_schema;
 pub mod documents;
 pub mod encryption;
 pub mod envelope;

@@ -24,6 +24,7 @@ pub(super) fn validate_runtime_role<C: postgres::GenericClient>(
     crate::measure_decision_schema::validate_runtime_role(client, role)?;
     crate::hearing_derived_deadline_schema::validate_runtime_role(client, role)?;
     crate::document_integrity_schema::validate_runtime_role(client, role)?;
+    crate::document_upload_origin_schema::validate_runtime_role(client, role)?;
     crate::member_schema::validate_runtime_role(client, role)?;
     crate::case_report_schema::validate_runtime_role(client, role)?;
     crate::audit_query_schema::validate_runtime_role(client, role)?;

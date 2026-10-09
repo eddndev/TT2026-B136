@@ -15,7 +15,10 @@ pub fn case_report_request_digest(
             "report operation identity is absent".into(),
         ));
     }
-    let mut bytes = Encoder::new(b"tt.case-report.request")?;
+    let mut bytes = Encoder::new(match command.filters.kind {
+        CaseReportKind::CaseState => b"tt.case-report.request",
+        CaseReportKind::LitigatorActivity => b"tt.case-report.activity.request",
+    })?;
     bytes.principal(actor)?;
     bytes.scope(scope)?;
     bytes.uuid(command.operation_id.as_uuid())?;
@@ -27,7 +30,10 @@ pub fn case_report_snapshot_digest(
     snapshot: &CaseReportSnapshot,
 ) -> Result<Sha256Digest, ApplicationError> {
     super::snapshot::validate(snapshot)?;
-    let mut bytes = Encoder::new(b"tt.case-report.snapshot")?;
+    let mut bytes = Encoder::new(match snapshot.filters.kind {
+        CaseReportKind::CaseState => b"tt.case-report.snapshot",
+        CaseReportKind::LitigatorActivity => b"tt.case-report.activity.snapshot",
+    })?;
     bytes.uuid(snapshot.report_id.as_uuid())?;
     bytes.requester(&snapshot.requester)?;
     bytes.scope(snapshot.scope)?;
@@ -57,6 +63,9 @@ pub fn case_report_snapshot_digest(
         bytes.litigator(&row.litigator)?;
         bytes.number(row.active_cases)?;
         bytes.number(row.closed_cases)?;
+    }
+    if let Some(activity) = &snapshot.activity {
+        super::activity::encode(&mut bytes, activity)?;
     }
     Ok(hasher.hash_bytes(&bytes.finish()))
 }

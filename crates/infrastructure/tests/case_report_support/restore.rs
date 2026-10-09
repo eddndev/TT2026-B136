@@ -1,26 +1,69 @@
 use crate::case_report_support::*;
-use application::case_reports::*;
+use application::{
+    case_reports::*,
+    cases::CaseRepository,
+    documents::{CaseDocumentStore, DocumentRecord},
+};
+use domain::{
+    crypto::{DocumentId, DocumentVersion, Sha256Digest},
+    identity::UserId,
+};
+use infrastructure::PostgresCaseDocumentStore;
 use time::Duration;
 
 #[test]
 fn dump_restore_preserves_ready_bytes_notice_and_interrupted_capture_for_restart() {
+    restore_reports(CaseReportKind::CaseState);
+}
+
+#[test]
+fn dump_restore_preserves_activity_author_after_reassignment_and_exact_report_replay() {
+    restore_reports(CaseReportKind::LitigatorActivity);
+}
+
+fn restore_reports(kind: CaseReportKind) {
     let Some(mut db) = fixture() else { return };
     let at = db.at;
-    seed_case(&mut db, "Confidential captured title", at);
+    db.case = seed_case(&mut db, "Confidential captured title", at);
+    let original_author =
+        (kind == CaseReportKind::LitigatorActivity).then(|| upload_then_reassign(&mut db));
     let actor = owner(&mut db);
     let timer = clock(at);
     let initial = store(&db, timer.clone());
-    let ready = finish(&initial, &actor, command(at), at);
+    let mut ready_command = command(at);
+    ready_command.filters.kind = kind;
+    let ready = finish(&initial, &actor, ready_command.clone(), at);
     let pdf = initial
         .download(&actor, ready.id, CaseReportFormat::Pdf, at)
         .unwrap();
     let csv = initial
         .download(&actor, ready.id, CaseReportFormat::Csv, at)
         .unwrap();
-    let pending = request(&initial, &actor, command(at), at).unwrap();
+    let mut pending_command = command(at);
+    pending_command.filters.kind = kind;
+    let pending = request(&initial, &actor, pending_command, at).unwrap();
     let claim = initial.claim_next(at).unwrap().unwrap();
     assert_eq!(claim.lease.report_id, pending.id);
     let snapshot = initial.capture(&claim.lease, at).unwrap();
+    assert_eq!(snapshot.filters.kind, kind);
+    if let Some(author) = original_author {
+        let activity = snapshot.activity.as_ref().unwrap();
+        assert!(activity.documents_complete);
+        assert_eq!(activity.rows.len(), 1);
+        assert_eq!(activity.rows[0].case_id, db.case);
+        assert_eq!(activity.rows[0].litigator_id, author);
+        assert_eq!(activity.rows[0].documents_uploaded, 1);
+        assert_eq!(activity.rows[0].procedural_activities, 0);
+        assert_eq!(activity.rows[0].deadlines_attended, 0);
+        let who = activity
+            .actors
+            .iter()
+            .find(|who| who.user_id == author)
+            .unwrap();
+        assert_eq!(who.email, format!("{author}@example.test"));
+    } else {
+        assert!(snapshot.activity.is_none());
+    }
     drop(initial);
     let before = ledger(&mut db);
     db.migrate();
@@ -62,6 +105,10 @@ fn dump_restore_preserves_ready_bytes_notice_and_interrupted_capture_for_restart
     timer.set(later);
     let restored = store(&db, timer);
     assert_eq!(
+        request(&restored, &actor, ready_command, later).unwrap(),
+        ready
+    );
+    assert_eq!(
         restored
             .download(&actor, ready.id, CaseReportFormat::Pdf, later)
             .unwrap(),
@@ -81,6 +128,31 @@ fn dump_restore_preserves_ready_bytes_notice_and_interrupted_capture_for_restart
         .unwrap();
     assert_eq!(count(&mut db, "case_report_notices"), 2);
     assert_eq!(count(&mut db, "case_report_artifacts"), 4);
+}
+
+fn upload_then_reassign(db: &mut Fixture) -> UserId {
+    let author = db.user("litigator", true);
+    let replacement = db.user("litigator", false);
+    let document = DocumentRecord::pending(
+        DocumentId::new(),
+        DocumentVersion::initial(),
+        "activity-restore.txt".into(),
+        Sha256Digest::from_array([3; 32]),
+        vec![8; 80],
+    )
+    .unwrap();
+    PostgresCaseDocumentStore::open(&db.runtime_url)
+        .unwrap()
+        .insert(author, db.case, document, db.at)
+        .unwrap();
+    let cases = db.store();
+    cases
+        .remove_member(db.case, author, db.owner, db.at)
+        .unwrap();
+    cases
+        .add_member(db.case, replacement, db.owner, db.at)
+        .unwrap();
+    author
 }
 
 #[test]

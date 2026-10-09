@@ -43,10 +43,11 @@ pub fn report(ready: bool) -> CaseReportDetail {
         command: CaseReportCommand {
             operation_id: CaseReportOperationId::from_uuid(id.as_uuid()),
             filters: CaseReportFilters {
-                created_from: at() - time::Duration::days(26),
-                created_before: at(),
+                kind: CaseReportKind::CaseState,
+                period_from: at() - time::Duration::days(26),
+                period_before: at(),
                 status: CaseStatusFilter::All,
-                assigned_litigator: None,
+                litigator: None,
             },
         },
         request_digest: Sha256Digest::from_array([1; 32]),
@@ -124,7 +125,9 @@ impl Workflow {
 }
 impl CaseReportWorkflow for Workflow {
     fn request(&self, t: &str, c: CaseReportCommand) -> Result<CaseReportDetail, ApplicationError> {
-        self.call(t, Call::Request(c))
+        let mut report = self.call(t, Call::Request(c.clone()))?;
+        report.command = c;
+        Ok(report)
     }
     fn list(&self, t: &str, q: CaseReportQuery) -> Result<CaseReportPage, ApplicationError> {
         let value = self.call(t, Call::List(q))?;

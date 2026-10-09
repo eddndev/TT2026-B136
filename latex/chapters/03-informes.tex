@@ -1,9 +1,11 @@
-\subsubsection{Alcance del informe de estado de expedientes}\label{sec:diseno-informes}
+\subsubsection{Informes de estado y actividad registrada}\label{sec:diseno-informes}
 
-La concreción de la \cref{tab:rf-19} en esta entrega aborda el estado de
-expedientes y su carga de asignaciones; no agota el catálogo de tipos ni la
-medición de desempeño. La \cref{tab:cu-16} conserva como alcance el aviso por
-correo y la estimación de tiempo en su flujo alterno. La implementación ofrece
+La concreción de la \cref{tab:rf-19} distingue el estado administrativo y la carga
+de asignaciones de los expedientes de la actividad registrada por cuenta autora
+durante un periodo. La actividad se limita a tres cantidades observables, sin
+puntuaciones ni comparaciones de éxito jurídico. La \cref{tab:cu-16} conserva
+como alcance el aviso por correo y la estimación de tiempo en su flujo alterno.
+La implementación ofrece
 avisos internos y estados de procesamiento; el canal de correo y una estimación
 validada de terminación permanecen pendientes. Estos límites no sustituyen
 los requisitos ni permiten considerar el caso de uso completo.
@@ -17,14 +19,43 @@ asignaciones de esos mismos expedientes. Por ello, el resultado no es un censo
 histórico, una medición de actividad durante el intervalo ni una calificación
 de desempeño o efectividad jurídica.
 
+El informe de actividad aplica el intervalo UTC al instante en que se confirmó
+cada operación, con los mismos extremos inclusivo y exclusivo y la misma duración
+máxima. Conserva exactamente los documentos originales cargados, las actuaciones
+procesales originales registradas y los plazos marcados como atendidos. La fecha
+judicial declarada no sustituye al instante de registro. El catálogo de actuaciones
+comprende resoluciones y notificaciones; actos de interposición, admisión,
+inadmisibilidad, desistimiento y resolución de recursos; sesiones y resultados
+de audiencias; y decisiones judiciales cautelares. Cada registro original aporta
+una actuación por su identidad estable; sus acuerdos o medidas contenidos no
+aportan cantidades adicionales. La programación de una audiencia es distinta
+del registro de su sesión o resultado.
+
+Una nueva versión o clasificación documental conserva la identidad del documento
+original. Las lecturas, preparaciones, rectificaciones y recuperaciones de la
+misma operación no incrementan las cantidades. La atención se cuenta una vez por
+plazo, autor y periodo al pasar de pendiente a registrada; editar su descripción
+no añade otra atención. Los hechos posteriores a la captura tampoco modifican
+el informe generado.
+
 Owner solicita el ámbito del despacho; Litigante, sus expedientes asignados.
 Cada informe es privado de su solicitante, incluso frente a otro Owner.
-Paralegal y Cliente no acceden a este agregado. La selección opcional de un
-litigante utiliza el mismo criterio de pertenencia que el filtro: Owner ve
-los litigantes activos, aunque carezcan de expedientes, y Litigante ve a los
+Paralegal y Cliente no acceden a estos agregados. En la modalidad de estado,
+la selección opcional de un litigante utiliza el mismo criterio de pertenencia
+que el filtro: Owner ve los litigantes activos, aunque carezcan de expedientes,
+y Litigante ve a los
 activos con quienes comparte algún expediente, incluidos los cerrados. El
 selector se pagina y no utiliza la carga de expedientes activos del tablero
 como sustituto del directorio autorizado.
+
+En actividad, el selector también admite autores de registros originales en
+expedientes actualmente accesibles aunque su asignación haya terminado. Conserva
+el requisito de cuenta activa con rol Litigante al capturar; no reconstruye el
+rol histórico. La autoría se atribuye mediante el UUID de la cuenta y el instante
+de la operación, por lo que una reasignación no transfiere cantidades. Los
+documentos antiguos sin un origen de autor estable producen una indicación de
+cobertura documental incompleta: un correo histórico no basta para reconstruir
+esa identidad ni para presentar un cero como total histórico completo.
 
 La solicitud se identifica con una operación repetible y una captura inmutable,
 compartida por PDF y CSV. El trabajo puede continuar fuera de la petición HTTP,

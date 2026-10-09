@@ -22,7 +22,7 @@ impl CaseReportStore for PostgresCaseReportStore {
                 "SELECT u.id,u.email FROM users u
                 WHERE {} AND ($3::uuid IS NULL OR u.id>$3)
                 ORDER BY u.id LIMIT $4 FOR SHARE OF u",
-                access::LITIGATOR_VISIBILITY
+                access::litigator_visibility(query.kind)
             );
             let rows = tx
                 .query(

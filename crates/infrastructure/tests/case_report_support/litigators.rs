@@ -12,6 +12,7 @@ use time::Duration;
 
 fn query() -> CaseReportLitigatorQuery {
     CaseReportLitigatorQuery {
+        kind: CaseReportKind::CaseState,
         limit: 100,
         after_id: None,
     }
@@ -58,7 +59,7 @@ fn litigator_picker_includes_closed_only_colleague_and_loses_revoked_membership(
     assert_eq!(page.next_after_id, None);
     assert!(!page.litigators.iter().any(|v| v.user_id == foreign));
     let mut selected = command(at);
-    selected.filters.assigned_litigator = Some(colleague_id);
+    selected.filters.litigator = Some(colleague_id);
     request(&store, &actor, selected.clone(), at).unwrap();
     repository
         .remove_member(closed, actor_id, db.owner, at)
@@ -91,7 +92,15 @@ fn litigator_picker_owner_paginates_all_active_litigators_including_zero_cases()
     let mut after_id = None;
     for index in 0..3 {
         let page = store
-            .litigators(&owner, CaseReportLitigatorQuery { limit: 2, after_id }, at)
+            .litigators(
+                &owner,
+                CaseReportLitigatorQuery {
+                    kind: CaseReportKind::CaseState,
+                    limit: 2,
+                    after_id,
+                },
+                at,
+            )
             .unwrap();
         assert_eq!(page.scope, CaseReportScope::Office);
         assert_eq!(page.checked_at, at);
@@ -119,6 +128,7 @@ fn litigator_picker_reauthenticates_even_empty_pages_and_denies_other_roles() {
     let Some(mut db) = fixture() else { return };
     let at = db.at;
     let empty = CaseReportLitigatorQuery {
+        kind: CaseReportKind::CaseState,
         limit: 2,
         after_id: Some(UserId::from_uuid(uuid::Uuid::from_u128(u128::MAX))),
     };
@@ -156,14 +166,17 @@ fn litigator_picker_invalid_cursor_limits_and_clock_write_no_audit() {
     let store = store(&db, timer.clone());
     for query in [
         CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 0,
             after_id: None,
         },
         CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 101,
             after_id: None,
         },
         CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 1,
             after_id: Some(UserId::from_uuid(uuid::Uuid::nil())),
         },

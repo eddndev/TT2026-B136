@@ -1,4 +1,7 @@
 //! Bounded exports over one capture; see docs/adr/0060-durable-authorized-case-reports.md.
+mod activity;
+mod activity_csv;
+mod activity_pdf;
 mod bounds;
 mod csv;
 mod embed;
@@ -55,9 +58,17 @@ impl CaseReportRenderer for BoundedCaseReportRenderer {
         format: CaseReportFormat,
     ) -> Result<Vec<u8>, ApplicationError> {
         bounds::capture(snapshot)?;
-        match format {
-            CaseReportFormat::Csv => csv::render(snapshot),
-            CaseReportFormat::Pdf => pdf::render(snapshot, &self.regular, &self.bold),
+        match (snapshot.filters.kind, format) {
+            (CaseReportKind::CaseState, CaseReportFormat::Csv) => csv::render(snapshot),
+            (CaseReportKind::CaseState, CaseReportFormat::Pdf) => {
+                pdf::render(snapshot, &self.regular, &self.bold)
+            }
+            (CaseReportKind::LitigatorActivity, CaseReportFormat::Csv) => {
+                activity_csv::render(snapshot)
+            }
+            (CaseReportKind::LitigatorActivity, CaseReportFormat::Pdf) => {
+                activity_pdf::render(snapshot, &self.regular, &self.bold)
+            }
         }
     }
 }

@@ -124,3 +124,39 @@ test('report litigator factory rejects pages from a replaced authenticated sessi
   await result;
   assert.equal(calls[0].cache, 'no-store');
 });
+
+test('activity author choices use the explicit type with the same public page and cursor', async () => {
+  const calls = [];
+  const value = page({ litigators: [row(second)] });
+  const api = caseReportsApi(async (...args) => {
+    calls.push(args);
+    return value;
+  });
+  assert.deepEqual(await api.litigators({ report_type: 'litigator_activity' }), value);
+  assert.deepEqual(
+    await api.litigators({ report_type: 'litigator_activity', limit: 1, after_id: first }),
+    value,
+  );
+  assert.deepEqual(calls, [
+    ['/case-reports/litigators?limit=20&report_type=litigator_activity'],
+    [`/case-reports/litigators?limit=1&after_id=${first}&report_type=litigator_activity`],
+  ]);
+  assert.deepEqual(Object.keys(value), [
+    'scope',
+    'checked_at',
+    'litigators',
+    'has_more',
+    'next_after_id',
+  ]);
+});
+
+test('author picker rejects invalid explicit types without silently using the legacy directory', async () => {
+  let calls = 0;
+  const api = caseReportsApi(async () => {
+    calls++;
+    return page();
+  });
+  for (const report_type of ['case_state', 'unknown', '', null, undefined])
+    await assert.rejects(() => api.litigators({ report_type }));
+  assert.equal(calls, 0);
+});

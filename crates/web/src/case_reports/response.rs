@@ -59,15 +59,15 @@ pub(super) fn detail(value: CaseReportDetail) -> Result<Value, ApiError> {
     let notice=value.notice.map(|v|->Result<Value,ApiError>{Ok(json!({"kind":match v.kind{CaseReportNoticeKind::Ready=>"ready",CaseReportNoticeKind::Failed=>"failed"},
         "created_at":at(v.created_at)?,"read_at":v.read_at.map(at).transpose()?}))}).transpose()?;
     let filters = value.command.filters;
-    Ok(
-        json!({"id":value.id.to_string(),"operation_id":value.command.operation_id.to_string(),
+    let mut result = json!({"id":value.id.to_string(),"operation_id":value.command.operation_id.to_string(),
         "request_digest":value.request_digest.to_hex(),"scope":match value.scope{CaseReportScope::Office=>"office",CaseReportScope::AssignedCases=>"assigned_cases"},
-        "filters":{"created_from":at(filters.created_from)?,"created_before":at(filters.created_before)?,
-            "status":match filters.status{CaseStatusFilter::All=>"all",CaseStatusFilter::Active=>"active",CaseStatusFilter::Closed=>"closed"},
-            "assigned_litigator":filters.assigned_litigator.map(|id|id.to_string())},
         "requested_at":at(value.requested_at)?,"updated_at":at(value.updated_at)?,
-        "state":state,"phase":phase,"retry_at":retry,"failure":failure,"ready":ready,"notice":notice}),
-    )
+        "state":state,"phase":phase,"retry_at":retry,"failure":failure,"ready":ready,"notice":notice});
+    result["filters"] = filters_value(&filters)?;
+    if filters.kind == CaseReportKind::LitigatorActivity {
+        result["report_type"] = json!("litigator_activity");
+    }
+    Ok(result)
 }
 
 pub(super) fn litigators(value: CaseReportLitigatorPage) -> Result<Value, ApiError> {
@@ -80,4 +80,21 @@ pub(super) fn litigators(value: CaseReportLitigatorPage) -> Result<Value, ApiErr
         "has_more": value.has_more,
         "next_after_id": value.next_after_id.map(|id| id.to_string())
     }))
+}
+
+fn filters_value(filters: &CaseReportFilters) -> Result<Value, ApiError> {
+    let status = match filters.status {
+        CaseStatusFilter::All => "all",
+        CaseStatusFilter::Active => "active",
+        CaseStatusFilter::Closed => "closed",
+    };
+    let from = at(filters.period_from)?;
+    let before = at(filters.period_before)?;
+    let who = filters.litigator.map(|id| id.to_string());
+    Ok(match filters.kind {
+        CaseReportKind::CaseState => json!({"created_from":from,"created_before":before,
+            "status":status,"assigned_litigator":who}),
+        CaseReportKind::LitigatorActivity => json!({"occurred_from":from,"occurred_before":before,
+            "status":status,"author_litigator":who}),
+    })
 }

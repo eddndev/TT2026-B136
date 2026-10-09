@@ -84,10 +84,11 @@ pub fn scope(actor: &Principal) -> CaseReportScope {
 }
 pub fn filters() -> CaseReportFilters {
     CaseReportFilters {
-        created_from: now() - time::Duration::days(30),
-        created_before: now(),
+        kind: CaseReportKind::CaseState,
+        period_from: now() - time::Duration::days(30),
+        period_before: now(),
         status: CaseStatusFilter::All,
-        assigned_litigator: None,
+        litigator: None,
     }
 }
 pub fn command() -> CaseReportCommand {
@@ -147,6 +148,7 @@ pub fn snapshot(report: &CaseReportDetail) -> CaseReportSnapshot {
             active_cases: 1,
             closed_cases: 0,
         }],
+        activity: None,
         digest: Sha256Digest::from_array([0; 32]),
     };
     value.digest = case_report_snapshot_digest(&TestHasher, &value).unwrap();

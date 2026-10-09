@@ -1,3 +1,5 @@
+#[path = "case_report_activity_model.rs"]
+mod activity;
 mod case_report_support;
 #[allow(dead_code)]
 mod case_support;
@@ -23,10 +25,10 @@ fn request_digest_binds_operation_identity_scope_and_every_filter() {
         let mut actor = who.clone();
         match mutation {
             0 => input.operation_id = CaseReportOperationId::new(),
-            1 => input.filters.created_from -= time::Duration::days(1),
-            2 => input.filters.created_before -= time::Duration::seconds(1),
+            1 => input.filters.period_from -= time::Duration::days(1),
+            2 => input.filters.period_before -= time::Duration::seconds(1),
             3 => input.filters.status = application::cases::CaseStatusFilter::Active,
-            4 => input.filters.assigned_litigator = Some(UserId::new()),
+            4 => input.filters.litigator = Some(UserId::new()),
             5 => actor.id = UserId::new(),
             _ => actor.email = "other@example.test".into(),
         }
@@ -95,7 +97,7 @@ fn snapshot_validation_rejects_omitted_workload_duplicates_and_outside_filters()
                 let duplicate = changed.cases[0].assigned_litigators[0].clone();
                 changed.cases[0].assigned_litigators.push(duplicate);
             }
-            3 => changed.cases[0].created_at = changed.filters.created_before,
+            3 => changed.cases[0].created_at = changed.filters.period_before,
             4 => changed.workload[0].active_cases += 1,
             _ => changed.requester.auth_generation = i64::MAX as u64 + 1,
         }

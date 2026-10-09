@@ -55,15 +55,15 @@ impl Encoder {
         })
     }
     pub(super) fn filters(&mut self, value: &CaseReportFilters) -> Result<(), ApplicationError> {
-        self.time(value.created_from)?;
-        self.time(value.created_before)?;
+        self.time(value.period_from)?;
+        self.time(value.period_before)?;
         self.number(match value.status {
             CaseStatusFilter::All => 0,
             CaseStatusFilter::Active => 1,
             CaseStatusFilter::Closed => 2,
         })?;
-        self.number(u64::from(value.assigned_litigator.is_some()))?;
-        if let Some(id) = value.assigned_litigator {
+        self.number(u64::from(value.litigator.is_some()))?;
+        if let Some(id) = value.litigator {
             self.uuid(id.as_uuid())?;
         }
         Ok(())

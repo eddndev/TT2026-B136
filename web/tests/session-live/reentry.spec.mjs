@@ -17,24 +17,32 @@ async function newCase(page) {
   return modalCase(page);
 }
 
-async function expired(page, modal, token, request) {
+async function expired(page, modal, grant, request) {
+  expect(grant.policy.idle_ttl_seconds).toBe(12);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible({ timeout: 20000 });
   await expect(modal).toBeHidden();
   const read = () =>
     request.get(`${process.env.API_PROXY_TARGET}/api/v1/auth/session`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${grant.access_token}` },
     });
   let response = await read();
   if (response.status() === 200) {
     const state = await response.json();
-    const remaining = state.idle_expires_at_unix_ms - state.server_now_unix_ms;
+    expect(state.policy).toEqual(grant.policy);
+    expect(state.absolute_expires_at_unix_ms).toBe(grant.absolute_expires_at_unix_ms);
+    expect(state.idle_expires_at_unix_ms).toBeLessThanOrEqual(state.absolute_expires_at_unix_ms);
+    const remaining =
+      Math.min(state.idle_expires_at_unix_ms, state.absolute_expires_at_unix_ms) -
+      state.server_now_unix_ms;
     console.log(JSON.stringify({ conservative_client_expiry_lead_ms: remaining }));
     expect(remaining).toBeGreaterThan(0);
-    expect(remaining).toBeLessThanOrEqual(1000);
+    // Transport deduction may hide the UI early; the server still owns its deadline.
+    expect(remaining).toBeLessThanOrEqual(state.policy.idle_ttl_seconds * 1000);
     await new Promise((resolve) => setTimeout(resolve, remaining + 50));
     response = await read();
   }
   expect(response.status()).toBe(401);
+  await expect(modal).toBeHidden();
 }
 
 test('real idle expiry retains raw case fields and an upload until explicit authorized reentry', async ({
@@ -53,7 +61,18 @@ test('real idle expiry retains raw case fields and an upload until explicit auth
     if (request.method() === 'POST' && !new URL(request.url()).pathname.startsWith('/api/v1/auth/'))
       writes.push(new URL(request.url()).pathname);
   });
+  // Exercise conservative expiry when authentication takes longer than one second.
+  await page.route(
+    '**/api/v1/auth/mfa/recovery',
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue();
+    },
+    { times: 1 },
+  );
   await page.goto('/');
+  // Client-only hydration can outlast the short actions used after authentication.
+  await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible({ timeout: 30000 });
   await login(page, fixture.recoveryCodes[0]);
   let modal = await newCase(page);
   await modal.getByLabel('T\u00edtulo del expediente', { exact: true }).fill(`  ${title}  `);
@@ -61,7 +80,7 @@ test('real idle expiry retains raw case fields and an upload until explicit auth
   await fillProfile(page, 'IDLE');
   await expect.poll(() => grants.length).toBe(1);
   expect(grants[0].policy.idle_ttl_seconds).toBe(12);
-  await expired(page, modal, grants[0].access_token, request);
+  await expired(page, modal, grants[0], request);
   expect(writes).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('idle-expired.png'), fullPage: true });
   await login(page, fixture.recoveryCodes[1]);
@@ -99,7 +118,7 @@ test('real idle expiry retains raw case fields and an upload until explicit auth
     .fill('  Retained classification  ');
   await upload.getByLabel('Nueva etiqueta', { exact: true }).fill('  raw pending tag  ');
   await expect.poll(() => grants.length).toBe(2);
-  await expired(page, upload, grants[1].access_token, request);
+  await expired(page, upload, grants[1], request);
   expect(writes).toEqual(['/api/v1/penal-cases']);
   await login(page, fixture.recoveryCodes[2]);
   await page

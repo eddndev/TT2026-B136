@@ -3,7 +3,8 @@
 Las \cref{sec:diseno-informes,sec:impl-informes,sec:pruebas-informes} delimitan
 filtros, autorización, cola durable, artefactos y evidencia. El contrato
 \rutarepo{docs/case-reports-api.md} distingue creación dentro de un periodo y
-estado observado, sin reconstruir un censo histórico. La decisión
+estado observado, y distingue el intervalo de operaciones de la modalidad de
+actividad. Ninguna modalidad reconstruye un censo histórico. La decisión
 \rutarepo{docs/adr/0060-durable-authorized-case-reports.md} y la guía
 \rutarepo{docs/database-operations.md} conservan las condiciones de privacidad,
 recuperación y respaldo con KEK. La aceptación integrada comprueba estas
@@ -40,8 +41,29 @@ deben conservar estas condiciones además de la igualdad de bytes. Ninguna
 exportación constituye un documento firmado por una persona, una notificación
 jurídica ni una constancia externa de conservación.
 
-La \cref{tab:cu-16} mantiene su flujo alterno de correo y estimación de tiempo;
-la \cref{tab:rf-19}, tipos de reporte y desempeño. La implementación parcial de
-estado y carga, aunque complete su aceptación técnica, no modifica ni da por
-cumplidos esos alcances restantes. La responsividad para trabajos mayores a
-tres segundos requiere su propia observación reproducida.
+La autoría se documenta en
+\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. La migración
+\rutarepo{migrations/0043_document_upload_origins.sql} vincula las cargas
+originales con cuenta, instante y auditoría. Las comprobaciones del origen y su
+restauración están en \texttt{document\_upload\_origins.rs} y
+\texttt{document\_upload\_origin\_schema.rs}, incluidas en la suite documental.
+El módulo \texttt{case\_report\_activity\_model.rs} comprueba las capturas de
+actividad desde el target \texttt{case\_report\_model}.
+
+Los módulos de apoyo de \texttt{case\_report\_backend} contrastan el periodo
+por operación, autoría tras reasignación, aislamiento y registros originales
+de hechos, recursos, sesiones/resultados y decisiones cautelares. Los acuerdos
+contenidos en una sesión y las medidas de una decisión no se cuentan como
+actuaciones independientes; la atención conserva una cantidad por plazo y
+autor en el periodo. Las correcciones y reintentos no agregan contribuciones.
+El recorrido \rutarepo{web/tests/live/case-reports.activity.spec.mjs} contrasta
+PDF y CSV contra cantidades esperadas, además de la recuperación del informe
+tras una nueva sesión. La existencia del guion no sustituye su ejecución,
+registrada por separado en \rutarepo{docs/verification-report.md}.
+
+La \cref{tab:cu-16} mantiene su flujo alterno de correo y estimación de tiempo.
+El criterio de actividad de la \cref{tab:rf-19} se limita a documentos originales,
+actuaciones originales y plazos atendidos por cuenta y periodo; no puntúa
+éxito jurídico. Los tipos de informe ajenos a ese catálogo no se infieren de
+las métricas implementadas. La responsividad para trabajos mayores a tres
+segundos y la usabilidad con personas requieren su observación correspondiente.

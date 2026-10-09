@@ -23,12 +23,18 @@ pub enum CaseReportFormat {
     Pdf,
     Csv,
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CaseReportKind {
+    CaseState,
+    LitigatorActivity,
+}
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CaseReportFilters {
-    pub created_from: OffsetDateTime,
-    pub created_before: OffsetDateTime,
+    pub kind: CaseReportKind,
+    pub period_from: OffsetDateTime,
+    pub period_before: OffsetDateTime,
     pub status: CaseStatusFilter,
-    pub assigned_litigator: Option<UserId>,
+    pub litigator: Option<UserId>,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CaseReportCommand {
@@ -43,6 +49,7 @@ pub struct CaseReportQuery {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CaseReportLitigatorQuery {
+    pub kind: CaseReportKind,
     pub limit: u32,
     pub after_id: Option<UserId>,
 }
@@ -143,6 +150,20 @@ pub struct CaseReportWorkload {
     pub closed_cases: u64,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CaseReportActivityRow {
+    pub case_id: CaseId,
+    pub litigator_id: UserId,
+    pub documents_uploaded: u64,
+    pub procedural_activities: u64,
+    pub deadlines_attended: u64,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CaseReportActivitySnapshot {
+    pub actors: Vec<CaseReportLitigator>,
+    pub rows: Vec<CaseReportActivityRow>,
+    pub documents_complete: bool,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CaseReportSnapshot {
     pub report_id: CaseReportId,
     pub requester: CaseReportRequester,
@@ -151,6 +172,7 @@ pub struct CaseReportSnapshot {
     pub checked_at: OffsetDateTime,
     pub cases: Vec<CaseReportRow>,
     pub workload: Vec<CaseReportWorkload>,
+    pub activity: Option<CaseReportActivitySnapshot>,
     pub digest: Sha256Digest,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]

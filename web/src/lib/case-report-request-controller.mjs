@@ -2,6 +2,7 @@ import {
   initialReportFilters,
   reportFilters,
   reportScope,
+  reportAuthor,
   reportFailure,
   canReports,
 } from './case-reports-presentation.mjs';
@@ -19,7 +20,9 @@ export function createReportRequestController({
 }) {
   const scoped = api.reports();
   let alive = true,
-    pickerRevision = 0;
+    pickerRevision = 0,
+    pickerType = 'case_state',
+    choices = {};
   let state = {
     draft: initialReportFilters(),
     pending: null,
@@ -51,14 +54,24 @@ export function createReportRequestController({
   function publish() {
     if (alive) onstate({ ...state });
   }
+  const draftType = () => state.draft.reportType ?? 'case_state';
+  const pendingType = () => state.pending?.report_type ?? 'case_state';
+  const eligible = (id, type) => !id || (choices[type] ?? []).some((row) => row.user_id === id);
   function unavailable() {
-    return [state.draft.assigned, state.pending?.filters.assigned_litigator].some(
-      (id) => id && !state.lawyers.some((row) => row.user_id === id),
+    return (
+      !eligible(state.draft.assigned, draftType()) ||
+      (!!state.pending && !eligible(reportAuthor(state.pending), pendingType()))
     );
+  }
+  function applyChoices(value) {
+    choices = value;
+    pickerType = draftType();
+    state.lawyers = choices[pickerType] ?? [];
   }
   function deny(failure, notify = true) {
     recovery?.close();
     pickerRevision++;
+    choices = {};
     state = {
       ...state,
       draft: initialReportFilters(),
@@ -81,16 +94,18 @@ export function createReportRequestController({
     if ([403, 404].includes(error.status)) return deny(error);
     state[picker ? 'pickerError' : 'error'] = reportFailure(error);
   }
-  async function loadPicker(append = false) {
+  async function loadPicker(append = false, modeChanged = false) {
     if (
       !admitted() ||
-      state.pickerBusy ||
+      (append && state.pickerBusy) ||
       state.busy ||
       state.contextBusy ||
       (append && !state.pickerMore)
     )
       return;
-    const revision = ++pickerRevision;
+    const revision = ++pickerRevision,
+      type = draftType();
+    pickerType = type;
     state.pickerBusy = true;
     state.pickerError = '';
     if (!append) {
@@ -103,15 +118,17 @@ export function createReportRequestController({
       const page = await scoped.litigators({
         limit: 20,
         ...(append ? { after_id: state.pickerNext } : {}),
+        ...(type === 'litigator_activity' ? { report_type: type } : {}),
       });
       if (!admitted() || revision !== pickerRevision) return;
       if (page.scope !== reportScope(user.role))
         throw new Error('El alcance del selector no corresponde a tu acceso.');
       state.lawyers = append ? [...state.lawyers, ...page.litigators] : page.litigators;
+      choices[type] = state.lawyers;
       state.pickerMore = page.has_more;
       state.pickerNext = page.next_after_id;
       if (!state.saved && unavailable()) {
-        state.blocked = true;
+        state.blocked = !modeChanged;
         state.error =
           'El litigante seleccionado no esta en la consulta actual. Vuelve a consultar el contexto.';
       }
@@ -131,13 +148,16 @@ export function createReportRequestController({
     state.error = state.pickerError = '';
     pickerRevision++;
     publish();
-    const fresh = () => freshReportRequest(api, scoped, user, admitted);
+    const types = state.saved
+      ? ['case_state', 'litigator_activity']
+      : [...new Set([draftType(), ...(state.pending ? [pendingType()] : [])])];
+    const fresh = () => freshReportRequest(api, scoped, user, admitted, types);
     try {
       if (state.saved && recovery) {
-        const result = await recovery.restore(fresh, (value, lawyers) => {
-          state.draft = value.draft;
+        const result = await recovery.restore(fresh, (value, permitted) => {
+          state.draft = { ...initialReportFilters(), ...value.draft };
           state.pending = value.pending;
-          state.lawyers = lawyers;
+          applyChoices(permitted);
           state.saved = false;
           state.dirty = true;
         });
@@ -145,9 +165,9 @@ export function createReportRequestController({
         if (result.status !== 'restored')
           throw new Error('No se pudo recuperar la solicitud pendiente.');
       } else {
-        const lawyers = await fresh();
-        if (!lawyers || !admitted()) return;
-        state.lawyers = lawyers;
+        const permitted = await fresh();
+        if (!permitted || !admitted()) return;
+        applyChoices(permitted);
       }
       state.pickerMore = false;
       state.pickerNext = null;
@@ -166,13 +186,16 @@ export function createReportRequestController({
   }
   function edit() {
     if (!admitted() || state.blocked || state.saved || state.busy) return;
+    const previousType = pickerType;
     state.draft = capture();
     recovery?.register();
     state.dirty = true;
     publish();
+    if (draftType() !== previousType) loadPicker(false, true);
   }
   function discard() {
     if (!admitted() || state.busy || state.contextBusy) return;
+    const previousType = pickerType;
     recovery?.close();
     state = {
       ...state,
@@ -185,6 +208,7 @@ export function createReportRequestController({
       pickerError: '',
     };
     publish();
+    if (draftType() !== previousType) loadPicker();
   }
   async function request(retry = false) {
     if (
@@ -200,13 +224,25 @@ export function createReportRequestController({
     let command;
     try {
       state.draft = capture();
-      if (retry) command = state.pending;
-      else {
-        const filters = reportFilters(state.draft, state.lawyers);
+      if (retry) {
+        command = state.pending;
+        if (command && !eligible(reportAuthor(command), pendingType()))
+          throw new Error(
+            'El autor de la solicitud pendiente no esta disponible. Consulta el contexto.',
+          );
+      } else {
+        const filters = reportFilters(state.draft, state.lawyers),
+          type = state.draft.reportType === 'litigator_activity' ? 'litigator_activity' : undefined;
         command =
-          state.pending && JSON.stringify(state.pending.filters) === JSON.stringify(filters)
+          state.pending &&
+          state.pending.report_type === type &&
+          JSON.stringify(state.pending.filters) === JSON.stringify(filters)
             ? state.pending
-            : { operation_id: crypto.randomUUID(), filters };
+            : {
+                operation_id: crypto.randomUUID(),
+                ...(type ? { report_type: type } : {}),
+                filters,
+              };
       }
       if (!command) return;
       recovery?.register();

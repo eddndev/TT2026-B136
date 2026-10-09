@@ -26,6 +26,10 @@ mod document_metadata_queries;
 mod document_metadata_restore;
 #[path = "../document_metadata_schema.rs"]
 mod document_metadata_schema;
+#[path = "../document_upload_origin_schema.rs"]
+mod document_upload_origin_schema;
+#[path = "../document_upload_origins.rs"]
+mod document_upload_origins;
 #[allow(dead_code)]
 #[path = "../metadata_database_support/mod.rs"]
 mod metadata_database_support;

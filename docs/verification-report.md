@@ -1,5 +1,130 @@
 # Informe de verificación local
 
+## Expiracion conservadora con latencia: comprobacion del 8 de octubre de 2026
+
+La siguiente campana de `adaeff52` supero el acceso inicial, pero rechazo un
+adelanto cliente de **1082 ms** porque el test imponia un maximo fijo de 1000 ms.
+Ese limite no pertenece al contrato de [ADR-0064](adr/0064-explicit-session-activity.md):
+el cliente descuenta el recorrido completo y conserva la conversion mas cauta.
+Con una demora controlada de 1500 ms antes del primer MFA, el mismo test reprodujo
+el fallo con **1944 ms**. La correccion comprueba politica de 12 s, vencimiento
+absoluto inalterado, inactividad dentro del absoluto y espera acotada por la
+ventana del servidor. Exige finalmente **401**, editor oculto, ninguna escritura
+automatica y recuperacion de los borradores tras autenticar nuevamente.
+El recorrido corregido aprobo con **1934 ms** de adelanto: **37.5 s** de navegador
+y **49.942 s** de campana aislada. Las **22 pruebas** del reloj y monitor aprobaron.
+No se cambio el producto ni se repitio la regresion completa; los gates de la
+nueva revision publicada requieren su propio resultado.
+
+## Reingreso por inactividad: correccion focal del 8 de octubre de 2026
+
+En la revision publicada `027f74cc`, la prueba de sesion real agoto los 5 s de
+`locator.fill` antes de encontrar el correo del primer acceso. La cancelacion de
+campana posterior interrumpio los otros checks; no equivale a un fallo probado
+del calculo del informe. Qadra monta esa interfaz con `client:only`.
+La prueba ahora espera explicitamente hasta 30 s por el formulario inicial;
+conserva acciones de 5 s, sesion inactiva de 12 s y todas las aserciones de
+expiracion, ausencia de escrituras automaticas y recuperacion de borradores.
+El recorrido real aislado aprobo: **1 caso, 37.1 s** de Playwright y **50.162 s**
+con preparacion, PostgreSQL 16.15, Valkey 8.1.10 y un worker. Formato aprobo.
+Esta evidencia focal no confirma todavia los gates de la revision corregida.
+
+## Catalogo ampliado de actividad: comprobacion focal del 8 de octubre de 2026
+
+El agregado y el selector de autores incorporan registros originales de
+sesiones/resultados y decisiones judiciales cautelares. Los acuerdos de una
+sesion y las medidas de una decision no se cuentan por separado. La revision
+focal `case_report_backend activity_` aprobo **10 casos** con PostgreSQL 16.15
+privado: cuatro nuevos y seis existentes, incluida restauracion de actividad.
+Los limites de periodo, autoria tras reasignacion, aislamiento, correcciones,
+preparaciones y reintentos quedaron comprobados. Son verificaciones focales;
+no una regresion completa ni una nueva medicion de rendimiento.
+
+El desarrollo reprodujo la ausencia de autores retirados y de nuevas fuentes.
+Los primeros fixtures requirieron corregir imports, respetar el conflicto de
+reenvio de resultados de audiencias y situar el reloj de operaciones despues
+de la creacion real del expediente. La recuperacion consulta su revision exacta.
+Ninguno de esos ajustes modifico los contratos de audiencias o decisiones.
+El clúster propio se detuvo y retiro; se conservaron servicios y evidencia ajenos.
+El recorrido ampliado de Qadra con servicios reales aprobo: **1 documento,
+9 actuaciones y 1 plazo atendido**, con identidad, periodo, cantidades y digest
+comunes en PDF/CSV. Las actuaciones incluyen resolucion, notificacion, cinco
+actos de recursos, un resultado con dos acuerdos y una decision con dos medidas.
+Los reintentos respetaron los conflictos o recibos de cada contrato. Playwright
+informo **26.8 s** y la campaña completa **279.147 s**, incluida preparacion y
+compilacion, con un solo worker. Los artefactos se guardaron aparte del recorrido
+previo de reasignacion 1/0/0; este no se repitio para sumar una cifra mayor.
+La campaña compuesta `scripts/api-demo.sh` aprobo en **562.754 s**, con
+PostgreSQL 16.15, Valkey 8.1.10, qpdf 12.4.1 y los decodificadores nativos
+previamente verificados. Conservo los informes de estado, archivos y avisos
+tras reinicios/restauracion y la revocacion de acceso. No se atribuye a ese
+guion el conteo positivo de actividad: este procede del recorrido Qadra anterior.
+Formato, layout de tests y Clippy focal de infraestructura aprobaron. La
+compilacion e inspeccion documental aprobaron en copia separada, como registra
+[la verificacion academica](academic-report-verification.md). La regresion
+completa se reserva a los checks de la revision publicada; este corte registra
+evidencia local y no acredita integracion o despliegue.
+
+## Informe de actividad registrada: verificación focal del 8 de octubre de 2026
+
+La nueva modalidad conserva la solicitud durable y la captura cifrada de los
+informes de estado. El desarrollo focal partió de fallos reproducidos por ausencia
+de origen documental estable, pérdida del tipo y captura al serializar, rechazo
+HTTP de la modalidad y ausencia de cantidades en los artefactos. La selección de
+autores también reprodujo la exclusión de quien ya no estaba asignado al expediente.
+Las correcciones conservan los bytes canónicos y el contrato anterior de estado.
+
+Se ejecutó en Linux con PostgreSQL 16.15 aislado, autenticación SCRAM y roles de
+ejecución restringidos. Se usaron un coordinador, `CARGO_BUILD_JOBS=1`,
+`RUST_TEST_THREADS=1`, un worker de navegador y temporales en disco. Los servicios
+ajenos a la campaña no se modificaron. Los resultados corresponden al árbol de
+trabajo de esta modalidad, todavía sin integrar:
+
+| Comprobación focal | Resultado y alcance |
+| --- | --- |
+| Aplicación: modelo, solicitudes y consumidor | 39 pruebas aprobadas. Incluyen identidad canónica histórica, autores, filas, filtros, límites y acceso. El nuevo módulo quedó agrupado en `case_report_model`; se confirmó su descubrimiento con sus 12 pruebas. |
+| PostgreSQL: `case_report_backend` | 34 aprobadas. Periodo por operación, reasignación sin transferir cantidades, cinco actos originales de recursos, exclusión de correcciones/preparaciones, atención, selector autorizado, reintentos y restauración de captura y artefactos. |
+| PostgreSQL: `document_suite_1` | 32 aprobadas. Origen de carga original ligado a auditoría, rechazo de alteraciones, atomicidad, inventario y restauración; versiones y clasificación no crean otro origen. |
+| Codec de actividad | 2 aprobadas. Conserva la representación anterior y rechaza combinaciones incompatibles de versión, tipo y contenido. |
+| PDF/CSV: `case_report_rendering` | 19 aprobadas. Cantidades y digest comunes, aviso de cobertura incompleta, escape de texto, límites y comportamiento anterior. |
+| HTTP: informes anteriores y actividad | 18 aprobadas. Forma anterior, modalidad nueva, filtros incompatibles, selector por modalidad y recuperación de operaciones. |
+| Cliente Node | 36 aprobadas para actividad, API, duración y selector. |
+| Navegador con respuestas controladas | 18 escenarios aprobados con headless shell; los tres recorridos de descarga restantes aprobaron con Chromium normal. Cubren Owner/Litigator, escritorio/móvil, recuperación, selector y conservación del informe anterior. No fue una única ejecución verde de los 21 casos. |
+| Clippy focal | Aplicación, infraestructura y web, bibliotecas y targets afectados, aprobados con `-D warnings`. La advertencia de incompatibilidad futura de Redis 0.25.4 es preexistente. |
+
+El primer intento de restauración mezcló `pg_restore` del sistema con servidor
+16.15 y falló por `transaction_timeout`. Usar las herramientas de la misma
+instalación 16.15 resolvió el fallo; después aprobaron ambas suites PostgreSQL
+anteriores, con restauración real. Los clústeres privados quedaron detenidos y
+retirados por sus respectivos runners.
+
+La cancelación de descargas se reprodujo fuera de Qadra con un enlace de datos
+y un Blob en `chromium_headless_shell-1243`. El Chromium normal instalado descargó
+el mismo contenido y aprobó los tres recorridos pendientes. No se atribuyó esa
+diferencia al producto ni se cambió su gestión de URL de descarga. No se instalaron
+otros navegadores ni se modificaron sus restricciones de seguridad.
+
+La aceptación nueva de `web/tests/live/case-reports.activity.spec.mjs` aprobó
+con servicios reales: **14.3 s** de navegador y **330.290 s** de campaña, incluida
+compilación del workspace y preparación. Un Litigante cargó un documento por
+HTTP y perdió su asignación; otro Litigante todavía asignado pudo seleccionarlo
+como autor y obtener una captura con **1 documento, 0 actuaciones y 0 plazos**.
+Ambos formatos conservaron cuenta, periodo, cantidades y digest; la descarga no
+leyó el aviso. Un acuse explícito y una autenticación nueva conservaron aviso,
+recibo y archivos idénticos. La matriz positiva de actuaciones y atención
+procede de las pruebas PostgreSQL anteriores, no de este escenario documental.
+
+La inspección visual aprobó el PDF A4 de una página y las capturas de Qadra a
+1440 y 390 píxeles: texto legible, sin recortes ni solapes. Se usaron Chromium
+normal, PostgreSQL 16.15, Valkey 8.1.10, qpdf 12.4.1 y decodificadores previamente
+verificados. El cambio no inició servicios sobre la instancia de revisión.
+
+Este corte del núcleo común no incluye las dos familias aprobadas posteriormente
+en `docs/technical-closure.md`, ni sustituye la demostración HTTP completa, la
+conciliación del manuscrito o la única regresión completa de cierre. No se lanzó
+campaña remota ni se consultó Actions
+para esta modalidad. Automatización, integración y despliegue siguen separados.
+
 ## Contrato cautelar en recuperación de sesión: 8 de octubre de 2026
 
 La campaña de navegador detectó que el auxiliar de borradores de audiencia no

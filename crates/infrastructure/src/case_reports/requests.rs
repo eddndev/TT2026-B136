@@ -31,7 +31,7 @@ impl PostgresCaseReportStore {
                 }
                 return Ok(saved.detail);
             }
-            access::filter_member(tx, actor, command.filters.assigned_litigator)?;
+            access::filter_member(tx, actor, command.filters.litigator, command.filters.kind)?;
             let id = CaseReportId::new();
             tx.execute("INSERT INTO case_report_jobs(id,requester_id,principal,account_revision,auth_generation,scope,operation_id,command,request_digest,requested_at,updated_at,state)
                 VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,'queued')", &[&id.as_uuid(), &actor.id.as_uuid(),

@@ -1,5 +1,5 @@
 import { factObject } from './procedural-fact-primitives.mjs';
-import { reportInstant, reportInvalid, reportUuid } from './case-report-values.mjs';
+import { reportInstant, reportInvalid, reportUuid, reportType } from './case-report-values.mjs';
 const nil = '00000000-0000-0000-0000-000000000000';
 function identity(value) {
   reportUuid(value);
@@ -7,8 +7,13 @@ function identity(value) {
   return value;
 }
 export function reportLitigatorQuery(value = {}) {
-  factObject(value, ['limit', 'after_id'], []);
-  const query = { limit: value.limit ?? 20, after_id: value.after_id ?? null };
+  factObject(value, ['limit', 'after_id', 'report_type'], []);
+  const type = reportType(value);
+  const query = {
+    limit: value.limit ?? 20,
+    after_id: value.after_id ?? null,
+    ...(type ? { report_type: type } : {}),
+  };
   if (!Number.isInteger(query.limit) || query.limit < 1 || query.limit > 100) reportInvalid();
   if (query.after_id !== null) identity(query.after_id);
   return query;

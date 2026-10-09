@@ -62,15 +62,15 @@ fn invalid_filters_and_pagination_never_reach_store() {
     let who = actor(Role::Owner);
     let mut bad = Vec::new();
     let mut empty = command();
-    empty.filters.created_before = empty.filters.created_from;
+    empty.filters.period_before = empty.filters.period_from;
     bad.push(empty);
     let mut long = command();
-    long.filters.created_from = now() - time::Duration::days(367);
+    long.filters.period_from = now() - time::Duration::days(367);
     bad.push(long);
     let mut offset = command();
-    offset.filters.created_from = offset
+    offset.filters.period_from = offset
         .filters
-        .created_from
+        .period_from
         .to_offset(time::UtcOffset::from_hms(1, 0, 0).unwrap());
     bad.push(offset);
     let service = service(MockStore::new(), identity(&who, 5));

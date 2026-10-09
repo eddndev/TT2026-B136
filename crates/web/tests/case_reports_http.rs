@@ -255,6 +255,7 @@ async fn litigators_default_page_projects_only_public_authorized_choices() {
     assert_eq!(
         *workflow.calls.lock().unwrap(),
         vec![Call::Litigators(CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 20,
             after_id: None
         })]
@@ -273,6 +274,7 @@ async fn litigators_exact_cursor_and_limit_reach_the_workflow() {
     assert_eq!(
         *workflow.calls.lock().unwrap(),
         vec![Call::Litigators(CaseReportLitigatorQuery {
+            kind: CaseReportKind::CaseState,
             limit: 1,
             after_id: Some(domain::identity::UserId::from_uuid(
                 uuid::Uuid::parse_str(after).unwrap()

@@ -1,5 +1,6 @@
 <script>
   import { getContext, onMount, onDestroy } from 'svelte';
+  import { reportPeriod, reportTypeLabel } from '../lib/case-reports-presentation.mjs';
   import { createReportRequestController } from '../lib/case-report-request-controller.mjs';
   export let api,
     user,
@@ -9,12 +10,13 @@
     busy = false,
     pickerBusy = false;
   const session = getContext('session-drafts');
-  let fromInput, beforeInput, statusInput, assigneeInput;
+  let typeInput, fromInput, beforeInput, statusInput, assigneeInput;
   const controller = createReportRequestController({
     api,
     user,
     session,
     capture: () => ({
+      reportType: typeInput?.value ?? state.draft.reportType,
       from: fromInput?.value ?? state.draft.from,
       before: beforeInput?.value ?? state.draft.before,
       status: statusInput?.value ?? state.draft.status,
@@ -30,6 +32,8 @@
     ondenied,
   });
   let state = controller.state();
+  $: activity = state.draft.reportType === 'litigator_activity';
+  $: pendingPeriod = state.pending ? reportPeriod(state.pending) : null;
   $: locked = state.busy || state.blocked || state.saved || state.denied || state.contextBusy;
   $: unavailable =
     state.draft.assigned && !state.lawyers.some((row) => row.user_id === state.draft.assigned);
@@ -76,7 +80,18 @@
   >
     <div class="report-fields">
       <label
-        >Creaci&#243;n desde (UTC)<input
+        ><span id="report-type-label">Tipo de informe</span><select
+          aria-labelledby="report-type-label"
+          bind:this={typeInput}
+          bind:value={state.draft.reportType}
+          disabled={locked}
+        >
+          <option value="case_state">Estado y carga de expedientes</option>
+          <option value="litigator_activity">Actividad por litigante</option>
+        </select></label
+      >
+      <label
+        >{activity ? 'Actividad desde (UTC)' : 'Creaci\u00f3n desde (UTC)'}<input
           type="date"
           bind:this={fromInput}
           bind:value={state.draft.from}
@@ -85,7 +100,9 @@
         /></label
       >
       <label
-        >Creaci&#243;n hasta (excluida, UTC)<input
+        >{activity
+          ? 'Actividad hasta (excluida, UTC)'
+          : 'Creaci\u00f3n hasta (excluida, UTC)'}<input
           type="date"
           bind:this={beforeInput}
           bind:value={state.draft.before}
@@ -105,7 +122,9 @@
         </select></label
       >
       <label
-        ><span id="report-assignee-label">Litigante asignado</span><select
+        ><span id="report-assignee-label"
+          >{activity ? 'Litigante autor' : 'Litigante asignado'}</span
+        ><select
           aria-labelledby="report-assignee-label"
           bind:this={assigneeInput}
           bind:value={state.draft.assigned}
@@ -125,6 +144,10 @@
       El inicio se incluye y el final se excluye, ambos a las 00:00 UTC. M&#225;ximo 366 d&#237;as.
     </p>
     <p class="hint">El selector incluye litigantes permitidos, incluso en expedientes cerrados.</p>
+    {#if activity}<p class="hint">
+        PDF y CSV incluyen documentos cargados, actuaciones procesales registradas y plazos marcados
+        como atendidos, atribuidos a su autor durante el periodo.
+      </p>{/if}
     {#if state.pickerMore}<button
         type="button"
         class="secondary"
@@ -154,10 +177,8 @@
           solicitud y estos filtros:
         </p>
         <p>
-          {state.pending.filters.created_from.slice(0, 10)} a {state.pending.filters.created_before.slice(
-            0,
-            10,
-          )} (final excluido).
+          {reportTypeLabel(state.pending)}: {pendingPeriod.from.slice(0, 10)} a
+          {pendingPeriod.before.slice(0, 10)} (final excluido).
         </p>
         <button
           type="button"

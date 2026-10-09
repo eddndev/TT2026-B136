@@ -79,12 +79,14 @@ pub(super) fn filter_member(
     tx: &mut Transaction<'_>,
     actor: &Principal,
     selected: Option<UserId>,
+    kind: CaseReportKind,
 ) -> Result<(), ApplicationError> {
     let Some(id) = selected else {
         return Ok(());
     };
+    let visible = litigator_visibility(kind);
     let sql = format!(
-        "SELECT u.id FROM users u WHERE {LITIGATOR_VISIBILITY}
+        "SELECT u.id FROM users u WHERE {visible}
         AND u.id=$3 FOR SHARE OF u"
     );
     let visible = tx
@@ -103,4 +105,18 @@ pub(super) fn filter_member(
         ));
     }
     Ok(())
+}
+
+pub(super) fn litigator_visibility(kind: CaseReportKind) -> String {
+    if kind == CaseReportKind::CaseState {
+        return LITIGATOR_VISIBILITY.into();
+    }
+    format!(
+        "u.active AND u.role='litigator' AND ($1::boolean OR EXISTS(
+        SELECT 1 FROM case_memberships own JOIN case_memberships other USING(case_id)
+        WHERE own.user_id=$2 AND other.user_id=u.id) OR EXISTS(
+        SELECT 1 FROM ({}) activity JOIN case_memberships own ON own.case_id=activity.case_id
+        WHERE own.user_id=$2 AND activity.actor_id=u.id))",
+        activity_sources::EVENTS
+    )
 }
