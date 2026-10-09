@@ -54,6 +54,8 @@ test('real idle expiry retains raw case fields and an upload until explicit auth
       writes.push(new URL(request.url()).pathname);
   });
   await page.goto('/');
+  // Client-only hydration can outlast the short actions used after authentication.
+  await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible({ timeout: 30000 });
   await login(page, fixture.recoveryCodes[0]);
   let modal = await newCase(page);
   await modal.getByLabel('T\u00edtulo del expediente', { exact: true }).fill(`  ${title}  `);

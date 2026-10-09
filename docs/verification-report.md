@@ -1,5 +1,18 @@
 # Informe de verificación local
 
+## Reingreso por inactividad: correccion focal del 8 de octubre de 2026
+
+En la revision publicada `027f74cc`, la prueba de sesion real agoto los 5 s de
+`locator.fill` antes de encontrar el correo del primer acceso. La cancelacion de
+campana posterior interrumpio los otros checks; no equivale a un fallo probado
+del calculo del informe. Qadra monta esa interfaz con `client:only`.
+La prueba ahora espera explicitamente hasta 30 s por el formulario inicial;
+conserva acciones de 5 s, sesion inactiva de 12 s y todas las aserciones de
+expiracion, ausencia de escrituras automaticas y recuperacion de borradores.
+El recorrido real aislado aprobo: **1 caso, 37.1 s** de Playwright y **50.162 s**
+con preparacion, PostgreSQL 16.15, Valkey 8.1.10 y un worker. Formato aprobo.
+Esta evidencia focal no confirma todavia los gates de la revision corregida.
+
 ## Catalogo ampliado de actividad: comprobacion focal del 8 de octubre de 2026
 
 El agregado y el selector de autores incorporan registros originales de
