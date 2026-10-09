@@ -1,5 +1,49 @@
 # Informe de verificación local
 
+## Activacion del informe en VPS3: 9 de octubre de 2026
+
+PR93 integro la preparacion manual en `29168dc289dcb9f725a1d02575efc89593cf87f9`.
+CI aprobo su HEAD `fd8ef14a` y despues ese main. La
+[campana de preparacion](https://github.com/eddndev/TT2026-B136/actions/runs/37900534072)
+aprobo CI/Web y empaquetado nativo; el job de activacion quedo omitido. El paquete
+`v0.1.2` tiene SHA-256
+`68880afc6c086bfcef9548f49bc461a5c17537ebaddbffc176b8d1fd3d1b5626`;
+el ejecutable ocupa 23006712 bytes, dentro del limite de 25 MiB.
+
+El ensayo uso una captura poblada posterior a CRL 4098/revision 3, PostgreSQL
+16.15, Redis 7.4.11 y puertos privados separados. Migro y restauro el candidato,
+y restauro la captura anterior para abrir el binario `v0.1.1`. Comparo todas las
+columnas originales de 56 tablas y una secuencia; conservo sus huellas y verifico
+criptograficamente las 95770 entradas de auditoria en ambas restauraciones.
+Las comprobaciones del catalogo/inventario con el rol runtime aprobaron. El
+arranque nuevo y el retorno antiguo respondieron 401 JSON sin sesion, con 30 y
+24 conexiones runtime respectivamente. No hubo altas de cuentas ni datos nuevos
+de demo. Las cargas historicas conservaron cero origenes documentales inferidos.
+
+El primer arranque del ensayo agoto sus 30 conexiones PostgreSQL. Se ajusto solo
+la copia a las 50 ya configuradas en produccion y se repitio el arranque pendiente,
+reutilizando la migracion/restauracion completada. Otro limite comprobado fue el
+recibo automatico de compatibilidad: exige `appendonlydir`, mientras la provision
+usa `redis-appendonly`. Se uso `Runtime.backup` con manifiesto validado y ensayo
+manual; no se emitio un descriptor de compatibilidad ni se cambio Redis para
+eludir esa diferencia. Corregir ese recibo automatico queda separado del ensayo
+manual aceptado y debe conservar la comprobacion exacta del destino provisionado.
+
+La activacion tomo otro respaldo completo, con copia privada externa y hashes
+verificados, cerro el ingreso y migro bajo exclusion administrativa. Conservo las
+56 tablas originales, su secuencia, configuracion y material CA/TSA; valido el
+runtime antes de seleccionar el paquete y reabrir API/web. La URL publica
+`https://qadra.com.mx/version.json` confirmo `v0.1.2` y el commit `29168dc2`.
+No se publico tag ni se ejecuto la ruta automatica de activacion, que no cubre
+este salto de esquema. El retorno requiere SQL anterior y binario anterior
+coordinados, no solamente cambiar el enlace de release.
+
+Falta comprobar el informe PDF/CSV en la sesion real de produccion: la pestaña
+observada permanece en el acceso. Se reutiliza la aceptacion positiva previa
+1/9/1, autor original 1/0/0 y permisos/restauracion; no se presenta como una nueva
+comprobacion autenticada en produccion. Correo, inactividad y vinculo Owner
+conservan la configuracion vigente. No se reconstruyo el PDF academico aceptado.
+
 ## Instalación de controladores y preparación de release: 9 de octubre de 2026
 
 La instalación real en la cuenta `qadra` de VPS3 pasó el preflight de identidades,
@@ -14,15 +58,16 @@ La renovación posterior de CRL confirmó revisión 3, número 4098 y vigencia h
 el 16 de octubre a las 05:58:03 UTC. Su journal quedó aceptado y la captura completa
 SQL/Redis/material privado aprobó la validación de huellas. Once tablas de cuentas,
 expedientes, documentos, participantes y audiencias, además de configuración,
-conservaron sus huellas antes/después. La aplicación sigue en `v0.1.1`; estos
-resultados no acreditan despliegue de PR92 ni migración o restauración nueva.
+conservaron sus huellas antes/después. En ese paso la aplicación permaneció en `v0.1.1`; esa instalación y renovación
+no acreditaban todavía el despliegue posterior descrito arriba.
 
 La preparación manual del workflow tuvo un RED por ausencia de entrada manual y
 después tres pruebas focales verdes. La suite de controladores aprobó 219 pruebas
 en 15.752 s. Comprueba que el candidato conserva CI/Web y el commit exacto, y que
 sólo un push de tag puede alcanzar transferencia/activación. Son comprobaciones
 locales de configuración y controladores; la ejecución remota del nuevo modo y
-los gates de su revisión publicada siguen pendientes. No se repitió una regresión
+los gates de su revisión publicada quedaban pendientes en ese corte local;
+su aceptación posterior se registra arriba. No se repitió una regresión
 Rust/Web ni se reconstruyó el manuscrito, cuyas fuentes no cambiaron.
 
 ## Expiracion conservadora con latencia: comprobacion del 8 de octubre de 2026

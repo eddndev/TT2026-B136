@@ -9,10 +9,13 @@ antigua de «pendiente» no basta: se contrasta con main, código y evidencia.
 
 Este inventario complementa, sin ampliar su catálogo, el
 [cierre de los cuatro frentes procesales](four-front-closure.md). Este corte del
-8 de octubre de 2026 incluye PR90 (cautelares completas), PR91 (diagnóstico MFA,
+9 de octubre de 2026 incluye PR90 (cautelares completas), PR91 (diagnóstico MFA,
 squash `46dc1c1`) y PR92 (informe de actividad), cuya integración en main está
-confirmada con el squash `c99574a25dba7653208318a360ce0bee243658e4`. Esta integración
-no acredita por sí sola la aprobación de CI en main ni un despliegue nuevo. Los
+confirmada con el squash `c99574a25dba7653208318a360ce0bee243658e4`. CI posterior
+en main aprobó. PR93 incorporó la preparación del paquete y
+`v0.1.2` quedó activada sobre `29168dc2`, con migración/restauración aislada y
+preservación de los datos existentes. La aceptación autenticada en producción
+continúa pendiente; véase el [registro de verificación](verification-report.md). Los
 gates se comprueban por revisión exacta; los respaldos no son integraciones ni
 despliegues.
 
@@ -78,8 +81,9 @@ de restaurar, avisos tras renovar sesión y PDF/CSV coincidentes. El recorrido
 positivo del catálogo completo obtuvo 1 documento, 9 actuaciones y 1 plazo
 atendido. HTTP/restauración y manuscrito separado también aprobaron. La
 [verificación](verification-report.md) distingue estos cortes y sus límites.
-La integración confirmada no acredita CI posterior en main ni un despliegue
-nuevo. Los avisos internos y la duración observada no resuelven el correo ni la
+El informe ya está desplegado en `v0.1.2`; falta generar y descargar PDF/CSV
+en la sesión real de producción, sin sustituir esa comprobación por el ensayo.
+Los avisos internos y la duración observada no resuelven el correo ni la
 estimación validada de CU-16; esos pendientes se conservan explícitos y no se
 atribuyen a los contadores.
 La fila jurídica conserva la necesidad de identificar entidad, fuero y canal de
@@ -121,8 +125,11 @@ integración tampoco acredita activación o retención del journal en VPS3.
 La cuenta/correo Owner, remitente y activación de correo, y duración de
 inactividad siguen pendientes humanos. La continuación autoriza despliegues
 con la configuración vigente preservada; no autoriza inferir esos valores.
-La producción observada conserva la versión anterior `v0.1.1`; este corte no
-declara un despliegue nuevo. Una evaluación con participantes reales también
+La producción sirve `v0.1.2` desde el 9 de octubre de 2026, con configuración
+y datos conservados. El recibo automático de compatibilidad de respaldo tiene
+una discrepancia de directorio Redis documentada en la verificación; el ensayo
+manual poblado no acredita que ese recibo automático esté corregido.
+Una evaluación con participantes reales también
 requiere personas y resultados reales; las pruebas automáticas no la sustituyen.
 
 El acceso documental Client requiere resolver su política explícita. No se abre

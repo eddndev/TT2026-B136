@@ -1,5 +1,13 @@
 # Cierre funcional del prototipo web
 
+Corte operativo del 9 de octubre de 2026: PR92 y PR93 están integradas;
+`v0.1.2` sirve el commit `29168dc289dcb9f725a1d02575efc89593cf87f9` en VPS3.
+La migración y restauración poblada aprobaron y la activación conservó los datos
+de la demo, claves y configuración. Falta la comprobación autenticada del informe
+PDF/CSV en producción. Los resultados y límites del respaldo automático están en
+[verificación](verification-report.md); el resto finito en [cierre técnico](technical-closure.md).
+Las referencias siguientes a releases anteriores describen sus cortes históricos.
+
 ## Checkpoint funcional reconciliado
 
 La lista finita de esta entrega y sus criterios de término están en
