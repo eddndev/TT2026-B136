@@ -1,5 +1,21 @@
 # Informe de verificación local
 
+## Expiracion conservadora con latencia: comprobacion del 8 de octubre de 2026
+
+La siguiente campana de `adaeff52` supero el acceso inicial, pero rechazo un
+adelanto cliente de **1082 ms** porque el test imponia un maximo fijo de 1000 ms.
+Ese limite no pertenece al contrato de [ADR-0064](adr/0064-explicit-session-activity.md):
+el cliente descuenta el recorrido completo y conserva la conversion mas cauta.
+Con una demora controlada de 1500 ms antes del primer MFA, el mismo test reprodujo
+el fallo con **1944 ms**. La correccion comprueba politica de 12 s, vencimiento
+absoluto inalterado, inactividad dentro del absoluto y espera acotada por la
+ventana del servidor. Exige finalmente **401**, editor oculto, ninguna escritura
+automatica y recuperacion de los borradores tras autenticar nuevamente.
+El recorrido corregido aprobo con **1934 ms** de adelanto: **37.5 s** de navegador
+y **49.942 s** de campana aislada. Las **22 pruebas** del reloj y monitor aprobaron.
+No se cambio el producto ni se repitio la regresion completa; los gates de la
+nueva revision publicada requieren su propio resultado.
+
 ## Reingreso por inactividad: correccion focal del 8 de octubre de 2026
 
 En la revision publicada `027f74cc`, la prueba de sesion real agoto los 5 s de
