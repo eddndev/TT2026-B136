@@ -1,5 +1,13 @@
 # Instalación recuperable de controladores
 
+La aceptación operativa del 9 de octubre de 2026 instaló en VPS3 la generación
+de `c99574a25dba7653208318a360ce0bee243658e4`. La operación
+`6ba9b317-e5c3-40cd-ad1c-731c656238dd` produjo primero `installed_closed` y
+después `installed` con la autoridad exacta de reapertura. Se conservaron las
+fuentes, caché y unidades anteriores. PostgreSQL, Redis, API y web reabrieron
+con salud verificada y la misma release `v0.1.1`; no se aplicaron migraciones.
+El inventario y el intérprete aprobados están en [despliegue](deployment.md).
+
 ## Contrato
 
 `ops/deploy/controller_installation.py` compone el cierre de servicios, las

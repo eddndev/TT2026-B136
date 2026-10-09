@@ -3,6 +3,12 @@ name: Deploy version
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      prepare_version:
+        description: Build a candidate for migration rehearsal without deployment
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -24,15 +30,23 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Validate version and exact tag commit
+      - name: Validate version and exact source commit
         id: identity
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.prepare_version || github.ref_name }}
         run: |
           python3 -c 'import sys; sys.path.insert(0, "ops/deploy"); from bundle import validate_version; import os; validate_version(os.environ["TAG"])'
-          commit=$(git rev-parse "refs/tags/$TAG^{commit}")
-          test "$commit" = "$(git rev-parse HEAD)"
+          commit=$(git rev-parse HEAD)
           test "$commit" = "$(git rev-parse "$GITHUB_SHA^{commit}")"
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            test "$commit" = "$(git rev-parse "refs/tags/$TAG^{commit}")"
+          else
+            test "$GITHUB_EVENT_NAME" = workflow_dispatch
+            if git show-ref --verify --quiet "refs/tags/$TAG"; then
+              echo 'Candidate version already has a tag; select an unused version' >&2
+              exit 1
+            fi
+          fi
           printf 'tag=%s\ncommit=%s\n' "$TAG" "$commit" >> "$GITHUB_OUTPUT"
       - name: Verify deployment state transitions and archive admission
         run: python3 -B -m unittest discover -s scripts/tests -p 'test_deploy_*.py'
@@ -76,6 +90,7 @@ jobs:
           retention-days: 30
 
   deploy:
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
     needs: [version, package]
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     timeout-minutes: 20
