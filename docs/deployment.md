@@ -43,7 +43,13 @@ la revisión integrada elegida; no asumir que `main` permanece inmóvil. Descarg
 el artefacto de esa ejecución exacta y validar su checksum. Si cambia la huella
 del esquema, usarlo para el ensayo aislado y el mantenimiento explícito descritos
 abajo. Obtener un paquete no acredita migración, restauración ni activación.
-La validación remota de este modo queda pendiente hasta su ejecución aceptada.
+El modo quedó aceptado el 9 de octubre de 2026 en la ejecución
+`37900534072`: CI/Web y paquete aprobados, activación omitida. Su candidato
+`v0.1.2`, commit `29168dc289dcb9f725a1d02575efc89593cf87f9`, se ensayó sobre una
+captura poblada y se activó después mediante mantenimiento SQL explícito.
+La versión pública quedó confirmada; la comprobación autenticada del informe
+PDF/CSV permanece pendiente. Véase el [registro de verificación](verification-report.md).
+El tag no se publicó: publicarlo ahora iniciaría otra campaña de activación.
 
 Las activaciones por tag conservan su comprobación del tag remoto y todos sus
 gates. No publicar un tag para intentar eludir una migración pendiente ni alterar
