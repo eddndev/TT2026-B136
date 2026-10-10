@@ -10428,3 +10428,20 @@ se conservan en `docs/http-individual-signing.md` y
 `docs/individual-signing-guide.md`; las decisiones y la recuperación, en
 `docs/adr/0074-individual-document-signatures.md` y
 `docs/database-operations.md`.
+
+
+### Correccion del gate de puertos: 10 de octubre de 2026
+
+La primera campana de cierre de firma individual, sobre `aef48b85`, rechazo
+`every_domain_port_has_an_infrastructure_adapter_and_a_mock`: el puerto
+`CertificateRequestAuthority` tenia adaptador real pero faltaba su doble
+`mockall`. El mismo fallo se reprodujo localmente antes de corregirlo. Documents
+aprobo; CI y Web fueron cancelados por ese fallo. Esa campana no acredita
+regresion completa ni integracion.
+
+Se extendio el doble existente y se probaron la solicitud y salida publicas
+exactas, la validacion de cadena/perfil y el corte ante fallos de emision, raiz
+o validador. No se cambio producto ni se debilito el gate. La comprobacion focal
+aprobo `pki_use_cases` (16 pruebas), `port_coverage` (1), el registro de ejecutables,
+formato y Clippy del target. Se conserva la aceptacion API/navegador y el PDF
+ya comprobados; la revision corregida necesita sus propios gates remotos.
