@@ -56,7 +56,7 @@ pub(super) fn insert_snapshot(
         })
 }
 
-pub(super) fn load(
+pub(crate) fn load(
     transaction: &mut Transaction<'_>,
     case: CaseId,
     id: DocumentId,
@@ -118,7 +118,7 @@ pub(crate) fn decode_record(row: Row) -> Result<DocumentRecord, ApplicationError
     Ok(record)
 }
 
-pub(super) fn unchanged_document(
+pub(crate) fn unchanged_document(
     current: &DocumentRecord,
     candidate: &DocumentRecord,
 ) -> Result<(), ApplicationError> {

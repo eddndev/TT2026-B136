@@ -1346,6 +1346,11 @@ fabricar un resultado para desbloquear la cola. Véase
 
 ## Respaldo y restauración
 
+La ampliación de firma individual incorpora las dependencias de
+[vinculación y recibos personales](#vínculos-y-firmas-documentales-individuales).
+El respaldo debe incluirlas con los documentos y la confianza histórica; una
+copia que conserve únicamente el JSON de evidencia no sustituye sus recibos.
+
 Las migraciones `0009_participant_credential_trust.sql` y el conjunto `0010_`
 añaden confianza, identidades, perfiles tipificados, revisiones de selección y
 evidencia de declaración. Ejecutar `database migrate --runtime-role` con los
@@ -1502,3 +1507,67 @@ Las capturas de actividad usan representación cifrada de versión 2. Se conserv
 la lectura y serialización de versión 1 para informes de estado. El periodo de
 actividad y tipo forman parte de la identidad canónica de solicitud y captura;
 no se reinterpretan solicitudes existentes al actualizar el servidor.
+
+## Vínculos y firmas documentales individuales
+
+La implementación local añade dos migraciones, aplicadas por
+`database migrate --runtime-role` con conexión administrativa y escritores
+detenidos:
+
+- `0044_document_signing_bindings.sql`: `document_signing_bindings` conserva
+  cuenta, contadores, declaración canónica, prueba RSA, certificado público,
+  confianza e instante de registro; `document_signing_withdrawals` conserva
+  el retiro terminal con su cuenta e instante capturados. Cada escritura tiene
+  su secuencia exacta de auditoría. Una huella no se transfiere a otra cuenta
+  después del retiro y una cuenta sólo mantiene un vínculo sin retirar.
+- `0045_individual_document_signatures.sql`: `individual_document_signatures`
+  conserva operación, expediente, documento y versión, cuenta, vínculo,
+  confianza, consentimiento, ambas firmas y aceptación. Una versión tiene un
+  único recibo. Claves foráneas enlazan vínculo, documento, serie, confianza y
+  auditoría; dos restricciones diferidas exigen al confirmar la correspondencia
+  exacta entre recibo y extensión personal de la evidencia documental.
+
+El rol operativo sólo consulta e inserta recibos y retiros; no actualiza ni
+elimina esa historia. La apertura valida columnas, restricciones, índices,
+funciones, disparadores y privilegios, además de reconstruir las declaraciones
+canónicas y verificar las pruebas con su confianza capturada. Un disparador
+diferido deshabilitado o una relación histórica incoherente impide abrir el
+almacén. No se reparan datos durante esa comprobación.
+
+El commit usa el bloqueo compartido de auditoría. Vuelve a comprobar principal
+completo, contadores de cuenta, rol Litigante activo, pertenencia, expediente
+activo, vínculo sin retirar y confianza vigente; toma el reloj después de las
+esperas. Evidencia documental, recibo y evento `document.individually_signed`
+confirman juntos. La repetición exacta recupera el recibo original después de
+autorizar al solicitante; una intención distinta no reemplaza la firma existente.
+
+La migración conserva las versiones cifradas y los sellos anteriores, sin
+inventar firmantes personales. La extensión `individual` está presente sólo en
+evidencias personales. Conserva la prueba y confianza originales del vínculo,
+el consentimiento y sus instantes; el recibo y el evento conservan además
+nanosegundos. El sello RFC 3161 sigue cubriendo el digest del contenido; su fecha
+no demuestra que la firma personal ya existiera entonces. El estado actual de
+certificado o vínculo se informa por separado de la comprobación histórica.
+
+Para restaurar, conservar juntas las tres tablas nuevas, `documents`,
+`document_series`, usuarios, expedientes y asignaciones, confianza publicada y
+la cadena completa de auditoría. Mantener también la KEK y los materiales de CA
+y TSA requeridos por la instalación. Las claves privadas de los titulares
+permanecen fuera del servidor y del respaldo de la aplicación. Reponer esquema
+y privilegios completos y abrir con el rol operativo antes de aceptar tráfico.
+Comparar los bytes de evidencia, recibos, tiempos y eventos con el respaldo,
+incluidos vínculos retirados y sellos históricos sin extensión personal.
+Restaurar una revisión antigua de confianza no equivale a publicarla de nuevo:
+la recuperación debe conservar las revisiones y sus pruebas originales.
+
+La aceptación de esta ampliación está en curso; migrar el esquema no acredita
+su integración en `main` ni su instalación. Las pruebas de
+[vinculación](../crates/infrastructure/tests/signing_binding_backend.rs),
+[firma](../crates/infrastructure/tests/individual_document_backend.rs) e
+[invariantes y restauración](../crates/infrastructure/tests/individual_document_backend_invariants.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable; las de
+restauración requieren también `pg_dump` y `pg_restore`. Una ejecución sin esa
+variable no demuestra que se haya ejercitado el backend. El
+[informe de verificación](verification-report.md) conserva los resultados
+efectivamente ejecutados y el [contrato HTTP](http-individual-signing.md)
+describe conciliación y lectura autorizada.

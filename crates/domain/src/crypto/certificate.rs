@@ -127,6 +127,29 @@ pub struct IssuedCertificate {
     pub serial_hex: String,
 }
 
+/// Public material issued for a holder-generated certificate request.
+///
+/// The authority never generates, receives or returns the holder's private key.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IssuedPublicCertificate {
+    pub certificate_pem: Vec<u8>,
+    pub certificate_path: PathBuf,
+    pub serial_hex: String,
+}
+
+/// Administrative issuance from one externally signed public PKCS#10 request.
+///
+/// Implementations validate the bounded request and its proof of possession
+/// before changing authority state. They apply the signing-only internal profile
+/// and verify that the issued public key equals the requested key.
+pub trait CertificateRequestAuthority {
+    fn issue_request(
+        &self,
+        name: &str,
+        request_pem: &[u8],
+    ) -> Result<IssuedPublicCertificate, DomainError>;
+}
+
 /// Outbound port: operations of the internal certificate authority.
 ///
 /// Every operation may fail with

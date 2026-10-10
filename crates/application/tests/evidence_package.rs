@@ -233,3 +233,6 @@ fn an_archiver_failure_propagates() {
         ApplicationError::Domain(DomainError::ArchiveWriteFailure(_))
     ));
 }
+
+#[path = "evidence_individual_package.rs"]
+mod individual_package;

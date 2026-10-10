@@ -31,6 +31,7 @@ mod error;
 mod hearing_derived_deadlines;
 mod hearing_results;
 mod hearings;
+mod individual_signing;
 mod judicial_calendars;
 mod members;
 mod owner_certificates;
@@ -51,11 +52,24 @@ mod routes;
 mod runtime;
 mod typed_participants;
 pub use api::{
-    api_router, api_router_with_authentication_budget, api_router_with_password_reset,
-    api_router_with_password_reset_budget, AuthenticationHttp,
+    api_router, api_router_with_authentication_budget, api_router_with_individual_signing_budget,
+    api_router_with_password_reset, api_router_with_password_reset_budget, AuthenticationHttp,
 };
+pub use individual_signing::IndividualSigningHttp;
 use runtime::{protect, HttpRuntime};
 pub use runtime::{HttpLimits, HttpWorkBudget, HttpWorkPermit};
+
+/// Builds public individual signing routes with bounded blocking work.
+pub fn individual_signing_router(
+    components: IndividualSigningHttp,
+    limits: HttpLimits,
+) -> Result<Router, application::ApplicationError> {
+    let runtime = HttpRuntime::new(limits);
+    Ok(protect(
+        individual_signing::router(components, runtime.clone()),
+        runtime,
+    ))
+}
 
 /// Builds standalone reset routes using one admission and blocking-work budget.
 pub fn password_reset_router(

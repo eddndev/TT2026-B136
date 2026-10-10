@@ -10,6 +10,7 @@ fn evidence() -> SealedEvidence {
         crl_pem: b"crl".to_vec(),
         tsa_chain_pem: Some(b"tsa".to_vec()),
         openssl_version: "OpenSSL test".to_string(),
+        individual: None,
     }
 }
 

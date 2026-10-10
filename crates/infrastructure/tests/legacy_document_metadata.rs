@@ -60,6 +60,7 @@ fn legacy_reconciliation_preserves_ciphertext_evidence_and_audit_prefix_after_cl
             crl_pem: vec![5],
             tsa_chain_pem: None,
             openssl_version: "fixture".into(),
+            individual: None,
         })
         .unwrap();
     store

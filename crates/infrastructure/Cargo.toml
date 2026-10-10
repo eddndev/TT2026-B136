@@ -394,3 +394,19 @@ path = "tests/agenda_precautionary_hearings.rs"
 [[test]]
 name = "alert_precautionary_hearings"
 path = "tests/alert_precautionary_hearings.rs"
+
+[[test]]
+name = "individual_signing_crypto"
+path = "tests/individual_signing_crypto.rs"
+
+[[test]]
+name = "signing_binding_backend"
+path = "tests/signing_binding_backend.rs"
+
+[[test]]
+name = "individual_document_backend"
+path = "tests/individual_document_backend.rs"
+
+[[test]]
+name = "individual_document_backend_invariants"
+path = "tests/individual_document_backend_invariants.rs"

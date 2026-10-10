@@ -12,6 +12,7 @@ mod case_report;
 mod deadline;
 mod deadline_profile;
 mod document_content;
+mod document_signing;
 mod document_upload;
 mod hearing;
 mod hearing_result;
@@ -138,6 +139,7 @@ impl ApiError {
 impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
         let error = match owner_certificate::map(error)
+            .or_else(document_signing::map)
             .or_else(members::map)
             .or_else(document_content::map)
             .or_else(document_upload::map)

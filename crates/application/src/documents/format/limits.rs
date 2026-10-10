@@ -55,6 +55,14 @@ impl StageSupportReadLimits {
                 evidence.crl_pem.len(),
                 evidence.tsa_chain_pem.as_ref().map_or(0, Vec::len),
                 evidence.openssl_version.len(),
+                evidence.individual.as_ref().map_or(0, |proof| {
+                    proof.binding_statement.len()
+                        + proof.binding_signature.len()
+                        + proof.binding_root_der.len()
+                        + proof.binding_crl_der.len()
+                        + proof.consent_statement.len()
+                        + proof.consent_signature.len()
+                }),
             ];
             let total = lengths
                 .iter()

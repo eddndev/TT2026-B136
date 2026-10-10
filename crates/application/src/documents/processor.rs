@@ -1,5 +1,9 @@
 //! Cryptographic preparation shared by online and offline document workflows.
 
+mod current;
+mod external;
+pub use external::ExternalSignerMaterial;
+
 use domain::audit::{verify_chain, ChainVerification, ChainedEvent};
 use domain::crypto::keys::KEY_ENCRYPTION_KEY_LEN;
 use domain::crypto::{
@@ -45,6 +49,7 @@ pub struct EvidenceMaterial {
 
 pub struct DocumentProcessor {
     ports: DocumentProcessorPorts,
+    individual_verifier: Option<Box<dyn domain::crypto::InternalDeclarationVerifier>>,
     material: EvidenceMaterial,
     kek: Zeroizing<Vec<u8>>,
 }
@@ -64,9 +69,19 @@ impl DocumentProcessor {
         validate_material(&material)?;
         Ok(Self {
             ports,
+            individual_verifier: None,
             material,
             kek,
         })
+    }
+
+    /// Enables strict historical verification of captured personal signatures.
+    pub fn with_individual_verifier(
+        mut self,
+        verifier: Box<dyn domain::crypto::InternalDeclarationVerifier>,
+    ) -> Self {
+        self.individual_verifier = Some(verifier);
+        self
     }
 
     pub fn prepare(&self, name: &str, document: &[u8]) -> Result<DocumentRecord, ApplicationError> {
@@ -133,6 +148,7 @@ impl DocumentProcessor {
             crl_pem: self.material.crl_pem.clone(),
             tsa_chain_pem: self.material.tsa_chain_pem.clone(),
             openssl_version: self.material.openssl_version.clone(),
+            individual: None,
         };
         record.seal(evidence)?;
 
@@ -150,6 +166,7 @@ impl DocumentProcessor {
             .evidence
             .as_ref()
             .ok_or_else(|| ApplicationError::DocumentNotSealed(id.to_string()))?;
+        super::validation::validate_individual(record, evidence, &self.validation_ports())?;
         let signature = Signature::from_bytes(evidence.signature.clone())?;
         let anchor = evidence
             .tsa_chain_pem
@@ -188,6 +205,7 @@ impl DocumentProcessor {
             .evidence
             .as_ref()
             .ok_or_else(|| ApplicationError::DocumentNotSealed(id.to_string()))?;
+        super::validation::validate_individual(record, evidence, &self.validation_ports())?;
         let request = EvidenceRequest {
             document_name: &record.name,
             document: &plaintext,
@@ -199,11 +217,20 @@ impl DocumentProcessor {
             tsa_chain_pem: evidence.tsa_chain_pem.as_deref(),
             openssl_version: &evidence.openssl_version,
         };
-        let package = export_with_ports(
-            self.ports.hasher.as_ref(),
-            self.ports.archiver.as_ref(),
-            &request,
-        )?;
+        let package = if let Some(individual) = &evidence.individual {
+            crate::evidence::export_individual_with_ports(
+                self.ports.hasher.as_ref(),
+                self.ports.archiver.as_ref(),
+                &request,
+                individual,
+            )?
+        } else {
+            export_with_ports(
+                self.ports.hasher.as_ref(),
+                self.ports.archiver.as_ref(),
+                &request,
+            )?
+        };
 
         Ok(EvidenceExport {
             archive: package.archive,
@@ -254,6 +281,7 @@ impl DocumentProcessor {
 
     fn validation_ports(&self) -> DocumentValidationPorts<'_> {
         DocumentValidationPorts {
+            individual_verifier: self.individual_verifier.as_deref(),
             cipher: self.ports.cipher.as_ref(),
             keys: self.ports.keys.as_ref(),
             hasher: self.ports.hasher.as_ref(),

@@ -167,6 +167,15 @@ pub enum PkiAction {
         #[arg(long, value_enum, default_value_t = PkiIssuePurpose::Partner)]
         purpose: PkiIssuePurpose,
     },
+    /// Issue a signing-only certificate from an externally signed public CSR.
+    IssueRequest {
+        /// Public PKCS#10 request in PEM format, at most 16 KiB.
+        #[arg(long)]
+        csr: PathBuf,
+        /// Output identifier; it does not establish account identity.
+        #[arg(long)]
+        name: String,
+    },
     /// Revoke a certificate by serial number.
     Revoke {
         /// Serial number of the certificate to revoke, in hex as printed

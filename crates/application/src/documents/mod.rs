@@ -4,6 +4,7 @@ mod case_content;
 mod case_port;
 mod case_service;
 pub mod format;
+mod individual_evidence;
 mod metadata;
 mod metadata_filter;
 mod model;
@@ -18,9 +19,12 @@ mod version;
 pub use case_port::{CaseDocumentStore, CaseDocumentSummary, CaseDocumentWorkflow, DocumentAction};
 pub use case_service::CaseDocumentService;
 pub use domain::crypto::DocumentVersionRef;
+pub use individual_evidence::IndividualSigningEvidence;
 pub use model::{DocumentRecord, DocumentSummary, EvidenceExport, SealedEvidence};
 pub use port::{DocumentRepository, DocumentWorkflow};
-pub use processor::{DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial};
+pub use processor::{
+    DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial, ExternalSignerMaterial,
+};
 pub use query::{DocumentPage, DocumentQuery};
 pub use service::{DocumentWorkflowPorts, LocalDocumentWorkflow};
 pub use validation::{validate_record_with_ports, DocumentValidationPorts};
