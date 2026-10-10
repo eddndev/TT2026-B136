@@ -99,7 +99,12 @@ export function caseApi(transport) {
         return result;
       };
       return {
-        ...versionApi(scoped, id),
+        ...versionApi(scoped, id, async (path, options) => {
+          assertActive();
+          const value = await request(path, options);
+          assertActive();
+          return value;
+        }),
         ...metadataApi(scoped, id),
         dispose: () => {
           active = false;

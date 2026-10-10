@@ -15,7 +15,7 @@
   import DocumentIntegrityNotice from './DocumentIntegrityNotice.svelte';
   import DocumentIntegrityIncidents from './DocumentIntegrityIncidents.svelte';
   import JudicialCalendars from './JudicialCalendars.svelte';
-  import OwnerCertificates from './OwnerCertificates.svelte';
+  import AccountCertificates from './AccountCertificates.svelte';
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
@@ -378,7 +378,7 @@
               <p>Abre un expediente para consultar sus datos.</p>
               <button class="primary" onclick={() => go('cases')}>Ver expedientes</button>
             </section>{/if}
-        {:else if view === 'owner-certificates' && user.role === 'owner'}<OwnerCertificates
+        {:else if ['owner-certificates', 'signing-certificates'].includes(view)}<AccountCertificates
             {api}
             {user}
           />

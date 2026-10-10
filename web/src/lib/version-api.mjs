@@ -1,6 +1,8 @@
+import { individualSigningApi } from './individual-signing-api.mjs';
+import { signingCertificatesApi } from './signing-certificates-api.mjs';
 import { contentReference, contentValue } from './document-content.mjs';
 
-export function versionApi(scoped, caseId) {
+export function versionApi(scoped, caseId, accountRequest) {
   const base = (id) => `/${encodeURIComponent(id)}/versions`;
   return {
     versions(id, { limit = 50, beforeVersion } = {}) {
@@ -25,7 +27,23 @@ export function versionApi(scoped, caseId) {
         assertActive();
         return result;
       };
+      const account = async (path, options) => {
+        assertActive();
+        const value = await accountRequest(path, options);
+        assertActive();
+        return value;
+      };
       return {
+        signingIdentity: () => account('/auth/me'),
+        signingCertificate: (accountId) => signingCertificatesApi(account, accountId),
+        individualSigning: (accountId, digest) =>
+          individualSigningApi(request, {
+            accountId,
+            caseId,
+            documentId: id,
+            version: number,
+            digest,
+          }),
         dispose: () => {
           active = false;
         },

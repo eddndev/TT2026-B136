@@ -93,6 +93,13 @@
         onclick={() => go('owner-certificates')}
         ><Icon name="shield" size={19} />Mi certificado</button
       >{/if}
+    {#if user.role === 'litigator'}<button
+        class="guide-link"
+        class:active={view === 'signing-certificates'}
+        aria-current={view === 'signing-certificates' ? 'page' : undefined}
+        onclick={() => go('signing-certificates')}
+        ><Icon name="shield" size={19} />Mi firma documental</button
+      >{/if}
     <button class="guide-link" class:active={view === 'guide'} onclick={() => go('guide')}
       ><Icon name="help" size={19} />Gu&#237;a de uso<Icon name="arrow" size={15} /></button
     >

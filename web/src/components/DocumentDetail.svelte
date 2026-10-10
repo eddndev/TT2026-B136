@@ -4,6 +4,7 @@
   const administration = caseState();
   import Icon from './Icon.svelte';
   import DocumentContentAction from './DocumentContentAction.svelte';
+  import DocumentSigningActions from './DocumentSigningActions.svelte';
   import DocumentSealAction from './DocumentSealAction.svelte';
   import { can, download } from '../lib/documents.mjs';
   export let api;
@@ -24,7 +25,8 @@
   let message = '';
   let copyMessage = '';
   let sealAction;
-  let sealUncertain = false;
+  let sealUncertain = false,
+    personalActive = false;
   $: report = document.report || null;
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: 'file' },
@@ -150,7 +152,7 @@
     />
     {#if can(user.role, 'seal') && document.sealed !== true}<button
         class="primary"
-        disabled={disabled || !!busy || sealUncertain || $administration.closed}
+        disabled={disabled || !!busy || sealUncertain || personalActive || $administration.closed}
         onclick={() => sealAction.open()}><Icon name="lock" size={17} />Sellar documento</button
       >{/if}
     <button
@@ -184,13 +186,23 @@
     bind:this={sealAction}
     {api}
     {document}
-    {disabled}
+    disabled={disabled || personalActive}
     {onupdate}
     {ondenied}
     bind:busy
     bind:error
     bind:message
     bind:uncertain={sealUncertain}
+  />
+  <DocumentSigningActions
+    {api}
+    {user}
+    {document}
+    {onupdate}
+    {ondenied}
+    {disabled}
+    bind:busy
+    bind:active={personalActive}
   />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if message}<p class="notice success" role="status">{message}</p>{/if}

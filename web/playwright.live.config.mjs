@@ -23,6 +23,7 @@ export default defineConfig({
       ASTRO_DEV_BACKGROUND: '1',
       TT_LIVE_PARTICIPANT_PRIVATE_KEY: '',
       TT_LIVE_OWNER_CERTIFICATE_PRIVATE_KEY: '',
+      TT_LIVE_INDIVIDUAL_CREDENTIALS: '',
     },
     timeout: 120000,
     url: `http://127.0.0.1:${port}`,

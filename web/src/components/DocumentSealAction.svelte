@@ -82,10 +82,11 @@
 </script>
 
 {#if confirmation}<div class="notice stack seal-confirmation">
-    <strong>&#191;Firmar y sellar este documento?</strong>
+    <strong>&#191;Registrar el sello del servidor?</strong>
     <p>
-      Se registrar&#225; la operaci&#243;n con tu identidad y se generar&#225; evidencia con la
-      autoridad de sellado local. Esta acci&#243;n no se puede deshacer desde la interfaz.
+      Se registrar&#225; la operaci&#243;n con tu identidad. El servidor generar&#225; su sello y
+      evidencia con la autoridad de sellado local. Esta acci&#243;n no se puede deshacer desde la
+      interfaz.
     </p>
     <div class="action-row">
       <button
