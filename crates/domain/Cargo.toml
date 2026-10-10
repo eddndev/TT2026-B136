@@ -57,6 +57,10 @@ name = "document_metadata"
 path = "tests/document_metadata.rs"
 
 [[test]]
+name = "document_signing"
+path = "tests/document_signing.rs"
+
+[[test]]
 name = "hearing_suite_1"
 path = "tests/suites/hearing_suite_1.rs"
 

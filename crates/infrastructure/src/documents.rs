@@ -39,6 +39,8 @@ struct StoredEvidence {
     crl_base64: String,
     tsa_chain_base64: Option<String>,
     openssl_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    individual: Option<application::documents::IndividualSigningEvidence>,
 }
 
 impl FileDocumentRepository {
@@ -192,6 +194,7 @@ impl From<&SealedEvidence> for StoredEvidence {
             crl_base64: encode(&evidence.crl_pem),
             tsa_chain_base64: evidence.tsa_chain_pem.as_deref().map(encode),
             openssl_version: evidence.openssl_version.clone(),
+            individual: evidence.individual.clone(),
         }
     }
 }
@@ -209,6 +212,7 @@ impl StoredEvidence {
                 .map(|value| decode(&value))
                 .transpose()?,
             openssl_version: self.openssl_version,
+            individual: self.individual,
         })
     }
 }

@@ -73,6 +73,7 @@ fn imported_version_seven_reconciles_after_append_sealing_and_restart_without_re
             crl_pem: vec![5],
             tsa_chain_pem: None,
             openssl_version: "fixture".into(),
+            individual: None,
         })
         .unwrap();
     store

@@ -9,6 +9,15 @@ tiene un router opcional separado: la prueba correcta exige MFA y los
 constructores anteriores conservan las rutas deshabilitadas. Su aceptación de
 transporte no acredita la activación en el ejecutable o en VPS3.
 
+El [contrato de firma documental individual](http-individual-signing.md) añade
+vinculación propia del certificado del Litigante, consentimiento sobre una versión
+PDF exacta, recibo recuperable y verificación histórica separada del estado actual.
+La [guía de firma externa](individual-signing-guide.md) describe la emisión desde
+CSR y las dos firmas que produce el titular fuera del servidor. Esta ampliación
+tiene implementación local y aceptación en curso; su integración y despliegue
+se distinguen en el [cierre técnico](technical-closure.md). Los sellos anteriores
+del servidor conservan su identidad histórica.
+
 El [tablero operativo](dashboard-api.md) agrega indicadores mediante
 `GET /api/v1/dashboard`: despacho completo para Owner y expedientes asignados
 para Litigante, con una instantánea auditada y sin caché. Paralegal y Cliente

@@ -6,7 +6,9 @@
 //! matters, so callers own the clock and tests never sleep.
 
 mod declaration;
+mod request;
 pub use declaration::IssueDeclarationCertificate;
+pub use request::IssueCertificateRequest;
 
 use domain::crypto::certificate::{
     CertificateAuthority, CertificateSummary, CertificateValidation, CertificateValidator,

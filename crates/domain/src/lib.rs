@@ -17,6 +17,7 @@ pub mod deadline_profiles;
 pub mod deadline_triggers;
 pub mod deadlines;
 pub mod document_metadata;
+pub mod document_signing;
 pub mod error;
 pub mod hearing_results;
 pub mod hearings;

@@ -6,10 +6,11 @@ despacho juridico mexicano. La CA emite certificados de entidad final
 para firmar documentos y autenticarse contra sistemas internos, y
 mantiene una lista de revocacion (CRL).
 
-ADVERTENCIA: el material de llaves privadas NUNCA se versiona. Todas
-las llaves, certificados, solicitudes y la base de datos de la CA viven
-unicamente en el directorio de trabajo en tiempo de ejecucion (ver
-abajo). El `.gitignore` de la raiz del repositorio ya ignora
+ADVERTENCIA: el material de llaves privadas NUNCA se versiona. El material
+operativo de la CA, incluidos su clave y su base de datos, vive unicamente
+en el directorio de trabajo en tiempo de ejecucion (ver abajo). La clave
+del titular que presenta un CSR permanece en su propio equipo. El
+`.gitignore` de la raiz del repositorio ya ignora
 `pki/**/*.key` y `pki/**/*.pem` como red de seguridad, pero la regla es
 mas simple: mantenga el directorio de trabajo de la CA fuera de
 cualquier copia del repositorio.
@@ -22,6 +23,7 @@ cualquier copia del repositorio.
 | `init-ca.sh` | Crea la CA raiz: llave RSA de 3072 bits, certificado autofirmado valido 5 anios (1825 dias) e inicializa la base de datos (`index.txt`, `serial`, `crlnumber`). |
 | `issue-cert.sh` | Emite un certificado de entidad final: genera llave RSA de 3072 bits y CSR para el nombre comun dado, y lo firma con la CA por 1 anio (365 dias). |
 | `issue-declaration-cert.sh` | Emite una hoja RSA de 3072 bits para declaraciones internas, con usos de firma y sin EKU de autenticacion o correo. |
+| `issue-request.sh` | Firma un CSR publico externo con el perfil interno de firma; la CLI valida la solicitud y la clave publica emitida, sin generar una clave del titular. |
 | `revoke.sh` | Revoca un certificado emitido, marcandolo en la base de datos de la CA. |
 | `gen-crl.sh` | Genera la CRL en formato PEM, valida por 7 dias. |
 
@@ -77,6 +79,46 @@ export PKI_CA_DIR="$HOME/pki-ca"
 ```
 
 ## Verificacion
+
+### Emision desde una clave privada externa
+
+Para firma documental individual, el titular genera la clave y el CSR en su
+equipo, fuera del directorio de la CA. Este ejemplo usa una clave cifrada;
+OpenSSL solicita su contrasena localmente:
+
+```sh
+umask 077
+openssl genpkey -algorithm RSA -aes-256-cbc -pkeyopt rsa_keygen_bits:3072 \
+    -pkeyopt rsa_keygen_pubexp:65537 -out signer-private.pem
+openssl req -new -sha256 -key signer-private.pem -out signer.csr.pem \
+    -subj '/C=MX/O=Despacho Juridico Demo/CN=Firma documental'
+```
+
+El administrador recibe solamente `signer.csr.pem`. Con `PKI_CA_DIR` apuntando
+a la CA inicializada, usa la CLI, que aplica las validaciones de entrada antes
+de ejecutar el script de emision:
+
+```sh
+cargo run -p despacho-cli -- pki issue-request \
+    --csr signer.csr.pem --name litigante-demo --json
+```
+
+El CSR PKCS#10 PEM admite como maximo 16 KiB y debe probar posesion de una clave
+RSA de 3072 bits, exponente 65537 y firma SHA-256. El nombre de salida tiene
+entre 1 y 64 caracteres ASCII, empieza por letra o digito y solo admite letras,
+digitos, punto, guion y guion bajo. No identifica por si mismo a una cuenta.
+La emision usa extensiones controladas, sin copiar las solicitadas, y verifica
+que la hoja conserva la clave publica del CSR. Pais y organizacion deben
+coincidir con la CA; ajuste el sujeto del ejemplo si su configuracion difiere.
+
+El resultado publico queda en `$PKI_CA_DIR/certs/litigante-demo.crt.pem`;
+la salida JSON contiene `serial` y `certificate`. No se crea ni se recibe una
+clave privada del titular. El vinculo con la cuenta Litigator requiere despues
+su prueba de posesion propia; el consentimiento documental requiere una segunda
+firma que fija el PDF y su contexto. Siga la
+[guia de firma individual](../docs/individual-signing-guide.md) para esos pasos.
+La CA interna y las claves sinteticas de las pruebas no acreditan identidad
+civil ni una emision de FIREL o de un PSC.
 
 ### Certificados para declaraciones de participantes
 

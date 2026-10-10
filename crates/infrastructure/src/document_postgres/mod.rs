@@ -12,7 +12,11 @@ mod query;
 mod upload_origin;
 use authorization::{authorize, authorize_document};
 mod storage;
+pub(crate) use authorization::authorize_document as authorize_signing_document;
 pub(crate) use storage::decode_record;
+pub(crate) use storage::{
+    load as load_signing_record, unchanged_document as unchanged_signing_record,
+};
 
 use std::sync::{Mutex, MutexGuard};
 

@@ -1,0 +1,69 @@
+\begin{tikzpicture}[
+  stage/.style={
+    draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    text width=8.0cm, align=center, inner sep=6pt,
+    minimum height=1.0cm, font=\small
+  },
+  note/.style={
+    draw=black!45, dashed, text width=4.0cm, align=center,
+    inner sep=6pt, font=\small, fill=black!3
+  },
+  flow/.style={-{Stealth[length=2mm]}, line width=0.7pt}
+]
+  \node[stage, fill=ipnvino!6] (prior) at (0,0) {
+    \textbf{Preparaci\'on previa del Litigante}\\
+    Clave y CSR externos; certificado de firma;\\
+    v\'inculo propio probado y vigente; MFA y pertenencia
+  };
+  \node[stage, below=6mm of prior] (pdf) {
+    Seleccionar expediente activo y versi\'on PDF exacta\\
+    Descargar y comprobar identidad y digest
+  };
+  \node[stage, below=6mm of pdf] (pdfsig) {
+    \textbf{Primera firma externa}\\
+    Firmar el contenido PDF con la clave del titular
+  };
+  \node[stage, below=6mm of pdfsig] (consent) {
+    \textbf{Segunda firma externa}\\
+    Revisar y firmar el consentimiento de cuenta,\\
+    contexto documental y huellas del PDF y su firma
+  };
+  \node[stage, below=6mm of consent] (proofs) {
+    Presentar consentimiento y ambas firmas\\
+    Validar pruebas, v\'inculo y confianza vigentes
+  };
+  \node[stage, below=6mm of proofs] (tsa) {
+    Solicitar el token a la TSA configurada\\
+    Validarlo contra el digest del PDF
+  };
+  \node[stage, below=6mm of tsa] (commit) {
+    Reautenticar y revalidar permisos, estado y vigencia\\
+    \textbf{Confirmar en una transacci\'on}\\
+    Evidencia, recibo y evento de auditor\'ia
+  };
+  \node[stage, fill=ipnvino!6, below=6mm of commit] (receipt) {
+    Presentar el recibo de aceptaci\'on\\
+    Ante respuesta perdida: recuperaci\'on manual\\
+    mediante GET autorizado por operaci\'on
+  };
+  \node[note, right=6mm of proofs] (rejected) {
+    Prueba o contexto incorrectos:\\
+    rechazar sin confirmar.\\
+    Fallo de TSA: no confirmar.
+  };
+  \node[note, below=6mm of rejected] (scope) {
+    El token cubre el PDF.\\
+    El recibo y la auditor\'ia\\
+    registran la aceptaci\'on\\
+    personal en la plataforma.
+  };
+  \draw[flow] (prior) -- (pdf);
+  \draw[flow] (pdf) -- (pdfsig);
+  \draw[flow] (pdfsig) -- (consent);
+  \draw[flow] (consent) -- (proofs);
+  \draw[flow] (proofs) -- (tsa);
+  \draw[flow] (tsa) -- (commit);
+  \draw[flow] (commit) -- (receipt);
+  \draw[flow, dashed] (proofs.east) -- (rejected.west);
+  \draw[dashed, black!45] (tsa.east) -- ++(3mm,0) |- (scope.west);
+\end{tikzpicture}

@@ -26,6 +26,7 @@ use crate::cli::ServeArgs;
 mod derived_deadlines;
 mod documents;
 mod hearings;
+mod individual_signing;
 mod inputs;
 mod owner_certificates;
 #[cfg(test)]
@@ -176,7 +177,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     ),
                     identity.clone(),
                     processor.clone(),
-                    format_validator,
+                    format_validator.clone(),
                     resource_hasher,
                     resource_clock,
                 );
@@ -271,6 +272,13 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 identity.clone(),
                 Arc::new(SystemClock::new()),
             );
+            let individual_signing = individual_signing::open(
+                database,
+                identity.clone(),
+                repository.clone(),
+                processor.clone(),
+                format_validator,
+            )?;
             let workflow = CaseDocumentService::new(
                 repository,
                 identity.clone(),
@@ -314,7 +322,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 None => (None, None),
             };
             let owner_certificates = owner_certificates::open(database, identity.clone())?;
-            let router = web::api_router_with_authentication_budget(
+            let router = web::api_router_with_individual_signing_budget(
                 Arc::new(workflow),
                 identity,
                 web::CaseWorkflows {
@@ -351,6 +359,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     certificate_login: identity_components.certificate_login,
                 },
                 budget,
+                Some(individual_signing),
             )?;
             let server = crate::serve_start::ServerComponents {
                 router,

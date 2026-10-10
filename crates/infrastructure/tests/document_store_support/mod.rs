@@ -73,5 +73,6 @@ pub fn evidence() -> SealedEvidence {
         crl_pem: vec![7],
         tsa_chain_pem: Some(vec![8]),
         openssl_version: "OpenSSL test".into(),
+        individual: None,
     }
 }

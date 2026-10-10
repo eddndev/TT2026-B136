@@ -314,6 +314,10 @@ El grupo \texttt{pki} administra la autoridad certificadora interna ejecutando c
     \texttt{--cn} & cadena & obligatorio & Common name del sujeto del certificado. \\
     \texttt{--purpose} & enum & \texttt{partner} & \texttt{partner} o \texttt{participant-}\allowbreak\texttt{declaration}; este último usa el perfil de firma personal interna. \\
     \midrule
+    \multicolumn{4}{@{}l}{\textbf{pki issue-request}} \\
+    \texttt{--csr} & ruta & obligatorio & Solicitud pública PKCS\#10 PEM, de hasta 16~KiB. \\
+    \texttt{--name} & cadena & obligatorio & Identificador seguro del certificado de salida. \\
+    \midrule
     \multicolumn{4}{@{}l}{\textbf{pki revoke}} \\
     \texttt{--serial} & cadena (hex) & obligatorio & Serial del certificado, tal como lo imprimen \texttt{issue} y \texttt{show}. \\
     \midrule
@@ -343,6 +347,8 @@ wrote $WORK/pki-ca/crl/crl.pem
 \end{lstlisting}
 
 Con la bandera \texttt{--json}: \texttt{init-ca} emite \texttt{ca\_dir} y \texttt{root\_certificate}; \texttt{issue} emite \texttt{serial}, \texttt{certificate} y \texttt{private\_key}; \texttt{revoke} emite \texttt{revoked\_serial}; \texttt{gen-crl} emite \texttt{crl}; \texttt{show} emite \texttt{subject}, \texttt{issuer}, \texttt{serial}, \texttt{not\_before} y \texttt{not\_after}.
+
+\input{chapters/anexo-b-firma-individual}
 
 \section{Comando sign: firma digital}\label{sec:cli-sign}
 

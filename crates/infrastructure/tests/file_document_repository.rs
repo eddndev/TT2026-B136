@@ -23,6 +23,7 @@ fn evidence() -> SealedEvidence {
         crl_pem: b"crl pem".to_vec(),
         tsa_chain_pem: Some(b"tsa chain".to_vec()),
         openssl_version: "OpenSSL test".to_string(),
+        individual: None,
     }
 }
 
@@ -183,4 +184,37 @@ fn sealing_cannot_change_encrypted_document_identity_or_metadata() {
             Some(original.clone())
         );
     }
+}
+
+#[test]
+fn personal_proofs_roundtrip_without_reattributing_historical_seals() {
+    use infrastructure::documents::{decode_document_record, encode_document_record};
+    let mut record = pending_record();
+    record.seal(evidence()).unwrap();
+    let legacy_bytes = encode_document_record(&record).unwrap();
+    let mut json: serde_json::Value = serde_json::from_slice(&legacy_bytes).unwrap();
+    assert!(json["evidence"].get("individual").is_none());
+    let proof = serde_json::json!({
+        "format_version": 1,
+        "binding_statement": vec![1_u8; 142],
+        "binding_signature": vec![2_u8; 384],
+        "binding_root_der": [3, 4],
+        "binding_crl_der": [5, 6],
+        "binding_registered_at": 100,
+        "consent_statement": vec![7_u8; 258],
+        "consent_signature": vec![8_u8; 384],
+        "accepted_at": 200
+    });
+    json["evidence"]["individual"] = proof.clone();
+    let recovered = decode_document_record(&serde_json::to_vec(&json).unwrap()).unwrap();
+    let encoded: serde_json::Value =
+        serde_json::from_slice(&encode_document_record(&recovered).unwrap()).unwrap();
+    assert_eq!(encoded["evidence"]["individual"], proof);
+    assert_eq!(encoded, json);
+    let legacy = decode_document_record(&legacy_bytes).unwrap();
+    assert_eq!(encode_document_record(&legacy).unwrap(), legacy_bytes);
+    // Decoding preserves bounded public bytes; cryptographic admission is separate.
+    let mut oversized = json;
+    oversized["evidence"]["individual"]["binding_signature"] = serde_json::json!(vec![0_u8; 385]);
+    assert!(decode_document_record(&serde_json::to_vec(&oversized).unwrap()).is_err());
 }

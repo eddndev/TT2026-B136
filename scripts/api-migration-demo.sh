@@ -15,6 +15,8 @@ source "$REPO_ROOT/scripts/api-case-stage-demo.sh"
 source "$REPO_ROOT/scripts/api-typed-participant-demo.sh"
 # shellcheck source=scripts/api-owner-certificates-demo.sh
 source "$REPO_ROOT/scripts/api-owner-certificates-demo.sh"
+# shellcheck source=scripts/api-individual-signing-demo.sh
+source "$REPO_ROOT/scripts/api-individual-signing-demo.sh"
 # shellcheck source=scripts/api-owner-login-demo.sh
 source "$REPO_ROOT/scripts/api-owner-login-demo.sh"
 # shellcheck source=scripts/api-deadline-reevaluation-demo.sh
@@ -205,6 +207,7 @@ PY
   stage_demo
   typed_participant_demo "$imported_url"
   owner_certificate_demo "$imported_url"
+  individual_signing_demo "$imported_url"
   hearing_demo "$imported_url"
   calendar_demo
   procedural_facts_demo
@@ -264,6 +267,7 @@ PY
   stage_demo_restored
   typed_participant_demo_restored
   owner_certificate_demo_restored "$restored_url"
+  individual_signing_demo_restored "$restored_url"
   hearing_demo_restored
   calendar_demo_restored
   procedural_facts_demo_restored
@@ -318,6 +322,7 @@ unset -f administration_demo_closed administration_demo_capture administration_d
 unset -f stage_demo stage_demo_request stage_demo_upload stage_demo_capture stage_demo_restored
 unset -f typed_participant_demo typed_participant_demo_restored typed_participant_demo_python
 unset -f owner_certificate_demo owner_certificate_demo_restored owner_certificate_demo_python
+unset -f individual_signing_demo individual_signing_demo_restored individual_signing_demo_python
 unset -f owner_login_demo_prepare owner_login_demo_python
 unset OWNER_LOGIN_DEMO_ARGS
 unset -f hearing_demo hearing_demo_restored hearing_demo_python

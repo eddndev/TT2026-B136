@@ -89,6 +89,7 @@ impl LegacyImport {
                 &record,
                 kek,
                 &DocumentValidationPorts {
+                    individual_verifier: Some(&crate::certificates::InternalRsaDeclarationVerifier),
                     cipher: &RingAesGcmCipher::new(),
                     keys: &EnvelopeKeyManager::new(),
                     hasher: &RingSha256Hasher::new(),

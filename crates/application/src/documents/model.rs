@@ -15,6 +15,8 @@ pub struct SealedEvidence {
     pub crl_pem: Vec<u8>,
     pub tsa_chain_pem: Option<Vec<u8>>,
     pub openssl_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub individual: Option<super::IndividualSigningEvidence>,
 }
 
 /// One encrypted document version and its optional sealed evidence.

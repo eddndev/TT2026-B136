@@ -14,6 +14,9 @@ use domain::crypto::DocumentHasher;
 
 use crate::error::ApplicationError;
 
+mod individual;
+pub use individual::export_individual_with_ports;
+
 /// Verification instructions template. The Spanish prose lives in a
 /// versioned Markdown file; placeholders are filled at export time.
 const INSTRUCTIONS_TEMPLATE: &str = include_str!("evidence/INSTRUCCIONES.template.md");
@@ -111,6 +114,20 @@ where
     H: DocumentHasher + ?Sized,
     A: ArchiveWriter + ?Sized,
 {
+    finish(archiver, assemble(hasher, request)?)
+}
+
+/// The shared archive body keeps existing names, order, bytes and instructions.
+struct Assembly {
+    entries: Vec<ArchiveEntry>,
+    digest_hex: String,
+    instructions: String,
+}
+
+fn assemble<H: DocumentHasher + ?Sized>(
+    hasher: &H,
+    request: &EvidenceRequest<'_>,
+) -> Result<Assembly, ApplicationError> {
     let digest_hex = hasher.hash_bytes(request.document).to_hex();
     let signature_name = format!("{}.sig", request.document_name);
     let token_name = format!("{}.tsr", request.document_name);
@@ -146,15 +163,25 @@ where
     if let Some(chain) = request.tsa_chain_pem {
         entries.push(ArchiveEntry::new(TSA_CHAIN_ENTRY_NAME, chain.to_vec())?);
     }
-    entries.push(ArchiveEntry::new(
-        INSTRUCTIONS_ENTRY_NAME,
-        instructions.clone().into_bytes(),
-    )?);
+    Ok(Assembly {
+        entries,
+        digest_hex,
+        instructions,
+    })
+}
 
-    let archive = archiver.write_archive(&entries)?;
+fn finish<A: ArchiveWriter + ?Sized>(
+    archiver: &A,
+    mut assembly: Assembly,
+) -> Result<EvidencePackage, ApplicationError> {
+    assembly.entries.push(ArchiveEntry::new(
+        INSTRUCTIONS_ENTRY_NAME,
+        assembly.instructions.clone().into_bytes(),
+    )?);
+    let archive = archiver.write_archive(&assembly.entries)?;
     Ok(EvidencePackage {
         archive,
-        document_digest_hex: digest_hex,
-        instructions,
+        document_digest_hex: assembly.digest_hex,
+        instructions: assembly.instructions,
     })
 }

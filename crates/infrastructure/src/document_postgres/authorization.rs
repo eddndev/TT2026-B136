@@ -31,7 +31,7 @@ pub(super) fn authorize(
     Ok(principal)
 }
 
-pub(super) fn authorize_document(
+pub(crate) fn authorize_document(
     transaction: &mut Transaction<'_>,
     actor: UserId,
     case: CaseId,

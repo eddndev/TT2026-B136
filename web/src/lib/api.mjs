@@ -6,6 +6,7 @@ import { alertsApi } from './alerts-api.mjs';
 import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
 import { membersApi } from './members-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
+import { signingCertificatesApi } from './signing-certificates-api.mjs';
 import { ownerCertificatesApi } from './owner-certificates-api.mjs';
 import { ownerBase64 } from './owner-certificate-binary.mjs';
 import {
@@ -342,6 +343,15 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
     auditEvents: () => auditEventsApi(request),
     reports: () => caseReportsApi(request),
     judicialCalendars: () => judicialCalendarsApi(request),
+    signingCertificates(accountId) {
+      const version = sessionVersion;
+      return signingCertificatesApi((path, options) => {
+        assertSession(version);
+        if (principalId !== accountId)
+          throw new Error('La cuenta del certificado no corresponde a la sesion.');
+        return request(path, options);
+      }, accountId);
+    },
     ownerCertificates(ownerId) {
       const version = sessionVersion;
       return ownerCertificatesApi((path, options) => {

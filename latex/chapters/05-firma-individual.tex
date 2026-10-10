@@ -1,0 +1,129 @@
+\subsection{Firma documental individual con clave externa}
+\label{sec:pruebas-firma-individual}
+
+La verificación local del 10 de octubre de 2026 comprobó el vínculo de una
+cuenta Litigator con un certificado público y la firma de una versión PDF
+exacta mediante dos pruebas externas. El registro canónico identifica la
+cuenta y su certificado; el consentimiento documental incorpora expediente,
+documento, versión, operación, confianza y resumen de la firma del PDF.
+La identidad de la cuenta no se deduce del nombre común del certificado.
+Los resultados se separan por frontera en la
+\cref{tab:matriz-firma-individual}; no constituyen una nueva medición global
+de cobertura ni reemplazan los cortes históricos de este capítulo.
+
+\subsubsection{Valores, emisión y pruebas criptográficas}
+
+Doce pruebas de dominio aprobaron los vectores literales de 142 bytes del
+vínculo \texttt{DOCBIND1} y de 258 bytes del consentimiento \texttt{DOCSIGN1},
+su reconstrucción estricta y el rechazo de identidades, contadores y propósitos
+alterados. Cinco pruebas de emisión mediante la CLI aprobaron con OpenSSL:
+la hoja conserva la clave pública del CSR y el perfil interno de firma,
+sin generar una clave privada del titular dentro de la CA. Se rechazaron
+solicitudes alteradas, excesivas o privadas, parámetros RSA no admitidos,
+sobrescritura de archivos y sustitución de la clave pública emitida.
+
+Ocho casos criptográficos comprobaron las dos firmas RSA de 3\,072 bits,
+certificado, confianza exacta, vigencia y revocación. La firma del
+consentimiento no sustituye la comprobación de la firma separada del PDF.
+Otro documento, versión, cuenta o propósito no puede reutilizar esa intención.
+Once casos del servicio de vinculación y catorce del servicio documental
+comprobaron reautenticación del principal completo, recibos exactos, cambios
+de cuenta o confianza, retiro, respuesta perdida y ausencia de una segunda
+escritura en la repetición autorizada.
+
+Ocho pruebas del procesador comprobaron la conservación del material personal,
+la TSA configurada, el rechazo de sellos de tiempo inválidos y la evaluación
+del certificado en el instante de aceptación. Seis casos de evidencia
+histórica rechazaron cambios de material, contexto o formato. La exportación
+aprobó once pruebas, incluidas las cuatro de la extensión individual; el
+repositorio de archivos aprobó diez, conservando la lectura de sellos anteriores.
+Siete pruebas HTTP con puertos controlados verificaron rutas, límites,
+identificadores, errores y la distinción explícita de evidencia del servidor.
+Estos ensayos controlados no acreditan por sí solos el recorrido de servicios
+reales descrito a continuación.
+
+\subsubsection{Atomicidad, concurrencia y restauración nativa}
+
+Con PostgreSQL~18.6 aislado y roles operativos restringidos aprobaron diecisiete
+casos distintos: siete de vínculos, cinco del registro documental y cinco de
+invariantes. El conteo reúne la campaña inicial y las repeticiones focales de
+los casos corregidos, sin contar dos veces una identidad de prueba. Se
+comprobaron permisos actuales, cambios de cuenta o confianza, huellas retenidas
+por su cuenta original, un único vínculo activo, retiro terminal, concurrencia
+y rollback de documento, recibo y auditoría ante un fallo de escritura.
+
+Una evidencia personal sin recibo y una divergencia entre ambos se rechazaron
+al confirmar la transacción. Desactivar cualquiera de los dos disparadores
+diferidos impidió reabrir el adaptador. El volcado y la restauración lógica
+conservaron la evidencia y sus eventos después de retirar el vínculo. Una
+regresión reprodujo además la sustitución de la CRL capturada por una sucesora
+válida: el vínculo se había registrado con la primera revisión y el documento
+firmado con la segunda. El inventario corregido exige que la confianza
+embebida coincida con la revisión exacta del recibo, y rechazó la sustitución
+por la tercera. La concurrencia nativa conservó un solo recibo. En aplicación
+se comprobó además que prevalecía la primera evidencia aceptada aunque ambas
+solicitudes prepararan sellos de tiempo distintos.
+
+Los primeros intentos de migración y la prueba que suponía un nombre automático
+de restricción no se contabilizan como aprobaciones. Sus correcciones se
+verificaron antes del resultado anterior. La admisión de formato y la TSA de
+estas pruebas nativas utilizan puertos controlados; su finalidad es comprobar
+el contrato transaccional con PostgreSQL real.
+
+\subsubsection{Aceptación HTTP, evidencia pública y continuidad}
+
+El recorrido focal HTTP aprobado utilizó PostgreSQL~18.6, Valkey~8.1.10 como
+almacén compatible con Redis, ingreso real por contraseña y MFA, CA interna,
+OpenSSL y TSA local real. La clave sintética se generó en un directorio del
+cliente separado de la CA; el servidor recibió certificado y pruebas públicas.
+La campaña ejecutó los pasos de
+\rutarepo{scripts/api-individual-signing-demo.sh} y comprobó independientemente
+los bytes canónicos mediante su auxiliar Python.
+
+El litigante vinculó su certificado, descargó el contenido exacto de la versión
+uno y aportó sus dos firmas. La versión dos del mismo documento permaneció
+sin sellar. Se descartó deliberadamente la respuesta de confirmación y se
+recuperó el recibo por su operación; la repetición devolvió el mismo resultado
+sin otro registro de firma. OpenSSL verificó las pruebas públicas del ZIP,
+la cadena y CRL capturadas y el token RFC~3161 sobre el PDF.
+
+Después se publicó una CRL que revocaba la hoja. La verificación mantuvo la
+validez histórica y mostró por separado la revocación actual; una nueva firma
+fue rechazada. El retiro del vínculo conservó la evidencia original. Tras
+respaldar y restaurar PostgreSQL, invalidar las sesiones anteriores e ingresar
+con MFA nueva, se recuperaron los mismos recibos, instantes y bytes del ZIP.
+El documento sellado mediante el firmante del servidor mantuvo su clasificación
+histórica y su paquete sin cambios.
+
+El corte de interfaz aprobó 872 pruebas Node en 4.169 segundos y seis escenarios
+de navegador con HTTP controlado en 19.4 segundos, con un trabajador. Incluyó
+revisión del PDF exacto, recuperación explícita, restricciones por rol, retiro
+móvil y renovación de la confirmación tras rechazar una firma. La compilación
+del workspace y la compilación web aprobaron.
+
+La aceptación posterior de Qadra con servicios reales aprobó dos recorridos
+en 20.2 segundos de Playwright, con un trabajador: escritorio de 1440 por
+1000 píxeles y móvil de 390 por 844. El navegador descargó el PDF y los bytes
+canónicos, recibió las firmas generadas externamente con OpenSSL y confirmó
+la operación. La prueba interceptó una respuesta exitosa después del commit
+para simular su pérdida. Tras revocar la sesión, observar el rechazo de acceso
+e ingresar con MFA nueva, la interfaz recuperó el recibo original mediante
+consulta, sin repetir el envío. Descargó el ZIP y, después de retirar el
+vínculo, mostró la validez histórica y el retiro posterior por separado.
+
+La primera ejecución detectó una carrera del instrumento: leía la respuesta
+capturada antes de terminar la intercepción HTTP. La corrección espera su
+finalización conservando la exigencia de respuesta exitosa y recibo exacto.
+Los dos recorridos finales aprobaron sin errores de página. Esta aceptación
+de navegador no repite la revocación por CRL ni la restauración SQL del
+recorrido HTTP anterior. Las ocho capturas se inspeccionaron para comprobar
+legibilidad de controles, referencias y resultados en ambos tamaños. La
+visualización embebida del PDF no se acredita mediante capturas headless;
+los bytes descargados y sus firmas se comprobaron por separado. Los controles
+de la revisión publicada y el despliegue conservan su evidencia propia.
+
+La TSA local acredita el resumen del contenido bajo su confianza configurada;
+no prueba que las firmas personales existieran al generar el token. Registro
+y aceptación conservan los instantes de la aplicación. Las claves sintéticas
+permiten comprobar el protocolo, sin demostrar custodia exclusiva de una
+persona, identidad civil, FIREL ni una constancia NOM-151 emitida por un PSC.

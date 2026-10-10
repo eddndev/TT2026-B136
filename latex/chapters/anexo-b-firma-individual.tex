@@ -1,0 +1,33 @@
+\subsection{pki issue-request: solicitud pública externa}
+\label{sec:cli-pki-request}
+
+El titular genera la clave RSA de 3\,072 bits y el CSR PKCS\#10 en su equipo.
+La clave del ejemplo queda cifrada; OpenSSL solicita su contraseña localmente.
+La solicitud pública se entrega al administrador de la CA:
+
+\begin{lstlisting}[language=bash, numbers=none]
+umask 077
+openssl genpkey -algorithm RSA -aes-256-cbc \
+  -pkeyopt rsa_keygen_bits:3072 -pkeyopt rsa_keygen_pubexp:65537 \
+  -out signer-private.pem
+openssl req -new -sha256 -key signer-private.pem \
+  -out signer.csr.pem \
+  -subj '/C=MX/O=Despacho Juridico Demo/CN=Firma documental'
+despacho-cli pki issue-request --csr signer.csr.pem \
+  --name litigante-demo --json
+\end{lstlisting}
+
+El comando admite un CSR PEM de hasta 16~KiB, verifica su prueba de posesión,
+el módulo RSA, el exponente 65537 y SHA-256. El identificador de salida admite
+de uno a 64 caracteres ASCII seguros. La CA aplica el perfil interno de firma
+sin copiar extensiones pedidas y la CLI comprueba que el certificado emitido
+conserva la clave pública de la solicitud. País y organización deben coincidir
+con la configuración de la CA. Una ruta ya ocupada no se sobrescribe.
+
+La salida JSON contiene \texttt{serial} y \texttt{certificate}; no entrega una
+clave privada. El certificado se guarda bajo \texttt{certs/} en el directorio
+\texttt{PKI\_CA\_DIR}. El nombre de salida y el nombre común no establecen el
+vínculo con una cuenta. Su prueba de posesión, la firma del PDF y el
+consentimiento se producen fuera del servidor siguiendo
+\rutarepo{docs/individual-signing-guide.md}. El subcomando administrativo de
+emisión no inicia una sesión ni firma un documento por el titular.

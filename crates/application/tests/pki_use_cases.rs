@@ -7,8 +7,8 @@ use application::pki::{
 };
 use application::ApplicationError;
 use domain::crypto::certificate::{
-    CertificateAuthority, CertificateSummary, CertificateValidation, CertificateValidator,
-    IssuedCertificate,
+    CertificateAuthority, CertificateRequestAuthority, CertificateSummary, CertificateValidation,
+    CertificateValidator, IssuedCertificate, IssuedPublicCertificate,
 };
 use domain::DomainError;
 use std::path::PathBuf;
@@ -26,6 +26,14 @@ mockall::mock! {
         fn revoke(&self, serial_hex: &str) -> Result<(), DomainError>;
 
         fn generate_crl(&self) -> Result<Vec<u8>, DomainError>;
+    }
+
+    impl CertificateRequestAuthority for Authority {
+        fn issue_request(
+            &self,
+            name: &str,
+            request_pem: &[u8],
+        ) -> Result<IssuedPublicCertificate, DomainError>;
     }
 }
 
@@ -251,3 +259,6 @@ fn inspect_returns_the_summary() {
         .unwrap();
     assert_eq!(result, expected);
 }
+
+#[path = "pki_request_use_cases.rs"]
+mod request;

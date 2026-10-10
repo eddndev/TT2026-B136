@@ -15,6 +15,7 @@ export function documentStatus(document) {
 
 export function normalizeView(hash, role) {
   const view = hash.replace(/^#/, '');
+  if (view === 'signing-certificates' && role === 'litigator') return view;
   if (view === 'reports' && ['owner', 'litigator'].includes(role)) return view;
   if (view === 'alerts' && canAlerts(role)) return view;
   if (view === 'judicial-calendars' && canCalendars(role)) return view;
@@ -54,6 +55,7 @@ export const viewLabels = {
   'integrity-incidents': 'Incidentes de integridad',
   'judicial-calendars': 'Calendarios jurisdiccionales',
   team: 'Equipo',
+  'signing-certificates': 'Mi firma documental',
   'owner-certificates': 'Mi certificado',
   audit: 'Auditor\u00eda',
   guide: 'Gu\u00eda de uso',

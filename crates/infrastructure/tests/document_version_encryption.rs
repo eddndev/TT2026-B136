@@ -89,6 +89,7 @@ fn persisted_versions_use_fresh_keys_and_reject_vault_identity_version_or_digest
         }
     }
     let ports = DocumentValidationPorts {
+        individual_verifier: None,
         cipher: &cipher,
         keys: &keys,
         hasher: &hasher,

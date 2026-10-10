@@ -1,5 +1,29 @@
 # Verificación de la actualización académica
 
+## Firma documental individual: 10 de octubre de 2026
+
+Diseño, implementación, pruebas, diagramas y anexos describen la emisión por CSR
+externo, vínculo propio, confirmación del PDF exacto, dos firmas externas,
+recibos transaccionales, verificación histórica y revocación actual. La matriz
+separa pruebas controladas, PostgreSQL real, HTTP/restauración y Qadra real;
+no actualiza las cifras históricas de cobertura ni anticipa integración.
+
+La copia separada compiló con el Makefile versionado en **88.692 s**. La
+inspección detectó solapes en los diagramas y rutas demasiado anchas; se
+corrigieron y recompilaron en **39.847 s** y **40.558 s**. El resultado final
+tiene **404 páginas**, **5886269 bytes** y SHA-256
+`79d1e38ed61770f0fa55f9e4f11bca8162430ed997d38fd7cd4e5634204d809e`.
+Se inspeccionaron las páginas físicas **4–6, 72–75, 141, 155, 161, 179–181,
+289–292, 338, 352, 354, 395–396 y 403–404**, incluidas las páginas modificadas
+por la reparación final. Índices, diagramas, rutas, tabla de evidencia y
+continuaciones quedaron legibles, sin nuevos recortes ni solapes.
+
+No hay glifos faltantes ni referencias sin resolver. Permanecen las cajas
+horizontales históricas de 0.11754 y 24.62556 pt y la sustitución de versalitas
+Times. Las dos copias aceptadas preservadas conservan sus hashes. Resumen,
+introducción, marco teórico y conclusiones no se modificaron; las conclusiones
+siguen pendientes del cierre global. El PDF nuevo queda fuera de Git.
+
 ## Informe de actividad atribuida: 8 de octubre de 2026
 
 Diseño, implementación, pruebas y trazabilidad describen las tres cantidades

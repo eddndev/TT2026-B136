@@ -1,6 +1,7 @@
 import { provisionPrecautionaryHearings } from "./web-precautionary-fixtures.mjs";
 import { provisionAuditEvents } from "./web-audit-event-fixtures.mjs";
 import { provisionOwnerCertificates } from "./web-owner-certificate-fixtures.mjs";
+import { provisionIndividualSigning } from "./web-individual-signing-fixtures.mjs";
 import { provisionCaseReports } from "./web-case-report-fixtures.mjs";
 import { provisionDashboard } from "./web-dashboard-fixtures.mjs";
 import { provisionMembers } from "./web-member-fixtures.mjs";
@@ -104,6 +105,7 @@ try {
           judicialCalendars: () => provisionCalendars(request),
           deadlines: () => provisionDeadlines(request),
           ownerCertificates: () => provisionOwnerCertificates(request),
+          individualSigning: () => provisionIndividualSigning(request),
         }).filter(([name]) => needed.has(name)),
       ),
       Number(process.env.TT_WEB_FIXTURE_WORKERS || "1"),

@@ -111,6 +111,32 @@ pub fn api_router_with_authentication_budget(
     authentication: AuthenticationHttp,
     budget: HttpWorkBudget,
 ) -> Result<Router, ApplicationError> {
+    api_router_with_individual_signing_budget(
+        documents,
+        identity,
+        workflows,
+        calendars,
+        profiles,
+        limits,
+        authentication,
+        budget,
+        None,
+    )
+}
+
+/// Adds individual public signing using the same admission and blocking-work budget.
+#[allow(clippy::too_many_arguments)]
+pub fn api_router_with_individual_signing_budget(
+    documents: Arc<dyn CaseDocumentWorkflow>,
+    identity: Arc<dyn IdentityWorkflow>,
+    workflows: CaseWorkflows,
+    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+    profiles: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
+    limits: HttpLimits,
+    authentication: AuthenticationHttp,
+    budget: HttpWorkBudget,
+    individual_signing: Option<crate::IndividualSigningHttp>,
+) -> Result<Router, ApplicationError> {
     let AuthenticationHttp {
         password_reset,
         certificate_login,
@@ -207,5 +233,12 @@ pub fn api_router_with_authentication_budget(
         .merge(deadline_profiles::router(profiles, runtime.clone()))
         .merge(password_reset::router(password_reset, runtime.clone()))
         .merge(owner_login::router(certificate_login, runtime.clone()));
+    let routes = match individual_signing {
+        Some(components) => routes.merge(crate::individual_signing::router(
+            components,
+            runtime.clone(),
+        )),
+        None => routes,
+    };
     Ok(protect(routes, runtime).route("/healthz", get(health)))
 }

@@ -29,7 +29,7 @@ const STDERR_LIMIT: usize = 600;
 #[derive(Debug, Clone)]
 pub struct OpensslCaAdapter {
     scripts_dir: PathBuf,
-    ca_dir: PathBuf,
+    pub(super) ca_dir: PathBuf,
     declaration_certificates: bool,
 }
 
@@ -51,7 +51,7 @@ impl OpensslCaAdapter {
         self
     }
 
-    fn run_script(&self, name: &str, args: &[&OsStr]) -> Result<(), DomainError> {
+    pub(super) fn run_script(&self, name: &str, args: &[&OsStr]) -> Result<(), DomainError> {
         let script = self.scripts_dir.join(name);
         if !script.is_file() {
             return Err(authority_failure(format!(

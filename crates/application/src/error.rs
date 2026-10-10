@@ -19,6 +19,8 @@ pub enum PortFailureKind {
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
+    DocumentSigning(#[from] crate::document_signing::SigningWorkflowError),
+    #[error(transparent)]
     MeasureAdministrative(#[from] crate::measure_corrections::MeasureAdministrativeError),
     #[error(transparent)]
     MeasureRecordRead(#[from] crate::measure_corrections::MeasureRecordReadError),

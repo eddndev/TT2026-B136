@@ -78,6 +78,7 @@ export KEK_BASE64
 KEK_BASE64="$(openssl rand -base64 32)"
 unset CINCEL_BASE_URL CINCEL_API_KEY RESEND_API_KEY ALERT_EMAIL_FROM ALERT_LOGIN_URL
 unset TT_LIVE_OWNER_CERTIFICATE TT_LIVE_OWNER_CERTIFICATE_PRIVATE_KEY
+unset TT_LIVE_INDIVIDUAL_CERTIFICATES TT_LIVE_INDIVIDUAL_CREDENTIALS
 TT_BROWSER_DATABASE_PASSWORD="$(openssl rand -hex 24)"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
   -v runtime_password="$TT_BROWSER_DATABASE_PASSWORD" >/dev/null <<'SQL'
@@ -115,6 +116,24 @@ if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ] && \
     --owner-login-proof-token-max 8 --owner-login-proof-token-window-seconds 3600
     --owner-login-redis-connect-ms 1000 --owner-login-redis-io-ms 1000
   )
+fi
+if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ] && \
+  node "$REPO_ROOT/scripts/web-live-plan.mjs" --has individualSigning; then
+  for device in desktop mobile; do
+    (
+      umask 077
+      openssl req -new -newkey rsa:3072 -nodes -sha256 \
+        -subj "/C=MX/O=Despacho Juridico Demo/CN=Browser Individual $device" \
+        -keyout "$WORK_DIR/client-credentials/individual-$device.key.pem" \
+        -out "$WORK_DIR/client-credentials/individual-$device.csr.pem" >/dev/null 2>&1
+    )
+    "$CLI" pki --scripts-dir "$REPO_ROOT/pki" issue-request \
+      --csr "$WORK_DIR/client-credentials/individual-$device.csr.pem" \
+      --name "browser-individual-$device" >/dev/null
+    test ! -e "$PKI_CA_DIR/private/browser-individual-$device.key.pem"
+  done
+  export TT_LIVE_INDIVIDUAL_CERTIFICATES="$PKI_CA_DIR/certs"
+  export TT_LIVE_INDIVIDUAL_CREDENTIALS="$WORK_DIR/client-credentials"
 fi
 bash "$REPO_ROOT/pki/issue-tsa-cert.sh" >/dev/null
 "$CLI" pki --scripts-dir "$REPO_ROOT/pki" gen-crl >/dev/null

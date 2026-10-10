@@ -40,5 +40,11 @@ pub(super) fn open(
         tsa_chain_pem: Some(tsa_chain),
         openssl_version: openssl_version().context("cannot inspect openssl version")?,
     };
-    DocumentProcessor::new(ports, material, kek).context("cannot initialize document cryptography")
+    DocumentProcessor::new(ports, material, kek)
+        .map(|processor| {
+            processor.with_individual_verifier(Box::new(
+                infrastructure::certificates::InternalRsaDeclarationVerifier,
+            ))
+        })
+        .context("cannot initialize document cryptography")
 }

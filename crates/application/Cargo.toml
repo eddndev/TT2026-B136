@@ -8,14 +8,15 @@ license.workspace = true
 repository.workspace = true
 [dependencies]
 domain = { path = "../domain" }
+base64.workspace = true
 thiserror.workspace = true
 zeroize.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 time = { workspace = true, features = ["parsing"] }
 [dev-dependencies]
 mockall.workspace = true
 uuid.workspace = true
-serde_json.workspace = true
 [[test]]
 name = "agenda_suite_1"
 path = "tests/suites/agenda_suite_1.rs"
@@ -118,6 +119,10 @@ path = "tests/document_format_crypto.rs"
 [[test]]
 name = "document_integrity"
 path = "tests/document_integrity.rs"
+
+[[test]]
+name = "document_signing_bindings"
+path = "tests/document_signing_bindings.rs"
 
 [[test]]
 name = "document_suite_1"
@@ -418,3 +423,11 @@ path = "tests/measure_administrative_replacements.rs"
 [[test]]
 name = "measure_administrative_replacement_workflow"
 path = "tests/measure_administrative_replacement_workflow.rs"
+
+[[test]]
+name = "individual_document_seal"
+path = "tests/individual_document_seal.rs"
+
+[[test]]
+name = "individual_document_signing"
+path = "tests/individual_document_signing.rs"

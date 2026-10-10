@@ -25,7 +25,7 @@ despliegues.
 | --- | --- | --- |
 | Corpus de cálculo | Ocho supuestos de investigación complementaria y recursos, sin los términos que sólo aparecen en teoría. | Cada supuesto tiene fuente primaria, ámbito, entradas y resultado independiente; fecha operativa explicada o falta de datos identificada; recorrido existente sin duplicados. |
 | Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
-| Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). El firmante global y el acceso Owner por certificado no completan la identidad del Litigante firmante. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. |
+| Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). Implementación y aceptación funcional local completas; conserva separados el firmante global histórico y el acceso Owner por certificado. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. Integración y despliegue pendientes. |
 | Estimación y correo de informes | Pendientes de CU-16, conservando los informes de estado/carga y el catálogo finito de actividad ya integrados. | Estimación de terminación validada cuando aplica y aviso por correo comprobado con transporte de prueba; activación pública sujeta a la decisión operativa pendiente. Los avisos internos y la duración observada no sustituyen estos criterios. |
 | Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20, conservando cadena y registros históricos. | Accesos concedidos/denegados cubiertos por una matriz de operaciones; identidad estable y origen de red registrados para eventos nuevos sin atribuirlos retrospectivamente; confirmación durable medida contra el límite de 500 ms en un entorno declarado. |
 | Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Contratos, operación y manuscrito coinciden; se reutiliza evidencia válida y se ejecuta una regresión completa al cierre de cada entrega funcional, gates para HEAD exacto, squash y main confirmado. |
@@ -56,6 +56,31 @@ despliegues.
 
 El cierre exige los siete criterios. Una vinculación de certificado entregada
 por separado es un prerrequisito, no el cierre de CU-13 y CU-14.
+
+Al 10 de octubre de 2026 existe implementación local de emisión desde CSR,
+vinculación propia, firma doble del PDF y su consentimiento, persistencia
+transaccional, transporte HTTP y cliente Qadra. La
+[decisión de diseño](adr/0074-individual-document-signatures.md), el
+[contrato HTTP](http-individual-signing.md) y la
+[guía del titular](individual-signing-guide.md) delimitan esa implementación.
+La clave individual no entra al servidor. El consentimiento identifica cuenta y
+contadores, despliegue, operación, vínculo, confianza y versión, e incluye la
+huella de la firma del PDF para impedir su reutilización en otro contexto.
+
+Las migraciones `0044_` y `0045_` preservan vínculo, retiro, recibo y evidencia
+con la auditoría común. La verificación conserva pruebas históricas bajo la
+confianza capturada y presenta aparte la situación actual. El sello cubre el
+digest del contenido y no prueba la existencia de la firma en su fecha. Los
+sellos anteriores siguen identificados como sellos del servidor.
+
+La aceptación nativa, HTTP con restauración y navegador real aprobó los siete
+criterios funcionales. La [verificación](verification-report.md) conserva las
+pruebas negativas, el rechazo atómico, la concurrencia, los recibos originales,
+la validación independiente del ZIP y la separación entre revocación posterior
+y validez histórica. Los controles de integración requieren evidencia para la
+revisión exacta; una aceptación local no acredita por sí sola publicación ni
+despliegue. La versión operativa observada en este corte sigue siendo `v0.1.2`.
+
 
 ## Estado del informe de actividad
 

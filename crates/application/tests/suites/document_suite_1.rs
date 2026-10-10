@@ -19,5 +19,7 @@ mod document_versions;
 #[path = "../document_workflow.rs"]
 mod document_workflow;
 use crypto as support;
+#[path = "../individual_evidence.rs"]
+mod individual_evidence;
 #[path = "../verification_mocks/mod.rs"]
 mod verification_mocks;

@@ -1,0 +1,70 @@
+\section{Trazabilidad de firma documental individual}
+\label{sec:matriz-firma-individual}
+
+La matriz identifica las fronteras comprobadas el 10 de octubre de 2026 para
+la firma personal de versiones PDF. Los casos nativos se cuentan por identidad
+distinta y los resultados de interfaz se conservan separados de Rust.
+El alcance y los límites temporales se desarrollan en la
+\cref{sec:pruebas-firma-individual}.
+
+\begin{longtable}{@{}L{2.7cm} L{7.2cm} L{3.1cm}@{}}
+  \caption{Evidencia focal de firma documental individual.}
+  \label{tab:matriz-firma-individual} \\
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad comprobada} & \textbf{Resultado} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad comprobada} & \textbf{Resultado} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  Valores y emisión & Vectores, propósito, contadores, CSR externo y clave pública exacta sin clave privada emitida por la CA. & 12 de dominio y 5 de CLI aprobadas. \\
+  \addlinespace
+  Criptografía & Dos firmas verificadas, material exacto y rechazo de contexto, vigencia o revocación incompatibles. & 8 aprobadas. \\
+  \addlinespace
+  Aplicación & Principal actual, vínculo propio, intención exacta, conciliación de recibos y estados histórico y actual separados. & 11 de vínculo y 14 documentales aprobadas. \\
+  \addlinespace
+  Evidencia & Procesador, prueba histórica, exportación y compatibilidad del codec con sellos anteriores. & 8, 6, 11 y 10 aprobadas, respectivamente. \\
+  \addlinespace
+  PostgreSQL & Autoridad, concurrencia, huellas, atomicidad diferida, inventario estricto y restauración lógica. & 17 casos distintos aprobados. \\
+  \addlinespace
+  HTTP controlado & Contrato, límites, errores, identidad de la URL y evidencia personal o histórica del servidor. & 7 aprobadas. \\
+  \addlinespace
+  HTTP real & CSR, MFA, PDF V1 exacto, TSA, OpenSSL, recibo, revocación, retiro y restauración con ZIP idéntico. & Recorrido focal aprobado. \\
+  \addlinespace
+  Interfaz controlada & Cliente y recuperación sin reenvío automático, revisión de versión, permisos y confirmación renovada. & 872 Node y 6 de navegador aprobadas. \\
+  \addlinespace
+  Navegador real & Firma externa, respuesta perdida, nueva MFA, recibo original, ZIP y estado histórico tras retirar el vínculo, en escritorio y móvil. & 2 aprobadas en 20.2 s. \\
+  \addlinespace
+  Cierre de entrega & Controles de la revisión publicada y despliegue. & Evidencia separada del corte local. \\
+\end{longtable}
+
+{\raggedright
+Los vectores se conservan en
+\rutarepo{crates/domain/tests/document_signing.rs}; la emisión, en
+\rutarepo{crates/bin/tests/pki_request_cli.rs}.
+El verificador y las pruebas de persistencia se encuentran bajo
+\rutarepo{crates/infrastructure/tests/}, en los siguientes archivos:
+\begin{itemize}
+  \item Verificador: \rutarepo{individual_signing_crypto.rs}.
+  \item Vínculos: \rutarepo{signing_binding_backend.rs}.
+  \item Registro documental: \rutarepo{individual_document_backend.rs}.
+  \item Invariantes: \rutarepo{individual_document_backend_invariants.rs}.
+\end{itemize}
+Los recorridos HTTP se conservan en
+\rutarepo{scripts/api-individual-signing-demo.py} y su auxiliar de evidencia;
+la interfaz controlada, en
+\rutarepo{web/tests/browser/individual-signing.spec.mjs}; y el navegador real,
+en \rutarepo{web/tests/live/individual-signing-real.spec.mjs}.
+\par}
+
+El contrato, el procedimiento con clave externa y las reglas de restauración
+están en \rutarepo{docs/http-individual-signing.md},
+\rutarepo{docs/individual-signing-guide.md} y
+\rutarepo{docs/database-operations.md}. La decisión técnica se conserva en
+\rutarepo{docs/adr/0074-individual-document-signatures.md}.

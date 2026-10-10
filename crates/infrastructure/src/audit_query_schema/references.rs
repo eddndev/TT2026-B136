@@ -41,6 +41,21 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "document_upload_origin_audit",
             false,
         ),
+        (
+            "document_signing_bindings",
+            "document_signing_bindings_audit_sequence_fkey",
+            false,
+        ),
+        (
+            "document_signing_withdrawals",
+            "document_signing_withdrawals_audit_sequence_fkey",
+            false,
+        ),
+        (
+            "individual_document_signatures",
+            "individual_signature_audit_fkey",
+            false,
+        ),
     ] {
         let rows = client.query("SELECT g.tgtype,
             g.tgisinternal AND g.tgenabled IN ('O','A') AND g.tgdeferrable=$3 AND g.tginitdeferred=$3
@@ -77,7 +92,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         )
         .map_err(port)?
         .get(0);
-    if count != 14 {
+    if count != 20 {
         return Err(incomplete());
     }
     Ok(())

@@ -126,8 +126,16 @@ def restore():
     assert unchanged(owner['id'], before, 'POST', route + '/withdraw', {'expected_revision': 1}) == receipt
     unchanged(owner['id'], before, 'GET', PREFIX + saved['next_binding'],
               expected=404, code='owner_certificate_not_found')
-    unchanged(owner['id'], before, 'POST', PREFIX + saved['next_binding'] + '/register',
-              saved['current_intent'], expected=422, code='owner_certificate_credential_rejected')
+    next_route = PREFIX + saved['next_binding'] + '/register'
+    unchanged(owner['id'], before, 'POST', next_route, saved['next_intent'],
+              expected=409, code='owner_certificate_conflict')
+    current = sign(preparation(saved['next_binding'], owner))
+    assert sql_state(owner['id']) == before, 'Restored preparation changed Owner history'
+    if current['statement_base64'] != saved['current_intent']['statement_base64']:
+        unchanged(owner['id'], before, 'POST', next_route, saved['current_intent'],
+                  expected=409, code='owner_certificate_conflict')
+    unchanged(owner['id'], before, 'POST', next_route, current,
+              expected=422, code='owner_certificate_credential_rejected')
     verify_receipt(receipt, intent)
     assert verify_sql(receipt, intent, owner) == before
     denied_authority(saved, before)

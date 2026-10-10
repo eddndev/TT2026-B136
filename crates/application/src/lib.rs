@@ -18,6 +18,7 @@ pub mod deadline_inputs;
 pub mod deadline_profiles;
 pub mod deadline_reevaluation;
 pub mod deadline_tracking;
+pub mod document_signing;
 pub mod documents;
 pub mod error;
 pub mod evidence;

@@ -23,10 +23,12 @@ export const fixtureNames = [
   "deadlineReevaluation",
   "combinedAgenda",
   "ownerCertificates",
+  "individualSigning",
   "precautionaryHearings",
 ];
 
 const families = [
+  [/^individual-signing-real\./, 3, ["individualSigning"]],
   [/^precautionary-hearings-real\./, 3, ["precautionaryHearings"]],
   [/^owner-certificates\./, 3, ["ownerCertificates"]],
   [/^(case-stages|stage-adoption)\./, 3, ["caseStages"]],

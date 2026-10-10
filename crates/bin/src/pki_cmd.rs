@@ -9,13 +9,14 @@
 
 use std::env;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Context;
 use application::pki::{
-    GenerateCrl, InitializeCa, InspectCertificate, IssueCertificate, IssueDeclarationCertificate,
-    RevokeCertificate,
+    GenerateCrl, InitializeCa, InspectCertificate, IssueCertificate, IssueCertificateRequest,
+    IssueDeclarationCertificate, RevokeCertificate,
 };
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
 use infrastructure::{OpensslCaAdapter, X509ChainValidator};
@@ -29,6 +30,7 @@ pub fn run(scripts_dir: &Path, action: PkiAction, json: bool) -> anyhow::Result<
     match action {
         PkiAction::InitCa => init_ca(scripts_dir, json),
         PkiAction::Issue { cn, purpose } => issue(scripts_dir, &cn, purpose, json),
+        PkiAction::IssueRequest { csr, name } => issue_request(scripts_dir, &csr, &name, json),
         PkiAction::Revoke { serial } => revoke(scripts_dir, &serial, json),
         PkiAction::GenCrl => gen_crl(scripts_dir, json),
         PkiAction::Show { cert } => show(&cert, json),
@@ -179,4 +181,34 @@ fn format_time(unix_seconds: i64) -> anyhow::Result<String> {
     stamp
         .format(&Rfc3339)
         .context("cannot format the timestamp")
+}
+
+fn issue_request(scripts_dir: &Path, csr: &Path, name: &str, json: bool) -> anyhow::Result<()> {
+    let mut request = Vec::new();
+    fs::File::open(csr)
+        .context("cannot open public certificate request")?
+        .take(16 * 1024 + 1)
+        .read_to_end(&mut request)
+        .context("cannot read public certificate request")?;
+    let (adapter, _) = authority(scripts_dir)?;
+    let issued = IssueCertificateRequest::new(
+        adapter,
+        X509ChainValidator::new(),
+        InternalRsaDeclarationVerifier::new(),
+    )
+    .execute(name, &request, now_unix()?)
+    .context("certificate request issuance failed")?;
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "serial": issued.serial_hex,
+                "certificate": issued.certificate_path.display().to_string(),
+            })
+        );
+    } else {
+        println!("issued certificate serial {}", issued.serial_hex);
+        println!("  certificate: {}", issued.certificate_path.display());
+    }
+    Ok(())
 }
