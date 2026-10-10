@@ -8,6 +8,16 @@ PDF/CSV en producción. Los resultados y límites del respaldo automático está
 [verificación](verification-report.md); el resto finito en [cierre técnico](technical-closure.md).
 Las referencias siguientes a releases anteriores describen sus cortes históricos.
 
+La firma documental individual tiene implementación y aceptación funcional local completas
+al 10 de octubre de 2026: emisión desde CSR externo, vinculación del certificado
+del Litigante, dos firmas externas sobre PDF y consentimiento exactos, recibo
+transaccional y verificación histórica separada del estado actual. Su
+[contrato HTTP](http-individual-signing.md) y los
+[siete criterios de cierre](technical-closure.md#criterios-de-firma-individual)
+cuentan con aceptación nativa, HTTP/restauración y navegador real. Los controles
+de la revisión publicada y el despliegue conservan su evidencia separada. Este trabajo no modifica el estado desplegado de
+`v0.1.2` ni atribuye un firmante personal a los sellos históricos del servidor.
+
 ## Checkpoint funcional reconciliado
 
 La lista finita de esta entrega y sus criterios de término están en
@@ -121,7 +131,10 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
 - Pendientes de identidad y documentos: invitaciones y enrolamiento recuperable,
   activación operativa de recuperación de contraseña, inactividad y primer factor
   Owner por certificado, cierre de las familias restantes de reingreso,
-  firma individual y política documental Client. La admisión general de formatos
+  integración de firma individual y política documental Client.
+  La firma individual cuenta con aceptación funcional local bajo los siete criterios
+  del cierre técnico; no se considera una entrega integrada por ello.
+  La admisión general de formatos
   está integrada por PR47 en `ac34b34`, con aceptación API/restauración,
   navegador real y confirmación natural de `main` comprobados.
   El aislamiento de respuestas tardías de contraseña y MFA tiene aceptación
@@ -271,8 +284,8 @@ Estas integraciones no cambian la release privada ni activan opciones en VPS3.
   CU-17/RF-20 conservan
   pendientes identificador estable de cuenta, IP y el criterio de registro
   menor de 500 ms; el anclaje externo sigue separado.
-- Pendientes operativos: firma personal y calificación jurídica de urgencia
-  siguen separadas del tablero. Ni Inicio ni verificar la cadena completan
+- Pendientes operativos: la integración de firma personal y la
+  calificación jurídica de urgencia siguen separadas del tablero. Ni Inicio ni verificar la cadena completan
   esos flujos o el alcance restante de la bitácora.
 - Despliegue: PR43 conserva la propuesta de la compañera y añade la adaptación
   a VPS3. Se integró como `3a67a6a` después de aprobar CI, Web y Documents,
@@ -459,7 +472,9 @@ La entrega integrada de [contenido original e incidentes](document-content-api.m
 añade descarga de versiones pendientes o selladas, comprobación completa antes
 de entregar bytes y aviso interno persistente a Owner. Su aceptación y cierre
 global se conservan en el informe como evidencia de esa entrega. La política
-Client por recurso y la identidad individual para firma permanecen pendientes.
+Client por recurso permanece pendiente. La identidad individual para firma tiene
+implementación y aceptación funcional local completas, separadas de esa entrega integrada;
+véase [el cierre técnico](technical-closure.md#criterios-de-firma-individual).
 
 La [admisión general](document-upload-admission-api.md) está integrada
 para nuevas cargas y versiones: PDF, DOCX, TXT, JPEG, PNG, MP3, WAV
@@ -761,7 +776,7 @@ separada de las campañas de hechos y plazos.
 | Versiones documentales | Identidad estable, cifrado vinculado a UUID/versión, evidencia histórica inmutable y selección explícita de snapshot. | ADR-0019, append optimista, migración V1/V7, aislamiento, conflictos, restauración y evidencia byte por byte; resultados en el informe de verificación. |
 | Clasificación documental | Tipo, clasificación y etiquetas organizativas con revisiones auditadas; búsqueda autorizada por metadatos. | ADR-0020, carga atómica, canon Unicode, revisiones esperadas, concurrencia, permisos y restauración sin alterar evidencia; resultados en el informe de verificación. |
 | Directorio de participantes | Fichas por expediente, revisión esperada, historial, filtros, archivo y reactivación con valores vigentes. | ADR-0021, independencia de cuentas, cuatro roles, asociación ajena, concurrencia, auditoría y restauración. No acredita identidad ni firma judicial. |
-| Identidad y firma personal | Resolver autenticación con certificado de socios, identidad del firmante y custodia de claves; altas, bajas, invitaciones y recuperación segura de credenciales. | La clave de firma configurada para el servidor no demuestra firma individual por usuario. Separar recuperación MFA de recuperación de contraseña. Definir contratos y probar revocación con sesiones existentes y fallos de entrega. |
+| Identidad y firma personal | Primer factor Owner por certificado integrado por separado; firma individual del Litigante con implementación y aceptación funcional local completas. Certificado ligado a cuenta, clave externa y consentimiento sobre PDF exacto. | Los [siete criterios](technical-closure.md#criterios-de-firma-individual), restauración y navegador tienen aceptación local; los gates corresponden a la revisión que se integre. Preservar evidencia histórica y separar estado actual de confianza. Invitaciones y enrolamiento recuperable conservan sus pendientes propios. |
 | Administración del expediente penal | Alta penal completa, edición, historia administrativa, filtros, cierre y reapertura; inicial Investigación para nuevas altas completas. | ADR-0022, unicidad de identificadores actuales, R0/R1 pendientes explícitos, cuatro roles, CAS, cierre concurrente, auditoría y restauración completa. |
 | Adopción y transiciones de etapa | Adopción para perfiles completos sin etapa; dos avances ordinarios, fechas declaradas y soportes exactos con admisión PDF/DOCX; historia y conflicto explícito en Qadra. | ADR-0023/0024, secuencia y origen de R1, autorización antes y después de preparar, cierre/revocación concurrentes, auditoría, restauración y navegador real. No incluye recursos ni decisiones jurídicas automáticas. |
 | Participantes tipificados | Identidades representadas, once perfiles, soportes exactos, revisión de candidatos y declaraciones internas con firma externa. | ADR-0025/0026, unión histórica manual/tipificada, CAS de identidades y fichas, confianza publicada, permisos, cierre, auditoría y restauración. La demostración interna no acredita identidad civil, profesión ni FIREL. |
@@ -807,7 +822,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
 | Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada. La recuperación de correo/rol e intención incierta del alta está integrada por PR85, con aceptación local controlada y gates de la PR aprobados; no recupera contraseña ni MFA. Invitaciones y enrolamiento recuperable siguen pendientes. |
-| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos está integrada por PR81 con confirmación natural aprobada y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL, HTTP compuesto e interfaz están integrados por PR82 y PR83, con confirmación natural aprobada y aceptación por capa y con servicios reales. El primer factor por certificado y su interfaz están integrados por PR84, con confirmación natural aprobada y aceptación RSA/MFA y restauración. La instalación y activación explícita siguen pendientes; estas opciones permanecen desactivadas en VPS3. La firma documental individual sigue pendiente. |
+| Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos está integrada por PR81 con confirmación natural aprobada y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL, HTTP compuesto e interfaz están integrados por PR82 y PR83, con confirmación natural aprobada y aceptación por capa y con servicios reales. El primer factor por certificado y su interfaz están integrados por PR84, con confirmación natural aprobada y aceptación RSA/MFA y restauración. La instalación y activación explícita siguen pendientes; estas opciones permanecen desactivadas en VPS3. La firma documental individual tiene implementación y aceptación funcional local completas; su integración sigue pendiente. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |
 | Directorio de participantes | Implementado para identidad representada y credencial interna de demostración | Once perfiles, datos declarados, identidad versionada, revisión explícita de coincidencias, unicidad de identidad/rol, soporte y firma interna; compatibilidad manual, consultas y estado auditados. Quedan fuera la acreditación civil/profesional, FIREL real y la certificación jurídica de expediente penal activo. El cierre organizativo bloquea mutaciones. |
@@ -817,9 +832,9 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Monitoreo de plazos y alertas | Parcial; base V1 integrada y servicio/HTTP/Qadra V2 con recorridos reales aprobados | Registro, revisión exacta, responsable y atención tienen flujo web integrado. La ampliación humana/HTTP V2 declara políticas, conserva observaciones y continuidad y representa historia humana/técnica. Detalle actual y listado verifican vigencia sin usar la cola como prueba de actualidad. Despacho y consumo confirman trabajos, cursores, resultados e intentos con auditoría. Qadra V2 tiene pruebas Node y navegador con HTTP controlado y backend real aprobadas. La composición en servidor aprobó pruebas unitarias y una campaña API con TERM/INT, reinicios y restauración. La aceptación API final y el CI de cierre aprobaron; la reevaluación se integró en `main` por PR 34. La agenda conjunta se integró por PR 35. PR 36 integró alertas con persistencia, reintentos, control de duplicados, Qadra y composición en servidor como `8261c51`; su aceptación API/restauración, navegador real y cierre de CI conservan evidencia propia. El flujo explícito de resultado/plazo derivado está integrado por PR88/89; falta calificar los ocho perfiles jurídicos delimitados. Los recorridos reales de reevaluación no completan esos objetivos restantes del caso de uso. |
 | Carga y clasificación documental | Admisión general integrada por PR47; main confirmado | Ocho familias admitidas antes de cifrar nuevas cargas o versiones, hasta 16 MiB, con inspección acotada y decodificación multimedia completa. Clasificación atómica, filtros y versiones conservados; rechazo tipado sin borrar el borrador ni reenvío automático. Focales, API/restauración y navegador real aprobados; Clippy, PDF y provisión en los tres VPS aprobados; integrado por PR47 como `ac34b34`, con confirmación natural de main comprobada. Soportes procesales PDF/DOCX independientes e históricos sin readmisión. |
 | Consulta e integridad documental | Parcial | Contenido sin sello y buzón interno Owner integrados con aceptación del incremento y cierre global aprobados. Los avisos describen fallos de validación, no causas demostradas. Historial, filtros de clasificación, verificación explícita y exportación de evidencia sellada implementados. |
-| Firma de contrato y sello | Parcial | Vincular credencial y autorización al firmante individual y comprobar estado del certificado antes de firmar. |
-| Verificación de firma y sello | Parcial | Política de identidad individual; la selección histórica explícita conserva los verificadores existentes. |
-| Tablero de control | Indicadores integrados por PR 45; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados. CI, Web y Documents aprobaron también para su merge en main. Firma personal pendiente y naturaleza fatal de plazos no se infieren de estos indicadores. |
+| Firma de contrato y sello | Implementación local; aceptación funcional local completa; integración y despliegue pendientes | Emisión desde CSR, vínculo propio del Litigante y firmas externas del PDF y consentimiento; cuenta, acceso y confianza revalidados al commit de evidencia, recibo y auditoría. Integrar los siete criterios aceptados y la aceptación conjunta registrada en el cierre técnico. |
+| Verificación de firma y sello | Implementación local; aceptación funcional local completa; integración y despliegue pendientes | Integridad, firma, certificado y TSA conservan comprobaciones separadas; prueba histórica con confianza capturada, estado actual y retiro diferenciados. El sello cubre el contenido y no demuestra la existencia temporal de la firma; los sellos históricos mantienen su identidad de servidor. |
+| Tablero de control | Indicadores integrados por PR 45; alcance jurídico parcial | Instantánea auditada Owner/Litigante, expedientes activos, contratos sin sello interno, plazos vigentes y carga autorizada; aceptación focal, navegador real y restauración aprobados. CI, Web y Documents aprobaron también para su merge en main. La firma personal aceptada localmente y la naturaleza fatal de plazos no se infieren de estos indicadores. |
 | Informes | Estado/carga integrados por PR49; alcance completo parcial | Estado y carga de asignaciones, captura común cifrada PDF/CSV, selector autorizado, avisos internos y consumidor supervisado. Trece escenarios controlados y dos reales aprobados; cuatro capturas inspeccionadas y formatos exactos tras reingreso. Capacidad y presentación medidas por separado; aceptación HTTP/restauración aprobada con artefactos y avisos exactos y captura revocada; CI, Web y Documents de PR49 y su confirmación natural de main aprobados. Las tres cantidades de actividad por Litigante y periodo tienen implementacion local y aceptacion completa del catalogo, con autoria conservada tras reasignaciones. La integracion sigue separada; CU-16 conserva progreso, estimación cuando aplica y aviso según [el inventario finito](technical-closure.md). |
 | Consulta de actividad | Integrada por PR50 y confirmada en main | Owner global, filtros exactos, UTC con nanosegundos, páginas con máximo de secuencia fijo, preflight de texto y lectura auditada. Aplicación 20, PostgreSQL 14, HTTP 6, runtime 1, Node 12 y navegador controlado 9 aprobados. API/restauración exit0 en 376.459967 s y navegador real 2/2 en 13.7 s; Clippy aprobado. PR91 añade logs operativos saneados para TOTP y recuperación. CU-17/RF-20 conservan identidad estable uniforme, IP, matriz de accesos y registro durable menor de 500 ms; esos logs no cierran la auditoría transaccional. La verificación de la cadena es separada; el anclaje externo sigue pendiente. |
 
@@ -877,12 +892,14 @@ aprobados ni produce un nuevo porcentaje global del TT.
 - La autenticación integrada en `main` conserva contraseña con MFA y añade el
   certificado como primer factor alternativo para Owner, también con MFA
   obligatorio. Esta opción requiere activación explícita y sigue deshabilitada
-  en VPS3. El sello documental usa
+  en VPS3. El sello documental histórico usa
   la credencial configurada al arrancar el servidor. Las declaraciones internas
   de participantes verifican una firma externa de 384 bytes sobre una declaración
   de 218 bytes; no reciben la clave privada. Ese flujo no vincula automáticamente
   la identidad representada con una cuenta de acceso. La firma documental
-  individual de usuarios continúa pendiente.
+  individual tiene implementación local separada: vínculo de cuenta, clave
+  externa y consentimiento exacto. Sus siete criterios tienen aceptación funcional local; los controles
+  de integración y el despliegue se comprueban por separado.
 - El corte histórico de sesiones declaradas midió Argon2id en 409.6 ms sobre
   cinco corridas con dos iteraciones. La medición aislada posterior del mismo
   costo promedió 400.3851816 ms, también por debajo de 500--1000 ms. El ajuste

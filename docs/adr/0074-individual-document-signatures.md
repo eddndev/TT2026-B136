@@ -2,9 +2,10 @@
 
 ## Status
 
-Accepted for implementation. The complete workflow remains unaccepted until its
-certificate issuance, account binding, document signing, persistence, HTTP,
-Qadra, restoration and verification criteria pass together.
+Accepted. Certificate issuance, account binding, document signing, persistence,
+HTTP, Qadra, restoration and verification passed the local functional acceptance
+together. Exact-revision integration gates and deployment remain separate; local
+acceptance does not establish publication or production activation.
 
 ## Context
 

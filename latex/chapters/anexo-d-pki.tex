@@ -3,7 +3,7 @@
 % =====================================================================
 \chapter{Scripts de la autoridad certificadora interna}\label{anexo:pki}
 
-La autoridad certificadora interna del prototipo y su autoridad de sellado de tiempo local se operan con seis scripts de bash y dos archivos de configuración de OpenSSL, todos versionados en el directorio \texttt{pki/} del repositorio. Los scripts comparten tres disciplinas: se ejecutan con \texttt{set -euo pipefail} (cualquier fallo intermedio aborta), verifican que \texttt{openssl} esté disponible antes de operar, y leen el directorio de trabajo de la CA de la variable de entorno \texttt{PKI\_CA\_DIR} (por defecto \texttt{pki-ca} bajo el directorio actual). El directorio de trabajo es un artefacto de tiempo de ejecución: contiene las llaves privadas y la base de datos de la autoridad, se crea con permisos restrictivos (\texttt{umask 077} al generar llaves, \texttt{chmod 700} sobre \texttt{private/}) y jamás se versiona; como red de seguridad, el \texttt{.gitignore} de la raíz ignora \texttt{pki/**/*.key} y \texttt{pki/**/*.pem}. El modelo de confianza es una jerarquía de una sola capa: una raíz autofirmada firma directamente certificados de entidad final, la CRL y el certificado de la TSA, conforme a X.509 y RFC 5280 \cite{cooper2008}.
+La autoridad certificadora interna del prototipo y su autoridad de sellado de tiempo local se operan con siete scripts de bash y dos archivos de configuración de OpenSSL, todos versionados en el directorio \texttt{pki/} del repositorio. Los scripts comparten tres disciplinas: se ejecutan con \texttt{set -euo pipefail} (cualquier fallo intermedio aborta), verifican que \texttt{openssl} esté disponible antes de operar, y leen el directorio de trabajo de la CA de la variable de entorno \texttt{PKI\_CA\_DIR} (por defecto \texttt{pki-ca} bajo el directorio actual). El directorio de trabajo es un artefacto de tiempo de ejecución: contiene las llaves privadas y la base de datos de la autoridad, se crea con permisos restrictivos (\texttt{umask 077} al generar llaves, \texttt{chmod 700} sobre \texttt{private/}) y jamás se versiona; como red de seguridad, el \texttt{.gitignore} de la raíz ignora \texttt{pki/**/*.key} y \texttt{pki/**/*.pem}. El modelo de confianza es una jerarquía de una sola capa: una raíz autofirmada firma directamente certificados de entidad final, la CRL y el certificado de la TSA, conforme a X.509 y RFC 5280 \cite{cooper2008}.
 
 Estos mismos scripts son los que ejecuta el prototipo: el adaptador de infraestructura de la autoridad los invoca como subprocesos desde los subcomandos \texttt{pki} de la interfaz de línea de comandos (véase el Anexo~\ref{anexo:cli}), y la suite de pruebas los usa como fixtures reales en directorios temporales, de modo que las pruebas ejercitan la misma implementación de autoridad local utilizada por la demostración. Esto no acredita su operación como autoridad de producción o prestador autorizado.
 
@@ -20,6 +20,7 @@ Estos mismos scripts son los que ejecuta el prototipo: el adaptador de infraestr
     \texttt{init-ca.sh} & Crea la CA raíz: llave privada, certificado autofirmado y base de datos de la autoridad. \\
     \texttt{issue-cert.sh} & Emite un certificado de entidad final firmado por la CA para el common name dado. \\
     \texttt{issue-declaration-cert.sh} & Emite una hoja para declaraciones personales con usos de firma y sin EKU de autenticación o correo. \\
+    \texttt{issue-request.sh} & Firma una solicitud pública externa con el perfil de firma interna, sin generar una clave del titular. \\
     \texttt{revoke.sh} & Marca como revocado un certificado emitido, en la base de datos de la CA. \\
     \texttt{gen-crl.sh} & Genera la lista de certificados revocados (CRL) en formato PEM. \\
     \texttt{issue-tsa-cert.sh} & Emite el certificado de la TSA local y prepara su directorio de trabajo. \\
@@ -96,6 +97,17 @@ openssl ca -config "$OPENSSL_CNF" -batch -notext -md sha256 \
     -startdate "$START_DATE" -days "$CERT_DAYS" -extensions v3_end_entity \
     -in "$CSR_FILE" -out "$CERT_FILE"
 \end{lstlisting}
+
+\section{issue-request.sh: emisión con clave externa}\label{sec:pki-issue-request}
+
+El script recibe un identificador de salida y una solicitud pública. Se invoca
+mediante \texttt{pki issue-request}, cuya validación previa limita y comprueba
+el CSR y los parámetros RSA. OpenSSL verifica la firma de la solicitud y emite
+una hoja de 365 días con \texttt{v3\_internal\_declaration}; las extensiones
+solicitadas no se copian. La CLI comprueba además la cadena, el perfil y la
+igualdad de la clave pública emitida. El script usa la clave de la CA para
+certificar, sin recibir ni generar la clave privada del titular. El procedimiento
+externo se muestra en la \cref{sec:cli-pki-request}.
 
 \section{revoke.sh: revocación}\label{sec:pki-revoke}
 

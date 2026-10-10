@@ -10249,3 +10249,182 @@ Estas comprobaciones de transporte no sustituyen la aceptación HTTP nativa,
 el recorrido completo de medidas, Agenda, alertas, Qadra, restauración, manuscrito
 ni los gates de cierre. La revisión adicional de límites de proyección de pruebas
 históricas sigue en curso.
+
+
+## Firma documental individual con clave externa: 10 de octubre de 2026
+
+La implementación local incorpora emisión desde CSR público, vínculo propio de
+Litigator, firma externa del PDF y consentimiento contextual, aceptación con la
+TSA configurada, recibos y auditoría atómicos, verificación histórica y estado
+actual separados, exportación pública y flujo Qadra. La aceptación HTTP focal
+con servicios reales y restauración aprobó, al igual que dos recorridos de
+navegador real. En este corte siguen pendientes la compilación y revisión visual
+del reporte, los controles completos de cierre y la integración; no se afirma CI aprobada
+ni despliegue de esta extensión.
+
+### Comprobaciones focales por frontera
+
+Las filas conservan su propio denominador y no se suman como una regresión
+global nueva. El resultado documental de 14 casos incluye la regresión de
+precisión del recibo; sustituye, para ese target, la ejecución anterior de 13.
+Los ocho casos del procesador incluyen sus cinco casos iniciales.
+
+| Frontera y target | Resultado comprobado |
+| --- | --- |
+| Dominio, `document_signing` | 12 aprobadas: vectores literales DOCBIND1/DOCSIGN1, propósito, identidad, contadores y reconstrucción canónica validada. |
+| CLI, `pki_request_cli` | 5 aprobadas con OpenSSL: CSR externo, perfil de firma, clave pública exacta y rechazos sin sobrescribir ni generar clave privada del titular. |
+| Infraestructura, `individual_signing_crypto` | 8 aprobadas: prueba de vínculo, dos firmas documentales, confianza exacta, certificado, vigencia, revocación y separación de propósitos. |
+| Aplicación, `document_signing_bindings` | 11 aprobadas: contexto actual, reautenticación completa, recibos propios, repetición exacta, cambios de cuenta/confianza y retiro terminal. |
+| Aplicación, `individual_document_signing` | 14 aprobadas: versión PDF exacta, autorización, dos pruebas externas, recibos, concurrencia, fallos de TSA, estados histórico/actual y nanosegundos originales. |
+| Aplicación, `individual_document_seal` | 8 aprobadas: firma externa y TSA configurada, verificación/exportación/soportes, instante de aceptación y compatibilidad histórica. |
+| Aplicación, filtro `individual_evidence` de `document_suite_1` | 6 aprobadas: material histórico exacto, contexto, límites y rechazo de evidencia alterada. |
+| Aplicación, `evidence_package` | 11 aprobadas, incluidas 4 de extensión individual: pruebas públicas, nombres reservados, instrucciones independientes y rechazo de formato inconsistente. |
+| Infraestructura, `file_document_repository` | 10 aprobadas, incluida persistencia de prueba personal sin reasignar sellos históricos. |
+| HTTP, `individual_signing_http` | 7 aprobadas con puertos controlados: rutas, límites, errores, recibos y distinción explícita del sello del servidor. |
+| PostgreSQL, `signing_binding_backend` | 7 identidades aprobadas entre la campaña inicial y la corrección focal de una fixture. |
+| PostgreSQL, `individual_document_backend` | 5 identidades aprobadas: las 4 iniciales y el caso posterior de confirmación concurrente exacta. |
+| PostgreSQL, `individual_document_backend_invariants` | 5 identidades aprobadas: las 4 iniciales y la regresión de sustitución de CRL capturada. |
+| Interfaz, suite Node de `web/` | 872 aprobadas, ninguna omitida, en 4168.641 ms. Esta cifra pertenece a Node, no a Rust ni a pruebas nativas. |
+| Navegador, `web/tests/browser/individual-signing.spec.mjs` | 6 aprobadas con HTTP controlado y un trabajador, en 19.4 s. |
+| Navegador real, `web/tests/live/individual-signing-real.spec.mjs` | 2 aprobadas, escritorio 1440 x 1000 y móvil 390 x 844, con un trabajador y 20.2 s de Playwright. |
+| Compilación | `cargo build --workspace` aprobado en 1 min 20 s; compilación web aprobada, con 2.87 s informados por Astro. |
+
+Las pruebas nativas utilizaron PostgreSQL 18.6 aislado y un rol operativo
+restringido. Las 17 identidades distintas se distribuyen en 7 de vínculos,
+5 documentales y 5 de invariantes; no son 17 ejecuciones adicionales a las
+filas anteriores. La campaña inicial aprobó 4 documentales en 42.74 s,
+4 de invariantes en 31.82 s y 6 de vínculos. El séptimo caso de vínculos falló
+porque la fixture suponía un nombre de CHECK que PostgreSQL no había asignado.
+La corrección obtiene el nombre del catálogo por su expresión exacta y el
+caso aprobó en 3.10 s, sin debilitar el validador. El caso concurrente añadido
+aprobó en 8.36 s y la regresión de CRL en 8.45 s. Estos tiempos de casos
+focales no constituyen una nueva duración integral de las tres suites.
+
+Se comprobó autoridad actual, cambio de cuenta o confianza después de preparar,
+huella permanentemente asociada a su cuenta, único vínculo activo, retiro
+terminal y repetición exacta. El documento, recibo y auditoría se revierten
+juntos ante fallos. Las restricciones diferidas rechazan evidencia personal
+sin recibo y divergencias entre ambos; desactivar cualquiera de los dos
+disparadores impide abrir el adaptador. El respaldo y la restauración lógica
+nativos preservaron versiones y auditoría después de un retiro posterior.
+La criptografía de esas fixtures es real; la admisión de formato y la TSA del
+harness transaccional son puertos controlados.
+
+La revisión reprodujo un defecto de inventario antes de corregirlo: un vínculo
+registrado con confianza R1 y una firma aceptada con R2 admitían en la evidencia
+una CRL R3 sucesora y válida, aunque el recibo seguía identificando R2. El caso
+falló en 8.33 s. La comparación completa de la confianza capturada contra la
+revisión exacta del recibo hizo que la regresión aprobara; una publicación
+posterior legítima sigue sin invalidar la historia original. La concurrencia
+nativa conserva un solo recibo; la prueba de aplicación comprueba además que
+la primera evidencia prevalece si las dos confirmaciones de la misma intención
+aportan sellos de tiempo distintos. Los fallos iniciales de integración de catálogo
+y de un literal UUID de migración se corrigieron antes de las campañas citadas;
+no se contabilizan como verificaciones aprobadas.
+
+### Aceptación HTTP focal y restauración real
+
+El recorrido focal terminó satisfactoriamente con PostgreSQL 18.6, Valkey 8.1.10
+como almacén compatible con Redis, servidor HTTP compuesto, contraseña y MFA
+reales, CA interna, OpenSSL y TSA local real. Se ejecutaron los pasos versionados
+de `scripts/api-individual-signing-demo.sh`,
+`scripts/api-individual-signing-demo.py` y
+`scripts/api_individual_signing_support.py` sobre servicios y datos desechables.
+La campaña focal no se presenta como una repetición completa de `api-demo.sh`.
+
+La clave RSA sintética se generó en un directorio de cliente separado de la CA.
+`pki issue-request` recibió sólo el CSR y se comprobó que no había generado
+una clave del titular dentro de la CA. El litigante registró un vínculo y
+aportó la firma del PDF junto con el consentimiento externo de su operación.
+Se reconstruyeron independientemente ambos formatos canónicos. Una firma de
+vínculo inválida y una firma del PDF inválida se rechazaron sin escribir las
+filas o eventos de mutación; el intento fallido no obtuvo recibo.
+
+La firma seleccionó V1 mientras V2 continuaba pendiente. La respuesta de
+confirmación se descartó deliberadamente y la consulta recuperó el recibo
+original; repetir la intención devolvió el mismo resultado y cambiarla produjo
+conflicto. OpenSSL verificó en el ZIP la firma del PDF, la del vínculo y la del
+consentimiento, la cadena/CRL al instante capturado y el token RFC 3161 real.
+El paquete no contiene la clave del titular. El registro aceptado preservó
+sus referencias, confianza, dos firmas y evidencia temporal.
+
+Una CRL publicada posteriormente revocó el certificado. La verificación conservó
+el resultado histórico y mostró separadamente la revocación actual; la captura
+preparada bajo la confianza anterior produjo conflicto y una firma nueva con
+la confianza actual fue rechazada. Retirar el vínculo conservó su registro y
+el ZIP; repetir el retiro no añadió otra mutación. Tras `pg_dump`/`pg_restore`,
+invalidar las sesiones anteriores e ingresar con MFA nueva, las consultas y
+repeticiones devolvieron los mismos recibos y el mismo ZIP byte por byte.
+Se conservaron las filas auditadas del vínculo, firma y retiro. La evidencia
+del documento sellado por el servidor permaneció idéntica y se identificó como
+`legacy_server`, sin atribuirle retrospectivamente una firma personal.
+
+### Interfaz y límites del corte
+
+Los seis escenarios de navegador controlado comprobaron revisión del PDF exacto,
+vinculación y firma con archivos públicos, recuperación explícita, ausencia de
+la acción para Owner y Paralegal y retiro móvil con confirmación propia. Dos
+regresiones reprodujeron que un rechazo explícito de credencial dejaba el editor
+sin una vía para corregir la prueba. Después de corregirlo, se exigieron una
+firma corregida y una confirmación nueva; la campaña de seis casos aprobó.
+Estos dobles de transporte no prueban persistencia, RSA ni TSA reales.
+
+Dos recorridos posteriores del navegador con servicios reales aprobaron en
+20.2 s de Playwright, con un trabajador, a 1440 x 1000 y 390 x 844 píxeles.
+Qadra descargó el PDF exacto y las declaraciones, recibió las firmas generadas
+externamente por OpenSSL y confirmó la operación. La intercepción descartó una
+respuesta 200 después de su escritura real. Se revocó la sesión, se observó
+el acceso rechazado y se completó MFA nueva; recuperar el intento y consultar
+su UUID devolvió el recibo original exacto, sin otro POST de firma. Se descargó
+el ZIP y, tras retirar el vínculo, la consulta mantuvo el veredicto histórico
+válido y mostró el retiro posterior. Ambos recorridos terminaron sin errores
+de página y conservaron las cinco mutaciones esperadas: preparación/registro
+del vínculo, preparación/confirmación de firma y retiro.
+
+La primera ejecución real falló por una carrera del test, que examinaba una
+variable antes de completar `route.fetch`. La corrección sincroniza la
+intercepción y conserva las aserciones de respuesta 200, identidad del recibo
+y envío único. Esa ejecución fallida no se cuenta como aceptación. Los ocho
+estados capturados por los dos recorridos se inspeccionaron: controles,
+referencias y resultados legibles en ambos tamaños, con las huellas ajustadas
+al ancho disponible. Las capturas headless no acreditan la visualización
+interna del PDF; sus bytes descargados y firmas se comprobaron por separado. El navegador no repitió
+la campaña de revocación por CRL y restauración PostgreSQL, que conserva su
+propio resultado anterior.
+
+La comprobación final de formato Rust y Clippy sobre todos los targets aprobó.
+Se corrigió la carga duplicada de módulos de catálogo/permisos mediante
+parámetros explícitos para cada esquema y se repitieron satisfactoriamente
+ambos casos nativos de autoridad y detección de restricciones alteradas; no
+se suman otra vez al conteo de diecisiete identidades. El registro de suites
+incluye cada fuente de prueba una vez. El formato Prettier aprobó, y
+`scripts/demo.sh` completó su recorrido CLI en 23.508 s.
+
+La primera campaña completa de `scripts/api-demo.sh` llegó a la restauración
+Owner y detectó una expectativa anterior del instrumento: después de publicar
+la CRL de firma individual, su consentimiento guardado ya era obsoleto y recibió
+409 antes de comprobar la revocación. La corrección conserva el rechazo de esa
+intención y prepara otra bajo la confianza actual para exigir 422 por certificado
+revocado, comprobando que ninguna operación altera el historial. El producto no
+se modificó por este resultado. La repetición completa aprobó en 582.483 s,
+incluida la restauración de Owner y firma individual: consentimiento obsoleto
+rechazado, certificado revocado rechazado con contexto actual, historial
+inmutable y recibo/ZIP individuales originales tras MFA nueva.
+
+El manuscrito separado compiló y su revisión visual final aprobó, con los
+PDF aceptados preservados. El resultado y la inspección se registran en
+`docs/academic-report-verification.md`.
+No se midieron cobertura global, rendimiento de producción ni usabilidad;
+los resultados no anticipan la regresión final ni los controles remotos de la
+revisión que se integre. Permanece el aviso preexistente de compatibilidad
+futura de `redis 0.25.4` observado durante la compilación.
+
+La TSA local sella el resumen del contenido, sin probar que las firmas personales
+existieran al generar el token. Los instantes de vínculo y aceptación pertenecen
+a la aplicación. La demostración usa claves sintéticas y confianza interna;
+no acredita custodia exclusiva de una persona, identidad civil, FIREL ni
+constancia NOM-151 de un PSC autorizado. El contrato y el procedimiento público
+se conservan en `docs/http-individual-signing.md` y
+`docs/individual-signing-guide.md`; las decisiones y la recuperación, en
+`docs/adr/0074-individual-document-signatures.md` y
+`docs/database-operations.md`.

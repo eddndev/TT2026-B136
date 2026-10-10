@@ -1,0 +1,58 @@
+\begin{tikzpicture}[
+  stage/.style={
+    draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    text width=11.5cm, align=center, inner sep=7pt,
+    minimum height=1.0cm, font=\small
+  },
+  branch/.style={
+    stage, text width=5.7cm, minimum height=4.8cm
+  },
+  flow/.style={-{Stealth[length=2mm]}, line width=0.7pt}
+]
+  \node[stage, fill=ipnvino!6] (access) at (0,0) {
+    \textbf{Usuario autenticado con permiso de verificaci\'on}\\
+    Autorizar el acceso al expediente
+  };
+  \node[stage, below=6mm of access] (exact) {
+    Seleccionar UUID y n\'umero de versi\'on exactos\\
+    Cargar contenido cifrado y evidencia capturada de esa versi\'on
+  };
+  \node[branch, below=10mm of exact.south, xshift=-3.6cm] (history) {
+    \textbf{Verificaci\'on hist\'orica}\\[4pt]
+    Descifrar y recalcular el digest\\
+    Verificar PDF, v\'inculo y consentimiento\\
+    Evaluar certificado y CRL capturados\\
+    en los instantes registrados\\
+    Validar token TSA contra el PDF
+  };
+  \node[branch, below=10mm of exact.south, xshift=3.6cm] (current) {
+    \textbf{Estado actual separado}\\[4pt]
+    Evaluar el certificado bajo\\
+    la confianza vigente\\
+    Consultar el retiro del v\'inculo\\
+    Informar confianza no disponible\\
+    si falta material actual
+  };
+  \node[stage, fill=ipnvino!6, below=12mm of history.south,
+    xshift=3.6cm] (report) {
+    \textbf{Informe de la versi\'on consultada}\\
+    Resultado hist\'orico de contenido, firmas, certificado y TSA\\
+    Estado actual del certificado y retiro del v\'inculo aparte\\
+    Evidencia de servidor identificada sin atribuci\'on personal
+  };
+  \node[stage, draw=black!45, dashed, fill=black!3,
+    below=6mm of report] (scope) {
+      Revocaci\'on, expiraci\'on o retiro posteriores\\
+      no modifican las pruebas hist\'oricas capturadas
+    };
+  \draw[flow] (access) -- (exact);
+  \coordinate (split) at ([yshift=-5mm]exact.south);
+  \coordinate (join) at ([yshift=6mm]report.north);
+  \draw (exact.south) -- (split);
+  \draw[flow] (split) -| (history.north);
+  \draw[flow] (split) -| (current.north);
+  \draw (history.south) |- (join);
+  \draw (current.south) |- (join);
+  \draw[flow] (join) -- (report.north);
+  \draw[dashed, black!45] (report) -- (scope);
+\end{tikzpicture}

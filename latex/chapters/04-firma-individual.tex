@@ -1,0 +1,84 @@
+\subsection{Firma individual con custodia externa}
+\label{sec:impl-firma-individual}
+
+La firma individual distingue la cuenta autenticada, el certificado p\'ublico y
+la autorizaci\'on de una versi\'on documental. Solamente el rol Litigante puede
+registrar su propio v\'inculo y presentar una firma personal; para firmar necesita
+adem\'as pertenencia vigente al expediente y que este se encuentre activo.
+Owner y Paralegal conservan sus permisos de consulta, verificaci\'on y
+exportaci\'on, sujetos a las reglas de acceso por expediente, sin adquirir por
+ello permiso para firmar como otro usuario. Cliente mantiene denegado el
+acceso documental. La posesi\'on de un certificado no sustituye la sesi\'on
+con MFA ni concede pertenencia.
+
+El titular conserva su clave privada fuera del navegador y del servidor.
+Despu\'es de generar una solicitud CSR y obtener el certificado de firma de la
+CA interna, importa solamente material p\'ublico. El servicio
+\texttt{Signing\allowbreak Binding\allowbreak Service} prepara una declaraci\'on
+de 142 bytes con prefijo \texttt{DOCBIND1}, identidad de despliegue y cuenta,
+contadores de la cuenta, identificador del v\'inculo, huellas de ra\'iz y
+certificado y revisi\'on de confianza. El titular descarga esos bytes, los
+firma externamente y presenta la firma separada. El registro comprueba la
+prueba de posesi\'on, el perfil del certificado, su cadena y CRL, y confirma
+el v\'inculo junto con su evento de auditor\'ia. El sujeto o correo del
+certificado no se utiliza para inferir la cuenta. Retirar un v\'inculo impide
+su uso posterior y conserva su registro original; no revoca por s\'i mismo
+el certificado en la CA.
+
+Para un documento, el cliente descarga la versi\'on exacta seleccionada y
+contrasta sus identificadores y digest con los metadatos recibidos. El
+servidor descifra y valida el contenido almacenado y exige que sea PDF.
+La firma separada del PDF se produce externamente con RSA-3072 y SHA-256.
+A partir de ella, \texttt{Document\allowbreak Signing\allowbreak Service}
+prepara un consentimiento de 258 bytes con prefijo \texttt{DOCSIGN1}.
+Adem\'as del contexto de cuenta, certificado y confianza, incorpora el
+identificador de operaci\'on, expediente, UUID y n\'umero de versi\'on,
+digest del contenido y digest de la firma del PDF. La segunda firma externa
+autoriza esos bytes can\'onicos. Por tanto, dos versiones con contenido
+id\'entico no comparten consentimiento, y sustituir la firma del PDF
+invalida su correspondencia con la autorizaci\'on.
+
+El env\'io final contiene el consentimiento y las dos firmas, sin clave,
+contrase\~na de clave ni contenedor PKCS12. El servicio reconstruye el contexto
+vigente y exige igualdad exacta con el consentimiento presentado. Verifica
+ambas pruebas antes de solicitar el token RFC~3161 y usa
+\texttt{Document\allowbreak Processor::seal\_external} para incorporar el
+material p\'ublico del firmante. Una respuesta TSA incorrecta o ausente no
+confirma una firma documental. La plataforma vuelve a autenticar la sesi\'on
+despu\'es del trabajo criptogr\'afico; la transacci\'on revalida cuenta,
+pertenencia, estado del expediente, v\'inculo, confianza y ventana temporal
+despu\'es de adquirir los bloqueos de confirmaci\'on.
+
+La aceptaci\'on conserva conjuntamente la evidencia, el recibo y el evento
+de auditor\'ia. Su instante procede del reloj del servidor dentro de la
+confirmaci\'on. El token TSA cubre el digest del PDF; no incluye el
+consentimiento ni acredita el instante de aceptaci\'on personal. La
+auditor\'ia y el recibo registran esa aceptaci\'on dentro de la frontera de
+confianza de la plataforma. La TSA local conserva su alcance de demostraci\'on
+t\'ecnica y no se presenta como constancia de un PSC autorizado.
+
+El identificador de operaci\'on permite recuperar una respuesta perdida.
+La consulta autorizada del recibo devuelve la aceptaci\'on original, y repetir
+el mismo consentimiento con ambas firmas id\'enticas devuelve ese mismo
+recibo. Si dos env\'ios concurrentes preparan tokens distintos, prevalece la
+primera confirmaci\'on y el segundo recupera su evidencia sin reemplazarla.
+Cambiar cualquiera de las pruebas bajo la misma operaci\'on produce conflicto.
+La recuperaci\'on conserva la autorizaci\'on actual de lectura, pero no exige
+que el certificado o la CRL originales sigan vigentes ni vuelve a pedir un
+sello. Un cambio de cuenta, confianza o v\'inculo que afecte una nueva
+operaci\'on requiere preparar y firmar un consentimiento nuevo.
+
+El adaptador HTTP expone el registro bajo
+\rutarepo{/api/v1/identity/signing-certificates} y la firma bajo
+\begin{flushleft}
+  \small
+  \texttt{/api/v1/cases/<case>/documents/<document>/}\\
+  \texttt{versions/<version>/individual-signing}.
+\end{flushleft}
+Las operaciones documentales separan preparaci\'on, env\'io, consulta del
+recibo y verificaci\'on. Los cuerpos tienen l\'imite de 32~KiB, rechazan
+campos desconocidos o repetidos y admiten material binario mediante Base64
+can\'onico. Los identificadores del consentimiento deben coincidir con la
+ruta. La verificaci\'on devuelve por separado la evidencia hist\'orica, el
+estado actual del certificado y el retiro del v\'inculo. Los contratos
+completos se conservan en \rutarepo{docs/http-individual-signing.md}.
