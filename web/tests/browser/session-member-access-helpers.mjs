@@ -6,6 +6,7 @@ import { directory, editor, openAccess, reviewAccess } from './members-helpers.m
 
 export { directory, editor, openAccess, reviewAccess };
 export const usersPath = '/api/v1/users';
+const invitationsPath = '/api/v1/member-invitations';
 export const mePath = '/api/v1/auth/me';
 export const memberPath = (row) => `${usersPath}/${row.id}`;
 export const actorId = '11111111-1111-4111-8111-111111111111';
@@ -59,7 +60,12 @@ export async function memberDraftSetup(page) {
     const request = route.request(),
       url = new URL(request.url()),
       path = url.pathname;
-    if (path !== mePath && path !== usersPath && !path.startsWith(`${usersPath}/`))
+    if (
+      path !== mePath &&
+      path !== usersPath &&
+      path !== invitationsPath &&
+      !path.startsWith(`${usersPath}/`)
+    )
       return route.fallback();
     const call = {
       path,
@@ -94,6 +100,10 @@ export async function memberDraftSetup(page) {
         await gate.promise;
       }
       if (path === mePath && !call.search) return reply(structuredClone(state.current.user));
+      if (path === invitationsPath) {
+        expect([...url.searchParams]).toEqual([['limit', '20']]);
+        return reply({ items: [], next: null });
+      }
       if (path === usersPath) {
         const query = Object.fromEntries(url.searchParams);
         expect([...url.searchParams.keys()]).toHaveLength(Object.keys(query).length);

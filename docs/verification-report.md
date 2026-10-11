@@ -10,6 +10,16 @@ Clippy de todo el workspace y todos los destinos aprobo en 153.025 s; las
 pruebas de correo afectadas aprobaron en 7.337 s. Estos resultados no sustituyen
 la campana de cierre remota de la revision corregida, todavia pendiente.
 
+La revision posterior paso Documents, pero detuvo Web en la reentrada de
+administracion: los fixtures estrictos no declaraban la consulta nueva de
+invitaciones. La reproduccion focal mostro ademas un selector ambiguo entre
+los dos paneles administrativos. Se declaro solo la lista autenticada para
+Owner, manteniendo el rechazo de peticiones inesperadas, y se identifico el
+formulario de alta por su encabezado. Los 17 recorridos afectados de acceso,
+alta, reentrada e invitaciones aprobaron en 46.044 s de ejecucion total.
+Prettier aprobo los tres archivos; el codigo de produccion no cambio. La
+comprobacion remota de esta nueva revision sigue pendiente.
+
 Las ejecuciones focales terminadas con codigo de salida cero comprobaron el
 [contrato de invitaciones](member-invitations-api.md) en grupos separados:
 

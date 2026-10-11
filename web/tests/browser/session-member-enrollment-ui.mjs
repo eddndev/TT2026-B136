@@ -9,7 +9,10 @@ import {
 
 export { directory };
 export const rawEmail = 'Pendiente.Alta@';
-export const panel = (page) => page.locator('.admin-panel');
+export const panel = (page) =>
+  page.locator('.admin-panel').filter({
+    has: page.getByRole('heading', { name: 'Nuevo integrante', exact: true }),
+  });
 export const email = (page) => panel(page).getByLabel('Correo del nuevo usuario', { exact: true });
 export const password = (page) =>
   panel(page).getByLabel('Contrase\u00f1a inicial', { exact: true });
