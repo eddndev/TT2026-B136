@@ -173,7 +173,7 @@ fn publication_provenance_uses_session_user_even_when_a_database_role_is_selecte
     let Some(mut db) = Database::new() else {
         return;
     };
-    db.role("GRANT SELECT,INSERT ON participant_credential_authority,participant_credential_trust_revisions,audit_events TO {role}");
+    db.role("GRANT SELECT,INSERT ON participant_credential_authority,participant_credential_trust_revisions,audit_events TO {role}; GRANT EXECUTE ON FUNCTION audit_timestamp_parts(TEXT) TO {role}");
     let session_user = db.session_user();
     let mut url = reqwest::Url::parse(&db.url).unwrap();
     url.query_pairs_mut().clear().append_pair(

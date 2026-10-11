@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Corrección de la preparación de confianza tras CI: 11 de octubre de 2026
+
+La primera campaña de cierre detectó que el fixture parcial de publicación de
+confianza omitía la nueva columna de contexto auditado. La publicación fallaba
+al insertar el evento; la cancelación de la campaña impidió concluir el resto
+de las pruebas. Documents sí aprobó para esa revisión, sin acreditar los otros
+gates.
+
+El fallo se reprodujo con PostgreSQL 16.15: cuatro casos de publicación fallaron.
+El fixture ahora aplica las migraciones 0027 y 0048 en su orden real. El caso
+que selecciona un rol delegado también concede ejecución de la función usada
+por las columnas generadas, conforme a la separación del administrador y el
+rol operativo. La comprobación final aprobó los 19 casos del grupo de confianza
+en 24.38 s, incluidos permisos, concurrencia, rechazo atómico y restauración.
+Los intentos intermedios se conservaron como fallidos. No cambió código de
+producto, ni se repitieron las mediciones y recorridos previamente aceptados.
+El manuscrito mantiene las mismas fuentes y su PDF inspeccionado; la nueva
+revisión requiere los gates remotos antes de integrarse.
+
 ## Contexto y acceso durable: aceptación local del 11 de octubre de 2026
 
 La [matriz finita](access-audit-matrix.md) conserva 222 pares funcionales y dos

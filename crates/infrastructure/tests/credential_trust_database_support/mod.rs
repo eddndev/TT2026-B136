@@ -53,6 +53,8 @@ impl Database {
             include_str!("../../../../migrations/0002_cases.sql"),
             include_str!("../../../../migrations/0003_case_documents_audit.sql"),
             MIGRATION,
+            include_str!("../../../../migrations/0027_audit_query_projection.sql"),
+            include_str!("../../../../migrations/0048_audit_event_context.sql"),
         ] {
             client.batch_execute(migration).unwrap();
         }
