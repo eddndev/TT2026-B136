@@ -10,6 +10,9 @@ use std::{
 };
 use time::Duration;
 
+#[path = "metadata.rs"]
+mod metadata;
+
 type Trace = Arc<Mutex<Vec<&'static str>>>;
 type Capture = Arc<Mutex<Option<(Principal, AuditEventQuery, OffsetDateTime)>>>;
 struct Store {

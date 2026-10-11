@@ -174,6 +174,7 @@ fn scenario(bind: &'static str, consumer_started: bool) {
         });
         let server = serve_start::ServerComponents {
             router,
+            audit_drain: web::AccessAuditDrain::default(),
             stop: Arc::new(crate::serve_stop::Stop::default()),
             password_reset: None,
             invitations: None,

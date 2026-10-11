@@ -146,6 +146,7 @@ fn entry_json(entry: &ChainedEvent) -> anyhow::Result<serde_json::Value> {
         "actor": entry.event.actor,
         "action": entry.event.action,
         "resource": entry.event.resource,
+        "context": entry.event.context,
         "chain": entry.chain.to_hex(),
     }))
 }

@@ -1,6 +1,6 @@
 use domain::{audit::AuditEvent, clock::OffsetDateTime};
 
-/// Aggregate UTF-8 bytes of stored actor, action and resource values per page.
+/// Aggregate UTF-8 bytes of actor, action, resource and serialized context per page.
 pub const MAX_AUDIT_PAGE_TEXT_BYTES: usize = 262_144;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

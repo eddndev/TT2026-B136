@@ -32,6 +32,24 @@ restaurar con autenticación renovada. Los dos recorridos de servicios reales en
 Owner de la denegación a Litigante. Los resultados y tiempos se registran en
 \rutarepo{docs/verification-report.md}; no se atribuyen a una campaña de CI.
 
+La extensión de procedencia conserva sus pruebas de codificación en
+\rutarepo{crates/domain/src/audit/context.rs}, las de persistencia en
+\rutarepo{crates/infrastructure/tests/audit_context_postgres.rs} y las del
+límite HTTP en \rutarepo{crates/web/src/access_audit/}. Distinguen contexto
+histórico ausente, identidad admitida, origen observado, cancelación y cierre.
+La matriz finita y el protocolo previo se conservan en
+\rutarepo{docs/access-audit-matrix.md} y
+\rutarepo{docs/access-audit-measurement.md}.
+
+La medición del servicio durable es un caso manual explícito de
+\rutarepo{crates/infrastructure/tests/audit_access_postgres.rs}; no se ejecuta
+por omisión en CI. El recolector
+\rutarepo{scripts/api-access-audit-demo.py} contrasta por UUID los tiempos del
+límite HTTP con los eventos confirmados en PostgreSQL. Sus poblaciones y límites
+se declaran por separado; los resultados están en
+\cref{sec:pruebas-bitacora-contexto}. La restauración conserva tanto los bytes
+antiguos como la extensión nueva, sin reconstruir identidad retrospectiva.
+
 La evaluación con personal del despacho requiere participantes reales y un
 registro de tareas, terminaciones, errores, asistencia y observaciones. El kit
 y sus plantillas están preparados, sin participantes ni resultados humanos. La

@@ -12,9 +12,11 @@
 //! enters this crate.
 
 pub mod chain;
+pub mod context;
 pub mod event;
 pub mod port;
 
 pub use chain::{chain_digest, verify_chain, ChainVerification, GENESIS_PREVIOUS};
+pub use context::{AuditContext, AuditSource};
 pub use event::{AuditEvent, ChainedEvent};
 pub use port::AuditLog;

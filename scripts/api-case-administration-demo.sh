@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Penal registration and case administration in api-demo.sh's disposable services.
+# Audit deltas check business atomicity; HTTP access outcomes are checked separately.
 
 administration_demo_request() {
   local method="$1" expected="$2" route="$3" token="$4" actual
@@ -49,7 +50,7 @@ administration_demo_closed() {
     -H 'Content-Type: application/json' --data '{"expected_revision":0,"administrative_status":"closed"}'
   jq -e '.administration.revision == 1 and .administration.profile == null
     and .administration.administrative_status == "closed" and .initial_stage == null' "$response" >/dev/null
-  before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   administration_demo_request POST 409 "$route/documents" "$RECOVERY_TOKEN" \
     -H 'X-Document-Name: denied.txt' --data-binary "@$WORK_DIR/document.txt"
   jq -e '.error.code == "case_closed"' "$response" >/dev/null
@@ -79,7 +80,7 @@ administration_demo_closed() {
   administration_demo_request PUT 409 "$route/administration" "$RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data "$(administration_demo_body Denied NUC-LEGACY CJ-LEGACY 1)"
   jq -e '.error.code == "case_closed"' "$response" >/dev/null
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" = "$before" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" = "$before" ]
   for endpoint in documents "documents/$DOCUMENT_ID/versions" participants administration \
     administration/history "documents/$DOCUMENT_ID/metadata/history" "participants/$PARTICIPANT_ID/history"; do
     administration_demo_request GET 200 "$route/$endpoint" "$RECOVERY_TOKEN"
@@ -124,7 +125,7 @@ administration_demo() {
   administration_demo_request GET 200 "/api/v1/cases/$legacy/administration/history" "$RECOVERY_TOKEN"
   jq -e '.revisions == [] and .has_more == false' "$response" >/dev/null
 
-  before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   roots="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM cases')"
   for input in "$(administration_demo_body Invalid ' ' CJ-INVALID)" \
     "$(administration_demo_body Invalid NUC-INVALID CJ-INVALID | jq '.profile.offenses = ["same"," same "]')" \
@@ -133,19 +134,19 @@ administration_demo() {
       -H 'Content-Type: application/json' --data "$input"
   done
   [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM cases')" = "$roots" ]
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" = "$before" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" = "$before" ]
 
-  before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   administration_demo_request POST 201 /api/v1/cases "$RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data '{"title":"Basic pending","reference":"BASIC"}'
   basic="$(jq -er '.id' "$response")"
   jq -e 'keys == ["created_by","id","reference","title"]' "$response" >/dev/null
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" -eq "$((before+3))" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((before+3))" ]
   administration_demo_request GET 200 "/api/v1/cases/$basic/administration" "$RECOVERY_TOKEN"
   jq -e '.administration.revision == 1 and .administration.profile == null
     and .administration.changed_by != null and .initial_stage == null' "$response" >/dev/null
   input="$(administration_demo_body ' Penal complete ' NUC-ADMIN CJ-ADMIN)"
-  before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   administration_demo_request POST 201 /api/v1/penal-cases "$litigator" \
     -H 'Content-Type: application/json' --data "$input"
   penal="$(jq -er '.id' "$response")"
@@ -160,7 +161,7 @@ administration_demo() {
     and .initial_stage.administration_digest == .administration.values_digest
     and .created_by == .administration.changed_by.id' "$response" >/dev/null
   stage="$(jq -Sc '.initial_stage' "$response")"
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" -eq "$((before+4))" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((before+4))" ]
   for role in paralegal client; do
     user="$(jq -er '.user.id' "$WORK_DIR/administration-$role-enrollment.json")"
     administration_demo_request PUT 204 "/api/v1/cases/$penal/members/$user" "$RECOVERY_TOKEN"
@@ -191,7 +192,7 @@ administration_demo() {
     jq -e '.error.code == "case_identifier_conflict"' "$response" >/dev/null
   done
 
-  before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   for side in left right; do
     curl -sS -o "$WORK_DIR/administration-$side.json" -w '%{http_code}' -X PUT \
       "$BASE_URL$route/administration" -H "Authorization: Bearer $RECOVERY_TOKEN" \
@@ -204,7 +205,7 @@ administration_demo() {
   wait "$right"
   statuses="$(cat "$WORK_DIR/administration-left.status" "$WORK_DIR/administration-right.status")"
   [[ "$statuses" = 200409 || "$statuses" = 409200 ]]
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" -eq "$((before+1))" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((before+1))" ]
   winner=left
   if [ "$(cat "$WORK_DIR/administration-right.status")" = 200 ]; then winner=right; fi
   title="Penal $winner"

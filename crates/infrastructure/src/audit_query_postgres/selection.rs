@@ -3,11 +3,13 @@ use application::{audit_query::*, ApplicationError};
 use postgres::Transaction;
 
 const PREFLIGHT: &str = r#"SELECT sequence,timestamp_seconds,timestamp_nanos,
-    octet_length(actor)::bigint+octet_length(action)::bigint+octet_length(resource)::bigint AS text_bytes
+    octet_length(actor)::bigint+octet_length(action)::bigint+octet_length(resource)::bigint
+    +coalesce(octet_length(context_json),0)::bigint AS text_bytes
     FROM audit_events WHERE sequence <= $1
     AND (timestamp_seconds,timestamp_nanos) >= ($2,$3)
     AND (timestamp_seconds,timestamp_nanos) < ($4,$5)
-    AND ($6::text IS NULL OR actor COLLATE "C"=$6 COLLATE "C")
+    AND ($6::text IS NULL OR actor COLLATE "C"=$6 COLLATE "C"
+        OR (context_json::jsonb->>'user_id') COLLATE "C"=$6 COLLATE "C")
     AND ($7::text IS NULL OR action COLLATE "C"=$7 COLLATE "C")
     AND ($8::text IS NULL OR resource COLLATE "C"=$8 COLLATE "C")
     AND ($9::bigint IS NULL OR (timestamp_seconds,timestamp_nanos,sequence)>($9,$10,$11))
@@ -63,7 +65,7 @@ pub(super) fn read(
         }
         sequences.push(row.get::<_, i64>("sequence"));
     }
-    let rows = tx.query("SELECT sequence,timestamp,actor,action,resource,chain,timestamp_seconds,timestamp_nanos
+    let rows = tx.query("SELECT sequence,timestamp,actor,action,resource,chain,context_json,timestamp_seconds,timestamp_nanos
         FROM audit_events WHERE sequence=ANY($1)
         ORDER BY timestamp_seconds,timestamp_nanos,sequence", &[&sequences]).map_err(port)?;
     if rows.len() != selected.len() {
@@ -78,6 +80,8 @@ pub(super) fn read(
         let event = crate::audit_postgres::decode_event(row)?.event;
         let position = AuditEventPosition::of(&event);
         actual_bytes += (event.actor.len() + event.action.len() + event.resource.len()) as u64;
+        actual_bytes += crate::audit::context::encode(event.context.as_ref())?
+            .map_or(0, |value| value.len()) as u64;
         if event.timestamp_rfc3339()? != text
             || position.seconds != seconds
             || i64::from(position.nanos) != i64::from(nanos)
@@ -87,7 +91,14 @@ pub(super) fn read(
             || event.sequence > snapshot
             || event.timestamp < query.from()
             || event.timestamp >= query.until()
-            || query.actor().is_some_and(|value| value != event.actor)
+            || query.actor().is_some_and(|value| {
+                value != event.actor
+                    && event
+                        .context
+                        .as_ref()
+                        .and_then(|context| context.user_id)
+                        .is_none_or(|id| value != id.to_string())
+            })
             || query.action().is_some_and(|value| value != event.action)
             || query
                 .resource()

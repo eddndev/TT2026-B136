@@ -4,7 +4,9 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, ErrorKind, Write};
 use std::path::PathBuf;
 
-use domain::audit::{chain_digest, AuditEvent, AuditLog, ChainedEvent, GENESIS_PREVIOUS};
+use domain::audit::{
+    chain_digest, AuditContext, AuditEvent, AuditLog, AuditSource, ChainedEvent, GENESIS_PREVIOUS,
+};
 use domain::crypto::{DocumentHasher, Sha256Digest};
 use domain::DomainError;
 use fs2::FileExt;
@@ -41,6 +43,8 @@ struct StoredEntry {
     actor: String,
     action: String,
     resource: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    context: Option<AuditContext>,
     /// Chain value as lower-case hex.
     chain: String,
 }
@@ -53,6 +57,7 @@ impl StoredEntry {
             actor: entry.event.actor.clone(),
             action: entry.event.action.clone(),
             resource: entry.event.resource.clone(),
+            context: entry.event.context.clone(),
             chain: entry.chain.to_hex(),
         })
     }
@@ -68,16 +73,15 @@ impl StoredEntry {
                 "line {line_number}: chain value is not 64 hex characters"
             ))
         })?;
-        Ok(ChainedEvent {
-            event: AuditEvent::new(
-                self.sequence,
-                timestamp,
-                self.actor,
-                self.action,
-                self.resource,
-            ),
-            chain,
-        })
+        let mut event = AuditEvent::new(
+            self.sequence,
+            timestamp,
+            self.actor,
+            self.action,
+            self.resource,
+        );
+        event.context = self.context;
+        Ok(ChainedEvent { event, chain })
     }
 }
 
@@ -182,7 +186,8 @@ impl<H: DocumentHasher> AuditLog for FileAuditLog<H> {
             Some((last_sequence, last_chain)) => (last_sequence + 1, last_chain),
             None => (0, GENESIS_PREVIOUS),
         };
-        let event = AuditEvent::new(sequence, timestamp, actor, action, resource);
+        let mut event = AuditEvent::new(sequence, timestamp, actor, action, resource);
+        event.context = Some(super::context::current(AuditSource::Cli)?);
         let chain = chain_digest(&self.hasher, &previous, &event)?;
         let entry = ChainedEvent { event, chain };
 

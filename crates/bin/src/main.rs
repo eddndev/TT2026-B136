@@ -95,7 +95,8 @@ fn main() -> anyhow::Result<()> {
 fn run(cli: Cli) -> anyhow::Result<()> {
     let name = cli.command.name();
     tracing::info!(command = name, json = cli.json, "command received");
-    match cli.command {
+    let server = matches!(&cli.command, Command::Serve(_));
+    let dispatch = || match cli.command {
         Command::Serve(args) => serve_cmd::run(&args),
         Command::Database { action } => database_cmd::run(action, cli.json),
         Command::CredentialTrust { action } => credential_trust_cmd::run(action, cli.json),
@@ -113,6 +114,62 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Package { action } => package_cmd::run(action, cli.json),
         Command::Auth { action } => auth_cmd::run(action, cli.json),
         Command::Audit { action } => audit_cmd::run(action, cli.json),
+    };
+    if server {
+        dispatch()
+    } else {
+        with_cli_audit_context(dispatch)
+    }
+}
+
+fn with_cli_audit_context<T>(operation: impl FnOnce() -> T) -> T {
+    use application::audit_context::AuditScope;
+    use domain::audit::{AuditContext, AuditSource};
+
+    AuditScope::new(AuditContext {
+        user_id: None,
+        ip_address: None,
+        source: AuditSource::Cli,
+        request_id: None,
+    })
+    .run(operation)
+}
+
+#[cfg(test)]
+mod cli_audit_context_tests {
+    use super::*;
+    use application::audit_context::{snapshot, AuditScope};
+    use domain::{
+        audit::{AuditContext, AuditSource},
+        identity::UserId,
+    };
+    use std::net::Ipv4Addr;
+    use uuid::Uuid;
+
+    #[test]
+    fn cli_boundary_discards_http_metadata_and_restores_the_outer_scope() {
+        let http = AuditContext {
+            user_id: Some(UserId::from_uuid(Uuid::from_u128(1))),
+            ip_address: Some(Ipv4Addr::new(192, 0, 2, 1).into()),
+            source: AuditSource::Http,
+            request_id: Some(Uuid::from_u128(2)),
+        };
+        AuditScope::new(http.clone()).run(|| {
+            let recorded = with_cli_audit_context(snapshot).unwrap();
+            assert_eq!(
+                recorded,
+                AuditContext {
+                    user_id: None,
+                    ip_address: None,
+                    source: AuditSource::Cli,
+                    request_id: None,
+                }
+            );
+            assert_eq!(snapshot().unwrap(), http);
+            let failure = with_cli_audit_context(|| Err::<(), _>("command failed"));
+            assert_eq!(failure, Err("command failed"));
+            assert_eq!(snapshot().unwrap(), http);
+        });
     }
 }
 

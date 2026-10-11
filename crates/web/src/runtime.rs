@@ -83,10 +83,14 @@ impl HttpRuntime {
             .acquire_owned()
             .await
             .map_err(|_| ApiError::internal())?;
+        let scope = crate::access_audit::current_scope();
         tokio::task::spawn_blocking(move || {
             // The worker owns its permit even if the HTTP future is dropped.
             let _permit = permit;
-            task()
+            match scope {
+                Some(scope) => scope.run(task),
+                None => task(),
+            }
         })
         .await
         .map_err(|_| ApiError::internal())?
@@ -101,7 +105,19 @@ pub(crate) fn protect(router: Router, runtime: HttpRuntime) -> Router {
 async fn admit(State(runtime): State<HttpRuntime>, mut request: Request, next: Next) -> Response {
     let access = crate::access_log::AccessAttempt::begin(&mut request);
     let mut response = match runtime.request_slots.try_acquire_owned() {
-        Ok(_permit) => next.run(request).await,
+        Ok(permit) => match crate::access_audit::reserve(&request) {
+            Some(admission) => tokio::spawn(async move {
+                // Both owners survive cancellation and remain visible to shutdown drainage.
+                let (_permit, _admission) = (permit, admission);
+                crate::access_audit::execute(request, next).await
+            })
+            .await
+            .unwrap_or_else(|_| ApiError::internal().into_response()),
+            None => {
+                let _permit = permit;
+                next.run(request).await
+            }
+        },
         Err(_) => ApiError::busy().into_response(),
     };
     response

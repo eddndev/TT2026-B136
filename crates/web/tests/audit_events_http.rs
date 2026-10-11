@@ -82,7 +82,8 @@ async fn exact_public_fields_preserve_nanoseconds_and_signed_64_bit_sequences() 
     assert_eq!(body["checked_at"], "2026-10-02T01:02:03.123456789Z");
     assert_eq!(body["events"][0]["resource"], "literal <resource>");
     assert_eq!(body.as_object().unwrap().len(), 5);
-    assert_eq!(body["events"][0].as_object().unwrap().len(), 5);
+    assert_eq!(body["events"][0].as_object().unwrap().len(), 6);
+    assert_eq!(body["events"][0]["context"], Value::Null);
     let calls = workflow.calls.lock().unwrap();
     assert_eq!(calls[0].0, "owner-session");
     assert_eq!(calls[0].1.limit(), 20);
@@ -91,6 +92,26 @@ async fn exact_public_fields_preserve_nanoseconds_and_signed_64_bit_sequences() 
         calls[0].1.until(),
         instant("2026-10-02T00:00:00.987654321Z")
     );
+}
+
+#[tokio::test]
+async fn query_response_preserves_typed_context_without_resolving_historical_labels() {
+    let mut value = page();
+    let context = domain::audit::AuditContext {
+        user_id: Some(domain::identity::UserId::new()),
+        ip_address: Some("2001:db8::17".parse().unwrap()),
+        source: domain::audit::AuditSource::Http,
+        request_id: Some(uuid::Uuid::new_v4()),
+    };
+    value.events[0].context = Some(context.clone());
+    let (_, router) = setup(Ok(value));
+    let (status, body) = request(router, QUERY, Some("Bearer owner-session")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        body["events"][0]["context"],
+        serde_json::to_value(context).unwrap()
+    );
+    assert_eq!(body["events"][0]["actor"], "owner@example.test");
 }
 #[tokio::test]
 async fn utf8_exact_filters_and_canonical_cursor_reach_the_workflow() {

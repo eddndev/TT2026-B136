@@ -21,6 +21,9 @@ pub(crate) struct AccessAttempt {
 }
 
 impl AccessAttempt {
+    pub(crate) fn request_id(&self) -> Uuid {
+        self.request_id
+    }
     pub(crate) fn begin(request: &mut Request) -> Option<Self> {
         if request.method() != Method::POST {
             return None;

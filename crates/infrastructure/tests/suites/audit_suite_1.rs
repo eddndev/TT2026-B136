@@ -1,4 +1,10 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
+#[path = "../audit_access_postgres.rs"]
+mod audit_access_postgres;
+#[path = "../audit_context_file.rs"]
+mod audit_context_file;
+#[path = "../audit_context_postgres.rs"]
+mod audit_context_postgres;
 #[path = "../audit_log.rs"]
 mod audit_log;
 #[path = "../audit_query_postgres.rs"]

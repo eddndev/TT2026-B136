@@ -47,7 +47,116 @@ no pudo acceder mediante navegación ni HTTP. Los mismos 3198 archivos fuente
 permanecieron idénticos. Estos tiempos son duraciones de aceptación, no la
 latencia de registro exigida por la \cref{tab:rf-20}.
 
-El CI, la integración y la activación del incremento continúan pendientes. También
-permanecen la identificación estable del usuario, la dirección IP y el anclaje
-externo delimitados en la \cref{sec:diseno-bitacora}. La aceptación local no
-completa el catálogo ni sustituye la evaluación con usuarios del despacho.
+Los resultados anteriores corresponden a la consulta base y no acreditan por
+sí mismos la extensión de contexto y acceso descrita a continuación. La
+aceptación local no completa el catálogo ni sustituye la evaluación con usuarios
+del despacho; integración, activación y evidencia de cada incremento se
+registran por separado.
+
+\subsection{Contexto observado y registro durable de acceso}
+\label{sec:pruebas-bitacora-contexto}
+La extensión incorpora un contexto opcional con UUID de cuenta, dirección
+IPv4 o IPv6, origen HTTP, CLI o interno y UUID de correlación. La identidad de
+cuenta solo se vincula tras admitir una sesión vigente; el texto histórico del
+actor no se convierte en una identidad comprobada. Los campos no observados
+permanecen nulos. Los procesos CLI e internos no reciben una IP ni un usuario
+inventados. La dirección procede del par de conexión por omisión; confiar en
+una única IP de \texttt{X-Forwarded-For} requiere habilitar expresamente el modo
+de proxy loopback, cuyo Nginx sobrescribe ese encabezado. Esta observación no
+identifica por sí sola a una persona.
+
+Los registros sin contexto conservan sus bytes canónicos. Solo un contexto
+presente añade la extensión versionada \texttt{AUDCTX01}, cubierta por el hash
+de cadena. La columna nueva admite nulos y no reconstruye UUID ni direcciones
+de filas antiguas. Los lectores, exportadores y recorridos de importación y
+restauración deben preservar tanto la ausencia histórica como el contexto nuevo.
+La verificación criptográfica completa continúa siendo una operación separada
+de la consulta filtrada; el anclaje externo mantiene su límite previo.
+
+Después del manejador de una solicitud admitida se anexa un resultado de acceso
+independiente de los eventos transaccionales de negocio. Los estados 2xx se
+registran como \texttt{access.granted}; 401 y 403, como
+\texttt{access.denied}; los demás estados que no sean 5xx, como
+\texttt{access.rejected}; y 5xx, como \texttt{access.failed}. Un 404 no permite
+distinguir ausencia del recurso de ocultamiento por autorización. Una respuesta
+pública exitosa tampoco acredita existencia de cuenta, MFA completo o entrega
+de correo. Estas acciones no reclasifican retroactivamente los eventos antiguos.
+
+El propietario de la solicitud conserva su permiso hasta terminar el manejador
+y el anexado, aunque el cliente se desconecte. El cierre ordenado debe esperar
+también esas solicitudes; no equivale a sobrevivir a la pérdida abrupta del
+proceso. Si el escritor de auditoría falla, la respuesta final es un 500 genérico.
+Una transacción de negocio puede haberse confirmado antes, por lo que ese error
+no demuestra reversión ni permite un reintento automático. La saturación que
+produce 503 antes de admitir la petición queda fuera de la población ejecutada.
+
+La consulta Owner conserva sus rutas, autorización y continuaciones. Cada evento
+expone \texttt{context: null} o el objeto de cuatro campos. El filtro existente
+\texttt{actor} admite coincidencia exacta con el actor capturado o con el UUID
+registrado en \texttt{context.user\_id}, sin buscar cuentas actuales ni añadir
+parámetros. El presupuesto de 262144 bytes suma actor, acción, recurso y el JSON
+compacto completo del contexto; la ausencia de contexto aporta cero bytes. La
+interfaz distingue los valores no disponibles y obtiene el resultado de las
+cuatro acciones, sin un campo adicional ni una nueva analítica.
+
+El protocolo de rendimiento mide desde antes de esperar al escritor de acceso
+hasta la confirmación durable de su commit, incluidas esperas y anexado. Excluye
+el cálculo de negocio y el tiempo HTTP anteriores. Requiere muestras individuales
+con resultado de persistencia, máximo y distribución, junto con host, volumen de
+historia y concurrencia. La media o el percentil 95 no sustituyen el criterio
+estricto por operación de la \cref{tab:rf-20}. La cobertura de transporte y permisos,
+la historia mixta, restauración, cancelación y cierre conservan sus comprobaciones
+funcionales, separadas de las poblaciones de rendimiento descritas a continuación.
+La política de documentos para Client permanece como decisión humana separada.
+
+El contrato está versionado en \rutarepo{docs/audit-events-api.md}; la decisión,
+en \rutarepo{docs/adr/0077-durable-access-audit-context.md}; y el catálogo finito,
+escenarios y protocolo de aceptación, en \rutarepo{docs/access-audit-matrix.md}.
+
+El protocolo de medición del escritor durable fijó antes de ejecutar 222 cargas
+de método y ruta, cuatro resultados y tres repeticiones para concurrencias uno
+y ocho. Cada población comenzó con mil eventos encadenados y utilizó PostgreSQL
+16.15 con \texttt{fsync}, \texttt{full\_page\_writes} y
+\texttt{synchronous\_commit} activos. Las 5328 muestras conservaron tiempos
+individuales y correspondencia con eventos; ninguna falló ni alcanzó el límite
+estricto de 500 milisegundos. La historia original y la cadena mixta permanecieron
+válidas al abrir una conexión nueva.
+
+Los máximos fueron 7.506391 milisegundos con concurrencia uno y 111.535470 con
+ocho. Los percentiles 50, 95 y 99, calculados por rango más próximo, fueron
+2.110918, 2.516467 y 2.820506 milisegundos para la primera población, y
+10.709603, 22.677269 y 83.501021 para la segunda. Ningún percentil sustituyó la
+comprobación de cada muestra. El equipo utilizó Ryzen 7 7730U, aproximadamente
+16 GB de RAM, Linux 7.2.9 y almacenamiento NVMe con Btrfs; el perfil de pruebas
+conservó depuración y compilación sin optimizar.
+
+El intervalo comprendió despacho a trabajadores acotados, espera del mutex,
+bloqueo SQL, inserción y confirmación. Excluyó preparación, apertura de conexión,
+HTTP y cola Tokio. Las nueve muestras iniciales correspondieron a escritores
+recién abiertos, sin afirmar cachés de disco frías. Se midió el servicio de
+persistencia con cargas del catálogo; los resultados no acreditan por sí mismos
+la autorización real de cada ruta ni la duración completa de una solicitud.
+
+La población HTTP utilizó cinco generaciones de servidor, con un máximo de dos
+simultáneas durante la carrera de sellado y ocho solicitudes admitidas por
+servidor. Se conciliaron 2347 escrituras con sus eventos PostgreSQL: 1824
+concedidas, 216 denegadas y 307 rechazadas. Se observaron 207 de las 222
+operaciones del catálogo; no se atribuyen tiempos HTTP a las otras quince.
+Los cuatro resultados, incluido el fallo 5xx no observado en esta población,
+conservan comprobaciones separadas en el límite HTTP y el escritor directo.
+
+Cada escritura HTTP quedó por debajo de 500 milisegundos. El mínimo fue 1.751,
+el máximo 179.653 y los percentiles 50, 95 y 99 fueron 2.401, 27.028 y 93.135
+milisegundos. La captura contenía 6756 eventos, uno anterior al primer acceso,
+y mantuvo activas las tres opciones de durabilidad PostgreSQL. El intervalo
+incluyó cola Tokio, mutex, trabajo SQL y commit; excluyó ejecución del manejador,
+admisión HTTP y espera previa de su presupuesto de trabajo. Estos resultados
+no representan concurrencia ocho sostenida ni una garantía de producción.
+
+El recorrido funcional preservó permisos y evidencias después de reiniciar y
+restaurar, incluidas versiones documentales, recibos, originales procesales y
+sesiones invalidadas antes de renovar MFA. Qadra permitió al Owner consultar
+el contexto y rechazó al Litigante; el historial sin metadatos siguió mostrando
+su ausencia. El catálogo sintético comprueba la capa común para todas las
+parejas; las fixtures de cada familia comprueban sus permisos existentes. La
+medición HTTP conserva explícitamente su subconjunto observado.

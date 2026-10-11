@@ -97,6 +97,13 @@ fn validate_batch(
                 .filter(|value| *value <= MAX_AUDIT_PAGE_TEXT_BYTES)
                 .ok_or(ApplicationError::AuditQueryCapacityExceeded)?;
         }
+        if let Some(context) = &event.context {
+            let context_bytes = serde_json::to_vec(context).map_err(|_| inconsistent())?;
+            text_bytes = text_bytes
+                .checked_add(context_bytes.len())
+                .filter(|value| *value <= MAX_AUDIT_PAGE_TEXT_BYTES)
+                .ok_or(ApplicationError::AuditQueryCapacityExceeded)?;
+        }
         previous = Some(position);
     }
     Ok(())

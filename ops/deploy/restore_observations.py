@@ -140,7 +140,7 @@ def observe(root, targets, tools):
     configured = dict(zip(fields[::2], fields[1::2]))
     if (set(configured) != {"dir", "dbfilename", "appendonly", "appenddirname"}
             or configured["dir"] != str(targets["redis"]["directory"])
-            or configured["dbfilename"] != "redis.rdb" or configured["appenddirname"] != "appendonlydir"
+            or configured["dbfilename"] != "redis.rdb" or configured["appenddirname"] != "redis-appendonly"
             or configured["appendonly"] not in ("yes", "no")):
         raise ValueError("restore Redis persistence differs from its private profile")
     persistence = info(redis_read(tools, config, "INFO", "persistence"))

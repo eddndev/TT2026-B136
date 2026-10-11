@@ -48,10 +48,15 @@ async function visibleEvents(page, events) {
       event.action,
       event.resource,
       event.sequence,
+      event.context?.user_id ?? 'No disponible',
+      event.context?.ip_address ?? 'No disponible',
+      { http: 'HTTP', cli: 'CLI', internal: 'Interno' }[event.context?.source] ?? 'No disponible',
+      'No disponible',
     ]);
     expect(Object.keys(event).sort()).toEqual([
       'action',
       'actor',
+      'context',
       'resource',
       'sequence',
       'timestamp',

@@ -257,6 +257,7 @@ impl MemoryUsers {
         self.set_access(id, role, false);
     }
 }
+mod audit_context_cases;
 mod failure_tests;
 mod inactivity_cases;
 pub mod invalid_email;

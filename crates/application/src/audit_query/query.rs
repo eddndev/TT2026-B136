@@ -87,7 +87,14 @@ impl AuditEventQuery {
     pub(super) fn matches(&self, event: &AuditEvent) -> bool {
         event.timestamp >= self.from
             && event.timestamp < self.until
-            && self.actor().is_none_or(|value| value == event.actor)
+            && self.actor().is_none_or(|value| {
+                value == event.actor
+                    || event
+                        .context
+                        .as_ref()
+                        .and_then(|context| context.user_id)
+                        .is_some_and(|user| value == user.to_string())
+            })
             && self.action().is_none_or(|value| value == event.action)
             && self.resource().is_none_or(|value| value == event.resource)
     }

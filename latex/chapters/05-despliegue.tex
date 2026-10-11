@@ -110,6 +110,29 @@ el formato real y la limpieza de archivos temporales. Esta aceptación no cubre
 reapertura operacional, pérdida de controles posteriores al respaldo ni emisión
 y consumo de un nuevo enlace mediante HTTP después de restaurar.
 
+El 11 de octubre de 2026 se reprodujo una discrepancia entre el nombre AOF
+provisionado, \texttt{redis-appendonly}, y el nombre predeterminado
+\texttt{appendonlydir} exigido por el observador. La corrección local conserva
+el destino exacto y acepta exclusivamente el perfil provisionado. Seis casos
+independientes comprueban captura y admisión correctas, y rechazo de nombre
+predeterminado, nombre ajeno, ruta relativa al padre, archivo RDB distinto y
+directorio ajeno. El conjunto focal de restauración aprobó 69 pruebas en
+3.617~s, sin ampliar los motores admitidos.
+
+El ensayo poblado con PostgreSQL 16.15 y Redis 7.4.11 aprobó un caso en
+32.809~s, incluidos preparación y limpieza; el cuerpo del caso midió
+27.774~s. Utilizó el paquete íntegro \texttt{v0.1.4} de \texttt{dd0b32f8}, sin
+reconstrucción, junto al controlador local corregido. La captura publicó y
+admitió el descriptor antes de restaurar. Conservó dos usuarios, cuatro estados
+de recuperación y quince eventos originales; invalidó dos capacidades, añadió
+un evento y recuperó el mismo recibo al repetir la operación. Siete controles
+y claves ajenas Redis conservaron valores y vencimientos tras restauración y
+reinicio AOF. Los motores, API, PKI y auditoría fueron reales; únicamente la
+observación de unidades se sustituyó por un doble de procesos propios. No hubo
+ingreso público ni correo externo. Esta aceptación aislada no acredita
+integración, instalación del controlador corregido ni emisión del recibo
+automático en producción.
+
 La parada interna añadió trece casos de protocolo y ocho de observadores,
 aprobados en 0.223~s; las seis regresiones de admisión aprobaron en 0.261~s.
 Se ejercitaron bloqueo continuo, publicación durable, parada parcial, identidad

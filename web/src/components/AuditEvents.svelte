@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import '../styles/audit-events.css';
+  import { auditOutcomeLabel, auditSourceLabel } from '../lib/audit-event-context.mjs';
   export let api, user;
   const day = (value) => value.toISOString().slice(0, 10);
   const today = new Date();
@@ -128,7 +129,7 @@
           autocomplete="off"
           bind:value={actor}
           oninput={clear}
-          placeholder="Texto exacto, opcional"
+          placeholder="Texto o UUID exacto, opcional"
         /></label
       >
       <label
@@ -160,7 +161,8 @@
     </form>
     <p class="hint">
       El periodo usa d&#237;as UTC y puede abarcar hasta 366 d&#237;as. Los filtros de texto
-      distinguen may&#250;sculas y espacios.
+      distinguen may&#250;sculas y espacios. Actor admite el texto registrado o la identidad de
+      cuenta capturada; no reconstruye identidades hist&#243;ricas.
     </p>
     {#if busy}<p role="status">Consultando la actividad registrada...</p>
     {:else if error}<p class="notice error" role="alert">{error}</p>
@@ -191,6 +193,22 @@
                 <div>
                   <dt>Secuencia</dt>
                   <dd>{event.sequence}</dd>
+                </div>
+                <div>
+                  <dt>Identidad de cuenta</dt>
+                  <dd>{event.context?.user_id ?? 'No disponible'}</dd>
+                </div>
+                <div>
+                  <dt>IP de origen</dt>
+                  <dd>{event.context?.ip_address ?? 'No disponible'}</dd>
+                </div>
+                <div>
+                  <dt>Origen</dt>
+                  <dd>{auditSourceLabel(event.context)}</dd>
+                </div>
+                <div>
+                  <dt>Resultado</dt>
+                  <dd>{auditOutcomeLabel(event)}</dd>
                 </div>
               </dl>
             </li>

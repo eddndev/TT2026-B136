@@ -375,8 +375,10 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 Some(individual_signing),
                 invitation_http,
             )?;
+            let (router, audit_drain) = crate::serve_audit_composition::protect(database, router)?;
             let server = crate::serve_start::ServerComponents {
                 router,
+                audit_drain,
                 stop,
                 password_reset: recovery_runtime,
                 invitations: invitation_consumer,

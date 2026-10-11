@@ -40,6 +40,12 @@ hechos deben ser estables entre ambas observaciones, incluido el inventario del
 cliente PostgreSQL usado para recogerlos. No se cambia el modo AOF ni se acepta
 una reescritura en curso.
 
+El perfil Redis exige el directorio de datos exacto del destino,
+`dbfilename redis.rdb` y `appenddirname redis-appendonly`, como los genera
+`ops/deploy/host.py`. El nombre predeterminado `appendonlydir`, otro nombre o
+un destino distinto se rechazan antes de comenzar el dump. Esta comprobación
+no añade compatibilidad con otros perfiles ni modifica la configuración Redis.
+
 La operación toma `deploy.lock` y respeta las dos barreras de mantenimiento. Exige
 API/web detenidos; no los detiene ni drena por sí misma. El llamador debe mantener
 cerrados sus escritores durante toda la captura. Ausencia momentánea de clientes
@@ -146,6 +152,25 @@ python3 -B scripts/tests/test_deployment_certificate_login_snapshot.py
 ```
 
 ## Verificación y alcance pendiente
+
+El 11 de octubre de 2026 se reprodujo que la captura rechazaba el perfil
+provisionado `redis-appendonly` y aceptaba incorrectamente `appendonlydir`.
+La corrección local alinea únicamente ese nombre. La prueba
+`scripts/tests/test_deploy_restore_provisioned_profile.py` obtiene el perfil de
+`host.prepare` y comprueba captura/admisión, nombre por defecto, nombre ajeno,
+ruta relativa al padre, nombre RDB ajeno y directorio distinto. Cada caso tiene
+su propia fixture. El conjunto focal de restauración aprobó 69 pruebas en
+3.617 s, incluidos esos seis casos.
+
+El ensayo poblado `scripts/tests/native_restore_acceptance.py` aprobó un caso
+en 32.809 s con preparación y limpieza; su medición interna fue de 27.774 s.
+Usó PostgreSQL 16.15, Redis 7.4.11 y el paquete íntegro `v0.1.4` de `dd0b32f8`,
+sin reconstruirlo, junto al controlador local corregido. La fixture nativa
+declara `redis-appendonly` y la captura emite y admite el descriptor antes de
+restaurar. Los motores, API, archivos y auditoría fueron reales; la observación
+de unidades fue un doble de procesos propios. No hubo ingreso público ni
+correo externo. La integración, instalación y comprobación de este recibo
+automático en producción conservan aceptación separada pendiente.
 
 La verificación local del 3 de octubre de 2026 aprobó ocho recorridos de captura
 e invalidación tras reproducir la ausencia de ambas entradas, más veinte pruebas

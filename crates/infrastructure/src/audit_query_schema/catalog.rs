@@ -11,6 +11,7 @@ const COLUMNS: &[(&str, &str, &str)] = &[
     ("chain", "bytea", ""),
     ("timestamp_seconds", "bigint", "s"),
     ("timestamp_nanos", "integer", "s"),
+    ("context_json", "text", ""),
 ];
 
 pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
@@ -64,7 +65,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         };
         if row.get::<_, String>(0) != *name
             || row.get::<_, String>(1) != *kind
-            || !row.get::<_, bool>(2)
+            || row.get::<_, bool>(2) != (*name != "context_json")
             || row.get::<_, String>(3) != *generated
             || !row.get::<_, String>(4).is_empty()
             || !row.get::<_, bool>(5)
@@ -109,7 +110,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             &[],
         )
         .map_err(port)?;
-    if rows.len() != 3 {
+    if rows.len() != 4 {
         return Err(incomplete());
     }
     for row in rows {
@@ -119,6 +120,11 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             "audit_events_pkey" => ("p", None, &["sequence"]),
             "audit_events_sequence_check" => ("c", Some("sequence>=0"), &["sequence"]),
             "audit_events_chain_check" => ("c", Some("octet_lengthchain=32"), &["chain"]),
+            "audit_events_context_json_check" => (
+                "c",
+                Some("octet_lengthcontext_json<=1024"),
+                &["context_json"],
+            ),
             _ => return Err(incomplete()),
         };
         if row.get::<_, String>(1) != kind

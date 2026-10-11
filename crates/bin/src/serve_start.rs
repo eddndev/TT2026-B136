@@ -20,6 +20,7 @@ pub(crate) struct PasswordResetRuntime {
 
 pub(crate) struct ServerComponents {
     pub router: axum::Router,
+    pub audit_drain: web::AccessAuditDrain,
     pub stop: Arc<Stop>,
     pub password_reset: Option<PasswordResetRuntime>,
     pub invitations: Option<crate::serve_invitation_runtime::InvitationConsumer>,
@@ -42,6 +43,7 @@ where
     // Keep these owners outside block_on: synchronous PostgreSQL drops may block.
     let ServerComponents {
         router,
+        audit_drain,
         stop,
         password_reset,
         invitations,
@@ -122,11 +124,16 @@ where
         let (http_shutdown, shutdown) = tokio::sync::oneshot::channel();
         let server_router = router.clone();
         let http = async move {
-            axum::serve(listener, server_router)
-                .with_graceful_shutdown(async {
-                    let _ = shutdown.await;
-                })
-                .await
+            let result = axum::serve(
+                listener,
+                server_router.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+            )
+            .with_graceful_shutdown(async {
+                let _ = shutdown.await;
+            })
+            .await;
+            audit_drain.drain().await;
+            result
         };
         println!("listening on http://{address}");
         tracing::info!(bind = %address, "local http application started");

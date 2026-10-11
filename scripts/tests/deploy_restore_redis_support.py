@@ -57,7 +57,7 @@ class RedisCommands:
                     "aof_rewrite_scheduled:0\r\naof_last_bgrewrite_status:ok\r\n")
         if name == "CONFIG" and command[1] == "GET":
             available = {"dir": self.config_directory, "dbfilename": "redis.rdb",
-                         "appendonly": "yes", "appenddirname": "appendonlydir"}
+                         "appendonly": "yes", "appenddirname": "redis-appendonly"}
             return [item for key in command[2:] for item in (key, available[key])]
         if name == "SCAN":
             self.scan_calls += 1

@@ -5,6 +5,7 @@
 //! the trail across process runs. Both compute chain values with the chain
 //! rule defined in the domain, through any `DocumentHasher` implementation.
 
+pub(crate) mod context;
 mod file;
 mod memory;
 

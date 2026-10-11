@@ -79,6 +79,7 @@ impl IdentityService {
             if grant.state.absolute_expires_at_unix_ms > policy_ceiling {
                 return Err(ApplicationError::MfaRejected);
             }
+            crate::audit_context::bind_actor(principal.id).map_err(mfa_error)?;
             self.audit(&principal.email, action, &principal.id.to_string())?;
             if matches!(
                 admission.authentication,

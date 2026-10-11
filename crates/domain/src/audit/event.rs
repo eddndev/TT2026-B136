@@ -3,6 +3,7 @@
 use time::format_description::well_known::Rfc3339;
 use time::{OffsetDateTime, UtcOffset};
 
+use super::AuditContext;
 use crate::crypto::digest::Sha256Digest;
 use crate::error::DomainError;
 
@@ -24,6 +25,8 @@ pub struct AuditEvent {
     pub action: String,
     /// Resource the action applied to.
     pub resource: String,
+    /// Optional observed metadata; absent for events without a recorded context.
+    pub context: Option<AuditContext>,
 }
 
 impl AuditEvent {
@@ -41,6 +44,7 @@ impl AuditEvent {
             actor: actor.into(),
             action: action.into(),
             resource: resource.into(),
+            context: None,
         }
     }
 
@@ -75,7 +79,12 @@ impl AuditEvent {
     /// actor      4-byte length || UTF-8 bytes
     /// action     4-byte length || UTF-8 bytes
     /// resource   4-byte length || UTF-8 bytes
+    /// context    no bytes when absent, otherwise the AUDCTX01 extension
     /// ```
+    ///
+    /// The context extension uses the fixed typed layout documented in
+    /// [`AuditContext`]. Events without context retain this legacy encoding
+    /// byte for byte, without an additional marker or presence flag.
     ///
     /// This encoding exists only for hashing. How an event is stored is a
     /// separate concern of each audit log adapter.
@@ -93,6 +102,9 @@ impl AuditEvent {
         push_length_prefixed(&mut bytes, self.actor.as_bytes())?;
         push_length_prefixed(&mut bytes, self.action.as_bytes())?;
         push_length_prefixed(&mut bytes, self.resource.as_bytes())?;
+        if let Some(context) = &self.context {
+            context.append_canonical(&mut bytes);
+        }
         Ok(bytes)
     }
 }
@@ -122,6 +134,11 @@ pub struct ChainedEvent {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::audit::{AuditContext, AuditSource};
+    use crate::identity::UserId;
+    use sha2::{Digest, Sha256};
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+    use uuid::Uuid;
 
     fn sample_timestamp() -> OffsetDateTime {
         OffsetDateTime::from_unix_timestamp(1_735_689_600).unwrap()
@@ -216,5 +233,127 @@ mod tests {
             event.canonical_bytes(),
             Err(DomainError::TimestampNotRepresentable(_))
         ));
+    }
+
+    #[test]
+    fn absent_context_preserves_the_exact_legacy_encoding() {
+        let mut event = AuditEvent::new(7, sample_timestamp(), "ana", "open", "case-1");
+        let expected = b"\0\0\0\0\0\0\0\x07\0\0\0\x142025-01-01T00:00:00Z\0\0\0\x03ana\0\0\0\x04open\0\0\0\x06case-1";
+        assert_eq!(event.context, None);
+        assert_eq!(event.canonical_bytes().unwrap(), expected);
+
+        event.context = Some(AuditContext {
+            user_id: None,
+            ip_address: None,
+            source: AuditSource::Internal,
+            request_id: None,
+        });
+        assert_ne!(event.canonical_bytes().unwrap(), expected);
+        event.context = None;
+        assert_eq!(event.canonical_bytes().unwrap(), expected);
+    }
+
+    #[test]
+    fn canonical_bytes_and_sha256_bind_each_context_field_and_presence() {
+        let context = AuditContext {
+            user_id: Some(UserId::from_uuid(Uuid::from_u128(1))),
+            ip_address: Some(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1))),
+            source: AuditSource::Http,
+            request_id: Some(Uuid::from_u128(2)),
+        };
+        let variants = [
+            ("complete", context.clone()),
+            (
+                "different_user",
+                AuditContext {
+                    user_id: Some(UserId::from_uuid(Uuid::from_u128(3))),
+                    ..context.clone()
+                },
+            ),
+            (
+                "unavailable_user",
+                AuditContext {
+                    user_id: None,
+                    ..context.clone()
+                },
+            ),
+            (
+                "different_ip",
+                AuditContext {
+                    ip_address: Some(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 2))),
+                    ..context.clone()
+                },
+            ),
+            (
+                "ipv6",
+                AuditContext {
+                    ip_address: Some(IpAddr::V6(Ipv6Addr::LOCALHOST)),
+                    ..context.clone()
+                },
+            ),
+            (
+                "unavailable_ip",
+                AuditContext {
+                    ip_address: None,
+                    ..context.clone()
+                },
+            ),
+            (
+                "cli",
+                AuditContext {
+                    source: AuditSource::Cli,
+                    ..context.clone()
+                },
+            ),
+            (
+                "internal",
+                AuditContext {
+                    source: AuditSource::Internal,
+                    ..context.clone()
+                },
+            ),
+            (
+                "different_request",
+                AuditContext {
+                    request_id: Some(Uuid::from_u128(4)),
+                    ..context.clone()
+                },
+            ),
+            (
+                "unavailable_request",
+                AuditContext {
+                    request_id: None,
+                    ..context
+                },
+            ),
+        ];
+        let mut encodings = Vec::new();
+        for (name, context) in variants {
+            let mut event = AuditEvent::new(0, sample_timestamp(), "ana", "open", "case-1");
+            event.context = Some(context);
+            let bytes = event.canonical_bytes().unwrap();
+            let hash = Sha256::digest(&bytes);
+            for (previous_name, previous_bytes, previous_hash) in &encodings {
+                assert_ne!(&bytes, previous_bytes, "{name} aliases {previous_name}");
+                assert_ne!(&hash, previous_hash, "{name} aliases {previous_name}");
+            }
+            encodings.push((name, bytes, hash));
+        }
+    }
+
+    #[test]
+    fn unavailable_context_fields_are_distinct_from_a_legacy_event() {
+        let legacy = AuditEvent::new(0, sample_timestamp(), "ana", "open", "case-1");
+        let mut recorded = legacy.clone();
+        recorded.context = Some(AuditContext {
+            user_id: None,
+            ip_address: None,
+            source: AuditSource::Internal,
+            request_id: None,
+        });
+        let legacy_bytes = legacy.canonical_bytes().unwrap();
+        let recorded_bytes = recorded.canonical_bytes().unwrap();
+        assert_ne!(legacy_bytes, recorded_bytes);
+        assert_ne!(Sha256::digest(legacy_bytes), Sha256::digest(recorded_bytes));
     }
 }

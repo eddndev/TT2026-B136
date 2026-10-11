@@ -13,6 +13,7 @@ const row = (change = {}) => ({
   actor: 'system',
   action: 'read',
   resource: 'record',
+  context: null,
   ...change,
 });
 const page = (change = {}) => ({

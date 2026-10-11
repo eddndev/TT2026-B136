@@ -1165,14 +1165,72 @@ controlado en el [informe de verificación](verification-report.md).
 
 `GET /api/v1/audit/events` consulta eventos existentes mediante un intervalo
 RFC3339 exacto, filtros de texto y continuación estable. Es exclusiva de Owner,
-acota cada página y conserva nanosegundos y secuencias sin redondeo. La página no
-infiere UUID de actor ni dirección IP histórica. La operación independiente
-`GET /api/v1/audit/verify` sigue verificando la cadena completa.
+acota cada página y conserva nanosegundos y secuencias sin redondeo. Cada evento
+incluye `context: null` cuando no se capturó contexto, o un objeto con
+`user_id`, `ip_address`, `source` y `request_id`. Los identificadores son UUID o
+`null`, la dirección es IPv4/IPv6 o `null` y el origen es `http`, `cli` o
+`internal`. No se infieren UUID de actor ni direcciones IP históricas. El actor
+textual del evento de negocio conserva su valor original.
 
-La aceptación local de API/restauración y navegador real aprobó; CI, integración
-y activación de esta entrega conservan comprobación separada. El contrato,
-límites y errores están en [consulta de actividad](audit-events-api.md) y en
-[la decisión de diseño](adr/0061-bounded-owner-audit-query.md).
+El filtro `actor` coincide con el texto exacto capturado o con la representación
+canónica exacta del UUID capturado en `context.user_id`; no resuelve correos ni
+consulta cuentas actuales. El presupuesto de 262144 bytes por página incluye
+actor, acción, recurso y el JSON compacto completo del contexto; `null` añade
+cero bytes de contexto. Se conservan la autorización Owner, la secuencia de
+captura y las comprobaciones del cursor. La operación independiente
+`GET /api/v1/audit/verify` sigue verificando la cadena completa, incluidos los
+metadatos nuevos, sin cambiar los bytes canónicos de eventos sin contexto.
+
+El contrato completo está en [consulta de actividad](audit-events-api.md),
+[la decisión de consulta](adr/0061-bounded-owner-audit-query.md) y
+[la extensión de contexto](adr/0077-durable-access-audit-context.md). La aceptación
+histórica de la consulta no acredita la de esta extensión; cobertura,
+restauración, integración y activación conservan comprobación separada.
+
+## Registro durable de acceso HTTP
+
+Una petición admitida a una ruta reconocida del catálogo `/api/v1/` registra
+un evento adicional después del resultado del handler y antes de entregar su
+respuesta. El resultado se expresa en `action`, sin añadir otro campo:
+
+| Estado observado del handler | Acción |
+| --- | --- |
+| 2xx | `access.granted` |
+| 401 o 403 | `access.denied` |
+| Otro estado no 5xx | `access.rejected` |
+| 5xx | `access.failed` |
+
+Un `404` no distingue entre recurso inexistente y recurso oculto; `409` y `422`
+no prueban denegación de permisos. Una respuesta pública exitosa tampoco prueba
+existencia de una cuenta, MFA completado, correo entregado ni mutación de negocio.
+El rechazo de un método sobre una ruta reconocida, incluido el tratamiento de
+`HEAD`, es un resultado de transporte. Health checks, archivos estáticos, rutas
+desconocidas y el `503` previo a obtener admisión quedan fuera de esta población.
+
+El recurso auditado contiene el método normalizado, el patrón reconocido de la
+ruta y referencias de recursos que se pudieron validar como UUID o entero sin
+signo de 64 bits. No contiene query strings, cuerpos, cabeceras, tokens, códigos
+ni rutas arbitrarias.
+El servidor genera `request_id`; un identificador enviado por el cliente no lo
+sustituye. `user_id` sólo se vincula al admitir una identidad comprobada, incluida
+la emisión de sesión tras MFA válido; un correo o UUID enviado en la solicitud
+no basta. El actor del acceso es ese UUID o `unavailable`.
+
+La IP procede del socket. La confianza en `X-Forwarded-For` exige la opción
+explícita `TT_AUDIT_TRUST_LOOPBACK_PROXY=true`, un peer loopback y una sola
+cabecera que contenga una sola IP válida; en los demás casos se conserva el peer,
+o `null` si no hay metadatos de socket. Los detalles operativos están en
+[contexto de auditoría y accesos HTTP](database-operations.md#contexto-de-auditoría-y-accesos-http).
+
+El evento de acceso conserva una transacción independiente del evento de
+negocio. Si falla su escritura durable, se suprime la respuesta del handler y
+se devuelve el `500` genérico. El negocio puede estar ya confirmado: ese error
+no acredita rollback ni autoriza reintentar automáticamente. Los recibos y la
+conciliación de cada operación siguen siendo la referencia. El cierre ordenado
+drena las peticiones admitidas y su escritura de acceso, aun tras desconexión
+del cliente, antes de liberar runtime y adaptadores; no garantiza supervivencia
+ante una pérdida abrupta del proceso. Véase
+[ADR 0077](adr/0077-durable-access-audit-context.md).
 
 ## Errores
 

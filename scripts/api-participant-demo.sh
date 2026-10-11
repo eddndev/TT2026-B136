@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Audit deltas check business atomicity; HTTP access outcomes are checked separately.
 # Audited participant commands and recovery against api-demo.sh's disposable services.
 
 participant_demo_request() {
@@ -70,7 +71,7 @@ participant_demo() {
   participant_demo_request PUT 200 "$route/$PARTICIPANT_ID" "$litigator" \
     -H 'Content-Type: application/json' --data '{"expected_revision":1,"display_name":"Ana edited","procedural_role":"Witness","organization":"Office","legal_status":"Recorded","directory_status":"active"}'
   jq -e '.revision == 2 and .display_name == "Ana edited"' "$response" >/dev/null
-  audit_before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  audit_before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   for side in left right; do
     curl -sS -o "$WORK_DIR/participant-$side.json" -w '%{http_code}' -X PUT \
       "$BASE_URL$route/$PARTICIPANT_ID" -H "Authorization: Bearer $RECOVERY_TOKEN" \
@@ -84,7 +85,7 @@ participant_demo() {
   wait "$right"
   statuses="$(cat "$WORK_DIR/participant-left.status" "$WORK_DIR/participant-right.status")"
   [[ "$statuses" = 200409 || "$statuses" = 409200 ]]
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" -eq "$((audit_before+1))" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((audit_before+1))" ]
   winner=left
   if [ "$(cat "$WORK_DIR/participant-right.status")" = 200 ]; then winner=right; fi
   jq -e --arg name "Ana $winner" '.revision == 3 and .display_name == $name' \
@@ -92,7 +93,7 @@ participant_demo() {
   participant_demo_request PUT 409 "$route/$PARTICIPANT_ID/directory-status" "$RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data '{"expected_revision":2,"directory_status":"archived"}'
   jq -e '.error.code == "participant_revision_conflict"' "$response" >/dev/null
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" -eq "$((audit_before+1))" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((audit_before+1))" ]
   participant_demo_request PUT 200 "$route/$PARTICIPANT_ID/directory-status" "$RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data '{"expected_revision":3,"directory_status":"archived"}'
   jq -e --arg name "Ana $winner" '.revision == 4 and .display_name == $name
