@@ -85,7 +85,19 @@ export function reportValue(value) {
     'ready',
     'notice',
   ];
-  factObject(value, [...keys, 'report_type'], keys);
+  factObject(value, [...keys, 'report_type', 'estimated_total_ms', 'ready_email'], keys);
+  if (
+    Object.hasOwn(value, 'estimated_total_ms') &&
+    value.estimated_total_ms !== null &&
+    (!Number.isSafeInteger(value.estimated_total_ms) || value.estimated_total_ms <= 0)
+  )
+    reportInvalid();
+  if (
+    Object.hasOwn(value, 'ready_email') &&
+    value.ready_email !== null &&
+    !['pending', 'accepted', 'rejected', 'uncertain', 'access_revoked'].includes(value.ready_email)
+  )
+    reportInvalid();
   reportUuid(value.id);
   reportUuid(value.operation_id);
   factDigest(value.request_digest);

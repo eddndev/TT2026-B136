@@ -28,6 +28,17 @@ pub(super) fn failure(value: CaseReportFailure) -> &'static str {
     }
 }
 pub(super) fn detail(value: CaseReportDetail) -> Result<Value, ApiError> {
+    let estimated_total_ms = value.estimate.map(CaseReportEstimate::total_ms);
+    if estimated_total_ms.is_some_and(|total| total > 9_007_199_254_740_991) {
+        return Err(ApiError::internal());
+    }
+    let ready_email = value.ready_email.map(|state| match state {
+        CaseReportEmailState::Pending => "pending",
+        CaseReportEmailState::Accepted => "accepted",
+        CaseReportEmailState::Rejected => "rejected",
+        CaseReportEmailState::Uncertain => "uncertain",
+        CaseReportEmailState::AccessRevoked => "access_revoked",
+    });
     let (state, phase, retry, failure, ready) = match value.state {
         CaseReportState::Queued => ("queued", None, None, None, None),
         CaseReportState::Processing(p) => ("processing", Some(phase(p)), None, None, None),
@@ -62,6 +73,7 @@ pub(super) fn detail(value: CaseReportDetail) -> Result<Value, ApiError> {
     let mut result = json!({"id":value.id.to_string(),"operation_id":value.command.operation_id.to_string(),
         "request_digest":value.request_digest.to_hex(),"scope":match value.scope{CaseReportScope::Office=>"office",CaseReportScope::AssignedCases=>"assigned_cases"},
         "requested_at":at(value.requested_at)?,"updated_at":at(value.updated_at)?,
+        "estimated_total_ms":estimated_total_ms,"ready_email":ready_email,
         "state":state,"phase":phase,"retry_at":retry,"failure":failure,"ready":ready,"notice":notice});
     result["filters"] = filters_value(&filters)?;
     if filters.kind == CaseReportKind::LitigatorActivity {

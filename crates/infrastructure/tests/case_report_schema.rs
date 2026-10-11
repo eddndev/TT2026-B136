@@ -7,11 +7,12 @@ use infrastructure::{PostgresCaseRepository, RingSha256Hasher};
 use postgres::error::SqlState;
 use std::sync::Arc;
 
-const TABLES: [&str; 4] = [
+const TABLES: [&str; 5] = [
     "case_report_jobs",
     "case_report_snapshots",
     "case_report_artifacts",
     "case_report_notices",
+    "case_report_email_deliveries",
 ];
 
 #[test]
@@ -140,6 +141,7 @@ fn restore_column_updates(table: &str, role: &str) -> String {
     let columns = match table {
         "case_report_jobs" => "updated_at,state,failure,retry_at,lease_attempt,lease_token,lease_generation,lease_expires_at,attempts,case_ids",
         "case_report_notices" => "read_at",
+        "case_report_email_deliveries" => "state,generation,lease_id,lease_until,provider_deadline,retry_at,message,updated_at",
         _ => return repair,
     };
     // Revoking a table privilege also removes its corresponding column grants.
@@ -160,4 +162,27 @@ fn require_tables(db: &mut Fixture) {
 
 fn open(db: &Fixture) -> Result<PostgresCaseRepository, ApplicationError> {
     PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher))
+}
+
+#[test]
+fn runtime_cannot_rewrite_report_estimates_or_email_identity() {
+    let Some(db) = Fixture::new() else { return };
+    for (table, columns) in [
+        (
+            "case_report_jobs",
+            &["estimated_total_ms", "estimated_service_ms"][..],
+        ),
+        (
+            "case_report_email_deliveries",
+            &["report_id", "delivery_id", "created_at"][..],
+        ),
+    ] {
+        for column in columns {
+            let error = db
+                .runtime()
+                .batch_execute(&format!("UPDATE {table} SET {column}={column} WHERE false"))
+                .unwrap_err();
+            assert_eq!(error.code(), Some(&SqlState::INSUFFICIENT_PRIVILEGE));
+        }
+    }
 }

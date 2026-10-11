@@ -67,6 +67,8 @@ export async function readyReport(page, initial) {
         ready = await (await loaded).json();
         expect(ready.failure).toBeNull();
         expect(['queued', 'processing', 'ready']).toContain(ready.state);
+        expect(ready.estimated_total_ms).toBe(initial.estimated_total_ms);
+        if (ready.state !== 'ready') expect(ready.ready_email).toBeNull();
         await expect(detail(page)).not.toContainText(/\b\d+\s*%/u);
         return ready.state;
       },

@@ -12,6 +12,9 @@ mod case_report_requests;
 mod case_report_restore;
 mod case_report_support;
 
+#[path = "case_report_support/timing.rs"]
+mod case_report_timing;
+
 #[path = "case_report_support/recovery.rs"]
 mod case_report_recovery;
 
@@ -42,3 +45,9 @@ mod procedural_fact_backend_support;
 mod procedural_resource_support;
 #[allow(unused_imports)]
 mod typed_participant_service_support;
+
+#[path = "case_report_support/estimates.rs"]
+mod case_report_estimates;
+
+#[path = "case_report_support/email.rs"]
+mod case_report_email;

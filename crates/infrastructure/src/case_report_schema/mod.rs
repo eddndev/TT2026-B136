@@ -13,13 +13,16 @@ use application::ApplicationError;
 pub(crate) use catalog::validate;
 pub(crate) use inventory::validate as validate_inventory;
 pub(crate) use permissions::{grant_runtime, validate_runtime_role};
-pub(crate) const MIGRATIONS: &[&str] =
-    &[include_str!("../../../../migrations/0026_case_reports.sql")];
-const TABLES: [&str; 4] = [
+pub(crate) const MIGRATIONS: &[&str] = &[
+    include_str!("../../../../migrations/0026_case_reports.sql"),
+    include_str!("../../../../migrations/0047_case_report_readiness.sql"),
+];
+const TABLES: [&str; 5] = [
     "case_report_jobs",
     "case_report_snapshots",
     "case_report_artifacts",
     "case_report_notices",
+    "case_report_email_deliveries",
 ];
 fn incomplete() -> ApplicationError {
     ApplicationError::InvalidConfiguration("case report schema is incomplete or altered".into())

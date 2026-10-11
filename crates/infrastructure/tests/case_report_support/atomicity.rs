@@ -6,6 +6,7 @@ pub fn ledger(db: &mut Fixture) -> serde_json::Value {
         'captures',(SELECT jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text) FROM case_report_snapshots r),
         'artifacts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text) FROM case_report_artifacts r),
         'notices',(SELECT jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text) FROM case_report_notices r),
+        'email',(SELECT jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text) FROM case_report_email_deliveries r),
         'audit',(SELECT jsonb_agg(to_jsonb(r) ORDER BY sequence) FROM audit_events r))", &[]).unwrap().get(0)
 }
 pub fn reject_audit(db: &mut Fixture, action: &str, prerequisite: &str) {

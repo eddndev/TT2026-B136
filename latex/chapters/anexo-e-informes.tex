@@ -61,7 +61,53 @@ PDF y CSV contra cantidades esperadas, además de la recuperación del informe
 tras una nueva sesión. La existencia del guion no sustituye su ejecución,
 registrada por separado en \rutarepo{docs/verification-report.md}.
 
-La \cref{tab:cu-16} mantiene su flujo alterno de correo y estimación de tiempo.
+{\raggedright
+La estimaci\'on inicial y el correo se especifican en
+\rutarepo{docs/adr/0076-report-estimates-and-ready-email.md} y se persisten mediante
+\rutarepo{migrations/0047_case_report_readiness.sql}. En aplicaci\'on,
+\rutarepo{case_report_estimates.rs} comprueba predicci\'on y umbral, y
+\rutarepo{case_report_email.rs} comprueba autorizaci\'on, ventanas y resultados
+inciertos. En \rutarepo{crates/infrastructure/tests/case_report_support/},
+\rutarepo{estimates.rs}, \rutarepo{email_publication.rs}, \rutarepo{email_leases.rs},
+\rutarepo{email_worker.rs}, \rutarepo{email_restore.rs} y
+\rutarepo{email_inventory.rs} delimitan las comprobaciones persistentes.
+El transporte capturado se verifica en
+\rutarepo{crates/infrastructure/src/case_report_email/tests.rs} y la composici\'on
+opcional, en \rutarepo{crates/bin/src/serve_report_email_tests.rs}.\par}
+
+{\raggedright
+El contrato p\'ublico tiene pruebas en
+\rutarepo{crates/web/tests/case_report_http_support/estimate_tests.rs}; los valores
+y la presentaci\'on se comprueban en
+\rutarepo{web/tests/case-report-estimate.test.mjs} y
+\rutarepo{web/tests/browser/case-report-estimate.spec.mjs}. Estas fuentes separan
+el historial insuficiente, la predicci\'on fija, la duraci\'on observada y los
+estados del proveedor. La existencia de una prueba no acredita su ejecuci\'on;
+el informe de verificaci\'on conserva la evidencia de cada campa\~na.\par}
+
+La nueva aceptaci\'on de \rutarepo{web/tests/live/case-reports.spec.mjs} aprob\'o
+los recorridos Owner y Litigante y la inspecci\'on de cuatro capturas de escritorio
+y m\'ovil. El ensayo de
+\rutarepo{crates/bin/src/serve_report_readiness_acceptance.rs}, con sus apoyos
+HTTP versionados, aprob\'o autenticaci\'on real, espera en cola con predicci\'on
+superior a dos segundos, aviso mediante transporte capturado y reingreso con
+recuperaci\'on MFA. Conserv\'o PDF y CSV exactos y cadena de auditor\'ia \'integra.
+La \cref{sec:pruebas-informes} registra sus tiempos y alcance. Estas aceptaciones
+locales no cierran los controles de integraci\'on pendientes ni habilitan correo
+en producci\'on.
+
+La \cref{tab:cu-16} mantiene su flujo alterno aprobado de correo y estimaci\'on.
+El ensayo independiente de \rutarepo{crates/infrastructure/tests/case_report_support/timing_validation.rs},
+con observaci\'on en \texttt{timing\_measurement.rs}, acredit\'o 26 de 28
+predicciones dentro de tolerancia y cobertura del 100\%, seg\'un la
+\cref{tab:precision-estimacion-informes}. Se ejecuta desde
+\texttt{case\_report\_backend} con renderizador aislado, calibraci\'on previa y
+copias independientes del historial congelado. Los dos reintentos fuera de
+tolerancia se conservaron; en actividad s\'olo se midieron cargas documentales
+originales. El resultado cumple el criterio del 90\% en ese ensayo, sin extenderlo
+a producci\'on ni al cat\'alogo completo de actividad, y no activa correo p\'ublico.
+El cierre del corpus jur\'idico y de la matriz de accesos y datos de auditor\'ia
+conserva su verificaci\'on propia.
 El criterio de actividad de la \cref{tab:rf-19} se limita a documentos originales,
 actuaciones originales y plazos atendidos por cuenta y periodo; no puntúa
 éxito jurídico. Los tipos de informe ajenos a ese catálogo no se infieren de

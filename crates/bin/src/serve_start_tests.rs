@@ -177,6 +177,7 @@ fn scenario(bind: &'static str, consumer_started: bool) {
             stop: Arc::new(crate::serve_stop::Stop::default()),
             password_reset: None,
             invitations: None,
+            report_email: None,
         };
         let result = serve_start::run(bind, server, dispatch, worker, config, consumers, reports);
         let _ = sender.send((thread::current().id(), result));

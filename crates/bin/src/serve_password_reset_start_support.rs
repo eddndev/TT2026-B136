@@ -159,6 +159,7 @@ pub fn server(
         stop,
         password_reset: Some(PasswordResetRuntime { owner, consumer }),
         invitations: None,
+        report_email: None,
     };
     (server, admission)
 }

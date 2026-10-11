@@ -175,6 +175,7 @@ pub(super) fn completion(
         || result.request_digest != original.request_digest
         || result.scope != original.scope
         || result.requested_at != original.requested_at
+        || result.estimate != original.estimate
         || result.updated_at >= lease.expires_at
     {
         return Err(inconsistent(

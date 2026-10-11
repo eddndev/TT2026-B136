@@ -35,6 +35,11 @@ mod serve_password_reset_config;
 mod serve_password_reset_runtime;
 mod serve_precautionary;
 mod serve_report_composition;
+mod serve_report_email_composition;
+mod serve_report_email_config;
+mod serve_report_email_runtime;
+#[cfg(test)]
+mod serve_report_email_tests;
 mod serve_report_runtime;
 mod serve_resource_activities;
 mod serve_runtime;
@@ -151,3 +156,8 @@ mod serve_invitation_tests;
 mod serve_invitation_acceptance;
 #[cfg(test)]
 mod serve_invitation_acceptance_support;
+
+#[cfg(test)]
+mod serve_report_readiness_acceptance;
+#[cfg(test)]
+mod serve_report_readiness_acceptance_support;

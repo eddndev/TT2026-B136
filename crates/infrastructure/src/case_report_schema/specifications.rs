@@ -1,4 +1,16 @@
 pub(super) const KEYS: &[(&str, &str, &[&str], bool)] = &[
+    (
+        "case_report_email_deliveries",
+        "case_report_email_deliveries_pkey",
+        &["report_id"],
+        true,
+    ),
+    (
+        "case_report_email_deliveries",
+        "case_report_email_deliveries_delivery_id_key",
+        &["delivery_id"],
+        false,
+    ),
     ("case_report_jobs", "case_report_jobs_pkey", &["id"], true),
     (
         "case_report_jobs",
@@ -34,6 +46,14 @@ type ForeignKey = (
     bool,
 );
 pub(super) const FOREIGN_KEYS: &[ForeignKey] = &[
+    (
+        "case_report_email_deliveries",
+        "case_report_email_deliveries_report_id_fkey",
+        &["report_id"],
+        "case_report_jobs",
+        &["id"],
+        false,
+    ),
     (
         "case_report_jobs",
         "case_report_jobs_requester_id_fkey",

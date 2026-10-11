@@ -19,6 +19,46 @@ import {
 const accounts = fixture.caseReports;
 if (!accounts) throw new Error('Case report fixtures must be provisioned by web-demo.sh');
 
+function readiness(value) {
+  const estimate = value.estimated_total_ms;
+  expect(estimate === null || (Number.isSafeInteger(estimate) && estimate > 0)).toBe(true);
+  if (value.state === 'ready' && estimate !== null && estimate > 2000)
+    expect(['pending', 'accepted', 'rejected', 'uncertain', 'access_revoked']).toContain(
+      value.ready_email,
+    );
+  else expect(value.ready_email).toBeNull();
+}
+
+function stableReport(value) {
+  readiness(value);
+  // Provider acceptance can change without changing the report or its initial estimate.
+  return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'ready_email'));
+}
+
+function sameReports(actual, expected) {
+  const stable = (rows) => rows.map(stableReport).sort((a, b) => a.id.localeCompare(b.id));
+  expect(stable(actual)).toEqual(stable(expected));
+}
+
+const fact = (page, label) =>
+  detail(page)
+    .locator('dl > div')
+    .filter({ has: page.getByText(label, { exact: true }) })
+    .locator('dd');
+
+async function requestReport(page) {
+  const created = responseTo(page, '/case-reports', 'POST');
+  await form(page).getByRole('button', { name: 'Generar informe', exact: true }).click();
+  const response = await created;
+  expect(response.status()).toBe(202);
+  const initial = await response.json();
+  expect(initial.state).toBe('queued');
+  readiness(initial);
+  await expect(detail(page)).toContainText(initial.id);
+  await expect(fact(page, 'Duraci\u00f3n observada')).toHaveCount(0);
+  return initial;
+}
+
 function capturedIdentities(csv, pdfPath, row, account) {
   const records = csvRecords(csv);
   expect(records).toHaveLength(4);
@@ -94,12 +134,27 @@ for (const role of ['owner', 'litigator']) {
       .fill(accounts.before);
     await form(page).getByLabel('Estado administrativo', { exact: true }).selectOption('all');
     await selectMember(page, accounts.litigator);
-    const created = responseTo(page, '/case-reports', 'POST');
-    await form(page).getByRole('button', { name: 'Generar informe', exact: true }).click();
-    expect((await created).status()).toBe(202);
-    const initial = await (await created).json();
-    expect(initial.state).toBe('queued');
-    await expect(detail(page)).toContainText(initial.id);
+    const history = [];
+    if (role === 'owner') {
+      for (let index = 0; index < 3; index += 1) {
+        const previous = await requestReport(page);
+        const complete = await readyReport(page, previous);
+        readiness(complete);
+        history.push(complete);
+      }
+    }
+    const initial = await requestReport(page);
+    if (role === 'owner') {
+      expect(Number.isSafeInteger(initial.estimated_total_ms)).toBe(true);
+      expect(initial.estimated_total_ms).toBeGreaterThan(0);
+    }
+    const estimate = fact(page, 'Estimaci\u00f3n inicial');
+    await expect(estimate).toHaveText(
+      initial.estimated_total_ms === null
+        ? 'Estimaci\u00f3n no disponible.'
+        : /^(?:\d+ (?:d|h|min|s)\s*)+$/u,
+    );
+    const estimateText = await estimate.innerText();
     expect(initial.scope).toBe(role === 'owner' ? 'office' : 'assigned_cases');
     expect(initial.filters).toEqual({
       created_from: `${accounts.from}T00:00:00Z`,
@@ -108,6 +163,19 @@ for (const role of ['owner', 'litigator']) {
       assigned_litigator: accounts.litigator.id,
     });
     const ready = await readyReport(page, initial);
+    readiness(ready);
+    expect(ready.estimated_total_ms).toBe(initial.estimated_total_ms);
+    expect(Date.parse(ready.notice.created_at)).toBeGreaterThanOrEqual(
+      Date.parse(ready.requested_at),
+    );
+    await expect(estimate).toHaveText(estimateText);
+    const duration = fact(page, 'Duraci\u00f3n observada');
+    await expect(duration).toHaveText(/^(?:Menos de 1 s|(?:\d+ (?:d|h|min|s)\s*)+)$/u);
+    const durationText = await duration.innerText();
+    if (ready.ready_email === 'pending')
+      await expect(detail(page)).toContainText('Aviso por correo pendiente.');
+    else if (ready.ready_email === null)
+      await expect(detail(page)).toContainText('Sin aviso por correo registrado.');
     const original = await downloadPair(
       page,
       testInfo,
@@ -125,8 +193,8 @@ for (const role of ['owner', 'litigator']) {
     await expect(
       page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
     ).toBeVisible();
-    expect((await enterReports(page)).reports).toEqual([ready]);
-    expect(await openReport(page, ready.id)).toEqual(ready);
+    sameReports((await enterReports(page)).reports, [...history, ready]);
+    expect(stableReport(await openReport(page, ready.id))).toEqual(stableReport(ready));
     const read = responseTo(page, `/case-reports/${ready.id}/notice-read`, 'POST');
     await detail(page)
       .getByRole('button', { name: 'Marcar aviso como le\u00eddo', exact: true })
@@ -140,8 +208,10 @@ for (const role of ['owner', 'litigator']) {
     expect((await logout).status()).toBe(204);
     await expect(page.getByLabel('Correo electr\u00f3nico', { exact: true })).toBeVisible();
     await loginAs(page, account, 1);
-    expect((await enterReports(page)).reports).toEqual([acknowledged]);
-    expect(await openReport(page, ready.id)).toEqual(acknowledged);
+    sameReports((await enterReports(page)).reports, [...history, acknowledged]);
+    expect(stableReport(await openReport(page, ready.id))).toEqual(stableReport(acknowledged));
+    await expect(fact(page, 'Estimaci\u00f3n inicial')).toHaveText(estimateText);
+    await expect(fact(page, 'Duraci\u00f3n observada')).toHaveText(durationText);
     await expect(detail(page)).toContainText('Aviso le\u00eddo');
     const restored = await downloadPair(
       page,
@@ -153,8 +223,19 @@ for (const role of ['owner', 'litigator']) {
     );
     for (const format of ['pdf', 'csv'])
       expect(restored[format].equals(original[format])).toBe(true);
-    expect(requests).toHaveLength(1);
-    expect(requests[0].operation_id).toBe(initial.operation_id);
+    expect(requests).toHaveLength(history.length + 1);
+    expect(new Set(requests.map((row) => row.operation_id)).size).toBe(requests.length);
+    expect(requests.at(-1).operation_id).toBe(initial.operation_id);
+    // Small live fixtures establish the HTTP/UI contract, not prediction accuracy.
+    await testInfo.attach(`report-${role}-readiness`, {
+      body: JSON.stringify({
+        history: history.map((row) => ({ id: row.id, ready_at: row.notice.created_at })),
+        initial,
+        ready,
+        displayed: { estimate: estimateText, observed: durationText },
+      }),
+      contentType: 'application/json',
+    });
     expect(errors).toEqual([]);
   });
 }

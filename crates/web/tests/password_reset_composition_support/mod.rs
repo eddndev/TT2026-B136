@@ -237,6 +237,7 @@ fn workflows(
         case_reports: Arc::new(reports::Workflow {
             calls: Mutex::new(Vec::new()),
             ready: false,
+            detail: Mutex::new(None),
             failure: None,
         }),
         alerts: Arc::new(alerts::Workflow {
@@ -313,6 +314,29 @@ pub fn router_with_identity_invitations(
         budget,
         None,
         Some(invitations),
+    )
+    .unwrap()
+}
+
+// Native report acceptance supplies durable identity, capture and download adapters.
+#[allow(dead_code)]
+pub fn router_with_identity_reports(
+    identity: Arc<dyn application::identity::IdentityWorkflow>,
+    reports: Arc<dyn application::case_reports::CaseReportWorkflow>,
+    limits: HttpLimits,
+    budget: HttpWorkBudget,
+) -> Router {
+    let mut workflows = workflows(Arc::new(Dashboard::default()), None);
+    workflows.case_reports = reports;
+    api_router_with_password_reset_budget(
+        Arc::new(auth::UnusedDocuments),
+        identity,
+        workflows,
+        Arc::new(calendars::Workflow::default()),
+        Arc::new(profiles::Workflow::default()),
+        limits,
+        None,
+        budget,
     )
     .unwrap()
 }

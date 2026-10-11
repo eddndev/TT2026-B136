@@ -25,6 +25,21 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("lease_expires_at", "text", false),
             ("attempts", "integer", true),
             ("case_ids", "uuid[]", true),
+            ("estimated_total_ms", "bigint", false),
+            ("estimated_service_ms", "bigint", false),
+        ],
+        "case_report_email_deliveries" => &[
+            ("report_id", "uuid", true),
+            ("delivery_id", "uuid", true),
+            ("state", "text", true),
+            ("generation", "bigint", true),
+            ("lease_id", "uuid", false),
+            ("lease_until", "text", false),
+            ("provider_deadline", "text", false),
+            ("retry_at", "text", false),
+            ("message", "jsonb", false),
+            ("created_at", "text", true),
+            ("updated_at", "text", true),
         ],
         "case_report_snapshots" => &[
             ("report_id", "uuid", true),
@@ -81,7 +96,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
                         || !row.get::<_, bool>(5)
                         || row.get::<_, Option<String>>(6).as_deref()
                             != match *name {
-                                "lease_generation" | "attempts" => Some("0"),
+                                "lease_generation" | "attempts" | "generation" => Some("0"),
                                 "case_ids" => Some("'{}'::uuid[]"),
                                 _ => None,
                             }

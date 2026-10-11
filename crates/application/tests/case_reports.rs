@@ -1,3 +1,5 @@
+#[path = "case_report_email.rs"]
+mod case_report_email;
 mod case_report_support;
 #[allow(dead_code)]
 mod case_support;

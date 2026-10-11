@@ -319,3 +319,6 @@ async fn litigators_require_bearer_identity_and_preserve_permission_denial() {
     assert_eq!(body(&bytes)["error"]["code"], "permission_denied");
     assert_eq!(workflow.calls.lock().unwrap().len(), 1);
 }
+
+#[path = "case_report_http_support/estimate_tests.rs"]
+mod estimate_tests;

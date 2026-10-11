@@ -77,10 +77,101 @@ global en \rutarepo{docs/verification-report.md}.
 
 El criterio de la \cref{tab:rf-19} exige comprobar una interfaz responsiva
 cuando la generación supera tres segundos, conservando la sesión y la consulta
-de progreso. La notificación interna no demuestra el canal de correo ni la
-estimación de terminación previstos por la \cref{tab:cu-16}; ambos requieren
-implementación y aceptación propias. Tampoco la carga de expedientes acredita
-por sí sola la actividad atribuida a cada cuenta ni los demás tipos de reporte.
+de progreso. La notificaci\'on interna y la duraci\'on observada no demuestran
+por s\'i solas el correo ni la predicci\'on inicial de la \cref{tab:cu-16}; las
+pruebas de esos mecanismos se distinguen a continuaci\'on. Tampoco la carga de
+expedientes acredita por s\'i sola la actividad atribuida a cada cuenta ni los
+dem\'as tipos de reporte.
+
+\paragraph{Estimaci\'on y disponibilidad por correo.}
+Las pruebas incorporadas contrastan el m\'inimo de historial comparable, el
+escalamiento por volumen, la mediana y el umbral estricto de dos segundos.
+La persistencia comprueba la predicci\'on inicial al recuperar una operaci\'on,
+la espera de la cola y la publicaci\'on at\'omica de intenci\'on, artefactos, aviso
+y auditor\'ia. El consumidor comprueba identidad y acceso antes del transporte,
+rechaza concesiones y ventanas vencidas, descarta resultados atrasados y conserva mensaje
+e identidad de entrega despu\'es de una respuesta incierta o un reinicio.
+Las pruebas de restauraci\'on y de inventario se mantienen separadas del
+transporte capturado; ninguna acredita recepci\'on en una bandeja externa.
+
+Las comprobaciones de HTTP y Qadra distinguen la estimaci\'on inicial de la
+duraci\'on observada, admiten ausencia de datos en respuestas anteriores y
+rechazan valores num\'ericos o estados incompatibles. Los recorridos definidos
+para escritorio y m\'ovil muestran el estado pendiente, la aceptaci\'on del
+proveedor, el rechazo, la incertidumbre y la retirada de acceso sin alterar
+las descargas. La configuraci\'on y supervisi\'on comprueban desactivaci\'on por
+defecto, canal expl\'icito, pausas entre intentos y parada conjunta. Sus resultados
+se registran por ejecuci\'on en \rutarepo{docs/verification-report.md}; no se
+suman a los conteos hist\'oricos anteriores.
+
+La aceptaci\'on local con servidor real aprob\'o dos recorridos de navegador,
+Owner y Litigante, de 15.1 y 8.2 segundos respectivamente. Playwright inform\'o
+28.7 segundos y el comando completo, incluida preparaci\'on, 329.708 segundos.
+La inspecci\'on de cuatro capturas de escritorio y m\'ovil aprob\'o la presentaci\'on.
+Esta ejecuci\'on conserva el recorrido autorizado de los informes y se registra
+separada de las mediciones hist\'oricas anteriores.
+
+La aceptaci\'on nativa de disponibilidad aprob\'o en 35.992 segundos mediante HTTP,
+PostgreSQL, Redis, contrase\~na Argon2 y MFA. Con dos predecesores en cola, el
+informe conserv\'o su estimaci\'on inicial de 3360 milisegundos y alcanz\'o
+disponibilidad en 3.453 segundos. El detalle pas\'o de solicitud en cola sin
+intenci\'on de correo a disponible con aviso pendiente, y luego a aceptaci\'on
+registrada por el transporte capturado. La nueva autenticaci\'on mediante un
+c\'odigo de recuperaci\'on conserv\'o los bytes exactos de PDF y CSV; la cadena de
+auditor\'ia permaneci\'o \'integra. Este ensayo comprueba el aviso elegible y la
+recuperaci\'on del informe, sin acreditar recepci\'on externa ni activar correo
+en producci\'on. Los controles de cierre e integraci\'on de la entrega permanecen
+pendientes y no se deducen de estas aceptaciones focales.
+
+La validaci\'on independiente conserv\'o el estimador fijado y complet\'o primero
+18 observaciones de calibraci\'on: tres por modalidad y volumen de 3, 80 y 900
+expedientes. Despu\'es ejecut\'o 28 solicitudes nuevas: cuatro por modalidad y
+volumen, m\'as una con predecesor en cola y otra con fallo transitorio por
+modalidad, ambas de 80 expedientes. Cada solicitud utiliz\'o una copia nueva de
+la base de calibraci\'on correspondiente, cuyo historial permaneci\'o congelado;
+las duraciones de validaci\'on no se incorporaron a ese historial.
+
+El criterio exige que al menos el 90\% de las solicitudes con predicci\'on tenga
+un error absoluto no mayor que el m\'aximo entre dos segundos y el 30\% de su
+duraci\'on real desde solicitud hasta disponibilidad. Las 28 solicitudes tuvieron
+estimaci\'on inicial y alcanzaron disponibilidad: cobertura del 100\%, sin
+solicitudes excluidas por falta de estimaci\'on. Cumplieron 26 de 28, equivalentes
+al 92.857\%, como resume la \cref{tab:precision-estimacion-informes}. Las dos
+solicitudes fuera de tolerancia permanecen en el denominador.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Validaci\'on independiente de la estimaci\'on inicial de informes.}
+  \label{tab:precision-estimacion-informes}
+  \begin{tabularx}{\linewidth}{@{}Xrrr@{}}
+    \toprule
+    Modalidad & Solicitudes & Predicciones & En tolerancia \\
+    \midrule
+    Estado y carga & 14 & 14 & 13 \\
+    Actividad registrada & 14 & 14 & 13 \\
+    \midrule
+    Total & 28 & 28 & 26 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Los 24 casos individuales y los dos de cola cumplieron la tolerancia. Los dos
+casos de reintento recibieron una falla \texttt{RenderUnavailable} inyectada y
+respetaron la espera programada de treinta segundos antes de volver a usar el
+renderizador aislado. Alcanzaron disponibilidad en 31.704 segundos para estado
+y 31.475 para actividad, frente a predicciones iniciales de 1.690 y 1.461
+segundos, respectivamente. El incidente imprevisto explica el desv\'io observado;
+no se retir\'o del resultado ni se reemplaz\'o la predicci\'on inicial.
+
+La ejecuci\'on nativa aprob\'o en 321.402 segundos con PostgreSQL 18.6 sobre Linux
+x86\_64, un solo hilo de pruebas y temporales en btrfs, sin tr\'afico de producci\'on.
+Esa duraci\'on incluye calibraci\'on y preparaci\'on, y no es latencia por solicitud.
+La modalidad de actividad utiliz\'o exclusivamente cargas documentales originales,
+sin actuaciones procesales ni plazos atendidos; el ensayo no valida el tiempo
+de todo el cat\'alogo de actividad ni garantiza precisi\'on en otros contenidos,
+equipos o cargas. Sus observaciones no sustituyen las mediciones hist\'oricas del
+renderizador ni se mezclan con ellas. La activaci\'on p\'ublica y la comprobaci\'on
+operativa del correo siguen separadas de la aceptaci\'on con transporte de prueba.
 
 Estas comprobaciones no sustituyen la regresión global ni la validación de
 usabilidad con participantes del despacho. La

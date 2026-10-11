@@ -9,6 +9,8 @@
     scopeLabel,
     failureLabel,
     reportDuration,
+    reportEstimate,
+    reportEmailStatus,
   } from '../lib/case-reports-presentation.mjs';
   export let value = null,
     busy = false,
@@ -18,6 +20,7 @@
     ondownload,
     onread;
   $: duration = reportDuration(value);
+  $: estimate = reportEstimate(value);
   $: activity = activityReport(value);
   $: period = value ? reportPeriod(value) : null;
 </script>
@@ -70,6 +73,10 @@
         <dt>Solicitud</dt>
         <dd><time datetime={value.requested_at}>{value.requested_at}</time></dd>
       </div>
+      <div>
+        <dt>Estimaci&#243;n inicial</dt>
+        <dd>{estimate === null ? 'Estimaci\u00f3n no disponible.' : estimate}</dd>
+      </div>
       {#if duration !== null}
         <div>
           <dt>Duraci&#243;n observada</dt>
@@ -81,6 +88,13 @@
         <dd class="report-identifier">{value.id}</dd>
       </div>
     </dl>
+    {#if estimate !== null}
+      <p class="hint">
+        La estimaci&#243;n incluye la espera y el tiempo de generaci&#243;n. Se fija al solicitar y
+        puede diferir de la duraci&#243;n observada.
+      </p>
+    {/if}
+    <p class="notice">{reportEmailStatus(value)}</p>
     {#if duration !== null}
       <p class="hint">
         Tiempo desde la solicitud hasta el resultado registrado, incluyendo espera y reintentos.

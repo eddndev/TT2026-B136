@@ -46,6 +46,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     let owner_login =
         crate::serve_owner_login_config::OwnerLoginSettings::resolve(&args.owner_login)?;
     let email = crate::serve_email_credentials::load(args)?;
+    let report_email = crate::serve_report_email_config::ReportEmailSettings::load()?;
     let invitations = crate::serve_invitation_config::InvitationSettings::load(&args.invitations)?;
     let alert_config = crate::serve_alert_runtime::AlertRuntimeConfig::new(
         args.alert_page_limit,
@@ -100,8 +101,12 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 identity.clone(),
                 Arc::new(SystemClock::new()),
             );
-            let reports =
-                crate::serve_report_composition::open(database, identity.clone(), kek.clone())?;
+            let reports = crate::serve_report_composition::open(
+                database,
+                identity.clone(),
+                kek.clone(),
+                report_email,
+            )?;
             let format_validator = Arc::new(format_validator);
             let stages = CaseStageService::new(
                 Arc::new(
@@ -375,6 +380,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 stop,
                 password_reset: recovery_runtime,
                 invitations: invitation_consumer,
+                report_email: reports.email,
             };
             Ok((server, dispatch, worker, alerts.consumers, reports.consumer))
         })?;

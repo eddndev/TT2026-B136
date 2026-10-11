@@ -33,10 +33,11 @@ impl PostgresCaseReportStore {
             }
             access::filter_member(tx, actor, command.filters.litigator, command.filters.kind)?;
             let id = CaseReportId::new();
-            tx.execute("INSERT INTO case_report_jobs(id,requester_id,principal,account_revision,auth_generation,scope,operation_id,command,request_digest,requested_at,updated_at,state)
-                VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,'queued')", &[&id.as_uuid(), &actor.id.as_uuid(),
+            let (estimated_total, estimated_service) = estimate::initial(tx, actor, scope, &command, id, now)?;
+            tx.execute("INSERT INTO case_report_jobs(id,requester_id,principal,account_revision,auth_generation,scope,operation_id,command,request_digest,requested_at,updated_at,state,estimated_total_ms,estimated_service_ms)
+                VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,'queued',$11,$12)", &[&id.as_uuid(), &actor.id.as_uuid(),
                 &serde_json::to_value(actor).map_err(inconsistent)?, &(stamp.account_revision as i64), &(stamp.auth_generation as i64),
-                &scope_name(scope), &command.operation_id.as_uuid(), &codec::command(&command)?, &&wanted.as_bytes()[..], &timestamp(now)?]).map_err(port)?;
+                &scope_name(scope), &command.operation_id.as_uuid(), &codec::command(&command)?, &&wanted.as_bytes()[..], &timestamp(now)?, &estimated_total, &estimated_service]).map_err(port)?;
             let saved = storage::get(tx, id, self.hasher.as_ref())?;
             audit(tx, &saved.detail, "case_report.request", now)?;
             Ok(saved.detail)
