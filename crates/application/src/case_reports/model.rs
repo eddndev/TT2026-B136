@@ -102,6 +102,8 @@ pub struct CaseReportNotice {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CaseReportDetail {
+    pub estimate: Option<CaseReportEstimate>,
+    pub ready_email: Option<CaseReportEmailState>,
     pub id: CaseReportId,
     pub requester: CaseReportRequester,
     pub scope: CaseReportScope,

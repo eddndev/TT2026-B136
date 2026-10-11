@@ -82,10 +82,53 @@ un trabajo interrumpido sin recapturar un resultado ya persistido.
 
 El renderizado se ejecuta fuera de la transacción de auditoría. Antes de publicar
 se revalida el acceso a toda la captura y una sola confirmación guarda ambos
-artefactos, el estado disponible y el aviso. También la descarga comprueba el
+artefactos, el estado disponible, el aviso y, cuando corresponde, la intenci\'on
+de correo descrita a continuaci\'on. Tambi\'en la descarga comprueba el
 conjunto completo. Perder una pertenencia impide obtener el archivo, sin
 recortarlo ni fabricar una nueva captura. El acuse registra únicamente la
 primera lectura del aviso; consultar el detalle o descargar no lo sustituye.
+
+\paragraph{Estimaci\'on inicial y aviso por correo.}
+La solicitud conserva una predicci\'on opcional del tiempo total hasta disponer
+de ambos formatos; repetir la operaci\'on no la reemplaza. El estimador utiliza
+los \'ultimos 64 informes completados del mismo tipo y alcance de autorizaci\'on.
+Exige al menos tres observaciones con servicio positivo y volumen de expedientes
+dentro del 25\% del solicitado. Escala cada duraci\'on por la raz\'on entre el
+volumen solicitado m\'as uno y el volumen observado m\'as uno, y toma la mediana.
+La previsi\'on de espera considera el orden UUID del consumidor serial, trabajo
+activo, elegibilidad de reintentos y pausas de un segundo. M\'as de cien
+predecesores o un costo anterior desconocido dejan el total sin estimaci\'on;
+tampoco se extrapola cuando falta historial comparable.
+
+Una predicci\'on inicial estrictamente mayor de 2000 milisegundos incorpora una
+intenci\'on de correo a la misma transacci\'on que publica PDF, CSV, disponibilidad,
+aviso interno y auditor\'ia. Exactamente 2000 milisegundos, un valor ausente y
+un resultado fallido no crean esa intenci\'on. Los informes anteriores sin
+predicci\'on no generan correo retrospectivo. La migraci\'on
+\rutarepo{migrations/0047_case_report_readiness.sql} conserva estimaciones y
+entregas; un fallo del canal no retira los artefactos disponibles.
+
+Un consumidor opcional comparte el almac\'en de informes y la parada supervisada.
+Su primer reclamo fija destinatario, mensaje gen\'erico y UUID de entrega; los
+reintentos mantienen ese sobre aunque cambie la configuraci\'on. Antes de llamar
+al proveedor se comprueban la identidad original, la generaci\'on de autenticaci\'on
+y el acceso al conjunto capturado. La concesi\'on dura como m\'aximo treinta
+segundos y la composici\'on limita la conexi\'on a dos segundos y la llamada a
+cinco. Una respuesta incierta admite otro intento despu\'es de sesenta segundos,
+s\'olo dentro de la ventana original de idempotencia de veinticuatro horas;
+agotarla deja un resultado incierto terminal. Las escrituras comprueban entrega,
+concesi\'on, generaci\'on e instante para rechazar resultados atrasados.
+
+El mensaje no contiene datos del expediente, adjuntos, credenciales ni enlaces
+p\'ublicos de descarga: abre la entrada de informes con autenticaci\'on obligatoria.
+El canal permanece deshabilitado por defecto. Su activaci\'on exige
+\texttt{TT\_REPORT\_EMAIL\_ENABLED=true}, remitente en
+\texttt{REPORT\_EMAIL\_FROM}, origen HTTPS en \texttt{REPORT\_PUBLIC\_URL} y
+credencial \texttt{RESEND\_API\_KEY}. La intenci\'on puede permanecer pendiente
+mientras el consumidor est\'a deshabilitado. Restaurar conserva el sobre, UUID y
+ventana existentes; no reinicia esa ventana ni promete entrega exactamente una
+vez. Estas decisiones se delimitan en
+\rutarepo{docs/adr/0076-report-estimates-and-ready-email.md}.
 
 \paragraph{Presupuestos del renderizador.}
 El adaptador Linux invoca una entrada privada del mismo ejecutable confiable por
@@ -116,8 +159,15 @@ no se rebajan los presupuestos para aceptar un artefacto.
 \paragraph{Presentación y alcance de la entrega.}
 Qadra permite filtrar, solicitar, actualizar el estado, consultar trabajos,
 acusar avisos y descargar un formato. Distingue espera, captura, renderizado,
-reintento, disponibilidad y fallo; no estima porcentajes ni fechas de finalización.
-Para un resultado disponible o fallido presenta la duración observada entre la
+reintento, disponibilidad y fallo; no estima porcentajes ni garantiza fechas de
+finalizaci\'on. Presenta por separado la estimaci\'on inicial incluida la espera,
+o su ausencia cuando no existe una predicci\'on disponible. HTTP transmite
+\texttt{estimated\_total\_ms} como milisegundos positivos o nulo, y
+\texttt{ready\_email} como nulo sin intenci\'on o como \texttt{pending},
+\texttt{accepted}, \texttt{rejected}, \texttt{uncertain} o
+\texttt{access\_revoked}. La aceptaci\'on del proveedor no acredita recepci\'on
+en la bandeja; tampoco el estado pendiente promete un env\'io ya realizado.
+Para un resultado disponible o fallido presenta la duraci\'on observada entre la
 solicitud y su aviso terminal, incluida la espera en cola y los reintentos.
 El acuse posterior del aviso no amplía ese intervalo. Esta medición de un trabajo
 terminado no constituye una predicción para solicitudes pendientes.
@@ -133,8 +183,10 @@ persistencia y publicación conjunta verificadas en la aceptación integrada. La
 no acredita por sí sola un despliegue, una campaña global aprobada, efectividad
 jurídica, firma personal o constancia emitida por un PSC. La atribución y el
 catálogo finito de actividad se delimitan en
-\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. El aviso por correo
-y la estimación de terminación de la \cref{tab:cu-16} conservan su alcance
-pendiente. La \cref{sec:pruebas-informes} distingue la aceptación reproducida
-de las tres cantidades de actividad de una evaluación de éxito jurídico o
-de usabilidad con personas.
+\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. La estimaci\'on
+y el correo de la \cref{tab:cu-16} tienen implementaci\'on local. La validaci\'on
+independiente acredit\'o el criterio de precisi\'on en el ensayo descrito en la
+\cref{sec:pruebas-informes}; la activaci\'on operativa del correo mantiene un
+cierre separado. Las pruebas de esos mecanismos y la aceptaci\'on reproducida
+de las tres cantidades de actividad se distinguen de una evaluaci\'on de \'exito
+jur\'idico o de usabilidad con personas.

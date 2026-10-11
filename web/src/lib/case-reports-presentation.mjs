@@ -45,24 +45,47 @@ export function reportDuration(value) {
       read = value.notice.read_at === null ? finished : reportTimeNanoseconds(value.notice.read_at);
     if (requested > captured || captured > finished || finished > read || read > updated)
       return null;
-    let remaining = (finished - requested) / 1_000_000_000n;
-    if (remaining === 0n) return 'Menos de 1 s';
-    const parts = [];
-    for (const [seconds, label] of [
-      [86400n, 'd'],
-      [3600n, 'h'],
-      [60n, 'min'],
-      [1n, 's'],
-    ]) {
-      const count = remaining / seconds;
-      if (count > 0n) parts.push(`${count} ${label}`);
-      remaining %= seconds;
-    }
-    return parts.join(' ');
+    return durationLabel((finished - requested) / 1_000_000_000n);
   } catch {
     return null;
   }
 }
+
+function durationLabel(remaining) {
+  if (remaining === 0n) return 'Menos de 1 s';
+  const parts = [];
+  for (const [seconds, label] of [
+    [86400n, 'd'],
+    [3600n, 'h'],
+    [60n, 'min'],
+    [1n, 's'],
+  ]) {
+    const count = remaining / seconds;
+    if (count > 0n) parts.push(`${count} ${label}`);
+    remaining %= seconds;
+  }
+  return parts.join(' ');
+}
+
+export function reportEstimate(value) {
+  try {
+    reportValue(value);
+    if (value.estimated_total_ms == null) return null;
+    return durationLabel((BigInt(value.estimated_total_ms) + 999n) / 1000n);
+  } catch {
+    return null;
+  }
+}
+
+export const reportEmailStatus = (value) =>
+  ({
+    pending: 'Aviso por correo pendiente. Aun no hay aceptaci\u00f3n del proveedor.',
+    accepted:
+      'Correo aceptado por el proveedor. Esto no confirma entrega en la bandeja de entrada.',
+    rejected: 'El proveedor rechaz\u00f3 el correo.',
+    uncertain: 'No se pudo confirmar la aceptaci\u00f3n del correo.',
+    access_revoked: 'Aviso por correo detenido por cambio de acceso.',
+  })[value?.ready_email] || 'Sin aviso por correo registrado.';
 
 export const failureLabel = (code) =>
   ({

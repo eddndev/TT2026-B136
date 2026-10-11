@@ -1,5 +1,28 @@
 # Verificación de la actualización académica
 
+## Estimación y correo de informes: 11 de octubre de 2026
+
+Diseño, implementación, pruebas y anexo describen la predicción inicial con
+cola, ausencia de historial, umbral estricto de dos segundos y correo durable.
+La validación independiente conserva 26 aciertos entre 28 solicitudes (92.857%),
+incluidos los dos reintentos fuera de tolerancia. El recorrido HTTP/MFA y Qadra
+real se separa de activación pública y gates de integración.
+
+La copia aislada compiló en **54.792 s**. La inspección detectó rutas y nombres
+que desbordaban el anexo; se ajustaron sus saltos y se recompiló en **46.168 s**.
+El PDF final tiene **409 páginas**, **5907851 bytes** y SHA-256
+`7c14369eb43f50eac514345e62f991ea33816936d7ab2450c8e479d61691cc3f`.
+Se inspeccionaron las páginas físicas **11, 78, 228-229, 300-302 y 403-404**:
+índice, tabla de validación, rutas y continuaciones legibles, sin nuevos
+recortes ni solapes. No hay referencias sin resolver ni glifos faltantes.
+Permanecen las cajas históricas de 0.11754 y 24.62556 pt y la sustitución de
+versalitas Times.
+
+El manifiesto conserva las fuentes exactas inspeccionadas. Los cuatro PDF
+previamente aceptados mantienen sus hashes. Resumen, objetivos, marco teórico
+y conclusiones no se modificaron; el cierre académico global sigue pendiente.
+El PDF nuevo permanece fuera de Git y no acredita compilación remota.
+
 ## Invitaciones y enrolamiento recuperable: 10 de octubre de 2026
 
 CU02 conserva correo, contrasena y MFA, sin cupo de usuarios. Implementacion y

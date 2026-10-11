@@ -166,7 +166,9 @@ mod case_report_schema;
 
 pub mod case_report_isolation;
 
+pub mod case_report_email;
 pub mod invitation_email;
+pub use case_report_email::{CaseReportEmailConfiguration, ResendCaseReportEmailDelivery};
 pub mod password_reset_email;
 
 #[cfg(test)]

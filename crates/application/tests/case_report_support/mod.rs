@@ -99,6 +99,8 @@ pub fn command() -> CaseReportCommand {
 }
 pub fn detail(actor: &Principal, command: CaseReportCommand) -> CaseReportDetail {
     CaseReportDetail {
+        estimate: None,
+        ready_email: None,
         id: CaseReportId::new(),
         requester: CaseReportRequester {
             principal: actor.clone(),

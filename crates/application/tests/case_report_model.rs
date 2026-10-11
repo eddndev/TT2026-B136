@@ -138,3 +138,5 @@ fn zero_account_stamps_are_valid_initial_database_generations() {
     captured.requester.auth_generation = i64::MAX as u64 + 1;
     assert!(case_report_snapshot_digest(&TestHasher, &captured).is_err());
 }
+#[path = "case_report_estimates.rs"]
+mod estimates;

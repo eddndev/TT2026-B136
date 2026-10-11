@@ -149,6 +149,7 @@ fn workflows(dashboard: Arc<Dashboard>) -> CaseWorkflows {
         case_reports: Arc::new(reports::Workflow {
             calls: Mutex::new(Vec::new()),
             ready: false,
+            detail: Mutex::new(None),
             failure: None,
         }),
         alerts: Arc::new(alerts::Workflow {

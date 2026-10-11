@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './helpers.mjs';
+import { observeFrontendEntry } from '../frontend-entry-diagnostics.mjs';
 import {
   accounts,
   openDeadlines,
@@ -9,6 +10,18 @@ import {
   prepare,
   submit,
 } from './deadline-helpers.mjs';
+
+const entries = new WeakMap();
+test.afterEach(async ({ page }, testInfo) => {
+  const entry = entries.get(page);
+  if (!entry) return;
+  try {
+    if (testInfo.status !== testInfo.expectedStatus) await entry.attach(testInfo);
+  } finally {
+    await entry.dispose();
+    entries.delete(page);
+  }
+});
 
 async function captureDeadline(page, testInfo, name) {
   await page.evaluate(() => {
@@ -28,8 +41,9 @@ test('real daily monthly and hourly deadlines preserve exact sources calendar hi
   test.setTimeout(120000);
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  entries.set(page, await observeFrontendEntry(page));
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/');
+  expect((await page.goto('/')).status()).toBe(200);
   await loginAs(page, accounts.owner, 0);
   await openDeadlines(page);
   await page.getByRole('button', { name: 'Registrar plazo', exact: true }).click();

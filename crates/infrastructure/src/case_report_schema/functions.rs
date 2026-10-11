@@ -1,9 +1,10 @@
 use super::{incomplete, port, MIGRATIONS, TABLES};
-pub(super) const TRIGGERS: [&str; 4] = [
+pub(super) const TRIGGERS: [&str; 5] = [
     "lock_case_report_writes()",
     "preserve_case_report_rows()",
     "guard_case_report_job()",
     "guard_case_report_notice()",
+    "guard_case_report_email()",
 ];
 use application::ApplicationError;
 use postgres::GenericClient;

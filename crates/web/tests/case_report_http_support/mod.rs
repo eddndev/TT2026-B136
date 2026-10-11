@@ -29,6 +29,8 @@ pub fn request_body() -> Value {
 pub fn report(ready: bool) -> CaseReportDetail {
     let id = CaseReportId::from_uuid(Uuid::parse_str(ID).unwrap());
     let mut value = CaseReportDetail {
+        estimate: None,
+        ready_email: None,
         id,
         requester: CaseReportRequester {
             principal: Principal {
@@ -99,6 +101,7 @@ pub enum Call {
 pub struct Workflow {
     pub calls: Mutex<Vec<Call>>,
     pub ready: bool,
+    pub detail: Mutex<Option<CaseReportDetail>>,
     pub failure: Option<&'static str>,
 }
 impl Workflow {
@@ -118,7 +121,14 @@ impl Workflow {
             }
             Some("denied") => return Err(ApplicationError::PermissionDenied),
             Some("port") => return Err(ApplicationError::Port("private database payload".into())),
-            _ => return Ok(report(self.ready)),
+            _ => {
+                return Ok(self
+                    .detail
+                    .lock()
+                    .unwrap()
+                    .clone()
+                    .unwrap_or_else(|| report(self.ready)))
+            }
         };
         Err(error.into())
     }
@@ -196,6 +206,7 @@ pub fn setup(ready: bool, failure: Option<&'static str>) -> (Arc<Workflow>, Rout
     let workflow = Arc::new(Workflow {
         calls: Mutex::new(vec![]),
         ready,
+        detail: Mutex::new(None),
         failure,
     });
     (workflow.clone(), web::case_reports_router(workflow))

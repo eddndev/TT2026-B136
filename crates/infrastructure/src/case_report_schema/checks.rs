@@ -5,6 +5,8 @@ use postgres::GenericClient;
 pub(super) fn expected(table: &str) -> Vec<String> {
     let checks: &[&str] = match table {
         "case_report_jobs" => &[
+            "(estimated_total_ms > 0)",
+            "(estimated_service_ms > 0)",
             "((jsonb_typeof(principal) = 'object'::text) AND (octet_length((principal)::text) <= 2048))",
             "(account_revision >= 0)",
             "(auth_generation >= 0)",
@@ -20,6 +22,15 @@ pub(super) fn expected(table: &str) -> Vec<String> {
             "((state = ANY (ARRAY['capturing'::text, 'rendering'::text])) = ((lease_attempt IS NOT NULL) AND (lease_token IS NOT NULL) AND (lease_expires_at IS NOT NULL)))",
             "((state = ANY (ARRAY['retry_capturing'::text, 'retry_rendering'::text])) = (retry_at IS NOT NULL))",
             "((state = ANY (ARRAY['failed'::text, 'revoked'::text, 'retry_capturing'::text, 'retry_rendering'::text])) = (failure IS NOT NULL))",
+        ],
+        "case_report_email_deliveries" => &[
+            "(state = ANY (ARRAY['pending'::text, 'accepted'::text, 'rejected'::text, 'uncertain'::text, 'access_revoked'::text]))",
+            "(generation >= 0)",
+            "((jsonb_typeof(message) = 'object'::text) AND (octet_length((message)::text) <= 16384))",
+            "((lease_id IS NULL) = (lease_until IS NULL))",
+            "((message IS NULL) = (provider_deadline IS NULL))",
+            "((lease_id IS NULL) OR ((state = 'pending'::text) AND (message IS NOT NULL)))",
+            "((retry_at IS NULL) OR ((state = 'uncertain'::text) AND (lease_id IS NULL) AND (message IS NOT NULL)))",
         ],
         "case_report_snapshots" => &[
             "(octet_length(digest) = 32)", "(octet_length(plaintext_digest) = 32)",

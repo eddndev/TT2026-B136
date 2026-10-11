@@ -5,10 +5,13 @@ de asignaciones de los expedientes de la actividad registrada por cuenta autora
 durante un periodo. La actividad se limita a tres cantidades observables, sin
 puntuaciones ni comparaciones de éxito jurídico. La \cref{tab:cu-16} conserva
 como alcance el aviso por correo y la estimación de tiempo en su flujo alterno.
-La implementación ofrece
-avisos internos y estados de procesamiento; el canal de correo y una estimación
-validada de terminación permanecen pendientes. Estos límites no sustituyen
-los requisitos ni permiten considerar el caso de uso completo.
+La implementaci\'on conserva los avisos internos y los estados de procesamiento,
+y a\~nade una estimaci\'on inicial con espera en cola y una intenci\'on durable de
+correo para las solicitudes elegibles, descritas en la \cref{sec:impl-informes}.
+La validaci\'on independiente de precisi\'on cumpli\'o el criterio en el ensayo
+local delimitado en la \cref{sec:pruebas-informes}; la activaci\'on p\'ublica del
+canal permanece pendiente. Ese resultado no acredita precisi\'on en producci\'on
+ni sustituye los dem\'as criterios de cierre del caso de uso.
 
 El informe de estado representa una observación administrativa de los expedientes
 originalmente creados dentro de un intervalo UTC. El inicio es inclusivo, el

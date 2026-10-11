@@ -19,6 +19,9 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             42,
         )?;
         let (name, function) = match table {
+            "case_report_email_deliveries" => {
+                ("case_report_email_guard", "guard_case_report_email()")
+            }
             "case_report_jobs" => ("case_report_job_guard", "guard_case_report_job()"),
             "case_report_notices" => ("case_report_notice_guard", "guard_case_report_notice()"),
             "case_report_snapshots" => (

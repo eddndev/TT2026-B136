@@ -43,6 +43,7 @@ impl PostgresCaseReportStore {
             tx.execute("UPDATE case_report_jobs SET state='ready',failure=NULL,retry_at=NULL,lease_attempt=NULL,
                 lease_token=NULL,lease_expires_at=NULL,updated_at=$2 WHERE id=$1", &[&job.detail.id.as_uuid(), &timestamp(now)?]).map_err(port)?;
             tx.execute("INSERT INTO case_report_notices(report_id,kind,created_at) VALUES($1,'ready',$2)", &[&job.detail.id.as_uuid(), &timestamp(now)?]).map_err(port)?;
+            email::enqueue(tx, &job.detail, now)?;
             audit(tx, &job.detail, "case_report.complete", now)?;
             Ok(storage::get(tx, job.detail.id, self.hasher.as_ref())?.detail)
         })

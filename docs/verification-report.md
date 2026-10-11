@@ -1,5 +1,23 @@
 # Informe de verificación local
 
+## Diagnostico de entrada del navegador: 11 de octubre de 2026
+
+La primera campana de PR97 detuvo la prueba real de plazos antes del primer
+POST de acceso: el campo de correo no aparecio en 120 s. Documents aprobo y
+los otros gates se cancelaron. El artefacto no identifica la causa del montaje.
+La reproduccion local del mismo grupo, sin cambios, aprobo los diez recorridos
+en 194.791 s con PostgreSQL/Redis propios y un solo worker. Esto no demuestra
+que el fallo remoto este resuelto ni sustituye sus gates.
+
+Se reutilizo el observador de entrada existente en el recorrido afectado y se
+exigio HTTP 200 al navegar. Una regresion reprodujo que el diagnostico saneado
+no se guardaba como archivo publicable (ENOENT); la correccion conserva esos
+mismos bytes y los incluye en el artefacto de fallo de CI. Las dos pruebas del
+observador aprobaron en 10.807 s, incluidas las restricciones de datos privados
+y tamano. No se cambiaron el producto, reintentos ni limites de espera. El recorrido
+real de plazos con el observador aprobo en 99.103 s incluida la preparacion.
+
+
 ## Invitaciones: evidencia focal local
 
 La primera campana de cierre de PR96 se cancelo tras rechazar Clippy una
@@ -10533,3 +10551,134 @@ o validador. No se cambio producto ni se debilito el gate. La comprobacion focal
 aprobo `pki_use_cases` (16 pruebas), `port_coverage` (1), el registro de ejecutables,
 formato y Clippy del target. Se conserva la aceptacion API/navegador y el PDF
 ya comprobados; la revision corregida necesita sus propios gates remotos.
+
+## Estimacion inicial y correo de informes: 11 de octubre de 2026
+
+Entrega local posterior a la integracion de invitaciones por PR96 en `0db0a9f9`.
+Esa PR aprobo CI `38104958180`, Web `38104958207` y Documents `38104958179` sobre
+`8f1e37244f1c31fd4da4796fd14f906585bac92c`; el squash tiene el mismo arbol y
+coautoria confirmada. No se desplego esa revision ni se activo correo publico.
+La produccion conserva `v0.1.3` y la aceptacion previa de firma individual.
+
+La nueva implementacion conserva los dos tipos de informe y persiste una
+estimacion inicial incluida cola, con umbral de correo estrictamente mayor de
+2000 ms. Los criterios y limites estan en
+[ADR-0076](adr/0076-report-estimates-and-ready-email.md). No se modifica la
+prediccion con el tiempo real posterior. Una instalacion sin historial comparable
+presenta estimacion no disponible.
+
+Se ejecutaron pruebas focales seriales con Rust 1.94.0, PostgreSQL 18.6 aislado,
+un hilo de prueba, un job de compilacion y TMPDIR en btrfs. Los resultados
+siguientes corresponden a esta implementacion, no a una regresion global:
+
+- Cuatro pruebas de contrato de estimacion aprobaron; su ausencia previa tuvo
+  un fallo de compilacion que identifico el contrato faltante. La persistencia
+  y recuperacion del valor inicial aprobaron con PostgreSQL real.
+- Trece pruebas de aplicacion del trabajador aprobaron despues de sus fallos
+  RED: autorizacion previa, concesion, sobre inmutable, resultados del proveedor,
+  tiempo y errores saneados. Ocho del transporte aprobaron con servidor HTTP
+  capturado, sin mensajes externos.
+- Once pruebas nativas de correo aprobaron: publicacion conjunta y rollback,
+  umbral exacto, permisos antes del envio, reintentos, reapertura, dump/restore
+  y expiracion. Dos de expiracion fallaron antes de corregir el cierre de
+  intenciones abandonadas; agotada la ventana quedan inciertas sin reintento.
+- Tres pruebas adicionales reprodujeron que el arranque aceptaba una intencion
+  sin informe elegible o un informe elegible sin su intencion. La correccion
+  del inventario rechazo los tres casos sin modificar los datos y aprobo.
+- Cuatro pruebas HTTP comprobaron campos nulos, estimacion compartida por
+  solicitud/listado/detalle/acuse, estados de proveedor y enteros JSON exactos.
+  Seis pruebas Node aprobaron la presentacion y compatibilidad de respuestas.
+- Nueve pruebas de configuracion y supervision aprobaron despues del RED:
+  canal deshabilitado por defecto, parametros completos solo al habilitarlo,
+  parada coordinada y errores sin secretos.
+
+La revision focal posterior detecto dos sesgos concretos de reintentos: una
+pausa de 30 segundos entraba al historial como tiempo de generacion y una
+captura antigua hacia parecer terminado un intento que acababa de reiniciarse.
+Ambos fallaron primero en PostgreSQL. La correccion excluye muestras de varios
+intentos y deja desconocido el total ante un reintento activo, conservando el
+coste de servicio comparable. Las cuatro pruebas de estimacion persistida
+aprobaron; no se cambiaron mediana ni coeficientes usando la validacion.
+La muestra congelada de calibracion contenia solo intentos simples, y los
+fallos de validacion se inyectaron despues de guardar cada prediccion.
+
+El trabajador con store PostgreSQL y transporte capturado aprobo dos recorridos
+adicionales: reapertura y reintento con el mismo mensaje/UUID hasta aceptacion,
+y cero envios tras revocar membresia. El catalogo y privilegios del esquema
+aprobaron, incluida la prohibicion de reescribir estimaciones e identidad de
+entrega. Qadra aprobo tres escenarios controlados (escritorio, movil y ausencia
+de historial), separando estimacion, duracion y aceptacion del proveedor.
+
+La calibracion preliminar en proceso no cuenta como validacion del servidor.
+La validacion independiente posterior uso `IsolatedCaseReportRenderer`, binario
+SHA256 `1c5b6c466614650f85be944c247fc6de3e5f61bb68e603ff6f9cfa1411fdab5e`, con Linux 7.2.9, 16 CPU logicas y aproximadamente 15 GiB de
+RAM. Termino en 321.402 segundos. Primero se completaron 18 observaciones de
+calibracion, tres por tipo y volumen (3, 80 y 900 expedientes). Despues se
+restauro una copia nueva del historial congelado para cada una de 28 solicitudes:
+cuatro por tipo/volumen, mas cola y fallo transitorio para cada tipo. Ninguna
+validacion se incorporo al historial de otra ni ajusto el estimador evaluado.
+
+Las 28 solicitudes tuvieron estimacion inicial y produjeron ambos formatos:
+cobertura 100%. Cumplieron la tolerancia `max(2000 ms, 30% del tiempo real)`
+26 de 28, equivalentes a **92.857%**, superando el 90% aprobado para esta muestra.
+Los dos errores corresponden a un fallo `RenderUnavailable` inyectado despues
+de solicitar, seguido de la espera real de 30 segundos: se estimaron 1690 y
+1461 ms y finalizaron en 31704.229 y 31474.983 ms. Permanecen en el denominador.
+Una prediccion inicial no anticipa ese fallo futuro.
+
+| Informe | Expedientes | Estimacion inicial (ms) | Duracion real, cuatro solicitudes (ms) |
+| --- | ---: | ---: | ---: |
+| Estado/carga | 3 | 1139 | 1156-1163 |
+| Estado/carga | 80 | 1690 | 1667-1690 |
+| Estado/carga | 900 | 7343 | 7400-7554 |
+| Actividad | 3 | 1128 | 1144-1154 |
+| Actividad | 80 | 1461 | 1458-1467 |
+| Actividad | 900 | 4782 | 4886-5014 |
+
+Los fixtures tienen tres autores y documentos originales atribuidos; no ejercen
+actuaciones ni atenciones en esta medicion. Las capturas, filas, texto y bytes
+por formato se registraron por solicitud. El mayor volumen genero ambos formatos
+sin aumentar limites ni usar el fallback de capacidad previsto. Estos resultados
+acreditan el criterio sobre esta muestra y equipo, no rendimiento de produccion
+ni todas las combinaciones de texto y actividad admitidas.
+
+El estado de entrega `accepted` acredita aceptacion del proveedor, nunca recepcion
+en la bandeja. La aceptacion integrada local posterior aprobo con HTTP, PostgreSQL, Redis,
+Argon2 y MFA reales en 35.992 segundos: tres historicos previos, solicitud con
+dos predecesores UUID, estimacion inicial de 3360 ms y disponibilidad observada
+en 3453.433 ms. El correo estuvo ausente antes de Ready, pendiente al publicar
+y aceptado despues de capturarlo en el puerto de prueba. Logout rechazo la
+sesion vieja; la reapertura del store y MFA nueva por recuperacion conservaron
+la misma operacion y PDF/CSV byte por byte. La cadena de auditoria fue valida.
+No hubo mensajes externos ni cambios artificiales al reloj o a la estimacion.
+
+Qadra con servicios reales aprobo los recorridos Owner y Litigante (15.1 y
+8.2 segundos); navegador 28.7 segundos, campaña con preparacion 329.708. Owner
+produjo tres historicos y recupero el cuarto informe con estimacion numerica,
+duracion observada separada y archivos exactos tras nueva sesion. Litigante
+conservo la ausencia explicita de historial suficiente. Cuatro capturas de
+escritorio y movil fueron inspeccionadas sin defectos de disposicion o recorte.
+Gates exactos, integracion y activacion publica conservan evidencia separada.
+
+El cierre local adicional aprobo Clippy de todo el workspace en 223.748 s,
+compilacion web de produccion en 5.420 s y el guion CLI completo en 8.824 s.
+La prueba de arquitectura de puertos aprobo una comprobacion; la regresion focal
+de supervision existente aprobo siete. El inventario de pruebas reprodujo la
+omision del modulo de correo y quedo verde al declarar su ruta explicita, sin
+crear un segundo target ni duplicar su ejecucion. Prettier, ASCII y limites de
+archivos se comprobaron sobre los archivos propios.
+
+El manuscrito separado de 409 paginas fue compilado e inspeccionado, con las
+copias aceptadas preservadas; la reparacion de rutas largas y su identidad
+quedan en [la verificacion academica](academic-report-verification.md). Estos
+resultados locales no sustituyen la regresion completa ni los gates del HEAD
+exacto para integrar. El correo publico sigue deshabilitado.
+
+La API completa actual aprobo en **676.703 s** con PostgreSQL y Redis
+independientes, migracion con rol restringido, reinicios controlados y
+restauracion poblada. Conservo informes y descargas exactos despues de MFA,
+asi como recibos, fuentes, permisos y auditoria de los flujos existentes.
+El guion usa transporte publico deshabilitado; la aceptacion del correo nuevo
+sigue siendo la captura nativa descrita arriba. Esta campana se ejecuto una vez
+para el cierre actual; no se atribuye a los workflows remotos, que no invocan
+el guion API completo.

@@ -1,4 +1,7 @@
 //! Own report HTTP and background workflow adapters outside the async runtime.
+use crate::{
+    serve_report_email_config::ReportEmailSettings, serve_report_email_runtime::ReportEmailConsumer,
+};
 use anyhow::Context;
 use application::{
     case_reports::{CaseReportService, CaseReportWorker, CaseReportWorkerRun, CaseReportWorkflow},
@@ -18,12 +21,14 @@ pub(crate) type ReportConsumer =
 pub(crate) struct ReportComponents {
     pub workflow: Arc<dyn CaseReportWorkflow>,
     pub consumer: ReportConsumer,
+    pub email: Option<ReportEmailConsumer>,
 }
 
 pub(crate) fn open(
     database_url: &(impl infrastructure::PostgresConnectionSource + ?Sized),
     identity: Arc<dyn IdentityWorkflow>,
     kek: Zeroizing<Vec<u8>>,
+    email_settings: Option<ReportEmailSettings>,
 ) -> anyhow::Result<ReportComponents> {
     let executable = std::env::current_exe().context("cannot locate report render worker")?;
     let renderer = Arc::new(
@@ -50,9 +55,12 @@ pub(crate) fn open(
         hasher.clone(),
         clock.clone(),
     ));
+    let email =
+        crate::serve_report_email_composition::open(email_settings, store.clone(), clock.clone())?;
     let worker = CaseReportWorker::new(store, renderer, hasher, clock);
     Ok(ReportComponents {
         workflow,
         consumer: Arc::new(move || worker.run_next()),
+        email,
     })
 }

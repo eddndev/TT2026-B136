@@ -12,6 +12,7 @@ enum Exit {
     Reports(ConsumerResult),
     PasswordReset(ConsumerResult),
     Invitations(ConsumerResult),
+    ReportEmail(ConsumerResult),
 }
 #[cfg(test)]
 pub(crate) async fn supervise(
@@ -34,12 +35,34 @@ pub(crate) async fn supervise_with_password_reset(
     supervise_with_invitations(deadlines, alerts, reports, password_reset, None, stop).await
 }
 
+#[cfg(test)]
 pub(crate) async fn supervise_with_invitations(
+    deadlines: JoinHandle<Result<(), ApplicationError>>,
+    alerts: JoinHandle<Result<(), ApplicationError>>,
+    reports: JoinHandle<Result<(), ApplicationError>>,
+    password_reset: Option<JoinHandle<Result<(), ApplicationError>>>,
+    invitations: Option<JoinHandle<Result<(), ApplicationError>>>,
+    stop: Arc<Stop>,
+) -> Result<(), ApplicationError> {
+    supervise_with_report_email(
+        deadlines,
+        alerts,
+        reports,
+        password_reset,
+        invitations,
+        None,
+        stop,
+    )
+    .await
+}
+
+pub(crate) async fn supervise_with_report_email(
     mut deadlines: JoinHandle<Result<(), ApplicationError>>,
     mut alerts: JoinHandle<Result<(), ApplicationError>>,
     mut reports: JoinHandle<Result<(), ApplicationError>>,
     mut password_reset: Option<JoinHandle<Result<(), ApplicationError>>>,
     mut invitations: Option<JoinHandle<Result<(), ApplicationError>>>,
+    mut report_email: Option<JoinHandle<Result<(), ApplicationError>>>,
     stop: Arc<Stop>,
 ) -> Result<(), ApplicationError> {
     let exit = {
@@ -55,28 +78,42 @@ pub(crate) async fn supervise_with_invitations(
                 None => std::future::pending().await,
             }
         };
+        let report_email_exit = async {
+            match &mut report_email {
+                Some(task) => task.await,
+                None => std::future::pending().await,
+            }
+        };
         tokio::select! {
             result = &mut deadlines => Exit::Deadlines(result),
             result = &mut alerts => Exit::Alerts(result),
             result = &mut reports => Exit::Reports(result),
             result = reset_exit => Exit::PasswordReset(result),
             result = invitation_exit => Exit::Invitations(result),
+            result = report_email_exit => Exit::ReportEmail(result),
         }
     };
     let was_stopped = stop.is_stopped();
     stop.request();
     let mut failures = Vec::new();
-    let (deadline_result, alert_result, report_result, reset_result, invitation_result) = match exit
-    {
+    let (
+        deadline_result,
+        alert_result,
+        report_result,
+        reset_result,
+        invitation_result,
+        report_email_result,
+    ) = match exit {
         Exit::Deadlines(result) => {
             if !was_stopped && matches!(result, Ok(Ok(()))) {
                 failures.push("deadline_stopped");
             }
-            let (alert_result, report_result, reset_result, invitation_result) = tokio::join!(
+            let (alert_result, report_result, reset_result, invitation_result, report_email_result) = tokio::join!(
                 alerts,
                 reports,
                 join_optional(password_reset),
-                join_optional(invitations)
+                join_optional(invitations),
+                join_optional(report_email)
             );
             (
                 result,
@@ -84,17 +121,25 @@ pub(crate) async fn supervise_with_invitations(
                 report_result,
                 reset_result,
                 invitation_result,
+                report_email_result,
             )
         }
         Exit::Alerts(result) => {
             if !was_stopped && matches!(result, Ok(Ok(()))) {
                 failures.push("alerts_stopped");
             }
-            let (deadline_result, report_result, reset_result, invitation_result) = tokio::join!(
+            let (
+                deadline_result,
+                report_result,
+                reset_result,
+                invitation_result,
+                report_email_result,
+            ) = tokio::join!(
                 deadlines,
                 reports,
                 join_optional(password_reset),
-                join_optional(invitations)
+                join_optional(invitations),
+                join_optional(report_email)
             );
             (
                 deadline_result,
@@ -102,17 +147,25 @@ pub(crate) async fn supervise_with_invitations(
                 report_result,
                 reset_result,
                 invitation_result,
+                report_email_result,
             )
         }
         Exit::Reports(result) => {
             if !was_stopped && matches!(result, Ok(Ok(()))) {
                 failures.push("reports_stopped");
             }
-            let (deadline_result, alert_result, reset_result, invitation_result) = tokio::join!(
+            let (
+                deadline_result,
+                alert_result,
+                reset_result,
+                invitation_result,
+                report_email_result,
+            ) = tokio::join!(
                 deadlines,
                 alerts,
                 join_optional(password_reset),
-                join_optional(invitations)
+                join_optional(invitations),
+                join_optional(report_email)
             );
             (
                 deadline_result,
@@ -120,35 +173,71 @@ pub(crate) async fn supervise_with_invitations(
                 result,
                 reset_result,
                 invitation_result,
+                report_email_result,
             )
         }
         Exit::PasswordReset(result) => {
             if !was_stopped && matches!(result, Ok(Ok(()))) {
                 failures.push("password_reset_stopped");
             }
-            let (deadline_result, alert_result, report_result, invitation_result) =
-                tokio::join!(deadlines, alerts, reports, join_optional(invitations));
+            let (
+                deadline_result,
+                alert_result,
+                report_result,
+                invitation_result,
+                report_email_result,
+            ) = tokio::join!(
+                deadlines,
+                alerts,
+                reports,
+                join_optional(invitations),
+                join_optional(report_email)
+            );
             (
                 deadline_result,
                 alert_result,
                 report_result,
                 result,
                 invitation_result,
+                report_email_result,
             )
         }
         Exit::Invitations(result) => {
             if !was_stopped && matches!(result, Ok(Ok(()))) {
                 failures.push("invitations_stopped");
             }
-            let (d, a, r, reset) =
-                tokio::join!(deadlines, alerts, reports, join_optional(password_reset));
-            (d, a, r, reset, result)
+            let (d, a, r, reset, email) = tokio::join!(
+                deadlines,
+                alerts,
+                reports,
+                join_optional(password_reset),
+                join_optional(report_email)
+            );
+            (d, a, r, reset, result, email)
+        }
+        Exit::ReportEmail(result) => {
+            if !was_stopped && matches!(result, Ok(Ok(()))) {
+                failures.push("report_email_stopped");
+            }
+            let (d, a, r, reset, invitations) = tokio::join!(
+                deadlines,
+                alerts,
+                reports,
+                join_optional(password_reset),
+                join_optional(invitations)
+            );
+            (d, a, r, reset, invitations, result)
         }
     };
     for (result, failed, panicked) in [
         (deadline_result, "deadline_failed", "deadline_panicked"),
         (alert_result, "alerts_failed", "alerts_panicked"),
         (report_result, "reports_failed", "reports_panicked"),
+        (
+            report_email_result,
+            "report_email_failed",
+            "report_email_panicked",
+        ),
         (
             invitation_result,
             "invitations_failed",

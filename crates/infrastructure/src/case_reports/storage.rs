@@ -118,6 +118,15 @@ pub(super) fn decode(
     }
     Ok(Job {
         detail: CaseReportDetail {
+            ready_email: email::state(tx, id)?,
+            estimate: row
+                .get::<_, Option<i64>>("estimated_total_ms")
+                .map(|value| {
+                    u64::try_from(value)
+                        .map_err(inconsistent)
+                        .and_then(CaseReportEstimate::new)
+                })
+                .transpose()?,
             id,
             requester,
             scope,

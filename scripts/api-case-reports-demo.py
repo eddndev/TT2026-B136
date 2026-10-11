@@ -81,19 +81,44 @@ def instant(value):
     return datetime.fromisoformat(value.replace('Z', '+00:00'))
 
 
+def readiness(value, initial=None):
+    estimate = value['estimated_total_ms']
+    assert estimate is None or (type(estimate) is int and 0 < estimate <= 9_007_199_254_740_991)
+    if initial is not None:
+        assert estimate == initial['estimated_total_ms'], 'Initial report estimate changed'
+    eligible = value['state'] == 'ready' and estimate is not None and estimate > 2_000
+    if eligible:
+        assert value['ready_email'] in ['pending', 'accepted', 'rejected', 'uncertain', 'access_revoked']
+    else:
+        assert value['ready_email'] is None, 'Report email was registered before eligible readiness'
+    if value['state'] == 'ready':
+        assert instant(value['notice']['created_at']) >= instant(value['requested_at'])
+
+
+def same_report(actual, expected):
+    readiness(actual, expected)
+    readiness(expected)
+    # Delivery can advance independently of the immutable capture and initial estimate.
+    assert {key: value for key, value in actual.items() if key != 'ready_email'} == \
+        {key: value for key, value in expected.items() if key != 'ready_email'}
+
+
 def ready(command, token):
     initial = report('POST', ROOT, command, token, (202,))
     assert initial['state'] == 'queued' and initial['notice'] is None
     assert initial['operation_id'] == command['operation_id']
+    readiness(initial)
     identifier = str(UUID(initial['id']))
     replay = report('POST', ROOT, command, token, (200, 202))
     assert replay['id'] == identifier and replay['request_digest'] == initial['request_digest']
+    readiness(replay, initial)
     observed, deadline = [('queued', None)], time.monotonic() + 90
     order = {('queued', None): 0, ('processing', 'capturing'): 1,
              ('processing', 'rendering'): 2, ('ready', None): 3}
     while time.monotonic() < deadline:
         value = report('GET', ROOT + '/' + identifier, token=token,
                        timeout=min(10, max(0.1, deadline - time.monotonic())))
+        readiness(value, initial)
         state = (value['state'], value['phase'])
         assert value['failure'] is None, (identifier, value['state'], value['failure'])
         assert state in order and order[state] >= order[observed[-1]], (observed, state)
@@ -105,7 +130,7 @@ def ready(command, token):
         if value['state'] == 'ready':
             assert value['phase'] is None and value['retry_at'] is None
             assert value['notice']['kind'] == 'ready' and value['notice']['read_at'] is None
-            assert report('POST', ROOT, command, token) == value
+            same_report(report('POST', ROOT, command, token), value)
             return value, observed
         assert value['ready'] is None and value['notice'] is None
         time.sleep(min(0.25, max(0, deadline - time.monotonic())))
@@ -132,7 +157,7 @@ def pair(saved, token, capture=False):
         else:
             assert raw == path.read_bytes(), ('Stored report bytes changed', detail['id'], format_name)
         blobs[format_name] = raw
-    assert report('GET', ROOT + '/' + detail['id'], token=token) == detail, 'Download marked notice read'
+    same_report(report('GET', ROOT + '/' + detail['id'], token=token), detail)
     identities(saved, blobs)
 
 
@@ -243,7 +268,7 @@ def capture():
     assert {read_id, unread_id} <= pages(unread=True).keys()
     acknowledged = report('POST', ROOT + '/' + read_id + '/notice-read', {})
     assert acknowledged['notice']['read_at'] is not None
-    assert report('POST', ROOT + '/' + read_id + '/notice-read', {}) == acknowledged
+    same_report(report('POST', ROOT + '/' + read_id + '/notice-read', {}), acknowledged)
     reports['read']['detail'] = acknowledged
     assert read_id not in pages(unread=True) and unread_id in pages(unread=True)
     conflict = {**reports['unread']['command'], 'filters': {**filters, 'status': 'closed'}}
@@ -263,6 +288,10 @@ def capture():
     private(STATE, json.dumps({'enrollments': enrollments, 'tokens': tokens, 'reports': reports,
                                'retained_case': retained}, sort_keys=True).encode('ascii'))
     print('Report worker HTTP states: ' + json.dumps({key: row['states'] for key, row in reports.items()}))
+    print('Report readiness HTTP: ' + json.dumps({key: {
+        'estimated_total_ms': row['detail']['estimated_total_ms'],
+        'ready_email': row['detail']['ready_email'],
+    } for key, row in reports.items()}))
     print('Report API passed: queued HTTP jobs, paired captured artifacts, own notices and whole-report revocation.')
 
 
@@ -274,18 +303,18 @@ def restore():
     reports = saved['reports']
     for label in ['unread', 'read']:
         row = reports[label]
-        assert report('GET', ROOT + '/' + row['detail']['id']) == row['detail']
-        assert report('POST', ROOT, row['command']) == row['detail']
+        same_report(report('GET', ROOT + '/' + row['detail']['id']), row['detail'])
+        same_report(report('POST', ROOT, row['command']), row['detail'])
         pair(row, TOKEN)
         access_denied(row['detail']['id'], tokens['owner'], 404, 'case_report_not_found')
     unread_id, read_id = reports['unread']['detail']['id'], reports['read']['detail']['id']
     assert unread_id in pages(unread=True) and read_id not in pages(unread=True)
-    assert report('POST', ROOT + '/' + read_id + '/notice-read', {}) == reports['read']['detail']
+    same_report(report('POST', ROOT + '/' + read_id + '/notice-read', {}), reports['read']['detail'])
     request('GET', '/api/v1/cases/' + saved['retained_case'], token=tokens['litigator'])
     access_denied(reports['revoked']['detail']['id'], tokens['litigator'], 403, 'case_report_access_revoked')
     assert pages(tokens['litigator']) == pages(tokens['owner']) == {}
     roles_denied(reports['unread'])
-    print('Report restore passed: exact PDF/CSV bytes, identities, read/unread notices and revoked full capture.')
+    print('Report restore passed: exact PDF/CSV bytes, initial estimates, eligible email state, notices and revocation.')
 
 
 if __name__ == '__main__':

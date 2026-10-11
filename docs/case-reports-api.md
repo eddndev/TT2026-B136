@@ -13,7 +13,8 @@ Una solicitud produce un PDF y un CSV del **estado administrativo observado** de
 los expedientes creados en el intervalo elegido, más la carga derivada de esos
 mismos expedientes. El intervalo filtra la creación original: no reconstruye el
 estado al final del periodo, la actividad histórica ni la efectividad jurídica.
-No genera firmas documentales, constancias de PSC ni notificaciones por correo.
+No genera firmas documentales ni constancias de PSC. La estimacion inicial y el
+aviso por correo tienen el contrato separado descrito abajo.
 
 ## Autorización y captura
 
@@ -88,7 +89,7 @@ página. Una página no representa un conteo total del conjunto.
 
 Cada detalle contiene `id`, `operation_id`, `request_digest`, `scope`, `filters`,
 `requested_at`, `updated_at`, `state`, `phase`, `retry_at`, `failure`, `ready` y
-`notice`. Digests: SHA-256 hexadecimal; instantes: RFC 3339 UTC. Los campos no
+`notice`, `estimated_total_ms` y `ready_email`. Digests: SHA-256 hexadecimal; instantes: RFC 3339 UTC. Los campos no
 aplicables se serializan como `null`, según esta tabla:
 
 | `state` | `phase` | `retry_at` | `failure` | `ready` |
@@ -119,7 +120,57 @@ presentar segundos enteros. Incluye cola y reintentos; no mide exclusivamente
 CPU ni estima finalización. El acuse no modifica esa duración: `updated_at`
 puede cambiar después del resultado y no sirve como extremo del intervalo.
 Datos incompatibles o instantes fuera del orden solicitud, captura, resultado,
-acuse y actualización omiten la duración. No se añaden campos al contrato HTTP.
+acuse y actualización omiten la duración. Este calculo permanece separado de
+la estimacion inicial persistida.
+
+## Estimacion inicial y correo de disponibilidad
+
+`estimated_total_ms` es un entero positivo de milisegundos o `null`. Comprende
+la espera prevista en la cola y la generacion de ambos formatos desde la
+solicitud original. No representa duracion juridica, porcentaje completado ni
+una fecha garantizada. Solicitud, listado, detalle y acuse devuelven la misma
+prediccion inicial, incluso despues de completar o recuperar la operacion.
+
+Sin al menos tres observaciones comparables, Qadra muestra estimacion no
+disponible. Se usan los ultimos 64 informes completados en un solo intento del
+mismo tipo y alcance; se excluyen los reintentados para no contar su pausa como
+costo de generacion. Se comparan los informes
+con volumen de expedientes dentro del 25% del solicitado; la mediana de tiempos
+escalados estima el servicio. La espera considera orden UUID, trabajo activo,
+reintentos elegibles y pausas del consumidor. Cola demasiado amplia o costo
+desconocido de un predecesor deja la estimacion total en `null`. Tambien queda en
+`null` si hay un predecesor con concesion vigente en su segundo intento o uno
+posterior: la captura inmutable no identifica el inicio de ese intento. El costo
+de servicio conocido se conserva por separado. Vease
+[la decision del estimador y correo](adr/0076-report-estimates-and-ready-email.md).
+
+Solo una prediccion inicial estrictamente mayor de 2000 ms genera una intencion
+de correo al publicar `ready`. El valor exacto 2000, una estimacion ausente y un
+informe fallido no la generan. PDF, CSV, aviso interno, intencion de correo y
+auditoria se confirman en la misma transaccion. El correo no modifica los
+artefactos ni su disponibilidad; su fallo no impide descargarlos con autorizacion.
+
+`ready_email` es `null` sin intencion, o uno de los siguientes estados:
+
+| Valor | Significado visible |
+| --- | --- |
+| `pending` | Aviso pendiente, incluido un intento con concesion vigente. |
+| `accepted` | El proveedor acepto el mensaje; no confirma recepcion en bandeja. |
+| `rejected` | El proveedor rechazo definitivamente el mensaje. |
+| `uncertain` | No se pudo confirmar su aceptacion; puede quedar un reintento dentro de la ventana original. |
+| `access_revoked` | Se detuvo el aviso por cambio de autorizacion del solicitante. |
+
+Cada intento revalida la identidad original y acceso a toda la captura. Mensaje,
+destinatario e identidad de entrega permanecen estables al reintentar o restaurar.
+La ventana de idempotencia comienza con el primer reclamo y dura hasta 24 horas;
+una respuesta incierta permite reintentar despues de 60 segundos dentro de ella.
+Al agotarla, el resultado queda incierto sin nuevos intentos. No se promete
+entrega exactamente una vez. El mensaje es generico, sin adjuntos ni datos del
+expediente, y abre `#reports` con autenticacion obligatoria.
+
+El canal esta deshabilitado por defecto. Un `pending` no afirma que el operador
+lo haya activado. La aceptacion usa transporte capturado; configuracion y
+activacion publica se describen en [operacion](database-operations.md#informes-durables-y-restauración).
 
 ## Descargas y límites
 

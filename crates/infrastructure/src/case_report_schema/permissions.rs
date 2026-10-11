@@ -19,6 +19,16 @@ fn update_columns(table: &str) -> &'static [&'static str] {
             "attempts",
             "case_ids",
         ],
+        "case_report_email_deliveries" => &[
+            "state",
+            "generation",
+            "lease_id",
+            "lease_until",
+            "provider_deadline",
+            "retry_at",
+            "message",
+            "updated_at",
+        ],
         "case_report_notices" => &["read_at"],
         _ => &[],
     }

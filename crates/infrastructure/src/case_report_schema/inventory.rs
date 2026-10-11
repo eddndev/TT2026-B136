@@ -32,6 +32,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
             LEFT JOIN users u ON u.id=j.requester_id
             LEFT JOIN case_report_snapshots s ON s.report_id=j.id
             LEFT JOIN case_report_notices n ON n.report_id=j.id
+            LEFT JOIN case_report_email_deliveries e ON e.report_id=j.id
             LEFT JOIN LATERAL(SELECT count(*) AS total FROM case_report_artifacts a WHERE a.report_id=j.id) a ON TRUE
             WHERE u.id IS NULL OR j.id='00000000-0000-0000-0000-000000000000'::uuid
                 OR j.operation_id='00000000-0000-0000-0000-000000000000'::uuid
@@ -42,6 +43,8 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
                 OR j.case_ids IS DISTINCT FROM ARRAY(SELECT DISTINCT id FROM unnest(j.case_ids) id ORDER BY id)
                 OR EXISTS(SELECT 1 FROM unnest(j.case_ids) id WHERE id='00000000-0000-0000-0000-000000000000'::uuid)
                 OR (j.state='ready' AND (s.report_id IS NULL OR a.total<>2 OR n.kind IS DISTINCT FROM 'ready'))
+                OR (e.report_id IS NOT NULL AND (j.state<>'ready' OR COALESCE(j.estimated_total_ms,0)<=2000))
+                OR (j.state='ready' AND j.estimated_total_ms>2000 AND e.report_id IS NULL)
                 OR (j.state='failed' AND (a.total<>0 OR n.kind IS DISTINCT FROM 'failed'))
                 OR (j.state NOT IN ('ready','failed') AND (a.total<>0 OR n.report_id IS NOT NULL))
                 OR (j.state IN ('queued','capturing','retry_capturing') AND (s.report_id IS NOT NULL OR cardinality(j.case_ids)<>0))

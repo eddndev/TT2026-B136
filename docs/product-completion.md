@@ -1,22 +1,33 @@
 # Cierre funcional del prototipo web
 
-Corte operativo del 9 de octubre de 2026: PR92 y PR93 están integradas;
-`v0.1.2` sirve el commit `29168dc289dcb9f725a1d02575efc89593cf87f9` en VPS3.
-La migración y restauración poblada aprobaron y la activación conservó los datos
-de la demo, claves y configuración. Falta la comprobación autenticada del informe
-PDF/CSV en producción. Los resultados y límites del respaldo automático están en
-[verificación](verification-report.md); el resto finito en [cierre técnico](technical-closure.md).
-Las referencias siguientes a releases anteriores describen sus cortes históricos.
+Corte conciliado del 11 de octubre de 2026: PR95 integro la firma documental
+individual en `784a0cfb`; `v0.1.3` esta activa en VPS3 con restauracion poblada,
+respaldo verificado y datos/configuracion preservados. El recorrido de firma
+conserva certificado del Litigante, clave externa, PDF/consentimiento exactos,
+recibo atomico y verificacion historica separada del estado actual. Sus
+[siete criterios](technical-closure.md#criterios-de-firma-individual) tienen
+aceptacion nativa, HTTP/restauracion y navegador real. La demostracion humana
+requiere una cuenta Litigante y su CSR/clave externos.
 
-La firma documental individual tiene implementación y aceptación funcional local completas
-al 10 de octubre de 2026: emisión desde CSR externo, vinculación del certificado
-del Litigante, dos firmas externas sobre PDF y consentimiento exactos, recibo
-transaccional y verificación histórica separada del estado actual. Su
-[contrato HTTP](http-individual-signing.md) y los
-[siete criterios de cierre](technical-closure.md#criterios-de-firma-individual)
-cuentan con aceptación nativa, HTTP/restauración y navegador real. Los controles
-de la revisión publicada y el despliegue conservan su evidencia separada. Este trabajo no modifica el estado desplegado de
-`v0.1.2` ni atribuye un firmante personal a los sellos históricos del servidor.
+PR96 integro invitaciones y enrolamiento recuperable en `0db0a9f9`: CI, Web y
+Documents aprobaron el HEAD exacto, con arbol del squash confirmado. Correo de
+prueba, PostgreSQL/Redis, MFA, reinicio y restauracion estan aceptados. No hay cupo
+por plan para este despacho. Esa integracion todavia no acredita despliegue de
+invitaciones ni activacion del envio publico.
+
+La estimacion inicial y el correo de informes tienen implementacion y aceptacion
+local completas, con [contrato finito](case-reports-api.md) y
+[decision de diseno](adr/0076-report-estimates-and-ready-email.md). La validacion
+independiente obtuvo 26/28 solicitudes dentro de tolerancia (92.857%) y cobertura
+100%, con los dos fallos transitorios incluidos. El recorrido HTTP con correo
+capturado, nueva MFA y archivos exactos aprobo; tambien Owner/Litigante en
+navegador real. Este corte no anticipa los gates ni la integracion de esa revision. La
+produccion conserva su version confirmada; la comprobacion autenticada del
+informe PDF/CSV permanece separada.
+Los resultados actuales y limitaciones estan en [verificacion](verification-report.md)
+y los pendientes en [cierre tecnico](technical-closure.md). Las secciones
+historicas siguientes conservan la evidencia de cada entrega y no reabren
+funciones ya cerradas.
 
 ## Checkpoint funcional reconciliado
 
@@ -821,7 +832,7 @@ catálogo versionado en análisis y diseño; no reemplazan objetivos aprobados.
 | Caso de uso | Estado | Alcance y condición pendiente para cierre |
 | --- | --- | --- |
 | Registro de despacho y selección de plan | Parcial | Conservar bootstrap; conciliar selección comercial con instancia de un solo despacho y completar enrolamiento recuperable. |
-| Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada. La recuperación de correo/rol e intención incierta del alta está integrada por PR85, con aceptación local controlada y gates de la PR aprobados; no recupera contraseña ni MFA. Invitaciones y enrolamiento recuperable siguen pendientes. |
+| Ciclo de vida de miembros | Parcial; directorio y administración de acceso integrados | Directorio Owner, selección por correo, rol/estado con revisión esperada, protección del último Owner y revocación durable de sesiones/desafíos; evidencia focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa con restauración aprobados y entrega integrada. La recuperación de correo/rol e intención incierta del alta está integrada por PR85, con aceptación local controlada y gates de la PR aprobados; no recupera contraseña ni MFA. Invitaciones y enrolamiento recuperable integrados por PR96, con aceptacion local y gates exactos; despliegue y correo publico separados. |
 | Inicio de sesión y sesiones | Parcial; contraseña/MFA, recuperación pública y base de reingreso integradas | PR55–PR61 incorporaron políticas temporales, correcciones, reingreso y recuperación de contraseña con confirmación de main. Documentos, expedientes, participantes, audiencias/hechos y miembros/calendarios tienen recuperación integrada; PR64 confirmó main tras corregir el helper de preparación. PR66, PR69 y PR71–72 integraron recursos, asociaciones y plazos; PR74 y PR75 añadieron informes y preferencias con confirmación natural aprobada. PR77 integró confirmaciones administrativas y de sellado, con sus gates y confirmación natural aprobados. La lectura de avisos está integrada por PR81 con confirmación natural aprobada y las demás familias mantienen el estado del inventario de recuperación. Faltan duración operativa aprobada, remitente/origen/política del correo y cierre de las familias restantes. El dominio, verificador y aplicación del vínculo Owner están integrados por PR70, PR73 y PR78, con sus confirmaciones naturales aprobadas. PostgreSQL, HTTP compuesto e interfaz están integrados por PR82 y PR83, con confirmación natural aprobada y aceptación por capa y con servicios reales. El primer factor por certificado y su interfaz están integrados por PR84, con confirmación natural aprobada y aceptación RSA/MFA y restauración. La instalación y activación explícita siguen pendientes; estas opciones permanecen desactivadas en VPS3. La firma documental individual tiene implementación y aceptación funcional local completas; su integración sigue pendiente. |
 | Control de acceso por perfil | Parcial | Extender la matriz a cada módulo pendiente y comprobar el registro de accesos exigido por el catálogo. |
 | Registro y administración de expediente penal | Implementado para el alta penal completa | NUC/carpeta y autoridades, delitos, metadatos, unicidad actual, Investigación inicial, edición y cierre con historia verificados. Las fichas anteriores se completan sin fabricar etapa; su adopción y las transiciones usan el recurso independiente de etapas. Los valores declarados no son certificaciones institucionales. |

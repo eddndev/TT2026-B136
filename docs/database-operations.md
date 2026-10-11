@@ -568,13 +568,17 @@ incidente. CI global y el PDF de estos resultados siguen pendientes en
 
 ## Informes durables y restauración
 
-`0026_case_reports.sql` conserva el flujo de informes en cuatro tablas:
+`0026_case_reports.sql` y `0047_case_report_readiness.sql` conservan el flujo
+de informes en cinco tablas:
 
 - `case_report_jobs`: solicitud, filtros, identidad y generación de autorización
-  originales; estado, intentos y concesión de procesamiento vigente.
+  originales; estimaciones iniciales opcionales, estado, intentos y concesión
+  de procesamiento vigente.
 - `case_report_snapshots`: captura administrativa inmutable y cifrada.
 - `case_report_artifacts`: PDF y CSV cifrados, vinculados a la misma captura.
 - `case_report_notices`: disponibilidad o fallo, con primer acuse de lectura.
+- `case_report_email_deliveries`: intencion unica, mensaje capturado, identidad
+  estable, concesion, ventana del proveedor y resultado del correo.
 
 La migración instala guardas y privilegios; `serve` valida el catálogo operativo
 sin ejecutar DDL. Solicitud, transiciones, publicaciones y avisos participan en
@@ -602,7 +606,7 @@ del proceso: esta separación de recursos no es un sandbox de archivos o red.
 No ampliar presupuestos para ocultar errores de captura o renderizado. Los
 límites y la semántica de filtros están en [el contrato](case-reports-api.md).
 
-Respaldar las cuatro tablas como parte de la copia consistente de PostgreSQL,
+Respaldar las cinco tablas como parte de la copia consistente de PostgreSQL,
 junto con usuarios, generaciones, expedientes, membresías, administración y
 cadena de auditoría. Conservar por separado y de forma protegida la KEK necesaria
 para descifrar los sobres existentes. Una copia de archivos PDF/CSV por sí sola
@@ -618,10 +622,29 @@ persisten entre sesiones; sólo un acuse explícito fija su primera lectura.
 El selector de filtros consulta membresías actuales, incluidos expedientes
 cerrados, con lecturas auditadas; no depende del agregado del tablero.
 
-La implementación local incluye la composición del consumidor. La aceptación
-integrada de reinicio, revocación, publicación, restauración y límites, y el
-cierre global de esta entrega, siguen pendientes de evidencia en
-[el informe de verificación](verification-report.md).
+El consumidor de correo se habilita solo con `TT_REPORT_EMAIL_ENABLED=true`.
+Ausencia o `false` lo deshabilita sin leer secretos del canal. Al habilitarlo,
+`REPORT_EMAIL_FROM` debe contener una direccion remitente simple,
+`REPORT_PUBLIC_URL` un origen HTTPS sin credenciales, ruta adicional, consulta
+ni fragmento, y `RESEND_API_KEY` una clave configurada por el operador. No se
+activan estos valores por instalar la migracion. La plantilla enlaza a `#reports`;
+no contiene archivos ni enlaces de descarga publica.
+
+La entrega reclama una intencion cada vez, persiste el primer mensaje antes de
+contactar al proveedor y revalida acceso inmediatamente antes del envio. Cada
+concesion dura como maximo 30 segundos y la llamada de red como maximo 10.
+Los reintentos conservan mensaje y clave `case-report-ready:<delivery_id>`;
+no editar esos campos ni reiniciar su ventana original de 24 horas. Una respuesta
+incierta admite reintento a los 60 segundos; agotada la ventana, queda incierta
+sin nuevo intento. El supervisor detiene y espera al consumidor junto con los
+existentes. Apagar el canal no borra intenciones; una activacion posterior puede
+procesar pendientes cuyo primer reclamo aun no ha ocurrido.
+
+Antes de restaurar, detener tambien este consumidor. Conservar filas y tiempos
+del correo junto con la captura, archivos y auditoria: no regenerar identidades
+para reenviar. La aceptacion con transporte capturado y la activacion publica
+son comprobaciones distintas. Los resultados ejecutados y sus limites se
+registran en [el informe de verificación](verification-report.md).
 
 ## Preparar un despliegue nuevo
 
