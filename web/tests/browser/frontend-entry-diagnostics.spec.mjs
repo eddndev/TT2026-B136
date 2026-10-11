@@ -166,6 +166,8 @@ test('entry diagnostics observe real Astro startup and failures without copying 
     const encoded = bytes.toString('utf8');
     for (const marker of Object.values(privateMarkers)) expect(encoded).not.toContain(marker);
     expect(JSON.parse(encoded)).toEqual(snapshot);
+    const saved = await readFile(testInfo.outputPath('frontend-entry.json'), 'utf8');
+    expect(saved).toBe(encoded);
   } finally {
     await observer.dispose();
   }

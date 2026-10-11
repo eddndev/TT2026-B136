@@ -1,5 +1,23 @@
 # Informe de verificación local
 
+## Diagnostico de entrada del navegador: 11 de octubre de 2026
+
+La primera campana de PR97 detuvo la prueba real de plazos antes del primer
+POST de acceso: el campo de correo no aparecio en 120 s. Documents aprobo y
+los otros gates se cancelaron. El artefacto no identifica la causa del montaje.
+La reproduccion local del mismo grupo, sin cambios, aprobo los diez recorridos
+en 194.791 s con PostgreSQL/Redis propios y un solo worker. Esto no demuestra
+que el fallo remoto este resuelto ni sustituye sus gates.
+
+Se reutilizo el observador de entrada existente en el recorrido afectado y se
+exigio HTTP 200 al navegar. Una regresion reprodujo que el diagnostico saneado
+no se guardaba como archivo publicable (ENOENT); la correccion conserva esos
+mismos bytes y los incluye en el artefacto de fallo de CI. Las dos pruebas del
+observador aprobaron en 10.807 s, incluidas las restricciones de datos privados
+y tamano. No se cambiaron el producto, reintentos ni limites de espera. El recorrido
+real de plazos con el observador aprobo en 99.103 s incluida la preparacion.
+
+
 ## Invitaciones: evidencia focal local
 
 La primera campana de cierre de PR96 se cancelo tras rechazar Clippy una

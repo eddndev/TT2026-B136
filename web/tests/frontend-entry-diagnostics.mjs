@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const sourceRoot = fileURLToPath(new URL('../src/', import.meta.url));
@@ -206,6 +207,9 @@ export async function observeFrontendEntry(page) {
         body = Buffer.from(JSON.stringify(value));
       }
       if (body.length > 8192) return false;
+      const path = testInfo.outputPath('frontend-entry.json');
+      await mkdir(dirname(path), { recursive: true });
+      await writeFile(path, body);
       await testInfo.attach('frontend-entry', { body, contentType: 'application/json' });
       return true;
     } catch {

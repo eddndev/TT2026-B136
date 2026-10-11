@@ -254,9 +254,11 @@ jobs:
             web/test-results-live/**/*.png
             web/test-results-live/**/error-context.md
             web/test-results-live/**/api-failures.json
+            web/test-results-live/**/frontend-entry.json
             web/test-results-session/**/*.png
             web/test-results-session/**/error-context.md
             web/test-results-session/**/api-failures.json
+            web/test-results-session/**/frontend-entry.json
           if-no-files-found: ignore
           retention-days: 7
       - name: Cancel the failed campaign
