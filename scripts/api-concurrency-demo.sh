@@ -7,7 +7,7 @@ concurrency_demo() {
   mkdir -p "$race_dir"
   (
     cd "$WORK_DIR"
-    RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+    RUST_LOG="${SERVER_RUST_LOG:-warn}" exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
       --data-dir "$DATA_DIR" --signer-cert "$CERT" --signer-key "$KEY" \
       --ca-cert "$CA" --crl "$CRL" --tsa-config "$PKI_SCRIPTS/tsa.cnf" \
       --tsa-dir "$TSA_DIR"

@@ -3,7 +3,9 @@
 use std::sync::Mutex;
 
 use application::ApplicationError;
-use domain::audit::{chain_digest, AuditEvent, AuditLog, ChainedEvent, GENESIS_PREVIOUS};
+use domain::audit::{
+    chain_digest, AuditEvent, AuditLog, AuditSource, ChainedEvent, GENESIS_PREVIOUS,
+};
 use domain::crypto::Sha256Digest;
 use domain::DomainError;
 use postgres::{Client, GenericClient, Row, Transaction};
@@ -97,12 +99,14 @@ pub(crate) fn append_transaction(
     } else {
         (0, GENESIS_PREVIOUS)
     };
-    let event = AuditEvent::new(sequence as u64, timestamp, actor, action, resource);
+    let mut event = AuditEvent::new(sequence as u64, timestamp, actor, action, resource);
+    event.context = Some(crate::audit::context::current(AuditSource::Internal)?);
+    let context = crate::audit::context::encode(event.context.as_ref())?;
     let chain = chain_digest(&RingSha256Hasher::new(), &previous, &event)?;
     let timestamp = event.timestamp_rfc3339()?;
     transaction.execute(
-        "INSERT INTO audit_events(sequence,timestamp,actor,action,resource,chain) VALUES($1,$2,$3,$4,$5,$6)",
-        &[&sequence, &timestamp, &actor, &action, &resource, &&chain.as_bytes()[..]],
+        "INSERT INTO audit_events(sequence,timestamp,actor,action,resource,chain,context_json) VALUES($1,$2,$3,$4,$5,$6,$7)",
+        &[&sequence, &timestamp, &actor, &action, &resource, &&chain.as_bytes()[..], &context],
     ).map_err(port_error)?;
     Ok(ChainedEvent { event, chain })
 }
@@ -110,7 +114,7 @@ pub(crate) fn append_transaction(
 pub(crate) fn load_transaction<C: GenericClient>(
     client: &mut C,
 ) -> Result<Vec<ChainedEvent>, ApplicationError> {
-    client.query("SELECT sequence,timestamp,actor,action,resource,chain FROM audit_events ORDER BY sequence", &[])
+    client.query("SELECT sequence,timestamp,actor,action,resource,chain,context_json FROM audit_events ORDER BY sequence", &[])
         .map_err(port_error)?.into_iter().map(decode_event).collect()
 }
 
@@ -119,15 +123,17 @@ pub(crate) fn decode_event(row: Row) -> Result<ChainedEvent, ApplicationError> {
     let timestamp: String = row.get("timestamp");
     let timestamp = OffsetDateTime::parse(&timestamp, &Rfc3339)
         .map_err(|error| ApplicationError::Port(format!("invalid audit timestamp: {error}")))?;
+    let mut event = AuditEvent::new(
+        u64::try_from(sequence)
+            .map_err(|_| ApplicationError::Port("negative audit sequence".into()))?,
+        timestamp,
+        row.get::<_, String>("actor"),
+        row.get::<_, String>("action"),
+        row.get::<_, String>("resource"),
+    );
+    event.context = crate::audit::context::decode(row.get::<_, Option<&str>>("context_json"))?;
     Ok(ChainedEvent {
-        event: AuditEvent::new(
-            u64::try_from(sequence)
-                .map_err(|_| ApplicationError::Port("negative audit sequence".into()))?,
-            timestamp,
-            row.get::<_, String>("actor"),
-            row.get::<_, String>("action"),
-            row.get::<_, String>("resource"),
-        ),
+        event,
         chain: digest(row.get("chain"))?,
     })
 }

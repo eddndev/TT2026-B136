@@ -21,15 +21,21 @@ despliegues. PR95 integró la firma individual por squash `784a0cfb`; los gates
 de la PR, main y paquete aprobaron. `v0.1.3` quedó activada con ensayo poblado
 de restauración y respaldo final verificado, conservando los datos existentes.
 
+PR96 y PR97 completaron invitaciones y estimacion/correo de informes; main
+confirmado `dd0b32f8` y `v0.1.4` activa con gates y restauracion poblada aprobados.
+Resend y recuperacion publica ya estan activados con los valores humanos
+registrados. Esta conciliacion sustituye los pendientes operativos antiguos de
+correo y no vuelve a abrir las entregas aceptadas.
+
 ## Lista de cierre
 
 | Pendiente confirmado | Compromiso y límite | Criterio observable de término |
 | --- | --- | --- |
 | Corpus de cálculo | Ocho supuestos de investigación complementaria y recursos, sin los términos que sólo aparecen en teoría. | Cada supuesto tiene fuente primaria, ámbito, entradas y resultado independiente; fecha operativa explicada o falta de datos identificada; recorrido existente sin duplicados. |
-| Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad ni se limita el número de usuarios del despacho. Integrada por PR96 en `0db0a9f9`, con PostgreSQL, Redis, MFA, restauracion y los tres gates aprobados; despliegue y activacion publica permanecen separados. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
+| Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad ni se limita el número de usuarios del despacho. Integrada por PR96 en `0db0a9f9`, con PostgreSQL, Redis, MFA, restauracion y los tres gates aprobados; desplegada en v0.1.4 y correo publico activado con Resend. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
 | Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). Integrada por PR95 y desplegada en `v0.1.3`; conserva separados el firmante global histórico y el acceso Owner por certificado. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. Cierre técnico aceptado; la demostración personal requiere un Litigante real con clave y CSR externos. |
-| Estimación y correo de informes | Implementacion y aceptacion local de CU-16 completas: precision 26/28 (92.857%), correo capturado/HTTP/restauracion y Qadra real; gates e integracion pendientes. Conserva los informes de estado/carga y el catalogo finito de actividad ya integrados. | Prediccion inicial incluida cola; correo cuando sea estrictamente mayor de 2 segundos; al menos 90% de validacion independiente dentro de max(2 segundos, 30% real), con cobertura declarada. Aviso comprobado con transporte de prueba; activación pública sujeta a la decisión operativa pendiente. Los avisos internos y la duración observada no sustituyen estos criterios. |
-| Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20, conservando cadena y registros históricos. | Accesos concedidos/denegados cubiertos por una matriz de operaciones; identidad estable y origen de red registrados para eventos nuevos sin atribuirlos retrospectivamente; confirmación durable medida contra el límite de 500 ms en un entorno declarado. |
+| Estimación y correo de informes | CU-16 integrado por PR97, desplegado en v0.1.4 y correo Resend activado: precision 26/28 (92.857%), correo capturado/HTTP/restauracion y Qadra real aceptados. Conserva los informes de estado/carga y el catalogo finito de actividad ya integrados. | Prediccion inicial incluida cola; correo cuando sea estrictamente mayor de 2 segundos; al menos 90% de validacion independiente dentro de max(2 segundos, 30% real), con cobertura declarada. Aviso comprobado con transporte de prueba; transporte Resend operativo confirmado por recepción humana. Los avisos internos y la duración observada no sustituyen estos criterios. |
+| Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20 implementados y aceptados localmente con contexto, cadena histórica, consulta Owner y restauración. Las mediciones directa y HTTP cumplen el límite en el entorno declarado; véanse [matriz](access-audit-matrix.md) y [verificación](verification-report.md). Integración requiere los gates de la revisión exacta y activación se registra aparte. | Accesos concedidos/denegados cubiertos por una matriz de operaciones; identidad estable y origen de red registrados para eventos nuevos sin atribuirlos retrospectivamente; confirmación durable medida contra el límite de 500 ms en un entorno declarado. |
 | Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Contratos, operación y manuscrito coinciden; se reutiliza evidencia válida y se ejecuta una regresión completa al cierre de cada entrega funcional, gates para HEAD exacto, squash y main confirmado. |
 
 ## Criterios de firma individual
@@ -110,9 +116,8 @@ atendido. HTTP/restauración y manuscrito separado también aprobaron. La
 [verificación](verification-report.md) distingue estos cortes y sus límites.
 El informe ya está desplegado en `v0.1.2`; falta generar y descargar PDF/CSV
 en la sesión real de producción, sin sustituir esa comprobación por el ensayo.
-Los avisos internos y la duración observada no resuelven el correo ni la
-estimación validada de CU-16; esos pendientes se conservan explícitos y no se
-atribuyen a los contadores.
+La estimación y el correo de CU-16 se cerraron por separado en PR97; no se
+atribuyen a los contadores ni se sustituyen por duración observada.
 La fila jurídica conserva la necesidad de identificar entidad, fuero y canal de
 recepción. Los datos faltantes se presentan como decisiones concretas, no como
 permiso para investigar o implementar indefinidamente.
@@ -121,7 +126,7 @@ permiso para investigar o implementar indefinidamente.
 
 - Informe de actividad de PR92: tres contadores por autor y periodo, con el
   catálogo finito completo, sin inflación por correcciones, reintentos o medidas
-  contenidas. Quedan separados los pendientes de estimación y correo de CU-16.
+  contenidas. Estimación y correo de CU-16 quedaron cerrados por PR97.
 - Flujo cautelar completo de PR90: HTTP, Qadra, Agenda, alertas, decisiones y
   rectificaciones con historia y recuperación; navegador real, reinicios,
   restauración y manuscrito separado aceptados. Se conservan siete familias
@@ -133,7 +138,9 @@ permiso para investigar o implementar indefinidamente.
 
 Los logs MFA son operativos y están separados de la auditoría transaccional.
 No completan la matriz general de accesos, el origen de red, la identidad estable
-uniforme ni la medición durable de 500 ms; esa fila permanece pendiente. Su
+uniforme ni la medición durable de 500 ms. La extensión de acceso y contexto
+cierra funcionalmente esa fila con su evidencia independiente; no se atribuye
+a los logs MFA. Su
 integración tampoco acredita activación o retención del journal en VPS3.
 
 - Audiencias propias de recursos, creación explícita de resultado/plazo derivado,
@@ -149,8 +156,9 @@ integración tampoco acredita activación o retención del journal en VPS3.
 
 ## Fronteras humanas y trabajo excluido
 
-La cuenta/correo Owner, remitente y activación de correo, y duración de
-inactividad siguen pendientes humanos. La continuación autoriza despliegues
+La cuenta/correo Owner y duración de inactividad siguen pendientes humanos.
+El remitente y la activación de correo ya quedaron resueltos con Resend; los
+valores aprobados de recuperación pública están activos. La continuación autoriza despliegues
 con la configuración vigente preservada; no autoriza inferir esos valores.
 La discrepancia del directorio Redis del recibo automático de compatibilidad
 se reprodujo y corrigió localmente: exige `redis-appendonly`, como la provisión.

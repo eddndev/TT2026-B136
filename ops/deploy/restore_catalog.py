@@ -65,10 +65,13 @@ def catalog(tools, environment, target):
 
 def audit(tools, environment, namespace):
     schema.identifier(namespace)
-    query = f"""SELECT pg_catalog.json_build_object(
+    query = f"""SELECT pg_catalog.jsonb_build_object(
       'sequence', sequence, 'timestamp', timestamp, 'actor', actor,
       'action', action, 'resource', resource, 'chain', pg_catalog.encode(chain,'hex'))
-      FROM "{namespace}".audit_events ORDER BY sequence LIMIT 100001"""
+      || CASE WHEN pg_catalog.to_jsonb(a)->>'context_json' IS NULL
+        THEN '{{}}'::pg_catalog.jsonb ELSE pg_catalog.jsonb_build_object(
+          'context', (pg_catalog.to_jsonb(a)->>'context_json')::pg_catalog.jsonb) END
+      FROM "{namespace}".audit_events a ORDER BY sequence LIMIT 100001"""
     raw = read(tools, environment, query, maximum=8 * 1024 * 1024)
     lines = raw.splitlines()
     if len(raw) > 8 * 1024 * 1024 or len(lines) > 100000:
@@ -76,7 +79,13 @@ def audit(tools, environment, namespace):
     rows = []
     for sequence, line in enumerate(lines):
         row = backup_manifest_schema.decode(line)
-        backup_manifest_schema.keys(row, ("sequence", "timestamp", "actor", "action", "resource", "chain"))
+        fields = ("sequence", "timestamp", "actor", "action", "resource", "chain")
+        backup_manifest_schema.keys(row, fields + (("context",) if "context" in row else ()))
+        if "context" in row:
+            context = row["context"]
+            if (not isinstance(context, dict)
+                    or len(json.dumps(context, separators=(",", ":")).encode("utf-8")) > 1024):
+                raise ValueError("restore audit context exceeds its typed boundary")
         if type(row["sequence"]) is not int or row["sequence"] != sequence:
             raise ValueError("restore audit sequence is incomplete")
         timestamp = row["timestamp"]

@@ -13,7 +13,11 @@ use application::identity::IdentityWorkflow;
 use application::participants::ParticipantWorkflow;
 use axum::{routing::get, Router};
 
+mod access_audit;
 mod access_log;
+pub use access_audit::{
+    with_access_audit, with_access_audit_drain, AccessAuditDrain, AuditProxyPolicy,
+};
 mod agenda;
 mod alerts;
 mod api;

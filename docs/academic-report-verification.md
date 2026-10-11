@@ -1,5 +1,31 @@
 # Verificación de la actualización académica
 
+## Contexto de auditoría y respaldo Redis: 11 de octubre de 2026
+
+Diseño, implementación, pruebas y anexo describen el contexto nuevo encadenado,
+la conservación de eventos históricos, el resultado durable HTTP, la consulta
+Owner y las mediciones separadas del escritor y del recorrido HTTP. La sección
+de despliegue documenta la corrección del directorio Redis y su aceptación en
+servicios desechables; no acredita activación en producción.
+
+La copia aislada compiló con el Makefile versionado en **80.640 s**. El PDF
+aceptado tiene **414 páginas**, **5922689 bytes** y SHA-256
+`85cab81b41c8801c873b68f4f31db98e80b7791e7c9a12cc2f96ea195fce9a5e`.
+Se inspeccionaron las páginas físicas **11, 80-81, 159-160, 230-231, 298-299,
+305-308 y 408-409**: índice, caso de uso, codificación, consulta, resultados y
+continuaciones legibles, sin nuevos recortes ni solapes. No hay referencias
+sin resolver ni glifos faltantes. Permanecen las cajas históricas de 0.11754 y
+24.62556 pt y la sustitución de versalitas Times.
+
+El manifiesto conserva las fuentes exactas compiladas. Tras la aceptación se
+sustituyó atómicamente `latex/main.pdf` y se retiró la copia temporal: sólo queda
+ese PDF vigente del manuscrito, conforme a la limpieza autorizada. Las huellas
+de versiones previas en las secciones históricas identifican resultados
+anteriores; no implican que sus archivos sigan presentes. Resumen, objetivos,
+marco teórico y conclusiones se conservaron. La aceptación académica global y
+la evaluación con personas siguen pendientes; esta comprobación local no
+sustituye los gates de integración.
+
 ## Estimación y correo de informes: 11 de octubre de 2026
 
 Diseño, implementación, pruebas y anexo describen la predicción inicial con

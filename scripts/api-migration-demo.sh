@@ -44,7 +44,7 @@ migration_demo_start() {
   SERVER_LOG="$WORK_DIR/$label-server.log"
   (
     cd "$WORK_DIR"
-    RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
+    RUST_LOG="${SERVER_RUST_LOG:-warn}" exec stdbuf -oL -eL "$CLI" serve --bind 127.0.0.1:0 \
       "${OWNER_LOGIN_DEMO_ARGS[@]}" \
       --deadline-page-limit 2 --deadline-poll-ms 50 \
       --data-dir "$directory" --signer-cert "$CERT" --signer-key "$KEY" \
@@ -133,7 +133,9 @@ PY
   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \
     "SELECT jsonb_build_object('sequence',sequence,'timestamp',timestamp,'actor',actor,
       'action',action,'resource',resource,'chain',encode(chain,'hex'))
-      FROM audit_events ORDER BY sequence" >"$legacy_dir/audit.jsonl"
+      || CASE WHEN to_jsonb(a)->>'context_json' IS NULL THEN '{}'::jsonb
+        ELSE jsonb_build_object('context',(to_jsonb(a)->>'context_json')::jsonb) END
+      FROM audit_events a ORDER BY sequence" >"$legacy_dir/audit.jsonl"
   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -Atc \
     "SELECT jsonb_build_object('documents',jsonb_agg(jsonb_build_object(
       'document_id',id,'case_id',case_id) ORDER BY id)) FROM documents" \
@@ -189,7 +191,9 @@ PY
   psql "$imported_url" -v ON_ERROR_STOP=1 -Atc \
     "SELECT jsonb_build_object('sequence',sequence,'timestamp',timestamp,'actor',actor,
       'action',action,'resource',resource,'chain',encode(chain,'hex'))
-      FROM audit_events WHERE sequence < $audit_count ORDER BY sequence" \
+      || CASE WHEN to_jsonb(a)->>'context_json' IS NULL THEN '{}'::jsonb
+        ELSE jsonb_build_object('context',(to_jsonb(a)->>'context_json')::jsonb) END
+      FROM audit_events a WHERE sequence < $audit_count ORDER BY sequence" \
     >"$WORK_DIR/imported-audit-prefix.jsonl"
   cmp "$legacy_dir/audit.jsonl" "$WORK_DIR/imported-audit-prefix.jsonl"
   import_report="$(jq -Sc '.report' "$WORK_DIR/import-result.json")"
@@ -231,6 +235,16 @@ PY
   owner_login_demo_python capture "$imported_url"
   printf 'Migration restore: stopping the capture server.\n'
   migration_demo_stop
+  if [ -n "${TT_ACCESS_AUDIT_RECEIPT:-}" ]; then
+    cat "$WORK_DIR/server.log" "$WORK_DIR/concurrent-seal/server.log" \
+      "$WORK_DIR/imported-server.log" "$WORK_DIR/worker-after-term-server.log" \
+      "$WORK_DIR/worker-after-int-server.log" >"$WORK_DIR/access-commit-population.log"
+    if ! TT_ACCESS_AUDIT_DATABASE_URL="$imported_url" \
+      python3 -B "$REPO_ROOT/scripts/api-access-audit-demo.py" \
+      --server-log "$WORK_DIR/access-commit-population.log" --receipt "$TT_ACCESS_AUDIT_RECEIPT"; then
+      ACCESS_AUDIT_COLLECTION_FAILED=true
+    fi
+  fi
   printf 'Migration restore: capturing the database state.\n'
   migration_demo_state "$imported_url" >"$WORK_DIR/imported-state.json"
   printf 'Migration restore: reconciling the original import receipt.\n'

@@ -54,10 +54,11 @@ impl LegacyImport {
             for entry in &self.entries {
                 let sequence = i64::try_from(entry.event.sequence).map_err(invalid)?;
                 let at = entry.event.timestamp_rfc3339()?;
+                let context = crate::audit::context::encode(entry.event.context.as_ref())?;
                 transaction
                     .execute(
-                        "INSERT INTO audit_events(sequence,timestamp,actor,action,resource,chain)
-                     VALUES($1,$2,$3,$4,$5,$6)",
+                        "INSERT INTO audit_events(sequence,timestamp,actor,action,resource,chain,context_json)
+                     VALUES($1,$2,$3,$4,$5,$6,$7)",
                         &[
                             &sequence,
                             &at,
@@ -65,6 +66,7 @@ impl LegacyImport {
                             &entry.event.action,
                             &entry.event.resource,
                             &&entry.chain.as_bytes()[..],
+                            &context,
                         ],
                     )
                     .map_err(invalid)?;

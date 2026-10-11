@@ -12,7 +12,7 @@ from api_procedural_facts_support import BASE, TOKEN, WORK, request
 
 ROOT = '/api/v1/audit/events'
 STATE = WORK / 'audit-events-api-state.json'
-FIELDS = {'sequence', 'timestamp', 'actor', 'action', 'resource'}
+FIELDS = {'sequence', 'timestamp', 'actor', 'action', 'resource', 'context'}
 
 
 def exchange(query, token=TOKEN, status=200, code=None):
@@ -38,7 +38,7 @@ def stored(resource, actor):
     # psql quotes variables as SQL literals; all fixture writes still use HTTP.
     sql = """BEGIN READ ONLY;
     SELECT jsonb_build_object('sequence',sequence::text,'timestamp',timestamp,
-      'actor',actor,'action',action,'resource',resource,'chain',encode(chain,'hex'))
+      'actor',actor,'action',action,'resource',resource,'context',context_json::json,'chain',encode(chain,'hex'))
     FROM audit_events WHERE resource=:'resource' AND actor=:'actor' AND action='case.read'
     ORDER BY timestamp_seconds,timestamp_nanos,sequence;
     COMMIT;
@@ -63,12 +63,13 @@ def validate(page, query, snapshot=None):
     assert isinstance(page['checked_at'], str) and page['checked_at'].endswith('Z')
     assert len(page['events']) <= int(query['limit'])
     for row in page['events']:
-        assert set(row) == FIELDS, 'Audit read invented historical identity or network fields'
+        assert set(row) == FIELDS, 'Audit read changed its explicit context contract'
         assert isinstance(row['sequence'], str) and row['sequence'].isdigit()
         assert int(row['sequence']) <= int(page['snapshot_max_sequence'])
         for name in ['actor', 'action', 'resource']:
             if name in query:
-                assert row[name] == query[name]
+                identity = (row['context'] or {}).get('user_id') if name == 'actor' else None
+                assert row[name] == query[name] or identity == query[name]
     assert page['has_more'] == (page['next_cursor'] is not None)
     if page['has_more']:
         assert page['events'] and 0 < len(page['next_cursor']) <= 4096

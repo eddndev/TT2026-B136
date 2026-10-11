@@ -130,6 +130,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     transaction
         .batch_execute(crate::invitation_schema::MIGRATION)
         .map_err(port_error)?;
+    transaction
+        .batch_execute(crate::audit_query_schema::CONTEXT_MIGRATION)
+        .map_err(port_error)?;
     crate::invitation_schema::validate_schema(&mut transaction)?;
     crate::individual_signing_schema::validate_schema(&mut transaction)?;
     crate::individual_signing_schema::validate_inventory(&mut transaction)?;

@@ -288,11 +288,11 @@ permanecen separados de la cadena transaccional, según
 
 \subsection{S9. Cadena de auditoría}\label{sec:impl-s9-auditoria}
 
-La bitácora de auditoría es lógica de dominio pura (\rutarepo{crates/domain/src/audit/}). Cada evento registra secuencia, timestamp, actor, acción y recurso, y la cadena se define por la regla
+La bitácora de auditoría es lógica de dominio pura (\rutarepo{crates/domain/src/audit/}). Cada evento registra secuencia, timestamp, actor, acción y recurso, con un contexto opcional de procedencia e identidad observada, y la cadena se define por la regla
 \[
   \mathit{chain}(n) = \text{SHA-256}\bigl(\mathit{chain}(n-1) \,\Vert\, \text{bytes canónicos}(n)\bigr),
 \]
-con un valor génesis fijo de 32 bytes cero para la primera entrada. La codificación canónica serializa la secuencia como 8 bytes big-endian y cada campo variable con un prefijo de longitud de 4 bytes big-endian, de modo que dos eventos distintos jamás producen los mismos bytes; el timestamp se normaliza siempre a UTC y su forma RFC 3339 es la única representación textual que cubre la cadena. El Listado~\ref{lst:impl-chain} muestra el cálculo del eslabón. El hashing pasa por el puerto \texttt{Document\allowbreak Hasher}, así que ningún backend criptográfico entra al crate de dominio.
+con un valor génesis fijo de 32 bytes cero para la primera entrada. La codificación canónica serializa la secuencia como 8 bytes big-endian y cada campo textual variable con un prefijo de longitud de 4 bytes big-endian; el timestamp se normaliza a UTC y se representa en RFC 3339. Cuando existe contexto, después de esos campos se añade la extensión \texttt{AUDCTX01}, de 12 a 60 bytes: incorpora etiquetas explícitas de presencia, UUID y direcciones IP en orden de red, y una etiqueta para el origen HTTP, CLI o interno. La codificación distingue un dato ausente de un UUID nulo o una dirección no especificada. Si el contexto no existe, no se añade ningún byte ni indicador: los eventos históricos conservan exactamente su codificación y sus hashes. La cadena cubre el contexto registrado, con independencia de su representación JSON de almacenamiento. El Listado~\ref{lst:impl-chain} muestra el cálculo del eslabón. El hashing pasa por el puerto \texttt{Document\allowbreak Hasher}, así que ningún backend criptográfico entra al crate de dominio.
 
 \begin{lstlisting}[language=Rust,caption={Regla de encadenamiento de la bitácora (\texttt{crates/domain/src/audit/chain.rs}).},label={lst:impl-chain}]
 pub const GENESIS_PREVIOUS: Sha256Digest = Sha256Digest::from_array([0u8; SHA256_LEN]);

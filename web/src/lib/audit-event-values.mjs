@@ -1,4 +1,5 @@
 import { factObject } from './procedural-fact-primitives.mjs';
+import { auditContext } from './audit-event-context.mjs';
 import {
   auditBytes,
   auditCursor,
@@ -39,7 +40,8 @@ export function auditPage(value, query, continuation = null) {
   let prior = continuation?.last || null,
     bytes = 0;
   for (const event of value.events) {
-    factObject(event, ['sequence', 'timestamp', 'actor', 'action', 'resource']);
+    factObject(event, ['sequence', 'timestamp', 'actor', 'action', 'resource', 'context']);
+    auditContext(event.context);
     const position = auditPosition(event);
     if (
       maximum === null ||
@@ -52,8 +54,14 @@ export function auditPage(value, query, continuation = null) {
       auditInvalid();
     for (const key of ['actor', 'action', 'resource']) {
       bytes += auditBytes(event[key]);
-      if (query[key] !== null && event[key] !== query[key]) auditInvalid();
+      if (
+        query[key] !== null &&
+        event[key] !== query[key] &&
+        (key !== 'actor' || event.context?.user_id !== query.actor)
+      )
+        auditInvalid();
     }
+    if (event.context !== null) bytes += auditBytes(JSON.stringify(event.context));
     if (bytes > auditPageTextBytes) auditInvalid();
     seen.add(event.sequence);
     prior = position;

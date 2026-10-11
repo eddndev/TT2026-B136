@@ -10,6 +10,7 @@ export const auditPage = (start = 0, count = 1, change = {}) => ({
     actor: 'system',
     action: 'document.read',
     resource: `record-${start + index}`,
+    context: null,
   })),
   has_more: false,
   next_cursor: null,

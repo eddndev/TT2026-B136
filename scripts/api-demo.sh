@@ -102,11 +102,15 @@ CA="$PKI_CA_DIR/ca.crt.pem"
 CRL="$PKI_CA_DIR/crl/crl.pem"
 DATA_DIR="$WORK_DIR/runtime-data"
 SERVER_LOG="$WORK_DIR/server.log"
+SERVER_RUST_LOG=warn
+if [ -n "${TT_ACCESS_AUDIT_RECEIPT:-}" ]; then
+  SERVER_RUST_LOG=warn,qadra::audit_commit=info
+fi
 
 # Keep dotenv discovery inside disposable storage, with external email disabled.
 (
   cd "$WORK_DIR"
-  RUST_LOG=warn exec stdbuf -oL -eL "$CLI" serve \
+  RUST_LOG="$SERVER_RUST_LOG" exec stdbuf -oL -eL "$CLI" serve \
     --bind 127.0.0.1:0 \
     --data-dir "$DATA_DIR" \
     --signer-cert "$CERT" \
@@ -286,5 +290,10 @@ audit_events_demo_python() {
 
 # shellcheck source=scripts/api-migration-demo.sh
 source "$REPO_ROOT/scripts/api-migration-demo.sh"
+
+if [ "${ACCESS_AUDIT_COLLECTION_FAILED:-false}" = true ]; then
+  printf 'Functional restore passed; HTTP audit measurement was not accepted.\n' >&2
+  exit 1
+fi
 
 printf 'Authenticated API demo passed: %s\n' "$DOCUMENT_ID"

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Classification and historical-evidence checks in the disposable API cluster.
+# Audit deltas check business atomicity; HTTP access outcomes are checked separately.
 
 metadata_demo_request() {
   local method="$1" expected="$2" route="$3" actual
@@ -29,11 +30,11 @@ JSON
     -H 'Content-Type: application/json' --data-binary "@$WORK_DIR/classification.json"
   jq -e '.metadata_revision == 1 and .document_type == "Escrito"
     and .classification == "Penal" and .tags == ["a,b","acci\u00f3n","z"]' "$response" >/dev/null
-  before="$(psql "$imported_url" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$imported_url" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   metadata_demo_request PUT 409 "$route/metadata" \
     -H 'Content-Type: application/json' --data-binary "@$WORK_DIR/classification.json"
   jq -e '.error.code == "document_metadata_conflict"' "$response" >/dev/null
-  [ "$(psql "$imported_url" -Atc 'SELECT COUNT(*) FROM audit_events')" = "$before" ]
+  [ "$(psql "$imported_url" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" = "$before" ]
   metadata_demo_request GET 200 "/api/v1/cases/$case_id/documents" \
     --get --data-urlencode 'document_type=Escrito' --data-urlencode 'classification=Penal' \
     --data-urlencode 'tag=a,b'

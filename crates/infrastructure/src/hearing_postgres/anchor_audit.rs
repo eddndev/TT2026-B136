@@ -44,7 +44,7 @@ pub(super) fn verify(
     }
     let row = tx
         .query_opt(
-            "SELECT sequence,timestamp,actor,action,resource,chain FROM audit_events
+            "SELECT sequence,timestamp,actor,action,resource,chain,context_json FROM audit_events
              WHERE sequence=$1 AND octet_length(timestamp) BETWEEN 1 AND 64
              AND octet_length(actor) BETWEEN 1 AND 1280
              AND octet_length(action) BETWEEN 1 AND 64

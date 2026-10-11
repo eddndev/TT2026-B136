@@ -200,3 +200,78 @@ fn append_json_reports_the_stored_entry() {
     assert_eq!(entry["actor"], "tester");
     assert!(entry["timestamp"].as_str().unwrap().ends_with('Z'));
 }
+
+#[test]
+fn append_and_show_preserve_cli_context_without_inventing_http_metadata() {
+    let dir = tempfile::tempdir().unwrap();
+    let log = log_path(&dir);
+    let appended = run_binary(
+        &log,
+        &[
+            "--json",
+            "audit",
+            "append",
+            "--action",
+            "open",
+            "--resource",
+            "case-1",
+        ],
+    );
+    assert!(appended.status.success());
+    let entry: serde_json::Value = serde_json::from_slice(&appended.stdout).unwrap();
+    let expected = serde_json::json!({
+        "user_id": null,
+        "ip_address": null,
+        "source": "cli",
+        "request_id": null
+    });
+    assert_eq!(entry.get("context"), Some(&expected));
+    let stored: serde_json::Value =
+        serde_json::from_str(std::fs::read_to_string(&log).unwrap().trim()).unwrap();
+    assert_eq!(stored["context"], expected);
+    let shown = run_binary(&log, &["--json", "audit", "show"]);
+    assert!(shown.status.success());
+    let entries: serde_json::Value = serde_json::from_slice(&shown.stdout).unwrap();
+    assert_eq!(entries[0], entry);
+    assert!(run_binary(&log, &["audit", "verify-chain"])
+        .status
+        .success());
+}
+
+#[test]
+fn show_preserves_legacy_chain_and_reports_unavailable_context_as_null() {
+    use domain::audit::{chain_digest, AuditEvent, GENESIS_PREVIOUS};
+
+    let dir = tempfile::tempdir().unwrap();
+    let log = log_path(&dir);
+    let event = AuditEvent::new(
+        0,
+        time::OffsetDateTime::from_unix_timestamp(1_735_689_600).unwrap(),
+        "historical-actor",
+        "open",
+        "case-1",
+    );
+    let chain = chain_digest(
+        &infrastructure::RingSha256Hasher::new(),
+        &GENESIS_PREVIOUS,
+        &event,
+    )
+    .unwrap();
+    let stored = serde_json::json!({
+        "sequence": 0,
+        "timestamp": "2025-01-01T00:00:00Z",
+        "actor": event.actor,
+        "action": event.action,
+        "resource": event.resource,
+        "chain": chain.to_hex()
+    });
+    std::fs::write(&log, format!("{stored}\n")).unwrap();
+    let shown = run_binary(&log, &["--json", "audit", "show"]);
+    assert!(shown.status.success());
+    let entries: serde_json::Value = serde_json::from_slice(&shown.stdout).unwrap();
+    assert_eq!(entries[0].get("context"), Some(&serde_json::Value::Null));
+    assert_eq!(entries[0]["chain"], chain.to_hex());
+    assert!(run_binary(&log, &["audit", "verify-chain"])
+        .status
+        .success());
+}

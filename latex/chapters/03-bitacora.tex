@@ -20,10 +20,18 @@ del historial completo, y ninguna de ambas demuestra por sí sola que no se haya
 retirado el extremo final de una cadena válida.
 
 Las \cref{tab:cu-17,tab:rf-20} mantienen su alcance aprobado. El actor histórico
-es el texto que ya forma parte del evento, habitualmente un correo; no se presenta
-como identificador estable de la cuenta. Los eventos actuales no incorporan la
-dirección IP exigida por esas tablas. Migrar la consulta no autoriza reconstruir
-identidades o direcciones ausentes ni modificar el contenido encadenado. El
-criterio de registro en menos de 500 milisegundos y la cobertura de todas las
-operaciones requieren evidencia propia. La consulta parcial no declara cumplido
-el caso de uso completo.
+conserva su texto original y no se presenta como identificador estable de cuenta.
+Los eventos nuevos admiten un contexto encadenado separado: UUID de identidad
+comprobada, IP observada, origen HTTP, CLI o interno y correlación de solicitud.
+Los datos que no se pudieron establecer permanecen ausentes. Una cabecera
+reenviada solo aporta origen bajo una política explícita de proxy confiable;
+la dirección de red no demuestra identidad personal.
+
+Cada operación HTTP admitida del catálogo existente registra su resultado
+observado antes de responder, sin sustituir el evento de negocio ni modificar
+su transacción. El catálogo, los permisos existentes y las poblaciones de
+medición se fijan por separado. El criterio de menos de 500 milisegundos se
+contrasta hasta la confirmación durable de cada muestra en el entorno declarado;
+una página consultable o un promedio favorable no acreditan ese criterio.
+La historia no se completa retrospectivamente y el anclaje externo conserva
+su límite independiente.

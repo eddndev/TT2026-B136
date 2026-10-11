@@ -4,9 +4,11 @@
 //! unit that drives domain values through outbound ports; the ports and their
 //! use cases are added together with their tests.
 
+pub mod access_audit;
 pub mod agenda;
 pub mod alerts;
 pub mod audit;
+pub mod audit_context;
 pub mod audit_query;
 pub mod auth;
 pub mod case_stages;

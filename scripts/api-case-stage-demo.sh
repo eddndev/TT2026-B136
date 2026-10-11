@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Audit deltas check business atomicity; HTTP access outcomes are checked separately.
 # Exact stage supports and restore checks in api-demo.sh's disposable services.
 
 stage_demo_request() {
@@ -58,7 +59,7 @@ stage_demo() {
   invalid="$(stage_demo_upload "$STAGE_DEMO_CASE_ID" "$WORK_DIR/document.txt" invalid.pdf)"
   request="$(jq -nc --argjson support "$support" '{expected_revision:1,target:"intermediate",
     accusation_declared_at:{precision:"instant",at:"2026-09-01T10:30:00-06:00"},accusation:$support,note:"Declared accusation"}')"
-  before="$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')"
+  before="$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")"
   stage_demo_request POST 403 "$route/stage/transitions" "$PARALEGAL_TOKEN" \
     -H 'Content-Type: application/json' --data "$request"
   stage_demo_request POST 422 "$route/stage/transitions" "$RECOVERY_TOKEN" \
@@ -67,7 +68,7 @@ stage_demo() {
   stage_demo_request POST 422 "$route/stage/transitions" "$RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data "$(jq '.accusation_declared_at.at="9999-01-01T00:00:00Z"' <<<"$request")"
   jq -e '.error.code == "stage_act_in_future"' "$response" >/dev/null
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" = "$before" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" = "$before" ]
 
   for side in left right; do
     curl -sS -o "$WORK_DIR/stage-$side.json" -w '%{http_code}' -X POST \
@@ -79,7 +80,7 @@ stage_demo() {
   wait "$right"
   statuses="$(cat "$WORK_DIR/stage-left.status" "$WORK_DIR/stage-right.status")"
   [[ "$statuses" = 201409 || "$statuses" = 409201 ]]
-  [ "$(psql "$DATABASE_URL" -Atc 'SELECT COUNT(*) FROM audit_events')" -eq "$((before+1))" ]
+  [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((before+1))" ]
   stage_demo_request GET 200 "$route/stage" "$RECOVERY_TOKEN"
   jq -e --argjson support "$support" '.current.stage_revision == 2 and .current.stage == "intermediate"
     and .current.values.accusation == $support and .current.supports[0].format == "pdf"

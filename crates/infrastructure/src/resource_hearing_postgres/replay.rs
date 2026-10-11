@@ -106,7 +106,7 @@ fn verify_marker(
     result: &ResourceHearingCreation,
     hasher: &dyn DocumentHasher,
 ) -> Result<(), ApplicationError> {
-    let rows=tx.query("SELECT sequence,timestamp,actor,action,resource,chain FROM audit_events WHERE action='resource_hearing.registered' AND resource=$1 ORDER BY sequence LIMIT 2",&[&marker(result)]).map_err(port)?;
+    let rows=tx.query("SELECT sequence,timestamp,actor,action,resource,chain,context_json FROM audit_events WHERE action='resource_hearing.registered' AND resource=$1 ORDER BY sequence LIMIT 2",&[&marker(result)]).map_err(port)?;
     if rows.len() != 1 {
         return Err(ResourceActivityError::OperationConflict.into());
     }

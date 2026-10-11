@@ -156,6 +156,7 @@ pub fn server(
         .layer(Extension(Arc::new(Probe::new("router-owner", drops))));
     let server = ServerComponents {
         router,
+        audit_drain: web::AccessAuditDrain::default(),
         stop,
         password_reset: Some(PasswordResetRuntime { owner, consumer }),
         invitations: None,

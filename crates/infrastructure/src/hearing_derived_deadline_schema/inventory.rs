@@ -70,7 +70,7 @@ pub(crate) fn verify_audit(
 ) -> Result<(), ApplicationError> {
     let row = tx
         .query_opt(
-            "SELECT sequence,timestamp,actor,action,resource,chain
+            "SELECT sequence,timestamp,actor,action,resource,chain,context_json
         FROM audit_events WHERE sequence=$1 AND octet_length(timestamp)<=64
         AND octet_length(actor)<=1280 AND octet_length(action)<=64
         AND octet_length(resource)<=256 AND octet_length(chain)=32",

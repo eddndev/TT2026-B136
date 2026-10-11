@@ -100,6 +100,7 @@ impl IdentityService {
             confirmed.server_now_unix_ms = confirmed.server_now_unix_ms.max(now);
         }
         self.validate_session_state(&confirmed)?;
+        crate::audit_context::bind_actor(confirmed.identity.principal.id)?;
         Ok(confirmed)
     }
 

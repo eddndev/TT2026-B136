@@ -30,6 +30,54 @@ campaña se registra por separado en el
 Véanse [ADR-0016](adr/0016-case-document-transactions.md) y
 [el alcance de plazos](deadline-lifecycle.md).
 
+## Contexto de auditoría y accesos HTTP
+
+La [migración 0048](../migrations/0048_audit_event_context.sql) es aditiva:
+incorpora `audit_events.context_json` como texto nullable, con un máximo de
+1024 bytes. Las filas anteriores conservan `NULL`; no se reconstruyen usuarios
+ni direcciones IP históricas. La ausencia de contexto conserva exactamente los
+bytes canónicos y hashes anteriores. Cuando existe, el contexto tipado añade
+una extensión versionada cubierta por el hash de la cadena. El esquema y la
+representación pública se describen en [la API de auditoría](audit-events-api.md)
+y [ADR 0077](adr/0077-durable-access-audit-context.md).
+
+Aplicar la migración mediante `database migrate --runtime-role` siguiendo el
+procedimiento de mantenimiento, con escritores detenidos y respaldo previo.
+Los respaldos, exportaciones e importaciones deben conservar tanto los eventos
+sin contexto como el contexto de los eventos nuevos. Una vez registrados estos
+últimos, cambiar solamente a un binario anterior no es una recuperación
+compatible: el retorno requiere el respaldo anterior a la migración y el
+procedimiento de restauración del esquema correspondiente. No eliminar contexto,
+recalcular hashes ni sustituir la huella de migraciones para forzar ese retorno.
+Restaurar el respaldo implica tratar explícitamente los cambios posteriores a
+su captura; conservarlo no demuestra que su restauración haya sido aceptada.
+
+El registro `access.*` confirma su propia transacción después del resultado
+del handler HTTP y antes de entregar la respuesta. El evento de negocio conserva
+su transacción original. Si falla la escritura durable del acceso, el servidor
+devuelve el `500` genérico y el negocio puede estar ya confirmado. Esa respuesta
+no acredita rollback ni autoriza un reintento automático; se deben consultar los
+recibos existentes y conciliar la operación según su contrato.
+
+Por defecto, `TT_AUDIT_TRUST_LOOPBACK_PROXY` ausente o con valor `false` registra
+la IP del socket e ignora las cabeceras reenviadas. Sólo el valor explícito
+`true` permite usar `X-Forwarded-For` cuando el peer es loopback y hay una sola
+cabecera con una sola IP válida. Listas, duplicados, valores inválidos o ausentes
+conservan la IP del socket; un peer no loopback conserva siempre su propia IP.
+Sin metadatos de socket, el origen queda no disponible. Cualquier otro valor de
+configuración rechaza el arranque. La plantilla Nginx de
+[`ops/deploy/host.py`](../ops/deploy/host.py) sobrescribe esa cabecera con
+`$remote_addr`; activar la opción también confía en los llamantes locales.
+
+El cierre ordenado espera a los propietarios de peticiones admitidas hasta
+terminar el handler y la escritura durable, incluso si el cliente se desconecta,
+antes de liberar el runtime y los adaptadores. Esperar a que termine ese drenado
+forma parte de detener escritores antes del respaldo; no demuestra tolerancia a
+la pérdida abrupta del proceso. La aceptación de restauración, cobertura y
+latencia de esta extensión se mantiene separada en
+[la matriz de auditoría](access-audit-matrix.md). Esta descripción no acredita
+integración ni despliegue.
+
 ## Capacidades internas de recuperación de contraseña
 
 Las migraciones `0028_password_reset_*.sql` añaden capacidades privadas y sus

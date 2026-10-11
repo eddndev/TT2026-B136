@@ -1,5 +1,117 @@
 # Informe de verificación local
 
+## Contexto y acceso durable: aceptación local del 11 de octubre de 2026
+
+La [matriz finita](access-audit-matrix.md) conserva 222 pares funcionales y dos
+rechazos HEAD explícitos, sin añadir operaciones de producto. El contexto nuevo
+incluye UUID verificado cuando existe, IP observada, origen y correlación. La
+historia sin contexto conserva sus bytes y no recibe atribuciones retrospectivas.
+El resultado de acceso se confirma antes de responder, conservando por separado
+los eventos transaccionales de negocio y los diagnósticos MFA.
+
+Las comprobaciones focales aprobaron codificación e integridad de contexto,
+propagación y restitución del ámbito, identidad después de MFA y sesión,
+consulta por UUID y presupuesto de respuesta. El límite HTTP común aprobó
+resultados exitosos/rechazados, cancelación del cliente, espera del cierre y
+respuesta genérica ante fallo durable. El catálogo sintético prueba ese límite
+común; no se presenta como ejercicio real de cada permiso de negocio.
+
+Con PostgreSQL 16.15 desechable aprobaron nueve casos de contexto y archivos,
+la persistencia de los cuatro resultados y la regresión afectada de 26 casos.
+Se verificaron migración aditiva sobre historia, reaplicación, ausencia histórica,
+encadenamiento mixto, alteración detectada, respaldo/restauración y anexado
+posterior. El rol operativo no puede actualizar ni cambiar el esquema; otro rol
+y un Owner revocado no pueden consultar la historia. Una fixture inicial intentó
+revocar al último Owner y fue rechazada correctamente; se agregó otro Owner a
+la fixture y el caso pasó, sin cambiar la protección productiva.
+
+El [protocolo de medición](access-audit-measurement.md), fijado antes de ejecutar,
+produjo 5328 confirmaciones durables con cuatro resultados, tres repeticiones,
+222 cargas de método/ruta y concurrencias 1 y 8. Cada población comenzó con
+1000 eventos encadenados. Se conservaron tiempos individuales, correspondencia
+exacta con eventos, prefijo histórico y verificación desde una conexión nueva.
+No hubo fallos ni muestras iguales o superiores al límite estricto de 500 ms.
+
+| Concurrencia | Muestras | Máximo ms | p50 ms | p95 ms | p99 ms |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2664 | 7.506391 | 2.110918 | 2.516467 | 2.820506 |
+| 8 | 2664 | 111.535470 | 10.709603 | 22.677269 | 83.501021 |
+
+El host usó Linux 7.2.9, Ryzen 7 7730U, 16053874688 bytes de RAM, PostgreSQL
+16.15 y almacenamiento NVMe/Btrfs, incluido el temporal. Perfil Cargo de pruebas
+sin optimizar y con depuración; `fsync`, `full_page_writes` y
+`synchronous_commit` estaban activos. El cronómetro incluyó despacho acotado,
+mutex, bloqueo SQL, inserción y commit; excluyó preparación, apertura de conexión,
+HTTP y cola Tokio. Las nueve primeras muestras usaron escritores nuevos, sin
+atribuir cachés de disco frías. Los percentiles usan rango más próximo y no
+sustituyen el criterio individual. Esta población mide el escritor real con
+cargas de rutas; la población HTTP conserva su propia aceptación.
+
+La consulta Qadra aprobó 21 casos Node y 14 escenarios con HTTP controlado en
+escritorio/móvil. También aprobaron los dos recorridos nativos Owner/Litigante
+(14.2 s de Playwright), con servicios PostgreSQL/Redis y API propios. La captura
+móvil inspeccionada conserva identidad, IP, origen y valores no disponibles sin
+desbordar las tarjetas. Las pruebas adicionales de origen confirmaron cabeceras
+duplicadas/ausentes, ausencia de socket y correlación MFA generada por servidor. La primera ejecución nativa no llegó a pruebas porque faltó
+indicar la ruta del decodificador multimedia ya disponible; se conservaron el
+fallo y la verificación de versión/configuración/capacidades del binario aceptado.
+No se instaló ni cambió un decodificador para acomodar la prueba.
+
+La CLI aprobó su límite explícito de contexto y nueve casos de anexado/consulta,
+incluida la compatibilidad histórica. El recorrido completo `scripts/demo.sh`
+aprobó CA, cifrado y rotación, firma/sello, ZIP independiente, revocación, TOTP
+y cadena CLI con rechazo de alteración. Clippy workspace/all-targets terminó
+sin errores; se corrigieron dos advertencias en pruebas nuevas, sin cambiar
+el comportamiento del producto ni repetir las mediciones aceptadas.
+
+El recolector HTTP tuvo RED por ausencia de implementación y aprobó después
+sus casos de parseo, conciliación, secretos, límites, secuencia cero y recibo
+exclusivo privado. El corte final de diagnóstico seguro y exportación mixta
+aprobó 19 casos: 16 del recolector y tres del exportador. Estos cortes focales no sustituyen la aceptación API completa descrita debajo
+ni los gates de integración o el despliegue.
+
+
+La campaña API con diagnóstico completó permisos, documentos, firma individual,
+audiencias, resultados, plazos, cautelares, Agenda, alertas, informes y consulta
+Owner. La restauración conservó originales, revisiones, recibos y ZIP exactos;
+las sesiones anteriores quedaron invalidadas y el reingreso MFA aprobó.
+El comando terminó con salida 1 exclusivamente por la captura opcional de
+rendimiento. Se demostró que `psql` interpretaba una URI completa en `PGDATABASE`
+como nombre literal. La corrección separa los campos de conexión libpq sin
+exponer credenciales en argumentos; tuvo RED/GREEN y lectura real de PostgreSQL
+16.15 en una base desechable distinta. Ese ensayo verifica la conexión, no
+aporta muestras de latencia HTTP. Los primeros intentos no producen aceptación
+de rendimiento; se conservan sus fallos y la población declarada sin reducirla.
+
+
+La medición HTTP corregida quedó aceptada con **2347 commits**, conciliados uno
+a uno entre los cinco registros de servidor y sus eventos PostgreSQL. Observó
+**207 de 222 operaciones**; las 15 restantes quedan enumeradas en el recibo y
+no reciben una latencia HTTP inferida. Hubo 1824 resultados concedidos, 216
+denegados y 307 rechazados; no se observó 5xx en esta población. Los cuatro
+resultados conservan su comprobación focal y en el escritor directo.
+
+El mínimo fue **1.751 ms**, el máximo **179.653 ms** y p50/p95/p99 fueron
+**2.401/27.028/93.135 ms**. Cada muestra durable quedó estrictamente bajo 500 ms,
+sin violaciones. La historia al capturar contenía 6756 eventos, uno anterior
+al primer acceso. PostgreSQL 16.15 conservó las tres opciones de durabilidad
+activas. Los cinco servidores no coexistieron: hubo como máximo dos durante la
+carrera de sellado, con límite de ocho solicitudes admitidas por servidor.
+
+El cronómetro HTTP incluye cola Tokio, mutex del escritor, SQL y commit; excluye
+manejador, admisión HTTP y presupuesto previo del trabajo de negocio. La
+población crece durante los recorridos y no equivale a concurrencia ocho sostenida,
+a cachés frías ni al ensayo de escritor con prefijo fijo. Los archivos privados
+`access-http-measurement.json` y su `.inputs.json`, dentro de
+`output/audit-backup-closure/`, conservan cada muestra y permiten reproducir la
+conciliación sin volver a ejecutar los recorridos. La aceptación no acredita
+latencia de producción ni despliegue del modo de proxy confiable.
+La campaña final `scripts/api-demo.sh` terminó con salida cero: aceptó esta
+medición y volvió a conservar el historial y la evidencia tras restaurar.
+El log `audit-api-native-final.log` corresponde a ese cierre; los intentos
+fallidos anteriores no se reclasifican como campañas aprobadas.
+
+
 ## Captura con el perfil Redis provisionado: 11 de octubre de 2026
 
 La regresión reprodujo dos comportamientos incorrectos: el recibo de

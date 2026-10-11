@@ -1,4 +1,4 @@
-\subsection{Consulta autorizada de actividad}\label{sec:impl-bitacora}
+\subsection{Consulta autorizada y contexto de actividad}\label{sec:impl-bitacora}
 La aplicación define selección y autorización en
 \rutarepo{crates/application/src/audit_query/}. El adaptador PostgreSQL reside
 en \rutarepo{crates/infrastructure/src/audit_query_postgres/}.
@@ -14,6 +14,29 @@ convertir el texto a una precisión menor ni reescribirlo. Un índice ordena amb
 claves y la secuencia. La consulta pública admite años de 1 a 9999; la migración
 preserva también el año cero representable en eventos históricos canónicos.
 
+La migración \rutarepo{migrations/0048_audit_event_context.sql} incorpora
+\texttt{context\_json}, una columna de texto anulable limitada a 1024 bytes.
+Las filas anteriores conservan \texttt{NULL}, sin reconstruir cuentas ni
+direcciones IP y sin modificar sus bytes canónicos o hashes. La representación
+pública devuelve \texttt{context: null} para esas filas; los eventos con contexto
+exponen UUID de cuenta, dirección IPv4 o IPv6, origen HTTP, CLI o interno, e
+identificador de petición. Los campos no observados permanecen ausentes en el
+valor tipado y nulos en JSON. La extensión canónica descrita en
+\cref{sec:impl-s9-auditoria} protege esos valores. Lectura, importación y
+restauración conservan ambas representaciones; el adaptador de archivos mantiene
+la omisión del campo en las entradas históricas.
+
+El ámbito de una petición propaga el contexto desde la ejecución asíncrona
+hasta el trabajo síncrono de aplicación. La autenticación y la revalidación de
+la cuenta vinculan el UUID observado, sin sustituir los controles vigentes de
+sesión, rol o recurso. Un correo o UUID recibido durante un flujo público no
+acredita por sí mismo una identidad autenticada. Los procesos CLI e internos
+registran su origen sin fabricar IP, petición HTTP o usuario. El filtro
+\texttt{actor} compara exactamente el texto capturado o el UUID de cuenta del
+contexto registrado; no consulta la titularidad actual de un correo ni añade
+identidad a la historia. Los filtros de acción y recurso conservan su igualdad
+exacta.
+
 El adaptador adquiere el bloqueo auditado y recarga la cuenta activa antes de
 seleccionar. Captura el máximo de secuencia antes de anexar su propio evento de
 lectura. Los filtros y la posición de continuación se aplican antes del límite;
@@ -21,13 +44,42 @@ una fila adicional determina si existe otra página. Un historial inicialmente
 vacío se distingue de un historial cuyo primer evento tiene secuencia cero.
 
 Una primera consulta sólo recupera claves y longitudes. La suma de actor,
-operación y recurso de las filas devueltas no puede superar 262144 bytes UTF-8;
-la fila adicional no consume ese presupuesto. Sólo después se recuperan los
-textos seleccionados, se contrastan con las claves originales y se confirma el
-evento \texttt{audit.events\_read} en la misma transacción. El exceso de capacidad
+operación, recurso y JSON del contexto de las filas devueltas no puede superar
+262144 bytes UTF-8; el contexto nulo aporta cero bytes y la fila adicional no
+consume ese presupuesto. El cálculo incluye las claves y demás elementos de la
+serialización JSON, además de sus valores. Sólo después se recuperan los textos
+seleccionados, se validan los tipos del contexto y se contrasta la longitud
+almacenada con su serialización compacta. Se comprueban las claves originales y
+se confirma el evento \texttt{audit.events\_read} en la misma transacción.
+El exceso de capacidad
 rechaza la página completa: no trunca campos históricos ni devuelve resultados
 parciales. Una selección fallida o un fallo al registrar la lectura revierte
 la transacción.
+
+La frontera HTTP añade un evento de acceso a la cadena después de obtener el
+resultado del manejador y antes de liberar su respuesta. Las respuestas 2xx
+producen \texttt{access.granted}; 401 y 403, \texttt{access.denied}; las respuestas
+5xx, \texttt{access.failed}; las restantes, \texttt{access.rejected}. Un 404
+conserva la ambigüedad entre recurso inexistente y recurso oculto, y un 409 o 422
+no establece por sí mismo una denegación de permisos. El recurso auditado
+contiene el método, el patrón de ruta reconocido y referencias interpretadas
+de forma restringida; omite cuerpos, consultas, credenciales y mensajes de error
+de los adaptadores. El UUID de petición procede del servidor y permite
+correlación sin convertir los diagnósticos operativos de MFA en eventos durables.
+
+Los eventos de negocio mantienen su confirmación atómica con la mutación
+correspondiente; el resultado de acceso constituye una inserción posterior
+separada. Si esta inserción falla, se suprime la respuesta del manejador y se
+devuelve un error genérico 500. Ese error no demuestra la reversión de una
+mutación ya confirmada ni justifica repetirla automáticamente: la recuperación
+continúa mediante los recibos y la conciliación propios de cada operación.
+El permiso de admisión permanece retenido hasta terminar el manejador y el
+registro de acceso, incluso si el cliente desconecta. El cierre ordenado espera
+a que esas tareas admitidas finalicen antes de liberar los adaptadores; esta
+espera no acredita supervivencia ante una terminación abrupta del proceso.
+El rechazo por capacidad anterior a la admisión, las comprobaciones de salud,
+los archivos estáticos y las rutas arbitrarias no reconocidas quedan fuera de
+esta población de resultados durables.
 
 El rol operativo conserva permisos de consulta e inserción en la historia;
 no obtiene modificación, borrado, DDL ni delegación de esos privilegios. La
@@ -39,7 +91,8 @@ convierten a un administrador de PostgreSQL en un adversario excluido de la
 base de confianza.
 
 La decisión \rutarepo{docs/adr/0007-audit-chain-anchoring.md} mantiene pendiente
-el anclaje externo de la cabeza. Tampoco se añaden identificadores de cuenta o
-IP a eventos históricos. La aceptación local del incremento
-incluye HTTP compuesto, restauración y navegador real; la regresión global,
-la integración y la activación mantienen su comprobación separada.
+el anclaje externo de la cabeza. La procedencia capturada no constituye una
+acreditación externa de la persona situada tras una cuenta o dirección IP.
+La decisión \rutarepo{docs/adr/0077-durable-access-audit-context.md} conserva
+esta distinción y separa la implementación de su aceptación, integración y
+despliegue.

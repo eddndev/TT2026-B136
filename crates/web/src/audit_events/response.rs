@@ -31,10 +31,17 @@ pub(super) fn page(
                 .filter(|value| *value <= MAX_AUDIT_PAGE_TEXT_BYTES)
                 .ok_or(ApplicationError::AuditQueryCapacityExceeded)?;
         }
+        if let Some(context) = &event.context {
+            text_bytes = text_bytes
+                .checked_add(serde_json::to_vec(context).map_err(|_| invalid())?.len())
+                .filter(|value| *value <= MAX_AUDIT_PAGE_TEXT_BYTES)
+                .ok_or(ApplicationError::AuditQueryCapacityExceeded)?;
+        }
         events.push(json!({
             "sequence": event.sequence.to_string(),
             "timestamp": event.timestamp.format(&Rfc3339).map_err(|_| invalid())?,
             "actor": event.actor, "action": event.action, "resource": event.resource,
+            "context": event.context,
         }));
     }
     Ok(json!({

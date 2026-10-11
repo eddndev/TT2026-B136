@@ -1,6 +1,8 @@
 //! Vec-backed audit log for tests and short-lived processes.
 
-use domain::audit::{chain_digest, AuditEvent, AuditLog, ChainedEvent, GENESIS_PREVIOUS};
+use domain::audit::{
+    chain_digest, AuditEvent, AuditLog, AuditSource, ChainedEvent, GENESIS_PREVIOUS,
+};
 use domain::crypto::DocumentHasher;
 use domain::DomainError;
 use time::OffsetDateTime;
@@ -37,7 +39,8 @@ impl<H: DocumentHasher> AuditLog for InMemoryAuditLog<H> {
             .entries
             .last()
             .map_or(GENESIS_PREVIOUS, |entry| entry.chain);
-        let event = AuditEvent::new(sequence, timestamp, actor, action, resource);
+        let mut event = AuditEvent::new(sequence, timestamp, actor, action, resource);
+        event.context = Some(super::context::current(AuditSource::Internal)?);
         let chain = chain_digest(&self.hasher, &previous, &event)?;
         let entry = ChainedEvent { event, chain };
         self.entries.push(entry.clone());
