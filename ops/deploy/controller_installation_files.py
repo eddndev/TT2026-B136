@@ -171,7 +171,10 @@ def originals(root, intent, target, unit_directory, gate_record=None):
                 ("WorkingDirectory=" + str(root / "data")).encode())):
             raise ValueError("controller installation unit policy differs")
         result[unit] = raw
-    commands._original_units(root, result, Path(intent["python"]["path"]), intent["legacy_absent_prestarts"])
+    commands._original_units(root, result, Path(intent["python"]["path"]), intent["legacy_absent_prestarts"],
+        launcher_path=Path(intent["launcher"]["destination"]),
+        expected_previous_inventory_sha256=(intent["previous_sources"]["sha256"]
+            if intent["previous_approval_sha256"] is not None else None))
     return result
 
 
@@ -202,3 +205,7 @@ def launcher(root, intent, *, install=False):
 def predecessor(root, intent):
     current = approval._existing(root / "maintenance/controllers/approved.json", intent["root"])
     approval._predecessor(current, intent["previous_approval_sha256"])
+    if current is not None and (
+            current["value"]["installed_sha256"] != intent["previous_sources"]["sha256"]
+            or current["value"]["generation"] != intent["previous_sources"]["identity"]):
+        raise ValueError("controller predecessor does not identify the previous sources")

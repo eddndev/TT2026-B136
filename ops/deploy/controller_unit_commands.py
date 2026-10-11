@@ -51,7 +51,7 @@ def _commands(raw):
     return lines, commands
 
 
-def _unit(name, raw, root, python, prefix):
+def _unit(name, raw, root, python, prefix, previous_prefix=None):
     lines, commands = _commands(raw)
     if name == "qadra-api.service":
         if set(commands) != {b"ExecStart"}:
@@ -68,14 +68,17 @@ def _unit(name, raw, root, python, prefix):
     content = original.rstrip(b"\r\n")
     ending = original[len(content):]
     expected = f"{directive.decode()}={python} {root}/tools/{entry} {root}{suffix}".encode("ascii")
-    if content != expected:
+    previous = (None if previous_prefix is None else
+        f"{directive.decode()}={previous_prefix}{entry} -- {root}{suffix}".encode("ascii"))
+    if content not in (expected, previous):
         raise ValueError("controller unit command differs from its captured form")
     replacement = f"{directive.decode()}={prefix}{entry} -- {root}{suffix}".encode("ascii")
     lines[position] = replacement + ending
     return b"".join(lines)
 
 
-def _original_units(root, current_units, python_executable, legacy_absent_prestarts=()):
+def _original_units(root, current_units, python_executable, legacy_absent_prestarts=(),
+                    *, launcher_path=None, expected_previous_inventory_sha256=None):
     """Validate captured commands and explicitly approved legacy prestart absence."""
     root_name, python = _path(root), _path(python_executable)
     if type(current_units) is not dict or set(current_units) != set(UNITS):
@@ -85,6 +88,12 @@ def _original_units(root, current_units, python_executable, legacy_absent_presta
             or len(set(legacy_absent_prestarts)) != len(legacy_absent_prestarts)
             or any(name not in allowed for name in legacy_absent_prestarts)):
         raise ValueError("legacy prestart absence requires exact database unit names")
+    previous_prefix = None
+    if expected_previous_inventory_sha256 is not None:
+        hexadecimal(expected_previous_inventory_sha256, 64)
+        launcher = _path(launcher_path)
+        previous_prefix = (f"{python} -I -B -S {launcher} --root {root_name} "
+            f"--inventory-sha256 {expected_previous_inventory_sha256} --entrypoint ")
     result = dict(current_units)
     for name, raw in current_units.items():
         lines, commands = _commands(raw)
@@ -96,13 +105,13 @@ def _original_units(root, current_units, python_executable, legacy_absent_presta
                 raise ValueError("legacy unit lacks its unambiguous resource limit")
             lines.insert(positions[0], f"ExecStartPre={python} {root_name}/tools/restore_fence.py {root_name}\n".encode())
             result[name] = b"".join(lines)
-        _unit(name, result[name], root_name, python, "")
+        _unit(name, result[name], root_name, python, "", previous_prefix)
     return result
 
 
 def render_units(root, current_units, approval, *, expected_approval_sha256,
                  expected_root_identity, python_executable, launcher_path,
-                 legacy_absent_prestarts=()):
+                 legacy_absent_prestarts=(), expected_previous_inventory_sha256=None):
     """Return candidates only; the caller validates current files and manager state."""
     root_name, python, launcher = _path(root), _path(python_executable), _path(launcher_path)
     if launcher_path.is_relative_to(root / "tools"):
@@ -114,7 +123,11 @@ def render_units(root, current_units, approval, *, expected_approval_sha256,
         raise ValueError("controller approval differs from its external expected digest")
     if approval["root"] != {"path": root_name, **expected_root_identity}:
         raise ValueError("controller approval differs from the external target identity")
-    current_units = _original_units(root, current_units, python_executable, legacy_absent_prestarts)
+    current_units = _original_units(root, current_units, python_executable, legacy_absent_prestarts,
+        launcher_path=launcher_path, expected_previous_inventory_sha256=expected_previous_inventory_sha256)
+    previous_prefix = None if expected_previous_inventory_sha256 is None else (
+        f"{python} -I -B -S {launcher} --root {root_name} "
+        f"--inventory-sha256 {expected_previous_inventory_sha256} --entrypoint ")
     prefix = (f"{python} -I -B -S {launcher} --root {root_name} "
               f"--inventory-sha256 {approval['installed_sha256']} --entrypoint ")
-    return {name: _unit(name, current_units[name], root_name, python, prefix) for name in UNITS}
+    return {name: _unit(name, current_units[name], root_name, python, prefix, previous_prefix) for name in UNITS}

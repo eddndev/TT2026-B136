@@ -6,6 +6,26 @@ from deploy_controller_publication_support import digest, encoded, inventory, pu
 
 
 class ControllerInstallationReopenTests(InstallationFixture):
+    def test_approved_predecessor_must_identify_the_actual_previous_sources(self):
+        for field in ("installed_sha256", "generation"):
+            fixture = InstallationFixture()
+            fixture.setUp()
+            self.addCleanup(fixture.doCleanups)
+            fixture.bootstrap_approval()
+            approval = json.loads(fixture.current_approval.read_bytes())
+            if field == "installed_sha256":
+                approval[field] = "0" * 64
+            else:
+                approval[field]["inode"] += 1
+            put(fixture.current_approval, encoded(approval))
+            fixture.intent["previous_approval_sha256"] = digest(fixture.current_approval.read_bytes())
+            fixture.pin_intent()
+            before = tree(fixture.root)
+            with self.subTest(field=field), fixture.controller() as product, self.assertRaises(RuntimeError):
+                fixture.invoke(product)
+            self.assertEqual(fixture.stops(), [])
+            self.assertEqual(tree(fixture.root), before)
+
     def test_predecessor_cas_preflight_and_uncertain_approval_keep_exact_generation(self):
         self.bootstrap_approval()
         predecessor = self.intent["previous_approval_sha256"]
