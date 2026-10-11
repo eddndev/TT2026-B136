@@ -152,10 +152,14 @@ integración tampoco acredita activación o retención del journal en VPS3.
 La cuenta/correo Owner, remitente y activación de correo, y duración de
 inactividad siguen pendientes humanos. La continuación autoriza despliegues
 con la configuración vigente preservada; no autoriza inferir esos valores.
-La producción sirve `v0.1.3` desde el 10 de octubre de 2026, con configuración
-y datos conservados. El recibo automático de compatibilidad de respaldo tiene
-una discrepancia de directorio Redis documentada en la verificación; el ensayo
-manual poblado no acredita que ese recibo automático esté corregido.
+La discrepancia del directorio Redis del recibo automático de compatibilidad
+se reprodujo y corrigió localmente: exige `redis-appendonly`, como la provisión.
+Aprobaron 69 pruebas focales y el ensayo nativo poblado con el paquete íntegro
+`v0.1.4` de `dd0b32f8` y el controlador local corregido. El
+[registro de verificación](verification-report.md) distingue motores reales,
+observación de unidades simulada y mediciones. La integración, instalación y
+comprobación del recibo corregido en producción siguen pendientes; el ensayo
+manual histórico no las sustituye.
 Una evaluación con participantes reales también
 requiere personas y resultados reales; las pruebas automáticas no la sustituyen.
 

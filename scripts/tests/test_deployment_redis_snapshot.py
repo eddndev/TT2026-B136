@@ -59,6 +59,7 @@ class RedisSnapshotTests(unittest.TestCase):
         config.write_text(f"bind 127.0.0.1\nport {self.port}\nrequirepass {self.password}\n"
                           f"dir {self.root}/data\ndbfilename redis.rdb\nsave \"\"\n"
                           f"appendonly {'yes' if appendonly else 'no'}\n"
+                          "appenddirname redis-appendonly\n"
                           "maxmemory 64mb\ndaemonize no\n")
         config.chmod(0o600)
         self.log = (self.root / "server.log").open("ab")

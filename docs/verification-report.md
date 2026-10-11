@@ -1,5 +1,43 @@
 # Informe de verificación local
 
+## Captura con el perfil Redis provisionado: 11 de octubre de 2026
+
+La regresión reprodujo dos comportamientos incorrectos: el recibo de
+compatibilidad rechazaba `redis-appendonly`, generado por `ops/deploy/host.py`,
+y admitía el nombre predeterminado `appendonlydir`. El controlador local exige
+ahora exclusivamente el nombre provisionado; conserva las comprobaciones de
+destino, RDB, estabilidad AOF, identidad de motor y herramientas. No se cambió
+la configuración desplegada ni se amplió el conjunto de motores admitidos.
+
+La [prueba del perfil provisionado](../scripts/tests/test_deploy_restore_provisioned_profile.py)
+usa la configuración generada por `host.prepare` y separa seis casos con fixtures
+independientes: captura/admisión correcta y rechazo de nombre predeterminado,
+nombre ajeno, ruta relativa al padre, archivo RDB distinto y directorio ajeno.
+El conjunto focal de restauración aprobó **69 pruebas en 3.617 s**. Los dobles de
+comando conservan su alcance separado de la aceptación con motores reales.
+
+El [ensayo nativo poblado](../scripts/tests/native_restore_acceptance.py) aprobó
+**1 caso en 32.809 s**, incluidos preparación y limpieza. La medición interna del
+cuerpo del caso fue **27.774 s**. Usó PostgreSQL 16.15, Redis 7.4.11 y el paquete
+íntegro `v0.1.4` de `dd0b32f8`, sin reconstruirlo, junto al controlador local
+corregido. La fixture Redis usa explícitamente `redis-appendonly`; la captura
+publicó el descriptor y la admisión comprobó su huella antes de restaurar.
+
+Se conservaron dos usuarios, cuatro estados de recuperación y quince eventos
+originales de auditoría. La invalidación retiró dos capacidades, agregó un
+evento y devolvió el mismo recibo al repetir la operación. Siete controles y
+claves ajenas Redis conservaron valores y vencimientos tras RDB y reinicio AOF;
+el acceso posterior rechazó las credenciales anteriores y admitió login con MFA.
+PostgreSQL, Redis, API, PKI y auditoría fueron reales. Sólo la observación de
+unidades fue un doble de procesos propios; no hubo ingreso público ni correo
+externo. La ejecución terminó sin procesos propios pendientes.
+
+Esta evidencia resuelve localmente la discrepancia del nombre y mantiene
+separado el ensayo manual histórico. No acredita integración del cambio,
+instalación del controlador corregido ni funcionamiento del recibo automático
+en producción. La verificación del manuscrito modificado requiere su propia
+compilación e inspección; no se atribuye a estos resultados de software.
+
 ## Diagnostico de entrada del navegador: 11 de octubre de 2026
 
 La primera campana de PR97 detuvo la prueba real de plazos antes del primer
@@ -132,8 +170,10 @@ reutilizando la migracion/restauracion completada. Otro limite comprobado fue el
 recibo automatico de compatibilidad: exige `appendonlydir`, mientras la provision
 usa `redis-appendonly`. Se uso `Runtime.backup` con manifiesto validado y ensayo
 manual; no se emitio un descriptor de compatibilidad ni se cambio Redis para
-eludir esa diferencia. Corregir ese recibo automatico queda separado del ensayo
-manual aceptado y debe conservar la comprobacion exacta del destino provisionado.
+eludir esa diferencia. Ese ensayo manual no corrigio el recibo automatico.
+La correccion local posterior, con comprobacion exacta del destino provisionado,
+se registra por separado en este informe; esta activacion historica no acredita
+su instalacion.
 
 La activacion tomo otro respaldo completo, con copia privada externa y hashes
 verificados, cerro el ingreso y migro bajo exclusion administrativa. Conservo las
