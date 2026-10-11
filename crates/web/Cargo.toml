@@ -29,3 +29,11 @@ tower = { version = "0.5", features = ["util"] }
 [[test]]
 name = "case_reports_http"
 path = "tests/case_reports_http.rs"
+
+[[test]]
+name = "member_invitations"
+path = "tests/member_invitations.rs"
+
+[[test]]
+name = "member_invitations_composition"
+path = "tests/member_invitations_composition.rs"

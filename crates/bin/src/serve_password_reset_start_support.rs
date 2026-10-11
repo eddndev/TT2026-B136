@@ -158,6 +158,7 @@ pub fn server(
         router,
         stop,
         password_reset: Some(PasswordResetRuntime { owner, consumer }),
+        invitations: None,
     };
     (server, admission)
 }

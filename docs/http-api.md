@@ -39,6 +39,12 @@ con restauración aprobados. CI global y el PDF actualizado conservan su seguimi
 en el [informe de verificación](verification-report.md). El alta directa existente no
 se convierte en invitación ni recuperación de acceso.
 
+La [API de invitaciones y enrolamiento recuperable](member-invitations-api.md)
+permite al Owner invitar a Litigator o Paralegal y al destinatario elegir su
+contrasena y confirmar MFA antes de crear la cuenta. Incluye reenvio explicito,
+operaciones recuperables y estados de correo. Su activacion es independiente y
+esta deshabilitada por defecto; el contrato detalla las variables requeridas.
+
 La [API de informes de expedientes](case-reports-api.md) define solicitudes
 durables propias para Owner y Litigator, una captura administrativa compartida por
 PDF y CSV, y avisos internos de lectura explícita. El servidor compone su consumidor

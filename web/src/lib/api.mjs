@@ -5,6 +5,7 @@ import { caseApi } from './case-api.mjs';
 import { alertsApi } from './alerts-api.mjs';
 import { integrityIncidentsApi } from './document-integrity-incidents-api.mjs';
 import { membersApi } from './members-api.mjs';
+import { invitationsApi } from './invitations-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 import { signingCertificatesApi } from './signing-certificates-api.mjs';
 import { ownerCertificatesApi } from './owner-certificates-api.mjs';
@@ -369,6 +370,15 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         invalidateSession();
         onExpired();
       }),
+    invitations() {
+      const version = sessionVersion;
+      return invitationsApi(async (path, options) => {
+        assertSession(version);
+        const value = await request(path, options);
+        assertSession(version);
+        return value;
+      });
+    },
     audit: () => request('/audit/verify'),
   };
 }

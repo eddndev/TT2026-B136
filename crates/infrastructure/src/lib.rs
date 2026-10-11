@@ -109,7 +109,9 @@ pub use encryption::RingAesGcmCipher;
 pub use envelope::EnvelopeKeyManager;
 pub use error::{CryptoError, TsaError};
 pub use hashing::RingSha256Hasher;
-pub use identity::{AesGcmSecretProtector, PostgresUserRepository, RedisSessionStore};
+pub use identity::{
+    AesGcmInvitationProtector, AesGcmSecretProtector, PostgresUserRepository, RedisSessionStore,
+};
 pub use participant_postgres::PostgresParticipantStore;
 pub use password::Argon2idHasher;
 pub use recovery::RandomRecoveryCodeGenerator;
@@ -164,11 +166,16 @@ mod case_report_schema;
 
 pub mod case_report_isolation;
 
+pub mod invitation_email;
 pub mod password_reset_email;
 
 #[cfg(test)]
 #[path = "password_reset_email/tests.rs"]
 mod password_reset_email_tests;
+
+#[cfg(test)]
+#[path = "invitation_email/tests.rs"]
+mod invitation_email_tests;
 
 mod resource_hearing_codec;
 mod resource_hearing_postgres;
@@ -195,3 +202,7 @@ mod measure_decision_schema;
 
 mod measure_administrative_postgres;
 pub use measure_administrative_postgres::PostgresMeasureAdministrativeStore;
+
+mod invitation_postgres;
+mod invitation_schema;
+pub use invitation_postgres::PostgresInvitationStore;

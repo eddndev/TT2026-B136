@@ -1,6 +1,7 @@
 //! Multi-user enrollment, authentication, sessions, and authorization.
 
 pub mod certificate_login;
+pub mod invitations;
 mod model;
 mod observation;
 pub mod owner_certificates;

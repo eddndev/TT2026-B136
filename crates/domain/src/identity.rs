@@ -7,6 +7,9 @@ use uuid::Uuid;
 
 use crate::DomainError;
 
+pub mod invitations;
+pub use invitations::InvitationId;
+
 /// Stable identifier for a persisted user.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]

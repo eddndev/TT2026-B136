@@ -66,6 +66,37 @@ pub struct Harness {
     pub ports: Arc<Ports>,
 }
 
+#[allow(dead_code)]
+pub fn with_invitations(
+    max_requests: usize,
+    budget: HttpWorkBudget,
+    invitations: Arc<dyn application::identity::invitations::InvitationWorkflow>,
+) -> Result<(Router, Arc<Dashboard>), ApplicationError> {
+    let dashboard = Arc::new(Dashboard::default());
+    let limits = HttpLimits {
+        max_requests: NonZeroUsize::new(max_requests).unwrap(),
+        max_blocking_operations: NonZeroUsize::new(budget.capacity()).unwrap(),
+    };
+    let router = web::api_router_with_invitations_budget(
+        Arc::new(auth::UnusedDocuments),
+        Arc::new(identity::StubIdentity),
+        workflows(dashboard.clone(), None),
+        Arc::new(calendars::Workflow::default()),
+        Arc::new(profiles::Workflow::default()),
+        limits,
+        web::AuthenticationHttp {
+            password_reset: None,
+            certificate_login: None,
+        },
+        budget,
+        None,
+        Some(web::InvitationHttp {
+            workflow: invitations,
+        }),
+    )?;
+    Ok((router, dashboard))
+}
+
 impl Harness {
     pub fn new(max_requests: usize, legacy: bool) -> Self {
         Self::build(max_requests, 1, legacy, None, None).unwrap()
@@ -256,6 +287,32 @@ pub fn router_with_authentication(
         limits,
         authentication,
         budget,
+    )
+    .unwrap()
+}
+
+// Native invitation acceptance supplies durable identity and invitation adapters.
+#[allow(dead_code)]
+pub fn router_with_identity_invitations(
+    identity: Arc<dyn application::identity::IdentityWorkflow>,
+    invitations: web::InvitationHttp,
+    limits: HttpLimits,
+    budget: HttpWorkBudget,
+) -> Router {
+    web::api_router_with_invitations_budget(
+        Arc::new(auth::UnusedDocuments),
+        identity,
+        workflows(Arc::new(Dashboard::default()), None),
+        Arc::new(calendars::Workflow::default()),
+        Arc::new(profiles::Workflow::default()),
+        limits,
+        web::AuthenticationHttp {
+            password_reset: None,
+            certificate_login: None,
+        },
+        budget,
+        None,
+        Some(invitations),
     )
     .unwrap()
 }

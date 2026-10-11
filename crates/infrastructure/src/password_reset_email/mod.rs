@@ -2,7 +2,7 @@
 
 mod configuration;
 mod message;
-mod response;
+pub(crate) mod response;
 
 pub use configuration::PasswordResetEmailConfiguration;
 

@@ -53,6 +53,18 @@ además de la invalidación selectiva de sesiones y desafíos Redis. La restaura
 no recupera contraseñas cambiadas después de la fecha del respaldo. La política
 operativa de restauración y retención de estas capacidades sigue pendiente.
 
+## Invitaciones restauradas
+
+El [contrato de invitaciones](member-invitations-api.md#invalidacion-administrativa-despues-de-restaurar)
+describe `database invalidate-restored-invitations`, operacion administrativa
+explicita sobre la copia restaurada. Con admision, escritores y consumidores de
+correo detenidos, exige destino y antecedente auditado exactos y anula las
+invitaciones pendientes junto con su material MFA y leases de entrega. Conserva
+cuentas, invitaciones aceptadas y recibos. El UUID de la operacion permite
+conciliar una respuesta incierta sin cancelar altas o reenvios posteriores.
+No se ejecuta al arrancar ni habilita correo; la evidencia focal y los limites
+de aceptacion se distinguen en el [informe de verificacion](verification-report.md).
+
 ## Recursos y actos declarados
 
 Las migraciones `0022_procedural_resources.sql` y

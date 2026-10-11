@@ -1,3 +1,7 @@
+#[allow(dead_code)]
+#[path = "../src/serve_invitation_config.rs"]
+mod serve_invitation_config;
+
 use clap::{error::ErrorKind, Args, Command};
 use std::ffi::OsStr;
 

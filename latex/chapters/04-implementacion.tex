@@ -466,9 +466,11 @@ Los cuatro roles pueden consultar y registrar actividad de su propia sesión med
 
 Cada operación protegida consulta la sesión en Redis, contrasta cuenta activa, principal completo y generación con PostgreSQL, y confirma después que la misma sesión sigue vigente en Redis. Registrar actividad añade una comparación atómica final antes de modificar su plazo. La creación de usuarios revalida además al Owner al confirmar. PostgreSQL y Redis no comparten una transacción distribuida: un cambio de cuenta posterior a su lectura puede coincidir con la actividad, pero la generación modificada impide autorizaciones posteriores. Una operación admitida antes de vencer puede completar una transacción ya iniciada.
 
-Si falla la auditoría después de crear un desafío o sesión, la aplicación intenta retirar la credencial y devuelve error sin token. Si también falla la limpieza, la clave puede permanecer hasta su expiración. Logout revoca primero y no restaura la sesión si falla el evento posterior. La pérdida de la respuesta de enrolamiento tampoco dispone todavía de un procedimiento completo de recuperación del ciclo de alta.
+Si falla la auditoría después de crear un desafío o sesión, la aplicación intenta retirar la credencial y devuelve error sin token. Si también falla la limpieza, la clave puede permanecer hasta su expiración. Logout revoca primero y no restaura la sesión si falla el evento posterior. En el alta directa, la p\'erdida de la respuesta de enrolamiento conserva la limitaci\'on de recuperar su material MFA. El recorrido separado por invitaci\'on incorpora preparaci\'on y recibo recuperables, como se describe en la \cref{sec:impl-invitaciones}.
 
 \input{chapters/04-recuperacion-password}
+
+\input{chapters/04-invitaciones}
 
 \input{chapters/04-vinculo-certificado}
 

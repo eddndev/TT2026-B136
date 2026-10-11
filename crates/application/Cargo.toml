@@ -431,3 +431,7 @@ path = "tests/individual_document_seal.rs"
 [[test]]
 name = "individual_document_signing"
 path = "tests/individual_document_signing.rs"
+
+[[test]]
+name = "invitations"
+path = "tests/invitations.rs"

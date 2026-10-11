@@ -1,0 +1,85 @@
+\subsection{Comprobaciones focales de invitaciones}\label{sec:pruebas-invitaciones}
+
+Las comprobaciones terminadas separan dobles de aplicaci\'on, adaptadores nativos
+y transporte controlado. Nueve pruebas del protector AES-GCM comprobaron
+separaci\'on de finalidad, identidad y revisi\'on, alteraci\'on del texto cifrado,
+l\'imites y errores sin secretos. La suite de aplicaci\'on aprob\'o 32 casos:
+incluye los 23 del ciclo de invitaci\'on y nueve del consumidor de entrega; esos
+grupos no se suman otra vez. Los dobles comprueban autoridad Owner, ausencia de
+cuenta antes de TOTP, recuperaci\'on del mismo material MFA, recibo tras respuesta
+perdida y rechazo de una intenci\'on distinta.
+
+El consumidor se comprob\'o con un solo intento por ejecuci\'on. Los casos
+validaron finalidad y contexto del descifrado, reloj antes del env\'io, expiraci\'on
+durante el trabajo criptogr\'afico, estados aceptado, rechazado e incierto,
+reintento dentro de la ventana original y resultado obsoleto al perder el lease.
+Cinco pruebas TCP locales del correo comprobaron cuerpo e identidad estables,
+fragmento privado, respuestas del proveedor, tiempo acotado y ausencia de
+redirecciones o reintentos del cliente HTTP. No enviaron correo externo.
+
+Siete pruebas de PostgreSQL aprobaron conservaci\'on del material pendiente,
+cuenta y recibo \'unico al aceptar, reenv\'io que invalida trabajadores anteriores,
+rechazo de cuentas existentes o Owner revocado y reversi\'on ante fallo de
+auditor\'ia, confirmaci\'on concurrente y capacidad vencida. Otras siete
+verificaron permisos de columnas, material cifrado
+obligatorio y lease limitado por la ventana del proveedor. Dos pruebas Redis
+comprobaron presupuesto at\'omico e independiente y errores sin datos privados.
+
+Nueve casos del contrato HTTP y dos de composici\'on aprobaron la forma exacta
+de los comandos y respuestas, revisiones decimales, campos desconocidos,
+par\'ametros ambiguos, errores sanitizados y l\'imites compartidos. Una petici\'on
+cancelada conserv\'o el presupuesto del trabajo que segu\'ia en ejecuci\'on. Las
+rutas p\'ublicas devolvieron preparaci\'on o recibo sin emitir una sesi\'on.
+
+Dos recorridos de Owner con respuestas HTTP controladas comprobaron emisi\'on,
+reenv\'io expreso y conciliaci\'on de una respuesta perdida tras navegar. Esa
+ejecuci\'on fall\'o en un tercer caso, que reprodujo la duplicaci\'on de una
+invitaci\'on creada entre dos p\'aginas. Tras corregir la uni\'on por identidad,
+el caso de paginaci\'on aprob\'o por separado con cada fila una sola vez,
+continuaci\'on exacta y sin errores de p\'agina. Estos resultados no se presentan
+como una sola campa\~na de navegador completamente aprobada.
+
+La invalidaci\'on administrativa aprob\'o un caso sobre PostgreSQL: retir\'o dos
+invitaciones pendientes, una con preparaci\'on MFA, y conserv\'o cuenta y recibo
+aceptados. Rechaz\'o el uso posterior de los enlaces y del lease retirado. La
+misma ejecuci\'on aprob\'o doce regresiones de restauraci\'on de contrase\~na.
+Otro caso posterior aprob\'o la reversi\'on completa de la invalidaci\'on cuando
+se impide insertar su auditor\'ia. Estos resultados comprueban la primitiva
+administrativa sobre un estado preparado y se distinguen del ensayo de copia
+restaurada descrito a continuaci\'on.
+Otros dos casos de guardas comprobaron reintento con recibo original y rechazo
+de autoridad, destino o antecedente incorrectos en una ejecuci\'on previa
+parcial, cuyo fallo estaba en el fixture de la auditor\'ia. La correcci\'on de
+ese fixture y su resultado posterior se mantienen separados.
+
+El ensayo de respaldo poblado aprob\'o despu\'es en 23.014~s, incluidos 6.20~s
+del caso. Gener\'o un dump y lo restaur\'o en una base distinta. Compar\'o cuentas,
+operaciones y recibos, anul\'o la invitaci\'on pendiente y recuper\'o la aceptada
+sin duplicar su cuenta. Conserv\'o el prefijo de auditor\'ia y comprob\'o
+criptogr\'aficamente la cadena con el nuevo evento de invalidaci\'on. Los enlaces
+y entregas pendientes no volvieron a admitirse; la base de origen permaneci\'o
+intacta. Este ensayo complementa las pruebas unitarias y de puertos con una
+transferencia real de estado entre bases.
+
+La composici\'on del binario aprob\'o despu\'es cinco casos en 27.48~s, con
+58.1~s de compilaci\'on y ejecuci\'on. Uno recorri\'o el router HTTP con
+PostgreSQL y Redis reales: preparaci\'on sin cuenta, confirmaci\'on TOTP,
+repetici\'on y consulta del mismo recibo, reapertura, reenv\'io con rechazo del
+enlace anterior y acceso normal con MFA. La cuenta aceptada permaneci\'o \'unica
+y la cadena auditada conserv\'o sus eventos esperados. La entrega se captur\'o
+mediante un doble, sin enviar correo externo. Los otros cuatro casos cubrieron
+activaci\'on independiente, pausas del consumidor, cierre supervisado y argumentos
+administrativos de restauraci\'on.
+
+Las demostraciones completas de API y CLI del repositorio aprobaron en
+594.352~s y 28.901~s, respectivamente. La regresi\'on de navegaci\'on de
+recuperaci\'on de contrase\~na aprob\'o en 8.662~s; el lint final y la
+compilaci\'on web aprobaron en 8.08~s y 4.225~s. Se registran como verificaciones
+separadas y no se suman a los casos focales de invitaciones.
+
+Los resultados focales se registran por separado en
+\rutarepo{docs/verification-report.md}. El resultado funcional local confirma
+alta con MFA, reentrada mediante recibo y conservaci\'on de cuentas y evidencia
+tras restaurar, sin duplicar aceptaciones. La entrega de correo externo sigue
+deshabilitada. CI, integraci\'on y despliegue permanecen pendientes; las pruebas
+del router, navegador controlado y restauraci\'on conservan su alcance propio.

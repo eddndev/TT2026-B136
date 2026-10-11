@@ -1,12 +1,42 @@
 //! Owner-only cancellation of restored recovery capabilities with an audit receipt.
 
 mod context;
+mod invitations;
 mod mutation;
 mod receipt;
 
 use application::ApplicationError;
 use domain::crypto::Sha256Digest;
 use uuid::Uuid;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum CapabilityKind {
+    PasswordReset,
+    Invitation,
+}
+
+impl CapabilityKind {
+    fn relation(self) -> &'static str {
+        match self {
+            Self::PasswordReset => "password_reset_capabilities",
+            Self::Invitation => "member_invitations",
+        }
+    }
+
+    fn action(self) -> &'static str {
+        match self {
+            Self::PasswordReset => "identity.password_reset_restore_invalidated",
+            Self::Invitation => "identity.invitation_restore_invalidated",
+        }
+    }
+
+    fn resource_prefix(self) -> &'static str {
+        match self {
+            Self::PasswordReset => "reset-capabilities:restore:",
+            Self::Invitation => "invitations:restore:",
+        }
+    }
+}
 
 /// Exact audit predecessor expected by an administrative restoration operation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -58,6 +88,37 @@ pub fn invalidate_restored_password_resets(
     admin_url: &str,
     request: PasswordResetRestoreRequest,
 ) -> Result<PasswordResetRestoreResult, ApplicationError> {
+    invalidate(admin_url, request, CapabilityKind::PasswordReset)
+}
+
+/// Invalidates restored invitations without changing accepted accounts or receipts.
+///
+/// Stop application writers and mail workers for the entire restoration. Pending
+/// tokens, MFA enrollment material and mail leases are erased in one audited
+/// transaction. Preserve this request to reconcile an uncertain result; a retry
+/// cannot invalidate invitations issued or resent after the recorded operation.
+///
+/// # Errors
+/// Rejects a non-owner, inconsistent schema or permissions, unexpected target or
+/// audit head, reused operation identity, or invalid server time. A commit error
+/// can have an uncertain outcome.
+pub fn invalidate_restored_invitations(
+    admin_url: &str,
+    request: PasswordResetRestoreRequest,
+) -> Result<PasswordResetRestoreResult, ApplicationError> {
+    invalidate(admin_url, request, CapabilityKind::Invitation).map_err(|error| match error {
+        ApplicationError::InvalidConfiguration(_) => ApplicationError::InvalidConfiguration(
+            "invitation restoration target, authority, inventory, or receipt is invalid".into(),
+        ),
+        _ => ApplicationError::Port("invitation restoration operation failed".into()),
+    })
+}
+
+fn invalidate(
+    admin_url: &str,
+    request: PasswordResetRestoreRequest,
+    kind: CapabilityKind,
+) -> Result<PasswordResetRestoreResult, ApplicationError> {
     if request.operation_id.is_nil()
         || request.expected_database.is_empty()
         || request.expected_schema.is_empty()
@@ -70,17 +131,20 @@ pub fn invalidate_restored_password_resets(
     // This private connection owns the session lock and releases it on every exit.
     let mut client = crate::postgres::connect_runtime(admin_url).map_err(|_| storage())?;
     context::pin_search_path(&mut client, &request.expected_schema)?;
-    let target = context::resolve(&mut client, &request)?;
+    let target = context::resolve(&mut client, &request, kind)?;
     context::lock(&mut client, &target)?;
     let mut transaction =
         crate::audit_postgres::begin_audited(&mut client).map_err(|_| storage())?;
     context::validate(&mut transaction, &request, &target)?;
     let events = receipt::verified_events(&mut transaction)?;
-    let previous = receipt::existing(&events, &request)?;
+    let previous = receipt::existing(&events, &request, kind)?;
     if previous.is_none() && receipt::head(events.last()) != request.expected_head {
         return Err(rejected());
     }
-    let pending = mutation::lock_pending(&mut transaction)?;
+    let pending = match kind {
+        CapabilityKind::PasswordReset => mutation::lock_pending(&mut transaction)?,
+        CapabilityKind::Invitation => invitations::lock_pending(&mut transaction)?,
+    };
     if let Some(result) = previous {
         if pending != 0 {
             return Err(rejected());
@@ -88,8 +152,11 @@ pub fn invalidate_restored_password_resets(
         transaction.rollback().map_err(|_| storage())?;
         return Ok(result);
     }
-    let at = mutation::cancel(&mut transaction, pending)?;
-    let result = receipt::append(&mut transaction, request.operation_id, pending, at)?;
+    let at = match kind {
+        CapabilityKind::PasswordReset => mutation::cancel(&mut transaction, pending)?,
+        CapabilityKind::Invitation => invitations::cancel(&mut transaction, pending)?,
+    };
+    let result = receipt::append(&mut transaction, request.operation_id, pending, at, kind)?;
     transaction.commit().map_err(|_| storage())?;
     Ok(result)
 }

@@ -1,6 +1,10 @@
 //! Explicit certificate login configuration and shared identity composition.
 
 #[allow(dead_code)]
+#[path = "../src/serve_invitation_config.rs"]
+mod serve_invitation_config;
+
+#[allow(dead_code)]
 #[path = "../src/serve_args.rs"]
 mod serve_args;
 #[allow(dead_code)]

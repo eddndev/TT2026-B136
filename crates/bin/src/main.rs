@@ -26,6 +26,9 @@ mod serve_deadline_runtime;
 mod serve_document_validation;
 mod serve_email_credentials;
 mod serve_identity_composition;
+mod serve_invitation_composition;
+mod serve_invitation_config;
+mod serve_invitation_runtime;
 mod serve_owner_login_config;
 mod serve_password_reset_composition;
 mod serve_password_reset_config;
@@ -140,3 +143,11 @@ mod password_reset_runtime_support;
 mod serve_password_reset_http_acceptance;
 #[cfg(test)]
 mod serve_password_reset_http_acceptance_support;
+
+#[cfg(test)]
+mod serve_invitation_tests;
+
+#[cfg(test)]
+mod serve_invitation_acceptance;
+#[cfg(test)]
+mod serve_invitation_acceptance_support;

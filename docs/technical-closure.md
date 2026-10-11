@@ -9,7 +9,7 @@ antigua de «pendiente» no basta: se contrasta con main, código y evidencia.
 
 Este inventario complementa, sin ampliar su catálogo, el
 [cierre de los cuatro frentes procesales](four-front-closure.md). Este corte del
-9 de octubre de 2026 incluye PR90 (cautelares completas), PR91 (diagnóstico MFA,
+10 de octubre de 2026 incluye PR90 (cautelares completas), PR91 (diagnóstico MFA,
 squash `46dc1c1`) y PR92 (informe de actividad), cuya integración en main está
 confirmada con el squash `c99574a25dba7653208318a360ce0bee243658e4`. CI posterior
 en main aprobó. PR93 incorporó la preparación del paquete y
@@ -17,16 +17,18 @@ en main aprobó. PR93 incorporó la preparación del paquete y
 preservación de los datos existentes. La aceptación autenticada en producción
 continúa pendiente; véase el [registro de verificación](verification-report.md). Los
 gates se comprueban por revisión exacta; los respaldos no son integraciones ni
-despliegues.
+despliegues. PR95 integró la firma individual por squash `784a0cfb`; los gates
+de la PR, main y paquete aprobaron. `v0.1.3` quedó activada con ensayo poblado
+de restauración y respaldo final verificado, conservando los datos existentes.
 
 ## Lista de cierre
 
 | Pendiente confirmado | Compromiso y límite | Criterio observable de término |
 | --- | --- | --- |
 | Corpus de cálculo | Ocho supuestos de investigación complementaria y recursos, sin los términos que sólo aparecen en teoría. | Cada supuesto tiene fuente primaria, ámbito, entradas y resultado independiente; fecha operativa explicada o falta de datos identificada; recorrido existente sin duplicados. |
-| Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
-| Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). Implementación y aceptación funcional local completas; conserva separados el firmante global histórico y el acceso Owner por certificado. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. Integración y despliegue pendientes. |
-| Estimación y correo de informes | Pendientes de CU-16, conservando los informes de estado/carga y el catálogo finito de actividad ya integrados. | Estimación de terminación validada cuando aplica y aviso por correo comprobado con transporte de prueba; activación pública sujeta a la decisión operativa pendiente. Los avisos internos y la duración observada no sustituyen estos criterios. |
+| Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad ni se limita el número de usuarios del despacho. La aceptación local con PostgreSQL, Redis y MFA reales aprobó; quedan la regresión de cierre y la integración. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
+| Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). Integrada por PR95 y desplegada en `v0.1.3`; conserva separados el firmante global histórico y el acceso Owner por certificado. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. Cierre técnico aceptado; la demostración personal requiere un Litigante real con clave y CSR externos. |
+| Estimación y correo de informes | Pendientes de CU-16, conservando los informes de estado/carga y el catálogo finito de actividad ya integrados. | Estimación del tiempo de generación validada cuando aplica y aviso por correo comprobado con transporte de prueba; activación pública sujeta a la decisión operativa pendiente. Los avisos internos y la duración observada no sustituyen estos criterios. |
 | Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20, conservando cadena y registros históricos. | Accesos concedidos/denegados cubiertos por una matriz de operaciones; identidad estable y origen de red registrados para eventos nuevos sin atribuirlos retrospectivamente; confirmación durable medida contra el límite de 500 ms en un entorno declarado. |
 | Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Contratos, operación y manuscrito coinciden; se reutiliza evidencia válida y se ejecuta una regresión completa al cierre de cada entrega funcional, gates para HEAD exacto, squash y main confirmado. |
 
@@ -79,7 +81,7 @@ pruebas negativas, el rechazo atómico, la concurrencia, los recibos originales,
 la validación independiente del ZIP y la separación entre revocación posterior
 y validez histórica. Los controles de integración requieren evidencia para la
 revisión exacta; una aceptación local no acredita por sí sola publicación ni
-despliegue. La versión operativa observada en este corte sigue siendo `v0.1.2`.
+despliegue. La versión operativa confirmada es `v0.1.3`, sobre `784a0cfb064058a358e71316da595d4768de5b96`.
 
 
 ## Estado del informe de actividad
@@ -150,7 +152,7 @@ integración tampoco acredita activación o retención del journal en VPS3.
 La cuenta/correo Owner, remitente y activación de correo, y duración de
 inactividad siguen pendientes humanos. La continuación autoriza despliegues
 con la configuración vigente preservada; no autoriza inferir esos valores.
-La producción sirve `v0.1.2` desde el 9 de octubre de 2026, con configuración
+La producción sirve `v0.1.3` desde el 10 de octubre de 2026, con configuración
 y datos conservados. El recibo automático de compatibilidad de respaldo tiene
 una discrepancia de directorio Redis documentada en la verificación; el ensayo
 manual poblado no acredita que ese recibo automático esté corregido.
@@ -158,8 +160,8 @@ Una evaluación con participantes reales también
 requiere personas y resultados reales; las pruebas automáticas no la sustituyen.
 
 El acceso documental Client requiere resolver su política explícita. No se abre
-por analogía con los roles internos. Los planes comerciales se concilian con el
-alcance de una instancia por despacho antes de cualquier desarrollo. No se añade
+por analogía con los roles internos. La instancia atiende un solo despacho sin límite de usuarios; no se aplica
+un cupo por plan comercial. No se añade
 multitenencia, facturación, PSC externo, anclaje externo ni programación operativa
 de CRL como consecuencia de una propuesta técnica. Las siete familias de
 audiencias y catorce clases de medidas permanecen cerradas.

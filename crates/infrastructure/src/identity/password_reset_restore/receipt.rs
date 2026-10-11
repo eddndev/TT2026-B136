@@ -1,5 +1,5 @@
 use super::{
-    rejected, storage, PasswordResetRestoreHead, PasswordResetRestoreRequest,
+    rejected, storage, CapabilityKind, PasswordResetRestoreHead, PasswordResetRestoreRequest,
     PasswordResetRestoreResult,
 };
 use application::ApplicationError;
@@ -10,8 +10,6 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 const ACTOR: &str = "database-restore";
-const ACTION: &str = "identity.password_reset_restore_invalidated";
-const RESOURCE_PREFIX: &str = "reset-capabilities:restore:";
 
 pub(super) fn verified_events(
     transaction: &mut Transaction<'_>,
@@ -41,15 +39,16 @@ pub(super) fn head(entry: Option<&ChainedEvent>) -> Option<PasswordResetRestoreH
 pub(super) fn existing(
     events: &[ChainedEvent],
     request: &PasswordResetRestoreRequest,
+    kind: CapabilityKind,
 ) -> Result<Option<PasswordResetRestoreResult>, ApplicationError> {
     let mut identities = HashSet::new();
     let mut found = None;
     for (index, entry) in events
         .iter()
         .enumerate()
-        .filter(|(_, entry)| entry.event.action == ACTION)
+        .filter(|(_, entry)| entry.event.action == kind.action())
     {
-        let (identity, count) = parse(entry)?;
+        let (identity, count) = parse(entry, kind)?;
         if !identities.insert(identity) {
             return Err(rejected());
         }
@@ -68,11 +67,11 @@ pub(super) fn existing(
     Ok(found)
 }
 
-fn parse(entry: &ChainedEvent) -> Result<(Uuid, u64), ApplicationError> {
+fn parse(entry: &ChainedEvent, kind: CapabilityKind) -> Result<(Uuid, u64), ApplicationError> {
     let (identity, count) = entry
         .event
         .resource
-        .strip_prefix(RESOURCE_PREFIX)
+        .strip_prefix(kind.resource_prefix())
         .and_then(|value| value.split_once(":cancelled:"))
         .ok_or_else(rejected)?;
     let id = Uuid::parse_str(identity).map_err(|_| rejected())?;
@@ -92,10 +91,11 @@ pub(super) fn append(
     operation_id: Uuid,
     count: u64,
     at: OffsetDateTime,
+    kind: CapabilityKind,
 ) -> Result<PasswordResetRestoreResult, ApplicationError> {
-    let resource = format!("{RESOURCE_PREFIX}{operation_id}:cancelled:{count}");
+    let resource = format!("{}{operation_id}:cancelled:{count}", kind.resource_prefix());
     let event =
-        crate::audit_postgres::append_transaction(transaction, ACTOR, ACTION, &resource, at)
+        crate::audit_postgres::append_transaction(transaction, ACTOR, kind.action(), &resource, at)
             .map_err(|_| storage())?;
     Ok(PasswordResetRestoreResult {
         applied: true,

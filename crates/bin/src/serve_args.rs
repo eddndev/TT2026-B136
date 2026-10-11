@@ -66,6 +66,8 @@ pub struct ServeArgs {
     #[command(flatten)]
     pub password_reset: PasswordResetArgs,
     #[command(flatten)]
+    pub invitations: crate::serve_invitation_config::InvitationOptions,
+    #[command(flatten)]
     pub owner_login: OwnerLoginArgs,
     /// Legacy storage directory checked for a completed import before startup.
     #[arg(long, default_value = "runtime-data")]

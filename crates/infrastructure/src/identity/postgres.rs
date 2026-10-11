@@ -162,7 +162,7 @@ impl UserRepository for PostgresUserRepository {
     }
 }
 
-fn insert_user<C>(client: &mut C, user: &UserRecord) -> Result<(), ApplicationError>
+pub(crate) fn insert_user<C>(client: &mut C, user: &UserRecord) -> Result<(), ApplicationError>
 where
     C: postgres::GenericClient,
 {

@@ -1,4 +1,4 @@
-use super::{rejected, storage, PasswordResetRestoreRequest};
+use super::{rejected, storage, CapabilityKind, PasswordResetRestoreRequest};
 use application::ApplicationError;
 use postgres::{Client, GenericClient, Transaction};
 
@@ -7,6 +7,7 @@ const MIGRATION_LOCK_CLASS: i32 = 0x43415345;
 
 #[derive(PartialEq, Eq)]
 pub(super) struct Target {
+    kind: CapabilityKind,
     namespace: i32,
     relation: u32,
     owner: u32,
@@ -28,18 +29,20 @@ pub(super) fn pin_search_path(client: &mut Client, schema: &str) -> Result<(), A
 pub(super) fn resolve<C: GenericClient>(
     client: &mut C,
     request: &PasswordResetRestoreRequest,
+    kind: CapabilityKind,
 ) -> Result<Target, ApplicationError> {
     let row = client.query_opt(
         "SELECT n.oid::pg_catalog.int4,c.oid,c.relowner,pg_catalog.quote_ident(n.nspname),n.nspowner
          FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-         WHERE c.oid=pg_catalog.to_regclass('password_reset_capabilities')
+         WHERE c.oid=pg_catalog.to_regclass($3::pg_catalog.text)
          AND n.nspname=$1 AND pg_catalog.current_database()=$2
          AND c.relowner=pg_catalog.to_regrole(current_user)::pg_catalog.oid
          AND c.relkind='r' AND c.relpersistence='p'
          AND NOT c.relispartition AND NOT c.relrowsecurity AND NOT c.relforcerowsecurity",
-        &[&request.expected_schema, &request.expected_database],
+        &[&request.expected_schema, &request.expected_database, &kind.relation()],
     ).map_err(|_| storage())?.ok_or_else(rejected)?;
     Ok(Target {
+        kind,
         namespace: row.get(0),
         relation: row.get(1),
         owner: row.get(2),
@@ -63,7 +66,7 @@ pub(super) fn validate(
     request: &PasswordResetRestoreRequest,
     target: &Target,
 ) -> Result<(), ApplicationError> {
-    if resolve(transaction, request)? != *target {
+    if resolve(transaction, request, target.kind)? != *target {
         return Err(rejected());
     }
     transaction
@@ -72,20 +75,29 @@ pub(super) fn validate(
             &[&format!("pg_catalog,{},pg_temp", target.quoted)],
         )
         .map_err(|_| storage())?;
-    if resolve(transaction, request)? != *target {
+    if resolve(transaction, request, target.kind)? != *target {
         return Err(rejected());
     }
-    crate::password_reset_schema::validate_schema(transaction).map_err(|_| rejected())?;
+    match target.kind {
+        CapabilityKind::PasswordReset => crate::password_reset_schema::validate_schema(transaction),
+        CapabilityKind::Invitation => crate::invitation_schema::validate_schema(transaction),
+    }
+    .map_err(|_| rejected())?;
     crate::member_schema::validate(transaction).map_err(|_| rejected())?;
     crate::audit_query_schema::validate(transaction).map_err(|_| rejected())?;
-    validate_permissions(transaction)?;
+    validate_permissions(transaction, target.kind)?;
     crate::member_schema::validate_inventory(transaction).map_err(|_| rejected())?;
-    crate::password_reset_schema::validate_inventory(transaction).map_err(|_| rejected())?;
+    if target.kind == CapabilityKind::PasswordReset {
+        crate::password_reset_schema::validate_inventory(transaction).map_err(|_| rejected())?;
+    }
     crate::audit_query_schema::validate_inventory(transaction).map_err(|_| rejected())?;
     Ok(())
 }
 
-fn validate_permissions(transaction: &mut Transaction<'_>) -> Result<(), ApplicationError> {
+fn validate_permissions(
+    transaction: &mut Transaction<'_>,
+    kind: CapabilityKind,
+) -> Result<(), ApplicationError> {
     let rows = transaction
         .query(
             "SELECT DISTINCT r.rolname::pg_catalog.text FROM pg_catalog.pg_proc p
@@ -101,7 +113,15 @@ fn validate_permissions(transaction: &mut Transaction<'_>) -> Result<(), Applica
         return Err(rejected());
     }
     let role: String = rows[0].get::<_, Option<String>>(0).ok_or_else(rejected)?;
-    crate::password_reset_schema::validate_runtime(transaction, &role).map_err(|_| rejected())?;
+    match kind {
+        CapabilityKind::PasswordReset => {
+            crate::password_reset_schema::validate_runtime(transaction, &role)
+        }
+        CapabilityKind::Invitation => {
+            crate::invitation_schema::validate_runtime(transaction, &role)
+        }
+    }
+    .map_err(|_| rejected())?;
     crate::member_schema::validate_runtime_role(transaction, &role).map_err(|_| rejected())?;
     crate::audit_query_schema::validate_runtime_role(transaction, &role).map_err(|_| rejected())?;
     Ok(())

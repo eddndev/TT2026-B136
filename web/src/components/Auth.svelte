@@ -5,11 +5,18 @@
   import OwnerCertificateLogin from './OwnerCertificateLogin.svelte';
   import Enrollment from './Enrollment.svelte';
   import PasswordReset from './PasswordReset.svelte';
+  import InvitationAccept from './InvitationAccept.svelte';
+  import { takeInvitationLink } from '../lib/invitation-link.mjs';
   import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
   export let api;
   export let onlogin;
   export let notice = '';
   export let initialResetLink = null;
+  export let initialInvitationLink = null;
+  export let oninvitationconsumed = () => {};
+  let invitationLink = initialInvitationLink ?? takeInvitationLink();
+  let acceptingInvitation = invitationLink !== null;
+  let invitationGeneration = 0;
   export let onresetconsumed = () => {};
   let resetLink = initialResetLink ?? takePasswordResetLink();
   let resettingPassword = resetLink !== null;
@@ -42,7 +49,7 @@
     certificateDeadline = 0;
   }
   function certificateChallenge(value, selection, until) {
-    if (!certificateMode || resettingPassword) return;
+    if (!certificateMode || resettingPassword || acceptingInvitation) return;
     certificateSelection = selection;
     certificateDeadline = until;
     challenge = value;
@@ -52,8 +59,9 @@
   onMount(() => {
     emailInput?.focus();
     const openRecovery = () => {
-      const next = takePasswordResetLink();
-      if (!next) return;
+      const invitation = takeInvitationLink();
+      const next = invitation ? null : takePasswordResetLink();
+      if (!next && !invitation) return;
       authGeneration++;
       api.invalidateSession();
       busy = false;
@@ -65,7 +73,10 @@
       certificateDeadline = 0;
       resetLink = next;
       resetGeneration++;
-      resettingPassword = true;
+      resettingPassword = !!next;
+      invitationLink = invitation;
+      invitationGeneration++;
+      acceptingInvitation = !!invitation;
     };
     window.addEventListener('hashchange', openRecovery);
     return () => window.removeEventListener('hashchange', openRecovery);
@@ -129,7 +140,20 @@
         <span class="badge neutral">Prototipo local</span><span>Despacho digital</span>
       </div>
       <div class="auth-form">
-        {#if resettingPassword}
+        {#if acceptingInvitation}
+          {#key invitationGeneration}
+            <InvitationAccept
+              link={invitationLink}
+              onconsumed={() => {
+                invitationLink = initialInvitationLink = null;
+                oninvitationconsumed();
+              }}
+              onclose={() => {
+                acceptingInvitation = false;
+              }}
+            />
+          {/key}
+        {:else if resettingPassword}
           {#key resetGeneration}
             <PasswordReset
               link={resetLink}
