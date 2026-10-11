@@ -13,6 +13,8 @@ pub enum DatabaseAction {
     Check,
     /// Cancel restored pending recovery capabilities using administrative DATABASE_URL.
     InvalidateRestoredPasswordResets(InvalidateRestoredPasswordResetsArgs),
+    /// Cancel restored pending enrollment capabilities using administrative DATABASE_URL.
+    InvalidateRestoredInvitations(InvalidateRestoredPasswordResetsArgs),
     /// Apply schema with DATABASE_URL and grant an existing restricted runtime role.
     Migrate {
         #[arg(long)]

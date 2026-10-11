@@ -46,6 +46,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
     let owner_login =
         crate::serve_owner_login_config::OwnerLoginSettings::resolve(&args.owner_login)?;
     let email = crate::serve_email_credentials::load(args)?;
+    let invitations = crate::serve_invitation_config::InvitationSettings::load(&args.invitations)?;
     let alert_config = crate::serve_alert_runtime::AlertRuntimeConfig::new(
         args.alert_page_limit,
         std::time::Duration::from_millis(u64::from(args.alert_poll_ms.get())),
@@ -321,8 +322,15 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 Some(value) => (Some(value.http), Some(value.runtime)),
                 None => (None, None),
             };
+            let (invitation_http, invitation_consumer) = crate::serve_invitation_composition::open(
+                database,
+                &redis_url,
+                identity.clone(),
+                kek.clone(),
+                invitations,
+            )?;
             let owner_certificates = owner_certificates::open(database, identity.clone())?;
-            let router = web::api_router_with_individual_signing_budget(
+            let router = web::api_router_with_invitations_budget(
                 Arc::new(workflow),
                 identity,
                 web::CaseWorkflows {
@@ -360,11 +368,13 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 },
                 budget,
                 Some(individual_signing),
+                invitation_http,
             )?;
             let server = crate::serve_start::ServerComponents {
                 router,
                 stop,
                 password_reset: recovery_runtime,
+                invitations: invitation_consumer,
             };
             Ok((server, dispatch, worker, alerts.consumers, reports.consumer))
         })?;

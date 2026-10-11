@@ -1,6 +1,7 @@
 <script>
   import { onDestroy } from 'svelte';
   import MemberEnrollment from './MemberEnrollment.svelte';
+  import MemberInvitations from './MemberInvitations.svelte';
   import MemberDirectory from './MemberDirectory.svelte';
   import Icon from './Icon.svelte';
   import AuditEvents from './AuditEvents.svelte';
@@ -47,6 +48,7 @@
   <div tabindex="-1" bind:this={directoryRoot}>
     <MemberDirectory bind:this={directory} {api} {user} />
   </div>
+  <MemberInvitations {api} {user} />
   <MemberEnrollment
     {api}
     {user}

@@ -1,5 +1,27 @@
 # Verificación de la actualización académica
 
+## Invitaciones y enrolamiento recuperable: 10 de octubre de 2026
+
+CU02 conserva correo, contrasena y MFA, sin cupo de usuarios. Implementacion y
+pruebas describen preparacion recuperable, alta atomica al confirmar TOTP,
+reenvio que invalida el enlace anterior, recibos y restauracion poblada. Separan
+el transporte de correo controlado de su activacion publica y la aceptacion
+local de CI e integracion.
+
+La copia separada compilo con el Makefile versionado en **69.944 s**:
+**407 paginas**, **5896200 bytes**, SHA-256
+`a325b45e29888d5de7c5dd8362658b82c0d82539c98a6a31acbb7e9889e83802`.
+Se inspeccionaron las paginas fisicas **4-6, 51, 166, 168-169, 280, 282 y
+285-287**: indices, tabla del caso de uso, rutas, referencias y continuaciones
+legibles, sin nuevos recortes ni solapes. No hay glifos faltantes ni referencias
+sin resolver. Permanecen las cajas historicas de 0.11754 y 24.62556 pt y la
+sustitucion de versalitas Times.
+
+El manifiesto de fuentes coincide con el arbol revisado. Las tres copias PDF
+aceptadas preservadas mantienen sus hashes. Resumen, objetivos, marco teorico y
+conclusiones no se modificaron; el cierre academico global sigue pendiente.
+El PDF nuevo queda fuera de Git.
+
 ## Firma documental individual: 10 de octubre de 2026
 
 Diseño, implementación, pruebas, diagramas y anexos describen la emisión por CSR

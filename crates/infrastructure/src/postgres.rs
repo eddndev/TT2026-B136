@@ -127,6 +127,10 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::individual_signing_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
+    transaction
+        .batch_execute(crate::invitation_schema::MIGRATION)
+        .map_err(port_error)?;
+    crate::invitation_schema::validate_schema(&mut transaction)?;
     crate::individual_signing_schema::validate_schema(&mut transaction)?;
     crate::individual_signing_schema::validate_inventory(&mut transaction)?;
     crate::individual_signing_postgres::validate_inventory(&mut transaction)?;
@@ -204,6 +208,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::owner_certificate_schema::validate_schema(client)?;
     crate::signing_binding_schema::validate_schema(client)?;
     crate::individual_signing_schema::validate_schema(client)?;
+    crate::invitation_schema::validate_schema(client)?;
     let role: String = client
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -334,6 +339,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::owner_certificate_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::signing_binding_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::individual_signing_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::invitation_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }

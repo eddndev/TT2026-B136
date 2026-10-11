@@ -14,6 +14,9 @@ pub fn run(action: DatabaseAction, json: bool) -> anyhow::Result<()> {
         DatabaseAction::InvalidateRestoredPasswordResets(args) => {
             restore::invalidate(&database_url, args, json)?;
         }
+        DatabaseAction::InvalidateRestoredInvitations(args) => {
+            restore::invalidate_invitations(&database_url, args, json)?;
+        }
         DatabaseAction::Migrate { runtime_role } => {
             initialize_database(&database_url, &runtime_role)?;
             if json {

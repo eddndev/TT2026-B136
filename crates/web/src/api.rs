@@ -137,6 +137,34 @@ pub fn api_router_with_individual_signing_budget(
     budget: HttpWorkBudget,
     individual_signing: Option<crate::IndividualSigningHttp>,
 ) -> Result<Router, ApplicationError> {
+    api_router_with_invitations_budget(
+        documents,
+        identity,
+        workflows,
+        calendars,
+        profiles,
+        limits,
+        authentication,
+        budget,
+        individual_signing,
+        None,
+    )
+}
+
+/// Adds Owner invitations and public enrollment before the shared HTTP protection.
+#[allow(clippy::too_many_arguments)]
+pub fn api_router_with_invitations_budget(
+    documents: Arc<dyn CaseDocumentWorkflow>,
+    identity: Arc<dyn IdentityWorkflow>,
+    workflows: CaseWorkflows,
+    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+    profiles: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
+    limits: HttpLimits,
+    authentication: AuthenticationHttp,
+    budget: HttpWorkBudget,
+    individual_signing: Option<crate::IndividualSigningHttp>,
+    invitations: Option<crate::InvitationHttp>,
+) -> Result<Router, ApplicationError> {
     let AuthenticationHttp {
         password_reset,
         certificate_login,
@@ -232,7 +260,11 @@ pub fn api_router_with_individual_signing_budget(
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()))
         .merge(password_reset::router(password_reset, runtime.clone()))
-        .merge(owner_login::router(certificate_login, runtime.clone()));
+        .merge(owner_login::router(certificate_login, runtime.clone()))
+        .merge(crate::member_invitations::router(
+            invitations,
+            runtime.clone(),
+        ));
     let routes = match individual_signing {
         Some(components) => routes.merge(crate::individual_signing::router(
             components,

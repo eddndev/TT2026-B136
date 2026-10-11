@@ -22,6 +22,7 @@ pub(crate) struct ServerComponents {
     pub router: axum::Router,
     pub stop: Arc<Stop>,
     pub password_reset: Option<PasswordResetRuntime>,
+    pub invitations: Option<crate::serve_invitation_runtime::InvitationConsumer>,
 }
 
 pub(crate) fn run<D, W>(
@@ -42,6 +43,7 @@ where
         router,
         stop,
         password_reset,
+        invitations,
     } = server;
     let (_reset_owner, password_reset) = match password_reset {
         Some(reset) => (Some(reset.owner), Some(reset.consumer)),
@@ -91,24 +93,22 @@ where
         let reports = tokio::task::spawn_blocking(move || {
             serve_report_runtime::run(report_consumer.as_ref(), report_stop.as_ref())
         });
-        let consumer = match password_reset {
-            Some(reset) => {
-                let reset = tokio::spawn(reset.run());
-                tokio::spawn(serve_alert_supervisor::supervise_with_password_reset(
-                    deadlines,
-                    alerts,
-                    reports,
-                    Some(reset),
-                    Arc::clone(&stop),
-                ))
-            }
-            None => tokio::spawn(serve_alert_supervisor::supervise(
-                deadlines,
-                alerts,
-                reports,
-                Arc::clone(&stop),
-            )),
-        };
+        let invitation_task = invitations.as_ref().map(|owner| {
+            let next = owner.clone();
+            let stop = stop.clone();
+            tokio::task::spawn_blocking(move || {
+                crate::serve_invitation_runtime::run(next.as_ref(), stop.as_ref())
+            })
+        });
+        let reset_task = password_reset.map(|reset| tokio::spawn(reset.run()));
+        let consumer = tokio::spawn(serve_alert_supervisor::supervise_with_invitations(
+            deadlines,
+            alerts,
+            reports,
+            reset_task,
+            invitation_task,
+            Arc::clone(&stop),
+        ));
         let (http_shutdown, shutdown) = tokio::sync::oneshot::channel();
         let server_router = router.clone();
         let http = async move {

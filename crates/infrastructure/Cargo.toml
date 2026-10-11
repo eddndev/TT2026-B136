@@ -410,3 +410,19 @@ path = "tests/individual_document_backend.rs"
 [[test]]
 name = "individual_document_backend_invariants"
 path = "tests/individual_document_backend_invariants.rs"
+
+[[test]]
+name = "member_invitations"
+path = "tests/member_invitations.rs"
+
+[[test]]
+name = "member_invitation_boundaries"
+path = "tests/member_invitation_boundaries.rs"
+
+[[test]]
+name = "invitation_limiter"
+path = "tests/invitation_limiter.rs"
+
+[[test]]
+name = "member_invitation_restore"
+path = "tests/member_invitation_restore.rs"

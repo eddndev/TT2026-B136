@@ -3,6 +3,7 @@ import { sessionSetup, checkSessionRequests } from './session-inactivity-helpers
 import { memberRecord, memberPage } from '../fixtures/members.mjs';
 
 export const usersPath = '/api/v1/users';
+const invitationsPath = '/api/v1/member-invitations';
 export const principalPath = '/api/v1/auth/me';
 export const initialPassword = 'synthetic-initial-password';
 export const enrollmentSecret = 'JBSWY3DPEHPK3PXP';
@@ -56,7 +57,12 @@ export async function enrollmentSetup(page) {
     const request = route.request(),
       url = new URL(request.url()),
       path = url.pathname;
-    if (path !== principalPath && path !== usersPath && !path.startsWith(`${usersPath}/`))
+    if (
+      path !== principalPath &&
+      path !== usersPath &&
+      path !== invitationsPath &&
+      !path.startsWith(`${usersPath}/`)
+    )
       return route.fallback();
     const call = {
       path,
@@ -92,6 +98,10 @@ export async function enrollmentSetup(page) {
       const principal = state.enrollmentIdentity ?? state.current.user;
       if (path === principalPath && !call.search) return reply(structuredClone(principal));
       if (principal.role !== 'owner') return failure(403, 'permission_denied');
+      if (path === invitationsPath) {
+        expect([...url.searchParams]).toEqual([['limit', '20']]);
+        return reply({ items: [], next: null });
+      }
       if (path !== usersPath) return unexpected();
       const query = Object.fromEntries(url.searchParams);
       expect([...url.searchParams.keys()]).toHaveLength(Object.keys(query).length);

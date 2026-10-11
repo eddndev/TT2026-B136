@@ -1,5 +1,93 @@
 # Informe de verificación local
 
+## Invitaciones: evidencia focal local
+
+La primera campana de cierre de PR96 se cancelo tras rechazar Clippy una
+referencia redundante en una prueba HTTP. La comprobacion local completa de
+lint detecto ademas la carga duplicada del apoyo de pruebas de correo. Se
+retiro la referencia y ambas suites comparten ahora un solo modulo de apoyo.
+Clippy de todo el workspace y todos los destinos aprobo en 153.025 s; las
+pruebas de correo afectadas aprobaron en 7.337 s. Estos resultados no sustituyen
+la campana de cierre remota de la revision corregida, todavia pendiente.
+
+La revision posterior paso Documents, pero detuvo Web en la reentrada de
+administracion: los fixtures estrictos no declaraban la consulta nueva de
+invitaciones. La reproduccion focal mostro ademas un selector ambiguo entre
+los dos paneles administrativos. Se declaro solo la lista autenticada para
+Owner, manteniendo el rechazo de peticiones inesperadas, y se identifico el
+formulario de alta por su encabezado. Los 17 recorridos afectados de acceso,
+alta, reentrada e invitaciones aprobaron en 46.044 s de ejecucion total.
+Prettier aprobo los tres archivos; el codigo de produccion no cambio. La
+comprobacion remota de esta nueva revision sigue pendiente.
+
+Las ejecuciones focales terminadas con codigo de salida cero comprobaron el
+[contrato de invitaciones](member-invitations-api.md) en grupos separados:
+
+| Frontera | Resultado completado |
+| --- | --- |
+| Protector AES-GCM | 9 casos: contexto, finalidad, alteraciones, limites y errores sin secretos |
+| Aplicacion | 32 casos, incluidos los 23 del ciclo y 9 del worker; no son grupos acumulables |
+| PostgreSQL | 7 casos de alta, concurrencia, expiracion, reenvio, autoridad y rollback de auditoria |
+| Limites nativos | 7 casos de permisos/material cifrado/lease y 2 del presupuesto Redis independiente |
+| Correo TCP local | 5 casos con idempotencia y cuerpo estables, estados, timeout y ausencia de redireccion/reintento |
+| HTTP y composicion | 9 casos de contrato y 2 de presupuesto compartido, incluidos trabajo cancelado y recibo sin sesion |
+| Invalidacion administrativa | 1 caso de invitaciones y 12 regresiones de contrasena; despues, 1 caso focal de rollback al impedir la auditoria |
+| Navegador con HTTP controlado | 1 caso de paginacion Owner tras crear una invitacion, sin filas duplicadas ni errores de pagina |
+| Composicion y aceptacion HTTP nativa | 5 casos: recorrido del router con PostgreSQL/Redis reales y entrega capturada, mas configuracion, pausas, cierre y CLI administrativa |
+| Respaldo poblado y restauracion | 1 caso con dump hacia una base distinta, cuenta y recibos preservados, anulacion pendiente y auditoria verificada |
+| Regresion de demostraciones | API completa en 594.352 s y CLI en 28.901 s, ambas con salida cero |
+| Comprobaciones web | Navegacion de recuperacion en 8.662 s, lint final en 8.08 s y build en 4.225 s |
+
+La [suite de aplicacion](../crates/application/tests/invitations.rs) verifica MFA
+antes de crear cuenta, recuperacion del material pendiente, respuesta perdida y
+recibo estable. Los [casos PostgreSQL](../crates/infrastructure/tests/member_invitations.rs)
+comprueban autoridad, una sola alta y rollback. La
+[invalidacion administrativa](../crates/infrastructure/tests/member_invitation_restore.rs)
+aprobada conserva usuarios y aceptaciones, borra pendientes y rechaza enlaces y
+leases retirados sobre un estado preparado. Un ensayo posterior de dump y
+restauracion a otra base complementa esa prueba de la primitiva. La
+[regresion de paginacion](../web/tests/browser/invitation-owner-pagination.spec.mjs)
+reprodujo el defecto antes de aprobar la union por identidad. Dos escenarios
+Owner de emision/reenvio y conciliacion tras navegar tambien pasaron en la
+ejecucion que reprodujo ese defecto; el tercer caso de aquella ejecucion fallo.
+Su resultado parcial no se presenta como una campana completa aprobada.
+
+La [aceptacion del binario](../crates/bin/src/serve_invitation_acceptance.rs)
+termino con salida cero: cinco casos en 27.48 s de pruebas y 58.1 s incluyendo
+compilacion. El recorrido nativo preparo sin crear cuenta, confirmo TOTP,
+recupero el recibo exacto tras reapertura, rechazo el enlace anterior despues
+de reenviar y permitio login con MFA. Conservo una sola cuenta aceptada y la
+auditoria esperada. La entrega fue capturada por un doble; no se envio correo
+externo. Los cuatro casos restantes comprobaron configuracion, consumidor,
+supervisor y argumentos CLI.
+
+La prueba focal de rollback impidio INSERT de auditoria en el punto de la
+invalidacion, termino con salida cero y conservo el estado anterior. Los otros
+dos casos de guardas pasaron en la ejecucion previa parcial:
+recibo estable sin cancelar emisiones posteriores y rechazo de autoridad,
+destino o antecedente incorrectos. Se mantienen separados del ensayo poblado.
+
+El caso `dump_to_new_database_preserves_accounts_receipts_and_audit_without_duplicate_acceptance`
+termino con salida cero en 23.014 s, incluidos 6.20 s de prueba. Hizo dump y
+restauracion a una base distinta, comparo cuentas, operaciones y recibos,
+invalido el pendiente y recupero la aceptacion original sin crear otra cuenta.
+Conservo el prefijo auditado y verifico criptograficamente la cadena con el
+evento de invalidacion. Rechazo enlaces y entregas retirados y mantuvo intacta
+la base de origen.
+
+Las [demostraciones de API](../scripts/api-demo.sh) y
+[CLI](../scripts/demo.sh) terminaron con salida cero en 594.352 s y 28.901 s.
+Tambien aprobaron la regresion focal de navegacion de recuperacion, lint final
+y compilacion web en los tiempos indicados en la tabla. Son ejecuciones
+separadas, sin sumar sus casos a los grupos anteriores.
+
+El resultado funcional local confirma el alta con MFA, la reentrada por recibo
+y la restauracion sin duplicar cuentas ni alterar evidencia anterior. El
+navegador controlado, el router con adaptadores reales y el ensayo de copia
+restaurada conservan alcances separados. El correo externo permanece
+deshabilitado por defecto. CI, integracion y despliegue siguen pendientes;
+la verificacion del documento academico se registra por separado.
+
 ## Activacion del informe en VPS3: 9 de octubre de 2026
 
 PR93 integro la preparacion manual en `29168dc289dcb9f725a1d02575efc89593cf87f9`.

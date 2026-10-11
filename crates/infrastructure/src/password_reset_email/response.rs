@@ -14,7 +14,7 @@ struct Receipt<'a> {
     name: Option<&'a str>,
 }
 
-pub(super) fn classify(response: Response) -> ResetDeliveryOutcome {
+pub(crate) fn classify(response: Response) -> ResetDeliveryOutcome {
     let status = response.status().as_u16();
     let mut bytes = Zeroizing::new(Vec::new());
     if response

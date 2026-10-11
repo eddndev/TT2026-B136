@@ -19,6 +19,8 @@
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
+  import { takeInvitationLink } from '../lib/invitation-link.mjs';
+  import { installWorkspaceListeners } from '../lib/workspace-listeners.mjs';
   import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
   import { createDraftRegistry } from '../lib/draft-registry.mjs';
   import { createSessionLifecycle } from '../lib/session-lifecycle.mjs';
@@ -40,7 +42,8 @@
   let incidentReturn = false,
     integrityNotice;
   let notice = '';
-  let recoveryLink = null;
+  let recoveryLink = null,
+    invitationLink = null;
   let error = '';
   let sidebar;
   let main;
@@ -179,28 +182,18 @@
   onMount(() => {
     const onHash = () => {
       if (user || pendingUser) {
-        const link = takePasswordResetLink();
-        if (link) {
+        const invitation = takeInvitationLink();
+        const link = invitation ? null : takePasswordResetLink();
+        if (link || invitation) {
           recoveryLink = link;
+          invitationLink = invitation;
           lifecycle.expire('rejected');
           return;
         }
       }
       if (user && location.hash !== `#${view}`) go(location.hash);
     };
-    const onVisibility = () => lifecycle.visibilityChanged(document.visibilityState);
-    const onActivity = (event) =>
-      lifecycle.activity({ isTrusted: event.isTrusted, type: event.type });
-    window.addEventListener('hashchange', onHash);
-    document.addEventListener('visibilitychange', onVisibility);
-    onVisibility();
-    const events = ['pointerdown', 'keydown', 'input'];
-    events.forEach((name) => document.addEventListener(name, onActivity, true));
-    return () => {
-      window.removeEventListener('hashchange', onHash);
-      document.removeEventListener('visibilitychange', onVisibility);
-      events.forEach((name) => document.removeEventListener(name, onActivity, true));
-    };
+    return installWorkspaceListeners(onHash, lifecycle);
   });
 </script>
 
@@ -217,6 +210,10 @@
       {notice}
       onlogin={login}
       initialResetLink={recoveryLink}
+      initialInvitationLink={invitationLink}
+      oninvitationconsumed={() => {
+        invitationLink = null;
+      }}
       onresetconsumed={() => {
         recoveryLink = null;
       }}

@@ -105,7 +105,9 @@ Node de clientes en 0.232~s. Se comprobó autorización Owner y destino antes
 de mostrar valores, revisión decimal exacta, resultado incierto sin repetición,
 limpieza anterior a la expiración por cambio del propio rol y descarte ante
 pérdida de permiso, otra cuenta o cierre explícito. Estos resultados utilizan
-HTTP controlado y no completan invitaciones ni enrolamiento recuperable.
+HTTP controlado y corresponden al recorrido administrativo anterior; no
+incluyeron el alta por invitaci\'on, cuyas pruebas se presentan por separado
+en la \cref{sec:pruebas-invitaciones}.
 
 La recuperación del alta de integrantes aprobó veinte pruebas Node en
 298.159~ms: seis nuevas de captura individual y catorce regresiones del
@@ -124,7 +126,8 @@ intención hasta su descarte explícito; las respuestas tardías no recuperaron
 el material MFA. Los casos finales incluyen los recorridos previos y no se
 suman como identidades adicionales. Esta evidencia local no acredita nueva
 aceptación con servicios reales, restauración operativa, integración remota ni
-recuperación del enrolamiento del nuevo integrante.
+recuperaci\'on del material MFA del alta directa. El alta por invitaci\'on
+conserva su propia evidencia en la \cref{sec:pruebas-invitaciones}.
 
 Los calendarios jurisdiccionales aprobaron seis escenarios nuevos en 19.1~s
 con respuestas HTTP controladas. La recuperación consulta primero el Owner

@@ -1,0 +1,53 @@
+\subsection{Invitaciones y enrolamiento recuperable}\label{sec:impl-invitaciones}
+
+El alta por invitaci\'on permite que el destinatario elija su contrase\~na y
+configure MFA sin entregar esos secretos al Owner. El administrador indica
+correo y perfil Litigante o Paralegal; no se solicitan otros datos personales
+ni se establece un cupo de cuentas. Una cuenta existente, activa o inactiva,
+conserva su administraci\'on ordinaria. Este recorrido se implementa mediante
+\rutarepo{crates/application/src/identity/invitations/} y el contrato
+\rutarepo{docs/member-invitations-api.md}.
+
+Cada emisi\'on dispone de una capacidad aleatoria de 32 bytes, revisi\'on propia
+y vigencia de 24 horas. PostgreSQL conserva su huella con separaci\'on de
+prop\'osito; el material necesario para el correo se cifra con AES-GCM y queda
+ligado a invitaci\'on, revisi\'on y finalidad. El reenv\'io es expreso: crea otra
+revisi\'on e invalida el enlace y la preparaci\'on MFA anteriores. El Owner
+consulta solamente metadatos y estados del registro y de la entrega.
+
+El destinatario abre el enlace y establece su contrase\~na. El servicio prepara
+TOTP y c\'odigos de recuperaci\'on, pero todav\'ia no crea una cuenta utilizable.
+La preparaci\'on cifrada permite recuperar el mismo material con la capacidad
+vigente y la misma contrase\~na. Confirmar TOTP crea la cuenta, consume el enlace,
+retira los secretos pendientes y registra auditor\'ia y recibo en una transacci\'on.
+Despu\'es se requiere el inicio de sesi\'on normal con contrase\~na y MFA.
+
+Los UUID de operaci\'on distinguen preparaci\'on, confirmaci\'on y reenv\'io.
+Una respuesta incierta conserva su identidad para consultar el recibo o repetir
+el comando exacto; cambiar el contenido de una operaci\'on aplicada produce
+conflicto. La consulta del recibo verifica la contrase\~na de la cuenta resultante
+y no vuelve a entregar secretos MFA. Las revisiones se transportan como cadenas
+decimales para preservar su valor completo en el navegador.
+
+Qadra retira la capacidad del fragmento de la URL antes de usarla. Token,
+contrase\~na y secretos MFA permanecen fuera del almacenamiento persistente del
+cliente; solo se conservan identificadores operativos y fase de recuperaci\'on.
+El correo original permite retomar el enlace tras cerrar la p\'agina. Las rutas
+p\'ublicas comparten el presupuesto HTTP y tienen un l\'imite independiente de
+intentos, sin crear una sesi\'on ni adjuntar la de otra cuenta.
+
+La entrega se persiste y un consumidor reclama un intento con una reserva
+temporal acotada (lease).
+Conserva la identidad del proveedor y el cuerpo en sus reintentos; una respuesta
+incierta puede repetirse dentro de la vigencia y ventana original. La aceptaci\'on
+del proveedor no acredita llegada al buz\'on. El transporte no sigue redirecciones
+ni repite por su cuenta. La activaci\'on de invitaciones es independiente,
+deshabilitada por defecto y exige remitente, origen HTTPS y secreto del proveedor.
+
+Tras restaurar una copia, una operaci\'on administrativa expresa compara base,
+esquema y antecedente auditado con los esperados antes de anular invitaciones
+pendientes. Borra preparaci\'on MFA y entregas pendientes junto con un recibo,
+sin modificar cuentas o aceptaciones conservadas. Requiere admisi\'on cerrada y
+escritores y consumidores detenidos durante la restauraci\'on; no se ejecuta
+autom\'aticamente al iniciar el servidor. Este mecanismo y el alta por invitaci\'on
+no cambian la limitaci\'on hist\'orica de recuperar el material del alta directa.

@@ -19,6 +19,7 @@ mod alerts;
 mod api;
 mod audit_events;
 mod case_administration;
+mod case_reports;
 mod case_stages;
 mod cases;
 mod dashboard;
@@ -33,6 +34,7 @@ mod hearing_results;
 mod hearings;
 mod individual_signing;
 mod judicial_calendars;
+mod member_invitations;
 mod members;
 mod owner_certificates;
 mod owner_login;
@@ -53,9 +55,12 @@ mod runtime;
 mod typed_participants;
 pub use api::{
     api_router, api_router_with_authentication_budget, api_router_with_individual_signing_budget,
-    api_router_with_password_reset, api_router_with_password_reset_budget, AuthenticationHttp,
+    api_router_with_invitations_budget, api_router_with_password_reset,
+    api_router_with_password_reset_budget, AuthenticationHttp,
 };
+pub use case_reports::case_reports_router;
 pub use individual_signing::IndividualSigningHttp;
+pub use member_invitations::{member_invitation_router, InvitationHttp};
 use runtime::{protect, HttpRuntime};
 pub use runtime::{HttpLimits, HttpWorkBudget, HttpWorkPermit};
 
@@ -385,13 +390,4 @@ mod tests {
         let body = to_bytes(response.into_body(), 1024).await.unwrap();
         assert_eq!(&body[..], b"ok");
     }
-}
-
-mod case_reports;
-/// Builds authenticated durable report request and download routes.
-pub fn case_reports_router(
-    workflow: Arc<dyn application::case_reports::CaseReportWorkflow>,
-) -> Router {
-    let runtime = HttpRuntime::new(HttpLimits::default());
-    protect(case_reports::router(workflow, runtime.clone()), runtime)
 }

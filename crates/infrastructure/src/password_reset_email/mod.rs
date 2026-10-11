@@ -2,7 +2,7 @@
 
 mod configuration;
 mod message;
-mod response;
+pub(crate) mod response;
 
 pub use configuration::PasswordResetEmailConfiguration;
 
@@ -107,3 +107,6 @@ impl PasswordResetDelivery for ResendPasswordResetDelivery {
         })
     }
 }
+
+#[cfg(test)]
+pub(crate) mod test_support;

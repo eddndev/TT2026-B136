@@ -32,6 +32,7 @@ pub(super) fn validate_runtime_role<C: postgres::GenericClient>(
     crate::owner_certificate_schema::validate_runtime(client, role)?;
     crate::signing_binding_schema::validate_runtime(client, role)?;
     crate::individual_signing_schema::validate_runtime(client, role)?;
+    crate::invitation_schema::validate_runtime(client, role)?;
     // Catalog resolution prevents spoofing; membership checks also cover SET ROLE escalation.
     let unsafe_role: bool = client
         .query_one(

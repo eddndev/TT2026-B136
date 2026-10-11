@@ -1,10 +1,11 @@
-//! Offline validation and owner-only cancellation of restored recovery links.
+//! Offline validation and owner-only cancellation of restored identity capabilities.
 
 use crate::database_args::InvalidateRestoredPasswordResetsArgs;
 use anyhow::{anyhow, bail};
 use application::ApplicationError;
 use infrastructure::identity::{
-    invalidate_restored_password_resets, PasswordResetRestoreHead, PasswordResetRestoreRequest,
+    invalidate_restored_invitations, invalidate_restored_password_resets, PasswordResetRestoreHead,
+    PasswordResetRestoreRequest, PasswordResetRestoreResult,
 };
 
 pub(super) fn check(database_url: &str, json: bool) -> anyhow::Result<()> {
@@ -23,6 +24,31 @@ pub(super) fn invalidate(
     args: InvalidateRestoredPasswordResetsArgs,
     json: bool,
 ) -> anyhow::Result<()> {
+    invalidate_with(
+        database_url,
+        args,
+        json,
+        invalidate_restored_password_resets,
+    )
+}
+
+pub(super) fn invalidate_invitations(
+    database_url: &str,
+    args: InvalidateRestoredPasswordResetsArgs,
+    json: bool,
+) -> anyhow::Result<()> {
+    invalidate_with(database_url, args, json, invalidate_restored_invitations)
+}
+
+fn invalidate_with(
+    database_url: &str,
+    args: InvalidateRestoredPasswordResetsArgs,
+    json: bool,
+    operation: fn(
+        &str,
+        PasswordResetRestoreRequest,
+    ) -> Result<PasswordResetRestoreResult, ApplicationError>,
+) -> anyhow::Result<()> {
     let expected_head = match (
         args.expected_empty_audit,
         args.expected_audit_sequence,
@@ -33,7 +59,7 @@ pub(super) fn invalidate(
         _ => bail!("restoration requires exactly one explicit audit predecessor"),
     };
     let operation_id = args.operation_id;
-    let result = invalidate_restored_password_resets(
+    let result = operation(
         database_url,
         PasswordResetRestoreRequest {
             operation_id,
@@ -43,7 +69,7 @@ pub(super) fn invalidate(
         },
     )
     // Storage errors may follow a commit; callers retain the same request for retry.
-    .map_err(|_| anyhow!("password reset restoration validation or execution failed; retain the original request for retry"))?;
+    .map_err(|_| anyhow!("identity capability restoration validation or execution failed; retain the original request for retry"))?;
     if json {
         println!(
             "{}",

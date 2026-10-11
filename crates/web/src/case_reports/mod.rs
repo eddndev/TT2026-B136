@@ -2,7 +2,12 @@
 mod download;
 mod input;
 mod response;
-use crate::{error::ApiError, request::bearer_token, runtime::HttpRuntime};
+use crate::{
+    error::ApiError,
+    request::bearer_token,
+    runtime::{protect, HttpRuntime},
+    HttpLimits,
+};
 use application::case_reports::{CaseReportState, CaseReportWorkflow};
 use axum::{
     extract::{rejection::QueryRejection, Path, Query, Request, State},
@@ -17,6 +22,13 @@ struct ReportState {
     workflow: Arc<dyn CaseReportWorkflow>,
     runtime: HttpRuntime,
 }
+
+/// Builds authenticated durable report request and download routes.
+pub fn case_reports_router(workflow: Arc<dyn CaseReportWorkflow>) -> Router {
+    let runtime = HttpRuntime::new(HttpLimits::default());
+    protect(router(workflow, runtime.clone()), runtime)
+}
+
 pub(crate) fn router(workflow: Arc<dyn CaseReportWorkflow>, runtime: HttpRuntime) -> Router {
     Router::new()
         .route("/api/v1/case-reports", get(list).post(request))
