@@ -2,6 +2,14 @@
 
 ## Invitaciones: evidencia focal local
 
+La primera campana de cierre de PR96 se cancelo tras rechazar Clippy una
+referencia redundante en una prueba HTTP. La comprobacion local completa de
+lint detecto ademas la carga duplicada del apoyo de pruebas de correo. Se
+retiro la referencia y ambas suites comparten ahora un solo modulo de apoyo.
+Clippy de todo el workspace y todos los destinos aprobo en 153.025 s; las
+pruebas de correo afectadas aprobaron en 7.337 s. Estos resultados no sustituyen
+la campana de cierre remota de la revision corregida, todavia pendiente.
+
 Las ejecuciones focales terminadas con codigo de salida cero comprobaron el
 [contrato de invitaciones](member-invitations-api.md) en grupos separados:
 

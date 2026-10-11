@@ -38,7 +38,7 @@ async fn recipient_bodies_reject_ambiguous_tokens_unknown_fields_queries_and_med
             "x".repeat(43),
             format!("{}=", token()),
             "A".repeat(42),
-            format!("{}B", &"A".repeat(42)),
+            format!("{}B", "A".repeat(42)),
             "-".repeat(44),
         ] {
             let mut body = valid.clone();

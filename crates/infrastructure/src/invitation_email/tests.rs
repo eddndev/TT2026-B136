@@ -9,8 +9,7 @@ use zeroize::Zeroizing;
 
 use crate::invitation_email::{InvitationEmailConfiguration, ResendInvitationDelivery};
 
-#[path = "../password_reset_email/test_support.rs"]
-mod support;
+use crate::password_reset_email::test_support as support;
 use support::{envelope, Response, Server, KEY, RECEIPT, TOKEN};
 
 fn configuration() -> InvitationEmailConfiguration {
