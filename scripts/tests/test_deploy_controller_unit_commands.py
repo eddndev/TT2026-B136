@@ -78,6 +78,26 @@ class ControllerUnitCommandTests(unittest.TestCase):
                     fixture.render(self.product, receipt, units, **overrides)
                 self.assertEqual(tree(fixture.root), before)
 
+    def test_pinned_units_require_the_explicit_previous_inventory_and_exact_launcher(self):
+        fixture = Fixture(self)
+        first = fixture.approve(self.approver)
+        installed = fixture.render(self.product, first, fixture.units())
+        fixture.advance()
+        second = fixture.approve(self.approver, first["approval_sha256"])
+        before = tree(fixture.root)
+        for pin in (None, "0" * 64, second["installed_sha256"]):
+            with self.subTest(pin=pin), self.assertRaises(REJECTIONS):
+                fixture.render(self.product, second, installed,
+                    expected_previous_inventory_sha256=pin)
+        for old, new in ((b" -I -B -S ", b" -B -S "),
+                         (str(LAUNCHER).encode(), b"/unapproved/launcher.py"),
+                         (b" --entrypoint runtime.py ", b" --entrypoint release.py ")):
+            changed = {name: raw.replace(old, new) for name, raw in installed.items()}
+            with self.subTest(old=old), self.assertRaises(REJECTIONS):
+                fixture.render(self.product, second, changed,
+                    expected_previous_inventory_sha256=first["installed_sha256"])
+        self.assertEqual(tree(fixture.root), before)
+
     def test_generated_hash_never_adopts_current_tools_on_a_generation_mismatch(self):
         fixture = Fixture(self)
         first = fixture.approve(self.approver)
@@ -85,7 +105,8 @@ class ControllerUnitCommandTests(unittest.TestCase):
         first_units = fixture.render(self.product, first, units)
         fixture.advance()
         second = fixture.approve(self.approver, first["approval_sha256"])
-        second_units = fixture.render(self.product, second, units)
+        second_units = fixture.render(self.product, second, first_units,
+            expected_previous_inventory_sha256=first["installed_sha256"])
         approval_before = tree(fixture.current_approval)
         environment = {**os.environ, "CONTROLLER_APPROVAL_MARKER": str(fixture.marker)}
 

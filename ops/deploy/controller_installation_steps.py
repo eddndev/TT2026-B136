@@ -129,7 +129,9 @@ def publish(current):
         expected_root_identity={name: current.intent["root"][name] for name in ("uid", "device", "inode")},
         python_executable=Path(current.intent["python"]["path"]),
         launcher_path=current.root / "controller_launcher.py",
-        legacy_absent_prestarts=current.intent["legacy_absent_prestarts"])
+        legacy_absent_prestarts=current.intent["legacy_absent_prestarts"],
+        expected_previous_inventory_sha256=(current.intent["previous_sources"]["sha256"]
+            if current.intent["previous_approval_sha256"] is not None else None))
     launcher = inputs.launcher(current.root, current.intent, install=True)
     directory = current.operation / "candidates"
     files.ensure_directory(directory)

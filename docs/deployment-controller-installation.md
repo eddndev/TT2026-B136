@@ -24,7 +24,12 @@ tras una discrepancia. Las unidades de bases antiguas sin prestart sólo se admi
 cuando esa ausencia está explícitamente incluida en la intención.
 
 Antes de detener servicios valida esos materiales y la forma exacta de las cuatro
-unidades. Conserva las referencias de systemd hasta sincronizar su terminación
+unidades. Una actualización también admite las unidades ya fijadas por el launcher:
+compara el comando completo con el intérprete, launcher, raíz e inventario anterior
+aprobados en la intención. No extrae autorización del hash observado en la unidad.
+La aprobación precedente debe identificar esas mismas fuentes y su directorio.
+Al reabrir sólo sustituye el pin anterior por el candidato aprobado, conservando
+los demás bytes de cada unidad. Conserva las referencias de systemd hasta sincronizar su terminación
 normal tipada, y después establece máscaras persistentes con recarga y observación
 nuevas. Sólo entonces retiene la caché exacta, intercambia fuentes y aprueba la
 generación. Conserva las unidades anteriores, sus máscaras y los candidatos nuevos.

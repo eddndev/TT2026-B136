@@ -1,5 +1,22 @@
 # Informe de verificación local
 
+## Actualización de controladores ya instalados: 11 de octubre de 2026
+
+El preflight de una segunda instalación detectó que el renderer sólo aceptaba
+las unidades directas originales y rechazaba las que ya había fijado el launcher.
+La prueba de cambio de generación ahora usa las unidades efectivamente generadas,
+no vuelve a las originales. El fallo se reprodujo antes de corregir el contrato.
+
+La corrección exige el inventario anterior explícito y conserva la validación
+exacta de intérprete, launcher, raíz y comando. La aprobación previa también debe
+identificar el inventario y directorio anterior; una discrepancia rechaza antes de
+parar servicios. El ensayo compuesto de dos instalaciones y reaperturas conservó
+las unidades y evidencias previas y comprobó reentrada sin nuevas mutaciones.
+Son procesos y servicios simulados con filesystem real; no se atribuye a ese
+ensayo una actualización nativa de VPS3. La suite de helpers de despliegue aprobó
+229 pruebas en 15.956 s; los gates remotos y la aceptación productiva son posteriores.
+No cambiaron Rust, Qadra, el esquema SQL ni las fuentes del manuscrito.
+
 ## Corrección de la preparación de confianza tras CI: 11 de octubre de 2026
 
 La primera campaña de cierre detectó que el fixture parcial de publicación de
