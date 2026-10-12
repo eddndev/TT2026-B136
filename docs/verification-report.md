@@ -49,6 +49,16 @@ de calendario/fuente y no duplicó revisiones después de reiniciar. No fue
 necesario repetir esa campaña completa. Manuscrito y gates finales se verifican
 por separado; este corte no acredita integración ni activación productiva.
 
+La primera campaña remota del corpus fue cancelada tras una prueba anterior de
+acceso Owner: la siguiente iteración instalaba sus rutas antes de abandonar la
+página autenticada, y una lectura tardía del tablero se atribuía a disponibilidad
+anticipada del certificado. La preparación ahora cierra la página anterior y
+drena sus rutas antes del nuevo acceso; conserva intacta la exigencia de cero
+consultas iniciales. Los cinco recorridos de acceso aprobaron en 30.4 s, incluidos
+reloj detenido, respuestas tardías y MFA. Es una corrección del aislamiento del
+fixture; no cambia el producto ni sus permisos. Esa campaña cancelada no acredita
+la regresión remota completa.
+
 ## Final exacto de audiencia: comprobacion focal del 11 de octubre de 2026
 
 Se reprodujo la falta de una regla sin suma para conservar el final calificado
