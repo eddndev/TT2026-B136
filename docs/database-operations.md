@@ -95,11 +95,12 @@ compatible. La activación debe seguir el procedimiento de mantenimiento de
 esquema, sin sustituir una huella para saltarse su comprobación.
 
 Un dump puede contener enlaces pendientes, y una restauración puede revivir un
-enlace consumido después de la captura. Antes de habilitar el futuro transporte
-se debe aceptar una invalidación administrativa auditada con el servicio cerrado,
-además de la invalidación selectiva de sesiones y desafíos Redis. La restauración
-no recupera contraseñas cambiadas después de la fecha del respaldo. La política
-operativa de restauración y retención de estas capacidades sigue pendiente.
+enlace consumido después de la captura. Antes de reabrir el transporte restaurado
+se exige invalidación administrativa auditada con el servicio cerrado, además de
+invalidar selectivamente sesiones y desafíos Redis. La restauración no recupera
+contraseñas cambiadas después de la fecha del respaldo. Los comandos y ensayos
+están descritos en [recuperación interna](password-reset-internal.md); el
+transporte público está activo con [límites aprobados](password-reset-public.md).
 
 ## Invitaciones restauradas
 
@@ -1548,10 +1549,11 @@ de confirmar la lectura; no borrar ese evento como supuesto cálculo fallido.
 La frontera interna ofrece `invalidate_restored_password_resets` para el
 propietario administrativo. Su contrato, recibo estable y precondiciones están en
 [recuperación de contraseña](password-reset-internal.md). No es una migración ni
-un comando de despliegue: el controlador actual no la invoca. Antes de activar la
-recuperación pública debe integrarse con la restauración SQL/Redis manteniendo
-escritores detenidos y admisión cerrada hasta completar la reconciliación. La
-primitiva no modifica contraseñas restauradas, generaciones ni sesiones Redis.
+un comando de despliegue. La restauración administrativa SQL/Redis exige invocarla
+manteniendo escritores detenidos y admisión cerrada hasta completar la
+reconciliación. La recuperación pública está activa; eso no automatiza el
+procedimiento completo de restauración. La primitiva no modifica contraseñas
+restauradas, generaciones ni sesiones Redis.
 
 ## Recuperacion publica y consumidores
 

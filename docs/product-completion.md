@@ -1,6 +1,22 @@
 # Cierre funcional del prototipo web
 
-## Corpus finito: aceptación local del 12 de octubre de 2026 UTC
+## Estado vigente al 12 de octubre de 2026
+
+Producción ejecuta `v0.1.6`, commit `671d356c428fd01d26a1fa80eb182bc1f526813e`.
+El corpus de ocho supuestos está aceptado, integrado por PR100 y desplegado;
+PR101/102 corrigieron la preparación de las pruebas de navegador. Se conservan
+cautelares, actividad, firma individual, invitaciones, estimación/correo, auditoría
+de accesos y respaldo Redis. No queda otro incremento funcional en esa lista.
+
+La [aceptación productiva y conciliación documental](production-acceptance.md)
+registra los puntos 1 y 4 ahora autorizados: recuperación real confirmada por el
+usuario, los dos pares PDF/CSV cotejados en producción y manuales alineados.
+La demo personal de firma, las decisiones operativas humanas, la evaluación con
+personas y el cierre académico siguen separados en [cierre técnico](technical-closure.md).
+Los cortes siguientes conservan su evidencia histórica; no reabren trabajo por
+el uso antiguo de la palabra pendiente.
+
+## Corpus finito: aceptación y activación del 12 de octubre de 2026 UTC
 
 Las ocho fichas CNPP para el caso de estudio CDMX ya tienen fuentes primarias,
 notificación y canales explícitos y esperados independientes. Investigación y
@@ -10,15 +26,16 @@ escritos distinguen sus propios supuestos y el cierre semanal de ventanilla.
 Véanse [las fichas](legal-corpus-resources.md), [investigación](legal-corpus-investigation.md)
 y [calendario](legal-corpus-calendar.md).
 
-`AtAnchor` y el cierre semanal están implementados localmente. HTTP real,
+`AtAnchor` y el cierre semanal están integrados y desplegados. HTTP real,
 reinicio/restauración, Agenda, alertas y Qadra escritorio/móvil reprodujeron los
 ocho positivos, un extremo inhábil y diez bloqueos. La regresión API completa
-aprobó en 606.453 s; los gates de integración/activación se comprueban aparte. Main y producción conservan
-`3794181`/`v0.1.5`. No se incorporan retención, vinculación ni acusación teóricas,
+aprobó en 606.453 s. Los gates de PR102, main exacto y paquete aprobaron;
+restauración, respaldo y activación de `v0.1.6` quedaron verificados por separado
+en el [informe de verificación](verification-report.md#entrega-aceptada-y-activa-v016-12-de-octubre-de-2026). No se incorporan retención, vinculación ni acusación teóricas,
 ni se exige al usuario revisar ocho expedientes. El
 [inventario técnico](technical-closure.md) distingue las decisiones humanas restantes.
 
-## Estado actual al 11 de octubre de 2026
+## Corte histórico al 11 de octubre de 2026
 
 Corte conciliado del 11 de octubre de 2026: PR95 integro firma individual;
 PR96, invitaciones y enrolamiento sin cupo por plan; PR97, estimacion inicial y

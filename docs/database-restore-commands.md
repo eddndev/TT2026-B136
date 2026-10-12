@@ -142,7 +142,7 @@ un recibo en stdout. Los diagnósticos operativos no permiten distinguir un
 rollback de un commit cuyo reconocimiento se perdió; no habilitan reintentos
 automáticos con parámetros nuevos.
 
-## Alcance de verificación y trabajo operacional pendiente
+## Alcance de verificación y coordinación operacional
 
 Las pruebas del binario están en
 [database_restore_cli](../crates/bin/tests/database_restore_cli/main.rs).
@@ -151,10 +151,14 @@ Reutilizan el PostgreSQL desechable de infraestructura y fallan si no se configu
 privado y catálogo sin imprimirlos, verifican el recibo contra la primitiva y
 ejecutan `check` con una conexión runtime de transacciones de solo lectura.
 
-Estas pruebas no equivalen a una restauración completa del despliegue. Quedan la
-admisión de un respaldo compatible, bloqueo durable de servicios, recuperación
-tras fallos del controlador, invalidación de sesiones y desafíos Redis y
-verificación del conjunto antes de reabrir acceso. Cancelar enlaces tampoco
+Estas pruebas no equivalen por sí solas a una restauración completa del despliegue.
+La [restauración manual](deployment-backups.md) exige admitir el respaldo,
+mantener detenidos los escritores y la entrada, invalidar capacidades, sesiones
+y desafíos y verificar el conjunto antes de reabrir. La instalación de
+controladores y los ensayos poblados tienen su evidencia separada en
+[verificación](verification-report.md); estos comandos no automatizan todo ese
+procedimiento. Cancelar enlaces tampoco
 reconstruye cambios de contraseña posteriores a la captura ni incrementa las
 generaciones para compensar una restauración antigua. El remitente, origen y
-activación de la recuperación pública siguen siendo decisiones explícitas.
+activación de la recuperación pública ya fueron aprobados y configurados;
+se conservan los [valores vigentes](password-reset-public.md).

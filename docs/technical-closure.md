@@ -9,8 +9,9 @@ antigua de «pendiente» no basta: se contrasta con main, código y evidencia.
 
 Este inventario complementa, sin ampliar su catálogo, el
 [cierre de los cuatro frentes procesales](four-front-closure.md). La base
-confirmada en main y producción es `3794181`, versión `v0.1.5`, con PR98 y PR99
-integradas. La auditoría de accesos y la reparación del respaldo Redis están
+confirmada en producción es `671d356c428fd01d26a1fa80eb182bc1f526813e`,
+versión `v0.1.6`. PR100 integró el corpus finito y PR101/102 corrigieron la
+preparación de sus pruebas de navegador; PR98 y PR99 ya estaban integradas. La auditoría de accesos y la reparación del respaldo Redis están
 resueltas e instaladas. Se conservan las entregas anteriores de cautelares,
 informe de actividad, firma individual, invitaciones y estimación/correo de
 informes. Resend y recuperación pública están activos con los valores humanos
@@ -19,19 +20,22 @@ registrados; no se reabren esos pendientes operativos.
 El [registro de verificación](verification-report.md) conserva los cortes de
 aceptación, integración y activación. Los gates se comprueban por revisión
 exacta; los respaldos no son integraciones ni despliegues. El corpus jurídico
-descrito abajo tiene cierre documental, implementación local y aceptación final
-en curso; todavía no forma parte de esa base productiva.
+descrito abajo está aceptado, integrado y desplegado. La
+[aceptación productiva y conciliación documental](production-acceptance.md)
+acredita las cuatro descargas reales y distingue sus límites de las pruebas
+técnicas anteriores.
+La recuperación real fue confirmada por el usuario el 12 de octubre de 2026.
 
 ## Lista de cierre
 
 | Entrega y estado | Compromiso y límite | Criterio observable de término |
 | --- | --- | --- |
-| Corpus de cálculo | Ocho supuestos documentados de investigación complementaria y recursos para el caso controlado penal local de CDMX. Las fichas fijan fuentes, condiciones, calendario, canales y esperados. `AtAnchor` y cierre civil semanal están implementados localmente, sin integrar; HTTP/Qadra, restauración y regresión API aprobados localmente. | Cada supuesto contrasta su resultado independiente con el recorrido HTTP/Qadra existente, explicación y origen exacto, sin duplicados; datos o condiciones no cubiertos bloquean el vencimiento. Falta conciliar la evidencia final, manuscrito y gates de esta entrega. |
+| Corpus de cálculo | Ocho supuestos documentados de investigación complementaria y recursos para el caso controlado penal local de CDMX. Las fichas fijan fuentes, condiciones, calendario, canales y esperados. `AtAnchor` y cierre civil semanal están integrados por PR100 y activos en `v0.1.6`; HTTP/Qadra, restauración, regresión API y gates finales aprobados. | Cada supuesto contrasta su resultado independiente con el recorrido HTTP/Qadra existente, explicación y origen exacto, sin duplicados; datos o condiciones no cubiertos bloquean el vencimiento. Cierre cumplido: manuscrito, gates de la revisión exacta, paquete, restauración y activación verificados el 12 de octubre. |
 | Invitaciones y enrolamiento | RF-03 y aceptación de invitación de [análisis y diseño](../latex/chapters/03-analisis-diseno.tex). Se conserva alta directa; no se rediseña identidad ni se limita el número de usuarios del despacho. Integrada por PR96 en `0db0a9f9`, con PostgreSQL, Redis, MFA, restauracion y los tres gates aprobados; desplegada en v0.1.4 y correo publico activado con Resend. | Invitación temporal aceptada con el rol autorizado, vencimiento rechazado, finalización de MFA y recuperación de respuesta perdida sin duplicar cuentas. Entrega de correo comprobada con transporte de prueba; activación operativa separada. |
 | Firma documental individual | CU-13 y CU-14 del mismo [análisis](../latex/chapters/03-analisis-diseno.tex). Integrada por PR95 y desplegada en `v0.1.3`; conserva separados el firmante global histórico y el acceso Owner por certificado. | Los siete criterios de firma individual siguientes: identidad vinculada, confirmación exacta, clave externa, autorización y confianza vigentes, firma y sello, persistencia recuperable y verificación por componentes. Sin exigir PSC externo. Cierre técnico aceptado; la demostración personal requiere un Litigante real con clave y CSR externos. |
 | Estimación y correo de informes | CU-16 integrado por PR97, desplegado en v0.1.4 y correo Resend activado: precision 26/28 (92.857%), correo capturado/HTTP/restauracion y Qadra real aceptados. Conserva los informes de estado/carga y el catalogo finito de actividad ya integrados. | Prediccion inicial incluida cola; correo cuando sea estrictamente mayor de 2 segundos; al menos 90% de validacion independiente dentro de max(2 segundos, 30% real), con cobertura declarada. Aviso comprobado con transporte de prueba; transporte Resend operativo confirmado por recepción humana. Los avisos internos y la duración observada no sustituyen estos criterios. |
 | Registro de accesos y datos de auditoría | RF-02, CU-04, CU-17 y RF-20 aceptados, integrados y desplegados en la base `v0.1.5`, con contexto, cadena histórica, consulta Owner y restauración. Véanse [matriz](access-audit-matrix.md) y [verificación](verification-report.md). | Cierre confirmado: matriz de operaciones, identidad estable y origen de eventos nuevos, preservación histórica y medición durable frente a 500 ms en el entorno declarado. No se repite esta aceptación por cerrar el corpus. |
-| Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Contratos, operación y manuscrito coinciden; se reutiliza evidencia válida y se ejecuta una regresión completa al cierre de cada entrega funcional, gates para HEAD exacto, squash y main confirmado. |
+| Conciliación y aceptación final | Documentación del comportamiento reproducido y gates de integración. | Conciliar los documentos operativos y manuales con las entregas aceptadas; registrar por separado las discrepancias académicas, sin sustituir el PDF aceptado. La aceptación autenticada de los dos pares PDF/CSV está cerrada para la cuenta de demo y sus datos observados; conserva explícitos los límites de autoría y correo. Se reutiliza la regresión válida y se aplican los gates correspondientes al cambio documental. |
 
 ## Corpus jurídico delimitado
 
@@ -51,10 +55,11 @@ La oportunidad oral usa el fin exacto de la audiencia mediante `AtAnchor`.
 Los cinco supuestos por días incluyen la fecha declarada de efectos y aplican
 el calendario y cierre semanal de la ventanilla ordinaria UGJ documentados.
 
-El soporte de `AtAnchor` y del cierre semanal está implementado localmente. La
-aceptación con perfiles publicados, fuentes ficticias identificadas,
-recibos, Agenda, alertas y restauración aprobó, junto con Qadra real y la
-regresión API completa. Este estado no acredita todavía integración ni despliegue. Las condiciones
+El soporte de `AtAnchor` y del cierre semanal está integrado y desplegado. La
+aceptación con perfiles publicados, fuentes normativas y registros ficticios
+identificados, recibos, Agenda, alertas y restauración aprobó, junto con Qadra
+real y la regresión API completa. El cierre de integración y activación está
+registrado en la [verificación](verification-report.md#entrega-aceptada-y-activa-v016-12-de-octubre-de-2026). Las condiciones
 no cubiertas, desconocidas o rechazadas impiden un vencimiento operativo; no
 abren otra investigación ni amplían el catálogo aprobado.
 
@@ -109,7 +114,7 @@ y validez histórica. Los controles de integración requieren evidencia para la
 revisión exacta; una aceptación local no acredita por sí sola publicación ni
 despliegue. La firma individual se activó en `v0.1.3`, sobre
 `784a0cfb064058a358e71316da595d4768de5b96`, y se conserva en la base operativa
-actual `v0.1.5`.
+actual `v0.1.6`.
 
 
 ## Estado del informe de actividad
@@ -136,8 +141,10 @@ de restaurar, avisos tras renovar sesión y PDF/CSV coincidentes. El recorrido
 positivo del catálogo completo obtuvo 1 documento, 9 actuaciones y 1 plazo
 atendido. HTTP/restauración y manuscrito separado también aprobaron. La
 [verificación](verification-report.md) distingue estos cortes y sus límites.
-El informe ya está desplegado en `v0.1.2`; falta generar y descargar PDF/CSV
-en la sesión real de producción, sin sustituir esa comprobación por el ensayo.
+El informe se desplegó en `v0.1.2` y se conserva en `v0.1.6`. La descarga real
+PDF/CSV quedó comprobada el 12 de octubre: captura coincidente, vacía para autores
+con actividad, y aviso de cobertura documental incompleta. Esa comprobación no
+sustituye ni repite los escenarios positivos del ensayo técnico de PR92.
 La estimación y el correo de CU-16 se cerraron por separado en PR97; no se
 atribuyen a los contadores ni se sustituyen por duración observada.
 La fila jurídica ya identifica entidad, fuero y canales de recepción en las
@@ -167,10 +174,10 @@ cierra esa fila con su evidencia independiente, integrada y activada en
 - Audiencias propias de recursos, creación explícita de resultado/plazo derivado,
   Agenda, alertas y las familias ordinarias aceptadas de recuperación de editores.
 - Informes de estado/carga y consulta de actividad: PR49 y PR50, con sus
-  confirmaciones conservadas. Sus contratos aún tenían frases antiguas de
-  integración pendiente.
-- Recuperación de contraseña y primer factor Owner por certificado, con la
-  activación operativa separada de su implementación.
+  confirmaciones conservadas; ampliados por PR92 y PR97, sin reabrir el catálogo.
+- Recuperación pública de contraseña activa con Resend y confirmación humana
+  de uso real. El primer factor Owner por certificado conserva su activación
+  operativa pendiente, separada de la firma individual.
 - Instalación recuperable de generaciones de controladores: PR86, squash
   `90b27f20`, presente en main. La frase de integración pendiente en el resumen
   de producto era antigua; no requiere otra implementación ni otra PR.

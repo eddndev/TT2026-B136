@@ -2,27 +2,27 @@
 
 ## Frontera y estado reconciliado
 
-La tabla siguiente delimita los cuatro frentes y distingue su cierre de la
-aceptación final del corpus jurídico, actualmente en curso. La continuación
+La tabla siguiente delimita los cuatro frentes, ya cerrados dentro del alcance
+acordado, incluida la aceptación final del corpus jurídico de ocho supuestos. La continuación
 del resto de pendientes técnicos autorizados se delimita por separado en
 [el inventario de cierre técnico](technical-closure.md); no autoriza funciones
 nuevas a partir de decisiones técnicas. El código existente se conserva. Un pendiente solo se
 agrega si impide una aceptación de esta lista o corrige un defecto reproducido;
 se identifica el comportamiento afectado antes de implementar.
 
-La base confirmada en main y producción es `3794181`, versión `v0.1.5`, con
-PR98 y PR99 integradas. Conserva el flujo cautelar de PR90 y las entregas
-posteriores; auditoría y respaldo Redis están resueltos. Las fichas del corpus
-están completas documentalmente. `AtAnchor` y el cierre civil semanal están
-implementados localmente, todavía sin integrar. La evidencia funcional se
+La base confirmada en producción es `671d356c`, versión `v0.1.6`, con el corpus
+integrado por PR100 y las correcciones de preparación de pruebas de PR101/102.
+Conserva el flujo cautelar de PR90 y las entregas posteriores; auditoría y
+respaldo Redis están resueltos. Las fichas, `AtAnchor` y el cierre civil semanal
+completaron aceptación, integración, paquete y activación. La evidencia funcional se
 conserva en el [informe de verificación](verification-report.md); los gates se
 contrastan con el HEAD exacto. Los respaldos no son integraciones ni despliegues.
 
 | Frente | Integrado | Implementado sin integrar | Faltante concreto |
 | --- | --- | --- | --- |
-| Reglas de cálculo | Motor de horas/días/meses, perfiles versionados, calendario, explicación, reevaluación, Agenda y alertas. | `AtAnchor` para el fin de audiencia, cierre civil semanal y fixtures de los ocho supuestos documentados; HTTP/Qadra y regresión API con recuperación aprobados localmente. | Completar manuscrito y gates del corpus. Fuentes, ámbito, condiciones y resultados independientes ya están fijados en sus fichas. |
-| Resultado y plazo derivado | Creación explícita conjunta, origen exacto, regla seleccionada, historial, Agenda, alertas y recuperación sin duplicados. | Ningún incremento necesario para rehacer este mecanismo. | Aplicar los perfiles jurídicos aceptados al recorrido existente. La falta de esos perfiles pertenece al primer frente. |
-| Audiencias de recursos | Alegatos de apelación y revocación escrita, permisos, origen, historia, Agenda, alertas y Qadra. | Ningún incremento necesario dentro de su contrato. | Preservar su aceptación; corregir resúmenes antiguos que todavía dicen no integrado. |
+| Reglas de cálculo | Motor de horas/días/meses, perfiles versionados, calendario, explicación, reevaluación, Agenda y alertas; `AtAnchor` y cierre civil semanal. Ocho supuestos aceptados con HTTP/Qadra y restauración, integrados y activos en `v0.1.6`. | Ninguno dentro de las ocho fichas. | Ninguno: fuentes, ámbito, condiciones, esperados, manuscrito y gates comprobados. Las condiciones ajenas bloquean el vencimiento. |
+| Resultado y plazo derivado | Creación explícita conjunta, origen exacto, regla seleccionada, historial, Agenda, alertas y recuperación sin duplicados. | Ningún incremento necesario para rehacer este mecanismo. | Ninguno: los perfiles del corpus ya se aceptaron sobre este recorrido. |
+| Audiencias de recursos | Alegatos de apelación y revocación escrita, permisos, origen, historia, Agenda, alertas y Qadra. | Ningún incremento necesario dentro de su contrato. | Ninguno dentro de su contrato; conservar la aceptación existente. |
 | Cautelares y catálogo | Flujo completo de PR90: dominio, servicios, PostgreSQL, HTTP, Agenda, alertas y Qadra; convocatorias, decisiones y rectificaciones con recuperación, navegador real, reinicios/restauración y manuscrito separado aceptados. Conservado en la base productiva actual. | Ningún incremento funcional pendiente dentro del catálogo cerrado. | Ninguno en este frente. No incluye la aceptación del corpus jurídico del primer frente. |
 
 Los [resultados/plazos derivados](hearing-derived-deadlines.md) y las
@@ -67,7 +67,8 @@ oral toma el fin declarado de la audiencia del 09-10-2026 mediante `AtAnchor`.
 Las cinco fichas por días incluyen los efectos declarados del 15-10-2026 y el
 cierre semanal documentado. El extremo escrito del 29-10 cruza los inhábiles
 publicados del 30-10 y 02-11. Estas condiciones cierran la selección documental;
-su implementación local y aceptación final se distinguen de la integración.
+su aceptación funcional, integración y activación están registradas por separado
+en el [informe de verificación](verification-report.md).
 
 El compromiso de investigación se encuentra en
 [análisis y diseño](../latex/chapters/03-analisis-diseno.tex): HU-20, CU-08 y los
@@ -102,8 +103,9 @@ Para aceptar cada fila del corpus deben existir:
 Las contradicciones entre redacción académica y fundamento se reportan como
 una decisión concreta; no se resuelven cambiando objetivos ni ampliando el motor.
 Las fuentes y los esperados anteriores ya satisfacen la parte documental de
-estos criterios. La aceptación final en curso aportará sus resultados; no se
-declara aprobada por contar con fixtures. Una condición desconocida, rechazada
+estos criterios. La aceptación real comprobó ocho positivos, un límite inhábil
+y diez bloqueos, junto con HTTP, Qadra, reinicio y restauración; su aprobación
+no procede solamente de contar con fixtures. Una condición desconocida, rechazada
 o ajena a las fichas bloquea el vencimiento operativo y no exige ampliar el plan.
 
 ## Catálogo definitivo de audiencias
@@ -139,10 +141,11 @@ pendientes de cuenta/correo Owner, inactividad o política documental Client.
 
 HTTP, Agenda/alertas y Qadra cautelares completaron sus recorridos; la aceptación
 real incluye restauración y conciliación de API, operación y manuscrito. PR90
-entrega el flujo unido, conservado en la base productiva actual. El pendiente
-procesal es terminar la aceptación del corpus jurídico ya documentado sobre el
-mecanismo de plazos existente, con `AtAnchor` y cierre semanal implementados
-localmente. No se reescribe el mecanismo ni se reabren auditoría o respaldo.
+entrega el flujo unido, conservado en la base productiva actual. PR100 cerró el
+corpus sobre el mecanismo de plazos existente; `v0.1.6` completó la activación
+con `AtAnchor` y cierre semanal. No queda otro incremento procesal de esta lista.
+La conciliación documental y aceptación productiva restante están en
+[su registro propio](production-acceptance.md).
 
 La integración exige todos los gates para el HEAD exacto, squash y confirmación
 posterior de main. No se repiten aceptaciones válidas por una actualización del

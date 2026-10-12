@@ -6,7 +6,14 @@ Los adaptadores de correo, HTTP y formulario tienen verificacion focal local.
 El router acepta componentes opcionales: si no se inyectan, responde 503 y no
 emite enlaces. El constructor anterior de la API conserva ese modo deshabilitado.
 El servidor compone un consumidor supervisado solo con activacion explicita y
-configuracion completa. El despliegue privado todavia no activa recuperacion.
+configuracion completa. La instalacion productiva `v0.1.6` conserva la
+recuperacion publica activada con Resend y `notificaciones@qadra.com.mx`.
+Los valores aprobados son: vigencia de 900 s, un enlace pendiente por cuenta,
+una solicitud por correo cada 300 s y espera total de correo de 5000 ms.
+El usuario confirmo el 12 de octubre de 2026 que su pareja probo la recuperacion
+con su cuenta el dia anterior. Es un reporte humano de uso real, no una nueva
+campana instrumental de todos los controles; vease
+[aceptacion productiva](production-acceptance.md).
 
 La capacidad, su consumo transaccional y la invalidacion despues de restaurar
 se describen en [el contrato interno](password-reset-internal.md). Restablecer la
@@ -99,7 +106,7 @@ acceso antes de recuperarlos. Una respuesta MFA previa al enlace no puede abrir
 el despacho ni reemplazar el formulario. No
 se suprime ni sustituye el MFA y no se fabrica una sesion a partir del enlace.
 
-## Aceptacion y pendientes
+## Aceptacion y limites de la evidencia
 
 Resultados locales: 14 pruebas de transporte de correo con proveedor simulado,
 10 de HTTP aislado, cinco de composicion y presupuesto compartido, cinco de enlace
@@ -112,7 +119,12 @@ entropia OS, Argon2id y MFA reales; solo la entrega se capturo. Confirmo el
 presupuesto compartido, consumo unico, cambio auditado e invalidacion de
 credenciales anteriores sin crear sesion. El nuevo acceso exigio el MFA existente.
 
-Antes de activar faltan configuracion operativa explicita y coordinacion del
-controlador de restauracion que cierre el acceso durante toda la operacion.
-Los limites del driver sincrono deben comprobarse sobre el transporte real:
-limitar una future no cancela una llamada SQL/Redis ya iniciada.
+La configuracion operativa y los controladores de mantenimiento ya estan
+instalados. La restauracion sigue siendo una operacion administrativa explicita:
+requiere ingreso y escritores cerrados e invalidacion de capacidades, sesiones
+y desafios antes de reabrir. Los [comandos](database-restore-commands.md), la
+[guia de respaldo](deployment-backups.md) y la [verificacion](verification-report.md)
+distinguen las primitivas, los ensayos y la activacion efectivamente realizada. No se atribuye a las
+pruebas focales anteriores ni a la confirmacion humana una comprobacion distinta.
+Limitar una future no cancela una llamada SQL/Redis ya iniciada; se conservan
+los presupuestos y limites documentados del transporte.
