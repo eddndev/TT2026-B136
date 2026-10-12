@@ -70,9 +70,19 @@
         concedida se declara por separado.
       </p>{/if}
     <h4>Finalizaci&#243;n</h4>
-    {#if d.completion.kind === 'civil_cutoff'}<p>
-        Hora de corte: {d.completion.time}; desfase: {d.completion.offset_seconds} segundos.
-      </p>
+    {#if ['civil_cutoff', 'weekly_civil_cutoff'].includes(d.completion.kind)}
+      {#if d.completion.kind === 'weekly_civil_cutoff'}<p>
+          Cierre semanal del canal elegido; desfase: {d.completion.offset_seconds} segundos. Este horario
+          describe la recepci&#243;n del canal, no una caducidad general.
+        </p>
+        <ul>
+          {#each ['Lunes', 'Martes', 'Mi\u00e9rcoles', 'Jueves', 'Viernes', 'S\u00e1bado', 'Domingo'] as day, index}
+            <li>{day}: {d.completion.times[index] ?? 'Sin cobertura'}</li>
+          {/each}
+        </ul>
+      {:else}<p>
+          Hora de corte: {d.completion.time}; desfase: {d.completion.offset_seconds} segundos.
+        </p>{/if}
       <p>Canal: {d.completion.channel}. Cobertura: {d.completion.from} / {d.completion.through}.</p>
       <p>Referencia: {d.references.find((row) => row.id === d.completion.reference_id)?.title}</p>
     {:else if d.template.kind === 'fixed' && d.template.rule.kind === 'at_anchor'}<p>

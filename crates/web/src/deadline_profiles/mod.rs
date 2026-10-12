@@ -12,6 +12,8 @@ mod request;
 mod response;
 mod rule;
 mod scope;
+#[cfg(test)]
+mod weekly_cutoff_tests;
 use crate::{judicial_calendars::object, runtime::HttpRuntime};
 use application::deadline_profiles::DeadlineProfileWorkflow;
 use axum::{

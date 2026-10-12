@@ -82,10 +82,24 @@ function referenceIds(raw, sources) {
 function completion(raw, sources, unit) {
   if (['arithmetic_instant', 'civil_candidate_only'].includes(raw?.kind)) object(raw, ['kind']);
   else {
-    object(raw, ['kind', 'time', 'offset_seconds', 'from', 'through', 'channel', 'reference_id']);
+    const weekly = raw?.kind === 'weekly_civil_cutoff';
+    object(raw, [
+      'kind',
+      weekly ? 'times' : 'time',
+      'offset_seconds',
+      'from',
+      'through',
+      'channel',
+      'reference_id',
+    ]);
+    const validTime = (value) =>
+      typeof value === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(value);
+    if (weekly) {
+      if (!Array.isArray(raw.times) || raw.times.length !== 7 || !raw.times.some(validTime))
+        invalid();
+      for (const value of raw.times) if (value !== null && !validTime(value)) invalid();
+    } else if (raw.kind !== 'civil_cutoff' || !validTime(raw.time)) invalid();
     if (
-      raw.kind !== 'civil_cutoff' ||
-      !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(raw.time) ||
       !Number.isInteger(raw.offset_seconds) ||
       Math.abs(raw.offset_seconds) > 50400 ||
       raw.offset_seconds % 60

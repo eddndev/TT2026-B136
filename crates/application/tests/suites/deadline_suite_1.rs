@@ -35,6 +35,8 @@ mod deadline_evaluation_record_support;
 mod deadline_evaluation_record_validation;
 #[path = "../deadline_evaluation_record_wire.rs"]
 mod deadline_evaluation_record_wire;
+#[path = "../deadline_weekly_cutoff.rs"]
+mod deadline_weekly_cutoff;
 use deadline_support::evaluation as deadline_evaluation_support;
 #[path = "../deadline_observation_support/mod.rs"]
 mod deadline_observation_support;

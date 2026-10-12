@@ -4,10 +4,12 @@ mod definition;
 mod encoding;
 mod model;
 mod validation;
+mod weekly_cutoff;
 pub use cutoff::*;
 pub use definition::*;
 pub use encoding::{deadline_profile_definition_bytes, decode_deadline_profile_definition};
 pub use model::*;
+pub use weekly_cutoff::*;
 
 #[derive(Debug, thiserror::Error)]
 pub enum DeadlineProfileError {

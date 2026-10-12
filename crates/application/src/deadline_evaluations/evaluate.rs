@@ -139,6 +139,13 @@ fn complete(
         }
         ArithmeticOutcome::InstantCandidate { instant } => Some(instant.to_offset(UtcOffset::UTC)),
         ArithmeticOutcome::CivilCandidate { date } => {
+            if let DeadlineCompletionPolicy::WeeklyCivilCutoff(cutoff) = policy {
+                let candidate = cutoff.at(date);
+                if candidate.is_none() {
+                    blocks.push(DeadlineEvaluationBlock::CutoffOutsideCoverage { candidate: date });
+                }
+                return candidate;
+            }
             let DeadlineCompletionPolicy::CivilCutoff(cutoff) = policy else {
                 blocks.push(DeadlineEvaluationBlock::CivilCutoffMissing);
                 return None;

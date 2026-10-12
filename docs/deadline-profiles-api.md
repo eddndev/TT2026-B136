@@ -125,6 +125,17 @@ nunca rellena una cantidad ordenada ausente. Los meses no recortan días inváli
 - `civil_cutoff`, con `time` exacto `HH:MM:SS`, `offset_seconds` entero múltiplo
   de60 en±50400, `from`/`through` fechas inclusivas1..1096, `channel`1..200 y
   `reference_id` presente en referencias. El corte tiene desfase propio.
+- `weekly_civil_cutoff`, con los mismos metadatos de `civil_cutoff` y `times`
+  en lugar de `time`: siete posiciones de lunes a domingo, cada una `HH:MM:SS`
+  o `null` si el canal no tiene cobertura ese dia. Requiere al menos una hora.
+  Selecciona la hora del dia de la candidata sin mover esa fecha. Una candidata
+  fuera del intervalo o sin hora semanal conserva `cutoff_outside_coverage` y
+  no genera vencimiento operativo. Las etiquetas binarias anteriores se conservan.
+
+El corte identifica el canal declarado; no certifica una hora universal de
+caducidad ni otros medios de presentacion. El [corpus de CDMX](legal-corpus-calendar.md)
+fundamenta la ventanilla ordinaria y conserva separadas las resoluciones ficticias
+usadas para comprobar determinaciones judiciales expresas.
 
 `at_anchor` exige segundo y desfase declarados. Fecha, minuto, ancla desconocida
 u omisión del desfase producen el bloqueo correspondiente. El resultado y su
@@ -208,3 +219,11 @@ escalar Unicode, más el sobre de confirmación. No es un máximo alcanzable.
 Espacio sintáctico o texto exterior descartado por trim puede crecer sin cota;
 una representación equivalente que exceda el presupuesto también produce413.
 El límite se comprueba antes de deserializar; no hay decodificación base64 de DPRF.
+
+## Compatibilidad de las nuevas variantes
+
+`at_anchor` y `weekly_civil_cutoff` conservan las etiquetas históricas y no
+requieren migración SQL. Un binario anterior no reconoce registros que ya usen
+esas variantes. El retorno después de publicarlas exige restaurar el respaldo
+compatible junto con el binario anterior; cambiar sólo el ejecutable no basta.
+La activación conserva el procedimiento de respaldo y ensayo de restauración.

@@ -1,6 +1,6 @@
 use super::{invalid, reader::Reader, DeadlineProfileError};
 use crate::deadline_profiles::{
-    DeadlineCivilCutoff, DeadlineCompletionPolicy, DeadlineProfileScope,
+    DeadlineCivilCutoff, DeadlineCompletionPolicy, DeadlineProfileScope, DeadlineWeeklyCivilCutoff,
 };
 use domain::{
     cases::CaseId,
@@ -131,6 +131,26 @@ pub(super) fn completion(
                 reader.uuid()?,
             )
             .map(DeadlineCompletionPolicy::CivilCutoff)
+        }
+        3 => {
+            let mut times = [None; 7];
+            for value in &mut times {
+                if reader.flag()? {
+                    *value = Some(
+                        Time::from_hms(reader.byte()?, reader.byte()?, reader.byte()?)
+                            .map_err(invalid)?,
+                    );
+                }
+            }
+            DeadlineWeeklyCivilCutoff::new(
+                times,
+                UtcOffset::from_whole_seconds(reader.i32()?).map_err(invalid)?,
+                reader.date()?,
+                reader.date()?,
+                reader.label()?,
+                reader.uuid()?,
+            )
+            .map(DeadlineCompletionPolicy::WeeklyCivilCutoff)
         }
         _ => Err(invalid("completion tag")),
     }

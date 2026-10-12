@@ -47,8 +47,13 @@ pub(super) fn validate(
     {
         return Err(DeadlineProfileError::Invalid("completion.unit"));
     }
-    if let DeadlineCompletionPolicy::CivilCutoff(cutoff) = &values.completion {
-        if !references.contains(&cutoff.reference_id()) {
+    let cutoff_reference = match &values.completion {
+        DeadlineCompletionPolicy::CivilCutoff(cutoff) => Some(cutoff.reference_id()),
+        DeadlineCompletionPolicy::WeeklyCivilCutoff(cutoff) => Some(cutoff.reference_id()),
+        _ => None,
+    };
+    if let Some(reference) = cutoff_reference {
+        if !references.contains(&reference) {
             return Err(DeadlineProfileError::Invalid("completion.reference"));
         }
     }

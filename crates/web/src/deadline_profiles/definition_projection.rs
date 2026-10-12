@@ -107,5 +107,23 @@ fn completion(v: &DeadlineCompletionPolicy) -> Value {
             json!({"kind":"civil_cutoff","time":format!("{:02}:{:02}:{:02}",v.time().hour(),v.time().minute(),v.time().second()),
         "offset_seconds":v.offset().whole_seconds(),"from":v.from().to_string(),"through":v.through().to_string(),"channel":v.channel().as_str(),"reference_id":v.reference_id()})
         }
+        DeadlineCompletionPolicy::WeeklyCivilCutoff(v) => {
+            let times = v
+                .times()
+                .iter()
+                .map(|value| {
+                    value.map(|time| {
+                        format!(
+                            "{:02}:{:02}:{:02}",
+                            time.hour(),
+                            time.minute(),
+                            time.second()
+                        )
+                    })
+                })
+                .collect::<Vec<_>>();
+            json!({"kind":"weekly_civil_cutoff","times":times,
+        "offset_seconds":v.offset().whole_seconds(),"from":v.from().to_string(),"through":v.through().to_string(),"channel":v.channel().as_str(),"reference_id":v.reference_id()})
+        }
     }
 }

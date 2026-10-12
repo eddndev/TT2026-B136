@@ -97,5 +97,19 @@ pub(super) fn completion(bytes: &mut Vec<u8>, completion: &DeadlineCompletionPol
             text(bytes, cutoff.channel().as_str());
             bytes.extend_from_slice(cutoff.reference_id().as_bytes());
         }
+        DeadlineCompletionPolicy::WeeklyCivilCutoff(cutoff) => {
+            bytes.push(3);
+            for time in cutoff.times() {
+                bytes.push(u8::from(time.is_some()));
+                if let Some(time) = time {
+                    bytes.extend_from_slice(&[time.hour(), time.minute(), time.second()]);
+                }
+            }
+            bytes.extend_from_slice(&cutoff.offset().whole_seconds().to_be_bytes());
+            bytes.extend_from_slice(&cutoff.from().days_since_epoch().to_be_bytes());
+            bytes.extend_from_slice(&cutoff.through().days_since_epoch().to_be_bytes());
+            text(bytes, cutoff.channel().as_str());
+            bytes.extend_from_slice(cutoff.reference_id().as_bytes());
+        }
     }
 }

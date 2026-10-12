@@ -209,6 +209,14 @@ pub(super) enum Completion {
         channel: String,
         reference_id: String,
     },
+    WeeklyCivilCutoff {
+        times: [Option<String>; 7],
+        offset_seconds: i32,
+        from: String,
+        through: String,
+        channel: String,
+        reference_id: String,
+    },
 }
 impl Completion {
     pub(super) fn validate(self) -> Result<DeadlineCompletionPolicy, ApiError> {
@@ -222,27 +230,33 @@ impl Completion {
                 through,
                 channel,
                 reference_id,
-            } => {
-                if !time.is_ascii()
-                    || time.len() != 8
-                    || &time[2..3] != ":"
-                    || &time[5..6] != ":"
-                    || !time
-                        .bytes()
-                        .enumerate()
-                        .all(|(i, b)| i == 2 || i == 5 || b.is_ascii_digit())
-                {
-                    return Err(invalid());
-                }
-                let t = time::Time::from_hms(
-                    time[..2].parse().map_err(|_| invalid())?,
-                    time[3..5].parse().map_err(|_| invalid())?,
-                    time[6..].parse().map_err(|_| invalid())?,
+            } => DeadlineCompletionPolicy::CivilCutoff(
+                DeadlineCivilCutoff::new(
+                    cutoff_time(&time)?,
+                    time::UtcOffset::from_whole_seconds(offset_seconds).map_err(|_| invalid())?,
+                    from.parse().map_err(|_| invalid())?,
+                    through.parse().map_err(|_| invalid())?,
+                    domain::procedural_facts::FactLabel::new(&channel)
+                        .map_err(application::ApplicationError::from)?,
+                    reference(&reference_id)?,
                 )
-                .map_err(|_| invalid())?;
-                DeadlineCompletionPolicy::CivilCutoff(
-                    DeadlineCivilCutoff::new(
-                        t,
+                .map_err(application::ApplicationError::from)?,
+            ),
+            Self::WeeklyCivilCutoff {
+                times,
+                offset_seconds,
+                from,
+                through,
+                channel,
+                reference_id,
+            } => {
+                let mut parsed = [None; 7];
+                for (target, value) in parsed.iter_mut().zip(times) {
+                    *target = value.as_deref().map(cutoff_time).transpose()?;
+                }
+                DeadlineCompletionPolicy::WeeklyCivilCutoff(
+                    DeadlineWeeklyCivilCutoff::new(
+                        parsed,
                         time::UtcOffset::from_whole_seconds(offset_seconds)
                             .map_err(|_| invalid())?,
                         from.parse().map_err(|_| invalid())?,
@@ -256,4 +270,24 @@ impl Completion {
             }
         })
     }
+}
+
+fn cutoff_time(value: &str) -> Result<time::Time, ApiError> {
+    if !value.is_ascii()
+        || value.len() != 8
+        || &value[2..3] != ":"
+        || &value[5..6] != ":"
+        || !value
+            .bytes()
+            .enumerate()
+            .all(|(i, b)| i == 2 || i == 5 || b.is_ascii_digit())
+    {
+        return Err(invalid());
+    }
+    time::Time::from_hms(
+        value[..2].parse().map_err(|_| invalid())?,
+        value[3..5].parse().map_err(|_| invalid())?,
+        value[6..].parse().map_err(|_| invalid())?,
+    )
+    .map_err(|_| invalid())
 }
