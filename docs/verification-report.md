@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Sincronizacion del navegador de plazos: 12 de octubre de 2026 UTC
+
+Una campaña de paquete posterior a los gates verdes de integración detuvo el
+recorrido de plazos diarios, mensuales y horarios mientras aún cargaba la lista
+de expedientes. El acceso ya mostraba el tablero, pero sus consultas iniciales
+y la de incidentes seguían en curso. La consulta de expedientes terminó casi al
+mismo instante que la aserción de cinco segundos. La cancelación de los demás
+jobs fue consecuencia del primer fallo; no equivale a otros defectos.
+
+El escenario `web/tests/live/deadline-workflow.spec.mjs` espera ahora las dos
+respuestas iniciales, exige HTTP 200 y cuerpo terminado antes de navegar al
+expediente. Conserva el límite de la aserción, sin reintentos ni cambios de
+producto. La comprobación focal con HTTP, PostgreSQL, Redis y TSA aislados pasó:
+un recorrido en 14.7 segundos (18.8 segundos de campaña Playwright), con
+historia, fuentes exactas y atención declarada. La contención observada no queda
+resuelta por esta sincronización y no se atribuye una mejora de rendimiento.
+La regresión API y el manuscrito aceptados no se repitieron por este ajuste de
+prueba; la publicación del paquete continúa condicionada a sus gates.
+
 ## Corpus finito y cierres semanales: 12 de octubre de 2026 UTC
 
 Las ocho fichas de [investigación](legal-corpus-investigation.md),
