@@ -1,5 +1,64 @@
 # Informe de verificación local
 
+## Entrega aceptada y activa v0.1.6: 12 de octubre de 2026
+
+El corpus finito de ocho supuestos se integró por [PR100](https://github.com/eddndev/TT2026-B136/pull/100).
+Las correcciones de preparación de navegador de PR101/102 no cambiaron producto.
+La base confirmada y desplegada es `671d356c428fd01d26a1fa80eb182bc1f526813e`,
+versión `v0.1.6`. [CI de main](https://github.com/eddndev/TT2026-B136/actions/runs/38214755440)
+y [Web de main](https://github.com/eddndev/TT2026-B136/actions/runs/38214755459)
+aprobaron para esa revisión. Documents conserva el gate de PR100: PR101/102 no
+modificaron fuentes académicas. El [paquete 38217481960](https://github.com/eddndev/TT2026-B136/actions/runs/38217481960)
+aprobó; su activación automática quedó omitida y la operación se ejecutó después
+mediante el procedimiento manual autorizado. No se publicó tag.
+
+El candidato y su restauración comprobaron 77 tablas y una secuencia sin cambios
+de esquema ni migración SQL. El ensayo privado conservó inventario e historia,
+verificó auditoría y probó candidato y retorno con correo deshabilitado en esas
+copias. Eso no se presenta como recuperación autenticada de una cuenta productiva.
+La activación `784112d7-678a-4780-b37c-3f7508998fd1` preservó configuración y correo,
+sin reinstalar controladores. Se conservaron 615816 entradas históricas y se
+verificó una cadena de 615831 entradas. El respaldo final
+`20261012T080042Z-3f5beda9` y su copia externa privada se comprobaron por tamaño y
+huella. Los cuatro servicios quedaron activos; versión y página públicas
+respondieron 200, y una petición anónima privada, 401. El sondeo inicial con
+Python recibió 403; su causa no quedó establecida. La comprobación independiente
+con curl aprobó y no se repitió el despliegue.
+
+La aceptación funcional previa se reutiliza: ocho positivos, un límite inhábil y
+diez bloqueos con HTTP y restauración; Qadra real a 1440/390 px sin errores ni
+desborde; regresión API completa de 606.453 s. El manuscrito aceptado tiene 419
+páginas, 5944875 bytes y SHA-256
+`31c83852dc6bb8ece48b11ebec0405b25cc40022919f0f92368684f475a1ff2d`.
+Los recibos privados quedan inventariados en `output/legal-corpus/accepted-delivery.json`.
+Los cortes posteriores de este documento son históricos: sus pendientes de
+integración o activación quedan superados por este cierre, salvo límites expresos.
+
+## Aceptación productiva y revisión documental: 12 de octubre de 2026
+
+El usuario confirmó que su pareja probó la recuperación real el día anterior.
+Se registra como reporte humano, sin repetir el cambio ni atribuir al agente
+observación de contraseña anterior, reutilización de enlace o MFA en esa sesión.
+Esos controles conservan el ensayo HTTP compuesto de 1/1 en 13.31 s con entrega
+capturada, PostgreSQL, Redis, Argon2id y MFA reales. Los límites aprobados y Resend
+permanecen activos. La sesión Administrador de demo permitió generar y descargar
+estado/carga y actividad: cuatro archivos cotejados, con identidades, capturas,
+periodos, totales y huellas coincidentes; los dos PDF de una página son legibles.
+Estado/carga contiene los tres expedientes ficticios visibles en Qadra (dos
+activos, uno cerrado). Actividad devuelve cero en los tres contadores y declara
+cobertura documental incompleta; no acredita un positivo por autor en ese conjunto.
+Ambas estimaciones iniciales están ausentes, sin intención de correo. Se reutilizan
+los positivos de PR92 y la aceptación de estimación/correo de PR97; no se genera
+volumen para forzar otra campaña. El recibo privado queda en
+`output/production-acceptance/acceptance-result.json`. Los criterios y trazabilidad
+HU-39/CU-16/RF-19 y HU-08/CU-03/RF-01 están en
+[aceptación productiva](production-acceptance.md).
+
+La conciliación actual corrige manuales, inventarios y estados de contratos;
+conserva las pruebas anteriores y el PDF. La frase académica antigua sobre
+activación pública se registra para el cierre de manuscrito, separado de estos
+dos puntos. No se atribuye a este trabajo una evaluación de usabilidad.
+
 ## Preparacion comun de sesiones de navegador: 12 de octubre de 2026 UTC
 
 El recorrido del corpus reprodujo en otra campaña la misma espera agotada de

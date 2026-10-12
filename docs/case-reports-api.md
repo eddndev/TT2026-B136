@@ -1,13 +1,13 @@
-# Informes de estado de expedientes
+# Informes de estado y actividad
 
 ## Estado y alcance
 
-Implementación integrada por PR49 de aplicación, persistencia, protección,
-renderizado, HTTP, interfaz y composición supervisada en el servidor. La aceptación
-y confirmación de main están registradas en el [estado del producto](product-completion.md).
-Esa evidencia no acredita un despliegue ni completa las ampliaciones expresamente
-pendientes del informe. Véase la
-[decisión de diseño](adr/0060-durable-authorized-case-reports.md).
+El informe de estado/carga se integró por PR49, la actividad por autor y periodo
+por PR92 y la estimación/correo por PR97. Los tres están desplegados y se conservan
+en `v0.1.6`. La aceptación, integración y activación constan en el
+[estado del producto](product-completion.md); las descargas autenticadas sobre
+la cuenta productiva conservan su [aceptación separada](production-acceptance.md).
+Véase la [decisión de diseño](adr/0060-durable-authorized-case-reports.md).
 
 Una solicitud produce un PDF y un CSV del **estado administrativo observado** de
 los expedientes creados en el intervalo elegido, más la carga derivada de esos
@@ -168,9 +168,12 @@ Al agotarla, el resultado queda incierto sin nuevos intentos. No se promete
 entrega exactamente una vez. El mensaje es generico, sin adjuntos ni datos del
 expediente, y abre `#reports` con autenticacion obligatoria.
 
-El canal esta deshabilitado por defecto. Un `pending` no afirma que el operador
-lo haya activado. La aceptacion usa transporte capturado; configuracion y
-activacion publica se describen en [operacion](database-operations.md#informes-durables-y-restauración).
+El canal esta deshabilitado por defecto, pero la instalacion productiva lo
+habilita con Resend. Un `pending` no acredita envio y `accepted` no confirma
+recepcion en bandeja. La aceptacion funcional usa transporte capturado; la
+recepcion generica real del proveedor y la observacion de un aviso de informe
+concreto se distinguen en [aceptacion productiva](production-acceptance.md).
+La configuracion se describe en [operacion](database-operations.md#informes-durables-y-restauración).
 
 ## Descargas y límites
 
@@ -265,8 +268,8 @@ La ampliación descrita en la
 las rutas, permisos, cola y avisos anteriores. El catálogo definitivo de
 actuaciones está implementado, incluidas sesiones/resultados de audiencias y
 decisiones judiciales cautelares. La aceptación focal y el recorrido real del
-catálogo completo aprobaron. La integración requiere los gates de la revisión
-publicada, según el [inventario de cierre](technical-closure.md).
+catálogo completo aprobaron; PR92 integró la entrega, activa desde `v0.1.2`
+y conservada en `v0.1.6`, según el [inventario de cierre](technical-closure.md).
 La solicitud nueva es:
 
 ```json

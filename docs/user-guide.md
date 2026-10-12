@@ -3,12 +3,11 @@
 **Tu despacho, en orden.** Esta guía describe cómo trabajar con el prototipo
 Qadra y reconocer el resultado de cada operación. Los menús disponibles dependen
 de tu cuenta y de los expedientes asignados. **Informes** y la consulta de
-**Auditoría** están incluidos en la instalación privada. La versión desplegada
-`v0.1.1` todavía no incorpora las entregas posteriores de recuperación de contraseña,
-reingreso y acceso por certificado. Los apartados que las describen requieren
-una versión que las incluya y, cuando corresponda, su habilitación por el
-administrador; ver
-[estado de entregas e instalación](product-completion.md).
+**Auditoría** están incluidos en la instalación privada. Este manual corresponde
+a `v0.1.6`, que incluye invitaciones, recuperación de contraseña, reingreso,
+informes de actividad y firma individual. El acceso Owner por certificado
+requiere habilitación explícita y permanece separado de la firma documental;
+consulta el [estado de entregas e instalación](product-completion.md).
 
 Este manual se basa en las pantallas y contratos del producto. No es un informe
 de evaluación de usabilidad con personas ni acredita por sí mismo la puesta en
@@ -46,16 +45,16 @@ Si no dispones de la aplicación, selecciona **Usar código de recuperación** e
 introduce uno que no hayas utilizado. Cada código permite un solo uso. Si perdiste
 ambos medios, contacta al administrador: cambiar la contraseña no recupera el
 segundo factor perdido ni genera nuevos códigos. Si sólo perdiste la contraseña,
-usa el procedimiento siguiente cuando esté habilitado en tu instalación.
+usa el procedimiento siguiente; está habilitado en la instalación productiva.
 
 Usa **Cerrar sesión** al terminar. Cerrar sesión conserva los expedientes y sus
 archivos. No dependas de un cierre por inactividad para proteger una sesión abierta.
 
 ### Vincular mi certificado público
 
-Esta función pertenece a la ampliación local de identidad y todavía no está en
-la release privada `v0.1.1`. Su aceptación e integración se registran por separado
-en [el estado del producto](product-completion.md).
+La vinculación de acceso Owner es distinta del certificado de firma individual
+del Litigante. Ambas funciones están integradas; el inicio de sesión Owner por
+certificado conserva su activación operativa separada.
 
 El Owner dispone de **Mi certificado** para vincular un certificado público a
 su propia cuenta mediante una firma externa. Primero consulta si ya existe un
@@ -94,10 +93,11 @@ recuperación automática del desafío. Consulta el
 
 ### Si olvidaste la contraseña
 
-La recuperación está implementada e integrada en una versión posterior a
-`v0.1.1`; la instalación privada actual necesita actualizarse y configurarse
-antes de habilitarla. Confirma su disponibilidad con el administrador:
-ver el enlace del formulario no demuestra que el servicio de correo esté activo.
+La recuperación está activa en producción mediante Resend, con remitente
+`notificaciones@qadra.com.mx`. El enlace dura **15 minutos**, sólo puede haber
+**uno pendiente por cuenta** y las solicitudes para el mismo correo deben
+separarse **cinco minutos**. Una respuesta de solicitud aceptada no demuestra
+que el mensaje haya llegado a la bandeja.
 
 1. En la pantalla de acceso, selecciona **Olvidé mi contraseña**, escribe tu correo
    y pulsa **Solicitar enlace**. La respuesta es neutra: no confirma que exista una
@@ -118,7 +118,7 @@ reactiva una cuenta deshabilitada ni modifica su rol o sus asignaciones.
 
 ### Volver después de que venza la sesión
 
-En una versión que incluya reingreso, el vencimiento bloquea las peticiones y
+El vencimiento de sesión bloquea las peticiones y
 vuelve a mostrar el acceso. Autentícate con la **misma cuenta** y completa MFA;
 abre de nuevo el expediente y el editor. Los editores aceptados consultan tus
 permisos y los registros vigentes antes de mostrar lo que habías escrito. Esa
@@ -156,10 +156,24 @@ alerta concede acceso adicional a un expediente.
 
 ### Administrar el equipo y las asignaciones
 
-El administrador abre **Equipo** para crear una cuenta o consultar el directorio.
-Al crearla, conserva y entrega de forma privada la configuración inicial del
-segundo factor. El alta es directa: **no hay invitaciones por correo ni enlaces de
-aceptación implementados**.
+El administrador abre **Equipo** para consultar el directorio, crear una cuenta
+o usar **Invitaciones al despacho**. El alta directa conserva la entrega privada
+de la configuración inicial del segundo factor.
+
+Para invitar, completa **Correo de la invitacion**, elige **Rol de la invitacion**
+(Asistente o Litigante) y pulsa **Enviar invitacion**. El enlace vence en 24 horas.
+**Reenviar a…** seguido de **Confirmar reenvio** invalida el enlace y la preparación
+MFA anteriores. Si no llega una respuesta, usa **Comprobar invitacion** antes de
+**Reintentar el mismo envio**; **Retomar invitacion** conserva la intención
+recuperable. No supongas que el destinatario recibió el correo sólo por verlo
+aceptado por el proveedor.
+
+El invitado abre **Acepta tu invitacion**, define **Tu contrasena** y pulsa
+**Preparar segundo factor**. Guarda su clave y códigos privados, marca **Ya guarde
+mis codigos de recuperacion**, introduce el **Codigo de 6 digitos** y elige
+**Confirmar alta**. Sólo entonces se crea la cuenta; después inicia sesión con
+contraseña y MFA. Para retomar usa el mismo enlace y contraseña; ante respuesta
+perdida, **Comprobar resultado**. Véase el [contrato de invitaciones](member-invitations-api.md).
 
 Si vence tu sesión mientras completas **Nuevo integrante**, vuelve a entrar con
 la misma cuenta y MFA y pulsa **Retomar alta de integrante**. Qadra comprueba de
@@ -277,6 +291,23 @@ no demuestra una firma personal del usuario que pulsó el botón. Tampoco equiva
 a una constancia NOM-151 emitida por un PSC autorizado. Las declaraciones externas
 usadas en determinadas fichas de participantes son un flujo distinto.
 
+### Firmar personalmente una versión PDF
+
+La cuenta Litigante dispone de **Mi firma documental**. El titular genera y
+custodia su clave fuera de Qadra; la CA del despacho recibe solamente su CSR y
+entrega el certificado público. La vinculación exige una firma externa de la
+declaración exacta, sin adjuntar la clave privada ni su contraseña.
+
+En el historial de una versión PDF, elige **Firmar personalmente**. Descarga y
+revisa el PDF, firma sus bytes externamente, carga la firma y prepara el
+consentimiento. Confirma cuenta, expediente, versión, huella y certificado;
+firma también ese consentimiento fuera de Qadra y confirma la operación.
+**Consultar recibo de firma** permite comprobar una respuesta perdida sin crear
+otra operación. **Consultar estado de la firma** distingue evidencia histórica
+y estado actual del certificado. Los comandos y pasos completos están en la
+[guía de firma individual](individual-signing-guide.md). Esta función no convierte
+el sello del servidor en firma personal ni la TSA local en PSC autorizado.
+
 ## 6. Participantes, etapas y actuaciones declaradas
 
 En **Participantes**, Administrador y Litigante asignado pueden registrar,
@@ -305,6 +336,20 @@ una audiencia no declara que se celebró. Los resultados y resoluciones se regis
 por separado, con sus soportes y antecedentes; no se deducen de la programación.
 Los catálogos disponibles delimitan lo que puede registrarse.
 
+**Programar audiencia cautelar** permite elegir **Imposición de medidas cautelares**
+o **Revisión de medidas cautelares**. Completa la convocatoria y usa **Revisar
+convocatoria** antes de **Confirmar convocatoria**. Las acciones **Reprogramar
+audiencia cautelar** y **Cancelar audiencia cautelar** conservan su historia.
+Programarla no impone ni modifica una medida.
+
+En **Medidas cautelares**, usa **Registrar decision cautelar**, revisa la decisión
+expresa, su origen y las medidas declaradas, y sigue **Revisar decision** y
+**Confirmar decision**. **Registros de medidas** ofrece **Rectificar registro**,
+**Marcar registro por error** y **Corregir identidad registrada**; esas acciones
+conservan los antecedentes. La interfaz no decide procedencia ni supervisa
+cumplimiento. El [catálogo cautelar](precautionary-hearings-scope.md) conserva
+las catorce clases acordadas y sus permisos.
+
 Consulta [etapas](case-stages-api.md), [audiencias](hearings-api.md),
 [resultados de audiencia](hearing-results-api.md) y [hechos y resoluciones
 procesales](procedural-facts-api.md).
@@ -329,19 +374,19 @@ el recurso haya causado la alerta. Distingue siempre revisión capturada y regis
 actual, y usa la acción de regreso para volver al contexto abierto. Esta navegación
 está incluida en `v0.1.0`.
 
-La programación propia de audiencias de recursos tiene implementación local,
-aún sin integración ni despliegue. Desde las actividades, **Crear audiencia de
-recurso** pide fecha, hora, desfase, modalidad, lugar y fundamento con un soporte
+La programación propia de audiencias de recursos está integrada y desplegada.
+Desde las actividades, **Crear audiencia de recurso** pide fecha, hora, desfase, modalidad, lugar y fundamento con un soporte
 ya admitido. Puedes seleccionar un acto histórico y participantes exactos.
-Prepara, revisa las capturas y reconoce la programación antes de confirmar.
+Usa **Preparar audiencia y vínculo**, revisa las capturas y reconoce la
+programación antes de confirmar.
 Si el registro cambió, compara y acepta la base actual; no se reemplazan tus
 fuentes históricas. Si el envío quedó incierto, consulta su resultado antes de
 solicitar un reenvío exacto. La lista propia conserva la audiencia incluso si
-su vínculo se retira. Sus alertas de proximidad también tienen implementación
-local: usan las preferencias de audiencias y permiten abrir la captura original
+su vínculo se retira. Sus alertas de proximidad usan las preferencias de audiencias y permiten abrir la captura original
 desde **Mis alertas**, conservando expediente, recurso y fecha. Retirar el vínculo
-no cancela la cita ni borra el aviso histórico. La aceptación completa de este
-recorrido sigue pendiente; también la activación jurídica automática de plazos. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
+no cancela la cita ni borra el aviso histórico. La creación de plazos es expresa:
+requiere regla e insumos calificados, dentro del corpus aceptado; no se infiere
+una consecuencia jurídica universal. Referencias: [recursos](procedural-resources-api.md), [asociaciones](resource-activities-api.md),
 [plazos desde recursos](resource-deadlines-api.md) y
 [navegación desde actividades](activity-resource-links-api.md).
 
@@ -395,7 +440,7 @@ Cuando esté habilitado, el correo contiene un aviso genérico y acceso a Qadra,
 sin datos del expediente. Consultar una audiencia o activar una preferencia no
 confirma que se haya enviado un aviso. Véanse [alertas](alerts-api.md).
 
-### Audiencias de recursos en la entrega local
+### Audiencias de recursos y cautelares en Agenda
 
 Selecciona **Audiencias de recursos** para limitar la consulta a esa familia.
 Abre su tarjeta para consultar la fecha declarada con su desfase, el lugar, la
@@ -407,41 +452,54 @@ el señalamiento haya sido confirmado por una autoridad. El expediente cerrado
 o recurso archivado conserva consulta histórica cuando tienes permiso actual.
 Actualizar o cambiar la consulta descarta un detalle pendiente. Esta lectura
 no crea, cancela ni reprograma la audiencia. Véase el
-[contrato propio](resource-hearings.md).
+[contrato propio](resource-hearings.md). El filtro **Audiencias cautelares** muestra
+sus convocatorias con origen propio; no crea una fila por medida ni duplica una
+audiencia inicial usada como antecedente de la decisión.
 
 ## 9. Informes
 
-Administrador y Litigante pueden abrir **Informes** para solicitar una captura del
-estado administrativo observado. Cada persona consulta únicamente sus propias
-solicitudes. El administrador incluye expedientes del despacho; el litigante,
-los que tiene asignados y puede consultar.
+Administrador y Litigante pueden abrir **Informes**. Cada persona consulta
+únicamente sus propias solicitudes. El administrador incluye expedientes del
+despacho; el litigante, los que tiene asignados y puede consultar.
 
-1. En **Solicitar informe**, elige **Creación desde (UTC)** y **Creación hasta
-   (excluida, UTC)**, estado administrativo y, opcionalmente, litigante asignado.
-2. El inicio se incluye y el final se excluye, ambos a las 00:00 UTC; el intervalo
-   máximo es 366 días. Para incluir todo septiembre, usa 1 de septiembre a
-   1 de octubre. El selector considera también compañeros de expedientes cerrados;
-   usa **Cargar más litigantes** cuando haya otra página.
-3. Selecciona **Generar informe** y conserva su identidad. Puedes salir de la
-   pantalla y volver; usa **Actualizar informe** para consultar el progreso.
-4. Cuando esté listo, descarga PDF o CSV. Ambos contienen la misma captura y no
-   cambian porque el expediente se modifique después.
-5. Usa **Marcar aviso como leído** para acusar el aviso interno. Descargar un
-   archivo no realiza ese acuse.
+1. En **Solicitar informe**, elige **Tipo de informe**: **Estado y carga de
+   expedientes** o **Actividad por litigante**.
+2. Define el periodo: **Creación desde (UTC)** y **Creación hasta (excluida, UTC)**
+   para estado/carga, o las fechas de **Actividad** para actividad. El inicio se
+   incluye y el final se excluye, ambos a las 00:00 UTC; máximo 366 días. Para
+   incluir septiembre completo, usa 1 de septiembre a 1 de octubre.
+3. Elige el estado administrativo y, opcionalmente, **Litigante asignado** o
+   **Litigante autor**, según el tipo. Usa **Cargar más litigantes** si hay otra
+   página; no confundas la lista visible con el conjunto completo.
+4. Pulsa **Generar informe** y conserva su identidad. Puedes salir y volver;
+   **Actualizar informe** consulta su progreso. Cuando esté listo, descarga PDF
+   y CSV: ambos pertenecen a la misma captura y no cambian con ediciones posteriores.
+5. **Marcar aviso como leído** acusa el aviso interno; descargar no lo acusa.
 
-En versiones que incluyen **Duración observada**, el detalle disponible o fallido
-muestra el tiempo transcurrido desde la solicitud hasta el resultado registrado,
-incluyendo espera y reintentos. Leer el aviso no aumenta ese tiempo. No aparece
-en trabajos pendientes ni predice cuándo terminarán; esta ampliación aún no forma
-parte de `v0.1.0`.
+**Estado y carga** filtra la creación original del expediente y muestra su estado
+observado al capturar. No reconstruye el estado al final del periodo.
+**Actividad por litigante** filtra la fecha de registro confirmado y cuenta tres
+cantidades por autor original: documentos cargados, actuaciones registradas y
+plazos atendidos. Reasignar un expediente no cambia esa autoría; corregir o
+reintentar una operación no agrega otra actividad. Una advertencia de cobertura
+documental histórica incompleta significa que no se conocen todos los orígenes
+antiguos; no se deben interpretar como ceros demostrados. Ninguno de los tipos
+mide éxito jurídico ni produce una firma documental o constancia de PSC.
 
-El periodo filtra **cuándo se crearon los expedientes**. El contenido muestra su
-estado observado al preparar la captura; no reconstruye el estado al final del
-periodo ni mide la actividad o el éxito jurídico. No incluye una firma documental
-ni una constancia de PSC. Una pérdida posterior de permisos puede impedir la
-consulta o descarga completa.
+**Estimación inicial** incluye la espera prevista en cola y queda fijada al
+solicitar. Puede indicar **Estimación no disponible.** si faltan observaciones
+comparables. **Duración observada** muestra después el tiempo registrado hasta
+el resultado, incluidos espera y reintentos; no es una predicción.
 
-Si una respuesta es incierta, **Reintentar solicitud** conserva la misma solicitud
+Sólo una estimación inicial **mayor de dos segundos** genera intención de correo
+al quedar disponible el informe. El aviso no contiene adjuntos ni datos del
+expediente: abre Qadra y exige autenticación para descargar. **Correo aceptado por
+el proveedor** no confirma recepción en bandeja. Un problema de correo no impide
+la descarga autorizada; estimación ausente o de hasta dos segundos no genera ese
+aviso. El aviso interno mantiene su recorrido independiente.
+
+Una pérdida posterior de permisos puede impedir consultar o descargar la captura.
+Si la respuesta es incierta, **Reintentar solicitud** conserva la misma solicitud
 y filtros. Si se excede la capacidad, reduce el conjunto y solicita otro informe;
 no se recortan filas para aparentar un resultado completo. Consulta
 [el alcance de informes](case-reports-api.md).
@@ -458,12 +516,13 @@ registrada. La acción **Verificar cadena** es independiente de esa consulta.
    de hasta 366 días. Para consultar un día completo, usa ese día como inicio y
    el siguiente como final.
 2. Opcionalmente completa **Actor registrado**, **Operación registrada** y
-   **Recurso registrado**. Copia el texto exacto de un evento conocido: mayúsculas
-   y espacios cuentan. No son búsquedas por parte del nombre. Dejar un campo
+   **Recurso registrado**. Actor admite el texto o UUID exacto capturado.
+   Copia los valores de un evento conocido: mayúsculas y espacios cuentan. No son búsquedas por parte del nombre. Dejar un campo
    vacío omite ese filtro.
 3. Elige 20, 50 o 100 eventos por página y pulsa **Consultar actividad**.
-4. Revisa la fecha exacta, actor, operación, recurso y secuencia que quedaron
-   registrados. Si no hay coincidencias, amplía el periodo o revisa los filtros;
+4. Revisa fecha exacta, actor, operación, recurso y secuencia, además de
+   **Identidad de cuenta**, **IP de origen**, **Origen** y **Resultado** cuando
+   estén disponibles. Si no hay coincidencias, amplía el periodo o revisa los filtros;
    una página vacía no demuestra que la bitácora completa esté vacía.
 5. Usa **Cargar siguiente página** mientras esté disponible. Cada página
    reemplaza la anterior y conserva el mismo corte de actividad; los eventos
@@ -472,8 +531,11 @@ registrada. La acción **Verificar cadena** es independiente de esa consulta.
    página. Cambiar cualquier filtro también borra el resultado anterior; pulsa
    **Consultar actividad** para obtener otro resultado.
 
-El actor y el recurso son textos históricos. No se deduce una identidad personal
-comprobada ni una dirección IP a partir de ellos. La pantalla conserva la fecha
+El actor y el recurso conservan sus textos históricos. El contexto nuevo
+identifica la cuenta y la IP observada por el transporte cuando existen; no
+acredita por sí mismo identidad civil. Los valores antiguos ausentes permanecen
+**No disponible**: no se reconstruyen UUID, IP, origen o resultado a partir del
+texto. IP, origen y resultado se consultan en el evento; no son filtros separados. La pantalla conserva la fecha
 exacta del registro; no la presenta como una fecha de verificación criptográfica.
 Cerrar sesión elimina los resultados privados de la pantalla. Si pierdes permiso,
 solicita al administrador que revise tu cuenta; no compartas sesiones para abrirlos.
@@ -495,7 +557,7 @@ cabecera. Consulta [el alcance de auditoría](audit-events-api.md).
 
 | Situación | Qué hacer |
 | --- | --- |
-| Sesión vencida o acceso invalidado | Entra de nuevo con la misma cuenta y MFA; en versiones con reingreso, abre el editor para consultar su contexto y recuperar el borrador admitido. Si desapareció un permiso o expediente, pide al administrador que revise rol y asignación. |
+| Sesión vencida o acceso invalidado | Entra de nuevo con la misma cuenta y MFA; abre el editor para consultar su contexto y recuperar el borrador admitido. Si desapareció un permiso o expediente, pide al administrador que revise rol y asignación. |
 | Otra persona modificó el registro | Conserva el borrador, consulta el estado y la historia actuales, compara y confirma de nuevo cuando corresponda. No des por aplicado el envío rechazado. |
 | Se perdió la respuesta de una escritura | Usa la consulta o comprobación ofrecida para ese envío. No repitas automáticamente altas, sellados o confirmaciones. Si sigue incierto, conserva los datos y pide ayuda. |
 | Archivo rechazado | Lee el motivo, verifica formato y tamaño, conserva el original y vuelve a enviar sólo tras decidir la corrección. Cambiar el nombre no repara el contenido. |
@@ -511,13 +573,14 @@ necesario para atender el problema.
 
 ## 12. Alcance del manual y evaluación pendiente
 
-Este documento permite preparar recorridos de acceso, asignación, carga,
-versionado, sellado, verificación, registro procesal y consulta. Las funciones
-pendientes —invitaciones, recuperación del enrolamiento, política documental de
-Cliente y las entregas señaladas expresamente— no deben incluirse como tareas
-completadas en una demostración. La recuperación de contraseña implementada y
-los borradores requieren comprobar la versión y la habilitación concretas antes
-de demostrarlos; no se atribuyen a la release privada anterior.
+Este documento permite preparar recorridos de acceso, invitaciones, recuperación,
+asignación, carga, versionado, sellado, firma individual, registro procesal e
+informes ya entregados. La política documental de Cliente, la duración de
+inactividad y la eventual activación de acceso Owner por certificado siguen
+requiriendo decisiones humanas. La firma personal necesita al titular con su
+clave externa; el manual no acredita que esa demostración ya se haya realizado.
+La [aceptación productiva](production-acceptance.md) distingue lo comprobado en la
+instalación real de los ensayos técnicos y de lo aún pendiente.
 
 La evaluación con usuarios dispone de un [kit y protocolo de observación](usability/README.md):
 participantes y consentimiento, tareas, criterios de éxito, observaciones y

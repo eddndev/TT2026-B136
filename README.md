@@ -10,6 +10,16 @@ Escuela Superior de Cómputo (ESCOM) — Instituto Politécnico Nacional (IPN).
 - **Directora:** Sandra Díaz Santiago
 - **Periodo:** 2026-2
 
+## Estado vigente
+
+Al 12 de octubre de 2026, `v0.1.6` está activa sobre
+`671d356c428fd01d26a1fa80eb182bc1f526813e`. Los cuatro frentes procesales y el
+corpus jurídico finito de ocho supuestos están aceptados, integrados y desplegados.
+El [inventario técnico](docs/technical-closure.md) delimita lo entregado y los
+pendientes humanos; la [aceptación productiva](docs/production-acceptance.md)
+registra informes, recuperación y conciliación documental. El
+[manual de uso](docs/user-guide.md) describe la interfaz vigente.
+
 ## Contenido
 
 - [`latex/`](latex/) — fuente LaTeX del documento (compila con LuaLaTeX).
@@ -46,8 +56,9 @@ permanecen fuera de él.
 
 El [registro conjunto de resultado de audiencia y plazo configurado](docs/hearing-derived-deadlines.md)
 incorpora revisión explícita y recuperación sin duplicar el envío. El contrato
-registra la aceptación nativa de API, restauración y navegador; la integración
-remota y las reglas jurídicas que todavía requieren calificación siguen pendientes.
+registra la aceptación de API, restauración y navegador. Está integrado y activo;
+el [corpus finito](docs/four-front-closure.md) acepta ocho supuestos expresos.
+Fuera de esas condiciones se bloquea el cálculo, sin prometer cobertura universal.
 
 El prototipo se desarrolla como un workspace de Cargo con arquitectura
 hexagonal. Los crates viven bajo [`crates/`](crates/):
@@ -263,10 +274,10 @@ expedientes; Client queda denegado. Conserva ámbito, cobertura civil, reglas,
 excepciones y referencias
 públicas declaradas, con historia auditada. No descarga el contenido de las URL.
 Las campañas de API/restauración, cobertura y navegador pasaron. El código está
-integrado en `main`; la actualización integral del manuscrito sigue pendiente.
-El registro persistente de plazos ya tiene API e interfaz Qadra V1. La
-reevaluación tiene puertos internos de despacho y consumo; su composición en
-servidor y Qadra V2, los recursos procesales y las alertas siguen pendientes.
+integrado en `main` y desplegado. El registro persistente, reevaluación,
+composición en servidor, Qadra, recursos procesales y alertas están entregados;
+[verificación](docs/verification-report.md) distingue sus aceptaciones técnicas
+del estudio con personas y cierre académico aún pendientes.
 
 La [aritmética de plazos](docs/deadline-arithmetic.md) calcula candidatas de días,
 meses civiles y horas con reglas matemáticas explícitas, trazas y bloqueos por
@@ -285,8 +296,8 @@ corte civil explícito sin fabricar horas. La API del catálogo y su restauraci�
 jurídica. Las [evaluaciones persistentes](docs/deadline-records.md) y Qadra V1
 ya conservan cálculo, responsable, atención e historia. El seguimiento V2 tiene
 persistencia humana, [despacho](docs/deadline-dispatch.md) y
-[consumo durable](docs/deadline-worker.md), todavía sin composición en `serve`
-ni interfaz HTTP/Qadra V2. Activación, agenda conjunta y alertas siguen pendientes.
+[consumo durable](docs/deadline-worker.md), composición en `serve`, HTTP/Qadra,
+Agenda y alertas integrados y activos en la versión vigente.
 El [contrato de ciclo de vida](docs/deadline-lifecycle.md) conserva ese alcance
 completo; [la guía de operación](docs/database-operations.md) explica las nuevas
 tablas y el registro durable de cambios.

@@ -4,8 +4,9 @@
 
 El núcleo `application::identity::password_reset` separa la capacidad y su
 consumo de la activación operativa. Los adaptadores de correo, HTTP y formulario
-se describen en [el transporte público](password-reset-public.md); su aceptación
-local no habilita recuperación en el despliegue.
+se describen en [el transporte público](password-reset-public.md). La instalación
+productiva tiene recuperación habilitada con Resend y límites aprobados; esa
+activación se acredita por separado de la aceptación local del núcleo.
 La API de recuperación MFA existente sigue consumiendo un código después de
 verificar la contraseña; no debe presentarse como recuperación de contraseña.
 La [decisión transaccional](adr/0066-atomic-password-recovery.md) explica el diseño.
@@ -139,16 +140,19 @@ sombreado de funciones a través del `search_path` recibido.
 Es una primitiva interna para un controlador administrativo. El llamador debe
 mantener detenidos los escritores y cerrado el acceso durante toda la restauración
 SQL/Redis. El [CLI administrativo](database-restore-commands.md) expone la
-primitiva con un predecesor e identificador explícitos; el controlador de
-despliegue todavía no la invoca ni se ha demostrado la recuperación operacional
-completa. Restaurar SQL
-puede recuperar una contraseña antigua; cancelar enlaces no corrige ese efecto.
+primitiva con un predecesor e identificador explícitos. La
+[restauración administrativa](deployment-backups.md) debe coordinar su uso y la
+invalidación selectiva de Redis con entrada cerrada. La instalación aceptada de
+controladores de mantenimiento no equivale a automatizar esa restauración
+completa; se conservan los ensayos registrados en [verificación](verification-report.md). Restaurar SQL puede
+recuperar una contraseña antigua; cancelar enlaces no corrige ese efecto.
 
-## Activación pendiente
+## Activación y aceptación diferenciadas
 
-La activación requiere, además, entrega coherente y configurada, limitación del
-transporte público, protección de URLs y secretos, comportamiento ante respuestas
-perdidas, retención y coordinación de restauración con bloqueo durable del acceso.
-La aceptación de contraseña nueva más MFA existente ya es local; no sustituye
-la aceptación del recorrido HTTP ni de la entrega real. El estado detallado de pruebas pertenece al
+El transporte público, la protección de URLs, la respuesta incierta y la
+coordinación de restauración conservan sus aceptaciones técnicas. Resend está
+activo; el uso real de recuperación fue confirmado por el usuario el 12 de
+octubre de 2026. La confirmación humana no atribuye una nueva comprobación
+productiva a cada negativo del ensayo HTTP compuesto. El detalle está en
+[aceptación productiva](production-acceptance.md) y en el
 [informe de verificación](verification-report.md).
