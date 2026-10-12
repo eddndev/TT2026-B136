@@ -1,5 +1,54 @@
 # Informe de verificación local
 
+## Corpus finito y cierres semanales: 12 de octubre de 2026 UTC
+
+Las ocho fichas de [investigación](legal-corpus-investigation.md),
+[recursos](legal-corpus-resources.md) y [calendario/canal](legal-corpus-calendar.md)
+distinguen fuentes primarias de datos ficticios. Los resultados se enumeraron
+independientemente del evaluador. No se exige un expediente judicial publicado
+con fechas idénticas ni se atribuye revisión jurídica humana externa.
+
+La ventanilla ordinaria elegida cierra a distinta hora el viernes. Se reprodujo
+la falta de representación de ese horario antes de incorporar
+`WeeklyCivilCutoff`: siete horas opcionales, intervalo, desfase, canal y fuente
+explícitos. Selecciona el día de la candidata sin desplazarlo; fuera de cobertura
+bloquea el vencimiento. La etiqueta canónica nueva no cambia las anteriores y
+no requiere migración SQL. HTTP valida estrictamente las siete posiciones;
+Qadra muestra los horarios y distingue el cierre de canal de caducidad general.
+
+TDD focal RED/GREEN: tres comprobaciones de aplicación, tres de HTTP y tres
+de cliente; veinte comprobaciones de las fichas y cantidades. Compilación del
+binario aprobada. Son comprobaciones focales, no la regresión completa de cierre.
+
+La campaña nativa con PostgreSQL, Redis y HTTP reales aprobó captura, reinicio
+y restauración a otra base: ocho positivos, un extremo de inhábiles y diez
+negativos. Los nueve cierres operativos coinciden con los esperados, figuran en
+Agenda y producen alertas internas con su origen exacto. Los diez negativos
+carecen de vencimiento operativo. Historia, perfiles, fuentes, recibos y
+reintentos conservan identidad; la auditoría sigue válida después de recuperar
+acceso mediante MFA. No se enviaron mensajes externos ni se usaron datos reales.
+
+Las preparaciones fallidas se conservan separadas: faltó la ruta local del
+decodificador; un fixture usó una forma de excepción de calendario incorrecta;
+otro puso una audiencia en el futuro; y un negativo esperaba bloqueo de
+extracción cuando el ancla desconocida se bloquea en aritmética. Se corrigió el
+arnés sin debilitar las validaciones de producto. La evidencia aceptada procede
+de una ejecución completa posterior, no de sumar ejecuciones interrumpidas.
+
+Qadra con servicios reales aprobó escritorio (1440 px) y móvil (390 px):
+las ocho fechas, el extremo inhábil, referencias exactas, calendario capturado,
+horario semanal y bloqueo por efecto de notificación ausente. Playwright informó
+26.7 segundos, sin errores JavaScript, escrituras inesperadas ni desborde lateral.
+Se conservaron capturas de horarios y del motivo de bloqueo para inspección.
+La regresión API completa posterior aprobó en **606.453 s**, con las funciones
+previas y el corpus en la misma campaña, reinicios y restauración. La captura
+global de audiencias incorpora únicamente la nueva audiencia conocida y exige
+que las anteriores permanezcan iguales. Un Owner dedicado separa preferencias
+y MFA del corpus. La reevaluación existente conservó su historia ante cambios
+de calendario/fuente y no duplicó revisiones después de reiniciar. No fue
+necesario repetir esa campaña completa. Manuscrito y gates finales se verifican
+por separado; este corte no acredita integración ni activación productiva.
+
 ## Final exacto de audiencia: comprobacion focal del 11 de octubre de 2026
 
 Se reprodujo la falta de una regla sin suma para conservar el final calificado

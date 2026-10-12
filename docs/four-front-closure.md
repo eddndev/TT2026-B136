@@ -2,25 +2,28 @@
 
 ## Frontera y estado reconciliado
 
-La tabla siguiente delimita los cuatro frentes y distingue su cierre del
-corpus jurídico todavía pendiente. La continuación
+La tabla siguiente delimita los cuatro frentes y distingue su cierre de la
+aceptación final del corpus jurídico, actualmente en curso. La continuación
 del resto de pendientes técnicos autorizados se delimita por separado en
 [el inventario de cierre técnico](technical-closure.md); no autoriza funciones
 nuevas a partir de decisiones técnicas. El código existente se conserva. Un pendiente solo se
 agrega si impide una aceptación de esta lista o corrige un defecto reproducido;
 se identifica el comportamiento afectado antes de implementar.
 
-Corte del 8 de octubre de 2026: la tabla describe el estado entregado con la
-integración de PR90 sobre main `46dc1c1`, que ya incorpora PR91. La evidencia
-funcional está conservada en el informe de verificación; los gates se contrastan
-con el HEAD exacto de cada PR. Los respaldos no son integraciones ni despliegues.
+La base confirmada en main y producción es `3794181`, versión `v0.1.5`, con
+PR98 y PR99 integradas. Conserva el flujo cautelar de PR90 y las entregas
+posteriores; auditoría y respaldo Redis están resueltos. Las fichas del corpus
+están completas documentalmente. `AtAnchor` y el cierre civil semanal están
+implementados localmente, todavía sin integrar. La evidencia funcional se
+conserva en el [informe de verificación](verification-report.md); los gates se
+contrastan con el HEAD exacto. Los respaldos no son integraciones ni despliegues.
 
 | Frente | Integrado | Implementado sin integrar | Faltante concreto |
 | --- | --- | --- | --- |
-| Reglas de cálculo | Motor de horas/días/meses, perfiles versionados, calendario, explicación, reevaluación, Agenda y alertas. | No se acredita un corpus jurídico adicional terminado. | Calificar y aceptar los supuestos finitos indicados abajo; la aritmética sintética no prueba la regla aplicable. |
+| Reglas de cálculo | Motor de horas/días/meses, perfiles versionados, calendario, explicación, reevaluación, Agenda y alertas. | `AtAnchor` para el fin de audiencia, cierre civil semanal y fixtures de los ocho supuestos documentados; HTTP/Qadra y regresión API con recuperación aprobados localmente. | Completar manuscrito y gates del corpus. Fuentes, ámbito, condiciones y resultados independientes ya están fijados en sus fichas. |
 | Resultado y plazo derivado | Creación explícita conjunta, origen exacto, regla seleccionada, historial, Agenda, alertas y recuperación sin duplicados. | Ningún incremento necesario para rehacer este mecanismo. | Aplicar los perfiles jurídicos aceptados al recorrido existente. La falta de esos perfiles pertenece al primer frente. |
 | Audiencias de recursos | Alegatos de apelación y revocación escrita, permisos, origen, historia, Agenda, alertas y Qadra. | Ningún incremento necesario dentro de su contrato. | Preservar su aceptación; corregir resúmenes antiguos que todavía dicen no integrado. |
-| Cautelares y catálogo | Flujo completo de PR90: dominio, servicios, PostgreSQL, HTTP, Agenda, alertas y Qadra; convocatorias, decisiones y rectificaciones con recuperación, navegador real, reinicios/restauración y manuscrito separado aceptados. | Ningún incremento funcional pendiente dentro del catálogo cerrado. | Ninguno tras integrar esta revisión y confirmar main. No incluye el corpus jurídico del primer frente ni despliegue. |
+| Cautelares y catálogo | Flujo completo de PR90: dominio, servicios, PostgreSQL, HTTP, Agenda, alertas y Qadra; convocatorias, decisiones y rectificaciones con recuperación, navegador real, reinicios/restauración y manuscrito separado aceptados. Conservado en la base productiva actual. | Ningún incremento funcional pendiente dentro del catálogo cerrado. | Ninguno en este frente. No incluye la aceptación del corpus jurídico del primer frente. |
 
 Los [resultados/plazos derivados](hearing-derived-deadlines.md) y las
 [audiencias de recursos](resource-hearings.md) conservan sus contratos. No se
@@ -49,6 +52,23 @@ jurídica. Cada modalidad de notificación admitida debe quedar nombrada en el
 perfil y sustentada; una modalidad no calificada queda fuera de su aplicación.
 No incorporar otros recursos, incidentes o términos por analogía.
 
+Las fichas de [investigación y prórroga](legal-corpus-investigation.md),
+[seis recursos](legal-corpus-resources.md) y
+[calendario y canales](legal-corpus-calendar.md) fijan fuentes primarias,
+versiones, localizadores, condiciones y resultados independientes para las ocho
+filas. El caso controlado es penal local de CDMX; ya están delimitadas las
+notificaciones personales y la ventanilla ordinaria UGJ. No se exige un
+expediente publicado idéntico ni revisión externa obligatoria de los ocho casos.
+
+Los meses dependen de una orden ficticia expresa de fecha a fecha y cierre a
+las 18:00 -06:00, separado del horario de ventanilla. La prórroga exige concesión
+y acumulado expresamente calificados, sin inferencia de historia. La revocación
+oral toma el fin declarado de la audiencia del 09-10-2026 mediante `AtAnchor`.
+Las cinco fichas por días incluyen los efectos declarados del 15-10-2026 y el
+cierre semanal documentado. El extremo escrito del 29-10 cruza los inhábiles
+publicados del 30-10 y 02-11. Estas condiciones cierran la selección documental;
+su implementación local y aceptación final se distinguen de la integración.
+
 El compromiso de investigación se encuentra en
 [análisis y diseño](../latex/chapters/03-analisis-diseno.tex): HU-20, CU-08 y los
 criterios RF-07 y RF-08. El alcance de recursos está explícito en
@@ -75,11 +95,16 @@ Para aceptar cada fila del corpus deben existir:
 - Motivo visible y ningún vencimiento operativo inventado cuando falta un dato.
   Una regla jurídica todavía sin fundamento no se declara terminada por devolver
   siempre un bloqueo.
-- Recorrido con fuente real en el flujo integrado, fecha calculada visible y
-  alertas del término operativo, sin duplicación y con historia preservada.
+- Recorrido con la fuente normativa real y registros de prueba ficticios
+  identificados en el flujo existente, fecha calculada visible y alertas del
+  término operativo, sin duplicación y con historia preservada.
 
 Las contradicciones entre redacción académica y fundamento se reportan como
 una decisión concreta; no se resuelven cambiando objetivos ni ampliando el motor.
+Las fuentes y los esperados anteriores ya satisfacen la parte documental de
+estos criterios. La aceptación final en curso aportará sus resultados; no se
+declara aprobada por contar con fixtures. Una condición desconocida, rechazada
+o ajena a las fichas bloquea el vencimiento operativo y no exige ampliar el plan.
 
 ## Catálogo definitivo de audiencias
 
@@ -107,15 +132,17 @@ defecto demostrado que impida estos recorridos.
 Quedan fuera: recomendar medidas, decidir procedencia, supervisar cumplimiento,
 extraer obligaciones del texto, concluir medidas por el reloj o cierre del
 expediente, crear plazos cautelares automáticamente y sumar 48 horas por elegir
-revisión. Tampoco se rediseña Qadra ni se habilitan decisiones pendientes de
-Owner, correo, inactividad o activación en VPS3.
+revisión. Tampoco se rediseña Qadra ni se infieren las decisiones humanas
+pendientes de cuenta/correo Owner, inactividad o política documental Client.
 
 ## Secuencia y condición de término
 
 HTTP, Agenda/alertas y Qadra cautelares completaron sus recorridos; la aceptación
 real incluye restauración y conciliación de API, operación y manuscrito. PR90
-entrega el flujo unido. El siguiente pendiente procesal es el corpus jurídico
-sobre el mecanismo de plazos ya integrado, sin reescribirlo.
+entrega el flujo unido, conservado en la base productiva actual. El pendiente
+procesal es terminar la aceptación del corpus jurídico ya documentado sobre el
+mecanismo de plazos existente, con `AtAnchor` y cierre semanal implementados
+localmente. No se reescribe el mecanismo ni se reabren auditoría o respaldo.
 
 La integración exige todos los gates para el HEAD exacto, squash y confirmación
 posterior de main. No se repiten aceptaciones válidas por una actualización del
@@ -124,5 +151,8 @@ como resultado separado antes de sustituirlo.
 
 El cierre se mide por las filas anteriores aceptadas y por main confirmado,
 no por tamaño del código, commits, número de pruebas o consumo. Una aceptación
-aprobada no se reabre por una mejora opcional. La falta de datos jurídicos se
-presenta con el supuesto y decisión faltantes, sin una investigación indefinida.
+aprobada no se reabre por una mejora opcional. Los datos jurídicos de los ocho
+supuestos están delimitados; las condiciones fuera de ellos se presentan como
+un bloqueo concreto, sin una investigación indefinida. La evaluación con
+participantes reales mantiene su propia necesidad de personas y resultados
+reales; las pruebas automáticas del corpus no la sustituyen.

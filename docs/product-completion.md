@@ -1,5 +1,23 @@
 # Cierre funcional del prototipo web
 
+## Corpus finito: aceptación local del 12 de octubre de 2026 UTC
+
+Las ocho fichas CNPP para el caso de estudio CDMX ya tienen fuentes primarias,
+notificación y canales explícitos y esperados independientes. Investigación y
+prórroga requieren duración y método judicial expresos; los máximos no rellenan
+datos ausentes. La revocación oral conserva el final calificado; los recursos
+escritos distinguen sus propios supuestos y el cierre semanal de ventanilla.
+Véanse [las fichas](legal-corpus-resources.md), [investigación](legal-corpus-investigation.md)
+y [calendario](legal-corpus-calendar.md).
+
+`AtAnchor` y el cierre semanal están implementados localmente. HTTP real,
+reinicio/restauración, Agenda, alertas y Qadra escritorio/móvil reprodujeron los
+ocho positivos, un extremo inhábil y diez bloqueos. La regresión API completa
+aprobó en 606.453 s; los gates de integración/activación se comprueban aparte. Main y producción conservan
+`3794181`/`v0.1.5`. No se incorporan retención, vinculación ni acusación teóricas,
+ni se exige al usuario revisar ocho expedientes. El
+[inventario técnico](technical-closure.md) distingue las decisiones humanas restantes.
+
 ## Estado actual al 11 de octubre de 2026
 
 Corte conciliado del 11 de octubre de 2026: PR95 integro firma individual;

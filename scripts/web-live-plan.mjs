@@ -20,6 +20,7 @@ export const fixtureNames = [
   "auditEvents",
   "judicialCalendars",
   "deadlines",
+  "legalCorpus",
   "deadlineReevaluation",
   "combinedAgenda",
   "ownerCertificates",
@@ -28,6 +29,7 @@ export const fixtureNames = [
 ];
 
 const families = [
+  [/^legal-corpus-real\./, 1, ["legalCorpus"]],
   [/^individual-signing-real\./, 3, ["individualSigning"]],
   [/^precautionary-hearings-real\./, 3, ["precautionaryHearings"]],
   [/^owner-certificates\./, 3, ["ownerCertificates"]],

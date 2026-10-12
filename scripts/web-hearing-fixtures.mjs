@@ -1,4 +1,5 @@
 import { provisionPrecautionaryHearings } from "./web-precautionary-fixtures.mjs";
+import { provisionLegalCorpus } from "./web-legal-corpus-fixtures.mjs";
 import { provisionAuditEvents } from "./web-audit-event-fixtures.mjs";
 import { provisionOwnerCertificates } from "./web-owner-certificate-fixtures.mjs";
 import { provisionIndividualSigning } from "./web-individual-signing-fixtures.mjs";
@@ -91,6 +92,7 @@ try {
       Object.fromEntries(
         Object.entries({
           precautionaryHearings: () => provisionPrecautionaryHearings(request),
+          legalCorpus: () => provisionLegalCorpus(request),
           hearingResults: () => provisionHearingResults(request),
           hearingDerivedDeadlines: () =>
             provisionHearingDerivedDeadlines(request),
