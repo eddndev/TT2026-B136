@@ -59,6 +59,15 @@ reloj detenido, respuestas tardías y MFA. Es una corrección del aislamiento de
 fixture; no cambia el producto ni sus permisos. Esa campaña cancelada no acredita
 la regresión remota completa.
 
+La segunda campaña encontró un HTTP 500 en la lectura de preferencias cautelares
+solapada con las consultas iniciales del tablero. La auditoría final fue durable
+y el servidor registró contención concurrente; el registro no identifica el
+SQLSTATE de esa solicitud. El fixture espera ahora respuestas 200 completas del
+tablero y, para Owner, de incidentes antes de sus comprobaciones API secuenciales.
+No añade reintentos, tolerancia a errores ni cambios de tiempos de espera. Los
+dos recorridos cautelares completos con servicios reales aprobaron en escritorio
+y móvil; la campaña remota siguiente conserva su función de gate.
+
 ## Final exacto de audiencia: comprobacion focal del 11 de octubre de 2026
 
 Se reprodujo la falta de una regla sin suma para conservar el final calificado
