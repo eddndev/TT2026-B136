@@ -1,4 +1,4 @@
-use super::DeadlineCivilCutoff;
+use super::{DeadlineCivilCutoff, DeadlineWeeklyCivilCutoff};
 use domain::{
     cases::CaseId,
     deadline_arithmetic::ArithmeticOutcome,
@@ -22,6 +22,7 @@ pub enum DeadlineCompletionPolicy {
     ArithmeticInstant,
     CivilCandidateOnly,
     CivilCutoff(DeadlineCivilCutoff),
+    WeeklyCivilCutoff(DeadlineWeeklyCivilCutoff),
 }
 
 /// An explicit condition whose applicability must be declared for the case.

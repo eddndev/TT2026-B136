@@ -1,5 +1,103 @@
 # Informe de verificación local
 
+## Corpus finito y cierres semanales: 12 de octubre de 2026 UTC
+
+Las ocho fichas de [investigación](legal-corpus-investigation.md),
+[recursos](legal-corpus-resources.md) y [calendario/canal](legal-corpus-calendar.md)
+distinguen fuentes primarias de datos ficticios. Los resultados se enumeraron
+independientemente del evaluador. No se exige un expediente judicial publicado
+con fechas idénticas ni se atribuye revisión jurídica humana externa.
+
+La ventanilla ordinaria elegida cierra a distinta hora el viernes. Se reprodujo
+la falta de representación de ese horario antes de incorporar
+`WeeklyCivilCutoff`: siete horas opcionales, intervalo, desfase, canal y fuente
+explícitos. Selecciona el día de la candidata sin desplazarlo; fuera de cobertura
+bloquea el vencimiento. La etiqueta canónica nueva no cambia las anteriores y
+no requiere migración SQL. HTTP valida estrictamente las siete posiciones;
+Qadra muestra los horarios y distingue el cierre de canal de caducidad general.
+
+TDD focal RED/GREEN: tres comprobaciones de aplicación, tres de HTTP y tres
+de cliente; veinte comprobaciones de las fichas y cantidades. Compilación del
+binario aprobada. Son comprobaciones focales, no la regresión completa de cierre.
+
+La campaña nativa con PostgreSQL, Redis y HTTP reales aprobó captura, reinicio
+y restauración a otra base: ocho positivos, un extremo de inhábiles y diez
+negativos. Los nueve cierres operativos coinciden con los esperados, figuran en
+Agenda y producen alertas internas con su origen exacto. Los diez negativos
+carecen de vencimiento operativo. Historia, perfiles, fuentes, recibos y
+reintentos conservan identidad; la auditoría sigue válida después de recuperar
+acceso mediante MFA. No se enviaron mensajes externos ni se usaron datos reales.
+
+Las preparaciones fallidas se conservan separadas: faltó la ruta local del
+decodificador; un fixture usó una forma de excepción de calendario incorrecta;
+otro puso una audiencia en el futuro; y un negativo esperaba bloqueo de
+extracción cuando el ancla desconocida se bloquea en aritmética. Se corrigió el
+arnés sin debilitar las validaciones de producto. La evidencia aceptada procede
+de una ejecución completa posterior, no de sumar ejecuciones interrumpidas.
+
+Qadra con servicios reales aprobó escritorio (1440 px) y móvil (390 px):
+las ocho fechas, el extremo inhábil, referencias exactas, calendario capturado,
+horario semanal y bloqueo por efecto de notificación ausente. Playwright informó
+26.7 segundos, sin errores JavaScript, escrituras inesperadas ni desborde lateral.
+Se conservaron capturas de horarios y del motivo de bloqueo para inspección.
+La regresión API completa posterior aprobó en **606.453 s**, con las funciones
+previas y el corpus en la misma campaña, reinicios y restauración. La captura
+global de audiencias incorpora únicamente la nueva audiencia conocida y exige
+que las anteriores permanezcan iguales. Un Owner dedicado separa preferencias
+y MFA del corpus. La reevaluación existente conservó su historia ante cambios
+de calendario/fuente y no duplicó revisiones después de reiniciar. No fue
+necesario repetir esa campaña completa. Manuscrito y gates finales se verifican
+por separado; este corte no acredita integración ni activación productiva.
+
+La primera campaña remota del corpus fue cancelada tras una prueba anterior de
+acceso Owner: la siguiente iteración instalaba sus rutas antes de abandonar la
+página autenticada, y una lectura tardía del tablero se atribuía a disponibilidad
+anticipada del certificado. La preparación ahora cierra la página anterior y
+drena sus rutas antes del nuevo acceso; conserva intacta la exigencia de cero
+consultas iniciales. Los cinco recorridos de acceso aprobaron en 30.4 s, incluidos
+reloj detenido, respuestas tardías y MFA. Es una corrección del aislamiento del
+fixture; no cambia el producto ni sus permisos. Esa campaña cancelada no acredita
+la regresión remota completa.
+
+La segunda campaña encontró un HTTP 500 en la lectura de preferencias cautelares
+solapada con las consultas iniciales del tablero. La auditoría final fue durable
+y el servidor registró contención concurrente; el registro no identifica el
+SQLSTATE de esa solicitud. El fixture espera ahora respuestas 200 completas del
+tablero y, para Owner, de incidentes antes de sus comprobaciones API secuenciales.
+No añade reintentos, tolerancia a errores ni cambios de tiempos de espera. Los
+dos recorridos cautelares completos con servicios reales aprobaron en escritorio
+y móvil; la campaña remota siguiente conserva su función de gate.
+
+## Final exacto de audiencia: comprobacion focal del 11 de octubre de 2026
+
+Se reprodujo la falta de una regla sin suma para conservar el final calificado
+de audiencia. La regla fija `AtAnchor` exige `HearingEnd` de `HearingResult`,
+segundo y desfase explicitos. No completa cantidades, no desplaza por calendario
+ni toma la programacion o el estado de sesion como hora de cierre. Conserva
+ancla, resultado y traza; el vencimiento operativo sigue la convencion UTC.
+Las etiquetas nuevas de persistencia no cambian las anteriores.
+
+TDD focal: dominio RED por variante ausente y GREEN dos casos; aplicacion RED
+por contrato de finalizacion y GREEN cuatro casos; cliente RED cinco de seis y
+GREEN. Los grupos cercanos aprobaron 89 pruebas de dominio, 74 de aplicacion,
+61 de HTTP y 20 de cliente. Son grupos focales, no una regresion integral.
+Cargo build del espacio de trabajo y build de Qadra terminaron correctamente.
+
+Con PostgreSQL, Redis y HTTP reales en almacenamiento aislado se guardaron
+un resultado/plazo exacto y dos bloqueados (sin calificacion y sin precision).
+Se verificaron origen, recibos, Agenda UTC y reintentos sin nuevas audiencias,
+resultados o plazos. Los mismos registros sobrevivieron reinicio y restauracion
+completa a otra base; las sesiones previas fueron invalidadas y el Owner volvio
+a autenticarse. La auditoria conservo cadena valida. El recorrido focal termino
+con codigo cero en 23.554 segundos; no envio correo ni uso datos productivos.
+Los guiones de aceptacion conservan este caso en la campana completa existente.
+
+Esta evidencia es tecnica y sintetica. Las fuentes revisadas y vacios del
+corpus figuran en [investigacion](legal-corpus-investigation.md) y
+[recursos](legal-corpus-resources.md). No hay ocho perfiles juridicos aceptados,
+revision humana, nueva integracion ni despliegue. La regresion final, navegador
+real y conciliacion del manuscrito se realizaran al cerrar el corpus aplicable.
+
 ## Actualización de controladores ya instalados: 11 de octubre de 2026
 
 El preflight de una segunda instalación detectó que el renderer sólo aceptaba

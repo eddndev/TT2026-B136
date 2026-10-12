@@ -6,7 +6,9 @@
 
 <ol class="deadline-trace">
   {#each trace as step}<li class="case-comparison">
-      {#if step.kind === 'natural_days'}<h4>Conteo de d&#237;as naturales</h4>
+      {#if step.kind === 'at_anchor'}<h4>Fin declarado de audiencia</h4>
+        <p>Instante: {deadlineInstantLabel(step.instant)}.</p>
+      {:else if step.kind === 'natural_days'}<h4>Conteo de d&#237;as naturales</h4>
         <p>Primer d&#237;a incluido: {step.first_included}. Cantidad: {step.quantity}.</p>
         <p>
           {step.candidate

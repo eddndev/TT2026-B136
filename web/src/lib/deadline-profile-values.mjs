@@ -82,10 +82,24 @@ function referenceIds(raw, sources) {
 function completion(raw, sources, unit) {
   if (['arithmetic_instant', 'civil_candidate_only'].includes(raw?.kind)) object(raw, ['kind']);
   else {
-    object(raw, ['kind', 'time', 'offset_seconds', 'from', 'through', 'channel', 'reference_id']);
+    const weekly = raw?.kind === 'weekly_civil_cutoff';
+    object(raw, [
+      'kind',
+      weekly ? 'times' : 'time',
+      'offset_seconds',
+      'from',
+      'through',
+      'channel',
+      'reference_id',
+    ]);
+    const validTime = (value) =>
+      typeof value === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(value);
+    if (weekly) {
+      if (!Array.isArray(raw.times) || raw.times.length !== 7 || !raw.times.some(validTime))
+        invalid();
+      for (const value of raw.times) if (value !== null && !validTime(value)) invalid();
+    } else if (raw.kind !== 'civil_cutoff' || !validTime(raw.time)) invalid();
     if (
-      raw.kind !== 'civil_cutoff' ||
-      !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(raw.time) ||
       !Number.isInteger(raw.offset_seconds) ||
       Math.abs(raw.offset_seconds) > 50400 ||
       raw.offset_seconds % 60
@@ -99,7 +113,8 @@ function completion(raw, sources, unit) {
     uuid(raw.reference_id);
     if (!sources.has(raw.reference_id)) invalid();
   }
-  if ((unit === 'elapsed_hours') !== (raw.kind === 'arithmetic_instant')) invalid();
+  if (['elapsed_hours', 'at_anchor'].includes(unit) !== (raw.kind === 'arithmetic_instant'))
+    invalid();
 }
 export function deadlineProfileDefinition(raw, caseId) {
   object(raw, [
@@ -131,6 +146,13 @@ export function deadlineProfileDefinition(raw, caseId) {
     if (template.maximum !== null) revision(template.maximum);
     unit = template.unit.kind;
   }
+  if (
+    unit === 'at_anchor' &&
+    (raw.trigger.kind !== 'qualified' ||
+      raw.trigger.purpose !== 'hearing_end' ||
+      raw.trigger.family !== 'hearing_result')
+  )
+    invalid();
   completion(raw.completion, sources, unit);
   unique(raw.conditions, (v) => {
     object(v, ['id', 'statement', 'reference_ids']);

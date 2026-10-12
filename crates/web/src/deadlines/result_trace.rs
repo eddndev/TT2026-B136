@@ -10,6 +10,9 @@ use serde_json::{json, Value};
 
 pub(super) fn project(value: &DeadlineTraceRecord) -> Value {
     match value {
+        DeadlineTraceRecord::AtAnchor { instant: at } => {
+            json!({"kind":"at_anchor","instant":instant(*at)})
+        }
         DeadlineTraceRecord::NaturalDays {
             first_included,
             quantity,

@@ -10,6 +10,7 @@
     reconcileDeadlinePolicies,
   } from '../lib/deadline-editor-policies.mjs';
   import { deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
+  import { deadlineRuleLabel } from './deadline-view-labels.mjs';
   export let value,
     api,
     caseId,
@@ -151,7 +152,10 @@
           ? 'Perfil privado del expediente'
           : `Perfil global: ${profile.scope.value.title}`}
       </p>
-      {#if template.kind === 'fixed'}<p>
+      {#if template.kind === 'fixed' && template.rule.kind === 'at_anchor'}<p>
+          {deadlineRuleLabel(template.rule)}.
+        </p>
+      {:else if template.kind === 'fixed'}<p>
           Duraci&#243;n fija: {template.rule.quantity}
           {unitLabel(template.rule.kind)}.
         </p>
@@ -272,39 +276,42 @@
       disabled={locked}
     />
   </section>
-  <fieldset class="case-offenses" disabled={locked}>
-    <legend>Duraci&#243;n ordenada</legend>
-    <label
-      >Cantidad ordenada<select
-        value={value.input.ordered_quantity === null ? 'absent' : 'known'}
-        onchange={(event) =>
-          (value = {
-            ...value,
-            input: {
-              ...value.input,
-              ordered_quantity: event.currentTarget.value === 'absent' ? null : undefined,
-            },
-          })}
-      >
-        <option value="absent">Cantidad ordenada ausente</option><option value="known"
-          >Cantidad declarada expresamente</option
-        >
-      </select></label
+  {#if template?.kind !== 'fixed' || template.rule.kind !== 'at_anchor'}<fieldset
+      class="case-offenses"
+      disabled={locked}
     >
-    {#if value.input.ordered_quantity !== null}<label
-        >Cantidad declarada<input
-          type="number"
-          min="1"
-          max="4294967295"
-          step="1"
-          bind:value={value.input.ordered_quantity}
-        /></label
-      >{/if}
-    <p class="hint">
-      No se sustituye la duraci&#243;n concedida por el m&#225;ximo del perfil. Una cantidad ausente
-      permanece ausente.
-    </p>
-  </fieldset>
+      <legend>Duraci&#243;n ordenada</legend>
+      <label
+        >Cantidad ordenada<select
+          value={value.input.ordered_quantity === null ? 'absent' : 'known'}
+          onchange={(event) =>
+            (value = {
+              ...value,
+              input: {
+                ...value.input,
+                ordered_quantity: event.currentTarget.value === 'absent' ? null : undefined,
+              },
+            })}
+        >
+          <option value="absent">Cantidad ordenada ausente</option><option value="known"
+            >Cantidad declarada expresamente</option
+          >
+        </select></label
+      >
+      {#if value.input.ordered_quantity !== null}<label
+          >Cantidad declarada<input
+            type="number"
+            min="1"
+            max="4294967295"
+            step="1"
+            bind:value={value.input.ordered_quantity}
+          /></label
+        >{/if}
+      <p class="hint">
+        No se sustituye la duraci&#243;n concedida por el m&#225;ximo del perfil. Una cantidad
+        ausente permanece ausente.
+      </p>
+    </fieldset>{/if}
   <fieldset class="case-offenses" disabled={locked}>
     <legend>Calificaci&#243;n del supuesto</legend>
     <label

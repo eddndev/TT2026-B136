@@ -29,6 +29,7 @@ pub enum FinalDayPolicy {
 /// Mathematical operands; not a legal profile or a finding of applicability.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArithmeticRule {
+    AtAnchor,
     Days {
         quantity: NonZeroU32,
         inclusion: DayInclusion,
@@ -77,6 +78,9 @@ pub enum ArithmeticOutcome {
 /// Operands and intermediate results, including the calendar's exact evidence.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArithmeticTraceStep {
+    AtAnchor {
+        instant: OffsetDateTime,
+    },
     NaturalDays {
         first_included: CivilDate,
         quantity: NonZeroU32,

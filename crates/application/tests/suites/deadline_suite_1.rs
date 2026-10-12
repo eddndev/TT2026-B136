@@ -7,6 +7,8 @@ mod case_support;
 mod crypto;
 #[path = "../deadline_administration.rs"]
 mod deadline_administration;
+#[path = "../deadline_anchor_profile.rs"]
+mod deadline_anchor_profile;
 #[path = "../deadline_captured_observations.rs"]
 mod deadline_captured_observations;
 #[path = "../deadline_current_overview.rs"]
@@ -33,6 +35,8 @@ mod deadline_evaluation_record_support;
 mod deadline_evaluation_record_validation;
 #[path = "../deadline_evaluation_record_wire.rs"]
 mod deadline_evaluation_record_wire;
+#[path = "../deadline_weekly_cutoff.rs"]
+mod deadline_weekly_cutoff;
 use deadline_support::evaluation as deadline_evaluation_support;
 #[path = "../deadline_observation_support/mod.rs"]
 mod deadline_observation_support;

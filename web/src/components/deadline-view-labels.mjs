@@ -70,6 +70,7 @@ export function deadlineRequirementLabel(value) {
 }
 export function deadlineRuleLabel(value) {
   if (!value) return 'Regla pendiente de determinar';
+  if (value.kind === 'at_anchor') return 'Fin declarado de audiencia';
   const quantity = value.quantity ?? 'Cantidad concedida';
   if (value.kind === 'elapsed_hours') return `${quantity} horas transcurridas`;
   const final =

@@ -34,6 +34,7 @@ fn arithmetic(value: &DeadlineArithmeticRecord) -> Result<Value, ApiError> {
 }
 fn rule(value: ArithmeticRule) -> Value {
     match value {
+        ArithmeticRule::AtAnchor => json!({"kind":"at_anchor"}),
         ArithmeticRule::Days {
             quantity,
             inclusion,

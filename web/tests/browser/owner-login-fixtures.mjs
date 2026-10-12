@@ -29,6 +29,9 @@ export function holdLogin(state, path) {
 }
 
 export async function ownerLoginSetup(page) {
+  // End the previous iteration before installing the next unauthenticated routes.
+  await page.goto('about:blank');
+  await page.unrouteAll({ behavior: 'wait' });
   const fallbackCalls = await setup(page, 'owner');
   expect(fallbackCalls, 'Availability must be requested only after choosing the method').toEqual(
     [],

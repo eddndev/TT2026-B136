@@ -1,5 +1,7 @@
 //! Explicit global and case profile collections with editable definitions and receipts.
 pub(crate) use response::detail as exact_projection;
+#[cfg(test)]
+mod at_anchor_tests;
 mod definition;
 pub(crate) mod definition_projection;
 mod expected;
@@ -10,6 +12,8 @@ mod request;
 mod response;
 mod rule;
 mod scope;
+#[cfg(test)]
+mod weekly_cutoff_tests;
 use crate::{judicial_calendars::object, runtime::HttpRuntime};
 use application::deadline_profiles::DeadlineProfileWorkflow;
 use axum::{

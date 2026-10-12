@@ -1,5 +1,32 @@
 # Verificación de la actualización académica
 
+## Corpus jurídico finito: 12 de octubre de 2026 UTC
+
+El manuscrito incorpora el final exacto de audiencia, cierre semanal del canal
+y ocho fichas CNPP del caso de estudio CDMX. Las fuentes primarias y las fechas
+ficticias quedan separadas; se explican orden mensual expresa, acumulado
+calificado, calendario, notificación y límites. Se conservan los resultados
+históricos, el resumen aprobado, objetivos, introducción y conclusiones.
+
+LuaLaTeX con el Makefile versionado compiló en 80.044 s. La inspección detectó
+una frase antigua que atribuía cantidad a toda plantilla fija; se precisó la
+excepción del anclaje y la compilación final aprobó en 39.037 s. El PDF aceptado
+tiene **419 páginas**, **5944875 bytes** y SHA-256
+`31c83852dc6bb8ece48b11ebec0405b25cc40022919f0f92368684f475a1ff2d`.
+
+Se inspeccionaron las páginas físicas **207-209 y 265-270** de la primera
+compilación y **207-208, 267-270 y 334-335** de la versión final: definición,
+finalización, tablas del corpus, resultados y referencias. Las tablas y fuentes
+son legibles, sin nuevos recortes o solapes. No quedan referencias/citas sin
+resolver ni glifos faltantes. Permanecen las cajas históricas de 0.11754 y
+24.62556 pt y sustituciones de versalitas Times. La corrección final volvió a
+inspeccionarse junto con la paginación del corpus y las referencias.
+
+El PDF414 se conservó comprimido durante la compilación y revisión; tras aceptar
+el sustituto se retiró esa copia temporal. Sólo permanece `latex/main.pdf` como
+PDF vigente del manuscrito. La aceptación documental no atribuye resultados de
+CI, integración ni despliegue, ni sustituye la evaluación con personas.
+
 ## Contexto de auditoría y respaldo Redis: 11 de octubre de 2026
 
 Diseño, implementación, pruebas y anexo describen el contexto nuevo encadenado,

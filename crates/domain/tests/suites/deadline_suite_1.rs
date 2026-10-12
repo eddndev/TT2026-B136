@@ -1,4 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
+#[path = "../deadline_arithmetic_anchor.rs"]
+mod deadline_arithmetic_anchor;
 #[path = "../deadline_arithmetic_calendar.rs"]
 mod deadline_arithmetic_calendar;
 #[path = "../deadline_arithmetic_civil.rs"]

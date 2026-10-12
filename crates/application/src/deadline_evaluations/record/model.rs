@@ -83,6 +83,9 @@ impl DeadlineArithmeticRecord {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeadlineTraceRecord {
+    AtAnchor {
+        instant: OffsetDateTime,
+    },
     NaturalDays {
         first_included: CivilDate,
         quantity: NonZeroU32,
@@ -107,6 +110,7 @@ pub enum DeadlineTraceRecord {
 impl DeadlineTraceRecord {
     fn capture(value: &ArithmeticTraceStep) -> Self {
         match value {
+            ArithmeticTraceStep::AtAnchor { instant } => Self::AtAnchor { instant: *instant },
             ArithmeticTraceStep::NaturalDays {
                 first_included,
                 quantity,

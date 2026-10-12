@@ -23,6 +23,10 @@ pub(super) fn validate(value: &DeadlineArithmeticRecord) -> Result<(), Applicati
         };
     };
     let same_operands = match (value.rule, first) {
+        (ArithmeticRule::AtAnchor, DeadlineTraceRecord::AtAnchor { instant }) => value
+            .anchor
+            .instant_value()
+            .is_some_and(|anchor| anchor == *instant && anchor.offset() == instant.offset()),
         (
             ArithmeticRule::Days {
                 quantity,
@@ -100,6 +104,10 @@ fn civil_candidate(step: &DeadlineTraceRecord) -> Option<CivilDate> {
 }
 fn terminal_matches(step: &DeadlineTraceRecord, outcome: ArithmeticOutcome) -> bool {
     match (step, outcome) {
+        (
+            DeadlineTraceRecord::AtAnchor { instant: captured },
+            ArithmeticOutcome::InstantCandidate { instant },
+        ) => *captured == instant && captured.offset() == instant.offset(),
         (
             DeadlineTraceRecord::NaturalDays {
                 candidate: Some(candidate),

@@ -6,6 +6,16 @@ hearing_derived_deadline_demo() {
     TT_DEADLINE_API_BASE_URL="$BASE_URL" TT_DEADLINE_API_TOKEN="$RECOVERY_TOKEN" \
     TT_DEADLINE_API_WORK_DIR="$WORK_DIR" \
     python3 -B "$REPO_ROOT/scripts/api-hearing-derived-deadline-demo.py" "$1"
+  TT_FACT_API_BASE_URL="$BASE_URL" TT_FACT_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_FACT_API_WORK_DIR="$WORK_DIR" TT_FACT_API_REPO="$REPO_ROOT" \
+    TT_DEADLINE_API_BASE_URL="$BASE_URL" TT_DEADLINE_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_DEADLINE_API_WORK_DIR="$WORK_DIR" \
+    python3 -B "$REPO_ROOT/scripts/api-hearing-anchor-demo.py" "$1"
+  TT_FACT_API_BASE_URL="$BASE_URL" TT_FACT_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_FACT_API_WORK_DIR="$WORK_DIR" TT_FACT_API_REPO="$REPO_ROOT" \
+    TT_DEADLINE_API_BASE_URL="$BASE_URL" TT_DEADLINE_API_TOKEN="$RECOVERY_TOKEN" \
+    TT_DEADLINE_API_WORK_DIR="$WORK_DIR" \
+    python3 -B "$REPO_ROOT/scripts/api-legal-corpus-owner.py" "$1"
   local case_id
   case_id="$(jq -er '.scenario.case_id' "$WORK_DIR/hearing-derived-deadline-api-state.json")"
   [ "$(psql "$2" -X -v ON_ERROR_STOP=1 -v case_id="$case_id" -At <<'SQL'

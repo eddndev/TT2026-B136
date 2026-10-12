@@ -2,6 +2,7 @@ use super::*;
 use domain::{
     deadline_arithmetic::{evaluate_deadline_arithmetic, ArithmeticOutcome, ArithmeticRule},
     deadline_profiles::{DeadlineRuleTemplate, OrderedDeadlineUnit},
+    deadline_triggers::{QualifiedTriggerPurpose, TriggerFamily, TriggerRequirement},
     typed_participants::Uuid,
 };
 use std::collections::HashSet;
@@ -19,15 +20,26 @@ pub(super) fn validate(
             "condition.references",
         )?;
     }
-    let hours = matches!(
+    if matches!(
         values.template,
-        DeadlineRuleTemplate::Fixed(ArithmeticRule::ElapsedHours { .. })
+        DeadlineRuleTemplate::Fixed(ArithmeticRule::AtAnchor)
+    ) && values.trigger
+        != (TriggerRequirement::Qualified {
+            purpose: QualifiedTriggerPurpose::HearingEnd,
+            family: TriggerFamily::HearingResult,
+        })
+    {
+        return Err(DeadlineProfileError::Invalid("anchor.trigger"));
+    }
+    let instant = matches!(
+        values.template,
+        DeadlineRuleTemplate::Fixed(ArithmeticRule::ElapsedHours { .. } | ArithmeticRule::AtAnchor)
             | DeadlineRuleTemplate::Ordered {
                 unit: OrderedDeadlineUnit::ElapsedHours,
                 ..
             }
     );
-    if hours
+    if instant
         != matches!(
             values.completion,
             DeadlineCompletionPolicy::ArithmeticInstant
@@ -35,8 +47,13 @@ pub(super) fn validate(
     {
         return Err(DeadlineProfileError::Invalid("completion.unit"));
     }
-    if let DeadlineCompletionPolicy::CivilCutoff(cutoff) = &values.completion {
-        if !references.contains(&cutoff.reference_id()) {
+    let cutoff_reference = match &values.completion {
+        DeadlineCompletionPolicy::CivilCutoff(cutoff) => Some(cutoff.reference_id()),
+        DeadlineCompletionPolicy::WeeklyCivilCutoff(cutoff) => Some(cutoff.reference_id()),
+        _ => None,
+    };
+    if let Some(reference) = cutoff_reference {
+        if !references.contains(&reference) {
             return Err(DeadlineProfileError::Invalid("completion.reference"));
         }
     }

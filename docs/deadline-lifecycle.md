@@ -1,38 +1,36 @@
 # Perfiles, evaluaciones y seguimiento de plazos
 
-Estado: implementación parcial del seguimiento completo. La resolución
-autorizada de insumos, el catálogo de perfiles con API, el evaluador, los eventos
-de cambio y el [registro persistente de plazos](deadline-records.md) están
-implementados. La base V1 del backend y la [API operativa](deadlines-api.md)
-está integrada en `main`, con evaluación histórica, responsable, atención,
-corrección y retiro auditable. La interfaz Qadra V1 integrada permite esas
-operaciones y la selección paginada
-de responsables elegibles, con campañas locales completas aprobadas. El
-[informe de verificación](verification-report.md) separa sus resultados de la
-comprobación remota y de la integración de cada entrega.
+Estado: seguimiento persistente, reevaluación, Agenda y alertas integrados en
+`main` y conservados en la base productiva `3794181`, versión `v0.1.5`.
+La resolución autorizada de insumos, el catálogo de perfiles con API, el
+evaluador, los eventos de cambio y el
+[registro persistente de plazos](deadline-records.md) conservan evaluación
+histórica, responsable, atención, corrección y retiro auditable. La
+[API operativa](deadlines-api.md) y Qadra permiten esas operaciones y la
+selección paginada de responsables elegibles.
 
-El [despachador](deadline-dispatch.md) y el [consumidor local](deadline-worker.md)
-implementan expansión de eventos y confirmación técnica durable. El servicio
-humano y HTTP V2 están implementados localmente, con políticas explícitas,
-historia completa y consultas de vigencia en detalle actual y listado. La
-interfaz Qadra V2 aprobó 88 pruebas Node y 36 recorridos con HTTP controlado.
-Una campaña posterior con backend real aprobó 25 recorridos, incluidos dos
-Follow a 1440 y 390 píxeles, con seis capturas inspeccionadas. La composición
-del dispatcher/worker en `serve` tiene 31 pruebas unitarias y cuatro de ayuda
-CLI aprobadas; las 26 de bucle, parada y supervisión forman parte de las 31.
-La campaña API real comprobó reevaluación, cierre TERM/INT, reinicios y
-restauración de R1-R5, incluida la aceptación API final aprobada. El cierre global
-y la integración en `main` siguen en curso; el informe de verificación conserva
-sus resultados. La
-[API de seguimiento](deadline-tracking-api.md) separa la captura histórica de
-su proyección operativa comprobada.
+El [despachador](deadline-dispatch.md), el
+[consumidor local](deadline-worker.md) y su composición en `serve` están
+integrados por PR34, con expansión de eventos, confirmación técnica durable,
+políticas explícitas e historia humana y técnica. La
+[API de seguimiento](deadline-tracking-api.md) y Qadra V2 separan la captura
+histórica de su proyección operativa comprobada. La aceptación incluyó
+reevaluación, parada TERM/INT, reinicios y restauración; el
+[informe de verificación](verification-report.md) conserva los resultados y
+gates de cada entrega.
 
-La agenda conjunta está implementada con aceptación en curso, separada de las
-campañas de reevaluación. Activación y alertas conservan objetivos propios de
-implementación. La composición en servidor procesa eventos durables; guardar
-un vencimiento o mostrarlo en la agenda no demuestra una entrega de avisos.
-El cierre de perfiles jurídicos con fuentes primarias y aceptación del supuesto
-permanece pendiente; los ejemplos sintéticos verifican mecanismos. Véanse la
+La agenda conjunta está integrada por PR35 y las alertas durables, preferencias,
+bandeja Qadra y consumidor de correo por PR36, con aceptación propia. La
+creación explícita conjunta de resultado y plazo derivado también está
+integrada; no equivale a inferir términos automáticamente desde texto.
+Guardar un vencimiento o mostrarlo en Agenda no demuestra entrega de avisos.
+
+El corpus finito de ocho supuestos ya tiene fuentes, condiciones y resultados
+independientes documentados. Su incremento `AtAnchor` y cierre civil semanal
+está implementado localmente y aceptado por HTTP y navegador, todavía sin
+integrar ni desplegar. La regresión API completa aprobó en 606.453 s; CI e integración
+por PR permanecen pendientes. Véanse la
+[lista de los ocho supuestos](four-front-closure.md), la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
 las [fronteras de las reglas](deadline-rule-research.md).
 
@@ -44,20 +42,24 @@ requeridos y asigna un responsable. El sistema calcula y conserva una evaluació
 reproducible. Una evaluación aceptada con instante y dependencias vigentes
 permite consultar el vencimiento operativo sin introducir su fecha manualmente.
 Los datos insuficientes conservan el cálculo parcial y explican qué falta. La
-historia permite consultar evaluaciones y atención declarada. La activación
-automática y la historia de avisos requieren sus flujos todavía pendientes.
+historia permite consultar evaluaciones, atención declarada y los avisos con
+su origen capturado. La creación del plazo es explícita; no se deducen
+aplicabilidad ni términos nuevos de un texto o del estado de una audiencia.
 
 La agenda reúne audiencias y vencimientos de los expedientes autorizados en
-vistas diaria, semanal y mensual, además de un rango personalizado. Su aceptación
-se verifica por separado. El alcance pendiente de alertas incluye anticipaciones
-configurables de 48 y 24 horas, audiencias próximas, cambios que afectan un
-vencimiento inferior a 48 horas y vencimiento sin actuación registrada. El
-seguimiento pendiente del tablero incluye ventanas de 48 horas y siete días.
+vistas diaria, semanal y mensual, además de un rango personalizado. Las
+[alertas integradas](alerts-api.md) incluyen anticipaciones configurables, con
+valores iniciales de 48 y 24 horas, audiencias próximas, cambio de fecha próxima,
+revisión requerida y vencimiento sin atención declarada. El
+[tablero integrado](dashboard-api.md) incluye ventanas de 48 horas y siete días
+sobre vencimientos operativos comprobados. Cada mecanismo conserva su evidencia
+y contrato; una alerta leída no acredita atención del plazo.
 
 ## Perfiles configurables y versionados
 
 El catálogo publica combinaciones finitas del motor de días, meses civiles y
-horas; no ejecuta expresiones suministradas por el usuario. Cada definición
+horas; el incremento local añade el instante del ancla mediante `AtAnchor`.
+No ejecuta expresiones suministradas por el usuario. Cada definición
 conserva nombre, descripción, ámbito global declarado o expediente restringido,
 referencias públicas estructuradas, campo temporal requerido, regla de cantidad,
 política de finalización, condiciones de aplicabilidad y ejemplos esperados.
@@ -80,6 +82,11 @@ conversiones de unidad. El algoritmo mensual disponible desplaza directamente
 al homólogo y bloquea su ausencia. Una política distinta exige implementación
 y evidencia propias; una fecha judicial aislada no permite deducir la fórmula.
 
+`AtAnchor` no admite cantidad ni políticas civiles. Se limita a una regla fija
+con fin calificado de resultado de audiencia y finalización por instante
+aritmético. Exige segundo y desfase declarados; ni la hora programada ni el
+estado concluido sustituyen ese fin exacto. No agrega días ni horas.
+
 Cada definición tiene de una a dieciséis referencias, condiciones y ejemplos,
 con identificadores distintos dentro de su colección. UUID cero es un valor,
 no ausencia. Cada condición y ejemplo señala referencias existentes y distintas.
@@ -101,6 +108,13 @@ UTC. Los perfiles civiles pueden conservar únicamente una candidata o aplicar
 un corte declarado con canal, segundo exacto, desfase propio, cobertura civil y
 referencia. Ese desfase no se hereda del acto inicial. Un corte fijo sólo vale
 dentro de su cobertura declarada, inclusiva y acotada a 1096 fechas.
+
+El incremento local de corte semanal conserva canal, desfase, cobertura y
+referencia, con siete horas opcionales de lunes a domingo. Selecciona la hora
+del día de la candidata sin desplazar esa fecha. Un día sin hora o fuera de
+cobertura conserva el bloqueo y no produce un vencimiento operativo. En
+`AtAnchor`, resultado y traza preservan el desfase original del fin declarado;
+el vencimiento operativo usa UTC, como los demás plazos.
 
 Una candidata sin corte suficiente se conserva como fecha civil. No se fabrican
 medianoche, segundos de una precisión de minuto ni desplazamientos de zona.
@@ -160,7 +174,8 @@ respuestas anteriores y actualizar reinicia la consulta.
 
 Abrir una actividad revalida el expediente antes de consultar la revisión exacta
 seleccionada. Esta implementación y sus límites están en
-[ADR-0038](adr/0038-authorized-combined-agenda.md); su aceptación sigue en curso.
+[ADR-0038](adr/0038-authorized-combined-agenda.md); su aceptación e integración
+están confirmadas.
 La agenda no recalcula fechas, activa términos ni entrega alertas.
 
 ## Cambios y reevaluación sin pérdida
@@ -181,8 +196,9 @@ existentes, los triggers y la secuencia; la restauración conserva esos datos.
 El despachador pagina dependencias, inserta trabajos únicos por evento/plazo y
 avanza su cursor en una transacción. El consumidor local confirma revisión,
 resultado del trabajo y auditoría juntos, o registra la causa de no producir una
-revisión. La sustitución atómica de alertas pendientes conserva su implementación
-futura. El consumidor mantiene responsable y atención vigentes; no los reinicia
+revisión. El subsistema integrado de alertas conserva los avisos históricos y
+resuelve los superados según su [contrato](alerts-api.md). El consumidor
+mantiene responsable y atención vigentes; no los reinicia
 al recalcular. Las correcciones
 de fuente no autorizan inferir nuevamente condiciones jurídicas desde texto.
 La revisión de aplicabilidad pendiente debe quedar visible, con el cálculo
@@ -208,3 +224,31 @@ confirmación, conflicto, respuesta incierta, historia, actuación, cambio de
 calendario, agenda conjunta de al menos cinco expedientes y avisos internos.
 Se conservan tipografía, colores, componentes y comportamiento móvil de Qadra.
 El catálogo y el cómputo parcial no bastan para declarar completos esos flujos.
+
+## Corpus acotado y aceptación local
+
+El corpus contiene investigación complementaria, su prórroga, revocación oral,
+revocación escrita y las cuatro apelaciones de tres, cinco, tres y diez días
+del [catálogo definitivo](four-front-closure.md). Las fichas de
+[investigación](legal-corpus-investigation.md),
+[recursos](legal-corpus-resources.md) y
+[calendario y canales](legal-corpus-calendar.md) fijan fuentes primarias,
+versiones, ámbito penal local de CDMX, entradas ficticias identificadas y
+resultados independientes. No amplían el catálogo ni requieren un expediente
+publicado idéntico o revisión externa obligatoria.
+
+Las dos determinaciones mensuales declaran duración efectiva, inicio y método
+de fecha a fecha. El cierre a las 18:00 -06:00 pertenece a la orden ficticia
+expresa; no se atribuye al CNPP ni al horario de ventanilla. La prórroga exige
+concesión y acumulado expresamente calificados. Las cinco fichas por días usan
+efectos de notificación personal y cierre semanal de ventanilla UGJ. La ficha
+oral conserva el fin exacto de la audiencia del 09-10-2026. Una condición
+desconocida, rechazada o ajena a estas fichas bloquea el vencimiento operativo.
+
+La aceptación HTTP con servicios reales aprobó captura, reinicio y restauración
+de los ocho supuestos, el extremo escrito que cruza inhábiles y diez negativos.
+El recorrido Qadra con backend real aprobó en 1440 y 390 píxeles sin fallos.
+Esta evidencia corresponde al incremento local de `AtAnchor`, cierre semanal
+y perfiles del corpus. La regresión API completa aprobó en 606.453 s, incluido
+el historial de reevaluación, reinicio y restauración. Quedan pendientes los
+gates de CI, integración por PR y despliegue de ese incremento.

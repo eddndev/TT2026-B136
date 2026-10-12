@@ -58,6 +58,17 @@ desfase propio, canal, referencia y cobertura inclusiva acotada. El desfase del
 corte no se hereda del acto inicial. Ningún bloqueo permite producir un instante
 operativo ni programar avisos relativos a él.
 
+La regla fija `AtAnchor` conserva exclusivamente el instante calificado de fin
+de un resultado de audiencia, con segundo y desfase. No suma unidades ni usa
+la hora programada de la cita. La finalización civil admite también siete
+horas opcionales, de lunes a domingo, con los mismos límites, canal y fuente.
+`WeeklyCivilCutoff` selecciona el horario del día ya calculado; un día sin
+cobertura bloquea el instante operativo en vez de mover la candidata. Así puede
+representarse un viernes con cierre distinto sin separar artificialmente la
+misma regla según el día final. El horario expresa disponibilidad del canal,
+no una conclusión universal sobre preclusión. Ambas variantes añaden etiquetas
+al final de sus enumeraciones canónicas y conservan los bytes históricos.
+
 El cierre administrativo permite consultar la historia y bloquea mutaciones
 manuales de perfiles privados. No constituye una suspensión jurídica. Tampoco
 el retiro de una fuente determina por sí solo la invalidez de una evaluación.

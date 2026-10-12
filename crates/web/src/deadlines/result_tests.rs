@@ -2,6 +2,40 @@ use super::{result, result_test_support::*};
 use serde_json::json;
 
 #[test]
+fn at_anchor_http_result_projects_exact_end_trace_without_duration_fields() {
+    // Projection preserves captured offsets instead of recalculating historical instants.
+    let rule = [3];
+    let mut anchor = vec![3, 7, 234, 1, 1, 0, 0, 7, 1];
+    anchor.extend((-21_600_i32).to_be_bytes());
+    let mut end = vec![];
+    instant(&mut end, 1_767_247_207, 0, -21_600);
+    let mut outcome = vec![1];
+    outcome.extend(&end);
+    let mut step = vec![5];
+    step.extend(&end);
+    let arith = arithmetic(&rule, &anchor, &outcome, &[step]);
+    let mut trigger = vec![0];
+    trigger.extend(anchor);
+    let mut bytes = envelope(&trigger, Some(&rule), Some(&arith), Some(&end), &[]);
+    bytes.splice(5..7, [1, 0, 2]);
+    let output = result::project(&decoded(bytes)).unwrap();
+    let end = instant_json(1_767_247_207, 0, -21_600);
+    assert_eq!(output["rule"], json!({"kind":"at_anchor"}));
+    assert_eq!(output["arithmetic"]["rule"], output["rule"]);
+    assert_eq!(
+        output["arithmetic"]["trace"],
+        json!([{"kind":"at_anchor","instant":end}])
+    );
+    assert_eq!(
+        output["arithmetic"]["outcome"],
+        json!({"kind":"instant_candidate","instant":end})
+    );
+    assert_eq!(output["arithmetic"]["anchor"]["offset_seconds"], -21_600);
+    assert_eq!(output["due_at"], end);
+    assert_eq!(output["blocks"], json!([]));
+}
+
+#[test]
 fn natural_days_projection_keeps_historical_candidate_without_recalculation() {
     let value = decoded(record(&[vec![10]], "2026-01-09"));
     assert_eq!(

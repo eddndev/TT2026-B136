@@ -44,6 +44,9 @@ fn template(v: DeadlineRuleTemplate) -> Value {
     match v {
         DeadlineRuleTemplate::Fixed(rule) => {
             let (unit, q) = match rule {
+                ArithmeticRule::AtAnchor => {
+                    return json!({"kind":"fixed","rule":{"kind":"at_anchor"}});
+                }
                 ArithmeticRule::Days {
                     quantity,
                     inclusion,
@@ -102,6 +105,24 @@ fn completion(v: &DeadlineCompletionPolicy) -> Value {
         DeadlineCompletionPolicy::CivilCandidateOnly => json!({"kind":"civil_candidate_only"}),
         DeadlineCompletionPolicy::CivilCutoff(v) => {
             json!({"kind":"civil_cutoff","time":format!("{:02}:{:02}:{:02}",v.time().hour(),v.time().minute(),v.time().second()),
+        "offset_seconds":v.offset().whole_seconds(),"from":v.from().to_string(),"through":v.through().to_string(),"channel":v.channel().as_str(),"reference_id":v.reference_id()})
+        }
+        DeadlineCompletionPolicy::WeeklyCivilCutoff(v) => {
+            let times = v
+                .times()
+                .iter()
+                .map(|value| {
+                    value.map(|time| {
+                        format!(
+                            "{:02}:{:02}:{:02}",
+                            time.hour(),
+                            time.minute(),
+                            time.second()
+                        )
+                    })
+                })
+                .collect::<Vec<_>>();
+            json!({"kind":"weekly_civil_cutoff","times":times,
         "offset_seconds":v.offset().whole_seconds(),"from":v.from().to_string(),"through":v.through().to_string(),"channel":v.channel().as_str(),"reference_id":v.reference_id()})
         }
     }
