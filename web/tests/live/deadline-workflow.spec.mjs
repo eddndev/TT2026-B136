@@ -44,7 +44,18 @@ test('real daily monthly and hourly deadlines preserve exact sources calendar hi
   entries.set(page, await observeFrontendEntry(page));
   await page.setViewportSize({ width: 1440, height: 1000 });
   expect((await page.goto('/')).status()).toBe(200);
+  const initialReads = ['/api/v1/dashboard', '/api/v1/document-integrity-incidents'].map((path) =>
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === path && response.request().method() === 'GET',
+    ),
+  );
   await loginAs(page, accounts.owner, 0);
+  // Finish workspace reads before starting the separate deadline workflow.
+  for (const response of await Promise.all(initialReads)) {
+    expect(response.status()).toBe(200);
+    expect(await response.finished()).toBeNull();
+  }
   await openDeadlines(page);
   await page.getByRole('button', { name: 'Registrar plazo', exact: true }).click();
   await fill(page, 'daily', 'Respuesta diaria con calendario exacto');
