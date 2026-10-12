@@ -75,6 +75,9 @@
       </p>
       <p>Canal: {d.completion.channel}. Cobertura: {d.completion.from} / {d.completion.through}.</p>
       <p>Referencia: {d.references.find((row) => row.id === d.completion.reference_id)?.title}</p>
+    {:else if d.template.kind === 'fixed' && d.template.rule.kind === 'at_anchor'}<p>
+        Instante del fin declarado de audiencia.
+      </p>
     {:else}<p>
         {d.completion.kind === 'arithmetic_instant'
           ? 'Instante calculado por horas transcurridas.'

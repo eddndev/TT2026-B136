@@ -109,6 +109,9 @@ fn step(reader: &mut Reader<'_>) -> Result<DeadlineTraceRecord, ApplicationError
         },
         3 => DeadlineTraceRecord::CountedDays(read_days::read(reader)?),
         4 => DeadlineTraceRecord::FinalDay(read_days::read(reader)?),
+        5 => DeadlineTraceRecord::AtAnchor {
+            instant: instant(reader)?,
+        },
         _ => return Err(invalid("unknown arithmetic trace step")),
     })
 }

@@ -78,6 +78,7 @@ pub(super) enum Template {
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub(super) enum Rule {
+    AtAnchor {},
     Days {
         quantity: u32,
         inclusion: Inclusion,
@@ -151,6 +152,7 @@ impl Template {
     pub(super) fn validate(self) -> Result<DeadlineRuleTemplate, ApiError> {
         Ok(match self {
             Self::Fixed { rule } => DeadlineRuleTemplate::Fixed(match rule {
+                Rule::AtAnchor {} => ArithmeticRule::AtAnchor,
                 Rule::Days {
                     quantity: q,
                     inclusion,

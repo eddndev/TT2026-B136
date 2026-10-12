@@ -51,7 +51,10 @@ function count(raw) {
 }
 export function deadlineTrace(raw) {
   const kind = raw?.kind;
-  if (['counted_days', 'final_day'].includes(kind)) {
+  if (kind === 'at_anchor') {
+    object(raw, ['kind', 'instant']);
+    deadlineInstant(raw.instant);
+  } else if (['counted_days', 'final_day'].includes(kind)) {
     object(raw, ['kind', 'count']);
     count(raw.count);
   } else if (kind === 'natural_days') {

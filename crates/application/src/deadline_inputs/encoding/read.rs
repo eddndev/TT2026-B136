@@ -135,6 +135,9 @@ fn final_day(reader: &mut Reader<'_>) -> Result<FinalDayPolicy, ApplicationError
 }
 pub(crate) fn rule(reader: &mut Reader<'_>) -> Result<ArithmeticRule, ApplicationError> {
     let tag = reader.byte()?;
+    if tag == 3 {
+        return Ok(ArithmeticRule::AtAnchor);
+    }
     let quantity =
         NonZeroU32::new(reader.u32()?).ok_or_else(|| invalid("arithmetic quantity is zero"))?;
     match tag {

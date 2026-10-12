@@ -1,15 +1,11 @@
 # Aritmetica temporal para reglas de plazos
 
-Estado: componente de aritmetica pura implementado. La verificacion de su implementacion se
-registra en [el informe de verificacion](verification-report.md). Este componente no publica perfiles del
-CNPP ni crea plazos operativos. El alcance pendiente conserva activacion desde
-actos, calificacion y fuentes exactas, persistencia, reevaluacion, alertas y Qadra.
-
-La [extracción de tiempos](deadline-triggers.md) ahora coordina esta aritmética
-con un campo o una calificación sobre material exacto. El dominio comprueba
-coherencia de las referencias y conserva la procedencia; el servicio todavía
-debe verificar autorización, recibos, fuentes y aplicabilidad antes de persistir
-una evaluación operativa.
+Estado: componente puro integrado con perfiles versionados y el
+[ciclo de plazos](deadline-lifecycle.md), que verifica autorizacion, recibos,
+fuentes y aplicabilidad antes de persistir una evaluacion operativa. La
+[extraccion de tiempos](deadline-triggers.md) conserva la procedencia exacta.
+La integracion incluye reevaluacion, Agenda, alertas y Qadra; el
+[corpus juridico](four-front-closure.md) sigue una aceptacion separada.
 
 ## Entradas explicitas
 
@@ -22,6 +18,7 @@ candidata con la unidad, inclusion y politica indicadas por la regla.
   siguiente, base natural o dias computables y politica del ultimo dia.
 - `CivilMonths`: cantidad positiva de meses civiles y politica del ultimo dia.
   Desplaza directamente el mes y conserva el numero de dia, si existe.
+- `AtAnchor`: instante exacto del ancla, sin cantidad ni ajuste de calendario.
 - `ElapsedHours`: cantidad positiva de horas transcurridas desde un instante
   declarado con segundo y desfase. No aplica ajustes de calendario.
 
@@ -68,6 +65,14 @@ una zona territorial ni predice la hora local del vencimiento. El instante UTC
 queda limitado a los anos 1 a 9999. La cuenta es de tiempo transcurrido y no
 mueve horas hasta dias habiles, aunque se suministre un calendario.
 
+### Instante del ancla
+
+`AtAnchor` requiere segundo y desfase explicitos y conserva ese instante y
+su desfase en el resultado y una traza unica. No suma tiempo ni consulta el
+calendario. Las ausencias generan los bloqueos de precision y desfase ya
+existentes. En el catalogo solo se admite con final calificado de resultado de
+audiencia; no deduce ese final de una programacion o del estado de la sesion.
+
 ### Ultimo dia
 
 `Preserve` devuelve la candidata civil sin consultar calendario. `NextCountable`
@@ -83,7 +88,7 @@ un instante horario, pues cambiar su fecha exigiria decidir tambien el corte.
 ## Resultado y traza
 
 `DeadlineArithmetic` conserva regla, ancla, resultado y pasos. Sus resultados
-son una candidata civil, una candidata de instante UTC o un bloqueo tipado.
+son una candidata civil, una candidata de instante o un bloqueo tipado.
 Ninguno declara por si solo un plazo activo, vencido, firme o inadmisible.
 
 Los pasos conservan operandos, candidata intermedia cuando existe, recorrido de
@@ -98,8 +103,8 @@ recorrido de calendario conserva el limite de 1097 pasos. La regla solo puede
 invocar un conteo y un ajuste: a lo sumo dos recorridos, sin reservar memoria
 segun la cantidad. El dominio no verifica hashes ni lee snapshots de aplicacion;
 la extracción temporal conserva la referencia y las huellas recibidas de la
-fuente. La integración futura debe verificar esos insumos y vincular también
-identidad, revisión y huellas del calendario aplicable.
+fuente. La aplicación verifica esos insumos y vincula identidad, revisión y
+huellas del calendario aplicable.
 
 ## Corpus matematico, separado de criterios juridicos
 

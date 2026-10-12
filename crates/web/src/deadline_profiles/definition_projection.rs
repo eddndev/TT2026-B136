@@ -44,6 +44,9 @@ fn template(v: DeadlineRuleTemplate) -> Value {
     match v {
         DeadlineRuleTemplate::Fixed(rule) => {
             let (unit, q) = match rule {
+                ArithmeticRule::AtAnchor => {
+                    return json!({"kind":"fixed","rule":{"kind":"at_anchor"}});
+                }
                 ArithmeticRule::Days {
                     quantity,
                     inclusion,

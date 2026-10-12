@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Final exacto de audiencia: comprobacion focal del 11 de octubre de 2026
+
+Se reprodujo la falta de una regla sin suma para conservar el final calificado
+de audiencia. La regla fija `AtAnchor` exige `HearingEnd` de `HearingResult`,
+segundo y desfase explicitos. No completa cantidades, no desplaza por calendario
+ni toma la programacion o el estado de sesion como hora de cierre. Conserva
+ancla, resultado y traza; el vencimiento operativo sigue la convencion UTC.
+Las etiquetas nuevas de persistencia no cambian las anteriores.
+
+TDD focal: dominio RED por variante ausente y GREEN dos casos; aplicacion RED
+por contrato de finalizacion y GREEN cuatro casos; cliente RED cinco de seis y
+GREEN. Los grupos cercanos aprobaron 89 pruebas de dominio, 74 de aplicacion,
+61 de HTTP y 20 de cliente. Son grupos focales, no una regresion integral.
+Cargo build del espacio de trabajo y build de Qadra terminaron correctamente.
+
+Con PostgreSQL, Redis y HTTP reales en almacenamiento aislado se guardaron
+un resultado/plazo exacto y dos bloqueados (sin calificacion y sin precision).
+Se verificaron origen, recibos, Agenda UTC y reintentos sin nuevas audiencias,
+resultados o plazos. Los mismos registros sobrevivieron reinicio y restauracion
+completa a otra base; las sesiones previas fueron invalidadas y el Owner volvio
+a autenticarse. La auditoria conservo cadena valida. El recorrido focal termino
+con codigo cero en 23.554 segundos; no envio correo ni uso datos productivos.
+Los guiones de aceptacion conservan este caso en la campana completa existente.
+
+Esta evidencia es tecnica y sintetica. Las fuentes revisadas y vacios del
+corpus figuran en [investigacion](legal-corpus-investigation.md) y
+[recursos](legal-corpus-resources.md). No hay ocho perfiles juridicos aceptados,
+revision humana, nueva integracion ni despliegue. La regresion final, navegador
+real y conciliacion del manuscrito se realizaran al cerrar el corpus aplicable.
+
 ## Actualización de controladores ya instalados: 11 de octubre de 2026
 
 El preflight de una segunda instalación detectó que el renderer sólo aceptaba

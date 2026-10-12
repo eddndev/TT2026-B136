@@ -43,6 +43,10 @@ fn write_arithmetic(bytes: &mut Vec<u8>, value: &DeadlineArithmeticRecord) {
     bytes.extend((value.trace.len() as u32).to_be_bytes());
     for step in &value.trace {
         match step {
+            DeadlineTraceRecord::AtAnchor { instant } => {
+                bytes.push(5);
+                write_instant(bytes, *instant);
+            }
             DeadlineTraceRecord::NaturalDays {
                 first_included,
                 quantity,

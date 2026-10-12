@@ -7,6 +7,8 @@ mod case_support;
 mod crypto;
 #[path = "../deadline_administration.rs"]
 mod deadline_administration;
+#[path = "../deadline_anchor_profile.rs"]
+mod deadline_anchor_profile;
 #[path = "../deadline_captured_observations.rs"]
 mod deadline_captured_observations;
 #[path = "../deadline_current_overview.rs"]

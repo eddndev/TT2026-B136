@@ -118,6 +118,7 @@ fn final_day(value: FinalDayPolicy) -> u8 {
 }
 pub(crate) fn rule(bytes: &mut Vec<u8>, value: ArithmeticRule) {
     match value {
+        ArithmeticRule::AtAnchor => bytes.push(3),
         ArithmeticRule::Days {
             quantity,
             inclusion,

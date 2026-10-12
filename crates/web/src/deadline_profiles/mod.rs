@@ -1,5 +1,7 @@
 //! Explicit global and case profile collections with editable definitions and receipts.
 pub(crate) use response::detail as exact_projection;
+#[cfg(test)]
+mod at_anchor_tests;
 mod definition;
 pub(crate) mod definition_projection;
 mod expected;

@@ -1,5 +1,6 @@
 //! Explicit temporal arithmetic without selecting a legal rule or trigger.
 
+mod anchor;
 mod civil;
 mod hours;
 mod types;
@@ -25,6 +26,7 @@ pub fn evaluate_deadline_arithmetic(
     calendar: Option<&JudicialCalendarValues>,
 ) -> DeadlineArithmetic {
     let (outcome, trace) = match rule {
+        ArithmeticRule::AtAnchor => anchor::at_anchor(anchor),
         ArithmeticRule::ElapsedHours { quantity } => hours::elapsed_hours(anchor, quantity),
         _ => evaluate_civil(rule, anchor, calendar),
     };
@@ -49,7 +51,9 @@ fn evaluate_civil(
         ArithmeticRule::Days { final_day, .. } | ArithmeticRule::CivilMonths { final_day, .. } => {
             final_day
         }
-        ArithmeticRule::ElapsedHours { .. } => unreachable!("hours are evaluated separately"),
+        ArithmeticRule::ElapsedHours { .. } | ArithmeticRule::AtAnchor => {
+            unreachable!("instants are evaluated separately")
+        }
     };
     let needs_calendar = final_day == FinalDayPolicy::NextCountable
         || matches!(
@@ -98,7 +102,9 @@ fn evaluate_civil(
             }
         }
         ArithmeticRule::CivilMonths { quantity, .. } => civil::civil_months(date, quantity),
-        ArithmeticRule::ElapsedHours { .. } => unreachable!("hours are evaluated separately"),
+        ArithmeticRule::ElapsedHours { .. } | ArithmeticRule::AtAnchor => {
+            unreachable!("instants are evaluated separately")
+        }
     };
     let mut trace = vec![step];
     if let ArithmeticOutcome::CivilCandidate { date } = outcome {

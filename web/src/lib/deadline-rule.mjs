@@ -37,6 +37,11 @@ export function deadlineRequirement(raw) {
   return raw;
 }
 export function deadlineRule(raw, unit = false) {
+  if (raw?.kind === 'at_anchor') {
+    object(raw, ['kind']);
+    if (unit) invalid();
+    return raw;
+  }
   const kind = deadlineEnum(raw?.kind, ['days', 'civil_months', 'elapsed_hours']);
   object(raw, [
     'kind',

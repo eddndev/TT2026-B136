@@ -99,7 +99,8 @@ function completion(raw, sources, unit) {
     uuid(raw.reference_id);
     if (!sources.has(raw.reference_id)) invalid();
   }
-  if ((unit === 'elapsed_hours') !== (raw.kind === 'arithmetic_instant')) invalid();
+  if (['elapsed_hours', 'at_anchor'].includes(unit) !== (raw.kind === 'arithmetic_instant'))
+    invalid();
 }
 export function deadlineProfileDefinition(raw, caseId) {
   object(raw, [
@@ -131,6 +132,13 @@ export function deadlineProfileDefinition(raw, caseId) {
     if (template.maximum !== null) revision(template.maximum);
     unit = template.unit.kind;
   }
+  if (
+    unit === 'at_anchor' &&
+    (raw.trigger.kind !== 'qualified' ||
+      raw.trigger.purpose !== 'hearing_end' ||
+      raw.trigger.family !== 'hearing_result')
+  )
+    invalid();
   completion(raw.completion, sources, unit);
   unique(raw.conditions, (v) => {
     object(v, ['id', 'statement', 'reference_ids']);
