@@ -30,15 +30,7 @@ export const confirmation = (review) => ({
 
 export async function withSession(page, actor, run) {
   const verified = responseTo(page, '/api/v1/auth/mfa/recovery', 'POST');
-  const initialReads = [responseTo(page, '/api/v1/dashboard')];
-  if (actor.role === 'owner')
-    initialReads.push(responseTo(page, '/api/v1/document-integrity-incidents'));
   await loginAs(page, actor, 0);
-  // Finish initial workspace reads before the sequential API assertions begin.
-  for (const response of await Promise.all(initialReads)) {
-    expect(response.status()).toBe(200);
-    expect(await response.finished()).toBeNull();
-  }
   const session = await (await verified).json();
   let token = session.access_token;
   delete session.access_token;

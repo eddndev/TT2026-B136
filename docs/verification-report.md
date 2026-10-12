@@ -1,5 +1,25 @@
 # Informe de verificación local
 
+## Preparacion comun de sesiones de navegador: 12 de octubre de 2026 UTC
+
+El recorrido del corpus reprodujo en otra campaña la misma espera agotada de
+la lista inicial de expedientes. La barrera particular del recorrido de plazos
+no cubría esa segunda entrada. La preparación común de acceso real ahora
+retiene las respuestas GET desde antes de confirmar MFA y espera únicamente
+las que corresponden al rol devuelto por la sesión: Dashboard para Owner y
+Litigator, e incidentes adicionalmente para Owner. Paralegal y Client no esperan
+consultas que su interfaz no emite. La cuenta de la fixture no determina ese
+rol, porque puede haber cambiado. Se exige HTTP 200 y cuerpo terminado; el
+observador se retira incluso si falla el acceso. Se eliminaron las dos barreras
+particulares, conservando sus aserciones y la captura MFA del flujo cautelar.
+
+Pasaron cuatro recorridos reales de permisos, plazos y corpus en escritorio y
+móvil (57.6 segundos), y la autodegradación de Owner a Paralegal seguida de nuevo
+acceso y comprobación Client (15.7 segundos). Se conservaron los límites y no
+se agregaron reintentos, cambios de producto ni una afirmación de mejora de
+rendimiento. Las campañas remotas fallidas quedan separadas de estos resultados
+focales; la activación sigue pendiente de la campaña del paquete aceptado.
+
 ## Sincronizacion del navegador de plazos: 12 de octubre de 2026 UTC
 
 Una campaña de paquete posterior a los gates verdes de integración detuvo el

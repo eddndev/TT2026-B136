@@ -11,16 +11,39 @@ export async function login(page, recoveryCode, account = fixture) {
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n' }).click();
   await page.getByLabel('C\u00f3digo de recuperaci\u00f3n', { exact: true }).fill(recoveryCode);
-  const [verified] = await Promise.all([
-    page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname === '/api/v1/auth/mfa/recovery' &&
-        response.request().method() === 'POST',
-    ),
-    page.getByRole('button', { name: 'Verificar y entrar' }).click(),
-  ]);
-  expect(verified.status()).toBe(200);
-  await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+  const initial = new Map();
+  const paths = ['/api/v1/dashboard', '/api/v1/document-integrity-incidents'];
+  const matches = (response, path) =>
+    new URL(response.url()).pathname === path && response.request().method() === 'GET';
+  const observe = (response) => {
+    const path = paths.find((candidate) => matches(response, candidate));
+    if (path && !initial.has(path)) initial.set(path, response);
+  };
+  page.on('response', observe);
+  try {
+    const [verified] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname === '/api/v1/auth/mfa/recovery' &&
+          response.request().method() === 'POST',
+      ),
+      page.getByRole('button', { name: 'Verificar y entrar' }).click(),
+    ]);
+    expect(verified.status()).toBe(200);
+    // The authenticated role can differ from the account's original fixture.
+    const role = (await verified.json()).user.role;
+    expect(['owner', 'litigator', 'paralegal', 'client']).toContain(role);
+    const required = ['owner', 'litigator'].includes(role) ? [paths[0]] : [];
+    if (role === 'owner') required.push(paths[1]);
+    for (const path of required) {
+      const response = initial.get(path) ?? (await page.waitForResponse((r) => matches(r, path)));
+      expect(response.status()).toBe(200);
+      expect(await response.finished()).toBeNull();
+    }
+    await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+  } finally {
+    page.off('response', observe);
+  }
 }
 
 export async function capture(page, testInfo, name) {
