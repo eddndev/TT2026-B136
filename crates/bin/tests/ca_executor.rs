@@ -283,12 +283,21 @@ else:
         !PathBuf::from(format!("/proc/{}", pids[0])).exists(),
         "owned leader was not reaped"
     );
-    if let Ok(status) = fs::read_to_string(format!("/proc/{}/stat", pids[1])) {
-        assert_eq!(
-            status.split_whitespace().nth(2),
-            Some("Z"),
-            "owned descendant is still running"
-        );
+    // Waiting for the leader does not wait for SIGKILL in other group members.
+    let until = Instant::now() + Duration::from_secs(1);
+    loop {
+        match fs::read_to_string(format!("/proc/{}/stat", pids[1])) {
+            Ok(status) => {
+                let state = status.rsplit_once(") ").unwrap().1.as_bytes()[0];
+                if matches!(state, b'Z' | b'X') {
+                    break;
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
+            Err(error) => panic!("cannot observe owned descendant: {error}"),
+        }
+        assert!(Instant::now() < until, "owned descendant is still running");
+        std::thread::sleep(Duration::from_millis(5));
     }
 }
 
