@@ -22,9 +22,12 @@ registra informes, recuperación y conciliación documental. El
 
 ## Contenido
 
+- [`docs/README.md`](docs/README.md) - indice de contratos, manuales,
+  operaciones y evidencia por tema.
 - [`latex/`](latex/) — fuente LaTeX del documento (compila con LuaLaTeX).
   Ver [`latex/README.md`](latex/README.md) para la guía de compilación y la
   estructura del proyecto.
+- `presentacion/` - material local de presentacion, fuera del versionado.
 
 ## Compilar el documento
 
@@ -262,7 +265,7 @@ La [API de hechos declarados](docs/procedural-facts-api.md) conserva resolucione
 y prácticas de notificación como familias propias, con padre fijo, fuentes
 históricas, tiempos de precisión explícita, corrección, retiro y recibos. El
 backend y la API están verificados localmente, incluido el recorrido HTTP con
-servicios reales y la restauración exacta. La [interfaz Qadra](web/README.md#resoluciones-y-notificaciones-declaradas)
+servicios reales y la restauración exacta. La [interfaz Qadra](web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 ya permite capturar, consultar y conciliar estas declaraciones; su verificación
 integral está aprobada localmente. No determina eficacia jurídica ni inicia automáticamente
 plazos o recursos.
@@ -304,14 +307,17 @@ tablas y el registro durable de cambios.
 
 ### Frontend web
 
-- [`web/`](web/) - interfaz funcional en Astro y Svelte: acceso con MFA,
+[`web/`](web/) es el workspace npm de las interfaces, con un solo
+`package-lock.json` y comandos comunes en [su README](web/README.md).
+
+- [`web/apps/qadra/`](web/apps/qadra/) - interfaz funcional en Astro y Svelte: acceso con MFA,
   expedientes, consultas persistentes, carga, clasificación y sus revisiones,
   historial de versiones, sellado,
   verificación, evidencia,
   alta de usuarios y verificación de auditoría.
   El directorio de participantes por expediente conserva revisiones y autoría,
   con archivo/reactivación y permisos independientes de las cuentas de acceso.
-  Ver [`web/README.md`](web/README.md) para ejecutar y probar la aplicación.
+  Ver [`web/apps/qadra/README.md`](web/apps/qadra/README.md) para ejecutar y probar la aplicación.
   Conserva la identidad visual Qadra. Integra administración penal, etapas,
   identidades y perfiles procesales, programación de audiencias y sesiones
   declaradas. Las resoluciones y notificaciones ya tienen formularios, selección
@@ -323,7 +329,11 @@ tablas y el registro durable de cambios.
   `bash scripts/web-demo.sh` prueba el navegador con servicios
   aislados reales; requiere las dependencias instaladas de `web/`.
 
-- [`frontend/`](frontend/) - placeholder de la interfaz web, construido con
-  Astro y Svelte. Ver [`frontend/README.md`](frontend/README.md) para
-  instalación y uso (requiere Node.js y npm). Por ahora es intencionalmente
-  mínimo.
+- [`web/apps/ca/`](web/apps/ca/) - espacio del portal administrativo de la CA,
+  pendiente de implementacion funcional. Su [alcance](docs/ca/README.md)
+  conserva la CA existente y limita el acceso a sus operadores.
+- [`web/packages/ui/`](web/packages/ui/) - elementos de presentacion compartidos
+  por las interfaces, con la identidad visual de Qadra.
+- [`archive/frontend-prototype/`](archive/frontend-prototype/) - ejemplo anterior
+  de Astro y Svelte conservado como archivo. Su
+  [README](archive/frontend-prototype/README.md) mantiene el contexto del prototipo.

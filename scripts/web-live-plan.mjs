@@ -87,7 +87,7 @@ export function planLiveSuite(files, partition) {
 }
 
 export function discoverLiveSpecs(
-  directory = new URL("../web/tests/live/", import.meta.url),
+  directory = new URL("../web/apps/qadra/tests/live/", import.meta.url),
 ) {
   return readdirSync(directory, { recursive: true })
     .map((file) => file.replaceAll("\\", "/"))

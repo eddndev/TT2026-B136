@@ -12,7 +12,7 @@ focal el resultado de toda la suite.
 
 La [API HTTP](procedural-facts-api.md) y su composicion estan implementadas con
 pruebas focales aprobadas. La comprobacion integrada HTTP con servicios reales
-y restauracion tambien esta aprobada localmente. El [cliente Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
+y restauracion tambien esta aprobada localmente. El [cliente Qadra](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 esta implementado y su verificacion integral esta aprobada localmente.
 El backend no calcula plazos, selecciona recursos, determina eficacia de
 notificaciones ni envia alertas. Conserva declaraciones y su procedencia conforme

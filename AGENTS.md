@@ -533,8 +533,9 @@ is still unfinished.
   run in the composed `serve` process. PR 34 integrated reevaluation and PR 35
   integrated the combined agenda, each with its own acceptance evidence. Qadra
   alerts are integrated through PR 36 with acceptance and CI passed.
-  Preserve its design tokens, components and original brand assets. `frontend/` retains the
-  older placeholder; new product work belongs in `web/`. Browser mock tests and
+  Preserve its design tokens, components and original brand assets. `archive/frontend-prototype/` retains the
+  older placeholder; Qadra lives in `web/apps/qadra/` and shared UI in
+  `web/packages/ui/`. The separate CA portal belongs in `web/apps/ca/`. Browser mock tests and
   `scripts/web-demo.sh` against isolated real services provide separate evidence.
 - `latex/main.tex` includes implementation, testing, conclusions, and annexes.
   Its implementation and testing distinguish the reproduced backend delivery

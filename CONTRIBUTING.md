@@ -68,6 +68,14 @@ dependency direction. Do not add a workspace dependency that violates it:
 - `web` depends on `domain` and `application`.
 - the binary crate (`despacho-cli`, in `crates/bin`) depends on all of them.
 
+The frontend npm workspace is rooted at `web/`, with one lockfile and forwarding
+scripts. Qadra lives in `web/apps/qadra/`, the CA portal in `web/apps/ca/`, and
+shared presentation elements in `web/packages/ui/`. The earlier frontend
+scaffold is archived at `archive/frontend-prototype/`. Rust, migrations, PKI,
+deployment operations and shared verification scripts keep their existing paths.
+The documentation index is `docs/README.md`; the pending CA scope is in
+`docs/ca/README.md`.
+
 ## Local verification
 
 Run only one local verification suite at a time. A single coordinator owns
@@ -190,8 +198,8 @@ pull request as the behavior it describes. Update the affected documents:
   changes or a new report build when its sources are unchanged.
 - Keep generated report PDFs untracked and publish them through the document
   workflow as artifacts and release assets. Preserve existing local deliverables
-  before replacing them. The presentation is a separate deliverable and is
-  updated only when included in the requested scope.
+  before replacing them. The presentation in `presentacion/` is a local-only
+  deliverable and is updated only when included in the requested scope.
 
 ## Resuming work and comparing checkouts
 
@@ -278,7 +286,8 @@ Inspect current code and contracts before treating this summary as complete.
   verification campaigns. The later human/HTTP V2 changes have separate focal
   evidence and are not covered by those historical runs. Remote checks and
   integration have their own evidence. See `docs/deadlines-api.md`,
-  `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and `web/README.md`.
+  `docs/adr/0036-persisted-deadline-evaluation-and-attention.md` and
+  `web/apps/qadra/README.md`.
   Automatic activation and the qualified legal-profile acceptance corpus remain
   pending. Reevaluation is integrated through PR 34; alerts are integrated
   through PR 36 with their own acceptance evidence below.

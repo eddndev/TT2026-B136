@@ -1,0 +1,334 @@
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import Icon from '@qadra/ui/Icon.svelte';
+  import AuthStory from './AuthStory.svelte';
+  import OwnerCertificateLogin from './OwnerCertificateLogin.svelte';
+  import Enrollment from './Enrollment.svelte';
+  import PasswordReset from './PasswordReset.svelte';
+  import InvitationAccept from './InvitationAccept.svelte';
+  import { takeInvitationLink } from '../lib/invitation-link.mjs';
+  import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
+  export let api;
+  export let onlogin;
+  export let notice = '';
+  export let initialResetLink = null;
+  export let initialInvitationLink = null;
+  export let oninvitationconsumed = () => {};
+  let invitationLink = initialInvitationLink ?? takeInvitationLink();
+  let acceptingInvitation = invitationLink !== null;
+  let invitationGeneration = 0;
+  export let onresetconsumed = () => {};
+  let resetLink = initialResetLink ?? takePasswordResetLink();
+  let resettingPassword = resetLink !== null;
+  let resetGeneration = 0;
+  let authGeneration = 0;
+  let email = '';
+  let password = '';
+  let code = '';
+  let challenge = null;
+  let deadline = 0;
+  let recovery = false;
+  let bootstrap = false;
+  let enrollment = null;
+  let busy = false;
+  let error = '';
+  let showPassword = false;
+  let emailInput;
+  let certificateMode = false;
+  let certificateSelection = null;
+  let certificateDeadline = 0;
+  function changeMethod(certificate = false) {
+    authGeneration++;
+    api.cancelAuthentication();
+    busy = false;
+    password = code = error = '';
+    challenge = enrollment = null;
+    showPassword = recovery = bootstrap = false;
+    certificateMode = certificate;
+    certificateSelection = null;
+    certificateDeadline = 0;
+  }
+  function certificateChallenge(value, selection, until) {
+    if (!certificateMode || resettingPassword || acceptingInvitation) return;
+    certificateSelection = selection;
+    certificateDeadline = until;
+    challenge = value;
+    code = error = '';
+    recovery = false;
+  }
+  onMount(() => {
+    emailInput?.focus();
+    const openRecovery = () => {
+      const invitation = takeInvitationLink();
+      const next = invitation ? null : takePasswordResetLink();
+      if (!next && !invitation) return;
+      authGeneration++;
+      api.invalidateSession();
+      busy = false;
+      password = code = '';
+      challenge = enrollment = null;
+      showPassword = bootstrap = false;
+      certificateMode = false;
+      certificateSelection = null;
+      certificateDeadline = 0;
+      resetLink = next;
+      resetGeneration++;
+      resettingPassword = !!next;
+      invitationLink = invitation;
+      invitationGeneration++;
+      acceptingInvitation = !!invitation;
+    };
+    window.addEventListener('hashchange', openRecovery);
+    return () => window.removeEventListener('hashchange', openRecovery);
+  });
+  onDestroy(() => {
+    authGeneration++;
+    api.cancelAuthentication();
+    password = code = '';
+    challenge = certificateSelection = null;
+  });
+  async function submit(event) {
+    event.preventDefault();
+    const generation = authGeneration;
+    busy = true;
+    error = '';
+    try {
+      if (challenge) {
+        if (certificateMode ? performance.now() >= certificateDeadline : Date.now() >= deadline)
+          throw new Error('La solicitud de acceso venci\u00f3. Inicia sesi\u00f3n de nuevo.');
+        const startedAt = performance.now();
+        const session = await api.mfa(
+          challenge.challenge_token,
+          code.trim(),
+          recovery ? 'recovery' : 'totp',
+        );
+        if (generation !== authGeneration) return;
+        onlogin(session, { startedAt, receivedAt: performance.now() });
+      } else if (bootstrap) {
+        const value = await api.bootstrap(email.trim(), password);
+        if (generation !== authGeneration) return;
+        enrollment = value;
+      } else {
+        const value = await api.login(email.trim(), password);
+        if (generation !== authGeneration) return;
+        challenge = value;
+        deadline = Date.now() + challenge.expires_in_seconds * 1000;
+      }
+    } catch (failure) {
+      if (generation !== authGeneration) return;
+      error = failure.message;
+      api.cancelAuthentication();
+      if (challenge) {
+        challenge = null;
+        code = '';
+      }
+    } finally {
+      if (generation === authGeneration) {
+        password = '';
+        showPassword = false;
+        busy = false;
+      }
+    }
+  }
+</script>
+
+<main class="auth-layout">
+  <div class="auth-card">
+    <AuthStory />
+    <section class="auth-panel">
+      <div class="auth-top">
+        <span class="badge neutral">Prototipo local</span><span>Despacho digital</span>
+      </div>
+      <div class="auth-form">
+        {#if acceptingInvitation}
+          {#key invitationGeneration}
+            <InvitationAccept
+              link={invitationLink}
+              onconsumed={() => {
+                invitationLink = initialInvitationLink = null;
+                oninvitationconsumed();
+              }}
+              onclose={() => {
+                acceptingInvitation = false;
+              }}
+            />
+          {/key}
+        {:else if resettingPassword}
+          {#key resetGeneration}
+            <PasswordReset
+              link={resetLink}
+              onconsumed={() => {
+                resetLink = null;
+                initialResetLink = null;
+                onresetconsumed();
+              }}
+              onclose={() => {
+                resettingPassword = false;
+              }}
+            />
+          {/key}
+        {:else if enrollment}
+          <Enrollment
+            {enrollment}
+            ondone={() => {
+              enrollment = null;
+              bootstrap = false;
+            }}
+          />
+        {:else if certificateMode && !challenge}
+          <OwnerCertificateLogin
+            {api}
+            initialSelection={certificateSelection}
+            initialError={error}
+            onchallenge={certificateChallenge}
+            onclose={() => changeMethod()}
+          />
+        {:else}
+          <span class="auth-symbol"><Icon name={challenge ? 'shield' : 'lock'} size={24} /></span>
+          <span class="eyebrow"
+            >{challenge ? 'PASO 02 / SEGUNDO FACTOR' : 'ACCESO AL DESPACHO'}</span
+          >
+          <h2>
+            {challenge
+              ? 'Un paso m\u00e1s.'
+              : bootstrap
+                ? 'Configura tu despacho.'
+                : 'Accede a tu despacho.'}
+          </h2>
+          <p>
+            {challenge
+              ? 'Confirma tu identidad para abrir tu espacio de trabajo.'
+              : bootstrap
+                ? 'Crea la primera cuenta administradora. Disponible solo si no existen usuarios.'
+                : 'Entra con tu cuenta para continuar donde lo dejaste.'}
+          </p>
+          {#if error || notice}<div class="notice error" role="alert">{error || notice}</div>{/if}
+          <form class="stack" onsubmit={submit}>
+            {#if challenge}
+              <label
+                >{recovery
+                  ? 'C\u00f3digo de recuperaci\u00f3n'
+                  : 'C\u00f3digo de 6 d\u00edgitos'}<input
+                  autofocus
+                  autocomplete="one-time-code"
+                  inputmode={recovery ? 'text' : 'numeric'}
+                  pattern={recovery ? undefined : '[0-9]{6}'}
+                  required
+                  bind:value={code}
+                /></label
+              >
+              <small
+                >Tienes {Math.round(challenge.expires_in_seconds / 60)} minutos para completar este paso.
+                Si se rechaza el c&oacute;digo, inicia sesi&oacute;n de nuevo.</small
+              >
+              <button class="primary" disabled={busy}
+                >{busy ? 'Verificando...' : 'Verificar y entrar'}<Icon
+                  name="arrow"
+                  size={18}
+                /></button
+              >
+              <button
+                class="text-button"
+                type="button"
+                disabled={busy}
+                onclick={() => {
+                  recovery = !recovery;
+                  code = '';
+                }}
+                >{recovery
+                  ? 'Usar app de autenticaci\u00f3n'
+                  : 'Usar c\u00f3digo de recuperaci\u00f3n'}</button
+              >
+              <button
+                class="text-button"
+                type="button"
+                disabled={busy}
+                onclick={() => changeMethod()}>Volver al inicio de sesi&oacute;n</button
+              >
+            {:else}
+              <label
+                >Correo electr&oacute;nico<input
+                  type="email"
+                  autocomplete="username"
+                  placeholder="tu@despacho.com"
+                  required
+                  bind:value={email}
+                  bind:this={emailInput}
+                /></label
+              >
+              <div class="password-field">
+                <label for="auth-password">Contrase&ntilde;a</label>
+                <div class="password-control">
+                  <input
+                    id="auth-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autocomplete={bootstrap ? 'new-password' : 'current-password'}
+                    minlength={bootstrap ? 12 : undefined}
+                    required
+                    bind:value={password}
+                  /><button
+                    type="button"
+                    class="password-toggle"
+                    aria-label={showPassword
+                      ? 'Ocultar contrase\u00f1a'
+                      : 'Mostrar contrase\u00f1a'}
+                    aria-pressed={showPassword}
+                    aria-controls="auth-password"
+                    onclick={() => {
+                      showPassword = !showPassword;
+                    }}>{showPassword ? 'Ocultar' : 'Mostrar'}</button
+                  >
+                </div>
+              </div>
+              {#if bootstrap}<small>Usa al menos 12 caracteres (m&aacute;ximo 1024 bytes).</small
+                >{/if}
+              <button class="primary" disabled={busy}
+                >{busy ? 'Conectando...' : bootstrap ? 'Crear administrador' : 'Continuar'}<Icon
+                  name="arrow"
+                  size={18}
+                /></button
+              >
+              <div class="auth-switch">
+                {bootstrap
+                  ? '\u00bfYa tienes una cuenta?'
+                  : '\u00bfPrimera vez en el despacho?'}<button
+                  class="text-button"
+                  type="button"
+                  disabled={busy}
+                  onclick={() => {
+                    const next = !bootstrap;
+                    changeMethod();
+                    bootstrap = next;
+                  }}>{bootstrap ? 'Iniciar sesi\u00f3n' : 'Configurar acceso inicial'}</button
+                >
+              </div>
+              {#if !bootstrap}
+                <button
+                  class="text-button"
+                  type="button"
+                  disabled={busy}
+                  onclick={() => changeMethod(true)}>Ingresar con certificado</button
+                >
+                <button
+                  class="text-button"
+                  type="button"
+                  disabled={busy}
+                  onclick={() => {
+                    changeMethod();
+                    resettingPassword = true;
+                  }}>Olvid&eacute; mi contrase&ntilde;a</button
+                >
+              {/if}
+            {/if}
+          </form>
+          <div class="auth-assurance">
+            <Icon name="shield" size={17} /><span
+              >Acceso con {certificateMode ? 'certificado' : 'contrase\u00f1a'} y segundo factor.</span
+            >
+          </div>
+        {/if}
+      </div>
+      <footer>Un espacio de trabajo para tu despacho.</footer>
+    </section>
+  </div>
+</main>

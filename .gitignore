@@ -23,8 +23,8 @@ runtime-data/
 
 # Node / frontend
 node_modules
-frontend/dist
-frontend/.astro
+archive/frontend-prototype/dist
+archive/frontend-prototype/.astro
 
 # Generated document delivery packages
 /output/

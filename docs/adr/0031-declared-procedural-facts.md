@@ -11,7 +11,7 @@ now includes migrations, audited transactions, effective case membership checks,
 exact historical reads and startup validation. Backend verification is approved locally.
 The [HTTP API](../procedural-facts-api.md) and composition are implemented, with
 focused DTO, projection and route tests passing. The workspace suite and real
-HTTP workflow with exact restoration passed locally. The [Qadra client](../../web/README.md#resoluciones-y-notificaciones-declaradas)
+HTTP workflow with exact restoration passed locally. The [Qadra client](../../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 is implemented, with integrated browser verification approved locally. These declarations do
 not establish operational legal deadlines.
 

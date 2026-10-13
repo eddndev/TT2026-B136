@@ -12,7 +12,7 @@ transaccion auditada, autorizacion por expediente y revalidacion bajo bloqueo.
 Su cierre de verificacion local esta aprobado. La [API HTTP](procedural-facts-api.md)
 y su composicion estan implementadas, con pruebas focales de DTO, proyecciones
 y rutas aprobadas. La comprobacion HTTP integrada con restauracion tambien esta
-aprobada localmente. El [cliente Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
+aprobada localmente. El [cliente Qadra](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 esta implementado y su verificacion integral esta aprobada localmente.
 El [informe de verificacion](verification-report.md) distingue las pruebas de
 aplicacion de la evidencia integrada de otras capacidades.

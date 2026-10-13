@@ -192,5 +192,5 @@ if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ]; then
 fi
 export TT_WEB_PORT
 TT_WEB_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
-cd "$REPO_ROOT/web"
-node node_modules/@playwright/test/cli.js test -c "$WEB_BROWSER_CONFIG" "$@"
+cd "$REPO_ROOT/web/apps/qadra"
+node "$REPO_ROOT/web/node_modules/@playwright/test/cli.js" test -c "$WEB_BROWSER_CONFIG" "$@"
