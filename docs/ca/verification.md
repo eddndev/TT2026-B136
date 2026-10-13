@@ -18,6 +18,7 @@ no acredita el alta real del operador ni el recorrido de la titular Owner.
 | Interfaz | Sesenta y tres pruebas Node, build y dos recorridos Playwright a 1440 y 390 píxeles, con capturas inspeccionadas: revisión, emisión incierta/reanudación, descarga, revocación, publicación e historial. | Browser usa un contrato HTTP controlado; criptografía y listener se ejercitan separadamente. |
 | Restauración SQL | `crates/bin/tests/ca_restore_service.rs`, un caso nativo en 12.37 s: dump, pérdida del esquema CA y restore; conservación exacta de cuenta/auditoría, recuperación ya consumida, nueva MFA y ausencia de acceso al despacho. | Reutiliza roles del mismo clúster desechable; no acredita recuperación entre hosts ni aprovisiona roles automáticamente. |
 | Restauración Redis | Ensayo nativo RDB/AOF de `scripts/tests/test_deployment_certificate_login_snapshot.py`, 5.924 s: sesiones y desafíos CA eliminados; cuotas, marcas TOTP y sus vencimientos conservados; el reinicio no revive capacidades. | Usa datos sintéticos en Redis real aislado, sin restaurar producción. |
+| Archivo de publicación preparada | `scripts/tests/test_ca_publication_backup_roundtrip.py`: tar real, extracción privada, configuración/KEK CA separada y PKI idénticas, mismo UUID/candidato reanudado sin generar otra CRL ni cambiar serie. | SQL y control de servicios simulados; se complementa con restauración SQL nativa, sin afirmar restauración pública. |
 | Paquete y servicios | Doce casos de bundle/workspace y ocho del renderer. El paquete admite binario, web, esquema y fuentes CA; conserva compatibilidad con paquetes anteriores. Las unidades CA no dependen de API/web del despacho. | El renderer no instala servicios ni habilita el DNS. |
 
 La restauración SQL comprueba una sesión cerrada antes del respaldo, no afirma
@@ -33,6 +34,11 @@ incorporaron al backup de esa publicación sus tres archivos públicos de
 recuperación: journal preparado, CRL original y candidata. Las pruebas rechazan
 faltantes o enlaces antes de declarar el respaldo completo. El respaldo anterior
 sin operación de portal conserva su formato y contenido.
+
+El recorrido `scripts/demo.sh` también terminó correctamente tras los cambios de
+CLI. Clippy focal de `despacho-cli` y sus targets aprobó; se corrigieron dos
+warnings de módulos importados por tests. La comprobación de registro de tests
+aceptó todas las fuentes, tras explicitar dos inclusiones que antes no reconocía.
 
 La aprobación local no sustituye regresión, revisión, integración ni despliegue.
 El cierre requiere los gates aplicables al HEAD exacto y la aceptación del

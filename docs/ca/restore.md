@@ -3,7 +3,7 @@
 Este procedimiento complementa [respaldos](../deployment-backups.md) y el
 [manual CA](operations.md). Describe una restauracion administrativa explicita;
 no existe un comando integral de restore CA. La adopcion del servicio en VPS3
-siguen pendientes. El ensayo nativo local de dump/restore CA con identidad
+sigue pendiente. El ensayo nativo local de dump/restore CA con identidad
 poblada aprobo; la recuperacion integral del host requiere su propia aceptacion.
 Los comandos siguientes son interfaces que deben concretarse con el inventario
 aprobado del destino, desde el usuario de despliegue y su bus systemd.

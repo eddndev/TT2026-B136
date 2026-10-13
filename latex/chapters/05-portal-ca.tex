@@ -59,8 +59,12 @@ presente y comprob\'o que las capacidades eliminadas no reaparecieran. La prueba
 procesos Redis propios; PostgreSQL y la observaci\'on de systemd permanecieron
 controlados. Las dos restauraciones conservan, por tanto, fronteras distintas.
 
-Permanece pendiente la adopci\'on p\'ublica de CA en VPS3, con unidades, configuraci\'on privada,
-proxy HTTPS y enrolamiento real, as\'i como una restauraci\'on conjunta que
-recupere una publicaci\'on preparada y reanude el mismo candidato bajo el cierre
-operativo completo. El inventario de evidencia y sus l\'imites se conserva en
+Un caso adicional extrajo el tar real de una publicaci\'on preparada y
+conserv\'o byte por byte PKI, journals y configuraci\'on con una KEK CA distinta.
+La reanudaci\'on del mismo UUID us\'o el candidato conservado sin generar otra
+CRL ni cambiar la serie. SQL y servicios fueron controlados en ese caso; no
+convierte las dos restauraciones nativas separadas en un ensayo de host completo.
+
+Permanece pendiente la adopci\'on p\'ublica de CA en VPS3, con unidades,
+configuraci\'on privada, proxy HTTPS y enrolamiento real. El inventario de evidencia y sus l\'imites se conserva en
 \rutarepo{docs/ca/verification.md}.

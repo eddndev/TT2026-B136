@@ -77,6 +77,8 @@ la [guía de operación Owner](../owner-certificate-login-operations.md), la
 del 12 de octubre de 2026 mostró `enabled:false`; describe aquella observación,
 no una carencia de implementación ni el estado de una activación posterior.
 
+El [perfil de activación preparado](owner-activation.md) fija cuotas, ventanas,
+tiempos Redis, retorno y pasos de aceptación sin cambiar la inactividad.
 Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
 
 1. Acceso alternativo a su cuenta mediante contraseña y MFA.
