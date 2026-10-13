@@ -541,8 +541,8 @@ is still unfinished.
   from pending product and usability work. The approved abstract is preserved;
   conclusions remain pending until the project is complete. Update affected
   implementation, testing and annex sections as evidence changes.
-  The versioned Beamer presentation starts at
-  `presentacion/presentacion.tex`.
+  `presentacion/` is local temporary material, excluded from version control.
+  Preserve its local files; it is not a repository build target.
 
 - Durable activity alerts, account preferences, the personal Qadra inbox and
   the scheduler/email consumers composed in `serve` are integrated into `main`
@@ -615,8 +615,9 @@ current code before planning subsequent work in this dependency order.
 5. Keep implementation, testing and annexes aligned with reproduced results,
    integrate design corrections into academic prose, and refresh the
    verification report after functional changes. Complete conclusions when
-   the project is finished. Rebuild and visually inspect any changed document
-   or presentation using its versioned README instructions.
+   the project is finished. Rebuild and visually inspect changed versioned
+   documents using their README instructions. Local presentation material
+   remains outside repository builds.
 
 For documentation maintenance, distinguish the stateless TOTP primitive in
 `docs/adr/0008-totp-single-use-enforcement.md` from the Redis-backed replay

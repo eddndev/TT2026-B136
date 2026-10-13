@@ -29,6 +29,9 @@ frontend/.astro
 # Generated document delivery packages
 /output/
 
+# Local temporary presentation; preserve files outside version control.
+/presentacion/
+
 # Editor and OS noise
 .DS_Store
 *.swp
