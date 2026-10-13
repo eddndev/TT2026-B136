@@ -68,7 +68,7 @@ impl Trust {
             .batch_execute(&format!(
                 "CREATE ROLE qadra_admin LOGIN NOINHERIT NOSUPERUSER
             NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '{}'",
-                &*trust.password
+                *trust.password
             ))
             .unwrap_or_else(|_| panic!("owned public trust role could not be created"));
         trust.role_created = true;
@@ -137,7 +137,9 @@ fn unhex(value: &Value) -> Vec<u8> {
         .as_str()
         .unwrap()
         .as_bytes()
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
         .collect()
 }
