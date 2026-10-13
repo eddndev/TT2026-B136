@@ -16,6 +16,7 @@ size=$(stat -c %s target/release/despacho-cli)
 test "$size" -le $((25 * 1024 * 1024))
 npm --prefix web ci
 npm --prefix web run build
+npm --prefix web run build:ca
 python3 -B ops/deploy/bundle.py "$version" "$commit" "$library"
 cd output/releases
 sha256sum --check "qadra-$version-$commit.tar.gz.sha256"

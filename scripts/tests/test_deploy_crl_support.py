@@ -29,7 +29,8 @@ class ControlledRuntime:
         self.events.append("stop")
         self.running = False
 
-    def backup(self):
+    def backup(self, *, ca_operation=None):
+        renew_crl.journal.guard_mutation(self.owner.root, ca_operation)
         self.events.append("backup")
         if self.running:
             raise AssertionError("backup ran while the application was active")
@@ -44,6 +45,9 @@ class ControlledRuntime:
         return destination
 
     def start(self, target):
+        # Exercise the same admission boundary as Runtime.start, even with
+        # controlled system services and public material in this fixture.
+        renew_crl.journal.guard(self.owner.root)
         self.events.append("start")
         self.owner.assertEqual(target, self.owner.target)
         self.owner.assertFalse(self.owner.fence.exists())

@@ -328,3 +328,6 @@ fn login_and_user_creation_reject_control_bytes_before_email_io() {
         ));
     }
 }
+
+#[path = "identity_support/ca_operator_cases.rs"]
+mod ca_operator_cases;

@@ -1,3 +1,5 @@
+#[path = "redis_ca_scope.rs"]
+mod ca_scope;
 #[path = "redis_certificate_session_cases/challenges.rs"]
 mod challenges;
 #[path = "redis_certificate_session_cases/concurrency.rs"]

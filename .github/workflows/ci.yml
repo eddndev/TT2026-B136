@@ -11,22 +11,18 @@ on:
         description: Run only the extended dispatch measurement
         type: boolean
         default: false
-
 permissions:
   contents: read
   actions: write
-
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 env:
   CARGO_TERM_COLOR: always
   CARGO_BUILD_JOBS: '1'
   # Bound test artifacts while retaining source locations; see docs/adr/0027-ci-debug-information.md.
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
-
 jobs:
   format:
     if: ${{ !inputs.dispatch_measurement }}
@@ -35,7 +31,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check deployment helpers
-        run: python3 -B -m unittest discover -s scripts/tests -p 'test_deploy_*.py'
+        run: |
+          python3 -B -m unittest discover -s scripts/tests -p 'test_deploy_*.py'
+          python3 -B -m unittest discover -s scripts/tests -p 'test_ca_*.py'
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -148,6 +146,7 @@ jobs:
         run: |
           if [ -n "$POSTGRES_TEST_PORT" ]; then
             printf 'IDENTITY_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
+            printf 'CA_OPERATIONS_TEST_ADMIN_URL=postgresql://postgres:postgres@127.0.0.1:%s/postgres\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
             printf 'CASE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/case_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
             printf 'DOCUMENT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:%s/document_tests\n' "$POSTGRES_TEST_PORT" >> "$GITHUB_ENV"
           fi

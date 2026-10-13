@@ -12,6 +12,47 @@ import tempfile
 VERSION = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 MAX_BYTES = 512 * 1024 * 1024
+CA_MODULES = ("command host inventory issuance issuance_material native_executor portal public_state "
+              "publication revocation").split()
+DEPLOY_MODULES = (
+    "backup_manifest backup_manifest_files backup_manifest_schema bundle ca_mutation_guard "
+    "controller_approval controller_approval_record controller_gate controller_gate_files "
+    "controller_gate_target controller_installation controller_installation_files "
+    "controller_installation_steps controller_publication controller_publication_files "
+    "controller_publication_record controller_unit_commands crl_backup crl_journal crl_material "
+    "host provision release renew_crl restore_admission restore_admission_release "
+    "restore_admission_schema restore_capture restore_catalog restore_commands restore_fence "
+    "restore_observations restore_quiesce restore_quiesce_bus restore_quiesce_observe "
+    "restore_quiesce_target restore_redis runtime runtime_readiness"
+).split()
+CA_REQUIRED = {"bin/qadra-ca", "ca-web/index.html", "ca-web/version.json", "ca/schema.sql"}
+CA_REQUIRED.update(f"ops/ca/{name}.py" for name in CA_MODULES)
+CA_REQUIRED.update(f"ops/deploy/{name}.py" for name in DEPLOY_MODULES)
+
+
+def ca_inventory(files, *, required=False):
+    # Legacy releases contain none of these paths. A CA runtime is one complete set.
+    included = required or "bin/qadra-ca" in files or any(
+        name.startswith(("ca-web/", "ca/", "ops/ca/", "ops/deploy/")) for name in files)
+    if included and not CA_REQUIRED.issubset(files):
+        raise ValueError("incomplete CA release inventory")
+    return included
+
+
+def copy_ca_python(root, stage):
+    tracked = subprocess.check_output(
+        ["git", "ls-files", "-z", "ops/ca", "ops/deploy"], cwd=root, text=True).split("\0")
+    for name in sorted(set(tracked)):
+        path = PurePosixPath(name)
+        if (path.parts[:2] not in (("ops", "ca"), ("ops", "deploy"))
+                or path.suffix != ".py" or "__pycache__" in path.parts):
+            continue
+        source = root / path
+        if source.is_symlink() or not source.is_file():
+            raise ValueError("versioned CA Python must be a regular source file")
+        target = stage / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
 
 
 def validate_version(value):
@@ -63,6 +104,10 @@ def extract_bundle(archive, destination, version, commit):
                     "bin/ffmpeg", "bin/ffprobe"}
         if set(files) != seen - {"release.json"} or not required.issubset(files):
             raise ValueError("release inventory mismatch")
+        if ca_inventory(files):
+            identity = json.load(tar.extractfile("ca-web/version.json"))
+            if identity != {"version": version, "commit": commit}:
+                raise ValueError("CA web release identity mismatch")
         destination.mkdir(parents=True)
         try:
             for member in members:
@@ -97,12 +142,17 @@ def build(root, version, commit, library, output):
     with tempfile.TemporaryDirectory(dir=output) as temp:
         stage = Path(temp)
         (stage / "bin").mkdir()
-        shutil.copy2(root / "target/release/despacho-cli", stage / "bin/despacho-cli")
+        for program in ("despacho-cli", "qadra-ca"):
+            shutil.copy2(root / "target/release" / program, stage / "bin" / program)
         for program in ("ffmpeg", "ffprobe"):
             shutil.copyfile(Path("/opt/tt-media/bin") / program, stage / "bin" / program)
         for source, name in ((root / "web/apps/qadra/dist", "web"),
+                             (root / "web/apps/ca/dist", "ca-web"),
                              (root / "migrations", "migrations")):
             shutil.copytree(source, stage / name)
+        (stage / "ca").mkdir()
+        shutil.copyfile(root / "crates/infrastructure/src/ca_identity/schema.sql", stage / "ca/schema.sql")
+        copy_ca_python(root, stage)
         # Only versioned PKI scripts/configuration belong in the artifact.
         tracked = set(subprocess.check_output(
             ["git", "ls-files", "pki"], cwd=root, text=True).splitlines())
@@ -115,9 +165,11 @@ def build(root, version, commit, library, output):
             if path.is_file():
                 shutil.copyfile(path, stage / "lib" / path.name)
         identity = {"version": version, "commit": commit}
-        (stage / "web/version.json").write_text(json.dumps(identity) + "\n")
+        for name in ("web", "ca-web"):
+            (stage / name / "version.json").write_text(json.dumps(identity) + "\n")
         files = {p.relative_to(stage).as_posix(): digest(p)
                  for p in sorted(stage.rglob("*")) if p.is_file()}
+        ca_inventory(files, required=True)
         manifest = {**identity, "schema": schema_digest(stage / "migrations"), "files": files}
         (stage / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
         with tarfile.open(archive, "w:gz") as tar:

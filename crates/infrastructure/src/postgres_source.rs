@@ -51,14 +51,16 @@ where
     compose(&context)
 }
 
-struct StartupConnection {
-    client: Client,
+pub(crate) struct StartupConnection {
+    pub(crate) client: Client,
     schema: i32,
     audited: bool,
 }
 impl StartupConnection {
-    fn new(url: &str) -> Result<Self, ApplicationError> {
-        let mut client = crate::postgres::connect_runtime(url)?;
+    pub(crate) fn new(url: &str) -> Result<Self, ApplicationError> {
+        Self::from_client(crate::postgres::connect_runtime(url)?)
+    }
+    pub(crate) fn from_client(mut client: Client) -> Result<Self, ApplicationError> {
         // Match migration ordering before excluding all audited mutations.
         let schema = crate::postgres::lock_startup_schema(&mut client)?;
         let mut guard = Self {
@@ -149,9 +151,17 @@ mod sealed {
             &self.url
         }
     }
+    impl Source for crate::ca_identity::ValidatedCaIdentityPostgres<'_> {
+        fn connect(&self) -> Result<Client, ApplicationError> {
+            self.open_connection()
+        }
+        fn url(&self) -> &str {
+            self.connection_url()
+        }
+    }
 }
 
-fn identity(client: &mut Client) -> Result<Vec<String>, ApplicationError> {
+pub(crate) fn identity(client: &mut Client) -> Result<Vec<String>, ApplicationError> {
     client
         .query_one(
             "SELECT ARRAY[current_database(),

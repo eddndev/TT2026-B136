@@ -10,6 +10,10 @@ repository.workspace = true
 name = "despacho-cli"
 path = "src/main.rs"
 
+[[bin]]
+name = "qadra-ca"
+path = "src/ca/main.rs"
+
 [dependencies]
 domain = { path = "../domain" }
 application = { path = "../application" }
@@ -18,6 +22,7 @@ web = { path = "../web" }
 axum.workspace = true
 clap = { workspace = true, features = ["env"] }
 serde_json.workspace = true
+serde.workspace = true
 anyhow.workspace = true
 base64.workspace = true
 tracing.workspace = true
@@ -25,6 +30,7 @@ tracing-subscriber.workspace = true
 dotenvy.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
+rustix = { workspace = true, features = ["termios"] }
 # The verify command accepts an explicit evaluation instant in RFC 3339
 # form, which needs the parsing feature on top of the workspace-wide
 # formatting selection.
@@ -32,10 +38,10 @@ time = { workspace = true, features = ["parsing"] }
 tokio = { workspace = true, features = ["net", "signal", "sync", "time"] }
 
 [dev-dependencies]
+rustix = { workspace = true, features = ["pty", "termios"] }
 mockall.workspace = true
 redis.workspace = true
 tower = { version = "0.5", features = ["util"] }
 postgres.workspace = true
 reqwest.workspace = true
-rustix.workspace = true
 tempfile.workspace = true

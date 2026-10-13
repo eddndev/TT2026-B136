@@ -29,6 +29,7 @@ const DEFAULT_IO_TIMEOUT: Duration = Duration::from_secs(5);
 /// Ephemeral identity state stored in Redis under SHA-256-derived keys.
 pub struct RedisSessionStore {
     client: redis::Client,
+    key_prefix: &'static str,
     hasher: RingSha256Hasher,
     connect_timeout: Duration,
     io_timeout: Duration,
@@ -37,6 +38,13 @@ pub struct RedisSessionStore {
 impl RedisSessionStore {
     pub fn connect(redis_url: &str) -> Result<Self, ApplicationError> {
         Self::connect_with_timeouts(redis_url, DEFAULT_CONNECT_TIMEOUT, DEFAULT_IO_TIMEOUT)
+    }
+
+    /// Isolates CA credentials and capabilities from the office application.
+    pub fn connect_ca(redis_url: &str) -> Result<Self, ApplicationError> {
+        let mut store = Self::connect(redis_url)?;
+        store.key_prefix = "ca-identity";
+        Ok(store)
     }
 
     /// Configures TCP connection and established-socket I/O timeouts.
@@ -56,6 +64,7 @@ impl RedisSessionStore {
         }
         Ok(Self {
             client: redis::Client::open(redis_url).map_err(port_error)?,
+            key_prefix: "identity",
             hasher: RingSha256Hasher::new(),
             connect_timeout,
             io_timeout,
@@ -78,7 +87,8 @@ impl RedisSessionStore {
 
     fn digest_key(&self, namespace: &str, value: &[u8]) -> String {
         format!(
-            "identity:{namespace}:{}",
+            "{}:{namespace}:{}",
+            self.key_prefix,
             self.hasher.hash_bytes(value).to_hex()
         )
     }

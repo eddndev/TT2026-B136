@@ -1,5 +1,11 @@
 # API HTTP local autenticada
 
+El [contrato HTTP del portal CA](ca/api.md) pertenece al binario separado
+`qadra-ca`: acceso del operador con MFA, inventario y operaciones recuperables
+de la autoridad existente. Su identidad y sesiones no derivan de los roles del
+despacho; el enrolamiento inicial es administrativo y no tiene ruta HTTP pública.
+El [estado CA](ca/README.md) separa implementación, instalación y aceptación.
+
 El contrato de [vínculos del Owner](http-owner-certificates.md) describe
 preparación, registro, consulta y retiro de evidencia propia. El servidor compone
 estas rutas con el servicio real y comparte los límites HTTP y de trabajo de

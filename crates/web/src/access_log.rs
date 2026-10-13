@@ -6,6 +6,7 @@ use axum::{
     http::{HeaderValue, Method},
     response::Response,
 };
+use domain::identity::UserId;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -44,16 +45,20 @@ impl AccessAttempt {
     }
 
     pub(crate) fn record(&self, attempt: &MfaAttempt) {
-        let result = match attempt.reason {
+        self.record_outcome(attempt.user_id, attempt.reason);
+    }
+
+    pub(crate) fn record_outcome(&self, user_id: Option<UserId>, reason: MfaReason) {
+        let result = match reason {
             MfaReason::Accepted => "accepted",
             MfaReason::OperationalError => "error",
             _ => "rejected",
         };
-        let user = attempt.user_id.map(|id| id.to_string());
+        let user = user_id.map(|id| id.to_string());
         self.emit(
             user.as_deref().unwrap_or("unavailable"),
             result,
-            attempt.reason.as_str(),
+            reason.as_str(),
         );
     }
 

@@ -11,6 +11,8 @@ pub mod audit;
 pub mod audit_context;
 pub mod audit_query;
 pub mod auth;
+pub mod ca_access;
+pub mod ca_operations;
 pub mod case_stages;
 pub mod cases;
 pub mod credential_trust;

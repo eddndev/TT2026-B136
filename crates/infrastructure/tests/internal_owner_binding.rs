@@ -1,5 +1,9 @@
 #[path = "owner_binding_cases/application_port.rs"]
 mod application_port;
+#[path = "ca_inventory_inspection.rs"]
+mod ca_inventory_inspection;
+#[path = "ca_public_inspection.rs"]
+mod ca_public_inspection;
 #[allow(dead_code)]
 #[path = "declaration_fixture/mod.rs"]
 mod declaration_fixture;

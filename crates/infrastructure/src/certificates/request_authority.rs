@@ -5,7 +5,9 @@ use std::fs::{self, File};
 use std::io::Read;
 
 use der::Encode;
-use domain::crypto::certificate::{CertificateRequestAuthority, IssuedPublicCertificate};
+use domain::crypto::certificate::{
+    CertificateRequestAuthority, CertificateRequestProfile, IssuedPublicCertificate,
+};
 use domain::DomainError;
 
 use super::parse::{parse_certificate, serial_hex};
@@ -17,6 +19,7 @@ impl CertificateRequestAuthority for OpensslCaAdapter {
         &self,
         name: &str,
         request_pem: &[u8],
+        profile: CertificateRequestProfile,
     ) -> Result<IssuedPublicCertificate, DomainError> {
         validate_name(name)?;
         let expected_key = inspect(request_pem)?;
@@ -25,9 +28,17 @@ impl CertificateRequestAuthority for OpensslCaAdapter {
         let request_path = directory.path().join("request.pem");
         fs::write(&request_path, request_pem)
             .map_err(|_| failure("public staging file is unavailable"))?;
+        let purpose = match profile {
+            CertificateRequestProfile::DocumentSigning => "document-signing",
+            CertificateRequestProfile::Partner => "partner",
+        };
         self.run_script(
             "issue-request.sh",
-            &[OsStr::new(name), request_path.as_os_str()],
+            &[
+                OsStr::new(name),
+                request_path.as_os_str(),
+                OsStr::new(purpose),
+            ],
         )?;
         let certificate_path = self.ca_dir.join("certs").join(format!("{name}.crt.pem"));
         let mut certificate_pem = Vec::new();

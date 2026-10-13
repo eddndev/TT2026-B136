@@ -1,5 +1,7 @@
 # Informe de verificación local
 
+La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
+
 ## Entrega aceptada y activa v0.1.6: 12 de octubre de 2026
 
 El corpus finito de ocho supuestos se integró por [PR100](https://github.com/eddndev/TT2026-B136/pull/100).

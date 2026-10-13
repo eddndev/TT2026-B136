@@ -7,6 +7,14 @@ La autoridad certificadora interna del prototipo y su autoridad de sellado de ti
 
 Estos mismos scripts son los que ejecuta el prototipo: el adaptador de infraestructura de la autoridad los invoca como subprocesos desde los subcomandos \texttt{pki} de la interfaz de línea de comandos (véase el Anexo~\ref{anexo:cli}), y la suite de pruebas los usa como fixtures reales en directorios temporales, de modo que las pruebas ejercitan la misma implementación de autoridad local utilizada por la demostración. Esto no acredita su operación como autoridad de producción o prestador autorizado.
 
+El portal administrativo descrito en la \cref{sec:impl-portal-ca} reutiliza esta
+autoridad y estos ejecutores. Recibe solicitudes p\'ublicas, registra la revisi\'on
+del operador y conserva recibos recuperables de emisi\'on, revocaci\'on y
+publicaci\'on CRL. Su proceso separado exige identidad CA y MFA; el rol Owner del
+despacho no concede acceso administrativo. No crea una jerarqu\'ia nueva ni
+recibe la clave privada del titular. Su aceptaci\'on local se distingue de la
+instalaci\'on p\'ublica pendiente en la \cref{sec:pruebas-portal-ca}.
+
 \section{Inventario y parámetros criptográficos comunes}\label{sec:pki-inventario}
 
 \begin{table}[H]
@@ -20,7 +28,7 @@ Estos mismos scripts son los que ejecuta el prototipo: el adaptador de infraestr
     \texttt{init-ca.sh} & Crea la CA raíz: llave privada, certificado autofirmado y base de datos de la autoridad. \\
     \texttt{issue-cert.sh} & Emite un certificado de entidad final firmado por la CA para el common name dado. \\
     \texttt{issue-declaration-cert.sh} & Emite una hoja para declaraciones personales con usos de firma y sin EKU de autenticación o correo. \\
-    \texttt{issue-request.sh} & Firma una solicitud pública externa con el perfil de firma interna, sin generar una clave del titular. \\
+    \texttt{issue-request.sh} & Firma un CSR externo con perfil Partner o de firma documental, sin generar una clave del titular. \\
     \texttt{revoke.sh} & Marca como revocado un certificado emitido, en la base de datos de la CA. \\
     \texttt{gen-crl.sh} & Genera la lista de certificados revocados (CRL) en formato PEM. \\
     \texttt{issue-tsa-cert.sh} & Emite el certificado de la TSA local y prepara su directorio de trabajo. \\
@@ -100,18 +108,28 @@ openssl ca -config "$OPENSSL_CNF" -batch -notext -md sha256 \
 
 \section{issue-request.sh: emisión con clave externa}\label{sec:pki-issue-request}
 
-El script recibe un identificador de salida y una solicitud pública. Se invoca
-mediante \texttt{pki issue-request}, cuya validación previa limita y comprueba
-el CSR y los parámetros RSA. OpenSSL verifica la firma de la solicitud y emite
-una hoja de 365 días con \texttt{v3\_internal\_declaration}; las extensiones
-solicitadas no se copian. La CLI comprueba además la cadena, el perfil y la
-igualdad de la clave pública emitida. El script usa la clave de la CA para
-certificar, sin recibir ni generar la clave privada del titular. El procedimiento
-externo se muestra en la \cref{sec:cli-pki-request}.
+El script recibe un identificador de salida, una solicitud p\'ublica y el
+prop\'osito opcional \texttt{document-signing} o \texttt{partner}. Se invoca
+mediante \texttt{pki issue-request}, cuya validaci\'on previa limita y comprueba
+el CSR y los par\'ametros RSA. OpenSSL verifica la firma de la solicitud y emite
+una hoja de 365 d\'ias. El prop\'osito de firma documental, predeterminado si se
+omite, selecciona \texttt{v3\_internal\_declaration}; Partner selecciona
+\texttt{v3\_end\_entity}. Las extensiones solicitadas no se copian. La CLI
+comprueba adem\'as la cadena, el perfil y la igualdad de la clave p\'ublica emitida.
+El script usa la clave de la CA para certificar, sin recibir ni generar la clave
+privada del titular. El portal fija el prop\'osito revisado y usa su UUID de
+operaci\'on como nombre de salida. El procedimiento externo se muestra en la
+\cref{sec:cli-pki-request}.
 
 \section{revoke.sh: revocación}\label{sec:pki-revoke}
 
 Recibe la ruta del certificado a revocar, lee su número de serie con \texttt{openssl x509 -noout -serial} y consulta la base de datos \texttt{index.txt} de la CA ---un archivo separado por tabuladores con estado, expiración, fecha de revocación, serial, archivo y sujeto, donde el estado \texttt{R} significa revocado--- antes de intentar la revocación. Si el certificado ya está revocado, lo reporta y termina con éxito, de modo que el script puede re-ejecutarse sin riesgo. La revocación se asienta con \texttt{openssl ca -revoke} y solo se hace visible a terceros cuando se regenera la CRL con \texttt{gen-crl.sh}.
+
+El portal identifica el certificado por serie y huella exactas antes de invocar
+este script, bajo el bloqueo compartido y con un journal previo al efecto.
+Conserva el motivo y el operador en el recibo. La revocaci\'on local no genera
+autom\'aticamente otra CRL: Qadra reconoce la actualizaci\'on cuando el
+mantenimiento publica y relee la revisi\'on sucesora de confianza en PostgreSQL.
 
 \begin{lstlisting}[language=bash, caption={Consulta del estado y revocación en \texttt{pki/revoke.sh}.}, label={lst:pki-revoke}]
 # index.txt is tab separated: status, expiry, revocation date,
@@ -188,7 +206,13 @@ authorityKeyIdentifier  = keyid:always
 subjectKeyIdentifier    = hash
 \end{lstlisting}
 
-La raíz declara \texttt{CA:true} con uso de llave restringido a firmar certificados y CRL; las entidades finales declaran \texttt{CA:false} con \texttt{digitalSignature} y \texttt{nonRepudiation} críticos ---los usos que sustentan la firma de documentos--- más autenticación de cliente y protección de correo como usos extendidos.
+La ra\'iz declara \texttt{CA:true} con uso de llave restringido a firmar
+certificados y CRL. Ambos perfiles de entidad final declaran \texttt{CA:false}
+con \texttt{digitalSignature} y \texttt{nonRepudiation} cr\'iticos. El perfil
+\texttt{v3\_end\_entity}, usado para Partner, agrega autenticaci\'on de cliente
+y protecci\'on de correo como usos extendidos; el perfil de firma documental
+\texttt{v3\_internal\_declaration} no contiene EKU. La selecci\'on expl\'icita
+conserva la separaci\'on de prop\'ositos entre acceso y firma individual.
 
 \section{tsa.cnf: configuración de la autoridad de sellado}\label{sec:pki-tsa-cnf}
 

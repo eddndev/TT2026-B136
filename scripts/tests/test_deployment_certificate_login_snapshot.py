@@ -66,6 +66,10 @@ class CertificateLoginSnapshotTests(unittest.TestCase):
         strings = {
             "identity:session:" + "1" * 64: "synthetic-session",
             "identity:challenge:" + "2" * 64: "synthetic-MFA",
+            "ca-identity:session:" + "a" * 64: "synthetic-ca-session",
+            "ca-identity:challenge:" + "b" * 64: "synthetic-ca-MFA",
+            "ca-identity:password-failures:" + "c" * 64: "2",
+            "ca-identity:totp-used:" + "d" * 64: "1",
             CAPTURE_PREFIX + "3" * 64: opaque_capture(),
             "identity:password-failures:" + "5" * 64: "3",
             "identity:totp-used:" + "6" * 64: "1",
@@ -91,9 +95,10 @@ class CertificateLoginSnapshotTests(unittest.TestCase):
         shutil.copyfile(backup / "redis.rdb", db.root / "data/redis.rdb")
         db.start(False)
         self.assertTrue(self.snapshot() == original, "RDB changed values, types or exact expiry")
-        self.assertEqual(self.invalidate(), {"sessions_removed": 1, "challenges_removed": 1,
+        self.assertEqual(self.invalidate(), {"sessions_removed": 2, "challenges_removed": 2,
                                              "certificate_logins_removed": 2})
-        retained = {key: value for key, value in original.items() if not is_authentication(key)}
+        retained = {key: value for key, value in original.items() if not is_authentication(key)
+                    and not key.startswith(("ca-identity:session:", "ca-identity:challenge:"))}
         self.assertTrue(self.snapshot() == retained, "invalidation changed controls or unrelated state")
         self.assertEqual(self.invalidate(), {"sessions_removed": 0, "challenges_removed": 0,
                                              "certificate_logins_removed": 0})

@@ -13,6 +13,8 @@ use std::path::PathBuf;
 
 use crate::error::DomainError;
 
+use super::internal_credential::CredentialFailure;
+
 /// Outcome of validating an end-entity certificate against its issuer.
 ///
 /// Exactly one outcome is reported even when several causes apply at once;
@@ -137,16 +139,33 @@ pub struct IssuedPublicCertificate {
     pub serial_hex: String,
 }
 
+/// Controlled leaf profiles available for an externally signed public request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CertificateRequestProfile {
+    DocumentSigning,
+    Partner,
+}
+
+/// Outbound port: enforce the selected internal leaf profile before success.
+pub trait CertificateRequestProfileValidator {
+    fn validate_profile(
+        &self,
+        certificate: &[u8],
+        profile: CertificateRequestProfile,
+    ) -> Result<(), CredentialFailure>;
+}
+
 /// Administrative issuance from one externally signed public PKCS#10 request.
 ///
 /// Implementations validate the bounded request and its proof of possession
-/// before changing authority state. They apply the signing-only internal profile
+/// before changing authority state. They apply the selected controlled profile
 /// and verify that the issued public key equals the requested key.
 pub trait CertificateRequestAuthority {
     fn issue_request(
         &self,
         name: &str,
         request_pem: &[u8],
+        profile: CertificateRequestProfile,
     ) -> Result<IssuedPublicCertificate, DomainError>;
 }
 

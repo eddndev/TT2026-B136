@@ -140,7 +140,7 @@ pub(super) fn certificate(
         match profile {
             Profile::Root => &root_oids,
             Profile::Declaration => &leaf_oids,
-            Profile::Partner => &partner_oids,
+            Profile::Partner | Profile::TimeStamping => &partner_oids,
         },
         unsupported,
     )?;
@@ -155,12 +155,21 @@ pub(super) fn certificate(
             return Err(unsupported);
         }
     }
+    if profile == Profile::TimeStamping {
+        let usage: ExtendedKeyUsage = extension(extensions, true, unsupported)?;
+        let time_stamping = ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.8");
+        if usage.0.as_slice() != [time_stamping] {
+            return Err(unsupported);
+        }
+    }
     let constraints: BasicConstraints = extension(extensions, true, unsupported)?;
     let usage: KeyUsage = extension(extensions, true, unsupported)?;
-    let expected_usage = if root {
-        KeyUsages::KeyCertSign | KeyUsages::CRLSign
-    } else {
-        KeyUsages::DigitalSignature | KeyUsages::NonRepudiation
+    let expected_usage = match profile {
+        Profile::Root => KeyUsages::KeyCertSign | KeyUsages::CRLSign,
+        Profile::TimeStamping => KeyUsages::DigitalSignature.into(),
+        Profile::Declaration | Profile::Partner => {
+            KeyUsages::DigitalSignature | KeyUsages::NonRepudiation
+        }
     };
     if constraints.ca != root
         || constraints.path_len_constraint.is_some()

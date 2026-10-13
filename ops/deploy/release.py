@@ -35,7 +35,7 @@ def point(root, name, target):
 
 
 def activate(root, target, runtime, allow_older=False):
-    from crl_journal import guard
+    from crl_journal import guard_mutation as guard
     guard(root)
     previous = linked(root, "current")
     info = metadata(target)
@@ -73,7 +73,7 @@ def activate(root, target, runtime, allow_older=False):
 
 
 def rollback(root, runtime):
-    from crl_journal import guard
+    from crl_journal import guard_mutation as guard
     guard(root)
     target = linked(root, "previous")
     if target is None:
@@ -82,7 +82,7 @@ def rollback(root, runtime):
 
 
 def admit(root, archive, checksum, version, commit):
-    from crl_journal import guard
+    from crl_journal import guard_mutation as guard
     guard(root)
     validate_version(version)
     if not re.fullmatch(r"[0-9a-f]{64}", checksum) or digest(archive) != checksum:

@@ -26,12 +26,20 @@ def guard(root):
         raise RuntimeError("CRL maintenance is pending; ingress must remain stopped")
 
 
+def guard_mutation(root, ca_operation=None):
+    guard(root)
+    from ca_mutation_guard import guard as ca_guard
+    ca_guard(root, ca_operation)
+
+
 @contextmanager
 def locked(root):
     descriptor = os.open(root / "deploy.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        yield
+        # PKI executors may inherit this descriptor so a surviving signer keeps
+        # the shared lock after its caller disappears.
+        yield lock.fileno()
 
 
 def directory(path):

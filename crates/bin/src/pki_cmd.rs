@@ -18,19 +18,24 @@ use application::pki::{
     GenerateCrl, InitializeCa, InspectCertificate, IssueCertificate, IssueCertificateRequest,
     IssueDeclarationCertificate, RevokeCertificate,
 };
-use infrastructure::certificates::InternalRsaDeclarationVerifier;
+use domain::crypto::certificate::CertificateRequestProfile;
+use infrastructure::certificates::{
+    InternalRsaCertificateRequestProfileValidator, InternalRsaDeclarationVerifier,
+};
 use infrastructure::{OpensslCaAdapter, X509ChainValidator};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 
-use crate::cli::{PkiAction, PkiIssuePurpose};
+use crate::cli::{PkiAction, PkiIssuePurpose, PkiRequestPurpose};
 
 /// Dispatches a `pki` subcommand to its handler.
 pub fn run(scripts_dir: &Path, action: PkiAction, json: bool) -> anyhow::Result<()> {
     match action {
         PkiAction::InitCa => init_ca(scripts_dir, json),
         PkiAction::Issue { cn, purpose } => issue(scripts_dir, &cn, purpose, json),
-        PkiAction::IssueRequest { csr, name } => issue_request(scripts_dir, &csr, &name, json),
+        PkiAction::IssueRequest { csr, name, purpose } => {
+            issue_request(scripts_dir, &csr, &name, purpose, json)
+        }
         PkiAction::Revoke { serial } => revoke(scripts_dir, &serial, json),
         PkiAction::GenCrl => gen_crl(scripts_dir, json),
         PkiAction::Show { cert } => show(&cert, json),
@@ -183,7 +188,13 @@ fn format_time(unix_seconds: i64) -> anyhow::Result<String> {
         .context("cannot format the timestamp")
 }
 
-fn issue_request(scripts_dir: &Path, csr: &Path, name: &str, json: bool) -> anyhow::Result<()> {
+fn issue_request(
+    scripts_dir: &Path,
+    csr: &Path,
+    name: &str,
+    purpose: PkiRequestPurpose,
+    json: bool,
+) -> anyhow::Result<()> {
     let mut request = Vec::new();
     fs::File::open(csr)
         .context("cannot open public certificate request")?
@@ -191,12 +202,16 @@ fn issue_request(scripts_dir: &Path, csr: &Path, name: &str, json: bool) -> anyh
         .read_to_end(&mut request)
         .context("cannot read public certificate request")?;
     let (adapter, _) = authority(scripts_dir)?;
+    let profile = match purpose {
+        PkiRequestPurpose::DocumentSigning => CertificateRequestProfile::DocumentSigning,
+        PkiRequestPurpose::Partner => CertificateRequestProfile::Partner,
+    };
     let issued = IssueCertificateRequest::new(
         adapter,
         X509ChainValidator::new(),
-        InternalRsaDeclarationVerifier::new(),
+        InternalRsaCertificateRequestProfileValidator::new(),
     )
-    .execute(name, &request, now_unix()?)
+    .execute(name, &request, profile, now_unix()?)
     .context("certificate request issuance failed")?;
     if json {
         println!(

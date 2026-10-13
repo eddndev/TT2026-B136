@@ -1,0 +1,61 @@
+\subsubsection{Portal administrativo de la autoridad certificadora}
+\label{sec:impl-portal-ca}
+
+La operaci\'on administrativa de la CA se implement\'o en el binario separado
+\texttt{qadra-ca}, con una interfaz de navegador bajo
+\rutarepo{web/apps/ca/}. Reutiliza componentes visuales de Qadra, pero compone
+\'unicamente autenticaci\'on del operador y operaciones de la autoridad. La
+cuenta Owner del despacho no adquiere estos permisos por su rol. El destino
+previsto es el mismo VPS3, con proceso y origen \texttt{ca.qadra.com.mx}
+separados; esta composici\'on local no acredita todav\'ia su instalaci\'on p\'ublica.
+
+El servicio reutiliza verificaci\'on de contrase\~na, protecci\'on de secretos y
+MFA del n\'ucleo de identidad, con admisi\'on expl\'icita por UUID y correo del
+operador configurado. Sus usuarios y auditor\'ia residen en el esquema fijo
+\texttt{qadra\_ca} de la misma base PostgreSQL, bajo un rol operativo sin acceso
+al esquema del despacho ni autoridad de creaci\'on. Redis separa sesiones,
+desaf\'ios, cuotas y marcas TOTP mediante el prefijo \texttt{ca-identity}.
+El alta inicial es un comando administrativo local: entrega material MFA en un
+archivo privado, confirma el factor y s\'olo entonces inserta cuenta y auditor\'ia.
+No crea una cuenta artificial del despacho para representar al operador.
+
+La emisi\'on recibe un CSR p\'ublico y los datos de titular revisado, referencia
+y criterio de emisi\'on. Una inspecci\'on previa muestra sujeto y huellas; una
+confirmaci\'on separada selecciona \texttt{partner} o
+\texttt{document-signing}. El primer perfil corresponde al certificado Partner
+utilizado por el acceso Owner; el segundo conserva el prop\'osito de firma
+documental. El titular mantiene su clave privada fuera de la CA. El adaptador
+invoca la CLI y los scripts existentes con argumentos fijos, mientras que la
+frontera HTTP aporta la identidad del operador autenticado. Una petici\'on del
+navegador no decide el actor ni las rutas del ejecutor.
+
+Cada mutaci\'on tiene un UUID y un journal persistido antes del efecto, bajo
+el bloqueo compartido \texttt{deploy.lock}. Repetir el mismo UUID con otros
+par\'ametros produce conflicto. Despu\'es de una respuesta perdida, la emisi\'on
+busca el certificado de la serie reservada y contrasta CSR, clave p\'ublica,
+perfil, ra\'iz e \texttt{index.txt}; devuelve el recibo conservado cuando el
+resultado es inequ\'ivoco. S\'olo un estado previo completamente intacto permite
+reanudar la firma. Un efecto parcial o ambiguo bloquea otras mutaciones y no
+provoca reparaci\'on autom\'atica de OpenSSL ni una segunda emisi\'on.
+
+El inventario descarga material p\'ublico por serie y huella exactas. La
+revocaci\'on conserva motivo, operador y recibo, y distingue el cambio local
+del estado publicado. La renovaci\'on CRL reutiliza el mantenimiento existente:
+candidato conservado, parada de API y web, respaldo, publicaci\'on con revisi\'on
+esperada y lectura de la sucesora antes de reabrir Qadra. El proceso CA puede
+permanecer disponible mientras PostgreSQL y Redis siguen activos. Sus guardas
+de mutaci\'on se separan de las guardas de arranque, para que un recibo pendiente
+no impida reabrir el servicio despu\'es de confirmar la confianza.
+
+El historial conserva los recibos de emisi\'on, revocaci\'on y publicaci\'on.
+El respaldo incluye identidad y auditor\'ia CA en el dump completo, material
+PKI y journals. La adopci\'on exige ubicar configuraci\'on privada y KEK bajo
+\texttt{config} para incorporarlas al mismo conjunto. Una publicaci\'on pendiente
+agrega al archivo privado su journal de mantenimiento y las CRL original y candidata,
+necesarios para recuperar el mismo UUID sin regenerarla. La restauraci\'on exige
+cierre expl\'icito del servicio CA, recuperaci\'on de roles y secretos, invalidaci\'on
+de sesiones y verificaci\'on antes de reabrir. La decisi\'on y el procedimiento
+quedan en
+\rutarepo{docs/adr/0078-separate-ca-operator-and-recoverable-operations.md} y
+\rutarepo{docs/ca/restore.md}. Se conserva la jerarqu\'ia interna existente;
+el portal no modifica las garant\'ias jur\'idicas de sus certificados.

@@ -1,0 +1,24 @@
+---
+import App from '../components/App.svelte';
+import '../styles/global.css';
+import '../styles/operations.css';
+---
+
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Qadra CA: acceso del operador de la autoridad certificadora."
+    />
+    <title>Qadra CA | Autoridad certificadora</title>
+    <link rel="icon" type="image/png" href="/brand/qadra/logo.png" />
+    <link rel="icon" type="image/svg+xml" href="/brand/qadra/favicon.svg" />
+  </head>
+  <body>
+    <App client:only="svelte" />
+    <noscript>Activa JavaScript para acceder a la autoridad certificadora.</noscript>
+  </body>
+</html>

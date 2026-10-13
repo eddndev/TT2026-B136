@@ -1,88 +1,109 @@
-# Acceso Owner y portal de la CA
+# Portal CA y acceso Owner
 
-Este documento delimita dos entregas: activar el acceso Owner por certificado
-ya construido y crear un portal para operar la CA existente. El portal esta
-pendiente de implementacion y aceptacion; la reorganizacion del workspace no
-acredita funcionalidad ni instalacion del servicio.
+El portal CA tiene implementación local de acceso, enrolamiento administrativo,
+solicitudes, inventario, revocación, publicación de CRL e historial recuperable.
+Su [manual de operación](operations.md) describe el código actual y separa los
+pasos de instalación todavía pendientes. Esta implementación no acredita que
+el portal esté instalado en VPS3 ni que la Owner haya aceptado su recorrido real.
 
-## Base existente y ubicacion
+Consultar también la [verificación ejecutada](verification.md) y el
+[procedimiento de restauración](restore.md).
 
-El acceso Owner ya tiene backend, interfaz y aceptaciones registradas en
-[su guia de operacion](../owner-certificate-login-operations.md). La observacion
-de produccion del 12 de octubre de 2026 mostro `enabled:false`; esa observacion
-acredita que estaba deshabilitado, no que faltaba el codigo.
+## Identidades y límites de autoridad
 
-La [CA existente](../../pki/README.md) dispone de emision, inspeccion y revocacion.
-El [mantenimiento de CRL](../deployment-crl.md) tiene renovacion y publicacion
-recuperables. La emision desde CSR publico admite firma documental; queda
-pendiente extenderla de forma focal al perfil Partner usado por el acceso Owner.
+El operador designado de la CA es `eddndev@gmail.com`. Se enrola mediante
+`qadra-ca enroll-operator`, con credenciales, MFA, recuperación, auditoría y
+sesiones propios de CA. El servicio admite únicamente el UUID y correo
+configurados. No necesita una cuenta del despacho ni un alta Owner.
 
-La estructura de frontend reserva `web/apps/ca/` para el portal y
-`web/packages/ui/` para los elementos de presentacion compartidos con
-`web/apps/qadra/`. El portal reutilizara la identidad visual y los componentes
-de Qadra. Su servicio sera el binario separado `qadra-ca`, en el mismo VPS3,
-con HTTPS en `ca.qadra.com.mx`. Esta ubicacion no concede autoridad de CA a las
-cuentas Owner del despacho.
+La cuenta `hatziryvh@gmail.com` pertenece al despacho y ya existe como Owner
+activa con MFA. Esa condición no concede acceso al portal CA. El valor interno
+`Client` del registro CA permite reutilizar el formato de credenciales; no es
+una asignación de permisos del despacho. Las rutas del despacho no se componen
+en `qadra-ca`.
 
-## Activacion del acceso Owner
+El destino previsto sigue siendo el mismo VPS3, bajo la cuenta de despliegue
+`qadra`, con un servicio separado y HTTPS en `ca.qadra.com.mx`. Comparte los
+servicios PostgreSQL y Redis existentes mediante su configuración y autoridad
+propias. La interfaz vive en `web/apps/ca/` y reutiliza `web/packages/ui/`.
 
-El recorrido reutiliza la [interfaz de acceso](../owner-certificate-login-interface.md)
-y el [vinculo propio del certificado](../owner-certificate-interface.md).
-Quedan pendientes estas condiciones operativas:
+## Estado del código
 
-1. Identificar la cuenta Owner existente y confirmar su acceso alternativo con
-   contrasena y MFA.
-2. Comprobar un Partner vigente cuya clave conserve el titular. Si hace falta
-   emitir desde una clave externa, completar primero ese perfil del emisor CSR.
-3. Comprobar raiz y CRL publicadas, vinculo vigente y prueba de posesion; registrar
-   el vinculo solo si falta y conservar el recibo.
-4. Preparar el flag de activacion, cuatro cuotas con sus ventanas y dos tiempos
-   Redis. Documentar el perfil elegido y conservar la configuracion anterior.
-5. Activar de forma controlada, comprobar disponibilidad, firmar un desafio nuevo
-   fuera de Qadra y completar MFA en la misma cuenta. Comprobar tambien el acceso
-   independiente por contrasena.
-6. Preparar el retorno a la configuracion anterior y registrar revision,
-   configuracion no secreta y evidencia del recorrido. Preservar vinculos,
-   certificados, auditoria y datos.
+| Capacidad | Implementación actual | Límite de la evidencia |
+| --- | --- | --- |
+| Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Seis casos nativos locales de enrolamiento aprobados; no consta el alta del operador en VPS3. |
+| Acceso CA | Contraseña y TOTP o código de recuperación, consulta de sesión, actividad y cierre. Credenciales y sesiones separadas del despacho. | La implementación y comprobaciones locales no acreditan disponibilidad pública. |
+| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | Pendiente el recorrido integral instalado con los titulares reales. |
+| Inventario | Serie, sujeto, propósito, huellas, fechas, estado local y comparación con la CRL publicada. Descarga del certificado público exacto. | El TSA existente se consulta como `time-stamping`; no se emite ni revoca desde el portal. |
+| Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | El recibo local no acredita publicación ni rechazo posterior en Qadra. |
+| Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | El nuevo acceso desde el portal aún requiere aceptación de su composición instalada. |
+| Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Un estado parcial o una identidad distinta bloquean el avance; no se reparan automáticamente. |
+| Instalación | Binario `qadra-ca`, configuración privada y composición opcional de operaciones. | Pendientes esquema y permisos de destino, configuración, adopción de servicios y HTTPS. |
 
-## Alcance finito del portal
+La verificación focal de enrolamiento del 12 de octubre de 2026 ejercitó el
+binario real con PostgreSQL y Redis desechables: entrega privada y TOTP real,
+credencial persistida, auditoría, rechazo de repetición, entradas incompletas,
+archivo alterado y terminal sin eco. Los casos están en
+[`ca_enrollment.rs`](../../crates/bin/tests/ca_enrollment.rs).
+No sustituye la aceptación conjunta del portal, los recorridos de certificados
+y el despliegue. La regresión y CI de cierre corresponden a la revisión que
+finalmente se integre.
 
-Todas las operaciones de esta tabla estan pendientes de implementacion y
-aceptacion desde el portal. Los mecanismos CLI existentes conservan su alcance.
+## Adopción de la CA existente
 
-| Operacion | Resultado requerido |
-| --- | --- |
-| Acceso de operadores | Solo responsables designados de la CA, con MFA y recuperacion definida. Consultar y reanudar mantenimiento aunque Qadra este detenido. |
-| Adopcion de la CA | Conservar raiz, claves, certificados, indice y contadores. Mostrar huella, despliegue, revision de confianza y vigencia de CRL; bloquear cambios ante discrepancias. |
-| Solicitudes | Recibir solo CSR publicos con validacion de prueba de posesion, tamano y perfil. Separar acceso Owner/Partner y firma documental Litigante. |
-| Revision y emision | Confirmacion del operador sobre titular declarado y proposito. Registrar operador, referencia y criterio; entregar certificado publico y recibo con serie y huella. |
-| Inventario | Consultar sujeto, proposito, vigencia, serie, huella y revocacion. Descargar material publico y distinguir estado local de estado publicado. Una sustitucion por vencimiento conserva el certificado anterior. |
-| Revocacion | Confirmar serie y huella y registrar operador y motivo. Mostrar pendiente de publicacion hasta que Qadra reconozca la CRL sucesora. |
-| CRL y publicacion | Reutilizar estado, renovacion y reanudacion existentes, con bloqueo compartido, revision esperada, respaldo y relectura de la sucesora exacta. Avisar del mantenimiento antes de confirmar. |
-| Historial y recuperacion | Atribuir cada operacion y conservar recibos. Consultar o reanudar una operacion interrumpida sin duplicar emisiones ni CRL; serializar cambios del indice y contadores. |
-| Aceptacion funcional | Emitir ambos perfiles desde CSR externos, usarlos en sus recorridos de Qadra, revocar y publicar; comprobar rechazo de uso nuevo y conservacion de evidencia historica. Cubrir permisos, respuesta perdida e interrupciones de las partes nuevas. |
-| Instalacion | Servicio separado y HTTPS del dominio propio, permisos acotados y separacion de interfaz, ejecutor PKI y API del despacho. Comprobar respaldo y restauracion sin sustituir la raiz. |
-| Entrega | Manual del operador, estados y pendientes, trazabilidad y recibos de emision, consulta, revocacion, publicacion y recuperacion desde la interfaz. |
+Se conservan raíz, clave CA, certificados, índice, contadores, TSA y confianza
+publicada. La configuración fija la huella de raíz esperada; el portal compara
+material local y confianza persistida antes de las operaciones correspondientes.
+No se crea una autoridad nueva para instalar el portal.
 
-Emitir un certificado no crea una cuenta, no vincula automaticamente el
-certificado a Qadra y no acredita identidad civil. El vinculo sigue usando su
-prueba de posesion existente. Retirar un vinculo y revocar un certificado son
-operaciones distintas.
+La emisión reutiliza la [PKI existente](../../pki/README.md). El titular conserva
+su clave privada fuera de la CA y comparte sólo el CSR público. Emitir un
+certificado no crea una cuenta, no registra un vínculo en Qadra y no acredita
+identidad civil. La vinculación conserva su prueba de posesión. Retirar un
+vínculo y revocar el certificado son operaciones distintas.
 
-## Pendientes y limites
+La publicación reutiliza el [mantenimiento CRL](../deployment-crl.md), su
+bloqueo, respaldo, registro de recuperación y control de los servicios de
+usuario existentes. La UI informa de la interrupción de Qadra antes de pedir
+confirmación. El alta del portal no instala otro controlador de CRL ni programa
+renovaciones automáticas.
 
-Falta identificar al Owner y a los operadores concretos, definir el mecanismo
-de acceso y recuperacion de estos ultimos, preparar el perfil de configuracion
-Owner y concretar la ventana de mantenimiento. La instalacion compartida en
-VPS3 y la separacion del servicio CA ya forman parte del alcance.
+## Recorrido Owner pendiente
 
-Las claves privadas de los titulares permanecen fuera del portal. El alcance
-excluye autoservicio, ejecucion libre de shell, regeneracion o sustitucion de
-raiz, nuevas jerarquias, OCSP, SSO general, nuevas finalidades de certificado,
-FIREL/PSC, PAdES y renovacion automatica de CRL. El verificador de ZIP es una
-entrega separada y no forma parte del portal CA ni del despacho.
+El acceso por certificado ya dispone de backend e interfaz, documentados en
+la [guía de operación Owner](../owner-certificate-login-operations.md), la
+[interfaz de acceso](../owner-certificate-login-interface.md) y el
+[vínculo propio](../owner-certificate-interface.md). La observación de producción
+del 12 de octubre de 2026 mostró `enabled:false`; describe aquella observación,
+no una carencia de implementación ni el estado de una activación posterior.
 
-La evidencia existente se reutiliza dentro de sus limites. Los cambios nuevos
-requieren sus comprobaciones focales, y el cierre requiere una regresion
-completa pertinente y los gates de la revision que se integre. Este documento
-no registra una nueva ejecucion de pruebas ni una activacion productiva.
+El [perfil de activación preparado](owner-activation.md) fija cuotas, ventanas,
+tiempos Redis, retorno y pasos de aceptación sin cambiar la inactividad.
+Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
+
+1. Acceso alternativo a su cuenta mediante contraseña y MFA.
+2. Certificado Partner apropiado, con la clave bajo control de la titular;
+   emisión desde su CSR externo si hace falta.
+3. Raíz y CRL publicadas, vínculo vigente y prueba de posesión, conservando el
+   recibo y sin volver a crear un vínculo existente.
+4. Configuración revisada del flag, cuotas, ventanas y tiempos de Redis,
+   conservando la configuración anterior.
+5. Activación controlada, firma externa de un desafío nuevo, MFA de la misma
+   cuenta y comprobación del acceso alternativo.
+6. Evidencia de revisión y configuración no secreta, con retorno preparado
+   sin borrar cuentas, vínculos, certificados o auditoría.
+
+## Cierre pendiente y exclusiones
+
+Falta adoptar el esquema CA y el servicio en el destino, enrolar al operador
+real por entrada privada, configurar el origen HTTPS y completar la aceptación
+del portal con la CA conservada. La aceptación debe relacionar los dos perfiles
+emitidos con sus recorridos de Qadra, la revocación publicada, el rechazo de
+usos nuevos y la conservación de evidencia histórica. El manual indica qué
+configuración es ilustrativa y qué decisiones de instalación faltan.
+
+El alcance conserva un operador designado y dos propósitos de emisión. Excluye
+autoservicio de alta, bootstrap HTTP público, plataforma de invitaciones, SSO,
+ejecución libre de shell, sustitución de raíz, jerarquías nuevas, OCSP, FIREL/PSC,
+PAdES y renovación automática de CRL. El verificador de ZIP es una entrega
+separada. Las claves privadas de los titulares no se reciben en el portal.
