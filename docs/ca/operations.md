@@ -26,7 +26,7 @@ restante y dispone de **Cerrar sesión**. Contraseña, desafíos y bearer se
 mantienen en memoria; recargar la página requiere otro acceso. Tras volver a
 entrar, las operaciones persistidas se consultan en **Historial**.
 
-## Preparación del esquema: pendiente en el destino
+## Esquema adoptado en el destino
 
 La CA reutiliza PostgreSQL y Redis de la instalación. La identidad CA reside
 en `qadra_ca.users` y `qadra_ca.audit_events`, dentro de la base explícitamente
@@ -57,7 +57,10 @@ superusuario, creación de roles/bases, herencia, replicación ni bypass de RLS;
 su contraseña se genera y conserva únicamente en configuración privada.
 Crear el esquema desde `schema.sql` como propietario en una transacción; dar
 al runtime CA los permisos mínimos descritos arriba. No instalar sobre un
-esquema/rol previo sin conciliar su autoridad. La ejecución en VPS3 sigue pendiente. No se
+esquema/rol previo sin conciliar su autoridad. La adopción en VPS3 se completó el 13 de octubre de 2026, después de activar
+la release `v0.1.8`. Se comprobó ausencia de cuentas CA y conservación del acceso
+explícito del despacho. El archivo privado de alta quedó preparado con modo
+`0600`; repetir la provisión sobre ese estado exige conciliación previa. No se
 deben trasladar los permisos amplios del despacho al rol CA para superar la
 validación. El esquema ya existente y su propietario se contrastan antes de
 aplicar cambios; el archivo SQL no es una migración idempotente.
@@ -173,10 +176,10 @@ La raíz indicada en `operations.root` es la instalación existente, que contien
 `data/ca`, confianza publicada, configuración, bloqueo y mantenimiento. No es
 un nuevo directorio vacío de CA. El worker necesita el árbol compatible de
 `ops/ca` y `ops/deploy`, el inspector `qadra-ca`, la CLI y los scripts PKI
-revisados. Su publicación como conjunto de archivos instalado está pendiente;
-no basta copiar `command.py` de forma aislada. La adopción debe fijar la revisión
-y el inventario aprobados de ese conjunto, conservando el procedimiento de
-instalación de controladores ya existente.
+revisados. Ese conjunto está instalado en la release literal
+`v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`; no basta copiar
+`command.py` de forma aislada. La configuración del servicio debe conservar
+esa revisión y su inventario aprobados, junto con el controlador ya instalado.
 
 La invocación del servicio es:
 

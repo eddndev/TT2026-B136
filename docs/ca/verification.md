@@ -86,10 +86,24 @@ La corrección de pruebas y documentación de
 exacto; la evidencia Documents anterior conserva su revisión propia y no se
 presenta como otra ejecución en PR 106.
 
-Al corte de esta actualización, la preparación del candidato `v0.1.8` para
-ese main, [corrida 38354975960](https://github.com/eddndev/TT2026-B136/actions/runs/38354975960),
-sigue en curso. Su despacho no activa una release ni publica una etiqueta.
-Los gates aprobados y la correlación local no sustituyen la calificación del
-paquete ni la aceptación del [manual operativo](operations.md) con las
-identidades designadas. El material real de claves del titular, MFA y
-contraseña queda bajo su control.
+El candidato `v0.1.8` para ese main aprobó la
+[corrida 38354975960](https://github.com/eddndev/TT2026-B136/actions/runs/38354975960).
+El paquete y sus 239 archivos se verificaron antes de admitirlos; el binario
+principal ocupa 24 081 744 bytes y `qadra-ca`, 4 008 104 bytes. La calificación
+arrancó el candidato y el retorno sobre bases aisladas previamente restauradas,
+con el mismo esquema y datos históricos; no repitió la restauración completa.
+
+La activación de producción del 13 de octubre conservó las 77 tablas del
+despacho, material criptográfico y configuración de correo, con respaldo externo
+privado comprobado. Los cuatro servicios quedaron activos y la cadena de
+778 732 entradas se verificó válida. Versión y página públicas respondieron
+`200`; la identidad anónima recibió `401`. Después de preparar esquema y rol CA
+se repitió la comprobación pública del despacho; el acceso Owner por certificado
+continuó deshabilitado.
+
+El DNS y HTTPS independientes de CA están preparados. Su página y API devuelven
+`503` deliberadamente hasta el alta del operador y arranque de sus unidades.
+La adopción del esquema no creó ninguna cuenta. Estos resultados no sustituyen
+el enrolamiento privado, la apertura y aceptación del portal ni el recorrido
+Owner del [manual operativo](operations.md). El material real de claves de la
+titular, MFA y contraseña permanece bajo control de sus titulares.

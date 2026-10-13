@@ -3,8 +3,9 @@
 El portal CA tiene implementación integrada de acceso, enrolamiento administrativo,
 solicitudes, inventario, revocación, publicación de CRL e historial recuperable.
 Su [manual de operación](operations.md) describe el código actual y separa los
-pasos de instalación todavía pendientes. Esta implementación no acredita que
-el portal esté instalado en VPS3 ni que la Owner haya aceptado su recorrido real.
+pasos de instalación todavía pendientes. La release que incluye CA está instalada en VPS3; el servicio permanece
+cerrado hasta el alta privada del operador. La Owner aún debe aceptar su
+recorrido real.
 
 Consultar también la [verificación ejecutada](verification.md) y el
 [procedimiento de restauración](restore.md).
@@ -29,7 +30,14 @@ propias. La interfaz vive en `web/apps/ca/` y reutiliza `web/packages/ui/`.
 
 ## Estado de la instalación pública
 
-El 13 de octubre de 2026 se preparó `ca.qadra.com.mx` como origen independiente
+El 13 de octubre de 2026 Qadra se activó en `v0.1.8`, revisión
+`95a9aacf975e4a9cde5c4f8b60544fab3baff84f`, tras calificar el paquete y el retorno
+aislados. El respaldo externo se verificó; se conservaron las 77 tablas del
+despacho, sus datos, correo y material criptográfico. Después se adoptaron el
+esquema `qadra_ca`, su rol restringido y la configuración privada de alta, sin
+crear todavía una cuenta CA. El acceso del despacho se comprobó nuevamente.
+
+Ese mismo día se preparó `ca.qadra.com.mx` como origen independiente
 con DNS y HTTPS verificados. El certificado del nuevo origen conserva su
 renovación mediante el webroot y el temporizador existentes; el certificado
 del despacho no cambió. El proxy de CA devuelve `503` tanto en la página como
@@ -47,14 +55,14 @@ por certificado permanece deshabilitado hasta completar su aceptación.
 
 | Capacidad | Implementación actual | Límite de la evidencia |
 | --- | --- | --- |
-| Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Seis casos nativos locales de enrolamiento aprobados; no consta el alta del operador en VPS3. |
+| Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Seis casos nativos locales de enrolamiento aprobados; el esquema ya está preparado en VPS3, sin alta del operador. |
 | Acceso CA | Contraseña y TOTP o código de recuperación, consulta de sesión, actividad y cierre. Credenciales y sesiones separadas del despacho. | La implementación y comprobaciones locales no acreditan disponibilidad pública. |
 | Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | Pendiente el recorrido integral instalado con los titulares reales. |
 | Inventario | Serie, sujeto, propósito, huellas, fechas, estado local y comparación con la CRL publicada. Descarga del certificado público exacto. | El TSA existente se consulta como `time-stamping`; no se emite ni revoca desde el portal. |
 | Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | El recibo local no acredita publicación ni rechazo posterior en Qadra. |
 | Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | El nuevo acceso desde el portal aún requiere aceptación de su composición instalada. |
 | Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Un estado parcial o una identidad distinta bloquean el avance; no se reparan automáticamente. |
-| Instalación | Binario `qadra-ca`, configuración privada y composición opcional de operaciones. | Pendientes esquema y permisos de destino, configuración, adopción de servicios y HTTPS. |
+| Instalación | Binario `qadra-ca`, configuración privada y composición opcional de operaciones. | Paquete, esquema restringido y HTTPS preparados; faltan alta real, configuración operativa y arranque de servicios. |
 
 La verificación focal de enrolamiento del 12 de octubre de 2026 ejercitó el
 binario real con PostgreSQL y Redis desechables: entrega privada y TOTP real,
@@ -62,8 +70,8 @@ credencial persistida, auditoría, rechazo de repetición, entradas incompletas,
 archivo alterado y terminal sin eco. Los casos están en
 [`ca_enrollment.rs`](../../crates/bin/tests/ca_enrollment.rs).
 No sustituye la aceptación conjunta del portal, los recorridos de certificados
-y el despliegue. La regresión y CI de cierre corresponden a la revisión que
-finalmente se integre.
+y el despliegue. La regresión y CI de cierre aprobaron para la revisión integrada; sus
+resultados se distinguen en la [verificación ejecutada](verification.md).
 
 ## Adopción de la CA existente
 
@@ -111,8 +119,8 @@ Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
 
 ## Cierre pendiente y exclusiones
 
-Falta adoptar el esquema CA y el servicio en el destino, enrolar al operador
-real por entrada privada, configurar el origen HTTPS y completar la aceptación
+Falta enrolar al operador real por entrada privada, adoptar el servicio con su
+UUID y abrir el proxy HTTPS preparado para completar la aceptación
 del portal con la CA conservada. La aceptación debe relacionar los dos perfiles
 emitidos con sus recorridos de Qadra, la revocación publicada, el rechazo de
 usos nuevos y la conservación de evidencia histórica. El manual indica qué
