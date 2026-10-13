@@ -1,4 +1,5 @@
 """Operate private user services without changing database history on rollback."""
+import io
 import json
 import os
 from pathlib import Path
@@ -42,6 +43,30 @@ def environment(root, admin=False):
             "TMPDIR": str(root / "data/tmp")}
 
 
+def _publication_recovery(root, ca_operation):
+    if ca_operation is None:
+        return {}
+    if (type(ca_operation) is not tuple or len(ca_operation) != 2
+            or ca_operation[0] != "publications"):
+        raise ValueError("backup exemption requires an exact CA publication")
+    import crl_journal as journal
+    operation = journal.operation(root, ca_operation[1])
+    portal = root / "data/ca/publications" / operation.name
+    # Legacy CRL maintenance has no portal journal to recover from its archive.
+    if not os.path.lexists(portal):
+        return {}
+    if journal.load(portal / "journal.json").get("receipt") is not None:
+        raise ValueError("publication backup requires its pending portal journal")
+    retained = {name: journal.read(operation / name, maximum) for name, maximum in (
+        ("journal.json", 8 * 1024 * 1024), ("original-crl.pem", 1048576),
+        ("candidate.pem", 1048576))}
+    record = json.loads(retained["journal.json"])
+    if (not isinstance(record, dict) or record.get("operation_id") != operation.name
+            or record.get("state") != "prepared" or record.get("backup") is not None):
+        raise ValueError("publication backup recovery journal differs from its prepared operation")
+    return {str((operation / name).relative_to(root)): raw for name, raw in retained.items()}
+
+
 class Runtime:
     def __init__(self, root):
         from restore_fence import guard
@@ -52,9 +77,10 @@ class Runtime:
     def stop(self):
         run(["systemctl", "--user", "stop", "qadra-web.service", "qadra-api.service"])
 
-    def backup(self, *, tools=None, command=None):
-        from restore_fence import guard
-        guard(self.root)
+    def backup(self, *, tools=None, command=None, ca_operation=None):
+        from crl_journal import guard_mutation
+        guard_mutation(self.root, ca_operation)
+        recovery = _publication_recovery(self.root, ca_operation)
         execute = run if command is None else command
         selected = {} if tools is None else tools
         state = execute(["systemctl", "--user", "show", "qadra-api.service",
@@ -100,6 +126,10 @@ class Runtime:
                 for path in (self.root / "config", self.root / "data/ca", self.root / "data/tsa"):
                     if path.exists():
                         tar.add(path, arcname=path.relative_to(self.root))
+                for name, raw in recovery.items():
+                    item = tarfile.TarInfo(name)
+                    item.size, item.mode = len(raw), 0o600
+                    tar.addfile(item, io.BytesIO(raw))
         for name in ("database.dump", "redis.rdb", "private-state.tar.gz"):
             with (backup / name).open("rb") as stream:
                 os.fsync(stream.fileno())

@@ -1,0 +1,66 @@
+\subsection{Aceptaci\'on local del portal administrativo CA}
+\label{sec:pruebas-portal-ca}
+
+La aceptaci\'on del servicio descrito en \cref{sec:impl-portal-ca} separ\'o
+enrolamiento, recorrido HTTP, navegador y recuperaci\'on. Seis casos del alta
+administrativa comprobaron entrega privada y confirmaci\'on TOTP antes de la
+inserci\'on at\'omica. Incluyeron factor incorrecto, archivo de entrega modificado,
+contrase\~nas distintas, fin de entrada, rutas existentes o enlazadas y cancelaci\'on
+con restauraci\'on del eco de terminal. La repetici\'on de un alta ya confirmada
+no produjo otra cuenta ni otra entrega. La evidencia est\'a expresada en
+\rutarepo{crates/bin/tests/ca_enrollment.rs}; no acredita un alta del operador real
+en el servidor de destino.
+
+El recorrido HTTP nativo aprob\'o con PostgreSQL, Redis, el binario CA, el worker
+y OpenSSL reales en un entorno desechable. Despu\'es del login y MFA, inspeccion\'o
+un CSR de clave externa, emiti\'o ambos perfiles, repiti\'o la operaci\'on exacta,
+consult\'o inventario e historial y descarg\'o el certificado identificado por
+serie y huella. La revocaci\'on repetida conserv\'o un solo recibo y qued\'o
+pendiente de publicaci\'on, sin adelantar por s\'i misma la CRL. Peticiones sin
+sesi\'on, un desaf\'io usado como token, autoridad del despacho y campos de actor
+o rutas introducidos por el cliente se rechazaron sin nueva mutaci\'on PKI.
+Este ensayo no ejecut\'o una parada de los servicios de producci\'on.
+
+Dos recorridos de navegador, a 1440 y 390 p\'ixeles, aprobaron con transporte
+HTTP controlado. Ejercitaron revisi\'on y confirmaci\'on de la solicitud,
+respuesta incierta, reanudaci\'on desde el historial, revocaci\'on local y
+publicaci\'on. Ese control permite comprobar la conservaci\'on del UUID y de
+la intenci\'on original ante respuestas tard\'ias; no sustituye la criptograf\'ia
+y persistencia del recorrido HTTP nativo. Los componentes visuales compartidos
+no implican que la sesi\'on CA y la del despacho sean intercambiables.
+
+Un grupo focal de 55 casos comprob\'o guardas, mantenimiento CRL y respaldo.
+La incorporaci\'on de la guarda real al runtime controlado reprodujo que el
+journal de publicaci\'on pendiente imped\'ia el arranque despu\'es del commit.
+La correcci\'on mantuvo las barreras CRL y de restauraci\'on en el arranque y
+reserv\'o el rechazo de otras operaciones pendientes a las mutaciones. La
+captura gen\'erica y la restauraci\'on continuaron bloqueadas ante esas operaciones.
+Las pruebas del tar exigieron los tres archivos de recuperaci\'on de la
+publicaci\'on, rechazaron ausencias y enlaces y conservaron el alcance previo
+de una captura sin journal del portal. Los dobles de servicios de este grupo no
+demuestran por s\'i mismos cierre ni reapertura de unidades desplegadas.
+
+El ensayo nativo de restauraci\'on SQL aprob\'o en 12.37~s. Volc\'o el esquema
+CA poblado, retir\'o ese esquema y lo restaur\'o, contrastando los datos de cuenta
+y auditor\'ia con la captura previa. Un c\'odigo de recuperaci\'on consumido antes
+del respaldo permaneci\'o consumido. La sesi\'on previamente cerrada continu\'o
+rechazada y una nueva autenticaci\'on multifactor, con otro c\'odigo disponible,
+recuper\'o el mismo UUID y correo. La cadena de auditor\'ia se verific\'o y la ruta
+de expedientes sigui\'o ausente del servicio CA, con el estado del despacho
+conservado. El caso reside en \rutarepo{crates/bin/tests/ca_restore_service.rs};
+no restaur\'o simult\'aneamente el RDB ni el material PKI.
+
+Un ensayo separado con Redis nativo aprob\'o en 5.924~s. Restaur\'o el RDB con
+sesiones y desaf\'ios CA, invalid\'o esas capacidades junto a las del despacho y
+conserv\'o tipos, valores y expiraciones absolutas de cuotas y marcas TOTP.
+Despu\'es de persistir el estado depurado en AOF, reinici\'o con el RDB anterior
+presente y comprob\'o que las capacidades eliminadas no reaparecieran. La prueba
+\rutarepo{scripts/tests/test_deployment_certificate_login_snapshot.py} emple\'o
+procesos Redis propios; PostgreSQL y la observaci\'on de systemd permanecieron
+controlados. Las dos restauraciones conservan, por tanto, fronteras distintas.
+
+Permanece pendiente la adopci\'on p\'ublica de CA en VPS3, con unidades, configuraci\'on privada,
+proxy HTTPS y enrolamiento real, as\'i como una restauraci\'on conjunta que
+recupere una publicaci\'on preparada y reanude el mismo candidato bajo el cierre
+operativo completo. El inventario de evidencia y sus l\'imites se conserva en
+\rutarepo{docs/ca/verification.md}.

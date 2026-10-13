@@ -167,7 +167,7 @@ pub enum PkiAction {
         #[arg(long, value_enum, default_value_t = PkiIssuePurpose::Partner)]
         purpose: PkiIssuePurpose,
     },
-    /// Issue a signing-only certificate from an externally signed public CSR.
+    /// Issue an internal certificate from an externally signed public CSR.
     IssueRequest {
         /// Public PKCS#10 request in PEM format, at most 16 KiB.
         #[arg(long)]
@@ -175,6 +175,9 @@ pub enum PkiAction {
         /// Output identifier; it does not establish account identity.
         #[arg(long)]
         name: String,
+        /// Controlled leaf profile selected by the local issuer.
+        #[arg(long, value_enum, default_value_t = PkiRequestPurpose::DocumentSigning)]
+        purpose: PkiRequestPurpose,
     },
     /// Revoke a certificate by serial number.
     Revoke {
@@ -197,6 +200,13 @@ pub enum PkiAction {
 pub enum PkiIssuePurpose {
     Partner,
     ParticipantDeclaration,
+}
+
+/// Controlled profiles for certificates issued from external public requests.
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum PkiRequestPurpose {
+    DocumentSigning,
+    Partner,
 }
 
 /// Arguments for `sign`.

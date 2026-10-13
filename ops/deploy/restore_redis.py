@@ -11,9 +11,11 @@ from restore_commands import run
 
 MAXIMUM_OUTPUT = 65536
 NAMESPACES = {
-    "session": "sessions_removed",
-    "challenge": "challenges_removed",
-    "certificate-login": "certificate_logins_removed",
+    "identity:session": "sessions_removed",
+    "identity:challenge": "challenges_removed",
+    "identity:certificate-login": "certificate_logins_removed",
+    "ca-identity:session": "sessions_removed",
+    "ca-identity:challenge": "challenges_removed",
 }
 FAILED = "Redis restore-session invalidation did not complete"
 
@@ -104,8 +106,8 @@ class _Connection:
     def collect(self, namespace, collected, max_keys, *, require_empty=False):
         cursor = "0"
         keys = set()
-        pattern = "identity:" + namespace + ":*"
-        exact = re.compile("identity:" + namespace + r":[a-f0-9]{64}")
+        pattern = namespace + ":*"
+        exact = re.compile(re.escape(namespace) + r":[a-f0-9]{64}")
         while True:
             if self.scans >= self.maximum_scans:
                 raise RuntimeError(FAILED)
@@ -152,7 +154,7 @@ def invalidate_sessions(*, redis_cli, host, port, password, expected_pid,
     # Each final namespace requires at least one additional SCAN call.
     if connection.scans + len(NAMESPACES) > max_scan_calls:
         raise RuntimeError(FAILED)
-    removed = {}
+    removed = dict.fromkeys(NAMESPACES.values(), 0)
     for namespace, keys in inventories.items():
         ordered = sorted(keys)
         count = 0
@@ -162,7 +164,7 @@ def invalidate_sessions(*, redis_cli, host, port, password, expected_pid,
             if type(deleted) is not int or not 0 <= deleted <= len(batch):
                 raise RuntimeError(FAILED)
             count += deleted
-        removed[NAMESPACES[namespace]] = count
+        removed[NAMESPACES[namespace]] += count
     for namespace in NAMESPACES:
         connection.collect(namespace, collected, max_keys, require_empty=True)
     return removed

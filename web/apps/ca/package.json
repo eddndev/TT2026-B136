@@ -1,0 +1,21 @@
+{
+  "name": "@qadra/ca",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.mjs",
+    "format": "prettier --write src tests *.mjs svelte.config.js",
+    "format:check": "prettier --check src tests *.mjs svelte.config.js",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^9.0.1",
+    "astro": "^7.3.2",
+    "svelte": "^5.57.0",
+    "@qadra/ui": "0.0.0"
+  },
+  "version": "0.0.0"
+}

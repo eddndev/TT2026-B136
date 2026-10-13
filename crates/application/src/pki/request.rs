@@ -1,10 +1,10 @@
-//! Administrative public-request issuance with the fixed signing-only profile.
+//! Administrative public-request issuance with an explicit internal leaf profile.
 
 use domain::crypto::certificate::{
-    CertificateAuthority, CertificateRequestAuthority, CertificateValidation, CertificateValidator,
+    CertificateAuthority, CertificateRequestAuthority, CertificateRequestProfile,
+    CertificateRequestProfileValidator, CertificateValidation, CertificateValidator,
     IssuedPublicCertificate,
 };
-use domain::crypto::InternalDeclarationVerifier;
 
 use crate::ApplicationError;
 
@@ -12,23 +12,23 @@ use crate::ApplicationError;
 ///
 /// Request proof and exact public-key correspondence belong to the authority
 /// port; chain, validity and the admitted leaf profile are checked before success.
-pub struct IssueCertificateRequest<A, V, D> {
+pub struct IssueCertificateRequest<A, V, P> {
     authority: A,
     validator: V,
-    declarations: D,
+    profiles: P,
 }
 
-impl<A, V, D> IssueCertificateRequest<A, V, D>
+impl<A, V, P> IssueCertificateRequest<A, V, P>
 where
     A: CertificateAuthority + CertificateRequestAuthority,
     V: CertificateValidator,
-    D: InternalDeclarationVerifier,
+    P: CertificateRequestProfileValidator,
 {
-    pub fn new(authority: A, validator: V, declarations: D) -> Self {
+    pub fn new(authority: A, validator: V, profiles: P) -> Self {
         Self {
             authority,
             validator,
-            declarations,
+            profiles,
         }
     }
 
@@ -36,9 +36,10 @@ where
         &self,
         name: &str,
         request_pem: &[u8],
+        profile: CertificateRequestProfile,
         unix_seconds: i64,
     ) -> Result<IssuedPublicCertificate, ApplicationError> {
-        let issued = self.authority.issue_request(name, request_pem)?;
+        let issued = self.authority.issue_request(name, request_pem, profile)?;
         let root = self.authority.root_certificate()?;
         let outcome =
             self.validator
@@ -48,8 +49,8 @@ where
                 outcome.to_string(),
             ));
         }
-        self.declarations
-            .inspect_certificate(&issued.certificate_pem)
+        self.profiles
+            .validate_profile(&issued.certificate_pem, profile)
             .map_err(|error| ApplicationError::IssuedCertificateInvalid(error.to_string()))?;
         Ok(issued)
     }

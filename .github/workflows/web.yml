@@ -132,6 +132,11 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm test
+      - name: Check separate CA portal
+        if: ${{ matrix.shard == 1 }}
+        run: |
+          npm run test:ca
+          npm run build:ca
       - run: npm run build
       - name: Require the matching preinstalled browser
         run: |
@@ -142,6 +147,9 @@ jobs:
               throw new Error("Update the Playwright image to match package-lock.json");
             }
           '
+      - name: Check CA portal in desktop and mobile browsers
+        if: ${{ matrix.shard == 1 }}
+        run: npm run test:e2e --workspace @qadra/ca -- --workers=1 --max-failures=1 --reporter=line
       - run: npm run test:e2e -- --workers=1 --max-failures=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/browser-junit.xml

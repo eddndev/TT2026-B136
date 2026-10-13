@@ -7,8 +7,9 @@ use application::pki::{
 };
 use application::ApplicationError;
 use domain::crypto::certificate::{
-    CertificateAuthority, CertificateRequestAuthority, CertificateSummary, CertificateValidation,
-    CertificateValidator, IssuedCertificate, IssuedPublicCertificate,
+    CertificateAuthority, CertificateRequestAuthority, CertificateRequestProfile,
+    CertificateSummary, CertificateValidation, CertificateValidator, IssuedCertificate,
+    IssuedPublicCertificate,
 };
 use domain::DomainError;
 use std::path::PathBuf;
@@ -33,6 +34,7 @@ mockall::mock! {
             &self,
             name: &str,
             request_pem: &[u8],
+            profile: CertificateRequestProfile,
         ) -> Result<IssuedPublicCertificate, DomainError>;
     }
 }

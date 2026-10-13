@@ -16,6 +16,10 @@ pub mod audit;
 mod audit_postgres;
 mod audit_query_postgres;
 mod audit_query_schema;
+mod ca_identity;
+pub use ca_identity::{
+    provision_initial_ca_operator, with_validated_ca_identity_postgres, ValidatedCaIdentityPostgres,
+};
 pub mod case_stages;
 pub mod cases;
 pub mod certificates;

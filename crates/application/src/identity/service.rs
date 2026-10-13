@@ -22,6 +22,7 @@ mod certificate;
 mod certificate_authority;
 mod issuance;
 mod mfa;
+mod operator;
 mod session;
 
 const CHALLENGE_TTL_SECONDS: u64 = 300;

@@ -66,7 +66,7 @@ def validate_candidate(before, candidate, next_counter):
         raise ValueError("candidate removes an existing revocation")
 
 
-def prepared(root, target, info, expected):
+def prepared(root, target, info, expected, identifier=None):
     from restore_fence import guard
     guard(root)
     before = material.read_head(root)
@@ -81,7 +81,7 @@ def prepared(root, target, info, expected):
         raise ValueError("CA CRL counter is stale or exhausted")
     for directory in (root / "maintenance", root / "maintenance/crl"):
         journal.directory(directory)
-    identifier = str(uuid.uuid4())
+    identifier = str(uuid.uuid4()) if identifier is None else identifier
     operation = journal.operation(root, identifier)
     journal.directory(operation)
     journal.write(operation / "original-crl.pem", journal.read(ca / "crl/crl.pem", 1048576))
@@ -152,7 +152,7 @@ def continue_operation(root, operation, record, target, runtime):
             # The snapshot must not restore a fence whose journal lives outside its archive.
             if journal.pending(root):
                 journal.unfence(root)
-            backup = runtime.backup()
+            backup = runtime.backup(ca_operation=("publications", identifier))
             record["backup"] = crl_backup.capture(root, backup)
             persist(operation, record, "backed_up")
             journal.fenced(root, identifier)
@@ -187,7 +187,7 @@ def continue_operation(root, operation, record, target, runtime):
 def renew(root, expected_revision, runtime=None):
     root = Path(root).resolve(strict=True)
     with journal.locked(root):
-        journal.guard(root)
+        journal.guard_mutation(root)
         target, info = current_release(root)
         operation, record = prepared(root, target, info, expected_revision)
         return continue_operation(root, operation, record, target, runtime or Runtime(root))
@@ -198,6 +198,8 @@ def resume(root, operation_id, runtime=None):
     with journal.locked(root):
         from restore_fence import guard
         guard(root)
+        from ca_mutation_guard import guard as ca_guard
+        ca_guard(root)
         operation = journal.operation(root, operation_id)
         if journal.pending(root) and journal.load(journal.fence_path(root)).get("operation_id") != operation_id:
             raise ValueError("another CRL maintenance operation holds the fence")

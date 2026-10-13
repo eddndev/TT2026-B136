@@ -79,6 +79,8 @@ def _enter_locked(root, operation_id):
     _directories_exist(root)
     if journal.pending(root):
         raise RuntimeError("CRL maintenance must finish before restore admission closes")
+    from ca_mutation_guard import guard as ca_guard
+    ca_guard(root)
     path = fence_path(root)
     try:
         info = path.lstat()

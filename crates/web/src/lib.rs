@@ -3,7 +3,6 @@
 //! Routes adapt HTTP to injected identity, document, case and participant workflows.
 //! Cryptography, persistence, and timestamps remain behind application ports,
 //! so this adapter does not depend on an external timestamp provider.
-
 use std::sync::Arc;
 
 use application::case_stages::CaseStageWorkflow;
@@ -22,6 +21,8 @@ mod agenda;
 mod alerts;
 mod api;
 mod audit_events;
+mod ca_access;
+pub mod ca_operations;
 mod case_administration;
 mod case_reports;
 mod case_stages;
@@ -62,6 +63,7 @@ pub use api::{
     api_router_with_invitations_budget, api_router_with_password_reset,
     api_router_with_password_reset_budget, AuthenticationHttp,
 };
+pub use ca_access::ca_access_router;
 pub use case_reports::case_reports_router;
 pub use individual_signing::IndividualSigningHttp;
 pub use member_invitations::{member_invitation_router, InvitationHttp};

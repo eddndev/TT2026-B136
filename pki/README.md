@@ -23,7 +23,7 @@ cualquier copia del repositorio.
 | `init-ca.sh` | Crea la CA raiz: llave RSA de 3072 bits, certificado autofirmado valido 5 anios (1825 dias) e inicializa la base de datos (`index.txt`, `serial`, `crlnumber`). |
 | `issue-cert.sh` | Emite un certificado de entidad final: genera llave RSA de 3072 bits y CSR para el nombre comun dado, y lo firma con la CA por 1 anio (365 dias). |
 | `issue-declaration-cert.sh` | Emite una hoja RSA de 3072 bits para declaraciones internas, con usos de firma y sin EKU de autenticacion o correo. |
-| `issue-request.sh` | Firma un CSR publico externo con el perfil interno de firma; la CLI valida la solicitud y la clave publica emitida, sin generar una clave del titular. |
+| `issue-request.sh` | Firma un CSR publico externo con el perfil documental por defecto o Partner explicito; la CLI valida la solicitud, la clave publica emitida y el perfil, sin generar una clave del titular. |
 | `revoke.sh` | Revoca un certificado emitido, marcandolo en la base de datos de la CA. |
 | `gen-crl.sh` | Genera la CRL en formato PEM, valida por 7 dias. |
 
@@ -103,6 +103,13 @@ cargo run -p despacho-cli -- pki issue-request \
     --csr signer.csr.pem --name litigante-demo --json
 ```
 
+El proposito por defecto de `pki issue-request` es `document-signing`; puede
+declararse tambien con `--purpose document-signing`. Este perfil conserva los
+usos de firma y no incluye EKU de autenticacion o correo. El proposito
+`--purpose partner` selecciona el perfil existente de acceso Owner, con los
+EKU exactos `clientAuth` y `emailProtection`. Ambos perfiles son hojas
+CA=false y exigen los usos `digitalSignature` y `nonRepudiation`.
+
 El CSR PKCS#10 PEM admite como maximo 16 KiB y debe probar posesion de una clave
 RSA de 3072 bits, exponente 65537 y firma SHA-256. El nombre de salida tiene
 entre 1 y 64 caracteres ASCII, empieza por letra o digito y solo admite letras,
@@ -119,6 +126,38 @@ firma que fija el PDF y su contexto. Siga la
 [guia de firma individual](../docs/individual-signing-guide.md) para esos pasos.
 La CA interna y las claves sinteticas de las pruebas no acreditan identidad
 civil ni una emision de FIREL o de un PSC.
+
+Para el acceso Owner, el titular prepara una clave y un CSR propios en su
+equipo. La contrasena de la clave cifrada se introduce solo en ese equipo:
+
+```sh
+umask 077
+openssl genpkey -algorithm RSA -aes-256-cbc -pkeyopt rsa_keygen_bits:3072 \
+    -pkeyopt rsa_keygen_pubexp:65537 -out owner-private.pem
+openssl req -new -sha256 -key owner-private.pem -out owner.csr.pem \
+    -subj '/C=MX/O=Despacho Juridico Demo/CN=Acceso Owner'
+```
+
+El administrador recibe solamente `owner.csr.pem` y selecciona Partner:
+
+```sh
+cargo run -p despacho-cli -- pki issue-request \
+    --csr owner.csr.pem --name owner-access --purpose partner --json
+```
+
+El certificado publico queda en `$PKI_CA_DIR/certs/owner-access.crt.pem`.
+La clave `owner-private.pem` permanece con el titular; no se genera una clave
+del titular dentro de la CA. La emision no crea una cuenta Owner, no registra
+su vinculo y no activa el acceso por certificado. Esos pasos conservan su
+[recorrido operativo](../docs/owner-certificate-login-operations.md), incluida
+la prueba de posesion y MFA. El perfil Partner no sustituye al documental
+en la firma individual.
+
+La extension del emisor CSR esta implementada localmente y tiene verificacion
+CLI focal. Su publicacion y despliegue conservan sus propios gates; no acredita
+la operacion del [portal CA](../docs/ca/README.md), cuyo enrolamiento, servicio
+y aceptacion siguen pendientes. `pki issue` conserva su comportamiento
+existente y su proposito Partner por defecto.
 
 ### Certificados para declaraciones de participantes
 

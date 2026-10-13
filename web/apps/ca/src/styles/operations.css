@@ -1,0 +1,80 @@
+.ca-operations { display: grid; gap: 20px; }
+.ca-operations .action-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.ca-tabs { display: flex; gap: 7px; border-bottom: 1px solid var(--line); }
+.ca-tabs button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; border: 0; border-bottom: 3px solid transparent;
+  background: transparent; padding: 10px 17px; color: var(--muted);
+  font-size: 13px; font-weight: 600;
+}
+.ca-tabs button.active { color: var(--blue); border-bottom-color: var(--blue); }
+.ca-tabs button:hover:not(:disabled) { background: #edf2ff; }
+.ca-operation-card { padding: 28px; }
+.ca-operation-card > .section-heading { margin-bottom: 22px; }
+.ca-operation-card h2 { font-size: 19px; }
+.ca-operation-card p { font-size: 13px; }
+.ca-request-form { gap: 22px; }
+.ca-request-form textarea {
+  min-width: 0; max-width: 100%; resize: vertical; width: 100%; padding: 12px 13px;
+  background: #fff; border: 1px solid #d8dee5; border-radius: 7px; color: var(--navy);
+  font: 12px/1.7 Consolas, monospace;
+}
+.ca-request-form textarea:focus-visible { outline: 3px solid #80a1f5; outline-offset: 3px; }
+.ca-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.ca-review { border-top: 1px solid var(--line); margin-top: 28px; padding-top: 28px; }
+.ca-review h3 { margin-bottom: 22px; }
+.ca-review h3:focus, .ca-recovery h3:focus { outline: none; }
+.ca-public-facts > div { grid-template-columns: minmax(145px, 0.45fr) minmax(0, 1fr); }
+.ca-confirmation { margin: 26px 0 20px; line-height: 1.65; align-items: flex-start; }
+.ca-confirmation input { flex-shrink: 0; margin-top: 3px; }
+.ca-card-actions { margin-top: 26px; }
+.ca-recovery { display: grid; justify-items: start; gap: 18px; }
+.ca-operation-id { padding: 14px; border-radius: 7px; background: #f1f5fb; max-width: 100%; }
+.ca-list-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.ca-list-heading p { margin-top: 8px; }
+.ca-list-heading > button { flex-shrink: 0; }
+.ca-publication-note { margin-top: 22px; padding: 14px 16px; border-radius: 7px; background: #f4f7fc; }
+.ca-empty { padding: 40px 0; text-align: center; }
+.ca-result-count { margin: 24px 0 14px; font-size: 12px !important; }
+.ca-record-list { display: grid; gap: 16px; }
+.ca-record { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+.ca-record-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.ca-record-heading > div { min-width: 0; }
+.ca-record-heading h3 { overflow-wrap: anywhere; line-height: 1.6; font-size: 14px; }
+.ca-record-heading p { margin-top: 4px; font-size: 12px; }
+.ca-record-heading > .badge { flex-shrink: 0; }
+.ca-record-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin: 22px 0; }
+.ca-record-facts > div { min-width: 0; }
+.ca-record-facts dt { font-size: 11px; color: var(--muted); margin-bottom: 7px; }
+.ca-record-facts dd { margin: 0; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.ca-record-facts dd small { display: block; margin-top: 4px; }
+.ca-fact-wide { grid-column: 1 / -1; }
+.ca-operation-card .pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line);
+  gap: 14px; flex-wrap: wrap;
+}
+.ca-operation-card .pagination > .hint { font-size: 12px; color: var(--muted); }
+.operator-summary { padding: 18px 24px; }
+.operator-summary summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.operator-summary .settings-list { margin-top: 18px; }
+.operator-summary .settings-list > div { padding: 14px 0; }
+.ca-revocation { border-color: #c8d4ed; }
+.ca-revocation h2:focus { outline: none; }
+.ca-revocation-reason { margin-top: 22px; }
+@media (max-width: 620px) {
+  .ca-operation-card { padding: 22px; }
+  .ca-tabs { gap: 0; flex-wrap: wrap; }
+  .ca-tabs button { flex: 1; min-width: 0; padding: 10px 6px; font-size: 11px; gap: 5px; }
+  .ca-tabs button svg { width: 15px; height: 15px; }
+  .ca-form-grid, .ca-record-facts, .ca-public-facts > div { grid-template-columns: minmax(0, 1fr); }
+  .ca-public-facts > div { gap: 9px; }
+  .ca-list-heading { flex-direction: column; }
+  .ca-record { padding: 18px; }
+  .ca-record-heading { flex-direction: column; gap: 10px; }
+  .ca-operation-card .action-row { flex-wrap: wrap; }
+  .operator-summary { padding: 18px 22px; }
+}
+@media (max-width: 420px) {
+  .ca-tabs button { flex-basis: 50%; }
+}

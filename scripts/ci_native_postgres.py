@@ -128,6 +128,7 @@ class Backend:
             raise RuntimeError("PostgreSQL shared lock capacity was not applied")
         environment = {**os.environ,
                        "IDENTITY_TEST_DATABASE_URL": base + "/postgres",
+                       "CA_OPERATIONS_TEST_ADMIN_URL": base + "/postgres",
                        "CASE_TEST_DATABASE_URL": base + "/case_tests",
                        "DOCUMENT_TEST_DATABASE_URL": base + "/document_tests"}
         subprocess.run(["bash", "scripts/configure-ci-postgres.sh"],

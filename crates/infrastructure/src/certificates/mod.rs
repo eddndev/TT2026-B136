@@ -16,11 +16,19 @@ mod owner_login;
 mod parse;
 mod request_authority;
 mod request_material;
+mod request_profile;
 mod validator;
 
 pub use authority::OpensslCaAdapter;
 pub use document_signing::{DocumentSigningFailure, InternalRsaDocumentSigningVerifier};
 pub use internal_declaration::InternalRsaDeclarationVerifier;
+pub use internal_profile::ca_inspection::{
+    inspect_ca_certificate, inspect_ca_request, CaCertificateInspection, CaRequestInspection,
+};
+pub use internal_profile::ca_inventory::{
+    inspect_ca_inventory_certificate, CaInventoryCertificateInspection, CaInventoryPurpose,
+};
 pub use owner_binding::{InternalRsaOwnerBindingVerifier, OwnerBindingFailure};
 pub use owner_login::{InternalRsaOwnerLoginVerifier, OwnerLoginFailure};
+pub use request_profile::InternalRsaCertificateRequestProfileValidator;
 pub use validator::X509ChainValidator;

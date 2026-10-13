@@ -86,7 +86,7 @@ def capture(root, *, controller_directory, targets, tools, descriptor_path):
     try:
         destination(root, descriptor_path)
         with crl_journal.locked(root):
-            crl_journal.guard(root)
+            crl_journal.guard_mutation(root)
             destination(root, descriptor_path)
             source = backup_manifest.capture_source(root, controller_directory)
             if source["initialized"] is not True:

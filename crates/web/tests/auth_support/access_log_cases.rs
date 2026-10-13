@@ -1,22 +1,10 @@
 use super::{json, router};
 use axum::{body::Body, http::Request};
-use std::{
-    io::{self, Write},
-    sync::{Arc, Mutex},
-};
 use tower::ServiceExt;
 
-#[derive(Clone, Default)]
-struct Capture(Arc<Mutex<Vec<u8>>>);
-impl Write for Capture {
-    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
-        self.0.lock().unwrap().extend_from_slice(bytes);
-        Ok(bytes.len())
-    }
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
-}
+#[path = "capture.rs"]
+mod capture;
+use capture::Capture;
 
 #[tokio::test]
 async fn access_logs_correlate_success_rejection_and_invalid_input_without_secrets() {

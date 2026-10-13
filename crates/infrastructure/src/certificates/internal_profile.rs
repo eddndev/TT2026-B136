@@ -1,5 +1,7 @@
 //! Shared mechanics for explicitly selected internal certificate profiles.
 
+pub(super) mod ca_inspection;
+pub(super) mod ca_inventory;
 mod material;
 mod profile;
 mod revocation;
@@ -16,6 +18,7 @@ pub(super) enum Profile {
     Root,
     Declaration,
     Partner,
+    TimeStamping,
 }
 
 pub(super) struct Verifier(Profile);
