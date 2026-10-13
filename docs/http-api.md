@@ -95,7 +95,7 @@ La [API de hechos declarados de resolución y notificación](procedural-facts-ap
 añade familias por expediente, padre fijo, preparación, confirmación, retiro e
 historia con fuentes exactas. Sus pruebas focales, la suite global y el recorrido
 HTTP con servicios reales y restauración pasaron localmente. La
-[interfaz Qadra de hechos](../web/README.md#resoluciones-y-notificaciones-declaradas)
+[interfaz Qadra de hechos](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 permite capturar, consultar y conciliar estas declaraciones.
 
 La [API del catálogo de perfiles de plazo](deadline-profiles-api.md) adapta el
@@ -555,7 +555,7 @@ declarada; no se infieren efectos, destinatarios o instantes. Retirar conserva
 los valores y soportes admitidos, es terminal y no declara nulidad jurídica.
 Las pruebas focales y la campaña integrada con servicios reales y restauración
 tienen evidencia separada en el informe de verificación. La
-[interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas)
+[interfaz Qadra](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 permite capturar, consultar y conciliar estas declaraciones.
 
 ## Recursos procesales declarados

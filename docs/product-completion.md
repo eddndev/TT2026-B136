@@ -698,7 +698,7 @@ general de miembros ni asigna acceso. La preparación muestra bloqueos y traza,
 exige confirmación expresa y concilia respuestas inciertas por revisión exacta
 sin reenviar. Owner y Litigator gestionan, Paralegal consulta, Client queda
 excluido y el cierre conserva las lecturas autorizadas. La
-[guía Qadra](../web/README.md#plazos-del-expediente) describe las operaciones.
+[guía Qadra](../web/apps/qadra/README.md#plazos-del-expediente) describe las operaciones.
 
 Las campañas locales completas del selector y la interfaz están aprobadas:
 Rust, contratos y formularios, regresión con HTTP controlado, API/restauración

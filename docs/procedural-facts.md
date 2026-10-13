@@ -10,7 +10,7 @@ se detallan en [PFRES1 y PFNOT1](procedural-facts-canonical.md). El
 El backend esta verificado localmente. La [API HTTP](procedural-facts-api.md)
 y su composicion estan implementadas con pruebas focales, suite global y
 comprobacion integrada HTTP con restauracion aprobadas localmente. El [cliente
-Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas) esta implementado
+Qadra](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas) esta implementado
 y su verificacion integral esta aprobada localmente.
 Este modelo puro no define un formato JSON de entrada HTTP.
 

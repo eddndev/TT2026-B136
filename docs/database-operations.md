@@ -4,7 +4,7 @@ El servidor usa PostgreSQL para usuarios, expedientes, participantes, etapas,
 audiencias y sus resultados declarados, calendarios jurisdiccionales, documentos,
 hechos de resolución y notificación, alertas durables y una sola cadena de
 auditoría. Los hechos cuentan con [API](procedural-facts-api.md) e
-[interfaz Qadra](../web/README.md#resoluciones-y-notificaciones-declaradas).
+[interfaz Qadra](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas).
 Redis conserva sesiones revocables y controles efímeros.
 
 El esquema incorpora el catálogo de perfiles de plazo, un registro durable de
@@ -1161,7 +1161,7 @@ exactas y capturas después de cambios de administración y autor. No atribuir e
 prueba al navegador. La API de hechos y su composición tienen una campaña
 separada con servicios reales y restauración exacta, aprobada localmente. El
 guion incluye ambas tablas de hechos en el inventario y compara respuestas
-históricas después de restaurar. La [interfaz Qadra de hechos](../web/README.md#resoluciones-y-notificaciones-declaradas)
+históricas después de restaurar. La [interfaz Qadra de hechos](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 permite capturar, consultar y conciliar sus declaraciones.
 El cierre de comprobaciones se registra en el [informe](verification-report.md).
 Véanse el [contrato de persistencia](procedural-facts-persistence.md), la

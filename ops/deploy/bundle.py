@@ -100,7 +100,7 @@ def build(root, version, commit, library, output):
         shutil.copy2(root / "target/release/despacho-cli", stage / "bin/despacho-cli")
         for program in ("ffmpeg", "ffprobe"):
             shutil.copyfile(Path("/opt/tt-media/bin") / program, stage / "bin" / program)
-        for source, name in ((root / "web/dist", "web"),
+        for source, name in ((root / "web/apps/qadra/dist", "web"),
                              (root / "migrations", "migrations")):
             shutil.copytree(source, stage / name)
         # Only versioned PKI scripts/configuration belong in the artifact.

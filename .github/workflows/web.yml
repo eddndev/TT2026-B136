@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browser-durations-${{ matrix.shard }}
-          path: web/test-results/browser-junit.xml
+          path: web/apps/qadra/test-results/browser-junit.xml
           if-no-files-found: error
           retention-days: 7
       - name: Cancel the failed campaign
@@ -236,7 +236,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: real-browser-durations-${{ matrix.shard }}
-          path: web/test-results-live/browser-junit.xml
+          path: web/apps/qadra/test-results-live/browser-junit.xml
           if-no-files-found: error
           retention-days: 7
       - name: Publish real session browser durations
@@ -244,7 +244,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: real-browser-session-durations
-          path: web/test-results-session/browser-junit.xml
+          path: web/apps/qadra/test-results-session/browser-junit.xml
           if-no-files-found: error
           retention-days: 7
       - name: Preserve failed browser screenshots and diagnostics
@@ -253,14 +253,14 @@ jobs:
         with:
           name: real-browser-failure-${{ matrix.shard }}
           path: |
-            web/test-results-live/**/*.png
-            web/test-results-live/**/error-context.md
-            web/test-results-live/**/api-failures.json
-            web/test-results-live/**/frontend-entry.json
-            web/test-results-session/**/*.png
-            web/test-results-session/**/error-context.md
-            web/test-results-session/**/api-failures.json
-            web/test-results-session/**/frontend-entry.json
+            web/apps/qadra/test-results-live/**/*.png
+            web/apps/qadra/test-results-live/**/error-context.md
+            web/apps/qadra/test-results-live/**/api-failures.json
+            web/apps/qadra/test-results-live/**/frontend-entry.json
+            web/apps/qadra/test-results-session/**/*.png
+            web/apps/qadra/test-results-session/**/error-context.md
+            web/apps/qadra/test-results-session/**/api-failures.json
+            web/apps/qadra/test-results-session/**/frontend-entry.json
           if-no-files-found: ignore
           retention-days: 7
       - name: Cancel the failed campaign

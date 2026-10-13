@@ -250,7 +250,7 @@ Qadra incorpora la consulta y conciliacion explicita descritas abajo.
 
 El cliente está implementado en `web/src/components/CaseFacts.svelte`, con
 formularios de campos separados de los helpers de valores, API y conciliación.
-El [recorrido de la interfaz](../web/README.md#resoluciones-y-notificaciones-declaradas)
+El [recorrido de la interfaz](../web/apps/qadra/README.md#resoluciones-y-notificaciones-declaradas)
 describe sus controles. La campaña de navegador está aprobada localmente con HTTP simulado y servicios
 reales aislados; las cifras y límites se conservan en el informe de verificación.
 

@@ -144,7 +144,7 @@ los recorridos existentes de conflicto y paginación.
 
 La duración operativa del límite de inactividad sigue sin aprobarse. El backend
 mantiene por defecto su límite absoluto de veinticuatro horas. La configuración
-de doce segundos del [ensayo reproducible](../web/README.md#reingreso-con-vencimiento-real)
+de doce segundos del [ensayo reproducible](../web/apps/qadra/README.md#reingreso-con-vencimiento-real)
 pertenece exclusivamente a sus servicios desechables.
 
 ## Confirmaciones sin campos editables
