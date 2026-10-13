@@ -1,5 +1,25 @@
 # Verificación de la actualización académica
 
+## Portal administrativo de la CA: 13 de octubre de 2026 UTC
+
+El manuscrito distingue el servicio administrativo separado, los dos perfiles
+de CSR externo y las operaciones recuperables de emisión, revocación y CRL.
+Los resultados separan HTTP nativo, navegador controlado, restauración SQL,
+Redis y archivo de publicación; no atribuyen una adopción pública todavía pendiente.
+
+Documents compiló las fuentes en CI. El artefacto revisado tiene **421 páginas**
+y SHA-256 `cf60b2d38453111b9c6cfec10bece4ee4fbe164b86e67a73a3af32ff3d02f47a`.
+Se inspeccionaron las páginas físicas **155-157, 299-300 y 370-371**:
+implementación, resultados, anexo y continuaciones. El texto incorporado es
+legible y sus referencias se resuelven, sin nuevos recortes ni solapes observados.
+Se conserva sin modificar el listado histórico de OpenSSL en el anexo.
+
+La inspección leyó el PDF desde el archivo comprimido de CI y generó únicamente
+imágenes de las páginas. El `latex/main.pdf` local aceptado de 419 páginas
+permanece intacto; no se creó otro PDF suelto ni se sustituyó ese entregable.
+Resumen, objetivos y conclusiones se conservaron. Esta comprobación documental
+no acredita aceptación humana, instalación ni integración del portal.
+
 ## Corpus jurídico finito: 12 de octubre de 2026 UTC
 
 El manuscrito incorpora el final exacto de audiencia, cierre semanal del canal

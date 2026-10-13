@@ -12,7 +12,7 @@ import tempfile
 VERSION = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 MAX_BYTES = 512 * 1024 * 1024
-CA_MODULES = ("command inventory issuance issuance_material native_executor portal public_state "
+CA_MODULES = ("command host inventory issuance issuance_material native_executor portal public_state "
               "publication revocation").split()
 DEPLOY_MODULES = (
     "backup_manifest backup_manifest_files backup_manifest_schema bundle ca_mutation_guard "
