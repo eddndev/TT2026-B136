@@ -1,6 +1,6 @@
 # Portal CA y acceso Owner
 
-El portal CA tiene implementación local de acceso, enrolamiento administrativo,
+El portal CA tiene implementación integrada de acceso, enrolamiento administrativo,
 solicitudes, inventario, revocación, publicación de CRL e historial recuperable.
 Su [manual de operación](operations.md) describe el código actual y separa los
 pasos de instalación todavía pendientes. Esta implementación no acredita que
@@ -22,10 +22,26 @@ activa con MFA. Esa condición no concede acceso al portal CA. El valor interno
 una asignación de permisos del despacho. Las rutas del despacho no se componen
 en `qadra-ca`.
 
-El destino previsto sigue siendo el mismo VPS3, bajo la cuenta de despliegue
+El destino es el mismo VPS3, bajo la cuenta de despliegue
 `qadra`, con un servicio separado y HTTPS en `ca.qadra.com.mx`. Comparte los
 servicios PostgreSQL y Redis existentes mediante su configuración y autoridad
 propias. La interfaz vive en `web/apps/ca/` y reutiliza `web/packages/ui/`.
+
+## Estado de la instalación pública
+
+El 13 de octubre de 2026 se preparó `ca.qadra.com.mx` como origen independiente
+con DNS y HTTPS verificados. El certificado del nuevo origen conserva su
+renovación mediante el webroot y el temporizador existentes; el certificado
+del despacho no cambió. El proxy de CA devuelve `503` tanto en la página como
+en la API mientras no exista el alta privada del responsable. Ese cierre es
+intencional y no acredita que el servicio CA esté activo.
+
+El alta real de `eddndev@gmail.com` requiere contraseña y confirmación de TOTP
+en una terminal privada. No se generó una identidad ficticia para arrancar el
+servicio. Después del alta se podrá preparar su configuración con el UUID
+persistido, iniciar las unidades separadas y abrir el proxy hacia el puerto
+CA de loopback. La cuenta Owner conserva su acceso actual; el primer factor
+por certificado permanece deshabilitado hasta completar su aceptación.
 
 ## Estado del código
 

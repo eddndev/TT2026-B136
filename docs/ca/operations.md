@@ -1,8 +1,9 @@
 # Manual del operador y preparación del servicio CA
 
-Este manual describe la implementación local. La instalación pública en VPS3,
-el enrolamiento real del operador y la aceptación humana del acceso Owner siguen
-pendientes según el [estado de la entrega](README.md). Los ejemplos contienen
+Este manual describe la implementación integrada. DNS y HTTPS del origen CA
+ya están preparados; el servicio permanece cerrado hasta el enrolamiento real
+del operador. La instalación y la aceptación humana del acceso Owner se
+distinguen en el [estado de la entrega](README.md). Los ejemplos contienen
 marcadores, no credenciales ni una configuración lista para producción.
 
 ## Responsables y acceso
@@ -189,7 +190,12 @@ acceso `/login`, `/mfa/totp`, `/mfa/recovery`, `/logout`, `/me`, `/session` y
 `POST /api/v1/ca/operations`; `/healthz` indica que el proceso atiende. La salud
 por sí sola no acredita una operación PKI ni un recorrido de usuario.
 
-## Adopción del servicio y HTTPS: pendiente
+## Adopción del servicio y HTTPS
+
+El origen `ca.qadra.com.mx` dispone de DNS y HTTPS desde el 13 de octubre de
+2026. El vhost independiente conserva ACME por HTTP y devuelve `503` por HTTPS
+hasta preparar el operador y las unidades. La renovación usa el mecanismo
+Certbot existente; no se amplió ni reemplazó el certificado de Qadra.
 
 El destino es VPS3 con la cuenta de despliegue `qadra`. Conservar PostgreSQL,
 Redis, la CA, TSA y las unidades de usuario existentes. El servicio CA debe
@@ -197,8 +203,8 @@ mantenerse disponible durante la parada de API/web que realiza el mantenimiento
 CRL, para que el operador pueda consultar y retomar la operación. El renderer puro
 [`ops/ca/host.py`](../../ops/ca/host.py) prepara las dos unidades de usuario y
 el proxy de loopback con rutas de una release literal aceptada; no instala
-archivos ni cambia servicios. Su adopción, permisos, arranque y HTTPS siguen pendientes; este manual
-no declara que ya esté instalada.
+archivos ni cambia servicios. Su adopción, permisos y arranque siguen pendientes;
+HTTPS preparado no significa que estas unidades ya estén instaladas.
 
 El runtime CRL existente controla `qadra-api.service` y `qadra-web.service`
 mediante `systemctl --user`. La adopción del servicio CA debe conservar ese

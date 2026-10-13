@@ -1,10 +1,10 @@
 # Verificación del portal administrativo de la CA
 
-Corte local del 12 de octubre de 2026, en Linux x86_64, PostgreSQL 18.6,
-Redis y OpenSSL locales. Las campañas usan dependencias desechables y un solo
-coordinador; al terminar se detienen únicamente sus servicios propios. CI de
-cierre debe comprobar la revisión publicada con PostgreSQL 16. Esta evidencia
-no acredita el alta real del operador ni el recorrido de la titular Owner.
+Las campañas locales del 12 de octubre de 2026 usaron Linux x86_64,
+PostgreSQL 18.6, Redis y OpenSSL locales, con dependencias desechables y un solo
+coordinador; al terminar se detuvieron únicamente sus servicios propios. El
+cierre remoto y la correlación posterior se distinguen más adelante. Esta
+evidencia no acredita el alta real del operador ni el recorrido de la titular Owner.
 
 | Frontera | Evidencia ejecutada | Límite |
 | --- | --- | --- |
@@ -35,6 +35,25 @@ recuperación: journal preparado, CRL original y candidata. Las pruebas rechazan
 faltantes o enlaces antes de declarar el respaldo completo. El respaldo anterior
 sin operación de portal conserva su formato y contenido.
 
+La correlación nativa posterior cerró en 37.955 s el recorrido entre el portal
+emisor y sus dos consumidores. Los certificados Partner y de firma documental
+emitidos por CSR externo conservaron la misma clave pública y huella en el
+vínculo Owner y en la operación documental, respectivamente. Después del uso
+válido con RSA/MFA y del documento con TSA y ZIP, una publicación CRL nativa
+revocó ambas series y avanzó la confianza de la revisión 1 a la 2. Los nuevos
+usos fueron rechazados; los recibos previos, la auditoría y el ZIP exacto
+permanecieron consultables. La revisión independiente aceptó esa correspondencia
+de certificados, publicación y resultados de los consumidores.
+
+El ensayo reutilizó los servicios y ejecutores existentes: HTTP CA y MFA,
+OpenSSL, publicación PostgreSQL, `pg_dump`, captura RDB y archivo privado tar.
+Capturó los tres payloads de respaldo y registró sus hashes, sin repetir la restauración
+ya documentada. Usó identidades sintéticas y una composición local de la revisión
+`8011d339c0de785fd3ea11725d1536ef4ba87e13`; la supervisión de procesos fue un
+doble controlado, sin systemd ni proxy público. Por ello acredita la correlación
+funcional nativa, pero no califica un artefacto distribuible ni un mantenimiento
+del host desplegado.
+
 El recorrido `scripts/demo.sh` también terminó correctamente tras los cambios de
 CLI. Clippy focal de `despacho-cli` y sus targets aprobó; se corrigieron dos
 warnings de módulos importados por tests. La comprobación de registro de tests
@@ -58,7 +77,19 @@ ejecución y la comprobación inmediata del líder recolectado. Los ocho casos d
 `crates/bin/tests/ca_executor.rs` aprobaron en 0.99 s con Rust 1.98.1 tras este
 ajuste; el ejecutor de producción no cambió. No se activó el paquete cancelado.
 
-La aprobación local no sustituye regresión, revisión, integración ni despliegue.
-El cierre requiere los gates aplicables al HEAD exacto y la aceptación del
-[manual operativo](operations.md) con las identidades designadas. El material
-real de claves del titular, MFA y contraseña queda bajo su control.
+El 13 de octubre, la integración de [PR 105](https://github.com/eddndev/TT2026-B136/pull/105)
+en `61de34cce57718d0140b43366fdaf0775c569b4a` cerró Documents, CI y Web en éxito.
+La corrección de pruebas y documentación de
+[PR 106](https://github.com/eddndev/TT2026-B136/pull/106) se integró en
+`95a9aacf975e4a9cde5c4f8b60544fab3baff84f`, con árbol igual al HEAD revisado
+`8011d339c0de785fd3ea11725d1536ef4ba87e13`. CI y Web aprobaron para ese main
+exacto; la evidencia Documents anterior conserva su revisión propia y no se
+presenta como otra ejecución en PR 106.
+
+Al corte de esta actualización, la preparación del candidato `v0.1.8` para
+ese main, [corrida 38354975960](https://github.com/eddndev/TT2026-B136/actions/runs/38354975960),
+sigue en curso. Su despacho no activa una release ni publica una etiqueta.
+Los gates aprobados y la correlación local no sustituyen la calificación del
+paquete ni la aceptación del [manual operativo](operations.md) con las
+identidades designadas. El material real de claves del titular, MFA y
+contraseña queda bajo su control.
