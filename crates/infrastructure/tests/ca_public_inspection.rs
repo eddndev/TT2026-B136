@@ -112,7 +112,7 @@ fn request_inspection_rejects_private_combined_malformed_and_oversized_inputs() 
 #[test]
 fn request_inspection_verifies_possession_before_returning_subject_or_key() {
     let fx = fixture();
-    let parsed = CertReq::from_pem(&request()).unwrap();
+    let parsed = CertReq::from_pem(request()).unwrap();
     let mut damaged = parsed.to_der().unwrap();
     *damaged.last_mut().unwrap() ^= 1;
     assert!(inspect_ca_request(&request_pem(&damaged), &fx.root).is_err());

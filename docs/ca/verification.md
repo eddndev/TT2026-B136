@@ -40,6 +40,14 @@ CLI. Clippy focal de `despacho-cli` y sus targets aprobó; se corrigieron dos
 warnings de módulos importados por tests. La comprobación de registro de tests
 aceptó todas las fuentes, tras explicitar dos inclusiones que antes no reconocía.
 
+El cierre CI detectó un archivo omitido en el inventario obligatorio del paquete
+y avisos de Clippy en helpers de pruebas. Se incorporó el renderer CA al
+inventario y se corrigieron los usos de referencias/iteradores. Los diez casos
+focales de paquete aprobaron; después, `cargo +1.98.1 clippy --workspace
+--all-targets -- -D warnings` aprobó en 4 min 42 s. Esta última comprobación
+abarca también los targets de infraestructura que el primer focal no incluía;
+no sustituye los gates remotos de Rust estable y MSRV.
+
 La aprobación local no sustituye regresión, revisión, integración ni despliegue.
 El cierre requiere los gates aplicables al HEAD exacto y la aceptación del
 [manual operativo](operations.md) con las identidades designadas. El material
