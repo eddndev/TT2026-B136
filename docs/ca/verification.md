@@ -48,6 +48,16 @@ focales de paquete aprobaron; después, `cargo +1.98.1 clippy --workspace
 abarca también los targets de infraestructura que el primer focal no incluía;
 no sustituye los gates remotos de Rust estable y MSRV.
 
+La calificación posterior del paquete reprodujo una carrera en la observación
+del timeout: inmediatamente después de recolectar al líder, Linux todavía
+mostraba un descendiente en estado ejecutable. La señal se envía al grupo antes
+de recolectar al líder; esperar a éste no sincroniza la terminación de los demás.
+La prueba ahora observa durante un máximo de un segundo la ausencia o estado
+muerto/zombi del descendiente, y falla si permanece vivo. Conserva el límite de
+ejecución y la comprobación inmediata del líder recolectado. Los ocho casos de
+`crates/bin/tests/ca_executor.rs` aprobaron en 0.99 s con Rust 1.98.1 tras este
+ajuste; el ejecutor de producción no cambió. No se activó el paquete cancelado.
+
 La aprobación local no sustituye regresión, revisión, integración ni despliegue.
 El cierre requiere los gates aplicables al HEAD exacto y la aceptación del
 [manual operativo](operations.md) con las identidades designadas. El material
