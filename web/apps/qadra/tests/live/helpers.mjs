@@ -17,8 +17,12 @@ export async function login(page, recoveryCode, account = fixture) {
     page.getByRole('button', { name: 'Continuar', exact: true }).click(),
   ]);
   const submitted = started.request().postDataJSON();
-  expect(submitted.email === account.email, 'login submitted the selected fixture email').toBe(true);
-  expect(submitted.password === account.password, 'login submitted the fixture password').toBe(true);
+  expect(submitted.email === account.email, 'login submitted the selected fixture email').toBe(
+    true,
+  );
+  expect(submitted.password === account.password, 'login submitted the fixture password').toBe(
+    true,
+  );
   expect(started.status(), 'password login must succeed before MFA').toBe(200);
   await page.getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n' }).click();
   await page.getByLabel('C\u00f3digo de recuperaci\u00f3n', { exact: true }).fill(recoveryCode);

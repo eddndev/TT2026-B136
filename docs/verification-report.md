@@ -2,6 +2,24 @@
 
 La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
 
+## Diagnostico del acceso en navegador: 14 de octubre de 2026 UTC
+
+La campana remota del parche Rustls aprobo el control de dependencias. El primer
+recorrido de Agenda combinada recibio `401 invalid_credentials` en el login de
+su cuenta sintetica; espero luego hasta 180 segundos por el formulario MFA, que
+no podia aparecer. El contexto y la captura de fallos identifican ese rechazo,
+pero no demuestran su causa. La fixture conserva correo y contrasena coherentes.
+
+El helper comprueba ahora la peticion del primer factor y exige HTTP 200 antes
+de buscar MFA. Las comparaciones no imprimen la contrasena; se mantienen limites,
+codigos, permisos y ausencia de reintentos. El ensayo local de Agenda con Rust,
+PostgreSQL, Redis y navegador reales aprobo cuatro recorridos en 56.9 segundos,
+a 1440 y 390 pixeles. Incluyo historia exacta y consulta transversal de cinco
+expedientes asignados, excluyendo un sexto. El rechazo remoto no se reprodujo;
+esta mejora diagnostica no se presenta como una correccion de su causa ni como
+una prueba nueva de acceso en produccion. La repeticion remota queda necesaria
+para cerrar los gates cancelados, conservando el fallo anterior.
+
 ## Parche de Rustls: 14 de octubre de 2026 UTC
 
 El gate de dependencias detecto en `rustls 0.23.45` los avisos
