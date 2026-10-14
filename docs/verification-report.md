@@ -2,6 +2,43 @@
 
 La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
 
+## Diagnostico del acceso en navegador: 14 de octubre de 2026 UTC
+
+La campana remota del parche Rustls aprobo el control de dependencias. El primer
+recorrido de Agenda combinada recibio `401 invalid_credentials` en el login de
+su cuenta sintetica; espero luego hasta 180 segundos por el formulario MFA, que
+no podia aparecer. El contexto y la captura de fallos identifican ese rechazo,
+pero no demuestran su causa. La fixture conserva correo y contrasena coherentes.
+
+El helper comprueba ahora la peticion del primer factor y exige HTTP 200 antes
+de buscar MFA. Las comparaciones no imprimen la contrasena; se mantienen limites,
+codigos, permisos y ausencia de reintentos. El ensayo local de Agenda con Rust,
+PostgreSQL, Redis y navegador reales aprobo cuatro recorridos en 56.9 segundos,
+a 1440 y 390 pixeles. Incluyo historia exacta y consulta transversal de cinco
+expedientes asignados, excluyendo un sexto. El rechazo remoto no se reprodujo;
+esta mejora diagnostica no se presenta como una correccion de su causa ni como
+una prueba nueva de acceso en produccion. La repeticion remota queda necesaria
+para cerrar los gates cancelados, conservando el fallo anterior.
+
+## Parche de Rustls: 14 de octubre de 2026 UTC
+
+El gate de dependencias detecto en `rustls 0.23.45` los avisos
+RUSTSEC-2026-0346 a RUSTSEC-2026-0349 y cancelo la campana de cierre documental.
+`Cargo.lock` fija ahora `0.23.46` y su checksum, la
+[version correctiva publicada por Rustls](https://github.com/rustls/rustls/releases/tag/v/0.23.46).
+Se conservan la version y las caracteristicas de `reqwest`, los contratos HTTP
+y la configuracion de la CA. No se agregaron excepciones al control de avisos.
+
+En Linux, con `CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y `TMPDIR` en disco,
+`cargo test -p infrastructure --lib email --locked` aprobo 33 pruebas y
+`cargo test -p infrastructure --test cincel_stub --locked` aprobo 13, con la
+prueba del proveedor real explicitamente ignorada. Los consumidores revisados
+son los cuatro transportes Resend y el adaptador opcional Cincel. Estas pruebas
+usan HTTP local: conservan los contratos y no acreditan negociacion TLS real
+ni reproduccion de los avisos. El gate de dependencias y la regresion de CI
+deben aprobar para la revision exacta antes de integrar el parche.
+
+
 ## Entrega aceptada y activa v0.1.6: 12 de octubre de 2026
 
 El corpus finito de ocho supuestos se integró por [PR100](https://github.com/eddndev/TT2026-B136/pull/100).

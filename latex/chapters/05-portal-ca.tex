@@ -100,6 +100,31 @@ release sin cambiar operador, credenciales ni pol\'itica de sesi\'on. El journal
 del incidente se conserv\'o y recibi\'o un rechazo terminal por pol\'itica, sin
 emitir ni cambiar su material; el historial de la interfaz mostr\'o ese recibo.
 
+La aceptaci\'on instalada confirm\'o la emisi\'on del certificado Partner de
+serie \texttt{1002} para la cuenta Owner el 14 de octubre.
+La clave privada permaneci\'o fuera de la CA. Su declaraci\'on de posesi\'on se
+firm\'o y verific\'o, y una persona registr\'o el v\'inculo R1 en Chrome a las
+08:29:28 UTC. Se aplic\'o el perfil de acceso sobre \texttt{v0.1.9}, con
+\texttt{enabled:true} y una copia de la configuraci\'on anterior. El primer
+desaf\'io fue admitido, pero venci\'o sin completar MFA. Un desaf\'io nuevo
+firmado fuera de Qadra y la confirmaci\'on humana de MFA permitieron entrar
+con el Partner \texttt{1002}, el v\'inculo R1 y la confianza
+R4. Tras cerrar esa sesi\'on, el acceso por contrase\~na y MFA se acept\'o.
+Chrome mostr\'o la misma cuenta Owner y el rol Administrador en ambos recorridos. Los recibos y capturas acreditan el acceso por certificado y
+el acceso alternativo posterior a la activaci\'on, sin reutilizar el desaf\'io
+vencido ni cargar la clave privada al portal.
+
+El perfil \texttt{document-signing} se ejercit\'o con el certificado t\'ecnico
+\texttt{1003}, sin v\'inculo a una cuenta. Su descarga en navegador se verific\'o
+contra el certificado emitido y su CSR a las 08:40:02 UTC. La revocaci\'on local
+qued\'o confirmada a las 08:42:33 UTC; el historial mostr\'o completas tanto
+la emisi\'on como la revocaci\'on. Se conserv\'o el Partner \texttt{1002} sin
+revocar. La publicaci\'on posterior desde el portal avanz\'o de R3 a R4,
+con CRL 4099 y s\'olo la serie t\'ecnica revocada. El mantenimiento termin\'o
+con respaldo registrado y seis servicios activos. La comprobaci\'on criptogr\'afica
+con esa CRL rechaz\'o \texttt{1003} y admiti\'o \texttt{1002}; se distingue
+de la aceptaci\'on nativa de los consumidores Qadra.
+
 El respaldo posterior al alta real se restaur\'o en una base nueva de un
 PostgreSQL 16 aislado. El cotejo de filas JSON ordenadas en UTC conserv\'o
 exactamente una cuenta CA y tres entradas de auditor\'ia, por cantidad y SHA-256.
@@ -117,13 +142,23 @@ aborto al enviar SIGTERM; exigi\'o salida cero sin usar terminaci\'on forzada
 como resultado aceptable. La correcci\'on conserva los due\~nos finales fuera
 de \texttt{block\_on}, como se describe en \cref{sec:impl-portal-ca}. Despu\'es
 aprobaron los seis casos nativos de enrolamiento y los dos de servicio,
-incluido el cierre por SIGTERM. Esta correcci\'on a\'un requiere CI,
-integraci\'on y despliegue; no forma parte de la release activa.
+incluido el cierre por SIGTERM. La correcci\'on se integr\'o el 14 de octubre
+con los gates de la solicitud de integraci\'on y de la rama principal aprobados.
+La release \texttt{v0.1.10}, revisi\'on \texttt{f8ebeb9e}, se activ\'o el
+14 de octubre en Qadra y la CA. La parada previa de \texttt{v0.1.9} reprodujo
+SIGABRT y su resultado se conserv\'o, sin limpiar el fallo ni forzar la
+terminaci\'on. La activaci\'on conserv\'o las 77 tablas, el esquema, material
+criptogr\'afico y configuraci\'on, incluidos correo y acceso Owner habilitado.
+El respaldo \texttt{20261014T173009Z-c239aa3e} se copi\'o y verific\'o externamente.
+El postflight confirm\'o una cadena v\'alida de $1\,026\,249$ entradas y la
+conservaci\'on de las $1\,026\,226$ entradas hist\'oricas. El operador CA,
+sus credenciales y pol\'itica de sesi\'on permanecieron iguales.
 
-El coordinador observ\'o el acceso de la Owner por contrase\~na y MFA. Esta
-participaci\'on no acredita por s\'i misma acceso con certificado: la emisi\'on
-Partner sigue pendiente de confirmaci\'on, no se ha completado el v\'inculo y
-el primer factor por certificado contin\'ua deshabilitado. Quedan por completar
-ese recorrido y la aceptaci\'on instalada de las mutaciones restantes del portal.
+La parada instalada de \texttt{v0.1.10} fue aceptada con el SIGINT configurado
+en la unidad, sin cambiar los PID del despacho, PostgreSQL ni Redis durante
+la prueba CA. Este resultado del servicio instalado se distingue del ensayo
+nativo SIGTERM. Ambos accesos Owner, la emisi\'on, descarga, revocaci\'on,
+publicaci\'on e historial tienen evidencia instalada dentro de los l\'imites
+descritos.
 El inventario de evidencia y sus l\'imites se conserva en
 \rutarepo{docs/ca/verification.md}.

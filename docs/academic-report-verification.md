@@ -1,5 +1,23 @@
 # Verificación de la actualización académica
 
+## Cierre instalado de Owner y CA: 14 de octubre de 2026 UTC
+
+Las fuentes de implementacion y pruebas registran los dos accesos reales del
+Owner, las operaciones de la CA, la publicacion R4 y la parada instalada
+aceptada de v0.1.10. La revision documental contrasto estas afirmaciones con
+los recibos de operacion; corrigio una instruccion antigua que aun dejaba MFA
+pendiente. Se comprobaron ASCII, limites de los archivos modificados y
+`git diff --check`. Se conservaron resumen, objetivos y conclusiones.
+
+La compilacion y la inspeccion visual de esta actualizacion se documentan en
+los checks y en la descripcion de la
+[PR109](https://github.com/eddndev/TT2026-B136/pull/109), asociados a su revision
+exacta; no se atribuyen al artefacto anterior de PR107. El PDF local aceptado
+se conserva con SHA-256
+`31c83852dc6bb8ece48b11ebec0405b25cc40022919f0f92368684f475a1ff2d`.
+Los artefactos de CI se inspeccionan desde su archivo comprimido y mediante
+imagenes, sin crear otra copia PDF suelta ni sustituir el entregable local.
+
 ## Politica de CSR y rechazo recuperable: 14 de octubre de 2026 UTC
 
 Documents de PR107 compilo el arbol exacto revisado. El artefacto de la
