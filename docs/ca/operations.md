@@ -185,7 +185,7 @@ La raíz indicada en `operations.root` es la instalación existente, que contien
 un nuevo directorio vacío de CA. El worker necesita el árbol compatible de
 `ops/ca` y `ops/deploy`, el inspector `qadra-ca`, la CLI y los scripts PKI
 revisados. Ese conjunto está instalado en la release literal
-`v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`; no basta copiar
+`v0.1.9-b7d1d6d1c4230d9e3796bc235d934dece73b7fd6`; no basta copiar
 `command.py` de forma aislada. La configuración del servicio debe conservar
 esa revisión y su inventario aprobados, junto con el controlador ya instalado.
 
@@ -217,9 +217,20 @@ CRL, para que el operador pueda consultar y retomar la operación. El renderer p
 el proxy de loopback con rutas de una release literal aceptada; no instala
 archivos ni cambia servicios. En VPS3 se adoptaron la configuración privada y
 las unidades `qadra-ca.service` y `qadra-ca-web.service`, ambas activas con la
-release `v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`. Los cuatro servicios
+release `v0.1.9-b7d1d6d1c4230d9e3796bc235d934dece73b7fd6`. Los cuatro servicios
 del despacho permanecieron activos. La sesión pública del operador se comprobó
-con contraseña y TOTP; esto no sustituye la aceptación de mutaciones ni restore.
+con contraseña y TOTP. El rechazo recuperado se aceptó en Historial y el
+respaldo poblado conservó cuenta, auditoría y archivos CA/configuración en el
+ensayo aislado descrito en [verificación](verification.md). La emisión Partner,
+el vínculo y el acceso Owner por certificado aún no están completados.
+
+La parada administrativa descubrió un aborto del proceso al liberar clientes
+PostgreSQL síncronos dentro de Tokio. Comprobar tanto `MainPID` como el resultado
+de la unidad: un proceso ausente después de `core-dump` no acredita cierre normal.
+Conservar el diagnóstico y contrastar los journals antes de continuar. La
+reparación local mantiene al dueño del Router fuera de `block_on` y pasó la
+prueba nativa SIGTERM; todavía no está en la release instalada. No cambiar la
+política de reinicio ni los journals para ocultar ese fallo.
 
 El runtime CRL existente controla `qadra-api.service` y `qadra-web.service`
 mediante `systemctl --user`. La adopción del servicio CA debe conservar ese
@@ -255,11 +266,11 @@ identidad civil del titular.
 
 La política existente en `pki/openssl.cnf` exige CN y que cada valor de país
 (C) y organización (O) coincida con alguno de la raíz adoptada, incluyendo su
-tipo y valor ASN.1. La corrección local comprueba esto al revisar y antes de
+tipo y valor ASN.1. La release `v0.1.9` comprueba esto al revisar y antes de
 reservar una emisión; no cambia la política de OpenSSL. Una solicitud nueva
-incompatible no crea journal ni reserva serie. Esta corrección está verificada
-localmente y pendiente de despliegue: la release `v0.1.8` no hace esa admisión
-anticipada y conserva una operación fallida por un CSR con CN solamente.
+incompatible no crea journal ni reserva serie. La operación anterior con CN
+solamente se concilió sin emitir, conservando su journal original y el material
+criptográfico; su rechazo se comprobó en el historial instalado.
 
 Marcar la revisión y pulsar **Confirmar y emitir**. Conservar el identificador
 de operación y el recibo con serie, huella y referencia. Descargar el certificado

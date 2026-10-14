@@ -3,7 +3,7 @@ use std::{
     io::Write,
     net::TcpListener,
     os::unix::fs::OpenOptionsExt,
-    process::{Child, Command, Stdio},
+    process::{Child, Command, ExitStatus, Stdio},
     thread,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
@@ -250,6 +250,36 @@ impl Service {
         assert!(response.get("access_token").is_none());
         assert!(response["expires_in_seconds"].as_u64().unwrap() > 0);
         take_secret(&mut response, "challenge_token")
+    }
+
+    #[allow(dead_code)]
+    pub fn stop_with_sigterm(&mut self) -> ExitStatus {
+        let child = self.child.as_mut().unwrap();
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "owned CA service exited before SIGTERM"
+        );
+        assert!(
+            Command::new("kill")
+                .arg("-TERM")
+                .arg(child.id().to_string())
+                .status()
+                .expect("could not signal the owned CA service")
+                .success(),
+            "SIGTERM was not delivered to the owned CA service"
+        );
+        let deadline = Instant::now() + Duration::from_secs(30);
+        loop {
+            if let Some(status) = child.try_wait().unwrap() {
+                self.child = None;
+                return status;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "owned CA service did not finish graceful shutdown"
+            );
+            thread::sleep(Duration::from_millis(20));
+        }
     }
 
     pub fn stop(&mut self) {

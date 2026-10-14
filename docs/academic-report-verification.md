@@ -1,5 +1,20 @@
 # Verificación de la actualización académica
 
+## Politica de CSR y rechazo recuperable: 14 de octubre de 2026 UTC
+
+Documents de PR107 compilo el arbol exacto revisado. El artefacto de la
+[corrida 38518655009](https://github.com/eddndev/TT2026-B136/actions/runs/38518655009)
+tiene 421 paginas y SHA-256
+`54acdc562b6d19dc83710c92e1f4fd17967e9385523ea3e0b2a5e062b0c86940`.
+Las paginas fisicas 156 y 300 muestran la politica del sujeto, la recuperacion
+del journal intacto y la evidencia del incidente; se inspeccionaron legibles,
+sin recortes ni solapes y con referencia resuelta. El commit sintetico del
+artefacto tiene el mismo arbol que el HEAD revisado. Se generaron solo PNG de
+revision y se conservo el `latex/main.pdf` aceptado sin reemplazo.
+
+La actualizacion posterior de apagado y operacion de v0.1.9 requiere su propia
+compilacion e inspeccion; no se atribuye a este artefacto anterior.
+
 ## Portal administrativo de la CA: 13 de octubre de 2026 UTC
 
 El manuscrito distingue el servicio administrativo separado, los dos perfiles

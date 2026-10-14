@@ -38,10 +38,9 @@ enum Command {
     },
 }
 
-#[tokio::main]
-async fn main() -> std::process::ExitCode {
+fn main() -> std::process::ExitCode {
     tracing_subscriber::fmt().json().init();
-    if run(Arguments::parse()).await.is_err() {
+    if run(Arguments::parse()).is_err() {
         // Startup errors can contain provider details. Keep service logs bounded
         // and never format configuration, passwords, MFA material or URLs.
         eprintln!("CA service could not start; check its private configuration and dependencies");
@@ -50,18 +49,13 @@ async fn main() -> std::process::ExitCode {
     std::process::ExitCode::SUCCESS
 }
 
-async fn run(arguments: Arguments) -> anyhow::Result<()> {
+fn run(arguments: Arguments) -> anyhow::Result<()> {
     match arguments.command {
         Some(Command::InspectPublic) => return inspection::run(),
         Some(Command::EnrollOperator {
             setup_config,
             enrollment_out,
-        }) => {
-            return tokio::task::spawn_blocking(move || {
-                enrollment::run(&setup_config, &enrollment_out)
-            })
-            .await?;
-        }
+        }) => return enrollment::run(&setup_config, &enrollment_out),
         None => {}
     }
     let mut settings = config::load(
@@ -72,7 +66,8 @@ async fn run(arguments: Arguments) -> anyhow::Result<()> {
     )?;
     let bind = settings.bind;
     let operations = settings.operations.take();
-    let access = tokio::task::spawn_blocking(move || composition::open(&settings)).await??;
+    let access = composition::open(&settings)?;
+    drop(settings);
     let mut router = web::ca_access_router(access.clone(), web::HttpLimits::default())
         .route("/healthz", get(|| async { "ok" }));
     if let Some(config) = operations {
@@ -94,11 +89,18 @@ async fn run(arguments: Arguments) -> anyhow::Result<()> {
             web::HttpLimits::default(),
         ));
     }
-    let listener = tokio::net::TcpListener::bind(bind).await?;
-    axum::serve(listener, router)
-        .with_graceful_shutdown(shutdown())
-        .await?;
-    Ok(())
+    // Keep the final router owner outside block_on: its PostgreSQL clients
+    // perform synchronous cleanup when their last shared owner is released.
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?;
+    runtime.block_on(async {
+        let listener = tokio::net::TcpListener::bind(bind).await?;
+        axum::serve(listener, router.clone())
+            .with_graceful_shutdown(shutdown())
+            .await?;
+        Ok(())
+    })
 }
 
 async fn shutdown() {
