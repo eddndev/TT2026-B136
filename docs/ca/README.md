@@ -46,8 +46,8 @@ del despacho no cambió. El 14 de octubre, tras el enrolamiento real, el proxy s
 El 14 de octubre de 2026 el operador `eddndev@gmail.com` quedó registrado con UUID
 `8e76db9c-7ac4-4047-abd6-46e4b53c6ea4`. Con autorización del usuario se generaron
 credenciales aleatorias y se guardaron en archivos privados. Las unidades
-`qadra-ca.service` y `qadra-ca-web.service` están activas con la release exacta
-indicada; los cuatro servicios del despacho permanecieron activos. El acceso
+`qadra-ca.service` y `qadra-ca-web.service` se abrieron con esa release;
+los cuatro servicios del despacho permanecieron activos. El acceso
 por contraseña y TOTP en `https://ca.qadra.com.mx` mostró la sesión del operador.
 La cuenta Owner conserva su acceso actual; el primer factor por certificado
 permanece deshabilitado hasta completar su aceptación.
@@ -55,10 +55,24 @@ permanece deshabilitado hasta completar su aceptación.
 La aceptación de emisión encontró un defecto: un CSR que sólo contenía CN pasó
 la revisión previa, pero OpenSSL rechazó la ausencia de país y organización.
 La operación quedó pendiente sin emitir ni modificar índice o contador. La
-corrección local valida la política existente antes de reservar y permite
-rechazar explícitamente aquel journal sólo si su estado sigue intacto. Sus
-pruebas focales aprobaron; aún no está desplegada ni se ha conciliado la
-operación de producción. Véase la [evidencia del incidente](verification.md).
+corrección se integró mediante PR 107 en
+`b7d1d6d1c4230d9e3796bc235d934dece73b7fd6` y se desplegó como `v0.1.9` el
+14 de octubre, tanto en Qadra como en la CA. El journal original se conservó y
+cerró como rechazado sin emitir; su recibo se comprobó en el historial público.
+La admisión anticipada aplica la política existente antes de reservar una nueva
+emisión. Véase la [evidencia del incidente](verification.md).
+
+El respaldo posterior al alta real se restauró en una base aislada: coincidieron
+la cuenta CA, sus tres entradas de auditoría y los 37 archivos de CA, TSA y
+configuración. Se verificaron los hashes de los tres payloads y la copia externa.
+Se reutiliza la aceptación Redis previa; no se afirma reconstrucción completa
+del host ni se añade ese ensayo al alcance.
+
+La parada administrativa de la CA anterior expuso un aborto al liberar clientes
+PostgreSQL síncronos dentro de Tokio. La reparación local conserva sus dueños
+fuera del contexto asíncrono y aprobó la prueba nativa SIGTERM junto con acceso
+y enrolamiento. Esa reparación de cierre aún requiere CI y despliegue; no forma
+parte de la release `v0.1.9` activa.
 
 ## Estado del código
 
@@ -66,11 +80,11 @@ operación de producción. Véase la [evidencia del incidente](verification.md).
 | --- | --- | --- |
 | Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Operador real enrolado en VPS3; se conserva además la evidencia de seis casos nativos locales. |
 | Acceso CA | Contraseña y TOTP o código de recuperación, consulta de sesión, actividad y cierre. Credenciales y sesiones separadas del despacho. | Acceso público con contraseña y TOTP comprobado en navegador; recuperación y cierre tienen evidencia local independiente. |
-| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | La validación anticipada de CN/C/O y el rechazo del journal intacto aprobaron localmente; falta desplegarlos, conciliar el incidente y completar el recorrido instalado. |
+| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | Admisión CN/C/O desplegada; incidente original rechazado y consultado en el historial. La emisión Partner real sigue pendiente de confirmación. |
 | Inventario | Serie, sujeto, propósito, huellas, fechas, estado local y comparación con la CRL publicada. Descarga del certificado público exacto. | El TSA existente se consulta como `time-stamping`; no se emite ni revoca desde el portal. |
 | Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | El recibo local no acredita publicación ni rechazo posterior en Qadra. |
 | Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | El nuevo acceso desde el portal aún requiere aceptación de su composición instalada. |
-| Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Un estado parcial o una identidad distinta bloquean el avance; no se reparan automáticamente. |
+| Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Rechazo del incidente original aceptado en la UI instalada; un estado parcial o una identidad distinta sigue bloqueando el avance. |
 | Instalación | Binario `qadra-ca`, configuración privada y composición de operaciones. | Esquema restringido, operador, ambas unidades y HTTPS activos en VPS3; la apertura no acredita por sí sola los recorridos de mutación. |
 
 La verificación focal de enrolamiento del 12 de octubre de 2026 ejercitó el
@@ -110,11 +124,14 @@ la [guía de operación Owner](../owner-certificate-login-operations.md), la
 del 14 de octubre de 2026, después de abrir CA, conservó `enabled:false`;
 la activación sigue pendiente, aunque la implementación ya está integrada.
 
+El acceso de `hatziryvh@gmail.com` por contraseña y MFA ya fue observado en el
+navegador. Esto acredita su participación; aún no hay certificado Partner
+confirmado, vínculo ni primer factor por certificado activado.
 El [perfil de activación preparado](owner-activation.md) fija cuotas, ventanas,
 tiempos Redis, retorno y pasos de aceptación sin cambiar la inactividad.
 Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
 
-1. Acceso alternativo a su cuenta mediante contraseña y MFA.
+1. Conservar la evidencia del acceso alternativo por contraseña y MFA ya observado.
 2. Certificado Partner apropiado, con la clave bajo control de la titular;
    emisión desde su CSR externo si hace falta.
 3. Raíz y CRL publicadas, vínculo vigente y prueba de posesión, conservando el
@@ -128,12 +145,13 @@ Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
 
 ## Cierre pendiente y exclusiones
 
-Falta desplegar la corrección de admisión del CSR y conciliar su operación
-pendiente, completar la aceptación de emisión, revocación y publicación desde
-el portal instalado, y el recorrido de la Owner. La
+Falta integrar y desplegar la reparación del cierre del proceso, completar la
+aceptación de emisión, revocación y publicación desde el portal instalado, y
+el recorrido de la Owner. La
 correlación de ambos perfiles con Qadra, rechazo de nuevos usos y conservación
 de evidencia histórica ya tiene aceptación nativa controlada; se conserva
-separada de la operación pública y de la recuperación integral del host.
+separada de la operación pública. El ensayo del respaldo poblado complementa
+las pruebas SQL, Redis y archivo privado ya aceptadas dentro de sus límites.
 
 El alcance conserva un operador designado y dos propósitos de emisión. Excluye
 autoservicio de alta, bootstrap HTTP público, plataforma de invitaciones, SSO,

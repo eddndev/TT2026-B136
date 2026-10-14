@@ -92,8 +92,38 @@ inspector nativo, 23 pruebas Node y un recorrido de navegador. Se verificaron
 atributos ausentes, diferentes, repetidos y con distinto tipo ASN.1; un fallo
 gen\'erico o material alterado mantuvo la operaci\'on pendiente. El recibo de
 rechazo conserv\'o la intenci\'on original, y la interfaz no ofreci\'o descargar
-un certificado inexistente. Esta reparaci\'on a\'un no est\'a desplegada ni ha
-conciliado el incidente p\'ublico. Permanecen pendientes las mutaciones del
-portal instalado, el recorrido real Owner y la recuperaci\'on integral del host.
+un certificado inexistente. La reparaci\'on se integr\'o con los gates de CI,
+documento y web aprobados y se despleg\'o como \texttt{v0.1.9} el 14 de octubre
+de 2026. La activaci\'on conserv\'o las 77 tablas del despacho, su esquema,
+material criptogr\'afico y configuraci\'on de correo. La CA adopt\'o la misma
+release sin cambiar operador, credenciales ni pol\'itica de sesi\'on. El journal
+del incidente se conserv\'o y recibi\'o un rechazo terminal por pol\'itica, sin
+emitir ni cambiar su material; el historial de la interfaz mostr\'o ese recibo.
+
+El respaldo posterior al alta real se restaur\'o en una base nueva de un
+PostgreSQL 16 aislado. El cotejo de filas JSON ordenadas en UTC conserv\'o
+exactamente una cuenta CA y tres entradas de auditor\'ia, por cantidad y SHA-256.
+La extracci\'on privada conserv\'o los bytes de 37 archivos de CA, TSA y
+configuraci\'on. Se comprobaron los tres payloads y la copia externa. El ensayo
+no restaur\'o permisos ni el archivo de entorno ajeno al tar, y reutiliz\'o
+la aceptaci\'on Redis previa. No constituye reconstrucci\'on completa del host
+ni agrega esa reconstrucci\'on al alcance comprometido.
+
+La parada administrativa del proceso anterior expuso otro defecto: al liberar
+clientes PostgreSQL dentro de Tokio, el cierre bloqueante provoc\'o SIGABRT.
+El journal a\'un no hab\'ia sido modificado y el despacho sigui\'o activo.
+Una prueba con el binario real, PostgreSQL y Redis desechables reprodujo el
+aborto al enviar SIGTERM; exigi\'o salida cero sin usar terminaci\'on forzada
+como resultado aceptable. La correcci\'on conserva los due\~nos finales fuera
+de \texttt{block\_on}, como se describe en \cref{sec:impl-portal-ca}. Despu\'es
+aprobaron los seis casos nativos de enrolamiento y los dos de servicio,
+incluido el cierre por SIGTERM. Esta correcci\'on a\'un requiere CI,
+integraci\'on y despliegue; no forma parte de la release activa.
+
+El coordinador observ\'o el acceso de la Owner por contrase\~na y MFA. Esta
+participaci\'on no acredita por s\'i misma acceso con certificado: la emisi\'on
+Partner sigue pendiente de confirmaci\'on, no se ha completado el v\'inculo y
+el primer factor por certificado contin\'ua deshabilitado. Quedan por completar
+ese recorrido y la aceptaci\'on instalada de las mutaciones restantes del portal.
 El inventario de evidencia y sus l\'imites se conserva en
 \rutarepo{docs/ca/verification.md}.

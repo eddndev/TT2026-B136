@@ -105,15 +105,16 @@ continuó deshabilitado.
 El 14 de octubre de 2026 se completó el enrolamiento real de `eddndev@gmail.com`, UUID
 `8e76db9c-7ac4-4047-abd6-46e4b53c6ea4`, con credenciales aleatorias y archivos
 privados autorizados por el usuario. La configuración operativa conserva ese
-UUID y la release `v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`.
+UUID; la apertura inicial usó la release
+`v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`.
 Las dos unidades CA quedaron activas y los cuatro servicios del despacho
 continuaron activos. El vhost CA se abrió hacia `127.0.0.1:18088`, conservando
 el vhost del despacho. En el navegador, `https://ca.qadra.com.mx` aceptó
 contraseña y TOTP y mostró la sesión de `eddndev@gmail.com`.
 
 Esta comprobación acredita instalación y acceso público real. No declara
-completados el recorrido de mutaciones del portal instalado, la restauración
-integral del host ni la aceptación Owner del [manual operativo](operations.md).
+completados el recorrido de mutaciones del portal instalado ni la aceptación
+Owner del [manual operativo](operations.md).
 El primer factor Owner por certificado permanece deshabilitado; se conservan
 su cuenta, contraseña y MFA existentes.
 
@@ -121,8 +122,8 @@ La aceptación pública de emisión del 14 de octubre encontró un CSR de prueba
 con CN, pero sin C/O. La revisión lo admitió y la operación
 `be148c5f-7ab2-4c56-80cd-dbb157962926` reservó `1002`; OpenSSL rechazó la ausencia
 del país obligatorio. Se comprobaron índice y contador sin cambios y ausencia
-de certificado. Reanudar el mismo UUID repitió el rechazo. El journal sigue
-pendiente en producción; no se borró, sustituyó ni declaró emisión completada.
+de certificado. Reanudar el mismo UUID repitió el fallo. El journal se conservó
+para conciliarlo con la corrección; no se borró ni se declaró emisión completada.
 
 La reparación local se verificó con cuatro pruebas Rust de política del sujeto,
 60 pruebas Python, incluidas inspección y recuperación con ejecutor nativo,
@@ -136,7 +137,49 @@ La recuperación prueba un rechazo terminal exclusivamente con CSR, clave y
 raíz originales, captura completa intacta y hojas ausentes. Conserva el journal
 y devuelve el mismo rechazo al repetir; cambios de material, fallos genéricos
 y recibos alterados no liberan la guarda. La interfaz presenta rechazo sin
-emisión ni descarga y exige una acción explícita para otra solicitud. Estas
-comprobaciones locales no son una nueva aceptación de producción: faltan
-integración, paquete, despliegue y conciliación del incidente con la revisión
-aceptada, antes de continuar las mutaciones del portal instalado.
+emisión ni descarga y exige una acción explícita para otra solicitud.
+
+La [PR 107](https://github.com/eddndev/TT2026-B136/pull/107) se integró en
+`b7d1d6d1c4230d9e3796bc235d934dece73b7fd6`, con árbol igual al HEAD revisado y
+los gates Documents, CI y Web aprobados para ese main. El 14 de octubre se
+activó el paquete `v0.1.9`: conservó las 77 tablas, material criptográfico,
+esquema y configuración de correo. El postflight verificó los cuatro servicios,
+la cadena auditada y respuestas públicas `200` y `401` según la ruta.
+Ambas unidades CA adoptaron la misma release sin cambiar operador, credenciales
+ni política de sesión; los procesos del despacho permanecieron intactos durante
+esa actualización CA.
+
+La conciliación de `be148c5f-7ab2-4c56-80cd-dbb157962926` conservó el original
+y el material criptográfico y produjo un recibo `rejected`, motivo
+`csr_subject_policy`, con la reserva `1002`. No emitió certificado. Después de
+autenticación pública con contraseña y TOTP, la UI mostró el rechazo en Historial.
+La revisión del CSR Partner de la Owner está preparada, pero su emisión aún
+no está confirmada. El acceso de `hatziryvh@gmail.com` por contraseña y MFA fue
+observado por el coordinador; esa observación no acredita vínculo ni acceso con
+certificado. Ambos siguen pendientes y el flag conserva `enabled:false`.
+
+El respaldo poblado del 14 de octubre se contrastó con la captura tomada en la
+ventana de mantenimiento. Una base nueva del PostgreSQL 16 aislado recibió sólo
+`qadra_ca`, con `--no-owner --no-acl`: coincidieron exactamente una fila de
+`users` y tres de `audit_events`, por cantidad y SHA-256 de filas JSON ordenadas
+en UTC. La extracción privada cotejó los bytes de 37 archivos de CA, TSA y
+configuración, incluida la raíz existente. Se verificaron los tres payloads y
+su copia externa. El ensayo no aplica grants, no restaura `data/.env` fuera del
+tar y no repite Redis; reutiliza las pruebas SQL, Redis y archivo preparado
+anteriores. No acredita reconstrucción completa del host ni convierte esa
+frontera no ensayada en un nuevo pendiente.
+
+La parada explícita de `qadra-ca` en `v0.1.8` reveló un defecto distinto: terminó
+con SIGABRT y `MainPID=0` al liberar un cliente PostgreSQL síncrono dentro de
+Tokio. El journal aún no se había modificado y el despacho permaneció activo.
+La prueba nativa
+`native_ca_service_sigterm_releases_postgres_clients_cleanly`, en
+[`ca_service.rs`](../../crates/bin/tests/ca_service.rs), reprodujo el aborto con
+SIGTERM en 6.09 s. No utiliza un doble del proceso ni acepta SIGKILL como cierre
+correcto. La reparación conserva el Router como dueño fuera de `block_on` y
+pasa un clon al servidor; inspección y enrolamiento son síncronos. Así, los
+últimos clientes se liberan fuera del contexto asíncrono, como en el servicio
+del despacho. Después aprobaron los seis casos nativos de enrolamiento y los
+dos de servicio, incluido SIGTERM con salida cero. La corrección está verificada
+localmente; CI, integración y despliegue siguen pendientes y `v0.1.9` aún
+conserva el comportamiento anterior al detenerse.

@@ -19,6 +19,24 @@ use ca_identity_support::Fixture;
 use ca_service_support::{denied, redis_url, response_json, take_secret, Credentials, Service};
 
 #[test]
+fn native_ca_service_sigterm_releases_postgres_clients_cleanly() {
+    let redis = redis_url();
+    let mut fixture = Fixture::new();
+    let credentials = Credentials::enroll(&mut fixture);
+    let mut service = Service::start(&fixture, &credentials, &redis);
+    let _challenge = service.login(&fixture.operator.email, &credentials.password);
+
+    let status = service.stop_with_sigterm();
+
+    assert_eq!(
+        status.code(),
+        Some(0),
+        "CA must release synchronous PostgreSQL adapters cleanly on SIGTERM: {status}"
+    );
+    fixture.assert_office_unchanged();
+}
+
+#[test]
 fn native_ca_operator_login_mfa_session_and_recovery_stay_outside_the_office() {
     let redis = redis_url();
     let mut fixture = Fixture::new();

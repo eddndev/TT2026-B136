@@ -19,6 +19,15 @@ El alta inicial es un comando administrativo local: entrega material MFA en un
 archivo privado, confirma el factor y s\'olo entonces inserta cuenta y auditor\'ia.
 No crea una cuenta artificial del despacho para representar al operador.
 
+La composici\'on conserva los clientes PostgreSQL s\'incronos fuera del contexto
+de Tokio. El Router permanece bajo un due\~no s\'incrono y el servidor recibe
+un clon dentro de \texttt{block\_on}; los comandos de inspecci\'on y enrolamiento
+tambi\'en se ejecutan de forma s\'incrona. Esto evita que la liberaci\'on del
+\'ultimo cliente intente iniciar su cierre bloqueante dentro de otro runtime.
+La correcci\'on responde al aborto observado durante una parada administrativa;
+su aceptaci\'on local y su despliegue pendiente se distinguen en
+\cref{sec:pruebas-portal-ca}.
+
 La emisi\'on recibe un CSR p\'ublico y los datos de titular revisado, referencia
 y criterio de emisi\'on. Una inspecci\'on previa muestra sujeto y huellas; una
 confirmaci\'on separada selecciona \texttt{partner} o
