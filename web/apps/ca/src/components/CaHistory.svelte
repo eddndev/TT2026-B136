@@ -34,13 +34,14 @@
           <div class="ca-record-heading">
             <div><h3>{kindLabel[item.kind]}{#if item.holder}: {item.holder}{/if}</h3><p>{dateLabel(item.recorded_at)}</p></div>
             <span class="badge" class:success={item.state === 'completed'}>
-              {item.state === 'completed' ? 'Completada' : 'Pendiente'}
+              {item.state === 'completed' ? 'Completada' : item.state === 'rejected' ? 'Rechazada sin emitir' : 'Pendiente'}
             </span>
           </div>
           <dl class="ca-record-facts">
             {#if item.kind === 'issue'}
               <div><dt>Referencia</dt><dd>{item.reference}</dd></div>
               <div><dt>Criterio de emisi&oacute;n</dt><dd>{item.criterion}</dd></div>
+              {#if item.state === 'rejected'}<div><dt>Motivo</dt><dd>El sujeto del CSR no cumple la pol&iacute;tica de la CA. No se emiti&oacute; un certificado.</dd></div>{/if}
             {:else if item.kind === 'revoke'}
               <div class="ca-fact-wide"><dt>Motivo de revocaci&oacute;n</dt><dd>{item.reason}</dd></div>
             {:else}

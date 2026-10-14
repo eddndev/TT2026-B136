@@ -8,6 +8,8 @@ Su contrato está implementado en los routers de
 servicio instalado. El [manual](operations.md) describe alta y configuración.
 La separación de autoridad y recuperación se registra en
 [ADR 0078](../adr/0078-separate-ca-operator-and-recoverable-operations.md).
+La admisión anticipada de la política del CSR y el recibo de rechazo descritos
+aquí están verificados localmente y pendientes de despliegue sobre `v0.1.8`.
 
 ## Transporte y autoridad
 
@@ -97,8 +99,8 @@ sin esa sección responde `404`. El límite del cuerpo es 32 KiB. El catálogo
 | `inventory` | `offset`, `limit`. | Página del inventario público. |
 | `certificate` | `serial`, `fingerprint`. | Certificado público de esa identidad exacta. |
 | `preview` | `csr_pem`, `purpose`. | Sujeto y huellas revisadas, sin emitir. |
-| `issue` | `operation_id`, `csr_pem`, `purpose`, `holder`, `reference`, `criterion`, `expected_root_fingerprint`. | Recibo de emisión y certificado público. |
-| `resume-issue` | `operation_id`. | Recibo de la misma emisión recuperada. |
+| `issue` | `operation_id`, `csr_pem`, `purpose`, `holder`, `reference`, `criterion`, `expected_root_fingerprint`. | Recibo de emisión; al consultar una operación anterior, puede devolver su rechazo terminal. |
+| `resume-issue` | `operation_id`. | Recibo de la misma emisión recuperada o rechazo explícito de su solicitud anterior. |
 | `history` | `offset`, `limit`. | Página de operaciones persistidas. |
 | `revoke` | `operation_id`, `serial`, `fingerprint`, `reason`, `expected_root_fingerprint`. | Recibo de revocación local. |
 | `resume-revoke` | `operation_id`. | Recibo de la misma revocación local recuperada. |
@@ -129,6 +131,11 @@ son SHA-256 representados por 64 dígitos hexadecimales minúsculos.
 a la validación criptográfica del CSR. Se comprueban la firma de la solicitud
 y la raíz por separado; la huella adoptada fija la autoridad emisora. El titular
 conserva la clave fuera de la CA. La inspección no acredita identidad civil.
+Antes de reservar se exige CN y que cada C/O coincida por tipo y valor ASN.1
+con algún atributo correspondiente de la raíz. Un rechazo de esta política
+en `preview` o en una operación nueva produce `422 invalid_input`, sin journal
+ni reserva. Una prueba criptográfica inválida o un fallo del inspector no se
+clasifican como rechazo terminal de una operación guardada.
 
 `holder`, `reference`, `criterion` y `reason` son strings no vacíos tras quitar
 espacios, de hasta 500 bytes UTF-8 y sin caracteres de control. Los nombres y
@@ -180,9 +187,19 @@ No devuelve clave privada ni inicia por sí mismo una descarga del navegador.
 `preview` devuelve `csr_sha256`, `spki_sha256`, `root_fingerprint`, `subject` y
 `purpose`; no reserva una serie ni crea una emisión.
 
-`issue` y `resume-issue` devuelven `operation_id`, `operator_id`, `recorded_at`,
+Una emisión confirmada en `issue` o `resume-issue` devuelve `operation_id`, `operator_id`, `recorded_at`,
 `serial`, `fingerprint`, `purpose`, `certificate_pem`, `holder`, `reference` y
 `criterion`. El recibo confirma la emisión exacta, no un alta o vínculo en Qadra.
+
+Un journal anterior con incompatibilidad de política demostrada admite un
+recibo alternativo sólo si coinciden sus huellas originales y permanecen
+intactos el estado completo de OpenSSL y la ausencia de las hojas previstas.
+Su respuesta `200` contiene exactamente `state:"rejected"`,
+`reason:"csr_subject_policy"`, `operation_id`, `operator_id`, `recorded_at`,
+`rejected_at`, `csr_sha256`, `root_fingerprint`, `reserved_serial`, `holder`,
+`reference`, `criterion` y `purpose`. `reserved_serial` identifica la reserva
+que no se consumió; no es una serie emitida. No hay `serial`, `fingerprint` ni
+`certificate_pem`. Repetir el UUID conserva ese recibo y la solicitud original.
 
 `revoke` y `resume-revoke` devuelven `operation_id`, `operator_id`, `recorded_at`,
 `serial`, `fingerprint`, `reason`, `local_status:"revoked"` y
@@ -194,9 +211,11 @@ No devuelve clave privada ni inicia por sí mismo una descarga del navegador.
 
 `history` ordena por `recorded_at` y UUID, descendentes. Cada elemento incluye
 `operation_id`, `kind`, `state`, `recorded_at` y `operator_id`; `kind` es
-`issue`, `revoke` o `publication`, y `state` es `pending` o `completed`.
+`issue`, `revoke` o `publication`, y `state` es `pending`, `completed` o
+`rejected`; este último sólo corresponde a emisión.
 Las emisiones añaden `holder`, `reference`, `criterion`, `serial` y
-`fingerprint`, con los dos últimos `null` mientras están pendientes. Las
+`fingerprint`, con los dos últimos `null` mientras están pendientes o rechazadas.
+Las rechazadas añaden `reason:"csr_subject_policy"`. Las
 revocaciones añaden `serial`, `fingerprint` y `reason`. Las publicaciones añaden
 `expected_revision` y `revision`, esta última `null` mientras están pendientes.
 El listado no incluye CSR, certificados PEM, credenciales ni claves.
@@ -249,3 +268,6 @@ reconcilia los parámetros, actor, raíz y evidencia originales; no sustituye un
 petición por otra ni presupone rollback. Los estados parciales o distintos
 mantienen bloqueadas las mutaciones incompatibles y requieren investigación.
 Nunca volver a emitir o renovar con un UUID nuevo para resolver incertidumbre.
+Un fallo genérico o material modificado no produce el recibo `rejected` ni
+libera la guarda. Sólo después de un rechazo terminal confirmado puede el
+operador presentar un CSR corregido como una operación nueva.

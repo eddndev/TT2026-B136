@@ -2,10 +2,10 @@
 
 El portal CA tiene implementación integrada de acceso, enrolamiento administrativo,
 solicitudes, inventario, revocación, publicación de CRL e historial recuperable.
-Su [manual de operación](operations.md) describe el código actual y separa los
-pasos de instalación todavía pendientes. La release que incluye CA está instalada en VPS3; el servicio permanece
-cerrado hasta el alta privada del operador. La Owner aún debe aceptar su
-recorrido real.
+Su [manual de operación](operations.md) describe el código actual y su instalación.
+El servicio está activo en VPS3 y el acceso público de `eddndev@gmail.com`
+mediante contraseña y TOTP se comprobó en el navegador. La Owner aún debe
+aceptar su recorrido real.
 
 Consultar también la [verificación ejecutada](verification.md) y el
 [procedimiento de restauración](restore.md).
@@ -34,35 +34,44 @@ El 13 de octubre de 2026 Qadra se activó en `v0.1.8`, revisión
 `95a9aacf975e4a9cde5c4f8b60544fab3baff84f`, tras calificar el paquete y el retorno
 aislados. El respaldo externo se verificó; se conservaron las 77 tablas del
 despacho, sus datos, correo y material criptográfico. Después se adoptaron el
-esquema `qadra_ca`, su rol restringido y la configuración privada de alta, sin
-crear todavía una cuenta CA. El acceso del despacho se comprobó nuevamente.
+esquema `qadra_ca`, su rol restringido y la configuración privada de alta.
+El acceso del despacho se comprobó nuevamente.
 
 Ese mismo día se preparó `ca.qadra.com.mx` como origen independiente
 con DNS y HTTPS verificados. El certificado del nuevo origen conserva su
 renovación mediante el webroot y el temporizador existentes; el certificado
-del despacho no cambió. El proxy de CA devuelve `503` tanto en la página como
-en la API mientras no exista el alta privada del responsable. Ese cierre es
-intencional y no acredita que el servicio CA esté activo.
+del despacho no cambió. El 14 de octubre, tras el enrolamiento real, el proxy se abrió hacia
+`127.0.0.1:18088`, sin modificar el vhost del despacho.
 
-El alta real de `eddndev@gmail.com` requiere contraseña y confirmación de TOTP
-en una terminal privada. No se generó una identidad ficticia para arrancar el
-servicio. Después del alta se podrá preparar su configuración con el UUID
-persistido, iniciar las unidades separadas y abrir el proxy hacia el puerto
-CA de loopback. La cuenta Owner conserva su acceso actual; el primer factor
-por certificado permanece deshabilitado hasta completar su aceptación.
+El 14 de octubre de 2026 el operador `eddndev@gmail.com` quedó registrado con UUID
+`8e76db9c-7ac4-4047-abd6-46e4b53c6ea4`. Con autorización del usuario se generaron
+credenciales aleatorias y se guardaron en archivos privados. Las unidades
+`qadra-ca.service` y `qadra-ca-web.service` están activas con la release exacta
+indicada; los cuatro servicios del despacho permanecieron activos. El acceso
+por contraseña y TOTP en `https://ca.qadra.com.mx` mostró la sesión del operador.
+La cuenta Owner conserva su acceso actual; el primer factor por certificado
+permanece deshabilitado hasta completar su aceptación.
+
+La aceptación de emisión encontró un defecto: un CSR que sólo contenía CN pasó
+la revisión previa, pero OpenSSL rechazó la ausencia de país y organización.
+La operación quedó pendiente sin emitir ni modificar índice o contador. La
+corrección local valida la política existente antes de reservar y permite
+rechazar explícitamente aquel journal sólo si su estado sigue intacto. Sus
+pruebas focales aprobaron; aún no está desplegada ni se ha conciliado la
+operación de producción. Véase la [evidencia del incidente](verification.md).
 
 ## Estado del código
 
 | Capacidad | Implementación actual | Límite de la evidencia |
 | --- | --- | --- |
-| Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Seis casos nativos locales de enrolamiento aprobados; el esquema ya está preparado en VPS3, sin alta del operador. |
-| Acceso CA | Contraseña y TOTP o código de recuperación, consulta de sesión, actividad y cierre. Credenciales y sesiones separadas del despacho. | La implementación y comprobaciones locales no acreditan disponibilidad pública. |
-| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | Pendiente el recorrido integral instalado con los titulares reales. |
+| Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Operador real enrolado en VPS3; se conserva además la evidencia de seis casos nativos locales. |
+| Acceso CA | Contraseña y TOTP o código de recuperación, consulta de sesión, actividad y cierre. Credenciales y sesiones separadas del despacho. | Acceso público con contraseña y TOTP comprobado en navegador; recuperación y cierre tienen evidencia local independiente. |
+| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | La validación anticipada de CN/C/O y el rechazo del journal intacto aprobaron localmente; falta desplegarlos, conciliar el incidente y completar el recorrido instalado. |
 | Inventario | Serie, sujeto, propósito, huellas, fechas, estado local y comparación con la CRL publicada. Descarga del certificado público exacto. | El TSA existente se consulta como `time-stamping`; no se emite ni revoca desde el portal. |
 | Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | El recibo local no acredita publicación ni rechazo posterior en Qadra. |
 | Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | El nuevo acceso desde el portal aún requiere aceptación de su composición instalada. |
 | Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Un estado parcial o una identidad distinta bloquean el avance; no se reparan automáticamente. |
-| Instalación | Binario `qadra-ca`, configuración privada y composición opcional de operaciones. | Paquete, esquema restringido y HTTPS preparados; faltan alta real, configuración operativa y arranque de servicios. |
+| Instalación | Binario `qadra-ca`, configuración privada y composición de operaciones. | Esquema restringido, operador, ambas unidades y HTTPS activos en VPS3; la apertura no acredita por sí sola los recorridos de mutación. |
 
 La verificación focal de enrolamiento del 12 de octubre de 2026 ejercitó el
 binario real con PostgreSQL y Redis desechables: entrega privada y TOTP real,
@@ -98,8 +107,8 @@ El acceso por certificado ya dispone de backend e interfaz, documentados en
 la [guía de operación Owner](../owner-certificate-login-operations.md), la
 [interfaz de acceso](../owner-certificate-login-interface.md) y el
 [vínculo propio](../owner-certificate-interface.md). La observación de producción
-del 12 de octubre de 2026 mostró `enabled:false`; describe aquella observación,
-no una carencia de implementación ni el estado de una activación posterior.
+del 14 de octubre de 2026, después de abrir CA, conservó `enabled:false`;
+la activación sigue pendiente, aunque la implementación ya está integrada.
 
 El [perfil de activación preparado](owner-activation.md) fija cuotas, ventanas,
 tiempos Redis, retorno y pasos de aceptación sin cambiar la inactividad.
@@ -119,12 +128,12 @@ Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
 
 ## Cierre pendiente y exclusiones
 
-Falta enrolar al operador real por entrada privada, adoptar el servicio con su
-UUID y abrir el proxy HTTPS preparado para completar la aceptación
-del portal con la CA conservada. La aceptación debe relacionar los dos perfiles
-emitidos con sus recorridos de Qadra, la revocación publicada, el rechazo de
-usos nuevos y la conservación de evidencia histórica. El manual indica qué
-configuración es ilustrativa y qué decisiones de instalación faltan.
+Falta desplegar la corrección de admisión del CSR y conciliar su operación
+pendiente, completar la aceptación de emisión, revocación y publicación desde
+el portal instalado, y el recorrido de la Owner. La
+correlación de ambos perfiles con Qadra, rechazo de nuevos usos y conservación
+de evidencia histórica ya tiene aceptación nativa controlada; se conserva
+separada de la operación pública y de la recuperación integral del host.
 
 El alcance conserva un operador designado y dos propósitos de emisión. Excluye
 autoservicio de alta, bootstrap HTTP público, plataforma de invitaciones, SSO,

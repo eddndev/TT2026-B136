@@ -1,0 +1,30 @@
+import { test, expect } from '@playwright/test';
+import { csr, portalFixture } from './portal-fixture.mjs';
+
+test('a saved invalid CSR closes as rejected and preserves its history without download', async ({ page }) => {
+  const calls = await portalFixture(page, { rejectSavedRequest: true });
+  await page.goto('/');
+  await page.getByLabel('Correo electr\u00f3nico').fill('ca@example.test');
+  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('SyntheticPassword2026!');
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  await page.getByLabel('C\u00f3digo de autenticaci\u00f3n', { exact: true }).fill('123456');
+  await page.getByRole('button', { name: 'Verificar y entrar' }).click();
+  await page.getByLabel('CSR p\u00fablico en formato PEM').fill(csr);
+  await page.getByLabel('Titular revisado').fill('Original holder');
+  await page.getByLabel('Referencia de la solicitud').fill('Original request');
+  await page.getByLabel('Criterio de emisi\u00f3n').fill('Original review');
+  await page.getByRole('button', { name: 'Revisar solicitud', exact: true }).click();
+  await page.getByLabel('He revisado el titular', { exact: false }).check();
+  await page.getByRole('button', { name: 'Confirmar y emitir' }).click();
+  await page.getByRole('button', { name: 'Retomar esta operaci\u00f3n' }).click();
+  await expect(page.getByRole('heading', { name: 'Solicitud rechazada sin emitir' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Descargar certificado', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Historial', exact: true }).click();
+  await expect(page.getByText('Rechazada sin emitir', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retomar emisi\u00f3n' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Solicitudes', exact: true }).click();
+  await page.getByRole('button', { name: 'Nueva solicitud', exact: true }).click();
+  await expect(page.getByLabel('CSR p\u00fablico en formato PEM')).toHaveValue('');
+  expect(calls.filter((command) => command.action === 'issue')).toHaveLength(1);
+  expect(calls.filter((command) => command.action === 'resume-issue')).toHaveLength(1);
+});

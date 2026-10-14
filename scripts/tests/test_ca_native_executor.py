@@ -33,7 +33,8 @@ class NativeExecutorBoundaryTests(unittest.TestCase):
             self.assertEqual(args, [Path(sys.executable).resolve(), "inspect-public"])
             self.assertEqual(json.loads(kwargs["input_bytes"]),
                              {"kind": "request", "material_pem": "public CSR", "root_pem": "public root"})
-            return json.dumps({**self.request, "subject": "CN=Public Holder"}).encode()
+            return json.dumps({**self.request, "subject": "CN=Public Holder",
+                               "issuer_policy_matches": True}).encode()
         with patch.object(self.executor, "_run", side_effect=run):
             self.assertEqual(self.executor.admit(b"public CSR", b"public root"), self.request)
             self.assertEqual(self.executor.describe_request(b"public CSR", b"public root"),

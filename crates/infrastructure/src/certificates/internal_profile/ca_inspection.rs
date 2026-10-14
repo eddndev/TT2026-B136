@@ -1,9 +1,9 @@
 //! Public CA evidence inspection without current credential admission.
 
-use der::{DecodePem, Encode};
+use der::{asn1::ObjectIdentifier, DecodePem, Encode};
 use domain::crypto::{certificate::CertificateRequestProfile, CredentialFailure, Sha256Digest};
 use domain::DomainError;
-use x509_cert::request::CertReq;
+use x509_cert::{attr::AttributeTypeAndValue, name::Name, request::CertReq};
 
 use super::{material::digest, profile, Profile};
 use crate::certificates::request_material;
@@ -18,6 +18,8 @@ pub struct CaRequestInspection {
     /// Hash of the selected root's DER certificate; the CSR does not bind it.
     pub root_fingerprint: Sha256Digest,
     pub subject: String,
+    /// Whether the signed subject satisfies the adopted root's issuance policy.
+    pub issuer_policy_matches: bool,
 }
 
 /// Authenticated issuance metadata, independent of current validity or revocation.
@@ -57,6 +59,34 @@ pub fn inspect_ca_request(csr: &[u8], root: &[u8]) -> Result<CaRequestInspection
         spki_sha256: digest(&public_key),
         root_fingerprint: digest(&authority.der),
         subject: request.info.subject.to_string(),
+        issuer_policy_matches: issuer_policy_matches(
+            &request.info.subject,
+            &authority.certificate.tbs_certificate.subject,
+        ),
+    })
+}
+
+fn attributes(name: &Name, oid: ObjectIdentifier) -> impl Iterator<Item = &AttributeTypeAndValue> {
+    name.0
+        .iter()
+        .flat_map(|rdn| rdn.0.iter())
+        .filter(move |attribute| attribute.oid == oid)
+}
+
+fn issuer_policy_matches(request: &Name, authority: &Name) -> bool {
+    // Mirror policy_internal in pki/openssl.cnf: every C/O value must match
+    // one issuer value, including its ASN.1 type; CN must be supplied.
+    let common_name = ObjectIdentifier::new_unwrap("2.5.4.3");
+    if attributes(request, common_name).next().is_none() {
+        return false;
+    }
+    ["2.5.4.6", "2.5.4.10"].into_iter().all(|name| {
+        let oid = ObjectIdentifier::new_unwrap(name);
+        let mut supplied = attributes(request, oid).peekable();
+        supplied.peek().is_some()
+            && supplied.all(|value| {
+                attributes(authority, oid).any(|expected| expected.value == value.value)
+            })
     })
 }
 

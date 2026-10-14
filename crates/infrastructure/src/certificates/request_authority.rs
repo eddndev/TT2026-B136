@@ -6,13 +6,16 @@ use std::io::Read;
 
 use der::Encode;
 use domain::crypto::certificate::{
-    CertificateRequestAuthority, CertificateRequestProfile, IssuedPublicCertificate,
+    CertificateAuthority, CertificateRequestAuthority, CertificateRequestProfile,
+    IssuedPublicCertificate,
 };
+use domain::crypto::DocumentHasher;
 use domain::DomainError;
 
 use super::parse::{parse_certificate, serial_hex};
-use super::request_material::{failure, inspect, validate_name, REQUEST_LIMIT};
-use super::OpensslCaAdapter;
+use super::request_material::{failure, validate_name, REQUEST_LIMIT};
+use super::{inspect_ca_request, OpensslCaAdapter};
+use crate::RingSha256Hasher;
 
 impl CertificateRequestAuthority for OpensslCaAdapter {
     fn issue_request(
@@ -22,7 +25,10 @@ impl CertificateRequestAuthority for OpensslCaAdapter {
         profile: CertificateRequestProfile,
     ) -> Result<IssuedPublicCertificate, DomainError> {
         validate_name(name)?;
-        let expected_key = inspect(request_pem)?;
+        let inspected = inspect_ca_request(request_pem, &self.root_certificate()?)?;
+        if !inspected.issuer_policy_matches {
+            return Err(failure("subject does not match the issuer policy"));
+        }
         let directory =
             tempfile::tempdir().map_err(|_| failure("public staging directory is unavailable"))?;
         let request_path = directory.path().join("request.pem");
@@ -58,7 +64,7 @@ impl CertificateRequestAuthority for OpensslCaAdapter {
             .subject_public_key_info
             .to_der()
             .map_err(|_| failure("issued public key is malformed"))?;
-        if actual_key != expected_key {
+        if RingSha256Hasher.hash_bytes(&actual_key) != inspected.spki_sha256 {
             return Err(failure(
                 "issued certificate public key does not match the signed request",
             ));

@@ -26,7 +26,7 @@
     onState: (next) => { publication = next; } });
   publication = publications.snapshot();
   $: busy = state.busy || revocation.busy || publication.busy;
-  $: pendingIssue = Boolean(state.operation_id && state.phase !== 'completed');
+  $: pendingIssue = Boolean(state.operation_id && !['completed', 'rejected'].includes(state.phase));
   $: pendingRevocation = ['submitting', 'uncertain'].includes(revocation.phase);
   $: pendingPublication = ['publishing', 'uncertain'].includes(publication.phase);
   $: pendingOperation = pendingIssue ? state.operation_id : pendingRevocation

@@ -7,7 +7,7 @@ const root = 'a'.repeat(64), fingerprint = 'b'.repeat(64);
 
 // Browser contracts use synthetic public material. Native crypto is accepted
 // separately by the CA service and executor integration tests.
-export async function portalFixture(page) {
+export async function portalFixture(page, { rejectSavedRequest = false } = {}) {
   const history = [], calls = [];
   let issued = false, revoked = false, published = false, lost = true;
   let saved;
@@ -35,12 +35,23 @@ export async function portalFixture(page) {
       issued = true;
       saved = { ...command, serial: '1000', fingerprint, certificate_pem: pem,
         recorded_at: 1800000000, operator_id: operator.id };
-      history.push({ ...saved, kind: 'issue', state: 'completed' });
+      history.push({ ...saved, kind: 'issue', state: rejectSavedRequest ? 'pending' : 'completed',
+        ...(rejectSavedRequest ? { serial: null, fingerprint: null } : {}) });
       if (lost) { lost = false; return route.abort('failed'); }
       return reply(saved);
     }
     if (command.action === 'resume-issue') {
       expect(command.operation_id).toBe(saved.operation_id);
+      if (rejectSavedRequest) {
+        const rejection = { state: 'rejected', reason: 'csr_subject_policy',
+          operation_id: saved.operation_id, operator_id: operator.id,
+          recorded_at: saved.recorded_at, rejected_at: saved.recorded_at + 1,
+          csr_sha256: 'c'.repeat(64), root_fingerprint: root, reserved_serial: '1000',
+          holder: saved.holder, reference: saved.reference, criterion: saved.criterion,
+          purpose: saved.purpose };
+        history[0] = { ...history[0], state: 'rejected', reason: rejection.reason };
+        return reply(rejection);
+      }
       return reply(saved);
     }
     if (command.action === 'certificate') return reply({ serial: '1000', fingerprint, certificate_pem: pem });

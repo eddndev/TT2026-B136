@@ -46,6 +46,22 @@ export function certificateValue(value, expected) {
 }
 
 export function receiptValue(value, operationId, expected = null) {
+  if (value?.state === 'rejected') {
+    const fields = ['state', 'reason', 'operation_id', 'operator_id', 'recorded_at',
+      'rejected_at', 'csr_sha256', 'root_fingerprint', 'reserved_serial',
+      'holder', 'reference', 'criterion', 'purpose'];
+    requireValue(Object.keys(value).length === fields.length
+      && fields.every((name) => Object.hasOwn(value, name))
+      && value.operation_id === operationId && validId(value.operator_id)
+      && value.reason === 'csr_subject_policy' && purpose(value.purpose)
+      && timestamp(value.recorded_at) && value.recorded_at > 0
+      && timestamp(value.rejected_at) && value.rejected_at >= value.recorded_at
+      && hash(value.csr_sha256) && hash(value.root_fingerprint) && serial(value.reserved_serial)
+      && ['holder', 'reference', 'criterion'].every((name) => text(value[name]))
+      && (!expected || ['purpose', 'holder', 'reference', 'criterion']
+        .every((name) => value[name] === expected[name])));
+    return pick(value, fields);
+  }
   requireValue(value && value.operation_id === operationId && validId(value.operator_id)
     && serial(value.serial) && hash(value.fingerprint) && purpose(value.purpose)
     && timestamp(value.recorded_at) && value.recorded_at > 0
@@ -70,9 +86,15 @@ function inventoryItem(value) {
 
 function historyItem(value) {
   requireValue(value && validId(value.operation_id)
-    && ['pending', 'completed'].includes(value.state) && timestamp(value.recorded_at)
+    && ['pending', 'completed', 'rejected'].includes(value.state) && timestamp(value.recorded_at)
     && value.recorded_at > 0 && validId(value.operator_id));
   const common = ['operation_id', 'kind', 'state', 'recorded_at', 'operator_id'];
+  if (value.state === 'rejected') {
+    requireValue(value.kind === 'issue' && value.reason === 'csr_subject_policy'
+      && value.serial === null && value.fingerprint === null
+      && ['holder', 'reference', 'criterion'].every((name) => text(value[name])));
+    return pick(value, [...common, 'holder', 'reference', 'criterion', 'serial', 'fingerprint', 'reason']);
+  }
   if (value.kind === 'revoke') {
     requireValue(serial(value.serial) && hash(value.fingerprint) && text(value.reason));
     return pick(value, [...common, 'serial', 'fingerprint', 'reason']);

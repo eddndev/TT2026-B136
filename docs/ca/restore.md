@@ -2,9 +2,10 @@
 
 Este procedimiento complementa [respaldos](../deployment-backups.md) y el
 [manual CA](operations.md). Describe una restauracion administrativa explicita;
-no existe un comando integral de restore CA. La adopcion del servicio en VPS3
-sigue pendiente. El ensayo nativo local de dump/restore CA con identidad
-poblada aprobo; la recuperacion integral del host requiere su propia aceptacion.
+no existe un comando integral de restore CA. El servicio ya esta adoptado en
+VPS3 y se comprobo el acceso publico del operador con contrasena y TOTP.
+El ensayo nativo local de dump/restore CA con identidad poblada aprobo;
+la recuperacion integral del host requiere su propia aceptacion.
 Los comandos siguientes son interfaces que deben concretarse con el inventario
 aprobado del destino, desde el usuario de despliegue y su bus systemd.
 
@@ -38,6 +39,15 @@ adoptada. La restauracion recupera la cuenta existente: no ejecutar
 Una KEK nueva no descifra la credencial restaurada. El archivo de entrega inicial
 del autenticador es material privado separado, no configuracion del servicio.
 
+Los journals de emision rechazados por politica conservan solicitud original y
+recibo terminal; forman parte de la misma captura, no se eliminan como residuos.
+Su lector debe admitir explicitamente `state: rejected`, validar sus campos y
+distinguirlo de un certificado emitido. La release `v0.1.8` no reconoce ese
+recibo. La correccion local sigue pendiente de despliegue; su conciliacion exige
+cerrar CA y adoptar un runtime aceptado compatible antes de reabrirla. No
+arrancar el lector anterior sobre un journal ya conciliado ni fabricar un
+recibo para eludir la guarda de backup o restore.
+
 ### Publicacion CRL pendiente
 
 Una captura generica rechaza operaciones CA pendientes. Terminar o reconciliar
@@ -70,8 +80,10 @@ candidato, el indice o los contadores de otro punto de recuperacion.
 
 Registrar primero las unidades, fragmentos, drop-ins, usuario, bus, cgroups,
 PIDs y listeners observados. La unidad CA debe ser la realmente adoptada; no
-suponer que la preparacion actual del host ya la crea. Cerrar tambien el proxy
-CA o su unidad web propia si existe. Bloquear sus accesos externos durante todo
+inferir su estado de un recibo anterior. En la adopcion del 14 de octubre de
+2026 quedaron activas `qadra-ca.service` y `qadra-ca-web.service`, con la release
+`v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`. Cerrar tambien el proxy
+CA o su unidad web propia. Bloquear sus accesos externos durante todo
 el procedimiento, incluido el ensayo de reapertura local.
 
 Con `CA_UNIT` fijada al nombre comprobado, estas son las operaciones systemd:
@@ -215,7 +227,7 @@ antes del arranque autorizado. Comprobar proceso, listener y release efectiva.
 Abrir proxy/HTTPS al final. Con una publicacion pendiente, permitir acceso CA
 controlado para retomar y mantener cerrado el trafico Qadra hasta su aceptacion.
 
-## Evidencia nativa aun pendiente
+## Recuperacion integral del host pendiente
 
 Las pruebas locales de aislamiento SQL, login/MFA, worker/OpenSSL y protocolo
 CRL no equivalen a este restore completo. Antes de declarar recuperacion CA en
@@ -231,5 +243,5 @@ VPS3 falta evidencia de:
   nativa del mismo UUID/candidato, sin generar una segunda CRL.
 
 Registrar herramientas, versiones, hashes, recibos y resultado de cada prueba
-sin secretos. Mantener las copias fuente intactas; la adopcion publica y el
-tiempo real de recuperacion requieren su propia aceptacion.
+sin secretos. Mantener las copias fuente intactas; el acceso publico ya
+comprobado no demuestra la recuperacion integral ni su tiempo real.

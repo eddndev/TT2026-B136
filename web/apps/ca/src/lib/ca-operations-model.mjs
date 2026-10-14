@@ -51,7 +51,7 @@ export function createCaOperations({ oncommand, onState = () => {}, uuid = () =>
     } catch {
       if (!current(expected)) return;
       state.phase = 'draft';
-      state.error = 'No se pudo validar esta solicitud. Revisa el CSR y vuelve a consultar.';
+      state.error = 'No se pudo validar esta solicitud. Revisa la firma del CSR, su nombre y que el pa\u00eds y la organizaci\u00f3n coincidan con la CA.';
     } finally {
       if (current(expected)) { state.busy = false; emit(); }
     }
@@ -69,7 +69,7 @@ export function createCaOperations({ oncommand, onState = () => {}, uuid = () =>
       const result = await oncommand(payload);
       if (!current(expected)) return;
       state.receipt = receiptValue(result, payload.operation_id, request);
-      state.phase = 'completed';
+      state.phase = state.receipt.state === 'rejected' ? 'rejected' : 'completed';
       state.inventory.loaded = state.history.loaded = false;
     } catch {
       if (!current(expected)) return;
@@ -98,7 +98,8 @@ export function createCaOperations({ oncommand, onState = () => {}, uuid = () =>
 
   async function resume(operationId) {
     if (!available() || !validId(operationId)) return;
-    if (state.operation_id && state.operation_id !== operationId && state.phase !== 'completed') return;
+    if (state.operation_id && state.operation_id !== operationId
+      && !['completed', 'rejected'].includes(state.phase)) return;
     if (state.operation_id !== operationId
       && !state.history.items.some((item) => item.operation_id === operationId && item.kind === 'issue')) return;
     state.tab = 'requests';
@@ -142,7 +143,7 @@ export function createCaOperations({ oncommand, onState = () => {}, uuid = () =>
   }
 
   function startNew() {
-    if (!available() || state.phase !== 'completed') return;
+    if (!available() || !['completed', 'rejected'].includes(state.phase)) return;
     generation++;
     state = { ...state, draft: emptyDraft(), preview: null, operation_id: null,
       receipt: null, phase: 'draft', error: '', tab: 'requests' };

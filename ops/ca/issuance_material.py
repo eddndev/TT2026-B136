@@ -16,6 +16,13 @@ for _name in ("index.txt", "serial", "crlnumber", "index.txt.attr"):
         OPTIONAL.add(_name + _suffix)
 
 
+class CsrSubjectPolicyMismatch(ValueError):
+    """A verified public CSR does not match the adopted issuer subject policy."""
+    def __init__(self, admitted):
+        super().__init__("CSR subject must match the adopted CA country and organization and include a common name")
+        self.admitted = dict(admitted)
+
+
 def hex_digest(value):
     return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
@@ -96,10 +103,19 @@ def leaf_paths(ca, operation_id, reserved):
 
 def admit(ca, request, executor):
     root = read(ca / "ca.crt.pem", 16384)
-    facts = executor.admit(request["csr_pem"].encode("ascii"), root)
+    try:
+        facts = executor.admit(request["csr_pem"].encode("ascii"), root)
+    except CsrSubjectPolicyMismatch as error:
+        admission_facts(request, error.admitted)
+        raise
+    return admission_facts(request, facts)
+
+
+def admission_facts(request, facts):
     names = {"csr_sha256", "spki_sha256", "root_fingerprint"}
     if (not isinstance(facts, dict) or set(facts) != names
             or not all(hex_digest(value) for value in facts.values())
+            or facts["csr_sha256"] != digest(request["csr_pem"].encode("ascii"))
             or facts["root_fingerprint"] != request["expected_root_fingerprint"]):
         raise ValueError("request admission or adopted CA identity differs")
     return dict(facts)

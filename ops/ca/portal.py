@@ -40,11 +40,14 @@ def history(root):
                 material.directory(operation)
                 record = issuance.load(operation)
                 receipt = issuance.completed(record)
+                rejected = receipt is not None and receipt.get("state") == "rejected"
                 records.append({"operation_id": operation.name, "kind": "issue",
-                    "state": "completed" if receipt else "pending", "recorded_at": record["recorded_at"],
+                    "state": "rejected" if rejected else "completed" if receipt else "pending",
+                    "recorded_at": record["recorded_at"],
                     **{field: record["request"][field] for field in issuance.HISTORY_FIELDS},
-                    "serial": receipt["serial"] if receipt else None,
-                    "fingerprint": receipt["fingerprint"] if receipt else None})
+                    "serial": receipt["serial"] if receipt and not rejected else None,
+                    "fingerprint": receipt["fingerprint"] if receipt and not rejected else None,
+                    **({"reason": receipt["reason"]} if rejected else {})})
         revoked = root / "data/ca/revocations"
         if not material.absent(revoked):
             material.directory(revoked)

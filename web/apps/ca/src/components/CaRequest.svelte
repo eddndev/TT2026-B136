@@ -37,7 +37,7 @@
 
   {#if !state.operation_id}
     <form class="stack ca-request-form" onsubmit={submit}>
-      <p>El titular conserva su clave privada. Comparte aqu&iacute; &uacute;nicamente su solicitud p&uacute;blica de certificado (CSR).</p>
+      <p>El titular conserva su clave privada. Comparte aqu&iacute; &uacute;nicamente su solicitud p&uacute;blica de certificado (CSR). Incluye nombre com&uacute;n (CN), pa&iacute;s (C) y organizaci&oacute;n (O); C y O deben coincidir con la CA emisora.</p>
       <label for="ca-csr">CSR p&uacute;blico en formato PEM
         <textarea id="ca-csr" rows="6" maxlength="16384" required spellcheck="false"
           autocomplete="off" disabled={state.busy} value={state.draft.csr_pem}
@@ -95,6 +95,15 @@
         </button>
       </section>
     {/if}
+  {:else if state.phase === 'rejected' && state.receipt}
+    <section class="ca-recovery" aria-labelledby="rejected-title">
+      <h3 id="rejected-title" tabindex="-1" use:focus>Solicitud rechazada sin emitir</h3>
+      <p>El sujeto del CSR no cumple la pol&iacute;tica de la CA. Se comprob&oacute; que no cambiaron el &iacute;ndice ni la serie y no se emiti&oacute; un certificado.</p>
+      <p>El registro original se conserva. Prepara otro CSR con CN, C y O; el pa&iacute;s y la organizaci&oacute;n deben coincidir con la CA.</p>
+      <code class="ca-operation-id">{state.receipt.operation_id}</code>
+      <p>Rechazo registrado: {dateLabel(state.receipt.rejected_at)}</p>
+      <button type="button" class="secondary" disabled={state.busy} onclick={onnew}>Nueva solicitud</button>
+    </section>
   {:else if state.phase === 'completed' && state.receipt}
     <div class="notice success" role="status"><Icon name="check" size={18} /> Emisi&oacute;n confirmada.</div>
     <dl class="settings-list ca-public-facts">
