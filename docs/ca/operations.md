@@ -289,9 +289,9 @@ En la aceptación del 14 de octubre de 2026 se emitieron el Partner Owner `1002`
 y el certificado técnico de firma documental `1003`. La descarga de `1003`
 se comprobó en navegador y se contrastó con el CSR. Una persona registró el
 vínculo R1 de `1002` en Qadra con su declaración firmada; no repetir esa alta
-ni cargar su clave privada a la CA. El acceso por certificado ya está habilitado:
-para cerrar su aceptación falta completar MFA sobre un desafío vigente y volver
-a comprobar contraseña y MFA como acceso alternativo posterior a la activación.
+ni cargar su clave privada a la CA. El acceso por certificado está habilitado y
+se aceptó con un desafío vigente y MFA. Tras cerrar esa sesión se comprobó
+contraseña y MFA como acceso alternativo, con la misma cuenta Administrador.
 
 Si no llega el resultado, usar **Retomar esta emisión** o la misma entrada de
 **Historial** después de otro acceso. La reanudación conserva la solicitud,
