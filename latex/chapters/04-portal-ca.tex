@@ -5,9 +5,9 @@ La operaci\'on administrativa de la CA se implement\'o en el binario separado
 \texttt{qadra-ca}, con una interfaz de navegador bajo
 \rutarepo{web/apps/ca/}. Reutiliza componentes visuales de Qadra, pero compone
 \'unicamente autenticaci\'on del operador y operaciones de la autoridad. La
-cuenta Owner del despacho no adquiere estos permisos por su rol. El destino
-previsto es el mismo VPS3, con proceso y origen \texttt{ca.qadra.com.mx}
-separados; esta composici\'on local no acredita todav\'ia su instalaci\'on p\'ublica.
+cuenta Owner del despacho no adquiere estos permisos por su rol. La instalaci\'on
+en VPS3 utiliza procesos propios y el origen \texttt{ca.qadra.com.mx}, separados
+del despacho; su verificaci\'on operativa se distingue de las pruebas locales.
 
 El servicio reutiliza verificaci\'on de contrase\~na, protecci\'on de secretos y
 MFA del n\'ucleo de identidad, con admisi\'on expl\'icita por UUID y correo del
@@ -29,6 +29,13 @@ invoca la CLI y los scripts existentes con argumentos fijos, mientras que la
 frontera HTTP aporta la identidad del operador autenticado. Una petici\'on del
 navegador no decide el actor ni las rutas del ejecutor.
 
+La admisi\'on comprueba la pol\'itica del sujeto antes de reservar una emisi\'on.
+Exige nombre com\'un y que cada atributo de pa\'is y organizaci\'on coincida con
+alguno de la ra\'iz adoptada, considerando tipo y valor ASN.1. No fija esos valores
+en el c\'odigo ni modifica la pol\'itica de OpenSSL. La comprobaci\'on de la
+firma del CSR y de la ra\'iz precede a ese resultado; material inv\'alido o un
+inspector no disponible no se interpretan como incompatibilidad demostrada.
+
 Cada mutaci\'on tiene un UUID y un journal persistido antes del efecto, bajo
 el bloqueo compartido \texttt{deploy.lock}. Repetir el mismo UUID con otros
 par\'ametros produce conflicto. Despu\'es de una respuesta perdida, la emisi\'on
@@ -37,6 +44,15 @@ perfil, ra\'iz e \texttt{index.txt}; devuelve el recibo conservado cuando el
 resultado es inequ\'ivoco. S\'olo un estado previo completamente intacto permite
 reanudar la firma. Un efecto parcial o ambiguo bloquea otras mutaciones y no
 provoca reparaci\'on autom\'atica de OpenSSL ni una segunda emisi\'on.
+
+Una solicitud conservada antes de esta admisi\'on puede cerrarse como rechazada
+si la incompatibilidad queda demostrada, coinciden las huellas originales y
+permanecen intactos todos los archivos de la captura y ausentes las hojas
+previstas. El recibo conserva UUID, actor, solicitud, serie reservada y fechas,
+sin certificado ni afirmaci\'on de emisi\'on. El historial distingue este estado
+terminal de una operaci\'on pendiente; repetir el UUID devuelve el mismo rechazo.
+Una nueva solicitud requiere otra decisi\'on expl\'icita. Los fallos t\'ecnicos y
+los cambios de material mantienen la guarda de recuperaci\'on.
 
 El inventario descarga material p\'ublico por serie y huella exactas. La
 revocaci\'on conserva motivo, operador y recibo, y distingue el cambio local

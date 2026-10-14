@@ -4,6 +4,8 @@ mod application_port;
 mod ca_inventory_inspection;
 #[path = "ca_public_inspection.rs"]
 mod ca_public_inspection;
+#[path = "ca_request_policy.rs"]
+mod ca_request_policy;
 #[allow(dead_code)]
 #[path = "declaration_fixture/mod.rs"]
 mod declaration_fixture;

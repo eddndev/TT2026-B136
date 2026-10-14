@@ -98,6 +98,18 @@ Recovery either proceeds from that exact unchanged state or identifies the
 already issued certificate by its reserved serial and public evidence. It does
 not infer success from process exit alone or issue under another operation ID.
 
+Validate the existing issuer subject policy before reserving that state: CN is
+required and each C/O attribute must match an attribute of the adopted root,
+including its ASN.1 type and value. An authenticated CSR with an incompatible
+subject is distinct from malformed material or a failed inspector process.
+For a previously saved request, a proven subject-policy mismatch can produce a
+terminal rejection only after matching its pinned CSR, key and root facts and
+proving the complete original OpenSSL snapshot and absent leaf paths. Preserve
+the original journal, actor and request; store an explicit rejection receipt,
+never a successful issuance receipt. Repeated recovery returns that rejection.
+Shared guards and history recognize this terminal state. Technical failures or
+any changed material retain the pending guard and require investigation.
+
 Local revocation binds the exact serial, certificate fingerprint, reason and
 root to its journal. Its receipt confirms only the index change and remains
 pending publication. Inventory presents index status, certificate dates and

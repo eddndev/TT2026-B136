@@ -115,6 +115,8 @@ class NativeExecutor:
             if (not isinstance(result["subject"], str) or not result["subject"]
                     or len(result["subject"].encode("utf-8")) > 16384):
                 raise ValueError("invalid public subject")
+            if kind == "request" and type(found["issuer_policy_matches"]) is not bool:
+                raise ValueError("invalid issuer subject policy result")
             if kind != "request":
                 purposes = ("partner", "document-signing", "time-stamping") if kind == "inventory-certificate" else ("partner", "document-signing")
                 if (material.serial(result["serial"]) != result["serial"]
@@ -122,9 +124,11 @@ class NativeExecutor:
                         or type(result["not_before"]) is not int or type(result["not_after"]) is not int
                         or not 0 <= result["not_before"] < result["not_after"] <= 253402300799):
                     raise ValueError("invalid public certificate metadata")
-            return result
         except (ValueError, TypeError, KeyError, UnicodeError):
             raise RuntimeError(FAILURE) from None
+        if kind == "request" and not found["issuer_policy_matches"]:
+            raise material.CsrSubjectPolicyMismatch({field: result[field] for field in ADMISSION})
+        return result
 
     def describe_request(self, csr_pem, root_pem):
         return self._inspect("request", csr_pem, root_pem)

@@ -1,16 +1,17 @@
 # Verificación del portal administrativo de la CA
 
-Corte local del 12 de octubre de 2026, en Linux x86_64, PostgreSQL 18.6,
-Redis y OpenSSL locales. Las campañas usan dependencias desechables y un solo
-coordinador; al terminar se detienen únicamente sus servicios propios. CI de
-cierre debe comprobar la revisión publicada con PostgreSQL 16. Esta evidencia
-no acredita el alta real del operador ni el recorrido de la titular Owner.
+Las campañas locales del 12 de octubre de 2026 usaron Linux x86_64,
+PostgreSQL 18.6, Redis y OpenSSL locales, con dependencias desechables y un solo
+coordinador; al terminar se detuvieron únicamente sus servicios propios. El
+cierre remoto, la correlación posterior y la apertura pública se distinguen
+más adelante. Las campañas locales no acreditan por sí solas el recorrido de
+la titular Owner ni operaciones del portal instalado.
 
 | Frontera | Evidencia ejecutada | Límite |
 | --- | --- | --- |
 | Solicitud pública externa | Trece casos CLI y dieciocho de aplicación; perfiles Partner y firma documental, conservación del perfil predeterminado y rechazo de solicitudes inválidas. | El titular real conserva y usa su propia clave. |
-| Identidad y permisos CA | Aplicación, HTTP y PostgreSQL: UUID/correo configurados, MFA, recuperación y sesiones CA separados; rol mínimo sin autoridad sobre el despacho. | Los esquemas y permisos de producción requieren adopción propia. |
-| Alta inicial privada | Seis casos nativos en `crates/bin/tests/ca_enrollment.rs`: entrega privada, TOTP antes del commit, rechazo de repetición, entrada incompleta, alteración del archivo y cancelación con restauración del eco. | La contraseña, autenticador y recuperación del operador real no se inventan. |
+| Identidad y permisos CA | Aplicación, HTTP y PostgreSQL: UUID/correo configurados, MFA, recuperación y sesiones CA separados; rol mínimo sin autoridad sobre el despacho. | La adopción de producción y su acceso real se registran separadamente abajo. |
+| Alta inicial privada | Seis casos nativos en `crates/bin/tests/ca_enrollment.rs`: entrega privada, TOTP antes del commit, rechazo de repetición, entrada incompleta, alteración del archivo y cancelación con restauración del eco. | Son pruebas desechables; el alta real posterior usa su propio UUID y entrega privada autorizada. |
 | Servicio nativo | `crates/bin/tests/ca_service.rs` ejecuta el binario real, Argon2, TOTP, recuperación, actividad y cierre; verifica auditoría y ausencia de rutas del despacho. | No prueba HTTPS ni configuración del host público. |
 | Operaciones nativas | `crates/bin/tests/ca_operation_service.rs`: HTTP real con MFA, OpenSSL, ambos perfiles, respuesta de emisión perdida, inventario, descarga, revocación local e historial. Rechaza actor/rutas inyectados, token de despacho y raíz distinta. | La revocación local no publica CRL; el ensayo conserva su distinción. |
 | Publicación recuperable | Cincuenta y cinco casos focales de publicación, guards, backup, renovación, recuperación y fence. El runtime controlado comprueba las guardas reales. | Las operaciones de servicios/publicación del controlador se simulan en esta frontera; no equivale a mantenimiento público realizado desde el portal. |
@@ -35,6 +36,25 @@ recuperación: journal preparado, CRL original y candidata. Las pruebas rechazan
 faltantes o enlaces antes de declarar el respaldo completo. El respaldo anterior
 sin operación de portal conserva su formato y contenido.
 
+La correlación nativa posterior cerró en 37.955 s el recorrido entre el portal
+emisor y sus dos consumidores. Los certificados Partner y de firma documental
+emitidos por CSR externo conservaron la misma clave pública y huella en el
+vínculo Owner y en la operación documental, respectivamente. Después del uso
+válido con RSA/MFA y del documento con TSA y ZIP, una publicación CRL nativa
+revocó ambas series y avanzó la confianza de la revisión 1 a la 2. Los nuevos
+usos fueron rechazados; los recibos previos, la auditoría y el ZIP exacto
+permanecieron consultables. La revisión independiente aceptó esa correspondencia
+de certificados, publicación y resultados de los consumidores.
+
+El ensayo reutilizó los servicios y ejecutores existentes: HTTP CA y MFA,
+OpenSSL, publicación PostgreSQL, `pg_dump`, captura RDB y archivo privado tar.
+Capturó los tres payloads de respaldo y registró sus hashes, sin repetir la restauración
+ya documentada. Usó identidades sintéticas y una composición local de la revisión
+`8011d339c0de785fd3ea11725d1536ef4ba87e13`; la supervisión de procesos fue un
+doble controlado, sin systemd ni proxy público. Por ello acredita la correlación
+funcional nativa, pero no califica un artefacto distribuible ni un mantenimiento
+del host desplegado.
+
 El recorrido `scripts/demo.sh` también terminó correctamente tras los cambios de
 CLI. Clippy focal de `despacho-cli` y sus targets aprobó; se corrigieron dos
 warnings de módulos importados por tests. La comprobación de registro de tests
@@ -58,7 +78,65 @@ ejecución y la comprobación inmediata del líder recolectado. Los ocho casos d
 `crates/bin/tests/ca_executor.rs` aprobaron en 0.99 s con Rust 1.98.1 tras este
 ajuste; el ejecutor de producción no cambió. No se activó el paquete cancelado.
 
-La aprobación local no sustituye regresión, revisión, integración ni despliegue.
-El cierre requiere los gates aplicables al HEAD exacto y la aceptación del
-[manual operativo](operations.md) con las identidades designadas. El material
-real de claves del titular, MFA y contraseña queda bajo su control.
+El 13 de octubre, la integración de [PR 105](https://github.com/eddndev/TT2026-B136/pull/105)
+en `61de34cce57718d0140b43366fdaf0775c569b4a` cerró Documents, CI y Web en éxito.
+La corrección de pruebas y documentación de
+[PR 106](https://github.com/eddndev/TT2026-B136/pull/106) se integró en
+`95a9aacf975e4a9cde5c4f8b60544fab3baff84f`, con árbol igual al HEAD revisado
+`8011d339c0de785fd3ea11725d1536ef4ba87e13`. CI y Web aprobaron para ese main
+exacto; la evidencia Documents anterior conserva su revisión propia y no se
+presenta como otra ejecución en PR 106.
+
+El candidato `v0.1.8` para ese main aprobó la
+[corrida 38354975960](https://github.com/eddndev/TT2026-B136/actions/runs/38354975960).
+El paquete y sus 239 archivos se verificaron antes de admitirlos; el binario
+principal ocupa 24 081 744 bytes y `qadra-ca`, 4 008 104 bytes. La calificación
+arrancó el candidato y el retorno sobre bases aisladas previamente restauradas,
+con el mismo esquema y datos históricos; no repitió la restauración completa.
+
+La activación de producción del 13 de octubre conservó las 77 tablas del
+despacho, material criptográfico y configuración de correo, con respaldo externo
+privado comprobado. Los cuatro servicios quedaron activos y la cadena de
+778 732 entradas se verificó válida. Versión y página públicas respondieron
+`200`; la identidad anónima recibió `401`. Después de preparar esquema y rol CA
+se repitió la comprobación pública del despacho; el acceso Owner por certificado
+continuó deshabilitado.
+
+El 14 de octubre de 2026 se completó el enrolamiento real de `eddndev@gmail.com`, UUID
+`8e76db9c-7ac4-4047-abd6-46e4b53c6ea4`, con credenciales aleatorias y archivos
+privados autorizados por el usuario. La configuración operativa conserva ese
+UUID y la release `v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`.
+Las dos unidades CA quedaron activas y los cuatro servicios del despacho
+continuaron activos. El vhost CA se abrió hacia `127.0.0.1:18088`, conservando
+el vhost del despacho. En el navegador, `https://ca.qadra.com.mx` aceptó
+contraseña y TOTP y mostró la sesión de `eddndev@gmail.com`.
+
+Esta comprobación acredita instalación y acceso público real. No declara
+completados el recorrido de mutaciones del portal instalado, la restauración
+integral del host ni la aceptación Owner del [manual operativo](operations.md).
+El primer factor Owner por certificado permanece deshabilitado; se conservan
+su cuenta, contraseña y MFA existentes.
+
+La aceptación pública de emisión del 14 de octubre encontró un CSR de prueba
+con CN, pero sin C/O. La revisión lo admitió y la operación
+`be148c5f-7ab2-4c56-80cd-dbb157962926` reservó `1002`; OpenSSL rechazó la ausencia
+del país obligatorio. Se comprobaron índice y contador sin cambios y ausencia
+de certificado. Reanudar el mismo UUID repitió el rechazo. El journal sigue
+pendiente en producción; no se borró, sustituyó ni declaró emisión completada.
+
+La reparación local se verificó con cuatro pruebas Rust de política del sujeto,
+60 pruebas Python, incluidas inspección y recuperación con ejecutor nativo,
+23 pruebas Node y un recorrido de navegador. La prueba Rust inicial reprodujo
+la invocación indebida del script con un CSR que sólo tenía CN. La corrección
+compara C/O por tipo y valor ASN.1 contra la raíz y exige CN antes de reservar.
+Los casos positivos incluyen otra identidad de CA y atributos repetidos; los
+negativos mantienen separados incompatibilidad, prueba inválida y raíz inválida.
+
+La recuperación prueba un rechazo terminal exclusivamente con CSR, clave y
+raíz originales, captura completa intacta y hojas ausentes. Conserva el journal
+y devuelve el mismo rechazo al repetir; cambios de material, fallos genéricos
+y recibos alterados no liberan la guarda. La interfaz presenta rechazo sin
+emisión ni descarga y exige una acción explícita para otra solicitud. Estas
+comprobaciones locales no son una nueva aceptación de producción: faltan
+integración, paquete, despliegue y conciliación del incidente con la revisión
+aceptada, antes de continuar las mutaciones del portal instalado.

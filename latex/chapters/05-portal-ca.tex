@@ -1,4 +1,4 @@
-\subsection{Aceptaci\'on local del portal administrativo CA}
+\subsection{Verificaci\'on del portal administrativo CA}
 \label{sec:pruebas-portal-ca}
 
 La aceptaci\'on del servicio descrito en \cref{sec:impl-portal-ca} separ\'o
@@ -9,7 +9,7 @@ contrase\~nas distintas, fin de entrada, rutas existentes o enlazadas y cancelac
 con restauraci\'on del eco de terminal. La repetici\'on de un alta ya confirmada
 no produjo otra cuenta ni otra entrega. La evidencia est\'a expresada en
 \rutarepo{crates/bin/tests/ca_enrollment.rs}; no acredita un alta del operador real
-en el servidor de destino.
+en el servidor de destino por s\'i sola.
 
 El recorrido HTTP nativo aprob\'o con PostgreSQL, Redis, el binario CA, el worker
 y OpenSSL reales en un entorno desechable. Despu\'es del login y MFA, inspeccion\'o
@@ -65,6 +65,35 @@ La reanudaci\'on del mismo UUID us\'o el candidato conservado sin generar otra
 CRL ni cambiar la serie. SQL y servicios fueron controlados en ese caso; no
 convierte las dos restauraciones nativas separadas en un ensayo de host completo.
 
-Permanece pendiente la adopci\'on p\'ublica de CA en VPS3, con unidades,
-configuraci\'on privada, proxy HTTPS y enrolamiento real. El inventario de evidencia y sus l\'imites se conserva en
+Una correlaci\'on nativa posterior aprob\'o en 37.955~s el uso de certificados
+emitidos por la CA en ambos consumidores: acceso Owner con RSA y MFA, y firma
+documental con sello y paquete verificable. Una CRL sucesora rechaz\'o usos
+nuevos y conserv\'o recibos, auditor\'ia y paquete hist\'orico. El ensayo emple\'o
+identidades sint\'eticas y supervisi\'on controlada; no acredita mantenimiento
+del host de producci\'on.
+
+El despacho se activ\'o en la release \texttt{v0.1.8} el 13 de octubre de 2026.
+El 14 de octubre se completaron el enrolamiento real del operador CA, su
+configuraci\'on privada y el arranque de ambas unidades independientes. El proxy
+HTTPS propio se abri\'o sin modificar el del despacho. El navegador comprob\'o
+contrase\~na y TOTP y mostr\'o la identidad configurada. El acceso Owner por
+certificado permaneci\'o deshabilitado, conservando sus credenciales anteriores.
+
+La prueba p\'ublica de emisi\'on encontr\'o una solicitud con nombre com\'un,
+pero sin pa\'is ni organizaci\'on. La revisi\'on previa la admiti\'o y OpenSSL
+la rechaz\'o despu\'es de guardar la intenci\'on. No cambiaron el \'indice ni
+el contador y no se gener\'o un certificado; reanudar repiti\'o el fallo. La
+operaci\'on se conserv\'o pendiente y motiv\'o la admisi\'on anticipada del sujeto
+y el rechazo terminal limitado al estado intacto descritos en
+\cref{sec:impl-portal-ca}.
+
+La reparaci\'on local aprob\'o cuatro pruebas Rust, 60 pruebas Python con
+inspector nativo, 23 pruebas Node y un recorrido de navegador. Se verificaron
+atributos ausentes, diferentes, repetidos y con distinto tipo ASN.1; un fallo
+gen\'erico o material alterado mantuvo la operaci\'on pendiente. El recibo de
+rechazo conserv\'o la intenci\'on original, y la interfaz no ofreci\'o descargar
+un certificado inexistente. Esta reparaci\'on a\'un no est\'a desplegada ni ha
+conciliado el incidente p\'ublico. Permanecen pendientes las mutaciones del
+portal instalado, el recorrido real Owner y la recuperaci\'on integral del host.
+El inventario de evidencia y sus l\'imites se conserva en
 \rutarepo{docs/ca/verification.md}.

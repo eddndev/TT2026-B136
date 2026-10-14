@@ -11,6 +11,7 @@ import time
 import uuid
 
 import crl_journal as journal
+from ca_mutation_guard import validate_rejected_receipt as rejected_receipt
 import issuance_material as material
 
 
@@ -102,6 +103,8 @@ def completed(record):
     receipt = record["receipt"]
     if receipt is None:
         return None
+    if isinstance(receipt, dict) and receipt.get("state") == "rejected":
+        return rejected_receipt(record, record["operation_id"])
     fields = {"operation_id", "serial", "fingerprint", "purpose", "certificate_pem", "recorded_at",
               *HISTORY_FIELDS}
     if (not isinstance(receipt, dict) or set(receipt) != fields
@@ -136,7 +139,24 @@ def continue_issuance(ca, operation, record, executor, lock_fd):
     if receipt is not None:
         return receipt
     request = record["request"]
-    if material.admit(ca, request, executor) != record["admitted"]:
+    try:
+        admitted = material.admit(ca, request, executor)
+    except material.CsrSubjectPolicyMismatch as error:
+        if error.admitted != record["admitted"]:
+            raise ValueError("saved CSR or adopted root differs from its admission") from None
+        if not material.pristine(ca, operation.name, record["before"]):
+            raise RuntimeError("subject policy mismatch cannot reject changed CA material") from None
+        receipt = {"state": "rejected", "reason": "csr_subject_policy",
+            "operation_id": operation.name, "recorded_at": record["recorded_at"],
+            "rejected_at": int(time.time()), "csr_sha256": record["admitted"]["csr_sha256"],
+            "root_fingerprint": record["admitted"]["root_fingerprint"],
+            "reserved_serial": record["before"]["serial"],
+            **{field: request[field] for field in (*HISTORY_FIELDS, "purpose")}}
+        record["receipt"] = receipt
+        rejected_receipt(record, operation.name)
+        journal.save(operation / "journal.json", record)
+        return dict(receipt)
+    if admitted != record["admitted"]:
         raise ValueError("saved CSR or adopted root differs from its admission")
     if material.pristine(ca, operation.name, record["before"]):
         executor.issue(ca, operation.name, request["csr_pem"].encode("ascii"),

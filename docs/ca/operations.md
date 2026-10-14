@@ -1,8 +1,9 @@
 # Manual del operador y preparación del servicio CA
 
-Este manual describe la implementación local. La instalación pública en VPS3,
-el enrolamiento real del operador y la aceptación humana del acceso Owner siguen
-pendientes según el [estado de la entrega](README.md). Los ejemplos contienen
+Este manual describe la implementación integrada. El servicio CA está activo
+en su origen HTTPS y el acceso real con contraseña y TOTP se comprobó en el
+navegador. La instalación y la aceptación humana del acceso Owner se
+distinguen en el [estado de la entrega](README.md). Los ejemplos contienen
 marcadores, no credenciales ni una configuración lista para producción.
 
 ## Responsables y acceso
@@ -20,12 +21,19 @@ consume. Si el factor se rechaza, volver a iniciar sesión. La recuperación
 disponible sustituye ese segundo factor; no restablece una contraseña olvidada
 ni crea otra cuenta. No hay alta o restablecimiento por correo en este portal.
 
+El 14 de octubre de 2026 se enroló al operador con UUID
+`8e76db9c-7ac4-4047-abd6-46e4b53c6ea4`. El usuario autorizó generar sus
+credenciales aleatoriamente y conservarlas en archivos privados. Esa entrega
+incluye contraseña, secreto TOTP y códigos de recuperación; no forma parte de
+este manual ni de la configuración operativa. No volver a ejecutar el alta
+para reemplazar esta cuenta.
+
 Los plazos de sesión proceden del servidor. La interfaz muestra el tiempo
 restante y dispone de **Cerrar sesión**. Contraseña, desafíos y bearer se
 mantienen en memoria; recargar la página requiere otro acceso. Tras volver a
 entrar, las operaciones persistidas se consultan en **Historial**.
 
-## Preparación del esquema: pendiente en el destino
+## Esquema adoptado en el destino
 
 La CA reutiliza PostgreSQL y Redis de la instalación. La identidad CA reside
 en `qadra_ca.users` y `qadra_ca.audit_events`, dentro de la base explícitamente
@@ -56,7 +64,11 @@ superusuario, creación de roles/bases, herencia, replicación ni bypass de RLS;
 su contraseña se genera y conserva únicamente en configuración privada.
 Crear el esquema desde `schema.sql` como propietario en una transacción; dar
 al runtime CA los permisos mínimos descritos arriba. No instalar sobre un
-esquema/rol previo sin conciliar su autoridad. La ejecución en VPS3 sigue pendiente. No se
+esquema/rol previo sin conciliar su autoridad. La adopción en VPS3 se completó
+el 13 de octubre de 2026, después de activar la release `v0.1.8`. Antes del
+enrolamiento se comprobó ausencia de cuentas CA y conservación del acceso
+explícito del despacho. El archivo privado de alta quedó preparado con modo
+`0600`; repetir la provisión sobre ese estado exige conciliación previa. No se
 deben trasladar los permisos amplios del despacho al rol CA para superar la
 validación. El esquema ya existente y su propietario se contrastan antes de
 aplicar cambios; el archivo SQL no es una migración idempotente.
@@ -131,7 +143,7 @@ reconcilie el UUID/correo con la cuenta y su auditoría antes de repetir. Una cu
 existente cierra el alta inicial antes de producir nuevas credenciales. Este
 comando no elimina, reemplaza ni restablece cuentas.
 
-## Configuración del servicio: valores de destino pendientes
+## Configuración del servicio
 
 Después del alta, crear otro archivo privado para el servicio. Copiar el UUID
 del recibo, el correo, la misma KEK y las conexiones operativas revisadas. No
@@ -172,10 +184,10 @@ La raíz indicada en `operations.root` es la instalación existente, que contien
 `data/ca`, confianza publicada, configuración, bloqueo y mantenimiento. No es
 un nuevo directorio vacío de CA. El worker necesita el árbol compatible de
 `ops/ca` y `ops/deploy`, el inspector `qadra-ca`, la CLI y los scripts PKI
-revisados. Su publicación como conjunto de archivos instalado está pendiente;
-no basta copiar `command.py` de forma aislada. La adopción debe fijar la revisión
-y el inventario aprobados de ese conjunto, conservando el procedimiento de
-instalación de controladores ya existente.
+revisados. Ese conjunto está instalado en la release literal
+`v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`; no basta copiar
+`command.py` de forma aislada. La configuración del servicio debe conservar
+esa revisión y su inventario aprobados, junto con el controlador ya instalado.
 
 La invocación del servicio es:
 
@@ -189,7 +201,13 @@ acceso `/login`, `/mfa/totp`, `/mfa/recovery`, `/logout`, `/me`, `/session` y
 `POST /api/v1/ca/operations`; `/healthz` indica que el proceso atiende. La salud
 por sí sola no acredita una operación PKI ni un recorrido de usuario.
 
-## Adopción del servicio y HTTPS: pendiente
+## Adopción del servicio y HTTPS
+
+El origen `ca.qadra.com.mx` dispone de DNS y HTTPS desde el 13 de octubre de
+2026. El 14 de octubre, tras enrolar al operador y arrancar las unidades, el vhost independiente
+se abrió hacia `127.0.0.1:18088`; conserva ACME por HTTP. La renovación usa el
+mecanismo Certbot existente; no se amplió ni reemplazó el certificado de Qadra
+ni se modificó su vhost.
 
 El destino es VPS3 con la cuenta de despliegue `qadra`. Conservar PostgreSQL,
 Redis, la CA, TSA y las unidades de usuario existentes. El servicio CA debe
@@ -197,8 +215,11 @@ mantenerse disponible durante la parada de API/web que realiza el mantenimiento
 CRL, para que el operador pueda consultar y retomar la operación. El renderer puro
 [`ops/ca/host.py`](../../ops/ca/host.py) prepara las dos unidades de usuario y
 el proxy de loopback con rutas de una release literal aceptada; no instala
-archivos ni cambia servicios. Su adopción, permisos, arranque y HTTPS siguen pendientes; este manual
-no declara que ya esté instalada.
+archivos ni cambia servicios. En VPS3 se adoptaron la configuración privada y
+las unidades `qadra-ca.service` y `qadra-ca-web.service`, ambas activas con la
+release `v0.1.8-95a9aacf975e4a9cde5c4f8b60544fab3baff84f`. Los cuatro servicios
+del despacho permanecieron activos. La sesión pública del operador se comprobó
+con contraseña y TOTP; esto no sustituye la aceptación de mutaciones ni restore.
 
 El runtime CRL existente controla `qadra-api.service` y `qadra-web.service`
 mediante `systemctl --user`. La adopción del servicio CA debe conservar ese
@@ -232,6 +253,14 @@ la raíz se valida separadamente y su huella configurada fija la autoridad que
 emitirá. Un CSR no es por sí mismo una prueba de pertenencia a esa raíz ni de
 identidad civil del titular.
 
+La política existente en `pki/openssl.cnf` exige CN y que cada valor de país
+(C) y organización (O) coincida con alguno de la raíz adoptada, incluyendo su
+tipo y valor ASN.1. La corrección local comprueba esto al revisar y antes de
+reservar una emisión; no cambia la política de OpenSSL. Una solicitud nueva
+incompatible no crea journal ni reserva serie. Esta corrección está verificada
+localmente y pendiente de despliegue: la release `v0.1.8` no hace esa admisión
+anticipada y conserva una operación fallida por un CSR con CN solamente.
+
 Marcar la revisión y pulsar **Confirmar y emitir**. Conservar el identificador
 de operación y el recibo con serie, huella y referencia. Descargar el certificado
 público cuando la emisión quede confirmada. El vínculo y la prueba de posesión
@@ -242,6 +271,16 @@ Si no llega el resultado, usar **Retomar esta emisión** o la misma entrada de
 **Historial** después de otro acceso. La reanudación conserva la solicitud,
 operador, perfil, raíz y serie reservada, y busca el resultado exacto. No enviar
 la solicitud como una operación nueva para superar una respuesta perdida.
+
+Con la corrección instalada, retomar un journal anterior puede producir
+**Solicitud rechazada sin emitir** únicamente si el inspector prueba aquella
+incompatibilidad, concuerdan CSR, clave y raíz originales, y siguen intactos
+todos los archivos de la captura y ausentes ambos certificados previstos.
+El recibo de rechazo conserva identidad, solicitud, serie reservada y fechas;
+no contiene certificado ni confirma emisión. Un timeout, fallo genérico o
+cualquier material cambiado mantiene la operación pendiente. No editar ni
+retirar el journal para liberar esa guarda. Después de un rechazo confirmado,
+**Nueva solicitud** permite iniciar explícitamente otro CSR con otro UUID.
 
 ## Inventario público
 
@@ -304,6 +343,10 @@ Muestra operación, operador que registró la solicitud, fecha, estado y datos
 del recibo. **Retomar** consulta o completa la misma operación pendiente; no
 cambia sus parámetros ni el operador original. Una operación pendiente bloquea
 otras mutaciones que podrían ocultar su estado previo.
+
+El rechazo por política aparece como **Rechazada sin emitir**, con motivo y
+sin serie de certificado ni huella. Consultar o retomar el mismo UUID conserva
+ese rechazo; no vuelve a firmar ni ofrece descarga de un certificado inexistente.
 
 Los registros privados se conservan bajo `data/ca/operations`,
 `data/ca/revocations` y `data/ca/publications`. La publicación conserva además

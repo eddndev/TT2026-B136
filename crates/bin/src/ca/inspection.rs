@@ -41,7 +41,8 @@ pub fn run() -> anyhow::Result<()> {
             let found = inspect_ca_request(material, root)?;
             json!({"csr_sha256":found.csr_sha256.to_hex(),
                 "spki_sha256":found.spki_sha256.to_hex(),
-                "root_fingerprint":found.root_fingerprint.to_hex(), "subject":found.subject})
+                "root_fingerprint":found.root_fingerprint.to_hex(), "subject":found.subject,
+                "issuer_policy_matches":found.issuer_policy_matches})
         }
         Kind::Certificate => {
             let found = inspect_ca_certificate(material, root)
