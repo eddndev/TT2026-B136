@@ -9,8 +9,9 @@ antigua de «pendiente» no basta: se contrasta con main, código y evidencia.
 
 Este inventario complementa, sin ampliar su catálogo, el
 [cierre de los cuatro frentes procesales](four-front-closure.md). La base
-confirmada en producción es `671d356c428fd01d26a1fa80eb182bc1f526813e`,
-versión `v0.1.6`. PR100 integró el corpus finito y PR101/102 corrigieron la
+funcional aceptada el 12 de octubre es
+`671d356c428fd01d26a1fa80eb182bc1f526813e`, versión `v0.1.6`, conservada
+por las releases posteriores. PR100 integró el corpus finito y PR101/102 corrigieron la
 preparación de sus pruebas de navegador; PR98 y PR99 ya estaban integradas. La auditoría de accesos y la reparación del respaldo Redis están
 resueltas e instaladas. Se conservan las entregas anteriores de cautelares,
 informe de actividad, firma individual, invitaciones y estimación/correo de
@@ -25,6 +26,29 @@ descrito abajo está aceptado, integrado y desplegado. La
 acredita las cuatro descargas reales y distingue sus límites de las pruebas
 técnicas anteriores.
 La recuperación real fue confirmada por el usuario el 12 de octubre de 2026.
+
+## Acceso Owner y portal CA: ampliación autorizada
+
+El 14 de octubre de 2026 se comprobó en Chrome el acceso de
+`hatziryvh@gmail.com` como Administrador mediante el Partner `1002`, vínculo R1,
+confianza R4 y MFA. Tras cerrar esa sesión, contraseña y MFA permitieron entrar
+como la misma cuenta. Las claves privadas permanecen fuera de los portales.
+El perfil operativo aplicado y su retorno preparado se conservan en
+[activación Owner](ca/owner-activation.md); los recibos y límites se describen en
+[verificación CA](ca/verification.md).
+
+El portal de `ca.qadra.com.mx` usa un servicio separado y el operador
+`eddndev@gmail.com` con contraseña y TOTP. La aceptación instalada incluyó
+emisión y descarga del certificado técnico `1003`, revocación de esa serie y
+publicación de la CRL R4 desde la interfaz, preservando el Owner `1002`.
+La restauración poblada de la CA y el ensayo controlado de sus consumidores
+se conservan; no se repiten como una nueva aceptación personal del Litigante.
+La corrección de parada está integrada por PR108 y desplegada en Qadra y CA
+como `v0.1.10/f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`. La parada y el
+reinicio instalados aprobaron con SIGINT, sin cambiar los procesos del despacho
+durante esa comprobación. Se preservaron las 77 tablas, configuración y material
+criptográfico, con respaldo externo verificado. Los manuales y el manuscrito
+registran este resultado por separado de los ensayos controlados anteriores.
 
 ## Lista de cierre
 
@@ -176,15 +200,17 @@ cierra esa fila con su evidencia independiente, integrada y activada en
 - Informes de estado/carga y consulta de actividad: PR49 y PR50, con sus
   confirmaciones conservadas; ampliados por PR92 y PR97, sin reabrir el catálogo.
 - Recuperación pública de contraseña activa con Resend y confirmación humana
-  de uso real. El primer factor Owner por certificado conserva su activación
-  operativa pendiente, separada de la firma individual.
+  de uso real. El primer factor Owner por certificado está habilitado y aceptado con MFA
+  y acceso alternativo por contraseña, separado de la firma individual.
 - Instalación recuperable de generaciones de controladores: PR86, squash
   `90b27f20`, presente en main. La frase de integración pendiente en el resumen
   de producto era antigua; no requiere otra implementación ni otra PR.
 
 ## Fronteras humanas y trabajo excluido
 
-La cuenta/correo Owner y duración de inactividad siguen pendientes humanos.
+La cuenta Owner es `hatziryvh@gmail.com` y el operador CA separado es
+`eddndev@gmail.com`. La duración de inactividad mantiene su decisión humana
+pendiente; esta entrega conserva la política existente.
 El remitente y la activación de correo ya quedaron resueltos con Resend; los
 valores aprobados de recuperación pública están activos. La continuación autoriza despliegues
 con la configuración vigente preservada; no autoriza inferir esos valores.

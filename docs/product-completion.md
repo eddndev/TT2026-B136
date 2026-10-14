@@ -1,8 +1,21 @@
 # Cierre funcional del prototipo web
 
-## Estado vigente al 12 de octubre de 2026
+## Estado vigente al 14 de octubre de 2026
 
-Producción ejecuta `v0.1.6`, commit `671d356c428fd01d26a1fa80eb182bc1f526813e`.
+Qadra y la CA ejecutan `v0.1.10`, revisión
+`f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`.
+El acceso Owner por certificado y MFA y el acceso alternativo por contraseña
+fueron aceptados en producción para la misma cuenta Administrador. El portal
+administrativo de la CA conserva la raíz existente y ya tiene emisión,
+descarga, revocación, publicación de CRL e historial aceptados desde la interfaz.
+La [verificación de la CA](ca/verification.md) distingue esos resultados de la
+corrección de parada y su comprobación instalada. El estado operativo final se
+concilia en [cierre técnico](technical-closure.md).
+
+## Base funcional aceptada el 12 de octubre de 2026
+
+La base `v0.1.6`, commit `671d356c428fd01d26a1fa80eb182bc1f526813e`, cerró el
+corpus y se conserva en las releases posteriores.
 El corpus de ocho supuestos está aceptado, integrado por PR100 y desplegado;
 PR101/102 corrigieron la preparación de las pruebas de navegador. Se conservan
 cautelares, actividad, firma individual, invitaciones, estimación/correo, auditoría

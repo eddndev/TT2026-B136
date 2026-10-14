@@ -169,9 +169,18 @@ El perfil Owner se aplicó sobre `v0.1.9`, conservando un checkpoint y observand
 `enabled:true`. La participación humana por contraseña y MFA se observó antes
 de activar; la receta de configuración no autenticó a la titular. A las
 08:34:21 UTC se verificó la firma externa de un desafío real y su admisión llevó
-el acceso al segundo factor. MFA sigue pendiente, al igual que comprobar el
-acceso alternativo después de la activación. No se declara una sesión Owner
-completa por certificado ni se reutiliza un desafío vencido como evidencia.
+el acceso al segundo factor. Ese intento venció sin completar MFA y no se
+cuenta como sesión aceptada.
+
+Un segundo desafío nuevo firmado externamente y la confirmación humana de MFA
+permitieron el acceso el 14 de octubre. Chrome mostró
+`hatziryvh@gmail.com`, rol Administrador, en la vista principal de Qadra.
+El recibo identifica el Partner `1002`, el mismo vínculo R1 y la confianza R4.
+Después de cerrar esa sesión, contraseña y MFA permitieron entrar de nuevo;
+se observó la misma cuenta y rol en el navegador.
+Los dos recibos y sus capturas acreditan el recorrido por certificado y el
+acceso alternativo posterior a la activación. No se reutilizó el desafío vencido
+ni se cargó una clave privada al portal.
 
 La aceptación instalada del perfil `document-signing` emitió `1003`, operación
 `79f15270-9101-4f70-9e06-eae028ac8824`, con descarga por navegador verificada
@@ -217,5 +226,23 @@ dos de servicio, incluido SIGTERM con salida cero. La
 [PR 108](https://github.com/eddndev/TT2026-B136/pull/108) se integró el 14 de
 octubre en `f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`,
 con árbol igual al HEAD revisado y los gates de la PR y main aprobados.
-El candidato `v0.1.10` está en construcción y no está desplegado. La release activa `v0.1.9`
-aún conserva el comportamiento anterior al detenerse.
+El candidato `v0.1.10` aprobó y se activó el 14 de octubre en Qadra y la CA,
+ambos con esa revisión exacta. La parada previa de la CA `v0.1.9` reprodujo
+SIGABRT: `MainPID=0`, resultado `core-dump` y estado `failed`; la web CA quedó
+inactiva. Se conservó ese diagnóstico, sin `reset-failed` ni terminación forzada.
+
+La operación de activación `bbfdd102-b6c6-4232-9861-9e13e9cf2de2` conservó
+las 77 tablas, el esquema, material criptográfico y configuración, incluidos
+correo y el perfil Owner habilitado. El respaldo `20261014T173009Z-c239aa3e`
+se copió y verificó externamente. El postflight comprobó los cuatro servicios
+del despacho activos, `401` para identidad anónima y una cadena válida de
+1 026 249 entradas, con las 1 026 226 entradas históricas preservadas.
+La CA adoptó la misma release mediante `42e514f8-f17b-4005-bc5f-9b7e402d2377`,
+conservando operador, credenciales y política de sesión; sus dos unidades
+quedaron activas sin cambiar los procesos del despacho ni el controlador.
+
+La comprobación instalada de parada de `v0.1.10` fue aceptada con el SIGINT
+configurado en la unidad. Los PID del despacho, PostgreSQL y Redis permanecieron
+iguales durante la prueba CA. Esta evidencia del servicio instalado complementa
+la prueba nativa SIGTERM anterior; no cambia la señal de la unidad para hacerlas
+coincidir ni presenta la ausencia de un proceso fallido como cierre correcto.

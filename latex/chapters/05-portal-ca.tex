@@ -105,11 +105,14 @@ serie \texttt{1002} para la cuenta Owner el 14 de octubre.
 La clave privada permaneci\'o fuera de la CA. Su declaraci\'on de posesi\'on se
 firm\'o y verific\'o, y una persona registr\'o el v\'inculo R1 en Chrome a las
 08:29:28 UTC. Se aplic\'o el perfil de acceso sobre \texttt{v0.1.9}, con
-\texttt{enabled:true} y una copia de la configuraci\'on anterior. La firma de
-un desaf\'io real fue admitida y el recorrido lleg\'o al segundo factor; MFA
-todav\'ia no se ha completado. La observaci\'on previa de contrase\~na y MFA
-no sustituye la comprobaci\'on del acceso alternativo despu\'es de activar el
-perfil. Por ello no se declara aceptado el recorrido Owner completo.
+\texttt{enabled:true} y una copia de la configuraci\'on anterior. El primer
+desaf\'io fue admitido, pero venci\'o sin completar MFA. Un desaf\'io nuevo
+firmado fuera de Qadra y la confirmaci\'on humana de MFA permitieron entrar
+con el Partner \texttt{1002}, el v\'inculo R1 y la confianza
+R4. Tras cerrar esa sesi\'on, el acceso por contrase\~na y MFA se acept\'o.
+Chrome mostr\'o la misma cuenta Owner y el rol Administrador en ambos recorridos. Los recibos y capturas acreditan el acceso por certificado y
+el acceso alternativo posterior a la activaci\'on, sin reutilizar el desaf\'io
+vencido ni cargar la clave privada al portal.
 
 El perfil \texttt{document-signing} se ejercit\'o con el certificado t\'ecnico
 \texttt{1003}, sin v\'inculo a una cuenta. Su descarga en navegador se verific\'o
@@ -141,12 +144,21 @@ de \texttt{block\_on}, como se describe en \cref{sec:impl-portal-ca}. Despu\'es
 aprobaron los seis casos nativos de enrolamiento y los dos de servicio,
 incluido el cierre por SIGTERM. La correcci\'on se integr\'o el 14 de octubre
 con los gates de la solicitud de integraci\'on y de la rama principal aprobados.
-El candidato \texttt{v0.1.10} est\'a en construcci\'on y no est\'a desplegado; la release
-activa \texttt{v0.1.9} a\'un conserva el defecto de parada.
+La release \texttt{v0.1.10}, revisi\'on \texttt{f8ebeb9e}, se activ\'o el
+14 de octubre en Qadra y la CA. La parada previa de \texttt{v0.1.9} reprodujo
+SIGABRT y su resultado se conserv\'o, sin limpiar el fallo ni forzar la
+terminaci\'on. La activaci\'on conserv\'o las 77 tablas, el esquema, material
+criptogr\'afico y configuraci\'on, incluidos correo y acceso Owner habilitado.
+El respaldo \texttt{20261014T173009Z-c239aa3e} se copi\'o y verific\'o externamente.
+El postflight confirm\'o una cadena v\'alida de $1\,026\,249$ entradas y la
+conservaci\'on de las $1\,026\,226$ entradas hist\'oricas. El operador CA,
+sus credenciales y pol\'itica de sesi\'on permanecieron iguales.
 
-Quedan por completar el segundo factor Owner, la comprobaci\'on posterior de
-su acceso alternativo y el despliegue de la correcci\'on de cierre. La emisi\'on,
-descarga, revocaci\'on, publicaci\'on e historial ya tienen evidencia instalada
-dentro de los l\'imites descritos.
+La parada instalada de \texttt{v0.1.10} fue aceptada con el SIGINT configurado
+en la unidad, sin cambiar los PID del despacho, PostgreSQL ni Redis durante
+la prueba CA. Este resultado del servicio instalado se distingue del ensayo
+nativo SIGTERM. Ambos accesos Owner, la emisi\'on, descarga, revocaci\'on,
+publicaci\'on e historial tienen evidencia instalada dentro de los l\'imites
+descritos.
 El inventario de evidencia y sus l\'imites se conserva en
 \rutarepo{docs/ca/verification.md}.

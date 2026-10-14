@@ -185,7 +185,7 @@ La raíz indicada en `operations.root` es la instalación existente, que contien
 un nuevo directorio vacío de CA. El worker necesita el árbol compatible de
 `ops/ca` y `ops/deploy`, el inspector `qadra-ca`, la CLI y los scripts PKI
 revisados. Ese conjunto está instalado en la release literal
-`v0.1.9-b7d1d6d1c4230d9e3796bc235d934dece73b7fd6`; no basta copiar
+`v0.1.10-f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`; no basta copiar
 `command.py` de forma aislada. La configuración del servicio debe conservar
 esa revisión y su inventario aprobados, junto con el controlador ya instalado.
 
@@ -217,23 +217,27 @@ CRL, para que el operador pueda consultar y retomar la operación. El renderer p
 el proxy de loopback con rutas de una release literal aceptada; no instala
 archivos ni cambia servicios. En VPS3 se adoptaron la configuración privada y
 las unidades `qadra-ca.service` y `qadra-ca-web.service`, ambas activas con la
-release `v0.1.9-b7d1d6d1c4230d9e3796bc235d934dece73b7fd6`. Los cuatro servicios
-del despacho permanecieron activos. La sesión pública del operador se comprobó
+release `v0.1.10-f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`. Su activación conservó
+los procesos del despacho, el operador y las credenciales. La sesión pública del operador se comprobó
 con contraseña y TOTP. El rechazo recuperado se aceptó en Historial y el
 respaldo poblado conservó cuenta, auditoría y archivos CA/configuración en el
 ensayo aislado descrito en [verificación](verification.md). La emisión Partner,
 serie `1002`, y el vínculo Owner R1 ya quedaron registrados. El perfil de acceso
-por certificado está habilitado sobre `v0.1.9`; su firma de desafío fue admitida,
-pero todavía falta MFA y repetir el acceso alternativo después de la activación.
+por certificado se habilitó en `v0.1.9` y se conservó en `v0.1.10`. El 14 de octubre de 2026 se
+aceptaron el desafío firmado y MFA; tras cerrar esa sesión,
+contraseña y MFA permitieron entrar. Chrome mostró en ambos
+casos `hatziryvh@gmail.com` con el rol Administrador. Los recibos distinguen
+esta aceptación del primer intento, que venció sin completar MFA.
 
 La parada administrativa descubrió un aborto del proceso al liberar clientes
 PostgreSQL síncronos dentro de Tokio. Comprobar tanto `MainPID` como el resultado
 de la unidad: un proceso ausente después de `core-dump` no acredita cierre normal.
 Conservar el diagnóstico y contrastar los journals antes de continuar. La
 reparación mantiene al dueño del Router fuera de `block_on` y pasó la prueba
-nativa SIGTERM. Se integró mediante PR 108; sus gates de main aprobaron
-y `v0.1.10` todavía no está instalada. No cambiar la
-política de reinicio ni los journals para ocultar ese fallo.
+nativa SIGTERM. Se integró mediante PR 108 y se desplegó como `v0.1.10` con
+gates aprobados. La parada instalada con el SIGINT configurado fue aceptada;
+conservó los procesos del despacho, PostgreSQL y Redis. El aborto de `v0.1.9`
+previo a la actualización se conservó, sin cambiar políticas ni journals para ocultarlo.
 
 El runtime CRL existente controla `qadra-api.service` y `qadra-web.service`
 mediante `systemctl --user`. La adopción del servicio CA debe conservar ese

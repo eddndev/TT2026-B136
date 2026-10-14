@@ -25,7 +25,7 @@ un clon dentro de \texttt{block\_on}; los comandos de inspecci\'on y enrolamient
 tambi\'en se ejecutan de forma s\'incrona. Esto evita que la liberaci\'on del
 \'ultimo cliente intente iniciar su cierre bloqueante dentro de otro runtime.
 La correcci\'on responde al aborto observado durante una parada administrativa;
-su aceptaci\'on local, integraci\'on y despliegue pendiente se distinguen en
+su aceptaci\'on local, integraci\'on y despliegue se distinguen en
 \cref{sec:pruebas-portal-ca}.
 
 La emisi\'on recibe un CSR p\'ublico y los datos de titular revisado, referencia
@@ -43,9 +43,11 @@ v\'inculo Owner R1, registrado mediante intervenci\'on humana y declaraci\'on
 firmada fuera del portal. El perfil de acceso por certificado qued\'o habilitado
 en la release \texttt{v0.1.9}; la firma del desaf\'io constituye su primer factor,
 pero no sustituye MFA ni acredita por s\'i sola una sesi\'on autenticada completa.
-La aceptaci\'on operativa de ese segundo factor y del acceso alternativo posterior
-a la activaci\'on permanece pendiente. Las claves de los titulares no se reciben
-en la CA y la emisi\'on no crea autom\'aticamente cuentas ni v\'inculos.
+La aceptaci\'on operativa del 14 de octubre de 2026 complet\'o ese segundo factor
+y, despu\'es de cerrar la sesi\'on, el acceso alternativo por contrase\~na y MFA.
+Ambos recorridos mostraron la misma cuenta Owner con el rol Administrador.
+Las claves de los titulares no se reciben en la CA y la emisi\'on no crea
+autom\'aticamente cuentas ni v\'inculos.
 
 La admisi\'on comprueba la pol\'itica del sujeto antes de reservar una emisi\'on.
 Exige nombre com\'un y que cada atributo de pa\'is y organizaci\'on coincida con

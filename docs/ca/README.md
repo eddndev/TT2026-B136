@@ -4,8 +4,8 @@ El portal CA tiene implementación integrada de acceso, enrolamiento administrat
 solicitudes, inventario, revocación, publicación de CRL e historial recuperable.
 Su [manual de operación](operations.md) describe el código actual y su instalación.
 El servicio está activo en VPS3 y el acceso público de `eddndev@gmail.com`
-mediante contraseña y TOTP se comprobó en el navegador. La Owner aún debe
-aceptar su recorrido real.
+mediante contraseña y TOTP se comprobó en el navegador. La Owner completó el
+acceso por certificado y MFA y, después, el acceso por contraseña y MFA.
 
 Consultar también la [verificación ejecutada](verification.md) y el
 [procedimiento de restauración](restore.md).
@@ -73,8 +73,11 @@ PostgreSQL síncronos dentro de Tokio. La reparación local conserva sus dueños
 fuera del contexto asíncrono y aprobó la prueba nativa SIGTERM junto con acceso
 y enrolamiento. La PR 108 se integró el 14 de octubre en
 `f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`, con los gates de la PR aprobados.
-Los gates de ese main aprobaron y el candidato `v0.1.10` está en construcción; la release
-`v0.1.9` activa aún conserva el defecto de cierre.
+Los gates de ese main y su candidato aprobaron. Qadra y la CA adoptaron
+`v0.1.10` el 14 de octubre, conservando datos, configuración, operador y
+credenciales. La parada de la CA anterior `v0.1.9` reprodujo SIGABRT; ese resultado
+se conservó. La comprobación instalada de `v0.1.10` aprobó con el SIGINT
+configurado, sin cambiar los procesos del despacho, PostgreSQL o Redis.
 
 ## Estado del código
 
@@ -87,7 +90,7 @@ Los gates de ese main aprobaron y el candidato `v0.1.10` está en construcción;
 | Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | `1003` revocado y publicado en R4; la comprobación criptográfica con esa CRL lo rechaza y admite al Partner `1002`. |
 | Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | Publicación instalada R3 a R4, CRL 4099, completada desde el portal; mantenimiento aceptado y seis servicios activos. |
 | Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Rechazo original, emisión/revocación de `1003` y publicación R4 comprobados en la UI instalada; un estado parcial o una identidad distinta sigue bloqueando el avance. |
-| Instalación | Binario `qadra-ca`, configuración privada y composición de operaciones. | Esquema restringido, operador, ambas unidades y HTTPS activos en VPS3; la apertura no acredita por sí sola los recorridos de mutación. |
+| Instalación | Binario `qadra-ca`, configuración privada y composición de operaciones. | Qadra y CA en `v0.1.10`, ambas unidades CA y HTTPS activos; parada instalada con SIGINT aceptada. La evidencia de mutaciones se registra por separado. |
 
 La verificación focal de enrolamiento del 12 de octubre de 2026 ejercitó el
 binario real con PostgreSQL y Redis desechables: entrega privada y TOTP real,
@@ -117,7 +120,7 @@ usuario existentes. La UI informa de la interrupción de Qadra antes de pedir
 confirmación. El alta del portal no instala otro controlador de CRL ni programa
 renovaciones automáticas.
 
-## Recorrido Owner y aceptación pendiente
+## Recorrido Owner aceptado
 
 El acceso por certificado ya dispone de backend e interfaz, documentados en
 la [guía de operación Owner](../owner-certificate-login-operations.md), la
@@ -130,22 +133,22 @@ anteriores; emitir el certificado no creó ni sustituyó esa cuenta.
 
 El [perfil de activación](owner-activation.md) se aplicó sobre `v0.1.9`, con
 `enabled:true`, cuotas, ventanas y tiempos Redis explícitos y checkpoint de la
-configuración anterior. La firma real del desafío de acceso fue admitida y el
-recorrido llegó al segundo factor. **MFA sigue pendiente**: todavía no se afirma
-una sesión Owner completa por certificado. También falta repetir el acceso
-alternativo por contraseña y MFA después de la activación; su observación previa
-no sustituye esa comprobación. Si el desafío ha vencido, se necesita uno nuevo.
+configuración anterior. El 14 de octubre, un desafío nuevo firmado fuera de
+Qadra y la confirmación humana de MFA permitieron entrar.
+Chrome mostró `hatziryvh@gmail.com` con el rol Administrador, usando el Partner
+`1002`, el vínculo R1 y la confianza R4. Tras cerrar esa sesión, el acceso
+independiente por contraseña y MFA mostró la misma cuenta.
+El primer intento vencido se conserva como antecedente, no como aceptación.
 
-El cierre de este recorrido requiere registrar ambos accesos completos y
-conservar sus recibos y configuración no secreta. No requiere volver a emitir
-`1002`, crear otro vínculo ni borrar cuentas, certificados o auditoría.
+Los recibos y capturas de ambos accesos conservan su resultado y la configuración
+no secreta se documenta en el perfil aplicado. La aceptación no requirió emitir
+otro certificado, crear otro vínculo ni borrar cuentas, certificados o auditoría.
 
-## Cierre pendiente y exclusiones
+## Aceptación y exclusiones
 
-Falta terminar el paquete y desplegar la reparación del cierre del proceso,
-y completar los dos accesos Owner pendientes. La emisión, descarga, revocación,
-publicación e historial ya tienen
-la evidencia instalada descrita arriba. La
+Ambos accesos Owner, la emisión, descarga, revocación, publicación e historial
+tienen la evidencia instalada descrita arriba. La reparación del cierre está
+desplegada y su parada instalada fue aceptada. La
 correlación de ambos perfiles con Qadra, rechazo de nuevos usos y conservación
 de evidencia histórica ya tiene aceptación nativa controlada; se conserva
 separada de la operación pública. El ensayo del respaldo poblado complementa
