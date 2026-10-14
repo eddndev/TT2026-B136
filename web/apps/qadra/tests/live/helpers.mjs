@@ -8,7 +8,18 @@ export async function login(page, recoveryCode, account = fixture) {
   watchApiFailures(page, test.info());
   await page.getByLabel('Correo electr\u00f3nico').fill(account.email);
   await page.getByLabel('Contrase\u00f1a', { exact: true }).fill(account.password);
-  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  const [started] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === '/api/v1/auth/login' &&
+        response.request().method() === 'POST',
+    ),
+    page.getByRole('button', { name: 'Continuar', exact: true }).click(),
+  ]);
+  const submitted = started.request().postDataJSON();
+  expect(submitted.email === account.email, 'login submitted the selected fixture email').toBe(true);
+  expect(submitted.password === account.password, 'login submitted the fixture password').toBe(true);
+  expect(started.status(), 'password login must succeed before MFA').toBe(200);
   await page.getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n' }).click();
   await page.getByLabel('C\u00f3digo de recuperaci\u00f3n', { exact: true }).fill(recoveryCode);
   const initial = new Map();
