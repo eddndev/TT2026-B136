@@ -49,8 +49,8 @@ credenciales aleatorias y se guardaron en archivos privados. Las unidades
 `qadra-ca.service` y `qadra-ca-web.service` se abrieron con esa release;
 los cuatro servicios del despacho permanecieron activos. El acceso
 por contraseña y TOTP en `https://ca.qadra.com.mx` mostró la sesión del operador.
-La cuenta Owner conserva su acceso actual; el primer factor por certificado
-permanece deshabilitado hasta completar su aceptación.
+En esa apertura inicial el primer factor Owner por certificado permaneció
+deshabilitado; su activación posterior se distingue más adelante.
 
 La aceptación de emisión encontró un defecto: un CSR que sólo contenía CN pasó
 la revisión previa, pero OpenSSL rechazó la ausencia de país y organización.
@@ -71,8 +71,10 @@ del host ni se añade ese ensayo al alcance.
 La parada administrativa de la CA anterior expuso un aborto al liberar clientes
 PostgreSQL síncronos dentro de Tokio. La reparación local conserva sus dueños
 fuera del contexto asíncrono y aprobó la prueba nativa SIGTERM junto con acceso
-y enrolamiento. Esa reparación de cierre aún requiere CI y despliegue; no forma
-parte de la release `v0.1.9` activa.
+y enrolamiento. La PR 108 se integró el 14 de octubre en
+`f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`, con los gates de la PR aprobados.
+Los gates de ese main aprobaron y el candidato `v0.1.10` está en construcción; la release
+`v0.1.9` activa aún conserva el defecto de cierre.
 
 ## Estado del código
 
@@ -80,11 +82,11 @@ parte de la release `v0.1.9` activa.
 | --- | --- | --- |
 | Alta inicial | Comando local, archivo nuevo privado y confirmación TOTP antes de insertar cuenta y auditoría en una transacción. | Operador real enrolado en VPS3; se conserva además la evidencia de seis casos nativos locales. |
 | Acceso CA | Contraseña y TOTP o código de recuperación, consulta de sesión, actividad y cierre. Credenciales y sesiones separadas del despacho. | Acceso público con contraseña y TOTP comprobado en navegador; recuperación y cierre tienen evidencia local independiente. |
-| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | Admisión CN/C/O desplegada; incidente original rechazado y consultado en el historial. La emisión Partner real sigue pendiente de confirmación. |
-| Inventario | Serie, sujeto, propósito, huellas, fechas, estado local y comparación con la CRL publicada. Descarga del certificado público exacto. | El TSA existente se consulta como `time-stamping`; no se emite ni revoca desde el portal. |
-| Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | El recibo local no acredita publicación ni rechazo posterior en Qadra. |
-| Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | El nuevo acceso desde el portal aún requiere aceptación de su composición instalada. |
-| Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Rechazo del incidente original aceptado en la UI instalada; un estado parcial o una identidad distinta sigue bloqueando el avance. |
+| Solicitud y emisión | CSR público, revisión explícita y emisión de `partner` o `document-signing`, con operación recuperable y recibo público. | Partner real `1002` y certificado técnico de firma documental `1003` emitidos desde el portal instalado; el incidente original conserva su rechazo sin emitir. |
+| Inventario | Serie, sujeto, propósito, huellas, fechas, estado local y comparación con la CRL publicada. Descarga del certificado público exacto. | Descarga de `1003` comprobada en navegador y contrastada con su CSR. El TSA existente se consulta como `time-stamping`; no se emite ni revoca desde el portal. |
+| Revocación | Confirmación de serie, huella y motivo; registro local recuperable. | `1003` revocado y publicado en R4; la comprobación criptográfica con esa CRL lo rechaza y admite al Partner `1002`. |
+| Publicación | Puente al mantenimiento CRL existente, con revisión esperada, confirmación de mantenimiento y reanudación. | Publicación instalada R3 a R4, CRL 4099, completada desde el portal; mantenimiento aceptado y seis servicios activos. |
+| Historial | Consulta y reanudación de emisiones, revocaciones y publicaciones con sus identificadores y parámetros originales. | Rechazo original, emisión/revocación de `1003` y publicación R4 comprobados en la UI instalada; un estado parcial o una identidad distinta sigue bloqueando el avance. |
 | Instalación | Binario `qadra-ca`, configuración privada y composición de operaciones. | Esquema restringido, operador, ambas unidades y HTTPS activos en VPS3; la apertura no acredita por sí sola los recorridos de mutación. |
 
 La verificación focal de enrolamiento del 12 de octubre de 2026 ejercitó el
@@ -115,39 +117,35 @@ usuario existentes. La UI informa de la interrupción de Qadra antes de pedir
 confirmación. El alta del portal no instala otro controlador de CRL ni programa
 renovaciones automáticas.
 
-## Recorrido Owner pendiente
+## Recorrido Owner y aceptación pendiente
 
 El acceso por certificado ya dispone de backend e interfaz, documentados en
 la [guía de operación Owner](../owner-certificate-login-operations.md), la
 [interfaz de acceso](../owner-certificate-login-interface.md) y el
-[vínculo propio](../owner-certificate-interface.md). La observación de producción
-del 14 de octubre de 2026, después de abrir CA, conservó `enabled:false`;
-la activación sigue pendiente, aunque la implementación ya está integrada.
+[vínculo propio](../owner-certificate-interface.md). El 14 de octubre de 2026 se
+emitió el Partner `1002` para `hatziryvh@gmail.com`; la declaración de posesión
+se firmó fuera del portal, sin cargar la clave privada. Una persona registró
+el vínculo R1 en Chrome a las 08:29:28 UTC. Se conservan la cuenta y sus factores
+anteriores; emitir el certificado no creó ni sustituyó esa cuenta.
 
-El acceso de `hatziryvh@gmail.com` por contraseña y MFA ya fue observado en el
-navegador. Esto acredita su participación; aún no hay certificado Partner
-confirmado, vínculo ni primer factor por certificado activado.
-El [perfil de activación preparado](owner-activation.md) fija cuotas, ventanas,
-tiempos Redis, retorno y pasos de aceptación sin cambiar la inactividad.
-Para aceptar el recorrido de `hatziryvh@gmail.com` quedan por registrar:
+El [perfil de activación](owner-activation.md) se aplicó sobre `v0.1.9`, con
+`enabled:true`, cuotas, ventanas y tiempos Redis explícitos y checkpoint de la
+configuración anterior. La firma real del desafío de acceso fue admitida y el
+recorrido llegó al segundo factor. **MFA sigue pendiente**: todavía no se afirma
+una sesión Owner completa por certificado. También falta repetir el acceso
+alternativo por contraseña y MFA después de la activación; su observación previa
+no sustituye esa comprobación. Si el desafío ha vencido, se necesita uno nuevo.
 
-1. Conservar la evidencia del acceso alternativo por contraseña y MFA ya observado.
-2. Certificado Partner apropiado, con la clave bajo control de la titular;
-   emisión desde su CSR externo si hace falta.
-3. Raíz y CRL publicadas, vínculo vigente y prueba de posesión, conservando el
-   recibo y sin volver a crear un vínculo existente.
-4. Configuración revisada del flag, cuotas, ventanas y tiempos de Redis,
-   conservando la configuración anterior.
-5. Activación controlada, firma externa de un desafío nuevo, MFA de la misma
-   cuenta y comprobación del acceso alternativo.
-6. Evidencia de revisión y configuración no secreta, con retorno preparado
-   sin borrar cuentas, vínculos, certificados o auditoría.
+El cierre de este recorrido requiere registrar ambos accesos completos y
+conservar sus recibos y configuración no secreta. No requiere volver a emitir
+`1002`, crear otro vínculo ni borrar cuentas, certificados o auditoría.
 
 ## Cierre pendiente y exclusiones
 
-Falta integrar y desplegar la reparación del cierre del proceso, completar la
-aceptación de emisión, revocación y publicación desde el portal instalado, y
-el recorrido de la Owner. La
+Falta terminar el paquete y desplegar la reparación del cierre del proceso,
+y completar los dos accesos Owner pendientes. La emisión, descarga, revocación,
+publicación e historial ya tienen
+la evidencia instalada descrita arriba. La
 correlación de ambos perfiles con Qadra, rechazo de nuevos usos y conservación
 de evidencia histórica ya tiene aceptación nativa controlada; se conserva
 separada de la operación pública. El ensayo del respaldo poblado complementa

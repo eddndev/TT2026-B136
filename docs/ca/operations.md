@@ -222,14 +222,17 @@ del despacho permanecieron activos. La sesión pública del operador se comprob�
 con contraseña y TOTP. El rechazo recuperado se aceptó en Historial y el
 respaldo poblado conservó cuenta, auditoría y archivos CA/configuración en el
 ensayo aislado descrito en [verificación](verification.md). La emisión Partner,
-el vínculo y el acceso Owner por certificado aún no están completados.
+serie `1002`, y el vínculo Owner R1 ya quedaron registrados. El perfil de acceso
+por certificado está habilitado sobre `v0.1.9`; su firma de desafío fue admitida,
+pero todavía falta MFA y repetir el acceso alternativo después de la activación.
 
 La parada administrativa descubrió un aborto del proceso al liberar clientes
 PostgreSQL síncronos dentro de Tokio. Comprobar tanto `MainPID` como el resultado
 de la unidad: un proceso ausente después de `core-dump` no acredita cierre normal.
 Conservar el diagnóstico y contrastar los journals antes de continuar. La
-reparación local mantiene al dueño del Router fuera de `block_on` y pasó la
-prueba nativa SIGTERM; todavía no está en la release instalada. No cambiar la
+reparación mantiene al dueño del Router fuera de `block_on` y pasó la prueba
+nativa SIGTERM. Se integró mediante PR 108; sus gates de main aprobaron
+y `v0.1.10` todavía no está instalada. No cambiar la
 política de reinicio ni los journals para ocultar ese fallo.
 
 El runtime CRL existente controla `qadra-api.service` y `qadra-web.service`
@@ -278,6 +281,14 @@ público cuando la emisión quede confirmada. El vínculo y la prueba de posesi�
 posteriores en Qadra son pasos separados; la emisión no crea una cuenta ni un
 vínculo automático.
 
+En la aceptación del 14 de octubre de 2026 se emitieron el Partner Owner `1002`
+y el certificado técnico de firma documental `1003`. La descarga de `1003`
+se comprobó en navegador y se contrastó con el CSR. Una persona registró el
+vínculo R1 de `1002` en Qadra con su declaración firmada; no repetir esa alta
+ni cargar su clave privada a la CA. El acceso por certificado ya está habilitado:
+para cerrar su aceptación falta completar MFA sobre un desafío vigente y volver
+a comprobar contraseña y MFA como acceso alternativo posterior a la activación.
+
 Si no llega el resultado, usar **Retomar esta emisión** o la misma entrada de
 **Historial** después de otro acceso. La reanudación conserva la solicitud,
 operador, perfil, raíz y serie reservada, y busca el resultado exacto. No enviar
@@ -321,6 +332,12 @@ revisar serie y huella exactas e introducir el motivo. Confirmar explícitamente
 y pulsar **Confirmar revocación local**. El recibo confirma el cambio del índice;
 el estado sigue pendiente de publicación. Ante respuesta incierta, retomar la
 misma revocación y conservar su serie, huella y motivo originales.
+
+La serie técnica `1003` quedó revocada localmente el 14 de octubre de 2026,
+con emisión y revocación completas en Historial. `1002` se conservó sin revocar.
+La publicación posterior avanzó de R3 a R4, con CRL 4099 y sólo la serie de
+prueba revocada. El mantenimiento terminó y los seis servicios quedaron activos.
+La verificación criptográfica con esa CRL rechazó `1003` y admitió `1002`.
 
 En **Publicación**, pulsar **Actualizar estado** para observar revisión, número
 de CRL, fechas, huellas y mantenimiento pendiente. La fuente es la confianza

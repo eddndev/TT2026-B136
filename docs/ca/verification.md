@@ -115,8 +115,9 @@ contraseña y TOTP y mostró la sesión de `eddndev@gmail.com`.
 Esta comprobación acredita instalación y acceso público real. No declara
 completados el recorrido de mutaciones del portal instalado ni la aceptación
 Owner del [manual operativo](operations.md).
-El primer factor Owner por certificado permanece deshabilitado; se conservan
-su cuenta, contraseña y MFA existentes.
+En esa apertura inicial el primer factor Owner por certificado permaneció
+deshabilitado, conservando su cuenta, contraseña y MFA. La activación posterior
+se registra separadamente abajo.
 
 La aceptación pública de emisión del 14 de octubre encontró un CSR de prueba
 con CN, pero sin C/O. La revisión lo admitió y la operación
@@ -153,10 +154,42 @@ La conciliación de `be148c5f-7ab2-4c56-80cd-dbb157962926` conservó el original
 y el material criptográfico y produjo un recibo `rejected`, motivo
 `csr_subject_policy`, con la reserva `1002`. No emitió certificado. Después de
 autenticación pública con contraseña y TOTP, la UI mostró el rechazo en Historial.
-La revisión del CSR Partner de la Owner está preparada, pero su emisión aún
-no está confirmada. El acceso de `hatziryvh@gmail.com` por contraseña y MFA fue
-observado por el coordinador; esa observación no acredita vínculo ni acceso con
-certificado. Ambos siguen pendientes y el flag conserva `enabled:false`.
+
+El 14 de octubre quedó confirmada en la UI la emisión Partner
+`1002` para `hatziryvh@gmail.com`, operación
+`6618183c-3499-4f99-9919-417004d0e3ff`. La huella del certificado es
+`1630649f339ec429574b3417a0a725135ab10bd5cb2d6854e830d5d0e6e0407f`.
+Su material público se conservó mediante copia verificada; en esa operación
+no se acreditó entrega de la descarga del navegador. La clave privada permaneció
+fuera de la CA. La declaración de posesión se firmó y verificó a las 08:17:18 UTC.
+Una persona registró en Chrome el vínculo R1 a las 08:29:28 UTC, identificador
+`2fd1f132-ebf7-4864-8b70-84f602ee20c7`, con la confianza publicada R3.
+
+El perfil Owner se aplicó sobre `v0.1.9`, conservando un checkpoint y observando
+`enabled:true`. La participación humana por contraseña y MFA se observó antes
+de activar; la receta de configuración no autenticó a la titular. A las
+08:34:21 UTC se verificó la firma externa de un desafío real y su admisión llevó
+el acceso al segundo factor. MFA sigue pendiente, al igual que comprobar el
+acceso alternativo después de la activación. No se declara una sesión Owner
+completa por certificado ni se reutiliza un desafío vencido como evidencia.
+
+La aceptación instalada del perfil `document-signing` emitió `1003`, operación
+`79f15270-9101-4f70-9e06-eae028ac8824`, con descarga por navegador verificada
+a las 08:40:02 UTC. Se contrastaron certificado y CSR; la huella fue
+`7a7d0702728784cca0c796f23e50f61a31c689cf55842734ea64735930d0c2e8`.
+Es un certificado técnico, sin vínculo a una cuenta. A las 08:42:33 UTC
+se observó el recibo de su revocación local mediante
+`f5828556-41e7-4dd9-b6ae-ebad037b4733`; el historial mostró completas tanto
+la emisión como la revocación. La serie Owner `1002` se conservó. La confianza
+publicada permaneció inicialmente en R3, separada del cambio del índice local.
+
+La operación `d7fb2baf-6fdd-4320-b40e-485911b008aa` publicó desde el portal
+la revisión 4 y CRL 4099 el 14 de octubre. Su historial mostró finalización;
+el journal de mantenimiento quedó aceptado, con respaldo registrado y sin
+fence activo. Los seis servicios seguían activos y el acceso Owner habilitado.
+La CRL publicada contiene sólo `1003`; OpenSSL rechazó su certificado como
+revocado y aceptó `1002`. Esto acredita la comprobación criptográfica del material
+publicado; la aceptación de consumidores Qadra conserva su ensayo nativo propio.
 
 El respaldo poblado del 14 de octubre se contrastó con la captura tomada en la
 ventana de mantenimiento. Una base nueva del PostgreSQL 16 aislado recibió sólo
@@ -180,6 +213,9 @@ correcto. La reparación conserva el Router como dueño fuera de `block_on` y
 pasa un clon al servidor; inspección y enrolamiento son síncronos. Así, los
 últimos clientes se liberan fuera del contexto asíncrono, como en el servicio
 del despacho. Después aprobaron los seis casos nativos de enrolamiento y los
-dos de servicio, incluido SIGTERM con salida cero. La corrección está verificada
-localmente; CI, integración y despliegue siguen pendientes y `v0.1.9` aún
-conserva el comportamiento anterior al detenerse.
+dos de servicio, incluido SIGTERM con salida cero. La
+[PR 108](https://github.com/eddndev/TT2026-B136/pull/108) se integró el 14 de
+octubre en `f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`,
+con árbol igual al HEAD revisado y los gates de la PR y main aprobados.
+El candidato `v0.1.10` está en construcción y no está desplegado. La release activa `v0.1.9`
+aún conserva el comportamiento anterior al detenerse.
