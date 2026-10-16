@@ -9,6 +9,7 @@
   } from '../lib/owner-login-values.mjs';
   import { readDetachedSignature } from '../lib/participant-credential-files.mjs';
   import { bytesBase64 } from '../lib/typed-participant-preparation.mjs';
+  import LocalSignature from './LocalSignature.svelte';
   export let api, onchallenge, onclose;
   export let initialSelection = null,
     initialError = '';
@@ -24,6 +25,26 @@
     retry = !!initialError;
   const unavailable = 'El acceso con certificado no est\u00e1 disponible en este servidor.';
   const active = (request) => alive && request === generation;
+  $: localContext = prepared
+    ? [
+        selected?.ownerId,
+        selected?.bindingId,
+        generation,
+        prepared.challenge_token,
+        prepared.statement_base64,
+      ].join('|')
+    : '';
+  $: localInput = prepared ? ownerLoginStatementDownload(prepared, selected) : null;
+  function localSignature(value) {
+    if (!alive || !available || busy || !prepared || expired() || value.contextKey !== localContext)
+      return false;
+    signatureBase64 = value.signatureBase64;
+    error = '';
+    return true;
+  }
+  function invalidateLocal(contextKey) {
+    if (alive && contextKey === localContext && prepared && !busy) signatureBase64 = '';
+  }
   function clearProof() {
     prepared = null;
     signatureBase64 = '';
@@ -177,9 +198,9 @@
   aria-busy={busy || available === null}
 >
   <span class="auth-symbol"><Icon name="shield" size={24} /></span>
-  <span class="eyebrow">PASO 01 / FIRMA EXTERNA</span>
+  <span class="eyebrow">PASO 01 / FIRMA</span>
   <h2>Ingresa con tu certificado.</h2>
-  <p>Usa el recibo de tu v&iacute;nculo. Tu clave privada permanece fuera de Qadra.</p>
+  <p>Usa el recibo de tu v&iacute;nculo. La clave privada permanece en tu equipo.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if available === null}
     <p role="status">Consultando disponibilidad...</p>
@@ -207,35 +228,48 @@
       >
     {/if}
     {#if prepared}
-      <p>
-        Descarga estos 182 bytes y f&iacute;rmalos fuera de Qadra con la clave del certificado
-        vinculado. La firma s&oacute;lo sirve para este intento de acceso.
-      </p>
-      <button class="secondary" type="button" disabled={busy} onclick={statement}
-        >Descargar bytes de acceso</button
-      >
-      <details>
-        <summary>Firmar externamente con OpenSSL</summary>
-        <p>Ejecuta este ejemplo en tu propio equipo. Conserva la clave fuera del navegador.</p>
-        <code
-          >openssl dgst -sha256 -sign clave-privada.pem -sigopt rsa_padding_mode:pkcs1 -out
-          firma-acceso.sig acceso-certificado.bin</code
+      {#key localContext}<LocalSignature
+          requiresSession={false}
+          contextKey={localContext}
+          input={localInput}
+          certificateFingerprint={selected.leafFingerprint}
+          purpose="acceso Owner"
+          disabled={busy}
+          onsignature={localSignature}
+          oninvalidate={invalidateLocal}
+        />{/key}
+      <details open>
+        <summary>Usar una firma externa</summary>
+        <p>
+          Descarga estos 182 bytes y f&iacute;rmalos fuera de Qadra con la clave del certificado
+          vinculado. La firma s&oacute;lo sirve para este intento de acceso.
+        </p>
+        <button class="secondary" type="button" disabled={busy} onclick={statement}
+          >Descargar bytes de acceso</button
+        >
+        <details>
+          <summary>Firmar externamente con OpenSSL</summary>
+          <p>Ejecuta este ejemplo en tu propio equipo. Conserva la clave fuera del navegador.</p>
+          <code
+            >openssl dgst -sha256 -sign clave-privada.pem -sigopt rsa_padding_mode:pkcs1 -out
+            firma-acceso.sig acceso-certificado.bin</code
+          >
+        </details>
+        <label
+          >Firma separada de acceso
+          <input
+            type="file"
+            accept=".sig,application/octet-stream"
+            disabled={busy}
+            onchange={signature}
+          />
+        </label>
+        <small
+          >{signatureBase64
+            ? 'Firma de 384 bytes seleccionada.'
+            : 'Selecciona la firma binaria externa de exactamente 384 bytes.'}</small
         >
       </details>
-      <label
-        >Firma separada de acceso
-        <input
-          type="file"
-          accept=".sig,application/octet-stream"
-          disabled={busy}
-          onchange={signature}
-        />
-      </label>
-      <small
-        >{signatureBase64
-          ? 'Firma de 384 bytes seleccionada.'
-          : 'Selecciona la firma binaria externa de exactamente 384 bytes.'}</small
-      >
       <button class="primary" type="button" disabled={busy || !signatureBase64} onclick={prove}
         >Comprobar firma</button
       >

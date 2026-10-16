@@ -4,8 +4,12 @@
   import SigningPublicFile from './SigningPublicFile.svelte';
   import SigningExternalInstructions from './SigningExternalInstructions.svelte';
   import SigningBindingDetails from './SigningBindingDetails.svelte';
+  import LocalSignature from './LocalSignature.svelte';
   export let state, busy, certificate, confirmed;
   export let oncertificate, onprepare, onsignature, onsubmit, onwithdraw, ondiscard, onerror;
+  export let localContext, onlocalsignature, onlocalinvalidate;
+  $: localStatement = state.prepared?.statement_base64;
+  $: localInput = localStatement ? signingStatementDownload(localStatement, 'binding') : null;
 </script>
 
 {#if state.action === 'withdraw'}<section class="card stack">
@@ -34,22 +38,35 @@
       >Preparar vinculo</button
     >
     {#if state.prepared}<SigningBindingDetails value={state.prepared} />
-      <button
-        class="secondary"
-        disabled={busy}
-        onclick={() =>
-          download(
-            signingStatementDownload(state.prepared.statement_base64, 'binding'),
-            'certificate-binding.bin',
-          )}>Descargar declaracion del vinculo</button
-      >
-      <SigningExternalInstructions kind="binding" />
-      <SigningPublicFile
-        label="Firma externa del vinculo"
-        disabled={busy}
-        onvalue={onsignature}
-        {onerror}
-      />
+      {#key localContext}<LocalSignature
+          contextKey={localContext}
+          input={localInput}
+          certificateDerBase64={state.prepared.certificate.der_base64}
+          certificateFingerprint={state.prepared.certificate.fingerprint}
+          purpose="vinculo documental"
+          disabled={busy}
+          onsignature={onlocalsignature}
+          oninvalidate={onlocalinvalidate}
+        />{/key}
+      <details open>
+        <summary>Usar una firma externa</summary>
+        <button
+          class="secondary"
+          disabled={busy}
+          onclick={() =>
+            download(
+              signingStatementDownload(state.prepared.statement_base64, 'binding'),
+              'certificate-binding.bin',
+            )}>Descargar declaracion del vinculo</button
+        >
+        <SigningExternalInstructions kind="binding" />
+        <SigningPublicFile
+          label="Firma externa del vinculo"
+          disabled={busy}
+          onvalue={onsignature}
+          {onerror}
+        />
+      </details>
       <label
         ><input
           type="checkbox"

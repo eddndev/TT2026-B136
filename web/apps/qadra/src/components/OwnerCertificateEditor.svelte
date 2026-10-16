@@ -52,6 +52,32 @@
   const admitted = () => alive && !completed && recovery.admitted();
   const active = (request) => admitted() && request === generation;
   $: blocked = latest !== null && latest.binding_id !== bindingId;
+  $: localContext = prepared
+    ? [principalId, bindingId, generation, prepared.statement_base64].join('|')
+    : '';
+  function localSignature(value) {
+    if (
+      !ready ||
+      busy ||
+      !admitted() ||
+      !prepared ||
+      mode !== 'editing' ||
+      blocked ||
+      value.contextKey !== localContext
+    )
+      return false;
+    registrationIntent(prepared, value.signatureBase64);
+    signatureBase64 = value.signatureBase64;
+    signatureName = 'Firma generada localmente';
+    command = null;
+    error = '';
+    return true;
+  }
+  function invalidateLocal(contextKey) {
+    if (!admitted() || busy || mode !== 'editing' || contextKey !== localContext) return;
+    signatureBase64 = signatureName = '';
+    command = null;
+  }
   function capture() {
     return {
       prepared,
@@ -280,6 +306,9 @@
   {busy}
   {mode}
   {error}
+  {localContext}
+  onlocalsignature={localSignature}
+  onlocalinvalidate={invalidateLocal}
   onload={load}
   onclose={close}
   oncertificate={certificate}

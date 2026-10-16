@@ -80,6 +80,10 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: browser-crypto-module
+          path: web/apps/qadra/src/generated/browser-crypto/
       - name: Build the verified version and package native dependencies
         run: bash scripts/build-release.sh "$VERSION" "$SOURCE_COMMIT"
       - uses: actions/upload-artifact@v4

@@ -3,6 +3,7 @@
   import OwnerCertificateEditor from './OwnerCertificateEditor.svelte';
   import OwnerCertificateReceipt from './OwnerCertificateReceipt.svelte';
   import OwnerCertificateWithdrawal from './OwnerCertificateWithdrawal.svelte';
+  import KeyRequest from './KeyRequest.svelte';
   import {
     freshOwnerBinding,
     ownerDrafts,
@@ -121,13 +122,13 @@
   <div>
     <span class="eyebrow">MI CUENTA</span>
     <h1>Mi certificado</h1>
-    <p>Vincula tu certificado p&#250;blico a tu propia cuenta con una firma externa.</p>
+    <p>Vincula tu certificado p&#250;blico a tu propia cuenta con una firma personal.</p>
   </div>
 </div>
 <p class="notice">
   Perfil interno de demostraci&#243;n. Registrar el v&#237;nculo no abre una sesi&#243;n ni firma
-  documentos. Si el servidor habilita el acceso por certificado, requiere una firma externa nueva y
-  tu segundo factor.
+  documentos. Si el servidor habilita el acceso por certificado, requiere una firma nueva y tu
+  segundo factor.
 </p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if !ready}
@@ -136,6 +137,7 @@
     {#if !busy}<button class="secondary" onclick={load}>Volver a consultar</button>{/if}
   </section>
 {:else}
+  <KeyRequest contextKey={principalId} purpose="partner" disabled={busy} />
   {#if !editor && !withdrawal}
     {#each pending as saved (saved.key)}<section class="card retained">
         <h2>Intento pendiente</h2>

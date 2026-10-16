@@ -29,6 +29,10 @@ for (const [name, width, height] of [
       ).toBeTruthy();
       expect(scenario.certificatePath).toBeTruthy();
       expect(scenario.privateKeyPath).toBeTruthy();
+      if (name === 'desktop') {
+        expect(scenario.localSigning?.encryptedKeyPath).toBeTruthy();
+        expect(scenario.localSigning?.keyPasswordPath).toBeTruthy();
+      } else expect(scenario.localSigning).toBeNull();
       const writes = [],
         errors = [];
       page.on('pageerror', (error) => errors.push(error.message));

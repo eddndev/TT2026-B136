@@ -16,13 +16,18 @@ y OpenSSL reales; no repitió el ensayo de restauración anterior.
 Véanse [el contrato HTTP](http-owner-certificates.md) y
 [la decisión de vínculo Owner](adr/0067-owner-certificate-bindings.md).
 
+El [ayudante local](browser-local-cryptography.md) esta implementado en la rama
+de trabajo, con aceptacion tecnica en curso y sin despliegue. Sus resultados
+no se deducen de las pruebas anteriores.
+El recorrido externo con OpenSSL permanece disponible.
+
 ## Qué representa el vínculo
 
 “Mi certificado” está reservado al Owner autenticado y relaciona un certificado
 público con esa misma cuenta. El registro no abre una sesión ni firma documentos
 del expediente. El [acceso por certificado](owner-certificate-login-interface.md)
 es un recorrido separado, habilitado expresamente por el servidor, que exige una
-firma externa nueva y MFA.
+firma nueva, producida localmente por el titular, y MFA.
 La CA interna es una autoridad de demostración; no equivale a FIREL, e.firma o
 un prestador de servicios de certificación.
 
@@ -41,6 +46,12 @@ un procedimiento distinto.
 
 ## Registrar un vínculo
 
+El bloque **Generar clave y solicitud** de **Mi certificado** prepara una
+clave cifrada y un CSR público. Exige descargar y reimportar la clave con su
+contraseña antes de habilitar el CSR. La CA revisa y emite el Partner; este
+paso no crea la cuenta ni registra su vínculo. Véase el estado y los límites
+del ayudante local antes de usar esa incorporación.
+
 1. Inicia sesión mediante contraseña y MFA y abre **Mi certificado**. La vista
    debe consultar primero la cuenta vigente y después su vínculo sin retirar.
    Un rol distinto de Owner no recibe acceso a esta función.
@@ -54,13 +65,14 @@ un procedimiento distinto.
    Preparar no registra el vínculo ni acredita su admisión completa: la prueba
    RSA y las comprobaciones de propósito, vigencia y revocación se realizan al
    registrar. La comprobación local del contenedor PEM tampoco las sustituye.
-4. Descarga la **declaración binaria de exactamente 150 bytes** y fírmala fuera
-   de la aplicación con la clave correspondiente al certificado, usando el
-   perfil SHA-256/RSA-3072 definido por el contrato. Conserva los bytes exactos;
-   no los conviertas a texto, JSON ni otra declaración.
-5. Selecciona la **firma separada binaria de exactamente 384 bytes**. La pantalla
-   no solicita ni envía la clave privada. Una firma del tamaño esperado todavía
-   debe superar la verificación del servidor.
+4. Revisa la **declaración binaria de exactamente 150 bytes**. El bloque
+   **Firmar en este dispositivo** usa la clave cifrada y su contraseña localmente
+   para firmar esos bytes con SHA-256/RSA-3072. Como alternativa, descarga la
+   declaración y fírmala con OpenSSL. No conviertas sus bytes a texto ni JSON.
+5. Usa la firma preparada por el ayudante o selecciona la **firma separada
+   binaria de exactamente 384 bytes** del recorrido externo. Ninguna opción
+   envía la clave privada al servidor. La firma todavía debe superar su
+   verificación y no registra el vínculo automáticamente.
 6. Confirma expresamente el registro. El cliente envía el UUID elegido para esa
    intención, la declaración exacta, el DER público admitido y la firma. Una
    preparación de otra cuenta o una captura de confianza ya sustituida no se
@@ -90,8 +102,9 @@ openssl dgst -sha256 -verify owner-public.pem \
 
 Sustituye los nombres por tus archivos. Si la clave está cifrada, OpenSSL solicita
 su frase de acceso localmente. Selecciona únicamente `owner-declaration.sig` en
-**Firma separada**. `owner.key.pem` nunca se selecciona en Qadra ni se envía al
-servidor. La verificación local confirma esa firma sobre esos bytes; la admisión
+**Firma separada**. En esta alternativa no seleccionas `owner.key.pem` en el
+navegador; el ayudante local opcional usa su propio selector y tampoco envía
+la clave al servidor. La verificación local confirma esa firma sobre esos bytes; la admisión
 de cuenta, propósito, confianza, vigencia y revocación corresponde al registro
 en el backend. Este ejemplo no emite certificados, entrega claves ni configura
 un dispositivo de custodia.

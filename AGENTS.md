@@ -15,8 +15,10 @@ one repository:
   change is yours.
 - The Rust workspace + web frontend : the software prototype.
 
-The Rust workspace is a Cargo workspace of five crates arranged as a hexagonal
-architecture. The dependency direction is enforced by the crate graph:
+The server uses five Rust crates arranged as a hexagonal architecture. A sixth
+crate, `crates/browser-crypto`, builds the isolated local browser module as WASM
+and has no dependency on the server crates. The server dependency direction is
+enforced by the crate graph:
 
     domain          <- no dependency on any other workspace crate
     application     -> domain

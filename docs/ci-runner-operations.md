@@ -48,9 +48,12 @@ cuota de seis CPU. Los pesos reparten capacidad disponible, no garantizan
 un tiempo de ejecucion. Aplicar cambios y reiniciar runners cuando no haya
 jobs activos; comprobar propiedades efectivas y medir la siguiente campana.
 
-Preparar VPS1 con compilador C, pkg-config, OpenSSL de desarrollo, Git, curl,
+Preparar VPS1 con compiladores C y clang, pkg-config, OpenSSL de desarrollo, Git, curl,
 Python 3.12+, jq, Rust stable/rustfmt/clippy y Rust 1.88. Los jobs seleccionan
-la version Rust requerida. El navegador simulado corre en
+la version Rust requerida. El job Browser cryptography module instala el target
+wasm32 y prepara wasm-bindgen con checksum fijado; entrega el mismo artefacto
+JS/WASM a los shards simulados y reales. El empaquetado reutiliza ese artefacto y verifica sus hashes y fuentes antes
+de incorporarlo; una compilacion manual sin artefacto requiere clang. El navegador simulado corre en
 `mcr.microsoft.com/playwright:v1.63.0-noble` mediante Docker rootless, con
 1.5 CPU, 1536 MiB y 512 MiB de memoria compartida por contenedor. Descargar
 la imagen con el usuario del runner antes de habilitarlo. Al actualizar

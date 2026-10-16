@@ -68,6 +68,9 @@ dependency direction. Do not add a workspace dependency that violates it:
 - `web` depends on `domain` and `application`.
 - the binary crate (`despacho-cli`, in `crates/bin`) depends on all of them.
 
+The independent `browser-crypto` crate builds the local WASM module and must
+not depend on any server crate. See `docs/adr/0079-browser-local-cryptography.md`.
+
 The frontend npm workspace is rooted at `web/`, with one lockfile and forwarding
 scripts. Qadra lives in `web/apps/qadra/`, the CA portal in `web/apps/ca/`, and
 shared presentation elements in `web/packages/ui/`. The earlier frontend

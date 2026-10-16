@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash, X509Certificate, verify } from 'node:crypto';
+import { signLocally } from './local-signature-helpers.mjs';
 
 export const bindingsPath = '/api/v1/auth/certificate-bindings';
 export const currentPath = `${bindingsPath}/current`;
@@ -98,7 +99,14 @@ export function canonicalStatement(prepared, withdrawal = null) {
 
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
-export async function signPreparation(page, form, prepared, certificatePath, testInfo) {
+export async function signPreparation(
+  page,
+  form,
+  prepared,
+  certificatePath,
+  testInfo,
+  localSigning,
+) {
   const certificate = new X509Certificate(readFileSync(certificatePath));
   expect(prepared.policy).toBe('internal_partner_binding_v1');
   expect(prepared.certificate.der_base64).toBe(certificate.raw.toString('base64'));
@@ -123,7 +131,7 @@ export async function signPreparation(page, form, prepared, certificatePath, tes
   const signature = readFileSync(signaturePath);
   expect(signature).toHaveLength(384);
   expect(verify('RSA-SHA256', statement.bytes, certificate.publicKey, signature)).toBe(true);
-  await form.getByLabel('Firma separada', { exact: true }).setInputFiles(signaturePath);
+  await signLocally(form, localSigning, certificatePath);
   return {
     statement_base64: statement.bytes.toString('base64'),
     certificate_der_base64: certificate.raw.toString('base64'),
