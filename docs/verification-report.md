@@ -35,6 +35,12 @@ Las pruebas rojas detectaron y precedieron las correcciones del patron de
 pais interpolado por Svelte, la limpieza al ocultar la pagina, el orden de
 confirmacion del consentimiento y los mensajes de capacidad. Las carreras y
 selectores incorrectos del nuevo test se corrigieron sin cambiar contratos.
+La primera regresion remota encontro una carrera en el test existente de
+conflictos de audiencia: cambiaba la revision del mock antes de terminar la
+preparacion. Ahora espera la confirmacion disponible antes de simular el
+cambio concurrente; los cuatro casos focales aprobaron en 15.7s. El fallo
+remoto no se reprodujo en las tres repeticiones locales previas; no se
+cambio el comportamiento de audiencias ni se ampliaron los tiempos de espera.
 El primer intento nativo no ejecuto casos browser porque faltaban variables
 del decoder; se verificaron read-only las copias previamente aceptadas y
 se repitio con esas rutas, sin reinstalar ni fabricar un marker.

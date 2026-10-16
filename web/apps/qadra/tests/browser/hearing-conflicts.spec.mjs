@@ -20,6 +20,9 @@ test('a concurrent revision requires comparison while retaining the operators ch
   await editor.getByLabel('Sede o conexi\u00f3n', { exact: true }).fill('Borrador del operador');
   await editor.getByLabel('Motivo del cambio', { exact: true }).fill('Correccion comunicada');
   await editor.getByRole('button', { name: 'Revisar registro', exact: true }).click();
+  await expect(
+    editor.getByRole('button', { name: 'Confirmar registro', exact: true }),
+  ).toBeEnabled();
   state.records.get(record.id).push({
     ...structuredClone(record),
     revision: 2,
@@ -78,6 +81,9 @@ test('a stage change after preparation preserves the draft and requires a new ex
   await fillHearing(page);
   const editor = hearingEditor(page);
   await editor.getByRole('button', { name: 'Revisar registro', exact: true }).click();
+  await expect(
+    editor.getByRole('button', { name: 'Confirmar registro', exact: true }),
+  ).toBeEnabled();
   state.context.stage_revision = 2;
   state.handle = async (route, call) => {
     if (
