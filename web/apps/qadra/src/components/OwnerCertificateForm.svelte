@@ -4,6 +4,7 @@
   export let latest, bindingId, ready, busy, mode, error;
   export let onload, onclose, oncertificate, onprepare, onsignature, onstatement;
   export let oncheck, onregister, onretry;
+  export let localContext, onlocalsignature, onlocalinvalidate;
   $: blocked = latest !== null && latest.binding_id !== bindingId;
 </script>
 
@@ -14,10 +15,11 @@
 >
   <div class="section-heading">
     <h2>Registro de mi certificado</h2>
-    <span class="badge info">Firma externa</span>
+    <span class="badge info">Firma personal</span>
   </div>
   <p>
-    Tu clave privada permanece fuera de Qadra. Selecciona solamente tu certificado p&#250;blico.
+    Tu clave privada permanece en tu equipo. Selecciona tu certificado p&#250;blico para preparar el
+    v&#237;nculo.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !ready}
@@ -42,6 +44,9 @@
       {onprepare}
       {onsignature}
       {onstatement}
+      {localContext}
+      {onlocalsignature}
+      {onlocalinvalidate}
     />
     {#if command && mode !== 'editing'}
       <p class="notice">

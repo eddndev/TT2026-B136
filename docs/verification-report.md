@@ -2,6 +2,60 @@
 
 La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
 
+## Firma local Rust/WASM: 16 de octubre de 2026 UTC
+
+La implementacion descrita en [criptografia local](browser-local-cryptography.md)
+fue comprobada en Linux con un solo coordinador, un worker de navegador,
+`CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y temporales en disco. Esta evidencia
+es local; no establece integracion o activacion de la nueva interfaz.
+
+- El crate `browser-crypto` aprobo una prueba de fallo de entropia y ocho
+  pruebas de interoperabilidad y limites: clave cifrada, reapertura, CSR,
+  certificado, mensaje exacto, alteracion, claves distintas y perfil OpenSSL
+  PBKDF2 de 2048 iteraciones. OpenSSL verifico CSR y firmas. Clippy del crate
+  y sus targets aprobo con warnings denegados; el modulo WASM se compilo.
+- Doce pruebas Node focales cubren validacion de solicitud y ciclo de vida
+  del cliente worker. Quince escenarios de navegador aprobaron en campañas
+  focales: generacion/reimportacion/CSR, cuatro recorridos a 1440 y 390 pixeles,
+  cancelacion, visibilidad y fallos de carga o aleatoriedad. Se contrastaron
+  las firmas con Node/OpenSSL; los CSR generados fueron emitidos por los scripts
+  de la CA existente en ambos perfiles, con cadena/SPKI/EKU comprobados en una
+  CA temporal. Esa emision no se presenta como una nueva prueba HTTP de la CA.
+- El navegador no envio clave ni contrasena en las peticiones observadas;
+  tampoco las guardo en localStorage/sessionStorage ni sus escrituras. Los
+  casos de visibilidad cancelaron el worker y vaciaron campos. No se afirma
+  borrado fisico garantizado de memoria ni resistencia a una pagina alterada.
+- Rust, PostgreSQL, Redis y TSA reales aceptaron tres recorridos en 38.4s:
+  vinculo y acceso Owner con MFA mediante firma local; vinculo documental,
+  PDF y consentimiento locales; alternativa externa en vista movil. La
+  respuesta perdida se recupero por el recibo exacto sin duplicar firma;
+  se comprobaron ZIP, sello e historia tras retirar el vinculo.
+
+Las pruebas rojas detectaron y precedieron las correcciones del patron de
+pais interpolado por Svelte, la limpieza al ocultar la pagina, el orden de
+confirmacion del consentimiento y los mensajes de capacidad. Las carreras y
+selectores incorrectos del nuevo test se corrigieron sin cambiar contratos.
+El primer intento nativo no ejecuto casos browser porque faltaban variables
+del decoder; se verificaron read-only las copias previamente aceptadas y
+se repitio con esas rutas, sin reinstalar ni fabricar un marker.
+
+La prueba de ausencia de descargas documentales utiliza el canal `chromium`
+de Playwright para disponer del visor PDF integrado. El shell headless
+anterior descargaba el blob al navegar el iframe; no se suprimio la asercion
+ni se cambio el contenido firmado. La seleccion de canales se describe en
+[la documentacion de Playwright](https://playwright.dev/docs/browsers).
+Se inspeccionaron las capturas del ayudante documental a ambos anchos y la
+generacion y vinculo Owner moviles, sin recortes ni secretos en campos.
+
+La revision focal comprobo recursos criptograficos locales al paquete, sin
+CDN, worker por operacion, mensajes acotados y conservacion de permisos/MFA,
+confianza y recibos del servidor. No equivale a una auditoria de XSS o del
+navegador. Compilacion web de produccion aprobada; dos pruebas sobre ese bundle estatico
+aprobaron generacion/reimportacion movil y vinculo Owner local (9.7s). Cinco
+contratos de workflow/empaquetado y formato web/Rust aprobaron. Regresion completa de cierre,
+gates exactos, revision del PDF, integracion y despliegue siguen pendientes.
+Participantes conserva la decision de intervencion del titular pendiente.
+
 ## Diagnostico del acceso en navegador: 14 de octubre de 2026 UTC
 
 La campana remota del parche Rustls aprobo el control de dependencias. El primer

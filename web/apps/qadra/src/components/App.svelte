@@ -1,5 +1,6 @@
 <script>
   import { onMount, tick, setContext, onDestroy } from 'svelte';
+  import { writable } from 'svelte/store';
   import Auth from './Auth.svelte';
   import SessionNotice from './SessionNotice.svelte';
   import Sidebar from './Sidebar.svelte';
@@ -66,6 +67,7 @@
   }
   let appLayout;
   let sessionState = { phase: 'signed-out' };
+  const cryptoAdmission = setContext('crypto-admission', writable(false));
   const dialogs = createSessionDialogs({ root: () => appLayout, settled: tick });
   const drafts = createDraftRegistry();
   const api = createApi(globalThis.fetch, () => lifecycle.expire('rejected'));
@@ -74,6 +76,7 @@
     drafts,
     onState(state) {
       sessionState = state;
+      cryptoAdmission.set(state.phase === 'active');
       dialogs.transition(state.phase);
       if (state.phase === 'active' && pendingUser) {
         const confirmed = pendingUser;

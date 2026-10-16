@@ -10,6 +10,7 @@ on:
       - 'migrations/**'
       - 'pki/**'
       - 'scripts/web-demo.sh'
+      - 'scripts/*browser-crypto*'
       - 'scripts/web-alert-fixtures.mjs'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-typed-participant-fixtures.mjs'
@@ -57,6 +58,7 @@ on:
       - 'migrations/**'
       - 'pki/**'
       - 'scripts/web-demo.sh'
+      - 'scripts/*browser-crypto*'
       - 'scripts/web-alert-fixtures.mjs'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-typed-participant-fixtures.mjs'
@@ -107,7 +109,35 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  browser-crypto:
+    name: Browser cryptography module
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare persistent compiler cache
+        run: bash scripts/prepare-ci-workspace.sh checks
+      - name: Build the pinned browser module
+        run: bash scripts/build-browser-crypto.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: browser-crypto-module
+          path: web/apps/qadra/src/generated/browser-crypto/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Cancel the failed campaign
+        if: ${{ failure() && !cancelled() }}
+        uses: ./.github/actions/cancel-ci-campaign
+
   verify-shards:
+    needs: browser-crypto
     name: Web checks (${{ matrix.shard }}/2)
     strategy:
       fail-fast: true
@@ -129,6 +159,10 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: browser-crypto-module
+          path: web/apps/qadra/src/generated/browser-crypto/
       - run: npm ci
       - run: npm run format:check
       - run: npm test
@@ -182,6 +216,7 @@ jobs:
         uses: ./.github/actions/cancel-ci-campaign
 
   integration-shards:
+    needs: browser-crypto
     name: Browser with real services (${{ matrix.shard }}/3)
     strategy:
       fail-fast: true
@@ -218,6 +253,10 @@ jobs:
           for command in redis-server redis-cli jq unzip; do
             command -v "$command" >/dev/null
           done
+      - uses: actions/download-artifact@v4
+        with:
+          name: browser-crypto-module
+          path: web/apps/qadra/src/generated/browser-crypto/
       - run: npm ci
         working-directory: web
       - run: npx playwright install chromium

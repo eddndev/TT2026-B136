@@ -11,6 +11,7 @@
   import { download } from '../lib/documents.mjs';
   import SigningCertificateForm from './SigningCertificateForm.svelte';
   import SigningBindingDetails from './SigningBindingDetails.svelte';
+  import KeyRequest from './KeyRequest.svelte';
   export let api, user;
   const session = getContext('session-drafts'),
     accountId = user.id;
@@ -32,12 +33,43 @@
     busy = false,
     error = '',
     certificate = '',
-    confirmed = false;
+    confirmed = false,
+    localRevision = 0;
   const draft = createSigningDraft(session, { accountId }, 'binding', () => ({
     state,
     digest: null,
   }));
   const admitted = () => alive && draft.admitted();
+  $: localContext = state.prepared
+    ? [accountId, state.bindingId, localRevision, state.prepared.statement_base64].join('|')
+    : '';
+  function localSignature(value) {
+    if (
+      !admitted() ||
+      busy ||
+      state.mode !== 'editing' ||
+      !state.prepared ||
+      value.contextKey !== localContext
+    )
+      return false;
+    ownerBase64(value.signatureBase64, 384);
+    state = { ...state, signature: value.signatureBase64 };
+    confirmed = false;
+    error = '';
+    return true;
+  }
+  function invalidateLocal(contextKey) {
+    if (!admitted() || busy || state.mode !== 'editing' || contextKey !== localContext) return;
+    state = { ...state, signature: '' };
+    confirmed = false;
+  }
+  function externalSignature(value) {
+    if (!admitted() || busy || state.mode !== 'editing' || !state.prepared) return;
+    localRevision++;
+    state = { ...state, signature: value };
+    confirmed = false;
+    error = '';
+  }
   async function fresh() {
     const principal = await api.me();
     if (!admitted()) return false;
@@ -192,7 +224,7 @@
   <div>
     <span class="eyebrow">MI CUENTA</span>
     <h1>Mi firma documental</h1>
-    <p>Vincula tu certificado publico y firma documentos con tu clave fuera de Qadra.</p>
+    <p>Vincula tu certificado publico y firma documentos con la clave en tu equipo.</p>
   </div>
 </div>
 <p class="notice">
@@ -204,6 +236,7 @@
     <button class="secondary" disabled={busy} onclick={load}>Volver a consultar</button>
   </section>
 {:else}
+  <KeyRequest contextKey={accountId} purpose="document-signing" disabled={busy} />
   {#if saved}<section class="card stack">
       <h2>Intento pendiente del vinculo</h2>
       <p>Recuperarlo comprueba tu cuenta y conserva su identificador. No lo envia.</p>
@@ -246,17 +279,16 @@
       {state}
       {busy}
       {certificate}
+      {localContext}
       bind:confirmed
       oncertificate={selected}
       onprepare={prepare}
       onsubmit={submit}
       onwithdraw={withdraw}
       ondiscard={discard}
-      onsignature={(value) => {
-        state = { ...state, signature: value };
-        confirmed = false;
-        error = '';
-      }}
+      onsignature={externalSignature}
+      onlocalsignature={localSignature}
+      onlocalinvalidate={invalidateLocal}
       onerror={(failure) => (error = failure.message)}
     />
   {/if}

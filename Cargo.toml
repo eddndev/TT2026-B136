@@ -6,6 +6,7 @@ members = [
     "crates/infrastructure",
     "crates/web",
     "crates/bin",
+    "crates/browser-crypto",
 ]
 
 [workspace.package]

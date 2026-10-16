@@ -37,6 +37,9 @@
     opened = false,
     error = '',
     pdfUrl = '',
+    pdfBlob = null,
+    pdfRevision = 0,
+    consentRevision = 0,
     reviewed = false,
     confirmed = false;
   const draft = createSigningDraft(session, context, 'document', () => ({
@@ -52,6 +55,55 @@
     document.id === context.documentId &&
     document.version === context.version &&
     document.digest === context.digest;
+  $: pdfContext = [
+    context.accountId,
+    context.caseId,
+    context.documentId,
+    context.version,
+    context.digest,
+    state.operationId,
+    binding?.binding_id,
+    binding?.certificate.fingerprint,
+    pdfRevision,
+  ].join('|');
+  $: consentContext = [pdfContext, consentRevision, state.prepared?.consent_base64].join('|');
+  function acceptPdfSignature(value, contextKey = null) {
+    if (
+      !admitted() ||
+      busy ||
+      disabled ||
+      $administration.closed ||
+      !reviewed ||
+      !pdfBlob ||
+      state.prepared ||
+      state.mode !== 'editing'
+    )
+      return false;
+    if (contextKey !== null && contextKey !== pdfContext) return false;
+    if (contextKey === null) pdfRevision++;
+    state = { ...state, pdfSignature: value, prepared: null, consentSignature: '' };
+    confirmed = false;
+    error = '';
+    return true;
+  }
+  function acceptConsentSignature(value, contextKey = null) {
+    if (
+      !admitted() ||
+      busy ||
+      disabled ||
+      $administration.closed ||
+      !reviewed ||
+      !state.prepared ||
+      state.mode !== 'editing'
+    )
+      return false;
+    if (contextKey !== null && (contextKey !== consentContext || !confirmed)) return false;
+    if (contextKey === null) consentRevision++;
+    state = { ...state, consentSignature: value };
+    if (contextKey === null) confirmed = false;
+    error = '';
+    return true;
+  }
   async function fresh(requireAvailable = false) {
     const principal = await api.signingIdentity();
     if (!admitted()) return false;
@@ -119,16 +171,20 @@
   function clearPdf() {
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     pdfUrl = '';
+    pdfBlob = null;
+    pdfRevision++;
     reviewed = confirmed = false;
   }
-  function getPdf() {
+  function getPdf(exportFile = false) {
     run('personal-pdf', async () => {
       clearPdf();
+      state = { ...state, pdfSignature: '', prepared: null, consentSignature: '' };
       const result = await api.content(context.digest);
       const blob = await checkedSigningPdf(result.blob, context.digest);
       if (!admitted()) return;
+      pdfBlob = blob;
       pdfUrl = URL.createObjectURL(blob);
-      download(blob, 'document.pdf');
+      if (exportFile) download(blob, 'document.pdf');
     });
   }
   function prepare() {
@@ -240,23 +296,26 @@
   <IndividualSigningEditor
     {state}
     {pdfUrl}
+    {pdfBlob}
+    {pdfContext}
+    {consentContext}
+    certificate={binding.certificate}
+    signatureDisabled={$administration.closed}
     busy={!!busy || disabled}
     bind:reviewed
     bind:confirmed
-    ondownload={getPdf}
+    onreview={() => getPdf()}
+    ondownload={() => getPdf(true)}
     onprepare={prepare}
     onsubmit={submit}
     oncancel={cancel}
-    onpdfsignature={(value) => {
-      state = { ...state, pdfSignature: value, prepared: null, consentSignature: '' };
-      confirmed = false;
-      error = '';
-    }}
-    onconsentsignature={(value) => {
-      state = { ...state, consentSignature: value };
-      confirmed = false;
-      error = '';
-    }}
+    onpdfsignature={(value) => acceptPdfSignature(value)}
+    onconsentsignature={(value) => acceptConsentSignature(value)}
+    onlocalpdfsignature={(value) => acceptPdfSignature(value.signatureBase64, value.contextKey)}
+    onlocalconsentsignature={(value) =>
+      acceptConsentSignature(value.signatureBase64, value.contextKey)}
+    onlocalpdfinvalidate={(contextKey) => acceptPdfSignature('', contextKey)}
+    onlocalconsentinvalidate={(contextKey) => acceptConsentSignature('', contextKey)}
     onerror={(failure) => (error = failure.message)}
   />
 {/if}

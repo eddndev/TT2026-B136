@@ -39,7 +39,13 @@ instalaci\'on p\'ublica pendiente en la \cref{sec:pruebas-portal-ca}.
   \end{tabularx}
 \end{table}
 
-Los parámetros criptográficos son idénticos en toda la jerarquía y están alineados con el nivel de fortaleza de 128 bits adoptado por el diseño criptográfico (\cref{sec:nivel-seguridad}): todas las llaves son RSA de 3\,072 bits generadas con \texttt{openssl genpkey} y todas las firmas usan SHA-256, con \texttt{sha256WithRSAEncryption} como algoritmo de firma. La \cref{tab:pki-parametros} resume los valores exactos.
+Los par\'ametros criptogr\'aficos de la jerarqu\'ia conservan RSA de 3\,072 bits
+y SHA-256, con \texttt{sha256WithRSAEncryption} como algoritmo de firma,
+conforme al dise\~no criptogr\'afico de \cref{sec:nivel-seguridad}. Las claves
+creadas por estos scripts utilizan \texttt{openssl genpkey}; las solicitudes
+p\'ublicas tambi\'en pueden proceder del ayudante local Rust/WebAssembly de
+\cref{sec:impl-criptografia-local}, sin entregar la clave del titular a la CA.
+La \cref{tab:pki-parametros} resume los valores exactos.
 
 \begin{table}[H]
   \centering

@@ -1,9 +1,9 @@
 # Cierre funcional del prototipo web
 
-## Estado vigente al 14 de octubre de 2026
+## Estado vigente al 15 de octubre de 2026
 
-Qadra y la CA ejecutan `v0.1.10`, revisión
-`f8ebeb9ef8a22e0b8dfde2d1f805311a4f5115c1`.
+La base operativa previa al ayudante local es Qadra y CA `v0.1.11`, revision
+`1186da93c0075a4e2839f7a407deca45e16f6602`.
 El acceso Owner por certificado y MFA y el acceso alternativo por contraseña
 fueron aceptados en producción para la misma cuenta Administrador. El portal
 administrativo de la CA conserva la raíz existente y ya tiene emisión,
@@ -11,6 +11,16 @@ descarga, revocación, publicación de CRL e historial aceptados desde la interf
 La [verificación de la CA](ca/verification.md) distingue esos resultados de la
 corrección de parada y su comprobación instalada. El estado operativo final se
 concilia en [cierre técnico](technical-closure.md).
+
+El [ayudante criptografico local](browser-local-cryptography.md) esta implementado
+en la rama de trabajo y su aceptacion tecnica sigue en curso. Genera una clave
+cifrada y un CSR, exige comprobar la copia guardada y prepara firmas para
+vinculo Owner, acceso Owner, vinculo documental y PDF/consentimiento exactos.
+La clave y su contrasena se usan en el navegador sin enviarse al servidor;
+OpenSSL permanece como alternativa. Este incremento no esta integrado ni
+desplegado y no se atribuyen a el las aceptaciones historicas del flujo externo.
+No cambia MFA, autoridad del backend, perfiles de la CA ni declaraciones de
+participantes.
 
 ## Base funcional aceptada el 12 de octubre de 2026
 
@@ -999,16 +1009,20 @@ aprobados ni produce un nuevo porcentaje global del TT.
   multiinquilino no forman parte de este alcance.
 - La autenticación integrada en `main` conserva contraseña con MFA y añade el
   certificado como primer factor alternativo para Owner, también con MFA
-  obligatorio. Esta opción requiere activación explícita y sigue deshabilitada
-  en VPS3. El sello documental histórico usa
+  obligatorio. Esta opcion requiere activacion explicita; la aceptacion del
+  14 de octubre completo ambos metodos en VPS3 para la misma cuenta Owner.
+  El sello documental historico usa
   la credencial configurada al arrancar el servidor. Las declaraciones internas
   de participantes verifican una firma externa de 384 bytes sobre una declaración
   de 218 bytes; no reciben la clave privada. Ese flujo no vincula automáticamente
   la identidad representada con una cuenta de acceso. La firma documental
-  individual conserva vínculo de cuenta, clave externa y consentimiento exacto.
+  individual conserva vinculo de cuenta, clave bajo custodia del titular y
+  consentimiento exacto.
   Sus siete criterios tienen aceptación funcional completa; PR95 la integró,
-  su despliegue fue aceptado y el flujo permanece en `v0.1.4`. La demostración
-  personal con el Litigante y su clave/CSR externos sigue siendo humana.
+  su despliegue fue aceptado y el flujo se conserva en `v0.1.10`. El ayudante
+  local implementado permite usar una clave cifrada en el navegador, pero
+  conserva aceptacion tecnica en curso y no esta desplegado. La demostracion
+  personal con el Litigante y su propia clave/CSR sigue siendo humana.
 - El corte histórico de sesiones declaradas midió Argon2id en 409.6 ms sobre
   cinco corridas con dos iteraciones. La medición aislada posterior del mismo
   costo promedió 400.3851816 ms, también por debajo de 500--1000 ms. El ajuste

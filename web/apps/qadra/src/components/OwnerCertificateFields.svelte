@@ -1,6 +1,10 @@
 <script>
+  import LocalSignature from './LocalSignature.svelte';
+  import { ownerStatementDownload } from '../lib/owner-certificate-files.mjs';
   export let prepared, signatureName, selectedName, selected, busy, mode, blocked;
   export let oncertificate, onprepare, onsignature, onstatement;
+  export let localContext, onlocalsignature, onlocalinvalidate;
+  $: localInput = prepared ? ownerStatementDownload(prepared.statement_base64) : null;
 </script>
 
 <label
@@ -26,10 +30,7 @@
 {#if prepared}
   <div class="prepared stack">
     <h3>Declaraci&#243;n preparada</h3>
-    <p>
-      Firma los 150 bytes descargados sin modificarlos, con tu herramienta externa: RSA-3072, PKCS#1
-      v1.5 y SHA-256.
-    </p>
+    <p>Firma la declaraci&#243;n exacta para vincular este certificado a tu cuenta.</p>
     <dl>
       <dt>Certificado</dt>
       <dd>{prepared.certificate.summary.subject}</dd>
@@ -40,20 +41,34 @@
       <dt>Revisi&#243;n de confianza</dt>
       <dd>{prepared.trust_revision}</dd>
     </dl>
-    <div class="action-row">
-      <button class="secondary" disabled={busy} onclick={onstatement}
-        >Descargar bytes para firma</button
+    {#if mode === 'editing'}{#key localContext}<LocalSignature
+          contextKey={localContext}
+          input={localInput}
+          certificateDerBase64={prepared.certificate.der_base64}
+          certificateFingerprint={prepared.certificate.fingerprint}
+          purpose="vinculo Owner"
+          disabled={busy || blocked}
+          onsignature={onlocalsignature}
+          oninvalidate={onlocalinvalidate}
+        />{/key}{/if}
+    <details open>
+      <summary>Usar una firma externa</summary>
+      <p>Firma los 150 bytes exactos con RSA-3072, PKCS#1 v1.5 y SHA-256.</p>
+      <div class="action-row">
+        <button class="secondary" disabled={busy} onclick={onstatement}
+          >Descargar bytes para firma</button
+        >
+      </div>
+      <label
+        >Firma separada<input
+          type="file"
+          accept=".sig"
+          disabled={busy || mode !== 'editing'}
+          onchange={onsignature}
+        /></label
       >
-    </div>
-    <label
-      >Firma separada<input
-        type="file"
-        accept=".sig"
-        disabled={busy || mode !== 'editing'}
-        onchange={onsignature}
-      /></label
-    >
-    <small>Archivo binario de exactamente 384 bytes.</small>
+      <small>Archivo binario de exactamente 384 bytes.</small>
+    </details>
     {#if signatureName}<p class="hint">{signatureName}</p>{/if}
   </div>
 {/if}

@@ -12,6 +12,11 @@ certificado y descargar su recibo público. La
 habilitación del servidor. Tener un recibo no demuestra vigencia actual ni
 garantiza que el servidor permita el acceso.
 
+La [firma local en el navegador](browser-local-cryptography.md) esta implementada
+en la rama de trabajo, con aceptacion tecnica en curso y sin despliegue;
+no queda acreditada por las pruebas historicas de este documento.
+La alternativa de firma externa con OpenSSL se conserva.
+
 ## Recorrido de acceso
 
 1. En la pantalla de acceso, selecciona **Ingresar con certificado**. Qadra
@@ -26,10 +31,12 @@ garantiza que el servidor permita el acceso.
 3. Pulsa **Preparar acceso** y luego **Descargar bytes de acceso**. La descarga
    `acceso-certificado.bin` contiene exactamente **182 bytes** de un intento
    nuevo y temporal. Conserva ese archivo binario sin convertirlo a texto.
-4. Firma esos bytes fuera del navegador con la clave correspondiente al
-   certificado. Selecciona sólo la firma binaria de **384 bytes** en **Firma
-   separada de acceso**. La aplicación no solicita la clave privada, su
-   contraseña, un archivo PFX o un dispositivo de custodia.
+4. En **Firmar en este dispositivo**, selecciona la clave cifrada, introduce
+   su contraseña y, si se solicita, selecciona el certificado público de la
+   huella esperada. **Firmar localmente** prepara la firma de esos 182 bytes
+   sin enviar la clave ni la contraseña al servidor. Como alternativa, firma
+   fuera del navegador y selecciona sólo la firma binaria de **384 bytes** en
+   **Firma separada de acceso**. No se admiten archivos PFX.
 5. Pulsa **Comprobar firma** una sola vez. Si la prueba es admitida, aparece
    **Un paso más.**; introduce tu código TOTP o un código de recuperación aún
    sin usar y selecciona **Verificar y entrar**. La prueba de firma por sí sola
@@ -51,7 +58,8 @@ openssl dgst -sha256 -sign clave-privada.pem \
 
 Sustituye los nombres por tus archivos y selecciona únicamente
 `firma-acceso.sig` en Qadra. Una clave cifrada puede solicitar su contraseña
-localmente. Ni la clave ni esa contraseña se adjuntan al navegador. El tamaño
+localmente. En esta alternativa no se seleccionan la clave ni su contraseña
+en el navegador; el ayudante opcional las usa localmente sin enviarlas al servidor. El tamaño
 de una firma no prueba su autenticidad: el servidor verifica RSA, la cuenta,
 el vínculo y la confianza publicada actuales.
 
@@ -59,7 +67,7 @@ el vínculo y la confianza publicada actuales.
 
 El intento tiene una duración limitada. Si vence, se rechaza la prueba o falla
 su respuesta, Qadra descarta el desafío y la firma de ese intento. **Preparar
-otro intento** requiere una nueva descarga y otra firma externa. No se repite
+otro intento** requiere firmar los nuevos bytes, con el ayudante o externamente. No se repite
 el envío anterior ni se considera una respuesta perdida como acceso concedido.
 Un rechazo de MFA tampoco habilita reutilizar la prueba anterior.
 
@@ -84,8 +92,10 @@ contraseña y MFA; no debe repetirse el retiro automáticamente.
 
 El cliente comprueba JSON, Base64, tamaños y correspondencia de cuenta, vínculo
 y huella. El máximo del archivo se deriva de los límites del recibo público,
-incluidos raíz, certificado, CRL y texto escapado. No interpreta ASN.1 ni
-verifica certificados o firmas RSA en JavaScript. El recibo conserva confianza
+incluidos raíz, certificado, CRL y texto escapado. Ese cliente de transporte
+no verifica confianza criptográfica. El ayudante Rust/WASM inspecciona el
+certificado y comprueba que corresponda a la clave usada para firmar; no
+sustituye la verificación de autoridad del servidor. El recibo conserva confianza
 histórica: una raíz, revisión o generación distintas en un desafío nuevo no se
 rechazan por su sola diferencia con aquel recibo. La autoridad actual sigue
 perteneciendo al servidor.
@@ -119,4 +129,6 @@ sesión que ya se había cerrado; esa invalidación tiene su aceptación backend
 El intento previo llegó al retiro bajo la sesión derivada del mismo vínculo y
 recibió 401: la retirada invalida esa autoridad. Se corrigió la preparación de
 la aceptación, sin cambiar permisos, tiempos límite ni aserciones de respuesta.
-La versión privada instalada no habilita todavía esta funcionalidad.
+Esa campaña no activó la instalación. La aceptación operativa posterior del
+acceso Owner se registra en la [verificación de CA](ca/verification.md),
+separada de la incorporación del ayudante de firma local.

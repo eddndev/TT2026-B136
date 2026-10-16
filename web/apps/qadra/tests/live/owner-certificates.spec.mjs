@@ -24,6 +24,8 @@ test('Owner registers public proof, discovers it after fresh MFA and withdraws i
   const own = fixture.ownerCertificates;
   expect(own?.owner?.id, 'The isolated Owner fixture must be provisioned').toBeTruthy();
   expect(own.certificatePath).toBeTruthy();
+  expect(own.localSigning?.encryptedKeyPath).toBeTruthy();
+  expect(own.localSigning?.keyPasswordPath).toBeTruthy();
   const writes = [];
   page.on('request', (request) => {
     const url = new URL(request.url());
@@ -52,7 +54,14 @@ test('Owner registers public proof, discovers it after fresh MFA and withdraws i
   const prepared = await jsonResponse(preparation);
   expect(prepared).toMatchObject({ owner_id: own.owner.id, binding_id: id });
   await expect(button(form, 'Descargar bytes para firma')).toBeEnabled();
-  const data = await signPreparation(page, form, prepared, own.certificatePath, testInfo);
+  const data = await signPreparation(
+    page,
+    form,
+    prepared,
+    own.certificatePath,
+    testInfo,
+    own.localSigning,
+  );
   await expect(button(form, 'Registrar v\u00ednculo')).toBeEnabled();
   expect(writes.map((call) => call.path)).toEqual([`${bindingsPath}/${id}/prepare`]);
   const registration = responseTo(page, `${bindingsPath}/${id}/register`, 'POST');

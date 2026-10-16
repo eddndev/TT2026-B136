@@ -1,15 +1,25 @@
 # Firma documental individual en Qadra
 
-El litigante conserva su clave privada fuera de Qadra. La interfaz recibe
-un certificado publico PEM y firmas binarias separadas de 384 bytes. Nunca
-solicita claves privadas, contrasenas de la clave ni archivos PKCS12.
+El litigante conserva su clave privada en su equipo. El servidor recibe
+un certificado publico PEM y firmas binarias separadas de 384 bytes; no recibe
+claves privadas ni sus contrasenas. El
+[ayudante local del navegador](browser-local-cryptography.md) esta implementado
+en la rama de trabajo, con aceptacion tecnica en curso y sin despliegue:
+permite seleccionar una clave cifrada para uso local, sin subirla al servidor.
+La alternativa OpenSSL descrita aqui permanece disponible. No se admiten PKCS12.
 El perfil es interno y de demostracion; no representa FIREL ni una emision
 por un PSC. El contrato esta en `docs/http-individual-signing.md` y la decision
 en `docs/adr/0074-individual-document-signatures.md`.
 
 ## Certificado y clave local
 
-En el equipo del titular, con OpenSSL y un directorio privado:
+El nuevo bloque **Generar clave y solicitud**, en **Mi firma documental**,
+requiere descargar y reimportar la clave cifrada con su contrasena antes de
+habilitar el CSR. El responsable de la CA revisa y emite el certificado con el
+proposito `document-signing`; la generacion local no lo vincula a la cuenta.
+El estado de entrega del bloque se distingue en la guia del ayudante.
+
+Como alternativa, en el equipo del titular, con OpenSSL y un directorio privado:
 
 ```sh
 umask 077
@@ -42,15 +52,19 @@ CRL vigente mediante la administracion existente de confianza.
 Con la cuenta Litigator, abre **Mi firma documental**, selecciona
 `signer-public.pem` y prepara el vinculo. Revisa tu cuenta, la huella del
 certificado, el identificador del vinculo y la revision de confianza.
-Descarga `certificate-binding.bin` y, sin modificar sus bytes, ejecuta
-localmente:
+El bloque **Firmar en este dispositivo** usa la clave cifrada y su contrasena
+para firmar la declaracion preparada y llenar la firma del formulario. Despues
+debes confirmar el registro; la firma local no lo envia automaticamente.
+Para la alternativa externa, descarga `certificate-binding.bin` y, sin
+modificar sus bytes, ejecuta localmente:
 
 ```sh
 openssl dgst -sha256 -sign signer-private.pem \
   -out certificate-binding.sig certificate-binding.bin
 ```
 
-Carga solamente `certificate-binding.sig`, confirma la vinculacion y registra.
+Si usaste OpenSSL, carga solamente `certificate-binding.sig`. Con la firma
+preparada por cualquiera de las dos alternativas, confirma la vinculacion y registra.
 Conserva el recibo publico. El nombre del certificado es informativo: la cuenta
 firmante se identifica dentro de los bytes canonicos, no por el CN.
 
@@ -63,24 +77,30 @@ volver a autenticarte. La consulta no envia otra solicitud de registro.
 
 Abre una version del historial del expediente y elige **Firmar personalmente**.
 Descarga `document.pdf`, revisa la vista del mismo PDF y confirma su contenido.
-La interfaz comprueba sus bytes contra el SHA-256 de esa version. Firma ese
-archivo localmente:
+La interfaz comprueba sus bytes contra el SHA-256 de esa version. El ayudante
+local firma esos mismos bytes al pulsar **Firmar localmente**, tras seleccionar
+la clave cifrada y proporcionar su contrasena. Como alternativa, firma ese
+archivo con OpenSSL:
 
 ```sh
 openssl dgst -sha256 -sign signer-private.pem -out document.sig document.pdf
 ```
 
-Carga `document.sig` y prepara el consentimiento. Revisa la cuenta, el
+Si usaste OpenSSL, carga `document.sig`. Con la firma del contenido preparada,
+solicita el consentimiento. Revisa la cuenta, el
 expediente, el documento, la version, el resumen del contenido, la huella del
-certificado y el identificador de la operacion. Descarga
-`document-consent.bin` y firma sus bytes exactos:
+certificado y el identificador de la operacion. El consentimiento requiere
+otra firma local sobre su propia declaracion preparada; la firma del PDF no
+la sustituye. Como alternativa, descarga `document-consent.bin` y firma sus
+bytes exactos:
 
 ```sh
 openssl dgst -sha256 -sign signer-private.pem \
   -out document-consent.sig document-consent.bin
 ```
 
-Carga `document-consent.sig`, confirma y envia la firma personal. Qadra conserva
+Si usaste OpenSSL, carga `document-consent.sig`. Con la firma del consentimiento
+preparada, confirma y envia la firma personal. Qadra conserva
 las dos firmas junto con el vinculo publico y la evidencia de confianza
 capturada. El paquete de evidencia incluye instrucciones de verificacion
 independiente.

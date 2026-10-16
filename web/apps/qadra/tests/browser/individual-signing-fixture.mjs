@@ -1,5 +1,6 @@
 import { setup, caseId, id, document, validReport } from './helpers.mjs';
 import { absoluteSession } from '../fixtures/session.mjs';
+import { createHash } from 'node:crypto';
 import {
   accountId,
   binding,
@@ -10,7 +11,7 @@ import {
   certificate,
 } from '../individual-signing-fixture.mjs';
 export { pdf, digest, signature, certificate };
-export async function signingSetup(page, role = 'litigator') {
+export async function signingSetup(page, role = 'litigator', material = null) {
   await setup(page, role, [{ ...document, digest }]);
   const user = { id: accountId, email: 'litigator@example.test', role };
   const state = {
@@ -37,11 +38,17 @@ export async function signingSetup(page, role = 'litigator') {
     value.binding_id = bindingId;
     const bytes = Buffer.from(value.statement_base64, 'base64');
     Buffer.from(bindingId.replaceAll('-', ''), 'hex').copy(bytes, 94);
+    if (material) {
+      Buffer.from(material.fingerprint, 'hex').copy(bytes, 110);
+      value.certificate.der_base64 = material.certificate.toString('base64');
+      value.certificate.fingerprint = material.fingerprint;
+    }
     value.statement_base64 = bytes.toString('base64');
     if (route.request().method() === 'POST')
       state.writes.push({ path, body: route.request().postData() });
     if (action === 'prepare') return route.fulfill({ json: value });
     if (action === 'register') {
+      if (material) value.signature_base64 = route.request().postDataJSON().signature_base64;
       state.current = value;
       if (state.lostBinding) {
         state.lostBinding = false;
@@ -110,6 +117,14 @@ export async function signingSetup(page, role = 'litigator') {
       ])
         Buffer.from(uuid.replaceAll('-', ''), 'hex').copy(bytes, offset);
       bytes.writeUInt32BE(1, 190);
+      if (material) {
+        value.certificate_fingerprint = material.fingerprint;
+        Buffer.from(material.fingerprint, 'hex').copy(bytes, 110);
+        value.pdf_signature_digest = createHash('sha256')
+          .update(Buffer.from(data.pdf_signature_base64, 'base64'))
+          .digest('hex');
+        Buffer.from(value.pdf_signature_digest, 'hex').copy(bytes, 226);
+      }
       value.consent_base64 = bytes.toString('base64');
       state.prepared = value;
       return route.fulfill({ json: value });

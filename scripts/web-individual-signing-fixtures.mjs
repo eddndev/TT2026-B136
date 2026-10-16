@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
+import { provisionLocalSigningKey } from "./web-local-key-fixtures.mjs";
 
 export async function provisionIndividualSigning(request) {
   assert.ok(process.env.IDENTITY_TEST_DATABASE_URL);
@@ -17,6 +18,8 @@ export async function provisionIndividualSigning(request) {
     const privateKeyPath = join(privateDirectory, `individual-${name}.key.pem`);
     assert.match(await readFile(certificatePath, "ascii"), /^-----BEGIN CERTIFICATE-----/);
     assert.equal((await stat(privateKeyPath)).mode & 0o777, 0o600);
+    const localSigning = name === "desktop"
+      ? await provisionLocalSigningKey(privateKeyPath) : null;
     const password = randomBytes(24).toString("hex");
     const enrollment = await request("POST", "/users", {
       email: `web-individual-${name}@example.com`, password, role: "litigator",
@@ -35,6 +38,7 @@ export async function provisionIndividualSigning(request) {
       litigator: { id: enrollment.user.id, email: enrollment.user.email, password,
         recoveryCodes: enrollment.recovery_codes },
       caseId: record.id, caseTitle: record.title, document, certificatePath, privateKeyPath,
+      localSigning,
     };
   }
   return scenarios;

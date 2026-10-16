@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash, X509Certificate, verify } from 'node:crypto';
 import { button, downloaded, responseTo, jsonResponse } from './owner-certificate-helpers.mjs';
+import { signLocally } from './local-signature-helpers.mjs';
 
 const path = '/api/v1/auth/certificate-login';
 const uuidBytes = (value) => Buffer.from(value.replaceAll('-', ''), 'hex');
@@ -51,7 +52,7 @@ async function signedLogin(page, region, capture, own, receipt, testInfo) {
   const signature = readFileSync(signaturePath);
   expect(signature).toHaveLength(384);
   expect(verify('RSA-SHA256', bytes, certificate.publicKey, signature)).toBe(true);
-  await region.getByLabel('Firma separada de acceso', { exact: true }).setInputFiles(signaturePath);
+  await signLocally(region, own.localSigning, own.certificatePath);
   return signature.toString('base64');
 }
 

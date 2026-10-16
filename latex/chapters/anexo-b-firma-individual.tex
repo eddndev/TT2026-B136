@@ -1,9 +1,15 @@
 \subsection{pki issue-request: solicitud pública externa}
 \label{sec:cli-pki-request}
 
+Este procedimiento conserva la alternativa OpenSSL. El ayudante de
+\cref{sec:impl-criptografia-local} permite generar en Qadra la clave cifrada
+y el CSR, comprobar la copia guardada y entregar solamente esa solicitud
+p\'ublica al mismo procedimiento de emisi\'on. Ambos recorridos mantienen
+la clave bajo custodia del titular y requieren el v\'inculo posterior.
+
 El titular genera la clave RSA de 3\,072 bits y el CSR PKCS\#10 en su equipo.
-La clave del ejemplo queda cifrada; OpenSSL solicita su contraseña localmente.
-La solicitud pública se entrega al administrador de la CA:
+La clave del ejemplo queda cifrada; OpenSSL solicita su contrase\~na localmente.
+La solicitud p\'ublica se entrega al administrador de la CA:
 
 \begin{lstlisting}[language=bash, numbers=none]
 umask 077

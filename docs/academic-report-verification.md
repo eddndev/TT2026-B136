@@ -1,5 +1,15 @@
 # Verificación de la actualización académica
 
+## Firma local del navegador: fuentes del 16 de octubre de 2026 UTC
+
+Las fuentes incorporan el modulo Rust/WASM, generacion y reimportacion de clave
+cifrada, CSR y los cuatro recorridos, distinguiendo custodia local de confianza
+del servidor. Se corrigieron las afirmaciones vigentes que exigian usar la
+clave siempre fuera del navegador. Las cifras historicas de OpenSSL permanecen
+identificadas como externas; no se atribuyen a esta nueva interfaz. Resumen,
+objetivos y conclusiones se preservaron. Compilacion e inspeccion del nuevo PDF
+pendientes del gate Documents; el `main.pdf` local aceptado permanece intacto.
+
 ## Cierre instalado de Owner y CA: 14 de octubre de 2026 UTC
 
 Las fuentes de implementacion y pruebas registran los dos accesos reales del

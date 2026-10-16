@@ -62,8 +62,11 @@ El usuario selecciona un recibo público histórico, descarga una declaración
 nueva de 182 bytes y aporta su firma separada antes de completar MFA. El
 recorrido y las diferencias respecto del registro de 150 bytes están en
 [la guía de acceso](owner-certificate-login-interface.md). La clave se utiliza
-fuera del navegador; habilitar esta composición no establece una política de
-custodia o entrega de claves.
+en el equipo del titular, mediante la alternativa OpenSSL o el
+[ayudante local del navegador](browser-local-cryptography.md), implementado en
+la rama de trabajo y con aceptacion tecnica en curso, sin despliegue.
+Ninguna alternativa envia la clave ni su contrasena al servidor.
+Habilitar esta composición no establece una política de custodia o entrega de claves.
 
 El lanzador desechable `scripts/web-demo.sh` habilita el acceso sólo cuando se
 selecciona la familia de aceptación Owner que prepara su certificado y cuenta

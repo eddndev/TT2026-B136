@@ -15,6 +15,10 @@ cargo build --workspace --release --locked
 size=$(stat -c %s target/release/despacho-cli)
 test "$size" -le $((25 * 1024 * 1024))
 npm --prefix web ci
+if [ ! -f web/apps/qadra/src/generated/browser-crypto/manifest.json ]; then
+  bash scripts/build-browser-crypto.sh
+fi
+node scripts/browser-crypto-artifact.mjs
 npm --prefix web run build
 npm --prefix web run build:ca
 python3 -B ops/deploy/bundle.py "$version" "$commit" "$library"

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash, X509Certificate, verify } from 'node:crypto';
 import { expect } from '@playwright/test';
+import { signLocally } from './local-signature-helpers.mjs';
 import {
   navigate,
   button,
@@ -63,7 +64,9 @@ export async function signedDownload(page, control, scenario, testInfo, name, la
   const certificate = new X509Certificate(readFileSync(scenario.certificatePath));
   expect(signature).toHaveLength(384);
   expect(verify('RSA-SHA256', result.bytes, certificate.publicKey, signature)).toBe(true);
-  await page.getByLabel(label, { exact: true }).setInputFiles(signaturePath);
+  if (scenario.localSigning)
+    await signLocally(page, scenario.localSigning, scenario.certificatePath);
+  else await page.getByLabel(label, { exact: true }).setInputFiles(signaturePath);
   return { ...result, signature, certificate };
 }
 
@@ -145,7 +148,9 @@ export async function preparePersonalSignature(page, scenario, testInfo) {
   );
   const pdfSignature = readFileSync(signaturePath);
   expect(pdfSignature).toHaveLength(384);
-  await page.getByLabel('Firma externa del PDF', { exact: true }).setInputFiles(signaturePath);
+  if (scenario.localSigning)
+    await signLocally(page, scenario.localSigning, scenario.certificatePath);
+  else await page.getByLabel('Firma externa del PDF', { exact: true }).setInputFiles(signaturePath);
   const preparation = responseTo(
     page,
     documentPath(scenario) + '/individual-signing/prepare',
@@ -161,6 +166,9 @@ export async function preparePersonalSignature(page, scenario, testInfo) {
     document_digest: scenario.document.digest,
     pdf_signature_digest: digest(pdfSignature),
   });
+  const confirmation = page.getByLabel('Confirmo firmar esta version con mi certificado');
+  await expect(confirmation).toBeEnabled();
+  await confirmation.check();
   const proof = await signedDownload(
     page,
     'Descargar consentimiento',
@@ -183,7 +191,8 @@ export async function preparePersonalSignature(page, scenario, testInfo) {
     );
   expect(proof.bytes.readUInt32BE(190)).toBe(scenario.document.version);
   expect(verify('RSA-SHA256', pdf.bytes, proof.certificate.publicKey, pdfSignature)).toBe(true);
-  await page.getByLabel('Confirmo firmar esta version con mi certificado').check();
+  if (scenario.localSigning) await expect(confirmation).toBeChecked();
+  else await confirmation.check();
   return {
     prepared,
     input: {

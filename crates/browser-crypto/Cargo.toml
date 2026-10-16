@@ -1,0 +1,29 @@
+[package]
+name = "browser-crypto"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ring = { workspace = true, features = ["wasm32_unknown_unknown_js"] }
+rsa.workspace = true
+rand_chacha = "0.3"
+sha2 = { workspace = true, features = ["oid"] }
+der = { workspace = true, features = ["pem"] }
+x509-cert = { workspace = true, features = ["pem"] }
+pkcs8 = { version = "0.10.2", features = ["encryption", "pem"] }
+pkcs5 = { version = "0.7.1", features = ["pbes2"] }
+zeroize.workspace = true
+serde.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tempfile.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "=0.2.127"
+serde_json.workspace = true

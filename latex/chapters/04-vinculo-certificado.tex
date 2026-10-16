@@ -103,9 +103,11 @@ La vista \emph{Mi certificado} pertenece a la cuenta Owner autenticada y conserv
 los componentes y estilos de Qadra. Consulta primero la identidad vigente y luego
 el vínculo propio sin retirar. El registro asigna un UUID a la intención y admite
 un único contenedor PEM público de hasta 16~KiB. La preparación devuelve la
-declaración de 150 bytes para descargar; la firma externa se selecciona como
-archivo binario separado de 384 bytes. El navegador no recibe la clave privada
-ni sustituye la admisión criptográfica del servidor.
+declaraci\'on de 150 bytes. El titular puede firmarla localmente con su clave
+cifrada o descargarla e importar una firma externa de 384 bytes. El ayudante
+de \cref{sec:impl-criptografia-local} utiliza clave y contrase\~na solamente
+en el navegador; la API recibe evidencia p\'ublica y conserva su admisi\'on
+criptogr\'afica independiente.
 
 El comando se captura antes de esperar la respuesta de escritura. Un resultado
 incierto conserva declaración, certificado y firma originales; la consulta del
@@ -194,7 +196,7 @@ exige rechazo mientras el plazo capturado todavía está abierto. El vínculo y
 su evidencia permanecen en SQL; después de restaurar, una firma nueva sólo
 concede MFA nueva y no reutiliza la autoridad de una sesión anterior.
 
-\subsubsection{Acceso visible mediante firma externa y MFA}
+\subsubsection{Acceso visible mediante firma separada y MFA}
 
 La pantalla de acceso conserva la composición visual Qadra y el formulario MFA
 existente. Al elegir \emph{Ingresar con certificado}, consulta la disponibilidad
@@ -205,10 +207,12 @@ la selección de cuenta, vínculo, huella y nombre declarado. No utiliza ese rec
 histórico como prueba de vigencia ni envía su contenido completo al preparar.
 
 La decisión explícita de preparar solicita una declaración nueva de 182 bytes.
-El usuario descarga sus bytes exactos y los firma fuera del navegador; selecciona
-únicamente una firma binaria separada de 384 bytes. La declaración de registro
-de 150 bytes y su firma conservan un propósito distinto. La interfaz no recibe
-claves privadas ni realiza una validación ASN.1 o RSA alternativa al servidor.
+El usuario firma sus bytes exactos con el ayudante local o los descarga para
+firmarlos fuera del navegador e importar la prueba de 384 bytes. En el primer
+caso selecciona el certificado p\'ublico que corresponde a la huella capturada
+y su clave cifrada. La declaraci\'on de registro de 150 bytes y su firma
+conservan un prop\'osito distinto. La comprobaci\'on local de correspondencia
+no sustituye la validaci\'on de la evidencia y confianza realizada por el servidor.
 La prueba admitida conduce al MFA habitual y sólo su resultado correcto abre la
 sesión de la misma cuenta Owner seleccionada.
 
