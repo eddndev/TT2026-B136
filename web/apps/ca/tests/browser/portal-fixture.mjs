@@ -12,9 +12,12 @@ export async function portalFixture(page, { rejectSavedRequest = false } = {}) {
   let issued = false, revoked = false, published = false, lost = true;
   let saved;
   const start = Date.now();
-  const status = () => ({ operator, policy: { absolute_ttl_seconds: 300, idle_ttl_seconds: 120 },
-    server_now_unix_ms: Date.now(), absolute_expires_at_unix_ms: start + 300000,
-    idle_expires_at_unix_ms: Math.min(start + 300000, Date.now() + 120000) });
+  const status = () => {
+    const now = Date.now();
+    return { operator, policy: { absolute_ttl_seconds: 300, idle_ttl_seconds: 120 },
+      server_now_unix_ms: now, absolute_expires_at_unix_ms: start + 300000,
+      idle_expires_at_unix_ms: Math.min(start + 300000, now + 120000) };
+  };
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request(), path = new URL(request.url()).pathname;
     const reply = (value) => route.fulfill({ json: value });

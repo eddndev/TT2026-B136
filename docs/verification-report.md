@@ -2,6 +2,22 @@
 
 La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
 
+## Reloj de la simulacion CA: 16 de octubre de 2026 UTC
+
+El paquete candidato de firma local se detuvo al no aparecer el panel CA
+despues de MFA en el caso movil. La simulacion consultaba el reloj dos veces
+para una misma respuesta: cruzar un milisegundo producia un limite de
+inactividad de 120001 ms frente a los 120000 ms declarados. La validacion
+existente rechaza correctamente esa respuesta. Una prueba Node con reloj
+incremental reprodujo ese rechazo y paso al capturar una sola fecha para
+MFA, consulta y actividad. No se cambiaron la aplicacion ni sus limites.
+
+Los seis recorridos de diagnostico previos pasaron localmente; no reprodujeron
+el fallo remoto intermitente. Tras corregir la simulacion, los tres escenarios
+CA de navegador pasaron, incluidos escritorio, movil y solicitud rechazada.
+La prueba determinista acredita el defecto del mock; no reemplaza la nueva
+campana candidata ni establece activacion en produccion.
+
 ## Firma local Rust/WASM: 16 de octubre de 2026 UTC
 
 La implementacion descrita en [criptografia local](browser-local-cryptography.md)
@@ -58,8 +74,10 @@ CDN, worker por operacion, mensajes acotados y conservacion de permisos/MFA,
 confianza y recibos del servidor. No equivale a una auditoria de XSS o del
 navegador. Compilacion web de produccion aprobada; dos pruebas sobre ese bundle estatico
 aprobaron generacion/reimportacion movil y vinculo Owner local (9.7s). Cinco
-contratos de workflow/empaquetado y formato web/Rust aprobaron. Regresion completa de cierre,
-gates exactos, revision del PDF, integracion y despliegue siguen pendientes.
+contratos de workflow/empaquetado y formato web/Rust aprobaron. La regresion completa,
+gates CI/Web/Documents de PR y main, revision visual del PDF e integracion por
+PR110 quedaron aceptados. El paquete y despliegue siguen pendientes del cierre
+de la simulacion CA descrito arriba.
 Participantes conserva la decision de intervencion del titular pendiente.
 
 ## Diagnostico del acceso en navegador: 14 de octubre de 2026 UTC
