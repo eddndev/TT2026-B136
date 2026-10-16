@@ -40,7 +40,7 @@ instalaci\'on p\'ublica pendiente en la \cref{sec:pruebas-portal-ca}.
 \end{table}
 
 Los par\'ametros criptogr\'aficos de la jerarqu\'ia conservan RSA de 3\,072 bits
-y SHA-256, con \texttt{sha256WithRSAEncryption} como algoritmo de firma,
+y SHA-256. El algoritmo de firma es \texttt{sha256WithRSA\allowbreak Encryption},
 conforme al dise\~no criptogr\'afico de \cref{sec:nivel-seguridad}. Las claves
 creadas por estos scripts utilizan \texttt{openssl genpkey}; las solicitudes
 p\'ublicas tambi\'en pueden proceder del ayudante local Rust/WebAssembly de
