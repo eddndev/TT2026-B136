@@ -1,6 +1,6 @@
 # Cierre funcional del prototipo web
 
-## Estado vigente al 15 de octubre de 2026
+## Estado vigente al 16 de octubre de 2026 UTC
 
 La base operativa previa al ayudante local es Qadra y CA `v0.1.11`, revision
 `1186da93c0075a4e2839f7a407deca45e16f6602`.
@@ -12,13 +12,15 @@ La [verificación de la CA](ca/verification.md) distingue esos resultados de la
 corrección de parada y su comprobación instalada. El estado operativo final se
 concilia en [cierre técnico](technical-closure.md).
 
-El [ayudante criptografico local](browser-local-cryptography.md) esta implementado
-en la rama de trabajo y su aceptacion tecnica sigue en curso. Genera una clave
+El [ayudante criptografico local](browser-local-cryptography.md) esta integrado
+por PR110 y activo en Qadra `v0.1.12/201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba`.
+La CA conserva `v0.1.11`, su configuracion y certificados. El ayudante genera una clave
 cifrada y un CSR, exige comprobar la copia guardada y prepara firmas para
 vinculo Owner, acceso Owner, vinculo documental y PDF/consentimiento exactos.
 La clave y su contrasena se usan en el navegador sin enviarse al servidor;
-OpenSSL permanece como alternativa. Este incremento no esta integrado ni
-desplegado y no se atribuyen a el las aceptaciones historicas del flujo externo.
+OpenSSL permanece como alternativa. La aceptacion tecnica con servicios reales
+y la comprobacion publica del modulo tienen evidencia separada; no se atribuyen
+a este incremento las aceptaciones personales historicas del flujo externo.
 No cambia MFA, autoridad del backend, perfiles de la CA ni declaraciones de
 participantes.
 

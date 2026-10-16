@@ -49,6 +49,13 @@ class HostTests(unittest.TestCase):
                     self.assertTrue(path.is_dir())
                     self.assertEqual(path.stat().st_mode & 0o777, 0o700)
 
+    def test_wasm_assets_have_a_mime_mapping_independent_of_the_host(self):
+        config = nginx_config(Path("/home/hat/qadra"), {"web_port": 18086, "api_port": 18087})
+        self.assertIn("include /etc/nginx/mime.types;", config)
+        self.assertIn("location ~ ^/_astro/[^/]+\\.wasm$ {\n"
+                      "            types { application/wasm wasm; }\n"
+                      "            try_files $uri =404;\n", config)
+
     def test_units_use_private_permissions_and_no_secret_values(self):
         units = service_units(Path("/home/hat/qadra"), "/usr/lib/postgresql/16/bin")
         self.assertEqual(set(units), {"qadra-api", "qadra-web", "qadra-postgres", "qadra-redis"})
