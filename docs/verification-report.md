@@ -2,6 +2,40 @@
 
 La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
 
+## Firma local instalada: 16 de octubre de 2026 UTC
+
+Qadra `v0.1.12`, revision `201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba`,
+quedo activo tras PR110 y PR111. Los gates aplicables de PR y main y la campana
+candidata 38861370102 aprobaron. Se reutilizo Documents 38852817219 por igualdad
+de fuentes LaTeX, workflow y exclusiones; el PDF local aceptado no se sustituyo.
+
+El paquete verifico sus archivos y esquema; candidato y retorno v0.1.11
+arrancaron sobre la restauracion aislada existente, conservando las filas
+historicas. No se repitio una restauracion completa. El respaldo nuevo
+`20261016T071017Z-a011556b` y su copia externa privada fueron verificados antes
+de activar. Se conservaron 77 tablas, material criptografico, correo y el
+prefijo de 1295080 eventos de auditoria; la cadena posterior de 1295521
+eventos resulto valida. La CA reabrio con v0.1.11 y su configuracion intacta.
+
+La primera comprobacion instalada encontro un MIME incorrecto para WASM:
+el mapa de nginx del host no declaraba esa extension. Una regla limitada a
+`/_astro/*.wasm` fija `application/wasm`, conserva los demas tipos y rechaza
+archivos ausentes. Se guardaron configuracion anterior y hashes, valido nginx
+y recargo solo su proceso maestro. El proceso API no cambio. La prueba focal
+del generador fue roja antes del ajuste y verde despues; los seis contratos
+del host aprobaron. La plantilla genera los mismos bytes que la configuracion
+instalada. El controlador conservado no se reemplazo.
+
+HTTPS publico confirmo version, home 200 e identidad anonima 401 en Qadra y CA;
+worker y WASM conservaron sus hashes y MIME. Un Chromium nuevo genero clave
+cifrada y CSR con el modulo instalado y comprobo reimportacion/coincidencia.
+No emitio certificados ni persistio la clave, y no realizo mutaciones de API.
+El primer observador de peticiones conto el POST de telemetria `/cdn-cgi/rum`;
+una carga sin criptografia reprodujo ese POST existente. El observador final
+lo distingue de peticiones a la API y rechaza secretos sinteticos en su cuerpo.
+No se presenta este ensayo publico como otra aceptacion autenticada personal;
+los cuatro recorridos nativos conservan su evidencia separada.
+
 ## Reloj de la simulacion CA: 16 de octubre de 2026 UTC
 
 El paquete candidato de firma local se detuvo al no aparecer el panel CA
@@ -15,8 +49,8 @@ MFA, consulta y actividad. No se cambiaron la aplicacion ni sus limites.
 Los seis recorridos de diagnostico previos pasaron localmente; no reprodujeron
 el fallo remoto intermitente. Tras corregir la simulacion, los tres escenarios
 CA de navegador pasaron, incluidos escritorio, movil y solicitud rechazada.
-La prueba determinista acredita el defecto del mock; no reemplaza la nueva
-campana candidata ni establece activacion en produccion.
+La prueba determinista acredita el defecto del mock. La campana candidata
+y activacion posteriores se registran en el apartado anterior.
 
 ## Firma local Rust/WASM: 16 de octubre de 2026 UTC
 
@@ -76,8 +110,8 @@ navegador. Compilacion web de produccion aprobada; dos pruebas sobre ese bundle 
 aprobaron generacion/reimportacion movil y vinculo Owner local (9.7s). Cinco
 contratos de workflow/empaquetado y formato web/Rust aprobaron. La regresion completa,
 gates CI/Web/Documents de PR y main, revision visual del PDF e integracion por
-PR110 quedaron aceptados. El paquete y despliegue siguen pendientes del cierre
-de la simulacion CA descrito arriba.
+PR110 quedaron aceptados. El paquete y despliegue posteriores estan registrados
+en el apartado de firma local instalada.
 Participantes conserva la decision de intervencion del titular pendiente.
 
 ## Diagnostico del acceso en navegador: 14 de octubre de 2026 UTC

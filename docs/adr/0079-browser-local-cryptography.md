@@ -2,9 +2,9 @@
 
 ## Status
 
-Accepted design, implemented on the working branch; technical acceptance is
-in progress. This record does not establish integration or deployment. The user
-workflow and supported formats are in
+Accepted and implemented. Browser-local cryptography is integrated through
+PR110 and available in Qadra v0.1.12. Acceptance boundaries are recorded in the
+[verification report](../verification-report.md). The user workflow and supported formats are in
 [browser-local cryptography](../browser-local-cryptography.md).
 
 ## Context

@@ -2,10 +2,11 @@
 
 ## Estado y alcance
 
-El ayudante local esta implementado en la rama de trabajo y su aceptacion
-tecnica esta en curso. Este documento describe su contrato y recorrido;
-no afirma integracion ni despliegue. Las aceptaciones anteriores con OpenSSL siguen
-siendo evidencia del flujo externo, no del nuevo ayudante.
+El ayudante local esta integrado por PR110 y disponible en Qadra `v0.1.12`
+desde el 16 de octubre de 2026 UTC. Su [verificacion](verification-report.md)
+distingue la aceptacion con servicios reales de la comprobacion del modulo
+instalado. Las aceptaciones personales anteriores con OpenSSL siguen siendo
+evidencia del flujo externo, no de una nueva prueba personal del ayudante.
 
 La [decision arquitectonica](adr/0079-browser-local-cryptography.md) conserva
 los contratos existentes de vinculo Owner, acceso con MFA y firma documental.

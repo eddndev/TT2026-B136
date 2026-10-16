@@ -51,6 +51,10 @@ http {{
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_read_timeout 180s;
         }}
+        location ~ ^/_astro/[^/]+\\.wasm$ {{
+            types {{ application/wasm wasm; }}
+            try_files $uri =404;
+        }}
         location = /version.json {{ add_header Cache-Control no-store; }}
         location / {{ try_files $uri $uri/ =404; }}
     }}
