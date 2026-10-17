@@ -6,7 +6,7 @@ pub fn parts(bytes: &[u8]) -> Vec<Part> {
     (0..archive.len())
         .map(|i| {
             let mut file = archive.by_index(i).unwrap();
-            let name = file.name().to_string();
+            let name = file.name().unwrap().into_owned();
             let mut bytes = Vec::new();
             file.read_to_end(&mut bytes).unwrap();
             Part { name, bytes }

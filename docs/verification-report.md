@@ -1,5 +1,25 @@
 # Informe de verificación local
 
+## Actualización del lector ZIP: 17 de octubre de 2026
+
+La campaña de integración de la conciliación documental detectó los avisos
+RUSTSEC-2026-0367, RUSTSEC-2026-0368 y RUSTSEC-2026-0369 en `zip` 8.6.0.
+El gate de dependencias falló y canceló las demás comprobaciones; ese resultado
+no se cuenta como una regresión aprobada. Se actualizó exclusivamente `zip`
+a 9.0.0 y se adaptaron las dos lecturas de nombre a su API falible, conservando
+el rechazo de errores. El fundamento y la ausencia de extracción a disco en
+este adaptador están en [ADR-0024](adr/0024-isolated-document-format-admission.md).
+
+La verificación focal local aprobó las 20 pruebas DOCX y las nueve del worker
+nativo, con qpdf 12.4.1 reutilizado y verificado. Cubre productores
+independientes, nombres, enlaces simbólicos, cabeceras, CRC, XML, presupuesto
+compartido y límites del proceso. Se usó un solo coordinador, temporales en
+disco, un trabajo de compilación y un hilo de pruebas. `cargo deny check`
+aprobó avisos, licencias, restricciones y orígenes sin nuevas excepciones.
+No se repitió la regresión completa local: los gates remotos deben aprobar la revisión exacta
+antes de integrarla. Las fuentes del manuscrito y el PDF aceptado no cambiaron
+con esta reparación; se conserva su evidencia documental previa.
+
 ## Conciliación entre documentación e implementación: 17 de octubre de 2026
 
 Se corrigieron los estados vigentes que presentaban entregas aceptadas como
