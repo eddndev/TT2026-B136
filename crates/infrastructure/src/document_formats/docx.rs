@@ -42,7 +42,7 @@ pub(crate) fn validate_docx(bytes: &[u8], budget: &mut DocxBudget) -> Result<()>
     if archive
         .file_names()
         .zip(&entries)
-        .any(|(actual, entry)| actual != entry.name)
+        .any(|(actual, entry)| !matches!(actual, Ok(name) if name == entry.name))
     {
         return rejected();
     }

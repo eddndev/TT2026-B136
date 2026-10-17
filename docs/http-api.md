@@ -39,9 +39,9 @@ focal y los pendientes operativos se distinguen en ese contrato.
 La [API de miembros y acceso de cuentas](members-api.md) incorpora el directorio
 exclusivo de Owner, selección de asignados/disponibles y cambios de rol o estado
 con revisión esperada. La revocación durable alcanza sesiones y desafíos previos;
-reactivar exige un nuevo inicio de sesión. La implementación local tiene evidencia
+reactivar exige un nuevo inicio de sesión. La entrega integrada tiene evidencia
 focal, PostgreSQL/Redis, tres recorridos de navegador real y aceptación API completa
-con restauración aprobados. CI global y el PDF actualizado conservan su seguimiento
+con restauración aprobados. Su cierre global y evidencia documental se conservan
 en el [informe de verificación](verification-report.md). El alta directa existente no
 se convierte en invitación ni recuperación de acceso.
 
@@ -57,10 +57,10 @@ PDF y CSV, y avisos internos de lectura explícita. El servidor compone su consu
 supervisado y un selector paginado de litigantes con el alcance propio del informe,
 incluidos colegas de expedientes cerrados. Los informes de estado/carga y su
 recuperación están integrados. En esa modalidad el intervalo filtra fechas de
-creación y la captura observa el estado actual. La modalidad de actividad en
-implementación usa el instante de registro y la cuenta autora para tres cantidades;
+creación y la captura observa el estado actual. La modalidad de actividad integrada
+por PR92 usa el instante de registro y la cuenta autora para tres cantidades;
 su contrato y cobertura histórica incompleta están en la misma API y su aceptación
-pendiente en el [cierre técnico](technical-closure.md). Ninguna modalidad representa
+completa en el [cierre técnico](technical-closure.md). Ninguna modalidad representa
 efectividad jurídica ni constancia externa.
 
 La [API de contenido documental e incidentes](document-content-api.md) añade
@@ -423,8 +423,8 @@ La programación de audiencias tiene su [contrato independiente](hearings-api.md
 Las sesiones y resultados declarados disponen de su
 [contrato separado](hearing-results-api.md). El cálculo y la historia de plazos
 usan [su propia colección](deadlines-api.md). La reevaluación compuesta en servidor
-cuenta con recorridos API y navegador reales. Recursos y activación automática
-conservan operaciones pendientes propias; las [alertas personales](alerts-api.md)
+cuenta con recorridos API y navegador reales. Recursos y creación explícita de
+plazos conservan el [alcance finito aceptado](four-front-closure.md); las [alertas personales](alerts-api.md)
 tienen su propio contrato y aceptación integrada aprobada; se integraron por PR 36.
 
 ## Audiencias y agenda
@@ -480,14 +480,14 @@ exige perfil y políticas seleccionados y distingue preparación prospectiva de
 recuperación del registro original. Su adaptación HTTP y composición tienen
 verificación focal. Qadra incorpora revisión conjunta y recuperación del intento
 por la misma identidad. La aceptación nativa completa de API/restauración y
-navegador aprobó; el contrato enlazado separa esa evidencia de la integración
-remota pendiente.
+navegador aprobó; la entrega se integró por PR88 y su corrección de aceptación
+por PR89 confirmó main. El contrato enlazado conserva la evidencia por campaña.
 
 ## Calendarios jurisdiccionales
 
-El backend, la API y Qadra están verificados localmente, incluida la restauración
-y los recorridos con servicios reales. La integración remota y el manuscrito
-siguen pendientes. Su recurso global usa
+El backend, la API y Qadra están integrados, con restauración y recorridos con
+servicios reales aprobados. El [informe de verificación](verification-report.md)
+conserva la evidencia de esa entrega. Su recurso global usa
 `/api/v1/judicial-calendars`: Owner publica, reemplaza y retira; Owner,
 Litigator y Paralegal consultan sin asignación a un expediente. Client queda
 denegado. El comando no recibe identificadores de expedientes ni soportes
@@ -600,8 +600,8 @@ El expediente cerrado conserva lecturas y repetición exacta autorizada, sin
 nuevas mutaciones. Vincular no crea ni cancela actividades, cambia atención,
 activa términos ni duplica alertas. La [creación contextual de plazos](resource-deadlines-api.md)
 prepara y confirma un plazo y su vínculo en una transacción auditada. Las
-audiencias propias de recursos y el impulso jurídico conservan su alcance
-pendiente. Cada incremento registra su aceptación y cierre global en el
+audiencias propias de recursos están integradas por PR87 y conservan el
+[alcance finito aceptado](four-front-closure.md). Cada incremento registra su aceptación y cierre global en el
 [informe](verification-report.md).
 
 ## Recursos relacionados desde una actividad

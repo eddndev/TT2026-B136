@@ -1041,11 +1041,13 @@ aprobados ni produce un nuevo porcentaje global del TT.
 - Client mantiene acceso a metadatos de expedientes asignados y denegación
   documental. Ampliarlo requiere una política de recursos explícita y pruebas
   de aislamiento; ocultar botones no constituye autorización.
-- El criterio OE-2 conserva su redacción aprobada sobre cuatro etapas. La
-  [propuesta de recursos](procedural-resources-scope.md) distingue las tres etapas
-  del CNPP y recursos vinculados a resoluciones, sin modificar ese criterio.
-  Corregirlo literalmente requiere autorización explícita; implementar las dos
-  transiciones no cierra recursos ni el cómputo automático exigido.
+- El 17 de octubre de 2026 el usuario autorizó aplicar la redacción de OE-2
+  registrada en el [alcance de recursos](procedural-resources-scope.md). El
+  criterio distingue las etapas de investigación, intermedia y juicio del
+  artículo 211 del CNPP y los recursos de revocación y apelación; conserva el
+  objetivo, OE-3 y las funciones exigidas. La conciliación es documental: no
+  acredita una función nueva ni cierra la evaluación humana. Implementar las
+  dos transiciones no basta para cumplir recursos ni el cómputo automático.
 - El catálogo finito distingue siete familias: las cuatro ordinarias,
   cautelares, alegatos de apelación y revocación escrita. La continuación
   conserva antecedente exacto; no constituye otra familia. Audiencias de

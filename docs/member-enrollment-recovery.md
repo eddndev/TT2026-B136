@@ -54,13 +54,13 @@ navegación, más el recorrido existente de alta con MFA y auditoría en pantall
 móvil. El registro aprobó **20 pruebas Node en 298,159 ms**: seis nuevas de
 captura individual y catorce regresiones existentes.
 Los casos están en
-[recuperación de alta](../web/tests/browser/session-member-enrollment-drafts.spec.mjs),
-[resultado incierto](../web/tests/browser/session-member-enrollment-outcomes.spec.mjs),
-[navegación](../web/tests/browser/session-member-enrollment-navigation.spec.mjs)
-y [flujo general](../web/tests/browser/workflow.spec.mjs). Las comprobaciones del
+[recuperación de alta](../web/apps/qadra/tests/browser/session-member-enrollment-drafts.spec.mjs),
+[resultado incierto](../web/apps/qadra/tests/browser/session-member-enrollment-outcomes.spec.mjs),
+[navegación](../web/apps/qadra/tests/browser/session-member-enrollment-navigation.spec.mjs)
+y [flujo general](../web/apps/qadra/tests/browser/workflow.spec.mjs). Las comprobaciones del
 registro se conservan en
-[captura individual](../web/tests/draft-handle-capture.test.mjs) y
-[regresiones del registro](../web/tests/draft-registry.test.mjs).
+[captura individual](../web/apps/qadra/tests/draft-handle-capture.test.mjs) y
+[regresiones del registro](../web/apps/qadra/tests/draft-registry.test.mjs).
 
 Esta evidencia cubre vencimiento, reingreso y navegación antes y después de
 recuperar una intención incierta. No acredita una campaña de alta con servicios

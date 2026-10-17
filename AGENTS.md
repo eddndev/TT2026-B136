@@ -233,12 +233,13 @@ pull request as the behavior it describes. Update the affected documents:
   `docs/verification-report.md`. Run `scripts/demo.sh` for CLI changes and
   `scripts/api-demo.sh` for changes to the integrated HTTP workflow.
 
-## Implemented project state
+## Historical project map
 
-Reviewed on 2026-09-18. This is a starting map, not a replacement for inspecting
-the working tree. The prototype has a working cryptographic backend and an
-authenticated local HTTP workflow; the complete case-management web product
-is still unfinished.
+The following map records the review of 2026-09-18. Its pending items are
+historical, not a current backlog. Use the current closure documents and the
+next-work section below before selecting work. At that historical cut the
+prototype had a working cryptographic backend and authenticated local HTTP
+workflow, while the complete case-management web product was still unfinished.
 
 - The CLI and application services implement SHA-256, AES-256-GCM envelope
   encryption and KEK rotation, internal PKI and CRLs, RSA-3072 signatures,
@@ -572,55 +573,42 @@ is still unfinished.
   `docs/document-content-api.md` and
   `docs/adr/0042-verified-document-content-and-integrity-incidents.md`.
 
-## Next work, in dependency order
+## Current closure and next work
 
-`docs/next-goal.md` records the completed case-document delivery and retains
-its original proposed schedule. Its reproduced evidence is in
-`docs/verification-report.md`; the academic update is documented in
-`docs/academic-report-verification.md`. Reassess historical estimates against
-current code before planning subsequent work in this dependency order.
-`docs/product-completion.md` tracks the broader product acceptance scope:
+As of 2026-10-17, `docs/technical-closure.md`, `docs/product-completion.md` and
+`docs/four-front-closure.md` delimit the accepted scope. The last accepted
+installation is Qadra v0.1.12 and CA v0.1.11. `docs/browser-local-cryptography.md`
+records local key/CSR generation and signing with the external path retained.
+Do not reopen the historical map above as new implementation work.
 
-1. Reconcile permitted general-upload formats and content delivery before declaring
-   the complete document use cases fulfilled. Current classification, queries
-   and immutable versions preserve case isolation and Client denial. Content delivery
-   and Owner incidents have their own acceptance checkpoint; widening
-   Client access requires an explicit tested resource policy.
-2. Qualify the remaining legal profiles with primary sources and acceptance cases;
-   implement durable activation and complete the resource workflow beyond declared
-   records and links to existing activities. Reevaluation, the combined agenda
-   and alerts are already integrated. Close the separate resource delivery using
-   its own acceptance and CI evidence. Hearing
-   scheduling and declared sessions/results already preserve exact history,
-   attendance, agreements and provenance. The calendar backend/API classifies
-   civil dates from exact revisions and Qadra exposes their administration and
-   history. Persisted evaluations already compute explicit profiles and inputs;
-   free-text results and calendar classification do not establish legal effects.
-   Preserve declared applicability, quantities, temporal boundaries and immutable
-   historical evaluations when adding automatic processing.
-   Typed identities and internal declarations do not establish civil identity or
-   external judicial authority. `docs/procedural-resources-scope.md` preserves the
-   approved resource objective as a separate workflow, not a fourth linear stage.
-   Keep these records separate from account assignments and organizational archiving.
-3. Complete acceptance of member administration and extend Qadra with remaining
-   procedural workflows, dashboard aggregates, reports and audit queries against
-   `docs/http-api.md`. The implemented member directory supplies assignment
-   selection without raw UUID entry; invitations and account recovery remain open.
-   Resolve certificate login and per-user signing identity before declaring
-   those objectives complete. Keep business rules and cryptography behind ports.
-4. Before public deployment, measure database pooling and asynchronous clients,
-   request budgets, transport limits, TLS and graceful shutdown. Exercise
-   backup/restore and Redis outages; design recoverable enrollment delivery
-   and the remaining identity lifecycle across PostgreSQL and Redis. Review
-   the RSA threat model in `docs/adr/0002-rsa-signing-crate-and-advisory.md`,
-   whose CLI-only assumption predates HTTP sealing. External audit-head
-   anchoring remains open in `docs/adr/0007-audit-chain-anchoring.md`.
-5. Keep implementation, testing and annexes aligned with reproduced results,
-   integrate design corrections into academic prose, and refresh the
-   verification report after functional changes. Complete conclusions when
-   the project is finished. Rebuild and visually inspect changed versioned
-   documents using their README instructions. Local presentation material
-   remains outside repository builds.
+The four procedural fronts and finite eight-case legal corpus, general upload
+admission and exact content delivery, invitations, account recovery, reports,
+internal audit, Owner certificate/MFA login, individual signing and the CA portal
+have delivered implementations and recorded acceptance. Certificate and password
+Owner access were both accepted personally; the personal Litigator demonstration
+remains separate from technical signing acceptance. See `docs/production-acceptance.md`.
+
+The remaining work and decisions are bounded:
+
+1. Complete the personal Litigator signing demonstration with the account holder,
+   recording actual results without substituting automated checks for that ceremony.
+2. Resolve how a participant who is not the capturing user operates their key before
+   adding local participant signing. The three conditional items in
+   `docs/browser-local-cryptography.md` are not authorization for a new portal,
+   account, remote link or server key custody.
+3. Preserve the existing inactivity and Client document-access policies until the
+   human decisions are supplied. Do not infer new access rights from internal roles.
+4. Run the prepared evaluation with real participants, record results and finish
+   conclusions and presentation. Keep implementation, criteria, diagrams and manuals
+   aligned with actual evidence. OE-2 wording was authorized on 2026-10-17 to
+   distinguish the three procedural stages from revocation and appeal resources.
+
+`docs/next-goal.md` and dated verification sections retain their historical
+schedules and measurements. They do not reopen delivered work. Preserve limits
+on external judicial identity, PSC service, external audit anchoring and automatic
+CRL operations; technical proposals alone do not authorize these extensions.
+Rebuild and visually inspect changed manuscript sources under `latex/README.md`;
+keep the accepted local PDF and unrelated presentation material intact.
 
 For documentation maintenance, distinguish the stateless TOTP primitive in
 `docs/adr/0008-totp-single-use-enforcement.md` from the Redis-backed replay

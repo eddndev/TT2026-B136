@@ -12,9 +12,10 @@ certificado y descargar su recibo público. La
 habilitación del servidor. Tener un recibo no demuestra vigencia actual ni
 garantiza que el servidor permita el acceso.
 
-La [firma local en el navegador](browser-local-cryptography.md) esta implementada
-en la rama de trabajo, con aceptacion tecnica en curso y sin despliegue;
-no queda acreditada por las pruebas historicas de este documento.
+La [firma local en el navegador](browser-local-cryptography.md) está integrada
+y disponible en Qadra `v0.1.12` (`201fbb02`) desde el 16 de octubre de 2026 UTC.
+La [verificación instalada](verification-report.md) del módulo se conserva
+separada de las pruebas históricas y de la aceptación personal con OpenSSL.
 La alternativa de firma externa con OpenSSL se conserva.
 
 ## Recorrido de acceso

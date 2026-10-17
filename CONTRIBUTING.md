@@ -11,13 +11,14 @@ commit messages contain ASCII bytes only. No emoji, no Unicode punctuation
 (no curly quotes, no en or em dashes, no non-breaking spaces), no accented
 letters.
 
-Markdown prose may use accented Spanish or English words, but the same bans
-on emoji and fancy punctuation apply: straight quotes and plain hyphens only.
+Human-facing prose in Markdown and LaTeX is exempt. Code and commit messages
+are not exempt, including code embedded in those documents.
 
 ## File size
 
-Every file stays under 400 lines. Split a module before it grows past that
-limit; a file approaching it is a design smell, not a formatting problem.
+Rust, scripts, and configuration files with logic stay under 400 lines of
+code. Split a module before it grows past that limit. This limit does not
+apply to human-facing Markdown or LaTeX prose.
 
 ## Test-driven development
 
@@ -66,7 +67,8 @@ dependency direction. Do not add a workspace dependency that violates it:
 - `application` depends on `domain`.
 - `infrastructure` depends on `domain` and `application`.
 - `web` depends on `domain` and `application`.
-- the binary crate (`despacho-cli`, in `crates/bin`) depends on all of them.
+- the binary crate (`despacho-cli` and `qadra-ca`, in `crates/bin`) depends on all
+  of them.
 
 The independent `browser-crypto` crate builds the local WASM module and must
 not depend on any server crate. See `docs/adr/0079-browser-local-cryptography.md`.
@@ -76,7 +78,7 @@ scripts. Qadra lives in `web/apps/qadra/`, the CA portal in `web/apps/ca/`, and
 shared presentation elements in `web/packages/ui/`. The earlier frontend
 scaffold is archived at `archive/frontend-prototype/`. Rust, migrations, PKI,
 deployment operations and shared verification scripts keep their existing paths.
-The documentation index is `docs/README.md`; the pending CA scope is in
+The documentation index is `docs/README.md`; the delivered CA scope is in
 `docs/ca/README.md`.
 
 ## Local verification

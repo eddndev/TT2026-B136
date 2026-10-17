@@ -57,10 +57,10 @@ La siguiente tabla sintetiza, para cada objetivo específico, el criterio de éx
     \textbf{OE} & \textbf{Objetivo específico (resumen)} & \textbf{Criterio de éxito medible} \\
     \midrule
     OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 17 casos de uso derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
-    OE-2 & Módulos de gestión procesal penal (CNPP) & CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las cuatro etapas del CNPP (investigación, intermedia, juicio oral y recursos); cómputo automático de términos conforme al artículo 94 del CNPP. \\
+    OE-2 & Módulos de gestión procesal penal (CNPP) & CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las etapas de investigación, intermedia y juicio del artículo 211 del CNPP y sobre los recursos de revocación y apelación; cómputo automático de términos conforme al artículo 94 del CNPP. \\
     OE-3 & No repudio con sello RFC 3161 & Firma digital RSA-3072 con SHA-256 verificable de forma independiente sobre el 100 \% de los contratos firmados; sello de tiempo RFC 3161 local vinculado al hash del documento y verificable con OpenSSL. La tasa sobre un PSC externo queda fuera del alcance actual por la inestabilidad y el costo no transparente del sandbox evaluado. \\
     OE-4 & Integridad y confidencialidad & Detección del 100 \% de alteraciones de un byte en documentos firmados mediante pruebas de mutación; cifrado AES-256-GCM con nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados; envelope encryption con DEK por documento. \\
-    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 0.5--1.0 s por intento en el hardware de referencia (m=256 MiB, t=2, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
+    OE-5 & Autenticación diferenciada por rol & Argon2id calibrado a 0.5--1.0 s por hash nuevo en el hardware de referencia (m=256 MiB, t=3, p=1); MFA basado en TOTP (RFC 6238 \cite{mraihi2011}) con ventana de tolerancia $\pm$1 período; control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). \\
     OE-6 & Validación del prototipo & Cobertura de pruebas $\geq$ 80 \% en los módulos criptográficos; al menos 15 pruebas end-to-end que cubran los flujos de firma y verificación; matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. \\
     \bottomrule
   \end{tabularx}
@@ -84,7 +84,7 @@ No repudio con evidencia temporal. Implementación de firma digital mediante cer
 
 Integridad y confidencialidad mediante cifrado autenticado. Uso de AES-256-GCM en el almacenamiento de expedientes y documentos, proveyendo simultáneamente protección contra accesos no autorizados y detección de modificaciones, de modo que la seguridad de la información dependa de protocolos criptográficos y no únicamente de políticas de acceso administrativo.
 
-Autenticación robusta y gestión segura de credenciales. La implementación autentica mediante contraseña protegida con Argon2id y un segundo factor TOTP o código de recuperación. Aplica permisos por rol y pertenencia vigente al expediente mediante sesiones opacas revocables; los certificados de la PKI se utilizan en la evidencia de firma y no como credencial de login.
+Autenticación robusta y gestión segura de credenciales. La implementación autentica mediante contraseña protegida con Argon2id y un segundo factor TOTP o código de recuperación. Para Owner ofrece también un primer factor mediante un desafío firmado con su certificado interno previamente vinculado, habilitado expresamente en el servidor y seguido del mismo segundo factor. Aplica permisos por rol y pertenencia vigente al expediente mediante sesiones opacas revocables. La PKI interna respalda ese acceso y la evidencia de firma, sin acreditar por sí sola identidad civil.
 
 A diferencia de las soluciones del mercado, este prototipo otorga al despacho soberanía sobre su cadena de custodia digital, proveyendo la evidencia criptográfica necesaria para sustentar el valor probatorio de sus documentos y la trazabilidad de su actividad procesal ante cualquier instancia judicial. El alcance del prototipo se acota a la gestión procesal penal conforme al CNPP, validándose con un despacho de la Ciudad de México como caso de estudio.
 
@@ -144,9 +144,10 @@ Para acotar el esfuerzo de investigación y desarrollo del prototipo, se estable
 
 La implementación comprende una CLI y una API HTTP para autenticación,
 expedientes, asignaciones y operaciones documentales autorizadas por
-pertenencia vigente. Las credenciales combinan contraseña y segundo factor;
-las sesiones son opacas y revocables. La PKI se utiliza para firmar y verificar
-evidencia, sin intervenir en el inicio de sesión. PostgreSQL conserva los
+pertenencia vigente. El primer factor admite contraseña o, para Owner cuando
+está habilitado, un desafío firmado con su certificado interno vinculado.
+Ambos recorridos exigen segundo factor y emiten sesiones opacas y revocables.
+La PKI se utiliza también para firmar y verificar evidencia. PostgreSQL conserva los
 documentos cifrados y su auditoría bajo una misma frontera transaccional,
 mientras Redis administra el estado efímero de autenticación.
 
@@ -158,15 +159,20 @@ manuales, con revisiones auditadas independientes de su evidencia histórica.
 El expediente incorpora un perfil penal manual, revisiones administrativas,
 registro inicial de Investigación en el alta completa y cierre o reapertura
 organizativos. Completar un perfil pendiente conserva su etapa sin registrar;
-las transiciones procesales requieren una extensión propia. El directorio de
-participantes mantiene fichas independientes de las cuentas, con valores
-manuales, archivo organizativo e historia auditada. El cierre del expediente
-impide nuevas mutaciones de esas fichas y de sus documentos. Esta regla no
-acredita la condición jurídica del proceso: identidad, identificadores por
-tipo, FIREL y duplicidad verificada permanecen pendientes, junto con las
-audiencias, los plazos y el calendario. La validación de usabilidad prevista con personal del
-despacho se realizará sobre los flujos integrados del prototipo. La evaluación técnica del flujo implementado se presenta
-en los \cref{cap:implementacion,cap:pruebas}.
+la adopción y las transiciones ordinarias entre Investigación, Intermedia y
+Juicio tienen soportes exactos e historia propia. El directorio de participantes
+mantiene fichas manuales y tipificadas, identidades representadas y revisión de
+coincidencias, independientes de las cuentas y con historia auditada. El cierre
+del expediente impide nuevas mutaciones de esas fichas y de sus documentos.
+Qadra integra programación de audiencias, sesiones y resultados declarados,
+calendarios jurisdiccionales, cálculo y seguimiento de plazos, agenda y alertas,
+además del flujo separado de recursos procesales. El cálculo conserva un
+catálogo finito de supuestos y bloquea resultados cuando faltan condiciones o
+fuentes. Estas funciones no acreditan identidad civil, FIREL, representación
+judicial ni la condición jurídica de un acto. La validación de usabilidad
+prevista con personal del despacho se realizará sobre los flujos integrados
+del prototipo. La evaluación técnica del flujo implementado se presenta en
+los \cref{cap:implementacion,cap:pruebas}.
 
 \section{Supuestos del Proyecto}\label{sec:supuestos}
 

@@ -169,8 +169,11 @@ sin reconstruirlo, junto al controlador local corregido. La fixture nativa
 declara `redis-appendonly` y la captura emite y admite el descriptor antes de
 restaurar. Los motores, API, archivos y auditoría fueron reales; la observación
 de unidades fue un doble de procesos propios. No hubo ingreso público ni
-correo externo. La integración, instalación y comprobación de este recibo
-automático en producción conservan aceptación separada pendiente.
+correo externo. La integración, instalación y comprobación del recibo automático
+en producción se aceptaron posteriormente en `v0.1.5`, según el
+[registro de verificación](verification-report.md) y el
+[cierre técnico](technical-closure.md). Ese cierre no convierte las primitivas
+de captura, exclusión y recuperación en un restaurador integral automático.
 
 La verificación local del 3 de octubre de 2026 aprobó ocho recorridos de captura
 e invalidación tras reproducir la ausencia de ambas entradas, más veinte pruebas

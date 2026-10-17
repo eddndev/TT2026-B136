@@ -3,7 +3,7 @@
 % =====================================================================
 \chapter[Guía de verificación independiente con OpenSSL]{Guía de verificación independiente\\ con OpenSSL}\label{anexo:verificacion}
 
-Cada paquete de evidencia exportado por el prototipo (mediante la CLI o la descarga HTTP autorizada por expediente) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero ---un perito, la contraparte procesal o un tribunal--- verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. El instructivo se genera a partir de la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al momento de exportar con los datos concretos del paquete (\cref{tab:verificacion-marcadores}). Este anexo reproduce esa guía paso a paso y explica qué demuestra cada comando; con ello se materializa el criterio de verificabilidad independiente del objetivo OE-3. Las salidas mostradas son transcripciones históricas de \rutarepo{docs/demo-transcript.md}. El ensayo del 12 de septiembre de 2026 añadió la comparación de paquetes obtenidos desde dos servidores y después de migrar y restaurar los documentos, según el \cref{cap:pruebas}.
+Cada paquete de evidencia exportado por el prototipo (mediante la CLI o la descarga HTTP autorizada por expediente) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero ---un perito, la contraparte procesal o un tribunal--- verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. El recorrido principal de este anexo corresponde al sellado con la identidad técnica del servicio y a la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al exportar (\cref{tab:verificacion-marcadores}). La firma documental individual utiliza una plantilla propia y agrega pruebas de vinculación y consentimiento, descritas en el apartado~\ref{sec:verificacion-individual}. Ambos recorridos materializan la verificabilidad independiente del objetivo OE-3, con las comprobaciones y límites de su respectiva evidencia. Las salidas mostradas son transcripciones históricas de \rutarepo{docs/demo-transcript.md}. El ensayo del 12 de septiembre de 2026 añadió la comparación de paquetes obtenidos desde dos servidores y después de migrar y restaurar los documentos, según el \cref{cap:pruebas}.
 
 \begin{table}[H]
   \centering
@@ -31,11 +31,11 @@ La verificación tampoco requiere acceso a la red: las anclas de confianza (el c
 
 \section{Estructura del paquete}\label{sec:verificacion-estructura}
 
-El paquete es un archivo ZIP con entradas planas, sin directorios, escrito en el subconjunto almacenado del formato ZIP \cite{pkware2022}: método 0 (sin compresión), sumas CRC-32 correctas por entrada y salida determinista, con nombres restringidos a un subconjunto ASCII sin separadores de ruta, de modo que la extracción jamás escribe fuera del directorio destino. Las razones de esta implementación propia y mínima constan en \texttt{docs/adr/0006-evidence-package-format.md}. La \cref{tab:verificacion-contenido} describe cada entrada; el nombre del documento conserva su nombre base original y define los nombres de la firma y del sello.
+El paquete es un archivo ZIP con entradas planas, sin directorios, escrito en el subconjunto almacenado del formato ZIP \cite{pkware2022}: método 0 (sin compresión), sumas CRC-32 correctas por entrada y salida determinista, con nombres restringidos a un subconjunto ASCII sin separadores de ruta, de modo que la extracción jamás escribe fuera del directorio destino. Las razones de esta implementación propia y mínima constan en \texttt{docs/adr/0006-evidence-package-format.md}. La \cref{tab:verificacion-contenido} describe las entradas del recorrido de sellado del servidor; la variante individual conserva estos tipos de material y agrega las entradas de el apartado~\ref{sec:verificacion-individual}. El nombre del documento conserva su nombre base original y define los nombres de la firma y del sello.
 
 \begin{table}[H]
   \centering
-  \caption{Contenido del paquete de evidencia. El documento de la ejecución de referencia se llama \texttt{document.txt}.}
+  \caption{Contenido del paquete de sellado del servidor. El documento de la ejecución de referencia se llama \texttt{document.txt}.}
   \label{tab:verificacion-contenido}
   \begin{tabularx}{\linewidth}{@{}l X@{}}
     \toprule
@@ -193,10 +193,13 @@ La verificación descrita no requiere el prototipo en ningún punto: ni el binar
 
 La CLI y la descarga HTTP tienen controles diferentes. El comando
 \texttt{package export} comprueba integralmente los artefactos antes de escribir
-el ZIP. La descarga HTTP descifra el registro, conserva el material capturado y
-confirma autorización y auditoría antes de devolverlo; esa exportación no ejecuta
-una nueva validación de firma, certificado y TSA. La operación HTTP de verificación
-está separada. Por ello, disponer de un ZIP no reemplaza ejecutar las comprobaciones
+el ZIP. La descarga HTTP descifra el registro, comprueba su integridad y conserva
+el material capturado; confirma autorización y auditoría antes de devolverlo.
+Para la evidencia individual revalida además las pruebas de vinculación y
+consentimiento, con sus certificados y confianza en los instantes capturados.
+Esa revalidación no equivale a ejecutar de nuevo la comprobación integral de la
+firma del PDF y de la TSA. La operación HTTP de verificación está separada.
+Por ello, disponer de un ZIP no reemplaza ejecutar las comprobaciones
 independientes ni establecer la confianza en sus anclas.
 
 La suite extrae paquetes reales y ejecuta los comandos del instructivo, incluida
@@ -212,8 +215,58 @@ El registro HTTP conserva certificados, CRL y token capturados al sellar.
 Exportar no actualiza la CRL; su vigencia depende de sus fechas de emisión y
 expiración.
 
-\texttt{openssl verify} evalúa por defecto al ejecutarse. El importador comprueba
-cadena y CRL del firmante en el instante autenticado del sello, sin regenerar
-evidencia. La TSA conserva la política actual de OpenSSL y puede ser rechazada
-si expiró. Deben registrarse instante y política de evaluación; preservar bytes
-no garantiza aceptación posterior.
+\texttt{openssl verify} evalúa por defecto al ejecutarse. Para el sellado del
+servidor, el importador comprueba cadena y CRL del firmante en el instante
+autenticado del sello, sin regenerar evidencia. La firma individual emplea el
+instante de aceptación de la aplicación y conserva por separado el del registro
+del vínculo, según el apartado~\ref{sec:verificacion-individual}. La TSA conserva la
+política actual de OpenSSL y puede ser rechazada si expiró. Deben registrarse
+instante y política de evaluación; preservar bytes no garantiza aceptación
+posterior.
+
+\section{Paquete de firma documental individual}\label{sec:verificacion-individual}
+
+La exportación de una versión con firma personal incorpora la firma separada
+del titular sobre el PDF y su certificado público. Su instructivo se genera
+con la plantilla
+\rutarepo{crates/application/src/evidence/INDIVIDUAL-INSTRUCCIONES.template.md}.
+Además del contenido, firma, sello y confianza de aceptación, conserva:
+
+\begin{itemize}
+  \item \texttt{certificate-binding.bin} y \texttt{certificate-binding.sig}:
+    declaración canónica y prueba de posesión que vinculan certificado y cuenta.
+  \item \texttt{binding-root.der} y \texttt{binding-crl.der}: raíz y lista de
+    revocación capturadas al registrar ese vínculo.
+  \item \texttt{document-consent.bin} y \texttt{document-consent.sig}:
+    consentimiento canónico y firma que fijan cuenta, expediente, versión,
+    operación y huella de la firma del PDF.
+  \item \texttt{individual-signing.json}: metadatos públicos del registro y de
+    la aceptación, que facilitan la lectura sin sustituir las pruebas binarias.
+\end{itemize}
+
+Después de obtener \texttt{firmante.pub.pem} del certificado y verificar la
+firma del PDF, se comprueban las otras dos firmas sobre sus bytes exactos:
+
+\begin{lstlisting}[language=bash, numbers=none]
+openssl dgst -sha256 -verify firmante.pub.pem \
+    -signature certificate-binding.sig certificate-binding.bin
+openssl dgst -sha256 -verify firmante.pub.pem \
+    -signature document-consent.sig document-consent.bin
+\end{lstlisting}
+
+Cada orden debe devolver \texttt{Verified OK}. El instructivo incluye los
+digests esperados y el formato canónico para contrastar identidades, referencias
+y la huella de la firma del PDF; verificar únicamente esta última no comprueba
+el vínculo de cuenta ni el consentimiento. La cadena y CRL del vínculo se
+evalúan con \texttt{-attime} en su instante de registro; la confianza de
+aceptación se evalúa en su propio instante. Los comandos del paquete incorporan
+ambos valores en segundos Unix. Son capturas auditadas de la aplicación, no
+instantes autenticados por una TSA.
+
+El token RFC~3161 cubre el resumen del PDF. No cubre las firmas separadas ni el
+consentimiento y, por sí solo, no demuestra que ya existieran cuando se emitió.
+La retirada posterior del vínculo y el estado actual del certificado se
+consultan por separado y no sustituyen la evidencia histórica. Incluir una
+raíz en el ZIP tampoco establece confianza externa: su autenticidad debe
+contrastarse por un canal independiente. Estas pruebas internas no acreditan
+identidad civil, FIREL ni una constancia de un PSC autorizado.

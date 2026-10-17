@@ -1,6 +1,7 @@
 # API de sesiones y resultados declarados de audiencia
 
-Estado: implementado y verificado localmente, pendiente de integración. Fundamento en [ADR-0029](adr/0029-declared-hearing-sessions.md).
+Estado: implementado e integrado, con aceptación registrada en el
+[informe de verificación](verification-report.md). Fundamento en [ADR-0029](adr/0029-declared-hearing-sessions.md).
 No modifica la programación ni reinterpreta sus cánones HEAR1 y HTXN1.
 
 ## 1. Corte y decisiones fijadas

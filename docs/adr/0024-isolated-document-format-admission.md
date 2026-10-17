@@ -113,6 +113,17 @@ marcar fuentes modificadas. Se incorpora `Zlib` a la lista permisiva de
 `deny.toml`; no se añade una excepción a avisos de seguridad ni se altera el
 código de esa dependencia. Una distribución de fuentes debe conservar su aviso.
 
+El lector de nombres y directorio central usa `zip` 9.0.0, con la misma
+selección de funcionalidades y MSRV 1.88. Sustituye 8.6.0 por los avisos
+RUSTSEC-2026-0367, RUSTSEC-2026-0368 y RUSTSEC-2026-0369, corregidos en
+[la versión 9.0.0](https://github.com/zip-rs/zip2/releases/tag/v9.0.0).
+El validador no llama a las operaciones `extract` afectadas: inspecciona el
+contenedor y rechaza enlaces simbólicos antes de leer nombres; descomprime
+en memoria con límites propios. Aun así se actualiza la dependencia sin
+ignorar avisos. La API nueva puede fallar al decodificar un nombre; ese fallo
+rechaza el DOCX, igual que una discrepancia con la inspección previa.
+Este cambio no modifica el exportador independiente de ZIP de evidencia.
+
 ## Consecuencias
 
 La admisión es reproducible y conserva los bytes originales, el cifrado y la

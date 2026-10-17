@@ -277,7 +277,8 @@ HTTP, Agenda, alertas y Qadra están implementados y verificados focalmente,
 con recorridos de escritorio y móvil aprobados sobre servicios reales.
 La aceptación API con reinicio y restauración aprobó; véase el
 [informe de verificación](verification-report.md).
-El manuscrito separado está verificado; los controles de cierre siguen pendientes.
+El manuscrito separado está verificado y los controles de cierre de PR90 y su
+confirmación en main aprobaron, según el [cierre finito](four-front-closure.md).
 
 ## Frontera de la implementación local
 
@@ -370,8 +371,9 @@ Comprueba permisos del actor actual, admisión del soporte seleccionado, confirm
 de instrucción y revisión completa, y recuperación de la operación original.
 Los puertos exigen al almacén volver a comprobar acceso, cabeza y material exactos
 antes de guardar con auditoría. Las consultas conservan el prefijo histórico y
-origen completos; admiten personal autorizado y rechazan Client. Todavía no hay
-adaptador persistente ni ruta de producto para esta familia.
+origen completos; admiten personal autorizado y rechazan Client. Ese corte focal
+precedió al adaptador persistente y a las rutas de producto que ya forman parte
+de la entrega integrada descrita al inicio.
 
 El servicio de decisiones también pasó la verificación focal: admite el soporte
 exacto, exige ambos digests y conserva el grupo completo y sus ancestros al
@@ -602,7 +604,8 @@ verificación nativa focal está aprobada. HTTP, Agenda, alertas y Qadra están
 implementados, con evidencia focal y navegador real de escritorio y móvil aprobado.
 La aceptación API con reinicio y restauración aprobó; véase el
 [informe de verificación](verification-report.md).
-La regresión de cierre también permanece pendiente. Los bytes previos de
+La regresión de cierre y la integración de PR90 están acreditadas en el
+[cierre finito](four-front-closure.md). Los bytes previos de
 MATXN1/MAPR1/MARCR1/MAGR1 se preservan; el tag nuevo compromete sus dos resultados
 y enlace.
 

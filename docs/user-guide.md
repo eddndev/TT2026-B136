@@ -57,11 +57,19 @@ del Litigante. Ambas funciones están integradas; el inicio de sesión Owner por
 certificado conserva su activación operativa separada.
 
 El Owner dispone de **Mi certificado** para vincular un certificado público a
-su propia cuenta mediante una firma externa. Primero consulta si ya existe un
-vínculo sin retirar. Para registrar otro, prepara la declaración, descarga sus
-150 bytes, fírmala en el equipo que custodia la clave y selecciona únicamente la
-firma separada de 384 bytes. El [recorrido y ejemplo OpenSSL](owner-certificate-interface.md)
-explican cada paso. Nunca adjuntes la clave privada, un archivo PFX o una contraseña.
+su propia cuenta. Si necesita una clave y un certificado, **Generar clave y
+solicitud** permite crear la clave cifrada y el CSR en el navegador. Descarga
+la clave y comprueba su copia guardada antes de descargar el CSR público que
+revisa la CA; la emisión no crea el vínculo.
+
+Primero consulta si ya existe un vínculo sin retirar. Para registrar otro,
+selecciona el certificado público y prepara la declaración de 150 bytes.
+**Firmar en este dispositivo** usa la clave cifrada y su contraseña localmente.
+Como alternativa, descarga la declaración, fírmala con OpenSSL y selecciona
+la firma separada de 384 bytes. Revisa y confirma el registro en ambos casos.
+El [recorrido local y la alternativa OpenSSL](owner-certificate-interface.md)
+explican cada paso. Seleccionar la clave para uso local no la sube al servidor;
+la API no recibe esa clave ni su contraseña. El ayudante no admite PFX.
 
 **Consultar recibo** y **Descargar recibo** conservan la evidencia del registro.
 **Retirar vínculo** exige una confirmación expresa y conserva el historial; no
@@ -79,17 +87,20 @@ Selecciona en **Recibo público del vínculo** el JSON descargado desde **Mi
 certificado**. Ese recibo identifica tu selección, pero no acredita vigencia
 actual ni sustituye las comprobaciones del servidor.
 
-Pulsa **Preparar acceso**, descarga los **182 bytes** de **Descargar bytes de
-acceso** y firma el archivo fuera de Qadra con la clave correspondiente. Adjunta sólo la
-firma binaria de **384 bytes** en **Firma separada de acceso** y pulsa
-**Comprobar firma**. Después completa **Un paso más.** con tu TOTP o un código de
-recuperación sin usar. La clave privada nunca se selecciona en el navegador.
+Pulsa **Preparar acceso**. En **Firmar en este dispositivo**, selecciona la
+clave cifrada y su certificado público, introduce la contraseña de la clave
+y firma localmente los **182 bytes** preparados. Como alternativa, usa
+**Descargar bytes de acceso**, firma fuera de Qadra y selecciona la firma
+binaria de **384 bytes** en **Firma separada de acceso**. Pulsa **Comprobar firma**
+y después completa **Un paso más.** con tu TOTP o un código de recuperación sin
+usar. La clave y su contraseña se usan localmente y no se envían al servidor;
+preparar la firma no inicia la sesión.
 
 La declaración de registro de 150 bytes y su firma no sirven para entrar. Si
 vence el intento, falla la respuesta o se rechaza MFA, **Preparar otro intento**
 genera una declaración nueva que debes volver a firmar. No hay reenvío ni
 recuperación automática del desafío. Consulta el
-[recorrido y ejemplo de firma externa](owner-certificate-login-interface.md).
+[recorrido local y ejemplo de firma externa](owner-certificate-login-interface.md).
 
 ### Si olvidaste la contraseña
 
@@ -293,15 +304,21 @@ usadas en determinadas fichas de participantes son un flujo distinto.
 
 ### Firmar personalmente una versión PDF
 
-La cuenta Litigante dispone de **Mi firma documental**. El titular genera y
-custodia su clave fuera de Qadra; la CA del despacho recibe solamente su CSR y
-entrega el certificado público. La vinculación exige una firma externa de la
-declaración exacta, sin adjuntar la clave privada ni su contraseña.
+La cuenta Litigante dispone de **Mi firma documental**. El titular puede generar
+la clave cifrada y el CSR con **Generar clave y solicitud**, comprobar la copia
+guardada y entregar solamente el CSR a la CA. También puede generarlos con
+OpenSSL. Conserva su clave y contraseña; la CA entrega el certificado público.
+La vinculación exige firmar la declaración exacta con **Firmar en este
+dispositivo** o importar una firma externa y confirmar el registro. La clave
+y su contraseña no se envían al servidor.
 
-En el historial de una versión PDF, elige **Firmar personalmente**. Descarga y
-revisa el PDF, firma sus bytes externamente, carga la firma y prepara el
-consentimiento. Confirma cuenta, expediente, versión, huella y certificado;
-firma también ese consentimiento fuera de Qadra y confirma la operación.
+En el historial de una versión PDF, elige **Firmar personalmente**, revisa el
+PDF exacto y confirma su contenido. Firma esos bytes con el ayudante local o
+descarga el PDF, fírmalo externamente e importa la firma. Prepara el
+consentimiento y confirma cuenta, expediente, versión, huella y certificado.
+Firma también ese consentimiento con el ayudante o externamente y confirma la
+operación. La firma del PDF no sustituye la del consentimiento ni envía por sí
+sola la operación.
 **Consultar recibo de firma** permite comprobar una respuesta perdida sin crear
 otra operación. **Consultar estado de la firma** distingue evidencia histórica
 y estado actual del certificado. Los comandos y pasos completos están en la
@@ -575,10 +592,13 @@ necesario para atender el problema.
 
 Este documento permite preparar recorridos de acceso, invitaciones, recuperación,
 asignación, carga, versionado, sellado, firma individual, registro procesal e
-informes ya entregados. La política documental de Cliente, la duración de
-inactividad y la eventual activación de acceso Owner por certificado siguen
-requiriendo decisiones humanas. La firma personal necesita al titular con su
-clave externa; el manual no acredita que esa demostración ya se haya realizado.
+informes ya entregados. La política documental de Cliente y la duración de
+inactividad siguen requiriendo decisiones humanas. El acceso Owner por
+certificado está habilitado y aceptado en esta instalación, con MFA y acceso
+alternativo por contraseña; otras instalaciones requieren activación expresa.
+La demostración personal del Litigante sigue pendiente y necesita al titular
+con la clave bajo su custodia. La aceptación técnica del ayudante local no
+sustituye esa demostración.
 La [aceptación productiva](production-acceptance.md) distingue lo comprobado en la
 instalación real de los ensayos técnicos y de lo aún pendiente.
 

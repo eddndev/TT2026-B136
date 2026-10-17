@@ -16,9 +16,10 @@ y OpenSSL reales; no repitió el ensayo de restauración anterior.
 Véanse [el contrato HTTP](http-owner-certificates.md) y
 [la decisión de vínculo Owner](adr/0067-owner-certificate-bindings.md).
 
-El [ayudante local](browser-local-cryptography.md) esta implementado en la rama
-de trabajo, con aceptacion tecnica en curso y sin despliegue. Sus resultados
-no se deducen de las pruebas anteriores.
+El [ayudante local](browser-local-cryptography.md) está integrado y disponible
+en Qadra `v0.1.12` (`201fbb02`) desde el 16 de octubre de 2026 UTC. Su
+[verificación instalada](verification-report.md) conserva separados los
+ensayos técnicos del módulo y las aceptaciones personales del recorrido externo.
 El recorrido externo con OpenSSL permanece disponible.
 
 ## Qué representa el vínculo

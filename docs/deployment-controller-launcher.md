@@ -124,17 +124,19 @@ instalación con dos raíces, imports desde bootstrap y rechazo del hash incorre
 no se ejecuta el instalador real. Véase el procedimiento de bootstrap para su
 preparación desde fuentes versionadas y los límites de esa evidencia.
 
-## Integración pendiente
+## Integración y transición aceptadas
 
-Las unidades actuales aún invocan los controladores instalados por su ruta
-nominal. La [aprobación de generaciones](deployment-controller-approval.md)
-selecciona un hash externo y prepara candidatos de unidades, con evidencia
-persistente y reentrada exacta ante respuestas inciertas. Su aceptación local
-no instala los candidatos. No debe sustituirse un hash discrepante por el que
-se encuentre al arrancar.
+La [instalación recuperable](deployment-controller-installation.md) completó
+la transición operativa en VPS3 el 9 de octubre de 2026. Las unidades aceptadas
+fijan el launcher y el inventario aprobado; reabrieron con salud verificada.
+La [aprobación de generaciones](deployment-controller-approval.md) selecciona
+un hash externo y prepara candidatos de unidades, con evidencia persistente
+y reentrada exacta ante respuestas inciertas. Preparar un candidato por sí solo
+no lo instala. No debe sustituirse un hash discrepante por el que se encuentre
+al arrancar.
 
-También quedan pendientes la transición desde lectores antiguos, la exclusión
-de entradas durante esa transición y la reapertura explícita tras verificarla.
+El procedimiento aceptado incluye la exclusión de entradas, la transición desde
+lectores antiguos y la reapertura explícita tras verificarla.
 Fijar un descriptor en procesos nuevos no modifica los imports de intérpretes
 anteriores. La caché de bytecode de una instalación antigua se conserva para una
 transición revisada: el publicador y el launcher la rechazan, no la eliminan ni

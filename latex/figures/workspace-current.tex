@@ -1,0 +1,35 @@
+\begin{tikzpicture}[
+  box/.style={draw=ipnvino, rounded corners=1.5mm, align=center,
+    text width=6cm, minimum height=1cm, inner sep=6pt, font=\small},
+  dep/.style={-{Stealth[length=2mm]}, line width=0.7pt}
+]
+  \node[box, fill=ipnvino!6] (bin) at (0,0) {
+    \texttt{crates/bin}\\
+    \texttt{despacho-cli} y \texttt{qadra-ca}\\
+    Composici\'on de los cuatro crates del servidor
+  };
+  \node[box] (web) at (-3.5,-2.1) {
+    \texttt{web}\\Transporte HTTP (Axum)
+  };
+  \node[box] (infra) at (3.5,-2.1) {
+    \texttt{infrastructure}\\Persistencia y adaptadores
+  };
+  \node[box] (app) at (0,-4.1) {
+    \texttt{application}\\Casos de uso y puertos
+  };
+  \node[box, fill=ipnvino!6] (domain) at (0,-6) {
+    \texttt{domain}\\Reglas, valores y puertos de dominio
+  };
+  \node[box, text width=13cm, dashed] (wasm) at (0,-8.1) {
+    \texttt{browser-crypto}: sexto crate independiente\\
+    Rust/WASM en un worker del navegador: claves, CSR y firmas.\\
+    No depende de los cinco crates del servidor.
+  };
+  \draw[dep] (bin) -- (web);
+  \draw[dep] (bin) -- (infra);
+  \draw[dep] (web) -- (app);
+  \draw[dep] (infra) -- (app);
+  \draw[dep] (app) -- (domain);
+  \draw[dep] (web.west) -- ++(-0.4,0) |- (domain.west);
+  \draw[dep] (infra.east) -- ++(0.4,0) |- (domain.east);
+\end{tikzpicture}
