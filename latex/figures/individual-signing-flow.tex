@@ -12,19 +12,19 @@
 ]
   \node[stage, fill=ipnvino!6] (prior) at (0,0) {
     \textbf{Preparaci\'on previa del Litigante}\\
-    Clave y CSR externos; certificado de firma;\\
+    Clave y CSR locales o externos; certificado de firma;\\
     v\'inculo propio probado y vigente; MFA y pertenencia
   };
   \node[stage, below=6mm of prior] (pdf) {
     Seleccionar expediente activo y versi\'on PDF exacta\\
-    Descargar y comprobar identidad y digest
+    Revisar y comprobar identidad y digest
   };
   \node[stage, below=6mm of pdf] (pdfsig) {
-    \textbf{Primera firma externa}\\
-    Firmar el contenido PDF con la clave del titular
+    \textbf{Primera firma del titular}\\
+    Firmar el PDF localmente o por la alternativa externa
   };
   \node[stage, below=6mm of pdfsig] (consent) {
-    \textbf{Segunda firma externa}\\
+    \textbf{Segunda firma del titular}\\
     Revisar y firmar el consentimiento de cuenta,\\
     contexto documental y huellas del PDF y su firma
   };

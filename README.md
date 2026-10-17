@@ -12,13 +12,18 @@ Escuela Superior de Cómputo (ESCOM) — Instituto Politécnico Nacional (IPN).
 
 ## Estado vigente
 
-Al 12 de octubre de 2026, `v0.1.6` está activa sobre
-`671d356c428fd01d26a1fa80eb182bc1f526813e`. Los cuatro frentes procesales y el
+El último despliegue aceptado, del 16 de octubre de 2026, es Qadra `v0.1.12`
+(`201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba`); la CA conserva `v0.1.11`
+(`1186da93c0075a4e2839f7a407deca45e16f6602`). Incluye firma local Rust/WASM,
+conservando la alternativa externa y las claves bajo control del titular.
+Los cuatro frentes procesales y el
 corpus jurídico finito de ocho supuestos están aceptados, integrados y desplegados.
 El [inventario técnico](docs/technical-closure.md) delimita lo entregado y los
 pendientes humanos; la [aceptación productiva](docs/production-acceptance.md)
 registra informes, recuperación y conciliación documental. El
 [manual de uso](docs/user-guide.md) describe la interfaz vigente.
+El corte `v0.1.6` del 12 de octubre se conserva como antecedente en el
+[registro de verificación](docs/verification-report.md).
 
 ## Contenido
 
@@ -63,8 +68,8 @@ registra la aceptación de API, restauración y navegador. Está integrado y act
 el [corpus finito](docs/four-front-closure.md) acepta ocho supuestos expresos.
 Fuera de esas condiciones se bloquea el cálculo, sin prometer cobertura universal.
 
-El prototipo se desarrolla como un workspace de Cargo con arquitectura
-hexagonal. Los crates viven bajo [`crates/`](crates/):
+El workspace de Cargo contiene cinco crates del servidor con arquitectura
+hexagonal y un sexto módulo independiente para el navegador, bajo [`crates/`](crates/):
 
 - [`crates/domain`](crates/domain/) - entidades y reglas de negocio; no
   depende de ningún otro crate del workspace.
@@ -75,10 +80,12 @@ hexagonal. Los crates viven bajo [`crates/`](crates/):
   `application`.
 - [`crates/web`](crates/web/) - capa HTTP del backend; depende de
   `application` y `domain`.
-- [`crates/bin`](crates/bin/) - el binario `despacho-cli`, punto de entrada
-  que compone las capas anteriores; depende de todas.
+- [`crates/bin`](crates/bin/) - los binarios `despacho-cli` y `qadra-ca`,
+  que componen las capas anteriores; depende de todas.
+- [`crates/browser-crypto`](crates/browser-crypto/) - módulo Rust/WASM de
+  generación de claves, CSR y firma local; no depende de los crates del servidor.
 
-La dirección de dependencias siempre apunta hacia el dominio: las capas
+En el servidor la dirección de dependencias apunta hacia el dominio: las capas
 externas conocen a las internas, nunca al revés.
 
 ### Comandos comunes

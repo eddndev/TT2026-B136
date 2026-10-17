@@ -1,12 +1,12 @@
 # Administrative measure operations and historical reads
 
 These routes expose declared administrative changes and actual persisted measure
-records. They are implemented in the precautionary delivery branch; focused HTTP
+records. They are integrated through PR90; focused HTTP
 verification is complete. Qadra exposes the three existing administrative actions,
 exact history, reviewed confirmation and recoverable drafts with focused browser
 evidence. Real desktop and mobile acceptance also passed for correction, identity
-replacement and recovery after an applied response was lost. This is not yet a
-completed or integrated precautionary delivery.
+replacement and recovery after an applied response was lost. The completed
+delivery and its finite scope are recorded in the [four-front closure](four-front-closure.md).
 
 API acceptance with restart and restoration passed; see the
 [verification report](verification-report.md).

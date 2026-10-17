@@ -9,7 +9,10 @@ servicio instalado. El [manual](operations.md) describe alta y configuración.
 La separación de autoridad y recuperación se registra en
 [ADR 0078](../adr/0078-separate-ca-operator-and-recoverable-operations.md).
 La admisión anticipada de la política del CSR y el recibo de rechazo descritos
-aquí están verificados localmente y pendientes de despliegue sobre `v0.1.8`.
+aquí se desplegaron en `v0.1.9`; la [aceptación instalada](verification.md)
+conserva el incidente original y su conciliación sin emitir. La CA mantiene
+`v0.1.11` durante la entrega Qadra `v0.1.12` (`201fbb02`), según el
+[registro de verificación](../verification-report.md).
 
 ## Transporte y autoridad
 

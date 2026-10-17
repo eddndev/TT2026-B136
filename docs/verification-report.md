@@ -1,5 +1,32 @@
 # Informe de verificación local
 
+## Conciliación entre documentación e implementación: 17 de octubre de 2026
+
+Se corrigieron los estados vigentes que presentaban entregas aceptadas como
+pendientes: flujo procesal finito, cálculo, resultado/plazo derivado, audiencias
+de recursos, cautelares, miembros, informes, acceso Owner, CA y operación de
+controladores. Los cortes históricos conservan cifras y límites; esta revisión
+no ejecuta de nuevo sus campañas ni acredita aceptación humana adicional.
+
+Los manuales describen la firma local y la alternativa externa. La explicación
+del ZIP distingue el sellado de servicio de la firma individual y acota la
+revalidación de vinculación/consentimiento durante su exportación. Arquitectura,
+README y guías de continuación coinciden con las dependencias y entregas
+registradas. Las reglas de contribución conservan la excepción de prosa y el
+límite de longitud para archivos de código o configuración con lógica.
+
+Se repararon los siete enlaces de evidencia desplazados por la reorganización.
+El barrido estático de destinos relativos Markdown terminó sin archivos
+faltantes; no comprueba anclas ni enlaces externos. `git diff --check` aprobó.
+La [verificación del manuscrito](academic-report-verification.md) registra
+compilación y revisión visual, junto a los cambios expresamente autorizados de
+OE-2 y Argon2 `t=3`. Los objetivos y OE-3 permanecen intactos.
+
+No se modificó código, configuración, datos, certificados ni servicios; tampoco
+se lanzaron pruebas funcionales, consultas de Actions o despliegues por corregir
+prosa. La evaluación con personas, las decisiones de política pendientes y la
+demostración personal del Litigante conservan sus fronteras.
+
 La entrega del portal administrativo CA tiene su [verificación local separada](ca/verification.md), con límites de aceptación y activación explícitos.
 
 ## Firma local instalada: 16 de octubre de 2026 UTC
@@ -597,7 +624,7 @@ comprueban autoridad, una sola alta y rollback. La
 aprobada conserva usuarios y aceptaciones, borra pendientes y rechaza enlaces y
 leases retirados sobre un estado preparado. Un ensayo posterior de dump y
 restauracion a otra base complementa esa prueba de la primitiva. La
-[regresion de paginacion](../web/tests/browser/invitation-owner-pagination.spec.mjs)
+[regresion de paginacion](../web/apps/qadra/tests/browser/invitation-owner-pagination.spec.mjs)
 reprodujo el defecto antes de aprobar la union por identidad. Dos escenarios
 Owner de emision/reenvio y conciliacion tras navegar tambien pasaron en la
 ejecucion que reprodujo ese defecto; el tercer caso de aquella ejecucion fallo.

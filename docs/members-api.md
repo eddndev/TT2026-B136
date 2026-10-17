@@ -2,8 +2,10 @@
 
 ## Delivery status
 
-The backend and Qadra implementation passed focused checks; integrated acceptance and CI closure are pending. This document is not
-acceptance evidence; executed checks belong in [the verification report](verification-report.md).
+The backend and Qadra implementation are integrated, with focused checks,
+real-browser acceptance, API/restoration acceptance and global closure recorded
+in [the product status](product-completion.md). Executed checks retain their
+original scope in [the verification report](verification-report.md).
 The rationale is [ADR-0043](adr/0043-member-access-and-authentication-generation.md).
 All paths below start with `/api/v1` and require an authenticated active Owner.
 Client permissions on documents and other case resources remain unchanged.

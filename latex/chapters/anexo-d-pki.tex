@@ -12,8 +12,13 @@ autoridad y estos ejecutores. Recibe solicitudes p\'ublicas, registra la revisi\
 del operador y conserva recibos recuperables de emisi\'on, revocaci\'on y
 publicaci\'on CRL. Su proceso separado exige identidad CA y MFA; el rol Owner del
 despacho no concede acceso administrativo. No crea una jerarqu\'ia nueva ni
-recibe la clave privada del titular. Su aceptaci\'on local se distingue de la
-instalaci\'on p\'ublica pendiente en la \cref{sec:pruebas-portal-ca}.
+recibe la clave privada del titular. La \cref{sec:pruebas-portal-ca} distingue
+su aceptaci\'on local de la instalaci\'on p\'ublica y de las operaciones
+aceptadas en ella. La correcci\'on de admisi\'on de CSR y conciliaci\'on de
+rechazos se despleg\'o en \texttt{v0.1.9}; la CA conserva \texttt{v0.1.11}
+durante la entrega Qadra \texttt{v0.1.12}, seg\'un
+\rutarepo{docs/verification-report.md}. Estos registros de instalaci\'on no
+convierten la autoridad interna en un prestador autorizado.
 
 \section{Inventario y parámetros criptográficos comunes}\label{sec:pki-inventario}
 

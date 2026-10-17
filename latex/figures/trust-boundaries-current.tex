@@ -1,0 +1,38 @@
+\begin{tikzpicture}[
+  box/.style={draw=ipnvino, rounded corners=1.5mm, align=center,
+    text width=13cm, inner sep=7pt, font=\small},
+  flow/.style={-{Stealth[length=2mm]}, line width=0.7pt}
+]
+  \node[box, fill=ipnvino!6] (browser) at (0,0) {
+    \textbf{Equipo del titular: navegador Qadra}\\
+    Clave cifrada y frase seleccionadas localmente; worker Rust/WASM.\\
+    A Qadra se env\'ian certificados y firmas; el CSR se entrega a la CA.\\
+    La clave privada y su frase permanecen locales.
+  };
+  \node[box, below=9mm of browser] (http) {
+    \textbf{Frontera p\'ublica: HTTPS y API Axum}\\
+    Validaci\'on de entradas, l\'imites y autenticaci\'on.\\
+    Contrase\~na o certificado Owner habilitado, seguidos de MFA.\\
+    Sesi\'on opaca revocable; permisos por rol y expediente.
+  };
+  \node[box, below=9mm of http] (app) {
+    \textbf{Aplicaci\'on y dominio}\\
+    Casos de uso, comprobaci\'on criptogr\'afica, historial y auditor\'ia.\\
+    Autorizaci\'on y persistencia transaccional de la operaci\'on.
+  };
+  \node[box, below=9mm of app] (data) {
+    \textbf{Persistencia privada y secretos del servidor}\\
+    PostgreSQL: \texttt{postgres}/\texttt{tokio-postgres}, consultas parametrizadas.\\
+    Redis: sesiones y estado temporal; archivos: cifrado AES-256-GCM.\\
+    Claves de servicio y confianza configurada fuera del paquete de despliegue.
+  };
+  \node[box, dashed, below=9mm of data] (services) {
+    \textbf{Servicios con autoridad y controles propios}\\
+    CA: portal y proceso separados, acceso exclusivo de sus responsables.\\
+    TSA local configurada: RFC 3161. Resend: entrega de correo.\\
+    La CA interna y la TSA local no acreditan identidad civil ni un PSC externo.
+  };
+  \draw[flow] (browser) -- (http);
+  \draw[flow] (http) -- (app);
+  \draw[flow] (app) -- (data);
+\end{tikzpicture}

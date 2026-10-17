@@ -1,9 +1,12 @@
 # Alcance funcional de los recursos procesales
 
-Estado: alcance completo y conciliación académica, con implementación parcial
-documentada abajo. La revisión de fuentes del 15 de septiembre de 2026 se
-conserva como antecedente; esta actualización técnica no es una nueva revisión
-normativa. No modifica objetivos, criterios ni casos de uso aprobados.
+Estado: los cuatro frentes y el corpus finito están aceptados, integrados y
+desplegados según el [cierre vigente](four-front-closure.md). El mapa de
+implementación parcial y los criterios de trabajo de este documento conservan
+el antecedente del 15 de septiembre de 2026; no son una nueva lista de pendientes.
+Esta conciliación documental no es una nueva revisión normativa. Los objetivos y casos de uso aprobados se conservan. La conciliación
+del criterio OE-2 fue autorizada expresamente el 17 de octubre de 2026 y se
+aplicó con la redacción registrada abajo.
 
 ## Implementación disponible y frontera pendiente
 
@@ -65,26 +68,27 @@ usan fundamentos y ámbitos distintos, con excepciones y días inhábiles pero
 laborables. No constituyen un calendario penal universal ni el calendario local
 del despacho por defecto.
 
-## Trazabilidad y diferencia que debe conciliarse
+## Trazabilidad y conciliación autorizada de OE-2
 
 | Fuente versionada | Contenido conservado y consecuencia |
 | --- | --- |
-| [Introducción, objetivos específicos y tabla de criterios](../latex/chapters/01-introduccion.tex) | El objetivo de gestión pide estructura/terminología CNPP, expedientes, etapas, audiencias, plazos y participantes. Su criterio OE-2 contiene la clasificación de cuatro etapas reproducida abajo. |
+| [Introducción, objetivos específicos y tabla de criterios](../latex/chapters/01-introduccion.tex) | El objetivo de gestión pide estructura/terminología CNPP, expedientes, etapas, audiencias, plazos y participantes. El criterio OE-2 distingue las tres etapas ordinarias y los recursos de revocación y apelación, conforme a la conciliación autorizada el 17 de octubre de 2026. |
 | [Análisis y diseño, HU-14 a HU-16 y RF-05](../latex/chapters/03-analisis-diseno.tex) | Describen avance e historia con documentos habilitantes; RF-05 enumera Investigación, Intermedia y Juicio Oral. No definen el ciclo de un recurso. |
 | [Análisis y diseño, CU-07](../latex/chapters/03-analisis-diseno.tex) | Exige perfil completo, estado administrativo activo, asignación vigente y etapa Investigación o Intermedia para un avance ordinario. Su flujo conserva esas dos transiciones; no define una transición desde Juicio ni el ciclo de recursos. |
 | [Análisis y diseño, CU-08 a CU-10](../latex/chapters/03-analisis-diseno.tex) | Audiencias, calendario y alertas necesitan vinculación adicional a recurso/acto. CU-08 condiciona audiencia a etapa; la extensión debe describirse antes de evaluar audiencias asociadas a recursos. |
 | [Marco teórico, Recursos, Impugnación y Ejecución; tabla de plazos](../latex/chapters/02-marco-teorico.tex) | Presenta recursos después de sentencia y un plazo general de diez días para apelación de sentencia. Debe conciliarse el alcance transversal y distinguir autoridad/resolución. Ejecución no se incorpora silenciosamente al módulo de recursos. |
 | [Cierre funcional](product-completion.md) | Distingue registro declarado, asociaciones a actividades existentes y cierre del flujo completo, con evidencia separada por entrega. Los criterios siguientes conservan el alcance restante. |
 
-El criterio aprobado de OE-2 permanece literalmente:
+La redacción anterior del criterio OE-2 se conserva como antecedente:
 
 > CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las cuatro etapas del CNPP (investigación, intermedia, juicio oral y recursos); cómputo automático de términos conforme al artículo 94 del CNPP.
 
-**Redacción exacta propuesta para revisión, todavía no aplicada:**
+**Redacción autorizada por el usuario el 17 de octubre de 2026 y aplicada al
+criterio OE-2 del manuscrito:**
 
 > CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las etapas de investigación, intermedia y juicio del artículo 211 del CNPP y sobre los recursos de revocación y apelación; cómputo automático de términos conforme al artículo 94 del CNPP.
 
-La propuesta corrige la clasificación y conserva las funciones exigidas. Para
+La redacción autorizada corrige la clasificación y conserva las funciones exigidas. Para
 el catálogo se propone añadir, sin renumerarlo todavía, el flujo **Gestión de
 recursos y términos asociados**: registrar resolución impugnada, consultar y
 actualizar el seguimiento, registrar actos con soportes exactos, conservar
@@ -196,8 +200,10 @@ El corpus inicial y las reglas deben explicitar cobertura y límites; una
 entrega parcial no convierte esos límites en una reducción del objetivo.
 
 **Cambiar literalmente el criterio académico requiere autorización explícita
-del usuario.** La redacción propuesta permanece aquí para esa revisión; no se
-aplica a LaTeX ni al catálogo. Eliminar recursos o audiencias, sustituir cálculo
+del usuario.** Esa autorización se recibió el 17 de octubre de 2026 para aplicar
+la redacción de OE-2 registrada arriba. La corrección distingue etapas y recursos;
+conserva el objetivo, OE-3 y el catálogo de casos de uso. No acredita una función
+nueva ni cierra la evaluación humana. Eliminar recursos o audiencias, sustituir cálculo
 automático por fechas manuales o declarar suficiente una cobertura menor también
 requiere una decisión explícita de alcance, nunca una inferencia de ingeniería.
 

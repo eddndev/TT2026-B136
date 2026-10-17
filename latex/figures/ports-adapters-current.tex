@@ -1,0 +1,32 @@
+\begin{tikzpicture}[
+  box/.style={draw=ipnvino, rounded corners=1.5mm, align=center,
+    text width=13cm, inner sep=7pt, font=\small},
+  flow/.style={-{Stealth[length=2mm]}, line width=0.7pt}
+]
+  \node[box] (entry) at (0,0) {
+    \textbf{Entradas y composici\'on}\\
+    HTTP: Axum en \texttt{web}; CLI: Clap en \texttt{bin}.\\
+    \texttt{despacho-cli} y \texttt{qadra-ca} conectan servicios y adaptadores.
+  };
+  \node[box, fill=ipnvino!6, below=9mm of entry] (app) {
+    \textbf{application: casos de uso y puertos de flujo/persistencia}\\
+    Ejemplos: \texttt{HearingWorkflow}, \texttt{HearingStore},\\
+    \texttt{IndividualSigningStore}, \texttt{DocumentSigningVerifier}.\\
+    Los adaptadores de entrada invocan estos casos de uso.
+  };
+  \node[box, fill=ipnvino!6, below=9mm of app] (domain) {
+    \textbf{domain: reglas y puertos de dominio}\\
+    Ejemplos: \texttt{DocumentSigner}, \texttt{TimestampService},\\
+    \texttt{AuthenticatedCipher}, \texttt{PasswordHasher}, \texttt{AuditLog}.
+  };
+  \node[box, below=9mm of domain] (infra) {
+    \textbf{infrastructure: adaptadores de los puertos internos}\\
+    PostgreSQL y Redis; archivos y auditor\'ia;\\
+    criptograf\'ia, OpenSSL/PKI, TSA configurada y correo.\\
+    Depende de \texttt{application} y \texttt{domain}; no a la inversa.
+  };
+  \draw[flow] (entry) -- (app);
+  \draw[flow] (app) -- (domain);
+  \draw[flow, dashed] (infra) -- (domain);
+  \draw[flow, dashed] (infra.east) -- ++(0.5,0) |- (app.east);
+\end{tikzpicture}

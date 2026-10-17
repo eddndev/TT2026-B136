@@ -58,14 +58,16 @@ que una cuenta concreta pueda entrar. Una composición deshabilitada anuncia
 deniega el recorrido ante una respuesta ausente, inválida o fallida. No hay
 otra bandera de frontend.
 
-El usuario selecciona un recibo público histórico, descarga una declaración
+El usuario selecciona un recibo público histórico, prepara una declaración
 nueva de 182 bytes y aporta su firma separada antes de completar MFA. El
 recorrido y las diferencias respecto del registro de 150 bytes están en
 [la guía de acceso](owner-certificate-login-interface.md). La clave se utiliza
 en el equipo del titular, mediante la alternativa OpenSSL o el
-[ayudante local del navegador](browser-local-cryptography.md), implementado en
-la rama de trabajo y con aceptacion tecnica en curso, sin despliegue.
-Ninguna alternativa envia la clave ni su contrasena al servidor.
+[ayudante local del navegador](browser-local-cryptography.md), integrado y
+disponible en Qadra `v0.1.12` (`201fbb02`) desde el 16 de octubre de 2026 UTC.
+Su [verificación instalada](verification-report.md) no sustituye la aceptación
+personal del flujo externo. Ninguna alternativa envía la clave ni su contraseña
+al servidor.
 Habilitar esta composición no establece una política de custodia o entrega de claves.
 
 El lanzador desechable `scripts/web-demo.sh` habilita el acceso sólo cuando se

@@ -3,9 +3,11 @@
 El litigante conserva su clave privada en su equipo. El servidor recibe
 un certificado publico PEM y firmas binarias separadas de 384 bytes; no recibe
 claves privadas ni sus contrasenas. El
-[ayudante local del navegador](browser-local-cryptography.md) esta implementado
-en la rama de trabajo, con aceptacion tecnica en curso y sin despliegue:
+[ayudante local del navegador](browser-local-cryptography.md) esta integrado y
+disponible en Qadra `v0.1.12` (`201fbb02`) desde el 16 de octubre de 2026 UTC:
 permite seleccionar una clave cifrada para uso local, sin subirla al servidor.
+Su [verificacion instalada](verification-report.md) no acredita una nueva
+demostracion personal del Litigante, que sigue pendiente con el titular.
 La alternativa OpenSSL descrita aqui permanece disponible. No se admiten PKCS12.
 El perfil es interno y de demostracion; no representa FIREL ni una emision
 por un PSC. El contrato esta en `docs/http-individual-signing.md` y la decision

@@ -328,8 +328,9 @@ El cierre del expediente bloquea un nuevo envío, pero conserva la conciliación
 autorizada del intento anterior. No hay reenvío automático.
 
 La aceptación completa con HTTP nativo, restauración y consumidores operativos
-permanece pendiente; las pruebas de interfaz con respuestas controladas no la
-sustituyen ni acreditan despliegue.
+aprobó, junto con los recorridos de navegador real descritos en el
+[informe de verificación](verification-report.md). Las pruebas de interfaz con
+respuestas controladas conservan su alcance separado.
 
 ## Errores y alcance de la verificación
 
@@ -353,6 +354,7 @@ offset declarado y la secuencia de evento como cadena sin pérdida de precisión
 La prueba de composición verifica ambas rutas dentro de la API protegida y
 `Cache-Control: no-store`; utiliza puertos simulados y no acredita persistencia
 HTTP real. El [informe de verificación](verification-report.md) separa estas
-ejecuciones de las pruebas anteriores de aplicación y PostgreSQL. Permanecen
-pendientes la aceptación completa con captura/restauración y los gates
-globales de esta entrega.
+ejecuciones de las pruebas de aplicación, PostgreSQL y aceptación completa con
+captura/restauración. Los gates de PR88 y la corrección de aceptación de PR89
+confirmaron la integración; el [cierre finito](four-front-closure.md) conserva
+el alcance aceptado sin reabrir este mecanismo.

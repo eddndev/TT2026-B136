@@ -2,11 +2,15 @@
 
 ## Alcance actual
 
-La alternativa de primer factor tiene aplicación y adaptadores con aceptación
-local. El [transporte HTTP opcional](owner-certificate-login-http.md) tiene
-verificación focal separada. Todavía faltan composición ejecutable, interfaz
-pública y activación en VPS3. La vinculación previa de un certificado y su recibo público
-son un recorrido distinto: un recibo histórico no permite iniciar sesión.
+La alternativa de primer factor tiene aplicación, adaptadores, composición
+ejecutable e interfaz pública. El
+[transporte HTTP opcional](owner-certificate-login-http.md) conserva su
+verificación focal separada. La [aceptación instalada en VPS3](ca/README.md)
+registra su activación y el acceso Owner con certificado y MFA, seguido del
+acceso alternativo con contraseña y MFA. En otras instalaciones permanece
+deshabilitado por defecto y requiere activación expresa. La vinculación previa
+de un certificado y su recibo público son un recorrido distinto: un recibo
+histórico no permite iniciar sesión.
 El contrato binario está en
 [ADR-0068](adr/0068-owner-certificate-first-factor.md).
 

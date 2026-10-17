@@ -1,15 +1,16 @@
 # Alertas de audiencias propias de recursos
 
-## Alcance de la entrega local
+## Alcance de la entrega
 
 Esta ampliación forma parte de las [audiencias propias de recursos](resource-hearings.md).
-Su entrega e integración están en curso. Los resultados ejecutados y los controles
-pendientes se registran en [verificación](verification-report.md); una prueba de
+Su entrega se integró por PR87 y conserva el [alcance finito aceptado](four-front-closure.md).
+Los resultados ejecutados y los controles aprobados se registran en
+[verificación](verification-report.md); una prueba de
 cliente con HTTP controlado no acredita el consumidor real ni la restauración.
 La aceptación focal posterior sí comprobó la ocurrencia real y su recibo tras
 restaurar la base; Qadra pasó antes del ajuste posterior de planificación.
-Permanecen los gates globales del revisionado final.
-No se activa configuración de correo ni se despliega este trabajo al escribirlo.
+Los gates globales de la revisión final aprobaron antes de la integración.
+La configuración de correo conserva su activación operativa separada.
 
 ## Identidad y evidencia
 

@@ -27,9 +27,9 @@ Guardar un vencimiento o mostrarlo en Agenda no demuestra entrega de avisos.
 
 El corpus finito de ocho supuestos ya tiene fuentes, condiciones y resultados
 independientes documentados. Su incremento `AtAnchor` y cierre civil semanal
-está implementado localmente y aceptado por HTTP y navegador, todavía sin
-integrar ni desplegar. La regresión API completa aprobó en 606.453 s; CI e integración
-por PR permanecen pendientes. Véanse la
+está integrado por PR100 y activo desde `v0.1.6`, con aceptación HTTP/Qadra,
+restauración y gates finales aprobados. La regresión API original aprobó en
+606.453 s; esa cifra conserva el alcance de su campaña. Véanse la
 [lista de los ocho supuestos](four-front-closure.md), la
 [matriz funcional](product-completion.md), los [insumos](deadline-inputs.md) y
 las [fronteras de las reglas](deadline-rule-research.md).
@@ -248,7 +248,8 @@ desconocida, rechazada o ajena a estas fichas bloquea el vencimiento operativo.
 La aceptación HTTP con servicios reales aprobó captura, reinicio y restauración
 de los ocho supuestos, el extremo escrito que cruza inhábiles y diez negativos.
 El recorrido Qadra con backend real aprobó en 1440 y 390 píxeles sin fallos.
-Esta evidencia corresponde al incremento local de `AtAnchor`, cierre semanal
+Esta evidencia corresponde al incremento de `AtAnchor`, cierre semanal
 y perfiles del corpus. La regresión API completa aprobó en 606.453 s, incluido
-el historial de reevaluación, reinicio y restauración. Quedan pendientes los
-gates de CI, integración por PR y despliegue de ese incremento.
+el historial de reevaluación, reinicio y restauración. Los gates, la integración
+por PR100 y la activación completaron el [cierre de esos ocho supuestos](four-front-closure.md).
+Estas cifras describen las campañas originales, no una nueva ejecución.

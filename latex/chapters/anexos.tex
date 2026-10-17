@@ -1,25 +1,42 @@
 \chapter{Diagramas detallados de arquitectura}\label{anexo:A}
 
-Este anexo presenta las versiones detalladas de los diagramas arquitectónicos cuya densidad de información requiere la orientación apaisada para mantener la legibilidad de todas sus etiquetas. Las figuras de este anexo se referencian desde las subsecciones correspondientes del cuerpo del Capítulo 3.
+Este anexo detalla las fronteras de confianza y la distribuci\'on de puertos y
+adaptadores de la implementaci\'on. Las figuras complementan las vistas del
+Cap\'itulo 3 y separan el equipo del titular, la aplicaci\'on y sus servicios.
 
 \section{Vista detallada de Fronteras de Confianza}\label{sec:fronteras-confianza}
 
-Modelo completo de defensa en profundidad: cuatro zonas de confianza (red pública, perímetro de aplicación, núcleo aplicativo, datos persistentes y secretos), tres fronteras con sus respectivos controles de seguridad (TLS 1.3, Rate Limiting, WAF/CORS, Autenticación JWT, Validación de input, Autorización RBAC, Conexiones TLS internas, Consultas parametrizadas vía sqlx, Cifrado en reposo mediante envelope encryption), y los servicios externos (Cincel PSC, Proveedor SMTP) ubicados en la zona no confiable con sus canales seguros explícitos.
+El navegador accede a Qadra mediante HTTPS. La API autentica con sesiones
+opacas revocables almacenadas en Redis y aplica permisos por rol y expediente.
+La aplicaci\'on conserva las operaciones y su auditor\'ia en PostgreSQL mediante
+los adaptadores \texttt{postgres}/\texttt{tokio-postgres}; los archivos se
+protegen con cifrado autenticado. La clave privada que el titular selecciona
+para firmar localmente permanece en su equipo y se procesa en un worker
+Rust/WASM. La CA tiene portal, proceso y acceso administrativo separados.
+La TSA local y el proveedor de correo cumplen funciones acotadas; ninguno
+convierte la confianza interna del prototipo en acreditaci\'on de identidad civil.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{image29.png}
-  \caption{Modelo de defensa en profundidad por capas y controles aplicados a cada cruce de frontera.}
+  \input{figures/trust-boundaries-current}
+  \caption{Fronteras de confianza, sesiones opacas y persistencia de la implementaci\'on.}
   \label{fig:fronteras-confianza}
 \end{figure}
 
-\section{Arquitectura Hexagonal completa con puertos y adaptadores nombrados}\label{sec:hexagonal-completa}
+\section{Arquitectura hexagonal con puertos y adaptadores}\label{sec:hexagonal-completa}
 
-Implementación detallada de la arquitectura hexagonal del prototipo: todos los puertos driving del sistema (RestApiPort sobre Axum, CommandLinePort sobre Clap, WebSocketPort sobre Axum WebSocket), todos los puertos driven (CaseRepository, DocumentRepository, DocumentSigner, TimestampService, NotificationDispatcher, AuditLogger, SessionStore) y sus adaptadores concretos correspondientes. Cada puerto se materializa como un trait de Rust en el crate domain, y cada adaptador como una struct con bloque impl en el crate infrastructure.
+Los transportes HTTP y CLI invocan los casos de uso; los binarios componen sus
+dependencias concretas. Los traits de persistencia y de flujo residen en
+\texttt{application}, mientras que \texttt{domain} define reglas y puertos
+criptogr\'aficos y de auditor\'ia. \texttt{infrastructure} implementa los
+adaptadores contra esas interfaces. La figura muestra ejemplos representativos,
+sin equiparar cada handler de entrada con un trait ni suponer un transporte
+WebSocket. Las flechas continuas muestran invocaci\'on o dependencia hacia el
+interior; las discontinuas indican implementaci\'on de puertos.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{image30.png}
-  \caption{Arquitectura hexagonal completa: cada puerto es un trait de Rust en el crate domain; cada adaptador es una struct en el crate infrastructure.}
+  \input{figures/ports-adapters-current}
+  \caption{Distribuci\'on de puertos entre application y domain, con adaptadores externos.}
   \label{fig:hexagonal-completa}
 \end{figure}

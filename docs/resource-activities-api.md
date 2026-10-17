@@ -17,10 +17,11 @@ La [creación contextual de plazos](resource-deadlines-api.md) tiene un contrato
 separado que registra plazo y vínculo juntos; las operaciones de asociación de
 este documento continúan seleccionando actividades existentes.
 La [programación de audiencias de recurso](resource-hearings.md) implementa
-localmente otra creación atómica con vínculo inicial. Su nueva familia de DTO
+otra creación atómica con vínculo inicial. Su familia de DTO
 `resource_hearing` está implementada en estos endpoints genéricos, sin añadir
-rutas propias de programación o consulta de audiencias. La extensión tiene
-pruebas focales aprobadas; aún no está integrada ni desplegada.
+rutas propias de programación o consulta de audiencias a esta colección.
+La extensión y las rutas propias de audiencias se integraron por PR87;
+su aceptación y activación se conservan en el [cierre finito](four-front-closure.md).
 
 ## Autorización y confirmación
 

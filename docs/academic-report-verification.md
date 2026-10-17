@@ -1,5 +1,37 @@
 # Verificación de la actualización académica
 
+## Conciliación documental: 17 de octubre de 2026
+
+El manuscrito describe el acceso Owner por certificado y MFA, la firma local y
+su alternativa externa, el paquete individual con vinculación y consentimiento,
+y las fronteras de confianza y puertos implementados. Los diagramas sustituyen
+las etiquetas JWT/sqlx y el transporte WebSocket supuesto por sesiones opacas,
+adaptadores PostgreSQL y las entradas HTTP/CLI. El inventario distingue cinco
+crates del servidor, el módulo WASM independiente y los dos ejecutables.
+
+El usuario autorizó la redacción de OE-2 que separa las tres etapas del CNPP
+respecto de revocación y apelación, y la documentación de Argon2 con `t=3`.
+Los objetivos específicos, OE-3, resumen y conclusiones permanecen intactos.
+Se conserva la medición histórica de dos pasadas; la evaluación actual cita
+los cinco hashes de tres pasadas del 19 de septiembre y limita la banda a ese
+hardware y perfil de binario. No se realizó otra medición de rendimiento.
+
+El compilador del editor no pudo descargar su entorno Tectonic. Se compiló con
+LuaLaTeX y el Makefile del proyecto en una copia temporal de las fuentes,
+preservando el PDF local aceptado. El resultado tiene **427 páginas**, SHA-256
+`327f46c98af8be0d181f731670f9a02b9dd37abfb902d6f58191a9c591a1d81f`.
+Se inspeccionaron las páginas físicas **17, 18, 21, 73, 124, 143, 147, 148, 160,
+329-332, 349-351, 363, 366, 367, 371-373 y 424**: criterios, autenticación,
+flujo de firma, arquitectura, evaluación y anexos. No se observaron nuevos
+recortes ni solapes; las referencias se resuelven y no hay glifos faltantes.
+Los dos avisos `Overfull hbox` y la sustitución de versalitas de Times New Roman
+ya estaban presentes en el registro local anterior; no se presentan como nuevos.
+
+La revisión conserva el artefacto comprimido y las imágenes, sin añadir PDF a
+Git ni sustituir `latex/main.pdf`. Esta aceptación documental es local; no
+representa otra campaña funcional, integración ni despliegue. Las mediciones
+históricas y sus límites conservan sus propios cortes.
+
 ## Firma local del navegador: fuentes del 16 de octubre de 2026 UTC
 
 Las fuentes incorporan el modulo Rust/WASM, generacion y reimportacion de clave

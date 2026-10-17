@@ -176,8 +176,9 @@ otro vínculo desde un Owner autorizado después de restaurar. La aceptación HT
 completa posterior también aprobó: `scripts/api-resource-activities-demo.py`
 comparó 26 respuestas restauradas, con los instantes de lectura validados aparte;
 `scripts/api-migration-demo.sh` conservó idénticas las tres raíces y cuatro
-revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos. CI del incremento
-permanece pendiente en el [corte de verificación](verification-report.md).
+revisiones de asociación del ensayo. El navegador real aprobó tres escenarios distintos.
+La integración y el cierre global del incremento se conservan en el
+[informe de verificación](verification-report.md), separados de esas campañas originales.
 
 ## Origen conjunto de resultado y plazo
 
@@ -207,7 +208,8 @@ registra su aceptación nativa; el ejemplo no publica perfiles operativos.
 
 ## Audiencias propias de recursos
 
-Implementación local, todavía no integrada ni desplegada. La familia de migración
+Entrega integrada por PR87 y conservada en la base productiva del
+[cierre finito](four-front-closure.md). La familia de migración
 `0030_resource_hearings*.sql` se instala mediante
 `database migrate --runtime-role`, junto al resto del esquema. Añade
 `case_resource_hearings` y `case_resource_hearing_revisions`, y amplía las
@@ -253,13 +255,15 @@ Al restaurar se requieren también captura, asociación R1, origen auditado y to
 sus dependencias. Abrir el store valida esquema, permisos e inventario antes de
 admitir trabajo. Un padre o digest cambiado, una asociación inicial ausente o un
 origen no conciliable producen rechazo, sin reparación automática. Los reinicios
-del consumidor conservan el cursor y los recibos sin duplicar avisos. Esta
-ampliación local aún necesita aceptación propia de respaldo/restauración y cierre
-de CI; no habilita correo operativo. Véase [el contrato](resource-hearing-alerts.md).
+del consumidor conservan el cursor y los recibos sin duplicar avisos. La
+aceptación de respaldo/restauración y el cierre de CI forman parte de la entrega
+integrada por PR87; la configuración de correo conserva su activación separada.
+Véase [el contrato](resource-hearing-alerts.md).
 
 ## Audiencias cautelares de imposición y revisión
 
-Implementación local, todavía no integrada ni desplegada. La familia
+Entrega integrada por PR90 y conservada en la base productiva del
+[cierre finito](four-front-closure.md). La familia
 `0033_precautionary_hearings*.sql` se instala con
 `database migrate --runtime-role`. Añade `case_precautionary_hearings` y
 `case_precautionary_hearing_revisions` para programar, reemplazar y cancelar
@@ -320,14 +324,15 @@ tras perder un sufijo ni mostrar una página vacía que oculte una raíz perdida
 El respaldo deberá conservar ambas tablas y todas sus fuentes, usuarios y
 auditoría. No se deben reparar recibos, desactivar guardas o eliminar eventos
 para forzar la apertura. Los consumidores mixtos G2/M2 y sus consultas tienen
-implementación local y verificación nativa focal. HTTP, Agenda, alertas y Qadra
-están compuestos en la rama y verificados focalmente; los recorridos de escritorio
+implementación integrada y verificación nativa focal. HTTP, Agenda, alertas y Qadra
+están compuestos y verificados focalmente; los recorridos de escritorio
 y móvil con servicios reales aprobaron.
 La aceptación API con reinicio y restauración aprobó; véase el
 [informe de verificación](verification-report.md).
-Esta implementación no acredita su integración en main ni despliegue. Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
+La integración por PR90 y su conservación en producción constan en el
+[cierre finito](four-front-closure.md). Véanse [ADR-0071](adr/0071-declared-precautionary-hearings-and-measures.md)
 y [el informe de verificación](verification-report.md), que distingue las
-pruebas ejecutadas y los controles de integración todavía pendientes.
+pruebas focales, la aceptación completa y los controles de integración aprobados.
 
 ## Decisiones cautelares y anclas históricas
 
@@ -612,8 +617,8 @@ el respaldo y la restauración finales conservaron las proyecciones de cuentas y
 asignaciones, rechazaron tokens anteriores con 401 y exigieron MFA nuevo. También
 conservaron idénticos los ZIP de cuatro documentos importados y sus 70 eventos de
 auditoría; el inventario final incluyó 19 raíces documentales, 25 versiones y un
-incidente. CI global y el PDF de estos resultados siguen pendientes en
-[el informe](verification-report.md).
+incidente. La entrega y su cierre global están integrados; las campañas
+originales y su evidencia documental se conservan en [el informe](verification-report.md).
 
 ## Informes durables y restauración
 
@@ -1242,8 +1247,10 @@ backend real aprobadas. El dispatcher/worker está compuesto en `serve`; la
 campaña API real comprobó reevaluación, señales, reinicios y restauración.
 La aceptación API final y el cierre global aprobaron; PR 34 integró esta entrega
 y PR 35 integró la agenda conjunta. PR 36 integró las alertas como `8261c51`.
-La activación automática y el corpus jurídico siguen
-pendientes en [el contrato completo](deadline-lifecycle.md).
+La creación explícita conjunta y el corpus jurídico de ocho supuestos también
+están integrados y activos dentro del [alcance finito aceptado](four-front-closure.md).
+El [contrato completo](deadline-lifecycle.md) conserva las condiciones y límites
+de cada perfil; no se infieren términos desde texto libre.
 
 ## Actualizar capturas y atención de plazos
 
