@@ -4,7 +4,7 @@
 
 \section{Supervisión operativa}\label{sec:impl-supervision}
 
-La supervisión del despacho se apoya en tres consultas autorizadas que no modifican los expedientes: el tablero operativo, los informes durables de expedientes y la consulta de la actividad registrada en la cadena de auditoría.
+La supervisión del despacho se apoya en tres funciones autorizadas que no modifican los expedientes y cuyas lecturas o solicitudes quedan registradas en la cadena de auditoría. El tablero operativo calcula a petición indicadores de expedientes, contratos, plazos y carga de trabajo. Los informes durables generan, mediante un consumidor serial, capturas cifradas y sus artefactos PDF y CSV del estado de los expedientes o de la actividad atribuida a cada litigante, con una estimación inicial cuando existe historial comparable y un aviso opcional por correo. La consulta de actividad permite al Owner seleccionar eventos de la cadena; su subsección describe también el contexto observado de cada evento y el resultado de acceso que la frontera HTTP registra para cada solicitud admitida a una ruta de producto reconocida.
 
 \input{chapters/04-tablero}
 

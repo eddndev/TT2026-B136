@@ -1,6 +1,8 @@
 \subsection{Verificación de consulta de actividad}\label{sec:pruebas-bitacora}
-La aplicación aprobó veinte pruebas focales del contrato y del servicio. Incluyen
-límites del intervalo y de texto, precisión temporal, cursor canónico ligado a
+Esta subsección presenta primero la verificación de la consulta base descrita en
+la \cref{sec:impl-bitacora} y después la del contexto observado y el registro
+durable de acceso. La aplicación aprobó veinte pruebas focales del contrato y del
+servicio. Incluyen límites del intervalo y de texto, precisión temporal, cursor canónico ligado a
 filtros, autorización aun sobre resultados vacíos, rechazo de respuestas
 incoherentes y reautenticación previa a la entrega. Los campos históricos no
 se truncan ni reciben los límites propios de los filtros de entrada.
@@ -55,49 +57,27 @@ registran por separado.
 
 \subsubsection{Contexto observado y registro durable de acceso}
 \label{sec:pruebas-bitacora-contexto}
-La extensión incorpora un contexto opcional con UUID de cuenta, dirección
-IPv4 o IPv6, origen HTTP, CLI o interno y UUID de correlación. La identidad de
-cuenta solo se vincula tras admitir una sesión vigente; el texto histórico del
-actor no se convierte en una identidad comprobada. Los campos no observados
-permanecen nulos. Los procesos CLI e internos no reciben una IP ni un usuario
-inventados. La dirección procede del par de conexión por omisión; confiar en
-una única IP de \texttt{X-Forwarded-For} requiere habilitar expresamente el modo
-de proxy loopback, cuyo Nginx sobrescribe ese encabezado. Esta observación no
-identifica por sí sola a una persona.
-
-Los registros sin contexto conservan sus bytes canónicos. Solo un contexto
-presente añade la extensión versionada \texttt{AUDCTX01}, cubierta por el hash
-de cadena. La columna nueva admite nulos y no reconstruye UUID ni direcciones
-de filas antiguas. Los lectores, exportadores y recorridos de importación y
-restauración deben preservar tanto la ausencia histórica como el contexto nuevo.
+Esta parte verifica el contexto observado, la extensión \texttt{AUDCTX01} y el
+registro durable de resultados de acceso descritos en la \cref{sec:impl-bitacora}.
+Sus comprobaciones exigen que la identidad de cuenta sólo se vincule tras admitir
+una sesión vigente, que los procesos CLI e internos no reciban una IP ni un
+usuario inventados y que la dirección reenviada sólo se acepte en el modo
+explícito de proxy loopback; esta observación no identifica por sí sola a una
+persona. Los registros sin contexto deben conservar sus bytes canónicos, y los
+lectores, exportadores y recorridos de importación y restauración deben preservar
+tanto la ausencia histórica como el contexto nuevo. Cada solicitud admitida a
+una ruta de producto reconocida debe anexar el resultado que corresponde a su
+estado HTTP, sin reclasificar eventos antiguos, y conservar su permiso hasta terminar el anexado aunque el cliente se
+desconecte; el cierre ordenado debe esperar también esas solicitudes, sin que
+ello equivalga a sobrevivir a la pérdida abrupta del proceso. Un fallo del
+escritor de auditoría debe producir el 500 genérico, que no demuestra reversión
+ni permite un reintento automático. La saturación que produce 503 antes de
+admitir la petición queda fuera de la población ejecutada. La consulta Owner
+debe conservar sus rutas, autorización, continuaciones, filtro \texttt{actor} y presupuesto de página con
+el contexto incluido, y la interfaz debe distinguir los valores no disponibles.
 La verificación criptográfica completa continúa siendo una operación separada
-de la consulta filtrada; el anclaje externo mantiene su límite previo.
-
-Después del manejador de una solicitud admitida se anexa un resultado de acceso
-independiente de los eventos transaccionales de negocio. Los estados 2xx se
-registran como \texttt{access.granted}; 401 y 403, como
-\texttt{access.denied}; los demás estados que no sean 5xx, como
-\texttt{access.rejected}; y 5xx, como \texttt{access.failed}. Un 404 no permite
-distinguir ausencia del recurso de ocultamiento por autorización. Una respuesta
-pública exitosa tampoco acredita existencia de cuenta, MFA completo o entrega
-de correo. Estas acciones no reclasifican retroactivamente los eventos antiguos.
-
-El propietario de la solicitud conserva su permiso hasta terminar el manejador
-y el anexado, aunque el cliente se desconecte. El cierre ordenado debe esperar
-también esas solicitudes; no equivale a sobrevivir a la pérdida abrupta del
-proceso. Si el escritor de auditoría falla, la respuesta final es un 500 genérico.
-Una transacción de negocio puede haberse confirmado antes, por lo que ese error
-no demuestra reversión ni permite un reintento automático. La saturación que
-produce 503 antes de admitir la petición queda fuera de la población ejecutada.
-
-La consulta Owner conserva sus rutas, autorización y continuaciones. Cada evento
-expone \texttt{context: null} o el objeto de cuatro campos. El filtro existente
-\texttt{actor} admite coincidencia exacta con el actor capturado o con el UUID
-registrado en \texttt{context.user\_id}, sin buscar cuentas actuales ni añadir
-parámetros. El presupuesto de 262144 bytes suma actor, acción, recurso y el JSON
-compacto completo del contexto; la ausencia de contexto aporta cero bytes. La
-interfaz distingue los valores no disponibles y obtiene el resultado de las
-cuatro acciones, sin un campo adicional ni una nueva analítica.
+de la consulta filtrada, y el anclaje externo mantiene el límite señalado en la
+\cref{sec:impl-bitacora}.
 
 El protocolo de rendimiento mide desde antes de esperar al escritor de acceso
 hasta la confirmación durable de su commit, incluidas esperas y anexado. Excluye
@@ -107,11 +87,12 @@ historia y concurrencia. La media o el percentil 95 no sustituyen el criterio
 estricto por operación de la \cref{tab:rf-20}. La cobertura de transporte y permisos,
 la historia mixta, restauración, cancelación y cierre conservan sus comprobaciones
 funcionales, separadas de las poblaciones de rendimiento descritas a continuación.
-La política de documentos para Client permanece como decisión humana separada.
 
 El contrato está versionado en \rutarepo{docs/audit-events-api.md}; la decisión,
 en \rutarepo{docs/adr/0077-durable-access-audit-context.md}; y el catálogo finito,
 escenarios y protocolo de aceptación, en \rutarepo{docs/access-audit-matrix.md}.
+Esa matriz conserva la denegación documental vigente para Client, cuya política
+permanece como decisión humana separada.
 
 El protocolo de medición del escritor durable fijó antes de ejecutar 222 cargas
 de método y ruta, cuatro resultados y tres repeticiones para concurrencias uno

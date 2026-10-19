@@ -10,25 +10,25 @@ Los veinte casos de aplicación se encuentran en
 cursor, autorización, límites y respuestas del puerto. El uso de dobles de
 almacenamiento en ese nivel no representa una ejecución de PostgreSQL.
 
-Las catorce comprobaciones reales del adaptador se distribuyen en tres módulos
+{\emergencystretch=3em Las catorce comprobaciones reales del adaptador se distribuyen en tres módulos
 del directorio \rutarepo{crates/infrastructure/tests/}:
 \begin{itemize}
-  \item \texttt{audit\_query\_postgres.rs}: consulta y autorización.
-  \item \texttt{audit\_query\_schema.rs}: migración y esquema.
-  \item \texttt{audit\_query\_restore.rs}: respaldo y restauración.
+  \item \rutarepo{audit_query_postgres.rs}: consulta y autorización.
+  \item \rutarepo{audit_query_schema.rs}: migración y esquema.
+  \item \rutarepo{audit_query_restore.rs}: respaldo y restauración.
 \end{itemize}
 Requieren una base
 desechable configurada mediante \texttt{CASE\_TEST\_DATABASE\_URL}; sin esa
 variable, el retorno anticipado del fixture no demuestra aceptación del almacén.
 El último grupo utiliza \texttt{pg\_dump} y \texttt{pg\_restore} sobre un esquema
-independiente, además de verificar las columnas originales y sus claves derivadas.
+independiente, además de verificar las columnas originales y sus claves derivadas.\par}
 
 La aceptación integrada aprobada está implementada en
 \rutarepo{scripts/api-audit-events-demo.py}, invocado por
 \rutarepo{scripts/api-demo.sh}. Contrasta las respuestas con historia y cadena
 almacenadas, prueba autorización y continuaciones, y vuelve a comprobarlas tras
 restaurar con autenticación renovada. Los dos recorridos de servicios reales en
-\rutarepo{web/tests/live/audit-events.spec.mjs} separan la consulta autorizada de
+\rutarepo{web/apps/qadra/tests/live/audit-events.spec.mjs} separan la consulta autorizada de
 Owner de la denegación a Litigante. Los resultados y tiempos se registran en
 \rutarepo{docs/verification-report.md}; no se atribuyen a una campaña de CI.
 
@@ -50,10 +50,12 @@ se declaran por separado; los resultados están en
 \cref{sec:pruebas-bitacora-contexto}. La restauración conserva tanto los bytes
 antiguos como la extensión nueva, sin reconstruir identidad retrospectiva.
 
-La evaluación con personal del despacho requiere participantes reales y un
-registro de tareas, terminaciones, errores, asistencia y observaciones. El kit
-y sus plantillas están preparados, sin participantes ni resultados humanos. La
-TSA local no acredita una campaña con un proveedor externo; el alcance de ese
-proveedor sigue separado conforme a
-\rutarepo{docs/adr/0009-local-timestamp-authority.md}. La ausencia de anclaje de
-la cabeza y los campos históricos faltantes no se ocultan con el conteo de pruebas.
+Además de los límites propios de la consulta, esta trazabilidad conserva límites
+generales del prototipo. La evaluación con personal del despacho requiere
+participantes reales y un registro de tareas, terminaciones, errores, asistencia
+y observaciones; el kit y sus plantillas están preparados, sin participantes ni
+resultados humanos (\cref{sec:pruebas-protocolo-humano}). La TSA local no
+acredita una campaña con un proveedor externo; el alcance de ese proveedor sigue
+separado conforme a \rutarepo{docs/adr/0009-local-timestamp-authority.md}. En la
+cadena de auditoría, la ausencia de anclaje de la cabeza y los campos históricos
+de contexto faltantes no se ocultan con el conteo de pruebas.
