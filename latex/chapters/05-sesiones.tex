@@ -1,4 +1,4 @@
-\subsection{Plazos de sesión y actividad explícita}\label{sec:pruebas-sesiones}
+\subsection{Plazos de sesión, reingreso y recuperación de borradores}\label{sec:pruebas-sesiones}
 
 La aceptación del 2 de octubre de 2026 distingue la política predeterminada
 de veinticuatro horas del límite opcional de inactividad. Las pruebas iniciales
@@ -34,6 +34,11 @@ remota del contrato de backend aprobó 3381 pruebas Rust, 419 de navegador con
 respuestas simuladas y 51 contra servicios reales, además de los umbrales de
 cobertura de 97/95/93\,\%. Esa campaña precede a los adaptadores de recuperación
 de formularios y no acredita su comportamiento.
+
+El resto de esta subsección reúne, por familia de editores, la verificación del
+reingreso de Qadra y de la recuperación de borradores tras un vencimiento o una
+nueva autenticación (\cref{sec:impl-qadra-sesion,sec:impl-qadra-borradores});
+cada campaña conserva su propio alcance y no se suma a las demás.
 
 La integración posterior del navegador cuenta con 45 comprobaciones focales
 del ciclo de sesión, registro de borradores y alcance del descarte por
@@ -105,7 +110,8 @@ Node de clientes en 0.232~s. Se comprobó autorización Owner y destino antes
 de mostrar valores, revisión decimal exacta, resultado incierto sin repetición,
 limpieza anterior a la expiración por cambio del propio rol y descarte ante
 pérdida de permiso, otra cuenta o cierre explícito. Estos resultados utilizan
-HTTP controlado y corresponden al recorrido administrativo anterior; no
+HTTP controlado y corresponden al recorrido administrativo del Owner
+(\cref{sec:pruebas-miembros}); no
 incluyeron el alta por invitaci\'on, cuyas pruebas se presentan por separado
 en la \cref{sec:pruebas-invitaciones}.
 

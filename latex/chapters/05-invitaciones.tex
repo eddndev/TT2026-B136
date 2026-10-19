@@ -80,6 +80,11 @@ separadas y no se suman a los casos focales de invitaciones.
 Los resultados focales se registran por separado en
 \rutarepo{docs/verification-report.md}. El resultado funcional local confirma
 alta con MFA, reentrada mediante recibo y conservaci\'on de cuentas y evidencia
-tras restaurar, sin duplicar aceptaciones. La entrega de correo externo sigue
-deshabilitada. CI, integraci\'on y despliegue permanecen pendientes; las pruebas
-del router, navegador controlado y restauraci\'on conservan su alcance propio.
+tras restaurar, sin duplicar aceptaciones. Ninguna de estas comprobaciones
+envi\'o correo externo, cuya entrega permanece deshabilitada por defecto. Las
+pruebas del router, del navegador controlado y de restauraci\'on conservan su
+alcance propio y no acreditan CI, integraci\'on ni despliegue. La integraci\'on
+de las invitaciones con sus gates, su despliegue en \texttt{v0.1.4} y la
+activaci\'on de Resend, cuya recepci\'on de un \'unico correo de prueba confirma
+el transporte sin acreditar un alta real en producci\'on, se registran en
+\rutarepo{docs/product-completion.md}.

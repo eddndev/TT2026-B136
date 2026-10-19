@@ -1,8 +1,9 @@
-\subsection{Vínculo explícito de certificado del Owner}
+\subsection{Vínculo explícito de certificado del Owner}\label{sec:impl-vinculo-certificado}
 
 El vínculo relaciona una cuenta Owner consigo misma, un despliegue,
 una raíz, una revisión de confianza y un certificado público. El dominio define
-un registro canónico de 150 bytes con propósito separado de alta y retiro,
+un registro canónico \texttt{OWNCERT1} de 150 bytes (\cref{tab:anexo-canones}),
+con propósito separado de alta y retiro,
 revisión de cuenta y generación de autenticación. La transición de retiro es
 terminal y conserva la captura original. Estos valores comprueban datos
 suministrados; por sí solos no autentican ni acreditan una escritura durable.
@@ -12,7 +13,8 @@ Exige RSA de 3072 bits, exponente 65537, algoritmo SHA-256/RSA y usos de clave
 exactos, incluidos clientAuth y emailProtection. Recalcula el digest del registro
 y verifica su firma separada, la raíz y la CRL obligatoria al instante solicitado.
 También compara la inspección completa de confianza y las huellas del material.
-La declaración personal mantiene un perfil distinto que rechaza usos extendidos.
+La declaración personal de los participantes (\cref{sec:impl-declaracion-participante})
+mantiene un perfil distinto que rechaza usos extendidos.
 El adaptador recibe sólo evidencia pública, nunca la clave privada del titular.
 
 Una verificación satisfactoria establece consistencia criptográfica con la
@@ -60,7 +62,7 @@ digest comprobado, la evidencia histórica, los contadores completos y la
 precisión temporal original. Un resultado incierto se reconcilia por UUID y
 bytes exactos, sin reintento automático.
 
-La consulta adicional \texttt{GET /api/v1/auth/}\allowbreak
+{\emergencystretch=3em La consulta \texttt{GET /api/v1/auth/}\allowbreak
 \texttt{certificate-bindings/current} permite descubrir el vínculo propio sin
 conocer su UUID. Devuelve el recibo completo sin retirar o \texttt{null}, con
 estado 200. PostgreSQL toma el bloqueo común de auditoría y relee al Owner
@@ -69,7 +71,7 @@ vínculos sin retirar se rechazan. La aplicación vuelve a autenticar el princip
 completo incluso si no hay resultado. La lectura no añade auditoría ni exige
 otra verificación RSA o confianza vigente: describe la ausencia de retiro al
 consultar, sin reservar ese estado ni acreditar vigencia del certificado. El
-UUID exacto conserva la consulta del recibo terminal después del retiro.
+UUID exacto conserva la consulta del recibo terminal después del retiro.\par}
 
 Las rutas se incorporan al mismo límite de admisión y presupuesto de trabajo
 del resto de la API. La autenticación del Owner dentro del servicio espera un
@@ -83,19 +85,13 @@ PostgreSQL abierto tras validar el esquema, el verificador Partner y SHA-256.
 La aplicación y el repositorio comparten la instancia de reloj. Esta composición
 no ejecuta migraciones ni publica confianza; el alta requiere la publicación
 vigente y el retiro conserva su independencia de la validez actual del
-certificado. No se habilita enrolamiento, acceso por certificado ni firma
-documental individual. La política y sus límites están en
-\rutarepo{docs/adr/0067-owner-certificate-bindings.md}.
-
-La aceptación HTTP reutiliza el servidor, las sesiones Redis, PostgreSQL y la
-CA interna de \rutarepo{scripts/api-demo.sh}. Un titular sintético firma fuera
-de HTTP una declaración reconstruida independientemente; el ensayo compara
-la prueba pública con las filas y los eventos auditados. La publicación de una
-CRL sucesora permite contrastar una captura obsoleta con el recibo histórico
-exacto. Tras restaurar SQL se invalidan las sesiones y desafíos previos y se
-obtiene MFA nueva antes de consultar o conciliar ese recibo. Este recorrido no
-incluye una interfaz Qadra, custodia personal exclusiva ni recuperación
-operacional conjunta de SQL, RDB y PKI.
+certificado. Estas operaciones no enrolan cuentas ni habilitan por sí mismas
+el acceso por certificado, que requiere la composición explícita descrita más
+adelante, ni la firma documental individual, que emplea su propio vínculo
+(\cref{sec:impl-firma-individual}). La política y sus límites están en
+\rutarepo{docs/adr/0067-owner-certificate-bindings.md}. La aceptación HTTP con
+servicios reales, la revocación mediante una CRL sucesora y la restauración SQL
+del vínculo se reportan en la \cref{sec:pruebas-vinculo-certificado}.
 
 \subsubsection{Interfaz de evidencia pública y reingreso}
 
@@ -109,26 +105,27 @@ de \cref{sec:impl-criptografia-local} utiliza clave y contrase\~na solamente
 en el navegador; la API recibe evidencia p\'ublica y conserva su admisi\'on
 criptogr\'afica independiente.
 
-El comando se captura antes de esperar la respuesta de escritura. Un resultado
-incierto conserva declaración, certificado y firma originales; la consulta del
-UUID exacto debe coincidir con esa evidencia antes de confirmar. La ausencia
-observada habilita sólo una decisión expresa de repetir el mismo comando. El
-retiro exige evidencia terminal del mismo registro, no únicamente una revisión
+Las escrituras inciertas siguen la conciliación por recibo exacto de la
+\cref{sec:impl-qadra-conciliacion}: el comando se captura antes de esperar la
+respuesta, se conservan declaración, certificado y firma originales, y la
+consulta del UUID exacto debe coincidir con esa evidencia antes de confirmar. La
+ausencia observada habilita sólo una decisión expresa de repetir el mismo
+comando. El retiro exige evidencia terminal del mismo registro, no únicamente una revisión
 con el número esperado. El recibo público puede consultarse y descargarse sin
 presentar la confianza histórica como vigencia actual.
 
-Al vencer la sesión se conserva exclusivamente material público admitido en
-memoria. Retomar exige la misma cuenta, nueva MFA y consultas vigentes de
-identidad y vínculo; no prepara ni envía otra operación. El reingreso descarta
-una decisión anterior de ausencia y vuelve a exigir consulta exacta. Cancelar,
-cerrar sesión expresamente o cambiar de cuenta descarta el borrador. El archivo
-original y el PEM todavía no admitido quedan fuera de la captura. La función
+La recuperación tras vencer la sesión sigue la \cref{sec:impl-qadra-borradores}
+y conserva en memoria exclusivamente el material público admitido; el archivo
+original y el PEM todavía no admitido quedan fuera de la captura. Retomar exige
+consultas vigentes de identidad y vínculo, no prepara ni envía otra operación y
+descarta una decisión anterior de ausencia, de modo que vuelve a exigir la
+consulta exacta. Cancelar también descarta el borrador. La función
 de registro no abre por sí misma una sesión ni firma documentos. El acceso por
 certificado usa la declaración separada y el recorrido descritos a continuación.
 
 \subsubsection{Prueba separada y admisión interna del primer factor}
 
-El dominio incorpora una declaración distinta de 182 bytes, con separador de
+El dominio define una declaración distinta \texttt{OWNAUTH1} de 182 bytes, con separador de
 propósito propio, cuenta Owner, generación de autenticación, vínculo y confianza
 exactos, nonce de 32 bytes e intervalo no negativo de uno a 300 segundos.
 El vencimiento es exclusivo. El tipo sólo fija estructura y copia valores;
@@ -146,8 +143,9 @@ pero su generación de revocación y procedencia deben seguir coincidiendo.
 Los plazos de sesión quedan acotados por la vigencia de la credencial; los
 registros de contraseña conservan su formato y semántica. Hay presupuestos
 independientes y compartidos para inicio y presentación, sin reintentos de
-escrituras inciertas. La interfaz y el cierre de restauración siguen separados;
-esta frontera interna no activa por sí misma el acceso público.
+escrituras inciertas. Esta frontera interna no activa por sí misma el acceso
+público: la composición ejecutable, la invalidación tras restaurar y la interfaz
+se describen en los apartados siguientes.
 Véase \rutarepo{docs/adr/0068-owner-certificate-first-factor.md}.
 
 
@@ -155,10 +153,11 @@ El transporte opcional distingue solicitar declaración y presentar prueba. Cada
 ruta exige un objeto JSON estricto, identificadores canónicos y un cuerpo real
 acotado a 1024 o 2048 bytes, respectivamente. La segunda conserva la respuesta
 MFA existente y nunca devuelve sesión ni acepta una clave privada. Los
-constructores anteriores mantienen ambas rutas ausentes; la composición nueva
-comparte la admisión HTTP y el trabajo bloqueante con el resto de la API. Si
-se abandona una respuesta, el trabajador conserva su permiso hasta terminar.
-La composición ejecutable y la interfaz requieren aceptación independiente.
+constructores del router que no reciben este flujo mantienen ambas rutas
+ausentes; cuando lo reciben, la composición comparte la admisión HTTP y el
+trabajo bloqueante con el resto de la API. Si se abandona una respuesta, el
+trabajador conserva su permiso hasta terminar. La composición ejecutable y la
+interfaz tienen aceptación independiente (\cref{sec:pruebas-vinculo-certificado}).
 Véase \rutarepo{docs/owner-certificate-login-http.md}.
 
 
@@ -176,9 +175,12 @@ y el runtime Redis de capturas de un uso. Una prueba correcta sólo entrega MFA;
 la sesión posterior conserva la procedencia del vínculo y la revisión de
 confianza. El cambio de confianza o retiro del vínculo invalida sus capacidades
 derivadas sin degradarlas a contraseña. La habilitación del ejecutable no
-registra titulares, publica confianza ni activa por sí misma la interfaz.
+registra titulares, publica confianza, entrega claves ni sustituye MFA; la
+interfaz deriva de ella su disponibilidad, como se describe a continuación.
 Las condiciones operativas están en
-\rutarepo{docs/owner-certificate-login-operations.md}.
+\rutarepo{docs/owner-certificate-login-operations.md}; la habilitación en la
+instalación privada y su aceptación operativa se describen con el portal de la
+autoridad certificadora (\cref{sec:impl-portal-ca}).
 
 
 La interfaz puede consultar disponibilidad mediante una lectura pública derivada
@@ -219,8 +221,9 @@ sesión de la misma cuenta Owner seleccionada.
 El cliente consume localmente la captura antes de esperar la respuesta y descarta
 token y firma ante vencimiento o fallo. Un resultado incierto exige preparar y
 firmar otra declaración por decisión expresa; no recupera ni reenvía el intento.
-El cambio de método o apertura de recuperación de contraseña invalida las
-respuestas pendientes. Antes de instalar el acceso, la identidad devuelta por
+Como en los demás intentos de acceso (\cref{sec:impl-qadra-sesion}), el cambio
+de método o la apertura de recuperación de contraseña invalidan las respuestas
+pendientes. Antes de instalar el acceso, la identidad devuelta por
 MFA debe coincidir con el Owner seleccionado y conservar ese rol. El plazo local
 usa tiempo monotónico y descuenta latencia sin reemplazar el control temporal
 del servidor. Estas capacidades efímeras no participan en los borradores de

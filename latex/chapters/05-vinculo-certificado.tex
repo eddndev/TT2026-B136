@@ -1,4 +1,9 @@
-\subsection{Registro canónico y verificación del certificado Owner}
+\subsection{Registro canónico y verificación del certificado Owner}\label{sec:pruebas-vinculo-certificado}
+
+Las campañas de esta subsección recorren por capas el vínculo y el primer factor
+de la \cref{sec:impl-vinculo-certificado}: dominio y verificador, aplicación,
+persistencia, transporte y composición, aceptación HTTP conjunta e interfaz, y
+después las mismas fronteras del primer factor por certificado.
 
 Ocho pruebas de dominio comprobaron vectores literales de 150 bytes, propósito,
 cuenta, contadores y retiro terminal con preservación del registro. El verificador
@@ -13,7 +18,7 @@ conservaron el rechazo de usos extendidos de clave. La comprobación estática
 focal aprobó con advertencias tratadas como errores. Estos resultados locales
 no prueban la procedencia de una instantánea construida por un llamador,
 transacciones auditadas, una asociación persistida ni autenticación por
-certificado. La comprobación remota completa corresponde a una entrega posterior.
+certificado. La comprobación remota completa se registra por separado.
 
 La capa de aplicación añadió catorce pruebas con puertos controlados, aprobadas
 en 0.00~s después de 9.58~s de compilación. Verificaron identidad actual,
@@ -87,9 +92,10 @@ por contraseña y MFA reales, RSA y la CA interna. Reutilizó qpdf~12.4.1 y los
 decodificadores multimedia previamente verificados; no se registró la versión
 del servidor Redis. Esta campaña conserva por separado las mediciones focales.
 
-Se reconstruyeron independientemente los 150 bytes canónicos y se verificó con
-OpenSSL la firma pública devuelta. La firma alterada produjo rechazo sin
-escritura; un alta válida añadió un único evento. Las consultas y repeticiones
+Un titular sintético firmó fuera de HTTP los 150 bytes canónicos, reconstruidos
+independientemente, y se verificó con OpenSSL la firma pública devuelta; el
+ensayo comparó esa prueba con las filas y los eventos auditados. La firma
+alterada produjo rechazo sin escritura; un alta válida añadió un único evento. Las consultas y repeticiones
 exactas conservaron el recibo y los contadores de cuenta. Una CRL sucesora
 revocó la hoja de ensayo: la preparación anterior produjo conflicto y una
 nueva firma con el certificado revocado fue rechazada. El recibo original
@@ -104,10 +110,10 @@ vigente sin mutar evidencia. La campaña completa conservó también los
 recorridos previos; su comprobación final mantuvo cuatro documentos y los 70
 eventos del prefijo importado, con evidencia ZIP idéntica.
 
-El resultado acredita ese recorrido local con servicios reales. La extensión
-todavía no está publicada ni instalada y no tiene interfaz Qadra. No acredita
-inicio de sesión por certificado, firma individual de documentos, custodia
-exclusiva del titular, prestación de un PSC ni restauración operacional
+El resultado acredita ese recorrido local con servicios reales, sin publicar ni
+instalar la extensión y sin la interfaz Qadra, cuya verificación se presenta en
+los apartados siguientes. No acredita inicio de sesión por certificado, firma
+individual de documentos, custodia exclusiva del titular, prestación de un PSC ni restauración operacional
 conjunta de SQL, RDB y PKI.
 
 La consulta posterior del vínculo propio sin retirar reprodujo primero la
@@ -174,7 +180,7 @@ autenticación por certificado o firma documental individual. La campaña no
 repitió la restauración SQL ni la prueba de CRL sucesora del ensayo HTTP
 anterior; ambas conservan su evidencia y alcance independientes.
 
-\subsubsection{Estructura y verificación del primer factor futuro}
+\subsubsection{Estructura y verificación de la declaración del primer factor}
 
 Nueve casos de dominio aprobaron tras reproducir la ausencia del módulo. Dos
 vectores literales completos fijaron los 182 bytes y se comprobaron límites,
@@ -183,7 +189,9 @@ aprobó seis pruebas en 1.13~s, con 13.88~s de compilación. Una firma OpenSSL d
 un Partner verificó el formato; registro, retiro, nonce o generación alterados,
 confianza discordante, revocación firmada y entradas mal formadas se rechazaron.
 Estos resultados no demuestran consumo único del desafío, MFA, sesiones derivadas
-ni activación de acceso por certificado.
+ni activación de acceso por certificado; las tres primeras fronteras se comprueban
+en los apartados siguientes y la activación operativa, en la
+\cref{sec:pruebas-portal-ca}.
 
 
 \subsubsection{Admisión interna, autoridad y capacidades temporales}
@@ -191,7 +199,7 @@ ni activación de acceso por certificado.
 La aplicación aprobó inicialmente 20 casos nuevos y 31 del recorrido de identidad
 existente. Dos regresiones posteriores reprodujeron vencimiento absoluto y de
 inactividad durante una consulta final de autoridad dentro del mismo segundo.
-La admisión conserva ahora milisegundos y el cierre aprobó los 22 casos nuevos
+Tras conservar milisegundos en la admisión, el cierre aprobó los 22 casos nuevos
 y los 31 previos, en 0.01 y 0.00~s, tras 4.71~s de compilación.
 El puerto criptográfico conservó la evidencia y neutralizó fallos internos en
 ocho pruebas, incluidas las seis previas, en 0.77~s. La autoridad PostgreSQL
@@ -252,8 +260,9 @@ comprobó su procedencia y un plazo independiente de los cinco minutos de la
 captura inicial. Una CRL sucesora y el retiro del vínculo rechazaron capturas,
 MFA pendientes y sesiones previas de certificado. La contraseña siguió admitida,
 las credenciales rechazadas no consumieron recuperación y la auditoría conservó
-los recibos originales. Esta prueba usa el router en proceso; listener HTTP,
-restauración autenticada e interfaz requieren evidencia independiente.
+los recibos originales. Esta prueba usa el router en proceso; el listener HTTP,
+la restauración autenticada y la interfaz tienen evidencia independiente, descrita
+a continuación.
 
 
 Tres casos de disponibilidad reprodujeron primero la ausencia de la lectura;
@@ -314,8 +323,8 @@ no alteró permisos ni límites. La invalidez por retirada permanece comprobada
 por los ensayos propios del backend, sin atribuirla al logout de este recorrido.
 
 Las aceptaciones descritas utilizaron firmas producidas con OpenSSL fuera
-del navegador. La incorporaci\'on del ayudante Rust/WebAssembly de
+del navegador. El ayudante Rust/WebAssembly de
 \cref{sec:impl-criptografia-local} conserva esa alternativa y el protocolo
-de acceso, pero requiere evidencia propia para su ejecuci\'on local y ciclo
-de secretos. Los resultados anteriores no se atribuyen a ese ayudante ni
+de acceso, pero su ejecuci\'on local y su ciclo de secretos constituyen otra
+frontera de prueba. Los resultados anteriores no se atribuyen a ese ayudante ni
 demuestran su integraci\'on o activaci\'on operativa.
