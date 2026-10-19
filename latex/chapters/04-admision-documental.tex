@@ -1,14 +1,16 @@
 \subsection{Admisión general de nuevas cargas documentales}\label{sec:impl-admision-documental}
 
-La carga binaria, la carga con clasificación inicial y el anexado de versiones
-comparten una política obligatoria de admisión antes del hash, cifrado y registro.
-El límite permanece en 16~MiB por archivo. Se admiten ocho familias: PDF, DOCX,
+La carga binaria (\cref{tab:impl-http-rutas}), la carga con clasificación
+inicial (\cref{sec:impl-http-clasificacion}) y el anexado de versiones
+(\cref{sec:impl-http-versiones}) comparten una política obligatoria de admisión
+antes del hash, cifrado y registro. El límite es de 16~MiB por archivo. Se admiten ocho familias: PDF, DOCX,
 TXT, JPEG, PNG, MP3, WAV y MP4. El nombre, la extensión, el MIME declarado y los
 metadatos no seleccionan el formato ni permiten omitir su validación. El
 contenido admitido conserva exactamente sus bytes originales; la inspección no
 lo transforma en otra versión ni modifica documentos, firmas o sellos históricos.
 
-PDF y DOCX reutilizan sus analizadores existentes. TXT exige UTF-8 válido y
+PDF y DOCX reutilizan los analizadores de la política de soportes procesales
+(\cref{sec:impl-formatos}). TXT exige UTF-8 válido y
 admite BOM inicial, tabulación y saltos de línea, pero rechaza otros controles.
 JPEG y PNG deben ser imágenes estáticas completas. MP3 requiere Layer~III; WAV
 admite PCM de 8, 16, 24 o 32 bits, hasta ocho canales y 192~kHz. MP4 admite
@@ -23,9 +25,11 @@ no mantiene abierta una transacción de persistencia. Antes de confirmar se
 reautentica al principal completo; la transacción documental conserva la
 comprobación de pertenencia, cierre administrativo, versión esperada y auditoría.
 Un rechazo no cifra ni persiste una nueva versión. Qadra distingue formato no
-admitido, formato inválido, límite de validación e indisponibilidad del validador;
-conserva archivo, nombre y borrador para una acción explícita del usuario, sin
-reenviar automáticamente. Cliente mantiene denegado el acceso documental.
+admitido, formato inválido, límite de validación e indisponibilidad del validador,
+y conserva archivo y nombre junto con la clasificación de la carga o la versión
+esperada del anexado hasta una acción explícita, sin reenvío automático
+(\cref{sec:impl-qadra-conciliacion}). Cliente mantiene denegado el acceso
+documental (\cref{sec:impl-http-documentos}).
 
 La entrada acotada se copia a un descriptor \texttt{memfd} sellado contra
 escritura, crecimiento y reducción. Los procesos secuenciales reciben ese
@@ -54,6 +58,5 @@ PDF/DOCX de la \cref{sec:impl-formatos}: admitir audio, video o imágenes como
 documentos no los habilita donde un acto exige uno de esos soportes. Tampoco
 acredita autenticidad jurídica ni amplía permisos. El contrato preciso reside en
 \rutarepo{docs/document-upload-admission-api.md} y su justificación en
-\rutarepo{docs/adr/0058-bounded-general-document-admission.md}. La implementación
-cuenta con los resultados focales de la \cref{sec:pruebas-admision-documental};
-su aceptación integral conserva un cierre independiente.
+\rutarepo{docs/adr/0058-bounded-general-document-admission.md}. Su verificación
+y aceptación se presentan en la \cref{sec:pruebas-admision-documental}.
