@@ -7,13 +7,13 @@
     line width=0.8pt},
   service/.style={box, fill=codebg, text width=77pt, minimum height=65pt,
     font=\fontsize{9.5}{11.5}\selectfont},
-  proposed/.style={service, dashed, draw=codecmt},
+  optional/.style={service, dashed, draw=codecmt},
 ]
   \path[use as bounding box] (0,0) rectangle (470,350);
 
   \node[box, fill=ipnvino!6, text width=342pt, minimum height=38pt]
     (browser) at (235,325)
-    {\textbf{Interfaz de navegador propuesta}\\Astro + Svelte};
+    {\textbf{Interfaz de navegador Qadra}\\Astro + Svelte};
 
   \draw[draw=ipnvino!65, fill=ipnvino!3, rounded corners=5pt,
     line width=0.8pt] (15,107) rectangle (455,280);
@@ -37,12 +37,12 @@
     (handlers) at (135,167) {\textbf{Handlers HTTP}};
   \node[box, text width=177pt, minimum height=44pt]
     (usecases) at (327,167)
-    {\textbf{Casos de uso}\\Identidad, expedientes y documentos};
+    {\textbf{Casos de uso}\\Identidad, expedientes y documentos\\Actividad procesal y supervisión};
   \draw[flow] (auth.south) -- (385,196) -- (135,196) -- (handlers.north);
   \draw[flow] (handlers.east) -- (usecases.west);
   \node[box, fill=ipnvino!6, text width=398pt, minimum height=18pt,
     inner sep=2pt, font=\fontsize{9.5}{11.5}\selectfont]
-    (ports) at (235,122) {Puertos de persistencia y criptografía};
+    (ports) at (235,122) {Puertos de persistencia, criptografía y correo};
   \draw[flow] (usecases.south) -- (327,132);
 
   \node[service] (postgres) at (47,50)
@@ -51,10 +51,10 @@
     {\textbf{Redis}\\Sesiones y MFA\\Límites y replay};
   \node[service] (tsa) at (235,50)
     {\textbf{OpenSSL}\\TSA local\\RFC 3161};
-  \node[proposed] (psc) at (329,50)
+  \node[optional] (psc) at (329,50)
     {\textbf{PSC externo}\\Adaptador\\opcional};
-  \node[proposed] (smtp) at (423,50)
-    {\textbf{SMTP}\\Notificaciones\\propuestas};
+  \node[optional] (mail) at (423,50)
+    {\textbf{Resend}\\Correo\\transaccional\\opcional};
   \draw[draw=ipnvino!85, line width=0.8pt]
     (ports.south) -- (235,96) -- (47,96);
   \draw[flow] (47,96) -- (postgres.north);
@@ -62,5 +62,5 @@
   \draw[flow] (235,96) -- (tsa.north);
   \draw[draw=codecmt, dashed, line width=0.8pt] (235,96) -- (423,96);
   \draw[flow, dashed, draw=codecmt] (329,96) -- (psc.north);
-  \draw[flow, dashed, draw=codecmt] (423,96) -- (smtp.north);
+  \draw[flow, dashed, draw=codecmt] (423,96) -- (mail.north);
 \end{tikzpicture}
