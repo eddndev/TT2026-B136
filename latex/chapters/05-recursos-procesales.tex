@@ -1,4 +1,4 @@
-\section{Pruebas focales de recursos declarados}\label{sec:pruebas-recursos-declarados}
+\subsection{Pruebas focales de recursos declarados}\label{sec:pruebas-recursos-declarados}
 
 El corte local del 19 de septiembre de 2026 verifica por separado dominio, aplicación, transporte, almacenamiento e interfaz del registro descrito en la \cref{sec:impl-recursos-declarados}. El informe \rutarepo{docs/verification-report.md} conserva la procedencia y el alcance de las ejecuciones. Las pruebas focales se complementan con aceptación HTTP y navegador contra servicios reales. Sus ejecuciones se conservan por separado; no constituyen una regresión global de una única cabeza publicada.
 
@@ -21,7 +21,7 @@ El corte local del 19 de septiembre de 2026 verifica por separado dominio, aplic
   \end{tabularx}
 \end{table}
 
-\subsection{Identidad, capturas y confirmación}
+\subsubsection{Identidad, capturas y confirmación}
 
 Las pruebas de dominio comprueban límites técnicos, declaraciones explícitas y conservación de valores canónicos. Las de aplicación utilizan material verificado y lo alteran para distinguir un recibo válido de una respuesta que cambia identidad, revisión o captura. Comprueban las referencias históricas de resolución, los soportes exactos, los actos con revisión propia y la diferencia entre archivo organizativo y desistimiento declarado.
 
@@ -29,7 +29,7 @@ El servicio se prueba con cuatro roles y reautenticación del principal completo
 
 La evidencia HTTP comprueba el enlace entre ruta e intención y los rechazos antes de invocar el caso de uso. Las pruebas del cliente comprueban comandos, capturas y recibos, e impiden incorporar respuestas cuya identidad o estructura no corresponde a la operación solicitada.
 
-\subsection{Persistencia y límites de recuperación}
+\subsubsection{Persistencia y límites de recuperación}
 
 Las doce pruebas PostgreSQL aprobaron en 48.921 segundos con una base desechable y las 2328 fuentes observadas sin cambios durante la ejecución. El conjunto comprende tres casos de almacenamiento, tres de atomicidad y revocación, uno de inventario, uno de restauración, dos de catálogo y dos de raíces de actos. Son pruebas del adaptador real, distintas de los dobles de aplicación y HTTP.
 
@@ -37,7 +37,7 @@ Los escenarios comprueban registro, actos e historia, repetición de operación 
 
 La prueba de recuperación ejecuta \texttt{pg\_dump} y \texttt{pg\_restore}, compara las capturas y conserva el correo del autor original aunque su cuenta haya cambiado. Después de restaurar, un Owner autorizado añade una revisión que continúa la historia anterior. Este resultado acredita la recuperación ensayada del adaptador. La aceptación integrada posterior con API se documenta por separado a continuación.
 
-\subsection{Interfaz con transporte controlado}
+\subsubsection{Interfaz con transporte controlado}
 
 El primer conjunto de Playwright aprobó cinco recorridos en 16.1 segundos del navegador. Incluye seleccionar resolución R1 aunque exista cabeza R2, registrar un acto declarado oral, archivar y reactivar a 1440 y 390 píxeles, consultar historia exacta y conciliar una respuesta incierta sin duplicar el envío. El resultado verifica interacción y contrato con respuestas HTTP controladas.
 
@@ -45,7 +45,7 @@ El segundo conjunto añadió siete casos de roles, revocación, cierre y conflic
 
 La construcción web aprobó en 3.655 segundos. Las verificaciones locales se ejecutaron en serie, con un hilo de pruebas Rust y un trabajador de navegador. Los resultados se registran por frontera; no constituyen una nueva regresión global.
 
-\subsection{Aceptación con servicios reales}
+\subsubsection{Aceptación con servicios reales}
 
 La demostración HTTP integrada aprobó en 383.388 segundos, con 2329 fuentes estables, PostgreSQL y Redis desechables, qpdf y TSA local. Registró revocación y apelación, actos orales y escritos, correcciones, archivo y reactivación. Verificó cuatro roles, aislamiento, cierre y reapertura, conflictos y repetición exacta. Antes del respaldo conservó veinte respuestas completas; después de restaurar comparó sus fuentes, autores y recibos, junto con la historia y auditoría persistidas. No se envió correo externo.
 

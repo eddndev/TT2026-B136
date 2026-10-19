@@ -1,4 +1,4 @@
-\section{Calibración del costo de credenciales}\label{sec:calibracion-credenciales}
+\subsection{Calibración del costo de credenciales}\label{sec:calibracion-credenciales}
 
 El 19 de septiembre de 2026 se midió el costo de un hash nuevo en un equipo AMD Ryzen 7 7730U, con 16 CPU lógicas y Linux 7.1.13. El binario de desarrollo optimiza las dependencias Argon2 y Blake2 a nivel 3. Las cinco operaciones secuenciales con dos pasadas promediaron 400.3851816 ms, por debajo de la banda de 500 a 1000 ms. Con tres pasadas, el promedio de cinco operaciones fue 659.7596048 ms, dentro de esa banda. Se mantuvieron 256 MiB de memoria, una vía, sal aleatoria de 16 bytes y salida de 32 bytes.
 

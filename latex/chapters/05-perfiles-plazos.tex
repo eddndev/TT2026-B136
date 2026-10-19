@@ -1,8 +1,8 @@
-\section{Comprobación de perfiles, evaluación y eventos}\label{sec:pruebas-perfiles-plazos}
+\subsection{Comprobación de perfiles, evaluación y eventos}\label{sec:pruebas-perfiles-plazos}
 
 La comprobación del catálogo separa representación, reproducción matemática, autorización, persistencia y transporte. Los casos utilizan perfiles sintéticos y fuentes controladas para detectar pérdidas de precisión y cambios de referencia. Sus resultados no acreditan un perfil jurídico aplicable a cualquier expediente. El registro de ejecución del catálogo PostgreSQL y de HTTP se conserva en \rutarepo{docs/verification-report.md}; las cifras globales de las secciones precedentes conservan sus cortes históricos y no se reutilizan como resultados de estos módulos.
 
-\subsection{Reversibilidad y resultados reproducibles}
+\subsubsection{Reversibilidad y resultados reproducibles}
 
 Las pruebas de \texttt{DINP1} recorren selección conocida y desconocida, calificación opcional, familias exactas, requisitos, reglas y calendario. Verifican que una solicitud representable conserve sus valores aun cuando su evaluación posterior deba bloquearse. Los negativos alteran etiquetas, longitudes, revisiones, cantidades y componentes de tiempo, así como truncamiento y bytes sobrantes. La conservación de un UUID cero se comprueba separadamente de la ausencia de referencia.
 
@@ -14,7 +14,7 @@ El evaluador se comprueba con fuentes y recibos coherentes antes de introducir a
 
 Para la regla \texttt{AtAnchor}, el criterio de comprobación exige identidad entre el instante extraído y el límite aritmético, incluida la conservación del desfase en la traza. Los contrastes deben distinguir segundo declarado, precisión insuficiente, desfase ausente y familia temporal incompatible. Para el corte semanal se requieren casos de lunes a jueves, viernes y día sin cobertura, además de extremos del intervalo y horas inválidas. Debe conservarse la diferencia entre un viernes con cierre propio y un sábado sin cierre, sin desplazar silenciosamente la candidata. Los valores históricos y las alternativas nuevas se contrastan por codificación y lectura inversas, junto con rechazo de etiquetas, posiciones o componentes inválidos. Estos criterios definen qué observar; no añaden una cifra de ejecuciones aprobadas a los resultados históricos.
 
-\subsection{Autorización, atomicidad y restauración}
+\subsubsection{Autorización, atomicidad y restauración}
 
 Los ensayos del servicio diferencian autenticación, preparación y confirmación. Comprueban permisos de los cuatro roles, reautenticación, cambios de identidad y respuesta del puerto. Las consultas contrastan ámbito global y privado, orden, límites de página, cursor y revisión exacta. Una colección global no puede revelar un perfil privado mediante listado, detalle o historia; autorizar un expediente es una condición previa a su colección.
 
@@ -24,7 +24,7 @@ Los casos de catálogo dañan deliberadamente funciones, restricciones, proyecci
 
 La restauración se ensaya con perfiles globales y privados, revisiones publicadas, reemplazadas y retiradas, y un autor que posteriormente quedó inactivo. El procedimiento conserva instantáneas de tablas y estado de la secuencia, realiza \texttt{pg\_dump} y \texttt{pg\_restore}, y vuelve a consultar cada revisión exacta. Una corrección posterior con otro Owner comprueba la continuidad de historia y emisión de eventos. La importación heredada debe rechazar destinos ocupados; no fusiona registros de procedencias distintas.
 
-\subsection{Emisión de cambios y frontera HTTP}
+\subsubsection{Emisión de cambios y frontera HTTP}
 
 Las pruebas de eventos verifican identidad, revisión, operación y ámbito. Distinguen expresamente el expediente ausente de un perfil global y el expediente concreto de un perfil privado. Los casos de concurrencia y fallo controlado comprueban que revisión, auditoría y evento compartan resultado transaccional, mientras la secuencia puede conservar huecos de operaciones revertidas. También comprueban la ausencia de eventos históricos inventados durante una migración y la conservación de los existentes tras restaurar.
 
@@ -32,12 +32,10 @@ La comprobación de transporte usa un flujo de trabajo simulado para aislar ruta
 
 Las pruebas focales y los recorridos con servicios reales son evidencias distintas. El contrato HTTP del catálogo no demuestra por sí solo persistencia de evaluaciones, consumo de eventos, entrega de correo o usabilidad. La captura persistente V1 y el consumidor local tienen las comprobaciones independientes de la \cref{sec:pruebas-plazos-persistentes}. El \cref{sec:matriz-perfiles-plazos} relaciona los archivos y fronteras del catálogo y del despacho; el informe técnico conserva los resultados de ejecución correspondientes. La aceptación de reglas jurídicas y del seguimiento operativo permanece separada de esta comprobación técnica.
 
-\subsection{Expansión durable y entrega al consumidor}
+\subsubsection{Expansión durable y entrega al consumidor}
 
 Los ensayos del despachador verifican paginación, avance persistido, eventos sin candidatos y huecos admitidos en la secuencia. La conciliación del legado recorre de nuevo el espacio de identidades para encontrar registros añadidos después de una pasada. Las pruebas de familias separan resolución directa, padre de notificación, resultado de audiencia, calendario y perfil global o privado. Una referencia histórica que dejó de estar seleccionada no basta para asignar un nuevo trabajo a la cabeza actual.
 
 La atomicidad se comprueba mediante fallo de auditoría y despachadores concurrentes. Ningún rechazo debe conservar sólo el cursor o sólo una parte de los trabajos. Las restricciones rechazan saltos, regresiones, intervalos incompletos y reutilización de operaciones reservadas. Los ensayos de catálogo e inventario contrastan además el rol limitado y la recuperación del progreso tras restaurar. La selección aplica su límite antes de materializar candidatos, mientras las mediciones del recorrido conservan su entorno y no se convierten en garantías de rendimiento para cualquier volumen de datos.
 
 La salida del despachador es un trabajo durable. Su procesamiento exige autenticar el evento original y la base actual en el consumidor. La conclusión registra una revisión o un motivo sin cambios; un intento fallido conserva el trabajo pendiente. Esta distinción permite observar progreso sin confundir asignación, evaluación y entrega de un aviso. Las campañas focales del consumidor se describen en la \cref{sec:pruebas-plazos-persistentes}; no constituyen una prueba de composición de ambos adaptadores en \texttt{serve} ni de su futura interfaz V2.
-
-\input{chapters/05-corpus-juridico}

@@ -1,0 +1,27 @@
+% =====================================================================
+%  05-transacciones.tex - Autorizacion, transacciones y recuperacion
+% =====================================================================
+
+\section{Autorización, transacciones y recuperación}\label{sec:pruebas-transacciones}
+
+\subsection{Permisos por recurso y revocación}\label{sec:pruebas-permisos}
+
+La demostración HTTP recorre cuatro roles y dos expedientes. Owner accede a todos; Litigante y Paralegal necesitan asignación vigente, y Paralegal no puede sellar. Cliente puede leer los metadatos del expediente asignado, pero conserva denegadas todas las operaciones documentales. Carga, sellado, verificación y exportación comprueban el expediente explícito y el documento; cambiar el expediente de la URL no permite acceder al documento, incluso como Owner. Las rutas documentales globales retiradas responden \texttt{404} y no invocan el workflow. Las pruebas también rechazan cabeceras ambiguas, campos que intentan suplantar actor o rol y cuerpos que exceden sus límites.
+
+Retirar una asignación impide la siguiente operación con la misma sesión. Las pruebas separan dos órdenes concurrentes: una revocación confirmada impide el commit posterior; si la operación ya obtuvo los bloqueos que protegen la autorización, puede confirmar primero y la revocación espera. Asimismo, la revocación de sesión durante la preparación impide publicar el resultado. Una respuesta cuya autorización y auditoría se confirmaron antes de revocar puede terminar de transmitirse después; el ensayo no promete cancelar bytes ya autorizados.
+
+\subsection{Atomicidad y sellado concurrente}\label{sec:pruebas-atomicidad}
+
+Las pruebas de PostgreSQL inyectan fallos al insertar auditoría y al confirmar la transacción. Verifican que no quede un documento, asignación, usuario o consumo de recuperación confirmado sin su evento correspondiente. Escritores de documentos, expedientes e identidad extienden una sola cadena con secuencias únicas. La preparación criptográfica ocurre fuera de la transacción; el commit vuelve a comprobar identidad activa, rol, pertenencia y estado documental.
+
+El ensayo de \rutarepo{scripts/api-concurrency-demo.sh}, invocado por la demostración HTTP, enfrenta dos procesos reales del servidor al sellado de una misma versión. Uno obtiene \texttt{200} y otro \texttt{409}; PostgreSQL conserva un solo evento de sellado y ambos servidores exportan un ZIP idéntico. La firma, el certificado con su CRL y el sello del paquete ganador se verifican con OpenSSL. Se prueba así la preservación de la evidencia ganadora, sin afirmar que dos preparaciones concurrentes realicen una única solicitud a la TSA.
+
+La revisión de privilegios prueba roles operativos que pueden ejecutar el flujo permitido y rechaza capacidad de reescribir auditoría, modificar campos documentales inmutables, alterar recibos o asumir roles con esos permisos. Incluye propiedad de tablas y de la función protectora, privilegios por columna y esquemas modificables en la ruta de búsqueda. Estas pruebas no eliminan la confianza depositada en los administradores de PostgreSQL.
+
+\subsection{Migración y restauración}\label{sec:pruebas-migracion}
+
+El ensayo \rutarepo{scripts/api-migration-demo.sh} reconstruye el formato local a partir de cuatro documentos reales de la demostración, tres de ellos sellados. La inspección comprueba un mapa completo hacia expedientes existentes, los bytes cifrados y la evidencia capturada. La aplicación conserva exactamente las 46 entradas históricas, incluidas sus marcas de tiempo y hashes, y añade su propio evento de importación. Un segundo intento no duplica documentos ni eventos. El respaldo con \texttt{pg\_dump} se restaura con \texttt{pg\_restore} en otra base: se comparan los datos SQL y los ZIP byte por byte, se reinicia el servidor con el rol restringido y se repite la verificación independiente.
+
+Las regresiones cubren asociaciones ausentes, fuentes o mapas modificados tras inspeccionar, fallos de auditoría, barreras durables previas al commit, errores al escribir marcadores posteriores al commit y reintentos de reconciliación. El arranque rechaza una restauración parcial aunque conserve el recibo, así como cambios en documentos, asociaciones, prefijo de auditoría o marcadores. El origen se conserva para comparación y los adaptadores nuevos bloquean sus escrituras; las versiones antiguas del ejecutable deben permanecer detenidas durante el corte.
+
+La validación histórica de cadena y CRL del firmante usa el instante del sello. La comprobación de la autoridad TSA conserva la política actual de OpenSSL y puede rechazar hoy una autoridad expirada. Redis no comparte transacción con PostgreSQL: ante un fallo de auditoría, identidad intenta retirar desafíos o sesiones recién creados y no entrega sus tokens; si también falla esa limpieza, su caducidad limita la permanencia. Logout conserva la revocación aunque falle la auditoría posterior.

@@ -1,8 +1,8 @@
-\section{Comprobación del historial de plazos persistentes}\label{sec:pruebas-plazos-persistentes}
+\subsection{Comprobación del historial de plazos persistentes}\label{sec:pruebas-plazos-persistentes}
 
 Las pruebas de este flujo separan representación canónica, preparación, autorización, confirmación PostgreSQL, consumo durable y transporte HTTP. El objeto de comprobación es la conservación de lo evaluado y de sus dependencias, incluso cuando faltan datos o las fuentes cambian después. Los perfiles y hechos controlados de los ensayos no constituyen un corpus jurídico aprobado. Sus resultados de ejecución se registran en el informe técnico, sin trasladar a este bloque los conteos históricos de otras funcionalidades.
 
-\subsection{Entrada reversible y resultado conservado}
+\subsubsection{Entrada reversible y resultado conservado}
 
 Los casos de \texttt{DEVI1} contrastan bytes independientes, límites de texto y colecciones, desconocimiento, UUID cero, cantidades opcionales y precisión temporal. Los negativos incluyen etiquetas y longitudes inválidas, condiciones duplicadas, revisiones o cantidades cero, UTF-8 inválido, truncamiento y bytes sobrantes. Las entradas sintácticamente válidas que no permiten calcular deben conservarse; el decodificador no reemplaza la decisión semántica del evaluador.
 
@@ -10,7 +10,7 @@ Los ensayos de \texttt{DRES1} comprueban resultados y bloqueos de días, meses y
 
 Los casos del servicio verifican autenticación antes del puerto, reautenticación del identificador, correo y rol, confirmación de huella y rechazo de respuestas incongruentes. Los comandos humanos requieren políticas explícitas al registrar o corregir, y rechazan su sustitución en atención o retiro. Las consultas respetan expediente, revisión, orden y cursor. Un resumen distingue ausencia de fecha calculada, revisión pendiente y falta de vigencia; una historia inicial vacía no puede ocultar la primera revisión de un recurso existente. La administración capturada sólo puede avanzar bajo las condiciones del alta o la corrección; atención y retiro conservan cálculo y seguimiento heredados.
 
-\subsection{Escenarios PostgreSQL y conservación temporal}
+\subsubsection{Escenarios PostgreSQL y conservación temporal}
 
 Las pruebas del adaptador registran tanto un plazo bloqueado sin fecha inventada como uno calculable. Recorren corrección, atención, retiro y consulta exacta de cada revisión. La asignación exige responsable elegible y no amplía su acceso. Los casos de autorización contrastan los cuatro roles, aislamiento entre expedientes, retirada de pertenencia y cierre. También comprueban que el correo y rol históricos no se sustituyan por los datos actuales de la cuenta.
 
@@ -22,14 +22,13 @@ Un grupo de pruebas reales PostgreSQL recorre cuatro situaciones complementarias
 
 Los ensayos de catálogo e inventario introducen corrupción en referencias, funciones, restricciones y proyecciones. El recorrido de restauración realiza \texttt{pg\_dump} y \texttt{pg\_restore}, contrasta el inventario y las expresiones del esquema, y vuelve a abrir el adaptador. Conserva revisiones de alta, corrección, atención y retiro después de retirar las fuentes y el perfil, e inactivar al autor y al responsable. Otro Owner consulta ese historial y registra atención sobre un plazo activo, conservando su cálculo y las identidades históricas. Esta comprobación específica de respaldo no sustituye la campaña HTTP integrada.
 
-\subsection{Frontera de transporte y pendientes de aceptación}
+\subsubsection{Frontera de transporte y pendientes de aceptación}
 
 Las comprobaciones focales HTTP aíslan rutas, cuerpos, consultas y respuestas con un flujo de trabajo simulado. Exigen coherencia entre expediente, identidad, revisión y comando, y conservan las declaraciones y precisiones de la entrada. La proyección V2 distingue autor humano y técnico, causa, políticas, observaciones y ambas huellas del predecesor, mientras conserva lectura V1. Los negativos rechazan políticas omitidas, campos ajenos a atención o retiro y contextos incongruentes. Un evento anterior a la cabeza observada es admisible cuando su identidad y ámbito corresponden y su revisión no la supera. La historia paginada se diferencia del detalle exacto; una confirmación histórica no afirma vigencia actual.
 
 La campaña HTTP integrada histórica aprobó recorridos en días, meses y horas, permisos de los cuatro roles, aislamiento, conflictos, atención, retiro y revocación. Después del respaldo y la restauración se cotejaron 14 respuestas exactas de plazos, junto con el estado de tablas y auditoría del servicio. Esta evidencia corresponde al flujo V1 y no demuestra el consumo compuesto desde el servidor ni la entrega de avisos. El servicio humano, el transporte V2 y la composición en \texttt{serve} cuentan ahora con implementación y verificaciones focales distintas. Un recorrido HTTP real de esa composición comprobó reevaluación, reinicios y restauración, con el alcance descrito al final de esta sección; la repetición final de la campaña terminó satisfactoriamente. El \cref{sec:matriz-plazos-persistentes} relaciona las fronteras con sus archivos de prueba; los resultados reproducidos y sus límites se conservan en \rutarepo{docs/verification-report.md}.
 
-
-\subsection{Comprobación de selectores e interacción}
+\subsubsection{Comprobación de selectores e interacción}
 
 El selector de responsables se comprueba en aplicación, transporte y PostgreSQL. Los casos contrastan autorización previa y posterior, ámbitos y cursores incongruentes, cuentas inactivas, Owner sin membresía y exclusión de Client. La paginación opera sobre candidatos elegibles, sin duplicar al Owner que también pertenece al expediente. Las pruebas concurrentes revocan actividad, rol o membresía mientras la consulta espera el bloqueo de auditoría; una respuesta rechazada no entrega candidatos. Se conserva además la lectura autorizada tras el cierre administrativo.
 
@@ -45,7 +44,7 @@ La inspección de seis capturas, correspondientes a la revisión técnica de cal
 
 Los resultados frescos de cada campaña se registran por separado en el informe técnico. La existencia de una prueba o una captura no acredita por sí sola la aprobación de toda la funcionalidad ni la aplicabilidad jurídica de los datos controlados.
 
-\subsection{Continuidad V2 y confirmación del consumidor}
+\subsubsection{Continuidad V2 y confirmación del consumidor}
 
 Las comprobaciones del seguimiento distinguen el recibo V1 de la captura V2 y exigen conservar su versión al leer el historial. Las observaciones verifican el material completo de las dependencias, incluida la cabeza independiente del padre de notificación. Los casos de continuidad contrastan predecesor, políticas, motivos, administración y cálculos. Una revisión técnica no debe aceptar una decisión pendiente ni sustituir responsable, atención o calificación humana. La persistencia de estas reglas y la proyección HTTP tienen comprobaciones separadas: la concordancia del formato de transporte no sustituye la verificación de evidencia en aplicación y almacenamiento.
 
@@ -53,13 +52,13 @@ La campaña focal inicial del consumidor aprobó once pruebas: cuatro del adapta
 
 Un fallo provocado en la auditoría de conclusión debe revertir revisión y resultado y permitir registrar un intento fallido en otra transacción. Otros casos comprueban que la espera sobreviva a la reapertura, que otro trabajo elegible continúe y que una corrección humana invalide la espera asociada a una base anterior. Dos consumidores deben confirmar una sola vez; la lectura posterior recupera el resultado exacto incluso después de otros cambios humanos. Estas propiedades comprueban la frontera transaccional del adaptador local, sin atribuir ejecución automática al servidor.
 
-\subsection{Clasificación tipada y conservación de intentos}
+\subsubsection{Clasificación tipada y conservación de intentos}
 
 La campaña focal de clasificación aprobó tres pruebas. Una introduce corrupción en la nueva cabeza de un perfil y comprueba un fallo de evidencia con espera de una hora. Las otras provocan indisponibilidad de bloqueo y cancelación de sentencia, y exigen que la categoría nativa de PostgreSQL llegue al intento durable. La clasificación utiliza información tipada del puerto, sin inferir un estado SQL a partir del mensaje de error ni copiar ese texto al código estable de auditoría.
 
 El historial de intentos permanece separado de los resultados satisfactorios. Una base sólo puede constar como comprobada si se verificó su recibo; la presencia de un intento no acredita la integridad de una causa cuya comprobación pudo fallar. Los casos de recuperación ejercitan fallos transitorios repetidos y contrastan esperas persistidas de crecimiento exponencial hasta 300 segundos. La lectura del último intento no borra los anteriores, que siguen sujetos al inventario al abrir el adaptador.
 
-\subsection{Catálogo y restauración del seguimiento técnico}
+\subsubsection{Catálogo y restauración del seguimiento técnico}
 
 La campaña focal de catálogo y recuperación aprobó cinco pruebas. Tres alteran funciones, columnas, restricciones, índices, disparadores y privilegios, incluidos permisos excesivos por roles heredados o por \texttt{PUBLIC}, para exigir rechazo de apertura. Las otras dos comprueban el crecimiento de reintentos y una restauración real con resultados confirmados e intentos pendientes. El recorrido ejecuta \texttt{pg\_dump} y \texttt{pg\_restore}, vuelve a abrir sin ejecutar una migración reparadora y contrasta datos y recibos antes de continuar el trabajo pendiente.
 
@@ -67,7 +66,7 @@ La restauración conserva la comprobación estricta de las once restricciones \t
 
 Las once pruebas iniciales, las cinco de catálogo y recuperación y las tres de clasificación pertenecen a ejecuciones focales separadas. La campaña integral histórica posterior aprobó 2630 pruebas Rust, sin fallos y con una prueba de TSA externa ignorada; incluyó los 27 casos PostgreSQL del consumidor. Los grupos focales no se suman otra vez a ese total. En aquella campaña, formato, compilación, Clippy, versión mínima de Rust y demostración HTTP V1 terminaron satisfactoriamente. El informe técnico conserva entorno y tiempos. Estos resultados no constituyen una nueva regresión global de la evolución humana, HTTP, Qadra y servidor V2.
 
-\subsection{Comprobación focal del servidor compuesto}
+\subsubsection{Comprobación focal del servidor compuesto}
 
 Las pruebas del ciclo y de su supervisión aprobadas comprenden 26 casos; las de ayuda y configuración de ejecución, cuatro. Las 26 pruebas están incluidas en las 31 unitarias aprobadas del ejecutable, a las que se añaden las cuatro de ayuda y configuración; no se suman nuevamente los grupos contenidos. Los casos contrastan límites de lote, alternancia de recorridos, resultados diferidos, pausas, errores, solicitud de parada y espera coordinada de HTTP y consumidor. Clippy también terminó satisfactoriamente para todos los objetivos del ejecutable. Esta evidencia focal no demuestra por sí sola el cierre de un proceso real por señal, la continuidad tras reinicio o una restauración completa con seguimiento V2.
 
@@ -75,7 +74,7 @@ Un recorrido HTTP con servicios reales comprobó la continuidad desde la revisi�
 
 El recorrido inicial terminó satisfactoriamente en 215.613 segundos. Una comprobación auxiliar de sesión requirió corregir el tratamiento de un argumento en el guion y su comprobación focal fue satisfactoria. La repetición completa del guion corregido terminó con código cero en 215.301 segundos, sin cambios de las fuentes durante su ejecución, y confirmó el recorrido de reevaluación, señales, reinicios y restauración. Esta repetición cierra la aceptación de la API descrita, sin sumar de nuevo sus escenarios a los resultados anteriores. La campaña real de Qadra conserva el resultado independiente descrito anteriormente. El alcance de estos controles es focal; no acredita una regresión completa del espacio de trabajo. La agenda conjunta, las alertas y un corpus de perfiles jurídicamente calificado conservan sus propias obligaciones de aceptación.
 
-\subsection{Aceptación de la agenda combinada}\label{sec:pruebas-agenda-combinada}
+\subsubsection{Aceptación de la agenda combinada}\label{sec:pruebas-agenda-combinada}
 
 La consulta transversal también se ejercitó con cinco expedientes asignados al mismo Litigante: tres audiencias y dos plazos vigentes, además de un sexto expediente sin asignación que quedó excluido. Las vistas diaria, semanal y mensual obtuvieron las cinco actividades mediante una consulta de agenda, sin enumerar expedientes, y permitieron abrir sus revisiones exactas. Los recorridos de escritorio y móvil aprobaron en una campaña independiente de 214.055 segundos, incluida la preparación; no sustituyen las pruebas de reevaluación descritas a continuación.
 

@@ -1,0 +1,97 @@
+% =====================================================================
+%  05-matriz.tex - Matriz de pruebas y entorno
+% =====================================================================
+
+\section{Matriz de pruebas}\label{sec:pruebas-matriz}
+
+El inventario del corte del 12 de septiembre contiene 520 funciones de prueba: 203 embebidas en \texttt{src/} y 317 en los directorios \texttt{tests/}, incluidos sus módulos auxiliares. La \cref{tab:pruebas-conteo} desglosa este conteo, que incluye la única prueba ignorada, \texttt{the\_real\_sandbox\_issues\_a\_token}. Las 519 funciones restantes se ejecutaron en el corte citado. Las pruebas de contrato HTTP usan workflows inyectados; su complemento contra los adaptadores reales es la demostración integrada.
+
+\begin{table}[H]
+  \centering
+  \caption{Distribución de las funciones de prueba por crate en el corte del 12 de septiembre de 2026.}
+  \label{tab:pruebas-conteo}
+  \begin{tabularx}{\linewidth}{@{}l X R{1.8cm} R{2.1cm} R{1.2cm}@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Dobles de prueba empleados} & \textbf{Unitarias} & \textbf{Integración} & \textbf{Total} \\
+    \midrule
+    \texttt{domain} & hashers falsos deterministas, sin criptografía real & 69 & 16 & 85 \\
+    \texttt{application} & mocks y adaptadores en memoria de los puertos & 39 & 85 & 124 \\
+    \texttt{infrastructure} & criptografía real, PostgreSQL/Redis y herramientas del sistema & 86 & 143\textsuperscript{a} & 229 \\
+    \texttt{bin} & el binario compilado como subproceso & 3 & 53 & 56 \\
+    \texttt{web} & contratos HTTP con workflows inyectados & 6 & 20 & 26 \\
+    \midrule
+    \textbf{Total} & & \textbf{203} & \textbf{317} & \textbf{520} \\
+    \bottomrule
+  \end{tabularx}
+
+  \raggedright\small \textsuperscript{a}~Incluye la prueba ignorada contra el sandbox del proveedor de sellado.
+\end{table}
+
+La \cref{tab:pruebas-matriz} agrupa los controles criptográficos con la identificación S1 a S10 del catálogo de servicios (\cref{tab:impl-servicios}). Una prueba transversal puede cubrir varios servicios, por lo que los conteos se presentan por crate. Los tipos especiales son: \textbf{V}~=~vectores oficiales, \textbf{P}~=~propiedades sobre entradas generadas, \textbf{M}~=~mutación de artefactos, \textbf{I}~=~interoperabilidad y \textbf{E}~=~extremo a extremo sobre el binario. Las pruebas de autorización, transacción, migración y fronteras HTTP complementan estos controles.
+
+\begin{table}[H]
+  \centering
+  \caption{Tipos de prueba presentes por servicio criptográfico, además de pruebas unitarias y de integración.}
+  \label{tab:pruebas-matriz}
+  \begin{tabularx}{\linewidth}{@{}l X C{3.2cm}@{}}
+    \toprule
+    \textbf{Id} & \textbf{Servicio} & \textbf{Tipos} \\
+    \midrule
+    S1 & Hash de documentos (SHA-256) & V, P, M, I, E \\
+    S2 & Cifrado autenticado y envelope encryption & V, P, M, E \\
+    S3 & PKI interna: emisión, revocación y validación & M, I, E \\
+    S4 & Firma digital RSA-3072 & M, I, E \\
+    S5 & Sellado de tiempo RFC 3161 & M, I, E \\
+    S6 & Verificación integral de cuatro componentes & M, E \\
+    S7 & Hash de contraseñas (Argon2id) & E \\
+    S8 & TOTP y códigos de recuperación & V, I, E \\
+    S9 & Cadena de auditoría & P, M, E \\
+    S10 & Paquete de evidencia & V, M, I, E \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El criterio del objetivo OE-6 exige, por lo menos, un caso positivo y uno negativo para cada uno de los 17 casos de uso del sistema. La \cref{tab:pruebas-casos} presenta evidencia por servicio criptográfico y no cubre por sí sola los flujos completos de identidad, gestión procesal y operación del despacho. La suite incluye rechazos tipados por evidencia inválida, falta de permisos y fallos de persistencia; su inventario histórico de 520 funciones, agrupadas por archivo, se entrega en el Anexo~\ref{anexo:matriz}. La matriz funcional del producto permanece parcial hasta incorporar los flujos principales y alternos pendientes y ejecutarlos con la interfaz integrada.
+
+\begin{longtable}{@{}l L{0.45\linewidth} L{0.45\linewidth}@{}}
+  \caption{Caso positivo y caso negativo representativos por servicio criptográfico.}
+  \label{tab:pruebas-casos} \\
+  \toprule
+  \textbf{Id} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Id} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  S1 & Los cuatro vectores de FIPS 180-4 se reproducen, y el digest calculado por flujo con cortes irregulares coincide con el calculado en memoria. & Un fallo de lectura del flujo se reporta como error con diagnóstico; un archivo inexistente termina el proceso con código distinto de cero. \\
+  \addlinespace
+  S2 & El ciclo cifrar--descifrar restaura el documento byte a byte, por propiedad y de extremo a extremo; tras rotar la KEK, el documento solo se descifra bajo la llave nueva. & Cualquier byte alterado del paquete cifrado, una KEK equivocada, la versión desplazada en uno o el identificador de otro documento producen el mismo rechazo opaco. \\
+  \addlinespace
+  S3 & Ciclo completo por el binario real: el certificado emitido encadena a la raíz y, tras revocar y regenerar la CRL, se reporta revocado con su número de serie. & Una CRL de una autoridad ajena se rechaza como no confiable; una CRL vencida en su \texttt{nextUpdate} es un error duro, nunca un pase permisivo. \\
+  \addlinespace
+  S4 & Firmar y verificar es válido tanto con el certificado como con la clave pública SPKI; las codificaciones PKCS\#1 y PKCS\#8 de una misma clave firman idéntico. & Una clave de 2\,048 bits se rechaza en construcción; un byte alterado del documento o de la firma produce el rechazo tipado de no correspondencia. \\
+  \addlinespace
+  S5 & Un token recién emitido verifica como válido con hora plausible, igual que el token CMS desnudo extraído de la respuesta. & Un token sobre otro digest es discrepancia de huella, detectada sin lanzar subprocesos; bytes aleatorios o DER truncado son token malformado; un ancla ajena deja el token como no confiable. \\
+  \addlinespace
+  S6 & Con los cuatro componentes aprobados el veredicto es válido; la evidencia no aportada se reporta omitida con su razón y no envenena el veredicto. & Cada componente se hace fallar por separado ---firma rechazada, certificado expirado o revocado, emisor no confiable, huella discrepante--- y el veredicto pasa a no válido nombrando la causa. \\
+  \addlinespace
+  S7 & La cadena PHC emitida registra los parámetros fijados por el diseño y la contraseña correcta verifica como coincidencia. & La contraseña incorrecta termina con código distinto de cero; un hash almacenado corrupto es un error, nunca una simple no coincidencia. \\
+  \addlinespace
+  S8 & Los dieciséis vectores oficiales se reproducen y un código vigente derivado del secreto enrolado se acepta de extremo a extremo. & Un código a dos pasos de distancia se rechaza, igual que un secreto demasiado corto o una codificación base32 inválida; cada código de recuperación funciona exactamente una vez y su reuso se rechaza. \\
+  \addlinespace
+  S9 & Treinta y dos anexados concurrentes desde ocho hilos se serializan en una sola cadena válida con secuencias únicas. & Editar un campo de una línea rompe la verificación exactamente en su índice; la CLI rechaza la verificación de una bitácora ausente. \\
+  \addlinespace
+  S10 & Los comandos del instructivo del paquete, extraídos y ejecutados literalmente, aceptan el documento, la firma, el certificado y el token. & La exportación se rehúsa ante una firma alterada o una CRL ajena, sin escribir el ZIP; un byte volteado en un miembro extraído lo detectan los propios comandos y el CRC del formato. \\
+\end{longtable}
+
+Una convención del inventario merece mención explícita porque determina cómo se lee: cada función de prueba se nombra como una oración conductual que enuncia la garantía comprobada, de modo que el inventario del Anexo~\ref{anexo:matriz} funciona como una especificación ejecutable del comportamiento del sistema ---el nombre declara la garantía y la función la comprueba---. Dos ejemplos: \texttt{version\_rejects\_zero} y \texttt{an\_empty\_log\_verifies\_as\_valid}.
+
+\subsection{Entorno reproducible y aislamiento}\label{sec:pruebas-backends}
+
+La ejecución completa usa \rutarepo{scripts/test-backends.sh}, que crea PostgreSQL y Redis desechables y configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}. La prueba de alta inicial necesita una tabla de usuarios vacía; por ello, no comparte base con las pruebas de expedientes ni documentos. Algunas pruebas de adaptadores retornan anticipadamente cuando falta su variable de entorno: una corrida ordinaria en verde sin estas variables no demuestra que se haya ejercitado PostgreSQL o Redis. El corte del 12 de septiembre sí los ejercitó. Cada ensayo usa datos generados y no modifica expedientes del usuario.
