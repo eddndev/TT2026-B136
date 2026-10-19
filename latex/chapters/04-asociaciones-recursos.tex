@@ -6,7 +6,7 @@ La asociación organizativa permite relacionar un recurso declarado, y opcionalm
 
 La selección conserva identidad, revisión y digest del recurso. Cuando incluye un acto, identifica también la revisión del recurso que contiene esa captura. Ambas selecciones son independientes: puede vincularse la revisión 1 del recurso junto con un acto conservado en la revisión 2, aunque una corrección posterior sea la cabeza actual. El servidor verifica que cada fuente pertenezca al expediente y al recurso solicitados; no sustituye la selección por la última revisión ni vuelve a admitir el contenido documental retenido.
 
-La audiencia se identifica por su revisión y digest de envío; el plazo, por su revisión y digest de captura. La cabeza esperada del recurso se declara aparte de esas referencias históricas. Preparar reúne las fuentes verificadas y el contexto administrativo; confirmar vuelve a contrastarlos bajo el bloqueo compartido de auditoría. Una revisión concurrente produce conflicto y exige aceptar expresamente otra base.
+La audiencia ordinaria se identifica por su revisión y digest de envío; el plazo y la audiencia propia de un recurso, por su revisión y digest de captura. La cabeza esperada del recurso se declara aparte de esas referencias históricas. Preparar reúne las fuentes verificadas y el contexto administrativo; confirmar vuelve a contrastarlos bajo el bloqueo compartido de auditoría. Una revisión concurrente produce conflicto y exige aceptar expresamente otra base.
 
 La vinculación crea la revisión 1. La desvinculación añade una revisión 2 con motivo, preservando selección y fuentes. Es terminal para esa identidad; un vínculo posterior tiene otra raíz. Pueden existir varias asociaciones con una misma actividad sin duplicar la actividad ni sus avisos. El archivo del recurso impide crear vínculos nuevos, pero permite desvincular los existentes cuando el expediente está activo.
 
@@ -18,52 +18,20 @@ La consulta toma un instante UTC común después de adquirir el bloqueo. Todas l
 
 \subsubsection{Persistencia, permisos e interfaz}
 
-Las migraciones de asociaciones, conservadas en el directorio \rutarepo{migrations/}, incorporan dos tablas: raíces y revisiones de asociación. La transacción añade revisión, recibo y auditoría conjuntamente. El catálogo estricto comprueba estructura y privilegios; el inventario reconstruye capturas históricas en lotes acotados, sin modificar datos al abrir. El respaldo conserva ambas tablas y sus dependencias, no sólo los identificadores de los extremos.
+Las migraciones de asociaciones, conservadas en el directorio \rutarepo{migrations/}, incorporan dos tablas: raíces y revisiones de asociación. La transacción añade revisión, recibo y auditoría conjuntamente. El catálogo estricto comprueba estructura y privilegios; el inventario reconstruye capturas históricas en lotes acotados, sin modificar datos al abrir. El respaldo conserva ambas tablas y sus dependencias, no sólo los identificadores de los extremos. La \cref{sec:pruebas-asociaciones-recursos} reporta la aceptación API con restauración, que comparó capturas y respuestas y validó por separado los instantes de consulta nuevos, junto con los recorridos de navegador real.
 
-La aceptación API integrada comprobó la conservación de capturas y respuestas tras restaurar, incluida la separación entre selección histórica y cabeza actual. Los instantes de consulta nuevos se validan como observaciones nuevas, sin compararlos por igualdad con los anteriores al respaldo. La \cref{sec:pruebas-asociaciones-recursos} delimita esta evidencia respecto del navegador real aprobado y el cierre de CI todavía pendiente.
+Owner gestiona todos los expedientes; Litigante asignado gestiona y Paralegal asignado consulta. Cliente no accede. El servicio reautentica al principal completo y el adaptador comprueba cuenta, rol y asignación vigentes. El cierre conserva lecturas y repetición exacta autorizada de una operación confirmada, pero impide nuevas mutaciones.
 
-Owner gestiona todos los expedientes; Litigator asignado gestiona y Paralegal asignado consulta. Client no accede. El servicio reautentica al principal completo y el adaptador comprueba cuenta, rol y asignación vigentes. El cierre conserva lecturas y repetición exacta autorizada de una operación confirmada, pero impide nuevas mutaciones.
+Qadra presenta selectores de actividad, revisión y acto opcional, revisión previa a confirmar, listado filtrado, detalle e historia; la captura vinculada y la actividad actual ocupan áreas separadas. Conflictos, respuestas inciertas y revocación siguen los mecanismos comunes de las \cref{sec:impl-qadra-borradores,sec:impl-qadra-conciliacion}: un conflicto conserva selección y motivo hasta aceptar una nueva base, ninguna coincidencia visual sustituye al recibo exacto, y el reenvío explícito tras un resultado incierto conserva el mismo comando, operación y digest, sin preparar otra identidad.
 
-Qadra incorpora selectores de actividad, revisión y acto opcional, revisión previa a confirmar, listado filtrado, detalle e historia. La captura vinculada y la actividad actual ocupan áreas separadas. Ante conflicto conserva selección y motivo hasta comparar y aceptar una nueva base. La consulta de un recibo exacto permite conciliar una respuesta perdida sin inferir éxito a partir de una coincidencia visual. Cuando el resultado sigue incierto, el reenvío explícito conserva el mismo comando, operación y digest, sin preparar otra identidad automáticamente. Los permisos y la revocación también se reflejan en la retirada de los datos protegidos.
-
-La creación conjunta de un plazo y su asociación tiene el contrato independiente de la \cref{sec:impl-plazo-contextual}. La consulta inversa descrita a continuación completa un recorrido de lectura desde actividades y avisos; no crea actividades adicionales. Permanecen pendientes las audiencias propias de recursos, la calificación del corpus jurídico y la activación automática durable de sus términos. Los enlaces disponibles no sustituyen esas obligaciones ni modifican los objetivos aprobados.
+Las asociaciones sólo vinculan actividades que ya existen. La creación conjunta de un plazo y su asociación tiene el contrato independiente de la \cref{sec:impl-plazo-contextual}, y la programación de una audiencia propia crea su asociación inicial en la misma transacción (\cref{sec:impl-audiencias-recursos}). La consulta inversa de la \cref{sec:impl-recursos-desde-actividad} completa un recorrido de lectura desde actividades y avisos, sin crear actividades adicionales. Los vínculos no activan términos ni amplían la cobertura jurídica delimitada al final de la \cref{sec:impl-recursos-declarados}, y no modifican los objetivos aprobados.
 
 \subsubsection{Consulta inversa y regreso a la actividad}\label{sec:impl-recursos-desde-actividad}
 
-La nueva lectura parte de una audiencia o plazo identificado dentro del
-expediente y devuelve las asociaciones actuales de sus recursos. Utiliza las
-rutas de audiencia y plazo con sufijo \texttt{resource-associations}, sin
-recorrer en el navegador todos los recursos del expediente. La lista muestra
-vínculos activos de manera predeterminada, permite consultar los desvinculados
-o ambos estados y pagina por UUID ascendente con un límite de 1 a 100. El
-estado se filtra después de seleccionar la cabeza de cada asociación y antes
-de aplicar el límite. Cada continuación conserva expediente, destino y filtro;
-las páginas son observaciones independientes, no una instantánea histórica
-retenida entre peticiones.
+La consulta inversa parte de una audiencia ordinaria o de un plazo identificado dentro del expediente y devuelve las asociaciones actuales de sus recursos. Utiliza las rutas de audiencia y plazo con sufijo \texttt{resource-associations}, sin recorrer en el navegador todos los recursos del expediente. La lista muestra vínculos activos de manera predeterminada, permite consultar los desvinculados o ambos estados y pagina por UUID ascendente con un límite de 1 a 100. El estado se filtra después de seleccionar la cabeza de cada asociación y antes de aplicar el límite. Cada continuación conserva expediente, destino y filtro; las páginas son observaciones independientes, no una instantánea histórica retenida entre peticiones.
 
-Cada respuesta incluye un instante UTC común incluso cuando no contiene filas.
-La transacción comprueba el destino, las capturas de recurso, acto y actividad,
-sus cabezas actuales y la auditoría de lectura; el servicio reautentica al
-principal antes de entregar datos. Owner consulta todos los expedientes y
-Litigator o Paralegal necesitan asignación vigente. Client permanece denegado.
-El cierre del expediente y el archivo del recurso conservan las lecturas
-autorizadas. Un error de acceso no se representa como ausencia de relaciones.
+Cada respuesta incluye un instante UTC común incluso cuando no contiene filas. La transacción comprueba el destino, las capturas de recurso, acto y actividad, sus cabezas actuales y la auditoría de lectura; el servicio reautentica al principal antes de entregar datos. Owner consulta todos los expedientes y Litigante o Paralegal necesitan asignación vigente. Cliente permanece denegado. El cierre del expediente y el archivo del recurso conservan las lecturas autorizadas. Un error de acceso no se representa como ausencia de relaciones.
 
-Qadra incorpora el panel \enquote{Recursos relacionados} en el detalle de
-actividad. Se distinguen la revisión abierta, la revisión de actividad capturada
-por cada vínculo y la cabeza actual observada. La lista representa el estado
-actual de las asociaciones: una relación registrada después de emitir una
-alerta puede aparecer, sin afirmar que existiera entonces ni que causara el
-aviso. La selección conserva la identidad, revisión y digest tanto del recurso
-como de la asociación, y su apertura comprueba las capturas exactas. Consultar
-el recurso actual sigue siendo una acción diferente.
+Qadra presenta el panel \enquote{Recursos relacionados} en el detalle de actividad. Se distinguen la revisión abierta, la revisión de actividad capturada por cada vínculo y la cabeza actual observada. La lista representa el estado actual de las asociaciones: una relación registrada después de emitir una alerta puede aparecer, sin afirmar que existiera entonces ni que causara el aviso. La selección conserva la identidad, revisión y digest tanto del recurso como de la asociación, y su apertura comprueba las capturas exactas. Consultar el recurso actual sigue siendo una acción diferente.
 
-El recorrido conserva el regreso a la revisión de actividad desde la que se
-abrió el recurso. Si comenzó en una alerta, mantiene también el regreso a la
-bandeja y sus filtros. Las consultas no marcan el aviso como leído ni modifican
-su origen. Ante revocación se retiran los datos protegidos; las respuestas
-pendientes se descartan al cambiar el contexto o cerrar la sesión. El contrato
-está en \rutarepo{docs/activity-resource-links-api.md} y la decisión en
-\rutarepo{docs/adr/0059-activity-resource-navigation.md}. La aceptación propia de
-este incremento se distingue de los resultados históricos de asociación en
-la \cref{sec:pruebas-recursos-desde-actividad}.
+El recorrido conserva el regreso a la revisión de actividad desde la que se abrió el recurso. Si comenzó en una alerta, mantiene también el regreso a la bandeja y sus filtros. Las consultas no marcan el aviso como leído ni modifican su origen; la revocación y las respuestas tardías siguen los mecanismos comunes de las \cref{sec:impl-qadra-borradores,sec:impl-qadra-conciliacion}. El contrato está en \rutarepo{docs/activity-resource-links-api.md} y la decisión en \rutarepo{docs/adr/0059-activity-resource-navigation.md}. Su verificación se distingue de la evidencia de las asociaciones en la \cref{sec:pruebas-recursos-desde-actividad}.

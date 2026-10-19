@@ -26,44 +26,14 @@ La campaña completa de \rutarepo{scripts/api-demo.sh} aprobó en 434.402 segund
 
 Tras restaurar se compararon 26 respuestas HTTP y se conservaron idénticas las tres raíces y cuatro revisiones de asociación del ensayo. Los instantes de lectura se validaron aparte: una consulta posterior al respaldo tiene otro instante, pero debe conservar el corte común y su vínculo con la proyección operativa. Esa diferencia no modifica las capturas históricas comparadas.
 
-Tres escenarios distintos de navegador real aprobaron: Owner en escritorio, Litigator en móvil y permisos con Paralegal y Client. La primera campaña aprobó los dos flujos de escritura y detectó un error en la navegación del guion de Client; la repetición del recorrido corregido aprobó en 274.304 segundos, incluidos los preparativos. No se alteraron las actividades ni se duplicaron sus avisos. Los escenarios forman parte de la regresión integrada; sus cortes posteriores se registran en el informe de verificación. Las campañas de API y navegador conservan resultados separados y no equivalen a una regresión global. Tampoco se acreditan corpus jurídico, activación automática, creación contextual de audiencias, entrega externa de avisos o usabilidad con personas. La matriz del \cref{sec:matriz-asociaciones-recursos} distingue esas fronteras.
+Tres escenarios distintos de navegador real aprobaron: Owner en escritorio, Litigante en móvil y permisos con Paralegal y Cliente. La primera campaña aprobó los dos flujos de escritura y detectó un error en la navegación del guion de Cliente; la repetición del recorrido corregido aprobó en 274.304 segundos, incluidos los preparativos. No se alteraron las actividades ni se duplicaron sus avisos. Los escenarios forman parte de la regresión integrada; sus cortes posteriores se registran en el informe de verificación. Las campañas de API y navegador conservan resultados separados y no equivalen a una regresión global. Tampoco acreditan el corpus jurídico (\cref{sec:pruebas-corpus-juridico}), la creación de audiencias propias de recursos (\cref{sec:pruebas-audiencias-recursos}), la activación automática, la entrega externa de avisos ni la usabilidad con personas. La matriz del \cref{sec:matriz-asociaciones-recursos} distingue esas fronteras.
 
 \subsubsection{Consulta inversa desde actividades y alertas}\label{sec:pruebas-recursos-desde-actividad}
 
-El incremento de navegación de la \cref{sec:impl-recursos-desde-actividad}
-dispone de una verificación independiente de las campañas históricas anteriores.
-Cinco pruebas de aplicación y seis casos distintos de PostgreSQL aprobaron el
-nuevo contrato; también aprobaron doce regresiones previas de persistencia.
-Seis pruebas HTTP nuevas y diez regresiones previas verificaron ambas familias
-de destino, consultas estrictas, permisos, páginas vacías y continuación. Se
-comprueba la separación entre capturas y cabezas actuales y se rechazan
-respuestas con ámbito, referencias, orden, cursor u observación incoherentes.
-Las seis pruebas nuevas se observaron fallar por ausencia de las rutas antes
-de implementar el comportamiento.
+La consulta inversa de la \cref{sec:impl-recursos-desde-actividad} se verificó el 27 de septiembre de 2026, de forma independiente de las campañas de asociaciones del 19 de septiembre. Cinco pruebas de aplicación y seis casos distintos de PostgreSQL aprobaron su contrato; también aprobaron doce regresiones previas de persistencia. Seis pruebas HTTP nuevas y diez regresiones previas verificaron ambas familias de destino, consultas estrictas, permisos, páginas vacías y continuación. Se comprueba la separación entre capturas y cabezas actuales y se rechazan respuestas con ámbito, referencias, orden, cursor u observación incoherentes. Las seis pruebas nuevas se observaron fallar por ausencia de las rutas antes de implementar el comportamiento.
 
-Ocho pruebas Node del cliente aprobaron validación de la página, estado,
-identidad del destino, capturas y descarte de respuestas posteriores a cerrar
-su contexto. Nueve casos distintos de navegador con HTTP controlado aprobaron
-la consulta y navegación; sus repeticiones focales no se contabilizan como
-casos nuevos. Distinguen la revisión conservada por una alerta de la revisión
-vinculada por la asociación, apertura histórica, regreso a actividad y bandeja,
-filtros y ausencia de escrituras que marquen el aviso como leído. Los rechazos
-y las respuestas tardías mantienen inaccesible el contenido privado. Nueve
-comprobaciones del planificador también aprobaron.
+Ocho pruebas Node del cliente aprobaron validación de la página, estado, identidad del destino, capturas y descarte de respuestas posteriores a cerrar su contexto. Nueve casos distintos de navegador con HTTP controlado aprobaron la consulta y navegación; sus repeticiones focales no se contabilizan como casos nuevos. Distinguen la revisión conservada por una alerta de la revisión vinculada por la asociación, apertura histórica, regreso a actividad y bandeja, filtros y ausencia de escrituras que marquen el aviso como leído. Los rechazos y las respuestas tardías mantienen inaccesible el contenido privado. Nueve comprobaciones del planificador de fixtures reales también aprobaron.
 
-Un recorrido de navegador con servicios reales aprobó en 11.6~s de escenario y
-15.5~s del ejecutor. Se inspeccionaron sus capturas de escritorio a 1440 píxeles
-y móvil a 390 píxeles. Esta aceptación de navegación es independiente de la
-campaña API con respaldo y restauración, que también aprobó con salida cero.
-Las consultas inversas conservaron capturas, filtros, paginación y rechazo tras
-revocar pertenencia; sus instantes de lectura se validaron antes de normalizar
-únicamente ese dato transitorio para comparar el respaldo. Tampoco acredita
-usabilidad con personas.
+Un recorrido de navegador con servicios reales aprobó en 11.6~s de escenario y 15.5~s del ejecutor. Se inspeccionaron sus capturas de escritorio a 1440 píxeles y móvil a 390 píxeles. Esta aceptación de navegación es independiente de la campaña API con respaldo y restauración, que también aprobó con salida cero. Las consultas inversas conservaron capturas, filtros, paginación y rechazo tras revocar pertenencia; sus instantes de lectura se validaron antes de normalizar únicamente ese dato transitorio para comparar el respaldo. Esta evidencia tampoco acredita usabilidad con personas.
 
-Permanecen pendientes el cierre global y la integración de este incremento.
-La revisión documental se registra de forma independiente del software.
-Estos resultados focales y de navegador no constituyen una nueva regresión
-global. El estado definitivo se registra en \rutarepo{docs/verification-report.md},
-separado de la admisión documental y de la creación contextual de plazos. El
-acceso documental de Client, el corpus jurídico y la activación automática
-conservan sus pendientes independientes.
+Estos resultados focales y de navegador no constituyen una nueva regresión global. En ese corte permanecían pendientes el cierre global y la integración; la integración posterior, con CI, Web y Documents aprobados tanto en la revisión integrada como en su confirmación en la rama principal, se registra en \rutarepo{docs/verification-report.md}, separada de la admisión documental y de la creación contextual de plazos, verificadas también el 27 de septiembre de 2026. La revisión del manuscrito se registra de forma independiente del software. La consulta inversa no modifica el acceso documental del Cliente, cuya política conserva su decisión pendiente, ni introduce activación automática de términos; el corpus jurídico delimitado se verifica en la \cref{sec:pruebas-corpus-juridico}.
