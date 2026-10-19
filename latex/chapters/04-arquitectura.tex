@@ -97,3 +97,42 @@ El diseño comprometió cinco fitness functions como verificaciones automatizada
 \end{table}
 
 La política de dependencias revisa avisos, licencias, duplicados y fuentes del grafo. Se configura en \texttt{deny.toml} para \texttt{cargo-deny} y en \texttt{audit.toml} para \texttt{cargo-audit}. Permanece declarada la excepción RUSTSEC-2023-0071 \cite{rustsec2023_0071}, relativa a temporización en operaciones de clave privada del crate \texttt{rsa}. El razonamiento original de \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md} suponía firma por CLI; esa premisa no describe la exposición HTTP actual. La autenticación y los límites de concurrencia acotan quién puede solicitar firmas y cuántas se ejecutan, pero no corrigen el canal lateral. Antes de un despliegue público se requiere revisar el modelo de amenaza y resolver la elección del firmante. La API local no se presenta como una configuración de producción validada.
+
+Las dos vistas siguientes concretan la estructura anterior: la primera separa el equipo del titular, la frontera pública, la aplicación, la persistencia privada y los servicios con autoridad propia; la segunda distribuye los puertos y adaptadores entre las capas del workspace.
+
+\subsection{Fronteras de confianza de la implementación}\label{sec:fronteras-confianza}
+
+El navegador accede a Qadra mediante HTTPS. La API autentica con sesiones
+opacas revocables almacenadas en Redis y aplica permisos por rol y expediente.
+La aplicaci\'on conserva las operaciones y su auditor\'ia en PostgreSQL mediante
+los adaptadores \texttt{postgres}/\texttt{tokio-postgres}; los archivos se
+protegen con cifrado autenticado. La clave privada que el titular selecciona
+para firmar localmente permanece en su equipo y se procesa en un worker
+Rust/WASM. La CA tiene portal, proceso y acceso administrativo separados.
+La TSA local y el proveedor de correo cumplen funciones acotadas; ninguno
+convierte la confianza interna del prototipo en acreditaci\'on de identidad civil.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/trust-boundaries-current}
+  \caption{Fronteras de confianza, sesiones opacas y persistencia de la implementaci\'on.}
+  \label{fig:fronteras-confianza}
+\end{figure}
+
+\subsection{Arquitectura hexagonal con puertos y adaptadores}\label{sec:hexagonal-completa}
+
+Los transportes HTTP y CLI invocan los casos de uso; los binarios componen sus
+dependencias concretas. Los traits de persistencia y de flujo residen en
+\texttt{application}, mientras que \texttt{domain} define reglas y puertos
+criptogr\'aficos y de auditor\'ia. \texttt{infrastructure} implementa los
+adaptadores contra esas interfaces. La figura muestra ejemplos representativos,
+sin equiparar cada handler de entrada con un trait ni suponer un transporte
+WebSocket. Las flechas continuas muestran invocaci\'on o dependencia hacia el
+interior; las discontinuas indican implementaci\'on de puertos.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/ports-adapters-current}
+  \caption{Distribuci\'on de puertos entre application y domain, con adaptadores externos.}
+  \label{fig:hexagonal-completa}
+\end{figure}
