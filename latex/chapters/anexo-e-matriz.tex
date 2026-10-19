@@ -428,36 +428,173 @@ El corte de administración penal aprobó \textbf{770 pruebas Rust, cero fallos 
 
 \subsection{Cobertura de líneas por crate}\label{sec:matriz-cobertura}
 
-La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. La \cref{tab:matriz-cobertura} presenta la medición del 12 de septiembre: 8\,026 de 8\,845 líneas, equivalentes a 90.7\,\% global. Los tres umbrales obligatorios aprobaron.
+La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. Esta subsección conserva los desgloses por crate de los cortes del 12 al 15 de septiembre de 2026; la evolución global de los cortes del 12 al 16 de septiembre y el desglose del 16 de septiembre se presentan en las \cref{tab:pruebas-cobertura-evolucion,tab:pruebas-cobertura-audiencias}. La \cref{tab:pruebas-cobertura} presenta la medición del 12 de septiembre: 8\,026 de 8\,845 líneas, equivalentes a 90.7\,\% global. Los tres umbrales obligatorios aprobaron.
 
 \begin{table}[H]
   \centering
-  \caption{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} y umbral aplicado en integración continua.}
-  \label{tab:matriz-cobertura}
-  \begin{tabularx}{\linewidth}{@{}l R{2.6cm} R{2.2cm} R{2.4cm} X@{}}
+  \caption[Cobertura por crate del 12 de septiembre de 2026]{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} el 12 de septiembre de 2026 y umbral aplicado en integración continua.}
+  \label{tab:pruebas-cobertura}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
     \toprule
-    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas totales} & \textbf{Cobertura} & \textbf{Umbral} \\
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
-    \texttt{domain} & 1\,045 & 1\,079 & 96.8\,\% & $\geq$ 90\,\% \\
-    \texttt{application} & 2\,073 & 2\,212 & 93.7\,\% & $\geq$ 90\,\% \\
-    \texttt{infrastructure} & 3\,496 & 3\,785 & 92.4\,\% & $\geq$ 90\,\% \\
-    \texttt{bin} & 834 & 1\,086 & 76.8\,\% & sin umbral (informativo) \\
-    \texttt{web} & 578 & 683 & 84.6\,\% & sin umbral (informativo) \\
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,073 & 2\,212 & 93.7\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,496 & 3\,785 & 92.4\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 578 & 683 & 84.6\,\% & informativo \\
     \midrule
-    Total del workspace & 8\,026 & 8\,845 & 90.7\,\% & --- \\
+    \textbf{Workspace}      & \textbf{8\,026} & \textbf{8\,845} & \textbf{90.7\,\%} & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 La medición del 14 de septiembre de 2026 registró 8\,256 líneas cubiertas de 9\,071, equivalentes a 91.0\,\% global. Los resultados por crate fueron 96.8\,\% en \texttt{domain}, 93.9\,\% en \texttt{application}, 92.5\,\% en \texttt{infrastructure}, 76.8\,\% en \texttt{bin} y 86.4\,\% en \texttt{web}; aprobaron los tres umbrales obligatorios. Los numeradores y denominadores se presentan en la \cref{tab:pruebas-cobertura-consultas}. Esta ejecución incluyó las 539 pruebas Rust aprobadas, con una ignorada externa y servicios de persistencia aislados.
 
+\begin{table}[H]
+  \centering
+  \caption[Cobertura de consultas documentales]{Cobertura de líneas reproducida el 14 de septiembre de 2026 con consultas documentales.}
+  \label{tab:pruebas-cobertura-consultas}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,138 & 2\,277 & 93.9\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,602 & 3\,892 & 92.5\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 637 & 737 & 86.4\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{8\,256} & \textbf{9\,071} & \textbf{91.0\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 La ejecución instrumentada de versiones inmutables del mismo día aprobó 577 pruebas, con una externa ignorada, y cubrió 8\,908 de 9\,719 líneas: 91.7\,\% global. El detalle por crate y los tres umbrales aprobados aparecen en la \cref{tab:pruebas-cobertura-versiones}. Estas cifras describen el nuevo alcance; no reemplazan las 539 pruebas y 91.0\,\% del ensayo de consultas.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del 14 de septiembre de 2026 con versiones documentales inmutables.}
+  \label{tab:pruebas-cobertura-versiones}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,319 & 2\,452 & 94.6\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,889 & 4\,175 & 93.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 821 & 927 & 88.6\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{8\,908} & \textbf{9\,719} & \textbf{91.7\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 La clasificación registra 9\,854 de 10\,670 líneas cubiertas, equivalentes a 92.4\,\% global. El desglose se presenta en la \cref{tab:pruebas-cobertura-clasificacion}, con los tres umbrales obligatorios aprobados. El resultado pertenece a la ejecución instrumentada de 644 pruebas y no sustituye los denominadores históricos.
 
+\begin{table}[H]
+  \centering
+  \caption[Cobertura de clasificación documental]{Cobertura de líneas del 14 de septiembre de 2026 con clasificación documental auditada.}
+  \label{tab:pruebas-cobertura-clasificacion}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,146 & 1\,180 & 97.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,426 & 2\,559 & 94.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 4\,358 & 4\,646 & 93.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 1\,090 & 1\,199 & 90.9\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{9\,854} & \textbf{10\,670} & \textbf{92.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 La cobertura del directorio registra 10\,994 de 11\,838 líneas, equivalentes a 92.9\,\% global, sobre 704 pruebas aprobadas y una externa ignorada. Los tres umbrales obligatorios aprobaron; la \cref{tab:pruebas-cobertura-participantes} presenta numeradores y denominadores por crate. Esta medición conserva separados los resultados anteriores.
 
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del 14 de septiembre de 2026 con directorio de participantes.}
+  \label{tab:pruebas-cobertura-participantes}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,279 & 1\,313 & 97.4\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,632 & 2\,765 & 95.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 4\,888 & 5\,193 & 94.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,093 & 76.3\,\% & informativo \\
+    \texttt{web}            & 1\,361 & 1\,474 & 92.3\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{10\,994} & \textbf{11\,838} & \textbf{92.9\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 La administración penal cubre 12\,613 de 13\,506 líneas, equivalentes a 93.4\,\% global, con 770 pruebas aprobadas y una externa ignorada. Los tres umbrales del 90\,\% aprobaron. La \cref{tab:pruebas-cobertura-administracion} detalla los resultados por crate, separados de todas las mediciones históricas.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura del 14 de septiembre de 2026 con administración penal auditada.}
+  \label{tab:pruebas-cobertura-administracion}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,497 & 1\,531 & 97.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,817 & 2\,950 & 95.5\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 5\,739 & 6\,066 & 94.6\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,096 & 76.1\,\% & informativo \\
+    \texttt{web}            & 1\,726 & 1\,863 & 92.6\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{12\,613} & \textbf{13\,506} & \textbf{93.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El corte de etapas del 15 de septiembre de 2026 aprobó 933 pruebas, con una externa ignorada, también bajo instrumentación. Cubrió 15\,817 de 17\,064 líneas, equivalentes a 92.7\,\% global, con los tres umbrales obligatorios aprobados y sin excluir parsers ni infraestructura. La \cref{tab:pruebas-cobertura-etapas} presenta el desglose por crate; la \cref{sec:pruebas-etapas} describe el alcance del corte.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del registro procesal y admisión documental, 15 de septiembre de 2026.}
+  \label{tab:pruebas-cobertura-etapas}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,859 & 1\,893 & 98.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 3\,294 & 3\,430 & 96.0\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 7\,699 & 8\,354 & 92.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 836 & 1\,116 & 74.9\,\% & informativo \\
+    \texttt{web}            & 2\,129 & 2\,271 & 93.7\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{15\,817} & \textbf{17\,064} & \textbf{92.7\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La primera campaña instrumentada de identidades y participantes tipificados, del mismo día, aprobó 1066 pruebas con una externa ignorada y cubrió 21\,968 de 23\,773 líneas, equivalentes a 92.4\,\% global, con los tres umbrales obligatorios aprobados. La \cref{tab:pruebas-cobertura-identidades} conserva esa primera medición. Su repetición de cierre cubrió 21\,967 líneas del mismo denominador: \texttt{infrastructure} registró 11\,211 de 12\,150 y los demás conteos por crate permanecieron iguales (\cref{sec:pruebas-participantes-tipificados}).
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas de identidades y perfiles, 15 de septiembre de 2026.}
+  \label{tab:pruebas-cobertura-identidades}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 2\,441 & 2\,513 & 97.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 4\,129 & 4\,342 & 95.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 11\,212 & 12\,150 & 92.3\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 911 & 1\,200 & 75.9\,\% & informativo \\
+    \texttt{web}            & 3\,275 & 3\,568 & 91.8\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{21\,968} & \textbf{23\,773} & \textbf{92.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
@@ -487,7 +624,7 @@ El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cad
     \texttt{lint} & \texttt{clippy} con advertencias promovidas a error (\texttt{-D warnings}). \\
     \texttt{test} & \texttt{cargo test --workspace} con PostgreSQL, Redis y bases aisladas configuradas. \\
     \texttt{msrv} & Comprobación del workspace con la versión mínima soportada del compilador (Rust 1.88); obligatoria. \\
-    \texttt{coverage} & Cobertura con \texttt{cargo-llvm-cov} y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:matriz-cobertura}). \\
+    \texttt{coverage} & Cobertura con \texttt{cargo-llvm-cov} y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:pruebas-cobertura}). \\
     \texttt{deny} & \texttt{cargo-deny}: avisos de seguridad de dependencias, licencias, duplicados y fuentes permitidas. \\
     \texttt{binary-size} & Tamaño del binario de release acotado a 25 MB (fitness function FF-5). \\
     \bottomrule

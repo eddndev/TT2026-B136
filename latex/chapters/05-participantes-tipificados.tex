@@ -2,26 +2,9 @@
 
 La primera campaña instrumentada del 15 de septiembre de 2026 aprobó \textbf{1066 pruebas Rust, cero fallos y una prueba externa de TSA ignorada}, con PostgreSQL y Redis desechables y qpdf~12.4.1 real. Son 133 pruebas adicionales respecto del corte de etapas. La cobertura alcanzó \textbf{21\,968 de 23\,773 líneas, 92.4\,\% global}; los umbrales obligatorios de dominio, aplicación e infraestructura quedaron aprobados. La \cref{tab:pruebas-cobertura-identidades} conserva los denominadores por crate. Las cifras anteriores corresponden a sus propias campañas y no se recalculan con este código ampliado.
 
-\begin{table}[H]
-  \centering
-  \caption{Cobertura de líneas de identidades y perfiles, 15 de septiembre de 2026.}
-  \label{tab:pruebas-cobertura-identidades}
-  \begin{tabularx}{\linewidth}{@{}X r r r@{}}
-    \toprule
-    \textbf{Crate} & \textbf{Cubiertas} & \textbf{Instrumentadas} & \textbf{Cobertura} \\
-    \midrule
-    \texttt{domain} & 2\,441 & 2\,513 & 97.1\,\% \\
-    \texttt{application} & 4\,129 & 4\,342 & 95.1\,\% \\
-    \texttt{infrastructure} & 11\,212 & 12\,150 & 92.3\,\% \\
-    \texttt{web} & 3\,275 & 3\,568 & 91.8\,\% \\
-    \texttt{bin} & 911 & 1\,200 & 75.9\,\% \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
 El binario de release midió 11\,673\,656 bytes y la demostración CLI terminó satisfactoriamente. Este tamaño no sustituye una medición de memoria, latencia o capacidad de despliegue. La interfaz de ese corte se comprobó por separado: \textbf{89 pruebas unitarias, 147 escenarios simulados y ocho recorridos con servicios reales aprobados}. Estas cifras no se suman al total Rust. El escenario dirigido de selección de certificados y firmas comprobó también la apertura del selector nativo y la conservación de los bytes exactos; la compilación web y el formato terminaron satisfactoriamente. Esa ejecución dirigida no aumenta el denominador de la campaña simulada completa.
 
-La repetición de cierre confirmó 1066 pruebas Rust aprobadas, cero fallos y una externa ignorada, tanto en la ejecución ordinaria como bajo instrumentación. La nueva cobertura fue de 21\,967 sobre 23\,773 líneas, 92.4\,\%: infraestructura cubrió 11\,211 de 12\,150; los demás conteos de la \cref{tab:pruebas-cobertura-identidades} permanecieron iguales y los tres umbrales aprobaron. La interfaz aprobó 90 pruebas unitarias, 147 escenarios simulados y ocho recorridos reales, estos últimos en 2.0 minutos, con una regresión adicional de mensajes de error. La CLI midió Argon2id en 615.7~ms de promedio sobre cinco corridas; el binario de release conservó 11\,673\,656 bytes. Compilación, formato, Clippy, Rust~1.88, dependencias, demostración HTTP y restauración terminaron satisfactoriamente. Esta repetición conserva, sin sobrescribirlas, las cifras del primer corte.
+La repetición de cierre confirmó 1066 pruebas Rust aprobadas, cero fallos y una externa ignorada, tanto en la ejecución ordinaria como bajo instrumentación. La nueva cobertura fue de 21\,967 sobre 23\,773 líneas, 92.4\,\%: infraestructura cubrió 11\,211 de 12\,150; los demás conteos por crate de la \cref{tab:pruebas-cobertura-identidades} permanecieron iguales y los tres umbrales aprobaron. La interfaz aprobó 90 pruebas unitarias, 147 escenarios simulados y ocho recorridos reales, estos últimos en 2.0 minutos, con una regresión adicional de mensajes de error. La CLI midió Argon2id en 615.7~ms de promedio sobre cinco corridas; el binario de release conservó 11\,673\,656 bytes. Compilación, formato, Clippy, Rust~1.88, dependencias, demostración HTTP y restauración terminaron satisfactoriamente. Esta repetición conserva, sin sobrescribirlas, las cifras del primer corte.
 
 La estrategia distingue datos declarados, consistencia de identidad y comprobación criptográfica. Los vectores \texttt{SUBJ1}, \texttt{PART2} y \texttt{PCRED1} son formatos propios versionados, no vectores normativos de una autoridad judicial. Sus pruebas contrastan longitudes, bytes, variantes, límites y digests; las de firma verifican interoperabilidad con OpenSSL y rechazo de materiales fuera del perfil interno. La \cref{tab:pruebas-participantes-tipificados} identifica las propiedades comprobables sin sustituirlas por el número de pantallas renderizadas.
 

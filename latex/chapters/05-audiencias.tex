@@ -4,23 +4,6 @@ El cierre del 16 de septiembre de 2026 aprobó \textbf{1183 pruebas Rust, cero f
 
 La cobertura fue de \textbf{25\,201 de 27\,226 líneas, 92.56\,\% global}. La \cref{tab:pruebas-cobertura-audiencias} conserva los numeradores por crate; dominio, aplicación e infraestructura superaron sus umbrales del 90\,\%. Las cifras de las entregas anteriores mantienen sus fechas y denominadores, sin extrapolar esos resultados a los módulos nuevos.
 
-\begin{table}[H]
-  \centering
-  \caption{Cobertura de líneas del cierre de programación de audiencias.}
-  \label{tab:pruebas-cobertura-audiencias}
-  \begin{tabularx}{\linewidth}{@{}X r r r@{}}
-    \toprule
-    \textbf{Crate} & \textbf{Cubiertas} & \textbf{Instrumentadas} & \textbf{Cobertura} \\
-    \midrule
-    \texttt{domain} & 2\,730 & 2\,802 & 97.43\,\% \\
-    \texttt{application} & 4\,813 & 5\,055 & 95.21\,\% \\
-    \texttt{infrastructure} & 12\,653 & 13\,694 & 92.40\,\% \\
-    \texttt{web} & 4\,094 & 4\,458 & 91.83\,\% \\
-    \texttt{bin} & 911 & 1\,217 & 74.86\,\% \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
 Formato, compilación, Clippy con Rust~1.98, compatibilidad de todos los targets con Rust~1.88 y política de dependencias mediante \texttt{cargo-deny}~0.20.2 terminaron satisfactoriamente. La compilación release produjo un binario de 12\,176\,936 bytes, por debajo del límite de 25~MiB. La demostración CLI terminó en 9.097 segundos y midió Argon2id en 540.7~ms de promedio sobre cinco corridas. Esta última medición coincidió con la compilación release y otras comprobaciones: no es un benchmark aislado ni demuestra una mejora respecto de los cortes anteriores.
 
 Las pruebas nuevas propias del dominio incluyen 23 casos de valores, tiempo y canon; las del servicio incluyen 28 casos de flujo, límites, recibos y fallos. El transporte añade 19 casos de audiencias y cuatro de traducción de errores de soporte. Estas cantidades describen subconjuntos de la campaña y no deben sumarse a su total. Las pruebas de aplicación con dobles verifican el contrato de los puertos; la persistencia real se comprueba de forma separada.

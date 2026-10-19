@@ -5,23 +5,6 @@ El corte del 15 de septiembre de 2026 aprobó \textbf{933 pruebas Rust, cero fal
 
 La ejecución instrumentada aprobó las mismas 933 pruebas y conservó la única externa ignorada. Obtuvo \textbf{15\,817 de 17\,064 líneas cubiertas, 92.7\,\% global}, con los tres umbrales obligatorios del 90\,\% aprobados. No se excluyeron parsers ni infraestructura para alcanzar el umbral. La \cref{tab:pruebas-cobertura-etapas} presenta los denominadores; el 93.4\,\% del corte administrativo corresponde a su medición histórica, no al código ampliado.
 
-\begin{table}[H]
-  \centering
-  \caption{Cobertura de líneas del registro procesal y admisión documental, 15 de septiembre de 2026.}
-  \label{tab:pruebas-cobertura-etapas}
-  \begin{tabularx}{\linewidth}{@{}X r r r@{}}
-    \toprule
-    \textbf{Crate} & \textbf{Cubiertas} & \textbf{Instrumentadas} & \textbf{Cobertura} \\
-    \midrule
-    \texttt{domain} & 1\,859 & 1\,893 & 98.2\,\% \\
-    \texttt{application} & 3\,294 & 3\,430 & 96.0\,\% \\
-    \texttt{infrastructure} & 7\,699 & 8\,354 & 92.2\,\% \\
-    \texttt{web} & 2\,129 & 2\,271 & 93.7\,\% \\
-    \texttt{bin} & 836 & 1\,116 & 74.9\,\% \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
 La gestión de etapas requiere separar corrección de valores, preparación criptográfica, autorización al confirmar, persistencia e interfaz. Los ensayos de la \cref{tab:pruebas-etapas} comprueban esas fronteras. La existencia de un soporte admitido no demuestra procedencia jurídica; las pruebas usan datos declarados y archivos sintéticos, no expedientes de clientes.
 
 \begin{table}[H]
