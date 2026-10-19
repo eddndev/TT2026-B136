@@ -1,21 +1,24 @@
 \subsection{Generaci\'on y firma local en el navegador}
 \label{sec:impl-criptografia-local}
 
-Qadra incorpora un ayudante criptogr\'afico local, implementado en el crate
+La aplicaci\'on Qadra (\cref{sec:impl-http-interfaz}) incorpora un ayudante
+criptogr\'afico local, implementado en el crate
 \texttt{browser-crypto} de Rust y compilado a WebAssembly. Se ejecuta en un
 \emph{worker} dedicado por operaci\'on, sin dependencia de los crates del
 servidor. \texttt{ring} realiza las firmas privadas RSA con SHA-256 y
 PKCS\#1 v1.5, incluida la solicitud de certificado; \texttt{rsa} se utiliza
 para generar, representar y analizar claves, sin invocar su API de firma
 privada. Esta separaci\'on no extiende al navegador la aceptaci\'on del riesgo
-temporal documentado para la CLI ni modifica el firmante del backend. La
-decisi\'on queda en
+de temporizaci\'on documentada para la CLI (\cref{sec:impl-workspace}) ni
+modifica el firmante del backend. La decisi\'on queda en
 \rutarepo{docs/adr/0079-browser-local-cryptography.md}.
 
 \subsubsection{Clave cifrada y solicitud p\'ublica}
 
 Las vistas autenticadas \emph{Mi certificado} y \emph{Mi firma documental}
-ofrecen generaci\'on para Owner y Litigante, respectivamente. El titular
+ofrecen generaci\'on para Owner y Litigante, respectivamente, como parte del
+v\'inculo de certificado del Owner (\cref{sec:impl-vinculo-certificado}) y de la firma
+individual (\cref{sec:impl-firma-individual}). El titular
 declara nombre com\'un, organizaci\'on y pa\'is, y confirma una contrase\~na
 de al menos doce caracteres y hasta 1024 bytes UTF-8, sin recortar espacios
 ni normalizarla. Estos datos no acreditan identidad civil ni sustituyen la
@@ -34,8 +37,8 @@ archivo guardado con su contrase\~na. El worker debe abrirlo y contrastar
 su clave p\'ublica con la solicitud antes de habilitar la descarga del CSR
 PKCS\#10. As\'i, pulsar una descarga no basta para declarar una copia
 utilizable. El titular conserva por separado archivo y contrase\~na; Qadra
-no puede recuperarlos. Solamente el CSR p\'ublico se entrega a la CA,
-que mantiene sus perfiles, pol\'itica de sujeto y confirmaci\'on de emisi\'on.
+no puede recuperarlos. Solamente el CSR p\'ublico se entrega a la CA
+(\cref{sec:impl-portal-ca}), que mantiene sus perfiles, pol\'itica de sujeto y confirmaci\'on de emisi\'on.
 El certificado emitido requiere despu\'es su v\'inculo expl\'icito con la cuenta.
 
 \subsubsection{Operaciones sobre bytes preparados}
@@ -72,10 +75,11 @@ una firma local correcta como autoridad de emisi\'on o identidad acreditada.
 
 Cada worker termina al completar, fallar o cancelar su operaci\'on. El cambio
 de cuenta, autorizaci\'on, preparaci\'on, certificado o versi\'on invalida
-resultados tard\'ios. Los campos se vac\'ian y las referencias se liberan;
+resultados tard\'ios, como los dem\'as cambios de contexto de Qadra
+(\cref{sec:impl-qadra-conciliacion}). Los campos se vac\'ian y las referencias se liberan;
 clave y contrase\~na no forman parte de peticiones API, registros de la
 aplicaci\'on, almacenamiento persistente del navegador ni borradores
-recuperables. La carga del programa puede utilizar la red, pero la operaci\'on
+recuperables (\cref{sec:impl-qadra-borradores}). La carga del programa puede utilizar la red, pero la operaci\'on
 local no env\'ia ese material secreto al despacho ni a la CA.
 
 Terminar el worker y vaciar campos no garantiza borrar todas las copias de
