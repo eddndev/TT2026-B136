@@ -270,37 +270,17 @@ La matriz incorpora pruebas de autorización vigente, atomicidad, migración y p
 
 Los casos de mutación incluyen documentos, firmas, certificados, paquetes cifrados, ZIP y auditoría. Su rechazo demuestra el comportamiento sobre los artefactos y alteraciones ensayados; no equivale a probar todas las entradas posibles. De igual modo, 10\,000 nonces distintos en la prueba correspondiente son evidencia sobre esa muestra, no una garantía matemática de ausencia de colisiones futuras.
 
-\section{Trazabilidad de consultas documentales e interfaz}\label{sec:matriz-consultas}
+\section{Trazabilidad de identidad y cuentas}\label{sec:matriz-grupo-identidad}
 
-El contrato de listado y detalle por expediente se comprueba mediante archivos separados de los conteos históricos de la \cref{tab:matriz-resumen}. \rutarepo{crates/application/tests/document_query.rs} fija límites y normalización de parámetros. \rutarepo{crates/application/tests/case_document_queries.rs} comprueba el permiso \texttt{ReadDocument}, la denegación de Cliente y la propagación del actor, expediente y momento de auditoría.
+Esta sección relaciona la administración de miembros y la revocación durable de cuentas con las pruebas que las comprueban.
 
-\rutarepo{crates/infrastructure/tests/postgres_document_queries.rs} contiene los escenarios de paginación después de filtrar, búsqueda literal y estado sellado; comprueba que el detalle usa una proyección de metadatos sin decodificar material cifrado. También define accesos con pertenencia retirada, cambios de rol o cuenta inactiva, errores indistinguibles para asociaciones ajenas e inexistentes y fallo de auditoría antes de devolver resultados. Su ejecución requiere \rutarepo{DOCUMENT_TEST_DATABASE_URL} sobre una base desechable.
+\input{chapters/anexo-e-miembros}
 
-\rutarepo{crates/web/tests/document_queries.rs} comprueba el DTO, los parámetros admitidos y los errores HTTP. Los escenarios con respuestas simuladas en \rutarepo{web/tests/browser/} permiten aislar formularios, navegación por expediente y acciones documentales. El escenario real de \rutarepo{web/tests/live/document-workflow.spec.mjs}, ejecutado mediante \rutarepo{scripts/web-demo.sh}, aprobó el 14 de septiembre: autenticación con segundo factor, creación de expediente, carga, consulta, firma y sello, verificación, descarga de ZIP y recuperación del documento después de cerrar sesión y recargar. Se compararon los bytes del ZIP con el original y se comprobó que a 390 píxeles no hubiera desbordamiento horizontal. Este escenario utiliza API, PostgreSQL, Redis y OpenSSL reales y se contabiliza por separado de las 539 pruebas Rust. La inspección visual del sistema de diseño y la evaluación de usabilidad con usuarios constituyen comprobaciones adicionales y no se infieren de la cantidad de pruebas automáticas.
+\section{Trazabilidad de expedientes y participantes}\label{sec:matriz-grupo-expedientes}
 
-\section{Trazabilidad de versiones inmutables}\label{sec:matriz-versiones}
+Esta sección reúne la trazabilidad del directorio de participantes, de la administración penal y de las identidades representadas con perfiles tipificados.
 
-{\emergencystretch=3em Las pruebas de parámetros y orquestación residen en \rutarepo{crates/application/tests/document_versions.rs}, \rutarepo{crates/application/tests/case_document_versions.rs} y \rutarepo{crates/application/tests/case_document_version_actions.rs}. Comprueban límites de página y cursor, conflicto previo a la preparación, agotamiento del contador, reautenticación y conservación de la instantánea exacta durante las acciones explícitas y sus alias. \rutarepo{crates/application/tests/document_version_crypto.rs} exige una solicitud de DEK por contenido preparado y el AAD del UUID y versión elegidos.\par}
-
-{\emergencystretch=3em En infraestructura, \rutarepo{crates/infrastructure/tests/postgres_document_versions.rs} relaciona historial, filtros sobre la cabeza y anexados concurrentes con la conservación del sello anterior. \rutarepo{crates/infrastructure/tests/document_version_insert_concurrency.rs} enfrenta inserciones SQL y comprueba que el bloqueo de secuencia observa el commit o rollback del predecesor. \rutarepo{crates/infrastructure/tests/document_version_failures.rs} inyecta fallos de persistencia, auditoría y confirmación diferida. Los casos límite de contador y cambios de rol se encuentran en \rutarepo{crates/infrastructure/tests/document_version_edges.rs}.\par}
-
-{\emergencystretch=3em La preservación de filas al migrar y al repetir las migraciones se comprueba en \rutarepo{crates/infrastructure/tests/document_version_migration.rs}; la integridad estructural y de inventario al abrir, en \rutarepo{crates/infrastructure/tests/document_version_schema.rs}. \rutarepo{crates/infrastructure/tests/legacy_document_versions.rs} conserva un origen cuyo primer número disponible es 7, añade el 8 y reconcilia la evidencia original. \rutarepo{crates/infrastructure/tests/document_version_encryption.rs} utiliza AES-GCM real, compara DEK y vaults y rechaza sustituciones entre contextos.\par}
-
-{\emergencystretch=3em El contrato externo está cubierto por \rutarepo{crates/web/tests/document_versions.rs}. La demostración HTTP y de restauración añade \rutarepo{scripts/api-version-demo.sh}; la selección y carga desde Qadra se comprueban en \rutarepo{web/tests/browser/versions.spec.mjs}, con el recorrido real en \rutarepo{web/tests/live/document-workflow.spec.mjs}. Los resultados de esas ejecuciones se registran en \rutarepo{docs/verification-report.md}. Los archivos de prueba definen escenarios reproducibles, mientras los conteos y porcentajes corresponden exclusivamente a las ejecuciones identificadas en este anexo.\par}
-
-\section{Trazabilidad de clasificación documental}\label{sec:matriz-clasificacion}
-
-{\emergencystretch=3em El dominio fija normalización, límites, orden, codificación y contador en \rutarepo{crates/domain/tests/document_metadata.rs}. La aplicación comprueba filtros, cursores, digest mediante puerto y nombres de eventos en \rutarepo{crates/application/tests/document_metadata_query.rs}; lectura e historia, en \rutarepo{crates/application/tests/case_document_metadata.rs}. \rutarepo{crates/application/tests/classified_document_upload.rs} exige los dos permisos, reautenticación de la misma identidad y una sola operación transaccional de carga clasificada.\par}
-
-{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/postgres_document_metadata.rs} conserva estado sin clasificación, revisiones sucesoras y correo histórico. \rutarepo{crates/infrastructure/tests/document_metadata_queries.rs} combina ambas cabezas y filtros literales; \rutarepo{crates/infrastructure/tests/document_metadata_authorization.rs} cubre ámbito, pertenencia y Cliente denegado. Los fallos de fila, auditoría, commit y decodificación se definen en \rutarepo{crates/infrastructure/tests/document_metadata_failures.rs}; las competencias y revocación durante espera, en \rutarepo{crates/infrastructure/tests/document_metadata_concurrency.rs}.\par}
-
-{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_migration.rs} compara canon y SHA-256 entre Rust, PostgreSQL y OpenSSL, conserva las filas previas y repite la migración sin inventar revisiones. \rutarepo{crates/infrastructure/tests/document_metadata_schema.rs} comprueba codificación UTF-8, restricciones, triggers, privilegios y continuidad del inventario. El contrato HTTP y sus entradas estrictas se encuentran en \rutarepo{crates/web/tests/document_metadata.rs}; los límites y fallos de transporte de la carga multipart, en \rutarepo{crates/web/tests/document_metadata_upload.rs}.\par}
-
-{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_restore.rs} reproduce el respaldo y restauración con \texttt{pg\_dump} y \texttt{pg\_restore}, las funciones bajo \texttt{search\_path} vacío y la conservación de restricciones y acceso operativo. \rutarepo{crates/infrastructure/tests/legacy_document_metadata.rs} mantiene la reconciliación del origen tras clasificar. La interfaz cuenta con \rutarepo{web/tests/metadata.test.mjs} y los escenarios de edición, filtros, carga y estado bajo \rutarepo{web/tests/browser/}; el recorrido real reside en \rutarepo{web/tests/live/document-classification.spec.mjs}.\par}
-
-Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-audited-document-classification.md}. La clasificación no forma parte de los bytes cifrados ni del paquete de evidencia de una versión. Las ejecuciones globales y de navegador se registran por separado de la definición de escenarios y conservan la identificación histórica de cada medición.
-
-\section{Trazabilidad del directorio de participantes}\label{sec:matriz-participantes}
+\subsection{Trazabilidad del directorio de participantes}\label{sec:matriz-participantes}
 
 {\raggedright Los valores, la revisión positiva, los permisos y el canon se definen en \rutarepo{crates/domain/src/participants/} y se ejercitan en \rutarepo{crates/domain/tests/participants.rs}. La orquestación y los cursores se verifican en \rutarepo{crates/application/tests/participant_workflow.rs} y \rutarepo{crates/application/tests/participant_query.rs}. El estado organizativo tiene su puerto propio; los dobles de prueba exigen una llamada transaccional sin lectura exterior seguida de reemplazo.\par}
 
@@ -312,7 +292,7 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 {\raggedright La especificación y sus límites corresponden a \rutarepo{docs/adr/0021-audited-case-participants.md}. El nombre y el rol son valores manuales; las pruebas automáticas no comprueban identidad jurídica, FIREL, duplicidad de persona verificada ni la condición procesal del expediente. La aceptación del caso de uso permanece parcial.\par}
 
-\section{Trazabilidad de la administración penal}\label{sec:matriz-administracion}
+\subsection{Trazabilidad de la administración penal}\label{sec:matriz-administracion}
 
 {\raggedright \rutarepo{crates/domain/tests/case_administration.rs} comprueba valores, controles antes del recorte, información multilineal, delitos ordenados y revisiones tipadas. \rutarepo{crates/domain/tests/case_administration_canonical.rs} fija los bytes de los tres vectores CADM1. \rutarepo{crates/application/tests/case_administration_query.rs} y \rutarepo{crates/application/tests/case_administration_workflow.rs} comprueban límites, cursores, permisos, proyecciones y propagación de actor y reloj; \rutarepo{crates/application/tests/case_workflow.rs} conserva la compatibilidad básica.\par}
 
@@ -328,15 +308,57 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 {\raggedright \rutarepo{web/tests/case-administration.test.mjs} y \rutarepo{web/tests/browser/case-administration-races.spec.mjs}, \rutarepo{web/tests/browser/case-administration-uncertain.spec.mjs} y \rutarepo{web/tests/browser/case-administration-state.spec.mjs} comprueban normalización, filtros, permisos, conflictos explícitos, respuesta incierta y resultados tardíos. \rutarepo{web/tests/live/case-administration.spec.mjs}, ejecutado por \rutarepo{scripts/web-demo.sh}, recorre alta completa, perfiles pendientes, edición concurrente, cierre, evidencia, reapertura, reingreso y revocación con servicios reales. Sus resultados se cuentan por separado de Rust en la \cref{sec:pruebas-administracion}; no acreditan transiciones procesales, identidad jurídica ni usabilidad.\par}
 
+\input{chapters/anexo-e-participantes-tipificados}
+
+\section{Trazabilidad del repositorio documental}\label{sec:matriz-grupo-documentos}
+
+Esta sección reúne la trazabilidad de las consultas documentales, las versiones inmutables, la clasificación, la entrega del contenido original con sus incidentes y la firma documental individual.
+
+\subsection{Trazabilidad de consultas documentales e interfaz}\label{sec:matriz-consultas}
+
+El contrato de listado y detalle por expediente se comprueba mediante archivos separados de los conteos históricos de la \cref{tab:matriz-resumen}. \rutarepo{crates/application/tests/document_query.rs} fija límites y normalización de parámetros. \rutarepo{crates/application/tests/case_document_queries.rs} comprueba el permiso \texttt{ReadDocument}, la denegación de Cliente y la propagación del actor, expediente y momento de auditoría.
+
+\rutarepo{crates/infrastructure/tests/postgres_document_queries.rs} contiene los escenarios de paginación después de filtrar, búsqueda literal y estado sellado; comprueba que el detalle usa una proyección de metadatos sin decodificar material cifrado. También define accesos con pertenencia retirada, cambios de rol o cuenta inactiva, errores indistinguibles para asociaciones ajenas e inexistentes y fallo de auditoría antes de devolver resultados. Su ejecución requiere \rutarepo{DOCUMENT_TEST_DATABASE_URL} sobre una base desechable.
+
+\rutarepo{crates/web/tests/document_queries.rs} comprueba el DTO, los parámetros admitidos y los errores HTTP. Los escenarios con respuestas simuladas en \rutarepo{web/tests/browser/} permiten aislar formularios, navegación por expediente y acciones documentales. El escenario real de \rutarepo{web/tests/live/document-workflow.spec.mjs}, ejecutado mediante \rutarepo{scripts/web-demo.sh}, aprobó el 14 de septiembre: autenticación con segundo factor, creación de expediente, carga, consulta, firma y sello, verificación, descarga de ZIP y recuperación del documento después de cerrar sesión y recargar. Se compararon los bytes del ZIP con el original y se comprobó que a 390 píxeles no hubiera desbordamiento horizontal. Este escenario utiliza API, PostgreSQL, Redis y OpenSSL reales y se contabiliza por separado de las 539 pruebas Rust. La inspección visual del sistema de diseño y la evaluación de usabilidad con usuarios constituyen comprobaciones adicionales y no se infieren de la cantidad de pruebas automáticas.
+
+\subsection{Trazabilidad de versiones inmutables}\label{sec:matriz-versiones}
+
+{\emergencystretch=3em Las pruebas de parámetros y orquestación residen en \rutarepo{crates/application/tests/document_versions.rs}, \rutarepo{crates/application/tests/case_document_versions.rs} y \rutarepo{crates/application/tests/case_document_version_actions.rs}. Comprueban límites de página y cursor, conflicto previo a la preparación, agotamiento del contador, reautenticación y conservación de la instantánea exacta durante las acciones explícitas y sus alias. \rutarepo{crates/application/tests/document_version_crypto.rs} exige una solicitud de DEK por contenido preparado y el AAD del UUID y versión elegidos.\par}
+
+{\emergencystretch=3em En infraestructura, \rutarepo{crates/infrastructure/tests/postgres_document_versions.rs} relaciona historial, filtros sobre la cabeza y anexados concurrentes con la conservación del sello anterior. \rutarepo{crates/infrastructure/tests/document_version_insert_concurrency.rs} enfrenta inserciones SQL y comprueba que el bloqueo de secuencia observa el commit o rollback del predecesor. \rutarepo{crates/infrastructure/tests/document_version_failures.rs} inyecta fallos de persistencia, auditoría y confirmación diferida. Los casos límite de contador y cambios de rol se encuentran en \rutarepo{crates/infrastructure/tests/document_version_edges.rs}.\par}
+
+{\emergencystretch=3em La preservación de filas al migrar y al repetir las migraciones se comprueba en \rutarepo{crates/infrastructure/tests/document_version_migration.rs}; la integridad estructural y de inventario al abrir, en \rutarepo{crates/infrastructure/tests/document_version_schema.rs}. \rutarepo{crates/infrastructure/tests/legacy_document_versions.rs} conserva un origen cuyo primer número disponible es 7, añade el 8 y reconcilia la evidencia original. \rutarepo{crates/infrastructure/tests/document_version_encryption.rs} utiliza AES-GCM real, compara DEK y vaults y rechaza sustituciones entre contextos.\par}
+
+{\emergencystretch=3em El contrato externo está cubierto por \rutarepo{crates/web/tests/document_versions.rs}. La demostración HTTP y de restauración añade \rutarepo{scripts/api-version-demo.sh}; la selección y carga desde Qadra se comprueban en \rutarepo{web/tests/browser/versions.spec.mjs}, con el recorrido real en \rutarepo{web/tests/live/document-workflow.spec.mjs}. Los resultados de esas ejecuciones se registran en \rutarepo{docs/verification-report.md}. Los archivos de prueba definen escenarios reproducibles, mientras los conteos y porcentajes corresponden exclusivamente a las ejecuciones identificadas en este anexo.\par}
+
+\subsection{Trazabilidad de clasificación documental}\label{sec:matriz-clasificacion}
+
+{\emergencystretch=3em El dominio fija normalización, límites, orden, codificación y contador en \rutarepo{crates/domain/tests/document_metadata.rs}. La aplicación comprueba filtros, cursores, digest mediante puerto y nombres de eventos en \rutarepo{crates/application/tests/document_metadata_query.rs}; lectura e historia, en \rutarepo{crates/application/tests/case_document_metadata.rs}. \rutarepo{crates/application/tests/classified_document_upload.rs} exige los dos permisos, reautenticación de la misma identidad y una sola operación transaccional de carga clasificada.\par}
+
+{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/postgres_document_metadata.rs} conserva estado sin clasificación, revisiones sucesoras y correo histórico. \rutarepo{crates/infrastructure/tests/document_metadata_queries.rs} combina ambas cabezas y filtros literales; \rutarepo{crates/infrastructure/tests/document_metadata_authorization.rs} cubre ámbito, pertenencia y Cliente denegado. Los fallos de fila, auditoría, commit y decodificación se definen en \rutarepo{crates/infrastructure/tests/document_metadata_failures.rs}; las competencias y revocación durante espera, en \rutarepo{crates/infrastructure/tests/document_metadata_concurrency.rs}.\par}
+
+{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_migration.rs} compara canon y SHA-256 entre Rust, PostgreSQL y OpenSSL, conserva las filas previas y repite la migración sin inventar revisiones. \rutarepo{crates/infrastructure/tests/document_metadata_schema.rs} comprueba codificación UTF-8, restricciones, triggers, privilegios y continuidad del inventario. El contrato HTTP y sus entradas estrictas se encuentran en \rutarepo{crates/web/tests/document_metadata.rs}; los límites y fallos de transporte de la carga multipart, en \rutarepo{crates/web/tests/document_metadata_upload.rs}.\par}
+
+{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_restore.rs} reproduce el respaldo y restauración con \texttt{pg\_dump} y \texttt{pg\_restore}, las funciones bajo \texttt{search\_path} vacío y la conservación de restricciones y acceso operativo. \rutarepo{crates/infrastructure/tests/legacy_document_metadata.rs} mantiene la reconciliación del origen tras clasificar. La interfaz cuenta con \rutarepo{web/tests/metadata.test.mjs} y los escenarios de edición, filtros, carga y estado bajo \rutarepo{web/tests/browser/}; el recorrido real reside en \rutarepo{web/tests/live/document-classification.spec.mjs}.\par}
+
+Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-audited-document-classification.md}. La clasificación no forma parte de los bytes cifrados ni del paquete de evidencia de una versión. Las ejecuciones globales y de navegador se registran por separado de la definición de escenarios y conservan la identificación histórica de cada medición.
+
 \input{chapters/anexo-e-contenido-documental}
+
+\input{chapters/anexo-e-firma-individual}
+
+\section{Trazabilidad de etapas y audiencias}\label{sec:matriz-grupo-actuaciones}
+
+Esta sección relaciona las etapas procesales, la admisión de sus soportes y la programación de audiencias con sus pruebas.
 
 \input{chapters/anexo-e-etapas}
 
-\input{chapters/anexo-e-participantes-tipificados}
-
 \input{chapters/anexo-e-audiencias}
 
-\input{chapters/anexo-e-resultados-plazos-derivados}
+\section{Trazabilidad del cómputo de plazos}\label{sec:matriz-grupo-plazos}
+
+Esta sección sigue las capas del cálculo de plazos: fuentes temporales, perfiles con su registro de cambios, plazos persistentes con la agenda combinada y el registro conjunto de un resultado con su plazo.
 
 \input{chapters/anexo-e-desencadenantes}
 
@@ -344,15 +366,25 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 \input{chapters/anexo-e-plazos-persistentes}
 
-\input{chapters/anexo-e-alertas}
+\input{chapters/anexo-e-resultados-plazos-derivados}
+
+\section{Trazabilidad de recursos procesales}\label{sec:matriz-grupo-recursos}
+
+Esta sección reúne la trazabilidad de los recursos declarados, sus asociaciones con actividades existentes y la creación contextual de plazos.
 
 \input{chapters/anexo-e-recursos-procesales}
 
 \input{chapters/anexo-e-asociaciones-recursos}
 
-\input{chapters/anexo-e-miembros}
+\subsection{Trazabilidad de la creación contextual de plazos}\label{anexo:plazo-contextual}
 
-\input{chapters/anexo-e-firma-individual}
+Las \cref{sec:impl-plazo-contextual,sec:pruebas-plazo-contextual} delimitan la creación conjunta y su verificación. El contrato \rutarepo{docs/resource-deadlines-api.md} y la decisión \rutarepo{docs/adr/0057-atomic-resource-deadline-creation.md} fijan las capturas, el recibo compuesto y las condiciones de repetición. \rutarepo{scripts/api-contextual-deadline-demo.py} incorpora la aceptación HTTP y la comparación tras restaurar; \rutarepo{web/tests/live/resource-activities-contextual-real.spec.mjs} describe el recorrido con servicios reales. La existencia de estos guiones no acredita su ejecución: los resultados se registran por campaña en el informe de verificación. El alcance conserva una fuente temporal explícita y no completa la activación jurídica automática ni el catálogo de audiencias de recursos.
+
+\input{chapters/anexo-e-alertas}
+
+\section{Trazabilidad de la supervisión operativa}\label{sec:matriz-grupo-supervision}
+
+Esta sección relaciona el tablero operativo, los informes de expedientes y la consulta de actividad con sus pruebas.
 
 \input{chapters/anexo-e-tablero}
 
@@ -463,3 +495,5 @@ El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cad
 \end{table}
 
 \input{chapters/anexo-e-calibracion}
+
+\input{chapters/anexo-e-despliegue}

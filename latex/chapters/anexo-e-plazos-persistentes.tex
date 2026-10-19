@@ -1,4 +1,4 @@
-\section{Registro de plazos, captura histórica y consulta}\label{sec:matriz-plazos-persistentes}
+\subsection{Registro de plazos, captura histórica y consulta}\label{sec:matriz-plazos-persistentes}
 
 La \cref{tab:matriz-plazos-persistentes} relaciona la implementación persistente con sus comprobaciones. La presencia de un caso en el repositorio identifica la propiedad exigida; su ejecución y resultado pertenecen al informe técnico. Los casos sintéticos no certifican reglas jurídicas, y la comprobación del transporte no sustituye la aceptación de una interfaz de usuario.
 
@@ -58,8 +58,7 @@ En el directorio \rutarepo{crates/web/tests/}, los archivos con prefijo \texttt{
 
 El servicio humano, el transporte y Qadra incorporan seguimiento V2 y conservan la lectura histórica V1. \texttt{serve} compone despacho y consumo secuencial con supervisión de cierre. Las comprobaciones focales se distinguen de los recorridos con procesos y servicios reales. Un recorrido HTTP real comprobó reevaluación, cierre por señales, reinicios y restauración de cinco revisiones; la repetición final de la campaña de API terminó satisfactoriamente con el guion corregido. La campaña de Qadra con backend real aprobó 25 escenarios, incluidos los dos nuevos de seguimiento en escritorio y móvil. Agenda, alertas y validación de perfiles jurídicos aplicables conservan sus propias obligaciones. El alcance mantiene cálculos en días, meses y horas, sin reemplazarlos por captura manual de fechas.
 
-
-\subsection{Selector e interfaz de plazos}
+\subsubsection{Selector e interfaz de plazos}
 
 Las comprobaciones del selector mantienen el prefijo \texttt{deadline\_responsibles}. En \rutarepo{crates/application/tests/} se verifican servicio y respuestas; en \rutarepo{crates/web/tests/}, el contrato HTTP. Los archivos terminados en \texttt{backend.rs} y \texttt{concurrency.rs} del directorio de pruebas de infraestructura comprueban selección SQL y revocación concurrente.
 
@@ -80,7 +79,7 @@ Los datos del recorrido de reevaluación se preparan mediante \rutarepo{scripts/
 
 El recorrido \rutarepo{scripts/api-demo.sh} incorpora la consulta de responsables y comprueba que la proyección no exponga credenciales. Los ensayos de navegador conservan resultados diarios, mensuales y horarios, relaciones históricas exactas, atención y retiro, cierre y revocación, conflictos y conciliación sin reenvío. La matriz separa el transporte controlado de las campañas reales; sus conteos y resultados observados permanecen en el informe de verificación.
 
-\subsection{Seguimiento y consumidor durable}
+\subsubsection{Seguimiento y consumidor durable}
 
 \begingroup
 \raggedright
@@ -92,11 +91,11 @@ El contrato está en \rutarepo{docs/deadline-worker.md}; el compromiso de observ
 \par
 \endgroup
 
-\subsection{Composición y supervisión del servidor}
+\subsubsection{Composición y supervisión del servidor}
 
 En \rutarepo{crates/bin/src/}, \texttt{serve\_deadline\_runtime.rs} implementa el ciclo; \texttt{serve\_start.rs} compone sus propietarios; y \texttt{serve\_runtime.rs}, \texttt{serve\_signals.rs} y \texttt{serve\_stop.rs} coordinan terminación y parada. Los archivos de prueba correspondientes comprueban la composición sin sustituir la aceptación de procesos reales. El ejecutable aprobó 31 pruebas unitarias y cuatro de ayuda y configuración; las 26 de ciclo y supervisión están incluidas en las unitarias. Clippy aprobó todos los objetivos del ejecutable. Estos controles no se atribuyen a una nueva campaña global del espacio de trabajo.
 
-\subsection{Consulta combinada de actividades}
+\subsubsection{Consulta combinada de actividades}
 
 {\raggedright La \cref{sec:implementacion-agenda-combinada} corresponde al puerto de aplicación \rutarepo{crates/application/src/agenda/}, al adaptador \rutarepo{crates/infrastructure/src/agenda_postgres/} y al transporte \rutarepo{crates/web/src/agenda/}. En los directorios de pruebas de aplicación e infraestructura, los archivos con prefijo \texttt{agenda\_} separan consultas, permisos, proyección, paginación, corrupción y concurrencia; \rutarepo{crates/web/tests/agenda_http.rs} comprueba el contrato HTTP.\par}
 

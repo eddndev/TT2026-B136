@@ -1,4 +1,4 @@
-\section{Trazabilidad y límites de la programación de audiencias}\label{sec:matriz-audiencias}
+\subsection{Trazabilidad y límites de la programación de audiencias}\label{sec:matriz-audiencias}
 
 {\raggedright Los valores, fechas y canon se ejercitan en \rutarepo{crates/domain/tests/hearing_values.rs}, \rutarepo{hearing_time.rs}, \rutarepo{hearing_canonical.rs} y \rutarepo{hearing_permissions.rs}. El generador independiente de vectores reside en \rutarepo{crates/domain/tests/fixtures/generate_hearing_vectors.py}. La aplicación separa flujo, límites, fallos del puerto y recibos en \rutarepo{crates/application/tests/hearing_workflow.rs}, \rutarepo{hearing_boundaries.rs}, \rutarepo{hearing_failures.rs}, \rutarepo{hearing_failures_ports.rs} y \rutarepo{hearing_canonical.rs}; las consultas se prueban en \rutarepo{hearing_queries.rs}.\par}
 
@@ -27,7 +27,6 @@
 \end{table}
 
 Las referencias exactas protegen la interpretación histórica del registro interno, pero no sustituyen un acta judicial ni acreditan la identidad o representación de sus participantes. El recibo de operación permite conciliar un envío; no constituye firma personal, sellado de tiempo ni constancia de notificación. Estas diferencias impiden declarar completo el caso de uso por contar únicamente con formularios y una agenda.
-
 
 {\raggedright El alcance cautelar finito y sus contratos est\'an en \rutarepo{docs/precautionary-hearings-scope.md}, \rutarepo{docs/precautionary-hearings-api.md}, \rutarepo{docs/measure-decisions-api.md} y \rutarepo{docs/measure-records-api.md}. Las pruebas HTTP \rutarepo{crates/web/tests/precautionary_hearings_http.rs}, \rutarepo{measure_decisions_http.rs}, \rutarepo{measure_administrative_http.rs} y \rutarepo{measure_records_http.rs} contrastan rutas, referencias, confirmaciones y lecturas exactas.\par}
 
