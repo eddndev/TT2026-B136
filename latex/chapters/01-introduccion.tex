@@ -139,7 +139,7 @@ Para acotar el esfuerzo de investigación y desarrollo del prototipo, se estable
 
   \item La firma digital emitida por el prototipo es firma electrónica simple en los términos del artículo 89 del Código de Comercio. Al no provenir de un Prestador de Servicios de Certificación autorizado, no alcanza la presunción de firma avanzada establecida en el artículo 97 del mismo ordenamiento. La TSA local aporta evidencia técnica RFC 3161, pero no una constancia NOM-151 ni la independencia de un tercero autorizado.
 
-  \item La integración con el PSC Cincel fue evaluada como adaptador opcional, pero la falta de respuesta y estabilidad de la API, junto con el costo no transparente del sandbox, impide usarla como evidencia del prototipo. El prototipo demuestra el sellado con una TSA local; un despliegue productivo requeriría seleccionar y contratar conscientemente un PSC autorizado.
+  \item La integración con el PSC Cincel fue evaluada como adaptador opcional, pero la falta de respuesta y estabilidad de la API, junto con el costo no transparente del sandbox, impide usarla como evidencia de esta entrega. El prototipo demuestra el sellado con una TSA local; un despliegue productivo requeriría seleccionar y contratar conscientemente un PSC autorizado.
 \end{itemize}
 
 La implementación comprende una CLI y una API HTTP para autenticación,
@@ -169,29 +169,23 @@ calendarios jurisdiccionales, cálculo y seguimiento de plazos, agenda y alertas
 además del flujo separado de recursos procesales. El cálculo conserva un
 catálogo finito de supuestos y bloquea resultados cuando faltan condiciones o
 fuentes. Estas funciones no acreditan identidad civil, FIREL, representación
-judicial ni la condición jurídica de un acto. Qadra integra también el tablero
-operativo, los informes de estado y actividad, la consulta autorizada de la
-bitácora, el directorio de miembros, las invitaciones, la recuperación de
-contraseña, la admisión general de cargas, la entrega verificada del contenido
-original y la firma documental individual con la clave conservada en el equipo
-del titular; la CA interna dispone de un portal administrativo separado.
-La validación de usabilidad
+judicial ni la condición jurídica de un acto. La validación de usabilidad
 prevista con personal del despacho se realizará sobre los flujos integrados
 del prototipo. La evaluación técnica del flujo implementado se presenta en
 los \cref{cap:implementacion,cap:pruebas}.
 
 \section{Supuestos del Proyecto}\label{sec:supuestos}
 
-El desarrollo del prototipo parte de los siguientes supuestos. La falsación de cualquiera de ellos durante la ejecución del Trabajo Terminal motivaría la activación de los planes de mitigación descritos en el análisis de riesgos (\cref{sec:riesgos}).
+El desarrollo del prototipo parte de los siguientes supuestos. La falsación de cualquiera de ellos durante la ejecución del Trabajo Terminal motivaría la activación de los planes de mitigación descritos en el análisis de riesgos (§3.6).
 
 \begin{itemize}
   \item La TSA local de OpenSSL y sus scripts de preparación se mantienen disponibles durante el ciclo de desarrollo y pruebas. La disponibilidad de un PSC externo no se asume.
 
   \item El hardware de referencia dispone de memoria suficiente para ejecutar Argon2id con 256 MiB por proceso de autenticación sin degradar el tiempo de respuesta del inicio de sesión. Si el hardware final difiere, la calibración debe repetirse antes del despliegue.
 
-  \item El operador de la CA interna publica oportunamente sus listas de revocación (CRL), que el sistema incorpora como revisiones explícitas de confianza; el prototipo no consulta servicios OCSP ni descarga CRL en línea, y su despliegue es privado. Una integración con certificados o sellos de un PSC requeriría conectividad estable para obtener sus CRL o respuestas OCSP. El flujo de demostración no depende de la conectividad con Cincel.
+  \item Existe conectividad estable a internet para consultar listas de revocación (CRL) y servicios OCSP cuando el despliegue los requiera. El flujo de demostración no depende de la conectividad con Cincel.
 
-  \item Los usuarios acceden al sistema mediante navegadores modernos con soporte para ECMAScript 2020, Web Crypto API y TLS 1.2 o superior; la firma local requiere además WebAssembly y Web Workers.
+  \item Los usuarios acceden al sistema mediante navegadores modernos con soporte para ECMAScript 2020, Web Crypto API y TLS 1.2 o superior.
 
   \item El equipo de dos integrantes mantiene disponibilidad continua durante las diez semanas del cronograma XP, con cuatro jornadas efectivas por semana dedicadas al proyecto.
 

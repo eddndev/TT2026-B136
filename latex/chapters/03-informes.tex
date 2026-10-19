@@ -9,11 +9,9 @@ La implementaci\'on conserva los avisos internos y los estados de procesamiento,
 y a\~nade una estimaci\'on inicial con espera en cola y una intenci\'on durable de
 correo para las solicitudes elegibles, descritas en la \cref{sec:impl-informes}.
 La validaci\'on independiente de precisi\'on cumpli\'o el criterio en el ensayo
-local delimitado en la \cref{sec:pruebas-informes}; ese resultado no acredita
-precisi\'on en producci\'on ni sustituye los dem\'as criterios de cierre del caso
-de uso. La instalaci\'on productiva habilita el canal de correo mediante Resend;
-la aceptaci\'on del proveedor no acredita la recepci\'on en la bandeja, y el aviso
-por correo de un informe concreto no se ha ejercitado en producci\'on.
+local delimitado en la \cref{sec:pruebas-informes}; la activaci\'on p\'ublica del
+canal permanece pendiente. Ese resultado no acredita precisi\'on en producci\'on
+ni sustituye los dem\'as criterios de cierre del caso de uso.
 
 El informe de estado representa una observación administrativa de los expedientes
 originalmente creados dentro de un intervalo UTC. El inicio es inclusivo, el
