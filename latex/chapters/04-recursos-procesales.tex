@@ -1,8 +1,8 @@
-\section{Recursos procesales declarados}\label{sec:impl-recursos-declarados}
+\subsection{Recursos procesales declarados}\label{sec:impl-recursos-declarados}
 
 El incremento de recursos incorpora el registro de revocación y apelación como historias independientes de la etapa ordinaria del expediente. Su finalidad inmediata es conservar lo declarado por el usuario, la resolución seleccionada y los soportes que acompañan cada captura. No introduce una cuarta etapa ni interpreta que registrar un recurso acredite su presentación, admisión, firmeza o efectos sobre otros actos. El contrato implementado está en \rutarepo{docs/procedural-resources-api.md}; la separación entre registro organizativo y efectos procesales se fundamenta en \rutarepo{docs/adr/0040-resources-linked-to-historical-resolutions.md}.
 
-\subsection{Identidad, declaración y fuentes históricas}
+\subsubsection{Identidad, declaración y fuentes históricas}
 
 Cada recurso tiene una identidad y una secuencia propia de revisiones. El registro distingue tipo de recurso, modalidad oral o escrita, título organizativo, parte impugnada, motivos, autoridades y tiempos declarados. Una declaración conocida conserva su valor; una declaración desconocida conserva el motivo de ese desconocimiento. En los campos opcionales, la ausencia se mantiene distinta de una declaración desconocida. Una fecha sin hora no se completa con medianoche ni se convierte en un instante preciso.
 
@@ -10,7 +10,7 @@ La resolución se selecciona mediante identidad y revisión exactas dentro del m
 
 Las personas recurrentes conservan nombre y papel declarados. Su vínculo opcional con el directorio identifica una revisión histórica verificada y no las convierte en cuentas de acceso. El límite de 32 capturas por recurso es técnico. Se rechaza la repetición de una misma ficha del directorio; dos personas declaradas sin ficha pueden compartir nombre. La resolución impugnada exige un soporte documental exacto, identificado por documento, versión, digest y localizador.
 
-\subsection{Actos e historia organizativa}
+\subsubsection{Actos e historia organizativa}
 
 Los actos declarados distinguen interposición, admisión, inadmisibilidad, desistimiento y resolución. Cada acto tiene identidad, revisiones, modalidad, tiempo, autoridad, declaración y evidencia propios. Registrar o corregir un acto añade una revisión al recurso; la corrección referencia además la captura anterior de ese mismo acto. Por ello, la revisión anterior del acto puede encontrarse varias revisiones atrás en la historia del recurso.
 
@@ -18,7 +18,7 @@ Cada acto admite entre uno y dos localizadores de evidencia, conforme al límite
 
 El archivo y la reactivación son cambios organizativos que preservan valores y fuentes. Archivar no registra un desistimiento. La cabeza del recurso expone el acto que se haya registrado en esa revisión, no una lista implícita de todos los actos anteriores. La historia permite consultar cada captura y reconstruir las revisiones de una identidad de acto.
 
-\subsection{Preparación, confirmación y persistencia}
+\subsubsection{Preparación, confirmación y persistencia}
 
 El servicio separa seis intenciones: registrar y corregir recurso, registrar y corregir acto, archivar y reactivar. La preparación reúne fuentes exactas, verifica las nuevas versiones documentales en un lote acotado y genera un digest del envío que el usuario revisa. No reserva la operación ni mantiene bloqueadas las fuentes mientras se muestra el formulario. Los soportes admitidos que se retienen se contrastan con su captura, sin sustituirlos por versiones más recientes ni readmitirlos silenciosamente.
 
@@ -28,7 +28,7 @@ El recibo vincula comando, autor con correo capturado, valores, fuentes, context
 
 La migración \rutarepo{migrations/0022_procedural_resources.sql} incorpora raíces, actos y revisiones inmutables. Sus guardas y el catálogo de arranque controlan secuencias, relaciones y privilegios de inserción. El inventario utiliza el lector histórico del adaptador, recorre revisiones en lotes acotados y rechaza capturas incoherentes sin escribir nuevos eventos. La lectura de una corrección también comprueba que la raíz del acto conserve su captura inicial exacta. Las pruebas del adaptador verificaron exportación y restauración de PostgreSQL, conservación de autoría y continuación de la historia; la aceptación integrada de API y navegador permanece separada, como se precisa en la \cref{sec:pruebas-recursos-declarados}.
 
-\subsection{Consulta autorizada e interacción en Qadra}
+\subsubsection{Consulta autorizada e interacción en Qadra}
 
 Owner puede gestionar los recursos; Litigator requiere asignación vigente al expediente. Paralegal asignado consulta y Client conserva la denegación. El cierre administrativo permite consultar la historia y bloquea nuevas mutaciones. La lectura devuelve datos sólo después de confirmar su auditoría y de la reautenticación del servicio. Las capturas conservan el correo del autor original aunque su cuenta cambie posteriormente.
 
@@ -36,6 +36,6 @@ La API ofrece colección, cabeza, revisión exacta e historia bajo la ruta del e
 
 Qadra presenta formulario, revisión previa a confirmar, detalle e historia. Ante un conflicto conserva el borrador y requiere comparar y aceptar expresamente la base actual antes de preparar otro envío. Ante una respuesta incierta consulta el recibo exacto de la operación; no interpreta una ausencia temporal como prueba de fracaso ni reenvía automáticamente. La revocación de acceso retira los datos visibles cuando la consulta vuelve a ser denegada.
 
-\subsection{Frontera pendiente del flujo completo}
+\subsubsection{Frontera pendiente del flujo completo}
 
 Este incremento implementa registro y consulta de recursos declarados. La ampliación de la \cref{sec:impl-asociaciones-recursos} incorpora vínculos a audiencias y plazos existentes. La creación conjunta de plazos se describe en la \cref{sec:impl-plazo-contextual}. La lectura inversa de la \cref{sec:impl-recursos-desde-actividad} permite recorrer recursos desde una actividad o alerta y regresar a su origen. Permanecen pendientes las audiencias contextuales, la activación automática de términos y el impulso procesal sustentado en un corpus jurídico calificado; ese recorrido de lectura no acredita causalidad jurídica del aviso. Ninguno de los comandos de registro avanza la etapa, suspende términos o determina elegibilidad. Esas obligaciones permanecen en \rutarepo{docs/procedural-resources-scope.md}; el registro disponible no las sustituye por fechas manuales ni acredita que el flujo completo de recursos esté concluido.

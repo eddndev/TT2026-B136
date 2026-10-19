@@ -1,8 +1,8 @@
-\section{Asociaciones de recursos con actividades existentes}\label{sec:impl-asociaciones-recursos}
+\subsection{Asociaciones de recursos con actividades existentes}\label{sec:impl-asociaciones-recursos}
 
 La asociación organizativa permite relacionar un recurso declarado, y opcionalmente uno de sus actos, con una audiencia o un plazo que ya existen en el mismo expediente. El vínculo tiene identidad e historia independientes de sus extremos. Su registro no programa otra audiencia, recalcula un término ni genera una segunda alerta. La decisión se documenta en \rutarepo{docs/adr/0041-exact-resource-activity-associations.md} y el intercambio HTTP en \rutarepo{docs/resource-activities-api.md}.
 
-\subsection{Selección exacta y cabeza esperada}
+\subsubsection{Selección exacta y cabeza esperada}
 
 La selección conserva identidad, revisión y digest del recurso. Cuando incluye un acto, identifica también la revisión del recurso que contiene esa captura. Ambas selecciones son independientes: puede vincularse la revisión 1 del recurso junto con un acto conservado en la revisión 2, aunque una corrección posterior sea la cabeza actual. El servidor verifica que cada fuente pertenezca al expediente y al recurso solicitados; no sustituye la selección por la última revisión ni vuelve a admitir el contenido documental retenido.
 
@@ -10,13 +10,13 @@ La audiencia se identifica por su revisión y digest de envío; el plazo, por su
 
 La vinculación crea la revisión 1. La desvinculación añade una revisión 2 con motivo, preservando selección y fuentes. Es terminal para esa identidad; un vínculo posterior tiene otra raíz. Pueden existir varias asociaciones con una misma actividad sin duplicar la actividad ni sus avisos. El archivo del recurso impide crear vínculos nuevos, pero permite desvincular los existentes cuando el expediente está activo.
 
-\subsection{Historia y estado actual separados}
+\subsubsection{Historia y estado actual separados}
 
 Detalle y lista exponen dos partes: la asociación histórica con sus capturas, y la cabeza actual verificada de la actividad. Ambas se resuelven en una transacción autorizada. Una audiencia histórica puede conservar su programación original aunque la cabeza actual esté cancelada. Para un plazo, la evaluación capturada permanece legible, pero sólo la proyección operativa de la cabeza actual determina si se muestra un vencimiento vigente. Un plazo retirado, pendiente o afectado por cambios no recupera una fecha operativa desde su cálculo histórico.
 
 La consulta toma un instante UTC común después de adquirir el bloqueo. Todas las filas de la página y las proyecciones operativas de plazo comparten ese corte. El servicio comprueba que esté entre el inicio de la solicitud y el retorno del almacén. Así admite una cabeza confirmada mientras el lector esperaba, sin aceptar una observación anterior a la solicitud o posterior al retorno. La historia y los recibos de escritura no incorporan esa afirmación de vigencia.
 
-\subsection{Persistencia, permisos e interfaz}
+\subsubsection{Persistencia, permisos e interfaz}
 
 Las migraciones de asociaciones, conservadas en el directorio \rutarepo{migrations/}, incorporan dos tablas: raíces y revisiones de asociación. La transacción añade revisión, recibo y auditoría conjuntamente. El catálogo estricto comprueba estructura y privilegios; el inventario reconstruye capturas históricas en lotes acotados, sin modificar datos al abrir. El respaldo conserva ambas tablas y sus dependencias, no sólo los identificadores de los extremos.
 
@@ -28,7 +28,7 @@ Qadra incorpora selectores de actividad, revisión y acto opcional, revisión pr
 
 La creación conjunta de un plazo y su asociación tiene el contrato independiente de la \cref{sec:impl-plazo-contextual}. La consulta inversa descrita a continuación completa un recorrido de lectura desde actividades y avisos; no crea actividades adicionales. Permanecen pendientes las audiencias propias de recursos, la calificación del corpus jurídico y la activación automática durable de sus términos. Los enlaces disponibles no sustituyen esas obligaciones ni modifican los objetivos aprobados.
 
-\subsection{Consulta inversa y regreso a la actividad}\label{sec:impl-recursos-desde-actividad}
+\subsubsection{Consulta inversa y regreso a la actividad}\label{sec:impl-recursos-desde-actividad}
 
 La nueva lectura parte de una audiencia o plazo identificado dentro del
 expediente y devuelve las asociaciones actuales de sus recursos. Utiliza las

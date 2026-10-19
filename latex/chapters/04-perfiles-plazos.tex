@@ -1,8 +1,8 @@
-\section{Perfiles reproducibles y evaluación de plazos}\label{sec:implementacion-perfiles-plazos}
+\subsection{Perfiles reproducibles y evaluación de plazos}\label{sec:implementacion-perfiles-plazos}
 
 El catálogo de perfiles conecta la selección temporal exacta de la \cref{sec:implementacion-desencadenantes} con una configuración identificable del cálculo. Su implementación comprende valores de aplicación, revisiones persistidas en PostgreSQL y una API HTTP con consultas y comandos sobre el mismo servicio autorizado. El evaluador produce resultados en memoria; el seguimiento por expediente compone ese resultado con persistencia, responsable y atención, como se describe en la \cref{sec:implementacion-plazos-persistentes}. Los avisos requieren sus propios consumidores. Esta separación permite comprobar el cálculo y sus condiciones sin atribuir a la publicación de una configuración la validez jurídica de un vencimiento.
 
-\subsection{Definición y ejemplos de un perfil}
+\subsubsection{Definición y ejemplos de un perfil}
 
 Cada definición conserva título, descripción, ámbito, referencias públicas, requisito temporal, plantilla de regla, política de finalización, condiciones y ejemplos reproducibles. El ámbito puede ser global declarado o restringido a un expediente; su contenido completo queda fijo desde la primera revisión. Las referencias reutilizan los valores estructurados del catálogo de calendarios. Identifican una fuente y su localizador, pero no descargan su contenido ni certifican la interpretación que haga el despacho.
 
@@ -12,7 +12,7 @@ Una plantilla fija de suma contiene la cantidad junto a la regla; el anclaje dir
 
 La regla \texttt{AtAnchor} permite representar un límite coincidente con el instante de la fuente, sin introducir una duración ficticia. El perfil restringe su uso al fin de audiencia o a un resultado de audiencia calificado y exige finalización mediante el instante aritmético. La fuente debe declarar segundos y desfase; una fecha, una hora conocida sólo hasta el minuto o un tiempo desconocido no bastan. La regla conserva ese instante y su desfase en la traza, sin sumar días, desplazarlo mediante un calendario ni recibir una cantidad ordenada. Esta representación permite contrastar la oportunidad anterior al cierre de una audiencia sin convertirla en un plazo posterior por días; no resuelve por sí sola la procedencia del recurso.
 
-\subsection{Representación y revisión de la configuración}
+\subsubsection{Representación y revisión de la configuración}
 
 El formato binario \texttt{DPRF1} conserva la definición completa, incluidos el orden de las colecciones, los calendarios de los ejemplos y la representación temporal original. El lector limita longitudes y conteos antes de reservar memoria, reconstruye mediante los constructores y exige que la nueva codificación coincida exactamente con la entrada. Así rechaza bytes sobrantes, etiquetas inválidas y formas que requerirían una normalización silenciosa. El instante esperado de un ejemplo conserva segundos Unix, nanosegundos y desfase original, aunque la comparación matemática de instantes pueda considerar equivalentes dos representaciones con distinto desfase.
 
@@ -22,7 +22,7 @@ Las alternativas nuevas emplean etiquetas adicionales: la regla de anclaje ocupa
 
 El catálogo asigna identidad estable, revisión positiva, estado publicado o retirado, algoritmo, huellas y autor histórico. Owner puede publicar, reemplazar y retirar; reemplazo y retiro requieren la revisión esperada y un motivo. El retiro es terminal y conserva la definición y el algoritmo anteriores. El recibo \texttt{DPTX1} vincula actor, operación, identidad, acción, revisión base, algoritmo, huella de definición y motivo. Preparar calcula una propuesta sin reservar la operación; confirmar vuelve a comprobar la base y el contenido preparado.
 
-\subsection{Evaluación y precisión del instante final}
+\subsubsection{Evaluación y precisión del instante final}
 
 El evaluador recibe una definición, la selección y el material exactos, la cantidad ordenada y declaraciones explícitas de aplicabilidad. Comprueba primero la integridad de los insumos. Una condición rechazada no permite ocultar un recibo alterado, otra identidad o un calendario incoherente. Un perfil privado de otro expediente y las respuestas a condiciones duplicadas o ajenas producen errores de solicitud. Las condiciones ausentes, desconocidas o rechazadas generan bloqueos identificables, al igual que un ámbito no confirmado o una incidencia declarada pendiente.
 
@@ -32,7 +32,7 @@ Las horas requieren la precisión y el desfase suficientes para producir una can
 
 La política \texttt{Weekly\allowbreak Civil\allowbreak Cutoff} conserva siete posiciones ordenadas de lunes a domingo. Cada una contiene una hora exacta o ausencia de cobertura; al menos una debe estar definida. El canal, la referencia, el desfase y el intervalo civil son comunes a la semana. La construcción valida los componentes horarios y la conversión a UTC dentro de una cobertura de uno a 1096 días. La finalización consulta el día semanal de la candidata que ya produjo la aritmética: una posición ausente o una fecha fuera del intervalo genera el bloqueo de corte fuera de cobertura, sin buscar automáticamente otro día con horario. Así, excluir un día del cómputo y carecer de cierre para un canal siguen siendo hechos distintos. La API conserva las siete posiciones, incluidos los valores ausentes, y Qadra presenta horarios, canal y cobertura sin atribuirles una hora universal de preclusión.
 
-\subsection{Persistencia, autorización y consulta HTTP}
+\subsubsection{Persistencia, autorización y consulta HTTP}
 
 Las tablas \texttt{deadline\_profiles} y \texttt{deadline\_profile\_revisions} separan raíz e historia. PostgreSQL comprueba tamaños, huellas, proyección de ámbito, recibo, secuencia y transiciones. La proyección SQL de \texttt{DPRF1} sólo recupera los campos iniciales necesarios para título y ámbito; no duplica el motor aritmético. El lector Rust y el inventario de arranque decodifican la definición completa y reproducen su corpus. Esta frontera evita presentar la aceptación del encabezado por SQL como comprobación de toda la configuración.
 
@@ -42,7 +42,7 @@ La colección global excluye los perfiles privados incluso para Owner. La colecc
 
 La API ofrece listado ligero, detalle actual, revisión exacta, historia, preparación y confirmación de publicación, reemplazo y retiro. Las respuestas conservan colección y recibo; las consultas históricas no sustituyen la revisión solicitada. El cuerpo estructurado tiene un presupuesto propio de 16~MiB, derivado del corpus y sus calendarios, con rechazo de exceso antes de la operación. La verificación HTTP se distingue de los ensayos del adaptador y de la interfaz de usuario: Qadra permite consultar y seleccionar perfiles, mientras que su administración y publicación desde la interfaz permanecen pendientes. El contrato está en \rutarepo{docs/deadline-profiles-api.md}.
 
-\subsection{Eventos durables y despacho de dependencias}
+\subsubsection{Eventos durables y despacho de dependencias}
 
 Las migraciones de eventos y perfiles mantienen un único registro \texttt{deadline\_source\_events}. Cada nueva revisión de resolución, notificación, resultado de audiencia, calendario o perfil emite su evento dentro de la misma transacción. La entrada conserva familia, identidad, revisión, operación y expediente cuando corresponde. Las referencias tipificadas y la comprobación de operación impiden asociarla a una revisión distinta; para un perfil global el expediente permanece ausente, sin sustituirse por un identificador artificial.
 

@@ -1,0 +1,149 @@
+% =====================================================================
+%  04-interfaz-qadra.tex - Interfaz de navegador Qadra
+% =====================================================================
+
+\section{Interfaz de navegador Qadra}\label{sec:impl-http-interfaz}
+
+La aplicación de navegador reside en \rutarepo{web/}, mientras que \rutarepo{crates/web/} conserva exclusivamente la adaptación HTTP de Rust. Astro construye la página y Svelte organiza los componentes interactivos. La identidad visual Qadra se mantiene en los recursos locales de \rutarepo{web/public/brand/qadra/} y en las hojas de estilo de \rutarepo{web/src/styles/}; formularios, barra lateral, tablas, tarjetas y estados de operación comparten estas reglas visuales. El directorio \rutarepo{frontend/} conserva el ejemplo inicial y no es el punto de entrada del producto.
+
+Los componentes de autenticación presentan alta inicial, enrolamiento, contraseña y segundo factor. El cliente conserva token, desafío y material de enrolamiento únicamente en memoria; no utiliza almacenamiento persistente del navegador para esas credenciales. Un rechazo MFA devuelve al formulario de contraseña porque el servidor consume el desafío. El cierre de sesión solicita su revocación al backend. Al recargar la página se requiere autenticar de nuevo; esa pérdida de estado local no revoca por sí misma un token todavía vigente en Redis.
+
+El cliente de expedientes en \rutarepo{web/src/lib/case-api.mjs} agrupa creación, consulta y asignaciones, y construye cada operación documental bajo la identidad del expediente seleccionado. El listado y el detalle se obtienen del repositorio persistido mediante la API; los filtros y la paginación forman parte de la solicitud al servidor. La consulta de metadatos permite localizar un documento pendiente sin intentar verificarlo como si ya estuviera firmado. Los componentes distinguen el estado de sellado del resultado de una verificación y solicitan confirmación antes de sellar.
+
+El cliente \rutarepo{web/src/lib/version-api.mjs} y los componentes de historial distinguen la versión actual de la seleccionada. Sellar, verificar y descargar siempre incluyen ese número en la ruta. El formulario para añadir una versión conserva el archivo cuando la cabeza cambió y solicita una nueva decisión; no reintenta automáticamente con otro número. El historial permite volver a una instantánea anterior sin alterar su nombre, digest ni evidencia. Sus componentes reutilizan los estilos, formularios y recursos de marca Qadra.
+
+La coordinación de cada ficha comprende la mutación y las consultas que actualizan su vista. Tras sellar, los controles permanecen ocupados hasta que concluyen las recargas de lista e historial; verificar y descargar no se habilitan antes de terminar esa actualización. La carga inicial espera el listado antes de abrir clasificación e historial de versiones, y el anexado conserva el estado ocupado durante sus recargas. Un fallo transitorio al consultar la lista no revierte ni oculta un sello ya confirmado; una denegación de acceso o pérdida del recurso retira los datos protegidos. Esta coordinación se limita a las acciones y consultas de la ficha: no modifica el límite compartido del backend ni garantiza capacidad disponible al cambiar de vista.
+
+El cliente \rutarepo{web/src/lib/metadata-api.mjs} y los componentes de clasificación envían una sola carga multipart, incluso con campos opcionales vacíos. La ficha identifica los valores como clasificación actual del documento, independientemente de la versión de archivo elegida; su historia presenta revisión, instante, UUID y correo capturado del autor. Los controles de etiquetas conservan cada valor individual, incluidas comas y acentos. Ante conflicto, el editor retiene el borrador, permite consultar la revisión vigente y exige confirmar el reemplazo tomando esa revisión como nueva base. Una respuesta incierta no provoca un reintento automático de carga, y las respuestas tardías se descartan cuando cambia el expediente, documento o sesión. Guardar la clasificación o consultar una base nueva ante conflicto coordina también el listado y el historial abierto. Los controles vecinos comparten el estado ocupado de las operaciones y lecturas de esa ficha. La selección de otra versión sigue invalidando los resultados tardíos de consulta, verificación o evidencia; esta protección conserva la identidad de la instantánea elegida.
+
+La navegación del expediente separa Resumen, Documentos, Participantes y Etapas; el directorio reutiliza los tokens, componentes y recursos originales de Qadra. El cliente \rutarepo{web/src/lib/participants-api.mjs} consulta y modifica fichas mediante el contrato autorizado. La vista presenta filtros, procedencia, historia, edición completa y archivo o reactivación. Ante conflicto conserva el borrador y muestra valores actuales para confirmar una nueva revisión; un cambio de estado conserva solo la intención de archivar o reactivar, sin reenviar textos antiguos. Los cambios de sesión, expediente o ficha invalidan respuestas pendientes. Un rechazo de acceso retira valores y borradores sensibles; una creación incierta no se reintenta automáticamente. Esta navegación no concede acceso a cuentas ni presenta la etiqueta procesal como identidad verificada. Al editar los valores de una ficha, su historial abierto se conserva y se actualiza por la identidad exacta del participante; el editor espera las consultas de listado e historial antes de liberar sus controles. Un cambio de estado confirmado retira el detalle y espera la recarga del listado. Una denegación invalida también los resultados pendientes para impedir que restauren datos retirados.
+
+{\raggedright El cliente \rutarepo{web/src/lib/case-administration-api.mjs} y \rutarepo{web/src/components/CaseAdministration.svelte} incorporan el resumen penal, edición, historia y cierre o reapertura. Owner, Litigante y Paralegal utilizan el índice compacto del personal; Cliente conserva el listado básico y no solicita el perfil. La interfaz ofrece una sola alta penal completa, con delitos como entradas independientes y un área de texto para información general. Distingue perfil pendiente, registro inicial de Investigación y etapa sin registrar. Completar un expediente básico o legado no transforma este último estado en una etapa inventada.\par}
+
+Ante un conflicto de revisión, el editor mantiene el borrador, consulta los datos actuales y exige confirmar explícitamente una nueva base. El comando de estado conserva la intención de cerrar o reactivar sin reenviar textos antiguos. Una respuesta incierta no dispara otra alta ni otra mutación. Al detectar cierre concurrente, la vista conserva el borrador documental, bloquea su envío y actualiza el estado; reabrir no lo envía automáticamente. Los controles del directorio y de documentos reflejan el cierre, mientras historia, verificación y evidencia permanecen disponibles. Cambiar de sesión, expediente o contexto invalida resultados tardíos; un rechazo de acceso retira datos sensibles. Estos componentes conservan tokens, formularios y recursos originales de Qadra.
+
+Las solicitudes utilizan rutas del mismo origen y un proxy hacia la API, configurado en el entorno del servidor de desarrollo. Cambiar de sesión invalida resultados de solicitudes anteriores; cerrar el contexto de un expediente impide incorporar respuestas tardías de ese contexto. El navegador presenta datos y resultados, mientras autorización, persistencia y criptografía permanecen detrás de los puertos de aplicación. La validación de componentes con respuestas simuladas y la ejecución completa con PostgreSQL, Redis y OpenSSL constituyen niveles distintos de evidencia, descritos en el Capítulo~\ref{cap:pruebas}.
+
+El cliente distingue la época de una sesión de la vigencia de un intento de acceso. Las respuestas de contraseña y MFA reemplazadas por otro intento no instalan una credencial ni entregan resultados anteriores al consumidor, aunque el cuerpo de la respuesta llegue después. Esta exclusión local no cancela una operación admitida por el servidor. Si MFA termina con la pestaña oculta, el primer montaje de las vistas de negocio espera una confirmación de sesión al volver; las vistas ya abiertas permanecen suspendidas durante esa consulta.
+
+La política temporal del servidor conserva el modo absoluto como opción predeterminada. Qadra utiliza los plazos confirmados y un reloj monótono para cerrar la admisión de solicitudes al vencer la sesión, capturar sincrónicamente los borradores registrados y retirar la credencial y las vistas protegidas. Al volver a una pestaña oculta exige una consulta nueva del estado de sesión antes de permitir operaciones. La visibilidad, las lecturas y los temporizadores no representan actividad; sólo las interacciones confiables del usuario pueden solicitar su registro acotado. Un error de red conserva el bloqueo hasta una decisión explícita o el vencimiento. El cierre voluntario elimina inmediatamente el acceso y los borradores locales, aunque no pueda confirmarse la revocación remota.
+
+El registro de borradores conserva en memoria campos explícitos y archivos seleccionados, sin almacenar contraseñas, credenciales, resultados privados de consultas ni clientes de API. Cada entrada identifica cuenta, expediente, recurso, acción e instancia del editor. Una nueva autenticación MFA de la misma cuenta permite solicitar la recuperación, pero no sustituye la autorización actual: antes de aplicar los valores se consulta de nuevo el destino y se comprueban rol, estado y revisión. Otra cuenta o un cierre voluntario descartan las entradas; cerrar o recargar la pestaña también pierde esos datos no guardados.
+
+El alta de integrantes conserva únicamente correo crudo, rol e incertidumbre;
+la contraseña inicial y el material MFA quedan fuera del borrador. Recuperar
+los campos exige consultar de nuevo la misma cuenta Owner. La respuesta
+incierta mantiene bloqueado el envío: encontrar o no encontrar el correo exacto
+en el directorio no confirma la operación ni habilita repetirla. La consulta
+recorre las páginas autorizadas y no reconstruye la configuración del segundo
+factor. Una confirmación retira la captura antes de mostrar el enrolamiento de
+una sola vez y antes del refresco posterior.
+
+Para conservar esa intención al navegar, el adaptador solicita expresamente
+una captura síncrona de su registro exacto antes de desmontarse. La operación
+comprueba identidad, cuenta y generación antes y después de proyectar los campos;
+no reemplaza una captura pendiente ni cambia la generación global del registro.
+Los otros editores y sus autorizaciones pendientes conservan su estado.
+Al volver se requiere retomar o descartar, con autorización nueva antes de
+mostrar los valores. Los campos ordinarios aún no enviados pueden reiniciarse
+al navegar. Esta retención en memoria no recupera secretos, no envía una
+invitación y no constituye una nueva capacidad de autenticación.
+
+Los adaptadores de participantes distinguen la ficha manual, la identidad
+representada y la ficha tipificada; conservan texto aún inválido, acción y revisión
+originales sin adoptar silenciosamente una base nueva. Al recuperar una etapa,
+se vuelven a consultar autorización, estado e historia completa del expediente.
+Un registro parecido no demuestra que una escritura incierta se haya confirmado:
+este flujo exige comparación y decisión explícita, pues no dispone de un recibo
+por identificador de operación. Un expediente cerrado permite revisar el borrador,
+pero impide enviarlo. Los archivos y soportes se asocian a su editor propietario;
+una confirmación elimina la captura antes del refresco posterior. Los certificados
+y firmas públicas previos no vuelven a habilitar por sí solos una declaración,
+y el registro nunca conserva claves privadas, contraseñas ni códigos MFA.
+
+Los formularios de audiencias y resultados conservan la acción original, su base,
+referencias históricas de participantes, sesiones y continuaciones, y archivos
+pendientes por propietario. Revalidan autorización y versiones antes de permitir
+otra preparación. La conciliación de una respuesta incierta compara el recibo
+exacto, incluidos actor, operación, expediente, revisión y huellas: una cabecera
+parecida no confirma la propia escritura. Un resultado confirmado retira raíz e
+hijos del registro antes de esperar la actualización de la vista. El contrato
+procesal se conserva.
+
+Los editores cautelares ampl\'ian esta recuperaci\'on a convocatoria, decisi\'on y rectificaci\'on, con sus propias identidades, fuentes y confirmaciones. Conservan el borrador incompleto o el env\'io incierto sin adoptar una cabeza posterior ni repetir la escritura al navegar. La \cref{sec:impl-cautelares} describe las tres familias y sus l\'imites.
+
+Los editores de resoluciones y notificaciones conservan campos y tiempos crudos,
+base original y referencias históricas exactas de resolución, participante y
+resultado de audiencia. Una falla transitoria al consultar un soporte mantiene
+el borrador bloqueado para reintento explícito. Los archivos de procedencia y
+representación conservan propietarios separados, incluso si tienen el mismo
+nombre. Cambiar una declaración descarta sólo sus descendientes; cerrar el editor
+retira el conjunto. El expediente cerrado permite consultar el borrador autorizado
+sin enviarlo; su reapertura exige refrescar el estado. Una respuesta incierta se
+concilia mediante recibo exacto, sin deducir confirmación de textos coincidentes.
+
+La edición de acceso de miembros utiliza un contexto global de cuenta. Consulta
+primero al Owner vigente y después el destino exacto antes de recuperar rol,
+estado y revisión originales; no almacena decisiones aprobadas ni crea un
+expediente ficticio. Las revisiones decimales conservan todos sus dígitos, incluso
+fuera del rango entero seguro de JavaScript. Un conflicto exige comparar y
+adoptar otra base; una respuesta incierta exige nueva consulta sin reenvío
+automático. La confirmación elimina el borrador antes del refresco y de invalidar
+la sesión si el usuario cambió su propio rol.
+
+Los calendarios jurisdiccionales conservan por separado la captura global
+del Owner, la revisión original y las fuentes con identificadores estables.
+Antes de proyectar valores se consulta la autorización administrativa y la
+cabecera actual. Una preparación sin enviar pierde su aprobación; un envío
+incierto conserva sólo el sobre necesario para consultar su recibo exacto.
+Ni el expediente seleccionado ni una coincidencia de valores habilitan
+mutaciones o confirman operaciones.
+
+Los recursos procesales conservan texto parcial, motivo, soportes y archivos
+con propietarios estables. Corregir un acto mantiene su identidad y revisión
+separadas de la cabecera vigente; otra fila no hereda su archivo. Los vínculos
+de actividades conservan además las capturas históricas del recurso, acto y
+actividad, distintas de la revisión que autoriza escribir. Reabrir consulta
+permisos y referencias antes de proyectar campos; una vista previa recuperada
+no equivale a seleccionarla. La incertidumbre se registra antes de esperar
+la respuesta y sólo un recibo exacto confirma el envío. Una ausencia consultada
+permite decidir un reenvío idéntico, pero esa habilitación vence con la sesión.
+La confirmación retira el borrador antes de refrescar el listado. No se crean
+actividades ni se activan plazos por recuperar estas capturas.
+
+La creación de un plazo desde un recurso conserva por separado los dos
+identificadores nuevos, la revisión que autoriza escribir y las capturas
+históricas seleccionadas. Al recuperar el borrador consulta de nuevo el
+expediente y recurso y pierde cualquier aprobación anterior. Si el envío pudo
+confirmarse, conserva su sobre exacto antes de esperar. La lectura coincidente
+de plazo y vínculo no prueba su origen conjunto: éste requiere confirmación
+explícita del servidor. Un expediente cerrado permite confirmar una operación
+ya registrada, pero no repetir una creación ausente. El resultado confirmado
+retira la captura antes del refresco; otra expiración nunca conserva un permiso
+previo para reenviar.
+
+El editor ordinario de plazos conserva por separado alta, corrección, atención
+y retiro. Sus campos de fecha, hora y desplazamiento pueden permanecer
+incompletos; recuperar acceso no los convierte en valores válidos. Se consultan
+autorización del expediente, revisión vigente y referencias históricas antes
+de proyectar el borrador, manteniendo la base original y retirando cualquier
+aprobación anterior. Una respuesta incierta conserva el comando exacto y se
+resuelve mediante su recibo; una revisión ajena no acredita el envío propio.
+El cierre permite inspeccionar, pero bloquea mutaciones. La confirmación elimina
+la captura antes de esperar la actualización del listado.
+
+La solicitud de informes conserva fechas y filtros parciales y, cuando se pierde
+una respuesta, el identificador y los filtros exactos del envío. Recuperarla
+requiere consultar la cuenta y todos los litigantes permitidos; una selección
+que deja de estar disponible bloquea el formulario en vez de ampliar su alcance.
+La presencia de un informe en la lista no confirma la solicitud incierta. Sólo
+una repetición explícita del comando exacto puede obtener su resultado durable.
+La confirmación retira la captura antes de actualizar la vista y una edición
+posterior inicia un borrador independiente. La generación de documentos y sus
+avisos mantienen su contrato previo.
+
+Las preferencias personales de alertas conservan horas parciales, canales y revisión original después de consultar la cuenta y el estado vigentes. La respuesta incierta mantiene el comando exacto; recuperar acceso no repite el guardado ni conserva una aprobación de reenvío anterior. Sólo el recibo propio confirma el resultado. Una denegación global de la bandeja descarta incluso capturas que aún no se han abierto, y la confirmación elimina el borrador antes del refresco. Estos datos no contienen secretos de autenticación.
+
+Las confirmaciones de estado y sellado mantienen separadas intención y certeza del resultado. Perder la respuesta o recibir un error transitorio no habilita repetir la escritura; cancelar y reabrir tampoco elimina la consulta previa. El sellado consulta la versión exacta y cierra la intención anterior antes de admitir una nueva decisión. Una confirmación recibida se conserva aunque después falle el refresco del listado. Estos controles no atribuyen la autoría de un estado por coincidencia ni conservan secretos como borradores.
+
+Los adaptadores de clasificación documental, alta y edición de expedientes, carga documental principal y nuevas versiones preservan texto incompleto y selecciones todavía no confirmadas. Una revisión concurrente requiere comparar los valores actuales y decidir de nuevo; un expediente cerrado admite consultar el borrador autorizado sin enviarlo. Si una carga pudo haberse confirmado antes de perder su respuesta, la interfaz exige revisar el listado vigente y reconocer el riesgo de duplicación antes de iniciar otra carga explícita. No reproduce escrituras automáticamente. Los editores anidados y las demás familias de formularios requieren adaptadores y aceptación propios; la existencia del registro no demuestra recuperación universal. La activación operativa de inactividad permanece pendiente hasta completar ese inventario y seleccionar su duración. La decisión se documenta en \rutarepo{docs/adr/0065-session-reentry-and-memory-drafts.md}.

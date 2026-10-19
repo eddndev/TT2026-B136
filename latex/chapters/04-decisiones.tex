@@ -1,0 +1,63 @@
+% =====================================================================
+%  04-decisiones.tex - Decisiones de implementacion
+% =====================================================================
+
+\section{Decisiones de implementación}\label{sec:impl-divergencias}
+
+Las decisiones arquitectónicas se documentan en los Architecture Decision Records de \rutarepo{docs/adr/}, con el formato de Nygard \cite{nygard2011}: contexto, decisión, estatus y consecuencias. Cada registro fundamenta una elección técnica y puede citarse desde el código o la configuración. La \cref{tab:impl-adrs} reúne estos documentos y complementa las decisiones de arquitectura descritas en \cref{sec:adrs}.
+
+\begingroup
+\footnotesize
+\begin{longtable}{@{}L{6.2cm}L{\dimexpr\linewidth-6.2cm-2\tabcolsep\relax}@{}}
+  \caption{Architecture Decision Records registrados en \texttt{docs/adr/} durante la implementación.}
+  \label{tab:impl-adrs} \\
+    \toprule
+    \textbf{Archivo} & \textbf{Decisión} \\
+    \midrule
+    \endfirsthead
+    \toprule
+    \textbf{Archivo} & \textbf{Decisión} \\
+    \midrule
+    \endhead
+
+    \rutarepo{0001-msrv-and-dependency-pinning.md} & Pin inicial de los crates criptográficos a la familia \texttt{der}~0.7 (\texttt{x509-cert}~0.2, \texttt{cms}~0.2, \texttt{x509-tsp}~0.1, \texttt{rsa}~0.9; \texttt{ring} $\geq$ 0.17.12). \\
+    \rutarepo{0002-rsa-signing-crate-and-advisory.md} & Firmar con el crate \texttt{rsa}; aviso RUSTSEC-2023-0071 registrado bajo el modelo inicial de amenaza local y declarado en \texttt{deny.toml} y \texttt{audit.toml}. \\
+    \rutarepo{0003-zeroize-secret-material-in-domain.md} & Admitir \texttt{zeroize} en el dominio y declarar todo campo portador de secretos como buffer \texttt{Zeroizing}. \\
+    \rutarepo{0004-certificate-validation-implementation.md} & Validar X.509 re-codificando a DER la estructura to-be-signed parseada y verificando la firma con \texttt{rsa} y \texttt{sha2}. \\
+    \rutarepo{0005-rfc3161-verification-strategy.md} & Verificar tokens RFC 3161 en dos etapas: decodificación e imprint nativos; firma CMS y cadena delegadas a \texttt{openssl ts -verify}. \\
+    \rutarepo{0006-evidence-package-format.md} & Escribir el paquete de evidencia con un writer ZIP propio de entradas almacenadas, determinista y sin dependencia nueva. \\
+    \rutarepo{0007-audit-chain-anchoring.md} & Mantener la regla de cadena y documentar que el truncamiento de cola no es detectable; el anclaje de la cabeza se delega a la capa de persistencia. \\
+    \rutarepo{0008-totp-single-use-enforcement.md} & Mantener el puerto TOTP sin estado y exigir un solo uso en el llamador mediante persistencia por cuenta. \\
+    \rutarepo{0009-local-timestamp-authority.md} & Excluir la campaña externa no reproducible y demostrar RFC 3161 con una TSA OpenSSL local, sin atribuirle equivalencia jurídica. \\
+    \rutarepo{0010-http-adapter-foundation.md} & Introducir Axum como adaptador driving, conservar la dirección de dependencias y comenzar por el contrato de salud. \\
+    \rutarepo{0011-local-document-workflow.md} & Orquestar el flujo documental detrás de un puerto, persistir solo contenido cifrado y seleccionar explícitamente la TSA local en la aplicación. \\
+    \rutarepo{0012-revocable-sessions-and-rbac.md} & Usar tokens opacos revocables, usuarios PostgreSQL, estado efímero Redis y RBAC conservador sin depender de Cincel. \\
+    \rutarepo{0013-raise-msrv-for-security-fixes.md} & Elevar MSRV a Rust 1.88 para incorporar correcciones de seguridad y hacer obligatoria su comprobación. \\
+    \rutarepo{0014-case-membership-and-isolation.md} & Persistir expedientes y asignaciones, filtrar lecturas y mantener denegado el acceso documental del Cliente. \\
+    \rutarepo{0015-backend-concurrency-and-invariants.md} & Consumir desafíos MFA atómicamente, autenticar altas en aplicación y limitar trabajo HTTP bloqueante. \\
+    \rutarepo{0016-case-document-transactions.md} & Autorizar documentos por expediente, confirmar cambios y auditoría en PostgreSQL e importar archivos con reconciliación. \\
+    \rutarepo{0022-audited-penal-case-administration.md} & Conservar raíz, perfil y registro inicial separados; revisiones esperadas, cierre organizativo y unicidad de identificadores actuales bajo auditoría. \\
+    \rutarepo{0023-audited-case-stage-transitions.md} & Registrar adopción y avances con revisión propia, declaraciones temporales y soportes exactos bajo confirmación auditada. \\
+    \rutarepo{0024-isolated-document-format-admission.md} & Admitir soportes PDF/DOCX mediante un proceso acotado, con preparación nativa verificada y evidencia preservada. \\
+    \rutarepo{0064-explicit-session-activity.md} & Conservar el límite absoluto predeterminado y habilitar inactividad explícita mediante plazos autoritativos de Redis. \\
+    \rutarepo{0065-session-reentry-and-memory-drafts.md} & Cerrar la admisión al vencer, reautenticar y recuperar sólo borradores autorizados mediante adaptadores explícitos por editor. \\
+    \bottomrule
+\end{longtable}
+\endgroup
+
+Las elecciones de bibliotecas, protocolos y adaptadores delimitan las propiedades verificables del prototipo:
+
+\begin{itemize}
+  \item \textbf{Biblioteca de firma.} \texttt{ring} implementa SHA-256 y AES-256-GCM, mientras que \texttt{Rsa\allowbreak Pkcs1\allowbreak Signer} utiliza \texttt{rsa}, \texttt{x509-cert} y \texttt{sha2} para interoperar con las claves y certificados PEM de la CA interna (\cref{sec:hexagonal-definicion,sec:inyeccion-dependencias}). El aviso RUSTSEC-2023-0071 \cite{rustsec2023_0071} está registrado en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md} bajo el modelo de amenaza local. La exposición de firma por HTTP requiere revisar ese modelo antes del despliegue público; el ADR contempla \texttt{ring} como alternativa.
+  \item \textbf{Autoridad de sellado.} La TSA local con OpenSSL permite emitir y verificar tokens RFC 3161 en pruebas reproducibles (\cref{sec:sellado-tiempo}). El adaptador remoto se prueba contra un stub; la inestabilidad observada de la API y el costo del sandbox impidieron una campaña externa reproducible, como detalla \cref{sec:impl-spike-tsa}.
+  \item \textbf{Protección de secretos en el dominio.} \texttt{zeroize} codifica el borrado de valores secretos al liberarse, sin incorporar E/S ni dependencias de un framework. Esa propiedad justifica su uso junto a \texttt{serde}, \texttt{thiserror}, \texttt{time} y \texttt{uuid} en la capa de dominio (\cref{sec:hexagonal-definicion}; \rutarepo{docs/adr/0003-zeroize-secret-material-in-domain.md}).
+  \item {\emergencystretch=2em \textbf{Verificación de firmas X.509.} \texttt{x509-cert} y \texttt{der} representan y decodifican certificados (\cref{sec:inventario-crates}). El adaptador vuelve a codificar la estructura to-be-signed y comprueba su firma, aceptando únicamente \texttt{sha256WithRSA\allowbreak Encryption}, según \rutarepo{docs/adr/0004-certificate-validation-implementation.md}.\par}
+  \item \textbf{Paquete ZIP.} Un writer de entradas almacenadas produce el paquete de evidencia de forma determinista, conserva cada byte y limita las dependencias necesarias. Su formato y las comprobaciones de interoperabilidad se documentan en \rutarepo{docs/adr/0006-evidence-package-format.md}.
+  \item \textbf{Interfaces y persistencia.} La CLI y la API HTTP multiusuario utilizan los mismos puertos de aplicación. PostgreSQL conserva usuarios, expedientes, pertenencias, documentos y auditoría con confirmación transaccional; Redis mantiene sesiones y controles efímeros. Los archivos locales se reservan para herramientas offline y migración. La aplicación Qadra en Astro y Svelte consume los contratos del backend desde componentes de identidad, expedientes y documentos; su validación funcional se distingue de las pruebas de los servicios criptográficos.
+  \item \textbf{Sesiones revocables.} El puerto \texttt{Session\allowbreak Store} abstrae la gestión de credenciales opacas revocables y plazos comprobados atómicamente en Redis. La admisión revalida en PostgreSQL el principal completo y la generación, y confirma después la vigencia de la misma sesión. El modo absoluto es predeterminado; la inactividad requiere configuración y actividad explícitas. Las decisiones se documentan en los ADR~0012 y 0064 de \rutarepo{docs/adr/}.
+  \item \textbf{Clientes de datos.} Los adaptadores utilizan los clientes síncronos \texttt{postgres} y \texttt{redis}, con versiones compatibles con Rust 1.88. La frontera HTTP ejecuta los casos de uso en el pool bloqueante de Tokio. Antes del despliegue público deberán evaluarse pooling, TLS interno y clientes asíncronos.
+  \item \textbf{Fitness functions.} Las comprobaciones arquitectónicas incluyen el umbral de cobertura del 90\,\% por crate criptográfico (FF-4, \cref{sec:fitness-functions,tab:impl-fitness}). La instrumentación de un span de \texttt{tracing} por handler HTTP permanece pendiente.
+  \item \textbf{Autorización por recurso.} El acceso combina rol, usuario activo, pertenencia vigente y asociación documental exacta. Cliente puede consultar metadatos asignados, pero conserva denegado el acceso documental. Las asignaciones regulan permisos de usuarios; el directorio y la clasificación conservan información organizativa sin conceder acceso. Cliente tampoco accede al directorio ni al perfil penal. La administración y el cierre conservan reglas y revisiones propias; la etapa dispone de adopción y dos avances ordinarios. Recursos, resultados de audiencias y plazos cuentan con registros declarados, referencias exactas y consultas autorizadas descritos en sus apartados. El cat\'alogo de audiencias de esta entrega est\'a delimitado a siete familias. La acreditaci\'on jur\'idica y la cobertura de reglas de c\'omputo mantienen sus l\'imites propios; el flujo expl\'icito del plazo derivado cubierto no implica activaci\'on universal. Registrar un hecho no demuestra su efecto jur\'idico.
+\end{itemize}
+
+La separación por puertos permitió ampliar la persistencia y el acceso documental conservando la dirección de dependencias \cite{ford2023}.
