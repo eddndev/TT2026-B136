@@ -1,15 +1,15 @@
 % =====================================================================
-%  anexo-e-matriz.tex — Matriz de pruebas y evidencia de ejecución
+%  anexo-e-matriz.tex - Matriz de pruebas y evidencia de ejecucion
 % =====================================================================
 \chapter{Matriz de pruebas y evidencia de ejecución}\label{anexo:matriz}
 
-Este anexo presenta el inventario de pruebas del prototipo y la evidencia reproducida el 12 de septiembre de 2026, documentada en \rutarepo{docs/verification-report.md}. La matriz relaciona escenarios técnicos positivos y negativos con los archivos que los implementan y complementa los resultados del Capítulo~\ref{cap:pruebas}. Los conteos del inventario y la tabla histórica de cobertura pertenecen a ese corte; la calibración de Argon2id y la transcripción CLI anterior conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
+Este anexo complementa los resultados del Capítulo~\ref{cap:pruebas} con la trazabilidad entre escenarios técnicos positivos y negativos y los archivos que los implementan. Primero presenta el inventario de pruebas por crate del corte reproducido el 12 de septiembre de 2026, documentado en \rutarepo{docs/verification-report.md}; los conteos del inventario y la tabla histórica de cobertura pertenecen a ese corte. Después agrupa la trazabilidad por dominio, en el orden de los capítulos de implementación y pruebas, y cierra con la evidencia de ejecución de los cortes históricos, la reproducción de la calibración de credenciales y la operación privada del despliegue. La calibración de Argon2id y la transcripción CLI del 12 de julio conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
 
 \section{Nota metodológica}\label{sec:matriz-nota}
 
 El inventario del corte del 12 de septiembre contiene \textbf{520 funciones de prueba}: el corte ejecutó 519 satisfactoriamente, sin fallos, y mantuvo una ignorada (\texttt{\#[ignore]}) correspondiente al proveedor externo de sellado. El adaptador externo se ejercita contra un sustituto HTTP local; la prueba del servicio comercial no forma parte de la evidencia reproducida. La suite también utiliza PostgreSQL y Redis locales reales en entornos desechables.
 
-Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. El inventario por servicio no sustituye la matriz funcional de los 17 casos de uso; esta permanece parcial mientras falten los módulos procesales, el ciclo completo de identidad, la operación del despacho y su validación con usuarios. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
+Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. El inventario por servicio no sustituye la matriz funcional de los 17 casos de uso, que permanece parcial (\cref{sec:pruebas-criterios-exito}): las secciones de trazabilidad por dominio relacionan las pruebas de identidad, gestión procesal y operación del despacho, pero no constituyen por sí solas un caso positivo y uno negativo de cada flujo funcional, y la validación con usuarios sigue pendiente. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
 
 La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las pruebas usan dobles deterministas escritos a mano (el crate no depende de ninguna biblioteca criptográfica); en \texttt{application} usan mocks o fakes de los puertos para probar la orquestación y la propagación de errores; en \texttt{infrastructure} ejercitan los adaptadores con criptografía real y herramientas del sistema; en \texttt{web} verifican el contrato HTTP sobre un workflow inyectado; y en \texttt{bin} ejecutan el binario compilado \texttt{despacho-cli} como subproceso. La \cref{tab:matriz-tipos} define la taxonomía de tipos empleada en la matriz y sus abreviaturas.
 
@@ -330,7 +330,7 @@ El contrato de listado y detalle por expediente se comprueba mediante archivos s
 
 {\emergencystretch=3em La preservación de filas al migrar y al repetir las migraciones se comprueba en \rutarepo{crates/infrastructure/tests/document_version_migration.rs}; la integridad estructural y de inventario al abrir, en \rutarepo{crates/infrastructure/tests/document_version_schema.rs}. \rutarepo{crates/infrastructure/tests/legacy_document_versions.rs} conserva un origen cuyo primer número disponible es 7, añade el 8 y reconcilia la evidencia original. \rutarepo{crates/infrastructure/tests/document_version_encryption.rs} utiliza AES-GCM real, compara DEK y vaults y rechaza sustituciones entre contextos.\par}
 
-{\emergencystretch=3em El contrato externo está cubierto por \rutarepo{crates/web/tests/document_versions.rs}. La demostración HTTP y de restauración añade \rutarepo{scripts/api-version-demo.sh}; la selección y carga desde Qadra se comprueban en \rutarepo{web/tests/browser/versions.spec.mjs}, con el recorrido real en \rutarepo{web/tests/live/document-workflow.spec.mjs}. Los resultados de esas ejecuciones se registran en \rutarepo{docs/verification-report.md}. Los archivos de prueba definen escenarios reproducibles, mientras los conteos y porcentajes corresponden exclusivamente a las ejecuciones identificadas en este anexo.\par}
+{\emergencystretch=3em El contrato externo está cubierto por \rutarepo{crates/web/tests/document_versions.rs}. La demostración HTTP y de restauración añade \rutarepo{scripts/api-version-demo.sh}; la selección y carga desde Qadra se comprueban en \rutarepo{web/tests/browser/versions.spec.mjs}, con el recorrido real en \rutarepo{web/tests/live/document-workflow.spec.mjs}. Los resultados de esas ejecuciones se registran en \rutarepo{docs/verification-report.md} y se resumen en la \cref{sec:matriz-evidencia}. Los archivos de prueba definen escenarios reproducibles, mientras los conteos y porcentajes corresponden exclusivamente a las ejecuciones identificadas en este anexo.\par}
 
 \subsection{Trazabilidad de clasificación documental}\label{sec:matriz-clasificacion}
 
@@ -350,7 +350,7 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 \section{Trazabilidad de etapas y audiencias}\label{sec:matriz-grupo-actuaciones}
 
-Esta sección relaciona las etapas procesales, la admisión de sus soportes y la programación de audiencias con sus pruebas.
+Esta sección relaciona con sus pruebas las etapas procesales y la admisión de sus soportes, así como la programación de audiencias junto con las convocatorias y medidas cautelares declaradas.
 
 \input{chapters/anexo-e-etapas}
 
@@ -394,11 +394,13 @@ Esta sección relaciona el tablero operativo, los informes de expedientes y la c
 
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
+Las secciones de trazabilidad definen escenarios; esta sección reúne resultados de ejecuciones identificadas. Comienza con los recorridos de navegador de versiones, clasificación y directorio (\cref{sec:matriz-versiones,sec:matriz-clasificacion,sec:matriz-participantes}) y continúa con los resultados Rust, la cobertura por crate, la calibración, las demostraciones y la integración continua.
+
 Para versiones, el navegador aprobó 28 pruebas unitarias, 32 con respuestas HTTP simuladas y un escenario contra servicios reales. Este último confirmó selección histórica, bytes distintos en la versión 2, ZIP de la versión 1 idéntico al inicial y persistencia de ambas después de autenticar de nuevo, sin errores JavaScript. El escenario se ejecutó con \rutarepo{scripts/web-demo.sh}; su conteo no se suma al de pruebas Rust.
 
-La entrega posterior de clasificación aprobó 34 pruebas unitarias de interfaz, 47 escenarios con respuestas simuladas y dos recorridos reales. El nuevo escenario prueba carga atómica, cambios concurrentes con borrador conservado, comparación explícita, limpieza como revisión cinco, historia del autor y recuperación tras reingreso. Reclasificar y vaciar campos conservan los ZIP de las dos versiones; la comprobación de versiones previa sigue vigente. La interfaz reutiliza componentes y estilos Qadra sin atribuir a estas ejecuciones una evaluación de usabilidad con personal del despacho.
+La clasificación aprobó 34 pruebas unitarias de interfaz, 47 escenarios con respuestas simuladas y dos recorridos reales. Su escenario real propio prueba carga atómica, cambios concurrentes con borrador conservado, comparación explícita, limpieza como revisión cinco, historia del autor y recuperación tras reingreso. Reclasificar y vaciar campos conservan los ZIP de las dos versiones; la comprobación de versiones del párrafo anterior sigue vigente. La interfaz reutiliza componentes y estilos Qadra sin atribuir a estas ejecuciones una evaluación de usabilidad con personal del despacho.
 
-{\looseness=-1 El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido nuevo confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.\par}
+{\looseness=-1 El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido propio del directorio confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.\par}
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
@@ -408,11 +410,13 @@ El ensayo del 14 de septiembre, que incorpora listado, detalle y filtros documen
 
 El ensayo posterior de versiones inmutables del 14 de septiembre aprobó \textbf{577 pruebas, 0 fallos y 1 ignorada externa}, con persistencia real aislada. Formato, compilación y Clippy aprobaron. La demostración HTTP añadió contenido con control de cabeza esperada, rechazó alias ambiguos y preservó el ZIP de la primera versión; el respaldo y restauración conservaron ambas versiones y exportaciones. Este resultado amplía el alcance técnico sin sustituir las cifras históricas de consultas ni el inventario del 12 de septiembre.
 
-La entrega de clasificación del mismo día registra \textbf{644 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva el prefijo importado de 51 eventos y respalda cinco raíces, seis versiones documentales y tres revisiones organizativas; restaurar mantiene filas, UUID y correo histórico, e igualdad de los ZIP de las versiones 1 y 2. Las cifras de 539 y 577 pruebas se conservan como resultados históricos de consultas y versiones, respectivamente.
+El corte de clasificación del mismo día registra \textbf{644 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva el prefijo importado de 51 eventos y respalda cinco raíces, seis versiones documentales y tres revisiones organizativas; restaurar mantiene filas, UUID y correo histórico, e igualdad de los ZIP de las versiones 1 y 2. Las cifras de 539 y 577 pruebas se conservan como resultados históricos de consultas y versiones, respectivamente.
 
 El corte del directorio del 14 de septiembre registra \textbf{704 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva dos participantes con seis revisiones, cinco raíces documentales, seis versiones y tres revisiones de clasificación después de restaurar. Los autores, fechas y valores históricos coinciden, al igual que los ZIP de evidencia. El prefijo importado sigue identificado como 51 eventos de cuatro documentos; no representa la cantidad final de eventos.
 
-\rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:
+El corte de administración penal del 14 de septiembre aprobó \textbf{770 pruebas Rust, cero fallos y una externa ignorada}, con 66 pruebas adicionales respecto del directorio. La demostración API restauró cinco expedientes, once revisiones administrativas y dos registros iniciales, conservando las seis versiones documentales, tres revisiones de clasificación y seis revisiones de participantes. El prefijo importado de cuatro documentos tiene 63 eventos. Son mediciones de este corte; los conteos anteriores se conservan como historia. La \cref{sec:pruebas-administracion} describe el alcance y sus límites.
+
+{\emergencystretch=3em Todos estos cortes usan el entorno aislado de la \cref{sec:pruebas-backends}. \rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:\par}
 
 \begin{lstlisting}[numbers=none]
 bash scripts/test-backends.sh
@@ -423,8 +427,6 @@ bash scripts/coverage-gate.sh coverage.json
 bash scripts/demo.sh
 bash scripts/api-demo.sh
 \end{lstlisting}
-
-El corte de administración penal aprobó \textbf{770 pruebas Rust, cero fallos y una externa ignorada}, con 66 pruebas adicionales respecto del directorio. La demostración API restauró cinco expedientes, once revisiones administrativas y dos registros iniciales, conservando las seis versiones documentales, tres revisiones de clasificación y seis revisiones de participantes. El prefijo importado de cuatro documentos tiene 63 eventos. Son mediciones de este corte; los conteos anteriores se conservan como historia. La \cref{sec:pruebas-administracion} describe el alcance y sus límites.
 
 \subsection{Cobertura de líneas por crate}\label{sec:matriz-cobertura}
 
@@ -604,27 +606,29 @@ El comando \texttt{auth calibrate} mide el costo real de un hash nuevo con la co
 
 \texttt{scripts/demo.sh} recorre la CLI; su transcripción versionada en \texttt{docs/demo-transcript.md} conserva las salidas históricas explicadas en el Anexo~\ref{anexo:verificacion}. El guion volvió a terminar sin errores el 12 de septiembre. \texttt{scripts/api-demo.sh} prepara PKI, TSA, PostgreSQL y Redis temporales; comprueba cuatro roles, dos expedientes, acceso por asignación, denegación documental de Cliente y revocación usando la misma sesión. Los UUID ajenos e inexistentes tienen respuestas equivalentes y las rutas globales retiradas no ofrecen un camino alterno.
 
-El mismo guion invoca \rutarepo{scripts/api-concurrency-demo.sh}: dos procesos del servidor compiten por sellar la misma versión, obtienen \texttt{200} y \texttt{409}, conservan un único evento de sellado y entregan ZIP idénticos. Después, \rutarepo{scripts/api-migration-demo.sh} importa cuatro documentos, tres sellados, preserva exactamente 46 entradas históricas, repite la importación sin duplicación y restaura una copia de \texttt{pg\_dump} con \texttt{pg\_restore}. Compara el estado SQL y la evidencia byte por byte; reinicia sobre la base restaurada y verifica con OpenSSL firma, certificado/CRL y sello. Estas ejecuciones emplean datos generados, no documentación del usuario.
+El mismo guion invoca \rutarepo{scripts/api-concurrency-demo.sh}, en el que dos procesos del servidor compiten por sellar la misma versión, y \rutarepo{scripts/api-migration-demo.sh}, que importa cuatro documentos con 46 entradas históricas y restaura la base; sus resultados y comprobaciones se detallan en las \cref{sec:pruebas-atomicidad,sec:pruebas-migracion}. Estas ejecuciones emplean datos generados, no documentación del usuario.
 
-La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Los límites persisten: una respuesta confirmada antes de revocar puede terminar de transmitirse; PostgreSQL y Redis no forman una transacción distribuida; la limpieza de credenciales ante fallos depende de su caducidad si Redis tampoco responde. La validación histórica del firmante usa el instante del sello, mientras que la TSA mantiene la política actual de OpenSSL. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
+La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Sus límites ---transmisión de una respuesta ya confirmada antes de revocar, ausencia de una transacción distribuida entre PostgreSQL y Redis, limpieza de credenciales por caducidad cuando Redis tampoco responde y política actual de OpenSSL para la TSA frente a la validación del firmante en el instante del sello--- se precisan en las \cref{sec:pruebas-permisos,sec:pruebas-migracion}. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
-El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cada push y solicitud de integración. Los jobs de pruebas y cobertura crean PostgreSQL y Redis reales y configuran las cuatro variables del entorno aislado. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
+El flujo versionado \rutarepo{.github/workflows/ci.yml} define nueve jobs. Se ejecuta en cada solicitud de integración, en cada push a \texttt{main} y cuando el flujo de despliegue lo reutiliza; una ejecución manual puede limitarse a la medición extendida del despachador, que omite los demás jobs. El job de pruebas crea PostgreSQL y Redis reales, configura las bases aisladas de identidad, expedientes y documentos, la conexión administrativa de operaciones de la CA y Redis, y publica la cobertura de su propia ejecución; el job de cobertura combina esas mediciones y aplica el umbral. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
 
 \begin{table}[H]
   \centering
-  \caption{Jobs del flujo de integración continua que re-ejecutan la evidencia en cada cambio.}
+  \caption{Jobs del flujo de integración continua.}
   \label{tab:matriz-ci}
   \begin{tabularx}{\linewidth}{@{}l X@{}}
     \toprule
     \textbf{Job} & \textbf{Verificación} \\
     \midrule
-    \texttt{format} & Formato canónico del código con \texttt{rustfmt}. \\
+    \texttt{format} & Formato canónico del código con \texttt{rustfmt}, pruebas Python de los auxiliares de despliegue y de la CA, y alcance de la cancelación de campañas fallidas. \\
+    \texttt{deployment-backup} & Instantáneas Redis nativas de los respaldos de despliegue, su invalidación selectiva y reinicio. \\
     \texttt{lint} & \texttt{clippy} con advertencias promovidas a error (\texttt{-D warnings}). \\
-    \texttt{test} & \texttt{cargo test --workspace} con PostgreSQL, Redis y bases aisladas configuradas. \\
+    \texttt{test} & Pruebas del workspace instrumentadas con \texttt{cargo-llvm-cov}, repartidas en fragmentos, con PostgreSQL, Redis y bases aisladas; incluye ejemplos de documentación y comprobaciones Python de calendarios, corpus jurídico y recorridos de API con restauración. \\
+    \texttt{dispatch-measurement} & Medición extendida del despachador de plazos; sólo en ejecución manual con la entrada correspondiente. \\
     \texttt{msrv} & Comprobación del workspace con la versión mínima soportada del compilador (Rust 1.88); obligatoria. \\
-    \texttt{coverage} & Cobertura con \texttt{cargo-llvm-cov} y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:pruebas-cobertura}). \\
+    \texttt{coverage} & Combinación de la cobertura publicada por los fragmentos de prueba y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:pruebas-cobertura}). \\
     \texttt{deny} & \texttt{cargo-deny}: avisos de seguridad de dependencias, licencias, duplicados y fuentes permitidas. \\
     \texttt{binary-size} & Tamaño del binario de release acotado a 25 MB (fitness function FF-5). \\
     \bottomrule
