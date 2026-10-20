@@ -1,5 +1,57 @@
 # Verificación de la actualización académica
 
+## Reorganización por dominios de implementación y pruebas: 20 de octubre de 2026
+
+Los capítulos 4 y 5 y el anexo E se reorganizaron por dominio, en el mismo
+orden: arquitectura y servicios criptográficos, persistencia, identidad,
+expedientes, documentos, etapas y audiencias, plazos, recursos, alertas y
+supervisión. Cada sección de dominio es un archivo que reúne sus apartados; el
+índice muestra subsecciones. Las figuras de arquitectura pasaron a la sección
+4.1 y el anexo A quedó como catálogo de prefijos canónicos y familias de
+migraciones verificado contra el código. Las diez tablas de cobertura por crate
+del capítulo 5 se sustituyeron por una tabla de evolución de los nueve cortes
+del 12 al 16 de septiembre y la tabla completa del 16 de septiembre; las tablas
+de los cortes anteriores conservan etiqueta, fecha y cifras en la evidencia del
+anexo E. La sección de Qadra describe una vez los mecanismos comunes del
+cliente y resume las vistas en una tabla. Se añadieron seis figuras TikZ a los
+capítulos 4 y 5.
+
+La reorganización inicial se hizo por rangos de líneas con una comprobación que
+exige usar cada línea no vacía de las fuentes una sola vez. Las pasadas
+editoriales posteriores se revisaron de forma adversarial contra el código, la
+documentación versionada y el texto anterior. La comparación final con `main`
+(`859f4e7`) no encontró cifras, fechas ni medidas ausentes en los capítulos 4
+y 5 ni en los anexos; las rutas retiradas correspondían a archivos inexistentes
+y se sustituyeron por sus equivalentes en `web/apps/qadra/`. Las mediciones
+históricas conservan sus cortes y no se ejecutó ninguna prueba nueva.
+
+Los autores revisaron y autorizaron las correcciones de los capítulos 1 y 3:
+alcances y supuestos de la introducción y afirmaciones del diseño que
+contradecían la implementación. Se conservaron el resumen aprobado, los
+objetivos, el estado del arte con su tabla comparativa, el capítulo 2 y las
+conclusiones pendientes. Las imágenes raster `image24.png`, `image25.png` y
+`image27.png` del capítulo 3 todavía muestran elementos del diseño de referencia
+que la implementación no adoptó; su corrección requiere redibujarlas.
+
+Se compiló con LuaHBTeX 1.17.0 (TeX Live 2023 de Ubuntu 24.04), biber 2.19 y
+latexmk 4.83 en una copia temporal de `latex/`. Times New Roman se extrajo de
+`times32.exe` tras comprobar el SHA-256 de ADR-0017; el código usa DejaVu Sans
+Mono. En el mismo entorno, la fuente de `main` produjo **427 páginas**. La
+revisión `0cc32b0` produjo **461 páginas**, 5466257 bytes, SHA-256
+`a82657756cea8632eee7421bfd2c71b6c9f1e9f09ab168fbf7bb2c32adbcb0b9`, sin
+referencias ni citas sin resolver. Los dos avisos `Overfull hbox` y la
+sustitución de versalitas de Times New Roman ya aparecían al compilar `main`.
+
+Se inspeccionaron las páginas físicas **5-10** (índice general), **154, 177,
+213, 245, 261 y 345** (figuras 4.1, 4.4, 4.5, 4.6, 5.1 y 5.2), **247** (tabla
+de vistas de Qadra), **345** (tabla de evolución de cobertura) y **370** (tabla
+de prefijos del anexo A). Las figuras se revisaron además por separado a 12 pt;
+se corrigieron una etiqueta que tocaba un borde y dos figuras con texto
+superpuesto. No se observaron recortes, solapes ni glifos faltantes en las
+páginas revisadas. El PDF generado no se añadió a Git ni sustituye el PDF local
+aceptado; la compilación del flujo `Documents` corresponde a la revisión
+publicada.
+
 ## Conciliación documental: 17 de octubre de 2026
 
 El manuscrito describe el acceso Owner por certificado y MFA, la firma local y
