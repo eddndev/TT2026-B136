@@ -1,0 +1,80 @@
+% Life of one audited mutation through the HTTP application.
+% Sources: crates/web/src/runtime.rs, crates/web/src/access_audit.rs,
+% crates/application/src/identity/service/session.rs,
+% crates/application/src/documents/case_service.rs,
+% crates/application/src/documents/processor.rs,
+% crates/application/src/hearings/service.rs,
+% crates/infrastructure/src/audit_postgres.rs,
+% crates/infrastructure/src/hearing_postgres/commit.rs,
+% web/apps/qadra/src/lib/hearing-submission.mjs and docs/hearings-api.md.
+\begin{tikzpicture}[
+  stage/.style={
+    draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    text width=8.6cm, align=flush center, inner sep=5pt, font=\footnotesize
+  },
+  note/.style={
+    draw=black!45, dashed, rounded corners=1.5mm, line width=0.6pt,
+    text width=5.2cm, align=flush center, inner sep=5pt, font=\footnotesize,
+    fill=black!3
+  },
+  client/.style={
+    draw=ipnvino, dashed, rounded corners=1.5mm, line width=0.6pt,
+    text width=5.2cm, align=flush center, inner sep=5pt, font=\footnotesize
+  },
+  flow/.style={-{Stealth[length=2mm]}, line width=0.6pt},
+  reject/.style={-{Stealth[length=2mm]}, line width=0.6pt, dashed, black!55}
+]
+  \node[stage, fill=black!3] (admit) at (0,0) {
+    \textbf{Admisión HTTP}\\
+    Cupo compartido de peticiones (8 por defecto); sin cupo,
+    \texttt{503 server\_busy} sin ejecutar el manejador. Cuerpo acotado
+    por familia de rutas; hasta 2 operaciones bloqueantes simultáneas
+    (valores configurables).
+  };
+  \node[stage, below=4mm of admit] (auth) {
+    \textbf{Autenticación de la sesión}\\
+    Token bearer opaco: sesión revocable en Redis; cuenta activa y
+    generación en PostgreSQL; permiso del rol para la operación.
+  };
+  \node[stage, below=4mm of auth] (prep) {
+    \textbf{Preparación fuera de la transacción}\\
+    Comprobación previa de acceso y lecturas, sin escribir. Validación,
+    codificación canónica y digest \mbox{SHA-256}; trabajo criptográfico según
+    la operación (AES, RSA, TSA). Reautenticación con la misma identidad.
+  };
+  \node[stage, fill=ipnvino!6, below=4mm of prep] (tx) {
+    \textbf{Transacción PostgreSQL auditada}\\
+    READ COMMITTED y bloqueo consultivo común de auditoría. Revalida
+    cuenta activa, rol, pertenencia (Owner: todos), estado del expediente
+    y revisión esperada. Escribe el cambio (por lo general, revisiones
+    inmutables) y, si la familia lo define, el recibo; anexa el evento de
+    negocio a la cadena de hash. Confirma juntos cambio, recibo y evento
+    de negocio.
+  };
+  \node[stage, below=4mm of tx] (resp) {
+    \textbf{Evento de acceso y respuesta}\\
+    Inserción posterior y separada de \texttt{access.granted}. Respuesta
+    con la revisión confirmada y, en su caso, el recibo; si la inserción
+    falla, error genérico 500.
+  };
+  \node[note, right=9mm of prep] (rej) {
+    \textbf{Rechazo}\\
+    401, 403, 404, 409, 400 o 422: la transacción no se abre o se
+    revierte; no quedan filas ni evento de negocio. Sólo se anexa el
+    evento de acceso \texttt{access.denied} o \texttt{access.rejected}.
+  };
+  \node[client, right=9mm of resp] (client) {
+    \textbf{Interfaz Qadra: respuesta incierta}\\
+    Sin estado o 5xx: conserva el envío y ofrece consultar el resultado;
+    con recibo, compara revisión, operación, acción, digest y autor.
+    No reenvía automáticamente.
+  };
+  \draw[flow] (admit) -- (auth);
+  \draw[flow] (auth) -- (prep);
+  \draw[flow] (prep) -- (tx);
+  \draw[flow] (tx) -- (resp);
+  \draw[reject] (auth.east) -- ++(4.5mm,0) |- (rej.west);
+  \draw[reject] (prep.east) -- (rej.west);
+  \draw[reject] (tx.east) -- ++(4.5mm,0) |- (rej.west);
+  \draw[flow, dashed] (resp.east) -- (client.west);
+\end{tikzpicture}

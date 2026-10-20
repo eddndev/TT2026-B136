@@ -4,7 +4,14 @@
 
 \section{Cómputo temporal y plazos procesales}\label{sec:impl-plazos}
 
-El cálculo de plazos se construye en capas: fuentes temporales exactas con su aritmética, perfiles reproducibles con su evaluador y un registro persistente que conserva la evaluación, la atención humana y la reevaluación durable ante cambios de sus dependencias. Esta sección recorre esas capas, el registro conjunto de un resultado de audiencia con su plazo derivado y la agenda combinada que reúne las actividades fechadas del despacho. Los calendarios jurisdiccionales forman un catálogo global versionado, administrado por el Owner, que clasifica fechas civiles dentro de un ámbito declarado; el cómputo consume revisiones exactas de ese catálogo, cuyo contrato y decisión se conservan en \rutarepo{docs/judicial-calendars-api.md} y \rutarepo{docs/adr/0030-versioned-jurisdictional-calendars.md}. Las vistas de Qadra aplican los mecanismos comunes de sesión, borradores y conciliación (\cref{sec:impl-http-interfaz}), y cada subsección precisa sólo lo propio de su dominio. La creación de un plazo desde las actividades de un recurso se presenta con los recursos procesales (\cref{sec:impl-plazo-contextual}).
+El cálculo de plazos se construye en capas: fuentes temporales exactas con su aritmética, perfiles reproducibles con su evaluador y un registro persistente que conserva la evaluación, la atención humana y la reevaluación durable ante cambios de sus dependencias. Esta sección recorre esas capas, el registro conjunto de un resultado de audiencia con su plazo derivado y la agenda combinada que reúne las actividades fechadas del despacho. Los calendarios jurisdiccionales forman un catálogo global versionado, administrado por el Owner, que clasifica fechas civiles dentro de un ámbito declarado; el cómputo consume revisiones exactas de ese catálogo, cuyo contrato y decisión se conservan en \rutarepo{docs/judicial-calendars-api.md} y \rutarepo{docs/adr/0030-versioned-jurisdictional-calendars.md}. Las vistas de Qadra aplican los mecanismos comunes de sesión, borradores y conciliación (\cref{sec:impl-http-interfaz}), y cada subsección precisa sólo lo propio de su dominio. La creación de un plazo desde las actividades de un recurso se presenta con los recursos procesales (\cref{sec:impl-plazo-contextual}). La \cref{fig:impl-capas-plazos} resume estas capas y separa las operaciones humanas sobre el plazo de la reevaluación técnica que registra el consumidor durable.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/capas-plazos}
+  \caption{Capas del cómputo y seguimiento de plazos: dependencias exactas, evaluación, registro persistente con operaciones humanas y reevaluación técnica, y sus consumidores, la agenda combinada y las alertas personales.}
+  \label{fig:impl-capas-plazos}
+\end{figure}
 
 \input{chapters/04-desencadenantes-plazos}
 

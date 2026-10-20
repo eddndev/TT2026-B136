@@ -33,6 +33,15 @@ La \cref{tab:pruebas-cobertura-evolucion} reúne los cortes del 12 al 16 de sept
   {\footnotesize\raggedright \textsuperscript{a}\,Primera campaña instrumentada del corte. Su repetición de cierre aprobó las mismas 1\,066 pruebas y cubrió 21\,967 de 23\,773 líneas, también 92.4\,\% (\cref{sec:pruebas-participantes-tipificados}).\par}
 \end{table}
 
+La \cref{fig:pruebas-evolucion-cobertura} representa las mismas nueve filas en el orden de la tabla: las barras muestran las pruebas Rust aprobadas de cada corte y la línea une sus coberturas globales, cada una medida sobre su propio denominador, junto con la referencia del umbral del 90\,\% que integración continua exige por separado a \texttt{domain}, \texttt{application} e \texttt{infrastructure} y no a la cobertura global.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/evolucion-cobertura}
+  \caption{Pruebas Rust aprobadas y cobertura global de líneas en los nueve cortes del 12 al 16 de septiembre de 2026, con el umbral del 90\,\% por crate como referencia.}
+  \label{fig:pruebas-evolucion-cobertura}
+\end{figure}
+
 Los denominadores crecen con el código instrumentado de cada corte, por lo que los porcentajes globales no forman una serie de avance: el 93.4\,\% del corte administrativo corresponde a su propia medición y no al código ampliado de los cortes siguientes. La \cref{tab:pruebas-cobertura-audiencias} desglosa por crate el corte del 16 de septiembre, la medición por crate más reciente que este capítulo presenta completa; su alcance se describe en la \cref{sec:pruebas-audiencias}. Esa tabla no representa el estado final del producto: las campañas completas posteriores informan los porcentajes de los crates con umbral junto con su propia evidencia, sin desglose de líneas (\cref{sec:pruebas-sesiones,sec:pruebas-recuperacion-password}). Los desgloses por crate de los cortes anteriores se conservan en la \cref{sec:matriz-cobertura}.
 
 \begin{table}[H]
