@@ -16,7 +16,14 @@ El cliente distingue la época de la sesión de la vigencia de cada intento de a
 
 El coordinador \rutarepo{web/apps/qadra/src/lib/session-lifecycle.mjs} compone el monitor de sesión con el registro de borradores, ambos fuera del árbol de componentes autenticado, e instala una guarda de admisión: sin sesión activa, el cliente rechaza localmente las solicitudes protegidas, salvo la consulta de estado y la revocación. La política temporal del servidor conserva el modo absoluto como opción predeterminada (\cref{sec:impl-identidad}). Qadra aplica los plazos confirmados con un reloj monótono que descuenta el viaje completo de cada consulta; al vencer la sesión, cierra la admisión, captura sincrónicamente los borradores registrados y retira la credencial y las vistas protegidas.
 
-Ocultar la pestaña suspende la admisión, y al volver se exige una consulta nueva del estado de sesión. Si MFA termina con la pestaña oculta, el primer montaje de las vistas de negocio espera esa confirmación y las vistas ya abiertas quedan suspendidas durante la consulta. Un error de red conserva el bloqueo hasta una decisión explícita o el vencimiento. La visibilidad, las lecturas y los temporizadores no representan actividad: sólo las interacciones confiables de teclado, puntero o entrada pueden solicitar su registro acotado.
+Ocultar la pestaña suspende la admisión, y al volver se exige una consulta nueva del estado de sesión. Si MFA termina con la pestaña oculta, el primer montaje de las vistas de negocio espera esa confirmación y las vistas ya abiertas quedan suspendidas durante la consulta. Un error de red conserva el bloqueo hasta una decisión explícita o el vencimiento. La visibilidad, las lecturas y los temporizadores no representan actividad: sólo las interacciones confiables de teclado, puntero o entrada pueden solicitar su registro acotado. La \cref{fig:impl-qadra-sesion} resume las fases del coordinador, el estado de la guarda en cada una y el efecto del vencimiento, del reingreso y del cierre voluntario sobre los borradores registrados.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/qadra-sesion}
+  \caption{Fases de la sesión en Qadra, estado de la guarda de admisión en cada una y efecto de sus transiciones sobre los borradores en memoria.}
+  \label{fig:impl-qadra-sesion}
+\end{figure}
 
 \subsection{Borradores en memoria y recuperación reautorizada}\label{sec:impl-qadra-borradores}
 
