@@ -6,7 +6,9 @@ Accepted and implemented locally. The [CA delivery state](../ca/README.md)
 separates implementation, verification, service adoption and human acceptance.
 The [HTTP contract](../ca/api.md) and [operator manual](../ca/operations.md)
 describe the current boundaries. This decision does not establish installation
-of the portal or acceptance of a real Owner certificate login.
+of the portal or acceptance of a real Owner certificate login. The exclusion
+of an automatic CRL schedule is superseded by
+[ADR 0080](0080-scheduled-crl-renewal.md); the portal itself still adds none.
 
 ## Context
 

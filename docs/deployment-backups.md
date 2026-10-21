@@ -63,7 +63,9 @@ a almacenamiento restringido ajeno al repositorio y a artefactos públicos.
 Incluir el manifiesto cuando exista y ligar también su hash al recibo externo.
 Registrar tamaños y SHA-256 antes y después de transferir; no imprimir contenidos
 privados. El marcador no es una firma ni protege contra modificación posterior.
-No se borran automáticamente respaldos o versiones anteriores.
+No se borran automáticamente respaldos o versiones anteriores, salvo los de
+renovaciones CRL programadas que superan su [retención](deployment-crl.md#renovación-programada).
+Copiar fuera del servidor los que deban conservarse por más tiempo.
 
 ## Restauración manual antes de reabrir tráfico
 

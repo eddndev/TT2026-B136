@@ -235,8 +235,24 @@ def main():
     resume_command = commands.add_parser("resume")
     resume_command.add_argument("operation_id")
     commands.add_parser("status")
+    auto_command = commands.add_parser("auto")
+    schedule_command = commands.add_parser("schedule-units")
+    for command in (auto_command, schedule_command):
+        command.add_argument("--threshold-hours", type=int, default=72)
+        command.add_argument("--keep-backups", type=int, default=4)
+    commands.add_parser("alert")
     args = parser.parse_args()
-    if args.command == "renew":
+    if args.command in ("auto", "schedule-units", "alert"):
+        import crl_schedule
+        if args.command == "auto":
+            result = crl_schedule.run(args.root, args.threshold_hours * 3600, args.keep_backups)
+            print(json.dumps(result, sort_keys=True))
+            sys.exit(crl_schedule.exit_code(result))
+        if args.command == "schedule-units":
+            result = crl_schedule.install_units(args.root, args.threshold_hours, args.keep_backups)
+        else:
+            result = crl_schedule.alert(args.root)
+    elif args.command == "renew":
         result = renew(args.root, args.expected_revision)
     elif args.command == "resume":
         result = resume(args.root, args.operation_id)

@@ -296,7 +296,8 @@ copia externa de cuatro archivos coincide por hash y tamaño. Su restauración
 conjunta con PostgreSQL 16.15 y Redis 7.4.11 aprobó, incluida persistencia AOF,
 confianza y auditoría. Conservó cero usuarios y Redis vacío: no acredita un
 despacho poblado. La prueba Redis de cinco claves sintéticas es evidencia separada. No se borran automáticamente releases
-ni respaldos. Rollback de aplicación conserva SQL y Redis actuales.
+ni respaldos, salvo los de renovaciones CRL programadas que superan la
+[retención](deployment-crl.md#renovación-programada) de ADR 0080. Rollback de aplicación conserva SQL y Redis actuales.
 
 Los certificados y CRL requieren mantenimiento: los guiones generan certificados
 de un año y CRL de siete días. La [renovación manual recuperable](deployment-crl.md)
@@ -304,7 +305,8 @@ coordina revisión esperada, respaldo, contador, archivos, publicación auditada
 reinicio de la misma release, con un marcador persistente que bloquea ingreso
 mientras haya incertidumbre. Preserva la CA y las revocaciones existentes.
 Su instalación y aceptación en el servidor son independientes de su presencia
-en el repositorio; no hay aún una programación automática de renovaciones.
+en el repositorio. Un timer diario la ejecuta cuando faltan menos de 72 horas,
+como describe la [renovación programada](deployment-crl.md#renovación-programada).
 La emisión de certificados sigue en [PKI](../pki/README.md) y la publicación de
 confianza en [participantes](typed-participants-api.md).
 

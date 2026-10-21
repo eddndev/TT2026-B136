@@ -117,8 +117,9 @@ vínculo y revocar el certificado son operaciones distintas.
 La publicación reutiliza el [mantenimiento CRL](../deployment-crl.md), su
 bloqueo, respaldo, registro de recuperación y control de los servicios de
 usuario existentes. La UI informa de la interrupción de Qadra antes de pedir
-confirmación. El alta del portal no instala otro controlador de CRL ni programa
-renovaciones automáticas.
+confirmación. El portal no instala otro controlador de CRL; la renovación
+automática es un timer del host descrito en
+[renovación programada](../deployment-crl.md#renovación-programada).
 
 ## Recorrido Owner aceptado
 
@@ -157,5 +158,5 @@ las pruebas SQL, Redis y archivo privado ya aceptadas dentro de sus límites.
 El alcance conserva un operador designado y dos propósitos de emisión. Excluye
 autoservicio de alta, bootstrap HTTP público, plataforma de invitaciones, SSO,
 ejecución libre de shell, sustitución de raíz, jerarquías nuevas, OCSP, FIREL/PSC,
-PAdES y renovación automática de CRL. El verificador de ZIP es una entrega
+PAdES y una renovación automática de CRL desde el portal. El verificador de ZIP es una entrega
 separada. Las claves privadas de los titulares no se reciben en el portal.

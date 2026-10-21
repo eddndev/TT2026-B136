@@ -1,5 +1,24 @@
 # Informe de verificación local
 
+## Renovación programada de la CRL: 21 de octubre de 2026
+
+Antes de implementar la automatización se renovó a mano la CRL de producción con
+`renew_crl.py renew --expected-revision 5` por el launcher aprobado: la revisión
+pasó de 5 a 6 y la CRL de 4100 a 4101, vigente hasta el 28 de octubre de 2026 a
+las 20:37 UTC. La operación tardó 37 segundos, sin mantenimiento pendiente, y
+después respondieron Qadra, la API sin sesión y la CA.
+
+[ADR 0080](adr/0080-scheduled-crl-renewal.md) agrega el subcomando `auto`, las
+alertas, la retención y la generación de unidades. Sus 26 pruebas focales cubren
+umbral, renovación con la revisión observada, bloqueo ocupado lejos y cerca del
+vencimiento, marcador pendiente sin reanudación, interrupción con marcador,
+vencimiento previo de la CA, error posterior a la aceptación, retención con el
+respaldo actual, recibos privados, unidades, invocación del launcher y alerta.
+Las 272 pruebas `test_deploy_*.py` y las 95 `test_ca_*.py` aprobaron localmente;
+las tres unidades generadas pasaron `systemd-analyze --user verify` con systemd
+258 local, sin avisos. La instalación en el host y su aceptación operativa se registran
+por separado.
+
 ## Actualización de la validación TLS: 21 de octubre de 2026
 
 El gate de dependencias de la PR del manuscrito detectó los avisos

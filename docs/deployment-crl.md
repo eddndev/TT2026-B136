@@ -28,7 +28,8 @@ configuración y once tablas de cuentas, expedientes, documentos, participantes
 y audiencias conservaron sus huellas antes/después. Había una cuenta, tres
 expedientes, tres documentos y cuatro versiones; esto acredita conservación,
 no un ensayo nuevo de todos los recorridos autenticados. La release siguió en
-`v0.1.1`. El procedimiento no programa renovaciones automáticas.
+`v0.1.1`. La [renovación programada](#renovación-programada) reutiliza este
+procedimiento cuando la CRL publicada está por vencer.
 
 ## Preparación
 
@@ -132,3 +133,70 @@ de restauración, vigencia y salud antes de abrir tráfico.
 El respaldo conserva su propósito de recuperación completa, no de rollback
 parcial de confianza. La política de copia externa y las restricciones del
 estado histórico siguen en [respaldos](deployment-backups.md).
+
+## Renovación programada
+
+[ADR 0080](adr/0080-scheduled-crl-renewal.md) agrega un timer diario de usuario
+que ejecuta este mismo procedimiento sin intervención cuando faltan menos de 72
+horas para que venza la CRL publicada. Corre después de las 09:00 UTC con un
+retraso aleatorio de hasta 30 minutos y recupera ejecuciones perdidas tras un
+reinicio del host. Requiere que la cuenta `qadra` tenga `linger` habilitado.
+
+Cada ejecución toma el bloqueo de despliegue y deja un recibo privado en
+`maintenance/crl-schedule/` con su resultado:
+
+- `skipped`: la CRL sigue vigente por más tiempo que el umbral; no se toca nada.
+- `renewed`: se renovó con la revisión SQL observada en esa misma ejecución.
+- `busy`: otro proceso tenía el bloqueo y la CRL sigue vigente más allá del
+  umbral; se reintenta al día siguiente sin alerta.
+- `busy_near_expiry`: el bloqueo seguía ocupado dentro del umbral, o no se pudo
+  leer la vigencia; no se detiene nada y se alerta.
+- `blocked`: hay un marcador CRL, una restauración o una operación CA pendiente;
+  no se detiene nada y no se reanuda.
+- `ca_expiring`: vence antes el certificado de la CA que la CRL; otra lista no
+  amplía la vigencia y la sustitución de la autoridad es otro procedimiento.
+- `failed` o `interrupted`: falló la lectura o la renovación, o systemd la detuvo
+  al agotar 2400 segundos. Si ya había detenido servicios, el marcador mantiene
+  cerrado el ingreso como en una renovación manual fallida.
+
+Todos los resultados distintos de `renewed`, `skipped` y `busy` marcan la unidad
+como fallida y ejecutan `qadra-crl-alert.service`. Un error posterior al aceptar
+la renovación, al leer la vigencia o aplicar la retención, queda en `post_error`
+sin cambiar el resultado. La alerta envía un correo genérico mediante Resend al
+destinatario de `config/crl-schedule.json`:
+
+```json
+{"alert_to": "operador@example.com"}
+```
+
+Ningún recibo ni alerta contiene claves, contraseñas o material DER. La recuperación
+sigue siendo humana: revisar `status` y, si corresponde, ejecutar `resume` con el
+UUID del recibo. El timer nunca reanuda una operación pendiente.
+
+Tras cada renovación programada aceptada se eliminan los respaldos de renovaciones
+programadas anteriores, salvo los cuatro más recientes. Sólo se elimina un
+directorio de `backups/` cuando su recibo y el diario de la operación aceptada
+identifican la misma ruta. Los respaldos de renovaciones manuales, activaciones y
+restauraciones no se eliminan.
+
+### Instalación de las unidades
+
+Antes de instalar, crear `config/crl-schedule.json` con modo 0600 y comprobar
+que `data/.env` define `RESEND_API_KEY` y `REPORT_EMAIL_FROM`, o en su defecto
+`INVITATION_EMAIL_FROM`. Ejecutar después con el launcher y el pin de la
+generación aprobada vigente:
+
+```bash
+ssh -l qadra vps3 '/RUTA/PYTHON_APROBADO -I -B -S /home/qadra/qadra/controller_launcher.py --root /home/qadra/qadra --inventory-sha256 SHA256_APROBADO --entrypoint renew_crl.py -- --root /home/qadra/qadra schedule-units'
+```
+
+El subcomando escribe `qadra-crl-renew.service`, `qadra-crl-renew.timer` y
+`qadra-crl-alert.service` a partir de la invocación que el launcher acaba de
+admitir, recarga systemd y habilita el timer. Instalar una nueva generación de
+controladores exige repetir este paso con el nuevo pin; hasta entonces ambas
+unidades fallan con el pin anterior y no pueden enviar alertas. La ejecución
+próxima ejecución se consulta sin efectos con
+`ssh -l qadra vps3 'systemctl --user list-timers qadra-crl-renew.timer'`.
+`systemctl --user start qadra-crl-renew.service` ejecuta una corrida real: renueva
+si faltan menos de 72 horas. `systemctl --user start qadra-crl-alert.service`
+envía un correo de prueba con el último recibo.
