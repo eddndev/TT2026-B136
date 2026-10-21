@@ -211,7 +211,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Precondiciones & El Owner tiene sesi\'on activa; las invitaciones y su canal de correo est\'an habilitados expresamente. \\
     Flujo principal (alta) & 1. El Owner accede a la gesti\'on de equipo. 2. Indica el correo y el perfil Litigante o Paralegal. 3. El sistema comprueba que no exista una cuenta con ese correo. 4. Registra una invitaci\'on de 24 horas y su entrega por correo. 5. El invitado abre el enlace y elige su contrase\~na, sin otros datos personales. 6. Configura TOTP, conserva sus c\'odigos de recuperaci\'on y confirma el segundo factor. 7. El sistema crea la cuenta, consume la invitaci\'on y registra bit\'acora y recibo en una transacci\'on. 8. El integrante inicia sesi\'on con contrase\~na y MFA. \\
     Flujo principal (baja) & 1. El Owner accede al módulo de gestión de equipo. 2. Selecciona al miembro que desea dar de baja. 3. El sistema solicita confirmación de la acción. 4. El Owner confirma la baja. 5. El sistema revoca de inmediato el acceso del colaborador, invalida sus sesiones activas y registra la operación en la bitácora. 6. Los expedientes y documentos asociados al colaborador permanecen en el sistema sin modificación; únicamente se revoca el acceso. \\
-    Flujos alternos & 2a. (Alta) El correo pertenece a una cuenta activa o inactiva: se rechaza la invitaci\'on. 5a. El enlace venci\'o: el Owner puede reenviar; el reenv\'io invalida el enlace y la preparaci\'on MFA anteriores. 6a. Se pierde una respuesta: el invitado recupera la preparaci\'on con el mismo enlace y contrase\~na, o consulta el recibo de la confirmaci\'on sin duplicar la cuenta. 2b. (Baja) El Owner intenta darse de baja a s\'i mismo: se rechaza la operaci\'on, ya que el despacho requiere al menos un Owner activo. \\
+    Flujos alternos & 2a. (Alta) El correo pertenece a una cuenta activa o inactiva: se rechaza la invitaci\'on. 5a. El enlace venci\'o: el Owner puede reenviar; el reenv\'io invalida el enlace y la preparaci\'on MFA anteriores. 6a. Se pierde una respuesta: el invitado recupera la preparaci\'on con el mismo enlace y contrase\~na, o consulta el recibo de la confirmaci\'on sin duplicar la cuenta. 2b. (Baja) La baja dejar\'ia al despacho sin un Owner activo: se rechaza la operaci\'on. \\
     Postcondiciones & (Alta) La cuenta queda activa con el perfil asignado solo despu\'es de confirmar MFA, con un recibo recuperable y sin iniciar sesi\'on autom\'aticamente. (Baja) El acceso queda revocado. En ambos casos se conserva el registro en la bit\'acora. \\
     Derivado de & HU-03, HU-04, HU-11 \\
     RF relacionados & RF-03 \\
@@ -222,7 +222,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\linewidth]{image6.png}
+  \resizebox{0.9\linewidth}{!}{\input{figures/members-use-case}}
   \caption{Diagrama CU-02. Gestión del ciclo de vida de miembros del equipo.}
   \label{fig:cu-02}
 \end{figure}
