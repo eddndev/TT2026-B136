@@ -78,8 +78,27 @@ jobs:
         if: ${{ failure() && !cancelled() }}
         uses: ./.github/actions/cancel-ci-campaign
 
+  # Main pushes reuse pull request tests of the same tree; see docs/adr/0082-main-test-reuse.md.
+  reuse:
+    if: ${{ !inputs.dispatch_measurement && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    name: Reuse pull request tests
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
+    timeout-minutes: 5
+    outputs:
+      run_id: ${{ steps.find.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Find a passed pull request run of this exact tree
+        id: find
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/ci_tree_reuse.py --tree "$(git rev-parse 'HEAD^{tree}')" --repository "$GITHUB_REPOSITORY" >> "$GITHUB_OUTPUT"
+
   test:
-    if: ${{ !inputs.dispatch_measurement }}
+    needs: reuse
+    if: ${{ !cancelled() && !inputs.dispatch_measurement && needs.reuse.outputs.run_id == '' }}
     name: Test (${{ matrix.shard }}/${{ matrix.total }})
     strategy:
       fail-fast: true
@@ -229,6 +248,21 @@ jobs:
         with:
           name: workspace-coverage-${{ matrix.shard }}
           path: coverage-shard-${{ matrix.shard }}.info
+          if-no-files-found: error
+          retention-days: 7
+      - name: Record the tested tree
+        id: tree
+        if: ${{ github.event_name == 'pull_request' && matrix.shard == 1 }}
+        run: |
+          mkdir -p output/tested-tree
+          git rev-parse 'HEAD^{tree}' | tee output/tested-tree/tree.txt
+          printf 'tree=%s\n' "$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+      - name: Publish the tested tree
+        if: ${{ github.event_name == 'pull_request' && matrix.shard == 1 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-tree-${{ steps.tree.outputs.tree }}
+          path: output/tested-tree/tree.txt
           if-no-files-found: error
           retention-days: 7
       - name: Cancel the failed campaign
