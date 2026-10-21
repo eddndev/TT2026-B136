@@ -605,8 +605,10 @@ The remaining work and decisions are bounded:
 
 `docs/next-goal.md` and dated verification sections retain their historical
 schedules and measurements. They do not reopen delivered work. Preserve limits
-on external judicial identity, PSC service, external audit anchoring and automatic
-CRL operations; technical proposals alone do not authorize these extensions.
+on external judicial identity, PSC service and external audit anchoring; technical
+proposals alone do not authorize these extensions. Scheduled CRL renewal is
+limited to `docs/adr/0080-scheduled-crl-renewal.md`: it never resumes a failed
+operation on its own and must be re-rendered after a controller generation changes.
 Rebuild and visually inspect changed manuscript sources under `latex/README.md`;
 keep the accepted local PDF and unrelated presentation material intact.
 

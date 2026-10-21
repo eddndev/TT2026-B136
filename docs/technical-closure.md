@@ -236,8 +236,9 @@ requiere personas y resultados reales; las pruebas automáticas no la sustituyen
 El acceso documental Client requiere resolver su política explícita. No se abre
 por analogía con los roles internos. La instancia atiende un solo despacho sin límite de usuarios; no se aplica
 un cupo por plan comercial. No se añade
-multitenencia, facturación, PSC externo, anclaje externo ni programación operativa
-de CRL como consecuencia de una propuesta técnica. Las siete familias de
+multitenencia, facturación, PSC externo ni anclaje externo como consecuencia de una
+propuesta técnica. La renovación programada de la CRL se incorporó por indicación
+del autor el 21 de octubre de 2026 ([ADR 0080](adr/0080-scheduled-crl-renewal.md)). Las siete familias de
 audiencias y catorce clases de medidas permanecen cerradas.
 
 Una aceptación terminada no se reabre para una mejora opcional. Un defecto nuevo

@@ -4,7 +4,8 @@
 
 Accepted for implementation after isolated controller and native SQL/OpenSSL
 acceptance. Installation and operational acceptance of the updated controllers
-remain required before operating the deployed authority.
+remain required before operating the deployed authority. Scheduling and backup
+retention are superseded by [ADR 0080](0080-scheduled-crl-renewal.md).
 
 ## Context
 

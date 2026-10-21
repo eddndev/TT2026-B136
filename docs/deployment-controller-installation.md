@@ -76,6 +76,12 @@ máscaras de systemd y el bloqueo local no impiden esos accesos externos.
 Las entradas administrativas versionadas de despliegue y CRL seleccionan el
 launcher y una generación aprobada, pero instalar y configurar esos puntos de
 entrada sigue siendo una acción operativa explícita.
+Las unidades de la [renovación programada](deployment-crl.md#renovación-programada)
+fijan el pin de la generación que las generó y ejecutan un lector Python de
+esa generación. Antes de la ventana se deshabilita con
+`systemctl --user disable --now qadra-crl-renew.timer` y permanece así hasta el
+cierre, incluso tras una interrupción. Al terminar se ejecuta otra vez
+`renew_crl.py schedule-units` con el pin nuevo, que vuelve a habilitar el timer.
 
 ## Verificación
 

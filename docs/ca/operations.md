@@ -347,6 +347,10 @@ En **Publicación**, pulsar **Actualizar estado** para observar revisión, núme
 de CRL, fechas, huellas y mantenimiento pendiente. La fuente es la confianza
 persistida en Qadra, no sólo un archivo local. Si hay mantenimiento pendiente,
 ir a **Historial** y retomar su operación antes de solicitar otra renovación.
+Si Historial no muestra una publicación pendiente, el marcador lo dejó la
+[renovación programada](../deployment-crl.md#renovación-programada) o una
+renovación por línea de comandos. El portal no puede retomarlo: un administrador
+del host revisa `renew_crl.py status` y ejecuta `resume` con el UUID registrado.
 
 Para una publicación nueva, revisar la revisión actual y confirmar la ventana
 de mantenimiento. **Renovar y publicar CRL** reutiliza el
