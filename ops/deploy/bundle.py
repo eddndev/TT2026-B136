@@ -20,6 +20,7 @@ DEPLOY_MODULES = (
     "controller_gate_target controller_installation controller_installation_files "
     "controller_installation_steps controller_publication controller_publication_files "
     "controller_publication_record controller_unit_commands crl_backup crl_journal crl_material "
+    "crl_schedule "
     "host provision release renew_crl restore_admission restore_admission_release "
     "restore_admission_schema restore_capture restore_catalog restore_commands restore_fence "
     "restore_observations restore_quiesce restore_quiesce_bus restore_quiesce_observe "
