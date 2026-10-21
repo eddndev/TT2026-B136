@@ -314,6 +314,8 @@ def alert(root):
                        "text": "\n".join(lines)}).encode("utf-8")
     request = Request(RESEND_ENDPOINT, data=body, method="POST", headers={
         "Authorization": f"Bearer {key}", "Content-Type": "application/json",
+        # The provider's edge rejects the default urllib client signature.
+        "User-Agent": "qadra-crl-alert/1",
         "Idempotency-Key": "qadra-crl-" + _invocation_key()})
     with urlopen(request, timeout=10) as response:
         if not 200 <= response.status < 300:

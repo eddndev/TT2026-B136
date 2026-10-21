@@ -54,7 +54,8 @@ A failure, block, interruption or invalid configuration marks the unit failed
 and triggers a separate alert unit. The alert sends one generic message through
 the configured Resend sender to the recipient in `config/crl-schedule.json`,
 with no secrets. Its idempotency key is the systemd invocation of the failed
-run, and it states when that run left no receipt. A failed renewal remains
+run when systemd exports it to OnFailure units (version 251 or later) and a
+random key otherwise, and it states when that run left no receipt. A failed renewal remains
 fenced with ingress closed, exactly like a failed manual renewal, until a person
 inspects it and runs `resume`.
 
