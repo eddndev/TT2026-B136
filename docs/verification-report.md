@@ -1,5 +1,26 @@
 # Informe de verificación local
 
+## Actualización de la validación TLS: 21 de octubre de 2026
+
+El gate de dependencias de la PR del manuscrito detectó los avisos
+RUSTSEC-2026-0382 en `rustls-webpki` 0.103.14 y RUSTSEC-2026-0381 en
+`webpki-roots` 1.0.9: la validación podía aceptar rutas con intermediarios emSign
+desconfiados, cuyas claves privadas son públicas. El fallo canceló las demás
+comprobaciones de esa campaña, y ese resultado no se cuenta como una regresión
+aprobada. Ambos crates llegan por `reqwest`, que usan los clientes HTTPS de
+correo y de sellado externo. Se actualizaron solo en `Cargo.lock`, a 0.103.16 y
+1.0.10, sin cambiar manifiestos, código ni excepciones.
+
+`cargo deny check` 0.20.2 aprobó avisos, licencias, restricciones y orígenes.
+La compilación del workspace con `--locked` terminó correctamente, y aprobaron
+las 44 pruebas unitarias de `infrastructure` seleccionadas por correo, Cincel y
+sellado de tiempo. Esas pruebas usan servidores simulados y no ejercitan una
+cadena de certificados pública. Se usó un solo coordinador, temporales en disco,
+un trabajo de compilación y un hilo de pruebas. No se repitió la regresión
+completa local: los gates remotos deben aprobar la revisión exacta antes de
+integrarla. La versión instalada conserva las versiones anteriores hasta un
+nuevo despliegue.
+
 ## Actualización del lector ZIP: 17 de octubre de 2026
 
 La campaña de integración de la conciliación documental detectó los avisos
