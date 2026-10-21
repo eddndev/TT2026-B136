@@ -1,0 +1,53 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize\sffamily},>=Latex,line width=0.35pt]
+  \node[font=\footnotesize\bfseries\sffamily] at (7,6.6)
+    {CU-04 --- Control de acceso por perfil};
+
+  \draw[fill=gray!10] (1,5.45) circle (0.22);
+  \draw (1,5.23) -- (1,4.65);
+  \draw (0.55,5) -- (1.45,5);
+  \draw (1,4.65) -- (0.6,4.2) (1,4.65) -- (1.4,4.2);
+  \node[align=center] at (1,3.7) {Usuario autenticado\\(cualquier rol)};
+
+  \draw[fill=yellow!4] (7,4.3) ellipse (2.2 and 0.9);
+  \node[align=center] at (7,4.3) {CU-04\\Control de acceso\\por perfil};
+  \draw (1.55,5) -- (5.05,4.72);
+
+  \node[draw,fill=yellow!8,anchor=north,align=left,inner sep=4pt] (note)
+    at (12.3,5.6)
+    {HU-10 $\cdot$ RF-02 $\cdot$ RNF-01, RNF-05\\
+     RBAC granular por perfil y\\
+     asignación al expediente.\\
+     Cada intento se registra.};
+  \draw[densely dotted] (9.2,4.35) -- (note.west);
+
+  \draw[fill=yellow!4] (2.1,2.2) ellipse (2.3 and 0.7);
+  \node[align=center] at (2.1,2.2)
+    {Recurso fuera de su ámbito\\(expediente no asignado)};
+  \draw[->,dashed] (3.95,2.62) --
+    node[above,sloped] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.15,3.8);
+
+  \draw[fill=yellow!4] (2.1,0.4) ellipse (2.0 and 0.7);
+  \node[align=center] at (2.1,0.4) {Perfil sin permiso\\sobre el módulo};
+  \draw[->,dashed] (3.75,0.8) --
+    node[below,sloped,pos=0.45] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.75,3.56);
+
+  \draw[fill=yellow!4] (7.6,1.95) ellipse (2.05 and 0.65);
+  \node[align=center] at (7.6,1.95) {Registro del intento\\en bitácora};
+  \draw[->,dashed] (7.3,3.4) --
+    node[left,pos=0.45] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (7.5,2.6);
+
+  \draw[fill=yellow!4] (7.6,0.25) ellipse (2.05 and 0.65);
+  \node[align=center] at (7.6,0.25) {Concesión o\\denegación del acceso};
+  \draw[->,dashed] (8.75,3.75) .. controls (10.6,3.0) and (10.6,0.7) ..
+    node[right,fill=white,inner sep=1pt,pos=0.5] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (9.6,0.4);
+
+  \draw[fill=yellow!4] (7.6,-1.45) ellipse (2.05 and 0.65);
+  \node[align=center] at (7.6,-1.45) {Evaluación contra\\matriz de permisos};
+  \draw[->,dashed] (9.05,3.95) .. controls (13.4,3.0) and (13.4,-1.1) ..
+    node[right,fill=white,inner sep=1pt,pos=0.6] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (9.6,-1.3);
+\end{tikzpicture}
