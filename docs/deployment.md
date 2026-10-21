@@ -29,7 +29,10 @@ Véase [ADR 0048](adr/0048-private-versioned-deployment.md).
 
 La ejecución manual de `Deploy version` recibe `prepare_version`, una versión
 estricta todavía sin tag, y construye un candidato desde el commit del evento.
-Reutiliza los mismos gates CI/Web y el mismo empaquetado nativo en VPS3. Publica
+Exige los mismos gates CI/Web y el mismo empaquetado nativo en VPS3. Según
+[ADR 0081](adr/0081-deploy-gate-reuse.md), no repite CI si el commit exacto ya
+pasó en `main`, ni Web si una ejecución anterior verificó entradas idénticas y su
+módulo de navegador sigue vigente; el job `gates` registra los runs reutilizados. Publica
 el artefacto y su SHA-256 en Actions; el job de transferencia y activación sólo
 admite eventos `push` de tags. La preparación manual no crea tags, abre SSH,
 modifica bases ni cambia la versión instalada.
