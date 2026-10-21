@@ -1,0 +1,78 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize\sffamily},>=Latex,line width=0.35pt]
+  \node[font=\footnotesize\bfseries\sffamily] at (7.5,8.1)
+    {CU-03 --- Inicio de sesión y gestión de sesiones};
+
+  \draw[fill=gray!10] (1,7.05) circle (0.22);
+  \draw (1,6.83) -- (1,6.25);
+  \draw (0.55,6.6) -- (1.45,6.6);
+  \draw (1,6.25) -- (0.6,5.8) (1,6.25) -- (1.4,5.8);
+  \node[align=center] at (1,5.15)
+    {Usuario del sistema\\(Owner / Litigante /\\Paralegal / Cliente)};
+  \draw (1.55,6.6) -- (5.55,5.25);
+
+  \draw[fill=yellow!4] (7.4,4.6) ellipse (2.5 and 0.95);
+  \node[align=center] at (7.4,4.6)
+    {CU-03\\Inicio de sesión y\\gestión de sesiones};
+
+  \node[draw,fill=yellow!8,anchor=north,align=left,inner sep=4pt] (note)
+    at (13.3,7.4)
+    {HU-05, HU-06, HU-07, HU-08, HU-09\\
+     RF-01, RF-02 $\cdot$ RNF-02, RNF-05\\
+     Segundo factor obligatorio para todos los perfiles.\\
+     X.509 reservado a Owner.};
+  \draw[densely dotted] (9.6,5.05) -- (note.south west);
+
+  \draw[fill=yellow!4] (2.25,3.55) ellipse (2.2 and 0.62);
+  \node[align=center] at (2.25,3.55)
+    {Autenticación con\\certificado X.509};
+  \draw[->,dashed] (4.4,3.7) --
+    node[above,sloped,pos=0.4] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.05,4.3);
+
+  \draw[fill=yellow!4] (2.25,2.05) ellipse (2.2 and 0.62);
+  \node[align=center] at (2.25,2.05) {Recuperación de\\contraseña};
+  \draw[->,dashed] (4.25,2.3) --
+    node[above,sloped,pos=0.3,fill=white,inner sep=1pt] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.4,3.95);
+
+  \draw[fill=yellow!4] (2.25,0.55) ellipse (2.2 and 0.62);
+  \node[align=center] at (2.25,0.55) {Expiración por\\inactividad};
+  \draw[->,dashed] (4.15,0.8) --
+    node[above,sloped,pos=0.25,fill=white,inner sep=1pt] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.95,3.8);
+
+  \draw[fill=yellow!4] (2.25,-0.95) ellipse (2.2 and 0.62);
+  \node[align=center] at (2.25,-0.95)
+    {Credenciales incorrectas\\(mensaje genérico)};
+  \draw[->,dashed] (4.05,-0.65) --
+    node[above,sloped,pos=0.2,fill=white,inner sep=1pt] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (6.6,3.7);
+
+  \draw[fill=yellow!4] (8.7,2.45) ellipse (2.35 and 0.65);
+  \node[align=center] at (8.7,2.45)
+    {Verificación de\\credenciales (hash)};
+  \draw[->,dashed] (8.3,3.67) --
+    node[left,pos=0.45] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (8.55,3.1);
+
+  \draw[fill=yellow!4] (8.7,0.85) ellipse (2.35 and 0.65);
+  \node[align=center] at (8.7,0.85)
+    {Segundo factor: TOTP o\\código de recuperación};
+  \draw[->,dashed] (9.3,3.85) .. controls (11.7,3.2) and (11.7,1.15) ..
+    node[right,fill=white,inner sep=1pt,pos=0.5] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (11.05,1.0);
+
+  \draw[fill=yellow!4] (8.7,-0.75) ellipse (2.35 and 0.65);
+  \node[align=center] at (8.7,-0.75)
+    {Creación de sesión\\autenticada};
+  \draw[->,dashed] (9.6,4.05) .. controls (13.2,3.4) and (13.2,-0.45) ..
+    node[right,fill=white,inner sep=1pt,pos=0.55] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (11.05,-0.6);
+
+  \draw[fill=yellow!4] (8.7,-2.35) ellipse (2.35 and 0.65);
+  \node[align=center] at (8.7,-2.35)
+    {Registro en bitácora\\(método y dirección IP)};
+  \draw[->,dashed] (9.8,4.3) .. controls (14.7,3.7) and (14.7,-2.05) ..
+    node[right,fill=white,inner sep=1pt,pos=0.6] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (11.05,-2.2);
+\end{tikzpicture}
