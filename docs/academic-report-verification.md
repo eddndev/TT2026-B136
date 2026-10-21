@@ -1,5 +1,44 @@
 # Verificación de la actualización académica
 
+## Catálogo de identidad de una sola instancia: 21 de octubre de 2026
+
+Por indicación del autor se retiró del manuscrito el registro comercial de
+despachos que la decisión de diseño de una sola instancia ya había descartado. HU-01, HU-02
+y CU-01 describían un registro con datos fiscales, selección de un plan Starter
+o Professional, aprovisionamiento de un espacio por despacho y confirmación por
+correo; ninguno de esos elementos existe en el prototipo. Ahora describen la
+inicialización de la instancia: la primera cuenta Owner se crea solo cuando no
+existen usuarios y recibe una única vez su clave TOTP, la URI de configuración y
+ocho códigos de recuperación. Los identificadores se conservaron, por lo que no
+se renumeraron historias ni casos de uso. CU-02 y la sección de invitaciones
+dejaron de mencionar un cupo de cuentas.
+
+El texto de CU-01 se contrastó con `bootstrap_owner`, la validación de correo y
+contraseña, la inserción del primer Owner bajo el bloqueo de mutaciones
+auditadas, la composición de Argon2id y del cifrado del secreto TOTP, la ruta
+HTTP y las vistas de acceso y enrolamiento de Qadra. Sus flujos alternos
+registran el rechazo cuando ya existen usuarios, los datos inválidos, el alta
+concurrente y la pérdida del material antes de resguardarlo.
+
+Los diagramas de CU-01, CU-04, CU-05 y CU-09 eran imágenes raster que mostraban
+un tenant aislado con plan, acceso a recursos de otro tenant, duplicidad de NUC
+en el tenant y calendario por tenant. Se redibujaron como fuentes TikZ con el
+estilo de los diagramas de CU-16 y CU-17. CU-04, CU-05 y CU-09 conservan
+actores, inclusiones, extensiones y notas; solo cambiaron las menciones de
+tenant y las referencias RF de sus notas, que ahora coinciden con sus tablas.
+Se retiraron `image5.png`, `image8.png`, `image9.png` e `image13.png`, que ya
+no se usan. Las demás imágenes raster incluidas se revisaron y no contienen
+planes ni tenants.
+
+Se compiló con LuaHBTeX 1.17.0 (TeX Live 2023), biber 2.22 y latexmk 4.88 en
+Fedora 43, con Times New Roman local. El reporte produjo **461 páginas**, sin
+referencias ni citas indefinidas. El log conserva las sustituciones de
+versalitas y los dos desbordes horizontales ya existentes. Se inspeccionaron las
+páginas de las historias de identidad, la tabla y el diagrama de CU-01 y los
+diagramas de CU-04, CU-05 y CU-09. El texto extraído del PDF solo menciona
+tenant en la delimitación de una sola instancia, el requerimiento de
+segregación y la decisión de diseño correspondiente.
+
 ## Reorganización por dominios de implementación y pruebas: 20 de octubre de 2026
 
 Los capítulos 4 y 5 y el anexo E se reorganizaron por dominio, en el mismo
