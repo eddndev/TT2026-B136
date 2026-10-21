@@ -39,6 +39,21 @@ diagramas de CU-04, CU-05 y CU-09. El texto extraído del PDF solo menciona
 tenant en la delimitación de una sola instancia, el requerimiento de
 segregación y la decisión de diseño correspondiente.
 
+En la misma fecha se corrigieron otras discrepancias del catálogo de identidad.
+La figura de CU-02 mostraba el modelo de datos inicial y no un diagrama de casos
+de uso; se dibujó en TikZ a partir de su tabla. Su flujo alterno de baja
+rechazaba que el Owner se diera de baja a sí mismo, pero el código solo impide
+quedarse sin un Owner activo, y ahora lo describe así. CU-03 presentaba el
+segundo factor como opcional y su diagrama lo representaba como extensión;
+el inicio de sesión siempre emite un desafío de cinco minutos para TOTP o código
+de recuperación, también después del primer factor por certificado. El texto y
+el nuevo diagrama TikZ lo muestran como inclusión obligatoria. Se retiraron
+`image6.png` e `image7.png`. Fuera del manuscrito, `docs/http-api.md` describe
+el bloqueo consultivo transaccional que serializa el alta inicial, y
+`docs/product-completion.md` usa el nombre vigente de CU-01. La compilación con
+el mismo entorno produjo **461 páginas** sin referencias indefinidas, y se
+inspeccionaron las páginas de CU-02 y CU-03.
+
 ## Reorganización por dominios de implementación y pruebas: 20 de octubre de 2026
 
 Los capítulos 4 y 5 y el anexo E se reorganizaron por dominio, en el mismo
